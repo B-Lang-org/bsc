@@ -4371,6 +4371,7 @@ improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
   let chrArgType = iGetType chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
+{-
 improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                   els@(ICon _ (ICUndet { iuKind = u })) = do
   when doTraceIf $ traceM ("improveIf PrimChr/Undet triggered " ++ show (cnd,thn,els))
@@ -4389,7 +4390,7 @@ improveIf f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
   chr_thn <- toHeapWHNFInferName "improve-if" (pExprToHExpr pe_chr_thn)
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
-
+-}
 improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_thn, res_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimSetSelPosition)) ts2 [pos_els, res_els])
     | (pos_thn == pos_els) = do
@@ -4409,9 +4410,9 @@ improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_
 -- mildly duplicates some work in doIf (isUndet thn)
 -- but the overlapping work for els has been moved here
 improveIf f t cnd thn els | ICon _ (ICUndet { iuKind = u }) <- thn,
-                            u == UNoMatch || u == UNotUsed || isSimpleType t = return (els, True)
+                            (u == UNoMatch || u == UNotUsed) && isSimpleType t = return (els, True)
 improveIf f t cnd thn els | ICon _ (ICUndet { iuKind = u }) <- els,
-                            u == UNoMatch || u == UNotUsed || isSimpleType t = return (thn, True)
+                            (u == UNoMatch || u == UNotUsed) && isSimpleType t = return (thn, True)
 improveIf f t cnd thn els = do
   when doTrans $ traceM ("improveIf: iTransform fallthrough: " ++ ppReadable (cnd, thn, els))
   errh <- getErrHandle
