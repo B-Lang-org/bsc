@@ -565,6 +565,7 @@ defaultFlags bluespecdir = Flags {
         optMuxConst = True,
         optSched = True,
         optUndet = False,
+        optUndetExpand = False,
         crossInfo = False,
         parallelSimLink = 1,
         printFlags = False,
@@ -1324,6 +1325,10 @@ externalFlags = [
         ("opt-undetermined-vals",
          (Toggle (\f x -> f {optUndet=x}) (showIfTrue optUndet),
           "aggressive optimization of undetermined values", Visible)),
+
+        ("opt-undet-expand",
+         (Toggle (\f x -> f {optUndetExpand=x}) (showIfTrue optUndetExpand),
+          "internal optimization of undetermined values during static elaboration", Hidden)),
 
         ("p",
          (Arg "path" (\f s -> Left (f {ifcPathRaw = splitPath' f s ifcPathRaw})) (showPath ifcPathRaw),

@@ -88,6 +88,7 @@ data Flags = Flags {
         optMuxConst :: Bool,
         optSched :: Bool,
         optUndet :: Bool,
+        optUndetExpand :: Bool,
         crossInfo :: Bool,
         parallelSimLink :: Integer,
         printFlags :: Bool,

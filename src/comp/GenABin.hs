@@ -32,7 +32,7 @@ import qualified Data.Map as M
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header
 header :: [Byte]
-header = "bsc-20200312-1"
+header = "bsc-20200417-1"
 
 genABinFile :: ErrorHandle -> String -> ABin -> IO ()
 genABinFile errh fn abin =
@@ -563,7 +563,7 @@ instance Bin Flags where
                 a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
                 a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
                 a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
-                a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137) =
+                a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137 a_138) =
        do toBin a_000; toBin a_001; toBin a_002; toBin a_003; toBin a_004;
           toBin a_005; toBin a_006; toBin a_007; toBin a_008; toBin a_009;
           toBin a_010; toBin a_011; toBin a_012; toBin a_013; toBin a_014;
@@ -591,7 +591,7 @@ instance Bin Flags where
           toBin a_120; toBin a_121; toBin a_122; toBin a_123; toBin a_124;
           toBin a_125; toBin a_126; toBin a_127; toBin a_128; toBin a_129;
           toBin a_130; toBin a_131; toBin a_132; toBin a_133; toBin a_134;
-          toBin a_135; toBin a_136; toBin a_137
+          toBin a_135; toBin a_136; toBin a_137; toBin a_138
     readBytes =
        do a_000 <- fromBin; a_001 <- fromBin; a_002 <- fromBin; a_003 <- fromBin; a_004 <- fromBin;
           a_005 <- fromBin; a_006 <- fromBin; a_007 <- fromBin; a_008 <- fromBin; a_009 <- fromBin;
@@ -620,7 +620,7 @@ instance Bin Flags where
           a_120 <- fromBin; a_121 <- fromBin; a_122 <- fromBin; a_123 <- fromBin; a_124 <- fromBin;
           a_125 <- fromBin; a_126 <- fromBin; a_127 <- fromBin; a_128 <- fromBin; a_129 <- fromBin;
           a_130 <- fromBin; a_131 <- fromBin; a_132 <- fromBin; a_133 <- fromBin; a_134 <- fromBin;
-          a_135 <- fromBin; a_136 <- fromBin; a_137 <- fromBin
+          a_135 <- fromBin; a_136 <- fromBin; a_137 <- fromBin; a_138 <- fromBin;
           return (Flags
                 a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
                 a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
@@ -635,7 +635,7 @@ instance Bin Flags where
                 a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
                 a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
                 a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
-                a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137)
+                a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137 a_138)
 
 -- ----------
 
