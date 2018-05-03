@@ -4389,15 +4389,13 @@ improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_
 
 improveIf f t cnd thn els = do
   flags <- getFlags
-  if optUndetExpand flags
-  then improveIfUndet f t cnd thn els
-  else improveIfTrans f t cnd thn els
+  improveIfUndet (optUndetExpand flags) f t cnd thn els
 
 -- This carves out the improveIf clauses that touch undetermined values so
 -- that these transformations can be flag-controlled.
-improveIfUndet :: HExpr -> IType -> HExpr -> HExpr -> HExpr -> G (HExpr, Bool)
-improveIfUndet f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
-                       els@(ICon _ (ICUndet { iuKind = u })) = do
+improveIfUndet :: Bool -> HExpr -> IType -> HExpr -> HExpr -> HExpr -> G (HExpr, Bool)
+improveIfUndet True f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
+                            els@(ICon _ (ICUndet { iuKind = u })) = do
   when doTraceIf $ traceM ("improveIf PrimChr/Undet triggered " ++ show (cnd,thn,els))
   let chrArgType = iGetType chr_thn
   -- XXX or should we complain if a generated _ has an implicit condition?
@@ -4405,8 +4403,8 @@ improveIfUndet f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
   chr_els <- toHeapWHNFInferName "improve-if" (pExprToHExpr pe_chr_els)
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
-improveIfUndet f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
-                       els@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_els]) = do
+improveIfUndet True f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
+                            els@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_els]) = do
   when doTraceIf $ traceM ("improveIf Undet/PrimChr triggered " ++ show (cnd,thn,els))
   let chrArgType = iGetType chr_els
   -- XXX or should we complain if a generated _ has an implicit condition?
@@ -4417,13 +4415,15 @@ improveIfUndet f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
 -- improve a subcomponent by checking for _ or equality
 -- mildly duplicates some work in doIf (isUndet thn)
 -- but the overlapping work for els has been moved here
-improveIfUndet f t cnd thn els
+improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- thn,
-    u == UNoMatch || u == UNotUsed || isSimpleType t = return (els, True)
-improveIfUndet f t cnd thn els
+  -- Undet optimization for simple/static types line String, Integer, etc.
+  -- is not optional because otherwise raw undetermined values can be exposed downstream.
+    optUndetExp && (u == UNoMatch || u == UNotUsed) || isSimpleType t = return (els, True)
+improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- els,
-    u == UNoMatch || u == UNotUsed || isSimpleType t = return (thn, True)
-improveIfUndet f t cnd thn els = improveIfTrans f t cnd thn els
+    optUndetExp && (u == UNoMatch || u == UNotUsed) || isSimpleType t = return (thn, True)
+improveIfUndet _ f t cnd thn els = improveIfTrans f t cnd thn els
 
 -- After undetermined-value handling / skipping, improveIf tries iTransform before giving up.
 improveIfTrans :: HExpr -> IType -> HExpr -> HExpr -> HExpr -> G (HExpr, Bool)
