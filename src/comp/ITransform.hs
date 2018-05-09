@@ -1342,7 +1342,10 @@ isIfElseOfIConInt (IAps (ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) =
         isIfElseOfIConInt' thn && isIfElseOfIConInt' els
     isIfElseOfIConInt' (ICon _ (ICValue { iValDef = e })) =
         isIfElseOfIConInt' e
-    isIfElseOfIConInt' e = isIConInt e
+    -- Even if we've picked the undetermined value, the ifElseOf tree simplification
+    -- is still worth doing.
+    isIfElseOfIConInt' (ICon _ (ICUndet { imVal = Just e })) = isIfElseOfIConInt' e
+    isIfElseOfIConInt' e = isIConInt e || isUndet e
 isIfElseOfIConInt (ICon _ (ICValue { iValDef = e })) = isIfElseOfIConInt e
 isIfElseOfIConInt _ = False
 
