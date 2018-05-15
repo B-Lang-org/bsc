@@ -425,6 +425,7 @@ traceflags = [
           "trace-eval-steps",
           "trace-eval-types",
           "trace-eval-if",
+          "trace-eval-if-undet",
           "trace-eval-nf",
           "trace-eval-trans",
           "trace-full",
