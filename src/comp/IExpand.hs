@@ -4432,12 +4432,12 @@ improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- thn,
   -- Undet optimization for simple/static types line String, Integer, etc.
   -- is not optional because otherwise raw undetermined values can be exposed downstream.
-    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || isSimpleType t = do
+    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || not (isIConInt els) || isSimpleType t = do
       when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
       return (els, True)
 improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- els,
-    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || isSimpleType t = do
+    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || not (isIConInt thn) || isSimpleType t = do
       when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
       return (thn, True)
 improveIfUndet _ f t cnd thn els = improveIfTrans f t cnd thn els
