@@ -1008,7 +1008,7 @@ tiPrimArray = TIabstract
 
 tiPair, tiBool, tiAction, tiRules, tiString, tiChar :: TISort
 tiPair    = TIstruct SStruct [idPrimFst, idPrimSnd]
-tiBool    = TIdata [idFalse, idTrue]
+tiBool    = tiEnum [idFalse, idTrue]
 tiAction  = TIabstract
 tiRules   = TIabstract
 tiString  = TIabstract
@@ -1016,9 +1016,9 @@ tiChar    = TIabstract
 
 tiHandle, tiBufferMode, tiMaybe, tiList, tiFmt :: TISort
 tiHandle  = TIabstract
-tiBufferMode = TIdata [idNoBuffering, idLineBuffering, idBlockBuffering]
-tiMaybe   = TIdata [idInvalid, idValid]
-tiList    = TIdata [idNil noPosition, idCons noPosition]
+tiBufferMode = tiEnum [idNoBuffering, idLineBuffering, idBlockBuffering]
+tiMaybe   = tiData [idInvalid, idValid]
+tiList    = tiData [idNil noPosition, idCons noPosition]
 tiFmt     = TIabstract
 
 tiUnit, tiPosition, tiType, tiName, tiPred, tiSchedPragma :: TISort

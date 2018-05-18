@@ -187,7 +187,7 @@ instance TclObjCvt TISort where
                             tfs <- toTclObj t
                             toTclObj $ TLst [TStr "alias", TCL tfs]
 
-    toTclObj (TIdata is)  = do
+    toTclObj (TIdata is _)  = do
                             tfs <- mapM toTclObj is
                             toTclObj $ TLst [TStr "enum", TLst (map TCL tfs)]
 

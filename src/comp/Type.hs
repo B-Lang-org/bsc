@@ -1,5 +1,6 @@
 module Type where
 import ErrorUtil(internalError)
+import Id(Id)
 import Position(Position, noPosition)
 import PreIds
 import PPrint(ppReadable)
@@ -17,9 +18,13 @@ tInt = TCon (TyCon idInt (Just (Kfun KNum KStar)) TIabstract)
 tIntAt :: Position -> Type
 tIntAt pos = TCon (TyCon (idIntAt pos) (Just (Kfun KNum KStar)) TIabstract)
 
+tiData, tiEnum :: [Id] -> TISort
+tiEnum cons = TIdata { tidata_cons = cons, tidata_enum = True }
+tiData cons = TIdata { tidata_cons = cons, tidata_enum = False }
+
 tUInt, tBool, tPrimUnit :: Type
 tUInt = TCon (TyCon idUInt (Just (Kfun KNum KStar)) TIabstract)
-tBool = TCon (TyCon idBool (Just KStar) (TIdata [idFalse, idTrue]))
+tBool = TCon (TyCon idBool (Just KStar) (tiEnum [idFalse, idTrue]))
 --tArray = TCon (TyCon idArray (Just (Kfun KNum (Kfun KNum KStar))) (TIstruct SInterface [id_sub, id_upd]))
 tPrimUnit = TCon (TyCon idPrimUnit (Just KStar) (TIstruct SStruct []))
 
@@ -95,7 +100,7 @@ tNat pos = tBitN 32 pos
 
 tFile, tSvaParam :: Type
 tFile = TCon (TyCon idFile (Just KStar) TIabstract)
-tSvaParam  = TCon (TyCon idSvaParam (Just KStar) (TIdata [idSvaBool, idSvaNumber]))
+tSvaParam  = TCon (TyCon idSvaParam (Just KStar) (tiData [idSvaBool, idSvaNumber]))
 
 fn         :: Type -> Type -> Type
 a `fn` b    = TAp (TAp tArrow a) b

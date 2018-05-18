@@ -29,6 +29,7 @@ import IdPrint()
 import Error(internalError, EMsg, EMsgs(..), ErrMsg(..),
              ErrorHandle, bsError, bsErrorUnsafe)
 import CSyntax
+import CSyntaxUtil(isEnum)
 import SymTab
 import CType
 import CFreeVars(getFTCDn, getVDefIds, getFTyCons)
@@ -670,7 +671,9 @@ getTI _ mi _ iks data_decl@(Cdata {}) =
   where i = qual mi (iKName (cd_name data_decl))
         k = getK iks (cd_name data_decl)
         vs = cd_type_vars data_decl
-        ti = TIdata (map getCISName (cd_internal_summands data_decl))
+        ti = TIdata { tidata_cons = (map getCISName (cd_internal_summands data_decl))
+                    , tidata_enum = (isEnum (cd_original_summands data_decl))
+                    }
 getTI _ mi _ iks (Cstruct _ ss ik vs fs _) =
     [(i, TypeInfo (Just i) (getK iks ik) vs (TIstruct ss (map cf_name fs)))]
   where i = qual mi (iKName ik)
