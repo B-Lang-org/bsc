@@ -561,11 +561,26 @@ doDBits dpos type_name type_vars original_tags tags =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
-            | otherwise = zipWith mkPk tags field_bit_sizes
+            | otherwise = zipWith mkPk tags field_bit_sizes ++ [packLast]
         mkPk tag field_sz =
             CClause [CPCon1 type_name (getCISName tag) (CPVar id_x)] []
                         (cVApply idPrimConcat
                          [litSz (cis_tag_encoding tag), pkBody field_sz])
+
+        -- Construct a custom fallthrough case to help (pack . unpack)
+        -- optimize to the identity. Explicitly using anyExpr instead of relying
+        -- on the UNoMatch case inserted by IConv means that this undetermined value
+        -- will not optimize away during static elaboration, preserving structure
+        -- that ITransform can rebuild into an identity.
+        -- The explicit tag ++ payload concatenation is not strictly necessary,
+        -- but should help make the reconstruction more robust now that
+        -- improveIf in IExpand can merge matching bit concatenations.
+        packLast = CClause [CPAny decl_position] []
+                           (cVApply idPrimConcat
+                                    [ hasSz (anyExprAt decl_position) num_tag_bits_ctype
+                                    , anyExprAt decl_position
+                                    ])
+
         pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
                                           hasSz (cVApply idPack [vx]) sz ]
         litSz k = hasSz (CLit $ num_to_cliteral_at decl_position k)
