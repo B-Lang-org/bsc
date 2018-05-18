@@ -4372,6 +4372,14 @@ improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
 
+improveIf f t cnd thn@(IAps concat@(ICon _ (ICPrim _ PrimConcat)) ts1@[ITNum sx, ITNum sy, _] [thn_x, thn_y])
+                  els@(IAps        (ICon _ (ICPrim _ PrimConcat)) ts2                         [els_x, els_y])
+  | ts1 == ts2 = do
+  when doTraceIf $ traceM ("improveIf PrimConcat triggered " ++ show (cnd,thn,els))
+  (x', _) <- improveIf f (itBitN sx) cnd thn_x els_x
+  (y', _) <- improveIf f (itBitN sy) cnd thn_y els_y
+  return (IAps concat ts1 [x', y'], True)
+
 improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_thn, res_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimSetSelPosition)) ts2 [pos_els, res_els])
     | (pos_thn == pos_els) = do
