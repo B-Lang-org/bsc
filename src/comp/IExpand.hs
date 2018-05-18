@@ -3136,10 +3136,11 @@ conAp' c (ICSel { iConType = selty, selNo = n }) sel as =
 
 -- constructors are non-strict
 
--- turn all unit-argument / no-argument constructiors into PrimChr
--- this is safe because the difference is not observable, and it helps with
--- improveIf
-conAp' i (ICCon ict conNo numCon) _ as | hasNoArg =
+-- turn enumeration constructors into PrimChr
+-- this helps with improveIf, but must be restricted to enumerations
+-- because it can create problems with undetermined-value optimizations
+-- (see: ICCon/Undet in improveIfUndet)
+conAp' i (ICCon ict conNo numCon) _ as | hasNoArg && isEnumType =
     evalAp "ICCon Enum" icPrimChr (T (mkNumConT (log2 numCon)) :  T resultType :  E bitExpr : as')
   where bitExpr    = mkAp icPrimIntegerToBit [T (mkNumConT (log2 numCon)), E (iMkLit itInteger conNo)]
         (hasNoArg, resultType, argsToDrop) =
@@ -3147,6 +3148,9 @@ conAp' i (ICCon ict conNo numCon) _ as | hasNoArg =
                      ([t], resultType) | t == itPrimUnit -> (True, resultType, 1)
                      _ -> (False, internalError("no resultType"), internalError ("no argsToDrop"))
         as' = drop argsToDrop $ dropT as
+        isEnumType = case resultType of
+                       ITCon _ _ (TIdata { tidata_enum = b}) -> b
+                       _ -> False
 
 conAp' _ (ICCon { }) c as = bldAp' "ICCon" c as
 conAp' _ (ICTuple { }) c as = bldAp' "ICTuple" c as
@@ -4425,6 +4429,14 @@ improveIfUndet True f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
   chr_thn <- toHeapWHNFInferName "improve-if" (pExprToHExpr pe_chr_thn)
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
+-- Do not optimize constructors against undetermined values.
+-- It creates strings of != tests when constructor-matching.
+improveIfUndet False f t cnd thn@(IAps (ICon _ (ICCon {})) _ _) els@(ICon _ (ICUndet {})) = do
+  when doTraceIfUndet $ traceM $ "improveIf block ICCon/ICUndet " ++ ppReadable (cnd, thn, els)
+  return (IAps f [t] [cnd, thn, els], False)
+improveIfUndet False f t cnd thn@(IAps (ICon _ (ICUndet {})) _ _) els@(ICon _ (ICCon {})) = do
+  when doTraceIfUndet $ traceM $ "improveIf block ICUndet/ICCon " ++ ppReadable (cnd, thn, els)
+  return (IAps f [t] [cnd, thn, els], False)
 -- improve a subcomponent by checking for _ or equality
 -- mildly duplicates some work in doIf (isUndet thn)
 -- but the overlapping work for els has been moved here
