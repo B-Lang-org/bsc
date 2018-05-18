@@ -4372,6 +4372,16 @@ improveIf f t cnd (IAps (ICon i1 c1@(ICTuple {})) ts1 es1)
   -- unambiguous improvement since the ICTuple has propagated out
   return ((IAps (ICon i1 c1) ts1 es'), True)
 
+-- push if improvement inside bit concatenations with matching boundaries
+-- this is a post-pack version of the struct/tuple case above
+improveIf f t cnd thn@(IAps concat@(ICon _ (ICPrim _ PrimConcat)) ts1@[ITNum sx, ITNum sy, _] [thn_x, thn_y])
+                  els@(IAps        (ICon _ (ICPrim _ PrimConcat)) ts2                         [els_x, els_y])
+  | ts1 == ts2 = do
+  when doTraceIf $ traceM ("improveIf PrimConcat triggered " ++ ppReadable (cnd,thn,els))
+  (x', _) <- improveIf f (itBitN sx) cnd thn_x els_x
+  (y', _) <- improveIf f (itBitN sy) cnd thn_y els_y
+  return (IAps concat ts1 [x', y'], True)
+
 improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimChr)) ts2 [chr_els]) = do
   when doTraceIf $ traceM ("improveIf PrimChr triggered " ++ show (cnd,thn,els))
