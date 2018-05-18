@@ -4437,19 +4437,31 @@ improveIfUndet False f t cnd thn@(IAps (ICon _ (ICCon {})) _ _) els@(ICon _ (ICU
 improveIfUndet False f t cnd thn@(IAps (ICon _ (ICUndet {})) _ _) els@(ICon _ (ICCon {})) = do
   when doTraceIfUndet $ traceM $ "improveIf block ICUndet/ICCon " ++ ppReadable (cnd, thn, els)
   return (IAps f [t] [cnd, thn, els], False)
+-- ICInt is another kind of "constructor" and optimizing it against ICUndet
+-- interferes with tag reconstruction in (pack . unpack)
+-- Note: It is important to do other iTransform-based ICInt/ICUndet optimizations
+-- because they include useful boolean optimizations (preventing -opt-undet-expand stack overflows).
+improveIfUndet False f t cnd thn@(ICon _ (ICInt{})) els@(ICon _ (ICUndet{}))
+  | isBitType t = do
+  when doTraceIfUndet $ traceM $ "improveIf block ICInt/ICUndet " ++ ppReadable (cnd, thn, els)
+  improveIfTrans f t cnd thn els
+improveIfUndet False f t cnd thn@(ICon _ (ICUndet{})) els@(ICon _ (ICInt{}))
+  | isBitType t = do
+  when doTraceIfUndet $ traceM $ "improveIf block ICUndet/ICInt " ++ ppReadable (cnd, thn, els)
+  improveIfTrans f t cnd thn els
 -- improve a subcomponent by checking for _ or equality
 -- mildly duplicates some work in doIf (isUndet thn)
 -- but the overlapping work for els has been moved here
-improveIfUndet optUndetExp f t cnd thn els
+improveIfUndet _ f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- thn,
   -- Undet optimization for simple/static types line String, Integer, etc.
   -- is not optional because otherwise raw undetermined values can be exposed downstream.
-    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || not (isIConInt els) || isSimpleType t = do
+    u == UNoMatch || u == UNotUsed || isSimpleType t = do
       when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
       return (els, True)
-improveIfUndet optUndetExp f t cnd thn els
+improveIfUndet _ f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- els,
-    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || not (isIConInt thn) || isSimpleType t = do
+    u == UNoMatch || u == UNotUsed || isSimpleType t = do
       when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
       return (thn, True)
 improveIfUndet _ f t cnd thn els = improveIfTrans f t cnd thn els
