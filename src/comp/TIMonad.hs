@@ -573,10 +573,10 @@ findFields struct_ty0 field_id = do
         getSortInfo qtc TIabstract =
             -- this should only occur for primitives
             (True, Nothing)
-        getSortInfo qtc (TIdata []) =
+        getSortInfo qtc (TIdata [] _) =
             -- XXX we can't tell if its fields are visible
             (True, Nothing)
-        getSortInfo qtc (TIdata (c:_)) =
+        getSortInfo qtc (TIdata (c:_) _) =
             case (findCon symt c) of
               Nothing -> internalError ("getSortInfo findCon: " ++
                                         ppReadable (qtc, c))

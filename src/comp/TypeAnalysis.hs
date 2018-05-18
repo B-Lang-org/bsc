@@ -229,7 +229,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
               unused_as = genericDrop n as
           in  Right $ Alias qi k vs (cTApplys inst_t' unused_as)
     -- enum / tagged union
-    analyzeNonNumTCon t qi k vs as isC (TIdata constructors) =
+    analyzeNonNumTCon t qi k vs as isC (TIdata constructors is_enum) =
         if (qi == idInt)
         then Right $ Primary qi k vs isC (w t)
         else if (qi == idUInt)
@@ -252,13 +252,6 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
           let conInfos = map (getConInfo symtab qi) constructors
               getConType (ConInfo _ _ (i :>: (Forall ks (ps :=> t))) _ _) = t
               getConName (ConInfo _ _ (i :>: _) _ _) = i
-              hasVoidArg t =
-                  case (fst (getArrows t)) of
-                      [TCon (TyCon i _ _)] | i == idPrimUnit -> True
-                      _ -> False
-              -- an enum has fields with no data and the type has no params
-              is_enum = (all hasVoidArg (map getConType conInfos)) &&
-                        (k == KStar)
           in
               -- figure out if it's enum or tagged union
               if (is_enum)

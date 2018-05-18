@@ -23,7 +23,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = "bsc-20180511-1"
+header = "bsc-20180813-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()

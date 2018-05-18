@@ -1246,7 +1246,7 @@ instance PVPrint PartialKind where
 
 instance PVPrint TISort where
     pvPrint d p (TItype n t) = pparen (p>0) $ text "TItype" <+> pvPrint d 0 n <+> pvPrint d 1 t
-    pvPrint d p (TIdata is) = pparen (p>0) $ text "TIdata" <+> pvPrint d 1 is
+    pvPrint d p (TIdata is enum) = pparen (p>0) $ text (if enum then "TIdata (enum)" else "TIdata") <+> pvPrint d 1 is
     pvPrint d p (TIstruct ss is) = pparen (p>0) $ text "TIstruct" <+> pvPrint d 1 ss <+> pvPrint d 1 is
     pvPrint d p (TIabstract) = text "TIabstract"
 

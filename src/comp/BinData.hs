@@ -1284,14 +1284,14 @@ instance Bin TyCon where
 
 instance Bin TISort where
     writeBytes (TItype i t)     = do putI 0; toBin i; toBin t
-    writeBytes (TIdata is)      = do putI 1; toBin is
+    writeBytes (TIdata is enum) = do putI 1; toBin is; toBin enum
     writeBytes (TIstruct su is) = do putI 2; toBin su; toBin is
     writeBytes (TIabstract)     = do putI 3
     readBytes = do
         i <- getI
         case i of
           0 -> do i <- fromBin; t <- fromBin; return (TItype i t)
-          1 -> do is <- fromBin; return (TIdata is)
+          1 -> do is <- fromBin; enum <- fromBin; return (TIdata is enum)
           2 -> do su <- fromBin; is <- fromBin; return (TIstruct su is)
           3 -> return TIabstract
           n -> internalError $ "BinData.Bin(TISort).readBytes: " ++ show n
