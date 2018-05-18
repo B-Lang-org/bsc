@@ -167,6 +167,11 @@ doTracePortTypes = elem "-trace-port-types" progArgs
 doTraceIf :: Bool
 doTraceIf = elem "-trace-eval-if" progArgs
 
+-- doTraceIfUndet
+--   Trace the "doIf" and "improveIf" functions for evaluating if exprs.
+--   Only trace cases involving undetermined values.
+doTraceIfUndet = elem "-trace-eval-if-undet" progArgs ||  doTraceIf
+
 -- doTraceTypes
 --   Add a check that the type of an expression before and after evaluation
 --   (by "evalAp") doesn't match, with an internal error if not.
@@ -4404,7 +4409,7 @@ improveIf f t cnd thn els = do
 improveIfUndet :: Bool -> HExpr -> IType -> HExpr -> HExpr -> HExpr -> G (HExpr, Bool)
 improveIfUndet True f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
                             els@(ICon _ (ICUndet { iuKind = u })) = do
-  when doTraceIf $ traceM ("improveIf PrimChr/Undet triggered " ++ show (cnd,thn,els))
+  when doTraceIfUndet $ traceM ("improveIf PrimChr/Undet triggered " ++ ppReadable (cnd,thn,els))
   let chrArgType = iGetType chr_thn
   -- XXX or should we complain if a generated _ has an implicit condition?
   pe_chr_els <- doBuildUndefined chrArgType (getIExprPosition els) (undefKindToInteger u) []
@@ -4427,10 +4432,14 @@ improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- thn,
   -- Undet optimization for simple/static types line String, Integer, etc.
   -- is not optional because otherwise raw undetermined values can be exposed downstream.
-    optUndetExp && (u == UNoMatch || u == UNotUsed) || isSimpleType t = return (els, True)
+    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || isSimpleType t = do
+      when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
+      return (els, True)
 improveIfUndet optUndetExp f t cnd thn els
   | ICon _ (ICUndet { iuKind = u }) <- els,
-    optUndetExp && (u == UNoMatch || u == UNotUsed) || isSimpleType t = return (thn, True)
+    (optUndetExp && (u == UNoMatch || u == UNotUsed)) || isSimpleType t = do
+      when doTraceIfUndet $ traceM $ "improveIf undet-expand: " ++ ppReadable (cnd, thn, els)
+      return (thn, True)
 improveIfUndet _ f t cnd thn els = improveIfTrans f t cnd thn els
 
 -- After undetermined-value handling / skipping, improveIf tries iTransform before giving up.
