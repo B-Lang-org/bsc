@@ -510,6 +510,7 @@ defaultFlags bluespecdir = Flags {
         cpp = False,
         defines = [],
         demoteErrors = SomeMsgs [],
+        derivePackLast = False,
         disableAssertions = False,
         passThroughAssertions = False,
         doICheck = True,
@@ -1330,6 +1331,10 @@ externalFlags = [
         ("opt-undet-expand",
          (Toggle (\f x -> f {optUndetExpand=x}) (showIfTrue optUndetExpand),
           "internal optimization of undetermined values during static elaboration", Hidden)),
+
+        ("derive-pack-last-clause",
+         (Toggle (\f x -> f {derivePackLast=x}) (showIfTrue derivePackLast),
+          "Add a special clause to derived pack functions to help (pack . unpack) optimize away", Hidden)),
 
         ("p",
          (Arg "path" (\f s -> Left (f {ifcPathRaw = splitPath' f s ifcPathRaw})) (showPath ifcPathRaw),
