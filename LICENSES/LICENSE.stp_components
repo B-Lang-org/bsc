@@ -1,0 +1,174 @@
+STP links to copyrighted librarys:
+	* Minisat Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson.
+	* Bit::Vector Copyright (c) 1995 - 2004 by Steffen Beyer. 
+	* CVC's SMT-LIB Parser  Copyright (C) 2004 by the Board of Trustees of Leland Stanford Junior University and by New York University.
+	* CryptoMinisat Copyright (c) 2009 Mate Soos
+	* ocaml-wrapper Copyright BitBlaze, 2007. All rights reserved.
+	* ABC by Alan Mishchenko
+	* Boost by various: http://www.boost.org/
+
+MINISAT
+	/****************************************************************************************
+	MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+	associated documentation files (the "Software"), to deal in the Software without restriction,
+	including without limitation the rights to use, copy, modify, merge, publish, distribute,
+	sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all copies or
+	substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+	NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+	OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	**************************************************************************************************/
+
+Bit::Vector
+	/*****************************************************************************/
+	/*  LICENSE:                                                                 */
+	/*****************************************************************************/
+	/*                                                                           */
+	/*    This library is free software; you can redistribute it and/or          */
+	/*    modify it under the terms of the GNU Library General Public            */
+	/*    License as published by the Free Software Foundation; either           */
+	/*    version 2 of the License, || (at your option) any later version.       */
+	/*                                                                           */
+	/*    This library is distributed in the hope that it will be useful,        */
+	/*    but WITHOUT ANY WARRANTY; without even the implied warranty of         */
+	/*    MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE. See the GNU       */
+	/*    Library General Public License for more details.                       */
+	/*                                                                           */
+	/*    You should have received a copy of the GNU Library General Public      */
+	/*    License along with this library; if not, write to the                  */
+	/*    Free Software Foundation, Inc.,                                        */
+	/*    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA                  */
+	/*                                                                           */
+	/*    || download a copy from ftp://ftp.gnu.org/pub/gnu/COPYING.LIB-2.0      */
+	/*                                                                           */
+	/*****************************************************************************/
+
+CVC's SMT-LIB Parser
+	 /********************************************************************
+	   *
+	   * \file smtlib.y
+	   * 
+	   * Author: Sergey Berezin, Clark Barrett
+	   * 
+	   * Created: Apr 30 2005
+	   *
+	   * <hr>
+	   * Copyright (C) 2004 by the Board of Trustees of Leland Stanford
+	   * Junior University and by New York University. 
+	   *
+	   * License to use, copy, modify, sell and/or distribute this software
+	   * and its documentation for any purpose is hereby granted without
+	   * royalty, subject to the terms and conditions defined in the \ref
+	   * LICENSE file provided with this distribution.  In particular:
+	   *
+	   * - The above copyright notice and this permission notice must appear
+	   * in all copies of the software and related documentation.
+	   *
+	   * - THE SOFTWARE IS PROVIDED "AS-IS", WITHOUT ANY WARRANTIES,
+	   * EXPRESSED OR IMPLIED.  USE IT AT YOUR OWN RISK.
+	   * 
+	   * <hr>
+	   ********************************************************************/
+
+Cryptominisat
+	CryptoMiniSat -- Copyright (c) 2009 Mate Soos
+
+	Permission is hereby granted, free of charge, to any person obtaining a
+	copy of this software and associated documentation files (the
+	"Software"), to deal in the Software without restriction, including
+	without limitation the rights to use, copy, modify, merge, publish,
+	distribute, sublicense, and/or sell copies of the Software, and to
+	permit persons to whom the Software is furnished to do so, subject to
+	the following conditions:
+
+	The above copyright notice and this permission notice shall be included
+	in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+	LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+	OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+ocaml-wrapper
+	//////////////////////////////////////////////////////////
+	//
+	// Owned and copyright BitBlaze, 2007. All rights reserved.
+	// 
+	//////////////////////////////////////////////////////////
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files (the
+	"Software"), to deal in the Software without restriction, including
+	without limitation the rights to use, copy, modify, merge, publish,
+	distribute, sublicense, and/or sell copies of the Software, and to
+	permit persons to whom the Software is furnished to do so, subject to
+	the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+	LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+	OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ABC
+	Copyright (c) The Regents of the University of California. All rights reserved.
+
+	Permission is hereby granted, without written agreement and without license or
+	royalty fees, to use, copy, modify, and distribute this software and its
+	documentation for any purpose, provided that the above copyright notice and
+	the following two paragraphs appear in all copies of this software.
+
+	IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
+	DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+	THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
+	CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+	THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+	BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+	A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS,
+	AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE,
+	SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+
+
+Boost
+	Boost Software License - Version 1.0 - August 17th, 2003
+
+	Permission is hereby granted, free of charge, to any person or organization
+	obtaining a copy of the software and accompanying documentation covered by
+	this license (the "Software") to use, reproduce, display, distribute,
+	execute, and transmit the Software, and to prepare derivative works of the
+	Software, and to permit third-parties to whom the Software is furnished to
+	do so, all subject to the following:
+
+	The copyright notices in the Software and this entire statement, including
+	the above license grant, this restriction and the following disclaimer,
+	must be included in all copies of the Software, in whole or in part, and
+	all derivative works of the Software, unless such copies or derivative
+	works are solely in the form of machine-executable object code generated by
+	a source language processor.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+	SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+	FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+	ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+	DEALINGS IN THE SOFTWARE.

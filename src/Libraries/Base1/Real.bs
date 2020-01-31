@@ -1,0 +1,117 @@
+package Real(
+
+	-- trigonometric functions
+	sin, cos, tan, sinh, cosh, tanh,
+	asin, acos, atan, asinh, acosh, atanh,
+	atan2,
+	-- exponentiation
+	pow,
+	-- square root
+	sqrt,
+	-- constants
+	pi,
+	-- rounding
+	trunc, ceil, floor, round,
+	-- introspection
+	splitReal, decodeReal, realToDigits,
+	isInfinite, isNegativeZero
+
+	) where
+
+-- ---------------
+-- trigonometric functions
+
+sin :: Real -> Real
+sin = primRealSin
+
+cos :: Real -> Real
+cos = primRealCos
+
+tan :: Real -> Real
+tan = primRealTan
+
+sinh :: Real -> Real
+sinh = primRealSinH
+
+cosh :: Real -> Real
+cosh = primRealCosH
+
+tanh :: Real -> Real
+tanh = primRealTanH
+
+asin :: Real -> Real
+asin = primRealASin
+
+acos :: Real -> Real
+acos = primRealACos
+
+atan :: Real -> Real
+atan = primRealATan
+
+asinh :: Real -> Real
+asinh = primRealASinH
+
+acosh :: Real -> Real
+acosh = primRealACosH
+
+atanh :: Real -> Real
+atanh = primRealATanH
+
+atan2 :: Real -> Real -> Real
+atan2 = primRealATan2
+
+-- ---------------
+-- exponentiation
+
+pow :: Real -> Real -> Real
+pow = (**)
+
+-- ---------------
+-- square root
+
+sqrt :: Real -> Real
+sqrt = primRealSqrt
+
+-- ---------------
+-- constants
+
+pi :: Real
+pi = 3.14159265358979323846
+
+-- ---------------
+-- rounding
+
+trunc :: Real -> Integer
+trunc = primRealTrunc
+
+ceil :: Real -> Integer
+ceil = primRealCeil
+
+floor :: Real -> Integer
+floor = primRealFloor
+
+round :: Real -> Integer
+round = primRealRound
+
+-- ---------------
+-- introspection
+
+splitReal :: Real -> (Integer, Real)
+splitReal x = primSplitReal x
+
+decodeReal :: Real -> (Bool, Integer, Integer)
+decodeReal x =
+    let (b, m, e) = primDecodeReal x
+    in  (primChr b, m, e)
+
+realToDigits :: Integer -> Real -> (List Integer, Integer)
+realToDigits = primRealToDigits
+
+isInfinite :: Real -> Bool
+isInfinite x = primChr (primRealIsInfinite x)
+
+isNegativeZero :: Real -> Bool
+isNegativeZero x = primChr (primRealIsNegativeZero x)
+
+-- ---------------
+

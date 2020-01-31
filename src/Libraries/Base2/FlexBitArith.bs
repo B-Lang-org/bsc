@@ -1,0 +1,7 @@
+package FlexBitArith((+), (-)) where
+
+(+) :: (Add kd k m, Add ld l m) => Bit k -> Bit l -> Bit m
+(+) x y = (Prelude.+) (zeroExtend x) (zeroExtend y)
+
+(-) :: (Add kd k m, Add ld l m) => Bit k -> Bit l -> Bit m
+(-) x y = (Prelude.-) (zeroExtend x) (zeroExtend y)

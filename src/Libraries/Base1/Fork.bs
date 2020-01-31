@@ -1,0 +1,44 @@
+package Fork(fork, forkL, forkLN) where
+
+import Vector
+import List
+
+--@ \subsubsection{Fork}
+--@ 
+--@ \index{Enum@\te{Fork} (package)|textbf}
+--@ The {\blue} compiler does very aggressive common subexpression
+--@ elimination (CSE).  If this has to be circumvented it has to be done
+--@ explicitly.  The \te{Fork} package provides various ways to duplicate
+--@ values to avoid CSE.
+--@ 
+
+-- XXX m == 2*n, but we can't have contexts on foreign.
+foreign vfork :: Bit n -> Bit m = "Fork",("i","o")
+
+--@ Copy a value into two identical values.
+--@ \begin{libverbatim}
+--@ function Tuple2 #(a, a) fork(a)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+fork :: (Bits a sa) => a -> (a, a)
+fork = unpack · vfork · pack
+
+--@ Copy a value into a list with the specified number of elements.
+--@ \begin{libverbatim}
+--@ function List#(a) forkL(a x)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+forkL :: (Bits a sa) => Integer -> a -> List a
+forkL 0 _ = Nil
+forkL 1 x = Cons x Nil
+forkL n x =
+	letseq (x', x'') = fork x
+	in  Cons x' (forkL (n-1) x'')
+
+--@ Copy a value into a vector with the specified number of elements.
+--@ \begin{libverbatim}
+--@ function Vector#(n, a) forkLN(a x)
+--@  provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+forkLN :: (Bits a sa) => a -> Vector n a
+forkLN x = toVector (forkL (valueOf n) x)

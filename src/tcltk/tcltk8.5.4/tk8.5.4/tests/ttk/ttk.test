@@ -1,0 +1,616 @@
+
+package require Tk 8.5
+package require tcltest ; namespace import -force tcltest::*
+loadTestedCommands
+
+proc skip args {}
+proc ok {} { return }
+
+proc bgerror {error} {
+    variable bgerror $error
+    variable bgerrorInfo $::errorInfo
+    variable bgerrorCode $::errorCode
+}
+
+# Self-destruct tests.
+# Do these early, so any memory corruption has a longer time to cause a crash.
+#
+proc selfdestruct {w args} {
+    destroy $w
+}
+test ttk-6.1 "Self-destructing checkbutton" -body {
+    pack [ttk::checkbutton .sd -text "Self-destruction" -variable ::sd]
+    trace variable sd w [list selfdestruct .sd]
+    update
+    .sd invoke
+} -returnCodes 1
+test ttk-6.2 "Checkbutton self-destructed" -body {
+    winfo exists .sd
+} -result 0
+
+test ttk-6.3 "Test package cleanup" -body {
+    interp create foo
+    foo eval { if {[catch {package require Tk}]} { load {} Tk } }
+    foo eval { destroy . }
+    interp delete foo
+}
+
+test ttk-6.4 "Defeat evil intentions" -body {
+    trace variable OUCH r { kill.b }
+    proc kill.b {args} { destroy .b }
+    pack [ttk::checkbutton .b]
+    .b configure -variable OUCH
+    # At this point, .b should be gone.
+    .b invoke
+    list [set OUCH] [winfo exists .b]
+    # Mostly we just care that we haven't crashed the interpreter.
+    #
+} -returnCodes error -match glob -result "*"
+
+test ttk-6.5 "Clean up -textvariable traces" -body {
+    foreach class {ttk::button ttk::checkbutton ttk::radiobutton} {
+	$class .b1 -textvariable V
+	set V "asdf"
+	destroy .b1
+	set V ""
+    }
+}
+
+test ttk-6.6 "Bad color spec in styles" -body {
+    pack [ttk::button .b1 -text Hi!]
+    ttk::style configure TButton -foreground badColor
+    event generate .b1 <Expose>
+    update
+    ttk::style configure TButton -foreground black
+    destroy .b1
+    set ::bgerror
+} -result {unknown color name "badColor"}
+
+# This should move to be a standard test per widget test file
+test ttk-6.7 "Basic destruction test" -body {
+    foreach widget {
+	button checkbutton radiobutton sizegrip separator notebook
+	progressbar panedwindow scrollbar
+    } {
+	ttk::$widget .w
+	pack .w
+	destroy .w
+    }
+}
+
+test ttk-6.8 "Button command removes itself" -body {
+    ttk::button .b -command ".b configure -command {}; set ::A {it worked}"
+    .b invoke
+    destroy .b
+    set ::A
+} -result {it worked}
+
+#
+#
+
+test ttk-6.9 "Bad font spec in styles" -setup {
+    ttk::style theme create badfont -settings {
+    	ttk::style configure . -font {Helvetica 12 Bogus}
+    }
+    ttk::style theme use badfont
+} -cleanup {
+    ttk::style theme use default
+} -body {
+    pack [ttk::label .l -text Hi! -font {}]
+    event generate .l <Expose>
+    update
+    destroy .l
+    set ::bgerror
+} -result {unknown font style "Bogus"}
+
+#
+# Basic tests.
+#
+
+test ttk-1.1 "Create button" -body {
+    pack [ttk::button .t] -expand true -fill both
+    update
+}
+
+test ttk-1.2 "Check style" -body {
+    .t cget -style
+} -result {}
+
+
+test ttk-1.4 "Restore default style" -body {
+    .t cget -style
+} -result ""
+
+proc checkstate {w} {
+    foreach statespec {
+	{!active !disabled}
+	{!active disabled}
+	{active !disabled}
+	{active disabled}
+    	active
+	disabled
+    } {
+    	lappend result [$w instate $statespec]
+    }
+    set result
+}
+
+# NB: this will fail if the top-level window pops up underneath the cursor
+test ttk-2.0 "Check state" -body {
+    checkstate .t
+} -result [list 1 0 0 0 0 0]
+
+test ttk-2.1 "Change state" -body {
+    .t state active
+} -result !active
+
+test ttk-2.2 "Check state again" -body {
+    checkstate .t
+} -result [list 0 0 1 0 1 0]
+
+test ttk-2.3 "Change state again" -body {
+    .t state {!active disabled}
+} -result {active !disabled}
+
+test ttk-2.4 "Check state again" -body {
+    checkstate .t
+} -result [list 0 1 0 0 0 1]
+
+test ttk-2.5 "Change state again" -body {
+    .t state !disabled
+} -result {disabled}
+
+test ttk-2.6 "instate scripts, false" -body {
+    set x 0
+    .t instate disabled { set x 1 }
+    set x
+} -result 0
+
+test ttk-2.7 "instate scripts, true" -body {
+    set x 0
+    .t instate !disabled { set x 1 }
+    set x
+} -result 1
+
+
+# misc. error detection
+test ttk-3.0 "Bad option" -body {
+    ttk::button .bad -badoption foo
+} -returnCodes 1 -result {unknown option "-badoption"} -match glob
+
+test ttk-3.1 "Make sure widget command not created" -body {
+    .bad state disabled
+} -returnCodes 1 -result {invalid command name ".bad"} -match glob
+
+test ttk-3.2 "Propagate errors from variable traces" -body {
+    set A 0
+    trace add variable A write {error "failure" ;# }
+    ttk::checkbutton .cb -variable A
+    .cb invoke
+} -cleanup {
+    unset ::A ; destroy .cb
+} -returnCodes error -result {can't set "A": failure}
+
+test ttk-3.4 "SF#2009213" -body {
+    ttk::style configure TScale -sliderrelief {}
+    pack [ttk::scale .s]
+    update
+} -cleanup {
+    ttk::style configure TScale -sliderrelief raised
+    destroy .s
+}
+
+# Test resource allocation
+# (@@@ "-font" is a compatibility option now, so tests 4.1-4.3
+# don't really test anything useful at the moment.)
+#
+
+test ttk-4.0 "Setup" -body {
+    catch { destroy .t }
+    pack [ttk::label .t -text "Button 1"]
+    testConstraint fontOption [expr ![catch { set prevFont [.t cget -font] }]]
+    ok
+}
+
+test ttk-4.1 "Change font" -constraints fontOption -body {
+    .t configure -font "Helvetica 18 bold"
+}
+test ttk-4.2 "Check font" -constraints fontOption -body {
+    .t cget -font
+} -result "Helvetica 18 bold"
+
+test ttk-4.3 "Restore font" -constraints fontOption -body {
+    .t configure -font $prevFont
+}
+
+test ttk-4.4 "Bad resource specifications" -body {
+    ttk::style theme settings alt {
+	ttk::style configure TButton -font {Bad font}
+	# @@@ it would be best to raise an error at this point,
+	# @@@ but that's not really feasible in the current framework.
+    }
+    pack [ttk::button .tb1 -text "Ouch"]
+    ttk::style theme use alt
+    update;
+    # As long as we haven't crashed, everything's OK
+    ttk::style theme settings alt {
+    	ttk::style configure TButton -font TkDefaultFont
+    }
+    ttk::style theme use default
+    destroy .tb1
+}
+
+#
+# checkbutton tests
+#
+test ttk-5.1 "Checkbutton check" -body {
+    pack [ttk::checkbutton .cb -text "TCheckbutton" -variable cb]
+}
+test ttk-5.2 "Checkbutton invoke" -body {
+    .cb invoke
+    list [set ::cb] [.cb instate selected]
+} -result [list 1 1]
+test ttk-5.3 "Checkbutton reinvoke" -body {
+    .cb invoke
+    list [set ::cb] [.cb instate selected]
+} -result [list 0 0]
+
+test ttk-5.4 "Checkbutton variable" -body {
+    set result []
+    set ::cb 1
+    lappend result [.cb instate selected]
+    set ::cb 0
+    lappend result [.cb instate selected]
+} -result {1 0}
+
+test ttk-5.5 "Unset checkbutton variable" -body {
+    set result []
+    unset ::cb
+    lappend result [.cb instate alternate] [info exists ::cb]
+    set ::cb 1
+    lappend result [.cb instate alternate] [info exists ::cb]
+} -result {1 0 0 1}
+
+# See #1257319
+test ttk-5.6 "Checkbutton default variable" -body {
+    destroy .cb ; unset -nocomplain {} ; set result [list]
+    ttk::checkbutton .cb -onvalue on -offvalue off
+    lappend result [.cb cget -variable] [info exists .cb] [.cb state]
+    .cb invoke
+    lappend result [info exists .cb] [set .cb] [.cb state]
+    .cb invoke
+    lappend result [info exists .cb] [set .cb] [.cb state]
+} -result [list .cb 0 alternate   1 on selected  1 off {}]
+
+#
+# radiobutton tests
+#
+test ttk-7.1 "Radiobutton check" -body {
+    pack \
+    	[ttk::radiobutton .rb1 -text "One" -variable choice -value 1] \
+	[ttk::radiobutton .rb2 -text "Two" -variable choice -value 2] \
+	[ttk::radiobutton .rb3 -text "Three" -variable choice -value 3] \
+	;
+}
+test ttk-7.2 "Radiobutton invoke" -body {
+    .rb1 invoke
+    set ::choice
+} -result 1
+
+test ttk-7.3 "Radiobutton state" -body {
+    .rb1 instate selected
+} -result 1
+
+test ttk-7.4 "Other radiobutton invoke" -body {
+    .rb2 invoke
+    set ::choice
+} -result 2
+
+test ttk-7.5 "Other radiobutton state" -body {
+    .rb2 instate selected
+} -result 1
+
+test ttk-7.6 "First radiobutton state" -body {
+    .rb1 instate selected
+} -result 0
+
+test ttk-7.7 "Unset radiobutton variable" -body {
+    unset ::choice
+    list [info exists ::choice] [.rb1 instate alternate] [.rb2 instate alternate]
+} -result {0 1 1}
+
+test ttk-7.8 "Reset radiobutton variable" -body {
+    set ::choice 2
+    list [info exists ::choice] [.rb1 instate alternate] [.rb2 instate alternate]
+} -result {1 0 0}
+
+#
+# -compound tests:
+#
+variable iconData \
+{R0lGODlhIAAgAKIAANnZ2YQAAP8AAISEhP///////////////yH5BAEAAAAALAAAAAAgACAA
+AAP/CLoMGLqKoMvtGIqiqxEYCLrcioGiyxwIusyBgaLLLRiBoMsQKLrcjYGgu4Giy+2CAkFX
+A0WX2wXFIOgGii7trkCEohsDCACBoktEKLpKhISiGwAIECiqSKooukiqKKoxgACBooukKiIo
+SKooujGDECi6iqQqsopEV2MQAkV3kXQZRXdjEAJFl5F0FUWXY3ACRZcFSRdFlyVwJlB0WZB0
+UXRZAmcCRZeRdBVFl2NwAkV3kXQZRXdjcAJFV5FURVaR6GoMDgSKLpKqiKAgqaLoxgwOBIoq
+kiqKLpIqimrM4ECg6BIRiq4SIaHoxgyCBoou7a5AhKIbMzgAAIGiy+2CTWJmBhAAAkWX2wXF
+zCDoBooud2PMDIKuRqDocgtGzMwg6O4Eii5z4Kgi6DIMhqLoagQGjiqCLvPgYOgqji6CLrfi
+6DIj6HI7jq4i6DIkADs=}
+
+variable compoundStrings {text image center top bottom left right none}
+
+if {0} {
+    proc now {} { set ::now [clock clicks -milliseconds] }
+    proc tick {} { puts -nonewline stderr "+" ; flush stderr }
+    proc tock {} {
+	set then $::now; set ::now [clock clicks -milliseconds]
+	puts stderr " [expr {$::now - $then}] ms"
+    }
+} else {
+    proc now {} {} ; proc tick {} {} ; proc tock {} {}
+}
+
+now ; tick
+test ttk-8.0 "Setup for 8.X" -body {
+    ttk::button .ctb
+    image create photo icon -data $::iconData;
+    pack .ctb
+}
+tock
+
+now
+test ttk-8.1 "Test -compound options" -body {
+    # Exhaustively test each combination.
+    # Main goal is to make sure no code paths crash.
+    foreach image {icon ""} {
+        foreach text {"Hi!" ""} {
+	    foreach compound $::compoundStrings {
+		.ctb configure -image $image -text $text -compound $compound
+		update; tick
+	    }
+	}
+    }
+}
+tock
+
+test ttk-8.2 "Test -compound options with regular button" -body {
+    button .rtb
+    pack .rtb
+
+    foreach image {"" icon} {
+        foreach text {"Hi!" ""} {
+	    foreach compound [lrange $::compoundStrings 2 end] {
+		.rtb configure -image $image -text $text -compound $compound
+		update; tick
+	    }
+	}
+    }
+}
+tock
+
+test ttk-8.3 "Rerun test 8.1" -body {
+    foreach image {icon ""} {
+        foreach text {"Hi!" ""} {
+	    foreach compound $::compoundStrings {
+		.ctb configure -image $image -text $text -compound $compound
+		update; tick
+	    }
+	}
+    }
+}
+tock
+
+test ttk-8.4 "ImageChanged" -body {
+    ttk::button .b -image icon
+    icon blank
+} -cleanup { destroy .b }
+
+#------------------------------------------------------------------------
+
+test ttk-9.1 "Traces on nonexistant namespaces" -body {
+    ttk::checkbutton .tcb -variable foo::bar
+} -returnCodes 1 -result "*parent namespace doesn't exist*" -match glob
+
+test ttk-9.2 "Traces on nonexistant namespaces II" -body {
+    ttk::checkbutton .tcb -variable X
+    .tcb configure -variable foo::bar
+} -returnCodes 1 -result "*parent namespace doesn't exist*" -match glob
+
+test ttk-9.3 "Restore saved options on configure error" -body {
+    .tcb cget -variable
+} -result X
+
+test ttk-9.4 "Textvariable tests" -body {
+    set tcbLabel "Testing..."
+    .tcb configure -textvariable tcbLabel
+    .tcb cget -text
+} -result "Testing..."
+
+# Changing -text has no effect if there is a linked -textvariable.
+# Compatible with core widget.
+test ttk-9.5 "Change -text" -body {
+    .tcb configure -text "Changed -text"
+    .tcb cget -text
+} -result "Testing..."
+
+# Unset -textvariable clears the text.
+# NOTE: this is different from core widgets, which automagically reinitalize
+# the -textvariable to the last value of -text.
+#
+test ttk-9.6 "Unset -textvariable" -body {
+    unset tcbLabel
+    list [info exists tcbLabel] [.tcb cget -text]
+} -result [list 0 ""]
+
+test ttk-9.7 "Unset textvariable, comparison" -body {
+#
+# NB: the ttk label behaves differently from the standard label here;
+# NB: this is on purpose: I believe the standard behaviour is the Wrong Thing
+#
+    unset -nocomplain V1  V2
+    label .l -text Foo ; ttk::label .tl -text Foo
+
+    .l configure -textvariable V1 ; .tl configure -textvariable V2
+    list [set V1] [info exists V2]
+} -cleanup { destroy .l .tl } -result [list Foo 0]
+
+test ttk-9.8 "-textvariable overrides -text" -body {
+    ttk::label .tl -textvariable TV
+    set TV Foo
+    .tl configure -text Bar
+    .tl cget -text
+} -cleanup { destroy .tl } -result "Foo"
+
+#
+# Frame widget tests:
+#
+
+test ttk-10.1 "ttk::frame -class resource" -body {
+    ttk::frame .f -class Foo
+} -result .f
+
+test ttk-10.2 "Check widget class" -body {
+    winfo class .f
+} -result Foo
+
+test ttk-10.3 "Check class resource" -body {
+    .f cget -class
+} -result Foo
+
+test ttk-10.4 "Try to modify class resource" -body {
+    .f configure -class Bar
+} -returnCodes 1 -match glob -result "*read-only option*"
+
+test ttk-10.5 "Check class resource again" -body {
+    .f cget -class
+} -result Foo
+
+test ttk-11.1 "-state test, setup" -body {
+    ttk::button .b
+    .b instate disabled
+} -result 0
+
+test ttk-11.2 "-state test, disable" -body {
+    .b configure -state disabled
+    .b instate disabled
+} -result 1
+
+test ttk-11.3 "-state test, reenable" -body {
+    .b configure -state normal
+    .b instate disabled
+} -result 0
+
+test ttk-11.4 "-state test, unrecognized -state value" -body {
+    .b configure -state bogus
+    .b state
+} -result [list]
+
+test ttk-11.5 "-state test, 'active'" -body {
+    .b configure -state active
+    .b state
+} -result [list active] -cleanup  { .b state !active }
+
+test ttk-11.6 "-state test, 'readonly'" -body {
+    .b configure -state readonly
+    .b state
+} -result [list readonly] -cleanup { .b state !readonly }
+
+test ttk-11.7 "-state test, cleanup" -body {
+    destroy .b
+}
+
+test ttk-12.1 "-cursor option" -body {
+    ttk::button .b
+    .b cget -cursor
+} -result {}
+
+test ttk-12.2 "-cursor option" -body {
+    .b configure -cursor arrow
+    .b cget -cursor
+} -result arrow
+
+test ttk-12.3 "-borderwidth frame option" -body {
+    destroy .t
+    toplevel .t
+    raise .t
+    pack [set t [ttk::frame .t.f]] -expand true -fill x ;
+    pack [ttk::label $t.l -text "ASDF QWERTY"] -expand true -fill both
+    foreach theme {default alt} {
+	ttk::style theme use $theme
+	foreach relief {flat raised sunken ridge groove solid} {
+	    $t configure -relief $relief
+	    for {set i 5} {$i >= 0} {incr i -1} {
+		$t configure -borderwidth $i
+		update
+	    }
+	}
+    }
+}
+
+test ttk-12.4 "-borderwidth frame option" -body {
+    .t.f configure -relief raised
+    .t.f configure -borderwidth 1
+    ttk::style theme use alt
+    update
+}
+
+
+test ttk-13.1 "Custom styles -- bad -style option" -body {
+    ttk::button .tb1 -style badstyle
+} -returnCodes 1 -result "*badstyle not found*" -match glob
+
+test ttk-13.4 "Custom styles -- bad -style option" -body {
+    ttk::button .tb1
+    .tb1 configure -style badstyle
+} -cleanup {
+    destroy .tb1
+} -returnCodes 1 -result "*badstyle not found*" -match glob
+
+test ttk-13.5 "Custom layouts -- missing element definition" -body {
+    ttk::style layout badstyle {
+    	NoSuchElement
+    }
+    ttk::button .tb1 -style badstyle
+} -cleanup {
+    destroy .tb1
+} -result .tb1
+# @@@ Should: signal an error, possibly a background error.
+
+#
+# See #793909
+#
+
+test ttk-14.1 "-variable in nonexistant namespace" -body {
+    ttk::checkbutton .tw -variable ::nsn::foo
+} -returnCodes 1 -result {can't trace *: parent namespace doesn't exist} \
+  -match glob -cleanup { destroy .tw }
+
+test ttk-14.2 "-textvariable in nonexistant namespace" -body {
+    ttk::label .tw -textvariable ::nsn::foo
+} -returnCodes 1 -result {can't trace *: parent namespace doesn't exist} \
+  -match glob -cleanup { destroy .tw }
+
+test ttk-14.3 "-textvariable in nonexistant namespace" -body {
+    ttk::entry .tw -textvariable ::nsn::foo
+} -returnCodes 1 -result {can't trace *: parent namespace doesn't exist} \
+  -match glob -cleanup { destroy .tw }
+
+
+test ttk-15.1 "style element create: insufficient args" -body {
+     ttk::style element create
+} -returnCodes 1 -result "wrong # args: should be \"ttk::style element create name type ?options...?\""
+test ttk-15.2 "style element create: insufficient args" -body {
+     ttk::style element create plain.background
+} -returnCodes 1 -result "wrong # args: should be \"ttk::style element create name type ?options...?\""
+test ttk-15.3 "style element create: insufficient args" -body {
+     ttk::style element create plain.background from
+} -returnCodes 1 -result "wrong # args: should be \"theme ?element?\""
+test ttk-15.4 "style element create: valid" -body {
+     ttk::style element create plain.background from default
+} -returnCodes 0 -result ""
+
+eval destroy [winfo children .]
+
+tcltest::cleanupTests
+
+#*EOF*

@@ -1,0 +1,51 @@
+package FoldFIFOF (
+		 FoldFIFO(..),
+		 mkFoldFIFO1,
+		 mkFoldFIFO
+		 ) where
+import FIFOF
+
+--@ XXX THIS PACKAGE IS NOT YET DOCUMENTED
+
+-- foldable FIFO
+
+interface FoldFIFO a =
+  enq   :: a -> Action
+  deq   :: Action
+  first :: a
+  notFull  :: Bool
+  notEmpty :: Bool
+  clear :: Action
+  foldr :: (a -> b -> b) -> b -> b
+
+mkFoldFIFO1 :: (IsModule m c, Bits a k) => m (FoldFIFO a)
+mkFoldFIFO1 =
+  module
+    v :: Reg a
+    v <- mkRegU
+    f :: Reg Bool
+    f <- mkReg False
+    interface
+      enq x  = action { f := True; v := x }
+      deq    = action { f := False }
+      first  = v
+      notFull   = not f
+      notEmpty  = f
+      clear  = action { f := False }
+      foldr g z = if (f) -- not empty
+		  then g v z
+		  else z
+
+mkFoldFIFO :: (IsModule m c, Bits a k) => m (FoldFIFO a)
+mkFoldFIFO =
+  module
+    f :: FIFOF a
+    f <- mkFIFOF
+    interface
+      enq x     = f.enq x
+      deq       = f.deq
+      first     = f.first
+      notFull   = f.notFull
+      notEmpty  = f.notEmpty
+      clear     = f.clear
+      foldr g z = if f.notEmpty then g f.first z else z

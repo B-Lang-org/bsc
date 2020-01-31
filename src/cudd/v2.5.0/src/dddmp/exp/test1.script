@@ -1,0 +1,26 @@
+# !/bin/sh 
+#
+# Check Header Load/Store for BDD/ADD/CNFs:
+#   Load Header
+#   Write Information on Standard Output
+#
+rm -f *.*.tmp
+echo "---------------------------------------------------------------------------"
+echo "--------------------- TESTING Load and Write Header -----------------------"
+echo "---------------------------------------------------------------------------"
+./../testdddmp << END
+mi
+50
+hlb
+4.bdd
+hw
+hlb
+0.add
+hw
+hlc
+4.cnf
+hw
+mq
+quit
+END
+echo "-------------------------------- ... END ----------------------------------"

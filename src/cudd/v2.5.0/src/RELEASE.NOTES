@@ -1,0 +1,131 @@
+Release 2.5.0 of Cudd introduces the ability to set timeouts.  The
+function that is interrupted returns NULL (which the application must
+be prepared to handle,) but the BDDs are uncorrupted and the invoking
+program can continue to use the manager.
+
+In addition, reordering is now aware of timeouts, so that it gives up
+when a timeout is approaching to give the invoking program a chance to
+obtain some results.
+
+The response time to the timeout is not immediate, though most of the time
+it is well below one second.  Checking for timeouts has a small overhead.
+In experiments, less than 1% has been observed on average.
+
+Creation of BDD managers with many variables (e.g., tens or hundreds
+of thousands) is now much more efficient.  Computing small supports of
+BDDs when there are many variables is also much more efficient, but
+this has been at the cost of separating the function for BDDs and ADDs
+(Cudd_Support) from that for ZDDs (Cudd_zddSupport).
+
+The C++ interface has undergone a major upgrade.
+
+The handling of variable gruops in reordering has been much improved.
+(Thanks to Arie Gurfinkel for a very detailed bug report!)  A handful
+of other bugs have been fixed as well.
+
+
+New Functions:
+
+unsigned long Cudd_ReadStartTime(DdManager *unique);
+
+unsigned long Cudd_ReadElapsedTime(DdManager *unique);
+
+void Cudd_SetStartTime(DdManager *unique, unsigned long st);
+
+void Cudd_ResetStartTime(DdManager *unique);
+
+unsigned long Cudd_ReadTimeLimit(DdManager *unique);
+
+void Cudd_SetTimeLimit(DdManager *unique, unsigned long tl);
+
+void Cudd_UpdateTimeLimit(DdManager * unique);
+
+void Cudd_IncreaseTimeLimit(DdManager * unique, unsigned long increase);
+
+void Cudd_UnsetTimeLimit(DdManager *unique);
+
+int Cudd_TimeLimited(DdManager *unique);
+
+unsigned int Cudd_ReadMaxReorderings (DdManager *dd);
+
+void Cudd_SetMaxReorderings (DdManager *dd, unsigned int mr);
+
+unsigned int Cudd_ReadOrderRandomization(DdManager * dd);
+
+void Cudd_SetOrderRandomization(DdManager * dd, unsigned int factor);
+
+int Cudd_PrintGroupedOrder(DdManager * dd, const char *str, void *data);
+
+int Cudd_EnableOrderingMonitoring(DdManager *dd);
+
+int Cudd_DisableOrderingMonitoring(DdManager *dd);
+
+int Cudd_OrderingMonitoring(DdManager *dd);
+
+DdNode * Cudd_bddExistAbstractLimit(DdManager * manager, DdNode * f, DdNode * cube, unsigned int limit);
+
+DdNode * Cudd_bddIteLimit (DdManager *dd, DdNode *f, DdNode *g, DdNode *h, unsigned int limit);
+
+DdNode * Cudd_bddOrLimit (DdManager *dd, DdNode *f, DdNode *g, unsigned int limit);
+
+DdNode * Cudd_bddXnorLimit (DdManager *dd, DdNode *f, DdNode *g, unsigned int limit);
+
+int Cudd_CheckCube (DdManager *dd, DdNode *g);
+
+DdNode * Cudd_bddMaximallyExpand(DdManager *dd, DdNode *lb, DdNode *ub, DdNode *f);
+
+DdNode * Cudd_bddLargestPrimeUnate(DdManager *dd , DdNode *f, DdNode *phaseBdd);
+
+int Cudd_Reserve(DdManager *manager, int amount);
+
+int Cudd_SupportIndices(DdManager * dd, DdNode * f, int **indices);
+
+int Cudd_VectorSupportIndices(DdManager * dd, DdNode ** F, int n, int **indices);
+
+DdNode * Cudd_zddSupport(DdManager * dd, DdNode * f);
+
+
+Changed prototypes:
+
+unsigned int Cudd_ReadReorderings (DdManager *dd);
+
+----------------------------------------------------------------------
+
+Release 2.4.2 of Cudd features several bug fixes.  The most important
+are those that prevented Cudd from making full use of up to 4 GB of
+memory when using 32-bit pointers.  A handful of bugs were discovered by
+Coverity.  (Thanks to Christian Stangier!)
+
+This release can be compiled with either 64-bit pointers or 32-bit
+pointers on x86_64 platforms if sizeof(long) = sizeof(void *) = 8 and
+sizeof(int) = 4.  This is known as the LP64 model.  For 32-bit pointers,
+one usually needs supplementary libraries.  On Ubuntu and Debian Linux,
+one needs g++-multilib, which can be installed with
+"apt-get install g++-multilib."
+
+Added functions 
+
+DdNode *Cudd_Inequality (DdManager * dd, int  N, int c, DdNode ** x,
+DdNode ** y);
+
+DdNode * Cudd_Disequality (DdManager * dd, int  N, int c, DdNode ** x,
+DdNode ** y);
+
+DdNode * Cudd_bddInterval (DdManager * dd, int  N, DdNode ** x,
+unsigned int lowerB, unsigned int upperB);
+
+Changed prototypes:
+
+int Cudd_DumpBlif (DdManager *dd, int n, DdNode **f, char
+**inames, char **onames, char *mname, FILE *fp, int mv);
+
+int Cudd_DumpBlifBody (DdManager *dd, int n, DdNode **f, char
+**inames, char **onames, FILE *fp, int mv);
+
+The additional parameter allows the caller to choose between plain blif
+and blif-MV.
+
+----------------------------------------------------------------------
+
+Release 2.4.1 of Cudd features one major change with respect to previous
+releases.  The licensing terms are now explicitly stated.

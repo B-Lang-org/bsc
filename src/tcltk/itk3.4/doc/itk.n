@@ -1,0 +1,96 @@
+'\"
+'\" Copyright (c) 1993-1998  Lucent Technologies, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+'\" RCS: $Id: itk.n,v 1.1 1998/07/27 18:45:36 stanton Exp $
+'\"
+.so man.macros
+.TH itk n 3.0 itk "[incr\ Tk]"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+itk \- framework for building mega-widgets in Tcl/Tk
+.BE
+
+.SH DESCRIPTION
+.PP
+Mega-widgets are high-level widgets that are constructed using
+Tk widgets as component parts, usually without any C code.  A
+fileselectionbox, for example, may have a few listboxes, some
+entry widgets and some control buttons.  These individual widgets
+are put together in a way that makes them act like one big
+widget.  A fileselectionbox mega-widget can be created with a
+command like:
+.CS
+fileselectionbox .fsb -background blue -foreground white
+.CE
+Once it has been created, it can be reconfigured with a command
+like:
+.CS
+\&.fsb configure -background green -foreground black
+.CE
+and all of its internal components will change color.  Each
+mega-widget has a set of methods that can be used to manipulate
+it.  For example, the current selection can be queried from a
+fileselectionbox like this:
+.CS
+set fileName [.fsb get]
+.CE
+In effect, a mega-widget looks and acts exactly like a Tk widget,
+but is considerably easier to implement.
+.PP
+\fB[incr\ Tk]\fR is a framework for building mega-widgets.  It
+uses \fB[incr\ Tcl]\fR to support the object paradigm, and adds
+base classes which provide default widget behaviors.
+.PP
+All \fB[incr\ Tk]\fR widgets are derived from the \fBArchetype\fR
+base class.  This class manages internal component widgets,
+and provides methods like "configure" and "cget" to access
+configuration options.
+.PP
+The \fBWidget\fR base class inherits everything from \fBArchetype\fR,
+and adds a Tk frame which acts as a container for the mega-widget.
+It is used to build mega-widgets that sit inside of other frames
+and toplevels.  Derived classes create other internal components
+and pack them into the "hull" frame created by the \fBWidget\fR
+base class.
+.PP
+The \fBToplevel\fR base class inherits everything from \fBArchetype\fR,
+but adds a Tk toplevel which acts as a container for the mega-widget.
+It is used to build mega-widgets, such as dialog boxes, that have
+their own toplevel window.  Derived classes create other internal
+components and pack them into the "hull" toplevel created by the
+\fBToplevel\fR base class.
+
+.SH [incr Widgets] LIBRARY
+.PP
+\fB[incr\ Widgets]\fR is a mega-widget library built using
+\fB[incr\ Tk]\fR.  It can be used right out of the box, and
+contains more than 30 different widget classes, including:
+.IP -
+fileselectiondialog
+.IP -
+tabnotebook
+.IP -
+panedwindow
+.IP -
+combobox
+.IP -
+optionmenu
+.IP -
+scrolledlistbox
+.IP -
+scrolledframe
+.IP -
+messagedialog
+.IP -
+and many others...
+.LP
+The \fBcatalog\fR demo in the "iwidgets/demos" directory
+shows all of the available widgets in action.  Each widget
+class has its own man page describing the features available.
+
+.SH KEYWORDS
+class, object, object-oriented, mega-widget

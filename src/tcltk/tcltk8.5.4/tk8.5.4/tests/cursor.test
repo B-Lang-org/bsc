@@ -1,0 +1,315 @@
+# This file is a Tcl script to test out the procedures in the file
+# tkCursor.c.  It is organized in the standard white-box fashion for
+# Tcl tests.
+#
+# Copyright (c) 1998 Sun Microsystems, Inc.
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+# All rights reserved.
+#
+# RCS: @(#) $Id: cursor.test,v 1.18 2007/12/13 15:27:54 dgp Exp $
+
+package require tcltest 2.1
+eval tcltest::configure $argv
+tcltest::loadTestedCommands
+
+test cursor-1.1 {Tk_AllocCursorFromObj - converting internal reps} {testcursor} {
+    set x watch
+    lindex $x 0
+    destroy .b1
+    button .b1 -cursor $x
+    lindex $x 0
+    testcursor watch
+} {{1 0}}
+test cursor-1.2 {Tk_AllocCursorFromObj - discard stale cursor} {testcursor} {
+    set x watch
+    destroy .b1 .b2
+    button .b1 -cursor $x
+    destroy .b1
+    set result {}
+    lappend result [testcursor watch]
+    button .b2 -cursor $x
+    lappend result [testcursor watch]
+} {{} {{1 1}}}
+test cursor-1.3 {Tk_AllocCursorFromObj - reuse existing cursor} {testcursor} {
+    set x watch
+    destroy .b1 .b2
+    button .b1 -cursor $x
+    set result {}
+    lappend result [testcursor watch]
+    button .b2 -cursor $x
+    pack .b1 .b2 -side top
+    lappend result [testcursor watch]
+} {{{1 1}} {{2 1}}}
+
+test cursor-2.1 {Tk_GetCursor procedure} {
+    destroy .b1
+    list [catch {button .b1 -cursor bad_name} msg] $msg
+} {1 {bad cursor spec "bad_name"}}
+test cursor-2.2 {Tk_GetCursor procedure} {
+    destroy .b1
+    list [catch {button .b1 -cursor @xyzzy} msg] $msg
+} {1 {bad cursor spec "@xyzzy"}}
+# Next two tests need a helper file with a very specific name and
+# controlled format.
+set wincur(data_octal) {
+    000 000 002 000 001 000 040 040 000 000 007 000 007 000 060 001
+    000 000 026 000 000 000 050 000 000 000 040 000 000 000 100 000
+    000 000 001 000 001 000 000 000 000 000 000 000 000 000 000 000
+    000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+    000 000 377 377 377 000 000 000 000 000 000 000 000 000 000 000
+    000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+    000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+    000 000 000 000 000 000 000 000 000 000 000 000 000 000 000 000
+    000 000 000 000 000 000 000 000 000 000 160 016 000 000 170 036
+    000 000 174 076 000 000 076 174 000 000 037 370 000 000 017 360
+    000 000 007 340 000 000 007 340 000 000 017 360 000 000 037 370
+    000 000 076 174 000 000 174 076 000 000 170 036 000 000 160 016
+    000 000 000 000 000 000 377 377 377 377 377 377 377 377 377 377
+    377 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377
+    377 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377
+    377 377 377 377 377 377 377 377 377 377 377 377 377 377 377 377
+    377 377 377 377 377 377 017 360 377 377 007 340 377 377 003 300
+    377 377 001 200 377 377 200 001 377 377 300 003 377 377 340 007
+    377 377 360 017 377 377 360 017 377 377 340 007 377 377 300 003
+    377 377 200 001 377 377 001 200 377 377 003 300 377 377 007 340
+    377 377 017 360 377 377
+}
+set wincur(data_binary) {}
+foreach wincur(num) $wincur(data_octal) {
+    append wincur(data_binary) [binary format c [scan $wincur(num) %o]]
+}
+set wincur(dir) [makeDirectory {dir with spaces}]
+set wincur(file) [makeFile $wincur(data_binary) "test file.cur" $wincur(dir)]
+test cursor-2.3 {Tk_GetCursor procedure: cursor specs are lists} win {
+    destroy .b1
+    button .b1 -cursor [list @$wincur(file)]
+} {.b1}
+test cursor-2.4 {Tk_GetCursor procedure: cursor specs are lists} win {
+    destroy .b1
+    button .b1 -cursor @[regsub -all {[][ \\{}""$#]} $wincur(file) {\\&}]
+} {.b1}
+removeDirectory $wincur(dir)
+unset wincur
+
+test cursor-3.1 {Tk_FreeCursorFromObj - reference counts} {testcursor} {
+    set x heart
+    destroy .b1 .b2 .b3
+    button .b1 -cursor $x
+    button .b3 -cursor $x
+    button .b2 -cursor $x
+    set result {}
+    lappend result [testcursor heart]
+    destroy .b1
+    lappend result [testcursor heart]
+    destroy .b2
+    lappend result [testcursor heart]
+    destroy .b3
+    lappend result [testcursor heart]
+} {{{3 1}} {{2 1}} {{1 1}} {}}
+
+test cursor-4.1 {FreeCursorObjProc} {testcursor} {
+    destroy .b
+    set x [format heart]
+    button .b -cursor $x
+    set y [format heart]
+    .b configure -cursor $y
+    set z [format heart]
+    .b configure -cursor $z
+    set result {}
+    lappend result [testcursor heart]
+    set x red
+    lappend result [testcursor heart]
+    set z 32
+    lappend result [testcursor heart]
+    destroy .b
+    lappend result [testcursor heart]
+    set y bogus
+    set result
+} {{{1 3}} {{1 2}} {{1 1}} {}}
+
+# -------------------------------------------------------------------------
+
+test cursor-5.1 {assert consistent cursor configuration command} -setup {
+    button .b
+} -body {
+    .b configure -cursor {watch red black}
+} -cleanup {
+    destroy .b
+} -result {}
+
+# -------------------------------------------------------------------------
+# Check for the standard set of cursors.
+
+foreach {testName cursor} {
+    cursor-6.1  X_cursor
+    cursor-6.2  arrow
+    cursor-6.3  based_arrow_down
+    cursor-6.4  based_arrow_up
+    cursor-6.5  boat
+    cursor-6.6  bogosity
+    cursor-6.7  bottom_left_corner
+    cursor-6.8  bottom_right_corner
+    cursor-6.9  bottom_side
+    cursor-6.10 bottom_tee
+    cursor-6.11 box_spiral
+    cursor-6.12 center_ptr
+    cursor-6.13 circle
+    cursor-6.14 clock
+    cursor-6.15 coffee_mug
+    cursor-6.16 cross
+    cursor-6.17 cross_reverse
+    cursor-6.18 crosshair
+    cursor-6.19 diamond_cross
+    cursor-6.20 dot
+    cursor-6.21 dotbox
+    cursor-6.22 double_arrow
+    cursor-6.23 draft_large
+    cursor-6.24 draft_small
+    cursor-6.25 draped_box
+    cursor-6.26 exchange
+    cursor-6.27 fleur
+    cursor-6.28 gobbler
+    cursor-6.29 gumby
+    cursor-6.30 hand1
+    cursor-6.31 hand2
+    cursor-6.32 heart
+    cursor-6.33 icon
+    cursor-6.34 iron_cross
+    cursor-6.35 left_ptr
+    cursor-6.36 left_side
+    cursor-6.37 left_tee
+    cursor-6.38 leftbutton
+    cursor-6.39 ll_angle
+    cursor-6.40 lr_angle
+    cursor-6.41 man
+    cursor-6.42 middlebutton
+    cursor-6.43 mouse
+    cursor-6.44 pencil
+    cursor-6.45 pirate
+    cursor-6.46 plus
+    cursor-6.47 question_arrow
+    cursor-6.48 right_ptr
+    cursor-6.49 right_side
+    cursor-6.50 right_tee
+    cursor-6.51 rightbutton
+    cursor-6.52 rtl_logo
+    cursor-6.53 sailboat
+    cursor-6.54 sb_down_arrow
+    cursor-6.55 sb_h_double_arrow
+    cursor-6.56 sb_left_arrow
+    cursor-6.57 sb_right_arrow
+    cursor-6.58 sb_up_arrow
+    cursor-6.59 sb_v_double_arrow
+    cursor-6.60 shuttle
+    cursor-6.61 sizing
+    cursor-6.62 spider
+    cursor-6.63 spraycan
+    cursor-6.64 star
+    cursor-6.65 target
+    cursor-6.66 tcross
+    cursor-6.67 top_left_arrow
+    cursor-6.68 top_left_corner
+    cursor-6.69 top_right_corner
+    cursor-6.70 top_side
+    cursor-6.71 top_tee
+    cursor-6.72 trek
+    cursor-6.73 ul_angle
+    cursor-6.74 umbrella
+    cursor-6.75 ur_angle
+    cursor-6.76 watch
+    cursor-6.77 xterm
+} {
+    test $testName "check cursor-font cursor $cursor" -setup {
+	button .b -text $cursor
+    } -body {
+	.b configure -cursor $cursor
+    } -cleanup {
+	destroy .b
+    } -result {}
+}
+
+# Test cursor named "none", it is not defined in
+# the X cursor table. It is defined in a Tk specific
+# table of named cursors and should be available on
+# all platforms.
+
+test cursor-6.80 {} -setup {
+    button .b -text CButton
+} -body {
+    .b configure -cursor none
+    .b cget -cursor
+} -cleanup {
+    destroy .b
+} -result none
+
+test cursor-6.81 {} -setup {
+    button .b -text CButton
+} -body {
+    .b configure -cursor none
+    .b configure -cursor {}
+    .b cget -cursor
+} -cleanup {
+    destroy .b
+} -result {}
+
+test cursor-6.82 {} -setup {
+    button .b -text CButton
+} -body {
+    .b configure -cursor none
+    .b configure -cursor {}
+    .b configure -cursor none
+    .b cget -cursor
+} -cleanup {
+    destroy .b
+} -result none
+
+test cursor-6.83 {} -setup {
+    button .b -text CButton
+} -body {
+    # Setting fg and bg does nothing for the none cursor
+    # because it displays no fg or bg pixels.
+    set results [list]
+    .b configure -cursor none
+    lappend results [.b cget -cursor]
+    .b configure -cursor {none blue}
+    lappend results [.b cget -cursor]
+    .b configure -cursor {none blue green}
+    lappend results [.b cget -cursor]
+    .b configure -cursor {}
+    lappend results [.b cget -cursor]
+    set results
+} -cleanup {
+    destroy .b
+    unset results
+} -result {none {none blue} {none blue green} {}}
+
+# -------------------------------------------------------------------------
+# Check the Windows specific cursors
+
+foreach {testName cursor} {
+    cursor-7.1 no
+    cursor-7.2 starting
+    cursor-7.3 size
+    cursor-7.4 size_ne_sw
+    cursor-7.5 size_ns
+    cursor-7.6 size_nw_se
+    cursor-7.7 size_we
+    cursor-7.8 uparrow
+    cursor-7.9 wait
+} {
+    test $testName "check Windows cursor $cursor" -constraints win -setup {
+	button .b -text $cursor
+    } -body {
+	.b configure -cursor $cursor
+    } -cleanup {
+	destroy .b
+    } -result {}
+}
+
+# -------------------------------------------------------------------------
+
+destroy .t
+
+# cleanup
+cleanupTests
+return

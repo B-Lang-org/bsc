@@ -1,0 +1,241 @@
+# This file tests the tclWinFile.c file.
+#
+# This file contains a collection of tests for one or more of the Tcl built-in
+# commands. Sourcing this file into Tcl runs the tests and generates output
+# for errors. No output means no errors were found.
+#
+# Copyright (c) 1997 Sun Microsystems, Inc.
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution of
+# this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: winFile.test,v 1.20 2007/12/14 13:52:55 patthoyts Exp $
+
+if {[catch {package require tcltest 2.0.2}]} {
+    puts stderr "Skipping tests in [info script]. tcltest 2.0.2 required."
+    return
+}
+namespace import -force ::tcltest::*
+
+testConstraint testvolumetype [llength [info commands testvolumetype]]
+testConstraint notNTFS 0
+testConstraint win2000 0
+
+if {[testConstraint testvolumetype]} {
+    testConstraint notNTFS [expr {[testvolumetype] eq "NTFS"}]
+}
+if {[testConstraint nt] && $::tcl_platform(osVersion) >= 5.0} {
+    testConstraint win2000 1
+}
+
+test winFile-1.1 {TclpGetUserHome} {win} {
+    list [catch {glob ~nosuchuser} msg] $msg
+} {1 {user "nosuchuser" doesn't exist}}
+test winFile-1.2 {TclpGetUserHome} {win nt nonPortable} {
+    # The administrator account should always exist.
+
+    catch {glob ~administrator}
+} {0}
+test winFile-1.3 {TclpGetUserHome} {win 95} {
+    # Find some user in system.ini and then see if they have a home.
+
+    set f [open $::env(windir)/system.ini]
+    set x 0
+    while {![eof $f]} {
+	set line [gets $f]
+	if {$line == "\[Password Lists]"} {
+	    gets $f
+	    set name [lindex [split [gets $f] =] 0]
+	    if {$name != ""} {
+		set x [catch {glob ~$name}]
+		break
+	    }
+	}
+    }
+    close $f
+    set x
+} {0}
+test winFile-1.4 {TclpGetUserHome} {win nt nonPortable} {
+    catch {glob ~stanton@workgroup}
+} {0}
+
+test winFile-2.1 {TclpMatchFiles: case sensitivity} {win} {
+    makeFile {} GlobCapS
+    set result [list [glob -nocomplain GlobC*] [glob -nocomplain globc*]]
+    removeFile GlobCapS
+    set result
+} {GlobCapS GlobCapS}
+test winFile-2.2 {TclpMatchFiles: case sensitivity} {win} {
+    makeFile {} globlower
+    set result [list [glob -nocomplain globl*] [glob -nocomplain gLOBl*]]
+    removeFile globlower
+    set result
+} {globlower globlower}
+
+test winFile-3.1 {file system} {win testvolumetype} {
+    set res "volume types ok"
+    foreach vol [file volumes] {
+	# Have to catch in case there is a removable drive (CDROM, floppy)
+	# with nothing in it.
+	catch {
+	    if {![string equal [lindex [file system $vol] 1] [testvolumetype $vol]]} {
+		set res "For $vol, we found [file system $vol]\
+		  and [testvolumetype $vol] are different"
+		break
+	    }
+	}
+    }
+    set res
+} {volume types ok}
+
+proc cacls {fname args} {
+    string trim [eval [list exec cacls [file nativename $fname]] $args <<y]
+}
+
+# dir/q output:
+# 2003-11-03  20:36                  598 OCTAVIAN\benny         filename.txt
+# Note this output from a german win2k machine:
+# 14.12.2007  14:26                   30 VORDEFINIERT\Administratest.dat
+#
+# Modified to cope with Msys environment and use ls -l.
+proc getuser {fname} {
+    global env
+    set tryname $fname
+    if {[file isdirectory $fname]} {
+	set tryname [file dirname $fname]
+    }
+    set owner ""
+    set tail [file tail $tryname]
+    if {[info exists env(OSTYPE)] && [string equal $env(OSTYPE) "msys"]} {
+        set dirtext [exec ls -l $fname]
+        foreach line [split $dirtext "\n"] {
+            set owner [lindex $line 2]
+        }
+    } else {
+        set dirtext [exec cmd /c dir /q [file nativename $fname]]
+        foreach line [split $dirtext "\n"] {
+            if {[string match -nocase "*$tail" $line]} {
+                set attrs [string range $line \
+                               0 end-[string length $tail]]
+                regexp { [^ \\]+\\.*$} $attrs owner
+                set owner [string trim $owner]
+            }
+        }
+    }
+    if {[string length $owner] == 0} {
+	error "getuser: Owner not found in output of dir/q"
+    }
+    return $owner
+}
+
+proc test_read {fname} {
+    if {[catch {set ifs [open $fname r]}]} {
+	return 0
+    }
+    set readfailed [catch {read $ifs}]
+    return [expr {![catch {close $ifs}] && !$readfailed}]
+}
+
+proc test_writ {fname} {
+    if {[catch {set ofs [open $fname w]}]} {
+	return 0
+    }
+    set writefailed [catch {puts $ofs "Hello"}]
+    return [expr {![catch {close $ofs}] && !$writefailed}]
+}
+
+proc test_access {fname read writ} {
+    set problem {}
+    foreach type {read writ} {
+	if {[set $type] != [file ${type}able $fname]} {
+	    lappend problem "[set $type] != \[file ${type}able $fname\]"
+	}
+	if {[set $type] != [test_${type} $fname]} {
+	    lappend problem "[set $type] != \[test_${type} $fname\]"
+	}
+    }
+    if {[llength $problem]} {
+	return "Problem [join $problem \n]\nActual rights are: [cacls $fname]"
+    } else {
+	return ""
+    }
+}
+
+# Create the test file
+# NOTE: [tcltest::makeFile] not used.  Presumably to force file
+# creation in a particular filesystem?  If not, try [makeFile]
+# in a -setup script.
+set fname test.dat
+file delete $fname
+close [open $fname w]
+
+test winFile-4.0 {
+    Enhanced NTFS user/group permissions: test no acccess
+} -constraints {
+    win nt notNTFS win2000
+} -setup {
+    set owner [getuser $fname]
+    set user $::env(USERDOMAIN)\\$::env(USERNAME)
+} -body {
+    # Clean out all well-known ACLs
+    catch {cacls $fname /E /R "Everyone"} result
+    catch {cacls $fname /E /R $user} result
+    catch {cacls $fname /E /R $owner} result
+    cacls $fname /E /P $user:N
+    test_access $fname 0 0
+} -result {}
+test winFile-4.1 {
+    Enhanced NTFS user/group permissions: test readable only
+} -constraints {
+    win nt notNTFS
+} -setup {
+    set user $::env(USERDOMAIN)\\$::env(USERNAME)
+} -body {
+    cacls $fname /E /P $user:N
+    cacls $fname /E /G $user:R
+    test_access $fname 1 0
+} -result {}
+test winFile-4.2 {
+    Enhanced NTFS user/group permissions: test writable only
+} -constraints {
+    win nt notNTFS
+} -setup {
+    set user $::env(USERDOMAIN)\\$::env(USERNAME)
+} -body {
+    catch {cacls $fname /E /R $user} result
+    cacls $fname /E /P $user:N
+    cacls $fname /E /G $user:W
+    test_access $fname 0 1
+} -result {}
+test winFile-4.3 {
+    Enhanced NTFS user/group permissions: test read+write
+} -constraints {
+    win nt notNTFS
+} -setup {
+    set user $::env(USERDOMAIN)\\$::env(USERNAME)
+} -body {
+    catch {cacls $fname /E /R $user} result
+    cacls $fname /E /P $user:N
+    cacls $fname /E /G $user:R
+    cacls $fname /E /G $user:W
+    test_access $fname 1 1
+} -result {}
+test winFile-4.4 {
+    Enhanced NTFS user/group permissions: test full access
+} -constraints {
+    win nt notNTFS
+} -setup {
+    set user $::env(USERDOMAIN)\\$::env(USERNAME)
+} -body {
+    catch {cacls $fname /E /R $user} result
+    cacls $fname /E /P $user:N
+    cacls $fname /E /G $user:F
+    test_access $fname 1 1
+} -result {}
+
+file delete $fname
+
+# cleanup
+cleanupTests
+return

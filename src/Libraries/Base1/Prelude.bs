@@ -1,0 +1,4048 @@
+package Prelude(
+	{-Add(..), Max(..), Log(..),-}
+	Monad(..), MonadFix(..),
+	Bits(..), Eq(..),
+	Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
+	Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..),
+	PrimParam(..), PrimPort(..),
+	Bit, Rules, Module, Integer, Real, String, Char, SizeOf, Id__,
+	PrimAction, ActionValue, Action, ActionValue_, ActionWorld, AVStruct,
+	TAdd, TSub, TMul, TDiv, TLog, TExp, TMax, TMin,
+	Nat(..),
+	IsModule(..), addModuleRules, addRules,
+
+	__value,	-- XXX not good
+
+	(++), split, bitconcat,
+        BitExtend(..),
+        UInt, Int,
+	signedLT, signedLE, signedGT, signedGE,
+	signedShiftRight,
+	signedMul, signedQuot,
+	unsignedMul, unsignedQuot,
+	error, warning, message,
+        errorM, warningM, messageM,
+        primError, primWarning, primMessage,
+        primGenerateError, primPoisonedDef,
+	moduleFix,
+	splitIf, nosplitIf, nosplitDeepIf, splitDeepIf,
+        splitDeepAV, nosplitDeepAV,
+
+	Clock, Reset, Inout, Inout_, Power,
+        primInoutCast0, primInoutUncast0,
+        exposeCurrentClock,
+        exposeCurrentReset,
+        clockOf,
+        clocksOf,
+        noClock,
+        resetOf,
+        resetsOf,
+        noReset,
+        primModuleClock, primModuleReset, primBuildModule,
+	changeSpecialWires, -- primCLOCK, primRESET, primPOWER, primSW,
+        sameFamily, isAncestor,
+	chkClockDomain,
+
+        impCondOf,
+
+	primZeroExt, primSignExt, primTrunc,
+	primConcat, primSplit, PrimPair(..),
+	primOrd, primChr,
+	primValueOf,
+        _when_,
+	primExtract,
+        Position__, getStringPosition, setStringPosition, printPosition, noPosition,
+        Type, typeOf, printType, isInterfaceType,
+	forceIsModule,
+        Name__, primGetName, primMakeName, primJoinNames, primExtendNameIndex,
+        primGetNamePosition, primGetNameString,
+	primGetParamName,
+        setStateName, primGetModuleName, primSavePortType,
+	Attributes__, setStateAttrib,
+	primJoinActions, primNoActions, toPrimAction, fromPrimAction,
+	primJoinRules, primNoRules, emptyRules,
+
+	primFix,
+        primSeq,
+	PrimDeepSeqCond(..),
+	primSeqCond,
+
+	noAction, (:<-),
+	toActionValue_,
+	fromActionValue_,
+
+	primDynamicError,
+
+	primStringConcat,
+        primStringToInteger,
+
+	(+++), strConcat, stringLength,
+	quote, doubleQuote,
+        stringSplit, stringHead, stringTail, stringCons,
+        stringToCharList, charListToString,
+
+        charToString,
+        charToInteger, integerToChar,
+        isSpace, isLower, isUpper, isAlpha, isAlphaNum,
+        isDigit, isOctDigit, isHexDigit,
+        toUpper, toLower,
+        digitToInteger, digitToBits, integerToDigit, bitsToDigit,
+        hexDigitToInteger, hexDigitToBits, integerToHexDigit, bitsToHexDigit,
+
+        primCharToString,
+	primUIntBitsToInteger, primIntBitsToInteger,
+
+	($), (·), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
+	liftM, liftM2, bindM,
+
+	(<+>), rJoin,
+	(<+), (+>), preempts, preempted, rJoinPreempts,
+	rJoinDescendingUrgency,
+	rJoinExecutionOrder,
+        rJoinMutuallyExclusive, rJoinConflictFree,
+
+	-- for lack of better primitive handling
+	primAdd, primSub, primAnd, primOr, primXor,
+	primSL, primSRL, primSRA,
+	primInv, primNeg,
+	primULE, primULT,
+	primSLE, primSLT,
+	primBNot, primBAnd, primBOr, primMul,
+        primQuot, primRem,
+
+        PrimIndex(..),
+	PrimShiftIndex(..),
+        PrimSelectable(..),
+        PrimUpdateable(..),
+        PrimWriteable(..),
+        primUpdateRangeFn,
+
+	Bool(..), not, (&&), (||), _if,
+	(===), (!==),
+	PrimUnit(..),
+        Reg(..), mkReg, mkRegU, mkRegA, asReg, readReg, writeReg, asIfc,
+	Maybe(..), unJust, isJust, isValid, validValue, fromMaybe,
+	Either(..), isLeft, isRight, either,
+	Empty(..),
+	add, div, mod, quot, rem, exp,
+	bind_, fmap,
+	Arith(..),
+	max, min,
+        reverseBits,
+        countOnes, countZerosMSB, countZerosLSB,
+
+        -- system tasks
+        $display,$displayh,$displayb,$displayo,
+        $write,$writeh,$writeb,$writeo,
+
+        $fwrite,$fwriteb,$fwriteo,$fwriteh,
+        $sformat,$sformatAV,$swrite,$swriteAV,
+        $swriteh,$swritehAV,$swriteb,$swritebAV,$swriteo,$swriteoAV,
+        $fdisplay,$fdisplayb,$fdisplayo,$fdisplayh,
+
+        $error, $warning, $info, $fatal,
+
+        $SVA, SvaParam(..),
+
+        $random,
+
+        $stop,$finish,
+        $dumpon,$dumpoff,$dumpvars,$dumpall,
+        $dumpfile,$dumpflush,$dumplimit,
+        File(..),
+        $fopen,$fclose,$fflush,
+        $fgetc, $ungetc,
+        stdin, stdout, stderr,
+        stdout_mcd,
+        $time, $stime,
+	$test$plusargs,
+
+        --- XXX for internal use only - these will not work in user code
+        $signed, $unsigned,
+
+        -- tuples
+	Has_tpl_1(..),
+	Tuple2, tuple2, Has_tpl_2(..),
+	Tuple3, tuple3, Has_tpl_3(..),
+	Tuple4, tuple4, Has_tpl_4(..),
+	Tuple5, tuple5, Has_tpl_5(..),
+	Tuple6, tuple6, Has_tpl_6(..),
+	Tuple7, tuple7, Has_tpl_7(..),
+	Tuple8, tuple8, Has_tpl_8(..),
+
+        -- lists required for desugaring
+        List(..),
+        cons, nil,
+	isCons, isNil,
+	decodeList,
+
+        -- other list primitives
+        listLength,
+
+        -- infixed operators not available in BSV
+	compose, composeM,
+
+        -- utility display functions
+        displayHex,
+	displayDec,
+	displayOct,
+	displayBin,
+
+        -- a constant with all bits set
+        constantWithAllBitsSet, constantWithAllBitsUnset,
+
+        -- undefined values
+        PrimMakeUndefined(..),
+        primBuildUndefined,
+        primMakeRawUndefined,
+
+        -- uninitialized values (BSV only)
+        PrimMakeUninitialized(..),
+        primMakeRawUninitialized,
+        primUninitialized,
+
+        Fmt,
+	primFmtConcat,
+        $format,
+
+        integerToString,
+        bitToString,
+	Array(..),
+	primArrayNew,
+	primArrayNewU,
+        arrayLength,
+	primArrayInitialize,
+	primArrayCheck,
+
+	-- Real
+	realToString, $realtobits, $bitstoreal,
+	primRealSin, primRealCos, primRealTan,
+	primRealSinH, primRealCosH, primRealTanH,
+	primRealASin, primRealACos, primRealATan,
+	primRealASinH, primRealACosH, primRealATanH,
+	primRealATan2,
+	primRealSqrt,
+	primRealTrunc, primRealCeil, primRealFloor, primRealRound,
+	primSplitReal, primDecodeReal, primRealToDigits,
+	primRealIsInfinite, primRealIsNegativeZero,
+
+	-- "Environment variables"
+	genC,
+	genVerilog,
+	genPackageName,
+	genModuleName,
+	compilerVersion,
+	date,
+	epochTime,
+	buildVersion,
+	testAssert,
+
+        -- Ordering type for working with comparators
+	Ordering(..),
+
+	Handle, IOMode(..),
+	openFile, hClose,
+	hIsEOF, hIsOpen, hIsClosed, hIsReadable, hIsWritable,
+	BufferMode(..),
+	hSetBuffering, hGetBuffering, hFlush,
+	hPutStr, hPutStrLn, hPutChar,
+	hGetLine, hGetChar
+	) where
+
+infixr  0 $
+infixr  1 :=
+infixr  2 ||
+infixr  3 &&
+infixr  4 |
+infixr  5 &
+infixr  5 ^
+infixr  5 ~^
+infixr  5 ^~
+infix   6 ==
+infix   6 /=
+infix   6 <=
+infix   6 >=
+infix   6 <
+infix   6 >
+infix   7 <<
+infix   7 >>
+infixr  8 ++
+infixl 10 +
+infixl 10 -
+infixl 11 *
+infixl 11 /
+infixl 11 %
+infixr 13 ·
+
+-- ================================================================
+
+--@ \subsection{Typeclasses}
+--@ \index{typeclass}
+
+{-
+--@ These classes are built into the compiler, and express size relationships.
+--@ \index{Add@\te{Add} (built-in class of size types)}
+--@ \index{Mul@\te{Mul} (built-in class of size types)}
+--@ \index{Div@\te{Div} (built-in class of size types)}
+--@ \index{Log@\te{Log} (built-in class of size types)}
+--@ \index{Max@\te{Max} (built-in class of size types)}
+--@ \index{Min@\te{Min} (built-in class of size types)}
+--@ # 5
+class (Add :: # -> # -> # -> *) a b c | a b -> c, b c -> a, c a -> b where { }
+class (Mul :: # -> # -> # -> *) a b c | a b -> c, b c -> a, c a -> b where { }
+class (Div :: # -> # -> # -> *) a b c | a b -> c where { }
+class (Log :: # -> # -> *) a b | a -> b where { }
+class (Max :: # -> # -> # -> *) a b c | a b -> c where { }
+class (Min :: # -> # -> # -> *) a b c | a b -> c where { }
+-}
+
+--@ \index{Monad@\te{Monad} (type class)}
+--@ \index{bind@\te{bind} (\te{Monad} class method)}
+--@ \index{return@\te{return} (\te{Monad} class method)}
+--@ Monads are an advanced topic and can be ignored on first reading.
+--@ \begin{libverbatim}
+--@ typeclass Monad #(type m);
+--@     function m#(b) bind(m#(a) x1, function m#(b) x2(a x1));
+--@     function m#(a) return(a x1);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Monad m where
+    bind   :: m a -> (a -> m b) -> m b
+    return :: a -> m a
+
+--@ The class of monads that admit recursion (advanced topic; can be ignored on first reading).
+--@ \index{MonadFix@\te{MonadFix} (type class)}
+--@ \index{mfix@\te{mfix} (\te{MonadFix} class method)}
+--@ \begin{libverbatim}
+--@ typeclass MonadFix #(type m)
+--@   provisos (Monad#(m));
+--@     function m#(a) mfix(function m#(a) x1(a x1));
+--@ endtypeclass
+--@ \end{libverbatim}
+class (Monad m) => MonadFix m where
+    mfix :: (a -> m a) -> m a
+
+fmap :: (Monad m) => (a -> b) -> (m a -> m b)
+fmap f xs = do
+        {-# hide #-}
+        _x <- xs
+        return (f _x)
+
+--@ The class of types that can be converted to bit vectors and back.
+--@ \index{Bits@\te{Bits} (type class)}
+--@ \index{pack@\te{pack} (\te{Bits} class method)}
+--@ \index{unpack@\te{unpack} (\te{Bits} class method)}
+--@ \begin{libverbatim}
+--@ typeclass Bits #(type a, type n)
+--@   dependencies a -> n;
+--@     function Bit#(n) pack(a x);
+--@     function a unpack(Bit#(n) x);
+--@ endtypeclass
+--@ \end{libverbatim}
+class coherent Bits a n | a -> n where
+    pack   :: a -> Bit n
+    unpack :: Bit n -> a
+
+--@ The class of types on which equality is defined.
+--@ \index{Eq@\te{Eq} (type class)}
+--@ \index{==@{\te{==}} (\te{Eq} class method)}
+--@ \index{!=@{\te{!=}} (\te{Eq} class method)}
+--@ \begin{libverbatim}
+--@ typeclass Eq #(type a);
+--@     function Bool (==)(a x, a y);
+--@     function Bool (!=)(a x, a y);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Eq  a where
+    (==) :: a -> a -> Bool
+    x == y = not (x /= y)
+    (/=) :: a -> a -> Bool
+    x /= y = not (x == y)
+
+--@ The class of types for which integer literals can be used.
+--@ \index{Literal@\te{Literal} (type class)}
+--@ \index{fromInteger@\te{fromInteger} (\te{Literal} class method)}
+--@ \begin{libverbatim}
+--@ typeclass Literal #(type a);
+--@     function a fromInteger(Integer x);
+--@ endtypeclass
+--@ \end{libverbatim}
+--
+-- Note that the parameter to Literal is defaulted to Integer or Nat
+-- (in that order) when the type variable in the context does not
+-- appear in the base type.
+--
+class Literal a where
+    fromInteger    :: Integer -> a
+    inLiteralRange :: a -> Integer -> Bool
+
+class RealLiteral a where
+    fromReal       :: Real -> a
+
+class SizedLiteral a n | a -> n where
+    fromSizedInteger :: Bit n -> a
+
+-- Because SV doesn't have a separate syntax for character literals,
+-- we overload string literals
+class StringLiteral a where
+    fromString :: String -> a
+
+-- Ordering type used as the result of generic comparators
+data Ordering = LT | EQ | GT deriving (Eq, Bits, Bounded)
+
+--@ The class of types on which comparison operations are defined.
+--@ \index{Ord@\te{Ord} (type class)}
+--@ \index{<@{\te{<}} (\te{Ord} class method)}
+--@ \index{<=@{\te{<=}} (\te{Ord} class method)}
+--@ \index{>@{\te{>}} (\te{Ord} class method)}
+--@ \index{>=@{\te{>=}} (\te{Ord} class method)}
+--@ \index{compare@\te{compare} (\te{Ord} class method)}
+--@ \index{min@\te{min} (\te{Ord} class method)}
+--@ \index{max@\te{max} (\te{Ord} class method)}
+--@ \begin{libverbatim}
+--@ typeclass Ord #(type a);
+--@     function Bool (<)(a x, a y);
+--@     function Bool (<=)(a x, a y);
+--@     function Bool (>)(a x, a y);
+--@     function Bool (>=)(a x, a y);
+--@     function Ordering compare(a x, a y);
+--@     function a min(a x, a y);
+--@     function a max(a x, a y);
+--@ endtypeclass
+--@ \end{libverbatim}
+--@ Minimal complete definition is either <= or compare.
+class Ord a where
+    -- relational operators
+    (<) :: a -> a -> Bool
+    x < y  = (compare x y) == LT
+    (<=) :: a -> a -> Bool
+    x <= y = (compare x y) /= GT
+    (>) :: a -> a -> Bool
+    x > y  = (compare x y) == GT
+    (>=) :: a -> a -> Bool
+    x >= y = (compare x y) /= LT
+    -- generalized comparison
+    compare :: a -> a -> Ordering
+    compare x y = if (x <= y)
+		  then if (y <= x)
+		       then EQ
+		       else LT
+		  else GT
+    -- min and max selectors
+    min :: a -> a -> a
+    min x y = if x <= y then x else y
+    max :: a -> a -> a
+    max x y = if x <= y then y else x
+
+--@ The class of types with a finite range.
+--@ \index{Bounded@\te{Bounded} (type class)}
+--@ \index{minBound@\te{minBound} (\te{Bounded} class method)}
+--@ \index{maxBound@\te{maxBound} (\te{Bounded} class method)}
+--@ \begin{libverbatim}
+--@ typeclass Bounded #(type a);
+--@     a minBound;
+--@     a maxBound;
+--@ endtypeclass
+--@ \end{libverbatim}
+class Bounded a where
+    minBound :: a
+    maxBound :: a
+
+--@ The class of types on which bitwise operations are defined.
+--@ \index{Bitwise@\te{Bitwise} (type class)}
+--@ \index{&@{\verb'&'} (\te{Bitwise} class ``and'' method)}
+--@ \index{"|@{\verb'"|'} (\te{Bitwise} class ``or'' method)}
+--@ \index{^@{\verb'^'} (\te{Bitwise} class ``exclusive or'' method)}
+--@ \index{~^@{\verb'~^'} (\te{Bitwise} class ``exclusive nor'' method)}
+--@ \index{^~@{\verb'^~'} (\te{Bitwise} class ``exclusive nor'' method)}
+--@ \index{invert@\te{invert} (\te{Bitwise} class method)}
+--@ \index{<<@\te{<}\te{<}  (\te{Bitwise} class ``left shift'' method)}
+--@ \index{>>@\te{>}\te{>}  (\te{Bitwise} class ``right shift'' method)}
+--@ \begin{libverbatim}
+--@ typeclass Bitwise #(type a);
+--@     function a (&)(a x1, a x2);
+--@     function a (|)(a x1, a x2);
+--@     function a (^)(a x1, a x2);
+--@     function a (~^)(a x1, a x2);
+--@     function a (^~)(a x1, a x2);
+--@     function a invert(a x1);
+--@     function a (<<)(a x1, Nat x2);
+--@     function Bit#(1) msb(a x1);
+--@     function Bit#(1) lsb(a x1);
+--@     function a (>>)(a x1, Nat x2);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Bitwise a where
+    (&)  :: a -> a -> a        -- and
+    (|)  :: a -> a -> a        -- or
+    (^)  :: a -> a -> a        -- exclusive or
+    (~^) :: a -> a -> a        -- exclusive nor
+    (^~) :: a -> a -> a        -- exclusive nor
+    invert :: a -> a
+    (<<) :: (PrimShiftIndex ix dx) => a -> ix -> a      -- left-shift (shift in zero)
+    (>>) :: (PrimShiftIndex ix dx) => a -> ix -> a      -- right-shift (shift in zero)
+    msb  :: a -> Bit 1
+    lsb  :: a -> Bit 1
+
+class (BitReduction :: (# -> *) -> # -> *) a n where
+    reduceAnd :: a n -> a 1      -- reduction with &
+    reduceOr  :: a n -> a 1      -- reduction with |
+    reduceXor :: a n -> a 1      -- reduction with ^
+    reduceNand :: a n -> a 1     -- ! reduction with &
+    reduceNor  :: a n -> a 1     -- ! reduction with |
+    reduceXnor :: a n -> a 1     -- ! reduction with ^
+
+
+class (BitExtend :: # -> # -> (# -> *) -> *) a b c where
+    zeroExtend :: (c a) -> (c b)
+    signExtend :: (c a) -> (c b)
+    extend     :: (c a) -> (c b)
+    truncate   :: (c b) -> (c a)
+
+--@ The class of types on which arithmetic ops are defined.
+--@ \index{Arith@\te{Arith} (type class)}
+--@ \index{+@{\te{+}} (\te{Arith} class ``add'' method)}
+--@ \index{-@{\te{-}} (\te{Arith} class ``subtract'' method)}
+--@ \index{negate@\te{negate} (\te{Arith} class method)}
+--@ \index{*@\te{*} (\te{Arith} class ``multiply'' method)}
+--@ \index{*@\te{/} (\te{Arith} class ``quotient'' method)}
+--@ \index{*@\te{%} (\te{Arith} class ``remainder'' method)}
+--@ \begin{libverbatim}
+--@ typeclass Arith #(type a)
+--@   provisos (Literal#(a));
+--@     function a (+)(a x1, a x2);
+--@     function a (-)(a x1, a x2);
+--@     function a negate(a x1);
+--@     function a (*)(a x1, a x2);
+--@     function a (/)(a x1, a x2);
+--@     function a (%)(a x1, a x2);
+--@ endtypeclass
+--@ \end{libverbatim}
+class (Literal a) => Arith a where
+    (+) :: a -> a -> a
+    (-) :: a -> a -> a
+    negate :: a -> a
+    (*) :: a -> a -> a
+    (/) :: a -> a -> a
+    (%) :: a -> a -> a
+     -- absolute value
+    abs :: a -> a
+    abs x = let t = quote (printType (typeOf x))
+            in  error ("The function `abs' is not defined for " +++ t)
+    -- a unit value with the same sign, s.t. abs(x)*signum(x) = x
+    signum :: a -> a
+    signum x =
+        let t = quote (printType (typeOf x))
+        in  error ("The function `signum' is not defined for " +++ t)
+    -- logarithm and exponentiation
+    (**)  :: a -> a -> a  -- b to the x
+    (**) b x =
+        let t = quote (printType (typeOf x))
+        in  error ("The operator `**' is not defined for " +++ t)
+    exp_e :: a -> a       -- e to the x  ("expe"?)
+    exp_e x =
+        let t = quote (printType (typeOf x))
+        in  error ("The function `exp_e' is not defined for " +++ t)
+    log   :: a -> a       -- log base e
+    log x =
+        let t = quote (printType (typeOf x))
+        in  error ("The function `log' is not defined for " +++ t)
+    logb  :: a -> a -> a  -- log base b
+    logb b x = --(log x) / (log b)
+        let t = quote (printType (typeOf x))
+        in  error ("The function `logb' is not defined for " +++ t)
+    log2  :: a -> a       -- log base 2
+    log2 x = --logb 2 x
+        let t = quote (printType (typeOf x))
+        in  error ("The function `log2' is not defined for " +++ t)
+    log10 :: a -> a       -- log base 10
+    log10 x = --logb 10 x
+        let t = quote (printType (typeOf x))
+        in  error ("The function `log10' is not defined for " +++ t)
+
+add :: (Arith a) => a -> a -> a
+add x y = x + y
+
+-- The class of types that may be used as index values
+--
+-- Note that the index parameter (the second parameter) to
+-- PrimSelectable is defaulted to Integer or Nat (in that order) when
+-- the type variable in the context does not appear in the base type.
+--
+-- Note that we require Literal for the index.  This prevents
+-- spurious errors about Literal context missing when the user
+-- writes "xs[1]" and the PrimSelectable context can't be satisfied.
+--
+
+class (Literal a, Eq a) => PrimIndex a b | a -> b where
+  isStaticIndex :: a -> Bool
+  -- argument should be a elaboration-time constant
+  toStaticIndex  :: a -> Integer
+  -- argument should be a runtime value
+  -- (or poor elaboration performance should be expected)
+  toDynamicIndex :: a -> Bit b
+
+class (PrimIndex a b, Ord a) => PrimShiftIndex a b | a -> b where {}
+
+-- converts to Bit n statically if possible, or dynamically if not
+-- also performs a check that the value is nonnegative
+indexableToBits :: (PrimShiftIndex a n) => a -> Bit n
+indexableToBits x =
+        if (isStaticIndex x) then
+-- primIntegerToUIntBits will complain if negative
+        primIntegerToUIntBits (toStaticIndex x)
+        else
+        if (x >= 0) then toDynamicIndex x
+{-
+
+(00:49:23) Ktakusa3: So we discussed on Wed, that we are not
+completely doing "The Bluespec Way" of strong types for this negative
+shift thing (prohibiting signed types from being on the RHS of a shift
+operator) because our customers would kill us if we did.  Fair
+enough... So we are doing the compromise that there is a bounds check.
+
+(00:50:30) Ktakusa3: However, if I understand correctly, because of
+the "optimzed away" behavior of the bounds check, we are only doing
+the bounds check if it can be detected by the evaluator, and not by
+Bluesim or a verilog simulator.
+
+(00:50:51) nanavatiravi: for the moment
+
+(00:51:03) nanavatiravi: I have designs on adding runtime error
+infrastructure to bsc
+
+(00:51:18) nanavatiravi: which will detect the problem in simulation,
+without compromising the generated hardware
+
+-}
+        else _  -- This undefined will get optimized away at runtime.
+                -- For testing, substitute 0 for _
+
+instance PrimIndex (Bit n) n where
+  isStaticIndex  = areStaticBits
+  toStaticIndex  = primUIntBitsToInteger
+  toDynamicIndex = id
+
+instance PrimShiftIndex (Bit n) n where {}
+
+instance PrimIndex Integer 32 where
+  isStaticIndex  = isStaticInteger
+-- if you need to check for negativeness for the following two functions
+-- you may wish to use indexableToBits
+  toStaticIndex  = id
+  toDynamicIndex = fromInteger
+
+instance PrimShiftIndex Integer 32 where {}
+
+--@ The class of types on which selection of elements may be done
+--@ using square-bracket notation (in BSV).
+--@ \begin{libverbatim}
+--@ typeclass PrimSelectable #(type vector_t, type element_t);
+--@ \end{libverbatim}
+--
+-- The typeclass parameters are as follows:
+--   vector_t is the type of vector being selected from
+--   element_t is the type of the value extracted from the vector_t (vec[idx])
+
+class PrimSelectable vector_t element_t |
+                     vector_t -> element_t where
+    primSelectFn :: (PrimIndex index_t dynamic_t) =>
+                    Position__ -> vector_t -> index_t -> element_t
+
+instance (PrimSelectable a b) => PrimSelectable (Reg a) b
+  where
+    primSelectFn pos r i = primSelectFn pos r._read i
+
+--@ The class of types on which compile-time update of elements may be done
+--@ using square-bracket notation with an = assignment (in BSV)
+class (PrimSelectable vector_t element_t) => PrimUpdateable vector_t element_t |
+                     vector_t -> element_t where
+    primUpdateFn :: (PrimIndex index_t dynamic_t) =>
+                    Position__ -> vector_t -> index_t -> element_t -> vector_t
+
+--@ The class of types on which indexed run-time writes of elements may be done
+--@ using square-bracket notation with an <= assignment (in BSV)
+--@ Note that the [] syntax requires that the PrimWriteable type be an interface
+class (PrimSelectable ifc_t value_t) => PrimWriteable ifc_t value_t |
+                    ifc_t -> value_t where
+   primWriteFn :: (PrimIndex index_t dynamic_t) =>
+                  Position__ -> ifc_t -> index_t -> value_t -> Action
+
+instance (PrimUpdateable a b) => PrimWriteable (Reg a) b
+  where
+    primWriteFn pos r i n =
+      action
+        r := primUpdateFn pos (r._read) i n
+
+-- XXX only works with static indices
+-- primUpdateRangeFn: original_bits[high:low] = spliced_bits[high-low:0]
+-- this isn't the most efficient implementation, but it's simple,
+-- and has the benefit of splice_size_t being unconstrained
+primUpdateRangeFn :: (BitExtend splice_size_t vec_size_t Bit,
+		     PrimIndex ix dx) =>
+                     Position__ ->
+                     Bit vec_size_t -> ix -> ix -> Bit splice_size_t
+                     -> Bit vec_size_t
+primUpdateRangeFn pos original_bits high low spliced_bits =
+    let high' = toStaticIndex high
+        low'  = toStaticIndex low
+        max_index = valueOf vec_size_t
+        mask_base :: Bit splice_size_t
+        mask_base = constantWithAllBitsSet
+        mask :: Bit vec_size_t
+        mask = invert (zeroExtend mask_base << low')
+        new_bits = (zeroExtend spliced_bits) << low'
+        result = (original_bits & mask) | new_bits
+        zero_msg = "Assignment has no effect because bit range [" +++
+                   integerToString high' +++ ":" +++
+                   integerToString low' +++ "] selects " +++
+                   "no bits"
+        negative_msg = "Bit range [" +++
+               integerToString high' +++ ":" +++
+               integerToString low' +++ "] selects " +++
+               "a negative number of bits at"
+        static_msg str = "The indexes of a range update must be compile-time values.\n" +++
+                         "The " +++ str +++ " index of this range update is not."
+        size_msg = "Bit range [" +++
+                   integerToString high' +++ ":" +++
+                   integerToString low'  +++ "]" +++
+                   " is not " +++ integerToString (valueOf splice_size_t) +++
+		   " bits, the size of the range-update argument."
+    in -- guard the failed-to-evaluate error on the indices
+       if (not (isStaticIndex high)) then
+           primError pos (static_msg "high")
+       else if (not (isStaticIndex low)) then
+           primError pos (static_msg "low")
+       else if (high' >= max_index ||
+                high' < 0) then
+          primError pos (listMessage high' "bit range update - high index")
+       else if (low' >= max_index ||
+                low' < 0) then
+          primError pos (listMessage low'  "bit range update - low index")
+       else if (high' >= low') then
+       	    if (high' - low' + 1 == valueOf splice_size_t) then result
+	    else primError pos size_msg
+       else if (high' == low' - 1) then primError pos zero_msg
+       else primError pos negative_msg
+
+class (MonadFix m) => IsModule m c | m -> c where
+    liftModule     :: Module a -> m a
+    liftModuleOp   :: (Module (c a) -> Module (c b)) -> m a -> m b
+
+primitive type Id__ :: * -> *
+
+instance IsModule Module Id__ where
+    liftModule  _m  = _m
+    liftModuleOp _f = _f
+
+addModuleRules :: (IsModule m c) => Rules -> a -> m a
+addModuleRules rs f = liftModule $ do primAddRules rs
+	                              return f
+
+addRules :: (IsModule m c) => Rules -> m Empty
+addRules rs = liftModule $ do primAddRules rs
+	                      return (interface Empty { })
+
+primitive primAddRules :: Rules -> Module ()
+
+primitive type SchedPragma :: *
+
+-- ================================================================
+
+--@ \subsection{Data Types}
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Action}
+--@ The type for actions on the lowest level.
+--@ \index{PrimAction@\te{PrimAction} (type)}
+--@ # 1
+primitive type PrimAction :: *
+
+data ActionWorld = ActionWorld
+
+--@ \begin{libverbatim}
+--@ struct ActionValue #(type a);
+--@ \end{libverbatim}
+struct AVStruct a
+  =
+    avValue  :: a
+    avAction :: PrimAction
+    avWorld  :: ActionWorld
+
+data ActionValue a = ActionValue (ActionWorld -> AVStruct a)
+
+instance (PrimDeepSeqCond a) => PrimDeepSeqCond (ActionValue a) where
+  primDeepSeqCond (ActionValue av) b =
+    let f = av ActionWorld
+    in primDeepSeqCond f b
+
+__avFunc :: ActionValue a -> ActionWorld -> AVStruct a
+__avFunc (ActionValue f) = f
+
+__value :: ActionValue a -> a
+__value (ActionValue av) = (av ActionWorld).avValue
+
+primitive primNoActions :: PrimAction
+primitive primJoinActions :: PrimAction -> PrimAction -> PrimAction
+
+primitive primSeq :: a -> b -> b
+
+-- implicit-condition strictness
+primitive primSeqCond :: a -> b -> b
+
+class coherent PrimDeepSeqCond a where
+  primDeepSeqCond :: a -> b -> b
+
+instance PrimDeepSeqCond (a -> b) where
+  primDeepSeqCond f b = primSeqCond f b
+
+--@ \begin{libverbatim}
+--@ instance Monad #(ActionValue);
+--@ \end{libverbatim}
+-- Sequencing and forcing re-evaluation with ActionWorld works because
+-- we don't float expressions past lambda-bindings they don't depend on
+-- if that changes, this would have to be revisited
+-- (possibly making ActionWorld an argument of foreign-function calls)
+instance Monad ActionValue
+  where
+    return x = ActionValue
+                 (\aw -> AVStruct { avValue = x;
+                                    avAction = primNoActions;
+                                    avWorld = aw })
+    bind (ActionValue x) f = ActionValue (\aw ->
+	letseq x1 = x aw
+               a   = x1.avAction
+               v   = x1.avValue
+               aw1 = x1.avWorld
+	       y   = __avFunc (f v) $ aw1
+	in  primSeq v $ primSeq a $ primSeq aw1 $
+	    AVStruct {
+		avValue = y.avValue;
+		avAction = primJoinActions a y.avAction;
+                avWorld  = y.avWorld
+	    })
+
+--@ \begin{libverbatim}
+--@ instance MonadFix #(ActionValue);
+--@ \end{libverbatim}
+instance MonadFix ActionValue
+  where
+    mfix m = primFix (\ av -> m (__value av))
+--    mfix :: (a -> ActionValue a) -> ActionValue a
+--    mfix m =
+--	let av :: ActionValue a
+--	    av = m av.avValue
+--	in  av
+
+--@ Extract the \te{PrimAction} part of an \te{ActionValue}.
+--@ \begin{libverbatim}
+--@ function PrimAction toPrimAction(ActionValue#(a) a);
+--@ \end{libverbatim}
+toPrimAction :: ActionValue a -> PrimAction
+toPrimAction (ActionValue a) = (a ActionWorld).avAction
+
+--@ Construct an \te{ActionValue} (with a ``don't care'' value)
+--@ from a \te{PrimAction}.
+--@ \begin{libverbatim}
+--@ function ActionValue#(a) fromPrimAction(PrimAction a);
+--@ \end{libverbatim}
+fromPrimAction :: PrimAction -> ActionValue a
+fromPrimAction a = ActionValue (\aw -> AVStruct { avValue = _; avAction = a; avWorld = aw })
+
+--@ \begin{libverbatim}
+--@ typedef ActionValue#(void) Action;
+--@ \end{libverbatim}
+type Action = ActionValue ()
+
+--X@ \begin{verbatim}
+--X@ typedef ActionValue_#(0) Action_;
+--X@ \end{verbatim}
+type Action_ = ActionValue_ 0
+
+--@ An empty \te{Action}.
+--@ \index{noAction@\te{noAction} (empty action)}
+--@ \begin{libverbatim}
+--@ Action noAction;
+--@ \end{libverbatim}
+noAction :: Action
+noAction = fromPrimAction primNoActions
+
+--X@ Assign an \te{ActionValue} to a register.
+--X@ \begin{libverbatim}
+--X@ function Action (:<-)(Reg#(a) r, ActionValue#(a) av);
+--X@ \end{libverbatim}
+(:<-) :: Reg a -> ActionValue a -> Action
+(:<-) r av = av `bind` r._write
+
+--X@ A primitive \te{ActionValue} of bits
+--X@ \begin{verbatim}
+--X@ struct ActionValue_ #(type n);
+--X@ \end{verbatim}
+struct ActionValue_ n
+  =
+    avValue_  :: Bit n
+    avAction_ :: PrimAction
+
+toActionValue_ :: (Bits a n) => ActionValue a -> ActionValue_ n
+toActionValue_  (ActionValue av) =
+    letseq av' = av ActionWorld
+    in ActionValue_ { avValue_ = pack av'.avValue; avAction_ = av'.avAction}
+
+fromActionValue_ :: (Bits a n) => ActionValue_ n -> ActionValue a
+fromActionValue_  av_ = ActionValue (\aw ->
+    AVStruct { avValue = unpack av_.avValue_; avAction = av_.avAction_; avWorld = aw})
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Bit}
+--@ \index{Bit@\te{Bit} (type)}
+--@ # 1
+primitive type Bit :: # -> *
+
+primitive primUninitBitArray :: Position__ -> String -> Bit n
+-- This is actually the primMarkArrayInitialized primitive, but with diff type
+primitive primMarkBitArrayInitialized :: Bit n -> Bit n
+
+primitive primIsBitArray :: Bit n -> Bit 1
+
+isBitArray :: Bit n -> Bool
+isBitArray = compose primChr primIsBitArray
+
+primitive primUpdateBitArray :: Bit n -> Integer -> Bit 1 -> Bit n
+
+instance PrimMakeUninitialized (Bit n) where
+  primMakeUninitialized pos name =
+    let n = valueOf n
+    in if (n == 0) then 0
+       else if (n == 1) then primMakeRawUninitialized pos name
+       else primUninitBitArray pos name
+
+--@ \begin{libverbatim}
+--@ instance Bits #(Bit#(k), k);
+--@ \end{libverbatim}
+instance Bits (Bit k) k
+  where
+    pack x = x
+    unpack x = x
+
+--@ \begin{libverbatim}
+--@ instance Eq #(Bit#(n));
+--@ \end{libverbatim}
+instance Eq (Bit n)
+  where
+    (==) x y = primChr (primEQ x y)
+    (/=) x y = primChr (primBNot (primEQ x y))
+
+--@ Bit-level Verilog case equality.
+--@ Undefined bits are strictly not equal to defined ones.
+--@ \index{===@\te{===} (case equality operator)}
+--@ \begin{libverbatim}
+--@ function Bool (==)(a x, a y)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+(===) :: Bit n -> Bit n -> Bool
+(===) x y = primChr $ primEQ3 x y
+
+--@ Bit-level Verilog case inequality.
+--@ Undefined bits are strictly not equal to defined ones.
+--@ \index{!==@\te{!==} (case inequality operator)}
+--@ \begin{libverbatim}
+--@ function Bool (!==)(a x, a y)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim
+(!==) :: Bit n -> Bit n -> Bool
+(!==) x y = primChr $ primBNot $ primEQ3 x y
+
+-- \begin{libverbatim}
+-- instance PrimSelectable #(Bit#(n), Nat, Bit#(1))
+--   provisos (Add#(m, 1, n));
+-- \end{libverbatim}
+instance PrimSelectable (Bit n) (Bit 1)
+  where
+    primSelectFn pos bs i = primExtract pos bs i i
+
+instance PrimUpdateable (Bit n) (Bit 1)
+  where
+    primUpdateFn = replaceBit
+
+--@ \begin{libverbatim}
+--@ instance Literal #(Bit#(n));
+--@ \end{libverbatim}
+instance Literal (Bit n)
+  where
+    fromInteger i = primIntegerToBit i
+    inLiteralRange a i = let n = valueOf n
+                             max = 2 ** n
+                             min = negate (2 ** (n - 1))
+                         in  if (n == 0) then i == 0
+                             else i < max && i >= min
+
+instance SizedLiteral (Bit n) n
+  where
+    fromSizedInteger i = i
+
+--@ \begin{libverbatim}
+--@ instance Ord #(Bit#(n));
+--@ \end{libverbatim}
+instance Ord (Bit n)
+  where
+    (<)  x y = primChr (primULT x y)
+    (<=) x y = primChr (primULE x y)
+    (>)  x y = primChr (primBNot (primULE x y))
+    (>=) x y = primChr (primBNot (primULT x y))
+
+--@ \begin{libverbatim}
+--@ instance Bounded #(Bit#(n));
+--@ \end{libverbatim}
+instance Bounded (Bit n)
+  where
+    minBound = 0x0
+    maxBound = fromInteger ((2 ** (valueOf n)) - 1)
+
+--@ \begin{libverbatim}
+--@ instance Bitwise #(Bit#(n));
+--@ \end{libverbatim}
+instance Bitwise (Bit n)
+  where
+    (&) x y = primAnd x y
+    (|) x y = primOr  x y
+    (^) x y = primXor x y
+    (^~) x y = primInv (primXor x y)
+    (~^) x y = primInv (primXor x y)
+    invert x = primInv x
+    (<<) x y = primSL x (indexableToBits y)
+    (>>) x y = primSRL x (indexableToBits y)
+    msb x    = let lbs :: List (Bit 1)
+                   lbs = listPrimSomeBitsToList  0 (valueOf n) x
+	       in case (listDrop ((valueOf n) - 1) lbs) of
+                             Nil            -> 0
+                             (Cons m Nil)   -> m
+                             _              -> error "msb implementation problem"
+    lsb x    = let lbs :: List (Bit 1)
+                   lbs = listPrimSomeBitsToList  0 (valueOf n) x
+	       in case (lbs) of
+                             Nil -> 0
+                             (Cons x xs) -> x
+
+instance BitReduction Bit n where
+    reduceAnd x = if x == invert 0 then 1 else 0
+    reduceOr  x = if x == 0 then 0 else 1
+    reduceXor x = case (listPrimSomeBitsToList 0 (valueOf n) x) of
+                  Nil -> error "reduce ^ called on a zero-bit value"
+                  (Cons x xs) -> listPrimFoldL (^) x xs
+    reduceNand x = invert (reduceAnd x)
+    reduceNor x = invert (reduceOr x)
+    reduceXnor x = invert (reduceXor x)
+
+--@ \begin{libverbatim}
+--@ instance Arith #(Bit#(n));
+--@ \end{libverbatim}
+instance Arith (Bit n)
+  where
+    (+) x y  = primAdd x y
+    (-) x y  = primSub x y
+    negate x = primNeg x
+    (*) x y  = primTrunc (primMul x y)
+    (/) x y  = primQuot x y
+    (%) x y  = primRem x y
+    -- Bit is unsigned
+    abs x = x
+    signum x = 1
+    -- use default for these:
+    -- XXX special errors which mention just "Bit" not "Bit#(..)" ?
+    --(**) b x = ...
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+    --log2 x = ...
+    --log10 x = ...
+
+--@ Concatenate two bit vectors into one.
+--@ \index{++@\te{++} (\te{Bit} concatenation operator)}
+--@ \begin{libverbatim}
+--@ function Bit#(k) (++)(Bit#(n) x, Bit#(m) y)
+--@   provisos (Add#(n, m, k));
+--@ \end{libverbatim}
+(++) :: (Add n m k) => Bit n -> Bit m -> Bit k
+(++) x y = primConcat x y
+
+bitconcat :: (Add n m k) => Bit n -> Bit m -> Bit k
+bitconcat = primConcat
+
+--@ Split a bit vector into two bit vectors (higher-order bits, lower-order bits).
+--@ \index{split@\te{split} (\te{Bit} splitting function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(Bit#(n), Bit#(m)) split(Bit#(k) x)
+--@   provisos (Add#(n, m, k));
+--@ \end{libverbatim}
+split :: (Add n m k) => Bit k -> (Bit n, Bit m)
+split x = primSplit x
+
+--@ \index{zeroExtend@\te{zeroExtend} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bit#(m) zeroExtend(Bit#(n) x)
+--@   provisos (Add#(k, n, m));
+--@ \end{libverbatim}
+
+instance (Add k n m) => BitExtend n m Bit where
+   zeroExtend x = primZeroExt x
+   signExtend x = primSignExt x
+   extend x     = primZeroExt x
+   truncate   x = primTrunc x
+
+--zeroExtend :: (Add k n m) => Bit n -> Bit m
+--zeroExtend x = primZeroExt x
+
+--@ \index{signExtend@\te{signExtend} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bit#(m) signExtend(Bit#(n) x)
+--@   provisos (Add#(k, n, m));
+--@ \end{libverbatim}
+--signExtend :: (Add k n m) => Bit n -> Bit m
+--signExtend x = primSignExt x
+
+--@ Trucate by discarding higher-order bits.
+--@ \index{truncate@\te{truncate} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bit#(m) truncate(Bit#(n) x)
+--@   provisos (Add#(k, m, n));
+--@ \end{libverbatim}
+--truncate :: (Add k m n) => Bit n -> Bit m
+--truncate x = primTrunc x
+
+--@ Comparisons and shifts, interpreting as signed values.
+--@ \index{signedLT@\te{signedLT} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bool signedLT(Bit#(n) x, Bit#(n) y);
+--@ \end{libverbatim}
+signedLT :: Bit n -> Bit n -> Bool
+signedLT x y = primChr (primSLT x y)
+
+--@ \index{signedLE@\te{signedLE} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bool signedLE(Bit#(n) x, Bit#(n) y);
+--@ \end{libverbatim}
+signedLE :: Bit n -> Bit n -> Bool
+signedLE x y = primChr (primSLE x y)
+
+--@ \index{signedGT@\te{signedGT} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bool signedGT(Bit#(n) x, Bit#(n) y);
+--@ \end{libverbatim}
+signedGT :: Bit n -> Bit n -> Bool
+signedGT x y = primChr (primBNot (primSLE x y))
+
+--@ \index{signedGE@\te{signedGE} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bool signedGE(Bit#(n) x, Bit#(n) y);
+--@ \end{libverbatim}
+signedGE :: Bit n -> Bit n -> Bool
+signedGE x y = primChr (primBNot (primSLT x y))
+
+--@ \index{signedShiftRight@\te{signedShiftRight} (\te{Bit} function)}
+--@ \begin{libverbatim}
+--@ function Bit#(n) signedShiftRight(Bit#(n) x, Bit#(k) c);
+--@ \end{libverbatim}
+signedShiftRight :: (PrimShiftIndex ix dx) => Bit n -> ix -> Bit n
+signedShiftRight x c = primSRA x (indexableToBits c)
+
+-- =====================
+
+flatN :: Integer -> List (Bit k) -> Bit m
+flatN n Nil = 0
+flatN n (Cons b bs) = b[(valueOf k - 1) : 0] << (n * valueOf k) | flatN (n+1) bs
+
+grabN :: Integer -> Integer -> Bit m -> List (Bit k)
+grabN i n bs =
+    if i >= n then
+	Nil
+    else
+	letseq i' = i + valueOf k
+	       x = bs[(i'-1) : i]
+	in  Cons x (grabN i' n bs)
+
+-- =====================
+
+map1 :: (a -> b) -> List a -> List b
+map1 f Nil = Nil
+map1 f (Cons x xs) = Cons (f x) (map1 f xs)
+
+zipwith1 :: (a -> b -> c) -> List a -> List b -> List c
+zipwith1 f (Cons x xs) (Cons y ys) = Cons (f x y) (zipwith1 f xs ys)
+zipwith1 _ _ _ = Nil
+
+upto1 :: Integer -> Integer -> List Integer
+upto1 n m = if (n > m) then Nil else Cons n (upto1 (n+1) m)
+
+num1 :: List a -> Integer -> List (a, Integer)
+num1 Nil n = Nil
+num1 (Cons x xs) n = Cons (x, n) (num1 xs (n+1))
+
+replaceBit :: (PrimIndex ix dx) => Position__ -> Bit n -> ix -> Bit 1 -> Bit n
+replaceBit pos w i b =
+  letseq i' = toStaticIndex i
+         x :: Bit n
+         x = 1 << (toDynamicIndex i)
+	 result = if (unpack b) then (w | x) else (w & invert x)
+         w' = primMarkBitArrayInitialized w
+  in if (isStaticIndex i) then
+        if ((i' >= valueOf n) || (i' < 0)) then
+           primError pos $ listMessage (toStaticIndex i) "bit replacement"
+	else if (isBitArray w) then
+	   primUpdateBitArray w' i' b
+        else result
+     else result
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Bool}
+--@ \index{Bool@\te{Bool} (type)}
+--@ \index{True@\te{True} (\te{Bool} constant)}
+--@ \index{False@\te{False} (\te{Bool} constant)}
+--@ \index{not@\te{not} (\te{Bool} function)}
+--@ \index{&&@{\verb'&&'} (\te{Bool} ``and'' operator)}
+--@ \index{"|"|@{\verb'"|"|'} (\te{Bool} ``or'' operator)}
+--@ \begin{libverbatim}
+--@ typedef enum {False, True} Bool deriving (Eq, Bits, Bounded);
+--@ \end{libverbatim}
+data Bool = False | True
+        deriving (Eq, Bits, Bounded, FShow)
+
+isStaticBool :: Bool -> Bool
+isStaticBool = compose areStaticBits pack
+
+--@ \begin{libverbatim}
+--@ function Bool not(Bool x);
+--@ \end{libverbatim}
+not :: Bool -> Bool
+not x = primChr (primBNot (primOrd x))
+
+--@ \begin{libverbatim}
+--@ function Bool (&&)(Bool x, Bool y);
+--@ \end{libverbatim}
+(&&) :: Bool -> Bool -> Bool
+(&&) x y = primChr (primBAnd (primOrd x) (primOrd y))
+
+--@ \begin{libverbatim}
+--@ function Bool (||)(Bool x, Bool y);
+--@ \end{libverbatim}
+(||) :: Bool -> Bool -> Bool
+(||) x y = primChr (primBOr (primOrd x) (primOrd y))
+
+_if :: Bool -> a -> a -> a
+_if c t e = primIf (primOrd c) t e
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Empty}
+--@
+--@ An interface with no methods.
+--@ \index{Empty@\te{Empty} (interface type)}
+--@ \begin{libverbatim}
+--@ interface Empty;
+--@ endinterface: Empty
+--@ \end{libverbatim}
+interface Empty = { }
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Integer}
+--@
+--@ The \te{Integer} type is a built-in type in the compiler.
+--@
+--@ \index{Integer@\te{Integer} (type)}
+--@ \index{div@{\te{div}} (\te{Integer} function)}
+--@ \index{mod@{\te{mod}} (\te{Integer} function)}
+--@ # 1
+primitive type Integer :: *
+
+--@ \begin{libverbatim}
+--@ instance Literal #(Integer);
+--@ \end{libverbatim}
+instance Literal Integer
+  where
+    fromInteger x = x
+    inLiteralRange a i = True
+
+--@ \begin{libverbatim}
+--@ instance Eq #(Integer);
+--@ \end{libverbatim}
+instance Eq Integer
+  where
+    (==) x y = primChr (primIntegerEQ x y)
+    (/=) x y = primChr (primBNot (primIntegerEQ x y))
+
+--@ \begin{libverbatim}
+--@ instance Ord #(Integer);
+--@ \end{libverbatim}
+instance Ord Integer
+  where
+    (<)  x y = primChr (primIntegerLT x y)
+    (<=) x y = primChr (primIntegerLE x y)
+    (>)  x y = primChr (primBNot (primIntegerLE x y))
+    (>=) x y = primChr (primBNot (primIntegerLT x y))
+
+--@ \begin{libverbatim}
+--@ instance Arith #(Integer);
+--@ \end{libverbatim}
+instance Arith Integer
+  where
+    (+) x y = primIntegerAdd x y
+    (-) x y = primIntegerSub x y
+    negate x = primIntegerNeg x
+    (*) x y = primIntegerMul x y
+    (/) x y = primIntegerQuot x y
+    (%) x y = primIntegerRem x y
+    abs x = if x < 0 then primIntegerNeg x else x
+    signum x = if x < 0 then primIntegerNeg 1 else 1
+    (**) b x = primIntegerExp b x
+    log2  x = primIntegerLog2 x
+    log10 x = primIntegerLog10 x
+    -- use default for these:
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+
+-- Note:  div performs integer division truncated toward negative infinity
+--        and mod obeys the equation (x `div` y)*y + (x `mod` y) == x
+--        quot performs integer division truncated toward zero
+--        and rem obeys the equation (x `quot` y)*y + (x `rem` y) == x
+
+--@ \begin{libverbatim}
+--@ function Integer div(Integer x, Integer y);
+--@ \end{libverbatim}
+div :: Integer -> Integer -> Integer
+div x y = primIntegerDiv x y
+
+--@ \begin{libverbatim}
+--@ function Integer mod(Integer x, Integer y);
+--@ \end{libverbatim}
+mod :: Integer -> Integer -> Integer
+mod x y = primIntegerMod x y
+
+--@ \begin{libverbatim}
+--@ function Integer quot(Integer x, Integer y);
+--@ \end{libverbatim}
+quot :: Integer -> Integer -> Integer
+quot x y = primIntegerQuot x y
+
+--@ \begin{libverbatim}
+--@ function Integer rem(Integer x, Integer y);
+--@ \end{libverbatim}
+rem :: Integer -> Integer -> Integer
+rem x y = primIntegerRem x y
+
+--@ \begin{libverbatim}
+--@ function Integer exp(  Integer base, Integer pwr );
+--@ \end{libverbatim}
+{-# properties exp = { deprecate = "Replaced by the operator `**'." } #-}
+exp :: Integer -> Integer -> Integer
+exp = (**)
+
+-- ----------------------------------------------------------------
+
+primitive type Real :: *
+
+realToString :: Real -> String
+realToString x = primRealToString x
+
+instance RealLiteral Real
+  where
+    fromReal x = x
+
+instance Literal Real
+  where
+    fromInteger x = primIntegerToReal x
+    inLiteralRange a i = True
+
+instance Eq Real
+  where
+    (==) x y = primChr (primRealEQ x y)
+    (/=) x y = primChr (primBNot (primRealEQ x y))
+
+instance Ord Real
+  where
+    (<)  x y = primChr (primRealLT x y)
+    (<=) x y = primChr (primRealLE x y)
+    (>)  x y = primChr (primBNot (primRealLE x y))
+    (>=) x y = primChr (primBNot (primRealLT x y))
+
+instance Arith Real
+  where
+    (+) x y = primRealAdd x y
+    (-) x y = primRealSub x y
+    negate x = primRealNeg x
+    (*) x y = primRealMul x y
+    (/) x y = primRealDiv x y
+    (%) x y = error ("The operator `%' is not defined for `real'")
+    abs x = primRealAbs x
+    signum x = primRealSignum x
+    exp_e x = primRealExpE x
+    (**) b x = primRealPow b x
+    log x = primRealLogE x
+    logb b x = primRealLogBase b x
+    log2 x = primRealLog2 x
+    log10 x = primRealLog10 x
+
+$realtobits :: Real -> Bit 64
+$realtobits x = primRealToBits x
+
+$bitstoreal :: Bit 64 -> Real
+$bitstoreal x = primBitsToReal x
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Maybe}
+--@ \index{Maybe@\te{Maybe} (type)}
+--@ \index{Invalid@\te{Invalid} (type constructor)}
+--@ \index{Valid@\te{Valid} (type constructor)}
+--@ \index{fromMaybe@\te{fromMaybe} (function)}
+--@ \index{validValue@\te{validValue} (function)}
+--@ \index{isValid@\te{isValid} (function)}
+--@
+--@ The \te{Maybe} type is used for ``tagging'' values as either
+--@ ``Valid'' or ``Invalid''.\footnote{To match older versions of
+--@ Bluespec, and the Haskell language
+--@ \te{Maybe} type, \te{Just} is a type constructor
+--@ alias for \te{Valid} and \te{Nothing} for \te{Invalid}.}
+--@ \begin{libverbatim}
+--@ typedef union tagged {
+--@     void Invalid;
+--@     a    Valid;
+--@ } Maybe #(type a) deriving (Eq, Bits);
+--@ \end{libverbatim}
+data Maybe a = (Invalid, Nothing) | (Valid, Just) a
+        deriving (Eq, Bits, FShow)
+type Perhaps  = Maybe
+
+--X@ The \te{Maybe} type is a monad.
+--X@ \begin{libverbatim}
+--X@ instance Monad #(Maybe);
+--X@ \end{libverbatim}
+instance Monad Maybe
+    where
+	return x = Just x
+	bind Nothing  _ = Nothing
+	bind (Just x) f = f x
+
+--@ {\tt fromMaybe} extracts the \te{Valid} value out of a \te{Maybe} value,
+--@ providing a default value if the tagged union is \te{Invalid}.
+--@ \begin{libverbatim}
+--@ function a fromMaybe( a default,  Maybe#(a) val ) ;
+--@ \end{libverbatim}
+fromMaybe :: a -> Maybe a -> a
+fromMaybe def Nothing = def
+fromMaybe _ (Just x) = x
+
+
+--@ {\tt validValue} picks out the value of a \te{Valid}.  This is not recommended because an
+--@ \te{Invalid} pattern gives an unspecified value -- Use fromMaybe as a safer alternative.
+--@ \begin{libverbatim}
+--@ function a validValue( Maybe#(a) val ) ;
+--@ \end{libverbatim}
+validValue :: Maybe a -> a
+validValue Nothing = _
+validValue (Just x) = x
+
+
+--X@ (This function is deprecated.)
+--X@ {\tt unJust}     picks out the value of a \te{Valid}.  This is not recommended because an
+--X@ \te{Invalid} pattern gives an unspecified value -- Use fromMaybe as a safer alternative.
+--X@ \begin{libverbatim}
+--X@ function a unJust( Maybe#(a) val ) ;
+--X@ \end{libverbatim}
+unJust :: Maybe a -> a
+unJust Nothing = _
+unJust (Just x) = x
+
+--@ The function {\tt isValid} tests if a \te{Maybe} variable is \te{Valid}.
+--@ \begin{libverbatim}
+--@ function Bool isValid( Maybe#(a) val ) ;
+--@ \end{libverbatim}
+isValid :: Maybe a -> Bool
+isValid Nothing = False
+isValid (Just _) = True
+
+--X@ The function {\tt isJust} tests if a \te{Maybe} variable is
+--X@ \te{Valid}. (This function is deprecated.)
+--X@ \begin{libverbatim}
+--X@ function Bool isJust( Maybe#(a) val ) ;
+--X@ \end{libverbatim}
+isJust :: Maybe a -> Bool
+isJust Nothing = False
+isJust (Just _) = True
+
+-- ---------------------------------------------------------------
+
+-- Integers
+
+-- abstract
+data Int n = Int (Bit n)
+
+instance Bits (Int n) n where
+    pack (Int x) = pack x
+    unpack b = Int (unpack b)
+
+instance Literal (Int n) where
+    fromInteger i = Int (primIntegerToIntBits i)
+    inLiteralRange a i = let n = valueOf n
+                             max = 2 ** (n - 1)
+                             min = negate (2 ** (n - 1))
+                         in if (n == 0) then i == 0
+                            else i < max && i >= min
+
+instance SizedLiteral (Int n) n where
+    fromSizedInteger i = Int i
+
+instance Eq (Int n) where
+    (==) (Int x) (Int y) = x == y
+    (/=) (Int x) (Int y) = x /= y
+
+
+-- For quotient (/) and remainder (%), of signed values, we strip off
+-- the sign information and perform the unsigned operations, then
+-- we restore the signed representation according to the rules:
+--   1. the quotient is negative if exactly one operand is negative
+--   2. the remainder is negative iff the first operand is negative
+
+fromSigned :: Int n -> (Bool, UInt n)
+fromSigned x = (x < 0, unpack (pack (abs x)))
+
+-- Note: this assumes that x does not use the highest bit,
+-- which is true when it comes from fromSigned, and is preserved
+-- by integer / and %.  The constraints are not enforced with
+-- a signture like toSigned :: (Add k 1 n) => (Bool, UInt k) -> Int n
+-- because the provisos propagate up and would require the user
+-- to add proviso(Arith#(Int#(n)), etc. whenever they write
+-- functions with do arithmetic on Int#(n).
+toSigned :: (Bool, UInt n) -> Int n
+toSigned (s,x) = (if s then negate else id) (unpack (pack x))
+
+signedQuot :: Int n -> Int k -> Int n
+signedQuot q d =
+  let (s_q, v_q) = fromSigned q
+      (s_d, v_d) = fromSigned d
+      quo       = primQuot (pack v_q) (pack v_d)
+  in toSigned ((s_q && (not s_d)) || ((not s_q) && s_d), (UInt quo))
+
+signedRem :: Int n -> Int n -> Int n
+signedRem q d =
+  let (s_q, v_q) = fromSigned q
+      (s_d, v_d) = fromSigned d
+  in toSigned (s_q, (v_q % v_d))
+
+signedMul :: (Add n k m) => Int n -> Int k -> Int m
+signedMul a b =
+  let (s_a, v_a) = fromSigned a
+      (s_b, v_b) = fromSigned b
+      mulResult  = unpack(primMul (pack v_a) (pack v_b))
+  in toSigned ((s_a && (not s_b)) || (s_b && (not s_a)), mulResult)
+
+
+unsignedMul :: (Add n k m) => UInt n -> UInt k -> UInt m
+unsignedMul a b = unpack( primMul (pack a) (pack b))
+
+unsignedQuot :: UInt k -> UInt n -> UInt k
+unsignedQuot a b = unpack (primQuot (pack a) (pack b))
+
+{-
+instance Arith (Int 0) where
+    (+) (Int x) (Int y) = Int (x + y)
+    (-) (Int x) (Int y) = Int (x - y)
+    negate (Int x) = Int (negate x)
+    (*) (Int x) (Int y) = Int (x * y)
+    (/) x y = error "/ for (Int 0) implies division by 0"
+    (%) x y = error "% for (Int 0) implies division by 0"
+-}
+
+instance Arith (Int n) where
+    (+) (Int x) (Int y) = Int (x + y)
+    (-) (Int x) (Int y) = Int (x - y)
+    negate (Int x) = Int (negate x)
+    (*) (Int x) (Int y) = Int (x * y)
+    (/) x y = signedQuot x y
+    (%) x y = signedRem x y
+    abs x@(Int i) = if x < 0 then Int (negate i) else x
+    signum x = if x < 0 then negate 1 else 1
+    -- use default for these:
+    -- XXX special errors which mention just "Int" not "Int#(..)" ?
+    --(**) b x = ...
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+    --log2 x = ...
+    --log10 x = ...
+
+instance Ord (Int n) where
+    (<)  (Int x) (Int y) = primChr (primSLT x y)
+    (<=) (Int x) (Int y) = primChr (primSLE x y)
+    (>)  (Int x) (Int y) = primChr (primBNot (primSLE x y))
+    (>=) (Int x) (Int y) = primChr (primBNot (primSLT x y))
+
+instance Bounded (Int n) where
+    minBound = Int (((maxBound::Bit n) >> 1) + 1)
+    maxBound = Int ((maxBound::Bit n) >> 1)
+
+instance Bitwise (Int n) where
+    (&) (Int x) (Int y) = Int (primAnd x y)
+    (|) (Int x) (Int y) = Int (primOr  x y)
+    (^) (Int x) (Int y) = Int (primXor x y)
+    (^~) (Int x) (Int y) = Int (primInv (primXor x y))
+    (~^) (Int x) (Int y) = Int (primInv (primXor x y))
+    invert (Int x) = Int (primInv x)
+    (<<) (Int x) y = Int (primSL x (indexableToBits y))
+    (>>) (Int x) y = Int (primSRA x (indexableToBits y))
+    msb  (Int x)   = msb x
+    lsb  (Int x)   = lsb x
+
+instance BitReduction Int n where
+    reduceAnd x = if x == invert 0 then 1 else 0
+    reduceOr  x = if x == 0 then 0 else 1
+    reduceXor (Int x) = case (listPrimSomeBitsToList 0 (valueOf n) x) of
+                        Nil -> error "reduce ^ called on a zero-bit value"
+                        (Cons x xs) -> Int (listPrimFoldL (^) x xs)
+    reduceNand x = invert (reduceAnd x)
+    reduceNor x = invert (reduceOr x)
+    reduceXnor x = invert (reduceXor x)
+
+instance (Add k n m) => BitExtend n m Int where
+    zeroExtend (Int x) = Int (primZeroExt x)
+    signExtend (Int x) = Int (primSignExt x)
+    extend     (Int x) = Int (primSignExt x)
+    truncate   (Int x) = Int (primTrunc x)
+
+instance PrimIndex (Int n) n where
+-- if you need to check for negativeness for the following two functions
+-- you may wish to use indexableToBits
+  isStaticIndex  = compose areStaticBits pack
+  toStaticIndex  = compose primIntBitsToInteger pack
+  toDynamicIndex = pack
+
+instance PrimShiftIndex (Int n) n where {}
+
+-- ---------------------------------------------------------------
+
+-- Unsigned (sized) integers
+
+-- abstract
+data UInt n = UInt (Bit n)
+
+instance Bits (UInt n) n where
+    pack (UInt x) = pack x
+    unpack b = UInt (unpack b)
+
+instance Literal (UInt n) where
+    fromInteger i = UInt (primIntegerToUIntBits i)
+    inLiteralRange a i = let n = valueOf n
+                             max = 2 ** n
+                         in i >= 0 && i < max
+
+instance SizedLiteral (UInt n) n where
+    fromSizedInteger i = UInt i
+
+instance Eq (UInt n) where
+    (==) (UInt x) (UInt y) = x == y
+    (/=) (UInt x) (UInt y) = x /= y
+
+instance Arith (UInt n) where
+    (+) (UInt x) (UInt y) = UInt (x + y)
+    (-) (UInt x) (UInt y) = UInt (x - y)
+    negate (UInt x) = UInt (negate x)
+    (*) (UInt x) (UInt y) = UInt (x * y)
+    (/) (UInt x) (UInt y) = UInt (x / y)
+    (%) (UInt x) (UInt y) = UInt (x % y)
+    -- UInt is unsigned
+    abs x = x
+    signum x = 1
+    -- use default for these:
+    -- XXX special errors which mention just "UInt" not "UInt#(..)" ?
+    --(**) b x = ...
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+    --log2 x = ...
+    --log10 x = ...
+
+instance Ord (UInt n) where
+    (<)  (UInt x) (UInt y) = primChr (primULT x y)
+    (<=) (UInt x) (UInt y) = primChr (primULE x y)
+    (>)  (UInt x) (UInt y) = primChr (primBNot (primULE x y))
+    (>=) (UInt x) (UInt y) = primChr (primBNot (primULT x y))
+
+instance Bounded (UInt n) where
+    minBound = UInt (minBound::Bit n)
+    maxBound = UInt (maxBound::Bit n)
+
+instance Bitwise (UInt n) where
+    (&) (UInt x) (UInt y) = UInt (primAnd x y)
+    (|) (UInt x) (UInt y) = UInt (primOr  x y)
+    (^) (UInt x) (UInt y) = UInt (primXor x y)
+    (^~) (UInt x) (UInt y) = UInt (primInv (primXor x y))
+    (~^) (UInt x) (UInt y) = UInt (primInv (primXor x y))
+    invert (UInt x) = UInt (primInv x)
+    (<<) (UInt x) y = UInt (primSL x (indexableToBits y))
+    (>>) (UInt x) y = UInt (primSRL x (indexableToBits y))
+    msb  (UInt x)   = msb x
+    lsb  (UInt x)   = lsb x
+
+instance BitReduction UInt n where
+    reduceAnd x = if x == invert 0 then 1 else 0
+    reduceOr  x = if x == 0 then 0 else 1
+    reduceXor (UInt x) = case (listPrimSomeBitsToList 0 (valueOf n) x) of
+                         Nil -> error "reduce ^ called on a zero-bit value"
+                         (Cons x xs) -> UInt (listPrimFoldL (^) x xs)
+    reduceNand x = invert (reduceAnd x)
+    reduceNor x = invert (reduceOr x)
+    reduceXnor x = invert (reduceXor x)
+
+instance (Add k n m) => BitExtend n m UInt where
+    zeroExtend (UInt x) = UInt (primZeroExt x)
+    -- comment this is controversial - here we are treating an
+    -- unsigned integer like a bit pattern
+    signExtend (UInt x) = UInt (primSignExt x)
+    extend (UInt x)     = UInt (primZeroExt x)
+    truncate (UInt x) = UInt (primTrunc x)
+
+
+instance PrimIndex (UInt n) n where
+  isStaticIndex  = compose areStaticBits pack
+  toStaticIndex  = compose primUIntBitsToInteger pack
+  toDynamicIndex = pack
+
+instance PrimShiftIndex (UInt n) n where {}
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Nat}
+
+--@ \index{Nat@\te{Nat} (type)}
+--@ \begin{libverbatim}
+--@ typedef Bit#(32) Nat;
+--@ \end{libverbatim}
+type Nat = Bit 32
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Either}
+--@ \index{Either@\te{Either} (type)}
+--@
+--@ Used for values that are either of type {\te a} or of type {\te b}.
+--@ \begin{libverbatim}
+--@ typedef tagged union {
+--@     a Left;
+--@     b Right;
+--@ } Either #(type a, type b) deriving (Eq, Bits);
+--@ \end{libverbatim}
+data Either a b = Left a | Right b
+        deriving (Eq, Bits)
+
+--@ The function {\tt isLeft} tests if an \te{Either} value is
+--@ the \te{Left} variant.
+--@ \begin{libverbatim}
+--@ function Bool isLeft( Either#(a,b) val ) ;
+--@ \end{libverbatim}
+isLeft :: Either a b -> Bool
+isLeft (Left _)  = True
+isLeft (Right _) = False
+
+--@ The function {\tt isRight} tests if an \te{Either} value is
+--@ the \te{Right} variant.
+--@ \begin{libverbatim}
+--@ function Bool isRight( Either#(a,b) val ) ;
+--@ \end{libverbatim}
+isRight :: Either a b -> Bool
+isRight (Left _)  = False
+isRight (Right _) = True
+
+--@ The function {\tt either} selects which of two argument functions
+--@ to apply to an \te{Either} value.  If the value is \te{Left a} then
+--@ first function is applied to \te{a}.  If the value is \te{Right b}
+--@ then the second function is applied to \te{b}.
+--@ \begin{libverbatim}
+--@ function c either( function c leftFn(a x), function c rightFn(b y), Either#(a,b) val ) ;
+--@ \end{libverbatim}
+either :: (a -> c) -> (b -> c) -> (Either a b -> c)
+either fn _ (Left x)  = fn x
+either _ fn (Right x) = fn x
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Registers}
+--@ \index{Reg@\te{Reg} (type)}
+--@ \index{\_write@\te{\_write} (\te{Reg} interface method)}
+--@ \index{\_read@\te{\_read} (\te{Reg} interface method)}
+--@ \index{mkReg@\te{mkReg} (\te{Reg} module)}
+--@ \index{mkReg@\te{mkRegA} (\te{Reg} module)}
+--@ \index{mkRegU@\te{mkRegU} (\te{Reg} module)}
+--@ \index{asReg@\te{asReg} (dummy \te{Reg} function)}
+--@ \label{lib-registers}
+--@ \begin{libverbatim}
+--@ interface Reg #(type a_type);
+--@     method Action _write(a_type x1);
+--@     method a_type _read();
+--@ endinterface: Reg
+--@ \end{libverbatim}
+interface Reg a =
+    _write :: a -> Action
+    _read  :: a
+
+interface VReg n =
+    write :: Bit n -> PrimAction
+    read :: Bit n
+
+-- only for n>0
+vMkReg :: Bit n -> Module (VReg n)
+vMkReg v =
+    module verilog "RegN" (("width",valueOf n), ("init",v)) "CLK" "RST" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> read,
+	read < write,
+	write << write ]
+
+--@ Make a register with a given reset value.  Reset logic is
+--@ synchronous.   Note that all Bluespec registers are considered
+--@ atomic units, which means that even if one bit is updated
+--@ (written), then all the bits are considered updated. This
+--@ prevents multiple rules from updating register fields in an
+--@ inconsistent manner.
+--@ \begin{libverbatim}
+--@ module mkReg#(a_type resetval)(Reg#(a_type))
+--@   provisos (Bits#(a_type, sizea));
+--@ \end{libverbatim}
+mkReg :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkReg v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkReg (pack v)
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+-- only for n>0
+vMkRegU :: Module (VReg n)
+vMkRegU =
+    module verilog "RegUN" (("width",valueOf n)) "CLK" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> read,
+	read < write,
+	write << write ]
+
+--@ Make a register without any reset; initial simulation value is alternating 01 bits.
+--@ \begin{libverbatim}
+--@ module mkRegU(Reg#(a_type))
+--@   provisos (Bits#(a_type, sizea));
+--@ \end{libverbatim}
+mkRegU :: (IsModule m c, Bits a sa) => m (Reg a)
+mkRegU = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkRegU
+      let name = Valid (primGetModuleName _r)
+      x :: a <- return _
+      let t = typeOf x
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+-- only for n>0
+vMkRegA :: Bit n -> Module (VReg n)
+vMkRegA v =
+    module verilog "RegA" (("width",valueOf n), ("init",v)) "CLK" "RST" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> read,
+	read < write,
+	write << write ]
+
+--@ Make a register with a given reset value.  Reset logic is asynchronous.
+--@ \begin{libverbatim}
+--@ module mkRegA#(a_type resetval)(Reg#(a_type))
+--@   provisos (Bits#(a_type, sizea));
+--@ \end{libverbatim}
+mkRegA :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkRegA v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkRegA (pack v)
+      let name = Valid (primGetModuleName _r)
+      x :: a <- return _
+      let t = typeOf x
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+--@ Treat a register as a register, i.e., suppress the normal behavior
+--@ where it implicitly represents the value that it contains.
+--@ \begin{libverbatim}
+--@ function Reg#(a_type) asReg(Reg#(a_type) r);
+--@ \end{libverbatim}
+asReg :: Reg a -> Reg a
+asReg r = r
+
+-- this is handled in TCheck
+asIfc :: a -> a
+asIfc x = x
+
+ --@ Read the value out of a register. Useful when managing
+--@ arrays or lists of registers.
+--@ \begin{libverbatim}
+--@ function a_type readReg(Reg#(a_type) regIfc );
+--@ \end{libverbatim}
+readReg :: Reg a -> a
+readReg = (._read)
+
+--@ Write a value into a register. Useful when managing
+--@ arrays or lists of registers.
+--@ \begin{libverbatim}
+--@ function Action writeReg( Reg#(a_atype) regIfc, a_type din );
+--@ \end{libverbatim}
+writeReg :: Reg a -> a -> Action
+writeReg regifc din = regifc._write din
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Rules}
+--@
+--@ The \te{Rules} type is a built-in type in the compiler.
+--@
+--@ \index{rules@\te{Rules} (type)}
+--@ \index{addRules@\te{addRules} (\te{Rules} function)}
+--@ \index{rJoin@\te{rJoin} (\te{Rules} aggregation operator)}
+--@ \index{rJoinDescendingUrgency@\te{rJoinDescendingUrgency} (\te{Rules} aggregation operator)}
+--@ \index{rJoinPreempts@\te{rJoinPreempts} (\te{Rules} aggregation operator)}
+--@ \index{emptyRules@\te{emptyRules} (\te{Rules} variable)}
+
+--XX@ \index{preempts@\te{preempts} (\te{Rules} aggregation operator)}
+--XX@ \index{+>@\te{+>} (\te{Rules} aggregation operator)}
+--@ # 1
+primitive type Rules :: *
+
+--@ The add rules function takes a variable of type rules and injects the
+--@ rules into the current module. This function may only be called in
+--@ a module scope.
+--@ \begin{libverbatim}
+--@ function m#(void) addRules( Rules r );
+--@ \end{libverbatim}
+
+--@ Symmetric union of two sets of rules.
+--@ \begin{libverbatim}
+--@ function Rules rJoin(Rules x, Rules y);
+--@ \end{libverbatim}
+rJoin :: Rules -> Rules -> Rules
+rJoin x y = primJoinRules x y
+
+--@ Union of two sets of rules, with rules on the left getting
+--@ precedence.  That is, if a rule in set {\tt x} fires, then all
+--@ rules in set {\tt y} are prevented from firing.
+--@ \begin{libverbatim}
+--@ function Rules rJoinPreempts(Rules x, Rules y);
+--@ \end{libverbatim}
+rJoinPreempts :: Rules -> Rules -> Rules
+rJoinPreempts x y = primJoinRulesPreempt x y
+
+----- Following are kept for compatibility
+preempts :: Rules -> Rules -> Rules
+preempts = rJoinPreempts
+(<+) :: Rules -> Rules -> Rules
+(<+) = rJoinPreempts
+(<+>) :: Rules -> Rules -> Rules
+(<+>) = rJoin
+
+
+--@ Union of two sets of rule, with rules in the left having higher
+--@ urgency.  That is, if some rules compete for resources, then
+--@ scheduling will select rules in set {\tt x} set before set {\tt
+--@ y}.
+--@ \begin{libverbatim}
+--@ function Rules rJoinDescendingUrgency( Rules x, Rules y ) ;
+--@ \end{libverbatim}
+rJoinDescendingUrgency :: Rules -> Rules -> Rules
+rJoinDescendingUrgency x y = primJoinRulesUrgency x y
+
+rJoinExecutionOrder :: Rules -> Rules -> Rules
+rJoinExecutionOrder x y = primJoinRulesExecutionOrder x y
+
+rJoinMutuallyExclusive :: Rules -> Rules -> Rules
+rJoinMutuallyExclusive x y = primJoinRulesMutuallyExclusive x y
+
+rJoinConflictFree :: Rules -> Rules -> Rules
+rJoinConflictFree x y = primJoinRulesConflictFree x y
+
+--rJoinManyME :: List (Rules) -> Rules
+--rJoinManyME x = primJoinManyRulesME x
+
+--XX@ Union of two sets of rules, with rules on the right getting precedence.
+ --XX@ \begin{libverbatim}
+--XX@ function Rules (+>)(Rules x, Rules y);
+--XX@ \end{libverbatim}
+preempted :: Rules -> Rules -> Rules
+preempted  x y = primJoinRulesPreempt y x
+(+>) :: Rules -> Rules -> Rules
+(+>) x y = primJoinRulesPreempt y x
+
+--@ When manipulating rules as first class objects, sometimes it is
+--@ useful to have an empty rules variable, which is defined as:
+--@ \begin{libverbatim}
+--@ Rules emtpyRules ;
+--@ \end{libverbatim}
+
+emptyRules :: Rules
+emptyRules = primNoRules
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{String}
+--@
+--@ The \te{String} type is a built-in type in the compiler.
+--@
+--@ \index{String@\te{String} (type)}
+--@ \index{strConcat@\te{strConcat} (\te{String} concatenation operator)}
+--@ # 1
+primitive type String :: *
+
+--@ String concatenation.
+--@ \begin{libverbatim}
+--X@ function String (+++)(String x, String y);
+--@ function String strConcat(String x, String y);
+--@ \end{libverbatim}
+(+++) :: String -> String -> String
+(+++) x y = primStringConcat x y
+strConcat :: String -> String -> String
+strConcat x y = primStringConcat x y
+
+primitive primStringToInteger :: String -> Integer
+
+--@ \begin{libverbatim}
+--@ instance Eq #(String);
+--@ \end{libverbatim}
+instance Eq String
+  where
+    (==) x y = primChr (primStringEQ x y)
+    (/=) x y = primChr (primBNot (primStringEQ x y))
+
+instance Arith String
+  where
+    (+) x y  = x +++ y
+    (-) x y  = error "The operator `-' is not defined for `String'"
+    negate x = error "The function `negate' is not defined for `String'"
+    (*) x y  = error "The operator `*' is not defined for `String'"
+    (/) x y  = error "The operator `/' is not defined for `String'"
+    (%) x y  = error "The operator `%' is not defined for `String'"
+    -- use default for these:
+    --abs x = ...
+    --signum x = ...
+    --(**) b x = ...
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+    --log2 x = ...
+    --log10 x = ...
+
+instance Literal String
+    where
+    fromInteger x = error ( "Converting integers to strings is not supported.")
+    inLiteralRange a i = False
+
+instance StringLiteral String
+  where
+    fromString s = s
+
+quote :: String -> String
+quote s = "`" +++ s +++ "'"
+
+doubleQuote :: String -> String
+doubleQuote s = "\"" +++ s +++ "\""
+
+primitive primStringSplit :: String -> Maybe (Char, String)
+
+stringSplit :: String -> Maybe (Char, String)
+stringSplit = primStringSplit
+
+-- This will error if the string is empty
+stringHead :: String -> Char
+stringHead s =
+    case (primStringSplit s) of
+      Just (c, _) -> c
+      Nothing -> let pos = getStringPosition s
+                 in  primError pos $ "stringHead: empty string"
+
+-- This will error if the string is empty
+stringTail :: String -> String
+stringTail s =
+    case (primStringSplit s) of
+      Just (_, r) -> r
+      Nothing -> let pos = getStringPosition s
+                 in  primError pos $ "stringTail: empty string"
+
+stringToCharList :: String -> List Char
+stringToCharList s =
+   case (primStringSplit s) of
+     Nothing -> Nil
+     Just (c, r) -> Cons c (stringToCharList r)
+
+primitive primStringCons :: Char -> String -> String
+
+stringCons :: Char -> String -> String
+stringCons = primStringCons
+
+charListToString :: List Char -> String
+charListToString Nil = ""
+charListToString (Cons c r) = stringCons c (charListToString r)
+
+instance PrimSelectable String Char
+  where
+    primSelectFn pos str idx = primSelectFn pos (stringToCharList str) idx
+
+instance PrimUpdateable String Char
+  where
+    primUpdateFn pos str idx c =
+       -- XXX is this inefficient?
+       charListToString (primUpdateFn pos (stringToCharList str) idx c)
+
+-- -----
+
+primitive type Char :: *
+
+instance Eq Char
+  where
+    (==) x y = ((primCharOrd x) == (primCharOrd y))
+    (/=) x y = ((primCharOrd x) /= (primCharOrd y))
+
+instance Ord Char
+  where
+    (<)  x y = ((primCharOrd x) < (primCharOrd y))
+    (<=) x y = ((primCharOrd x) <= (primCharOrd y))
+    (>)  x y = ((primCharOrd x) > (primCharOrd y))
+    (>=) x y = ((primCharOrd x) >= (primCharOrd y))
+
+instance StringLiteral Char
+  where
+    fromString = primStringToChar
+
+primitive primCharToString :: Char -> String
+primitive primStringToChar :: String -> Char
+
+charToString :: Char -> String
+charToString = primCharToString
+
+primitive primCharOrd :: Char -> Integer
+primitive primCharChr :: Integer -> Char
+
+charToInteger :: Char -> Integer
+charToInteger = primCharOrd
+
+integerToChar :: Integer -> Char
+integerToChar = primCharChr
+
+isSpace :: Char -> Bool
+isSpace c =  c == ' '     ||
+             c == '\t'    ||
+             c == '\n'    ||
+             c == '\r'    ||
+             c == '\f'    ||
+             c == '\v'
+             -- should we include \xa0 (nbsp)? it's not ASCII...
+
+isLower :: Char -> Bool
+isLower c = (c >= 'a') && (c <= 'z')
+
+isUpper :: Char -> Bool
+isUpper c = (c >= 'A') && (c <= 'Z')
+
+isAlpha :: Char -> Bool
+isAlpha c = (isLower c) || (isUpper c)
+
+isAlphaNum :: Char -> Bool
+isAlphaNum c = (isAlpha c) || (isDigit c)
+
+isDigit :: Char -> Bool
+isDigit c = (c >= '0') && (c <= '9')
+
+isOctDigit :: Char -> Bool
+isOctDigit c = (c >= '0') && (c <= '7')
+
+isHexDigit :: Char -> Bool
+isHexDigit c = (isDigit c) || (c >= 'A' && c <= 'F')
+                           || (c >= 'a' && c <= 'f')
+
+toUpper :: Char -> Char
+toUpper c = if (isLower c)
+            then let n = primCharOrd c - primCharOrd 'a'
+	         in  primCharChr (n + primCharOrd 'A')
+            else c
+
+toLower :: Char -> Char
+toLower c = if (isUpper c)
+            then let n = primCharOrd c - primCharOrd 'A'
+	         in  primCharChr (n + primCharOrd 'a')
+            else c
+
+digitToInteger :: Char -> Integer
+digitToInteger c =
+    if (isDigit c)
+    then (primCharOrd c) - (primCharOrd '0')
+    else let pos = primGetEvalPosition c
+         in  primError pos $
+                 "digitToInteger: not a digit: " +++ quote (charToString c)
+
+digitToBits :: Char -> Bit n
+digitToBits c = fromInteger (digitToInteger c)
+
+integerToDigit :: Integer -> Char
+integerToDigit n =
+    if ((n >= 0) && (n <= 9))
+    then primCharChr (n + primCharOrd '0')
+    else let pos = primGetEvalPosition n
+         in  primError pos $
+                 "integerToDigit: out of bounds (0-9): " +++ integerToString n
+
+bitsToDigit :: Bit n -> Char
+bitsToDigit n = integerToDigit (primUIntBitsToInteger n)
+
+hexDigitToInteger :: Char -> Integer
+hexDigitToInteger c =
+    if (isDigit c)
+    then (primCharOrd c) - (primCharOrd '0')
+    else if (c >= 'A' && c <= 'F')
+    then (primCharOrd c) - (primCharOrd 'A') + 10
+    else if (c >= 'a' && c <= 'a')
+    then (primCharOrd c) - (primCharOrd 'a') + 10
+    else let pos = primGetEvalPosition c
+         in  primError pos $
+                 "digitToInteger: not a digit: " +++ quote (charToString c)
+
+hexDigitToBits :: Char -> Bit n
+hexDigitToBits c = fromInteger (hexDigitToInteger c)
+
+integerToHexDigit :: Integer -> Char
+integerToHexDigit n =
+    if ((n >= 0) && (n <= 9))
+    then primCharChr (n + primCharOrd '0')
+    else if ((n > 9) && (n <= 15))
+    then primCharChr (n - 10 + primCharOrd 'a')
+    else let pos = primGetEvalPosition n
+         in  primError pos $
+               "integerToHexDigit: out of bounds (0-9): " +++ integerToString n
+
+bitsToHexDigit :: Bit n -> Char
+bitsToHexDigit n = integerToHexDigit (primUIntBitsToInteger n)
+
+-- ----------------------------------------------------------------
+
+primitive type Fmt :: *
+
+primitive primFmtConcat :: Fmt -> Fmt -> Fmt
+
+-- not really a foreign func but easiest way to leverage typechecking of $display
+-- etc and support variable numbers of args
+foreign $format            :: Bit 1 = "$format" -- really returns a Fmt!
+
+instance Arith Fmt
+  where
+    (+) x y  = primFmtConcat x y
+    (-) x y  = error "The operator `-' is not defined for `Fmt'"
+    negate x = error "The function `negate' is not defined for `Fmt'"
+    (*) x y  = error "The operator `*' is not defined for `Fmt'"
+    (/) x y  = error "The operator `/' is not defined for `Fmt'"
+    (%) x y  = error "The operator `%' is not defined for `Fmt'"
+    -- use default for these:
+    --abs x = ...
+    --signum x = ...
+    --(**) b x = ...
+    --exp_e x = ...
+    --log x = ...
+    --logb b x = ...
+    --log2 x = ...
+    --log10 x = ...
+
+instance Literal Fmt
+    where
+    fromInteger x = error ( "Converting integers to Fmts is not supported.")
+    inLiteralRange a i = False
+
+-- ----------------------------------------------------------------
+
+--@ \subsubsection{Module}
+--@
+--@ The \te{Module} type is a built-in type in the compiler.
+--@
+--@ \index{Module@\te{Module} (type)}
+--@ # 1
+primitive type Module :: * -> *
+
+--@ \begin{libverbatim}
+--@ instance Monad #(Module);
+--@ \end{libverbatim}
+instance Monad Module
+  where
+    return x = primModuleReturn x
+    bind x f = primModuleBind x f
+
+--@ \begin{libverbatim}
+--@ instance MonadFix #(Module);
+--@     mfix =  primModuleFix;
+--@ endinstance
+--@ \end{libverbatim}
+instance MonadFix Module
+  where
+    mfix = primModuleFix
+
+-- used to force the monad in a "module" expression to be a module,
+-- so that we fail fast for good error positions
+forceIsModule :: (IsModule m c) => m a -> m a
+forceIsModule x = x
+
+primitive primBuildModule :: Name__ -> Clock -> Reset -> Module a -> a
+
+primitive type Name__ :: *
+
+primitive primGetName :: a -> Name__
+
+primitive primGetParamName :: (a -> b) -> Name__
+
+primitive primMakeName :: String -> Position__ -> Name__
+
+primitive primJoinNames :: Name__ -> Name__ -> Name__
+
+primitive primExtendNameInteger :: Name__ -> Integer -> Name__
+
+primExtendNameIndex :: (PrimIndex ix dx) => Name__ -> ix -> Name__
+primExtendNameIndex n i = if (isStaticIndex i) then
+                             primExtendNameInteger n (toStaticIndex i)
+                          else primError (primGetNamePosition n) "Instantiation with dynamic or undefined index"
+
+-- state-naming primitive
+-- used to inject correct instance names
+-- for an instantiated module
+primitive primStateName :: Name__ -> Module a -> Module a
+
+primitive primGetModuleName :: a -> Name__
+
+setStateName :: (IsModule m c) => Name__ -> m a -> m a
+setStateName n = liftModuleOp (primStateName n)
+
+--
+
+primitive type Attributes__ :: *
+
+primitive primStateAttrib :: Attributes__ -> Module a -> Module a
+
+setStateAttrib :: (IsModule m c) => Attributes__ -> m a -> m a
+setStateAttrib as = liftModuleOp (primStateAttrib as)
+
+-- position primitives
+
+primitive type Position__ :: *
+
+-- primitive primMakePosition :: String -> Integer -> Integer -> PositionnoPosition :: Position__
+
+noPosition :: Position__
+noPosition = primNoPosition
+
+primitive primNoPosition :: Position__
+
+primitive primPrintPosition :: Position__ -> String
+
+printPosition :: Position__ -> String
+printPosition = primPrintPosition
+
+primitive primGetStringPosition :: String -> Position__
+
+getStringPosition :: String -> Position__
+getStringPosition = primGetStringPosition
+
+primitive primSetStringPosition :: String -> Position__ -> String
+
+setStringPosition :: String -> Position__ -> String
+setStringPosition = primSetStringPosition
+
+primitive primGetNamePosition :: Name__ -> Position__
+
+primitive primGetNameString :: Name__ -> String
+
+primitive primGetEvalPosition :: a -> Position__
+
+-- type primitives
+
+primitive type Type :: *
+
+typeOf :: a -> Type
+typeOf = primTypeOf
+
+printType :: Type -> String
+printType = primPrintType
+
+primitive primTypeOf :: a -> Type
+
+primitive primPrintType :: Type -> String
+
+primitive primTypeEQ :: Type -> Type -> Bit 1
+
+primitive primIsIfcType :: Type -> Bit 1
+
+isInterfaceType :: Type -> Bool
+isInterfaceType = compose primChr primIsIfcType
+
+instance Eq Type where
+  (==) x y = primChr (primTypeEQ x y)
+  (/=) x y = primChr (primBNot (primTypeEQ x y))
+
+
+-- type-tracking primitives
+primitive primSavePortType :: Maybe Name__ -> String -> Type -> Module ()
+
+
+-- ================================================================
+
+--@ \subsection{Miscellaneous}
+--@
+--@ Generate a compile-time error message and halt compilation.
+--@ \index{error@\te{error} (forced error)}
+--@ \begin{libverbatim}
+--@ function a error(String s);
+--@ \end{libverbatim}
+error :: String -> a
+error s = primError (primGetStringPosition s) s
+
+--@ Generate a compile-time error message and halt computation in a monad.
+--@ \index{warningM@\te{errorM} (forced error)}
+--@ \begin{libverbatim}
+--@ function m#(void) errorM(String s)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+errorM :: (Monad m) => String -> m ()
+errorM s = return (error s)
+
+--@ When applied to a value {\tt v} of type {\tt a}, generate a compile-time
+--@ warning message and continue compilation, returning {\tt v}.
+--@ \index{warning@\te{warning} (forced warning)}
+--@ \begin{libverbatim}
+--@ function a warning(String s, a v);
+--@ \end{libverbatim}
+warning :: String -> a -> a
+warning s a = primWarning (primGetStringPosition s) s a
+
+--@ Generate a compilation warning in a monad.
+--@ \index{warningM@\te{warningM} (forced warning)}
+--@ \begin{libverbatim}
+--@ function m#(void) warningM(String s)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+warningM :: (Monad m) => String -> m ()
+warningM s = do
+    -- Ravi added this trick, based on Haskell's traceM?
+    {-# hide #-}
+    _msg <- return s
+    warning _msg (return ())
+
+--@ When applied to a value {\tt v} of type {\tt a}, generate a compile-time
+--@ informative message and continue compilation, returning {\tt v}.
+--@ \index{message@\te{message} (compilation message)}
+--@ \begin{libverbatim}
+--@ function a message(String s, a v);
+--@ \end{libverbatim}
+message :: String -> a -> a
+message s a = primMessage (primGetStringPosition s) s a
+
+--@ Generate a compilation message in a monad.
+--@ \index{messageM@\te{messageM} (compilation message)}
+--@ \begin{libverbatim}
+--@ function m#(void) messageM(String s)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+messageM :: (Monad m) => String -> m ()
+messageM s = do
+    -- Ravi added this trick, based on Haskell's traceM?
+    {-# hide #-}
+    _msg <- return s
+    message _msg (return ())
+
+-- Infix application. Basically for precedence-changing so that you can, for example,
+-- write         \verb|f $ g y|
+-- instead of    \verb|f (g y)|.  Useful when \verb|g y| is a big expression
+-- and you don't want to parenthesize it.
+-- \index{$@\verb'$' (infix low-precedence ``apply'')}
+-- \begin{libverbatim}
+-- function b ($)(function b f(a x1), a x);
+--   return (f(x));
+-- endfunction: $
+-- \end{libverbatim}
+-- # 2
+($) :: (a -> b) -> a -> b
+($) f x = f x
+
+--@ Function composition
+--@ \index{$@\te{compose}, function composition}
+--@ \begin{libverbatim}
+--@ function (function c (a x0)) compose(function c f(b x1), function b g(a x2));
+--@   function c h(a x);
+--@     return  f(g(x));
+--@   endfunction: h
+--@   return (h);
+--@ endfunction
+--@ \end{libverbatim}
+(·) :: (b -> c) -> (a -> b) -> (a -> c)
+(·) f g = \ x -> f (g x)
+
+--@ Identity function
+--@ \index{id@\te{id}, the identity function}
+--@ \begin{libverbatim}
+--@ function a id(a x);
+--@   return (x);
+--@ endfunction: id
+--@ \end{libverbatim}
+id :: a -> a
+id x = x
+
+--@ Make a function curried
+--@ \index{curry@\te{curry} (Prelude function)}
+--@ # 1
+curry :: ((a, b) -> c) -> (a -> b -> c)
+curry f x y = f (x, y)
+
+--@ Make a function uncurried
+--@ \index{uncurry@\te{uncurry} (Prelude function)}
+--@ # 1
+uncurry :: (a -> b -> c) -> ((a, b) -> c)
+uncurry f (x, y) = f x y
+
+--@ Constant function
+--@ \index{const@\te{const} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function a constFn(a x, b y);
+--@   return (x);
+--@ endfunction: constFn
+--@ \end{libverbatim}
+const :: a -> b -> a
+const x _ = x
+constFn :: a -> b -> a
+constFn = const
+
+--@ Argument flip
+--@ \index{flip@\te{flip} (Prelude function)}
+--@ # 1
+flip :: (a -> b -> c) -> (b -> a -> c)
+flip f x y = f y x
+
+--@ Repeat a function while a predicate holds
+--@ \index{while@\te{while} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function a while(function Bool p(a x1), function a f(a x1), a x);
+--@   return (p(x) ? while(p, f, f(x)) : x);
+--@ endfunction: while
+--@ \end{libverbatim}
+while :: (a->Bool) -> (a->a) -> a -> a
+while p f x = if p x then while p f (f x) else x
+
+--@ Force the type of the first argument to be the same as the second.
+--@ \index{asTypeOf@\te{asTypeOf} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function a asTypeOf(a x, a y);
+--@   return (x);
+--@ endfunction: asTypeOf
+--@ \end{libverbatim}
+asTypeOf :: a -> a -> a
+asTypeOf x _ = x
+
+--@ Any function can be lifted into a monadic version.
+--@ \index{liftM@\te{liftM} (Prelude function)}
+--@ \begin{libverbatim}
+--@ function m#(b) liftM(function b f(a x1), m#(a) x)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+liftM :: (Monad m) => (a -> b) -> (m a -> m b)
+liftM f x = x `bind` (\ _y -> return (f _y))
+
+liftM2 :: (Monad m) => (a -> b -> c) -> (m a -> m b -> m c)
+liftM2 f ma mb = do
+  {-# hide #-}
+  _a <- ma
+  {-# hide #-}
+  _b <- mb
+  return (f _a _b)
+
+bindM :: (Monad m) => m a -> (a -> m b) -> m b
+bindM = bind
+
+---
+
+primitive type Clock :: *
+{-
+struct Clock =
+  osc  :: Bit 1
+  gate :: Bool
+ -- deriving(Bits)
+-}
+
+primitive type Power :: *
+{-
+struct Power =
+  switch :: Bool
+ deriving(Bits)
+-}
+
+primitive type Reset :: *
+{-
+struct Reset =
+  rstn :: Bit 1
+ deriving (Bits)
+-}
+
+primitive type Inout  :: * -> *
+primitive type Inout_ :: # -> *
+
+primInoutCast0   :: (Bits a sa) => Inout   a -> Inout_ sa
+primInoutCast0   = primInoutCast
+primInoutUncast0 :: (Bits a sa) => Inout_ sa -> Inout   a
+primInoutUncast0 = primInoutUncast
+
+primitive primInoutCast   :: {- (Bits a sa) => -} Inout a -> Inout_ sa
+primitive primInoutUncast :: {-(Bits a sa) => -} Inout_ sa -> Inout a
+
+exposeCurrentClock :: (IsModule m c) => m Clock
+exposeCurrentClock = liftModule primCurrentClock
+
+primitive primCurrentClock :: Module Clock
+
+exposeCurrentReset :: (IsModule m c) => m Reset
+exposeCurrentReset = liftModule primCurrentReset
+
+primitive primCurrentReset :: Module Reset
+
+primitive primModuleClock :: Clock -> Module a -> Module a
+primitive primModuleReset :: Reset -> Module a -> Module a
+-- primitive primModulePower :: Power -> Module a -> Module a
+
+primSpecialWires :: (Maybe Clock) -> (Maybe Reset) -> (Maybe Power) ->
+		    (Module a) -> (Module a)
+primSpecialWires _mc _mr _mp _m =
+  letseq _m' = case _mc of
+                Nothing  -> _m
+                (Just _c) -> primModuleClock _c _m
+  in letseq _m'' = case _mr of
+                    Nothing  -> _m'
+                    (Just _r) -> primModuleReset _r _m'
+     in case _mp of
+          Nothing  -> _m''
+          (Just p) -> error "powered_by not yet implemented"
+
+changeSpecialWires :: (IsModule m c) => (Maybe Clock) -> (Maybe Reset) -> (Maybe Power) -> m a -> m a
+changeSpecialWires _mc _mr _mp = liftModuleOp (primSpecialWires _mc _mr _mp)
+
+primitive primSameFamilyClock  :: Clock -> Clock -> Bit 1
+primitive primIsAncestorClock  :: Clock -> Clock -> Bit 1
+primitive primClockEQ          :: Clock -> Clock -> Bit 1
+
+primitive primClockOf  :: a -> Clock
+primitive primClocksOf :: (List Clock) -> (Clock -> List Clock -> List Clock) -> a -> List Clock
+
+clockOf :: a -> Clock
+clockOf = primClockOf
+
+clocksOf :: a -> List Clock
+clocksOf = primClocksOf nil cons
+
+sameFamily :: Clock -> Clock -> Bool
+sameFamily x y = primChr (primSameFamilyClock x y)
+
+isAncestor :: Clock -> Clock -> Bool
+isAncestor x y = primChr (primIsAncestorClock x y)
+
+primitive primNoClock :: Clock
+
+noClock :: Clock
+noClock = primNoClock
+
+instance Eq Clock
+  where
+    (==) x y = primChr (primClockEQ x y)
+    (/=) x y = primChr (primBNot (primClockEQ x y))
+
+
+primitive primNoReset  :: Reset
+primitive primResetEQ  :: Reset -> Reset -> Bit 1
+primitive primResetOf  :: a -> Reset
+primitive primResetsOf :: (List Reset) -> (Reset -> List Reset -> List Reset) -> a -> List Reset
+
+noReset :: Reset
+noReset = primNoReset
+
+resetOf :: a -> Reset
+resetOf = primResetOf
+
+resetsOf :: a -> List Reset
+resetsOf = primResetsOf nil cons
+
+instance Eq Reset
+  where
+   (==) x y = primChr (primResetEQ x y)
+   (/=) x y = primChr (primBNot (primResetEQ x y))
+
+primitive type SizeOf :: * -> #
+
+primitive type TAdd :: # -> # -> #
+primitive type TSub :: # -> # -> #
+primitive type TMul :: # -> # -> #
+primitive type TDiv :: # -> # -> #
+primitive type TLog :: # -> #
+primitive type TExp :: # -> #
+primitive type TMax :: # -> # -> #
+primitive type TMin :: # -> # -> #
+
+------------------
+
+--- Bit operations
+
+primitive primAdd :: Bit n -> Bit n -> Bit n
+primitive primSub :: Bit n -> Bit n -> Bit n
+primitive primAnd :: Bit n -> Bit n -> Bit n
+primitive primOr  :: Bit n -> Bit n -> Bit n
+primitive primXor :: Bit n -> Bit n -> Bit n
+
+primitive primMul :: (Add k n m) => Bit k -> Bit n -> Bit m
+
+
+primitive primSL  :: Bit n -> Bit k -> Bit n
+primitive primSRL :: Bit n -> Bit k -> Bit n
+primitive primSRA :: Bit n -> Bit k -> Bit n
+
+primitive primQuot :: Bit k -> Bit n -> Bit k
+primitive primRem  :: Bit k -> Bit n -> Bit n
+
+primitive primInv :: Bit n -> Bit n
+primitive primNeg :: Bit n -> Bit n
+
+primitive primEQ  :: Bit n -> Bit n -> Bit 1
+
+primitive primEQ3 :: Bit n -> Bit n -> Bit 1
+
+primitive primULE :: Bit n -> Bit n -> Bit 1
+primitive primULT :: Bit n -> Bit n -> Bit 1
+
+primitive primSLE :: Bit n -> Bit n -> Bit 1
+primitive primSLT :: Bit n -> Bit n -> Bit 1
+
+primitive primIf :: Bit 1 -> a -> a -> a
+
+primitive primZeroExt :: (Add k n m) => Bit n -> Bit m
+primitive primSignExt :: (Add k n m) => Bit n -> Bit m
+
+primitive primTrunc :: (Add k m n) => Bit n -> Bit m
+
+primitive primBNot :: Bit 1-> Bit 1
+primitive primBAnd :: Bit 1 -> Bit 1 -> Bit 1
+primitive primBOr :: Bit 1 -> Bit 1 -> Bit 1
+
+primitive primError   :: Position__ -> String -> a		-- compile time error
+primitive primGenerateError :: Integer -> Position__ -> String -> a
+
+-- check for clock-domain crossing errors in the argument
+primitive primChkClockDomain :: Name__ -> String -> Bit n -> Module ()
+
+chkClockDomain :: (Bits a sa, IsModule m c) => Name__ -> String -> a -> m ()
+chkClockDomain name object val = liftModule (primChkClockDomain name object (pack val))
+
+primitive primMessage :: Position__ -> String -> a -> a
+primitive primWarning :: Position__ -> String -> a -> a
+primitive primPoisonedDef :: Name__ -> a
+
+primitive primDynamicError :: String -> a	-- run time (C) error
+
+-- Beware of negative numbers when using this function!
+primitive primIntegerToBit :: Integer -> Bit n
+
+primitive primIntegerToUIntBits :: Integer -> Bit n
+primitive primIntegerToIntBits  :: Integer -> Bit n
+
+-- This is a really nasty primitive; it shouldn't be here.
+primitive primBitToInteger :: Bit n -> Integer
+
+-- checks if an integer is a compile-time constant or not
+primitive primIsStaticInteger :: Integer -> Bit 1
+isStaticInteger :: Integer -> Bool
+isStaticInteger = compose primChr primIsStaticInteger
+
+-- checks if a bit vector is a compile-time constant or not
+primitive primAreStaticBits :: Bit n -> Bit 1
+areStaticBits :: Bit n -> Bool
+areStaticBits = compose primChr primAreStaticBits
+
+-- these are elaboration-time-only conversions
+-- primAreStaticBits should be called first
+primitive primUIntBitsToInteger :: Bit n -> Integer
+primitive primIntBitsToInteger  :: Bit n -> Integer
+
+primitive primIntegerToString :: Integer -> String
+
+primitive primConcat :: (Add n m k) => Bit n -> Bit m -> Bit k
+primitive primSplit :: (Add n m k) => Bit k -> PrimPair (Bit n) (Bit m)
+
+-----
+
+interface PrimPair a b = { fst :: a; snd :: b } deriving (Eq, Bits, Bounded)
+
+-- Ord is not derivable in Bluespec, but the others are.
+instance (Ord a, Ord b, Eq a) => Ord (a, b) where
+    (<)  (a, b) (a', b')  =  a < a' || a == a' && b <  b'
+    (<=) (a, b) (a', b')  =  a < a' || a == a' && b <= b'
+    (>)  (a, b) (a', b')  =  a > a' || a == a' && b >  b'
+    (>=) (a, b) (a', b')  =  a > a' || a == a' && b >= b'
+
+-----
+
+primitive primOrd :: a -> Bit n
+primitive primChr :: Bit n -> a
+
+-- The value n, i.e., the size of the bit vector
+primitive primValueOf :: Bit n -> Integer
+
+-- add an implicit condition to an expression
+primitive primWhen :: Bit 1 -> a -> a
+
+-- internal primitive type for tracking implicit conditions
+primitive type Pred__ :: *
+
+_when_ :: Bool -> a -> a
+_when_ b = primWhen (primOrd b)
+
+-- x[h:l], n >= k
+primExtract :: (PrimIndex ix dx) => Position__ -> Bit n -> ix -> ix -> Bit k
+primExtract pos bs i1 i2 =
+  let i1' = toStaticIndex i1
+      i2' = toStaticIndex i2
+      range = i1' - i2' + 1
+      range_msg = "Bit range [" +++ integerToString i1' +++ ":" +++
+                  integerToString i2' +++ "]"
+  in if (isStaticIndex i1) &&
+        (i1' < 0 || i1' >= valueOf n)
+     then
+        -- XXX consider using PrimGenerateError
+        primError pos $ listMessage i1' "bit extraction - high index"
+     else if (isStaticIndex i2) &&
+             (i2' < 0 || i2' >= valueOf n)
+     then
+        -- XXX consider using PrimGenerateError
+        primError pos $ listMessage i2' "bit extraction - low index"
+     else if (isStaticIndex i1) && (isStaticIndex i2) && (i1' < i2')
+     then
+        let zero_msg     = range_msg +++ " selects zero bits"
+            negative_msg = range_msg +++ " selects a negative number of bits"
+        in if (i1' == i2' - 1) then
+              -- XXX consider using PrimGenerateError
+              primError pos zero_msg
+           else
+              -- XXX consider using PrimGenerateError
+              primError pos negative_msg
+     else if (isStaticIndex i1) && (isStaticIndex i2) &&
+             (range > valueOf k)
+     then
+        let msg = range_msg +++ " selects " +++ integerToString range +++
+                  " bits but only " +++ integerToString (valueOf k) +++
+                  " bits are expected from the result"
+        in  -- XXX consider using PrimGenerateError (see G0053)
+            primError pos msg
+     else
+        -- XXX Update the position of this extraction with "pos"
+        primExtractInternal bs (toDynamicIndex i1) (toDynamicIndex i2)
+
+primitive primExtractInternal :: Bit n -> Bit l -> Bit l -> Bit k
+
+------------------
+
+--- Misc
+
+primitive primStringConcat :: String -> String -> String
+primitive primStringEQ :: String -> String -> Bit 1
+
+primitive primJoinRules :: Rules -> Rules -> Rules
+
+-- first argument gets higher priority
+primitive primJoinRulesPreempt :: Rules -> Rules -> Rules
+primitive primJoinRulesUrgency :: Rules -> Rules -> Rules
+primitive primJoinRulesExecutionOrder :: Rules -> Rules -> Rules
+
+primitive primJoinRulesMutuallyExclusive :: Rules -> Rules -> Rules
+primitive primJoinRulesConflictFree :: Rules -> Rules -> Rules
+
+primitive primNoRules :: Rules
+
+primitive primModuleBind :: Module a -> (a -> Module b) -> Module b
+primitive primModuleReturn :: a -> Module a
+
+--- PrimUnit
+
+struct PrimUnit = { }
+	deriving (Eq, Bits, Bounded)
+
+--- Integer
+
+primitive primIntegerAdd :: Integer -> Integer -> Integer
+primitive primIntegerSub :: Integer -> Integer -> Integer
+primitive primIntegerNeg :: Integer -> Integer
+primitive primIntegerMul :: Integer -> Integer -> Integer
+primitive primIntegerDiv :: Integer -> Integer -> Integer
+primitive primIntegerMod :: Integer -> Integer -> Integer
+primitive primIntegerQuot :: Integer -> Integer -> Integer
+primitive primIntegerRem :: Integer -> Integer -> Integer
+primitive primIntegerExp :: Integer -> Integer -> Integer
+primitive primIntegerLog2 :: Integer -> Integer
+primitive primIntegerLog10 :: Integer -> Integer
+
+primitive primIntegerEQ  :: Integer -> Integer -> Bit 1
+primitive primIntegerLE  :: Integer -> Integer -> Bit 1
+primitive primIntegerLT  :: Integer -> Integer -> Bit 1
+
+--- Real
+
+primitive primIntegerToReal :: Integer -> Real
+
+primitive primRealEQ :: Real -> Real -> Bit 1
+primitive primRealLE :: Real -> Real -> Bit 1
+primitive primRealLT :: Real -> Real -> Bit 1
+
+primitive primRealToString :: Real -> String
+
+primitive primRealAdd :: Real -> Real -> Real
+primitive primRealSub :: Real -> Real -> Real
+primitive primRealNeg :: Real -> Real
+primitive primRealMul :: Real -> Real -> Real
+primitive primRealDiv :: Real -> Real -> Real
+primitive primRealAbs :: Real -> Real
+primitive primRealSignum :: Real -> Real
+primitive primRealExpE :: Real -> Real
+primitive primRealPow :: Real -> Real -> Real
+primitive primRealLogE :: Real -> Real
+primitive primRealLogBase :: Real -> Real -> Real
+primitive primRealLog2 :: Real -> Real
+primitive primRealLog10 :: Real -> Real
+
+primitive primRealToBits :: Real -> Bit 64
+primitive primBitsToReal :: Bit 64 -> Real
+
+primitive primRealSin :: Real -> Real
+primitive primRealCos :: Real -> Real
+primitive primRealTan :: Real -> Real
+primitive primRealSinH :: Real -> Real
+primitive primRealCosH :: Real -> Real
+primitive primRealTanH :: Real -> Real
+primitive primRealASin :: Real -> Real
+primitive primRealACos :: Real -> Real
+primitive primRealATan :: Real -> Real
+primitive primRealASinH :: Real -> Real
+primitive primRealACosH :: Real -> Real
+primitive primRealATanH :: Real -> Real
+primitive primRealATan2 :: Real -> Real -> Real
+
+primitive primRealSqrt :: Real -> Real
+
+primitive primRealTrunc :: Real -> Integer
+primitive primRealCeil  :: Real -> Integer
+primitive primRealFloor :: Real -> Integer
+primitive primRealRound :: Real -> Integer
+
+primitive primSplitReal :: Real -> PrimPair Integer Real
+primitive primDecodeReal :: Real -> PrimPair (Bit 1) (PrimPair Integer Integer)
+primitive primRealToDigits :: Integer -> Real -> PrimPair (List Integer) Integer
+primitive primRealIsInfinite :: Real -> Bit 1
+primitive primRealIsNegativeZero :: Real -> Bit 1
+
+------------------
+
+--- Misc
+
+-- XXX Minor inefficiency:
+-- This doesn't inline properly in ISimplify because `bind' isn't known.
+bind_ :: (Monad m) => m a -> m b -> m b
+bind_ x y = x `bind` \ _ -> y
+
+primitive primExpIf :: PrimAction -> PrimAction
+
+splitIf :: Bool -> Action -> Action -> Action
+splitIf c t e = fromPrimAction (primExpIf (if c then toPrimAction t else toPrimAction e))
+
+primitive primNoExpIf :: PrimAction -> PrimAction
+
+nosplitIf :: Bool -> Action -> Action -> Action
+nosplitIf c t e = fromPrimAction (primNoExpIf (if c then toPrimAction t else toPrimAction e))
+
+primitive primNosplitDeep :: PrimAction -> PrimAction
+
+nosplitDeepAV :: ActionValue a -> ActionValue a
+nosplitDeepAV (ActionValue av) = ActionValue (\aw ->
+  letseq av' = av aw
+         val = av'.avValue
+         act = av'.avAction
+         aw' = av'.avWorld
+  in AVStruct { avValue = val; avAction = primNosplitDeep act; avWorld = aw' })
+
+nosplitDeepIf :: Bool -> Action -> Action -> Action
+nosplitDeepIf c t e =
+        fromPrimAction (primNosplitDeep
+        (if c then toPrimAction t else toPrimAction e))
+
+primitive primSplitDeep :: PrimAction -> PrimAction
+
+splitDeepAV :: ActionValue a -> ActionValue a
+splitDeepAV (ActionValue av) = ActionValue (\aw ->
+  letseq av' = av aw
+         val = av'.avValue
+         act = av'.avAction
+         aw' = av'.avWorld
+  in AVStruct { avValue = val; avAction = primSplitDeep act; avWorld = aw' })
+
+splitDeepIf :: Bool -> Action -> Action -> Action
+splitDeepIf c t e =
+        fromPrimAction (primSplitDeep
+        (if c then toPrimAction t else toPrimAction e))
+
+primitive primModuleFix :: (a -> Module a) -> Module a
+
+moduleFix :: (IsModule m c) => (a -> m a) -> m a
+moduleFix = mfix
+
+primFix :: (a -> a) -> a
+primFix f = f (primFix f)
+
+------------------
+
+-- XXX experimental primitive
+-- extract the implicit condition of an arbitrary expression
+primitive primImpCondOf:: a -> Bit 1
+
+impCondOf :: a -> Bool
+impCondOf = unpack · primImpCondOf
+
+-----------------------------------------------------------------------
+-- System tasks
+
+-- XXX: Well-intentioned lies
+foreign $display :: PrimAction = "$display"
+foreign $displayb :: PrimAction = "$displayb"
+foreign $displayh :: PrimAction = "$displayh"
+foreign $displayo :: PrimAction = "$displayo"
+foreign $write :: PrimAction = "$write"
+foreign $writeb :: PrimAction = "$writeb"
+foreign $writeh :: PrimAction = "$writeh"
+foreign $writeo :: PrimAction = "$writeo"
+
+foreign $error :: PrimAction = "$error"
+foreign $warning :: PrimAction = "$warning"
+foreign $info :: PrimAction = "$info"
+foreign $fatal :: PrimAction = "$fatal"
+
+foreign $SVA :: PrimAction = "$sva"
+
+data SvaParam = SvaBool Bool | SvaNumber (UInt 32) deriving (Bits)
+
+displayHex :: (Bits a sa) => a -> Action
+displayHex x = $display "0x%h" x
+
+displayDec :: (Bits a sa) => a -> Action
+displayDec x = $display "%0d" x
+
+displayOct :: (Bits a sa) => a -> Action
+displayOct x = $display "0o%o" x
+
+displayBin :: (Bits a sa) => a -> Action
+displayBin x = $display "0b%b" x
+
+$finish :: Bit 2 -> Action
+$finish code = fromPrimAction (_finish_ (zeroExtend code))
+
+$stop :: Bit 2 -> Action
+$stop code = fromPrimAction (_stop_ (zeroExtend code))
+
+foreign _finish_ :: Bit 32 -> PrimAction = "$finish"
+foreign _stop_ :: Bit 32 -> PrimAction = "$stop"
+
+$dumpon :: Action
+$dumpon = fromPrimAction (__dumpon__)
+foreign __dumpon__ :: PrimAction = "$dumpon"
+
+$dumpoff :: Action
+$dumpoff = fromPrimAction (__dumpoff__)
+foreign __dumpoff__ :: PrimAction = "$dumpoff"
+
+$dumpvars :: Action
+$dumpvars = fromPrimAction (__dumpvars__)
+foreign __dumpvars__ :: PrimAction = "$dumpvars"
+
+$dumpall :: Action
+$dumpall = fromPrimAction (__dumpall__)
+foreign __dumpall__ :: PrimAction = "$dumpall"
+
+$dumpflush :: Action
+$dumpflush = fromPrimAction (__dumpflush__)
+foreign __dumpflush__ :: PrimAction = "$dumpflush"
+
+$dumpfile :: String -> Action
+$dumpfile x = fromPrimAction (__dumpfile__ x)
+foreign __dumpfile__ :: String -> PrimAction = "$dumpfile"
+
+$dumplimit :: Bit 64 -> Action
+$dumplimit x = fromPrimAction (__dumplimit__ x)
+foreign __dumplimit__ :: Bit 64 -> PrimAction = "$dumplimit"
+
+foreign $signed :: Bit n -> Bit n = "$signed"
+foreign $unsigned :: Bit n -> Bit n = "$unsigned"
+
+-- XXX extra argument to $time and $stime to
+-- force applications to be saved on the heap
+$time :: ActionValue (Bit 64)
+$time = fromActionValue_ (__time__)
+
+$stime :: ActionValue (Bit 32)
+$stime = fromActionValue_ (__stime__)
+
+foreign __time__ :: ActionValue_ 64 = "$time"
+
+foreign __stime__ :: ActionValue_ 32 = "$stime"
+
+--  File type and system tasks which use it
+data File = InvalidFile |
+            MCD (Bit 31) |
+            FD  (Bit 31)
+  deriving(Eq)
+
+instance Bits File 32
+  where
+    pack InvalidFile = 0
+    pack (FD x)      = 1 ++ x
+    pack (MCD x)     = 0 ++ x
+    unpack x = if (x == 0)
+               then InvalidFile
+               else case (x[31:31]) of
+                 1 -> FD x[30:0]
+                 0 -> MCD x[30:0]
+
+-- An packing for File type to be used with Bitwise operations on multi-channel descriptors
+-- since bit ops are not allowed on FD, then return a 0 which is "safe"
+mcdFilePack :: File -> Bit 31
+mcdFilePack InvalidFile = 0
+mcdFilePack (FD x)      = 0
+mcdFilePack (MCD x)     = x
+
+mcdFileUnpack :: Bit 31 -> File
+mcdFileUnpack x = MCD x
+
+-- In Verilog and now in bsv bit wise operations can occur with File provided they ar
+-- multi-channel descriptors
+instance Bitwise File where
+    (&) x y  = mcdFileUnpack ( primAnd (mcdFilePack x) (mcdFilePack y))
+    (|) x y  = mcdFileUnpack ( primOr  (mcdFilePack x) (mcdFilePack y))
+    (^) x y  = mcdFileUnpack ( primXor (mcdFilePack x) (mcdFilePack y))
+    (^~) x y = mcdFileUnpack ( primInv (primXor (mcdFilePack x) (mcdFilePack y)))
+    (~^) x y = mcdFileUnpack ( primInv (primXor (mcdFilePack x) (mcdFilePack y)))
+    invert x = mcdFileUnpack ( primInv (mcdFilePack x))
+    (<<) x y = error "Left shift operation is not supported with type File"
+    (>>) x y = error "Right shift operation is not supported with type File"
+    msb  x   = error "lsb operation is not supported with type File"
+    lsb  x   = error "msb operation is not supported with type File"
+
+
+
+
+-- arguments handled by compiler
+-- $fflush :: PrimAction
+-- $fflush :: File -> PrimAction
+foreign $fflush :: PrimAction = "$fflush"
+
+-- Type checking is done by bsc
+-- $fopen :: String ->  ActionValue#(File)
+-- $fopen :: String -> String ->  ActionValue#(File)
+foreign $fopen :: ActionValue_ 32 = "$fopen"
+
+
+-- The arguments for these are handled internally
+foreign $fwrite  ::  PrimAction = "$fwrite"
+foreign $fwriteb ::  PrimAction = "$fwriteb"
+foreign $fwriteo ::  PrimAction = "$fwriteo"
+foreign $fwriteh ::  PrimAction = "$fwriteh"
+
+foreign $swriteAV  ::  ActionValue_  n = "$swriteAV"
+foreign $swrite    ::  PrimAction = "$swrite"
+foreign $swritebAV ::  ActionValue_  n = "$swritebAV"
+foreign $swriteb   ::  PrimAction = "$swriteb"
+foreign $swriteoAV ::  ActionValue_  n = "$swriteoAV"
+foreign $swriteo   ::  PrimAction = "$swriteo"
+foreign $swritehAV ::  ActionValue_  n = "$swritehAV"
+foreign $swriteh   ::  PrimAction = "$swriteh"
+
+foreign $sformatAV ::  ActionValue_  n = "$sformatAV"
+foreign $sformat   ::  PrimAction = "$sformat"
+
+foreign $fdisplay  ::  PrimAction = "$fdisplay"
+foreign $fdisplayb ::  PrimAction = "$fdisplayb"
+foreign $fdisplayo ::  PrimAction = "$fdisplayo"
+foreign $fdisplayh ::  PrimAction = "$fdisplayh"
+
+foreign $random :: ActionValue_ 32 = "$random"
+
+$fgetc :: File -> ActionValue (Int 32) -- to allow space for -1
+$fgetc f = fromActionValue_ (__fgetc__ (pack f))
+foreign __fgetc__ :: Bit 32 -> ActionValue_ 32 = "$fgetc"
+
+$fclose :: File -> Action
+$fclose f = fromActionValue_ (__fclose__ (pack f))
+foreign __fclose__ :: Bit 32 -> Action_ = "$fclose"
+
+$ungetc :: Bit 8 -> File -> ActionValue (Int 32)
+$ungetc c f = fromActionValue_ ( __fungetc__ c (pack f))
+foreign __fungetc__ :: Bit 8 -> Bit 32 -> ActionValue_ 32 = "$ungetc"
+
+
+-- "standard" file descriptors
+stdin  :: File
+stdin = FD 0
+stdout :: File
+stdout = FD 1
+stderr :: File
+stderr = FD 2
+
+stdout_mcd :: File
+stdout_mcd = MCD 1
+
+$test$plusargs :: String -> ActionValue Bool
+$test$plusargs x = fromActionValue_ (__testplusargs__ x)
+foreign __testplusargs__ :: String -> ActionValue_ 1 = "$test$plusargs"
+
+------------------
+
+-- TUPLES
+
+type Tuple2 a b = (a,b)
+type Tuple3 a b c = (a,b,c)
+type Tuple4 a b c d = (a,b,c,d)
+type Tuple5 a b c d e = (a,b,c,d,e)
+type Tuple6 a b c d e f = (a,b,c,d,e,f)
+type Tuple7 a b c d e f g = (a,b,c,d,e,f,g)
+type Tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
+-- If you add more tuples, make sure to update TypeAnalysis and FShow instances
+
+class incoherent Has_tpl_1 t a | t -> a where { tpl_1 :: t -> a }
+class incoherent Has_tpl_2 t a | t -> a where { tpl_2 :: t -> a }
+class incoherent Has_tpl_3 t a | t -> a where { tpl_3 :: t -> a }
+class incoherent Has_tpl_4 t a | t -> a where { tpl_4 :: t -> a }
+class incoherent Has_tpl_5 t a | t -> a where { tpl_5 :: t -> a }
+class incoherent Has_tpl_6 t a | t -> a where { tpl_6 :: t -> a }
+class incoherent Has_tpl_7 t a | t -> a where { tpl_7 :: t -> a }
+class incoherent Has_tpl_8 t a | t -> a where { tpl_8 :: t -> a }
+
+instance Has_tpl_1 (Tuple8 a b c d e f g h) a where {tpl_1 (x,_,_,_,_,_,_,_) = x }
+instance Has_tpl_2 (Tuple8 a b c d e f g h) b where {tpl_2 (_,x,_,_,_,_,_,_) = x }
+instance Has_tpl_3 (Tuple8 a b c d e f g h) c where {tpl_3 (_,_,x,_,_,_,_,_) = x }
+instance Has_tpl_4 (Tuple8 a b c d e f g h) d where {tpl_4 (_,_,_,x,_,_,_,_) = x }
+instance Has_tpl_5 (Tuple8 a b c d e f g h) e where {tpl_5 (_,_,_,_,x,_,_,_) = x }
+instance Has_tpl_6 (Tuple8 a b c d e f g h) f where {tpl_6 (_,_,_,_,_,x,_,_) = x }
+instance Has_tpl_7 (Tuple8 a b c d e f g h) g where {tpl_7 (_,_,_,_,_,_,x,_) = x }
+instance Has_tpl_8 (Tuple8 a b c d e f g h) h where {tpl_8 (_,_,_,_,_,_,_,x) = x }
+
+instance Has_tpl_1 (Tuple7 a b c d e f g) a where {tpl_1 (x,_,_,_,_,_,_) = x }
+instance Has_tpl_2 (Tuple7 a b c d e f g) b where {tpl_2 (_,x,_,_,_,_,_) = x }
+instance Has_tpl_3 (Tuple7 a b c d e f g) c where {tpl_3 (_,_,x,_,_,_,_) = x }
+instance Has_tpl_4 (Tuple7 a b c d e f g) d where {tpl_4 (_,_,_,x,_,_,_) = x }
+instance Has_tpl_5 (Tuple7 a b c d e f g) e where {tpl_5 (_,_,_,_,x,_,_) = x }
+instance Has_tpl_6 (Tuple7 a b c d e f g) f where {tpl_6 (_,_,_,_,_,x,_) = x }
+instance Has_tpl_7 (Tuple7 a b c d e f g) g where {tpl_7 (_,_,_,_,_,_,x) = x }
+
+instance Has_tpl_1 (Tuple6 a b c d e f) a where {tpl_1 (x,_,_,_,_,_) = x }
+instance Has_tpl_2 (Tuple6 a b c d e f) b where {tpl_2 (_,x,_,_,_,_) = x }
+instance Has_tpl_3 (Tuple6 a b c d e f) c where {tpl_3 (_,_,x,_,_,_) = x }
+instance Has_tpl_4 (Tuple6 a b c d e f) d where {tpl_4 (_,_,_,x,_,_) = x }
+instance Has_tpl_5 (Tuple6 a b c d e f) e where {tpl_5 (_,_,_,_,x,_) = x }
+instance Has_tpl_6 (Tuple6 a b c d e f) f where {tpl_6 (_,_,_,_,_,x) = x }
+
+instance Has_tpl_1 (Tuple5 a b c d e) a where {tpl_1 (x,_,_,_,_) = x }
+instance Has_tpl_2 (Tuple5 a b c d e) b where {tpl_2 (_,x,_,_,_) = x }
+instance Has_tpl_3 (Tuple5 a b c d e) c where {tpl_3 (_,_,x,_,_) = x }
+instance Has_tpl_4 (Tuple5 a b c d e) d where {tpl_4 (_,_,_,x,_) = x }
+instance Has_tpl_5 (Tuple5 a b c d e) e where {tpl_5 (_,_,_,_,x) = x }
+
+instance Has_tpl_1 (Tuple4 a b c d) a where {tpl_1 (x,_,_,_) = x }
+instance Has_tpl_2 (Tuple4 a b c d) b where {tpl_2 (_,x,_,_) = x }
+instance Has_tpl_3 (Tuple4 a b c d) c where {tpl_3 (_,_,x,_) = x }
+instance Has_tpl_4 (Tuple4 a b c d) d where {tpl_4 (_,_,_,x) = x }
+
+instance Has_tpl_1 (Tuple3 a b c) a where {tpl_1 (x,_,_) = x }
+instance Has_tpl_2 (Tuple3 a b c) b where {tpl_2 (_,x,_) = x }
+instance Has_tpl_3 (Tuple3 a b c) c where {tpl_3 (_,_,x) = x }
+
+instance Has_tpl_1 (Tuple2 a b) a where {tpl_1 (x,_) = x }
+instance Has_tpl_2 (Tuple2 a b) b where {tpl_2 (_,x) = x }
+
+tuple2 :: a -> b -> Tuple2 a b
+tuple2 a b = (a,b)
+tuple3 :: a -> b -> c -> Tuple3 a b c
+tuple3 a b c = (a,b,c)
+tuple4 :: a -> b -> c -> d  -> Tuple4 a b c d
+tuple4 a b c d = (a,b,c,d)
+tuple5 :: a -> b -> c -> d -> e  -> Tuple5 a b c d e
+tuple5 a b c d e = (a,b,c,d,e)
+tuple6 :: a -> b -> c -> d -> e -> f  -> Tuple6 a b c d e f
+tuple6 a b c d e f = (a,b,c,d,e,f)
+tuple7 :: a -> b -> c -> d -> e -> f -> g   -> Tuple7 a b c d e f g
+tuple7 a b c d e f g = (a,b,c,d,e,f,g)
+tuple8 :: a -> b -> c -> d -> e -> f -> g -> h   -> Tuple8 a b c d e f g h
+tuple8 a b c d e f g h = (a,b,c,d,e,f,g,h)
+
+-- FUNCTIONS TO REPLACE UNAVAILABLE INFIXES
+
+compose :: (b -> c) -> (a -> b) -> (a -> c)
+compose f g x = f $ g x
+
+composeM :: (Monad m) => (a -> m b) -> (b -> m c) -> a -> m c
+composeM f g x = do
+ {-# hide #-}
+ _fx  <- f x
+ {-# hide #-}
+ _fgx <- g _fx
+ return _fgx
+
+
+-- Parts of List library required for desugaring in BSV
+data List a = Nil | Cons a (List a)
+
+-- New functions required for BSV
+
+nil :: List a
+nil = Nil
+
+cons :: a -> List a -> List a
+cons x xs = Cons x xs
+
+isCons :: List a -> Bool
+isCons (Cons _ _) = True
+isCons _ = False
+
+isNil :: List a -> Bool
+isNil Nil = True
+isNil _ = False
+
+decodeList :: List a -> Maybe (a, List a)
+decodeList (Cons x xs) = Valid (x, xs)
+decodeList Nil = Invalid
+
+-- uck! We define these twice because we want people
+-- to be able to import standard list functions qualified
+-- not sure why re-exporting isn't working...
+listPrimAppend :: List a -> List a -> List a
+listPrimAppend Nil ys = ys
+listPrimAppend (Cons x xs) ys = Cons x (listPrimAppend xs ys)
+
+listPrimConcat :: List (List a) -> List a
+listPrimConcat Nil = Nil
+listPrimConcat (Cons x xs) = listPrimAppend x (listPrimConcat xs)
+
+instance (Eq a) => Eq (List a)
+  where
+    (==) Nil Nil                 = True
+    (==) (Cons x xs) (Cons y ys) = x == y && xs == ys
+    (==) _ _                     = False
+    (/=) xs ys                   = not (xs == ys)
+
+instance PrimSelectable (List a) a
+  where
+   primSelectFn = listPrimSelect
+
+instance PrimUpdateable (List a) a
+  where
+   primUpdateFn = listPrimUpdate
+
+--@ The \te{List} type is a monad.
+--@ \begin{libverbatim}
+--@ instance Monad #(List);
+--@ \end{libverbatim}
+instance Monad List
+    where
+	return x = Cons x Nil
+	bind x f = listPrimConcat (listPrimMap f x)
+
+-- copied !! and !!! from List.bs for PrimSelectable instance
+listMessage :: Integer -> String -> String
+listMessage i mess =
+  letseq messStr = if mess == "" then "" else (" ("+++ mess +++")")
+  in ("index " +++ (integerToString i) +++ " out-of-range " +++ messStr)
+
+listPrimSelect :: (PrimIndex ix dx) => Position__ -> List a -> ix -> a
+listPrimSelect pos xs n =
+  if (isStaticIndex n) then
+   listStaticSelect pos xs (toStaticIndex n)
+  else listDynamicSelect pos xs n
+
+listDrop :: Integer -> List a -> List a
+listDrop 0 l   = l
+listDrop _ Nil = Nil
+listDrop n (Cons x xs) = listDrop (n-1) xs
+
+listNullOrUndef :: List a -> Bool
+listNullOrUndef Nil = True
+listNullOrUndef (Cons x xs) = False
+listNullOrUndef _ = True
+
+listLength :: List a -> Integer
+listLength l =
+  let len = listLength' l 0
+  in if (isRawUndefined len) then
+       primGenerateError 80 (primGetEvalPosition len)
+         "Attempt to get the length of an undetermined list"
+     else len
+
+listLength' :: List a -> Integer -> Integer
+listLength' Nil n = n
+-- XXX faking primSeq here
+listLength' (Cons x xs) n = if (n == n) then
+                              listLength' xs (n + 1)
+                            else listLength' xs (n + 1)
+
+
+listStaticSelect :: Position__ -> List a -> Integer -> a
+listStaticSelect pos xs n =
+    let listPrimSelect' :: List b -> Integer -> Integer -> b
+        listPrimSelect' Nil _ n0 =
+           let b = n0 < 0 || listNullOrUndef (listDrop n0 xs)
+              -- don't raise an error unless we can prove we are out-of-bounds
+           in if (isStaticBool b) && b then
+	        primError pos $ listMessage n0 "list selection"
+              else primBuildUndefined pos iuDontCare -- should add runtime error here
+        listPrimSelect' (Cons x xs) 0 _  = x
+        listPrimSelect' (Cons x xs) n n0 = listPrimSelect' xs (n-1) n0
+    in  listPrimSelect' xs n n
+
+listPrimNum :: List e -> List (e, Integer)
+listPrimNum l = let listPrimNum' :: List e -> Integer -> List (e, Integer)
+                    listPrimNum' Nil n = Nil
+                    listPrimNum' (Cons x xs) n = Cons (x, n) (listPrimNum' xs (n+1))
+                in listPrimNum' l 0
+
+-- make sure not to recurse if the literal gets out of range to avoid
+-- an infinite loop with an infinite or undefined list
+listDynamicSelect :: (PrimIndex ix dx) => Position__ -> List a -> ix -> a
+listDynamicSelect pos xs n = letseq rangeTest = inLiteralRange n
+                                    f p r = if (rangeTest p.snd) then
+                                                if (n == fromInteger p.snd) then p.fst else r
+                                            else (primBuildUndefined pos iuDontCare)
+                             in listPrimFoldR f (primBuildUndefined pos iuDontCare) (listPrimNum xs)
+
+listPrimLength :: List a -> Integer
+listPrimLength Nil = 0
+listPrimLength (Cons x xs) = 1 + (listPrimLength xs)
+
+listPrimUpdate :: (PrimIndex ix dx) => Position__ -> List a -> ix -> a -> List a
+listPrimUpdate pos l k x =
+    let k' = toStaticIndex k
+        rangeTest = inLiteralRange k
+        b = listNullOrUndef (listDrop k' l)
+    in
+      if (isRawUndefined l) then
+        primGenerateError 78 pos "Attempt to update an undetermined list"
+      else if (isRawUndefined k) then
+        primGenerateError 79 pos "Attempt to update a list at an undetermined position"
+      else if ((isStaticIndex k) && (k' < 0 || (isStaticBool b && b)))
+          then primError pos $ listMessage k' "list updating"
+      else listPrimMap (\ p -> if (rangeTest p.snd) && (k == fromInteger p.snd) then x else p.fst)
+                       (listPrimNum l)
+
+listPrimSomeBitsToList :: Integer -> Integer -> Bit m -> List (Bit k)
+listPrimSomeBitsToList i n bs =
+    if i >= n then
+	Nil
+    else
+	letseq i' = i + valueOf k
+	       x = bs[fromInteger (i'-1) : fromInteger i]
+	in  Cons x (listPrimSomeBitsToList i' n bs)
+
+listPrimMap :: (c -> d) -> List c -> List d
+listPrimMap f Nil = Nil
+listPrimMap f (Cons x xs) = Cons (f x) (listPrimMap f xs)
+
+listPrimFoldL :: (b -> a -> b) -> b -> List a -> b
+listPrimFoldL f z Nil = z
+listPrimFoldL f z (Cons x xs) = listPrimFoldL f (f z x) xs
+
+listPrimFoldR :: (a -> b -> b) -> b -> List a -> b
+listPrimFoldR f z Nil = z
+listPrimFoldR f z (Cons x xs) = f x (listPrimFoldR f z xs)
+
+constantWithAllBitsSet :: (Bit sa)
+constantWithAllBitsSet = ((invert 0) :: Bit sa)
+
+constantWithAllBitsUnset :: (Bit sa)
+constantWithAllBitsUnset = (0 :: Bit sa)
+
+integerToString :: Integer -> String
+integerToString = primIntegerToString
+
+--XXX Ugly but we can't print bit vectors (at compile-time) any other way
+bitToString :: (Bit n) -> String
+bitToString = compose integerToString primBitToInteger
+
+primitive primStringLength :: String -> Integer
+
+stringLength :: String -> Integer
+stringLength a =
+  let l = primStringLength a
+  in if (isRawUndefined l) then
+       primGenerateError 80 (primGetEvalPosition l)
+         "Attempt to get the length of an undetermined string"
+       else l
+
+primitive type Array :: * -> *
+
+primitive primArrayNew :: Integer -> a -> Array a
+primitive primArraySelect :: Array a -> Integer -> a
+primitive primArrayDynSelect :: Array a -> Bit n -> a
+primitive primArrayUpdate :: Array a -> Integer -> a -> Array a
+primitive primArrayDynUpdate :: Array a -> Bit n -> a -> Array a
+primitive primArrayLength :: Array a -> Integer
+
+primitive primMarkArrayInitialized :: Array a -> Array a
+
+arrayLength :: Array a -> Integer
+arrayLength a =
+  let l = primArrayLength a
+  in if (isRawUndefined l) then
+       primGenerateError 80 (primGetEvalPosition l)
+         "Attempt to get the length of an undetermined array"
+     else l
+
+primArrayNewU :: Integer -> Array a
+primArrayNewU k = primArrayNew k _
+
+instance PrimSelectable (Array a) a
+  where
+   primSelectFn :: (PrimIndex ix dx) =>
+                   Position__ -> (Array a) -> ix -> a
+   primSelectFn pos v x =
+     if (isStaticIndex x) then
+        letseq x' = toStaticIndex x
+               b  = x' >= primArrayLength v
+        in if (isStaticBool b && b) || (x' < 0) then
+              primError pos (listMessage x' "array selection" )
+           else primArraySelect v x'
+     else primArrayDynSelect v (toDynamicIndex x)
+              -- would be nice to provide a default value for out of range
+              -- (primBuildUndefined pos iuDontCare)
+
+instance PrimUpdateable (Array a) a
+  where
+   primUpdateFn :: (PrimIndex ix dx) =>
+                   Position__ -> (Array a) -> ix -> a -> Array a
+   primUpdateFn pos v0 x n =
+    let v = primMarkArrayInitialized v0
+    in
+     if (isRawUndefined v) then
+       primGenerateError 78 pos "Attempt to update an undetermined array"
+     else if (isRawUndefined x) then
+       primGenerateError 79 pos "Attempt to update an array at an undetermined position"
+     else if (isStaticIndex x) then
+        letseq x' = toStaticIndex x
+               b  = x' >= primArrayLength v
+        in if (isStaticBool b && b) || (x' < 0) then
+              primError pos (listMessage x' "array update")
+	   else primArrayUpdate v x' n
+     else primArrayDynUpdate v (toDynamicIndex x) n
+          
+instance (Eq a) => Eq  (Array a) where
+    (==) :: Array a -> Array a -> Bool
+    (==) v1 v2 = let doEq :: Integer -> Integer -> Array a -> Array a -> Bool
+                     doEq n k v1 v2 = if (n > k)
+                                      then True
+				      else (primArraySelect v1 n) == (primArraySelect v2 n) &&
+				           (doEq (n+1) k v1 v2)
+		 in (primArrayLength v1) == (primArrayLength v2) &&
+		    if (primArrayLength v1) > 0
+		       then doEq 0 ((primArrayLength v1) - 1) v1 v2
+		       else True
+    (/=) :: Array a -> Array a -> Bool
+    (/=) v1 v2 = not (v1 == v2)
+
+instance (PrimDeepSeqCond a) => PrimDeepSeqCond (Array a) where
+   primDeepSeqCond :: (Array a) -> b -> b
+   primDeepSeqCond xs =
+     let l = arrayLength xs
+         seqCells :: Integer -> b -> b
+         seqCells i b =
+           let x = primSelectFn noPosition xs i
+           in if (i >= l)
+              then b
+              else primDeepSeqCond x (seqCells (i+1) b)
+     in seqCells 0
+
+primArrayInitialize :: List a -> Array a
+primArrayInitialize l =
+  let
+      doInit :: List a -> Array a -> Integer -> Array a
+      doInit Nil v k = v
+      doInit (Cons x xs) v k = doInit xs (primArrayUpdate v (n-k-1) x) (k-1)
+      n = listPrimLength l
+  in
+     doInit l (primArrayNew n _) (n - 1)
+
+primArrayCheck :: Position__ -> Integer -> Array a -> Array a
+primArrayCheck pos n v =
+  let
+      len = primArrayLength v
+  in if (isStaticInteger len)
+     then if len == n
+          then v
+          else primError pos $
+               "Array was declared as length "
+	       +++ (integerToString n)
+	       +++ " but was initialized to length "
+	       +++ (integerToString len)
+	       +++ "."
+     else -- XXX dynamic error needed
+          v
+
+------------------
+
+-- Some bit utilities functions
+reverseBits :: Bit n -> Bit n
+reverseBits b = let rev :: List a -> List a -> List a
+                    rev Nil ys = ys
+                    rev (Cons x xs) ys = rev xs (Cons x ys)
+                    --
+                    lb :: List (Bit 1)
+                    lb = listPrimSomeBitsToList 0 (valueOf n) b
+                    lbr = rev lb Nil
+                in flatN 0 lbr
+
+countOnes :: (Add 1 n n1, Log n1 lgn1, Add 1 xx lgn1)  => Bit n -> UInt lgn1
+countOnes bin = let lb :: List (Bit 1)
+                    lb = listPrimSomeBitsToList 0 (valueOf n) bin
+                    sumx :: Bit 1 -> UInt lgn1 -> UInt lgn1
+                    sumx b x = x + (zExt1U b)
+                    zExt1U :: (Add m1 1 m) => Bit 1 -> UInt m
+                    zExt1U = compose unpack primZeroExt
+                in listPrimFoldR sumx 0 lb
+
+countZerosLSB :: (Add 1 n n1, Log n1 lgn1) => Bit n -> UInt lgn1
+countZerosLSB bin = let lb :: List (Bit 1)
+                        lb = listPrimSomeBitsToList 0 (valueOf n)  bin
+                        pairsn = zipwith1 (\x y -> (x,y)) lb (map1 fromInteger (upto1 0 (valueOf n)))
+                        --
+                        testF :: (Bit 1, UInt lgn1) -> UInt lgn1 -> UInt lgn1
+                        testF (1, t) _  = t
+                        testF (0, t) p  = p
+                        --
+                     in listPrimFoldR testF (fromInteger $ (valueOf n)) pairsn
+
+
+countZerosMSB :: (Add 1 n n1, Log n1 lgn1) => Bit n -> UInt lgn1
+countZerosMSB = compose countZerosLSB  reverseBits
+
+------------------
+
+-- make (field-blasted) uninitialized value,
+-- so it can be constructed piece-by-piece
+class coherent PrimMakeUninitialized a where
+   primMakeUninitialized :: Position__ -> String -> a
+
+-- BSV only, touching an uninitialized value is an error
+-- calls primMakeUnitialized via evaluation-time code-generation
+-- to field-blast struct, vectors, etc. appropriately
+-- (even polymorphic) without requiring crazy contexts
+primitive primUninitialized :: Position__ -> String -> a
+
+-- "raw" uninitialized value, raises error when evaluated
+primitive primMakeRawUninitialized :: Position__ -> String -> a
+
+-- can't derive this because -> is magic, not defined
+instance PrimMakeUninitialized (a -> b) where
+   primMakeUninitialized = primMakeRawUninitialized
+
+-- make an undefined value with a position and kind
+class coherent PrimMakeUndefined a where
+   primMakeUndefined :: Position__ -> Integer -> a
+
+-- definitions for the known "kinds"
+iuNotUsed :: Integer
+iuNotUsed = 0
+
+iuDontCare :: Integer
+iuDontCare = 1
+
+iuNoMatch :: Integer
+iuNoMatch = 2
+
+-- call PrimMakeUndefined via evaluator
+primitive primBuildUndefined :: Position__ -> Integer -> a
+
+primitive primMakeRawUndefined :: Position__ -> Integer -> a
+
+primitive primIsRawUndefined :: a -> Bit 1
+
+isRawUndefined :: a -> Bool
+isRawUndefined = compose primChr primIsRawUndefined
+
+instance (PrimMakeUndefined b) => PrimMakeUndefined (a -> b) where
+   primMakeUndefined pos kind =  \a -> primMakeUndefined pos kind
+
+instance PrimMakeUndefined PrimAction where
+   primMakeUndefined pos kind = primNoActions
+
+instance PrimMakeUndefined (Bit n) where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined Integer where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined String where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined Char where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined Real where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined Fmt where
+   primMakeUndefined = primMakeRawUndefined
+
+instance PrimMakeUndefined Clock where
+   primMakeUndefined pos kind = primGenerateError 47 pos "Attempt to use this undetermined clock"
+
+instance PrimMakeUndefined Reset where
+   primMakeUndefined pos kind = primGenerateError 48 pos "Attempt to use this undetermined reset"
+
+instance PrimMakeUndefined (Inout a) where
+   primMakeUndefined pos kind = primGenerateError 49 pos "Attempt to use this undetermined inout"
+
+instance PrimMakeUndefined (Inout_ n) where
+   primMakeUndefined pos kind = primGenerateError 49 pos "Attempt to use this undetermined inout_"
+
+instance PrimMakeUndefined (Module a) where
+   primMakeUndefined pos kind = primGenerateError 11 pos "Trying to generate a module from a don't-care value"
+
+instance PrimMakeUndefined Rules where
+   primMakeUndefined pos kind =
+       primGenerateError 109 pos
+           ("Trying to generate rules from a don't-care value. " +++
+            "Perhaps you meant to use `emptyRules'.")
+
+instance PrimMakeUndefined (Array a) where
+   primMakeUndefined = primMakeRawUndefined
+
+------------------
+
+--@ \subsubsection{Environment}
+--@
+--@ \index{Environment@\te{Environment} (package)|textbf}
+--@ The \te{Environment} section of the Prelude contains some value definitions that remain
+--@ static within a compilation, but may vary between compilations.
+--@
+
+-- The values here are just dummies, the actual values will
+-- be inserted by the compiler.
+
+--@ \index{genC@\te{genC}|textbf}
+--@ Is the compiler generating C?
+--@ \begin{libverbatim}
+--@ Bool genC;
+--@ \end{libverbatim}
+primitive primGenC :: Bool
+
+genC :: Bool
+genC = primGenC
+
+--@ \index{genVerilog@\te{genVerilog}|textbf}
+--@ Is the compiler generating {\veri}?
+--@ \begin{libverbatim}
+--@ Bool genVerilog;
+--@ \end{libverbatim}
+primitive primGenVerilog :: Bool
+
+genVerilog :: Bool
+genVerilog = primGenVerilog
+
+genPackageName :: String
+genPackageName = "Prelude"
+
+primitive primGenModuleName :: String
+
+genModuleName :: String
+genModuleName = primGenModuleName
+
+--@ \index{compilerVersion@\te{compilerVersion}|textbf}
+--@ Version of the compiler.
+--@ \begin{libverbatim}
+--@ String compilerVersion;
+--@ \end{libverbatim}
+compilerVersion :: String
+compilerVersion = "Bluespec compiler"
+
+--@ \index{date@\te{date}|textbf}
+--@ Current date and time.
+--@ \begin{libverbatim}
+--@ String date;
+--@ \end{libverbatim}
+date :: String
+date = "2000-01-01 00:00:00"
+
+--@ \index{epochTime@\te{epochTime}|textbf}
+--@ Current date and time specified in the number of seconds since 1970-01-01 00:00:00.
+--@ \begin{libverbatim}
+--@ Bit#(32) epochTime;
+--@ \end{libverbatim}
+epochTime :: Bit 32
+epochTime = 0
+
+--@ \index{buildVersion@\te{buildVersion}|textbf}
+--@ The Version of the compiler.
+--@ \begin{libverbatim}
+--@ Bit#(32) buildVersion;
+--@ \end{libverbatim}
+buildVersion :: Bit 32
+buildVersion = 0
+
+--@ \index{testAssert@\te{testAssert}|textbf}
+--@ Test assertions.
+--@ \begin{libverbatim}
+--@ Bool testAssert;
+--@ \end{libverbatim}
+testAssert :: Bool
+testAssert = False
+
+------------------
+
+-- Elaboration-time file IO
+
+primitive type Handle :: *
+
+data IOMode = ReadMode | WriteMode | AppendMode
+  deriving (Eq)
+
+primitive primOpenFile :: String -> Bit 2 -> Module Handle
+
+openFile :: (IsModule m c) => String -> IOMode -> m Handle
+openFile filename mode = liftModule $ primOpenFile filename (primOrd mode)
+
+primitive primCloseHandle :: Handle -> Module ()
+
+hClose :: (IsModule m c) => Handle -> m Empty
+hClose hdl = liftModule $ do primCloseHandle hdl
+                             return (interface Empty {})
+
+primitive primHandleIsEOF :: Handle -> Module (Bit 1)
+
+hIsEOF :: (IsModule m c) => Handle -> m Bool
+hIsEOF hdl = liftModule $ do res <- primHandleIsEOF hdl
+                             return (primChr res)
+
+primitive primHandleIsOpen :: Handle -> Module (Bit 1)
+primitive primHandleIsClosed :: Handle -> Module (Bit 1)
+primitive primHandleIsReadable :: Handle -> Module (Bit 1)
+primitive primHandleIsWritable :: Handle -> Module (Bit 1)
+
+hIsOpen :: (IsModule m c) => Handle -> m Bool
+hIsOpen hdl = liftModule $ do res <- primHandleIsOpen hdl
+                              return (primChr res)
+
+hIsClosed :: (IsModule m c) => Handle -> m Bool
+hIsClosed hdl = liftModule $ do res <- primHandleIsClosed hdl
+                                return (primChr res)
+
+hIsReadable :: (IsModule m c) => Handle -> m Bool
+hIsReadable hdl = liftModule $ do res <- primHandleIsReadable hdl
+                                  return (primChr res)
+
+hIsWritable :: (IsModule m c) => Handle -> m Bool
+hIsWritable hdl = liftModule $ do res <- primHandleIsWritable hdl
+                                  return (primChr res)
+
+--
+
+data BufferMode = NoBuffering
+                | LineBuffering
+                | BlockBuffering (Maybe Integer)
+  deriving (Eq)
+
+primitive primSetHandleBuffering :: Handle -> BufferMode -> Module ()
+primitive primGetHandleBuffering :: Handle -> Module BufferMode
+primitive primFlushHandle :: Handle -> Module ()
+
+hSetBuffering :: (IsModule m c) => Handle -> BufferMode -> m Empty
+hSetBuffering hdl mode =
+    liftModule $ do primSetHandleBuffering hdl mode
+                    return (interface Empty {})
+
+hGetBuffering :: (IsModule m c) => Handle -> m BufferMode
+hGetBuffering hdl = liftModule $ primGetHandleBuffering hdl
+
+hFlush :: (IsModule m c) => Handle -> m Empty
+hFlush hdl =
+    liftModule $ do primFlushHandle hdl
+                    return (interface Empty {})
+
+--
+
+primitive primWriteHandle :: Handle -> String -> Module ()
+
+hPutStr :: (IsModule m c) => Handle -> String -> m Empty
+hPutStr hdl str = liftModule $ do primWriteHandle hdl str
+                                  return (interface Empty {})
+
+hPutStrLn :: (IsModule m c) => Handle -> String -> m Empty
+hPutStrLn hdl str = hPutStr hdl (str + "\n")
+
+hPutChar :: (IsModule m c) => Handle -> Char -> m Empty
+hPutChar hdl c = hPutStr hdl (charToString c)
+
+--
+
+primitive primReadHandleChar :: Handle -> Module Char
+primitive primReadHandleLine :: Handle -> Module String
+
+hGetChar :: (IsModule m c) => Handle -> m Char
+hGetChar hdl = liftModule $ primReadHandleChar hdl
+
+hGetLine :: (IsModule m c) => Handle -> m String
+hGetLine hdl = liftModule $ primReadHandleLine hdl
+
+------------------
+
+-- support typechecking of import-BVI parameters and ports using typeclasses
+-- and catch errors on these typeclasses and report then specially
+
+class PrimParam ty primty | ty -> primty where
+  primToParam :: ty -> primty
+
+class PrimPort ty primty | ty -> primty where
+  primToPort :: ty -> primty
+
+-- Ports must be bitifiable
+
+instance (Bits t tsz) => PrimPort t (Bit tsz) where
+  primToPort x = pack x
+
+-- Parameters must be bitifiable, or Integer (which is converted to 32-bit),
+-- or String or Real (which are left as is)
+
+instance (Bits t tsz) => PrimParam t (Bit tsz) where
+  primToParam x = pack x
+
+instance PrimParam Integer (Bit 32) where
+  primToParam x = fromInteger x
+
+instance PrimParam String String where
+  primToParam x = x
+
+instance PrimParam Real Real where
+  primToParam x = x
+
+------------------
+
+class FShow t where
+  fshow :: t -> Fmt
+
+instance FShow Fmt where
+  fshow = id
+
+instance FShow String where
+  fshow value = $format value
+
+instance FShow Char where
+  fshow value = $format (charToString value)
+
+instance FShow PrimUnit where
+  fshow value = $format ""
+
+{- -- This is derived
+instance FShow Bool where
+  fshow True  = $format "True"
+  fshow False = $format "False"
+-}
+
+{- -- This is derived
+instance (FShow a) => FShow (Maybe a) where
+  fshow Invalid = $format "Invalid"
+  fshow (Valid v) = $format "Valid " (fshow v)
+-}
+
+instance FShow (Int n) where
+  fshow value = $format "%d" value
+
+instance FShow (UInt n) where
+  fshow value = $format "%d" value
+
+instance FShow (Bit n) where
+  fshow value = $format "'h%h" value
+
+instance (FShow a, FShow b) => FShow (Tuple2 a b) where
+  fshow (a, b) = $format "<" (fshow a) "," (fshow b) ">"
+
+instance (FShow a, FShow b, FShow c) => FShow (Tuple3 a b c) where
+  fshow (a, b, c) = $format "<" (fshow a) "," (fshow b) "," (fshow c) ">"
+
+instance (FShow a, FShow b, FShow c, FShow d) => FShow (Tuple4 a b c d) where
+  fshow (a, b, c, d) =
+      $format "<" (fshow a) "," (fshow b) "," (fshow c) "," (fshow d) ">"
+
+instance (FShow a, FShow b, FShow c, FShow d, FShow e) =>
+         FShow (Tuple5 a b c d e) where
+  fshow (a, b, c, d, e) =
+      $format "<" (fshow a) "," (fshow b) "," (fshow c) "," (fshow d) ","
+                  (fshow e) ">"
+
+instance (FShow a, FShow b, FShow c, FShow d, FShow e, FShow f) =>
+         FShow (Tuple6 a b c d e f) where
+  fshow (a, b, c, d, e, f) =
+      $format "<" (fshow a) "," (fshow b) "," (fshow c) "," (fshow d) ","
+                  (fshow e) "," (fshow f) ">"
+
+instance (FShow a, FShow b, FShow c, FShow d, FShow e, FShow f, FShow g) =>
+         FShow (Tuple7 a b c d e f g) where
+  fshow (a, b, c, d, e, f, g) =
+      $format "<" (fshow a) "," (fshow b) "," (fshow c) "," (fshow d) ","
+                  (fshow e) "," (fshow f) "," (fshow g) ">"
+
+instance (FShow a, FShow b, FShow c, FShow d, FShow e, FShow f, FShow g,
+          FShow h) => FShow (Tuple8 a b c d e f g h) where
+  fshow (a, b, c, d, e, f, g, h) =
+      $format "<" (fshow a) "," (fshow b) "," (fshow c) "," (fshow d) ","
+                  (fshow e) "," (fshow f) "," (fshow g) "," (fshow h) ">"
+
+instance (FShow a) => FShow (List a)
+  where
+    fshow value =
+        let insertSpace a b = a + ($format " ") + b
+            fmts = listPrimMap fshow value
+            -- XXX This adds an extra space at the end
+            elements = listPrimFoldR insertSpace (fshow "") fmts
+        in  $format "<List " elements " >"
+
+
+------------------
+

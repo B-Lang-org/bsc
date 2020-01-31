@@ -1,0 +1,111 @@
+package FIFO (FIFO(..), mkFIFO, mkFIFO1, mkSizedFIFO, mkLSizedFIFO, mkDepthParamFIFO, mkLFIFO, mkDepthParamLFIFO, fifofToFifo) where
+
+import FIFOF_
+import FIFOF
+
+--@ \subsubsection{FIFO}
+--@ 
+--@ \index{FIFO@\te{FIFO} (package)|textbf}
+--@ The \te{FIFO} interface is for FIFOs with implicit full and empty
+--@ signals.
+--@ \index{FIFO@\te{FIFO} (type)|textbf}
+--@ \begin{libverbatim}
+--@ interface FIFO #(type a);
+--@     method Action enq(a x1);
+--@     method Action deq();
+--@     method a first();
+--@     method Action clear();
+--@ endinterface: FIFO
+--@ \end{libverbatim}
+interface FIFO a =
+    enq      :: a -> Action
+    deq      :: Action
+    first    :: a
+    clear    :: Action
+
+--@ The various properties of the different FIFOs can be found
+--@ at the description of the corresponding \te{FIFOF} functions and modules
+--@ (see separate \te{FIFOF} section).
+
+fifof_ToFifo :: FIFOF_ a -> FIFO a
+fifof_ToFifo f =
+    interface FIFO
+	enq x = f.enq x		when f.i_notFull
+	deq   = f.deq		when f.i_notEmpty
+	first = f.first		when f.i_notEmpty
+	clear = f.clear
+
+
+fifofToFifo :: FIFOF a -> FIFO a
+fifofToFifo f =
+    interface FIFO
+	enq x = f.enq x		when f.notFull
+	deq   = f.deq		when f.notEmpty
+	first = f.first		when f.notEmpty
+	clear = f.clear
+
+--@ \index{mkFIFO@\te{mkFIFO} (module)|textbf}
+--@ \begin{libverbatim}
+--@ Module#(FIFO#(a)) mkFIFO
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkFIFO :: (IsModule m c, Bits a sa) => m (FIFO a)
+mkFIFO = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkFIFOF_ 1
+    return (fifof_ToFifo _f)
+
+--@ \lineup
+--@ \index{mkFIFO1@\te{mkFIFO1} (module)|textbf}
+--@ \begin{libverbatim}
+--@ Module#(FIFO#(a)) mkFIFO1
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkFIFO1 :: (IsModule m c, Bits a sa) => m (FIFO a)
+mkFIFO1 = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkFIFOF1_ 1
+    return (fifof_ToFifo _f)
+
+--@ \lineup
+--@ \index{mkSizedFIFO@\te{mkSizedFIFO} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkSizedFIFO#(Integer n)(FIFO#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkSizedFIFO :: (IsModule m c, Bits a sa) => Integer -> m (FIFO a)
+mkSizedFIFO n = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+    return (fifof_ToFifo _f)
+
+mkDepthParamFIFO :: (IsModule m c, Bits a sa) => UInt 32 -> m (FIFO a)
+mkDepthParamFIFO n = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+    return (fifof_ToFifo _f)
+
+
+mkDepthParamLFIFO :: (IsModule m c, Bits a sa) => UInt 32 -> m (FIFO a)
+mkDepthParamLFIFO n = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkDepthParamLFIFOF_ n
+    return (fifof_ToFifo _f)
+
+--@ \lineup
+--@ \index{mkLFIFO@\te{mkLFIFO} (module)|textbf}
+--@ \begin{libverbatim}
+--@ Module#(FIFO#(a)) mkLFIFO
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkLFIFO :: (IsModule m c, Bits a sa) => m (FIFO a)
+mkLFIFO = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLFIFOF_
+    return (fifof_ToFifo _f)
+
+mkLSizedFIFO :: (IsModule m c, Bits a sa) => Integer -> m (FIFO a)
+mkLSizedFIFO n = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLSizedFIFOF_ n
+    return (fifof_ToFifo _f)

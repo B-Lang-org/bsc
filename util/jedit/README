@@ -1,0 +1,7 @@
+A BSV mode for the cross-platform editor JEdit (http://www.jedit.org/).
+The mode has been adapted from the Verilog mode which comes with JEdit.
+To use, add
+
+  <MODE NAME="bsv" FILE="bsv.xml" FILE_NAME_GLOB="*.bsv" />
+
+between <MODES> and </MODES> in your .jedit/modes/catalog

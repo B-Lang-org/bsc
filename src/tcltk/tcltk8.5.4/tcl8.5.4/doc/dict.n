@@ -1,0 +1,287 @@
+'\"
+'\" Copyright (c) 2003 Donal K. Fellows
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+'\" RCS: @(#) $Id: dict.n,v 1.18 2007/12/31 00:17:44 dkf Exp $
+'\"
+.so man.macros
+.TH dict n 8.5 Tcl "Tcl Built-In Commands"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+dict \- Manipulate dictionaries
+.SH SYNOPSIS
+\fBdict \fIoption arg \fR?\fIarg ...\fR?
+.BE
+.SH DESCRIPTION
+.PP
+Performs one of several operations on dictionary values or variables
+containing dictionary values (see the \fBDICTIONARY VALUES\fR section
+below for a description), depending on \fIoption\fR.  The legal
+\fIoption\fRs (which may be abbreviated) are:
+.TP
+\fBdict append \fIdictionaryVariable key \fR?\fIstring ...\fR?
+This appends the given string (or strings) to the value that the given
+key maps to in the dictionary value contained in the given variable,
+writing the resulting dictionary value back to that variable.
+Non-existent keys are treated as if they map to an empty string.
+.TP
+\fBdict create \fR?\fIkey value ...\fR?
+Create a new dictionary that contains each of the key/value mappings
+listed as arguments (keys and values alternating, with each key being
+followed by its associated value.)
+.TP
+\fBdict exists \fIdictionaryValue key \fR?\fIkey ...\fR?
+This returns a boolean value indicating whether the given key (or path
+of keys through a set of nested dictionaries) exists in the given
+dictionary value. This returns a true value exactly when \fBdict
+get\fR on that path will succeed.
+.TP
+\fBdict filter \fIdictionaryValue filterType arg \fR?\fIarg ...\fR?
+This takes a dictionary value and returns a new dictionary that
+contains just those key/value pairs that match the specified filter
+type (which may be abbreviated.)  Supported filter types are:
+.RS
+.TP
+\fBdict filter \fIdictionaryValue \fBkey \fIglobPattern\fR
+The key rule only matches those key/value pairs whose keys match the
+given pattern (in the style of \fBstring match\fR.)
+.TP
+\fBdict filter \fIdictionaryValue \fBscript {\fIkeyVar valueVar\fB} \fIscript\fR
+The script rule tests for matching by assigning the key to the
+\fIkeyVar\fR and the value to the \fIvalueVar\fR, and then evaluating
+the given script which should return a boolean value (with the
+key/value pair only being included in the result of the \fBdict
+filter\fR when a true value is returned.)  Note that the first
+argument after the rule selection word is a two-element list.  If the
+\fIscript\fR returns with a condition of \fBTCL_BREAK\fR, no further
+key/value pairs are considered for inclusion in the resulting
+dictionary, and a condition of \fBTCL_CONTINUE\fR is equivalent to a false
+result. The key/value pairs are tested in the order in which the keys
+were inserted into the dictionary.
+.TP
+\fBdict filter \fIdictionaryValue \fBvalue \fIglobPattern\fR
+The value rule only matches those key/value pairs whose values match
+the given pattern (in the style of \fBstring match\fR.)
+.RE
+.TP
+\fBdict for {\fIkeyVar valueVar\fB} \fIdictionaryValue body\fR
+This command takes three arguments, the first a two-element list of
+variable names (for the key and value respectively of each mapping in
+the dictionary), the second the dictionary value to iterate across,
+and the third a script to be evaluated for each mapping with the key
+and value variables set appropriately (in the manner of \fBforeach\fR.)
+The result of the command is an empty string. If any evaluation of the
+body generates a \fBTCL_BREAK\fR result, no further pairs from the
+dictionary will be iterated over and the \fBdict for\fR command will
+terminate successfully immediately. If any evaluation of the body
+generates a \fBTCL_CONTINUE\fR result, this shall be treated exactly like a
+normal \fBTCL_OK\fR result. The order of iteration is the order in
+which the keys were inserted into the dictionary.
+.TP
+\fBdict get \fIdictionaryValue \fR?\fIkey ...\fR?
+Given a dictionary value (first argument) and a key (second argument),
+this will retrieve the value for that key. Where several keys are
+supplied, the behaviour of the command shall be as if the result of
+\fBdict get $dictVal $key\fR was passed as the first argument to
+\fBdict get\fR with the remaining arguments as second (and possibly
+subsequent) arguments. This facilitates lookups in nested
+dictionaries. For example, the following two commands are equivalent:
+.RS
+.CS
+dict get $dict foo bar spong
+dict get [dict get [dict get $dict foo] bar] spong
+.CE
+If no keys are provided, dict would return a list containing pairs of
+elements in a manner similar to \fBarray get\fR. That is, the first
+element of each pair would be the key and the second element would be
+the value for that key.
+
+It is an error to attempt to retrieve a value for a key that is not
+present in the dictionary.
+.RE
+.TP
+\fBdict incr \fIdictionaryVariable key \fR?\fIincrement\fR?
+This adds the given increment value (an integer that defaults to 1 if
+not specified) to the value that the given key maps to in the
+dictionary value contained in the given variable, writing the
+resulting dictionary value back to that variable. Non-existent keys
+are treated as if they map to 0. It is an error to increment a value
+for an existing key if that value is not an integer.
+.TP
+\fBdict info \fIdictionaryValue\fR
+This returns information (intended for display to people) about the
+given dictionary though the format of this data is dependent on the
+implementation of the dictionary. For dictionaries that are
+implemented by hash tables, it is expected that this will return the
+string produced by \fBTcl_HashStats\fR, similar to \fBarray info\fR.
+.TP
+\fBdict keys \fIdictionaryValue \fR?\fIglobPattern\fR?
+Return a list of all keys in the given dictionary value. If a pattern
+is supplied, only those keys that match it (according to the rules of
+\fBstring match\fR) will be returned. The returned keys will be in the
+order that they were inserted into the dictionary.
+.TP
+\fBdict lappend \fIdictionaryVariable key \fR?\fIvalue ...\fR?
+This appends the given items to the list value that the given key maps
+to in the dictionary value contained in the given variable, writing
+the resulting dictionary value back to that variable. Non-existent
+keys are treated as if they map to an empty list, and it is legal for
+there to be no items to append to the list. It is an error for the
+value that the key maps to to not be representable as a list.
+.TP
+\fBdict merge \fR?\fIdictionaryValue ...\fR?
+Return a dictionary that contains the contents of each of the
+\fIdictionaryValue\fR arguments.  Where two (or more) dictionaries
+contain a mapping for the same key, the resulting dictionary maps that
+key to the value according to the last dictionary on the command line
+containing a mapping for that key.
+.TP
+\fBdict remove \fIdictionaryValue \fR?\fIkey ...\fR?
+Return a new dictionary that is a copy of an old one passed in as
+first argument except without mappings for each of the keys listed.
+It is legal for there to be no keys to remove, and it also legal for
+any of the keys to be removed to not be present in the input
+dictionary in the first place.
+.TP
+\fBdict replace \fIdictionaryValue \fR?\fIkey value ...\fR?
+Return a new dictionary that is a copy of an old one passed in as
+first argument except with some values different or some extra
+key/value pairs added. It is legal for this command to be called with
+no key/value pairs, but illegal for this command to be called with a
+key but no value.
+.TP
+\fBdict set \fIdictionaryVariable key \fR?\fIkey ...\fR? \fIvalue\fR
+This operation takes the name of a variable containing a dictionary
+value and places an updated dictionary value in that variable
+containing a mapping from the given key to the given value. When
+multiple keys are present, this operation creates or updates a chain
+of nested dictionaries.
+.TP
+\fBdict size \fIdictionaryValue\fR
+Return the number of key/value mappings in the given dictionary value.
+.TP
+\fBdict unset \fIdictionaryVariable key \fR?\fIkey ...\fR?
+This operation (the companion to \fBdict set\fR) takes the name of a
+variable containing a dictionary value and places an updated
+dictionary value in that variable that does not contain a mapping for
+the given key. Where multiple keys are present, this describes a path
+through nested dictionaries to the mapping to remove. At least one key
+must be specified, but the last key on the key-path need not exist.
+All other components on the path must exist.
+.TP
+\fBdict update \fIdictionaryVariable key varName \fR?\fIkey varName ...\fR? \fIbody\fR
+Execute the Tcl script in \fIbody\fR with the value for each \fIkey\fR
+(as found by reading the dictionary value in \fIdictionaryVariable\fR)
+mapped to the variable \fIvarName\fR. There may be multiple
+\fIkey\fR/\fIvarName\fR pairs. If a \fIkey\fR does not have a mapping,
+that corresponds to an unset \fIvarName\fR. When \fIbody\fR
+terminates, any changes made to the \fIvarName\fRs is reflected back
+to the dictionary within \fIdictionaryVariable\fR (unless
+\fIdictionaryVariable\fR itself becomes unreadable, when all updates
+are silently discarded), even if the result of \fIbody\fR is an error
+or some other kind of exceptional exit. The result of \fBdict
+update\fR is (unless some kind of error occurs) the result of the
+evaluation of \fIbody\fR. Note that the mapping of values to variables
+does not use traces; changes to the \fIdictionaryVariable\fR's
+contents only happen when \fIbody\fR terminates.
+.TP
+\fBdict values \fIdictionaryValue \fR?\fIglobPattern\fR?
+Return a list of all values in the given dictionary value. If a
+pattern is supplied, only those values that match it (according to the
+rules of \fBstring match\fR) will be returned. The returned values
+will be in the order of that the keys associated with those values
+were inserted into the dictionary.
+.TP
+\fBdict with \fIdictionaryVariable \fR?\fIkey ...\fR? \fIbody\fR
+Execute the Tcl script in \fIbody\fR with the value for each key in
+\fIdictionaryVariable\fR mapped (in a manner similarly to \fBdict
+update\fR) to a variable with the same name. Where one or more
+\fIkey\fRs are available, these indicate a chain of nested
+dictionaries, with the innermost dictionary being the one opened out
+for the execution of \fIbody\fR. As with \fBdict update\fR, making
+\fIdictionaryVariable\fR unreadable will make the updates to the
+dictionary be discarded, and this also happens if the contents of
+\fIdictionaryVariable\fR are adjusted so that the chain of
+dictionaries no longer exists. The result of \fBdict with\fR is
+(unless some kind of error occurs) the result of the evaluation of
+\fIbody\fR. Note that the mapping of values to variables does not use
+traces; changes to the \fIdictionaryVariable\fR's contents only happen
+when \fIbody\fR terminates.
+.SH "DICTIONARY VALUES"
+Dictionaries are values that contain an efficient, order-preserving
+mapping from arbitrary keys to arbitrary values.
+Each key in the dictionary maps to a single value.
+They have a textual format that is exactly that of any list with an
+even number of elements, with each mapping in the dictionary being
+represented as two items in the list. When a command takes a
+dictionary and produces a new dictionary based on it (either returning
+it or writing it back into the variable that the starting dictionary
+was read from) the new dictionary will have the same order of keys,
+modulo any deleted keys and with new keys added on to the end.
+When a string is interpreted as a dictionary and it would otherwise
+have duplicate keys, only the last value for a particular key is used;
+the others are ignored, meaning that,
+.QW "apple banana"
+and
+.QW "apple carrot apple banana"
+are equivalent dictionaries (with different string representations).
+.SH EXAMPLES
+Constructing and using nested dictionaries:
+.CS
+# Data for one employee
+\fBdict set\fR employeeInfo 12345-A forenames "Joe"
+\fBdict set\fR employeeInfo 12345-A surname   "Schmoe"
+\fBdict set\fR employeeInfo 12345-A street "147 Short Street"
+\fBdict set\fR employeeInfo 12345-A city   "Springfield"
+\fBdict set\fR employeeInfo 12345-A phone  "555-1234"
+# Data for another employee
+\fBdict set\fR employeeInfo 98372-J forenames "Anne"
+\fBdict set\fR employeeInfo 98372-J surname   "Other"
+\fBdict set\fR employeeInfo 98372-J street "32995 Oakdale Way"
+\fBdict set\fR employeeInfo 98372-J city   "Springfield"
+\fBdict set\fR employeeInfo 98372-J phone  "555-8765"
+# The above data probably ought to come from a database...
+
+# Print out some employee info
+set i 0
+puts "There are [\fBdict size\fR $employeeInfo] employees"
+\fBdict for\fR {id info} $employeeInfo {
+   puts "Employee #[incr i]: $id"
+   \fBdict with\fR info {
+      puts "   Name: $forenames $surname"
+      puts "   Address: $street, $city"
+      puts "   Telephone: $phone"
+   }
+}
+# Another way to iterate and pick out names...
+foreach id [\fBdict keys\fR $employeeInfo] {
+   puts "Hello, [\fBdict get\fR $employeeInfo $id forenames]!"
+}
+.CE
+.PP
+A localizable version of \fBstring toupper\fR:
+.CS
+# Set up the basic C locale
+set capital [\fBdict create\fR C [\fBdict create\fR]]
+foreach c [split {abcdefghijklmnopqrstuvwxyz} ""] {
+   \fBdict set\fR capital C $c [string toupper $c]
+}
+
+# English locales can luckily share the "C" locale
+\fBdict set\fR capital en [\fBdict get\fR $capital C]
+\fBdict set\fR capital en_US [\fBdict get\fR $capital C]
+\fBdict set\fR capital en_GB [\fBdict get\fR $capital C]
+
+# ... and so on for other supported languages ...
+
+# Now get the mapping for the current locale and use it.
+set upperCaseMap [\fBdict get\fR $capital $env(LANG)]
+set upperCase [string map $upperCaseMap $string]
+.CE
+.SH "SEE ALSO"
+append(n), array(n), foreach(n), incr(n), list(n), lappend(n), set(n)
+.SH KEYWORDS
+dictionary, create, update, lookup, iterate, filter

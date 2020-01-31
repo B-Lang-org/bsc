@@ -1,0 +1,9 @@
+#Author : Steve Allen
+#name : function Rules {...}
+# --
+function Rules ${1:name} ( ${2:args} );
+    return rules
+              // add rules
+              $0
+           endrules;
+endfunction : $1

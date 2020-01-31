@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : seq {...} endseq
+# --
+seq
+    $0
+endseq

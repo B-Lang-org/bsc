@@ -1,0 +1,204 @@
+#
+# Tests for [incr Tk] widgets based on itk::Toplevel
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: toplevel.test,v 1.5 2007/05/24 23:29:30 hobbs Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+package require tcltest
+namespace import -force ::tcltest::*
+
+::tcltest::loadTestedCommands
+
+
+# ----------------------------------------------------------------------
+#  Toplevel mega-widget
+# ----------------------------------------------------------------------
+test toplevel-1.1 {define a toplevel mega-widget class} {
+    option add *TestToplevel.background linen
+    option add *TestToplevel.cursor ""
+    option add *TestToplevel.foreground navy
+    option add *TestToplevel.highlight white
+    option add *TestToplevel.normal ivory
+    option add *TestToplevel.text ""
+
+    itcl::class TestToplevel {
+        inherit itk::Toplevel
+        constructor {args} {
+            itk_component add test1 {
+                label $itk_interior.t1
+            } {
+                keep -background -foreground -cursor
+                keep -text
+            }
+            pack $itk_component(test1) -side left -padx 2
+            eval itk_initialize $args
+        }
+        public method do {cmd} {
+            eval $cmd
+        }
+
+        private variable status ""
+        itk_option define -background background Background {} {
+            lappend status "background: $itk_option(-background)"
+        }
+    }
+    TestToplevel .#auto
+} {.testToplevel0}
+
+test toplevel-1.2 {check the list of configuration options} {
+    .testToplevel0 configure
+} {{-background background Background linen linen} {-clientdata clientData ClientData {} {}} {-cursor cursor Cursor {} {}} {-foreground foreground Foreground navy navy} {-menu menu Menu {} {}} {-takefocus takeFocus TakeFocus 0 0} {-text text Text {} {}} {-title title Title {} {}}}
+
+test toplevel-1.3 {check the list components} {
+    lsort [.testToplevel0 component]
+} {hull test1}
+
+test toplevel-1.4 {check the propagation of configuration options} {
+    .testToplevel0 configure -background red
+    list [.testToplevel0 component hull cget -background] \
+         [.testToplevel0 component test1 cget -background] \
+         [.testToplevel0 do {set status}]
+} {red red {{background: linen} {background: red}}}
+
+test toplevel-1.5 {mega-widgets show up on the object list} {
+    itcl::find objects .testToplevel*
+} {.testToplevel0}
+
+test toplevel-1.6 {when a mega-widget is destroyed, its object is deleted} {
+    destroy .testToplevel0
+    itcl::find objects .testToplevel*
+} {}
+
+test toplevel-1.7 {when an mega-widget object is deleted, its window and any
+        components are destroyed } {
+    TestToplevel .delme
+    set label [.delme component test1]
+    itcl::delete object .delme
+    list [winfo exists .delme] [winfo exists $label]
+} {0 0}
+
+test toplevel-1.8 {when a mega-widget object is deleted, its window and any
+        components are destroyed (even if in another window) } {
+    catch {destroy .t1}
+    catch {destroy .t2}
+    catch {rename .t2 {}}
+    catch {itcl::delete class ButtonTop}
+
+    itcl::class ButtonTop {
+        inherit itk::Toplevel
+
+        constructor {args} {
+            eval itk_initialize $args
+
+            itk_component add button {
+                button $itk_option(-container).b -text Button
+            } {}
+            pack $itk_component(button)
+        }
+
+        itk_option define -container container Container {}
+    }
+
+    toplevel .t1
+    ButtonTop .t2 -container .t1
+    set button [.t2 component button]
+    itcl::delete object .t2
+    set result [list $button [winfo exists $button]]
+    itcl::delete class ButtonTop
+    destroy .t1
+    set result
+} {.t1.b 0}
+
+test toplevel-1.9 {when a window that contains a megawidget component
+        is destroyed, the component is removed from the megawidget} {
+    catch {destroy .t1}
+    catch {destroy .t2}
+    catch {rename .t2 {}}
+    catch {itcl::delete class ButtonTop}
+
+    itcl::class ButtonTop {
+        inherit itk::Toplevel
+
+        constructor {args} {
+            eval itk_initialize $args
+
+            itk_component add button {
+                button $itk_option(-container).b -text Button
+            } {}
+            pack $itk_component(button)
+        }
+
+        itk_option define -container container Container {}
+    }
+
+    toplevel .t1
+    ButtonTop .t2 -container .t1
+    set result [list [.t2 component]]
+    destroy .t1
+    lappend result [list [.t2 component]]
+    itcl::delete object .t2
+    itcl::delete class ButtonTop
+    set result
+} {{button hull} hull}
+
+test toplevel-1.10 {when destroying a component that is inside another
+        window protect against that case where one component destroy
+        actually destroys other contained components} {
+    catch {destroy .t1}
+    catch {destroy .t2}
+    catch {rename .t2 {}}
+    catch {itcl::delete class ButtonTop}
+
+    itcl::class ButtonTop {
+        inherit itk::Toplevel
+
+        constructor {args} {
+            eval itk_initialize $args
+
+            # Note, the component names matter here since
+            # [.t2 component] returns names in hash order.
+            # We need to delete cframe first since it
+            # is the parent of cbutton.
+
+            itk_component add cframe {
+                button $itk_option(-container).cframe
+            } {}
+            pack $itk_component(cframe)
+
+            itk_component add cbutton {
+                button $itk_component(cframe).b -text Button
+            } {}
+            pack $itk_component(cbutton)
+        }
+
+        itk_option define -container container Container {}
+    }
+
+    toplevel .t1
+    ButtonTop .t2 -container .t1
+    set result [list [.t2 component]]
+    # destructor should destroy cframe but not cbutton
+    itcl::delete object .t2
+    lappend result [winfo exists .t1.cframe]
+    destroy .t1
+    itcl::delete class ButtonTop
+    set result
+} {{hull cframe cbutton} 0}
+
+
+# ----------------------------------------------------------------------
+#  Clean up
+# ----------------------------------------------------------------------
+itcl::delete class TestToplevel
+
+::tcltest::cleanupTests
+exit

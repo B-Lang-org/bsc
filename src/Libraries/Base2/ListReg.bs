@@ -1,0 +1,21 @@
+package ListReg(mkListReg) where
+import List
+
+--@ \subsubsection{ListReg}
+--@ \index{ListReg@\te{ListReg} (package)|textbf}
+--@
+--@ The \te{ListReg} package provides a constructor for registers for storing
+--@ values of type \te{List}.
+--@ Note that the list is assumed to always have the same length as the list
+--@ given as the initial value.
+--@ \begin{libverbatim}
+--@ module mkListReg#(List#(a) xs)(Reg#(List#(a)))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkListReg :: (IsModule m c, Bits a sa) => List a -> m (Reg (List a))
+mkListReg xs =
+    module
+        rs <- mapM mkReg xs
+        interface Reg
+            _read = map readReg rs
+            _write vs = joinActions (zipWith writeReg rs vs)

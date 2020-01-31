@@ -1,0 +1,82 @@
+#
+# Public variables as configuration options
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: public.test,v 1.3 2004/09/22 09:37:09 davygrvy Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+package require tcltest
+namespace import -force ::tcltest::*
+
+::tcltest::loadTestedCommands
+
+
+# ----------------------------------------------------------------------
+#  Define a base class with public variables and a simple mega-widget
+# ----------------------------------------------------------------------
+test public-1.1 {define base class and simple mega-widget class} {
+    itcl::class test_public_base {
+        public variable null
+        public variable background "not used"
+        public variable message
+    }
+    itcl::configbody test_public_base::message {
+        global ::test_public_status
+        lappend test_public_status "message: $message"
+    }
+    itcl::configbody test_public_base::background {
+        global ::test_public_status
+        lappend test_public_status "background: $background"
+    }
+    option add *TestPublic.background red
+    option add *TestPublic.foreground white
+    option add *TestPublic.cursor trek
+    option add *TestPublic.message "Hello, World!"
+
+    itcl::class TestPublic {
+        inherit itk::Widget test_public_base
+        constructor {args} {
+            itk_component add mesg {
+                label $itk_interior.mesg
+            } {
+                keep -background -foreground -cursor
+                rename -text -message message Message
+            }
+            pack $itk_component(mesg) -side left -padx 2
+
+            eval itk_initialize $args
+        }
+    }
+    set testobj [TestPublic .#auto]
+    pack $testobj
+} {}
+
+test public-1.2 {check the list of configuration options} {
+    $testobj configure
+} {{-background background Background red red} {-clientdata clientData ClientData {} {}} {-cursor cursor Cursor trek trek} {-foreground foreground Foreground white white} {-message message Message {Hello, World!} {Hello, World!}} {-null {} {} {} {}}}
+
+test public-1.3 {uninitialized public variables are set to ""} {
+    $testobj info variable null
+} {public variable ::test_public_base::null <undefined> {} {}}
+
+test public-1.4 {config code gets fired off} {
+    set test_public_status ""
+    $testobj configure -background blue -message "All Clear"
+    set test_public_status
+} {{background: blue} {message: All Clear}}
+
+# ----------------------------------------------------------------------
+#  Clean up
+# ----------------------------------------------------------------------
+itcl::delete class TestPublic test_public_base
+
+::tcltest::cleanupTests
+exit

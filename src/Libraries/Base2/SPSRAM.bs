@@ -1,0 +1,79 @@
+package SPSRAM(mkSPSRAM) where
+import RegFile
+import GetPut
+import ClientServer
+import SyncSRAM
+
+--@ \subsubsection{\te{SPSRAM}}
+--@ \index{SPSRAM@\te{SPSRAM} (package)|textbf}
+--@ 
+--@ The \te{SPSRAM} package is used to generate
+--@ internal single ported SRAMs (for the LSI libraries).
+--@ The argument specifies the size of the SRAM.
+--@ The SRAM has a one cycle latency.
+--@ \index{mkSPSRAM@\te{mkSPSRAM} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkSPSRAM#(Integer nwords)(SyncSRAMS#(1, adrs, dtas));
+--@ \end{libverbatim}
+mkSPSRAM :: (IsModule m c) => Integer -> m (SyncSRAMS 1 adrs dtas)
+mkSPSRAM nwords = liftModule $
+    if ((2 ** (valueOf adrs)) < nwords) then error "address width too small"
+    else if genC then
+	mkSPSRAM_C nwords
+    else
+      module
+	vram :: VSyncSRAM adrs dtas <- mkSPSRAM_V nwords
+
+        let name = Valid (primGetModuleName vram)
+        let adrst = typeOf (_ :: Bit adrs)
+        let dtast = typeOf (_ :: Bit dtas)
+        let bit1t = typeOf (_ :: Bit 1)
+        primSavePortType name "A" adrst
+        primSavePortType name "DI" dtast
+        primSavePortType name "WE" bit1t
+        primSavePortType name "ENABLE" bit1t
+        primSavePortType name "DO" dtast
+
+	interface -- Server
+		request =
+                 interface Put
+		   put req = fromPrimAction (vram.exec req.addr req.wdata req.we req.ena)
+		response =
+		 interface Get
+		   get =  return vram.rdata
+
+mkSPSRAM_C :: Integer -> Module (SyncSRAMS 1 adrs dtas)
+mkSPSRAM_C nwords =
+  module
+    arr :: RegFile (Bit adrs) (Bit dtas) <- mkRegFileWCF 0 (fromInteger (nwords-1))
+    out :: Reg (Bit dtas)  <- mkRegU
+    interface -- Server
+	    request =
+	     interface Put
+              put req =
+		if req.ena == 1 then
+		    if req.we == 1 then do
+			arr.upd req.addr req.wdata
+			out := req.wdata
+		    else
+			out := arr.sub req.addr
+		else
+		    out := 0
+	    response = 
+	     interface Get
+	      get = return out
+
+
+interface VSyncSRAM adrs dtas =
+    exec  :: Bit adrs -> Bit dtas -> Bit 1 -> Bit 1 -> PrimAction
+    rdata :: Bit dtas
+
+mkSPSRAM_V :: Integer -> Module (VSyncSRAM adrs dtas)
+mkSPSRAM_V nwords = do
+    let name = "RRSPSRAM_" +++ integerToString nwords +++ "_" +++
+		integerToString (valueOf dtas) +++ "_bussed"
+    messageM ("Used SRAM: " +++ name)
+    module verilog name "CLK" {
+	exec  = "A" "DI" "WE" "ENABLE" "?"{inhigh};
+	rdata = "DO";
+    } [ [exec,rdata] <> [exec,rdata] ]

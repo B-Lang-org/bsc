@@ -1,0 +1,24 @@
+*.o
+*.a
+
+# Ignore header files copied from tcl.h
+tcl.h
+tclDecls.h
+tclPlatDecls.h
+tclInt.h
+tclIntDecls.h
+
+# Ignore header files copied from tk.h
+tk.h
+tkDecls.h
+
+# Ignore header files copied for itcl.h
+itcl.h
+itclDecls.h
+itclInt.h
+itclIntDecls.h
+
+# Ignore header files copied for itk.h
+itk.h
+itkDecls.h
+

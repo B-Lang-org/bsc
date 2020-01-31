@@ -1,0 +1,449 @@
+# This file tests the tclWinDde.c file.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands.  Sourcing this file into Tcl runs the tests and
+# generates output for errors. No output means no errors were found.
+#
+# Copyright (c) 1999 by Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: winDde.test,v 1.28 2005/05/10 18:35:25 kennykb Exp $
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest 2
+    #tcltest::configure -verbose {pass start}
+    namespace import -force ::tcltest::*
+}
+
+if {[testConstraint win]} {
+    if [catch {
+	# Is the dde extension already static to this shell?
+	if [catch {load {} Dde; set ::ddelib {}}] {
+	    # try the location given to use on the commandline to tcltest
+	    ::tcltest::loadTestedCommands
+	    load $::ddelib Dde
+	}
+	testConstraint dde 1
+    }] {
+	testConstraint dde 0
+    }
+}
+
+
+# -------------------------------------------------------------------------
+# Setup a script for a test server
+#
+
+set scriptName [makeFile {} script1.tcl]
+
+proc createChildProcess { ddeServerName {handler {}}} {
+    file delete -force $::scriptName
+
+    set f [open $::scriptName w+]
+    puts $f [list set ddeServerName $ddeServerName]
+    if {$::ddelib != ""} {
+	puts $f [list load $::ddelib Dde]
+    }
+    puts $f {
+        # DDE child server -
+        #
+	if {[lsearch [namespace children] ::tcltest] == -1} {
+	    package require tcltest
+	    namespace import -force ::tcltest::*
+	}
+        
+        # If an error occurs during the tests, this process may end up not
+        # being closed down. To deal with this we create a 30s timeout.
+        proc ::DoTimeout {} {
+            global done ddeServerName
+            set done 1
+            puts "winDde.test child process $ddeServerName timed out."
+            flush stdout
+        }
+        set timeout [after 30000 ::DoTimeout]
+        
+        # Define a restricted handler.
+        proc Handler1 {cmd} {
+            if {$cmd eq "stop"} {set ::done 1}
+            puts $cmd ; flush stdout 
+            return
+        }
+        proc Handler2 {cmd} {
+            if {$cmd eq "stop"} {set ::done 1}
+            puts [uplevel \#0 $cmd] ; flush stdout 
+            return
+        }
+        proc Handler3 {prefix cmd} {
+            if {$cmd eq "stop"} {set ::done 1}
+            puts [list $prefix $cmd] ; flush stdout
+            return
+        }
+    }
+    # set the dde server name to the supplied argument.
+    if {$handler == {}} {
+        puts $f [list dde servername $ddeServerName]
+    } else {
+        puts $f [list dde servername -handler $handler -- $ddeServerName]
+    }        
+    puts $f {
+        # run the server and handle final cleanup.
+        after 200;# give dde a chance to get going.
+	puts ready
+        flush stdout
+	vwait done
+	# allow enough time for the calling process to
+	# claim all results, to avoid spurious "server did
+	# not respond"
+	after 200 { set reallyDone 1 }
+	vwait reallyDone
+	exit
+    }
+    close $f
+    
+    # run the child server script.
+    set f [open |[list [interpreter] $::scriptName] r]
+    fconfigure $f -buffering line
+    gets $f line
+    return $f
+}
+
+# -------------------------------------------------------------------------
+
+test winDde-1.1 {Settings the server's topic name} {win dde} {
+    list [dde servername foobar] [dde servername] [dde servername self]
+}  {foobar foobar self}
+
+test winDde-2.1 {Checking for other services} {win dde} {
+    expr [llength [dde services {} {}]] >= 0
+} 1
+test winDde-2.2 {Checking for existence, with service and topic specified} \
+	{win dde} {
+    llength [dde services TclEval self]
+} 1
+test winDde-2.3 {Checking for existence, with only the service specified} \
+	{win dde} {
+    expr [llength [dde services TclEval {}]] >= 1
+} 1
+test winDde-2.4 {Checking for existence, with only the topic specified} \
+	{win dde} {
+    expr [llength [dde services {} self]] >= 1
+} 1
+
+# -------------------------------------------------------------------------
+
+test winDde-3.1 {DDE execute locally} {win dde} {
+    set a ""
+    dde execute TclEval self {set a "foo"}
+    set a
+} foo
+test winDde-3.2 {DDE execute -async locally} {win dde} {
+    set a ""
+    dde execute -async TclEval self {set a "foo"}
+    update
+    set a
+} foo
+test winDde-3.3 {DDE request locally} {win dde} {
+    set a ""
+    dde execute TclEval self {set a "foo"}
+    dde request TclEval self a
+} foo
+test winDde-3.4 {DDE eval locally} {win dde} {
+    set a ""
+    dde eval self set a "foo"
+} foo
+test winDde-3.5 {DDE request locally} {win dde} {
+    set a ""
+    dde execute TclEval self {set a "foo"}
+    dde request -binary TclEval self a
+} "foo\x00"
+
+# -------------------------------------------------------------------------
+
+test winDde-4.1 {DDE execute remotely} {stdio win dde} {
+    set a ""
+    set name child-4.1
+    set child [createChildProcess $name]
+    dde execute TclEval $name {set a "foo"}
+    dde execute TclEval $name {set done 1}
+    update
+    set a
+} ""
+test winDde-4.2 {DDE execute async remotely} {stdio win dde} {
+    set a ""
+    set name child-4.2
+    set child [createChildProcess $name]
+    dde execute -async TclEval $name {set a "foo"}
+    update
+    dde execute TclEval $name {set done 1}
+    update
+    set a
+} ""
+test winDde-4.3 {DDE request remotely} {stdio win dde} {
+    set a ""
+    set name chile-4.3
+    set child [createChildProcess $name]
+    dde execute TclEval $name {set a "foo"}
+    set a [dde request TclEval $name a]
+    dde execute TclEval $name {set done 1}
+    update
+    set a
+} foo
+test winDde-4.4 {DDE eval remotely} {stdio win dde} {
+    set a ""
+    set name child-4.4
+    set child [createChildProcess $name]
+    set a [dde eval $name set a "foo"]
+    dde execute TclEval $name {set done 1}
+    update
+    set a
+} foo
+
+# -------------------------------------------------------------------------
+
+test winDde-5.1 {check for bad arguments} -constraints {win dde} -body {
+    dde execute "" "" "" ""
+} -returnCodes error -result {wrong # args: should be "dde execute ?-async? serviceName topicName value"}
+test winDde-5.2 {check for bad arguments} -constraints {win dde} -body {
+    dde execute "" "" ""
+} -returnCodes error -result {cannot execute null data}
+test winDde-5.3 {check for bad arguments} -constraints {win dde} -body {
+    dde execute -foo "" "" ""
+} -returnCodes error -result {wrong # args: should be "dde execute ?-async? serviceName topicName value"}
+test winDde-5.4 {DDE eval bad arguments} -constraints {win dde} -body {
+    dde eval "" "foo"
+} -returnCodes error -result {invalid service name ""}
+
+# -------------------------------------------------------------------------
+
+test winDde-6.1 {DDE servername bad arguments} -constraints {win dde} -body {
+    dde servername -z -z -z
+} -returnCodes error -result {bad option "-z": must be -force, -handler, or --}
+test winDde-6.2 {DDE servername set name} -constraints {win dde} -body {
+    dde servername -- winDde-6.2
+} -result {winDde-6.2}
+test winDde-6.3 {DDE servername set exact name} -constraints {win dde} -body {
+    dde servername -force winDde-6.3
+} -result {winDde-6.3}
+test winDde-6.4 {DDE servername set exact name} -constraints {win dde} -body {
+    dde servername -force -- winDde-6.4
+} -result {winDde-6.4}
+test winDde-6.5 {DDE remote servername collision} -constraints {stdio win dde} -setup {
+    set name child-6.5
+    set child [createChildProcess $name]
+} -body {
+    dde servername -- $name
+} -cleanup {
+    dde execute TclEval $name {set done 1}
+    update
+} -result "child-6.5 #2"
+test winDde-6.6 {DDE remote servername collision force} -constraints {stdio win dde} -setup {
+    set name child-6.6
+    set child [createChildProcess $name]
+} -body {
+    dde servername -force -- $name
+} -cleanup {
+    dde execute TclEval $name {set done 1}
+    update
+} -result {child-6.6}
+
+# -------------------------------------------------------------------------
+
+test winDde-7.1 {Load DDE in slave interpreter } -constraints {win dde} -setup {
+    interp create slave
+} -body {
+    slave eval [list load $::ddelib Dde]
+    slave eval [list dde servername -- dde-interp-7.1]
+} -cleanup {
+    interp delete slave
+} -result {dde-interp-7.1}
+test winDde-7.2 {DDE slave cleanup} -constraints {win dde} -setup {
+    interp create slave
+    slave eval [list load $::ddelib Dde]
+    slave eval [list dde servername -- dde-interp-7.5]
+    interp delete slave
+} -body {
+    dde services TclEval {}
+    set s [dde services TclEval {}]
+    set m [list [list TclEval dde-interp-7.5]]
+    if {[lsearch -exact $s $m] != -1} {
+	set s
+    }
+} -result {}
+test winDde-7.3 {DDE present in slave interp} -constraints {win dde} -setup {
+    interp create slave
+    slave eval [list load $::ddelib Dde]
+    slave eval [list dde servername -- dde-interp-7.3]
+} -body {
+    dde services TclEval dde-interp-7.3
+} -cleanup {
+    interp delete slave
+} -result {{TclEval dde-interp-7.3}}
+test winDde-7.4 {interp name collision with -force} -constraints {win dde} -setup {
+    interp create slave
+    slave eval [list load $::ddelib Dde]
+    slave eval [list dde servername -- dde-interp-7.4]
+} -body {
+    dde servername -force -- dde-interp-7.4
+} -cleanup {
+    interp delete slave
+} -result {dde-interp-7.4}
+test winDde-7.5 {interp name collision without -force} -constraints {win dde} -setup {
+    interp create slave
+    slave eval [list load $::ddelib Dde]
+    slave eval [list dde servername -- dde-interp-7.5]
+} -body {
+    dde servername -- dde-interp-7.5
+} -cleanup {
+    interp delete slave
+} -result "dde-interp-7.5 #2"
+
+# -------------------------------------------------------------------------
+
+test winDde-8.1 {Safe DDE load} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+} -body {
+    slave eval dde servername slave
+} -cleanup {
+    interp delete slave
+} -returnCodes error -result {invalid command name "dde"}
+test winDde-8.2 {Safe DDE set servername} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+} -body {
+    slave invokehidden dde servername slave
+} -cleanup {interp delete slave} -result {slave}
+test winDde-8.3 {Safe DDE check handler required for eval} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave invokehidden dde servername slave
+} -body {
+    catch {dde eval slave set a 1} msg
+} -cleanup {interp delete slave} -result {1}
+test winDde-8.4 {Safe DDE check that execute is denied} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave invokehidden dde servername slave
+} -body {
+    slave eval set a 1
+    dde execute TclEval slave {set a 2}
+    slave eval set a
+} -cleanup {interp delete slave} -result 1
+test winDde-8.5 {Safe DDE check that request is denied} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave invokehidden dde servername slave
+} -body {
+    slave eval set a 1
+    dde request TclEval slave a
+} -cleanup {
+    interp delete slave
+} -returnCodes error -result {remote server cannot handle this command}
+test winDde-8.6 {Safe DDE assign handler procedure} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD $cmd}}
+} -body {
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -cleanup {interp delete slave} -result slave
+test winDde-8.7 {Safe DDE check simple command} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD $cmd}}
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -body {
+    dde eval slave set x 1
+} -cleanup {interp delete slave} -result {set x 1}
+test winDde-8.8 {Safe DDE check non-list command} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD $cmd}}
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -body {
+    set s "c:\\Program Files\\Microsoft Visual Studio\\"
+    dde eval slave $s
+    string equal [slave eval set DDECMD] $s
+} -cleanup {interp delete slave} -result 1
+test winDde-8.9 {Safe DDE check command evaluation} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD [uplevel \#0 $cmd]}}
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -body {
+    dde eval slave set x 1
+    slave eval set x
+} -cleanup {interp delete slave} -result 1
+test winDde-8.10 {Safe DDE check command evaluation (2)} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD [uplevel \#0 $cmd]}}
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -body {
+    dde eval slave [list set x 1]
+    slave eval set x
+} -cleanup {interp delete slave} -result 1
+test winDde-8.11 {Safe DDE check command evaluation (3)} -constraints {win dde} -setup {
+    interp create -safe slave
+    slave invokehidden load $::ddelib Dde
+    slave eval {proc DDEACCEPT {cmd} {set ::DDECMD [uplevel \#0 $cmd]}}
+    slave invokehidden dde servername -handler DDEACCEPT slave
+} -body {
+    dde eval slave [list [list set x 1]]
+    slave eval set x
+} -cleanup {interp delete slave} -returnCodes error -result {invalid command name "set x 1"}
+
+# -------------------------------------------------------------------------
+
+test winDde-9.1 {External safe DDE check string passing} -constraints {win dde stdio} -setup {
+    set name child-9.1
+    set child [createChildProcess $name Handler1]
+    file copy -force script1.tcl dde-script.tcl
+} -body {
+    dde eval $name set x 1
+    gets $child line
+    set line
+} -cleanup {
+    dde execute TclEval $name stop
+    update
+    file delete -force -- dde-script.tcl
+} -result {set x 1}
+test winDde-9.2 {External safe DDE check command evaluation} -constraints {win dde stdio} -setup {
+    set name child-9.2
+    set child [createChildProcess $name Handler2]
+    file copy -force script1.tcl dde-script.tcl
+} -body {
+    dde eval $name set x 1
+    gets $child line
+    set line
+} -cleanup {
+    dde execute TclEval $name stop
+    update
+    file delete -force -- dde-script.tcl
+} -result 1
+test winDde-9.3 {External safe DDE check prefixed arguments} -constraints {win dde stdio} -setup {
+    set name child-9.3
+    set child [createChildProcess $name [list Handler3 ARG]]
+    file copy -force script1.tcl dde-script.tcl
+} -body {
+    dde eval $name set x 1
+    gets $child line
+    set line
+} -cleanup {
+    dde execute TclEval $name stop
+    update
+    file delete -force -- dde-script.tcl
+} -result {ARG {set x 1}}
+
+# -------------------------------------------------------------------------
+
+#cleanup
+#catch {interp delete $slave};           # ensure we clean up the slave.
+file delete -force $::scriptName
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

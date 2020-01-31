@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name   : (* rules ordering *)
+# --
+(* ${1:$$(yas/choose-value '("descending_urgency" "preempts" "execution_order"))} = "${2:a,b}" *)

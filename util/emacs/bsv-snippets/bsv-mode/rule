@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : rule name (cond); body; endrule
+# --
+rule ${1:name} ( ${2:cond} );
+     $0
+endrule : $1

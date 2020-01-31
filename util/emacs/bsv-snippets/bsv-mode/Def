@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : instance DefaultValue#()... endinstance
+# --
+instance DefaultValue#( ${1:type} );
+   defaultValue = ${2:value};
+endinstance

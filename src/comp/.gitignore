@@ -1,0 +1,24 @@
+# Ignore Haskell files that are auto-generated and not checked in
+BuildVersion.hs
+BuildSystem.hs
+
+# Ignore bluewish.hs copy of bluetcl.hs
+bluewish.hs
+
+# Ignore C files that are auto-generated and not checked in
+rts_hooks*.o
+
+# Ignore the generated executables
+bsc
+bluetcl
+bluewish
+dumpbo
+dumpba
+bsc2bsv
+bsv2bsc
+showrules
+vcdcheck
+
+# Ignore TAGS files
+TAGS
+tags

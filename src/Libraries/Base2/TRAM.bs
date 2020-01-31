@@ -1,0 +1,91 @@
+package TRAM(TRAM(..), TRAMclient(..), TRAMreq(..), TRAMresp(..), 
+             tagRAM) where
+import FIFO
+import ClientServer
+import GetPut
+import RAM
+
+--@ The \te{TRAM} type represents a tagged RAM.  It is similar
+--@ to the \te{RAM} interface, but each read request has an
+--@ additional tag that will be part of the response for a read.
+
+--@ \index{TRAM@\te{TRAM} (package)|textbf}
+--@ \index{TRAM@\te{TRAM} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef Server#(TRAMreq#(tag, adr, dta), TRAMresp#(tag, dta)) 
+--@                           TRAM #(type tag, type adr, type dta);
+--@ \end{libverbatim}
+type TRAM tag adr dta = Server (TRAMreq tag adr dta) (TRAMresp tag dta)
+
+--@ \index{TRAMclient@\te{TRAMclient} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef
+--@   Client#(TRAMreq#(tag, adr, dta), TRAMresp#(tag, dta))
+--@              TRAMclient #(type tag, type adr, type dta);
+--@ \end{libverbatim}
+type TRAMclient tag adr dta = Client (TRAMreq tag adr dta) (TRAMresp tag dta)
+
+--@ \index{TRAMreq@\te{TRAMreq} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef tagged union {
+--@     TRAMreqRead#(tag, adr, dta) Read;
+--@     TRAMreqWrite#(tag, adr, dta) Write;
+--@ } TRAMreq #(type tag, type adr, type dta) deriving (Eq, Bits);
+--@ 
+--@ typedef struct {
+--@     tg  tag;
+--@     adr address;
+--@ } TRAMreqRead #(type tg, type adr, type dta) deriving (Eq, Bits);
+--@ 
+--@ typedef struct {
+--@     dta value;
+--@     adr address;
+--@ } TRAMreqWrite #(type tg, type adr, type dta) deriving (Eq, Bits);
+--@ \end{libverbatim}
+data TRAMreq tg adr dta
+        = Read (tg, adr)
+        | Write (adr, dta)
+    deriving (Eq, Bits)
+
+--@ \index{TRAMresp@\te{TRAMresp} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef struct {
+--@     tg  tag;
+--@     dta value;
+--@ } TRAMresp #(type tg, type dta) deriving (Eq, Bits);
+--@ \end{libverbatim}
+type TRAMresp tg dta = (tg, dta)
+--       deriving (Eq, Bits)
+
+--@ \index{tagRAM@\te{tagRAM} (function)|textbf}
+--@ The \te{tagRAM} function converts a RAM to a TRAM by putting
+--@ a tag FIFO next to it.  The FIFO size is specified by the
+--@ first argument.
+--@ \begin{libverbatim}
+--@ module tagRAM#(Integer sz, Module#(RAM#(adr, dta)) mkRAM)(TRAM#(tg, adr, dta))
+--@   provisos (Bits#(tg, stg));
+--@ \end{libverbatim}
+tagRAM :: (IsModule m c, Bits tg stg) =>
+          Integer -> m (RAM adr dta) -> m (TRAM tg adr dta)
+tagRAM sz mkRAM =
+  module
+    ram :: RAM adr dta <- mkRAM
+    fifo :: FIFO tg <- mkSizedFIFO sz
+    interface -- Server
+        request = 
+         interface Put
+          put :: TRAMreq tg adr dta -> Action
+          put (Read (tag, address)) =
+            action
+                fifo.enq tag
+                ram.request.put (RAM.Read address)
+          put (Write (address, value)) = 
+                       ram.request.put (RAM.Write (address, value))
+
+        response = 
+         interface Get
+          get =
+            do
+                value <- ram.response.get
+                fifo.deq
+                return (fifo.first, value)

@@ -1,0 +1,138 @@
+package LFSR(
+	LFSR(..), mkPolyLFSR, mkFeedLFSR,
+	mkLFSR_4, mkLFSR_8, mkLFSR_16, mkLFSR_32, mkRCounter
+	) where
+
+import List
+import Vector
+
+--@ \subsubsection{LFSR}
+--@
+--@ \index{LFSR@\te{LFSR} (package)|textbf}
+
+--@ The \te{LFSR} package implements Linear Feedback Shift Registers (LFSRs).
+--@ LFSRs can be used to obtain pseudorandom sequences, though their linearity
+--@ permits easy cryptanalysis.\footnote{see \te{http://en.wikipedia.org/wiki/Linear\US{}feedback\US{}shift\US{}register} for details}
+--@ The interface allows the value in the shifter register to be
+--@ set (with \te{seed}), read (with \te{value}), and shifted (with \te{next}).
+--@ When the value is shifted the least significant bit will be fed back
+--@ according to the polynomial used when the LFSR was created.
+--@ When a LFSR is created the start value is 1.
+--@ \begin{libverbatim}
+--@ interface LFSR #(type a);
+--@     method Action seed(a x1);
+--@     method a value();
+--@     method Action next();
+--@ endinterface: LFSR
+--@ \end{libverbatim}
+interface LFSR a =
+    seed  :: a -> Action
+    value :: a
+    next  :: Action
+
+--@ The \te{mkPolyLFSR} function creates a LFSR given a polynomial specified
+--@ by the exponents that have a non-zero coefficient.  For example
+--@ the polynominal $x^7+x^3+x^2+x$ is used by the expression
+--@ \qbs{mkPolyLFSR (Cons(7, Cons(3, Cons(2, Cons(1, Nil)))))}.
+--@ \begin{libverbatim}
+--@ module mkPolyLFSR#(List#(Integer) taps) (LFSR#(Bit#(n)));
+--@ \end{libverbatim}
+mkPolyLFSR :: (IsModule m c) => List Integer -> m (LFSR (Bit n))
+mkPolyLFSR taps = mkFeedLFSR (pack (map (\ n -> List.elem n taps) genList))
+
+--@ The \te{mkFeedLFSR} function creates a LFSR where the polynomial is specified
+--@ by the mask used for feedback.  If \qbs{r} is the state of the LFSR the
+--@ next state is \qbs{if r[0] == 1} \qbs{then (r >\mbox{}> 1) \HAT~feed} \qbs{else r >\mbox{}> 1},
+--@ where \qbs{feed} is the argument to \te{mkFeedLFSR}.
+--@ \begin{libverbatim}
+--@ module mkFeedLFSR#( Bit#(n) feed )( LFSR#(Bit#(n)) );
+--@ \end{libverbatim}
+mkFeedLFSR :: (IsModule m c) => Bit n -> m (LFSR (Bit n))
+mkFeedLFSR feed = liftModule $
+    module
+      r :: Reg (Bit n) <- mkReg 1
+      interface
+	seed x = r := x
+	value = r
+	next = r := if {-(r&1) == 1-} r[0:0] == 1 then (r >> 1) ^ feed else r >> 1
+
+--@ Some maximal length LFSRs.
+--@ Many more can be found at \te{http://www-2.cs.cmu.edu/ {\TILDE}koopman/lfsr/}
+--@ \begin{libverbatim}
+--@ module mkLFSR_4 (LFSR#(Bit#(4)));
+--@ mkLFSR_4   =  mkFeedLFSR( 4'h9 );
+--@
+--@ module mkLFSR_8 (LFSR#(Bit#(8)));
+--@ mkLFSR_8   =  mkFeedLFSR( 8'h8E );
+--@
+--@ module mkLFSR_16 (LFSR#(Bit#(16)));
+--@ mkLFSR_16  =  mkFeedLFSR( 16'h8016 );
+--@
+--@ module mkLFSR_32 (LFSR#(Bit#(32)));
+--@ mkLFSR_32  =  mkFeedLFSR( 32'h80000057 );
+--@ \end{libverbatim}
+
+mkLFSR_4 :: (IsModule m c) => m (LFSR (Bit 4))
+mkLFSR_4 = mkFeedLFSR 0x9
+mkLFSR_8 :: (IsModule m c) => m (LFSR (Bit 8))
+mkLFSR_8 = mkFeedLFSR 0x8e
+mkLFSR_16 :: (IsModule m c) => m (LFSR (Bit 16))
+mkLFSR_16 = mkFeedLFSR 0x8016
+mkLFSR_32 :: (IsModule m c) => m (LFSR (Bit 32))
+mkLFSR_32 = mkFeedLFSR 0x80000057
+
+--@ The \te{mkRCounter} function creates a counter with a LFSR interface.
+--@ This is useful during debugging when a non-random sequence is desired.
+--@ This function can be used in place of the other mkLFSR module
+--@ constructors, without changing any method calls or behavior.
+--@ \begin{libverbatim}
+--@ module mkRCounter#( Bit#(n) seed ) ( LFSR#(Bit#(n)) );
+--@ \end{libverbatim}
+mkRCounter :: (IsModule m c) => Bit n -> m (LFSR (Bit n))
+mkRCounter seed = module
+                   _cntr :: Reg (Bit n) <- mkReg seed
+                   interface
+                    seed v = _cntr._write v
+                    value  = _cntr._read
+                    next   = _cntr._write ( _cntr._read + 1 )
+
+{-
+{-# verilog testLFSR #-}
+testLFSR :: Module Empty
+testLFSR =
+    module
+	t1 :: ActionSeq <- aTest mkLFSR_4
+	t2 :: ActionSeq <- aTest mkLFSR_8
+	t3 :: ActionSeq <- aTest mkLFSR_16
+--	t4 :: ActionSeq <- aTest mkLFSR_32
+	t :: ActionSeq <- seqOfActionSeq $ t1 :> t2 :> t3:> nil
+	o :: Once <- mkOnce t.start
+    interface
+	{ }
+    rules
+	when True
+	 ==> o.start
+
+aTest :: (Eq a, Bits a sa) => Module (LFSR a) -> Module ActionSeq
+aTest lfsr =
+    module
+	l :: LFSR a <- lfsr
+	x :: Reg a <- mkRegU
+	n :: Reg (Bit 32) <- mkRegU
+	let act a = actionSeq (a :> nil)
+	init :: ActionSeq <- act { n := 0; x := l.value; l.next }
+	loop :: ActionSeq <-
+		forever $ \ break -> {
+			l.next;
+			n := n+1;
+			if l.value == x then break else {};
+			} :> nil
+	fini :: ActionSeq <- act { $display "period %0d" n; }
+	as :: ActionSeq <- seqOfActionSeq $
+		init :>
+		loop :>
+		fini :>
+		nil
+    interface
+	as
+-}

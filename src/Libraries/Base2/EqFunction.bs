@@ -1,0 +1,21 @@
+package EqFunction() where
+
+import Enum
+import List
+
+--@ \subsubsection{EqFunction}
+--@ 
+--@ \index{EqFunction@\te{EqFunction} (package)|textbf}
+--@ Functions can be compared for equality if the domain
+--@ can be enumerated and the range can be compared for equality.
+--@ \begin{libverbatim}
+--@ instance Eq #(a -> b)
+--@   provisos (Bits#(a, sa), Bounded#(a), Eq#(b));
+--@ \end{libverbatim}
+instance (Bits a sa, Bounded a, Eq b) => Eq (a -> b)
+  where
+    (==) f g  =  foldr (\ x r -> f x == g x && r) True enumAll
+    (/=) f g  =  not (f == g)
+
+--@ The ability to compare functions for equality can be useful
+--@ for compile time verification of properties of the {\blue} code.

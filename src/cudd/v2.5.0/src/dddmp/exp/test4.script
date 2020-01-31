@@ -1,0 +1,56 @@
+# !/bin/sh 
+#
+# BDD Check:
+#   Load BDDs
+#   Make some operations (with reordering)
+#   Store BDDs
+#
+rm -f *.*/tmp
+echo "---------------------------------------------------------------------------"     
+echo "---------- TESTING Load/Store with sifting, varnames & varauxids ----------"
+echo "---------------------------------------------------------------------------"     
+./../testdddmp << END1
+mi
+50
+onl
+varnames.ord
+bl
+4.bdd
+4
+oil
+varauxids.ord
+bs
+4a.bdd.tmp
+4
+dr
+4
+bs
+4b.bdd.tmp
+4
+mq
+quit
+END1
+echo "------------------------- ... END PHASE 1 ... -----------------------------"
+./../testdddmp << END2
+mi
+50
+onl
+varnames.ord
+slm
+3
+bl
+4b.bdd.tmp
+4
+oil
+varauxids.ord
+bs
+4c.bdd.tmp
+4
+mq
+quit
+END2
+echo "----------------------------- ... RESULTS ... -----------------------------"
+diff --brief 4.bdd 4a.bdd.tmp
+diff --brief 4a.bdd.tmp 4c.bdd.tmp
+echo "-------------------------------- ... END ----------------------------------"
+rm -f *.*.tmp

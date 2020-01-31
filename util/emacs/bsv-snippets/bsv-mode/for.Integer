@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : for (Integer i=0; i<num; i=i+1) begin {...}  end
+# --
+for (Integer i=0; i<${1:num}; i=i+1) begin 
+    $0
+end

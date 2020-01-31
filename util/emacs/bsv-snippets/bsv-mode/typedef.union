@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name   : typedef union tagged { ... } T 
+# --
+typedef union tagged { 
+    $0 
+    } ${1:TS} deriving(Bits,Eq);

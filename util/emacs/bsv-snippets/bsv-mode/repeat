@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : repeat (num) .. ;
+# --
+repeat (${1:num}) ${2:noAction} ;

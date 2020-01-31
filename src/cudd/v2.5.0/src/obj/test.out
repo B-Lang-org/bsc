@@ -1,0 +1,516 @@
+Entering testBdd
+f: 3 nodes 1 leaves 1 minterms
+11  1
+
+g: 3 nodes 1 leaves 3 minterms
+0-  1
+11  1
+
+f and g are not complementary
+f is less than or equal to g
+g: 2 nodes 1 leaves 2 minterms
+1-  1
+
+h: 2 nodes 1 leaves 2 minterms
+-1  1
+
+x + h has 3 nodes
+h: 3 nodes 1 leaves 3 minterms
+01  1
+1-  1
+
+Entering testAdd
+r: 6 nodes 3 leaves 3 minterms
+01  1
+10  1
+11  2
+
+s: 4 nodes 2 leaves 1 minterms
+11  3
+
+s: 1 nodes 1 leaves 4 minterms
+--  inf
+
+p is less than or equal to r
+r: 4 nodes 2 leaves 3 minterms
+01  1
+1-  1
+
+Entering testAdd2
+f: 7 nodes 4 leaves 4 minterms
+00  0.1
+01  0.2
+10  0.3
+11  0.4
+
+l: 7 nodes 4 leaves 4 minterms
+00 -2.30259
+01 -1.60944
+10 -1.20397
+11 -0.916291
+
+r: 7 nodes 4 leaves 4 minterms
+00 -0.230259
+01 -0.321888
+10 -0.361192
+11 -0.366516
+
+e: 1 nodes 1 leaves 4 minterms
+--  1.84644
+
+Entering testZdd
+s: 3 nodes 3 minterms
+1- 1
+01 1
+
+v is less than s
+s: 1 nodes 1 minterms
+01 1
+
+Entering testBdd2
+f: 7 nodes 1 leaves 7 minterms
+01-1  1
+101-  1
+1101  1
+111-  1
+
+Irredundant cover of f:
+1-1- 1
+-1-1 1
+
+Number of minterms (arbitrary precision): 7
+Number of minterms (extended precision):  7.000000e+00
+Two-literal clauses of f:
+ x2 |  x3
+ x1 |  x2
+ x0 |  x3
+ x0 |  x1
+
+vect[0]
+1--- 1
+
+vect[1]
+0--- 1
+-1-- 1
+
+vect[2]
+10-- 1
+--1- 1
+
+vect[3]
+0--- 1
+-10- 1
+---1 1
+
+digraph "DD" {
+size = "7.5,10"
+center = true;
+edge [dir = none];
+{ node [shape = plaintext];
+  edge [style = invis];
+  "CONST NODES" [style = invis];
+" x0 " -> " x1 " -> " x2 " -> " x3 " -> "CONST NODES"; 
+}
+{ rank = same; node [shape = box]; edge [style = invis];
+"  v0  " -> "  v1  " -> "  v2  " -> "  v3  "; }
+{ rank = same; " x0 ";
+"0x3e";
+"0x7b";
+"0x7e";
+"0x3a";
+}
+{ rank = same; " x1 ";
+"0x7a";
+"0x7d";
+"0x3b";
+}
+{ rank = same; " x2 ";
+"0x6b";
+"0x7c";
+}
+{ rank = same; " x3 ";
+"0x6c";
+}
+{ rank = same; "CONST NODES";
+{ node [shape = box]; "0x34";
+}
+}
+"  v0  " -> "0x3a" [style = solid];
+"  v1  " -> "0x3e" [style = solid];
+"  v2  " -> "0x7b" [style = solid];
+"  v3  " -> "0x7e" [style = solid];
+"0x3e" -> "0x3b";
+"0x3e" -> "0x34" [style = dashed];
+"0x7b" -> "0x7a";
+"0x7b" -> "0x6b" [style = dashed];
+"0x7e" -> "0x7d";
+"0x7e" -> "0x34" [style = dashed];
+"0x3a" -> "0x34";
+"0x3a" -> "0x34" [style = dotted];
+"0x7a" -> "0x6b";
+"0x7a" -> "0x34" [style = dashed];
+"0x7d" -> "0x7c";
+"0x7d" -> "0x6c" [style = dashed];
+"0x3b" -> "0x34";
+"0x3b" -> "0x34" [style = dotted];
+"0x6b" -> "0x34";
+"0x6b" -> "0x34" [style = dotted];
+"0x7c" -> "0x6c";
+"0x7c" -> "0x34" [style = dashed];
+"0x6c" -> "0x34";
+"0x6c" -> "0x34" [style = dotted];
+"0x34" [label = "1"];
+}
+Entering testBdd3
+f: 10 nodes 1 leaves 50 minterms
+0-0-0-  1
+0-0-10  1
+0-100-  1
+0-1010  1
+0-11--  1
+10-00-  1
+10-010  1
+10-1--  1
+11000-  1
+110010  1
+1101--  1
+1110-1  1
+111101  1
+
+f1: 5 nodes 1 leaves 36 minterms
+0---0-  1
+0---10  1
+10--0-  1
+10--10  1
+
+f1 is less than or equal to f
+g: 6 nodes 1 leaves 62 minterms
+0-----  1
+10----  1
+110---  1
+1110--  1
+11110-  1
+
+h: 8 nodes 1 leaves 51 minterms
+0-0-0-  1
+0-0-10  1
+0-100-  1
+0-1010  1
+0-11--  1
+10-00-  1
+10-010  1
+10-1--  1
+11000-  1
+110010  1
+1101--  1
+111--1  1
+
+g * h == f
+Entering testZdd2
+p[0]: 3 nodes 1 leaves 64 minterms
+----0-0  1
+----1-1  1
+
+p[1]: 5 nodes 1 leaves 64 minterms
+--0-0-0  1
+--0-10-  1
+--1-0-1  1
+--1-11-  1
+
+p[2]: 7 nodes 1 leaves 64 minterms
+0-0-0-0  1
+0-0-10-  1
+0-10---  1
+1-0-0-1  1
+1-0-11-  1
+1-11---  1
+
+p[3]: 8 nodes 1 leaves 64 minterms
+0-0-0-1  1
+0-0-11-  1
+0-11---  1
+11-----  1
+
+digraph "DD" {
+size = "7.5,10"
+center = true;
+edge [dir = none];
+{ node [shape = plaintext];
+  edge [style = invis];
+  "CONST NODES" [style = invis];
+" a2 " -> " b2 " -> " a1 " -> " b1 " -> " a0 " -> " b0 " -> " c0 " -> "CONST NODES"; 
+}
+{ rank = same; node [shape = box]; edge [style = invis];
+"  s0  " -> "  s1  " -> "  s2  " -> "  c3  "; }
+{ rank = same; " a2 ";
+"0xb5";
+"0xb4";
+}
+{ rank = same; " b2 ";
+"0x3b";
+}
+{ rank = same; " a1 ";
+"0xb2";
+"0xb3";
+}
+{ rank = same; " b1 ";
+"0x6c";
+}
+{ rank = same; " a0 ";
+"0xb1";
+"0xb0";
+}
+{ rank = same; " b0 ";
+"0x8b";
+}
+{ rank = same; " c0 ";
+"0xaf";
+}
+{ rank = same; "CONST NODES";
+{ node [shape = box]; "0x34";
+}
+}
+"  s0  " -> "0xb0" [style = solid];
+"  s1  " -> "0xb2" [style = solid];
+"  s2  " -> "0xb4" [style = solid];
+"  c3  " -> "0xb5" [style = solid];
+"0xb5" -> "0x3b";
+"0xb5" -> "0xb3" [style = dashed];
+"0xb4" -> "0xb3";
+"0xb4" -> "0xb3" [style = dotted];
+"0x3b" -> "0x34";
+"0x3b" -> "0x34" [style = dotted];
+"0xb2" -> "0xb1";
+"0xb2" -> "0xb1" [style = dotted];
+"0xb3" -> "0x6c";
+"0xb3" -> "0xb1" [style = dashed];
+"0x6c" -> "0x34";
+"0x6c" -> "0x34" [style = dotted];
+"0xb1" -> "0x8b";
+"0xb1" -> "0xaf" [style = dashed];
+"0xb0" -> "0xaf";
+"0xb0" -> "0xaf" [style = dotted];
+"0x8b" -> "0x34";
+"0x8b" -> "0x34" [style = dotted];
+"0xaf" -> "0x34";
+"0xaf" -> "0x34" [style = dotted];
+"0x34" [label = "1"];
+}
+z[0]: 4 nodes 2 minterms
+00000000100010 1
+00000000010001 1
+
+z[1]: 10 nodes 4 minterms
+00001000101000 1
+00001000010010 1
+00000100100100 1
+00000100010001 1
+
+z[2]: 16 nodes 6 minterms
+10001010000000 1
+10000100101000 1
+10000100010010 1
+01001001000000 1
+01000100100100 1
+01000100010001 1
+
+z[3]: 10 nodes 4 minterms
+10100000000000 1
+01001010000000 1
+01000100101000 1
+01000100010010 1
+
+z[0]
+----1-1 1
+----0-0 1
+z[1]
+--1-11- 1
+--1-0-1 1
+--0-10- 1
+--0-0-0 1
+z[2]
+1-11--- 1
+1-0-11- 1
+1-0-0-1 1
+0-10--- 1
+0-0-10- 1
+0-0-0-0 1
+z[3]
+11----- 1
+0-11--- 1
+0-0-11- 1
+0-0-0-1 1
+digraph "ZDD" {
+size = "7.5,10"
+center = true;
+edge [dir = none];
+{ node [shape = plaintext];
+  edge [style = invis];
+  "CONST NODES" [style = invis];
+" a2+ " -> " a2- " -> " b2+ " -> " a1+ " -> " a1- " -> " b1+ " -> " b1- " -> " a0+ " -> " a0- " -> " b0+ " -> " b0- " -> " c0+ " -> " c0- " -> "CONST NODES"; 
+}
+{ rank = same; node [shape = box]; edge [style = invis];
+"  s0  " -> "  s1  " -> "  s2  " -> "  c3  "; }
+{ rank = same; " a2+ ";
+"0x6e";
+"0x77";
+}
+{ rank = same; " a2- ";
+"0x6a";
+"0x75";
+}
+{ rank = same; " b2+ ";
+"0x71";
+}
+{ rank = same; " a1+ ";
+"0x57";
+"0x65";
+"0x5e";
+}
+{ rank = same; " a1- ";
+"0x55";
+"0x63";
+}
+{ rank = same; " b1+ ";
+"0x5f";
+}
+{ rank = same; " b1- ";
+"0x5a";
+}
+{ rank = same; " a0+ ";
+"0x50";
+"0x42";
+"0x49";
+}
+{ rank = same; " a0- ";
+"0x4e";
+"0x40";
+}
+{ rank = same; " b0+ ";
+"0x4a";
+}
+{ rank = same; " b0- ";
+"0x45";
+}
+{ rank = same; " c0+ ";
+"0x39";
+}
+{ rank = same; " c0- ";
+"0x38";
+}
+{ rank = same; "CONST NODES";
+{ node [shape = box]; "0x35";
+"0x34";
+}
+}
+"  s0  " -> "0x42" [style = solid];
+"  s1  " -> "0x57" [style = solid];
+"  s2  " -> "0x6e" [style = solid];
+"  c3  " -> "0x77" [style = solid];
+"0x6e" -> "0x65";
+"0x6e" -> "0x6a" [style = dashed];
+"0x77" -> "0x71";
+"0x77" -> "0x75" [style = dashed];
+"0x6a" -> "0x5e";
+"0x6a" -> "0x35" [style = dashed];
+"0x75" -> "0x65";
+"0x75" -> "0x35" [style = dashed];
+"0x71" -> "0x34";
+"0x71" -> "0x35" [style = dashed];
+"0x57" -> "0x50";
+"0x57" -> "0x55" [style = dashed];
+"0x65" -> "0x5f";
+"0x65" -> "0x63" [style = dashed];
+"0x5e" -> "0x5a";
+"0x5e" -> "0x55" [style = dashed];
+"0x55" -> "0x49";
+"0x55" -> "0x35" [style = dashed];
+"0x63" -> "0x50";
+"0x63" -> "0x35" [style = dashed];
+"0x5f" -> "0x34";
+"0x5f" -> "0x35" [style = dashed];
+"0x5a" -> "0x34";
+"0x5a" -> "0x35" [style = dashed];
+"0x50" -> "0x4a";
+"0x50" -> "0x4e" [style = dashed];
+"0x42" -> "0x39";
+"0x42" -> "0x40" [style = dashed];
+"0x49" -> "0x45";
+"0x49" -> "0x40" [style = dashed];
+"0x4e" -> "0x39";
+"0x4e" -> "0x35" [style = dashed];
+"0x40" -> "0x38";
+"0x40" -> "0x35" [style = dashed];
+"0x4a" -> "0x34";
+"0x4a" -> "0x35" [style = dashed];
+"0x45" -> "0x34";
+"0x45" -> "0x35" [style = dashed];
+"0x39" -> "0x34";
+"0x39" -> "0x35" [style = dashed];
+"0x38" -> "0x34";
+"0x38" -> "0x35" [style = dashed];
+"0x35" [label = "0"];
+"0x34" [label = "1"];
+}
+Entering testBdd4
+f: 5 nodes 1 leaves 3 minterms
+000-----------  1
+11------------  1
+
+g: 5 nodes 1 leaves 3 minterms
+000  1
+11-  1
+
+f and h are identical
+**** CUDD modifiable parameters ****
+Hard limit for cache size: 7645866
+Cache hit threshold for resizing: 30%
+Garbage collection enabled: yes
+Limit for fast unique table growth: 4587520
+Maximum number of variables sifted per reordering: 1000
+Maximum number of variable swaps per reordering: 2000000
+Maximum growth while sifting a variable: 1.2
+Dynamic reordering of BDDs enabled: no
+Default BDD reordering method: 4
+Dynamic reordering of ZDDs enabled: no
+Default ZDD reordering method: 4
+Realignment of ZDDs to BDDs enabled: no
+Realignment of BDDs to ZDDs enabled: no
+Dead nodes counted in triggering reordering: no
+Group checking criterion: 7
+Recombination threshold: 0
+Symmetry violation threshold: 0
+Arc violation threshold: 0
+GA population size: 0
+Number of crossovers for GA: 0
+Next reordering threshold: 4004
+**** CUDD non-modifiable parameters ****
+Memory in use: 8436016
+Peak number of nodes: 1022
+Peak number of live nodes: 35
+Number of BDD variables: 14
+Number of ZDD variables: 14
+Number of cache entries: 262144
+Number of cache look-ups: 396
+Number of cache hits: 91
+Number of cache insertions: 303
+Number of cache collisions: 0
+Number of cache deletions: 162
+Cache used slots = 0.11% (expected 0.05%)
+Soft limit for cache size: 29696
+Number of buckets in unique table: 7424
+Used buckets in unique table: 1.58% (expected 1.69%)
+Unique lookups: 475
+Unique links: 6 (0.0126316 per lookup)
+Number of BDD and ADD nodes: 78
+Number of ZDD nodes: 49
+Number of dead BDD and ADD nodes: 60
+Number of dead ZDD nodes: 35
+Total number of nodes allocated: 247
+Total number of nodes reclaimed: 85
+Number of recursive calls: 1265
+Garbage collections so far: 1
+Time for garbage collection: 0.00 sec
+Reorderings so far: 0
+Time for reordering: 0.00 sec
+Node swaps in reordering: 0

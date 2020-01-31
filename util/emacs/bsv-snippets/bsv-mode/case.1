@@ -1,0 +1,7 @@
+#Author : Steve Allen
+#name : case ( cond ) {...} endcase
+# --
+case ( ${1:cond} );
+    ${2:val} : ${3:noAction} ;
+    default : $0 ;
+endcase

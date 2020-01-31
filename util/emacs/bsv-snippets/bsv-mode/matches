@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : matches tagged Desc .val
+# --
+matches tagged ${1:cond} .${2:val}

@@ -1,0 +1,95 @@
+package ToString where
+
+import List
+import Array
+import Vector
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+class ToString a where
+    toString :: a -> String
+
+class ToStringM a where
+    toStringM :: (Monad m) => a -> m String
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+instance ToString String where
+    toString x = x
+
+instance ToString Integer where
+    toString x = (integerToString x)
+
+instance (ToString a) => ToString (List a) where
+    toString x = ("<List " +++ (listToString x) +++ ">");
+
+instance (ToString a) => ToString (Vector n a) where
+    toString x = ("<V " +++ (listToString (toList x)) +++ ">");
+
+instance (ToString a) => ToString (Array a) where
+    toString x = ("<PA " +++ (listToString (arrayToList x)) +++ ">");
+
+instance (ToString a, ToString b) => ToString (Tuple2 a b) where
+    toString (t0, t1) = ("(" +++ (toString t0) +++ ", " +++ (toString t1) +++ ")")
+
+instance (ToString a, ToString b, ToString c) => ToString (Tuple3 a b c) where
+    toString (t0, t1, t2) = ("(" +++ (toString t0) +++ ", " +++ (toString t1) +++ ", " +++ (toString t2) +++ ")")
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+instance ToStringM String where
+    toStringM x = return (toString x)
+
+instance ToStringM Integer where
+    toStringM x = return (toString x)
+
+instance (ToStringM a) => ToStringM (List a) where
+    toStringM x =
+      do y <- listToStringM x
+         return ("<List " +++ y +++ ">");
+
+instance (ToStringM a) => ToStringM (Vector n a) where
+    toStringM x =
+      do y <- listToStringM (toList x)
+         return ("<V " +++ y +++ ">");
+
+instance (ToStringM a) => ToStringM (Array a) where
+    toStringM x =
+      do y <- listToStringM (arrayToList x)
+         return ("<PA " +++ y +++ ">");
+
+instance (ToStringM a, ToStringM b) => ToStringM (Tuple2 a b) where
+    toStringM (t0, t1) =
+      do y0 <- toStringM t0
+         y1 <- toStringM t1
+         return ("(" +++ y0 +++ ", " +++ y1 +++ ")")
+
+instance (ToStringM a, ToStringM b, ToStringM c) => ToStringM (Tuple3 a b c) where
+    toStringM (t0, t1, t2) =
+      do y0 <- toStringM t0
+         y1 <- toStringM t1
+         y2 <- toStringM t2
+         return ("(" +++ y0 +++ ", " +++ y1 +++ ", " +++ y2 +++ ")")
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+listToString :: (ToString a) => (List a) -> String
+listToString Nil = ""
+listToString (Cons x rest) = ((toString x) +++ " " +++ (listToString rest))
+
+listToStringM :: (Monad m, ToStringM a) => (List a) -> m String
+listToStringM Nil = return ""
+listToStringM (Cons x rest) =
+   do y <- toStringM x
+      z <- listToStringM rest
+      return (y +++ " " +++ z)
+
+

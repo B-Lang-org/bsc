@@ -1,0 +1,38 @@
+package Enum(enumFromTo, enumAll) where
+import List
+
+--@ \subsubsection{Enum}
+--@ 
+--@ \index{Enum@\te{Enum} (package)|textbf}
+--@ The functions in this package can be used to enumerate values
+--@ by using their bit representation.
+
+--@ Enumerate all values of a bounded type.
+--@ \index{enumAll@\te{enumAll} (\te{Enum} function)}
+--@ \begin{libverbatim}
+--@ List#(a) enumAll
+--@   provisos (Bits#(a, sa), Bounded#(a));
+--@ \end{libverbatim}
+enumAll :: (Bits a sa, Bounded a) => List a
+enumAll = enumFromTo minBound maxBound
+
+--@ Enumerate all values (inclusively) between a lower and
+--@ upper bound.  This is done by applying \te{unpack} to
+--@ all the bit values between the bounds.
+--@ \index{enumFromTo@\te{enumFromTo} (\te{Enum} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) enumFromTo(a lo, a hi)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+enumFromTo :: (Bits a sa) => a -> a -> List a
+enumFromTo lo hi = map unpack (enumB (pack lo) (pack hi))
+
+enumB :: Bit n -> Bit n -> List (Bit n)
+enumB lo hi =
+	if lo > hi then
+	    Nil
+	-- Have to test this explicitely since the addition may overflow.
+	else if lo == hi then
+	    Cons lo Nil
+	else
+	    Cons lo (enumB (lo+0x1) hi)

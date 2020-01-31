@@ -1,0 +1,1165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Programmer's Manual</TITLE>
+<META NAME="description" CONTENT="Programmer's Manual">
+<META NAME="keywords" CONTENT="cuddIntro">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cuddIntro.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="cuddIntro.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html154"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html150"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html144"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html152"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html155"
+  HREF="node5.html">The C++ Interface</A>
+<B> Up:</B> <A NAME="tex2html151"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html145"
+  HREF="node3.html">User's Manual</A>
+ &nbsp; <B>  <A NAME="tex2html153"
+  HREF="node8.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html156"
+  HREF="node4.html#SECTION00041000000000000000">Compiling and Linking</A>
+<LI><A NAME="tex2html157"
+  HREF="node4.html#SECTION00042000000000000000">Reference Counts</A>
+<UL>
+<LI><A NAME="tex2html158"
+  HREF="node4.html#SECTION00042100000000000000">NULL Return Values</A>
+<LI><A NAME="tex2html159"
+  HREF="node4.html#SECTION00042200000000000000"><I>Cudd_RecursiveDeref</I> vs. <I>Cudd_Deref</I></A>
+<LI><A NAME="tex2html160"
+  HREF="node4.html#SECTION00042300000000000000">When Increasing the Reference Count is Unnecessary</A>
+<LI><A NAME="tex2html161"
+  HREF="node4.html#SECTION00042400000000000000">Saturating Increments and Decrements</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html162"
+  HREF="node4.html#SECTION00043000000000000000">Complement Arcs</A>
+<LI><A NAME="tex2html163"
+  HREF="node4.html#SECTION00044000000000000000">The Cache</A>
+<UL>
+<LI><A NAME="tex2html164"
+  HREF="node4.html#SECTION00044100000000000000">Cache Sizing</A>
+<LI><A NAME="tex2html165"
+  HREF="node4.html#SECTION00044200000000000000">Local Caches</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html166"
+  HREF="node4.html#SECTION00045000000000000000">The Unique Table</A>
+<LI><A NAME="tex2html167"
+  HREF="node4.html#SECTION00046000000000000000">Allowing Asynchronous Reordering</A>
+<LI><A NAME="tex2html168"
+  HREF="node4.html#SECTION00047000000000000000">Debugging</A>
+<LI><A NAME="tex2html169"
+  HREF="node4.html#SECTION00048000000000000000">Gathering and Interpreting Statistics</A>
+<UL>
+<LI><A NAME="tex2html170"
+  HREF="node4.html#SECTION00048100000000000000">Non Modifiable Parameters</A>
+<LI><A NAME="tex2html171"
+  HREF="node4.html#SECTION00048200000000000000">Modifiable Parameters</A>
+<LI><A NAME="tex2html172"
+  HREF="node4.html#SECTION00048300000000000000">Extended Statistics and Reporting</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html173"
+  HREF="node4.html#SECTION00049000000000000000">Guidelines for Documentation</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H1><A NAME="SECTION00040000000000000000"></A>
+<A NAME="sec:prog"></A>
+<BR>
+Programmer's Manual
+</H1>
+
+<P>
+This section provides additional detail on the working of the CUDD
+package and on the programming conventions followed in its writing.
+The additional detail should help those who want to write procedures
+that directly manipulate the CUDD data structures.
+
+<P>
+
+<H2><A NAME="SECTION00041000000000000000"></A>
+<A NAME="702"></A><A NAME="sec:compileInt"></A>
+<BR>
+Compiling and Linking
+</H2>
+
+<P>
+If you plan to use the CUDD package as a clear box<A NAME="704"></A>
+(for instance, you want to write a procedure that traverses a decision
+diagram) you need to add
+<PRE>
+#include "cuddInt.h"
+</PRE>
+to your source files. In addition, you should link <code>libcudd.a</code> to
+your executable.  Some platforms require specific compiler and linker
+flags.  Refer to the <TT>Makefile</TT> in the top level directory of
+the distribution.
+
+<P>
+
+<H2><A NAME="SECTION00042000000000000000"></A>
+<A NAME="709"></A><A NAME="sec:ref"></A>
+<BR>
+Reference Counts
+</H2>
+
+<P>
+Garbage<A NAME="711"></A> collection in the CUDD package is
+based on reference counts.  Each node stores the sum of the external
+references and internal references. An internal BDD or ADD node is
+created by a call to <I>cuddUniqueInter</I><A NAME="1294"></A>, an
+internal ZDD node is created by a call to
+<I>cuddUniqueInterZdd</I><A NAME="1296"></A>, and a
+terminal<A NAME="716"></A> node is created by a call to
+<I>cuddUniqueConst</I><A NAME="1298"></A>. If the node returned by
+these functions is new, its reference count is zero.  The function
+that calls <I>cuddUniqueInter</I><A NAME="1300"></A>,
+<I>cuddUniqueInterZdd</I><A NAME="1302"></A>, or
+<I>cuddUniqueConst</I><A NAME="1304"></A> is responsible for
+increasing the reference count of the node.  This is accomplished by
+calling <I>Cudd_Ref</I><A NAME="1306"></A>.
+
+<P>
+When a function is no longer needed by an application, the memory used
+by its diagram can be recycled by calling
+<I>Cudd_RecursiveDeref</I><A NAME="1308"></A> (BDDs and ADDs)
+or <I>Cudd_RecursiveDerefZdd</I><A NAME="1310"></A>
+(ZDDs).  These functions decrease the reference <A NAME="731"></A> count of the node passed to them.  If the reference count
+becomes 0, then two things happen:
+
+<OL>
+<LI>The node is declared ``dead<A NAME="733"></A>;'' this entails
+  increasing the counters<A NAME="734"></A> of the dead
+  nodes. (One counter for the subtable<A NAME="735"></A> to which the
+  node belongs, and one global counter for the
+  unique<A NAME="736"></A> table to which the node belongs.) The
+  node itself is not affected.
+</LI>
+<LI>The function is recursively called on the two children of the
+  node.
+</LI>
+</OL>
+For instance, if the diagram of a function does not share any nodes
+with other diagrams, then calling
+<I>Cudd_RecursiveDeref</I><A NAME="1312"></A> or
+<I>Cudd_RecursiveDerefZdd</I><A NAME="1314"></A> on its
+root will cause all the nodes of the diagram to become dead.
+
+<P>
+When the number of dead nodes reaches a given level (dynamically
+determined by the package) garbage collection takes place. During
+garbage<A NAME="742"></A> collection dead nodes are returned
+to the node free list<A NAME="743"></A>.
+
+<P>
+When a new node is created, it is important to increase its
+reference<A NAME="744"></A> count before one of the two
+following events occurs:
+
+<OL>
+<LI>A call to <I>cuddUniqueInter</I><A NAME="1316"></A>,
+  to <I>cuddUniqueInterZdd</I><A NAME="1318"></A>, to
+  <I>cuddUniqueConst</I><A NAME="1320"></A>, or to a
+  function that may eventually cause a call to them.
+</LI>
+<LI>A call to
+  <I>Cudd_RecursiveDeref</I><A NAME="1322"></A>, to
+  <I>Cudd_RecursiveDerefZdd</I><A NAME="1324"></A>, or to
+  a function that may eventually cause a call to them.
+</LI>
+</OL>
+In practice, it is recommended to increase the reference count as soon
+as the returned pointer has been tested for not being NULL.
+
+<P>
+
+<H3><A NAME="SECTION00042100000000000000"></A>
+<A NAME="sec:null"></A>
+<BR>
+NULL Return Values
+</H3>
+
+<P>
+The interface to the memory management functions (e.g., malloc) used
+by CUDD intercepts NULL return values and calls a handler.  The
+default handler exits with an error message.  If the application does
+not install another handler, therefore, a NULL return value from an
+exported function of CUDD signals an internal error.
+
+<P>
+If the aplication, however, installs another handler that lets
+execution continue, a NULL pointer returned by an exported function
+typically indicates that the process has run out of memory.
+<I>Cudd_ReadErrorCode</I><A NAME="1326"></A> can be used to
+ascertain the nature of the problem.
+
+<P>
+An application that tests for the result being NULL can try some
+remedial action, if it runs out of memory.  For instance, it may free
+some memory that is not strictly necessary, or try a slower algorithm
+that takes less space. As an example, CUDD overrides the default
+handler when trying to enlarge the cache or increase the number of
+slots of the unique table. If the allocation fails, the package prints
+out a message and continues without resizing the cache.
+
+<P>
+
+<H3><A NAME="SECTION00042200000000000000"></A>
+<A NAME="sec:deref"></A>
+<BR>
+<I>Cudd_RecursiveDeref</I> vs. <I>Cudd_Deref</I>
+</H3>
+
+<P>
+It is often the case that a recursive procedure has to protect the
+result it is going to return, while it disposes of intermediate
+results.  (See the previous discussion on when to increase reference
+counts.)  Once the intermediate results have been properly disposed
+of, the final result must be returned to its pristine state, in which
+the root node may have a reference count of 0. One cannot use
+<I>Cudd_RecursiveDeref</I><A NAME="1328"></A> (or
+<I>Cudd_RecursiveDerefZdd</I>) for this purpose, because it may
+erroneously make some nodes dead.  Therefore, the package provides a
+different function: <I>Cudd_Deref</I><A NAME="1330"></A>. This
+function is not recursive, and does not change the dead node counts.
+Its use is almost exclusively the one just described: Decreasing the
+reference count of the root of the final result before returning from
+a recursive procedure.
+
+<P>
+
+<H3><A NAME="SECTION00042300000000000000"></A>
+<A NAME="770"></A><A NAME="sec:noref"></A>
+<BR>
+When Increasing the Reference Count is Unnecessary
+</H3>
+
+<P>
+When a copy of a predefined constant<A NAME="772"></A> or of a
+simple BDD variable is needed for comparison purposes, then calling
+<I>Cudd_Ref</I><A NAME="1332"></A> is not necessary, because these
+simple functions are guaranteed to have reference counts greater than
+0 at all times. If no call to <I>Cudd_Ref</I> is made, then no
+attempt to free the diagram by calling
+<I>Cudd_RecursiveDeref</I><A NAME="1334"></A> or
+<I>Cudd_RecursiveDerefZdd</I><A NAME="1336"></A> should be
+made.
+
+<P>
+
+<H3><A NAME="SECTION00042400000000000000"></A>
+<A NAME="781"></A><A NAME="782"></A><A NAME="sec:satur"></A>
+<BR>
+Saturating Increments and Decrements
+</H3>
+
+<P>
+On 32-bit machines, the CUDD package stores the
+reference<A NAME="784"></A> counts in unsigned short int's.
+For large diagrams, it is possible for some reference counts to exceed
+the capacity of an unsigned short int.  Therefore, increments and
+decrements of reference counts are <I>saturating</I>. This means that
+once a reference count has reached the maximum possible value, it is
+no longer changed by calls to <I>Cudd_Ref</I>,
+<I>Cudd_RecursiveDeref</I><A NAME="1338"></A>,
+<I>Cudd_RecursiveDerefZdd</I><A NAME="1340"></A>, or
+<I>Cudd_Deref</I><A NAME="1342"></A>.  As a consequence, some nodes
+that have no references may not be declared dead. This may result in a
+small waste of memory, which is normally more than offset by the
+reduction in size of the node structure.
+
+<P>
+When using 64-bit pointers, there is normally no memory advantage from
+using short int's instead of int's in a DdNode. Therefore, increments
+and decrements are not saturating in that case. What option is in
+effect depends on two macros, SIZEOF_VOID_P<A NAME="793"></A>
+and SIZEOF_INT<A NAME="794"></A>, defined in the external
+header<A NAME="795"></A> file (<I>cudd.h</I><A NAME="797"></A>). The
+increments and decrements of the reference counts are performed using
+two macros: <I>cuddSatInc</I><A NAME="1344"></A> and
+<I>cuddSatDec</I><A NAME="1346"></A>, whose definitions depend on
+SIZEOF_VOID_P<A NAME="802"></A> and
+SIZEOF_INT<A NAME="803"></A>.
+
+<P>
+
+<H2><A NAME="SECTION00043000000000000000"></A>
+<A NAME="805"></A><A NAME="sec:compl"></A>
+<BR>
+Complement Arcs
+</H2>
+
+<P>
+If ADDs are restricted to use only the constants 0 and 1, they behave
+like BDDs without complement arcs. It is normally easier to write code
+that manipulates 0-1 ADDs, than to write code for BDDs. However,
+complementation is trivial with complement arcs, and is not trivial
+without. As a consequence, with complement arcs it is possible to
+check for more terminal cases and it is possible to apply De Morgan's
+laws to reduce problems that are essentially identical to a standard
+form. This in turn increases the utilization of the cache<A NAME="807"></A>.
+
+<P>
+The complement attribute is stored in the least significant bit of the
+``else'' pointer of each node. An external pointer to a function can
+also be complemented. The ``then'' pointer to a node, on the other
+hand, is always <I>regular<A NAME="808"></A></I>.  It is a mistake to
+use a complement<A NAME="809"></A> pointer as it is to address
+memory.  Instead, it is always necessary to obtain a regular version
+of it.  This is normally done by calling
+<I>Cudd_Regular</I><A NAME="1348"></A>.  It is also a mistake to
+call <I>cuddUniqueInter</I><A NAME="1350"></A> with a complemented
+``then'' child as argument.  The calling procedure must apply De
+Morgan's laws by complementing both pointers passed to
+<I>cuddUniqueInter</I><A NAME="1352"></A> and then taking the
+complement of the result.
+
+<P>
+
+<H2><A NAME="SECTION00044000000000000000"></A>
+<A NAME="817"></A><A NAME="sec:cache"></A>
+<BR>
+The Cache
+</H2>
+
+<P>
+Each entry of the cache consists of five fields: The operator, three
+pointers to operands and a pointer to the result. The operator and the
+three pointers to the operands are combined to form three words. The
+combination relies on two facts:
+
+<UL>
+<LI>Most operations have one or two operands. A few bits are
+  sufficient to discriminate all three-operands operations.
+</LI>
+<LI>All nodes are aligned to 16-byte boundaries. (32-byte boundaries
+  if 64-bit pointers are used.) Hence, there are a few bits available
+  to distinguish the three-operand operations from te others and to
+  assign unique codes to them.
+</LI>
+</UL>
+
+<P>
+The cache does not contribute to the reference
+<A NAME="821"></A>
+counts of the nodes.  The fact that the cache contains a
+pointer to a node does not imply that the node is alive. Instead, when
+garbage<A NAME="822"></A> collection takes place, all entries
+of the cache pointing to dead<A NAME="823"></A> nodes are cleared.
+
+<P>
+The cache is also cleared (of all entries) when dynamic
+reordering<A NAME="824"></A> takes place. In both cases, the entries
+removed from the cache are about to become invalid.
+
+<P>
+All operands and results in a cache entry must be pointers to
+DdNodes<A NAME="825"></A>.  If a function produces more than one result,
+or uses more than three arguments, there are currently two solutions:
+
+<UL>
+<LI>Build a separate, local, cache<A NAME="827"></A>. (Using, for
+  instance, the <I>st</I> library<A NAME="829"></A>.)
+</LI>
+<LI>Combine multiple results, or multiple operands, into a single
+  diagram, by building a ``multiplexing structure'' with reserved
+  variables.
+</LI>
+</UL>
+Support of the former solution is under development. (See
+<TT>cuddLCache.c</TT>..)  Support for the latter solution may be
+provided in future versions of the package.
+
+<P>
+There are three sets of interface<A NAME="832"></A> functions to
+the cache. The first set is for functions with three operands:
+<I>cuddCacheInsert</I><A NAME="1354"></A> and
+<I>cuddCacheLookup</I><A NAME="1356"></A>. The second set is for
+functions with two operands:
+<I>cuddCacheInsert2</I><A NAME="1358"></A> and
+<I>cuddCacheLookup2</I><A NAME="1360"></A>.  The second set is for
+functions with one operand:
+<I>cuddCacheInsert1</I><A NAME="1362"></A> and
+<I>cuddCacheLookup1</I><A NAME="1364"></A>.  The second set is
+slightly faster than the first, and the third set is slightly faster
+than the second.
+
+<P>
+
+<H3><A NAME="SECTION00044100000000000000"></A>
+<A NAME="846"></A><A NAME="sec:cache-sizing"></A>
+<BR>
+Cache Sizing
+</H3>
+
+<P>
+The size of the cache can increase during the execution of an
+application. (There is currently no way to decrease the size of the
+cache, though it would not be difficult to do it.) When a cache miss
+occurs, the package uses the following criteria to decide whether to
+resize the cache:
+
+<OL>
+<LI>If the cache already exceeds the limit given by the
+  <TT>maxCache<A NAME="849"></A></TT> field of the manager, no resizing
+  takes place.  The limit is the minimum of two values: a value set at
+  initialization time and possibly modified by the application, which
+  constitutes the hard limit beyond which the cache will never grow;
+  and a number that depends on the current total number of slots in
+  the unique<A NAME="850"></A> table.
+</LI>
+<LI>If the cache is not too large already, resizing is decided based
+  on the hit rate. The policy adopted by the CUDD package is
+  ``reward-based<A NAME="851"></A>.'' If the cache hit
+  rate is high, then it is worthwhile to increase the size of the
+  cache.
+</LI>
+</OL>
+When resizing takes place, the statistical counters <A NAME="853"></A> used to compute the hit rate are reinitialized so as to
+prevent immediate resizing. The number of entries is doubled.
+
+<P>
+The rationale for the ``reward-based<A NAME="854"></A>''
+policy is as follows. In many BDD/ADD applications the hit rate is
+not very sensitive to the size of the cache: It is primarily a
+function of the problem instance at hand.  If a large hit rate is
+observed, chances are that by using a large cache, the results of
+large problems (those that would take longer to solve) will survive in
+the cache without being overwritten long enough to cause a valuable
+cache hit. Notice that when a large problem is solved more than once,
+so are its recursively generated subproblems.  If the hit rate is
+low, the probability of large problems being solved more than once is
+low.
+
+<P>
+The other observation about the cache sizing policy is that there is
+little point in keeping a cache which is much larger than the unique
+table. Every time the unique table ``fills up,'' garbage collection is
+invoked and the cache is cleared of all dead entries. A cache that is
+much larger than the unique<A NAME="855"></A> table is therefore
+less than fully utilized.
+
+<P>
+
+<H3><A NAME="SECTION00044200000000000000"></A>
+<A NAME="857"></A><A NAME="sec:local-caches"></A>
+<BR>
+Local Caches
+</H3>
+
+<P>
+Sometimes it may be necessary or convenient to use a local cache.  A
+local cache can be lossless<A NAME="859"></A> (no results are ever
+overwritten), or it may store objects for which
+canonical<A NAME="860"></A> representations are not available.  One
+important fact to keep in mind when using a local cache is that local
+caches are not cleared during garbage<A NAME="861"></A>
+collection or before reordering. Therefore, it is necessary to
+increment the reference<A NAME="862"></A> count of all nodes
+pointed by a local cache. (Unless their reference counts are
+guaranteed positive in some other way. One such way is by including
+all partial results in the global result.) Before disposing of the
+local cache, all elements stored in it must be passed to
+<I>Cudd_RecursiveDeref</I><A NAME="1366"></A>. As consequence
+of the fact that all results in a local cache are referenced, it is
+generally convenient to store in the local cache also the result of
+trivial problems, which are not usually stored in the global cache.
+Otherwise, after a recursive call, it is difficult to tell whether the
+result is in the cache, and therefore referenced, or not in the cache,
+and therefore not referenced.
+
+<P>
+An alternative approach to referencing the results in the local caches
+is to install hook functions (see Section&nbsp;<A HREF="node3.html#sec:hooks">3.16</A>) to be
+executed before garbage collection.
+
+<P>
+
+<H2><A NAME="SECTION00045000000000000000"></A>
+<A NAME="867"></A><A NAME="sec:unique"></A>
+<BR>
+The Unique Table
+</H2>
+
+<P>
+A recursive procedure typically splits the operands by expanding with
+respect to the topmost variable. Topmost in this context refers to the
+variable that is closest to the roots in the current variable order.
+The nodes, on the other hand, hold the index, which is invariant with
+reordering. Therefore, when splitting, one must use the
+permutation<A NAME="869"></A> array maintained by the
+package to get the right level. Access to the permutation array is
+provided by the macro <I>cuddI</I><A NAME="1368"></A> for BDDs and ADDs,
+and by the macro <I>cuddIZ</I><A NAME="1370"></A> for ZDDs.
+
+<P>
+The unique table consists of as many hash<A NAME="874"></A> tables as
+there are variables in use. These has tables are called <I>unique
+  subtables</I>.  The sizes of the unique subtables are determined by two
+criteria:
+
+<OL>
+<LI>The collision<A NAME="877"></A> lists should be short
+  to keep access time down.
+</LI>
+<LI>There should be enough room for dead<A NAME="878"></A> nodes, to
+  prevent too frequent garbage<A NAME="879"></A> collections.
+</LI>
+</OL>
+While the first criterion is fairly straightforward to implement, the
+second leaves more room to creativity. The CUDD package tries to
+figure out whether more dead node should be allowed to increase
+performance.  (See also Section&nbsp;<A HREF="node3.html#sec:params">3.4</A>.) There are two
+reasons for not doing garbage collection too often. The obvious one is
+that it is expensive.  The second is that dead nodes may be
+reclaimed<A NAME="882"></A>, if they are the result of a
+successful cache lookup. Hence dead nodes may provide a substantial
+speed-up if they are kept around long enough.  The usefulness of
+keeping many dead nodes around varies from application to application,
+and from problem instance to problem instance. As in the sizing of the
+cache, the CUDD package adopts a
+``reward-based<A NAME="883"></A>'' policy to
+decide how much room should be used for the unique table. If the
+number of dead nodes reclaimed is large compared to the number of
+nodes directly requested from the memory manager, then the CUDD
+package assumes that it will be beneficial to allow more room for the
+subtables, thereby reducing the frequency of garbage collection.  The
+package does so by switching between two modes of operation:
+
+<OL>
+<LI>Fast growth<A NAME="885"></A>: In this mode, the
+  ratio of dead nodes to total nodes required for garbage collection
+  is higher than in the slow growth mode to favor resizing
+  of the subtables.
+</LI>
+<LI>Slow growth<A NAME="886"></A>: In this
+  mode keeping many dead nodes around is not as important as
+  keeping memory requirements low.
+</LI>
+</OL>
+Switching from one mode to the other is based on the following
+criteria:
+
+<OL>
+<LI>If the unique table is already large, only slow growth is
+  possible.
+</LI>
+<LI>If the table is small and many dead nodes are being reclaimed,
+  then fast growth is selected.
+</LI>
+</OL>
+This policy is especially effective when the diagrams being
+manipulated have lots of recombination. Notice the interplay of the
+cache sizing and unique sizing: Fast growth normally occurs when the
+cache hit rate is large. The cache and the unique table then grow in
+concert, preserving a healthy balance between their sizes.
+
+<P>
+
+<H2><A NAME="SECTION00046000000000000000"></A>
+<A NAME="891"></A><A NAME="sec:async"></A>
+<BR>
+Allowing Asynchronous Reordering
+</H2>
+
+<P>
+Asynchronous reordering is the reordering that is triggered
+automatically by the increase of the number of nodes. Asynchronous
+reordering takes place when a new internal node must be created, and
+the number of nodes has reached a given
+threshold<A NAME="893"></A>. (The threshold is adjusted by
+the package every time reordering takes place.)
+
+<P>
+Those procedures that do not create new nodes (e.g., procedures that
+count the number of nodes or minterms<A NAME="894"></A>) need
+not worry about asynchronous reordering: No special precaution is
+necessary in writing them.
+
+<P>
+Procedures that only manipulate decision diagrams through the exported
+functions of the CUDD package also need not concern themselves with
+asynchronous reordering. (See Section&nbsp;<A HREF="node3.html#sec:nodes">3.2.1</A> for the
+exceptions.)
+
+<P>
+The remaining class of procedures is composed of functions that visit
+the diagrams and may create new nodes. All such procedures in the CUDD
+package are written so that they can be interrupted by dynamic
+reordering. The general approach followed goes under the name of
+``abort and retry<A NAME="896"></A>.'' As the name
+implies, a computation that is interrupted by dynamic reordering is
+aborted and tried again.
+
+<P>
+A recursive procedure that can be interrupted by dynamic reordering
+(an interruptible<A NAME="897"></A> procedure
+from now on) is composed of two functions.  One is responsible for the
+real computation. The other is a simple
+wrapper<A NAME="898"></A>, which tests whether
+reordering occurred and restarts the computation if it did.
+
+<P>
+Asynchronous reordering of BDDs and ADDs can only be triggered inside
+<I>cuddUniqueInter</I><A NAME="1372"></A>, when a new node is about
+to be created.  Likewise, asynchronous reordering of ZDDs can only be
+triggered inside <I>cuddUniqueInterZdd</I><A NAME="1374"></A>.
+When reordering is triggered, three things happen:
+
+<OL>
+<LI><I>cuddUniqueInter</I><A NAME="1376"></A> returns a NULL
+  value;
+</LI>
+<LI>The flag <I>reordered</I> of the manager is set to 1. (0 means
+  no reordering, while 2 indicates an error occurred during
+  reordering.)
+</LI>
+<LI>The counter <I>reorderings</I> of the manager is incremented.
+  The counter is initialized to 0 when the manager is started and can
+  be accessed by calling
+  <I>Cudd_ReadReorderings</I><A NAME="1378"></A>. By taking
+  two readings of the counter, an application can determine if
+  variable reordering has taken place between the first and the second
+  reading.  The package itself, however, does not make use of the
+  counter: It is mentioned here for completeness.
+</LI>
+</OL>
+
+<P>
+The recursive procedure that receives a NULL value from
+<I>cuddUniqueInter</I><A NAME="1380"></A> must free all
+intermediate results that it may have computed before, and return NULL
+in its turn.
+
+<P>
+The wrapper<A NAME="913"></A> function does not
+decide whether reordering occurred based on the NULL return value,
+because the NULL value may be the result of lack of memory. Instead,
+it checks the <I>reordered</I> flag.
+
+<P>
+When a recursive procedure calls another recursive procedure that may
+cause reordering, it should bypass the wrapper and call the recursive
+procedure directly. Otherwise, the calling procedure will not know
+whether reordering occurred, and will not be able to restart.  This is
+the main reason why most recursive procedures are internal, rather
+than static. (The wrappers, on the other hand, are mostly exported.)
+
+<P>
+
+<H2><A NAME="SECTION00047000000000000000"></A>
+<A NAME="916"></A><A NAME="sec:debug"></A>
+<BR>
+Debugging
+</H2>
+
+<P>
+By defining the symbol DD_DEBUG<A NAME="918"></A> during compilation,
+numerous checks are added to the code.  In addition, the procedures
+<I>Cudd_DebugCheck</I><A NAME="1382"></A>,
+<I>Cudd_CheckKeys</I><A NAME="1384"></A>, and
+<I>cuddHeapProfile</I><A NAME="1386"></A> can be called at any
+point to verify the consistency of the data structure.
+(<I>cuddHeapProfile</I> is an internal procedure.  It is declared in
+<I>cuddInt.h</I><A NAME="927"></A>.)  Procedures
+<I>Cudd_DebugCheck</I> and <I>Cudd_CheckKeys</I> are especially
+useful when CUDD reports that during garbage collection the number of
+nodes actually deleted from the unique table is different from the
+count of dead nodes kept by the manager.  The error causing the
+discrepancy may have occurred much earlier than it is discovered.  A
+few strategicaly placed calls to the debugging procedures can
+considerably narrow down the search for the source of the problem.
+(For instance, a call to <I>Cudd_RecursiveDeref</I> where one to
+<I>Cudd_Deref</I> was required may be identified in this way.)
+
+<P>
+One of the most common problems encountered in debugging code based on
+the CUDD package is a missing call to
+<I>Cudd_RecursiveDeref</I><A NAME="1388"></A>.  To help
+identify this type of problems, the package provides a function called
+<I>Cudd_CheckZeroRef</I><A NAME="1390"></A>.  This function
+should be called immediately before shutting down the manager.
+<I>Cudd_CheckZeroRef</I> checks that the only nodes left with
+non-zero reference<A NAME="937"></A> counts are the
+predefined constants, the BDD projection<A NAME="938"></A>
+functions, and nodes whose reference counts are
+saturated<A NAME="939"></A>.
+
+<P>
+For this function to be effective the application must explicitly
+dispose of all diagrams to which it has pointers before calling it.
+
+<P>
+
+<H2><A NAME="SECTION00048000000000000000"></A>
+<A NAME="941"></A><A NAME="sec:stats"></A>
+<BR>
+Gathering and Interpreting Statistics
+</H2>
+
+<P>
+Function <I>Cudd_PrintInfo</I><A NAME="1392"></A> can be called to
+print out the values of parameters and statistics for a manager.  The
+output of <I>Cudd_PrintInfo</I> is divided in two sections.  The
+first reports the values of parameters that are under the application
+control. The second reports the values of statistical counters and
+other non-modifiable parameters. A quick guide to the interpretation
+of all these quantities follows. For ease of exposition, we reverse
+the order and describe the non-modifiable parameters first. We'll use
+a sample run as example. There is nothing special about this run.
+
+<P>
+
+<H3><A NAME="SECTION00048100000000000000"></A>
+<A NAME="sec:nonModPar"></A>
+<BR>
+Non Modifiable Parameters
+</H3>
+
+<P>
+The list of non-modifiable parameters starts with:
+<PRE>
+    **** CUDD non-modifiable parameters ****
+    Memory in use: 32544220
+</PRE>
+This is the memory used by CUDD for three things mainly: Unique table
+(including all DD nodes in use), node free list, and computed table.
+This number almost never decreases in the lifetime of a CUDD manager,
+because CUDD does not release memory when it frees nodes.  Rather, it
+puts the nodes on its own free list. This number is in bytes. It does
+not represent the peak memory occupation, because it does not include
+the size of data structures created temporarily by some functions (e.g.,
+local look-up tables).
+
+<P>
+<PRE>
+    Peak number of nodes: 837018
+</PRE>
+This number is the number of nodes that the manager has allocated.
+This is not the largest size of the BDDs, because the manager will
+normally have some dead nodes and some nodes on the free list.
+
+<P>
+<PRE>
+    Peak number of live nodes: 836894
+</PRE>
+This is the largest number of live nodes that the manager has held
+since its creation.
+
+<P>
+<PRE>
+    Number of BDD variables: 198
+    Number of ZDD variables: 0
+</PRE>
+These numbers tell us this run was not using ZDDs.
+
+<P>
+<PRE>
+    Number of cache entries: 1048576
+</PRE>
+Current number of slots of the computed table.  If one has a
+performance problem, this is one of the numbers to look at. The cache
+size is always a power of 2.
+
+<P>
+<PRE>
+    Number of cache look-ups: 2996536
+    Number of cache hits: 1187087
+</PRE>
+These numbers give an indication of the hit rate in the computed
+table. It is not unlikely for model checking runs to get
+hit rates even higher than this one (39.62%).
+
+<P>
+<PRE>
+    Number of cache insertions: 1809473
+    Number of cache collisions: 961208
+    Number of cache deletions: 0
+</PRE>
+A collision<A NAME="962"></A> occurs when a cache entry is
+overwritten. A deletion<A NAME="963"></A>
+occurs when a cache entry is invalidated (e.g., during garbage
+collection).  If the number of deletions is high compared to the
+number of collisions, it means that garbage collection occurs too
+often. In this case there were no garbage collections; hence, no
+deletions.
+
+<P>
+<PRE>
+    Cache used slots = 80.90% (expected 82.19%)
+</PRE>
+Percentage of cache slots that contain a valid entry. If this
+number is small, it may signal one of three conditions:
+
+<OL>
+<LI>The cache may have been recently resized and it is still filling
+  up.
+</LI>
+<LI>The cache is too large for the BDDs. This should not happen if
+  the size of the cache is determined by CUDD.
+</LI>
+<LI>The hash function is not working properly. This is accompanied
+  by a degradation in performance. Conversely, a degradation in
+  performance may be due to bad hash function behavior.
+</LI>
+</OL>
+The expected value is computed assuming a uniformly random
+distribution of the accesses.  If the difference between the measured
+value and the expected value is large (unlike this case), the cache is
+not working properly.
+
+<P>
+<PRE>
+    Soft limit for cache size: 1318912
+</PRE>
+This number says how large the cache can grow. This limit is based on
+the size of the unique table.  CUDD uses a reward-based policy for
+growing the cache. (See Section&nbsp;<A HREF="#sec:cache-sizing">4.4.1</A>.)  The default
+hit rate for resizing is 30% and the value in effect is reported
+among the modifiable parameters.
+
+<P>
+<PRE>
+    Number of buckets in unique table: 329728
+</PRE>
+This number is exactly one quarter of the one above. This is indeed
+how the soft limit is determined currently, unless the computed table
+hits the specified hard limit. (See below.)
+
+<P>
+<PRE>
+    Used buckets in unique table: 87.96% (expected 87.93%)
+</PRE>
+Percentage of unique table buckets that contain at least one
+node. Remarks analogous to those made about the used cache slots apply.
+
+<P>
+<PRE>
+    Number of BDD and ADD nodes: 836894
+    Number of ZDD nodes: 0
+</PRE>
+How many nodes are currently in the unique table, either alive or dead.
+
+<P>
+<PRE>
+    Number of dead BDD and ADD nodes: 0
+    Number of dead ZDD nodes: 0
+</PRE>
+Subtract these numbers from those above to get the number of live
+nodes. In this case there are no dead nodes because the application
+uses delayed dereferencing
+<I>Cudd_DelayedDerefBdd</I><A NAME="1394"></A>.
+
+<P>
+<PRE>
+    Total number of nodes allocated: 836894
+</PRE>
+This is the total number of nodes that were requested and obtained
+from the free list. It never decreases, and is not an indication of
+memory occupation after the first garbage collection. Rather, it is a
+measure of the package activity.
+
+<P>
+<PRE>
+    Total number of nodes reclaimed: 0
+</PRE>
+These are the nodes that were resuscitated from the dead.  If they are
+many more than the allocated nodes, and the total
+number of slots is low relative to the number of nodes, then one may
+want to increase the limit for fast unique table growth. In this case,
+the number is 0 because of delayed dereferencing.
+
+<P>
+<PRE>
+    Garbage collections so far: 0
+    Time for garbage collections: 0.00 sec
+    Reorderings so far: 0
+    Time for reordering: 0.00 sec
+</PRE>
+There is a GC for each reordering. Hence the first count will always be
+at least as large as the second.
+
+<P>
+<PRE>
+    Node swaps in reordering: 0
+</PRE>
+This is the number of elementary reordering steps. Each step consists
+of the re-expression of one node while swapping two adjacent
+variables. This number is a good measure of the amount of work done in
+reordering.
+
+<P>
+
+<H3><A NAME="SECTION00048200000000000000"></A>
+<A NAME="sec:modPar"></A>
+<BR>
+Modifiable Parameters
+</H3>
+
+<P>
+Let us now consider the modifiable parameters, that is, those settings on
+which the application or the user has control.
+
+<P>
+<PRE>
+    **** CUDD modifiable parameters ****
+    Hard limit for cache size: 8388608
+</PRE>
+This number counts entries. Each entry is 16 bytes if CUDD is compiled
+to use 32-bit pointers. Two important observations are in order:
+
+<OL>
+<LI>If the datasize limit is set, CUDD will use it to determine this
+  number automatically. On a Unix system, one can type ``limit'' or
+  ``ulimit'' to verify if this value is set. If the datasize limit is
+  not set, CUDD uses a default which is rather small. If you have
+  enough memory (say 64MB or more) you should seriously consider
+  <I>not</I> using the default. So, either set the datasize limit, or
+  override the default with
+  <I>Cudd_SetMaxCacheHard</I><A NAME="1396"></A>.
+</LI>
+<LI>If a process seems to be going nowhere, a small value for
+  this parameter may be the culprit. One cannot overemphasize the
+  importance of the computed table in BDD algorithms.
+</LI>
+</OL>
+In this case the limit was automatically set for a target maximum
+memory occupation of 104 MB.
+
+<P>
+<PRE>
+    Cache hit threshold for resizing: 15%
+</PRE>
+This number can be changed if one suspects performance is hindered by
+the small size of the cache, and the cache is not growing towards the
+soft limit sufficiently fast. In such a case one can change the
+default 30% to 15% (as in this case) or even 1%.
+
+<P>
+<PRE>
+    Garbage collection enabled: yes
+</PRE>
+One can disable it, but there are few good reasons for doing
+so. It is normally preferable to raise the limit for fast unique table
+growth. (See below.)
+
+<P>
+<PRE>
+    Limit for fast unique table growth: 1363148
+</PRE>
+See Section&nbsp;<A HREF="#sec:unique">4.5</A> and the comments above about reclaimed
+nodes and hard limit for the cache size. This value was chosen
+automatically by CUDD for a datasize limit of 1 GB.
+
+<P>
+<PRE>
+    Maximum number of variables sifted per reordering: 1000
+    Maximum number of variable swaps per reordering: 2000000
+    Maximum growth while sifting a variable: 1.2
+</PRE>
+Lowering these numbers will cause reordering to be less accurate and
+faster. Results are somewhat unpredictable, because larger BDDs after one
+reordering do not necessarily mean the process will go faster or slower.
+
+<P>
+<PRE>
+    Dynamic reordering of BDDs enabled: yes
+    Default BDD reordering method: 4
+    Dynamic reordering of ZDDs enabled: no
+    Default ZDD reordering method: 4
+</PRE>
+These lines tell whether automatic reordering can take place and what
+method would be used.  The mapping from numbers to methods is in
+<TT>cudd.h</TT>.  One may want to try different BDD reordering
+methods.  If variable groups are used, however, one should not expect
+to see big differences, because CUDD uses the reported method only to
+reorder each leaf variable group (typically corresponding present and
+next state variables).  For the relative order of the groups, it
+always uses the same algorithm, which is effectively sifting.
+
+<P>
+As for enabling dynamic reordering or not, a sensible recommendation is the
+following: Unless the circuit is rather small or one has a pretty good
+idea of what the order should be, reordering should be enabled.
+
+<P>
+<PRE>
+    Realignment of ZDDs to BDDs enabled: no
+    Realignment of BDDs to ZDDs enabled: no
+    Dead nodes counted in triggering reordering: no
+    Group checking criterion: 7
+    Recombination threshold: 0
+    Symmetry violation threshold: 0
+    Arc violation threshold: 0
+    GA population size: 0
+    Number of crossovers for GA: 0
+</PRE>
+Parameters for reordering. See the documentation of the functions used
+to control these parameters for the details.
+
+<P>
+<PRE>
+    Next reordering threshold: 100000
+</PRE>
+When the number of nodes crosses this threshold, reordering will be
+triggered. (If enabled; in this case it is not.)  This parameter is
+updated by the package whenever reordering takes place.  The
+application can change it, for instance at start-up.  Another
+possibility is to use a hook function (see Section&nbsp;<A HREF="node3.html#sec:hooks">3.16</A>) to
+override the default updating policy.
+
+<P>
+
+<H3><A NAME="SECTION00048300000000000000"></A>
+<A NAME="sec:extendedStats"></A>
+<BR>
+Extended Statistics and Reporting
+</H3>
+
+<P>
+The following symbols can be defined during compilation to increase
+the amount of statistics gathered and the number of messages produced
+by the package:
+
+<UL>
+<LI>DD_STATS<A NAME="1018"></A>;
+</LI>
+<LI>DD_CACHE_PROFILE<A NAME="1019"></A>;
+</LI>
+<LI>DD_UNIQUE_PROFILE<A NAME="1020"></A>.
+</LI>
+<LI>DD_VERBOSE<A NAME="1021"></A>;
+</LI>
+</UL>
+Defining DD_CACHE_PROFILE causes each entry of the cache to include
+an access counter, which is used to compute simple statistics on the
+distribution of the keys.
+
+<P>
+
+<H2><A NAME="SECTION00049000000000000000"></A>
+<A NAME="sec:doc"></A><A NAME="1025"></A>
+<BR>
+Guidelines for Documentation
+</H2>
+
+<P>
+The documentation of the CUDD functions is extracted automatically
+from the sources by Stephen Edwards's extdoc. (The Ext system is
+available via anonymous FTP<A NAME="1026"></A> from
+<A NAME="tex2html11"
+  HREF="ftp://ic.eecs.berkeley.edu"><TT>ic.eecs.berkeley.edu</TT></A>.)
+The following guidelines are followed in CUDD to insure consistent and
+effective use of automatic extraction. It is recommended that
+extensions to CUDD follow the same documentation guidelines.
+
+<UL>
+<LI>The documentation of an exported procedure should be sufficient
+  to allow one to use it without reading the code. It is not necessary
+  to explain how the procedure works; only what it does.
+</LI>
+<LI>The <I>SeeAlso</I><A NAME="1096"></A>
+  fields should be space-separated lists of function names.  The
+  <I>SeeAlso</I> field of an exported procedure should only reference
+  other exported procedures. The <I>SeeAlso</I> field of an internal
+  procedure may reference other internal procedures as well as
+  exported procedures, but no static procedures.
+</LI>
+<LI>The return values are detailed in the
+  <I>Description</I><A NAME="1097"></A>
+  field, not in the
+  <I>Synopsis</I><A NAME="1098"></A> field.
+</LI>
+<LI>The parameters are documented alongside their declarations.
+  Further comments may appear in the <I>Description</I> field.
+</LI>
+<LI>If the <I>Description</I> field is non-empty--which is the
+  normal case for an exported procedure--then the synopsis is
+  repeated--possibly slightly changed--at the beginning of the
+  <I>Description</I> field. This is so because extdoc will not put the
+  synopsis in the same HTML file<A NAME="1041"></A> as
+  the description.
+</LI>
+<LI>The <I>Synopsis</I> field should be about one line long.
+</LI>
+</UL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html154"
+  HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html150"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html144"
+  HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html152"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html155"
+  HREF="node5.html">The C++ Interface</A>
+<B> Up:</B> <A NAME="tex2html151"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html145"
+  HREF="node3.html">User's Manual</A>
+ &nbsp; <B>  <A NAME="tex2html153"
+  HREF="node8.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+Fabio Somenzi
+2012-02-04
+</ADDRESS>
+</BODY>
+</HTML>

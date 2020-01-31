@@ -1,0 +1,89 @@
+# --------------------------------------------------
+#
+# Makefile for building a standalone, staticly linked Bluesim executable
+#
+# Usage:
+#
+#   make [options]
+#
+# Example:
+#
+#   make TOPMOD=mkTb SIMDIR=simdir
+#
+# The following variables must be set, either in the environment or on the
+# command line:
+#
+#   BLUESPECDIR - The path to the Bluespec release 'lib' dir
+#
+#   TOPMOD      - The top module of the design
+#
+# Optional variables:
+#
+#   SIMDIR      - The location of the generated Bluesim C++ source files
+#                 (default: directory where 'make' is run)
+#
+#   OTHEROBJS   - Any additional files needed for linking (.o, .a)
+#
+#   OTHERLIBS   - Any additional dynamic libraries needed for linking
+#
+#   LIBDIRS     - Any additional search directories for finding dynamic libraries
+#
+#   EXE         - The name of the output executable (default: model.exe)
+#
+# --------------------------------------------------
+
+ifndef BLUESPECDIR
+$(error Variable BLUESPECDIR is not set)
+else
+$(info >>> BLUESPECDIR "$(BLUESPECDIR)")
+endif
+
+ifndef TOPMOD
+$(error Variable TOPMOD is not set)
+else
+$(info >>> TOPMOD "$(TOPMOD)")
+endif
+
+SIMDIR ?= .
+
+EXE ?= model.exe
+#EXE ?= $(TOPMOD).exe
+
+# ---------------
+
+CXXFAMILY=$(shell bsenv c++_family)
+
+BSIM_INCDIR=$(BLUESPECDIR)/Bluesim
+BSIM_LIBDIR=$(BLUESPECDIR)/Bluesim/$(CXXFAMILY)
+
+default: $(EXE)
+
+$(EXE): main_$(TOPMOD).cxx $(SIMDIR)/*.o
+	c++ -O3 \
+	    -g \
+		-D BLUESIM_TOP_MODULE=$(TOPMOD) \
+		-static \
+		-o $@ \
+		-I. \
+		-I$(BSIM_INCDIR) \
+		-I$(SIMDIR) \
+		$(addprefix -L, $(LIBDIRS)) \
+		$(OTHEROBJS) \
+		$^ \
+		-static-libgcc \
+		-static-libstdc++ \
+		$(BSIM_LIBDIR)/libbskernel.a \
+		$(BSIM_LIBDIR)/libbsprim.a \
+		-lpthread \
+		$(OTHERLIBS) \
+
+main_$(TOPMOD).cxx: main.cxx.template
+	sed 's/BLUESIM_TOP_MODULE/$(TOPMOD)/g' main.cxx.template > $@
+
+.PHONY: clean
+clean:
+
+.PHONY: realclean
+realclean: clean
+	rm -rf main_*.cxx
+	rm -rf $(EXE)

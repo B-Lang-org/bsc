@@ -1,0 +1,8 @@
+#Author : Steve Allen
+#name : function Action { ... }
+# --
+function Action ${1:name} ( ${2:args} );
+    action
+        $0
+    endaction
+endfunction : $1

@@ -1,0 +1,3114 @@
+<HTML>
+<HEAD><TITLE>cudd package abstract</TITLE></HEAD>
+<BODY>
+
+
+<!-- Function Abstracts -->
+
+<dl>
+<DT> <A HREF="cuddAllDet.html#AssessPathLength" TARGET="MAIN"><CODE>AssessPathLength()</CODE></A>
+<DD> Chooses the maximum allowable path length of nodes under the
+  threshold.
+
+<DT> <A HREF="cuddAllDet.html#BAapplyBias" TARGET="MAIN"><CODE>BAapplyBias()</CODE></A>
+<DD> Finds don't care nodes.
+
+<DT> <A HREF="cuddAllDet.html#BAmarkNodes" TARGET="MAIN"><CODE>BAmarkNodes()</CODE></A>
+<DD> Marks nodes for remapping.
+
+<DT> <A HREF="cuddAllDet.html#BuildConjuncts" TARGET="MAIN"><CODE>BuildConjuncts()</CODE></A>
+<DD> Builds the conjuncts recursively, bottom up.
+
+<DT> <A HREF="cuddAllDet.html#BuildSubsetBdd" TARGET="MAIN"><CODE>BuildSubsetBdd()</CODE></A>
+<DD> Builds the BDD with nodes labeled with path length less than or equal to maxpath
+
+<DT> <A HREF="cuddAllDet.html#BuildSubsetBdd" TARGET="MAIN"><CODE>BuildSubsetBdd()</CODE></A>
+<DD> Builds the subset BDD using the heavy branch method.
+
+<DT> <A HREF="cuddAllDet.html#CheckInTables" TARGET="MAIN"><CODE>CheckInTables()</CODE></A>
+<DD> Check if the two pairs exist in the table, If any of the
+  conjuncts do exist, store in the cache and return the corresponding pair.
+
+<DT> <A HREF="cuddAllDet.html#CheckTablesCacheAndReturn" TARGET="MAIN"><CODE>CheckTablesCacheAndReturn()</CODE></A>
+<DD> Check the tables for the existence of pair and return one
+  combination, cache the result.
+
+<DT> <A HREF="cuddAllDet.html#ConjunctsFree" TARGET="MAIN"><CODE>ConjunctsFree()</CODE></A>
+<DD> Free factors structure
+
+<DT> <A HREF="cuddAllDet.html#CorrelCleanUp" TARGET="MAIN"><CODE>CorrelCleanUp()</CODE></A>
+<DD> Frees memory associated with hash table.
+
+<DT> <A HREF="cuddAllDet.html#CorrelCompare" TARGET="MAIN"><CODE>CorrelCompare()</CODE></A>
+<DD> Compares two hash table entries.
+
+<DT> <A HREF="cuddAllDet.html#CorrelHash" TARGET="MAIN"><CODE>CorrelHash()</CODE></A>
+<DD> Hashes a hash table entry.
+
+<DT> <A HREF="cuddAllDet.html#CountMinterms" TARGET="MAIN"><CODE>CountMinterms()</CODE></A>
+<DD> Count the number of minterms of each node ina a BDD and
+  store it in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#CreateBotDist" TARGET="MAIN"><CODE>CreateBotDist()</CODE></A>
+<DD> Get longest distance of node from constant.
+
+<DT> <A HREF="cuddAllDet.html#CreateBotDist" TARGET="MAIN"><CODE>CreateBotDist()</CODE></A>
+<DD> Labels each node with the shortest distance from the constant.
+
+<DT> <A HREF="cuddAllDet.html#CreatePathTable" TARGET="MAIN"><CODE>CreatePathTable()</CODE></A>
+<DD> The outer procedure to label each node with its shortest
+  distance from the root and constant
+
+<DT> <A HREF="cuddAllDet.html#CreateTopDist" TARGET="MAIN"><CODE>CreateTopDist()</CODE></A>
+<DD> Labels each node with its shortest distance from the root
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AddHook" TARGET="MAIN"><CODE>Cudd_AddHook()</CODE></A>
+<DD> Adds a function to a hook.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaAdd" TARGET="MAIN"><CODE>Cudd_ApaAdd()</CODE></A>
+<DD> Adds two arbitrary precision integers.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaCompareRatios" TARGET="MAIN"><CODE>Cudd_ApaCompareRatios()</CODE></A>
+<DD> Compares the ratios of two arbitrary precision integers to two
+  unsigned ints.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaCompare" TARGET="MAIN"><CODE>Cudd_ApaCompare()</CODE></A>
+<DD> Compares two arbitrary precision integers.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaCopy" TARGET="MAIN"><CODE>Cudd_ApaCopy()</CODE></A>
+<DD> Makes a copy of an arbitrary precision integer.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaCountMinterm" TARGET="MAIN"><CODE>Cudd_ApaCountMinterm()</CODE></A>
+<DD> Counts the number of minterms of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaIntDivision" TARGET="MAIN"><CODE>Cudd_ApaIntDivision()</CODE></A>
+<DD> Divides an arbitrary precision integer by an integer.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaNumberOfDigits" TARGET="MAIN"><CODE>Cudd_ApaNumberOfDigits()</CODE></A>
+<DD> Finds the number of digits for an arbitrary precision
+  integer.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPowerOfTwo" TARGET="MAIN"><CODE>Cudd_ApaPowerOfTwo()</CODE></A>
+<DD> Sets an arbitrary precision integer to a power of two.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintDecimal" TARGET="MAIN"><CODE>Cudd_ApaPrintDecimal()</CODE></A>
+<DD> Prints an arbitrary precision integer in decimal format.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintDensity" TARGET="MAIN"><CODE>Cudd_ApaPrintDensity()</CODE></A>
+<DD> Prints the density of a BDD or ADD using
+  arbitrary precision arithmetic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintExponential" TARGET="MAIN"><CODE>Cudd_ApaPrintExponential()</CODE></A>
+<DD> Prints an arbitrary precision integer in exponential format.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintHex" TARGET="MAIN"><CODE>Cudd_ApaPrintHex()</CODE></A>
+<DD> Prints an arbitrary precision integer in hexadecimal format.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintMintermExp" TARGET="MAIN"><CODE>Cudd_ApaPrintMintermExp()</CODE></A>
+<DD> Prints the number of minterms of a BDD or ADD in exponential
+  format using arbitrary precision arithmetic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaPrintMinterm" TARGET="MAIN"><CODE>Cudd_ApaPrintMinterm()</CODE></A>
+<DD> Prints the number of minterms of a BDD or ADD using
+  arbitrary precision arithmetic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaSetToLiteral" TARGET="MAIN"><CODE>Cudd_ApaSetToLiteral()</CODE></A>
+<DD> Sets an arbitrary precision integer to a one-digit literal.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaShiftRight" TARGET="MAIN"><CODE>Cudd_ApaShiftRight()</CODE></A>
+<DD> Shifts right an arbitrary precision integer by one binary
+  place.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaShortDivision" TARGET="MAIN"><CODE>Cudd_ApaShortDivision()</CODE></A>
+<DD> Divides an arbitrary precision integer by a digit.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ApaSubtract" TARGET="MAIN"><CODE>Cudd_ApaSubtract()</CODE></A>
+<DD> Subtracts two arbitrary precision integers.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AutodynDisableZdd" TARGET="MAIN"><CODE>Cudd_AutodynDisableZdd()</CODE></A>
+<DD> Disables automatic dynamic reordering of ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AutodynDisable" TARGET="MAIN"><CODE>Cudd_AutodynDisable()</CODE></A>
+<DD> Disables automatic dynamic reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AutodynEnableZdd" TARGET="MAIN"><CODE>Cudd_AutodynEnableZdd()</CODE></A>
+<DD> Enables automatic dynamic reordering of ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AutodynEnable" TARGET="MAIN"><CODE>Cudd_AutodynEnable()</CODE></A>
+<DD> Enables automatic dynamic reordering of BDDs and ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_AverageDistance" TARGET="MAIN"><CODE>Cudd_AverageDistance()</CODE></A>
+<DD> Computes the average distance between adjacent nodes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_BddToAdd" TARGET="MAIN"><CODE>Cudd_BddToAdd()</CODE></A>
+<DD> Converts a BDD to a 0-1 ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_BddToCubeArray" TARGET="MAIN"><CODE>Cudd_BddToCubeArray()</CODE></A>
+<DD> Builds a positional array from the BDD of a cube.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_BiasedOverApprox" TARGET="MAIN"><CODE>Cudd_BiasedOverApprox()</CODE></A>
+<DD> Extracts a dense superset from a BDD with the biased
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_BiasedUnderApprox" TARGET="MAIN"><CODE>Cudd_BiasedUnderApprox()</CODE></A>
+<DD> Extracts a dense subset from a BDD with the biased
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CProjection" TARGET="MAIN"><CODE>Cudd_CProjection()</CODE></A>
+<DD> Computes the compatible projection of R w.r.t. cube Y.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CheckCube" TARGET="MAIN"><CODE>Cudd_CheckCube()</CODE></A>
+<DD> Checks whether g is the BDD of a cube.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CheckKeys" TARGET="MAIN"><CODE>Cudd_CheckKeys()</CODE></A>
+<DD> Checks for several conditions that should not occur.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CheckZeroRef" TARGET="MAIN"><CODE>Cudd_CheckZeroRef()</CODE></A>
+<DD> Checks the unique table for nodes with non-zero reference
+  counts.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ClassifySupport" TARGET="MAIN"><CODE>Cudd_ClassifySupport()</CODE></A>
+<DD> Classifies the variables in the support of two DDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ClearErrorCode" TARGET="MAIN"><CODE>Cudd_ClearErrorCode()</CODE></A>
+<DD> Clear the error code of a manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CofMinterm" TARGET="MAIN"><CODE>Cudd_CofMinterm()</CODE></A>
+<DD> Computes the fraction of minterms in the on-set of all the
+  positive cofactors of a BDD or ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Cofactor" TARGET="MAIN"><CODE>Cudd_Cofactor()</CODE></A>
+<DD> Computes the cofactor of f with respect to g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CountLeaves" TARGET="MAIN"><CODE>Cudd_CountLeaves()</CODE></A>
+<DD> Counts the number of leaves in a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CountMinterm" TARGET="MAIN"><CODE>Cudd_CountMinterm()</CODE></A>
+<DD> Counts the number of minterms of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CountPathsToNonZero" TARGET="MAIN"><CODE>Cudd_CountPathsToNonZero()</CODE></A>
+<DD> Counts the number of paths to a non-zero terminal of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CountPath" TARGET="MAIN"><CODE>Cudd_CountPath()</CODE></A>
+<DD> Counts the number of paths of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_CubeArrayToBdd" TARGET="MAIN"><CODE>Cudd_CubeArrayToBdd()</CODE></A>
+<DD> Builds the BDD of a cube from a positional array.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DagSize" TARGET="MAIN"><CODE>Cudd_DagSize()</CODE></A>
+<DD> Counts the number of nodes in a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DeadAreCounted" TARGET="MAIN"><CODE>Cudd_DeadAreCounted()</CODE></A>
+<DD> Tells whether dead nodes are counted towards triggering
+  reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DebugCheck" TARGET="MAIN"><CODE>Cudd_DebugCheck()</CODE></A>
+<DD> Checks for inconsistencies in the DD heap.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Decreasing" TARGET="MAIN"><CODE>Cudd_Decreasing()</CODE></A>
+<DD> Determines whether a BDD is negative unate in a
+  variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DelayedDerefBdd" TARGET="MAIN"><CODE>Cudd_DelayedDerefBdd()</CODE></A>
+<DD> Decreases the reference count of BDD node n.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Density" TARGET="MAIN"><CODE>Cudd_Density()</CODE></A>
+<DD> Computes the density of a BDD or ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Deref" TARGET="MAIN"><CODE>Cudd_Deref()</CODE></A>
+<DD> Decreases the reference count of node.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DisableGarbageCollection" TARGET="MAIN"><CODE>Cudd_DisableGarbageCollection()</CODE></A>
+<DD> Disables garbage collection.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DisableOrderingMonitoring" TARGET="MAIN"><CODE>Cudd_DisableOrderingMonitoring()</CODE></A>
+<DD> Disables monitoring of ordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DisableReorderingReporting" TARGET="MAIN"><CODE>Cudd_DisableReorderingReporting()</CODE></A>
+<DD> Disables reporting of reordering stats.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Disequality" TARGET="MAIN"><CODE>Cudd_Disequality()</CODE></A>
+<DD> Generates a BDD for the function x - y != c.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpBlifBody" TARGET="MAIN"><CODE>Cudd_DumpBlifBody()</CODE></A>
+<DD> Writes a blif body representing the argument BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpBlif" TARGET="MAIN"><CODE>Cudd_DumpBlif()</CODE></A>
+<DD> Writes a blif file representing the argument BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpDDcal" TARGET="MAIN"><CODE>Cudd_DumpDDcal()</CODE></A>
+<DD> Writes a DDcal file representing the argument BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpDaVinci" TARGET="MAIN"><CODE>Cudd_DumpDaVinci()</CODE></A>
+<DD> Writes a daVinci file representing the argument BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpDot" TARGET="MAIN"><CODE>Cudd_DumpDot()</CODE></A>
+<DD> Writes a dot file representing the argument DDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_DumpFactoredForm" TARGET="MAIN"><CODE>Cudd_DumpFactoredForm()</CODE></A>
+<DD> Writes factored forms representing the argument BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Dxygtdxz" TARGET="MAIN"><CODE>Cudd_Dxygtdxz()</CODE></A>
+<DD> Generates a BDD for the function d(x,y) &gt; d(x,z).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Dxygtdyz" TARGET="MAIN"><CODE>Cudd_Dxygtdyz()</CODE></A>
+<DD> Generates a BDD for the function d(x,y) &gt; d(y,z).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EnableGarbageCollection" TARGET="MAIN"><CODE>Cudd_EnableGarbageCollection()</CODE></A>
+<DD> Enables garbage collection.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EnableOrderingMonitoring" TARGET="MAIN"><CODE>Cudd_EnableOrderingMonitoring()</CODE></A>
+<DD> Enables monitoring of ordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EnableReorderingReporting" TARGET="MAIN"><CODE>Cudd_EnableReorderingReporting()</CODE></A>
+<DD> Enables reporting of reordering stats.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EpdCountMinterm" TARGET="MAIN"><CODE>Cudd_EpdCountMinterm()</CODE></A>
+<DD> Counts the number of minterms of a DD with extended precision.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EqualSupNorm" TARGET="MAIN"><CODE>Cudd_EqualSupNorm()</CODE></A>
+<DD> Compares two ADDs for equality within tolerance.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EquivDC" TARGET="MAIN"><CODE>Cudd_EquivDC()</CODE></A>
+<DD> Tells whether F and G are identical wherever D is 0.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EstimateCofactorSimple" TARGET="MAIN"><CODE>Cudd_EstimateCofactorSimple()</CODE></A>
+<DD> Estimates the number of nodes in a cofactor of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_EstimateCofactor" TARGET="MAIN"><CODE>Cudd_EstimateCofactor()</CODE></A>
+<DD> Estimates the number of nodes in a cofactor of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Eval" TARGET="MAIN"><CODE>Cudd_Eval()</CODE></A>
+<DD> Returns the value of a DD for a given variable assignment.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ExpectedUsedSlots" TARGET="MAIN"><CODE>Cudd_ExpectedUsedSlots()</CODE></A>
+<DD> Computes the expected fraction of used slots in the unique
+  table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FindEssential" TARGET="MAIN"><CODE>Cudd_FindEssential()</CODE></A>
+<DD> Finds the essential variables of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FindTwoLiteralClauses" TARGET="MAIN"><CODE>Cudd_FindTwoLiteralClauses()</CODE></A>
+<DD> Finds the two literal clauses of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FirstCube" TARGET="MAIN"><CODE>Cudd_FirstCube()</CODE></A>
+<DD> Finds the first cube of a decision diagram.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FirstNode" TARGET="MAIN"><CODE>Cudd_FirstNode()</CODE></A>
+<DD> Finds the first node of a decision diagram.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FirstPrime" TARGET="MAIN"><CODE>Cudd_FirstPrime()</CODE></A>
+<DD> Finds the first prime of a Boolean function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FreeTree" TARGET="MAIN"><CODE>Cudd_FreeTree()</CODE></A>
+<DD> Frees the variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_FreeZddTree" TARGET="MAIN"><CODE>Cudd_FreeZddTree()</CODE></A>
+<DD> Frees the variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_GarbageCollectionEnabled" TARGET="MAIN"><CODE>Cudd_GarbageCollectionEnabled()</CODE></A>
+<DD> Tells whether garbage collection is enabled.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_GenFree" TARGET="MAIN"><CODE>Cudd_GenFree()</CODE></A>
+<DD> Frees a CUDD generator.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IncreaseTimeLimit" TARGET="MAIN"><CODE>Cudd_IncreaseTimeLimit()</CODE></A>
+<DD> Increases the time limit for the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Increasing" TARGET="MAIN"><CODE>Cudd_Increasing()</CODE></A>
+<DD> Determines whether a BDD is positive unate in a
+  variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IndicesToCube" TARGET="MAIN"><CODE>Cudd_IndicesToCube()</CODE></A>
+<DD> Builds a cube of BDD variables from an array of indices.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Inequality" TARGET="MAIN"><CODE>Cudd_Inequality()</CODE></A>
+<DD> Generates a BDD for the function x - y &ge; c.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Init" TARGET="MAIN"><CODE>Cudd_Init()</CODE></A>
+<DD> Creates a new DD manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IsGenEmpty" TARGET="MAIN"><CODE>Cudd_IsGenEmpty()</CODE></A>
+<DD> Queries the status of a generator.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IsInHook" TARGET="MAIN"><CODE>Cudd_IsInHook()</CODE></A>
+<DD> Checks whether a function is in a hook.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IsNonConstant" TARGET="MAIN"><CODE>Cudd_IsNonConstant()</CODE></A>
+<DD> Returns 1 if a DD node is not constant.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_IterDerefBdd" TARGET="MAIN"><CODE>Cudd_IterDerefBdd()</CODE></A>
+<DD> Decreases the reference count of BDD node n.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_LargestCube" TARGET="MAIN"><CODE>Cudd_LargestCube()</CODE></A>
+<DD> Finds a largest cube in a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_MakeBddFromZddCover" TARGET="MAIN"><CODE>Cudd_MakeBddFromZddCover()</CODE></A>
+<DD> Converts a ZDD cover to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_MakeTreeNode" TARGET="MAIN"><CODE>Cudd_MakeTreeNode()</CODE></A>
+<DD> Creates a new variable group.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_MakeZddTreeNode" TARGET="MAIN"><CODE>Cudd_MakeZddTreeNode()</CODE></A>
+<DD> Creates a new ZDD variable group.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_MinHammingDist" TARGET="MAIN"><CODE>Cudd_MinHammingDist()</CODE></A>
+<DD> Returns the minimum Hamming distance between f and minterm.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_NewApaNumber" TARGET="MAIN"><CODE>Cudd_NewApaNumber()</CODE></A>
+<DD> Allocates memory for an arbitrary precision integer.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_NextCube" TARGET="MAIN"><CODE>Cudd_NextCube()</CODE></A>
+<DD> Generates the next cube of a decision diagram onset.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_NextNode" TARGET="MAIN"><CODE>Cudd_NextNode()</CODE></A>
+<DD> Finds the next node of a decision diagram.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_NextPrime" TARGET="MAIN"><CODE>Cudd_NextPrime()</CODE></A>
+<DD> Generates the next prime of a Boolean function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_NodeReadIndex" TARGET="MAIN"><CODE>Cudd_NodeReadIndex()</CODE></A>
+<DD> Returns the index of the node.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_OrderingMonitoring" TARGET="MAIN"><CODE>Cudd_OrderingMonitoring()</CODE></A>
+<DD> Returns 1 if monitoring of ordering is enabled.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_OutOfMem" TARGET="MAIN"><CODE>Cudd_OutOfMem()</CODE></A>
+<DD> Warns that a memory allocation failed.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_OverApprox" TARGET="MAIN"><CODE>Cudd_OverApprox()</CODE></A>
+<DD> Extracts a dense superset from a BDD with Shiple's
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Prime" TARGET="MAIN"><CODE>Cudd_Prime()</CODE></A>
+<DD> Returns the next prime &gt;= p.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintDebug" TARGET="MAIN"><CODE>Cudd_PrintDebug()</CODE></A>
+<DD> Prints to the standard output a DD and its statistics.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintGroupedOrder" TARGET="MAIN"><CODE>Cudd_PrintGroupedOrder()</CODE></A>
+<DD> Hook function to print the current variable order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintInfo" TARGET="MAIN"><CODE>Cudd_PrintInfo()</CODE></A>
+<DD> Prints out statistics and settings for a CUDD manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintLinear" TARGET="MAIN"><CODE>Cudd_PrintLinear()</CODE></A>
+<DD> Prints the linear transform matrix.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintMinterm" TARGET="MAIN"><CODE>Cudd_PrintMinterm()</CODE></A>
+<DD> Prints a disjoint sum of products.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintTwoLiteralClauses" TARGET="MAIN"><CODE>Cudd_PrintTwoLiteralClauses()</CODE></A>
+<DD> Prints the two literal clauses of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrintVersion" TARGET="MAIN"><CODE>Cudd_PrintVersion()</CODE></A>
+<DD> Prints the package version number.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_PrioritySelect" TARGET="MAIN"><CODE>Cudd_PrioritySelect()</CODE></A>
+<DD> Selects pairs from R using a priority function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Quit" TARGET="MAIN"><CODE>Cudd_Quit()</CODE></A>
+<DD> Deletes resources associated with a DD manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Random" TARGET="MAIN"><CODE>Cudd_Random()</CODE></A>
+<DD> Portable random number generator.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadArcviolation" TARGET="MAIN"><CODE>Cudd_ReadArcviolation()</CODE></A>
+<DD> Returns the current value of the arcviolation parameter used
+  in group sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadBackground" TARGET="MAIN"><CODE>Cudd_ReadBackground()</CODE></A>
+<DD> Reads the background constant of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadCacheHits" TARGET="MAIN"><CODE>Cudd_ReadCacheHits()</CODE></A>
+<DD> Returns the number of cache hits.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadCacheLookUps" TARGET="MAIN"><CODE>Cudd_ReadCacheLookUps()</CODE></A>
+<DD> Returns the number of cache look-ups.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadCacheSlots" TARGET="MAIN"><CODE>Cudd_ReadCacheSlots()</CODE></A>
+<DD> Reads the number of slots in the cache.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadCacheUsedSlots" TARGET="MAIN"><CODE>Cudd_ReadCacheUsedSlots()</CODE></A>
+<DD> Reads the fraction of used slots in the cache.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadDead" TARGET="MAIN"><CODE>Cudd_ReadDead()</CODE></A>
+<DD> Returns the number of dead nodes in the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadElapsedTime" TARGET="MAIN"><CODE>Cudd_ReadElapsedTime()</CODE></A>
+<DD> Returns the time elapsed since the start time of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadEpsilon" TARGET="MAIN"><CODE>Cudd_ReadEpsilon()</CODE></A>
+<DD> Reads the epsilon parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadErrorCode" TARGET="MAIN"><CODE>Cudd_ReadErrorCode()</CODE></A>
+<DD> Returns the code of the last error.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadGarbageCollectionTime" TARGET="MAIN"><CODE>Cudd_ReadGarbageCollectionTime()</CODE></A>
+<DD> Returns the time spent in garbage collection.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadGarbageCollections" TARGET="MAIN"><CODE>Cudd_ReadGarbageCollections()</CODE></A>
+<DD> Returns the number of times garbage collection has occurred.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadGroupcheck" TARGET="MAIN"><CODE>Cudd_ReadGroupcheck()</CODE></A>
+<DD> Reads the groupcheck parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadInvPermZdd" TARGET="MAIN"><CODE>Cudd_ReadInvPermZdd()</CODE></A>
+<DD> Returns the index of the ZDD variable currently in the i-th
+  position of the order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadInvPerm" TARGET="MAIN"><CODE>Cudd_ReadInvPerm()</CODE></A>
+<DD> Returns the index of the variable currently in the i-th
+  position of the order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadIthClause" TARGET="MAIN"><CODE>Cudd_ReadIthClause()</CODE></A>
+<DD> Accesses the i-th clause of a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadKeys" TARGET="MAIN"><CODE>Cudd_ReadKeys()</CODE></A>
+<DD> Returns the number of nodes in the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadLinear" TARGET="MAIN"><CODE>Cudd_ReadLinear()</CODE></A>
+<DD> Reads an entry of the linear transform matrix.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadLogicZero" TARGET="MAIN"><CODE>Cudd_ReadLogicZero()</CODE></A>
+<DD> Returns the logic zero constant of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadLooseUpTo" TARGET="MAIN"><CODE>Cudd_ReadLooseUpTo()</CODE></A>
+<DD> Reads the looseUpTo parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxCacheHard" TARGET="MAIN"><CODE>Cudd_ReadMaxCacheHard()</CODE></A>
+<DD> Reads the maxCacheHard parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxCache" TARGET="MAIN"><CODE>Cudd_ReadMaxCache()</CODE></A>
+<DD> Returns the soft limit for the cache size.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxGrowthAlternate" TARGET="MAIN"><CODE>Cudd_ReadMaxGrowthAlternate()</CODE></A>
+<DD> Reads the maxGrowthAlt parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxGrowth" TARGET="MAIN"><CODE>Cudd_ReadMaxGrowth()</CODE></A>
+<DD> Reads the maxGrowth parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxLive" TARGET="MAIN"><CODE>Cudd_ReadMaxLive()</CODE></A>
+<DD> Reads the maximum allowed number of live nodes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxMemory" TARGET="MAIN"><CODE>Cudd_ReadMaxMemory()</CODE></A>
+<DD> Reads the maximum allowed memory.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMaxReorderings" TARGET="MAIN"><CODE>Cudd_ReadMaxReorderings()</CODE></A>
+<DD> Returns the maximum number of times reordering may be invoked.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMemoryInUse" TARGET="MAIN"><CODE>Cudd_ReadMemoryInUse()</CODE></A>
+<DD> Returns the memory in use by the manager measured in bytes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMinDead" TARGET="MAIN"><CODE>Cudd_ReadMinDead()</CODE></A>
+<DD> Reads the minDead parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMinHit" TARGET="MAIN"><CODE>Cudd_ReadMinHit()</CODE></A>
+<DD> Reads the hit rate that causes resizinig of the computed
+  table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadMinusInfinity" TARGET="MAIN"><CODE>Cudd_ReadMinusInfinity()</CODE></A>
+<DD> Reads the minus-infinity constant from the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadNextReordering" TARGET="MAIN"><CODE>Cudd_ReadNextReordering()</CODE></A>
+<DD> Returns the threshold for the next dynamic reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadNodeCount" TARGET="MAIN"><CODE>Cudd_ReadNodeCount()</CODE></A>
+<DD> Reports the number of nodes in BDDs and ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadNodesDropped" TARGET="MAIN"><CODE>Cudd_ReadNodesDropped()</CODE></A>
+<DD> Returns the number of nodes dropped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadNodesFreed" TARGET="MAIN"><CODE>Cudd_ReadNodesFreed()</CODE></A>
+<DD> Returns the number of nodes freed.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadNumberXovers" TARGET="MAIN"><CODE>Cudd_ReadNumberXovers()</CODE></A>
+<DD> Reads the current number of crossovers used by the
+  genetic algorithm for reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadOne" TARGET="MAIN"><CODE>Cudd_ReadOne()</CODE></A>
+<DD> Returns the one constant of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadOrderRandomization" TARGET="MAIN"><CODE>Cudd_ReadOrderRandomization()</CODE></A>
+<DD> Returns the order randomization factor.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPeakLiveNodeCount" TARGET="MAIN"><CODE>Cudd_ReadPeakLiveNodeCount()</CODE></A>
+<DD> Reports the peak number of live nodes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPeakNodeCount" TARGET="MAIN"><CODE>Cudd_ReadPeakNodeCount()</CODE></A>
+<DD> Reports the peak number of nodes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPermZdd" TARGET="MAIN"><CODE>Cudd_ReadPermZdd()</CODE></A>
+<DD> Returns the current position of the i-th ZDD variable in the
+  order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPerm" TARGET="MAIN"><CODE>Cudd_ReadPerm()</CODE></A>
+<DD> Returns the current position of the i-th variable in the
+  order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPlusInfinity" TARGET="MAIN"><CODE>Cudd_ReadPlusInfinity()</CODE></A>
+<DD> Reads the plus-infinity constant from the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadPopulationSize" TARGET="MAIN"><CODE>Cudd_ReadPopulationSize()</CODE></A>
+<DD> Reads the current size of the population used by the
+  genetic algorithm for reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadRecomb" TARGET="MAIN"><CODE>Cudd_ReadRecomb()</CODE></A>
+<DD> Returns the current value of the recombination parameter used
+  in group sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadRecursiveCalls" TARGET="MAIN"><CODE>Cudd_ReadRecursiveCalls()</CODE></A>
+<DD> Returns the number of recursive calls.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadReorderingCycle" TARGET="MAIN"><CODE>Cudd_ReadReorderingCycle()</CODE></A>
+<DD> Reads the reordCycle parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadReorderingTime" TARGET="MAIN"><CODE>Cudd_ReadReorderingTime()</CODE></A>
+<DD> Returns the time spent in reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadReorderings" TARGET="MAIN"><CODE>Cudd_ReadReorderings()</CODE></A>
+<DD> Returns the number of times reordering has occurred.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSiftMaxSwap" TARGET="MAIN"><CODE>Cudd_ReadSiftMaxSwap()</CODE></A>
+<DD> Reads the siftMaxSwap parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSiftMaxVar" TARGET="MAIN"><CODE>Cudd_ReadSiftMaxVar()</CODE></A>
+<DD> Reads the siftMaxVar parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSize" TARGET="MAIN"><CODE>Cudd_ReadSize()</CODE></A>
+<DD> Returns the number of BDD variables in existance.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSlots" TARGET="MAIN"><CODE>Cudd_ReadSlots()</CODE></A>
+<DD> Returns the total number of slots of the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadStartTime" TARGET="MAIN"><CODE>Cudd_ReadStartTime()</CODE></A>
+<DD> Returns the start time of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadStderr" TARGET="MAIN"><CODE>Cudd_ReadStderr()</CODE></A>
+<DD> Reads the stderr of a manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadStdout" TARGET="MAIN"><CODE>Cudd_ReadStdout()</CODE></A>
+<DD> Reads the stdout of a manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSwapSteps" TARGET="MAIN"><CODE>Cudd_ReadSwapSteps()</CODE></A>
+<DD> Reads the number of elementary reordering steps.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadSymmviolation" TARGET="MAIN"><CODE>Cudd_ReadSymmviolation()</CODE></A>
+<DD> Returns the current value of the symmviolation parameter used
+  in group sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadTimeLimit" TARGET="MAIN"><CODE>Cudd_ReadTimeLimit()</CODE></A>
+<DD> Returns the time limit for the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadTree" TARGET="MAIN"><CODE>Cudd_ReadTree()</CODE></A>
+<DD> Returns the variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadUniqueLinks" TARGET="MAIN"><CODE>Cudd_ReadUniqueLinks()</CODE></A>
+<DD> Returns the number of links followed in the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadUniqueLookUps" TARGET="MAIN"><CODE>Cudd_ReadUniqueLookUps()</CODE></A>
+<DD> Returns the number of look-ups in the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadUsedSlots" TARGET="MAIN"><CODE>Cudd_ReadUsedSlots()</CODE></A>
+<DD> Reads the fraction of used slots in the unique table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadVars" TARGET="MAIN"><CODE>Cudd_ReadVars()</CODE></A>
+<DD> Returns the i-th element of the vars array.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadZddOne" TARGET="MAIN"><CODE>Cudd_ReadZddOne()</CODE></A>
+<DD> Returns the ZDD for the constant 1 function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadZddSize" TARGET="MAIN"><CODE>Cudd_ReadZddSize()</CODE></A>
+<DD> Returns the number of ZDD variables in existance.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadZddTree" TARGET="MAIN"><CODE>Cudd_ReadZddTree()</CODE></A>
+<DD> Returns the variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReadZero" TARGET="MAIN"><CODE>Cudd_ReadZero()</CODE></A>
+<DD> Returns the zero constant of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_RecursiveDerefZdd" TARGET="MAIN"><CODE>Cudd_RecursiveDerefZdd()</CODE></A>
+<DD> Decreases the reference count of ZDD node n.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_RecursiveDeref" TARGET="MAIN"><CODE>Cudd_RecursiveDeref()</CODE></A>
+<DD> Decreases the reference count of node n.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReduceHeap" TARGET="MAIN"><CODE>Cudd_ReduceHeap()</CODE></A>
+<DD> Main dynamic reordering routine.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Ref" TARGET="MAIN"><CODE>Cudd_Ref()</CODE></A>
+<DD> Increases the reference count of a node, if it is not
+  saturated.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_RemapOverApprox" TARGET="MAIN"><CODE>Cudd_RemapOverApprox()</CODE></A>
+<DD> Extracts a dense superset from a BDD with the remapping
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_RemapUnderApprox" TARGET="MAIN"><CODE>Cudd_RemapUnderApprox()</CODE></A>
+<DD> Extracts a dense subset from a BDD with the remapping
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_RemoveHook" TARGET="MAIN"><CODE>Cudd_RemoveHook()</CODE></A>
+<DD> Removes a function from a hook.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReorderingReporting" TARGET="MAIN"><CODE>Cudd_ReorderingReporting()</CODE></A>
+<DD> Returns 1 if reporting of reordering stats is enabled.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReorderingStatusZdd" TARGET="MAIN"><CODE>Cudd_ReorderingStatusZdd()</CODE></A>
+<DD> Reports the status of automatic dynamic reordering of ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ReorderingStatus" TARGET="MAIN"><CODE>Cudd_ReorderingStatus()</CODE></A>
+<DD> Reports the status of automatic dynamic reordering of BDDs
+  and ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Reserve" TARGET="MAIN"><CODE>Cudd_Reserve()</CODE></A>
+<DD> Expand manager without creating variables.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ResetStartTime" TARGET="MAIN"><CODE>Cudd_ResetStartTime()</CODE></A>
+<DD> Resets the start time of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetArcviolation" TARGET="MAIN"><CODE>Cudd_SetArcviolation()</CODE></A>
+<DD> Sets the value of the arcviolation parameter used
+  in group sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetBackground" TARGET="MAIN"><CODE>Cudd_SetBackground()</CODE></A>
+<DD> Sets the background constant of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetEpsilon" TARGET="MAIN"><CODE>Cudd_SetEpsilon()</CODE></A>
+<DD> Sets the epsilon parameter of the manager to ep.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetGroupcheck" TARGET="MAIN"><CODE>Cudd_SetGroupcheck()</CODE></A>
+<DD> Sets the parameter groupcheck of the manager to gc.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetLooseUpTo" TARGET="MAIN"><CODE>Cudd_SetLooseUpTo()</CODE></A>
+<DD> Sets the looseUpTo parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxCacheHard" TARGET="MAIN"><CODE>Cudd_SetMaxCacheHard()</CODE></A>
+<DD> Sets the maxCacheHard parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxGrowthAlternate" TARGET="MAIN"><CODE>Cudd_SetMaxGrowthAlternate()</CODE></A>
+<DD> Sets the maxGrowthAlt parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxGrowth" TARGET="MAIN"><CODE>Cudd_SetMaxGrowth()</CODE></A>
+<DD> Sets the maxGrowth parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxLive" TARGET="MAIN"><CODE>Cudd_SetMaxLive()</CODE></A>
+<DD> Sets the maximum allowed number of live nodes.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxMemory" TARGET="MAIN"><CODE>Cudd_SetMaxMemory()</CODE></A>
+<DD> Sets the maximum allowed memory.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMaxReorderings" TARGET="MAIN"><CODE>Cudd_SetMaxReorderings()</CODE></A>
+<DD> Sets the maximum number of times reordering may be invoked.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetMinHit" TARGET="MAIN"><CODE>Cudd_SetMinHit()</CODE></A>
+<DD> Sets the hit rate that causes resizinig of the computed
+  table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetNextReordering" TARGET="MAIN"><CODE>Cudd_SetNextReordering()</CODE></A>
+<DD> Sets the threshold for the next dynamic reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetNumberXovers" TARGET="MAIN"><CODE>Cudd_SetNumberXovers()</CODE></A>
+<DD> Sets the number of crossovers used by the
+  genetic algorithm for reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetOrderRandomization" TARGET="MAIN"><CODE>Cudd_SetOrderRandomization()</CODE></A>
+<DD> Sets the order randomization factor.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetPopulationSize" TARGET="MAIN"><CODE>Cudd_SetPopulationSize()</CODE></A>
+<DD> Sets the size of the population used by the
+  genetic algorithm for reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetRecomb" TARGET="MAIN"><CODE>Cudd_SetRecomb()</CODE></A>
+<DD> Sets the value of the recombination parameter used in group
+  sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetReorderingCycle" TARGET="MAIN"><CODE>Cudd_SetReorderingCycle()</CODE></A>
+<DD> Sets the reordCycle parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetSiftMaxSwap" TARGET="MAIN"><CODE>Cudd_SetSiftMaxSwap()</CODE></A>
+<DD> Sets the siftMaxSwap parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetSiftMaxVar" TARGET="MAIN"><CODE>Cudd_SetSiftMaxVar()</CODE></A>
+<DD> Sets the siftMaxVar parameter of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetStartTime" TARGET="MAIN"><CODE>Cudd_SetStartTime()</CODE></A>
+<DD> Sets the start time of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetStderr" TARGET="MAIN"><CODE>Cudd_SetStderr()</CODE></A>
+<DD> Sets the stderr of a manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetStdout" TARGET="MAIN"><CODE>Cudd_SetStdout()</CODE></A>
+<DD> Sets the stdout of a manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetSymmviolation" TARGET="MAIN"><CODE>Cudd_SetSymmviolation()</CODE></A>
+<DD> Sets the value of the symmviolation parameter used
+  in group sifting.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetTimeLimit" TARGET="MAIN"><CODE>Cudd_SetTimeLimit()</CODE></A>
+<DD> Sets the time limit for the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetTree" TARGET="MAIN"><CODE>Cudd_SetTree()</CODE></A>
+<DD> Sets the variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetVarMap" TARGET="MAIN"><CODE>Cudd_SetVarMap()</CODE></A>
+<DD> Registers a variable mapping with the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SetZddTree" TARGET="MAIN"><CODE>Cudd_SetZddTree()</CODE></A>
+<DD> Sets the ZDD variable group tree of the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SharingSize" TARGET="MAIN"><CODE>Cudd_SharingSize()</CODE></A>
+<DD> Counts the number of nodes in an array of DDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ShortestLength" TARGET="MAIN"><CODE>Cudd_ShortestLength()</CODE></A>
+<DD> Find the length of the shortest path(s) in a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ShortestPath" TARGET="MAIN"><CODE>Cudd_ShortestPath()</CODE></A>
+<DD> Finds a shortest path in a DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_ShuffleHeap" TARGET="MAIN"><CODE>Cudd_ShuffleHeap()</CODE></A>
+<DD> Reorders variables according to given permutation.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SolveEqn" TARGET="MAIN"><CODE>Cudd_SolveEqn()</CODE></A>
+<DD> Implements the solution of F(x,y) = 0.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SplitSet" TARGET="MAIN"><CODE>Cudd_SplitSet()</CODE></A>
+<DD> Returns m minterms from a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Srandom" TARGET="MAIN"><CODE>Cudd_Srandom()</CODE></A>
+<DD> Initializer for the portable random number generator.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_StdPostReordHook" TARGET="MAIN"><CODE>Cudd_StdPostReordHook()</CODE></A>
+<DD> Sample hook function to call after reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_StdPreReordHook" TARGET="MAIN"><CODE>Cudd_StdPreReordHook()</CODE></A>
+<DD> Sample hook function to call before reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SubsetCompress" TARGET="MAIN"><CODE>Cudd_SubsetCompress()</CODE></A>
+<DD> Find a dense subset of BDD <code>f</code>.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SubsetHeavyBranch" TARGET="MAIN"><CODE>Cudd_SubsetHeavyBranch()</CODE></A>
+<DD> Extracts a dense subset from a BDD with the heavy branch
+  heuristic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SubsetShortPaths" TARGET="MAIN"><CODE>Cudd_SubsetShortPaths()</CODE></A>
+<DD> Extracts a dense subset from a BDD with the shortest paths
+  heuristic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SubsetWithMaskVars" TARGET="MAIN"><CODE>Cudd_SubsetWithMaskVars()</CODE></A>
+<DD> Extracts a subset from a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupersetCompress" TARGET="MAIN"><CODE>Cudd_SupersetCompress()</CODE></A>
+<DD> Find a dense superset of BDD <code>f</code>.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupersetHeavyBranch" TARGET="MAIN"><CODE>Cudd_SupersetHeavyBranch()</CODE></A>
+<DD> Extracts a dense superset from a BDD with the heavy branch
+  heuristic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupersetShortPaths" TARGET="MAIN"><CODE>Cudd_SupersetShortPaths()</CODE></A>
+<DD> Extracts a dense superset from a BDD with the shortest paths
+  heuristic.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupportIndex" TARGET="MAIN"><CODE>Cudd_SupportIndex()</CODE></A>
+<DD> Finds the variables on which a DD depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupportIndices" TARGET="MAIN"><CODE>Cudd_SupportIndices()</CODE></A>
+<DD> Finds the variables on which a DD depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SupportSize" TARGET="MAIN"><CODE>Cudd_SupportSize()</CODE></A>
+<DD> Counts the variables on which a DD depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Support" TARGET="MAIN"><CODE>Cudd_Support()</CODE></A>
+<DD> Finds the variables on which a DD depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_SymmProfile" TARGET="MAIN"><CODE>Cudd_SymmProfile()</CODE></A>
+<DD> Prints statistics on symmetric variables.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_TimeLimited" TARGET="MAIN"><CODE>Cudd_TimeLimited()</CODE></A>
+<DD> Returns true if the time limit for the manager is set.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_TurnOffCountDead" TARGET="MAIN"><CODE>Cudd_TurnOffCountDead()</CODE></A>
+<DD> Causes the dead nodes not to be counted towards triggering
+  reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_TurnOnCountDead" TARGET="MAIN"><CODE>Cudd_TurnOnCountDead()</CODE></A>
+<DD> Causes the dead nodes to be counted towards triggering
+  reordering.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_UnderApprox" TARGET="MAIN"><CODE>Cudd_UnderApprox()</CODE></A>
+<DD> Extracts a dense subset from a BDD with Shiple's
+  underapproximation method.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_UnsetTimeLimit" TARGET="MAIN"><CODE>Cudd_UnsetTimeLimit()</CODE></A>
+<DD> Unsets the time limit for the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_UpdateTimeLimit" TARGET="MAIN"><CODE>Cudd_UpdateTimeLimit()</CODE></A>
+<DD> Updates the time limit for the manager.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_VectorSupportIndex" TARGET="MAIN"><CODE>Cudd_VectorSupportIndex()</CODE></A>
+<DD> Finds the variables on which a set of DDs depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_VectorSupportIndices" TARGET="MAIN"><CODE>Cudd_VectorSupportIndices()</CODE></A>
+<DD> Finds the variables on which a set of DDs depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_VectorSupportSize" TARGET="MAIN"><CODE>Cudd_VectorSupportSize()</CODE></A>
+<DD> Counts the variables on which a set of DDs depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_VectorSupport" TARGET="MAIN"><CODE>Cudd_VectorSupport()</CODE></A>
+<DD> Finds the variables on which a set of DDs depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_VerifySol" TARGET="MAIN"><CODE>Cudd_VerifySol()</CODE></A>
+<DD> Checks the solution of F(x,y) = 0.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Xeqy" TARGET="MAIN"><CODE>Cudd_Xeqy()</CODE></A>
+<DD> Generates a BDD for the function x==y.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_Xgty" TARGET="MAIN"><CODE>Cudd_Xgty()</CODE></A>
+<DD> Generates a BDD for the function x &gt; y.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addAgreement" TARGET="MAIN"><CODE>Cudd_addAgreement()</CODE></A>
+<DD> f if f==g; background if f!=g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addApply" TARGET="MAIN"><CODE>Cudd_addApply()</CODE></A>
+<DD> Applies op to the corresponding discriminants of f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addBddInterval" TARGET="MAIN"><CODE>Cudd_addBddInterval()</CODE></A>
+<DD> Converts an ADD to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addBddIthBit" TARGET="MAIN"><CODE>Cudd_addBddIthBit()</CODE></A>
+<DD> Converts an ADD to a BDD by extracting the i-th bit from
+  the leaves.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addBddPattern" TARGET="MAIN"><CODE>Cudd_addBddPattern()</CODE></A>
+<DD> Converts an ADD to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addBddStrictThreshold" TARGET="MAIN"><CODE>Cudd_addBddStrictThreshold()</CODE></A>
+<DD> Converts an ADD to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addBddThreshold" TARGET="MAIN"><CODE>Cudd_addBddThreshold()</CODE></A>
+<DD> Converts an ADD to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addCmpl" TARGET="MAIN"><CODE>Cudd_addCmpl()</CODE></A>
+<DD> Computes the complement of an ADD a la C language.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addCompose" TARGET="MAIN"><CODE>Cudd_addCompose()</CODE></A>
+<DD> Substitutes g for x_v in the ADD for f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addComputeCube" TARGET="MAIN"><CODE>Cudd_addComputeCube()</CODE></A>
+<DD> Computes the cube of an array of ADD variables.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addConstrain" TARGET="MAIN"><CODE>Cudd_addConstrain()</CODE></A>
+<DD> Computes f constrain c for ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addConst" TARGET="MAIN"><CODE>Cudd_addConst()</CODE></A>
+<DD> Returns the ADD for constant c.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addDiff" TARGET="MAIN"><CODE>Cudd_addDiff()</CODE></A>
+<DD> Returns plusinfinity if f=g; returns min(f,g) if f!=g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addDivide" TARGET="MAIN"><CODE>Cudd_addDivide()</CODE></A>
+<DD> Integer and floating point division.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addEvalConst" TARGET="MAIN"><CODE>Cudd_addEvalConst()</CODE></A>
+<DD> Checks whether ADD g is constant whenever ADD f is 1.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addExistAbstract" TARGET="MAIN"><CODE>Cudd_addExistAbstract()</CODE></A>
+<DD> Existentially Abstracts all the variables in cube from f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addFindMax" TARGET="MAIN"><CODE>Cudd_addFindMax()</CODE></A>
+<DD> Finds the maximum discriminant of f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addFindMin" TARGET="MAIN"><CODE>Cudd_addFindMin()</CODE></A>
+<DD> Finds the minimum discriminant of f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addGeneralVectorCompose" TARGET="MAIN"><CODE>Cudd_addGeneralVectorCompose()</CODE></A>
+<DD> Composes an ADD with a vector of ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addHamming" TARGET="MAIN"><CODE>Cudd_addHamming()</CODE></A>
+<DD> Computes the Hamming distance ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addHarwell" TARGET="MAIN"><CODE>Cudd_addHarwell()</CODE></A>
+<DD> Reads in a matrix in the format of the Harwell-Boeing
+  benchmark suite.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addIteConstant" TARGET="MAIN"><CODE>Cudd_addIteConstant()</CODE></A>
+<DD> Implements ITEconstant for ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addIte" TARGET="MAIN"><CODE>Cudd_addIte()</CODE></A>
+<DD> Implements ITE(f,g,h).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addIthBit" TARGET="MAIN"><CODE>Cudd_addIthBit()</CODE></A>
+<DD> Extracts the i-th bit from an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addIthVar" TARGET="MAIN"><CODE>Cudd_addIthVar()</CODE></A>
+<DD> Returns the ADD variable with index i.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addLeq" TARGET="MAIN"><CODE>Cudd_addLeq()</CODE></A>
+<DD> Determines whether f is less than or equal to g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addLog" TARGET="MAIN"><CODE>Cudd_addLog()</CODE></A>
+<DD> Natural logarithm of an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addMatrixMultiply" TARGET="MAIN"><CODE>Cudd_addMatrixMultiply()</CODE></A>
+<DD> Calculates the product of two matrices represented as
+  ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addMaximum" TARGET="MAIN"><CODE>Cudd_addMaximum()</CODE></A>
+<DD> Integer and floating point max.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addMinimum" TARGET="MAIN"><CODE>Cudd_addMinimum()</CODE></A>
+<DD> Integer and floating point min.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addMinus" TARGET="MAIN"><CODE>Cudd_addMinus()</CODE></A>
+<DD> Integer and floating point subtraction.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addMonadicApply" TARGET="MAIN"><CODE>Cudd_addMonadicApply()</CODE></A>
+<DD> Applies op to the discriminants of f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNand" TARGET="MAIN"><CODE>Cudd_addNand()</CODE></A>
+<DD> NAND of two 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNegate" TARGET="MAIN"><CODE>Cudd_addNegate()</CODE></A>
+<DD> Computes the additive inverse of an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNewVarAtLevel" TARGET="MAIN"><CODE>Cudd_addNewVarAtLevel()</CODE></A>
+<DD> Returns a new ADD variable at a specified level.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNewVar" TARGET="MAIN"><CODE>Cudd_addNewVar()</CODE></A>
+<DD> Returns a new ADD variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNonSimCompose" TARGET="MAIN"><CODE>Cudd_addNonSimCompose()</CODE></A>
+<DD> Composes an ADD with a vector of 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addNor" TARGET="MAIN"><CODE>Cudd_addNor()</CODE></A>
+<DD> NOR of two 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addOneZeroMaximum" TARGET="MAIN"><CODE>Cudd_addOneZeroMaximum()</CODE></A>
+<DD> Returns 1 if f &gt; g and 0 otherwise.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addOrAbstract" TARGET="MAIN"><CODE>Cudd_addOrAbstract()</CODE></A>
+<DD> Disjunctively abstracts all the variables in cube from the
+  0-1 ADD f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addOr" TARGET="MAIN"><CODE>Cudd_addOr()</CODE></A>
+<DD> Disjunction of two 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addOuterSum" TARGET="MAIN"><CODE>Cudd_addOuterSum()</CODE></A>
+<DD> Takes the minimum of a matrix and the outer sum of two vectors.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addPermute" TARGET="MAIN"><CODE>Cudd_addPermute()</CODE></A>
+<DD> Permutes the variables of an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addPlus" TARGET="MAIN"><CODE>Cudd_addPlus()</CODE></A>
+<DD> Integer and floating point addition.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addRead" TARGET="MAIN"><CODE>Cudd_addRead()</CODE></A>
+<DD> Reads in a sparse matrix.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addResidue" TARGET="MAIN"><CODE>Cudd_addResidue()</CODE></A>
+<DD> Builds an ADD for the residue modulo m of an n-bit
+  number.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addRestrict" TARGET="MAIN"><CODE>Cudd_addRestrict()</CODE></A>
+<DD> ADD restrict according to Coudert and Madre's algorithm
+  (ICCAD90).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addRoundOff" TARGET="MAIN"><CODE>Cudd_addRoundOff()</CODE></A>
+<DD> Rounds off the discriminants of an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addScalarInverse" TARGET="MAIN"><CODE>Cudd_addScalarInverse()</CODE></A>
+<DD> Computes the scalar inverse of an ADD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addSetNZ" TARGET="MAIN"><CODE>Cudd_addSetNZ()</CODE></A>
+<DD> This operator sets f to the value of g wherever g != 0.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addSwapVariables" TARGET="MAIN"><CODE>Cudd_addSwapVariables()</CODE></A>
+<DD> Swaps two sets of variables of the same size (x and y) in
+  the ADD f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addThreshold" TARGET="MAIN"><CODE>Cudd_addThreshold()</CODE></A>
+<DD> f if f&gt;=g; 0 if f&lt;g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addTimesPlus" TARGET="MAIN"><CODE>Cudd_addTimesPlus()</CODE></A>
+<DD> Calculates the product of two matrices represented as
+  ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addTimes" TARGET="MAIN"><CODE>Cudd_addTimes()</CODE></A>
+<DD> Integer and floating point multiplication.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addTriangle" TARGET="MAIN"><CODE>Cudd_addTriangle()</CODE></A>
+<DD> Performs the triangulation step for the shortest path
+  computation.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addUnivAbstract" TARGET="MAIN"><CODE>Cudd_addUnivAbstract()</CODE></A>
+<DD> Universally Abstracts all the variables in cube from f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addVectorCompose" TARGET="MAIN"><CODE>Cudd_addVectorCompose()</CODE></A>
+<DD> Composes an ADD with a vector of 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addWalsh" TARGET="MAIN"><CODE>Cudd_addWalsh()</CODE></A>
+<DD> Generates a Walsh matrix in ADD form.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addXeqy" TARGET="MAIN"><CODE>Cudd_addXeqy()</CODE></A>
+<DD> Generates an ADD for the function x==y.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addXnor" TARGET="MAIN"><CODE>Cudd_addXnor()</CODE></A>
+<DD> XNOR of two 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_addXor" TARGET="MAIN"><CODE>Cudd_addXor()</CODE></A>
+<DD> XOR of two 0-1 ADDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddAdjPermuteX" TARGET="MAIN"><CODE>Cudd_bddAdjPermuteX()</CODE></A>
+<DD> Rearranges a set of variables in the BDD B.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddAndAbstractLimit" TARGET="MAIN"><CODE>Cudd_bddAndAbstractLimit()</CODE></A>
+<DD> Takes the AND of two BDDs and simultaneously abstracts the
+  variables in cube.  Returns NULL if too many nodes are required.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddAndAbstract" TARGET="MAIN"><CODE>Cudd_bddAndAbstract()</CODE></A>
+<DD> Takes the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddAndLimit" TARGET="MAIN"><CODE>Cudd_bddAndLimit()</CODE></A>
+<DD> Computes the conjunction of two BDDs f and g.  Returns
+  NULL if too many nodes are required.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddAnd" TARGET="MAIN"><CODE>Cudd_bddAnd()</CODE></A>
+<DD> Computes the conjunction of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddApproxConjDecomp" TARGET="MAIN"><CODE>Cudd_bddApproxConjDecomp()</CODE></A>
+<DD> Performs two-way conjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddApproxDisjDecomp" TARGET="MAIN"><CODE>Cudd_bddApproxDisjDecomp()</CODE></A>
+<DD> Performs two-way disjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddBindVar" TARGET="MAIN"><CODE>Cudd_bddBindVar()</CODE></A>
+<DD> Prevents sifting of a variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddBooleanDiff" TARGET="MAIN"><CODE>Cudd_bddBooleanDiff()</CODE></A>
+<DD> Computes the boolean difference of f with respect to x.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddCharToVect" TARGET="MAIN"><CODE>Cudd_bddCharToVect()</CODE></A>
+<DD> Computes a vector whose image equals a non-zero function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddClippingAndAbstract" TARGET="MAIN"><CODE>Cudd_bddClippingAndAbstract()</CODE></A>
+<DD> Approximates the conjunction of two BDDs f and g and
+  simultaneously abstracts the variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddClippingAnd" TARGET="MAIN"><CODE>Cudd_bddClippingAnd()</CODE></A>
+<DD> Approximates the conjunction of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddClosestCube" TARGET="MAIN"><CODE>Cudd_bddClosestCube()</CODE></A>
+<DD> Finds a cube of f at minimum Hamming distance from g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddCompose" TARGET="MAIN"><CODE>Cudd_bddCompose()</CODE></A>
+<DD> Substitutes g for x_v in the BDD for f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddComputeCube" TARGET="MAIN"><CODE>Cudd_bddComputeCube()</CODE></A>
+<DD> Computes the cube of an array of BDD variables.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddConstrainDecomp" TARGET="MAIN"><CODE>Cudd_bddConstrainDecomp()</CODE></A>
+<DD> BDD conjunctive decomposition as in McMillan's CAV96 paper.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddConstrain" TARGET="MAIN"><CODE>Cudd_bddConstrain()</CODE></A>
+<DD> Computes f constrain c.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddCorrelationWeights" TARGET="MAIN"><CODE>Cudd_bddCorrelationWeights()</CODE></A>
+<DD> Computes the correlation of f and g for given input
+  probabilities.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddCorrelation" TARGET="MAIN"><CODE>Cudd_bddCorrelation()</CODE></A>
+<DD> Computes the correlation of f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddExistAbstractLimit" TARGET="MAIN"><CODE>Cudd_bddExistAbstractLimit()</CODE></A>
+<DD> Existentially abstracts all the variables in cube from f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddExistAbstract" TARGET="MAIN"><CODE>Cudd_bddExistAbstract()</CODE></A>
+<DD> Existentially abstracts all the variables in cube from f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddGenConjDecomp" TARGET="MAIN"><CODE>Cudd_bddGenConjDecomp()</CODE></A>
+<DD> Performs two-way conjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddGenDisjDecomp" TARGET="MAIN"><CODE>Cudd_bddGenDisjDecomp()</CODE></A>
+<DD> Performs two-way disjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIntersect" TARGET="MAIN"><CODE>Cudd_bddIntersect()</CODE></A>
+<DD> Returns a function included in the intersection of f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddInterval" TARGET="MAIN"><CODE>Cudd_bddInterval()</CODE></A>
+<DD> Generates a BDD for the function lowerB &le; x &le; upperB.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsNsVar" TARGET="MAIN"><CODE>Cudd_bddIsNsVar()</CODE></A>
+<DD> Checks whether a variable is next state.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsPiVar" TARGET="MAIN"><CODE>Cudd_bddIsPiVar()</CODE></A>
+<DD> Checks whether a variable is primary input.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsPsVar" TARGET="MAIN"><CODE>Cudd_bddIsPsVar()</CODE></A>
+<DD> Checks whether a variable is present state.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsVarEssential" TARGET="MAIN"><CODE>Cudd_bddIsVarEssential()</CODE></A>
+<DD> Determines whether a given variable is essential with a
+  given phase in a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsVarHardGroup" TARGET="MAIN"><CODE>Cudd_bddIsVarHardGroup()</CODE></A>
+<DD> Checks whether a variable is set to be in a hard group.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsVarToBeGrouped" TARGET="MAIN"><CODE>Cudd_bddIsVarToBeGrouped()</CODE></A>
+<DD> Checks whether a variable is set to be grouped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsVarToBeUngrouped" TARGET="MAIN"><CODE>Cudd_bddIsVarToBeUngrouped()</CODE></A>
+<DD> Checks whether a variable is set to be ungrouped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIsop" TARGET="MAIN"><CODE>Cudd_bddIsop()</CODE></A>
+<DD> Computes a BDD in the interval between L and U with a
+  simple sum-of-product cover.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIteConstant" TARGET="MAIN"><CODE>Cudd_bddIteConstant()</CODE></A>
+<DD> Implements ITEconstant(f,g,h).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIteLimit" TARGET="MAIN"><CODE>Cudd_bddIteLimit()</CODE></A>
+<DD> Implements ITE(f,g,h).  Returns
+  NULL if too many nodes are required.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIterConjDecomp" TARGET="MAIN"><CODE>Cudd_bddIterConjDecomp()</CODE></A>
+<DD> Performs two-way conjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIterDisjDecomp" TARGET="MAIN"><CODE>Cudd_bddIterDisjDecomp()</CODE></A>
+<DD> Performs two-way disjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIte" TARGET="MAIN"><CODE>Cudd_bddIte()</CODE></A>
+<DD> Implements ITE(f,g,h).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddIthVar" TARGET="MAIN"><CODE>Cudd_bddIthVar()</CODE></A>
+<DD> Returns the BDD variable with index i.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddLICompaction" TARGET="MAIN"><CODE>Cudd_bddLICompaction()</CODE></A>
+<DD> Performs safe minimization of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddLargestPrimeUnate" TARGET="MAIN"><CODE>Cudd_bddLargestPrimeUnate()</CODE></A>
+<DD> Find a largest prime of a unate function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddLeqUnless" TARGET="MAIN"><CODE>Cudd_bddLeqUnless()</CODE></A>
+<DD> Tells whether f is less than of equal to G unless D is 1.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddLeq" TARGET="MAIN"><CODE>Cudd_bddLeq()</CODE></A>
+<DD> Determines whether f is less than or equal to g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddLiteralSetIntersection" TARGET="MAIN"><CODE>Cudd_bddLiteralSetIntersection()</CODE></A>
+<DD> Computes the intesection of two sets of literals
+  represented as BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddMakePrime" TARGET="MAIN"><CODE>Cudd_bddMakePrime()</CODE></A>
+<DD> Expands cube to a prime implicant of f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddMaximallyExpand" TARGET="MAIN"><CODE>Cudd_bddMaximallyExpand()</CODE></A>
+<DD> Expands lb to prime implicants of (f and ub).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddMinimize" TARGET="MAIN"><CODE>Cudd_bddMinimize()</CODE></A>
+<DD> Finds a small BDD that agrees with <code>f</code> over
+  <code>c</code>.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddNPAnd" TARGET="MAIN"><CODE>Cudd_bddNPAnd()</CODE></A>
+<DD> Computes f non-polluting-and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddNand" TARGET="MAIN"><CODE>Cudd_bddNand()</CODE></A>
+<DD> Computes the NAND of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddNewVarAtLevel" TARGET="MAIN"><CODE>Cudd_bddNewVarAtLevel()</CODE></A>
+<DD> Returns a new BDD variable at a specified level.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddNewVar" TARGET="MAIN"><CODE>Cudd_bddNewVar()</CODE></A>
+<DD> Returns a new BDD variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddNor" TARGET="MAIN"><CODE>Cudd_bddNor()</CODE></A>
+<DD> Computes the NOR of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddOrLimit" TARGET="MAIN"><CODE>Cudd_bddOrLimit()</CODE></A>
+<DD> Computes the disjunction of two BDDs f and g.  Returns
+  NULL if too many nodes are required.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddOr" TARGET="MAIN"><CODE>Cudd_bddOr()</CODE></A>
+<DD> Computes the disjunction of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddPermute" TARGET="MAIN"><CODE>Cudd_bddPermute()</CODE></A>
+<DD> Permutes the variables of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddPickArbitraryMinterms" TARGET="MAIN"><CODE>Cudd_bddPickArbitraryMinterms()</CODE></A>
+<DD> Picks k on-set minterms evenly distributed from given DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddPickOneCube" TARGET="MAIN"><CODE>Cudd_bddPickOneCube()</CODE></A>
+<DD> Picks one on-set cube randomly from the given DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddPickOneMinterm" TARGET="MAIN"><CODE>Cudd_bddPickOneMinterm()</CODE></A>
+<DD> Picks one on-set minterm randomly from the given DD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddPrintCover" TARGET="MAIN"><CODE>Cudd_bddPrintCover()</CODE></A>
+<DD> Prints a sum of prime implicants of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddReadPairIndex" TARGET="MAIN"><CODE>Cudd_bddReadPairIndex()</CODE></A>
+<DD> Reads a corresponding pair index for a given index.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddRead" TARGET="MAIN"><CODE>Cudd_bddRead()</CODE></A>
+<DD> Reads in a graph (without labels) given as a list of arcs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddRealignDisable" TARGET="MAIN"><CODE>Cudd_bddRealignDisable()</CODE></A>
+<DD> Disables realignment of ZDD order to BDD order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddRealignEnable" TARGET="MAIN"><CODE>Cudd_bddRealignEnable()</CODE></A>
+<DD> Enables realignment of BDD order to ZDD order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddRealignmentEnabled" TARGET="MAIN"><CODE>Cudd_bddRealignmentEnabled()</CODE></A>
+<DD> Tells whether the realignment of BDD order to ZDD order is
+  enabled.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddResetVarToBeGrouped" TARGET="MAIN"><CODE>Cudd_bddResetVarToBeGrouped()</CODE></A>
+<DD> Resets a variable not to be grouped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddRestrict" TARGET="MAIN"><CODE>Cudd_bddRestrict()</CODE></A>
+<DD> BDD restrict according to Coudert and Madre's algorithm
+  (ICCAD90).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetNsVar" TARGET="MAIN"><CODE>Cudd_bddSetNsVar()</CODE></A>
+<DD> Sets a variable type to next state.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetPairIndex" TARGET="MAIN"><CODE>Cudd_bddSetPairIndex()</CODE></A>
+<DD> Sets a corresponding pair index for a given index.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetPiVar" TARGET="MAIN"><CODE>Cudd_bddSetPiVar()</CODE></A>
+<DD> Sets a variable type to primary input.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetPsVar" TARGET="MAIN"><CODE>Cudd_bddSetPsVar()</CODE></A>
+<DD> Sets a variable type to present state.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetVarHardGroup" TARGET="MAIN"><CODE>Cudd_bddSetVarHardGroup()</CODE></A>
+<DD> Sets a variable to be a hard group.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetVarToBeGrouped" TARGET="MAIN"><CODE>Cudd_bddSetVarToBeGrouped()</CODE></A>
+<DD> Sets a variable to be grouped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSetVarToBeUngrouped" TARGET="MAIN"><CODE>Cudd_bddSetVarToBeUngrouped()</CODE></A>
+<DD> Sets a variable to be ungrouped.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSqueeze" TARGET="MAIN"><CODE>Cudd_bddSqueeze()</CODE></A>
+<DD> Finds a small BDD in a function interval.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddSwapVariables" TARGET="MAIN"><CODE>Cudd_bddSwapVariables()</CODE></A>
+<DD> Swaps two sets of variables of the same size (x and y) in
+  the BDD f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddTransfer" TARGET="MAIN"><CODE>Cudd_bddTransfer()</CODE></A>
+<DD> Convert a BDD from a manager to another one.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddUnbindVar" TARGET="MAIN"><CODE>Cudd_bddUnbindVar()</CODE></A>
+<DD> Allows the sifting of a variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddUnivAbstract" TARGET="MAIN"><CODE>Cudd_bddUnivAbstract()</CODE></A>
+<DD> Universally abstracts all the variables in cube from f.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVarConjDecomp" TARGET="MAIN"><CODE>Cudd_bddVarConjDecomp()</CODE></A>
+<DD> Performs two-way conjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVarDisjDecomp" TARGET="MAIN"><CODE>Cudd_bddVarDisjDecomp()</CODE></A>
+<DD> Performs two-way disjunctive decomposition of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVarIsBound" TARGET="MAIN"><CODE>Cudd_bddVarIsBound()</CODE></A>
+<DD> Tells whether a variable can be sifted.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVarIsDependent" TARGET="MAIN"><CODE>Cudd_bddVarIsDependent()</CODE></A>
+<DD> Checks whether a variable is dependent on others in a
+  function.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVarMap" TARGET="MAIN"><CODE>Cudd_bddVarMap()</CODE></A>
+<DD> Remaps the variables of a BDD using the default variable map.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddVectorCompose" TARGET="MAIN"><CODE>Cudd_bddVectorCompose()</CODE></A>
+<DD> Composes a BDD with a vector of BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddXnorLimit" TARGET="MAIN"><CODE>Cudd_bddXnorLimit()</CODE></A>
+<DD> Computes the exclusive NOR of two BDDs f and g.  Returns
+  NULL if too many nodes are required.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddXnor" TARGET="MAIN"><CODE>Cudd_bddXnor()</CODE></A>
+<DD> Computes the exclusive NOR of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddXorExistAbstract" TARGET="MAIN"><CODE>Cudd_bddXorExistAbstract()</CODE></A>
+<DD> Takes the exclusive OR of two BDDs and simultaneously abstracts the
+  variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_bddXor" TARGET="MAIN"><CODE>Cudd_bddXor()</CODE></A>
+<DD> Computes the exclusive OR of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_tlcInfoFree" TARGET="MAIN"><CODE>Cudd_tlcInfoFree()</CODE></A>
+<DD> Frees a DdTlcInfo Structure.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddChange" TARGET="MAIN"><CODE>Cudd_zddChange()</CODE></A>
+<DD> Substitutes a variable with its complement in a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddComplement" TARGET="MAIN"><CODE>Cudd_zddComplement()</CODE></A>
+<DD> Computes a complement cover for a ZDD node.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddCountDouble" TARGET="MAIN"><CODE>Cudd_zddCountDouble()</CODE></A>
+<DD> Counts the number of minterms of a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddCountMinterm" TARGET="MAIN"><CODE>Cudd_zddCountMinterm()</CODE></A>
+<DD> Counts the number of minterms of a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddCount" TARGET="MAIN"><CODE>Cudd_zddCount()</CODE></A>
+<DD> Counts the number of minterms in a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddCoverPathToString" TARGET="MAIN"><CODE>Cudd_zddCoverPathToString()</CODE></A>
+<DD> Converts a path of a ZDD representing a cover to a string.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDagSize" TARGET="MAIN"><CODE>Cudd_zddDagSize()</CODE></A>
+<DD> Counts the number of nodes in a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDiffConst" TARGET="MAIN"><CODE>Cudd_zddDiffConst()</CODE></A>
+<DD> Performs the inclusion test for ZDDs (P implies Q).
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDiff" TARGET="MAIN"><CODE>Cudd_zddDiff()</CODE></A>
+<DD> Computes the difference of two ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDivideF" TARGET="MAIN"><CODE>Cudd_zddDivideF()</CODE></A>
+<DD> Modified version of Cudd_zddDivide.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDivide" TARGET="MAIN"><CODE>Cudd_zddDivide()</CODE></A>
+<DD> Computes the quotient of two unate covers.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddDumpDot" TARGET="MAIN"><CODE>Cudd_zddDumpDot()</CODE></A>
+<DD> Writes a dot file representing the argument ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddFirstPath" TARGET="MAIN"><CODE>Cudd_zddFirstPath()</CODE></A>
+<DD> Finds the first path of a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddIntersect" TARGET="MAIN"><CODE>Cudd_zddIntersect()</CODE></A>
+<DD> Computes the intersection of two ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddIsop" TARGET="MAIN"><CODE>Cudd_zddIsop()</CODE></A>
+<DD> Computes an ISOP in ZDD form from BDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddIte" TARGET="MAIN"><CODE>Cudd_zddIte()</CODE></A>
+<DD> Computes the ITE of three ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddIthVar" TARGET="MAIN"><CODE>Cudd_zddIthVar()</CODE></A>
+<DD> Returns the ZDD variable with index i.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddNextPath" TARGET="MAIN"><CODE>Cudd_zddNextPath()</CODE></A>
+<DD> Generates the next path of a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPortFromBdd" TARGET="MAIN"><CODE>Cudd_zddPortFromBdd()</CODE></A>
+<DD> Converts a BDD into a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPortToBdd" TARGET="MAIN"><CODE>Cudd_zddPortToBdd()</CODE></A>
+<DD> Converts a ZDD into a BDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPrintCover" TARGET="MAIN"><CODE>Cudd_zddPrintCover()</CODE></A>
+<DD> Prints a sum of products from a ZDD representing a cover.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPrintDebug" TARGET="MAIN"><CODE>Cudd_zddPrintDebug()</CODE></A>
+<DD> Prints to the standard output a ZDD and its statistics.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPrintMinterm" TARGET="MAIN"><CODE>Cudd_zddPrintMinterm()</CODE></A>
+<DD> Prints a disjoint sum of product form for a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddPrintSubtable" TARGET="MAIN"><CODE>Cudd_zddPrintSubtable()</CODE></A>
+<DD> Prints the ZDD table.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddProduct" TARGET="MAIN"><CODE>Cudd_zddProduct()</CODE></A>
+<DD> Computes the product of two covers represented by ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddReadNodeCount" TARGET="MAIN"><CODE>Cudd_zddReadNodeCount()</CODE></A>
+<DD> Reports the number of nodes in ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddRealignDisable" TARGET="MAIN"><CODE>Cudd_zddRealignDisable()</CODE></A>
+<DD> Disables realignment of ZDD order to BDD order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddRealignEnable" TARGET="MAIN"><CODE>Cudd_zddRealignEnable()</CODE></A>
+<DD> Enables realignment of ZDD order to BDD order.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddRealignmentEnabled" TARGET="MAIN"><CODE>Cudd_zddRealignmentEnabled()</CODE></A>
+<DD> Tells whether the realignment of ZDD order to BDD order is
+  enabled.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddReduceHeap" TARGET="MAIN"><CODE>Cudd_zddReduceHeap()</CODE></A>
+<DD> Main dynamic reordering routine for ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddShuffleHeap" TARGET="MAIN"><CODE>Cudd_zddShuffleHeap()</CODE></A>
+<DD> Reorders ZDD variables according to given permutation.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddSubset0" TARGET="MAIN"><CODE>Cudd_zddSubset0()</CODE></A>
+<DD> Computes the negative cofactor of a ZDD w.r.t. a variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddSubset1" TARGET="MAIN"><CODE>Cudd_zddSubset1()</CODE></A>
+<DD> Computes the positive cofactor of a ZDD w.r.t. a variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddSupport" TARGET="MAIN"><CODE>Cudd_zddSupport()</CODE></A>
+<DD> Finds the variables on which a ZDD depends.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddSymmProfile" TARGET="MAIN"><CODE>Cudd_zddSymmProfile()</CODE></A>
+<DD> Prints statistics on symmetric ZDD variables.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddUnateProduct" TARGET="MAIN"><CODE>Cudd_zddUnateProduct()</CODE></A>
+<DD> Computes the product of two unate covers.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddUnion" TARGET="MAIN"><CODE>Cudd_zddUnion()</CODE></A>
+<DD> Computes the union of two ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddVarsFromBddVars" TARGET="MAIN"><CODE>Cudd_zddVarsFromBddVars()</CODE></A>
+<DD> Creates one or more ZDD variables for each BDD variable.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddWeakDivF" TARGET="MAIN"><CODE>Cudd_zddWeakDivF()</CODE></A>
+<DD> Modified version of Cudd_zddWeakDiv.
+
+<DT> <A HREF="cuddAllDet.html#Cudd_zddWeakDiv" TARGET="MAIN"><CODE>Cudd_zddWeakDiv()</CODE></A>
+<DD> Applies weak division to two covers.
+
+<DT> <A HREF="cuddAllDet.html#MarkCacheCleanUp" TARGET="MAIN"><CODE>MarkCacheCleanUp()</CODE></A>
+<DD> Frees memory associated with computed table of
+  cuddBddLICMarkEdges.
+
+<DT> <A HREF="cuddAllDet.html#MarkCacheCompare" TARGET="MAIN"><CODE>MarkCacheCompare()</CODE></A>
+<DD> Comparison function for the computed table of
+  cuddBddLICMarkEdges.
+
+<DT> <A HREF="cuddAllDet.html#MarkCacheHash" TARGET="MAIN"><CODE>MarkCacheHash()</CODE></A>
+<DD> Hash function for the computed table of cuddBddLICMarkEdges.
+
+<DT> <A HREF="cuddAllDet.html#PMX" TARGET="MAIN"><CODE>PMX()</CODE></A>
+<DD> Performs the crossover between two parents.
+
+<DT> <A HREF="cuddAllDet.html#PairInTables" TARGET="MAIN"><CODE>PairInTables()</CODE></A>
+<DD> Check whether the given pair is in the tables.
+
+<DT> <A HREF="cuddAllDet.html#PickOnePair" TARGET="MAIN"><CODE>PickOnePair()</CODE></A>
+<DD> Check the tables for the existence of pair and return one
+  combination, store in cache.
+
+<DT> <A HREF="cuddAllDet.html#RAbuildSubset" TARGET="MAIN"><CODE>RAbuildSubset()</CODE></A>
+<DD> Builds the subset BDD for cuddRemapUnderApprox.
+
+<DT> <A HREF="cuddAllDet.html#RAmarkNodes" TARGET="MAIN"><CODE>RAmarkNodes()</CODE></A>
+<DD> Marks nodes for remapping.
+
+<DT> <A HREF="cuddAllDet.html#ResizeCountMintermPages" TARGET="MAIN"><CODE>ResizeCountMintermPages()</CODE></A>
+<DD> Resize the number of pages allocated to store the minterm
+  counts.
+
+<DT> <A HREF="cuddAllDet.html#ResizeCountNodePages" TARGET="MAIN"><CODE>ResizeCountNodePages()</CODE></A>
+<DD> Resize the number of pages allocated to store the node counts.
+
+<DT> <A HREF="cuddAllDet.html#ResizeNodeDataPages" TARGET="MAIN"><CODE>ResizeNodeDataPages()</CODE></A>
+<DD> Resize the number of pages allocated to store the node data.
+
+<DT> <A HREF="cuddAllDet.html#ResizeNodeDistPages" TARGET="MAIN"><CODE>ResizeNodeDistPages()</CODE></A>
+<DD> Resize the number of pages allocated to store the distances
+  related to each node.
+
+<DT> <A HREF="cuddAllDet.html#ResizeQueuePages" TARGET="MAIN"><CODE>ResizeQueuePages()</CODE></A>
+<DD> Resize the number of pages allocated to store nodes in the BFS
+  traversal of the Bdd  .
+
+<DT> <A HREF="cuddAllDet.html#StoreNodes" TARGET="MAIN"><CODE>StoreNodes()</CODE></A>
+<DD> Procedure to recursively store nodes that are retained in the subset.
+
+<DT> <A HREF="cuddAllDet.html#SubsetCountMintermAux" TARGET="MAIN"><CODE>SubsetCountMintermAux()</CODE></A>
+<DD> Recursively counts minterms of each node in the DAG.
+
+<DT> <A HREF="cuddAllDet.html#SubsetCountMinterm" TARGET="MAIN"><CODE>SubsetCountMinterm()</CODE></A>
+<DD> Counts minterms of each node in the DAG
+
+<DT> <A HREF="cuddAllDet.html#SubsetCountNodesAux" TARGET="MAIN"><CODE>SubsetCountNodesAux()</CODE></A>
+<DD> Recursively counts the number of nodes under the dag.
+  Also counts the number of nodes under the lighter child of
+  this node.
+
+<DT> <A HREF="cuddAllDet.html#SubsetCountNodes" TARGET="MAIN"><CODE>SubsetCountNodes()</CODE></A>
+<DD> Counts the nodes under the current node and its lighter child
+
+<DT> <A HREF="cuddAllDet.html#UAbuildSubset" TARGET="MAIN"><CODE>UAbuildSubset()</CODE></A>
+<DD> Builds the subset BDD.
+
+<DT> <A HREF="cuddAllDet.html#UAmarkNodes" TARGET="MAIN"><CODE>UAmarkNodes()</CODE></A>
+<DD> Marks nodes for replacement by zero.
+
+<DT> <A HREF="cuddAllDet.html#ZeroCase" TARGET="MAIN"><CODE>ZeroCase()</CODE></A>
+<DD> If one child is zero, do explicitly what Restrict does or better
+
+<DT> <A HREF="cuddAllDet.html#addBddDoInterval" TARGET="MAIN"><CODE>addBddDoInterval()</CODE></A>
+<DD> Performs the recursive step for Cudd_addBddInterval.
+
+<DT> <A HREF="cuddAllDet.html#addBddDoIthBit" TARGET="MAIN"><CODE>addBddDoIthBit()</CODE></A>
+<DD> Performs the recursive step for Cudd_addBddIthBit.
+
+<DT> <A HREF="cuddAllDet.html#addBddDoStrictThreshold" TARGET="MAIN"><CODE>addBddDoStrictThreshold()</CODE></A>
+<DD> Performs the recursive step for Cudd_addBddStrictThreshold.
+
+<DT> <A HREF="cuddAllDet.html#addBddDoThreshold" TARGET="MAIN"><CODE>addBddDoThreshold()</CODE></A>
+<DD> Performs the recursive step for Cudd_addBddThreshold.
+
+<DT> <A HREF="cuddAllDet.html#addCheckPositiveCube" TARGET="MAIN"><CODE>addCheckPositiveCube()</CODE></A>
+<DD> Checks whether cube is an ADD representing the product
+  of positive literals.
+
+<DT> <A HREF="cuddAllDet.html#addDoIthBit" TARGET="MAIN"><CODE>addDoIthBit()</CODE></A>
+<DD> Performs the recursive step for Cudd_addIthBit.
+
+<DT> <A HREF="cuddAllDet.html#addMMRecur" TARGET="MAIN"><CODE>addMMRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addMatrixMultiply.
+
+<DT> <A HREF="cuddAllDet.html#addMultiplicityGroups" TARGET="MAIN"><CODE>addMultiplicityGroups()</CODE></A>
+<DD> Adds multiplicity groups to a ZDD variable group tree.
+
+<DT> <A HREF="cuddAllDet.html#addTriangleRecur" TARGET="MAIN"><CODE>addTriangleRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addTriangle.
+
+<DT> <A HREF="cuddAllDet.html#addVarToConst" TARGET="MAIN"><CODE>addVarToConst()</CODE></A>
+<DD> Replaces variables with constants if possible (part of
+  canonical form).
+
+<DT> <A HREF="cuddAllDet.html#addWalshInt" TARGET="MAIN"><CODE>addWalshInt()</CODE></A>
+<DD> Implements the recursive step of Cudd_addWalsh.
+
+<DT> <A HREF="cuddAllDet.html#array_compare" TARGET="MAIN"><CODE>array_compare()</CODE></A>
+<DD> Comparison function for the computed table.
+
+<DT> <A HREF="cuddAllDet.html#array_hash" TARGET="MAIN"><CODE>array_hash()</CODE></A>
+<DD> Hash function for the computed table.
+
+<DT> <A HREF="cuddAllDet.html#bddAnnotateMintermCount" TARGET="MAIN"><CODE>bddAnnotateMintermCount()</CODE></A>
+<DD> Annotates every node in the BDD node with its minterm count.
+
+<DT> <A HREF="cuddAllDet.html#bddCheckPositiveCube" TARGET="MAIN"><CODE>bddCheckPositiveCube()</CODE></A>
+<DD> Checks whether cube is an BDD representing the product of
+  positive literals.
+
+<DT> <A HREF="cuddAllDet.html#bddCorrelationAux" TARGET="MAIN"><CODE>bddCorrelationAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddCorrelation.
+
+<DT> <A HREF="cuddAllDet.html#bddCorrelationWeightsAux" TARGET="MAIN"><CODE>bddCorrelationWeightsAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddCorrelationWeigths.
+
+<DT> <A HREF="cuddAllDet.html#bddFixTree" TARGET="MAIN"><CODE>bddFixTree()</CODE></A>
+<DD> Fixes the BDD variable group tree after a shuffle.
+
+<DT> <A HREF="cuddAllDet.html#bddVarToCanonicalSimple" TARGET="MAIN"><CODE>bddVarToCanonicalSimple()</CODE></A>
+<DD> Picks unique member from equiv expressions.
+
+<DT> <A HREF="cuddAllDet.html#bddVarToCanonical" TARGET="MAIN"><CODE>bddVarToCanonical()</CODE></A>
+<DD> Picks unique member from equiv expressions.
+
+<DT> <A HREF="cuddAllDet.html#bddVarToConst" TARGET="MAIN"><CODE>bddVarToConst()</CODE></A>
+<DD> Replaces variables with constants if possible.
+
+<DT> <A HREF="cuddAllDet.html#beforep" TARGET="MAIN"><CODE>beforep()</CODE></A>
+<DD> Returns true iff the first argument precedes the second in
+  the clause order.
+
+<DT> <A HREF="cuddAllDet.html#bitVectorAlloc" TARGET="MAIN"><CODE>bitVectorAlloc()</CODE></A>
+<DD> Allocates a bit vector.
+
+<DT> <A HREF="cuddAllDet.html#bitVectorFree" TARGET="MAIN"><CODE>bitVectorFree()</CODE></A>
+<DD> Frees a bit vector.
+
+<DT> <A HREF="cuddAllDet.html#build_dd" TARGET="MAIN"><CODE>build_dd()</CODE></A>
+<DD> Builds a DD from a given order.
+
+<DT> <A HREF="cuddAllDet.html#checkSymmInfo" TARGET="MAIN"><CODE>checkSymmInfo()</CODE></A>
+<DD> Check symmetry condition.
+
+<DT> <A HREF="cuddAllDet.html#computeClausesWithUniverse" TARGET="MAIN"><CODE>computeClausesWithUniverse()</CODE></A>
+<DD> Computes the two-literal clauses for a node.
+
+<DT> <A HREF="cuddAllDet.html#computeClauses" TARGET="MAIN"><CODE>computeClauses()</CODE></A>
+<DD> Computes the two-literal clauses for a node.
+
+<DT> <A HREF="cuddAllDet.html#computeLB" TARGET="MAIN"><CODE>computeLB()</CODE></A>
+<DD> Computes a lower bound on the size of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#computeSavings" TARGET="MAIN"><CODE>computeSavings()</CODE></A>
+<DD> Counts the nodes that would be eliminated if a given node
+  were replaced by zero.
+
+<DT> <A HREF="cuddAllDet.html#copyOrder" TARGET="MAIN"><CODE>copyOrder()</CODE></A>
+<DD> Copies the current variable order to array.
+
+<DT> <A HREF="cuddAllDet.html#createResult" TARGET="MAIN"><CODE>createResult()</CODE></A>
+<DD> Builds a result for cache storage.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddApplyRecur" TARGET="MAIN"><CODE>cuddAddApplyRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addApply.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddBddDoPattern" TARGET="MAIN"><CODE>cuddAddBddDoPattern()</CODE></A>
+<DD> Performs the recursive step for Cudd_addBddPattern.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddCmplRecur" TARGET="MAIN"><CODE>cuddAddCmplRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addCmpl.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddComposeRecur" TARGET="MAIN"><CODE>cuddAddComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddConstrainRecur" TARGET="MAIN"><CODE>cuddAddConstrainRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addConstrain.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddExistAbstractRecur" TARGET="MAIN"><CODE>cuddAddExistAbstractRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addExistAbstract.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddGeneralVectorComposeRecur" TARGET="MAIN"><CODE>cuddAddGeneralVectorComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addGeneralVectorCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddIteRecur" TARGET="MAIN"><CODE>cuddAddIteRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_addIte(f,g,h).
+
+<DT> <A HREF="cuddAllDet.html#cuddAddMonadicApplyRecur" TARGET="MAIN"><CODE>cuddAddMonadicApplyRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addMonadicApply.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddNegateRecur" TARGET="MAIN"><CODE>cuddAddNegateRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_addNegate.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddNonSimComposeRecur" TARGET="MAIN"><CODE>cuddAddNonSimComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addNonSimCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddOrAbstractRecur" TARGET="MAIN"><CODE>cuddAddOrAbstractRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addOrAbstract.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddOuterSumRecur" TARGET="MAIN"><CODE>cuddAddOuterSumRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addOuterSum.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddPermuteRecur" TARGET="MAIN"><CODE>cuddAddPermuteRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_addPermute.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddRestrictRecur" TARGET="MAIN"><CODE>cuddAddRestrictRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addRestrict.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddRoundOffRecur" TARGET="MAIN"><CODE>cuddAddRoundOffRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_addRoundOff.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddScalarInverseRecur" TARGET="MAIN"><CODE>cuddAddScalarInverseRecur()</CODE></A>
+<DD> Performs the recursive step of addScalarInverse.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddUnivAbstractRecur" TARGET="MAIN"><CODE>cuddAddUnivAbstractRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addUnivAbstract.
+
+<DT> <A HREF="cuddAllDet.html#cuddAddVectorComposeRecur" TARGET="MAIN"><CODE>cuddAddVectorComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_addVectorCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddAllocNode" TARGET="MAIN"><CODE>cuddAllocNode()</CODE></A>
+<DD> Fast storage allocation for DdNodes in the table.
+
+<DT> <A HREF="cuddAllDet.html#cuddAnnealing" TARGET="MAIN"><CODE>cuddAnnealing()</CODE></A>
+<DD> Get new variable-order by simulated annealing algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddApaCountMintermAux" TARGET="MAIN"><CODE>cuddApaCountMintermAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_ApaCountMinterm.
+
+<DT> <A HREF="cuddAllDet.html#cuddApaStCountfree" TARGET="MAIN"><CODE>cuddApaStCountfree()</CODE></A>
+<DD> Frees the memory used to store the minterm counts recorded
+  in the visited table.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddAlignToZdd" TARGET="MAIN"><CODE>cuddBddAlignToZdd()</CODE></A>
+<DD> Reorders BDD variables according to the order of the ZDD
+  variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddAndAbstractRecur" TARGET="MAIN"><CODE>cuddBddAndAbstractRecur()</CODE></A>
+<DD> Takes the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddAndRecur" TARGET="MAIN"><CODE>cuddBddAndRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddAnd.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddBooleanDiffRecur" TARGET="MAIN"><CODE>cuddBddBooleanDiffRecur()</CODE></A>
+<DD> Performs the recursive steps of Cudd_bddBoleanDiff.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddCharToVect" TARGET="MAIN"><CODE>cuddBddCharToVect()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddCharToVect.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddClipAndAbsRecur" TARGET="MAIN"><CODE>cuddBddClipAndAbsRecur()</CODE></A>
+<DD> Approximates the AND of two BDDs and simultaneously abstracts the
+  variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddClippingAndAbstract" TARGET="MAIN"><CODE>cuddBddClippingAndAbstract()</CODE></A>
+<DD> Approximates the conjunction of two BDDs f and g and
+  simultaneously abstracts the variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddClippingAndRecur" TARGET="MAIN"><CODE>cuddBddClippingAndRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddClippingAnd.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddClippingAnd" TARGET="MAIN"><CODE>cuddBddClippingAnd()</CODE></A>
+<DD> Approximates the conjunction of two BDDs f and g.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddClosestCube" TARGET="MAIN"><CODE>cuddBddClosestCube()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddClosestCube.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddComposeRecur" TARGET="MAIN"><CODE>cuddBddComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddConstrainDecomp" TARGET="MAIN"><CODE>cuddBddConstrainDecomp()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddConstrainDecomp.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddConstrainRecur" TARGET="MAIN"><CODE>cuddBddConstrainRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddConstrain.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddExistAbstractRecur" TARGET="MAIN"><CODE>cuddBddExistAbstractRecur()</CODE></A>
+<DD> Performs the recursive steps of Cudd_bddExistAbstract.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddIntersectRecur" TARGET="MAIN"><CODE>cuddBddIntersectRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddIntersect.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddIsop" TARGET="MAIN"><CODE>cuddBddIsop()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddIsop.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddIteRecur" TARGET="MAIN"><CODE>cuddBddIteRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddIte.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddLICBuildResult" TARGET="MAIN"><CODE>cuddBddLICBuildResult()</CODE></A>
+<DD> Builds the result of Cudd_bddLICompaction.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddLICMarkEdges" TARGET="MAIN"><CODE>cuddBddLICMarkEdges()</CODE></A>
+<DD> Performs the edge marking step of Cudd_bddLICompaction.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddLICompaction" TARGET="MAIN"><CODE>cuddBddLICompaction()</CODE></A>
+<DD> Performs safe minimization of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddLiteralSetIntersectionRecur" TARGET="MAIN"><CODE>cuddBddLiteralSetIntersectionRecur()</CODE></A>
+<DD> Performs the recursive step of
+  Cudd_bddLiteralSetIntersection.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddMakePrime" TARGET="MAIN"><CODE>cuddBddMakePrime()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddMakePrime.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddNPAndRecur" TARGET="MAIN"><CODE>cuddBddNPAndRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddAnd.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddPermuteRecur" TARGET="MAIN"><CODE>cuddBddPermuteRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddPermute.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddRestrictRecur" TARGET="MAIN"><CODE>cuddBddRestrictRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddRestrict.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddSqueeze" TARGET="MAIN"><CODE>cuddBddSqueeze()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddSqueeze.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddTransferRecur" TARGET="MAIN"><CODE>cuddBddTransferRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddTransfer.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddTransfer" TARGET="MAIN"><CODE>cuddBddTransfer()</CODE></A>
+<DD> Convert a BDD from a manager to another one.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddVarMapRecur" TARGET="MAIN"><CODE>cuddBddVarMapRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddVarMap.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddVectorComposeRecur" TARGET="MAIN"><CODE>cuddBddVectorComposeRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddVectorCompose.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddXorExistAbstractRecur" TARGET="MAIN"><CODE>cuddBddXorExistAbstractRecur()</CODE></A>
+<DD> Takes the exclusive OR of two BDDs and simultaneously abstracts the
+  variables in cube.
+
+<DT> <A HREF="cuddAllDet.html#cuddBddXorRecur" TARGET="MAIN"><CODE>cuddBddXorRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_bddXor.
+
+<DT> <A HREF="cuddAllDet.html#cuddBiasedUnderApprox" TARGET="MAIN"><CODE>cuddBiasedUnderApprox()</CODE></A>
+<DD> Applies the biased remapping underappoximation algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddCProjectionRecur" TARGET="MAIN"><CODE>cuddCProjectionRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_CProjection.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheFlush" TARGET="MAIN"><CODE>cuddCacheFlush()</CODE></A>
+<DD> Flushes the cache.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheInsert1" TARGET="MAIN"><CODE>cuddCacheInsert1()</CODE></A>
+<DD> Inserts a result in the cache for a function with two
+  operands.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheInsert2" TARGET="MAIN"><CODE>cuddCacheInsert2()</CODE></A>
+<DD> Inserts a result in the cache for a function with two
+  operands.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheInsert" TARGET="MAIN"><CODE>cuddCacheInsert()</CODE></A>
+<DD> Inserts a result in the cache for a function with three
+  operands.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookup1Zdd" TARGET="MAIN"><CODE>cuddCacheLookup1Zdd()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookup1" TARGET="MAIN"><CODE>cuddCacheLookup1()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookup2Zdd" TARGET="MAIN"><CODE>cuddCacheLookup2Zdd()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f
+  and g.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookup2" TARGET="MAIN"><CODE>cuddCacheLookup2()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f
+  and g.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookupZdd" TARGET="MAIN"><CODE>cuddCacheLookupZdd()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f,
+  g, and h.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheLookup" TARGET="MAIN"><CODE>cuddCacheLookup()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f,
+  g, and h.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheProfile" TARGET="MAIN"><CODE>cuddCacheProfile()</CODE></A>
+<DD> Computes and prints a profile of the cache usage.
+
+<DT> <A HREF="cuddAllDet.html#cuddCacheResize" TARGET="MAIN"><CODE>cuddCacheResize()</CODE></A>
+<DD> Resizes the cache.
+
+<DT> <A HREF="cuddAllDet.html#cuddCheckCollisionOrdering" TARGET="MAIN"><CODE>cuddCheckCollisionOrdering()</CODE></A>
+<DD> Checks whether a collision list is ordered.
+
+<DT> <A HREF="cuddAllDet.html#cuddClearDeathRow" TARGET="MAIN"><CODE>cuddClearDeathRow()</CODE></A>
+<DD> Clears the death row.
+
+<DT> <A HREF="cuddAllDet.html#cuddCofactorRecur" TARGET="MAIN"><CODE>cuddCofactorRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_Cofactor.
+
+<DT> <A HREF="cuddAllDet.html#cuddCollectNodes" TARGET="MAIN"><CODE>cuddCollectNodes()</CODE></A>
+<DD> Recursively collects all the nodes of a DD in a symbol
+  table.
+
+<DT> <A HREF="cuddAllDet.html#cuddComputeFloorLog2" TARGET="MAIN"><CODE>cuddComputeFloorLog2()</CODE></A>
+<DD> Returns the floor of the logarithm to the base 2.
+
+<DT> <A HREF="cuddAllDet.html#cuddConjunctsAux" TARGET="MAIN"><CODE>cuddConjunctsAux()</CODE></A>
+<DD> Procedure to compute two conjunctive factors of f and place in *c1 and *c2.
+
+<DT> <A HREF="cuddAllDet.html#cuddConstantLookup" TARGET="MAIN"><CODE>cuddConstantLookup()</CODE></A>
+<DD> Looks up in the cache for the result of op applied to f,
+  g, and h.
+
+<DT> <A HREF="cuddAllDet.html#cuddDestroySubtables" TARGET="MAIN"><CODE>cuddDestroySubtables()</CODE></A>
+<DD> Destroys the n most recently created subtables in a unique table.
+
+<DT> <A HREF="cuddAllDet.html#cuddDoRebalance" TARGET="MAIN"><CODE>cuddDoRebalance()</CODE></A>
+<DD> Rebalances a red/black tree.
+
+<DT> <A HREF="cuddAllDet.html#cuddDynamicAllocNode" TARGET="MAIN"><CODE>cuddDynamicAllocNode()</CODE></A>
+<DD> Dynamically allocates a Node.
+
+<DT> <A HREF="cuddAllDet.html#cuddEstimateCofactorSimple" TARGET="MAIN"><CODE>cuddEstimateCofactorSimple()</CODE></A>
+<DD> Performs the recursive step of Cudd_CofactorEstimateSimple.
+
+<DT> <A HREF="cuddAllDet.html#cuddEstimateCofactor" TARGET="MAIN"><CODE>cuddEstimateCofactor()</CODE></A>
+<DD> Performs the recursive step of Cudd_CofactorEstimate.
+
+<DT> <A HREF="cuddAllDet.html#cuddExact" TARGET="MAIN"><CODE>cuddExact()</CODE></A>
+<DD> Exact variable ordering algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddFindParent" TARGET="MAIN"><CODE>cuddFindParent()</CODE></A>
+<DD> Searches the subtables above node for a parent.
+
+<DT> <A HREF="cuddAllDet.html#cuddFreeTable" TARGET="MAIN"><CODE>cuddFreeTable()</CODE></A>
+<DD> Frees the resources associated to a unique table.
+
+<DT> <A HREF="cuddAllDet.html#cuddGarbageCollect" TARGET="MAIN"><CODE>cuddGarbageCollect()</CODE></A>
+<DD> Performs garbage collection on the unique tables.
+
+<DT> <A HREF="cuddAllDet.html#cuddGa" TARGET="MAIN"><CODE>cuddGa()</CODE></A>
+<DD> Genetic algorithm for DD reordering.
+
+<DT> <A HREF="cuddAllDet.html#cuddGetBranches" TARGET="MAIN"><CODE>cuddGetBranches()</CODE></A>
+<DD> Computes the children of g.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableGenericInsert" TARGET="MAIN"><CODE>cuddHashTableGenericInsert()</CODE></A>
+<DD> Inserts an item in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableGenericLookup" TARGET="MAIN"><CODE>cuddHashTableGenericLookup()</CODE></A>
+<DD> Looks up a key consisting of one pointer in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableGenericQuit" TARGET="MAIN"><CODE>cuddHashTableGenericQuit()</CODE></A>
+<DD> Shuts down a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableInit" TARGET="MAIN"><CODE>cuddHashTableInit()</CODE></A>
+<DD> Initializes a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableInsert1" TARGET="MAIN"><CODE>cuddHashTableInsert1()</CODE></A>
+<DD> Inserts an item in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableInsert2" TARGET="MAIN"><CODE>cuddHashTableInsert2()</CODE></A>
+<DD> Inserts an item in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableInsert3" TARGET="MAIN"><CODE>cuddHashTableInsert3()</CODE></A>
+<DD> Inserts an item in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableInsert" TARGET="MAIN"><CODE>cuddHashTableInsert()</CODE></A>
+<DD> Inserts an item in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableLookup1" TARGET="MAIN"><CODE>cuddHashTableLookup1()</CODE></A>
+<DD> Looks up a key consisting of one pointer in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableLookup2" TARGET="MAIN"><CODE>cuddHashTableLookup2()</CODE></A>
+<DD> Looks up a key consisting of two pointers in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableLookup3" TARGET="MAIN"><CODE>cuddHashTableLookup3()</CODE></A>
+<DD> Looks up a key consisting of three pointers in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableLookup" TARGET="MAIN"><CODE>cuddHashTableLookup()</CODE></A>
+<DD> Looks up a key in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableQuit" TARGET="MAIN"><CODE>cuddHashTableQuit()</CODE></A>
+<DD> Shuts down a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHashTableResize" TARGET="MAIN"><CODE>cuddHashTableResize()</CODE></A>
+<DD> Resizes a hash table.
+
+<DT> <A HREF="cuddAllDet.html#cuddHeapProfile" TARGET="MAIN"><CODE>cuddHeapProfile()</CODE></A>
+<DD> Prints information about the heap.
+
+<DT> <A HREF="cuddAllDet.html#cuddInitCache" TARGET="MAIN"><CODE>cuddInitCache()</CODE></A>
+<DD> Initializes the computed table.
+
+<DT> <A HREF="cuddAllDet.html#cuddInitInteract" TARGET="MAIN"><CODE>cuddInitInteract()</CODE></A>
+<DD> Initializes the interaction matrix.
+
+<DT> <A HREF="cuddAllDet.html#cuddInitLinear" TARGET="MAIN"><CODE>cuddInitLinear()</CODE></A>
+<DD> Initializes the linear transform matrix.
+
+<DT> <A HREF="cuddAllDet.html#cuddInitTable" TARGET="MAIN"><CODE>cuddInitTable()</CODE></A>
+<DD> Creates and initializes the unique table.
+
+<DT> <A HREF="cuddAllDet.html#cuddInsertSubtables" TARGET="MAIN"><CODE>cuddInsertSubtables()</CODE></A>
+<DD> Inserts n new subtables in a unique table at level.
+
+<DT> <A HREF="cuddAllDet.html#cuddIsInDeathRow" TARGET="MAIN"><CODE>cuddIsInDeathRow()</CODE></A>
+<DD> Checks whether a node is in the death row.
+
+<DT> <A HREF="cuddAllDet.html#cuddLevelQueueDequeue" TARGET="MAIN"><CODE>cuddLevelQueueDequeue()</CODE></A>
+<DD> Remove an item from the front of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#cuddLevelQueueEnqueue" TARGET="MAIN"><CODE>cuddLevelQueueEnqueue()</CODE></A>
+<DD> Inserts a new key in a level queue.
+
+<DT> <A HREF="cuddAllDet.html#cuddLevelQueueFirst" TARGET="MAIN"><CODE>cuddLevelQueueFirst()</CODE></A>
+<DD> Inserts the first key in a level queue.
+
+<DT> <A HREF="cuddAllDet.html#cuddLevelQueueInit" TARGET="MAIN"><CODE>cuddLevelQueueInit()</CODE></A>
+<DD> Initializes a level queue.
+
+<DT> <A HREF="cuddAllDet.html#cuddLevelQueueQuit" TARGET="MAIN"><CODE>cuddLevelQueueQuit()</CODE></A>
+<DD> Shuts down a level queue.
+
+<DT> <A HREF="cuddAllDet.html#cuddLinearAndSifting" TARGET="MAIN"><CODE>cuddLinearAndSifting()</CODE></A>
+<DD> BDD reduction based on combination of sifting and linear
+  transformations.
+
+<DT> <A HREF="cuddAllDet.html#cuddLinearInPlace" TARGET="MAIN"><CODE>cuddLinearInPlace()</CODE></A>
+<DD> Linearly combines two adjacent variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheAddToList" TARGET="MAIN"><CODE>cuddLocalCacheAddToList()</CODE></A>
+<DD> Inserts a local cache in the manager list.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheClearAll" TARGET="MAIN"><CODE>cuddLocalCacheClearAll()</CODE></A>
+<DD> Clears the local caches of a manager.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheClearDead" TARGET="MAIN"><CODE>cuddLocalCacheClearDead()</CODE></A>
+<DD> Clears the dead entries of the local caches of a manager.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheInit" TARGET="MAIN"><CODE>cuddLocalCacheInit()</CODE></A>
+<DD> Initializes a local computed table.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheInsert" TARGET="MAIN"><CODE>cuddLocalCacheInsert()</CODE></A>
+<DD> Inserts a result in a local cache.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheLookup" TARGET="MAIN"><CODE>cuddLocalCacheLookup()</CODE></A>
+<DD> Looks up in a local cache.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheProfile" TARGET="MAIN"><CODE>cuddLocalCacheProfile()</CODE></A>
+<DD> Computes and prints a profile of a local cache usage.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheQuit" TARGET="MAIN"><CODE>cuddLocalCacheQuit()</CODE></A>
+<DD> Shuts down a local computed table.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheRemoveFromList" TARGET="MAIN"><CODE>cuddLocalCacheRemoveFromList()</CODE></A>
+<DD> Removes a local cache from the manager list.
+
+<DT> <A HREF="cuddAllDet.html#cuddLocalCacheResize" TARGET="MAIN"><CODE>cuddLocalCacheResize()</CODE></A>
+<DD> Resizes a local cache.
+
+<DT> <A HREF="cuddAllDet.html#cuddMakeBddFromZddCover" TARGET="MAIN"><CODE>cuddMakeBddFromZddCover()</CODE></A>
+<DD> Converts a ZDD cover to a BDD.
+
+<DT> <A HREF="cuddAllDet.html#cuddMinHammingDistRecur" TARGET="MAIN"><CODE>cuddMinHammingDistRecur()</CODE></A>
+<DD> Performs the recursive step of Cudd_MinHammingDist.
+
+<DT> <A HREF="cuddAllDet.html#cuddNextHigh" TARGET="MAIN"><CODE>cuddNextHigh()</CODE></A>
+<DD> Finds the next subtable with a larger index.
+
+<DT> <A HREF="cuddAllDet.html#cuddNextLow" TARGET="MAIN"><CODE>cuddNextLow()</CODE></A>
+<DD> Finds the next subtable with a smaller index.
+
+<DT> <A HREF="cuddAllDet.html#cuddNodeArrayRecur" TARGET="MAIN"><CODE>cuddNodeArrayRecur()</CODE></A>
+<DD> Performs the recursive step of cuddNodeArray.
+
+<DT> <A HREF="cuddAllDet.html#cuddNodeArray" TARGET="MAIN"><CODE>cuddNodeArray()</CODE></A>
+<DD> Recursively collects all the nodes of a DD in an array.
+
+<DT> <A HREF="cuddAllDet.html#cuddOrderedInsert" TARGET="MAIN"><CODE>cuddOrderedInsert()</CODE></A>
+<DD> Inserts a DdNode in a red/black search tree.
+
+<DT> <A HREF="cuddAllDet.html#cuddOrderedThread" TARGET="MAIN"><CODE>cuddOrderedThread()</CODE></A>
+<DD> Threads all the nodes of a search tree into a linear list.
+
+<DT> <A HREF="cuddAllDet.html#cuddPrintNode" TARGET="MAIN"><CODE>cuddPrintNode()</CODE></A>
+<DD> Prints out information on a node.
+
+<DT> <A HREF="cuddAllDet.html#cuddPrintVarGroups" TARGET="MAIN"><CODE>cuddPrintVarGroups()</CODE></A>
+<DD> Prints the variable groups as a parenthesized list.
+
+<DT> <A HREF="cuddAllDet.html#cuddP" TARGET="MAIN"><CODE>cuddP()</CODE></A>
+<DD> Prints a DD to the standard output. One line per node is
+  printed.
+
+<DT> <A HREF="cuddAllDet.html#cuddReclaimZdd" TARGET="MAIN"><CODE>cuddReclaimZdd()</CODE></A>
+<DD> Brings children of a dead ZDD node back.
+
+<DT> <A HREF="cuddAllDet.html#cuddReclaim" TARGET="MAIN"><CODE>cuddReclaim()</CODE></A>
+<DD> Brings children of a dead node back.
+
+<DT> <A HREF="cuddAllDet.html#cuddRehash" TARGET="MAIN"><CODE>cuddRehash()</CODE></A>
+<DD> Rehashes a unique subtable.
+
+<DT> <A HREF="cuddAllDet.html#cuddRemapUnderApprox" TARGET="MAIN"><CODE>cuddRemapUnderApprox()</CODE></A>
+<DD> Applies the remapping underappoximation algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddResizeLinear" TARGET="MAIN"><CODE>cuddResizeLinear()</CODE></A>
+<DD> Resizes the linear transform matrix.
+
+<DT> <A HREF="cuddAllDet.html#cuddResizeTableZdd" TARGET="MAIN"><CODE>cuddResizeTableZdd()</CODE></A>
+<DD> Increases the number of ZDD subtables in a unique table so
+  that it meets or exceeds index.
+
+<DT> <A HREF="cuddAllDet.html#cuddSetInteract" TARGET="MAIN"><CODE>cuddSetInteract()</CODE></A>
+<DD> Set interaction matrix entries.
+
+<DT> <A HREF="cuddAllDet.html#cuddShrinkDeathRow" TARGET="MAIN"><CODE>cuddShrinkDeathRow()</CODE></A>
+<DD> Shrinks the death row.
+
+<DT> <A HREF="cuddAllDet.html#cuddShrinkSubtable" TARGET="MAIN"><CODE>cuddShrinkSubtable()</CODE></A>
+<DD> Shrinks a subtable.
+
+<DT> <A HREF="cuddAllDet.html#cuddSifting" TARGET="MAIN"><CODE>cuddSifting()</CODE></A>
+<DD> Implementation of Rudell's sifting algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddSlowTableGrowth" TARGET="MAIN"><CODE>cuddSlowTableGrowth()</CODE></A>
+<DD> Adjusts parameters of a table to slow down its growth.
+
+<DT> <A HREF="cuddAllDet.html#cuddSolveEqnRecur" TARGET="MAIN"><CODE>cuddSolveEqnRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_SolveEqn.
+
+<DT> <A HREF="cuddAllDet.html#cuddSplitSetRecur" TARGET="MAIN"><CODE>cuddSplitSetRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_SplitSet.
+
+<DT> <A HREF="cuddAllDet.html#cuddStCountfree" TARGET="MAIN"><CODE>cuddStCountfree()</CODE></A>
+<DD> Frees the memory used to store the minterm counts recorded
+  in the visited table.
+
+<DT> <A HREF="cuddAllDet.html#cuddSubsetHeavyBranch" TARGET="MAIN"><CODE>cuddSubsetHeavyBranch()</CODE></A>
+<DD> The main procedure that returns a subset by choosing the heavier
+  branch in the BDD.
+
+<DT> <A HREF="cuddAllDet.html#cuddSubsetShortPaths" TARGET="MAIN"><CODE>cuddSubsetShortPaths()</CODE></A>
+<DD> The outermost procedure to return a subset of the given BDD
+  with the shortest path lengths.
+
+<DT> <A HREF="cuddAllDet.html#cuddSwapInPlace" TARGET="MAIN"><CODE>cuddSwapInPlace()</CODE></A>
+<DD> Swaps two adjacent variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddSwapping" TARGET="MAIN"><CODE>cuddSwapping()</CODE></A>
+<DD> Reorders variables by a sequence of (non-adjacent) swaps.
+
+<DT> <A HREF="cuddAllDet.html#cuddSymmCheck" TARGET="MAIN"><CODE>cuddSymmCheck()</CODE></A>
+<DD> Checks for symmetry of x and y.
+
+<DT> <A HREF="cuddAllDet.html#cuddSymmSiftingConv" TARGET="MAIN"><CODE>cuddSymmSiftingConv()</CODE></A>
+<DD> Symmetric sifting to convergence algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddSymmSifting" TARGET="MAIN"><CODE>cuddSymmSifting()</CODE></A>
+<DD> Symmetric sifting algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddTestInteract" TARGET="MAIN"><CODE>cuddTestInteract()</CODE></A>
+<DD> Test interaction matrix entries.
+
+<DT> <A HREF="cuddAllDet.html#cuddTimesInDeathRow" TARGET="MAIN"><CODE>cuddTimesInDeathRow()</CODE></A>
+<DD> Counts how many times a node is in the death row.
+
+<DT> <A HREF="cuddAllDet.html#cuddTreeSifting" TARGET="MAIN"><CODE>cuddTreeSifting()</CODE></A>
+<DD> Tree sifting algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddUnderApprox" TARGET="MAIN"><CODE>cuddUnderApprox()</CODE></A>
+<DD> Applies Tom Shiple's underappoximation algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddUniqueConst" TARGET="MAIN"><CODE>cuddUniqueConst()</CODE></A>
+<DD> Checks the unique table for the existence of a constant node.
+
+<DT> <A HREF="cuddAllDet.html#cuddUniqueInterIVO" TARGET="MAIN"><CODE>cuddUniqueInterIVO()</CODE></A>
+<DD> Wrapper for cuddUniqueInter that is independent of variable
+  ordering.
+
+<DT> <A HREF="cuddAllDet.html#cuddUniqueInterZdd" TARGET="MAIN"><CODE>cuddUniqueInterZdd()</CODE></A>
+<DD> Checks the unique table for the existence of an internal
+  ZDD node.
+
+<DT> <A HREF="cuddAllDet.html#cuddUniqueInter" TARGET="MAIN"><CODE>cuddUniqueInter()</CODE></A>
+<DD> Checks the unique table for the existence of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#cuddUniqueLookup" TARGET="MAIN"><CODE>cuddUniqueLookup()</CODE></A>
+<DD> Checks the unique table for the existence of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#cuddUpdateInteractionMatrix" TARGET="MAIN"><CODE>cuddUpdateInteractionMatrix()</CODE></A>
+<DD> Updates the interaction matrix.
+
+<DT> <A HREF="cuddAllDet.html#cuddVerifySol" TARGET="MAIN"><CODE>cuddVerifySol()</CODE></A>
+<DD> Implements the recursive step of Cudd_VerifySol.
+
+<DT> <A HREF="cuddAllDet.html#cuddWindowReorder" TARGET="MAIN"><CODE>cuddWindowReorder()</CODE></A>
+<DD> Reorders by applying the method of the sliding window.
+
+<DT> <A HREF="cuddAllDet.html#cuddXorLinear" TARGET="MAIN"><CODE>cuddXorLinear()</CODE></A>
+<DD> XORs two rows of the linear transform matrix.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddAlignToBdd" TARGET="MAIN"><CODE>cuddZddAlignToBdd()</CODE></A>
+<DD> Reorders ZDD variables according to the order of the BDD
+  variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddChangeAux" TARGET="MAIN"><CODE>cuddZddChangeAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddChange.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddChange" TARGET="MAIN"><CODE>cuddZddChange()</CODE></A>
+<DD> Substitutes a variable with its complement in a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddComplement" TARGET="MAIN"><CODE>cuddZddComplement()</CODE></A>
+<DD> Computes a complement of a ZDD node.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddCountDoubleStep" TARGET="MAIN"><CODE>cuddZddCountDoubleStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddCountDouble.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddCountStep" TARGET="MAIN"><CODE>cuddZddCountStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddCount.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddDagInt" TARGET="MAIN"><CODE>cuddZddDagInt()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddDagSize.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddDiff" TARGET="MAIN"><CODE>cuddZddDiff()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddDiff.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddDivideF" TARGET="MAIN"><CODE>cuddZddDivideF()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddDivideF.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddDivide" TARGET="MAIN"><CODE>cuddZddDivide()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddDivide.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddFreeUniv" TARGET="MAIN"><CODE>cuddZddFreeUniv()</CODE></A>
+<DD> Frees the ZDD universe.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetCofactors2" TARGET="MAIN"><CODE>cuddZddGetCofactors2()</CODE></A>
+<DD> Computes the two-way decomposition of f w.r.t. v.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetCofactors3" TARGET="MAIN"><CODE>cuddZddGetCofactors3()</CODE></A>
+<DD> Computes the three-way decomposition of f w.r.t. v.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetNegVarIndex" TARGET="MAIN"><CODE>cuddZddGetNegVarIndex()</CODE></A>
+<DD> Returns the index of negative ZDD variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetNegVarLevel" TARGET="MAIN"><CODE>cuddZddGetNegVarLevel()</CODE></A>
+<DD> Returns the level of negative ZDD variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetNodeIVO" TARGET="MAIN"><CODE>cuddZddGetNodeIVO()</CODE></A>
+<DD> Wrapper for cuddUniqueInterZdd that is independent of variable
+  ordering.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetNode" TARGET="MAIN"><CODE>cuddZddGetNode()</CODE></A>
+<DD> Wrapper for cuddUniqueInterZdd.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetPosVarIndex" TARGET="MAIN"><CODE>cuddZddGetPosVarIndex()</CODE></A>
+<DD> Returns the index of positive ZDD variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddGetPosVarLevel" TARGET="MAIN"><CODE>cuddZddGetPosVarLevel()</CODE></A>
+<DD> Returns the level of positive ZDD variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddInitUniv" TARGET="MAIN"><CODE>cuddZddInitUniv()</CODE></A>
+<DD> Initializes the ZDD universe.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddIntersect" TARGET="MAIN"><CODE>cuddZddIntersect()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddIntersect.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddIsop" TARGET="MAIN"><CODE>cuddZddIsop()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddIsop.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddIte" TARGET="MAIN"><CODE>cuddZddIte()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddIte.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearAux" TARGET="MAIN"><CODE>cuddZddLinearAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearBackward" TARGET="MAIN"><CODE>cuddZddLinearBackward()</CODE></A>
+<DD> Given a set of moves, returns the ZDD heap to the position
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearDown" TARGET="MAIN"><CODE>cuddZddLinearDown()</CODE></A>
+<DD> Sifts a variable down and applies the XOR transformation.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearInPlace" TARGET="MAIN"><CODE>cuddZddLinearInPlace()</CODE></A>
+<DD> Linearly combines two adjacent variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearSifting" TARGET="MAIN"><CODE>cuddZddLinearSifting()</CODE></A>
+<DD> Implementation of the linear sifting algorithm for ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddLinearUp" TARGET="MAIN"><CODE>cuddZddLinearUp()</CODE></A>
+<DD> Sifts a variable up applying the XOR transformation.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddNextHigh" TARGET="MAIN"><CODE>cuddZddNextHigh()</CODE></A>
+<DD> Finds the next subtable with a larger index.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddNextLow" TARGET="MAIN"><CODE>cuddZddNextLow()</CODE></A>
+<DD> Finds the next subtable with a smaller index.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddProduct" TARGET="MAIN"><CODE>cuddZddProduct()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddProduct.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddP" TARGET="MAIN"><CODE>cuddZddP()</CODE></A>
+<DD> Prints a ZDD to the standard output. One line per node is
+  printed.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSiftingAux" TARGET="MAIN"><CODE>cuddZddSiftingAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSiftingBackward" TARGET="MAIN"><CODE>cuddZddSiftingBackward()</CODE></A>
+<DD> Given a set of moves, returns the ZDD heap to the position
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSiftingDown" TARGET="MAIN"><CODE>cuddZddSiftingDown()</CODE></A>
+<DD> Sifts a variable down.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSiftingUp" TARGET="MAIN"><CODE>cuddZddSiftingUp()</CODE></A>
+<DD> Sifts a variable up.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSifting" TARGET="MAIN"><CODE>cuddZddSifting()</CODE></A>
+<DD> Implementation of Rudell's sifting algorithm.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSubset0" TARGET="MAIN"><CODE>cuddZddSubset0()</CODE></A>
+<DD> Computes the negative cofactor of a ZDD w.r.t. a variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSubset1" TARGET="MAIN"><CODE>cuddZddSubset1()</CODE></A>
+<DD> Computes the positive cofactor of a ZDD w.r.t. a variable.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSwapInPlace" TARGET="MAIN"><CODE>cuddZddSwapInPlace()</CODE></A>
+<DD> Swaps two adjacent variables.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSwapping" TARGET="MAIN"><CODE>cuddZddSwapping()</CODE></A>
+<DD> Reorders variables by a sequence of (non-adjacent) swaps.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmCheck" TARGET="MAIN"><CODE>cuddZddSymmCheck()</CODE></A>
+<DD> Checks for symmetry of x and y.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSiftingAux" TARGET="MAIN"><CODE>cuddZddSymmSiftingAux()</CODE></A>
+<DD> Given x_low <= x <= x_high moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSiftingBackward" TARGET="MAIN"><CODE>cuddZddSymmSiftingBackward()</CODE></A>
+<DD> Given a set of moves, returns the ZDD heap to the position
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSiftingConvAux" TARGET="MAIN"><CODE>cuddZddSymmSiftingConvAux()</CODE></A>
+<DD> Given x_low <= x <= x_high moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSiftingConv" TARGET="MAIN"><CODE>cuddZddSymmSiftingConv()</CODE></A>
+<DD> Symmetric sifting to convergence algorithm for ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSifting_down" TARGET="MAIN"><CODE>cuddZddSymmSifting_down()</CODE></A>
+<DD> Moves x down until either it reaches the bound (x_high) or
+  the size of the ZDD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSifting_up" TARGET="MAIN"><CODE>cuddZddSymmSifting_up()</CODE></A>
+<DD> Moves x up until either it reaches the bound (x_low) or
+  the size of the ZDD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSifting" TARGET="MAIN"><CODE>cuddZddSymmSifting()</CODE></A>
+<DD> Symmetric sifting algorithm for ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddSymmSummary" TARGET="MAIN"><CODE>cuddZddSymmSummary()</CODE></A>
+<DD> Counts numbers of symmetric variables and symmetry
+  groups.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddTreeSifting" TARGET="MAIN"><CODE>cuddZddTreeSifting()</CODE></A>
+<DD> Tree sifting algorithm for ZDDs.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddUnateProduct" TARGET="MAIN"><CODE>cuddZddUnateProduct()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddUnateProduct.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddUndoMoves" TARGET="MAIN"><CODE>cuddZddUndoMoves()</CODE></A>
+<DD> Given a set of moves, returns the ZDD heap to the order
+  in effect before the moves.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddUnion" TARGET="MAIN"><CODE>cuddZddUnion()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddUnion.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddUniqueCompare" TARGET="MAIN"><CODE>cuddZddUniqueCompare()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddWeakDivF" TARGET="MAIN"><CODE>cuddZddWeakDivF()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddWeakDivF.
+
+<DT> <A HREF="cuddAllDet.html#cuddZddWeakDiv" TARGET="MAIN"><CODE>cuddZddWeakDiv()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddWeakDiv.
+
+<DT> <A HREF="cuddAllDet.html#ddBddMaximallyExpand" TARGET="MAIN"><CODE>ddBddMaximallyExpand()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddMaximallyExpand.
+
+<DT> <A HREF="cuddAllDet.html#ddBddShortestPathUnate" TARGET="MAIN"><CODE>ddBddShortestPathUnate()</CODE></A>
+<DD> Performs shortest path computation on a unate function.
+
+<DT> <A HREF="cuddAllDet.html#ddBddToAddRecur" TARGET="MAIN"><CODE>ddBddToAddRecur()</CODE></A>
+<DD> Performs the recursive step for Cudd_BddToAdd.
+
+<DT> <A HREF="cuddAllDet.html#ddCheckPermuation" TARGET="MAIN"><CODE>ddCheckPermuation()</CODE></A>
+<DD> Checks the BDD variable group tree before a shuffle.
+
+<DT> <A HREF="cuddAllDet.html#ddClearFlag" TARGET="MAIN"><CODE>ddClearFlag()</CODE></A>
+<DD> Performs a DFS from f, clearing the LSB of the next
+  pointers.
+
+<DT> <A HREF="cuddAllDet.html#ddClearGlobal" TARGET="MAIN"><CODE>ddClearGlobal()</CODE></A>
+<DD> Scans the DD and clears the LSB of the next pointers.
+
+<DT> <A HREF="cuddAllDet.html#ddClearGlobal" TARGET="MAIN"><CODE>ddClearGlobal()</CODE></A>
+<DD> Scans the DD and clears the LSB of the next pointers.
+
+<DT> <A HREF="cuddAllDet.html#ddClearLocal" TARGET="MAIN"><CODE>ddClearLocal()</CODE></A>
+<DD> Performs a DFS from f, clearing the LSB of the then pointers.
+
+<DT> <A HREF="cuddAllDet.html#ddClearVars" TARGET="MAIN"><CODE>ddClearVars()</CODE></A>
+<DD> Clears visited flags for variables.
+
+<DT> <A HREF="cuddAllDet.html#ddCofMintermAux" TARGET="MAIN"><CODE>ddCofMintermAux()</CODE></A>
+<DD> Recursive Step for Cudd_CofMinterm function.
+
+<DT> <A HREF="cuddAllDet.html#ddCountInternalMtrNodes" TARGET="MAIN"><CODE>ddCountInternalMtrNodes()</CODE></A>
+<DD> Counts the number of internal nodes of the group tree.
+
+<DT> <A HREF="cuddAllDet.html#ddCountMintermAux" TARGET="MAIN"><CODE>ddCountMintermAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_CountMinterm.
+
+<DT> <A HREF="cuddAllDet.html#ddCountPathAux" TARGET="MAIN"><CODE>ddCountPathAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_CountPath.
+
+<DT> <A HREF="cuddAllDet.html#ddCountPathsToNonZero" TARGET="MAIN"><CODE>ddCountPathsToNonZero()</CODE></A>
+<DD> Performs the recursive step of Cudd_CountPathsToNonZero.
+
+<DT> <A HREF="cuddAllDet.html#ddCountRoots" TARGET="MAIN"><CODE>ddCountRoots()</CODE></A>
+<DD> Counts the number of roots.
+
+<DT> <A HREF="cuddAllDet.html#ddCreateGroup" TARGET="MAIN"><CODE>ddCreateGroup()</CODE></A>
+<DD> Creates a group encompassing variables from x to y in the
+  DD table.
+
+<DT> <A HREF="cuddAllDet.html#ddDagInt" TARGET="MAIN"><CODE>ddDagInt()</CODE></A>
+<DD> Performs the recursive step of Cudd_DagSize.
+
+<DT> <A HREF="cuddAllDet.html#ddDissolveGroup" TARGET="MAIN"><CODE>ddDissolveGroup()</CODE></A>
+<DD> Dissolves a group in the DD table.
+
+<DT> <A HREF="cuddAllDet.html#ddDoDumpBlif" TARGET="MAIN"><CODE>ddDoDumpBlif()</CODE></A>
+<DD> Performs the recursive step of Cudd_DumpBlif.
+
+<DT> <A HREF="cuddAllDet.html#ddDoDumpDDcal" TARGET="MAIN"><CODE>ddDoDumpDDcal()</CODE></A>
+<DD> Performs the recursive step of Cudd_DumpDDcal.
+
+<DT> <A HREF="cuddAllDet.html#ddDoDumpDaVinci" TARGET="MAIN"><CODE>ddDoDumpDaVinci()</CODE></A>
+<DD> Performs the recursive step of Cudd_DumpDaVinci.
+
+<DT> <A HREF="cuddAllDet.html#ddDoDumpFactoredForm" TARGET="MAIN"><CODE>ddDoDumpFactoredForm()</CODE></A>
+<DD> Performs the recursive step of Cudd_DumpFactoredForm.
+
+<DT> <A HREF="cuddAllDet.html#ddEpdCountMintermAux" TARGET="MAIN"><CODE>ddEpdCountMintermAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_EpdCountMinterm.
+
+<DT> <A HREF="cuddAllDet.html#ddEpdFree" TARGET="MAIN"><CODE>ddEpdFree()</CODE></A>
+<DD> Frees the memory used to store the minterm counts recorded
+  in the visited table.
+
+<DT> <A HREF="cuddAllDet.html#ddExchange" TARGET="MAIN"><CODE>ddExchange()</CODE></A>
+<DD> This function is for exchanging two variables, x and y.
+
+<DT> <A HREF="cuddAllDet.html#ddExtSymmCheck" TARGET="MAIN"><CODE>ddExtSymmCheck()</CODE></A>
+<DD> Checks for extended symmetry of x and y.
+
+<DT> <A HREF="cuddAllDet.html#ddFindEssentialRecur" TARGET="MAIN"><CODE>ddFindEssentialRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_FindEssential.
+
+<DT> <A HREF="cuddAllDet.html#ddFindNodeHiLo" TARGET="MAIN"><CODE>ddFindNodeHiLo()</CODE></A>
+<DD> Finds the lower and upper bounds of the group represented
+  by treenode.
+
+<DT> <A HREF="cuddAllDet.html#ddFindSupport" TARGET="MAIN"><CODE>ddFindSupport()</CODE></A>
+<DD> Recursively find the support of f.
+
+<DT> <A HREF="cuddAllDet.html#ddFindTwoLiteralClausesRecur" TARGET="MAIN"><CODE>ddFindTwoLiteralClausesRecur()</CODE></A>
+<DD> Implements the recursive step of Cudd_FindTwoLiteralClauses.
+
+<DT> <A HREF="cuddAllDet.html#ddGetLargestCubeUnate" TARGET="MAIN"><CODE>ddGetLargestCubeUnate()</CODE></A>
+<DD> Extracts largest prime of a unate function.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupMoveBackward" TARGET="MAIN"><CODE>ddGroupMoveBackward()</CODE></A>
+<DD> Undoes the swap two groups.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupMove" TARGET="MAIN"><CODE>ddGroupMove()</CODE></A>
+<DD> Swaps two groups and records the move.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupSiftingAux" TARGET="MAIN"><CODE>ddGroupSiftingAux()</CODE></A>
+<DD> Sifts one variable up and down until it has taken all
+  positions. Checks for aggregation.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupSiftingBackward" TARGET="MAIN"><CODE>ddGroupSiftingBackward()</CODE></A>
+<DD> Determines the best position for a variables and returns
+  it there.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupSiftingDown" TARGET="MAIN"><CODE>ddGroupSiftingDown()</CODE></A>
+<DD> Sifts down a variable until it reaches position xHigh.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupSiftingUp" TARGET="MAIN"><CODE>ddGroupSiftingUp()</CODE></A>
+<DD> Sifts up a variable until either it reaches position xLow
+  or the size of the DD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#ddGroupSifting" TARGET="MAIN"><CODE>ddGroupSifting()</CODE></A>
+<DD> Sifts from treenode->low to treenode->high.
+
+<DT> <A HREF="cuddAllDet.html#ddIsVarHandled" TARGET="MAIN"><CODE>ddIsVarHandled()</CODE></A>
+<DD> Checks whether a variables is already handled.
+
+<DT> <A HREF="cuddAllDet.html#ddJumpingAux" TARGET="MAIN"><CODE>ddJumpingAux()</CODE></A>
+<DD> Moves a variable to a specified position.
+
+<DT> <A HREF="cuddAllDet.html#ddJumpingDown" TARGET="MAIN"><CODE>ddJumpingDown()</CODE></A>
+<DD> This function is for jumping down.
+
+<DT> <A HREF="cuddAllDet.html#ddJumpingUp" TARGET="MAIN"><CODE>ddJumpingUp()</CODE></A>
+<DD> This function is for jumping up.
+
+<DT> <A HREF="cuddAllDet.html#ddLeavesInt" TARGET="MAIN"><CODE>ddLeavesInt()</CODE></A>
+<DD> Performs the recursive step of Cudd_CountLeaves.
+
+<DT> <A HREF="cuddAllDet.html#ddLinearAndSiftingAux" TARGET="MAIN"><CODE>ddLinearAndSiftingAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#ddLinearAndSiftingBackward" TARGET="MAIN"><CODE>ddLinearAndSiftingBackward()</CODE></A>
+<DD> Given a set of moves, returns the DD heap to the order
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#ddLinearAndSiftingDown" TARGET="MAIN"><CODE>ddLinearAndSiftingDown()</CODE></A>
+<DD> Sifts a variable down and applies linear transformations.
+
+<DT> <A HREF="cuddAllDet.html#ddLinearAndSiftingUp" TARGET="MAIN"><CODE>ddLinearAndSiftingUp()</CODE></A>
+<DD> Sifts a variable up and applies linear transformations.
+
+<DT> <A HREF="cuddAllDet.html#ddLinearUniqueCompare" TARGET="MAIN"><CODE>ddLinearUniqueCompare()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#ddMergeGroups" TARGET="MAIN"><CODE>ddMergeGroups()</CODE></A>
+<DD> Merges groups in the DD table.
+
+<DT> <A HREF="cuddAllDet.html#ddNoCheck" TARGET="MAIN"><CODE>ddNoCheck()</CODE></A>
+<DD> Pretends to check two variables for aggregation.
+
+<DT> <A HREF="cuddAllDet.html#ddPatchTree" TARGET="MAIN"><CODE>ddPatchTree()</CODE></A>
+<DD> Fixes a variable tree after the insertion of new subtables.
+
+<DT> <A HREF="cuddAllDet.html#ddPermuteWindow3" TARGET="MAIN"><CODE>ddPermuteWindow3()</CODE></A>
+<DD> Tries all the permutations of the three variables between
+  x and x+2 and retains the best.
+
+<DT> <A HREF="cuddAllDet.html#ddPermuteWindow4" TARGET="MAIN"><CODE>ddPermuteWindow4()</CODE></A>
+<DD> Tries all the permutations of the four variables between w
+  and w+3 and retains the best.
+
+<DT> <A HREF="cuddAllDet.html#ddPickArbitraryMinterms" TARGET="MAIN"><CODE>ddPickArbitraryMinterms()</CODE></A>
+<DD> Performs the recursive step of Cudd_bddPickArbitraryMinterms.
+
+<DT> <A HREF="cuddAllDet.html#ddPickRepresentativeCube" TARGET="MAIN"><CODE>ddPickRepresentativeCube()</CODE></A>
+<DD> Finds a representative cube of a BDD.
+
+<DT> <A HREF="cuddAllDet.html#ddPrintMintermAux" TARGET="MAIN"><CODE>ddPrintMintermAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_PrintMinterm.
+
+<DT> <A HREF="cuddAllDet.html#ddRehashZdd" TARGET="MAIN"><CODE>ddRehashZdd()</CODE></A>
+<DD> Rehashes a ZDD unique subtable.
+
+<DT> <A HREF="cuddAllDet.html#ddReorderChildren" TARGET="MAIN"><CODE>ddReorderChildren()</CODE></A>
+<DD> Reorders the children of a group tree node according to
+  the options.
+
+<DT> <A HREF="cuddAllDet.html#ddReorderPostprocess" TARGET="MAIN"><CODE>ddReorderPostprocess()</CODE></A>
+<DD> Cleans up at the end of reordering.
+
+<DT> <A HREF="cuddAllDet.html#ddReorderPreprocess" TARGET="MAIN"><CODE>ddReorderPreprocess()</CODE></A>
+<DD> Prepares the DD heap for dynamic reordering.
+
+<DT> <A HREF="cuddAllDet.html#ddReportRefMess" TARGET="MAIN"><CODE>ddReportRefMess()</CODE></A>
+<DD> Reports problem in garbage collection.
+
+<DT> <A HREF="cuddAllDet.html#ddResetVarHandled" TARGET="MAIN"><CODE>ddResetVarHandled()</CODE></A>
+<DD> Resets a variable to be processed.
+
+<DT> <A HREF="cuddAllDet.html#ddResizeTable" TARGET="MAIN"><CODE>ddResizeTable()</CODE></A>
+<DD> Increases the number of subtables in a unique table so
+  that it meets or exceeds index.
+
+<DT> <A HREF="cuddAllDet.html#ddSecDiffCheck" TARGET="MAIN"><CODE>ddSecDiffCheck()</CODE></A>
+<DD> Checks two variables for aggregation.
+
+<DT> <A HREF="cuddAllDet.html#ddSetVarHandled" TARGET="MAIN"><CODE>ddSetVarHandled()</CODE></A>
+<DD> Sets a variable to already handled.
+
+<DT> <A HREF="cuddAllDet.html#ddShuffle" TARGET="MAIN"><CODE>ddShuffle()</CODE></A>
+<DD> Reorders variables according to a given permutation.
+
+<DT> <A HREF="cuddAllDet.html#ddShuffle" TARGET="MAIN"><CODE>ddShuffle()</CODE></A>
+<DD> Reorders variables according to a given permutation.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftUp" TARGET="MAIN"><CODE>ddSiftUp()</CODE></A>
+<DD> Moves one variable up.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftUp" TARGET="MAIN"><CODE>ddSiftUp()</CODE></A>
+<DD> Moves one variable up.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftingAux" TARGET="MAIN"><CODE>ddSiftingAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftingBackward" TARGET="MAIN"><CODE>ddSiftingBackward()</CODE></A>
+<DD> Given a set of moves, returns the DD heap to the position
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftingDown" TARGET="MAIN"><CODE>ddSiftingDown()</CODE></A>
+<DD> Sifts a variable down.
+
+<DT> <A HREF="cuddAllDet.html#ddSiftingUp" TARGET="MAIN"><CODE>ddSiftingUp()</CODE></A>
+<DD> Sifts a variable up.
+
+<DT> <A HREF="cuddAllDet.html#ddSuppInteract" TARGET="MAIN"><CODE>ddSuppInteract()</CODE></A>
+<DD> Find the support of f.
+
+<DT> <A HREF="cuddAllDet.html#ddSupportStep" TARGET="MAIN"><CODE>ddSupportStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_Support.
+
+<DT> <A HREF="cuddAllDet.html#ddSwapAny" TARGET="MAIN"><CODE>ddSwapAny()</CODE></A>
+<DD> Swaps any two variables.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmGroupMoveBackward" TARGET="MAIN"><CODE>ddSymmGroupMoveBackward()</CODE></A>
+<DD> Undoes the swap of two groups.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmGroupMove" TARGET="MAIN"><CODE>ddSymmGroupMove()</CODE></A>
+<DD> Swaps two groups.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSiftingAux" TARGET="MAIN"><CODE>ddSymmSiftingAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSiftingBackward" TARGET="MAIN"><CODE>ddSymmSiftingBackward()</CODE></A>
+<DD> Given a set of moves, returns the DD heap to the position
+  giving the minimum size.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSiftingConvAux" TARGET="MAIN"><CODE>ddSymmSiftingConvAux()</CODE></A>
+<DD> Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSiftingDown" TARGET="MAIN"><CODE>ddSymmSiftingDown()</CODE></A>
+<DD> Moves x down until either it reaches the bound (xHigh) or
+  the size of the DD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSiftingUp" TARGET="MAIN"><CODE>ddSymmSiftingUp()</CODE></A>
+<DD> Moves x up until either it reaches the bound (xLow) or
+  the size of the DD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmSummary" TARGET="MAIN"><CODE>ddSymmSummary()</CODE></A>
+<DD> Counts numbers of symmetric variables and symmetry
+  groups.
+
+<DT> <A HREF="cuddAllDet.html#ddSymmUniqueCompare" TARGET="MAIN"><CODE>ddSymmUniqueCompare()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#ddTreeSiftingAux" TARGET="MAIN"><CODE>ddTreeSiftingAux()</CODE></A>
+<DD> Visits the group tree and reorders each group.
+
+<DT> <A HREF="cuddAllDet.html#ddUndoMoves" TARGET="MAIN"><CODE>ddUndoMoves()</CODE></A>
+<DD> Given a set of moves, returns the DD heap to the order
+  in effect before the moves.
+
+<DT> <A HREF="cuddAllDet.html#ddUniqueCompareGroup" TARGET="MAIN"><CODE>ddUniqueCompareGroup()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#ddUniqueCompare" TARGET="MAIN"><CODE>ddUniqueCompare()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#ddUpdateInteract" TARGET="MAIN"><CODE>ddUpdateInteract()</CODE></A>
+<DD> Marks as interacting all pairs of variables that appear in
+  support.
+
+<DT> <A HREF="cuddAllDet.html#ddUpdateMtrTree" TARGET="MAIN"><CODE>ddUpdateMtrTree()</CODE></A>
+<DD> Updates the BDD variable group tree before a shuffle.
+
+<DT> <A HREF="cuddAllDet.html#ddVarGroupCheck" TARGET="MAIN"><CODE>ddVarGroupCheck()</CODE></A>
+<DD> Checks for grouping of x and y.
+
+<DT> <A HREF="cuddAllDet.html#ddWindow2" TARGET="MAIN"><CODE>ddWindow2()</CODE></A>
+<DD> Reorders by applying a sliding window of width 2.
+
+<DT> <A HREF="cuddAllDet.html#ddWindow3" TARGET="MAIN"><CODE>ddWindow3()</CODE></A>
+<DD> Reorders by applying a sliding window of width 3.
+
+<DT> <A HREF="cuddAllDet.html#ddWindow4" TARGET="MAIN"><CODE>ddWindow4()</CODE></A>
+<DD> Reorders by applying a sliding window of width 4.
+
+<DT> <A HREF="cuddAllDet.html#ddWindowConv2" TARGET="MAIN"><CODE>ddWindowConv2()</CODE></A>
+<DD> Reorders by repeatedly applying a sliding window of width 2.
+
+<DT> <A HREF="cuddAllDet.html#ddWindowConv3" TARGET="MAIN"><CODE>ddWindowConv3()</CODE></A>
+<DD> Reorders by repeatedly applying a sliding window of width 3.
+
+<DT> <A HREF="cuddAllDet.html#ddWindowConv4" TARGET="MAIN"><CODE>ddWindowConv4()</CODE></A>
+<DD> Reorders by repeatedly applying a sliding window of width 4.
+
+<DT> <A HREF="cuddAllDet.html#debugCheckParent" TARGET="MAIN"><CODE>debugCheckParent()</CODE></A>
+<DD> Reports an error if a (dead) node has a non-dead parent.
+
+<DT> <A HREF="cuddAllDet.html#debugFindParent" TARGET="MAIN"><CODE>debugFindParent()</CODE></A>
+<DD> Searches the subtables above node for its parents.
+
+<DT> <A HREF="cuddAllDet.html#dp2" TARGET="MAIN"><CODE>dp2()</CODE></A>
+<DD> Performs the recursive step of cuddP.
+
+<DT> <A HREF="cuddAllDet.html#emptyClauseSet" TARGET="MAIN"><CODE>emptyClauseSet()</CODE></A>
+<DD> Returns an enpty set of clauses.
+
+<DT> <A HREF="cuddAllDet.html#equalp" TARGET="MAIN"><CODE>equalp()</CODE></A>
+<DD> Returns true iff the two arguments are identical clauses.
+
+<DT> <A HREF="cuddAllDet.html#find_best" TARGET="MAIN"><CODE>find_best()</CODE></A>
+<DD> Returns the index of the fittest individual.
+
+<DT> <A HREF="cuddAllDet.html#fixVarTree" TARGET="MAIN"><CODE>fixVarTree()</CODE></A>
+<DD> Fixes a variable group tree.
+
+<DT> <A HREF="cuddAllDet.html#freeMatrix" TARGET="MAIN"><CODE>freeMatrix()</CODE></A>
+<DD> Frees a two-dimensional matrix allocated by getMatrix.
+
+<DT> <A HREF="cuddAllDet.html#freePathPair" TARGET="MAIN"><CODE>freePathPair()</CODE></A>
+<DD> Frees the entries of the visited symbol table.
+
+<DT> <A HREF="cuddAllDet.html#gatherInfoAux" TARGET="MAIN"><CODE>gatherInfoAux()</CODE></A>
+<DD> Recursively counts minterms and computes reference counts
+  of each node in the BDD.
+
+<DT> <A HREF="cuddAllDet.html#gatherInfo" TARGET="MAIN"><CODE>gatherInfo()</CODE></A>
+<DD> Gathers information about each node.
+
+<DT> <A HREF="cuddAllDet.html#gcd" TARGET="MAIN"><CODE>gcd()</CODE></A>
+<DD> Returns the gcd of two integers.
+
+<DT> <A HREF="cuddAllDet.html#getCube" TARGET="MAIN"><CODE>getCube()</CODE></A>
+<DD> Build a BDD for a largest cube of f.
+
+<DT> <A HREF="cuddAllDet.html#getLargest" TARGET="MAIN"><CODE>getLargest()</CODE></A>
+<DD> Finds the size of the largest cube(s) in a DD.
+
+<DT> <A HREF="cuddAllDet.html#getLevelKeys" TARGET="MAIN"><CODE>getLevelKeys()</CODE></A>
+<DD> Returns the number of nodes at one level of a unique table.
+
+<DT> <A HREF="cuddAllDet.html#getMatrix" TARGET="MAIN"><CODE>getMatrix()</CODE></A>
+<DD> Allocates a two-dimensional matrix of ints.
+
+<DT> <A HREF="cuddAllDet.html#getMaxBinomial" TARGET="MAIN"><CODE>getMaxBinomial()</CODE></A>
+<DD> Returns the maximum value of (n choose k) for a given n.
+
+<DT> <A HREF="cuddAllDet.html#getPath" TARGET="MAIN"><CODE>getPath()</CODE></A>
+<DD> Build a BDD for a shortest path of f.
+
+<DT> <A HREF="cuddAllDet.html#getShortest" TARGET="MAIN"><CODE>getShortest()</CODE></A>
+<DD> Finds the length of the shortest path(s) in a DD.
+
+<DT> <A HREF="cuddAllDet.html#hashDelete" TARGET="MAIN"><CODE>hashDelete()</CODE></A>
+<DD> Removes an item from the hash table of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#hashInsert" TARGET="MAIN"><CODE>hashInsert()</CODE></A>
+<DD> Inserts an item in the hash table of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#hashLookup" TARGET="MAIN"><CODE>hashLookup()</CODE></A>
+<DD> Looks up a key in the hash table of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#hashResize" TARGET="MAIN"><CODE>hashResize()</CODE></A>
+<DD> Resizes the hash table of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#impliedp" TARGET="MAIN"><CODE>impliedp()</CODE></A>
+<DD> Returns true iff either literal of a clause is in a set of
+  literals.
+
+<DT> <A HREF="cuddAllDet.html#indexCompare" TARGET="MAIN"><CODE>indexCompare()</CODE></A>
+<DD> Compares indices for qsort.
+
+<DT> <A HREF="cuddAllDet.html#initSymmInfo" TARGET="MAIN"><CODE>initSymmInfo()</CODE></A>
+<DD> Gathers symmetry information.
+
+<DT> <A HREF="cuddAllDet.html#largest" TARGET="MAIN"><CODE>largest()</CODE></A>
+<DD> Finds the largest DD in the population.
+
+<DT> <A HREF="cuddAllDet.html#make_random" TARGET="MAIN"><CODE>make_random()</CODE></A>
+<DD> Generates the random sequences for the initial population.
+
+<DT> <A HREF="cuddAllDet.html#mintermsFromUniverse" TARGET="MAIN"><CODE>mintermsFromUniverse()</CODE></A>
+<DD> Recursive procedure to extract n mintems from constant 1.
+
+<DT> <A HREF="cuddAllDet.html#oneliteralp" TARGET="MAIN"><CODE>oneliteralp()</CODE></A>
+<DD> Returns true iff the argument is a one-literal clause.
+
+<DT> <A HREF="cuddAllDet.html#pushDown" TARGET="MAIN"><CODE>pushDown()</CODE></A>
+<DD> Pushes a variable in the order down to position "level."
+
+<DT> <A HREF="cuddAllDet.html#rand_int" TARGET="MAIN"><CODE>rand_int()</CODE></A>
+<DD> Generates a random number between 0 and the integer a.
+
+<DT> <A HREF="cuddAllDet.html#random_generator" TARGET="MAIN"><CODE>random_generator()</CODE></A>
+<DD> Random number generator.
+
+<DT> <A HREF="cuddAllDet.html#restoreOrder" TARGET="MAIN"><CODE>restoreOrder()</CODE></A>
+<DD> Restores the variable order in array by a series of sifts up.
+
+<DT> <A HREF="cuddAllDet.html#roulette" TARGET="MAIN"><CODE>roulette()</CODE></A>
+<DD> Selects two parents with the roulette wheel method.
+
+<DT> <A HREF="cuddAllDet.html#selectMintermsFromUniverse" TARGET="MAIN"><CODE>selectMintermsFromUniverse()</CODE></A>
+<DD> This function prepares an array of variables which have not been
+  encountered so far when traversing the procedure cuddSplitSetRecur.
+
+<DT> <A HREF="cuddAllDet.html#sentinelp" TARGET="MAIN"><CODE>sentinelp()</CODE></A>
+<DD> Returns true iff the argument is the sentinel clause.
+
+<DT> <A HREF="cuddAllDet.html#separateCube" TARGET="MAIN"><CODE>separateCube()</CODE></A>
+<DD> Separates cube from distance.
+
+<DT> <A HREF="cuddAllDet.html#siftBackwardProb" TARGET="MAIN"><CODE>siftBackwardProb()</CODE></A>
+<DD> Returns the DD to the best position encountered during
+  sifting if there was improvement.
+
+<DT> <A HREF="cuddAllDet.html#sift_up" TARGET="MAIN"><CODE>sift_up()</CODE></A>
+<DD> Moves one variable up.
+
+<DT> <A HREF="cuddAllDet.html#stPathTableDdFree" TARGET="MAIN"><CODE>stPathTableDdFree()</CODE></A>
+<DD> Procedure to free te result dds stored in the NodeDist pages.
+
+<DT> <A HREF="cuddAllDet.html#st_zdd_count_dbl_free" TARGET="MAIN"><CODE>st_zdd_count_dbl_free()</CODE></A>
+<DD> Frees the memory associated with the computed table of
+  Cudd_zddCountDouble.
+
+<DT> <A HREF="cuddAllDet.html#st_zdd_countfree" TARGET="MAIN"><CODE>st_zdd_countfree()</CODE></A>
+<DD> Frees the memory associated with the computed table of
+  Cudd_zddCount.
+
+<DT> <A HREF="cuddAllDet.html#stopping_criterion" TARGET="MAIN"><CODE>stopping_criterion()</CODE></A>
+<DD> Checks termination condition.
+
+<DT> <A HREF="cuddAllDet.html#tlcInfoAlloc" TARGET="MAIN"><CODE>tlcInfoAlloc()</CODE></A>
+<DD> Allocates a DdTlcInfo Structure.
+
+<DT> <A HREF="cuddAllDet.html#updateEntry" TARGET="MAIN"><CODE>updateEntry()</CODE></A>
+<DD> Updates entry for a subset.
+
+<DT> <A HREF="cuddAllDet.html#updateParity" TARGET="MAIN"><CODE>updateParity()</CODE></A>
+<DD> Recursively update the parity of the paths reaching a node.
+
+<DT> <A HREF="cuddAllDet.html#updateRefs" TARGET="MAIN"><CODE>updateRefs()</CODE></A>
+<DD> Update function reference counts.
+
+<DT> <A HREF="cuddAllDet.html#updateUB" TARGET="MAIN"><CODE>updateUB()</CODE></A>
+<DD> Updates the upper bound and saves the best order seen so far.
+
+<DT> <A HREF="cuddAllDet.html#zddClearFlag" TARGET="MAIN"><CODE>zddClearFlag()</CODE></A>
+<DD> Performs a DFS from f, clearing the LSB of the next
+  pointers.
+
+<DT> <A HREF="cuddAllDet.html#zddCountInternalMtrNodes" TARGET="MAIN"><CODE>zddCountInternalMtrNodes()</CODE></A>
+<DD> Counts the number of internal nodes of the group tree.
+
+<DT> <A HREF="cuddAllDet.html#zddFindNodeHiLo" TARGET="MAIN"><CODE>zddFindNodeHiLo()</CODE></A>
+<DD> Finds the lower and upper bounds of the group represented
+  by treenode.
+
+<DT> <A HREF="cuddAllDet.html#zddFixTree" TARGET="MAIN"><CODE>zddFixTree()</CODE></A>
+<DD> Fixes the ZDD variable group tree after a shuffle.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupMoveBackward" TARGET="MAIN"><CODE>zddGroupMoveBackward()</CODE></A>
+<DD> Undoes the swap two groups.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupMove" TARGET="MAIN"><CODE>zddGroupMove()</CODE></A>
+<DD> Swaps two groups and records the move.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupSiftingAux" TARGET="MAIN"><CODE>zddGroupSiftingAux()</CODE></A>
+<DD> Sifts one variable up and down until it has taken all
+  positions. Checks for aggregation.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupSiftingBackward" TARGET="MAIN"><CODE>zddGroupSiftingBackward()</CODE></A>
+<DD> Determines the best position for a variables and returns
+  it there.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupSiftingDown" TARGET="MAIN"><CODE>zddGroupSiftingDown()</CODE></A>
+<DD> Sifts down a variable until it reaches position xHigh.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupSiftingUp" TARGET="MAIN"><CODE>zddGroupSiftingUp()</CODE></A>
+<DD> Sifts up a variable until either it reaches position xLow
+  or the size of the DD heap increases too much.
+
+<DT> <A HREF="cuddAllDet.html#zddGroupSifting" TARGET="MAIN"><CODE>zddGroupSifting()</CODE></A>
+<DD> Sifts from treenode->low to treenode->high.
+
+<DT> <A HREF="cuddAllDet.html#zddMergeGroups" TARGET="MAIN"><CODE>zddMergeGroups()</CODE></A>
+<DD> Merges groups in the DD table.
+
+<DT> <A HREF="cuddAllDet.html#zddPortFromBddStep" TARGET="MAIN"><CODE>zddPortFromBddStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddPortFromBdd.
+
+<DT> <A HREF="cuddAllDet.html#zddPortToBddStep" TARGET="MAIN"><CODE>zddPortToBddStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddPortToBdd.
+
+<DT> <A HREF="cuddAllDet.html#zddPrintCoverAux" TARGET="MAIN"><CODE>zddPrintCoverAux()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddPrintCover.
+
+<DT> <A HREF="cuddAllDet.html#zddReorderChildren" TARGET="MAIN"><CODE>zddReorderChildren()</CODE></A>
+<DD> Reorders the children of a group tree node according to
+  the options.
+
+<DT> <A HREF="cuddAllDet.html#zddReorderPostprocess" TARGET="MAIN"><CODE>zddReorderPostprocess()</CODE></A>
+<DD> Shrinks almost empty ZDD subtables at the end of reordering
+  to guarantee that they have a reasonable load factor.
+
+<DT> <A HREF="cuddAllDet.html#zddReorderPreprocess" TARGET="MAIN"><CODE>zddReorderPreprocess()</CODE></A>
+<DD> Prepares the ZDD heap for dynamic reordering.
+
+<DT> <A HREF="cuddAllDet.html#zddShuffle" TARGET="MAIN"><CODE>zddShuffle()</CODE></A>
+<DD> Reorders ZDD variables according to a given permutation.
+
+<DT> <A HREF="cuddAllDet.html#zddSiftUp" TARGET="MAIN"><CODE>zddSiftUp()</CODE></A>
+<DD> Moves one ZDD variable up.
+
+<DT> <A HREF="cuddAllDet.html#zddSupportStep" TARGET="MAIN"><CODE>zddSupportStep()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddSupport.
+
+<DT> <A HREF="cuddAllDet.html#zddSwapAny" TARGET="MAIN"><CODE>zddSwapAny()</CODE></A>
+<DD> Swaps any two variables.
+
+<DT> <A HREF="cuddAllDet.html#zddTreeSiftingAux" TARGET="MAIN"><CODE>zddTreeSiftingAux()</CODE></A>
+<DD> Visits the group tree and reorders each group.
+
+<DT> <A HREF="cuddAllDet.html#zddUniqueCompareGroup" TARGET="MAIN"><CODE>zddUniqueCompareGroup()</CODE></A>
+<DD> Comparison function used by qsort.
+
+<DT> <A HREF="cuddAllDet.html#zddVarToConst" TARGET="MAIN"><CODE>zddVarToConst()</CODE></A>
+<DD> Replaces variables with constants if possible (part of
+  canonical form).
+
+<DT> <A HREF="cuddAllDet.html#zdd_group_move_backward" TARGET="MAIN"><CODE>zdd_group_move_backward()</CODE></A>
+<DD> Undoes the swap of two groups.
+
+<DT> <A HREF="cuddAllDet.html#zdd_group_move" TARGET="MAIN"><CODE>zdd_group_move()</CODE></A>
+<DD> Swaps two groups.
+
+<DT> <A HREF="cuddAllDet.html#zdd_print_minterm_aux" TARGET="MAIN"><CODE>zdd_print_minterm_aux()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddPrintMinterm.
+
+<DT> <A HREF="cuddAllDet.html#zdd_subset0_aux" TARGET="MAIN"><CODE>zdd_subset0_aux()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddSubset0.
+
+<DT> <A HREF="cuddAllDet.html#zdd_subset1_aux" TARGET="MAIN"><CODE>zdd_subset1_aux()</CODE></A>
+<DD> Performs the recursive step of Cudd_zddSubset1.
+
+<DT> <A HREF="cuddAllDet.html#zp2" TARGET="MAIN"><CODE>zp2()</CODE></A>
+<DD> Performs the recursive step of cuddZddP.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Adds node to the head of the free list.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Adds node to the head of the free list.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Adjusts the values of table limits.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Clears a bit vector.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Clears the 4 least significant bits of a pointer.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Comparison of a function to the i-th ADD variable.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Comparison of a pair of functions to the i-th ADD variable.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Complements a DD if a condition is true.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Complements a DD.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes hash function for keys of one operand.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes hash function for keys of three operands.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes hash function for keys of two operands.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes the absolute value of a number.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes the hash value for a local cache.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes the maximum of two numbers.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Computes the minimum of two numbers.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Decreases the reference count of a node, if it is not
+  saturated.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Enforces DD_MINUS_INF_VAL <= x <= DD_PLUS_INF_VAL.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Extract the least significant digit of a double digit.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Extract the most significant digit of a double digit.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Fast storage allocation for items in a hash table.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Finds the current position of ZDD variable index in the
+  order.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Finds the current position of variable index in the
+  order.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Hash function for the cache for functions with two
+  operands.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Hash function for the cache.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Hash function for the table of a level queue.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Hash function for the unique table.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Increases the reference count of a node, if it is not
+  saturated.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Iterates over the cubes of a decision diagram.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Iterates over the nodes of a decision diagram.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Iterates over the paths of a ZDD.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Iterates over the primes of a Boolean function.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Outputs a line of stats.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Performs the left rotation for red/black trees.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Performs the right rotation for red/black trees.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns 1 if a pointer is complemented.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns 1 if the absolute value of the difference of the two
+  arguments x and y is less than e.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns 1 if the node is a constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns 1 if the node is a constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the arithmetic 0 constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the average fitness of the population.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the complemented version of a pointer.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the constant 1 node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the current position in the order of variable
+  index.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the else child of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the else child of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the i-th entry of a bit vector.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the minus infinity constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the plus infinity constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the regular version of a pointer.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the then child of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the then child of an internal node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the value of a constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Returns the value of a constant node.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Saturating decrement operator.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Saturating increment operator.
+
+<DT> <A HREF="cuddAllDet.html#" TARGET="MAIN"><CODE>()</CODE></A>
+<DD> Sets the i-th entry of a bit vector to a value.
+
+</DL>
+
+<HR>
+
+Last updated on 20120204 17h33
+</BODY></HTML>

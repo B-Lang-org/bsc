@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : RegFile#(size,type) name <- mkRegFileFull;
+# --
+RegFile#(${1:addrtype},${2:datatype)} ${3:name} <- mkRegFileFull;

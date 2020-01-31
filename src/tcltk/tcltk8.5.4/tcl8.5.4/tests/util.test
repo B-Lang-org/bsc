@@ -1,0 +1,1105 @@
+# This file is a Tcl script to test the code in the file tclUtil.c.
+# This file is organized in the standard fashion for Tcl tests.
+#
+# Copyright (c) 1995-1998 Sun Microsystems, Inc.
+# Copyright (c) 1998-1999 by Scriptics Corporation.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: util.test,v 1.18 2006/03/21 11:12:29 dkf Exp $
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest
+    namespace import -force ::tcltest::*
+}
+
+testConstraint testdstring [llength [info commands testdstring]]
+
+# Big test for correct ordering of data in [expr]
+
+proc testIEEE {} {
+    variable ieeeValues
+    binary scan [binary format dd -1.0 1.0] c* c
+    switch -exact -- $c {
+	{0 0 0 0 0 0 -16 -65 0 0 0 0 0 0 -16 63} {
+	    # little endian
+	    binary scan \x00\x00\x00\x00\x00\x00\xf0\xff d \
+		ieeeValues(-Infinity)
+	    binary scan \x00\x00\x00\x00\x00\x00\xf0\xbf d \
+		ieeeValues(-Normal)
+	    binary scan \x00\x00\x00\x00\x00\x00\x08\x80 d \
+		ieeeValues(-Subnormal)
+	    binary scan \x00\x00\x00\x00\x00\x00\x00\x80 d \
+		ieeeValues(-0)
+	    binary scan \x00\x00\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(+0)
+	    binary scan \x00\x00\x00\x00\x00\x00\x08\x00 d \
+		ieeeValues(+Subnormal)
+	    binary scan \x00\x00\x00\x00\x00\x00\xf0\x3f d \
+		ieeeValues(+Normal)
+	    binary scan \x00\x00\x00\x00\x00\x00\xf0\x7f d \
+		ieeeValues(+Infinity)
+	    binary scan \x00\x00\x00\x00\x00\x00\xf8\x7f d \
+		ieeeValues(NaN)
+	    set ieeeValues(littleEndian) 1
+	    return 1
+	}
+	{-65 -16 0 0 0 0 0 0 63 -16 0 0 0 0 0 0} {
+	    binary scan \xff\xf0\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(-Infinity)
+	    binary scan \xbf\xf0\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(-Normal)
+	    binary scan \x80\x08\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(-Subnormal)
+	    binary scan \x80\x00\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(-0)
+	    binary scan \x00\x00\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(+0)
+	    binary scan \x00\x08\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(+Subnormal)
+	    binary scan \x3f\xf0\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(+Normal)
+	    binary scan \x7f\xf0\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(+Infinity)
+	    binary scan \x7f\xf8\x00\x00\x00\x00\x00\x00 d \
+		ieeeValues(NaN)
+	    set ieeeValues(littleEndian) 0
+	    return 1
+	}
+	default {
+	    return 0
+	}
+    }
+}
+testConstraint ieeeFloatingPoint [testIEEE]
+
+proc convertDouble { x } {
+    variable ieeeValues
+    if { $ieeeValues(littleEndian) } {
+	binary scan [binary format w $x] d result
+    } else {
+	binary scan [binary format W $x] d result
+    }
+    return $result
+}
+
+
+test util-1.1 {TclFindElement procedure - binary element in middle of list} {
+    lindex {0 foo\x00help 1} 1
+} "foo\x00help"
+test util-1.2 {TclFindElement procedure - binary element at end of list} {
+    lindex {0 foo\x00help} 1
+} "foo\x00help"
+
+test util-2.1 {TclCopyAndCollapse procedure - normal string} {
+    lindex {0 foo} 1
+} {foo}
+test util-2.2 {TclCopyAndCollapse procedure - string with backslashes} {
+    lindex {0 foo\n\x00help 1} 1
+} "foo\n\x00help"
+
+test util-3.1 {Tcl_ScanCountedElement procedure - don't leave unmatched braces} {
+    # This test checks for a very tricky feature.  Any list element
+    # generated with Tcl_ScanCountedElement and Tcl_ConvertElement must
+    # have the property that it can be enclosing in curly braces to make
+    # an embedded sub-list.  If this property doesn't hold, then
+    # Tcl_DStringStartSublist doesn't work.
+    set x {}
+    lappend x "# \\\{ \\"
+    concat $x [llength "{$x}"]
+} {\#\ \\\{\ \\ 1}
+test util-3.2 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    list # # a
+} {{#} # a}
+test util-3.3 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    list #\{ # a
+} {\#\{ # a}
+test util-3.4 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    proc # {} {return #}
+    set result [eval [list #]]
+    rename # {}
+    set result
+} {#}
+test util-3.4.1 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    proc # {} {return #}
+    set cmd [list #]
+    append cmd ""	;# force string rep generation
+    set result [eval $cmd]
+    rename # {}
+    set result
+} {#}
+test util-3.5 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    proc #\{ {} {return #}
+    set result [eval [list #\{]]
+    rename #\{ {}
+    set result
+} {#}
+test util-3.5.1 {Tcl_ConverCountedElement procedure - quote leading '#'} {
+    proc #\{ {} {return #}
+    set cmd [list #\{]
+    append cmd ""	;# force string rep generation
+    set result [eval $cmd]
+    rename #\{ {}
+    set result
+} {#}
+
+test util-4.1 {Tcl_ConcatObj - backslash-space at end of argument} {
+    concat a {b\ } c
+} {a b\  c}
+test util-4.2 {Tcl_ConcatObj - backslash-space at end of argument} {
+    concat a {b\   } c
+} {a b\  c}
+test util-4.3 {Tcl_ConcatObj - backslash-space at end of argument} {
+    concat a {b\\   } c
+} {a b\\  c}
+test util-4.4 {Tcl_ConcatObj - backslash-space at end of argument} {
+    concat a {b } c
+} {a b c}
+test util-4.5 {Tcl_ConcatObj - backslash-space at end of argument} {
+    concat a { } c
+} {a c}
+test util-4.6 {Tcl_ConcatObj - utf-8 sequence with "whitespace" char} {
+    # Check for Bug #227512.  If this violates C isspace, then it returns \xc3.
+    concat \xe0
+} \xe0
+
+proc Wrapper_Tcl_StringMatch {pattern string} {
+    # Forces use of Tcl_StringMatch, not Tcl_UniCharCaseMatch
+    switch -glob -- $string $pattern {return 1} default {return 0}
+}
+test util-5.1 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch ab*c abc
+} 1
+test util-5.2 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch ab**c abc
+} 1
+test util-5.3 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch ab* abcdef
+} 1
+test util-5.4 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch *c abc
+} 1
+test util-5.5 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch *3*6*9 0123456789
+} 1
+test util-5.6 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch *3*6*9 01234567890
+} 0
+test util-5.7 {Tcl_StringMatch: UTF-8} {
+    Wrapper_Tcl_StringMatch *u \u4e4fu
+} 1
+test util-5.8 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch a?c abc
+} 1
+test util-5.9 {Tcl_StringMatch: UTF-8} {
+    # skip one character in string
+    Wrapper_Tcl_StringMatch a?c a\u4e4fc
+} 1
+test util-5.10 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch a??c abc
+} 0
+test util-5.11 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch ?1??4???8? 0123456789
+} 1
+test util-5.12 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {[abc]bc} abc
+} 1
+test util-5.13 {Tcl_StringMatch: UTF-8} {
+    # string += Tcl_UtfToUniChar(string, &ch);
+    Wrapper_Tcl_StringMatch "\[\u4e4fxy\]bc" "\u4e4fbc"
+} 1
+test util-5.14 {Tcl_StringMatch} {
+    # if ((*pattern == ']') || (*pattern == '\0'))
+    # badly formed pattern
+    Wrapper_Tcl_StringMatch {[]} {[]}
+} 0
+test util-5.15 {Tcl_StringMatch} {
+    # if ((*pattern == ']') || (*pattern == '\0'))
+    # badly formed pattern
+    Wrapper_Tcl_StringMatch {[} {[}
+} 0
+test util-5.16 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {a[abc]c} abc
+} 1
+test util-5.17 {Tcl_StringMatch: UTF-8} {
+    # pattern += Tcl_UtfToUniChar(pattern, &endChar);
+    # get 1 UTF-8 character
+    Wrapper_Tcl_StringMatch "a\[a\u4e4fc]c" "a\u4e4fc"
+} 1
+test util-5.18 {Tcl_StringMatch: UTF-8} {
+    # pattern += Tcl_UtfToUniChar(pattern, &endChar);
+    # proper advance: wrong answer would match on UTF trail byte of \u4e4f
+    Wrapper_Tcl_StringMatch {a[a\u4e4fc]c} [bytestring a\u008fc]
+} 0
+test util-5.19 {Tcl_StringMatch: UTF-8} {
+    # pattern += Tcl_UtfToUniChar(pattern, &endChar);
+    # proper advance.
+    Wrapper_Tcl_StringMatch {a[a\u4e4fc]c} "acc"
+} 1
+test util-5.20 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {a[xyz]c} abc
+} 0
+test util-5.21 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[2-7]45} 12345
+} 1
+test util-5.22 {Tcl_StringMatch: UTF-8 range} {
+    Wrapper_Tcl_StringMatch "\[\u4e00-\u4e4f]" "0"
+} 0
+test util-5.23 {Tcl_StringMatch: UTF-8 range} {
+    Wrapper_Tcl_StringMatch "\[\u4e00-\u4e4f]" "\u4e33"
+} 1
+test util-5.24 {Tcl_StringMatch: UTF-8 range} {
+    Wrapper_Tcl_StringMatch "\[\u4e00-\u4e4f]" "\uff08"
+} 0
+test util-5.25 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[ab2-4cd]45} 12345
+} 1
+test util-5.26 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[ab2-4cd]45} 12b45
+} 1
+test util-5.27 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[ab2-4cd]45} 12d45
+} 1
+test util-5.28 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[ab2-4cd]45} 12145
+} 0
+test util-5.29 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {12[ab2-4cd]45} 12545
+} 0
+test util-5.30 {Tcl_StringMatch: forwards range} {
+    Wrapper_Tcl_StringMatch {[k-w]} "z"
+} 0
+test util-5.31 {Tcl_StringMatch: forwards range} {
+    Wrapper_Tcl_StringMatch {[k-w]} "w"
+} 1
+test util-5.32 {Tcl_StringMatch: forwards range} {
+    Wrapper_Tcl_StringMatch {[k-w]} "r"
+} 1
+test util-5.33 {Tcl_StringMatch: forwards range} {
+    Wrapper_Tcl_StringMatch {[k-w]} "k"
+} 1
+test util-5.34 {Tcl_StringMatch: forwards range} {
+    Wrapper_Tcl_StringMatch {[k-w]} "a"
+} 0
+test util-5.35 {Tcl_StringMatch: reverse range} {
+    Wrapper_Tcl_StringMatch {[w-k]} "z"
+} 0
+test util-5.36 {Tcl_StringMatch: reverse range} {
+    Wrapper_Tcl_StringMatch {[w-k]} "w"
+} 1
+test util-5.37 {Tcl_StringMatch: reverse range} {
+    Wrapper_Tcl_StringMatch {[w-k]} "r"
+} 1
+test util-5.38 {Tcl_StringMatch: reverse range} {
+    Wrapper_Tcl_StringMatch {[w-k]} "k"
+} 1
+test util-5.39 {Tcl_StringMatch: reverse range} {
+    Wrapper_Tcl_StringMatch {[w-k]} "a"
+} 0
+test util-5.40 {Tcl_StringMatch: skip correct number of ']'} {
+    Wrapper_Tcl_StringMatch {[A-]x} Ax
+} 0
+test util-5.41 {Tcl_StringMatch: skip correct number of ']'} {
+    Wrapper_Tcl_StringMatch {[A-]]x} Ax
+} 1
+test util-5.42 {Tcl_StringMatch: skip correct number of ']'} {
+    Wrapper_Tcl_StringMatch {[A-]]x} \ue1x
+} 0
+test util-5.43 {Tcl_StringMatch: skip correct number of ']'} {
+    Wrapper_Tcl_StringMatch \[A-]\ue1]x \ue1x
+} 1
+test util-5.44 {Tcl_StringMatch: skip correct number of ']'} {
+    Wrapper_Tcl_StringMatch {[A-]h]x} hx
+} 1
+test util-5.45 {Tcl_StringMatch} {
+    # if (*pattern == '\0')
+    # badly formed pattern, still treats as a set
+    Wrapper_Tcl_StringMatch {[a} a
+} 1
+test util-5.46 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {a\*b} a*b
+} 1
+test util-5.47 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {a\*b} ab
+} 0
+test util-5.48 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch {a\*\?\[\]\\\x} "a*?\[\]\\x"
+} 1
+test util-5.49 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch ** ""
+} 1
+test util-5.50 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch *. ""
+} 0
+test util-5.51 {Tcl_StringMatch} {
+    Wrapper_Tcl_StringMatch "" ""
+} 1
+
+test util-6.1 {Tcl_PrintDouble - using tcl_precision} -setup {
+    set old_precision $::tcl_precision
+    set ::tcl_precision 12
+} -body {
+    concat x[expr 1.4]
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {x1.4}
+test util-6.2 {Tcl_PrintDouble - using tcl_precision} -setup {
+    set old_precision $::tcl_precision
+    set ::tcl_precision 12
+} -body {
+    concat x[expr 1.39999999999]
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {x1.39999999999}
+test util-6.3 {Tcl_PrintDouble - using tcl_precision} -setup {
+    set old_precision $::tcl_precision
+    set ::tcl_precision 12
+} -body {
+    concat x[expr 1.399999999999]
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {x1.4}
+test util-6.4 {Tcl_PrintDouble - using tcl_precision} -setup {
+    set old_precision $::tcl_precision
+    set ::tcl_precision 5
+} -body {
+    concat x[expr 1.123412341234]
+} -cleanup {
+    set tcl_precision $old_precision
+} -result {x1.1234}
+test util-6.5 {Tcl_PrintDouble - make sure there's a decimal point} {
+    concat x[expr 2.0]
+} {x2.0}
+test util-6.6 {Tcl_PrintDouble - make sure there's a decimal point} {
+    concat x[expr 3.0e98]
+} {x3e+98}
+
+test util-7.1 {TclPrecTraceProc - unset callbacks} -setup {
+    set old_precision $::tcl_precision
+} -body {
+    set tcl_precision 7
+    set x $tcl_precision
+    unset tcl_precision
+    list $x $tcl_precision
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {7 7}
+test util-7.2 {TclPrecTraceProc - read traces, sharing among interpreters}  -setup {
+    set old_precision $::tcl_precision
+} -body {
+    set tcl_precision 12
+    interp create child
+    set x [child eval set tcl_precision]
+    child eval {set tcl_precision 6}
+    interp delete child
+    list $x $tcl_precision
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {12 6}
+test util-7.3 {TclPrecTraceProc - write traces, safe interpreters} -setup {
+    set old_precision $::tcl_precision
+} -body {
+    set tcl_precision 12
+    interp create -safe child
+    set x [child eval {
+	list [catch {set tcl_precision 8} msg] $msg
+    }]
+    interp delete child
+    list $x $tcl_precision
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {{1 {can't set "tcl_precision": can't modify precision from a safe interpreter}} 12}
+test util-7.4 {TclPrecTraceProc - write traces, bogus values} -setup {
+    set old_precision $::tcl_precision
+} -body {
+    set tcl_precision 12
+    list [catch {set tcl_precision abc} msg] $msg $tcl_precision
+} -cleanup {
+    set ::tcl_precision $old_precision
+} -result {1 {can't set "tcl_precision": improper value for precision} 12}
+
+# This test always succeeded in the C locale anyway...
+test util-8.1 {TclNeedSpace - correct UTF8 handling} {
+    # Bug 411825
+    # Note that this test relies on the fact that
+    # [interp target] calls on Tcl_AppendElement()
+    # which calls on TclNeedSpace().  If [interp target]
+    # is ever updated, this test will no longer test
+    # TclNeedSpace.
+    interp create \u5420
+    interp create [list \u5420 foo]
+    interp alias {} fooset [list \u5420 foo] set
+    set result [interp target {} fooset]
+    interp delete \u5420
+    set result
+} "\u5420 foo"
+test util-8.2 {TclNeedSpace - correct UTF8 handling} testdstring {
+    # Bug 411825
+    # This tests the same bug as the previous test, but
+    # should be more future-proof, as the DString
+    # operations will likely continue to call TclNeedSpace
+    testdstring free
+    testdstring append \u5420 -1
+    testdstring element foo
+    llength [testdstring get]
+} 2
+test util-8.3 {TclNeedSpace - correct UTF8 handling} testdstring {
+    # Bug 411825 - new variant reported by Dossy Shiobara
+    testdstring free
+    testdstring append \u00A0 -1
+    testdstring element foo
+    llength [testdstring get]
+} 2
+test util-8.4 {TclNeedSpace - correct UTF8 handling} testdstring {
+    # Another bug uncovered while fixing 411825
+    testdstring free
+    testdstring append {\ } -1
+    testdstring append \{ -1
+    testdstring element foo
+    llength [testdstring get]
+} 2
+test util-8.5 {TclNeedSpace - correct UTF8 handling} testdstring {
+    # Note that in this test TclNeedSpace actually gets it wrong,
+    # claiming we need a space when we really do not.  Extra space
+    # between list elements is harmless though, and better to have
+    # extra space in really weird string reps of lists, than to
+    # invest the effort required to make TclNeedSpace foolproof.
+    testdstring free
+    testdstring append {\\ } -1
+    testdstring element foo
+    list [llength [testdstring get]] [string length [testdstring get]]
+} {2 7}
+test util-8.6 {TclNeedSpace - correct UTF8 handling} testdstring {
+    # Another example of TclNeedSpace harmlessly getting it wrong.
+    testdstring free
+    testdstring append {\\ } -1
+    testdstring append \{ -1
+    testdstring element foo
+    testdstring append \} -1
+    list [llength [testdstring get]] [string length [testdstring get]]
+} {2 9}
+
+test util-9.0.0 {TclGetIntForIndex} {
+    string index abcd 0
+} a
+test util-9.0.1 {TclGetIntForIndex} {
+    string index abcd 0x0
+} a
+test util-9.0.2 {TclGetIntForIndex} {
+    string index abcd -0x0
+} a
+test util-9.0.3 {TclGetIntForIndex} {
+    string index abcd { 0 }
+} a
+test util-9.0.4 {TclGetIntForIndex} {
+    string index abcd { 0x0 }
+} a
+test util-9.0.5 {TclGetIntForIndex} {
+    string index abcd { -0x0 }
+} a
+test util-9.0.6 {TclGetIntForIndex} {
+    string index abcd 01
+} b
+test util-9.0.7 {TclGetIntForIndex} {
+    string index abcd { 01 }
+} b
+test util-9.1.0 {TclGetIntForIndex} {
+    string index abcd 3
+} d
+test util-9.1.1 {TclGetIntForIndex} {
+    string index abcd { 3 }
+} d
+test util-9.1.2 {TclGetIntForIndex} {
+    string index abcdefghijk 0xa
+} k
+test util-9.1.3 {TclGetIntForIndex} {
+    string index abcdefghijk { 0xa }
+} k
+test util-9.2.0 {TclGetIntForIndex} {
+    string index abcd end
+} d 
+test util-9.2.1 {TclGetIntForIndex} -body {
+    string index abcd { end}
+} -returnCodes error -match glob -result *
+test util-9.2.2 {TclGetIntForIndex} -body {
+    string index abcd {end }
+} -returnCodes error -match glob -result *
+test util-9.3 {TclGetIntForIndex} {
+    # Deprecated
+    string index abcd en
+} d
+test util-9.4 {TclGetIntForIndex} {
+    # Deprecated
+    string index abcd e
+} d
+test util-9.5.0 {TclGetIntForIndex} {
+    string index abcd end-1
+} c
+test util-9.5.1 {TclGetIntForIndex} {
+    string index abcd {end-1 }
+} c
+test util-9.5.2 {TclGetIntForIndex} -body {
+    string index abcd { end-1}
+} -returnCodes error -match glob -result *
+test util-9.6 {TclGetIntForIndex} {
+    string index abcd end+-1
+} c
+test util-9.7 {TclGetIntForIndex} {
+    string index abcd end+1
+} {}
+test util-9.8 {TclGetIntForIndex} {
+    string index abcd end--1
+} {}
+test util-9.9.0 {TclGetIntForIndex} {
+    string index abcd 0+0
+} a
+test util-9.9.1 {TclGetIntForIndex} {
+    string index abcd { 0+0 }
+} a
+test util-9.10 {TclGetIntForIndex} {
+    string index abcd 0-0
+} a
+test util-9.11 {TclGetIntForIndex} {
+    string index abcd 1+0
+} b
+test util-9.12 {TclGetIntForIndex} {
+    string index abcd 1-0
+} b
+test util-9.13 {TclGetIntForIndex} {
+    string index abcd 1+1
+} c
+test util-9.14 {TclGetIntForIndex} {
+    string index abcd 1-1
+} a
+test util-9.15 {TclGetIntForIndex} {
+    string index abcd -1+2
+} b
+test util-9.16 {TclGetIntForIndex} {
+    string index abcd -1--2
+} b
+test util-9.17 {TclGetIntForIndex} {
+    string index abcd { -1+2 }
+} b
+test util-9.18 {TclGetIntForIndex} {
+    string index abcd { -1--2 }
+} b
+test util-9.19 {TclGetIntForIndex} -body {
+    string index a {}
+} -returnCodes error -match glob -result *
+test util-9.20 {TclGetIntForIndex} -body {
+    string index a { }
+} -returnCodes error -match glob -result *
+test util-9.21 {TclGetIntForIndex} -body {
+    string index a " \r\t\n"
+} -returnCodes error -match glob -result *
+test util-9.22 {TclGetIntForIndex} -body {
+    string index a +
+} -returnCodes error -match glob -result *
+test util-9.23 {TclGetIntForIndex} -body {
+    string index a -
+} -returnCodes error -match glob -result *
+test util-9.24 {TclGetIntForIndex} -body {
+    string index a x
+} -returnCodes error -match glob -result *
+test util-9.25 {TclGetIntForIndex} -body {
+    string index a +x
+} -returnCodes error -match glob -result *
+test util-9.26 {TclGetIntForIndex} -body {
+    string index a -x
+} -returnCodes error -match glob -result *
+test util-9.27 {TclGetIntForIndex} -body {
+    string index a 0y
+} -returnCodes error -match glob -result *
+test util-9.28 {TclGetIntForIndex} -body {
+    string index a 1*
+} -returnCodes error -match glob -result *
+test util-9.29 {TclGetIntForIndex} -body {
+    string index a 0+
+} -returnCodes error -match glob -result *
+test util-9.30 {TclGetIntForIndex} -body {
+    string index a {0+ }
+} -returnCodes error -match glob -result *
+test util-9.31 {TclGetIntForIndex} -body {
+    string index a 0x
+} -returnCodes error -match glob -result *
+test util-9.32 {TclGetIntForIndex} -body {
+    string index a 0x1FFFFFFFF+0
+} -returnCodes error -match glob -result *
+test util-9.33 {TclGetIntForIndex} -body {
+    string index a 100000000000+0
+} -returnCodes error -match glob -result *
+test util-9.34 {TclGetIntForIndex} -body {
+    string index a 1.0
+} -returnCodes error -match glob -result *
+test util-9.35 {TclGetIntForIndex} -body {
+    string index a 1e23
+} -returnCodes error -match glob -result *
+test util-9.36 {TclGetIntForIndex} -body {
+    string index a 1.5e2
+} -returnCodes error -match glob -result *
+test util-9.37 {TclGetIntForIndex} -body {
+    string index a 0+x
+} -returnCodes error -match glob -result *
+test util-9.38 {TclGetIntForIndex} -body {
+    string index a 0+0x
+} -returnCodes error -match glob -result *
+test util-9.39 {TclGetIntForIndex} -body {
+    string index a 0+0xg
+} -returnCodes error -match glob -result *
+test util-9.40 {TclGetIntForIndex} -body {
+    string index a 0+0xg
+} -returnCodes error -match glob -result *
+test util-9.41 {TclGetIntForIndex} -body {
+    string index a 0+1.0
+} -returnCodes error -match glob -result *
+test util-9.42 {TclGetIntForIndex} -body {
+    string index a 0+1e2
+} -returnCodes error -match glob -result *
+test util-9.43 {TclGetIntForIndex} -body {
+    string index a 0+1.5e1
+} -returnCodes error -match glob -result *
+test util-9.44 {TclGetIntForIndex} -body {
+    string index a 0+1000000000000
+} -returnCodes error -match glob -result *
+
+test util-10.1 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x0000000000000000
+} {0.0}
+test util-10.2 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x8000000000000000
+} {-0.0}
+test util-10.3 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x7ef754e31cd072da
+} {4e+303}
+test util-10.4 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xd08afcef51f0fb5f
+} {-1e+80}
+test util-10.5 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x7ed754e31cd072da
+} {1e+303}
+test util-10.6 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xfee754e31cd072da
+} {-2e+303}
+test util-10.7 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x0afe07b27dd78b14
+} {1e-255}
+test util-10.8 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x93ae29e9c56687fe
+} {-7e-214}
+test util-10.9 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x376be03d0bf225c7
+} {1e-41}
+test util-10.10 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xa0ca2fe76a3f9475
+} {-1e-150}
+test util-10.11 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x7fa9a2028368022e
+} {9e+306}
+test util-10.12 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdfc317e5ef3ab327
+} {-2e+153}
+test util-10.13 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x5fd317e5ef3ab327
+} {4e+153}
+test util-10.14 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdfe317e5ef3ab327
+} {-8e+153}
+test util-10.15 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x00feb8e84fa0b278
+} {7e-304}
+test util-10.16 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x8133339131c46f8b
+} {-7e-303}
+test util-10.17 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x35dc0f92a6276c9d
+} {3e-49}
+test util-10.18 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xa445ce1f143d7ad2
+} {-6e-134}
+test util-10.19 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x2d2c0794d9d40e96
+} {4.3e-91}
+test util-10.20 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xad3c0794d9d40e96
+} {-8.6e-91}
+test util-10.21 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x30ecd5bee57763e6
+} {5.1e-73}
+test util-10.22 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x68ad1c26db7d0dae
+} {1.7e+196}
+test util-10.23 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbfa3f7ced916872b
+} {-0.039}
+test util-10.24 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x64b7d93193f78fc6
+} {1.51e+177}
+test util-10.25 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x98ea82a1631eeb30
+} {-1.19e-188}
+test util-10.26 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xd216c309024bab4b
+} {-2.83e+87}
+test util-10.27 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x0dfdbbac6f83a821
+} {2.7869147e-241}
+test util-10.28 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdadc569e968e0944
+} {-4.91080654e+129}
+test util-10.29 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x5acc569e968e0944
+} {2.45540327e+129}
+test util-10.30 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xab5fc575867314ee
+} {-9.078555839e-100}
+test util-10.31 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdabc569e968e0944
+} {-1.227701635e+129}
+test util-10.32 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x2b6fc575867314ee
+} {1.8157111678e-99}
+test util-10.33 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xb3b8bf7e7fa6f02a
+} {-1.5400733123779e-59}
+test util-10.34 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xcd83de005bd620df
+} {-2.6153245263757307e+65}
+test util-10.35 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x6cdf92bacb3cb40c
+} {2.7210404151224248e+216}
+test util-10.36 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xecef92bacb3cb40c
+} {-5.4420808302448496e+216}
+test util-10.37 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x49342dbf25096cf5
+} {4.5e+44}
+test util-10.38 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xd06afcef51f0fb5f
+} {-2.5e+79}
+test util-10.39 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x49002498ea6df0c4
+} {4.5e+43}
+test util-10.40 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xfeb754e31cd072da
+} {-2.5e+302}
+test util-10.41 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x1d22deac01e2b4f7
+} {2.5e-168}
+test util-10.42 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xaccb1df536c13eee
+} {-6.5e-93}
+test util-10.43 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3650711fed5b19a4
+} {4.5e-47}
+test util-10.44 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xb6848d67e8b1e00d
+} {-4.5e-46}
+test util-10.45 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4bac8c574c0c6be7
+} {3.5e+56}
+test util-10.46 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xccd756183c147514
+} {-1.5e+62}
+test util-10.47 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4ca2ab469676c410
+} {1.5e+61}
+test util-10.48 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xcf5539684e774b48
+} {-1.5e+74}
+test util-10.49 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x2e12e5f5dfa4fe9d
+} {9.5e-87}
+test util-10.50 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x8b9bdc2417bf7787
+} {-9.5e-253}
+test util-10.51 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x00eeb8e84fa0b278
+} {3.5e-304}
+test util-10.52 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xadde3cbc9907fdc8
+} {-9.5e-88}
+test util-10.53 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x2bb0ad836f269a17
+} {3.05e-98}
+test util-10.54 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x950b39ae1909c31b
+} {-2.65e-207}
+test util-10.55 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x1bfb2ab18615fcc6
+} {6.865e-174}
+test util-10.56 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x98f3e1f90a573064
+} {-1.785e-188}
+test util-10.57 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x5206c309024bab4b
+} {1.415e+87}
+test util-10.58 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xcc059bd3ad46e346
+} {-1.6955e+58}
+test util-10.59 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x47bdf4170f0fdecc
+} {3.9815e+37}
+test util-10.60 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x59e7e1e0f1c7a4ac
+} {1.263005e+125}
+test util-10.61 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xda1dda592e398dd7
+} {-1.263005e+126}
+test util-10.62 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdc4e597c0b94b7ae
+} {-4.4118455e+136}
+test util-10.63 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x5aac569e968e0944
+} {6.138508175e+128}
+test util-10.64 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xdabc569e968e0944
+} {-1.227701635e+129}
+test util-10.65 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x6ce7ae0c186d8709
+} {4.081560622683637e+216}
+test util-10.66 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x44b52d02c7e14af7
+} {1.0000000000000001e+23}
+test util-10.67 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc589d971e4fe8402
+} {-1e+27}
+test util-10.68 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4599d971e4fe8402
+} {2e+27}
+test util-10.69 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc5a9d971e4fe8402
+} {-4e+27}
+test util-10.70 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3e45798ee2308c3a
+} {1e-8}
+test util-10.71 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbe55798ee2308c3a
+} {-2e-8}
+test util-10.72 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3e65798ee2308c3a
+} {4e-8}
+test util-10.73 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbabef2d0f5da7dd9
+} {-1e-25}
+test util-10.74 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x44da784379d99db4
+} {5e+23}
+test util-10.75 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc4fa784379d99db4
+} {-2e+24}
+test util-10.76 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4503da329b633647
+} {3e+24}
+test util-10.77 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc54cf389cd46047d
+} {-7e+25}
+test util-10.78 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3fc999999999999a
+} {0.2}
+test util-10.79 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbfd3333333333333
+} {-0.3}
+test util-10.80 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3cf6849b86a12b9b
+} {5e-15}
+test util-10.81 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbd16849b86a12b9b
+} {-2e-14}
+test util-10.82 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3b87ccfc73126788
+} {6.3e-22}
+test util-10.83 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbbbdc03b8fd7016a
+} {-6.3e-21}
+test util-10.84 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3fa3f7ced916872b
+} {0.039}
+test util-10.85 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x460b297cad9f70b6
+} {2.69e+29}
+test util-10.86 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc61b297cad9f70b6
+} {-5.38e+29}
+test util-10.87 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3adcdc06b20ef183
+} {3.73e-25}
+test util-10.88 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x45fb297cad9f70b6
+} {1.345e+29}
+test util-10.89 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc60b297cad9f70b6
+} {-2.69e+29}
+test util-10.90 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbc050a246ecd44f3
+} {-1.4257e-19}
+test util-10.91 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbec19b96f36ec68b
+} {-2.09901e-6}
+test util-10.92 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3dcc06d366394441
+} {5.0980203373e-11}
+test util-10.93 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc79f58ac4db68c90
+} {-1.04166211811e+37}
+test util-10.94 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4569d971e4fe8402
+} {2.5e+26}
+test util-10.95 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc50dc74be914d16b
+} {-4.5e+24}
+test util-10.96 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4534adf4b7320335
+} {2.5e+25}
+test util-10.97 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc54ae22487c1042b
+} {-6.5e+25}
+test util-10.98 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3c987fe49aab41e0
+} {8.5e-17}
+test util-10.99 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbc2f5c05e4b23fd7
+} {-8.5e-19}
+test util-10.100 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3d5faa7ab552a552
+} {4.5e-13}
+test util-10.101 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbdbb7cdfd9d7bdbb
+} {-2.5e-11}
+test util-10.102 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x44f3da329b633647
+} {1.5e+24}
+test util-10.103 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc53cf389cd46047d
+} {-3.5e+25}
+test util-10.104 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x454f04ef12cb04cf
+} {7.5e+25}
+test util-10.105 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc55f04ef12cb04cf
+} {-1.5e+26}
+test util-10.106 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3fc3333333333333
+} {0.15}
+test util-10.107 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbdb07e1fe91b0b70
+} {-1.5e-11}
+test util-10.108 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3de49da7e361ce4c
+} {1.5e-10}
+test util-10.109 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbe19c511dc3a41df
+} {-1.5e-9}
+test util-10.110 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc5caa83d74267822
+} {-1.65e+28}
+test util-10.111 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x4588f1d5969453de
+} {9.65e+26}
+test util-10.112 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3b91d9bd564dcda6
+} {9.45e-22}
+test util-10.113 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbcfa58973ecbede6
+} {-5.85e-15}
+test util-10.114 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x45eb297cad9f70b6
+} {6.725e+28}
+test util-10.115 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc5fb297cad9f70b6
+} {-1.345e+29}
+test util-10.116 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3accdc06b20ef183
+} {1.865e-25}
+test util-10.117 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xbd036071dcae4565
+} {-8.605e-15}
+test util-10.118 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x462cb968d297dde8
+} {1.137885e+30}
+test util-10.119 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0xc661f3e1839eeab1
+} {-1.137885e+31}
+test util-10.120 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x474e9cec176c96f8
+} {3.179033335e+35}
+test util-10.121 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x3dbc06d366394441
+} {2.54901016865e-11}
+test util-10.122 {Tcl_PrintDouble - rounding} {ieeeFloatingPoint} {
+    convertDouble 0x478f58ac4db68c90
+} {5.20831059055e+36}
+
+test util-11.1 {Tcl_PrintDouble - scaling} {
+    expr 1.1e-5
+} {1.1e-5}
+test util-11.2 {Tcl_PrintDouble - scaling} {
+    expr 1.1e-4
+} {0.00011}
+test util-11.3 {Tcl_PrintDouble - scaling} {
+    expr 1.1e-3
+} {0.0011}
+test util-11.4 {Tcl_PrintDouble - scaling} {
+    expr 1.1e-2
+} {0.011}
+test util-11.5 {Tcl_PrintDouble - scaling} {
+    expr 1.1e-1
+} {0.11}
+test util-11.6 {Tcl_PrintDouble - scaling} {
+    expr 1.1e0
+} {1.1}
+test util-11.7 {Tcl_PrintDouble - scaling} {
+    expr 1.1e1
+} {11.0}
+test util-11.8 {Tcl_PrintDouble - scaling} {
+    expr 1.1e2
+} {110.0}
+test util-11.9 {Tcl_PrintDouble - scaling} {
+    expr 1.1e3
+} {1100.0}
+test util-11.10 {Tcl_PrintDouble - scaling} {
+    expr 1.1e4
+} {11000.0}
+test util-11.11 {Tcl_PrintDouble - scaling} {
+    expr 1.1e5
+} {110000.0}
+test util-11.12 {Tcl_PrintDouble - scaling} {
+    expr 1.1e6
+} {1100000.0}
+test util-11.13 {Tcl_PrintDouble - scaling} {
+    expr 1.1e7
+} {11000000.0}
+test util-11.14 {Tcl_PrintDouble - scaling} {
+    expr 1.1e8
+} {110000000.0}
+test util-11.15 {Tcl_PrintDouble - scaling} {
+    expr 1.1e9
+} {1100000000.0}
+test util-11.16 {Tcl_PrintDouble - scaling} {
+    expr 1.1e10
+} {11000000000.0}
+test util-11.17 {Tcl_PrintDouble - scaling} {
+    expr 1.1e11
+} {110000000000.0}
+test util-11.18 {Tcl_PrintDouble - scaling} {
+    expr 1.1e12
+} {1100000000000.0}
+test util-11.19 {Tcl_PrintDouble - scaling} {
+    expr 1.1e13
+} {11000000000000.0}
+test util-11.20 {Tcl_PrintDouble - scaling} {
+    expr 1.1e14
+} {110000000000000.0}
+test util-11.21 {Tcl_PrintDouble - scaling} {
+    expr 1.1e15
+} {1100000000000000.0}
+test util-11.22 {Tcl_PrintDouble - scaling} {
+    expr 1.1e16
+} {11000000000000000.0}
+test util-11.23 {Tcl_PrintDouble - scaling} {
+    expr 1.1e17
+} {1.1e+17}
+
+# cleanup
+::tcltest::cleanupTests
+return

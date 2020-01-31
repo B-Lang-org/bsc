@@ -1,0 +1,15 @@
+:set -XForeignFunctionInterface
+:set -fglasgow-exts
+:set -XUndecidableInstances
+:set -package base
+:set -package unix
+:set -package mtl
+:set -i../../src/comp:../../src/comp/Libs:../../src/comp/GHC:../../src/comp/GHC/posix:../../vendor/Parsec:../../vendor/lib:../../vendor/sha1
+:set -I../../vendor/include
+:set -L../../vendor/lib/cudd
+:set -lhcudd
+:set -lcudd
+:set -lmtr
+:set -lst
+:set -lepd
+:set -lutil 

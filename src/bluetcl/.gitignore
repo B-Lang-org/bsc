@@ -1,0 +1,4 @@
+# Ignore generated tcl indices
+tclIndex
+pkgIndex.tcl
+

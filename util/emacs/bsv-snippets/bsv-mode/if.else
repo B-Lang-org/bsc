@@ -1,0 +1,10 @@
+#Author : Steve Allen
+#name : if ( cond ) {...} else {...}
+# --
+if ( ${1:cond} ) begin
+    $0
+end
+else begin
+
+end
+

@@ -1,0 +1,71 @@
+package DReg(
+	mkDReg,
+	mkDRegA,
+	mkDRegU
+	) where
+
+
+mkDReg :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkDReg v = liftModule $
+ if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+  module
+      _r :: Reg a
+      _r <- mkReg v
+      _wire :: RWire(a)
+      _wire <- mkRWireSBR
+      rules {"_dreg_update": when (True)
+	     ==> action {if (isValid _wire.wget)
+			    then _r := (validValue _wire.wget)
+			    else _r := v }}
+      interface
+         _read = _r._read
+	 _write x = _wire.wset x
+
+
+mkDRegA :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkDRegA v = liftModule $
+ if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+  module
+      _r :: Reg a
+      _r <- mkRegA v
+      _wire :: RWire(a)
+      _wire <- mkRWire
+      rules {"_dreg_update": when (True)
+	     ==> action {if (isValid _wire.wget)
+			    then _r := (validValue _wire.wget)
+			    else _r := v }}
+      interface
+         _read = _r._read
+	 _write x = _wire.wset x
+
+
+mkDRegU :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkDRegU v = liftModule $
+ if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+  module
+      _r :: Reg a
+      _r <- mkRegU
+      _wire :: RWire(a)
+      _wire <- mkRWire
+      rules {"_dreg_update": when (True)
+	     ==> action {if (isValid _wire.wget)
+			    then _r := (validValue _wire.wget)
+			    else _r := v }}
+      interface
+         _read = _r._read
+	 _write x = _wire.wset x

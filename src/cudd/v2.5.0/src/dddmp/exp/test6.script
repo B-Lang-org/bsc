@@ -1,0 +1,50 @@
+# !/bin/sh 
+#
+# Check CNF (short check - only NodeByNode method involved):
+#   Load BDDs
+#   Store corresponding CNF
+#   Read CNF
+#   Store corresponding BDD
+#   Compare original and final BDDs
+#
+rm -f *.tmp*
+echo "---------------------------------------------------------------------------"     
+echo "--------------------- TESTING Load BDD and Store CNF ----------------------"
+echo "---------------------------------------------------------------------------"     
+./../testdddmp << END1
+mi
+150
+hlc
+4.cnf.bis
+bl
+4.bdd
+0
+cs
+4.cnf.tmp
+0
+N
+100
+mq
+quit
+END1
+echo "--------------------- TESTING Load CNF and Store BDD ----------------------"
+./../testdddmp << END2
+mi
+150
+hlc
+4.cnf.bis
+cl
+4.cnf.tmp
+0
+hw
+bs
+4.bdd.tmp
+0
+mq
+quit
+END2
+echo "----------------------------- ... RESULTS ... -----------------------------"
+diff --brief 4.cnf.bis 4.cnf.tmp
+diff --brief 4.bdd.bis1 4.bdd.tmp
+echo "-------------------------------- ... END ----------------------------------"
+rm -f *.*.tmp    

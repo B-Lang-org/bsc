@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : par {...} endpar
+# --
+par
+    $0
+endpar

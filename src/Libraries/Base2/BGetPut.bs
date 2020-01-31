@@ -1,0 +1,283 @@
+package BGetPut(mkBGetPut, mkGetBPut, BGetS, BPutS, BGet, BPut, BGetPut, GetBPut,
+         BClient, BServer, BClientS(..), BServerS(..),
+	 BClientServer, ClientBServer, mkBClientServer, mkClientBServer) where
+
+--import RegCF
+import ConfigReg
+import GetPut
+import Connectable
+import ClientServer
+
+--@ \subsubsection{BGetPut}
+--@ \index{BGetPut@\te{BGetPut} (package)|textbf}
+--@
+--@ The interfaces \te{BGet} and \te{BPut} are similar to
+--@ \te{Get} and \te{Put}, but the interconnection of them
+--@ (via \te{Connectable} or in {\veri}) is implemented with a simple protocol
+--@ that allows all inputs and outputs to be directly connected.
+--@ Furthermore, all wires go to registers and have no {\blue} handshaking.
+--@ The protocol makes no assumptions about setup time and hold time for the
+--@ registers at each end; so these interfaces may be used when the two ends
+--@ have different clocks.  In all other circumstances, however, the
+--@ \te{CGetPut} package will probably be preferable.  In particular, the
+--@ BGetPut protocol is very slow.
+--@
+--@ The protocol consist of the sender putting the value to be sent on the
+--@ \te{pvalue} output, and then toggling the \te{ppresent} wire.
+--@ The receiver acknowledges the receipt by toggling the \te{gcredit} wire.
+--@ Both \te{ppresent} and \te{gcredit} start out low.
+--@ \begin{libverbatim}
+--@ interface BGetS #(type sa);
+--@     method Bit#(sa) gvalue();
+--@     method Bool gpresent();
+--@     method Action gcredit(Bool x1);
+--@ endinterface: BGetS
+--@ \end{libverbatim}
+interface BGetS sa =
+    gvalue   :: Bit sa            -- data
+    gpresent :: Bool              -- toggles when new data is available
+    gcredit  :: Bool -> Action    -- toggles when ready for new data
+
+--@ \begin{libverbatim}
+--@ interface BGetS #(type sa);
+--@     method Bit#(sa) gvalue();
+--@     method Bool gpresent();
+--@     method Action gcredit(Bool x1);
+--@ endinterface: BGetS
+--@ \end{libverbatim}
+interface BPutS sa =
+    pvalue   :: Bit sa -> Action  -- new data
+    ppresent :: Bool -> Action    -- toggles when new data has changed
+    pcredit  :: Bool              -- toggles when ready for new data
+
+--@ \begin{libverbatim}
+--@ typedef BGetS#(SizeOf#(a)) BGet #(type a);
+--@ typedef BPutS#(SizeOf#(a)) BPut #(type a);
+--@
+--@ typedef Tuple2 #(BGet#(a), Put#(a)) BGetPut #(type a);
+--@ typedef Tuple2 #(Get#(a), BPut#(a)) GetBPut #(type a);
+--@ \end{libverbatim}
+type BGet a = BGetS (SizeOf a)
+type BPut a = BPutS (SizeOf a)
+
+type BGetPut a = (BGet a, Put a)
+type GetBPut a = (Get a, BPut a)
+
+--@ Create one end of the buffer.  Access to it is via a \te{Put} interface.
+--@ \index{mkBGetPut@\te{mkBGetPut} (function)|textbf}
+--@ \begin{libverbatim}
+--@ module mkBGetPut(Tuple2 #(BGetS#(sa), Put#(a)))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkBGetPut :: (IsModule m c, Bits a sa) => m (BGetS sa, Put a)
+mkBGetPut =
+  liftModule $
+  do
+    latch     :: Reg (Bit sa) <- mkRegU
+
+    srcData   :: Reg Bool <- mkConfigReg False -- mkRegCF False
+    srcState  :: Reg Bool <- mkConfigReg False
+    dstState  :: Reg Bool <- mkConfigReg False
+    dstStateP :: Reg Bool <- mkConfigReg False
+
+    addRules $
+	rules
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "BGetPut":
+	    when srcData
+	     ==> action
+		    srcData := (dstStateP == dstState)
+    return $
+	(interface BGetS
+	    gvalue = latch
+	    gpresent = srcState
+	    gcredit b =
+              action
+	        dstState := b
+	        dstStateP := dstState
+	,interface Put
+	    put x = action
+			latch := pack x
+			srcState := not srcState
+			srcData := True
+		when not srcData
+	)
+
+--@ Create the other end of the buffer.  Access to it is via a \te{Get} interface.
+--@ \index{mkGetBPut@\te{mkGetBPut} (function)|textbf}
+--@ \begin{libverbatim}
+--@ module mkGetBPut(Tuple2 #(Get#(a), BPutS#(sa)))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkGetBPut :: (IsModule m c, Bits a sa) => m (Get a, BPutS sa)
+mkGetBPut =
+  liftModule $
+  do
+    value     :: Reg (Bit sa) <- mkConfigRegU
+    latch     :: Reg (Bit sa) <- mkConfigRegU
+
+    dstData   :: Reg Bool <- mkConfigReg False
+    dstState  :: Reg Bool <- mkConfigReg False
+    srcState  :: Reg Bool <- mkConfigReg False
+    srcStateP :: Reg Bool <- mkConfigReg False
+
+    doneSrcState :: Reg Bool <- mkConfigReg False
+
+    addRules $
+	rules
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "GetBPut":
+	    when doneSrcState /= srcStateP && not dstData
+	     ==> action
+	            latch := value
+	            dstData := True
+	            dstState := not dstState
+    return $
+	(interface Get
+	    get = do
+		    dstData := False
+		    doneSrcState := not doneSrcState
+		    return (unpack latch)
+		when dstData
+	,interface BPutS
+	    pvalue v = value := v
+	    ppresent p =
+	      action
+		srcState := p
+	        srcStateP := srcState
+	    pcredit = dstState
+	)
+
+--@ The \te{BGet} and \te{BPut} interface are connectable.
+--@ \begin{libverbatim}
+--@ instance Connectable #(BGetS#(sa), BPutS#(sa));
+--@ \end{libverbatim}
+instance Connectable (BGetS sa) (BPutS sa)
+   where
+    mkConnection :: (IsModule m c) => BGetS sa -> BPutS sa -> m Empty
+    mkConnection g p =
+	addRules $
+	 rules
+          {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "moveBGetPut":
+	    when True
+	     ==> action
+		    p.pvalue g.gvalue
+		    p.ppresent g.gpresent
+		    g.gcredit p.pcredit
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ instance Connectable #(BPutS#(sa), BGetS#(sa));
+--@ \end{libverbatim}
+instance Connectable (BPutS sa) (BGetS sa)
+   where
+    mkConnection p g = mkConnection g p
+
+--@ The same idea may be extended  to clients and servers.
+
+interface BClientS sa sb =
+   request :: BGetS sa
+   response:: BPutS sb
+
+interface BServerS sa sb =
+   request  :: BPutS sa
+   response :: BGetS sb
+
+instance Connectable (BClientS sa sb) (BServerS sa sb)
+   where
+    mkConnection :: (IsModule m c) => (BClientS sa sb) -> (BServerS sa sb) -> m Empty
+    mkConnection c s = do
+      c.request <-> s.request
+      c.response <-> s.response
+
+instance Connectable (BServerS sa sb) (BClientS sa sb)
+   where
+    mkConnection s c = mkConnection c s
+
+--@ \begin{libverbatim}
+--@ typedef BClientS#(SizeOf#(a), SizeOf#(b)) BClient #(type a, type b);
+--@ typedef BServerS#(SizeOf#(a), SizeOf#(b)) BServer #(type a, type b);
+
+--@ typedef Tuple2 #(BClient#(a, b), Server#(a, b)) BClientServer #(type a, type b);
+--@ typedef Tuple2 #(Client#(a, b), BServer#(a, b)) ClientBServer #(type a, type b);
+--@ \end{libverbatim}
+type BClient a b = BClientS (SizeOf a) (SizeOf b)
+type BServer a b = BServerS (SizeOf a) (SizeOf b)
+type BClientServer a b = (BClient a b, Server a b)
+type ClientBServer a b = (Client a b, BServer a b)
+{-
+--@ A \te{BClient} can be connected to a \te{BServer}
+--@ and vice versa.
+--@ \begin{libverbatim}
+--@ instance Connectable #(BClientS#(a, b), BServerS#(a, b));
+--@ instance Connectable #(BServerS#(a, b), BClientS#(a, b));
+--@ \end{libverbatim}
+instance Connectable (BClientS a b) (BServerS a b)
+   where
+    mkConnection :: (IsModule m c) => BClientS a b -> BServerS a b -> m Empty
+    mkConnection c s =
+       module
+	  rules
+	    "BClientServerRequest":when True
+	     ==> action
+		    s.request.pvalue c.request.gvalue
+		    s.request.ppresent c.request.gpresent
+		    c.request.gcredit s.request.pcredit
+
+	    "BClientServerResponse":when True
+	     ==> action
+		    c.response.pvalue s.response.gvalue
+		    c.response.ppresent s.response.gpresent
+		    s.response.gcredit c.response.pcredit
+
+instance Connectable (BServerS a b) (BClientS a b)
+   where
+    mkConnection s c = mkConnection c s
+-}
+--@ \index{mkClientBServer@\te{mkClientBServer} (function)|textbf}
+--@ \begin{libverbatim}
+--@ module mkClientBServer(Tuple2 #(Client#(a, b), BServerS#(sa, sb)))
+--@   provisos (Bits#(a, sa), Bits#(b, sb));
+--@ \end{libverbatim}
+mkClientBServer :: (IsModule m c, Bits a sa, Bits b sb) =>
+		   m (Client a b, BServerS sa sb)
+mkClientBServer =
+  module
+    (g, cp) <- mkGetBPut
+    (cg, p) <- mkBGetPut
+    interface
+     (interface Client
+        request = g
+        response = p
+      ,
+      interface BServerS
+        request = cp
+        response = cg
+     )
+
+--@ \begin{libverbatim}
+--@ module mkBClientServer(Tuple2 #(BClientS#(sa, sb), Server#(a, b)))
+--@   provisos (Bits#(a, sa), Bits#(b, sb));
+--@ \end{libverbatim}
+--@ \index{mkBClientServer@\te{mkBClientServer} (function)|textbf}
+mkBClientServer :: (IsModule m c, Bits a sa, Bits b sb) =>
+		   m (BClientS sa sb, Server a b)
+mkBClientServer =
+  module
+    (g, cp) <- mkGetBPut
+    (cg, p) <- mkBGetPut
+    interface
+     (interface BClientS
+        request = cg
+        response = cp
+      ,
+      interface Server
+        request = p
+        response = g
+     )
+
+

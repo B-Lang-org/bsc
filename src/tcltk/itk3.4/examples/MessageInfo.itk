@@ -1,0 +1,40 @@
+# ----------------------------------------------------------------------
+#  EXAMPLE: using inheritance to specialize mega-widgets
+# ----------------------------------------------------------------------
+#  COURSE:  Object-Oriented Programming with [incr Tcl]
+#  AUTHOR:  Michael J. McLennan, Bell Labs Innovations
+# ======================================================================
+#               Copyright (c) 1996  Lucent Technologies
+# ======================================================================
+
+option add *MessageInfo.title "Notice" widgetDefault
+
+class MessageInfo {
+    inherit Info
+
+    constructor {args} {
+        itk_component add message {
+            label $itk_interior.mesg -width 20
+        } {
+            usual
+            rename -text -message message Text
+        }
+        pack $itk_component(message) -expand yes -fill both
+        bind $itk_component(message) <Configure> [code $this resize]
+
+        eval itk_initialize $args
+    }
+
+    private method resize {} {
+        set w [winfo width $itk_component(message)]
+        if {$w > 1} {
+            $itk_component(message) configure -wraplength $w
+        }
+    }
+}
+
+usual MessageInfo {
+    keep -background -cursor -foreground -font
+    keep -activebackground -activeforeground -disabledforeground
+    keep -highlightcolor -highlightthickness
+}

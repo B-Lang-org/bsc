@@ -1,0 +1,8 @@
+#Author : Steve Allen
+#name : function value name { ... }
+# --
+function ${1:ret} ${2:name} ( ${3:args} );
+    $0
+    return ?;
+endfunction : $2
+

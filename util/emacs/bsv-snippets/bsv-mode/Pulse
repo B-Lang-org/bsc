@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name   : PulseWire name <- mkPulseWire;
+# --
+PulseWire ${1:name} <- mkPulseWire;

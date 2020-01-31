@@ -1,0 +1,9 @@
+#Author : Steve Allen
+#name : function ActionValue#(td) {...}
+# --
+function ActionValue#(${1:type}) ${2:name} ( ${3:args} );
+    actionvalue
+      $0
+      return ?;
+    endactionvalue
+endfunction : $2

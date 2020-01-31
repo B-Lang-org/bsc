@@ -1,0 +1,98 @@
+'\"
+'\" Copyright (c) 2005 Joe English
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\" 
+'\" RCS: @(#) $Id: ttk_panedwindow.n,v 1.15.2.1 2008/05/11 00:31:03 patthoyts Exp $
+'\" 
+.so man.macros
+.TH ttk::panedwindow n 8.5 Tk "Tk Themed Widget"
+.BS
+.SH NAME
+ttk::panedwindow \- Multi-pane container window
+.SH SYNOPSIS
+.nf
+\fBttk::panedwindow\fR \fIpathName \fR?\fIoptions\fR?
+.br
+\fIpathName \fBadd\fR \fIwindow\fR ?\fIoptions...\fR?
+\fIpathName \fBinsert\fR \fIindex\fR \fIwindow\fR ?\fIoptions...\fR?
+.fi
+.BE
+.SH DESCRIPTION
+A \fBttk::panedwindow\fR widget displays a number of subwindows, stacked
+either vertically or horizontally.  The user may adjust the relative sizes
+of the subwindows by dragging the sash between panes.
+.SO ttk_widget
+\-class	\-cursor	\-takefocus
+\-style
+.SE
+.SH "WIDGET-SPECIFIC OPTIONS"
+.OP \-orient orient Orient
+Specifies the orientation of the window.
+If \fBvertical\fR, subpanes are stacked top-to-bottom;
+if \fBhorizontal\fR, subpanes are stacked left-to-right.
+.OP \-width width Width
+If present and greater than zero, 
+specifies the desired width of the widget in pixels.
+Otherwise, the requested width is determined by the width
+of the managed windows.
+.OP \-height height Height
+If present and greater than zero, 
+specifies the desired height of the widget in pixels.
+Otherwise, the requested height is determined by the height
+of the managed windows.
+.SH "PANE OPTIONS"
+The following options may be specified for each pane:
+.OP \-weight weight Weight
+An integer specifying the relative stretchability of the pane.
+When the paned window is resized, the extra space is added
+or subtracted to each pane proportionally to its \fB\-weight\fR.
+.SH "WIDGET COMMAND"
+Supports the standard \fBconfigure\fR, \fBcget\fR, \fBstate\fR, 
+and \fBinstate\fR commands; see \fIttk::widget(n)\fR for details.
+Additional commands:
+.TP
+\fIpathname \fBadd\fR \fIsubwindow\fR \fIoptions...\fR
+Adds a new pane to the window.
+\fIsubwindow\fR must be a direct child of the paned window \fIpathname\fR.
+See \fBPANE OPTIONS\fR for the list of available options.
+.TP
+\fIpathname \fBforget\fR \fIpane\fR
+Removes the specified subpane from the widget.
+\fIpane\fR is either an integer index or the name of a managed subwindow.
+.TP
+\fIpathname\fR \fBidentify\fR \fIx y\fR
+Returns the index of the sash at point \fIx,y\fR,
+or the empty string if \fIx,y\fR is not over a sash.
+.TP
+\fIpathname \fBinsert\fR \fIpos\fR \fIsubwindow\fR \fIoptions...\fR
+Inserts a pane at the specified position.
+\fIpos\fR is either the string \fBend\fR, an integer index, 
+or the name of a managed subwindow.
+If \fIsubwindow\fR is already managed by the paned window, 
+moves it to the specified position.
+See \fBPANE OPTIONS\fR for the list of available options.
+.TP
+\fIpathname \fBpane\fR \fIpane \-option \fR?\fIvalue \fR?\fI\-option value...\fR
+Query or modify the options of the specified \fIpane\fR,
+where \fIpane\fR is either an integer index or the name of a managed subwindow.
+If no \fI\-option\fR is specified, returns a dictionary of the pane 
+option values.
+If one \fI\-option\fR is specified, returns the value of that \fIoption\fR.
+Otherwise, sets the \fI\-option\fRs to the corresponding \fIvalue\fRs.
+.TP
+\fIpathname\fR \fBsashpos\fR \fIindex\fR ?\fInewpos\fR?
+If \fInewpos\fR is specified, sets the position 
+of sash number \fIindex\fR.
+May adjust the positions of adjacent sashes
+to ensure that positions are monotonically increasing.
+Sash positions are further constrained to be between 0 
+and the total size of the widget.
+.\" Full story: "total size" is either the -height (resp -width),
+.\" or the actual window height (resp actual window width),
+.\" depending on which changed most recently.
+Returns the new position of sash number \fIindex\fR.
+.\" Full story: new position may be different than the requested position.
+.SH "SEE ALSO"
+ttk::widget(n), ttk::notebook(n), panedwindow(n)

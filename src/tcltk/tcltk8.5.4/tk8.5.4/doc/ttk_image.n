@@ -1,0 +1,77 @@
+'\"
+'\" Copyright (c) 2004 Joe English
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\" 
+'\" RCS: @(#) $Id: ttk_image.n,v 1.12 2007/12/13 15:23:44 dgp Exp $
+'\" 
+.so man.macros
+.TH ttk::image n 8.5 Tk "Tk Themed Widget"
+.BS
+.SH NAME
+ttk::image \- Define an element based on an image
+.SH SYNOPSIS
+\fBttk::style element create \fIname\fR \fBimage\fR \fIimageSpec\fR ?\fIoptions\fR?
+.BE
+.SH DESCRIPTION
+The \fIimage\fR element factory creates a new element
+in the current theme whose visual appearance is determined
+by Tk images. 
+\fIimageSpec\fP is a list of one or more elements.
+The first element is the default image name.
+The rest of the list is a sequence of \fIstatespec / value\fR
+pairs specifying other images to use when the element is
+in a particular state or combination of states.
+.SH OPTIONS
+Valid \fIoptions\fR are:
+.TP
+\fB\-border\fR \fIpadding\fR
+\fIpadding\fR is a list of up to four integers, specifying
+the left, top, right, and bottom borders, respectively.
+See \fBIMAGE STRETCHING\fR, below.
+.TP
+\fB\-height \fIheight\fR
+Specifies a minimum height for the element.
+If less than zero, the base image's height is used as a default.
+.TP
+\fB\-padding\fR \fIpadding\fR
+Specifies the element's interior padding.  Defaults to 
+\fB\-border\fR if not specified.
+.TP
+\fB\-sticky\fR \fIspec\fR
+Specifies how the image is placed within the final parcel.
+\fIspec\fR contains zero or more characters
+.QW n ,
+.QW s ,
+.QW w ,
+or
+.QW e .
+.TP
+\fB\-width \fIwidth\fR
+Specifies a minimum width for the element.
+If less than zero, the base image's width is used as a default.
+.SH "IMAGE STRETCHING"
+If the element's allocated parcel is larger than the image, 
+the image will be placed in the parcel based on the \fB\-sticky\fR option.
+If the image needs to stretch horizontally (i.e., \fB\-sticky ew\fR)
+or vertically (\fB\-sticky ns\fR),
+subregions of the image are replicated to fill the parcel
+based on the \fB\-border\fR option.
+The \fB\-border\fR divides the image into 9 regions: 
+four fixed corners, top and left edges (which may be tiled horizontally),
+left and right edges (which may be tiled vertically),
+and the central area (which may be tiled in both directions).
+.SH "EXAMPLE"
+.CS
+set img1 [image create photo \-file button.png]
+set img2 [image create photo \-file button-pressed.png]
+set img3 [image create photo \-file button-active.png]
+style element create Button.button image \e
+    [list $img1  pressed $img2  active $img3] \e
+    \-border {2 4} \-sticky we
+.CE
+.SH "SEE ALSO"
+image(n), photo(n)
+.SH KEYWORDS
+pixmap theme, image

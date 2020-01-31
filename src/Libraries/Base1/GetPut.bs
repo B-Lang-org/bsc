@@ -1,0 +1,516 @@
+package GetPut(
+               ToGet(..), ToPut(..),
+	       Get(..), GetS(..), Put(..), PutS(..), GetPut(..), peekGet,
+	       mkGetPut, fifoToGet, fifoToPut, fifoToGetS,
+	       mkGPFIFO, mkGPFIFO1, mkGPSizedFIFO
+	      ) where
+
+import FIFO
+import FIFOF
+import Connectable
+import Clocks
+
+--@ \subsubsection{GetPut}
+--@ \index{GetPut@\te{GetPut} (package)|textbf}
+--@
+--@ \te{Get} and \te{Put} are very simple interfaces, consisting of one
+--@ method each, \te{get} and \te{put}, respectively.  Although you can
+--@ define their behavior,
+--@ other Bluespec library components assume that \te{get} retrieves and
+--@ consumes one piece of data from an object such as a FIFO, and \te{put}
+--@ adds a piece of data.  A rule containing \te{get} will not fire
+--@ if the element associated with it is empty.  Similarly, a rule
+--@ containing \te{put} will not fire if the element is full.
+--@
+--@ \te{Get} and \te{Put} are important for two reasons: one is that because
+--@ they are so simple, it is almost trivial to connect a
+--@ \te{Get} interface to another element's \te{Put}
+--@ interface.  The second reason is that other library
+--@ components build layers above \te{Get} and \te{Put},
+--@ such as \te{mkConnection} and \te{ClientServer}.
+--@
+--@ The Bluespec library offers a FIFO with \te{Get} and \te{Put} interfaces
+--@ instead of the usual enq/deq interfaces.  It also offers
+--@ modules to create a \te{Get} or \te{Put} interface for an existing FIFO.
+--@
+--@ The module \te{mkConnection}, implemented in the Bluespec library,
+--@ connects the \te{Get} interface of one component to the
+--@ \te{Put} interface of another, as long as the data types of the
+--@ elements are the same.  The data transfers occur
+--@ whenever the upstream element is not empty and the downstream element is
+--@ not full.
+--@
+--@ Other library components, such as \te{ClientServer} and \te{CompletionBuffer},
+--@ are built on
+--@ top of \te{Get} and \te{Put} to easily connect common
+--@ interconnect topologies.
+--@
+--@ Often, you will have a module that sends output data
+--@ through a FIFO, and another module that accepts input
+--@ data through another module.  You can then connect the
+--@ two FIFOs together
+--@ by instantiating \te{mkConnection (getfifo1, putfifo2)} (for example).
+--@
+--@ You can write your own \te{get} and \te{put} methods to add
+--@ \te{Get} and \te{Put} interfaces to other data types.  If
+--@ you do, you need make \te{get} and ActionValue method and
+--@ \te{put} an Action method.  \te{get} should not be enabled unless
+--@ there is data available and \te{put} should not be enabled
+--@ unless there is available space.  These conditions are
+--@ implicit in FIFOs.
+--@
+--@
+--@ \index{Get@\te{Get} (interface)|textbf}
+--@ The \te{Get} interface declares that the module must have a method
+--@ defined called \te{get}.
+--@ (Normally, you would not add a \te{Get} interface yourself; instead
+--@ you would use a library component that already has a \te{Get} interface
+--@ defined, such as mkGPFIFO)
+--@
+--@ This is how \te{Get} is defined in the library:
+--@ % (hence an \te{ActionValue}).
+
+--@ \begin{libverbatim}
+--@ interface Get #(type a);
+--@    method ActionValue#(a) get();
+--@ endinterface: Get
+--@ \end{libverbatim}
+--@
+--@ Here is an example of how to add your own \te{Get} interface:
+--@ \begin{libverbatim}
+--@ module mkMyFifoUpstream (Get#(int));
+--@ ...
+--@    method ActionValue#(int) get();
+--@        f.deq;
+--@        return f.first;
+--@    endmethod
+--@ \end{libverbatim}
+interface Get a =
+    get :: ActionValue a
+
+interface GetS a =
+    first :: a
+    deq  :: Action
+
+--@ \index{Put@\te{Put} (interface)|textbf}
+--@ The \te{Put} interface declares that the module must have a method
+--@ defined called \te{put}.
+--@ (Normally, you would not add a \te{Put} interface yourself; instead
+--@ you would use a library component that already has a \te{Put} interface
+--@ defined.)
+--@ \begin{libverbatim}
+--@ interface Put #(type a);
+--@     method Action put(a x1);
+--@ endinterface: Put
+--@ \end{libverbatim}
+--@
+--@ Here is an example of how to add your own \te{Put} interface:
+--@ \begin{libverbatim}
+--@ module mkMyFifoDownstream (Put#(int));
+--@ ...
+--@    method Action put(int x);
+--@        f.enq <- x;
+--@    endmethod
+--@ \end{libverbatim}
+interface Put a =
+    put :: a -> Action {-# prefixs="", result = "UNUSED", arg_names = [put] #-}
+
+interface PutS a =
+    offer :: a -> Action
+    accepted :: Bool
+
+--@ This is how the library defines the interface \te{GetPut} which associates
+--@ \te{Get} \emph{and} \te{Put} interfaces to a type:
+--@ \begin{libverbatim}
+--@ typedef Tuple2 #(Get#(a), Put#(a)) GetPut #(type a);
+--@ \end{libverbatim}
+type GetPut a = (Get a, Put a)
+
+--@ You can use \te{peekGet} to peek at an item without getting it.
+--@ \index{peekGet@\te{peekGet} (function)|textbf}
+--@ \begin{libverbatim}
+--@ function a peekGet(Get#(a) g);
+--@ \end{libverbatim}
+--@ Note: \te{peekGet} will not dequeue an item even if you explicitly
+--@ write a \te{get} method with an dequeue action.  Bluespec will not allow
+--@ the action to fire.
+--@
+--@ For example:
+--@ \begin{libverbatim}
+--@ myReg <= peekGet (myGetFIFO);
+--@ \end{libverbatim}
+peekGet :: Get a -> a
+peekGet g = __value g.get
+
+--@ Given a FIFO you can obtain a \te{Get} interface.  You would do this if
+--@ you want a FIFO with only a \te{Get} interface and not a \te{Put}
+--@ interface.  If you wanted both, you could simple instance \te{mkGPFIFO}
+--@ (see below).
+--@ \index{fifoToGet@\te{fifoToGet} (function)|textbf}
+--@ The library defines \te{fifoToGet} as such:
+--@ \begin{libverbatim}
+--@ function Get#(a) fifoToGet(FIFO#(a) f);
+--@ \end{libverbatim}
+--@ \te{fifoToGet} returns an interface.  Use that interface to access the FIFO using \te{Get}.
+--@ For example:
+--@ \begin{libverbatim}
+--@ Get #(int) myGetFIFO = fifoToGet (myOriginalFIFO);
+--@ // or: let myGetFIFO = fifoToGet (myOriginalFIFO);
+--@ ...
+--@ myReg <= myGetFIFO.get; // Access myOriginalFIFO through the myGetFIFO interface
+--@ \end{libverbatim}
+fifoToGet :: FIFO a -> Get a
+fifoToGet f =
+    interface Get
+	get = do
+		f.deq
+		return f.first
+
+fifoToGetS :: FIFO a -> GetS a
+fifoToGetS f =
+    interface GetS
+    	first = f.first
+        deq   = f.deq
+
+--@
+--@ Given a FIFO you can obtain a \te{Put} interface.   You would do this if
+--@ you want a FIFO with only a \te{Put} interface and not a \te{Get}
+--@ interface.  If you wanted both, you could simple instance \te{mkGPFIFO}
+--@ (see below).
+--@ \index{fifoToPut@\te{fifoToPut} (function)|textbf}
+--@ The library defines \te{fifoToPut} as such:
+--@ \begin{libverbatim}
+--@ function Put#(a) fifoToPut(FIFO#(a) f);
+--@ \end{libverbatim}
+--@ \te{fifoToPut} returns an interface.  Use that interface to access the FIFO using \te{Put}.
+--@ For example:
+--@ \begin{libverbatim}
+--@ Put #(int) myPutFIFO = fifoToPut (myOriginalFIFO);
+--@ // or: let myPutFIFO = fifoToPut (myOriginalFIFO);
+--@ ...
+--@ myPutFIFO.put(myReg); // Access myOriginalFIFO through the myPutFIFO interface
+--@ \end{libverbatim}
+--@
+--@ This is an example of how you might write a protocol monitor that watches bus traffic between
+--@ a bus and a bus target device:
+--@ \begin{libverbatim}
+--@ import GetPut::*;
+--@ import FIFO::*;
+--@
+--@ // Watch bus traffic beteween a bus and a bus target
+--@ interface ProtocolMonitorIfc;
+--@    // These subinterfaces are defined inside the module
+--@    interface Put#(Bus_to_Target_Request)  bus_to_targ_req_ifc;
+--@    interface Put#(Target_to_Bus_Response) targ_to_bus_resp_ifc;
+--@ endinterface
+--@ ...
+--@ module mkProtocolMonitor (ProtocolMonitorIfc);
+--@    // Input FIFOs that will have Put interfaces added a few lines down
+--@    FIFO #(Bus_to_Target_Request) bus_to_targ_reqs <- mkFIFO;
+--@    FIFO #(Target_To_Bus_Response) targ_to_bus_resps <- mkFIFO;
+--@ ...
+--@    // Define the subinterfaces: attach Put interfaces to the FIFOs, and
+--@    //   then make those the module interfaces
+--@    interface bus_to_targ_req_ifc = fifoToPut (bus_to_targ_reqs);
+--@    interface targ_to_bus_resp_ifc = fifoToPut (targ_to_bus_resps);
+--@ end module: mkProtocolMonitor
+--@
+--@ // Top-level module: connect mkProtocolMonitor to the system:
+--@ module mkSys (Empty);
+--@    ProtocolMonitorIfc pmon <- mkProtocolInterface;
+--@ ...
+--@    rule pass_bus_req_to_interface;
+--@        let x <- bus.bus_ifc.get (x);  // definition not shown
+--@        pmon.but_to_targ_ifc.put (x);
+--@    endrule
+--@ ...
+--@ endmodule: mkSys
+--@ \end{libverbatim}
+fifoToPut :: FIFO a -> Put a
+fifoToPut f =
+    interface Put
+	put x = f.enq x
+
+--@ To create a FIFO and return the two ends of it:
+--@ \index{mkGPFIFO@\te{mkGPFIFO} (function)|textbf}
+-- @ \begin{libverbatim}
+-- @ module mkGetPut(GetPut#(a))
+-- @   provisos (Bits#(a, sa));
+-- @ \end{libverbatim}
+-- @
+mkGetPut :: (IsModule m c, Bits a sa) => m (GetPut a)
+mkGetPut =
+  module
+    f :: FIFO a <- mkFIFO
+    interface (fifoToGet f, fifoToPut f)
+
+-- @ or
+--@ \begin{libverbatim}
+--@ module mkGPFIFO(GetPut#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+-- @ (mkGetPut and mkGPFIFO are identical.)
+--@
+--@ Example:
+--@ \begin{libverbatim}
+--@ import GetPut::*;
+--@
+--@ // example structure for the FIFO contents:
+--@ typedef enum { Ok, Err } Status_t
+--@    deriving (Eq, Bits);
+--@ typedef struct {
+--@    Status_t  status;
+--@    int       info;
+--@ } StatusInfo
+--@    deriving (Bits);
+--@ ...
+--@ module mkMyModule (MyInterface);
+--@    GetPut #(StatusInfo) aFifoOfStatusInfoStructures <- mkGPFIFO;
+--@ ...
+--@ endmodule: mkMyModule
+--@ \end{libverbatim}
+mkGPFIFO :: (IsModule m c, Bits a sa) => m (GetPut a)
+mkGPFIFO =
+  module
+    f :: FIFO a <- mkFIFO
+    interface (fifoToGet f, fifoToPut f)
+
+--@ Create a one-entry FIFO and return the two ends of it.
+--@ \index{mkGPFIFO1@\te{mkGPFIFO1} (function)|textbf}
+--@ \begin{libverbatim}
+--@ module mkGPFIFO1(GetPut#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkGPFIFO1 :: (IsModule m c, Bits a sa) => m (GetPut a)
+mkGPFIFO1 =
+  module
+    f :: FIFO a <- mkFIFO1
+    interface (fifoToGet f, fifoToPut f)
+
+--@ Create a sized FIFO and return the two ends of it.
+--@ \index{mkGPSizedFIFO@\te{mkGPSizedFIFO} (function)|textbf}
+--@ \begin{libverbatim}
+--@ module mkGPSizedFIFO#(Integer sz)(GetPut#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkGPSizedFIFO :: (IsModule m c, Bits a sa) => Integer -> m (GetPut a)
+mkGPSizedFIFO sz =
+  module
+    f :: FIFO a <- mkSizedFIFO sz
+    interface (fifoToGet f, fifoToPut f)
+
+--@ You can easily connect together two modules that have a \te{Get} and
+--@ a \te{Put} interface of the same type using \te{mkConnection}.
+--@ \te{mkConnection} is a module declared in the \te{ClientServer}
+--@ library and defined in this library (or, you can define your own).
+--@ A \te{Get} and a \te{Put} interface can be connected either way.
+--@ (See the section on \te{Connectable}, below).
+ --@ \begin{libverbatim}
+ --@ instance Connectable #(Get#(a), Put#(a));
+ --@ \end{libverbatim}
+--@ Example:
+--@ \begin{libverbatim}
+--@ module mkSys (Empty);
+--@    // Instantiate subsystems
+--@    Bus_Ifc             bus       <- mkBus;
+--@    Target_Ifc          targ      <- mkTarget;
+--@    Initiator_Ifc       initor    <- mkInitiator;
+--@
+--@    // Connect bus and targ ("to_targ" is a Get i/f, targ is a Put i/f)
+--@    Empty x <- mkConnection (bus.to_targ, targ);
+--@    // Connect bus and initiator ("to_initor" is a Out i/f, initor is a Get i/f)
+--@    Empty y <- mkConnection (bus.to_initor, initor);
+--@ ...
+--@ endmodule: mkSys
+ --@
+--@ \end{libverbatim}
+instance Connectable (Get a) (Put a)
+  where
+    mkConnection :: (IsModule m c) => Get a -> Put a -> m Empty
+    mkConnection g p =
+      module
+	rules
+         "mkConnectionGetPut":
+	    when True
+	     ==> action
+		    x :: a <- g.get
+		    p.put x
+
+ --@ \lineup
+ --@ Note that \te{Connectable} can be used in either direction:
+ --@ \begin{libverbatim}
+ --@ instance Connectable #(Put#(a), Get#(a));
+ --@ \end{libverbatim}
+instance Connectable (Put a) (Get a)
+  where
+    mkConnection :: (IsModule m c) => Put a -> Get a -> m Empty
+    mkConnection p g = mkConnection g p
+
+instance Connectable (GetS a) (Put a)
+  where
+    mkConnection :: (IsModule m c) => GetS a -> Put a -> m Empty
+    mkConnection g p =
+      module
+	rules
+         "mkConnectionGetSPut":
+	    when True
+	     ==> action
+		    let x = g.first
+                    g.deq
+		    p.put x
+
+instance Connectable (GetS a) (PutS a)
+  where
+    mkConnection :: (IsModule m c) => GetS a -> PutS a -> m Empty
+    mkConnection g p =
+      module
+	rules
+         "mkConnectionGetSPutS_offer":
+	    when True
+	     ==> action
+		    let x = g.first
+                    p.offer x
+         "mkConnectionGetSPutS_accept":
+	    when (p.accepted)
+	     ==> action
+		    g.deq
+
+ --@ \lineup
+ --@ Note that \te{Connectable} can be used in either direction:
+ --@ \begin{libverbatim}
+ --@ instance Connectable #(Put#(a), GetS#(a));
+ --@ \end{libverbatim}
+instance Connectable (Put a) (GetS a)
+  where
+    mkConnection :: (IsModule m c) => Put a -> GetS a -> m Empty
+    mkConnection p g = mkConnection g p
+
+instance Connectable (PutS a) (GetS a)
+  where
+    mkConnection :: (IsModule m c) => PutS a -> GetS a -> m Empty
+    mkConnection p g = mkConnection g p
+
+instance (Bits a sa) => ClockConv (Get a) where
+    mkConverter :: (Prelude.IsModule m c) => Integer -> Get a -> m (Get a)
+    mkConverter d getuses =
+	module
+	  ff :: SyncFIFOIfc a <- mkSyncFIFOToCC d (clockOf getuses) (resetOf getuses);
+	  rules
+	    "enqueue": when True   ==> action { v <- getuses.get; ff.enq v; }
+	  interface
+	    get =  do
+                    let v =  ff.first
+		    ff.deq
+                    return v
+
+instance (Bits a sa) => ClockConv (Put a) where
+    mkConverter :: (Prelude.IsModule m c) => Integer -> Put a -> m (Put a)
+    mkConverter d putuses =
+	module
+	  ff :: SyncFIFOIfc a <- mkSyncFIFOFromCC d (clockOf putuses)
+	  rules
+	     "dequeue":  when True  ==> action { putuses.put ff.first; ff.deq; }
+	  interface
+	    put v =  action { ff.enq v; }
+
+--  Classes ToGet and ToPut
+class ToGet a b | a -> b where
+    toGet :: a -> Get b
+
+class ToPut a b | a -> b where
+    toPut :: a -> Put b
+
+instance ToGet (Get a) a where
+    toGet g = g
+
+instance ToPut (Put a) a where
+    toPut p = p
+
+-- for the FIFO interface
+instance ToGet (FIFO a) a where
+    toGet f =
+        interface Get
+	          get = do
+		        f.deq
+		        return f.first
+
+
+instance ToPut (FIFO a) a where
+    toPut f =
+        interface Put
+	          put x = f.enq x
+
+-- For the FIFOF interface
+instance ToGet (FIFOF a) a where
+    toGet f =
+        interface Get
+	          get = do
+		        f.deq
+		        return f.first
+
+
+instance ToPut (FIFOF a) a where
+    toPut f =
+        interface Put
+	          put x = f.enq x
+
+
+
+-- For the SyncFIFO Ifc  defined in Clocks.bsv
+instance ToGet (SyncFIFOIfc a) a where
+    toGet f =
+        interface Get
+	          get = do
+		        f.deq
+		        return f.first
+
+
+instance ToPut (SyncFIFOIfc a) a where
+    toPut f =
+        interface Put
+	          put x = f.enq x
+
+-- Instances ToPut and ToGet for Register interfaces --
+-- Note the are no implicit conditions
+instance ToGet (Reg a) a where
+    toGet r =
+        interface Get
+                  get = return r._read
+
+instance ToPut (Reg a) a where
+    toPut r =
+        interface Put
+                  put x = r._write x
+
+
+instance ToGet (RWire a) a where
+    toGet rw =
+        interface Get
+                  get = return $ validValue rw.wget
+                        when isValid rw.wget
+
+instance ToPut (RWire a) a where
+    toPut rw =
+        interface Put
+                  put x = rw.wset x
+
+
+instance ToGet (ReadOnly a) a where
+    toGet r =
+        interface Get
+                  get = return r._read
+
+instance ToGet (a) a where
+    toGet v =
+        interface Get
+                  get = return v
+
+instance ToGet (ActionValue a) a where
+    toGet v =
+        interface Get
+                  get = v
+
+instance ToPut (a -> Action) a where
+    toPut f =
+        interface Put
+                 put = f

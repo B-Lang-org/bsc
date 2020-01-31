@@ -1,0 +1,102 @@
+rm: No match.
+---------------------------------------------------------------------------
+--------------------- TESTING Load BDD and Store CNF ----------------------
+---------------------------------------------------------------------------
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> File : Which BDDs [0..19]: Loading 4.bdd ...
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Initial ID : Storing 4.node1.tmp ...
+Number of Clauses Stored = 108
+Number of New Variable Created Storing = 31
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Initial ID : Storing 4.max1.tmp ...
+Number of Clauses Stored = 103
+Number of New Variable Created Storing = 0
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Max Number of Edges (Insert cut-point from there on) : Max BDD-Path Length (Insert cut-point from there on) : Initial ID : Storing 4.node2.tmp ...
+Number of Clauses Stored = 114
+Number of New Variable Created Storing = 31
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Max Number of Edges (Insert cut-point from there on) : Max BDD-Path Length (Insert cut-point from there on) : Initial ID : Storing 4.node3.tmp ...
+Number of Clauses Stored = 108
+Number of New Variable Created Storing = 31
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Max Number of Edges (Insert cut-point from there on) : Max BDD-Path Length (Insert cut-point from there on) : Initial ID : Storing 4.max2.tmp ...
+Number of Clauses Stored = 103
+Number of New Variable Created Storing = 0
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Max Number of Edges (Insert cut-point from there on) : Max BDD-Path Length (Insert cut-point from there on) : Initial ID : Storing 4.best1.tmp ...
+Number of Clauses Stored = 53
+Number of New Variable Created Storing = 7
+TestDddmp> File : Which BDDs [0..19]: Format (Node=N, Maxterm=M, Best=B) : Max Number of Edges (Insert cut-point from there on) : Max BDD-Path Length (Insert cut-point from there on) : Initial ID : Storing 4.best2.tmp ...
+Number of Clauses Stored = 69
+Number of New Variable Created Storing = 12
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+---------------------------------------------------------------------------
+--------------------- TESTING Load CNF and Store BDD ----------------------
+---------------------------------------------------------------------------
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> File : Which BDDs [0..19]: Loading 4.node2.tmp ...
+TestDddmp> DD TYPE: DDDMP_CNF
+Number of variables: 150
+Number of support variables: 15
+suppVarNames: V3 V8 V23 V24 V37 V39 DUMMY21 DUMMY22 DUMMY23 DUMMY36 DUMMY37 DUMMY38 DUMMY47 DUMMY48 DUMMY49 
+orderedVarNames: V2 V3 V8 V9 V10 V12 V22 V23 V24 V37 V38 V39 V48 V49 V50 DUMMY15 DUMMY16 DUMMY17 DUMMY18 DUMMY19 DUMMY20 DUMMY21 DUMMY22 DUMMY23 DUMMY24 DUMMY25 DUMMY26 DUMMY27 DUMMY28 DUMMY29 DUMMY30 DUMMY31 DUMMY32 DUMMY33 DUMMY34 DUMMY35 DUMMY36 DUMMY37 DUMMY38 DUMMY39 DUMMY40 DUMMY41 DUMMY42 DUMMY43 DUMMY44 DUMMY45 DUMMY46 DUMMY47 DUMMY48 DUMMY49 DUMMY50 DUMMY51 DUMMY52 DUMMY53 DUMMY54 DUMMY55 DUMMY56 DUMMY57 DUMMY58 DUMMY59 DUMMY60 DUMMY61 DUMMY62 DUMMY63 DUMMY64 DUMMY65 DUMMY66 DUMMY67 DUMMY68 DUMMY69 DUMMY70 DUMMY71 DUMMY72 DUMMY73 DUMMY74 DUMMY75 DUMMY76 DUMMY77 DUMMY78 DUMMY79 DUMMY80 DUMMY81 DUMMY82 DUMMY83 DUMMY84 DUMMY85 DUMMY86 DUMMY87 DUMMY88 DUMMY89 DUMMY90 DUMMY91 DUMMY92 DUMMY93 DUMMY94 DUMMY95 DUMMY96 DUMMY97 DUMMY98 DUMMY99 DUMMY100 DUMMY101 DUMMY102 DUMMY103 DUMMY104 DUMMY105 DUMMY106 DUMMY107 DUMMY108 DUMMY109 DUMMY110 DUMMY111 DUMMY112 DUMMY113 DUMMY114 DUMMY115 DUMMY116 DUMMY117 DUMMY118 DUMMY119 DUMMY120 DUMMY121 DUMMY122 DUMMY123 DUMMY124 DUMMY125 DUMMY126 DUMMY127 DUMMY128 DUMMY129 DUMMY130 DUMMY131 DUMMY132 DUMMY133 DUMMY134 DUMMY135 DUMMY136 DUMMY137 DUMMY138 DUMMY139 DUMMY140 DUMMY141 DUMMY142 DUMMY143 DUMMY144 DUMMY145 DUMMY146 DUMMY147 DUMMY148 DUMMY149 
+varIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varComposeIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varComposeIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varAuxIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varAuxIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+Number of roots: 1
+TestDddmp> File : Which BDDs [0..19]: Storing 4.node2.bdd.tmp ...
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> File : Which BDDs [0..19]: Loading 4.node3.tmp ...
+TestDddmp> DD TYPE: DDDMP_CNF
+Number of variables: 150
+Number of support variables: 15
+suppVarNames: V3 V8 V23 V24 V37 V39 DUMMY21 DUMMY22 DUMMY23 DUMMY36 DUMMY37 DUMMY38 DUMMY47 DUMMY48 DUMMY49 
+orderedVarNames: V2 V3 V8 V9 V10 V12 V22 V23 V24 V37 V38 V39 V48 V49 V50 DUMMY15 DUMMY16 DUMMY17 DUMMY18 DUMMY19 DUMMY20 DUMMY21 DUMMY22 DUMMY23 DUMMY24 DUMMY25 DUMMY26 DUMMY27 DUMMY28 DUMMY29 DUMMY30 DUMMY31 DUMMY32 DUMMY33 DUMMY34 DUMMY35 DUMMY36 DUMMY37 DUMMY38 DUMMY39 DUMMY40 DUMMY41 DUMMY42 DUMMY43 DUMMY44 DUMMY45 DUMMY46 DUMMY47 DUMMY48 DUMMY49 DUMMY50 DUMMY51 DUMMY52 DUMMY53 DUMMY54 DUMMY55 DUMMY56 DUMMY57 DUMMY58 DUMMY59 DUMMY60 DUMMY61 DUMMY62 DUMMY63 DUMMY64 DUMMY65 DUMMY66 DUMMY67 DUMMY68 DUMMY69 DUMMY70 DUMMY71 DUMMY72 DUMMY73 DUMMY74 DUMMY75 DUMMY76 DUMMY77 DUMMY78 DUMMY79 DUMMY80 DUMMY81 DUMMY82 DUMMY83 DUMMY84 DUMMY85 DUMMY86 DUMMY87 DUMMY88 DUMMY89 DUMMY90 DUMMY91 DUMMY92 DUMMY93 DUMMY94 DUMMY95 DUMMY96 DUMMY97 DUMMY98 DUMMY99 DUMMY100 DUMMY101 DUMMY102 DUMMY103 DUMMY104 DUMMY105 DUMMY106 DUMMY107 DUMMY108 DUMMY109 DUMMY110 DUMMY111 DUMMY112 DUMMY113 DUMMY114 DUMMY115 DUMMY116 DUMMY117 DUMMY118 DUMMY119 DUMMY120 DUMMY121 DUMMY122 DUMMY123 DUMMY124 DUMMY125 DUMMY126 DUMMY127 DUMMY128 DUMMY129 DUMMY130 DUMMY131 DUMMY132 DUMMY133 DUMMY134 DUMMY135 DUMMY136 DUMMY137 DUMMY138 DUMMY139 DUMMY140 DUMMY141 DUMMY142 DUMMY143 DUMMY144 DUMMY145 DUMMY146 DUMMY147 DUMMY148 DUMMY149 
+varIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varComposeIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varComposeIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varAuxIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varAuxIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+Number of roots: 1
+TestDddmp> File : Which BDDs [0..19]: Storing 4.node3.bdd.tmp ...
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> File : Which BDDs [0..19]: Loading 4.best1.tmp ...
+TestDddmp> DD TYPE: DDDMP_CNF
+Number of variables: 150
+Number of support variables: 15
+suppVarNames: V3 V8 V23 V24 V37 V39 DUMMY21 DUMMY22 DUMMY23 DUMMY36 DUMMY37 DUMMY38 DUMMY47 DUMMY48 DUMMY49 
+orderedVarNames: V2 V3 V8 V9 V10 V12 V22 V23 V24 V37 V38 V39 V48 V49 V50 DUMMY15 DUMMY16 DUMMY17 DUMMY18 DUMMY19 DUMMY20 DUMMY21 DUMMY22 DUMMY23 DUMMY24 DUMMY25 DUMMY26 DUMMY27 DUMMY28 DUMMY29 DUMMY30 DUMMY31 DUMMY32 DUMMY33 DUMMY34 DUMMY35 DUMMY36 DUMMY37 DUMMY38 DUMMY39 DUMMY40 DUMMY41 DUMMY42 DUMMY43 DUMMY44 DUMMY45 DUMMY46 DUMMY47 DUMMY48 DUMMY49 DUMMY50 DUMMY51 DUMMY52 DUMMY53 DUMMY54 DUMMY55 DUMMY56 DUMMY57 DUMMY58 DUMMY59 DUMMY60 DUMMY61 DUMMY62 DUMMY63 DUMMY64 DUMMY65 DUMMY66 DUMMY67 DUMMY68 DUMMY69 DUMMY70 DUMMY71 DUMMY72 DUMMY73 DUMMY74 DUMMY75 DUMMY76 DUMMY77 DUMMY78 DUMMY79 DUMMY80 DUMMY81 DUMMY82 DUMMY83 DUMMY84 DUMMY85 DUMMY86 DUMMY87 DUMMY88 DUMMY89 DUMMY90 DUMMY91 DUMMY92 DUMMY93 DUMMY94 DUMMY95 DUMMY96 DUMMY97 DUMMY98 DUMMY99 DUMMY100 DUMMY101 DUMMY102 DUMMY103 DUMMY104 DUMMY105 DUMMY106 DUMMY107 DUMMY108 DUMMY109 DUMMY110 DUMMY111 DUMMY112 DUMMY113 DUMMY114 DUMMY115 DUMMY116 DUMMY117 DUMMY118 DUMMY119 DUMMY120 DUMMY121 DUMMY122 DUMMY123 DUMMY124 DUMMY125 DUMMY126 DUMMY127 DUMMY128 DUMMY129 DUMMY130 DUMMY131 DUMMY132 DUMMY133 DUMMY134 DUMMY135 DUMMY136 DUMMY137 DUMMY138 DUMMY139 DUMMY140 DUMMY141 DUMMY142 DUMMY143 DUMMY144 DUMMY145 DUMMY146 DUMMY147 DUMMY148 DUMMY149 
+varIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varComposeIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varComposeIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varAuxIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varAuxIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+Number of roots: 1
+TestDddmp> File : Which BDDs [0..19]: Storing 4.best1.bdd.tmp ...
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> File : Which BDDs [0..19]: Loading 4.best2.tmp ...
+TestDddmp> DD TYPE: DDDMP_CNF
+Number of variables: 150
+Number of support variables: 15
+suppVarNames: V3 V8 V23 V24 V37 V39 DUMMY21 DUMMY22 DUMMY23 DUMMY36 DUMMY37 DUMMY38 DUMMY47 DUMMY48 DUMMY49 
+orderedVarNames: V2 V3 V8 V9 V10 V12 V22 V23 V24 V37 V38 V39 V48 V49 V50 DUMMY15 DUMMY16 DUMMY17 DUMMY18 DUMMY19 DUMMY20 DUMMY21 DUMMY22 DUMMY23 DUMMY24 DUMMY25 DUMMY26 DUMMY27 DUMMY28 DUMMY29 DUMMY30 DUMMY31 DUMMY32 DUMMY33 DUMMY34 DUMMY35 DUMMY36 DUMMY37 DUMMY38 DUMMY39 DUMMY40 DUMMY41 DUMMY42 DUMMY43 DUMMY44 DUMMY45 DUMMY46 DUMMY47 DUMMY48 DUMMY49 DUMMY50 DUMMY51 DUMMY52 DUMMY53 DUMMY54 DUMMY55 DUMMY56 DUMMY57 DUMMY58 DUMMY59 DUMMY60 DUMMY61 DUMMY62 DUMMY63 DUMMY64 DUMMY65 DUMMY66 DUMMY67 DUMMY68 DUMMY69 DUMMY70 DUMMY71 DUMMY72 DUMMY73 DUMMY74 DUMMY75 DUMMY76 DUMMY77 DUMMY78 DUMMY79 DUMMY80 DUMMY81 DUMMY82 DUMMY83 DUMMY84 DUMMY85 DUMMY86 DUMMY87 DUMMY88 DUMMY89 DUMMY90 DUMMY91 DUMMY92 DUMMY93 DUMMY94 DUMMY95 DUMMY96 DUMMY97 DUMMY98 DUMMY99 DUMMY100 DUMMY101 DUMMY102 DUMMY103 DUMMY104 DUMMY105 DUMMY106 DUMMY107 DUMMY108 DUMMY109 DUMMY110 DUMMY111 DUMMY112 DUMMY113 DUMMY114 DUMMY115 DUMMY116 DUMMY117 DUMMY118 DUMMY119 DUMMY120 DUMMY121 DUMMY122 DUMMY123 DUMMY124 DUMMY125 DUMMY126 DUMMY127 DUMMY128 DUMMY129 DUMMY130 DUMMY131 DUMMY132 DUMMY133 DUMMY134 DUMMY135 DUMMY136 DUMMY137 DUMMY138 DUMMY139 DUMMY140 DUMMY141 DUMMY142 DUMMY143 DUMMY144 DUMMY145 DUMMY146 DUMMY147 DUMMY148 DUMMY149 
+varIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varComposeIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varComposeIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+varAuxIds: 1 2 7 8 9 11 21 22 23 36 37 38 47 48 49 
+varAuxIds for ALL Manager Variables: -1 1 2 -1 -1 -1 -1 7 8 9 -1 11 -1 -1 -1 -1 -1 -1 -1 -1 -1 21 22 23 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 36 37 38 -1 -1 -1 -1 -1 -1 -1 -1 47 48 49 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+Number of roots: 1
+TestDddmp> File : Which BDDs [0..19]: Storing 4.best2.bdd.tmp ...
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+----------------------------- ... RESULTS ... -----------------------------
+-------------------------------- ... END ----------------------------------

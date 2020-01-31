@@ -1,0 +1,252 @@
+The mtr package
+
+Multiway-branch tree manipulation
+
+Fabio Somenzi
+
+**********************************************************************
+
+Mtr_AllocNode()                Allocates new tree node.
+
+Mtr_CopyTree()                 Makes a copy of tree.
+
+Mtr_CreateFirstChild()         Creates a new node and makes it the first child
+                               of parent.
+
+Mtr_CreateLastChild()          Creates a new node and makes it the last child
+                               of parent.
+
+Mtr_DeallocNode()              Deallocates tree node.
+
+Mtr_DissolveGroup()            Merges the children of `group' with the
+                               children of its parent.
+
+Mtr_FindGroup()                Finds a group with size leaves starting at low,
+                               if it exists.
+
+Mtr_FreeTree()                 Disposes of tree rooted at node.
+
+Mtr_InitGroupTree()            Allocate new tree.
+
+Mtr_InitTree()                 Initializes tree with one node.
+
+Mtr_MakeFirstChild()           Makes child the first child of parent.
+
+Mtr_MakeGroup()                Makes a new group with size leaves starting at
+                               low.
+
+Mtr_MakeLastChild()            Makes child the last child of parent.
+
+Mtr_MakeNextSibling()          Makes second the next sibling of first.
+
+Mtr_PrintGroups()              Prints the groups as a parenthesized list.
+
+Mtr_PrintTree()                Prints a tree, one node per line.
+
+Mtr_ReadGroups()               Reads groups from a file and creates a group
+                               tree.
+
+Mtr_SwapGroups()               Swaps two children of a tree node.
+
+**********************************************************************
+
+This package provides two layers of functions. Functions   of the lower level
+manipulate multiway-branch trees, implemented   according to the classical
+scheme whereby each node points to its   first child and its previous and
+next siblings. These functions are   collected in mtrBasic.c.   Functions
+of the upper layer deal with group trees, that is the trees   used by group
+sifting to represent the grouping of variables. These   functions are
+collected in mtrGroup.c.
+
+MtrNode *
+Mtr_AllocNode(
+
+)
+  Allocates new tree node. Returns pointer to node.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_CopyTree(
+  MtrNode *         node,
+  int               expansion
+)
+  Makes a copy of tree. If parameter expansion is greater than 1, it will
+  expand the tree by that factor. It is an error for expansion to be less than
+  1. Returns a pointer to the copy if successful; NULL otherwise.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_CreateFirstChild(
+  MtrNode *         parent
+)
+  Creates a new node and makes it the first child of parent. Returns pointer
+  to new child.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_CreateLastChild(
+  MtrNode *         parent
+)
+  Creates a new node and makes it the last child of parent. Returns pointer to
+  new child.
+
+  Side Effects: None
+
+void
+Mtr_DeallocNode(
+  MtrNode *         node             node to be deallocated
+)
+  Deallocates tree node.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_DissolveGroup(
+  MtrNode *         group            group to be dissolved
+)
+  Merges the children of `group' with the children of its parent. Disposes of
+  the node pointed by group. If group is the root of the group tree, this
+  procedure leaves the tree unchanged. Returns the pointer to the parent of
+  `group' upon successful termination; NULL otherwise.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_FindGroup(
+  MtrNode *         root,            root of the group tree
+  unsigned int      low,             lower bound of the group
+  unsigned int      size             upper bound of the group
+)
+  Finds a group with size leaves starting at low, if it exists. This procedure
+  relies on the low and size fields of each node. It also assumes that the
+  children of each node are sorted in order of increasing low. Returns the
+  pointer to the root of the group upon successful termination; NULL
+  otherwise.
+
+  Side Effects: None
+
+void
+Mtr_FreeTree(
+  MtrNode *         node
+)
+  Disposes of tree rooted at node.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_InitGroupTree(
+  int               lower,
+  int               size
+)
+  Allocate new tree with one node, whose low and size fields are specified by
+  the lower and size parameters. Returns pointer to tree root.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_InitTree(
+
+)
+  Initializes tree with one node. Returns pointer to node.
+
+  Side Effects: None
+
+void
+Mtr_MakeFirstChild(
+  MtrNode *         parent,
+  MtrNode *         child
+)
+  Makes child the first child of parent.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_MakeGroup(
+  MtrNode *         root,            root of the group tree
+  unsigned int      low,             lower bound of the group
+  unsigned int      size,            upper bound of the group
+  unsigned int      flags            flags for the new group
+)
+  Makes a new group with size leaves starting at low. If the new group
+  intersects an existing group, it must either contain it or be contained by
+  it. This procedure relies on the low and size fields of each node. It also
+  assumes that the children of each node are sorted in order of increasing
+  low. In case of a valid request, the flags of the new group are set to the
+  value passed in `flags.' This can also be used to change the flags of an
+  existing group. Returns the pointer to the root of the new group upon
+  successful termination; NULL otherwise. If the group already exists, the
+  pointer to its root is returned.
+
+  Side Effects: None
+
+void
+Mtr_MakeLastChild(
+  MtrNode *         parent,
+  MtrNode *         child
+)
+  Makes child the last child of parent.
+
+  Side Effects: None
+
+void
+Mtr_MakeNextSibling(
+  MtrNode *         first,
+  MtrNode *         second
+)
+  Makes second the next sibling of first. Second becomes a child of the parent
+  of first.
+
+  Side Effects: None
+
+void
+Mtr_PrintGroups(
+  MtrNode *         root,            root of the group tree
+  int               silent           flag to check tree syntax only
+)
+  Prints the groups as a parenthesized list. After each group, the group's
+  flag are printed, preceded by a `|'. For each flag (except MTR_TERMINAL) a
+  character is printed.  F: MTR_FIXED N: MTR_NEWNODE S:
+  MTR_SOFT  The second argument, silent, if different from 0, causes
+  Mtr_PrintGroups to only check the syntax of the group tree.
+
+  Side Effects: None
+
+void
+Mtr_PrintTree(
+  MtrNode *         node
+)
+  Prints a tree, one node per line.
+
+  Side Effects: None
+
+MtrNode *
+Mtr_ReadGroups(
+  FILE *            fp,              file pointer
+  int               nleaves          number of leaves of the new tree
+)
+  Reads groups from a file and creates a group tree. Each group is specified
+  by three fields: low size flags.  Low and size are (short)
+  integers. Flags is a string composed of the following characters (with
+  associated translation):  D: MTR_DEFAULT F: MTR_FIXED N:
+  MTR_NEWNODE S: MTR_SOFT T: MTR_TERMINAL  Normally, the only
+  flags that are needed are D and F. Groups and fields are separated by white
+  space (spaces, tabs, and newlines). Returns a pointer to the group tree if
+  successful; NULL otherwise.
+
+  Side Effects: None
+
+int
+Mtr_SwapGroups(
+  MtrNode *         first,           first node to be swapped
+  MtrNode *         second           second node to be swapped
+)
+  Swaps two children of a tree node. Adjusts the high and low fields of the
+  two nodes and their descendants. The two children must be adjacent. However,
+  first may be the younger sibling of second. Returns 1 in case of success; 0
+  otherwise.
+
+  Side Effects: None
+

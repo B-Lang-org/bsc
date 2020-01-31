@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name   : typedef enum { ... } T 
+# --
+typedef enum { $0 } ${1:TS} deriving(Bits,Eq);

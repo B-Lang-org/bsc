@@ -1,0 +1,15 @@
+#!/bin/sh -f
+# Generates emacs & vi tags files from Bluespec SystemVerilog (.bsv) files
+
+
+etags --language=none \
+--regex='/[ \t]*interface[ \t]+\([A-Z][a-zA-Z0-9_]*\)[ \t]*\(#[ \t]*(.*)\)?[ \t]*;/\1/' \
+--regex='/[ \t]*typeclass[ \t]+\([A-Z][a-zA-Z0-9_]*\)/\1/' \
+--regex='/[ \t]*\(module\|rule\|package\)[ \t]+\([^(#;\[ ]+\)/\2/' \
+--regex='/[ \t]*module[ \t]+\[\w+\][ \t]+\([^(#; ]+\)/\1/' \
+--regex='/[ \t]*function[ \t]+\([A-Z][a-zA-Z0-9_]*[ \t]*\)?\(#[ \t]*(.*?)[ \t]\)?\([a-z][A-Za-z0-9_]*\)[ \t]*(/\3/' \
+--regex='/[ \t]*\`define[ \t]+\([^ \t]\)/\1/' \
+--regex='/[ \t]*typedef[ \t]+\([A-Z][a-zA-Z0-9_]*\)\(#[ \t]*(.*)\)?[ \t]+\([A-Z][a-zA-Z0-9_]*\)/\3/' \
+--regex='/[ \t]*[}][ \t]*\([A-Z][a-zA-Z0-9_]*\)/\1/' \
+$*
+

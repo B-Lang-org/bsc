@@ -1,0 +1,133 @@
+'\"
+'\" Copyright (c) 1993-1998  Lucent Technologies, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+'\" RCS: $Id: Toplevel.n,v 1.4 2004/09/01 04:23:10 davygrvy Exp $
+'\"
+.so man.macros
+.TH Toplevel n 3.0 itk "[incr\ Tk]"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+Toplevel \- base class for mega-widgets in a top-level window
+.SH "INHERITANCE"
+itk::Archetype <- itk::Toplevel
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 4c 8c 12c
+\fBbackground\fR	\fBcursor\fR
+.fi
+.LP
+See the "options" manual entry for details on the standard options.
+.SH "WIDGET-SPECIFIC OPTIONS"
+.LP
+.nf
+Name:   \fBtitle\fR
+Class:  \fBTitle\fR
+Command-Line Switch:    \fB-title\fR
+.fi
+.IP
+Sets the title that the window manager displays in the title bar
+above the window.  The default title is the null string.
+.BE
+
+.SH DESCRIPTION
+.PP
+The \fBToplevel\fR class inherits everything from the \fBArchetype\fR
+class, and adds a Tk toplevel called the "hull" component to represent
+the body of the mega-widget.  The window class name for the hull
+is set to the most-specific class name for the mega-widget.
+The protected variable \fBitk_interior\fR contains the window
+path name for the "hull" component.  Derived classes specialize
+this widget by packing other widget components into the hull.
+.PP
+Since the hull for the \fBToplevel\fR class is implemented with
+a Tk toplevel, mega-widgets in the \fBToplevel\fR class have
+their own toplevel window.  This class is used to create dialog
+boxes and other pop-up windows.
+
+.SH "COMPONENTS"
+.LP
+.nf
+Name:	\fBhull\fR
+Class:	\fBToplevel\fR
+.fi
+.IP
+The "hull" component acts as the body for the entire mega-widget.
+Other components are packed into the hull to further specialize
+the widget.
+
+.SH EXAMPLE
+.PP
+The following example implements a \fBMessageInfo\fR
+mega-widget.  It creates a pop-up message that the
+user can dismiss by pushing the "Dismiss" button.
+.CS
+option add *MessageInfo.title "Notice" widgetDefault
+
+itcl::class MessageInfo {
+    inherit itk::Toplevel
+
+    constructor {args} {
+        itk_component add dismiss {
+            button $itk_interior.dismiss -text "Dismiss" \
+                -command "destroy $itk_component(hull)"
+        }
+        pack $itk_component(dismiss) -side bottom -pady 4
+
+        itk_component add separator {
+            frame $itk_interior.sep -height 2 -borderwidth 1 -relief sunken
+        }
+        pack $itk_component(separator) -side bottom -fill x -padx 4
+
+        itk_component add icon {
+            label $itk_interior.icon -bitmap info
+        }
+        pack $itk_component(icon) -side left -padx 8 -pady 8
+
+        itk_component add infoFrame {
+            frame $itk_interior.info
+        }
+        pack $itk_component(infoFrame) -side left -expand yes \
+            -fill both -padx 4 -pady 4
+
+        itk_component add message {
+            label $itk_interior.mesg -width 20
+        } {
+            usual
+            rename -text -message message Text
+        }
+        pack $itk_component(message) -expand yes -fill both
+
+        eval itk_initialize $args
+
+        after idle [code $this centerOnScreen]
+    }
+
+    protected method centerOnScreen {} {
+        update idletasks
+        set wd [winfo reqwidth $itk_component(hull)]
+        set ht [winfo reqheight $itk_component(hull)]
+        set x [expr ([winfo screenwidth $itk_component(hull)]-$wd)/2]
+        set y [expr ([winfo screenheight $itk_component(hull)]-$ht)/2]
+        wm geometry $itk_component(hull) +$x+$y
+    }
+}
+
+itk::usual MessageInfo {
+    keep -background -cursor -foreground -font
+    keep -activebackground -activeforeground -disabledforeground
+    keep -highlightcolor -highlightthickness
+}
+
+#
+# EXAMPLE:  Create a notice window:
+#
+MessageInfo .m -message "File not found:\\n/usr/local/bin/foo"
+.CE
+
+.SH KEYWORDS
+itk, Archetype, Widget, mega-widget

@@ -1,0 +1,513 @@
+<html>
+<head><title>The ntr package (Internal) </title></head>
+<body>
+
+<h1>The ntr package (Internal) </h1>
+<h2></h2>
+<h3></h3>
+<hr>
+<ul>
+<li><a href="ntrExtAbs.html"><h3>External abstracts</h3></a>
+<li><a href="ntrAllAbs.html"><h3>All abstracts</h3></a>
+<li><a href="ntrExtDet.html#prototypes"><h3>External functions</h3></a>
+<li><a href="ntrAllDet.html#prototypes"><h3>All functions</h3></a>
+</ul>
+
+<hr>
+
+<a name="description">
+
+</a>
+
+<hr>
+<!-- Function Prototypes and description -->
+
+<dl>
+<a name="prototypes"></a>
+<dt><pre>
+int <i></i>
+<a name="Ntr_ClosureTrav"><b>Ntr_ClosureTrav</b></a>(
+  DdManager * <b>dd</b>, <i>DD manager</i>
+  BnetNetwork * <b>net</b>, <i>network</i>
+  NtrOptions * <b>option</b> <i>options</i>
+)
+</pre>
+<dd> Traversal procedure. based on the transitive closure of the transition relation. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_Trav">Ntr_Trav</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_Envelope"><b>Ntr_Envelope</b></a>(
+  DdManager * <b>dd</b>, <i>DD manager</i>
+  NtrPartTR * <b>TR</b>, <i>transition relation</i>
+  FILE * <b>dfp</b>, <i>pointer to file for DD dump</i>
+  NtrOptions * <b>option</b> <i>program options</i>
+)
+</pre>
+<dd> Poor man's outer envelope computation based on the monolithic transition relation. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+void <i></i>
+<a name="Ntr_FreeHeap"><b>Ntr_FreeHeap</b></a>(
+  NtrHeap * <b>heap</b> <i></i>
+)
+</pre>
+<dd> Frees a priority queue.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_InitHeap">Ntr_InitHeap</a>
+</code>
+
+<dt><pre>
+NtrHeap * <i></i>
+<a name="Ntr_HeapClone"><b>Ntr_HeapClone</b></a>(
+  NtrHeap * <b>source</b> <i></i>
+)
+</pre>
+<dd> Clones a priority queue.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_InitHeap">Ntr_InitHeap</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_HeapCount"><b>Ntr_HeapCount</b></a>(
+  NtrHeap * <b>heap</b> <i></i>
+)
+</pre>
+<dd> Returns the number of items in a priority queue.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_HeapExtractMin"><b>Ntr_HeapExtractMin</b></a>(
+  NtrHeap * <b>heap</b>, <i></i>
+  void ** <b>item</b>, <i></i>
+  int * <b>key</b> <i></i>
+)
+</pre>
+<dd> Extracts the element with the minimum key from a priority queue. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> The minimum key and the associated item are returned as side effects.
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_HeapInsert">Ntr_HeapInsert</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_HeapInsert"><b>Ntr_HeapInsert</b></a>(
+  NtrHeap * <b>heap</b>, <i></i>
+  void * <b>item</b>, <i></i>
+  int  <b>key</b> <i></i>
+)
+</pre>
+<dd> Inserts an item in a priority queue. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_HeapExtractMin">Ntr_HeapExtractMin</a>
+</code>
+
+<dt><pre>
+NtrHeap * <i></i>
+<a name="Ntr_InitHeap"><b>Ntr_InitHeap</b></a>(
+  int  <b>size</b> <i></i>
+)
+</pre>
+<dd> Initializes a priority queue. Returns a pointer to the heap if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_FreeHeap">Ntr_FreeHeap</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_SCC"><b>Ntr_SCC</b></a>(
+  DdManager * <b>dd</b>, <i>DD manager</i>
+  BnetNetwork * <b>net</b>, <i>network</i>
+  NtrOptions * <b>option</b> <i>options</i>
+)
+</pre>
+<dd> Computes the strongly connected components of the state transition graph. Only the first 10 SCCs are computed. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_Trav">Ntr_Trav</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_ShortestPaths"><b>Ntr_ShortestPaths</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Computes shortest paths in the state transition graph of a network. Three methods are availabe: <ul> <li> Bellman-Ford algorithm for single-source shortest paths; the algorithm computes the distance (number of transitions) from the initial states to all states. <li> Floyd-Warshall algorithm for all-pair shortest paths. <li> Repeated squaring algorithm for all-pair shortest paths. </ul> The function returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> ADD variables are created in the manager.
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestClipping"><b>Ntr_TestClipping</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  BnetNetwork * <b>net2</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests BDD clipping functions. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestClosestCube"><b>Ntr_TestClosestCube</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests the Cudd_bddClosestCube function. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestCofactorEstimate"><b>Ntr_TestCofactorEstimate</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests BDD cofactor estimate functions. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestDecomp"><b>Ntr_TestDecomp</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests BDD decomposition functions. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestDensity"><b>Ntr_TestDensity</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests BDD density-related functions. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestEquivAndContain"><b>Ntr_TestEquivAndContain</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  BnetNetwork * <b>net2</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests functions for BDD equivalence and containment with don't cares, including Cudd_EquivDC and Cudd_bddLeqUnless. This function uses as care set the first output of net2 and checkes equivalence and containment for of all the output pairs of net1. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestHeap"><b>Ntr_TestHeap</b></a>(
+  NtrHeap * <b>heap</b>, <i></i>
+  int  <b>i</b> <i></i>
+)
+</pre>
+<dd> Tests the heap property of a priority queue. Returns 1 if Successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_TestMinimization"><b>Ntr_TestMinimization</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  BnetNetwork * <b>net2</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests BDD minimization functions, including leaf-identifying compaction, squeezing, and restrict. This function uses as constraint the first output of net2 and computes positive and negative cofactors of all the outputs of net1. For each cofactor, it checks whether compaction was safe (cofactor not larger than original function) and that the expansion based on each minimization function (used as a generalized cofactor) equals the original function. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+DdNode * <i></i>
+<a name="Ntr_TransitiveClosure"><b>Ntr_TransitiveClosure</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  NtrPartTR * <b>TR</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Builds the transitive closure of a transition relation. Returns a BDD if successful; NULL otherwise. Uses a simple squaring algorithm.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_Trav"><b>Ntr_Trav</b></a>(
+  DdManager * <b>dd</b>, <i>DD manager</i>
+  BnetNetwork * <b>net</b>, <i>network</i>
+  NtrOptions * <b>option</b> <i>options</i>
+)
+</pre>
+<dd> Poor man's traversal procedure. based on the monolithic transition relation. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_ClosureTrav">Ntr_ClosureTrav</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_VerifyEquivalence"><b>Ntr_VerifyEquivalence</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net1</b>, <i></i>
+  BnetNetwork * <b>net2</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Verify equivalence of combinational networks. Returns 1 if successful and if the networks are equivalent; -1 if successful, but the networks are not equivalent; 0 otherwise. The two networks are supposed to have the same names for inputs and outputs. The only exception is that the second network may miss output buffers that are present in the first network. This function tries to match both the output and the input of the buffer.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_buildDDs"><b>Ntr_buildDDs</b></a>(
+  BnetNetwork * <b>net</b>, <i>network for which DDs are to be built</i>
+  DdManager * <b>dd</b>, <i>DD manager</i>
+  NtrOptions * <b>option</b>, <i>option structure</i>
+  BnetNetwork * <b>net2</b> <i>companion network with which inputs may be shared</i>
+)
+</pre>
+<dd> Builds DDs for a network outputs and next state functions. The method is really brain-dead, but it is very simple. Returns 1 in case of success; 0 otherwise. Some inputs to the network may be shared with another network whose DDs have already been built. In this case we want to share the DDs as well.
+<p>
+
+<dd> <b>Side Effects</b> the dd fields of the network nodes are modified. Uses the count fields of the nodes.
+<p>
+
+<dt><pre>
+NtrPartTR * <i></i>
+<a name="Ntr_buildTR"><b>Ntr_buildTR</b></a>(
+  DdManager * <b>dd</b>, <i>manager</i>
+  BnetNetwork * <b>net</b>, <i>network</i>
+  NtrOptions * <b>option</b>, <i>options</i>
+  int  <b>image</b> <i>image type: monolithic ...</i>
+)
+</pre>
+<dd> Builds the transition relation for a network. Returns a pointer to the transition relation structure if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+NtrPartTR * <i></i>
+<a name="Ntr_cloneTR"><b>Ntr_cloneTR</b></a>(
+  NtrPartTR * <b>TR</b> <i></i>
+)
+</pre>
+<dd> Makes a copy of a transition relation. Returns a pointer to the copy if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="ntrAllDet.html#Ntr_buildTR">Ntr_buildTR</a>
+<a href="ntrAllDet.html#Ntr_freeTR">Ntr_freeTR</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Ntr_freeTR"><b>Ntr_freeTR</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  NtrPartTR * <b>TR</b> <i></i>
+)
+</pre>
+<dd> Frees the transition relation for a network.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+DdNode * <i></i>
+<a name="Ntr_getStateCube"><b>Ntr_getStateCube</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  char * <b>filename</b>, <i></i>
+  int  <b>pr</b> <i></i>
+)
+</pre>
+<dd> Reads a state cube from a file or create a random one. Returns a pointer to the BDD of the sink nodes if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+DdNode * <i></i>
+<a name="Ntr_initState"><b>Ntr_initState</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Builds the BDD of the initial state(s). Returns a BDD if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_maxflow"><b>Ntr_maxflow</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Maximum 0-1 flow between source and sink states. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> Creates two new sets of variables.
+<p>
+
+<dt><pre>
+double <i></i>
+<a name="Ntr_maximum01Flow"><b>Ntr_maximum01Flow</b></a>(
+  DdManager * <b>bdd</b>, <i>manager</i>
+  DdNode * <b>sx</b>, <i>source node</i>
+  DdNode * <b>ty</b>, <i>sink node</i>
+  DdNode * <b>E</b>, <i>edge relation</i>
+  DdNode ** <b>F</b>, <i>flow relation</i>
+  DdNode ** <b>cut</b>, <i>cutset relation</i>
+  DdNode ** <b>x</b>, <i>array of row variables</i>
+  DdNode ** <b>y</b>, <i>array of column variables</i>
+  DdNode ** <b>z</b>, <i>arrays of auxiliary variables</i>
+  int  <b>n</b>, <i>number of variables in each array</i>
+  int  <b>pr</b> <i>verbosity level</i>
+)
+</pre>
+<dd> This function implements Dinits's algorithm for (0-1) max flow, using BDDs and a symbolic technique to trace multiple edge-disjoint augmenting paths to complete a phase. The outer forever loop is over phases, and the inner forever loop is to propagate a (not yet) maximal flow of edge-disjoint augmenting paths from one layer to the previous. The subprocedure call implements a least fixed point iteration to compute a (not yet) maximal flow update between layers. At the end of each phase (except the last one) the flow is actually pushed from the source to the sink. Data items: <ul> <li> sx(ty) BDD representations of s(t). <li> x(y) The variables encoding the from(to)-node u(v) of an edge (u,v) in the given digraph. <li> z Another set of variables. <li> E(x,y) The edge relation. <li> F(x,y) BDD representation of the current flow, initialized to 0 for each arc, and updated by +1, -1, or 0 at the end of each phase. <li> Ms Mt The maximum flow, that is, the cardinality of a minimum cut, measured at the source and at the sink, respectively. The two values should be identical. <li> reached The set of nodes already visited in the BFS of the digraph. <li> fos fanout of the source node s. <li> fit fanin of the sink node t. </ul>
+<p>
+
+<dd> <b>Side Effects</b> The flow realtion F and the cutset relation cut are returned as side effects.
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_testISOP"><b>Ntr_testISOP</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Builds ZDD covers.
+<p>
+
+<dd> <b>Side Effects</b> Creates ZDD variables in the manager.
+<p>
+
+<dt><pre>
+int <i></i>
+<a name="Ntr_testZDD"><b>Ntr_testZDD</b></a>(
+  DdManager * <b>dd</b>, <i></i>
+  BnetNetwork * <b>net</b>, <i></i>
+  NtrOptions * <b>option</b> <i></i>
+)
+</pre>
+<dd> Tests ZDDs. Returns 1 if successful; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> Creates ZDD variables in the manager.
+<p>
+
+<dt><pre>
+ <i></i>
+<a name="STRING_EQUAL"><b>STRING_EQUAL</b></a>(
+   <b>s1</b>, <i></i>
+   <b>s2</b> <i></i>
+)
+</pre>
+<dd> Returns 1 if the two arguments are identical strings.
+<p>
+
+<dd> <b>Side Effects</b> none
+<p>
+
+
+</dl>
+
+<hr>
+
+Generated automatically by <code>extdoc</code> on 1010215
+
+</body></html>

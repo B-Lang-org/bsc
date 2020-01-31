@@ -1,0 +1,11 @@
+# !/bin/sh 
+#
+# Run All Test Files
+#
+./test1.script
+./test2.script
+./test3.script
+./test4.script
+./test5.script
+./test6.script
+./test7.script

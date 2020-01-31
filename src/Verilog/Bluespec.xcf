@@ -1,0 +1,20 @@
+##############################################################
+## Xilinx XCF constraint file for Bluespec Verilog Library
+##
+
+
+BEGIN MODEL RegFile
+  NET arr  ram_style=distributed ;
+END;
+
+BEGIN MODEL MakeClock
+  NET CLK_OUT     clock_signal=yes ;
+  NET current_clk keep=true;
+  NET CLK_OUT     buffer_type=bufg;
+END;
+
+BEGIN MODEL SizedFIFO
+  NET arr  ram_style=distributed ;
+END;
+
+##############################################################

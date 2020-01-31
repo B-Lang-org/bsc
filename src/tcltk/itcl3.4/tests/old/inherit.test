@@ -1,0 +1,272 @@
+#
+# Tests for inheritance and scope handling
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: inherit.test,v 1.1 1998/07/27 18:41:25 stanton Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+# ----------------------------------------------------------------------
+#  MULTIPLE BASE-CLASS ERROR DETECTION
+# ----------------------------------------------------------------------
+test {Cannot inherit from the same base class more than once} {
+	catch "VirtualErr" errmsg
+	set errmsg
+} {
+	[string match {*class "::VirtualErr" inherits base class "::Foo" more than once:
+  VirtualErr->Mongrel->FooBar->Foo
+  VirtualErr->Foo
+  VirtualErr->BarFoo->Foo} $result]
+}
+
+# ----------------------------------------------------------------------
+#  CONSTRUCTION
+# ----------------------------------------------------------------------
+test {Constructors should be invoked implicitly} {
+	set WATCH ""
+	concat [Mongrel m] / $WATCH
+} {
+	$result == "m / ::Geek ::Bar ::Foo ::FooBar ::Mongrel"
+}
+
+test {Initialization of shadowed variables works properly} {
+	concat [m info public blit -value] / [m info public Foo::blit -value]
+} {
+	$result == "nonnull / <undefined>"
+}
+
+# ----------------------------------------------------------------------
+#  PUBLIC VARIABLES
+# ----------------------------------------------------------------------
+test {Inherited "config" method works on derived classes} {
+	m config -blit xyz -Foo::blit pdq
+} {
+	$result == "Mongrel::blit Foo::blit"
+}
+
+test {Inherited "config" method works on derived classes} {
+	m config -blit xyz -Foo::blit pdq
+	concat [m info public blit -value] / [m info public Foo::blit -value]
+} {
+	$result == "xyz / pdq"
+}
+
+test {Inherited "config" method works on derived classes} {
+	m config -tag #0000
+} {
+	$result == "Mongrel::tag"
+}
+
+# ----------------------------------------------------------------------
+#  INHERITANCE INFO
+# ----------------------------------------------------------------------
+test {Info: class} {
+	m info class
+} {
+	$result == "::Mongrel"
+}
+
+test {Info: inherit} {
+	m info inherit
+} {
+	$result == "::FooBar ::Geek"
+}
+
+test {Info: heritage} {
+	m info heritage
+} {
+	$result == "::Mongrel ::FooBar ::Foo ::Bar ::Geek"
+}
+
+test {Built-in "isa" method} {
+	set status 1
+	foreach c [m info heritage] {
+		set status [expr {$status && [m isa $c]}]
+	}
+	set status
+} {
+	$result == 1
+}
+
+test {Built-in "isa" method} {
+    itcl_class Watermelon {}
+	m isa Watermelon
+} {
+	$result == 0
+}
+
+# ----------------------------------------------------------------------
+#  SCOPE MANIPULATION
+# ----------------------------------------------------------------------
+test {commands normally execute in the scope of their class} {
+	m Foo::do {namespace current}
+} {
+	$result == "Foo says '::Foo'"
+}
+
+test {"virtual" command moves scope to most specific class} {
+	m Foo::do {virtual namespace current}
+} {
+	$result == "Foo says '::Mongrel'"
+}
+
+test {"previous" command moves scope upward in hierarchy} {
+	m do {virtual previous namespace current}
+} {
+	$result == "Foo says '::FooBar'"
+}
+
+test {"previous" command can be chained} {
+	m do {virtual previous previous namespace current}
+} {
+	$result == "Foo says '::Foo'"
+}
+
+# ----------------------------------------------------------------------
+#  METHOD INVOCATION
+# ----------------------------------------------------------------------
+test {Simple method names are assigned based on heritage} {
+	m do {concat "$this ([virtual info class]) at scope [namespace current]"}
+} {
+	$result == "Foo says '::m (Mongrel) at scope ::Foo'"
+}
+
+test {Explicit scoping can be used to reach shadowed members} {
+	m Geek::do {concat "$this ([virtual info class]) at scope [namespace current]"}
+} {
+	$result == "Geek says '::m (Mongrel) at scope ::Geek'"
+}
+
+test {Methods execute in local scope of class, e.g., Foo::do} {
+	m config -blit abc -Foo::blit def
+	m Foo::do {set blit xyz}
+	concat [m info public blit -value] / [m info public Foo::blit -value]
+} {
+	$result == "abc / xyz"
+}
+
+# ----------------------------------------------------------------------
+#  DESTRUCTION
+# ----------------------------------------------------------------------
+test {Destructors should be invoked implicitly} {
+	set WATCH ""
+	concat [m delete] / $WATCH
+} {
+	$result == "/ ::Mongrel ::FooBar ::Foo ::Bar ::Geek"
+}
+
+# ----------------------------------------------------------------------
+#  OBJECT INFO
+# ----------------------------------------------------------------------
+foreach obj [itcl_info objects] {
+	$obj delete
+}
+Mongrel m
+FooBar fb
+Foo f
+Geek g
+
+test {Object queries can be restricted by object name} {
+	itcl_info objects f*
+} {
+	[test_cmp_lists $result {f fb}]
+}
+
+test {Object queries can be restricted to specific classes} {
+	itcl_info objects -class Foo
+} {
+	$result == "f"
+}
+
+test {Object queries can be restricted by object heritage} {
+	itcl_info objects -isa Foo
+} {
+	[test_cmp_lists $result {m f fb}]
+}
+
+test {Object queries can be restricted by object name / specific classes} {
+	itcl_info objects f* -class Foo
+} {
+	$result == "f"
+}
+
+test {Object queries can be restricted by object name / object heritage} {
+	itcl_info objects f* -isa Foo
+} {
+	[test_cmp_lists $result {f fb}]
+}
+
+# ----------------------------------------------------------------------
+#  ERROR HANDLING ACROSS CLASS BOUNDARIES
+# ----------------------------------------------------------------------
+Mongrel m1
+FooBar fb2
+
+test {Errors and detected and reported across class boundaries} {
+	set status [catch {m1 do {fb2 do {error "test"}}} mesg]
+	format "$mesg $status"
+} {
+	$result == "test 1"
+}
+
+test {Stack trace unwinds properly across class boundaries} {
+	catch {m1 do {fb2 do {error "test"}}} mesg
+	format "$errorInfo"
+} {
+	$result == {test
+    while executing
+"error "test""
+    ("eval" body line 1)
+    invoked from within
+"eval $cmds"
+    invoked from within
+"return "Foo says '[eval $cmds]..."
+    (object "::fb2" method "::Foo::do" body line 2)
+    invoked from within
+"fb2 do {error "test"}"
+    ("eval" body line 1)
+    invoked from within
+"eval $cmds"
+    invoked from within
+"return "Foo says '[eval $cmds]..."
+    (object "::m1" method "::Foo::do" body line 2)
+    invoked from within
+"m1 do {fb2 do {error "test"}}"}
+}
+
+test {Stack trace unwinds properly across class boundaries} {
+	catch {m1 do {fb2 do {error "test" "some error"}}} mesg
+	format "$errorInfo"
+} {
+	$result == {some error
+    ("eval" body line 1)
+    invoked from within
+"eval $cmds"
+    invoked from within
+"return "Foo says '[eval $cmds]..."
+    (object "::fb2" method "::Foo::do" body line 2)
+    invoked from within
+"fb2 do {error "test" "some error"}"
+    ("eval" body line 1)
+    invoked from within
+"eval $cmds"
+    invoked from within
+"return "Foo says '[eval $cmds]..."
+    (object "::m1" method "::Foo::do" body line 2)
+    invoked from within
+"m1 do {fb2 do {error "test" "some error"}}"}
+}
+
+test {Error codes are preserved across class boundaries} {
+	catch {m1 do {fb2 do {error "test" "some error" CODE-BLUE}}} mesg
+	format "$errorCode"
+} {
+	$result == "CODE-BLUE"
+}

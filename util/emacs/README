@@ -1,0 +1,24 @@
+A major BSV syntax highlighting mode for emacs.   When you have
+entered BSV mode, you may get more info by pressing C-h m. You
+may also get online help describing various functions by: C-h f
+<Name of function you want described>.
+
+To use, put the files: bsv-mode.el, emacs20-extras.el, and mark.el
+in your load path.  Then put the following code in your .emacs or your site's 
+site-load.el:
+
+(autoload 'bsv-mode "bsv-mode" "BSV mode" t )
+(setq auto-mode-alist (cons  '("\\.bsv\\'" . bsv-mode) auto-mode-alist))
+
+===============================================
+bsv-snippets/README
+
+many bsv statements expanded with yasnippets. more detail in 
+the bsv-snippets directory  
+
+===============================================
+bsvtags
+
+  Create basic tag file for use by emacs / tags
+
+   %  perl bsvtags *.bsv > TAGS

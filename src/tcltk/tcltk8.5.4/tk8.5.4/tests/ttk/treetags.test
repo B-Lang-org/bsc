@@ -1,0 +1,78 @@
+#
+# $Id: treetags.test,v 1.2 2007/05/18 16:53:18 dgp Exp $
+#
+
+package require Tk 8.5
+package require tcltest ; namespace import -force tcltest::*
+loadTestedCommands
+tk useinputmethods 0
+
+testConstraint treeview [llength [info commands ttk::treeview]]
+testConstraint nyi 0
+
+test treetags-1.0 "Setup" -constraints treeview -body {
+    set tv [ttk::treeview .tv]
+    .tv insert {} end -id item1 -text "Item 1"
+    pack .tv 
+}
+
+test treetags-1.1 "Bad tag list" -constraints treeview -body {
+    $tv item item1 -tags {bad {list}here bad}
+} -returnCodes error -result "list element in braces *" -match glob
+
+test treetags-1.2 "Good tag list" -constraints treeview -body {
+    $tv item item1 -tags tag1
+    $tv item item1 -tags
+} -result [list tag1]
+
+test treetags-1.3 "Bad events" -constraints treeview -body {
+    $tv tag bind bad <Enter> { puts "Entered!" }
+} -returnCodes 1 -result "unsupported event <Enter>*" -match glob
+
+test treetags-2.0 "tag bind" -constraints treeview -body {
+    $tv tag bind tag1 <KeyPress> {set ::KEY %A}
+    $tv tag bind tag1 <KeyPress>
+} -result {set ::KEY %A}
+
+test treetags-2.1 "Events delivered to tags" -constraints treeview -body {
+    focus -force $tv ; update	;# needed so [event generate] delivers KeyPress
+    $tv focus item1
+    event generate .tv <KeyPress-a>
+    set ::KEY
+} -result a
+
+test treetags-2.2 "Events delivered to correct tags" -constraints treeview -body {
+    $tv insert {} end -id item2 -tags tag2
+    $tv tag bind tag2 <KeyPress> [list set ::KEY2 %A]
+
+    $tv focus item1
+    event generate $tv <KeyPress-b>
+    $tv focus item2
+    event generate $tv <KeyPress-c>
+
+    list $::KEY $::KEY2
+} -result [list b c]
+
+test treetags-2.3 "Virtual events delivered to focus item" -constraints treeview -body {
+    set ::bong 0
+    $tv tag bind tag2 <<Bing>> { incr bong }
+    $tv focus item2
+    event generate $tv <<Bing>>
+    $tv focus item1
+    event generate $tv <<Bing>>
+    set bong
+} -result 1
+
+
+test treetags-3.0 "tag configure" -constraints treeview -body {
+    $tv tag configure tag1 -foreground blue -background red
+} -result {}
+
+test treetags-3.1 "tag configure" -constraints treeview -body {
+    $tv tag configure tag1 -foreground
+} -result [list blue]
+
+
+test treetags-end "Cleanup" -constraints treeview -body { destroy .tv }
+
+tcltest::cleanupTests

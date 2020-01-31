@@ -1,0 +1,87 @@
+package UIntRange(UIntRange, incr, decr) where
+
+
+--@ \subsubsection{UIntRange}
+--@ 
+--@ \index{UIntRange@\te{UIntRange} (type)|textbf}
+--@ The type {\mbox{\te{UIntRange lo hi}}} represents an unsigned integer
+--@ using the number of bits needed to store \qbs{hi}.
+--@ The values of the type are in the range \qbs{lo..hi}.
+--@ 
+--@ The advantage of using \te{UIntRange} over \te{UInt}
+--@ is that the compiler can take advantage of the range information
+--@ when compiling the program.  It also makes the code more self-documenting
+--@ and catches more type errors.
+--@ 
+--@ {\bf NOTE}, using \te{unpack} it is possible to make a value that is
+--@ not within the specified range.  Doing so will result in unspecified
+--@ behaviour.
+--@ 
+--@ \BBS
+--@ data UIntRange lo hi = {\rm{\emph{$\cdots$ abstract $\cdots$}}}
+--@ \EBS
+
+data (UIntRange :: # -> # -> *) lo hi = U (Bit (TLog (TAdd hi 1)))
+	deriving (Eq, Ord)
+
+primitive primRange :: Bit n -> Bit n -> Bit n -> Bit n
+
+--@ \begin{libverbatim}
+--@ instance Bits #(UIntRange#(lo, hi), TLog#(TAdd#(hi, 1)));
+--@ \end{libverbatim}
+instance Bits (UIntRange lo hi) (TLog (TAdd hi 1))
+    where
+	pack (U x) = x -- primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x
+	unpack  x  = U x -- (primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x)
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ instance Literal #(UIntRange#(lo, hi));
+--@ \end{libverbatim}
+instance Literal (UIntRange lo hi)
+    where
+	fromInteger i =
+	    if i < valueOf lo || i > valueOf hi then
+		error ("UIntRange: literal out of range: " +++ integerToString i)
+	    else
+		U (fromInteger i)
+        inLiteralRange a i = i >= valueOf lo && i <= valueOf hi
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ instance Bounded #(UIntRange#(lo, hi));
+--@ \end{libverbatim}
+instance Bounded (UIntRange lo hi)
+    where
+	minBound = fromInteger (valueOf lo)
+	maxBound = fromInteger (valueOf hi)
+
+-- Arith is easy to define once the semantic has been decided
+
+--@ Increment a value.  This operation wraps around so
+--@ incrementing \qbs{hi} gives the value \qbs{lo}.
+--@ \begin{libverbatim}
+--@ incr :: UIntRange#(lo, hi) -> UIntRange#(lo, hi);
+--@ \end{libverbatim}
+incr :: UIntRange lo hi -> UIntRange lo hi
+incr (U x) =
+    let bhi = fromInteger (valueOf hi) `asTypeOf` x
+	blo = fromInteger (valueOf lo) `asTypeOf` x
+    in  if bhi+1 /= blo && x == bhi then
+	    U blo
+	else
+	    U (x+1)
+
+--@ Decrement a value.  This operation wraps around so
+--@ decrementing \qbs{lo} gives the value \qbs{hi}.
+--@ \begin{libverbatim}
+--@ decr :: UIntRange#(lo, hi) -> UIntRange#(lo, hi);
+--@ \end{libverbatim}
+decr :: UIntRange lo hi -> UIntRange lo hi
+decr (U x) =
+    let bhi = fromInteger (valueOf hi) `asTypeOf` x
+	blo = fromInteger (valueOf lo) `asTypeOf` x
+    in  if blo-1 /= bhi && x == blo then
+	    U bhi
+	else
+	    U (x-1)

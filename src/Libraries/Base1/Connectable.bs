@@ -1,0 +1,154 @@
+package Connectable(Connectable(..), (<->)) where
+
+import Vector
+import ListN
+import Inout
+
+--@ \subsubsection{Connectable}
+--@ \index{Connectable@\te{Connectable} (package)|textbf}
+--@
+--@ The class \te{Connectable} is meant to indicate that the two related
+--@ types can be connected in some way.  It does not specify the nature
+--@ of the connection.
+--@ \index{Connectable@\te{Connectable} (class)|textbf}
+--@ \begin{libverbatim}
+--@ typeclass Connectable #(type a, type b)
+--@   dependencies a -> b, b -> a;
+--@     module mkConnection#(a x1, b x2)(Empty);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Connectable a b where
+    mkConnection :: (IsModule m c) => a -> b -> m Empty
+
+-- @ The special \te{(<->)} operator is defined in terms of \te{connect},
+-- @ and is the preferred way to connect (though it is not yet available in BSV).
+(<->) :: (IsModule m c, Connectable a b) => a -> b -> m Empty
+(<->) a b = mkConnection a b
+
+
+-- @ The mkConnection function is used when the special \te{(<->)} operator
+-- @ is not available.
+-- mkConnection :: (IsModule m c, Connectable a b) => a -> b -> m Empty
+-- mkConnection a b = a <-> b
+
+--@
+--@ If we have two couples of connectable items then the pair is also
+--@ connectable, simply by connecting the individual items.
+--@ \begin{libverbatim}
+--@ instance Connectable #(Tuple2 #(a, c), Tuple2 #(b, d))
+--@   provisos (Connectable#(a, b), Connectable#(c, d));
+--@ \end{libverbatim}
+
+instance (Connectable a b, Connectable c d) => Connectable (a, c) (b, d) where
+    mkConnection :: (IsModule mod cons) => (a, c) -> (b, d) -> mod Empty
+    mkConnection (a, b) (c, d) =
+      do
+        mkConnection a c
+        mkConnection b d
+
+
+--@ Two \te{Vector}s are connectable if the elements are.
+--@ \begin{libverbatim}
+--@ instance Connectable #(Vector#(n, a), Vector#(n, b))
+--@   provisos (Connectable#(a, b));
+--@ \end{libverbatim}
+
+instance (Connectable a b) => Connectable (Vector n a) (Vector n b)
+  where
+    mkConnection :: (IsModule m c) => (Vector n a) -> (Vector n b) -> m Empty
+    mkConnection xs ys = do
+	Vector.zipWithM mkConnection xs ys
+	return $ interface Empty
+
+
+--@ Two \te{ListN}s are connectable if the elements are.
+--@ \begin{libverbatim}
+--@ instance Connectable #(ListN#(n, a), ListN#(n, b))
+--@   provisos (Connectable#(a, b));
+--@ \end{libverbatim}
+
+instance (Connectable a b) => Connectable (ListN n a) (ListN n b)
+  where
+    mkConnection :: (IsModule m c) => (ListN n a) -> (ListN n b) -> m Empty
+    mkConnection xs ys = do
+	ListN.sequence (ListN.zipWith mkConnection xs ys)
+	return $ interface Empty
+
+{-
+instance Connectable#(RWire#(a), RWire#(a));
+   module mkConnection#(RWire#(a) w1, RWire#(a) w2)(Empty);
+      rule connect_rwires_lr (isValid(w1.wget));
+	 w2.wset(validValue(w1.wget));
+      endrule
+      rule connect_rwires_rl (isValid(w2.wget));
+	 w1.wset(validValue(w2.wget));
+      endrule
+   endmodule
+endinstance
+-}
+
+instance Connectable (RWire a) (RWire a)
+   where
+     mkConnection :: (IsModule m c) => (RWire a) -> (RWire a) -> (m Empty)
+     mkConnection w1 w2 =
+	 module
+	     rules
+	      "connect_rwires_lr":
+	         when isValid w1.wget
+		    ==> w2.wset(validValue(w1.wget))
+	      "connect_rwires_rl":
+	         when isValid w2.wget
+		    ==> w1.wset(validValue(w2.wget))
+
+instance Connectable (ActionValue a) (a -> Action)
+  where
+    mkConnection :: (IsModule m c) => (ActionValue a) -> (a -> Action) -> m Empty
+    mkConnection g p =
+      module
+	rules
+         "mkConnectionAVtoAf":
+	    when True
+	     ==> action
+		    x :: a <- g
+		    p x
+
+instance Connectable (a -> Action) (ActionValue a)
+  where
+    mkConnection :: (IsModule m c) =>  (a -> Action) -> (ActionValue a) -> m Empty
+    mkConnection p g = mkConnection g p
+
+-- =====
+
+instance Connectable a (a -> Action)
+  where
+    mkConnection :: (IsModule m c) => a -> (a -> Action) -> m Empty
+    mkConnection x p =
+      module
+	rules
+         "mkConnectionVtoAf":
+	    when True
+	     ==> action
+		    p x
+
+instance Connectable (a -> Action) a
+  where
+    mkConnection :: (IsModule m c) =>  (a -> Action) -> a -> m Empty
+    mkConnection p x = mkConnection x p
+
+-- =====
+
+instance (Bits a sa) => Connectable (Inout a) (Inout a) where
+    mkConnection :: (IsModule m c) => (Inout a) -> (Inout a) -> (m Empty)
+    mkConnection = vInoutConnect;
+
+instance Connectable Action Action
+  where
+    mkConnection :: (IsModule m c) => Action -> Action -> m Empty
+    mkConnection a1 a2 =
+      module
+	rules
+         "mkConnectionAtoA":
+	    when True
+	     ==> action
+		    a1
+		    a2

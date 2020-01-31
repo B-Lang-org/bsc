@@ -1,0 +1,20 @@
+#Author : Steve Allen
+#name : instance Connection#(a,b); mkConnection(a,b)... endinstance
+# --
+////////////////////////////////////////
+// connect from first interface to second interface
+instance Connectable#( ${1:typeA}, ${2:typeB} );
+   module mkConnection#( $1 f, $2 t) (Empty);
+     $0
+   endmodule
+endinstance
+
+// same mkConnection, but just in case you put them backwards
+// NOTE: if both arguments are the same interface, this should be deleted!
+// so there are not two connectables with the same interface connecting to each
+instance Connectable#( $2, $1 );
+   module mkConnection#( $2 t, $1 f) (Empty);
+       mkConnection( f, t );
+   endmodule
+endinstance
+

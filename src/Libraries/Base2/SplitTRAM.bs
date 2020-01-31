@@ -1,0 +1,91 @@
+package SplitTRAM(splitBTRAM, splitTRAM) where
+import GetPut
+import ClientServer
+import TRAM
+
+--@ XXX THIS PACKAGE HAS YET TO BE DOCUMENTED,
+
+-- Split the a TRAM into two, introducing an extra cycle
+-- of latency, but avoiding that a slow reader can stall the
+-- other reader.
+splitBTRAM :: (IsModule m c, Bits tg tgs, Bits tg' tgs', Bits dta dtas) =>
+	      TRAM (Either tg tg') adr dta ->
+	      m (TRAM tg adr dta, TRAM tg' adr dta)
+splitBTRAM tram =
+  module
+    (lget, lput) :: GetPut (tg,  dta) <- mkGetPut
+    (rget, rput) :: GetPut (tg', dta) <- mkGetPut
+    rules
+	 "splitBTRAM":
+	  when True
+	   ==> do
+		r :: TRAMresp (Either tg tg') dta <- tram.response.get
+		case r of
+		 ((Left  t), value) -> lput.put (t,value)
+		 ((Right t), value) -> rput.put (t,value)
+    interface -- Pair
+       (interface Server
+	    request =
+             interface Put
+              put req = tram.request.put (
+			  case req of
+			    Read (tag, address) -> 
+			      Read ((Left tag), address)
+			    Write (address, value) ->
+			      Write (address, value)
+			 )
+	    response = lget
+	,
+	interface Server
+	    request =
+             interface Put
+              put req = tram.request.put (
+			  case req of
+			    Read (tag, address) -> 
+			      Read ((Right tag), address)
+			    Write (address, value) ->
+			      Write (address, value)
+			 )
+	    response = rget
+       )
+
+-- Split a TRAM without any extra latency.
+splitTRAM :: (IsModule m c) => TRAM (Either tg tg') adr dta ->
+	     m (TRAM tg adr dta, TRAM tg' adr dta)
+splitTRAM tram =
+  module
+   interface -- Pair
+      (interface Server
+	    request =
+             interface Put
+              put req = tram.request.put (
+			  case req of
+			    Read (tag, address) -> 
+			      Read ((Left tag), address)
+			    Write (address, value) ->
+			      Write (address, value)
+			 )
+	    response =
+             interface Get
+              get = do
+	                tram.response.get
+			return (t, value)
+	            when ((Left t), value) <- peekGet tram.response
+       ,
+       interface Server
+	    request =
+             interface Put
+              put req = tram.request.put (
+			  case req of
+			    Read (tag, address) -> 
+			      Read ((Right tag),  address)
+			    Write (address, value) ->
+			      Write (address, value)
+			 )
+	    response =
+             interface Get
+              get = do
+			tram.response.get
+			return (t, value)
+	            when ((Right t), value) <- peekGet tram.response
+      )

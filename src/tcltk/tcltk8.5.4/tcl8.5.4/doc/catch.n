@@ -1,0 +1,98 @@
+'\"
+'\" Copyright (c) 1993-1994 The Regents of the University of California.
+'\" Copyright (c) 1994-1996 Sun Microsystems, Inc.
+'\" Contributions from Don Porter, NIST, 2003.  (not subject to US copyright)
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\" 
+'\" RCS: @(#) $Id: catch.n,v 1.18 2007/12/13 15:22:32 dgp Exp $
+'\" 
+.so man.macros
+.TH catch n "8.5" Tcl "Tcl Built-In Commands"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+catch \- Evaluate script and trap exceptional returns
+.SH SYNOPSIS
+\fBcatch\fI script \fR?\fIresultVarName\fR? ?\fIoptionsVarName\fR?
+.BE
+
+.SH DESCRIPTION
+.PP
+The \fBcatch\fR command may be used to prevent errors from aborting command
+interpretation.  The \fBcatch\fR command calls the Tcl interpreter recursively to
+execute \fIscript\fR, and always returns without raising an error,
+regardless of any errors that might occur while executing \fIscript\fR.
+.PP
+If \fIscript\fR raises an error, \fBcatch\fR will return a non-zero integer
+value corresponding to the exceptional return code returned by evaluation
+of \fIscript\fR.  Tcl defines the normal return code from script
+evaluation to be zero (0), or \fBTCL_OK\fR.  Tcl also defines four exceptional
+return codes: 1 (\fBTCL_ERROR\fR), 2 (\fBTCL_RETURN\fR), 3 (\fBTCL_BREAK\fR),
+and 4 (\fBTCL_CONTINUE\fR).  Errors during evaluation of a script are indicated
+by a return code of \fBTCL_ERROR\fR.  The other exceptional return codes are
+returned by the \fBreturn\fR, \fBbreak\fR, and \fBcontinue\fR commands
+and in other special situations as documented.  Tcl packages can define
+new commands that return other integer values as return codes as well,
+and scripts that make use of the \fBreturn -code\fR command can also
+have return codes other than the five defined by Tcl.
+.PP
+If the \fIresultVarName\fR argument is given, then the variable it names is
+set to the result of the script evaluation.  When the return code from
+the script is 1 (\fBTCL_ERROR\fR), the value stored in \fIresultVarName\fR is an error
+message.  When the return code from the script is 0 (\fBTCL_OK\fR), the value
+stored in \fIresultVarName\fR is the value returned from \fIscript\fR.
+.PP
+.VS 8.5
+If the \fIoptionsVarName\fR argument is given, then the variable it
+names is set to a dictionary of return options returned by evaluation
+of \fIscript\fR.  Tcl specifies two entries that are always 
+defined in the dictionary: \fB\-code\fR and \fB\-level\fR.  When
+the return code from evaluation of \fIscript\fR is not \fBTCL_RETURN\fR,
+the value of the \fB\-level\fR entry will be 0, and the value
+of the \fB\-code\fR entry will be the same as the return code.
+Only when the return code is \fBTCL_RETURN\fR will the values of
+the \fB\-level\fR and \fB\-code\fR entries be something else, as
+further described in the documentation for the \fBreturn\fR command.
+.PP
+When the return code from evaluation of \fIscript\fR is \fBTCL_ERROR\fR,
+three additional entries are defined in the dictionary of return options
+stored in \fIoptionsVarName\fR: \fB\-errorinfo\fR, \fB\-errorcode\fR, 
+and \fB\-errorline\fR.  The value of the \fB\-errorinfo\fR entry
+is a formatted stack trace containing more information about
+the context in which the error happened.  The formatted stack
+trace is meant to be read by a person.  The value of
+the \fB\-errorcode\fR entry is additional information about the
+error stored as a list.  The \fB\-errorcode\fR value is meant to
+be further processed by programs, and may not be particularly
+readable by people.  The value of the \fB\-errorline\fR entry
+is an integer indicating which line of \fIscript\fR was being
+evaluated when the error occurred.  The values of the \fB\-errorinfo\fR
+and \fB\-errorcode\fR entries of the most recent error are also
+available as values of the global variables \fB::errorInfo\fR
+and \fB::errorCode\fR respectively.
+.PP
+Tcl packages may provide commands that set other entries in the
+dictionary of return options, and the \fBreturn\fR command may be
+used by scripts to set return options in addition to those defined
+above.
+.VE 8.5
+.SH EXAMPLES
+The \fBcatch\fR command may be used in an \fBif\fR to branch based on
+the success of a script.
+.CS
+if { [\fBcatch\fR {open $someFile w} fid] } {
+    puts stderr "Could not open $someFile for writing\en$fid"
+    exit 1
+}
+.CE
+.PP
+There are more complex examples of \fBcatch\fR usage in the
+documentation for the \fBreturn\fR command.
+
+.SH "SEE ALSO" 
+break(n), continue(n), dict(n), error(n), return(n), tclvars(n)
+
+.SH KEYWORDS
+catch, error

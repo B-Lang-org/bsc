@@ -1,0 +1,313 @@
+package FIFOF (FIFOF(..), mkFIFOF, mkFIFOF1, mkSizedFIFOF, mkLFIFOF,
+	       mkLSizedFIFOF, mkUGFIFOF, mkUGFIFOF1, mkUGSizedFIFOF,
+               mkUGLFIFOF, mkUGLSizedFIFOF, mkGFIFOF, mkGFIFOF1,
+               mkGSizedFIFOF, mkGLFIFOF, mkGLSizedFIFOF,
+               mkDepthParamFIFOF, mkUGDepthParamFIFOF, mkGDepthParamFIFOF,
+               mkDepthParamLFIFOF, mkUGDepthParamLFIFOF, mkGDepthParamLFIFOF
+             ) where
+
+import FIFOF_
+
+--@ \subsubsection{FIFOF}
+--@ 
+--@ \index{FIFOF@\te{FIFOF} (package)|textbf}
+--@ The \te{FIFOF} interface is for FIFOs with explicit full and empty
+--@ signals. The standard version of FIFOF has FIFOs with the enq, 
+--@ deq and first methods guarded by the appropriate (notFull or notEmpty)
+--@ implicit condition for safety and improved scheduling. Unguarded (UG) 
+--@ versions of FIFOF are available for the rare cases when implicit conditions are
+--@ not desired.
+--@ \index{FIFOF@\te{FIFOF} (type)|textbf}
+--@ \begin{libverbatim}
+--@ interface FIFOF #(type a);
+--@     method Action enq(a x1);
+--@     method Action deq();
+--@     method a first();
+--@     method Bool notFull();
+--@     method Bool notEmpty();
+--@     method Action clear();
+--@ endinterface: FIFOF
+--@ \end{libverbatim}
+interface FIFOF a =
+    enq      :: a -> Action
+    deq      :: Action
+    first    :: a
+    notFull  :: Bool
+    notEmpty :: Bool
+    clear    :: Action
+
+instance (FShow a) => FShow (FIFOF a)
+  where
+    fshow ifc =
+        case (ifc.notEmpty, ifc.notFull) of
+          ( True,  True) -> fshow ifc.first;
+          ( True, False) -> (fshow ifc.first) + (fshow " ") + (fshow "FULL")
+	  (False,     _) -> $format "EMPTY"
+
+fifof_ToFifof :: FIFOF_ a -> FIFOF a
+fifof_ToFifof f =
+    interface FIFOF
+	enq x    = f.enq x		when f.i_notFull
+	deq      = f.deq		when f.i_notEmpty
+	first    = f.first		when f.i_notEmpty
+	clear    = f.clear
+        notFull  = f.notFull
+        notEmpty = f.notEmpty
+
+
+fifof_ToUGFifof :: FIFOF_ a -> FIFOF a
+fifof_ToUGFifof f =
+    interface FIFOF
+	enq x    = f.enq x		
+	deq      = f.deq		
+	first    = f.first		
+	clear    = f.clear
+        notFull  = f.i_notFull
+        notEmpty = f.i_notEmpty
+
+fifof_ToGFifof :: Bool -> Bool -> FIFOF_ a -> FIFOF a
+fifof_ToGFifof ugenq ugdeq f =
+    interface FIFOF
+	enq x    = f.enq x		when ugenq || f.i_notFull	
+	deq      = f.deq		when ugdeq || f.i_notEmpty
+	first    = f.first		when ugdeq || f.i_notEmpty
+	clear    = f.clear
+        notFull  = f.i_notFull
+        notEmpty = f.i_notEmpty
+
+
+--@ Make a FIFO of the default depth (currently 2).
+--@ Note: when the FIFO is full it does {\em not} allow simultaneous enqueue
+--@ and dequeue operations.
+--@ \index{mkFIFOF@\te{mkFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkFIFOF = do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkFIFOF_ 1
+    return (fifof_ToFifof _f)
+
+--@ Make a FIFO of depth 1.
+--@ Note: when the FIFO is full it does {\em not} allow simultaneous enqueue
+--@ and dequeue operations (nor, of course, when it is empty).
+--@ \index{mkFIFOF1@\te{mkFIFOF1} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkFIFOF1(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkFIFOF1 :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkFIFOF1 =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkFIFOF1_ 1
+    return (fifof_ToFifof _f)
+
+--@ Make a FIFO of the given depth
+--@ Note: when the FIFO is full it does {\em not} allow simultaneous enqueue
+--@ and dequeue operations.  The FIFO depth argument should be $> 0$.
+--@ \index{mkSizedFIFOF@\te{mkSizedFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkSizedFIFOF#(Integer n)(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
+mkSizedFIFOF 0 = error "mkSizedFifo called with depth 0!"
+mkSizedFIFOF n =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+    return (fifof_ToFifof _f)
+
+--@ Make a ``loopy'' FIFO of the default depth (currently 1).
+--@ Note: With this FIFO, dequeue and enqueue can be simultaneously
+--@ applied in the same clock cycle when the FIFO is full.
+--@ (This is because of the feedthrough from the \te{deq} enable signal to the
+--@ \te{enq} ready signal.)
+--@ The dequeue operation makes room for the enqueue.
+--@ As a result, deq sequences before enq.
+--@ \index{mkLFIFOF@\te{mkLFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkLFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkLFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkLFIFOF =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLFIFOF_
+    return (fifof_ToFifof _f)
+
+--@ Make a ``loopy'' FIFO of the given depth
+--@ Note: With this FIFO, dequeue and enqueue can be simultaneously
+--@ applied in the same clock cycle when the FIFO is full.
+--@ (This is because of the feedthrough from the \te{deq} enable signal to the
+--@ \te{enq} ready signal.)
+--@ The dequeue operation makes room for the enqueue.
+--@ As a result, deq sequences before enq.
+--@ \index{mkLSizedFIFOF@\te{mkLSizedFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkLSizedFIFOF#(Integer n)(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkLSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
+mkLSizedFIFOF 0 = error "mkLSizedFIFOF called with depth 0!"
+mkLSizedFIFOF n =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLSizedFIFOF_ n
+    return (fifof_ToFifof _f)
+
+--@ Make an ``Un-Guarded'' fifo of default size 2.  During rule and
+--@ method processing the implicit conditions for correct fifo operation
+--@ are NOT considered.  That is, with an unguared fifo, it is
+--@ possible to enqueue when full, and to dequeue when empty.   Three
+--@ variations are given which parallel the modules above.
+
+--@ \index{mkUGFIFOF@\te{mkUGFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+
+mkGFIFOF :: (IsModule m c, Bits a as) => Bool -> Bool -> m (FIFOF a)
+mkGFIFOF ugenq ugdeq = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkFIFOF_ 1
+  return (fifof_ToGFifof  ugenq ugdeq _f)
+
+--@ \index{mkUGFIFOF1@\te{mkUGFIFOF1} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGFIFOF1(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkGFIFOF1 :: (IsModule m c, Bits a as) =>  Bool -> Bool ->  m (FIFOF a)
+mkGFIFOF1  ugenq ugdeq = do
+  _f :: FIFOF_ a <- mkFIFOF1_ 1
+  return (fifof_ToGFifof  ugenq ugdeq _f)
+
+--@ \index{mkUGSizedFIFOF@\te{mkUGSizdeFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGSizeFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkGSizedFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> Integer -> m (FIFOF a)
+mkGSizedFIFOF  ugenq ugdeq n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+  return (fifof_ToGFifof  ugenq ugdeq _f)
+
+--@ \index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGLFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkGLFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> m (FIFOF a)
+mkGLFIFOF  ugenq ugdeq = do 
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLFIFOF_
+    return (fifof_ToGFifof  ugenq ugdeq _f)
+
+--@ \index{mkGLSizedFIFOF@\te{mkGLSizedFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkGLSizedFIFOF#(Integer n)(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkGLSizedFIFOF :: (IsModule m c, Bits a as) => Bool -> Bool -> Integer -> m (FIFOF a)
+mkGLSizedFIFOF _ _ 0 = error "mkGLSizedFIFOF called with depth 0!"
+mkGLSizedFIFOF ugenq ugdeq n =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLSizedFIFOF_ n
+    return (fifof_ToGFifof ugenq ugdeq _f)
+
+--@ \index{mkUGFIFOF@\te{mkUGFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+
+mkUGFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkUGFIFOF = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkFIFOF_ 0
+  return (fifof_ToUGFifof _f)
+
+--@ \index{mkUGFIFOF1@\te{mkUGFIFOF1} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGFIFOF1(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkUGFIFOF1 :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkUGFIFOF1 = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkFIFOF1_ 0
+  return (fifof_ToUGFifof _f)
+
+--@ \index{mkUGSizedFIFOF@\te{mkUGSizdeFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGSizeFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkUGSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
+mkUGSizedFIFOF n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkSizedFIFOF_ n 0 
+  return (fifof_ToUGFifof _f)
+
+--@ \index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGLFIFOF(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkUGLFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
+mkUGLFIFOF = do 
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLFIFOF_
+    return (fifof_ToUGFifof _f)
+
+--@ \index{mkUGLSizedFIFOF@\te{mkUGLSizedFIFOF} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkUGLSizedFIFOF#(Integer n)(FIFOF#(a))
+--@   provisos (Bits#(a, as));
+--@ \end{libverbatim}
+mkUGLSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
+mkUGLSizedFIFOF 0 = error "mkUGLSizedFIFOF called with depth 0!"
+mkUGLSizedFIFOF n =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkLSizedFIFOF_ n
+    return (fifof_ToUGFifof _f)
+
+mkDepthParamFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
+mkDepthParamFIFOF n =  do
+    {-# hide #-}
+    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+    return (fifof_ToFifof _f)
+
+mkUGDepthParamFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
+mkUGDepthParamFIFOF n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 0 
+  return (fifof_ToUGFifof _f)
+
+mkGDepthParamFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> UInt 32 -> m (FIFOF a)
+mkGDepthParamFIFOF  ugenq ugdeq n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+  return (fifof_ToGFifof  ugenq ugdeq _f)
+
+
+mkDepthParamLFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
+mkDepthParamLFIFOF n =  do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkDepthParamLFIFOF_ n
+  return (fifof_ToFifof _f)
+
+mkUGDepthParamLFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
+mkUGDepthParamLFIFOF n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkDepthParamLFIFOF_ n
+  return (fifof_ToUGFifof _f)
+
+mkGDepthParamLFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> UInt 32 -> m (FIFOF a)
+mkGDepthParamLFIFOF  ugenq ugdeq n = do
+  {-# hide #-}
+  _f :: FIFOF_ a <- mkDepthParamLFIFOF_ n
+  return (fifof_ToGFifof  ugenq ugdeq _f)

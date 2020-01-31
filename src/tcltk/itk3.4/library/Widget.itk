@@ -1,0 +1,81 @@
+#
+# itk::Widget
+# ----------------------------------------------------------------------
+# Base class for ordinary widgets in the [incr Tk] Toolkit.  Creates
+# a frame to contain the widget.  Derived classes add widgets and
+# methods to specialize behavior.
+#
+#   METHODS:
+#
+#   WIDGET ATTRIBUTES:
+#     switch:  -background .... normal background color for widget
+#       name:  background
+#      class:  Background
+#
+#     switch:  -cursor ........ cursor used when pointer is inside
+#       name:  cursur           widget
+#      class:  Cursur
+#
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: Widget.itk,v 1.3 2007/05/24 23:27:05 hobbs Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+itcl::class itk::Widget {
+    inherit itk::Archetype
+
+    # ------------------------------------------------------------------
+    #  CONSTRUCTOR
+    # ------------------------------------------------------------------
+    constructor {args} {
+        #
+        #  Create a window with the same name as this object
+        #
+        set itk_hull [namespace tail $this]
+        set itk_interior $itk_hull
+
+        itk_component add hull {
+            frame $itk_hull -class [namespace tail [info class]]
+        } {
+            keep -background -cursor
+        }
+        bind itk-delete-$itk_hull <Destroy> [list itcl::delete object $this]
+
+        set tags [bindtags $itk_hull]
+        bindtags $itk_hull [linsert $tags 0 itk-delete-$itk_hull]
+
+        eval itk_initialize $args
+    }
+
+    destructor {
+        if {[winfo exists $itk_hull]} {
+            set tags [bindtags $itk_hull]
+            set i [lsearch $tags itk-delete-$itk_hull]
+            if {$i >= 0} {
+                bindtags $itk_hull [lreplace $tags $i $i]
+            }
+            destroy $itk_hull
+        }
+        itk_component delete hull
+
+        set components [component]
+        foreach component $components {
+            set path($component) [component $component]
+        }
+        foreach component $components {
+            if {[winfo exists $path($component)]} {
+                destroy $path($component)
+            }
+        }
+    }
+
+    private variable itk_hull ""
+}

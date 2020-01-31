@@ -1,0 +1,19 @@
+
+PWD = @(shell pwd)
+LIBDIR ?= $(PWD)/../../lib/itk3.4
+
+
+
+FILES = Archetype.itk \
+	Toplevel.itk \
+	Widget.itk   \
+	itk.tcl \
+	tclIndex \
+
+
+all:
+	@echo "Nothing to be done for all"
+
+install:
+	install -m 755 -d $(LIBDIR)	
+	install -m 644 $(FILES) $(LIBDIR)

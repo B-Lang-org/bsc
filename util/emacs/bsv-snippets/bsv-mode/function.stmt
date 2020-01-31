@@ -1,0 +1,10 @@
+#Author : Steve Allen
+#name : function Stmt/FSM {...}
+# --
+function Stmt ${1:name} ( ${2:args} );
+    return seq
+              // add sequence steps
+              $0
+           endseq;
+endfunction : $1
+

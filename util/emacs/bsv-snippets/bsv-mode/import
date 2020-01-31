@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : import name :: *;
+# --
+import ${1:name} :: *;

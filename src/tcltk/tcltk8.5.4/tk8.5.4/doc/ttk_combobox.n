@@ -1,0 +1,107 @@
+'\"
+'\" Copyright (c) 2004 Joe English
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\" 
+'\" RCS: @(#) $Id: ttk_combobox.n,v 1.15.2.1 2008/05/11 00:31:01 patthoyts Exp $
+'\"
+.so man.macros
+.TH ttk::combobox n 8.5 Tk "Tk Themed Widget"
+.BS
+.SH NAME
+ttk::combobox \- text field with popdown selection list
+.SH SYNOPSIS
+\fBttk::combobox\fR \fIpathName \fR?\fIoptions\fR?
+.BE
+.SH DESCRIPTION
+A \fBttk::combobox\fR combines a text field with a pop-down list of values;
+the user may select the value of the text field from among the 
+values in the list.
+.SO ttk_widget
+\-class	\-cursor	\-takefocus
+\-style
+.SE
+.\" ALSO: Other entry widget options
+.SH "WIDGET-SPECIFIC OPTIONS"
+.OP \-exportselection exportSelection ExportSelection
+Boolean value.
+If set, the widget selection is linked to the X selection.
+.OP \-justify justify Justify
+Specifies how the text is aligned within the widget.
+One of \fBleft\fR, \fBcenter\fR, or \fBright\fR.
+.OP \-height height Height
+Specifies the height of the pop-down listbox, in rows.
+.OP \-postcommand postCommand PostCommand
+A Tcl script to evaluate immediately before displaying the listbox.
+The \fB\-postcommand\fR script may specify the \fB\-values\fR to display.
+.OP \-state state State
+One of \fBnormal\fR, \fBreadonly\fR, or \fBdisabled\fR.
+In the \fBreadonly\fR state,
+the value may not be edited directly, and 
+the user can only select one of the \fB\-values\fR from the
+dropdown list.
+In the \fBnormal\fR state, 
+the text field is directly editable.
+In the \fBdisabled\fR state, no interaction is possible.
+.OP \-textvariable textVariable TextVariable
+Specifies the name of a variable whose value is linked 
+to the widget value.
+Whenever the variable changes value the widget value is updated,
+and vice versa.
+.OP \-values values Values
+Specifies the list of values to display in the drop-down listbox.
+.OP \-width width Width
+Specifies an integer value indicating the desired width of the entry window,
+in average-size characters of the widget's font.
+.SH "WIDGET COMMAND"
+.TP
+\fIpathName \fBcget\fR \fIoption\fR
+Returns the current value of the specified \fIoption\fR.
+See \fIttk::widget(n)\fR.
+.TP
+\fIpathName \fBconfigure\fR ?\fIoption\fR? ?\fIvalue option value ...\fR?
+Modify or query widget options.
+See \fIttk::widget(n)\fR.
+.TP
+\fIpathName \fBcurrent\fR ?\fInewIndex\fR?
+If \fInewIndex\fR is supplied, sets the combobox value 
+to the element at position \fInewIndex\fR in the list of \fB\-values\fR.
+Otherwise, returns the index of the current value in the list of
+\fB\-values\fR or \fB\-1\fR if the current value does not appear in the list.
+.TP
+\fIpathName \fBget\fR
+Returns the current value of the combobox.
+.TP
+\fIpathName \fBidentify \fIx y\fR
+Returns the name of the element at position \fIx\fR, \fIy\fR.
+See \fIttk::widget(n)\fR.
+.TP
+\fIpathName \fBinstate \fIstateSpec\fR ?\fIscript\fR?
+Test the widget state.
+See \fIttk::widget(n)\fR.
+.TP
+\fIpathName \fBset\fR \fIvalue\fR
+Sets the value of the combobox to \fIvalue\fR.
+.TP
+\fIpathName \fBstate\fR ?\fIstateSpec\fR?
+Modify or query the widget state.
+See \fIttk::widget(n)\fR.
+.PP
+The combobox widget also supports the following \fIttk::entry\fR
+widget commands (see \fIttk::entry(n)\fR for details):
+.DS
+.ta 5.5c 11c
+\fBbbox\fR	\fBdelete\fR	\fBicursor\fR
+\fBindex\fR	\fBinsert\fR	\fBselection\fR
+\fBxview\fR
+.DE
+.SH "VIRTUAL EVENTS"
+The combobox widget generates a \fB<<ComboboxSelected>>\fR virtual event
+when the user selects an element from the list of values.
+If the selection action unposts the listbox,
+this event is delivered after the listbox is unposted.
+.SH "SEE ALSO"
+ttk::widget(n), ttk::entry(n)
+.SH KEYWORDS
+choice, entry, list box, text box, widget

@@ -1,0 +1,1189 @@
+# This test file covers the dictionary object type and the dict
+# command used to work with values of that type.
+#
+# This file contains a collection of tests for one or more of the Tcl
+# built-in commands. Sourcing this file into Tcl runs the tests and
+# generates output for errors.  No output means no errors were found.
+#
+# Copyright (c) 2003 Donal K. Fellows
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# RCS: @(#) $Id: dict.test,v 1.24.2.1 2008/05/07 10:39:40 dkf Exp $
+
+if {[lsearch [namespace children] ::tcltest] == -1} {
+    package require tcltest 2
+    namespace import -force ::tcltest::*
+}
+
+# Used for constraining memory leak tests
+testConstraint memory [llength [info commands memory]]
+
+# Procedure to help check the contents of a dictionary.  Note that we
+# can't just compare the string version because the order of the
+# elements is (deliberately) not defined.  This is because it is
+# dependent on the underlying hash table implementation and also
+# potentially on the history of the value itself.  Net result: you
+# cannot safely assume anything about the ordering of values.
+proc getOrder {dictVal args} {
+    foreach key $args {
+	lappend result $key [dict get $dictVal $key]
+    }
+    lappend result [dict size $dictVal]
+    return $result
+}
+
+test dict-1.1 {dict command basic syntax} {
+    list [catch {dict} msg] $msg
+} {1 {wrong # args: should be "dict subcommand ?argument ...?"}}
+test dict-1.2 {dict command basic syntax} {
+    list [catch {dict ?} msg] $msg
+} {1 {unknown or ambiguous subcommand "?": must be append, create, exists, filter, for, get, incr, info, keys, lappend, merge, remove, replace, set, size, unset, update, values, or with}}
+
+test dict-2.1 {dict create command} {
+    dict create
+} {}
+test dict-2.2 {dict create command} {
+    dict create a b
+} {a b}
+test dict-2.3 {dict create command} {
+    set result {}
+    set dict [dict create a b c d]
+    # Can't compare directly as ordering of values is undefined
+    foreach key {a c} {
+	set idx [lsearch -exact $dict $key]
+	if {$idx & 1} {
+	    error "found $key at odd index $idx in $dict"
+	}
+	lappend result [lindex $dict [expr {$idx+1}]]
+    }
+    set result
+} {b d}
+test dict-2.4 {dict create command} {
+    list [catch {dict create a} msg] $msg
+} {1 {wrong # args: should be "dict create ?key value ...?"}}
+test dict-2.5 {dict create command} {
+    list [catch {dict create a b c} msg] $msg
+} {1 {wrong # args: should be "dict create ?key value ...?"}}
+test dict-2.6 {dict create command - initialse refcount field!} {
+    # Bug 715751 will show up in memory debuggers like purify
+    for {set i 0} {$i<10} {incr i} {
+	set dictv [dict create a 0]
+	set share [dict values $dictv]
+	list [dict incr dictv a]
+    }
+} {}
+test dict-2.7 {dict create command - #-quoting in string rep} {
+    dict create # #comment
+} {{#} #comment}
+test dict-2.8 {dict create command - #-quoting in string rep} -body {
+    dict create #a x #b x
+} -match glob -result {{#?} x #? x}
+
+test dict-3.1 {dict get command} {dict get {a b} a} b
+test dict-3.2 {dict get command} {dict get {a b c d} a} b
+test dict-3.3 {dict get command} {dict get {a b c d} c} d
+test dict-3.4 {dict get command} {
+    list [catch {dict get {a b c d} b} msg] $msg
+} {1 {key "b" not known in dictionary}}
+test dict-3.5 {dict get command} {dict get {a {p q r s} b {u v x y}} a p} q
+test dict-3.6 {dict get command} {dict get {a {p q r s} b {u v x y}} a r} s
+test dict-3.7 {dict get command} {dict get {a {p q r s} b {u v x y}} b u} v
+test dict-3.8 {dict get command} {dict get {a {p q r s} b {u v x y}} b x} y
+test dict-3.9 {dict get command} {
+    list [catch {dict get {a {p q r s} b {u v x y}} a z} msg] $msg
+} {1 {key "z" not known in dictionary}}
+test dict-3.10 {dict get command} {
+    list [catch {dict get {a {p q r s} b {u v x y}} c z} msg] $msg
+} {1 {key "c" not known in dictionary}}
+test dict-3.11 {dict get command} {dict get [dict create a b c d] a} b
+test dict-3.12 {dict get command} {
+    list [catch {dict get} msg] $msg
+} {1 {wrong # args: should be "dict get dictionary ?key key ...?"}}
+test dict-3.13 {dict get command} {
+    set dict [dict get {a b c d}]
+    if {$dict eq "a b c d"} {
+	subst OK
+    } elseif {$dict eq "c d a b"} {
+	subst OK
+    } else {
+	set dict
+    }
+} OK
+test dict-3.14 {dict get command} {
+    list [catch {dict get {a b c d} a c} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-4.1 {dict replace command} {
+    getOrder [dict replace {a b c d}] a c
+} {a b c d 2}
+test dict-4.2 {dict replace command} {
+    getOrder [dict replace {a b c d} e f] a c e
+} {a b c d e f 3}
+test dict-4.3 {dict replace command} {
+    getOrder [dict replace {a b c d} c f] a c
+} {a b c f 2}
+test dict-4.4 {dict replace command} {
+    getOrder [dict replace {a b c d} c x a y] a c
+} {a y c x 2}
+test dict-4.5 {dict replace command} {
+    list [catch {dict replace} msg] $msg
+} {1 {wrong # args: should be "dict replace dictionary ?key value ...?"}}
+test dict-4.6 {dict replace command} {
+    list [catch {dict replace {a a} a} msg] $msg
+} {1 {wrong # args: should be "dict replace dictionary ?key value ...?"}}
+test dict-4.7 {dict replace command} {
+    list [catch {dict replace {a a a} a b} msg] $msg
+} {1 {missing value to go with key}}
+test dict-4.8 {dict replace command} {
+    list [catch {dict replace [list a a a] a b} msg] $msg
+} {1 {missing value to go with key}}
+test dict-4.9 {dict replace command} {dict replace [list a a] a b} {a b}
+test dict-4.10 {dict replace command} {dict replace [list a a] a b a c} {a c}
+
+test dict-5.1 {dict remove command} {dict remove {a b c d} a} {c d}
+test dict-5.2 {dict remove command} {dict remove {a b c d} c} {a b}
+test dict-5.3 {dict remove command} {dict remove {a b c d} a c} {}
+test dict-5.4 {dict remove command} {dict remove {a b c d} c a} {}
+test dict-5.5 {dict remove command} {
+    getOrder [dict remove {a b c d}] a c
+} {a b c d 2}
+test dict-5.6 {dict remove command} {dict remove {a b} c} {a b}
+test dict-5.7 {dict remove command} {
+    list [catch {dict remove} msg] $msg
+} {1 {wrong # args: should be "dict remove dictionary ?key ...?"}}
+
+test dict-6.1 {dict keys command} {dict keys {a b}} a
+test dict-6.2 {dict keys command} {dict keys {c d}} c
+test dict-6.3 {dict keys command} {lsort [dict keys {a b c d}]} {a c}
+test dict-6.4 {dict keys command} {dict keys {a b c d} a} a
+test dict-6.5 {dict keys command} {dict keys {a b c d} c} c
+test dict-6.6 {dict keys command} {dict keys {a b c d} e} {}
+test dict-6.7 {dict keys command} {lsort [dict keys {a b c d ca da} c*]} {c ca}
+test dict-6.8 {dict keys command} {
+    list [catch {dict keys} msg] $msg
+} {1 {wrong # args: should be "dict keys dictionary ?pattern?"}}
+test dict-6.9 {dict keys command} {
+    list [catch {dict keys {} a b} msg] $msg
+} {1 {wrong # args: should be "dict keys dictionary ?pattern?"}}
+test dict-6.10 {dict keys command} {
+    list [catch {dict keys a} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-7.1 {dict values command} {dict values {a b}} b
+test dict-7.2 {dict values command} {dict values {c d}} d
+test dict-7.3 {dict values command} {lsort [dict values {a b c d}]} {b d}
+test dict-7.4 {dict values command} {dict values {a b c d} b} b
+test dict-7.5 {dict values command} {dict values {a b c d} d} d
+test dict-7.6 {dict values command} {dict values {a b c d} e} {}
+test dict-7.7 {dict values command} {lsort [dict values {a b c d ca da} d*]} {d da}
+test dict-7.8 {dict values command} {
+    list [catch {dict values} msg] $msg
+} {1 {wrong # args: should be "dict values dictionary ?pattern?"}}
+test dict-7.9 {dict values command} {
+    list [catch {dict values {} a b} msg] $msg
+} {1 {wrong # args: should be "dict values dictionary ?pattern?"}}
+test dict-7.10 {dict values command} {
+    list [catch {dict values a} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-8.1 {dict size command} {dict size {}} 0
+test dict-8.2 {dict size command} {dict size {a b}} 1
+test dict-8.3 {dict size command} {dict size {a b c d}} 2
+test dict-8.4 {dict size command} {
+    list [catch {dict size} msg] $msg
+} {1 {wrong # args: should be "dict size dictionary"}}
+test dict-8.5 {dict size command} {
+    list [catch {dict size a b} msg] $msg
+} {1 {wrong # args: should be "dict size dictionary"}}
+test dict-8.6 {dict size command} {
+    list [catch {dict size a} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-9.1 {dict exists command} {dict exists {a b} a} 1
+test dict-9.2 {dict exists command} {dict exists {a b} b} 0
+test dict-9.3 {dict exists command} {dict exists {a {b c}} a b} 1
+test dict-9.4 {dict exists command} {dict exists {a {b c}} a c} 0
+test dict-9.5 {dict exists command} {dict exists {a {b c}} b c} 0
+test dict-9.6 {dict exists command} {
+    list [catch {dict exists {a {b c d}} a c} msg] $msg
+} {1 {missing value to go with key}}
+test dict-9.7 {dict exists command} {
+    list [catch {dict exists} msg] $msg
+} {1 {wrong # args: should be "dict exists dictionary key ?key ...?"}}
+test dict-9.8 {dict exists command} {
+    list [catch {dict exists {}} msg] $msg
+} {1 {wrong # args: should be "dict exists dictionary key ?key ...?"}}
+
+test dict-10.1 {dict info command} {
+    # Actual string returned by this command is undefined; it is
+    # intended for human consumption and not for use by scripts.
+    dict info {}
+    subst {}
+} {}
+test dict-10.2 {dict info command} {
+    list [catch {dict info} msg] $msg
+} {1 {wrong # args: should be "dict info dictionary"}}
+test dict-10.3 {dict info command} {
+    list [catch {dict info {} x} msg] $msg
+} {1 {wrong # args: should be "dict info dictionary"}}
+test dict-10.4 {dict info command} {
+    list [catch {dict info x} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-11.1 {dict incr command: unshared value} {
+    set dictv [dict create \
+	    a [string index "=0=" 1] \
+	    b [expr {1+2}] \
+	    c [expr {wide(0x80000000)+1}]]
+    getOrder [dict incr dictv a] a b c
+} {a 1 b 3 c 2147483649 3}
+test dict-11.2 {dict incr command: unshared value} {
+    set dictv [dict create \
+	    a [string index "=0=" 1] \
+	    b [expr {1+2}] \
+	    c [expr {wide(0x80000000)+1}]]
+    getOrder [dict incr dictv b] a b c
+} {a 0 b 4 c 2147483649 3}
+test dict-11.3 {dict incr command: unshared value} {
+    set dictv [dict create \
+	    a [string index "=0=" 1] \
+	    b [expr {1+2}] \
+	    c [expr {wide(0x80000000)+1}]]
+    getOrder [dict incr dictv c] a b c
+} {a 0 b 3 c 2147483650 3}
+test dict-11.4 {dict incr command: shared value} {
+    set dictv [dict create a 0 b [expr {1+2}] c [expr {wide(0x80000000)+1}]]
+    set sharing [dict values $dictv]
+    getOrder [dict incr dictv a] a b c
+} {a 1 b 3 c 2147483649 3}
+test dict-11.5 {dict incr command: shared value} {
+    set dictv [dict create a 0 b [expr {1+2}] c [expr {wide(0x80000000)+1}]]
+    set sharing [dict values $dictv]
+    getOrder [dict incr dictv b] a b c
+} {a 0 b 4 c 2147483649 3}
+test dict-11.6 {dict incr command: shared value} {
+    set dictv [dict create a 0 b [expr {1+2}] c [expr {wide(0x80000000)+1}]]
+    set sharing [dict values $dictv]
+    getOrder [dict incr dictv c] a b c
+} {a 0 b 3 c 2147483650 3}
+test dict-11.7 {dict incr command: unknown values} {
+    set dictv [dict create a 0 b [expr {1+2}] c [expr {wide(0x80000000)+1}]]
+    getOrder [dict incr dictv d] a b c d
+} {a 0 b 3 c 2147483649 d 1 4}
+test dict-11.8 {dict incr command} {
+    set dictv {a 1}
+    dict incr dictv a 2
+} {a 3}
+test dict-11.9 {dict incr command} {
+    set dictv {a dummy}
+    list [catch {dict incr dictv a} msg] $msg
+} {1 {expected integer but got "dummy"}}
+test dict-11.10 {dict incr command} {
+    set dictv {a 1}
+    list [catch {dict incr dictv a dummy} msg] $msg
+} {1 {expected integer but got "dummy"}}
+test dict-11.11 {dict incr command} {
+    catch {unset dictv}
+    dict incr dictv a
+} {a 1}
+test dict-11.12 {dict incr command} {
+    set dictv a
+    list [catch {dict incr dictv a} msg] $msg
+} {1 {missing value to go with key}}
+test dict-11.13 {dict incr command} {
+    set dictv a
+    list [catch {dict incr dictv a a a} msg] $msg
+} {1 {wrong # args: should be "dict incr varName key ?increment?"}}
+test dict-11.14 {dict incr command} {
+    set dictv a
+    list [catch {dict incr dictv} msg] $msg
+} {1 {wrong # args: should be "dict incr varName key ?increment?"}}
+test dict-11.15 {dict incr command: write failure} {
+    catch {unset dictVar}
+    set dictVar(block) {}
+    set result [list [catch {dict incr dictVar a} msg] $msg]
+    catch {unset dictVar}
+    set result
+} {1 {can't set "dictVar": variable is array}}
+test dict-11.16 {dict incr command: compilation} {
+    proc dicttest {} {
+	set v {a 0 b 0 c 0}
+	dict incr v a
+	dict incr v b 1
+	dict incr v c 2
+	dict incr v d 3
+	list [dict get $v a] [dict get $v b] [dict get $v c] [dict get $v d]
+    }
+    dicttest
+} {1 1 2 3}
+test dict-11.17 {dict incr command: compilation} {
+    proc dicttest {} {
+	set dictv {a 1}
+	dict incr dictv a 2
+    }
+    dicttest
+} {a 3}
+
+test dict-12.1 {dict lappend command} {
+    set dictv {a a}
+    dict lappend dictv a
+} {a a}
+test dict-12.2 {dict lappend command} {
+    set dictv {a a}
+    set sharing [dict values $dictv]
+    dict lappend dictv a b
+} {a {a b}}
+test dict-12.3 {dict lappend command} {
+    set dictv {a a}
+    dict lappend dictv a b c
+} {a {a b c}}
+test dict-12.2.1 {dict lappend command} {
+    set dictv [dict create a [string index =a= 1]]
+    dict lappend dictv a b
+} {a {a b}}
+test dict-12.4 {dict lappend command} {
+    set dictv {}
+    dict lappend dictv a x y z
+} {a {x y z}}
+test dict-12.5 {dict lappend command} {
+    catch {unset dictv}
+    dict lappend dictv a b
+} {a b}
+test dict-12.6 {dict lappend command} {
+    set dictv a
+    list [catch {dict lappend dictv a a} msg] $msg
+} {1 {missing value to go with key}}
+test dict-12.7 {dict lappend command} {
+    list [catch {dict lappend} msg] $msg
+} {1 {wrong # args: should be "dict lappend varName key ?value ...?"}}
+test dict-12.8 {dict lappend command} {
+    list [catch {dict lappend dictv} msg] $msg
+} {1 {wrong # args: should be "dict lappend varName key ?value ...?"}}
+test dict-12.9 {dict lappend command} {
+    set dictv [dict create a "\{"]
+    list [catch {dict lappend dictv a a} msg] $msg
+} {1 {unmatched open brace in list}}
+test dict-12.10 {dict lappend command: write failure} {
+    catch {unset dictVar}
+    set dictVar(block) {}
+    set result [list [catch {dict lappend dictVar a x} msg] $msg]
+    catch {unset dictVar}
+    set result
+} {1 {can't set "dictVar": variable is array}}
+
+test dict-13.1 {dict append command} {
+    set dictv {a a}
+    dict append dictv a
+} {a a}
+test dict-13.2 {dict append command} {
+    set dictv {a a}
+    set sharing [dict values $dictv]
+    dict append dictv a b
+} {a ab}
+test dict-13.3 {dict append command} {
+    set dictv {a a}
+    dict append dictv a b c
+} {a abc}
+test dict-13.2.1 {dict append command} {
+    set dictv [dict create a [string index =a= 1]]
+    dict append dictv a b
+} {a ab}
+test dict-13.4 {dict append command} {
+    set dictv {}
+    dict append dictv a x y z
+} {a xyz}
+test dict-13.5 {dict append command} {
+    catch {unset dictv}
+    dict append dictv a b
+} {a b}
+test dict-13.6 {dict append command} {
+    set dictv a
+    list [catch {dict append dictv a a} msg] $msg
+} {1 {missing value to go with key}}
+test dict-13.7 {dict append command} {
+    list [catch {dict append} msg] $msg
+} {1 {wrong # args: should be "dict append varName key ?value ...?"}}
+test dict-13.8 {dict append command} {
+    list [catch {dict append dictv} msg] $msg
+} {1 {wrong # args: should be "dict append varName key ?value ...?"}}
+test dict-13.9 {dict append command: write failure} {
+    catch {unset dictVar}
+    set dictVar(block) {}
+    set result [list [catch {dict append dictVar a x} msg] $msg]
+    catch {unset dictVar}
+    set result
+} {1 {can't set "dictVar": variable is array}}
+test dict-13.10 {compiled dict command: crash case} {
+    apply {{} {dict append dictVar a o k}}
+} {a ok}
+
+test dict-14.1 {dict for command: syntax} {
+    list [catch {dict for} msg] $msg
+} {1 {wrong # args: should be "dict for {keyVar valueVar} dictionary script"}}
+test dict-14.2 {dict for command: syntax} {
+    list [catch {dict for x} msg] $msg
+} {1 {wrong # args: should be "dict for {keyVar valueVar} dictionary script"}}
+test dict-14.3 {dict for command: syntax} {
+    list [catch {dict for x x} msg] $msg
+} {1 {wrong # args: should be "dict for {keyVar valueVar} dictionary script"}}
+test dict-14.4 {dict for command: syntax} {
+    list [catch {dict for x x x x} msg] $msg
+} {1 {wrong # args: should be "dict for {keyVar valueVar} dictionary script"}}
+test dict-14.5 {dict for command: syntax} {
+    list [catch {dict for x x x} msg] $msg
+} {1 {must have exactly two variable names}}
+test dict-14.6 {dict for command: syntax} {
+    list [catch {dict for {x x x} x x} msg] $msg
+} {1 {must have exactly two variable names}}
+test dict-14.7 {dict for command: syntax} {
+    list [catch {dict for "\{x" x x} msg] $msg
+} {1 {unmatched open brace in list}}
+test dict-14.8 {dict for command} {
+    # This test confirms that [dict keys], [dict values] and [dict for]
+    # all traverse a dictionary in the same order.
+    set dictv {a A b B c C}
+    set keys {}
+    set values {}
+    dict for {k v} $dictv {
+	lappend keys $k
+	lappend values $v
+    }
+    set result [expr {
+	$keys eq [dict keys $dictv] && $values eq [dict values $dictv]
+    }]
+    expr {$result ? "YES" : [list "NO" $dictv $keys $values]}
+} YES
+test dict-14.9 {dict for command} {
+    dict for {k v} {} {
+	error "unexpected execution of 'dict for' body"
+    }
+} {}
+test dict-14.10 {dict for command: script results} {
+    set times 0
+    dict for {k v} {a a b b} {
+	incr times
+	continue
+	error "shouldn't get here"
+    }
+    set times
+} 2
+test dict-14.11 {dict for command: script results} {
+    set times 0
+    dict for {k v} {a a b b} {
+	incr times
+	break
+	error "shouldn't get here"
+    }
+    set times
+} 1
+test dict-14.12 {dict for command: script results} {
+    set times 0
+    list [catch {
+	dict for {k v} {a a b b} {
+	    incr times
+	    error test
+	}
+    } msg] $msg $times $::errorInfo
+} {1 test 1 {test
+    while executing
+"error test"
+    ("dict for" body line 3)
+    invoked from within
+"dict for {k v} {a a b b} {
+	    incr times
+	    error test
+	}"}}
+test dict-14.13 {dict for command: script results} {
+    proc dicttest {} {
+	rename dicttest {}
+	dict for {k v} {a b} {
+	    return ok,$k,$v
+	    error "skipped return completely"
+	}
+	error "return didn't go far enough"
+    }
+    dicttest
+} ok,a,b
+test dict-14.14 {dict for command: handle representation loss} {
+    set dictVar {a b c d e f g h}
+    set keys {}
+    set values {}
+    dict for {k v} $dictVar {
+	if {[llength $dictVar]} {
+	    lappend keys $k
+	    lappend values $v
+	}
+    }
+    list [lsort $keys] [lsort $values]
+} {{a c e g} {b d f h}}
+test dict-14.15 {dict for command: keys are unique and iterated over once only} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    catch {unset accum}
+    array set accum {}
+    dict for {k v} $dictVar {
+	append accum($k) $v,
+    }
+    set result [lsort [array names accum]]
+    lappend result :
+    foreach k $result {
+	catch {lappend result $accum($k)}
+    }
+    catch {unset accum}
+    set result
+} {a1 a2 b1 b2 bar foo : a, b, c, d, foo, bar,}
+test dict-14.16 {dict for command in compilation context} {
+    proc dicttest {} {
+	set res {x x x x x x}
+	dict for {k v} {a 0 b 1 c 2 d 3 e 4 f 5} {
+	    lset res $v $k
+	    continue
+	}
+	return $res
+    }
+    dicttest
+} {a b c d e f}
+test dict-14.17 {dict for command in compilation context} {
+    # Bug 1379349
+    proc dicttest {} {
+	set d [dict create a 1]		;# Dict must be unshared!
+	dict for {k v} $d {
+	    dict set d $k 0		;# Any modification will do
+	}
+	return $d
+    }
+    dicttest
+} {a 0}
+test dict-14.18 {dict for command in compilation context} {
+    # Bug 1382528
+    proc dicttest {} {
+	dict for {k v} {} {}		;# Note empty dict
+	catch { error foo }		;# Note compiled [catch]
+    }
+    dicttest
+} 1
+test dict-14.19 {dict for and invalid dicts: bug 1531184} -body {
+    di[list]ct for {k v} x {}
+} -returnCodes 1 -result {missing value to go with key}
+test dict-14.20 {dict for stack space compilation: bug 1903325} {
+    proc dicttest {x y args} {
+	dict for {a b} $x {}
+	concat "c=$y,$args"
+    }
+    dicttest {} 1 2 3
+} {c=1,2 3}
+# There's probably a lot more tests to add here. Really ought to use a
+# coverage tool for this job...
+
+test dict-15.1 {dict set command} {
+    set dictVar {}
+    dict set dictVar a x
+} {a x}
+test dict-15.2 {dict set command} {
+    set dictvar {a {}}
+    dict set dictvar a b x
+} {a {b x}}
+test dict-15.3 {dict set command} {
+    set dictvar {a {b {}}}
+    dict set dictvar a b c x
+} {a {b {c x}}}
+test dict-15.4 {dict set command} {
+    set dictVar {a y}
+    dict set dictVar a x
+} {a x}
+test dict-15.5 {dict set command} {
+    set dictVar {a {b y}}
+    dict set dictVar a b x
+} {a {b x}}
+test dict-15.6 {dict set command} {
+    set dictVar {a {b {c y}}}
+    dict set dictVar a b c x
+} {a {b {c x}}}
+test dict-15.7 {dict set command: path creation} {
+    set dictVar {}
+    dict set dictVar a b x
+} {a {b x}}
+test dict-15.8 {dict set command: creates variables} {
+    catch {unset dictVar}
+    dict set dictVar a x
+    set dictVar
+} {a x}
+test dict-15.9 {dict set command: write failure} {
+    catch {unset dictVar}
+    set dictVar(block) {}
+    set result [list [catch {dict set dictVar a x} msg] $msg]
+    catch {unset dictVar}
+    set result
+} {1 {can't set "dictVar": variable is array}}
+test dict-15.10 {dict set command: syntax} {
+    list [catch {dict set} msg] $msg
+} {1 {wrong # args: should be "dict set varName key ?key ...? value"}}
+test dict-15.11 {dict set command: syntax} {
+    list [catch {dict set a} msg] $msg
+} {1 {wrong # args: should be "dict set varName key ?key ...? value"}}
+test dict-15.12 {dict set command: syntax} {
+    list [catch {dict set a a} msg] $msg
+} {1 {wrong # args: should be "dict set varName key ?key ...? value"}}
+test dict-15.13 {dict set command} {
+    set dictVar a
+    list [catch {dict set dictVar b c} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-16.1 {dict unset command} {
+    set dictVar {a b c d}
+    dict unset dictVar a
+} {c d}
+test dict-16.2 {dict unset command} {
+    set dictVar {a b c d}
+    dict unset dictVar c
+} {a b}
+test dict-16.3 {dict unset command} {
+    set dictVar {a b}
+    dict unset dictVar c
+} {a b}
+test dict-16.4 {dict unset command} {
+    set dictVar {a {b c d e}}
+    dict unset dictVar a b
+} {a {d e}}
+test dict-16.5 {dict unset command} {
+    set dictVar a
+    list [catch {dict unset dictVar a} msg] $msg
+} {1 {missing value to go with key}}
+test dict-16.6 {dict unset command} {
+    set dictVar {a b}
+    list [catch {dict unset dictVar c d} msg] $msg
+} {1 {key "c" not known in dictionary}}
+test dict-16.7 {dict unset command} {
+    catch {unset dictVar}
+    list [info exists dictVar] [dict unset dictVar a] [info exists dictVar]
+} {0 {} 1}
+test dict-16.8 {dict unset command} {
+    list [catch {dict unset dictVar} msg] $msg
+} {1 {wrong # args: should be "dict unset varName key ?key ...?"}}
+test dict-16.9 {dict unset command: write failure} {
+    catch {unset dictVar}
+    set dictVar(block) {}
+    set result [list [catch {dict unset dictVar a} msg] $msg]
+    catch {unset dictVar}
+    set result
+} {1 {can't set "dictVar": variable is array}}
+
+test dict-17.1 {dict filter command: key} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    dict filter $dictVar key a2
+} {a2 b}
+test dict-17.2 {dict filter command: key} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    dict size [dict filter $dictVar key *]
+} 6
+test dict-17.3 {dict filter command: key} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    getOrder [dict filter $dictVar key ???] bar foo
+} {bar foo foo bar 2}
+test dict-17.4 {dict filter command: key} {
+    list [catch {dict filter {} key} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary key globPattern"}}
+test dict-17.5 {dict filter command: key} {
+    list [catch {dict filter {} key a a} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary key globPattern"}}
+test dict-17.6 {dict filter command: value} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    dict filter $dictVar value c
+} {b1 c}
+test dict-17.7 {dict filter command: value} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    dict size [dict filter $dictVar value *]
+} 6
+test dict-17.8 {dict filter command: value} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    getOrder [dict filter $dictVar value ???] bar foo
+} {bar foo foo bar 2}
+test dict-17.9 {dict filter command: value} {
+    list [catch {dict filter {} value} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary value globPattern"}}
+test dict-17.10 {dict filter command: value} {
+    list [catch {dict filter {} value a a} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary value globPattern"}}
+test dict-17.11 {dict filter command: script} {
+    set dictVar {a1 a a2 b b1 c b2 d foo bar bar foo}
+    set n 0
+    list [getOrder [dict filter $dictVar script {k v} {
+	incr n
+	expr {[string length $k] == [string length $v]}
+    }] bar foo] $n
+} {{bar foo foo bar 2} 6}
+test dict-17.12 {dict filter command: script} {
+    list [catch {dict filter {a b} script {k v} {concat $k $v}} msg] $msg
+} {1 {expected boolean value but got "a b"}}
+test dict-17.13 {dict filter command: script} {
+    list [catch {dict filter {a b} script {k v} {error x}} msg] $msg \
+	    $::errorInfo
+} {1 x {x
+    while executing
+"error x"
+    ("dict filter" script line 1)
+    invoked from within
+"dict filter {a b} script {k v} {error x}"}}
+test dict-17.14 {dict filter command: script} {
+    set n 0
+    list [dict filter {a b c d} script {k v} {
+	incr n
+	break
+	error boom!
+    }] $n
+} {{} 1}
+test dict-17.15 {dict filter command: script} {
+    set n 0
+    list [dict filter {a b c d} script {k v} {
+	incr n
+	continue
+	error boom!
+    }] $n
+} {{} 2}
+test dict-17.16 {dict filter command: script} {
+    proc dicttest {} {
+	rename dicttest {}
+	dict filter {a b} script {k v} {
+	    return ok,$k,$v
+	    error "skipped return completely"
+	}
+	error "return didn't go far enough"
+    }
+    dicttest
+} ok,a,b
+test dict-17.17 {dict filter command: script} {
+    dict filter {a b} script {k k} {continue}
+    set k
+} b
+test dict-17.18 {dict filter command: script} {
+    list [catch {dict filter {a b} script {k k}} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary script {keyVar valueVar} filterScript"}}
+test dict-17.19 {dict filter command: script} {
+    list [catch {dict filter {a b} script k {continue}} msg] $msg
+} {1 {must have exactly two variable names}}
+test dict-17.20 {dict filter command: script} {
+    list [catch {dict filter {a b} script "\{k v" {continue}} msg] $msg
+} {1 {unmatched open brace in list}}
+test dict-17.21 {dict filter command} {
+    list [catch {dict filter {a b}} msg] $msg
+} {1 {wrong # args: should be "dict filter dictionary filterType ..."}}
+test dict-17.22 {dict filter command} {
+    list [catch {dict filter {a b} JUNK} msg] $msg
+} {1 {bad filterType "JUNK": must be key, script, or value}}
+test dict-17.23 {dict filter command} {
+    list [catch {dict filter a key *} msg] $msg
+} {1 {missing value to go with key}}
+
+test dict-18.1 {dict-list relationship} {
+    -body {
+        # Test that any internal conversion between list and dict
+        # does not change the object
+        set l [list 1 2 3 4 5 6 7 8 9 0 q w e r t y]
+        dict values $l
+        set l
+    }
+    -result {1 2 3 4 5 6 7 8 9 0 q w e r t y}
+}
+test dict-18.2 {dict-list relationship} {
+    -body {
+        # Test that the dictionary is a valid list
+        set d [dict create "abc def" 0 "a\{b" 1 "c\}d" 2]
+        for {set t 0} {$t < 5} {incr t} {
+            llength $d
+            dict lappend d "abc def" "\}\{"
+            dict append  d "a\{b" "\}"
+            dict incr    d "c\}d" 1
+        }
+        llength $d
+    }
+    -result 6
+}
+
+# This is a test for a specific bug.
+# It shows a bad ref counter when running with memdebug on.
+test dict-19.1 {memory bug} -setup {
+    proc xxx {} {
+        set successors [dict create x {c d}]
+        dict set successors x a b
+        dict get $successors x
+    }
+} -body {
+    xxx
+} -cleanup {
+    rename xxx {}
+} -result [dict create c d a b]
+test dict-19.2 {dict: testing for leaks} -setup {
+    proc getbytes {} {
+        set lines [split [memory info] "\n"]
+        lindex [lindex $lines 3] 3
+    }
+    # This test is made to stress object reference management
+    proc stress {} {
+        # A shared invalid dictinary
+        set apa {a {}b c d}
+        set bepa $apa
+        catch {dict replace $apa e f}
+        catch {dict remove  $apa c d}
+        catch {dict incr    apa  a 5}
+        catch {dict lappend apa  a 5}
+        catch {dict append  apa  a 5}
+        catch {dict set     apa  a 5}
+        catch {dict unset   apa  a}
+
+        # A shared valid dictionary, invalid incr
+        set apa {a b c d}
+        set bepa $apa
+        catch {dict incr bepa a 5}
+
+        # An error during write to an unshared object, incr
+        set apa {a 1 b 2}
+        set bepa [lrange $apa 0 end]
+        trace add variable bepa write {error hej}
+        catch {dict incr bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to a shared object, incr
+        set apa {a 1 b 2}
+        set bepa $apa
+        trace add variable bepa write {error hej}
+        catch {dict incr bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # A shared valid dictionary, invalid lappend
+        set apa [list a {{}b} c d]
+        set bepa $apa
+        catch {dict lappend bepa a 5}
+
+        # An error during write to an unshared object, lappend
+        set apa {a 1 b 2}
+        set bepa [lrange $apa 0 end]
+        trace add variable bepa write {error hej}
+        catch {dict lappend bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to a shared object, lappend
+        set apa {a 1 b 2}
+        set bepa $apa
+        trace add variable bepa write {error hej}
+        catch {dict lappend bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to an unshared object, append
+        set apa {a 1 b 2}
+        set bepa [lrange $apa 0 end]
+        trace add variable bepa write {error hej}
+        catch {dict append bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to a shared object, append
+        set apa {a 1 b 2}
+        set bepa $apa
+        trace add variable bepa write {error hej}
+        catch {dict append bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to an unshared object, set
+        set apa {a 1 b 2}
+        set bepa [lrange $apa 0 end]
+        trace add variable bepa write {error hej}
+        catch {dict set bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to a shared object, set
+        set apa {a 1 b 2}
+        set bepa $apa
+        trace add variable bepa write {error hej}
+        catch {dict set bepa a 5}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to an unshared object, unset
+        set apa {a 1 b 2}
+        set bepa [lrange $apa 0 end]
+        trace add variable bepa write {error hej}
+        catch {dict unset bepa a}
+	trace remove variable bepa write {error hej}
+        unset bepa
+
+        # An error during write to a shared object, unset
+        set apa {a 1 b 2}
+        set bepa $apa
+        trace add variable bepa write {error hej}
+        catch {dict unset bepa a}
+	trace remove variable bepa write {error hej}
+        unset bepa
+    }
+} -constraints memory -body {
+    set end [getbytes]
+    for {set i 0} {$i < 5} {incr i} {
+        stress
+        set tmp $end
+        set end [getbytes]
+    }
+    expr {$end - $tmp}
+} -cleanup {
+    unset -nocomplain end i tmp
+    rename getbytes {}
+    rename stress {}
+} -result 0
+
+test dict-20.1 {dict merge command} {
+    dict merge
+} {}
+test dict-20.2 {dict merge command} {
+    getOrder [dict merge {a b c d e f}] a c e
+} {a b c d e f 3}
+test dict-20.3 {dict merge command} -body {
+    dict merge {a b c d e}
+} -result {missing value to go with key} -returnCodes 1
+test dict-20.4 {dict merge command} {
+    getOrder [dict merge {a b c d} {e f g h}] a c e g
+} {a b c d e f g h 4}
+test dict-20.5 {dict merge command} -body {
+    dict merge {a b c d e} {e f g h}
+} -result {missing value to go with key} -returnCodes 1
+test dict-20.6 {dict merge command} -body {
+    dict merge {a b c d} {e f g h i}
+} -result {missing value to go with key} -returnCodes 1
+test dict-20.7 {dict merge command} {
+    getOrder [dict merge {a b c d e f} {e x g h}] a c e g
+} {a b c d e x g h 4}
+test dict-20.8 {dict merge command} {
+    getOrder [dict merge {a b c d} {a x c y}] a c
+} {a x c y 2}
+test dict-20.9 {dict merge command} {
+    getOrder [dict merge {a b c d} {a x c y}] a c
+} {a x c y 2}
+test dict-20.10 {dict merge command} {
+    getOrder [dict merge {a b c d e f} {a x 1 2 3 4} {a - 1 -}] a c e 1 3
+} {a - c d e f 1 - 3 4 5}
+
+test dict-21.1 {dict update command} -body {
+    dict update
+} -returnCodes 1 -result {wrong # args: should be "dict update varName key varName ?key varName ...? script"}
+test dict-21.2 {dict update command} -body {
+    dict update v
+} -returnCodes 1 -result {wrong # args: should be "dict update varName key varName ?key varName ...? script"}
+test dict-21.3 {dict update command} -body {
+    dict update v k
+} -returnCodes 1 -result {wrong # args: should be "dict update varName key varName ?key varName ...? script"}
+test dict-21.4 {dict update command} -body {
+    dict update v k v
+} -returnCodes 1 -result {wrong # args: should be "dict update varName key varName ?key varName ...? script"}
+test dict-21.5 {dict update command} {
+    set a {b c}
+    set result {}
+    set bb {}
+    dict update a b bb {
+	lappend result $a $bb
+    }
+    lappend result $a
+} {{b c} c {b c}}
+test dict-21.6 {dict update command} {
+    set a {b c}
+    set result {}
+    set bb {}
+    dict update a b bb {
+	lappend result $a $bb [set bb d]
+    }
+    lappend result $a
+} {{b c} c d {b d}}
+test dict-21.7 {dict update command} {
+    set a {b c}
+    set result {}
+    set bb {}
+    dict update a b bb {
+	lappend result $a $bb [unset bb]
+    }
+    lappend result $a
+} {{b c} c {} {}}
+test dict-21.8 {dict update command} {
+    set a {b c d e}
+    dict update a b v1 d v2 {
+	lassign "$v1 $v2" v2 v1
+    }
+    getOrder $a b d
+} {b e d c 2}
+test dict-21.9 {dict update command} {
+    set a {b c d e}
+    dict update a b v1 d v2 {unset a}
+    info exist a
+} 0
+test dict-21.10 {dict update command} {
+    set a {b {c d}}
+    dict update a b v1 {
+	dict update v1 c v2 {
+	    set v2 foo
+	}
+    }
+    set a
+} {b {c foo}}
+test dict-21.11 {dict update command} {
+    set a {b c d e}
+    dict update a b v1 d v2 {
+	dict set a f g
+    }
+    getOrder $a b d f
+} {b c d e f g 3}
+test dict-21.12 {dict update command} {
+    set a {b c d e}
+    dict update a b v1 d v2 f v3 {
+	set v3 g
+    }
+    getOrder $a b d f
+} {b c d e f g 3}
+test dict-21.13 {dict update command: compilation} {
+    proc dicttest {d} {
+	while 1 {
+	    dict update d a alpha b beta {
+		set beta $alpha
+		unset alpha
+		break
+	    }
+	}
+	return $d
+    }
+    getOrder [dicttest {a 1 c 2}] b c
+} {b 1 c 2 2}
+test dict-21.14 {dict update command: compilation} {
+    proc dicttest x {
+	set indices {2 3}
+	trace add variable aa write "string length \$indices ;#"
+	dict update x k aa l bb {}
+    }
+    dicttest {k 1 l 2}
+} {}
+test dict-21.15 {dict update command: compilation} {
+    proc dicttest x {
+	set indices {2 3}
+	trace add variable aa read "string length \$indices ;#"
+	dict update x k aa l bb {}
+    }
+    dicttest {k 1 l 2}
+} {}
+test dict-21.16 {dict update command: no recursive structures [Bug 1786481]} {
+    set foo {a {b {c {d {e 1}}}}}
+    dict update foo a t {
+	dict update t b t {
+	    dict update t c t {
+		dict update t d t {
+		    dict incr t e
+		}
+	    }
+	}
+    }
+    string range [append foo OK] end-1 end
+} OK
+test dict-21.17 {dict update command: no recursive structures [Bug 1786481]} {
+    proc dicttest {} {
+	set foo {a {b {c {d {e 1}}}}}
+	dict update foo a t {
+	    dict update t b t {
+		dict update t c t {
+		    dict update t d t {
+			dict incr t e
+		    }
+		}
+	    }
+	}
+    }
+    dicttest
+    string range [append foo OK] end-1 end
+} OK
+
+test dict-22.1 {dict with command} -body {
+    dict with
+} -returnCodes 1 -result {wrong # args: should be "dict with dictVar ?key ...? script"}
+test dict-22.2 {dict with command} -body {
+    dict with v
+} -returnCodes 1 -result {wrong # args: should be "dict with dictVar ?key ...? script"}
+test dict-22.3 {dict with command} -body {
+    unset -nocomplain v
+    dict with v {error "in body"}
+} -returnCodes 1 -result {can't read "v": no such variable}
+test dict-22.4 {dict with command} {
+    set a {b c d e}
+    unset -nocomplain b d
+    set result [list [info exist b] [info exist d]]
+    dict with a {
+	lappend result [info exist b] [info exist d] $b $d
+    }
+    set result
+} {0 0 1 1 c e}
+test dict-22.5 {dict with command} {
+    set a {b c d e}
+    dict with a {
+	lassign "$b $d" d b
+    }
+    getOrder $a b d
+} {b e d c 2}
+test dict-22.6 {dict with command} {
+    set a {b c d e}
+    dict with a {
+	unset b
+	# This *won't* go into the dict...
+	set f g
+    }
+    set a
+} {d e}
+test dict-22.7 {dict with command} {
+    set a {b c d e}
+    dict with a {
+	dict unset a b
+    }
+    getOrder $a b d
+} {b c d e 2}
+test dict-22.8 {dict with command} {
+    set a [dict create b c]
+    dict with a {
+	set b $a
+    }
+    set a
+} {b {b c}}
+test dict-22.9 {dict with command} {
+    set a {b {c d}}
+    dict with a b {
+	set c $c$c
+    }
+    set a
+} {b {c dd}}
+test dict-22.10 {dict with command: result handling tricky case} {
+    set a {b {c d}}
+    foreach i {0 1} {
+	if {$i} break
+	dict with a b {
+	    set a {}
+	    # We're checking to see if we lose this break
+	    break
+	}
+    }
+    list $i $a
+} {0 {}}
+test dict-22.11 {dict with command: no recursive structures [Bug 1786481]} {
+    set foo {t {t {t {inner 1}}}}
+    dict with foo {
+	dict with t {
+	    dict with t {
+		dict with t {
+		    incr inner
+		}
+	    }
+	}
+    }
+    string range [append foo OK] end-1 end
+} OK
+
+# cleanup
+::tcltest::cleanupTests
+return
+
+# Local Variables:
+# mode: tcl
+# End:

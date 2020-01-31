@@ -1,0 +1,4 @@
+_bk_*
+_vlog_*
+_vpi_*
+_new_MODEL_*

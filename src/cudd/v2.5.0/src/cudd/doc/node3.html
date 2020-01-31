@@ -1,0 +1,1637 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>User's Manual</TITLE>
+<META NAME="description" CONTENT="User's Manual">
+<META NAME="keywords" CONTENT="cuddIntro">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cuddIntro.css">
+
+<LINK REL="next" HREF="node4.html">
+<LINK REL="previous" HREF="node2.html">
+<LINK REL="up" HREF="cuddIntro.html">
+<LINK REL="next" HREF="node4.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html112"
+  HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html108"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html102"
+  HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html110"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html113"
+  HREF="node4.html">Programmer's Manual</A>
+<B> Up:</B> <A NAME="tex2html109"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html103"
+  HREF="node2.html">How to Get CUDD</A>
+ &nbsp; <B>  <A NAME="tex2html111"
+  HREF="node8.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html114"
+  HREF="node3.html#SECTION00031000000000000000">Compiling and Linking</A>
+<LI><A NAME="tex2html115"
+  HREF="node3.html#SECTION00032000000000000000">Basic Data Structures</A>
+<UL>
+<LI><A NAME="tex2html116"
+  HREF="node3.html#SECTION00032100000000000000">Nodes</A>
+<LI><A NAME="tex2html117"
+  HREF="node3.html#SECTION00032200000000000000">The Manager</A>
+<LI><A NAME="tex2html118"
+  HREF="node3.html#SECTION00032300000000000000">Cache</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html119"
+  HREF="node3.html#SECTION00033000000000000000">Initializing and Shutting Down a DdManager</A>
+<LI><A NAME="tex2html120"
+  HREF="node3.html#SECTION00034000000000000000">Setting Parameters</A>
+<LI><A NAME="tex2html121"
+  HREF="node3.html#SECTION00035000000000000000">Constant Functions</A>
+<UL>
+<LI><A NAME="tex2html122"
+  HREF="node3.html#SECTION00035100000000000000">One, Logic Zero, and Arithmetic Zero</A>
+<LI><A NAME="tex2html123"
+  HREF="node3.html#SECTION00035200000000000000">Predefined Constants</A>
+<LI><A NAME="tex2html124"
+  HREF="node3.html#SECTION00035300000000000000">Background</A>
+<LI><A NAME="tex2html125"
+  HREF="node3.html#SECTION00035400000000000000">New Constants</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html126"
+  HREF="node3.html#SECTION00036000000000000000">Creating Variables</A>
+<UL>
+<LI><A NAME="tex2html127"
+  HREF="node3.html#SECTION00036100000000000000">New BDD and ADD Variables</A>
+<LI><A NAME="tex2html128"
+  HREF="node3.html#SECTION00036200000000000000">New ZDD Variables</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html129"
+  HREF="node3.html#SECTION00037000000000000000">Basic BDD Manipulation</A>
+<LI><A NAME="tex2html130"
+  HREF="node3.html#SECTION00038000000000000000">Basic ADD Manipulation</A>
+<LI><A NAME="tex2html131"
+  HREF="node3.html#SECTION00039000000000000000">Basic ZDD Manipulation</A>
+<LI><A NAME="tex2html132"
+  HREF="node3.html#SECTION000310000000000000000">Converting ADDs to BDDs and Vice Versa</A>
+<LI><A NAME="tex2html133"
+  HREF="node3.html#SECTION000311000000000000000">Converting BDDs to ZDDs and Vice Versa</A>
+<LI><A NAME="tex2html134"
+  HREF="node3.html#SECTION000312000000000000000">Variable Reordering for BDDs and ADDs</A>
+<LI><A NAME="tex2html135"
+  HREF="node3.html#SECTION000313000000000000000">Grouping Variables</A>
+<LI><A NAME="tex2html136"
+  HREF="node3.html#SECTION000314000000000000000">Variable Reordering for ZDDs</A>
+<LI><A NAME="tex2html137"
+  HREF="node3.html#SECTION000315000000000000000">Keeping Consistent Variable Orders for BDDs and ZDDs</A>
+<LI><A NAME="tex2html138"
+  HREF="node3.html#SECTION000316000000000000000">Hooks</A>
+<LI><A NAME="tex2html139"
+  HREF="node3.html#SECTION000317000000000000000">Timeouts and Limits</A>
+<LI><A NAME="tex2html140"
+  HREF="node3.html#SECTION000318000000000000000">The SIS/VIS Interface</A>
+<UL>
+<LI><A NAME="tex2html141"
+  HREF="node3.html#SECTION000318100000000000000">Using the CUDD Package in SIS</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html142"
+  HREF="node3.html#SECTION000319000000000000000">Writing Decision Diagrams to a File</A>
+<LI><A NAME="tex2html143"
+  HREF="node3.html#SECTION000320000000000000000">Saving and Restoring BDDs</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H1><A NAME="SECTION00030000000000000000"></A>
+<A NAME="sec:user"></A>
+<BR>
+User's Manual
+</H1>
+
+<P>
+This section describes the use of the CUDD package as a black box.
+
+<P>
+
+<H2><A NAME="SECTION00031000000000000000"></A>
+<A NAME="sec:compileExt"></A><A NAME="79"></A>
+<BR>
+Compiling and Linking
+</H2>
+
+<P>
+To build an application that uses the CUDD package, you should add
+<PRE>
+#include "util.h"
+#include "cudd.h"
+</PRE>
+<A NAME="82"></A>
+to your source files, and should link
+<code>libcudd.a</code><A NAME="83"></A>,
+<code>libmtr.a</code><A NAME="84"></A>,
+<code>libst.a</code><A NAME="85"></A>, and
+<code>libutil.a</code><A NAME="86"></A> to your executable. (All these
+libraries are part of the distribution.) Some
+platforms require specific compiler and linker flags.  Refer to the
+<TT>Makefile<A NAME="87"></A></TT> in the top level directory of the
+distribution.
+
+<P>
+Keep in mind that whatever flags affect the size of data
+structures--for instance the flags used to use 64-bit pointers where
+available--must be specified when compiling both CUDD and the files
+that include its header files.
+
+<P>
+
+<H2><A NAME="SECTION00032000000000000000"></A>
+<A NAME="sec:struct"></A>
+<BR>
+Basic Data Structures
+</H2>
+
+<P>
+
+<H3><A NAME="SECTION00032100000000000000"></A>
+<A NAME="sec:nodes"></A>
+<BR>
+Nodes
+</H3>
+
+<P>
+BDDs, ADDs, and ZDDs are made of DdNode's. A DdNode<A NAME="92"></A>
+(node<A NAME="93"></A> for short) is a structure with several fields. Those
+that are of interest to the application that uses the CUDD package as
+a black box are the variable index<A NAME="94"></A>, the
+reference<A NAME="95"></A> count, and the value. The
+remaining fields are pointers that connect nodes among themselves and
+that are used to implement the unique<A NAME="96"></A> table. (See
+Section&nbsp;<A HREF="#sec:manager">3.2.2</A>.)
+
+<P>
+The <I>index</I> field holds the name of the variable that labels the
+node. The index of a variable is a permanent attribute that reflects
+the order<A NAME="99"></A> of creation.  Index 0 corresponds to
+the variable created first. On a machine with 32-bit pointers, the
+maximum number of variables is the largest value that can be stored in
+an unsigned short integer minus 1. The largest index is reserved for
+the constant<A NAME="100"></A> nodes. When 64-bit pointers are
+used, the maximum number of variables is the largest value that can be
+stored in an unsigned integer minus 1.
+
+<P>
+When variables are reordered to reduce the size of the decision
+diagrams, the variables may shift in the order, but they retain their
+indices. The package keeps track of the variable
+permutation<A NAME="101"></A> (and its inverse). The
+application is not affected by variable reordering<A NAME="102"></A>,
+except in the following cases.
+
+<UL>
+<LI>If the application uses generators<A NAME="104"></A>
+  (<I>Cudd_ForeachCube</I> <A NAME="1108"></A> and
+  <I>Cudd_ForeachNode</I><A NAME="1110"></A>) and reordering is
+  enabled, then it must take care not to call any operation that may
+  create new nodes (and hence possibly trigger reordering). This is
+  because the cubes (i.e., paths) and nodes of a diagram change as a
+  result of reordering.
+</LI>
+<LI>If the application uses
+  <I>Cudd_bddConstrain</I><A NAME="1112"></A> and reordering
+  takes place, then the property of <I>Cudd_bddConstrain</I> of
+  being an image restrictor is lost.
+</LI>
+</UL>
+
+<P>
+The CUDD package relies on garbage<A NAME="113"></A>
+collection to reclaim the memory used by diagrams that are no longer
+in use. The scheme employed for garbage collection is based on keeping
+a reference<A NAME="114"></A> count for each node.  The
+references that are counted are both the internal references
+(references from other nodes) and external references (typically
+references from the calling environment).  When an application creates
+a new BDD<A NAME="115"></A>, ADD<A NAME="116"></A>, or ZDD<A NAME="117"></A>, it must
+increase its reference count explicitly, through a call to
+<I>Cudd_Ref</I><A NAME="1114"></A>.  Similarly, when a diagram is no
+longer needed, the application must call
+<I>Cudd_RecursiveDeref</I><A NAME="1116"></A> (for BDDs and
+ADDs) or <I>Cudd_RecursiveDerefZdd</I><A NAME="1118"></A>
+(for ZDDs) to ``recycle<A NAME="124"></A>'' the nodes of the
+diagram.
+
+<P>
+Terminal<A NAME="125"></A> nodes carry a value. This is especially
+important for ADDs.  By default, the value is a double<A NAME="126"></A>.
+To change to something different (e.g., an integer), the
+package must be modified and recompiled.  Support for this process is
+currently very rudimentary.
+
+<P>
+
+<H3><A NAME="SECTION00032200000000000000"></A>
+<A NAME="128"></A><A NAME="sec:manager"></A>
+<BR>
+The Manager
+</H3>
+
+<P>
+All nodes used in BDDs, ADDs, and ZDDs are kept in special
+hash<A NAME="130"></A> tables called the
+<I>unique<A NAME="131"></A> tables</I>.  Specifically, BDDs and ADDs
+share the same unique table, whereas ZDDs have their own table.  As
+the name implies, the main purpose of the unique table is to guarantee
+that each node is unique; that is, there is no other node labeled by
+the same variable and with the same children.  This uniqueness
+property makes decision diagrams canonical<A NAME="132"></A>.  The
+unique<A NAME="133"></A> tables and some auxiliary data structures
+make up the DdManager<A NAME="134"></A> (manager<A NAME="135"></A> for
+short).  Though the application that uses only the exported functions
+needs not be concerned with most details of the manager, it has to
+deal with the manager in the following sense. The application must
+initialize the manager by calling an appropriate function.  (See
+Section&nbsp;<A HREF="#sec:init">3.3</A>.)  Subsequently, it must pass a pointer to the
+manager to all the functions that operate on decision diagrams.
+
+<P>
+With the exception of a few statistical counters<A NAME="137"></A>, there are no global<A NAME="138"></A> variables in
+the CUDD package. Therefore, it is quite possible to have multiple
+managers simultaneously active in the same application.<A NAME="tex2html3"
+  HREF="footnode.html#foot139"><SUP>1</SUP></A> It is the pointers to
+the managers that tell the functions on what data they should operate.
+
+<P>
+
+<H3><A NAME="SECTION00032300000000000000"></A>
+<A NAME="141"></A><A NAME="sec:memoize"></A>
+<BR>
+Cache
+</H3>
+
+<P>
+Efficient recursive manipulation of decision diagrams requires the use
+of a table to store computed results. This table<A NAME="143"></A>
+is called here the <I>cache<A NAME="144"></A></I> because it is
+effectively handled like a cache of variable but limited capacity. The
+CUDD package starts by default with a small cache, and increases its
+size until either no further benefit is achieved, or a limit size is
+reached. The user can influence this policy by choosing initial and
+limit values for the cache size.
+
+<P>
+Too small a cache will cause frequent overwriting of useful results.
+Too large a cache will cause overhead, because the whole cache is
+scanned every time garbage<A NAME="145"></A> collection takes
+place. The optimal parameters depend on the specific application. The
+default parameters work reasonably well for a large spectrum of
+applications.
+
+<P>
+The cache<A NAME="146"></A> of the CUDD package is used by most recursive
+functions of the package, and can be used by user-supplied functions
+as well. (See Section&nbsp;<A HREF="node4.html#sec:cache">4.4</A>.)
+
+<P>
+
+<H2><A NAME="SECTION00033000000000000000"></A>
+<A NAME="149"></A><A NAME="sec:init"></A>
+<BR>
+Initializing and Shutting Down a DdManager
+</H2>
+
+<P>
+To use the functions in the CUDD package, one has first to initialize
+the package itself by calling <I>Cudd_Init</I><A NAME="1120"></A>.
+This function takes four parameters:
+
+<UL>
+<LI>numVars<A NAME="154"></A>: It is the initial number of variables
+  for BDDs and ADDs. If the total number of variables needed by the
+  application is known, then it is slightly more efficient to create a
+  manager with that number of variables. If the number is unknown, it
+  can be set to 0, or to any other lower bound on the number of
+  variables.  Requesting more variables than are actually needed is
+  not incorrect, but is not efficient.
+</LI>
+<LI>numVarsZ<A NAME="155"></A>: It is the initial number of variables
+  for ZDDs. See Sections&nbsp;<A HREF="#sec:basicZDD">3.9</A> and&nbsp;<A HREF="#sec:convertZ">3.11</A> for
+  a discussion of the value of this argument.
+</LI>
+<LI>numSlots<A NAME="158"></A>: Determines the initial size of each
+  subtable<A NAME="159"></A> of the unique<A NAME="160"></A> table.
+  There is a subtable for each variable.  The size of each subtable is
+  dynamically adjusted to reflect the number of nodes.  It is normally
+  O.K. to use the default value for this parameter, which is
+  CUDD_UNIQUE_SLOTS<A NAME="161"></A>.
+</LI>
+<LI>cacheSize<A NAME="162"></A>: It is the initial size (number of
+  entries) of the cache<A NAME="163"></A>. Its default value is
+  CUDD_CACHE_SLOTS<A NAME="164"></A>.
+</LI>
+<LI>maxMemory<A NAME="165"></A>: It is the target value for the
+  maximum memory occupation (in bytes).  The package uses this value to
+  decide two parameters.
+  
+<UL>
+<LI>the maximum size to which the cache will grow, regardless of
+    the hit rate or the size of the unique<A NAME="167"></A> table.
+</LI>
+<LI>the maximum size to which growth of the unique table will be
+    preferred to garbage collection.
+  
+</LI>
+</UL>
+  If maxMemory is set to 0, CUDD tries to guess a good value based on
+  the available memory.
+</LI>
+</UL>
+A typical call to <I>Cudd_Init</I><A NAME="1122"></A> may look
+like this:
+<PRE>
+  manager = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SLOTS,0);
+</PRE>
+To reclaim all the memory associated with a manager, an application
+must call <I>Cudd_Quit</I><A NAME="1124"></A>.  This is normally
+done before exiting.
+
+<P>
+
+<H2><A NAME="SECTION00034000000000000000"></A>
+<A NAME="sec:params"></A>
+<BR>
+Setting Parameters
+</H2>
+
+<P>
+The package provides several functions to set the parameters that
+control various functions. For instance, the package has an automatic
+way of determining whether a larger unique<A NAME="178"></A> table
+would make the application run faster.  In that case, the package
+enters a ``fast growth<A NAME="179"></A>'' mode in which resizing of
+the unique subtables is favored over garbage<A NAME="180"></A>
+collection. When the unique table reaches a given size, however, the
+package returns to the normal ``slow growth'' mode, even though the
+conditions that caused the transition to fast growth still prevail.
+The limit size for fast growth<A NAME="181"></A> can be read by
+<I>Cudd_ReadLooseUpTo</I><A NAME="1126"></A> and changed by
+<I>Cudd_SetLooseUpTo</I><A NAME="1128"></A>.  Similar pairs of
+functions exist for several other parameters. See also
+Section&nbsp;<A HREF="node4.html#sec:stats">4.8</A>.
+
+<P>
+
+<H2><A NAME="SECTION00035000000000000000"></A>
+<A NAME="188"></A><A NAME="sec:const"></A>
+<BR>
+Constant Functions
+</H2>
+
+<P>
+The CUDD Package defines several constant functions. These functions
+are created when the manager<A NAME="190"></A> is initialized, and are accessible
+through the manager itself.
+
+<P>
+
+<H3><A NAME="SECTION00035100000000000000"></A>
+<A NAME="192"></A><A NAME="193"></A><A NAME="sec:zero"></A>
+<BR>
+One, Logic Zero, and Arithmetic Zero
+</H3>
+
+<P>
+The constant<A NAME="195"></A> 1 (returned by
+<I>Cudd_ReadOne</I><A NAME="1130"></A>) is common to BDDs, ADDs, and
+ZDDs.  However, its meaning is different for ADDs and BDDs, on the one
+hand, and ZDDs, on the other hand.  The diagram consisting of the
+constant 1 node only represents the constant 1 function for ADDs and
+BDDs. For ZDDs, its meaning depends on the number of variables: It is
+the conjunction of the complements of all variables.  Conversely, the
+representation of the constant 1 function depends on the number of
+variables. The constant 1 function of <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.png"
+ ALT="$n$"> variables is returned by
+<I>Cudd_ReadZddOne</I><A NAME="1132"></A>.
+
+<P>
+The constant 0 is common to ADDs and ZDDs, but not to BDDs.  The
+BDD<A NAME="200"></A> logic 0 is <B>not</B> associated with the constant 0
+function: It is obtained by complementation
+(<I>Cudd_Not</I><A NAME="1134"></A>) of the constant 1.  (It is also
+returned by <I>Cudd_ReadLogicZero</I><A NAME="1136"></A>.)
+All other constants are specific to ADDs.
+
+<P>
+
+<H3><A NAME="SECTION00035200000000000000"></A>
+<A NAME="sec:predef-const"></A>
+<BR>
+Predefined Constants
+</H3>
+
+<P>
+Besides 0 (returned by <I>Cudd_ReadZero</I><A NAME="1138"></A>)
+and 1, the following constant<A NAME="210"></A> functions are
+created at initialization time.
+
+<OL>
+<LI>PlusInfinity<A NAME="212"></A> and
+  MinusInfinity<A NAME="213"></A>: On computers implementing the
+  IEEE<A NAME="214"></A> standard 754 for
+  floating-point<A NAME="215"></A> arithmetic, these two constants
+  are set to the signed infinities<A NAME="216"></A>. On the DEC
+  Alphas<A NAME="217"></A>, the option <code>-ieee_with_no_inexact</code> or
+  <code>-ieee_with_inexact</code> must be passed to the DEC compiler to get
+  support of the IEEE standard. (The compiler still produces a
+  warning, but it can be ignored.) Compiling<A NAME="218"></A> with
+  those options may cause substantial performance degradation on the
+  Evolution IV CPUs. (Especially if the application does use the
+  infinities.)  The problem is reportedly solved in the Evolution V
+  CPUs.  If <TT>gcc<A NAME="219"></A></TT> is used to compile CUDD on the
+  Alphas, the symbol <TT>HAVE_IEEE_754<A NAME="220"></A></TT>
+  must be undefined.  (See the Makefile<A NAME="221"></A> for the
+  details.)  The values of these constants are returned by
+  <I>Cudd_ReadPlusInfinity</I><A NAME="1140"></A> and
+  <I>Cudd_ReadMinusInfinity</I><A NAME="1142"></A>.
+</LI>
+<LI>Epsilon<A NAME="226"></A>: This constant, initially set to
+  <IMG
+ WIDTH="47" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="$10^{-12}$">, is used in comparing floating point values for equality.
+  Its value is returned by
+  <I>Cudd_ReadEpsilon</I><A NAME="1144"></A>, and it can be
+  modified by calling <I>Cudd_SetEpsilon</I><A NAME="1146"></A>.
+  Unlike the other constants, it does not correspond to a node.
+</LI>
+</OL>
+
+<P>
+
+<H3><A NAME="SECTION00035300000000000000"></A>
+<A NAME="234"></A><A NAME="sec:background"></A>
+<BR>
+Background
+</H3>
+
+<P>
+The background value is a constant<A NAME="236"></A> typically used
+to represent non-existing arcs in graphs. Consider a shortest path
+problem. Two nodes that are not connected by an arc can be regarded as
+being joined by an arc<A NAME="237"></A> of infinite length. In
+shortest path problems, it is therefore convenient to set the
+background value to PlusInfinity<A NAME="238"></A>. In network flow
+problems, on the other hand, two nodes not connected by an arc can be
+regarded as joined by an arc<A NAME="239"></A> of 0 capacity.
+For these problems, therefore, it is more convenient to set the
+background value to 0.  In general, when representing
+sparse<A NAME="240"></A> matrices, the background value is the value that
+is assumed implicitly.
+
+<P>
+At initialization, the background value is set to 0. It can be read
+with <I>Cudd_ReadBackground</I><A NAME="1148"></A>, and
+modified with <I>Cudd_SetBackground</I>.  The background value
+affects procedures that read sparse matrices/graphs
+(<I>Cudd_addRead</I><A NAME="1150"></A> and
+<I>Cudd_addHarwell</I><A NAME="1152"></A>), procedures that print
+out sum-of-product<A NAME="248"></A> expressions for
+ADDs (<I>Cudd_PrintMinterm</I><A NAME="1154"></A>), generators
+of cubes (<I>Cudd_ForeachCube</I><A NAME="1156"></A>), and
+procedures that count minterms<A NAME="253"></A>
+(<I>Cudd_CountMinterm</I><A NAME="1158"></A>).
+
+<P>
+
+<H3><A NAME="SECTION00035400000000000000"></A>
+<A NAME="sec:newconst"></A>
+<BR>
+New Constants
+</H3>
+
+<P>
+New constant<A NAME="258"></A> can be created by calling
+<I>Cudd_addConst</I><A NAME="1160"></A>. This function will
+retrieve the ADD<A NAME="261"></A> for the desired constant, if it already
+exist, or it will create a new one.  Obviously, new constants should
+only be used when manipulating ADDs.
+
+<P>
+
+<H2><A NAME="SECTION00036000000000000000"></A>
+<A NAME="sec:newvar"></A>
+<BR>
+Creating Variables
+</H2>
+
+<P>
+Decision diagrams are typically created by combining simpler decision
+diagrams.  The simplest decision diagrams, of course, cannot be
+created in that way.  Constant functions have been discussed in
+Section&nbsp;<A HREF="#sec:const">3.5</A>.  In this section we discuss the simple
+variable functions, also known as <I>projection<A NAME="265"></A> functions</I>.
+
+<P>
+
+<H3><A NAME="SECTION00036100000000000000"></A>
+<A NAME="sec:BDDADDvar"></A>
+<BR>
+New BDD and ADD Variables
+</H3>
+
+<P>
+The projection<A NAME="268"></A> functions are distinct for
+BDDs and ADDs. A projection function for BDDs consists of an internal
+node with both outgoing arcs pointing to the constant 1. The
+<I>else</I> arc<A NAME="270"></A> is complemented.
+
+<P>
+An ADD projection function, on the other hand, has the <I>else</I>
+pointer directed to the arithmetic<A NAME="272"></A> zero
+function. One should never mix the two types of variables.  BDD
+variables should be used when manipulating BDDs, and ADD variables
+should be used when manipulating ADDs.  Three functions are provided
+to create BDD variables:
+
+<UL>
+<LI><I>Cudd_bddIthVar</I><A NAME="1162"></A>: Returns
+  the projection<A NAME="276"></A> function with index <IMG
+ WIDTH="10" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="$i$">.
+  If the function does not exist, it is created.
+</LI>
+<LI><I>Cudd_bddNewVar</I><A NAME="1164"></A>: Returns a
+  new projection<A NAME="279"></A> function, whose index is
+  the largest index in use at the time of the call, plus 1.
+</LI>
+<LI><I>Cudd_bddNewVarAtLevel</I><A NAME="1166"></A>:
+  Similar to <I>Cudd_bddNewVar</I><A NAME="1168"></A>.  In
+  addition it allows to specify the position in the variable
+  order<A NAME="284"></A> at which the new variable should be
+  inserted.  In contrast, <I>Cudd_bddNewVar</I><A NAME="1170"></A>
+  adds the new variable at the end of the order.
+</LI>
+</UL>
+The analogous functions for ADDs are
+<I>Cudd_addIthVar</I><A NAME="1172"></A>,
+<I>Cudd_addNewVar</I><A NAME="1174"></A>, and
+<I>Cudd_addNewVarAtLevel</I><A NAME="1176"></A>.
+
+<P>
+
+<H3><A NAME="SECTION00036200000000000000"></A>
+<A NAME="295"></A><A NAME="sec:ZDDvars"></A>
+<BR>
+New ZDD Variables
+</H3>
+
+<P>
+Unlike the projection functions of BDDs and ADDs, the
+projection<A NAME="297"></A> functions of ZDDs have diagrams
+with <IMG
+ WIDTH="45" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img7.png"
+ ALT="$n+1$"> nodes, where <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.png"
+ ALT="$n$"> is the number of variables.  Therefore the
+ZDDs of the projection functions change when new variables are added.
+This will be discussed in Section&nbsp;<A HREF="#sec:basicZDD">3.9</A>.  Here we assume
+that the number of variables is fixed. The ZDD of the <IMG
+ WIDTH="10" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="$i$">-th
+projection function is returned by
+<I>Cudd_zddIthVar</I><A NAME="1178"></A>.
+
+<P>
+
+<H2><A NAME="SECTION00037000000000000000"></A>
+<A NAME="302"></A><A NAME="sec:basicBDD"></A>
+<BR>
+Basic BDD Manipulation
+</H2>
+
+<P>
+Common manipulations of BDDs can be accomplished by calling
+<I>Cudd_bddIte</I>.  This function takes three BDDs, <IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="$f$">, <IMG
+ WIDTH="13" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img9.png"
+ ALT="$g$">, and
+<IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.png"
+ ALT="$h$">, as arguments and computes <!-- MATH
+ $f\cdot g + f'\cdot h$
+ -->
+<IMG
+ WIDTH="95" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img11.png"
+ ALT="$f\cdot g + f'\cdot h$">. Like all the
+functions that create new BDDs or ADDs, <I>Cudd_bddIte</I><A NAME="1180"></A> returns a result that must be
+explicitly referenced by the caller.  <I>Cudd_bddIte</I> can be used
+to implement all two-argument boolean functions.  However, the package
+also provides <I>Cudd_bddAnd</I><A NAME="1182"></A> as well as the
+other two-operand boolean functions, which are slightly more efficient
+when a two-operand function is called for.  The following fragment of
+code illustrates how to build the BDD for the function <!-- MATH
+ $f =
+x_0'x_1'x_2'x_3'$
+ -->
+<IMG
+ WIDTH="108" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="$f =
+x_0'x_1'x_2'x_3'$">.
+<PRE>
+	DdManager *manager;
+	DdNode *f, *var, *tmp;
+	int i;
+
+	...
+
+	f = Cudd_ReadOne(manager);
+	Cudd_Ref(f);
+	for (i = 3; i &gt;= 0; i--) {
+	    var = Cudd_bddIthVar(manager,i);
+	    tmp = Cudd_bddAnd(manager,Cudd_Not(var),f);
+	    Cudd_Ref(tmp);
+	    Cudd_RecursiveDeref(manager,f);
+	    f = tmp;
+	}
+</PRE>
+This example illustrates the following points:
+
+<UL>
+<LI>Intermediate results must be ``referenced'' and
+  ``dereferenced.''  However, <TT>var</TT> is a
+  projection<A NAME="314"></A> function, and its
+  reference<A NAME="315"></A> count is always greater than
+  0.  Therefore, there is no call to <I>Cudd_Ref</I><A NAME="1184"></A>.
+</LI>
+<LI>The new <TT>f</TT> must be assigned to a temporary variable
+  (<TT>tmp</TT> in this example).  If the result of
+  <I>Cudd_bddAnd</I><A NAME="1186"></A> were assigned directly to
+  <TT>f</TT>, the old <TT>f</TT> would be lost, and there would be no
+  way to free its nodes.
+</LI>
+<LI>The statement <TT>f = tmp</TT> has the same effect as:
+<PRE>
+	    f = tmp;
+	    Cudd_Ref(f);
+	    Cudd_RecursiveDeref(manager,tmp);
+</PRE>
+  but is more efficient. The reference<A NAME="327"></A> is
+  ``passed'' from <TT>tmp</TT> to <TT>f</TT>, and <TT>tmp</TT> is now
+  ready to be reutilized.
+</LI>
+<LI>It is normally more efficient to build BDDs ``bottom-up.''  This
+  is why the loop goes from 3 to 0.  Notice, however, that after
+  variable reordering, higher index does not necessarily mean ``closer
+  to the bottom.''  Of course, in this simple example, efficiency is
+  not a concern.
+</LI>
+<LI>Had we wanted to conjoin the variables in a bottom-up fashion
+  even after reordering, we should have used
+  <I>Cudd_ReadInvPerm</I><A NAME="1188"></A>.  One has to be
+  careful, though, to fix the order of conjunction before entering the
+  loop. Otherwise, if reordering takes place, it is possible to use
+  one variable twice and skip another variable.
+</LI>
+</UL>
+
+<P>
+
+<H2><A NAME="SECTION00038000000000000000"></A>
+<A NAME="335"></A><A NAME="sec:basicADD"></A>
+<BR>
+Basic ADD Manipulation
+</H2>
+
+<P>
+The most common way to manipulate ADDs is via
+<I>Cudd_addApply</I><A NAME="1190"></A>.  This function can apply a
+wide variety of operators to a pair of ADDs.  Among the available
+operators are addition, multiplication, division, minimum, maximum,
+and boolean operators that work on ADDs whose leaves are restricted to
+0 and 1 (0-1 ADDs).
+
+<P>
+The following fragment of code illustrates how to build the ADD for
+the function <!-- MATH
+ $f = 5x_0x_1x_2x_3$
+ -->
+<IMG
+ WIDTH="117" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img13.png"
+ ALT="$f = 5x_0x_1x_2x_3$">.
+<PRE>
+	DdManager *manager;
+	DdNode *f, *var, *tmp;
+	int i;
+
+	...
+
+	f = Cudd_addConst(manager,5);
+	Cudd_Ref(f);
+	for (i = 3; i &gt;= 0; i--) {
+	    var = Cudd_addIthVar(manager,i);
+	    Cudd_Ref(var);
+	    tmp = Cudd_addApply(manager,Cudd_addTimes,var,f);
+	    Cudd_Ref(tmp);
+	    Cudd_RecursiveDeref(manager,f);
+	    Cudd_RecursiveDeref(manager,var);
+	    f = tmp;
+	}
+</PRE>
+This example, contrasted to the example of BDD manipulation,
+illustrates the following points:
+
+<UL>
+<LI>The ADD projection<A NAME="342"></A> function are not
+  maintained by the manager.  It is therefore necessary to
+  reference<A NAME="343"></A> and
+  dereference<A NAME="344"></A> them.
+</LI>
+<LI>The product of two ADDs is computed by calling
+  <I>Cudd_addApply</I><A NAME="1192"></A> with
+  <I>Cudd_addTimes</I><A NAME="1194"></A> as parameter.  There is
+  no ``apply'' function for BDDs, because
+  <I>Cudd_bddAnd</I><A NAME="1196"></A> and
+  <I>Cudd_bddXor</I><A NAME="1198"></A> plus complementation are
+  sufficient to implement all two-argument boolean functions.
+</LI>
+</UL>
+
+<P>
+
+<H2><A NAME="SECTION00039000000000000000"></A>
+<A NAME="355"></A><A NAME="sec:basicZDD"></A>
+<BR>
+Basic ZDD Manipulation
+</H2>
+
+<P>
+ZDDs are often generated by converting<A NAME="357"></A>
+existing BDDs.  (See Section&nbsp;<A HREF="#sec:convertZ">3.11</A>.) However, it is also
+possible to build ZDDs by applying boolean operators to other ZDDs,
+starting from constants and projection<A NAME="359"></A>
+functions.  The following fragment of code illustrates how to build
+the ZDD for the function <!-- MATH
+ $f = x_0'+x_1'+x_2'+x_3'$
+ -->
+<IMG
+ WIDTH="172" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img14.png"
+ ALT="$f = x_0'+x_1'+x_2'+x_3'$">. We assume that the
+four variables already exist in the manager when the ZDD for <IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="$f$"> is
+built. Note the use of De Morgan's law.
+<PRE>
+	DdManager *manager;
+	DdNode *f, *var, *tmp;
+	int i;
+
+	manager = Cudd_Init(0,4,CUDD_UNIQUE_SLOTS,
+			    CUDD_CACHE_SLOTS,0);
+	...
+
+	tmp = Cudd_ReadZddOne(manager,0);
+	Cudd_Ref(tmp);
+	for (i = 3; i &gt;= 0; i--) {
+	    var = Cudd_zddIthVar(manager,i);
+	    Cudd_Ref(var);
+	    f = Cudd_zddIntersect(manager,var,tmp);
+	    Cudd_Ref(f);
+	    Cudd_RecursiveDerefZdd(manager,tmp);
+	    Cudd_RecursiveDerefZdd(manager,var);
+	    tmp = f;
+	}
+	f = Cudd_zddDiff(manager,Cudd_ReadZddOne(manager,0),tmp);
+	Cudd_Ref(f);
+	Cudd_RecursiveDerefZdd(manager,tmp);
+</PRE>
+This example illustrates the following points:
+
+<UL>
+<LI>The projection<A NAME="363"></A> functions are
+  referenced, because they are not maintained by the manager.
+</LI>
+<LI>Complementation is obtained by subtracting from the constant 1
+  function.
+</LI>
+<LI>The result of <I>Cudd_ReadZddOne</I><A NAME="1200"></A>
+  does not require referencing.
+</LI>
+</UL>
+CUDD provides functions for the manipulation of
+covers<A NAME="367"></A> represented by ZDDs. For instance,
+<I>Cudd_zddIsop</I><A NAME="1202"></A> builds a ZDD representing an
+irredundant<A NAME="370"></A> sum of products for the
+incompletely specified function defined by the two BDDs <IMG
+ WIDTH="16" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img15.png"
+ ALT="$L$"> and <IMG
+ WIDTH="18" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img16.png"
+ ALT="$U$">.
+<I>Cudd_zddWeakDiv</I><A NAME="1204"></A> performs the weak
+division of two covers given as ZDDs.  These functions expect the two
+ZDD variables corresponding to the two literals of the function
+variable to be adjacent.  One has to create variable groups (see
+Section&nbsp;<A HREF="#sec:reordZ">3.14</A>) for reordering<A NAME="374"></A> of
+the ZDD variables to work.  BDD automatic reordering is safe even
+without groups: If realignment of ZDD and ADD/BDD variables is
+requested (see Section&nbsp;<A HREF="#sec:consist">3.15</A>) groups will be kept
+adjacent.
+
+<P>
+
+<H2><A NAME="SECTION000310000000000000000"></A>
+<A NAME="377"></A>
+<A NAME="378"></A><A NAME="sec:convert"></A>
+<BR>
+Converting ADDs to BDDs and Vice Versa
+</H2>
+
+<P>
+Several procedures are provided to convert ADDs to BDDs, according to
+different criteria.
+(<I>Cudd_addBddPattern</I><A NAME="1206"></A>,
+<I>Cudd_addBddInterval</I><A NAME="1208"></A>, and
+<I>Cudd_addBddThreshold</I><A NAME="1210"></A>.) The
+conversion from BDDs to ADDs
+(<I>Cudd_BddToAdd</I><A NAME="1212"></A>) is based on the simple
+principle of mapping the logical 0<A NAME="388"></A> and 1 on the
+arithmetic<A NAME="389"></A> 0 and 1.  It is also possible to
+convert an ADD with integer values (more precisely, floating point
+numbers with 0 fractional part) to an array of BDDs by repeatedly
+calling <I>Cudd_addIthBit</I><A NAME="1214"></A>.
+
+<P>
+
+<H2><A NAME="SECTION000311000000000000000"></A>
+<A NAME="393"></A>
+<A NAME="394"></A><A NAME="sec:convertZ"></A>
+<BR>
+Converting BDDs to ZDDs and Vice Versa
+</H2>
+
+<P>
+Many applications first build a set of BDDs and then derive ZDDs from
+the BDDs. These applications should create the manager with 0
+ZDD<A NAME="396"></A> variables and create the BDDs. Then they should call
+<I>Cudd_zddVarsFromBddVars</I><A NAME="1216"></A> to
+create the necessary ZDD variables--whose number is likely to be
+known once the BDDs are available.  This approach eliminates the
+difficulties that arise when the number of ZDD variables changes while
+ZDDs are being built.
+
+<P>
+The simplest conversion from BDDs to ZDDs is a simple change of
+representation, which preserves the functions. Simply put, given a BDD
+for <IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="$f$">, a ZDD for <IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="$f$"> is requested. In this case the correspondence
+between the BDD variables and ZDD variables is one-to-one. Hence,
+<I>Cudd_zddVarsFromBddVars</I> should be called with the
+<I>multiplicity</I> parameter equal to 1. The conversion proper can
+then be performed by calling
+<I>Cudd_zddPortFromBdd</I><A NAME="1218"></A>. The inverse
+transformation is performed by
+<I>Cudd_zddPortToBdd</I><A NAME="1220"></A>.
+
+<P>
+ZDDs are quite often used for the representation of
+<I>covers</I><A NAME="406"></A>. This is normally done by
+associating two ZDD variables to each variable of the function.  (And
+hence, typically, to each BDD variable.)  One ZDD variable is
+associated with the positive literal of the BDD variable, while the
+other ZDD variable is associated with the negative literal.  A call to
+<I>Cudd_zddVarsFromBddVars</I><A NAME="1222"></A> with
+<I>multiplicity</I> equal to 2 will associate to BDD variable <IMG
+ WIDTH="10" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="$i$"> the
+two ZDD variables <IMG
+ WIDTH="19" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img17.png"
+ ALT="$2i$"> and <IMG
+ WIDTH="49" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img18.png"
+ ALT="$2i+1$">.
+
+<P>
+If a BDD variable group tree exists when
+<I>Cudd_zddVarsFromBddVars</I> is called (see
+Section&nbsp;<A HREF="#sec:group">3.13</A>) the function generates a ZDD variable group
+tree consistent to it.  In any case, all the ZDD variables derived
+from the same BDD variable are clustered into a group.
+
+<P>
+If the ZDD for <IMG
+ WIDTH="15" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="$f$"> is created and later a new ZDD variable is added to
+the manager, the function represented by the existing ZDD changes.
+Suppose, for instance, that two variables are initially created, and
+that the ZDD for <IMG
+ WIDTH="94" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img19.png"
+ ALT="$f = x_0 + x_1$"> is built. If a third variable is
+added, say <IMG
+ WIDTH="22" HEIGHT="32" ALIGN="MIDDLE" BORDER="0"
+ SRC="img20.png"
+ ALT="$x_2$">, then the ZDD represents <!-- MATH
+ $g = (x_0 + x_1) x_2'$
+ -->
+<IMG
+ WIDTH="124" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img21.png"
+ ALT="$g = (x_0 + x_1) x_2'$">
+instead.  This change in function obviously applies regardless of what
+use is made of the ZDD. However, if the ZDD is used to represent a
+cover<A NAME="412"></A>, the cover itself is not changed by the
+addition of new variable. (What changes is the
+characteristic<A NAME="413"></A> function of the cover.)
+
+<P>
+
+<H2><A NAME="SECTION000312000000000000000"></A>
+<A NAME="415"></A><A NAME="sec:reorder"></A>
+<BR>
+Variable Reordering for BDDs and ADDs
+</H2>
+
+<P>
+The CUDD package provides a rich set of
+dynamic<A NAME="417"></A> reordering algorithms.  Some of them
+are slight variations of existing techniques
+[<A
+ HREF="node7.html#Rudell93">16</A>,<A
+ HREF="node7.html#Drechs95">6</A>,<A
+ HREF="node7.html#Bollig95">2</A>,<A
+ HREF="node7.html#Ishiur91">10</A>,<A
+ HREF="node7.html#Plessi93">15</A>,<A
+ HREF="node7.html#Jeong93">11</A>]; some
+others have been developed specifically for this package
+[<A
+ HREF="node7.html#Panda94">14</A>,<A
+ HREF="node7.html#Panda95b">13</A>].
+
+<P>
+Reordering affects a unique<A NAME="420"></A> table. This means that
+BDDs and ADDs, which share the same unique table are simultaneously
+reordered. ZDDs, on the other hand, are reordered separately. In the
+following we discuss the reordering of BDDs and ADDs. Reordering for
+ZDDs is the subject of Section&nbsp;<A HREF="#sec:reordZ">3.14</A>.
+
+<P>
+Reordering of the variables can be invoked directly by the application
+by calling <I>Cudd_ReduceHeap</I><A NAME="1224"></A>. Or it can
+be automatically triggered by the package when the number of nodes has
+reached a given threshold<A NAME="424"></A>.  (The threshold
+is initialized and automatically adjusted after each reordering by the
+package.) To enable automatic dynamic reordering (also called
+<I>asynchronous<A NAME="425"></A></I> dynamic reordering
+in this document) the application must call
+<I>Cudd_AutodynEnable</I><A NAME="1226"></A>.  Automatic
+dynamic reordering can subsequently be disabled by calling
+<I>Cudd_AutodynDisable</I><A NAME="1228"></A>.
+
+<P>
+All reordering methods are available in both the case of direct call
+to <I>Cudd_ReduceHeap</I><A NAME="1230"></A> and the case of
+automatic invocation.  For many methods, the reordering procedure is
+iterated until no further improvement is obtained.  We call these
+methods the <I>converging<A NAME="432"></A></I> methods.
+When constraints are imposed on the relative position of variables
+(see Section&nbsp;<A HREF="#sec:group">3.13</A>) the reordering methods apply inside the
+groups.  The groups<A NAME="434"></A> themselves are reordered
+by sifting<A NAME="435"></A>.  Each method is identified by a
+constant of the enumerated type
+<I>Cudd_ReorderingType<A NAME="436"></A></I>
+defined in <I>cudd.h<A NAME="437"></A></I> (the external
+header<A NAME="438"></A> file of the CUDD package):
+
+<P>
+<DL>
+<DT><STRONG>CUDD_REORDER_NONE<A NAME="440"></A>:</STRONG></DT>
+<DD>This method
+  causes no reordering.
+</DD>
+<DT><STRONG>CUDD_REORDER_SAME<A NAME="441"></A>:</STRONG></DT>
+<DD>If passed to
+  <I>Cudd_AutodynEnable</I><A NAME="1232"></A>, this
+  method leaves the current method for automatic reordering unchanged.
+  If passed to <I>Cudd_ReduceHeap</I><A NAME="1234"></A>,
+  this method causes the current method for automatic reordering to be
+  used.
+</DD>
+<DT><STRONG>CUDD_REORDER_RANDOM<A NAME="446"></A>:</STRONG></DT>
+<DD>Pairs of
+  variables are randomly chosen, and swapped in the order. The swap is
+  performed by a series of swaps of adjacent variables. The best order
+  among those obtained by the series of swaps is retained. The number
+  of pairs chosen for swapping<A NAME="447"></A> equals the
+  number of variables in the diagram.
+</DD>
+<DT><STRONG>CUDD_REORDER_RANDOM_PIVOT<A NAME="448"></A>:</STRONG></DT>
+<DD>Same as CUDD_REORDER_RANDOM, but the two variables are chosen so
+  that the first is above the variable with the largest number of
+  nodes, and the second is below that variable.  In case there are
+  several variables tied for the maximum number of nodes, the one
+  closest to the root is used.
+</DD>
+<DT><STRONG>CUDD_REORDER_SIFT<A NAME="449"></A>:</STRONG></DT>
+<DD>This method is
+  an implementation of Rudell's sifting<A NAME="450"></A>
+  algorithm [<A
+ HREF="node7.html#Rudell93">16</A>]. A simplified description of sifting is as
+  follows: Each variable is considered in turn. A variable is moved up
+  and down in the order so that it takes all possible positions. The
+  best position is identified and the variable is returned to that
+  position.
+
+<P>
+In reality, things are a bit more complicated. For instance, there
+  is a limit on the number of variables that will be sifted. This
+  limit can be read with
+  <I>Cudd_ReadSiftMaxVar</I><A NAME="1236"></A> and set with
+  <I>Cudd_SetSiftMaxVar</I><A NAME="1238"></A>.  In addition,
+  if the diagram grows too much while moving a variable up or down,
+  that movement is terminated before the variable has reached one end
+  of the order. The maximum ratio by which the diagram is allowed to
+  grow while a variable is being sifted can be read with
+  <I>Cudd_ReadMaxGrowth</I><A NAME="1240"></A> and set with
+  <I>Cudd_SetMaxGrowth</I><A NAME="1242"></A>.
+</DD>
+<DT><STRONG>CUDD_REORDER_SIFT_CONVERGE<A NAME="460"></A>:</STRONG></DT>
+<DD>This is the converging<A NAME="461"></A> variant of
+  CUDD_REORDER_SIFT.
+</DD>
+<DT><STRONG>CUDD_REORDER_SYMM_SIFT<A NAME="462"></A>:</STRONG></DT>
+<DD>This method is an implementation of
+  symmetric<A NAME="463"></A> sifting [<A
+ HREF="node7.html#Panda94">14</A>]. It is
+  similar to sifting, with one addition: Variables that become
+  adjacent during sifting are tested for symmetry<A NAME="465"></A>. If
+  they are symmetric, they are linked in a group.  Sifting then
+  continues with a group being moved, instead of a single variable.
+  After symmetric sifting has been run,
+  <I>Cudd_SymmProfile</I><A NAME="1244"></A> can be called to
+  report on the symmetry groups found. (Both positive and negative
+  symmetries are reported.)
+</DD>
+<DT><STRONG>CUDD_REORDER_SYMM_SIFT_CONV<A NAME="468"></A>:</STRONG></DT>
+<DD>This is the converging<A NAME="469"></A> variant of
+  CUDD_REORDER_SYMM_SIFT.
+</DD>
+<DT><STRONG>CUDD_REORDER_GROUP_SIFT<A NAME="470"></A>:</STRONG></DT>
+<DD>This method is an implementation of group<A NAME="471"></A>
+  sifting [<A
+ HREF="node7.html#Panda95b">13</A>]. It is similar to symmetric sifting, but
+  aggregation<A NAME="473"></A> is not restricted to symmetric
+  variables.
+</DD>
+<DT><STRONG>CUDD_REORDER_GROUP_SIFT_CONV<A NAME="474"></A>:</STRONG></DT>
+<DD>This method repeats until convergence the combination of
+  CUDD_REORDER_GROUP_SIFT and CUDD_REORDER_WINDOW4.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW2<A NAME="475"></A>:</STRONG></DT>
+<DD>This
+  method implements the window<A NAME="476"></A> permutation
+  approach of Fujita [<A
+ HREF="node7.html#Fujita91b">8</A>] and Ishiura [<A
+ HREF="node7.html#Ishiur91">10</A>].
+  The size of the window is 2.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW3<A NAME="479"></A>:</STRONG></DT>
+<DD>Similar
+  to CUDD_REORDER_WINDOW2, but with a window of size 3.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW4<A NAME="480"></A>:</STRONG></DT>
+<DD>Similar
+  to CUDD_REORDER_WINDOW2, but with a window of size 4.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW2_CONV<A NAME="481"></A>:</STRONG></DT>
+<DD>This is the converging<A NAME="482"></A> variant of
+  CUDD_REORDER_WINDOW2.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW3_CONV<A NAME="483"></A>:</STRONG></DT>
+<DD>This is the converging variant of CUDD_REORDER_WINDOW3.
+</DD>
+<DT><STRONG>CUDD_REORDER_WINDOW4_CONV<A NAME="484"></A>:</STRONG></DT>
+<DD>This is the converging variant of CUDD_REORDER_WINDOW4.
+</DD>
+<DT><STRONG>CUDD_REORDER_ANNEALING<A NAME="485"></A>:</STRONG></DT>
+<DD>This
+  method is an implementation of simulated
+  annealing<A NAME="486"></A> for variable
+  ordering, vaguely resemblant of the algorithm of [<A
+ HREF="node7.html#Bollig95">2</A>].
+  This method is potentially very slow.
+</DD>
+<DT><STRONG>CUDD_REORDER_GENETIC:<A NAME="488"></A></STRONG></DT>
+<DD>This
+  method is an implementation of a genetic<A NAME="489"></A>
+  algorithm for variable ordering, inspired by the work of Drechsler
+  [<A
+ HREF="node7.html#Drechs95">6</A>]. This method is potentially very slow.
+</DD>
+<DT><STRONG>CUDD_REORDER_EXACT<A NAME="491"></A>:</STRONG></DT>
+<DD>This method
+  implements a dynamic programming approach to
+  exact<A NAME="492"></A> reordering
+  [<A
+ HREF="node7.html#Held62">9</A>,<A
+ HREF="node7.html#Friedman90">7</A>,<A
+ HREF="node7.html#Ishiur91">10</A>], with improvements described in
+  [<A
+ HREF="node7.html#Jeong93">11</A>]. It only stores one BDD at the time. Therefore, it is
+  relatively efficient in terms of memory.  Compared to other
+  reordering strategies, it is very slow, and is not recommended for
+  more than 16 variables.
+</DD>
+</DL>
+So far we have described methods whereby the package selects an order
+automatically. A given order of the variables can also be imposed by
+calling <I>Cudd_ShuffleHeap</I><A NAME="1246"></A>.
+
+<P>
+
+<H2><A NAME="SECTION000313000000000000000"></A>
+<A NAME="499"></A><A NAME="sec:group"></A>
+<BR>
+Grouping Variables
+</H2>
+
+<P>
+CUDD allows the application to specify constraints on the positions of
+group of variables. It is possible to request that a group of
+contiguous variables be kept contiguous by the reordering procedures.
+It is also possible to request that the relative order of some groups
+of variables be left unchanged. The constraints on the order are
+specified by means of a tree<A NAME="501"></A>, which is created in
+one of two ways:
+
+<UL>
+<LI>By calling <I>Cudd_MakeTreeNode</I><A NAME="1248"></A>.
+</LI>
+<LI>By calling the functions of the MTR<A NAME="505"></A> library
+  (part of the distribution), and by registering the result with the
+  manager using <I>Cudd_SetTree</I><A NAME="1250"></A>. The current
+  tree registered with the manager can be read with
+  <I>Cudd_ReadTree</I><A NAME="1252"></A>.
+</LI>
+</UL>
+
+<P>
+Each node in the tree represents a range of variables. The lower bound
+of the range is given by the <I>low</I> field of the node, and the
+size of the group is given by the <I>size</I> field of the
+node.<A NAME="tex2html4"
+  HREF="footnode.html#foot1083"><SUP>2</SUP></A>  The variables
+in each range are kept contiguous. Furthermore, if a node is marked
+with the MTR_FIXED<A NAME="515"></A> flag, then the relative order of
+the variable ranges associated to its children is not changed.  As an
+example, suppose the initial variable order is:
+<PRE>
+	x0, y0, z0, x1, y1, z1, ... , x9, y9, z9.
+</PRE>
+Suppose we want to keep each group of three variables with the same
+index (e.g., <code>x3, y3, z3</code>) contiguous, while allowing the package
+to change the order of the groups. We can accomplish this with the
+following code:
+<PRE>
+	for (i = 0; i &lt; 10; i++) {
+	    (void) Cudd_MakeTreeNode(manager,i*3,3,MTR_DEFAULT);
+	}
+</PRE>
+If we want to keep the order within each group of variables
+fixed (i.e., <code>x</code> before <code>y</code> before <code>z</code>) we need to
+change MTR_DEFAULT<A NAME="520"></A> into MTR_FIXED.
+
+<P>
+The <I>low</I> parameter passed to
+<I>Cudd_MakeTreeNode</I><A NAME="1254"></A> is the index of a
+variable (as opposed to its level or position in the order).  The
+group tree<A NAME="524"></A> can be created at any time.  The
+result obviously depends on the variable order in effect at creation
+time.
+
+<P>
+It is possible to create a variable group tree also before the
+variables themselves are created.  The package assumes in this case
+that the index of the variables not yet in existence will equal their
+position in the order when they are created.  Therefore, applications
+that rely on
+<I>Cudd_bddNewVarAtLevel</I><A NAME="1256"></A> or
+<I>Cudd_addNewVarAtLevel</I><A NAME="1258"></A> to create
+new variables have to create the variables before they group them.
+
+<P>
+The reordering procedure will skip all groups whose variables are not
+yet in existence.  For groups that are only partially in existence, the
+reordering procedure will try to reorder the variables already
+instantiated, without violating the adjacency constraints.
+
+<P>
+
+<H2><A NAME="SECTION000314000000000000000"></A>
+<A NAME="530"></A><A NAME="sec:reordZ"></A>
+<BR>
+Variable Reordering for ZDDs
+</H2>
+
+<P>
+Reordering of ZDDs is done in much the same way as the reordering of
+BDDs and ADDs. The functions corresponding to <I>Cudd_ReduceHeap</I>
+and <I>Cudd_ShuffleHeap</I> are
+<I>Cudd_zddReduceHeap</I><A NAME="1260"></A> and
+<I>Cudd_zddShuffleHeap</I><A NAME="1262"></A>.  To enable
+dynamic<A NAME="538"></A> reordering, the application must
+call <I>Cudd_AutodynEnableZdd</I><A NAME="1264"></A>, and
+to disable dynamic reordering, it must call
+<I>Cudd_AutodynDisableZdd</I><A NAME="1266"></A>.  In the
+current implementation, however, the choice of reordering methods for
+ZDDs is more limited. Specifically, these methods are available:
+
+<P>
+<DL>
+<DT><STRONG>CUDD_REORDER_NONE<A NAME="544"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_SAME<A NAME="545"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_RANDOM<A NAME="546"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_RANDOM_PIVOT<A NAME="547"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_SIFT<A NAME="548"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_SIFT_CONVERGE<A NAME="549"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_SYMM_SIFT<A NAME="550"></A>;</STRONG></DT>
+<DD>
+</DD>
+<DT><STRONG>CUDD_REORDER_SYMM_SIFT_CONV<A NAME="551"></A>.</STRONG></DT>
+<DD>
+</DD>
+</DL>
+
+<P>
+To create ZDD variable groups, the application calls
+<I>Cudd_MakeZddTreeNode</I><A NAME="1268"></A>.
+
+<P>
+
+<H2><A NAME="SECTION000315000000000000000"></A>
+<A NAME="sec:consist"></A>
+<BR>
+Keeping Consistent Variable Orders for BDDs and ZDDs
+</H2>
+
+<P>
+Several applications that manipulate both BDDs and ZDDs benefit from
+keeping a fixed correspondence between the order of the BDD variables
+and the order of the ZDD variables.  If each BDD variable corresponds
+to a group of ZDD variables, then it is often desirable that the
+groups of ZDD variables be in the same order as the corresponding BDD
+variables.  CUDD allows the ZDD order to track the BDD order and vice
+versa. To have the ZDD order track the BDD order, the application
+calls <I>Cudd_zddRealignEnable</I><A NAME="1270"></A>.  The
+effect of this call can be reversed by calling
+<I>Cudd_zddRealignDisable</I><A NAME="1272"></A>.  When
+ZDD realignment is in effect, automatic reordering of ZDDs should be
+disabled.
+
+<P>
+
+<H2><A NAME="SECTION000316000000000000000"></A>
+<A NAME="562"></A><A NAME="sec:hooks"></A>
+<BR>
+Hooks
+</H2>
+
+<P>
+Hooks in CUDD are lists of application-specified functions to be run on
+certain occasions. Each hook is identified by a constant of the
+enumerated type <I>Cudd_HookType</I><A NAME="1274"></A>. In Version
+2.5.0 hooks are defined for these occasions:
+
+<UL>
+<LI>before garbage collection (CUDD_PRE_GC_HOOK);
+</LI>
+<LI>after garbage collection (CUDD_POST_GC_HOOK);
+</LI>
+<LI>before variable reordering (CUDD_PRE_REORDERING_HOOK);
+</LI>
+<LI>after variable reordering (CUDD_POST_REORDERING_HOOK).
+</LI>
+</UL>
+The current implementation of hooks is experimental. A function added
+to a hook receives a pointer to the manager, a pointer to a constant
+string, and a pointer to void as arguments; it must return 1 if
+successful; 0 otherwise. The second argument is one of ``DD,''
+``BDD,'' and ``ZDD.'' This allows the hook functions to tell the type
+of diagram for which reordering or garbage collection takes place. The
+third argument varies depending on the hook. The hook functions called
+before or after garbage collection<A NAME="568"></A> do
+not use it. The hook functions called before
+reordering<A NAME="569"></A> are passed, in addition to the
+pointer to the manager, also the method used for reordering. The hook
+functions called after reordering are passed the start time. To add a
+function to a hook, one uses <I>Cudd_AddHook</I><A NAME="1276"></A>.
+The function of a given hook
+are called in the order in which they were added to the hook.  For
+sample hook functions, one may look at
+<I>Cudd_StdPreReordHook</I><A NAME="1278"></A> and
+<I>Cudd_StdPostReordHook</I><A NAME="1280"></A>.
+
+<P>
+
+<H2><A NAME="SECTION000317000000000000000"></A>
+<A NAME="577"></A><A NAME="sec:timeouts"></A>
+<BR>
+Timeouts and Limits
+</H2>
+
+<P>
+It is possible to set a time limit for a manger with
+<I>Cudd_SetTimeLimit</I><A NAME="1282"></A>.  Once set, the
+time available to the manager can be modified through other API
+functions.  CUDD checks for expiration periodically.  When time has
+expired, it returns NULL from the call in progress, but it leaves the
+manager in a consistent state.  The invoking application must be
+designed to handle the NULL values returned.
+
+<P>
+When reordering, if a timout is approaching, CUDD will quit reordering
+to give the application a chance to finish some computation.
+
+<P>
+It is also possible to invoke some functions that return NULL if they
+cannot complete without creating more than a set number of nodes.
+See, for instance, <I>Cudd_bddAndLimit</I><A NAME="1284"></A>.
+
+<P>
+
+<H2><A NAME="SECTION000318000000000000000"></A>
+<A NAME="584"></A><A NAME="585"></A><A NAME="sec:sis-vis"></A>
+<BR>
+The SIS/VIS Interface
+</H2>
+
+<P>
+The CUDD package contains interface functions that emulate the
+behavior of the original BDD package used in SIS [<A
+ HREF="node7.html#Sentov92">17</A>] and
+in the newer
+<A NAME="tex2html5"
+  HREF="http://vlsi.Colorado.EDU/~vis/">VIS</A>
+[<A
+ HREF="node7.html#VIS">4</A>]. How to build VIS with CUDD is described
+in the installation documents of VIS. (Version 1.1 and later.)
+
+<P>
+
+<H3><A NAME="SECTION000318100000000000000"></A>
+<A NAME="592"></A><A NAME="sec:sis"></A>
+<BR>
+Using the CUDD Package in SIS
+</H3>
+
+<P>
+This section describes how to build SIS with the CUDD package.  Let
+<TT>SISDIR<A NAME="594"></A></TT> designate the root of the directory
+hierarchy where the sources for SIS reside.  Let
+<TT>CUDDDIR<A NAME="595"></A></TT> be the root of the directory hierarchy
+where the distribution of the CUDD package resides.  To build SIS with
+the CUDD package, follow these steps.
+
+<OL>
+<LI>Create directories <TT>SISDIR/sis/cudd</TT> and
+  <TT>SISDIR/sis/mtr</TT>.
+</LI>
+<LI>Copy all files from <TT>CUDDDIR/cudd</TT> and
+  <TT>CUDDDIR/sis</TT> to <TT>SISDIR/sis/cudd</TT> and all files from
+  <TT>CUDDDIR/mtr</TT> to <TT>SISDIR/sis/mtr</TT>.
+</LI>
+<LI>Copy <TT>CUDDDIR/cudd/doc/cudd.doc</TT> to
+  <TT>SISDIR/sis/cudd</TT>; also copy <TT>CUDDDIR/mtr/doc/mtr.doc</TT>
+  to <TT>SISDIR/sis/mtr</TT>.
+</LI>
+<LI>In <TT>SISDIR/sis/cudd</TT> make <TT>bdd.h</TT> a symbolic link
+  to <TT>cuddBdd.h</TT>. (That is: <TT>ln -s cuddBdd.h bdd.h</TT>.)
+</LI>
+<LI>In <TT>SISDIR/sis/cudd</TT> delete <TT>Makefile</TT> and rename
+  <TT>Makefile.sis</TT> as <TT>Makefile</TT>. Do the same in
+  <TT>SISDIR/sis/mtr</TT>.
+</LI>
+<LI>Copy <TT>CUDDDIR/sis/st.[ch]</TT> and <TT>CUDDDIR/st/doc/st.doc</TT>
+  to <TT>SISDIR/sis/st</TT>. (This will overwrite the original files: You
+  may want to save them beforehand.)
+</LI>
+<LI>From <TT>CUDDDIR/util</TT> copy <TT>datalimit.c</TT> to
+  <TT>SISDIR/sis/util</TT>. Update <TT>util.h</TT> and
+  <TT>Makefile</TT> in <TT>SISDIR/sis/util</TT>. Specifically, add the
+  declaration <TT>EXTERN long getSoftDataLimit();</TT> to
+  <TT>util.h</TT> and add <TT>datalimit.c</TT> to the list of source
+  files (PSRC) in <TT>Makefile</TT>.
+</LI>
+<LI>In <TT>SISDIR/sis</TT> remove the link from <TT>bdd</TT> to
+  <TT>bdd_cmu</TT> or <TT>bdd_ucb</TT> (that is, <TT>rm bdd</TT>)
+  and make <TT>bdd</TT> a symbolic link to <TT>cudd</TT>.  (That is:
+  <TT>ln -s cudd bdd</TT>.)
+</LI>
+<LI>Still in <TT>SISDIR/sis</TT>, edit <TT>Makefile</TT>, <TT>Makefile.oct</TT>, and <TT>Makefile.nooct</TT>. In all three files add
+  mtr to the list of directories to be made (DIRS).
+</LI>
+<LI>In <TT>SISDIR/sis/include</TT> make <TT>mtr.h</TT> a symbolic
+  link to <TT>../mtr/mtr.h</TT>.
+</LI>
+<LI>In <TT>SISDIR/sis/doc</TT> make <TT>cudd.doc</TT> a symbolic
+  link to <TT>../cudd/cudd.doc</TT> and <TT>mtr.doc</TT> a symbolic
+  link to <TT>../mtr/mtr.doc</TT>. (That is: <TT>ln -s
+    ../cudd/cudd.doc .; ln -s ../mtr/mtr.doc .</TT>.)
+</LI>
+<LI>From <TT>SISDIR</TT> do <TT>make clean</TT> followed by
+  <TT>make -i</TT>.  This should create a working copy of SIS that
+  uses the CUDD package.
+</LI>
+</OL>
+
+<P>
+The replacement for the <TT>st</TT> library is because the version
+shipped with the CUDD package tests for out-of-memory conditions.
+Notice that the version of the <TT>st</TT> library to be used for
+replacement is not the one used for the normal build, because the
+latter has been modified for C++ compatibility. The above installation
+procedure has been tested on SIS 1.3. SIS can be obtained via
+anonymous FTP<A NAME="657"></A> from
+<A NAME="tex2html6"
+  HREF="ftp://ic.eecs.berkeley.edu"><TT>ic.eecs.berkeley.edu</TT></A>.
+To build SIS 1.3, you need <TT>sis-1.2.tar.Z</TT> and
+<TT>sis-1.2.patch1.Z</TT>. When compiling on a DEC Alpha<A NAME="662"></A>, you should add the <TT>-ieee_with_no_inexact</TT> flag.
+(See Section&nbsp;<A HREF="#sec:predef-const">3.5.2</A>.) Refer to the <TT>Makefile</TT>
+in the top level directory of the distribution for how to compile with
+32-bit pointers.
+
+<P>
+
+<H2><A NAME="SECTION000319000000000000000"></A>
+<A NAME="sec:dump"></A>
+<BR>
+Writing Decision Diagrams to a File
+</H2>
+
+<P>
+The CUDD package provides several functions to write decision diagrams
+to a file. <I>Cudd_DumpBlif</I><A NAME="1286"></A> writes a
+file in <I>blif</I> format.  It is restricted to BDDs. The diagrams
+are written as a network of multiplexers, one multiplexer for each
+internal node of the BDD.
+
+<P>
+<I>Cudd_DumpDot</I><A NAME="1288"></A> produces input suitable to
+the graph-drawing<A NAME="673"></A> program
+<A NAME="tex2html8"
+  HREF="http://www.research.att.com/sw/tools/graphviz"><I>dot</I></A>
+written by Eleftherios Koutsofios and Stephen C. North.  An example of
+drawing produced by dot from the output of <I>Cudd_DumpDot</I> is
+shown in Figure&nbsp;<A HREF="#fi:phase">1</A>.  It is restricted to BDDs and ADDs.
+
+<DIV ALIGN="CENTER"><A NAME="fi:phase"></A><A NAME="1089"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 1:</STRONG>
+A BDD representing a phase constraint for the optimization of
+  fixed-polarity Reed-Muller forms. The label of each node is the
+  unique part of the node address. All nodes on the same level
+  correspond to the same variable, whose name is shown at the left of
+  the diagram. Dotted lines indicate complement<A NAME="680"></A>
+  arcs. Dashed lines indicate regular<A NAME="681"></A> ``else''
+  arcs.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER">
+<IMG
+ WIDTH="429" HEIGHT="701" ALIGN="BOTTOM" BORDER="0"
+ SRC="img22.png"
+ ALT="\includegraphics[height=15.5cm]{phase.ps}"></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<I>Cudd_zddDumpDot</I><A NAME="1290"></A> is the analog of
+<I>Cudd_DumpDot</I> for ZDDs.
+
+<P>
+<I>Cudd_DumpDaVinci</I><A NAME="1292"></A> produces input
+suitable to the graph-drawing<A NAME="689"></A> program
+<A NAME="tex2html9"
+  HREF="ftp://ftp.uni-bremen.de/pub/graphics/daVinci"><I>daVinci</I></A>
+developed at the University of Bremen. It is restricted to BDDs and
+ADDs.
+
+<P>
+Functions are also available to produce the input format of
+<I>DDcal</I> (see Section&nbsp;<A HREF="node2.html#sec:getFriends">2.2</A>) and factored forms.
+
+<P>
+
+<H2><A NAME="SECTION000320000000000000000"></A>
+<A NAME="sec:save-restore"></A>
+<BR>
+Saving and Restoring BDDs
+</H2>
+
+<P>
+The
+<A NAME="tex2html10"
+  HREF="ftp://ftp.polito.it/pub/research/dddmp/"><I>dddmp</I></A>
+library<A NAME="698"></A> by Gianpiero Cabodi and Stefano Quer
+allows a CUDD application to save BDDs to disk in compact form for
+later retrieval.  See the library's own documentation for the details.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html112"
+  HREF="node4.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html108"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html102"
+  HREF="node2.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html110"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html113"
+  HREF="node4.html">Programmer's Manual</A>
+<B> Up:</B> <A NAME="tex2html109"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html103"
+  HREF="node2.html">How to Get CUDD</A>
+ &nbsp; <B>  <A NAME="tex2html111"
+  HREF="node8.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+Fabio Somenzi
+2012-02-04
+</ADDRESS>
+</BODY>
+</HTML>

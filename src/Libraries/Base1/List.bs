@@ -1,0 +1,950 @@
+package List(
+        -- Prelude exports: List(..)
+	(:>), (<:), map, append, foldr, foldr1, foldl, foldl1, fold, upto,
+	rotate, rotateR, reverse, last, init, length, zipWith, zipWith3, zipWith4,
+	zip, zip3, zip4, replicate,
+	unzip, (!!), select, selectM, oneHotSelect, update, concat, head, tail, null, isNull,
+	scanr, sscanr, scanl, sscanl, filter, find, lookup,
+	takeWhile, takeWhileRev, dropWhile, dropWhileRev,
+	all, any, take, drop, transpose, elem, and, or,
+	mapAccumL, mapAccumR, mapPairs,
+	mapn, foldn,
+	joinActions, joinRules,
+        nil, cons, -- reexported from the Prelude
+        mapM, mapM_, zipWithM, zipWith3M, replicateM, sequence,
+        foldM, folduM, foldlM, foldrM,
+	sortBy, sort, groupBy, group
+       ) where
+
+
+infixr  8 :>
+
+--@ \subsubsection{List}
+--@
+--@ \index{List@\te{List} (type)|textbf}
+--@ {\te{List}} defines a list data type and operations.
+
+--@ \index{Nil@\te{Nil} (\te{List} constructor)}
+--@ \index{Cons@\te{Cons} (\te{List} constructor)}
+
+--@ \begin{libverbatim}
+--@ typedef union tagged {
+--@     void Nil;
+--@     struct {
+--@         a          hd;
+--@         List #(a) tl;
+--@     } Cons;
+--@ } List #(type a);
+--@ \end{libverbatim}
+-- in Prelude.bs:
+-- data List a = Nil | Cons a (List a)
+
+
+--@ Lists can be compared for equality if the elements can.
+--@ \begin{libverbatim}
+--@ instance Eq #(List#(a))
+--@   provisos (Eq#(a));
+--@ \end{libverbatim}
+-- in Prelude.bs:
+-- instance (Eq a) => Eq (List a)
+--   where
+--     (==) Nil Nil                 = True
+--     (==) (Cons x xs) (Cons y ys) = x == y && xs == ys
+--     (==) _ _                     = False
+--     (/=) xs ys                   = not (xs == ys)
+
+--@ A more convenient (right associative) operator for Cons.
+--@ \begin{libverbatim}
+--@ function List#(a) (:>)(a x, List#(a) xs);
+--@ \end{libverbatim}
+(:>) :: a -> List a -> List a
+(:>) x xs = Cons x xs
+
+--@ In BSV the following function must be used instead of ":>":
+--@ \begin{libverbatim}
+--@ function List#(a) cons (a x, List#(a) xs);
+--@ \end{libverbatim}
+
+--@ Put an element last in a list (not available in BSV).
+--@ \begin{libverbatim}
+--@ function List#(a) (<:)(List#(a) xs, a x);
+--@ \end{libverbatim}
+(<:) :: List a -> a -> List a
+(<:) xs x = xs `append` (Cons x Nil)
+
+--@ Map a function over a list, return list of results.
+--@ \index{map@\te{map} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(b) map (function b f(a), List#(a) xs);
+--@ \end{libverbatim}
+map :: (a -> b) -> List a -> List b
+map f Nil = Nil
+map f (Cons x xs) = Cons (f x) (map f xs)
+
+--@ Return elements that satisfy the predicate
+--@ \index{filter@\te{filter} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) filter (function Bool p(a), List#(a) xs);
+--@ \end{libverbatim}
+filter :: (a -> Bool) -> List a -> List a
+filter p Nil = Nil
+filter p (Cons x xs) =
+    if p x then
+	Cons x (filter p xs)
+    else
+	filter p xs
+
+--@ Return the first element that satisfies the predicate
+--@ or \te{Nothing} if there is none.
+--@ \index{find@\te{find} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Maybe#(a) find (function Bool p(a), List#(a) xs);
+--@ \end{libverbatim}
+find :: (a -> Bool) -> List a -> Maybe a
+find p Nil = Nothing
+find p (Cons x xs) =
+    if p x then
+	Just x
+    else
+	find p xs
+
+--@ Lookup a value in an association list.
+--@ \index{lookup@\te{lookup} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Maybe#(b) lookup (a k, List#(Tuple2#(a,b)) xs)
+--@   provisos(Eq#(a));
+--@ \end{libverbatim}
+lookup :: (Eq a) => a -> List (a,b) -> Maybe b
+lookup k xs = case (find (\x -> x.fst == k) xs) of
+	        Nothing    -> Nothing
+		Just (_,v) -> Just v
+
+--@ Append two lists, return appended list.
+--@ \index{append@\te{append} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) append (List#(a) xs, List#(a) ys);
+--@ \end{libverbatim}
+append :: List a -> List a -> List a
+append Nil ys = ys
+append (Cons x xs) ys = Cons x (append xs ys)
+
+--@ Append many lists.
+--@ \index{concat@\te{concat} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) concat (List#(List#(a)) xss);
+--@ \end{libverbatim}
+concat :: List (List a) -> List a
+concat Nil = Nil
+concat (Cons x xs) = append x (concat xs)
+
+--@ Generate a {\te{List}} of elements generated replicating
+--@ the given argument.
+--@ \index{genWith@\te{replicate} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) replicate(Integer n, a c);
+--@ \end{libverbatim}
+replicate :: Integer -> a -> List a
+replicate n c = map (const c) (upto 1 n)
+
+--@ Reduction (from the right) over a list.
+--@ \index{foldr@\te{foldr} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function b foldr (b function f(a x, b y), b e, List#(a) xs);
+--@ \end{libverbatim}
+foldr :: (a -> b -> b) -> b -> List a -> b
+foldr f z Nil = z
+foldr f z (Cons x xs) = f x (foldr f z xs)
+
+--@ Reduction (from the right) over a non-empty list.
+--@ \index{foldr1@\te{foldr1} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a foldr1 (a function f(a x, a y), List#(a) xs);
+--@ \end{libverbatim}
+foldr1 :: (a -> a -> a) -> List a -> a
+foldr1 f (Cons x Nil) = x
+foldr1 f (Cons x xs) = f x (foldr1 f xs)
+foldr1 _ Nil = error "List.foldr1: empty list"
+
+--@ Reduction (from the left) over a list.
+--@ \index{foldr@\te{foldl} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function b foldl (b function f(b y, a x), b e, List#(a) xs);
+--@ \end{libverbatim}
+foldl :: (b -> a -> b) -> b -> List a -> b
+foldl f z Nil = z
+foldl f z (Cons x xs) = foldl f (f z x) xs
+
+--@ Reduction (from the left) over a non-empty list.
+--@ \index{foldl1@\te{foldl1} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a foldl1 (a function f(a y, a x), List#(a) xs);
+--@ \end{libverbatim}
+foldl1 :: (a -> a -> a) -> List a -> a
+foldl1 f (Cons x xs) = foldl f x xs
+foldl1 _ Nil = error "List.foldl1: empty list"
+
+--@ Tree reduction over a non-empty list.
+--@ \index{fold@\te{fold} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a fold (a function f(a y, a x), List#(a) xs);
+--@ \end{libverbatim}
+fold :: (a -> a -> a) -> List a -> a
+fold _ Nil = error "List.fold: empty list"
+fold f (Cons x Nil) = x
+fold f xs = fold f (joinPairs f xs)
+
+joinPairs :: (a -> a -> a) -> List a -> List a
+joinPairs f (Cons x (Cons y xs)) = Cons (f x y) (joinPairs f xs)
+joinPairs _ xs = xs
+
+--@ Create list of range of numbers.
+--@ \index{upto@\te{upto} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(Integer) upto(Integer n, Integer m);
+--@ \end{libverbatim}
+upto :: Integer -> Integer -> List Integer
+upto n m = if (n > m) then Nil else Cons n (upto (n+1) m)
+
+--@ Move first element last.
+--@ \index{rotate@\te{rotate} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) rotate (List#(a) xs);
+--@ \end{libverbatim}
+rotate :: List a -> List a
+rotate Nil = Nil
+rotate (Cons x xs) = append xs (Cons x Nil)
+
+--@ Move last element first.
+--@ \index{rotateR@\te{rotateR} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) rotateR (List#(a) xs);
+--@ \end{libverbatim}
+rotateR :: List a -> List a
+rotateR Nil = Nil
+rotateR xs = Cons (last xs) (init xs)
+
+--@ Combine two lists with a function.
+--@ \index{zipWith@\te{zipWith} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(c) zipWith (function c f(a x, b y), List#(a) xs, List#(b) ys);
+--@ \end{libverbatim}
+zipWith :: (a -> b -> c) -> List a -> List b -> List c
+zipWith f (Cons x xs) (Cons y ys) = Cons (f x y) (zipWith f xs ys)
+zipWith f _ _ = Nil
+
+--@ Combine three lists with a function.
+--@ \index{zipWith3@\te{zipWith3} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(d) zipWith3 (function d f(a x, b y, c z),
+--@ 	                    List#(a) xs, List#(b) ys, List#(c) zs);
+--@ \end{libverbatim}
+zipWith3 :: (a -> b -> c -> d) -> List a -> List b -> List c -> List d
+zipWith3 f (Cons x xs) (Cons y ys) (Cons z zs) = Cons (f x y z) (zipWith3 f xs ys zs)
+zipWith3 f _ _ _ = Nil
+
+--@ Combine four lists with a function.
+--@ \index{zipWith4@\te{zipWith4} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(e) zipWith4 (function e f(a x, b y, c z, d w),
+--@ 	                    List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
+--@ \end{libverbatim}
+zipWith4 :: (a -> b -> c -> d -> e) -> List a -> List b -> List c -> List d -> List e
+zipWith4 f (Cons x xs) (Cons y ys) (Cons z zs) (Cons w ws) = Cons (f x y z w) (zipWith4 f xs ys zs ws)
+zipWith4 f _ _ _ _ = Nil
+
+--@ Combine two lists into one list of pairs.
+--@ \index{zip@\te{zip} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(Tuple2 #(a, b)) zip (List#(a) xs, List#(b) ys);
+--@ \end{libverbatim}
+zip :: List a -> List b -> List (a,b)
+zip (Cons x xs) (Cons y ys) = Cons (x, y) (zip xs ys)
+zip _ _ = Nil
+
+--@ Combine three lists into one list of tuples.
+--@ \index{zip3@\te{zip3} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(Tuple3 #(a, b, c)) zip3 (List#(a) xs, List#(b) ys, List#(c) zs);
+--@ \end{libverbatim}
+zip3 :: List a -> List b -> List c -> List (a, b, c)
+zip3 (Cons x xs) (Cons y ys) (Cons z zs) = Cons (x, y, z) (zip3 xs ys zs)
+zip3 _ _ _ = Nil
+
+--@ Combine four lists into one list of tuples.
+--@ \index{zip4@\te{zip4} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(Tuple4 #(a, b, c, d)) zip4
+--@ 	 (List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
+--@
+--@ \end{libverbatim}
+zip4 :: List a -> List b -> List c -> List d -> List (a, b, c, d)
+zip4 (Cons x xs) (Cons y ys) (Cons z zs) (Cons w ws) = Cons (x, y, z, w) (zip4 xs ys zs ws)
+zip4 _ _ _ _ = Nil
+
+--@ Separate a list of pairs into a pair of two lists.
+--@ \index{unzip@\te{unzip} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(List#(a), List#(b)) unzip (List#(Tuple2 #(a, b))xys);
+--@ \end{libverbatim}
+unzip :: List (a, b) -> (List a, List b)
+unzip Nil = (Nil, Nil)
+unzip (Cons (x, y) xys) =
+	case unzip xys of
+	(xs, ys) -> (Cons x xs, Cons y ys)
+
+--@ Reverse element order
+--@ \index{reverse@\te{reverse} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) reverse(List#(a) xs);
+--@ \end{libverbatim}
+reverse :: List a -> List a
+reverse xs = rev xs Nil
+
+-- Helper for reverse
+rev :: List a -> List a -> List a
+rev Nil ys = ys
+rev (Cons x xs) ys = rev xs (Cons x ys)
+
+--@ Test if a list is empty.
+--@ \index{isNull@\te{isNull} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Bool isNull (List#(a) xs);
+--@ \end{libverbatim}
+null :: List a -> Bool
+null Nil = True
+null _   = False
+isNull :: List a -> Bool
+isNull = null
+
+--@ First element of a list.
+--@ \index{head@\te{head} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a head (List#(a) xs);
+--@ \end{libverbatim}
+head :: List a -> a
+head Nil = error "head"
+head (Cons x _) = x
+
+--@ All but the first elements of a list.
+--@ \index{tail@\te{tail} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) tail (List#(a) xs);
+--@ \end{libverbatim}
+tail :: List a -> List a
+tail Nil = error "tail"
+tail (Cons _ xs) = xs
+
+--@ Last element of a list.
+--@ \index{last@\te{last} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a last (List#(a) xs);
+--@ \end{libverbatim}
+last :: List a -> a
+last Nil = error "last"
+last (Cons x Nil) = x
+last (Cons x xs) = last xs
+
+--@ All but the last elements of a list.
+--@ \index{init@\te{init} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) init (List#(a) xs);
+--@ \end{libverbatim}
+init :: List a -> List a
+init Nil = error "init"
+init (Cons _ Nil) = Nil
+init (Cons x xs) = Cons x (init xs)
+
+--@ Length of a list.
+--@ \index{length@\te{length} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Integer length (List#(a) xs);
+--@ \end{libverbatim}
+length :: List a -> Integer
+length = Prelude.listLength
+
+--@ Get the element at a certain position.
+--@ \index{(!!)@\te{(!!)} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a (!!)(List#(a) xs, Integer n);
+--@ \end{libverbatim}
+(!!) :: List a -> Integer -> a
+(!!) xs n = (!!!) xs n n
+
+--old:
+--(!!) Nil _          = error "bad index to !!"
+--(!!) (Cons x xs) 0  = x
+--(!!) (Cons x xs) n  = (!!) xs (n-1)
+
+--@ In BSV, the square-bracket notation is available instead of "!!".
+--@ \begin{libverbatim}
+--@ instance PrimSelectable #(List#(a), Integer, a);
+--@ \end{libverbatim}
+-- in Prelude.bs:
+-- instance PrimSelectable (List a) Integer a
+--   where
+--    primSelectFn = (!!)
+--    primUpdateFn = update
+
+(!!!) :: List a -> Integer -> Integer -> a
+(!!!) Nil _ n0         = error $ "bad index to !!: " +++ integerToString n0
+(!!!) (Cons x xs) 0 _  = x
+(!!!) (Cons x xs) n n0 = (!!!) xs (n-1) n0
+
+--@ Similar to \te{(!!)}, but can generate code (a mux).
+-- @ {\sf Combine with (!!)?}
+--@ \index{select@\te{select} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function a select(List#(a) l, b k)
+--@   provisos (Eq#(b), Literal#(b));
+--@ \end{libverbatim}
+select :: (PrimIndex ix dx) => List a -> ix -> a
+select = primSelectFn (getStringPosition "")
+{-
+ let rangeTest = inLiteralRange k
+             in foldr (\ p r -> if (rangeTest p.snd) then
+                                   if (k == fromInteger p.snd) then
+                                      p.fst
+                                   else r
+                                else _)
+                      _
+                      (num l 0)
+-}
+
+selectM :: (PrimIndex ix dx) => List a -> ix -> Maybe a
+selectM l k =
+    letseq rangeTest = inLiteralRange k
+           f p r = if (rangeTest p.snd) then
+                     if (k == fromInteger p.snd) then Just p.fst else r
+                   else Nothing
+    in  foldr f Nothing (num l 0)
+
+--@ Select a list element with a Boolean list.
+--@ The Boolean list should have exactly one element that is \te{True},
+--@ otherwise the result is undefined.  The returned element is the
+--@ one in the corresponding position to the \te{True}.
+--@ \begin{libverbatim}
+--@ function a oneHotSelect(List#(Bool) bs, List#(a) xs)
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+oneHotSelect :: (Bits a sa) => List Bool -> List a -> a
+oneHotSelect bs xs =
+    -- widen may actually make a Bit 0 value, this makes it tricky to write
+    letseq widen :: (Add sa 1 sa1) => Bit 1 -> Bit sa
+           widen b =
+	       letseq wb :: Bit sa1
+	              wb = signExtend b
+	       in     wb[(valueOf sa - 1) : 0]
+    in	   unpack (fold (|) (zipWith (\ b x -> widen (pack b) & pack x) bs xs))
+
+--@ Update an element in a list.
+--@ \index{update@\te{update} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) update(List#(a) l, b k, a x)
+--@   provisos (Eq#(b), Literal#(b));
+--@ \end{libverbatim}
+update :: (PrimIndex ix dx) => List a -> ix -> a -> List a
+update = primUpdateFn (getStringPosition "")
+-- map (\ p -> if k == fromInteger p.snd then x else p.fst) (num l 0)
+
+num :: List a -> Integer -> List (a, Integer)
+num Nil n = Nil
+num (Cons x xs) n = Cons (x, n) (num xs (n+1))
+
+--@ Matrix transposition of a list of lists.
+--@ \index{transpose@\te{transpose} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(List#(a)) transpose (List#(List#(a)) xss);
+--@ \end{libverbatim}
+transpose :: List (List a) -> List (List a)
+transpose Nil = Nil
+transpose xss =
+    if any null xss then
+	Nil
+    else
+	Cons (map head xss) (transpose (map tail xss))
+
+--@ Test if a predicate holds for all elements of a list.
+--@ \index{all@\te{all} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Bool all(function Bool p(a x1), List#(a) xs);
+--@ \end{libverbatim}
+all :: (a -> Bool) -> List a -> Bool
+all p xs = and (map p xs)
+
+--@ Test if a predicate holds for any elements of a list.
+--@ \index{any@\te{any} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Bool any(function Bool p(a x1), List#(a) xs);
+--@ \end{libverbatim}
+any :: (a -> Bool) -> List a -> Bool
+any p xs = or (map p xs)
+
+--@ Take a number of elements.
+--@ \index{take@\te{take} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) take (Integer n, List#(a) xs);
+--@ \end{libverbatim}
+take :: Integer -> List a -> List a
+take 0 _ = Nil
+take _ Nil = Nil
+take n (Cons x xs) = Cons x (take (n-1) xs)
+
+--@ Drop a number of elements.
+--@ \index{drop@\te{drop} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) drop (Integer n, List#(a) xs);
+--@ \end{libverbatim}
+drop :: Integer -> List a -> List a
+drop 0 xs = xs
+drop _ Nil = Nil
+drop n (Cons x xs) = drop (n-1) xs
+
+--@ Return the initial segment that fulfills a predicate.
+--@ \index{takeWhile@\te{takeWhile} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) takeWhile (function Bool p(a x), List#(a) xs);
+--@ \end{libverbatim}
+takeWhile :: (a -> Bool) -> List a -> List a
+takeWhile p Nil = Nil
+takeWhile p (Cons x xs) =
+    if p x then
+	Cons x (takeWhile p xs)
+    else
+	Nil
+
+--@ Return the tail segment that fulfills a predicate.
+--@ \index{takeWhileRev@\te{takeWhileRev} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) takeWhileRev (function Bool p(a x), List#(a) xs);
+--@ \end{libverbatim}
+takeWhileRev :: (a -> Bool) -> List a -> List a
+takeWhileRev p = reverse � takeWhile p � reverse
+
+--@ Remove the initial segment that fulfills a predicate.
+--@ \index{dropWhile@\te{dropWhile} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) dropWhile (function Bool p(a x), List#(a) xs);
+--@ \end{libverbatim}
+dropWhile :: (a -> Bool) -> List a -> List a
+dropWhile p Nil = Nil
+dropWhile p xxs@(Cons x xs) =
+    if p x then
+	dropWhile p xs
+    else
+	xxs
+
+--@ Remove the tail segment that fulfills a predicate.
+--@ \index{dropWhileRev@\te{dropWhileRev} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) dropWhileRev (function Bool p(a x), List#(a) xs);
+--@ \end{libverbatim}
+dropWhileRev :: (a -> Bool) -> List a -> List a
+dropWhileRev p = reverse � dropWhile p � reverse
+
+--@ Check if an element is in a list.
+--@ \index{elem@\te{elem} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Bool elem (a x, List#(a) xs)
+--@   provisos (Eq#(a));
+--@ \end{libverbatim}
+elem :: (Eq a) => a -> List a -> Bool
+elem y Nil = False
+elem y (Cons x xs) = x == y || elem y xs
+
+-- Given an operation +, a start element z, and
+-- a list [x0,x1, ..., xn] (least significant item first)
+-- produce [z, z+x0, (z+x0)+x1, ..., ( ... ((z+x0)+x1)+ ... + xn)]
+--@ \index{scanl@\te{scanl} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) scanl(function a f(a x1, b x2), a q, List#(b) xs);
+--@ \end{libverbatim}
+scanl :: (a -> b -> a) -> a -> List b -> List a
+scanl f q xs =
+    Cons q (case xs of
+	    Nil -> Nil
+	    Cons x xs -> scanl f (f q x) xs
+	   )
+
+--@ \index{sscanl@\te{sscanl} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(a) sscanl(function a f(a x1, b x2), a q, List#(b) xs);
+--@ \end{libverbatim}
+sscanl :: (a -> b -> a) -> a -> List b -> List a
+sscanl f q xs = tail (scanl f q xs)
+
+-- Given an operation +, a start element z, and
+-- a list [x0,x1, ..., xn] (least significant item first)
+-- produce [x0+(x1+(... +(xn+z) ...)), x1+(... +(xn+z) ...), ..., (xn+z), z]
+--@ \index{scanr@\te{scanr} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(b) scanr(function b f(a x1, b x2), b q, List#(a) xs);
+--@ \end{libverbatim}
+scanr :: (a -> b -> b) -> b -> List a -> List b
+scanr f q0 Nil = Cons q0 Nil
+scanr f q0 (Cons x xs) =
+	case scanr f q0 xs of
+	qs@(Cons q _) -> Cons (f x q) qs
+
+--@ \index{sscanr@\te{sscanr} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(b) sscanr(function b f(a x1, b x2), b q, List#(a) xs);
+--@ \end{libverbatim}
+sscanr :: (a -> b -> b) -> b -> List a -> List b
+sscanr f q xs = init (scanr f q xs)
+
+--@ Join a number of actions together.
+--@ \index{joinActions@\te{joinActions} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Action joinActions (List#(Action) as);
+--@ \end{libverbatim}
+joinActions :: List Action -> Action
+joinActions Nil = action { }
+joinActions (Cons a Nil) = a
+joinActions (Cons a as) = action { a; joinActions as }
+
+--@ Join a number of rules together.
+--@ \index{joinRules@\te{joinRules} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Rules joinRules (List#(Rules) rs);
+--@ \end{libverbatim}
+joinRules :: List Rules -> Rules
+joinRules Nil = rules { }
+joinRules (Cons r Nil) = r
+joinRules (Cons r rs) = r <+> joinRules rs
+
+--@ Map a function, but pass an accumulator from head to tail.
+--@ \index{mapAccumL@\te{mapAccumL} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(a, List#(c)) mapAccumL
+--@     (function Tuple2 #(a, c) f(a x, b y), a x0, List#(b) ys);
+--@ \end{libverbatim}
+mapAccumL :: (a -> b -> (a, c)) -> a -> List b -> (a, List c)
+mapAccumL f s Nil = (s, Nil)
+mapAccumL f s (Cons x xs) =
+    letseq (s',  y ) = f s x
+           (s'', ys) = mapAccumL f s' xs
+    in  (s'', Cons y ys)
+
+--@ Map a function, but pass an accumulator from tail to head.
+--@ \index{mapAccumR@\te{mapAccumR} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(a, List#(c)) mapAccumR
+--@     (function Tuple2 #(a, c) f(a x, b y), a x0, List#(b) ys);
+--@ \end{libverbatim}
+mapAccumR :: (a -> b -> (a, c)) -> a -> List b -> (a, List c)
+mapAccumR f s Nil = (s, Nil)
+mapAccumR f s (Cons x xs) =
+    letseq (s',  ys) = mapAccumR f s xs
+           (s'', y ) = f s' x
+    in  (s'', Cons y ys)
+
+--@ Map a function over a list consuming two elements at a time.
+--@ Any straggling element is processed by the second function.
+--@ \index{mapPairs@\te{mapPairs} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function List#(b) mapPairs
+--@    (function b f(a x, a y), function b g(a x), List#(a) xs);
+--@ \end{libverbatim}
+mapPairs :: (a -> a -> b) -> (a -> b) -> List a -> List b
+mapPairs f g Nil = Nil
+mapPairs f g (Cons x Nil) = Cons (g x) Nil
+mapPairs f g (Cons x1 (Cons x2 xs)) = Cons (f x1 x2) (mapPairs f g xs)
+
+--@ Map a function (of a list) over a list producing a new list.
+--@ The function consumes an initial segment of the list and returns
+--@ the result and the remaining list.
+--@ \begin{libverbatim}
+--@ function List#(b) mapn (function Tuple2#(b, List#(a)) f (List#(a) xs),
+--@ 		        List#(a) xs);
+--@ \end{libverbatim}
+mapn :: (List a -> (b, List a)) -> List a -> List b
+mapn f Nil = Nil
+mapn f xs =
+    letseq (y, xs') = f xs
+    in  Cons y (mapn f xs')
+
+--@ Fold a list with a function that consumes an initial segment of the list and returns
+--@ the result and the remaining list.
+--@ \begin{libverbatim}
+--@ function a foldn (function Tuple2#(a, List#(a)) f (List#(a) xs),
+--@ 		  List#(a) xs);
+--@ \end{libverbatim}
+foldn :: (List a -> (a, List a)) -> List a -> a
+foldn f Nil = error "foldn"
+foldn f (Cons x Nil) = x
+foldn f xs = foldn f (mapn f xs)
+
+--@ Combine all elements in a list with logical or.
+--@ \begin{libverbatim}
+--@ function Bool or (List#(Bool) bs);
+--@ \end{libverbatim}
+or :: List Bool -> Bool
+or Nil = False
+or bs = fold (||) bs
+
+--@ Combine all elements in a list with logical and.
+--@ \begin{libverbatim}
+--@ function Bool and (List#(Bool) bs);
+--@ \end{libverbatim}
+and :: List Bool -> Bool
+and Nil = True
+and bs = fold (&&) bs
+
+-- reexport cons and nil for compatibility
+nil :: List a
+nil = Prelude.nil
+
+cons :: a -> List a -> List a
+cons = Prelude.cons
+
+--Things whice once lived in Monad
+
+--@ \subsubsection{Monad}
+--@
+--@ \index{Monad@\te{Monad} (type class)}
+--@ (Advanced topic; can be skipped on first reading.)
+--@
+--@ {\te{Monad}} defines monad operations.
+--@ Think of a monadic type {\mbox{\qbs{m a}}} as representing an
+--@ ``action'' and returning a result of type {\qbs{a}}.
+--@
+--@ Take a function and a list; the function applied to
+--@ a list element would return an action and result.
+--@ Return an action representing all those actions
+--@ and the list of corresponding results.
+--@ \index{mapM@\te{mapM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(List#(b)) mapM(function m#(b) f(a x1), List#(a) x)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+mapM :: (Monad m) => (a -> m b) -> List a -> m (List b)
+mapM f Nil = return Nil
+mapM f (Cons x xs) = do
+    _element :: b
+    _element <- f x
+    _elements :: List b
+    {-# hide #-}
+    _elements <- mapM f xs
+    return (Cons _element _elements)
+
+--@ Like {\te{mapM}} but throws away the resulting list.
+--@ \index{mapM@\te{mapM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(void) mapM_(function m#(b) f(a x1), List#(a) x)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+mapM_ :: (Monad m) => (a -> m b) -> List a -> m ()
+mapM_ f xs = do _ <- mapM f xs
+                return ()
+
+--@ Think of a monadic type {\mbox{\qbs{m a}}} as representing an
+--@ ``action'' and returning a result of type {\qbs{a}}.
+--@
+--@ Combine two lists with a function.
+--@ \index{zipWithM@\te{zipWithM} (\te{List} function)}
+--@ Take a function which takes two arguments and two lists;
+--@ The function applied to the corresponding element from
+--@ each list would return an action and result.
+--@ Return an action representing all those actions
+--@ and the list of corresponding results.
+--@
+--@ \begin{libverbatim}
+--@ function m#(List#(c))
+--@          zipWithM(function m#(c) f(a x1, b x2), List#(a) xs, List#(b) ys)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+zipWithM :: (Monad m) => (a -> b -> m c) -> List a -> List b -> m (List c)
+zipWithM f (Cons x xs) (Cons y ys) =
+  do
+    _element <- f x y
+    {-# hide #-}
+    _elements <- zipWithM f xs ys
+    return (Cons _element _elements)
+zipWithM f _ _ = return Nil
+
+--@ Think of a monadic type {\mbox{\qbs{m a}}} as representing an
+--@ ``action'' and returning a result of type {\qbs{a}}.
+--@
+--@ Combine three lists with a function.
+--@ \index{zipWithM@\te{zipWithM} (\te{List} function)}
+--@ Take a function which takes three arguments and three lists;
+--@ The function applied to the corresponding element from
+--@ each list would return an action and result.
+--@ Return an action representing all those actions
+--@ and the list of corresponding results.
+--@
+--@ \begin{libverbatim}
+--@ function m#(List#(d)) zipWith3M(function m#(d) f(a x1, b x2, c x3),
+--@ 				List#(a) xs,
+--@ 				List#(b) ys,
+--@ 				List#(c) zs)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+zipWith3M :: (Monad m) => (a -> b -> c -> m d) -> List a -> List b -> List c -> m (List d)
+zipWith3M f (Cons x xs) (Cons y ys) (Cons z zs) =
+  do
+    _w <- f x y z
+    {-# hide #-}
+    _ws <- zipWith3M f xs ys zs
+    return (Cons _w _ws)
+zipWith3M f _ _ _ = return Nil
+
+
+--@ Take a list of actions; return an action representing
+--@ performing all those actions and returning the list
+--@ of all the results.
+--@ \index{sequence@\te{sequence} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(List#(a)) sequence()
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+sequence :: (Monad m) => List (m a) -> m (List a)
+sequence =
+    letseq mcons p q = do
+		_x :: a
+		_x <- p
+		_xs :: List a
+		_xs <- q
+		return (Cons _x _xs)
+    in  foldr mcons (return Nil)
+
+--@ \te{foldlM} $f$ $z$ $xs$ \\
+--@ $f$ $z$   $xs_1$ represents an action and result $z_1$ \\
+--@ $f$ $z_1$ $xs_2$ represents an action and result $z_2$ \\
+--@ $\cdots$ \\
+--@ Return an action representing all these actions and the final $z_n$
+--@ \index{foldlM@\te{foldlM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(a) foldlM(function m#(a) f(a x1, b x2), a a, List#(b) xs)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+foldlM :: (Monad m) => (a -> b -> m a) -> a -> List b -> m a
+foldlM f a Nil         = return a
+foldlM f a (Cons x xs) = do
+	_y :: a
+	_y <- f a x
+	foldlM f _y xs
+
+--@ Tree reduction over a non-empty list.
+--@ First argument combines pairs of leaves.
+--@ No transformation at singleton leaves.
+--@ \index{foldM@\te{foldM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(a) foldM(function m#(a) f(a x1, a x2), List#(a) xs)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+foldM :: (Monad m) => (a -> a -> m a) -> List a -> m a
+foldM _ Nil = error "Monad.foldM: empty list"
+foldM f (Cons x Nil) = return x
+foldM f xs = do
+	_ps <- joinPairsM f xs
+	foldM f _ps
+
+joinPairsM :: (Monad m) => (a -> a -> m a) -> List a -> m (List a)
+joinPairsM f (Cons x (Cons y xs)) = do
+	_r <- f x y
+	_rs <- joinPairsM f xs
+	return (Cons _r _rs)
+joinPairsM _ xs = return xs
+
+--@ Tree reduction over a non-empty list.
+--@ First argument combines pairs of leaves.
+--@ Second argument is applied to singleton leaves.
+--@ \index{folduM@\te{folduM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(a) folduM( function m#(a) f(a x1, a x2),
+--@                        function m#(a) g(a x1), List#(a) xs )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+folduM :: (Monad m) => (a -> a -> m a) -> (a -> m a) -> List a -> m a
+folduM _ _ Nil = error "Monad.foldM: empty list"
+folduM _ _ (Cons x Nil) = return x
+folduM f g xs = do
+	_ps <- joinPairsU f g xs
+	folduM f g _ps
+
+joinPairsU :: (Monad m) => (a -> a -> m a) -> (a -> m a) -> List a -> m (List a)
+joinPairsU f g (Cons x (Cons y xs)) = do
+	_r <- f x y
+	_rs <- joinPairsU f g xs
+	return (Cons _r _rs)
+joinPairsU f g (Cons x Nil) = do
+	_r <- g x
+	return (Cons _r Nil)
+joinPairsU _ _ Nil = return Nil
+
+--@ \te{foldrM} $f$ $z$ $xs$ \\
+--@ $f$ $xs_n$ $z$   represents an action and result $z_n$ \\
+--@ $f$ $xs_{n-1}$ $z_n$ represents an action and result $z_{n-1}$ \\
+--@ $\cdots$ \\
+--@ Return an action representing all these actions and the final $z_1$
+--@ \index{foldrM@\te{foldrM} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(b) foldrM(function m#(b) f(a x1, b x2), b z, List#(a) xs)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+foldrM :: (Monad m) => (a -> b -> m b) -> b -> List a -> m b
+foldrM f z Nil         = return z
+foldrM f z (Cons x xs) = do
+	_y :: b
+	_y <- foldrM f z xs
+	f x _y
+
+--@ The \te{fmap} function is a generalization of the the \te{List.map}
+--@ function to an arbitrary monad.  It is now in the Prelude.
+--@ \index{fmap@\te{fmap} (\te{Monad} function)}
+--@ \begin{libverbatim}
+--@ function m#(b) fmap(function b f(a x1), m#(a) xs)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+
+--@ Generate a {\te{List}} of elements generated by using
+--@ the given monadic value repeatedly.
+--@ \index{replicateM@\te{replicateM} (\te{List} function)}
+--@ \begin{libverbatim}
+--@ function m#(List#(a)) replicateM(Integer n, m#(a) c)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+replicateM :: (Monad m) => Integer -> m a -> m (List a)
+replicateM n c = mapM (const c) (upto 1 n)
+
+-- Sort implementation (based on merge sort)
+sortBy :: (a -> a -> Ordering) -> List a -> List a
+sortBy _              Nil  = Nil
+sortBy _   xs@(Cons _ Nil) = xs
+sortBy cmp xs              = let (l1,l2) = splitup xs
+		             in merge cmp (sortBy cmp l1) (sortBy cmp l2)
+
+splitup :: List a -> (List a,List a)
+splitup                    Nil = (Nil,Nil)
+splitup         l@(Cons _ Nil) = (l,Nil)
+splitup (Cons x (Cons y rest)) = let (xs,ys) = splitup rest
+				 in (Cons x xs, Cons y ys)
+
+merge :: (a -> a -> Ordering) -> List a -> List a -> List a
+merge _               xs            Nil = xs
+merge _              Nil             ys = ys
+merge cmp xl@(Cons x xs) yl@(Cons y ys) = case (cmp x y) of
+		 		  LT -> (Cons x (merge cmp xs yl))
+				  _  -> (Cons y (merge cmp xl ys))
+
+-- Specialization of sortBy using instances of Ord
+sort :: (Ord a) => List a -> List a
+sort = sortBy compare
+
+
+-- GroupBy implementation
+groupBy :: (a -> a -> Bool) -> List a -> List (List a)
+groupBy equiv xs = map reverse (reverse (addToGroup equiv Nil Nil xs))
+
+addToGroup :: (a -> a -> Bool) -> List (List a) -> List a -> List a -> List (List a)
+addToGroup     _ gps            Nil         Nil = gps
+addToGroup     _ gps        current         Nil = Cons current gps
+addToGroup equiv gps            Nil (Cons x xs) = addToGroup equiv gps (Cons x Nil) xs
+addToGroup equiv gps gp@(Cons g gs) (Cons x xs) = if (equiv g x)
+					          then addToGroup equiv gps (Cons x gp) xs
+						  else addToGroup equiv (Cons gp gps) (Cons x Nil) xs
+
+-- Specialization of groupBy using instances of Eq
+group :: (Eq a) => List a -> List (List a)
+group = groupBy (==)

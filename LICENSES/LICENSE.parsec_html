@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="main.css" type="text/css">
+
+<title>Parsec</title>
+<style type="text/css">
+.menu-parsec { background: url(images/menu.png) no-repeat }
+</style>
+</head>
+
+<body>
+<div id="top" class="body">
+
+
+
+
+
+<div class="menu">
+  <div class="header">Research</div>
+  <ul>
+  <li><a class="menu-index" href="index.html">about</a></li>
+  <li><a class="menu-pubs" href="pubs.html">publications</a></li>
+  </ul>
+</div>
+
+<div class="menu">
+  <div class="header">Software</div>
+  <ul>
+  <li><a class="menu-wxhaskell" href="wxhaskell.html">wxhaskell</a></li>
+  <li><a class="menu-parsec" href="parsec.html">parsec</a></li>
+  <li><a class="menu-pprint" href="pprint.html">pprint</a></li>
+  <li><a class="menu-ddata" href="ddata.html">ddata</a></li>
+  </ul>
+</div>
+<div class="text">
+<div class="header">Parsec</div>
+<p><a href="parsec.html"><img align=right hspace=20 border=0
+  src="images/parsec.gif" alt="Parsec logo"
+  style="float: right; border: none; padding-left: 4pt"
+  ></a>Parsec is a free monadic parser combinator library for
+<a href="http://www.haskell.org">Haskell</a>.
+Allthough combinator parsing is well known in literature, most libraries
+are only implemented for personal use or
+for small research examples. Parsec is designed from scratch as
+an industrial-strength parser library.</p>
+
+<p>It is simple, safe, well documented, has extensive libraries and good error messages.
+It is also fast, doing thousands of lines per second on todays machines,
+which might make it an acceptable alternative to bottom-up parser generators like <a href="http://www.haskell.org/happy">Happy</a>.
+</p>
+</div>
+
+<div class="text">
+<div class="header">Download</div>
+<dl>
+<dt>Parsec documentation <span class="quicklinks">[<a
+   href="download/parsec/parsec.pdf">pdf</a>,
+<a href="download/parsec/parsec.html">html</a>,
+<a href="download/parsec/parsec.ps">ps</a>,
+<a href="download/parsec/parsec-letter.pdf">pdf-letter</a>,
+<a href="download/parsec/parsec-letter.ps">ps-letter</a>]</span></dt>
+<dd>The user and reference guide for parsec. There is also a
+<a href="pubs.html#parsec">technical report</a> describing
+the inner workings of the library.
+
+<p>The documentation is a bit outdated with regard to import statements.
+Nowadays, Parsec is distributed with the standard Haskell libraries with
+most Haskell compilers (<a href="http://www.haskell.org/ghc">GHC</a>,
+<a href="http://www.haskell.org/nhc98">NHC</a>, <a href="http://www.haskell.org/hugs">Hugs</a>). You can import the Parsec library now
+with hierarchical module names, for example:</p>
+<pre>
+import Text.ParserCombinators.Parsec
+</pre>
+
+</dd>
+<dt>Parsec sources <span class="quicklinks">[<a
+   href="download/parsec/parsec-2.0.zip">parsec-2.0.zip</a> (10 oct 2003)]</span></dt>
+<dd><p>Packaged sources of Parsec. The latest sources are available from
+<a href="http://cvs.haskell.org/cgi-bin/cvsweb.cgi/fptools/libraries/parsec">cvs</a>,
+and this package is mainly for people that need easy access to the sources
+and example parsers (like the Tiger parser).</p>
+<p>There is also an old version of Parsec <span class="quicklinks">[<a
+  href="download/parsec/parsec-1.1.zip">parsec-1.1.zip</a>]</span>
+that does not use hierarchical module names.</p>
+</dd>
+</dl>
+
+</div>
+
+<div class="text">
+<div class="header">License</div>
+<p>I would like to see this library as widely used as possible.
+It is therefore distributed with an unrestrictive
+BSD style license. If there is any
+problem using this software with this license, I would
+like to hear about it and see if we can work out a solution.</p>
+
+<blockquote>
+    <em>Copyright 1999-2000, Daan Leijen. All rights reserved.</em>
+
+    <p><em>Redistribution and use in source and binary forms, with
+    or without modification, are permitted provided that the
+    following conditions are met: </em>
+    </p>
+
+    <ul>
+          <li><em>
+            Redistributions of source code must retain the above
+        copyright notice, this list of conditions and the
+        following disclaimer.</em>
+          </li>
+
+          <li><em>
+            Redistributions in binary form must reproduce the
+        above copyright notice, this list of conditions and the
+        following disclaimer in the documentation and/or other
+        materials provided with the distribution.</em>
+          </li>
+        </ul>
+
+        <em>
+        This software is provided by the copyright holders &ldquo;as
+    is&rdquo; and any express or implied warranties, including, but not
+    limited to, the implied warranties of merchantability and
+    fitness for a particular purpose are disclaimed. In no event
+    shall the copyright holders be liable for any direct,
+    indirect, incidental, special, exemplary, or consequential
+    damages (including, but not limited to, procurement of
+    substitute goods or services; loss of use, data, or profits;
+    or business interruption) however caused and on any theory of
+    liability, whether in contract, strict liability, or tort
+    (including negligence or otherwise) arising in any way out of
+    the use of this software, even if advised of the possibility
+    of such damage.
+</em>
+</blockquote>
+</div>
+
+<div class="text">
+<div class="header">Logo</div>
+<p>Show the world that you are a type-safe developer! Copy and paste the following
+HTML in your web page:</p>
+<pre style="font-size: x-small  ">
+&lt;a href="http://www.cs.uu.nl/~daan/parsec.html">
+ &lt;img src="http://www.cs.uu.nl/~daan/images/parsec.gif"
+      alt="Parsec logo" hspace=20 border=0
+      style="float: right; border: none; padding-left: 4pt">
+&lt;/a>
+</pre>
+
+<div class="lastupdate">
+<a href="http://v1.nedstatbasic.net/stats?ABLdpwCViEo3qxR49xipE5aP8HeA"><img src="http://m1.nedstatbasic.net/n?id=ABLdpwCViEo3qxR49xipE5aP8HeA" border="0" width="10" height="10" nosave alt="nedstat counter" style="border: none"></a>
+&nbsp;last update: "Oct 21 2003"</div>
+</div>
+</div>
+</body>
+
+</html>

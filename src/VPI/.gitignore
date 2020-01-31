@@ -1,0 +1,6 @@
+# Ignore the generated file used to test that the header files compile
+# before releasing them
+test_hdr.c
+*.o
+*.d
+lib*.so

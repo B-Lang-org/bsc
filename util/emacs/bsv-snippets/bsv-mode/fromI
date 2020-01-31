@@ -1,0 +1,5 @@
+#Author : Steve Allen
+#name : fromInteger()
+# --
+fromInteger($0)
+

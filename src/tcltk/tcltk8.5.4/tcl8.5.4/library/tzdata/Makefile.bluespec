@@ -1,0 +1,31 @@
+INSTALL ?= install 
+
+
+all:
+	@echo "Nothing to do for all"
+
+
+LIBDIR ?= install
+
+ALLF  = $(filter-out install/ %.bluespec  ,$(shell ls -F .))
+FILES = $(filter-out %/, $(ALLF))
+# DIRS  = $(filter %/, $(ALLF))
+DIRS = 
+
+
+
+
+## Copy files out to bluespec library
+.PHONY: install
+install:
+	$(INSTALL) -m 755 -d $(LIBDIR)
+	$(INSTALL) -m 644 $(FILES) $(LIBDIR)
+	$(foreach dir, $(DIRS), \
+		$(MAKE) -C $(dir) LIBDIR=$(LIBDIR)/$(dir) -f Makefile.bluespec $@ ; )
+
+
+clean:
+	$(foreach dir, $(DIRS), \
+		$(MAKE) -C $(dir) LIBDIR=$(LIBDIR)/$(dir) -f Makefile.bluespec $@ ; )
+	@rm -rf $(LIBDIR) install
+

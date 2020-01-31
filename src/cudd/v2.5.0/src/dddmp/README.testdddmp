@@ -1,0 +1,79 @@
+README file for the test program of the DDDMP-2.0 package
+Revision: Version 2.0.2, February 01, 2004
+
+
+
+WHAT IS TESTDDDMP
+=================
+
+testdddmp is a test program for the dddmp package.
+Practically, it is a naive user interface to load, store and execute
+operations with BDDs.
+It is included to provide a sanity check for the installation of the
+package and an easy tool to play with BDDs and BDD on files.
+
+
+
+MAKE TESTDDDMP
+==============
+
+Run "make testdddmp".
+This should produce the testdddmp executable file.
+
+
+
+TEST DDDMP
+==========
+
+Run the runAllTest.script file in the exp directory.
+This should run all the test?.script files in the same directory.
+Each of them is specifically written to check a particular feature of
+the package (e.g., store and load of BDDs, store of CNF formulas and
+retrieval, etc.).
+Each test?.script should terminate with a comparison with a previously
+generated set of files, then with the following set of messages:
+
+Files 0or1.bdd and 0or1.bdd2 are identical
+Files 2and3.bdd and 2and3.bdd2 are identical
+...
+
+If so everything is OK.
+
+Notice that mismatches may be caused by the presence of CR - LF characters at
+the end of each BDD file line.
+
+
+
+WORK WITH DDDMPTEST
+===================
+
+To work with dddmptest (once the executable file has been built) it is enough
+to run it (no parameter is necessary). 
+The help command print out the main commands available.
+For each command further inputs are eventually required on an interactive
+basis.
+BDDs and ADDs can be loaded from files by choosing the file name or they
+can be directly created (randomly for example).
+They can be maintained into the main memory trough an array of BDD pointers.
+Operations (logical and re-ordering) can be performed on any BDD into this
+array.
+Eventually any of them can be stored in a file giving the file name.
+BDDs can also be stored in a CNF format using three different possible
+solution to store them.
+
+
+
+FEEDBACK
+========
+
+Send feedback to:
+
+Gianpiero Cabodi and Stefano Quer
+Politecnico di Torino
+Dip. Automatica e Informatica
+C.so Duca degli Abruzzi 24
+I-10129  Torino
+Italy
+E-mail: {gianpiero.cabodi,stefano.quer}@polito.it
+WEB page: http://staff.polito.it/{gianpiero.cabodi,stefano.quer}
+

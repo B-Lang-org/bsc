@@ -1,0 +1,83 @@
+# $Id$
+#
+#    Cudd - DD package
+#---------------------------
+.SUFFIXES: .o .c .u
+
+RANLIB	= ranlib
+
+CAD	= /projects/octtools/octtools/$(MACHINE)
+SIS	= ..
+LINTCREATEFLAG = -C
+
+# files for the package
+P	= mtr
+PSRC    = mtrBasic.c mtrGroup.c
+PHDR    = mtr.h
+POBJ	= $(PSRC:.c=.o)
+
+# files for the test program
+TARGET	= test$(P)
+SRC	= test$(P).c
+OBJ	= $(SRC:.c=.o)
+HDR	=
+
+LIBS	= ../util/libutil.a
+LINTLIBS= ../util/llib-lutil.ln
+INCLUDE = -I$(CAD)/include -I$(SIS)/include
+
+CFLAGS	= -g $(INCLUDE)
+LDFLAGS = -g
+LINTFLAGS = $(INCLUDE) ${LINTEXTRAS}
+
+#------------------------------------------------------
+
+$(TARGET): $(PHDR) $(OBJ) $(POBJ) $(LIBS)
+	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJ) $(POBJ) $(LIBS)
+
+lint: $(PSRC) $(PHDR) $(SRC) $(HDR)
+	lint $(LINTFLAGS) $(SRC) $(PSRC) $(LINTLIBS)
+
+install: lib$(P).a llib-l$(P).ln
+
+lib$(P).a: $(POBJ)
+	ar cr $@ $?
+	$(RANLIB) $@
+
+unpack: lib$(P).a
+	@for i in $(POBJ); do				\
+	    ln -s $(SIS)/$(P)/$$i $(SIS)/unpack;	\
+	done
+
+llib-l$(P).ln: $(PSRC) $(PHDR)
+	lint $(LINTFLAGS) ${LINTCREATEFLAG}$(P) -n $(PSRC)
+
+clean:
+	rm -f $(TARGET) *.a *.ln *.o \
+	    [Tt]ags [Mm]ake.out lint malloc.out gmon.out __.SYMDEF
+
+tags: _force
+	@for i in $(PSRC) $(PHDR); do			\
+	    cwd=`pwd`; ctags -a $$cwd/$$i;		
+	done;
+
+strip_depend:
+	sed '/^#--DO NOT CHANGE ANYTHING AFTER THIS LINE/,$$d' Makefile >mktemp
+	mv mktemp Makefile
+
+depend:
+	sed '/^#--DO NOT CHANGE ANYTHING AFTER THIS LINE/,$$d' Makefile >mktemp
+	echo '#--DO NOT CHANGE ANYTHING AFTER THIS LINE' >>mktemp
+	$(CAD)/bin/cc-M $(CFLAGS) $(PSRC) | \
+	    sed 's|$(CAD)|$$(CAD)|g' | \
+	    grep -v '/usr/include' >>mktemp
+	mv mktemp Makefile
+
+#-------------------------- IBM 3090 support -----------------
+IBMHOST = opua
+IBMDIST = /users2/sis
+ibmdist: $(PSRC) $(PHDR)
+	rdist -Richw $(PSRC) $(PHDR) $(IBMHOST):$(IBMDIST)
+#-------------------------------------------------------------
+_force:
+

@@ -1,0 +1,54 @@
+package Boolify(Boolify(..)) where
+
+import List
+import Vector
+import Enum
+
+--@ \subsubsection{Boolify}
+--@ 
+--@ \index{Boolify@\te{Boolify} (class)|textbf}
+--@ The \te{Boolify} class contains a single method \te{boolify}.
+--@ This method is applicable to functions.  When applied it
+--@ will return an equivalent function, which has been built
+--@ only from Boolean primitives (\te{\&\&}, \te{||}, and \te{not}).
+--@ 
+--@ \begin{libverbatim}
+--@ typeclass Boolify #(type a);
+--@     function a boolify(a x1);
+--@ endtypeclass
+--@ \end{libverbatim}
+class Boolify a where
+    boolify :: a -> a
+
+--@ (A curried function can be boolified, if the uncurried can.
+--@ This instance allows multi-argument functions to be
+--@ boolified.  Note that in BSV0.5 multi-argument functions are 
+--@ usually handled internally in their curried form, and both versions
+--@ pretty-print in the same way.  The relevant instance is therefore
+--@ not shown here, as it would look either trivial or far too complicated.)
+
+instance (Boolify ((a, b) -> c)) => Boolify (a -> b -> c)
+  where
+    boolify = curry · boolify · uncurry
+
+--@
+--@ A function where the argument and result can be turned into
+--@ bits can be boolified.
+--@ \begin{libverbatim}
+--@ instance Boolify #(a -> b)
+--@   provisos (Bounded#(a), Bits#(a, sa), Bits#(b, sb));
+--@ \end{libverbatim}
+instance (Bounded a, Bits a sa, Bits b sb) => Boolify (a -> b)
+  where
+    boolify f x =
+	let genBit k = List.any (\ a -> genTerm (fromInteger k) x a (f a)) enumAll
+	    genTerm k x a b =
+		let bx = pack x
+		    ba = pack a
+		    bb = pack b
+		in  bb[k:k] == 1 && eqByBit bx ba 
+	in  unpack (pack (map genBit genList))
+
+eqByBit :: Bit n -> Bit n -> Bool
+eqByBit x bs =
+    List.all (\ i -> let { n = fromInteger i } in x[n:n] == bs[n:n]) (upto 0 (valueOf n - 1))

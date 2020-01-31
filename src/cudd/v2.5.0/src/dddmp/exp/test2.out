@@ -1,0 +1,23 @@
+rm: No match.
+---------------------------------------------------------------------------
+-------------------- TESTING Load BDD from DDDMP-1.0 ----------------------
+---------------------------------------------------------------------------
+#./../testdddmp Version 2.0.2 (use command help)
+TestDddmp> Number of Variables: TestDddmp> File : TestDddmp> DD TYPE: DDDMP_BDD
+Number of variables: 10
+Number of support variables: 7
+suppVarNames: G0 G1 G2 G3 G5 G6 G7 
+orderedVarNames: G0 G1 G2 G3 G5 G6 G7 DUMMY7 DUMMY8 DUMMY9 
+varIds: 0 1 2 3 4 5 6 
+varIds for ALL Manager Variables: 0 1 2 3 4 5 6 -1 -1 -1 
+varComposeIds: 0 1 2 3 4 6 8 
+varComposeIds for ALL Manager Variables: 0 1 2 3 4 6 8 -1 -1 -1 
+varAuxIds: 0 1 2 3 4 5 6 
+varAuxIds for ALL Manager Variables: 0 1 2 3 4 5 6 -1 -1 -1 
+Number of roots: 3
+TestDddmp> File : Which Array of BDDs [0..19]: TestDddmp> File : Which Array of BDDs [0..19]: Storing Array of BDDs in file s27deltaDddmp1.bdd.tmp ...
+done.
+TestDddmp> Quitting CUDD Manager.
+TestDddmp> End of test.
+----------------------------- ... RESULTS ... -----------------------------
+-------------------------------- ... END ----------------------------------

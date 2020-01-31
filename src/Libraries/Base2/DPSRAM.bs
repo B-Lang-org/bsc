@@ -1,0 +1,116 @@
+package DPSRAM(mkDPSRAM) where
+import RegFile
+import GetPut
+import ClientServer
+import SyncSRAM
+
+--@ \subsubsection{\te{DPSRAM}}
+--@ \index{DPSRAM@\te{DPSRAM} (package)|textbf}
+--@ 
+--@ The \te{DPSRAM} package contains is used to generate
+--@ internal dual ported SRAMs (for the LSI libraries).
+--@ The argument specifies the size of the SRAM.
+--@ \index{mkDPSRAM@\te{mkDPSRAM} (module)|textbf}
+--@ \begin{libverbatim}
+--@ module mkDPSRAM#(Integer nwords)(Tuple2 #(SyncSRAMS#(1, adrs, dtas),
+--@                                           SyncSRAMS#(1, adrs, dtas)));
+--@ \end{libverbatim}
+mkDPSRAM :: (IsModule m c) => Integer -> m (SyncSRAMS 1 adrs dtas, SyncSRAMS 1 adrs dtas)
+mkDPSRAM nwords = liftModule $
+    if ((2 ** (valueOf adrs)) < nwords) then error "address width too small"
+    else if genC then
+	mkDPSRAM_C nwords
+    else
+      module
+	vram :: VSyncSRAM adrs dtas <- mkDPSRAM_V nwords
+
+        let name = Valid (primGetModuleName vram)
+        let adrst = typeOf (_ :: Bit adrs)
+        let dtast = typeOf (_ :: Bit dtas)
+        let bit1t = typeOf (_ :: Bit 1)
+        primSavePortType name "ADRA" adrst
+        primSavePortType name "DIA" dtast
+        primSavePortType name "WEA" bit1t
+        primSavePortType name "ENA" bit1t
+        primSavePortType name "DOA" dtast
+        primSavePortType name "ADRB" adrst
+        primSavePortType name "DIB" dtast
+        primSavePortType name "WEB" bit1t
+        primSavePortType name "ENB" bit1t
+        primSavePortType name "DOB" dtast
+
+	interface -- Pair
+           (interface Server
+		request =
+	         interface Put
+	          put req = fromPrimAction (vram.execA req.addr req.wdata req.we req.ena)
+		response = 
+	         interface Get
+	          get = return vram.rdataA
+	    ,
+	    interface Server
+		request =
+	         interface Put
+	          put req = fromPrimAction (vram.execB req.addr req.wdata req.we req.ena)
+		response =
+	         interface Get
+	          get = return vram.rdataB
+	   )
+
+mkDPSRAM_C :: Integer -> Module (SyncSRAMS 1 adrs dtas, SyncSRAMS 1 adrs dtas)
+mkDPSRAM_C nwords =
+  module
+    arr :: RegFile (Bit adrs) (Bit dtas) <- mkRegFileWCF 0 (fromInteger (nwords-1))
+    outA :: Reg (Bit dtas)  <- mkRegU
+    outB :: Reg (Bit dtas)  <- mkRegU
+    interface -- Pair
+       (interface Server
+	    request =
+	     interface Put
+	      put req =
+		if req.ena == 1 then
+		    if req.we == 1 then do
+			arr.upd req.addr req.wdata
+			outA := req.wdata
+		    else
+			outA := arr.sub req.addr
+		else
+		    outA := 0
+	    response =
+	     interface Get
+	      get = return outA
+	,
+	interface Server
+	    request =
+	     interface Put
+	      put req =
+		if req.ena == 1 then
+		    if req.we == 1 then do
+			arr.upd req.addr req.wdata
+			outB := req.wdata
+		    else
+			outB := arr.sub req.addr
+		else
+		    outB := 0
+	    response = 
+	     interface Get
+	      get = return outB
+       )
+
+interface VSyncSRAM adrs dtas =
+    execA  :: Bit adrs -> Bit dtas -> Bit 1 -> Bit 1 -> PrimAction
+    rdataA :: Bit dtas
+    execB  :: Bit adrs -> Bit dtas -> Bit 1 -> Bit 1 -> PrimAction
+    rdataB :: Bit dtas
+
+mkDPSRAM_V :: Integer -> Module (VSyncSRAM adrs dtas)
+mkDPSRAM_V nwords = do
+    let name = "RRDPSRAM_" +++ integerToString nwords +++ "_" +++
+		integerToString (valueOf dtas) +++ "_bussed"
+    messageM ("Used SRAM: " +++ name)
+    module verilog name "CLKA","CLKB" {
+	execA  = "ADRA" "DIA" "WEA" "ENA" "?"{inhigh};
+	rdataA = "DOA";
+	execB  = "ADRB" "DIB" "WEB" "ENB" "?"{inhigh};
+	rdataB = "DOB";
+    } [ [execA,rdataA,execB,rdataB] <> [execA,rdataA,execB,rdataB] ]

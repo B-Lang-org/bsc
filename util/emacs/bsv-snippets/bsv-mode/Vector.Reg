@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : Vector#(num,Reg#(type)) name <- replicateM( mkRegU );
+# --
+Vector#(${1:num},Reg#(${2:type})) ${3:name} <- replicateM( mkRegU );

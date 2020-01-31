@@ -1,0 +1,13 @@
+*.hi
+bsc
+bsc_hbc
+bsc_hugs
+bsc_nhc
+bsc_ghc
+bsc_ghc_opt
+bsc_win
+bsc_ghc5
+bsc_ghc5_opt
+dumpbo
+Expiry.hs
+*.swp

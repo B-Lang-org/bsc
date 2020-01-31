@@ -1,0 +1,110 @@
+package Reserved(Reserved, ReservedZero, ReservedOne) where
+
+--@ \subsubsection{Reserved}
+--@
+--@ \index{Reserved@\te{Reserved} (type)|textbf}
+--@ {\te{Reserved}}\footnote{
+--@ Idea and implementation stolen from Nick Horgan.}
+--@ defines an abstract data type which only has the
+--@ purpose of taking up space.  It is useful when defining a \te{struct}
+--@ where you need to enforce a certain layout.
+--@ A value of type \te{Reserved\#(n)} takes up exactly \te{n} bits.
+--@ \BBS
+--@  typedef {\rm{\emph{$\cdots$ abstract $\cdots$}}} Reserved#(type n);
+--@ \EBS
+
+data Reserved n = Reserved (Bit n)
+data ReservedZero n = ReservedZero (Bit n)
+data ReservedOne  n = ReservedOne  (Bit n)
+
+--@ Converting \te{Reserved} to or from bits yields an unspecified value (\qbs{\_}).
+--@ \begin{libverbatim}
+--@ instance Bits #(Reserved#(n), n);
+--@ \end{libverbatim}
+instance Bits (Reserved n) n
+    where
+	pack   _ = _
+	unpack _ = _
+
+instance Bits (ReservedZero n) n
+    where
+        pack   _ = 0
+	unpack x = ReservedZero (unpack x)
+
+instance Bits (ReservedOne n) n
+    where
+        pack   _ = fromInteger ((2 ** (valueOf n)) - 1)
+        unpack x = ReservedOne (unpack x)
+
+--@ Any two \te{Reserved} values are considered to be equal.
+--@ \begin{libverbatim}
+--@ instance Eq #(Reserved#(n));
+--@ \end{libverbatim}
+instance Eq (Reserved n)
+    where
+	(==) _ _ = True
+	(/=) _ _ = False
+
+instance Eq (ReservedZero n)
+    where
+	(==) _ _ = True
+	(/=) _ _ = False
+
+instance Eq (ReservedOne n)
+    where
+	(==) _ _ = True
+	(/=) _ _ = False
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ instance Ord #(Reserved#(n));
+--@ \end{libverbatim}
+instance Ord (Reserved n)
+    where
+	(<)  _ _ = False
+	(<=) _ _ = True
+	(>=) _ _ = True
+	(>)  _ _ = False
+
+instance Ord (ReservedZero n)
+    where
+	(<)  _ _ = False
+	(<=) _ _ = True
+	(>=) _ _ = True
+	(>)  _ _ = False
+
+instance Ord (ReservedOne n)
+    where
+	(<)  _ _ = False
+	(<=) _ _ = True
+	(>=) _ _ = True
+	(>)  _ _ = False
+
+--@ The upper and lower bound return unspecified values (\qbs{\_}).
+--@ \begin{libverbatim}
+--@ instance Bounded #(Reserved#(n));
+--@ \end{libverbatim}
+instance Bounded (Reserved n)
+    where
+	minBound = _
+	maxBound = _
+
+instance Bounded (ReservedZero n)
+    where
+	minBound = ReservedZero (0x0)
+	maxBound = ReservedZero (0x0)
+
+instance Bounded (ReservedOne n)
+    where
+	minBound = ReservedOne (fromInteger ((2 ** (valueOf n)) - 1))
+	maxBound = ReservedOne (fromInteger ((2 ** (valueOf n)) - 1))
+
+instance FShow (Reserved n)
+    where
+        fshow value = fshow (pack value)
+instance FShow (ReservedZero n)
+    where
+        fshow value = fshow (pack value)
+instance FShow (ReservedOne n)
+    where
+        fshow value = fshow (pack value)

@@ -1,0 +1,3 @@
+*.o
+libyices.so
+libyices.so.*

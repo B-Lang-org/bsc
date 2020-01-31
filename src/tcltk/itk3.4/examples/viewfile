@@ -1,0 +1,44 @@
+#!/bin/sh
+#\
+exec itkwish $0
+# ----------------------------------------------------------------------
+#  EXAMPLE: show "TextInfo" and "MessageInfo" widgets in action
+# ----------------------------------------------------------------------
+#  COURSE:  Object-Oriented Programming with [incr Tcl]
+#  AUTHOR:  Michael J. McLennan, Bell Labs Innovations
+# ======================================================================
+#               Copyright (c) 1996  Lucent Technologies
+# ======================================================================
+lappend auto_path .
+
+if {[string match *color [winfo screenvisual .]]} {
+    option add *textBackground ivory startupFile
+    option add *MessageInfo.background DarkSeaGreen startupFile
+    option add *TextInfo.background DarkSeaGreen startupFile
+    option add *activeBackground ForestGreen startupFile
+    option add *activeForeground white startupFile
+    option add *selectForeground white startupFile
+    option add *selectBackground ForestGreen startupFile
+}
+
+label .label -text "View File:"
+pack .label -anchor w
+
+entry .file
+pack .file -fill x
+
+bind .file <KeyPress-Return> {show_file [.file get]}
+
+proc show_file {file} {
+    set cmd {
+        set fid [open $file r]
+        set info [read $fid]
+        close $fid
+    }
+    if {[catch $cmd] == 0} {
+        set win [TextInfo .#auto -wrap none]
+        $win display $info
+    } else {
+        MessageInfo .#auto -message "Cannot read file:\n$file"
+    }
+}

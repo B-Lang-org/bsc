@@ -1,0 +1,33 @@
+## Bluespec makefile
+## run configure and build
+## Note that wish is built here, but is not used
+## wish is required by itk build later
+
+TOP := ../../../../..
+include $(TOP)/platform.mk
+
+# -----
+
+.PHONY: all clean install
+all: install
+
+install: libtk8.5.a
+	make -f Makefile install
+
+#CFG_FLAGS = -disable-load --disable-shared
+CFG_FLAGS = --enable-xft --disable-xss --disable-shared
+
+ifeq ($(OSTYPE), Darwin)
+CFG_FLAGS += --x-includes=/opt/local/include --x-libraries=/opt/local/lib
+endif
+
+Makefile: Makefile.bluespec 
+	./configure $(CFG_FLAGS)
+
+libtk8.5.a: Makefile
+	make -f Makefile $@ wish
+
+clean:
+	-(if `test -f Makefile` ; then make -f Makefile clean; fi)
+	rm -f tkConfig.sh config.log config.status config.cache dltest/Makefile	wish
+	rm -f Makefile

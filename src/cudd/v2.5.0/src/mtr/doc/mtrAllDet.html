@@ -1,0 +1,317 @@
+<html>
+<head><title>The mtr package (Internal) </title></head>
+<body>
+
+<h1>The mtr package (Internal) </h1>
+<h2>Internal data structures of the mtr package</h2>
+<h3></h3>
+<hr>
+<ul>
+<li><a href="mtrExtAbs.html"><h3>External abstracts</h3></a>
+<li><a href="mtrAllAbs.html"><h3>All abstracts</h3></a>
+<li><a href="mtrExtDet.html#prototypes"><h3>External functions</h3></a>
+<li><a href="mtrAllDet.html#prototypes"><h3>All functions</h3></a>
+</ul>
+
+<hr>
+
+<a name="description">
+In this package all definitions are external.
+</a>
+
+<hr>
+<!-- Function Prototypes and description -->
+
+<dl>
+<a name="prototypes"></a>
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_AllocNode"><b>Mtr_AllocNode</b></a>(
+   <b></b> <i></i>
+)
+</pre>
+<dd> Allocates new tree node. Returns pointer to node.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_DeallocNode">Mtr_DeallocNode</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_CopyTree"><b>Mtr_CopyTree</b></a>(
+  MtrNode * <b>node</b>, <i></i>
+  int  <b>expansion</b> <i></i>
+)
+</pre>
+<dd> Makes a copy of tree. If parameter expansion is greater than 1, it will expand the tree by that factor. It is an error for expansion to be less than 1. Returns a pointer to the copy if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_InitTree">Mtr_InitTree</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_CreateFirstChild"><b>Mtr_CreateFirstChild</b></a>(
+  MtrNode * <b>parent</b> <i></i>
+)
+</pre>
+<dd> Creates a new node and makes it the first child of parent. Returns pointer to new child.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_MakeFirstChild">Mtr_MakeFirstChild</a>
+<a href="mtrAllDet.html#Mtr_CreateLastChild">Mtr_CreateLastChild</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_CreateLastChild"><b>Mtr_CreateLastChild</b></a>(
+  MtrNode * <b>parent</b> <i></i>
+)
+</pre>
+<dd> Creates a new node and makes it the last child of parent. Returns pointer to new child.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_MakeLastChild">Mtr_MakeLastChild</a>
+<a href="mtrAllDet.html#Mtr_CreateFirstChild">Mtr_CreateFirstChild</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_DeallocNode"><b>Mtr_DeallocNode</b></a>(
+  MtrNode * <b>node</b> <i>node to be deallocated</i>
+)
+</pre>
+<dd> Deallocates tree node.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_AllocNode">Mtr_AllocNode</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_DissolveGroup"><b>Mtr_DissolveGroup</b></a>(
+  MtrNode * <b>group</b> <i>group to be dissolved</i>
+)
+</pre>
+<dd> Merges the children of `group' with the children of its parent. Disposes of the node pointed by group. If group is the root of the group tree, this procedure leaves the tree unchanged. Returns the pointer to the parent of `group' upon successful termination; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_MakeGroup">Mtr_MakeGroup</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_FindGroup"><b>Mtr_FindGroup</b></a>(
+  MtrNode * <b>root</b>, <i>root of the group tree</i>
+  unsigned int  <b>low</b>, <i>lower bound of the group</i>
+  unsigned int  <b>size</b> <i>upper bound of the group</i>
+)
+</pre>
+<dd> Finds a group with size leaves starting at low, if it exists. This procedure relies on the low and size fields of each node. It also assumes that the children of each node are sorted in order of increasing low. Returns the pointer to the root of the group upon successful termination; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_FreeTree"><b>Mtr_FreeTree</b></a>(
+  MtrNode * <b>node</b> <i></i>
+)
+</pre>
+<dd> Disposes of tree rooted at node.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_InitTree">Mtr_InitTree</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_InitGroupTree"><b>Mtr_InitGroupTree</b></a>(
+  int  <b>lower</b>, <i></i>
+  int  <b>size</b> <i></i>
+)
+</pre>
+<dd> Allocate new tree with one node, whose low and size fields are specified by the lower and size parameters. Returns pointer to tree root.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_InitTree">Mtr_InitTree</a>
+<a href="mtrAllDet.html#Mtr_FreeTree">Mtr_FreeTree</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_InitTree"><b>Mtr_InitTree</b></a>(
+   <b></b> <i></i>
+)
+</pre>
+<dd> Initializes tree with one node. Returns pointer to node.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_FreeTree">Mtr_FreeTree</a>
+<a href="mtrAllDet.html#Mtr_InitGroupTree">Mtr_InitGroupTree</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_MakeFirstChild"><b>Mtr_MakeFirstChild</b></a>(
+  MtrNode * <b>parent</b>, <i></i>
+  MtrNode * <b>child</b> <i></i>
+)
+</pre>
+<dd> Makes child the first child of parent.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_MakeLastChild">Mtr_MakeLastChild</a>
+<a href="mtrAllDet.html#Mtr_CreateFirstChild">Mtr_CreateFirstChild</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_MakeGroup"><b>Mtr_MakeGroup</b></a>(
+  MtrNode * <b>root</b>, <i>root of the group tree</i>
+  unsigned int  <b>low</b>, <i>lower bound of the group</i>
+  unsigned int  <b>size</b>, <i>upper bound of the group</i>
+  unsigned int  <b>flags</b> <i>flags for the new group</i>
+)
+</pre>
+<dd> Makes a new group with size leaves starting at low. If the new group intersects an existing group, it must either contain it or be contained by it. This procedure relies on the low and size fields of each node. It also assumes that the children of each node are sorted in order of increasing low. In case of a valid request, the flags of the new group are set to the value passed in `flags.' This can also be used to change the flags of an existing group. Returns the pointer to the root of the new group upon successful termination; NULL otherwise. If the group already exists, the pointer to its root is returned.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_DissolveGroup">Mtr_DissolveGroup</a>
+<a href="mtrAllDet.html#Mtr_ReadGroups">Mtr_ReadGroups</a>
+<a href="mtrAllDet.html#Mtr_FindGroup">Mtr_FindGroup</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_MakeLastChild"><b>Mtr_MakeLastChild</b></a>(
+  MtrNode * <b>parent</b>, <i></i>
+  MtrNode * <b>child</b> <i></i>
+)
+</pre>
+<dd> Makes child the last child of parent.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_MakeFirstChild">Mtr_MakeFirstChild</a>
+<a href="mtrAllDet.html#Mtr_CreateLastChild">Mtr_CreateLastChild</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_MakeNextSibling"><b>Mtr_MakeNextSibling</b></a>(
+  MtrNode * <b>first</b>, <i></i>
+  MtrNode * <b>second</b> <i></i>
+)
+</pre>
+<dd> Makes second the next sibling of first. Second becomes a child of the parent of first.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_PrintGroups"><b>Mtr_PrintGroups</b></a>(
+  MtrNode * <b>root</b>, <i>root of the group tree</i>
+  int  <b>silent</b> <i>flag to check tree syntax only</i>
+)
+</pre>
+<dd> Prints the groups as a parenthesized list. After each group, the group's flag are printed, preceded by a `|'. For each flag (except MTR_TERMINAL) a character is printed. <ul> <li>F: MTR_FIXED <li>N: MTR_NEWNODE <li>S: MTR_SOFT </ul> The second argument, silent, if different from 0, causes Mtr_PrintGroups to only check the syntax of the group tree.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_PrintTree">Mtr_PrintTree</a>
+</code>
+
+<dt><pre>
+void <i></i>
+<a name="Mtr_PrintTree"><b>Mtr_PrintTree</b></a>(
+  MtrNode * <b>node</b> <i></i>
+)
+</pre>
+<dd> Prints a tree, one node per line.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_PrintGroups">Mtr_PrintGroups</a>
+</code>
+
+<dt><pre>
+MtrNode * <i></i>
+<a name="Mtr_ReadGroups"><b>Mtr_ReadGroups</b></a>(
+  FILE * <b>fp</b>, <i>file pointer</i>
+  int  <b>nleaves</b> <i>number of leaves of the new tree</i>
+)
+</pre>
+<dd> Reads groups from a file and creates a group tree. Each group is specified by three fields: <xmp> low size flags. </xmp> Low and size are (short) integers. Flags is a string composed of the following characters (with associated translation): <ul> <li>D: MTR_DEFAULT <li>F: MTR_FIXED <li>N: MTR_NEWNODE <li>S: MTR_SOFT <li>T: MTR_TERMINAL </ul> Normally, the only flags that are needed are D and F. Groups and fields are separated by white space (spaces, tabs, and newlines). Returns a pointer to the group tree if successful; NULL otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+<dd> <b>See Also</b> <code><a href="mtrAllDet.html#Mtr_InitGroupTree">Mtr_InitGroupTree</a>
+<a href="mtrAllDet.html#Mtr_MakeGroup">Mtr_MakeGroup</a>
+</code>
+
+<dt><pre>
+int <i></i>
+<a name="Mtr_SwapGroups"><b>Mtr_SwapGroups</b></a>(
+  MtrNode * <b>first</b>, <i>first node to be swapped</i>
+  MtrNode * <b>second</b> <i>second node to be swapped</i>
+)
+</pre>
+<dd> Swaps two children of a tree node. Adjusts the high and low fields of the two nodes and their descendants. The two children must be adjacent. However, first may be the younger sibling of second. Returns 1 in case of success; 0 otherwise.
+<p>
+
+<dd> <b>Side Effects</b> None
+<p>
+
+
+</dl>
+
+<hr>
+
+Generated automatically by <code>extdoc</code> on 970123
+
+</body></html>

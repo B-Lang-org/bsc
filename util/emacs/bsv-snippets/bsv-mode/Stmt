@@ -1,0 +1,8 @@
+#Author : Steve Allen
+#name : Stmt name = seq {...} endseq; mkAutoFSM( name );
+# --
+Stmt ${1:name} =
+seq
+     $0
+endseq;
+mkAutoFSM( $1 );

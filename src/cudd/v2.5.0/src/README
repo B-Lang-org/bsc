@@ -1,0 +1,177 @@
+$Id$
+
+This directory contains a set of packages that allow you to build a toy
+application based on the CUDD package.
+
+The CUDD package is a package written in C for the manipulation of
+decision diagrams.  It supports binary decision diagrams (BDDs),
+algebraic decision diagrams (ADDs), and Zero-Suppressed BDDs (ZDDs).
+
+The toy application provided in this kit is called nanotrav and is a
+simple-minded FSM traversal program. (See the README file and the man
+page nanotrav.1 in the nanotrav directory for the details.)  It is
+included so that you can run a sanity check on your installation.
+
+INSTALLATION
+
+Before you build the libraries and programs, you need to check the
+Makefile in the top directory.  Go through the definitions contained in the
+configuration section, and select the desired compiler and compilation
+flags.  Instructions are provided in the comments of the Makefile.
+
+You can always specify the options on the command line.  For instance,
+on some machines you can build a "fast" version of the program by typing:
+
+    make DDDEBUG= MTRDEBUG= ICFLAGS=-O2
+
+The Makefile supports several targets:
+
+    make:
+	Creates a "plain" version of the program.
+
+    make testdddmp:
+	Builds a test program (testdddmp) for BDD loading from and
+	storing to disk. See file README.test in the dddmp directory for
+	how to run the program.
+
+    make testobj:
+	Builds a test program for the C++ interface. Requires a C++
+	compiler. To run the program, run obj/testobj.
+
+    make testcudd:
+	Builds a test program for CUDD. To run the program, go to the
+	cudd directory and type "./testcudd -p 2 r7x8.1.mat". The result
+	can be compared to r7x7.1.out.
+
+    make testmtr:
+        Builds a test program for the mtr package.  To run the program,
+	go to the mtr directory and type "./testmtr -p 1 test.groups".
+    
+    make clean:
+	Cleans directories, but leaves libraries and programs.
+
+    make distclean:
+	Cleans thoroughly, returning the directories to their pristine
+	state.
+
+The following targets are more or less obsolete and may disappear or
+change in the future.
+
+    make check_leaks: 
+	Creates a version of the program with the mnemosyne library
+	linked to it. It also builds the mnemalyse program, which
+	helps in finding memory leaks. This target does not work on the
+	IBM RS6000. The makefile also supports purify. To use purify,
+	set the PURE variable in the Makefile, and use the standard
+	target.
+
+    make optimize_dec:
+	Builds a version of the program using the u-code compiler
+	available on DEC machines (DECstations and Alphas). The newer
+	native compiler on the Alphas does not use u-code, though.
+	Therefore the standard target should be used with it.
+
+    make lint:
+	Runs lint on all subdirectories except mnemosyne. Creates lint
+	libraries for all object libraries.
+
+    make tags:
+	Builds ctags-style tag files for all subdirectories except
+	mnemosyne.
+
+    make all:
+	Makes all of the above, except check_leaks, which is
+	incompatible with a plain "make."
+
+All targets, except clean and distclean, will create the include
+directory if it does not already exist.
+
+The Makefile does not compile the SIS interface (cuddBddPort.c and
+cuddPwPt.c found in subdirectory sis).  To compile the interface, you
+also need array.h and var_set.h, which are not part of this
+distribution, but come with SIS.  Detailed instructions on how to
+integrate the CUDD package in SIS can be found in the documentation
+(cudd/doc).
+
+PLATFORMS
+
+This kit has been successfully built on the following configurations:
+
+    PC (ia32 and ia64) running Ubuntu with gcc
+    PC (ia32 and ia64) running Ubuntu with g++
+    PC (ia32 and ia64) running Linux RedHat with gcc
+    PC (ia32 and ia64) running Linux RedHat with g++
+    PC (ia64) running Cygwin on Windows 7 and Vista with gcc
+    PC (ia64) running Cygwin on Windows 7 and Vista with g++
+
+Platforms to which I have no longer access and therefore are no longer
+supported.
+
+    PC (ia32) running Linux RedHat with icc
+    PC (ia32) running Linux RedHat with icpc
+    PC (ia64) running Linux RedHat with ecc
+    PC (ia64) running Linux RedHat with ecpc
+    SUN running Solaris 2.8 with cc
+    SUN running Solaris 2.8 with CC
+    SUN running Solaris 2.8 with gcc
+    SUN running Solaris 2.8 with g++
+    DECstation running Ultrix with cc
+    DECstation running Ultrix with gcc
+    IBM RS6000 running AIX 3.2.4 with cc (**)
+    IBM RS6000 running AIX 3.2.4 with gcc
+    IBM RS6000 running AIX 3.2.4 with g++
+    SUN running SunOS with gcc
+    DEC Alpha running Digital Unix with cc
+    DEC Alpha running Digital Unix with cxx
+    DEC Alpha running Digital Unix with gcc
+    HP 9000/770 running HP-UX with c89
+    HP 9000/770 running HP-UX with CC
+    HP 9000/770 running HP-UX with gcc
+    HP 9000/770 running HP-UX with g++ (*)
+    SUN running Solaris 2.8 with /usr/ucb/cc
+    PC running Solaris 2.8 with /usr/bin/cc
+    PC running Solaris 2.8 with /usr/ucb/cc
+    PC running Solaris 2.8 with CC
+    PC running Solaris 2.8 with gcc
+    PC running Solaris 2.8 with g++
+
+NOTES
+    (*) C programs were compiled with g++, but linked with gcc.
+
+    (**) Some old versions of the AIX cc compiler have buggy optimizers:
+    Try compiling with -O2 instead of -O3 if the program crashes.
+
+Running lint and compiling with gcc -Wall still produces warnings.
+Running `purify' under Solaris 2.8 generates no messages.
+
+SANITY CHECK
+
+The directory `nanotrav' contains a very simple application based on the
+CUDD package. The `nanotrav' directory contains a man page that
+describes the options nanotrav supports. The files *.blif are sample
+input files for nanotrav.
+
+If you have built the mnemosyne library (make check_leaks), you can do
+    cd mnemosyne
+    make runmtest
+This does not work on machines running SunOS, but the version of
+nanotrav that uses mnemosyne may work.
+
+DOCUMENTATION
+
+Directory cudd-2.5.0/cudd/doc contains HTML documentation for the CUDD
+package. The recommended starting point is cuddIntro.html. Documentation
+in both postscript(tm) format and plain text format is also provided.
+Documentation for the auxiliary libraries (except for the util library)
+is in the doc subdirectories.
+
+FEEDBACK:
+
+Send feedback to:
+
+Fabio Somenzi
+University of Colorado at Boulder
+ECE Dept.
+Boulder, CO 80309-0425
+Fabio@Colorado.EDU
+http://vlsi.colorado.edu/~fabio

@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name : $display($time, " %x", data);
+# --
+$display($time, " ${1:%x}", ${2:data});

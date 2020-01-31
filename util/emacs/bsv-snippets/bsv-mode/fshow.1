@@ -1,0 +1,8 @@
+#Author : Steve Allen
+#name : instance FShow#(basetype) {....} endinstance
+# --
+instance FShow#(${1:td});
+    function Fmt fshow($1 msg);
+      return ($format("<${2:message} %x>", msg));
+    endfunction
+endinstance

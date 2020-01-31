@@ -1,0 +1,30 @@
+# !/bin/sh 
+#
+# Check BDDs from DDDMP-1.0:
+#   Load an Array of BDDs from DDDMP-1.0
+#   Store them
+#
+rm -f *.*.tmp
+echo "---------------------------------------------------------------------------"     
+echo "-------------------- TESTING Load BDD from DDDMP-1.0 ----------------------"
+echo "---------------------------------------------------------------------------"     
+./../testdddmp << END
+mi
+10
+hlb
+s27deltaDddmp1.bdd
+hw
+bal
+s27deltaDddmp1.bdd
+0 
+bas
+s27deltaDddmp1.bdd.tmp
+0
+mq
+quit
+END
+echo "----------------------------- ... RESULTS ... -----------------------------"
+diff --brief s27deltaDddmp1.bdd.tmp s27deltaDddmp1.bdd.bis
+echo "-------------------------------- ... END ----------------------------------"
+rm -f *.*.tmp    
+

@@ -1,0 +1,76 @@
+'\"
+'\" Copyright (c) 2004 Joe English
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\" 
+'\" RCS: @(#) $Id: ttk_button.n,v 1.11.2.1 2008/05/11 00:31:00 patthoyts Exp $
+'\" 
+.so man.macros
+.TH ttk::button n 8.5 Tk "Tk Themed Widget"
+.BS
+.SH NAME
+ttk::button \- Widget that issues a command when pressed
+.SH SYNOPSIS
+\fBttk::button\fR \fIpathName \fR?\fIoptions\fR?
+.BE
+.SH DESCRIPTION
+A \fBttk::button\fR widget displays a textual label and/or image,
+and evaluates a command when pressed.
+.SO ttk_widget
+\-class	\-compound	\-cursor
+\-image	\-state	\-style
+\-takefocus	\-text	\-textvariable
+\-underline	\-width
+.SE
+.SH "WIDGET-SPECIFIC OPTIONS"
+.OP \-command command Command
+A script to evaluate when the widget is invoked.
+.OP \-default default Default
+May be set to one of  \fBnormal\fR, \fBactive\fR, or \fBdisabled\fR.
+In a dialog box, one button may be designated the
+.QW default
+button (meaning, roughly,
+.QW "the one that gets invoked when the user presses <Enter>" ).
+\fBactive\fR indicates that this is currently the default button;
+\fBnormal\fR means that it may become the default button, and
+\fBdisabled\fR means that it is not defaultable.
+The default is \fBnormal\fR.
+.RS
+.PP
+Depending on the theme, the default button may be displayed 
+with an extra highlight ring, or with a different border color.
+.RE
+.OP \-width width Width
+If greater than zero, specifies how much space, in character widths, 
+to allocate for the text label.  
+If less than zero, specifies a minimum width.
+If zero or unspecified, the natural width of the text label is used.
+Note that some themes may specify a non-zero \fB\-width\fR
+in the style.
+.\" Not documented -- may go away
+.\" .OP \-padding padding Padding
+.\" .OP \-foreground foreground Foreground
+.\" .OP \-font font Font
+.\" .OP \-anchor anchor Anchor
+.\" .OP \-padding padding Padding
+.\" .OP \-relief relief Relief
+.SH "WIDGET COMMAND"
+In addition to the standard 
+\fBcget\fR, \fBconfigure\fR, \fBidentify\fR, \fBinstate\fR, and \fBstate\fR 
+commands, checkbuttons support the following additional
+widget commands:
+.TP
+\fIpathName \fBinvoke\fR
+Invokes the command associated with the button.
+.SH "COMPATIBILITY OPTIONS"
+.OP \-state state State
+May be set to \fBnormal\fR or \fBdisabled\fR to control the
+\fBdisabled\fR state bit. This is a
+.QW write-only
+option: setting it changes the widget state, but the \fBstate\fR
+widget command does not affect the state option.
+.SH "SEE ALSO"
+ttk::widget(n), button(n)
+.SH "KEYWORDS"
+widget, button, default, command

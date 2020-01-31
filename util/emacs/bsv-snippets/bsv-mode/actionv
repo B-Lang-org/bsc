@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : actionvalue {...} endactionvalue
+# --
+actionvalue
+     $0
+endactionvalue

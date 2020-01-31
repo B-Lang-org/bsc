@@ -1,0 +1,141 @@
+package ConfigReg(ConfigReg(..), mkConfigReg, mkConfigRegU, mkConfigRegA) where
+
+--@ \subsubsection{ConfigReg}
+--@ \index{ConfigReg@\te{ConfigReg} (package,interface)|textbf}
+--@ \index{mkConfigReg@\te{mkConfigReg} (module)|textbf}
+--@ \index{mkConfigRegA@\te{mkConfigRegA} (module)|textbf}
+--@ \index{mkConfigRegU@\te{mkConfigRegU} (module)|textbf}
+--@ 
+--@ The \te{ConfigReg} package provides a way to create configuration
+--@ registers, where each update clobbers the current value, and
+--@ the precise timing of updates is not important.
+--@
+--@ Rules which fire during the clock cycle where the register is written
+--@ read a stale value (from the beginning of the clock cycle)
+--@ regardless of firing order.    That is, the scheduler allows a read
+--@ after a write in the rule execution order.
+--@  The hardware implementation is identical for the more common
+--@ registers (mkReg, mkRegU and mkRegA), and the module constructors
+--@ parallel these as well.
+
+--@
+--@  The \te{ConfigReg} interface is an alias of the \te{Reg} interface
+--@ \begin{libverbatim}
+--@ typedef Reg#(a) ConfigReg #(type a);
+--@ \end{libverbatim}
+type ConfigReg a = Reg a
+
+--@ Make a register with a given reset value.  Reset logic is synchronous.
+--@ \begin{libverbatim}
+--@ module mkConfigReg#(a v)(Reg#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkConfigReg :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkConfigReg v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkConfigReg (pack v)
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+--@ Make a register without any reset; initial simulation value is alternating 01 bits.
+--@ \begin{libverbatim}
+--@ module mkConfigRegU(Reg#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkConfigRegU :: (IsModule m c, Bits a sa) => m (Reg a)
+mkConfigRegU = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkConfigRegU
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+--@ Make a register with a given reset value.  Reset logic is asynchronous.
+--@ \begin{libverbatim}
+--@ module mkConfigRegA(Reg#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkConfigRegA :: (IsModule m c, Bits a sa) => a ->  m (Reg a)
+mkConfigRegA initValue = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkConfigRegA (pack initValue)
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	_read = unpack _r.read
+	_write x = fromPrimAction (_r.write (pack x))
+
+-- internal interfaces
+interface VReg n =
+    write :: Bit n -> PrimAction
+    read  :: Bit n
+
+-- internal module bvi wrappers
+-- n > 0
+vMkConfigReg :: Bit width -> Module (VReg width)
+vMkConfigReg initval =
+    module verilog "ConfigRegN"
+                   (("width",valueOf width), ("init",initval)) "CLK" "RST" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> [read, write], write << write ]
+
+-- only for n>0
+vMkConfigRegU :: Module (VReg width)
+vMkConfigRegU =
+    module verilog "ConfigRegUN"
+                   (("width",valueOf width)) "CLK" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> [read, write], write << write ]
+
+-- only for n>0
+vMkConfigRegA :: Bit width -> Module (VReg width)
+vMkConfigRegA initval =
+    module verilog "ConfigRegA"
+                   (("width",valueOf width), ("init",initval)) "CLK" "RST" {
+	read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> [read, write], write << write ]
+

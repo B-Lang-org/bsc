@@ -1,0 +1,184 @@
+#!/bin/sh
+
+# simulator builder script
+#
+# warning: this MUST NOT be called directly by the user
+#
+# bsc invokes
+#   bsc_build_vsim_... detect
+# to detect whether this simulator can be built (exit status 0 = yes)
+#
+# bsc invokes
+#   bsc_build_vsim_... link outexe topmod clibpath clibs linkopts vdirs vdefs vopts vfiles ofiles
+# where
+#   outexe   - the name of the simulator executable to create
+#   topmod   - the toplevel module to simulate
+#   clibpath - where to find external C libraries
+#   clibs    - which external C libraries to link in
+#   linkopts - other options passed to C/C++ linker
+#   vdirs    - -y directories to search for Verilog files
+#   vdefs    - -D macro definitions
+#   vopts    - other options passed to Verilog
+#   vfiles   - the Verilog files to simulate
+#   ofiles   - any VPI object files to link in
+# exits with status 0 if it successfully built the simulator, 1 otherwise
+
+# tested on VCSi 4.4R12A
+
+BSC_COMMAND=$1           # "detect" or "link"
+
+if [ "$BSC_COMMAND" = "detect" ]; then
+# detect whether the command "vcsi" is in the path
+  SIM_NAME=vcsi
+  hash $SIM_NAME 2> /dev/null
+  if [ "$?" != "0" ]; then
+      echo "$SIM_NAME was not found"
+      exit 1
+  else
+      FOUND_CMD=`which $SIM_NAME`
+      echo "$SIM_NAME was found at $FOUND_CMD"
+      exit 0
+  fi
+fi
+
+# the only remaining command is "link"
+if [ "$BSC_COMMAND" != "link" ]; then
+  echo "ERROR: unknown command: $BSC_COMMAND" >&2
+  exit 1
+fi
+
+BSC_SIM_EXECUTABLE=$2    # output executable filename
+BSC_TOPLEVEL_MODULE=$3   # toplevel module to simulate
+
+shift 3
+BSC_VERILOG_FILES=""     # Verilog files to link
+BSC_VERILOG_DIRS=""      # Verilog directories to link
+BSC_VPI_FILES=""         # VPI object files to link in
+BSC_C_LIB_PATH=""        # where to find C libraries for linking
+BSC_C_LIBS=""            # which C files to link in
+BSC_CLINK_OPTS=""        # C/C++ link options specified with -Xl in bsc
+BSC_VERILOG_DEFS=""      # -D macro and -D macro=val to be passed to Verilog
+BSC_VERILOG_OPTS=""      # Verilog link options specified with -Xv in bsc
+BSC_OTHER_ARGUMENTS=""
+
+VERBOSE="no"
+
+while [ $# -gt 0 ]; do
+  if [ "${1%%.v}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.V}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.vo}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.sv}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.o}" != "$1" ]; then
+    BSC_VPI_FILES="$BSC_VPI_FILES $1"
+  elif [ "$1" = "-L" ]; then
+    shift 1
+    BSC_C_LIB_PATH="$BSC_C_LIB_PATH -L$1"
+  elif [ "$1" = "-y" ]; then
+    shift 1
+    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1"
+  elif [ "$1" = "-l" ]; then
+    shift 1
+    BSC_C_LIBS="$BSC_C_LIBS -l$1"
+  elif [ "$1" = "-Xl" ]; then
+    shift 1
+    BSC_CLINK_OPTS="$BSC_CLINK_OPTS $1"
+  elif [ "$1" = "-D" ]; then
+    shift 1
+    BSC_VERILOG_DEFS="$BSC_VERILOG_DEFS +define+$1"
+  elif [ "$1" = "-Xv" ]; then
+    shift 1
+    if [ "$1" = "-sv" ]; then
+	BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS -sverilog"
+    else
+	BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
+    fi
+  elif [ "$1" = "-verbose" ]; then
+    VERBOSE="yes"
+  else
+    BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
+  fi
+  shift 1
+done
+
+if [ -z "$BSC_SIM_EXECUTABLE" ]; then
+  echo "ERROR: simulator executable filename not specified"
+  exit 1
+fi
+
+if [ -z "$BSC_TOPLEVEL_MODULE" ]; then
+  echo "ERROR: no top-level module specified" >&2
+  exit 1
+fi
+
+if [ -z "$BSC_VERILOG_FILES" ]; then
+  echo "ERROR: no Verilog files to link" >&2
+  exit 1
+fi
+
+if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
+  echo "ERROR: unrecognized arguments '$BSC_OTHER_ARGUMENTS'" >&2
+  exit 1
+fi
+
+# identify the VPI wrapper C files
+BSC_VPI_CFILES=""
+for file in $BSC_VPI_FILES; do
+  case "$file" in \
+    vpi_wrapper_* | */vpi_wrapper_* ) \
+      BSC_VPI_CFILES="$BSC_VPI_CFILES ${file%%.o}.c" ;;
+  esac
+done
+
+# include VPI modules if supplied
+if [ -n "$BSC_VPI_FILES" ]; then
+  ## If CXX is set, use that.  Otherwise just use c++
+  if [ "$CXX" = "" ]
+  then
+    CXX=c++
+  fi
+  # No longer support 32-bit
+  IS64=64
+  if [ "${IS64}" != ""  ]; then
+      ARCH_OPT="-full64"
+  else
+      ARCH_OPT=""
+  fi
+  VPI_LINK="+vpi -P directc_$BSC_TOPLEVEL_MODULE.tab $ARCH_OPT -load ./directc_$BSC_TOPLEVEL_MODULE.so:vpi_register_tasks directc_$BSC_TOPLEVEL_MODULE.so"
+  LDFLAGS="$LDFLAGS $BSC_LDFLAGS"
+  SHARED=`$BLUESPECDIR/exec/platform.sh c++_shared_flags`
+  if [ "$VERBOSE" = "yes" ]; then
+      echo "exec: $CXX -v $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS"
+      CXX_VERBOSE="-v"
+  else
+      CXX_VERBOSE=""
+  fi
+  $CXX $CXX_VERBOSE $LDFLAGS $SHARED -o directc_$BSC_TOPLEVEL_MODULE.so -Wl,-rpath,$BLUESPECDIR/VPI -L$BLUESPECDIR/VPI $BSC_VPI_FILES -lbdpi $BSC_C_LIB_PATH $BSC_C_LIBS $BSC_CLINK_OPTS
+  if [ -n "$BSC_VPI_CFILES" ]; then
+      grep "/* tab:" $BSC_VPI_CFILES | cut -d' ' -f3-6 > directc_$BSC_TOPLEVEL_MODULE.tab
+  else
+      touch directc_$BSC_TOPLEVEL_MODULE.tab
+  fi
+else
+  VPI_LINK=""
+fi
+
+# path to Verilog files
+VSIM_PATH_FLAGS=$BSC_VERILOG_DIRS
+
+# compile Verilog files
+if [ "$VERBOSE" = "yes" ]; then
+    VCS_VERBOSE="-V"
+    echo "exec: vcsi -V -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES"
+else
+    VCS_VERBOSE=""
+fi
+vcsi $VCS_VERBOSE -o $BSC_SIM_EXECUTABLE +v2k +libext+.v $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS +define+TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $BSC_VERILOG_OPTS $VPI_LINK $BSC_VERILOG_FILES
+status=$?
+if [ "$status" != "0" ]; then
+    echo "ERROR: cannot compile Verilog files" >&2
+    exit $status
+fi

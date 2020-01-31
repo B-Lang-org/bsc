@@ -1,0 +1,7 @@
+#Author : Steve Allen
+#name   : typedef struct { ... } T 
+# --
+typedef struct { 
+    $0
+    } ${1:TS} deriving(Bits,Eq);
+

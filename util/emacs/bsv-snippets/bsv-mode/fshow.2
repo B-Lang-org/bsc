@@ -1,0 +1,12 @@
+#Author : Steve Allen
+#name : instance FShow#(poly#(td)) {....} endinstance
+# --
+instance FShow#(${1:type}#(td)) provisos( FShow#(td) );
+    function Fmt fshow($1#(td) msg);
+      return ($format("<${2:message} $1= %x ", msg.a)
+              +
+              fshow( msg.b )
+              +
+              $format(">"));
+    endfunction
+endinstance

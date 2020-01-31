@@ -1,0 +1,6 @@
+#Author : Steve Allen
+#name : interface name; ... endmodule
+# --
+interface ${1:name};
+    $0
+endinterface : $1

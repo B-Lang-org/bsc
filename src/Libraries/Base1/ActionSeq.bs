@@ -1,0 +1,221 @@
+package ActionSeq(
+        actionSeq, ActionSeq(..), ActionList, ActionJoin(..),
+	aJoin, actionSeqBreak, mkActionSeq,
+	SeqList, seqOfActionSeq) where
+import List
+import Vector
+
+infixr 15 |>
+
+--@ \subsubsection{ActionSeq}
+--@ 
+-- {\te{ActionSeq}} is an interface type with a field called
+-- {\te{start}} of type {\te{Action}}.
+--@ 
+--@ {\te{ActionSeq}} allows you to simplify the description of a state
+--@ machine.  For example, suppose you had a module with an interface to
+--@ load some data and, after loading, you simply wanted to sequence
+--@ through 5 actions.  Instead of explicitly coding the state and writing
+--@ the (boring) rules to transition from one state to the next, you could
+--@ simply define the following in your module:
+--@ 
+--@ \BBS
+--@ s :: ActionSeq
+--@ s <- actionSeq ( {\rm\emph{action$_1$}} |> $\cdots$ |> {\rm\emph{action$_n$}} )
+--@ \EBS
+--@ \index{"|>@{\verb'"|>'} (\te{ActionSeq} interface method)|textbf}
+--@ 
+--@ and then call {\te{s.start}} to kick off the state sequence.  The
+--@ compiler will work out all the states for you and prevent
+--@ {\te{s.start}} from being called until it has sequenced through all
+--@ the actions.  The {\qbs{|>}} operator combines actions into a suitable
+--@ list of actions for {\te{actionSeq}}.
+--@ 
+
+--@ \index{ActionList@\te{ActionList} (\te{ActionSeq} type)|textbf}
+--@ The argument to \te{actionSeq} is an \te{ActionList}, which is simply
+--@ a list of actions.
+--@ \begin{libverbatim}
+--@ typedef Vector#(n, Action) ActionList #(type n);
+--@ \end{libverbatim}
+type ActionList n = Vector n Action
+
+-- A special "cons" operation that can be used without nil.
+class ActionJoin a c | a -> c where
+    (|>) :: Action -> a -> c
+
+instance ActionJoin Action (ActionList 2) where
+    (|>) x y = cons x (cons y nil)
+
+instance (Add 1 n m) => ActionJoin (ActionList n) (ActionList m) where
+    (|>) x xs = cons x xs
+
+aJoin :: (ActionJoin a c) => Action -> a -> c
+aJoin = (|>)
+
+
+--@ \index{ActionSeq@\te{ActionSeq} (interface type)|textbf}
+--@ \index{start@\te{start} (\te{ActionSeq} interface method)}
+--@ \index{start@\te{done} (\te{ActionSeq} interface method)}
+--@ The \te{ActionSeq} interface can be used to start the sequence
+--@ and to test if it is done.
+--@ \begin{libverbatim}
+--@ interface ActionSeq;
+--@     method Action start();
+--@     method Bool done();
+--@ endinterface: ActionSeq
+--@ \end{libverbatim}
+interface ActionSeq =
+    start :: Action
+    done  :: Bool
+    checkDone :: Action
+
+type RegB k = Reg (Bit k)
+
+--@ \index{actionSeq@\te{actionSeq} (\te{ActionSeq} function)}
+--@ The \te{actionSeq} function converts a list of actions to
+--@ an \te{ActionSeq}.
+--@ \begin{libverbatim}
+--@ module actionSeq#(ActionList#(n) as)(ActionSeq)
+--@   provisos (Add#(n, 1, i), Log#(i, k));
+--@ \end{libverbatim}
+actionSeq :: (IsModule m c, Add n 1 i, Log i k) =>
+             ActionList n -> m ActionSeq
+actionSeq as = liftModule $
+    module
+	letseq bn = fromInteger (valueOf n)
+        var :: RegB k
+        var <- mkReg bn
+	addRules $ mkRules True var as
+	interface
+            start = var := 0
+        	when var == bn
+	    done  = (var == bn)
+	    checkDone = noAction 
+                when var == bn
+
+-- ActionSeq wrapper with a phantom type for the counter size
+interface (ActionSeqN :: # -> *) n =
+  _actionSeq :: ActionSeq
+
+mkActionSeq :: (IsModule m c) => List Action -> m ActionSeq
+mkActionSeq a =
+  module
+    _asN :: ActionSeqN 1 <- mkActionSeqN a (length a)
+    return $ _asN._actionSeq
+
+mkActionSeqN :: (IsModule m c, Add n 1 n1) => List Action -> Integer -> m (ActionSeqN n)
+mkActionSeqN a ln =
+  module
+    if ln < 2 ** (valueOf n)
+     then do let bn = fromInteger ln
+             r :: Reg (Bit n) <- mkReg bn
+             aS2 a ln (asReg r)
+     else do _asN1 :: ActionSeqN n1 <- mkActionSeqN a ln
+             return $ interface ActionSeqN
+                       _actionSeq = _asN1._actionSeq
+
+aS2 :: (IsModule m c) =>
+             List Action -> Integer -> Reg (Bit a) -> m (ActionSeqN n)
+aS2 as n var = liftModule $
+    module
+        letseq bn = fromInteger n
+	addRules $ mR2 True var as
+        interface ActionSeqN
+	  _actionSeq =
+            interface ActionSeq
+              start = var := 0
+                when var == bn
+	      done  = (var == bn)
+	      checkDone = noAction
+       	        when var == bn
+
+--@ \index{actionSeqBreak@\te{actionSeqBreak} (\te{ActionSeq} function)}
+--@ The function \te{actionSeqBreak} is similar to \te{actionSeq}, but it
+--@ allows the sequence of actions to be stopped before it reaches
+--@ the end.  It is stopped by calling the argument supplied to
+--@ the action list.  E.g.,
+--@ \BBS
+--@  s :: ActionSeq
+--@  s <- actionSeqBreak ( \BSL break -> $\cdots$ |> \{ if cond then break else $\cdots$ \} |> $\cdots$ )
+--@ \EBS
+--@ \begin{libverbatim}
+--@ module actionSeqBreak#(function ActionList#(n) as(Action x1))(ActionSeq)
+--@   provisos (Add#(n, 1, i), Log#(i, k));
+--@ \end{libverbatim}
+actionSeqBreak :: (IsModule m c, Add n 1 i, Log i k) =>
+                  (Action -> ActionList n) -> m ActionSeq
+actionSeqBreak as = liftModule $
+    module
+        var :: RegB k
+        var <- mkRegU
+	go :: Reg Bool
+	go <- mkReg False
+	letseq bn = fromInteger (valueOf n)
+	       rdy = not go || var == bn
+	addRules $ mkRules go var (as (go := False))
+	interface
+            start = action { go := True; var := 0 }
+        	when rdy
+	    done  = rdy
+	    checkDone = noAction
+	        when rdy
+
+mkRules :: Bool -> RegB k -> ActionList n -> Rules
+mkRules cond var l = foldr (step cond var) (rules { }) (zip genList l)
+
+mR2 :: Bool -> RegB k -> (List Action) -> Rules
+mR2 cond var l = List.foldr (step cond var) (rules { }) (List.zip (upto 0 ((length l)-1)) l)
+
+step :: Bool -> RegB k -> (Integer, Action) -> Rules -> Rules
+step cond var (i, a) r =
+    rules
+      ("actionSeq step " +++ integerToString i):
+        when cond && var == fromInteger i
+         ==> action { var := fromInteger i + 1; a }
+    <+> r
+
+--@ \index{SeqList@\te{SeqList} (\te{ActionSeq} type)|textbf}
+--@ A \te{SeqList} is simply a list of action sequences.
+--@ \begin{libverbatim}
+--@ typedef Vector#(n, ActionSeq) SeqList #(type n);
+--@ \end{libverbatim}
+type SeqList n = Vector n ActionSeq
+
+--@ \index{seqOfActionSeq@\te{seqOfActionSeq} (\te{ActionSeq} function)}
+--@ The function \te{seqOfActionSeq} ``glues'' a number of action
+--@ sequences together into a single action sequence.
+--@ \begin{libverbatim}
+--@ module seqOfActionSeq#(SeqList#(n) xs)(ActionSeq)
+--@   provisos (Add#(n, 1, j), Add#(1, n, j), Add#(j, 1, i), Log#(i, k));
+--@ \end{libverbatim}
+seqOfActionSeq :: (IsModule m c, Add n 1 j, Add j 1 i, Log i k) =>
+                  SeqList n -> m ActionSeq
+seqOfActionSeq xs = liftModule $
+    module
+	letseq bn = fromInteger (valueOf j)
+	var :: RegB k
+	var <- mkReg bn
+	addRules $ mkSeqRules var xs
+	interface
+	    start = var := 0
+		when var == bn
+	    done  = (var == bn)
+ 	    checkDone = noAction 
+       	        when var == bn
+
+mkSeqRules :: (Add n 1 j) => RegB k -> SeqList n -> Rules
+mkSeqRules var l =
+    letseq emptyIfc = interface ActionSeq { done = True; start = noAction; checkDone = noAction }
+	   l_shifted = cons emptyIfc l
+	   l_extended = append l (cons emptyIfc nil)
+	   zip3 = zipWith3 (\x y z -> (x,y,z))
+    in  foldr (seqStep var) (rules { }) (zip3 genList l_extended l_shifted)
+
+seqStep :: RegB k -> (Integer, ActionSeq, ActionSeq) -> Rules -> Rules
+seqStep var (i, a1, a2) r =
+    rules
+      ("actionSeq step " +++ integerToString i):
+        when var == fromInteger i, a2.done
+         ==> action { var := fromInteger i + 1; a1.start }
+    <+> r

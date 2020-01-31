@@ -1,0 +1,4 @@
+#Author : Steve Allen
+#name   : (* rules firing *)
+# --
+(* ${1:$$(yas/choose-value '("fire_when_enabled" "no_implicit_conditions" "fire_when_enabled,no_implicit_conditions"))} *)

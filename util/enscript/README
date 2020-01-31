@@ -1,0 +1,25 @@
+
+This directory contains an GNU enscript "st" file for the Bluespec
+SystemVerilog language.  
+
+Enscript converts ASCII files to PostScript and spools generated
+PostScript output to the specified printer or leaves it to
+file. Enscript can be easily extended to handle different output media
+and it has many options that can be used to customize printouts.
+GNU Enscript can be found at:  http://people.ssh.fi/mtr/genscript/index.html
+
+To add enscript support for Bluespec SystemVerilog (bsv) files, copy
+bsv.st to the appropriate enscript library, usually
+/usr/share/enscript/hl/.  Then add a bsv entry line to the file
+"enscript.st", also found in the enscript library.  The line will look
+like:
+       /\.bsv$/    bsv;
+
+This procedure was tested with GNU enscript 1.6.4.  Please report bugs
+or problems to support@bluespec.com
+
+
+
+
+
+

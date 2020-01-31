@@ -1,0 +1,35 @@
+package RevertingVirtualReg(mkRevertingVirtualReg) where
+
+interface VReg n =
+    write :: Bit n -> PrimAction
+    read :: Bit n
+
+vMkRevertReg :: Bit n -> Module (VReg n)
+vMkRevertReg v =
+    module verilog "RevertReg" (("width",valueOf n), ("init",v)) "CLK" {
+        read = "Q_OUT"{reg};
+	write = "D_IN"{reg} "EN";
+    } [ read <> read,
+	read < write,
+	write << write ]
+
+mkRevertingVirtualReg :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkRevertingVirtualReg v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+        _read = unpack 0
+        _write x = return ()
+  else
+    module
+      _r :: VReg sa
+      {-# hide #-}
+      _r <- vMkRevertReg (pack v)
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_IN" t
+      primSavePortType name "Q_OUT" t
+      interface
+	_read = unpack _r.read
+        -- write init value, ignoring argument to write
+	_write x = fromPrimAction (_r.write (pack v))

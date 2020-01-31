@@ -1,0 +1,31 @@
+#Author : Steve Allen
+#name : newfile testbench
+# --
+/********************************************************************************
+ * File:         `(buffer-name)`
+ * DateCreated:  `(format-time-string "%Y-%m-%d")`
+ * @author       `(user-full-name)`
+ * @version      0.1
+ *
+ ********************************************************************************/
+
+import StmtFSM::*;
+import ${1:Dut}::*;
+
+(* synthesize *)
+module mk${2:Tb} ( );
+
+   $1 dut <- mk$1;
+
+   Stmt tst =
+   seq
+      // insert statements here
+      $0
+   endseq;
+   mkAutoFSM( tst );
+
+   rule watchout;
+      // display outputs?
+   endrule
+
+endmodule

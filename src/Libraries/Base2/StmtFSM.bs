@@ -1,0 +1,2405 @@
+package StmtFSM (
+                 -- re-exports from the Stmt package
+		 StmtT(..),
+		 StmtTifiable(..),
+		 RStmt(..),
+		 Stmt(..),
+		 StmtM(..),
+		 RStmts,
+		 unS, _s__, s,
+		 PosInfo, noPosInfo, getPIString, addPIPrefix,
+		 await, delay, Once(..), mkOnce,
+                 -- new exports
+		 RFSM(..), FSMAbort(..), mkRFSM,
+		 FSM(..), FSMServer(..),
+		 mkFSM, mkFSMWithPred, mkAutoFSM, mkFSMServer, mkAlwaysFSM, mkAlwaysFSMWithPred,
+		 ServerCallToStmtT(..), ActionType(..), Freedom(..)
+             	 ) where
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+import ClientServer
+import ConfigReg
+import DReg
+import FIFO
+import GetPut
+import List
+import TurboFIFO
+import ToString
+
+-- #############################################################################
+-- #
+-- #############################################################################
+idle_state :: Integer
+idle_state = 0
+
+--type PosInfo = (String, Position__)
+type PosInfo = String
+
+noPosInfo :: PosInfo
+--noPosInfo = ("_np", noPosition)
+noPosInfo = "_np"
+
+getPIString :: PosInfo -> String
+--getPIString (l, p) = l
+getPIString l = l
+
+getPIPosition :: PosInfo -> Position__
+getPIPosition l = getStringPosition( getPIString l)
+
+addPIPrefix :: String -> PosInfo -> PosInfo
+--addPIPrefix x (l,p) = ((x +++ l), p)
+addPIPrefix x y = (x +++ y)
+
+data Freedom
+        = Early String -- string is comment for warning message
+        | Overlap
+    deriving (Eq)
+
+data ActionType 
+        = Default
+        | Update Freedom
+        | Jump String
+        | Wait
+        | NoME
+    deriving (Eq)
+
+nAT :: Maybe ActionType
+nAT = Nothing
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+eR :: Rules
+eR = emptyRules
+
+nR :: Maybe RuleSet
+nR = Nothing
+
+struct RuleSet
+  =
+    me_local   :: Rules
+    me_parents :: Rules
+    no_me      :: Rules
+
+
+emptyRuleSet :: RuleSet
+emptyRuleSet = RuleSet {me_local   = eR;
+                        me_parents = eR;
+                        no_me      = eR}
+
+combineRuleSets :: RuleSet -> RuleSet -> RuleSet
+combineRuleSets rs0 rs1 =
+                RuleSet {me_local   = (rJoinMutuallyExclusive rs0.me_local rs1.me_local);
+                         me_parents = (rJoin rs0.me_parents rs1.me_parents);
+                         no_me      = (rJoin rs0.no_me rs1.no_me) }
+
+mergeRuleSets :: RuleSet -> RuleSet -> RuleSet
+mergeRuleSets rs0 rs1 =
+                RuleSet {me_local   = (rJoin rs0.me_local rs1.me_local);
+                         me_parents = (rJoin rs0.me_parents rs1.me_parents);
+                         no_me      = (rJoin rs0.no_me rs1.no_me) }
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+data StmtT a
+	= SAction PosInfo Action (Maybe ActionType)
+        | SActionValue PosInfo (ActionValue a)
+        | SNamed PosInfo String  (List (StmtT a))
+        | SLabel PosInfo String Bool (Maybe (StmtT a))
+        | SJump PosInfo String
+	| SCall PosInfo Action Action Action -- abort_action, start_action, end_action
+        | SUntil PosInfo Bool
+	| SIf1 PosInfo Bool (StmtT a)
+	| SIf2 PosInfo Bool (StmtT a) (StmtT a)
+	| SWhile PosInfo Bool (StmtT a) (Maybe (StmtT a)) (Maybe (StmtT a)) (Maybe (StmtT a)) -- init_action, pre_action, post_action
+	| SFor PosInfo (StmtT a) Bool (StmtT a) (StmtT a)
+	| SSeq PosInfo (List (StmtT a))
+	| SPar PosInfo (List (StmtT a))
+	| SSkip PosInfo
+	| SRepeat PosInfo Nat (StmtT a)
+	| SDelay PosInfo Nat
+	| SReturn PosInfo
+	| SBreak PosInfo
+	| SContinue PosInfo
+	| SExprS PosInfo (RStmt a)
+
+class StmtTifiable t a | t -> a where stmtify :: PosInfo -> t -> (StmtT a)
+
+instance StmtTifiable Action t where
+    stmtify p a = SAction p a Nothing
+
+instance StmtTifiable (RStmt a) a where
+    stmtify p s = SExprS p s
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+type RStmts a = List (StmtT a)
+
+type RStmt a = StmtM a ()
+
+data StmtM a b
+	= S (Module (b, (RStmts a)))
+
+unS :: StmtM a b -> Module (b, (RStmts a))
+unS (S x) = x
+
+instance Monad (StmtM a)
+  where
+    return x = S (return (x, Nil))
+    bind (S x) f = S
+	do  (xa, xs) <- x
+	    (fa, fs) <- unS (f xa)
+	    return (fa, xs `append` fs)
+
+stmt :: (Monad m) => (StmtT a) -> m ((), (RStmts a))
+stmt s = return ((), s :> Nil)
+
+_s__ :: StmtT a -> RStmt a
+_s__ st = S (stmt st)
+
+s :: Action -> RStmt a
+s x = _s__ (SAction noPosInfo x Nothing)
+
+type Stmt = RStmt (Bit 0)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+stmtTToString :: (Monad m) => (StmtT a) -> m String
+stmtTToString (SAction p a (Just Default)) = return ("[DD Action" +++ (getPIString p) +++ "]")
+stmtTToString (SAction p a (Just (Jump l))) = return ("[Jump Action" +++ (getPIString p) +++ " " +++ l +++ "]")
+stmtTToString (SAction p a _) = return ("[Action" +++ (getPIString p) +++ "]")
+stmtTToString (SActionValue p a) = return ("[ActionValue" +++ (getPIString p) +++ "]")
+stmtTToString (SIf1 p c s)  =
+    do sub <- stmtTToString s
+       return ("[If1" +++(getPIString p)+++ " " +++ sub +++ "]")
+stmtTToString (SIf2 p c s0 s1)  =
+    do sub0 <- stmtTToString s0
+       sub1 <- stmtTToString s1
+       return ("[If2" +++(getPIString p)+++ " " +++ sub0 +++ " " +++ sub1 +++ "]")
+stmtTToString (SSeq p ss) =
+    do subs <- stmtTListToString ss
+       return ("[Seq" +++(getPIString p)+++ " " +++ subs +++ "]")
+stmtTToString (SPar p ss) =
+    do subs <- stmtTListToString ss
+       return ("[Par" +++(getPIString p)+++ " " +++ subs +++ "]")
+stmtTToString (SSkip p) = return ("[Skip" +++(getPIString p)+++ "]")
+stmtTToString (SCall p _ _ _) = return ("[Call" +++(getPIString p)+++ "]")
+stmtTToString (SReturn p) = return ("[Return" +++(getPIString p)+++ "]")
+stmtTToString (SBreak p) = return ("[Break" +++(getPIString p)+++ "]")
+stmtTToString (SContinue p) = return ("[Continue" +++(getPIString p)+++ "]")
+stmtTToString (SLabel p name _ _) = return ("[Label " +++ name +++(getPIString p)+++ "]")
+stmtTToString (SJump p name) = return ("[Jump " +++ name +++(getPIString p)+++ "]")
+stmtTToString (SUntil p _) = return ("[SUntil]")
+stmtTToString (SWhile p c s _ _ _) =
+    do sub <- stmtTToString s
+       return ("[While" +++(getPIString p)+++ " " +++ sub +++ "]")
+stmtTToString (SRepeat p c s) =
+    do sub <- stmtTToString s
+       return ("[Repeat" +++(getPIString p)+++ " " +++ sub +++ "]")
+stmtTToString (SDelay p c) =
+    return ("[Delay" +++(getPIString p)+++ " " +++ "]")
+stmtTToString (SFor p s1 c s2 s3) =
+    do x1 <- stmtTToString s1
+       x2 <- stmtTToString s2
+       x3 <- stmtTToString s3
+       return ("[SFor" +++(getPIString p)+++ " " +++ x1 +++ " " +++ x2 +++ " " +++ x3 +++ "]")
+stmtTToString (SNamed p nm Nil)  =
+    return ("[SNamed " +++ nm +++(getPIString p)+++ "]")
+stmtTToString (SNamed p nm (Cons s Nil)) =
+    do sub <- stmtTToString s
+       return ("[SNamed " +++ nm +++(getPIString p)+++ " [" +++ sub +++ "]]")
+
+stmtTToString (SExprS p _) = return ("[SExprS " +++(getPIString p)+++ "]")
+--stmtTToString _ = return "XXXX"
+stmtTToString _ = error "unhandled case"
+
+stmtTListToString :: (Monad m) => (List (StmtT a)) -> m String
+stmtTListToString x =
+    do y <- stmtTListToStringInternal x
+       return ("(" +++ y +++ ")")
+
+stmtTListToStringInternal :: (Monad m) => (List (StmtT a)) -> m String
+stmtTListToStringInternal Nil = return ""
+stmtTListToStringInternal (Cons x Nil) = stmtTToString x
+stmtTListToStringInternal (Cons x rest) =
+    do y <- stmtTToString x
+       z <- stmtTListToStringInternal rest
+       return (y +++ " " +++ z)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getStmtTPosInfo :: (StmtT a) -> PosInfo
+getStmtTPosInfo (SAction p _ _) = p
+getStmtTPosInfo (SActionValue p _) = p
+getStmtTPosInfo (SCall p _ _ _) = p
+getStmtTPosInfo (SIf1 p _ _)  = p
+getStmtTPosInfo (SIf2 p _ _ _)  = p
+getStmtTPosInfo (SSeq p _) = p
+getStmtTPosInfo (SPar p _) = p
+getStmtTPosInfo (SSkip p) = p
+getStmtTPosInfo (SReturn p) = p
+getStmtTPosInfo (SBreak p) = p
+getStmtTPosInfo (SContinue p) = p
+getStmtTPosInfo (SExprS p e) = p
+getStmtTPosInfo (SWhile p _ _ _ _ _) = p
+getStmtTPosInfo (SRepeat p _ _) = p
+getStmtTPosInfo (SDelay p _) = p
+getStmtTPosInfo (SFor p _ _ _ _) = p
+getStmtTPosInfo _ = error "unhandled case"
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+delay :: (Eq a, Ord a, Arith a, Literal a, Bits a sa, Add x sa 32) => a -> RStmt b
+-- delay num = _s__ (SRepeat noPosInfo (zeroExtend (pack num)) (SAction noPosInfo noAction Nothing))
+delay num = _s__ (SDelay noPosInfo (zeroExtend (pack num)))
+
+-- await :: Bool -> RStmt a
+-- await cond = _s__ (SUntil noPosInfo cond)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface Waiter =
+     wait :: Action
+
+await :: Bool -> Action
+await condition =
+ let w = interface Waiter
+           wait :: Action
+	   wait = noAction
+		  when condition
+ in w.wait
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface Once =
+    start :: Action
+    clear :: Action
+    done :: Bool
+
+mkOnce :: (IsModule m c) => Action -> m Once
+mkOnce a =
+    module
+	onceReady :: Reg Bool
+	onceReady <- mkReg True
+	interface
+	    start = action { onceReady := False; a }
+	        when onceReady
+	    clear = action { onceReady := True }
+            done = onceReady == False ;
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface RFSM a =
+    start         :: Action
+    abort         :: Action
+    ready         :: Bool
+
+interface FSMAbort =
+    abort :: Action
+
+interface FSM =
+    start :: Action
+    done  :: Bool
+    waitTillDone :: Action
+    abort :: Action
+
+interface FSMServer a b =
+    server   :: Server a b
+    abort    :: Action
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+type NextStateDescriptor
+    = (Bool, Integer)
+
+type NextStateDescriptors
+    = (List NextStateDescriptor)
+
+type TwoStateDescriptor_orig
+    = (Bool, Integer, Integer)
+
+data TwoStateDescriptor = TSD Bool Integer Integer TSDType
+                          deriving (Eq)
+
+data TSDType 
+        = Default
+        | Start
+        | End
+    deriving (Eq)
+
+combineTSDTypes :: TSDType -> TSDType -> TSDType
+combineTSDTypes Start   _       = Start
+combineTSDTypes _       Start   = Start
+combineTSDTypes End     _       = End
+combineTSDTypes _       End     = End
+combineTSDTypes _       _       = Default
+
+type TwoStateDescriptors
+    = (List TwoStateDescriptor)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+compareNSDs :: NextStateDescriptor -> NextStateDescriptor -> Ordering
+compareNSDs (conda, a) (condb, b) = compare a b
+
+matchingNSDs :: NextStateDescriptor -> NextStateDescriptor -> Bool
+matchingNSDs a b = ((compareNSDs a b) == EQ)
+
+
+compareTSDs :: TwoStateDescriptor -> TwoStateDescriptor -> Ordering
+compareTSDs (TSD conda a0 a1 _) (TSD condb b0 b1 _) = 
+            if      (a1 < b1) then LT
+            else if (a1 > b1) then GT
+            else if (a0 < b0) then LT
+            else if (a0 > b0) then GT
+            else                   EQ
+
+matchingTSDs :: TwoStateDescriptor -> TwoStateDescriptor -> Bool
+--matchingTSDs a b = ((compareTSDs a b) == EQ)
+matchingTSDs (TSD _ _ a _) (TSD _ _ b _) = (a == b)
+
+getFrom :: TwoStateDescriptor -> Integer
+getFrom (TSD _ f _ _) = f
+
+getTo :: TwoStateDescriptor -> Integer
+getTo (TSD _ _ t _) = t
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+class ServerCallToStmtT t where
+      callServer :: (ToPut i b) => t a b -> a -> i -> PosInfo -> (RStmt c)
+
+instance ServerCallToStmtT Server where
+      callServer ifc value lhs ps =
+       _s__ (SCall ps
+                      noAction
+                      action { ifc.request.put(value) }
+                      action { x <- ifc.response.get; (toPut lhs).put x })
+
+instance ServerCallToStmtT FSMServer where
+      callServer ifc value lhs ps =
+       _s__ (SCall    ps
+                      action { ifc.abort }
+                      action { ifc.server.request.put(value) }
+                      action { x <- ifc.server.response.get; (toPut lhs).put x })
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+data StmtFT a
+	=  SFAction PosInfo Integer NextStateDescriptors Action Action (Maybe ActionType) (Maybe RuleSet)
+        | SFLabel PosInfo String NextStateDescriptors (Maybe (StmtT a))
+        | SFNamed PosInfo String  (List (StmtFT a))
+        | SFUntil PosInfo Bool
+	| SFIf1 PosInfo Bool (StmtFT a)
+	| SFIf2 PosInfo Bool (StmtFT a) (StmtFT a)
+	| SFFor PosInfo (StmtFT a) Bool (StmtFT a) (StmtFT a)
+	| SFSeq PosInfo (List (StmtFT a))
+	| SFPar PosInfo (StmtFT a) (List (StmtT a))
+	| SFSkip PosInfo
+	| SFDelay PosInfo
+	| SFReturn PosInfo
+	| SFWhile PosInfo Bool (StmtFT a)
+
+-- #############################################################################
+-- # 
+-- #############################################################################
+
+struct LabelState a
+  =
+    state_num    :: Integer
+    return_label :: String
+    label_names  :: (List String)
+    loop_labels  :: (Maybe (String, String))
+    ifc          :: (Put a)
+
+initLabelState :: Integer -> String -> (Put a) -> (LabelState a)
+initLabelState num return_label ifc = LabelState {
+                   state_num    = num;
+                   return_label = return_label;
+                   label_names  = Nil;
+                   loop_labels  = Nothing;
+                   ifc = ifc }
+
+incrLabelState :: (LabelState a) -> (LabelState a)
+incrLabelState ls = ls { state_num = ls.state_num + 1 }
+
+isLabelUsed :: String -> (LabelState a) -> Bool
+isLabelUsed label ls =
+  let check x = x == label
+      r = (find check ls.label_names)
+  in isJust r
+
+createUniqueLabel :: String -> (LabelState a) -> String
+createUniqueLabel label ls = 
+   if (isLabelUsed label ls) 
+   then (createUniqueLabelWithSuffix label 1 ls)
+   else label
+
+createUniqueLabelWithSuffix :: String -> Integer -> (LabelState a) -> String
+createUniqueLabelWithSuffix label suffix ls = 
+   let l = (label +++ "_" +++ (integerToString suffix))
+   in if (isLabelUsed l ls) 
+      then (createUniqueLabelWithSuffix label (suffix + 1) ls)
+      else l
+
+addLabel :: String -> (LabelState a) -> (LabelState a) 
+addLabel label ls = ls { label_names = (Cons label ls.label_names) }
+
+addLoopLabels :: String -> String -> (LabelState a) -> (LabelState a) 
+addLoopLabels continue break ls = ls { loop_labels = (Just (continue, break)) }
+
+-- #############################################################################
+-- # Convert StmtTs to StmtFTs and label all the actiuons uniquely.
+-- #############################################################################
+
+labelActions :: (IsModule m c) => (StmtT a) -> (LabelState a) -> m ((StmtFT a), (LabelState a))
+labelActions (SAction p a at) ls =
+    return ((SFAction p ls.state_num Nil noAction a at nR), incrLabelState(ls))
+
+labelActions (SActionValue p av) ls =
+    do let s = (SFSeq p
+		(Cons (SFAction p ls.state_num Nil noAction action {x <- av; ls.ifc.put x} nAT nR)
+		 (Cons (SFReturn p) Nil)))
+       return (s, incrLabelState(ls))
+
+labelActions (SCall p a_abort a_start a_done) ls =
+    do let s = (SFSeq p (Cons
+                        (SFAction p ls.state_num Nil a_abort a_start nAT nR)
+                         (Cons (SFAction p (ls.state_num + 1) Nil noAction a_done nAT nR) Nil)))
+       return (s, incrLabelState(incrLabelState(ls)))
+
+labelActions (SIf1 p c s) ls =
+    if (isStaticAndFalse c) 
+    then labelActions (SSkip p) ls
+    else do (r, ls') <- labelActions s ls
+            return ((SFIf1 p c r), ls')
+
+labelActions (SIf2 p c s0 s1) ls =
+    if (isStaticAndFalse c) 
+    then labelActions s1 ls
+    else if (isStaticAndTrue c) 
+    then labelActions s0 ls
+    else do (r0, ls0) <- labelActions s0 ls
+            (r1, ls1) <- labelActions s1 ls0
+            return ((SFIf2 p c r0 r1), ls1)
+
+labelActions (SSeq p Nil) ls =
+     labelActions (SSkip p) ls
+
+labelActions x@(SSeq p (Cons s Nil)) ls =
+    do y <- stmtTToString x
+       -- messageM("S0 " +++ y)
+       (r, ls0) <- labelActions s ls
+       return ((SFSeq p (Cons r Nil)), ls0)
+
+labelActions (SSeq p (Cons (SExprS pe e) rest)) ls =
+    do (_, ss) <- liftModule (unS e)
+       labelActions (SSeq p (Cons (SSeq pe ss) rest)) ls
+
+labelActions (SSeq p (Cons s0 (Cons (SExprS pe e) rest))) ls =
+    do (_, ss) <- liftModule (unS e)
+       labelActions (SSeq p (Cons s0 (Cons (SSeq pe ss) rest))) ls
+
+labelActions (SSeq p (Cons (SSeq _ s0) rest)) ls =
+    do let x = (SSeq p (append s0 rest))
+       y <- stmtTToString x
+       -- messageM("S " +++ y)
+       labelActions x ls
+
+labelActions (SSeq p (Cons s0 (Cons (SSeq _ s1) rest))) ls =
+    do let x = (SSeq p (Cons s0 (append s1 rest)))
+       y <- stmtTToString x
+       -- messageM("S " +++ y)
+       labelActions x ls
+
+labelActions x@(SSeq p (Cons s ss)) ls =
+    do y <- stmtTToString x
+       -- messageM("S1 " +++ y)
+       (_r,  ls0)   <- labelActions s         ls
+       (_rr, ls1) <- labelActions (SSeq p ss) ls0
+       return ((SFSeq p (Cons _r (getStmtFTList _rr))), ls1)
+
+labelActions (SPar p Nil) ls =
+     labelActions (SSkip p) ls
+
+labelActions (SPar p (Cons s Nil)) ls =
+     labelActions s ls
+
+labelActions (SPar p ss) ls =
+    do (r, ls0) <- labelActions (SAction p noAction Nothing) ls
+       return ((SFPar p r ss), (incrLabelState (incrLabelState ls0)))
+
+labelActions (SSkip p)     ls = return ((SFSkip p), ls)
+
+labelActions (SReturn p)    ls =
+     do let return = ls.return_label
+            r      = (SAction p noAction (Just (Jump return)))
+        labelActions r ls
+
+labelActions (SBreak p)    ls =
+     do let msg = setStringPosition "break is not inside a loop construct." (getPIPosition p)
+            loop_labels  = ls.loop_labels
+            (continue, break) = (unJust loop_labels)
+            r            = (SAction p noAction (Just (Jump break)))
+        if (not (isJust loop_labels)) then error msg
+                                      else labelActions r ls
+
+labelActions (SContinue p)    ls =
+     do let msg = setStringPosition "continue is not inside a loop construct." (getPIPosition p)
+            loop_labels  = ls.loop_labels
+            (continue, end) = (unJust loop_labels)
+            r            = (SAction p noAction (Just (Jump continue)))
+        if (not (isJust loop_labels)) then error msg
+                                      else labelActions r ls
+
+labelActions (SLabel p name True Nothing) ls = 
+     do return ((SFLabel p name Nil Nothing), (addLabel name ls))
+
+labelActions (SLabel p name False Nothing) ls = 
+     do let msg = setStringPosition ("label '" +++ name +++ "' is already in use.") (getPIPosition p)
+        if (isLabelUsed name ls) then error msg
+                                 else return ((SFLabel p name Nil Nothing), (addLabel name ls))
+
+labelActions (SJump p name) ls = 
+    labelActions (SAction p noAction (Just (Jump name))) ls
+
+labelActions (SNamed p name (Cons s Nil)) ls =
+    do (s0, ls0) <- labelActions s ls
+       return ((SFNamed p name (Cons s0 Nil)), ls0)
+
+labelActions (SNamed p name Nil) ls =
+    do return ((SFNamed p name Nil), ls)
+
+labelActions (SNamed p name Nil) ls =
+    do -- messageM("Statement label is " +++ name)
+       return ((SFNamed p name Nil), ls)
+
+labelActions (SUntil p cond) ls =
+    do (s', ls') <- labelActions (SAction p              action { --  $display "(%0d) wait!" $time 
+--    do (s', ls') <- labelActions (SAction ("WAIT" +++ p) action { --  $display "(%0d) wait!" $time 
+                                                                } (Just Wait)) ls
+       return ((SFSeq p (Cons (SFUntil p cond) (Cons s' Nil))), ls')
+--    do return ((SFUntil p cond), ls)
+
+labelActions (SExprS p e) ls =
+    do (_, ss) <- liftModule (unS e)
+       labelActions (SSeq p ss) ls
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+labelActions (SWhile p c s0 (Just ss_init) s_pre s_post) ls =
+     do let r = (SSeq p (Cons ss_init (Cons (SWhile p c s0 Nothing s_pre s_post) Nil)))
+        labelActions r ls
+
+labelActions (SWhile p c s0 Nothing s_pre s_post) ls =
+     do let loop_labels = ls.loop_labels
+            start    = (createUniqueLabelWithSuffix "_while_start" 0 ls)
+            continue = (createUniqueLabelWithSuffix "_while_continue" 0 ls)
+            break    = (createUniqueLabelWithSuffix "_while_break"   0 ls)
+            ss_pre   = if (not (isJust s_pre)) then (SSkip p) else (unJust s_pre)
+            ss_post  = if (not (isJust s_post)) then (SSkip p) else (unJust s_post)
+            ls'      = (addLabel start
+                         (addLabel continue
+                           (addLabel break (addLoopLabels continue break ls))))
+
+        let body = (SSeq p (Cons ss_pre (Cons s0 (Cons (SLabel p continue True Nothing) (Cons ss_post Nil)))))
+
+        c_no_action <- getNoActionCondition body
+
+        (s, ls'') <- if (isStaticAndFalse c_no_action) 
+                      then do (t, ls'') <- labelActions body ls'
+                              let s = (SFSeq p 
+                                       (Cons (SFWhile p c t) 
+                                        (Cons (SFLabel p break Nil Nothing) Nil)))
+                              return (s, ls'')
+                      else do let t = (SIf1 p c 
+                                       (SSeq p 
+                                        (Cons (SLabel p start True Nothing) 
+                                         (Cons body 
+                                          (Cons (SIf1 p c (SJump p start))
+                                           (Cons (SLabel p break True Nothing) Nil))))))
+                              (s, ls'') <- labelActions t ls'
+                              return (s, ls'')
+
+        return (s, ls'' { loop_labels = loop_labels })
+
+labelActions (SDelay p x) ls =
+     do let size = if (isStatic (pack x)) then (zExtend x) else 33000 -- gets a Bit#(16)
+            pos  = getPIPosition p
+        {-# hide #-}
+        jj <- if (isStatic (pack x))
+              then case (x) of
+                 0 -> return ((SFSkip p), ls)
+                 1 -> labelActions (SAction p noAction Nothing) ls
+                 2 -> labelActions (SSeq p (Cons (SAction p noAction Nothing) (Cons (SAction p noAction Nothing) Nil))) ls
+                 _ -> do delay_count <- mkNCount True size
+                         let p_init      = (setStringPosition ("_d_init" +++ p) pos)
+                             action_init = action { delay_count.reset }
+                             s_init = (SAction p_init action_init Nothing)
+                         labelActions (SSeq p (Cons s_init (Cons (SWhile p (not (delay_count.is (x-1))) (SAction p action {delay_count.incr} Nothing) Nothing Nothing Nothing) Nil))) ls
+              else do delay_count <- mkNCount False size
+                      let  p_init      = (setStringPosition ("_d_init" +++ p) pos)
+                           action_init = action { delay_count.reset }
+                           s_init = (SAction p_init action_init Nothing)
+                      labelActions (SIf1 p (not (x == 0)) (SSeq p (Cons s_init (Cons (SWhile p (not (delay_count.is (x-1))) (SAction p action {delay_count.incr} Nothing) Nothing Nothing Nothing) Nil)))) ls
+        return jj
+
+labelActions (SRepeat p x s) ls =
+     do let is_static = isStatic (pack x)
+            size = if is_static then (zExtend x) else 33000 -- gets a Bit#(16)
+            pos  = getPIPosition p
+        {-# hide #-}
+        jj <- if (is_static && x == 1) 
+              then labelActions s ls
+              else if (is_static && x == 0) 
+                   then return ((SFSkip p), ls)
+                   else do repeat_count <- mkNCount is_static size
+                           let p_init   = setStringPosition ("_r_init" +++ p) pos
+                               p_update = setStringPosition ("_r_update" +++ p) pos
+                               action_init  = action { repeat_count.reset }
+                               s_init = (SIf1 p (not (repeat_count.is 0)) (SAction p_init action_init Nothing))
+                               update_action = action {if (repeat_count.is (x - 1)) then action {repeat_count.reset} else action { repeat_count.incr }}
+           
+                               s_pre = (SIf1 p (not (x == 0)) (SAction p_update update_action (Just (Update Overlap))))
+                               s_post = (SIf1 p (repeat_count.is 0) (SBreak p))
+                           labelActions (SWhile p (not (x == 0)) s (Just s_init) (Just s_pre) (Just s_post)) ls
+        return jj
+
+-- labelActions (SFor p (SAction p_init a_init _)  c (SAction p_update a_update _) s_body) ls =
+--      do let pos_init       = getPIPosition p_init
+--             pos_update     = getPIPosition p_update
+--             p_init'        = setStringPosition ("_f_init" +++ p) pos_init
+--             p_update'      = setStringPosition ("_f_update" +++ p) pos_update
+--             comment_init   = (setStringPosition "For loop initialization action" pos_init)
+--             comment_update = (setStringPosition "For loop update action" pos_update)
+--         labelActions (SWhile p c s_body (Just (SAction p_init' a_init   (Just (Update (Early comment_init))))) Nothing
+--                                         (Just (SAction p_update' a_update (Just (Update (Early comment_update)))))) ls
+
+labelActions (SFor p (SAction p_init a_init _)  c (SAction p_update a_update _) s_body) ls =
+     do let pos_init       = getPIPosition p_init
+            pos_update     = getPIPosition p_update
+            p_init'        = setStringPosition ("_f_init" +++ p) pos_init
+            p_update'      = setStringPosition ("_f_update" +++ p) pos_update
+            comment_init   = (setStringPosition "For loop initialization action" pos_init)
+            comment_update = (setStringPosition "For loop update action" pos_update)
+        labelActions (SWhile p c s_body (Just (SAction p_init' a_init   Nothing   )) Nothing
+                                        (Just (SAction p_update' a_update Nothing   ))) ls
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+labelActions s _ =
+    do x <- stmtTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+isStatic :: (Bit n) -> Bool
+isStatic  = isStaticIndex
+
+isStaticAndFalse :: Bool -> Bool
+isStaticAndFalse cond = (isStatic (pack cond)) && (not cond)
+
+isStaticAndTrue :: Bool -> Bool
+isStaticAndTrue cond = (isStatic (pack cond)) && cond
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+addNextStateDescriptors :: (Monad m) => (StmtFT a) -> NextStateDescriptors 
+                       -> m ((StmtFT a), NextStateDescriptors)
+addNextStateDescriptors (SFAction p id _ a_abort a at rs) nsd = 
+    do
+       let r = (SFAction p id nsd a_abort a at rs)
+       -- messageM("adding " +++ (nextStateDescriptorsToString nsd) +++ " to action" +++ p +++ " (" +++ (integerToString id) +++ ") nsd_rtrn = " +++ (nextStateDescriptorsToString nsd_rtrn))
+       return (r, (Cons (True, id) Nil))
+
+-- TTTT
+addNextStateDescriptors s@(SFPar _ _ _) nsd =
+    return (s, nsd)
+
+addNextStateDescriptors (SFSeq p (Cons s Nil)) nsd =
+    do (r, x) <- addNextStateDescriptors s nsd 
+       return ((SFSeq p (Cons r Nil)), x)
+
+addNextStateDescriptors (SFSeq p (Cons s ss)) nsd =
+    do (r0, nsd0) <- addNextStateDescriptors (SFSeq p ss) nsd 
+       (r, nsd1) <- addNextStateDescriptors s nsd0 
+       let rr = (getStmtFTList r0)
+       return ((SFSeq p (Cons r rr)), nsd1)
+
+addNextStateDescriptors (SFIf1 p c s) nsd = 
+    addNextStateDescriptors (SFIf2 p c s (SFSkip p)) nsd
+
+addNextStateDescriptors (SFIf2 p c s0 s1) nsd =
+    do (r0, nsd0) <- addNextStateDescriptors s0 nsd
+       (r1, nsd1) <- addNextStateDescriptors s1 nsd
+       let nsd0a = applyConditionToAll c nsd0
+       let nsd1a = applyConditionToAll (not c) nsd1
+       return ((SFIf2 p c r0 r1), (appendDescriptors nsd0a nsd1a))
+
+addNextStateDescriptors s@(SFSkip _) nsd =
+    return (s, nsd)
+
+addNextStateDescriptors (SFNamed p name (Cons s Nil)) nsd =
+    do (s0, nsd0) <- addNextStateDescriptors s nsd
+       return ((SFNamed p name (Cons s0 Nil)), nsd0)
+
+addNextStateDescriptors (SFLabel p name _ Nothing) nsd =
+    return ((SFLabel p name nsd Nothing), nsd)
+
+addNextStateDescriptors s@(SFReturn p) nsd =
+    return (s, (Cons (True, idle_state) Nil))
+
+addNextStateDescriptors s@(SFNamed p name Nil) nsd =
+     return (s, nsd)
+
+addNextStateDescriptors (SFNamed p name (Cons s Nil)) nsd =
+    do (r, x) <- addNextStateDescriptors s nsd 
+       return ((SFNamed p name (Cons r Nil)), x)
+
+addNextStateDescriptors s@(SFUntil _ c) nsd =
+    do let nsd_mod = applyConditionToAll c nsd
+       return (s, nsd_mod)
+
+addNextStateDescriptors (SFWhile p c s) nsd =
+    do let nsd_done = applyConditionToAll (not c) nsd
+       (r0, nsd0) <- addNextStateDescriptors s Nil
+       let nsd_continue = applyConditionToAll c nsd0
+       (r1, nsd1) <- addNextStateDescriptors s (appendDescriptors nsd_done nsd_continue)
+       return ((SFWhile p c r1), (appendDescriptors nsd_done (applyConditionToAll c nsd1)))
+
+addNextStateDescriptors s _ =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+applyCondition :: Bool -> NextStateDescriptor -> NextStateDescriptor
+applyCondition b (c,num) = ((b && c), num)
+
+applyConditionToAll :: Bool -> NextStateDescriptors -> NextStateDescriptors
+applyConditionToAll b descriptor = (map (applyCondition b) descriptor)
+
+appendDescriptors :: NextStateDescriptors -> NextStateDescriptors -> NextStateDescriptors
+appendDescriptors Nil descriptor = descriptor
+appendDescriptors (Cons first rest) descriptor = appendDescriptors rest (addDescriptor first descriptor)
+
+addDescriptor :: NextStateDescriptor -> NextStateDescriptors -> NextStateDescriptors
+-- addDescriptor (c,i) (Cons (c', i') rest) = (Cons (c', i') (addDescriptor (c, i) rest))
+addDescriptor (c,i) (Cons (c', i') rest) =
+    if (i == i') then (Cons ((c || c'), i) rest)
+                 else (Cons (c', i') (addDescriptor (c, i) rest))
+addDescriptor x Nil = (Cons x Nil)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+nextStateDescriptorToString :: NextStateDescriptor -> String
+nextStateDescriptorToString (c,i) =
+    let static = isStatic (pack c)
+        out = if (static && c)
+              then "(True, " +++ (integerToString i) +++ ")"
+              else if (static && (not c))
+              then "(False, " +++ (integerToString i) +++ ")"
+              else  "(X, " +++ (integerToString i) +++ ")"
+    in out
+
+nextStateDescriptorsToString :: NextStateDescriptors -> String
+nextStateDescriptorsToString x = "(" +++ (nextStateDescriptorsToStringInternal x) +++ ")"
+
+nextStateDescriptorsToStringInternal :: NextStateDescriptors -> String
+nextStateDescriptorsToStringInternal Nil = ""
+nextStateDescriptorsToStringInternal (Cons x Nil) = nextStateDescriptorToString x
+nextStateDescriptorsToStringInternal (Cons x rest) = (nextStateDescriptorToString x) +++ " " +++ (nextStateDescriptorsToStringInternal rest)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+twoStateDescriptorToString :: TwoStateDescriptor -> String
+twoStateDescriptorToString (TSD c from to Default) =
+    "(" +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ ")"
+twoStateDescriptorToString (TSD c from to Start) =
+    "(" +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ " (S))"
+twoStateDescriptorToString (TSD c from to End) =
+    "(" +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ " (E))"
+
+twoStateDescriptorsToString :: TwoStateDescriptors -> String
+twoStateDescriptorsToString x = "(" +++ (twoStateDescriptorsToStringInternal x) +++ ")"
+
+twoStateDescriptorsToStringInternal :: TwoStateDescriptors -> String
+twoStateDescriptorsToStringInternal Nil = ""
+twoStateDescriptorsToStringInternal (Cons x Nil) = twoStateDescriptorToString x
+twoStateDescriptorsToStringInternal (Cons x rest) = (twoStateDescriptorToString x) +++ " " +++ (twoStateDescriptorsToStringInternal rest)
+
+
+boolToString :: Bool -> String
+boolToString c =
+    let static = isStatic (pack c)
+        out = if (static && c)
+              then "True"
+              else if (static && (not c))
+              then "False"
+              else "X"
+    in out
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getStmtFTList :: (StmtFT a) -> (List (StmtFT a))
+getStmtFTList (SFSeq _ rr) = rr
+getStmtFTList _ = error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getNoActionConditionOrig :: (Monad m) => Integer -> (StmtFT a) -> m Bool
+getNoActionConditionOrig num seq =
+            do let -- temp = (createUniqueLabelWithSuffix "_temp" 0 ls)
+                   -- ls'  = (addLabel temp ls)
+                   m    = num
+                   s    = (SFSeq noPosInfo (Cons (SFAction noPosInfo m Nil noAction noAction nAT nR)
+                                 (Cons seq (Cons (SFAction noPosInfo (m + 1) Nil noAction noAction nAT nR) Nil))))
+                   no_action (TSD cond f t _) = (f == m) && (t == (m + 1))
+               (_, tsds) <- getRefinedTSDs True False True s
+               let no_action_list = filter no_action tsds
+                   getCond (TSD c f t _) = c
+                   combined_cond Nil = False
+                   combined_cond x   = foldr1 (||) (map getCond x)
+               return (combined_cond no_action_list)
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+
+getNoActionCondition :: (IsModule m c) => (StmtT a) -> m Bool
+
+getNoActionCondition (SAction p _ Nothing) = return False
+getNoActionCondition (SAction p _ (Just (Jump _))) = return False
+getNoActionCondition (SAction p _ (Just (Update Overlap))) = return True
+getNoActionCondition (SAction _ _ _)       = return False
+getNoActionCondition (SJump _ _) = return False
+getNoActionCondition (SContinue _) = return False
+getNoActionCondition (SBreak _) = return False
+getNoActionCondition (SReturn _) = return False
+getNoActionCondition (SIf1 _ c s)  = 
+    do c1 <- getNoActionCondition s
+       return ((c && c1) || (not c))
+getNoActionCondition (SIf2 _ c s1 s2) = 
+    do c1 <- getNoActionCondition s1
+       c2 <- getNoActionCondition s2
+       return ((c && c1) || ((not c) && c2))
+getNoActionCondition (SSeq p (Cons s Nil)) = getNoActionCondition s
+getNoActionCondition (SSeq p (Cons s ss)) =
+    do c0 <- getNoActionCondition s
+       c1 <- getNoActionCondition (SSeq p ss)
+       return (c0 && c1)
+getNoActionCondition (SExprS p e) =
+    do (_, ss) <- liftModule (unS e)
+       getNoActionCondition (SSeq p ss)
+getNoActionCondition (SWhile _ c _ (Just ss_init) _ _) = 
+    do c_init <- getNoActionCondition ss_init
+       return (c_init  && (not c))
+getNoActionCondition (SWhile _ c _ _ _ _) = return (not c)
+getNoActionCondition (SRepeat _ n _) = return (n == 0)
+getNoActionCondition (SDelay _ n) = return (n == 0)
+getNoActionCondition (SSkip _) = return True
+getNoActionCondition (SLabel _ _ _ Nothing) = return True
+getNoActionCondition (SCall _ _ _ _) = return False
+getNoActionCondition (SPar _ Nil) = return True
+getNoActionCondition (SPar _ (Cons s Nil)) = getNoActionCondition s
+getNoActionCondition (SPar _ _) = return False
+getNoActionCondition (SFor _ (SAction p_init a_init _) c _ _) = return False
+getNoActionCondition s = 
+    do x <- stmtTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+stmtFTToString :: (Monad m) => (StmtFT a) -> m String
+stmtFTToString (SFAction p num nsd _ _ (Just Default) _) = return ("[Default Action " +++ (integerToString num) +++ " " +++ (getPIString p) +++ "]")
+stmtFTToString (SFAction p num nsd _ _ (Just Wait) _) = return ("[Wait Action " +++ (integerToString num) +++ " " +++ (getPIString p) +++ "]")
+stmtFTToString (SFAction p num nsd _ _ (Just (Jump label)) _) = return ("[Jump Action " +++ (integerToString num) +++ " " +++ (getPIString p) +++ " " +++ label +++ "]")
+stmtFTToString (SFAction p num nsd _ _ at _) = return ("[Action " +++ (integerToString num) +++ " " +++ (getPIString p) +++ "]")
+stmtFTToString (SFIf1 p c s)  =
+    do sub <- stmtFTToString s
+       return ("[If1" +++(getPIString p)+++ " " +++ sub +++ "]")
+stmtFTToString (SFIf2 p c s0 s1)  =
+    do sub0 <- stmtFTToString s0
+       sub1 <- stmtFTToString s1
+       return ("[If2" +++(getPIString p)+++ " " +++ sub0 +++ " " +++ sub1 +++ "]")
+stmtFTToString (SFSeq p ss) =
+    do subs <- stmtFTListToString ss
+       return ("[Seq" +++(getPIString p)+++ " " +++ subs +++ "]")
+stmtFTToString (SFPar p _ ss) =
+    do subs <- stmtTListToString ss
+       return ("[Par" +++ (getPIString p) +++ " " +++ subs +++ "]")
+stmtFTToString (SFSkip p) = return ("[Skip" +++(getPIString p)+++ "]")
+stmtFTToString (SFLabel p name _ Nothing) = return ("[Label " +++ name +++ " " +++(getPIString p)+++ "]")
+stmtFTToString (SFReturn p) = return ("[Return" +++(getPIString p)+++ "]")
+-- stmtFTToString (SFBreak p) = return ("[Break" +++(getPIString p)+++ "]")
+-- stmtFTToString (SFContinue p) = return ("[Continue" +++(getPIString p)+++ "]")
+stmtFTToString (SFWhile p c s) =
+    do sub <- stmtFTToString s
+       return ("[While" +++(getPIString p)+++ " " +++ sub +++ "]")
+stmtFTToString (SFFor p s1 c s2 s3) =
+    do x1 <- stmtFTToString s1
+       x2 <- stmtFTToString s2
+       x3 <- stmtFTToString s3
+       return ("[SFor" +++(getPIString p)+++ " " +++ x1 +++ " " +++ x2 +++ " " +++ x3 +++ "]")
+stmtFTToString (SFNamed p nm Nil)  =
+    return ("[SFNamed " +++ nm +++ (getPIString p)+++ "]")
+stmtFTToString (SFNamed p nm (Cons s Nil)) =
+    do sub <- stmtFTToString s
+       return ("[SNamed " +++ nm +++ (getPIString p)+++ " [" +++ sub +++ "]]")
+stmtFTToString (SFUntil p _) = return ("[SFUntil]")
+stmtFTToString _ = return "XXXX"
+stmtFTToString _ = error "unhandled case"
+
+stmtFTListToString :: (Monad m) => (List (StmtFT a)) -> m String
+stmtFTListToString x =
+    do y <- stmtFTListToStringInternal x
+       return ("(" +++ y +++ ")")
+
+stmtFTListToStringInternal :: (Monad m) => (List (StmtFT a)) -> m String
+stmtFTListToStringInternal Nil = return ""
+stmtFTListToStringInternal (Cons x Nil) = stmtFTToString x
+stmtFTListToStringInternal (Cons x rest) =
+    do y <- stmtFTToString x
+       z <- stmtFTListToStringInternal rest
+       return (y +++ " " +++ z)
+
+
+integerListToString :: (Monad m) => (List Integer) -> m String
+integerListToString x =
+    do y <- integerListToStringInternal x
+       return ("(" +++ y +++ ")")
+
+integerListToStringInternal :: (Monad m) => (List Integer) -> m String
+integerListToStringInternal Nil = return ""
+integerListToStringInternal (Cons x Nil) = return (integerToString x)
+integerListToStringInternal (Cons x rest) =
+    do let y = integerToString x
+       z <- integerListToStringInternal rest
+       return (y +++ " " +++ z)
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+-- #############################################################################
+-- # Pipe abort signal to sub_fsms 
+-- #############################################################################
+
+mkModFromStmtFT :: (IsModule m c) => Bool -> Bool -> (StmtFT a) -> m FSMAbort
+
+mkModFromStmtFT in_par in_loop (SFAction _ _ _ a_abort _ _ _) =
+      module
+	interface FSMAbort
+            abort = a_abort
+
+mkModFromStmtFT in_par in_loop (SFSeq p (Cons s Nil)) =
+      mkModFromStmtFT in_par in_loop s
+
+mkModFromStmtFT in_par in_loop (SFSeq p (Cons s ss)) =
+    module
+        _mod0 <- mkModFromStmtFT in_par in_loop s
+        _mod1 <- mkModFromStmtFT in_par in_loop (SFSeq p ss)
+	interface FSMAbort
+            abort = action {_mod0.abort; _mod1.abort}
+
+mkModFromStmtFT in_par in_loop (SFIf1 p c s0) =
+      mkModFromStmtFT in_par in_loop s0
+
+mkModFromStmtFT in_par in_loop (SFIf2 p c s0 s1) =
+    module
+        _mod0 <- mkModFromStmtFT in_par in_loop s0
+        _mod1 <- mkModFromStmtFT in_par in_loop s1
+	interface FSMAbort
+            abort = action {_mod0.abort; _mod1.abort}
+
+mkModFromStmtFT in_par in_loop (SFSkip p) =
+    module
+	interface FSMAbort
+            abort = noAction
+
+mkModFromStmtFT in_par in_loop (SFLabel _ _ _ _) =
+    module
+	interface FSMAbort
+            abort = noAction
+
+mkModFromStmtFT in_par in_loop (SFReturn p) =
+    module
+	interface FSMAbort
+            abort = noAction
+
+mkModFromStmtFT in_par in_loop (SFNamed p name Nil) =
+    module
+	interface FSMAbort
+            abort = noAction
+
+mkModFromStmtFT in_par in_loop (SFNamed p name (Cons s Nil)) =
+      mkModFromStmtFT in_par in_loop s
+
+mkModFromStmtFT in_par in_loop (SFUntil _ _) =
+    module
+	interface FSMAbort
+            abort = noAction
+
+mkModFromStmtFT in_par in_loop (SFWhile p c s) =
+    mkModFromStmtFT False True s
+
+mkModFromStmtFT _ _ s =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkFSM :: (IsModule m c) => Stmt -> m FSM
+mkFSM (S s) = mkFSMWithPred (S s) True
+
+mkAlwaysFSM :: (IsModule m c) => Stmt -> m Empty
+mkAlwaysFSM (S s) = mkAlwaysFSMWithPred (S s) True
+
+
+mkFSMWithPred1 :: (IsModule m c) => Stmt -> Bool -> m FSM
+mkFSMWithPred1 (S s) pred =
+    module
+        _rfsm :: RFSM (Bit 0)
+        _rfsm <- mkRFSM (S s) pred False (createDummyPut)
+
+        let cond = _rfsm.ready
+	return $
+	    interface FSM
+	        start =  _rfsm.start
+		done = cond
+                waitTillDone = noAction when cond
+                abort = _rfsm.abort
+
+mkFSMWithPred :: (IsModule m c) => Stmt -> Bool -> m FSM
+mkFSMWithPred (S s) pred =
+    module
+        start_reg :: Reg(Bool)
+	start_reg <- mkReg False
+
+        _rfsm :: RFSM (Bit 0)
+        _rfsm <- mkRFSM (S s) pred False (createDummyPut)
+
+        let cond = _rfsm.ready && (not start_reg)
+--        let cond = _rfsm.ready
+
+        rules {"fsm_start": when start_reg
+                          ==> action { _rfsm.start;
+                                       start_reg := False }}
+	return $
+	    interface FSM
+	        start = action { start_reg := True } when cond
+--	        start =  _rfsm.start
+		done = cond
+                waitTillDone = noAction when cond
+                abort = _rfsm.abort
+
+
+mkAlwaysFSMWithPred :: (IsModule m c) => Stmt -> Bool -> m Empty
+mkAlwaysFSMWithPred (S s) pred =
+    module
+
+        _rfsm :: RFSM (Bit 0)
+        _rfsm <- mkRFSM (S s) pred True (createDummyPut)
+
+mkAutoFSM :: (IsModule m c) => Stmt -> m Empty
+mkAutoFSM stmts =
+    module
+        _test_fsm <- mkFSM stmts
+        running <- mkReg False
+        rules {"auto_start" : when (not running)
+                              ==> action { _test_fsm.start; running := True }}
+        rules {"auto_finish" : when (running && _test_fsm.done)
+                               ==> $finish 0}
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkFSMServer :: (IsModule m c, Bits a sa, Bits b sb, Eq a) => (a -> (RStmt b)) -> m (FSMServer a b)
+mkFSMServer stmt_func =
+    module
+
+        enabled :: Reg Bool
+        enabled <- mkReg(True)
+
+        fifo_in :: FIFO a
+        fifo_in <- mkTurboFIFO
+
+        fifo_out :: FIFO b
+        fifo_out <- mkTurboFIFO
+
+        let ifc_put = interface Put
+                           put x = action { fifo_out.enq(x); enabled := False }
+
+        _rfsm :: RFSM b
+        _rfsm <- mkRFSM (stmt_func fifo_in.first) (fifo_in.first == fifo_in.first) False ifc_put
+
+        rules {"fsm_start": when enabled
+               ==> action { _rfsm.start }}
+
+        let ifc_server = interface Server
+                             request  = toPut fifo_in
+                             response =
+                                 interface Get
+                                     get = do
+			                    fifo_in.deq
+			                    fifo_out.deq
+			                    enabled := True
+                                            return fifo_out.first
+        return $
+	    interface FSMServer
+		server   = ifc_server
+		abort    = action {fifo_in.clear;
+				   fifo_out.clear;
+                                   enabled := True;
+				   _rfsm.abort }
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkRFSM :: (IsModule m c, Bits a sa) => (RStmt a) -> Bool -> Bool -> (Put a) -> m (RFSM a)
+mkRFSM s pred always ifc =
+    module
+       (r,ifc) <- mkRFSMNR pred False always ifc s
+       addRules r
+       return ifc
+
+mkRFSMNR  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RStmt a -> m (Rules, (RFSM a))
+mkRFSMNR pred in_par always ifc ss =
+    module
+        (rs, ifc) <- mkRFSMNRS pred in_par always ifc ss
+        return ((rJoin rs.me_local (rJoin rs.me_parents rs.no_me)), ifc)
+
+mkRFSMNRS  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RStmt a -> m (RuleSet, (RFSM a))
+mkRFSMNRS pred in_par always ifc (S s) =
+    module
+	(_, ss) <- liftModule s
+        
+        mkRFSMNR0 pred in_par always ifc ss
+
+mkRFSMNR0  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RStmts a -> m (RuleSet, (RFSM a))
+-- mkRFSMNR0 pred in_par always ifc (Cons (SSeq ps Nil))
+
+
+mkRFSMNR0 pred in_par always ifc (Cons (SSeq ps Nil) Nil) =
+    module
+       start_wire :: Wire(Bool)
+       start_wire <- mkDWire False
+       let ifc = interface RFSM
+		    start = action { start_wire := True }
+		    abort = dummyAction
+		    ready = True
+       return (emptyRuleSet, ifc)
+
+mkRFSMNR0 pred in_par always ifc (Cons (SSeq ps (Cons x Nil)) Nil) =
+    mkRFSMNR0 pred in_par always ifc (Cons x Nil)
+
+
+mkRFSMNR0 pred in_par always ifc (Cons (SAction p a Nothing) Nil) =
+     module
+       
+       let l = getPIString p
+       start_wire :: Wire(Bool)
+       start_wire <- mkDWire False
+
+       start_reg :: Wire(Bool)
+       start_reg <- mkDReg False
+
+       abort :: Wire(Bool)
+       abort <- mkDWire False
+
+       fired :: Wire(Bool)
+       fired <- mkDReg False
+
+       let r = rules {{-# aggressive_implicit_conditions #-} (ruleName "action" 1 l): when (start_wire && pred)
+                   ==> action {fired := True; a}}
+
+       let do_start = action { start_wire := True; start_reg := True}
+       let stalled = start_reg && (not fired);                  
+       let cond_ready = (not stalled)
+
+       rules { "restart": when (stalled && (not abort))
+                 ==> do_start }
+
+       let ifc = interface RFSM
+		    start = do_start when cond_ready
+                    abort = action { abort := True }
+		    ready = cond_ready
+       let rs = RuleSet {me_local = eR;
+                         me_parents = r;
+                         no_me = eR}
+       return (rs, ifc)
+
+mkRFSMNR0 pred in_par always ifc ss =
+    module
+
+        let ps = getStmtTPosInfo (head ss)
+
+        start_wire :: Wire(Bool)
+	start_wire <- mkDWire False
+
+        start_reg :: Wire(Bool)
+	start_reg <- mkDReg False
+
+        abort :: Wire(Bool)
+	abort <- mkDWire False
+
+
+
+
+
+        let init_state = idle_state;
+        let return_label = "__return__"
+
+        let no_action = (SAction ps noAction Nothing)
+
+	(seq_labelled , ls) <- labelActions (SSeq ps (append (Cons (SLabel ps return_label False Nothing) (Cons (SUntil ps True) ss)) (Cons (SJump ps return_label) (Cons no_action Nil))))
+                                                    (initLabelState init_state return_label ifc)
+
+        let start = if (always) then True else start_wire
+
+        state <- mkState (ls.state_num - 1) start abort
+
+        let do_start = action { start_wire := True; start_reg := True }
+
+	_seq_final' <- attachNames seq_labelled
+	_seq_final  <- removePars pred _seq_final'
+
+	let seq_0 = _seq_final
+
+        -- #############################################################################
+        -- #
+        -- #############################################################################
+
+        (seq, tsds_runx) <- getRefinedTSDs False True  start seq_0
+        (_,   tsds_cndx) <- getRefinedTSDs False False True  seq_0
+
+        let tsds_run  = combineTSDs (sortBy compareTSDs tsds_runx)
+        let tsds_cndy = combineTSDs (sortBy compareTSDs tsds_cndx)
+
+        y <- stmtFTToString seq
+--        messageM("G: " +++ y)
+
+        tsds_cnd <- addNoActionState tsds_cndy ls
+
+        let per_action_tsds = groupBy matchingTSDs tsds_run
+
+        pairs  <- mapM (createRulesForTSDs seq state pred) per_action_tsds
+        let rr =  foldr1 combineRuleSets pairs
+--        let rr = rJoinME pairs
+
+        -- this means the first action in the fsm blocked
+        let stalled = start_reg && (not state.fired_last)
+
+        cond_ready0 <- createReadyCond tsds_cnd state
+        let cond_ready = cond_ready0 && (not stalled)
+
+        rules { "restart": when (stalled && (not abort))
+                 ==> do_start }
+
+	_mod  <- mkModFromStmtFT in_par False seq
+
+        let ifc = interface RFSM
+		    start = do_start when cond_ready
+		    abort = action { abort := True }
+		    ready  = cond_ready
+	return (rr, ifc)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+createDummyPut :: Put a
+createDummyPut = interface Put
+                     put x = noAction
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getRefinedTSDs :: (Monad m) => Bool -> Bool -> Bool -> (StmtFT a) -> m ((StmtFT a), TwoStateDescriptors)
+getRefinedTSDs allow_open do_warn start seq =
+     do let not_false  (TSD cond f t _) = not (isStaticAndFalse cond)
+        (seq', _) <- addNextStateDescriptors seq Nil
+        l         <- collectLabelNSDs seq'
+        lseq      <- addLabelNSDs allow_open l seq'
+        ws        <- getWaitActions lseq
+        js        <- getJumpActions lseq
+        os        <- getUpdateOverlapActions lseq
+        es        <- getUpdateEarlyActions lseq
+        -- messageM("WS: " +++ toString (length ws) +++ " JS: " +++ toString js +++ " OS: " +++ toString (length os) +++ " ES: " +++ toString (length es))
+
+
+        zzz0      <- collectTSDs allTSDs start lseq
+        let zzz0_r = (filter not_false zzz0)
+        zzz0a     <- addAllOvlpUpdateBypassTSDs os zzz0_r
+        let zzz0a_r = combineTSDs (sortBy compareTSDs (filter not_false zzz0a))
+        zzz1      <- addAllJumpBypassTSDs js zzz0a_r
+        let zzz1_r = combineTSDs (sortBy compareTSDs (filter not_false zzz1))
+        zzz3      <- addAllWaitBypassTSDs ws zzz1_r
+        (lseq', zzz4) <- addAllEarlyUpdateBypassTSDs es (lseq, zzz3) do_warn
+        
+        return (lseq', zzz4)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+createReadyCond :: (Monad m) => TwoStateDescriptors -> State -> m Bool
+createReadyCond all_tsds state =
+          do let is_start (TSD _ _ _ Start) = True
+                 is_start _                 = False
+                 tsds = filter is_start all_tsds
+             let getCond (TSD cond f t _) = cond && state.is f
+             let cond = (fold (||) (map getCond tsds))
+             return (cond);
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+createLabeledStmtFT :: (IsModule m c) => (StmtT a) -> (LabelState a) -> m ((StmtFT a), (LabelState a))
+createLabeledStmtFT s ls = do (seq, ls') <- labelActions s ls
+                              return (seq, ls')
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+removePars :: (IsModule m c, Bits a sa) => Bool -> (StmtFT a) -> m (StmtFT a)
+removePars pred s@(SFAction _ _ _ _ _ _ _) = return s
+
+removePars pred (SFIf1 p c s) =
+    do _r <- removePars pred s
+       return (SFIf1 p c _r)
+
+removePars pred (SFIf2 p c s0 s1) =
+    do _r0 <- removePars pred s0
+       _r1 <- removePars pred s1
+       return (SFIf2 p c _r0 _r1)
+
+removePars pred (SFSeq p (Cons s Nil)) =
+    do _r <- removePars pred s
+       return (SFSeq p (Cons _r Nil))
+
+removePars pred (SFSeq p (Cons s ss)) =
+    do _r  <- removePars pred s
+       _rr <- removePars pred (SFSeq p ss)
+       return (SFSeq p (Cons _r (getStmtFTList _rr)))
+
+removePars pred (SFPar p (SFAction _ num _ _ a _ _) ss) =
+    do par_running :: Wire(Bool)
+       par_running <- mkDWire False
+       let zzz = pred && par_running
+       par_blocks <- mapM (mkRFSMNRS zzz True False (createDummyPut)) (map _s__ ss)
+       -- reverse par_blocks for consistency with prev versions
+       let (r_list, fsm_list) = unzip (reverse par_blocks)
+--           rs = fold rJoin r_list
+           rs = (foldr1 mergeRuleSets r_list)
+           modAbort :: RFSM a -> Action
+           modAbort ifc = ifc.abort
+           modStart :: RFSM a -> Action
+           modStart ifc = ifc.start
+           modReady :: RFSM a -> Bool
+           modReady ifc = ifc.ready
+           a_abort = (joinActions (map modAbort fsm_list))
+           label   = ("__par_start__" +++ (integerToString num))
+           seq = (SFSeq p (Cons
+                           (SFAction ("par_start" +++ p) num Nil a_abort action {joinActions (map modStart fsm_list);
+								      a;
+                                                                      par_running := True;
+                                                                      -- $display "(%0d) starting pars" $time;
+                                                                       } nAT (Just rs))
+                              (Cons (SFLabel p label Nil Nothing)
+                                (Cons (SFIf1 p (not (and (map modReady fsm_list)))
+                                               (SFSeq p 
+                                                (Cons  (SFAction ("par_run" +++ p) (num+1) Nil noAction action { par_running := True;} (Just NoME)         nR)
+                                                 (Cons (SFAction p             (num+2) Nil noAction noAction                   (Just (Jump label)) nR) Nil)))) Nil))))
+       return seq
+
+removePars pred s@(SFSkip _)     = return s
+removePars pred s@(SFReturn p)   = return s
+removePars pred s@(SFLabel _ _ _ Nothing) = return s
+removePars pred (SFNamed p name ss) =
+    do rr <- mapM (removePars pred) ss
+       return (SFNamed p name rr)
+removePars pred s@(SFUntil _ _)  = return s
+
+removePars pred (SFWhile p c s) =
+    do _r <- removePars pred s
+       return (SFWhile p c _r)
+
+removePars pred s =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+attachNames :: (IsModule m c) => (StmtFT a) -> m (StmtFT a)
+attachNames s@(SFAction _ _ _ _ _ _ _) = return s
+
+attachNames (SFIf1 p c s) =
+    do _r <- attachNames s
+       return (SFIf1 p c _r)
+
+attachNames (SFIf2 p c s0 s1) =
+    do _r0 <- attachNames s0
+       _r1 <- attachNames s1
+       return (SFIf2 p c _r0 _r1)
+
+attachNames (SFSeq p ss) =
+    do _rr <- mapM attachNames ss
+       let _ss = listAttachNames _rr
+       return (SFSeq p _ss)
+
+attachNames s@(SFPar p a ss) =
+    return s
+
+attachNames s@(SFSkip _)     = return s
+attachNames s@(SFReturn _)   = return s
+attachNames s@(SFLabel _ _ _ Nothing) = return s
+attachNames s@(SFNamed p name ss) =
+  do rr <- mapM attachNames ss
+     return (SFNamed p name rr)
+attachNames s@(SFUntil _ _) = return s
+
+attachNames (SFWhile p c s) =
+    do _r <- attachNames s
+       return (SFWhile p c _r)
+
+attachNames s =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+listAttachNames :: (List (StmtFT a)) -> (List (StmtFT a))
+listAttachNames Nil          = Nil
+listAttachNames (Cons s Nil) = (Cons s Nil)
+listAttachNames (Cons (SFNamed p name Nil) (Cons s@(SFSeq _ _) rest)) =
+   (Cons (SFNamed p name (Cons s Nil)) (listAttachNames rest))
+listAttachNames (Cons (SFNamed p name Nil) (Cons s@(SFPar _ _ _) rest)) =
+   (Cons (SFNamed p name (Cons s Nil)) (listAttachNames rest))
+listAttachNames (Cons s rest) = 
+   (Cons s (listAttachNames rest))
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+addActionAt :: (Monad m) => Action -> Integer -> (StmtFT a) -> m (StmtFT a)
+addActionAt a n s@(SFAction p na nsd a_abort a_body at rs) =
+         do let a_combined = joinActions (Cons a_body (Cons a Nil))
+            if (n == na) then return (SFAction p n nsd a_abort a_combined at rs) 
+                         else return s
+
+addActionAt a n (SFIf1 p c s) =
+    do _r <- addActionAt a n s
+       return (SFIf1 p c _r)
+
+addActionAt a n (SFIf2 p c s0 s1) =
+    do _r0 <- addActionAt a n s0
+       _r1 <- addActionAt a n s1
+       return (SFIf2 p c _r0 _r1)
+
+addActionAt a n (SFSeq p ss) =
+    do _ss <- mapM (addActionAt a n) ss
+       return (SFSeq p _ss)
+
+addActionAt a n s@(SFSkip _)     = return s
+addActionAt a n s@(SFReturn _)   = return s
+addActionAt a n s@(SFLabel _ _ _ Nothing) = return s
+addActionAt a n s@(SFUntil _ _) = return s
+addActionAt a n s@(SFNamed p name ss) =
+  do _ss <- mapM (addActionAt a n) ss
+     return (SFNamed p name _ss)
+
+addActionAt a n (SFWhile p c s) =
+    do _r <- addActionAt a n s
+       return (SFWhile p c _r)
+
+addActionAt a n s =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+getAction :: (Monad m) => Integer -> (StmtFT a) -> m Action
+getAction n (SFAction p na nsd a_abort a_body at rs) =
+         do if (n == na) then return a_body else return noAction
+
+getAction n (SFIf1 p c s) = getAction n s
+
+getAction n (SFIf2 p c s0 s1) =
+    do a0 <- getAction n s0
+       a1 <- getAction n s1
+       return (joinActions (Cons a0 (Cons a1 Nil)))
+
+getAction n (SFSeq p ss) =
+    do as <- mapM (getAction n) ss
+       return (joinActions as)
+
+getAction n s@(SFSkip _)     = return noAction
+getAction n s@(SFReturn _)   = return noAction
+getAction n s@(SFLabel _ _ _ Nothing) = return noAction
+getAction n s@(SFNamed p name ss) =
+  do as <- mapM (getAction n) ss
+     return (joinActions as)
+
+getAction n (SFWhile p c s) =
+    do a <- getAction n s
+       return a
+
+getAction n s =
+    do x <- stmtFTToString s
+       messageM ("Case: " +++ x)
+       error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+collectLabelNSDs :: (Monad m) => (StmtFT a) -> m (List (String, NextStateDescriptors))
+collectLabelNSDs (SFAction p n nsd _ _ _ _) =
+   return Nil
+collectLabelNSDs (SFIf1 p _ s) =
+   collectLabelNSDs s
+collectLabelNSDs (SFIf2 p _ s0 s1) =
+   do c0 <- (collectLabelNSDs s0)
+      c1 <- (collectLabelNSDs s1)
+      return (append c0 c1)
+-- TTTT
+collectLabelNSDs (SFPar p _ ss) =
+   return Nil
+collectLabelNSDs (SFSeq p ss) =
+   do x <- mapM collectLabelNSDs ss
+      return (concat x)
+collectLabelNSDs (SFSkip p) =
+   return Nil
+collectLabelNSDs (SFReturn p) =
+   return Nil
+collectLabelNSDs (SFLabel _ name nsd Nothing) =
+   return (Cons (name, nsd) Nil)
+collectLabelNSDs (SFNamed p name ss) =
+   do x <- mapM collectLabelNSDs ss
+      return (concat x)
+collectLabelNSDs (SFUntil _ _) =
+   return Nil
+
+collectLabelNSDs (SFWhile p c s) =
+    do x <- collectLabelNSDs s
+       return x
+
+collectLabelNSDs s  =
+   do x <- stmtFTToString s
+      messageM ("Case: " +++ x)
+      error "unhandled case"
+
+addLabelNSDs :: (Monad m) => Bool -> (List (String, NextStateDescriptors)) -> (StmtFT a) -> m (StmtFT a)
+addLabelNSDs allow_open lbls (SFAction p n _ a_abort a (Just (Jump label)) rs) =
+   do let m_nsd = getLabelNSDs allow_open label lbls
+          pos = getStringPosition label
+          msg = setStringPosition ("No Label '" +++ label +++ "' found for goto.") pos
+          xx (Just nsd) = nsd
+          xx _          = error msg
+      return (SFAction p n (xx m_nsd) a_abort a (Just (Jump label)) rs)
+addLabelNSDs allow_open lbls s@(SFAction p n nsd _ _ _ _) =
+   return s
+addLabelNSDs allow_open lbls (SFIf1 p c s) =
+   do s' <- addLabelNSDs allow_open lbls s
+      return (SFIf1 p c s')
+addLabelNSDs allow_open lbls (SFIf2 p c s0 s1) =
+   do s0' <- (addLabelNSDs allow_open lbls s0)
+      s1' <- (addLabelNSDs allow_open lbls s1)
+      return (SFIf2 p c s0' s1')
+addLabelNSDs allow_open lbls s@(SFPar _ _ _) =
+   return s
+addLabelNSDs allow_open lbls (SFSeq p ss) =
+   do ss' <- mapM (addLabelNSDs allow_open lbls) ss
+      return (SFSeq p ss')
+addLabelNSDs allow_open lbls s@(SFSkip _) =
+   return s
+addLabelNSDs allow_open lbls s@(SFReturn _) =
+   return s
+addLabelNSDs allow_open lbls s@(SFLabel _ name nsd Nothing) =
+   return s
+addLabelNSDs allow_open lbls (SFNamed p n ss) =
+   do ss' <- mapM (addLabelNSDs allow_open lbls) ss
+      return (SFNamed p n ss')
+addLabelNSDs allow_open lbls s@(SFUntil _ _) =
+   return s
+
+addLabelNSDs allow_open lbls (SFWhile p c s) =
+    do _r <- addLabelNSDs allow_open lbls s
+       return (SFWhile p c _r)
+
+addLabelNSDs allow_open lbls s  =
+   do x <- stmtFTToString s
+      messageM ("Case: " +++ x)
+      error "unhandled case"
+
+getLabelNSDs :: Bool -> String -> (List (String, NextStateDescriptors)) -> (Maybe NextStateDescriptors)
+getLabelNSDs True  name Nil = Just Nil
+getLabelNSDs False name Nil = Nothing
+getLabelNSDs allow_open name (Cons (l, nsd) rest) = if (name == l) then (Just nsd) else getLabelNSDs allow_open name rest
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getJumpActions :: (Monad m) => (StmtFT a) -> m (List Integer)
+getJumpActions s = collectActions (Just (Jump "")) s
+
+getUpdateEarlyActions :: (Monad m) => (StmtFT a) -> m (List Integer)
+getUpdateEarlyActions s = collectActions (Just (Update (Early ""))) s
+
+getUpdateOverlapActions :: (Monad m) => (StmtFT a) -> m (List Integer)
+getUpdateOverlapActions s = collectActions (Just (Update Overlap)) s
+
+getWaitActions :: (Monad m) => (StmtFT a) -> m (List Integer)
+getWaitActions s = collectActions (Just Wait) s
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+collectActions :: (Monad m) => (Maybe ActionType) -> (StmtFT a) -> m (List Integer)
+collectActions at (SFAction _ n _ _ _ x _) =
+   return (if (actionTypesMatch at x) then (Cons n Nil) else Nil)
+collectActions at (SFAction _ _ _ _ _ _ _) =
+   return Nil
+collectActions at (SFIf1 _ _ s) =
+   collectActions at s
+collectActions at (SFIf2 p _ s0 s1) =
+   do c0 <- (collectActions at s0)
+      c1 <- (collectActions at s1)
+      return (append c0 c1)
+collectActions at (SFPar p r ss) =
+   collectActions at r
+
+collectActions at (SFSeq p ss) =
+   do x <- mapM (collectActions at) ss
+      return (concat x)
+collectActions at (SFSkip p) =
+   return Nil
+collectActions at (SFReturn p) =
+   return Nil
+collectActions at (SFLabel _ _ _ _) =
+   return Nil
+collectActions at (SFNamed p nm ss) =
+   do x <- mapM (collectActions at) ss
+      return (concat x)
+collectActions at (SFUntil _ _) =
+   return Nil
+
+collectActions at (SFWhile p c s) =
+   do x <- collectActions at s
+      return x
+
+collectActions at s  =
+   do x <- stmtFTToString s
+      messageM ("Case: " +++ x)
+      error "unhandled case"
+
+labelsMatch :: Integer -> Integer -> Bool
+labelsMatch 0 _ = True
+labelsMatch _ 0 = True
+labelsMatch a b = (a == b)
+
+actionTypesMatch :: (Maybe ActionType) -> (Maybe ActionType) -> Bool
+actionTypesMatch (Just (Jump _)) (Just (Jump _)) = True
+actionTypesMatch (Just (Update (Early _))) (Just (Update (Early _))) = True
+actionTypesMatch a b = (a == b)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+collectTSDs :: (Monad m) => (Integer -> Integer -> Bool) -> Bool -> (StmtFT a) -> m TwoStateDescriptors
+collectTSDs f start (SFAction p n nsd _ _ _ _) =
+   return (concat (map (createTSD n f start) nsd))
+collectTSDs f start (SFIf1 p _ s) =
+   collectTSDs f start s
+collectTSDs f start (SFIf2 p _ s0 s1) =
+   do c0 <- (collectTSDs f start s0)
+      c1 <- (collectTSDs f start s1)
+      return (append c0 c1)
+-- TTTT
+collectTSDs f start (SFPar p r ss) =
+   collectTSDs f start r
+collectTSDs f start (SFSeq p ss) =
+   do x <- mapM (collectTSDs f start) ss
+      return (concat x)
+collectTSDs f start (SFSkip p) =
+   return Nil
+collectTSDs f start (SFReturn p) =
+   return Nil
+collectTSDs f start (SFLabel _ _ _ Nothing) =
+   return Nil
+collectTSDs f start (SFNamed p name ss) =
+   do x <- mapM (collectTSDs f start) ss
+      return (concat x)
+collectTSDs f start (SFUntil _ _) =
+   return Nil
+
+collectTSDs f start (SFWhile p c s) =
+   do x <- collectTSDs f start s
+      return x
+
+collectTSDs f start s  =
+   do x <- stmtFTToString s
+      messageM ("Case: " +++ x)
+      error "unhandled case"
+
+createTSD :: Integer -> (Integer -> Integer -> Bool) -> Bool -> NextStateDescriptor -> (List TwoStateDescriptor)
+createTSD num f start (cond, i) = 
+   let kind = if (num == idle_state)    then Start 
+              else if (i == idle_state) then End
+              else                           Default
+       c    = if (num == idle_state) then cond && start else cond
+   in if (f num i) then (Cons (TSD c num i kind) Nil) else Nil
+
+
+combineTSDs :: TwoStateDescriptors -> TwoStateDescriptors
+combineTSDs (Cons a@(TSD conda fa ta ka) (Cons b@(TSD condb fb tb kb) rest)) =
+--       if      (isStaticAndFalse conda)   then combineTSDs (Cons b rest)
+--       else if (isStaticAndFalse condb)   then combineTSDs (Cons a rest)
+--       else if ((fa == fb) && (ta == tb) && (ka == kb)) 
+       if ((fa == fb) && (ta == tb) && (ka == kb)) 
+                                          then combineTSDs (Cons (TSD (conda || condb) fa ta ka) rest)
+       else                                    (Cons a (combineTSDs (Cons b rest)))
+combineTSDs (Cons a@(TSD _ _ _ _) Nil) = (Cons a Nil)
+combineTSDs Nil = Nil
+
+
+allTSDs :: Integer -> Integer -> Bool
+allTSDs _ _ = True
+
+exactTSDs :: Integer -> Integer -> Integer -> Integer -> Bool
+exactTSDs m n f t = (m == f) && (n == t)
+
+toNTSDs :: Integer -> Integer -> Integer -> Bool
+toNTSDs n _ m = n == m
+
+fromNTSDs :: Integer -> Integer -> Integer -> Bool
+fromNTSDs n m _ = n == m
+
+startTSDs :: Integer -> Integer -> Bool
+startTSDs f t = (toNTSDs idle_state f t) || (fromNTSDs idle_state f t)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+addAllWaitBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
+addAllWaitBypassTSDs Nil tsds = return tsds
+addAllWaitBypassTSDs (Cons n rest) tsds = 
+    do x <- addAllWaitBypassTSDs rest tsds
+       addWaitBypassTSDs n x
+
+addWaitBypassTSDs :: (Monad m) => Integer -> TwoStateDescriptors -> m TwoStateDescriptors
+addWaitBypassTSDs n tsds =
+  do let self (TSD cond f t _) = t == n && f == n
+         to   (TSD cond f t _) = t == n && (not (f == n))
+         from (TSD cond f t _) = f == n && (not (t == n))
+         rest (TSD cond f t _) = not (t == n) || (f == t)
+         self_list = filter self tsds
+         to_list   = filter to   tsds
+         from_list = filter from tsds
+         rest_list = filter rest tsds
+         getCond (TSD c f t _) = c
+         any_out = foldr1 (||) (map getCond from_list)
+         create_bypass (TSD cond_in f0 t0 k0) (TSD cond_out f1 t1 k1) =
+                     (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1))
+                           (Cons (TSD (cond_in && (not any_out)) f0 t0 k0) Nil))
+         create_bypasses tsd = concat (map (create_bypass tsd) from_list)
+     return (append (append (concat (map create_bypasses to_list)) self_list) rest_list)
+
+
+
+addAllJumpBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
+addAllJumpBypassTSDs Nil tsds = return tsds
+addAllJumpBypassTSDs (Cons n rest) tsds = 
+    do x <- addAllJumpBypassTSDs rest tsds
+       addJumpBypassTSDs n x
+
+addJumpBypassTSDs :: (Monad m) => Integer -> TwoStateDescriptors -> m TwoStateDescriptors
+addJumpBypassTSDs n tsds =
+  do let self (TSD cond f t _) = t == n && f == n
+         to   (TSD cond f t _) = t == n && (not (f == n))
+         from (TSD cond f t _) = f == n && (not (t == n))
+         rest (TSD cond f t _) = not ((t == n) || (f == n))
+         not_false  (TSD cond f t _) = not (isStaticAndFalse cond)
+         self_list = filter self tsds
+         to_list   = filter to   tsds
+         from_list = filter from tsds
+         rest_list = filter rest tsds
+         filtered_self = filter not_false self_list
+         getCond (TSD c f t _) = c
+         any_out = foldr1 (||) (map getCond from_list)
+     {-# hide #-}
+     jj <- if ((length self_list) > 0 && (length filtered_self) > 0)
+           then do let create_bypass (TSD cond_in f0 t0 k0) x@(TSD cond_out f1 t1 k1) =
+                         (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1))
+                           (Cons (TSD (cond_in && (not any_out)) f0 t0 k0) Nil))
+                       create_bypasses tsd    = concat (map (create_bypass tsd) from_list)
+                       zz = (concat (map create_bypasses to_list))
+--                       yy = (append (filter not_false (append zz from_list)) filtered_self)
+                       yy = (append (filter not_false (combineTSDs (sortBy compareTSDs zz))) filtered_self)
+--                   messageM("HHHHH0: " +++ (toString n) +++ " " +++ (twoStateDescriptorsToString filtered_self))
+--                   messageM("HHHHH1: " +++ (toString n) +++ " " +++ (twoStateDescriptorsToString yy))
+                   return (append yy rest_list)
+           else do let create_bypass (TSD cond_in f0 t0 k0) (TSD cond_out f1 t1 k1) = 
+                        (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1)) Nil)
+                       create_bypasses tsd = concat (map (create_bypass tsd) from_list)
+                       zz = (concat (map create_bypasses to_list))
+                       yy = (filter not_false zz)
+                   return (append yy rest_list)
+     return jj
+
+addJump2BypassTSDs :: (Monad m) => Integer -> TwoStateDescriptors -> m TwoStateDescriptors
+addJump2BypassTSDs n tsds =
+  do let self (TSD cond f t _) = t == n && f == n
+         to   (TSD cond f t _) = t == n
+         from (TSD cond f t _) = f == n
+         rest (TSD cond f t _) = not ((t == n) || (f == n))
+         self_list = filter self tsds
+         to_list   = filter to   tsds
+         from_list = filter from tsds
+         rest_list = filter rest tsds
+         getCond (TSD c f t _) = c
+         any_out = foldr1 (||) (map getCond from_list)
+         create_bypass (TSD cond_in f0 t0 k0) x@(TSD cond_out f1 t1 k1) =
+                     (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1))
+                           (Cons (TSD (cond_in && (not any_out)) f0 t0 k0)
+                                 (Cons x Nil)))
+         create_bypasses tsd = concat (map (create_bypass tsd) from_list)
+     return (append (concat (map create_bypasses to_list)) rest_list)
+
+addAllOvlpUpdateBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
+addAllOvlpUpdateBypassTSDs Nil tsds = return tsds
+addAllOvlpUpdateBypassTSDs (Cons n rest) tsds = 
+    do x <- addAllOvlpUpdateBypassTSDs rest tsds
+       addOvlpUpdateBypassTSDs n x
+
+
+addOvlpUpdateBypassTSDs :: (Monad m) => Integer -> TwoStateDescriptors -> m TwoStateDescriptors
+addOvlpUpdateBypassTSDs n tsds =
+  do let self (TSD cond f t _) = t == n && f == n
+         to   (TSD cond f t _) = t == n && (not (f == n))
+         from (TSD cond f t _) = f == n && (not (t == n))
+         rest (TSD cond f t _) = not ((t == n) || (f == n))
+         self_list = filter self tsds
+         to_list   = filter to   tsds
+         from_list = filter from tsds
+         rest_list = filter rest tsds
+         create_bypass (TSD cond_in f0 t0 k0) (TSD cond_out f1 t1 k1) = (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1)) Nil)
+         create_bypasses tsd = concat (map (create_bypass tsd) from_list)
+     return (append (concat (map create_bypasses to_list)) tsds)
+
+addAllEarlyUpdateBypassTSDs :: (Monad m) => (List Integer) -> (StmtFT a, TwoStateDescriptors) -> Bool -> m (StmtFT a, TwoStateDescriptors)
+addAllEarlyUpdateBypassTSDs Nil (s, tsds) _ = return (s, tsds)
+addAllEarlyUpdateBypassTSDs (Cons n rest) (s, tsds) do_warn = 
+    do (s', tsds') <- addAllEarlyUpdateBypassTSDs rest (s, tsds) do_warn
+       addEarlyUpdateBypassTSDs n (s', tsds') do_warn
+
+addEarlyUpdateBypassTSDs :: (Monad m) => Integer -> (StmtFT a, TwoStateDescriptors) -> Bool -> m (StmtFT a, TwoStateDescriptors)
+addEarlyUpdateBypassTSDs n (s, tsds) do_warn =
+ do let  self (TSD cond f t _) = t == n && f == n
+         to   (TSD cond f t _) = t == n && (not (f == n))
+         from (TSD cond f t _) = f == n && (not (t == n))
+         rest (TSD cond f t _) = not ((t == n) || (f == n))
+         not_false  (TSD cond f t _) = not (isStaticAndFalse cond)
+         self_list = filter self tsds
+         to_list   = filter to   tsds
+         from_list = filter from tsds
+         rest_list True  = filter rest tsds
+         rest_list False = tsds
+         create_bypass (TSD cond_in f0 t0 k0) (TSD cond_out f1 t1 k1) = (Cons (TSD (cond_in && cond_out) f0 t1 (combineTSDTypes k0 k1)) Nil)
+         create_bypasses True  tsd = concat (map (create_bypass tsd) from_list)
+         create_bypasses False tsd = Nil
+         update_list = map getFrom to_list
+         getAction  (SFAction _ _ _ _ a _ _) = a
+         getComment (SFAction _ _ _ _ _ (Just (Update (Early txt))) _) = txt
+    can_update    <- canUpdateEarly tsds n do_warn
+    let l  = getSFAction n s
+        sa = head l
+        update_action = getAction sa
+        comment       = getComment sa
+        tsds' = filter not_false (append (concat (map (create_bypasses can_update) to_list)) (rest_list can_update))
+    s' <- if (can_update) then (foldrM (addActionAt update_action) s update_list) else return s
+    let msg = setStringPosition (comment +++ " will require an added cycle.") (getStringPosition comment)
+    if (do_warn && (not can_update)) then warningM msg else return ()
+    return (s', tsds')
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+canUpdateEarly :: (Monad m) => TwoStateDescriptors -> Integer -> Bool -> m Bool
+canUpdateEarly tsds n do_warn =
+   do let is_ok (TSD cond f t _) = (not (t == n)) || (isStaticAndTrue cond)
+          ok = foldr1 (&&) (map is_ok tsds)
+      return ok
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getTransitionConditions :: (Monad m) => Integer -> State -> (StmtFT a) -> m (List Bool)
+getTransitionConditions num state (SFAction p n nsd _ _ _ _) =
+   return (map ((&&) (state.is n)) (getTransitionConditionsForNSDs num nsd))
+getTransitionConditions num state (SFIf1 p _ s) =
+   getTransitionConditions num state s
+getTransitionConditions num state (SFIf2 p _ s0 s1) =
+   do c0 <- (getTransitionConditions num state s0)
+      c1 <- (getTransitionConditions num state s1)
+      return (append c0 c1)
+getTransitionConditions num state (SFSeq p ss) =
+   do x <- mapM (getTransitionConditions num state) ss
+      return (concat x)
+getTransitionConditions num state (SFSkip p) =
+   return Nil
+getTransitionConditions num state (SFReturn p) =
+   return Nil
+
+getTransitionConditions num state (SFWhile p c s) =
+   do c <- (getTransitionConditions num state s)
+      return c
+
+getTransitionConditions num state s  =
+   do x <- stmtFTToString s
+      messageM ("Case: " +++ x)
+      error "unhandled case"
+
+getTransitionConditionsForNSDs :: Integer -> NextStateDescriptors -> List Bool
+getTransitionConditionsForNSDs num Nil = Nil
+getTransitionConditionsForNSDs num (Cons (cond, i) rest) =
+   if (i == num)
+      then (Cons cond (getTransitionConditionsForNSDs num rest))
+      else (getTransitionConditionsForNSDs num rest)
+
+rJoinME :: List (Rules, Bool) -> Rules
+rJoinME pairs =
+    let getSimpleRules :: List (Rules, Bool) -> Rules
+        getSimpleRules Nil                   = eR
+        getSimpleRules (Cons (r, True) rest) = rJoin r (getSimpleRules rest)
+        getSimpleRules (Cons _         rest) = getSimpleRules rest
+        getMERules :: List (Rules, Bool) -> List Rules
+        getMERules Nil                    = Nil
+        getMERules (Cons (r, False) rest) = (Cons r (getMERules rest))
+        getMERules (Cons _          rest) = getMERules rest
+        r      = getSimpleRules pairs
+        r_list = getMERules pairs
+--    in  (fold rJoinMutuallyExclusive (Cons r r_list))
+    in  (rJoin r (fold rJoinMutuallyExclusive r_list))
+
+createRulesForTSDs ::  (IsModule m c) => (StmtFT a) -> State -> Bool -> TwoStateDescriptors -> m RuleSet
+createRulesForTSDs s state pred Nil = return emptyRuleSet
+createRulesForTSDs s state pred tsd =
+ do let toNSD (TSD cond f t k) = ((cond && state.is f), t)
+        getFromState (TSD cond f t k) = f
+        from = getFromState (head tsd)
+        nsd = map toNSD tsd
+        (_,n) = (head nsd)
+        l = getSFAction n s
+        sa = (head l)
+        getlabel (SFAction p _ _ _ _ _ _) = getPIString p
+        str = getlabel sa
+        hasSubRules (SFAction _ _ _ _ _ _ (Just r)) = True
+        hasSubRules _                             = False
+        getSubRules (SFAction _ _ _ _ _ _ Nothing) = emptyRuleSet
+        getSubRules (SFAction _ _ _ _ _ _ (Just r)) = r
+        overlapAction (SFAction _ _ _ _ _ (Just (Update Overlap)) _) = True
+        overlapAction _                                              = False
+        jumpAction (SFAction _ _ _ _ _ (Just (Jump _)) _)            = True
+        jumpAction _                                                 = False
+        noME (SFAction _ _ _ _ _ (Just NoME) _) = True
+        noME _                                  = False
+        rs = getSubRules sa
+--        many = from == idle_state || n == idle_state
+        many = n == idle_state
+        cond_list = getTransitionConditionsForNSDs n nsd
+        cond = (fold (||) cond_list)
+        no_me = (overlapAction sa) || (noME sa)
+        rx = if (many) then (fold rJoin (map (createRuleForSFAction sa state pred) cond_list))
+                       else (createRuleForSFAction sa state pred cond)
+        rss = if (n == idle_state)
+              then RuleSet { me_local = eR; me_parents = eR; no_me = rx }
+              else if (no_me) then RuleSet { me_local = eR; me_parents = rx; no_me = eR }
+                              else RuleSet { me_local = rx; me_parents = eR; no_me = eR }
+    return (mergeRuleSets rs rss)
+
+createRuleForSFAction :: (StmtFT a) -> State -> Bool -> Bool -> Rules
+
+createRuleForSFAction (SFAction p n _ _ a (Just (Jump _)) rs) state pred c' =
+    let l = getPIString p
+        c = pred && c'
+        r = if (isStaticAndFalse c)
+            then eR
+            else rules {{-# aggressive_implicit_conditions #-} (ruleName "action_jump" n l): when (c)
+                       ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
+--                                   state.set (0 - 1);
+				   a}}
+    in r
+
+createRuleForSFAction (SFAction p n _ _ a (Just (Update Overlap)) rs) state pred c' =
+    let l = getPIString p
+        c = pred && c'
+        r = if (isStaticAndFalse c)
+            then eR
+            else rules {{-# aggressive_implicit_conditions #-} (ruleName "action_ovlp" n l): when (c)
+                       ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
+                                   state.overlap;
+				   a}}
+    in r
+
+createRuleForSFAction (SFAction p n _ _ a at rs) state pred c' =
+    let l = getPIString p
+        c = pred && c'
+        r = if (isStaticAndFalse c)
+            then eR
+            else if (n == idle_state) then rules {{-# no_warn #-} {-# aggressive_implicit_conditions #-} (ruleName "idle" n l): when (c')
+                       ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
+                                    state.set (fromInteger n);
+				    a}}
+            else if (at == (Just Wait)) then rules {{-# no_warn #-} {-# aggressive_implicit_conditions #-} (ruleName "wait" n l): when (c)
+                       ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
+                                    state.set (fromInteger n);
+				    a}}
+            else rules {{-# aggressive_implicit_conditions #-} (ruleName "action" n l): when (c)
+                       ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
+                                    state.set (fromInteger n);
+				    a}}
+    in r
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+getSFAction :: Integer -> (StmtFT a) -> List (StmtFT a)
+getSFAction num s@(SFAction p n nsd _ _ _ _) =
+   if (n == num) then (Cons s Nil) else Nil
+getSFAction num (SFIf1 p _ s) =
+   getSFAction num s
+getSFAction num (SFIf2 p _ s0 s1) =
+   let l0 = (getSFAction num s0)
+       l1 = (getSFAction num s1)
+   in (append l0 l1)
+getSFAction num (SFSeq p ss) =
+   let x = map (getSFAction num) ss
+   in concat x
+getSFAction num (SFSkip p) = Nil
+getSFAction num (SFReturn p) = Nil
+getSFAction num (SFLabel _ _ _ _) = Nil
+getSFAction num (SFNamed p name ss) =
+   let x = map (getSFAction num) ss
+   in concat x
+getSFAction num (SFUntil _ _) = Nil
+getSFAction num (SFWhile p c s) = 
+    getSFAction num s
+getSFAction num s = error "unhandled case"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface State =
+        is  :: Integer -> Bool
+        set :: Integer -> Action
+        overlap :: Action
+        fired_last :: Bool
+
+interface (State' :: # -> *) n =
+        is'  :: Integer -> Bool
+        set' :: Integer -> Action
+
+mkState :: (IsModule m c) => Integer -> Bool -> Bool -> m State
+mkState n start abort =
+  if      n < 2     then ffM ((mkState' start abort) :: m(State' 1))
+  else if n < 4     then ffM ((mkState' start abort) :: m(State' 2))
+  else if n < 8     then ffM ((mkState' start abort) :: m(State' 3))
+  else if n < 16    then ffM ((mkState' start abort) :: m(State' 4))
+  else if n < 32    then ffM ((mkState' start abort) :: m(State' 5))
+  else if n < 64    then ffM ((mkState' start abort) :: m(State' 6))
+  else if n < 128   then ffM ((mkState' start abort) :: m(State' 7))
+  else if n < 256   then ffM ((mkState' start abort) :: m(State' 8))
+  else if n < 512   then ffM ((mkState' start abort) :: m(State' 9))
+  else if n < 1024  then ffM ((mkState' start abort) :: m(State' 10))
+  else if n < 2048  then ffM ((mkState' start abort) :: m(State' 11))
+  else if n < 4096  then ffM ((mkState' start abort) :: m(State' 12))
+  else if n < 8192  then ffM ((mkState' start abort) :: m(State' 13))
+  else if n < 16384 then ffM ((mkState' start abort) :: m(State' 14))
+  else if n < 32768 then ffM ((mkState' start abort) :: m(State' 15))
+  else if n < 65536 then ffM ((mkState' start abort) :: m(State' 16))
+  else error "FSM too big"
+
+ffM :: (IsModule m c) => m (State' n) -> m(State)
+ffM mm =
+  module
+    {-# hide #-}
+    _i <- mm
+
+    set_pw :: PulseWire
+    set_pw <- mkPulseWire
+
+    overlap_pw :: PulseWire
+    overlap_pw <- mkPulseWireOR
+
+    fired :: Reg Bool
+    fired <- mkDReg False
+
+    can_overlap :: Reg Bool
+    can_overlap <- mkReg True
+
+    rules {"every": when True
+              ==> action { can_overlap := if (set_pw) then True else (if (overlap_pw) then False else can_overlap) }}
+
+    interface
+        is      = _i.is'
+        set v   = action { if (v >= 0) then _i.set' v else noAction; fired := True; set_pw.send }
+        overlap = action { overlap_pw.send } when (can_overlap)
+        fired_last = fired
+
+mkState' :: (IsModule m c) => Bool -> Bool -> m (State' n)
+mkState' start abort =
+  module
+    mkFSMstate :: Reg(Bit n)
+    mkFSMstate <- mkConfigReg (fromInteger idle_state)
+
+    rules {{-# no_warn #-} "handle_abort": when (abort && (not start))
+                      ==> action { mkFSMstate := fromInteger idle_state }}
+    let is x = if (abort) then (x == idle_state) else (fromInteger x ==  mkFSMstate)
+    interface
+      is' n = is n
+      set' n =action { mkFSMstate := fromInteger n } when (not (abort && (not start)))
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface NCount =
+        is    :: Nat -> Bool
+        reset :: Action
+        incr  :: Action
+
+interface (NCount' :: # -> *) n =
+        is'    :: Nat -> Bool
+        reset' :: Action
+        incr'  :: Action
+
+mkNCount' :: (IsModule m c) => m (NCount' n)
+mkNCount' =
+  module
+    {-# hide #-}
+    _x :: Reg(Bit n)
+    _x <- mkConfigReg 0
+    interface
+      is'  n = (zExtend n) == _x
+      reset' = _x := 0
+      incr'  = _x := _x + 1
+
+mkNCountOneHot :: (IsModule m c) => m (NCount' n)
+mkNCountOneHot = 
+  module
+    {-# hide #-}
+    _x :: Reg(Bit n)
+    _x <- mkConfigReg 1
+    let nn :: Nat = fromInteger (valueOf n)
+        mm :: Nat = nn - 1
+        zow 0  = ((primSelectFn noPosition _x 0)  == 1)
+        zow nn = ((primSelectFn noPosition _x nn) == 1)
+        zow mm = ((primSelectFn noPosition _x mm) == 1)
+        zow _  = False
+    interface
+      is'  x = (zow x)
+      reset' = _x := 1
+      incr'  = _x := _x << 1
+
+zExtend :: (Add n m k) => Bit n -> Bit m;
+zExtend value =
+    let out :: Bit k;
+        out = zeroExtend value
+    in  out[(valueOf m) - 1:0]
+
+
+ffNM :: (IsModule m c) => m (NCount' n) -> m(NCount)
+ffNM mm =
+  module
+    {-# hide #-}
+    _i <- mm
+
+    interface
+        is    = _i.is'
+        reset = _i.reset'
+        incr  = _i.incr'
+
+mkNCount :: (IsModule m c) => Bool -> Nat -> m NCount
+mkNCount static n =
+  if (static) 
+    then
+      if      (n == 1)  then ffNM(mkNCountOneHot :: m(NCount'  1))
+      else if (n == 2)  then ffNM(mkNCountOneHot :: m(NCount'  2))
+      else if (n == 3)  then ffNM(mkNCountOneHot :: m(NCount'  3))
+      else if (n == 4)  then ffNM(mkNCountOneHot :: m(NCount'  4))
+      else if (n == 5)  then ffNM(mkNCountOneHot :: m(NCount'  5))
+      else if (n == 6)  then ffNM(mkNCountOneHot :: m(NCount'  6))
+      else if (n == 7)  then ffNM(mkNCountOneHot :: m(NCount'  7))
+      else if (n == 8)  then ffNM(mkNCountOneHot :: m(NCount'  8))
+      else if (n == 9)  then ffNM(mkNCountOneHot :: m(NCount'  9))
+      else if (n == 10) then ffNM(mkNCountOneHot :: m(NCount' 10))
+      else if (n == 11) then ffNM(mkNCountOneHot :: m(NCount' 11))
+      else if (n == 12) then ffNM(mkNCountOneHot :: m(NCount' 12))
+      else if (n == 13) then ffNM(mkNCountOneHot :: m(NCount' 13))
+      else if (n == 14) then ffNM(mkNCountOneHot :: m(NCount' 14))
+      else if (n == 15) then ffNM(mkNCountOneHot :: m(NCount' 15))
+      else if (n == 16) then ffNM(mkNCountOneHot :: m(NCount' 16))
+      else mkNCount False n
+    else if n < 2        then ffNM(mkNCount' :: m(NCount' 1))
+    else if n < 4        then ffNM(mkNCount' :: m(NCount' 2))
+    else if n < 8        then ffNM(mkNCount' :: m(NCount' 3))
+    else if n < 16       then ffNM(mkNCount' :: m(NCount' 4))
+    else if n < 32       then ffNM(mkNCount' :: m(NCount' 5))
+    else if n < 64       then ffNM(mkNCount' :: m(NCount' 6))
+    else if n < 128      then ffNM(mkNCount' :: m(NCount' 7))
+    else if n < 256      then ffNM(mkNCount' :: m(NCount' 8))
+    else if n < 512      then ffNM(mkNCount' :: m(NCount' 9))
+    else if n < 1024     then ffNM(mkNCount' :: m(NCount' 10))
+    else if n < 2048     then ffNM(mkNCount' :: m(NCount' 11))
+    else if n < 4096     then ffNM(mkNCount' :: m(NCount' 12))
+    else if n < 8192     then ffNM(mkNCount' :: m(NCount' 13))
+    else if n < 16384    then ffNM(mkNCount' :: m(NCount' 14))
+    else if n < 32768    then ffNM(mkNCount' :: m(NCount' 15))
+    else if n < 65536    then ffNM(mkNCount' :: m(NCount' 16))
+    else if n < 131072   then ffNM(mkNCount' :: m(NCount' 17))
+    else if n < 262144   then ffNM(mkNCount' :: m(NCount' 18))
+    else if n < 524288   then ffNM(mkNCount' :: m(NCount' 19))
+    else if n < 1048576  then ffNM(mkNCount' :: m(NCount' 20))
+    else if n < 2097152  then ffNM(mkNCount' :: m(NCount' 21))
+    else if n < 4194304  then ffNM(mkNCount' :: m(NCount' 22))
+    else if n < 8388608  then ffNM(mkNCount' :: m(NCount' 23))
+    else if n < 16777216 then ffNM(mkNCount' :: m(NCount' 24))
+    else if n < 33554432 then ffNM(mkNCount' :: m(NCount' 25))
+    else if n < 67108864 then ffNM(mkNCount' :: m(NCount' 26))
+    else error "Counter too big"
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+addNoActionState :: (Monad m) => TwoStateDescriptors -> LabelState a -> m (TwoStateDescriptors)
+addNoActionState tsds ls = 
+ do let no_action (TSD cond f t _) = t == idle_state && f == idle_state
+        no_action_list = filter no_action tsds
+        rest tsd = not (no_action tsd)
+        rest_list = filter rest tsds
+        handle Nil                         = return tsds
+        handle (Cons (TSD cond f t k) Nil) = 
+          do let num    = ls.state_num - 1
+                 tsds'  =  (Cons (TSD cond f num Start) (Cons (TSD True num t Default) rest_list))
+             tsds'' <- addWaitBypassTSDs idle_state tsds'
+             let tsds''' = combineTSDs (sortBy compareTSDs tsds'')
+             return tsds'''
+        handle _                  = error "unhandled case"
+    handle no_action_list
+    
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+dummyAction :: Action
+dummyAction = action {$write ""}
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+ruleName :: String -> Integer -> String -> String
+-- ruleName text n suffix = (text +++ "_" +++ (integerToString n) +++ suffix)
+ruleName text n suffix = (text +++ suffix)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+
+
+instance ToString TwoStateDescriptor where
+    toString (TSD c from to Default) =
+      "<TSD " +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ ">"
+    toString (TSD c from to Start) =
+      "<TSD " +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ " (S)>"
+    toString (TSD c from to End) =
+      "<TSD " +++ (boolToString c) +++ ", " +++ (integerToString from) +++ ", " +++ (integerToString to) +++ " (E)>"

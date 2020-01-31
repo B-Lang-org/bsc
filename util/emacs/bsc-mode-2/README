@@ -1,0 +1,9 @@
+These files are the beginnings of a Bluespec mode for emacs,
+adapted from the Haskell mode.  So far, apart from a global
+change of "Haskell" to "Bluespec", the only changes have been to
+the font-lock file, to add new keywords and syntax.
+
+Further customisation is encouraged.
+
+joe stoy
+7 August 2001

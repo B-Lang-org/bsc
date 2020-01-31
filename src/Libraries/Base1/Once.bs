@@ -1,0 +1,42 @@
+package Once(Once(..), mkOnce) where
+
+--@ \subsection{Once}
+--@ 
+--@ \index{Once@\te{Once} (type)|textbf}
+--@ The \te{Once} package encapsulates the notion of an action
+--@ that should only be performed once.
+--@ 
+--@ \index{start@\te{start}|textbf}
+--@ \index{reset@\te{clear}|textbf}
+--@ The \te{start} method performs the action that has been
+--@ encapsulated in the \te{Once} module, but once \te{start}
+--@ has been called it cannot be called again (an implicit
+--@ condition will enforce this).
+--@ However, if the \te{clear} method is called, the \te{start}
+--@ method can be called once again.
+--@ \begin{libverbatim}
+--@ interface Once;
+--@     method Action start();
+--@     method Action clear();
+--@ endinterface: Once
+--@ \end{libverbatim}
+interface Once =
+    start :: Action
+    clear :: Action
+
+--@ \index{mkOnce@\te{mkOnce}|textbf}
+--@ The \te{mkOnce} function is used to create a \te{Once} interface
+--@ where the action argument has been encapsulated and will be
+--@ performed when \te{start} is called.
+--@ \begin{libverbatim}
+--@ module mkOnce#(Action a)(Once);
+--@ \end{libverbatim}
+mkOnce :: (IsModule m c) => Action -> m Once
+mkOnce a =
+    module
+	ready :: Reg Bool
+	ready <- mkReg True
+	interface
+	    start = action { ready := False; a }
+	        when ready
+	    clear = action { ready := True }

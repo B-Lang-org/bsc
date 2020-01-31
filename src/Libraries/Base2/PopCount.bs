@@ -1,0 +1,110 @@
+package PopCount(
+	popCountNaive, popCountTable, popCountTree, popCountWallace,
+	LogK,
+	popCountTableWallace, popCountTableTree
+	) where
+
+import List
+import Vector
+import Wallace
+import Tabulate
+
+--@ \subsubsection{PopCount}
+--@ 
+--@ \index{PopCount@\te{PopCount} (package)|textbf}
+
+--@ The function \te{popCountNaive} just generates the sum of all the bits
+--@ in the input word by extracting them and adding them linearly.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountNaive()
+--@   provisos (Add#(a, 1, m));
+--@ \end{libverbatim}
+popCountNaive :: (Add a 1 m) => Bit n -> Bit m
+popCountNaive = foldr (+) 0 · map zExt1 · unpack
+
+zExt1 :: (Add m1 1 m) => Bit 1 -> Bit m
+zExt1 = zeroExtend
+
+--@ The function \te{popCountTable} uses a lookup table with the
+--@ input as an index to get the population count.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountTable()
+--@   provisos (Add#(a, 1, m));
+--@ \end{libverbatim}
+popCountTable :: (Add a 1 m) => Bit n -> Bit m
+popCountTable = tabulate popCountNaive
+
+--@ The function \te{popCountTree} uses a balanced tree
+--@ of adders to add the input bits.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountTree()
+--@   provisos (Add#(1, b, n), Add#(a, 1, m));
+--@ \end{libverbatim}
+popCountTree :: (Add 1 b n, Add a 1 m) => Bit n -> Bit m
+popCountTree = fold (+) · map zExt1 · unpack
+
+--@ The function \te{popCountWallace} uses a Wallace tree
+--@ to add the input bits.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountWallace()
+--@   provisos (Add#(1, a, m));
+--@ \end{libverbatim}
+popCountWallace :: (Add 1 a m) => Bit n -> Bit m
+popCountWallace = wallaceAddBags · start · toList · unpack
+
+start :: (Add 1 m n) => List (Bit 1) -> Vector n (List (Bit 1))
+start bs = bs :> map (const Nil) genList
+
+-----
+-- K=7, LogK=3 also gives good results
+-- it gives a better usage of result range, but with a deeper adder.
+type K = 8
+type LogK = 4
+
+--@ Use a table of a small width, add the results with a Wallace adder.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountTableWallace()
+--@   provisos (Add#(LogK, k, m));
+--@ \end{libverbatim}
+popCountTableWallace :: (Add LogK k m) =>  Bit n -> Bit m
+popCountTableWallace = wallaceAdd · List.map popCK · splitInKs 0
+
+--@ Use a table of a small width, add the results with a balanced tree.
+--@ \begin{libverbatim}
+--@ function Bit#(m) popCountTableTree()
+--@   provisos (Add#(a, LogK, m));
+--@ \end{libverbatim}
+popCountTableTree :: (Add a LogK m) => Bit n -> Bit m
+popCountTableTree = List.fold (+) · List.map (zeroExtend · popCK) · splitInKs 0
+
+{-# noinline popCK #-}
+popCK :: Bit K -> Bit LogK
+popCK = popCountTable
+
+splitInKs :: Nat -> Bit n -> List (Bit k)
+splitInKs i bs =
+    let i' = fromInteger (valueOf n) `min` (i + fromInteger (valueOf k))
+    in  if i == i' then
+	    Nil
+        else
+	    Cons bs[i'-1:i] (splitInKs i' bs)
+
+--------------------------------------------------------------------------------
+
+{-
+interface X =
+    ii :: Bit 32 -> Action
+    oo :: Bit 6
+
+testPopCount :: Module X
+testPopCount =
+    module
+	i :: Reg (Bit 32) <- mkRegU
+	o :: Reg (Bit 6) <- mkRegU
+    interface
+	ii x = i := x
+        oo = o
+    rules
+	when True
+	 ==> o := popCountTableWallace i
+-}

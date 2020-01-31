@@ -1,0 +1,244 @@
+package RegFile(RegFile(..), mkRegFile, mkRegFileFull, mkRegFileWCF,
+              mkRegFileLoad, mkRegFileFullLoad, mkRegFileWCFLoad,
+              mkRegFileLoadHex, mkRegFileFullLoadHex, mkRegFileWCFLoadHex,
+              mkRegFileLoadBin, mkRegFileFullLoadBin, mkRegFileWCFLoadBin
+             ) where
+
+import ConfigReg
+import List
+
+--@ \subsubsection{RegFile}
+
+--@ This package implements a 5-read-port 1-write-port array module.  RegFiles
+--@ may be indexed by any type in the \te{Bits} class: since the package uses a
+--@ Verilog primitive module, the actual indexing is done with the bit
+--@ representations; thus the bit representation of the ``lower'' bound must be
+--@ less (in the sense of an unsigned bit-pattern) than that of the ``upper''
+--@ bound.
+--@ 
+--@ Note: In a design that uses RegFiles, some of the read ports may remain
+--@ unused. This may generate a warning in various downstream tools.  These
+--@ should also be optimized away by downstream tools.
+
+--@ \index{RegFile@\te{RegFile} (interface type)}
+--@ \index{upd@\te{upd} (\te{RegFile} interface method)}
+--@ \index{sub@\te{sub} (\te{RegFile} interface method)}
+--@ \index{mkRegFile@\te{mkRegFile} (\te{RegFile} module)}
+--@ \index{mkRegFileFull@\te{mkRegFileFull} (\te{RegFile} module)}
+--@ \begin{libverbatim}
+--@ interface RegFile #(type index_t, type data_t);
+--@     method Action upd(index_t x1, data_t x2);
+--@     method data_t sub(index_t x1);
+--@ endinterface: RegFile
+--@ \end{libverbatim}
+interface RegFile i a =
+    upd :: i -> a -> Action
+    sub :: i -> a
+
+{-
+instance PrimSelectable (RegFile i a) i a
+  where
+   primSelectFn ar ix = ar.sub ix
+   primUpdateFn ar ix va = noAction
+-}
+
+interface VRegFile ni na =
+    upd :: Bit ni -> Bit na -> PrimAction
+    sub :: Bit ni -> Bit na
+
+-- Only for i>0 and a>0
+vMkRegFile :: Bit i -> Bit i -> Module (VRegFile i a)
+vMkRegFile lo hi =
+    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a), 
+			      ("lo",lo), ("hi",hi)) "CLK" {
+	upd    = "ADDR_IN" "D_IN"{reg} "WE";
+	sub[5] = "ADDR" "D_OUT";
+    } [ sub < upd, sub <> sub, upd >< upd ]
+
+saveRegFilePortTypes :: VRegFile ni na -> Type -> Type -> Module ()
+saveRegFilePortTypes _a val_type idx_type = do
+  let name = Valid (primGetModuleName _a)
+  primSavePortType name "ADDR_IN" idx_type
+  primSavePortType name "D_IN" val_type
+  let saveSub n = do let s = integerToString n
+                     primSavePortType name ("ADDR_" +++ s) idx_type
+                     primSavePortType name ("D_OUT_" +++ s) val_type
+  mapM saveSub (upto 1 5)
+  return ()
+
+--@ \begin{libverbatim}
+--@ module mkRegFile#( index_t lo, index_t hi )
+--@                  ( RegFile#(index_t, data_t) )
+--@   provisos (Bits#(index_t, si),
+--@             Bits#(data_t, sa));
+--@ \end{libverbatim}
+mkRegFile :: (IsModule m c, Bits i si, Bits a sa) => i -> i -> m (RegFile i a)
+mkRegFile = wrapRegFile "mkRegFile" False vMkRegFile
+
+-- Common wrapper for constructing the user-visible module from the
+-- bitified import
+wrapRegFile :: (IsModule m c, Bits i si, Bits a sa) =>
+               String -> Bool ->
+               (Bit si -> Bit si -> Module (VRegFile si sa)) ->
+               (i -> i -> m (RegFile i a))
+wrapRegFile modname isWCF vMk l h = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	upd i x = action { }
+	sub i = unpack 0
+  else if valueOf si == 0 then
+    module
+      _a :: Reg a
+      {-# hide #-}
+      _a <- if isWCF then mkConfigRegU else mkRegU
+      interface
+	upd i x = _a := x
+	sub i = _a
+  else
+    module
+      letseq lo = pack l
+             hi = pack h
+      _ <- if (hi < lo)
+           then error ("bad indices for " +++ modname +++ ": [" +++
+                       bitToString lo +++ ":" +++ bitToString hi +++ "]")
+           else return ()
+      _a :: VRegFile si sa
+      {-# hide #-}
+      _a <- vMk lo hi
+      saveRegFilePortTypes _a (typeOf (_ :: a)) (typeOf (_ :: i))
+      interface
+	upd i x = fromPrimAction (_a.upd (pack i) (pack x))
+	sub i = unpack (_a.sub (pack i))
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ module mkRegFileFull( RegFile#(index_t, data_t) )
+--@   provisos (Bits#(index_t, si), 
+--@             Bits#(data_t, sa),
+--@             Bounded#(index_t) );
+--@ \end{libverbatim}
+mkRegFileFull :: (IsModule m c, Bounded i, Bits i si, Bits a sa) => m (RegFile i a)
+mkRegFileFull = mkRegFile minBound maxBound
+
+vMkRegFileWCF :: Bit i -> Bit i -> Module (VRegFile i a)
+vMkRegFileWCF lo hi =
+    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a), 
+			      ("lo",lo), ("hi",hi)) "CLK" {
+	upd    = "ADDR_IN" "D_IN"{reg} "WE";
+	sub[5] = "ADDR" "D_OUT";
+    } [ upd <> sub, sub <> sub, upd >< upd]
+
+--@ An array which for which the reads and the write are conflict-free.  For
+--@ the implications of this, see the documentation for \te{ConfigReg}.
+--@ \begin{libverbatim}
+--@ module mkRegFileWCF#( index_t lo, index_t hi )
+--@                     ( RegFile#(index_t, data_t) )
+--@   provisos (Bits#(index_t, si), 
+--@             Bits#(data_t, sa));
+--@ \end{libverbatim}
+mkRegFileWCF :: (IsModule m c, Bits i si, Bits a sa) => i -> i -> m (RegFile i a)
+mkRegFileWCF = wrapRegFile "mkRegFileWCF" True vMkRegFileWCF
+
+-----------------------------------------------------------------------------
+-- mkRegFileLoadHex and friends
+
+--@ \index{RegFileLoad@\te{RegFileLoad} (package)}
+--@ \index{mkRegFileLoad@\te{mkRegFileLoad} (\te{RegFileLoad} function)}
+--@ \index{mkRegFileFullFile@\te{mkRegFileFullFile} (\te{RegFileLoad} function)}
+--@ The \te{RegFileLoad} variants provide the same functionality as
+--@ \te{RegFile}, but each constructor function takes an additional
+--@ file name argument.  The file contains the initial contents of the array.
+--@ The file should use the {\veri} hex memory file syntax.
+--@ 
+--@ The functions in this package cannot normally be used in synthesis.
+
+
+-- Only for i>0 and a>0
+vMkRegFileLoad :: Bool -> String -> Bit i -> Bit i -> Module (VRegFile i a)
+vMkRegFileLoad isBin file lo hi =
+    module verilog "RegFileLoad"
+      (("file", file), ("addr_width",valueOf i), ("data_width",valueOf a),
+       ("lo",lo), ("hi",hi), ("binary",pack isBin)) "CLK" {
+	upd    = "ADDR_IN" "D_IN"{reg} "WE";
+	sub[5] = "ADDR" "D_OUT";
+    } [ sub < upd, sub <> sub, upd >< upd ]
+
+--@ \begin{libverbatim}
+--@ module mkRegFileLoad#( String file, index_t lo, index_t hi )
+--@                      ( RegFile#(indedx_t, data_t) )
+--@   provisos (Bits#(index_t, si),
+--@             Bits#(data_t, sa));
+--@ \end{libverbatim}
+mkRegFileLoadHex :: (IsModule m c, Bits i si, Bits a sa) =>
+               String -> i -> i -> m (RegFile i a)
+mkRegFileLoadHex file =
+  wrapRegFile "mkRegFileLoadHex" False (vMkRegFileLoad False file)
+
+--@ \lineup
+--@ \begin{libverbatim}
+--@ module mkRegFileFullLoad#( String file)
+--@                          ( RegFile#(index_t, data_t))
+--@   provisos (Bits#(index_t, si), 
+--@             Bits#(data_t, sa),
+--@             Bounded#(index_t) );
+--@ \end{libverbatim}
+mkRegFileFullLoadHex :: (IsModule m c, Bounded i, Bits i si, Bits a sa) =>
+                   String -> m (RegFile i a)
+mkRegFileFullLoadHex file = mkRegFileLoadHex file minBound maxBound
+
+vMkRegFileWCFLoad :: Bool -> String -> Bit i -> Bit i -> Module (VRegFile i a)
+vMkRegFileWCFLoad isBin file lo hi =
+    module verilog "RegFileLoad"
+      (("file", file), ("addr_width",valueOf i), ("data_width",valueOf a),
+       ("lo",lo), ("hi",hi), ("binary",pack isBin)) "CLK" {
+	upd    = "ADDR_IN" "D_IN"{reg} "WE";
+	sub[5] = "ADDR" "D_OUT";
+    } [ upd <> sub, sub <> sub, upd >< upd ] 
+
+--@ \begin{libverbatim}
+--@ module mkRegFileWCFLoad#( String file, index_t lo, index_t hi )
+--@                         ( RegFile#(index_t, data_t) )
+--@   provisos (Bits#(index_t, si), 
+--@             Bits#(data_t, sa));
+--@ \end{libverbatim}
+mkRegFileWCFLoadHex :: (IsModule m c, Bits i si, Bits a sa) =>
+                  String -> i -> i -> m (RegFile i a)
+mkRegFileWCFLoadHex file =
+  wrapRegFile "mkRegFileWCFLoadHex" True (vMkRegFileWCFLoad False file)
+
+-----------------------------------------------------------------------------
+-- mkRegFileLoadBin and friends
+
+mkRegFileLoadBin :: (IsModule m c, Bits i si, Bits a sa) =>
+               	String -> i -> i -> m (RegFile i a)
+mkRegFileLoadBin file =
+  wrapRegFile "mkRegFileLoadBin" False (vMkRegFileLoad True file)
+
+mkRegFileFullLoadBin :: (IsModule m c, Bounded i, Bits i si, Bits a sa) =>
+                   String -> m (RegFile i a)
+mkRegFileFullLoadBin file = mkRegFileLoadBin file minBound maxBound
+
+mkRegFileWCFLoadBin :: (IsModule m c, Bits i si, Bits a sa) =>
+                       String -> i -> i -> m (RegFile i a)
+mkRegFileWCFLoadBin file =
+  wrapRegFile "mkRegFileWCFLoadBin" True (vMkRegFileWCFLoad True file)
+
+-----------------------------------------------------------------------------
+-- mkRegFileLoad for backward compatibility
+
+mkRegFileLoad :: (IsModule m c, Bits i si, Bits a sa) =>
+               String -> i -> i -> m (RegFile i a)
+mkRegFileLoad file l h = mkRegFileLoadHex file l h
+
+mkRegFileFullLoad :: (IsModule m c, Bounded i, Bits i si, Bits a sa) =>
+                   String -> m (RegFile i a)
+mkRegFileFullLoad file = mkRegFileFullLoadHex file
+
+mkRegFileWCFLoad :: (IsModule m c, Bits i si, Bits a sa) =>
+                  String -> i -> i -> m (RegFile i a)
+mkRegFileWCFLoad file l h = mkRegFileWCFLoadHex file l h 
+
+
+
+

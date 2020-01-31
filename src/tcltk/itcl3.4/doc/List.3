@@ -1,0 +1,59 @@
+'\"
+'\" Copyright (c) 1993-1998  Lucent Technologies, Inc.
+'\"
+'\" See the file "license.terms" for information on usage and redistribution
+'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+'\"
+'\" RCS: $Id: List.3,v 1.1 2007/09/06 21:45:52 davygrvy Exp $
+'\"
+.so man.macros
+.TH Itcl_InitList 3 3.0 itcl "[incr\ Tcl] Library Procedures"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+Itcl_InitList, Itcl_DeleteList, Itcl_CreateListElem, Itcl_DeleteListElem, Itcl_InsertList, Itcl_InsertListElem, Itcl_AppendList, Itcl_AppendListElem, Itcl_SetListValue \- Manipulate an Itcl list object.
+.SH SYNOPSIS
+.nf
+\fB#include <itcl.h>\fR
+.sp
+void
+\fBItcl_InitList\fR(\fIlist\fR)
+.sp
+void
+\fBItcl_DeleteList\fR(\fIlist\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_CreateListElem\fR(\fIlist\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_DeleteListElem\fR(\fIelem\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_InsertList\fR(\fIlist, clientData\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_InsertListElem\fR(\fIelem, clientData\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_AppendList\fR(\fIlist, clientData\fR)
+.sp
+Itcl_ListElem *
+\fBItcl_AppendListElem\fR(\fIelem, clientData\fR)
+.sp
+void
+\fBItcl_SetListValue\fR(\fIelem, clientData\fR)
+.SH ARGUMENTS
+.AP Itcl_List *list in
+List info structure.
+.AP Itcl_ListElem *elem in
+List element info structure.
+.AP ClientData clientData in
+Arbitrary one-word value to save in the list.
+.BE
+
+.SH DESCRIPTION
+.PP
+
+.SH KEYWORDS
+list
+

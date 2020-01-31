@@ -1,0 +1,126 @@
+/// -*-bsv-*-
+
+// This file defines macros to handle the treatment of the module context
+// handling at synthesis boundaries.  In brief:
+// (a) The designer defines a leaf or an intermediate node module, with module
+// type [ErrorReporter] or [ErrorReporterA] respectively, appending a "0" to
+// its name (e.g. "mkM0").  Elsewhere in the package the appropriate macro
+// chosen from the following two is invoked.
+// (b) The macro defines a synthesizable version of the module, "mkMV", which
+// provides the original interface together with an error-reporting
+// subinterface.  It also defines a module with the original name "mkM", to be
+// used for instantiating the original module.  It uses the Context
+// mechanism to re-bury the error-reporting plumbing, and returns the original
+// interface of the original "mkM0" module.
+
+// These macros assume that the complete module context (possibly an HList of
+// individual contexts) is called CompleteContext, and that its initial value
+// may be obtained from the module mkInitialCompleteContext or
+// mkInitialCompleteContextWithClocks.
+
+/*
+SynthBoundary(mkM,IM)
+
+ BECOMES
+
+(*synthesize*)
+module [Module] mkMV(Tuple2#(CompleteContextIfc,IM));
+   let init <- mkInitialCompleteContext;
+   let _ifc <- unbury(init, mkM0);
+   return _ifc;
+endmodule
+
+module [ModuleContext#(CompleteContext)] mkM(IM);
+   let _ifc <- rebury(mkMV);
+   return _ifc;
+endmodule
+
+SynthBoundaryWithClocks(mkM,IM)
+
+ BECOMES
+
+(*synthesize*)
+module [Module]
+mkMV#((Vector#(CLOCKCONTEXTSIZE,Clock)c1,Vector#(CLOCKCONTEXTSIZE,Reset)r1)
+                                              (Tuple2#(CompleteContextIfc,IM));
+   let init <- mkInitialCompleteContextWithClocks(c1, r1);
+   let _ifc <- unburyWithClocks(init, mkM0);
+   return _ifc;
+endmodule
+
+module [ModuleContext#(CompleteContext)] mkM(IM);
+   let _ifc <- reburyWithClocks(mkMV);
+   return _ifc;
+endmodule
+
+*/
+
+// Standard import for Vector and Expose and ModuleContext types
+import Vector::*;
+import ModuleContext::*;
+
+`define SynthBoundary(mkM,IM) \
+(*synthesize*)\
+module [Module] mkM``V(Tuple2#(completeContextIfc,IM))\
+  provisos(Expose#(CompleteContext,completeContextIfc,_n));\
+  (*hide*)\
+  let _init<-mkInitialCompleteContext;\
+  (*hide*)\
+  let _ifc <- unbury(_init,mkM``0);\
+  return _ifc;\
+endmodule\
+module [ModuleContext#(CompleteContext)] mkM(IM);\
+  (*hide*)\
+  let _ifc<-rebury(mkM``V);\
+  return _ifc;\
+endmodule
+
+`define SynthBoundaryWithClocks(mkM,IM) \
+(*synthesize*)\
+module [Module] mkM``V#(Vector#(CLOCKCONTEXTSIZE,Clock)c1,Vector#(CLOCKCONTEXTSIZE,Reset)r1)\
+    (Tuple2#(completeContextIfc,IM))\
+  provisos(Expose#(CompleteContext,completeContextIfc,_n));\
+  (*hide*)\
+  let _init<-mkInitialCompleteContextWithClocks(c1,r1);\
+  (*hide*)\
+  let _ifc<-unburyWithClocks(_init,mkM``0);\
+  return _ifc;\
+endmodule\
+module [ModuleContext#(CompleteContext)] mkM(IM);\
+  (*hide*)\
+  let _ifc<-reburyWithClocks(mkM``V);\
+  return _ifc;\
+endmodule
+
+`define SynthBoundaryWithArgs(mkM,IM,asWithTypes,as) \
+(*synthesize*)\
+module [Module] mkM``V# asWithTypes(Tuple2#(completeContextIfc,IM) _i)\
+  provisos(Expose#(CompleteContext,completeContextIfc,_n));\
+  (*hide*)\
+  let _init<-mkInitialCompleteContext();\
+  (*hide*)\
+  let _ifc<-unbury(_init,mkM``0 as);\
+  return _ifc;\
+endmodule\
+module[ModuleContext#(CompleteContext)]mkM# asWithTypes(IM);\
+  (*hide*)\
+  let _ifc<-rebury(mkM``V as);\
+  return _ifc;\
+endmodule
+
+`define SynthBoundaryWithClocksWithArgs(mkM,IM,asWithTypes,as) \
+(*synthesize*)\
+module [Module] mkM``V# asWithTypes \
+     (Vector#(CLOCKCONTEXTSIZE,Clock) c1, Vector#(CLOCKCONTEXTSIZE,Reset) r1,Tuple2#(completeContextIfc,IM) _i)\
+  provisos(Expose#(CompleteContext,completeContextIfc,_n));\
+  (*hide*)\
+  let _init<-mkInitialCompleteContextWithClocks(c1,r1);\
+  (*hide*)\
+  let _ifc<-unburyWithClocks(_init,mkM``0 as);\
+  return _ifc;\
+endmodule\
+module[ModuleContext#(CompleteContext)]mkM# asWithTypes(IM);\
+  (*hide*)\
+  let _ifc<-reburyWithClocks(mkM``V as);\
+  return _ifc;\
+endmodule

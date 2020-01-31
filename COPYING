@@ -1,0 +1,117 @@
+The files in this repository are copyright as indicated below (except
+when indicated otherwise in the file itself) and are licensed as
+indicated below, with the following exceptions:
+
+* CUDD - University of Colorado (CU) Desicion Diagram package
+  * The files in src/cudd/v2.5.0/ are adapted from a snapshot of CUDD
+  * See LICENSES/LICENSE.cudd
+  * The source and license were downloaded on 2012-04-04 from:
+    http://vlsi.colorado.edu/~fabio/CUDD/
+
+* STP - Constraint solver
+  * The files in src/stp/src/ are adapted from a snapshot of STP
+  * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
+  * The source and license were obtained from the SVN repository [1]
+    at revision 1643 on 2012-04-18.  A patch at [2] obtained on
+    2014-04-21 was also applied.
+      [1] https://stp-fast-prover.svn.sourceforge.net/svnroot/stp-fast-prover/trunk/stp
+      [2] https://github.com/stp/stp/commit/ece1a55fb367bd905078baca38476e35b4df06c3
+
+* The Yices SMT Solver
+  * The files in src/yices/ define a Haskell interface for using
+    the Yices library (via its C API); there is also code for a
+    stub library, if the real Yices library is not available
+  * See LICENSES/LICENSE.yices
+  * The license was obtained on 2020-01-31 from:
+    https://github.com/SRI-CSL/yices2
+
+* yices-painless - Haskell package
+  * The foreign function declarations in src/yices/v2.6/HaskellIfc/
+    are adapted from Don Stewart's yice-painless package
+  * See LICENSES/LICENSE.yices-painless
+  * The source and license where obtained on 2012-01-27 from:
+    http://hackage.haskell.org/package/yices-painless
+
+* GHC Haskell Libraries
+  * The file src/comp/Libs/MVarStrict.hs is adapted from the GHC MVar
+    library
+  * See LICENSES/LICENSE.ghc
+  * The source was obtained on 2012-02-06 from [1] and the license from [2]
+      [1] http://hackage.haskell.org
+      [2] http://www.haskell.org/ghc/license.html
+
+* HBC Libraries
+  * Seven files in src/comp/Libs/ (as indicated in their header comments)
+    are adapted from Haskell libraries (from the HBC compiler) written
+    by Lennart Augustsson and Thomas Johnsson at Chalmers University
+  * See LICENSES/LICENSE.hbc
+
+* Tcl/Tk and ITcl/ITk
+  * The files under src/tcltk/ are adapted from snapshots of the source
+    code for Tcl/Tk 8.5.4 and ITcl/ITk 3.4
+  * See LICENSES/LICENSE.tcl, LICENSES/LICENSES.tk, and LICENSES/LICENSE.itcltk
+  * Source and license for Tcl/TK obtained from source code downloaded
+    from [1] on 2008-08-28; for ITcl/ITk, from [2] on 2007-06-15.
+      [1] http://www.tcl.tk/software/tcltk/download.html
+      [2] http://incrtcl.sourceforge.net/itcl/ on 2007-06-15
+
+* Parsec
+  * Files in src/comp/Parsec/ are adapted from Daan Leijen's Parsec
+    Haskell library
+  * See LICENSES/LICENSE.parsec
+  * Source and license obtained on 2004-01-28 from
+    http://www.cs.uu.nl/~daan/parsec.html
+    http://www.cs.uu.nl/~daan/download/parsec/parsec-2.0.zip
+
+* Emacs utilities
+
+  * BH (Bluespec Haskell) emacs mode #1
+    * Files in util/emacs/bsc-mode-1/ are adapted from a Haskell mode
+    * See comments in the source files themselves
+
+  * BH emacs mode #2
+    * Files in util/emacs/bsc-mode-2/ are adapted from a Haskell mode
+    * See comments in the source files themselves
+
+  * BSV emacs mode
+    * Files in util/emacs/bsv-mode/ are adapted from Michael
+      McNamara's Verilog mode
+    * See comments in the source files themselves
+
+  * BSV snippets
+    * Files in util/emacs/bsv-snippets/ include code from other sources
+    * See comments in the source files themselves
+
+---------------------------------------------------------------------------
+
+Copyright (c) 2020 Bluespec, Inc. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the
+   distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---------------------------------------------------------------------------

@@ -1,0 +1,10 @@
+# Ignore generated files
+*.o
+*.a
+Makefile
+config.cache
+config.log
+config.status
+itclConfig.sh
+pkgIndex.tcl
+tclconfig

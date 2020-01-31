@@ -1,0 +1,24 @@
+#Author : Steve Allen
+#name : newfile basic
+# --
+/********************************************************************************
+ * File:         `(buffer-name)`
+ * DateCreated:  `(format-time-string "%Y-%m-%d")`
+ * @author       `(user-full-name)`
+ * @version      0.1
+ *
+ ********************************************************************************/
+
+interface ${1:`(file-name-nondirectory (file-name-sans-extension (buffer-file-name)))`};
+   // TODO: add methods definitions
+endinterface : $1
+
+(* synthesize *)
+module mk$1 ( $1 );
+   // add state
+   $0
+
+   // add rules
+
+   // add method instances
+endmodule : mk$1

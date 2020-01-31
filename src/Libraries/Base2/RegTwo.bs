@@ -1,0 +1,127 @@
+package RegTwo(RegTwo(..), mkRegTwo, mkRegTwoU) where
+
+-- This is a dangerous kind of register since it doesn't really respect
+-- term rewriting semantics.  It has two set methods where one has
+-- priority over the other.
+
+interface RegTwo a =
+    setA :: a -> Action
+    setB :: a -> Action
+    get  :: a
+
+interface VRegTwo n =
+    setA :: Bit n -> PrimAction
+    setB :: Bit n -> PrimAction
+    get  :: Bit n
+
+-- only for n>0
+vMkRegTwo :: Bit n -> Module (VRegTwo n)
+vMkRegTwo v =
+    module verilog "RegTwoN" (("width",valueOf n), ("init",v)) "CLK" "RST" {
+	get = "Q_OUT"{reg};
+	setA = "D_INA"{reg} "ENA";
+	setB = "D_INB"{reg} "ENB";
+    } [ [get, setA, setB] <> [get, setA, setB] ]
+
+--@ \begin{libverbatim}
+--@ module mkRegTwo#(a v)(RegTwo#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkRegTwo :: (IsModule m c, Bits a sa) => a -> m (RegTwo a)
+mkRegTwo v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	get = unpack 0
+	setA x = return ()
+	setB x = return ()
+  else
+    module
+      _r :: VRegTwo sa
+      _r <- vMkRegTwo (pack v)
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_INA" t
+      primSavePortType name "D_INB" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	get = unpack _r.get
+	setA x = fromPrimAction (_r.setA (pack x))
+	setB x = fromPrimAction (_r.setB (pack x))
+
+-- only for n>0
+vMkRegTwoA :: Bit n -> Module (VRegTwo n)
+vMkRegTwoA v =
+    module verilog "RegTwoA" (("width",valueOf n), ("init",v)) "CLK" "RST" {
+	get = "Q_OUT"{reg};
+	setA = "D_INA"{reg} "ENA";
+	setB = "D_INB"{reg} "ENB";
+    } [ [get, setA, setB] <> [get, setA, setB] ]
+
+--@ \begin{libverbatim}
+--@ module mkRegTwoA#(a v)(RegTwoA#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkRegTwoA :: (IsModule m c, Bits a sa) => a -> m (RegTwo a)
+mkRegTwoA v = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	get = unpack 0
+	setA x = return ()
+	setB x = return ()
+  else
+    module
+      _r :: VRegTwo sa
+      _r <- vMkRegTwoA (pack v)
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_INA" t
+      primSavePortType name "D_INB" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	get = unpack _r.get
+	setA x = fromPrimAction (_r.setA (pack x))
+	setB x = fromPrimAction (_r.setB (pack x))
+
+-- only for n>0
+vMkRegTwoU :: Module (VRegTwo n)
+vMkRegTwoU =
+    module verilog "RegTwoUN" (("width",valueOf n)) "CLK" {
+	get = "Q_OUT"{reg};
+	setA = "D_INA"{reg} "ENA";
+	setB = "D_INB"{reg} "ENB";
+    } [ [get, setA, setB] <> [get, setA, setB] ]
+
+--@ \begin{libverbatim}
+--@ Module#(RegTwo#(a)) mkRegTwoU
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+mkRegTwoU :: (IsModule m c, Bits a sa) => m (RegTwo a)
+mkRegTwoU = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	get = unpack 0
+	setA x = return ()
+	setB x = return ()
+  else
+    module
+      _r :: VRegTwo sa
+      _r <- vMkRegTwoU
+
+      let name = Valid (primGetModuleName _r)
+      let t = typeOf (_ :: a)
+      primSavePortType name "D_INA" t
+      primSavePortType name "D_INB" t
+      primSavePortType name "Q_OUT" t
+
+      interface
+	get = unpack _r.get
+	setA x = fromPrimAction (_r.setB (pack x))
+	setB x = fromPrimAction (_r.setA (pack x))
+

@@ -1,0 +1,33 @@
+package ModuleContextCore(ModuleContext, getCompleteContext, putCompleteContext, runWithCompleteContext)
+where
+
+data ModuleContext c i = M (c -> Module (c,i))
+
+unM :: ModuleContext c i -> c -> Module (c,i)
+unM (M _x) = _x
+
+instance Monad (ModuleContext c) where
+  return _i      = M (\_c -> return (_c,_i))
+  bind (M _x) _f = M (\_c ->
+                        (_x _c) `bind`
+		          (\ _node -> unM (_f _node.snd) _node.fst)
+                   )
+
+getCompleteContext  :: ModuleContext c c
+getCompleteContext = M (\_c -> return (_c, _c))
+
+putCompleteContext :: c -> ModuleContext c ()
+putCompleteContext _c = M (\_unused -> return (_c, ()))
+
+runWithCompleteContext :: c -> ModuleContext c i -> Module (c, i)
+runWithCompleteContext _c (M _f) = _f _c
+
+instance MonadFix (ModuleContext c) where
+  mfix :: (i -> ModuleContext c i) -> ModuleContext c i
+  mfix _f = M (\_c -> mfix (\_r -> (unM (_f _r.snd)) _c))
+
+instance (IsModule (ModuleContext c) (PrimPair c)) where
+  liftModule _m =
+     M (\_c -> _m `bind` (\ _x -> return (_c, _x))
+     )
+  liftModuleOp _f (M _m) = M (\_c -> _f (_m _c))

@@ -1,0 +1,60 @@
+RELEASE NOTES FOR DDDMP
+Revision: Version 2.0.2
+Turin, Italy, February 01, 2004
+
+dddmp-2.0.2 is now available at
+WEB page: http://staff.polito.it/{gianpiero.cabodi,stefano.quer}
+dddmp-2.0.2 has a few bug fixes with respect to dddmp-2.0
+   
+Release 2.0.2 of DDDMP improves DDDMP-1.2 in the following areas:
+ 
+  1. Support to store and load ADD has been inserted in the dddmp tool
+
+  2. Support to store BDDs as CNF formulas has been inserted in the
+     dddmp tool.
+     As far as the storing process is concerned three possible formats
+     are available:
+
+     DDDMP_CNF_MODE_NODE
+       store a BDD by introducing an auxiliary variable for each BDD node
+
+     DDDMP_CNF_MODE_MAXTERM
+       store a BDD by following the maxterm of the represented function
+
+     DDDMP_CNF_MODE_BEST
+       trade-of between the two previous solution, trying to optimize
+       the number of literals stored.
+     
+     As far as the loading process is concerned three possible formats
+     are available:
+
+     DDDMP_CNF_MODE_NO_CONJ
+       Return the Clauses without Conjunction
+
+     DDDMP_CNF_MODE_NO_QUANT
+       Return the sets of BDDs without Quantification
+
+     DDDMP_CNF_MODE_CONJ_QUANT
+       Return the sets of BDDs AFTER Existential Quantification
+
+  3. Functions to load the header of a BDD/ADD/CNF file, so collecting
+     information regarding variables, variable ordering, etc.
+     This can be seen as a pre-processing step prior a possible BDD/ADD/CNF
+     load of the entire structure.
+     Moreover it can be used in a manager initialization phase.
+
+  4. More precise information are stored in each BDD/ADD header during
+     the storing phase.
+     In particular this information may be used to make up the exact
+     variable ordering present in the manager used during the storing
+     phase.
+     Full compatibility with previously versions of the files (from
+     dddmp-1.0 on) is guaranteed.
+
+  5. Miscellaneous
+     Debugging has been performed on different hardware architectures
+
+  6. The test program, testdddmp has been improved.
+     Now it allows to perform more operations and to better debug the
+     different options.
+

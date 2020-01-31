@@ -1,0 +1,115 @@
+package Pull(Pull(..), apply, tee, pass, passed, buffer, buffered, (»), pipe, sink, spew) where
+
+--@ \subsubsection{Pull}
+--@ 
+--@ \index{Pull@\te{Pull} (interface type)|textbf}
+--@ The {\mbox{\te{Pull a}}} interface represents a stream that
+--@ produces values of type ``\te{a}'' only when ``pulled'' by a consumer.
+--@ 
+--@ Modules with the Pull interface can be combined using
+--@ \te{»} to model computations that comprise several steps,
+--@ each of which may be buffered.
+--@ 
+
+infixl 12 »
+
+--@ \begin{libverbatim}
+--@ interface Pull #(type a);
+--@     method ActionValue#(a) pull();
+--@ endinterface: Pull
+--@ \end{libverbatim}
+interface Pull a =
+    pull :: ActionValue a
+
+--@ Apply a function to the data in the stream.
+--@ \begin{libverbatim}
+--@ function Pull#(b) apply(function b f(a x1), Pull#(a) src);
+--@ \end{libverbatim}
+apply :: (a -> b) -> Pull a -> Pull b
+apply f src = interface Pull { pull = src.pull `bind` (return · f)  }
+
+--@ Allow an action to peek at the stream.
+--@ \begin{libverbatim}
+--@ function Pull#(a) tee(function Action p(a x1), Pull#(a) src);
+--@ \end{libverbatim}
+tee :: (a -> Action) -> Pull a -> Pull a
+tee p src = interface Pull 
+		pull = do
+			v :: a
+			v <- src.pull
+			p v
+			return v
+
+--@ Wrap the stream in a module (without buffering).
+--@ \begin{libverbatim}
+--@ module pass#(Pull#(a) p)(Pull#(a));
+--@ \end{libverbatim}
+pass :: (IsModule m c) => (Pull a) -> m (Pull a)
+pass p =
+    module
+      interface
+        pull = p.pull
+
+--@ Apply a function to the data in the stream
+--@ and wrap the stream in a module (without buffering).
+--@ \begin{libverbatim}
+--@ module passed#(function b f(a x1))(Pull#(b));
+--@ \end{libverbatim}
+passed :: (IsModule m c) => (a -> b) -> Pull a -> m (Pull b)
+passed f = pass · apply f
+
+--@ Wrap a stream in a module
+--@ (with a buffer initialized to the first argument).
+--@ \begin{libverbatim}
+--@ module buffer#(a init, Pull#(a) src)(Pull#(a))
+--@   provisos (Bits#(a, sa));
+--@ \end{libverbatim}
+buffer :: (IsModule m c, Bits a sa) => a -> Pull a -> m (Pull a)
+buffer init src =
+    module
+      r :: Reg a
+      r <- mkReg init
+      interface
+        pull = do x :: a
+		  x <- src.pull
+		  action (r := x)
+	          return r
+
+--@ Apply a function to the data in the stream
+--@ and wrap the stream in a module
+--@ (with a buffer initialized to `\US').
+--@ \begin{libverbatim}
+--@ module buffered#(function b f(a x1))(Pull#(b))
+--@   provisos (Bits#(b, sb));
+--@ \end{libverbatim}
+buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
+buffered f = buffer _ · apply f
+
+--@ A consumer that always pulls data from the given stream
+--@ and throws it away.
+--@ \begin{libverbatim}
+--@ module sink#(Pull#(a) p)(Empty);
+--@ \end{libverbatim}
+sink :: (IsModule m c) => Pull a -> m Empty
+sink p = module
+	   rules "sink": when True ==> p.pull
+
+--@ A producer of junk.
+--@ \begin{libverbatim}
+--@ module spew(Pull#(a));
+--@ \end{libverbatim}
+spew :: (IsModule m c) => m (Pull a)
+spew = module
+         interface { pull = return _ }
+
+--@ Combine two streams (e.g., \te{spew » sink}). (Note: in BSV the function
+--@ \te{pipe} must be used instead.)
+--@ \begin{libverbatim}
+--@ function m#(b) (»)()
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+(») :: (Monad m) => m a -> (a -> m b) -> m b
+(») = bind
+
+pipe :: (Monad m) => m a -> (a -> m b) -> m b
+pipe = bind

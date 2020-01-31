@@ -1,0 +1,28 @@
+
+PWD = @(shell pwd)
+LIBDIR ?= $(PWD)/../../lib/itcl3.4
+
+
+FILES = itcl.tcl
+
+
+all:
+	@echo "Nothing to be done for all"
+
+install:
+	install -m 755 -d $(LIBDIR)	
+	install -m 644 $(FILES) $(LIBDIR)
+
+PWD = @(shell pwd)
+LIBDIR ?= $(PWD)/../../lib/itcl3.4
+
+
+FILES = itcl.tcl
+
+
+all:
+	@echo "Nothing to be done for all"
+
+install:
+	install -m 755 -d $(LIBDIR)	
+	install -m 644 $(FILES) $(LIBDIR)

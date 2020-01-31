@@ -1,0 +1,30 @@
+# itcl3.4 Makefile
+
+PWD:=$(shell pwd)
+TOP:=$(PWD)/../../..
+
+PREFIX?=$(TOP)/inst
+INSTALLDIR=$(PREFIX)/lib/tcllib/itcl3.4
+
+.PHONY: all
+all: install
+
+Makefile:
+	-mkdir tclconfig
+	cp -f ../tcltk8.5.4/tcl8.5.4/unix/install-sh tclconfig/
+	./configure --srcdir=. --with-tcl=../tcltk8.5.4/tcl8.5.4/unix --disable-load --disable-shared
+
+libitcl3.4.a: Makefile
+	make -f Makefile  libitcl3.4.a
+
+.PHONY: install
+install: libitcl3.4.a
+	make -f Makefile.bluespec -C library LIBDIR=$(INSTALLDIR) $@
+
+.PHONY: clean full_clean
+clean full_clean:
+	if test -f Makefile; then make -f Makefile clean; fi
+	-rm -f config.log config.status  pkgIndex.tcl itclConfig.sh
+	-rm -f Makefile
+	-rm -rf tclconfig
+

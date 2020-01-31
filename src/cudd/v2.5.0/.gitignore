@@ -1,0 +1,5 @@
+*.o
+*.a
+src/include/*.h
+src/include/*.hh
+src/nanotrav/nanotrav

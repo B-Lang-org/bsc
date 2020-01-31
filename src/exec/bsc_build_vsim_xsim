@@ -1,0 +1,203 @@
+#!/bin/sh
+
+# simulator builder script
+#
+# warning: this MUST NOT be called directly by the user
+#
+# bsc invokes
+#   bsc_build_vsim_... detect
+# to detect whether this simulator can be built (exit status 0 = yes)
+#
+# bsc invokes
+#   bsc_build_vsim_... link outexe topmod clibpath clibs linkopts vdirs vdefs vopts vfiles ofiles
+# where
+#   outexe   - the name of the simulator executable to create
+#   topmod   - the toplevel module to simulate
+#   clibpath - where to find external C libraries
+#   clibs    - which external C libraries to link in
+#   linkopts - other options passed to C/C++ linker
+#   vdirs    - -y directories to search for Verilog files
+#   vdefs    - -D macro definitions
+#   vopts    - other options passed to Verilog
+#   vfiles   - the Verilog files to simulate
+#   ofiles   - any VPI object files to link in
+# exits with status 0 if it successfully built the simulator, 1 otherwise
+
+# tested on ISE 11.3
+
+BSC_COMMAND=$1           # "detect" or "link"
+
+if [ "$BSC_COMMAND" = "detect" ]; then
+# detect whether the commands "xvlog", "xvhdl", and "xelab" are in the path
+  SIM_NAME=xsim
+  hash xvlog 2> /dev/null
+  if [ "$?" != "0" ]; then
+      echo "$SIM_NAME was not found"
+      exit 1
+  fi
+  hash xvhdl 2> /dev/null
+  if [ "$?" != "0" ]; then
+      echo "$SIM_NAME was not found"
+      exit 1
+  fi
+  hash xelab 2> /dev/null
+  if [ "$?" != "0" ]; then
+      echo "$SIM_NAME was not found"
+      exit 1
+  fi
+  FOUND_CMD=`which xelab`
+  echo "$SIM_NAME was found at $FOUND_CMD"
+  exit 0
+fi
+
+# the only remaining command is "link"
+if [ "$BSC_COMMAND" != "link" ]; then
+  echo "ERROR: unknown command: $BSC_COMMAND" >&2
+  exit 1
+fi
+
+BSC_SIM_EXECUTABLE=$2    # output executable filename
+BSC_TOPLEVEL_MODULE=$3   # toplevel module to simulate
+
+shift 3
+BSC_VERILOG_FILES=""     # Verilog files to link
+BSC_VHDL_FILES=""        # VHDL files to link
+BSC_VERILOG_DIRS=""      # Verilog directories to link
+BSC_VPI_FILES=""         # VPI object files to link in
+BSC_C_LIB_PATH=""        # where to find C libraries for linking
+BSC_C_LIBS=""            # which C files to link in
+BSC_CLINK_OPTS=""        # C/C++ link options specified with -Xl in bsc
+BSC_VERILOG_DEFS=""      # -D macro and -D macro=val to be passed to Verilog
+BSC_VERILOG_OPTS=""      # Verilog link options specified with -Xv in bsc
+BSC_OTHER_ARGUMENTS=""
+
+VERBOSE="no"
+
+while [ $# -gt 0 ]; do
+  if [ "${1%%.v}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.V}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.sv}" != "$1" ]; then
+    BSC_VERILOG_FILES="$BSC_VERILOG_FILES $1"
+  elif [ "${1%%.vhd}" != "$1" ]; then
+    BSC_VHDL_FILES="$BSC_VHDL_FILES $1"
+  elif [ "${1%%.vhdl}" != "$1" ]; then
+    BSC_VHDL_FILES="$BSC_VHDL_FILES $1"
+  elif [ "${1%%.o}" != "$1" ]; then
+    BSC_VPI_FILES="$BSC_VPI_FILES $1"
+  elif [ "$1" = "-L" ]; then
+    shift 1
+    BSC_C_LIB_PATH="$BSC_C_LIB_PATH -L$1"
+  elif [ "$1" = "-y" ]; then
+    shift 1
+    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -sourcelibdir $1"
+  elif [ "$1" = "-l" ]; then
+    shift 1
+    BSC_C_LIBS="$BSC_C_LIBS -l$1"
+  elif [ "$1" = "-Xl" ]; then
+    shift 1
+    BSC_CLINK_OPTS="$BSC_CLINK_OPTS $1"
+  elif [ "$1" = "-D" ]; then
+    shift 1
+    BSC_VERILOG_DEFS="$BSC_VERILOG_DEFS -d $1"
+  elif [ "$1" = "-Xv" ]; then
+    shift 1
+    BSC_VERILOG_OPTS="$BSC_VERILOG_OPTS $1"
+  elif [ "$1" = "-verbose" ]; then
+    VERBOSE="yes"
+  else
+    BSC_OTHER_ARGUMENTS="$BSC_OTHER_ARGUMENTS $1";
+  fi
+  shift 1
+done
+
+# name of xsim work directory
+work_dir="work_$BSC_TOPLEVEL_MODULE"
+
+if [ -z "$BSC_SIM_EXECUTABLE" ]; then
+  echo "ERROR: simulator executable filename not specified"
+  exit 1
+fi
+
+if [ -z "$BSC_TOPLEVEL_MODULE" ]; then
+  echo "ERROR: no top-level module specified" >&2
+  exit 1
+fi
+
+if [ -z "$BSC_VERILOG_FILES" ]; then
+  echo "ERROR: no Verilog files to link" >&2
+  exit 1
+fi
+
+if [ -n "$BSC_OTHER_ARGUMENTS" ]; then
+  echo "ERROR: unrecognized arguments '$BSC_OTHER_ARGUMENTS'" >&2
+  exit 1
+fi
+
+# XSIM doesn't support VPI
+if [ -n "$BSC_VPI_FILES" ]; then
+  echo "ERROR: XSim does not support VPI.  BSV designs using foreign functions"
+  echo "       cannot use xsim."
+  exit 1
+fi
+
+# path to Verilog files
+VSIM_PATH_FLAGS="$BSC_VERILOG_DIRS -sourcelibext .v"
+
+# generate a project file
+TEMPFILE=`mktemp -t xsim.prj.XXXXXX` || exit 1
+for file in $BSC_VERILOG_FILES; do
+    abs_file=`readlink -m "$file"`
+    echo "verilog $work_dir $abs_file" >> $TEMPFILE
+done
+for file in $BSC_VHDL_FILES; do
+    abs_file=`readlink -m "$file"`
+    echo "vhdl    $work_dir $abs_file" >> $TEMPFILE
+done
+# add glbl.v so that UNISIM models work
+if [ -r $XILINX/verilog/src/glbl.v ]; then
+    abs_file=`readlink -m "$XILINX/verilog/src/glbl.v"`
+    echo "verilog $work_dir $abs_file" >> $TEMPFILE
+    UNISIM_FLAGS="-L unisims_ver -t $work_dir.glbl"
+else
+    UNISIM_FLAGS=""
+fi
+
+# run xelab to build a simulation executable
+XELAB_DEBUG="-debug typical" # the default debug level is "off" which does not allow VCD dumping.  See UG900 xelab opts
+if [ "$VERBOSE" = "yes" ]; then
+  XELAB_VERBOSE="-v 2"
+  echo "exec: xelab $XELAB_VERBOSE $XELAB_DEBUG -s $BSC_SIM_EXECUTABLE.xsim -prj $TEMPFILE $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -d TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $UNISIM_FLAGS -t $work_dir.main $BSC_VERILOG_OPTS"
+else
+  XELAB_VERBOSE="-v 0"
+fi
+xelab $XELAB_VERBOSE $XELAB_DEBUG -s $BSC_SIM_EXECUTABLE.xsim -prj $TEMPFILE $VSIM_PATH_FLAGS $BSC_VSIM_FLAGS -d TOP=$BSC_TOPLEVEL_MODULE $BSC_VERILOG_DEFS $UNISIM_FLAGS -t $work_dir.main $BSC_VERILOG_OPTS
+status=$?
+if [ "$status" != "0" ]; then
+  echo "ERROR: cannot compile HDL files" >&2
+  exit $status
+fi
+
+# create a TCL command file to run the simulation
+echo "run all" > $BSC_SIM_EXECUTABLE.xsim.tcl
+echo "quit" >> $BSC_SIM_EXECUTABLE.xsim.tcl
+
+# create a "simulator executable" shell script
+rm -f $BSC_SIM_EXECUTABLE
+status=$?
+if [ "$status" != "0" ]; then
+  echo "ERROR: cannot create $BSC_SIM_EXECUTABLE" >&2
+  exit $status
+fi
+echo '#!/bin/sh' > $BSC_SIM_EXECUTABLE
+echo "xsim $BSC_SIM_EXECUTABLE.xsim -tclbatch $BSC_SIM_EXECUTABLE.xsim.tcl \$*" >> $BSC_SIM_EXECUTABLE
+echo 'status=$?' >> $BSC_SIM_EXECUTABLE
+echo 'if [ "$status" != "0" ]; then' >> $BSC_SIM_EXECUTABLE
+echo '    echo "ERROR: cannot simulate design" >&2' >> $BSC_SIM_EXECUTABLE
+echo '    exit $status' >> $BSC_SIM_EXECUTABLE
+echo 'fi' >> $BSC_SIM_EXECUTABLE
+chmod +x $BSC_SIM_EXECUTABLE
+
+# cleanup by removing the xsim.prj.XXXXXX file
+rm -f $TEMPFILE

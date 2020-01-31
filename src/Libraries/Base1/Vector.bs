@@ -1,0 +1,1344 @@
+package Vector(
+        Vector, cons, (:>), nil, map, append, concat, genList,
+        genVector, genWith, replicate,
+        foldr, foldr1, foldl, foldl1, fold, head, tail,
+        zipWith, zipWith3, zipWithAny, zipWithAny3, zipAny, unzip,
+        zip, zip3, zip4,
+        rotate, rotateR, reverse, last, init, elem,
+        mapM, mapM_, zipWithM, zipWith3M, zipWithM_,
+        genWithM, replicateM, sequence, foldM, foldlM, foldrM,
+        (!!), select, update, transpose, transposeLN,
+        scanr, sscanr, scanl, sscanl,
+        all, any, and, or, take, toList, toVector, arrayToVector,
+        vectorToArray,
+        mapAccumL, mapAccumR, mapPairs,
+        joinActions, joinRules, newVector,
+        takeAt, takeTail,
+        shiftInAt0, shiftInAtN,
+        shiftOutFrom0, shiftOutFromN,
+        find, findElem, findIndex, countLeadingZeros,
+        countElem, countIf, countOnes, countOnesAlt,
+        rotateBy, rotateBitsBy,
+        readVReg, writeVReg, toChunks, drop, Ascii
+        ) where
+
+import List
+import Array
+
+infixr  8 :>
+
+--@ \subsubsection{Vector}
+
+--@ \label{lib-vector}
+--@
+--@ \index{Vector@\te{Vector} (type)|textbf}
+--@ {\bf Package Name}
+--@
+--@ import Vector :: * ;
+--@
+--@ {\bf Description}
+--@
+
+--@ The {\te{Vector}}  package defines an abstract data type which is
+--@ a vector of a specific length.  Functions which create and operate
+--@ on this type are also defined within this package.
+--@ Because it is abstract, there are no constructors available for this type
+--@ (like {\te{Cons}} and {\te{Nil}} for the {\te{List}} type).
+--@ \BBS
+--@  struct Vector\#(vsize,a\_type)
+--@        {\rm{\emph{$\cdots$ abstract $\cdots$}}}
+--@ \EBS
+--@
+--@ Here, the type variable {\qbs{a\_type}} represents the type of the
+--@ contents of the vector
+--@ while type variable {\qbs{vsize}} represents the length of the
+--@ Vector.
+--@
+--@ {\bf Package Name}
+--@
+--@ import Vector :: * ;
+--@
+data (Vector :: # -> * -> *) n a = V (Array a)
+  deriving (Eq)
+  -- can't derive PrimSelectable, PrimUpdateable
+  -- because they take more than one type argument
+
+--@
+--@ A vector can be turned into bits if the individual elements can be turned
+--@ into bits.  When packed and unpacked, the zeroth element of the
+--@ vector is stored in the least
+--@ significant bits.  The size of the resulting bits is given by
+--@ $ tsize = vsize * {\tt sizeof}( a\_type )$ which is specified in the
+--@ provisos.
+--@ \begin{libverbatim}
+--@ instance Bits #( Vector#(vsize, a_type), tsize)
+--@    provisos (Bits#(a_type, sizea), Mul#(vsize, sizea, tsize));
+--@ \end{libverbatim}
+instance (Bits a sa, Mul n sa nsa) => Bits (Vector n a) nsa
+  where
+    pack (V v)  = packArray v
+    unpack bs    = V (unpackArray bs (valueOf n))
+
+instance (FShow a) => FShow (Vector n a)
+  where
+    fshow value =
+        let insertSpace a b = a + ($format " ") + b
+            fmts = Vector.map fshow value
+            -- XXX This adds an extra space at the end
+            elements = Vector.foldr insertSpace (fshow "") fmts
+        in  $format "<V " elements " >"
+
+instance (PrimMakeUndefined a) => PrimMakeUndefined (Vector n a)
+  where
+    primMakeUndefined pos kind = replicate (primMakeUndefined pos kind)
+
+-- This is used to construct an array with uninitialized elements
+-- and still mark the array as uninitialized until the user updates
+-- it with real values (since the update to insert the uninit elems
+-- will cause the array to be marked as initialized).
+--
+primitive primMarkArrayUninitialized
+	      :: Position__ -> String -> Array a -> Array a
+
+markVectorUninitialized :: Position__ -> String -> Vector n a -> Vector n a
+markVectorUninitialized pos name (V v) = V (primMarkArrayUninitialized pos name v)
+
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized (Vector n a)
+  where
+    primMakeUninitialized pos name =
+      let f i = primMakeUninitialized pos (name + "[" + integerToString(i) + "]")
+      in markVectorUninitialized pos name (genWith f)
+
+--@
+--@ Vectors can be compared for equality if the elements can.
+--@ \begin{libverbatim}
+--@ instance Eq #( Vector#(vsize, a_type) )
+--@    provisos( Eq#( a_type ) ) ;
+--@ \end{libverbatim}
+
+instance (Bounded a, Bits a sa) => Bounded (Vector n a)
+    where
+       minBound = let min_bnd :: a = minBound
+                  in replicate min_bnd
+       maxBound = let max_bnd :: a = maxBound
+                  in replicate max_bnd
+
+--@
+--@ Vectors are bounded if the elements are
+--@ \begin{libverbatim}
+--@ instance Bounded #( Vector#(vsize, a_type) )
+--@    provisos( Bounded#( a_type ) ) ;
+--@ \end{libverbatim}
+
+------------------------------------------------------------------------------
+--@ \begin{itemize}
+--@ \item{\bf Creating and Generating Vectors}
+--@
+--@ There are no {\blue} constructors available for this abstract type
+--@ (and hence no pattern-matching is available for this type)
+--@ but the following ordinary functions may be used to construct values of
+--@ the \te{Vector} type.
+--@
+
+--@ Generate a Vector with undefined elements, typically used when
+--@ Vectors are declared.
+--@ \index{newVector@\te{newVector} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ Vector#(vsize, a_type) newVector ;
+--@ \end{libverbatim}
+newVector :: Vector n a
+newVector = V (primArrayNewU (valueOf n))
+
+--@ Generate a Vector containing Integers 0 through N-1,
+--@ element[0] will have value 0.
+--@ \index{genVector@\te{genVector} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ Vector#(vsize, Integer) genVector;
+--@ \end{libverbatim}
+genVector :: Vector n Integer
+genVector =
+  let mkN k = (valueOf n) - k - 1
+  in V (Array.genWith (valueOf n) id)
+
+genList :: Vector n Integer
+genList = genVector
+
+--@ Generate a Vector of elements by replicating
+--@ the given argument.
+--@ \index{genWith@\te{replicate} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize, a_type) replicate(a_type c);
+--@ \end{libverbatim}
+replicate :: a -> Vector n a
+replicate c = V (Array.genWith (valueOf n) (const c))
+
+--@ Generate a Vector of elements by applying the
+--@ given function to 0 through N-1.
+--@ \index{genWith@\te{genWith} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize, a_type) genWith(function a_type func(Integer x1));
+--@ \end{libverbatim}
+genWith :: (Integer -> a) -> Vector n a
+genWith f = V (Array.genWith (valueOf n) f)
+
+
+--@
+--@ Two list-like constructs are given for Vectors, {\tt cons} and {\tt
+--@ nil}; {\tt nil} defines a zero-sized vector, while {\tt cons} adds
+--@ an element to a vector creating a vector one element larger.  The
+--@ new element will be at the 0th position.
+--@ \index{cons@\te{cons} (\te{Vector} function for construction)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize1,a_type) cons (a_type elem, Vector#(vsize,a_type) vect)
+--@   provisos (Add#(1, vsize, vsize1));
+--@ \end{libverbatim}
+cons :: (Add 1 n n1) => a -> Vector n a -> Vector n1 a
+cons x (V v) = if (valueOf n) == 0
+        	 then V (primArrayNew 1 x)
+		 else V (primUpdateFn (getStringPosition "") (growRight v 1) 0 x)
+
+--X@ A more convenient (right associative) operator for Cons (not available in BSV).
+--X@ \begin{libverbatim}
+--X@ function Vector#(vsize1,a_type) (:>) (a_type x, Vector#(vsize,a_type) xs)
+--X@   provisos (Add#(1, n, n1));
+--X@ \end{libverbatim}
+(:>) :: (Add 1 n n1) => a -> Vector n a -> Vector n1 a
+(:>) x v = cons x v
+
+--@
+--@ \index{nil@\te{nil} (\te{Vector} function for construction)}
+--@ \begin{libverbatim}
+--@ Vector#(0, a_type) nil;
+--@ \end{libverbatim}
+nil :: Vector 0 a
+nil = V (primArrayNewU 0)
+
+
+
+--@
+--@ Append two Vectors, returning the combined Vector.
+--@ \index{append@\te{append} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) append (Vector#(v0size,a_type) vecta,
+--@                                        Vector#(v1size,a_type) vectb )
+--@   provisos (Add#(v0size, v1size, vsize));
+--@ \end{libverbatim}
+append :: (Add m n mn) => Vector m a -> Vector n a -> Vector mn a
+append (V v1) (V v2) = V (Array.append v2 v1)
+
+
+--@ Append many vectors -- a \te{Vector} of \te{Vector}s into one \te{Vector}
+--@ \index{concat@\te{concat} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(mvsize,a_type) concat (Vector#(m,Vector#(vsize,a_type)) xss)
+--@   provisos (Mul#(m, n, mvsize));
+--@ \end{libverbatim}
+concat :: (Mul m n mn) => Vector m (Vector n a) -> Vector mn a
+concat (V v) = V (Array.concat (Array.map flatten v))
+
+
+------------------------------------------------------------------------------
+--@   \item{\bf Extracting Elements and Sub-Vectors}
+--@
+
+--@ In BSV, the square-bracket notation is available to extract an
+--@ element from a Vector.
+--@ \begin{libverbatim}
+--@ instance PrimSelectable #(Vector#(vsize,a_type), Integer, a_type);
+--@ \end{libverbatim}
+instance PrimSelectable (Vector n a) a
+  where
+   primSelectFn pos (V v) x = primSelectFn pos v x
+
+instance PrimUpdateable (Vector n a) a
+  where
+   primUpdateFn pos (V v) x n = V (primUpdateFn pos v x n)
+
+--X@ Get the element at a certain position.
+--X@ \index{(!!)@\te{(!!)} (\te{Vector} function)}
+--X@ \begin{libverbatim}
+--X@ function a (!!)(Vector#(vsize,a_type) xs, Integer n);
+--X@ \end{libverbatim}
+(!!) :: Vector n a -> Integer -> a
+(!!) (V v) i = primSelectFn (getStringPosition "") v i
+
+
+--@ The select function is similar to subscript notation {\tt ([i])}, but it can
+--@ generate a multiplexor for runtime access.
+--@ \index{select@\te{select} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type select(Vector#(vsize,a_type) vect, idx_type index )
+--@   provisos (Eq#(idx_type), Literal#(idx_type));
+--@ \end{libverbatim}
+select :: (PrimIndex ix dx) => Vector n a -> ix -> a
+select = primSelectFn (getStringPosition "")
+
+--@ Update an element in a vector.
+--@ \index{update@\te{update} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) update( Vector#(vsize,a_type) vectIn,
+--@                                        idx_type index,
+--@                                        a_type newElem)
+--@   provisos (Eq#(idx_type), Literal#(idx_type));
+--@ \end{libverbatim}
+update :: (PrimIndex ix dx) => Vector n a -> ix -> a -> Vector n a
+update = primUpdateFn (getStringPosition "")
+
+
+--@ Functions are provided which extract the first (head) element or
+--@ the last element of a vector.
+--@ \index{head@\te{head} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type head (Vector#(vsize,a_type) vect)
+--@   provisos (Add#(1, xxx, vsize));  // vsize >= 1
+--@ \end{libverbatim}
+head :: (Add 1 m n) => Vector n a -> a
+head (V v) = primSelectFn (getStringPosition "") v 0
+
+--@ \index{last@\te{last} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type last (Vector#(vsize,a_type) vect);
+--@   provisos (Add#(1, xxx, vsize));  // vsize >= 1
+--@ \end{libverbatim}
+last ::  (Add 1 m n) =>  Vector n a -> a
+last (V v) = primSelectFn (getStringPosition "")  v ((valueOf n) - 1)
+
+--@
+--@ Other functions can remove the head or last element of a
+--@ Vector leaving its tail or initial part in a smaller
+--@ Vector.
+--@ \index{tail@\te{tail} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) tail (Vector#(vsize1,a_type) xs)
+--@   provisos (Add#(1, vsize, vsize1));
+--@ \end{libverbatim}
+tail :: (Add 1 m n) => Vector n a -> Vector m a
+tail (V v) = V (Array.shrinkRight v 1)
+
+
+--@ \index{init@\te{init} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) init (Vector#(vsize1,a_type) xs)
+--@   provisos (Add#(1, vsize, vsize1))
+--@ \end{libverbatim}
+init :: (Add 1 m n) => Vector n a -> Vector m a
+init (V v) = V (Array.shrinkLeft v 1)
+
+--@ Take a number of elements from a Vector starting from index 0.
+--@ \index{take@\te{take} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize2,a_type) take (Vector#(vsize,a_type) vect)
+--@   provisos (Add#(vsize2,xxx,vsize)); // vsize2 <= vsize
+--@ \end{libverbatim}
+take :: (Add m k n) => Vector n a -> Vector m a
+take (V v) = if (valueOf m) == 0
+                then V (primArrayNewU 0)
+		else V (Array.shrinkLeft v (valueOf k))
+
+--@ \index{takeTail@\te{takeTail} (\te{Vector} function)}
+--@ Take a number of elements of the vector dropping elements at the
+--@ 0th position.
+--@ \begin{libverbatim}
+--@ function Vector#(vsize2,a_type) takeTail (Vector#(vsize,a_type) vect)
+--@   provisos (Add#(vsize2,xxx,vsize)); // vsize2 <= vsize
+--@ \end{libverbatim}
+takeTail ::  (Add m k n) => Vector n a -> Vector m a
+takeTail (V v) = if (valueOf m) == 0
+                 then V (primArrayNewU 0)
+                 else V (Array.shrinkRight v (valueOf k))
+
+-- function Vector#(n,a) drop(Vector#(m,a) x) provisos(Add#(n,k,m));
+--    return (takeTail(x));
+-- endfunction
+
+drop ::  (Add m k n) => Vector n a -> Vector m a
+drop = takeTail
+
+--@ \index{takeAt@\te{takeAt} (\te{Vector} function)}
+--@ take of number of element
+--@ \begin{libverbatim}
+--@ function Vector#(vsize2,a_type) takeAt (Integer startPos,
+--@                                         Vector#(vsize,a_type) vect)
+--@   provisos (Add#(vsize2,xxx,vsize)); // vsize2 <= vsize
+--@ \end{libverbatim}
+takeAt :: (Add m k n) => Integer -> Vector n a -> Vector m a
+takeAt start (V v) = if (valueOf m) == 0
+                     then V (primArrayNewU 0)
+                     else if ( start > (valueOf k) )
+                          then error ("Vector::takeAt start element (" +++ integerToString(start)
+                                      +++ ") plus result size (" +++ integerToString(valueOf m)
+                                      +++ ") is greater than the source vector size ("
+                                      +++ integerToString(valueOf n) +++ ")."  )
+                          else V (Array.takeAt v (start + valueOf(m) - 1) start )
+
+
+---------------------------------------------------------------------------------
+--@ \item{\bf Combining Vectors with Zip}
+--@
+--@  The family of ``zip'' functions takes two or more Vectors and
+--@ combines them into one Vector of \te{Tuples}.   Several
+--@ variations are provided for different resulting \te{Tuple}s, as
+--@ well as support for mis-matched Vector sizes.
+--@
+
+--X@ Combine two Vectors into one Vector of pairs (2-tuples).
+--@ \index{zip@\te{zip} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,Tuple2 #(a_type, b_type))
+--@          zip ( Vector#(vsize,a_type) vecta, Vector#(vsize,b) vectb ) ;
+--@ \end{libverbatim}
+zip :: Vector n a -> Vector n b -> Vector n (a,b)
+zip (V v1) (V v2) = V (Array.zip v1 v2)
+
+--X@ Combine three Vectors into one Vector of tuples.
+--@ \index{zip@\te{zip} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,Tuple3 #(a_type, b_type, c_type))
+--@          zip3 (Vector#(vsize,a_type) vecta,
+--@                Vector#(vsize,b_type) vectb,
+--@                Vector#(vsize,c_type) vectc );
+--@ \end{libverbatim}
+zip3 :: Vector n a -> Vector n b -> Vector n c -> Vector n (a, b, c)
+zip3 (V v1) (V v2) (V v3) = V (Array.zip3 v1 v2 v3)
+
+--X@ Combine four Vectors into one Vector of tuples.
+--@ \index{zip@\te{zip} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,Tuple4 #(a_type, b_type, c_type, d_type))
+--@          zip4  ( Vector#(vsize,a_type) vecta,
+--@                  Vector#(vsize,b_type) vectb,
+--@                  Vector#(vsize,c_type) vectc,
+--@                  Vector#(vsize,d_type) vectd );
+--@ \end{libverbatim}
+zip4 :: Vector n a -> Vector n b -> Vector n c -> Vector n d -> Vector n (a, b, c, d)
+zip4 (V v1) (V v2) (V v3) (V v4)= V (Array.zip4 v1 v2 v3 v4)
+
+--@ Combine two Vectors into one Vector of pairs (2-tuples); result
+--@ is as long as the smaller vector.
+--@ \index{zipAny@\te{zipAny} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,Tuple2 #(a_type, b_type))
+--@          zipAny ( Vector#(m,a_type) xs,
+--@                   Vector#(n,b_type) ys);
+--@   provisos (Max#(m, vsize, m), Max#(n, vsize, n));
+--@ \end{libverbatim}
+zipAny :: (Max m mn m, Max n mn n) =>
+          Vector m a -> Vector n b -> Vector mn (a,b)
+zipAny = zipWithAny (\x y -> (x,y))
+
+--@ Separate a Vector of pairs into a pair of two Vectors.
+--@ \index{unzip@\te{unzip} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2#(Vector#(vsize,a_type), Vector#(vsize,b_type))
+--@          unzip ( Vector#(vsize,Tuple2 #(a_type, b_type))  vectab );
+--@ \end{libverbatim}
+unzip :: Vector n (a, b) -> (Vector n a , Vector n b)
+unzip (V v) = letseq (as, bs) = Array.unzip v
+              in  (V as, V bs)
+
+
+--------------------------------------------------------------------------------
+--@ \item{\bf Mapping Functions over Vectors}
+--@
+--@ A function can be applied to all elements of a Vector, using
+--@ high-order functions such as {\tt map}.  These functions take, as
+--@ an argument, a which is applied to the elements
+--@ of the Vector.
+--@
+--@ Map a function over a Vector, returning a new Vector of results.
+--@ \index{map@\te{map} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,b_type) map ( function b_type func(a_type x),
+--@                                      Vector#(vsize,a_type) vect  );
+--@ \end{libverbatim}
+--@ For examples, consider the following code example which applies
+--@ the {\tt zeroExtends} function to each element of avector into a
+--@ new Vector.
+--@ \begin{libverbatim}
+--@       Vector#(13,Bit#(5))   avector;
+--@       Vector#(13,Bit#(10))   resultvector;
+--@       ...
+--@       resultvector = map( zeroExtend, avector ) ;
+--@ \end{libverbatim}
+
+map :: (a -> b) -> Vector n a -> Vector n b
+map f (V v) = V (Array.map f v)
+
+--@ The ``fold'' family of functions reduces a vector by applying a
+--@ function over all its elements.
+--@ That is, given a
+--@ vector of {\tt a\_type}, $V_0, V_1, V_2, ..., V_{n-1}$, a seed of
+--@ type {\tt b\_type}, and a function {\tt func}, the reduction for
+--@ foldr is given by
+--@ \[ func( V_0, func(V_{1},  ... , func ( V_{n-2} , func( V_{n-1}, seed) ))) ; \]
+--@ Note that foldr start processing from the right, the
+--@ highest index position to the lowest, while {\tt foldl} starts
+--@ from the lowest index (zero), i.e.,
+--@ \[ func( ... ( func( func(seed, V_0), V_1), ... )  V_{n-1} ) \]
+--@ \index{foldr@\te{foldr} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function b_type foldr(b_type function func(a_type x, b_type y),
+--@                       b_type seed,
+--@                       Vector#(vsize,a_type) vect);
+--@ \end{libverbatim}
+foldr :: (a -> b -> b) -> b -> Vector n a -> b
+foldr f z (V v) = Array.foldr f z v
+
+--X@ Reduction (from the left) over a Vector.
+--@ \index{foldl@\te{foldl} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function b_type foldl (b_type function func(b_type y, a_type x),
+--@                        b_type seed,
+--@                        Vector#(vsize,a_type) vect);
+--@ \end{libverbatim}
+foldl :: (b -> a -> b) -> b -> Vector n a -> b
+foldl f z (V v) = Array.foldl f z v
+
+
+--@ In places where a fold operation over an empty Vector does not
+--@ make any sense, it is best to use the {\tt foldr1} or {\tt foldl1}
+--@ version of these functions, since these can only be used for
+--@ non-zero sized vectors.
+--@ \index{foldr1@\te{foldr1} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type foldr1 (a_type function func(a_type x, a_type y),
+--@                         Vector#(vsize,a_type) vect)
+--@   provisos (Add#(1, xxx, vsize));  // Vector has at least 1 element
+--@ \end{libverbatim}
+foldr1 :: (Add 1 m n) => (a -> a -> a) -> Vector n a -> a
+foldr1 f (V v) = Array.foldr1 f v
+
+
+--X@ Reduction (from the left) over a non-empty Vector
+--@ \index{foldl1@\te{foldl1} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type foldl1 (a_type function func(a_type y, a_type x),
+--@                         Vector#(vsize,a_type) vect)
+--@   provisos (Add#(1, xxx, vsize));  // Vector has at least 1 element
+--@ \end{libverbatim}
+foldl1 :: (Add 1 m n) => (a -> a -> a) -> Vector n a -> a
+foldl1 f (V v) = Array.foldl1 f v
+
+
+--@  The {\tt fold} function performs a reduction over a non-empty
+--@ vector, but processing is accomplished in a binary tree-like structure.
+--@ Hence the depth or delay through the resulting function will be
+--@ $O(log_2( vsize ) $ rather than $O( vsize ) $.
+--@ \index{fold@\te{fold} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type fold (a_type function func(a_type y, a_type x),
+--@                       Vector#(vsize,a_type) vect )
+--@   provisos (Add#(1, xxx, vsize));  // Vector has at least 1 element
+--@ \end{libverbatim}
+fold :: (Add 1 n1 n) => (a -> a -> a) -> Vector n a -> a
+fold f (V v) = Array.fold f v
+--fold f (V v) = List.fold f (arrayToList v)
+
+
+--@ The ``scan'' family of functions applies a function over a vector,
+--@ creating a new vector result.
+--@ That is, given a
+--@ vector of {\tt a\_type}, $V_0, V_1, ..., V_{n-1}$, an initial
+--@ value {\tt initb}  of
+--@ type {\tt b\_type}, and a function {\tt func}, application of the
+--@ {\tt scanr} functions creates a new vector $W$, where
+--@
+--@ \begin{eqnarray*}
+--@ W_n     & = & init ; \\
+--@ W_{n-1} & = & func( V_{n-1}, W_n ) ; \\
+--@ W_{n-2} & = & func( V_{n-2}, W_{n-1} ) ; \\
+--@ ...     &   & \\
+--@ W_1     & = & func( V_{1}, W_{2} ) ; \\
+--@ W_0     & = & func( V_0, W_1 ) ; \\
+--@ \end{eqnarray*}
+--@
+--@ Note that the {\tt scanr} processes elements from the right, the
+--@ highest index position
+--@ to the lowest, and fill the resulting Vector in the same
+--@ way.  The {\tt sscanr} function drops the $W_n$ element from the
+--@ result.
+
+--@ \index{scanr@\te{scanr} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize1,b_type)
+--@          scanr(function b_type func(a_type x1, b_type x2),
+--@                b_type initb,
+--@                Vector#(vsize,a_type) vect)
+--@   provisos (Add#(1, vsize, vsize1));
+--@ \end{libverbatim}
+scanr :: (Add 1 n n1) => (a -> b -> b) -> b -> Vector n a -> Vector n1 b
+scanr f q (V v) = V (Array.scanr f q v)
+
+--@ \index{sscanr@\te{sscanr} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,b_type)
+--@          sscanr( function b_type func(a_type x1, b_type x2),
+--@                 b_type initb,
+--@                 Vector#(vsize,a_type) vect );
+--@ \end{libverbatim}
+sscanr :: (a -> b -> b) -> b -> Vector n a -> Vector n b
+sscanr f q v = init (scanr f q v)
+
+
+--@ The {\tt scanl} function creates the resulting Vector in a
+--@ similar way as {\tt scanr} except that the processing happens
+--@ from the zeroth element up to the nth element.
+--@
+--@ \begin{eqnarray*}
+--@ W_0 & = & init ; \\
+--@ W_1 & = &  func( V_0, W_0 ) ; \\
+--@ W_2 & = &  func( V_1, W_1 ) ; \\
+--@ ... &   &  \\
+--@ W_{n-1} & = & func( V_{n-2}, W_{n-2} ) ; \\
+--@ W_n     & = & func( V_{n-1}, W_{n-1} ) ; \\
+--@ \end{eqnarray*}
+--@
+--@ The {\tt sscanl} function drops the first result, $init$, shifting
+--@ the result index by one.
+
+--@ \index{scanl@\te{scanl} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize1,a_type)
+--@          scanl( function a_type func(a_type x1, b_type x2),
+--@                 a_type q,
+--@                 Vector#(vsize,b_type) vect)
+--@   provisos (Add#(1, vsize, vsize1));
+--@ \end{libverbatim}
+scanl :: (Add 1 n n1) => (a -> b -> a) -> a -> Vector n b -> Vector n1 a
+scanl f q (V v) = V (Array.scanl f q v)
+
+
+--@ \index{sscanl@\te{sscanl} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type)
+--@          sscanl( function a_type func(a_type x1, b_type x2),
+--@                  a_type q,
+--@                  Vector#(vsize,b) vect );
+--@ \end{libverbatim}
+sscanl :: (a -> b -> a) -> a -> Vector n b -> Vector n a
+sscanl f q v = tail (scanl f q v)
+
+
+
+--@ Combine two Vectors with a function.
+--@ \index{zipWith@\te{zipWith} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,c_type)
+--@          zipWith (function c_type func(a_type x, b_type y),
+--@                   Vector#(vsize,a_type) vecta,
+--@                   Vector#(vsize,b_type) vectb );
+--@ \end{libverbatim}
+zipWith :: (a -> b -> c) -> Vector n a -> Vector n b -> Vector n c
+zipWith f (V v1) (V v2) = V (Array.zipWith f v1 v2)
+
+--@ Combine two Vectors with a function; result is as long as the smaller vector.
+--@ \index{zipWithAny@\te{zipWithAny} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,c_type)
+--@          zipWithAny (function c_type func(a_type x, b_type y),
+--@                       Vector#(m,a_type) vecta,
+--@                       Vector#(n,b_type) vectb )
+--@   provisos (Max#(n, vsize, n), Max#(m, vsize, m));
+--@ \end{libverbatim}
+zipWithAny :: (Max n mn n, Max m mn m) =>
+              (a -> b -> c) -> Vector n a -> Vector m b -> Vector mn c
+zipWithAny f (V v1) (V v2) = V (Array.zipWith f v1 v2)
+
+--@ Combine three Vectors with a function.
+--@ \index{zipWith3@\te{zipWith3} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,d_type)
+--@          zipWith3 ( function d_type func(a_type x, b_type y, c_type z),
+--@                     Vector#(vsize,a_type) vecta,
+--@                     Vector#(vsize,b_type) vectb,
+--@                     Vector#(vsize,c_type) vectc );
+--@ \end{libverbatim}
+zipWith3 :: (a -> b -> c -> d) -> Vector n a -> Vector n b -> Vector n c -> Vector n d
+zipWith3 f (V v1) (V v2) (V v3) = V (Array.zipWith3 f v1 v2 v3)
+
+
+--@ Combine three Vectors with a function; result is as long as the smallest vector.
+--@ \index{zipWithAny3@\te{zipWithAny3} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,c_type)
+--@          zipWithAny3 ( function d_type func(a_type x, b_type y, c_type z),
+--@                        Vector#(m,a_type) vecta,
+--@                        Vector#(n,b_type) vectb,
+--@                        Vector#(o,c_type) vectc )
+--@   provisos (Max#(n, vsize, n), Max#(m, vsize, m), Max#(o, vsize, o));
+--@ \end{libverbatim}
+zipWithAny3 :: (Max m mn m, Max n mn n, Max o mn o) =>
+            (a -> b -> c -> d) -> Vector n a -> Vector m b -> Vector o c -> Vector mn d
+zipWithAny3 f (V v1) (V v2) (V v3) = V (Array.zipWith3 f v1 v2 v3)
+
+
+
+--------------------------------------------------------------------------------
+--@   \item{\bf Vector to Vector Functions}
+--@
+--@
+--@ Move first elements last.
+--@ \index{rotate@\te{rotate} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) rotate (Vector#(vsize,a_type) vect);
+--@ \end{libverbatim}
+rotate :: Vector n a -> Vector n a
+rotate (V v) =
+  let k = (valueOf n) - 1
+      tmp = primSelectFn (getStringPosition "") v 0
+      v2 = Array.growLeft (Array.shrinkRight v 1) 1
+  in if (valueOf n) == 0 || (valueOf n) == 1
+     then V v
+     else V (primUpdateFn (getStringPosition "") v2 k tmp)
+
+
+--@ Move last element first.
+--@ \index{rotateR@\te{rotateR} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) rotateR (Vector#(vsize,a_type) vect);
+--@ \end{libverbatim}
+rotateR :: Vector n a -> Vector n a
+rotateR (V v) =
+  let k = (valueOf n) - 1
+      tmp = primSelectFn (getStringPosition "") v k
+      v2 = Array.growRight (Array.shrinkLeft v 1) 1
+  in if (valueOf n) == 0 || (valueOf n) == 1
+     then V v
+     else V (primUpdateFn (getStringPosition "") v2 0 tmp)
+
+rotateStage :: (Log n lgn) => Vector n a -> Integer -> UInt lgn -> Vector n a
+rotateStage (V v) stg amt =
+    let ctrl :: Bit 1
+        ctrl = primSelectFn (getStringPosition "") (pack amt) stg
+    in if (ctrl == 0)
+       then V v
+       else let move = 2**stg
+		keep = (valueOf n) - move
+		high = Array.shrinkLeft v move
+		low  = Array.shrinkRight v keep
+            in V (Array.append high low )
+
+rotateLoop :: (Log n lgn) => Vector n a -> Integer -> UInt lgn -> Vector n a
+rotateLoop vec 0 amt   = rotateStage vec 0 amt
+rotateLoop vec stg amt = rotateStage (rotateLoop vec (stg - 1) amt) stg amt
+
+rotateBy :: (Log n lgn) => Vector n a -> UInt lgn -> Vector n a
+rotateBy vin amt =
+    if (valueOf n == 0) || (valueOf n) == 1
+    then vin
+    else rotateLoop vin ((valueOf lgn) - 1) amt
+
+rotateBitsBy :: (Log n lgn) => Bit n -> UInt lgn ->  Bit n
+rotateBitsBy bin amt =
+    let vin :: Vector n (Bit 1)
+        vin = unpack bin
+        vout = rotateBy vin amt
+    in pack vout
+
+
+
+--@ Shift a new element into the Vector at index 0, bumping all other
+--@ elements up by one.  The Nth element is dropped.
+--@ \index{shiftInAt0@\te{shiftInAt0} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) shiftInAt0 (Vector#(vsize,a_type) vect, a_type newElement );
+--@ \end{libverbatim}
+shiftInAt0 :: Vector n a -> a -> Vector n a
+shiftInAt0 (V ain) new =
+    let
+      newA = primArrayNew 1 new
+      part = Array.takeAt ain ((valueOf n) - 2) 0
+      joined = Array.append part newA
+    in if ( valueOf(n) == 0 )
+       then (V ain)
+       else if ( valueOf(n) == 1 )
+            then (V newA)
+            else (V joined)
+
+
+--@ Shift a new element into the Vector at index N, bumping all other
+--@ elements down by one.  The 0th element is dropped.
+--@ \index{shiftInAtN@\te{shiftInAtN} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) shiftInAtN (Vector#(vsize,a_type) vect, a_type newElement );
+--@ \end{libverbatim}
+shiftInAtN :: Vector n a -> a -> Vector n a
+shiftInAtN (V vin) new =
+    let
+      newA = primArrayNew 1 new
+      part = Array.takeAt vin ((valueOf n ) - 1) 1
+      joined = Array.append newA part
+    in if ( valueOf(n) == 0 )
+       then (V vin)
+       else if ( valueOf(n) == 1 )
+            then (V newA)
+            else (V joined)
+
+
+shiftOutFrom0 :: (PrimShiftIndex idx x) => a -> Vector n a -> idx -> Vector n a
+shiftOutFrom0 def vin amt =
+   let
+      nulls :: Vector n a
+      nulls = replicate def
+      fullv = append vin nulls
+      -- create all combinations for shifted vectos
+      allcombinations :: Vector (TAdd 1 n) (Vector n a)
+      allcombinations = map ((flip takeAt) fullv) genVector
+    in if (amt <= (fromInteger $ valueOf n)) then select allcombinations amt else nulls
+
+shiftOutFromN :: (PrimShiftIndex idx x) => a -> Vector n a -> idx -> Vector n a
+shiftOutFromN def vin amt =
+    let
+      nulls :: Vector n a
+      nulls = replicate def
+      fullv = append nulls vin
+      -- create all combinations for shifted vectos
+      allcombinations :: Vector (TAdd 1 n) (Vector n a)
+      allcombinations = reverse $ map ((flip takeAt) fullv) genVector
+    in if (amt <= (fromInteger $ valueOf n)) then select allcombinations amt else nulls
+
+--@ Reverse element order
+--@ \index{reverse@\te{reverse} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize,a_type) reverse(Vector#(vsize,a_type) vect);
+--@ \end{libverbatim}
+reverse :: Vector n a -> Vector n a
+reverse (V v) = V (Array.reverse v)
+
+
+--@ Matrix transposition of a vector of vectors.
+--@ \index{transpose@\te{transpose} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(m,Vector#(n,a_type))
+--@          transpose ( Vector#(n,Vector#(m,a_type)) matrx );
+--@ \end{libverbatim}
+transpose :: Vector m (Vector n a) -> Vector n (Vector m a)
+transpose v =
+    let l = toList (map toList v)
+    in  V (Array.listToArray (List.map (\ vx -> V (Array.listToArray vx)) (List.transpose l)))
+
+--@ Matrix transposition of a Vector of Lists.
+--@ \index{transposeLN@\te{transposeLN} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize, List#(a_type))
+--@          transposeLN( List#(Vector#(vsize, a_type)) lvs );
+--@ \end{libverbatim}
+transposeLN :: List (Vector n a) -> Vector n (List a)
+transposeLN l =
+    let ls = List.map toList l
+    in  V (Array.listToArray (List.transpose ls))
+
+--------------------------------------------------------------------------------
+
+--@
+--@ \item{\bf Monadic Operations}
+--@
+--@ Within Bluespec, there are some functions which can only be
+--@ invoked in certain contexts.  Two common examples are:
+--@ \te{ActionValue}, and module instantiation.  ActionValues can only be
+--@ invoked within an \te{Action} context, such as a rule block or an Action
+--@ method, and can be considered as two part -- the action, and the value.
+--@  Module instantiation can similarly be considered, modules can
+--@ only be instantiated in the module context, while the two parts
+--@ are the module instance (the action), and the interface (the
+--@ result).  These types are considered monadic.
+--  XXXX Same something about bind (<-) operation.
+--@
+--@ When a monadic function is to be applied over a Vector using
+--@ a map-like functions such
+--@ as {\tt map, zipWith}, or {\tt replicate} function, the monadic versions
+--@ of these functions must be used.  Moreover, the context requirements of the
+--@ applied function must hold. The common application where for these functions
+--@ are in the generation (or instantiation) of Vectors of hardware
+--@ components.
+--@
+--@
+--@
+--@ {\tt mapM} takes a monadic function and a Vector, and applies the function to
+--@ all Vector elements returning
+--@ the Vector of corresponding results.  The second version
+--@ throws away the resulting Vector leaving the action in the its context.
+--@ \index{mapM@\te{mapM} (\te{Monad} function on {\te{Vector}})}
+--@ \begin{libverbatim}
+--@ function m#(Vector#(vsize, b_type))
+--@          mapM ( function m#(b_type) func(a_type x),
+--@                  Vector#(vsize, a_type) vecta )
+--@    provisos (Monad#(m));
+--@ \end{libverbatim}
+mapM :: (Monad m) => (a -> m b) -> Vector n a -> m (Vector n b)
+mapM f (V v) = do
+    _velements :: List b
+    {-# hide #-}
+    _velements <- List.mapM f (Array.arrayToList v)
+    return (V (Array.listToArray _velements))
+
+--@
+--X@ Like {\te{mapM}} but throws away the resulting vector.
+--@ \index{mapM\US@\te{mapM\US} (\te{Vector} function)}
+--@
+--@ \begin{libverbatim}
+--@ function m#(void) mapM_(function m#(b_type) func(a_type x),
+--@                         Vector#(vsize, a_type) vect)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+mapM_ :: (Monad m) => (a -> m b) -> Vector n a -> m ()
+mapM_ f xs = do _ <- mapM f xs
+                return ()
+
+--X@ Combine two vectors with a function.
+--@ \index{zipWithM@\te{zipWithM} (\te{Vector} function)}
+--@ Take a monadic function (which takes two arguments) and two Vectors;
+--@ The function applied to the corresponding element from
+--@ each vector would return an action and result.
+--@ Return an action representing all those actions
+--@ and the vector of corresponding results.  The second version
+--@ throws away the result leaving the action.
+--@
+--@ \begin{libverbatim}
+--@ function m#(Vector#(vsize, c_type))
+--@          zipWithM( function m#(c_type) func(a_type x, b_type y),
+--@                    Vector#(vsize, a_type) vecta,
+--@                    Vector#(vsize, b_type) vectb )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+zipWithM :: (Monad m) => (a -> b -> m c) -> Vector n a -> Vector n b -> m (Vector n c)
+zipWithM f (V v1) (V v2) = do
+    {-# hide #-}
+    _velements <- List.zipWithM f (Array.arrayToList v1) (Array.arrayToList v2)
+    return (V (Array.listToArray _velements))
+
+--X@ Like {\te{zipWithM}} but throws away the resulting vector
+--@ \index{zipWithM\US@\te{zipWithM\US} (\te{Vector} function)}
+--@
+--@ \begin{libverbatim}
+--@ function m#(void)
+--@          zipWithM_(function m#(c_type) func(a_type x, b_type y),
+--@                    Vector#(vsize, a_type) vecta,
+--@                    Vector#(vsize, b_type) vectb )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+zipWithM_ :: (Monad m) => (a -> b -> m c) -> Vector n a -> Vector n b -> m ()
+zipWithM_ f xs ys = do _ <- zipWithM f xs ys
+                       return ()
+
+--@ Combine three vectors with a function.
+--@ \index{zipWithM@\te{zipWithM} (\te{Vector} function)}
+--@ Take a function (which takes three arguments) and three Vectors;
+--@ The function applied to the corresponding element from
+--@ each vector would return an action and result.
+--@ Return an action representing all those actions
+--@ and the vector of corresponding results.
+--@
+--@ \begin{libverbatim}
+--@ function m#(Vector#(vsize, c_type))
+--@          zipWith3M( function m#(d_type) func(a_type x, b_type y, c_type z),
+--@                     Vector#(vsize, a_type) vecta,
+--@                     Vector#(vsize, b_type) vectb,
+--@                     Vector#(vsize, c_type) vectc )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+zipWith3M :: (Monad m) => (a -> b -> c -> m d) -> Vector n a -> Vector n b -> Vector n c -> m (Vector n d)
+zipWith3M f (V v1) (V v2) (V v3) = do
+    {-# hide #-}
+    _ws <- List.zipWith3M f (Array.arrayToList v1) (Array.arrayToList v2) (Array.arrayToList v3)
+    return (V (Array.listToArray _ws))
+
+--@ Generate a Vector of elements generated by applying the
+--@ given monadic function to 0 through N-1.
+--@ \index{genWithM@\te{genWithM} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function m#(Vector#(vsize, a_type)) genWithM(function m#(a_type) func(Integer x))
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+genWithM :: (Monad m) => (Integer -> m a) -> m (Vector n a)
+genWithM f = mapM f genList
+
+--@ Generate a Vector of elements generated by using
+--@ the given monadic value repeatedly.
+--@ \index{replicateM@\te{replicateM} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function m#(Vector#(vsize, a_type)) replicateM( m#(a_type) c)
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+replicateM :: (Monad m) => m a -> m (Vector n a)
+replicateM c = mapM (const c) genList
+
+--@ \index{foldlM@\te{foldlM} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function m#(b_type) foldlM (
+--@                              function m#(b_type) func(b_type y, a_type x),
+--@                              b_type initb,
+--@                              Vector#(vsize,a_type) vect )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+foldlM :: (Monad m) => (a -> b -> m a) -> a -> Vector n b -> m a
+foldlM f a (V v) = List.foldlM f a (Array.arrayToList v)
+
+--@ \index{foldM@\te{foldM} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function m#(a_type) foldM (
+--@                    function m#(a_type) func(a_type y, a_type x),
+--@                 Vector#(vsize,a_type) vecta )
+--@   provisos (Monad#(m), Add#(1, xxx, vsize)); // Vector has at least 1 element
+--@ \end{libverbatim}
+foldM :: (Monad m, Add 1 k n) => (a -> a -> m a) -> Vector n a -> m a
+foldM f (V v) = List.foldM f (Array.arrayToList v)
+
+--@
+
+--@ \index{foldM@\te{foldM} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function m#(b_type) foldrM (
+--@             function m#(b_type) func(a_type x, b_type y),
+--@             b_type e,
+--@             Vector#(vsize,a_type) vecta )
+--@   provisos (Monad#(m));
+--@ \end{libverbatim}
+foldrM :: (Monad m) => (a -> b -> m b) -> b -> Vector n a -> m b
+foldrM f a (V v) = List.foldrM f a (Array.arrayToList v)
+
+--X@ Take a Vector of actions; return an action representing
+--X@ performing all those actions and returning the Vector
+--X@ of all the results.
+--X@ \index{sequence@\te{sequence} (\te{Monad} function on {\te{Vector})}}
+--X@ \begin{libverbatim}
+--X@ function m#(Vector#(vsize, a_type)) sequence (Vector#(vsize, m#(a_type)))
+--X@   provisos (Monad#(m));
+--X@ \end{libverbatim}
+sequence :: (Monad m) => Vector n (m a) -> m (Vector n a)
+sequence (V v) = do
+    _ys :: List a
+    {-# hide #-}
+    _ys <- List.sequence (Array.arrayToList v)
+    return (V (Array.listToArray _ys))
+
+----------------------------------------------------------------------------
+--@ \item{\bf Tests on Vectors}
+--@
+--@ Check if an element is in a vector.
+--@ \index{elem@\te{elem} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Bool elem (a_type x, Vector#(vsize,a_type) vect )
+--@   provisos (Eq#(a_type));
+--@ \end{libverbatim}
+elem :: (Eq a) => a -> Vector n a -> Bool
+elem y (V v) = Array.elem y v
+
+
+--@ Test if a predicate holds for any or all elements of a vector.
+--@ \index{all@\te{all} (\te{Vector} function)}
+--@ \index{any@\te{any} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Bool any(function Bool pred(a_type x1),
+--@                   Vector#(vsize,a_type) vect );
+--@ \end{libverbatim}
+any :: (a -> Bool) -> Vector n a -> Bool
+any p (V v) = Array.any p v
+
+or :: Vector n Bool -> Bool
+or v = any id v
+
+--@ \begin{libverbatim}
+--@ function Bool all(function Bool pred(a_type x1),
+--@                   Vector#(vsize,a_type) vect );
+--@ \end{libverbatim}
+all :: (a -> Bool) -> Vector n a -> Bool
+all p (V v) = Array.all p v
+
+and :: Vector n Bool -> Bool
+and v = all id v
+
+-- find the first value in a vector which meets a predicate
+find :: (a -> Bool) -> Vector n a -> Maybe a
+find pred v =
+    let combine :: Maybe a -> a -> Maybe a
+	combine Nothing y = if (pred y) then (Just y) else Nothing
+	combine x       _ = x
+    in if (valueOf n) == 0
+       then Nothing
+       else foldl combine Nothing v
+
+-- find the index of the element which equals a elem
+findElem :: (Log n lgn, Eq a) => a -> Vector n a -> Maybe (UInt lgn)
+findElem elem v = findIndex ( (==) elem ) v
+
+
+-- find index of an element which meets a predicate
+findIndex :: (Log n lgn) => (a -> Bool) -> Vector n a -> Maybe (UInt lgn)
+findIndex pred v =
+    let genRes :: Bool -> UInt lgn -> Maybe (UInt lgn)
+        genRes True i = Valid i
+        genRes False _ = Invalid
+        results = zipWith genRes  (map pred v) (genWith fromInteger )
+	combine :: Maybe (UInt lgn) -> Maybe (UInt lgn) -> Maybe (UInt lgn)
+	combine Nothing x = x
+	combine x       _ = x
+    in if (valueOf n) == 0
+       then Nothing
+       else Array.fold combine (vectorToArray results)
+
+-- Count the number of element which are equal to elem
+countElem :: (Add 1 n n1, Log n1 lgn1, Eq a)  => a -> Vector n a -> UInt lgn1
+countElem elem v = countIf ( (==) elem ) v
+
+-- Count the number of elements which match a predicate
+countIf :: (Add 1 n n1, Log n1 lgn1)  => (a -> Bool) -> Vector n a -> UInt lgn1
+countIf pred v =
+    let z :: UInt lgn1 = 0
+        o :: UInt lgn1 = 1
+        v01 = map (\e -> if (pred e) then o else z) v
+    in if (valueOf n) == 0
+       then 0
+       else Array.fold (+) (vectorToArray v01)
+
+-- specialized cases using the above functions
+countOnesAlt :: (Add 1 n n1, Log n1 lgn1)  => Bit n -> UInt lgn1
+countOnesAlt bin =
+    let vb :: Vector n Bool
+        vb = unpack bin
+    in countElem True vb
+
+countLeadingZeros :: (Add 1 n n1, Log n1 lgn1, Log n lgn, Add lgn xxx lgn1) => Bit n -> UInt lgn1
+countLeadingZeros bin =
+    let vb :: Vector n Bool
+        vb = unpack bin
+        mpos = findIndex id vb
+    in case mpos of
+                 Just indx -> zeroExtend indx
+                 Nothing   -> fromInteger $ valueOf n
+
+
+-------------------------------------------------------------------------------------
+--@ \item{\bf Converting to and from Vectors}
+--@
+--@ There are functions which convert to and from a \te{List} and a \te{Vector}.
+--@ \index{toList@\te{toList} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function List#(a_type) toList (Vector#(vsize, a_type) vect);
+--@ \end{libverbatim}
+toList :: Vector n a -> List a
+toList (V v) = Array.arrayToList v
+
+--X@ Convert an ordinary list to a Vector.
+--@ \index{toVector@\te{toVector} (\te{Vector} function)}
+--@ \begin{libverbatim
+--@ function Vector#(vsize, a_type) toVector ( List#(a_type) lst);
+--@ \end{libverbatim}
+toVector :: List a -> Vector n a
+toVector xs = if length xs /= valueOf n
+             then error ("Vector.toVector: bad argument length " +++
+                         integerToString (length xs) +++ " /= " +++
+                         integerToString (valueOf n))
+             else V (Array.listToArray xs)
+
+--X@ Convert an array to a Vector.
+--@ \index{arrayToVector@\te{arrayToVector} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize, a_type) arrayToVector ( a_type[] arr);
+--@ \end{libverbatim}
+arrayToVector :: Array a -> Vector n a
+arrayToVector arr = if (arrayLength arr /= valueOf n) then
+                    error ("Vector.arrayToVector: bad argument length " +++
+                           integerToString (arrayLength arr) +++ " /= " +++
+                           integerToString (valueOf n))
+                    else (V arr)
+
+--X@ Convert a Vector to an array.
+--@ \index{vectorToArray@\te{vectorToArray} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function a_type[] vectorToArray (Vector#(vsize, a_type) v);
+--@ \end{libverbatim}
+vectorToArray :: Vector n a -> Array a
+vectorToArray (V arr) = arr
+
+---------------------------------------------------------------------------------------------------
+--@ \item{\bf Miscellaneous Functions on Vectors}
+--@
+--@ Join a number of actions together.
+--@ \index{joinActions@\te{joinActions} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Action joinActions (Vector#(vsize,Action) vactions);
+--@ \end{libverbatim}
+joinActions :: Vector n Action -> Action
+joinActions (V v) = List.joinActions (Array.arrayToList v)
+
+
+--@ Join a number of rules together.
+--@ \index{joinRules@\te{joinRules} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Rules joinRules (Vector#(vsize,Rules) vrules);
+--@ \end{libverbatim}
+joinRules :: Vector n Rules -> Rules
+joinRules (V v) = List.joinRules (Array.arrayToList v)
+
+--@ Map a function, but pass an accumulator from head to tail.
+--@ \index{mapAccumL@\te{mapAccumL} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(a_type, Vector#(vsize,c_type))
+--@          mapAccumL ( function Tuple2 #(a_type, c_type) func(a_type x, b_type y),
+--@                      a_type x0,
+--@                      Vector#(vsize,b_type) vect );
+--@ \end{libverbatim}
+mapAccumL :: (a -> b -> (a, c)) -> a -> Vector n b -> (a, Vector n c)
+mapAccumL f s (V v) =
+    letseq xs = Array.arrayToList v
+           (s', ys) = List.mapAccumL f s xs
+    in  (s', V (Array.listToArray ys))
+
+--@ Map a function, but pass an accumulator from tail to head.
+--@ \index{mapAccumR@\te{mapAccumR} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Tuple2 #(a_type, Vector#(vsize,c_type))
+--@          mapAccumR( function Tuple2 #(a_type, c_type) func(a_type x, b_type y),
+--@                     a_type x0,
+--@                     Vector#(vsize,b_type) vect );
+--@ \end{libverbatim}
+mapAccumR :: (a -> b -> (a, c)) -> a -> Vector n b -> (a, Vector n c)
+mapAccumR f s (V v) =
+    letseq xs = Array.arrayToList v
+           (s', ys) = List.mapAccumR f s xs
+    in  (s', V (Array.listToArray ys))
+
+--@ Map a function over a vector consuming two elements at a time.
+--@ Any straggling element is processed by the second function.
+--@ \index{mapPairs@\te{mapPairs} (\te{Vector} function)}
+--@ \begin{libverbatim}
+--@ function Vector#(vsize2,b_type)
+--@          mapPairs (
+--@             function b_type func1(a_type x, a_type y),
+--@             function b_type func2(a_type x),
+--@             Vector#(vsize,a_type) vect )
+--@   provisos (Div#(vsize, 2, vsize2));
+--@ \end{libverbatim}
+mapPairs :: (Div n 2 n2) => (a -> a -> b) -> (a -> b) -> Vector n a -> Vector n2 b
+mapPairs f g (V v) = V (Array.listToArray (List.mapPairs f g (Array.arrayToList v)))
+
+flatten :: Vector n a -> Array a
+flatten (V v) = v
+
+
+-- // passing a vector of registers, for instance.. can it to a vector of wires!
+-- function Vector#(n,tp) fromRegV( Vector#(n,Reg#(tp)) x ) provisos( Add#(1,x2, n) );
+--    return map( fromReg, x );
+-- endfunction
+readVReg :: Vector n (Reg a) -> Vector n a
+readVReg = map readReg
+
+
+-- // Function to write to each register from a vector of registers.
+-- function Action writeRegV( Vector#(n, Reg#(tp)) rs , Vector#(n,tp) ds);
+--    return (action
+--            joinActions (zipWith (writeReg, rs, ds));
+--       endaction);
+-- endfunction
+writeVReg :: Vector n (Reg a) -> Vector n a -> Action
+writeVReg vr v = joinActions $ zipWith writeReg vr v
+
+
+-- // Convert a value to a vector of chunks, possibly padding the final
+-- // chunk.  The input type and size as well as the chunk type and size
+-- // are determined from their types.  The number of chunks can be
+-- // deduced via type inference, although a Div#(t_sz,ch_sz,n) proviso
+-- // may be required for polymorphic use of the function.
+-- function Vector#(n,ch) toChunks(t x)
+--    provisos( Bits#(ch,ch_sz)
+--            , Bits#(t,in_sz)
+--            , Div#(in_sz,ch_sz,n) );
+--
+--    Bit#(ch_sz) padding = '0;
+--    Integer v_sz = valueOf(ch_sz) * valueOf(n);
+--    let tmp = {padding,pack(x)};
+--    return unpack(tmp[v_sz-1:0]);
+-- endfunction
+toChunks :: (Bits ch ch_sz, Bits t in_sz, Div in_sz ch_sz n) => t -> Vector n ch
+toChunks x = let padding = (0 :: Bit ch_sz)
+                 v_sz = (valueOf ch_sz) * (valueOf n)
+	         tmp = padding ++ (pack x)
+	     in unpack(tmp[v_sz-1:0])
+
+
+--@ \item{\bf Examples Using the Vector Type}
+--@
+--@ The following example shows some common uses of the {\te{Vector}}
+--@ type. We first create a Vector of registers, and show how to
+--@ populate this vector.   We then continue with some examples of
+--@ accessing and updating the registers within the Vector, as
+--@ well as alternate ways to do the same.
+--@
+--@
+--@ \begin{libverbatim}
+--@    // First define a variable to hold the registers.
+--@    // Notice the variable is really a Vector of Interfaces of type Reg,
+--@    // not a vector of modules.
+--@    Vector#(10,Reg#(DataT))   vectRegs ;
+--@
+--@    // Now we want to populate the Vector, by filling it with Reg type
+--@    // interfaces, via the mkReg module.
+--@    // Notice that the replicateM function is used since mkReg function
+--@    // is creating a module.
+--@    vectRegs <- replicateM( mkReg( 0 ) ) ;
+--@
+--@    // ...
+--@
+--@    // A rule showing a read and write of one register within the
+--@    // Vector.
+--@    // The readReg function is required since the selection of an
+--@    // element from vectRegs returns a Reg#(DType) interface, not the
+--@    // value of the register.  The readReg functions converts from a
+--@    // Reg#(DataT) type to a DataT type.
+--@    rule zerothElement ( readReg( vectRegs[0] ) > 20 ) ;
+--@       // set 0 element to 0
+--@       // The parentheses are required in this context to give
+--@       // precedence to the selection over the write operation.
+--@       (vectRegs[0]) <= 0 ;
+--@
+--@       // Set the 1st element to 5
+--@       // An alternate syntax
+--@       vectRegs[1]._write( 5 ) ;
+--@    endrule
+--@
+--@    rule lastElement ( readReg( vectRegs[9] ) > 200 ) ;
+--@       // Set the 9th element to -10000
+--@       (vectRegs[9]) <= -10000 ;
+--@    endrule
+--@
+--@    // These rules defined above can execute simultaneously, since
+--@    // they touch independent registers
+--@
+--@    // Here is an example of dynamic selection,  first we define a
+--@    // register to be used as the selector.
+--@    Reg#(UInt#(4))  selector <- mkReg(0) ;
+--@
+--@    // Now define another Reg variable which is selected from the
+--@    // vectReg variable.  Note that no register is created here, just
+--@    // an alias is defined.
+--@    Reg#(DataT)  thisReg = select(vectRegs, selector ) ;
+--@
+--@    // If the selected register is greater than 20'h7_0000, then its
+--@    // value is reset to zero.  Note that the Vector update function in
+--@    // not required since we are changing the contents of a register
+--@    // not the Vector vectReg.
+--@    rule reduceReg( thisReg > 20'h7_0000 ) ;
+--@       thisReg <= 0 ;
+--@       selector <= ( selector < 9 ) ? selector + 1 : 0 ;
+--@    endrule
+--@
+--@    // As an alternative, we can define create n rules which check the
+--@    // value of each register and update accordingly.  This is done by
+--@    // generating each rule inside an elaboration-time for-loop.
+--@    // The
+--@    Integer i;  // a compile time variable
+--@    for ( i = 0 ; i < 10 ; i = i + 1 ) begin
+--@       rule checkValue( readReg( vectRegs[i] ) > 20'h7_0000 ) ;
+--@          (vectRegs[i]) <= 0 ;
+--@       endrule
+--@    end
+--@ \end{libverbatim}
+--@ \end{itemize}
+
+data Ascii n = Ascii (Vector n (Bit 8)) deriving (Eq, Bits, Bounded)
+
+instance FShow (Ascii n)
+  where
+    fshow value = $format "<Ascii %s>" (pack value)
+

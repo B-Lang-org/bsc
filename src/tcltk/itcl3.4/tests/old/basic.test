@@ -1,0 +1,408 @@
+#
+# Basic tests for class definition and method/proc access
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: basic.test,v 1.1 1998/07/27 18:41:24 stanton Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+# ----------------------------------------------------------------------
+#  CLEAN THE SLATE
+# ----------------------------------------------------------------------
+foreach obj [itcl_info objects -class Foo] {
+	$obj delete
+}
+
+# ----------------------------------------------------------------------
+#  CREATING OBJECTS
+# ----------------------------------------------------------------------
+test {Create a simple object} {
+	Foo x
+} {
+	$result == "x"
+}
+
+test {Make sure that object names cannot be duplicated} {
+	catch "Foo x" errmsg
+} {
+	$result == 1
+}
+
+test {Create another object} {
+	Foo xx
+} {
+	$result == "xx"
+}
+
+test {Create an object with an automatic name} {
+	Foo #auto
+} {
+	[string match foo* $result]
+}
+
+test {Get list of objects in a class} {
+	itcl_info objects -class Foo
+} {
+	[llength $result] == 3
+}
+
+# ----------------------------------------------------------------------
+#  PUBLIC VARIABLES
+# ----------------------------------------------------------------------
+test {Info: all public variables} {
+	x info public
+} {
+	[test_cmp_lists $result {Foo::blit Foo::blat Foo::blot}]
+}
+
+test {Info: public variable initial value} {
+	x info public blit -init
+} {
+	$result == ""
+}
+
+test {Info: public variable initial value (undefined)} {
+	x info public blit -value
+} {
+	$result == "<undefined>"
+}
+
+test {Info: public variable initial value} {
+	x info public blat -init
+} {
+	$result == 0
+}
+
+test {Info: public variable current value} {
+	x info public blot -value
+} {
+	$result == 1
+}
+
+test {Info: public variable config statement} {
+	x info public blit -config
+} {
+	$result == ""
+}
+
+test {Info: public variable config statement} {
+	x info public blot -config
+} {
+	$result == {global WATCH; set WATCH "blot=$blot"}
+}
+
+# ----------------------------------------------------------------------
+#  CONFIG-ING PUBLIC VARIABLES
+# ----------------------------------------------------------------------
+test {Setting public variables via "config"} {
+	x config -blit 27 -blat xyz
+} {
+	$result == "Foo::blit Foo::blat"
+}
+
+test {Info: public variable init/current value} {
+	x info public blit -init -value
+} {
+	$result == {{} 27}
+}
+
+test {Info: public variable init/current value} {
+	x info public blat -init -value
+} {
+	$result == {0 xyz}
+}
+
+test {"config" is ordinary arg if it is not last arg} {
+	x configx -blit pdq
+} {
+	$result == {-blit|pdq}
+}
+
+test {Public variables with "config" code} {
+	set WATCH ""
+	concat [x config -blot abc] / $WATCH
+} {
+	$result == "Foo::blot / blot=abc"
+}
+
+test {Make sure object data is local to objects} {
+	x config -blit abc
+	xx config -blit xyz
+	concat [x info public blit -value] / [xx info public blit -value]
+} {
+	$result == "abc / xyz"
+}
+
+# ----------------------------------------------------------------------
+#  PROTECTED VARIABLES
+# ----------------------------------------------------------------------
+test {Info: all protected variables} {
+	x info protected
+} {
+	[test_cmp_lists $result {Foo::_blit Foo::_blat Foo::this}]
+}
+
+test {Info: protected "this" variable} {
+	x info protected this -value
+} {
+	$result == "::x"
+}
+
+test {Info: protected "this" variable} {
+	xx info protected this -value
+} {
+	$result == "::xx"
+}
+
+test {Info: protected variable initial value} {
+	x info protected _blit -init
+} {
+	$result == ""
+}
+
+test {Info: protected variable access/value} {
+	x do {set _blit rst}
+} {
+	$result == "Foo says 'rst'" &&
+	[x info protected _blit -value] == "rst"
+}
+
+# ----------------------------------------------------------------------
+#  COMMON VARIABLES
+# ----------------------------------------------------------------------
+test {Info: all protected variables} {
+	x info common
+} {
+	[test_cmp_lists $result {Foo::foos Foo::nfoo}]
+}
+
+test {Info: common variable initial value} {
+	x info common foos -init
+} {
+	$result == ""
+}
+
+test {Info: common variable initial value} {
+	x info common nfoo -init
+} {
+	$result == 0
+}
+
+test {Info: common variable access/value} {
+	x do {set nfoo 999}
+	x info common nfoo -value
+} {
+	$result == 999
+}
+
+test {Make sure common data is really common} {
+	x do {set nfoo 0}
+	x info common nfoo -value
+} {
+	$result == [xx info common nfoo -value]
+}
+
+test {Access common data in proc} {
+	x do {set nfoo 10}
+	Foo :: nfoos
+} {
+	$result == 10
+}
+
+test {Common variables can be initialized within class definition} {
+	x do {if {[info exists foos(_ignore_)]} {set foos(_ignore_)}}
+} {
+	$result == "Foo says 'foos-is-now-an-array'"
+}
+
+test {Arrays as common data} {
+	Foo :: foos
+} {
+	[test_cmp_lists $result [itcl_info objects -class Foo]]
+}
+
+# ----------------------------------------------------------------------
+#  METHODS
+# ----------------------------------------------------------------------
+test {Info: all methods} {
+	x info method
+} {
+	[test_cmp_lists $result {
+		Foo::constructor Foo::destructor
+		Foo::nothing Foo::do Foo::xecho
+		Foo::config Foo::xconfig Foo::configx
+		Foo::testMethodArgs
+		Foo::configure Foo::delete Foo::cget Foo::isa
+	}]
+}
+
+test {Info: method args} {
+	x info method nothing -args
+} {
+	$result == ""
+}
+
+test {Info: method args} {
+	x info method xconfig -args
+} {
+	$result == "x config"
+}
+
+test {Info: method body} {
+	x info method nothing -body
+} {
+	$result == ""
+}
+
+test {Info: method body} {
+	x info method xconfig -body
+} {
+	$result == {
+		return "$x|$config"
+	}
+}
+
+# ----------------------------------------------------------------------
+#  PROCS
+# ----------------------------------------------------------------------
+test {Info: all procs} {
+	x info proc
+} {
+	[test_cmp_lists $result {
+		Foo::echo Foo::foos Foo::nfoos Foo::testProcArgs
+	}]
+}
+
+test {Info: proc args} {
+	x info proc nfoos -args
+} {
+	$result == ""
+}
+
+test {Info: proc args} {
+	x info proc foos -args
+} {
+	$result == "{pattern *}"
+}
+
+test {Info: proc body} {
+	x info proc nfoos -body
+} {
+	$result == {
+		return $nfoo
+	}
+}
+
+test {Info: proc body} {
+	x info body nfoos
+} {
+	$result == {
+		return $nfoo
+	}
+}
+
+# ----------------------------------------------------------------------
+#  ARGUMENT LISTS
+# ----------------------------------------------------------------------
+test {Default arguments can get assigned a proper value} {
+	Foo :: foos x*
+} {
+	[test_cmp_lists $result {x xx}]
+}
+
+test {Default value for "config" argument} {
+	x config
+} {
+	$result == "Foo::blit Foo::blat" &&
+	[x info public blit -value] == "auto" &&
+	[x info public blat -value] == "matic"
+}
+
+test {"args" formal argument absorbs extra arguments} {
+	Foo :: echo abc 1 2 3
+} {
+	$result == "abc | 3: 1 2 3"
+}
+
+test {"args" formal argument absorbs extra arguments} {
+	Foo :: echo def
+} {
+	$result == "def | 0: "
+}
+
+test {"args" formal argument absorbs extra arguments} {
+	x xecho abc 1 2 3
+} {
+	$result == "abc | 3: 1 2 3"
+}
+
+test {"args" formal argument absorbs extra arguments} {
+	x xecho def
+} {
+	$result == "def | 0: "
+}
+
+test {Extra args cause an error} {
+	catch "x configx arg arg error"
+} {
+	$result != 0
+}
+
+test {Extra args cause an error} {
+	catch "x nothing error"
+} {
+	$result != 0
+}
+
+test {Formal arguments don't clobber public/protected variables} {
+	x do {
+		set blit okay
+		set _blit no-problem
+	}
+	x testMethodArgs yuck puke etc.
+} {
+	$result == "yuck, puke, and 1 other args" &&
+	[x info public blit -value] == "okay" &&
+	[x info protected _blit -value] == "no-problem"
+}
+
+test {Formal arguments don't clobber common variables} {
+	Foo :: testProcArgs yuck etc.
+} {
+	$result == "yuck, and 1 other args" &&
+	[x info common nfoo -value] != "yuck"
+}
+
+# ----------------------------------------------------------------------
+#  DELETING OBJECTS
+# ----------------------------------------------------------------------
+test {Delete an object} {
+	x delete
+} {
+	$result == ""
+}
+
+test {Delete an object} {
+	xx delete
+} {
+	$result == ""
+}
+
+test {Destructor is properly invoked} {
+	Foo :: foos
+} {
+	[test_cmp_lists $result [itcl_info objects -class Foo]]
+}
+
+test {Object names are removed as commands} {
+	expr {[info commands x] == "" && [info commands xx] == ""}
+} {
+	$result == 1
+}

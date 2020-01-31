@@ -1,0 +1,50 @@
+package SyncSRAM(SyncSRAMrequest(..), SyncSRAMS(..), SyncSRAMC(..)) where
+import ClientServer
+
+--@ \subsubsection{\te{SyncSRAM}}
+--@ \index{SyncSRAM@\te{SyncSRAM} (package)|textbf}
+--@ 
+--@ The \te{SyncSRAM} package contains definitions of the low level type
+--@ for connecting to synchronous SRAMs.  It is not intended for programming
+--@ with directly; it is only used to interface to internal and external SRAMs.
+
+--@ The \te{SyncSRAMS} type is the type of an SRAM.  An SRAM is a ``server'' in the
+--@ sense that it accepts a request every clock cycle and delivers a response
+--@ every clock cycle.  The type has three parameters, \te{lat}, the latency in clock
+--@ cycles, \te{adrs}, the size of the address, and \te{dtas}, the size of the data.
+--@ \index{SyncSRAMS@\te{SyncSRAMS} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef
+--@   Server#(SyncSRAMrequest#(lat, adrs, dtas), Bit#(dtas))
+--@              SyncSRAMS #(type lat, type adrs, type dtas);
+--@ \end{libverbatim}
+type SyncSRAMS lat adrs dtas = Server (SyncSRAMrequest lat adrs dtas) (Bit dtas)
+
+--@ Correspondingly, \te{SyncSRAMC} is the type of a user (client) of an SRAM.
+--@ \index{SyncSRAMC@\te{SyncSRAMC} (type)|textbf}
+--@ \begin{libverbatim}
+--@ typedef
+--@   Client#(SyncSRAMrequest#(lat, adrs, dtas), Bit#(dtas))
+--@              SyncSRAMC #(type lat, type adrs, type dtas);
+--@ \end{libverbatim}
+type SyncSRAMC lat adrs dtas = Client (SyncSRAMrequest lat adrs dtas) (Bit dtas)
+
+--@ An SRAM request is simply the wires to the SRAM.
+--@ 
+--@ \note{\te{SyncSRAMrequest} should really be a struct, but we get nice wire names by using an interface.}
+--@ \begin{libverbatim}
+--@ interface (SyncSRAMrequest :: # -> # -> # -> *) #(type lat, type adrs, type dtas);
+--@     method Bit#(adrs) addr();
+--@     method Bit#(dtas) wdata();
+--@     method Bit#(1) we();
+--@     method Bit#(1) ena();
+--@ endinterface: (SyncSRAMrequest :: # -> # -> # -> *)
+--@ \end{libverbatim}
+interface (SyncSRAMrequest :: # -> # -> # -> *) lat adrs dtas =
+    addr  :: Bit adrs
+    wdata :: Bit dtas
+    we    :: Bit 1
+    ena   :: Bit 1
+
+--@ {\bf Note}, it is important that the latency argument is accurate.  Various SRAM adapters
+--@ rely on the latency information in the type to do the right thing.

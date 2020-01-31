@@ -1,0 +1,82 @@
+#
+# AAA - first test executed in test suite
+# ----------------------------------------------------------------------
+#   AUTHOR:  Michael J. McLennan
+#            Bell Labs Innovations for Lucent Technologies
+#            mmclennan@lucent.com
+#            http://www.tcltk.com/itcl
+#
+#      RCS:  $Id: AAA.test,v 1.1 1998/07/27 18:41:20 stanton Exp $
+# ----------------------------------------------------------------------
+#            Copyright (c) 1993-1998  Lucent Technologies, Inc.
+# ======================================================================
+# See the file "license.terms" for information on usage and
+# redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+# ----------------------------------------------------------------------
+#  SHOULD HAVE A CLEAN SLATE
+# ----------------------------------------------------------------------
+test {No object info (no classes)} {
+	itcl_info classes
+} {
+	$result == ""
+}
+
+test {No object info (no objects)} {
+	itcl_info objects
+} {
+	$result == ""
+}
+
+# ----------------------------------------------------------------------
+#  TEST CLASS AUTO-LOADING
+# ----------------------------------------------------------------------
+test {Force auto-loading through inheritance} {
+	FooBar x
+} {
+	$result == "x"
+}
+
+test {Info: all classes} {
+	itcl_info classes
+} {
+	[test_cmp_lists $result {Foo Bar FooBar}]
+}
+
+test {Info: all classes matching a pattern} {
+	itcl_info classes *oo*
+} {
+	[test_cmp_lists $result {Foo FooBar}]
+}
+
+# ----------------------------------------------------------------------
+#  OBJECT AUTO-NUMBERING
+# ----------------------------------------------------------------------
+test {Create object with auto-naming} {
+	FooBar #auto -blit x
+} {
+	$result == "fooBar0" && [fooBar0 info public blit -value] == "x"
+}
+
+test {Create object with auto-naming} {
+	FooBar #auto -blit y
+} {
+	$result == "fooBar1" && [fooBar1 info public blit -value] == "y"
+}
+
+test {Auto-naming should avoid names already in use} {
+	FooBar fooBar2
+	FooBar fooBar3
+	FooBar fooBar4
+	FooBar #auto
+} {
+	$result == "fooBar5"
+}
+
+test {Destroy all outstanding objects} {
+	foreach obj [itcl_info objects] {
+		$obj delete
+	}
+} {
+	$result == ""
+}

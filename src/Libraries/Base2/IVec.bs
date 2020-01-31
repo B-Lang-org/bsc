@@ -1,0 +1,884 @@
+package IVec(IVec(..),
+	     IVec0(..), IVec1(..), IVec2(..), IVec3(..), IVec4(..), IVec5(..), IVec6(..), IVec7(..),
+	     IVec8(..), IVec9(..), IVec10(..), IVec11(..), IVec12(..), IVec13(..), IVec14(..), IVec15(..),
+	     IVec16(..), IVec32(..), IVec33(..)) where
+import Vector
+
+--@ \subsubsection{IVec}
+--@ \index{IVec@\te{IVec} (package)|textbf}
+--@ 
+--@ (This package is deprecated, since the compiler deficiency mentioned below has been
+--@ rectified, and this workaround is no longer necessary.)
+--@ 
+--@ The \te{IVec} package contains some definitions to work around a deficiency
+--@ in the {\blue} compiler.  The compiler does not allow the type \te{Vector} in
+--@ interfaces for which code is generated.  To make this almost possible this
+--@ package contains types that are isomorphic to \te{Vector} of some small number
+--@ of length (0-16).  There are also conversion functions to and from \te{Vector}.
+--@ The idea is to use the type \te{IVec\it M t} where one would have liked to
+--@ use \te{Vector \it M t}, and then convert to and from this type as appropriate.
+--@ 
+--@ \begin{libverbatim}
+--@ typeclass IVec #(type n, type t)
+--@   dependencies t -> n, n -> t;
+--@     function t#(a) toIVec(Vector#(n, a) x1);
+--@     function Vector#(n, a) fromIVec(t#(a) x1);
+--@ endtypeclass
+--@ \end{libverbatim}
+class IVec n t | t -> n, n -> t where
+    toIVec   :: Vector n a -> t a
+    fromIVec :: t a -> Vector n a
+
+-- 0 --
+interface IVec0 a = { }
+
+instance IVec 0 IVec0
+ where
+  toIVec :: Vector 0 a -> IVec0 a
+  toIVec xs =
+    interface IVec0
+  fromIVec :: IVec0 a -> Vector 0 a
+  fromIVec v =
+	nil
+
+-- 1 --
+interface IVec1 a =
+	_m00	:: a
+
+instance IVec 1 IVec1
+ where
+  toIVec :: Vector 1 a -> IVec1 a
+  toIVec xs =
+    interface IVec1
+	_m00 = xs!!00
+  fromIVec :: IVec1 a -> Vector 1 a
+  fromIVec v =
+	v._m00 :>
+	nil
+
+-- 2 --
+interface IVec2 a =
+	_m00	:: a
+	_m01	:: a
+
+instance IVec 2 IVec2
+ where
+  toIVec :: Vector 2 a -> IVec2 a
+  toIVec xs =
+    interface IVec2
+	_m00 = xs!!00
+	_m01 = xs!!01
+  fromIVec :: IVec2 a -> Vector 2 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	nil
+
+-- 3 --
+interface IVec3 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+
+instance IVec 3 IVec3
+ where
+  toIVec :: Vector 3 a -> IVec3 a
+  toIVec xs =
+    interface IVec3
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+  fromIVec :: IVec3 a -> Vector 3 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	nil
+
+-- 4 --
+interface IVec4 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+
+instance IVec 4 IVec4
+ where
+  toIVec :: Vector 4 a -> IVec4 a
+  toIVec xs =
+    interface IVec4
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+  fromIVec :: IVec4 a -> Vector 4 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	nil
+
+-- 5 --
+interface IVec5 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+
+instance IVec 5 IVec5
+ where
+  toIVec :: Vector 5 a -> IVec5 a
+  toIVec xs =
+    interface IVec5
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+  fromIVec :: IVec5 a -> Vector 5 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	nil
+
+-- 6 --
+interface IVec6 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+
+instance IVec 6 IVec6
+ where
+  toIVec :: Vector 6 a -> IVec6 a
+  toIVec xs =
+    interface IVec6
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+  fromIVec :: IVec6 a -> Vector 6 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	nil
+
+-- 7 --
+interface IVec7 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+
+instance IVec 7 IVec7
+ where
+  toIVec :: Vector 7 a -> IVec7 a
+  toIVec xs =
+    interface IVec7
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+  fromIVec :: IVec7 a -> Vector 7 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	nil
+
+-- 8 --
+interface IVec8 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+
+instance IVec 8 IVec8
+ where
+  toIVec :: Vector 8 a -> IVec8 a
+  toIVec xs =
+    interface IVec8
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+  fromIVec :: IVec8 a -> Vector 8 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	nil
+
+-- 9 --
+interface IVec9 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+
+instance IVec 9 IVec9
+ where
+  toIVec :: Vector 9 a -> IVec9 a
+  toIVec xs =
+    interface IVec9
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+  fromIVec :: IVec9 a -> Vector 9 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	nil
+
+-- 10 --
+interface IVec10 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+
+instance IVec 10 IVec10
+ where
+  toIVec :: Vector 10 a -> IVec10 a
+  toIVec xs =
+    interface IVec10
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+  fromIVec :: IVec10 a -> Vector 10 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	nil
+
+-- 11 --
+interface IVec11 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+
+instance IVec 11 IVec11
+ where
+  toIVec :: Vector 11 a -> IVec11 a
+  toIVec xs =
+    interface IVec11
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+  fromIVec :: IVec11 a -> Vector 11 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	nil
+
+-- 12 --
+interface IVec12 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+
+instance IVec 12 IVec12
+ where
+  toIVec :: Vector 12 a -> IVec12 a
+  toIVec xs =
+    interface IVec12
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+  fromIVec :: IVec12 a -> Vector 12 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	nil
+
+-- 13 --
+interface IVec13 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+
+instance IVec 13 IVec13
+ where
+  toIVec :: Vector 13 a -> IVec13 a
+  toIVec xs =
+    interface IVec13
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+  fromIVec :: IVec13 a -> Vector 13 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	nil
+
+-- 14 --
+interface IVec14 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+	_m13	:: a
+
+instance IVec 14 IVec14
+ where
+  toIVec :: Vector 14 a -> IVec14 a
+  toIVec xs =
+    interface IVec14
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+	_m13 = xs!!13
+  fromIVec :: IVec14 a -> Vector 14 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	v._m13 :>
+	nil
+
+-- 15 --
+interface IVec15 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+	_m13	:: a
+	_m14	:: a
+
+instance IVec 15 IVec15
+ where
+  toIVec :: Vector 15 a -> IVec15 a
+  toIVec xs =
+    interface IVec15
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+	_m13 = xs!!13
+	_m14 = xs!!14
+  fromIVec :: IVec15 a -> Vector 15 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	v._m13 :>
+	v._m14 :>
+	nil
+
+-- 16 --
+interface IVec16 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+	_m13	:: a
+	_m14	:: a
+	_m15	:: a
+
+instance IVec 16 IVec16
+ where
+  toIVec :: Vector 16 a -> IVec16 a
+  toIVec xs =
+    interface IVec16
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+	_m13 = xs!!13
+	_m14 = xs!!14
+	_m15 = xs!!15
+  fromIVec :: IVec16 a -> Vector 16 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	v._m13 :>
+	v._m14 :>
+	v._m15 :>
+	nil
+
+-- 32 --
+interface IVec32 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+	_m13	:: a
+	_m14	:: a
+	_m15	:: a
+	_m16	:: a
+	_m17	:: a
+	_m18	:: a
+	_m19	:: a
+	_m20	:: a
+	_m21	:: a
+	_m22	:: a
+	_m23	:: a
+	_m24	:: a
+	_m25	:: a
+	_m26	:: a
+	_m27	:: a
+	_m28	:: a
+	_m29	:: a
+	_m30	:: a
+	_m31	:: a
+
+instance IVec 32 IVec32
+ where
+  toIVec :: Vector 32 a -> IVec32 a
+  toIVec xs =
+    interface IVec32
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+	_m13 = xs!!13
+	_m14 = xs!!14
+	_m15 = xs!!15
+	_m16 = xs!!16
+	_m17 = xs!!17
+	_m18 = xs!!18
+	_m19 = xs!!19
+	_m20 = xs!!20
+	_m21 = xs!!21
+	_m22 = xs!!22
+	_m23 = xs!!23
+	_m24 = xs!!24
+	_m25 = xs!!25
+	_m26 = xs!!26
+	_m27 = xs!!27
+	_m28 = xs!!28
+	_m29 = xs!!29
+	_m30 = xs!!30
+	_m31 = xs!!31
+
+  fromIVec :: IVec32 a -> Vector 32 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	v._m13 :>
+	v._m14 :>
+	v._m15 :>
+	v._m16 :>
+	v._m17 :>
+	v._m18 :>
+	v._m19 :>
+	v._m20 :>
+	v._m21 :>
+	v._m22 :>
+	v._m23 :>
+	v._m24 :>
+	v._m25 :>
+	v._m26 :>
+	v._m27 :>
+	v._m28 :>
+	v._m29 :>
+	v._m30 :>
+	v._m31 :>
+	nil
+
+-- 33 --
+interface IVec33 a =
+	_m00	:: a
+	_m01	:: a
+	_m02	:: a
+	_m03	:: a
+	_m04	:: a
+	_m05	:: a
+	_m06	:: a
+	_m07	:: a
+	_m08	:: a
+	_m09	:: a
+	_m10	:: a
+	_m11	:: a
+	_m12	:: a
+	_m13	:: a
+	_m14	:: a
+	_m15	:: a
+	_m16	:: a
+	_m17	:: a
+	_m18	:: a
+	_m19	:: a
+	_m20	:: a
+	_m21	:: a
+	_m22	:: a
+	_m23	:: a
+	_m24	:: a
+	_m25	:: a
+	_m26	:: a
+	_m27	:: a
+	_m28	:: a
+	_m29	:: a
+	_m30	:: a
+	_m31	:: a
+	_m32	:: a
+
+--@ \begin{libverbatim}
+--@ instance IVec #(0, IVec0);
+--@ instance IVec #(1, IVec1);
+--@ instance IVec #(2, IVec2);
+--@ instance IVec #(3, IVec3);
+--@ instance IVec #(4, IVec4);
+--@ instance IVec #(5, IVec5);
+--@ instance IVec #(6, IVec6);
+--@ instance IVec #(7, IVec7);
+--@ instance IVec #(8, IVec8);
+--@ instance IVec #(9, IVec9);
+--@ instance IVec #(10, IVec10);
+--@ instance IVec #(11, IVec11);
+--@ instance IVec #(12, IVec12);
+--@ instance IVec #(13, IVec13);
+--@ instance IVec #(14, IVec14);
+--@ instance IVec #(15, IVec15);
+--@ instance IVec #(16, IVec16);
+--@ instance IVec #(32, IVec32);
+--@ instance IVec #(33, IVec33);
+--@ \end{libverbatim}
+instance IVec 33 IVec33
+ where
+  toIVec :: Vector 33 a -> IVec33 a
+  toIVec xs =
+    interface IVec33
+	_m00 = xs!!00
+	_m01 = xs!!01
+	_m02 = xs!!02
+	_m03 = xs!!03
+	_m04 = xs!!04
+	_m05 = xs!!05
+	_m06 = xs!!06
+	_m07 = xs!!07
+	_m08 = xs!!08
+	_m09 = xs!!09
+	_m10 = xs!!10
+	_m11 = xs!!11
+	_m12 = xs!!12
+	_m13 = xs!!13
+	_m14 = xs!!14
+	_m15 = xs!!15
+	_m16 = xs!!16
+	_m17 = xs!!17
+	_m18 = xs!!18
+	_m19 = xs!!19
+	_m20 = xs!!20
+	_m21 = xs!!21
+	_m22 = xs!!22
+	_m23 = xs!!23
+	_m24 = xs!!24
+	_m25 = xs!!25
+	_m26 = xs!!26
+	_m27 = xs!!27
+	_m28 = xs!!28
+	_m29 = xs!!29
+	_m30 = xs!!30
+	_m31 = xs!!31
+	_m32 = xs!!32
+
+  fromIVec :: IVec33 a -> Vector 33 a
+  fromIVec v =
+	v._m00 :>
+	v._m01 :>
+	v._m02 :>
+	v._m03 :>
+	v._m04 :>
+	v._m05 :>
+	v._m06 :>
+	v._m07 :>
+	v._m08 :>
+	v._m09 :>
+	v._m10 :>
+	v._m11 :>
+	v._m12 :>
+	v._m13 :>
+	v._m14 :>
+	v._m15 :>
+	v._m16 :>
+	v._m17 :>
+	v._m18 :>
+	v._m19 :>
+	v._m20 :>
+	v._m21 :>
+	v._m22 :>
+	v._m23 :>
+	v._m24 :>
+	v._m25 :>
+	v._m26 :>
+	v._m27 :>
+	v._m28 :>
+	v._m29 :>
+	v._m30 :>
+	v._m31 :>
+	v._m32 :>
+	nil

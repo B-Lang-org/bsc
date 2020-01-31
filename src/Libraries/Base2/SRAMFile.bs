@@ -1,0 +1,43 @@
+package SRAMFile(mkSRAMFile) where
+import RegFile
+import GetPut
+import ClientServer
+import SyncSRAM
+
+--@ \subsubsection{\te{SRAMFile}}
+--@ \index{SRAMFile@\te{SRAMFile} (package)|textbf}
+--@ 
+--@ The \te{SRAMFile} package is used to generate
+--@ single ported SRAMs, where the initial contents is taken from a file.
+--@ The arguments specify the file name and the size of the SRAM.
+--@ The SRAM has a one cycle latency.
+--@ \index{mkSRAMFile@\te{mkSRAMFile} (module)|textbf}
+--@ # 1
+mkSRAMFile :: (IsModule m c) => String -> Integer -> m (SyncSRAMS 1 adrs dtas)
+mkSRAMFile file nwords = liftModule $
+    if ((2 ** (valueOf adrs)) < nwords) then error "address width too small"
+    else mkSRAMFile_C file nwords
+
+mkSRAMFile_C :: String -> Integer -> Module (SyncSRAMS 1 adrs dtas)
+mkSRAMFile_C file nwords =
+  module
+--    let mk = if file == "" then mkRegFileWCF else mkRegFileWCFLoad file -- XXX triggers bug #1115
+    let mk = mkRegFileWCFLoad file -- XXX workaround for bug #1115
+    arr :: RegFile (Bit adrs) (Bit dtas) <- mk 0 (fromInteger (nwords-1))
+    out :: Reg (Bit dtas)  <- mkRegU
+    interface -- Server
+	    request =
+	     interface Put
+              put req =
+		if req.ena == 1 then
+		    if req.we == 1 then do
+			arr.upd req.addr req.wdata
+			out := req.wdata
+		    else
+			out := arr.sub req.addr
+		else
+		    out := 0
+	    response =
+	     interface Get
+              get = return out
+

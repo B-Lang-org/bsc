@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Introduction</TITLE>
+<META NAME="description" CONTENT="Introduction">
+<META NAME="keywords" CONTENT="cuddIntro">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cuddIntro.css">
+
+<LINK REL="next" HREF="node2.html">
+<LINK REL="previous" HREF="cuddIntro.html">
+<LINK REL="up" HREF="cuddIntro.html">
+<LINK REL="next" HREF="node2.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html86"
+  HREF="node2.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html82"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html76"
+  HREF="cuddIntro.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html84"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html87"
+  HREF="node2.html">How to Get CUDD</A>
+<B> Up:</B> <A NAME="tex2html83"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html77"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+ &nbsp; <B>  <A NAME="tex2html85"
+  HREF="node8.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00010000000000000000"></A>
+<A NAME="sec:intro"></A>
+<BR>
+Introduction
+</H1>
+
+<P>
+The CUDD package provides functions to manipulate Binary Decision
+Diagrams<A NAME="14"></A> (BDDs) [<A
+ HREF="node7.html#BDD">5</A>,<A
+ HREF="node7.html#BBR">3</A>],
+Algebraic Decision Diagrams<A NAME="16"></A> (ADDs)
+[<A
+ HREF="node7.html#Bahar93">1</A>], and Zero-suppressed Binary Decision
+Diagrams<A NAME="18"></A> (ZDDs)
+[<A
+ HREF="node7.html#Minato93">12</A>]. BDDs are used to represent
+switching<A NAME="20"></A> functions; ADDs are used to
+represent function from <IMG
+ WIDTH="56" HEIGHT="35" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.png"
+ ALT="$\{0,1\}^n$"> to an arbitrary set.  ZDDs
+represent switching<A NAME="21"></A> functions like BDDs;
+however, they are much more efficient than BDDs when the functions to
+be represented are characteristic<A NAME="22"></A>
+functions of cube<A NAME="23"></A> sets, or in general, when the
+ON-set<A NAME="24"></A> of the function to be represented is
+very sparse. They are inferior to BDDs in other cases.
+
+<P>
+The package provides a large set of operations on BDDs, ADDs, and
+ZDDs, functions to convert BDDs into ADDs or ZDDs and vice versa, and
+a large assortment of variable reordering<A NAME="25"></A> methods.
+
+<P>
+The CUDD package can be used in three ways:
+
+<UL>
+<LI>As a black box<A NAME="27"></A>.  In this case, the application
+  program that needs to manipulate decision diagrams only uses the
+  exported functions of the package. The rich set of functions
+  included in the CUDD package allows many applications to be written
+  in this way.  Section&nbsp;<A HREF="node3.html#sec:user">3</A> describes how to use the
+  exported functions of the package. An application written in terms
+  of the exported functions of the package needs not concern itself
+  with the details of variable reordering<A NAME="29"></A>, which may
+  take place behind the scenes.
+Click <A NAME="tex2html1"
+  HREF="cuddExtAbs.html">here</A>
+for a list of the
+  exported functions.
+</LI>
+<LI>As a clear box<A NAME="32"></A>. When writing a sophisticated
+  application based on decision diagrams, efficiency often dictates
+  that some functions be implemented as direct recursive manipulation
+  of the diagrams, instead of being written in terms of existing
+  primitive functions.  Section&nbsp;<A HREF="node4.html#sec:prog">4</A> explains how to add new
+  functions to the CUDD package. It also details how to write a
+  recursive function that can be interrupted by
+  dynamic<A NAME="34"></A> variable reordering.
+Click <A NAME="tex2html2"
+  HREF="cuddAllAbs.html">here</A>
+for a list of the
+  exported and internal functions.
+</LI>
+<LI>Through an interface. Object-oriented languages like C++ and
+  Perl5 can free the programmer from the burden of memory management.
+  A C++ interface is included in the distribution of CUDD. It
+  automatically frees decision diagrams that are no longer used by the
+  application and overloads operators. Almost all the functionality
+  provided by the CUDD exported functions is available through the C++
+  interface, which is especially recommended for fast prototyping.
+  Section&nbsp;<A HREF="node5.html#sec:cpp">5</A> explains how to use the interface. A Perl5
+  interface also exists and is ditributed separately. (See
+  Section&nbsp;<A HREF="node2.html#sec:getFriends">2.2</A>.) Some applications define their own
+  interfaces. See for example Section&nbsp;<A HREF="node3.html#sec:sis-vis">3.18</A>.
+</LI>
+</UL>
+In the following, the reader is supposed to be familiar with the basic
+ideas about decision diagrams, as found, for instance, in [<A
+ HREF="node7.html#BBR">3</A>].
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html86"
+  HREF="node2.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html82"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html76"
+  HREF="cuddIntro.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html84"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html87"
+  HREF="node2.html">How to Get CUDD</A>
+<B> Up:</B> <A NAME="tex2html83"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html77"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+ &nbsp; <B>  <A NAME="tex2html85"
+  HREF="node8.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+Fabio Somenzi
+2012-02-04
+</ADDRESS>
+</BODY>
+</HTML>

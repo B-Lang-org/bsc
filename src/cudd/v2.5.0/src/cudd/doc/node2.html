@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>How to Get CUDD</TITLE>
+<META NAME="description" CONTENT="How to Get CUDD">
+<META NAME="keywords" CONTENT="cuddIntro">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="cuddIntro.css">
+
+<LINK REL="next" HREF="node3.html">
+<LINK REL="previous" HREF="node1.html">
+<LINK REL="up" HREF="cuddIntro.html">
+<LINK REL="next" HREF="node3.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html98"
+  HREF="node3.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html94"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html88"
+  HREF="node1.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html96"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html99"
+  HREF="node3.html">User's Manual</A>
+<B> Up:</B> <A NAME="tex2html95"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html89"
+  HREF="node1.html">Introduction</A>
+ &nbsp; <B>  <A NAME="tex2html97"
+  HREF="node8.html">Index</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html100"
+  HREF="node2.html#SECTION00021000000000000000">The CUDD Package</A>
+<LI><A NAME="tex2html101"
+  HREF="node2.html#SECTION00022000000000000000">CUDD Friends</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+
+<H1><A NAME="SECTION00020000000000000000"></A>
+<A NAME="sec:getting"></A>
+<BR>
+How to Get CUDD
+</H1>
+
+<P>
+
+<H2><A NAME="SECTION00021000000000000000"></A>
+<A NAME="sec:getCUDD"></A>
+<BR>
+The CUDD Package
+</H2>
+
+<P>
+The CUDD package is available via anonymous FTP<A NAME="46"></A> from
+vlsi.Colorado.EDU.  A compressed tar file named
+<TT>cudd-2.5.0.tar.gz</TT> can be found in directory <TT>pub</TT>.
+Once you have this file,
+<BLOCKQUOTE>
+<TT>gzip<A NAME="50"></A> -dc cudd-2.5.0.tar.gz | tar xvf -
+
+</TT></BLOCKQUOTE>
+will create directory <TT>cudd-2.5.0</TT> and its subdirectories.
+These directories contain the decision diagram package, a few support
+libraries<A NAME="53"></A>, and a toy application based on the
+decision diagram package.  There is a README<A NAME="54"></A> file
+with instructions on configuration<A NAME="55"></A> and
+installation<A NAME="56"></A> in <TT>cudd-2.5.0</TT>.  You can use
+a compiler for either ANSI C or C++.
+
+<P>
+Once you have made the libraries and program, you can type:
+<BLOCKQUOTE>
+<TT>cd nanotrav<A NAME="59"></A> 
+<BR>
+nanotrav -p 1 -autodyn -reordering sifting -trav mult32a.blif
+
+</TT></BLOCKQUOTE>
+This will run a simple-minded FSM traversal program. (On a 2.4 GHz
+Pentium 4<A NAME="61"></A> (TM), it takes about 0.5 s.) The
+output produced by the program can be checked against
+<TT>cudd-2.5.0/nanotrav/mult32a.out</TT>.  More information on the
+<TT>nanotrav<A NAME="63"></A></TT> program can be found in
+<TT>cudd-2.5.0/nanotrav/README<A NAME="64"></A></TT>.
+
+<P>
+If you want to be notified of new releases of the CUDD package, send a
+message to <TT>Fabio@Colorado.EDU</TT>.
+
+<P>
+
+<H2><A NAME="SECTION00022000000000000000"></A>
+<A NAME="sec:getFriends"></A>
+<BR>
+CUDD Friends
+</H2>
+
+<P>
+Two CUDD extensions are available via anonymous FTP<A NAME="68"></A> from
+vlsi.Colorado.EDU.
+
+<UL>
+<LI><I>PerlDD</I> is an object-oriented Perl5 interface to CUDD. It
+  is organized as a standard Perl extension module. The Perl interface
+  is at a somewhat higher level than the C++ interface, but it is not
+  as complete.
+</LI>
+<LI><I>DDcal</I> is a graphic BDD calculator based on CUDD, Perl-Tk,
+  and dot. (See Section&nbsp;<A HREF="node3.html#sec:dump">3.19</A> for information on <I>dot</I>.)
+
+<P>
+</LI>
+</UL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html98"
+  HREF="node3.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="icons/next.png"></A> 
+<A NAME="tex2html94"
+  HREF="cuddIntro.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="icons/up.png"></A> 
+<A NAME="tex2html88"
+  HREF="node1.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="icons/prev.png"></A>  
+<A NAME="tex2html96"
+  HREF="node8.html">
+<IMG WIDTH="43" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="index"
+ SRC="icons/index.png"></A> 
+<BR>
+<B> Next:</B> <A NAME="tex2html99"
+  HREF="node3.html">User's Manual</A>
+<B> Up:</B> <A NAME="tex2html95"
+  HREF="cuddIntro.html">CUDD: CU Decision Diagram</A>
+<B> Previous:</B> <A NAME="tex2html89"
+  HREF="node1.html">Introduction</A>
+ &nbsp; <B>  <A NAME="tex2html97"
+  HREF="node8.html">Index</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+Fabio Somenzi
+2012-02-04
+</ADDRESS>
+</BODY>
+</HTML>
