@@ -409,7 +409,7 @@ namespace BEEV
   //   * Printdepth limit
 
   /** Print a vector of ASTNodes in lisp format */
-  ostream &LispPrintVec(ostream &os, const ASTVec &v, int indentation)
+  ostream &LispPrintVec(ostream &os, const ASTVec &v, int indentation = 0)
   {
     // Print the children
     ASTVec::const_iterator iend = v.end();
@@ -422,7 +422,7 @@ namespace BEEV
 
   ostream &LispPrintVecSpecial(ostream &os, 
 			       const vector<const ASTNode*> &v, 
-			       int indentation)
+			       int indentation = 0)
   {
     // Print the children
     vector<const ASTNode*>::const_iterator iend = v.end();
@@ -659,4 +659,3 @@ namespace BEEV
  		_interior_unique_table.clear();
  	}
 }; // end namespace beev
-
