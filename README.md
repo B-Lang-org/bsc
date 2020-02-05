@@ -142,7 +142,7 @@ For the Verilog simulation, by default it builds with IVERILOG (Icarus
 verilog compiler), a free and open-source Verilog simulator, which you
 can install with:
 
-         $ apt-get  install  iverilog
+	 $ apt-get  install  iverilog
 
 Alternatively, the Makefile shows how you can point it at other
 Verilog simulators such as VCS and VCSI (Synopyss), NCVERILOG and
