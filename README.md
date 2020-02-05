@@ -102,6 +102,10 @@ you can setup the submodules later with a separate command:
         $ git  clone  https://github.com/B-Lang-org/bsc
         $ git  submodule  update  --init  --recursive
 
+Yices requires the gperf perfect hashing library to compile:
+
+        $ apt-get  install  gperf
+
 #### Make the BSC tools
 
 At the top directory of the repository, you can give the following command:
