@@ -91,6 +91,13 @@ Yices currently requires the gperf perfect hashing library to compile:
 
         $ apt-get  install  gperf
 
+Building the BSC tools will also recurse into a directory for the STP
+SMT solver.  This is currently an old snapshot of the STP source code,
+including the code for various libraries that it uses.  In the future,
+this may be replaced with a submodule instantiation of the repository
+for [the STP SMT solver](https://github.com/stp/stp).  When that
+happens, additional requirements from that repository will be added.
+
 #### Get the repository
 
 Clone this repository by running:
