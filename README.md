@@ -80,7 +80,8 @@ and Xft libraries:
 
         $ apt-get  install  libfontconfig1-dev  libxft-dev
 
-Building BSC also requires standard Unix shell and Makefile utilities.
+Building BSC also requires standard Unix shell and Makefile utilities,
+as well as perl generate `ASTKind.{h,cpp}`.
 
 The repository for
 [the Yices SMT Solver](https://github.com/SRI-CSL/yices2)
