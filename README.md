@@ -86,7 +86,10 @@ The repository for
 [the Yices SMT Solver](https://github.com/SRI-CSL/yices2)
 is cloned as a submodule of this repository.  Building the BSC
 tools will recurse into this directory and build the Yices library
-for linking into BSC and Bluetcl. Yices have its own requirements.
+for linking into BSC and Bluetcl. Yices may have its own requirements.
+Yices currently requires the gperf perfect hashing library to compile:
+
+        $ apt-get  install  gperf
 
 #### Get the repository
 
