@@ -77,9 +77,9 @@ BSCBUILDLIBS = \
 	$(STP_LIBS) \
 	$(YICES_LIBS) \
 
-EXTRAWISHLIBS = -lfontconfig -lXft
+EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
-WISHFLAGS = -lhtk -litk -lX11
+WISHFLAGS = -lhtk -litk $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
 
 # -----
