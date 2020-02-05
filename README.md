@@ -78,7 +78,7 @@ the latest version at the time of this writing, which is 8.8.2.
 For building the Bluespec Tcl/Tk shell, you will need the fontconfig
 and Xft libraries:
 
-        $ apt-get  install  libfontconfig1-dev  libxft-dev
+        $ apt-get install libfontconfig1-dev libx11-dev libxft-dev
 
 Building BSC also requires standard Unix shell and Makefile utilities.
 
@@ -89,7 +89,7 @@ tools will recurse into this directory and build the Yices library
 for linking into BSC and Bluetcl. Yices may have its own requirements.
 Yices currently requires the gperf perfect hashing library to compile:
 
-        $ apt-get  install  gperf
+        $ apt-get install gperf
 
 Building the BSC tools will also recurse into a directory for the STP
 SMT solver.  This is currently an old snapshot of the STP source code,
