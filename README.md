@@ -78,7 +78,7 @@ the latest version at the time of this writing, which is 8.8.2.
 For building the Bluespec Tcl/Tk shell, you will need the fontconfig
 and Xft libraries:
 
-        $ apt-get  install  libfontconfig1-dev  libxft-dev
+        $ apt-get  install  libfontconfig1-dev  libx11-dev  libxft-dev
 
 Building BSC also requires standard Unix shell and Makefile utilities.
 
