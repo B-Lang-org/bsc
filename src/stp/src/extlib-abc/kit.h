@@ -486,62 +486,6 @@ static inline void Kit_TruthIthVar( unsigned * pTruth, int nVars, int iVar )
 ///                    FUNCTION DECLARATIONS                         ///
 ////////////////////////////////////////////////////////////////////////
 
-#if 0
-
-/*=== kitBdd.c ==========================================================*/
-extern DdNode *        Kit_SopToBdd( DdManager * dd, Kit_Sop_t * cSop, int nVars );
-extern DdNode *        Kit_GraphToBdd( DdManager * dd, Kit_Graph_t * pGraph );
-extern DdNode *        Kit_TruthToBdd( DdManager * dd, unsigned * pTruth, int nVars, int fMSBonTop );
-/*=== kitCloud.c ==========================================================*/
-extern CloudNode *     Kit_TruthToCloud( CloudManager * dd, unsigned * pTruth, int nVars );
-extern unsigned *      Kit_CloudToTruth( Vec_Int_t * vNodes, int nVars, Vec_Ptr_t * vStore, int fInv );
-extern int             Kit_CreateCloud( CloudManager * dd, CloudNode * pFunc, Vec_Int_t * vNodes );
-extern int             Kit_CreateCloudFromTruth( CloudManager * dd, unsigned * pTruth, int nVars, Vec_Int_t * vNodes );
-extern unsigned *      Kit_TruthCompose( CloudManager * dd, unsigned * pTruth, int nVars, unsigned ** pInputs, int nVarsAll, Vec_Ptr_t * vStore, Vec_Int_t * vNodes );
-extern void            Kit_TruthCofSupports( Vec_Int_t * vBddDir, Vec_Int_t * vBddInv, int nVars, Vec_Int_t * vMemory, unsigned * puSupps );
-/*=== kitDsd.c ==========================================================*/
-extern Kit_DsdMan_t *  Kit_DsdManAlloc( int nVars, int nNodes );
-extern void            Kit_DsdManFree( Kit_DsdMan_t * p );
-extern Kit_DsdNtk_t *  Kit_DsdDeriveNtk( unsigned * pTruth, int nVars, int nLutSize );
-extern unsigned *      Kit_DsdTruthCompute( Kit_DsdMan_t * p, Kit_DsdNtk_t * pNtk );
-extern void            Kit_DsdTruth( Kit_DsdNtk_t * pNtk, unsigned * pTruthRes );
-extern void            Kit_DsdTruthPartial( Kit_DsdMan_t * p, Kit_DsdNtk_t * pNtk, unsigned * pTruthRes, unsigned uSupp );
-extern void            Kit_DsdTruthPartialTwo( Kit_DsdMan_t * p, Kit_DsdNtk_t * pNtk, unsigned uSupp, int iVar, unsigned * pTruthCo, unsigned * pTruthDec );
-extern void            Kit_DsdPrint( FILE * pFile, Kit_DsdNtk_t * pNtk );
-extern void            Kit_DsdPrintExpanded( Kit_DsdNtk_t * pNtk );
-extern void            Kit_DsdPrintFromTruth( unsigned * pTruth, int nVars );
-extern Kit_DsdNtk_t *  Kit_DsdDecompose( unsigned * pTruth, int nVars );
-extern Kit_DsdNtk_t *  Kit_DsdDecomposeExpand( unsigned * pTruth, int nVars );
-extern Kit_DsdNtk_t *  Kit_DsdDecomposeMux( unsigned * pTruth, int nVars, int nDecMux );
-extern void            Kit_DsdVerify( Kit_DsdNtk_t * pNtk, unsigned * pTruth, int nVars );
-extern void            Kit_DsdNtkFree( Kit_DsdNtk_t * pNtk );
-extern int             Kit_DsdNonDsdSizeMax( Kit_DsdNtk_t * pNtk );
-extern unsigned        Kit_DsdNonDsdSupports( Kit_DsdNtk_t * pNtk );
-extern unsigned        Kit_DsdGetSupports( Kit_DsdNtk_t * p );
-extern Kit_DsdNtk_t *  Kit_DsdExpand( Kit_DsdNtk_t * p );
-extern Kit_DsdNtk_t *  Kit_DsdShrink( Kit_DsdNtk_t * p, int pPrios[] );
-extern void            Kit_DsdRotate( Kit_DsdNtk_t * p, int pFreqs[] );
-extern int             Kit_DsdCofactoring( unsigned * pTruth, int nVars, int * pCofVars, int nLimit, int fVerbose );
-/*=== kitFactor.c ==========================================================*/
-extern Kit_Graph_t *   Kit_SopFactor( Vec_Int_t * vCover, int fCompl, int nVars, Vec_Int_t * vMemory );
-/*=== kitGraph.c ==========================================================*/
-extern Kit_Graph_t *   Kit_GraphCreate( int nLeaves );   
-extern Kit_Graph_t *   Kit_GraphCreateConst0();   
-extern Kit_Graph_t *   Kit_GraphCreateConst1();   
-extern Kit_Graph_t *   Kit_GraphCreateLeaf( int iLeaf, int nLeaves, int fCompl );   
-extern void            Kit_GraphFree( Kit_Graph_t * pGraph );   
-extern Kit_Node_t *    Kit_GraphAppendNode( Kit_Graph_t * pGraph );   
-extern Kit_Edge_t      Kit_GraphAddNodeAnd( Kit_Graph_t * pGraph, Kit_Edge_t eEdge0, Kit_Edge_t eEdge1 );
-extern Kit_Edge_t      Kit_GraphAddNodeOr( Kit_Graph_t * pGraph, Kit_Edge_t eEdge0, Kit_Edge_t eEdge1 );
-extern Kit_Edge_t      Kit_GraphAddNodeXor( Kit_Graph_t * pGraph, Kit_Edge_t eEdge0, Kit_Edge_t eEdge1, int Type );
-extern Kit_Edge_t      Kit_GraphAddNodeMux( Kit_Graph_t * pGraph, Kit_Edge_t eEdgeC, Kit_Edge_t eEdgeT, Kit_Edge_t eEdgeE, int Type );
-extern unsigned        Kit_GraphToTruth( Kit_Graph_t * pGraph );
-extern Kit_Graph_t *   Kit_TruthToGraph( unsigned * pTruth, int nVars, Vec_Int_t * vMemory );
-extern int             Kit_GraphLeafDepth_rec( Kit_Graph_t * pGraph, Kit_Node_t * pNode, Kit_Node_t * pLeaf );
-/*=== kitHop.c ==========================================================*/
-//extern Hop_Obj_t *     Kit_GraphToHop( Hop_Man_t * pMan, Kit_Graph_t * pGraph );
-//extern Hop_Obj_t *     Kit_TruthToHop( Hop_Man_t * pMan, unsigned * pTruth, int nVars, Vec_Int_t * vMemory );
-//extern Hop_Obj_t *     Kit_CoverToHop( Hop_Man_t * pMan, Vec_Int_t * vCover, int nVars, Vec_Int_t * vMemory );
 /*=== kitIsop.c ==========================================================*/
 extern int             Kit_TruthIsop( unsigned * puTruth, int nVars, Vec_Int_t * vMemory, int fTryBoth );
 /*=== kitSop.c ==========================================================*/
@@ -588,7 +532,6 @@ extern char *          Kit_TruthDumpToFile( unsigned * pTruth, int nVars, int nF
 
 #ifdef __cplusplus
 }
-#endif
 
 #endif
 #endif
