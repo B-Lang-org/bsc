@@ -80,10 +80,7 @@ and Xft libraries:
 
         $ apt-get  install  libfontconfig1-dev  libx11-dev  libxft-dev
 
-Building BSC also requires standard Unix shell and Makefile utilities,
-including flex and bison:
-
-        $ apt-get  install  flex  bison
+Building BSC also requires standard Unix shell and Makefile utilities.
 
 The repository for
 [the Yices SMT Solver](https://github.com/SRI-CSL/yices2)
@@ -101,6 +98,9 @@ this may be replaced with a submodule instantiation of the repository
 for [the STP SMT solver](https://github.com/stp/stp).  When that
 happens, additional requirements from that repository will be added.
 The current snapshot requires Perl, to generate two source files.
+It also needs flex and bison:
+
+        $ apt-get  install  flex  bison
 
 #### Get the repository
 
