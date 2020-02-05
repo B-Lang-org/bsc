@@ -97,6 +97,7 @@ including the code for various libraries that it uses.  In the future,
 this may be replaced with a submodule instantiation of the repository
 for [the STP SMT solver](https://github.com/stp/stp).  When that
 happens, additional requirements from that repository will be added.
+The current snapshot requires Perl, to generate two source files.
 
 #### Get the repository
 
