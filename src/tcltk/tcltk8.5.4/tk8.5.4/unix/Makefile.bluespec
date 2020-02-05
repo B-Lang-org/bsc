@@ -12,7 +12,7 @@ include $(TOP)/platform.mk
 all: install
 
 install: libtk8.5.a
-	make -f Makefile install
+	$(MAKE) -f Makefile install
 
 #CFG_FLAGS = -disable-load --disable-shared
 CFG_FLAGS = --enable-xft --disable-xss --disable-shared
@@ -25,9 +25,9 @@ Makefile: Makefile.bluespec
 	./configure $(CFG_FLAGS)
 
 libtk8.5.a: Makefile
-	make -f Makefile $@ wish
+	$(MAKE) -f Makefile $@ wish
 
 clean:
-	-(if `test -f Makefile` ; then make -f Makefile clean; fi)
+	-(if `test -f Makefile` ; then $(MAKE) -f Makefile clean; fi)
 	rm -f tkConfig.sh config.log config.status config.cache dltest/Makefile	wish
 	rm -f Makefile

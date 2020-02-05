@@ -9,7 +9,7 @@ VERSION = v2.6
 all: install
 
 install:
-	make -C $(VERSION) install
+	$(MAKE) -C $(VERSION) install
 	ln -fsT $(VERSION)/include    include
 	ln -fsT $(VERSION)/lib        lib
 	ln -fsT $(VERSION)/include_hs include_hs
@@ -17,9 +17,9 @@ install:
 	install -m 644 lib/* $(PREFIX)/lib/SAT
 
 clean:
-	make -C $(VERSION) clean
+	$(MAKE) -C $(VERSION) clean
 
 full_clean:
-	make -C $(VERSION) full_clean
+	$(MAKE) -C $(VERSION) full_clean
 	rm -f include lib include_hs
 

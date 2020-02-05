@@ -18,15 +18,15 @@ Makefile:
 
 libitk3.4.a: Makefile
 	WISH_PROG=../tcltk8.5.4/tk8.5.4/unix/wish \
-	make -f Makefile  libitk3.4.a
+	$(MAKE) -f Makefile  libitk3.4.a
 
 .PHONY: install
 install: libitk3.4.a
-	 make -f Makefile.bluespec -C library LIBDIR=$(INSTALLDIR) $@
+	 $(MAKE) -f Makefile.bluespec -C library LIBDIR=$(INSTALLDIR) $@
 
 .PHONY: clean full_clean
 clean full_clean:
-	if test -f Makefile; then make -f Makefile clean; fi
+	if test -f Makefile; then $(MAKE) -f Makefile clean; fi
 	-rm -f config.log config.status  pkgIndex.tcl itkConfig.sh
 	-rm -f Makefile
 	-rm -rf tclconfig
