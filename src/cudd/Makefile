@@ -10,12 +10,12 @@ $(INSTDIRS):
 	mkdir -p $@
 
 install: $(INSTDIRS)
-	make -C ${VERSION}
+	$(MAKE) -C ${VERSION}
 
 clean:
-	make -C ${VERSION} clean
+	$(MAKE) -C ${VERSION} clean
 
 full_clean:
-	make -C ${VERSION} full_clean
+	$(MAKE) -C ${VERSION} full_clean
 	rm -rf $(INSTDIRS)
 

@@ -14,8 +14,8 @@ install:
 	(cd $(YICES_SRC) ; \
 		autoconf ; \
 		./configure --prefix=$(YICES_INST) ; \
-		make ; \
-		make install \
+		$(MAKE); \
+		$(MAKE) install \
 		)
 	ln -fsT $(YICES_INST)/include include
 	ln -fsT $(YICES_INST)/lib lib
@@ -23,7 +23,7 @@ install:
 
 .PHONY: clean
 clean:
-	make -C $(YICES_SRC) all-clean
+	$(MAKE) -C $(YICES_SRC) all-clean
 
 .PHONY: full_clean
 full_clean: clean

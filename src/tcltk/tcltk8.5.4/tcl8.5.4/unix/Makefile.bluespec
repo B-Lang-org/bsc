@@ -32,27 +32,27 @@ DEBUGCONFIGFLAGS += --disable-load --disable-shared  --enable-symbols
 
 ## -----
 install: libtcl8.5.a
-	make -f Makefile install
+	$(MAKE) -f Makefile install
 
 Makefile: Makefile.bluespec
 	./configure $(CONFIGFLAGS)
 
 libtcl8.5.a: Makefile
-	make -f Makefile libtcl8.5.a
+	$(MAKE) -f Makefile libtcl8.5.a
 
 XXlibtcl8.5.a: Makefile
-	make -f Makefile libtcl8.5g.a
+	$(MAKE) -f Makefile libtcl8.5g.a
 	cp -f libtcl8.5g.a libtcl8.5.a
 
 debugsh:
 	rm -f Makefile
 	./configure  $(DEBUGCONFIGFLAGS)
 	sleep 2;
-	make -f Makefile tclsh
+	$(MAKE) -f Makefile tclsh
 	rm -f Makefile
 
 debuglib:
-	make -f Makefile
+	$(MAKE) -f Makefile
 	cp -f libtcl8.5g.a libtcl8.5.a
 
 .PHONY: TAGS
@@ -60,6 +60,6 @@ TAGS:
 	etags *.{c,h} ../generic/*.{c,h}
 
 clean: 
-	-(if `test -f Makefile` ; then make -f Makefile clean; fi)
+	-(if `test -f Makefile` ; then $(MAKE) -f Makefile clean; fi)
 	rm -f tclConfig.sh config.log config.status config.cache dltest/Makefile TAGS
 	rm -f Makefile
