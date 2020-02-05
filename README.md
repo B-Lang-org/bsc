@@ -138,6 +138,19 @@ commands to execute the smoke test:
 	 $ cd examples/smoke_test/
 	 $ make smoke_test
 
+For the Verilog simulation, by default it builds with IVERILOG (Icarus
+verilog compiler), a free and open-source Verilog simulator, which you
+can install with:
+
+	$ apt-get  install  iverilog
+
+Alternatively, the Makefile shows how you can point it at other
+Verilog simulators such as VCS and VCSI (Synopyss), NCVERILOG and
+NCSIM (Cadence) and MODELSIM (Mentor), and CVC.
+
+Many people also routinely use VERILATOR to compile and simulate
+bsc-generated Verilog.
+
 ----------------------------------------------------------------
 
 ### Running BSC
