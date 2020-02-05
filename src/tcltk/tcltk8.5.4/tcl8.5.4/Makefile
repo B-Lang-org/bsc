@@ -14,8 +14,8 @@ all: install
 
 .PHONY: install
 install: 
-	make -C unix -f Makefile.bluespec
-	make -C library LIBDIR=$(INSTALLDIR) -f Makefile.bluespec $@
+	$(MAKE) -C unix -f Makefile.bluespec
+	$(MAKE) -C library LIBDIR=$(INSTALLDIR) -f Makefile.bluespec $@
 
 .PHONY: clean
 clean :
