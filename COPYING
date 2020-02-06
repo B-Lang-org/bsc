@@ -2,12 +2,6 @@ The files in this repository are copyright as indicated below (except
 when indicated otherwise in the file itself) and are licensed as
 indicated below, with the following exceptions:
 
-* CUDD - University of Colorado (CU) Desicion Diagram package
-  * The files in src/cudd/v2.5.0/ are adapted from a snapshot of CUDD
-  * See LICENSES/LICENSE.cudd
-  * The source and license were downloaded on 2012-04-04 from:
-    http://vlsi.colorado.edu/~fabio/CUDD/
-
 * STP - Constraint solver
   * The files in src/stp/src/ are adapted from a snapshot of STP
   * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
