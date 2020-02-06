@@ -9,7 +9,7 @@ all: install
 
 install:
 	$(MAKE) -C $(SRC) install
-	ln -fsT HaskellIfc include_hs
+	ln -fsn HaskellIfc include_hs
 	install -m 755 -d $(PREFIX)/lib/SAT
 	install -m 644 lib/* $(PREFIX)/lib/SAT
 

@@ -10,9 +10,9 @@ all: install
 
 install:
 	$(MAKE) -C $(VERSION) install
-	ln -fsT $(VERSION)/include    include
-	ln -fsT $(VERSION)/lib        lib
-	ln -fsT $(VERSION)/include_hs include_hs
+	ln -fsn $(VERSION)/include
+	ln -fsn $(VERSION)/lib
+	ln -fsn $(VERSION)/include_hs
 	install -m 755 -d $(PREFIX)/lib/SAT
 	install -m 644 lib/* $(PREFIX)/lib/SAT
 

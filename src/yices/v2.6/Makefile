@@ -17,9 +17,9 @@ install:
 		$(MAKE); \
 		$(MAKE) install \
 		)
-	ln -fsT $(YICES_INST)/include include
-	ln -fsT $(YICES_INST)/lib lib
-	ln -fsT HaskellIfc include_hs
+	ln -fsn $(YICES_INST)/include
+	ln -fsn $(YICES_INST)/lib
+	ln -fsn HaskellIfc include_hs
 
 .PHONY: clean
 clean:
