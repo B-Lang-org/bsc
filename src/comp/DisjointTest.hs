@@ -33,18 +33,13 @@ import qualified AExpr2STP as STP
 import qualified AExpr2Yices as Yices
          (YState, initYState, addADefToYState,
           checkDisjointRulePair, checkDisjointExpr)
-import qualified AExpr2Bdd as BDD
-         (BddBuilder, initBDDState, addADefToBDDState,
-          checkDisjointRulePair, checkDisjointExpr)
-
 
 -- -------------------------
 
 type RuleDisjointTest = ARuleId -> ARuleId -> Bool
 
 -- A single data type for either of the disjoint-testing state
-data DisjointTestState = DTS_BDD   DSupportMap (BDD.BddBuilder AId)
-                       | DTS_Yices DSupportMap Yices.YState
+data DisjointTestState = DTS_Yices DSupportMap Yices.YState
                        | DTS_STP   DSupportMap STP.SState
 
 -- -------------------------
@@ -56,9 +51,6 @@ initDisjointTestState ::
 initDisjointTestState str errh flags ds avis rs = do
     let supportMap = buildSupportMap ds avis rs
     case (satBackend flags) of
-      SAT_CUDD -> do
-          bdd_state <- BDD.initBDDState errh flags True ds avis rs
-          return (DTS_BDD supportMap bdd_state)
       SAT_Yices -> do
           yices_state <- Yices.initYState str flags True ds avis rs
           return (DTS_Yices supportMap yices_state)
@@ -69,9 +61,6 @@ initDisjointTestState str errh flags ds avis rs = do
 
 addADefToDisjointTestState :: DisjointTestState -> [ADef] ->
                               IO DisjointTestState
-addADefToDisjointTestState (DTS_BDD m bdd_state) ds = do
-    bdd_state' <- BDD.addADefToBDDState bdd_state ds
-    return (DTS_BDD m bdd_state')
 addADefToDisjointTestState (DTS_Yices m yices_state) ds = do
     yices_state' <- Yices.addADefToYState yices_state ds
     return (DTS_Yices m yices_state')
@@ -83,9 +72,6 @@ addADefToDisjointTestState (DTS_STP m stp_state) ds = do
 
 checkDisjointExpr :: DisjointTestState -> AExpr -> AExpr ->
                      IO (Maybe Bool, DisjointTestState)
-checkDisjointExpr (DTS_BDD m bdd_state) e1 e2 = do
-    (res, bdd_state') <- BDD.checkDisjointExpr bdd_state e1 e2
-    return (res, DTS_BDD m bdd_state')
 checkDisjointExpr (DTS_Yices m yices_state) e1 e2 = do
     (res, yices_state') <- Yices.checkDisjointExpr yices_state e1 e2
     return (res, DTS_Yices m yices_state')
@@ -168,9 +154,6 @@ checkDisjointRulePairTop s p = do
 
 checkDisjointRulePair :: DisjointTestState -> (ARuleId, ARuleId) ->
                          IO (Maybe Bool, DisjointTestState)
-checkDisjointRulePair s@(DTS_BDD m bdd_state) p = do
-    (res, bdd_state') <- BDD.checkDisjointRulePair bdd_state p
-    return (res, DTS_BDD m bdd_state')
 checkDisjointRulePair s@(DTS_Yices m yices_state) p = do
     (res, yices_state') <- Yices.checkDisjointRulePair yices_state p
     return (res, DTS_Yices m yices_state')
@@ -301,7 +284,6 @@ buildSupportMap adefs avis rs = --trace ("XXX support map:" ++ ppReadable res) $
 
 -- -------------------------
 getSupportMap :: DisjointTestState -> DSupportMap
-getSupportMap (DTS_BDD m _)   = m
 getSupportMap (DTS_Yices m _) = m
 getSupportMap (DTS_STP m _)   = m
 

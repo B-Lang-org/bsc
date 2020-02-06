@@ -533,12 +533,10 @@ instance Bin Verbosity where
     readBytes    = return Normal
 
 instance Bin SATFlag where
-    writeBytes SAT_CUDD = putI 0
     writeBytes SAT_Yices = putI 1
     writeBytes SAT_STP = putI 2
     readBytes = do i <- getI
                    case i of
-                     0 -> return SAT_CUDD
                      1 -> return SAT_Yices
                      2 -> return SAT_STP
                      n -> internalError $ "GenABin.Bin(SATFlag).readBytes: " ++ show n

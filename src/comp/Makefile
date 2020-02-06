@@ -53,12 +53,6 @@ TCL_HS       = ../tcltk/HaskellTcl
 TCL_ARGS  = -I$(TCL_HS) -L$(TCL_HS)
 TCL_LIBS  = -lhtcl -litcl
 
-# CUDD
-CUDD_HS      = ../cudd/include_hs
-CUDD_ARGS = -I../cudd/include -L../cudd/lib
-CUDD_LIBS = -lhcudd -lcudd \
-               -lcudd_mtr -lcudd_st -lcudd_epd -lcudd_util
-
 # STP
 STP_HS      = ../stp/include_hs
 STP_ARGS = -I../stp/include -L../stp/lib
@@ -73,7 +67,6 @@ YICES_LIBS = -lyices
 # and which shouldn't be used to build other Haskell binaries
 BSCBUILDLIBS = \
 	$(TCL_LIBS) \
-	$(CUDD_LIBS) \
 	$(STP_LIBS) \
 	$(YICES_LIBS) \
 
@@ -216,7 +209,6 @@ GHCRTSFLAGS = +RTS -M3G -A128m -RTS
 GHCINCLUDES =  \
 	-iGHC -iGHC/posix -iLibs \
 	-i$(PARSEC_HS) \
-	-i$(CUDD_HS) \
 	-i$(STP_HS) \
 	-i$(YICES_HS) \
 	-i$(TCL_HS)
@@ -235,7 +227,6 @@ GHCFLAGS = \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \
 	$(TCL_ARGS) \
-	$(CUDD_ARGS) \
 	$(STP_ARGS) \
 	$(YICES_ARGS) \
 	'-pgmc ./gcc-script.sh'
@@ -274,7 +265,6 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	Libs/*.hs \
 	GHC/*.hs GHC/posix/*.hs \
 	$(PARSEC_HS)/*.hs \
-	$(CUDD_HS)/*.hs \
 	$(STP_HS)/*.hs \
 	$(YICES_HS)/*.hs \
 	$(TCL_HS)/*.hs
@@ -485,7 +475,7 @@ install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 # Other targets
 
 tags:   *hs */*hs bluewish.hs
-	$(FIND) . $(PARSEC_HS) $(CUDD_HS) $(STP_HS) $(YICES_HS) $(TCL_HS) \
+	$(FIND) . $(PARSEC_HS) $(STP_HS) $(YICES_HS) $(TCL_HS) \
 		-type f -name \*hs | xargs hasktags
 	mv tags tags.tmpfile
 	sort tags.tmpfile > tags

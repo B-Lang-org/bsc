@@ -294,8 +294,7 @@ data ResourceFlag
        deriving (Eq, Show)
 
 data SATFlag
-       = SAT_CUDD
-       | SAT_Yices
+       = SAT_Yices
        | SAT_STP
        deriving (Eq, Show)
 

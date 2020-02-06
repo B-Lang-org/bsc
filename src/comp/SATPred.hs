@@ -39,7 +39,6 @@ initSATPredState flags = do
       SAT_Yices -> do
         yices_state <- Yices.initYState
         return (SATPredS_Yices yices_state)
-      SAT_CUDD -> return SATPredS_Unimp
 -}
 
 -- -------------------------
