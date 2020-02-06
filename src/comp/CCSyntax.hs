@@ -429,10 +429,8 @@ rprec (COp _ _ r _) = r
 
 -- MUST leave 1 number between each precedence level
 -- to allow room for the associativity biasing.
-unarylOp p s = COp (2*p)   (2*p) 0       s
 unaryrOp p s = COp 0       (2*p) (2*p)   s
 infixlOp p s = COp (2*p+1) (2*p) (2*p)   s
-infixrOp p s = COp (2*p)   (2*p) (2*p+1) s
 
 -- operator table arranged into descending precedence groups
 
@@ -445,7 +443,6 @@ oCompl   = unaryrOp 16 "~"
 oNot     = unaryrOp 16 "!"
 oUMinus  = unaryrOp 16 "-"
 oUPlus   = unaryrOp 16 "+"
-oCast    = unaryrOp 16 "()"
 
 oMul     = infixlOp 14 "*"
 oQuot    = infixlOp 14 "/"
