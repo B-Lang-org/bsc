@@ -45,14 +45,14 @@ evens :: ((a, a) -> (b,b)) -> List a -> List b
 evens r = unpairs · map r · pairs
 
 bfly :: ((a, a) -> (a, a)) -> Integer -> List a -> List a
-bfly r 0 = id
+bfly _ 0 = id
 bfly r n = evens r · ilv (bfly r (n-1))
 
 sndList :: (List a -> List a) -> List a -> List a
 sndList f = unhalve · papply (id, f) · halve
 
 sorter :: ((a, a) -> (a, a)) -> Integer -> List a -> List a
-sorter cmp 0 = id
+sorter _ 0 = id
 sorter cmp n = bfly cmp n · sndList reverse · two (sorter cmp (n-1))
 
 cmpSwap :: (a -> a -> Bool) -> (a, a) -> (a, a)

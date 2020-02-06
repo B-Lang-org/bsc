@@ -45,7 +45,7 @@ instance Literal (UIntRange lo hi)
 		error ("UIntRange: literal out of range: " +++ integerToString i)
 	    else
 		U (fromInteger i)
-        inLiteralRange a i = i >= valueOf lo && i <= valueOf hi
+        inLiteralRange _ i = i >= valueOf lo && i <= valueOf hi
 
 --@ \lineup
 --@ \begin{libverbatim}

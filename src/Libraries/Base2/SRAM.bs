@@ -63,7 +63,6 @@ wrapSRAM =
     rds :: ShiftReg lat1 Bool	<- mkShiftReg False		-- read requests in SRAM
 
     let hasSpace = cnt.value > 0
-	setNext w = wen := w
 
     rules
           {-# ASSERT no implicit conditions #-}
@@ -104,12 +103,12 @@ wrapSRAM =
 		  act.setA 1
 		  adr := (pack $ case req of
 				  Read a -> a
-				  Write (address, value) -> address
+				  Write (address, _) -> address
                          )
 
 		  dta := (pack $ case req of
-				  Read a -> _
-				  Write (address, value) -> value
+				  Read _ -> _
+				  Write (_, value) -> value
                          )
 
 		  wen := (case req of
@@ -143,7 +142,7 @@ mkShiftReg i =
     sr :: Reg (Vector n a) <- mkReg (map (const i) genList)
     interface -- ShiftReg
 	    output = last sr
-	    shift i = sr := (i :> init sr)
+	    shift s = sr := (s :> init sr)
 
 --@ Both the \te{mkWrapSRAM} and \te{wrapSRAM} modules add two cycles of 
 --@ latency to the SRAM latency.  The reason for this is that the raw interface

@@ -125,19 +125,19 @@ mkGetCPut =
 
         bubble :: (Action, Vector n Bool)
         bubble = let f :: (Integer, Bool, Action) -> (Reg Bool, Bool, Reg (Bit sa)) -> ((Integer, Bool, Action), Bool)
-                     f (idx, filled, updates) (p, pe, b) =
+                     f (idx, filled, upds) (p, pe, b) =
                        (
                         (idx-1
                         ,
                          filled && pe
                         ,
-                         action {updates; if not (filled && pe) then (if idx /= 0 then action {p := presentEffective !! (idx-1); b := (buff !! (idx-1))._read} else action {p := False}) else action {}}
+                         action {upds; if not (filled && pe) then (if idx /= 0 then action {p := presentEffective !! (idx-1); b := (buff !! (idx-1))._read} else action {p := False}) else action {}}
                         )
                        ,
                         if not (filled && pe) then (if idx /= 0 then presentEffective !! (idx-1) else False) else pe
                        )
-                     ((_, _, updates), presentNext) = mapAccumR f (valueOf n - 1, True, action {}) (zip3 present presentEffective buff)
-                 in (updates, presentNext)
+                     ((_, _, b_updates), b_presentNext) = mapAccumR f (valueOf n - 1, True, action {}) (zip3 present presentEffective buff)
+                 in (b_updates, b_presentNext)
         presentNext :: Vector n Bool
         presentNext = bubble.snd
         updates :: Action

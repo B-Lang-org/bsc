@@ -98,7 +98,7 @@ flatN n Nil = 0
 flatN n (Cons b bs) = (zeroExtend b << fromInteger (vsize * valueOf k)) | flatN (vsize+1) bs
 -}
 flatN :: Integer -> List (Bit k) -> Bit m
-flatN n Nil = 0
+flatN _ Nil = 0
 flatN n (Cons b bs) = (b[(valueOf k - 1):0] << (n * valueOf k)) | flatN (n+1) bs
 
 grabN :: Integer -> Integer -> Bit m -> List (Bit k)
@@ -271,7 +271,7 @@ update = primUpdateFn (getStringPosition "")
 --X   provisos (Add#(1, xxx, vsize));  // vsize >= 1 
 --X \end{libverbatim}
 head :: (Add 1 m n) => ListN n a -> a
-head (L (Cons x xs)) = x
+head (L (Cons x _)) = x
 
 --X \index{last@\te{last} (\te{ListN} function)}
 --X \begin{libverbatim}
@@ -291,7 +291,7 @@ last (L xs) = List.last xs
 --X   provisos (Add#(1, vsize, vsize1)); 
 --X \end{libverbatim}
 tail :: (Add 1 m n) => ListN n a -> ListN m a
-tail (L (Cons x xs)) = L xs
+tail (L (Cons _ xs)) = L xs
 
 
 --X \index{init@\te{init} (\te{ListN} function)}
@@ -644,9 +644,7 @@ reverse (L xs) = L (List.reverse xs)
 --X          transpose ( ListN#(n,ListN#(m,a_type)) matrx );
 --X \end{libverbatim}
 transpose :: ListN m (ListN n a) -> ListN n (ListN m a)
-transpose (L ls) =
-    letseq unL (L xs) = xs
-    in  L (List.map (\ xs -> L xs) (List.transpose (List.map unL ls)))
+transpose (L ls) =  L (List.map (\xs -> L xs) (List.transpose (List.map unL ls)))
 
 --X Matrix transposition of a ListN of Lists.
 --X \index{transposeLN@\te{transposeLN} (\te{ListN} function)}
@@ -655,9 +653,7 @@ transpose (L ls) =
 --X          transposeLN( List#(ListN#(vsize, a_type)) lvs );
 --X \end{libverbatim}
 transposeLN :: List (ListN n a) -> ListN n (List a)
-transposeLN ls =
-    letseq unL (L xs) = xs
-    in  L (List.transpose (List.map unL ls))
+transposeLN ls =  L (List.transpose (List.map unL ls))
 
 --------------------------------------------------------------------------------
 
