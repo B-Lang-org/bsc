@@ -462,10 +462,13 @@ ASSERTIONS
 >  pvPrint d p (SVA_Delay_Const expr) =
 >    pvPrint d p expr
 
+> withId :: PDetail -> Maybe Id -> Doc
+> withId _ Nothing =  empty
+> withId d (Just nm) = pvPrint d 0 nm <> text ": "
 > instance PVPrint SVA_STMT where
->  pvPrint d p (SVA_STMT_Assert Nothing prop [] []) =
+>  pvPrint d p (SVA_STMT_Assert mid prop [] []) =
 >    pparen (p > 0) $
->    sep [text "assert property", parens (pvPrint d 0 prop)]
+>    sep [withId d mid <> text "assert property", parens (pvPrint d 0 prop)]
 >  pvPrint d p (SVA_STMT_Assert Nothing prop pass []) =
 >     pparen (p > 0) $ sep [text "assert property", parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass)]
@@ -476,10 +479,6 @@ ASSERTIONS
 >     pparen (p > 0) $ sep [text "assert property", parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass),
 >                           text "else", nest 4 (pvBlock d 0 fail)]
->  pvPrint d p (SVA_STMT_Assert (Just nm) prop [] []) =
->    pparen (p > 0) $
->    sep [pvPrint d 0 nm <>
->          text "assert property", parens (pvPrint d 0 prop)]
 >  pvPrint d p (SVA_STMT_Assert (Just nm) prop pass []) =
 >     pparen (p > 0) $ sep [pvPrint d 0 nm <>
 >                            text ": assert property", parens (pvPrint d 0 prop),
@@ -493,23 +492,23 @@ ASSERTIONS
 >                            text ": assert property", parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass),
 >                           text "else", nest 4 (pvBlock d 0 fail)]
->  pvPrint d p (SVA_STMT_Assume Nothing prop) =
->     pparen (p > 0) $ sep [text "assume property", parens (pvPrint d 0 prop)]
->  pvPrint d p (SVA_STMT_Cover Nothing prop []) =
->     pparen (p > 0) $ sep [text "cover property", parens (pvPrint d 0 prop)]
->  pvPrint d p (SVA_STMT_Cover Nothing prop pass) =
->     pparen (p > 0) $ sep [text "cover property", parens (pvPrint d 0 prop),
+>  pvPrint d p (SVA_STMT_Assume mid prop) =
+>     pparen (p > 0) $ sep [withId d mid <> text "assume property", parens (pvPrint d 0 prop)]
+>  pvPrint d p (SVA_STMT_Cover mid prop []) =
+>     pparen (p > 0) $ sep [withId d mid <> text "cover property", parens (pvPrint d 0 prop)]
+>  pvPrint d p (SVA_STMT_Cover mid prop pass) =
+>     pparen (p > 0) $ sep [withId d mid <> text "cover property", parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass)]
->  pvPrint d p (SVA_STMT_Expect Nothing prop [] []) =
->    pparen (p > 0) $ sep [text "expect" <+> parens (pvPrint d 0 prop)]
->  pvPrint d p (SVA_STMT_Expect Nothing prop pass []) =
->     pparen (p > 0) $ sep [text "expect" <+> parens (pvPrint d 0 prop),
+>  pvPrint d p (SVA_STMT_Expect mid prop [] []) =
+>    pparen (p > 0) $ sep [withId d mid <> text "expect" <+> parens (pvPrint d 0 prop)]
+>  pvPrint d p (SVA_STMT_Expect mid prop pass []) =
+>     pparen (p > 0) $ sep [withId d mid <> text "expect" <+> parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass)]
->  pvPrint d p (SVA_STMT_Expect Nothing prop [] fail) =
->     pparen (p > 0) $ sep [text "expect" <+> parens (pvPrint d 0 prop),
+>  pvPrint d p (SVA_STMT_Expect mid prop [] fail) =
+>     pparen (p > 0) $ sep [withId d mid <> text "expect" <+> parens (pvPrint d 0 prop),
 >                           text "else", nest 4 (pvBlock d 0 fail)]
->  pvPrint d p (SVA_STMT_Expect Nothing prop pass fail) =
->     pparen (p > 0) $ sep [text "expect" <+> parens (pvPrint d 0 prop),
+>  pvPrint d p (SVA_STMT_Expect mid prop pass fail) =
+>     pparen (p > 0) $ sep [withId d mid <> text "expect" <+> parens (pvPrint d 0 prop),
 >                           nest 4 (pvBlock d 0 pass),
 >                           text "else", nest 4 (pvBlock d 0 fail)]
 
