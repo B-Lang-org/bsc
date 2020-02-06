@@ -17,7 +17,7 @@ namespace BEEV
   bool
   SimplifyingMinisat::addClause(const vec_literals& ps) // Add a clause to the solver.
   {
-    s->addClause(ps);
+    return s->addClause(ps);
   }
 
   bool
@@ -49,7 +49,7 @@ namespace BEEV
 
   int SimplifyingMinisat::setVerbosity(int v)
   {
-    s->verbosity = v;
+    return s->verbosity = v;
   }
 
   void SimplifyingMinisat::setSeed(int i)
