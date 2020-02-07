@@ -48,7 +48,6 @@ CFLAGS += -Wall \
 	-Wpointer-arith \
 	-Wshadow \
 	-Wcast-qual \
-	-Werror \
 	-Wno-unused-parameter \
 	-g \
 	-std=c99 \
@@ -58,7 +57,6 @@ CXXFLAGS += -Wall \
 	-Wpointer-arith \
 	-Wshadow \
 	-Wcast-qual \
-	-Werror \
 	-Wno-unused-parameter \
 	-g \
 	-D_ISOC99_SOURCE \
