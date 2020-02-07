@@ -22,9 +22,6 @@ import qualified AExpr2STP as STP
 import qualified AExpr2Yices as Yices
          (YState, initYState, checkBiImplication, isConstExpr,
           checkEq, checkNotEq)
-import qualified AExpr2Bdd as BDD
-         (BddBuilder, initBDDState, checkBiImplication, isConstExpr,
-          checkEq, checkNotEq)
 
 import Yices(checkVersion)
 
@@ -37,8 +34,7 @@ type ExceptionType = CE.Exception
 -- -------------------------
 
 -- A single data type for either of the solver state
-data SATState = SATS_BDD (BDD.BddBuilder AId)
-              | SATS_Yices Yices.YState
+data SATState = SATS_Yices Yices.YState
               | SATS_STP STP.SState
 
 -- -------------------------
@@ -47,9 +43,6 @@ initSATState :: String -> ErrorHandle -> Flags -> Bool -> [ADef] -> [AVInst] ->
                 IO SATState
 initSATState str errh flags doHardFail ds avis =
     case (satBackend flags) of
-      SAT_CUDD -> do
-          bdd_state <- BDD.initBDDState errh flags doHardFail ds avis []
-          return (SATS_BDD bdd_state)
       SAT_Yices -> do
           yices_state <- Yices.initYState str flags doHardFail ds avis []
           return (SATS_Yices yices_state)
@@ -75,9 +68,6 @@ checkSATFlags eh f =
 -- -------------------------
 
 checkBiImplication :: SATState -> AExpr -> AExpr -> IO ((Bool, Bool), SATState)
-checkBiImplication (SATS_BDD bdd_state) e1 e2 = do
-    (res, bdd_state') <- BDD.checkBiImplication bdd_state e1 e2
-    return (res, SATS_BDD bdd_state')
 checkBiImplication (SATS_Yices yices_state) e1 e2 = do
     (res, yices_state') <- Yices.checkBiImplication yices_state e1 e2
     return (res, SATS_Yices yices_state')
@@ -87,9 +77,6 @@ checkBiImplication (SATS_STP stp_state) e1 e2 = do
 
 
 isConstExpr :: SATState -> AExpr -> IO (Maybe Bool, SATState)
-isConstExpr (SATS_BDD bdd_state) e = do
-    (res, bdd_state') <- BDD.isConstExpr bdd_state e
-    return (res, SATS_BDD bdd_state')
 isConstExpr (SATS_Yices yices_state) e = do
     (res, yices_state') <- Yices.isConstExpr yices_state e
     return (res, SATS_Yices yices_state')
@@ -99,9 +86,6 @@ isConstExpr (SATS_STP stp_state) e = do
 
 
 checkEq :: SATState -> AExpr -> AExpr -> IO (Maybe Bool, SATState)
-checkEq (SATS_BDD bdd_state) e1 e2 = do
-    (res, bdd_state') <- BDD.checkEq bdd_state e1 e2
-    return (res, SATS_BDD bdd_state')
 checkEq (SATS_Yices yices_state) e1 e2 = do
     (res, yices_state') <- Yices.checkEq yices_state e1 e2
     return (res, SATS_Yices yices_state')
@@ -111,9 +95,6 @@ checkEq (SATS_STP stp_state) e1 e2 = do
 
 
 checkNotEq :: SATState -> AExpr -> AExpr -> IO (Maybe Bool, SATState)
-checkNotEq (SATS_BDD bdd_state) e1 e2 = do
-    (res, bdd_state') <- BDD.checkNotEq bdd_state e1 e2
-    return (res, SATS_BDD bdd_state')
 checkNotEq (SATS_Yices yices_state) e1 e2 = do
     (res, yices_state') <- Yices.checkNotEq yices_state e1 e2
     return (res, SATS_Yices yices_state')
