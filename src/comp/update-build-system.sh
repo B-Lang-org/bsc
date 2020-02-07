@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env bash
 
 TOP=../..
 PLATFORM_SH=${TOP}/platform.sh
