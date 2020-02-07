@@ -205,6 +205,7 @@ hmain args = do
     -- add a newline at the end so it is offset
     let cmdLine = concat ("Invoking command line:\n" : (intersperse " " (pprog:args'))) ++ "\n"
     let showPreamble flags = do
+          when (printBluespecDir flags) $ putStrLnF cdir
           when (verbose flags) $ putStrLnF version
           when (verbose flags) $ putStrLnF copyright
           when ((verbose flags) || (printFlags flags)) $ putStrLnF cmdLine

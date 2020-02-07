@@ -171,7 +171,8 @@ decodeArgs prog args cdir =
                  then if (null anames)
                       then if ((printFlags flags) ||
                                (printFlagsHidden flags) ||
-                               (printFlagsRaw flags))
+                               (printFlagsRaw flags) ||
+                               (printBluespecDir flags))
                            then (warnings, DNoSrc flags)
                            else -- We allow the file names to be omitted if the
                                 -- backend and entry point are both specified
@@ -578,6 +579,7 @@ defaultFlags bluespecdir = Flags {
         printFlags = False,
         printFlagsHidden = False,
         printFlagsRaw = False,
+        printBluespecDir = False,
         preprocessOnly = False,
         promoteWarnings = SomeMsgs [],
         readableMux = True,
@@ -1360,6 +1362,10 @@ externalFlags = [
          (Toggle (\f x -> f {printFlagsRaw=x}) (showIfTrue printFlagsRaw),
           "print raw flag values after command-line parsing", Hidden)),
 
+        ("print-bs-libdir",
+         (Toggle (\f x -> f {printBluespecDir=x}) (showIfTrue printBluespecDir),
+          "print location of bluespec library directory", Visible)),
+
         ("promote-warnings",
          (Arg "list"
               (\f s -> let updFn f s = f {promoteWarnings = s}
@@ -1913,6 +1919,7 @@ showFlagsRaw flags =
         "\tprintFlags = " ++ show (printFlags flags) ++ ",\n" ++
         "\tprintFlagsHidden = " ++ show (printFlagsHidden flags) ++ ",\n" ++
         "\tprintFlagsRaw = " ++ show (printFlagsRaw flags) ++ ",\n" ++
+        "\tprintBluespecDir = " ++ show (printBluespecDir flags) ++ ",\n" ++
         "\tpromoteWarnings = " ++ show (promoteWarnings flags) ++ ",\n" ++
         "\treadableMux = " ++ show (readableMux flags) ++ ",\n" ++
         "\tredStepsWarnInterval = " ++ show (redStepsWarnInterval flags) ++ ",\n" ++

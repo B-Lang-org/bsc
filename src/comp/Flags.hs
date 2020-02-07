@@ -93,6 +93,7 @@ data Flags = Flags {
         printFlags :: Bool,
         printFlagsHidden :: Bool,
         printFlagsRaw :: Bool,
+        printBluespecDir :: Bool,
         preprocessOnly :: Bool,
         promoteWarnings :: MsgListFlag,
         readableMux :: Bool,
