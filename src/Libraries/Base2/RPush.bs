@@ -98,7 +98,7 @@ sink :: (IsModule m c) => m (RPush a)
 sink =
     module
       interface
-        push x = action {}
+        push _ = action {}
 	clear  = action {}
 
 --@ A producer that always pushes junk on the given stream.

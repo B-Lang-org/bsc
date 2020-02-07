@@ -40,7 +40,7 @@ instance Literal (OInt n)
                         integerToString (valueOf n) + ").")
           else -- don't check non-static integers
                result
-    inLiteralRange a i = i >= 0 && i < (valueOf n)
+    inLiteralRange _ i = i >= 0 && i < (valueOf n)
 
 --@ Values can be compared for equality.
 --@ \begin{libverbatim}
@@ -104,9 +104,9 @@ fromOInt o = select (map fromInteger genList) o
 select :: (Bits a sa) => Vector n a -> OInt n -> a
 select xs (O bs) =
     let f x b =
-	    let bs :: Vector sa Bool
-		bs = unpack (pack x)
-	    in  map ((&&) b) bs
+	    let vb :: Vector sa Bool
+		vb = unpack (pack x)
+	    in  map ((&&) b) vb
     in  unpack (pack (map or (transpose (zipWith f xs bs))))
 
 or :: Vector n Bool -> Bool

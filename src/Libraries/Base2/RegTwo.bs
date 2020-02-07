@@ -33,8 +33,8 @@ mkRegTwo v = liftModule $
     module
       interface
 	get = unpack 0
-	setA x = return ()
-	setB x = return ()
+	setA _ = return ()
+	setB _ = return ()
   else
     module
       _r :: VRegTwo sa
@@ -70,8 +70,8 @@ mkRegTwoA v = liftModule $
     module
       interface
 	get = unpack 0
-	setA x = return ()
-	setB x = return ()
+	setA _ = return ()
+	setB _ = return ()
   else
     module
       _r :: VRegTwo sa
@@ -107,8 +107,8 @@ mkRegTwoU = liftModule $
     module
       interface
 	get = unpack 0
-	setA x = return ()
-	setB x = return ()
+	setA _ = return ()
+	setB _ = return ()
   else
     module
       _r :: VRegTwo sa

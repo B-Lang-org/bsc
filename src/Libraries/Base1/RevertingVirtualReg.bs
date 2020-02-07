@@ -19,7 +19,7 @@ mkRevertingVirtualReg v = liftModule $
     module
       interface
         _read = unpack 0
-        _write x = return ()
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -32,4 +32,4 @@ mkRevertingVirtualReg v = liftModule $
       interface
 	_read = unpack _r.read
         -- write init value, ignoring argument to write
-	_write x = fromPrimAction (_r.write (pack v))
+	_write _ = fromPrimAction (_r.write (pack v))
