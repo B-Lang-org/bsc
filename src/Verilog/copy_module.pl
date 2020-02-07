@@ -1,4 +1,4 @@
-#! /usr/bin/env perl
+#!/usr/bin/env perl
 
 die "Usage: $0 <srcname> <dstname>\n" if @ARGV != 2;
 
