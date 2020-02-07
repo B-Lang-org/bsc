@@ -864,7 +864,7 @@ extractInt e = internalError ("extractInt: unexpected pattern: " ++ show e)
 
 getWidth :: AType -> Integer
 getWidth (ATBit w) = w
-getWidth t = internalError ("AExpr2STP.getWidth: " ++ ppReadable t)
+getWidth t = internalError ("AExpr2Yices.getWidth: " ++ ppReadable t)
 
 -- copied from similar function in AOpt
 aZeroExtend :: Integer -> AExpr -> AExpr
@@ -884,7 +884,7 @@ aSignExtend w e =
     in  case (compare pad_size 0) of
           EQ -> e
           GT -> APrim dummy_id (ATBit w) PrimSignExt [e]
-          LT -> internalError ("AExpr2STP.aSignExtend: " ++ ppReadable (w, e))
+          LT -> internalError ("AExpr2Yices.aSignExtend: " ++ ppReadable (w, e))
 
 yTruncate :: Integer -> (Y.Expr, YType) -> YM (Y.Expr, YType)
 yTruncate w res@(ye, YBits e_sz) | w == e_sz = return res
