@@ -2,15 +2,6 @@ The files in this repository are copyright as indicated below (except
 when indicated otherwise in the file itself) and are licensed as
 indicated below, with the following exceptions:
 
-* STP - Constraint solver
-  * The files in src/stp/src/ are adapted from a snapshot of STP
-  * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
-  * The source and license were obtained from the SVN repository [1]
-    at revision 1643 on 2012-04-18.  A patch at [2] obtained on
-    2014-04-21 was also applied.
-      [1] https://stp-fast-prover.svn.sourceforge.net/svnroot/stp-fast-prover/trunk/stp
-      [2] https://github.com/stp/stp/commit/ece1a55fb367bd905078baca38476e35b4df06c3
-
 * The Yices SMT Solver
   * The files in src/yices/ define a Haskell interface for using
     the Yices library (via its C API); there is also code for a

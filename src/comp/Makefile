@@ -53,11 +53,6 @@ TCL_HS       = ../tcltk/HaskellTcl
 TCL_ARGS  = -I$(TCL_HS) -L$(TCL_HS)
 TCL_LIBS  = -lhtcl -litcl
 
-# STP
-STP_HS      = ../stp/include_hs
-STP_ARGS = -I../stp/include -L../stp/lib
-STP_LIBS = -lstp
-
 # Yices
 YICES_HS      = ../yices/include_hs
 YICES_ARGS = -I../yices/include -L../yices/lib
@@ -67,7 +62,6 @@ YICES_LIBS = -lyices
 # and which shouldn't be used to build other Haskell binaries
 BSCBUILDLIBS = \
 	$(TCL_LIBS) \
-	$(STP_LIBS) \
 	$(YICES_LIBS) \
 
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
@@ -209,7 +203,6 @@ GHCRTSFLAGS = +RTS -M3G -A128m -RTS
 GHCINCLUDES =  \
 	-iGHC -iGHC/posix -iLibs \
 	-i$(PARSEC_HS) \
-	-i$(STP_HS) \
 	-i$(YICES_HS) \
 	-i$(TCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
@@ -227,7 +220,6 @@ GHCFLAGS = \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \
 	$(TCL_ARGS) \
-	$(STP_ARGS) \
 	$(YICES_ARGS) \
 	'-pgmc ./gcc-script.sh'
 GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
@@ -265,7 +257,6 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	Libs/*.hs \
 	GHC/*.hs GHC/posix/*.hs \
 	$(PARSEC_HS)/*.hs \
-	$(STP_HS)/*.hs \
 	$(YICES_HS)/*.hs \
 	$(TCL_HS)/*.hs
 
@@ -475,7 +466,7 @@ install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 # Other targets
 
 tags:   *hs */*hs bluewish.hs
-	$(FIND) . $(PARSEC_HS) $(STP_HS) $(YICES_HS) $(TCL_HS) \
+	$(FIND) . $(PARSEC_HS) $(YICES_HS) $(TCL_HS) \
 		-type f -name \*hs | xargs hasktags
 	mv tags tags.tmpfile
 	sort tags.tmpfile > tags

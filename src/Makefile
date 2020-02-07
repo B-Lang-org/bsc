@@ -8,7 +8,6 @@ all: install
 
 .PHONY: install clean full_clean
 install clean full_clean:
-	$(MAKE)  -C stp        PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C yices      PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C tcltk      PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C comp       PREFIX=$(PREFIX)  $@

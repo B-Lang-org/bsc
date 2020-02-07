@@ -601,7 +601,7 @@ defaultFlags bluespecdir = Flags {
         rstGate = False,
         ruleNameCheck = True,
         runTimeLic = True,
-        satBackend = SAT_STP,
+        satBackend = SAT_Yices,
         schedConds = False,
         schedDOT = False,
         schedQueries = [],
@@ -1555,11 +1555,6 @@ externalFlags = [
         ("simdir",
          (Arg "dir" (\f s -> Left (f {cdir = Just s})) (Just (FRTMaybeString cdir)),
           "output directory for Bluesim intermediate files", Visible)),
-
-        ("sat-stp",
-         (NoArg (\f -> Left $ f { satBackend = SAT_STP })
-                (showIfEq satBackend SAT_STP),
-          "use STP SMT for disjoint testing and SAT", Visible)),
 
         ("sat-yices",
          (NoArg (\f -> Left $ f { satBackend = SAT_Yices })
