@@ -46,10 +46,10 @@ BINDIR=$(PREFIX)/bin
 BUILDDIR=$(TOP)/build
 
 # Parsec
-PARSEC_HS = ../Parsec
+PARSEC_HS = Parsec
 
 # Tcl
-TCL_HS       = ../tcltk/HaskellTcl
+TCL_HS    = ../tcltk/HaskellTcl
 TCL_ARGS  = -I$(TCL_HS) -L$(TCL_HS)
 TCL_LIBS  = -lhtcl -litcl
 
