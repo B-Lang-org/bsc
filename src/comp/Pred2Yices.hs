@@ -266,7 +266,7 @@ convType2YExpr' t@(TAp (TAp tc t1) t2) | (tc == tMul) = do
   yzero <- liftIO $ Y.mkBVConstantFromInteger intWidth 0
   yeqz2 <- liftIO $ Y.mkBVEq yt2 yzero
   ygte1 <- liftIO $ Y.mkBVGe res yt1
-  yor <- liftIO $ Y.mkBVOr yeqz2 ygte1
+  yor <- liftIO $ Y.mkOr [yeqz2, ygte1]
   return (res, [yor] ++ as1 ++ as2)
 convType2YExpr' t@(TAp tc t1) | (tc == tExp) = do
   when traceConv $ traceM("conv TExp: " ++ ppReadable t)
@@ -277,7 +277,7 @@ convType2YExpr' t@(TAp tc t1) | (tc == tExp) = do
   yzero <- liftIO $ Y.mkBVConstantFromInteger intWidth 0
   yeqz1 <- liftIO $ Y.mkBVEq yt1 yzero
   ygte1 <- liftIO $ Y.mkBVGe res yt1
-  yor <- liftIO $ Y.mkBVOr yeqz1 ygte1
+  yor <- liftIO $ Y.mkOr [yeqz1, ygte1]
   return (res, [yor] ++ as1)
 convType2YExpr' t@(TAp (TAp tc t1) t2) | (tc == tMax) = do
   when traceConv $ traceM("conv TMax: " ++ ppReadable t)
