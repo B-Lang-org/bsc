@@ -523,6 +523,7 @@ namespace BEEV
       return getConstantBit(n[0], i);
 
     assert(false);
+    abort();
   }
 
   ASTNode

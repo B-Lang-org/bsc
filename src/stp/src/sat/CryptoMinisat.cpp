@@ -34,7 +34,7 @@ namespace BEEV
     for (int i =0; i<ps.size();i++)
       v.push(MINISAT::Lit(var(ps[i]), sign(ps[i])));
 
-    s->addClause(v);
+    return s->addClause(v);
   }
 
   bool
@@ -63,7 +63,7 @@ namespace BEEV
 
   int CryptoMinisat::setVerbosity(int v)
   {
-    s->verbosity = v;
+    return s->verbosity = v;
   }
 
   int CryptoMinisat::nVars()
