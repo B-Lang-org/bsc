@@ -79,6 +79,7 @@ WISHFLAGS += $(EXTRAWISHLIBS)
 # GHC
 
 GHC ?= ghc
+GHCJOBS ?= 1
 
 GHCVERSION=$(shell $(GHC) --version | head -1 | egrep -o "[0-9]+\.[0-9]+\.[0-9]" | head -1)
 
@@ -193,7 +194,7 @@ PACKAGES = \
 # The make flags do not include "-o" because bluetcl and bluewish
 # are compiled in two steps and the first step doesn't have that option.
 # So all users of GHCMAKEFLAGS have to include "-o" themselves.
-GHCMAKEFLAGS = --make $@
+GHCMAKEFLAGS = --make $@ -j$(GHCJOBS)
 GHCCOMPILEFLAGS = -o $@ -c $<
 
 # On Mac OS, we'll need to update the dylib location,
