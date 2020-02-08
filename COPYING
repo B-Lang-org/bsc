@@ -50,7 +50,7 @@ indicated below, with the following exceptions:
       [2] http://incrtcl.sourceforge.net/itcl/ on 2007-06-15
 
 * Parsec
-  * Files in src/comp/Parsec/ are adapted from Daan Leijen's Parsec
+  * Files in src/Parsec/ are adapted from Daan Leijen's Parsec
     Haskell library
   * See LICENSES/LICENSE.parsec
   * Source and license obtained on 2004-01-28 from
