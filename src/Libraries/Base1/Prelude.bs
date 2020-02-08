@@ -1023,7 +1023,7 @@ instance Bitwise (Bit n)
                    lbs = listPrimSomeBitsToList  0 (valueOf n) x
 	       in case (lbs) of
                              Nil -> 0
-                             (Cons l _) -> l
+                             (Cons b _) -> b
 
 instance BitReduction Bit n where
     reduceAnd x = if x == invert 0 then 1 else 0
@@ -1895,13 +1895,12 @@ mkRegA v = liftModule $
       {-# hide #-}
       _r <- vMkRegA (pack v)
       let name = Valid (primGetModuleName _r)
-      x :: a <- return _
-      let t = typeOf x
+      let t = typeOf (_ :: a)
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
 	_read = unpack _r.read
-	_write v = fromPrimAction (_r.write (pack v))
+	_write x = fromPrimAction (_r.write (pack x))
 
 --@ Treat a register as a register, i.e., suppress the normal behavior
 --@ where it implicitly represents the value that it contains.
