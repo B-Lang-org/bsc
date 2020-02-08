@@ -48,7 +48,6 @@ copyrights = ["Copyright 2000-2020 Bluespec, Inc.",
               "    Chalmers University of Technology.",
               "Parts copyright 1999-2000, Daan Leijen.",
               "Parts copyright 1991, 1999 Free Software Foundation, Inc.",
-              "Parts copyright 1995-2014, Regents of the University of Colorado.",
               "Parts copyright 2010, Don Stewart.",
               "All rights reserved.",
               "See documentation for license details."]

@@ -1,13 +1,13 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 # Find the absolute name and location of this script
 #
-ABSNAME=$(readlink -f "$0")
+ABSNAME=$(realpath -e "$0")
 SCRIPTNAME=`basename "${ABSNAME}"`
 BINDIR=`dirname "${ABSNAME}"`
 
 # Set BLUESPECDIR based on the location
-BLUESPECDIR=$(readlink -f "${BINDIR}/../lib")
+BLUESPECDIR=$(realpath -e "${BINDIR}/../lib")
 export BLUESPECDIR
 
 # Add the dynamically-linked SAT libraris the load path

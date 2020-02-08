@@ -1,5 +1,5 @@
-#!/bin/bash
-#set -x
+#! /usr/bin/env bash
+set -euo pipefail
 
 export TMOUT=1
 

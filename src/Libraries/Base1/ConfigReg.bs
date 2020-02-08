@@ -36,7 +36,7 @@ mkConfigReg v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa
@@ -63,7 +63,7 @@ mkConfigRegU = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa
@@ -90,7 +90,7 @@ mkConfigRegA initValue = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa

@@ -78,7 +78,7 @@ infixr  8 :>
 --@ function List#(b) map (function b f(a), List#(a) xs);
 --@ \end{libverbatim}
 map :: (a -> b) -> List a -> List b
-map f Nil = Nil
+map _ Nil = Nil
 map f (Cons x xs) = Cons (f x) (map f xs)
 
 --@ Return elements that satisfy the predicate
@@ -87,7 +87,7 @@ map f (Cons x xs) = Cons (f x) (map f xs)
 --@ function List#(a) filter (function Bool p(a), List#(a) xs);
 --@ \end{libverbatim}
 filter :: (a -> Bool) -> List a -> List a
-filter p Nil = Nil
+filter _ Nil = Nil
 filter p (Cons x xs) =
     if p x then
 	Cons x (filter p xs)
@@ -101,7 +101,7 @@ filter p (Cons x xs) =
 --@ function Maybe#(a) find (function Bool p(a), List#(a) xs);
 --@ \end{libverbatim}
 find :: (a -> Bool) -> List a -> Maybe a
-find p Nil = Nothing
+find _ Nil = Nothing
 find p (Cons x xs) =
     if p x then
 	Just x
@@ -152,7 +152,7 @@ replicate n c = map (const c) (upto 1 n)
 --@ function b foldr (b function f(a x, b y), b e, List#(a) xs);
 --@ \end{libverbatim}
 foldr :: (a -> b -> b) -> b -> List a -> b
-foldr f z Nil = z
+foldr _ z Nil = z
 foldr f z (Cons x xs) = f x (foldr f z xs)
 
 --@ Reduction (from the right) over a non-empty list.
@@ -161,7 +161,7 @@ foldr f z (Cons x xs) = f x (foldr f z xs)
 --@ function a foldr1 (a function f(a x, a y), List#(a) xs);
 --@ \end{libverbatim}
 foldr1 :: (a -> a -> a) -> List a -> a
-foldr1 f (Cons x Nil) = x
+foldr1 _ (Cons x Nil) = x
 foldr1 f (Cons x xs) = f x (foldr1 f xs)
 foldr1 _ Nil = error "List.foldr1: empty list"
 
@@ -171,7 +171,7 @@ foldr1 _ Nil = error "List.foldr1: empty list"
 --@ function b foldl (b function f(b y, a x), b e, List#(a) xs);
 --@ \end{libverbatim}
 foldl :: (b -> a -> b) -> b -> List a -> b
-foldl f z Nil = z
+foldl _ z Nil = z
 foldl f z (Cons x xs) = foldl f (f z x) xs
 
 --@ Reduction (from the left) over a non-empty list.
@@ -190,7 +190,7 @@ foldl1 _ Nil = error "List.foldl1: empty list"
 --@ \end{libverbatim}
 fold :: (a -> a -> a) -> List a -> a
 fold _ Nil = error "List.fold: empty list"
-fold f (Cons x Nil) = x
+fold _ (Cons x Nil) = x
 fold f xs = fold f (joinPairs f xs)
 
 joinPairs :: (a -> a -> a) -> List a -> List a
@@ -230,7 +230,7 @@ rotateR xs = Cons (last xs) (init xs)
 --@ \end{libverbatim}
 zipWith :: (a -> b -> c) -> List a -> List b -> List c
 zipWith f (Cons x xs) (Cons y ys) = Cons (f x y) (zipWith f xs ys)
-zipWith f _ _ = Nil
+zipWith _ _ _ = Nil
 
 --@ Combine three lists with a function.
 --@ \index{zipWith3@\te{zipWith3} (\te{List} function)}
@@ -240,7 +240,7 @@ zipWith f _ _ = Nil
 --@ \end{libverbatim}
 zipWith3 :: (a -> b -> c -> d) -> List a -> List b -> List c -> List d
 zipWith3 f (Cons x xs) (Cons y ys) (Cons z zs) = Cons (f x y z) (zipWith3 f xs ys zs)
-zipWith3 f _ _ _ = Nil
+zipWith3 _ _ _ _ = Nil
 
 --@ Combine four lists with a function.
 --@ \index{zipWith4@\te{zipWith4} (\te{List} function)}
@@ -250,7 +250,7 @@ zipWith3 f _ _ _ = Nil
 --@ \end{libverbatim}
 zipWith4 :: (a -> b -> c -> d -> e) -> List a -> List b -> List c -> List d -> List e
 zipWith4 f (Cons x xs) (Cons y ys) (Cons z zs) (Cons w ws) = Cons (f x y z w) (zipWith4 f xs ys zs ws)
-zipWith4 f _ _ _ _ = Nil
+zipWith4 _ _ _ _ _ = Nil
 
 --@ Combine two lists into one list of pairs.
 --@ \index{zip@\te{zip} (\te{List} function)}
@@ -342,7 +342,7 @@ tail (Cons _ xs) = xs
 last :: List a -> a
 last Nil = error "last"
 last (Cons x Nil) = x
-last (Cons x xs) = last xs
+last (Cons _ xs) = last xs
 
 --@ All but the last elements of a list.
 --@ \index{init@\te{init} (\te{List} function)}
@@ -387,8 +387,8 @@ length = Prelude.listLength
 
 (!!!) :: List a -> Integer -> Integer -> a
 (!!!) Nil _ n0         = error $ "bad index to !!: " +++ integerToString n0
-(!!!) (Cons x xs) 0 _  = x
-(!!!) (Cons x xs) n n0 = (!!!) xs (n-1) n0
+(!!!) (Cons x _) 0 _  = x
+(!!!) (Cons _ xs) n n0 = (!!!) xs (n-1) n0
 
 --@ Similar to \te{(!!)}, but can generate code (a mux).
 -- @ {\sf Combine with (!!)?}
@@ -447,7 +447,7 @@ update = primUpdateFn (getStringPosition "")
 -- map (\ p -> if k == fromInteger p.snd then x else p.fst) (num l 0)
 
 num :: List a -> Integer -> List (a, Integer)
-num Nil n = Nil
+num Nil _ = Nil
 num (Cons x xs) n = Cons (x, n) (num xs (n+1))
 
 --@ Matrix transposition of a list of lists.
@@ -497,7 +497,7 @@ take n (Cons x xs) = Cons x (take (n-1) xs)
 drop :: Integer -> List a -> List a
 drop 0 xs = xs
 drop _ Nil = Nil
-drop n (Cons x xs) = drop (n-1) xs
+drop n (Cons _ xs) = drop (n-1) xs
 
 --@ Return the initial segment that fulfills a predicate.
 --@ \index{takeWhile@\te{takeWhile} (\te{List} function)}
@@ -505,7 +505,7 @@ drop n (Cons x xs) = drop (n-1) xs
 --@ function List#(a) takeWhile (function Bool p(a x), List#(a) xs);
 --@ \end{libverbatim}
 takeWhile :: (a -> Bool) -> List a -> List a
-takeWhile p Nil = Nil
+takeWhile _ Nil = Nil
 takeWhile p (Cons x xs) =
     if p x then
 	Cons x (takeWhile p xs)
@@ -526,7 +526,7 @@ takeWhileRev p = reverse � takeWhile p � reverse
 --@ function List#(a) dropWhile (function Bool p(a x), List#(a) xs);
 --@ \end{libverbatim}
 dropWhile :: (a -> Bool) -> List a -> List a
-dropWhile p Nil = Nil
+dropWhile _ Nil = Nil
 dropWhile p xxs@(Cons x xs) =
     if p x then
 	dropWhile p xs
@@ -548,7 +548,7 @@ dropWhileRev p = reverse � dropWhile p � reverse
 --@   provisos (Eq#(a));
 --@ \end{libverbatim}
 elem :: (Eq a) => a -> List a -> Bool
-elem y Nil = False
+elem _ Nil = False
 elem y (Cons x xs) = x == y || elem y xs
 
 -- Given an operation +, a start element z, and
@@ -562,7 +562,7 @@ scanl :: (a -> b -> a) -> a -> List b -> List a
 scanl f q xs =
     Cons q (case xs of
 	    Nil -> Nil
-	    Cons x xs -> scanl f (f q x) xs
+	    Cons a as -> scanl f (f q a) as
 	   )
 
 --@ \index{sscanl@\te{sscanl} (\te{List} function)}
@@ -580,7 +580,7 @@ sscanl f q xs = tail (scanl f q xs)
 --@ function List#(b) scanr(function b f(a x1, b x2), b q, List#(a) xs);
 --@ \end{libverbatim}
 scanr :: (a -> b -> b) -> b -> List a -> List b
-scanr f q0 Nil = Cons q0 Nil
+scanr _ q0 Nil = Cons q0 Nil
 scanr f q0 (Cons x xs) =
 	case scanr f q0 xs of
 	qs@(Cons q _) -> Cons (f x q) qs
@@ -619,7 +619,7 @@ joinRules (Cons r rs) = r <+> joinRules rs
 --@     (function Tuple2 #(a, c) f(a x, b y), a x0, List#(b) ys);
 --@ \end{libverbatim}
 mapAccumL :: (a -> b -> (a, c)) -> a -> List b -> (a, List c)
-mapAccumL f s Nil = (s, Nil)
+mapAccumL _ s Nil = (s, Nil)
 mapAccumL f s (Cons x xs) =
     letseq (s',  y ) = f s x
            (s'', ys) = mapAccumL f s' xs
@@ -632,7 +632,7 @@ mapAccumL f s (Cons x xs) =
 --@     (function Tuple2 #(a, c) f(a x, b y), a x0, List#(b) ys);
 --@ \end{libverbatim}
 mapAccumR :: (a -> b -> (a, c)) -> a -> List b -> (a, List c)
-mapAccumR f s Nil = (s, Nil)
+mapAccumR _ s Nil = (s, Nil)
 mapAccumR f s (Cons x xs) =
     letseq (s',  ys) = mapAccumR f s xs
            (s'', y ) = f s' x
@@ -646,8 +646,8 @@ mapAccumR f s (Cons x xs) =
 --@    (function b f(a x, a y), function b g(a x), List#(a) xs);
 --@ \end{libverbatim}
 mapPairs :: (a -> a -> b) -> (a -> b) -> List a -> List b
-mapPairs f g Nil = Nil
-mapPairs f g (Cons x Nil) = Cons (g x) Nil
+mapPairs _ _ Nil = Nil
+mapPairs _ g (Cons x Nil) = Cons (g x) Nil
 mapPairs f g (Cons x1 (Cons x2 xs)) = Cons (f x1 x2) (mapPairs f g xs)
 
 --@ Map a function (of a list) over a list producing a new list.
@@ -658,7 +658,7 @@ mapPairs f g (Cons x1 (Cons x2 xs)) = Cons (f x1 x2) (mapPairs f g xs)
 --@ 		        List#(a) xs);
 --@ \end{libverbatim}
 mapn :: (List a -> (b, List a)) -> List a -> List b
-mapn f Nil = Nil
+mapn _ Nil = Nil
 mapn f xs =
     letseq (y, xs') = f xs
     in  Cons y (mapn f xs')
@@ -670,8 +670,8 @@ mapn f xs =
 --@ 		  List#(a) xs);
 --@ \end{libverbatim}
 foldn :: (List a -> (a, List a)) -> List a -> a
-foldn f Nil = error "foldn"
-foldn f (Cons x Nil) = x
+foldn _ Nil = error "foldn"
+foldn _ (Cons x Nil) = x
 foldn f xs = foldn f (mapn f xs)
 
 --@ Combine all elements in a list with logical or.
@@ -718,7 +718,7 @@ cons = Prelude.cons
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
 mapM :: (Monad m) => (a -> m b) -> List a -> m (List b)
-mapM f Nil = return Nil
+mapM _ Nil = return Nil
 mapM f (Cons x xs) = do
     _element :: b
     _element <- f x
@@ -760,7 +760,7 @@ zipWithM f (Cons x xs) (Cons y ys) =
     {-# hide #-}
     _elements <- zipWithM f xs ys
     return (Cons _element _elements)
-zipWithM f _ _ = return Nil
+zipWithM _ _ _ = return Nil
 
 --@ Think of a monadic type {\mbox{\qbs{m a}}} as representing an
 --@ ``action'' and returning a result of type {\qbs{a}}.
@@ -787,7 +787,7 @@ zipWith3M f (Cons x xs) (Cons y ys) (Cons z zs) =
     {-# hide #-}
     _ws <- zipWith3M f xs ys zs
     return (Cons _w _ws)
-zipWith3M f _ _ _ = return Nil
+zipWith3M _ _ _ _ = return Nil
 
 
 --@ Take a list of actions; return an action representing
@@ -819,7 +819,7 @@ sequence =
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
 foldlM :: (Monad m) => (a -> b -> m a) -> a -> List b -> m a
-foldlM f a Nil         = return a
+foldlM _ a Nil         = return a
 foldlM f a (Cons x xs) = do
 	_y :: a
 	_y <- f a x
@@ -835,7 +835,7 @@ foldlM f a (Cons x xs) = do
 --@ \end{libverbatim}
 foldM :: (Monad m) => (a -> a -> m a) -> List a -> m a
 foldM _ Nil = error "Monad.foldM: empty list"
-foldM f (Cons x Nil) = return x
+foldM _ (Cons x Nil) = return x
 foldM f xs = do
 	_ps <- joinPairsM f xs
 	foldM f _ps
@@ -868,7 +868,7 @@ joinPairsU f g (Cons x (Cons y xs)) = do
 	_r <- f x y
 	_rs <- joinPairsU f g xs
 	return (Cons _r _rs)
-joinPairsU f g (Cons x Nil) = do
+joinPairsU _ g (Cons x Nil) = do
 	_r <- g x
 	return (Cons _r Nil)
 joinPairsU _ _ Nil = return Nil
@@ -884,7 +884,7 @@ joinPairsU _ _ Nil = return Nil
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
 foldrM :: (Monad m) => (a -> b -> m b) -> b -> List a -> m b
-foldrM f z Nil         = return z
+foldrM _ z Nil         = return z
 foldrM f z (Cons x xs) = do
 	_y :: b
 	_y <- foldrM f z xs
@@ -941,7 +941,7 @@ addToGroup :: (a -> a -> Bool) -> List (List a) -> List a -> List a -> List (Lis
 addToGroup     _ gps            Nil         Nil = gps
 addToGroup     _ gps        current         Nil = Cons current gps
 addToGroup equiv gps            Nil (Cons x xs) = addToGroup equiv gps (Cons x Nil) xs
-addToGroup equiv gps gp@(Cons g gs) (Cons x xs) = if (equiv g x)
+addToGroup equiv gps gp@(Cons g _) (Cons x xs) = if (equiv g x)
 					          then addToGroup equiv gps (Cons x gp) xs
 						  else addToGroup equiv (Cons gp gps) (Cons x Nil) xs
 

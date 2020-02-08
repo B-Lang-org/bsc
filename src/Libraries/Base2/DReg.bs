@@ -11,7 +11,7 @@ mkDReg v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
   module
       _r :: Reg a
@@ -33,7 +33,7 @@ mkDRegA v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
   module
       _r :: Reg a
@@ -55,7 +55,7 @@ mkDRegU v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
   module
       _r :: Reg a

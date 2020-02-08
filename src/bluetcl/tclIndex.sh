@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #\
-exec tclsh "$0" "$@"
+exec ../tcltk/inst/bin/tclsh8.5 "$0" "$@"
 
 set tclFiles [lindex $argv 0]
 set packFiles [lindex $argv 1]

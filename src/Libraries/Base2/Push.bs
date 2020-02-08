@@ -145,7 +145,7 @@ sink :: (IsModule m c) => m (Push a)
 sink =
     module
       interface
-        push x = action {}
+        push _ = action {}
 
 --@ A producer that always pushes junk on the given stream.
 --@ \begin{libverbatim}

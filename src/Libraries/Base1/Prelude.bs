@@ -972,7 +972,7 @@ instance PrimUpdateable (Bit n) (Bit 1)
 instance Literal (Bit n)
   where
     fromInteger i = primIntegerToBit i
-    inLiteralRange a i = let n = valueOf n
+    inLiteralRange _ i = let n = valueOf n
                              max = 2 ** n
                              min = negate (2 ** (n - 1))
                          in  if (n == 0) then i == 0
@@ -1023,14 +1023,14 @@ instance Bitwise (Bit n)
                    lbs = listPrimSomeBitsToList  0 (valueOf n) x
 	       in case (lbs) of
                              Nil -> 0
-                             (Cons x xs) -> x
+                             (Cons b _) -> b
 
 instance BitReduction Bit n where
     reduceAnd x = if x == invert 0 then 1 else 0
     reduceOr  x = if x == 0 then 0 else 1
     reduceXor x = case (listPrimSomeBitsToList 0 (valueOf n) x) of
                   Nil -> error "reduce ^ called on a zero-bit value"
-                  (Cons x xs) -> listPrimFoldL (^) x xs
+                  (Cons b bs) -> listPrimFoldL (^) b bs
     reduceNand x = invert (reduceAnd x)
     reduceNor x = invert (reduceOr x)
     reduceXnor x = invert (reduceXor x)
@@ -1048,7 +1048,7 @@ instance Arith (Bit n)
     (%) x y  = primRem x y
     -- Bit is unsigned
     abs x = x
-    signum x = 1
+    signum _ = 1
     -- use default for these:
     -- XXX special errors which mention just "Bit" not "Bit#(..)" ?
     --(**) b x = ...
@@ -1150,7 +1150,7 @@ signedShiftRight x c = primSRA x (indexableToBits c)
 -- =====================
 
 flatN :: Integer -> List (Bit k) -> Bit m
-flatN n Nil = 0
+flatN _ Nil = 0
 flatN n (Cons b bs) = b[(valueOf k - 1) : 0] << (n * valueOf k) | flatN (n+1) bs
 
 grabN :: Integer -> Integer -> Bit m -> List (Bit k)
@@ -1165,7 +1165,7 @@ grabN i n bs =
 -- =====================
 
 map1 :: (a -> b) -> List a -> List b
-map1 f Nil = Nil
+map1 _ Nil = Nil
 map1 f (Cons x xs) = Cons (f x) (map1 f xs)
 
 zipwith1 :: (a -> b -> c) -> List a -> List b -> List c
@@ -1176,7 +1176,7 @@ upto1 :: Integer -> Integer -> List Integer
 upto1 n m = if (n > m) then Nil else Cons n (upto1 (n+1) m)
 
 num1 :: List a -> Integer -> List (a, Integer)
-num1 Nil n = Nil
+num1 Nil _ = Nil
 num1 (Cons x xs) n = Cons (x, n) (num1 xs (n+1))
 
 replaceBit :: (PrimIndex ix dx) => Position__ -> Bit n -> ix -> Bit 1 -> Bit n
@@ -1263,7 +1263,7 @@ primitive type Integer :: *
 instance Literal Integer
   where
     fromInteger x = x
-    inLiteralRange a i = True
+    inLiteralRange _ _ = True
 
 --@ \begin{libverbatim}
 --@ instance Eq #(Integer);
@@ -1354,7 +1354,7 @@ instance RealLiteral Real
 instance Literal Real
   where
     fromInteger x = primIntegerToReal x
-    inLiteralRange a i = True
+    inLiteralRange _ _ = True
 
 instance Eq Real
   where
@@ -1375,7 +1375,7 @@ instance Arith Real
     negate x = primRealNeg x
     (*) x y = primRealMul x y
     (/) x y = primRealDiv x y
-    (%) x y = error ("The operator `%' is not defined for `real'")
+    (%) _ _ = error ("The operator `%' is not defined for `real'")
     abs x = primRealAbs x
     signum x = primRealSignum x
     exp_e x = primRealExpE x
@@ -1486,7 +1486,7 @@ instance Bits (Int n) n where
 
 instance Literal (Int n) where
     fromInteger i = Int (primIntegerToIntBits i)
-    inLiteralRange a i = let n = valueOf n
+    inLiteralRange _ i = let n = valueOf n
                              max = 2 ** (n - 1)
                              min = negate (2 ** (n - 1))
                          in if (n == 0) then i == 0
@@ -1529,7 +1529,7 @@ signedQuot q d =
 signedRem :: Int n -> Int n -> Int n
 signedRem q d =
   let (s_q, v_q) = fromSigned q
-      (s_d, v_d) = fromSigned d
+      (_,   v_d) = fromSigned d
   in toSigned (s_q, (v_q % v_d))
 
 signedMul :: (Add n k m) => Int n -> Int k -> Int m
@@ -1601,7 +1601,7 @@ instance BitReduction Int n where
     reduceOr  x = if x == 0 then 0 else 1
     reduceXor (Int x) = case (listPrimSomeBitsToList 0 (valueOf n) x) of
                         Nil -> error "reduce ^ called on a zero-bit value"
-                        (Cons x xs) -> Int (listPrimFoldL (^) x xs)
+                        (Cons b bs) -> Int (listPrimFoldL (^) b bs)
     reduceNand x = invert (reduceAnd x)
     reduceNor x = invert (reduceOr x)
     reduceXnor x = invert (reduceXor x)
@@ -1634,7 +1634,7 @@ instance Bits (UInt n) n where
 
 instance Literal (UInt n) where
     fromInteger i = UInt (primIntegerToUIntBits i)
-    inLiteralRange a i = let n = valueOf n
+    inLiteralRange _ i = let n = valueOf n
                              max = 2 ** n
                          in i >= 0 && i < max
 
@@ -1654,7 +1654,7 @@ instance Arith (UInt n) where
     (%) (UInt x) (UInt y) = UInt (x % y)
     -- UInt is unsigned
     abs x = x
-    signum x = 1
+    signum _ = 1
     -- use default for these:
     -- XXX special errors which mention just "UInt" not "UInt#(..)" ?
     --(**) b x = ...
@@ -1691,7 +1691,7 @@ instance BitReduction UInt n where
     reduceOr  x = if x == 0 then 0 else 1
     reduceXor (UInt x) = case (listPrimSomeBitsToList 0 (valueOf n) x) of
                          Nil -> error "reduce ^ called on a zero-bit value"
-                         (Cons x xs) -> UInt (listPrimFoldL (^) x xs)
+                         (Cons b bs) -> UInt (listPrimFoldL (^) b bs)
     reduceNand x = invert (reduceAnd x)
     reduceNor x = invert (reduceOr x)
     reduceXnor x = invert (reduceXor x)
@@ -1817,7 +1817,7 @@ mkReg v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa
@@ -1852,7 +1852,7 @@ mkRegU = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa
@@ -1865,7 +1865,7 @@ mkRegU = liftModule $
       primSavePortType name "Q_OUT" t
       interface
 	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+	_write v = fromPrimAction (_r.write (pack v))
 
 -- only for n>0
 vMkRegA :: Bit n -> Module (VReg n)
@@ -1888,15 +1888,14 @@ mkRegA v = liftModule $
     module
       interface
 	_read = unpack 0
-	_write x = return ()
+	_write _ = return ()
   else
     module
       _r :: VReg sa
       {-# hide #-}
       _r <- vMkRegA (pack v)
       let name = Valid (primGetModuleName _r)
-      x :: a <- return _
-      let t = typeOf x
+      let t = typeOf (_ :: a)
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
@@ -2055,11 +2054,11 @@ instance Eq String
 instance Arith String
   where
     (+) x y  = x +++ y
-    (-) x y  = error "The operator `-' is not defined for `String'"
-    negate x = error "The function `negate' is not defined for `String'"
-    (*) x y  = error "The operator `*' is not defined for `String'"
-    (/) x y  = error "The operator `/' is not defined for `String'"
-    (%) x y  = error "The operator `%' is not defined for `String'"
+    (-) _ _  = error "The operator `-' is not defined for `String'"
+    negate _ = error "The function `negate' is not defined for `String'"
+    (*) _ _  = error "The operator `*' is not defined for `String'"
+    (/) _ _  = error "The operator `/' is not defined for `String'"
+    (%) _ _  = error "The operator `%' is not defined for `String'"
     -- use default for these:
     --abs x = ...
     --signum x = ...
@@ -2072,8 +2071,8 @@ instance Arith String
 
 instance Literal String
     where
-    fromInteger x = error ( "Converting integers to strings is not supported.")
-    inLiteralRange a i = False
+    fromInteger _ = error ( "Converting integers to strings is not supported.")
+    inLiteralRange _ _ = False
 
 instance StringLiteral String
   where
@@ -2272,11 +2271,11 @@ foreign $format            :: Bit 1 = "$format" -- really returns a Fmt!
 instance Arith Fmt
   where
     (+) x y  = primFmtConcat x y
-    (-) x y  = error "The operator `-' is not defined for `Fmt'"
-    negate x = error "The function `negate' is not defined for `Fmt'"
-    (*) x y  = error "The operator `*' is not defined for `Fmt'"
-    (/) x y  = error "The operator `/' is not defined for `Fmt'"
-    (%) x y  = error "The operator `%' is not defined for `Fmt'"
+    (-) _ _  = error "The operator `-' is not defined for `Fmt'"
+    negate _ = error "The function `negate' is not defined for `Fmt'"
+    (*) _ _  = error "The operator `*' is not defined for `Fmt'"
+    (/) _ _  = error "The operator `/' is not defined for `Fmt'"
+    (%) _ _  = error "The operator `%' is not defined for `Fmt'"
     -- use default for these:
     --abs x = ...
     --signum x = ...
@@ -2289,8 +2288,8 @@ instance Arith Fmt
 
 instance Literal Fmt
     where
-    fromInteger x = error ( "Converting integers to Fmts is not supported.")
-    inLiteralRange a i = False
+    fromInteger _ = error ( "Converting integers to Fmts is not supported.")
+    inLiteralRange _ _ = False
 
 -- ----------------------------------------------------------------
 
@@ -2656,7 +2655,7 @@ primSpecialWires _mc _mr _mp _m =
                     (Just _r) -> primModuleReset _r _m'
      in case _mp of
           Nothing  -> _m''
-          (Just p) -> error "powered_by not yet implemented"
+          (Just _) -> error "powered_by not yet implemented"
 
 changeSpecialWires :: (IsModule m c) => (Maybe Clock) -> (Maybe Reset) -> (Maybe Power) -> m a -> m a
 changeSpecialWires _mc _mr _mp = liftModuleOp (primSpecialWires _mc _mr _mp)
@@ -3151,7 +3150,7 @@ instance Bits File 32
 -- since bit ops are not allowed on FD, then return a 0 which is "safe"
 mcdFilePack :: File -> Bit 31
 mcdFilePack InvalidFile = 0
-mcdFilePack (FD x)      = 0
+mcdFilePack (FD _)      = 0
 mcdFilePack (MCD x)     = x
 
 mcdFileUnpack :: Bit 31 -> File
@@ -3166,10 +3165,10 @@ instance Bitwise File where
     (^~) x y = mcdFileUnpack ( primInv (primXor (mcdFilePack x) (mcdFilePack y)))
     (~^) x y = mcdFileUnpack ( primInv (primXor (mcdFilePack x) (mcdFilePack y)))
     invert x = mcdFileUnpack ( primInv (mcdFilePack x))
-    (<<) x y = error "Left shift operation is not supported with type File"
-    (>>) x y = error "Right shift operation is not supported with type File"
-    msb  x   = error "lsb operation is not supported with type File"
-    lsb  x   = error "msb operation is not supported with type File"
+    (<<) _ _ = error "Left shift operation is not supported with type File"
+    (>>) _ _ = error "Right shift operation is not supported with type File"
+    msb  _   = error "lsb operation is not supported with type File"
+    lsb  _   = error "msb operation is not supported with type File"
 
 
 
@@ -3404,11 +3403,11 @@ listPrimSelect pos xs n =
 listDrop :: Integer -> List a -> List a
 listDrop 0 l   = l
 listDrop _ Nil = Nil
-listDrop n (Cons x xs) = listDrop (n-1) xs
+listDrop n (Cons _ xs) = listDrop (n-1) xs
 
 listNullOrUndef :: List a -> Bool
 listNullOrUndef Nil = True
-listNullOrUndef (Cons x xs) = False
+listNullOrUndef (Cons _ _) = False
 listNullOrUndef _ = True
 
 listLength :: List a -> Integer
@@ -3422,7 +3421,7 @@ listLength l =
 listLength' :: List a -> Integer -> Integer
 listLength' Nil n = n
 -- XXX faking primSeq here
-listLength' (Cons x xs) n = if (n == n) then
+listLength' (Cons _ xs) n = if (n == n) then
                               listLength' xs (n + 1)
                             else listLength' xs (n + 1)
 
@@ -3436,13 +3435,13 @@ listStaticSelect pos xs n =
            in if (isStaticBool b) && b then
 	        primError pos $ listMessage n0 "list selection"
               else primBuildUndefined pos iuDontCare -- should add runtime error here
-        listPrimSelect' (Cons x xs) 0 _  = x
-        listPrimSelect' (Cons x xs) n n0 = listPrimSelect' xs (n-1) n0
+        listPrimSelect' (Cons x _) 0 _  = x
+        listPrimSelect' (Cons _ vs) i i0 = listPrimSelect' vs (i-1) i0
     in  listPrimSelect' xs n n
 
 listPrimNum :: List e -> List (e, Integer)
 listPrimNum l = let listPrimNum' :: List e -> Integer -> List (e, Integer)
-                    listPrimNum' Nil n = Nil
+                    listPrimNum' Nil _ = Nil
                     listPrimNum' (Cons x xs) n = Cons (x, n) (listPrimNum' xs (n+1))
                 in listPrimNum' l 0
 
@@ -3457,7 +3456,7 @@ listDynamicSelect pos xs n = letseq rangeTest = inLiteralRange n
 
 listPrimLength :: List a -> Integer
 listPrimLength Nil = 0
-listPrimLength (Cons x xs) = 1 + (listPrimLength xs)
+listPrimLength (Cons _ xs) = 1 + (listPrimLength xs)
 
 listPrimUpdate :: (PrimIndex ix dx) => Position__ -> List a -> ix -> a -> List a
 listPrimUpdate pos l k x =
@@ -3484,15 +3483,15 @@ listPrimSomeBitsToList i n bs =
 	in  Cons x (listPrimSomeBitsToList i' n bs)
 
 listPrimMap :: (c -> d) -> List c -> List d
-listPrimMap f Nil = Nil
+listPrimMap _ Nil = Nil
 listPrimMap f (Cons x xs) = Cons (f x) (listPrimMap f xs)
 
 listPrimFoldL :: (b -> a -> b) -> b -> List a -> b
-listPrimFoldL f z Nil = z
+listPrimFoldL _ z Nil = z
 listPrimFoldL f z (Cons x xs) = listPrimFoldL f (f z x) xs
 
 listPrimFoldR :: (a -> b -> b) -> b -> List a -> b
-listPrimFoldR f z Nil = z
+listPrimFoldR _ z Nil = z
 listPrimFoldR f z (Cons x xs) = f x (listPrimFoldR f z xs)
 
 constantWithAllBitsSet :: (Bit sa)
@@ -3546,11 +3545,11 @@ instance PrimSelectable (Array a) a
                    Position__ -> (Array a) -> ix -> a
    primSelectFn pos v x =
      if (isStaticIndex x) then
-        letseq x' = toStaticIndex x
-               b  = x' >= primArrayLength v
-        in if (isStaticBool b && b) || (x' < 0) then
-              primError pos (listMessage x' "array selection" )
-           else primArraySelect v x'
+        letseq i = toStaticIndex x
+               b  = i >= primArrayLength v
+        in if (isStaticBool b && b) || (i < 0) then
+              primError pos (listMessage i "array selection" )
+           else primArraySelect v i
      else primArrayDynSelect v (toDynamicIndex x)
               -- would be nice to provide a default value for out of range
               -- (primBuildUndefined pos iuDontCare)
@@ -3567,20 +3566,20 @@ instance PrimUpdateable (Array a) a
      else if (isRawUndefined x) then
        primGenerateError 79 pos "Attempt to update an array at an undetermined position"
      else if (isStaticIndex x) then
-        letseq x' = toStaticIndex x
-               b  = x' >= primArrayLength v
-        in if (isStaticBool b && b) || (x' < 0) then
-              primError pos (listMessage x' "array update")
-	   else primArrayUpdate v x' n
+        letseq i = toStaticIndex x
+               b  = i >= primArrayLength v
+        in if (isStaticBool b && b) || (i < 0) then
+              primError pos (listMessage i "array update")
+	   else primArrayUpdate v i n
      else primArrayDynUpdate v (toDynamicIndex x) n
           
 instance (Eq a) => Eq  (Array a) where
     (==) :: Array a -> Array a -> Bool
     (==) v1 v2 = let doEq :: Integer -> Integer -> Array a -> Array a -> Bool
-                     doEq n k v1 v2 = if (n > k)
+                     doEq n k x1 x2 = if (n > k)
                                       then True
-				      else (primArraySelect v1 n) == (primArraySelect v2 n) &&
-				           (doEq (n+1) k v1 v2)
+				      else (primArraySelect x1 n) == (primArraySelect x2 n) &&
+				           (doEq (n+1) k x1 x2)
 		 in (primArrayLength v1) == (primArrayLength v2) &&
 		    if (primArrayLength v1) > 0
 		       then doEq 0 ((primArrayLength v1) - 1) v1 v2
@@ -3604,7 +3603,7 @@ primArrayInitialize :: List a -> Array a
 primArrayInitialize l =
   let
       doInit :: List a -> Array a -> Integer -> Array a
-      doInit Nil v k = v
+      doInit Nil v _ = v
       doInit (Cons x xs) v k = doInit xs (primArrayUpdate v (n-k-1) x) (k-1)
       n = listPrimLength l
   in
@@ -3655,7 +3654,7 @@ countZerosLSB bin = let lb :: List (Bit 1)
                         --
                         testF :: (Bit 1, UInt lgn1) -> UInt lgn1 -> UInt lgn1
                         testF (1, t) _  = t
-                        testF (0, t) p  = p
+                        testF (0, _) p  = p
                         --
                      in listPrimFoldR testF (fromInteger $ (valueOf n)) pairsn
 
@@ -3708,10 +3707,10 @@ isRawUndefined :: a -> Bool
 isRawUndefined = compose primChr primIsRawUndefined
 
 instance (PrimMakeUndefined b) => PrimMakeUndefined (a -> b) where
-   primMakeUndefined pos kind =  \a -> primMakeUndefined pos kind
+   primMakeUndefined pos kind =  \_ -> primMakeUndefined pos kind
 
 instance PrimMakeUndefined PrimAction where
-   primMakeUndefined pos kind = primNoActions
+   primMakeUndefined _pos _kind = primNoActions
 
 instance PrimMakeUndefined (Bit n) where
    primMakeUndefined = primMakeRawUndefined
@@ -3732,22 +3731,22 @@ instance PrimMakeUndefined Fmt where
    primMakeUndefined = primMakeRawUndefined
 
 instance PrimMakeUndefined Clock where
-   primMakeUndefined pos kind = primGenerateError 47 pos "Attempt to use this undetermined clock"
+   primMakeUndefined pos _kind = primGenerateError 47 pos "Attempt to use this undetermined clock"
 
 instance PrimMakeUndefined Reset where
-   primMakeUndefined pos kind = primGenerateError 48 pos "Attempt to use this undetermined reset"
+   primMakeUndefined pos _kind = primGenerateError 48 pos "Attempt to use this undetermined reset"
 
 instance PrimMakeUndefined (Inout a) where
-   primMakeUndefined pos kind = primGenerateError 49 pos "Attempt to use this undetermined inout"
+   primMakeUndefined pos _kind = primGenerateError 49 pos "Attempt to use this undetermined inout"
 
 instance PrimMakeUndefined (Inout_ n) where
-   primMakeUndefined pos kind = primGenerateError 49 pos "Attempt to use this undetermined inout_"
+   primMakeUndefined pos _kind = primGenerateError 49 pos "Attempt to use this undetermined inout_"
 
 instance PrimMakeUndefined (Module a) where
-   primMakeUndefined pos kind = primGenerateError 11 pos "Trying to generate a module from a don't-care value"
+   primMakeUndefined pos _kind = primGenerateError 11 pos "Trying to generate a module from a don't-care value"
 
 instance PrimMakeUndefined Rules where
-   primMakeUndefined pos kind =
+   primMakeUndefined pos _kind =
        primGenerateError 109 pos
            ("Trying to generate rules from a don't-care value. " +++
             "Perhaps you meant to use `emptyRules'.")
@@ -3977,7 +3976,7 @@ instance FShow Char where
   fshow value = $format (charToString value)
 
 instance FShow PrimUnit where
-  fshow value = $format ""
+  fshow _ = $format ""
 
 {- -- This is derived
 instance FShow Bool where

@@ -2,12 +2,6 @@ The files in this repository are copyright as indicated below (except
 when indicated otherwise in the file itself) and are licensed as
 indicated below, with the following exceptions:
 
-* CUDD - University of Colorado (CU) Desicion Diagram package
-  * The files in src/cudd/v2.5.0/ are adapted from a snapshot of CUDD
-  * See LICENSES/LICENSE.cudd
-  * The source and license were downloaded on 2012-04-04 from:
-    http://vlsi.colorado.edu/~fabio/CUDD/
-
 * STP - Constraint solver
   * The files in src/stp/src/ are adapted from a snapshot of STP
   * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
@@ -56,7 +50,7 @@ indicated below, with the following exceptions:
       [2] http://incrtcl.sourceforge.net/itcl/ on 2007-06-15
 
 * Parsec
-  * Files in src/comp/Parsec/ are adapted from Daan Leijen's Parsec
+  * Files in src/Parsec/ are adapted from Daan Leijen's Parsec
     Haskell library
   * See LICENSES/LICENSE.parsec
   * Source and license obtained on 2004-01-28 from

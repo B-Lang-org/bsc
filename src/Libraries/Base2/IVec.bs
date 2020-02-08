@@ -35,10 +35,10 @@ interface IVec0 a = { }
 instance IVec 0 IVec0
  where
   toIVec :: Vector 0 a -> IVec0 a
-  toIVec xs =
+  toIVec _ =
     interface IVec0
   fromIVec :: IVec0 a -> Vector 0 a
-  fromIVec v =
+  fromIVec _ =
 	nil
 
 -- 1 --

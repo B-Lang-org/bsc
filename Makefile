@@ -23,6 +23,16 @@ rem_build:
 install:
 	$(MAKE)  -C src  PREFIX=$(PREFIX)  install
 
+# In the future, this will be much more expansive, and run the actual test
+# suite once it's open sourced.
+#
+# NOTE: We have to do things in a subshell and set PATH there, because the
+# generated bluesim .exe is a shell script that expects 'bluetcl' to be located
+# in $PATH. it's not enough to just set bsc...
+.PHONY: check
+check:
+	@(export PATH=$(PREFIX)/bin:$(PATH); $(MAKE) -C examples/smoke_test smoke_test)
+
 # -------------------------
 
 clean: rem_inst rem_build

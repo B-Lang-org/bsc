@@ -156,9 +156,7 @@ newVector = V (primArrayNewU (valueOf n))
 --@ Vector#(vsize, Integer) genVector;
 --@ \end{libverbatim}
 genVector :: Vector n Integer
-genVector =
-  let mkN k = (valueOf n) - k - 1
-  in V (Array.genWith (valueOf n) id)
+genVector = V (Array.genWith (valueOf n) id)
 
 genList :: Vector n Integer
 genList = genVector
@@ -1058,9 +1056,9 @@ find pred v =
        then Nothing
        else foldl combine Nothing v
 
--- find the index of the element which equals a elem
+-- find the index of the element which equals e
 findElem :: (Log n lgn, Eq a) => a -> Vector n a -> Maybe (UInt lgn)
-findElem elem v = findIndex ( (==) elem ) v
+findElem e v = findIndex ( (==) e ) v
 
 
 -- find index of an element which meets a predicate
@@ -1077,9 +1075,9 @@ findIndex pred v =
        then Nothing
        else Array.fold combine (vectorToArray results)
 
--- Count the number of element which are equal to elem
+-- Count the number of elements which are equal to e
 countElem :: (Add 1 n n1, Log n1 lgn1, Eq a)  => a -> Vector n a -> UInt lgn1
-countElem elem v = countIf ( (==) elem ) v
+countElem e v = countIf ( (==) e ) v
 
 -- Count the number of elements which match a predicate
 countIf :: (Add 1 n n1, Log n1 lgn1)  => (a -> Bool) -> Vector n a -> UInt lgn1

@@ -85,16 +85,16 @@ wrapRegFile modname isWCF vMk l h = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	upd i x = action { }
-	sub i = unpack 0
+	upd _ _ = action { }
+	sub _ = unpack 0
   else if valueOf si == 0 then
     module
       _a :: Reg a
       {-# hide #-}
       _a <- if isWCF then mkConfigRegU else mkRegU
       interface
-	upd i x = _a := x
-	sub i = _a
+	upd _ x = _a := x
+	sub _ = _a
   else
     module
       letseq lo = pack l
