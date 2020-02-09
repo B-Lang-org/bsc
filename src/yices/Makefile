@@ -13,6 +13,8 @@ install:
 	ln -fsn $(VERSION)/include
 	ln -fsn $(VERSION)/lib
 	ln -fsn $(VERSION)/include_hs
+	# add missing symlink libyices.so.2.6{->2}
+	ln -fsn libyices.so.2.6.2 lib/libyices.so.2.6
 	install -m 755 -d $(PREFIX)/lib/SAT
 	install -m 644 lib/* $(PREFIX)/lib/SAT
 
