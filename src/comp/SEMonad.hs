@@ -20,7 +20,7 @@ instance Monad (SEM e s) where
 	Right (s', b) ->
 	    let M f' = f b
 	    in  f' s'
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 806)
+#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
     fail msg = internalError ("SEMonad fail: " ++ msg)
 #endif
 

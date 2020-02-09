@@ -239,7 +239,7 @@ instance App.Alternative (GenParser tok st) where
 instance Monad (GenParser tok st) where
   return x   = parsecReturn x
   p >>= f    = parsecBind p f
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 806)
+#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
   fail msg   = parsecFail msg
 #endif
 
