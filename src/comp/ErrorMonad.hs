@@ -25,7 +25,7 @@ instance Monad ErrorMonad where
 			       EMResult v'      -> EMWarning ws v'
     (EMResult v) >>= f     = (f v)
     return v               = EMResult v
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 806)
+#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
     fail s                 = EMError [(noPosition, EGeneric s)]
 #endif
 
