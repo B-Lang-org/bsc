@@ -9,7 +9,7 @@ VERSION = v2.6
 all: install
 
 install:
-	$(MAKE) -C $(VERSION) install LDCONFIG=true
+	$(MAKE) -C $(VERSION) install
 	ln -fsn $(VERSION)/include
 	ln -fsn $(VERSION)/lib
 	ln -fsn $(VERSION)/include_hs
