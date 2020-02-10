@@ -2009,7 +2009,12 @@ data UseInfo = UseInfo { user_name :: AId
                        }
 
 cvtARule :: ARule -> UseInfo
-cvtARule (ARule rId _ _ _ rPred rActs _ rOrig) = UseInfo rId [rPred] [] rActs
+cvtARule (ARule rId _ _ _ rPred rActs _ rOrig) = UseInfo
+    { user_name = rId
+    , pred_reads = [rPred]
+    , body_reads = []
+    , body_actions = rActs
+    }
 
 cvtIfc :: AIFace -> [UseInfo]
 cvtIfc (AIAction _ _ ifPred ifId ifRs _) =
