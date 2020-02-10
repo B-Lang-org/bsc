@@ -1859,13 +1859,12 @@ mkRegU = liftModule $
       {-# hide #-}
       _r <- vMkRegU
       let name = Valid (primGetModuleName _r)
-      x :: a <- return _
-      let t = typeOf x
+      let t = typeOf (_ :: a)
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
 	_read = unpack _r.read
-	_write v = fromPrimAction (_r.write (pack v))
+	_write x = fromPrimAction (_r.write (pack x))
 
 -- only for n>0
 vMkRegA :: Bit n -> Module (VReg n)
