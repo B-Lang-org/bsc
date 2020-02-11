@@ -11,3 +11,5 @@ inst
 # And the build directory
 build
 
+.vagrant/
+vagrant-out/
