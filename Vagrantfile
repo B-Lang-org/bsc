@@ -8,7 +8,9 @@ Vagrant.configure("2") do |config|
   #
   # Note that we are *deliberately* exposing the .git subdirectory to the VM.
   # The build process needs access to it to generate version strings.
-  config.vm.synced_folder ".", "/vagrant", type: "rsync"
+  config.vm.synced_folder ".", "/vagrant", type: "rsync",
+    rsync__args: ["--verbose", "--archive", "-zz", "--copy-links"],
+    rsync__exclude: ["vagrant-out"]
 
   config.vm.synced_folder "vagrant-out", "/vagrant/inst", create: true
 
