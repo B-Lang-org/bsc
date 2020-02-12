@@ -18,7 +18,7 @@ import Data.Time.Clock.POSIX(utcTimeToPOSIXSeconds)
 import qualified Control.Exception as CE
 import qualified Data.Map as DM
 
-import TmpNam(tmpNam)
+import TmpNam(tmpNam, localTmpNam)
 import SCC(tsort)
 import Flags
 import Backend
@@ -316,7 +316,8 @@ doCPP errh flags name =
     if cpp flags
     then do
         tempName <- tmpNam
-        let topName = "_t_o_p.c"
+        topNameRoot <- localTmpNam
+        let topName = topNameRoot ++ ".c"
             tmpNameOut = tempName ++ ".out"
         writeFileCatch errh topName ("#include \""++name++"\"\n")
         comp <- getEnvDef "CC" dfltCCompile
