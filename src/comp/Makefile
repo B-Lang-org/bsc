@@ -15,7 +15,7 @@ LN = ln -sf
 
 FIND = find
 
-#for gcc-script.sh
+#for compiler-script.sh
 export CC
 
 # -----
@@ -230,7 +230,10 @@ GHCFLAGS = \
 	$(TCL_ARGS) \
 	$(STP_ARGS) \
 	$(YICES_ARGS) \
-	'-pgmc ./gcc-script.sh'
+	'-pgma ./compiler-script.sh' \
+	'-pgmc ./compiler-script.sh' \
+	'-pgml ./compiler-script.sh'
+
 GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
 ifeq ($(GHCMAJORGTE7),1)
 GHCFLAGS += -rtsopts
@@ -497,4 +500,3 @@ full_clean: clean
 	$(RM) tags TAGS
 
 # -----
-
