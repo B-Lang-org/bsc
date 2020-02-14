@@ -10,7 +10,6 @@ import qualified Data.Set as S
 import qualified Data.List as List
 
 import Util(fromJustOrErr)
-import HO(uncurry3)
 import qualified SCC(tsort,Graph)
 --import Util(findDup,traces)
 --import Util(trace_answer)
@@ -401,6 +400,9 @@ iAddWhen errh flags r env pvs qs ite =
         (i, t, e') -> (i, t, underLAM t e' [] $ \ t e -> iAps icPrimWhen [t] [p, bindFn e])
 
 
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f ~(x, y, z) = f x y z
+
 -- external interface for converting expressions
 iConvExpr :: ErrorHandle -> Flags -> SymTab -> Env a -> CExpr -> IExpr a
 iConvExpr errh flags r env ce = iConvE errh flags r env (map IVar tmpVarIds) ce
@@ -761,4 +763,3 @@ buildUndefNoMatchPos flags r env (e, t_e) t =
     IAps bu [t] [IAps gp [t_e] [e], iuNoMatchExpr]
   where bu = iConvVar flags r env idBuildUndef
         gp = ICon idPrimGetEvalPosition (ICPrim itPrimGetPosition PrimGetEvalPosition)
-
