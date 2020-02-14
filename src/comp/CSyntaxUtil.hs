@@ -9,20 +9,24 @@ import Id
 import Type
 import Data.Maybe
 
+tMkTuple :: Position -> [CType] -> Type
 tMkTuple pos [] = cTCon (setIdPosition pos idPrimUnit)
 tMkTuple pos [t] = t
 tMkTuple pos (t:ts) = tMkPair pos t (tMkTuple pos ts)
 
+tMkPair :: Position -> Type -> Type -> Type
 tMkPair pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idPrimPair)) t1) t2
 
 -- differs from tMkPair because the kind and other typeinfo is correct
 mkPairType :: CType -> CType -> CType
 mkPairType ft1 ft2 = TAp (TAp tPrimPair ft1) ft2
 
+mkTuple :: Position -> [CExpr] -> CExpr
 mkTuple pos [] = CStruct (setIdPosition pos idPrimUnit) []
 mkTuple pos [e] = e
 mkTuple pos (e:es) = CBinOp e (setIdPosition pos idComma) (mkTuple pos es)
 
+pMkTuple :: Position -> [CPat] -> CPat
 pMkTuple pos [] = CPstruct (setIdPosition pos idPrimUnit) []
 pMkTuple pos [p] = p
 pMkTuple pos (p:ps) = CPCon (setIdPosition pos idComma) [p, pMkTuple pos ps]
@@ -34,6 +38,7 @@ mkMaybe (Just e) = CCon idValid [e]
 num_to_cliteral_at :: Integral n => Position -> n -> CLiteral
 num_to_cliteral_at pos num = CLiteral pos $ LInt $ ilDec (toInteger num)
 
+numLiteralAt :: Integral n => Position -> n -> CExpr
 numLiteralAt pos num = CLit $ num_to_cliteral_at pos num
 
 -- create a string literal at a given position
@@ -110,6 +115,7 @@ isEnum :: COSummands -> Bool
 isEnum = all (null . cos_arg_types)
 
 -- does a data declaration have contiguous tags?
+contiguousTags :: [CInternalSummand] -> Bool
 contiguousTags = is_contiguous_seq . (map cis_tag_encoding)
 
 -- is_contiguous_seq: checks if a numeric sequence [0..] is contiguous

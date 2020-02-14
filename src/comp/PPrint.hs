@@ -52,13 +52,15 @@ ppDebug = ppr PDDebug
 lineWidth = 120::Int
 linePref = 100::Int
 
-ppString :: (PPrint a) => a -> String
+ppString :: PPrint a => a -> String
 ppString = init . pretty 100000 100000 . pPrint PDReadable 0
 
+ppr :: PPrint a => PDetail -> a -> String
 ppr d = pretty lineWidth linePref . pPrint d 0
 
 pprIndent i d = pretty lineWidth linePref . nest i . pPrint d 0
 
+ppDoc :: Doc -> String
 ppDoc d = pretty lineWidth linePref d
 
 -- trace, pretty printing the object with a prefix
@@ -137,6 +139,7 @@ instance (PPrint a, Ord a) => PPrint (S.Set a) where
     pPrint d i s = pPrint d i (S.toList s)
 
 
+pparen :: Bool -> Doc -> Doc
 pparen False x = x
 pparen True  x = text"(" <> x <> text")"
 
@@ -144,10 +147,12 @@ sepList :: [Doc] -> Doc -> Doc
 sepList [] _ = empty
 sepList xs s = sep (map (\x->x <> s) (init xs) ++ [last xs])
 
+catList :: [Doc] -> Doc -> Doc
 catList [] _ = empty
 catList xs s = cat (map (\x->x <> s) (init xs) ++ [last xs])
 
 -- unlike sepList, this will force one per line
+vcatList :: [Doc] -> Doc -> Doc
 vcatList [] _ = empty
 vcatList xs s = vcat (map (\x->x <> s) (init xs) ++ [last xs])
 

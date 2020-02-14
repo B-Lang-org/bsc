@@ -1,6 +1,6 @@
 module ISyntaxXRef(
-                   updateIExprPosition, 
-                   updateITypePosition, 
+                   updateIExprPosition,
+                   updateITypePosition,
                    mapIExprPosition,
                    mapIExprPosition2,
                    mapIExprPositionConservative
@@ -37,11 +37,11 @@ updateIExprPosition2 pos (ILam i t e) = (ILam (setIdPosition pos i) t (updateIEx
 updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICCon _ _ _)) ts [e0]) =
     if (not (isUsefulPosition (getIdPosition i)))
     then updateIExprPosition pos iexpr
-    else iexpr  
-updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICPrim _ _)) ts es) = 
+    else iexpr
+updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICPrim _ _)) ts es) =
     if (not (isUsefulPosition (getIdPosition i)))
     then updateIExprPosition pos iexpr
-    else iexpr 
+    else iexpr
 updateIExprPosition2 pos (IAps e ts [e0]) = (IAps (updateIExprPosition pos e) ts [(updateIExprPosition pos e0)])
 updateIExprPosition2 pos (IAps e ts es) = (IAps (updateIExprPosition pos e) ts es)
 updateIExprPosition2 pos (IVar i) = (IVar (setIdPosition pos i))
@@ -53,7 +53,7 @@ updateIExprPosition2 pos (IRefT t p r) = (IRefT (updateITypePosition pos t) p r)
 
 mapIExprPosition :: Bool -> (IExpr a, IExpr a) -> IExpr a
 mapIExprPosition False (expr_0, expr_1) = expr_1
-mapIExprPosition True (expr_0, expr_1) = 
+mapIExprPosition True (expr_0, expr_1) =
     let positionModel = (getIExprPositionCross expr_0)
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
@@ -66,9 +66,9 @@ mapIExprPosition True (expr_0, expr_1) =
 		         in expr
 		    else (updateIExprPosition positionModel expr_1)
 
-
+mapIExprPosition2 :: Bool -> (IExpr a, IExpr a) -> IExpr a
 mapIExprPosition2 False (expr_0, expr_1) = expr_1
-mapIExprPosition2 True (expr_0, expr_1) = 
+mapIExprPosition2 True (expr_0, expr_1) =
     let positionModel = (getIExprPositionCross expr_0)
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
@@ -83,7 +83,7 @@ mapIExprPosition2 True (expr_0, expr_1) =
 
 mapIExprPositionConservative :: Bool -> (IExpr a,IExpr a) -> IExpr a
 mapIExprPositionConservative False (expr_0, expr_1) = expr_1
-mapIExprPositionConservative True (expr_0, expr_1) = 
+mapIExprPositionConservative True (expr_0, expr_1) =
     let positionModel = (getIExprPositionCross expr_0)
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
@@ -101,17 +101,17 @@ mapIExprPositionConservative True (expr_0, expr_1) =
 -- #############################################################################
 
 isEquivIExprIncluded :: IExpr a -> IExpr a -> Bool
-isEquivIExprIncluded sub_expr expr@(ILam i t e) = 
+isEquivIExprIncluded sub_expr expr@(ILam i t e) =
     ((equivIExprs expr sub_expr) || (isEquivIExprIncluded sub_expr e))
-isEquivIExprIncluded sub_expr expr@(IAps e ts es) = 
+isEquivIExprIncluded sub_expr expr@(IAps e ts es) =
     ((equivIExprs expr sub_expr) || (or (map (equivIExprs sub_expr) es)))
-isEquivIExprIncluded sub_expr expr@(IVar _) = 
+isEquivIExprIncluded sub_expr expr@(IVar _) =
     (equivIExprs expr sub_expr)
-isEquivIExprIncluded sub_expr expr@(ILAM i kind e) = 
+isEquivIExprIncluded sub_expr expr@(ILAM i kind e) =
     ((equivIExprs expr sub_expr) || (isEquivIExprIncluded sub_expr e))
-isEquivIExprIncluded sub_expr expr@(ICon _ _) = 
+isEquivIExprIncluded sub_expr expr@(ICon _ _) =
     (equivIExprs expr sub_expr)
-isEquivIExprIncluded sub_expr expr@(IRefT t p r) = 
+isEquivIExprIncluded sub_expr expr@(IRefT t p r) =
     (equivIExprs expr sub_expr)
 
 -- #############################################################################
@@ -162,4 +162,3 @@ equivId id0 id1 = (id0 == id1) && (getIdProps id0 == getIdProps id1)
 -- #############################################################################
 -- #
 -- #############################################################################
-

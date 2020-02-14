@@ -168,6 +168,7 @@ mustAll p = \as n->
 	r -> r 
 
 -- If first alternative gives partial parse it's a failure
+(|!!) :: Parser a b -> Parser a b -> Parser a b
 p |!! q = mustAll p ||! q
 
 -- Kleene star

@@ -43,18 +43,21 @@ type ExceptionType = CE.SomeException
 type ExceptionType = CE.Exception
 #endif
 
-
+dfltBluespecDir, dfltVSim, dfltMACRODEF :: String
 dfltBluespecDir = "/usr/local/lib/" ++ bluespec
 dfltVSim = "iverilog"
 dfltMACRODEF = "-D"
 
+dfltCCompile, dfltCxxCompile :: String
 dfltCCompile = "cc"
 dfltCxxCompile = "c++"
+dfltCFLAGS, dfltBSC_CFLAGS, dfltCXXFLAGS,dfltBSC_CXXFLAGS :: String
 dfltCFLAGS = "-O3"
 dfltBSC_CFLAGS = "-Wall -Wno-unused -D_FILE_OFFSET_BITS=64"
 dfltCXXFLAGS = "-O3"
 dfltBSC_CXXFLAGS = "-Wall -Wno-unused -D_FILE_OFFSET_BITS=64"
 
+dfltMake, dfltBSC_MAKEFLAGS :: String
 dfltMake = "make"
 -- MAKEFLAGS is a reserved variable that make uses for recursive calls;
 -- it should not be explicitly added to calls to 'make'
@@ -130,6 +133,7 @@ dumpStr errh flags t d names@(file, pkg, mod) a = do
         _ -> -- don't exit here, return the new time
              return t'
 
+substNames :: (String,String, String) -> String -> String
 substNames _ "" = ""
 substNames names@(file,pkg,mod) ('%':c:cs) = subst ++ substNames names cs
     where subst = case c of
@@ -187,6 +191,7 @@ putInDir (Just d) name suf = d ++ "/" ++ baseName (dropSuf name) ++ "." ++ suf
 
 -----
 
+commentC, commentV :: [String] -> String
 commentC ls = unlines (["/*"] ++ map (" * " ++) ls ++ [" */"])
 commentV ls = unlines (["//"] ++ map ("// " ++) ls ++ ["//"])
 
@@ -210,6 +215,7 @@ diffTimeInfo :: TimeInfo -> TimeInfo -> (Double, Double)
 diffTimeInfo (TimeInfo t ct) (TimeInfo t' ct') = (t'-t, tdToDouble (diffClockTimes ct' ct))
   where tdToDouble d = fromIntegral ((tdHour d * 60 + tdMin d) * 60 + tdSec d) + fromInteger (tdPicosec d) * 1.0e-12
 
+putStrLnF :: String -> IO ()
 putStrLnF s = do putStrLn s; hFlush stdout
 
 -----

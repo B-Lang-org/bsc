@@ -93,7 +93,7 @@ instance (PVPrint a, PVPrint b) => PVPrint (Either a b) where
 instance (PVPrint a) => PVPrint (Maybe a) where
     pvPrint _ _ Nothing = text"Nothing"
     pvPrint d p (Just x) = pvparen (p>9) (text"Just (" <> pvPrint d 10 x <> text")")
-
+pvparen :: Bool -> Doc -> Doc
 pvparen False x = x
 pvparen True  x = text"(" <> x <> text")"
 

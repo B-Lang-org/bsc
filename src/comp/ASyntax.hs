@@ -397,6 +397,7 @@ newtype AScheduler =
     ASchedEsposito [(ARuleId, [ARuleId])]
 	deriving (Eq, Show)
 
+getSchedulerIds :: AScheduler -> [ARuleId]
 getSchedulerIds (ASchedEsposito fs) = map fst fs
 
 dropScheduleIds :: [ARuleId] -> ASchedule -> ASchedule
@@ -454,14 +455,17 @@ instance HasPosition AType where
     getPosition _                          = noPosition
 
 
-
+aTZero, aTBool, aTNat :: AType
 aTZero = ATBit 0
 aTBool = ATBit 1
 aTNat = ATBit 32
 
+aTAction, aTClock, aTReset :: AType
 aTAction = ATAbstract idPrimAction []
 aTClock  = ATAbstract idClock []
 aTReset  = ATAbstract idReset []
+
+aTInout, aTInout_ :: ASize -> AType
 aTInout n = ATAbstract idInout [n]
 aTInout_ n = ATAbstract idInout_ [n]
 
@@ -786,8 +790,10 @@ aIfaceName (AIClock { aif_name = i}) = i
 aIfaceName (AIReset { aif_name = i}) = i
 aIfaceName (AIInout { aif_name = i}) = i
 
+aIfaceNameString :: AIFace -> String
 aIfaceNameString i = getIdString (aIfaceName i)
 
+aiface_vname :: AIFace -> String
 aiface_vname i = getIdString (vf_name (aif_fieldinfo i))
 
 -- wire properties
@@ -860,11 +866,13 @@ addRdyToARule rdyId r0@(ARule { arule_id = ri, arule_pred = e }) = (d, r)
        r = r0 { arule_pred = (ASDef aTBool di) }
 
 -- The names of value methods and action/actionvalue rules
+aIfaceSchedNames :: AIFace -> [ARuleId]
 aIfaceSchedNames (AIAction { aif_body = rs}) = map arule_id rs
 aIfaceSchedNames (AIActionValue { aif_body = rs}) = map arule_id rs
 aIfaceSchedNames (AIDef { aif_value = d }) = [adef_objid d]
 aIfaceSchedNames _ = []
 
+aIfacePred :: AIFace -> APred
 aIfacePred ifc@(AIDef {}) = aif_pred ifc
 aIfacePred ifc@(AIAction {}) = aif_pred ifc
 aIfacePred ifc@(AIActionValue {}) = aif_pred ifc
@@ -1213,6 +1221,7 @@ isTrue (ASInt _ _ (IntLit _ _ 1)) = True
 isTrue _ = False
 
 -- make an AXExprS which is a boolean
+aXSBool :: Bool -> AExpr
 aXSBool b = aSBool b
 
 aNat :: Integer -> AExpr
@@ -1543,16 +1552,19 @@ getP :: PExpandContext -> Int
 getP ec = if useParen ec then 1 else 0
 
 -- No parens, show use sized literal
+defContext :: PExpandContext
 defContext = PExpandContext { useParen=False,
                               parentOp=Nothing,
                               literal=Sized}
 
 -- Boolean Context
+bContext :: PExpandContext
 bContext = PExpandContext { useParen=False,
                             parentOp=Nothing,
                             literal=Boolean}
 
 -- use parens
+pContext :: PExpandContext
 pContext = PExpandContext { useParen=True,
                             parentOp=Nothing,
                             literal=Sized}
@@ -1854,6 +1866,7 @@ mkMethStr obj m m_port mp =
 -- #
 -- #############################################################################
 
+defaultAId :: Id
 defaultAId = mkId noPosition (mkFString "ABC")
 
 -- #############################################################################

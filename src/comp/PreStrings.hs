@@ -473,6 +473,7 @@ fsFile = mkFString "File"
 
 
 -- classes hardcoded in the Prelude which were added for ContextErrors
+fsBitwise, fsBitReduce, fsBitExtend, fsArith, fsOrd :: FString
 fsBitwise          = mkFString "Bitwise"
 fsBitReduce        = mkFString "BitReduction"
 fsBitExtend        = mkFString "BitExtend"
@@ -480,9 +481,11 @@ fsArith            = mkFString "Arith"
 fsOrd              = mkFString "Ord"
 
 -- nice display names for instance hierarchy
+fsLoop, fsBody :: FString
 fsLoop = mkFString "Loop"
 fsBody = mkFString "Body"
 
+fsHide, fsHideAll, fsElements, fsvElements :: FString
 fsHide             = mkFString "hide"
 fsHideAll          = mkFString "hide_all"
 fsElements         = mkFString "_elements"

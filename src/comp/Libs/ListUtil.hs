@@ -12,7 +12,9 @@ unfoldr f p x | p x       = []
 chopList :: ([a] -> (b, [a])) -> [a] -> [b]
 chopList f l = unfoldr f null l
 
+mapFst :: (a -> c) -> [(a, b)] -> [(c, b)]
 mapFst f xys = [(f x, y) | (x, y) <- xys]
+mapSnd :: (b -> c) -> [(a, b)] -> [(a, c)]
 mapSnd f xys = [(x, f y) | (x, y) <- xys]
 
 -- Split a list up into groups separated by elements which satisfy

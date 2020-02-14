@@ -214,13 +214,14 @@ The primitive @Doc@ values
 \begin{code}
 empty                     :: Doc
 isEmpty                   :: Doc    -> Bool
-text                      :: String -> Doc 
+text                      :: String -> Doc
+ptext                     :: String -> Doc
 char                      :: Char -> Doc
 
 semi, comma, colon, space, equals              :: Doc
 lparen, rparen, lbrack, rbrack, lbrace, rbrace :: Doc
 
-parens, brackets, braces  :: Doc -> Doc 
+parens, brackets, braces  :: Doc -> Doc
 quotes, doubleQuotes      :: Doc -> Doc
 
 int      :: Int -> Doc
@@ -240,6 +241,7 @@ hsep   :: [Doc] -> Doc          -- List version of <+>
 
 ($$)   :: Doc -> Doc -> Doc     -- Above; if there is no
                                 -- overlap it "dovetails" the two
+($+$)  :: Doc -> Doc -> Doc
 vcat   :: [Doc] -> Doc          -- List version of $$
 
 cat    :: [Doc] -> Doc          -- Either hcat or vcat

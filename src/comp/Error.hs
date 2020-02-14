@@ -209,6 +209,7 @@ smessage :: String
 smessage = "message"
 
 
+emptyContext :: Doc
 emptyContext = empty
 
 -- -----
@@ -331,6 +332,7 @@ suppressWarnings :: ErrorState -> [WMsg] -> (ErrorState, [WMsg])
 suppressWarnings state ws =
   let notSuppressed t = not $ memberMsgSet t (suppressionSet state)
       ws' = filter (notSuppressed . getErrMsgTag . snd) ws
+      num_suppressed :: Integer
       num_suppressed = genericLength ws - genericLength ws'
       old_count = suppressedCount state
       new_count = old_count + num_suppressed
@@ -1220,8 +1222,13 @@ getErrMsgTag m = prErrMsgTag $ fst3 (getErrorText m)
 showEMsgList :: String -> MsgContext -> [EMsg] -> String
 showEMsgList ekind ctx ms = pretty 78 78 (prEMsgList ekind ctx ms)
 
+showErrorList :: [EMsg] -> String
 showErrorList   = showEMsgList serror emptyContext
+
+showWarningList :: [EMsg] -> String
 showWarningList = showEMsgList swarning emptyContext
+
+showMessageList :: [EMsg] -> String
 showMessageList = showEMsgList smessage emptyContext
 
 showErrorListWithContext   = showEMsgList serror

@@ -344,10 +344,12 @@ isTCon _ = False
 isGeneratedTVar :: TyVar -> Bool
 isGeneratedTVar (TyVar _ n _) = n /= noTyVarNo
 
+isIfc :: StructSubType -> Bool
 isIfc SInterface {} = True
 --isIfc SStruct = True -- XXX why??
 isIfc _ = False
 
+isInterface :: CType -> Bool
 isInterface t | Just (TyCon _ _ (TIstruct s _)) <- leftTyCon t = isIfc s
 isInterface _ = False
 
@@ -368,9 +370,11 @@ getArrows t = getArrowsAccum [] t
 getRes :: Type -> Type
 getRes t = snd (getArrows t)
 
+isTConArrow :: TyCon -> Bool
 isTConArrow (TyCon i _ _) =  i == idArrow noPosition
 isTConArrow t = internalError("isTConArrow: not TCon " ++ show t)
 
+isTConPair :: TyCon -> Bool
 isTConPair (TyCon i _ _) =  i == idPrimPair
 isTConPair t = internalError("isTConPair: not TCon " ++ show t)
 
@@ -384,10 +388,13 @@ isTypeTConArgs :: Id -> Type -> Bool
 isTypeTConArgs cid (TAp (TCon (TyCon i _ _)) _) | (i == cid) = True
 isTypeTConArgs _ _ = False
 
+isTypeBit, isTypeString, isTypePrimAction, isTypeAction :: Type -> Bool
 isTypeBit          = isTypeTConArgs   idBit
 isTypeString       = isTypeTConNoArgs idString
 isTypePrimAction   = isTypeTConNoArgs idPrimAction
 isTypeAction       = isTypeTConNoArgs idAction
+
+isTypeActionValue, isTypeActionValue_, isTypeUnit :: Type -> Bool
 isTypeActionValue  = isTypeTConArgs   idActionValue
 isTypeActionValue_ = isTypeTConArgs   idActionValue_
 isTypeUnit         = isTypeTConNoArgs  idPrimUnit

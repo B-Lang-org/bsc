@@ -952,6 +952,7 @@ cmpC c1 c2 =
         ICType {iType = t1 } -> compare t1 (iType c2)
         ICPred {iPred = p1 } -> compare p1 (iPred c2)
 
+isIConInt, isIConReal, isIConParam :: IExpr a -> Bool
 isIConInt (ICon _ (ICInt { })) = True
 isIConInt _ = False
 
@@ -1572,4 +1573,3 @@ showTypelessList es = "[" ++ concat (intersperse ", " (map showTypeless es)) ++ 
 -- #############################################################################
 -- #
 -- #############################################################################
-

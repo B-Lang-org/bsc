@@ -7,6 +7,7 @@ import PPrint
 import FlagsDecode(defaultFlags)
 import Error(initErrorHandle)
 
+main :: IO ()
 main =
     do args <- getArgs
        case args of

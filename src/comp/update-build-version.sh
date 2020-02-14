@@ -8,6 +8,7 @@ export TMOUT=1
 
 genGITBuildVersion () {
     echo "module BuildVersion(buildVersion, buildVersionNum) where" > BuildVersion.hs.new;
+    echo buildVersion :: String >> BuildVersion.hs.new;
     echo buildVersion = \"$1\" >> BuildVersion.hs.new;
     echo buildVersionNum :: Integer >> BuildVersion.hs.new;
     echo buildVersionNum = 0x$1 >> BuildVersion.hs.new;

@@ -338,6 +338,7 @@ isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
 isPrimType _ = False
 
 -- Primitive type applications
+isPrimType :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
 isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
                           i == idBit ||
@@ -345,6 +346,7 @@ isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
 isPrimTAp (ITAp a t) | iGetKind t == Just IKNum = isPrimTAp a
 isPrimTAp _ = False
 
+isParamOnlyType :: IType -> Bool
 isParamOnlyType t = t == itString || t == itReal
 
 -----------------------------------------------------------------------------
@@ -2614,6 +2616,7 @@ toHeapCon tag e@(ICon _ _) cell_name = addHeapUnev tag (iGetType e) e cell_name
 toHeapCon tag e cell_name = toHeap tag e cell_name
 
 {-# INLINE toHeapWHNF #-}
+toHeapWHNF :: String -> IExpr HeapData -> Maybe Id -> G (IExpr HeapData)
 toHeapWHNF tag e@(ICon _ _) cell_name = return e
 toHeapWHNF tag e@(IRefT _ _ _) cell_name = return e
 toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), e])
@@ -2624,11 +2627,13 @@ toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), 
 toHeapWHNF tag e cell_name = addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
 
 {-# INLINE toHeapWHNFCon #-}
+toHeapWHNFCon :: String -> IExpr HeapData -> Maybe Id -> G HExpr
 toHeapWHNFCon tag e@(ICon _ _) cell_name =
     addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
 toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
 
 {-# INLINE toHeapWHNFInferName #-}
+toHeapWHNFInferName :: String -> HExpr -> G (IExpr HeapData)
 toHeapWHNFInferName tag e = inferName e >>= toHeapWHNF tag e
 
 {-# INLINE toHeapInferName #-}
@@ -2712,7 +2717,7 @@ cleanupFinalRules flags (IRules sps rs) = IRules sps' (reverse rs')
         -- rename Ids in the attributes, but keep their original positions
         -- (we want the Ids to point to the user-written names in the source)
         sps' = substSchedPragmaIds id_rename_map sps
-        uniqueFn seen = if (ruleNameCheck flags) 
+        uniqueFn seen = if (ruleNameCheck flags)
                         then makeUniqueRuleString seen
                         else id
         -- fold over the list, keep tracking of names that have been seen
@@ -3303,6 +3308,7 @@ realPrimOp _ = False
 
 -----------------------------------------------------------------------------
 
+integerPrim :: PrimOp -> Bool
 integerPrim PrimIntegerAdd = True
 integerPrim PrimIntegerSub = True
 integerPrim PrimIntegerNeg = True
@@ -3322,6 +3328,7 @@ integerPrim _ = False
 
 -----------------------------------------------------------------------------
 
+realPrim :: PrimOp -> Bool
 realPrim PrimRealEQ = True
 realPrim PrimRealLE = True
 realPrim PrimRealLT = True
@@ -3370,6 +3377,7 @@ realPrim _ = False
 
 -- ops that only take arguments (one or two) of type String
 -- (IExpand uses this to handle multiple ops in one arm of "conAp'")
+stringPrim :: PrimOp -> Bool
 stringPrim PrimStringConcat = True
 stringPrim PrimStringEQ = True
 stringPrim PrimStringToInteger = True
@@ -3381,6 +3389,7 @@ stringPrim _ = False
 
 -- ops that only take an argument of type Char
 -- (IExpand uses this to handle multiple ops in one arm of "conAp'")
+charPrim :: PrimOp -> Bool
 charPrim PrimCharToString = True
 charPrim PrimCharOrd = True
 charPrim _ = False
@@ -3389,6 +3398,7 @@ charPrim _ = False
 
 -- ops that are Boolean queries on one argument of type Handle
 -- (IExpand uses this to handle them all in one arm of "conAp'")
+handleBoolPrim :: PrimOp -> Bool
 handleBoolPrim PrimHandleIsEOF = True
 handleBoolPrim PrimHandleIsOpen = True
 handleBoolPrim PrimHandleIsClosed = True
@@ -3398,6 +3408,7 @@ handleBoolPrim _ = False
 
 -----------------------------------------------------------------------------
 
+strictPrim :: PrimOp -> Bool
 strictPrim PrimAdd = True
 strictPrim PrimSub = True
 strictPrim PrimAnd = True

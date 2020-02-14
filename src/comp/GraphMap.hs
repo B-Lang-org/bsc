@@ -98,6 +98,7 @@ instance (PPrint v, PPrint w) => PPrint (GraphMap v w) where
                                     | (v1, m') <- M.toList m]
 
 -- non-connected components
+ncc :: Ord v => GraphMap v w -> [[v]]
 ncc g | null g = [[]]
       | otherwise = ncvs:(ncc $ deleteVertices g ncvs)
       where (v:vs) = vertices g

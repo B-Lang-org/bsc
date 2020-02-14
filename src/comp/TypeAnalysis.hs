@@ -373,18 +373,20 @@ getBitWidth flags symtab t =
 
 -- Type utilites
 
+kVector, kList :: Kind
 kVector = Kfun KNum (Kfun KStar KStar)
 kList   = Kfun KStar KStar
 
+vsVector, vsList :: [Id]
 vsVector = map mk_homeless_id ["vsize", "element_type"]
 vsList   = map mk_homeless_id ["element_type"]
-vsTuple sz = if (sz > 8)
+vsTuple sz = if sz > 8
              then internalError ("vsTuple: size > 7: " ++ ppReadable sz)
              else map mk_homeless_id (take sz ["a","b","c","d","e","f","g","h"])
 
 -- apply a function to the base of a qualified type
 apType :: (Type -> Type) -> Qual Type -> Qual Type
-apType f (ps :=> t) = (ps :=> f t)
+apType f (ps :=> t) = ps :=> f t
 
 -- Whether a type is a valid subinterface type
 -- (and should be marked "interface" and not "method").

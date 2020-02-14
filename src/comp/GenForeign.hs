@@ -100,4 +100,3 @@ extractForeignFuncInfo defn =
                   Left _ -> internalError "GenForeign: getName"
             res -> internalError ("GenForeign: foreigns = " ++
                                   ppReadable res)
-

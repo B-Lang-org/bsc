@@ -18,6 +18,7 @@ dVars = findAExprs dVarsE
         dVarsE (AFunCall { ae_args = es }) = dVars es
         dVarsE _ = []
 
+aDropDefs :: ASPackage -> ASPackage
 aDropDefs aspkg = aspkg { aspkg_values = defs' }
   where roots = dVars (aspkg_state_instances aspkg) ++
                 map fst (aspkg_outputs aspkg) ++

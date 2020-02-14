@@ -19,6 +19,11 @@ import Util(rTake)
 -- Names
 
 -- various suffixes
+bscSrcSuffix, bsvSrcSuffix, bseSrcSuffix, binSuffix, abinSuffix, cSuffix,
+  cxxSuffix, cppSuffix, ccSuffix, hSuffix, comodSuffix, objSuffix, arSuffix,
+  soSuffix, verSuffix, verSuffix2, verSuffix3, verSuffix4, verSuffix5,
+  verSuffix6, vhdlSuffix, vhdlSuffix2, useSuffix, scheduleSuffix, dotSuffix,
+  vcdSuffix, makeSuffix :: String
 bscSrcSuffix = "bs"
 bsvSrcSuffix = "bsv"
 bseSrcSuffix = "bse"
@@ -59,7 +64,8 @@ mkPre (Just d)  _ = d ++ "/"
 --   pre = otherwise a default prefix (for the current dir?)
 --   s   = a base filename string
 -- append a dot suffix for the type of file
-mkVName :: Maybe String -> String -> String -> String
+mkVName, mkAName, mkSchedName, mkCxxName, mkCName, mkHName, mkObjName,
+  mkSoName, mkDOTName, mkMakeName :: Maybe String -> String -> String -> String
 mkVName     m pre s = mkPre m pre ++ s ++ "." ++ verSuffix
 mkAName     m pre s = mkPre m pre ++ s ++ "." ++ abinSuffix
 mkSchedName m pre s = mkPre m pre ++ s ++ "." ++ scheduleSuffix
@@ -72,11 +78,15 @@ mkDOTName   m pre s = mkPre m pre ++ s ++ "." ++ dotSuffix
 mkMakeName  m pre s = mkPre m pre ++ s ++ "." ++ makeSuffix
 
 -- add prefix (and possible suffix) based on the type of file
+mkVPICName, mkVPIHName :: Maybe String -> String -> String -> String
 mkVPICName m pre s = mkPre m pre ++ "vpi_wrapper_" ++ s ++ "." ++ cSuffix
 mkVPIHName m pre s = mkPre m pre ++ "vpi_wrapper_" ++ s ++ "." ++ hSuffix
+
+mkVPIArrayCName :: Maybe String -> String -> String
 mkVPIArrayCName m pre = mkPre m pre ++ "vpi_startup_array" ++ "." ++ cSuffix
 
 -- add prefix but no suffix
+mkNameWithoutSuffix :: Maybe String -> String -> String -> String
 mkNameWithoutSuffix m pre s = mkPre m pre ++ s
 
 -- =====

@@ -266,11 +266,17 @@ addQuals mkQuals ixs = concatMap addQuals' ixs
 -- ---------------
 
 -- versions which add both qual and unqual names
+addTypesUQ :: SymTab -> [(Id, TypeInfo)] -> SymTab
 addTypesUQ   = addTypes mkDefaultQuals
-addVarsUQ    = addVars mkDefaultQuals
+
+addVarsUQ :: SymTab -> [(Id, VarInfo)] -> SymTab
+addVarsUQ  = addVars mkDefaultQuals
+
+addClassesUQ :: SymTab -> [Class] -> SymTab
 addClassesUQ = addClasses mkDefaultQuals
 
 -- For Ids which should be entered as both qualified and unqualified
+mkDefaultQuals :: Id -> [Id]
 mkDefaultQuals name =
     -- if the Id is already unqualified, don't duplicate it
     if (isNothing (getIdQFString name))
@@ -280,7 +286,9 @@ mkDefaultQuals name =
 -- -----
 
 -- versions which only add the name as it is (qualified)
+addTypesQ :: SymTab -> [(Id, TypeInfo)] -> SymTab
 addTypesQ  = addTypes mkSameQual
+addFieldsQ :: SymTab -> [(Id, FieldInfo)] -> SymTab
 addFieldsQ = addFields mkSameQual
 
 -- For Ids which should be entered as-is

@@ -22,7 +22,7 @@ import PreIds(idInout_)
 -- IsLiteral is a class to check if A or AX expressions are integer or string literals or not
 -- _ is counted as a literal for convenience
 -- isLiteralExp is an expression with only literal arguments
-
+isLiteralExp :: AExpr -> Bool
 isLiteralExp x = isLiteral x
 
 isLiteral :: AExpr -> Bool
@@ -42,12 +42,15 @@ isASAny :: AExpr -> Bool
 isASAny (ASAny {}) = True
 isASAny _          = False
 
+is_aidef :: AIFace -> Bool
 is_aidef (AIDef {}) = True
 is_aidef _ = False
 
+is_aiaction :: AIFace -> Bool
 is_aiaction (AIAction {}) = True
 is_aiaction _ = False
 
+isInoutType :: AType -> Bool
 isInoutType (ATAbstract i _) = i == idInout_
 isInoutType _ = False
 

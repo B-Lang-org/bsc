@@ -16,7 +16,6 @@ import ASyntax
 import VModInfo
 import Prim
 
-
 -- ==========
 
 -- XXX This could become part of IExpand.handlePrim on ICVerilog,
@@ -164,7 +163,7 @@ isConstAExpr _ (ASInt {}) = True     -- constant number
 isConstAExpr _ (ASReal {}) = True    -- constant real number
 isConstAExpr _ (ASStr {}) = True     -- constant string
 isConstAExpr _ (ASParam {}) = True   -- parameter reference
-isConstAExpr ps (ASPort _ port_id) = 
+isConstAExpr ps (ASPort _ port_id) =
     -- ports are dynamic unless we're told to assume them constant
     (port_id `elem` ps)
 isConstAExpr _ (ASAny {}) =
@@ -253,4 +252,3 @@ isConstOp _ = False
 
 
 -- ==========
-
