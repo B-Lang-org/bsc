@@ -2,7 +2,7 @@
 
 # Bluespec Compiler
 
-![Version]
+![Version] ![CI Status]
 
 [![Documentation]][Doc page]
 ![License]
@@ -11,6 +11,7 @@
 [Documentation]:  https://img.shields.io/badge/docs-Manual-orange.svg?logo=markdown
 [License]:        https://img.shields.io/badge/license-BSD%203-blueviolet.svg
 [Version]:        https://img.shields.io/badge/release-2020.02,%20"Open%20Source%20Release"-red.svg?logo=v
+[CI Status]:      https://github.com/b-lang-org/bsc/workflows/CI/badge.svg
 
 <strong>
   <a href="https://github.com/B-Lang-org/bsc">Homepage</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;<a href="https://github.com/B-Lang-org/bsc">Get Started</a>
