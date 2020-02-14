@@ -107,7 +107,7 @@ mapPair f ps = [ (f p1, f p2) | (p1, p2) <- ps ]
 -- Graph manipulation
 
 -- Note, this is not a fast operation, so use sparingly
-addNodes :: (Ord nodeT) => Graph nodeT -> [nodeT] -> IO (Graph nodeT)
+addNodes :: Ord nodeT => Graph nodeT -> [nodeT] -> IO (Graph nodeT)
 addNodes g@(Graph graph ordmap lookuptable size) ns = do
     let nodesSet = M.keysSet ordmap
     let new_nodes = filter (not . ((flip S.member) nodesSet)) ns
@@ -121,7 +121,7 @@ addNodes g@(Graph graph ordmap lookuptable size) ns = do
 
 -- Note, this requires that the nodes of all the edges already be in the graph
 -- Use addEdgesWithNodes if that is not the case
-addEdge :: (Ord nodeT) => Graph nodeT -> (nodeT, nodeT) -> IO ()
+addEdge :: Ord nodeT => Graph nodeT -> (nodeT, nodeT) -> IO ()
 addEdge g@(Graph graph _ _ _) (v1, v2) = do
   let i1 = vToInt g v1
   let i2 = vToInt g v2
@@ -129,7 +129,7 @@ addEdge g@(Graph graph _ _ _) (v1, v2) = do
   writeArray graph i1 (L.insert i2 old_list)
 
 -- this could be more efficient if we coalesced the edges before adding them
-addEdgesWithNodes :: (PPrint nodeT, Ord nodeT) => Graph nodeT -> [(nodeT,nodeT)] -> IO (Graph nodeT)
+addEdgesWithNodes :: Ord nodeT => Graph nodeT -> [(nodeT,nodeT)] -> IO (Graph nodeT)
 addEdgesWithNodes g es = do
     let new_nodes = L.nub ((map fst es) ++ (map snd es))
     g' <- addNodes g new_nodes
@@ -209,14 +209,14 @@ tSortInt g = case cycles of
 
 -- Takes a graph and a list of starting nodes, and returns a list of
 -- the nodes reachable from those starting points (paired with the path).
-findReachablesIO :: (Ord a, Eq a) => Graph a -> [a] -> IO ([[ (a,[a]) ]])
+findReachablesIO :: Ord a => Graph a -> [a] -> IO ([[ (a,[a]) ]])
 findReachablesIO g@(Graph graph ordmap lookuptable _) vs = do
     let int_vs = map (vToInt g) vs
     let pairToV (a,path) = (intToV g a, map (intToV g) path)
     g_immut <- freeze graph
     return (map (map pairToV . reachable_withPath g_immut) int_vs)
 
-findReachables :: (Ord a, Eq a) => Graph a -> [a] -> [[ (a, [a])]]
+findReachables :: Ord a => Graph a -> [a] -> [[ (a, [a])]]
 findReachables g vs = unsafePerformIO $ findReachablesIO g vs
 
 -- ----------
@@ -238,7 +238,7 @@ reachable_withPath g v = preorderF_withPath [] (G.dfs g [v])
 -- ----------
 
 -- Check if a path exists, but don't return it
-hasPath :: (Ord a, Eq a) => Graph a -> a -> a -> Bool
+hasPath :: Ord a => Graph a -> a -> a -> Bool
 hasPath g@(Graph graph ordmap lookuptable _) in_v out_v =
     let	in_int = vToInt g in_v
         out_int = vToInt g out_v
@@ -246,7 +246,7 @@ hasPath g@(Graph graph ordmap lookuptable _) in_v out_v =
     in G.path g_immut in_int out_int
 
 -- The path list starts with in_v and ends with out_v
-findPath :: (Ord a, Eq a) => Graph a -> a -> a -> Maybe [a]
+findPath :: Ord a => Graph a -> a -> a -> Maybe [a]
 findPath g@(Graph graph ordmap lookuptable _) in_v out_v =
     let
         in_int = vToInt g in_v

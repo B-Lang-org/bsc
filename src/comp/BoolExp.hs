@@ -149,21 +149,21 @@ rOr  x1 x2 = red (Or  x1 x2)
 rNot :: (Ord a) => BoolExp a -> BoolExp a
 rNot x1    = red (Not x1)
 
-rrOr :: (Eq a) => BoolExp a -> BoolExp a -> BoolExp a
+rrOr :: BoolExp a -> BoolExp a -> BoolExp a
 rrOr e TT = TT
 rrOr e1 e2 = Or e1 e2
 
-rrOrs :: (Eq a) => [BoolExp a] -> BoolExp a
+rrOrs :: [BoolExp a] -> BoolExp a
 rrOrs = foldrx rrOr FF
 
-rrAnd :: (Eq a) => BoolExp a -> BoolExp a -> BoolExp a
+rrAnd :: BoolExp a -> BoolExp a -> BoolExp a
 rrAnd e FF = FF
 rrAnd e1 e2 = And e1 e2
 
-rrAnds :: (Eq a) => [BoolExp a] -> BoolExp a
+rrAnds :: [BoolExp a] -> BoolExp a
 rrAnds = foldrx rrAnd TT
 
-rrNot :: (Eq a) => BoolExp a -> BoolExp a
+rrNot :: BoolExp a -> BoolExp a
 rrNot (Not e) = e
 rrNot e = Not e
 

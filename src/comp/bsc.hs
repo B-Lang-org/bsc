@@ -50,7 +50,6 @@ import SCC(scc)
 -- utility libs
 import ParseOp
 import PFPrint
-import Eval(Hyper)
 import Util(headOrErr, fromJustOrErr, joinByFst, quote)
 import FileNameUtil(baseName, hasDotSuf, dropSuf, dirName, mangleFileName,
                     mkAName, mkVName, mkVPICName, mkVPIArrayCName,
@@ -2188,10 +2187,8 @@ missingUserFiles flags cSrcFiles = filterM cantFind cSrcFiles
 
 -- ===============
 
-compileCDefToIDef :: (Hyper a) =>
-    ErrorHandle -> Flags -> DumpNames -> SymTab ->
-    IPackage a -> CDefn ->
-    IO (IDef a, Bool)
+compileCDefToIDef :: ErrorHandle -> Flags -> DumpNames -> SymTab ->
+                     IPackage a -> CDefn -> IO (IDef a, Bool)
 compileCDefToIDef errh flags dumpnames symt ipkg def =
  do
     let pkgid = ipkg_name ipkg

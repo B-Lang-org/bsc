@@ -29,11 +29,11 @@ bddFalse, bddTrue :: BDD a
 bddFalse = L False
 bddTrue  = L True
 
-bddAnd, bddOr :: (Ord a) => BDD a -> BDD a -> BDD a
+bddAnd, bddOr :: Ord a => BDD a -> BDD a -> BDD a
 bddAnd a b = apply (&&) a b
 bddOr  a b = apply (||) a b
 
-bddNot :: (Ord a) => BDD a -> BDD a
+bddNot :: BDD a -> BDD a
 --bddNot e = bddOp (\ x y -> not x) e bddFalse		-- inefficient
 bddNot e = fst (flip I.empty e)
   where flip m (L b) = (L (not b), m)

@@ -846,7 +846,7 @@ expandFullType t = do
 
 ----
 -- a::x is only used for error reporting
-unify :: (PPrint a, PVPrint a, HasPosition a, Show a)
+unify :: (PPrint a, PVPrint a, HasPosition a)
       => a -> Type -> Type -> TI ([VPred])
 unify x t1 t2 = do
     let pos = getPosition x
@@ -886,7 +886,7 @@ unifyNoEq loc x t1 t2 = do
 
 -----
 
-reportUnifyError :: (PPrint a, PVPrint a, HasPosition a, Show a)
+reportUnifyError :: (PPrint a, PVPrint a, HasPosition a)
                  => [TyVar] -> a -> Type -> Type -> TI b
 reportUnifyError bound_vars x orig_t1 orig_t2 =
     let
