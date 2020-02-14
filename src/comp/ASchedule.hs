@@ -10,7 +10,7 @@ module ASchedule(
                  MethodUsesMap, MethodUsers, MethodId(..), UniqueUse(..),
                  RAT,
                  ExclusiveRulesDB(..),
-                 are_rules_exclusive
+                 areRulesExclusive
                  ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -4419,8 +4419,8 @@ verifyStaticScheduleTwoRules errh flags gen_backend moduleId
           let
               r2s = map fst rest
 
-              excl_or_cf r1 r2 = (are_rules_exclusive erdb r1 r2) ||
-                                 (cf_rules_test r1 r2)
+              excl_or_cf r1 r2 = areRulesExclusive erdb r1 r2 ||
+                                 cf_rules_test r1 r2
 
               checkSecondRule ::
                   ARuleId ->
