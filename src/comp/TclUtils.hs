@@ -1,11 +1,31 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
-module TclUtils where
+module TclUtils(
+    ExpandInfoBag(..),
+    ExpandInfoHelper(..),
+    checkEmptyList,
+    eieDump,
+    eieSearch,
+    eMsgsToTcl,
+    genId,
+    getChildren,
+    getEIElement,
+    getInfo,
+    getPositionPair,
+    initExpandInfoBag,
+    isRealPosition,
+    lookupEIElement,
+    lookupError,
+    reportErrorsToTcl,
+    showTaggedPosition,
+    tclPosition,
+    toPrintable,
+    toPrintableDEBUG,
+) where
 
 --------
 import Data.Char(isPrint,ord)
 import Data.List(elemIndices)
-import Control.Monad(when)
-import Control.Monad(foldM)
+import Control.Monad(foldM, unless)
 import Text.Regex
 import Text.Printf(printf)
 import System.IO(hPutStr, stderr)
@@ -45,7 +65,7 @@ genId s =  case (elemIndices ':' s)  of
 -- so it can be turned back to a regular tcl object.
 checkEmptyList :: (Show a) => String -> [a] -> IO ()
 checkEmptyList _ [] = return ()
-checkEmptyList ms os = ioError $ userError ( ms ++ "\n" ++ (show os))
+checkEmptyList ms os = ioError $ userError ( ms ++ "\n" ++ show os)
 
 -- --------------------------------------------------------------------
 
@@ -60,18 +80,13 @@ lookupError o s = ioError $ userError ( "Could not find a \""
 
 reportErrorsToTcl :: [WMsg] -> [EMsg] -> IO ()
 reportErrorsToTcl wms ems = do
-  when (not (null wms)) $ hPutStr stderr (showWarningList wms)
-  if (null ems)
-      then return ()
-      else eMsgsToTcl ems
-
-eitherErrorToTcl :: Either [EMsg] a -> IO a
-eitherErrorToTcl (Right x)  = return x
-eitherErrorToTcl (Left ems) = eMsgsToTcl ems
+  unless (null wms) $ hPutStr stderr (showWarningList wms)
+  if null ems
+  then return ()
+  else eMsgsToTcl ems
 
 eMsgsToTcl :: [EMsg] -> IO a
-eMsgsToTcl [] = do
-  ioError $ userError "Unknown Error"
+eMsgsToTcl [] = ioError $ userError "Unknown Error"
 eMsgsToTcl ems = do
   let s = showErrorList ems
   error s
@@ -85,17 +100,17 @@ instance TclObjCvt Doc where
 instance TclObjCvt Id where
     toTclObj i = toTclObj (pvpString i)
 
-instance  (TclObjCvt a) =>  TclObjCvt (IDef a) where
+instance TclObjCvt (IDef a) where
     toTclObj (IDef i it _ie ps) = do --- why is expr dropped? XXX
       ti <- toTclObj i
       tit <- toTclObj it
       tps <- toTclObj ps
-      toTclObj (TLst [(TStr "IDef"), TCL ti, TCL tit, TCL tps])
+      toTclObj (TLst [TStr "IDef", TCL ti, TCL tit, TCL tps])
 
 instance TclObjCvt DefProp where
-  toTclObj (DefP_Rule i) = do ti <- toTclObj i ; toTclObj (TLst [(TStr "DefP_Rule"), TCL ti])
-  toTclObj (DefP_Method i) = do ti <- toTclObj i ; toTclObj (TLst [(TStr "DefP_Method"), TCL ti])
-  toTclObj (DefP_Instance i) = do ti <- toTclObj i ; toTclObj (TLst [(TStr "DefP_Instance"), TCL ti])
+  toTclObj (DefP_Rule i) = do ti <- toTclObj i ; toTclObj (TLst [TStr "DefP_Rule", TCL ti])
+  toTclObj (DefP_Method i) = do ti <- toTclObj i ; toTclObj (TLst [TStr "DefP_Method", TCL ti])
+  toTclObj (DefP_Instance i) = do ti <- toTclObj i ; toTclObj (TLst [TStr "DefP_Instance", TCL ti])
   toTclObj DefP_NoCSE = toTclObj "DefP_NoCSE"
   
 instance TclObjCvt Type where
@@ -110,18 +125,18 @@ instance TclObjCvt IType where
                            ti <- toTclObj i
                            tit <- toTclObj it
                            tik <- toTclObj ik
-                           toTclObj (TLst [(TStr "ITForAll"),(TCL ti),TCL tik])
-    toTclObj (ITAp t1 t2) = do
-                           toTclObj (TLst [(TStr "ITAP"),(TStr (show t1)),(TStr (show t2))])
+                           toTclObj (TLst [TStr "ITForAll", TCL ti, TCL tik])
+    toTclObj (ITAp t1 t2) =
+                           toTclObj (TLst [TStr "ITAP", TStr (show t1), TStr (show t2)])
     toTclObj (ITVar i) = do
                            ti <- toTclObj i
-                           toTclObj (TLst [(TStr "ITVar"),(TCL ti)])
+                           toTclObj (TLst [TStr "ITVar", TCL ti])
     toTclObj (ITCon i ik tis) = do
                            ti <- toTclObj i
-                           toTclObj (TLst [(TStr "ITCon"),(TCL ti)])
+                           toTclObj (TLst [TStr "ITCon", TCL ti])
     toTclObj (ITNum n) = do
       tn <- toTclObj n
-      toTclObj (TLst [(TStr "ITNum"),(TCL tn)])
+      toTclObj (TLst [TStr "ITNum", TCL tn])
 
 instance TclObjCvt IKind where
     toTclObj k = toTclObj (pPrint PDReadable 0 k)
@@ -132,7 +147,7 @@ instance TclObjCvt IdK where
 -- XXX incomplete
 instance TclObjCvt CDefn where
     toTclObj k@(Cdata {} ) = toTclObj (pvPrint PDReadable 0 k)
-    toTclObj k = case (getName k) of
+    toTclObj k = case getName k of
                    Right i -> toTclObj i
                    Left p  -> toTclObj (dummyId p)
     --toTclObj k = toTclObj (pPrint PDReadable 0 k)
@@ -170,7 +185,7 @@ instance TclObjCvt TypeInfo where
 instance TclObjCvt TISort where
     toTclObj (TItype i t) = do
                             tfs <- toTclObj t
-                            toTclObj $ TLst [TStr "alias", (TCL tfs)]
+                            toTclObj $ TLst [TStr "alias", TCL tfs]
 
     toTclObj (TIdata is)  = do
                             tfs <- mapM toTclObj is
@@ -192,11 +207,11 @@ instance TclObjCvt TISort where
                             tfs <- mapM toTclObj fs
                             toTclObj $ TLst [TStr "interface", TLst (map TCL tfs)]
 
-    toTclObj (TIabstract) = toTclObj $ "Abstract"
+    toTclObj TIabstract = toTclObj "Abstract"
 
 
 instance TclObjCvt FieldInfo where
-    toTclObj x = toTclObj (pPrint PDReadable 0 x)
+    toTclObj x = toTclObj $ pPrint PDReadable 0 x
 
 
 instance TclObjCvt Position where
@@ -208,13 +223,13 @@ tclPosition  (Position fs l c pred) =
         rf = getRelativeFilePath f
         ff = getFullFilePath f
         bf = addBSDir ff
-        pf = if (bf == ff) then rf else bf
+        pf = if bf == ff then rf else bf
         base_name = baseName f
-        lib = dropSuf $ base_name
+        lib = dropSuf base_name
     in if l==(-2) && c<0 && f=="" then ["Command","",""] else
            if l<0 && c<0 && f=="" then ["Unknown","",""] else
-               if (pred) then [pf, show l, show c, "Library " ++ lib] else
-               [pf,show l, show c]
+               if pred then [pf, show l, show c, "Library " ++ lib] else
+               [pf, show l, show c]
 
 addBSDir :: String -> String
 addBSDir ff | ff' /= ff = ff'
@@ -238,7 +253,7 @@ getPositionPair i =
 
 isRealPosition :: Position -> Bool
 isRealPosition pos@(Position fs line column pred) =
-    (pos /= noPosition)
+    pos /= noPosition
 
 --------------------------------------------------------------------------
 -- Help functions and structure for dealing with hierarchy trees in an easy way
@@ -269,7 +284,7 @@ data ExpandInfoElem a = Root -- unpopulated tree
                       | Branch a EIDisplay
 
 getEIElement :: ExpandInfoElem a -> a
-getEIElement (Root)          = internalError ("TclUtil::getEIElement Root")
+getEIElement Root            = internalError ("TclUtil::getEIElement Root")
 getEIElement (TrueLeaf x)    = x
 getEIElement (CurrentLeaf x) = x
 getEIElement (Branch x _)    = x
@@ -281,10 +296,10 @@ eieDump bag =
       let
           genOneObj :: ExpandInfoHelper a => (Int,ExpandInfoElem a) -> IO HTclObj
           genOneObj (k,o) = do
-            i <- case (o) of
+            i <- case o of
                    Root  -> return $ TStr "Root"
                    _     -> getTextf (getEIElement o) >>= (return .  TStr)
-            return $ TLst [ (TInt k), i ]
+            return $ TLst [TInt k, i]
       mapM genOneObj (Map.toList (mbag bag))
 
 -- flow is to lookup,  then update the global state and then return
@@ -303,10 +318,10 @@ getChildren bagin key =
               nextIndexs :: [Int]
               nextIndexs = [(1 + maxIdx bag) ..]
               -- new elements for the bag
-              eileafs = (map (CurrentLeaf) cas)
+              eileafs = (map CurrentLeaf cas)
               newElems = Map.fromList (zip nextIndexs eileafs)
               m' = Map.union newElems (mbag bag)
-              b' = bag { mbag = m', maxIdx = (maxIdx bag + length cas) }
+              b' = bag { mbag = m', maxIdx = maxIdx bag + length cas }
 
           -- generate the displaed text
           cTestStrs <- mapM getTextf cas
@@ -317,18 +332,18 @@ getChildren bagin key =
           return (b', children)
         --
     --
-    in case (lookupEIElement bagin key) of
+    in case lookupEIElement bagin key of
          Root          -> do root <- getRootElem
                              cas  <- getChildrenf root
                              (b',d) <- expandCLeaf cas bagin
-                             let replaceElem = if (null cas) then TrueLeaf root
+                             let replaceElem = if null cas then TrueLeaf root
                                                else Branch root d
                                  b'' = updateCurrent replaceElem b'
                              return (b'',d)
          TrueLeaf x    -> return (bagin, [])
          CurrentLeaf x -> do cas <- getChildrenf x
                              (b',d) <- expandCLeaf cas bagin
-                             let replaceElem = if (null cas) then TrueLeaf x
+                             let replaceElem = if null cas then TrueLeaf x
                                                else Branch x d
                                  b'' = updateCurrent replaceElem b'
                              return (b'',d)
@@ -345,23 +360,20 @@ lookupEIElement ::  ExpandInfoBag a -> Int -> ExpandInfoElem a
 lookupEIElement b key = let err = error ("lookupEIElement: Invalid lookup of element " ++ show key)
                         in Map.findWithDefault err key (mbag b)
 
-type  EISearch a = (ExpandInfoBag a, [EIDisplay])
-
 eieSearch :: (ExpandInfoHelper a) => (a -> Bool)  -> ExpandInfoBag a -> IO (ExpandInfoBag a, [EIDisplay])
 eieSearch testf obag = do
-  let --searchLevel :: (ExpandInfoHelper a) => EIDisplay -> EISearch a -> Int -> IO (EISearch a)
-      searchLevel path (bag,found) key = do
+  let searchLevel path (bag,found) key = do
             (bag',children) <- getChildren  bag key
             let elem = getRawEIElement bag' key
             s <- getTextf elem
             t <- getTagsf elem
-            let path'  = if (key /= 0) then (key,s,t):path else path
-                found' = if (testf elem) then (reverse path'):found else found
+            let path'  = if key /= 0 then (key,s,t):path else path
+                found' = if testf elem then (reverse path'):found else found
             foldM (searchLevel path') (bag',found') (map fst3 children)
   searchLevel [] (obag,[]) 0
 
 positionToTObj ::  Position -> HTclObj
-positionToTObj p = (toHTObj $ tclPosition p)
+positionToTObj p = toHTObj $ tclPosition p
 
 -----------------------------------------------------------------------------
 instance HTclObjCvt Doc where
@@ -378,7 +390,7 @@ instance HTclObjCvt Position  where
 
 instance (HTclObjCvt a) => HTclObjCvt (Maybe a)  where
     toHTObj (Just i) = tag "Just" [toHTObj i]
-    toHTObj (Nothing) = TStr "Nothing"
+    toHTObj Nothing  = TStr "Nothing"
 
 instance HTclObjCvt [EMsg] where
     toHTObj es = toHTObj $ showErrorList es
