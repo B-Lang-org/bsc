@@ -19,7 +19,7 @@ import Control.Monad(when)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
-import EitherUtil
+import Data.Either(partitionEithers)
 import FStringCompat(concatFString)
 import PFPrint
 import PreStrings(fsTilde)
