@@ -32,7 +32,7 @@ import PFPrint
 import VModInfo
 import ASyntax
 import ASyntaxUtil
-import ASchedule(AScheduleInfo(..), ExclusiveRulesDB(..), are_rules_exclusive,
+import ASchedule(AScheduleInfo(..), ExclusiveRulesDB(..), areRulesExclusive,
 		 RAT, MethodUsesMap, MethodUsers, MethodId(..), UniqueUse(..))
 import AUses(useDropCond)
 import AVerilogUtil(vNameToTask)
@@ -1082,7 +1082,7 @@ mkEmux exclusive_rules_db value_method_ids om ino o m ano ers@((e,_,_):_) =
         --               (_, _, Just rs) <- ers, r <- rs ]
 	usePri = let rs  = concat [rs | (_, _, Just rs) <- ers]
 		     val = not (and
-		                [(are_rules_exclusive exclusive_rules_db r r')
+		                [areRulesExclusive exclusive_rules_db r r'
 				 | r <- rs, r' <- rs , r /= r'])
 		 in  val
 

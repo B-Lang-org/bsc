@@ -1,5 +1,25 @@
 {-# LANGUAGE CPP #-}
-module AScheduleInfo where
+module AScheduleInfo (
+    AScheduleErrInfo(..),
+    AScheduleInfo(..),
+    Conflicts(..),
+    ExclusiveRulesDB(..),
+    FastSchedNode(..),
+    RuleRelationDB(..),
+    RuleRelationInfo(..),
+    SchedNode(..),
+    areRulesDisjoint,
+    areRulesExclusive,
+    defaultRuleRelationship,
+    erdbFromList,
+    erdbToList,
+    getRuleRelation,
+    getSchedNodeId,
+    isSchedNode,
+    printRuleRelationInfo,
+    rrdbFromList,
+    unionRuleRelationInfo
+) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -159,8 +179,8 @@ newtype ExclusiveRulesDB =
 -- Note: we check both the disjoint set and the exclusive set, since we
 -- do not make a redundant record of exclusivity when it is implied by
 -- disjointness.
-are_rules_exclusive :: ExclusiveRulesDB -> ARuleId -> ARuleId -> Bool
-are_rules_exclusive (ExclusiveRulesDB exclusive_fmap) r1 r2 =
+areRulesExclusive :: ExclusiveRulesDB -> ARuleId -> ARuleId -> Bool
+areRulesExclusive (ExclusiveRulesDB exclusive_fmap) r1 r2 =
     let (disj_set, excl_set) = M.findWithDefault (S.empty, S.empty) r1 exclusive_fmap
     in (S.member r2 disj_set) || (S.member r2 excl_set)
 
@@ -168,8 +188,8 @@ are_rules_exclusive (ExclusiveRulesDB exclusive_fmap) r1 r2 =
 -- (Used in Bluesim backend for short-circuiting the CF computation,
 -- particularly to avoid computing a CF which has changed due to the
 -- execution of a mutually exclusive rule -- for which no sched edge exists.)
-are_rules_disjoint :: ExclusiveRulesDB -> ARuleId -> ARuleId -> Bool
-are_rules_disjoint (ExclusiveRulesDB exclusive_fmap) r1 r2 =
+areRulesDisjoint :: ExclusiveRulesDB -> ARuleId -> ARuleId -> Bool
+areRulesDisjoint (ExclusiveRulesDB exclusive_fmap) r1 r2 =
     let (disj_set, _) = M.findWithDefault (S.empty, S.empty) r1 exclusive_fmap
     in  S.member r2 disj_set
 
@@ -254,9 +274,9 @@ defaultRuleRelationship = RuleRelationInfo { mCF     = Nothing
                                            }
 
 
-rrdbToList :: RuleRelationDB -> 
+rrdbToList :: RuleRelationDB ->
               [((ARuleId,ARuleId),Bool,(Maybe RuleRelationInfo))]
-rrdbToList (RuleRelationDB dset cmap) = 
+rrdbToList (RuleRelationDB dset cmap) =
     let all_pairs = dset `S.union` (M.keysSet cmap)
     in [ (k, k `S.member` dset, M.lookup k cmap) | k <- S.toList all_pairs ]
 
@@ -408,4 +428,3 @@ unionRuleRelationInfo rri1 rri2 =
        }
 
 -- ---------------
-
