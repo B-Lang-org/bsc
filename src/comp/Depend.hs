@@ -316,9 +316,9 @@ doCPP errh flags name =
     if cpp flags
     then do
         tempName <- tmpNam
-        let topName = "_t_o_p.c"
+        let topName = tempName ++ ".c"
             tmpNameOut = tempName ++ ".out"
-        writeFileCatch errh topName ("#include \""++name++"\"\n")
+        writeFileCatch errh topName ("#include \"" ++ baseName name ++ "\"\n")
         comp <- getEnvDef "CC" dfltCCompile
 
 {- If the compiler specified in the CC environment variable has a
@@ -333,7 +333,8 @@ flags in the CC variable, for example CC="cc -g", then it will work.
                             Just Verilog -> ["-D__GENVERILOG__"]
                             Nothing -> []
             cmd = unwords ([comp] ++ backend_def ++
-                           ["-D__BSC__", "-E", "-nostdinc", "-traditional"] ++
+                           ["-D__BSC__", "-E", "-nostdinc", "-traditional",
+                            "-I", dirName name] ++
                            -- the show function quotes things
                            (map show (cppFlags flags))
                            ++ [ topName, ">", tmpNameOut])
