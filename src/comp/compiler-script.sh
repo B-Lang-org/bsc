@@ -29,6 +29,6 @@ else
     PARAMS=$@
 fi
 
-echo "Using flags: " $PARAMS
+# echo "Using flags: " $PARAMS
 
 exec $CC $PARAMS
