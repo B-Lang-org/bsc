@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "hashicorp/bionic64"
+  config.vm.box = "bento/ubuntu-18.04"
 
   # Map the current directory into its conventional location, but use rsync
   # rather than Virtualbox shared folders. This leaves the guest free to create
