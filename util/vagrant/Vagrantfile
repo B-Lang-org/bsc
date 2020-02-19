@@ -1,0 +1,23 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+
+  # Map the current directory into its conventional location, but use rsync
+  # rather than Virtualbox shared folders. This leaves the guest free to create
+  # hardlinks, which vbox doesn't support; on the other hand, it means we must
+  # manually extract build artifacts or lose them.
+  #
+  # Note that we are *deliberately* exposing the .git subdirectory to the VM.
+  # The build process needs access to it to generate version strings.
+  config.vm.synced_folder "../..", "/vagrant", type: "rsync",
+    rsync__args: ["--verbose", "--archive", "-zz", "--copy-links"],
+    rsync__exclude: ["../../vagrant-out"]
+
+  config.vm.synced_folder "../../vagrant-out", "/vagrant/inst", create: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 4096
+    vb.cpus = 4
+  end
+
+  config.vm.provision :shell, path: "./provision.sh"
+end
