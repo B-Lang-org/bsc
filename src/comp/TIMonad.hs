@@ -9,17 +9,16 @@ module TIMonad(
         newTVar, newTVarId, isNewTVar, newDict, newVar,
         freshInst,
         VPred(..), getVPredPositions, nubVPred, expandSynVPred,
-        EPred(..), Infer, Infer2, InferT, CheckT, TaskCheckT,
+        EPred(..), Infer2, CheckT, TaskCheckT,
         getBoundTVs, getTopBoundTVs, addBoundTVs, popBoundTVs,
         getExplPreds, getTopExplPreds, addExplPreds, popExplPreds, mkEPred,
         errorAtId, findCons, findTyCon, findFields, findCls,
         bitCls,
         literalCls, realLiteralCls, sizedLiteralCls, stringLiteralCls,
-        undefCls, numEqCls,
+        numEqCls,
         updAssumpPos,
-        incrementSatStack, decrementSatStack, getSatStack, TSSatStack, mkTSSatElement, TSSatElement,
-        incrementFundepStack, decrementFundepStack
-              , pushSatStackContext, popSatStackContext
+        incrementSatStack, decrementSatStack, getSatStack, mkTSSatElement, TSSatElement,
+              pushSatStackContext, popSatStackContext
         , tiRecoveringFromError
         , tiRecoveringFromErrorxx
         ) where
@@ -42,7 +41,7 @@ import Scheme
 import Assump
 import SymTab
 import PreIds(idBits, idLiteral, idRealLiteral, idSizedLiteral,
-              idStringLiteral, idUndefined, idNumEq)
+              idStringLiteral, idNumEq)
 import ErrorTCompat
 import Control.Monad.State
 import Data.List(partition)
@@ -444,8 +443,6 @@ instance Types EPred where
 instance PPrint EPred where
     pPrint d p (EPred e q) = pparen (p>0) (pparen True (pPrint d 0 e) <> text":" <> pPrint d 10 q)
 
-type Infer e t = [Assump] -> e -> TI ([VPred], t)
-type InferT e t = [Assump] -> e -> TI ([VPred], t, e)
 type Infer2 e t r = [Assump] -> e -> TI ([VPred], t, r)
 
 type CheckT e = [Assump] -> Type -> e -> TI ([VPred], e)
@@ -512,9 +509,6 @@ sizedLiteralCls = findCls (CTypeclass idSizedLiteral)
 
 stringLiteralCls :: TI Class
 stringLiteralCls = findCls (CTypeclass idStringLiteral)
-
-undefCls :: TI Class
-undefCls = findCls (CTypeclass idUndefined)
 
 numEqCls :: TI Class
 numEqCls = findCls (CTypeclass idNumEq)
@@ -655,19 +649,6 @@ findFields struct_ty0 field_id = do
 updAssumpPos :: Id -> Assump -> Assump
 updAssumpPos i (i' :>: s) = setIdPosition (getIdPosition i) i' :>: s
 
-
-incrementFundepStack :: TI ()
-incrementFundepStack = do
-  k <- gets tsFundepStack
-  flags <- getFlags
-  if (k > (maxTIStackDepth flags))
-     then (err(noPosition, ETypeFundepStackOverflow))
-     else modify (\ts -> ts { tsFundepStack = (succ k) })
-
-decrementFundepStack :: TI ()
-decrementFundepStack = do
-  k <- gets tsFundepStack
-  modify (\ts -> ts { tsFundepStack = (pred k) })
 
 incrementSatStack :: TSSatElement -> TI ()
 incrementSatStack x = do
