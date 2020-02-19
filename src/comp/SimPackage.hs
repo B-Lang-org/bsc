@@ -1,35 +1,32 @@
 {-# LANGUAGE CPP #-}
 module SimPackage(
-		  -- types
-		  SimSystem(..),
-		  PackageMap,
-		  InstModMap,
+                  -- types
+                  SimSystem(..),
+                  PackageMap,
+                  InstModMap,
 
-		  SimPackage(..),
-		  DefGraph(..), toEdgeList, fromEdgeList,
-		  DefMap, 
+                  SimPackage(..),
+                  DefMap,
                   AVInstMap,
-		  MethodOrderMap,
+                  MethodOrderMap,
 
-		  SimSchedule(..),
-		  SchedNode(..), getSchedNodeId,
-		  DisjointRulesDB,
+                  SimSchedule(..),
+                  SchedNode(..), getSchedNodeId,
+                  DisjointRulesDB,
 
-		  -- utilities
-                  lookupDef,
+                  -- utilities
                   findPkg,
                   findSubPkg,
-                  findPkgOrPrim,
-		  findDef,
-		  findAVInst,
-		  findMethodOrderSet,
-		  findInstMod,
+                  findDef,
+                  findAVInst,
+                  findMethodOrderSet,
+                  findInstMod,
 
-		  getSimPackageInputs,
+                  getSimPackageInputs,
                   getPortInfo,
 
-		  exclRulesDBToDisjRulesDB
-		 ) where
+                  exclRulesDBToDisjRulesDB
+                 ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -48,43 +45,14 @@ import ASyntaxUtil
 import AScheduleInfo
 import ABinUtil(InstModMap,ABinMap)
 import SimDomainInfo
-import SimPrimitiveModules(isPrimitiveModule)
 import ForeignFunctions(ForeignFuncMap)
 
 import Control.Monad(when)
 import Data.List(groupBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import qualified Data.Graph as G
 
 -- import Trace
-
--- This is a graph from an AId to the AIds it depends on
-type DGNode = Either (AId,AExpr) ADef
-data DefGraph = DefGraph { graph         :: G.Graph
-                         , get_node      :: G.Vertex -> (DGNode, AId, [AId])
-                         , lookup_vertex :: AId -> Maybe G.Vertex
-                         }
-
-toEdgeList :: DefGraph -> [(DGNode, AId, [AId])]
-toEdgeList (DefGraph g f _) = map f (G.vertices g)
-
-fromEdgeList :: [(DGNode, AId, [AId])] -> DefGraph
-fromEdgeList es = let (g,f,l) = G.graphFromEdges es
-                  in DefGraph g f l
-
-lookupDef :: DefGraph -> AId -> Maybe DGNode
-lookupDef (DefGraph g f lv) i = do v <- lv i
-                                   let (d,_,_) = f v
-                                   return d
-
-showEdges (_,i,is) = (getIdString i) ++ " -> " ++ (show (map getIdString is))
-
-instance Show DefGraph where
-  show dg = unlines (map showEdges (toEdgeList dg))
-
-instance Eq DefGraph where
-  dg1 == dg2 = (graph dg1) == (graph dg2)  
 
 -- This is a map from AId to the ADef which defines the value for that AId
 type DefMap = M.Map AId ADef
@@ -102,14 +70,14 @@ type PackageMap = M.Map Id SimPackage
 
 data SimSystem =
   SimSystem { ssys_packages    :: PackageMap
-	    , ssys_schedules   :: [SimSchedule] 
-	    , ssys_top         :: Id  -- name of top package
-	    , ssys_instmap     :: InstModMap
+            , ssys_schedules   :: [SimSchedule]
+            , ssys_top         :: Id  -- name of top package
+            , ssys_instmap     :: InstModMap
             , ssys_ffuncmap    :: ForeignFuncMap
             , ssys_filemap     :: ABinMap
             , ssys_default_clk :: Maybe String
             , ssys_default_rst :: Maybe String
-	    }
+            }
   deriving (Show)
 
 data SimPackage =
@@ -117,25 +85,25 @@ data SimPackage =
              , sp_is_wrapped :: Bool -- carryover
              , sp_version :: String -- from ABin
              , sp_pps :: [PProp] -- from ABinModInfo
-	     , sp_size_params :: [AId] -- carryover
-	     , sp_inputs :: [AAbstractInput] -- carryover
-	     , sp_clock_domains :: [AClockDomain] -- carryover?
-	     , sp_external_wires :: VWireInfo -- carryover?
-	     , sp_reset_list :: [(ResetId, AReset)] -- carryover?
-	     , sp_state_instances :: AVInstMap
-	     -- inst and mod name of noinline functions as modules
-	     , sp_noinline_instances :: [(String,String)]
-	     , sp_method_order_map :: MethodOrderMap
-	     , sp_local_defs :: DefMap
-	     , sp_rules :: [ARule]
-	     , sp_interface :: [AIFace]
-	     , sp_schedule :: AScheduleInfo
+             , sp_size_params :: [AId] -- carryover
+             , sp_inputs :: [AAbstractInput] -- carryover
+             , sp_clock_domains :: [AClockDomain] -- carryover?
+             , sp_external_wires :: VWireInfo -- carryover?
+             , sp_reset_list :: [(ResetId, AReset)] -- carryover?
+             , sp_state_instances :: AVInstMap
+             -- inst and mod name of noinline functions as modules
+             , sp_noinline_instances :: [(String,String)]
+             , sp_method_order_map :: MethodOrderMap
+             , sp_local_defs :: DefMap
+             , sp_rules :: [ARule]
+             , sp_interface :: [AIFace]
+             , sp_schedule :: AScheduleInfo
              , sp_pathinfo :: VPathInfo
              -- Assign numbers to the gates in a module, for codegen
              , sp_gate_map :: [AExpr]  -- order is [0..]
-	     -- if these are handled earlier, then not needed here:
-	     , sp_schedule_pragmas :: [ASchedulePragma] -- carryover?
-	     -- could include user-comments (generated in RTL)
+             -- if these are handled earlier, then not needed here:
+             , sp_schedule_pragmas :: [ASchedulePragma] -- carryover?
+             -- could include user-comments (generated in RTL)
              }
   deriving (Show)
 
@@ -150,71 +118,71 @@ data SimSchedule = SimSchedule
     , ss_sched_graph :: [(SchedNode, [SchedNode])]
     , ss_sched_order :: [SchedNode]
     , ss_domain_info_map :: DomainInfoMap
-    , ss_early_rules :: [ARuleId] 
+    , ss_early_rules :: [ARuleId]
     }
   deriving (Show)
 
 -- -----
 
 instance PPrint SimSystem where
-    pPrint d _ ssys = 
+    pPrint d _ ssys =
         (text "SimSystem") $+$
-	text "-- Packages" $+$
+        text "-- Packages" $+$
         pPrint d 0 (ssys_packages ssys) $+$
-	text "-- Schedules" $+$
+        text "-- Schedules" $+$
         pPrint d 0 (ssys_schedules ssys) $+$
-	text "-- Top module" $+$
+        text "-- Top module" $+$
         ppId d (ssys_top ssys)
 
 instance PPrint SimPackage where
     pPrint d _ spkg =
-	(text "SimPackage" <+> ppId d (sp_name spkg) <>
+        (text "SimPackage" <+> ppId d (sp_name spkg) <>
          if (sp_is_wrapped spkg) then text " -- function" else empty) $+$
         text (sp_version spkg) $+$
-	text "-- SimPackage parameters" $+$
-	pPrint d 0 (sp_size_params spkg) $+$
-	text "-- SimPackage arguments" $+$
-	foldr ($+$) (text "") (map (pPrint d 0) (sp_inputs spkg)) $+$
+        text "-- SimPackage parameters" $+$
+        pPrint d 0 (sp_size_params spkg) $+$
+        text "-- SimPackage arguments" $+$
+        foldr ($+$) (text "") (map (pPrint d 0) (sp_inputs spkg)) $+$
         text "-- SimPackage wire info" $+$
         pPrint d 0 (sp_external_wires spkg) $+$
         text "-- SimPackage clock domains" $+$
         pPrint d 0 (sp_clock_domains spkg) $+$
         text "-- SimPackage resets" $+$
         pPrint d 0 (sp_reset_list spkg) $+$
-	text "-- SP state elements" $+$
-	foldr ($+$) (text "")
-	    (map (pPrint d 0) (M.elems (sp_state_instances spkg))) $+$
-	text "-- SP noinline elements" $+$
-	foldr ($+$) (text "")
-	    (map (pPrint d 0) (sp_noinline_instances spkg)) $+$
+        text "-- SP state elements" $+$
+        foldr ($+$) (text "")
+            (map (pPrint d 0) (M.elems (sp_state_instances spkg))) $+$
+        text "-- SP noinline elements" $+$
+        foldr ($+$) (text "")
+            (map (pPrint d 0) (sp_noinline_instances spkg)) $+$
         text "-- SP method order map" $+$
-	ppMethodOrderMap d (sp_method_order_map spkg) $+$
-	text "-- SP local definitions" $+$
-	foldr ($+$) (text "")
-	    (map (pPrint d 0) (M.elems (sp_local_defs spkg))) $+$
-	text "-- SP rules" $+$
-	foldr ($+$) (text "") (map (pPrint d 0) (sp_rules spkg)) $+$
-	text "-- SP scheduling pragmas" $+$
-	pPrint d 0 (sp_schedule_pragmas spkg) $+$
-	text "-- SP interface" $+$
-	foldr ($+$) empty
-	    [(text "-- SP  sp_interface def" <+> pPrint d 0 (sp_name spkg)) $+$
-	     pPrint d 0 i | i <- sp_interface spkg] $+$
-	text "-- SP schedule" $+$
+        ppMethodOrderMap d (sp_method_order_map spkg) $+$
+        text "-- SP local definitions" $+$
+        foldr ($+$) (text "")
+            (map (pPrint d 0) (M.elems (sp_local_defs spkg))) $+$
+        text "-- SP rules" $+$
+        foldr ($+$) (text "") (map (pPrint d 0) (sp_rules spkg)) $+$
+        text "-- SP scheduling pragmas" $+$
+        pPrint d 0 (sp_schedule_pragmas spkg) $+$
+        text "-- SP interface" $+$
+        foldr ($+$) empty
+            [(text "-- SP  sp_interface def" <+> pPrint d 0 (sp_name spkg)) $+$
+             pPrint d 0 i | i <- sp_interface spkg] $+$
+        text "-- SP schedule" $+$
         pPrint d 0 (asi_schedule (sp_schedule spkg)) $+$
-	text "-- SP path info" $+$
+        text "-- SP path info" $+$
         pPrint d 0 (sp_pathinfo spkg) $+$
-	text "-- SP gate map" $+$
+        text "-- SP gate map" $+$
         pPrint d 0 (sp_gate_map spkg)
 
 ppMethodOrderMap :: PDetail -> MethodOrderMap -> Doc
 ppMethodOrderMap d mmap =
     let ppOneInst (i, mset) = ppId d i $+$
-	                      nest 4 (foldr ($+$) (text "")
-				          (map (pPrint d 0) (S.toList mset)))
+                              nest 4 (foldr ($+$) (text "")
+                                          (map (pPrint d 0) (S.toList mset)))
     in  foldr ($+$) (text "")
-	    (map ppOneInst (M.toList mmap))
-    
+            (map ppOneInst (M.toList mmap))
+
 
 instance PPrint SimSchedule where
     pPrint d _ simschedule =
@@ -223,20 +191,20 @@ instance PPrint SimSchedule where
                          then "posedge"
                          else "negedge")
             domain = text (show (ss_clock simschedule))
-	in label $+$ 
+        in label $+$
            (nest 2 ((text "-- clock")    $+$
                     edge <+> domain      $+$
                     (text "-- schedule") $+$
                     pPrint d 0 (ss_schedule simschedule) $+$
-		    (text "-- seq graph") $+$
-		    pPrint d 0 (ss_sched_graph simschedule) $+$
-		    (text "-- seq order") $+$
-		    pPrint d 0 (ss_sched_order simschedule) $+$
+                    (text "-- seq graph") $+$
+                    pPrint d 0 (ss_sched_graph simschedule) $+$
+                    (text "-- seq order") $+$
+                    pPrint d 0 (ss_sched_order simschedule) $+$
                     (text "-- domain info map") $+$
                     pPrint d 0 (ss_domain_info_map simschedule) $+$
                     (text "-- early rules") $+$
                     pPrint d 0 (ss_early_rules simschedule)
-		    ))
+                    ))
 
 -- -----
 
@@ -247,40 +215,40 @@ instance Hyper SimSystem where
                           y
 
 instance Eq SimPackage where
-    sp1 == sp2 = 
+    sp1 == sp2 =
         (
-	 -- for the scheduleinfo, just check the schedule
-	 (asi_schedule (sp_schedule sp1) ==
-	     asi_schedule (sp_schedule sp2)) &&
-	 -- for the rest, use equality
+         -- for the scheduleinfo, just check the schedule
+         (asi_schedule (sp_schedule sp1) ==
+             asi_schedule (sp_schedule sp2)) &&
+         -- for the rest, use equality
          (sp_name sp1 == sp_name sp2) &&
          (sp_is_wrapped sp1 == sp_is_wrapped sp2) &&
          (sp_version sp1 == sp_version sp2) &&
-	 (sp_size_params sp1 == sp_size_params sp2) &&
-	 (sp_inputs sp1 == sp_inputs sp2) &&
-	 (sp_clock_domains sp1 == sp_clock_domains sp2) &&
-	 (sp_external_wires sp1 == sp_external_wires sp2) &&
-	 (sp_reset_list sp1 == sp_reset_list sp2) &&
-	 (sp_state_instances sp1 == sp_state_instances sp2) &&
-	 (sp_noinline_instances sp1 == sp_noinline_instances sp2) &&
-	 (sp_method_order_map sp1 == sp_method_order_map sp2) &&
-	 (sp_local_defs sp1 == sp_local_defs sp2) &&
-	 (sp_rules sp1 == sp_rules sp2) &&
-	 (sp_interface sp1 == sp_interface sp2) &&
-	 (sp_pathinfo sp1 == sp_pathinfo sp2) &&
-	 (sp_gate_map sp1 == sp_gate_map sp2) &&
-	 (sp_schedule_pragmas sp1 == sp_schedule_pragmas sp2)
-	)
+         (sp_size_params sp1 == sp_size_params sp2) &&
+         (sp_inputs sp1 == sp_inputs sp2) &&
+         (sp_clock_domains sp1 == sp_clock_domains sp2) &&
+         (sp_external_wires sp1 == sp_external_wires sp2) &&
+         (sp_reset_list sp1 == sp_reset_list sp2) &&
+         (sp_state_instances sp1 == sp_state_instances sp2) &&
+         (sp_noinline_instances sp1 == sp_noinline_instances sp2) &&
+         (sp_method_order_map sp1 == sp_method_order_map sp2) &&
+         (sp_local_defs sp1 == sp_local_defs sp2) &&
+         (sp_rules sp1 == sp_rules sp2) &&
+         (sp_interface sp1 == sp_interface sp2) &&
+         (sp_pathinfo sp1 == sp_pathinfo sp2) &&
+         (sp_gate_map sp1 == sp_gate_map sp2) &&
+         (sp_schedule_pragmas sp1 == sp_schedule_pragmas sp2)
+        )
 
 instance Hyper SimPackage where
     hyper spkg y = (spkg == spkg) `seq` y
 
 instance Hyper SimSchedule where
     hyper ssched y =
-	--- we only care about certain fields
-	(
+        --- we only care about certain fields
+        (
             (ss_clock ssched    == ss_clock ssched)
-	 && (ss_posedge ssched  == ss_posedge ssched)
+         && (ss_posedge ssched  == ss_posedge ssched)
          && (ss_schedule ssched == ss_schedule ssched)
          && (ss_sched_graph ssched == ss_sched_graph ssched)
          && (ss_sched_order ssched == ss_sched_order ssched)
@@ -290,37 +258,37 @@ instance Hyper SimSchedule where
 
 -- -----
 
-instance (Ord a, AExprs b) => AExprs (M.Map a b) where 
+instance (Ord a, AExprs b) => AExprs (M.Map a b) where
     mapAExprs f m = let (ks,vs) = unzip (M.toList m)
                         vs'     = mapAExprs f vs
                     in M.fromList (zip ks vs')
     -- monadic
-    mapMAExprs f m = 
+    mapMAExprs f m =
         do let (ks,vs) = unzip (M.toList m)
            vs' <- mapMAExprs f vs
            return $ M.fromList (zip ks vs')
     -- find
     findAExprs f m = findAExprs f (M.elems m)
 
-instance AExprs SimPackage where 
+instance AExprs SimPackage where
     mapAExprs f pack = pack {
-	sp_interface = mapAExprs f (sp_interface pack),
-	sp_rules = mapAExprs f (sp_rules pack),
-	sp_state_instances = mapAExprs f (sp_state_instances pack),
-	sp_local_defs = mapAExprs f (sp_local_defs pack) }
+        sp_interface = mapAExprs f (sp_interface pack),
+        sp_rules = mapAExprs f (sp_rules pack),
+        sp_state_instances = mapAExprs f (sp_state_instances pack),
+        sp_local_defs = mapAExprs f (sp_local_defs pack) }
     -- monadic
     mapMAExprs f pack@(SimPackage { sp_interface = ifc,
-	                            sp_rules = rs,
-				    sp_state_instances = insts,
-				    sp_local_defs = defs })
+                                    sp_rules = rs,
+                                    sp_state_instances = insts,
+                                    sp_local_defs = defs })
         = do ifc' <- mapMAExprs f ifc
-	     rs' <- mapMAExprs f rs
-	     insts' <- mapMAExprs f insts
-	     defs' <- mapMAExprs f defs
-	     return (pack { sp_interface = ifc',
-	                    sp_rules = rs',
-			    sp_state_instances = insts',
-			    sp_local_defs = defs' })
+             rs' <- mapMAExprs f rs
+             insts' <- mapMAExprs f insts
+             defs' <- mapMAExprs f defs
+             return (pack { sp_interface = ifc',
+                            sp_rules = rs',
+                            sp_state_instances = insts',
+                            sp_local_defs = defs' })
     -- find
     findAExprs f pack =
         findAExprs f (sp_interface pack) ++
@@ -337,10 +305,10 @@ findPkg pkg_map id =
     case M.lookup id pkg_map of
       Just pkg -> pkg
       Nothing  -> internalError ("SimPackage.findPkg: cannot find " ++
-			 	  ppReadable id)
+                                   ppReadable id)
 
 findSubPkg :: SimSystem -> SimPackage -> AId -> Maybe SimPackage
-findSubPkg ss parent path = 
+findSubPkg ss parent path =
   let segments = filter (/=".") $ groupBy (\x y -> x /= '.' && y /= '.') (getIdString path)
   in findIt parent (map mk_homeless_id segments)
   where findIt p []     = Just p
@@ -351,50 +319,33 @@ findSubPkg ss parent path =
                                (Just s) -> findIt s xs
                                Nothing  -> Nothing
 
-findPkgOrPrim :: SimSystem -> SimPackage -> AId -> Either AVInst SimPackage
-findPkgOrPrim ss parent path = 
-  let segments = filter (/=".") $ groupBy (\x y -> x /= '.' && y /= '.') (getIdString path)
-  in findIt parent (map mk_homeless_id segments)
-  where findIt p []     = Right p
-        findIt p (x:xs) = let avi      = findAVInst (sp_state_instances p) x
-                              mod_name = vName_to_id (vName (avi_vmi avi))
-                              mod_str  = getIdString mod_name
-                              sub      = M.lookup mod_name (ssys_packages ss)
-                          in case sub of
-                               (Just s) -> findIt s xs
-                               Nothing  -> if (isPrimitiveModule mod_str) && (null xs)
-                                           then Left avi
-                                           else internalError ("findPkgOrPrim: invalid path " ++ 
-                                                               (ppReadable path) ++ " from " ++
-                                                               (ppReadable parent))
-
 findDef :: DefMap -> AId -> ADef
 findDef def_map id =
     case M.lookup id def_map of
-	Just def -> def
-	Nothing  -> internalError ("SimPackage.findDef: cannot find " ++
-			 	  ppReadable id)
+        Just def -> def
+        Nothing  -> internalError ("SimPackage.findDef: cannot find " ++
+                                   ppReadable id)
 
 findAVInst :: AVInstMap -> AId -> AVInst
 findAVInst avinst_map id =
     case M.lookup id avinst_map of
-	Just avi -> avi
-	Nothing -> internalError ("SimPackage.findAVInst: cannot find " ++
-				  ppReadable id)
+        Just avi -> avi
+        Nothing -> internalError ("SimPackage.findAVInst: cannot find " ++
+                                  ppReadable id)
 
 findMethodOrderSet :: MethodOrderMap -> AId -> S.Set (AId, AId)
 findMethodOrderSet mmap id =
     case M.lookup id mmap of
-	Just mset -> mset
-	Nothing -> internalError ("SimPackage.findMethodOrderSet: " ++
-				  "cannot find " ++ ppReadable id)
+        Just mset -> mset
+        Nothing -> internalError ("SimPackage.findMethodOrderSet: " ++
+                                  "cannot find " ++ ppReadable id)
 
 findInstMod :: InstModMap -> String -> String
 findInstMod inst_map inst =
     case M.lookup inst inst_map of
-	Just mod -> mod
-	Nothing -> internalError ("SimPackage.findInstMod: cannot find " ++
-				  ppReadable inst)
+        Just mod -> mod
+        Nothing -> internalError ("SimPackage.findInstMod: cannot find " ++
+                                  ppReadable inst)
 
 -- -----
 
@@ -403,27 +354,27 @@ findInstMod inst_map inst =
 getSimPackageInputs :: SimPackage -> [(AAbstractInput, VArgInfo)]
 getSimPackageInputs spkg =
     let
-	-- get the two fields
-	inputs = sp_inputs spkg
-	arginfos = wArgs (sp_external_wires spkg)
+        -- get the two fields
+        inputs = sp_inputs spkg
+        arginfos = wArgs (sp_external_wires spkg)
 
-	-- check that they are the same length
-	inputs_length = length (sp_inputs spkg)
-	arginfos_length = length arginfos
+        -- check that they are the same length
+        inputs_length = length (sp_inputs spkg)
+        arginfos_length = length arginfos
 
-	args_with_info = zip inputs arginfos
+        args_with_info = zip inputs arginfos
     in
-	if (inputs_length /= arginfos_length)
-	then internalError ("getSimPackageInputs: " ++
-			    "length inputs != length arginfos: " ++
-			    ppReadable (inputs, arginfos))
-	else args_with_info
+        if (inputs_length /= arginfos_length)
+        then internalError ("getSimPackageInputs: " ++
+                            "length inputs != length arginfos: " ++
+                            ppReadable (inputs, arginfos))
+        else args_with_info
 
 -- -----
 
 getPortInfo :: [PProp] -> AIFace
             -> Maybe (AId, (Maybe VName, [(AType,AId,VName)], Maybe (AType,VName), Bool, [AId]))
-getPortInfo pps aif = 
+getPortInfo pps aif =
     let name = aIfaceName aif
         vfi  = aif_fieldinfo aif
         en   = do e <- vf_enable vfi
@@ -451,9 +402,8 @@ getPortInfo pps aif =
 exclRulesDBToDisjRulesDB :: ExclusiveRulesDB -> DisjointRulesDB
 exclRulesDBToDisjRulesDB (ExclusiveRulesDB emap) =
     let e_edges = M.toList emap
-	convEdge (r,(ds,es)) = (r, ds)
-	d_edges = map convEdge e_edges
+        convEdge (r,(ds,es)) = (r, ds)
+        d_edges = map convEdge e_edges
     in  M.fromList d_edges
 
 -- -----
-
