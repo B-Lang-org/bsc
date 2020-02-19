@@ -16,14 +16,12 @@ module VModInfo(VModInfo, mkVModInfo,
                 lookupInputResetWire,
                 lookupIfcInoutWire,
                 getOutputClockPortTable, getOutputResetPortTable,
-                vModInfo_to_vWireInfo,
                 getVNameString, id_to_vName, id_to_vPort,
                 vName_to_id, vPort_to_id,
                 getVArgInfoName, getVArgPortClock, getVArgPortReset,
                 getVArgInoutClock, getVArgInoutReset,
                 getIfcIdPosition,
                 str_to_vPort,getVPortString,
-                updIfcIdForVModInfo,
                 mkNamedEnable,
                 mkNamedOutput,
                 mkNamedReady,
@@ -643,10 +641,6 @@ data VWireInfo = WireInfo {
                   wArgs :: [VArgInfo]
                  } deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
-vModInfo_to_vWireInfo :: VModInfo -> VWireInfo
-vModInfo_to_vWireInfo vmi = WireInfo { wClk = vClk vmi,
-                                       wRst = vRst vmi,
-                                       wArgs = vArgs vmi }
 
 instance Hyper VWireInfo where
   hyper (WireInfo clk rst args) y = hyper3 clk rst args y
@@ -701,15 +695,3 @@ extractNames vfi = (result, ready, enable)
     where result = mkNamedOutput vfi
           ready  = mkNamedReady vfi
           enable = mkNamedEnable vfi
-
--- moved from ASyntax because it is more appropriate here
-
-updIfcIdForVModInfo :: Position -> VModInfo -> VModInfo
-updIfcIdForVModInfo pos vmi@(VModInfo { vFields = fs }) =
-    vmi { vFields = map (updIfcIdForMethodInfo pos) fs }
-
-updIfcIdForMethodInfo :: Position -> VFieldInfo -> VFieldInfo
-updIfcIdForMethodInfo pos (Method id c r m i o e) = Method (setIdPosition pos id) c r m i o e
-updIfcIdForMethodInfo pos (Clock id) = Clock (setIdPosition pos id)
-updIfcIdForMethodInfo pos (Reset id) = Reset (setIdPosition pos id)
-updIfcIdForMethodInfo pos (Inout id p c r) = Inout (setIdPosition pos id) p c r
