@@ -2,14 +2,11 @@
 
 Scanner for SystemVerilog
 
-> module SystemVerilogScanner(scan, checkSystemVerilogScanner) where
+> module SystemVerilogScanner(scan) where
 
 > import Data.Char
 > import Data.List
 > import Numeric(readDec, readFloat)
-> import System.IO(hPutStrLn, stderr)
-> import System.Exit(exitWith, ExitCode(..))
-> import Control.Monad(when)
 > import Text.Regex
 > import qualified Data.Map as M
 
@@ -766,13 +763,3 @@ Strip underscores and convert remaining characters to a Double
 >                          ++ digits ++ "\"")
 >     ps -> internalError ("readDecDigitsAnd_: multiple parses of \"" ++ digits
 >                          ++ "\": " ++ show ps)
-
-Check that isSymChar covers all symbols
-
-> checkSystemVerilogScanner :: IO ()
-> checkSystemVerilogScanner =
->     do let missingSymChars = [c | c <- svSymbolChars, not (isSymChar c)]
->        when (not (null missingSymChars))
->             (hPutStrLn stderr ("ERROR: symbol chars missing from isSymChar: "
->                                ++ missingSymChars) >>
->             (exitWith (ExitFailure 1)))
