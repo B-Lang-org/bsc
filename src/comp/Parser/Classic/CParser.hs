@@ -748,11 +748,6 @@ literalS lfs = lcp (getFString lfs) (\p x->case x of
     L_varsym fs | fs == lfs -> Just ()
     _ -> Nothing)
 
-{-
-multiplicity :: CParser ()
-multiplicity = literal fsMultiplicity
--}
-
 noinline :: CParser ()
 noinline = literal fsNoinline
 
