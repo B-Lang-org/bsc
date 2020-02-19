@@ -1,6 +1,6 @@
 module Lex(Token(..), LexItem(..), LFlags(..), prLexItem,
            lexStart, lexStartWithPos,
-           isIdChar, isSym, convLexErrorToErrMsg, isClassicKeyword) where
+           isIdChar, isSym, convLexErrorToErrMsg) where
 -- Bluespec lexical analysis.  Written for speed, not beauty!
 import Numeric(readFloat)
 import Data.Char
@@ -456,21 +456,6 @@ readN radix s =
             (map (toInteger . digitToInt) s)
 
 -- maxexp = 10000 :: Int		-- don't allow exponents greater than this since it would take up too much memory
-
-isClassicKeyword :: String -> Bool
-isClassicKeyword str = str `S.member` classicKeywordLexItems
-
-classicKeywordLexItems :: S.Set String
-classicKeywordLexItems = S.fromList $ map prLexItem
-    [L_lpar, L_rpar, L_semi, L_uscore, L_bquote, L_lcurl, L_rcurl, L_lbra,
-     L_rbra, L_action, L_case, L_class, L_data, L_deriving, L_do, L_else,
-     L_foreign, L_if, L_import, L_in, L_infix, L_infixl, L_infixr, L_interface,
-     L_coherent, L_incoherent,
-     L_instance, L_let, L_letseq, L_package, L_of, L_prefix, L_primitive,
-     L_qualified, L_rules, L_signature, L_struct, L_then, L_module, L_type,
-     L_valueOf, L_verilog, L_synthesize, L_when, L_where, L_dcolon, L_colon,
-     L_eq, L_at, L_lam, L_bar, L_rarrow, L_larrow, L_dot, L_comma, L_drarrow,
-     L_irarrow, L_lcurl_o, L_rcurl_o, L_semi_o, L_lpragma, L_rpragma, L_eof]
 
 isSvKeyword :: String -> Bool
 isSvKeyword str = str `S.member` svKeywordSet
