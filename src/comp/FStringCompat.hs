@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module FStringCompat(FString, getFString,
-	             tmpFString, cloneFString, concatFString,
-                     mkNumFString, unconcatFString, mkFString,
+                     tmpFString, cloneFString, concatFString,
+                     mkNumFString, mkFString,
                      filterFString
                     ) where
 
@@ -48,7 +48,3 @@ filterFString pred (FString s) = FString $ S.filter pred s
 
 mkNumFString :: Integer -> FString
 mkNumFString i = fromString (itos i)
-
--- Only used while converting to binary.
-unconcatFString :: FString -> [FString]
-unconcatFString fs = [fs]
