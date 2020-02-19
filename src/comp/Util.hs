@@ -202,7 +202,6 @@ toMaybe :: Bool -> a -> Maybe a
 toMaybe False _ = Nothing
 toMaybe True a = Just a
 
--- how does this differ from "breakAt" in Libs/ListUtil.hs ?
 breakAt x xs =
         case span (/= x) xs of
             (ys,_:zs) -> (ys,zs)
