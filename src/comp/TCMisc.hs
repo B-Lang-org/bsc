@@ -2,9 +2,9 @@
 module TCMisc(
         splitF, satisfyFV, satisfy,
         reducePred, reducePredsAggressive, expPrimTCons, expTConPred,
-        findAssump, mkScheme, mkQualType, closeFD, niceTypes,
+        findAssump, mkQualType, closeFD, niceTypes,
         unifyFnFrom, unifyFnTo, unifyFnFromTo,
-        mkSchemeNoBVs, rmPatLit, rmQualLit, normT, expandSynN, expandFullType,
+        mkSchemeNoBVs, rmPatLit, rmQualLit, expandSynN, expandFullType,
         unify, unifyNoEq,
         mkVPred, mkVPredNoNewPos, mkVPredFromPred, toPredWithPositions, toPred,
         defaultClasses,
@@ -721,14 +721,6 @@ findAssump i as =
 
 -------
 
-
--- no longer defined in MakeSymTab
-mkScheme :: CQType -> TI Scheme
-mkScheme cqt = do
-    s <- getSymTab
-    case convCQType s cqt of
-     Left emsg -> err emsg
-     Right qt -> return (quantify (tv qt) qt)
 
 mkSchemeNoBVs :: CQType -> TI Scheme
 mkSchemeNoBVs cqt = do
