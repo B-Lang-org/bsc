@@ -8,7 +8,6 @@ module FStringCompat(FString, getFString,
 -- wrapper to make SStrings look like FStrings
 
 import Prelude hiding((++))
-import Hash(Hashable(..))
 import qualified SpeedyString as S
 import PPrint(PPrint(..), text)
 import Util(itos)
@@ -23,9 +22,6 @@ toString (FString s) = S.toString s
 
 instance Show FString where
     show (FString s) = show s
-
-instance Hashable FString where
-    hash (FString s) = hash s
 
 instance PPrint FString where
     pPrint _ _ x = text (show x)
