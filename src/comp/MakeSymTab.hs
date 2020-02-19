@@ -6,7 +6,6 @@ module MakeSymTab(
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
                   convCType,
-                  mkSchemeWithSymTab
                   ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
