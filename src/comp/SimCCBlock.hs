@@ -39,7 +39,6 @@ module SimCCBlock( SBId
                  , pfxPort
                  , pfxMeth
                  , renameIds
-                 , extractDefs
                  ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -274,20 +273,6 @@ renameIds m (SFSResets ss) = SFSResets (map (renameIds m) ss)
 renameIds m (SFSReturn (Just e)) = SFSReturn (Just (mapExpr m e))
 renameIds m (SFSOutputReset i e) = SFSOutputReset (mapId m i) (mapExpr m e)
 renameIds _ s = s
-
-extractDefs :: [Id] -> [SimCCFnStmt] -> ([SimCCFnStmt], [SimCCFnStmt])
-extractDefs [] ss = ([], ss)
-extractDefs ds ss =
-    let dset = S.fromList ds
-        extractOneDef d@(SFSDef b (t,i) Nothing) (def_ss, other_ss)
-            | (i `S.member` dset) = (d:def_ss, other_ss)
-        extractOneDef d@(SFSDef b (t,i) (Just e)) (def_ss, other_ss)
-            | (i `S.member` dset) =
-                let d' = (SFSDef b (t,i) Nothing)
-                    o' = (SFSAssign b i e)
-                in  (d':def_ss, o':other_ss)
-        extractOneDef d (def_ss, other_ss) = (def_ss, d:other_ss)
-    in  foldr extractOneDef ([],[]) ss
 
 -- A SimCCSched pairs a clock edge with the SimCCFns that should be
 -- executed on the edge and possibly also after the edge.
