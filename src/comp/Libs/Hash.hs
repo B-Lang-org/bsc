@@ -96,10 +96,10 @@ instance Hashable Bool where
 instance (Integral a, Hashable a) => Hashable (Ratio a) where
     hash x = H $ hASH (denominator x) + hASH (numerator x)
 
-instance (RealFloat a, Hashable a) => Hashable (Complex a) where
+instance (Integral a, Hashable a) => Hashable (Complex a) where
     hash (x :+ y) = H $ hASH(x) + hASH(y)
 
-instance (Ix a) => Hashable (Array a b) where
+instance Hashable (Array a b) where
     hash x = H $ 0 -- !!!
 
 hashToInt :: Int -> Hash -> Int

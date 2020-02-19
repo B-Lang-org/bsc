@@ -98,14 +98,14 @@ otsort ns =
 
 -- sort a graph topologically
 -- note that this is *not* a stable sort
-tsort :: (Show node, Ord node) => [Node node] -> Either [[node]] [node]
+tsort :: Ord node => [Node node] -> Either [[node]] [node]
 tsort = ntsort
 -- reverts to otsort if ntsort looks buggy (see note below)
 -- tsort = otsort
 
 -- XXX ntsort [(1, [2, 3, 4]), (5, [3, 2, 4])] = Left [[1,5]]
 -- XXX fixed by falling back to otsort, but should be fixed in ntsort?
-ntsort :: (Show node, Ord node) => [Node node] -> Either [[node]] [node]
+ntsort :: Ord node => [Node node] -> Either [[node]] [node]
 ntsort g =
     let psq = fromOrdList [ n :-> length ns | (n, ns) <- sort g ]
 	m = M.fromListWith (++) [ (d, [s]) | (s, ds) <- g, d <- ds ]

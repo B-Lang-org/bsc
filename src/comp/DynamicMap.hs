@@ -61,7 +61,7 @@ union m1 m2 = M.unionWith M.union m1 m2
 -- map.  The effect of this is to retain the value of the key
 -- at and beyond the given time but to throw away information
 -- on the changes which led up to that value.
-split :: (Ord t, Ord k) => t -> (a -> a) -> Map t k a -> (Map t k a, Map t k a)
+split :: Ord t => t -> (a -> a) -> Map t k a -> (Map t k a, Map t k a)
 split at f m =
     let m' = M.map splitUp m
     in (M.map fst m', M.map snd m')

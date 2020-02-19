@@ -3172,7 +3172,8 @@ posCheck s x =
 -------
 
 -- XXX should do matching of t and td to avoid tyvars
-freshInstT :: (HasPosition a, PPrint a, PVPrint a, Show a) => String -> a -> Scheme -> Type -> TI (Qual Type, [Type])
+freshInstT :: (HasPosition a, PPrint a, PVPrint a)
+           => String -> a -> Scheme -> Type -> TI (Qual Type, [Type])
 freshInstT msg x (Forall [] qt@(_ :=> t)) td = return (qt, [])
 freshInstT msg x (Forall ks qt@(_ :=> t)) td = do
     s <- getSubst

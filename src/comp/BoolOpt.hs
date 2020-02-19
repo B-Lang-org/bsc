@@ -63,7 +63,7 @@ genEnvs (x:xs) =
 
 -- Minimize a boolean function with Quine-McClusky
 -- Give up if too many variables.
-optBoolExprQM :: (Show a, Ord a) => Int -> BoolExp a -> Maybe (BoolExp a)
+optBoolExprQM :: Ord a => Int -> BoolExp a -> Maybe (BoolExp a)
 optBoolExprQM n e =
         let vs = sort (getVars e)
             nvs = length vs

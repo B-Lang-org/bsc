@@ -156,8 +156,7 @@ addPath g src dst =
        updatePaths (path_matrix g) src_idx dst_idx
 
 -- |Test for the absence of any cyclic paths in the graph
-isAcyclic :: (Ord a) =>
-             GraphPathInfo a -- ^graph path summary
+isAcyclic :: GraphPathInfo a -- ^graph path summary
           -> IO Bool         -- ^result is True when there are no cyclic paths in the graph
 isAcyclic g =
     -- if there is a cycle in the graph, then some bit along the

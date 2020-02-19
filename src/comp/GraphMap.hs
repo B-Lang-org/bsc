@@ -23,10 +23,10 @@ import PPrint hiding(empty)
 -- edges carry weights
 newtype GraphMap v w = GraphMap (M.Map v (M.Map v w))
 
-empty :: (Ord v) => GraphMap v w
+empty :: GraphMap v w
 empty = GraphMap (M.empty)
 
-null :: (Ord v) => GraphMap v w -> Bool
+null :: GraphMap v w -> Bool
 null (GraphMap m) = M.null m
 
 -- insert empty vertex if not already there
@@ -70,7 +70,7 @@ filterVertices g f = deleteVertices g vs
 lookup :: (Ord v) => (v,v) -> GraphMap v w -> Maybe w
 lookup (v1,v2) (GraphMap m) = M.lookup v1 m >>= M.lookup v2
 
-vertices :: (Ord v) => GraphMap v w -> [v]
+vertices :: GraphMap v w -> [v]
 vertices (GraphMap m) = M.keys m
 
 neighbors :: (Ord v) => GraphMap v w -> v -> [v]
@@ -84,14 +84,14 @@ fromList :: (Ord v) => [(v,[(v,w)])] -> GraphMap v w
 fromList vvws = GraphMap $ foldr (flip add) M.empty vvws
     where add m (v,vws) = M.insert v (M.fromList vws) m
 
-toList :: (Ord v) => GraphMap v w -> [(v,[(v,w)])]
+toList :: GraphMap v w -> [(v,[(v,w)])]
 toList (GraphMap m) = [(v,M.toList m') | (v,m') <- M.toList m]
 
 -- produces a vertex adjacency list with no weights (suitable for use with code in SCC.hs)
-toVAList :: (Ord v) => GraphMap v w -> [(v,[v])]
+toVAList :: GraphMap v w -> [(v,[v])]
 toVAList (GraphMap m) = [(v1,[v2 | (v2,_) <- M.toList m']) | (v1,m') <- M.toList m]
 
-instance (Ord v, PPrint v, PPrint w) => PPrint (GraphMap v w) where
+instance (PPrint v, PPrint w) => PPrint (GraphMap v w) where
     pPrint d i (GraphMap m) = vsep [pPrint d 0 v1 <>
                                     vsep [text " ->" <+> pPrint d 0 v2 <+> text ":" <+> pPrint d 0 w
                                           | (v2, w) <- M.toList m']

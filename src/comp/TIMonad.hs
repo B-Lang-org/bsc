@@ -331,7 +331,7 @@ getTyVarNum = lift $ do
   return n
 
 -- XXX consider adding tracing support for string in the name as with newVar
-newTVar :: (HasPosition a, PPrint a) => String -> Kind -> a -> TI Type
+newTVar :: HasPosition a => String -> Kind -> a -> TI Type
 newTVar msg k x = do
   let pos = getPosition x
   bvs <- getBoundTVs
@@ -346,7 +346,7 @@ newTVar msg k x = do
 
 -- convenience function for getting the TyVar
 -- (when create a TVar for marking a place in the subst to trim back to)
-newTVarId :: (HasPosition a, PPrint a) => String -> Kind -> a -> TI (TyVar, Type)
+newTVarId :: HasPosition a => String -> Kind -> a -> TI (TyVar, Type)
 newTVarId msg k x = do
   tv <- newTVar msg k x
   case tv of
@@ -373,7 +373,7 @@ newVar p str = do
     --traceM (ppReadable (p, n)) $
     return (enumId varname p n)
 
-freshInst :: (HasPosition a, PPrint a) => String -> a -> Scheme -> TI (Qual Type, [Type])
+freshInst :: HasPosition a => String -> a -> Scheme -> TI (Qual Type, [Type])
 freshInst msg x (Forall ks qt@(_ :=> t)) = do
     ts <- mapM (flip (newTVar ("freshInst " ++ msg)) x) ks
 {-

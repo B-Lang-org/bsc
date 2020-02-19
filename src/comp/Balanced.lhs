@@ -30,10 +30,10 @@
 
 \paragraph{Constructors and insertion}
 
-> empty                         :: (Ord k, Ord p) => PSQ k p
-> single                        :: (Ord k, Ord p) => Binding k p -> PSQ k p
+> empty                         :: PSQ k p
+> single                        :: Binding k p -> PSQ k p
 > insert                        :: (Ord k, Ord p) => Binding k p -> PSQ k p -> PSQ k p
-> fromOrdList                   :: (Ord k, Ord p) => [Binding k p] -> PSQ k p
+> fromOrdList                   :: Ord p => [Binding k p] -> PSQ k p
 
 \paragraph{Destructors and deletion}
 
@@ -45,7 +45,7 @@
 
 > lookup                        :: (Ord k, Ord p) => k -> PSQ k p -> Maybe p
 > toOrdList                     :: (Ord k, Ord p) => PSQ k p -> [Binding k p]
-> atMost                        :: (Ord k, Ord p) => p -> PSQ k p -> [Binding k p]
+> atMost                        :: Ord p => p -> PSQ k p -> [Binding k p]
 > atMostRange                   :: (Ord k, Ord p) => p -> (k, k) -> PSQ k p -> [Binding k p]
 
 \paragraph{Modifier}
@@ -100,7 +100,7 @@ Balance factor.
 > omega				:: Int
 > omega				=  2
 
-> lbalance, rbalance           :: (Ord k, Ord p) => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
+> lbalance, rbalance           :: Ord p => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
 > lbalance k p l m r
 >   | size l + size r < 2       =  lloser        k p l m r
 >   | size r > omega * size l   =  lbalanceLeft  k p l m r
@@ -179,7 +179,7 @@ Balance factor.
 
 \paragraph{Playing a match}
 
-> play                          :: (Ord k, Ord p) => PSQ k p -> PSQ k p -> PSQ k p
+> play                          :: Ord p => PSQ k p -> PSQ k p -> PSQ k p
 > Void `play` t'                =  t'
 > t `play` Void                 =  t
 > Winner k p t m  `play`  Winner k' p' t' m'
@@ -188,7 +188,7 @@ Balance factor.
 
 Note that this is the only place where |lbalance| and |rbalance| are used.
 
-> unsafePlay                    :: (Ord k, Ord p) => PSQ k p -> PSQ k p -> PSQ k p
+> unsafePlay                    :: Ord p => PSQ k p -> PSQ k p -> PSQ k p
 > Void `unsafePlay` t'          =  t'
 > t `unsafePlay` Void           =  t
 > Winner k p t m  `unsafePlay`  Winner k' p' t' m'
@@ -208,7 +208,7 @@ Tournament view.
 
 > data TourView k p             =  Null | Single k p | Play (PSQ k p) (PSQ k p)
 >
-> tourView                      :: (Ord k) => PSQ k p -> TourView k p
+> tourView                      :: PSQ k p -> TourView k p
 > tourView Void                 =  Null
 > tourView (Winner k p Start _m)=  Single k p
 > tourView (Winner k p (RLoser _ k' p' tl m tr) m')
@@ -222,7 +222,7 @@ Tournament view.
 >
 > single (k :-> p)              =  single' k p
 >
-> single'			:: (Ord k, Ord p) => k -> p -> PSQ k p
+> single'			:: k -> p -> PSQ k p
 > single' k p			=  Winner k p start k
 >
 > insert b q                    =  case tourView q of
@@ -281,7 +281,7 @@ Determining the second-best player.
 >
 > atMost pt q			=  toList (atMosts pt q)
 >
-> atMosts                       :: (Ord k, Ord p) => p -> PSQ k p -> Sequ (Binding k p)
+> atMosts                       :: Ord p => p -> PSQ k p -> Sequ (Binding k p)
 > atMosts _pt Void              =  s_empty
 > atMosts pt (Winner k p t _)   =  prune k p t
 >   where
