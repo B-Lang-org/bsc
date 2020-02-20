@@ -9,6 +9,10 @@ sudo apt-get install -y \
   git \
   gperf \
   iverilog \
+  tcl-dev \
+  tk-dev \
+  itcl3-dev \
+  itk3-dev \
   libfontconfig1-dev \
   libghc-old-time-dev \
   libghc-regex-compat-dev \
