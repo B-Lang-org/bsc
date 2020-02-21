@@ -1,5 +1,4 @@
-module ABin (id_ABin,
-             ABin(..),
+module ABin (ABin(..),
              ABinModInfo(..),
              ABinForeignFuncInfo(..),
              ABinModSchedErrInfo(..),
@@ -31,10 +30,6 @@ import ForeignFunctions(ForeignFunction(..))
 import Flags(Flags(..))
 import Verilog(VProgram)
 
-
--- ===============
-
-id_ABin = " $Id: $"
 
 -- ===============
 

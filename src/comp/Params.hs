@@ -1,5 +1,4 @@
 module Params(
-	      id_Params,
 	      -- a specific stage on ISyntax for handling params
 	      iParams,
 	      -- functions for checking if a param's expr is legal
@@ -17,8 +16,6 @@ import ASyntax
 import VModInfo
 import Prim
 
-
-id_Params = " $Id: Params.hs 7659 2005-10-26 21:28:16Z quark $"
 
 -- ==========
 

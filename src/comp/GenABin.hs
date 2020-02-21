@@ -1,9 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
-module GenABin(id_GenABin,
-	       genABinFile, readABinFile,
-	       ) where
+module GenABin(genABinFile, readABinFile) where
 
 import Error(internalError, ErrMsg(..), ErrorHandle, bsErrorUnsafe)
 import Position
@@ -30,8 +28,6 @@ import qualified Data.Map as M
 
 -- import Util(traceM)
 -- import Trace
-
-id_GenABin = " $Id: $"
 
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header

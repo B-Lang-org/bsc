@@ -1,4 +1,4 @@
-module GenForeign (id_GenForeign, genForeign) where
+module GenForeign (genForeign) where
 
 import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 import Util(headOrErr, findSame)
@@ -15,8 +15,6 @@ import FileNameUtil(mkAName, getRelativeFilePath)
 import TopUtils(putStrLnF)
 
 import Control.Monad(unless)
-
-id_GenForeign = " $Id: $"
 
 -- For dumping purposes, this returns a list of
 -- the foreign src IDs, and their corresponding ForeignFunctions
