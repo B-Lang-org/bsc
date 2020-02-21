@@ -4,7 +4,7 @@ module Subst(
 	     nullSubst, isNullSubst, (+->), mkSubst,
 	     Types(..), (@@), merge, mergeWith, mergeListWith,
              mergeAgreements,
-	     trimSubst, trimSubstByVars, dropVarToVarBindings,
+	     trimSubst, trimSubstByVars,
 	     {- removeFromSubst, -}
              apSubstToSubst,
 	     getSubstDomain, getSubstRange, sizeSubst,
@@ -41,21 +41,12 @@ instance PPrint Subst where
     pPrint d p (S s v) = pparen (p>0) $ text "Subst" <+> pPrint d 0 
                          ((Map.assocs s){-, printable_s_var v-} )
 
-{-
-printable_s_var = map s_list . Map.assocs
-                  where
-                     s_list :: (TyVar, Set_TyVar) -> (TyVar, [TyVar])
-                     s_list (a,b) = (a,Set.elems b)
--}
-
 
 nullSubst  :: Subst
-nullSubst   = S Map.empty Map.empty --Set.empty
+nullSubst   = S Map.empty Map.empty
 
 isNullSubst :: Subst -> Bool
 isNullSubst (S m _) = Map.null m
-
--- getNo (TyVar i n _) = n
 
 (+->)      :: TyVar -> Type -> Subst
 u +-> t     = S (Map.singleton u t) 
@@ -84,55 +75,10 @@ chkSubstOrder (S _ new_rhs) (S old_lhs _) =
              (Map.keysSet new_rhs)
              (Map.keysSet old_lhs))  
 
-{-
---Note that left_and_right_distinct doesn't always hold, 
---e.g., in substitutions created by mkSubst
-
-left_and_right_distinct :: S_map -> Bool
-left_and_right_distinct s =
-    Set.null $ Set.intersect (Map.keysSet s) 
-           (Set.fromList $ concat $ map tv $ Map.elems s)
-
-
-check_map_to_set :: Set_vars -> TyVar -> Type -> Bool
-check_map_to_set v x t =
-    and (map is_in (tv t))
-    where is_in :: TyVar -> Bool
-          is_in t_right = Set.member x (v Map.! t_right)
-
-many_ms :: Subst -> Bool
-many_ms (S s v) =
-    Map.fold (&&) True 
-           (Map.mapWithKey (check_map_to_set v) s)
-
-check_set_to_map :: S_map -> TyVar -> Set_TyVar -> Bool
-check_set_to_map m r s1 =
-    Set.fold (&&) True (Set.map is_left s1)
-    where is_left :: TyVar -> Bool
-          is_left x = elem r (tv (m Map.! x))
-
-many_sm :: Subst -> Bool
-many_sm (S s v) =
-    Map.fold (&&) True
-       (Map.mapWithKey (check_set_to_map s) v)
-
-allcheck :: Subst -> Bool
-allcheck ss@(S s v) =
-    True
-    && (left_and_right_distinct s)
-    && (many_sm ss)
-    && (many_ms ss)
-
--}
-
 -- Add a newer substitution (ss1) to an older substitution (ss2).
 -- Any knowledge in ss1 is applied to ss2, and then the bindings are merged.
 --
 (@@) :: Subst -> Subst -> Subst
-{-
-ss1@(S s1) @@ S s2  = S $ [ let t' = apSub ss1 t in t' `seq` (u, n, t') | (u, n, t) <- s2 ] ++ s1
--}
-
 ss1@(S s1 _) @@ ss2@(S _ var_old) =
     case (Set.null (Set.intersection (Map.keysSet var_old)
                                      (Map.keysSet s1))) of
@@ -350,21 +296,14 @@ trimSubstByVars vs = if (null vs) then id else trimSubstBy filterFunc
 removeFromSubst :: [TyVar] -> Subst -> (Subst, [TyVar])
 removeFromSubst vs (S e o) =
     let
-	-- removes and returns a list of the removed vars
-	removeFunc s@(v,_,_) (ss, removed_vs) =
-	    if (elem v vs)
-	    then (ss, v:removed_vs)
-	    else (s:ss, removed_vs)
+       -- removes and returns a list of the removed vars
+       removeFunc s@(v,_,_) (ss, removed_vs) =
+           if (elem v vs)
+           then (ss, v:removed_vs)
+           else (s:ss, removed_vs)
 
-	(e',rvs1) = foldr removeFunc ([],[]) e
-	(o',rvs2) = foldr removeFunc ([],rvs1) o
+       (e',rvs1) = foldr removeFunc ([],[]) e
+       (o',rvs2) = foldr removeFunc ([],rvs1) o
     in
-	(S e' o', rvs2)
+       (S e' o', rvs2)
 -}
-
--------
-
--- used in the duplicate instance check
-dropVarToVarBindings :: Subst -> Subst
-dropVarToVarBindings = trimSubstBy filterFunc
-  where filterFunc v t = isTVar t
