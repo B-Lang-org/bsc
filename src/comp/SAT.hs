@@ -11,7 +11,7 @@ module SAT(
 
 import qualified Control.Exception as CE
 
-import Error(ErrorHandle,bsWarning, ErrMsg(..))
+import Error(ErrorHandle, bsError, ErrMsg(..))
 import Flags
 import ASyntax
 import Position(cmdPosition)
@@ -23,6 +23,7 @@ import qualified AExpr2Yices as Yices
          (YState, initYState, checkBiImplication, isConstExpr,
           checkEq, checkNotEq)
 
+import STP(checkVersion)
 import Yices(checkVersion)
 
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
@@ -50,20 +51,30 @@ initSATState str errh flags doHardFail ds avis =
           stp_state <- STP.initSState str flags doHardFail ds avis []
           return (SATS_STP stp_state)
 
+
 checkSATFlags :: ErrorHandle -> Flags -> IO Flags
 checkSATFlags eh f =
-  if (SAT_Yices == satBackend f)
-  then let
-           handler :: ExceptionType -> IO Flags
-           handler _ = do
-               -- generate warning
-               let w = (cmdPosition,
-                        WSATNotAvailable "-sat-yices" "libyices.so.2" )
-               bsWarning eh [w]
-               let f' = f { satBackend = SAT_STP }
-               return f'
-       in  CE.catch (Yices.checkVersion >> return f) handler
-  else return f
+  let
+      hasYices :: IO Bool
+      hasYices = let handler :: ExceptionType -> IO Bool
+                     handler _ = return False
+                 in  CE.catch (Yices.checkVersion >> return True) handler
+
+      hasSTP :: IO Bool
+      hasSTP = STP.checkVersion
+
+      checkFn :: String -> String -> IO Bool -> IO Flags
+      checkFn flag_str lib_str hasFn = do
+        res <- hasFn
+        if res
+          then return f
+          else -- Rather than defaulting to another solver,
+               -- just report an error
+               bsError eh [(cmdPosition,
+                            WSATNotAvailable flag_str lib_str Nothing)]
+  in  case (satBackend f) of
+        SAT_Yices -> checkFn "-sat-yices" "libyices.so.2" hasYices
+        SAT_STP -> checkFn "-sat-stp" "libstp.so" hasSTP
 
 -- -------------------------
 

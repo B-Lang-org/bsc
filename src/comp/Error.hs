@@ -1003,7 +1003,7 @@ data ErrMsg
         | WMethodAnnotChange String String [String]
 --      | WMethodAnnotChangeArb String String [String]
         | WSchedulerEffortLimit String String Bool
-        | WSATNotAvailable String String
+        | WSATNotAvailable String String (Maybe String)
 
         | EModuleUndet
         | EModuleUndetNoMatch
@@ -4385,13 +4385,18 @@ getErrorText (WSuppressedWarnings count) =
   (System 80, empty,
    s2par (itos count ++ " warnings were suppressed."))
 
-getErrorText (WSATNotAvailable flagstr libname) =
+getErrorText (WSATNotAvailable flagstr libname m_dflt_sat) =
   (System 81, empty,
    s2par ("The flag " ++ quote flagstr ++
           " was used, but a proper shared object file was not found. " ++
-          "Please check that BLUESPEC_LD_LIBRARY_PATH includes a valid " ++
+          "Please specify a different SAT solver or check that the " ++
+          "LD_LIBRARY_PATH or BLUESPEC_LD_LIBRARY_PATH includes a valid " ++
           quote libname ++ " file." ++
-          " The `-sat-stp' behavior will be used."
+          (case (m_dflt_sat) of
+             Nothing -> ""
+             Just dflt_sat ->
+               " The `" ++ dflt_sat ++ "' behavior will be used."
+          )
          )
    )
 

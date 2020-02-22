@@ -10,6 +10,10 @@ module STP (
     Expr,
     Result(..),
 
+    -- Check that the dynamic library is compatible
+    -- with this FFI (and not a stub)
+    checkVersion,
+
     -- * Manipulating contexts
     mkContext,
     ctxPush,
@@ -164,6 +168,15 @@ toResult n
 -- Name of environment variable contain flags
 flagEnvironment :: String
 flagEnvironment = "BSC_STP_FLAGS"
+
+------------------------------------------------------------------------
+
+checkVersion :: IO Bool
+checkVersion = do
+  -- The API doesn't provide version info
+  -- so all we can do is check for a stub
+  ptr <- vc_createValidityChecker
+  return (ptr /= nullPtr)
 
 ------------------------------------------------------------------------
 -- Context manipulation
