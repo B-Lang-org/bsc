@@ -3,7 +3,11 @@ PREFIX?=$(TOP)/inst
 
 .PHONY: all install clean full_clean
 
+ifeq ($(STP_STUB),)
 SRC = src
+else
+SRC = src_stub
+endif
 
 all: install
 
