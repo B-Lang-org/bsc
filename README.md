@@ -47,10 +47,14 @@ standard library, and TCL scripting support ("bluetcl").
 >
 > - Test suite
 > - Documentation (User Guide)
-> - Additional libraries
+> - Graphical development environment
 >
 > The repository is still evolving. We welcome your feedback, issue reports,
 > and pull requests.
+
+A separate repository, [bsc-contrib](https://github.com/B-Lang-org/bsc-contrib),
+exists for sharing libraries and utilities that don't (or don't yet) belong in
+the core tools.
 
 [Bluespec Inc]: https://bluespec.com
 [Flute]: https://github.com/bluespec/Flute
