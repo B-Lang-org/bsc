@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
-module TCheck(tiExpr, tiExpl, tiDefls, tiQuals, tiPatsQuals) where
+module TCheck(tiExpr, tiExpl) where
 
 import Data.Maybe(isJust)
 import Data.List

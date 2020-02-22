@@ -1,20 +1,9 @@
 > module Parser.BSV.CVParserUtil where
 
-> import Parsec
 > import Parser.BSV.CVParserCommon
 
 parse multiple 'parser's.  each time, try parsing 'terminator' first; if
 it parses, rewind to before the terminator and return the list so far
-
-> manyStopAt :: Parser trm -> Parser val -> Parser [val]
-> manyStopAt terminator parser =
->         do tokens <- getInput
->            _ <- terminator
->            setInput tokens
->            return []
->     <|> do val <- parser
->            vals <- manyStopAt terminator parser
->            return (val:vals)
 
 > stmtsAreNonMonadic :: [ImperativeStatement] -> Bool
 > stmtsAreNonMonadic = all stmtIsNonMonadic

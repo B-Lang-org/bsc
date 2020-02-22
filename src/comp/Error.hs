@@ -146,12 +146,12 @@ data ErrorState = ErrorState
           suppressionSet :: MsgSet,
           -- number of warnings that were suppressed
           suppressedCount :: Integer,
-        
+
           -- we also store state that needs handling on exit:
-          
+
           -- set of open handles, that need to be flushed/closed on exit
           openHandles :: [Handle]
-          
+
         }
 
 -- -----
@@ -267,7 +267,7 @@ handleDemotableErrors state ctx ds =
       (new_state, warn_ds') = suppressWarnings state warn_ds
   in
       (new_state, warn_ds', err_ds)
-      
+
 handleWarnings :: ErrorState -> MsgContext -> [WMsg] ->
                   (ErrorState, [WMsg], [EMsg])
 handleWarnings state ctx ws =
@@ -384,7 +384,7 @@ doPreExitActions ref = do
   closeOpenHandles ref
   -- report a suppression warning, if necessary
   reportSuppressionWarning ref
-  
+
 
 -- -------------------------
 
@@ -865,7 +865,7 @@ data ErrMsg
 
         -- | EBindDummyId
         | ETypeStackOverflow
-        | ETypeFundepStackOverflow
+        -- | ETypeFundepStackOverflow
         | ETypeSuperStackOverflow
         | ERecursiveBits String String
 
@@ -2731,11 +2731,14 @@ getErrorText (ECtxRedIsModuleActionValue positions) =
      in  if (length positions == 0)
          then intro_msg
          else intro_msg $$ pos_msg
-    )
+     )
+{-
+-- retired since code was removed from TIMonad
 getErrorText (ETypeFundepStackOverflow) =
     (Type 114, empty,
          s2par ("Type inference stack overflow occurred " ++
                "while trying to satisfy functional dependencies."))
+--}
 
 getErrorText (ERecursiveBits bits s) =
     (Type 115, empty,
@@ -4537,4 +4540,3 @@ prMethodsByReset reset_list =
               else empty
 
 -- -------------------------
-

@@ -1,10 +1,10 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 module Util where
 
-import Data.Char(intToDigit, isAlpha, isAlphaNum)
+import Data.Char(intToDigit)
 import Data.Word(Word32,Word64)
 import Data.Bits
-import Data.List(sort, sortBy, group, groupBy, nubBy, union, partition, intersperse, foldl')
+import Data.List(sort, sortBy, group, groupBy, nubBy, union, intersperse, foldl')
 import Control.Monad(foldM)
 import Debug.Trace(trace)
 import qualified Data.Set as S
@@ -186,50 +186,22 @@ elemBy			:: (a -> a -> Bool) -> a -> [a] -> Bool
 elemBy eq _ []		= False
 elemBy eq x (y:ys)	= eq x y || elemBy eq x ys
 
--- changed so that the lookup info need not be the same type
-lookupBy                :: (c -> a -> Bool) -> c -> [(a,b)] -> Maybe b
-lookupBy eq _ []        =  Nothing
-lookupBy eq key ((x,y):xys)
-    | (key `eq` x)      =  Just y
-    | otherwise         =  lookupBy eq key xys
-
 splitBy :: [a->Bool] -> [a] -> [[a]]
 splitBy [] _  = []
 splitBy _  [] = []
 splitBy (p:ps) xs = let (xs', xs'') = span p xs in xs' : splitBy ps xs''
 
--- splits a list into a list of list where length is each sub list is n
-splitBySize :: Int -> [a] -> [[a]]
-splitBySize n [] = [[]]
-splitBySize n ls = [s1] ++ (splitBySize n s2)
-            where
-             (s1,s2) = splitAt n ls
-
 findSame :: (Ord a) => [a] -> [[a]]
 findSame = filter ((>1) . length) . group . sort
-
-findSameLe :: (a->a->Bool) -> [a] -> [[a]]
-findSameLe le = filter ((>1) . length) . groupBy eq . sortLe le
-        where eq x y = le x y && le y x		-- inefficient
-
--- this is awfully slow!
-findSameEq :: (a->a->Bool) -> [a] -> [[a]]
-findSameEq eq [] = []
-findSameEq eq (x:xs) =
-        case partition (eq x) xs of
-            ([], ns) -> findSameEq eq ns
-            (es, ns) -> (x:es) : findSameEq eq ns
 
 findSameBy :: (a -> a -> Ordering) -> (a -> a -> Bool) -> [a] -> [[a]]
 findSameBy sortFn groupFn =
     filter ((>1) . length) . (groupBy groupFn) . (sortBy sortFn)
 
-
 toMaybe :: Bool -> a -> Maybe a
 toMaybe False _ = Nothing
 toMaybe True a = Just a
 
--- how does this differ from "breakAt" in Libs/ListUtil.hs ?
 breakAt x xs =
         case span (/= x) xs of
             (ys,_:zs) -> (ys,zs)
@@ -252,23 +224,9 @@ mergeWithCmp _  _ xs [] = xs
 mergeWithCmp _  _ [] ys = ys
 mergeWithCmp cmp f xxs@(x:xs) yys@(y:ys) =
     case x `cmp` y of
-    EQ -> f x y : mergeWithCmp cmp f xs ys
-    LT -> x : mergeWithCmp cmp f xs yys
-    GT -> y : mergeWithCmp cmp f xxs ys
-
-mergeManyWithCmp :: (a -> a -> Ordering) -> (a -> a -> a) -> [[a]] -> [a]
-mergeManyWithCmp _   _ [] = []
-mergeManyWithCmp _   _ [xs] = xs
-mergeManyWithCmp cmp f xss = foldl1 (mergeWithCmp cmp f) xss
-
-subsets []     = [[]]
-subsets (x:xs) = map (x:) ss ++ ss
-    where ss = subsets xs
-
-updList :: [a] -> Integer -> a -> [a]
-updList (_:xs) 0 y = y : xs
-updList (x:xs) n y = x : updList xs (n-1) y
-updList _ _ _ = internalError ("updList")
+        EQ -> f x y : mergeWithCmp cmp f xs ys
+        LT -> x : mergeWithCmp cmp f xs yys
+        GT -> y : mergeWithCmp cmp f xxs ys
 
 isOrdSubset :: (Ord a) => [a] -> [a] -> Bool
 isOrdSubset [] _  = True
@@ -292,7 +250,6 @@ mergeOrdNoDup xxs@(x:xs) yys@(y:ys) =
     EQ -> x : mergeOrdNoDup xs ys
 mergeOrdNoDup []         yys = yys
 mergeOrdNoDup xxs        []  = xxs
-fst2of4 (x,y,_,_) = (x,y)
 
 -- removes duplicates faster than nub
 -- by using a sorted set (so it reorders elements)
@@ -334,9 +291,6 @@ allSame (x:xs) = all (==x) xs
 unzipWith :: (a -> (b,c)) -> [a] -> ([b], [c])
 unzipWith f l = unzip (map f l)
 
-unzipWith2 :: (a -> b -> (c, d)) -> [a] -> [b] -> ([c], [d])
-unzipWith2 f l1 l2 = unzip (zipWith f l1 l2)
-
 concatUnzipMap :: (a -> ([b],[c])) -> [a] -> ([b],[c])
 concatUnzipMap f zs =
         let (xss, yss) = unzip (map f zs)
@@ -364,38 +318,9 @@ joinByFst =
     groupBy (\ (x,_) (y,_) -> x==y) .
     sortBy (\ (x,_) (y,_) -> x `compare` y)
 
-joinByFstLe :: (a->a->Bool) -> [(a, b)] -> [(a, [b])]
-joinByFstLe le =
-    map (\ xys@((x,_):_) -> (x, map snd xys)) .
-    groupBy (\ (x,_) (y,_) -> not (le x y)) .
-    sortLe (\ (x,_) (y,_) -> le x y)
-
--- This has different type from "assoc" in Libs/ListUtil.hs
-assoc :: (Eq a) => [(a,b)] -> a -> b
-assoc xys x =
-    case lookup x xys of
-    Just y -> y
-    Nothing -> internalError "assoc"
-
-sortFst xs = sortBy (\(x,_) (y,_) -> x `compare` y) xs
-
 mergeWith :: (Ord b) => (a -> a -> a) -> [(b, a)] -> [(b, a)] -> [(b, a)]
 mergeWith f = mergeWithCmp cmpFst f'
     where f' (k,v) (_,v') = (k, v `f` v')
-
-commonElts :: (a -> b -> Ordering) -> [a] -> [b] -> [(a, b)]
-commonElts _   [] _ = []
-commonElts _   _ [] = []
-commonElts cmp xxs@(x:xs) yys@(y:ys) =
-    case x `cmp` y of
-    EQ -> (x,y) : commonElts cmp xs ys
-    LT -> commonElts cmp xs yys
-    GT -> commonElts cmp xxs ys
-
-mergeManyWith :: (Ord b) => (a -> a -> a) -> [[(b, a)]] -> [(b, a)]
-mergeManyWith _ [] = []
-mergeManyWith _ [xs] = xs
-mergeManyWith f xss = foldl1 (mergeWith f) xss
 
 flattenPairs :: [(a,a)] -> [a]
 flattenPairs [] = []
@@ -433,30 +358,6 @@ nubByFst :: (Eq a) => [(a,b)] -> [(a,b)]
 nubByFst xs = nubBy f xs
   where f a b = (fst a == fst b)
 
--- Monad utilities
-anyM :: (Monad m) => (a -> m Bool) -> [a] -> m Bool
-anyM f = foldM comb False
-  where comb any elt = if any then
-                         return any
-                       else f elt
-
-partitionM :: (Monad m) => (a -> m Bool) -> [a] -> m ([a], [a])
-partitionM f l = partitionM' f l ([],[])
-partitionM' f [] acc = return acc
-partitionM' f (x:xs) (ts, fs) = do
-  b <- f x
-  if b then partitionM' f xs (x:ts, fs)
-   else partitionM' f xs (ts, x:fs)
-
-sortM :: (Monad m) => (a -> a -> m Ordering) -> [a] -> m [a]
-sortM cmp [] = return []
-sortM cmp (x:xs) = do
-  let cmp' y = cmp y x >>= (return . (== LT))
-  (ls, hs) <- partitionM cmp' xs
-  ls' <- sortM cmp ls
-  hs' <- sortM cmp hs
-  return (ls' ++ [x] ++ hs')
-
 -- =====
 -- List/Either utilities
 
@@ -476,12 +377,6 @@ separate abs =
 
 -- =====
 -- List/Maybe utilities
-
--- XXX: isn't this just Control.Monad(msum)
-firstJust :: [Maybe a] -> Maybe a
-firstJust [] = Nothing
-firstJust (j@(Just _):_) = j
-firstJust (_:ms) = firstJust ms
 
 fromJustOrErr :: String -> Maybe value -> value
 fromJustOrErr err Nothing  = internalError err
@@ -503,16 +398,9 @@ fst3 (x,_,_) = x
 snd3 (_,x,_) = x
 thd  (_,_,x) = x
 fst2of3 (x,y,_) = (x,y)
-lst2of3 (_,y,z) = (y,z)
 
-fst4 (x,_,_,_) = x
-snd4 (_,x,_,_) = x
-thd4 (_,_,x,_) = x
 fth4 (_,_,_,x) = x
 fst3of4 (x,y,z,_) = (x,y,z)
-
-fst4of5 (a,b,c,d,_) = (a,b,c,d)
-fifth5 (_,_,_,_,x) = x
 
 ordPair (x,y) = if x < y then (x,y) else (y,x)
 
@@ -535,13 +423,6 @@ eqSnd (_,a) (_,b) = a == b
 
 -- =====
 -- Maybe utilities
-
-unJust (Just x) = x
-unJust Nothing = internalError "Util.unJust: failed"
-
--- XXX: isn't this just Data.Maybe(fromMaybe)
-mDefault s Nothing = s
-mDefault s (Just x) = x
 
 fromMaybeM :: (Monad m) => m a -> m (Maybe a) -> m a
 fromMaybeM def m = do
@@ -676,25 +557,7 @@ integerSqrt n =
         then Just candidate
         else Nothing
 
-
 -- =====
--- Function utilities
-
-fix :: (Eq a) => (a->a) -> a -> a
-fix f x =
-    let x' = f x
-    in  if x == x' then x else fix f x'
-
-
--- =====
-
--- Verilog naming utilities
--- one more valid characters
-isValidVerilogName :: String -> Bool
-isValidVerilogName str = (not $ null str) && headok && tailok
-    where headok = isAlpha (head str) || (head str) == '_'
-          tailok = any validChar (tail str)
-          validChar c = isAlphaNum c || (c == '_') || (c == '$')
 
 -- Is a character whitespace? (SV 3.1a LRM A.9.4)
 -- (Note that Verilog 2001 LRM section 2.2 -- but not its grammar -- also has \f)
@@ -740,9 +603,6 @@ nextHash64 h n =
 
 hashValue :: Hash -> Word64
 hashValue (Hash x y) = ((fromIntegral x) `shiftL` 32) .|. (fromIntegral y)
-
-hashValue32 :: Hash -> Word32
-hashValue32 (Hash x y) = x `xor` y
 
 showHash :: Hash -> String
 showHash h = show (hashValue h)

@@ -2,7 +2,7 @@
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ > 800)
 {-# OPTIONS_GHC -O0 #-}
 #endif
-module Parser.Classic.CParser(pPackage, pSignature, pDefnsAndEOF, errSyntax) where
+module Parser.Classic.CParser(pPackage, pDefnsAndEOF, errSyntax) where
 
 import Data.List(nub)
 
@@ -42,16 +42,6 @@ useLayout = notElem "-no-use-layout" progArgs
 
 type CParser a = Parser [Token] a
 
-pSignature :: CParser CSignature
-pSignature =
-    (l L_signature ..+ pModId +.+
-    l L_where ..+ block noTrig
-            (sepBy pIImport dsm +.+ osm ..+
-                sepBy pFixity dsm +.+ osm ..+
-                (sepBy pIDefn sm >>- concat)) +..
-                    osm >>>>> CSignature) +..
-                        eof
-
 pPackage :: CParser CPackage
 pPackage =
     (l L_package ..+
@@ -89,9 +79,6 @@ pFixity =
 
 pOptQualified :: CParser Bool
 pOptQualified = l L_qualified .> True ||! succeed False
-
-pIImport :: CParser Id
-pIImport = l L_import ..+ pModId
 
 pExpr :: Parser [Token] CExpr
 pExpr = exp0
@@ -387,21 +374,6 @@ pQStructField = pFieldId +.+ dc ..+ pQType +.+ pIfcPrags `into`
                                          cf_default = cs,
                                          cf_type = typ })))
 
-pIDefn :: CParser [CDefn]
-pIDefn = pIData ||! pIDefn' >>- (:[]) ||! succeed []
-
-pIDefn' :: CParser CDefn
-pIDefn' =   pVarId +.+ dc ..+ pQType						>>>   CIValueSign
-        ||! l L_instance ..+ pModId +.+ pQType					>>>   CIinstance
-        ||! pTyDefn False
-        ||! l L_type ..+ pTyConIdK +.+ many pTyVarId				>>>   mkCItype
-        ||! l L_class ..+ pOptCoherence +.+ pPreds +.+ pTyConIdK +.+ many pTyVarId +.+ pFunDeps	>>>>>>   mkCIclass
-        -- allow pragmas (to support deprecation, for instance)
-        ||! pPragma >>- CPragma
-            where mkCItype idk ids = CItype idk ids []
-                  mkCIclass incoh preds idk ids fundeps = CIclass incoh preds idk ids fundeps []
-
-
 pDefn :: CParser [CDefn]
 pDefn = pDefn' >>- (:[]) ||! pData ||! succeed []
 
@@ -453,9 +425,6 @@ pFunDep = many pTyVarId +.+ l L_rarrow ..+ many pTyVarId
 
 pData :: CParser [CDefn]
 pData = pDataB True
-
-pIData :: CParser [CDefn]
-pIData = pDataB False
 
 pDataB :: Bool -> CParser [CDefn]
 pDataB b = l L_data ..+ pTyConIdK +.+ many pTyVarId +.+ eql b +.+ sepBy1 pSummand' bar +.+ pDer         >>- mkData
@@ -747,11 +716,6 @@ literalC lfs = lcp (getFString lfs) (\p x->case x of
 literalS lfs = lcp (getFString lfs) (\p x->case x of
     L_varsym fs | fs == lfs -> Just ()
     _ -> Nothing)
-
-{-
-multiplicity :: CParser ()
-multiplicity = literal fsMultiplicity
--}
 
 noinline :: CParser ()
 noinline = literal fsNoinline

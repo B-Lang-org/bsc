@@ -3,7 +3,6 @@ module SpeedyString(SString, toString, fromString, (++), concat, filter) where
 
 import Prelude hiding((++), concat, filter)
 import qualified Prelude((++), filter)
-import Hash(Hashable(..))
 import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)
 import qualified Data.IntMap as M
@@ -24,9 +23,6 @@ instance Ord SString where
 
 instance Show SString where
     show = show . toString
-
-instance Hashable SString where
-    hash (SString i) = hash i
 
 -- public
 

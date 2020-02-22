@@ -1,4 +1,4 @@
-module IInline(iInline, iSortDs, iInlineFmts, splitFmts, removeFmts) where
+module IInline(iInline, iSortDs, iInlineFmts, splitFmts) where
 import Data.List(group, sort, nub)
 import Util
 import qualified Data.Set as S
@@ -744,32 +744,6 @@ removeConditions x = [x]
 -- #
 -- #############################################################################
 
-removeFmts :: ErrorHandle -> IModule a -> IO (IModule a)
-removeFmts errh imod =
-    do let ffcallNo = (imod_ffcallNo imod)
-       result <- runErrorT (runStateT (removeFmtsF imod) (ffcallNo, []))
-       case result of
-            Right x@(imod', (ffcallNo', _)) ->
-                return imod' { imod_ffcallNo = ffcallNo' }
-            Left msg -> bsError errh [msg]
-
-removeFmtsF :: IModule a -> F a (IModule a)
-removeFmtsF imod@(IModule { imod_local_defs  = ds,
-                            imod_rules       = rs,
-                            imod_interface   = ifc,
-                            imod_state_insts = state_vars }) =
-     do let updateDef = iDefMapM reduceFmt
-        ds'  <- mapM updateDef ds  
-	ifc' <- reduceFmt_ifc ifc
-	rs'  <- irulesMapM reduceFmt rs
-        let updateStateVar (name, sv@(IStateVar { isv_iargs = es })) = do es' <- mapM reduceFmt es
-                                                                          return (name, sv { isv_iargs = es' })
-	state_vars' <- mapM updateStateVar (imod_state_insts imod)
-        return imod { imod_local_defs  = ds',
-                      imod_rules       = rs',
-                      imod_interface   = ifc',
-                      imod_state_insts = state_vars' }
-
 reduceFmt :: IExpr a -> F a (IExpr a)
 reduceFmt e = 
   do  e' <- reduce False True e
@@ -937,15 +911,6 @@ ssplitFmt_ifc ifc_list
              updateIfc (IEFace i xs _ rules wp fi)            = return (internalError("ssplitFmt_ifc: expression not found"))
          ifc_list' <- mapM updateIfc ifc_list
          return ifc_list'
-
-reduceFmt_ifc :: [IEFace a] -> F a [IEFace a]
-reduceFmt_ifc ifc_list 
-    = do let updateIfc (IEFace i xs (Just (e,t)) rules wp fi) = do e' <- reduceFmt e
-                                                                   return (IEFace i xs (Just (e',t)) rules wp fi)
-             updateIfc (IEFace i xs _ rules wp fi)            = return (internalError("reduceFmt_ifc: expression not found"))
-         ifc_list' <- mapM updateIfc ifc_list
-         return ifc_list'
-
 
 getInnerType :: IType -> IType
 getInnerType (ITForAll id ik t) = (getInnerType t)

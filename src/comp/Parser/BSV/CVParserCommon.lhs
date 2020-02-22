@@ -765,23 +765,12 @@ pattern guards this arm; expressions are additional conditions
 > structVar (CSub2 e _ _) = structVar e
 > structVar _ = Nothing
 
-> ies e var =
->     case structVar e of
->            Just v -> v == var
->            Nothing -> False
-
 > isISMethod :: ImperativeStatement -> Bool
 > isISMethod (ISMethod _ _) = True
 > isISMethod _ = False
 
 > isISRule (ISRule _ _ _ _) = True
 > isISRule _ = False
-
-> isISReturn (ISReturn _ _) = True
-> isISReturn _ = False
-
-> isISNakedExpr (ISNakedExpr _ _) = True
-> isISNakedExpr _ = False
 
 > isISExport (ISExport _ _) = True
 > isISExport _ = False
@@ -791,9 +780,6 @@ pattern guards this arm; expressions are additional conditions
 
 one could be more clever about detecting same-register;
 one would then need to be careful about variable shadowing
-
-> isISRegWriteTo (CVar var) (ISRegWrite _ (CVar var') expr) = var' == var
-> isISRegWriteTo _ _ = False
 
 > data ISContext =  ISCExpression | ISCAction | ISCActionValue | ISCModule CType | ISCIsModule
 >                 | ISCSequence | ISCToplevel | ISCInterface | ISCRules  | ISCInstance | ISCBVI
@@ -1300,11 +1286,6 @@ saying whether or not the declaration is local
 >     (Nothing,_) -> False
 >     (Just _, _) -> True)
 
-> warnShadowDeclaration :: Id -> ISConvMonad ()
-> warnShadowDeclaration var =
->     do shadowing <- isDeclared var
->        return ()
-
 > isFunctionName :: Id -> ISConvMonad Bool
 > isFunctionName var =
 >     SEMonad.M (\state@(ISConvState {issFunction = funcs}) ->
@@ -1399,11 +1380,6 @@ make a temporary id, appending accent acute, and removing keep attribute
 
 > mkAcute :: Id -> Id
 > mkAcute i = addIdProp (mkIdPost (rmKeepId i) fsAcute) IdPRenaming
-
-> stripAcute :: Id -> Id
-> stripAcute i = (let s = getIdBaseString i
->                     n = length s
->                 in setIdBaseString i (take (n-2) s))
 
 > csLetseq :: [CDefl] -> [CStmt]
 > csLetseq [] = []

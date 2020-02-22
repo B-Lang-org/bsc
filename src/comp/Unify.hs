@@ -1,5 +1,5 @@
 {-# LANGUAGE PatternGuards #-}
-module Unify(Unify(..), Match(..), matchList, {-matchListWithUnify-}) where
+module Unify(Unify(..), matchList) where
 import Type
 import Subst
 import CType
@@ -105,37 +105,19 @@ isUnSatSyn' (TCon (TyCon _ _ (TItype n _))) args = n > args
 isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1) 
 isUnSatSyn' _  _ = False
 
-class Match t where
-    match :: t -> t -> Maybe Subst
-
-instance Match Type where
-    match (TAp l r) (TAp l' r') = rtrace ("match: TAp: " ++ ppReadable (l,r)) $ do
-	sl <- match l l'
-        sr <- match r r'
-        rtrace ("match: TAp result:  " ++ ppReadable (merge sl sr, sl, sr)) $ merge sl sr
-    match (TVar u1)  (TVar u2)  | u1 == u2         =
-	rtrace ("match: Var, Var: " ++ ppReadable (u1, u2))  $ Just nullSubst
-    match (TVar u)   t          | kind u == kind t =
-	rtrace ("match: Var, oth: " ++ ppReadable (u,t))     $ Just (u +-> t)
-    match (TCon tc1) (TCon tc2) | tc1 == tc2       =
-	rtrace ("match: Con, Con: " ++ ppReadable (tc1,tc2)) $ Just nullSubst
-    match t1         t2                            =
-	rtrace ("match: Nothing: " ++ ppReadable (t1,t2))    $ Nothing
-
-{-
--- Does anything really use this?  Perhaps it would be better to
--- explicitly call matchList or matchListWithUnify, and be explicit
--- about the merging function being used.
-instance Match t => Match [t] where
-    match = matchList
--}
+match :: Type -> Type -> Maybe Subst
+match (TAp l r) (TAp l' r') = rtrace ("match: TAp: " ++ ppReadable (l,r)) $ do
+    sl <- match l l'
+    sr <- match r r'
+    rtrace ("match: TAp result:  " ++ ppReadable (merge sl sr, sl, sr)) $ merge sl sr
+match (TVar u1)  (TVar u2)  | u1 == u2         =
+   rtrace ("match: Var, Var: " ++ ppReadable (u1, u2))  $ Just nullSubst
+match (TVar u)   t          | kind u == kind t =
+   rtrace ("match: Var, oth: " ++ ppReadable (u,t))     $ Just (u +-> t)
+match (TCon tc1) (TCon tc2) | tc1 == tc2       =
+   rtrace ("match: Con, Con: " ++ ppReadable (tc1,tc2)) $ Just nullSubst
+match t1         t2                            =
+   rtrace ("match: Nothing: " ++ ppReadable (t1,t2))    $ Nothing
 
 matchList :: [Type] -> [Type] -> Maybe Subst
 matchList ts ts' = mergeListWith merge (zipWith match ts ts')
-
-{-
--- XXX now unused because we believe instance-matching with unification is bogus
-matchListWithUnify :: [TyVar] -> [Type] -> [Type] -> Maybe Subst
-matchListWithUnify bound_tyvars ts ts' =
-    mergeListWith (mergeWith (mgu bound_tyvars)) (zipWith match ts ts')
--}

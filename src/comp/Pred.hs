@@ -4,7 +4,7 @@ module Pred(
 	    Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
             getInsts,
 	    removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
-	    isIn, expandSyn, predToType, qualToType, mkInst,
+	    expandSyn, predToType, qualToType, mkInst,
 	    Instantiate(..),
             predToCPred, qualTypeToCQType,
 	    ) where
@@ -114,9 +114,6 @@ data Pred
 	= IsIn Class [Type]
         deriving (Eq, Ord, Show)
 
-isIn :: Class -> [Type] -> Pred
-isIn c ts = IsIn c (map expandSyn ts)
-
 instance PPrint Pred where
     pPrint d p (IsIn c ts) = pparen (p>0) $ ppId d (typeclassId $ name c) <+> sep (map (pPrint d 10) ts)
 
@@ -124,7 +121,7 @@ instance PVPrint Pred where
     pvPrint d p (IsIn c ts) = pvparen (p>0) $ pvpId d (typeclassId $ name c) <> pvParameterTypes d ts
 
 instance Types Pred where
-    apSub s (IsIn c ts) = isIn c (apSub s ts)
+    apSub s (IsIn c ts) = IsIn c $ expandSyn <$> apSub s ts
     tv      (IsIn c ts) = tv ts
 
 instance Hyper Pred where
@@ -298,7 +295,7 @@ instance Instantiate PredWithPositions where
     inst ts (PredWithPositions p poss) = PredWithPositions (inst ts p) poss
 
 instance Instantiate Pred where
-    inst ts (IsIn c t) = isIn c (inst ts t)
+    inst ts (IsIn c t) = IsIn c $ expandSyn <$> inst ts t
 
 instance Instantiate Inst where
     inst ts (Inst e ks h) = Inst e [] (inst ts h)

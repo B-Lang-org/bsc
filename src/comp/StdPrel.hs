@@ -8,7 +8,7 @@ module StdPrel(
     tiHandle, tiBufferMode,
     tiFmt,
     tiAction, tiRules,
-    tiClock, tiReset, tiInout, tiInout_,
+    tiClock, tiReset, tiInout,
     tiPrimArray,
     tiPosition, tiType, tiName, tiPred, tiSchedPragma
    ) where
@@ -1000,7 +1000,6 @@ tiReal    = TIabstract
 tiClock   = TIabstract -- XXX TIstruct SInterface ... ?
 tiReset   = TIabstract -- XXX TIstruct or Bit 1 ?
 tiInout   = TIabstract
-tiInout_  = TIabstract
 tiPrimArray = TIabstract
 tiPair    = TIstruct SStruct [idPrimFst, idPrimSnd]
 tiBool    = TIdata [idFalse, idTrue]

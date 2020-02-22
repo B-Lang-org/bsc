@@ -6,7 +6,6 @@ module MakeSymTab(
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
                   convCType,
-                  mkSchemeWithSymTab
                   ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -623,15 +622,6 @@ chkTopDef r mi isDep (CValueSign d@(CDefT {})) =
             internalError ("getTopVars: " ++ ppReadable d)
 chkTopDef _ _ _ _ = return []
 
-{-
-moved to TIMisc now that MakeSymTab doesn't use the TI monad
-mkScheme :: CQType -> TI Scheme
-mkScheme cqt = do
-    s <- getSymTab
-    case convCQType s cqt of
-     Left emsg -> err emsg
-     Right qt -> return (quantify (tv qt) qt)
--}
 mkSchemeWithSymTab :: SymTab -> CQType -> Either EMsg Scheme
 mkSchemeWithSymTab s cqt =
    case convCQType s cqt of

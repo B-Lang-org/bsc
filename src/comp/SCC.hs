@@ -16,21 +16,10 @@ import ErrorUtil(internalError)
 type Node v = (v, [v])
 type Graph v = [Node v]
 
-{-
-type NMap node = [Node node]
-mFromList xs = xs
-mLookup x xys = lookup x xys
--}
 type NMap node = M.Map node [node]
 mFromList xs = M.fromList xs
 mLookup x m = M.lookup x m
 
-{-
-type NSet node = [node]
-sElem x s = elem x s
-sAdd x s = x:s
-sEmpty = []
--}
 -- Using OrdSet seems to be slower than lists
 
 sElem x s = S.member x s
@@ -73,9 +62,9 @@ scc ns = sccEdge (mFromList ns) (rev ns) (map fst ns)
 
 getCycles :: (Ord node) => [Node node] -> [[node]]
 getCycles xs =
-	case otsort xs of
-	    Left cs -> cs
-	    Right _ -> []
+       case otsort xs of
+           Left cs -> cs
+           Right _ -> []
 
 ------
 

@@ -1,5 +1,4 @@
 module Parser.Classic( pPackage
-                     , pSignature
                      , errSyntax
                      , pDefnsAndEOF
                      , classicWarnings

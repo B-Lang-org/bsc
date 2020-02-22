@@ -22,7 +22,7 @@ module IExpandUtils(
         addStateVar, step, updHeap, getHeap, {- filterHeapPtrs, -}
         getSymTab, getDefEnv, getFlags, getCross, getErrHandle, getModuleName,
         getNewRuleSuffix, updNewRuleSuffix,
-        updatePExprPosition, mapPExprPosition,
+        mapPExprPosition,
         chkClockDomain, chkResetDomain, fixupActionWireSet,
         chkModuleArgument, chkModuleArgumentClkRst,
         getMethodsByClockDomain, getMethodsByReset,
@@ -102,7 +102,7 @@ import Pragma(PProp(..), SPIdMap, substSchedPragmaIds,
 import Util
 
 import IOUtil(progArgs)
-import ISyntaxXRef(mapIExprPosition, mapIExprPosition2, updateIExprPosition)
+import ISyntaxXRef(mapIExprPosition, mapIExprPosition2)
 import IStateLoc(IStateLoc, IStateLocPathComponent(..), StateLocMap,
                  newIStateLocTop, hasIgnore, isAddRules, isLoop, extendStateLocMap,
                  stateLocToPrefix, createSuffixedId,  hasHide, hasHideAll, stateLocToHierName)
@@ -3467,10 +3467,6 @@ condPrim _ = False
 -- # transformations.
 -- #############################################################################
 
-updatePExprPosition :: Position -> PExpr -> G PExpr
-updatePExprPosition pos pexpr@(P pred iexpr) = do
-                         return (P pred (updateIExprPosition pos iexpr))
-
 mapPExprPosition :: Bool -> (PExpr,PExpr) -> G PExpr
 mapPExprPosition doit ((P pred_0 iexpr_0), (P pred_1 iexpr_1)) = do
                          return (P pred_1 (mapIExprPosition2 doit (iexpr_0, iexpr_1)))
@@ -3493,4 +3489,3 @@ setPragmas :: [PProp] -> G ()
 setPragmas x = modify (\s -> s {pragmas=x})
 
 -----------------------------------------------------------------------------
-

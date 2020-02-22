@@ -1,5 +1,5 @@
 module GlobPattern (parseGlobPattern, matchGlobPattern, getGlobErr,
-                    GlobPattern, GlobFn) where
+                    GlobPattern) where
 
 import Control.Monad(msum)
 import Data.List(isPrefixOf, tails)
@@ -33,8 +33,6 @@ instance Show GlobPattern where
   show (GlobOneOf cs p) = "[" ++ (concatMap show cs) ++ "]" ++ (show p)
   show (GlobNotOneOf cs p) = "[!" ++ (concatMap show cs) ++ "]" ++ (show p)
   show (GlobBadPattern s) = "<BADPATTERN: " ++ s ++ ">"
-
-type GlobFn = String -> Bool
 
 globSeparator = '.'
 
@@ -123,5 +121,4 @@ matchGlobPattern (GlobNotOneOf xs p) [] = False
 matchGlobPattern (GlobNotOneOf xs p) (c:s) = if (any (`classContains` c) xs)
                                              then False
                                              else matchGlobPattern p s
-matchGlobPattern (GlobBadPattern _) _ = False                                             
-
+matchGlobPattern (GlobBadPattern _) _ = False

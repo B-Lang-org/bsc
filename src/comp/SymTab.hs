@@ -2,7 +2,7 @@
 module SymTab(
 	      SymTab(..), VarInfo(..), ConInfo(..), TypeInfo(..),
 	      FieldInfo(..), VarKind(..),
-	      numTI, getConInfos, getFieldInfos, getAllTypes, getAllClasses,
+	      getAllTypes,
 	      emptySymtab,
 	      addVars, addTypes, addCons, addFields, addClasses,
 	      addVarsUQ, addTypesUQ, addClassesUQ, mkDefaultQuals,
@@ -316,21 +316,8 @@ mustFindClass r i =
      Just cl -> cl
      Nothing -> internalError ("mustFindClass " ++ show i)
 
--- numeric types (i.e. 5) have no identifiers
-numTI :: TypeInfo
-numTI = TypeInfo Nothing KNum [] TIabstract
-
-getConInfos :: SymTab -> [ConInfo]
-getConInfos (S _ c _ _ _) = concatMap snd (M.toList c)
-
-getFieldInfos :: SymTab -> [(Id,[FieldInfo])]
-getFieldInfos (S _ _ _ f _) = M.toList f
-
 getAllTypes :: SymTab -> [(Id, TypeInfo)]
 getAllTypes (S _ _ t _ _) = M.toList t
-
-getAllClasses :: SymTab -> [(Id, Class)]
-getAllClasses (S _ _ _ _ c) = M.toList c
 
 -- a double key lookup into the symbol table to get field names of an interface method
 -- The first key is the interface name, the second the method name.
@@ -359,16 +346,16 @@ getMethodArgNames symtable ifcId methId =
 	Nothing -> []
 	Just finfo -> filterIArgNames (fi_pragmas finfo)
 
-getIfcFieldNames :: SymTab -> Id -> [Id] 
+getIfcFieldNames :: SymTab -> Id -> [Id]
 getIfcFieldNames symbolTable ifcId = fields
     where
     fields = case findType symbolTable ifcId of
-             Nothing ->  [] 
-             Just (TypeInfo (Just ti) _ _ (TIstruct ss fs)) | isIfc ss -> fs 
+             Nothing ->  []
+             Just (TypeInfo (Just ti) _ _ (TIstruct ss fs)) | isIfc ss -> fs
              Just x -> []
 
 -- generate just the method names, following subinterfaces
-getIfcFlatMethodNames :: SymTab -> Id -> [Id] 
+getIfcFlatMethodNames :: SymTab -> Id -> [Id]
 getIfcFlatMethodNames symt topIfcId =
   let
       fields :: Id -> Maybe [Id]
@@ -415,4 +402,3 @@ getIfcFlatMethodNames symt topIfcId =
                                       ++ ppReadable topIfcId)
   in
       concatMap (recurseFn [] topIfcId) topFields
-

@@ -15,9 +15,6 @@ module FlagsDecode(
              showFlags, showFlagsRaw,
              showFlagsLst, showFlagsAllLst,
              getFlagValueString,
-             showResourceFlag,
-
-             unPath, splitPath
         ) where
 
 import Data.List(nub, sort, intersperse, partition)
@@ -1984,17 +1981,6 @@ flagTypeToString flags key (Toggle _ (Just f)) =
   [if (fst (f flags)) then ("-" ++ key) else ("-no-" ++ key)]
 flagTypeToString flags key ft = showFlag False flags (key,ft)
 
--- -------------------------
--- Display the resource flag (used for the help message)
-
-showResourceFlag :: Flags -> String
-showResourceFlag flags =
-    case (lookup (resource flags) resourceFlags) of
-        Just f -> ('-':f)
-        Nothing -> ""  -- XXX this should never happen
-
-resourceFlags :: [(ResourceFlag, String)]
-resourceFlags = [(rf,f) | (f,(Resource rf)) <- flagsTable]
 
 -- -------------------------
 -- Path Utilities
