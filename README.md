@@ -77,24 +77,21 @@ The core of BSC is written in Haskell, with some libraries in C/C++.
 You will need the standard Haskell compiler `ghc` which is available for Linux,
 MacOS and Windows, along with some additional Haskell libraries. These are
 available as standard packages in most Linux distributions. For example, on
-Debian and Ubuntu systems, you can say:
+Debian and Ubuntu systems, you should use hvr's PPA for an up-to-date toolchain:
 
-    $ apt-get install ghc
-    $ apt-get install \
-        libghc-regex-compat-dev \
-        libghc-syb-dev \
-        libghc-old-time-dev
+    $ add-apt-repository ppa:hvr/ghc
+    $ apt-get update
 
-The second command will install the Haskell libraries `regex-compat`, `syb`,
-and `old-time`, as well as some libraries that they depend on.
+Then install the appropriate ghc and cabal:
 
-You can do the analogous package-install on other Linux distributions using
-their native package mechanisms, and use Macports on Apple OS X. Full details
-can be found at <https://www.haskell.org/>. On some systems, you may need to
-use the `cabal` command to install Haskell libraries:
+    $ apt-get install ghc-8.8.2
+    $ apt-get install cabal-install-3.0
 
-    $ apt-get install cabal-install
-    $ cabal install regex-compat syb old-time
+For other distributions, check out [ghcup](https://www.haskell.org/ghcup/).
+
+After GHC and cabal are installed, you need some libraries:
+
+    $ cabal v1-install regex-compat syb old-time
 
 The version of GHC should not matter, since the source code has been written
 with extensive preprocessor macros, to support nearly every minor release since
