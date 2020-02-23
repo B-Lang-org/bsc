@@ -1,8 +1,7 @@
 TOP=../../../..
 include $(TOP)/platform.mk
 
-#YICES_INST = ../yices2-inst
-YICES_INST = .
+YICES_INST = ../yices2-inst
 
 YICES_SRC = ../yices2/src
 
