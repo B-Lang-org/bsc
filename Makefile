@@ -4,6 +4,8 @@ TOP := $(PWD)
 PREFIX   ?= $(TOP)/inst
 BUILDDIR ?= $(TOP)/build
 
+include $(TOP)/platform.mk
+
 .PHONY: all
 all: install
 
@@ -31,7 +33,7 @@ install:
 # in $PATH. it's not enough to just set bsc...
 .PHONY: check
 check:
-	@(export PATH=$(PREFIX)/bin:$(PATH); $(MAKE) -C examples/smoke_test smoke_test)
+	@(export PATH=$(PREFIX)/bin:"$(PATH)"; $(MAKE) -C examples/smoke_test smoke_test)
 
 # -------------------------
 

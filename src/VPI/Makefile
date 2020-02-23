@@ -6,6 +6,8 @@ INSTALL ?= install
 PREFIX?=$(TOP)/inst
 INSTALLDIR=$(PREFIX)/lib/VPI
 
+include $(TOP)/platform.mk
+
 .PHONY:	all
 all: install
 
