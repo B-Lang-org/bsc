@@ -570,6 +570,7 @@ instance PPrint VVDecl where
 		      nest 4 (pPrint d 0 e <> text ";")]
 
 -- A short cut constructor
+vVDecl :: VDType -> Maybe VRange -> VVar -> VVDecl
 vVDecl t r v = VVDecl t r [v]
 
 
@@ -1004,6 +1005,7 @@ mkVEOp vexpr_0 vop vexpr_1 = VEOp defaultVId vexpr_0 vop vexpr_1
 mkVEUnOp :: VOp -> VExpr -> VExpr
 mkVEUnOp vop vexpr = VEUnOp defaultVId vop vexpr
 
+defaultVId :: VId
 defaultVId = mkVId "Default"
 
 

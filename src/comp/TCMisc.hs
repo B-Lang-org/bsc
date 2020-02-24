@@ -869,6 +869,8 @@ eqToVPred poss num_eq = do
   p <- eqToPred num_eq
   mkVPredFromPred poss p
 
+unifyNoEq :: (PPrint a, PVPrint a, HasPosition a)
+          => [Char] -> a -> Type -> Type -> TI ()
 unifyNoEq loc x t1 t2 = do
   ps <- unify x t1 t2
   when (not $ null ps) $
@@ -980,6 +982,8 @@ defaultUnifyError x t1 t2 =
 -----
 
 -- unify e td (a `fn` rt)
+unifyFnFrom :: (HasPosition a, HasPosition b, PPrint b, PVPrint b)
+            => a -> b -> Type -> Type -> TI (Type, [VPred])
 unifyFnFrom x e (TAp (TAp arr a) r) rt | arr == tArrow = do
     ps <- unify e r rt
     return (a, ps)
@@ -997,6 +1001,8 @@ unifyFnFrom x e t rt = do
     return (v, ps)
 
 -- unify e td (at `fn` r)
+unifyFnTo :: (HasPosition a, HasPosition b, PPrint b, PVPrint b)
+          => a -> b -> Type -> Type -> TI (Type, [VPred])
 unifyFnTo x e (TAp (TAp arr a) r) at | arr == tArrow = do
     ps <- unify e a at
     return (r, ps)
@@ -1017,6 +1023,8 @@ unifyFnTo x e t at = do
 -- and create new type variables only if it doesn't
 -- we never do anything that might generate numeric equalities
 -- unify e td (a `fn` r)
+unifyFnFromTo :: (HasPosition a, HasPosition b, PPrint b, PVPrint b)
+              => a -> b -> Type -> TI (Type, Type)
 unifyFnFromTo x e (TAp (TAp arr a) r) | arr == tArrow = do
     return (a, r)
 unifyFnFromTo x e t = do

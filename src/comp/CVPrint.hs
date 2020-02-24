@@ -131,6 +131,7 @@ instance PVPrint CFixity where
     pvPrint d _ (CInfixl p i) = text "`infixl" <+> text (show p) <+> ppInfix d i
     pvPrint d _ (CInfixr p i) = text "`infixr" <+> text (show p) <+> ppInfix d i
 
+pvPreds :: PVPrint a => PDetail -> [a] -> Doc
 pvPreds d [] = empty
 pvPreds d ps = t "  provisos (" <> sepList (map (pvPrint d 0) ps) (t ",") <> t")"
 
@@ -138,6 +139,7 @@ pvParameterTypeVars d [] = empty
 pvParameterTypeVars d as =
     t"#(" <> sepList (map (\ y -> t"type" <+> pvPrint d 0 y) as) (t ",") <> t ")"
 
+pvParameterTypes :: PVPrint a => PDetail -> [a] -> Doc
 pvParameterTypes d [] = empty
 pvParameterTypes d ts =
     t"#(" <> sepList (map (\ y -> pvPrint d 0 y) ts) (t ",") <> t ")"

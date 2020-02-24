@@ -9,6 +9,7 @@ import BuildVersion(buildVersion, buildVersionNum)
 {-# NOINLINE versiondate #-}
 {-# NOINLINE copyright #-}
 
+bluespec :: String
 bluespec = "Bluespec"
 
 -- These fields can be used to give a name and date to a release
@@ -18,12 +19,15 @@ bluespec = "Bluespec"
 --       format YEAR.MONTH or YEAR.MONTH.ANNOTATION
 --       (eg. 2019.05.beta2 or 2017.07.A)
 --
+versionname, versiondate :: String
 versionname = ""
 versiondate = ""
 
+buildnum :: Integer
 buildnum = buildVersionNum
 
 -- Generate the version string (for a given tool)
+versionStr :: String -> String
 versionStr toolname =
   let versionstr = if null versionname then "" else ", version " ++ versionname
       buildstr = if null buildVersion then "" else "build " ++ buildVersion
@@ -36,6 +40,7 @@ versionStr toolname =
       (if (null buildstr && null versiondate) then "" else ")")
 
 -- The version string for the Bluespec Compiler
+version :: String
 version = versionStr (bluespec ++ " Compiler")
 
 copyright :: String

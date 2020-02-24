@@ -72,6 +72,7 @@ data LexItem =
         | L_error LexError
         deriving (Eq)
 
+prLexItem :: LexItem -> String
 prLexItem (L_varid s) = getFString s
 prLexItem (L_conid s) = getFString s
 prLexItem (L_varsym s) = getFString s
@@ -388,6 +389,7 @@ isUpper_ [] = True
 
 lexerr f l c err = map (Token (mkPosition f l c)) (L_error err : repeat L_eof)
 
+isSym :: Char -> Bool
 isSym '!' = True; isSym '@' = True; isSym '#' = True; isSym '$' = True
 isSym '%' = True; isSym '&' = True; isSym '*' = True; isSym '+' = True
 isSym '.' = True; isSym '/' = True; isSym '<' = True; isSym '=' = True
@@ -405,6 +407,7 @@ isSym c | c >= '\x80' = c `elem` ['\162', '\163', '\164', '\165', '\166',
 --isSym c | c >= '\x80' = isSymbol c
 isSym _ = False
 
+isIdChar :: Char -> Bool
 isIdChar '\'' = True
 isIdChar '_' = True
 

@@ -992,26 +992,35 @@ genNumEqInsts _ _ _ _ = []
 
 -- -------------------------
 
+tiArrow, tiBit, tiSizeOf, tiInteger, tiReal :: TISort
 tiArrow   = TIabstract
 tiBit     = TIabstract
 tiSizeOf  = TIabstract
 tiInteger = TIabstract
 tiReal    = TIabstract
+
+tiClock, tiReset, tiInout, tiPrimArray :: TISort
 tiClock   = TIabstract -- XXX TIstruct SInterface ... ?
 tiReset   = TIabstract -- XXX TIstruct or Bit 1 ?
 tiInout   = TIabstract
 tiPrimArray = TIabstract
+
+tiPair, tiBool, tiAction, tiRules, tiString, tiChar :: TISort
 tiPair    = TIstruct SStruct [idPrimFst, idPrimSnd]
 tiBool    = TIdata [idFalse, idTrue]
 tiAction  = TIabstract
 tiRules   = TIabstract
 tiString  = TIabstract
 tiChar    = TIabstract
+
+tiHandle, tiBufferMode, tiMaybe, tiList, tiFmt :: TISort
 tiHandle  = TIabstract
 tiBufferMode = TIdata [idNoBuffering, idLineBuffering, idBlockBuffering]
 tiMaybe   = TIdata [idInvalid, idValid]
 tiList    = TIdata [idNil noPosition, idCons noPosition]
 tiFmt     = TIabstract
+
+tiUnit, tiPosition, tiType, tiName, tiPred, tiSchedPragma :: TISort
 tiUnit    = TIstruct SStruct []
 tiPosition = TIabstract
 tiType = TIabstract
@@ -1028,6 +1037,7 @@ tyiInteger = TypeInfo (Just idInteger) KStar [] tiInteger
 -- -------------------------
 
 -- all preTypes should have identifiers (i.e. be non-numeric) because the usage in MakeSymTab.hs depends on this
+preTypes :: [TypeInfo]
 preTypes = [
 	tyiArrow,
 {-
@@ -1045,6 +1055,7 @@ preTypes = [
         TypeInfo (Just idNumEq) (Kfun KNum (Kfun KNum KStar)) [v1, v2] (TIstruct SClass [])
 	]
 
+preClasses :: SymTab -> [Class]
 preClasses symT = [clsNumEq symT,
                    clsAdd symT,
                    clsMax,
@@ -1053,10 +1064,12 @@ preClasses symT = [clsNumEq symT,
                    clsMul symT,
                    clsDiv ]
 
+isPreClass :: Class -> Bool
 isPreClass cl =
     let preClassNames = map name (preClasses (internalError "isPreClass"))
     in  (name cl) `elem` preClassNames
 
+preValues :: [(Id, VarInfo)]
 preValues = [
 --	(idValueOf, VarInfo VarPrim (idValueOf :>: Forall [KNum] ([] :=> (TGen noPosition 0 `fn` tInteger))) Nothing)
 	]

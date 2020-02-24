@@ -24,7 +24,7 @@
 > import VModInfo
 > import SchedInfo
 > import Pragma
-> import Error(internalError, ErrMsg(..))
+> import Error(internalError, ErrMsg(..), EMsg)
 > import PreIds
 > import FStringCompat
 > import PreStrings
@@ -243,6 +243,8 @@ instances.
 >               in  fn e' doRest
 > maybeUpdateFn _ _ = Nothing
 
+> makeResultCExpr :: Position -> [Id] -> CExpr -> CExpr
+>                 -> SEM [Error.EMsg] ISConvState CExpr
 > makeResultCExpr pos updatedVars inside rest =
 >     do let resultId = idTheResult pos
 >            patVars = pMkTuple pos $ map CPVar updatedVars
@@ -612,6 +614,7 @@ argument) ought to be documented.
 >     let convPipe = checkImperativeStmts ctxt stmts >>= convImperativeStmtsToCStmts cmtme True
 >     semToParser cs convPipe
 
+> sletFn :: [CDefl] -> [CStmt] -> [CStmt]
 > sletFn defs ss = csLetseq defs ++ ss
 
 > isInstNameAttrib :: (Position,PProp) -> Bool
@@ -629,6 +632,8 @@ argument) ought to be documented.
 >                              _ -> Nothing
 >     return (maybeInst_name, rest_pprops)
 
+> makeResultCStmts :: Position -> [Id] -> CExpr -> [IdProp]
+>                  -> SEM [EMsg] ISConvState [CStmt]
 > makeResultCStmts pos updatedVars inside props =
 >     do let resultId = addIdProps (idTheResult pos) props
 >            patVars = pMkTuple pos $ map CPVar updatedVars
@@ -2355,6 +2360,7 @@ to uniquify them.
 > endsWithReturn (stmt:stmts) = endsWithReturn stmts
 > endsWithReturn _ = False
 
+> armEndsWithReturn :: CCaseArm -> Bool
 > armEndsWithReturn (CCaseArm { cca_consequent = Cdo _ consequent_stmts }) =
 >     endsWithReturn consequent_stmts
 > armEndsWithReturn _ = False
@@ -2391,6 +2397,8 @@ Check for use of unassigned variables; if any are found, report errors
 >        declareAndAssignVarsInPattern pat
 >        detectUnassignedUsesQuals qs
 >        --popState
+
+> detectUnassignedUsesClause :: CClause -> SEM [EMsg] ISConvState ()
 > detectUnassignedUsesClause (CClause pat quals body) =
 >     do pushState
 >        detectUnassignedUsesQuals quals
@@ -2522,6 +2530,7 @@ present) only for those statements allowed in the expression context.
 
 XXX   Detecting function argument collisions TBD
 
+> undoTuple :: Type -> Maybe [Type]
 > undoTuple (TAp x t) =
 >     case (undoTuple x) of
 >                Nothing -> Nothing
@@ -2900,6 +2909,7 @@ Ensures that variables are declared, etc.
 >    declare pos nm t []
 >    assign pos nm ATNormal
 
+> checkSeqExpr, checkPropExpr :: CExpr -> ISConvMonad ()
 > checkSeqExpr e = detectUndeclared e
 > checkPropExpr e = detectUndeclared e
 
@@ -3042,6 +3052,7 @@ END ASSERTIONS
 
 detect whether assignment is to the fake "uninitialized" value
 
+> getCExprAssignmentType :: CExpr -> AssignmentType
 > getCExprAssignmentType (CApply (CVar name) _)
 >    | name == idPrimUninitialized = ATUninitialized
 > getCExprAssignmentType _ = ATNormal

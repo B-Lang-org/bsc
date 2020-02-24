@@ -11,6 +11,7 @@ import CVPrint()
 import Lex
 import Error(internalError, showErrorList)
 
+main :: IO ()
 main =
     do args <- getArgs
        case args of

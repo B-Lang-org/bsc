@@ -62,17 +62,17 @@ bypasswire      = VName "BypassWire"
 bypasswire0     = VName "BypassWire0"
 crossbypasswire = VName "CrossingBypassWire"
 
-isRWire :: AVInst -> Bool 
-isRWire  avi = (getAVDefName avi == rwire)
-isRWire0 :: AVInst -> Bool 
-isRWire0 avi = (getAVDefName avi == rwire0)
+isRWire, isRWire0 :: AVInst -> Bool
+isRWire  avi = getAVDefName avi == rwire
+isRWire0 avi = getAVDefName avi == rwire0
 
 -- distinguish between BypassWire used within a domain
 -- and a BypassWire that crosses clock domains
+isBypassWire, isClockCrossingBypassWire, isBypassWire0 :: AVInst -> Bool
 isBypassWire avi = (getAVDefName avi == bypasswire) || (getAVDefName avi == crossbypasswire);
 isClockCrossingBypassWire avi = isBypassWire avi && (length(getAVInputClocks avi) == 2)
+isBypassWire0 avi = getAVDefName avi == bypasswire0
 
-isBypassWire0 avi = (getAVDefName avi == bypasswire0)
 
 -- ---------------
 -- Names of RWire methods
@@ -84,10 +84,11 @@ rwireHasStr = "whas"
 
 -- XXX the Id here (with no position) should never be used, only its FString
 -- XXX perhaps have version of mkMethId which takes an FString instead of Id?
-rwireSetId = mkId noPosition (mkFString rwireSetStr) 
-rwireGetId = mkId noPosition (mkFString rwireGetStr) 
-rwireHasId = mkId noPosition (mkFString rwireHasStr) 
+rwireSetId = mkId noPosition (mkFString rwireSetStr)
+rwireGetId = mkId noPosition (mkFString rwireGetStr)
+rwireHasId = mkId noPosition (mkFString rwireHasStr)
 
+rwireSetEnId, rwireSetArgId, rwireGetResId, rwireHasResId :: Id -> Id
 rwireSetEnId i  = mkMethId i rwireSetId Nothing MethodEnable
 rwireSetArgId i = mkMethId i rwireSetId Nothing (MethodArg 1)
 rwireGetResId i = mkMethId i rwireGetId Nothing MethodResult
@@ -124,6 +125,7 @@ cregWriteStr n = "port" ++ show (n::Int) ++ "__write"
 cregReadId  n = mkId noPosition (mkFString (cregReadStr n))
 cregWriteId n = mkId noPosition (mkFString (cregWriteStr n))
 
+cregReadResId, cregWriteEnId, cregWriteArgId :: Id -> Int -> Id
 cregReadResId  i n = mkMethId i (cregReadId n)  Nothing MethodResult
 cregWriteEnId  i n = mkMethId i (cregWriteId n) Nothing MethodEnable
 cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1)
@@ -151,19 +153,23 @@ crossrega  = VName "CrossingRegA"
 
 regaligned = VName "RegAligned"
 
+isRegN :: AVInst -> Bool
 isRegN  avi = (getAVDefName avi == regn) ||
 	      (getAVDefName avi == configregn) ||
 	      (getAVDefName avi == crossregn)
 
+isRegUN :: AVInst -> Bool
 isRegUN avi = (getAVDefName avi == regun) ||
 	      (getAVDefName avi == configregun) ||
 	      (getAVDefName avi == crossregun)
 
+isRegA :: AVInst -> Bool
 isRegA  avi = (getAVDefName avi == rega) ||
 	      (getAVDefName avi == configrega) ||
 	      (getAVDefName avi == crossrega) ||
               (getAVDefName avi == regaligned)
 
+isRegAligned :: AVInst -> Bool
 isRegAligned avi = (getAVDefName avi == regaligned)
 
 -- ---------------
@@ -228,6 +234,7 @@ findParam lookupname (AVInst { avi_vmi = vi, avi_iargs = es }) =
 clkPortName = VName clkPortStr
 rstnPortName = VName rstnPortStr
 
+getRegClock, getRegReset :: ErrorHandle -> AVInst -> AExpr
 getRegClock errh = findPort errh clkPortName
 getRegReset errh = findPort errh rstnPortName
 
@@ -237,6 +244,7 @@ getRegReset errh = findPort errh rstnPortName
 initParamName = VName initParamStr
 widthParamName = VName widthParamStr
 
+getRegInit ,getRegWidth :: AVInst -> AExpr
 getRegInit = findParam initParamName
 getRegWidth = findParam widthParamName
 
@@ -255,6 +263,7 @@ getRegEN = findPort enPortName
 -- ----------
 -- names of the signals attached to the ports
 
+mkDIN, mkEN, mkQOUT :: AVInst -> AId
 mkDIN  avi = mkPortName dinPortStr  (promoteAVI avi)
 mkEN   avi = mkPortName enPortStr   (promoteAVI avi)
 -- When we inline, we now remove the $Q_OUT from the reg name
@@ -262,7 +271,7 @@ mkEN   avi = mkPortName enPortStr   (promoteAVI avi)
 mkQOUT avi = mkPortNameFromFStr (getIdFString (avi_vname avi)) (promoteAVI avi)
 
 -- XXX need better comment
-promoteAVI avi = (setIdPosition 
+promoteAVI avi = (setIdPosition
 		    (getIfcIdPosition (avi_vmi avi))
 		    (avi_vname avi))
 
@@ -318,6 +327,7 @@ regReadId  pos = mkId pos (mkFString regReadStr)
 regWriteId pos = mkId pos (mkFString regWriteStr)
 
 -- XXX no position?
+regReadResId, regWriteEnId, regWriteArgId :: Id -> Id
 regReadResId  i = mkMethId i (regReadId noPosition)  Nothing MethodResult
 regWriteEnId  i = mkMethId i (regWriteId noPosition) Nothing MethodEnable
 regWriteArgId i = mkMethId i (regWriteId noPosition) Nothing (MethodArg 1)
@@ -439,6 +449,7 @@ createVerilogNameMapForAVInst flags avi@(AVInst { avi_vname = inst_id,
 
 syncreg  = VName "SyncRegister"
 
+isSyncReg :: AVInst -> Bool
 isSyncReg  avi = (getAVDefName avi == syncreg)
 
 -- ==============================
@@ -458,6 +469,7 @@ fifoL20     = VName "FIFOL20"
 sizedfifoL  = VName "SizedFIFOL"
 sizedfifoL0 = VName "SizedFIFOL0"
 
+isFIFO :: AVInst -> Bool
 isFIFO avi =
     let name = getAVDefName avi
     in  (name == fifo1)      || (name == fifo10)      ||
@@ -467,6 +479,7 @@ isFIFO avi =
         (name == fifoL2)     || (name == fifoL20)     ||
         (name == sizedfifoL) || (name == sizedfifoL0)
 
+isFIFO0 :: AVInst -> Bool
 isFIFO0 avi =
     let name = getAVDefName avi
     in  (name == fifo10)      ||
@@ -610,4 +623,3 @@ xLateFStringUsingFStringMap fsmap fstring =
     M.findWithDefault fstring fstring fsmap
 
 -- ==============================
-

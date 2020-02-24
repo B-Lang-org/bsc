@@ -50,7 +50,7 @@ data InstNode = StateVar { node_name :: Id } |
 
 instance Ord InstNode where
   compare n1 n2 = cmpIdByName (node_name n1) (node_name n2)
-  
+
 instance PPrint InstNode where
   pPrint d p (StateVar i ) | isHideId i = text "StateVar (H) " <> pPrint d p i
   pPrint d p (StateVar i ) | isHideAllId i = text "StateVar (HA) " <> pPrint d p i
@@ -60,16 +60,16 @@ instance PPrint InstNode where
   pPrint d p (Rule i) = text "Rule " <> pPrint d p i
   pPrint d p (Loc n ct ig ign un children) | isHideId n = text "[Loc (H) " <> pPrint d p n <+> pPrint d p ig <+> pPrint d p (getIdDisplayName n)
                                             -- <+> pPrint d p (M.keys children)
-                                            -- <+> pparen True (pPrint d p ct) 
+                                            -- <+> pparen True (pPrint d p ct)
                                             $+$ (pPrint d p children)
                                             <+> (text "]")
-  pPrint d p (Loc n ct ig ign un children) | isHideAllId n = text "[Loc (HA) " <> pPrint d p n <+> pPrint d p ig <+> pPrint d p (getIdDisplayName n) 
-                                            -- <+> pparen True (pPrint d p ct) 
-                                            $+$ (pPrint d p children) 
+  pPrint d p (Loc n ct ig ign un children) | isHideAllId n = text "[Loc (HA) " <> pPrint d p n <+> pPrint d p ig <+> pPrint d p (getIdDisplayName n)
+                                            -- <+> pparen True (pPrint d p ct)
+                                            $+$ (pPrint d p children)
                                            <+> (text "]")
-  pPrint d p (Loc n ct ig ign un children) = text "[Loc " <> pPrint d p n <+> pPrint d p ig <+> pPrint d p (getIdDisplayName n) 
+  pPrint d p (Loc n ct ig ign un children) = text "[Loc " <> pPrint d p n <+> pPrint d p ig <+> pPrint d p (getIdDisplayName n)
                                             -- <+> pPrint d p (M.keys children)
-                                            -- <+> pparen True (pPrint d p ct) 
+                                            -- <+> pparen True (pPrint d p ct)
                                             $+$ (pPrint d p children) <+> (text "]")
 
 -- we need to know if the name is ignored
@@ -87,13 +87,14 @@ flattenInstNode (StateVar i) = [(i, [])]
 flattenInstNode (Rule i) = [(i, [])]
 flattenInstNode (Loc i ct _ _ _ children) = mapSnd ((:) (i, ct)) (flattenInstTree children)
 
+flattenInstTree :: M.Map k InstNode -> [(Id, [(Id, Maybe CType)])]
 flattenInstTree tree = concatMap flattenInstNode (M.elems tree)
 
 -- -----------------------------------------------------------
 -- Trees with 1 child and an ignore flag are reduced
 compressIgnoredChildren :: InstTree -> InstTree
 compressIgnoredChildren tree = cs
-  where 
+  where
     cs = case (M.assocs tree) of
           [(_, l@(Loc {}))] | node_ignore l -> compressIgnoredChildren (node_children l)
           xs -> process  xs
@@ -219,7 +220,7 @@ mkInstTree imod = optTrace result
        result = transform_tree inst_tree
        tracethis = trace ("Inst tree \n" ++ ppReadable inst_tree ++ "\n") .
                    -- trace ("Ref tree\n"   ++ ppReadable ref_tree  ++ "\n") .
-                   trace ("Final tree\n" ++ ppReadable result ++ "\n") 
+                   trace ("Final tree\n" ++ ppReadable result ++ "\n")
        optTrace = if doTraceTree then tracethis else id
 
 mkInstTree' :: IModule a -> InstTree
@@ -295,7 +296,7 @@ isGeneratedIfc t = case leftCon t of
 
 -- isUniquifier :: Bool -> InstNode -> Bool
 -- isUniquifier True y | isHiddenAll y        = False
--- isUniquifier hide y@(Loc {uniquified = u, node_name = n}) = 
+-- isUniquifier hide y@(Loc {uniquified = u, node_name = n}) =
 --           let xs = (nodeChildren hide y)
 --               keep [y] | isNaked y    = False
 --               keep []                 = False
@@ -305,7 +306,7 @@ isGeneratedIfc t = case leftCon t of
 
 isUniquifier :: Bool -> InstNode -> Bool
 isUniquifier True y | isHiddenAll y        = False
-isUniquifier hide y@(Loc {uniquified = u, node_name = n}) = 
+isUniquifier hide y@(Loc {uniquified = u, node_name = n}) =
           let xs = (nodeChildren hide y)
               keep (_:_:_)            = True -- at least 2 children
               keep [StateVar {}]      = True
@@ -338,4 +339,3 @@ comparein l r =
  in if (res == EQ) then cmpSuffixedIdByName (node_name l) (node_name r) else res
 
 -- -----------------------------------------------------------
-

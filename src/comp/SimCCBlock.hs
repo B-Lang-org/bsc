@@ -361,13 +361,15 @@ mkStringLiteralName n = "__str_literal_" ++ (show n)
 
 -- convert an AType into a combinator for the appropriate C type
 aTypeToCType :: AType -> (CCFragment -> CCFragment)
-aTypeToCType (ATBit size) = (\v -> v `ofType` (bitsType size CTunsigned))
-aTypeToCType (ATString _) = (\v -> v `ofType` (classType "std::string"))
-aTypeToCType (ATReal) = (\v -> v `ofType` doubleType)
+aTypeToCType (ATBit size) = (`ofType` (bitsType size CTunsigned))
+aTypeToCType (ATString _) = (`ofType` (classType "std::string"))
+aTypeToCType (ATReal) = (`ofType` doubleType)
 aTypeToCType (ATArray _ _) = internalError "Unexpected array"
 aTypeToCType (ATAbstract _ _) = internalError "Unexpected abstract type"
 
 -- ===============
+
+pfxPort, pfxParam, pfxDef, pfxMeth, pfxInst, pfxMod, pfxArg, pfxModel :: String
 
 pfxPort = "PORT_"
 pfxParam = "PARAM_"

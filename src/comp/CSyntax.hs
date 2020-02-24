@@ -672,6 +672,7 @@ cVar name | isTaskName (getIdBaseString name) = CTaskApply (CVar name) []
 isTaskName ('$':c:_) = isAlpha c
 isTaskName _ = False
 
+cTApply :: CExpr -> [CType] -> CExpr
 cTApply f [] = f
 cTApply f ts = CTApply f ts
 
@@ -707,6 +708,7 @@ iKName (IdK i) = i
 iKName (IdKind i _) = i
 iKName (IdPKind i _) = i
 
+isTDef :: CDefn -> Bool
 isTDef (Ctype _ _ _) = True
 isTDef (Cdata {}) = True
 isTDef (Cstruct _ _ _ _ _ _) = True

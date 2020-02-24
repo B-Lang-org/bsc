@@ -21,6 +21,7 @@ import Error(initErrorHandle)
 import System.IO
 #endif
 
+main :: IO ()
 main = do
     errh <- initErrorHandle
     as <- getArgs

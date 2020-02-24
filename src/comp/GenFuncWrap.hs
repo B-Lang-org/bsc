@@ -29,6 +29,7 @@ import GenWrapUtils
 
 -- naming convention
 
+makeGenFuncId :: Id -> Id
 makeGenFuncId i = mkIdPre (mkFString "module_") i
 
 -- ===============
@@ -336,4 +337,3 @@ isActionValue symt t =
 	_ -> Nothing
 
 -- ===============
-

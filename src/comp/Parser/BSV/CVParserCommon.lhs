@@ -599,6 +599,7 @@ will be used:
 
 END ASSERTIONS
 
+> pvBlock :: PVPrint a => PDetail -> Int -> [a] -> Doc
 > pvBlock d p [] = text ""
 > pvBlock d p [stmt] = pvPrint d p stmt
 > pvBlock d p stmts =
@@ -757,6 +758,7 @@ pattern guards this arm; expressions are additional conditions
 >   pvPrint d p (ISAssertStmt pos as) = pvPrint d p as
 >   pvPrint _ _ istmt = internalError $ "CVParserCommon.PVPrint(ImperativeStatement).pvPrint: " ++ show istmt
 
+> structVar :: CExpr -> Maybe Id
 > structVar (CVar v) = Just v
 > structVar (CSelect e _) = structVar e
 > structVar (CSub _ e _ ) = structVar e
@@ -769,12 +771,15 @@ pattern guards this arm; expressions are additional conditions
 > isISMethod (ISMethod _ _) = True
 > isISMethod _ = False
 
+> isISRule :: ImperativeStatement -> Bool
 > isISRule (ISRule _ _ _ _) = True
 > isISRule _ = False
 
+> isISExport :: ImperativeStatement -> Bool
 > isISExport (ISExport _ _) = True
 > isISExport _ = False
 
+> isISImport :: ImperativeStatement -> Bool
 > isISImport (ISImport _ _) = True
 > isISImport _ = False
 
@@ -798,10 +803,12 @@ one would then need to be careful about variable shadowing
 >     pvPrint d p ISCInstance = text "instance"
 >     pvPrint d p ISCBVI = text "BVI"
 
+> isActionContext :: ISContext -> Bool
 > isActionContext ISCAction = True
 > isActionContext ISCActionValue = True
 > isActionContext _ = False
 
+> isMonadicContext :: ISContext -> Bool
 > isMonadicContext context =
 >     case context of
 >          ISCIsModule -> True
@@ -810,6 +817,7 @@ one would then need to be careful about variable shadowing
 >          ISCActionValue -> True
 >          _ -> False
 
+> isModuleContext :: ISContext -> Bool
 > isModuleContext ISCIsModule = True
 > isModuleContext (ISCModule _) = True
 > isModuleContext _ = False
@@ -855,6 +863,7 @@ one would then need to be careful about variable shadowing
 >     allowExpect :: Bool
 > } deriving (Show)
 
+> nullImperativeFlags :: ImperativeFlags
 > nullImperativeFlags = ImperativeFlags {
 >     functionNameArgs = Nothing,
 >     stmtContext = ISCExpression,
@@ -1013,10 +1022,14 @@ get free variables updated by a statement
 > getUFVIS (ISContinue pos) = S.empty
 > getUFVIS (ISClassicDefns pos body) = internalError "CVParserCommon.getUFVIS ISClassicDefns"
 
+> getUFVdef :: Maybe (a, [ImperativeStatement]) -> S.Set Id
 > getUFVdef Nothing = S.empty
 > getUFVdef (Just (pos,ss)) = getUFVISs ss
 
+> getUFVcase :: [(a, b, [ImperativeStatement])] -> S.Set Id
 > getUFVcase as = S.unions (map (\ (x,y,z) -> getUFVISs z) as)
+
+> getUFVtcase :: [(a, b, c, [ImperativeStatement])] -> S.Set Id
 > getUFVtcase as = S.unions (map (\ (w,x,y,z) -> getUFVISs z) as)
 
 get free variables updated by a list of statements (i.e. omitting updates of
@@ -1389,7 +1402,10 @@ make a temporary id, appending accent acute, and removing keep attribute
 > csLetrec [] = []
 > csLetrec defs = [CSletrec defs]
 
+> cvtErr :: p -> e -> SEMonad.SEM [(p, e)] s a
 > cvtErr pos err = SEMonad.err [(pos, err)]
+
+> cvtErrs :: e -> SEMonad.SEM e s a
 > cvtErrs errs = SEMonad.err errs
 
 > cvtWarn :: Position -> ErrMsg -> ISConvMonad ()

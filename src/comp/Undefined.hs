@@ -55,9 +55,9 @@ integerToUndefKind i
     | i == uNoMatchInteger  = Just UNoMatch
     | otherwise             = Nothing
 
+undefKindToInteger :: UndefKind -> Integer
 undefKindToInteger UNotUsed  = uNotUsedInteger
 undefKindToInteger UDontCare = uDontCareInteger
 undefKindToInteger UNoMatch  = uNoMatchInteger
 
 -- ============================================================
-

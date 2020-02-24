@@ -1056,14 +1056,19 @@ binOp  op x y = CBinOp x op y
 preOp  op x   = CPreOp op x
 postOp op x   = CPostOp x op
 
+cPostInc, cPostDec, cPreInc, cPreDec :: CCExpr -> CCExpr
 cPostInc = postOp oPostInc
 cPostDec = postOp oPostDec
 cPreInc  = preOp oPreInc
 cPreDec  = preOp oPreDec
+
+cCompl, cNot, cUMinus, cUPlus :: CCExpr -> CCExpr
 cCompl   = preOp oCompl
 cNot     = preOp oNot
 cUMinus  = preOp oUMinus
 cUPlus   = preOp oUPlus
+
+cMul, cQuot, cRem, cAdd, cSub, cLShift, cRShift :: CCExpr -> CCExpr -> CCExpr
 cMul     = binOp oMul
 cQuot    = binOp oQuot
 cRem     = binOp oRem
@@ -1073,12 +1078,16 @@ cLShift x y | isZero x || isZero y = x
             | otherwise = binOp oLShift x y
 cRShift x y | isZero x || isZero y = x
             | otherwise = binOp oRShift x y
+
+cLt, cLe, cGt, cGe, cEq, cNe :: CCExpr -> CCExpr -> CCExpr
 cLt      = binOp oLt
 cLe      = binOp oLe
 cGt      = binOp oGt
 cGe      = binOp oGe
 cEq      = binOp oEq
 cNe      = binOp oNe
+
+cBitAnd, cBitXor, cBitOr, cAnd, cOr, cComma :: CCExpr -> CCExpr -> CCExpr
 cBitAnd  = binOp oBitAnd
 cBitXor  = binOp oBitXor
 cBitOr x y | isZero x = y
@@ -1094,16 +1103,31 @@ cOr x y | isTrue x || isTrue y = mkBool True
         | otherwise = binOp oOr x y
 cComma   = binOp oComma
 
-cDot   struct     field = struct `CDot` field
-cArrow struct_ptr field = struct_ptr `CArrow` field
-cIndex arr        idx   = arr `CIndex` idx
-cCall  fn         args  = fn `CFunCall` args
-cAddr  val              = CAddressOf val
-cDeref ptr              = CDereference ptr
-cCast  typ        expr  = typ `CCast` expr
+cDot :: CCExpr -> String -> CCExpr
+cDot struct field = struct `CDot` field
 
+cArrow :: CCExpr -> String -> CCExpr
+cArrow struct_ptr field = struct_ptr `CArrow` field
+
+cIndex :: CCExpr -> CCExpr -> CCExpr
+cIndex arr idx  = arr `CIndex` idx
+
+cCall :: CCExpr -> [CCExpr] -> CCExpr
+cCall fn args = fn `CFunCall` args
+
+cAddr :: CCExpr -> CCExpr
+cAddr val = CAddressOf val
+
+cDeref :: CCExpr -> CCExpr
+cDeref ptr = CDereference ptr
+
+cCast :: CCType -> CCExpr -> CCExpr
+cCast typ expr = typ `CCast` expr
+
+cTernary :: CCExpr -> CCExpr -> CCExpr -> CCExpr
 cTernary cond true_expr false_expr = CTernary cond true_expr false_expr
 
+cGroup :: CCExpr -> CCExpr
 cGroup expr = CGroup expr
 
 -- Memory management keywords for C++

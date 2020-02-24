@@ -824,9 +824,11 @@ addToUTMDefMap i d = do
 
 -- -----
 
+mkATBool, mkATBit1 :: AType
 mkATBool = ATAbstract idBool []
 mkATBit1 = ATBit 1
 
+mkATrue, mkAFalse :: AExpr
 mkATrue = aTrue { ae_type = mkATBool }
 mkAFalse = aFalse { ae_type = mkATBool }
 

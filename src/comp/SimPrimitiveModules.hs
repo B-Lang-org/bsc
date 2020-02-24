@@ -269,6 +269,7 @@ tickIsNeg _       = True;
 --         C++ implementation class
 --         functions for determining template arguments
 --         names of ports which become "tick" methods
+primMap :: [(String, String, String -> String -> NamingFn, [TickDirection String])]
 primMap = [ ("RegN",               "Reg",              regType SRst,               [])
           , ("RegUN",              "Reg",              regType NRst,               [])
           , ("RegA",               "Reg",              regType ARst,               [])

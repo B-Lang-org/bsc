@@ -231,6 +231,7 @@ getFVStmt (CSletrec ds) s =
 getFVStmt (CSExpr _ e) s = getFVE e `unionFVS` s
 
 -- Get variables bound by a statement
+getStmtBind :: CStmt -> [Id]
 getStmtBind (CSBindT p _ _ _ _) = S.toList (getPV p)
 getStmtBind (CSBind p _ _ _) = S.toList (getPV p)
 getStmtBind (CSletseq ds) = concatMap getLDefs ds
@@ -402,6 +403,7 @@ getPT (CPConTs ti _ ts ps) =
 
 getPTs ps = S.unions (map getPT ps)
 getPCs ps = S.unions (map getPC ps)
+getPVs :: [CPat] -> S.Set Id
 getPVs ps = S.unions (map getPV ps)
 
 -- Note that the def names themselves are included in the set.

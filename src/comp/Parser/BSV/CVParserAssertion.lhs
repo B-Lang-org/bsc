@@ -1021,8 +1021,8 @@ ASSERTION Helper functions
 > delayN :: Integer -> SVA_SEQ -> SVA_SEQ -> SVA_SEQ
 > delayN n s1 s2 = (SVA_SEQ_Delay (SVA_Delay_Const (assertLit n)) [] s1 s2)
 
+> delay1, delay0 :: SVA_SEQ -> SVA_SEQ -> SVA_SEQ
 > delay1 = delayN 1
-
 > delay0 = delayN 0
 
 > assertLit :: Integer -> CExpr
@@ -1315,6 +1315,7 @@ Main translation function
 > transAssertStmtFSM pos (_, z) = --unsupported errors go here
 >    internalError ("CVParserImperative:transAssertStmtFSM at " ++ show pos)
 
+> assertCon :: TyCon
 > assertCon = TyCon (mkQId noPosition (mkFString "SVA") (mkFString "Assertion")) (Just KStar) TIabstract
 
 Instantiate the assertion module itself

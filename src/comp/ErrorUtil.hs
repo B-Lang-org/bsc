@@ -16,6 +16,7 @@ import Version(version)
 --
 
 -- This is called from anywhere, even when not in the IO monad
+internalError :: String -> a
 internalError = unsafePerformIO . safeInternalError
 
 safeInternalError :: String -> IO a

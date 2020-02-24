@@ -32,6 +32,7 @@ type IWireSet a = ([IClock a], [IReset a])
 wsEmpty :: IWireSet a
 wsEmpty = (LS.empty, LS.empty)
 
+wsIsEmpty :: IWireSet a -> Bool
 wsIsEmpty (cs,rs) = null cs && null rs
 
 wsClock :: IClock a -> IWireSet a
@@ -83,4 +84,3 @@ wsCheckResets (_, rs) = case l' of
 wsToProps :: IWireSet a -> WireProps
 wsToProps ws = WireProps { wpClockDomain = wsGetClockDomain ws,
                            wpResets = (map getResetId (wsGetResets ws)) }
-

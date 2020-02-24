@@ -46,6 +46,8 @@ traceChars cs x = unsafePerformIO (hPutStr stderr cs >> hFlush stderr >> return 
 -- when compiled with -O2 (e.g., in tiExpl''')
 traces :: String -> a -> a
 traces s x = if s==s then trace s x else internalError "Util.traces"
+
+tracep :: Bool -> String -> p -> p
 tracep p s x = if p then traces s x else x
 
 traceM :: (Monad m) => String -> m ()
@@ -65,13 +67,17 @@ trace_answer format x =
 dbgLevel :: Int
 dbgLevel = -1
 
+dbgTrace :: Int -> String -> p -> p
 dbgTrace level s a = if (dbgLevel >= level) then (trace s a) else a
+
+dbgTraceM :: Monad m => Int -> String -> m ()
 dbgTraceM level s = if (dbgLevel >= level) then (traceM s) else return ()
 
 
 -- =====
 -- Internal compiler assertions
 
+assert :: Bool -> [Char] -> p -> p
 assert True msg v = v
 assert False msg v = internalError ("assertion failed: "++msg)
 
@@ -86,14 +92,17 @@ doubleQuote :: String -> String
 doubleQuote s = "\"" ++ s ++ "\""
 
 
+unwordsAnd, unwordsOr :: [String] -> String
 unwordsAnd = unwordsx "and"
 unwordsOr = unwordsx "or"
 
+unwordsx :: String -> [String] -> String
 unwordsx _ [] = ""
 unwordsx _ [x] = x
 unwordsx s [x1, x2] = unwords [x1, s, x2]
 unwordsx s xs = unwordsWith ", " (init xs++[s++" "++last xs])
 
+unwordsWith :: String -> [String] -> String
 unwordsWith d [] = ""
 unwordsWith d [x] = x
 unwordsWith d (x:xs) = x++d++unwordsWith d xs
@@ -146,6 +155,7 @@ instance ToString String where
     itos a = internalError "itos applied to string" ++ show a
     to_string a = concatMap to_string a
 
+to_quoted_string :: ToString a => a -> String
 to_quoted_string s = "\"" ++ to_string s ++ "\""
 
 
@@ -171,9 +181,11 @@ lastOrErr err (_:xs) = lastOrErr err xs
 lastOrErr err []     = internalError err
 
 
+rTake, rDrop :: Int -> [a] -> [a]
 rTake n = reverse . take n . reverse
 rDrop n = reverse . drop n . reverse
 
+unions :: (Foldable t, Eq a) => t [a] -> [a]
 unions l = foldr union [] l
 
 concatMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
@@ -202,6 +214,7 @@ toMaybe :: Bool -> a -> Maybe a
 toMaybe False _ = Nothing
 toMaybe True a = Just a
 
+breakAt :: Eq a => a -> [a] -> ([a], [a])
 breakAt x xs =
         case span (/= x) xs of
             (ys,_:zs) -> (ys,zs)
@@ -270,6 +283,7 @@ stableOrdNub = stableOrdNub' S.empty
 -- =====
 -- Boolean List utilities
 
+boolCompress :: [Bool] -> [a] -> [a]
 boolCompress [] _  = []
 boolCompress _  [] = []
 boolCompress (True:bs) (x:xs) = x : boolCompress bs xs
@@ -310,6 +324,7 @@ concatUnzip3 xyzs =
 
 --mapSnd f xys = [(x, f y) | (x,y)<-xys]
 
+mapThd :: (t -> c) -> [(a, b, t)] -> [(a, b, c)]
 mapThd f xyzs = [(x, y, f z) | (x, y, z) <- xyzs]
 
 joinByFst :: (Ord a) => [(a, b)] -> [(a, [b])]
@@ -332,14 +347,17 @@ makePairs (x:y:xs) = (x, y) : makePairs xs
 makePairs _ = internalError "Util.makePairs: failed"
 
 -- all pairs except pairs of an item with itself
+allPairs :: [a] -> [(a, a)]
 allPairs [] = []
 allPairs (x:xs) = concat [[(x,x'), (x',x)] | x' <- xs] ++ allPairs xs
 
 -- all unique pairs -- i.e. only one of (x,y) and (y,x)
+uniquePairs :: [a] -> [(a, a)]
 uniquePairs [] = []
 uniquePairs (x:ys) = [(x,y) | y <- ys] ++ uniquePairs ys
 
 -- all pairs of an item with itself
+selfPairs :: [a] -> [(a, a)]
 selfPairs xs = [(x, x) | x <- xs ]
 
 mapFstM :: (Monad m) => (a -> m c) -> [(a, b)] -> m [(c, b)]
@@ -354,7 +372,7 @@ appFstM :: (Monad m) => (a -> m c) -> (a, b) -> m (c , b)
 appFstM f (a, b) = do c <- f a
                       return (c, b)
 
-nubByFst :: (Eq a) => [(a,b)] -> [(a,b)]
+nubByFst :: (Eq a) => [(a, b)] -> [(a, b)]
 nubByFst xs = nubBy f xs
   where f a b = (fst a == fst b)
 
@@ -386,24 +404,39 @@ fromJustOrErr _   (Just v) = v
 -- =====
 -- Tuple utilities
 
+pair :: a -> b -> (a, b)
 pair x y = (x, y)
 
+swap :: (b, a) -> (a, b)
 swap (x,y) = (y,x)
 
+apFst :: (t -> a) -> (t, b) -> (a, b)
 apFst f (x, y) = (f x, y)
 
+apSnd :: (t -> b) -> (a, t) -> (a, b)
 apSnd f (x, y) = (x, f y)
 
+fst3 :: (a, b, c) -> a
 fst3 (x,_,_) = x
+snd3 :: (a, b, c) -> b
 snd3 (_,x,_) = x
-thd  (_,_,x) = x
+thd :: (a, b, c) -> c
+thd (_,_,x) = x
+
+fst2of3 :: (a, b, c) -> (a, b)
 fst2of3 (x,y,_) = (x,y)
 
+fth4 :: (a, b, c, d) -> d
 fth4 (_,_,_,x) = x
+fst2of4 :: (a, b, c, d) -> (a, b)
+fst2of4 (x,y,_,_) = (x,y)
+fst3of4 :: (a, b, c, d) -> (a, b, c)
 fst3of4 (x,y,z,_) = (x,y,z)
 
+ordPair :: Ord a => (a, a) -> (a, a)
 ordPair (x,y) = if x < y then (x,y) else (y,x)
 
+ordPairBy :: (a -> a -> Ordering) -> (a, a) -> (a, a)
 ordPairBy cmp (x, y) = case (cmp x y) of
                          LT -> (x, y)
                          _  -> (y, x)

@@ -5159,6 +5159,7 @@ mkMEAssump (aids, bids) = -- trace("ME: " ++ (ppReadable aids) ++ " " ++ (ppRead
         ea  = [errAction str]
         str = showErrorList [(getPosition aids, EMutuallyExclusiveRulesFire (ppReadable aids) (ppReadable bids))]
 
+errAction :: String -> AAction
 errAction msg = AFCall idErrorTask "$error" False [aTrue, ASStr defaultAId ty msg] True
   where ty = ATString (Just (genericLength msg))
 

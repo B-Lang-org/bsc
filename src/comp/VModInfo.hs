@@ -62,6 +62,7 @@ instance PPrint VName where
 instance Hyper VName where
     hyper (VName s) y = hyper s y
 
+getVNameString :: VName -> String
 getVNameString (VName string) = string
 
 -- convert Bluespec identifier to Verilog names
@@ -194,6 +195,7 @@ isInout :: VArgInfo -> Bool
 isInout (InoutArg {}) = True
 isInout _ = False
 
+getVArgInfoName :: VArgInfo -> Id
 getVArgInfoName (Param vn)    = vName_to_id vn
 getVArgInfoName (Port vp _ _) = vName_to_id (fst vp)
 getVArgInfoName (ClockArg i)  = i
@@ -656,6 +658,7 @@ instance PPrint VWireInfo where
 -- #
 -- #############################################################################
 
+getIfcIdPosition :: VModInfo -> Position
 getIfcIdPosition (VModInfo _ clk _ _ [] _ _) = getPosition clk
 getIfcIdPosition (VModInfo mod_name clk reset args fields schedule path)
                                              = getPosition fields

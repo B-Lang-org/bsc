@@ -99,8 +99,13 @@ instance PPrint Rule where
 		     [[text "rule:", pPrint d i rId], [text "pred:", pPrint d i rPred],
 		      [text "reads:", pPrint d i rReads], [text "writes:", pPrint d i rWrites]]
 
+ruleName :: Rule -> RuleId
 ruleName (Rule rId _ _ _ _) = rId
+
+ruleAncestor :: Rule -> Maybe RuleId
 ruleAncestor (Rule _ ancestor _ _ _) = ancestor
+
+rulePred :: Rule -> [APred]
 rulePred (Rule _ _ rPred _ _) = rPred
 
 
@@ -152,6 +157,7 @@ instance Hyper UniqueUse where
 
 -- XXX why does this return True for actions?
 -- XXX consider merging this and "hasSideEffects"
+differentArgs :: UniqueUse -> UniqueUse -> Bool
 differentArgs (UUExpr e1 c1) (UUExpr e2 c2) = e1 /= e2
 differentArgs _ _ = True
 
@@ -591,6 +597,7 @@ data UseCond = UseCond { true_exprs :: S.Set AExpr,
 instance Hyper UseCond where
   hyper (UseCond a b c d) y = hyper4 a b c d y
 
+ucTrue, ucFalse :: UseCond
 ucTrue  = UseCond S.empty S.empty M.empty M.empty
 ucFalse = UseCond (S.singleton (aFalse)) S.empty M.empty M.empty
 

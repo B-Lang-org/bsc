@@ -19,4 +19,5 @@ opNumT i [x, y] | i == idTMax = Just (max x y)
 opNumT i [x, y] | i == idTMin = Just (min x y)
 opNumT _ _      = Nothing
 
+numOpNames :: [Id]
 numOpNames = [idTAdd, idTSub, idTMul, idTDiv, idTExp, idTLog, idTMax, idTMin]

@@ -396,6 +396,7 @@ instance PPrint VPred where
 -- note that the colon (:) that gets printed here is NOT a list cons!
     pPrint d p (VPred i q) = pparen (p>0) (ppId d i <> text":" <> pPrint d 10 q)
 
+getVPredPositions :: VPred -> [Position]
 getVPredPositions (VPred i p) = getPredPositions p
 
 -- the best position for a VPred should be its dictionary binding
