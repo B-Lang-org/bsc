@@ -130,7 +130,7 @@ iConvD :: ErrorHandle -> Flags -> Id -> SymTab -> Env a -> IPVars a ->
           CDefn -> [IDef a]
 iConvD errh flags pi r env pvs (CValueSign (CDefT i vs qt cs)) =
     case iConvVS errh flags r env pvs i vs qt cs of
-        (i, t, e) -> [IDef (qualId' pi i) t e [] ] 
+        (i, t, e) -> [IDef (qualId' pi i) t e [] ]
         -- ^ start out with no DefProps; they will be added in IExpand
 iConvD errh flags pi r env pvs (CValueSign (CDef i qt cs)) =
     internalError "iConvD"

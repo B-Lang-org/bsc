@@ -43,7 +43,7 @@ type NIStateMonad a = State NIState a
 -- Adds a processed def
 addDef :: ADef -> NIStateMonad ()
 addDef newdef@(ADef i t e _) = do
-           state <- get 
+           state <- get
            olddefs <- gets nis_defs
            rlm <- gets nis_rlookup
            let rlm1 = M.insert (e,t) i rlm
@@ -64,7 +64,7 @@ genIdFromAExpr expr = do
 -- Add the expression -- realy the definition to the monad
 addExpr :: AType -> AExpr -> NIStateMonad AId
 addExpr t e = do
-    ds <- gets nis_defs 
+    ds <- gets nis_defs
     rlm <- gets nis_rlookup
     case ( M.lookup (e,t) rlm ) of
 	Nothing ->
@@ -73,7 +73,7 @@ addExpr t e = do
               addDef (ADef nid t e [])
               return nid
 	-- don't create a new id for an expression that already has an id
-	Just fid -> return fid 
+	Just fid -> return fid
 
 
 -- ===============
@@ -90,7 +90,7 @@ aNoInline flags apkg =
 	initState = NIState {
 	                      nis_uniqueId = 1,
 			      nis_defs = [],
-			      nis_rlookup = M.empty 
+			      nis_rlookup = M.empty
 			    }
 
         -- fields of the package
@@ -131,7 +131,7 @@ aNoInline flags apkg =
 			 apkg_state_instances = insts',
 			 apkg_local_defs = defs'' })
     in
-	evalState action initState 
+	evalState action initState
 
 
 -- ===============

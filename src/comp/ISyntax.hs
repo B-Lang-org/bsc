@@ -246,11 +246,11 @@ instance Ord (IStateVar a) where
 -- last Id is original rule if rule has been split, Nothing otherwise
 -- (argument descriptions are guesses based on ARule)
 data IRule a =
-    IRule { 
+    IRule {
       -- rule name
       irule_name :: Id,
       -- rule pragmas, e.g., no-implicit-conditions
-      irule_pragmas :: [RulePragma],  
+      irule_pragmas :: [RulePragma],
       -- String that describes the rule
       irule_description :: String,
       -- Rule wire properties
@@ -1228,16 +1228,16 @@ ppQuant s d p i t e =
 instance PPrint (IDef a) where
     pPrint d _p def = ppDef d def
 
-ppDef :: PDetail -> IDef a -> Doc 
+ppDef :: PDetail -> IDef a -> Doc
 ppDef d (IDef i t e p) =
     sep [pPrint d 0 i <+> text "::", nest 2 (pPrint d 0 t)] $+$
     sep [pPrint d 0 i <+> text "=", nest 2 (pPrint d 0 e)] $+$
     (if (null $ getIdProps i) then empty else
-       text "-- IdProp:" <+> text (show i) ) $+$ 
+       text "-- IdProp:" <+> text (show i) ) $+$
     (if (null p) then empty else
        text "-- Properties:" <+> text (show p
              -- avoid line wrap in what is supposed to be a comment
-                                      )) 
+                                      ))
 
 instance PPrint (IExpr a) where
     pPrint d p (ILam i t e) = ppQuant "\\ "  d p i t e
@@ -1509,10 +1509,10 @@ showTypeless (IRefT _ i _) = "(IRefT " ++ "_" ++ (show i) ++ ")"
 
 showTypelessRule :: IRule a -> String
 showTypelessRule (IRule {
-                     irule_name = n, 
-                     irule_pragmas = rps, 
-                     irule_description = s, 
-                     irule_pred = c, 
+                     irule_name = n,
+                     irule_pragmas = rps,
+                     irule_description = s,
+                     irule_pred = c,
                      irule_body = a }) =
     "(IRule " ++ (show n) ++ "\n\t" ++ (show rps) ++ "\n\t" ++
     (show s) ++ "\n\t" ++ (showTypeless c) ++ "\n\t" ++

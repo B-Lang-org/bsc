@@ -18,18 +18,18 @@ module Yices (
 
     -- Check that version is not a stub
     checkVersion,
-    
+
     -- * Global initialization and cleanup
     --yicesInit, yicesExit, yicesReset,
-    
+
     -- * Error reporting
     -- ...
-    
+
     -- * Type constructors
     mkBoolType,
     mkBitVectorType,
     mkIntType,
-    
+
     -- * Term constructors
     mkTrue, mkFalse,
     mkConst,
@@ -40,20 +40,20 @@ module Yices (
     mkIte,
     mkEq, mkNEq,
     mkNot,
-    
+
     mkOr, mkAnd, mkXor,
     mkOr2, mkAnd2, mkXor2,
-    
+
     mkIff,
     mkImplies,
     mkDistinct,
     mkForAll, mkExists,
-    
+
     -- * Arithmetic term constructors
     mkZero,
     mkIntFromWord32, mkIntFromWord64,
     mkIntFromInteger,
-    
+
     mkAdd, mkSub, mkNeg, mkMul,
     mkSquare, mkPower,
 
@@ -66,36 +66,36 @@ module Yices (
     -- * Bit vector term constructors
     mkBVConstantFromWord32, mkBVConstantFromWord64,
     mkBVConstantFromInteger,
-    
+
     mkBVConstantZero, mkBVConstantOne, mkBVConstantMinusOne,
-    
+
     -- ** Arithmetic
     mkBVAdd, mkBVSub, mkBVMul,
     mkBVMinus,
     mkBVDiv, mkBVRem,
-    
+
     -- ** Logical
     mkBVNot,
     mkBVAnd, mkBVOr, mkBVXOr,
     mkBVNAnd, mkBVNOr, mkBVXNOr,
- 
+
     -- ** Shifting
     mkBVShiftLeft,
     mkBVShiftRightArith, mkBVShiftRightLogical,
-    
+
     -- ** Strings
     mkBVExtract, mkBVConcat,
     mkBVSignExtend, mkBVZeroExtend,
 
     -- ** Bitwise
     mkBVReduceAnd, mkBVReduceOr, mkBVReduceComp,
-    
+
     -- ** Boolean conversions
     mkBoolsToBitVector, mkBVBoolExtract,
-    
+
     -- ** Comparisons
     mkBVEq, mkBVNEq,
-    
+
     mkBVGe, mkBVGt,
     mkBVLe, mkBVLt,
 
@@ -104,35 +104,35 @@ module Yices (
 
     -- * Parsing
     -- ...
-    
+
     -- * Substitutions
     -- ...
 
     -- * Names
     -- ...
-    
+
     -- * Pretty printing
     --ppType,
     --ppExpr,
-    
+
     -- * Checks on terms
     getType,
     isBool, isBitVector,
     getBVSize,
-    
+
     -- * Contexts
     mkContext,
     ctxStatus,
     ctxReset,
     ctxPush,
     ctxPop,
-    
+
     assert, assertMany,
 
     -- * Models
     getModel,
     printModel
-    
+
     --getModelBool,
     --getBodelBitVector
 
@@ -692,8 +692,8 @@ mkContext = do
                  return ()
   ctx_fp <- F.newForeignPtr ctx delFn
   n <- newMVar 0
-  return $! Context { yContext = ctx_fp, 
-                      yConfig  = cfg, 
+  return $! Context { yContext = ctx_fp,
+                      yConfig  = cfg,
                       yDepth   = n }
 
 ctxStatus :: Context -> IO Status

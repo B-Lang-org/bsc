@@ -655,11 +655,11 @@ instance Bin VId where
                    return (VId s i m)
 
 instance Bin VArg where
-    writeBytes (VAInput i r)       = do putI 0; toBin i; toBin r 
+    writeBytes (VAInput i r)       = do putI 0; toBin i; toBin r
     writeBytes (VAInout i i' r)    = do putI 1; toBin i; toBin i'; toBin r
     writeBytes (VAOutput i r)      = do putI 2; toBin i; toBin r
     writeBytes (VAParameter i r d) = do putI 3; toBin i; toBin r; toBin d
-    readBytes = do 
+    readBytes = do
       i <- getI
       case i of
         0 -> do i <- fromBin; r <- fromBin; return (VAInput i r)
@@ -722,7 +722,7 @@ instance Bin VTri where
 instance Bin VOp where
     writeBytes v = toBin (fromEnum v)
     readBytes = fromBin >>= return . toEnum
-    
+
 instance Bin VMItem where
     writeBytes (VMDecl d)           = do putI 0; toBin d
     writeBytes (VMInst m i pas pos) = do putI 1; toBin m; toBin i; toBin pas;
@@ -764,7 +764,7 @@ instance Bin VVDecl where
 instance Bin VDType where
     writeBytes t = toBin (fromEnum t)
     readBytes = fromBin >>= return . toEnum
-    
+
 instance Bin VVar where
     writeBytes (VVar i)     = do putI 0; toBin i
     writeBytes (VArray r i) = do putI 1; toBin r; toBin i

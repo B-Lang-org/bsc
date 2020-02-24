@@ -35,7 +35,7 @@ cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) =
     Right ds' -> return (CPackage mi exps imps fixs ds' includes)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
-cCtxReduceDef flags s def = 
+cCtxReduceDef flags s def =
     -- see comment in cCtxReduceIO
     case fst (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
@@ -83,7 +83,7 @@ instance CtxRed CDefn where
         (_, cqt') <- ctxRedCQType (cforg_type f)
         popBoundTVs  -- necessary after call to ctxRedCQType
         return (f { cforg_type = cqt' })
- 
+
     ctxRed d@(Cclass incoh cpreds ik vs fds fs) = do
        -- get any kind information we have for the type parameters
        -- XXX is this necessary?

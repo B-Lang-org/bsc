@@ -226,7 +226,7 @@ foreign import ccall unsafe "stp_c_interface.h"
 
 {-
 -- This merely casts the value to CULLong, so might as well always call
--- vc_bvConstExprFromLL instead. 
+-- vc_bvConstExprFromLL instead.
 foreign import ccall unsafe "stp_c_interface.h"
     vc_bvConstExprFromInt :: Ptr SContext -> CInt -> CUInt -> IO (Ptr SExpr)
 -}

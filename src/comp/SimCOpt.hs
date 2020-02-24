@@ -26,7 +26,7 @@ import PPrint
 simCOpt :: Flags -> InstModMap ->
            ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo) ->
 	   ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo)
-simCOpt flags instmodmap (blocks, scheds, clk_groups, gate_info) = 
+simCOpt flags instmodmap (blocks, scheds, clk_groups, gate_info) =
   let (blocks1,scheds1) = moveDefsOntoStack flags instmodmap (blocks,scheds)
       blocks2           = map (mapBlockFns removeUnusedLocals) blocks1
       scheds2           = map (mapSchedFns removeUnusedLocals) scheds1
@@ -59,12 +59,12 @@ combine_refs (DF w1 r1) (DF w2 r2) = DF (w1 `S.union` w2) (r1 `S.union` r2)
 getFnRefs :: Bool -> SimCCFn -> [(AId, DefRecord)]
 getFnRefs is_sched fn = concatMap (helper (sf_name fn, is_sched)) (sf_body fn)
   where helper fl (SFSDef _ (_,_)   Nothing)  = []
-        helper fl (SFSDef _ (_,aid) (Just e)) = (fl `writesIds` [aid]) ++ 
+        helper fl (SFSDef _ (_,aid) (Just e)) = (fl `writesIds` [aid]) ++
                                                 (fl `readsIds` (aVars e))
-        helper fl (SFSAssign _ aid e)         = (fl `writesIds` [aid]) ++ 
+        helper fl (SFSAssign _ aid e)         = (fl `writesIds` [aid]) ++
                                                 (fl `readsIds` (aVars e))
         helper fl (SFSAction act)             = fl `readsIds` (aVars act)
-        helper fl (SFSAssignAction _ aid act) = (fl `writesIds` [aid]) ++ 
+        helper fl (SFSAssignAction _ aid act) = (fl `writesIds` [aid]) ++
                                                 (fl `readsIds` (aVars act))
         helper fl (SFSRuleExec _)             = []
         helper fl (SFSCond e ts fs)           = (fl `readsIds` (aVars e)) ++
@@ -83,7 +83,7 @@ getFnRefs is_sched fn = concatMap (helper (sf_name fn, is_sched)) (sf_body fn)
 
 
 -- ---------------------
--- Optimization that analyzes def usage and moves defs 
+-- Optimization that analyzes def usage and moves defs
 -- to be stack-local in the schedule function or block SimCCFns.
 -- This reduces the size of the class, improves cache effects and
 -- optimizations and reduces memory traffic, VCD size, etc. by not
@@ -218,7 +218,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                          | (_,aid) <- M.findWithDefault [] ((Just sbid),fname) move_map
                          , let (Just ty) = M.lookup (sbid,aid) btype_map
                          , let isPort = S.member (sbid,aid) port_set
-                         ] 
+                         ]
               body = new_defs ++ (sf_body fn)
           in fn { sf_body = body }
       moveDefs Nothing fn = -- move into schedule
@@ -230,7 +230,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
                          , let (Just ty) = M.lookup (sbid,aid) btype_map
                          , let isPort = S.member (sbid,aid) port_set
                          , let qids = M.findWithDefault S.empty (sbid, aid) sched_qids
-                         ] 
+                         ]
               idmap = M.fromList [ (qual_id, inline qual_id)
                                  | (sbid,aid) <- M.findWithDefault [] (Nothing,fname) move_map
                                  , let qids = M.findWithDefault S.empty (sbid,aid) sched_qids
@@ -279,7 +279,7 @@ dropTopInst a = let q = (dropWhile (/= '.')) (getIdQualString a)
 
 removeUnusedLocals :: SimCCFn -> SimCCFn
 removeUnusedLocals fn =
-    let used_defs = S.fromList [ aid 
+    let used_defs = S.fromList [ aid
                                | (aid, DF wr rd) <- getFnRefs False fn
                                , not (S.null rd)
                                ]
@@ -290,7 +290,7 @@ removeUnusedLocals fn =
 
         args = S.fromList (map snd (sf_args fn))
 
-        -- consider any unreferenced def to be unused, as well as any argument ports        
+        -- consider any unreferenced def to be unused, as well as any argument ports
         -- since the argument will be referenced directly
         isUnusedDef (SFSDef p (_,aid) _) =
             (aid `S.notMember` keep_defs) || (p && (aid `S.member` args))
@@ -323,7 +323,7 @@ mapBlockFns f blk =
            }
 
 mapSchedFns :: (SimCCFn -> SimCCFn) -> SimCCSched -> SimCCSched
-mapSchedFns f sch = 
+mapSchedFns f sch =
     let sf  = f (sched_fn sch)
         saf = fmap f (sched_after_fn sch)
     in sch { sched_fn       = sf

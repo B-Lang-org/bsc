@@ -73,7 +73,7 @@ getDefArgs dcls t =
        -- preserve function/module argument names, if possible
        guessArgName (CPVar li, _) = li
        guessArgName (_      , lv) = lv
-       vs' = case dcls of 
+       vs' = case dcls of
               [CClause ps _ _] -> let new_vs = map guessArgName (zip ps vs)
                                   -- add the dropped elements of vs to ensure
                                   -- that vs and vs' have the same length

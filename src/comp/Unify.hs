@@ -25,7 +25,7 @@ instance Unify Type where
       case kind t2 of
         KNum -> numUnify bound_tyvars t1 t2
         _ -> internalError("unify kind mismatch: " ++ ppReadable(t1, kind t1, t2, kind t2))
-    mgu bound_tyvars (TAp l r) (TAp l' r') = do 
+    mgu bound_tyvars (TAp l r) (TAp l' r') = do
 	(s1, eqs1) <- mgu bound_tyvars l l'
         (s2, eqs2) <- mgu bound_tyvars (apSub s1 r) (apSub s1 r')
         Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
@@ -102,7 +102,7 @@ varBind u t | t == TVar u      = Just nullSubst
 -- Cannot allow a variable to be bound to an unsaturated type synonym.
 isUnSatSyn t = isUnSatSyn' t 0
 isUnSatSyn' (TCon (TyCon _ _ (TItype n _))) args = n > args
-isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1) 
+isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1)
 isUnSatSyn' _  _ = False
 
 match :: Type -> Type -> Maybe Subst

@@ -7,7 +7,7 @@
 -- Module      :  Control.Concurrent.MVar.Strict
 -- Copyright   :  (c) The University of Glasgow 2001
 -- License     :  BSD-style (see the file libraries/base/LICENSE)
--- 
+--
 -- Maintainer  :  libraries@haskell.org
 -- Stability   :  experimental
 -- Portability :  non-portable (concurrency)
@@ -39,7 +39,7 @@ module MVarStrict
         , addMVarFinalizer -- :: MVar a -> IO () -> IO ()
     ) where
 
-import Control.Concurrent.MVar(newEmptyMVar, takeMVar, 
+import Control.Concurrent.MVar(newEmptyMVar, takeMVar,
                                tryTakeMVar, isEmptyMVar, addMVarFinalizer)
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 611)
 import GHC.IO(IO(..))
@@ -164,7 +164,7 @@ withMVar m io =
     return b
 
 {-|
-  A safe wrapper for modifying the contents of an 'MVar'.  Like 'withMVar', 
+  A safe wrapper for modifying the contents of an 'MVar'.  Like 'withMVar',
   'modifyMVar' will replace the original contents of the 'MVar' if an
   exception is raised during the operation.
 -}

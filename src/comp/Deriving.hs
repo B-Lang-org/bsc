@@ -86,7 +86,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
 	derivs = cd_derivings data_decl
         derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
         -- XXX ignore derivs' to sneak in recursive data decls
-        bad_rec_derivs = filter forbidsRecursiveInstance derivs 
+        bad_rec_derivs = filter forbidsRecursiveInstance derivs
     in  if (not (null bad_rec_derivs)) && (isRecursiveData unqual_name orig_sums)
 	then [Left (getPosition data_decl,
 		    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
@@ -105,19 +105,19 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
 		    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
 	else Right [struct_decl] :
 	       map (doStructDer xs qual_name ty_vars fields) derivs'
-doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind)) 
-    -- "special" typeclasses only need to be derived for ordinary types 
+doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
+    -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
     -- Id__ a will pick up typeclass instances from the type a
     | qual_name == idId = [Right [prim_decl]]
     | null derivs = [Right [prim_decl]]
-    | otherwise = Right [prim_decl] : 
+    | otherwise = Right [prim_decl] :
                      map (doPrimTypeDer qual_name ty_vars) derivs
   where qual_name = qualId packageid i
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addRequiredDerivs flags r qual_name ty_vars [] 
+        derivs = addRequiredDerivs flags r qual_name ty_vars []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
@@ -130,8 +130,8 @@ doPrimTypeDer i vs (CTypeclass di) =
       Right [doPrimTypeUninitialized i vs]
     else if qualEq di idClsDeepSeqCond then
       Right [doPrimTypeDeepSeqCond i vs]
-    else internalError ("attempt to derive " ++ ppReadable di 
-                        ++ " for primitive type: " ++ 
+    else internalError ("attempt to derive " ++ ppReadable di
+                        ++ " for primitive type: " ++
                         (ppReadable (cTApplys (cTCon i) vs)))
 
 rawUninitDef ty = CDef idMakeUninitializedNQ (CQType [] aty) [CClause [] [] (CVar idPrimRawUninitialized)]
@@ -208,7 +208,7 @@ doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
 doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
-    | fieldSet `S.isSubsetOf` tvset, 
+    | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
         fieldType = cos_arg_types cos
@@ -216,7 +216,7 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
         Just (Cclass _ _ _ [v] _ fs) = lookup (typeclassId di) xs
 	ity = foldl TAp (cTCon i) vs
 	inst = Cinstance (CQType [CPred di [ty]] (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
-	conv (CField { cf_name = f, cf_type = CQType _ t }) = 
+	conv (CField { cf_name = f, cf_type = CQType _ t }) =
 	    CLValue (unQualId f)
                         [CClause [] []
                          (mkConv con coCon tmpVarXIds tv t (CVar f))] []
@@ -261,7 +261,7 @@ doStructDer xs i vs [field] di
         CQType _ type_no_qual = fieldType
 	inst = Cinstance (CQType [CPred di [type_no_qual]]
                           (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
-	conv (CField { cf_name = f, cf_type = CQType _ t }) = 
+	conv (CField { cf_name = f, cf_type = CQType _ t }) =
 		CLValue (unQualId f) [CClause [] [] (mkConv con coCon tmpVarXIds tv t (CVar f))] []
           where (Just kind) = getTypeKind t
                 tv = cTVarKind v kind
@@ -340,13 +340,13 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
         ctx = bCtx ++ aCtx ++ cCtx
 	cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
 	bCtx = zipWith (\ (CField { cf_type = cqt@(CQType _ t) }) sv ->
-                        CPred (CTypeclass idBits) 
+                        CPred (CTypeclass idBits)
                                   [t, cTVarKind
                                       (setIdPosition (getPosition cqt) sv)
                                       KNum]) fields bvs
 	aCtx =	let f _ [] _ = []
 		    f a (s:ss) (n:nn) =
-                        CPred (CTypeclass idAdd) 
+                        CPred (CTypeclass idAdd)
                                   [cTVarKind s KNum, cTVarKind a KNum,
                                    cTVarKind n KNum] : f n ss nn
                     f _ _ _ = internalError "Deriving.doSBits.f: _ (_:_) []"
@@ -480,7 +480,7 @@ doDBits dpos type_name type_vars original_tags tags =
              | num_tags <= 1 = []
              | otherwise =
                zipWith ( \ x sv ->
-                         CPred (CTypeclass idAdd) 
+                         CPred (CTypeclass idAdd)
                                    [x, sv, max_num_field_bits])
                        field_bit_size_paddings field_bit_sizes
         -- max_field_size_max_provisos constrain max_num_field_bits to
@@ -507,7 +507,7 @@ doDBits dpos type_name type_vars original_tags tags =
         -- final_bit_size_provisos constrain the final bit size of the
         --   tagged union: tag size + max(field sizes) = final size
         -- num_rep_bits_ctype: the final bit size of the tagged union
-	(final_bit_size_provisos, num_rep_bits_ctype) = 
+	(final_bit_size_provisos, num_rep_bits_ctype) =
 		case original_tags of
 		[]  -> ([], cTNum 0 decl_position)
 		[_] -> ([], headOrErr "doDBits" field_bit_sizes)
@@ -604,7 +604,7 @@ doSFShow dpos ti vs fields =
             let mkFieldFmt field =
                     let fid = cf_name field
                         fstr = getIdBaseString fid
-                    in  
+                    in
                         [ stringLiteralAt dpos (fstr ++ ": "),
                           cVApply idfshow [CSelectTT ti vx (cf_name field)] ]
                 sepstr = stringLiteralAt dpos ", "
@@ -636,7 +636,7 @@ doDFShow dpos enum_name type_vars original_tags tags
                     CTaskApply (CVar idFormat) [ stringLiteralAt dpos tag_str ]
             in  CClause enum_pattern [] fmt_expr
     in
-        Cinstance 
+        Cinstance
             (CQType [] (cTApplys (cTCon idFShow) [enum_ctype]))
             [fshow_function]
 doDFShow dpos union_name type_vars original_tags tags =
@@ -668,7 +668,7 @@ doDFShow dpos union_name type_vars original_tags tags =
                           cVApply idfshow [CVar id_x] ]
             in  CClause union_pattern [] fmt_expr
     in
-        Cinstance 
+        Cinstance
             (CQType provisos (cTApplys (cTCon idFShow) [union_ctype]))
             [fshow_function]
 
@@ -679,7 +679,7 @@ doDBounded :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDBounded dpos i vs ocs cs =
     --if not (all (null . snd) ocs)
     --then compileError ("Cannot derive Bounded for " ++ show i)
-    --else 
+    --else
         Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [maxB, minB]
   where	-- this is more restrictive than it needs to be (insisting on Bounded for each term, not just the first and last
         -- this is motivated by what Bounded "should" mean rather than the current requirements of the Bounded class
@@ -707,12 +707,12 @@ doDUndefined i vs ocs [cs] = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty))
         ty    = cTApplys (cTCon i) vs
         aty   = tPosition `fn` tInteger `fn` ty
         body  = CCon1 i (getCISName cs) (CApply (CVar idMakeUndefinedNQ) [CVar id_x, CVar id_y])
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []  
+        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
 
 doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
   where ty    = cTApplys (cTCon i) vs
         aty   = tPosition `fn` tInteger `fn` ty
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) [] 
+        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
 
 doDUninitialized :: Id -> [Type] -> COSummands -> CSummands -> CDefn
 -- the single-summand case is not already derived for data delarations with no internal type
@@ -762,34 +762,34 @@ doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [ma
 	ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idBounded) [t]) fs
 	minB = mmDef (idMinBoundNQ dpos) idMinBound
 	maxB = mmDef (idMaxBoundNQ dpos) idMaxBound
-	mmDef md mv = 
+	mmDef md mv =
 	    let mfs = [ (cf_name f, CVar mv) | f <- fs ]
 		str = CStruct i mfs
 	    in	CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
 
 doSUndefined :: Id -> [Type] -> CFields -> CDefn
 doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
-  where tvset  = S.fromList (concatMap tv vs) 
+  where tvset  = S.fromList (concatMap tv vs)
         ty    = cTApplys (cTCon i) vs
         aty   = tPosition `fn` tInteger `fn` ty
-        ctx   =  nub [ CPred (CTypeclass idUndefined) [getRes t] | CField {cf_type = CQType _ t} <- fs, 
+        ctx   =  nub [ CPred (CTypeclass idUndefined) [getRes t] | CField {cf_type = CQType _ t} <- fs,
                                                       let freeset = S.fromList (tv t),
-                                                      -- trace (ppReadable (S.toList tvset)) $ 
-                                                      -- trace (ppReadable (S.toList freeset)) $ 
+                                                      -- trace (ppReadable (S.toList tvset)) $
+                                                      -- trace (ppReadable (S.toList freeset)) $
                                                       -- trace (show (freeset `S.isSubsetOf` tvset)) $
-                                                      freeset `S.isSubsetOf` tvset ] 
-        str   = CStruct i [ (cf_name f, 
+                                                      freeset `S.isSubsetOf` tvset ]
+        str   = CStruct i [ (cf_name f,
                             (CApply do_undef [CVar id_x, CVar id_y])) | f <- fs,
                                                              let t = cf_type f,
                                                              let freeset = S.fromList (tv t),
-                                                             let undef_id = if freeset `S.isSubsetOf` tvset 
+                                                             let undef_id = if freeset `S.isSubsetOf` tvset
                                                                             then idMakeUndef
                                                                             else idBuildUndef,
                                                              let do_undef = CVar undef_id ]
-        str'  = -- prevent infinite instance loop for structure of no fields 
+        str'  = -- prevent infinite instance loop for structure of no fields
                 -- (created by IConv insertion of buildUndefined for empty structures)
                 if (null fs) then (CApply (CVar idRawUndef) [CVar id_x, CVar id_y]) else str
-        undef = --trace ("ctx: " ++ ppReadable ctx) $ 
+        undef = --trace ("ctx: " ++ ppReadable ctx) $
                 CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str']) []
 
 doSUninitialized:: Id -> [Type] -> CFields -> CDefn
@@ -820,7 +820,7 @@ doSUninitialized i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsUninitialized)
 doSDeepSeqCond :: Id -> [Type] -> CFields -> CDefn
 doSDeepSeqCond i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsDeepSeqCond) ty)) [dseqcond]
   where tvset  = S.fromList (concatMap tv vs)
-        {- 
+        {-
         -- XXX this seems to be bogus
         -- grab field contexts that mention any of the struct's type vars
         -- also must be in result of field
@@ -830,8 +830,8 @@ doSDeepSeqCond i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsDeepSeqCond) ty)
                  tvResSet = S.fromList (tv (getRes t))
                  tvInSet s p = any (flip S.member s) (tv p)
                  grabCtx p = tvInSet tvset p && tvInSet tvResSet p
-        extraCtxs = concatMap fieldCtxs fs 
-        -} 
+        extraCtxs = concatMap fieldCtxs fs
+        -}
         ty     = cTApplys (cTCon i) vs
         def_ty = ty `fn` ty_forallb
         ctx = nub $ [ CPred (CTypeclass idClsDeepSeqCond) [t] | CField {cf_type = CQType _ t} <- fs,
@@ -924,9 +924,9 @@ addRequiredDeriv flags r i tvs clsId derivs
           vp <- mkVPredFromPred [] (IsIn cls [t])
           -- if there is an existing undefined instance, the predicate will reduce
           mreduce <- reducePred [] Nothing vp
-          -- trace (show i ++ ": " ++ ppReadable mreduce) $ 
-          -- trace ("ps' :" ++ ppReadable ps') $ 
-          return (isJust mreduce) 
+          -- trace (show i ++ ": " ++ ppReadable mreduce) $
+          -- trace ("ps' :" ++ ppReadable ps') $
+          return (isJust mreduce)
 
 addRequiredDeriv flags r i tvs clsId derivs =
   -- trace ("auto-derive: " ++ ppReadable (cls, i))

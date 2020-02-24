@@ -3,7 +3,7 @@
 -- Module      :  Text.ParserCombinators.Parsec
 -- Copyright   :  (c) Daan Leijen 1999-2001
 -- License     :  BSD-style (see the file LICENSE)
--- 
+--
 -- Maintainer  :  daan@cs.uu.nl
 -- Stability   :  provisional
 -- Portability :  portable
@@ -15,11 +15,11 @@
 --
 -- * Graham Hutton and Erik Meijer:
 --   Monadic Parser Combinators.
---   Technical report NOTTCS-TR-96-4. 
---   Department of Computer Science, University of Nottingham, 1996. 
+--   Technical report NOTTCS-TR-96-4.
+--   Department of Computer Science, University of Nottingham, 1996.
 --   <http://www.cs.nott.ac.uk/~gmh/monparsing.ps>
 --
--- * Andrew Partridge, David Wright: 
+-- * Andrew Partridge, David Wright:
 --   Predictive parser combinators need four values to report errors.
 --   Journal of Functional Programming 6(2): 355-364, 1996
 --

@@ -9,7 +9,7 @@ import FStringCompat(FString)
 
 import Flags(Flags)
 import ASyntax
-import BackendNamingConventions(createVerilogNameMap, 
+import BackendNamingConventions(createVerilogNameMap,
 				xLateIdUsingFStringMap)
 import Util(fastNub)
 import Pragma(DefProp)
@@ -127,10 +127,10 @@ trSI mp si =
         trM (Just x)  = Just (tr mp x)
 
         trMeth ami@(ASPMethodInfo i ty mr me mv args rs) =
-            ami { aspm_name      = tr mp i, 
-                  aspm_mrdyid    = trM mr, 
-                  aspm_menableid = trM me, 
-                  aspm_mresultid = trM mv, 
+            ami { aspm_name      = tr mp i,
+                  aspm_mrdyid    = trM mr,
+                  aspm_menableid = trM me,
+                  aspm_mresultid = trM mv,
                   aspm_inputs    = map (tr mp) args }
 
     in  ASPSignalInfo {

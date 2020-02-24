@@ -83,7 +83,7 @@ instance PPrint Char where
     pPrint _ _ x = text (show x)
 
 -- instance PPrint String where
---     pPrint _ _ x = doubleQuotes $ text x 
+--     pPrint _ _ x = doubleQuotes $ text x
 
 instance PPrint Double where
     pPrint _ _ x = text (show x)

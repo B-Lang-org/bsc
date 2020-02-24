@@ -55,11 +55,11 @@ instance (Hyper a) => Hyper [a] where
     hyper (x:xs) y = hyper2 x xs y
 
 instance (Hyper a) => Hyper (Maybe a) where
-    hyper Nothing y = y 
+    hyper Nothing y = y
     hyper (Just x) y = hyper x y
 
 instance (Hyper a, Hyper b) => Hyper (Either a b) where
-    hyper (Left a)  y = hyper a y 
+    hyper (Left a)  y = hyper a y
     hyper (Right b) y = hyper b y
 
 hyper2 :: (Hyper a1, Hyper a2) => a1 -> a2 -> b -> b
@@ -68,7 +68,7 @@ hyper2 x1 x2 y = x1 `hyper` x2 `hyper` y
 hyper3 :: (Hyper a1, Hyper a2, Hyper a3) => a1 -> a2 -> a3 -> b -> b
 hyper3 x1 x2 x3 y = x1 `hyper` x2 `hyper` x3 `hyper` y
 
-hyper4 :: (Hyper a1, Hyper a2, Hyper a3, Hyper a4) 
+hyper4 :: (Hyper a1, Hyper a2, Hyper a3, Hyper a4)
        => a1 -> a2 -> a3 -> a4 -> b -> b
 hyper4 x1 x2 x3 x4 y = x1 `hyper` x2 `hyper` x3 `hyper` x4 `hyper` y
 

@@ -25,7 +25,7 @@ aDropDefs aspkg = aspkg { aspkg_values = defs' }
                 dVars (aspkg_foreign_calls aspkg) ++
                 aspkg_inlined_ports aspkg ++
                 fires ++ meth_ids ++ unusedKeeps
-        unusedKeeps = [i | ADef i _ e _ <- defs, 
+        unusedKeeps = [i | ADef i _ e _ <- defs,
                        hasIdProp i IdP_keepEvenUnused
                        || isKeepId i
                          ]

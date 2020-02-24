@@ -149,9 +149,9 @@ aInlineWires flags pkg@(ASPackage { aspkg_state_instances = vs,
         --   list of state element outputs
         --   new internal definitions (that support the inlining)
         --   a substitution (to replace ASVar by ASDef where necessary)
-        --   any warnings encountered (i.e. enables not night)     
-        rw_defs :: AId -> ASize -> Bool -> Bool -> (AId, [AId], [ADef], [(AId, AId)], [WMsg], [EMsg]) 
-	rw_defs i sz is_rwire0 always_en = 
+        --   any warnings encountered (i.e. enables not night)
+        rw_defs :: AId -> ASize -> Bool -> Bool -> (AId, [AId], [ADef], [(AId, AId)], [WMsg], [EMsg])
+	rw_defs i sz is_rwire0 always_en =
 	    let
 		-- the rwire inputs
 		rw_en_id   = rwireSetEnId i

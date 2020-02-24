@@ -29,4 +29,3 @@ removeAssumpRule r@(ARule { arule_actions = as,
         as' = as ++ assump_actions
         assump_actions = concatMap getAssumpActions asmps
 
- 

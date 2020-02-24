@@ -169,7 +169,7 @@ arguments to the UpdateFn.
 >                    else -- XXX This has the possibility of assigning a value of
 >                         -- XXX type different from the previous value
 >                         [CLValue var cls []]
->                     
+>
 >              Left mis ->
 >                let names = getIdOrTupleNames vars
 >                    var_tuple = case names of
@@ -1328,7 +1328,7 @@ XXX checks for valid clock names could be done here rather than later
 >          -- check that the user didn't serendipitously refer to one of the new names
 >          when (not (isEmptyId default_clock0)) $ do
 >            let dclk_str = getIdString default_clock0
->            when (dclk_str /= "no_clock" && 
+>            when (dclk_str /= "no_clock" &&
 >                  default_clock0 `elem` new_clk_names) $
 >                cvtErr (getPosition default_clock0) (EUndeclaredClock dclk_str)
 >          -- return the updated defaults and statements
@@ -1624,7 +1624,7 @@ Extract each type of statement, making sure to preserve the order
 >                                (EReservedReset (getIdString badid))
 
 >        let dclk_str = getIdString default_clock
->        when (dclk_str /= "no_clock" && 
+>        when (dclk_str /= "no_clock" &&
 >              not (default_clock `elem` allclockids)) $
 >            cvtErr (getPosition default_clock) (EUndeclaredClock dclk_str)
 >        let drst_str = getIdString default_reset
@@ -3067,7 +3067,7 @@ detect whether assignment is to the fake "uninitialized" value
 > createPatternNameExpr (CPCon _ _) pos = nameExpr
 >    where id_name = (mkId pos (mkFString "tuple"))
 >          nameExpr = mkNameExpr id_name
-> createPatternNameExpr _ pos = nameExpr 
+> createPatternNameExpr _ pos = nameExpr
 >    where id_name = (mkId pos (mkFString "pat"))
 >          nameExpr = mkNameExpr id_name
 

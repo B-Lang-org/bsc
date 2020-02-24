@@ -27,9 +27,9 @@ lookupWithDefault ((x,y):xys) d x' = if x == x' then y else lookupWithDefault xy
 
 lookupWithDefaultBy :: (a -> a -> Bool) -> [(a, b)] -> b -> a -> b
 lookupWithDefaultBy _ [] d _ = d
-lookupWithDefaultBy match ((x,y):xys) d x' = if (match x x') then y 
+lookupWithDefaultBy match ((x,y):xys) d x' = if (match x x') then y
                                              else lookupWithDefaultBy match xys d x'
 lookupBy :: (a -> a -> Bool) -> [(a, b)] -> a -> Maybe b
 lookupBy _ [] _ = Nothing
-lookupBy match ((x,y):xys) x' = if (match x x') then Just y 
+lookupBy match ((x,y):xys) x' = if (match x x') then Just y
                                 else lookupBy match xys x'

@@ -26,7 +26,7 @@ import PPrint
 -- Handle rules that don't do anything,
 -- either because the predicate is False or the body has no actions.
 -- Any MethodPred signals associated with the dropped rules are dropped.
--- 
+--
 -- Warn the user about false/empty rules.  If the appropriate flag is set,
 -- the rules are dropped.
 --
@@ -35,7 +35,7 @@ import PPrint
 --
 -- Removing a noAction rule can only be done if the rule is not preempting
 -- another rule (unless that rule is also noAction).
--- 
+--
 -- we don't drop any method rule bodies here
 -- because the backend can't deal with methods
 -- that have empty action bodies
@@ -61,7 +61,7 @@ dropFalseRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
     let removeFalseRule = removeFalseRules flags
     let warnFalseRule (IRule {
                irule_name = rid , irule_pragmas = pragmas } ) =
-           if (RPnoWarn `elem` pragmas) 
+           if (RPnoWarn `elem` pragmas)
            then return ()
            else bsWarning errh
                     [(getPosition rid,
@@ -101,9 +101,9 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
 
     -- warn about the empty rules
     let removeEmptyRule = removeEmptyRules flags
-    let warnEmptyRule ( IRule {  
+    let warnEmptyRule ( IRule {
               irule_name = rid , irule_pragmas = pragmas } )=
-           if (RPnoWarn `elem` pragmas) 
+           if (RPnoWarn `elem` pragmas)
            then return ()
            else bsWarning errh
                     [(getPosition rid,
@@ -129,8 +129,8 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
 
 
 -- will the rule never fire
-isFalseRule (IRule { irule_pred = 
-               (ICon _ (ICInt { iVal = (IntLit { ilValue = 0 }) })) 
+isFalseRule (IRule { irule_pred =
+               (ICon _ (ICInt { iVal = (IntLit { ilValue = 0 }) }))
                    } )
 	      = True
 isFalseRule _ = False
@@ -139,7 +139,7 @@ isFalseRule _ = False
 isSplitRule r = isSplitRuleId (getIRuleId r)
 
 -- is the rule a noAction rule
-isNoActionRule (IRule { 
+isNoActionRule (IRule {
        irule_body = (ICon _ (ICPrim { primOp = PrimNoActions })) } )
     = True
 isNoActionRule _ = False

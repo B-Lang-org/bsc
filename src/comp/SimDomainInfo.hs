@@ -70,7 +70,7 @@ data DomainInfo = DomainInfo
   deriving (Eq, Show)
 
 instance PPrint DomainInfo where
-    pPrint d _ di = 
+    pPrint d _ di =
         (text "DomainInfo") $+$
 	text "clocks: " <+> pPrint d 0 (di_clocks di) $+$
 	text "domains: " <+> pPrint d 0 (di_domains di) $+$

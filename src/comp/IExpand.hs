@@ -312,7 +312,7 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- XXX the rules names should be constructed properly
       -- XXX to begin with rather than fixed up at the end
       rules_cleanup = cleanupFinalRules flags rules_heap
-      
+
       mpdefs = generateMethodPreds ( methodConditions flags ) rules_cleanup
       defs = defs1 ++ mpdefs
       wi = WireInfo (go_vclockinfo go) (go_vresetinfo go) varginfo
@@ -344,15 +344,15 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
   return imod
 
 generateMethodPreds :: forall a . Bool -> IRules a -> [IDef a]
-generateMethodPreds flag (IRules _ rs) = 
+generateMethodPreds flag (IRules _ rs) =
   if (not flag) then [] else concatMap one_rule rs where
     one_rule :: IRule a -> [IDef a]
     one_rule r = gen_defs (irule_name r) $ collect_ifs $ irule_body r
-    collect_ifs :: IExpr a -> 
+    collect_ifs :: IExpr a ->
                    [(IExpr a, IExpr a)]  -- pred, meth call
     collect_ifs e = -- trace ("collect_ifs " ++ (show e) ) $
                      collect_ifs' e
-    collect_ifs' :: IExpr a -> 
+    collect_ifs' :: IExpr a ->
                    [(IExpr a, IExpr a)]  -- pred, meth call
     collect_ifs' (IAps (ICon _ (ICPrim { primOp = PrimIf })) _ [cnd, thn, els]) =
       let true_branch = collect_ifs thn
@@ -383,7 +383,7 @@ generateMethodPreds flag (IRules _ rs) =
     collect_ifs' (IAps (ICon join (ICPrim{ primOp = op})) _t es)
       | join == idPrimJoinActions || op == PrimJoinActions
         = concatMap collect_ifs es -- search further for unlifted Ifs inside an action block
-    collect_ifs' e@(IAps (ICon _method (ICSel { })) _t 
+    collect_ifs' e@(IAps (ICon _method (ICSel { })) _t
                   ((ICon _state (ICStateVar { })):_methodargs)) =
       [(iTrue,e)] -- base case for unpack_method_call
     collect_ifs' (IAps (ICon _ (ICPrim _ pi)) _t [e]) | isIfWrapper pi
@@ -405,12 +405,12 @@ generateMethodPreds flag (IRules _ rs) =
     gen_defs rulename predmethods = concat $ evalState (mapM (makeDef rulename) predmethods ) 1
 
     makeDef :: Id -> (IExpr a, IExpr a) -> State Integer [IDef a]
-    makeDef rulename (predicate, expr) 
-      | not $ isTrue predicate = 
-        -- trace ("now evaluating " ++ ppReadable rulename ++ " " ++ ppReadable (predicate, expr) 
-        --   ++ show predicate ++ (show expr) 
+    makeDef rulename (predicate, expr)
+      | not $ isTrue predicate =
+        -- trace ("now evaluating " ++ ppReadable rulename ++ " " ++ ppReadable (predicate, expr)
+        --   ++ show predicate ++ (show expr)
         -- ) $
-        mapM (onepred rulename predicate) (unpack_method_call expr) 
+        mapM (onepred rulename predicate) (unpack_method_call expr)
     makeDef _ _ = return [] -- isTrue, for actions with no conditions
     onepred :: Id -> IExpr a -> (Id, Id) -> State Integer (IDef a)
     onepred rulename predicate (state, method) = do
@@ -425,7 +425,7 @@ generateMethodPreds flag (IRules _ rs) =
                         -- preserve all the positions,
                         jposs
           let i = makename rulename state method uniquenum poss
-          return $ IDef i itBit1 predicate 
+          return $ IDef i itBit1 predicate
             [ DefP_NoCSE
               -- ^ put this first as an optimization for the calls to elem in defPropsHasNoCSE
             , DefP_Rule rulename
@@ -448,7 +448,7 @@ generateMethodPreds flag (IRules _ rs) =
           addIdProps (mkId noPosition fstr) props
 
 unpack_method_call :: IExpr a -> [(Id,Id)]
-unpack_method_call e = -- trace ("unpack_method_call " ++ (show e)) $ 
+unpack_method_call e = -- trace ("unpack_method_call " ++ (show e)) $
                        unpack_method_call' [] e
 -- This accumulates a list of positions along the way, to support "avAction_"
 -- wrappers; in some places we sanity check that it's an empty list, because
@@ -487,7 +487,7 @@ unpack_method_call' poss (ICon i_function _) =
   -- ^seen in Sudoku with high order functional programming (displayGrid)
 unpack_method_call' _ e =
   internalError("unpack_method_call': unknown: " ++ ppReadable e)
-  -- trace ("unpack_method_call unable to match " ++ show e) $ 
+  -- trace ("unpack_method_call unable to match " ++ show e) $
   --[(mk_homeless_id "NOSTATE", mk_homeless_id "NOMETHOD")]
 
 removeInlinedPositions :: Flags -> IModule HeapData -> IModule HeapData
@@ -498,7 +498,7 @@ removeInlinedPositions flags imod0 =
         -- XXX do we need a recursive branch for IAps?
         removeFn e = e
     in  Generic.everywhere (Generic.mkT removeFn) imod0
-    
+
 -- -----
 
 -- After the evaluator has run and the heap pointers have been collected,
@@ -3323,7 +3323,7 @@ conAp' _ (ICPrim _ PrimGetModuleName) _ as = internalError ("PrimGetModuleName "
 -- ord _  -->  _
 conAp' _ (ICPrim _ PrimOrd) o [T f, T sz, E e] = evalStaticOp e (aitBit sz) handleOrd
   where handleOrd (IAps (ICon _ (ICPrim _ PrimChr)) _ [e']) = eval1 e'
-        handleOrd (IAps (ICon _ (ICCon { conNo = n})) _ _) = 
+        handleOrd (IAps (ICon _ (ICCon { conNo = n})) _ _) =
             return $ pExpr $ iMkLitAt (getIExprPosition e) (aitBit sz) n
         handleOrd e' = nfError "primOrd" e'
 

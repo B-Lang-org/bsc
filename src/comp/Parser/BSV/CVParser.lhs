@@ -3289,7 +3289,7 @@ The same, but reads an output port name instead of a type
 >        -- Return a declaration and an assignment
 >        return [ISDecl (getIdPosition var) (Right var) arrayType [],
 >                assign_stmt]
->                 
+>
 > pImperativeWithVarArrayDecl _ _ _ _ =
 >     do pos <- getPos
 >        failWithErr (pos, EForbiddenTuple)

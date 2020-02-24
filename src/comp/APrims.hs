@@ -1,4 +1,4 @@
-module APrims(evalAExprToInteger) where 
+module APrims(evalAExprToInteger) where
 
 import PPrint(ppReadable)
 import ASyntax
@@ -19,7 +19,7 @@ import ErrorUtil(internalError)
 -- function which gives a list of identifiers to look in for the value
 -- of the method.  The function is quite limited and will return a
 -- Left String containing a failure message in many cases.
-evalAExprToInteger :: (AId -> Maybe Integer) -> (AId -> Maybe AExpr) -> 
+evalAExprToInteger :: (AId -> Maybe Integer) -> (AId -> Maybe AExpr) ->
                       ((AId,AId) -> [AId]) ->
                       AExpr -> Either String Integer
 evalAExprToInteger _ _ _ (ASInt _ _ lit) = Right (ilValue lit)
@@ -59,7 +59,7 @@ asInteger = id
 
 -- Select the return type based on the PrimOp
 evalPrim :: PrimOp -> [Integer] -> [Integer] -> Either String Integer
-evalPrim op ss vs | op `elem` boolOps 
+evalPrim op ss vs | op `elem` boolOps
                   = use asBool (primResult op ss (map I vs)) op
 evalPrim op ss vs = use asInteger (primResult op ss (map I vs)) op
 

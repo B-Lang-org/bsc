@@ -38,7 +38,7 @@ data Subst  = S S_map Set_vars
 	deriving (Show, Eq)
 
 instance PPrint Subst where
-    pPrint d p (S s v) = pparen (p>0) $ text "Subst" <+> pPrint d 0 
+    pPrint d p (S s v) = pparen (p>0) $ text "Subst" <+> pPrint d 0
                          ((Map.assocs s){-, printable_s_var v-} )
 
 
@@ -49,14 +49,14 @@ isNullSubst :: Subst -> Bool
 isNullSubst (S m _) = Map.null m
 
 (+->)      :: TyVar -> Type -> Subst
-u +-> t     = S (Map.singleton u t) 
+u +-> t     = S (Map.singleton u t)
                 (back_set u t)
 
 back_set :: TyVar -> Type -> Set_vars
 back_set u t = (Map.fromList (map (\v -> (v, Set.singleton u)) (tv t)))
 
 mkSubst :: [(TyVar, Type)] -> Subst
-mkSubst vts = -- trace ("mkSubst: " ++ ppReadable vts) $ 
+mkSubst vts = -- trace ("mkSubst: " ++ ppReadable vts) $
         S (Map.fromListWith avoid_duplicate_substitutions vts)
           (mk_set_vars vts)
 
@@ -66,14 +66,14 @@ mk_set_vars vts = (Map.unionsWith Set.union (map (uncurry back_set) vts))
    efficient because they are O(N*log(M)) time. -}
 
 -- check that concatenating a new substitution with an old one (via @@)
--- will result in a valid substitution 
+-- will result in a valid substitution
 -- basically check that the RHS of the new substitution should not
 -- involve any variables in the LHS of the old substitution
 chkSubstOrder :: Subst -> Subst -> Bool
-chkSubstOrder (S _ new_rhs) (S old_lhs _) = 
+chkSubstOrder (S _ new_rhs) (S old_lhs _) =
   Set.null (Set.intersection
              (Map.keysSet new_rhs)
-             (Map.keysSet old_lhs))  
+             (Map.keysSet old_lhs))
 
 -- Add a newer substitution (ss1) to an older substitution (ss2).
 -- Any knowledge in ss1 is applied to ss2, and then the bindings are merged.
@@ -83,9 +83,9 @@ ss1@(S s1 _) @@ ss2@(S _ var_old) =
     case (Set.null (Set.intersection (Map.keysSet var_old)
                                      (Map.keysSet s1))) of
      True -> --no need to apply s1 to s2
-             --trace ("no ap: " ++ ppReadable (ss1, ss2)) $ 
+             --trace ("no ap: " ++ ppReadable (ss1, ss2)) $
                 merge_sv ss1 ss2
-     _ -> -- trace ("ap: " ++ ppReadable (ss1, ss2, finished_2)) $ 
+     _ -> -- trace ("ap: " ++ ppReadable (ss1, ss2, finished_2)) $
           (merge_sv (apSubstToSubst ss1 ss2) ss1)
 
 
@@ -111,11 +111,11 @@ apSubstToSubst ss1@(S s1 _) ss2 = finished_2
                 S (Set.fold (Map.adjust (seqCType . (apSub this_sub)))
                             ss lhs)
                   after_adds
-                where 
+                where
                 this_sub = ( v +-> t)
-                delete_old :: Set_vars 
+                delete_old :: Set_vars
                 --set left after variables that will get substituted are deleted
-                delete_old = Set.fold 
+                delete_old = Set.fold
                              (\l -> Map.update (possibly_delete l) v)
                              vv lhs
                 possibly_delete :: TyVar -> Set_TyVar -> Maybe Set_TyVar
@@ -128,8 +128,8 @@ apSubstToSubst ss1@(S s1 _) ss2 = finished_2
                 -- set left after additions to the set delete_old
                 after_adds = foldr add_tyvar delete_old (tv t)
                 add_tyvar :: TyVar -> Set_vars  -> Set_vars
-                add_tyvar x set = 
-                      Map.unionWith Set.union 
+                add_tyvar x set =
+                      Map.unionWith Set.union
                          (Map.singleton x lhs) set
 
 avoid_duplicate_substitutions::Type -> Type -> Type
@@ -157,8 +157,8 @@ merge ss1 ss2 =
 
 map_on_the_intersection :: (Type -> Type -> a) -> Subst -> Subst -> [a]
 map_on_the_intersection call_f ss1@(S s1 _) ss2@(S s2 _) =
-   map (\v -> call_f (apSub ss1 (TVar v)) 
-                     (apSub ss2 (TVar v))) 
+   map (\v -> call_f (apSub ss1 (TVar v))
+                     (apSub ss2 (TVar v)))
        (Set.toList (Set.intersection (Map.keysSet s1)
                                      (Map.keysSet s2)))
 
@@ -183,7 +183,7 @@ mergeWith func ss1 ss2 =
       -- need to apply anything we've learned to both substitutions
       Just ms -> Just (ms @@ (merge_sv ss1 ss2))
   where merged_subts::Maybe Subst
-        merged_subts = mergeListWith (mergeWith func) 
+        merged_subts = mergeListWith (mergeWith func)
                            (map_on_the_intersection func ss1 ss2)
 
 -- merge substitutions, but drop mappings where there are disagreements
@@ -255,12 +255,12 @@ getSubstRange (S eo _ ) = concat (map tv (Map.elems eo))
 -- it also uses map and set operations to compute the new
 -- substitution efficiently
 
-fixupBack new_map old_back = Map.filter 
+fixupBack new_map old_back = Map.filter
                                (not . Set.null)
                                (Map.map (Set.intersection retained_vars) old_back)
   where retained_vars = Map.keysSet new_map
 
--- It takes a function that determines what elements of the 
+-- It takes a function that determines what elements of the
 -- substitution to keep and fixes the subst and the back set
 trimSubstBy :: (TyVar -> Type -> Bool) -> Subst -> Subst
 trimSubstBy filterFunc (S old_map old_back) = S new_map new_back

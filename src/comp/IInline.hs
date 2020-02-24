@@ -41,7 +41,7 @@ iSortDs imod@(IModule { imod_local_defs = ds }) =
 
 inline_ifc :: M.Map Id (IExpr a) -> M.Map Id (IExpr a) -> IEFace a -> IEFace a
 inline_ifc smap dmap (IEFace i xs me mrs wp fi) = IEFace i xs me' mrs' wp fi
-  where me'  = fmap (\(e, t) -> (iSubst smap dmap e, t)) me 
+  where me'  = fmap (\(e, t) -> (iSubst smap dmap e, t)) me
         mrs' = fmap (irulesMap (iSubst smap dmap)) mrs
 
 -- Inline definitions that are simple
@@ -88,7 +88,7 @@ iInlineS True imod@(IModule { imod_local_defs = ds,
 ruleVars (IRules sps rs) = concatMap leafVars rs
     where leafVars r = iValVars (irule_pred r) ++ iValVars (irule_body r)
 
-varVars (_, IStateVar { isv_iargs = es }) = 
+varVars (_, IStateVar { isv_iargs = es }) =
 	let vs = concatMap iValVars es
 	in  vs ++ vs		-- XXX
 
@@ -101,20 +101,20 @@ iInline1 = iInlineUseLimit 1
 
 iInlineUseLimit :: Int -> IModule a -> IModule a
 iInlineUseLimit use_limit
-                imod@(IModule { imod_state_insts = itvs, 
-                                imod_local_defs  = ds, 
-                                imod_rules       = rs, 
+                imod@(IModule { imod_state_insts = itvs,
+                                imod_local_defs  = ds,
+                                imod_rules       = rs,
                                 imod_interface   = ifc }) =
     let ifcRuleVars = concatMap ruleVars (catMaybes [ mrs | IEFace _ _ _ mrs _ _ <- ifc ])
-        is = [ i | (IEFace i _ (Just (e, _)) _ _ _) <- ifc ] 
-             ++ ruleVars rs 
-             ++ concatMap varVars itvs 
-             ++ ifcRuleVars 
+        is = [ i | (IEFace i _ (Just (e, _)) _ _ _) <- ifc ]
+             ++ ruleVars rs
+             ++ concatMap varVars itvs
+             ++ ifcRuleVars
              ++ [ i | (IDef i _ _ _) <- ds, keepEvenUnused i]
         keepEvenUnused :: Id -> Bool
         keepEvenUnused i = hasIdProp i IdP_keepEvenUnused
 	defids = S.fromList [ i | IDef i _ _ _ <- ds ]
-	dm = M.fromList ([(i, e) | IDef i _ e _ <- ds ] ++ 
+	dm = M.fromList ([(i, e) | IDef i _ e _ <- ds ] ++
                          [ (i, e) | (IEFace i _ (Just (e,_)) _ _ _) <- ifc ])
 	get i = case M.lookup i dm of (Just e) -> e; _-> internalError ("iInlineUseLimit " ++ ppString use_limit ++ ": " ++ ppReadable i)
 	step allIds done [] = allIds
@@ -136,9 +136,9 @@ iInlineUseLimit use_limit
 	uses = M.fromList ics
 	getc' i = case M.lookup i uses of Just c -> c; Nothing -> 0
         getc i = {- trace ("getc: " ++ ppReadable (i, getc' i)) $ -} getc' i
-	ds'' = filter (\ (IDef i _ _ _) -> 
-                        let uses = getc i in 
-                        (keepEvenUnused i || uses > 0 && isKeepId i) 
+	ds'' = filter (\ (IDef i _ _ _) ->
+                        let uses = getc i in
+                        (keepEvenUnused i || uses > 0 && isKeepId i)
                         || uses > use_limit) ds'
         dmap = M.fromList [(i, e) | IDef i t e _ <- ds']
         state_vars' = [ (name, sv { isv_iargs = es' })
@@ -198,7 +198,7 @@ iInlineFmts imod =
     in imod''
 
 iInlineFmtsPhase1 :: IModule a -> IModule a
-iInlineFmtsPhase1 imod = 
+iInlineFmtsPhase1 imod =
     let tst (IAps (ICon _ (ICPrim _ PrimFmtConcat)) _ _) = True
         tst (IAps (ICon _ (ICForeign {})) _ _) = True
         tst e = False
@@ -256,11 +256,11 @@ promoteSome e |  t /= itFmt = (e, False)
               where t = iGetType e
 
 promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])]) 
+                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])])
               | (pMatch e00 e10) = ((IAps cc tc [e00, (IAps ci ti [cond, e01, e11])]), True)
 
 promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])]) 
+                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])])
               | (pMatch e01 e11) = ((IAps cc tc [(IAps ci ti [cond, e00, e10]), e01]), True)
 
 promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
@@ -287,7 +287,7 @@ promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e00,
 promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1])
              | (pMatch e0 e1) = (e0, True)
 
-promoteSome (IAps x ts es) = 
+promoteSome (IAps x ts es) =
               let pairs = map promoteSome es
                   getFirst  (a, b) = a
                   getSecond (a, b) = b
@@ -304,7 +304,7 @@ pMatch e0 e1 = e0 == e1
 -- pMatch e0 e1 = e0 == e1
 
 -- #############################################################################
--- # 
+-- #
 -- #############################################################################
 
 type F a = StateT (Int, [IDef a]) (ErrorT EMsg (IO))
@@ -314,17 +314,17 @@ newFFCallNo = do (n, ds) <- get
                  put ((n + 1), ds)
                  return (toInteger n)
 
-addDefs :: [IDef a] -> (F a) () 
+addDefs :: [IDef a] -> (F a) ()
 addDefs ds = do (n, ds') <- get
                 put (n, ds' ++ ds)
                 return ()
 
 -- #############################################################################
--- # 
+-- #
 -- #############################################################################
 
 splitFmts :: ErrorHandle -> IModule a -> IO (IModule a)
-splitFmts errh imod = 
+splitFmts errh imod =
     do let ffcallNo = (imod_ffcallNo imod)
        let ds       = (imod_local_defs imod)
        result <- runErrorT (runStateT (splitFmtsF imod) (ffcallNo, []))
@@ -371,7 +371,7 @@ fsplitFmt (IAps (ICon fid f@(ICForeign {iConType = t})) [] (e:rest))
     where (_ , rt) = itGetArrows (getInnerType t)
           at'      = map iGetType rest
           t'       = foldr1 itFun (at' ++ [rt])
-fsplitFmt (IAps x ts es) = 
+fsplitFmt (IAps x ts es) =
     do  es' <- mapM fsplitFmt es
         return (IAps x ts es')
 fsplitFmt x = return x
@@ -387,7 +387,7 @@ addFileArg e (IAps x ts es) = (IAps x ts (map (addFileArg e) es))
 addFileArg e x              = x
 
 splitFmt :: IExpr a -> F a (IExpr a)
-splitFmt e = 
+splitFmt e =
   do let e0 = replaceDisplays e
      e1 <- unNestFmts [] [] e0
      let e2 = combineFmts e1
@@ -411,15 +411,15 @@ splitFmt e =
         replaceDisplays x = x
 
         -- eliminated nested Fmts (replace with primFmtConcat ops).
-        -- after this step all $formats are leaves 
+        -- after this step all $formats are leaves
         -- top down processing
         unNestFmts _   _         (IAps (ICon _ (ICForeign {iConType = t})) [] [e])
-                         | iGetType e == itFmt && rt == itFmt = 
+                         | iGetType e == itFmt && rt == itFmt =
                do e' <- unNestFmts [] [] e
                   return e'
                where (_ , rt) = itGetArrows (getInnerType t)
-        unNestFmts []  []      x@(IAps (ICon _ (ICForeign {iConType = t})) [] es@(e:rest)) 
-                         | rt == itFmt = 
+        unNestFmts []  []      x@(IAps (ICon _ (ICForeign {iConType = t})) [] es@(e:rest))
+                         | rt == itFmt =
                do e' <- unNestFmts [e] rest x
                   return e'
                where (_ , rt) = itGetArrows (getInnerType t)
@@ -455,13 +455,13 @@ splitFmt e =
         unNestFmts es0 (e:rest) x@(IAps (ICon fid f@(ICForeign {iConType = t})) [] es) =
                do e' <- unNestFmts (es0 ++ [e]) rest x
                   return e'
-        unNestFmts es0 es1      (IAps x ts es) = 
+        unNestFmts es0 es1      (IAps x ts es) =
                do es' <- mapM (unNestFmts es0 es1) es
                   return (IAps x ts es')
         unNestFmts _   _      x  = return x
 
         combineFmts (IAps (ICon _ (ICPrim _ PrimFmtConcat)) _
-                     [(IAps (ICon fid f@(ICForeign {iConType = t})) ts0 es0), 
+                     [(IAps (ICon fid f@(ICForeign {iConType = t})) ts0 es0),
                       (IAps (ICon _     (ICForeign {})) ts1 es1)]) =
            let es = (es0 ++ es1)
                ts = (map iGetType es)
@@ -474,10 +474,10 @@ splitFmt e =
            in (IAps c ts es')
         combineFmts e = e
 
-        -- next move primFmtConcats up so that after this step, all the primFmtConcats in any 
+        -- next move primFmtConcats up so that after this step, all the primFmtConcats in any
         -- expression come first
         -- bottom up processing
-        promoteConcat r (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti es@[cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e0, e1]), e2]) = 
+        promoteConcat r (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti es@[cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e0, e1]), e2]) =
           do ef <- emptyFmtM
              e' <- promoteConcat False (IAps cc tc [(IAps ci ti [cond, e0, e2]), (IAps ci ti [cond, e1, ef])])
              return e'
@@ -485,10 +485,10 @@ splitFmt e =
           do ef <- emptyFmtM
              e' <- promoteConcat False (IAps cc tc [(IAps ci ti [cond, e2, e0]), (IAps ci ti [cond, ef, e1])])
              return e'
-        promoteConcat False (IAps x@(ICon _ (ICForeign {})) ts es) = 
+        promoteConcat False (IAps x@(ICon _ (ICForeign {})) ts es) =
           do es' <- mapM (promoteConcat False) es
              return (IAps x ts es')
-        promoteConcat False (IAps x ts es) = 
+        promoteConcat False (IAps x ts es) =
           do es' <- mapM (promoteConcat False) es
              e'  <- promoteConcat True (IAps x ts es')
              return e'
@@ -498,7 +498,7 @@ splitFmt e =
         -- all action-ff calls (which include Fmt arguments) are split
         -- into multiple ff calls (along the Fmt argument boundaries)
         splitFF d _   _       x@(IAps (ICon _ (ICForeign {iConType = t})) [] [e])
-                         | iGetType e == itFmt && rt == itFmt = 
+                         | iGetType e == itFmt && rt == itFmt =
                splitFF d [] [] e
                where (_ , rt) = itGetArrows (getInnerType t)
         splitFF d []  []      x@(IAps (ICon _ (ICForeign {iConType = t})) [] es@(e:rest))
@@ -508,7 +508,7 @@ splitFmt e =
                   x''' <- reduceFmt x''
                   return x'''
         splitFF d []  []   y@(IAps cc@(ICon i s@(ICSel {iConType = t'})) ts [x@(IAps (ICon fid ff@(ICForeign {iConType = t})) [] es@(e:rest))])
-                         | isAVFFWithFmts x && rt' == itAction = 
+                         | isAVFFWithFmts x && rt' == itAction =
                do x'    <- splitFF d [e] rest y
                   x''   <- removeConcat x'
                   x'''  <- reduceFmt x''
@@ -518,7 +518,7 @@ splitFmt e =
                     (_ , rt') = itGetArrows (getInnerType t')
                     update False r                            = return r
                     update _     r@(IAps icJoinActions _ [e]) = return r
-                    update _     r@(IAps c _ ees) | c == icJoinActions  = 
+                    update _     r@(IAps c _ ees) | c == icJoinActions  =
                      do addDefs defs
                         return (joinActions [r', f])
                      where f            = (IAps cc ts [(IAps (ICon fid ff {iConType = t''}) [] args)])
@@ -531,11 +531,11 @@ splitFmt e =
                            t''  = foldr1 itFun (at'' ++ [rt])
                     update _     r                            = return r
         splitFF _ es0 []      x@(IAps (ICon _ (ICForeign {iConType = t})) [] es@(e:rest))
-                         | rt == itAction = 
+                         | rt == itAction =
                return x
                where (_ , rt) = itGetArrows (getInnerType t)
         splitFF _ es0  []   y@(IAps (ICon _ (ICSel {iConType = t'})) _ [x@(IAps (ICon _ (ICForeign {iConType = t})) [] es@(e:rest))])
-                         | isAVFFWithFmts x && rt' == itAction = 
+                         | isAVFFWithFmts x && rt' == itAction =
                return y
                where (_ , rt') = itGetArrows (getInnerType t')
         splitFF _ es0 (e:rest)  x@(IAps (ICon fid f@(ICForeign {iConType = t})) [] es)
@@ -590,19 +590,19 @@ splitFmt e =
                splitFF d (es0 ++ [e]) rest x
         splitFF d es0 (e:rest) x@(IAps c@(ICon _ (ICSel {})) ts [(IAps (ICon fid f@(ICForeign {iConType = t})) [] es)]) =
                splitFF d (es0 ++ [e]) rest x
-        splitFF d es0 es1      (IAps x ts es) = 
+        splitFF d es0 es1      (IAps x ts es) =
                do es' <- mapM (splitFF d es0 es1) es
                   return (IAps x ts es')
         splitFF _ _   _      x  =  return x
 
         -- At this point, all Fmt types in action-ff will be the only argument
-        
+
         -- we find those single argument action-ff calls, eliminate
         -- all the primFmtConcats from the associated fmt expression,
         -- and split the associated action-ff in the process
         -- top down processing
         removeConcat x@(IAps (ICon fid f@(ICForeign {iConType = t})) [] [e])
-                                 | iGetType e == itFmt && isActionFFWithFmts x = 
+                                 | iGetType e == itFmt && isActionFFWithFmts x =
                do action_list <- mapM mkFF listoflists
                   return (joinActions action_list)
                where (_ , rt)    = itGetArrows (getInnerType t)
@@ -612,7 +612,7 @@ splitFmt e =
                                          t' = foldr1 itFun (at' ++ [rt])
                      listoflists = getLists e
         removeConcat y@(IAps c@(ICon _ (ICSel {})) ts [x@(IAps (ICon fid f@(ICForeign {iConType = t})) [] [e])])
-                                 | iGetType e == itFmt && isAVFFWithFmts x = 
+                                 | iGetType e == itFmt && isAVFFWithFmts x =
                do action_list <- mapM mkFF listoflists
                   return (process action_list)
                where (_ , rt)    = itGetArrows (getInnerType t)
@@ -624,10 +624,10 @@ splitFmt e =
                      process [_] = y
                      process zs = joinActions zs
         removeConcat w@(IAps x@(ICon fid f@(ICForeign {iConType = t})) ts es)
-                                 | isFFWithFmts w = 
+                                 | isFFWithFmts w =
                do es' <- mapM removeConcat es
                   return (IAps x ts es')
-        removeConcat y@(IAps x ts es) = 
+        removeConcat y@(IAps x ts es) =
                do es' <- mapM removeConcat es
                   return (IAps x ts es')
         removeConcat x = return x
@@ -636,12 +636,12 @@ splitFmt e =
                (getLists e0) ++ (getLists e1)
         getLists x = [[x]]
 
-        
+
 emptyFmt :: (IExpr a)
 emptyFmt = (IAps (ICon idFormat (ICForeign {fName    = getIdString(unQualId(idFormat)),
-                                            foports  = Nothing, 
-                                            fcallNo  = (Just 0), 
-                                            iConType = tt, 
+                                            foports  = Nothing,
+                                            fcallNo  = (Just 0),
+                                            iConType = tt,
                                             isC = False -- unsure what this should be?
                                             })) [] [e])
    where e = iMkString ""
@@ -669,7 +669,7 @@ createValueExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign 
                 = x
                 where x = (IAps (ICon idAVValue_ (ICSel {iConType = tt , selNo = 0, numSel = 2 })) [ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0))) 
+                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
                                                    (ITAp itBit (ITVar v0)) )
 
 createValueExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
@@ -686,7 +686,7 @@ createActionExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign
                 = x
                 where x = (IAps (ICon idAVAction_ (ICSel {iConType = tt , selNo = 1, numSel = 2 })) [ITNum s] [e])
                       v0 = head tmpVarIds
-                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0))) 
+                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
                                                    itAction )
 
 createActionExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
@@ -699,9 +699,9 @@ createActionExpr x = joinActions []
 
 
 allStrings :: IExpr a -> Bool
-allStrings (IAps (ICon c (ICSel {})) [ITNum s] [(IAps (ICon _ (ICForeign {})) _ [e])]) | c == idAVAction_ && iGetType e == itString 
+allStrings (IAps (ICon c (ICSel {})) [ITNum s] [(IAps (ICon _ (ICForeign {})) _ [e])]) | c == idAVAction_ && iGetType e == itString
            = True
-allStrings (IAps (ICon i (ICPrim _ PrimIf)) _ [_, e0, e1]) 
+allStrings (IAps (ICon i (ICPrim _ PrimIf)) _ [_, e0, e1])
            = allStrings e0 && allStrings e1
 allStrings _ = False
 
@@ -721,7 +721,7 @@ createRefsAndDefsAndActions (IAps (ICon c (ICSel {})) _ [(IAps (ICon _ (ICForeig
                  = (es, [], [])
 createRefsAndDefsAndActions  e@(ICon _ ICString {}) = ([e], [], [])
 createRefsAndDefsAndActions e | iGetType e == itString = ([(iMkString "%0s"), e], [], [])
-createRefsAndDefsAndActions e = ([(iMkString "%0s"), (ICon i (ICValue {iConType = t, iValDef = e}))], 
+createRefsAndDefsAndActions e = ([(iMkString "%0s"), (ICon i (ICValue {iConType = t, iValDef = e}))],
                                  [(IDef i t e [])],
                                  removeConditions (createActionExpr e))
                 where i = enumId "_ff" noPosition (fromInteger n)
@@ -745,18 +745,18 @@ removeConditions x = [x]
 -- #############################################################################
 
 reduceFmt :: IExpr a -> F a (IExpr a)
-reduceFmt e = 
+reduceFmt e =
   do  e' <- reduce False True e
       return (remove e')
-  where -- if we're only interested in the value part of an ActionValue foreign function 
+  where -- if we're only interested in the value part of an ActionValue foreign function
         -- (i.e. $swrite etc) then don't bother with converting the
         -- args from Fmts .... set the value of "rm_args" to True
-        reduce False   first expr@(IAps (ICon m _) _ _) | m == idAVValue_ = 
+        reduce False   first expr@(IAps (ICon m _) _ _) | m == idAVValue_ =
              do e' <- reduce True first expr
                 return e'
-        -- if this is the first time (and a foreign function call) eliminate any type 
+        -- if this is the first time (and a foreign function call) eliminate any type
         -- variables (should this have been done in IExpand?) and recurse down into the arguments
-        reduce rm_args True   (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es) 
+        reduce rm_args True   (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es)
 	    | (rt == itFmt) || (any (== itFmt) at) =
             do es' <- mapM (reduce rm_args True) es
                f'  <- reduce rm_args True (ICon fid f {iConType = ict'})
@@ -766,18 +766,18 @@ reduceFmt e =
 		  at = map iGetType es
 		  ict' = itInst ict ts
         -- if this is the first time (and not a foreign function) recurse down into the arguments
-        reduce rm_args True  (IAps f ts es) = 
+        reduce rm_args True  (IAps f ts es) =
             do es' <- mapM (reduce rm_args True) es
                f'  <- reduce rm_args True f
 	       e' <- reduce rm_args False (IAps f' ts es')
                return e'
-        -- if this is a foreign function call and we're removing args 
+        -- if this is a foreign function call and we're removing args
         -- (for the value half of of an AV expression), eliminate the args.
-        reduce True    False (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es) 
+        reduce True    False (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es)
 	    | any (== itFmt) at =
             return (IAps (ICon fid f {iConType = rt}) [] [])
             where (at, rt) = itGetArrows (getInnerType ict)
-        -- move "if" conditions outside of AVAction_ calls (so the type of the if is action) 
+        -- move "if" conditions outside of AVAction_ calls (so the type of the if is action)
 	reduce False   False x@(IAps ica@(ICon m _) ts
 				[(IAps ici@(ICon _ (ICPrim _ PrimIf)) [rt] [cond, e0, e1])])
 		             | m == idAVAction_ =
@@ -786,9 +786,9 @@ reduceFmt e =
                return (IAps ici [itAction] [cond, e0', e1'])
         -- eliminate Fmt ifs when one half is a don't care
         -- we are treating Fmt like Integer or String rather than Bit#(n)
-	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _ 
+	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
 		      [cond, e0, (ICon _ (ICUndet it _ _))]) | it == itFmt = return e0
-	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _ 
+	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
 		      [cond, (ICon _ (ICUndet it _ _)), e1]) | it == itFmt = return e1
         -- move "if" expressions outside of Fmt concat operations
 	reduce rm_args False x@(IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc
@@ -804,7 +804,7 @@ reduceFmt e =
 	       e'  <- reduce rm_args False (IAps ci ti [cond, e0', e1'])
                return e'
         -- reduce a concat of two fmt calls to a single fmt call
-	reduce rm_args False x@(IAps (ICon _ (ICPrim _ PrimFmtConcat)) _ 
+	reduce rm_args False x@(IAps (ICon _ (ICPrim _ PrimFmtConcat)) _
 		      [(IAps (ICon fid fic@(ICForeign {iConType = t0})) [] es0),
 		       (IAps (ICon _       (ICForeign {iConType = t1})) [] es1)]) =
             do let (at0, dt) = itGetArrows t0
@@ -812,7 +812,7 @@ reduceFmt e =
                    t = foldr1 itFun (at0 ++ at1 ++ [dt])
 	       return (IAps (ICon fid fic {iConType = t}) [] (es0 ++ es1))
         -- move "if" expressions (of type Fmt) outside of foreign function calls
-	reduce rm_args False (IAps (ICon fid f@(ICForeign {iConType = t})) [] 
+	reduce rm_args False (IAps (ICon fid f@(ICForeign {iConType = t})) []
 		      ((IAps ici@(ICon _ (ICPrim _ PrimIf)) [it] [cond, e0, e1]):rest)) | it == itFmt =
             do n0    <- newFFCallNo
                n1    <- newFFCallNo
@@ -826,8 +826,8 @@ reduceFmt e =
                e1''' <- reduce rm_args False e1''
                return (IAps ici [rt] [cond, e0''', e1'''])
             where (_  , rt) = itGetArrows t
-	reduce rm_args False (IAps icf@(ICon fid f@(ICForeign {})) [] (first:rest)) 
-	    | any isIfFmt rest = 
+	reduce rm_args False (IAps icf@(ICon fid f@(ICForeign {})) [] (first:rest))
+	    | any isIfFmt rest =
             do n  <- newFFCallNo
                e' <- reduce rm_args False (IAps (ICon fid f {fcallNo = (Just n)}) [] rest)
                e'' <- addArg (IAps icf [] [first]) e'
@@ -874,7 +874,7 @@ isIfFmt (IAps (ICon _ (ICPrim _ PrimIf)) [it] _) | it == itFmt = True
 isIfFmt _ = False
 
 eliminateFormat :: IExpr a -> [IExpr a]
-eliminateFormat (IAps (ICon _ ICForeign {iConType = t}) [] es) | rt == itFmt = es 
+eliminateFormat (IAps (ICon _ ICForeign {iConType = t}) [] es) | rt == itFmt = es
     where (_, rt) = itGetArrows t
 -- also remove $format with no arguments
 -- XXX perhaps the caller shouldn't have created this expression?
@@ -887,13 +887,13 @@ eliminateFormat (ICon _ ICUndet {iConType = t}) | t == itFmt = []
 eliminateFormat x = [x]
 
 isActionFFWithFmts :: IExpr a -> Bool
-isActionFFWithFmts (IAps (ICon _ (ICForeign {iConType = t})) _ _) = 
+isActionFFWithFmts (IAps (ICon _ (ICForeign {iConType = t})) _ _) =
    (isitAction rt) &&  (any (== itFmt) at)
    where (at , rt) = itGetArrows (getInnerType t)
 isActionFFWithFmts _                                          = False
 
 isAVFFWithFmts :: IExpr a -> Bool
-isAVFFWithFmts (IAps (ICon _ (ICForeign {iConType = t})) _ _) = 
+isAVFFWithFmts (IAps (ICon _ (ICForeign {iConType = t})) _ _) =
    (isitActionValue_ rt) &&  (any (== itFmt) at)
    where (at , rt) = itGetArrows (getInnerType t)
 isAVFFWithFmts _                                              = False
@@ -905,7 +905,7 @@ isFFWithFmts e = isActionFFWithFmts e || isAVFFWithFmts e
 
 
 ssplitFmt_ifc :: [IEFace a] -> F a [IEFace a]
-ssplitFmt_ifc ifc_list 
+ssplitFmt_ifc ifc_list
     = do let updateIfc (IEFace i xs (Just (e,t)) rules wp fi) = do e' <- ssplitFmt e
                                                                    return (IEFace i xs (Just (e',t)) rules wp fi)
              updateIfc (IEFace i xs _ rules wp fi)            = return (internalError("ssplitFmt_ifc: expression not found"))

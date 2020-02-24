@@ -50,7 +50,7 @@ eqType0 flags symt r@(E _ _ eqs _) t t' =
 eqType1 :: Flags -> SymTab -> Env -> IType -> IType -> Bool
 
 -- hack to make commutative type constructors work
-eqType1 flags symt r (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3) 
+eqType1 flags symt r (ITAp (ITAp (ITAp (ITCon i _ _) t1) t2) t3)
                      (ITAp (ITAp (ITAp (ITCon i' _ _) t1') t2') t3')
     | (i == i') && (hasIdProp i IdPCommutativeTCon) =
     eqType0 flags symt r t3 t3' &&
@@ -111,7 +111,7 @@ tCheck flags symt r ec@(ILam i t e) =
 tCheck flags symt r ec@(IAps f0 ts [a]) =
 	let f = iAps f0 ts [] in
 	case tCheck flags symt r f of
-	ITAp (ITAp arr at') rt | arr == itArrow -> 
+	ITAp (ITAp arr at') rt | arr == itArrow ->
 	    let at = tCheck flags symt r a
 	    in  --trace(ppReadable((f,tCheck r f),(a,at))) $
 		assert (eqType flags symt r at at') "IAp"
@@ -124,7 +124,7 @@ tCheck flags symt r (ILAM i k e) =
     ITForAll i k (tCheck flags symt (addK i k r) e)
 tCheck flags symt r ec@(IAps e [t] []) =
 	case tCheck flags symt r e of
-	ITForAll i k rt -> 
+	ITForAll i k rt ->
 	    let kt = kCheckErr r t
 		rt'= tSubst i t rt
 	    in  --trace ("tCheck " ++ ppReadable ((e,et),(t,kt))) $
@@ -190,10 +190,10 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
                           _ -> True)
 
 	    rulesOK (IRules sps rs) = all ruleOK rs
-	    ruleOK (IRule { irule_pred = p , irule_body = a }) = 
-		let tp = tCheck flags symt r p 
+	    ruleOK (IRule { irule_pred = p , irule_body = a }) =
+		let tp = tCheck flags symt r p
                     ta = tCheck flags symt r a
-                in 
+                in
                     assert (eqType flags symt r tp itBit1) "ruleOK p"
                         (p, tp) (p, tp) True &&
 		    assert (eqType flags symt r ta itAction) "ruleOK a"

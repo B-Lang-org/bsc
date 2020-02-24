@@ -240,7 +240,7 @@ isFalseSExpr ye = do
 
 checkEq :: SState -> AExpr -> AExpr -> IO (Maybe Bool, SState)
 checkEq s e1 e2 = runStateT (checkEqM e1 e2) s
-    
+
 checkNotEq :: SState -> AExpr -> AExpr -> IO (Maybe Bool, SState)
 checkNotEq s e1 e2 = runStateT (checkNotEqM e1 e2) s
 
@@ -404,7 +404,7 @@ assertDef i (y_e, ty_e) = do
     var@(y_var, _) <- makeDeclAndVar (Just ty_e) str width
     yeq <- liftIO $ S.mkEq ctx y_var y_e
     liftIO $ S.assert ctx yeq
-    return var               
+    return var
 -}
 
 makeDeclAndVar :: Maybe SType -> String -> Integer -> SM (S.Expr, SType)
@@ -796,7 +796,7 @@ convPrim2SExpr mty PrimSRA i w [e1,e2] =
 
 
 -- Bit argument, identical static Int arguments, Bool result
-convPrim2SExpr (Just SBool) PrimExtract _ _ 
+convPrim2SExpr (Just SBool) PrimExtract _ _
                [e, ub@(ASInt {}), lb@(ASInt {})] | (yub == ylb) = do
     (ye, _) <- convAExpr2SExpr_Force False e
     ctx <- gets context

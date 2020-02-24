@@ -14,15 +14,15 @@
 -- Thus, the data types MethodId, UniqueUse, MethodUsers, and RuleId are
 -- also exported.
 --
--- Other data types (notably RuleUsesMap) 
+-- Other data types (notably RuleUsesMap)
 -- are exposed for use by ASchedule and AAddSchedAssumps:
 --
 -- 1) ASchedule creates a list of Rules using its own "cvtARule" and "cvtIfc"
 --    functions (which could probably be put here in AUses)
 -- 2) Then it calls buildUseMaps to create get the use maps from AUses.
--- 3) buildUseMaps first builds a ruleUseMap (using ruleUsesMap) 
+-- 3) buildUseMaps first builds a ruleUseMap (using ruleUsesMap)
 -- 4) A complete uses map is created, with "createMethodUsesMap",
---    by inverting the RuleUsesMap and adding uses from the submodule 
+--    by inverting the RuleUsesMap and adding uses from the submodule
 --    instances.
 -- 5) Both maps are returned to ASchedule
 -- 6) The ruleUseMap is used to check that rules have proper actions
@@ -34,7 +34,7 @@
 --    data structures.
 -- 8) The MethodUsesMap is used by RSchedule for resource allocation.
 --    (it is also used as part of clock-domain checking in the scheduler)
--- 
+--
 -- AAddSchedAssumps uses a RuleUsesMap because it needs to go from
 -- rules to method calls to potentially conflicting method calls in
 -- "conflict-free" rules
@@ -143,8 +143,8 @@ instance PPrint UniqueUse where
     pPrint PDDebug _ u = text "<UniqueUse>" <+> pPrint PDReadable 0 u
     pPrint d i   (UUAction a) = pPrint d i a
     pPrint d i (UUExpr a c) | c == ucTrue = pPrint d i a
-    pPrint d i u@(UUExpr a uc) = pPrint d i a <+> 
-                                           text "condition:" <+> 
+    pPrint d i u@(UUExpr a uc) = pPrint d i a <+>
+                                           text "condition:" <+>
                                            pPrint d i (useCondToAExpr uc)
 
 instance PPrintExpand UniqueUse where
@@ -176,8 +176,8 @@ getUUPos (UUExpr _ _) = noPosition -- XXX internal error? get a real position?
 
 extractCondition :: UniqueUse -> AExpr
 extractCondition (UUAction act) | (c:_) <- aact_args act = c
-extractCondition (UUAction act) = internalError("AUses - action without condition: " 
-                                                 ++ ppReadable act) 
+extractCondition (UUAction act) = internalError("AUses - action without condition: "
+                                                 ++ ppReadable act)
 extractCondition (UUExpr _ uc) = useCondToAExpr uc
 
 useCondToAExpr uc = foldl aAnd aTrue exprs
@@ -186,7 +186,7 @@ useCondToAExpr uc = foldl aAnd aTrue exprs
         eq_list = map mkEq (M.toList (eq_map uc))
         mkEq  (e,i)  = APrim defaultAId aTBool PrimEQ [e, ASInt defaultAId (aType e) i]
         neq_list = concatMap mkNEq (M.toList (neq_map uc))
-        mkNEq (e,is) = map (\i -> APrim defaultAId aTBool PrimBNot [mkEq (e,i)]) (S.toList is) 
+        mkNEq (e,is) = map (\i -> APrim defaultAId aTBool PrimBNot [mkEq (e,i)]) (S.toList is)
         exprs = true_list ++ false_list ++ eq_list ++ neq_list
 
 useDropCond :: UniqueUse -> UniqueUse
@@ -310,7 +310,7 @@ mergeActionUses uss =
       (mergeMethodUses muss, mergeFFuncUses fuss)
 
 mergeExprUsesM :: [ExprUses] -> UCM (ExprUses)
-mergeExprUsesM uss = do 
+mergeExprUsesM uss = do
   let
       mergeUsesFnM :: M.Map AExpr UseCond -> M.Map AExpr UseCond ->
                       UCM (M.Map AExpr UseCond)
@@ -331,7 +331,7 @@ mergeExprUsesM uss = do
 
 addUseCond :: DefMap -> AExpr -> ExprUses -> ExprUses
 addUseCond dm c (mus, fus) =
-    let 
+    let
         addUC c' = andUseCond dm c c'
         isFalseCond c' = (c' == ucFalse)
 
@@ -349,7 +349,7 @@ addUseCond dm c (mus, fus) =
                 dropFalse = M.filter (not . isFalseCond)
             in  filterNullFFUses (mapFFUses (dropFalse . M.map addUC) us)
 
-    in  
+    in
         (addCondMethUses mus, addCondFFUses fus)
 
 -- extract common uses with the same condition
@@ -379,7 +379,7 @@ minusUses (mus1, fus1) (mus2, fus2) = (mus', fus')
 -- note: actionvalue method calls will start out being mentioned in both
 -- the action read and write uses, but we will filter out the read uses
 data RuleUses = RuleUses ExprUses ExprUses ActionUses
-  
+
 instance PPrint RuleUses where
     pPrint d i (RuleUses pus rus wus) =
        let pmus = toListMethodExprUses $ getMethodExprUses pus
@@ -421,7 +421,7 @@ ruleMethodUsesToUUs (RuleUses pus rus wus) =
 type RuleUsesMap = M.Map RuleId (AExpr, RuleUses)
 
 -- This is still around for ASchedule to idenitfy common Action uses
--- between two rules, for warning about arbitrary earliness. 
+-- between two rules, for warning about arbitrary earliness.
 -- XXX A more abstract entry point might be good?
 rumGetActionUses :: RuleUsesMap -> ARuleId -> ActionUses
 rumGetActionUses m r = case M.lookup r m of
@@ -517,7 +517,7 @@ getDefUses i = do
     Nothing -> do
       -- traceM ("getDefUses miss: " ++ ppReadable (i, M.size um))
       dm <- getDefMap
-      let err = errNoDef i 
+      let err = errNoDef i
       let e = M.findWithDefault err i dm
       uses <- eDomain e
       s <- get
@@ -525,14 +525,14 @@ getDefUses i = do
       put (s { defUseMap = um' })
       -- traceM ("getDefUses: " ++ ppReadable (i, e, uses))
       return uses
-      
+
 initUCState defs = UCState {
                      nextNo = 1,
                      new_defs = [],
                      -- is throwing away props incorrect?
                      cseMap = M.fromList [(e, (i,t)) | ADef i t e _props <- defs ],
                      defMap = M.fromList [(i, e) | ADef i _ e _props <- defs ],
-                     defUseMap = M.empty 
+                     defUseMap = M.empty
                    }
 
 runUCState :: [ADef] -> UCM a -> (a, [ADef])
@@ -556,7 +556,7 @@ newDef e = do
   let t = aType e
   let def = ADef i t e [] -- props from somewhere? xxx
   s <- get
-  let new_defs' = def : (new_defs s) 
+  let new_defs' = def : (new_defs s)
   let cseMap' = M.insert e (i,t) (cseMap s)
   put (s { new_defs = new_defs', cseMap = cseMap' })
   return (i, t)
@@ -612,25 +612,25 @@ isTrueUseCond uc = S.null (true_exprs uc) &&
 -- overlapping AND terms and making a residual expression
 preOrUseCond :: UseCond -> UseCond -> (UseCond, AExpr)
 preOrUseCond uc1 uc2 =
-    {-             
+    {-
     trace ("uc1: " ++ ppReadable (true_exprs uc1, false_exprs uc1,
                                   eq_map uc1, neq_map uc1)) $
     trace ("uc2: " ++ ppReadable (true_exprs uc2, false_exprs uc2,
                                   eq_map uc2, neq_map uc2)) $
     trace ("shared_uc: " ++ ppReadable (shared_true, shared_false,
-                                        shared_eq, shared_neq)) $ 
+                                        shared_eq, shared_neq)) $
     trace ("uc1_rest: " ++ ppReadable (true1, false1, eq1, neq1)) $
     trace ("uc2_rest: " ++ ppReadable (true2, false2, eq2, neq2)) $
     -}
     (shared_uc, or_expr)
-  where shared_true  = 
+  where shared_true  =
             S.intersection (true_exprs uc1) (true_exprs uc2)
         shared_false = S.intersection (false_exprs uc1) (false_exprs uc2)
         -- only keep eq_map entries if they equal the same value
         eq_match i1 i2 = toMaybe (i1 == i2) i1
-        shared_eq = M.mapMaybe id $ 
+        shared_eq = M.mapMaybe id $
                     (M.intersectionWith eq_match (eq_map uc1) (eq_map uc2))
-        shared_neq = M.filter (not . S.null) $ 
+        shared_neq = M.filter (not . S.null) $
                      (M.intersectionWith S.intersection) (neq_map uc1) (neq_map uc2)
         shared_uc = UseCond shared_true shared_false shared_eq shared_neq
         true1 = (true_exprs uc1) `S.difference` shared_true
@@ -639,17 +639,17 @@ preOrUseCond uc1 uc2 =
         false2 = (false_exprs uc2) `S.difference` shared_false
         eq1 = (eq_map uc1) `M.difference` shared_eq
         eq2 = (eq_map uc2) `M.difference` shared_eq
-        -- when neq expressions overlap, 
+        -- when neq expressions overlap,
         -- check if there are residual terms to preserve
         -- M.differenceWith keeps the original terms otherwise
-        neq_diff s1 s2 = toMaybe (not (S.null base_result)) base_result 
+        neq_diff s1 s2 = toMaybe (not (S.null base_result)) base_result
            where base_result = s1 `S.difference` s2
         neq1 = M.differenceWith neq_diff (neq_map uc1) shared_neq
         neq2 = M.differenceWith neq_diff (neq_map uc2) shared_neq
         uc1_rest = UseCond true1 false1 eq1 neq1
         uc2_rest = UseCond true2 false2 eq2 neq2
         or_expr = aOr (useCondToAExpr uc1_rest) (useCondToAExpr uc2_rest)
-        
+
 orUseCond  uc1 uc2 = if (isTrue or_expr) then uc else uc'
   where (uc, or_expr) = preOrUseCond uc1 uc2
         uc' = uc { true_exprs = S.insert or_expr (true_exprs uc) }
@@ -698,18 +698,18 @@ andUseCond' dm _ e uc | length es > 1 =
 andUseCond' dm (Just d) _ uc = addTrue d uc  -- don't inline the def
 andUseCond' dm Nothing e' uc = addTrue e' uc
 
-doNEq x i uc = 
+doNEq x i uc =
     case (M.lookup x (eq_map uc)) of
-      Just j -> 
+      Just j ->
           if (i == j) then ucFalse else uc
-      Nothing -> 
+      Nothing ->
          let neq' = M.insertWith (S.union) x (S.singleton i) (neq_map uc)
          in uc { neq_map = neq' }
 
-doEQ x i uc = 
+doEQ x i uc =
   case (M.lookup x (eq_map uc)) of
     Just j -> if i == j then uc else ucFalse
-    Nothing -> 
+    Nothing ->
       case (M.lookup x (neq_map uc)) of
         Just s ->
             if (i `S.member` s) then ucFalse
@@ -724,11 +724,11 @@ addFalse e uc =
     else if (e `S.member` (true_exprs uc) || isTrue e) then ucFalse
     else let false' = S.insert e (false_exprs uc)
          in uc { false_exprs = false' }
-            
-addTrue e uc = 
+
+addTrue e uc =
     if (e `S.member` (false_exprs uc)) then ucFalse
     else if isFalse e then ucFalse
-    else if isTrue e then uc 
+    else if isTrue e then uc
     else let true' = S.insert e (true_exprs uc)
          in uc { true_exprs = true' }
 
@@ -911,16 +911,16 @@ type MethodUsesList = [(MethodId, [UniqueUse])]
 mergeUseMapData :: [(UniqueUse, MethodUsers)] -> [(UniqueUse, MethodUsers)] -> [(UniqueUse, MethodUsers)]
 mergeUseMapData a b | null exprBlobs   = actionMergeResult
                     | null actionBlobs = exprMergeResult
-                    | otherwise = internalError("Method has both action and expr uses " ++ ppReadable blobs)  
+                    | otherwise = internalError("Method has both action and expr uses " ++ ppReadable blobs)
   where blobs = a ++ b
         (actionBlobs, exprBlobs) = partition (isUUAction . fst) blobs
         actionMergeResult = M.toList (M.fromListWith concatMethodUsers blobs)
-        -- UUExpr merging needs to be handled carefully because we 
+        -- UUExpr merging needs to be handled carefully because we
         -- want to be able to look up uses without the use condition
         exprCondMerge (c1, u1) (c2, u2) = (orUseCond c1 c2, concatMethodUsers u1 u2)
-        exprMergeList = [(e, (c, mus)) | (UUExpr e c, mus) <- blobs ] 
+        exprMergeList = [(e, (c, mus)) | (UUExpr e c, mus) <- blobs ]
         exprMergeMap  = M.fromListWith exprCondMerge exprMergeList
-        exprMergeResult = [(UUExpr e c, mus) | (e, (c, mus)) <- M.toList exprMergeMap] 
+        exprMergeResult = [(UUExpr e c, mus) | (e, (c, mus)) <- M.toList exprMergeMap]
 
 
 concatMethodUsers :: MethodUsers -> MethodUsers -> MethodUsers
@@ -938,7 +938,7 @@ createMethodUsesMap rmap avis = do
   let methodUsesMap0 = invertRuleUsesMap rmap
   instUses <- aInstUseMap avis
   -- reverse the instance use-map
-  let inst_edges = [(mId, [(uuse, ([], [], [instId])) | uuse <- us]) 
+  let inst_edges = [(mId, [(uuse, ([], [], [instId])) | uuse <- us])
                          | (instId, uses) <- instUses,
                            -- uses for each method
                            (mId, us) <- getMethodUUExprs uses ]
@@ -949,7 +949,7 @@ createMethodUsesMap rmap avis = do
       -- function for merging the new edges
       -- XXX takes advantage of the new edges not having rule uses
       muUnion (_,_,zs) (xs',ys',zs') = (xs', ys', union zs zs')
-  
+
   return (methodUsesMap)
 
 -- convert (rule -> method -> uses) to (method -> uses -> users)
@@ -965,7 +965,7 @@ invertRuleUsesMap rMap =
     where
 	-- convert a Left/Right use into the proper triple form, for merging
 	-- (Left for predicate uses, Right for action reads/writes)
-	cvt rId (Left (mId, us)) = 
+	cvt rId (Left (mId, us)) =
 	    (mId, [(uUse, ([rId], [], [])) | uUse <- us])
 	cvt rId (Right (mId, us)) =
 	    (mId, [(uUse, ([], [rId], [])) | uUse <- us])

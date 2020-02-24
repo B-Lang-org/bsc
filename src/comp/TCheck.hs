@@ -1265,7 +1265,7 @@ checkAssertParam as e =
       case t of
         _ | isString t -> return (res, t, [])
         _ | isChar t ->
-          do 
+          do
             res' <- tiExpr as tString (cVApply (idPrimCharToString pos) [e])
             return (res', tString, [])
         _ | isBool t || isUInt t ->

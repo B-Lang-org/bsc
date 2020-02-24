@@ -66,7 +66,7 @@ lcAPackageProcess errh flags apkg = (
   .
   -- in exprs for method return values, lift actionvalue return value
   -- references to their own defs, so that the actionvalue can be
-  -- properly sequenced 
+  -- properly sequenced
   makeMethodTemps
   ) apkg
 
@@ -208,13 +208,13 @@ getAActionDefs def_map known (act:acts) =
 getAExprDefs :: DefMap -> M.Map AId (AType, AExpr) -> [AExpr] ->
                 M.Map AId (AType, AExpr)
 getAExprDefs _ known [] = known
-getAExprDefs def_map known ((APrim _ _ _ args):es) = 
+getAExprDefs def_map known ((APrim _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
-getAExprDefs def_map known ((AMethCall _ _ _ args):es) = 
+getAExprDefs def_map known ((AMethCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
-getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) = 
+getAExprDefs def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
-getAExprDefs def_map known ((AFunCall _ _ _ _ args):es) = 
+getAExprDefs def_map known ((AFunCall _ _ _ _ args):es) =
   getAExprDefs def_map known (args ++ es)
 getAExprDefs def_map known ((ASDef _ i):es) =
   case (M.lookup i known) of
@@ -383,7 +383,7 @@ tsortActionsAndDefs mmap defmap uses acts =
 	    [ edge | ADef i _ e _ <- used_defs,
                      -- "aMethCalls" can return duplicates, but that's OK
                      (obj,meth) <- aMethCalls e,
-		     edge <- 
+		     edge <-
                            -- def SB act
 			   [ (Right n, [Left i])
 			       | (n,a) <- method_calls,
@@ -789,7 +789,7 @@ updateAPackageTypes apkg =
           return (rs, ifcs, avis)
 
         ((rs', ifcs', avis'), defmap') = runUTM defmap updateFn
-    in 
+    in
         apkg { apkg_local_defs = M.elems defmap',
                apkg_rules = rs',
                apkg_interface = ifcs',
@@ -797,7 +797,7 @@ updateAPackageTypes apkg =
 
 -- -----
 
-data UpdateTypesState = 
+data UpdateTypesState =
     UpdateTypesState {
         -- read-only state
         ut_defMap :: DefMap,
@@ -1215,7 +1215,7 @@ inlineUndet = mapAExprs g
 
     f (ASAny _ (Just e)) = Just (g e)
     f _                  = Nothing
-                                                                
+
 -- -------------------------
 
 getSubModAVMethReturnTypes :: AVInst -> M.Map Id AType

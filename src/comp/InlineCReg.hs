@@ -52,7 +52,7 @@ aInlineCReg pkg@(ASPackage { aspkg_state_instances = vs,
         --  * new defs (for the CReg outputs and the Reg inputs)
         creg_tuples = map mkCR creg_vs
 
-        -- record the CReg port names 
+        -- record the CReg port names
         creg_ports = concatMap (\(a,b,c,d,e) -> b) creg_tuples
 
         -- record the signal info for RTL grouping

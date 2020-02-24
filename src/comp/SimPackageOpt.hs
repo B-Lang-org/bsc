@@ -41,9 +41,9 @@ pkgOpt errh flags pkg0 = do
   -- Note: This can leave unused defs, so we rely on the later opts
   -- to remove unused defs.
   let pkg1B = insertCase pkg1A
-      
+
   -- remove occurrences of ASAny
-  -- 
+  --
   -- replace occurrences of ASAny with a user-specified value;
   -- this is monadic because it can error if the user specified X or Z
   pkg2 <- convertASAny errh flags pkg1B
@@ -51,11 +51,11 @@ pkgOpt errh flags pkg0 = do
   -- inline defs (that were created in anticipation of CSE that didn't happen)
   -- and remove unused defs
   let pkg3 = inlineDefs pkg2
-      
+
   -- combine nested concats and constants exposed by converting ASAny,
   -- and optimize wide concats for Bluesim codegen
   let pkg4 = optimizeConcats pkg3
-  
+
   return pkg4
 
 -- -------------------------
@@ -301,7 +301,7 @@ convertASAny errh flags apkg = do
   let
       tgt :: String
       tgt = unSpecTo flags
-      
+
       mkVal :: Integer -> IO AExpr
       mkVal n = do
         v <- case tgt of
@@ -334,7 +334,7 @@ convertASAny errh flags apkg = do
       rs = sp_rules apkg
       ifc = sp_interface apkg
       dmap = sp_local_defs apkg
-  
+
   ss' <- mapMAExprs cvtASAnyExpr ss
   rs' <- mapMAExprs cvtASAnyExpr rs
   ifc' <- mapMAExprs cvtASAnyExpr ifc

@@ -4,13 +4,13 @@
 -- Module      :  ParsecToken
 -- Copyright   :  (c) Daan Leijen 1999-2001
 -- License     :  BSD-style (see the file LICENSE)
--- 
+--
 -- Maintainer  :  daan@cs.uu.nl
 -- Stability   :  provisional
 -- Portability :  non-portable (uses existentially quantified data constructors)
 --
 -- A helper module to parse lexical elements (tokens).
--- 
+--
 -----------------------------------------------------------------------------
 
 module ParsecToken
@@ -27,12 +27,12 @@ import Parsec
 -----------------------------------------------------------
 -- Language Definition
 -----------------------------------------------------------
-data LanguageDef st  
-    = LanguageDef 
+data LanguageDef st
+    = LanguageDef
     { commentStart   :: String
     , commentEnd     :: String
     , commentLine    :: String
-    , nestedComments :: Bool                  
+    , nestedComments :: Bool
     , identStart     :: CharParser st Char
     , identLetter    :: CharParser st Char
     , opStart        :: CharParser st Char
@@ -40,8 +40,8 @@ data LanguageDef st
     , reservedNames  :: [String]
     , reservedOpNames:: [String]
     , caseSensitive  :: Bool
-    }                           
-           
+    }
+
 -----------------------------------------------------------
 -- A first class module: TokenParser
 -----------------------------------------------------------
@@ -50,7 +50,7 @@ data TokenParser st
                  , reserved         :: String -> CharParser st ()
                  , operator         :: CharParser st String
                  , reservedOp       :: String -> CharParser st ()
-                        
+
                  , charLiteral      :: CharParser st Char
                  , stringLiteral    :: CharParser st String
                  , natural          :: CharParser st Integer
@@ -60,17 +60,17 @@ data TokenParser st
                  , decimal          :: CharParser st Integer
                  , hexadecimal      :: CharParser st Integer
                  , octal            :: CharParser st Integer
-            
+
                  , symbol           :: String -> CharParser st String
                  , lexeme           :: forall a. CharParser st a -> CharParser st a
-                 , whiteSpace       :: CharParser st ()     
-             
-                 , parens           :: forall a. CharParser st a -> CharParser st a 
+                 , whiteSpace       :: CharParser st ()
+
+                 , parens           :: forall a. CharParser st a -> CharParser st a
                  , braces           :: forall a. CharParser st a -> CharParser st a
                  , angles           :: forall a. CharParser st a -> CharParser st a
                  , brackets         :: forall a. CharParser st a -> CharParser st a
                  -- "squares" is deprecated
-                 , squares          :: forall a. CharParser st a -> CharParser st a 
+                 , squares          :: forall a. CharParser st a -> CharParser st a
 
                  , semi             :: CharParser st String
                  , comma            :: CharParser st String
@@ -79,7 +79,7 @@ data TokenParser st
                  , semiSep          :: forall a . CharParser st a -> CharParser st [a]
                  , semiSep1         :: forall a . CharParser st a -> CharParser st [a]
                  , commaSep         :: forall a . CharParser st a -> CharParser st [a]
-                 , commaSep1        :: forall a . CharParser st a -> CharParser st [a]                
+                 , commaSep1        :: forall a . CharParser st a -> CharParser st [a]
                  }
 
 -----------------------------------------------------------
@@ -91,7 +91,7 @@ makeTokenParser languageDef
                  , reserved = reserved
                  , operator = operator
                  , reservedOp = reservedOp
-                        
+
                  , charLiteral = charLiteral
                  , stringLiteral = stringLiteral
                  , natural = natural
@@ -101,11 +101,11 @@ makeTokenParser languageDef
                  , decimal = decimal
                  , hexadecimal = hexadecimal
                  , octal = octal
-            
+
                  , symbol = symbol
                  , lexeme = lexeme
                  , whiteSpace = whiteSpace
-             
+
                  , parens = parens
                  , braces = braces
                  , angles = angles
@@ -121,7 +121,7 @@ makeTokenParser languageDef
                  , commaSep1 = commaSep1
                  }
     where
-     
+
     -----------------------------------------------------------
     -- Bracketing
     -----------------------------------------------------------
@@ -130,7 +130,7 @@ makeTokenParser languageDef
     angles p        = between (symbol "<") (symbol ">") p
     brackets p      = between (symbol "[") (symbol "]") p
 
-    semi            = symbol ";" 
+    semi            = symbol ";"
     comma           = symbol ","
     dot             = symbol "."
     colon           = symbol ":"
@@ -146,12 +146,12 @@ makeTokenParser languageDef
     -- Chars & Strings
     -----------------------------------------------------------
     -- charLiteral :: CharParser st Char
-    charLiteral     = lexeme (between (char '\'') 
+    charLiteral     = lexeme (between (char '\'')
                                       (char '\'' <?> "end of character")
                                       characterChar )
                     <?> "character"
 
-    characterChar   = charLetter <|> charEscape 
+    characterChar   = charLetter <|> charEscape
                     <?> "literal character"
 
     charEscape      = do{ char '\\'; escapeCode }
@@ -161,18 +161,18 @@ makeTokenParser languageDef
 
     -- stringLiteral :: CharParser st String
     stringLiteral   = lexeme (
-                      do{ str <- between (char '"')                   
+                      do{ str <- between (char '"')
                                          (char '"' <?> "end of string")
-                                         (many stringChar) 
+                                         (many stringChar)
                         ; return (foldr (maybe id (:)) "" str)
                         }
                       <?> "literal string")
 
     -- stringChar :: CharParser st (Maybe Char)
     stringChar      =   do{ c <- stringLetter; return (Just c) }
-                    <|> stringEscape 
+                    <|> stringEscape
                     <?> "string character"
-                
+
     stringLetter    = satisfy (\c -> (c /= '"') && (c /= '\\') && (c > '\026'))
 
     stringEscape    = do{ char '\\'
@@ -180,14 +180,14 @@ makeTokenParser languageDef
                           <|> do{ escapeEmpty; return Nothing }
                           <|> do{ esc <- escapeCode; return (Just esc) }
                         }
-                        
+
     escapeEmpty     = char '&'
     escapeGap       = do{ many1 space
                         ; char '\\' <?> "end of string gap"
                         }
-                        
-                        
-                        
+
+
+
     -- escape codes
     escapeCode      = charEsc <|> charNum <|> charAscii <|> charControl
                     <?> "escape code"
@@ -198,8 +198,8 @@ makeTokenParser languageDef
                         ; return (toEnum (fromEnum code - fromEnum 'A'))
                         }
 
-    -- charNum :: CharParser st Char                    
-    charNum         = do{ code <- decimal 
+    -- charNum :: CharParser st Char
+    charNum         = do{ code <- decimal
                                   <|> do{ char 'o'; number 8 octDigit }
                                   <|> do{ char 'x'; number 16 hexDigit }
                         ; return (toEnum (fromInteger code))
@@ -208,7 +208,7 @@ makeTokenParser languageDef
     charEsc         = choice (map parseEsc escMap)
                     where
                       parseEsc (c,code)     = do{ char c; return code }
-                      
+
     charAscii       = choice (map parseAscii asciiMap)
                     where
                       parseAscii (asc,code) = try (do{ string asc; return code })
@@ -216,7 +216,7 @@ makeTokenParser languageDef
 
     -- escape code tables
     escMap          = zip ("abfnrtv\\\"\'") ("\a\b\f\n\r\t\v\\\"\'")
-    asciiMap        = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2) 
+    asciiMap        = zip (ascii3codes ++ ascii2codes) (ascii3 ++ ascii2)
 
     ascii2codes     = ["BS","HT","LF","VT","FF","CR","SO","SI","EM",
                        "FS","GS","RS","US","SP"]
@@ -243,7 +243,7 @@ makeTokenParser languageDef
 
 
     -- floats
-    floating        = do{ n <- decimal 
+    floating        = do{ n <- decimal
                         ; fractExponent n
                         }
 
@@ -252,23 +252,23 @@ makeTokenParser languageDef
                         ; zeroNumFloat
                         }
                       <|> decimalFloat
-                      
+
     zeroNumFloat    =  do{ n <- hexadecimal <|> octal
                          ; return (Left n)
                          }
                     <|> decimalFloat
                     <|> fractFloat 0
-                    <|> return (Left 0)                  
-                      
+                    <|> return (Left 0)
+
     decimalFloat    = do{ n <- decimal
-                        ; option (Left n) 
+                        ; option (Left n)
                                  (fractFloat n)
                         }
 
     fractFloat n    = do{ f <- fractExponent n
                         ; return (Right f)
                         }
-                        
+
     fractExponent n = do{ fract <- fraction
                         ; expo  <- option 1.0 exponent'
                         ; return ((fromInteger n + fract)*expo)
@@ -285,7 +285,7 @@ makeTokenParser languageDef
                       <?> "fraction"
                     where
                       op d f    = (f + fromIntegral (digitToInt d))/10.0
-                        
+
     exponent'       = do{ oneOf "eE"
                         ; f <- sign
                         ; e <- decimal <?> "exponent"
@@ -302,20 +302,20 @@ makeTokenParser languageDef
                         ; n <- nat
                         ; return (f n)
                         }
-                        
+
     -- sign            :: CharParser st (Integer -> Integer)
-    sign            =   (char '-' >> return negate) 
-                    <|> (char '+' >> return id)     
+    sign            =   (char '-' >> return negate)
+                    <|> (char '+' >> return id)
                     <|> return id
 
     nat             = zeroNumber <|> decimal
-        
+
     zeroNumber      = do{ char '0'
                         ; hexadecimal <|> octal <|> decimal <|> return 0
                         }
-                      <?> ""       
+                      <?> ""
 
-    decimal         = number 10 digit        
+    decimal         = number 10 digit
     hexadecimal     = do{ oneOf "xX"; number 16 hexDigit }
     octal           = do{ oneOf "oO"; number 8 octDigit  }
 
@@ -324,12 +324,12 @@ makeTokenParser languageDef
         = do{ digits <- many1 baseDigit
             ; let n = foldl (\x d -> base*x + toInteger (digitToInt d)) 0 digits
             ; seq n (return n)
-            }          
+            }
 
     -----------------------------------------------------------
     -- Operators & reserved ops
     -----------------------------------------------------------
-    reservedOp name =   
+    reservedOp name =
         lexeme $ try $
         do{ string name
           ; notFollowedBy (opLetter languageDef) <?> ("end of " ++ show name)
@@ -342,18 +342,18 @@ makeTokenParser languageDef
              then unexpected ("reserved operator " ++ show name)
              else return name
           }
-          
+
     oper =
         do{ c <- (opStart languageDef)
           ; cs <- many (opLetter languageDef)
           ; return (c:cs)
           }
         <?> "operator"
-        
+
     isReservedOp name =
-        isReserved (sort (reservedOpNames languageDef)) name          
-        
-        
+        isReserved (sort (reservedOpNames languageDef)) name
+
+
     -----------------------------------------------------------
     -- Identifiers & Reserved words
     -----------------------------------------------------------
@@ -369,12 +369,12 @@ makeTokenParser languageDef
         where
           walk []     = return ()
           walk (c:cs) = do{ caseChar c <?> msg; walk cs }
-          
+
           caseChar c  | isAlpha c  = char (toLower c) <|> char (toUpper c)
                       | otherwise  = char c
-          
+
           msg         = show name
-          
+
 
     identifier =
         lexeme $ try $
@@ -383,9 +383,9 @@ makeTokenParser languageDef
              then unexpected ("reserved word " ++ show name)
              else return name
           }
-        
-        
-    ident           
+
+
+    ident
         = do{ c <- identStart languageDef
             ; cs <- many (identLetter languageDef)
             ; return (c:cs)
@@ -398,8 +398,8 @@ makeTokenParser languageDef
           caseName      | caseSensitive languageDef  = name
                         | otherwise               = map toLower name
 
-        
-    isReserved names name    
+
+    isReserved names name
         = scan names
         where
           scan []       = False
@@ -413,7 +413,7 @@ makeTokenParser languageDef
         | otherwise               = map (map toLower) sortedNames
         where
           sortedNames   = sort (reservedNames languageDef)
-                                 
+
 
 
     -----------------------------------------------------------
@@ -422,24 +422,24 @@ makeTokenParser languageDef
     symbol name
         = lexeme (string name)
 
-    lexeme p       
+    lexeme p
         = do{ x <- p; whiteSpace; return x  }
-      
-      
-    --whiteSpace    
-    whiteSpace 
+
+
+    --whiteSpace
+    whiteSpace
         | noLine && noMulti  = skipMany (simpleSpace <?> "")
         | noLine             = skipMany (simpleSpace <|> multiLineComment <?> "")
         | noMulti            = skipMany (simpleSpace <|> oneLineComment <?> "")
         | otherwise          = skipMany (simpleSpace <|> oneLineComment <|> multiLineComment <?> "")
         where
           noLine  = null (commentLine languageDef)
-          noMulti = null (commentStart languageDef)   
-          
-          
+          noMulti = null (commentStart languageDef)
+
+
     simpleSpace =
-        skipMany1 (satisfy isSpace)    
-        
+        skipMany1 (satisfy isSpace)
+
     oneLineComment =
         do{ try (string (commentLine languageDef))
           ; skipMany (satisfy (/= '\n'))
@@ -451,16 +451,16 @@ makeTokenParser languageDef
            ; inComment
            }
 
-    inComment 
+    inComment
         | nestedComments languageDef  = inCommentMulti
         | otherwise                = inCommentSingle
-        
-    inCommentMulti 
+
+    inCommentMulti
         =   do{ try (string (commentEnd languageDef)) ; return () }
         <|> do{ multiLineComment                     ; inCommentMulti }
         <|> do{ skipMany1 (noneOf startEnd)          ; inCommentMulti }
         <|> do{ oneOf startEnd                       ; inCommentMulti }
-        <?> "end of comment"  
+        <?> "end of comment"
         where
           startEnd   = nub (commentEnd languageDef ++ commentStart languageDef)
 

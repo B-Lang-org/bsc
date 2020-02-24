@@ -236,7 +236,7 @@ instance Simp CExpr where
 --    simp r (CTaskApply task es) = (CTaskApply (simp r task) (simp r es))
     simp r (CTaskApplyT task t es) = (CTaskApplyT (simp r task) t (simp r es))
     simp r e@(CLit _) = e
---  simp r (CBinOp _ _ _) = 
+--  simp r (CBinOp _ _ _) =
 --  simp r (CHasType _ _) =
 --  simp r (Cif _ _ _ _) =
 --  simp r (Csub _ _) =
@@ -300,7 +300,7 @@ selectSimple env defs =
     in  (newEnv, simplifiedDefs ++ loopyDefs)
 
 selectSimple' :: Env -> [CDef] -> [CDef] -> (Env, [CDef])
-selectSimple' r rds [] = 
+selectSimple' r rds [] =
     --traces "selectSimple returns" $
     (r, reverse rds)
 -- (let) i :: _ = e

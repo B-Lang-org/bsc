@@ -126,7 +126,7 @@ convAPackageToSAL errh flags apkg0 =
 
         -- define each rule as a fn
         rule_defs = map (convARule defmap instmap mmap) rs
-    
+
         -- define each method as a fn
         ifc_defs = concatMap (convAIFace defmap instmap mmap) ifcs
 
@@ -825,7 +825,7 @@ makeModCtorDecl defmap inps avis =
         fs = inp_fs ++ inst_fs
         ctor_body = if (null fs)
                     then voidCon
-                    else sLam ctor_args $ 
+                    else sLam ctor_args $
                            sLet letdefs $
                              SStruct fs
     in

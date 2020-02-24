@@ -932,7 +932,7 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
     where helpStr = "Load and query information on a module"
           argmod = (arg "module" StringArg "module name")
           loadGrammar = (kw "load" "Load a synthesized module" "") .+. argmod
-                        
+
           clearGrammar = kw "clear" "Clear all loaded modules" ""
           submodsGrammar = (kw "submods" "Show submodules of a module" "") .+. argmod
           rulesGrammar = (kw "rules" "Show rules in a module" "") .+.
@@ -943,7 +943,7 @@ moduleGrammar = (tclcmd "module" namespace helpStr "") .+.
                            argmod
           portsGrammar = (kw "ports" "Show the ports of a module" "") .+.
                          argmod
-          methodConditionsGrammar = 
+          methodConditionsGrammar =
             (kw "methodconditions" "Show the method predicates of a module" "") .+.
             argmod
           listGrammar = (kw "list" "List the loaded modules" "")
@@ -1121,7 +1121,7 @@ tclModule ["methodconditions", modname] = do
                        getIdBaseString (adef_objid d)
                in  compare (extractNum d1) (extractNum d2)
          in return $ TLst $ map convert $ sortBy cmpFn $ filter ismethpred defs
-  
+
 ------
 tclModule ["porttypes",modname] = do
   if (isPrimitiveModule modname)

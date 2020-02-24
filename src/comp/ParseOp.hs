@@ -37,12 +37,12 @@ pDefn ft (CValueSign d) = do
     d' <- pDef ft d
     return (CValueSign d')
 
-pDefn ft def@(Cstruct _ sst idk _ fs _) = 
-  case sst of 
-       SStruct -> checkDupls def "member" "structure" (iKName idk) (map cf_name fs) 
+pDefn ft def@(Cstruct _ sst idk _ fs _) =
+  case sst of
+       SStruct -> checkDupls def "member" "structure" (iKName idk) (map cf_name fs)
        SInterface{} -> checkDupls def "method" "interface" (iKName idk) (map cf_name fs)
        SDataCon i _ -> checkDupls def "member" "substructure of union" i (map cf_name fs)
-       SClass -> internalError("ParseOp.pDefn: unexpected structure type: SClass\n" ++ ppReadable def) -- do not think SClass exists before the symbol table 
+       SClass -> internalError("ParseOp.pDefn: unexpected structure type: SClass\n" ++ ppReadable def) -- do not think SClass exists before the symbol table
 
 pDefn ft def@(Cclass incoh cps idk is fdps fs) = do
   let pField f@(CField { cf_default = fcs }) = do
@@ -53,12 +53,12 @@ pDefn ft def@(Cclass incoh cps idk is fdps fs) = do
   checkDupls def' "function" "typeclass" (iKName idk) (map cf_name fs)
 
 pDefn ft def@(Cdata { cd_name = idk, cd_original_summands = ocs }) =
-    checkDupls def "member" "union" (iKName idk) (concatMap cos_names ocs) 
+    checkDupls def "member" "union" (iKName idk) (concatMap cos_names ocs)
 
 pDefn ft d = return d
 
 checkDupls :: CDefn -> String -> String -> Id -> [Id] -> ErrorMonad CDefn
-checkDupls def element container_type container_name ids = 
+checkDupls def element container_type container_name ids =
   let sameIds = findSame ids in
       if (null sameIds) then return def
       -- XXX could return all duplicates, but I think tons of duplicates are rare
@@ -90,7 +90,7 @@ pDef :: FixTable -> CDef -> ErrorMonad CDef
 pDef ft (CDef i t cs) = do
     cs' <- mapM (pCClause ft) cs
     return (CDef i t cs')
-pDef ft deft@(CDefT _ _ _ _) = internalError("ParseOp.pdef: typed definition: " ++ (ppReadable deft)) 
+pDef ft deft@(CDefT _ _ _ _) = internalError("ParseOp.pdef: typed definition: " ++ (ppReadable deft))
 
 pCClause :: FixTable -> CClause -> ErrorMonad CClause
 pCClause ft (CClause ps qs e) = do
@@ -178,10 +178,10 @@ pExpr ft (CTaskApply e es) = do
     return (CTaskApply e' es')
 pExpr ft e@(CLit _) = return e
 -- XXX it is naughty but convenient to replace
--- := by Cwrite in ParseOp 
+-- := by Cwrite in ParseOp
 -- (since it is common to the Classic and BSV flows)
-pExpr ft e@(CBinOp lhs i rhs) | i `qualEq` idAssign = 
-  pExpr ft (Cwrite (getPosition i) lhs rhs)  
+pExpr ft e@(CBinOp lhs i rhs) | i `qualEq` idAssign =
+  pExpr ft (Cwrite (getPosition i) lhs rhs)
 pExpr ft (CBinOp e1 o e2) = do
     e1' <- pExpr ft e1
     e2' <- pExpr ft e2
@@ -324,7 +324,7 @@ doOp ft a op rs os es =
                             doOne ft rs os (e' : es')
 	    _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
 
-precOfA ft _ i = 
+precOfA ft _ i =
     case getIdFixity ft i of
     f@(FInfix  i) -> (i, f)
     f@(FInfixl i) -> (i, f)

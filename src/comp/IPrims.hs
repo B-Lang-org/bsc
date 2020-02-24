@@ -75,7 +75,7 @@ doPrimOp' pos op@PrimSignExt ss@[_,_,s] vs = use (iMkLitSizeAt pos s) (primResul
 doPrimOp' pos op@PrimRange ss@[s] vs = use (iMkLitSizeAt pos s) (primResult op ss vs)
 doPrimOp' pos op@PrimExtract ss@[_,_,s] vs = use (iMkLitSizeAt pos s) (primResult op ss vs)
 doPrimOp' pos op@PrimConcat ss@[_,_,s] vs = use (iMkLitSizeAt pos s) (primResult op ss vs)
---doPrimOp' pos PrimSplit _ _ = 
+--doPrimOp' pos PrimSplit _ _ =
 
 doPrimOp' pos op@PrimBNot ss vs = use (iMkBoolAt pos) (primResult op ss vs)
 doPrimOp' pos op@PrimBAnd ss vs = use (iMkBoolAt pos) (primResult op ss vs)
@@ -150,7 +150,7 @@ doPrimOp' pos op@PrimRealFloor ss vs = use (iMkLitAt pos itInteger) (primResult 
 doPrimOp' pos op@PrimRealRound ss vs = use (iMkLitAt pos itInteger) (primResult op ss vs)
 
 doPrimOp' pos op@PrimSplitReal ss vs = use mk_pair (primResult op ss vs)
-    where mk_pair (whole,fraction) = 
+    where mk_pair (whole,fraction) =
               let w = iMkLitAt pos itInteger whole
                   f = iMkRealLitAt pos fraction
               in  iMkPairAt pos itInteger itReal w f
@@ -175,12 +175,12 @@ doPrimOp' pos op@PrimRealIsNegativeZero ss vs = use (iMkBoolAt pos) (primResult 
 -- with a trace or error, for debugging, without triggering these prims:
 
 doPrimOp' pos PrimChr _ _ = Nothing
---doPrimOp' pos PrimOrd _ _ = 
+--doPrimOp' pos PrimOrd _ _ =
 
 doPrimOp' pos PrimNoRules ts es = internalError ("primNoRules " ++ ppReadable (ts, es))
 doPrimOp' pos PrimNoActions ts es = internalError ("primNoActions " ++ ppReadable (ts ,es))
 
---doPrimOp' pos PrimError _ _ = 
+--doPrimOp' pos PrimError _ _ =
 
 -- other prims may be called by ITransform, but we don't know how to "do" them
 doPrimOp' _ op _ _ = Nothing

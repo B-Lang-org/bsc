@@ -12,14 +12,14 @@ import ASyntax(AId, AExpr)
 
 -- -------------------------
 
-type MethodDumpInfo = [(AId, AExpr,[(AId,RuleConflictType)])] 
+type MethodDumpInfo = [(AId, AExpr,[(AId,RuleConflictType)])]
 
 -- rule conflict distinctions to print out
 data RuleConflictType = Complete  |
                         SCBefore  |
                         SCAfter   |
                         SCBeforeR | -- restricted versions cannot be
-                                    -- called in same rule 
+                                    -- called in same rule
                         SCAfterR  |
                         ConflictFree
    deriving(Eq, Enum)
@@ -31,6 +31,6 @@ instance Show RuleConflictType where
   show SCBeforeR    = "<R"
   show SCAfterR     = ">R"
   show ConflictFree = "CF"
- 
+
 -- -------------------------
 

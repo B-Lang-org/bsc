@@ -3,7 +3,7 @@ module Flags(
              redSteps,
              ResourceFlag(..), SATFlag(..), MsgListFlag(..),
 
-             DumpFlag(..), 
+             DumpFlag(..),
              hasDump, hasDumpStrict, dumpInfo,
 
              Verbosity(..), extraVerbose, verbose, quiet,

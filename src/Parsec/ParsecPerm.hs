@@ -3,7 +3,7 @@
 -- Module      :  ParsecPerm
 -- Copyright   :  (c) Daan Leijen 1999-2001
 -- License     :  BSD-style (see the file LICENSE)
--- 
+--
 -- Maintainer  :  daan@cs.uu.nl
 -- Stability   :  provisional
 -- Portability :  non-portable (uses existentially quantified data constructors)
@@ -15,7 +15,7 @@
 -- /Parsing Permutation Phrases,/
 -- by Arthur Baars, Andres Loh and Doaitse Swierstra.
 -- Published as a functional pearl at the Haskell Workshop 2001.
--- 
+--
 -----------------------------------------------------------------------------
 
 module ParsecPerm
@@ -36,7 +36,7 @@ infixl 2 <$$>, <$?>
 
 
 {---------------------------------------------------------------
-  test -- parse a permutation of 
+  test -- parse a permutation of
   * an optional string of 'a's
   * a required 'b'
   * an optional 'c'
@@ -45,10 +45,10 @@ test input
   = parse (do{ x <- ptest; eof; return x }) "" input
 
 ptest :: Parser (String,Char,Char)
-ptest  
+ptest
   = permute $
     (,,) <$?> ("",many1 (char 'a'))
-         <||> char 'b' 
+         <||> char 'b'
          <|?> ('_',char 'c')
 
 
@@ -56,7 +56,7 @@ ptest
   Building a permutation parser
 ---------------------------------------------------------------}
 (<||>) :: PermParser tok st (a -> b) -> GenParser tok st a -> PermParser tok st b
-(<||>) perm p     = add perm p                  
+(<||>) perm p     = add perm p
 
 (<$$>) :: (a -> b) -> GenParser tok st a -> PermParser tok st b
 (<$$>) f p        = newperm f <||> p

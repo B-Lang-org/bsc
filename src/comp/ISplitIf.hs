@@ -106,7 +106,7 @@ run l
           case e of
             (IAps (ICon _ (ICPrim { primOp = PrimIf }))
                  [ty_if] [cond, t_action, f_action]) | ty_if == itAction
-              -> 
+              ->
                if (canLiftCond cond) then
                  map (prepend_branch (BranchIf cond True)) (run t_action) ++
                  map (prepend_branch (BranchIf cond False)) (run f_action)
@@ -115,7 +115,7 @@ run l
             (IAps (ICon _ (ICPrim { primOp = PrimCase }))
                  [ITNum idx_sz, elem_ty] (e_idx:e_dflt:ces))
                 | elem_ty == itAction
-              -> 
+              ->
                if (canLiftCond e_idx) then
                  let ce_pairs = makePairs ces
                      cs = map fst ce_pairs
@@ -150,7 +150,7 @@ run l
                                            e_idx num_es idx_sz sel_pos))
                                  (run icNoActions)
                          -- # of arms is the min of the elems and the max index
-                         e_branches = 
+                         e_branches =
                              concat (zipWith doElem es_elems [0..max_idx])
                          dflt_branch =
                              if (max_idx > (num_es-1))
@@ -349,7 +349,7 @@ iExpandIfRule flags r@
     (IRule { irule_name = i
            , irule_description = description
            , irule_pred = predicate
-           , irule_body = action 
+           , irule_body = action
            , irule_original = orig
            })
   = let

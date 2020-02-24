@@ -1077,7 +1077,7 @@ aSchedule_step1 errh flags prefix pps amod = do
       dumpConflictMap "SC conflict map final:" scConflictMapFinal
 
   -- ====================
-  
+
   let setToTestForStaticSchedule =
         setToTestForStaticSchedule_cf `S.union`
         setToTestForStaticSchedule_pc `S.union`
@@ -1316,7 +1316,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
   -- has any cycles, and report them as errors
   tr "checkCombinedGraphForCycles" $
       checkCombinedGraphForCycles errh nm seq_map seq_graph
-  
+
   -- now check for dynamic scheduling; this assumes that the graph has no
   -- cycles (thus, the flattening before it) and it returns biasing edges
   -- (thus the flattening after it, this time with the biasing)
@@ -1325,7 +1325,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
   -- methods with rules that execute between them, don't have a path in
   -- the schedule graph going in the opposite direction (which would
   -- become a loop when schedules are merged).
-  
+
   -- we consider rules/methods whose order has not been determined by
   -- consulting all pairs of method calls -- this includes all rules
   -- which are disjoint (or have been made to conflict), but it also
@@ -4081,7 +4081,7 @@ makeRuleMethodUseMaps (NoConflictSet setPC) ruleUseMap =
         rule_meth_map = M.map convRuleUses full_use_map
           where
             convRuleUses (p, m) = (p, M.map (map convMethodUses . M.toList) m)
-        
+
             convMethodUses :: (AId, [UniqueUse]) -> (AId, AExpr)
             convMethodUses (m, uus) = (m, aAnds (map extractCondition uus))
 

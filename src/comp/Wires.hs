@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Wires(ClockId, ClockDomain(..), ResetId, 
-             nextClockId, nextClockDomain, nextResetId, 
-             initClockId, initClockDomain, initResetId, 
+module Wires(ClockId, ClockDomain(..), ResetId,
+             nextClockId, nextClockDomain, nextResetId,
+             initClockId, initClockDomain, initResetId,
              noClockId, noClockDomain, noResetId,
              noDefaultClockId, noDefaultResetId,
              WireProps(..), emptyWireProps,
@@ -28,7 +28,7 @@ instance Hyper ClockId where
 data ClockDomain = ClockDomain !Int
   deriving (Show, Eq, Ord, Generic.Data, Generic.Typeable)
 
-instance PPrint ClockDomain where 
+instance PPrint ClockDomain where
   pPrint d p (ClockDomain i) = pPrint d p i
 
 instance Hyper ClockDomain where
@@ -64,7 +64,7 @@ initResetId :: ResetId
 initResetId = (ResetId 0)
 
 {-# INLINE initClockDomain #-}
-initClockDomain :: ClockDomain 
+initClockDomain :: ClockDomain
 initClockDomain = (ClockDomain 0)
 
 noClockId :: ClockId
@@ -83,10 +83,10 @@ noDefaultResetId :: ResetId
 noDefaultResetId = ResetId (-2)
 
 data WireProps = WireProps { -- clock domain of object, Nothing if object crosses clock domains
-                             wpClockDomain :: Maybe ClockDomain, 
+                             wpClockDomain :: Maybe ClockDomain,
                              -- identifiers of reset signals connected to object
                              -- more than one implies "unsafe reset crossing"
-                             wpResets :: [ResetId] 
+                             wpResets :: [ResetId]
                            }
    deriving(Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
@@ -96,9 +96,9 @@ emptyWireProps = WireProps { wpClockDomain = Nothing, wpResets = [] }
 instance Hyper WireProps where
   hyper (WireProps a b) y = hyper2 a b y
 
-instance PPrint WireProps where 
+instance PPrint WireProps where
   pPrint d p wp = text ("clock domain = ") <> (pPrint d 0 (wpClockDomain wp)) <> text (",") <+>
-                  text ("resets = ") <> (pPrint d 0 (wpResets wp))  
+                  text ("resets = ") <> (pPrint d 0 (wpResets wp))
 
 -----
 

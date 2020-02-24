@@ -4,7 +4,7 @@ module StdPrel(
     tiArrow, tiSizeOf,
     tiUnit, tiPair, tiMaybe, tiList,
     tiBit, tiBool,
-    tiInteger, tiReal, tiString, tiChar, 
+    tiInteger, tiReal, tiString, tiChar,
     tiHandle, tiBufferMode,
     tiFmt,
     tiAction, tiRules,
@@ -279,7 +279,7 @@ toAddTerms (TAp (TAp tc t1) t2)
 toAddTerms t = singletonAddTerms t
 
 fromAddTerms :: AddTerms -> Type
-fromAddTerms (AddTerms 0 add_b sub_b) = 
+fromAddTerms (AddTerms 0 add_b sub_b) =
     mkAddType (B.toList add_b) (B.toList sub_b)
 fromAddTerms (AddTerms i add_b sub_b) =
     let it = cTNum (abs i) noPosition  -- XXX better position?

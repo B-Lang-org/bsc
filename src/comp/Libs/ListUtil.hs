@@ -20,7 +20,7 @@ mapSnd f xys = [(x, f y) | (x, y) <- xys]
 -- Split a list up into groups separated by elements which satisfy
 -- some predicate (ie., delimiters).  The delimiters are not included
 -- in the result.
--- Ex: splitBy (== '.') "a.b.dir..x." gives ["a","b","dir","","x",""] 
+-- Ex: splitBy (== '.') "a.b.dir..x." gives ["a","b","dir","","x",""]
 splitBy :: (a -> Bool) -> [a] -> [[a]]
 splitBy _ [] = []
 splitBy p  l = helper l []

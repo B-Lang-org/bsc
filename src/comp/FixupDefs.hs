@@ -64,7 +64,7 @@ updDef d@(IDef i _ _ _) ipkg@(IPackage { ipkg_defs = ds }) ips =
         --
         -- Further, any top-level def that referred to this module
         -- need to have the inlined old def replaced with the new def.
-        -- 
+        --
         -- We use "fixupDefs" to perform both changes.
         -- XXX However, "fixupDefs" is overkill, for just one def.
         -- XXX Note that we throw away alldefs, when we could return it.

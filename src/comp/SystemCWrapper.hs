@@ -6,7 +6,7 @@ import Position(noPosition)
 import Id(getIdBaseString, getIdString, isRdyId, dropReadyPrefixId)
 import Pragma(isAlwaysRdy, isEnWhenRdy)
 import FileNameUtil(mkCxxName, mkHName)
-import ASyntax(AAbstractInput(..), AIFace(..), 
+import ASyntax(AAbstractInput(..), AIFace(..),
                AExpr(..), AClock(..),
                aIfaceArgs, aIfaceName, aIfaceProps)
 import ASyntaxUtil
@@ -38,7 +38,7 @@ checkSystemCIfc errh flags sim_system = do
     let isBad m@(AIDef {})         = not (null (aIfaceArgs m))
         isBad m@(AIActionValue {}) = -- we allow ActionValue methods only
                                      -- if they have no arguments and no enable
-                                     not ((null (aIfaceArgs m)) && 
+                                     not ((null (aIfaceArgs m)) &&
                                           (isEnWhenRdy pps (aIfaceName m)))
         isBad _                    = False
         bad_methods = [ getIdBaseString (aif_name m)
@@ -59,7 +59,7 @@ checkSystemCIfc errh flags sim_system = do
               rnames = [ pPrint PDReadable 0 r | (Left r) <- rs ]
               vmnames = [ pPrint PDReadable 0 vm | (Right vm) <- rs ]
               rdoc = (text "schedules after the rule(s):") <+> (hsep rnames)
-              mdoc = (text "schedules after rules via the method call(s):") <+> (hsep vmnames) 
+              mdoc = (text "schedules after rules via the method call(s):") <+> (hsep vmnames)
           in case (rnames,vmnames) of
                ([],[]) -> internalError "checkSystemCIfc: no rules or methods"
                (_,[])  -> (mname, rdoc)
@@ -72,7 +72,7 @@ checkSystemCIfc errh flags sim_system = do
 wrapSystemC:: Flags -> SimSystem -> IO [(String,String)]
 wrapSystemC flags sim_system = do
     when (verbose flags) $ putStrLnF "generating SystemC file"
-    let top_pkg  = findPkg (ssys_packages sim_system) (ssys_top sim_system) 
+    let top_pkg  = findPkg (ssys_packages sim_system) (ssys_top sim_system)
         pps      = sp_pps top_pkg
         name     = getIdBaseString (sp_name top_pkg)
         h_name   = mkHName Nothing "" (name ++ "_systemc")
@@ -98,16 +98,16 @@ wrapSystemC flags sim_system = do
                then conv `cCall` [x]
                else x
         read_port i = obj_call (getIdBaseString i) "read" []
-        write_port (_,i,n,True) = 
+        write_port (_,i,n,True) =
             let nm = getIdBaseString i
                 arg = cvt_wide n $ obj_ref "_model_inst" (pfxPort ++ nm)
             in obj_call nm "write" [ arg ]
-        write_port (mid,i,n,False) = 
+        write_port (mid,i,n,False) =
             let nm = getIdBaseString i
                 meth = pfxMeth ++ (getIdBaseString mid)
                 arg = cvt_wide n $ obj_call "_model_inst" meth []
             in obj_call nm "write" [ arg ]
-        sample_port (n,i) = 
+        sample_port (n,i) =
             let nm = getIdBaseString i
                 sc_type = if (n == 1)
                           then boolType
@@ -123,7 +123,7 @@ wrapSystemC flags sim_system = do
                                ]
         rst_inputs    = [ rst | (AAI_Reset rst) <- sp_inputs top_pkg ]
         bool_in_port_type = classType "sc_in" `templatedT` [classType "bool"]
-        clk_rst_decls = [ decl $ (mkVar (getIdBaseString i)) `ofType` bool_in_port_type 
+        clk_rst_decls = [ decl $ (mkVar (getIdBaseString i)) `ofType` bool_in_port_type
                         | i <- (clk_inputs ++ rst_inputs)
                         ]
 
@@ -132,7 +132,7 @@ wrapSystemC flags sim_system = do
         mk_port_map_entry (mid, (en, ins, ri, act, _)) =
             let en_list  = maybe [] (\vn -> [(1,vName_to_id vn,True,False)]) en
                 in_list  = [ (aSize t,i,True,False) | (t,i,_) <- ins ]
-                ret_list = maybe [] (\(t,vn) -> [(aSize t,vName_to_id vn,False,act)]) ri 
+                ret_list = maybe [] (\(t,vn) -> [(aSize t,vName_to_id vn,False,act)]) ri
                 ports = filter (\(n,_,_,_) -> n>0)
                                (en_list ++ in_list ++ ret_list)
                 always_rdy = (isRdyId mid) && (isAlwaysRdy pps mid)
@@ -167,7 +167,7 @@ wrapSystemC flags sim_system = do
                         | (dom, clks) <- sp_clock_domains top_pkg
                         , clk <- clks
                         ]
-        same_dom clk mid = 
+        same_dom clk mid =
             case (lookup clk clock_domains) of
               Nothing   -> internalError $ "SystemCWrapper: unknown clock " ++ clk
               (Just cd) -> case (M.lookup mid meth_domains) of
@@ -204,7 +204,7 @@ wrapSystemC flags sim_system = do
                 , stmt $ (var "sensitive") `cLShift` change
                 ] ++
                 ( if do_init
-                  then [] 
+                  then []
                   else [ stmt $ (var "dont_initialize") `cCall` [] ]
                 )
         ctor_stmts  = (concatMap (setup_handler False) clk_inputs) ++
@@ -212,9 +212,9 @@ wrapSystemC flags sim_system = do
         constructor = (define ctor_hack (block ctor_stmts)) `withInits` ilist
         dtor_stmts  = []
         destructor  = define (dtor (mkVar name)) (block dtor_stmts)
-        
+
         -- simulation callbacks
-        start_of_sim_stmts = 
+        start_of_sim_stmts =
             [ (mkVar "_model_hdl") `assign`
                   ((var ("new_MODEL_" ++ name)) `cCall` [])
             , (mkVar "_sim_hdl") `assign`
@@ -307,7 +307,7 @@ wrapSystemC flags sim_system = do
                         [ comment "SystemC model definition" $
                           c_macro_class class_name Nothing class_sects
                         ]
-        cxx_fragments = cxx_includes ++ [blankLines 1] ++ 
+        cxx_fragments = cxx_includes ++ [blankLines 1] ++
                         (intersperse (blankLines 1) (clk_fn_defs ++ rst_fn_defs))
         h_contents    = ppReadable $ program [protect_header (name ++ "_systemc") h_fragments]
         cxx_contents  = ppReadable $ program cxx_fragments

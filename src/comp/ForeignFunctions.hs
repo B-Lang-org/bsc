@@ -57,7 +57,7 @@ import qualified Data.Map as M
 -- import Util(traces)
 
 -- Represent the width information needed for foreign types
-data ForeignType = Void 
+data ForeignType = Void
                  | Narrow Integer
                  | Wide Integer
                  | Polymorphic
@@ -120,7 +120,7 @@ mkForeignFunction name ty =
   in FF name ret_type arg_types
   where mkFT ty | isTypeString ty  = StringPtr
                 | isTypePolyBit ty = Polymorphic
-                | (isTypeBit ty) || (isTypeActionValue ty) || (isTypeActionValue_ ty) = 
+                | (isTypeBit ty) || (isTypeActionValue ty) || (isTypeActionValue_ ty) =
                                      if bitWidth ty > 64
                                      then Wide (bitWidth ty)
                                      else if bitWidth ty == 0
@@ -149,7 +149,7 @@ fc_args (FFCall _ expr)  = ae_args expr
 fc_args (FFAction _ act) = tailOrErr "action has no condition" (aact_args act)
 
 getFn :: ForeignFuncMap -> String -> ForeignFunction
-getFn ff_map name = 
+getFn ff_map name =
   case M.lookup name ff_map of
     (Just ff) -> ff
     Nothing   -> internalError $ "unknown foreign function: " ++ name
@@ -187,7 +187,7 @@ data ReturnStyle = None      -- there is no return value
   deriving (Eq, Show);
 
 instance PPrint ReturnStyle where
-    pPrint d p x = text (show x) 
+    pPrint d p x = text (show x)
 
 instance PPrint Argument where
     pPrint d p (Arg e)     = parens ( text( "Arg" ) <+> pPrint d p e)
@@ -277,11 +277,11 @@ withCopy (e,t) | is_str e  = NoConst (Copy (Arg e))
 -- Create an Argument with allocated storage, as an ignored
 -- return value for a foreign call.
 ignoreRet :: ForeignCall -> Argument
-ignoreRet fc =  
+ignoreRet fc =
   case ff_ret (fc_func fc) of
     (Narrow n)  -> Alloc n False
     (Wide n)    -> Alloc n False
-    Polymorphic -> 
+    Polymorphic ->
       case fc of
         (FFAction _ (ATaskAction { ataskact_value_type = ty })) ->
            Alloc (aSize ty) False
@@ -329,16 +329,16 @@ mkForeignCallArgs ret fc =
 
 -- Generate a (do_writeback, fn name, arg list) tuple for an imported call
 -- given an optional return def name and a ForeignCall.
-mkForeignCall :: (Maybe (AType,Bool,AId)) -> ForeignCall 
+mkForeignCall :: (Maybe (AType,Bool,AId)) -> ForeignCall
                     -> (ReturnStyle,String,[Argument])
-mkForeignCall ret fc@(FFCall ff expr) = 
+mkForeignCall ret fc@(FFCall ff expr) =
   let name = case expr of
                (AFunCall {}) -> ae_funname expr
                otherwise     -> internalError "mkForeignCall: non-call expr"
       ret_expr = getReturnArg ret (ff_ret ff)
       (ret_style,args) = mkForeignCallArgs ret_expr fc
   in (ret_style, name, args)
-mkForeignCall ret fc@(FFAction ff action) = 
+mkForeignCall ret fc@(FFAction ff action) =
   let name = case action of
                (AFCall {})      -> afcall_fun action
                (ATaskAction {}) -> ataskact_fun action
@@ -350,7 +350,7 @@ mkForeignCall ret fc@(FFAction ff action) =
 
 -- Determine whether a system task needs a pointer to the kernel state
 fnNeedsSimHdl :: String -> Bool
-fnNeedsSimHdl name = any (\x -> isPrefixOf x name ) tasks 
+fnNeedsSimHdl name = any (\x -> isPrefixOf x name ) tasks
     where tasks = [ "$time", "$stime"
 
                   , "$stop", "$finish"
@@ -366,15 +366,15 @@ fnNeedsSimHdl name = any (\x -> isPrefixOf x name ) tasks
                   , "$display", "$fdisplay", "$sformat"
                   , "$info"   , "$warning" , "$error", "$fatal"
                   ]
-                  
+
 -- Determine whether a system task needs a pointer to its module
 fnNeedsLocation :: String -> Bool
-fnNeedsLocation name = any (\x -> isPrefixOf x name ) tasks 
+fnNeedsLocation name = any (\x -> isPrefixOf x name ) tasks
     where tasks = ["$write"  , "$fwrite"  , "$swrite"
                   ,"$display", "$fdisplay", "$sformat"
                   ,"$info"   , "$warning" , "$error", "$fatal"
                   ]
-                  
+
 -- rewrite $<taskname> as dollar_<taskname>
 mapFnName :: String -> String
 mapFnName s = helper s False
@@ -385,15 +385,15 @@ mapFnName s = helper s False
 
 -- Determine whether a system task needs a pointer to its return value
 mkSystemTaskReturn :: AAction -> (ReturnStyle, Maybe Argument)
-mkSystemTaskReturn act@(ATaskAction {}) = 
-  if any (\x -> isPrefixOf x (ataskact_fun act)) tasks 
+mkSystemTaskReturn act@(ATaskAction {}) =
+  if any (\x -> isPrefixOf x (ataskact_fun act)) tasks
   then case (ataskact_temp act) of
          (Just aid) -> (Pointer, (Just (Ptr (ASDef (ataskact_value_type act) aid))))
          Nothing    -> (Direct, Nothing)
   else (Direct, Nothing)
   where tasks = ["$swrite", "$sformat"]
 mkSystemTaskReturn _ = internalError "mkSystemTaskReturn: not a task action"
-                  
+
 -- Convert arguments for a ForeignCall into a list of Arguments suitable
 -- for calling a system task.  This may require adding a "this" pointer,
 -- adding an argument descriptor string, and passing some values by pointer.
@@ -402,14 +402,14 @@ mkSystemTaskArgs add_sim add_this ret_arg args =
   let rest   = map convAExprToArgument args
       sim    = if add_sim then [SimHdl] else []
       this   = if add_this then [Module] else []
-      argstr = if (null args) then [] else [ArgStr] 
+      argstr = if (null args) then [] else [ArgStr]
   in sim ++ this ++ argstr ++ (maybeToList ret_arg) ++ rest
 
 convAExprToArgument :: AExpr -> Argument
 convAExprToArgument e | (is_str e)     = Ptr e
                       | (is_real e)    = Arg e
                       | (aSize e) > 64 = Ptr e
-                      | otherwise      = Arg e 
+                      | otherwise      = Arg e
 
 
 -- Generate a (do_writeback, fn name, arg list) tuple for a system task
@@ -492,7 +492,7 @@ toCtype Void = void
 toCtype (Narrow n) | n <= 8    = CCSyntax.char
                    | n <= 32   = unsigned . CCSyntax.int
                    | n <= 64   = unsigned . long . long
-                   | otherwise = internalError "Narrow n > 64"  
+                   | otherwise = internalError "Narrow n > 64"
 toCtype (Wide _)    = ptr . unsigned . CCSyntax.int
 toCtype StringPtr   = ptr . CCSyntax.char
 toCtype Polymorphic = ptr . unsigned . CCSyntax.int

@@ -46,19 +46,19 @@ instance PPrint a => PPrint (ProofObligation a) where
 
 -- This allows us to group related tests to produce better
 -- error messages
-data MsgFn = 
+data MsgFn =
   MsgFn { mf_ident :: String
         , mf_fn    :: ProofResult -> MsgTuple -> MsgTuple
         }
 
 -- (warnings, demotable errors, errors)
 type MsgTuple = ([EMsg], [EMsg], [EMsg])
-                      
+
 instance Eq MsgFn where
   mf1 == mf2 = (mf_ident mf1) == (mf_ident mf2)
 
 instance Ord MsgFn where
-  compare mf1 mf2 = compare (mf_ident mf1) (mf_ident mf2)  
+  compare mf1 mf2 = compare (mf_ident mf1) (mf_ident mf2)
 
 instance Show MsgFn where
   show (MsgFn s _) = s
@@ -79,7 +79,7 @@ warnUnlessProof wm _      (ws, ds, es) = (ws ++ wm, ds, es)
 checkProofs :: (MonadIO m, HasProve (ProofObligation a) m) =>
                ErrorHandle -> [(ProofObligation a, MsgFn)] -> m Bool
 checkProofs _ [] = return True
-checkProofs errh ps = 
+checkProofs errh ps =
   do let cmpSnd (_,x1) (_,x2) = x1 `compare` x2
          eqSnd  (_,x1) (_,x2) = x1 == x2
          groups = groupBy eqSnd (sortBy cmpSnd ps)
@@ -87,10 +87,10 @@ checkProofs errh ps =
      return (and bs)
 
 -- Check one group of proof obligations
-checkProofSet :: (MonadIO m, HasProve (ProofObligation a) m) => 
+checkProofSet :: (MonadIO m, HasProve (ProofObligation a) m) =>
                  ErrorHandle -> [(ProofObligation a, MsgFn)] -> m Bool
 checkProofSet _ [] = return True
-checkProofSet errh ps = 
+checkProofSet errh ps =
   do results <- mapM (prove . fst) ps
      let fns          = [ fn | (_,(MsgFn _ fn)) <- ps ]
          (warns, demerrs, errs) = buildErrs (zip fns results) ([], [], [])
