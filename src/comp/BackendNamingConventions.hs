@@ -348,7 +348,7 @@ regSchedInfo =
 
 -- given a CReg instance, return the associated Reg instance
 cregToReg :: AVInst -> AVInst
-cregToReg old_avi = 
+cregToReg old_avi =
     let
         old_vmi = avi_vmi old_avi
 
@@ -425,7 +425,7 @@ cregToReg old_avi =
 -- XXX to save memory and lookup time
 
 createVerilogNameMap :: Flags -> ASPackage -> M.Map FString FString
-createVerilogNameMap flags aspkg = 
+createVerilogNameMap flags aspkg =
     let vinsts = aspkg_state_instances aspkg
     in  M.fromList (concatMap (createVerilogNameMapForAVInst flags) vinsts)
 
@@ -441,7 +441,7 @@ createVerilogNameMapForAVInst flags avi@(AVInst { avi_vname = inst_id,
 	result = if ((removeReg flags) && (isRegInst avi) && ((not (isClockCrossingRegInst avi)) || (removeCross flags)))
 		 then reg_map
 		 else default_map
-    in  -- trace("result =" ++ (ppReadable result)) $ 
+    in  -- trace("result =" ++ (ppReadable result)) $
         result
 
 -- ==============================
@@ -499,14 +499,14 @@ isInoutConnect avi = getAVDefName avi == inoutconnect
 
 -- ============================
 -- Function: createMapForVMod
--- Create AId renaming map based on Verilog port names in a VModInfo 
+-- Create AId renaming map based on Verilog port names in a VModInfo
 -- i.e. turn in r$get into r$Q_OUT
 createMapForVMod :: AId -> VFieldInfo -> [(FString,FString)]
 createMapForVMod _ (Clock _) = []
 createMapForVMod _ (Reset _) = []
 createMapForVMod _ (Inout {}) = []
-createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReadable result) $ 
-                                                               result 
+createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReadable result) $
+                                                               result
     where
         result = zip meths_fstr ports_fstr
         (fmeths,fports) = createMapForOneMeth meth_id mult ins me mo
@@ -514,7 +514,7 @@ createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReada
         addInstId fs = concatFString [inst_fstr, fsDollar, fs]
         meths_fstr = map addInstId fmeths
         ports_fstr = map addInstId fports
-        
+
 -- ---------------
 
 -- For a single method, create two lists:
@@ -530,13 +530,13 @@ createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReada
 -- portnum goes from 0..mult - 1 (see mkMethId in ASyntax)
 -- the second list then has the Verilog names tagged
 -- with port numbers from 1..mult
--- the "method" side of this needs to be synced with 
+-- the "method" side of this needs to be synced with
 -- mkMethId in ASyntax
 -- the two lists should be the same length (this is checked)
 createMapForOneMeth :: Id -> Integer ->
 		       [VPort] -> Maybe VPort -> Maybe VPort ->
 		       ([FString],[FString])
-createMapForOneMeth meth_id mult ins me mo = if check then 
+createMapForOneMeth meth_id mult ins me mo = if check then
                                              -- trace (ppReadable (method_names, verilog_names)) $
                                              (method_names, verilog_names)
                                              else err
@@ -546,13 +546,13 @@ createMapForOneMeth meth_id mult ins me mo = if check then
                            ppReadable (meth_id, mult, ins, me, mo))
       meth_fstr = getIdFString meth_id
 
-      meth_mult = if mult <= 1 then [meth_fstr] 
-                  else [ concatFString [meth_fstr, fsUnderscore, mkNumFString n] | 
+      meth_mult = if mult <= 1 then [meth_fstr]
+                  else [ concatFString [meth_fstr, fsUnderscore, mkNumFString n] |
                          n <- [0 .. mult-1] ]
 
       -- for method "x", make the names "x_1, x_2, .." for the ports
       -- make the names x_<port>_n for multi-ported methods
-      method_input_names = [ addNum meth_n arg_n | 
+      method_input_names = [ addNum meth_n arg_n |
                              meth_n <- meth_mult, arg_n  <- [1 .. length ins]]
       addNum fs n =
 	  concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
@@ -596,7 +596,7 @@ createMapForOneMeth meth_id mult ins me mo = if check then
 
 -- XXX what is going on here?! can someone add a comment?
 getFStringForVerilogPair :: (VName, [VeriPortProp]) -> FString
-getFStringForVerilogPair (vname, proplist) = 
+getFStringForVerilogPair (vname, proplist) =
     let getvns vs = (verilog_cleanup $ getVNameString vs) ++ suffix
 	verilog_cleanup = filter isAlphaNum_ . map replace
 	isAlphaNum_ c = ((isAlphaNum c) || c == '_')

@@ -3,7 +3,7 @@ module IWireSet(
     wsEmpty,
     wsClock, wsReset,
     wsJoin, wsJoinMany,
-    wsAddClock, wsAddReset, 
+    wsAddClock, wsAddReset,
     wsGetClocks, wsGetResets,
     wsCheckClocks, wsCheckResets,
     wsGetClockDomain,
@@ -64,7 +64,7 @@ wsGetResets (_,rs) = filter (not . isNoReset) (LS.toList rs)
 
 -- return a clock domain if there is a single valid one
 wsGetClockDomain :: IWireSet a -> Maybe ClockDomain
-wsGetClockDomain (cs, _) = case l' of 
+wsGetClockDomain (cs, _) = case l' of
                             [] -> Just noClockDomain
                             (c:cs) -> toMaybe (all (sameClockDomain c) cs) (getClockDomain c)
   where l  = LS.toList cs
@@ -72,14 +72,14 @@ wsGetClockDomain (cs, _) = case l' of
 
 wsCheckClocks :: IWireSet a -> Bool
 wsCheckClocks ws = isJust (wsGetClockDomain ws)
-        
+
 wsCheckResets :: IWireSet a -> Bool
-wsCheckResets (_, rs) = case l' of 
+wsCheckResets (_, rs) = case l' of
                          []   -> True
                          [_]  -> True -- a single meaningful reset
                          _    -> False -- more than one real reset
   where l  = LS.toList rs
-        l' = filter (not . isNoReset) l 
+        l' = filter (not . isNoReset) l
 
 wsToProps :: IWireSet a -> WireProps
 wsToProps ws = WireProps { wpClockDomain = wsGetClockDomain ws,

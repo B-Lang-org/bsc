@@ -159,7 +159,7 @@ uuGraph areSimult uUses =
 	-- XXX more urgent rule)
 	pEdges = concat [[(uUse, uUse', ss), (uUse', uUse, ss)] |
                              (uUse, (prs, _, _)) <- uUses, not (null prs),
-			     (uUse', (prs', ars', _)) <- uUses, 
+			     (uUse', (prs', ars', _)) <- uUses,
                              differentArgs uUse uUse',
 			     let ss = [PredicateOf (p, r) |
 				           p <- prs, r <- prs'++ars']]
@@ -234,7 +234,7 @@ simpleDropEdges moduleId areSimult (mId,uses) rMax st g =
           allDropsSet = S.fromList $ map ordPair allDrops
           areSimult' r r' = (not (ordPair (r,r') `S.member` allDropsSet))
                             && areSimult r r'
-	  g'  = uuGraph areSimult' uses' 
+	  g'  = uuGraph areSimult' uses'
 	  fromActionOf (ActionOf x) = x
 	  fromActionOf _ = internalError "fromActionOf"
 	  isActionOf (ActionOf _) = True

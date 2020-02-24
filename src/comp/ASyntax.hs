@@ -1353,7 +1353,7 @@ instance PPrint ADef where
 	(pPrint d 0 i <> text "  =" <+> pPrint d 0 e <> text ";") $+$
         (if (null $ getIdProps i) then empty else
            text "-- IdProp" <+> text (show i) ) $+$
-        (if (null props) then empty else 
+        (if (null props) then empty else
            text "-- Properties" <+> pPrint d 0 props)
 
 pPred d p pred = text "pred: " <+> pPrint d p pred

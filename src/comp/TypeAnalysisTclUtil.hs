@@ -119,10 +119,10 @@ typeAnalysisToBitify (Vector isC len el (Just n)) =
     where vlen :: Int = read (pvStr len)
           elsize = fromInteger(n) `div` vlen
           genElem :: Int -> HTclObj
-          genElem i = let lsb = (i) * elsize 
-                      in TLst [TStr ("_[" ++ show i ++ "]"), 
-                               TStr (pvStr el), 
-                               TInt elsize, 
+          genElem i = let lsb = (i) * elsize
+                      in TLst [TStr ("_[" ++ show i ++ "]"),
+                               TStr (pvStr el),
+                               TInt elsize,
                                TInt lsb]
 -- Structs
 typeAnalysisToBitify (Struct t k vs isC fs (Just n)) =
@@ -131,8 +131,8 @@ typeAnalysisToBitify (Struct t k vs isC fs (Just n)) =
                   TLst [],
                   TLst $ snd fields ]
         where genField :: (Id, Qual Type, Maybe Integer) -> (Int,[HTclObj]) ->  (Int,[HTclObj])
-              genField (f,t,fw) (lsb,prev) = 
-                  let err = error ("Bitify no size" ++ show f ++ ": " ++ show t) 
+              genField (f,t,fw) (lsb,prev) =
+                  let err = error ("Bitify no size" ++ show f ++ ": " ++ show t)
                       size :: Int = maybe err fromInteger fw
                   in (lsb+size,
                          TLst [TStr $ pvStr (unQualId f),
@@ -152,7 +152,7 @@ typeAnalysisToBitify (TaggedUnion  t k vs isC fs (Just n)) =
               --
               genField  :: (Id, Type, Maybe Integer) -> HTclObj
               genField  (i, t, mi) =
-                  let err = error ("Bitify tagged union no size" ++ show i ++ ": " ++ show t) 
+                  let err = error ("Bitify tagged union no size" ++ show i ++ ": " ++ show t)
                   in TLst [TStr $ pvStr (unQualId i),
                                 TStr $ pvStr t,
                                 TInt $ maybe err fromInteger mi,
@@ -170,7 +170,7 @@ typeAnalysisToBitify (Enum t fs (Just n)) =
                 TLst $ map (TStr . pvStr . unQualId) fs,
                 TLst [] ]
 -- Otherwise unknown
-typeAnalysisToBitify _ =  
+typeAnalysisToBitify _ =
     tag  "UNKNOWN" [TStr "",
                     TInt 0,
                     TLst [],
@@ -194,8 +194,8 @@ typeAnalysisShort (Interface _ _ _ _ _ _) = "interface"
 typeAnalysisShort (Typeclass {}) = "typeclass"
 
 
--- --------------- 
--- Another variation for use with workstation.  
+-- ---------------
+-- Another variation for use with workstation.
 typeAnalysisToDetail :: TypeAnalysis -> HTclObj
 typeAnalysisToDetail (Unknown) = TStr "Unknown"
 typeAnalysisToDetail (Variable) = TStr "Variable"
@@ -217,7 +217,7 @@ typeAnalysisToDetail (List isC el) =
     tag "List" $
         [TLst [TStr $ showType True idList kList vsList]] ++
         showPolymorphic isC ++
-	[tagStr "element type" (pvStr el)]     
+	[tagStr "element type" (pvStr el)]
 
 typeAnalysisToDetail (Alias t k vs atype) =
     tag "Alias" $
@@ -279,14 +279,14 @@ commentMaybe  _    Nothing  = ""
 commentMaybe  cmt (Just i)  = intercalate " " ["//",cmt,pvStr i]
 
 structFieldToDetail ::  (Id, Qual Type, Maybe Integer) -> HTclObj
-structFieldToDetail (f, t, mi) = 
+structFieldToDetail (f, t, mi) =
     TStr $ intercalate "  " [pvStr t,
                               pvStr (unQualId f),
                               commentMaybe "width" mi]
 
 unionTagToDetail :: (Id, Type, Maybe Integer) -> HTclObj
 unionTagToDetail (f,t, mi) =
-    TStr $ intercalate "  " [pvStr t, 
+    TStr $ intercalate "  " [pvStr t,
                              pvStr (unQualId f),
                              commentMaybe "width" mi]
 

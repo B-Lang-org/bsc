@@ -199,7 +199,7 @@ data CheckCmd = Exists SigSpec FileNum
 data SeqState = Waiting | Running | Finished
    deriving(Show, Eq)
 
--- Sequence to track a 
+-- Sequence to track a
 data SeqCmd = CRCCmd
     {sc_fileNum  :: FileNum
     ,sc_signal   :: SigSpec

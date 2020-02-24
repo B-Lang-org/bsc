@@ -10,7 +10,7 @@
 #include "haskellInt.h"
 
 
-//  initialization of the haskell runtime system 
+//  initialization of the haskell runtime system
 int init_haskellSystem(int *argc, char **argv[])
 {
   int status;
@@ -29,5 +29,3 @@ int init_haskellSystem(int *argc, char **argv[])
 
   return status;
 }
-
-

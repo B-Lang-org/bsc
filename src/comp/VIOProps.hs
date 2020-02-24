@@ -171,7 +171,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
 		-- XXX this should be OK, because the deriving of the
 		-- XXX property for the input would give up if it
 		-- XXX reached an output, and the props would be []
-		input_pairs = 
+		input_pairs =
 		    [ (i, []) | (i,_) <- is ]
                 -- ifc inouts can also come from argument inouts
                 inout_pairs =
@@ -185,7 +185,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
 
 	getOVProp :: AId -> [VeriPortProp]
 	getOVProp i =
-	    case (M.lookup i wireMap_out) of 
+	    case (M.lookup i wireMap_out) of
 		Just ps -> ps
 		Nothing ->
 		    -- since we added the module inputs to the map,
@@ -279,7 +279,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
 		-- (since it is a use that we can conclude nothing about,
 		--  not "unused")
 		-- XXX this should be OK?
-		output_pairs = 
+		output_pairs =
 		    [ (o, []) | (o,_) <- os ]
 	    in
 		M.fromList (submod_pairs ++ output_pairs)
@@ -287,7 +287,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
         -- use a map to limit search over all definition
         -- key is AId data is list of defs where key is used.
         defuseMap :: M.Map AId (S.Set AId)
-        defuseMap = getDefUses ds 
+        defuseMap = getDefUses ds
 
 	-- given a signal, this determines its props
 	getSignalInProp :: AId -> [VeriPortProp]
@@ -303,7 +303,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
 		-- on defs in ASPackage), we check both sources and merge.
 
 		wiremap_props =
-		    case (M.lookup i wireMap_in) of 
+		    case (M.lookup i wireMap_in) of
 			Just ps -> ps
 			Nothing -> [VPunused]
 
@@ -320,7 +320,7 @@ getIOProps flags ppp@(ASPackage _ _ _ os is ios vs _ ds io_ds fs _ _ _) =
 				      then Just []
 				      else if okUse i user_e
 				           then Just [user]
-				           else Nothing 
+				           else Nothing
 				      | user <- S.toList user_set,
                                         let user_e = adef_expr $ getDef user ]
 			 in
@@ -385,7 +385,7 @@ okUse i (ASAny _ _)                       = True
 okUse i e                                 = internalError ("getIOProps.okUse " ++ show (i,e))
 
 
-noUse :: AId -> AExpr -> Bool 
+noUse :: AId -> AExpr -> Bool
 noUse i (APrim _ _ _ es)     = and (map (noUse i) es)
 noUse i (ANoInlineFunCall _ _ _ es) = and (map (noUse i) es)
 noUse i (AFunCall _ _ _ _ es) = and (map (noUse i) es)
@@ -396,7 +396,7 @@ noUse i (ASDef _ i')         = i /= i'
 noUse _ _                    = True
 
 -- compute the size of a port
-size :: AType -> Integer 
+size :: AType -> Integer
 size (ATBit n) = n
 size (ATAbstract a _) | a == idPrimAction = 1
 size (ATAbstract a [n]) | a == idInout_ = n

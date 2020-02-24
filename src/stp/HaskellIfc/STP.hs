@@ -121,7 +121,7 @@ cullong_size = bitSize (0 :: CULLong)
 -- Types
 
 -- | An STP /context/
--- 
+--
 -- A context is an environment of assertions.
 --
 -- /Notes:/
@@ -214,13 +214,13 @@ ctxPush c = modifyMVar_ (sDepth c) $ \n ->
             return (n+1)
 
 -- | Backtrack.
--- 
+--
 -- Restores the context from the top of the stack, and pops it off the
 -- stack. Any changes to the logical context (by 'vc_assertFormula' or
 -- other functions) between the matching 'push' and 'pop' operators are
 -- flushed, and the context is completely restored to what it was right
 -- before the 'push'.
--- 
+--
 ctxPop :: Context -> IO ()
 ctxPop c = modifyMVar_ (sDepth c) $ \n -> case () of
     _ | n <  0    -> error "STP.mkPop: Corrupted context. Stack depth < 0"
@@ -252,7 +252,7 @@ printExpr c e = do
 ------------------------------------------------------------------------
 -- Assertions
 
--- | Assert a constraint in the logical context. 
+-- | Assert a constraint in the logical context.
 --
 assert :: Context -> Expr -> IO ()
 assert c e = withForeignPtr (sContext c) $ \cptr ->
@@ -262,11 +262,11 @@ assert c e = withForeignPtr (sContext c) $ \cptr ->
 -- Queries
 
 -- | Check if an expression is satisfiable given the logical context.
--- 
+--
 -- * @Invalid@ means the expression is unsatisfiable in the context.
--- 
+--
 -- * @Valid@  means the expression is satisfiable in the context.
--- 
+--
 -- * @Error@ means that an error was encountered.
 --
 -- * @Timeout@ means it was not possible to decide in the given time.
@@ -304,7 +304,7 @@ mkBoolType c =
         Type <$> vc_boolType cptr
 
 -- | Returns a bitvector type of @n@ size.
--- 
+--
 -- Size must be greater than @0@.
 --
 mkBitVectorType :: Context -> Int -> IO Type
@@ -423,7 +423,7 @@ mkOr c e1 e2 = withForeignPtr (sContext c) $ \cptr ->
 mkOrMany :: Context -> [Expr] -> IO Expr
 mkOrMany _ [] = error "STP.mkOrMany: empty list of expressions"
 mkOrMany c es =
-    withArray es $ \aptr -> 
+    withArray es $ \aptr ->
     withForeignPtr (sContext c) $ \cptr ->
         Expr <$> vc_orExprN cptr (castPtr aptr) (fromIntegral (length es))
 
@@ -701,7 +701,7 @@ mkBVSignedShiftRightExpr c n e1 e2 = withForeignPtr (sContext c) $ \cptr ->
 
 -- | Bitvector concatenation.
 --
--- @a1@ and @a2@ must be two bitvector expressions. 
+-- @a1@ and @a2@ must be two bitvector expressions.
 -- @a1@ is the left part of the result and @a2@ the right part.
 --
 -- Assuming /a1/ and /a2/ have /n1/ and /n2/ bits, respectively, then the

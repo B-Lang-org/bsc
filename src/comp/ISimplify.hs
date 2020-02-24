@@ -51,7 +51,7 @@ iSimpAp n (ILam i _ e) [] (a:as)
 iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
   where m = doPrim prim ts es
 	Just r = m
-iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts 
+iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
 	es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
   where m = getTuple def
 	Just ms = m
@@ -61,7 +61,7 @@ iSimpAp n f ts es = IAps f ts es
 
 getTuple :: (Hyper a) => IExpr a -> Maybe [IExpr a]
 
-getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def = 
+getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
 	-- trace ("unfold " ++ ppReadable di) $
 	Just ms
 getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
@@ -73,12 +73,12 @@ getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
 getTuple _ = Nothing
 
 -- XXX should we do more PrimOps here?
-doPrim PrimIntegerToBit [t@(ITNum s)] [ICon i l@(ICInt { iVal = v })] | ilValue v >= 0 && 
-                                                                        s >=0 && 
+doPrim PrimIntegerToBit [t@(ITNum s)] [ICon i l@(ICInt { iVal = v })] | ilValue v >= 0 &&
+                                                                        s >=0 &&
                                                                         ilValue v < 2^s = Just $ ICon i (l { iConType = aitBit t })
 doPrim PrimOrd          [t,s] [IAps (ICon _ (ICPrim _ PrimChr)) [s',t'] [e]] | s == s' && t == t' = Just e
 doPrim PrimIf _ [c, t, e] | isTrue  c = Just t
-                          | isFalse c = Just e 
+                          | isFalse c = Just e
 doPrim _ _ _ = Nothing
 
 {-
@@ -88,12 +88,12 @@ data Occ = None | One | Many
 
 
 countOcc :: Id -> IExpr a -> Int
-countOcc i e = countOcc' i e 0 
+countOcc i e = countOcc' i e 0
 
 countOcc' :: Id -> IExpr a -> Int -> Int
 countOcc' _ _ occ | occ > 1   = occ
 countOcc' i (ILam i' _ e) occ = if i == i' then occ else countOcc' i e occ
-countOcc' i (IAps f _ es) occ = foldr (countOcc' i) (countOcc' i f occ) es 
+countOcc' i (IAps f _ es) occ = foldr (countOcc' i) (countOcc' i f occ) es
 countOcc' i (IVar i') occ     = if i == i' then occ + 1 else occ
 countOcc' i (ILAM _ _ e) occ  = countOcc' i e occ
 countOcc' _ _ occ             = occ
@@ -117,7 +117,7 @@ isTriv (ICon _ (ICUndet { })) = True
 isTriv (ICon _ (ICDef { })) = True
 isTriv _ = False
 
-isHarmless e = 
+isHarmless e =
 	--trace (ppReadable (e, onlySimple e, isPerm [] e)) $
 	onlySimple e && isPerm [] e
 
@@ -146,17 +146,17 @@ gVars (IRefT _ _ _) = []
 -- dVars (ICon _ _) = []
 -- dVars (IRefT _ _ _) = []
 
-dVars :: IExpr a -> [Id] 
-dVars e = dVars' [] e 
+dVars :: IExpr a -> [Id]
+dVars e = dVars' [] e
 
 -- auxilary function to guard against circular traversals
 dVars' :: [Id] -> IExpr a -> [Id]
 dVars' ids (ILam _ _ e) = dVars' ids e
 dVars' ids (IVar _) = []
 dVars' ids (ILAM _ _ e) = dVars' ids e
-dVars' ids (IAps f _ es) = dVars' ids f ++ concatMap (dVars' ids) es    
+dVars' ids (IAps f _ es) = dVars' ids f ++ concatMap (dVars' ids) es
 -- guarding against circular traversal
-dVars' ids (ICon i (ICDef { })) | i `elem` ids = ids 
+dVars' ids (ICon i (ICDef { })) | i `elem` ids = ids
 dVars' ids (ICon i (ICDef {iConDef = e})) = dVars' (i:ids) e
 dVars' ids (ICon _ _) = []
 dVars' ids (IRefT _ _ _) = []
@@ -178,7 +178,7 @@ onlySimple e = False
 -- should combine with FixupDefs
 
 fixUpDefs :: [IDef a] -> [IDef a]
-fixUpDefs ds = 
+fixUpDefs ds =
     let m = M.fromList [ (i, e) | IDef i _ e _ <- ds ]
     in  iDefsMap (fixUp m) ds
 
@@ -191,7 +191,7 @@ fixUp m e = e
 
 get :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a
 get m i d = let value = get2 m i d
-	    in -- trace("Lookup " ++ (ppReadable i) ++ " => " ++ (ppReadable value)) $ 
+	    in -- trace("Lookup " ++ (ppReadable i) ++ " => " ++ (ppReadable value)) $
 	       value
 
 get2 :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a

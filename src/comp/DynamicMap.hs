@@ -37,14 +37,14 @@ insert at key val m = M.insertWith (M.union) key (M.singleton at val) m
 -- a specific time, along with the time of its association.
 -- If there is no such value, returns Nothing.
 lookup :: (Ord t, Ord k) => t -> k -> Map t k a -> Maybe (t,a)
-lookup at key m = 
+lookup at key m =
     do m' <- M.lookup key m
        M.lookupLE at m'
 
 -- Returns the value most recently associated with the key at or before
 -- a specific time.  If there is no such value, returns the default.
 findWithDefault :: (Ord t, Ord k) => a -> t -> k -> Map t k a -> a
-findWithDefault dflt at key m = 
+findWithDefault dflt at key m =
     case (lookup at key m) of
       (Just (_,v)) -> v
       Nothing      -> dflt

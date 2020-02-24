@@ -40,7 +40,7 @@ genForeign errh flags prefix (CPackage pkg_id _ _ _ defs _) =
 		afilename_rel = getRelativeFilePath afilename
 		-- user message
 		abinPrintPrefix = "Foreign import file created: "
-	    in  do 
+	    in  do
 		   -- write the file with full path
 		   genABinFile errh afilename abin
 		   -- report the file to the user with relative path
@@ -69,7 +69,7 @@ genForeign errh flags prefix (CPackage pkg_id _ _ _ defs _) =
 -- After typechecking, the import should contain a CForeignFuncCT expression
 -- which contains the primitive type.  This function extracts that.
 extractForeignFuncInfo :: CDefn -> (Id, ForeignFunction)
-extractForeignFuncInfo defn = 
+extractForeignFuncInfo defn =
     let
         extractFromCDefn (CValueSign (CDefT _ _ _ clauses)) =
             concatMap extractFromCClause clauses

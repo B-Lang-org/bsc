@@ -29,7 +29,7 @@ import Data.Maybe(isJust, fromJust, fromMaybe, maybeToList, mapMaybe)
 -- -------------------------------------------------------------------
 -- This file contains all of the logic for creating defs describing
 -- the schedule for a module.
--- 
+--
 -- The explicit and implicit conditions which control when a rule
 -- can fire are used to define the CAN_FIRE signal for that rule.
 --
@@ -38,7 +38,7 @@ import Data.Maybe(isJust, fromJust, fromMaybe, maybeToList, mapMaybe)
 --
 -- So for user-generated rules, we have:
 --  CAN_FIRE_rule = predicate for rule
---  WILL_FIRE_rule = CAN_FIRE_RULE && 
+--  WILL_FIRE_rule = CAN_FIRE_RULE &&
 --                   !(WILL_FIRE of any conflicting more urgent rule) &&
 --                   !(RDY of any conflicting more urgent value method)
 --
@@ -87,7 +87,7 @@ type ExprMap = M.Map Id AExpr
 
 aAddScheduleDefs :: Flags -> [PProp] -> APackage -> AScheduleInfo ->
                     IO APackage
-aAddScheduleDefs flags pps pkg aschedinfo = 
+aAddScheduleDefs flags pps pkg aschedinfo =
   do
      -- Collect some useful information
      let defs0     = apkg_local_defs pkg
@@ -110,10 +110,10 @@ aAddScheduleDefs flags pps pkg aschedinfo =
                        | m <- ifc0
                        , isRdyId (aIfaceName m)
                        ]
-         pre_en_map  = M.fromList $ 
+         pre_en_map  = M.fromList $
                        map (\(n,Just e) -> (n,e))
-                           (filter (isJust . snd) 
-                                   [ (aIfaceName m, getMethodEnExpr m) 
+                           (filter (isJust . snd)
+                                   [ (aIfaceName m, getMethodEnExpr m)
                                    | m <- ifc0 ])
          (rdy_map, rdy_proof_obs) =
              handleAlwaysReady (unsafeAlwaysRdy flags) pkgpos pps pre_rdy_map
@@ -142,7 +142,7 @@ aAddScheduleDefs flags pps pkg aschedinfo =
      -- Update the RDY values for each method
      let rule_map       = mapMaybe buildRuleMap ifc0
          rule_names     = map aRuleName rules0
-         rule_conflicts = [ (n, cs `intersect` rule_names) 
+         rule_conflicts = [ (n, cs `intersect` rule_names)
                           | (n,cs) <- conflicts
                           ]
          ifc1           = map (replaceReadyExpr rule_map rule_conflicts) ifc0
@@ -156,7 +156,7 @@ aAddScheduleDefs flags pps pkg aschedinfo =
          wf_defs = user_wfs ++ ifc_wfs
          defs1   = defs0 ++ cf_defs ++ wf_defs
 
-     return pkg { apkg_local_defs        = defs1 
+     return pkg { apkg_local_defs        = defs1
                 , apkg_rules             = rules1
                 , apkg_interface         = ifc2
                 , apkg_proof_obligations = proofs1
@@ -172,7 +172,7 @@ getConflictList (ASchedEsposito cs) = cs
 
 -- Get the enable expression for a method
 getMethodEnExpr :: AIFace -> Maybe AExpr
-getMethodEnExpr (AIAction      { aif_fieldinfo = fi}) = 
+getMethodEnExpr (AIAction      { aif_fieldinfo = fi}) =
   Just (aBoolPort (mkNamedEnable fi))
 getMethodEnExpr (AIActionValue { aif_fieldinfo = fi}) =
   Just (aBoolPort (mkNamedEnable fi))
@@ -180,7 +180,7 @@ getMethodEnExpr _ = Nothing
 
 -- Unless expr is true, warn/error about "not always ready"
 mustBeTrue :: Bool -> Position -> Id -> AExpr -> (ProofObligation AExpr, MsgFn)
-mustBeTrue warn pkgpos m e = 
+mustBeTrue warn pkgpos m e =
   let po  = ProveEq e aTrue
       msg = (pkgpos, ENotAlwaysReady (getIdString m))
       fn  = (if warn then warnUnlessProof else errorUnlessProof) [msg]
@@ -188,21 +188,21 @@ mustBeTrue warn pkgpos m e =
 
 -- Apply properties that modify ready values by updating the ExprMap
 -- entries and accumulating associated proof obligations.
-handleAlwaysReady :: Bool -> Position -> [PProp] -> ExprMap -> 
+handleAlwaysReady :: Bool -> Position -> [PProp] -> ExprMap ->
                      (ExprMap,[(ProofObligation AExpr, MsgFn)])
 handleAlwaysReady warn pkgpos pps pre_rdy_map =
   let (m, proofs) = unzip (map doRdy (M.toList pre_rdy_map))
   in (M.fromList m, concat proofs)
-  where doRdy (n,e) | isAlwaysRdy pps (mkRdyId n) = 
+  where doRdy (n,e) | isAlwaysRdy pps (mkRdyId n) =
           ((n,e), [mustBeTrue warn pkgpos n e])
         doRdy (n,e) = ((n,e),[])
 
-handleEnableWhenReady :: [PProp] -> ExprMap -> ExprMap -> 
+handleEnableWhenReady :: [PProp] -> ExprMap -> ExprMap ->
                          (ExprMap,[(ProofObligation AExpr, MsgFn)])
 handleEnableWhenReady pps rdy_map pre_en_map =
   let (m, proofs) = unzip (map doEn (M.toList pre_en_map))
   in (M.fromList m, concat proofs)
-  where doEn (n,e) | isEnWhenRdy pps n 
+  where doEn (n,e) | isEnWhenRdy pps n
            = ((n, fromMaybe e (n `M.lookup` rdy_map)),[])
         doEn (n,e) = ((n,e),[])
 
@@ -230,15 +230,15 @@ mkUserWF conflicts r =
 -- Create CAN_FIRE defs for a method's rules based on its
 -- method predicate and the rule selection logic.
 mkIfcCFs :: ExprMap -> AIFace -> [ADef]
-mkIfcCFs rdy_map (AIAction { aif_name = n, aif_body = rs }) = 
+mkIfcCFs rdy_map (AIAction { aif_name = n, aif_body = rs }) =
   let rdy_expr = fromJust (M.lookup n rdy_map)
-  in [ ADef (mkIdCanFire (aRuleName r)) aTBool (aAnd rdy_expr (aRulePred r)) 
+  in [ ADef (mkIdCanFire (aRuleName r)) aTBool (aAnd rdy_expr (aRulePred r))
        [DefP_Rule (aRuleName r)]
      | r <- rs
      ]
 mkIfcCFs rdy_map (AIActionValue { aif_name = n, aif_body = rs }) =
   let rdy_expr = fromJust (M.lookup n rdy_map)
-  in [ ADef (mkIdCanFire (aRuleName r)) aTBool (aAnd rdy_expr (aRulePred r)) 
+  in [ ADef (mkIdCanFire (aRuleName r)) aTBool (aAnd rdy_expr (aRulePred r))
        [DefP_Rule (aRuleName r)]
      | r <- rs
      ]
@@ -251,26 +251,26 @@ mkIfcCFs _ _ = []  -- ignore RDY methods, clocks, resets, inouts
 mkOneWF :: Id -> [AExpr] -> ARule -> ADef
 mkOneWF method_name en_exprs (ARule {arule_id = rule_name}) =
   let cf_exprs = [aBoolVar (mkIdCanFire rule_name)]
-  in ADef (mkIdWillFire rule_name) aTBool (aAnds (cf_exprs ++ en_exprs)) 
+  in ADef (mkIdWillFire rule_name) aTBool (aAnds (cf_exprs ++ en_exprs))
      [DefP_Rule rule_name]
 
 -- Create WILL_FIRE defs for a method's rules based on its
 -- CAN_FIRE and the method EN.
 mkIfcWFs :: ExprMap -> ExprMap -> AIFace -> [ADef]
-mkIfcWFs en_map _ (AIAction { aif_name = n, aif_body = [r] }) = 
+mkIfcWFs en_map _ (AIAction { aif_name = n, aif_body = [r] }) =
   let en_exprs = maybeToList (M.lookup n en_map)
       rule = aRuleName r
-  in [ ADef (mkIdWillFire rule) aTBool (aAnds en_exprs) 
+  in [ ADef (mkIdWillFire rule) aTBool (aAnds en_exprs)
        [DefP_Rule rule] ]
-mkIfcWFs en_map _ (AIAction { aif_name = n, aif_body = rs }) = 
+mkIfcWFs en_map _ (AIAction { aif_name = n, aif_body = rs }) =
   let en_exprs = maybeToList (M.lookup n en_map)
   in map (mkOneWF n en_exprs) rs
-mkIfcWFs en_map _ (AIActionValue { aif_name = n, aif_body = [r] }) = 
+mkIfcWFs en_map _ (AIActionValue { aif_name = n, aif_body = [r] }) =
   let en_exprs = maybeToList (M.lookup n en_map)
       rule = aRuleName r
-  in [ ADef (mkIdWillFire rule) aTBool (aAnds en_exprs) 
+  in [ ADef (mkIdWillFire rule) aTBool (aAnds en_exprs)
        [DefP_Rule rule] ]
-mkIfcWFs en_map _ (AIActionValue { aif_name = n, aif_body = rs }) = 
+mkIfcWFs en_map _ (AIActionValue { aif_name = n, aif_body = rs }) =
   let en_exprs = maybeToList (M.lookup n en_map)
   in map (mkOneWF n en_exprs) rs
 mkIfcWFs _ rdy_map (AIDef { aif_name = n }) | not (isRdyId n) =
@@ -288,7 +288,7 @@ buildRuleMap m@(AIDef { aif_name = mid }) | not (isRdyId mid) =
     Just (mid, [aIfaceName m])
 buildRuleMap _ = Nothing
 
--- Replace the value in a RDY method 
+-- Replace the value in a RDY method
 replaceReadyExpr :: [(Id,[Id])] -> [(Id,[Id])] -> AIFace -> AIFace
 replaceReadyExpr rule_map rule_conflicts m@(AIDef { aif_name = n })
   | isRdyId n =

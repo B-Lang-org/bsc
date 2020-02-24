@@ -682,7 +682,7 @@ tieToZero :: (AId,AType,Bool) -> [ADef]
 tieToZero (_,_,False) = []
 tieToZero (aid,ty@ATBit{ atb_size= size} ,True) = [ADef{ adef_objid = aid,
                                                          adef_type = ty,
-                                                         adef_expr = expr, 
+                                                         adef_expr = expr,
                                                          adef_props = []}]
     where expr = ASInt{ ae_objid = aid, ae_type = ty, ae_ival = if (size == 1) then (ilBin 0) else (ilHex 0)}
 tieToZero x = internalError( "tieToZero: " ++ ppReadable x)
@@ -1261,7 +1261,7 @@ mkEnables o m ino emrs =
 			_ -> ([ADef ior aTBool
                                (aOrs [ aWillFireId i | i <- is ]) []],
                               ASDef aTBool ior)
-                  dand :: ADef           
+                  dand :: ADef
 		  dand = ADef iand aTBool (aAnd aor c) []
               in
                   (dor ++ [dand], [ASDef aTBool iand])

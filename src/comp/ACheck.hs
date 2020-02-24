@@ -54,7 +54,7 @@ chkDupWires asp = tracePP "chkDupWires" dup_set (S.null dup_set)
         inputs     = map fst (aspkg_inputs asp)
         inouts     = map fst (aspkg_inouts asp)
         all_names  = def_names ++ state_outs ++ params ++ inputs ++ inouts
-        
+
 -----
 
 chkAVInst :: AVInst -> Bool
@@ -63,9 +63,9 @@ chkAVInst aa =
       chkParam e = let t = chkAExpr e
 		   in  isConstAExpr [] e && (isBit t || isString t || isReal t)
   in
-    (tracePP "chkAVInst Params" aa $ all chkParam (getParams aa)) && 
-    (tracePP "chkAVInst Ports"  aa $ all (isBitOrInout_ . chkAExpr) (getPorts aa)) && 
-    (tracePP "chkAVInst Clocks" aa $ all (isClock . chkAExpr) (getClocks aa)) && 
+    (tracePP "chkAVInst Params" aa $ all chkParam (getParams aa)) &&
+    (tracePP "chkAVInst Ports"  aa $ all (isBitOrInout_ . chkAExpr) (getPorts aa)) &&
+    (tracePP "chkAVInst Clocks" aa $ all (isClock . chkAExpr) (getClocks aa)) &&
     (tracePP "chkAVInst Resets" aa $ all (isReset . chkAExpr) (getResets aa)) &&
     (tracePP "chkAVInst Inouts" aa $ all (isInout_ . chkAExpr) (getInouts aa))
 
@@ -85,8 +85,8 @@ chkARule aa@(ARule _ _ _ _ p as asmps _) =
     tracePP "chkARule" aa $ chkAExpr p == aTBool && all chkAAction as && all chkAAssumption asmps
 
 chkAAssumption :: AAssumption -> Bool
-chkAAssumption aa@(AAssumption p as) = 
-    tracePP "chkAAssumption" aa $ chkAExpr p == aTBool && all chkAAction as 
+chkAAssumption aa@(AAssumption p as) =
+    tracePP "chkAAssumption" aa $ chkAExpr p == aTBool && all chkAAction as
 
 chkAIface :: AIFace -> Bool
 chkAIface aa@(AIDef { aif_value = d,
@@ -99,7 +99,7 @@ chkAIface aa@(AIAction { aif_body = rs }) =
 chkAIface aa@(AIActionValue { aif_value = d, aif_body = rs }) =
     tracePP "chkAIface AIActionValue" aa $ (all chkARule rs) && (chkADef d)
 
-chkAIface aa@(AIClock { aif_clock = c }) = 
+chkAIface aa@(AIClock { aif_clock = c }) =
     tracePP "chkAIface AIClock" aa $ chkAClock c
 
 chkAIface aa@(AIReset { aif_reset = r }) =
@@ -118,7 +118,7 @@ chkAAction aa@(ACall i m (c:es)) =
 chkAAction afc@(AFCall { aact_objid = i, aact_args = (c:es) }) =
     tracePP "chkAAction AFCall" afc $
 	chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
-chkAAction ata@(ATaskAction { aact_args = (c:es) }) = 
+chkAAction ata@(ATaskAction { aact_args = (c:es) }) =
     tracePP "chkAAction ATaskAction" ata $
         chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
 chkAAction _ = False
@@ -171,7 +171,7 @@ chkAExpr e@(APrim _ t PrimConcat es) =
                 if not (isBit t) then internalError ("chkAExpr ++: result not bit type (" ++ ppString t ++ "): " ++ ppReadable e)
                 else if not (all isBit ts) then internalError ("chkAExpr ++: some args not bit type (" ++ ppString ts ++ "): " ++ ppReadable e)
                 else internalError ("chkAExpr ++: expression bitsize (" ++ ppString (getBit t) ++ ") does not match sum of args bitsizes (" ++ ppString (sum (map getBit ts)) ++ ") from (" ++ ppString ts ++ "): " ++ ppReadable e)
-chkAExpr e@(APrim _ t op es) | isRelOp op = 
+chkAExpr e@(APrim _ t op es) | isRelOp op =
 	let ts = map chkAExpr es
 	in  if t == aTBool && all isBit ts && allSame ts
 		then t
@@ -285,24 +285,24 @@ chkAExpr (ASInt _ t (IntLit _ _ i)) =
 
 chkAExpr e@(ASClock t c) =
          if chkAClock c
-           then t 
+           then t
            else internalError ("chkAExpr: invalid clock: " ++ ppReadable e)
 
 chkAExpr e@(ASReset t r) =
-        if chkAReset r 
-           then t 
+        if chkAReset r
+           then t
            else internalError ("chkAExpr: invalid reset: " ++ ppReadable e)
 
 chkAExpr e@(ASInout t r) =
-        if chkAInout r 
-           then t 
+        if chkAInout r
+           then t
            else internalError ("chkAExpr: invalid inout: " ++ show e)
 
 chkAExpr e@(AMGate t _ _) =
 	if isBit1 t
 	then t
 	else internalError ("chkAExpr: invalid clock gate: " ++ ppReadable e)
-         
+
 chkAExpr e = aType e
 
 chkAClock :: AClock -> Bool
@@ -340,8 +340,8 @@ isBitOrInout_ e = isBit e || isInout_ e
 compatTypesWthStr :: AType -> AType -> Bool
 compatTypesWthStr (ATString ms1) (ATString ms2) = isNothing ms1 || isNothing ms2 || ms1 == ms2
 compatTypesWthStr (ATArray sz1 t1) (ATArray sz2 t2) = (sz1 == sz2) && (compatTypesWthStr t1 t2)
-compatTypesWthStr t1 t2                         = t1 == t2 
-             
+compatTypesWthStr t1 t2                         = t1 == t2
+
 
 isRelOp p = p `elem` [ PrimEQ, PrimULE, PrimULT, PrimSLE, PrimSLT, PrimEQ3 ]
 
@@ -391,12 +391,12 @@ aSignalCheck (ASPackage _ fmod ps _ is ios insts souts ds iods fs _ _ _) =
                                                AForeignCall _ _ es _ rsts <- fcalls ]
 
 	exprs = fexprs ++ iexprs ++ dexprs ++ iodexprs
-        -- build set from the list 
+        -- build set from the list
         defSet   = S.fromList defs
         portSet  = S.fromList ports
         paramSet = S.fromList params
 
-    in  
+    in
 	checkUses defSet portSet paramSet exprs
 
 
@@ -421,7 +421,7 @@ checkUse ds is ps (ASStr _ _ _)        = []
 checkUse ds is ps (ASAny _ Nothing)    = []
 checkUse ds is ps (ASAny _ (Just e))   = internalError ("aSignalCheck surviving ASAny: " ++ ppReadable e)
 checkUse ds is ps (ASClock _ (AClock { aclock_osc = osc, aclock_gate = gate})) =
-                                       (checkUse ds is ps osc) ++ (checkUse ds is ps gate) 
+                                       (checkUse ds is ps osc) ++ (checkUse ds is ps gate)
 checkUse ds is ps (ASReset _ (AReset { areset_wire = wire })) =
                                        checkUse ds is ps wire
 checkUse ds is ps (ASInout _ (AInout { ainout_wire = wire })) =

@@ -3,8 +3,8 @@ import IntLit
 import PPrint
 import PVPrint
 
-data Literal 
-	= LString String 
+data Literal
+	= LString String
         | LChar Char
         | LInt IntLit
         | LReal Double

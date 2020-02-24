@@ -6,11 +6,11 @@ verilogInstancePrefix :: String
 verilogInstancePrefix = ""
 
 vMux :: Integer -> VModule
-vMux = vMuxP True 
+vMux = vMuxP True
 
 
 vPriMux :: Integer -> VModule
-vPriMux = vMuxP False 
+vPriMux = vMuxP False
 
 vPriEnc :: Bool -> Integer -> VModule
 vPriEnc _ = vMuxP False
@@ -50,7 +50,7 @@ vMuxP parallel n = VModule { vm_name = (mkVId ("Mux_" ++ itos n)),
 
 
 
-onetickbone :: VExpr 
+onetickbone :: VExpr
 onetickbone = VEWConst (mkVId "1") 1 2 1
 
 arms :: VLValue -> [(VExpr,VExpr)] -> [VCaseArm]
@@ -63,7 +63,7 @@ slist :: [VId] -> VEventExpr
 slist vars = foldr1 VEEOr (map (VEE . VEVar) vars)
 
 viWidth :: VId
-viWidth = mkVId "width" 
+viWidth = mkVId "width"
 
 viOut :: VId
 viOut = mkVId "out"

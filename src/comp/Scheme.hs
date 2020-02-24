@@ -19,13 +19,13 @@ data Scheme = Forall [Kind] (Qual Type)
               deriving (Eq, Show)
 
 instance PPrint Scheme where
-  pPrint d p (Forall ks qt) = pparen (p>0) $ 
-    foldr (\ (t,k) r -> text "/\\ (" <> pPrint d 0 t <+> text "::" <+> pPrint d 0 k <> text ") ." <+> r) (pPrint d 0 qt) 
+  pPrint d p (Forall ks qt) = pparen (p>0) $
+    foldr (\ (t,k) r -> text "/\\ (" <> pPrint d 0 t <+> text "::" <+> pPrint d 0 k <> text ") ." <+> r) (pPrint d 0 qt)
     (zip (map (TGen noPosition) [0..]) ks)
 
 instance PVPrint Scheme where
-  pvPrint d p (Forall ks qt) = pparen (p>0) $ 
-    foldr (\ (t,k) r -> text "/\\ (" <> pPrint d 0 t <+> text "::" <+> pPrint d 0 k <> text ") ." <+> r) (pvPrint d 0 qt) 
+  pvPrint d p (Forall ks qt) = pparen (p>0) $
+    foldr (\ (t,k) r -> text "/\\ (" <> pPrint d 0 t <+> text "::" <+> pPrint d 0 k <> text ") ." <+> r) (pvPrint d 0 qt)
     (zip (map (TGen noPosition) [0..]) ks)
 
 instance Types Scheme where

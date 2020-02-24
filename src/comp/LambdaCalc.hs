@@ -124,7 +124,7 @@ convAPackageToLambdaCalc errh flags apkg0 =
 
         -- define each rule as a fn
         rule_defs = map (convARule defmap instmap mmap modId) rs
-    
+
         -- define each method as a fn
         ifc_defs = concatMap (convAIFace defmap instmap mmap modId) ifcs
 

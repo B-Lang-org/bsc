@@ -62,15 +62,15 @@ renamePProps vtis pps =
             (PParg_port (concatMap fixRenameProp is))
         fixPProp (PParg_clocked_by is) =
             (PParg_clocked_by (concatMap fixClkRstProp is))
-        fixPProp (PParg_reset_by is) = 
+        fixPProp (PParg_reset_by is) =
             (PParg_reset_by (concatMap fixClkRstProp is))
-        fixPProp (PPgate_inhigh is) = 
+        fixPProp (PPgate_inhigh is) =
             (PPgate_inhigh (concatMap fixSetProp is))
-        fixPProp (PPgate_unused is) = 
+        fixPProp (PPgate_unused is) =
             (PPgate_unused (concatMap fixSetProp is))
-        fixPProp (PPparam is) = 
+        fixPProp (PPparam is) =
             (PPparam (concatMap fixSetProp is))
-        fixPProp (PPgate_input_clocks is) = 
+        fixPProp (PPgate_input_clocks is) =
             (PPgate_input_clocks (concatMap fixSetProp is))
         fixPProp p = p
 
@@ -112,7 +112,7 @@ modifies n (PParg_reset_by ps)
 modifies n (PPgate_inhigh is) = n `elem` is
 modifies n (PPgate_unused is) = n `elem` is
 modifies n (PPparam is)       = n `elem` is
-modifies _ _                  = False 
+modifies _ _                  = False
 
 isParam :: PProp -> Bool
 isParam (PPparam _)     = True
@@ -120,11 +120,11 @@ isParam (PParg_param _) = True
 isParam _               = False
 
 isOscOrGate :: PProp -> Bool
-isOscOrGate (PPclock_osc _)   = True 
-isOscOrGate (PPclock_gate _)  = True 
-isOscOrGate (PPgate_inhigh _) = True 
-isOscOrGate (PPgate_unused _) = True 
-isOscOrGate _                 = False 
+isOscOrGate (PPclock_osc _)   = True
+isOscOrGate (PPclock_gate _)  = True
+isOscOrGate (PPgate_inhigh _) = True
+isOscOrGate (PPgate_unused _) = True
+isOscOrGate _                 = False
 
 isReset :: PProp -> Bool
 isReset (PPreset_port _)     = True
@@ -140,7 +140,7 @@ isArg _                    = False
 checkArgType :: (PProp -> Bool) -> String -> (Id, [PProp]) -> Maybe EMsg
 checkArgType ok reason (arg, ps) =
   let bad = filter (not . ok) ps
-  in  case bad of 
+  in  case bad of
         []     -> Nothing
         (pp:_) -> Just (getPosition arg,
                         EAttributeOnWrongArgType (getModulePragmaName pp)
@@ -158,8 +158,8 @@ checkArgName arg_names pos pp =
         fixed xs ign = [ x | x <- xs, x `notElem` ign ]
         sanitize (PPclock_osc ps)   = PPclock_osc   (fixed ps ignored2)
         sanitize (PPreset_port ps)  = PPreset_port  (fixed ps ignored2)
-        sanitize (PPgate_inhigh is) = PPgate_inhigh (fixed is ignored) 
-        sanitize (PPgate_unused is) = PPgate_unused (fixed is ignored) 
+        sanitize (PPgate_inhigh is) = PPgate_inhigh (fixed is ignored)
+        sanitize (PPgate_unused is) = PPgate_unused (fixed is ignored)
         sanitize pp                 = pp
 
 checkArgClockedBy :: [String] -> (Id, [PProp]) -> Maybe EMsg
@@ -246,7 +246,7 @@ checkModuleArgPragmas pos pps_orig pps vtis =
             [ (i, ps) | (_, _, Vector _ _ _ ais) <- clks,
                         (i,_) <- concatMap extractVTPairs ais,
                         let ps = filter (modifies i) pps ]
-        rst_info = 
+        rst_info =
             [ (i, ps) | (i, _, Simple {}) <- rsts,
                         let ps = filter (modifies i) pps ] ++
             [ (i, ps) | (_, _, Vector _ _ _ ais) <- rsts,
@@ -390,7 +390,7 @@ getAPIArgName (API { api_arg = i }) = i
 
 mkPortName :: Id -> Maybe String -> Maybe String -> Id -> Id
 mkPortName _ _ (Just n) i = setIdBaseString i n
-mkPortName _ (Just pfx) Nothing i 
+mkPortName _ (Just pfx) Nothing i
   | pfx == ""    = i
   | i == emptyId = setIdBaseString i pfx
   | otherwise    = mkIdPre (concatFString [(mkFString pfx), fsUnderscore]) i
@@ -401,7 +401,7 @@ mkPortName def_pfx Nothing Nothing i
 
 
 -- This is the entry point for checking module port names (both arguments
--- and interface ports).  This is 
+-- and interface ports).  This is
 checkModulePortNames :: Flags -> Position -> [PProp] ->
                         -- argument info
                         [(Id, CType, ArgInfo)] ->
@@ -458,7 +458,7 @@ checkModulePortNames flgs pos pps vtis ftps =
         (rs,others')  = partition isRst others
         (params,ports) = partition (\(i,_,_) -> isParamModArg pps i) others'
         clks  = default_clk_arg ++ cs
-        gates = filter (\(i,_,_) -> isGatedInputClk pps i) clks 
+        gates = filter (\(i,_,_) -> isGatedInputClk pps i) clks
         rsts  = default_rst_arg ++ rs
 
         clk_arg_oscs =
@@ -601,7 +601,7 @@ checkModulePortNames flgs pos pps vtis ftps =
                       -- only types written by the user) become ActionValue_
                       -- in the flattened interface (with Action being size 0).
                       -- So ActionValue_ should be only type seen.
-                      isPA   = (qualEq resTypeId idPrimAction) 
+                      isPA   = (qualEq resTypeId idPrimAction)
                       isAV   = (qualEq resTypeId idActionValue_)
                       -- If the user wrote "Action" the flattened ifc is
                       -- ActionValue_#(0).  If the user wrote ActionValue#(t)
@@ -766,7 +766,7 @@ checkModulePortNames flgs pos pps vtis ftps =
 joinStrings_ :: String -> String -> String
 joinStrings_  "" s2 = s2
 joinStrings_  s1 "" = s1
-joinStrings_  s1 s2 = s1 ++ "_" ++ s2 
+joinStrings_  s1 s2 = s1 ++ "_" ++ s2
 
 -- ==============================
 

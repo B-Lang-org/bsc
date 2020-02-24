@@ -73,7 +73,7 @@ top_blk_name = "top"
 -- with any associated action, and one SimCCBlock for each module.
 simMakeCBlocks :: Flags -> SimSystem ->
                   ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo, SBId)
-simMakeCBlocks flags sim_system = 
+simMakeCBlocks flags sim_system =
   let pkg_map  = ssys_packages sim_system
       pkgs     = M.elems pkg_map
       scheds   = ssys_schedules sim_system
@@ -93,7 +93,7 @@ simMakeCBlocks flags sim_system =
 
       -- make a map from module name (as String) to the map for all methods
       -- in that module, so that the scheduler has access to all methods
-      full_mmap = 
+      full_mmap =
           let mkPair sp = (getIdString (sp_name sp),
                            M.fromList (mapMaybe (getPortInfo (sp_pps sp)) (sp_interface sp)))
           in  M.fromList (map mkPair pkgs)
@@ -127,7 +127,7 @@ simMakeCBlocks flags sim_system =
       -- action methods called in each rule
       method_map = M.fromList $
                    [ ((p_name,m_name), sub_names)
-                   | p <- pkgs 
+                   | p <- pkgs
                    , let p_name = getModuleName p
                    , let ms = sp_interface p
                    , m <- ms
@@ -158,9 +158,9 @@ simMakeCBlocks flags sim_system =
                       ]
         in  nub $ locals ++ (concat subs)
       rule_calls = [ (p_name, calls)
-                   | p <- pkgs 
+                   | p <- pkgs
                    , let p_name = getModuleName p
-                   , let calls = [ (arule_id r, actionCalls p r) 
+                   , let calls = [ (arule_id r, actionCalls p r)
                                  | r <- sp_rules p
                                  ] ++
                                  (if (p == top_pkg)
@@ -172,13 +172,13 @@ simMakeCBlocks flags sim_system =
       call_map = M.fromList rule_calls
 
       -- get and combine stmt lists for each clock edge
-      stmt_infos = 
+      stmt_infos =
 	map (mkScheduleStmts flags
                  top_methods top_vmeth_set top_ameth_set top_gates
                  inst_map full_dmap full_mmap call_map)
             scheds
       stmt_map = M.unionsWith combineStmtGroups stmt_infos
-      
+
       -- make the SimCCScheds from the stmt pairs in the map
       schedules = mapMaybe mkOneSchedule (M.toList stmt_map)
 
@@ -194,7 +194,7 @@ simMakeCBlocks flags sim_system =
 -- the AIds used by the defs of those AIds, etc.
 getIds :: DefMap -> IdSet -> [AAction] -> IdSet
 getIds def_map known [] = known
-getIds def_map known (act:acts) = 
+getIds def_map known (act:acts) =
   let known' = getExprIds False def_map known (aact_args act)
   in getIds def_map known' acts
 
@@ -203,20 +203,20 @@ getIds def_map known (act:acts) =
 -- Skip them (and don't count them) if we're not
 getExprIds :: Bool -> DefMap -> IdSet -> [AExpr] -> IdSet
 getExprIds _ _ known [] = known
-getExprIds in_sched def_map known ((APrim _ _ _ args):es) = 
+getExprIds in_sched def_map known ((APrim _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
-getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) = 
+getExprIds in_sched def_map known ((AMethCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
-getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) = 
+getExprIds in_sched def_map known ((ANoInlineFunCall _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
-getExprIds in_sched def_map known ((AFunCall _ _ _ _ args):es) = 
+getExprIds in_sched def_map known ((AFunCall _ _ _ _ args):es) =
   getExprIds in_sched def_map known (args ++ es)
 -- don't recurse into enable or will fire signals
 -- note that we mask the Id property when building the scheduler
--- because we need the will fire definitions there 
+-- because we need the will fire definitions there
 getExprIds in_sched def_map known ((ASDef _ id):es) =
-  if id `S.member` known || 
-     isIdWillFire id && not (in_sched) 
+  if id `S.member` known ||
+     isIdWillFire id && not (in_sched)
   then getExprIds in_sched def_map known es
   else let known' = id `S.insert` known
        in case M.lookup id def_map of
@@ -270,7 +270,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       -- ----------
       -- instantiation parameters (module arguments)
       arg_defs   =
-	  let ains = [ (ai, name, isPort vainfo) 
+	  let ains = [ (ai, name, isPort vainfo)
                      | (ai, vainfo) <- getSimPackageInputs pkg
                      , not (isClock vainfo || isReset vainfo)
                      , let name = getVArgInfoName vainfo
@@ -316,7 +316,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
             , let r'  = cvtARule modId def_map method_order_map reset_list r
             ]
       rule_fns = M.toList (M.unionsWith (++) drs)
-                                 
+
       -- ----------
       -- method functions
 
@@ -345,7 +345,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
 
       rst_defs =  [ (aTBool, ae_objid (areset_wire port))
                   | (_,port) <- reset_list
-                  ]  
+                  ]
 
       rst_map :: M.Map AReset [(AId, AId)]
       rst_map =
@@ -427,14 +427,14 @@ getModuleName pkg = getIdBaseString (sp_name pkg)
 
 -- Get the SimCCBlock Id corresponding to a module name
 modNameToSBId :: NameMap -> String -> SBId
-modNameToSBId map name = 
+modNameToSBId map name =
   case M.lookup name map of
      (Just sbid) -> sbid
      Nothing     -> internalError ("unknown block name: " ++ name)
 
 -- Extract the values needed for SimCCBlock state from an AVInst
 mkState :: NameMap -> AVInst -> (SBId,AId,[AExpr])
-mkState name_map avinst = 
+mkState name_map avinst =
   let inst_name = avi_vname avinst
       mod_info  = avi_vmi avinst
       sbid      = modNameToSBId name_map (getVNameString (vName mod_info))
@@ -483,7 +483,7 @@ cvtActions modId rId def_map method_order_map other_defs acts reset_ids =
 
       -- get their defs
       defs = map (findDef def_map) (S.toList ids)
-      
+
       -- order the defs and actions, and convert to statements
       -- XXX is it more efficient to pass in the whole def map,
       -- XXX than have this func make its own map of just the defs used?
@@ -532,12 +532,12 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                  in case mport of
                       (Just prt) -> [SFSCond prt ss []]
                       Nothing    -> internalError ("cvtIFace: failed to locate RDY port "
-                                                   ++ "for method " ++ 
+                                                   ++ "for method " ++
                                                    (ppReadable rdy_id))
              else ss
          body = concatMap arule_actions (aIfaceRules m)
          -- is it enough to look at the method's wire props, not each rule's?
-         -- it should be because the evaluator should ensure the entire method 
+         -- it should be because the evaluator should ensure the entire method
          -- is in a single clock domain
          wp      = aIfaceProps m
          rst_ids = map (ae_objid . areset_wire)
@@ -578,7 +578,7 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                    -- at the end of the method, return the port value
                    ret_stmts = [ SFSReturn (Just (ASPort t port_id)) ]
                in
-                   -- XXX This returns the stale port value in the case when 
+                   -- XXX This returns the stale port value in the case when
                    -- and always-enabled ActionValue method is called and its
                    -- ready is off (the user lied about it being always_en'd),
                    -- but, at that point, all bets are off anyway
@@ -593,7 +593,7 @@ cvtReset :: (ResetId, AExpr, [(AId,AId)], [AId]) -> SimCCFn
 cvtReset (rst_num, port, inst_ports, output_resets) =
   let rstval_id  = mk_homeless_id "rst_in"
       rstval_ref = ASPort aTBool rstval_id
-      body    = [ SFSAssign True (ae_objid port) rstval_ref ] ++ 
+      body    = [ SFSAssign True (ae_objid port) rstval_ref ] ++
                 [ SFSFunctionCall inst (mkResetFnName rst) [rstval_ref]
 		      | (inst, rst) <- inst_ports ] ++
 		[ SFSOutputReset outRstId rstval_ref
@@ -607,7 +607,7 @@ mkDefAssign (ADef id _ expr _) = SFSAssign False id expr
 
 buildEnWFZeroStmts :: [(Maybe AId,[AId])] -> [SimCCFnStmt]
 buildEnWFZeroStmts xs =
-    concat [ en_stmts ++ wf_stmts 
+    concat [ en_stmts ++ wf_stmts
            | (men,wfs) <- xs
            , let en_stmts = map (assign True) (maybeToList men)
            , let wf_stmts = map (assign False) wfs
@@ -686,13 +686,13 @@ data SchedStmtGroup = SchedFns { sched_stmts :: [SimCCFnStmt]
 type SchedStmtMap = M.Map (TickDirection AExpr) SchedStmtGroup
 
 combineStmtGroups :: SchedStmtGroup -> SchedStmtGroup -> SchedStmtGroup
-combineStmtGroups (SchedFns a1 b1 c1) (SchedFns a2 b2 c2) = 
+combineStmtGroups (SchedFns a1 b1 c1) (SchedFns a2 b2 c2) =
     SchedFns (a1 ++ a2) (b1 ++ b2) (c1 ++ c2)
 
 -- Convert a SimSchedule into a map from clock edges to pairs of
 -- schedule statements and tick statements.
 mkScheduleStmts :: Flags -> [AIFace] -> S.Set AId -> S.Set AId -> [AId] ->
-		   InstModMap -> ModDefMap -> ModMethMap -> CallMap -> 
+		   InstModMap -> ModDefMap -> ModMethMap -> CallMap ->
                    SimSchedule -> SchedStmtMap
 mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
                 inst_map full_def_map full_meth_map call_map sim_sched =
@@ -744,14 +744,14 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
           if (ss_posedge sim_sched)
           then (stableOrdNub (concatMap mkStmt edge_sched_order), [])
           else ([], stableOrdNub (concatMap mkStmt edge_sched_order))
-      (after_posedge_stmts, after_negedge_stmts) = 
+      (after_posedge_stmts, after_negedge_stmts) =
           if (ss_posedge sim_sched)
           then (stableOrdNub (concatMap mkStmt early_sched_order), [])
           else ([], stableOrdNub (concatMap mkStmt early_sched_order))
 
       -- determine all ids used in the schedule
       used_ids = S.fromList $ (concatMap defs_read
-                                         (pos_rule_stmts ++ neg_rule_stmts ++ 
+                                         (pos_rule_stmts ++ neg_rule_stmts ++
                                           after_posedge_stmts ++ after_negedge_stmts))
       isUsedId i = (i `inlineIdFrom` top_blk_name) `S.member` used_ids
 
@@ -762,20 +762,20 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
                           qms = [ addToQual inst m | m <- ms ]
                       return qms
       schedule_methods = stableOrdNub $ concat $ mapMaybe getMeths schedule_rules
-      getEnWFPort m = 
+      getEnWFPort m =
         do let inst = getIdQualString m
            mod <- M.lookup inst inst_map
            let meth_map = findModMeth full_meth_map mod
            (e,_,_,_,rs) <- M.lookup (unQualId m) meth_map
-           let en = do v <- e 
+           let en = do v <- e
                        return $ (vName_to_id v) `inlineIdFrom` inst
-               wfs = [ (mkIdWillFire i) `inlineIdFrom` inst | i <- rs ]               
+               wfs = [ (mkIdWillFire i) `inlineIdFrom` inst | i <- rs ]
                init_port = (keepFires flags) || (any isUsedId ((maybeToList en) ++ wfs))
            if init_port then return (en,wfs) else Nothing
 
       schedule_enables = mapMaybe getEnWFPort schedule_methods
 
-      (pos_enable_stmts, neg_enable_stmts) = 
+      (pos_enable_stmts, neg_enable_stmts) =
           if (ss_posedge sim_sched)
           then (buildEnWFZeroStmts schedule_enables, [])
           else ([], buildEnWFZeroStmts schedule_enables)
@@ -787,7 +787,7 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
 
       -- build the conditional reset tick stmts
       inst_clk_map = M.fromList [((i,c), ac) | (i,(c,ac)) <- prims]
-      addGateInfo (inst,clk) = 
+      addGateInfo (inst,clk) =
           let gate = case M.lookup (inst,clk) inst_clk_map of
                        Just ac ->
                            -- if this is a top-level input, replace with True
@@ -915,7 +915,7 @@ mkGateInfo pkg_map top_gates inst_map scheds =
 	        _ | isPrimitiveModule mod -> Nothing
                 _ -> internalError ("mkGateInfo: " ++ mod ++ "\n" ++
                                     ppReadable (M.keys pkg_map))
-  in 
+  in
       mapMaybe mkGateInfo (M.toList inst_map)
 
 -- apply a binary primitive to a list to reduce it to a singleton
@@ -947,7 +947,7 @@ addScope "" x = x
 addScope scope (SFSDef p (ty,aid) (Just v)) =
   let aid' = aid `inlineIdFrom` scope
       v'   = v `inlineExprFrom` scope
-  in SFSDef p (ty, aid') (Just v') 
+  in SFSDef p (ty, aid') (Just v')
 addScope scope (SFSDef p (ty,aid) Nothing) =
   let aid' = aid `inlineIdFrom` scope
   in SFSDef p (ty, aid') Nothing
@@ -992,18 +992,18 @@ addScope scope (SFSOutputReset rstId val) =
 
 
 -- Create the SimCCFnStmts that correspond to a schedule node
-mkSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId -> InstModMap -> ModDefMap ->           
+mkSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId -> InstModMap -> ModDefMap ->
 		M.Map ARuleId [AId] -> GateSubstMap ->
                 [(AId, [AId])] -> M.Map AId [AId] -> SchedNode -> [SimCCFnStmt]
-mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap 
+mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
              calls_by_rule gate_substs sched_conflicts sched_me_inhibits
-             (Sched qual_rid) = 
+             (Sched qual_rid) =
   let method_calls = fromMaybe [] (M.lookup qual_rid calls_by_rule)
   in if (qual_rid `S.member` top_vmeth_set)
      then mkValueMethodSchedStmts top_ifc top_vmeth_set top_ameth_set
                                   inst_map full_dmap
                                   gate_substs sched_conflicts sched_me_inhibits
-                                  qual_rid 
+                                  qual_rid
      else if (qual_rid `S.member` top_ameth_set)
           then mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set
                                         inst_map full_dmap method_calls
@@ -1014,24 +1014,24 @@ mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
                                 qual_rid
 mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
              calls_by_rule gate_substs sched_conflicts sched_me_inhibits
-             (Exec rid) = 
+             (Exec rid) =
   if (rid `S.member` top_vmeth_set)
   then mkValueMethodExecStmts top_ifc top_vmeth_set top_ameth_set
                               inst_map full_dmap
                               gate_substs sched_conflicts sched_me_inhibits
-                              rid 
+                              rid
   else if (rid `S.member` top_ameth_set)
        then mkActionMethodExecStmts top_ifc top_vmeth_set top_ameth_set
                                     inst_map
                                     full_dmap gate_substs sched_conflicts
-                                    sched_me_inhibits rid 
+                                    sched_me_inhibits rid
        else mkRuleExecStmts top_ifc top_vmeth_set top_ameth_set
                             inst_map full_dmap
                             gate_substs sched_conflicts sched_me_inhibits
-                            rid 
+                            rid
 
--- Make statements for determining if a value method is ready 
-mkValueMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId -> 
+-- Make statements for determining if a value method is ready
+mkValueMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                            InstModMap -> ModDefMap -> GateSubstMap ->
 		           [(AId, [AId])] -> M.Map AId [AId] ->
 		           AId -> [SimCCFnStmt]
@@ -1041,7 +1041,7 @@ mkValueMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
   []
 
 -- Make statements for determining if an action method should fire
-mkActionMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId -> 
+mkActionMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                             InstModMap -> ModDefMap -> [AId] -> GateSubstMap ->
 		            [(AId, [AId])] -> M.Map AId [AId] ->
 		            AId -> [SimCCFnStmt]
@@ -1067,7 +1067,7 @@ mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
       -- ----------
       -- Call the RDY method for top-level methods, since they may check their
       -- RDY port in the method body.
-      call_rdy_method = [ SFSMethodCall (setIdBase emptyId (getIdQual qual_rid)) 
+      call_rdy_method = [ SFSMethodCall (setIdBase emptyId (getIdQual qual_rid))
                                         (mkRdyId (unQualId qual_rid))
                                         []
                         ]
@@ -1076,7 +1076,7 @@ mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
       -- The sub-methods this method calls may need to check their RDY ports
       -- if they are always_ready, so we need to call the RDY method for
       -- any methods which might be called but are not in the WF expr.
-      wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)  
+      wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
                 | (inst,rm) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
@@ -1094,8 +1094,8 @@ mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
   in map (addScope top_blk_name) stmts
 
 -- Make statements for determining if a rule should fire
-mkRuleSchedStmts :: InstModMap -> ModDefMap -> [AId] -> 
-                    GateSubstMap -> [(AId, [AId])] -> M.Map AId [AId] -> 
+mkRuleSchedStmts :: InstModMap -> ModDefMap -> [AId] ->
+                    GateSubstMap -> [(AId, [AId])] -> M.Map AId [AId] ->
                     AId -> [SimCCFnStmt]
 mkRuleSchedStmts inst_map full_dmap method_calls
                  gate_substs sched_conflicts sched_me_inhibits
@@ -1169,13 +1169,13 @@ mkRuleSchedStmts inst_map full_dmap method_calls
       -- Methods in the rule which are always_ready may need to check
       -- their RDY ports, so we need to call the RDY method for any methods
       -- which might be called but are not in the WF expr.
-      wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)  
+      wf_rdys = [ (setIdQualString emptyId (getIdBaseString inst), unQualId rm)
                 | (inst,rm) <-
                     -- "aMethCalls" can return duplicates, but that's OK
                     concatMap (aMethCalls . adef_expr) defs
                 ]
       rl_rdys = [ (setIdBase m fsEmpty, unQualId (mkRdyId m))
-                | m <- method_calls 
+                | m <- method_calls
                 ]
       rdy_calls = [ addScope inst (SFSMethodCall obj rdy [])
                   | (obj,rdy) <- (nub rl_rdys) \\ wf_rdys
@@ -1185,39 +1185,39 @@ mkRuleSchedStmts inst_map full_dmap method_calls
       map (addScope top_blk_name) (rdy_calls ++ qual_stmts2)
 
 -- Make statements for computing value method outputs
-mkValueMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId -> 
+mkValueMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                           InstModMap -> ModDefMap -> GateSubstMap ->
 		          [(AId, [AId])] -> M.Map AId [AId] ->
 		          AId -> [SimCCFnStmt]
 mkValueMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
-                       gate_substs sched_conflicts sched_me_inhibits rid = 
+                       gate_substs sched_conflicts sched_me_inhibits rid =
   []
 
 -- Make statements for executing an action method
-mkActionMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId -> 
+mkActionMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                            InstModMap -> ModDefMap -> GateSubstMap ->
 		           [(AId, [AId])] -> M.Map AId [AId] ->
 		           AId -> [SimCCFnStmt]
 mkActionMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
-                        gate_substs sched_conflicts sched_me_inhibits mid = 
+                        gate_substs sched_conflicts sched_me_inhibits mid =
   let blk_id = mk_homeless_id top_blk_name
       wf = (mkIdWillFire mid) `inlineIdFrom` top_blk_name
       method = headOrErr ("method not in interface: " ++ (ppReadable mid))
                          [ m | m <- top_ifc, aif_name m == mid ]
       args = [ ASPort t (i `inlineIdFrom` top_blk_name)
              | (i,t) <- aif_inputs method ]
-      cond_stmt = SFSCond (ASDef (ATBit 1) wf) 
+      cond_stmt = SFSCond (ASDef (ATBit 1) wf)
                           [SFSMethodCall blk_id mid args]
                           []
   in [cond_stmt]
 
 -- Make statements for executing a rule
-mkRuleExecStmts :: [AIFace] -> S.Set AId -> S.Set AId -> 
+mkRuleExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                    InstModMap -> ModDefMap -> GateSubstMap ->
 		   [(AId, [AId])] -> M.Map AId [AId] ->
 		   AId -> [SimCCFnStmt]
 mkRuleExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
-                gate_substs sched_conflicts sched_me_inhibits rid = 
+                gate_substs sched_conflicts sched_me_inhibits rid =
   let wf = mkIdWillFire rid
       cond_stmt = SFSCond (ASDef (ATBit 1) wf) [SFSRuleExec rid] []
   in map (addScope top_blk_name) [cond_stmt]
@@ -1237,7 +1237,7 @@ mkTickStmt (clk, ticks) =
 mkResetTickStmt :: [(AId,AId,AExpr)] -> SimCCFnStmt
 mkResetTickStmt prims =
   let mname clk_id  = "rst_tick_" ++ getIdBaseString clk_id
-      calls = [ SFSFunctionCall obj (mname clk) [gate] 
+      calls = [ SFSFunctionCall obj (mname clk) [gate]
               | (obj,clk,gate) <- prims
               ]
   in addScope top_blk_name (SFSResets calls)
@@ -1391,7 +1391,7 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
 	    [ edge | ADef i _ e _ <- ds,
                      -- "aMethCalls" can return duplicates, but that's OK
                      (obj,meth) <- aMethCalls e,
-		     edge <- 
+		     edge <-
                            -- def SB act
 			   [ (Right n, [Left i])
 			       | (n,a) <- method_calls,
@@ -1487,7 +1487,7 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         hasRst (Right _)          = True
         groupRsts [] = []
         groupRsts ((Left d):rest) = (Left d):(groupRsts rest)
-        groupRsts l@(x@(Right _):_) = 
+        groupRsts l@(x@(Right _):_) =
             let rst = hasRst x
                 sameRight (Left _) = False
                 sameRight r        = hasRst r == rst
@@ -1596,7 +1596,7 @@ mkGateSubstMap top_gates es =
 	substTop (orig, new) = (orig, M.findWithDefault new new top_subst)
 
         -- Convert a clock substitution into a gate substitution
-        convEdge (orig_aclk, new_aclk) = 
+        convEdge (orig_aclk, new_aclk) =
 	    (aclock_gate orig_aclk, aclock_gate new_aclk)
 
         es_subst = M.fromList $ map (substTop . convEdge) es
@@ -1613,7 +1613,7 @@ substGateReferences smap stmts =
 	substInAExpr e@(AMGate {}) = M.findWithDefault e e smap
 	substInAExpr e@(ASPort {}) = M.findWithDefault e e smap
 	-- otherwise, follow exprs
-	substInAExpr e@(APrim { ae_args = es }) = 
+	substInAExpr e@(APrim { ae_args = es }) =
 	    e { ae_args = map substInAExpr es }
 	substInAExpr e@(AMethCall { ae_args = es }) =
 	    e { ae_args = map substInAExpr es }

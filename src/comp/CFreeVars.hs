@@ -125,7 +125,7 @@ getFVE (CSelect e i) = getFVE e  ---- XXX WRONG i is field addV i (getFVE e)
 getFVE (CSelectTT _ e i) = getFVE e -- XXX WRONG i is field addV i (getFVE e)
 getFVE (CCon i es) = addC i (unionManyFVS (map getFVE es))
 getFVE (Ccase pos e as) = unionFVS (getFVE e) (unionManyFVS (map getFVArm as))
-  where getFVArm arm = 
+  where getFVArm arm =
             let -- better to do two minuses than union and one minus
                 pat_bound  = getPV (cca_pattern arm)
                 qual_bound = getVQuals (cca_filters arm)
@@ -336,7 +336,7 @@ getLDefs (CLMatch p _) = S.toList (getPV p)
 {-
 getFVQuals :: [CQual] -> S.Set Id
 getFVQuals qs = trace ("qs: " ++ ppReadable qs) $
-                trace ("result: " ++ ppReadable (S.toList result)) $ result 
+                trace ("result: " ++ ppReadable (S.toList result)) $ result
  where result = getFVQuals' qs
 -}
 
@@ -393,7 +393,7 @@ getPT (CPAs _ p) = getPT p
 getPT (CPAny {}) = S.empty
 getPT (CPLit {}) = S.empty
 getPT (CPMixedLit {}) = S.empty
-getPT (CPOper ops) = 
+getPT (CPOper ops) =
     let getPTO (CPRand p) = getPT p
         getPTO (CPRator n i) = S.empty
     in  S.unions (map getPTO ops)

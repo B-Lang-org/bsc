@@ -189,7 +189,7 @@ isConstExprM e = withTraceTest $ do
 isConstYExpr :: Y.Expr -> YM (Maybe Bool)
 isConstYExpr ye = do
   is_true <- isTrueYExpr ye
-  if is_true 
+  if is_true
      then return $ Just True
      else do is_false <- isFalseYExpr ye
              if (is_false)
@@ -233,7 +233,7 @@ isFalseYExpr ye = do
 
 checkEq :: YState -> AExpr -> AExpr -> IO (Maybe Bool, YState)
 checkEq s e1 e2 = runStateT (checkEqM e1 e2) s
-    
+
 checkNotEq :: YState -> AExpr -> AExpr -> IO (Maybe Bool, YState)
 checkNotEq s e1 e2 = runStateT (checkNotEqM e1 e2) s
 
@@ -412,7 +412,7 @@ assertDef i (y_e, ty_e) = do
     var@(y_var, _) <- makeDeclAndVar (Just ty_e) str width
     yeq <- liftIO $ Y.mkEq y_var y_e
     liftIO $ Y.assert ctx yeq
-    return var               
+    return var
 -}
 
 makeDeclAndVar :: Maybe YType -> String -> Integer -> YM (Y.Expr, YType)
@@ -452,7 +452,7 @@ convType (Just (YBool)) (ye, YBits width) = do
     when traceConv $ traceM("converting Bits to Bool")
     when (width /= 1) $
         internalError ("convType: invalid width: " ++ ppReadable width)
-{-    
+{-
     -- XXX Can this be memoized?
     yb <- liftIO $ Y.mkBVConstantFromInteger 1 1
     yeq <- liftIO $ Y.mkEq ye yb

@@ -352,7 +352,7 @@ newIStateLoc_other _ _ _ _ [] = internalError "newIStateLoc_other"
 -- convert a list of hierarchical locations to a full Id (for instances)
 -- empty hierarchy will get the name "_unnamed_"
 stateLocToId :: IStateLoc -> Id
-stateLocToId (x:_) = toStateName $ isl_prefix x 
+stateLocToId (x:_) = toStateName $ isl_prefix x
 stateLocToId _ = toStateName noName
 
 hasIgnore :: IStateLoc -> Bool
@@ -511,7 +511,7 @@ type StateLocMap = M.Map [(Id, Maybe Integer)] Integer
 -- given a stateloc path, generate a key for the statelocmap
 -- the head alway has Nothing as its key, the head is never ignored.
 -- Keeping hidden head entries allosing unique tree nodes for hidden name
--- such as those generated in moduleContext.  
+-- such as those generated in moduleContext.
 createStateLocMapKey :: IStateLoc -> [(Id, Maybe Integer)]
 createStateLocMapKey [] = internalError "createStateLocMapKey"
 createStateLocMapKey (head:rest) = headkey:restkeys

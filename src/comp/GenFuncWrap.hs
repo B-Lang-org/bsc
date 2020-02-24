@@ -292,7 +292,7 @@ funcDef errh symt i oqt@(CQType octxs ot) i_ n (CQType _ t) =
 --   i   = the original identifier, which also happens to be the
 --         name of the method on the module, which is the prefix for
 --         the port names for the method (used to generate the port names)
---   qt_ = the qualified type of the wrapped function 
+--   qt_ = the qualified type of the wrapped function
 --         (this has been bitified by GenWrap)
 funcDef_ n mi i i_ qt_ args =
     let

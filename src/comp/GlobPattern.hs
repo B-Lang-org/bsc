@@ -41,22 +41,22 @@ parseGlobPattern :: String -> GlobPattern
 parseGlobPattern "" = GlobEnd
 parseGlobPattern ('*':rest) = GlobAnyChars (parseGlobPattern rest)
 parseGlobPattern ('?':rest) = GlobOneChar (parseGlobPattern rest)
-parseGlobPattern ('[':'!':rest) = 
+parseGlobPattern ('[':'!':rest) =
     let (cs,xs) = parseCharClasses rest
     in case (msum (map getClassErr cs)) of
          (Just err) -> GlobBadPattern err
          Nothing    -> GlobNotOneOf cs (parseGlobPattern xs)
-parseGlobPattern ('[':rest) = 
+parseGlobPattern ('[':rest) =
     let (cs,xs) = parseCharClasses rest
     in case (msum (map getClassErr cs)) of
          (Just err) -> GlobBadPattern err
          Nothing    -> GlobOneOf cs (parseGlobPattern xs)
 parseGlobPattern ['\\'] = GlobBadPattern $ "escape character ends pattern"
-parseGlobPattern ('\\':c:rest) = 
+parseGlobPattern ('\\':c:rest) =
     if (c == globSeparator)
     then GlobBadPattern $ "illegal escaped separator character at '" ++ (c:rest) ++ "'"
     else GlobMatch [c] (parseGlobPattern rest)
-parseGlobPattern s = 
+parseGlobPattern s =
     let (exact,rest) = break (`elem` (globSeparator:"*?[\\")) s
     in if ([globSeparator] `isPrefixOf` exact)
        then GlobBadPattern $ "illegal separator character at '" ++ exact ++ "'"
@@ -65,7 +65,7 @@ parseGlobPattern s =
 -- Parse character class specifications
 parseCharClasses :: String -> ([CharClass],String)
 parseCharClasses "" = ([BadCharClass "no terminating ']'"],"")
-parseCharClasses (x:s) = 
+parseCharClasses (x:s) =
     let (xs,rest) = break (== ']') s
     in if (null rest)
        then ([BadCharClass "no terminating ']'"],"")
@@ -102,7 +102,7 @@ classContains (CharList cs) c     = c `elem` cs
 classContains (BadCharClass _) _  = False
 
 -- Match a string against a glob pattern
-matchGlobPattern :: GlobPattern -> String -> Bool 
+matchGlobPattern :: GlobPattern -> String -> Bool
 matchGlobPattern GlobEnd s = null s
 matchGlobPattern (GlobMatch m p) s =
     if (m `isPrefixOf` s)

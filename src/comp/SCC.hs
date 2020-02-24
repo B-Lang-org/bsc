@@ -42,7 +42,7 @@ sccEdge ns rns vs
         | otherwise    = case dfs r (sAdd x vs) [] (r x) of (vs', ns') -> span_tree r vs' ((x:ns'): ns) xs
 
     dfs r vs ns []   = (vs,ns)
-    dfs r vs ns (x:xs) 
+    dfs r vs ns (x:xs)
 	| x `sElem` vs = dfs r vs ns xs
 	| otherwise    = case dfs r (sAdd x vs) [] (r x) of (vs', ns') ->       dfs r vs' ((x:ns')++ns) xs
 

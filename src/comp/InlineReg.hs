@@ -51,7 +51,7 @@ vInlineReg errh flags avis =
 	initial = mkInitialAssignments flags avis
 
 	-- the list of items to return
-	items =  ns_and_uns_items ++ as_items ++ initial 
+	items =  ns_and_uns_items ++ as_items ++ initial
 
 	-- the register I/O info for AVerilog grouping
 	reg_infos = map (mkRegInstInfo errh flags) avis
@@ -156,7 +156,7 @@ mkInitialAssignments flags [] = []
 mkInitialAssignments flags avis =
     let
 	-- make the assignment for one reg
-        mkInit :: AVInst -> VStmt 
+        mkInit :: AVInst -> VStmt
 	mkInit avi =
 	    let id = (mkQOUT avi)
 		-- tag the VId with the instance that would have existed without inlining.

@@ -1,4 +1,4 @@
-module ATaskSplice(aTaskSplice) where 
+module ATaskSplice(aTaskSplice) where
 import ASyntax
 import ASyntaxUtil
 import Data.Maybe
@@ -11,7 +11,7 @@ import ErrorUtil(internalError)
 type SpliceMap = M.Map Integer (Id,AType)
 
 aTaskSplice :: APackage -> APackage
-aTaskSplice apkg = mapAActions (spliceAction spliceMap) apkg 
+aTaskSplice apkg = mapAActions (spliceAction spliceMap) apkg
   where spliceMap = M.fromList [ (n, (id, t)) | ADef id t (ATaskValue { ae_cookie = n }) _ <- defs ]
         defs = (apkg_local_defs apkg) ++
                (mapMaybe av_ret_def (apkg_interface apkg))

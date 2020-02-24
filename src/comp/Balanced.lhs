@@ -346,7 +346,7 @@ Folding a list in a binary-subdivision scheme.
 >   where rec 1 (a : as)        =  (a, as)
 >         rec n as              =  (a1 * a2, as2)
 >           where m             =  n `div` 2
->                 (a1, as1)     =  rec (n - m) as 
+>                 (a1, as1)     =  rec (n - m) as
 >                 (a2, as2)     =  rec m       as1
 
 > inrange			:: (Ord a) => a -> (a, a) -> Bool
@@ -364,7 +364,7 @@ Folding a list in a binary-subdivision scheme.
 >
 > -- fromListT                     :: ([a] -> [a]) -> Sequ a
 >
-> toList                        :: Sequ a -> [a] 
+> toList                        :: Sequ a -> [a]
 
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 \subsection{Implementation}
