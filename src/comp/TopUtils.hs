@@ -76,21 +76,21 @@ dump :: (PPrint a, Hyper a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 dump errh flags t d names a =
-        hyper a $	-- force evaluation
+        hyper a $        -- force evaluation
         dumpStr errh flags t d names (ppReadable a)
 
 ddump :: (PPrint a, Hyper a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 ddump errh flags t d names a =
-        hyper a $	-- force evaluation
+        hyper a $        -- force evaluation
         dumpStr errh flags t d names (ppDebug a)
 
 vdump :: (PVPrint a, Hyper a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 vdump errh flags t d names a =
-        hyper a $	-- force evaluation
+        hyper a $        -- force evaluation
         dumpStr errh flags t d names (pvpReadable a)
 
 
@@ -98,7 +98,7 @@ sdump :: (Show a, Hyper a) =>
         ErrorHandle -> Flags -> TimeInfo -> DumpFlag -> DumpNames -> a
      -> IO TimeInfo
 sdump errh flags t d names a =
-        hyper a $	-- force evaluation
+        hyper a $        -- force evaluation
         dumpStr errh flags t d names (show a)
 
 

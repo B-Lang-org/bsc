@@ -35,10 +35,10 @@ findMaybeDomainId id_map aclk = M.lookup (aclock_osc aclk) id_map
 findDomainId :: DomainIdMap -> AClock -> DomainId
 findDomainId id_map aclk =
     case (findMaybeDomainId id_map aclk) of
-	Just i -> i
-	Nothing -> internalError ("SimDomainInfo.findDomainId: cannot find " ++
-				  ppReadable aclk ++
-				  ppReadable (M.toList id_map))
+        Just i -> i
+        Nothing -> internalError ("SimDomainInfo.findDomainId: cannot find " ++
+                                  ppReadable aclk ++
+                                  ppReadable (M.toList id_map))
 
 -- ---------------
 
@@ -72,17 +72,17 @@ data DomainInfo = DomainInfo
 instance PPrint DomainInfo where
     pPrint d _ di =
         (text "DomainInfo") $+$
-	text "clocks: " <+> pPrint d 0 (di_clocks di) $+$
-	text "domains: " <+> pPrint d 0 (di_domains di) $+$
---	text "rules:"   <+> pPrint d 0 (di_rules di) $+$
-	text "-- Primitives" $+$
+        text "clocks: " <+> pPrint d 0 (di_clocks di) $+$
+        text "domains: " <+> pPrint d 0 (di_domains di) $+$
+--        text "rules:"   <+> pPrint d 0 (di_rules di) $+$
+        text "-- Primitives" $+$
         vsep (map (pPrint d 0) (di_prims di)) $+$
-	text "-- Primitives with resets in this domain" $+$
+        text "-- Primitives with resets in this domain" $+$
         vsep (map (pPrint d 0) (di_prim_resets di)) $+$
-	text "-- Output clocks" $+$
-	vsep (map (pPrint d 0) (di_output_clocks di)) $+$
-	text "-- Clocks substitutions" $+$
-	vsep (map (pPrint d 0) (di_clock_substs di))
+        text "-- Output clocks" $+$
+        vsep (map (pPrint d 0) (di_output_clocks di)) $+$
+        text "-- Clocks substitutions" $+$
+        vsep (map (pPrint d 0) (di_clock_substs di))
 
 -- ---------------
 
@@ -92,11 +92,11 @@ type DomainInfoMap = M.Map DomainId DomainInfo
 findDomainInfo :: DomainInfoMap -> DomainId -> DomainInfo
 findDomainInfo dinfo_map dom_id =
     case (M.lookup dom_id dinfo_map) of
-	Just i -> i
-	Nothing -> internalError
-	               ("SimDomainInfo.findDomainInfo: cannot find " ++
-			ppReadable dom_id ++
-			ppReadable (M.toList dinfo_map))
+        Just i -> i
+        Nothing -> internalError
+                       ("SimDomainInfo.findDomainInfo: cannot find " ++
+                        ppReadable dom_id ++
+                        ppReadable (M.toList dinfo_map))
 
 -- ---------------
 
@@ -105,8 +105,8 @@ type ClockSubst = [(AClock, AClock)]
 applyClockSubst :: ClockSubst -> AClock -> AClock
 applyClockSubst ss a =
     case (lookup a ss) of
-	Nothing -> a
-	Just a' -> a'
+        Nothing -> a
+        Just a' -> a'
 
 -- ---------------
 

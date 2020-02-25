@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Backend (
-		Backend(..),
-		backendMatches
-		) where
+                Backend(..),
+                backendMatches
+                ) where
 
 import qualified Data.Generics as Generic
 import PPrint
@@ -11,7 +11,7 @@ import Eval
 -- ===============
 
 data Backend = Bluesim | Verilog
-	     deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
+             deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 instance PPrint Backend where
     pPrint _ _ Bluesim = text "Bluesim"

@@ -47,7 +47,7 @@ module AUses(
               MethodUsesList,
               getUUPos, hasSideEffects, extractCondition, differentArgs,
               useDropCond,
-	      MethodUsers, -- requires RuleId
+              MethodUsers, -- requires RuleId
               RuleId,
 
               -- create the ruleUsesMap and methodUsesMap together
@@ -55,7 +55,7 @@ module AUses(
 
               -- used by ASchedule and AAddSchedAssumps
               RuleUsesMap,
-	      RuleUses(..),
+              RuleUses(..),
               Rule(..), ruleName, rulePred, ruleAncestor,
               rumToObjectMap, rumToMethodUseMap,
               rumGetMethodIds, rumRuleUsesFF,
@@ -88,16 +88,16 @@ import Control.Monad.State.Strict
 -- RULE: internal rule/interface method rep for scheduler --
 type RuleId = ARuleId
 data Rule = Rule RuleId (Maybe RuleId) [APred] [AExpr] [AAction]
-	  -- name, source if split, predicates, non-predicate reads, writes
+          -- name, source if split, predicates, non-predicate reads, writes
 
 instance Eq Rule where
     (Rule rId _ _ _ _) == (Rule rId' _ _ _ _) = rId == rId' -- we can assume unique ids
 
 instance PPrint Rule where
     pPrint d i (Rule rId _ rPred rReads rWrites) =
-	sep $ map sep
-		     [[text "rule:", pPrint d i rId], [text "pred:", pPrint d i rPred],
-		      [text "reads:", pPrint d i rReads], [text "writes:", pPrint d i rWrites]]
+        sep $ map sep
+                     [[text "rule:", pPrint d i rId], [text "pred:", pPrint d i rPred],
+                      [text "reads:", pPrint d i rReads], [text "writes:", pPrint d i rWrites]]
 
 ruleName :: Rule -> RuleId
 ruleName (Rule rId _ _ _ _) = rId
@@ -383,19 +383,19 @@ data RuleUses = RuleUses ExprUses ExprUses ActionUses
 instance PPrint RuleUses where
     pPrint d i (RuleUses pus rus wus) =
        let pmus = toListMethodExprUses $ getMethodExprUses pus
-	   rmus = toListMethodExprUses $ getMethodExprUses rus
-	   wmus = toListMethodActionUses $ getMethodActionUses wus
-	   pfus = toListFFExprUses $ getFFuncExprUses pus
-	   rfus = toListFFExprUses $ getFFuncExprUses rus
-	   wfus = toListFFActionUses $ getFFuncActionUses wus
+           rmus = toListMethodExprUses $ getMethodExprUses rus
+           wmus = toListMethodActionUses $ getMethodActionUses wus
+           pfus = toListFFExprUses $ getFFuncExprUses pus
+           rfus = toListFFExprUses $ getFFuncExprUses rus
+           wfus = toListFFActionUses $ getFFuncActionUses wus
        in  sep [
-		sep [text "predicate reads (methods):", pPrint d i pmus],
-		sep [text "action reads (methods):", pPrint d i rmus],
-		sep [text "action writes (methods):", pPrint d i wmus],
-		sep [text "predicate reads (funcs):", pPrint d i pfus],
-		sep [text "action reads: (funcs)", pPrint d i rfus],
-		sep [text "action writes: (funcs)", pPrint d i wfus]
-	       ]
+                sep [text "predicate reads (methods):", pPrint d i pmus],
+                sep [text "action reads (methods):", pPrint d i rmus],
+                sep [text "action writes (methods):", pPrint d i wmus],
+                sep [text "predicate reads (funcs):", pPrint d i pfus],
+                sep [text "action reads: (funcs)", pPrint d i rfus],
+                sep [text "action writes: (funcs)", pPrint d i wfus]
+               ]
 
 instance Show RuleUses where
    show ruses = ppReadable ruses
@@ -425,8 +425,8 @@ type RuleUsesMap = M.Map RuleId (AExpr, RuleUses)
 -- XXX A more abstract entry point might be good?
 rumGetActionUses :: RuleUsesMap -> ARuleId -> ActionUses
 rumGetActionUses m r = case M.lookup r m of
-	      Just (_, RuleUses _ _ range) -> range
-	      _ -> errNotInUseMap r
+              Just (_, RuleUses _ _ range) -> range
+              _ -> errNotInUseMap r
 
 -- The following are intended as more abstract entry points for ASchedule:
 
@@ -435,7 +435,7 @@ rumRuleUsesFF :: RuleUsesMap -> ARuleId -> Bool
 rumRuleUsesFF m r =
     case M.lookup r m of
       Just (_, RuleUses preds domain range) ->
-	  let eUsesFF = not . M.null . getFFuncExprUses
+          let eUsesFF = not . M.null . getFFuncExprUses
               aUsesFF = not . M.null . getFFuncActionUses
           in  eUsesFF preds || eUsesFF domain || aUsesFF range
       _ -> errNotInUseMap r
@@ -445,7 +445,7 @@ rumRuleUsesFF m r =
 rumToObjectMap :: RuleUsesMap -> M.Map ARuleId (S.Set Id)
 rumToObjectMap m =
    let usesToObjIds (_, RuleUses preds domain range) =
-	   let eObjIds = M.keysSet . getMethodExprUses
+           let eObjIds = M.keysSet . getMethodExprUses
                aObjIds = M.keysSet . getMethodActionUses
            in  S.unions [eObjIds preds, eObjIds domain, aObjIds range]
    in  M.map usesToObjIds m
@@ -456,7 +456,7 @@ rumToMethodUseMap :: RuleUsesMap ->
                      M.Map ARuleId (AExpr, M.Map Id (M.Map Id [UniqueUse]))
 rumToMethodUseMap m =
     let usesToMethMap (pred, RuleUses preds domain range) =
-	    let toE (e, c) = UUExpr e c
+            let toE (e, c) = UUExpr e c
                 toA a = UUAction a
                 convE = M.map (M.map (map toE . M.toList)) . getMethodExprUses
                 convA = M.map (M.map (map toA)) . getMethodActionUses
@@ -469,7 +469,7 @@ rumGetMethodIdMap :: RuleUsesMap -> ARuleId -> M.Map Id (S.Set Id)
 rumGetMethodIdMap m r =
     case M.lookup r m of
       Just (_, RuleUses preds domain range) ->
-	  let convE us = M.map (M.keysSet) (getMethodExprUses us)
+          let convE us = M.map (M.keysSet) (getMethodExprUses us)
               convA us = M.map (M.keysSet) (getMethodActionUses us)
           in  M.unionsWith (S.union) [convE preds, convE domain, convA range]
       _ -> errNotInUseMap r
@@ -958,17 +958,17 @@ invertRuleUsesMap :: RuleUsesMap -> MethodUsesMap
 invertRuleUsesMap rMap =
     foldr (uncurry (M.insertWith mergeUseMapData)) M.empty $
     [cvt rId uses | (rId, (_, RuleUses pUses rUses wUses)) <- M.toList rMap,
-		    let pMUses = getMethodUUExprs pUses,
-		    let rMUses = getMethodUUExprs rUses,
-		    let wMUses = getMethodUUActions wUses,
-		    uses <- map Left pMUses ++ map Right (wMUses ++ rMUses)]
+                    let pMUses = getMethodUUExprs pUses,
+                    let rMUses = getMethodUUExprs rUses,
+                    let wMUses = getMethodUUActions wUses,
+                    uses <- map Left pMUses ++ map Right (wMUses ++ rMUses)]
     where
-	-- convert a Left/Right use into the proper triple form, for merging
-	-- (Left for predicate uses, Right for action reads/writes)
-	cvt rId (Left (mId, us)) =
-	    (mId, [(uUse, ([rId], [], [])) | uUse <- us])
-	cvt rId (Right (mId, us)) =
-	    (mId, [(uUse, ([], [rId], [])) | uUse <- us])
+        -- convert a Left/Right use into the proper triple form, for merging
+        -- (Left for predicate uses, Right for action reads/writes)
+        cvt rId (Left (mId, us)) =
+            (mId, [(uUse, ([rId], [], [])) | uUse <- us])
+        cvt rId (Right (mId, us)) =
+            (mId, [(uUse, ([], [rId], [])) | uUse <- us])
 
 -- create a mapping from an instance Id to the list of method call uses
 -- in the instantiation of that submodule

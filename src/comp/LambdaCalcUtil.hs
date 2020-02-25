@@ -189,9 +189,9 @@ mkMethodOrderMap avis =
 findMethodOrderSet :: MethodOrderMap -> AId -> S.Set (AId, AId)
 findMethodOrderSet mmap id =
     case M.lookup id mmap of
-	Just mset -> mset
-	Nothing -> internalError ("SimPackage.findMethodOrderSet: " ++
-				  "cannot find " ++ ppReadable id)
+        Just mset -> mset
+        Nothing -> internalError ("SimPackage.findMethodOrderSet: " ++
+                                  "cannot find " ++ ppReadable id)
 
 -- -----
 
@@ -241,165 +241,165 @@ tsortActionsAndDefs :: MethodOrderMap -> DefMap ->
                        ([Either ADef AAction], M.Map (AId, AId) (AId, AType))
 tsortActionsAndDefs mmap defmap uses acts =
     let
-	-- we will create a graph where the edges are:
-	-- * "Left AId" to represent a def (by it's name)
-	-- * "Right Integer" to represent an action (by it's position in acts)
+        -- we will create a graph where the edges are:
+        -- * "Left AId" to represent a def (by it's name)
+        -- * "Right Integer" to represent an action (by it's position in acts)
 
-	-- The use of Left and Right was chosen to make Defs lower in
-	-- the Ord order than Actions.  This way, tsort puts them first.
+        -- The use of Left and Right was chosen to make Defs lower in
+        -- the Ord order than Actions.  This way, tsort puts them first.
 
-	-- ----------
-	-- Defs
+        -- ----------
+        -- Defs
 
         -- find the defs
         used_defs :: [ADef]
         used_defs = map (\ (i, (t, e)) -> ADef i t e []) (M.toList uses)
 
-	-- make edges for def-to-def dependencies
-	def_edges =
+        -- make edges for def-to-def dependencies
+        def_edges =
             [ (Left i, map Left uses)
-		  | ADef i _ e _ <- used_defs,
-	            let uses = M.keys $ getAExprDefs defmap M.empty [e] ]
+                  | ADef i _ e _ <- used_defs,
+                    let uses = M.keys $ getAExprDefs defmap M.empty [e] ]
 
-	-- ----------
-	-- Actions
+        -- ----------
+        -- Actions
 
-	-- give the actions a unique number and make a mapping
-	-- (this is necessary because the same action can be repeated
-	-- more than once ... for instance, $display on the same arguments)
+        -- give the actions a unique number and make a mapping
+        -- (this is necessary because the same action can be repeated
+        -- more than once ... for instance, $display on the same arguments)
 
-	-- (numbering in order also helps the Ord order, for tsort)
-	numbered_acts = zip [1..] acts
-	act_map = M.fromList numbered_acts
-	getAct n = case (M.lookup n act_map) of
-		     Just d -> d
-		     Nothing -> internalError "tsortActionsAndDefs: getAct"
+        -- (numbering in order also helps the Ord order, for tsort)
+        numbered_acts = zip [1..] acts
+        act_map = M.fromList numbered_acts
+        getAct n = case (M.lookup n act_map) of
+                     Just d -> d
+                     Nothing -> internalError "tsortActionsAndDefs: getAct"
 
-	-- separate the sorts of actions
-	-- * method calls we will re-order, respecting sequential composability
-	-- * foreign task/function calls we will keep in order, but allow
-	--   other things to come between them (because tasks can return
-	--   values)
+        -- separate the sorts of actions
+        -- * method calls we will re-order, respecting sequential composability
+        -- * foreign task/function calls we will keep in order, but allow
+        --   other things to come between them (because tasks can return
+        --   values)
 
-	isACall (_, ACall {}) = True
-	isACall _ = False
+        isACall (_, ACall {}) = True
+        isACall _ = False
 
-	isATaskAction (_, ATaskAction {}) = True
-	isATaskAction _ = False
+        isATaskAction (_, ATaskAction {}) = True
+        isATaskAction _ = False
 
-	(method_calls, foreign_calls) = partition isACall numbered_acts
-	task_calls = filter isATaskAction foreign_calls
+        (method_calls, foreign_calls) = partition isACall numbered_acts
+        task_calls = filter isATaskAction foreign_calls
 
-	-- ----------
-	-- foreign-to-foreign edges
-	-- (to maintain the user-specified order of system/foreign-func calls)
+        -- ----------
+        -- foreign-to-foreign edges
+        -- (to maintain the user-specified order of system/foreign-func calls)
 
-	-- (are these still needed now that we use Ord to bias tsort?)
-	foreign_edges =
-	    if (length foreign_calls > 1)
-	    then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
-	         in  zipWith mkEdge (init foreign_calls) (tail foreign_calls)
-	    else []
+        -- (are these still needed now that we use Ord to bias tsort?)
+        foreign_edges =
+            if (length foreign_calls > 1)
+            then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
+                 in  zipWith mkEdge (init foreign_calls) (tail foreign_calls)
+            else []
 
-	-- ----------
-	-- Action to def edges
+        -- ----------
+        -- Action to def edges
 
-	-- any defs used by an action have to be computed before the
-	-- action is called
+        -- any defs used by an action have to be computed before the
+        -- action is called
 
-	act_def_edges =
+        act_def_edges =
             [ (Right n, map Left uses)
-	          | (n, a) <- numbered_acts,
+                  | (n, a) <- numbered_acts,
                     let uses = M.keys $ getAActionDefs defmap M.empty [a] ]
 
-	-- ----------
-	-- Action method to Action method edges
+        -- ----------
+        -- Action method to Action method edges
 
-	-- function to create order edges
-	--    m1 `isBefore` m2 == True
+        -- function to create order edges
+        --    m1 `isBefore` m2 == True
         --       when (m1 SB m2) is in the VModInfo for the submodule
-	isBefore (ACall obj1 meth1 _) (ACall obj2 meth2 _) =
-	    -- do they act on the same object?
-	    if (obj1 /= obj2)
-	    then False
-	    else let mset = findMethodOrderSet mmap obj1
-		 in  (unQualId meth1, unQualId meth2) `S.member` mset
-	isBefore _ _ = False
+        isBefore (ACall obj1 meth1 _) (ACall obj2 meth2 _) =
+            -- do they act on the same object?
+            if (obj1 /= obj2)
+            then False
+            else let mset = findMethodOrderSet mmap obj1
+                 in  (unQualId meth1, unQualId meth2) `S.member` mset
+        isBefore _ _ = False
 
-	-- order the method calls
-	--   The edges must be of the form (a, as) s.t. all actions in "as"
-	--   have to execute before "a".
-	meth_edges = [ (Right n1, ns)
-	                  | (n1,a1) <- method_calls,
-			    let ns = [ Right n2 | (n2,a2) <- numbered_acts,
-						 a2 /= a1,
-						 a2 `isBefore` a1 ] ]
+        -- order the method calls
+        --   The edges must be of the form (a, as) s.t. all actions in "as"
+        --   have to execute before "a".
+        meth_edges = [ (Right n1, ns)
+                          | (n1,a1) <- method_calls,
+                            let ns = [ Right n2 | (n2,a2) <- numbered_acts,
+                                                 a2 /= a1,
+                                                 a2 `isBefore` a1 ] ]
 
-	-- ----------
-	-- ActionValue method edges
+        -- ----------
+        -- ActionValue method edges
 
-	(av_meth_edges, av_meth_local_vars) =
-	    mkAVMethEdges used_defs method_calls
+        (av_meth_edges, av_meth_local_vars) =
+            mkAVMethEdges used_defs method_calls
 
-	-- ----------
-	-- ActionValue task edges
+        -- ----------
+        -- ActionValue task edges
 
-	-- Make edges from the task to the def that it sets
-	-- (ATaskValue is always a top-level def, and the Id is stored
-	-- in the ATaskAction by the ATaskSplice stage.)
-	-- (Rather than remove the def for the ATaskValue and make edges from
-	--  the users of that def to the ATaskAction, we leave the def in
-	--  the graph and just generate nothing for it when we make statements
-	--  from the flattened graph.)
-	av_task_edges =
-	    [ (Left tmp_id, [Right n]) |
+        -- Make edges from the task to the def that it sets
+        -- (ATaskValue is always a top-level def, and the Id is stored
+        -- in the ATaskAction by the ATaskSplice stage.)
+        -- (Rather than remove the def for the ATaskValue and make edges from
+        --  the users of that def to the ATaskAction, we leave the def in
+        --  the graph and just generate nothing for it when we make statements
+        --  from the flattened graph.)
+        av_task_edges =
+            [ (Left tmp_id, [Right n]) |
                (n, ATaskAction { ataskact_temp=(Just tmp_id) }) <- task_calls ]
 
-	-- ----------
-	-- Action / Value method call edges
+        -- ----------
+        -- Action / Value method call edges
 
-	-- like isBefore, but for Action vs Value method
-	isVMethSB v_obj v_meth (ACall a_obj a_meth _) =
-	    -- do they act on the same object?
-	    if (v_obj /= a_obj)
-	    then False
-	    else let mset = findMethodOrderSet mmap v_obj
-		 in  (unQualId v_meth, unQualId a_meth) `S.member` mset
-	isVMethSB _ _ _ = False
+        -- like isBefore, but for Action vs Value method
+        isVMethSB v_obj v_meth (ACall a_obj a_meth _) =
+            -- do they act on the same object?
+            if (v_obj /= a_obj)
+            then False
+            else let mset = findMethodOrderSet mmap v_obj
+                 in  (unQualId v_meth, unQualId a_meth) `S.member` mset
+        isVMethSB _ _ _ = False
 
-	isAMethSB v_obj v_meth (ACall a_obj a_meth _) =
-	    -- do they act on the same object?
-	    if (v_obj /= a_obj)
-	    then False
-	    else let mset = findMethodOrderSet mmap v_obj
-		 in  (unQualId a_meth, unQualId v_meth) `S.member` mset
-	isAMethSB _ _ _ = False
+        isAMethSB v_obj v_meth (ACall a_obj a_meth _) =
+            -- do they act on the same object?
+            if (v_obj /= a_obj)
+            then False
+            else let mset = findMethodOrderSet mmap v_obj
+                 in  (unQualId a_meth, unQualId v_meth) `S.member` mset
+        isAMethSB _ _ _ = False
 
-	-- value method calls which are SB with action methods
-	-- need to be properly ordered
-	--   Edges must be of the form (m1, m2) where the method "m2"
-	--   has to be executed before "m1".
-	mdef_edges =
-	    [ edge | ADef i _ e _ <- used_defs,
+        -- value method calls which are SB with action methods
+        -- need to be properly ordered
+        --   Edges must be of the form (m1, m2) where the method "m2"
+        --   has to be executed before "m1".
+        mdef_edges =
+            [ edge | ADef i _ e _ <- used_defs,
                      -- "aMethCalls" can return duplicates, but that's OK
                      (obj,meth) <- aMethCalls e,
-		     edge <-
+                     edge <-
                            -- def SB act
-			   [ (Right n, [Left i])
-			       | (n,a) <- method_calls,
-			         isVMethSB obj meth a ] ++
-			   -- act SB def (XXX can this happen?)
-		           [ (Left i, map Right ns)
-			       | let ns = map fst $
-				          filter ((isAMethSB obj meth) . snd)
-				              method_calls,
-			         not (null ns) ]
-	    ]
+                           [ (Right n, [Left i])
+                               | (n,a) <- method_calls,
+                                 isVMethSB obj meth a ] ++
+                           -- act SB def (XXX can this happen?)
+                           [ (Left i, map Right ns)
+                               | let ns = map fst $
+                                          filter ((isAMethSB obj meth) . snd)
+                                              method_calls,
+                                 not (null ns) ]
+            ]
 
-	-- ----------
-	-- check the assumption that the arguments to the actions don't
-	-- introduce ordering edges (that is, don't contain value method
-	-- calls or values from AV methods or tasks)
+        -- ----------
+        -- check the assumption that the arguments to the actions don't
+        -- introduce ordering edges (that is, don't contain value method
+        -- calls or values from AV methods or tasks)
 
         isBadActionArg e = not (null (aMethCalls e)) &&
                            not (null (aMethValues e)) &&
@@ -407,18 +407,18 @@ tsortActionsAndDefs mmap defmap uses acts =
 
         bad_acts = concatMap (filter isBadActionArg . aact_args) acts
 
-	-- ----------
-	-- put it together into one graph
+        -- ----------
+        -- put it together into one graph
 
-	g =
+        g =
 {-
-	    trace ("acts = " ++ ppReadable numbered_acts) $
-	    trace ("foreign_edges = " ++ ppReadable (foreign_edges :: [Edge])) $
-	    trace ("av_task_edges = " ++ ppReadable av_task_edges) $
-	    trace ("av_meth_edges = " ++ ppReadable av_meth_edges) $
-	    trace ("meth_edges = " ++ ppReadable (meth_edges :: [Edge])) $
-	    trace ("mdef_edges = " ++ ppReadable mdef_edges) $
-	    trace ("act_def_edges = " ++ ppReadable (act_def_edges :: [Edge])) $
+            trace ("acts = " ++ ppReadable numbered_acts) $
+            trace ("foreign_edges = " ++ ppReadable (foreign_edges :: [Edge])) $
+            trace ("av_task_edges = " ++ ppReadable av_task_edges) $
+            trace ("av_meth_edges = " ++ ppReadable av_meth_edges) $
+            trace ("meth_edges = " ++ ppReadable (meth_edges :: [Edge])) $
+            trace ("mdef_edges = " ++ ppReadable mdef_edges) $
+            trace ("act_def_edges = " ++ ppReadable (act_def_edges :: [Edge])) $
 -}
             M.fromListWith union $ concat [ foreign_edges
                                           , av_task_edges
@@ -430,21 +430,21 @@ tsortActionsAndDefs mmap defmap uses acts =
                                           ]
 
         -- Convert the graph to the format expected by tsort.
-	g_edges = M.toList g
+        g_edges = M.toList g
 
     in
       if (not (null bad_acts))
       then internalError ("tsortActionsAndDefs: unexpected inlining:\n" ++ ppReadable bad_acts)
       else
         -- tsort returns Left if there is a loop, Right if sorted.
-	-- (In the absense of restrictive edges, tsort uses Ord to put
-	-- the lower valued nodes first.  Thus, we have chosen the node
-	-- representation to put Defs first, followed by Actions in the
-	-- order that they were give by the user.)
-	case (tsort g_edges) of
-	    Left is -> internalError ("tsortActionsAndDefs: cyclic " ++
-	                              ppReadable is)
-	    Right is ->
+        -- (In the absense of restrictive edges, tsort uses Ord to put
+        -- the lower valued nodes first.  Thus, we have chosen the node
+        -- representation to put Defs first, followed by Actions in the
+        -- order that they were give by the user.)
+        case (tsort g_edges) of
+            Left is -> internalError ("tsortActionsAndDefs: cyclic " ++
+                                      ppReadable is)
+            Right is ->
                 let -- lookup def and action nodes
                     xs = map (either (Left . lookupDef defmap) (Right . getAct)) is
                 in
@@ -464,35 +464,35 @@ type Edge = (Node, [Node])
 -- * a set of the ACall which are action value, mapped to the Id of the
 --   def used to reference it and its type
 mkAVMethEdges :: [ADef] -> [(Integer, AAction)] ->
-		 ([Edge], M.Map (AId, AId) (AId, AType))
+                 ([Edge], M.Map (AId, AId) (AId, AType))
 mkAVMethEdges ds method_calls =
     let
-	-- check whether an AMethValue is from a particular action
-	isMethValueOf v_obj v_meth (ACall a_obj a_meth _) =
-	    (v_obj == a_obj) && (v_meth == a_meth)
-	isMethValueOf _ _ _ = False
+        -- check whether an AMethValue is from a particular action
+        isMethValueOf v_obj v_meth (ACall a_obj a_meth _) =
+            (v_obj == a_obj) && (v_meth == a_meth)
+        isMethValueOf _ _ _ = False
 
-	-- find the AMethValue references
+        -- find the AMethValue references
         -- (assume that they are lifted to their own def)
-	av_meth_refs = [ (i, obj, meth, ty)
+        av_meth_refs = [ (i, obj, meth, ty)
                          | ADef i _ (AMethValue ty obj meth) _ <- ds ]
 
-	-- the value reference from an ActionValue needs to come after
-	-- the action method call.
-	--   Edges must be of the form (i, as) where all actions in "as"
-	--   have to execute before "i" is computed.
-	av_meth_edges = [ (Left i, map Right ns)
-			    | (i, obj, meth, _) <- av_meth_refs,
+        -- the value reference from an ActionValue needs to come after
+        -- the action method call.
+        --   Edges must be of the form (i, as) where all actions in "as"
+        --   have to execute before "i" is computed.
+        av_meth_edges = [ (Left i, map Right ns)
+                            | (i, obj, meth, _) <- av_meth_refs,
                               let ns = map fst $
-				       filter ((isMethValueOf obj meth) . snd)
-			                   method_calls,
-		              not (null ns) ]
+                                       filter ((isMethValueOf obj meth) . snd)
+                                           method_calls,
+                              not (null ns) ]
 
-	av_meths =
+        av_meths =
             let mkPair (i,o,m,t) = ((o,m),(i,t))
             in  M.fromList (map mkPair av_meth_refs)
     in
-	(av_meth_edges, av_meths)
+        (av_meth_edges, av_meths)
 
 -- -----
 
@@ -843,8 +843,8 @@ aBoolAnds es =
     then mkAFalse
     else aBoolAnds' (nub (filter (not . isTrue) es))
   where aBoolAnds' []  = mkATrue
-	aBoolAnds' [e] = e
-	aBoolAnds' es  = APrim defaultAId mkATBool PrimBAnd es
+        aBoolAnds' [e] = e
+        aBoolAnds' es  = APrim defaultAId mkATBool PrimBAnd es
 
 aBoolNot :: AExpr -> AExpr
 aBoolNot (APrim defaultAId t PrimBNot [e]) = e

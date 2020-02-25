@@ -1,13 +1,13 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 module Pred(
-	    Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
+            Qual(..), PredWithPositions(..), Pred(..), Class(..), Inst(..),
             getInsts,
-	    removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
-	    expandSyn, predToType, qualToType, mkInst,
-	    Instantiate(..),
+            removePredPositions, getPredPositions, addPredPositions, mkPredWithPositions,
+            expandSyn, predToType, qualToType, mkInst,
+            Instantiate(..),
             predToCPred, qualTypeToCQType,
-	    ) where
+            ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -37,14 +37,14 @@ import CSyntaxTypes
 -- Schemes for other identifiers or purposes will contain empty lists.
 --
 data Qual t
-	= [(PredWithPositions)] :=> t
+        = [(PredWithPositions)] :=> t
         deriving (Eq, Ord, Show)
 
 instance PPrint t => PPrint (Qual t) where
     pPrint d p ([] :=> t) = pparen (p>0) $ pPrint d p t
     pPrint d p (ps :=> t) = pparen (p>0) $ text "(" <> sepList (map (ppPred . removePredPositions) ps) (text ",") <> text ") =>" <+> pPrint d 0 t
-	where ppPred (IsIn c []) = ppId d (typeclassId $ name c)
-	      ppPred (IsIn c ts) = ppId d (typeclassId $ name c) <+> sep (map (pPrint d 11) ts)
+        where ppPred (IsIn c []) = ppId d (typeclassId $ name c)
+              ppPred (IsIn c ts) = ppId d (typeclassId $ name c) <+> sep (map (pPrint d 11) ts)
 
 instance PVPrint t => PVPrint (Qual t) where
     pvPrint d p ([] :=> t) = pvparen (p>0) $ pvPrint d p t
@@ -111,7 +111,7 @@ instance Hyper PredWithPositions where
 -----
 
 data Pred
-	= IsIn Class [Type]
+        = IsIn Class [Type]
         deriving (Eq, Ord, Show)
 
 instance PPrint Pred where
@@ -133,19 +133,19 @@ predToCPred (IsIn c ts) = CPred (name c) ts
 -----------------------------------------------------------------------------
 
 data Class
-	= Class {
-	    name  :: CTypeclass,
-	    csig  :: [TyVar],
+        = Class {
+            name  :: CTypeclass,
+            csig  :: [TyVar],
             super :: [(CTypeclass, Pred)],
-	    tyConOf :: TyCon,
-	    funDeps :: [[Bool]],
-	    funDeps2 :: [[Maybe Bool]],
-	    genInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst],
+            tyConOf :: TyCon,
+            funDeps :: [[Bool]],
+            funDeps2 :: [[Maybe Bool]],
+            genInsts :: [TyVar] -> Maybe [TyVar] -> Pred -> [Inst],
             allowIncoherent :: Maybe Bool, -- Just False = always coherent
                                            -- Just True  = always incoherent
                                            -- Nothing = flag-controlled
             isComm :: Bool -- if the class is commutative (used for Add and Mul)
-	}
+        }
 
 -- Instances are stored as a function, to support primitive numeric typeclasses
 -- with an infinite number of instances (Add, Mul, etc).
@@ -156,43 +156,43 @@ getInsts c = genInsts c [] Nothing (IsIn cls [])
     where
       err s = internalError $ "getInsts: no " ++ show s
       cls = Class { name = CTypeclass(dummyId (err "dummyId")),
-		    csig = err "csig",
-		    super = err "super",
-		    genInsts = err "getInsts",
-		    tyConOf = err "tyConOf",
-		    funDeps = err "funDeps",
-		    funDeps2 = err "funDeps2",
+                    csig = err "csig",
+                    super = err "super",
+                    genInsts = err "getInsts",
+                    tyConOf = err "tyConOf",
+                    funDeps = err "funDeps",
+                    funDeps2 = err "funDeps2",
                     allowIncoherent = err "allowIncoherent",
                     isComm = err "isComm"
                   }
 
 instance Show Class where
     showsPrec p c =
-	showString "(Class " .
-		showsPrec 0 (name c) .
-		showsPrec 0 (csig c) . showString " " .
-		showsPrec 0 (super c) . showString " " .
-		showsPrec 0 (funDeps c) .
-		showString ")"
+        showString "(Class " .
+                showsPrec 0 (name c) .
+                showsPrec 0 (csig c) . showString " " .
+                showsPrec 0 (super c) . showString " " .
+                showsPrec 0 (funDeps c) .
+                showString ")"
 
 instance PPrint Class where
     pPrint d p c =
-	text "(Class" <+>
-	pPrint d 0 (name c) <>
-	pPrint d 0 (csig c) <+>
-	pPrint d 0 (super c) <+>
-	pPrint d 0 (getInsts c) <+>
-	pPrint d 0 (funDeps c) <>
-	text ")"
+        text "(Class" <+>
+        pPrint d 0 (name c) <>
+        pPrint d 0 (csig c) <+>
+        pPrint d 0 (super c) <+>
+        pPrint d 0 (getInsts c) <+>
+        pPrint d 0 (funDeps c) <>
+        text ")"
 
 instance PVPrint Class where
     pvPrint d p c = text "(Class" <+>
-		pvPrint d 0 (name c) <>
-		pvPrint d 0 (csig c) <+>
-		pvPrint d 0 (super c) <+>
-		pvPrint d 0 (getInsts c) <+>
-		pvPrint d 0 (funDeps c) <>
-		text ")"
+                pvPrint d 0 (name c) <>
+                pvPrint d 0 (csig c) <+>
+                pvPrint d 0 (super c) <+>
+                pvPrint d 0 (getInsts c) <+>
+                pvPrint d 0 (funDeps c) <>
+                text ")"
 
 instance Hyper Class where
     hyper (Class x1 x2 x3 x4 x5 x6 x7 x8 x9) y = hyper7 x1 x2 x3 x4 x5 x8 x9 y
@@ -221,7 +221,7 @@ instance Types Inst where
 {-
 instance Match Pred where
     match (IsIn c ts) (IsIn c' ts') | c == c'   = match ts ts'
-				    | otherwise = Nothing
+                                    | otherwise = Nothing
 -}
 
 instance PPrint Inst where
@@ -237,28 +237,28 @@ expandSyn t0 = exp [] t0 []
   where exp syns (TAp f a) as = exp syns f (exp syns a [] : as)
         exp syns tt@(TCon (TyCon i _ (TItype n t))) as | i `elem` syns =
           internalError ("recursive type synonyms: " ++ ppReadable syns)
-	exp syns tt@(TCon (TyCon i _ (TItype n t))) as =
-	    case genericSplitAt n as of
-	    (as1, as2) -> if genericLength as1 < n then
-			      -- We have expanded a synonym that was not fully applied.
-			      -- It is all right if `type S v1 ... vn = t vn' and vn doesn't
-			      -- occur in t.
-			      exp syns' (inst as1 (truncType (n - genericLength as1) (fromInteger n-1) t')) as2
-			  else
-			      exp syns' (inst as1 t') as2
+        exp syns tt@(TCon (TyCon i _ (TItype n t))) as =
+            case genericSplitAt n as of
+            (as1, as2) -> if genericLength as1 < n then
+                              -- We have expanded a synonym that was not fully applied.
+                              -- It is all right if `type S v1 ... vn = t vn' and vn doesn't
+                              -- occur in t.
+                              exp syns' (inst as1 (truncType (n - genericLength as1) (fromInteger n-1) t')) as2
+                          else
+                              exp syns' (inst as1 t') as2
           where syns' = i:syns
                 t' = setTypePosition (getIdPosition i) t
-	exp syns tt@(TCon (TyCon i _ _)) as | isTFun i = apTFun tt i as
-	exp syns t as = foldl TAp t as
+        exp syns tt@(TCon (TyCon i _ _)) as | isTFun i = apTFun tt i as
+        exp syns t as = foldl TAp t as
 
-	truncType 0 _ t = t
-	truncType k n (TAp t (TGen _ n')) | n == n' && notIn n t = truncType (k-1) (n-1) t
-	  where notIn _ (TVar _) = True
-		notIn _ (TCon _) = True
-		notIn v (TAp t1 t2) = notIn v t1 && notIn v t2
-		notIn v (TGen _ n) = v /= n
-		notIn v (TDefMonad _) = internalError "expandSyn,truncType (TDefMonad)"
-	truncType k n t = internalError ("expandSyn,truncType\n" ++ ppReadable (k, n, t0, t))
+        truncType 0 _ t = t
+        truncType k n (TAp t (TGen _ n')) | n == n' && notIn n t = truncType (k-1) (n-1) t
+          where notIn _ (TVar _) = True
+                notIn _ (TCon _) = True
+                notIn v (TAp t1 t2) = notIn v t1 && notIn v t2
+                notIn v (TGen _ n) = v /= n
+                notIn v (TDefMonad _) = internalError "expandSyn,truncType (TDefMonad)"
+        truncType k n t = internalError ("expandSyn,truncType\n" ++ ppReadable (k, n, t0, t))
 
 isTFun i = i `elem` numOpNames
 

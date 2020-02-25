@@ -98,8 +98,8 @@ aAddScheduleDefs flags pps pkg aschedinfo =
          asched    = asi_schedule aschedinfo
          conflicts = concatMap getConflictList (asch_scheduler asched)
          mumap     = asi_method_uses_map aschedinfo
-	 -- for error messages
-	 pkgpos    = getPosition (apkg_name pkg)
+         -- for error messages
+         pkgpos    = getPosition (apkg_name pkg)
 
      -- Build maps for ready and enable values and collect
      -- proof obligations associated with always_ready, always_en, etc.

@@ -120,7 +120,7 @@ isSimpleType t = t == itInteger ||
 
 isitAction :: IType -> Bool
 isitAction (ITAp (ITCon i (IKFun IKNum IKStar)
-		     (TIstruct SStruct [_,_] ) ) (ITNum x))
+                     (TIstruct SStruct [_,_] ) ) (ITNum x))
     | (i == idActionValue_) = (x == 0)
 isitAction (ITAp (ITCon i (IKFun IKStar IKStar) _) t)
     | (i == idActionValue)  = t == itPrimUnit
@@ -129,7 +129,7 @@ isitAction x = (x == itAction)
 -- note this returns false for x == - because ActionValue_ 0 is really an Action
 isitActionValue_ :: IType -> Bool
 isitActionValue_ (ITAp (ITCon i (IKFun IKNum IKStar)
-			   (TIstruct SStruct [_,_] ) ) (ITNum x))
+                           (TIstruct SStruct [_,_] ) ) (ITNum x))
     | x > 0 = (i == idActionValue_)
 isitActionValue_ _ = False
 
@@ -150,7 +150,7 @@ getInout_Size t =
 
 getAV_Size :: IType -> Integer
 getAV_Size (ITAp (ITCon i (IKFun IKNum IKStar)
-			   (TIstruct SStruct [_,_] ) ) (ITNum x)) |
+                           (TIstruct SStruct [_,_] ) ) (ITNum x)) |
     (i == idActionValue_) = x
 getAV_Size t = internalError ("getAV_Size: type is not AV_: " ++ ppReadable t)
 
@@ -416,11 +416,11 @@ ieIf ty c t e               = IAps icIf [ty] [c, t, e]
 ieIfx :: IType -> IExpr a -> IExpr a -> IExpr a -> IExpr a
 ieIfx ty c t e =
     if t == e then
-	t
+        t
     else if ty == itBit1 && isTrue t && isFalse e then
-	c
+        c
     else
-	ieIf ty c t e
+        ieIf ty c t e
 
 ieArraySel :: IType -> Integer -> IExpr a -> [IExpr a] -> IExpr a
 -- XXX check if the index is constant and return that element?
@@ -451,9 +451,9 @@ isFalse _ = False
 iePrimWhen :: IType -> IExpr a -> IExpr a -> IExpr a
 iePrimWhen t p e =
     if isTrue p then
-	e
+        e
     else
-	IAps icPrimWhen [t] [p, e]
+        IAps icPrimWhen [t] [p, e]
 
 pTrue :: Pred a
 pTrue = PConj S.empty
@@ -496,7 +496,7 @@ icNoActions = ICon idPrimNoActions (ICPrim itAction PrimNoActions)
 icIf :: IExpr a
 icIf = ICon idPrimIf (ICPrim (ITForAll i IKStar (itBit1 `itFun` ty `itFun` ty `itFun` ty)) PrimIf)
   where i = head tmpVarIds
-	ty = ITVar i
+        ty = ITVar i
 
 icPrimArrayDynSelect :: IExpr a
 icPrimArrayDynSelect = ICon idPrimArrayDynSelect (ICPrim t PrimArrayDynSelect)
@@ -540,65 +540,65 @@ icPrimChr = ICon idPrimChr (ICPrim t PrimChr)
 icSelect :: Position -> IExpr a
 icSelect pos = ICon (idPrimSelectAt pos) (ICPrim t PrimSelect)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar n) `itFun` aitBit (ITVar k)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar n) `itFun` aitBit (ITVar k)
+        k:m:n:_ = tmpVarIds
 
 icPrimConcat :: IExpr a
 icPrimConcat = ICon idPrimConcat (ICPrim t PrimConcat)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
+        k:m:n:_ = tmpVarIds
 
 icPrimMul :: IExpr a
 icPrimMul = ICon idPrimMul (ICPrim t PrimMul)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar m) `itFun` aitBit (ITVar n)
+        k:m:n:_ = tmpVarIds
 
 icPrimQuot :: IExpr a
 icPrimQuot = ICon idPrimQuot (ICPrim t PrimQuot)
   where t = ITForAll k IKNum (ITForAll n IKNum rt)
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar k)
-	k:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar k)
+        k:n:_ = tmpVarIds
 
 icPrimRem :: IExpr a
 icPrimRem = ICon idPrimRem (ICPrim t PrimRem)
   where t = ITForAll k IKNum (ITForAll n IKNum rt)
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar n)
-	k:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar n) `itFun` aitBit (ITVar n)
+        k:n:_ = tmpVarIds
 
 icPrimZeroExt :: IExpr a
 icPrimZeroExt = ICon idPrimZeroExt (ICPrim t PrimZeroExt)
   where t = ITForAll m IKNum (ITForAll k IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
+        k:m:n:_ = tmpVarIds
 
 icPrimSignExt :: IExpr a
 icPrimSignExt = ICon idPrimSignExt (ICPrim t PrimSignExt)
   where t = ITForAll m IKNum (ITForAll k IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar k) `itFun` aitBit (ITVar n)
+        k:m:n:_ = tmpVarIds
 
 icPrimTrunc :: IExpr a
 icPrimTrunc = ICon idPrimTrunc (ICPrim t PrimTrunc)
   where t = ITForAll k IKNum (ITForAll m IKNum (ITForAll n IKNum rt))
-	rt = aitBit (ITVar n) `itFun` aitBit (ITVar m)
-	k:m:n:_ = tmpVarIds
+        rt = aitBit (ITVar n) `itFun` aitBit (ITVar m)
+        k:m:n:_ = tmpVarIds
 
 icPrimRel :: Id -> PrimOp -> IExpr a
 icPrimRel id p = ICon id (ICPrim (ITForAll i IKNum (ty `itFun` ty `itFun` itBit1)) p)
   where i = head tmpVarIds
-	ty = itBit `ITAp` ITVar i
+        ty = itBit `ITAp` ITVar i
 
 icPrimWhen :: IExpr a
 icPrimWhen = ICon idPrimWhen (ICPrim t PrimWhen)
   where t = ITForAll i IKStar (itBit1 `itFun` ITVar i `itFun` ITVar i)
-	i = head tmpVarIds
+        i = head tmpVarIds
 
 icPrimWhenPred :: IExpr a
 icPrimWhenPred = ICon idPrimWhen (ICPrim t PrimWhenPred)
   where t = ITForAll i IKStar (itPred `itFun` ITVar i `itFun` ITVar i)
-	i = head tmpVarIds
+        i = head tmpVarIds
 
 itUninitialized :: IType
 itUninitialized = ITForAll i IKStar (itPosition `itFun` itString `itFun` ITVar i)
@@ -616,14 +616,14 @@ icPrimSetSelPosition = ICon idPrimSetSelPosition (ICPrim t PrimSetSelPosition)
 icPrimSL :: IExpr a
 icPrimSL = ICon idPrimSL (ICPrim t PrimSL)
   where t = ITForAll i IKNum (ty `itFun` itNat `itFun` ty)
-	ty = itBit `ITAp` ITVar i
-	i = head tmpVarIds
+        ty = itBit `ITAp` ITVar i
+        i = head tmpVarIds
 
 icPrimSRL :: IExpr a
 icPrimSRL = ICon idPrimSRL (ICPrim t PrimSRL)
   where t = ITForAll i IKNum (ty `itFun` itNat `itFun` ty)
-	ty = itBit `ITAp` ITVar i
-	i = head tmpVarIds
+        ty = itBit `ITAp` ITVar i
+        i = head tmpVarIds
 
 icPrimEQ, icPrimULE, icPrimULT, icPrimSLE, icPrimSLT :: IExpr a
 icPrimEQ = icPrimRel idPrimEQ PrimEQ
@@ -636,8 +636,8 @@ icPrimSLT = icPrimRel idPrimSLT PrimSLT
 icPrimBinVecOp :: Id -> PrimOp -> IExpr a
 icPrimBinVecOp id p = ICon id (ICPrim t p)
   where t = ITForAll i IKNum (ty `itFun` ty `itFun` ty)
-	i = head tmpVarIds
-	ty = itBit `ITAp` ITVar i
+        i = head tmpVarIds
+        ty = itBit `ITAp` ITVar i
 
 icPrimAdd, icPrimSub :: IExpr a
 icPrimAdd = icPrimBinVecOp idPrimAdd PrimAdd
@@ -646,8 +646,8 @@ icPrimSub = icPrimBinVecOp idPrimSub PrimSub
 icPrimInv :: IExpr a
 icPrimInv = ICon idPrimSL (ICPrim t PrimInv)
   where t = ITForAll i IKNum (ty `itFun` ty)
-	i = head tmpVarIds
-	ty = itBit `ITAp` ITVar i
+        i = head tmpVarIds
+        ty = itBit `ITAp` ITVar i
 
 icPrimIntegerToBit :: IExpr a
 icPrimIntegerToBit = ICon (idFromInteger noPosition) (ICPrim t PrimIntegerToBit)
@@ -668,17 +668,17 @@ icSelClockOsc :: Id -> IClock a -> IExpr a
 icSelClockOsc i c =
     IAps (ICon idClockOsc (ICSel { iConType = itClock `itFun` itBit1,
                                     selNo = 0,
-				    numSel = 2 }))
+                                    numSel = 2 }))
          []
-	 [icClock i c]
+         [icClock i c]
 
 icSelClockGate :: Id -> IClock a -> IExpr a
 icSelClockGate i c =
     IAps (ICon idClockGate (ICSel { iConType = itClock `itFun` itBit1,
                                     selNo = 1,
-				    numSel = 2 }))
+                                    numSel = 2 }))
          []
-	 [icClock i c]
+         [icClock i c]
 
 icNoClock, icNoReset, icNoPosition :: IExpr a
 icNoClock = icClock idNoClock noClock
@@ -710,11 +710,11 @@ getNamedClock :: Id -> IStateVar a -> IClock a
 getNamedClock i v =
     -- XXX unQualId VModInfo
     case (lookup (unQualId i) (getClockMap v)) of
-	Just c -> c
-	Nothing -> internalError
-	             ("ISyntaxUtil.getNamedClockFromMap: unknown clock " ++
-		      (ppReadable i) ++ (ppReadable v) ++
-		      (ppReadable (getClockMap v)))
+        Just c -> c
+        Nothing -> internalError
+                     ("ISyntaxUtil.getNamedClockFromMap: unknown clock " ++
+                      (ppReadable i) ++ (ppReadable v) ++
+                      (ppReadable (getClockMap v)))
 
 getMethodClock :: Id -> IStateVar a -> IClock a
 getMethodClock i v@(IStateVar { isv_vmi = vmi }) =
@@ -723,13 +723,13 @@ getMethodClock i v@(IStateVar { isv_vmi = vmi }) =
         Just n  -> getNamedClock n v
   -- XXX unQualId VModInfo
   where mclock_names =
-	    [ c | Method { vf_name = n, vf_clock = c } <- vFields vmi,
-		  n == unQualId i]
+            [ c | Method { vf_name = n, vf_clock = c } <- vFields vmi,
+                  n == unQualId i]
         mclock_name =
-	    case mclock_names of
-		[n] -> n
-		_   -> internalError ("ISyntaxUtil.getMethodClock: " ++
-				      (ppReadable vmi) ++ (ppReadable i))
+            case mclock_names of
+                [n] -> n
+                _   -> internalError ("ISyntaxUtil.getMethodClock: " ++
+                                      (ppReadable vmi) ++ (ppReadable i))
 
 getIfcInoutClock :: Id -> IStateVar a -> IClock a
 getIfcInoutClock i v@(IStateVar { isv_vmi = vmi }) =
@@ -738,13 +738,13 @@ getIfcInoutClock i v@(IStateVar { isv_vmi = vmi }) =
         Just n  -> getNamedClock n v
   -- XXX unQualId VModInfo
   where mclock_names =
-	    [ c | Inout { vf_name = n, vf_clock = c } <- vFields vmi,
-		  n == unQualId i]
+            [ c | Inout { vf_name = n, vf_clock = c } <- vFields vmi,
+                  n == unQualId i]
         mclock_name =
-	    case mclock_names of
-		[n] -> n
-		_   -> internalError ("ISyntaxUtil.getIfcInoutClock: " ++
-				      (ppReadable vmi) ++ (ppReadable i))
+            case mclock_names of
+                [n] -> n
+                _   -> internalError ("ISyntaxUtil.getIfcInoutClock: " ++
+                                      (ppReadable vmi) ++ (ppReadable i))
 
 -- reset extraction utilities (like the clock extraction utilities)
 -- they also need noReset
@@ -752,11 +752,11 @@ getNamedReset :: Id -> IStateVar a -> IReset a
 getNamedReset i v =
     -- XXX unQualId VModInfo
     case (lookup (unQualId i) (getResetMap v)) of
-	Just r -> r
-	Nothing -> internalError
-	             ("ISyntaxUtil.getNamedResetFromMap: unknown reset " ++
-		      (ppReadable i) ++ (ppReadable v) ++
-		      (ppReadable (getResetMap v)))
+        Just r -> r
+        Nothing -> internalError
+                     ("ISyntaxUtil.getNamedResetFromMap: unknown reset " ++
+                      (ppReadable i) ++ (ppReadable v) ++
+                      (ppReadable (getResetMap v)))
 
 getMethodReset :: Id -> IStateVar a -> IReset a
 getMethodReset i v@(IStateVar { isv_vmi = vmi }) =
@@ -765,13 +765,13 @@ getMethodReset i v@(IStateVar { isv_vmi = vmi }) =
         Just n  -> getNamedReset n v
   -- XXX unQualId VModInfo
   where mreset_names =
-	    [ r | Method { vf_name = n, vf_reset = r } <- vFields vmi,
-		  n == unQualId i]
+            [ r | Method { vf_name = n, vf_reset = r } <- vFields vmi,
+                  n == unQualId i]
         mreset_name =
-	    case mreset_names of
-		[n] -> n
-		_   -> internalError ("ISyntaxUtil.getMethodReset: " ++
-				      (ppReadable vmi) ++ (ppReadable i))
+            case mreset_names of
+                [n] -> n
+                _   -> internalError ("ISyntaxUtil.getMethodReset: " ++
+                                      (ppReadable vmi) ++ (ppReadable i))
 
 getIfcInoutReset :: Id -> IStateVar a -> IReset a
 getIfcInoutReset i v@(IStateVar { isv_vmi = vmi }) =
@@ -780,13 +780,13 @@ getIfcInoutReset i v@(IStateVar { isv_vmi = vmi }) =
         Just n  -> getNamedReset n v
   -- XXX unQualId VModInfo
   where mreset_names =
-	    [ r | Inout { vf_name = n, vf_reset = r } <- vFields vmi,
-		  n == unQualId i]
+            [ r | Inout { vf_name = n, vf_reset = r } <- vFields vmi,
+                  n == unQualId i]
         mreset_name =
-	    case mreset_names of
-		[n] -> n
-		_   -> internalError ("ISyntaxUtil.getIfcInoutReset: " ++
-				      (ppReadable vmi) ++ (ppReadable i))
+            case mreset_names of
+                [n] -> n
+                _   -> internalError ("ISyntaxUtil.getIfcInoutReset: " ++
+                                      (ppReadable vmi) ++ (ppReadable i))
 
 getClockGate :: IClock a -> IExpr a
 getClockGate c =
@@ -795,8 +795,8 @@ getClockGate c =
         i == idClock && i_osc == idClockOsc && i_gate == idClockGate -> gate
      IAps (ICon i (ICSel { iConType = itClock })) _ [(ICon vid (ICStateVar {iVar = sv}))] ->
         case (lookupOutputClockWires i (getVModInfo sv)) of
-	  (_, Nothing) -> iTrue
-	  (_, Just _)  -> icSelClockGate i c
+          (_, Nothing) -> iTrue
+          (_, Just _)  -> icSelClockGate i c
      _ -> internalError "ISyntaxUtil.getClockGate"
 
 -- Print a user-readable string for a clock expression
@@ -811,32 +811,32 @@ getClockOscString clk =
    let
        handleExpr :: IExpr a -> String
        handleExpr (IAps (ICon m (ICSel { })) _
-		        [(ICon i (ICClock { iClock = c }))]) = handleClk c
+                        [(ICon i (ICClock { iClock = c }))]) = handleClk c
        handleExpr (ICon v (ICModPort { })) =
            -- This does not display the user-level name for a port.
            -- We currently expect the caller to handle that.
            getIdString v
        handleExpr (IAps (ICon m (ICSel { })) _
-		        (ICon vid (ICStateVar { }) : es )) =
+                        (ICon vid (ICStateVar { }) : es )) =
            getIdString vid ++ "." ++ getIdString m
        handleExpr e = internalError ("getClockOscString: unexpected expr: " ++
-				     ppReadable e)
+                                     ppReadable e)
 
        handleClk :: IClock a -> String
        handleClk c =
-	   case (getClockWires c) of
-	       IAps (ICon i (ICTuple {fieldIds = [i_osc, i_gate]})) []
-	            [osc, gate] | i == idClock &&
+           case (getClockWires c) of
+               IAps (ICon i (ICTuple {fieldIds = [i_osc, i_gate]})) []
+                    [osc, gate] | i == idClock &&
                                   i_osc == idClockOsc && i_gate == idClockGate
-	         -> handleExpr osc
+                 -> handleExpr osc
                IAps (ICon i (ICSel { iConType = itClock })) _
-	            [(ICon vid (ICStateVar {iVar = sv}))]
-		 -> -- display the BSV name, not the Verilog port
-		    getIdString vid ++ "." ++ getIdString i
-		    --let port = fst $
-		    --           lookupOutputClockPorts i (getVModInfo sv)
-		    --in  getIdString (mkOutputWireId vid port)
-	       e -> internalError ("getClockOscString: " ++ ppReadable e)
+                    [(ICon vid (ICStateVar {iVar = sv}))]
+                 -> -- display the BSV name, not the Verilog port
+                    getIdString vid ++ "." ++ getIdString i
+                    --let port = fst $
+                    --           lookupOutputClockPorts i (getVModInfo sv)
+                    --in  getIdString (mkOutputWireId vid port)
+               e -> internalError ("getClockOscString: " ++ ppReadable e)
    in
        handleClk clk
 
@@ -850,10 +850,10 @@ getResetString rst =
            -- We currently expect the caller to handle that.
            getIdString v
        handleExpr (IAps (ICon m (ICSel { })) _
-		        [ICon vid (ICStateVar { })]) =
+                        [ICon vid (ICStateVar { })]) =
            getIdString vid ++ "." ++ getIdString m
        handleExpr e = internalError ("getResetString: unexpected expr: " ++
-				     ppReadable e)
+                                     ppReadable e)
 
        handleRst :: IReset a -> String
        handleRst r = handleExpr (getResetWire r)
@@ -938,64 +938,64 @@ irulesMapM f (IRules sps rs) = do
 iGetType :: IExpr a -> IType
 iGetType e0 =
     let iGetTypePrim _ PrimIf [t] [_,_,_] = t
-	iGetTypePrim _ PrimConcat [_,_,ITNum n] [_,_] = itBitN n
+        iGetTypePrim _ PrimConcat [_,_,ITNum n] [_,_] = itBitN n
         iGetTypePrim _ PrimMul [_,_,ITNum n] [_,_] = itBitN n
         iGetTypePrim _ PrimQuot [_,_,ITNum n] [_,_] = itBitN n
         iGetTypePrim _ PrimRem [_,_,ITNum n] [_,_] = itBitN n
-	iGetTypePrim _ PrimSelect [ITNum n,_,_] [_] = itBitN n
+        iGetTypePrim _ PrimSelect [ITNum n,_,_] [_] = itBitN n
         iGetTypePrim _ PrimJoinActions [] [_,_] = itAction
-	iGetTypePrim _ p          _  [_,_] | isBoolRes p = itBit1
-	  where isBoolRes PrimEQ  = True
-		isBoolRes PrimULE  = True
-		isBoolRes PrimULT  = True
-		isBoolRes PrimSLE  = True
-		isBoolRes PrimSLT  = True
-		isBoolRes PrimBAnd = True
-		isBoolRes PrimBOr  = True
-		isBoolRes PrimBNot = True
-		isBoolRes _        = False
-	iGetTypePrim _ p       [ITNum n]  [_,_] | isNRes p = itBitN n
-	  where isNRes PrimAdd = True
-		isNRes PrimSub = True
-		isNRes PrimAnd = True
-		isNRes PrimOr  = True
-		isNRes PrimXor = True
-		isNRes PrimSL  = True
-		isNRes PrimSRL = True
-		isNRes PrimSRA = True
-		isNRes _       = False
-	iGetTypePrim e _ _ _ = tCheck emptyEnv e
+        iGetTypePrim _ p          _  [_,_] | isBoolRes p = itBit1
+          where isBoolRes PrimEQ  = True
+                isBoolRes PrimULE  = True
+                isBoolRes PrimULT  = True
+                isBoolRes PrimSLE  = True
+                isBoolRes PrimSLT  = True
+                isBoolRes PrimBAnd = True
+                isBoolRes PrimBOr  = True
+                isBoolRes PrimBNot = True
+                isBoolRes _        = False
+        iGetTypePrim _ p       [ITNum n]  [_,_] | isNRes p = itBitN n
+          where isNRes PrimAdd = True
+                isNRes PrimSub = True
+                isNRes PrimAnd = True
+                isNRes PrimOr  = True
+                isNRes PrimXor = True
+                isNRes PrimSL  = True
+                isNRes PrimSRL = True
+                isNRes PrimSRA = True
+                isNRes _       = False
+        iGetTypePrim e _ _ _ = tCheck emptyEnv e
 
-	tCheck r (ILam i t e) =
-		itFun t (tCheck (addT i t r) e)
-	tCheck r (IAps f [] []) = tCheck r f
-	tCheck r (IAps e [t] []) =
-		case tCheck r e of
-		ITForAll i _ rt -> tSubst i t rt
-		tt -> internalError ("iGetType.tCheck: " ++ ppString (e0, e, tt, t))
-	tCheck r (IAps f (t:ts) []) = tCheck r (IAps (IAps f [t] []) ts [])
-	tCheck r (IAps f ts es) = dropArrows (length es) (tCheck r (IAps f ts []))
-	tCheck r (IVar i) = findT i r
-	tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
-	tCheck r (ICon c ic) = iConType ic
-	tCheck r (IRefT t _ _) = t
---	tCheck _ e = internalError ("no match in ISyntaxUtil.tCheck: " ++ ppReadable e)
+        tCheck r (ILam i t e) =
+                itFun t (tCheck (addT i t r) e)
+        tCheck r (IAps f [] []) = tCheck r f
+        tCheck r (IAps e [t] []) =
+                case tCheck r e of
+                ITForAll i _ rt -> tSubst i t rt
+                tt -> internalError ("iGetType.tCheck: " ++ ppString (e0, e, tt, t))
+        tCheck r (IAps f (t:ts) []) = tCheck r (IAps (IAps f [t] []) ts [])
+        tCheck r (IAps f ts es) = dropArrows (length es) (tCheck r (IAps f ts []))
+        tCheck r (IVar i) = findT i r
+        tCheck r (ILAM i k e) = ITForAll i k (tCheck r e)
+        tCheck r (ICon c ic) = iConType ic
+        tCheck r (IRefT t _ _) = t
+--        tCheck _ e = internalError ("no match in ISyntaxUtil.tCheck: " ++ ppReadable e)
 
-	emptyEnv = M.empty
+        emptyEnv = M.empty
 
-	addT i t tm = M.insert i t tm
+        addT i t tm = M.insert i t tm
 
-	findT i tm =
-		case M.lookup i tm of
-		Just t -> t
-		Nothing -> internalError ("ISyntaxUtil.findT " ++ ppString i ++ "\n" ++ ppReadable (M.toList tm))
+        findT i tm =
+                case M.lookup i tm of
+                Just t -> t
+                Nothing -> internalError ("ISyntaxUtil.findT " ++ ppString i ++ "\n" ++ ppReadable (M.toList tm))
 
     in  case e0 of
-	-- First some fast special cases:
-	(ICon c ic) -> iConType ic
-	e@(IAps (ICon _ (ICPrim _ p)) ts es) -> iGetTypePrim e p ts es
-	-- General
-	e -> tCheck emptyEnv e
+        -- First some fast special cases:
+        (ICon c ic) -> iConType ic
+        e@(IAps (ICon _ (ICPrim _ p)) ts es) -> iGetTypePrim e p ts es
+        -- General
+        e -> tCheck emptyEnv e
 
 -- input must be an interface type
 iGetIfcName :: IType -> Id

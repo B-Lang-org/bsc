@@ -254,7 +254,7 @@ These fix an ambiguity in the parser's handling of $
 >      then cvtErr noPosition (EIllegalAssertExpr "" "lower range")
 >      else if isUnbound e2
 >        then return (SVA_Delay_Unbound e1)
->	else do
+>        else do
 >         return (SVA_Delay_Range e1 e2)
 > fixUnboundDelay (SVA_Delay_Const exp) =
 >  do
@@ -1304,7 +1304,7 @@ Main translation function
 >    bClean<- cleanupProp bDeSugared
 >    (defs, top) <- transAssertBody isAlways bClean
 >    let nmId = mkId pos (mkFString nm)
->    let ifcId = mkIdPre fs_the_ (unQualId nmId)	-- XXX filename gen in top only!!!
+>    let ifcId = mkIdPre fs_the_ (unQualId nmId)        -- XXX filename gen in top only!!!
 >    passExpr <- mkAction onPass
 >    failExpr <- mkAction onFail
 >    assertMod <- instAssertMod isAlways bClean (top, passExpr, failExpr)
@@ -1406,7 +1406,7 @@ Makes a sub-module for mkPropImplies. This submodule can then be replicated
 >  let
 >    propType =
 >       CQType [(CPred (CTypeclass (idIsModuleAt noPosition))
->			[cTVar (idM noPosition), cTVar (idC noPosition)])]
+>                        [cTVar (idM noPosition), cTVar (idC noPosition)])]
 >              (TAp (cTVar (idM noPosition))
 >                   (cTCon (mkId noPosition (mkFString "Property"))))
 >    intType = cTCon (mkId noPosition (mkFString "Property"))

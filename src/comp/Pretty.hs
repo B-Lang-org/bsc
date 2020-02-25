@@ -1,7 +1,7 @@
 module Pretty (module GHCPretty, pretty,
-	       -- utils
-	       s2par, s2docs
-	      ) where
+               -- utils
+               s2par, s2docs
+              ) where
 
 import GHCPretty
 

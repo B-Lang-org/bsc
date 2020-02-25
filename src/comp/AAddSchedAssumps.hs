@@ -74,7 +74,7 @@ aAddSchedAssumps apkg schedule schedinfo = (apkg'', schedinfo')
         instSchedMap :: OSchedMap
         instSchedMap = M.fromList
                          [(n, methodConflictInfo (vSched vmi))
-			     | AVInst { avi_vname = n, avi_vmi = vmi }  <- insts ]
+                             | AVInst { avi_vname = n, avi_vmi = vmi }  <- insts ]
         insts = apkg_state_instances apkg
         apkg' = apkg
         doCFAssumps = addCFAssumps pragmas ruleMethodMap instSchedMap cmpRule

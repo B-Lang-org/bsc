@@ -4,7 +4,7 @@ import PPrint
 import PVPrint
 
 data Literal
-	= LString String
+        = LString String
         | LChar Char
         | LInt IntLit
         | LReal Double

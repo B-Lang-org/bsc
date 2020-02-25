@@ -298,7 +298,7 @@ sat :: DVS -> [EPred] -> VPred -> TI ([VPred], [Bind], Subst)
 sat dvs ps (VPred w pr@(IsIn bts [t1, TAp szof t2]))
     | name bts == idBits && szof == tSizeOf = do
     traces ("SizeOf " ++ ppReadable pr) $ return ()
-    tunify t1 t1 t2	-- XXX t1
+    tunify t1 t1 t2        -- XXX t1
     v <- newTVar KNum szof
     sat dvs ps (VPred w (IsIn bts [t1, v]))
 -}
@@ -545,8 +545,8 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                           (r, _) <- solvePred s ps pr'
                           return r
               case res of
-	        Nothing -> do
-		    --traceM("   failed.")
+                Nothing -> do
+                    --traceM("   failed.")
                     return Nothing
                 Just _ -> do
                     -- XXX for now, no new info is learned, just sat
@@ -818,7 +818,7 @@ normT t = do
         (ps', _) <- satisfy [] ps
         --unless (null ps') (internalError ("expandSynN " ++ ppReadable (t, ps')))
         if not (null ps') then
-            return t'		-- XXX could expand some
+            return t'                -- XXX could expand some
          else do
             s <- getSubst
             let t''' = expandSyn (apSub s t'')

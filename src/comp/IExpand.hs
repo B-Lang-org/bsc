@@ -1378,9 +1378,9 @@ handlePrim rec (curClk, curRstn) ns p
 
 handlePrim rec curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimSavePortType })) _ [e_mname, e_port, e_type]) = do
   mname <- do m <- evalMaybe e_mname
-  	      case (m) of
-	        Nothing -> return Nothing
-		Just e_name -> evalName e_name >>= return . Just
+              case (m) of
+                Nothing -> return Nothing
+                Just e_name -> evalName e_name >>= return . Just
   (port, _) <- evalString e_port
   t <- evalType e_type
   savePortType mname (VName port) t
@@ -1500,7 +1500,7 @@ handlePrim rec curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = op })) _ _)
 handlePrim rec curClkRstn ns p e = do
   when doDebug $ traceM ("handlePrim: no match " ++ (ppReadable e))
   nfError "handlePrim" e
---	internalError ("iExpandModule handlePrim\n" ++ ppReadable e)
+--        internalError ("iExpandModule handlePrim\n" ++ ppReadable e)
 
 -- ----------
 
@@ -1969,9 +1969,9 @@ evalRule (ns, hide, name) asrts rId p c e = do
         upc <- unheapAll (predToHExpr pc)
         upe <- unheapAll (predToHExpr pe)
 -}
---	upp <- unheapAll pp
---	traceM ("RULE " ++ ppReadable (c', e') ++ ppReadable upp)
---	traceM ("RULE " ++ ppReadable (map normPConj [p, pc, pe]))
+--        upp <- unheapAll pp
+--        traceM ("RULE " ++ ppReadable (c', e') ++ ppReadable upp)
+--        traceM ("RULE " ++ ppReadable (map normPConj [p, pc, pe]))
         setAggressive module_agg
         return (ieAnd pp c', e', ws)
 
@@ -2380,7 +2380,7 @@ walkNF e =
                     upd (pConj pe p0) e' ws_e
 
                 -- The special cases for PrimIf, PrimCase, PrimArrayDynSelect,
-		-- PrimBAnd, PrimBOr are for more accurate implicit conditions.
+                -- PrimBAnd, PrimBOr are for more accurate implicit conditions.
                 IAps f@(ICon _ (ICPrim _ PrimIf)) [ty] [c, t, e] -> do
                     (P pc c', ws_c) <- walkNF c
                     (P pt t', ws_t) <- walkNF t
@@ -2494,7 +2494,7 @@ walkNF e =
                         [e_ref@(IRefT t ptr ref)] | (isitActionValue_ t) || (isitAction t)
                             ->  do (P p' e', ws) <- walkNF e_ref
                                    upd (pConj p0 p') (IAps f ts [e']) ws
-                        _ ->	do when doDebug $ traceM "not stvar or foreign\n"
+                        _ ->    do when doDebug $ traceM "not stvar or foreign\n"
                                    when doDebug $ traceM (show u ++ "\n")
                                    when doDebug $ traceM (show es' ++ "\n")
                                    nfError "walkNF sel" u
@@ -2672,7 +2672,7 @@ evalUHn n e = do
         case pe of
 -- XXX should we eval or just unheap?
             P p (IAps f ts es) -> do
---		f' <- evalUHn (n-1) f
+--                f' <- evalUHn (n-1) f
                 (p', es') <- evalList (evalUHn (n-1)) es
                 return (P (pConj p p') (IAps f ts es'))
             _ -> return pe
@@ -2726,7 +2726,7 @@ evalStaticOp' doUH doBK doUndet e resultType handler = do
              [_, ITNum idx_sz] [arr_e, idx_e] -> do
       addPredG p $
           evalStaticOpInArray' doUH doBK doUndet
-	                       ic idx_e idx_sz arr_e resultType handler
+                               ic idx_e idx_sz arr_e resultType handler
 
 {-
     -- XXX this situation doesn't occur, because we don't use evalStaticOp
@@ -2766,9 +2766,9 @@ evalStaticOp' doUH doBK doUndet e resultType handler = do
 
 {-# INLINE evalStaticOpInArray' #-}
 evalStaticOpInArray' :: Bool -> Bool -> Bool ->
-		        HExpr -> HExpr -> Integer ->
+                        HExpr -> HExpr -> Integer ->
                         HExpr -> IType ->
-			(HExpr -> (HPred, HExpr) -> G PExpr) -> G PExpr
+                        (HExpr -> (HPred, HExpr) -> G PExpr) -> G PExpr
 evalStaticOpInArray' doUH doBK doUndet
                      ic idx_e idx_sz arr_e resultType handler = do
   -- doUH doesn't apply here
@@ -2901,11 +2901,11 @@ evalAp' e@(IAps f tys es)      as =
 evalAp' e@(IRefT _ ptr ref)            [] = do
         pe <- evalHeap (ptr, ref)
         case pe of
-            P _ (ICon _ _) -> return pe		-- expand constants
-            _ -> return (pExpr e)		-- keep heap pointer for rest
+            P _ (ICon _ _) -> return pe                -- expand constants
+            _ -> return (pExpr e)                -- keep heap pointer for rest
 evalAp' (IRefT t ptr ref)              as = do
         (P p e) <- evalHeap (ptr, ref)
---	when (p /= pTrue) $ traceM ("implicit function condition lost: " ++ ppReadable (p, e)) -- XXX
+--        when (p /= pTrue) $ traceM ("implicit function condition lost: " ++ ppReadable (p, e)) -- XXX
         let e' = iePrimWhenPred t p e
         when doDebug $ traceM ("iref ap " ++ ppReadable (mkAp e as))
         evalAp "IRefT" e' as
@@ -3623,8 +3623,8 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
                             else (head argPositions)
 
         let isDyn (IAps (ICon _ (ICPrim _ PrimArrayDynSelect)) _ _) = True
-	    isDyn (IAps (ICon _ (ICPrim _ PrimIf)) _ _) = True
-	    isDyn _ = False
+            isDyn (IAps (ICon _ (ICPrim _ PrimIf)) _ _) = True
+            isDyn _ = False
         -- XXX we can also push the op into the arms of PrimIf/PrimArrayDynSelect
         -- XXX if all of the arms are IntLit, at least for single argument ops
         -- XXX (in the absense of this, we do a special case for PrimBNot, see below)
@@ -3635,20 +3635,20 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
             Just (Right e) -> return (P p e)
             Just (Left errmsg) -> errG (bestPosition, errmsg)
             Nothing ->
-		--internalError ("conAp' strictPrim: " ++ ppReadable (op, as'))
-		-- For now, make this arm a no-op, because some examples do
-		-- reach here with prims that do not reduce (like PrimChr)
-		-- (This uses the unheaped "ees", which includes the predicate.)
-		bldAp' "Prim 1" fe ees
+                --internalError ("conAp' strictPrim: " ++ ppReadable (op, as'))
+                -- For now, make this arm a no-op, because some examples do
+                -- reach here with prims that do not reduce (like PrimChr)
+                -- (This uses the unheaped "ees", which includes the predicate.)
+                bldAp' "Prim 1" fe ees
          else
             case (op, as') of
             (PrimBNot, [E e]) | isDyn e ->
                 -- The iTransExpr catch-all will handle PrimIf but not arrays
                 let handler e' =
-		        case (doPrimOp bestPosition op [] [e']) of
-			  Just (Right e_res) -> return (pExpr e_res)
-			  Just (Left errmsg) -> errG (bestPosition, errmsg)
-			  Nothing -> evalAp "Prim PrimBNot" fe [E e']
+                        case (doPrimOp bestPosition op [] [e']) of
+                          Just (Right e_res) -> return (pExpr e_res)
+                          Just (Left errmsg) -> errG (bestPosition, errmsg)
+                          Nothing -> evalAp "Prim PrimBNot" fe [E e']
                 in  addPredG p $ evalStaticOp e itBit1 handler
             -- name primitives
             (PrimJoinNames, [E (ICon _ (ICName { iName = n1 })),
@@ -4119,7 +4119,7 @@ doArrayLength f as@[T elem_t, E arr_e] =
           -- update does not change the array length, so recurse into arr_e2
           doArrayLength f [T elem_t, E arr_e2]
         handleArrayLength arr_e' =
-	  nfError "primArrayLength" $ mkAp f [T elem_t, E arr_e']
+          nfError "primArrayLength" $ mkAp f [T elem_t, E arr_e']
 
 doArrayLength f as = internalError("IExpand.doArrayLength : " ++ ppReadable f ++ ppReadable as)
 
@@ -4173,7 +4173,7 @@ doArraySelect f (T elem_t : E arr_e : E idx_e : as) = do
             handleArraySelect arr_e' = do
                 --traceM("Select: " ++ show arr_e')
                 nfError "primArraySelect" $
-		    mkAp f [T elem_t, E arr_e', E idx_e']
+                    mkAp f [T elem_t, E arr_e', E idx_e']
         addPredG p $ evalStaticOp arr_e elem_t handleArraySelect
     _ -> internalError ("IExpand.doArraySelect: index: " ++ ppReadable idx_e')
 
@@ -4208,7 +4208,7 @@ doArrayUpdate f@(ICon upd_i (ICPrim {iConType = opType}))
             handleArrayUpdate arr_e' = do
                 --traceM("Update: " ++ show arr_e')
                 nfError "primArrayUpdate" $
-		    mkAp f [T elem_t, E arr_e', E idx_e', E val_e']
+                    mkAp f [T elem_t, E arr_e', E idx_e', E val_e']
         let res_t = iGetType arr_e -- result type is (PrimArray t)
         addPredG idx_p $ evalStaticOp arr_e res_t handleArrayUpdate
     _ -> internalError ("IExpand.doArrayUpdate: index: " ++ ppReadable idx_e')
@@ -4676,7 +4676,7 @@ isCanon (ICon _ (ICModPort { })) = True
 isCanon (ICon _ (ICModParam { })) = True
 --isCanon (ICon _ (ICForeign { })) = True
 isCanon (ICon _ (ICClock { })) = True
---isCanon (IAps (ICon _ (ICPrim _ PrimBlock)) _ _) = True		-- XXX is this the best way?
+--isCanon (IAps (ICon _ (ICPrim _ PrimBlock)) _ _) = True                -- XXX is this the best way?
 isCanon (IAps (ICon _ (ICSel { })) _ [_]) = True
 isCanon (IAps (ICon _ (ICOut { })) _ [_]) = True
 -- AV of foreign function application is canon
@@ -4878,7 +4878,7 @@ instance HeapToDef HExpr where
               case c of
                 HNF { hc_pexpr = P _ e } -> collPtrs e (IM.insert p c m)
                 HWHNF { hc_pexpr = P _ e } ->
---		traces ("collPtrs: " ++ ppReadable (p, e))
+--                traces ("collPtrs: " ++ ppReadable (p, e))
                   collPtrs e (IM.insert p c m)
                 e -> internalError ("collPtrs: " ++ ppReadable e)
     collPtrs e m = internalError ("collPtrs: " ++ ppReadable e)

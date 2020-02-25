@@ -1,17 +1,17 @@
 {-# LANGUAGE CPP #-}
 module SymTab(
-	      SymTab(..), VarInfo(..), ConInfo(..), TypeInfo(..),
-	      FieldInfo(..), VarKind(..),
-	      getAllTypes,
-	      emptySymtab,
-	      addVars, addTypes, addCons, addFields, addClasses,
-	      addVarsUQ, addTypesUQ, addClassesUQ, mkDefaultQuals,
-	      addTypesQ, addFieldsQ,
-	      findVar, findCon, findConVis, findType,
-	      findField, findFieldVis, findSClass, mustFindClass,
-	      findFieldInfo,
-	      getMethodArgNames, getIfcFieldNames, getIfcFlatMethodNames
-	      ) where
+              SymTab(..), VarInfo(..), ConInfo(..), TypeInfo(..),
+              FieldInfo(..), VarKind(..),
+              getAllTypes,
+              emptySymtab,
+              addVars, addTypes, addCons, addFields, addClasses,
+              addVarsUQ, addTypesUQ, addClassesUQ, mkDefaultQuals,
+              addTypesQ, addFieldsQ,
+              findVar, findCon, findConVis, findType,
+              findField, findFieldVis, findSClass, mustFindClass,
+              findFieldInfo,
+              getMethodArgNames, getIfcFieldNames, getIfcFlatMethodNames
+              ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -40,35 +40,35 @@ type IdMap a = M.Map Id a
 
 data VarInfo
         -- the Maybe is whether the identifier has been deprecated, and why
-	= VarInfo !VarKind !Assump !(Maybe String)
-	deriving (Show)
+        = VarInfo !VarKind !Assump !(Maybe String)
+        deriving (Show)
 
 instance PPrint VarInfo where
     pPrint d p (VarInfo k a m) =
-	pparen (p>0) $
-	    text "VarInfo" <+> pPrint d 1 k <+> pPrint d 1 a <+>
-	    pPrint d 1 (isJust m)
+        pparen (p>0) $
+            text "VarInfo" <+> pPrint d 1 k <+> pPrint d 1 a <+>
+            pPrint d 1 (isJust m)
 
 data VarKind
-	= VarPrim
-	| VarDefn
-	| VarMeth
-	-- the maybe [String] is portlist for Verilog foreign funcs as modules
-	-- (as "noinline" compiles to)
-	| VarForg String (Maybe ([String], [String]))
-	deriving (Show)
+        = VarPrim
+        | VarDefn
+        | VarMeth
+        -- the maybe [String] is portlist for Verilog foreign funcs as modules
+        -- (as "noinline" compiles to)
+        | VarForg String (Maybe ([String], [String]))
+        deriving (Show)
 
 instance PPrint VarKind where
     pPrint _ _ k = text (show k)
 
 data ConInfo
-	= ConInfo { ci_id :: Id,
+        = ConInfo { ci_id :: Id,
                     ci_visible :: Bool,
                     ci_assump :: Assump,    -- type
                     ci_conNum :: Integer,   -- constructor number
                     ci_totalNum :: Integer  -- total number of constructors
-	          }
-	deriving (Show, Eq)
+                  }
+        deriving (Show, Eq)
 
 -- test whether two ConInfo are identical except for the visibility
 conInfoEq :: ConInfo -> ConInfo -> Bool
@@ -93,18 +93,18 @@ instance PPrint ConInfo where
               pVis True = text " (visible)"
 
 data TypeInfo
-	= TypeInfo {
+        = TypeInfo {
               ti_qual_id   :: (Maybe Id),  -- Nothing for numeric types
-	      ti_kind      :: Kind,
-	      ti_type_vars :: [Id],
-	      ti_sort      :: TISort
-	  } deriving (Show)
+              ti_kind      :: Kind,
+              ti_type_vars :: [Id],
+              ti_sort      :: TISort
+          } deriving (Show)
 
 instance PPrint TypeInfo where
     pPrint d p (TypeInfo _ k _ ti) = pparen (p>0) $ text "TypeInfo" <+> pPrint d 10 k <+> pPrint d 1 ti
 
 data FieldInfo
-	= FieldInfo {
+        = FieldInfo {
                      fi_id      :: Id ,  -- Id is the identifier of a type which has this field
                      fi_visible :: Bool, -- Bool is if the fields of that type are visible to user
                      fi_arity   :: Int,  -- Int is the arity of the type
@@ -113,7 +113,7 @@ data FieldInfo
                      fi_default :: [CClause],
                      fi_orig_type :: Maybe CType -- original field type for wrapped fields
                     }
-	deriving (Show)
+        deriving (Show)
 
 -- test whether two FieldInfo are identical except for the visibility
 fieldInfoEq :: FieldInfo -> FieldInfo -> Bool
@@ -156,13 +156,13 @@ instance Hyper FieldInfo where
 
 -- The symbol table is composed of several other tables
 data SymTab =
-	S (IdMap VarInfo) (IdMap [ConInfo]) (IdMap TypeInfo) (IdMap [FieldInfo]) (IdMap Class)
+        S (IdMap VarInfo) (IdMap [ConInfo]) (IdMap TypeInfo) (IdMap [FieldInfo]) (IdMap Class)
           -- The TypeInfo is indexed by type and returns the info for that type
           --   (indexed generally by both qualified and unqualified name)
           -- The FieldInfo is indexed by field id (e.g., "_write" returns the fields of Reg)
           --   or by superclass (e.g. Literal returns the superclasses of "Arith")
 
-instance Eq SymTab where	-- just because we need one for forcing evaluation
+instance Eq SymTab where -- just because we need one for forcing evaluation
     _ == _ = False
 
 showsPrecList wid (thing@[_]) z =
@@ -176,22 +176,22 @@ sps wid islist =
 
 instance Show SymTab where
     showsPrec _ (S v c t f cl) =
-	showString "Vars: " . showsPrecList 0 (M.toList v) . showString "\n" .
-	showString "Cons: " . showsPrecList 0 (M.toList c) . showString "\n" .
-	showString "Types: " . showsPrecList 0 (M.toList t) . showString "\n" .
-	showString "Fields: " . showsPrecList 0 (M.toList f) . showString "\n" .
-	showString "Classes: " . showsPrecList 0 (M.toList cl) . showString "\n"
+        showString "Vars: " . showsPrecList 0 (M.toList v) . showString "\n" .
+        showString "Cons: " . showsPrecList 0 (M.toList c) . showString "\n" .
+        showString "Types: " . showsPrecList 0 (M.toList t) . showString "\n" .
+        showString "Fields: " . showsPrecList 0 (M.toList f) . showString "\n" .
+        showString "Classes: " . showsPrecList 0 (M.toList cl) . showString "\n"
 
 instance PPrint SymTab where
     pPrint d _ (S v c t f cl) =
-	(text "Vars:" <+> pPrint d 0 (M.toList v) ) $+$
-	(text "Cons:" <+> pPrint d 0 (M.toList c) ) $+$
-	(text "Types:" <+> pPrint d 0 (M.toList t) ) $+$
-	(text "Fields:" <+> pPrint d 0 (M.toList f) ) $+$
-	(text "Classes:" <+> pPrint d 0 (M.toList cl) )
+        (text "Vars:" <+> pPrint d 0 (M.toList v) ) $+$
+        (text "Cons:" <+> pPrint d 0 (M.toList c) ) $+$
+        (text "Types:" <+> pPrint d 0 (M.toList t) ) $+$
+        (text "Fields:" <+> pPrint d 0 (M.toList f) ) $+$
+        (text "Classes:" <+> pPrint d 0 (M.toList cl) )
 
 instance Hyper SymTab where
-    hyper x y = y		-- XXX
+    hyper x y = y                -- XXX
 
 emptySymtab :: SymTab
 emptySymtab = S M.empty M.empty M.empty M.empty M.empty
@@ -261,7 +261,7 @@ addClasses mkQuals (S v c t f cl) cls =
 addQuals :: (Id -> [Id]) -> [(Id, a)] -> [(Id, a)]
 addQuals mkQuals ixs = concatMap addQuals' ixs
     where addQuals' pair@(name, value) =
-	      [ (i, value) | i <- mkQuals name ]
+              [ (i, value) | i <- mkQuals name ]
 
 -- ---------------
 
@@ -298,7 +298,7 @@ mkSameQual name = [name]
 
 findVar :: SymTab -> Id -> Maybe VarInfo
 findVar (S v _ _ _ _) i = --trace (ppReadable (show i, show (map fst (M.toList v)))) $
-	M.lookup i v
+        M.lookup i v
 
 findCon :: SymTab -> Id -> Maybe [ConInfo]
 findCon (S _ c _ _ _) i = M.lookup i c
@@ -351,8 +351,8 @@ findFieldInfo symtable ifcName methodName =
 getMethodArgNames :: SymTab -> Id -> Id -> [Id]
 getMethodArgNames symtable ifcId methId =
     case (findFieldInfo symtable ifcId methId) of
-	Nothing -> []
-	Just finfo -> filterIArgNames (fi_pragmas finfo)
+        Nothing -> []
+        Just finfo -> filterIArgNames (fi_pragmas finfo)
 
 getIfcFieldNames :: SymTab -> Id -> [Id]
 getIfcFieldNames symbolTable ifcId = fields

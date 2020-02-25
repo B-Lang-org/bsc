@@ -54,22 +54,22 @@ type IStateLoc = [IStateLocPathComponent]
 --       instantiated inside toplevel
 
 data IStateLocPathComponent = IStateLocPathComponent {
-  isl_inst_id 		:: Id, -- instance id (from SV instantiation or <- syntax)
-  isl_ifc_id 		:: Id, -- interface id (used in source code to access module)
-  isl_ifc_type 		:: IType, -- interface type
+  isl_inst_id                 :: Id, -- instance id (from SV instantiation or <- syntax)
+  isl_ifc_id                 :: Id, -- interface id (used in source code to access module)
+  isl_ifc_type                 :: IType, -- interface type
 
   -- Some flags
-  isl_vector		:: Bool, -- Is a vector name
-  isl_inst_ignore 	:: Bool, -- inslpc may be eliminated from the istateloc.
-  isl_inst_ignore_name 	:: Bool, -- inst_id is ignored when making a hierarchical name
+  isl_vector                :: Bool, -- Is a vector name
+  isl_inst_ignore         :: Bool, -- inslpc may be eliminated from the istateloc.
+  isl_inst_ignore_name         :: Bool, -- inst_id is ignored when making a hierarchical name
   isl_ifc_skip          :: Bool, -- skip this level in the rule name scope lookup
 
   -- Unique index to uniquify InstTree (loops, common names)
-  isl_unique_index 	:: Maybe Integer, -- nothing if not unique, otherwise disambiguating integer
+  isl_unique_index         :: Maybe Integer, -- nothing if not unique, otherwise disambiguating integer
 
   -- Name generation
-  isl_prefix 		:: NameGenerate, -- currently computed hierarchical prefix
-  isl_loop_suffix 	:: NameGenerate  -- loop indexes to add once a "real" name is found.
+  isl_prefix                 :: NameGenerate, -- currently computed hierarchical prefix
+  isl_loop_suffix         :: NameGenerate  -- loop indexes to add once a "real" name is found.
   } deriving (Eq, Show, Generic.Data, Generic.Typeable)
 
 
@@ -146,12 +146,12 @@ instance PPrint NameGenerate where
 -- indexes alway go on the end of the name
 -- names are joined with underscore
 joinNames :: NameGenerate -> NameGenerate -> NameGenerate
-joinNames NameEmpty x 				= x
-joinNames x NameEmpty 				= x
-joinNames (NameIndex n1) (NameIndex n2) 	= NameIndex $ n1 ++ n2
-joinNames (Name n)  (NameIndex idxs)   		= Name $ foldl addId_Suffixes n idxs
-joinNames n1@(NameIndex {}) n2@(Name {}) 	= joinNames n2 n1
-joinNames (Name n1) (Name n2) 			= Name $ mkIdPre head_ n2
+joinNames NameEmpty x                                 = x
+joinNames x NameEmpty                                 = x
+joinNames (NameIndex n1) (NameIndex n2)         = NameIndex $ n1 ++ n2
+joinNames (Name n)  (NameIndex idxs)                   = Name $ foldl addId_Suffixes n idxs
+joinNames n1@(NameIndex {}) n2@(Name {})         = joinNames n2 n1
+joinNames (Name n1) (Name n2)                         = Name $ mkIdPre head_ n2
   where head_ = concatFString [getIdBase n1, fsUnderscore]
 
 -- The name when none is present
@@ -193,7 +193,7 @@ newIStateLocTop slmap inst_id ifc_id ifc_type [] = [comp]
             isl_vector           = False,
             isl_unique_index     = Nothing,
             isl_prefix           = cleanName ignore_name inst_id,
-            isl_loop_suffix 	 = NameEmpty
+            isl_loop_suffix          = NameEmpty
             }
         ignore = ignoreInstId inst_id
         ignore_name = ignoreInstIdName inst_id

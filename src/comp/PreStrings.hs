@@ -384,9 +384,9 @@ fsTuple7           = mkFString "Tuple7"
 fsTuple8           = mkFString "Tuple8"
 fsConstAllBitsSet  = mkFString "constantWithAllBitsSet"
 fsConstAllBitsUnset= mkFString "constantWithAllBitsUnset"
-fs_the_		   = mkFString "the_"
-s__fire 	   = "_fire"
-fs__fire	   = mkFString s__fire
+fs_the_                   = mkFString "the_"
+s__fire            = "_fire"
+fs__fire           = mkFString s__fire
 
 
 fsPrimError = mkFString "primError"

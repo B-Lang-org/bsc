@@ -34,7 +34,7 @@ bddAnd a b = apply (&&) a b
 bddOr  a b = apply (||) a b
 
 bddNot :: BDD a -> BDD a
---bddNot e = bddOp (\ x y -> not x) e bddFalse		-- inefficient
+--bddNot e = bddOp (\ x y -> not x) e bddFalse                -- inefficient
 bddNot e = fst (flip I.empty e)
   where flip m (L b) = (L (not b), m)
         flip m (N u x t f) =

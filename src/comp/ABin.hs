@@ -48,21 +48,21 @@ data ABinModInfo =
         abmi_path :: String,
         -- the name of the BSV package which defined this module
         abmi_src_name :: String,
-	-- time when BSC was called to compile the .ba
-	--abmi_time :: ClockTime,
-	abmi_apkg :: APackage,
-	abmi_aschedinfo :: AScheduleInfo,
-	-- if this can be used prior to generating abin,
-	-- or put into APackage, then it's not needed here:
-	abmi_pps :: [PProp],
-	-- original type of the module
-	-- (this could go in APackage;
-	-- like pps, this is taken from GenWrap's WrapInfo)
-	-- (for now, the list of preds is empty, so CType would do)
-	abmi_oqt         :: CQType,
-	abmi_method_dump :: MethodDumpInfo,
-	abmi_pathinfo :: VPathInfo,
-	abmi_flags       :: Flags,
+        -- time when BSC was called to compile the .ba
+        --abmi_time :: ClockTime,
+        abmi_apkg :: APackage,
+        abmi_aschedinfo :: AScheduleInfo,
+        -- if this can be used prior to generating abin,
+        -- or put into APackage, then it's not needed here:
+        abmi_pps :: [PProp],
+        -- original type of the module
+        -- (this could go in APackage;
+        -- like pps, this is taken from GenWrap's WrapInfo)
+        -- (for now, the list of preds is empty, so CType would do)
+        abmi_oqt         :: CQType,
+        abmi_method_dump :: MethodDumpInfo,
+        abmi_pathinfo :: VPathInfo,
+        abmi_flags       :: Flags,
         -- the generated Verilog
         abmi_vprogram :: Maybe VProgram
     }
@@ -81,47 +81,47 @@ data ABinModSchedErrInfo =
         -- the name of the BSV package which defined this module
         abmsei_src_name :: String,
         -- the package prior to scheduling
-	abmsei_apkg :: APackage,
+        abmsei_apkg :: APackage,
         -- the available schedule info
-	abmsei_aschederrinfo :: AScheduleErrInfo,
+        abmsei_aschederrinfo :: AScheduleErrInfo,
         -- pragmas
-	abmsei_pps :: [PProp],
+        abmsei_pps :: [PProp],
         -- original type of the module
-	abmsei_oqt :: CQType,
+        abmsei_oqt :: CQType,
         -- flags
-	abmsei_flags :: Flags
+        abmsei_flags :: Flags
     }
 
 -- ---------------
 
 instance PPrint ABin where
     pPrint d p (ABinMod abmi ver) =
-	text "ABin Module" $+$
-	nest 2 (text "version:" <+> text ver $+$
-		pPrint d 0 abmi)
+        text "ABin Module" $+$
+        nest 2 (text "version:" <+> text ver $+$
+                pPrint d 0 abmi)
 
     pPrint d p (ABinForeignFunc abffi ver) =
-	text "ABin Foreign Function" $+$
-	nest 2 (text "version:" <+> text ver $+$
-		pPrint d 0 abffi)
+        text "ABin Foreign Function" $+$
+        nest 2 (text "version:" <+> text ver $+$
+                pPrint d 0 abffi)
 
     pPrint d p (ABinModSchedErr abmsei ver) =
-	text "ABin Module (Schedule Error)" $+$
-	nest 2 (text "version:" <+> text ver $+$
-		pPrint d 0 abmsei)
+        text "ABin Module (Schedule Error)" $+$
+        nest 2 (text "version:" <+> text ver $+$
+                pPrint d 0 abmsei)
 
 
 
 instance PPrint ABinModInfo where
     pPrint d p (ABinModInfo path srcName apkg aschedinfo pps oqt mi pathinfo flags vprog) =
-	text "path:" <+> text path $+$
-	text "package:" <+> text srcName $+$
-	pPrint d 0 apkg $+$
-	pPrint d 0 aschedinfo $+$
+        text "path:" <+> text path $+$
+        text "package:" <+> text srcName $+$
+        pPrint d 0 apkg $+$
+        pPrint d 0 aschedinfo $+$
         text "pprop:" <+> pPrint d 0 pps $+$
         text "oqt:" <+> pPrint d 0 oqt $+$
-	-- no dump of method info
-	text "pathinfo:" <+> pPrint d 0 pathinfo $+$
+        -- no dump of method info
+        text "pathinfo:" <+> pPrint d 0 pathinfo $+$
         -- no dump of flags
         text "vprog:" <+> (if (isNothing vprog)
                            then text "Nothing"
@@ -130,16 +130,16 @@ instance PPrint ABinModInfo where
 
 instance PPrint ABinForeignFuncInfo where
     pPrint d p (ABinForeignFuncInfo fid ff) =
-	text "src name:" <+> pPrint d 0 fid $+$
-	pPrint d 0 ff
+        text "src name:" <+> pPrint d 0 fid $+$
+        pPrint d 0 ff
 
 
 instance PPrint ABinModSchedErrInfo where
     pPrint d p (ABinModSchedErrInfo path srcName apkg aschederrinfo pps oqt flags) =
-	text "path:" <+> text path $+$
-	text "package:" <+> text srcName $+$
-	pPrint d 0 apkg $+$
-	pPrint d 0 aschederrinfo $+$
+        text "path:" <+> text path $+$
+        text "package:" <+> text srcName $+$
+        pPrint d 0 apkg $+$
+        pPrint d 0 aschederrinfo $+$
         text "pprop:" <+> pPrint d 0 pps $+$
         text "oqt:" <+> pPrint d 0 oqt
         -- no dump of flags

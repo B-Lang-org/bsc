@@ -240,7 +240,7 @@ reachable_withPath g v = preorderF_withPath [] (G.dfs g [v])
 -- Check if a path exists, but don't return it
 hasPath :: Ord a => Graph a -> a -> a -> Bool
 hasPath g@(Graph graph ordmap lookuptable _) in_v out_v =
-    let	in_int = vToInt g in_v
+    let in_int = vToInt g in_v
         out_int = vToInt g out_v
         g_immut = unsafePerformIO (freeze graph)
     in G.path g_immut in_int out_int

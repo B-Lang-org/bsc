@@ -77,23 +77,23 @@ data AScheduleInfo = AScheduleInfo
 
 instance PPrint AScheduleInfo where
     pPrint d p asi =
-	text "AScheduleInfo" $+$
-	nest 2 (
-	    text "-- schedule" $+$
-	    pPrint d 0 (asi_schedule asi) $+$
-	    text "-- vschedinfo" $+$
-	    pPrint d 0 (asi_v_sched_info asi) $+$
-	    text "-- warnings" $+$
-	    (let ppWarn = vcat . map text . lines
-	     in  vcat (map (ppWarn . thd) (asi_warnings asi))) $+$
+        text "AScheduleInfo" $+$
+        nest 2 (
+            text "-- schedule" $+$
+            pPrint d 0 (asi_schedule asi) $+$
+            text "-- vschedinfo" $+$
+            pPrint d 0 (asi_v_sched_info asi) $+$
+            text "-- warnings" $+$
+            (let ppWarn = vcat . map text . lines
+             in  vcat (map (ppWarn . thd) (asi_warnings asi))) $+$
             text "-- method uses map" $+$
             pPrint d 0 (asi_method_uses_map asi) $+$
             text "-- rule uses map" $+$
             pPrint d 0 (asi_rule_uses_map asi) $+$
             text "-- resource allocation table" $+$
             pPrint d 0 (asi_resource_alloc_table asi)
-	    -- no dump of DBs, sched graph and order
-	    )
+            -- no dump of DBs, sched graph and order
+            )
 
 
 -- ---------------
@@ -141,26 +141,26 @@ data AScheduleErrInfo = AScheduleErrInfo
 
 instance PPrint AScheduleErrInfo where
     pPrint d p asei =
-	text "AScheduleErrInfo" $+$
-	nest 2 (
-	    text "-- schedule" $+$
-	    pPrint d 0 (asei_schedule asei) $+$
-	    text "-- vschedinfo" $+$
-	    pPrint d 0 (asei_v_sched_info asei) $+$
-	    text "-- warnings" $+$
-	    (let ppWarn = vcat . map text . lines
-	     in  vcat (map (ppWarn . thd) (asei_warnings asei))) $+$
-	    text "-- errors" $+$
-	    (let ppErr = vcat . map text . lines
-	     in  vcat (map (ppErr . thd) (asei_errors asei))) $+$
+        text "AScheduleErrInfo" $+$
+        nest 2 (
+            text "-- schedule" $+$
+            pPrint d 0 (asei_schedule asei) $+$
+            text "-- vschedinfo" $+$
+            pPrint d 0 (asei_v_sched_info asei) $+$
+            text "-- warnings" $+$
+            (let ppWarn = vcat . map text . lines
+             in  vcat (map (ppWarn . thd) (asei_warnings asei))) $+$
+            text "-- errors" $+$
+            (let ppErr = vcat . map text . lines
+             in  vcat (map (ppErr . thd) (asei_errors asei))) $+$
             text "-- method uses map" $+$
             pPrint d 0 (asei_method_uses_map asei) $+$
             text "-- rule uses map" $+$
             pPrint d 0 (asei_rule_uses_map asei) $+$
             text "-- resource allocation table" $+$
             pPrint d 0 (asei_resource_alloc_table asei)
-	    -- no dump of DBs, sched graph and order
-	    )
+            -- no dump of DBs, sched graph and order
+            )
 
 
 -- ---------------
@@ -256,13 +256,13 @@ data RuleRelationDB =
                    (M.Map (ARuleId,ARuleId) RuleRelationInfo) -- conflicts
 
 data RuleRelationInfo = RuleRelationInfo { mCF :: Maybe Conflicts
-			                 , mSC :: Maybe Conflicts
-			                 , mRes :: Maybe Conflicts
-			                 , mCycle :: Maybe Conflicts
-			                 , mPragma :: Maybe Conflicts
+                                         , mSC :: Maybe Conflicts
+                                         , mRes :: Maybe Conflicts
+                                         , mCycle :: Maybe Conflicts
+                                         , mPragma :: Maybe Conflicts
                                          , mArb :: Maybe Conflicts
-			                 -- XXX path and urgency info?
-			                 } deriving (Eq,Show)
+                                         -- XXX path and urgency info?
+                                         } deriving (Eq,Show)
 
 defaultRuleRelationship :: RuleRelationInfo
 defaultRuleRelationship = RuleRelationInfo { mCF     = Nothing
@@ -313,31 +313,31 @@ data Conflicts =
 printConflicts :: Bool -> PDetail -> Conflicts -> Doc
 printConflicts use_pvprint d edge =
     let pfp :: (PVPrint a, PPrint a) => a -> Doc
-	pfp = if (use_pvprint)
-	      then pvPrint d 0
-	      else pPrint d 0
+        pfp = if (use_pvprint)
+              then pvPrint d 0
+              else pPrint d 0
     in  case (edge) of
-	    (CUse uses) ->
-	        let meths = vcat [pfp m1 <+> text "vs." <+> pfp m2
-				     | (m1, m2) <- uses]
-		in  fsep [s2par "calls to", nest 2 meths]
-	    (CCycle cycle_rules) ->
-		let cycle = fsep (intersperse (text "->")
-				    [pfp r | r <- cycle_rules])
-		in  fsep [s2par "dropped cycle", nest 2 $ parens cycle]
+            (CUse uses) ->
+                let meths = vcat [pfp m1 <+> text "vs." <+> pfp m2
+                                     | (m1, m2) <- uses]
+                in  fsep [s2par "calls to", nest 2 meths]
+            (CCycle cycle_rules) ->
+                let cycle = fsep (intersperse (text "->")
+                                    [pfp r | r <- cycle_rules])
+                in  fsep [s2par "dropped cycle", nest 2 $ parens cycle]
             (CMethodsBeforeRules) ->
-		s2par "methods fire before rules"
+                s2par "methods fire before rules"
             (CUserEarliness pos) ->
-		fsep [s2par "earliness attribute at", pfp pos]
+                fsep [s2par "earliness attribute at", pfp pos]
             (CUserAttribute pos) ->
-		fsep [s2par "scheduling attribute at", pfp pos]
-	    (CUserPreempt pos) ->
-		fsep [s2par "preempt attribute at", pfp pos]
-	    (CResource m) -> fsep [s2par "resource limit on", pfp m]
-	    (CArbitraryChoice) ->
-		s2par "earliness order chosen by the compiler"
-	    (CFFuncArbitraryChoice) ->
-		s2par ("earliness order chosen by the compiler" ++
+                fsep [s2par "scheduling attribute at", pfp pos]
+            (CUserPreempt pos) ->
+                fsep [s2par "preempt attribute at", pfp pos]
+            (CResource m) -> fsep [s2par "resource limit on", pfp m]
+            (CArbitraryChoice) ->
+                s2par "earliness order chosen by the compiler"
+            (CFFuncArbitraryChoice) ->
+                s2par ("earliness order chosen by the compiler" ++
                        " (due to system task or foreign function use)")
 
 instance PPrint Conflicts where
@@ -363,26 +363,26 @@ printRuleRelationInfo :: ARuleId -> ARuleId -> Bool -> RuleRelationInfo -> Doc
 printRuleRelationInfo rule1 rule2 isDisjoint
         (RuleRelationInfo mCF mSC mRes mCycle mPragma mArb) =
     let
-	-- print a single conflict of a given type
-	pp_conflict ctype Nothing =
-	    sep [text "no", text ctype, text "conflict"]
-	pp_conflict ctype (Just c) =
-	    sep [text ctype, text "conflict:", pPrint PDReadable 0 c]
+        -- print a single conflict of a given type
+        pp_conflict ctype Nothing =
+            sep [text "no", text ctype, text "conflict"]
+        pp_conflict ctype (Just c) =
+            sep [text ctype, text "conflict:", pPrint PDReadable 0 c]
     in
-	(text "Scheduling info for rules \"" <>
-	 pPrint PDReadable 0 rule1 <> text "\" and \"" <>
-	 pPrint PDReadable 0 rule2 <> text "\":")
-	$+$
-	sep [text "predicates",
-	     (if isDisjoint
-	      then text "are" else text "are not"),
-	      text "disjoint"]
-	$+$
-	nest 4 (pp_conflict "<>" mCF $+$
-		pp_conflict "<" mSC $+$
-		pp_conflict "resource" mRes $+$
-		pp_conflict "cycle" mCycle $+$
-		pp_conflict "attribute" mPragma)
+        (text "Scheduling info for rules \"" <>
+         pPrint PDReadable 0 rule1 <> text "\" and \"" <>
+         pPrint PDReadable 0 rule2 <> text "\":")
+        $+$
+        sep [text "predicates",
+             (if isDisjoint
+              then text "are" else text "are not"),
+              text "disjoint"]
+        $+$
+        nest 4 (pp_conflict "<>" mCF $+$
+                pp_conflict "<" mSC $+$
+                pp_conflict "resource" mRes $+$
+                pp_conflict "cycle" mCycle $+$
+                pp_conflict "attribute" mPragma)
                 -- XXX mArb
 
 -- -----

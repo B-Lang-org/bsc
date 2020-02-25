@@ -58,8 +58,8 @@ genIdFromAExpr expr = do
     put (state { nis_uniqueId = uniqueNum + 1 })
     let newIdStr = signalNameFromAExpr expr ++ aNoInlinePref ++ itos uniqueNum
     return $ mkId
-	       noPosition -- XXX aexpr should have an instance of HasPosition
-	       (mkFString newIdStr)
+               noPosition -- XXX aexpr should have an instance of HasPosition
+               (mkFString newIdStr)
 
 -- Add the expression -- realy the definition to the monad
 addExpr :: AType -> AExpr -> NIStateMonad AId
@@ -67,13 +67,13 @@ addExpr t e = do
     ds <- gets nis_defs
     rlm <- gets nis_rlookup
     case ( M.lookup (e,t) rlm ) of
-	Nothing ->
-	    do
-	      nid <- genIdFromAExpr e
+        Nothing ->
+            do
+              nid <- genIdFromAExpr e
               addDef (ADef nid t e [])
               return nid
-	-- don't create a new id for an expression that already has an id
-	Just fid -> return fid
+        -- don't create a new id for an expression that already has an id
+        Just fid -> return fid
 
 
 -- ===============
@@ -86,52 +86,52 @@ addExpr t e = do
 aNoInline :: Flags -> APackage -> APackage
 aNoInline flags apkg =
     let
-	-- initial state
-	initState = NIState {
-	                      nis_uniqueId = 1,
-			      nis_defs = [],
-			      nis_rlookup = M.empty
-			    }
+        -- initial state
+        initState = NIState {
+                              nis_uniqueId = 1,
+                              nis_defs = [],
+                              nis_rlookup = M.empty
+                            }
 
         -- fields of the package
-	ifc = apkg_interface apkg
-	rs = apkg_rules apkg
-	insts = apkg_state_instances apkg
-	defs = apkg_local_defs apkg
+        ifc = apkg_interface apkg
+        rs = apkg_rules apkg
+        insts = apkg_state_instances apkg
+        defs = apkg_local_defs apkg
 
-	-- monadic action
-	action = do
-	  -- we can't use mapAExprs in one go over the whole package
-	  -- because we don't want to lift exprs at the top level of defs.
-	  -- instead, by parts:
+        -- monadic action
+        action = do
+          -- we can't use mapAExprs in one go over the whole package
+          -- because we don't want to lift exprs at the top level of defs.
+          -- instead, by parts:
 
-	  -- map over the defs
-	  -- (this doesn't return defs, it adds them all to the state,
-	  -- to be retrieved at the end)
-	  mapM_ liftADef defs
+          -- map over the defs
+          -- (this doesn't return defs, it adds them all to the state,
+          -- to be retrieved at the end)
+          mapM_ liftADef defs
 
           -- map over ifcs
-	  ifc' <- mapMAExprs (liftAExpr False) ifc
-	  -- map over rules
-	  rs' <- mapMAExprs (liftAExpr False) rs
-	  -- map over state
-	  insts' <- mapMAExprs (liftAExpr False) insts
+          ifc' <- mapMAExprs (liftAExpr False) ifc
+          -- map over rules
+          rs' <- mapMAExprs (liftAExpr False) rs
+          -- map over state
+          insts' <- mapMAExprs (liftAExpr False) insts
 
-	  -- get back the final list of defs
-	  -- (original defs with lifting, plus any new defs)
-	  defs' <- gets nis_defs
+          -- get back the final list of defs
+          -- (original defs with lifting, plus any new defs)
+          defs' <- gets nis_defs
 
-	  -- now that all ANoInlineFunCall are top-level defs,
-	  -- assign instance names to each one
-	  let defs'' = updateNoInlineDefs defs'
+          -- now that all ANoInlineFunCall are top-level defs,
+          -- assign instance names to each one
+          let defs'' = updateNoInlineDefs defs'
 
-	  -- return the new package
-	  return (apkg { apkg_interface = ifc',
-	                 apkg_rules = rs',
-			 apkg_state_instances = insts',
-			 apkg_local_defs = defs'' })
+          -- return the new package
+          return (apkg { apkg_interface = ifc',
+                         apkg_rules = rs',
+                         apkg_state_instances = insts',
+                         apkg_local_defs = defs'' })
     in
-	evalState action initState
+        evalState action initState
 
 
 -- ===============
@@ -170,16 +170,16 @@ liftAExpr _ expr = return expr
 updateNoInlineDefs :: [ADef] -> [ADef]
 updateNoInlineDefs defs =
     let
-	updateDef :: ADef -> (Integer, [ADef]) -> (Integer, [ADef])
-	updateDef (ADef di dt (ANoInlineFunCall ft fi f es) props) (n, ds) =
-	    let (ANoInlineFun m ts ps _) = f
-		inst_name = instPrefix ++ getIdBaseString fi ++ "_" ++ itos n
-		f' = (ANoInlineFun m ts ps (Just inst_name))
-		d' = (ADef di dt (ANoInlineFunCall ft fi f' es) props)
-	    in  (n+1, d':ds)
-	updateDef d (n, ds) = (n, d:ds)
+        updateDef :: ADef -> (Integer, [ADef]) -> (Integer, [ADef])
+        updateDef (ADef di dt (ANoInlineFunCall ft fi f es) props) (n, ds) =
+            let (ANoInlineFun m ts ps _) = f
+                inst_name = instPrefix ++ getIdBaseString fi ++ "_" ++ itos n
+                f' = (ANoInlineFun m ts ps (Just inst_name))
+                d' = (ADef di dt (ANoInlineFunCall ft fi f' es) props)
+            in  (n+1, d':ds)
+        updateDef d (n, ds) = (n, d:ds)
     in
-	snd $ foldr updateDef (0,[]) defs
+        snd $ foldr updateDef (0,[]) defs
 
 -- ===============
 

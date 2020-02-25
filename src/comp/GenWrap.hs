@@ -847,7 +847,7 @@ genIfc trec args knd =
        --traceM("genIfc: " ++ ppReadable trec ) ;
        -- lookup interface pragmas from symt and pass them in.
        iprags <- getInterfacePrags rootId
-       let            prefix = noPrefixes { ifcp_pragmas = iprags }
+       let prefix = noPrefixes { ifcp_pragmas = iprags }
        fieldprops <- mapM (genIfcField' trec rootId prefix ) fts
        let (fields,ppropss) = unzip fieldprops
        let newprops = concat ppropss

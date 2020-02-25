@@ -57,13 +57,13 @@ aImprove p@(ASPackage { aspkg_values = ds }) =
         repl (APrim aid t p es) = APrim aid t p (map repl es)
         repl (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (map repl es)
         repl (AFunCall t i f isC es) = AFunCall t i f isC (map repl es)
---	repl e = internalError ("aImprove.replE " ++ ppReadable e)
+--        repl e = internalError ("aImprove.replE " ++ ppReadable e)
         repl e = e
         -- aOptBoolExpr is overkill...
         ds' = [ ADef i t (aOptBoolExpr (repl e)) p | ADef i t e p <- ds ]
         p'' = aSRemoveUnused False (p { aspkg_values = ds' })
         ds'' = aspkg_values p''
-    in  if length ds == length ds'' && ds == ds'' then	-- length check is a fast check for inequality
+    in  if length ds == length ds'' && ds == ds'' then        -- length check is a fast check for inequality
             (if doTrace then trace "aImprove done" else id)
             p
         else
@@ -255,7 +255,7 @@ synDef (i, e, props) = do
      es -> do
         let is = map (wireId i) [0..length es-1]
         zipWithM_ (\i e -> addDefU i e props ) is es
---	trace (ppReadable (is, es)) $ return ()
+--        trace (ppReadable (is, es)) $ return ()
         addDefU i (APrim i (aType e) PrimConcat (map (ASDef aTBool) (reverse is))) props
 
 synExp :: AExpr -> S [AExpr]
@@ -359,7 +359,7 @@ synPrim aid t p es | isBoolOp p = return [APrim aid t p es]
 synPrim aid _ p es | isBoolVecOp p = do
         ess <- mapM synExpS es
         return (map ((primToFun p) aid) (transpose ess))
---	return (map (APrim _ aTBool (vecToBool p)) (transpose ess))
+--        return (map (APrim _ aTBool (vecToBool p)) (transpose ess))
 synPrim aid _ PrimEQ [x, y] = do
         xs <- synExpS x
         ys <- synExpS y

@@ -1,10 +1,10 @@
 module Params(
-	      -- a specific stage on ISyntax for handling params
-	      iParams,
-	      -- functions for checking if a param's expr is legal
-	      -- (is a constant expression, as defined by Verilog)
-	      isConstIExpr, isConstAExpr
-	     ) where
+              -- a specific stage on ISyntax for handling params
+              iParams,
+              -- functions for checking if a param's expr is legal
+              -- (is a constant expression, as defined by Verilog)
+              isConstIExpr, isConstAExpr
+             ) where
 
 import qualified Data.Map as M
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
@@ -23,95 +23,95 @@ import Prim
 iParams :: ErrorHandle -> IModule a -> IO (IModule a)
 iParams errh imod =
     let
-	ds = imod_local_defs imod
-	ss = imod_state_insts imod
+        ds = imod_local_defs imod
+        ss = imod_state_insts imod
 
-	{-
-	-- XXX not needed because we don't need to know the Ids,
-	-- XXX because the references are marked as ICModParam
-	size_ps = imod_type_args imod
-	inputs = imod_wire_args imod
-	wi = imod_external_wires imod
-	varginfo = wArgs wi
+        {-
+        -- XXX not needed because we don't need to know the Ids,
+        -- XXX because the references are marked as ICModParam
+        size_ps = imod_type_args imod
+        inputs = imod_wire_args imod
+        wi = imod_external_wires imod
+        varginfo = wArgs wi
 
-	-- identify which inputs are parameters
-	param_inputs = [ i | (i, Param {}) <- zip inputs varginfo ]
+        -- identify which inputs are parameters
+        param_inputs = [ i | (i, Param {}) <- zip inputs varginfo ]
 
-	param_ids = map fst size_ps ++
-	            map fst param_inputs
-	-}
+        param_ids = map fst size_ps ++
+                    map fst param_inputs
+        -}
 
-	-- create a map of ids and the exprs they inline to
-	-- (with each expr already itself inlined completely)
-	-- (assuming that "ds" is tsorted)
+        -- create a map of ids and the exprs they inline to
+        -- (with each expr already itself inlined completely)
+        -- (assuming that "ds" is tsorted)
         --dmap :: M.Map Id (IExpr a)
-	dmap = M.fromList [ (i, iSubst dmap e) | IDef i _ e _ <- ds ]
+        dmap = M.fromList [ (i, iSubst dmap e) | IDef i _ e _ <- ds ]
 
-	ss' = map (inlineParams dmap) ss
-	imod' = imod { imod_state_insts = ss' }
+        ss' = map (inlineParams dmap) ss
+        imod' = imod { imod_state_insts = ss' }
 
-	emsgs = concatMap checkParams ss'
+        emsgs = concatMap checkParams ss'
     in
-	if (null emsgs)
-	then return imod'
-	else bsError errh emsgs
+        if (null emsgs)
+        then return imod'
+        else bsError errh emsgs
 
 
 inlineParams :: M.Map Id (IExpr a) -> (Id, IStateVar a) -> (Id, IStateVar a)
 inlineParams dmap (inst, svar) =
     let
-	-- get the relevant fields from the IStateVar
-	varginfo = vArgs (isv_vmi svar)
-	es = isv_iargs svar
+        -- get the relevant fields from the IStateVar
+        varginfo = vArgs (isv_vmi svar)
+        es = isv_iargs svar
 
-	-- for each parameter instantiation argument,
-	-- inline variables references in its instantiation expression
-	inlineParam (Param {}, expr) = iSubst dmap expr
-	inlineParam (_, expr) = expr
+        -- for each parameter instantiation argument,
+        -- inline variables references in its instantiation expression
+        inlineParam (Param {}, expr) = iSubst dmap expr
+        inlineParam (_, expr) = expr
 
-	-- create the new IStateVar to return
-	es' = map inlineParam (zip varginfo es)
-	svar' = svar { isv_iargs = es' }
+        -- create the new IStateVar to return
+        es' = map inlineParam (zip varginfo es)
+        svar' = svar { isv_iargs = es' }
     in
-	(inst, svar')
+        (inst, svar')
 
 
 checkParams :: (Id, IStateVar a) -> [EMsg]
 checkParams (inst, svar) =
     let
-	-- get the relevant fields from the IStateVar
-	varginfo = vArgs (isv_vmi svar)
-	arg_es = isv_iargs svar
+        -- get the relevant fields from the IStateVar
+        varginfo = vArgs (isv_vmi svar)
+        arg_es = isv_iargs svar
 
-	-- position for reporting errors
-	pos = getPosition inst
+        -- position for reporting errors
+        pos = getPosition inst
 
-	-- users only know the instantiation arguments by position,
-	-- so zip with a number indicating the position
-	triples = zip3 [1..] varginfo arg_es
+        -- users only know the instantiation arguments by position,
+        -- so zip with a number indicating the position
+        triples = zip3 [1..] varginfo arg_es
 
-	-- check a single param
-	checkParam :: (Integer, VArgInfo, IExpr a) -> [EMsg]
-	checkParam (n, varginfo@(Param {}), expr) =
-	    if (not (isConstIExpr expr))
-	    then let port_name = getIdString (getVArgInfoName varginfo)
-		     inst_name = getIdString inst
-		 in  [(pos, EModParameterDynamic inst_name port_name)]
-	    else []
-	checkParam _ = []
+        -- check a single param
+        checkParam :: (Integer, VArgInfo, IExpr a) -> [EMsg]
+        checkParam (n, varginfo@(Param {}), expr) =
+            if (not (isConstIExpr expr))
+            then let port_name = getIdString (getVArgInfoName varginfo)
+                     inst_name = getIdString inst
+                 in  [(pos, EModParameterDynamic inst_name port_name)]
+            else []
+        checkParam _ = []
     in
-	concatMap checkParam triples
+        concatMap checkParam triples
 
 
 -- XXX copied from IInline; consider putting it in one place?
 iSubst :: M.Map Id (IExpr a) -> IExpr a -> IExpr a
 iSubst m e = sub e
   where sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-	sub d@(ICon i _) =
-	    case M.lookup i m of
-	    Nothing -> d
-	    Just e -> e
-	sub ee = internalError ("iSubst: " ++ ppReadable ee)
+        sub d@(ICon i _) =
+            case M.lookup i m of
+            Nothing -> d
+            Just e -> e
+        sub ee = internalError ("iSubst: " ++ ppReadable ee)
 
 
 -- ==========
@@ -172,7 +172,7 @@ isConstAExpr _ (ASAny {}) =
 isConstAExpr _ e@(ASDef {}) =
     -- Local def references should have been inlined away
     internalError ("Params.isConstAExpr: inlining not complete: " ++
-		   ppReadable e)
+                   ppReadable e)
     -- XXX could have said "False" here, so that it's available
     -- XXX for other uses?
 isConstAExpr ps (APrim { aprim_prim = op, ae_args = es }) =

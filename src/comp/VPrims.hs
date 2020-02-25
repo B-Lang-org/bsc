@@ -24,16 +24,16 @@ vMuxP parallel n = VModule { vm_name = (mkVId ("Mux_" ++ itos n)),
                              vm_body = [regdecl,outassign,body] }
   where
         comments = [] -- XXX room to add comments
-	args = param : out : iss
-	param = VAParameter viWidth Nothing (VEConst 1)
-	out = VAOutput viOut rng
-	iss = concatMap (\ n -> [VAInput (i n) rng, VAInput (s n) Nothing]) ns
-	hi = mkVEOp w VSub one
-	lo = zero
-	w = VEVar viWidth
-	rng = Just (hi, lo)
-	i n = mkVId ("in_" ++ itos n)
-	s n = mkVId ("s_" ++ itos n)
+        args = param : out : iss
+        param = VAParameter viWidth Nothing (VEConst 1)
+        out = VAOutput viOut rng
+        iss = concatMap (\ n -> [VAInput (i n) rng, VAInput (s n) Nothing]) ns
+        hi = mkVEOp w VSub one
+        lo = zero
+        w = VEVar viWidth
+        rng = Just (hi, lo)
+        i n = mkVId ("in_" ++ itos n)
+        s n = mkVId ("s_" ++ itos n)
         outassign = VMAssign (VLId viOut) (VEVar viOutReg)
         regdecl = VMDecl (VVDecl VDReg rng [(VVar viOutReg)])
         body = VMStmt{ vi_translate_off = False,
@@ -44,7 +44,7 @@ vMuxP parallel n = VModule { vm_name = (mkVId ("Mux_" ++ itos n)),
                                          vs_full = True
                                        }
                      }
-	ns = [0..n-1]
+        ns = [0..n-1]
         sels = map s ns
         ins = map i ns
 

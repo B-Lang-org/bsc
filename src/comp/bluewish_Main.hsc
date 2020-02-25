@@ -1,8 +1,8 @@
 /*
  * tkAppInit.c --
  *
- *	Provides a default version of the Tcl_AppInit procedure for
- *	use in wish and similar Tk-based applications.
+ *        Provides a default version of the Tcl_AppInit procedure for
+ *        use in wish and similar Tk-based applications.
  *
  * Copyright (c) 1993 The Regents of the University of California.
  * Copyright (c) 1994-1997 Sun Microsystems, Inc.
@@ -45,22 +45,22 @@ extern int Itk_SafeInit(Tcl_Interp *interp) ;
  *
  * main --
  *
- *	This is the main program for the application.
+ *        This is the main program for the application.
  *
  * Results:
- *	None: Tk_Main never returns here, so this procedure never
- *	returns either.
+ *        None: Tk_Main never returns here, so this procedure never
+ *        returns either.
  *
  * Side effects:
- *	Whatever the application does.
+ *        Whatever the application does.
  *
  *----------------------------------------------------------------------
  */
 
 int
 main(argc, argv)
-    int argc;			/* Number of command-line arguments. */
-    char **argv;		/* Values of command-line arguments. */
+    int argc;                        /* Number of command-line arguments. */
+    char **argv;                /* Values of command-line arguments. */
 {
   // Initialize Haskell
   int stat = init_haskellSystem( &argc, &argv );
@@ -73,7 +73,7 @@ main(argc, argv)
 #endif
 
   Tk_Main(argc, argv, bluewish_AppInit);
-  return 0;			/* Needed only to prevent compiler warning. */
+  return 0;                        /* Needed only to prevent compiler warning. */
 }
 
 /*
@@ -81,16 +81,16 @@ main(argc, argv)
  *
  * Tcl_AppInit --
  *
- *	This procedure performs application-specific initialization.
- *	Most applications, especially those that incorporate additional
- *	packages, will have their own version of this procedure.
+ *        This procedure performs application-specific initialization.
+ *        Most applications, especially those that incorporate additional
+ *        packages, will have their own version of this procedure.
  *
  * Results:
- *	Returns a standard Tcl completion code, and leaves an error
- *	message in the interp's result if an error occurs.
+ *        Returns a standard Tcl completion code, and leaves an error
+ *        message in the interp's result if an error occurs.
  *
  * Side effects:
- *	Depends on the startup script.
+ *        Depends on the startup script.
  *
  *----------------------------------------------------------------------
  */
@@ -120,7 +120,7 @@ char userStartFile[] = "~/.bluetclrc";
 
 int
 bluewish_AppInit(interp)
-    Tcl_Interp *interp;		/* Interpreter for application. */
+    Tcl_Interp *interp;                /* Interpreter for application. */
 {
 
   // TCL library must be loaded from $BLUESPECDIR, so setup the right tcllibrary path here

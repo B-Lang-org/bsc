@@ -28,13 +28,13 @@ instance Show SString where
 
 toString :: SString -> String
 toString (SString id) = unsafePerformIO $
-			do m <- readVar strings
-			   return $ M.findWithDefault err id m
+                        do m <- readVar strings
+                           return $ M.findWithDefault err id m
 
 fromString :: String -> SString
 fromString s = unsafePerformIO $
-	       do m <- readVar sstrings
-		  return $ maybe (newSString s) id $ M.lookup (hashStr s) m >>= lookup s
+               do m <- readVar sstrings
+                  return $ maybe (newSString s) id $ M.lookup (hashStr s) m >>= lookup s
 
 (++) :: SString -> SString -> SString
 s ++ s' = fromString $ (toString s) Prelude.++ (toString s')
@@ -49,14 +49,14 @@ filter pred s = fromString $ Prelude.filter pred (toString s)
 
 newSString :: String -> SString
 newSString s = unsafePerformIO $
-	       do id <- freshInt
-		  let ss = SString id
-		  sm <- readVar strings
-		  ssm <- readVar sstrings
-		  writeVar strings $ M.insert id s sm
-		  writeVar sstrings $ M.insertWith (Prelude.++)
+               do id <- freshInt
+                  let ss = SString id
+                  sm <- readVar strings
+                  ssm <- readVar sstrings
+                  writeVar strings $ M.insert id s sm
+                  writeVar sstrings $ M.insertWith (Prelude.++)
                                           (hashStr s) [(s,ss)] ssm
-		  return ss
+                  return ss
 
 err = internalError "SpeedyString: inconsistent representation"
 
@@ -91,5 +91,5 @@ nextInt = unsafePerformIO $ (newVar 0)
 
 freshInt :: IO Int
 freshInt = do fresh <- readVar nextInt
-	      writeVar nextInt (fresh + 1)
-	      return fresh
+              writeVar nextInt (fresh + 1)
+              return fresh

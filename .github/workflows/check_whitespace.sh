@@ -7,6 +7,11 @@ set -e
 if git ls-files | egrep '\.(lhs|hs|hsc)$' | xargs grep -n ' $'; then
   echo "Trailing whitespace found!"
   exit 1
-else
-  exit 0
 fi
+
+if git ls-files | egrep '\.(lhs|hs|hsc)$' | xargs grep -n $'\t'; then
+  echo "Tabs found!"
+  exit 1
+fi
+
+exit 0

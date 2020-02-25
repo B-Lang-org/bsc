@@ -3,33 +3,33 @@
 
 
 module AVerilogUtil (
-		     -- basic conversion functions
-		     vId,
-		     vExpr,
-		     vMethId,
+                     -- basic conversion functions
+                     vId,
+                     vExpr,
+                     vMethId,
                      vNameToTask,
 
-		     -- less basic (might belong in AVerilog?)
-		     vDefMpd,
+                     -- less basic (might belong in AVerilog?)
+                     vDefMpd,
 
-		     -- higher level conversion functions
+                     -- higher level conversion functions
                      -- XXX these might belong in AVerilog?
-		     vState, InstInfo, wiredInstance,
-		     vForeignBlock, vForeignCall,
+                     vState, InstInfo, wiredInstance,
+                     vForeignBlock, vForeignCall,
 
-		     -- separate decls and defs
-		     -- (could go in AVerilog, but needed by vForeignBlock
-		     expVVDWire,
+                     -- separate decls and defs
+                     -- (could go in AVerilog, but needed by vForeignBlock
+                     expVVDWire,
 
-		     -- Id routines
-		     suff, pref,
+                     -- Id routines
+                     suff, pref,
 
-		     -- size routine
-		     vSize,
+                     -- size routine
+                     vSize,
                      isNotZeroSized,
                      flagsToVco,
                      VConvtOpts(..)
-		    ) where
+                    ) where
 
 import Data.List(nub, partition, genericLength, union, intersect, (\\))
 import Data.Maybe
@@ -44,14 +44,14 @@ import PreIds( idInout_, idSVA )
 import Position( Position )
 
 import VModInfo(vArgs, vName, vFields, VName(..), VeriPortProp(..),
-	        getIfcIdPosition, VArgInfo(..), VFieldInfo(..))
+                getIfcIdPosition, VArgInfo(..), VFieldInfo(..))
 import Prim
 import ASyntax
 import ASyntaxUtil
 import Verilog
 import VPrims(verilogInstancePrefix, viWidth)
 import BackendNamingConventions(createVerilogNameMapForAVInst,
-				xLateFStringUsingFStringMap)
+                                xLateFStringUsingFStringMap)
 import ForeignFunctions(ForeignFunction(..), ForeignFuncMap, isPoly, isMappedAVId)
 
 import Util
@@ -98,7 +98,7 @@ expVVDWire :: [VMItem] -> ([VMItem], [VMItem])
 expVVDWire defs =
   let explode (VMDecl (VVDWire r v@(VVar i) e)) =
                    ([VMDecl (VVDecl VDWire r [v])],
-		    [VMAssign (VLId i) e])
+                    [VMAssign (VLId i) e])
       explode vm@(VMDecl _) = ([vm], [])
       explode vm = ([], [vm])
 
@@ -123,15 +123,15 @@ polyReturnType _ _ = Nothing
 -- always-block for it, and a list of IDs which need to be declared
 -- as reg because their assignments were inlined into the block.
 vForeignBlock :: VConvtOpts -> ForeignFuncMap ->
-		 [ADef] -> AForeignBlock -> Maybe ([VMItem], [AId])
+                 [ADef] -> AForeignBlock -> Maybe ([VMItem], [AId])
 vForeignBlock vco ffmap ds (_, []) = Nothing
 vForeignBlock vco ffmap ds (clks, fcalls) =
   let
       -- make a def map
       def_map = M.fromList [(i, d) | d@(ADef i _ _ _) <- ds]
       findDef i = let err = internalError ("vForeignBlock findDef: " ++
-					   ppReadable i)
-		  in  M.findWithDefault err i def_map
+                                           ppReadable i)
+                  in  M.findWithDefault err i def_map
 
       -- make a def dependency map
       dep_map = M.fromList [(i, aVars d) | d@(ADef i _ _ _) <- ds]
@@ -155,16 +155,16 @@ vForeignBlock vco ffmap ds (clks, fcalls) =
       convert :: Either ADef AForeignCall -> [VStmt]
       convert (Right fcall) = [vForeignCall vco fcall ffmap]
       convert (Left adef) =
-	  let -- some of the defs that we inline might not be simple
-	      -- assignments, so use vDefMpd instead of vExpr, but drop
-	      -- the declaration part, and convert the VMItems to VStmts
-	      vdef_items = snd $ expVVDWire $ vDefMpd vco adef ffmap
-	      itemToStmt :: VMItem -> VStmt
-	      itemToStmt (VMAssign i e) = VAssign i e
-	      itemToStmt (VMStmt { vi_body = Valways (VAt _ body) }) = body
-	      itemToStmt item = internalError ("vForeignBlock convert: " ++
-					       ppReadable item)
-	  in  map itemToStmt vdef_items
+          let -- some of the defs that we inline might not be simple
+              -- assignments, so use vDefMpd instead of vExpr, but drop
+              -- the declaration part, and convert the VMItems to VStmts
+              vdef_items = snd $ expVVDWire $ vDefMpd vco adef ffmap
+              itemToStmt :: VMItem -> VStmt
+              itemToStmt (VMAssign i e) = VAssign i e
+              itemToStmt (VMStmt { vi_body = Valways (VAt _ body) }) = body
+              itemToStmt item = internalError ("vForeignBlock convert: " ++
+                                               ppReadable item)
+          in  map itemToStmt vdef_items
 
       -- the always block statements
       fcall_stmts0 = concatMap convert fcalls_and_defs
@@ -176,31 +176,31 @@ vForeignBlock vco ffmap ds (clks, fcalls) =
       -- the always block sensitivity list
       sensitivity_list =
           -- foreign function calls trigger at the negative clock edge so
-	  -- values are ready (at the positive edge) from input system tasks
+          -- values are ready (at the positive edge) from input system tasks
           foldr1 VEEOr (map (VEEnegedge . (vExpr vco)) clks)
       -- the always block
       -- (starting the block with "#0" is a hack to pacify VCS and NC)
       always_stmt = Valways
                        (VAt sensitivity_list
-		         (VSeq (VZeroDelay : fcall_stmts)))
+                         (VSeq (VZeroDelay : fcall_stmts)))
       -- the assertions' sensitivity list
       ass_sensitivity_list =
           -- foreign function calls trigger at the negative clock edge so
-	  -- values are ready (at the positive edge) from input system tasks
+          -- values are ready (at the positive edge) from input system tasks
           foldr1 VEEOr (map (VEEposedge . (vExpr vco)) clks)
       mkVAssert :: VStmt -> VMItem
       mkVAssert (VTask _ es) =
-	  VMStmt { vi_translate_off = True,
+          VMStmt { vi_translate_off = True,
                    vi_body = VAssert ass_sensitivity_list es }
       mkVAssert x = internalError("mkVAssert: " ++ (show x))
       ass_stmts = map mkVAssert asses
   in -- put it together, with translate_off, since it is for sim only
      Just ((if null fcall_stmts then [] else
-		     [VMStmt { vi_translate_off = True,
+                     [VMStmt { vi_translate_off = True,
                                vi_body = always_stmt }])++
-	   (if null asses then [] else ass_stmts),
+           (if null asses then [] else ass_stmts),
 
-	   inline_def_ids)
+           inline_def_ids)
 
 vForeignCall :: VConvtOpts -> AForeignCall -> ForeignFuncMap -> VStmt
 vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
@@ -218,10 +218,10 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
     fcall exprs | Just (cnd, es_T, es_F) <- splitString exprs =
        Vifelse (vExpr vco cnd) (fcall es_T) (fcall es_F)
     fcall exprs = case ids' of
-		 []  -> (buildVerilogTask vco vtaskid (map (vExpr vco) exprs))
-		 [i] -> (VSeq [(VAssign (VLId (vId i))
-				(VEFctCall vtaskid (map (vExpr vco) exprs))),
-			       VZeroDelay])
+                 []  -> (buildVerilogTask vco vtaskid (map (vExpr vco) exprs))
+                 [i] -> (VSeq [(VAssign (VLId (vId i))
+                                (VEFctCall vtaskid (map (vExpr vco) exprs))),
+                               VZeroDelay])
                  _   -> internalError("AVerilog.vForeignCall" ++ (show f))
     -- if c is trivial (i.e. 0 or 1), verilog pretty printing will optimize it:
     fcall_body = Vif (vExpr vco c) (fcall es')
@@ -270,150 +270,150 @@ buildVerilogTask vco taskid es | isMappedAVId (vidToId taskid) = VSeq [VTask tas
 buildVerilogTask vco taskid es = VTask taskid es
 
 tsortForeignCallsAndDefs :: [ADef] -> [AForeignCall] ->
-			    [Either ADef AForeignCall]
+                            [Either ADef AForeignCall]
 -- if there are no defs, just return the fcalls
 tsortForeignCallsAndDefs [] fcalls = map Right fcalls
 tsortForeignCallsAndDefs ds fcalls =
     let
-	-- we will create a graph where the edges are:
-	-- * "Left AId" to represent a def (by it's name)
-	-- * "Right Integer" to represent an fcall (by it's position)
+        -- we will create a graph where the edges are:
+        -- * "Left AId" to represent a def (by it's name)
+        -- * "Right Integer" to represent an fcall (by it's position)
 
-	-- The use of Left and Right was chosen to make Defs lower in
-	-- the Ord order than ForeignCalls.  This way, tsort puts them first.
+        -- The use of Left and Right was chosen to make Defs lower in
+        -- the Ord order than ForeignCalls.  This way, tsort puts them first.
 
-	-- ----------
-	-- Defs
+        -- ----------
+        -- Defs
 
-	-- the Ids of the defs
-	-- (we only want to make edges for variable uses from this list)
-	ds_ids = map adef_objid ds
-	-- for efficiency, make it a set
-	s = S.fromList ds_ids
+        -- the Ids of the defs
+        -- (we only want to make edges for variable uses from this list)
+        ds_ids = map adef_objid ds
+        -- for efficiency, make it a set
+        s = S.fromList ds_ids
 
-	-- make edges for def-to-def dependencies
-	def_edges = [ (Left i, map Left uses)
-		          | ADef i _ e _ <- ds,
-		            let uses = filter (`S.member` s) (aVars e) ]
+        -- make edges for def-to-def dependencies
+        def_edges = [ (Left i, map Left uses)
+                          | ADef i _ e _ <- ds,
+                            let uses = filter (`S.member` s) (aVars e) ]
 
-	-- map def ids back to their defs
-	defmap = M.fromList [ (i,d) | d@(ADef i _ _ _) <- ds ]
-	getDef i =
-	    case (M.lookup i defmap) of
-		Just d -> d
-		Nothing -> internalError "tsortForeignCallsAndDefs: getDef"
+        -- map def ids back to their defs
+        defmap = M.fromList [ (i,d) | d@(ADef i _ _ _) <- ds ]
+        getDef i =
+            case (M.lookup i defmap) of
+                Just d -> d
+                Nothing -> internalError "tsortForeignCallsAndDefs: getDef"
 
-	-- ----------
-	-- ForeignCalls
+        -- ----------
+        -- ForeignCalls
 
-	-- give the fcalls a unique number and make a mapping
-	-- (numbering in order sets the Ord order for tsort)
+        -- give the fcalls a unique number and make a mapping
+        -- (numbering in order sets the Ord order for tsort)
 
-	numbered_fcalls :: [(Integer, AForeignCall)]
-	numbered_fcalls = zip [1..] fcalls
+        numbered_fcalls :: [(Integer, AForeignCall)]
+        numbered_fcalls = zip [1..] fcalls
 
-	fcall_map = M.fromList numbered_fcalls
-	getFCall n =
-	    case (M.lookup n fcall_map) of
-		Just d -> d
-		Nothing -> internalError "tsortForeignCallsAndDefs: getFCall"
+        fcall_map = M.fromList numbered_fcalls
+        getFCall n =
+            case (M.lookup n fcall_map) of
+                Just d -> d
+                Nothing -> internalError "tsortForeignCallsAndDefs: getFCall"
 
-	-- ----------
-	-- ForeignCall-to-ForeignCall edges
-	-- (to maintain the user-specified order of the ForeignCalls)
+        -- ----------
+        -- ForeignCall-to-ForeignCall edges
+        -- (to maintain the user-specified order of the ForeignCalls)
 
-	-- (are these still needed now that we use Ord to bias tsort?)
-	fcall_edges =
-	    if (length fcalls > 1)
-	    then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
-	         in  zipWith mkEdge
-		         (init numbered_fcalls) (tail numbered_fcalls)
-	    else []
+        -- (are these still needed now that we use Ord to bias tsort?)
+        fcall_edges =
+            if (length fcalls > 1)
+            then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
+                 in  zipWith mkEdge
+                         (init numbered_fcalls) (tail numbered_fcalls)
+            else []
 
-	-- ----------
-	-- ForeignCall to Def edges
+        -- ----------
+        -- ForeignCall to Def edges
 
-	-- any defs used by an fcall have to be computed before the
-	-- fcall is called
-	fcall_def_edges = [ (Right n, map Left uses)
-	                        | (n,f) <- numbered_fcalls,
+        -- any defs used by an fcall have to be computed before the
+        -- fcall is called
+        fcall_def_edges = [ (Right n, map Left uses)
+                                | (n,f) <- numbered_fcalls,
                                   let uses = filter (`S.member` s) (aVars f) ]
 
-	-- any def which uses a value set by an fcall must be computed
-	-- after the fcall is called
-	def_fcall_edges =
-	    let
-		-- find the values set by the fcalls
-		avalue_pairs = [ (val, n) | (n,f) <- numbered_fcalls,
-					    val <- afc_writes f ]
-		avalue_map = M.fromList avalue_pairs
-		findNum i =
-		    let err = internalError
-			          ("tsortForeignCallsAndDefs def_fcall_edges")
-		    in  M.findWithDefault err i avalue_map
-		-- and just the set of ids, for testing membership
-		avalue_set = M.keysSet avalue_map
-		isAV i = S.member i avalue_set
-		-- find the defs that depend on the avalues
-		aval_refs = [ (i, refs)
-		                 | (ADef i _ e _) <- ds,
+        -- any def which uses a value set by an fcall must be computed
+        -- after the fcall is called
+        def_fcall_edges =
+            let
+                -- find the values set by the fcalls
+                avalue_pairs = [ (val, n) | (n,f) <- numbered_fcalls,
+                                            val <- afc_writes f ]
+                avalue_map = M.fromList avalue_pairs
+                findNum i =
+                    let err = internalError
+                                  ("tsortForeignCallsAndDefs def_fcall_edges")
+                    in  M.findWithDefault err i avalue_map
+                -- and just the set of ids, for testing membership
+                avalue_set = M.keysSet avalue_map
+                isAV i = S.member i avalue_set
+                -- find the defs that depend on the avalues
+                aval_refs = [ (i, refs)
+                                 | (ADef i _ e _) <- ds,
                                    let refs = filter isAV (aVars e),
-			           not (null refs) ]
-	    in  -- make the edges
-		[ (Left i, map (Right . findNum) refs)
-		     | (i, refs) <- aval_refs ]
+                                   not (null refs) ]
+            in  -- make the edges
+                [ (Left i, map (Right . findNum) refs)
+                     | (i, refs) <- aval_refs ]
 
-	-- ----------
-	-- put it together into one graph
+        -- ----------
+        -- put it together into one graph
 
-	g =
+        g =
 {-
-	    trace ("fcalls = " ++ ppReadable numbered_fcalls) $
-	    trace ("def_edges = " ++ ppReadable def_edges) $
-	    trace ("fcall_edges = " ++ ppReadable fcall_edges) $
-	    trace ("fcall_def_edges = " ++ ppReadable fcall_def_edges) $
-	    trace ("def_fcall_edges = " ++ ppReadable def_fcall_edges) $
+            trace ("fcalls = " ++ ppReadable numbered_fcalls) $
+            trace ("def_edges = " ++ ppReadable def_edges) $
+            trace ("fcall_edges = " ++ ppReadable fcall_edges) $
+            trace ("fcall_def_edges = " ++ ppReadable fcall_def_edges) $
+            trace ("def_fcall_edges = " ++ ppReadable def_fcall_edges) $
 -}
-	    map_insertManyWith union (fcall_edges) $
-	    map_insertManyWith union (fcall_def_edges) $
-	    map_insertManyWith union (def_fcall_edges) $
-	    M.fromList def_edges
+            map_insertManyWith union (fcall_edges) $
+            map_insertManyWith union (fcall_def_edges) $
+            map_insertManyWith union (def_fcall_edges) $
+            M.fromList def_edges
 
         -- Convert the graph to the format expected by tsort.
-	g_edges = M.toList g
+        g_edges = M.toList g
 
-	-- ----------
-	-- convert a graph node back into a def/action
-	-- and then to a SimCCFnStmt
+        -- ----------
+        -- convert a graph node back into a def/action
+        -- and then to a SimCCFnStmt
 
-	convertNode (Left i) = Left (getDef i)
-	convertNode (Right n) = Right (getFCall n)
+        convertNode (Left i) = Left (getDef i)
+        convertNode (Right n) = Right (getFCall n)
 
     in
-	-- tsort returns Left if there is a loop, Right if sorted.
-	case (tsort g_edges) of
-	    Right is -> map convertNode is
-	    Left (scc:_) ->
-	        let path = extractOneCycle_map g scc
-		in  internalError ("tsortForeignCallsAndDefs: cyclic " ++
-				   ppReadable (map convertNode path))
-	    Left [] -> internalError ("tsortForeignCallsAndDefs: cyclic []")
+        -- tsort returns Left if there is a loop, Right if sorted.
+        case (tsort g_edges) of
+            Right is -> map convertNode is
+            Left (scc:_) ->
+                let path = extractOneCycle_map g scc
+                in  internalError ("tsortForeignCallsAndDefs: cyclic " ++
+                                   ppReadable (map convertNode path))
+            Left [] -> internalError ("tsortForeignCallsAndDefs: cyclic []")
 
 
 getAVDependDefs :: (M.Map AId [AId]) -> [AForeignCall] -> [AId]
 getAVDependDefs rev_dep_map fcalls =
     let avalues = concatMap afc_writes fcalls
-	all_ids = closeOverMap rev_dep_map avalues
+        all_ids = closeOverMap rev_dep_map avalues
     in  -- don't include the avalues themselves
-	all_ids \\ avalues
-	-- for efficiency, we could exploit knowledge that the avalues
-	-- are at the end of the list and do this:
-	--rDrop (length avalues) all_ids
+        all_ids \\ avalues
+        -- for efficiency, we could exploit knowledge that the avalues
+        -- are at the end of the list and do this:
+        --rDrop (length avalues) all_ids
 
 getFCallDependDefs :: (M.Map AId [AId]) -> [AForeignCall] -> [AId]
 getFCallDependDefs dep_map fcalls =
     let -- XXX we presumably don't need to include the reset exprs?
-	is = aVars (concatMap afc_args fcalls)
+        is = aVars (concatMap afc_args fcalls)
     in  closeOverMap dep_map is
 
 closeOverMap :: (M.Map AId [AId]) -> [AId] -> [AId]
@@ -424,13 +424,13 @@ closeOverMap' dmap considered consider_next [] =
     if (S.null consider_next)
     then considered
     else let consider_next' = S.difference consider_next considered
-	     considered' = S.union considered consider_next'
-	 in  closeOverMap' dmap considered' S.empty (S.toList consider_next')
+             considered' = S.union considered consider_next'
+         in  closeOverMap' dmap considered' S.empty (S.toList consider_next')
 closeOverMap' dmap considered consider_next (i:is) =
     case (M.lookup i dmap) of
-	(Just dep_is) -> let consider_next' = set_insertMany dep_is consider_next
-			 in  closeOverMap' dmap considered consider_next' is
-	Nothing       -> closeOverMap' dmap considered consider_next is
+        (Just dep_is) -> let consider_next' = set_insertMany dep_is consider_next
+                         in  closeOverMap' dmap considered consider_next' is
+        Nothing       -> closeOverMap' dmap considered consider_next is
 
 -- ==============================
 
@@ -446,8 +446,8 @@ vDefMpd :: VConvtOpts -> ADef -> ForeignFuncMap
 -- special case for two input mux, for readability
 {-
 vDefMpd _ (ADef i t (APrim _ _ PrimPriMux [ce,te,_,ee])) =
-	[ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-	  VMAssign (VLId (vId i)) (VEIf (vExpr vco ce) (vExpr vco te) (vExpr vco ee)) ]
+        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
+          VMAssign (VLId (vId i)) (VEIf (vExpr vco ce) (vExpr vco te) (vExpr vco ee)) ]
 -}
 vDefMpd vco (ADef i t (APrim _ _ PrimPriMux []) _) _ = internalError("vDefMpd 11" )
 
@@ -455,11 +455,11 @@ vDefMpd vco (ADef i t (APrim _ _ PrimPriMux [e]) _) _ = internalError("vDefMpd 1
 
 vDefMpd vco  def@(ADef i t (APrim _ _ PrimPriMux es) _) _ =
     if (not (vco_readableMux vco)) then
-	[ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-	  muxInst vco True (aSize t) (vPrimInstId "priorityMux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
+        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
+          muxInst vco True (aSize t) (vPrimInstId "priorityMux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
     else
-	[ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-	  VMStmt { vi_translate_off = False,
+        [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
+          VMStmt { vi_translate_off = False,
                    vi_body =
                        Valways $ VAt ev $
                        Vcase { vs_case_expr = one,
@@ -476,17 +476,17 @@ vDefMpd vco  def@(ADef i t (APrim _ _ PrimPriMux es) _) _ =
         arms ((c,e) : ces) =
             (VCaseArm [vExpr vco c] (VAssign (VLId vi) (vExpr vco e)) : arms ces)
         sensitivityList = nub (concatMap aIds es)
-	ev = if (null sensitivityList)
+        ev = if (null sensitivityList)
              then (internalError("AVerilogUtil:: null sensitivity list for PrimPriMux" ++ ppReadable def))
              else foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
 
 vDefMpd vco def@(ADef i t (APrim _ _ PrimMux es) _) _ =
     if (not (vco_readableMux vco)) then
-	[ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-	  muxInst vco False (aSize t) (vPrimInstId "mux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
+        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
+          muxInst vco False (aSize t) (vPrimInstId "mux_" i) (VEVar (vId i) : map (vExpr vco) es) ]
     else
-	[ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-	  VMStmt { vi_translate_off = False,
+        [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
+          VMStmt { vi_translate_off = False,
                    vi_body =
                        Valways $ VAt ev $
                        VSeq [ -- VAssign (VLId vi) (VEConst 0), -- no need to put default assignment
@@ -504,45 +504,45 @@ vDefMpd vco def@(ADef i t (APrim _ _ PrimMux es) _) _ =
         arm (c,e) = VCaseArm [vExpr vco c] (VAssign (VLId vi) (vExpr vco e))
         defaultArm (c,e) = [VDefault (VAssign (VLId vi) (vExpr vco e))]
         sensitivityList = nub (concatMap aIds es)
-	ev = if (null sensitivityList)
+        ev = if (null sensitivityList)
              then (internalError("AVerilogUtil:: null sensitivity list for PrimMux"  ++ ppReadable def))
              else foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
 
 vDefMpd vco (ADef i t
-	       (ANoInlineFunCall _ _
-		  (ANoInlineFun n is (ips, ops) (Just inst_name)) es) _) _ =
-	let ops' = ops -- filter (\(x,y) -> y >= 0 ) $ traces ("ops " ++ show ops) ops
+               (ANoInlineFunCall _ _
+                  (ANoInlineFun n is (ips, ops) (Just inst_name)) es) _) _ =
+        let ops' = ops -- filter (\(x,y) -> y >= 0 ) $ traces ("ops " ++ show ops) ops
                    -- Size information all appears to be 0
             (ips',es')  = unzip $ filter (isNotZeroSized  . ae_type . snd) (zip ips es)
             oname = VEVar (vId i) -- a concat of the outputs
-	    oports = case ops' of
-		     [(o, _)] -> [(mkVId o, Just oname)]
-		     ons -> let ns = tail (scanr (+) 0 (map snd ons))
-			    in  zipWith (\ (o, s) l ->
-					(mkVId o,
-					 Just (veSelect
-						 oname
-						 (VEConst (l+s-1))
-						 (VEConst l))))
-						 ons
-						 ns
-	in
-	[ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
-	  VMInst {
+            oports = case ops' of
+                     [(o, _)] -> [(mkVId o, Just oname)]
+                     ons -> let ns = tail (scanr (+) 0 (map snd ons))
+                            in  zipWith (\ (o, s) l ->
+                                        (mkVId o,
+                                         Just (veSelect
+                                                 oname
+                                                 (VEConst (l+s-1))
+                                                 (VEConst l))))
+                                                 ons
+                                                 ns
+        in
+        [ VMDecl $ VVDecl VDWire (vSize t) [VVar (vId i)],
+          VMInst {
                   vi_module_name = mkVId n,
                   vi_inst_name   = VId inst_name i Nothing,
                   -- these are size params, so default width of 32 is fine
                   vi_inst_params = Left (map (\x -> (Nothing,VEConst x)) is),
                   vi_inst_ports  = (zip
                                     (map (\ x -> mkVId (fst x)) ips')
-			            (map (Just . (vExpr vco)) es')
+                                    (map (Just . (vExpr vco)) es')
                                     ++ oports)
                  }
-	    ]
+            ]
 
 vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
-	[ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
-	  VMStmt { vi_translate_off = False,
+        [ VMDecl $ VVDecl VDReg (vSize t) [VVar vi],
+          VMStmt { vi_translate_off = False,
                    vi_body =
                        Valways $ VAt ev $
                        VSeq [Vcase { vs_case_expr = vExpr vco x,
@@ -551,19 +551,19 @@ vDefMpd vco defin@(ADef i t (APrim _ _ PrimCase es@(x:defarm:ces_t)) _) _ =
                                vs_full = False
                              }]
                  }
-	]
+        ]
   where vi = vId i
-	arms [] = []
-	arms ((c,e) : ces) =
-		let (cs, ces') = partition ((== e) . snd) ces
-		in  VCaseArm (map (vExpr vco) (c:map fst cs)) (VAssign (VLId vi) (vExpr vco e)) : arms ces'
+        arms [] = []
+        arms ((c,e) : ces) =
+                let (cs, ces') = partition ((== e) . snd) ces
+                in  VCaseArm (map (vExpr vco) (c:map fst cs)) (VAssign (VLId vi) (vExpr vco e)) : arms ces'
         sensitivityList = nub (concatMap aIds es)
-	ev = if (null sensitivityList)
+        ev = if (null sensitivityList)
              then (internalError("AVerilogUtil:: null sensitivity list for case" ++ ppReadable defin))
              else foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
-	n = aSize x
-	fullcase = (2^n * 2) == (length ces_t)
-	def = if fullcase then [] else [VDefault (VAssign (VLId vi) (vExpr vco defarm))]
+        n = aSize x
+        fullcase = (2^n * 2) == (length ces_t)
+        def = if fullcase then [] else [VDefault (VAssign (VLId vi) (vExpr vco defarm))]
 
 vDefMpd vco (ADef i_t t_t@(ATBit _) (ATaskValue {}) _) _ =
     [VMDecl $ VVDecl VDReg (vSize t_t) [VVar (vId i_t)]]
@@ -579,19 +579,19 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
         arg_list = [ ASDef t_t i_t ] ++ (ae_args fn)
         args = map (vExpr vco) arg_list
-	body = if (null sensitivityList)
+        body = if (null sensitivityList)
                then Vinitial $ VSeq [VTask vtaskid args]
                else Valways $ VAt ev $ VSeq [VTask vtaskid args]
 
 vDefMpd vco (ADef i_t t_t@(ATBit _) e_t _) _ =
     let
-	-- XXX AMethCall/AMethValue shouldn't exist
-	-- vExprMpd (AMethCall t i m []) = VEVar (vMethId i m 1 MethodResult)
-	-- vExprMpd (AMethCall t i m _) = internalError "AVerilog.vExprMpd: AMethCall with args"
-	-- vExprMpd (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult)
-	vExprMpd e = vExpr vco e
+        -- XXX AMethCall/AMethValue shouldn't exist
+        -- vExprMpd (AMethCall t i m []) = VEVar (vMethId i m 1 MethodResult)
+        -- vExprMpd (AMethCall t i m _) = internalError "AVerilog.vExprMpd: AMethCall with args"
+        -- vExprMpd (AMethValue t i m) = VEVar (vMethId i m 1 MethodResult)
+        vExprMpd e = vExpr vco e
     in
-	[VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExprMpd e_t)]
+        [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExprMpd e_t)]
 vDefMpd vco adef@(ADef i_t t_t@(ATAbstract aid _) e_t _) _ | aid==idInout_ =
     [VMDecl $ VVDWire (vSize t_t) (VVar (vId i_t)) (vExpr vco e_t)]
 vDefMpd vco adef@(ADef i_t t_t@(ATString _) e_t _) _ =
@@ -647,26 +647,26 @@ vExpr vco (APrim _ _ PrimIf [e1, e2, e3]) = VEIf (vExpr vco e1) (vExpr vco e2) (
 vExpr vco (APrim _ _ PrimBNot [e]) = vNot (vExpr vco e)
 vExpr vco (APrim _ _ PrimRange [_,_,e]) = vExpr vco e
 vExpr vco (APrim _ t PrimZeroExt [e]) =
-	    VEConcat [VEWConst
-			(mkVId "0")
-			(aSize t - aSize e)
-			10
-			0,
-		    vExpr vco e]
+            VEConcat [VEWConst
+                        (mkVId "0")
+                        (aSize t - aSize e)
+                        10
+                        0,
+                    vExpr vco e]
 vExpr vco (APrim _ t PrimSignExt [e]) | aSize e == 1 && aSize t > 0 = VERepeat (VEConst (aSize t)) (vExpr vco e)
 vExpr vco e0@(APrim _ t PrimSignExt [e]) = VEConcat [vERepeat fill (VESelect1 vexp vhi), vexp]
     where fill = if (j >= i) then
                    internalError("AVerilogUtil.broken SignExtend: " ++ ppReadable e0)
                  else i-j
-	  vhi = VEConst (j-1)
-	  vexp = vExpr vco e
-	  i = aSize t
-	  j = aSize e
-	  vERepeat 1 x = x
-	  vERepeat n x = VERepeat (VEConst n) x
+          vhi = VEConst (j-1)
+          vexp = vExpr vco e
+          i = aSize t
+          j = aSize e
+          vERepeat 1 x = x
+          vERepeat n x = VERepeat (VEConst n) x
 vExpr vco (APrim aid t p [e1, e2]) | isSignedCmp p = VEOp (idToVId aid) (flip_t (vExpr vco e1)) (unsOp p) (flip_t (vExpr vco e2))
   where flip_t e = vXor e (VEWConst (mkVId (show ((2 :: Integer)^(s-1)))) s 16 (2^(s-1)))
-	s = aSize (aType e1)
+        s = aSize (aType e1)
 vExpr vco (APrim aid _ p [e]) = VEUnOp (idToVId aid) (toVOp p) (vExpr vco e)
 vExpr vco (APrim aid _ p [e1,e2]) | p == PrimSL || p == PrimSRL = VEOp (idToVId aid) (vExpr vco e1) (toVOp p) (vExprC vco e2)
 vExpr vco (APrim aid _ p [e1,e2]) = VEOp (idToVId aid) (vExpr vco e1) (toVOp p) (vExpr vco e2)
@@ -779,10 +779,10 @@ muxInputs = mkVId "out" : fxx  0
 -- connected to it in the VMInst (expressions for params and port args,
 -- but Ids in all other cases, because wires are declared)
 type InstInfo = ([(VId, VExpr)],  -- parameter exprs
-		 [(VId, VExpr)],  -- non-method port exprs (clocks, resets, inouts)
-		 [(VId, VId)],    -- special ifc outputs (clocks, resets, inouts)
-		 [(VId, VId)],    -- method input port signals
-		 [(VId, VId)])    -- method output port signals
+                 [(VId, VExpr)],  -- non-method port exprs (clocks, resets, inouts)
+                 [(VId, VId)],    -- special ifc outputs (clocks, resets, inouts)
+                 [(VId, VId)],    -- method input port signals
+                 [(VId, VId)])    -- method output port signals
 
 -- an instance is "wired" to the outside world
 -- if it connects *any* sort of port
@@ -807,29 +807,29 @@ wiredInstance item = internalError ("wiredInstance - not instance: " ++ ppReadab
 -- XXX this function is too big
 vState :: Flags -> M.Map AId AId -> AVInst -> (AId, VMItem, InstInfo)
 vState  flags rewire_map avinst =
-    let	vco = flagsToVco flags
+    let vco = flagsToVco flags
         v_inst_name = avi_vname avinst
         mts = avi_meth_types avinst
         vi = avi_vmi avinst
         es = avi_iargs avinst
         --
-	-- the port multiplicity usage (how many copies are used)
+        -- the port multiplicity usage (how many copies are used)
         -- ns = avi_iarray avinst
 
-	-- get the number of copies of a method which are used
-	-- getMethodMultUse m =
-	--    case (lookup m ns) of
-	--	Just mult -> mult
-	--	Nothing -> internalError ("vState getMethodMultUse: " ++
-	--
-	--			  "ns list not consistent with vfi")
+        -- get the number of copies of a method which are used
+        -- getMethodMultUse m =
+        --    case (lookup m ns) of
+        --        Just mult -> mult
+        --        Nothing -> internalError ("vState getMethodMultUse: " ++
+        --
+        --                          "ns list not consistent with vfi")
 
         --
         -- a map from ATS names for method names and args
         -- to the corresponding signals in verilog
         -- e.g., "r$write" -> "r$EN", "r$write_1" -> "r->$D_IN"
         port_rename_table =
-	    M.fromList (createVerilogNameMapForAVInst flags avinst)
+            M.fromList (createVerilogNameMapForAVInst flags avinst)
 
         rewire_inout (ASPort t i) | isInoutType t,
                                     Just i' <- M.lookup i rewire_map = ASPort t i'
@@ -841,40 +841,40 @@ vState  flags rewire_map avinst =
         -- make sure to filter-out 0-width ports and parameters
         -- we also rewire inout ports that might have been renamed
         -- because of a connection
-	arges = [(vai, vExpr vco e') | (vai, e) <- zip (vArgs vi) es,
+        arges = [(vai, vExpr vco e') | (vai, e) <- zip (vArgs vi) es,
                                        let e' = rewire_inout e,
                                        isNotZeroSized (aType e) ]
 
-	-- Below, we construct info on the method:
-	--   arguments, return values, and enables
+        -- Below, we construct info on the method:
+        --   arguments, return values, and enables
 
         mkArgId :: Id -> Integer -> Maybe Integer -> VId
-	mkArgId m k m_port = vMethId v_inst_name m m_port (MethodArg k) port_rename_table
+        mkArgId m k m_port = vMethId v_inst_name m m_port (MethodArg k) port_rename_table
 
-	mkEnId m m_port = vMethId v_inst_name m m_port MethodEnable port_rename_table
+        mkEnId m m_port = vMethId v_inst_name m m_port MethodEnable port_rename_table
 
-	mkResId m m_port = vMethId v_inst_name m m_port MethodResult port_rename_table
+        mkResId m m_port = vMethId v_inst_name m m_port MethodResult port_rename_table
 
-	-- add the multiplicity to Verilog port names
-	-- (if there are not multiple ports, no uniquifier is added)
-	portid :: String -> Maybe Integer -> String
-	portid s Nothing  = s
-	portid s (Just n) = s ++ "_" ++ itos (n+1) -- ports start numbering at 1 not 0
+        -- add the multiplicity to Verilog port names
+        -- (if there are not multiple ports, no uniquifier is added)
+        portid :: String -> Maybe Integer -> String
+        portid s Nothing  = s
+        portid s (Just n) = s ++ "_" ++ itos (n+1) -- ports start numbering at 1 not 0
 
-	-- check that an instantiated module doesn't reuse an input port
-	check_inps [i] = i
+        -- check that an instantiated module doesn't reuse an input port
+        check_inps [i] = i
         check_inps ((port, _, _):_) =
-	    -- XXX should this be a user error?
+            -- XXX should this be a user error?
             internalError("attempt to instantiate module " ++
                           (ppReadable v_inst_name) ++
                           " with duplicated port " ++ (ppReadable port))
         check_inps [] = internalError( "AVerilog::mkinput" )
 
-	-- for each method argument: the Verilog port name with muliplicity,
-	-- the Id in method syntax (<inst>$<meth>_[<portnum>_]<argnum>), and possibly
-	-- the size if it is not 1-bit
+        -- for each method argument: the Verilog port name with muliplicity,
+        -- the Id in method syntax (<inst>$<meth>_[<portnum>_]<argnum>), and possibly
+        -- the size if it is not 1-bit
         inps :: [(VId, VId, Maybe VRange)]
-	inps =  [ (mkVId (portid s ino),
+        inps =  [ (mkVId (portid s ino),
                    mkArgId m k ino,
                    vSize argType)
                   | (meth@(Method m _ _ mult ps mo me),
@@ -884,53 +884,53 @@ vState  flags rewire_map avinst =
                     ino <- if mult > 1 then map Just [0..mult-1] else [Nothing],
                     (VName s, argType, k) <- zip3 (map fst ps) argTypes [1..],
                     isNotZeroSized argType
-		]
-
-	-- check for duplicates
-        inputs :: [(VId, VId, Maybe VRange)]
-	inputs = map check_inps
-	             (sortGroup (\ (x,_,_) (y,_,_) -> x <= y) inps)
-
-	-- for each method with an action: the method name, the enable
-	-- Verilog port name, the enable name in method syntax
-	-- (<inst>$EN_<meth>), whether the method must be always enabled
-        meth_enables =
-		[ (m,
-		   mkVId (portid s ino),
-		   mkEnId m ino,
-                   inhigh )
-		  | (Method m _ _ mult ss mo me@(Just (VName s,vps)))
-                        <- vFields vi,
-		    let inhigh = VPinhigh `elem` vps,
-                    -- let multu = getMethodMultUse m,
-		    ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]
                 ]
 
-	-- for each method with a result: the result Verilog port name,
-	-- the result name in method syntax (<inst>$<meth>)
-	-- (nub, because several methods might have their return value
-	--  come from the same output port)
-	meth_return_vals =
-	    nub
-		[ (mkVId (portid s ino),
-		   mkResId m ino)
-		  | ((Method m _ _ mult ss mo@(Just (VName s, vps)) me), (_,_,Just retType))
+        -- check for duplicates
+        inputs :: [(VId, VId, Maybe VRange)]
+        inputs = map check_inps
+                     (sortGroup (\ (x,_,_) (y,_,_) -> x <= y) inps)
+
+        -- for each method with an action: the method name, the enable
+        -- Verilog port name, the enable name in method syntax
+        -- (<inst>$EN_<meth>), whether the method must be always enabled
+        meth_enables =
+                [ (m,
+                   mkVId (portid s ino),
+                   mkEnId m ino,
+                   inhigh )
+                  | (Method m _ _ mult ss mo me@(Just (VName s,vps)))
+                        <- vFields vi,
+                    let inhigh = VPinhigh `elem` vps,
+                    -- let multu = getMethodMultUse m,
+                    ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]
+                ]
+
+        -- for each method with a result: the result Verilog port name,
+        -- the result name in method syntax (<inst>$<meth>)
+        -- (nub, because several methods might have their return value
+        --  come from the same output port)
+        meth_return_vals =
+            nub
+                [ (mkVId (portid s ino),
+                   mkResId m ino)
+                  | ((Method m _ _ mult ss mo@(Just (VName s, vps)) me), (_,_,Just retType))
                         <- zip (vFields vi) mts,
                      isNotZeroSized retType,
                      -- let multu = getMethodMultUse m,
                      ino <- if mult > 1 then map Just [0..mult-1] else [Nothing]
-		]
+                ]
 
         -- clock and reset outputs
         -- no nub because getSpecialPorts takes care of it
         -- include a flag that tells us if the wire needs to be declared or not
         special_wire_blobs =
-	    [ (vIdV wvname, vId wid', wid' == wid)
-		| (wid, wtype, (wvname, wvprops)) <- getSpecialOutputs avinst,
+            [ (vIdV wvname, vId wid', wid' == wid)
+                | (wid, wtype, (wvname, wvprops)) <- getSpecialOutputs avinst,
                   -- redirect wires that need special wiring (currently inouts)
                   let wid' = fromMaybe wid (M.lookup wid rewire_map),
                   isNotZeroSized wtype
-	    ]
+            ]
 
         -- the only special wires that are true outputs are the ones
         -- that need to be declared
@@ -946,8 +946,8 @@ vState  flags rewire_map avinst =
         -- XXX or varying names after rewiring
         output_wire_connections = nubByFst (meth_return_vals ++ special_wire_connections)
 
-	-- instantiation parameters
-	paramExprs =
+        -- instantiation parameters
+        paramExprs =
             -- Lennart added the dropping of sizes in r364, but this leads
             -- to bugs if the uses of the param in the submod rely on the
             -- size of the parameter.  All our parameters are sized
@@ -957,20 +957,20 @@ vState  flags rewire_map avinst =
             -- want to display it in hex).
             [ (vIdV vn, {-vDropSize-} ve) | (Param vn, ve) <- arges ]
 
-	-- dynamic module arguments
-	port_ps = [ (vIdV vn, ve) | (Port (vn,_) _ _, ve) <- arges ]
+        -- dynamic module arguments
+        port_ps = [ (vIdV vn, ve) | (Port (vn,_) _ _, ve) <- arges ]
 
-	-- the wires (ins, outs and inouts) to connect to the module ports
+        -- the wires (ins, outs and inouts) to connect to the module ports
         args :: [(VId, Maybe VExpr)]
-	args =
-	    -- dynamic arguments
-	    [ (p, Just e) | (p, e) <- port_ps ] ++
-	    -- method inputs
-	    [ (p, Just (VEVar w)) | (p, w, rng) <- inputs, nonZero rng ] ++
-	    -- method enables (those which are not always enabled)
-	    [ (p, Just (VEVar w)) | (_, p, w, False) <- meth_enables ] ++
-	    -- wire outputs - method return values and "special" (e.g. clock and reset)
-	    [ (p, Just (VEVar w)) | (p, w) <- output_wire_connections ]
+        args =
+            -- dynamic arguments
+            [ (p, Just e) | (p, e) <- port_ps ] ++
+            -- method inputs
+            [ (p, Just (VEVar w)) | (p, w, rng) <- inputs, nonZero rng ] ++
+            -- method enables (those which are not always enabled)
+            [ (p, Just (VEVar w)) | (_, p, w, False) <- meth_enables ] ++
+            -- wire outputs - method return values and "special" (e.g. clock and reset)
+            [ (p, Just (VEVar w)) | (p, w) <- output_wire_connections ]
 
         ifc_position = (getIfcIdPosition vi)
 
@@ -983,19 +983,19 @@ vState  flags rewire_map avinst =
                          vi_inst_ports   = map (updateArgPosition ifc_position) (map tildeHack args)
                         }
 
-	inst_info =
-	    (-- param exprs
-	     paramExprs,
-	     -- non-meth input port exprs
-	     port_ps,
-	     -- special wire output names
-	     special_wire_outputs,
-	     -- method input names
-	     [ (p, w) | (p, w, rng) <- inputs, nonZero rng ] ++
-	     [ (p, w) | (_, p, w, False) <- meth_enables],
-	     -- method output names
-	     meth_return_vals
-	    )
+        inst_info =
+            (-- param exprs
+             paramExprs,
+             -- non-meth input port exprs
+             port_ps,
+             -- special wire output names
+             special_wire_outputs,
+             -- method input names
+             [ (p, w) | (p, w, rng) <- inputs, nonZero rng ] ++
+             [ (p, w) | (_, p, w, False) <- meth_enables],
+             -- method output names
+             meth_return_vals
+            )
 
 
         -- debug_inputs = traces ("\n\nDBG vState:\n" ++ ppReadable avinst ++ "\n\n")
@@ -1004,12 +1004,12 @@ vState  flags rewire_map avinst =
         -- debug_vminst = traces ("\n\nDBG vState vminst=\n" ++ ppReadable vminst ++ "\n\n")
 
     in
-	-- debug_inputs $ debug_arges $ debug_vminst $
-	if (length (vArgs vi)) /= (length es)
-	then internalError "AVerilog.vState: # args differs from expected"
+        -- debug_inputs $ debug_arges $ debug_vminst $
+        if (length (vArgs vi)) /= (length es)
+        then internalError "AVerilog.vState: # args differs from expected"
         else (v_inst_name,
-	      vminst,
-	      inst_info)
+              vminst,
+              inst_info)
 
 -- ------------------------------
 updateArgPosition :: Position -> (VId,Maybe VExpr) -> (VId,Maybe VExpr)
@@ -1051,7 +1051,7 @@ vIdV (VName s) = mkVId s
 vMethId :: Id -> Id -> Maybe Integer -> MethodPart -> M.Map FString FString -> VId
 vMethId i m m_port mp fsmap =
     let fstring =
-	    xLateFStringUsingFStringMap fsmap (mkMethStr i m m_port mp)
+            xLateFStringUsingFStringMap fsmap (mkMethStr i m m_port mp)
     in VId (getFString fstring) (setIdBase ( unQualId i) fstring ) Nothing
 
 {-

@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 module KIMisc(
-	KVar, KSubst, apKSu,
-	KI, run, err, newKVar, getKSubst,
+        KVar, KSubst, apKSu,
+        KI, run, err, newKVar, getKSubst,
         unifyType, unifyFunc, unifyDefArgs, unifyDefAlias, unifyDefStar,
-	groundK) where
+        groundK) where
 
 import Data.List(union)
 import Data.Maybe(fromMaybe)
@@ -126,10 +126,10 @@ instance Monad KI where
     return a = M $ \ s -> Right (s, a)
     M a >>= f = M $ \ s ->
         case a s of
-	Left e -> Left e
-	Right (s', b) ->
-	    let M f' = f b
-	    in  f' s'
+        Left e -> Left e
+        Right (s', b) ->
+            let M f' = f b
+            in  f' s'
 
 instance Functor KI where
   fmap = liftM
@@ -271,19 +271,19 @@ unifyDefType t k_inferred k_expected = do
            pos = getPosition t
            t_str = pfpString t
            -- XXX replace Readable with String
-	   default_err = err (pos, EUnifyKind (pfpReadable t)
+           default_err = err (pos, EUnifyKind (pfpReadable t)
                                       (ppReadable k_inferred')
                                       (ppReadable k_expected'))
        in
-	   if (k_expected' == KStar) && (k_inferred' == KNum)
-	   then
-	     err (pos, EKindNumForStar t_str)
-	   else
-	   if (k_expected' == KNum) && (k_inferred' == KStar)
-	   then
-	     err (pos, EKindStarForNum t_str)
-	   else
-	     default_err
+           if (k_expected' == KStar) && (k_inferred' == KNum)
+           then
+             err (pos, EKindNumForStar t_str)
+           else
+           if (k_expected' == KNum) && (k_inferred' == KStar)
+           then
+             err (pos, EKindStarForNum t_str)
+           else
+             default_err
 
 
 -- Takes the function and its kind and the argument to which the function
@@ -292,16 +292,16 @@ unifyFunc :: Type -> Kind -> Type -> Kind -> KI Kind
 unifyFunc f fk a ak = do
     s <- getKSubst
     let sfk = apKSu s fk
-	sak = apKSu s ak
+        sak = apKSu s ak
     -- trace "unifyFunc:" $ return ()
     case sfk of
-	Kfun ak' v' -> do
+        Kfun ak' v' -> do
                          -- The function has inferred kind "ak' -> ..."
                          -- so use "ak'" as the expected kind for the argument
-	                 unifyType a sak ak'
+                         unifyType a sak ak'
                          -- Return the inferred result
                          return v'
-	_ -> do v <- newKVar Nothing
+        _ -> do v <- newKVar Nothing
                 -- The function is expected to be "sak -> ..."
                 unifyType f sfk (Kfun sak v)
                 return v
@@ -319,41 +319,41 @@ unifyType t k_inferred k_expected = do
            pos = getPosition t
            t_str = pfpString t
            -- XXX replace Readable with String
-	   default_err = err (pos, EUnifyKind (pfpReadable t)
+           default_err = err (pos, EUnifyKind (pfpReadable t)
                                       (ppReadable k_inferred')
                                       (ppReadable k_expected'))
 
-	   -- if a type constructor is being partially applied, get the core
-	   unapType = removeTypeAps t
-	   -- the name of the constructor, for error messages
-	   unapTypeName = showUnapType t
+           -- if a type constructor is being partially applied, get the core
+           unapType = removeTypeAps t
+           -- the name of the constructor, for error messages
+           unapTypeName = showUnapType t
        in
-	 -- trace ("trace: unifyType: " ++ traceUnapType t) $
-	   if (isGroundNonFuncK k_inferred') && (isFuncK k_expected')
-	   then
-	     -- handle case of too many arguments
-	     case unapType of
-		 TCon (TyNum i _) -> err (pos, ENumKindArg)
-		 _ -> if (unapType == t)
-		      then -- type is not partially applied
-		        err (pos, ETypeNoArg unapTypeName)
-		      else
-			  err (pos, ETypeTooManyArgs unapTypeName)
-	   else
-	   if (isGroundNonFuncK k_expected') && (isFuncK k_inferred')
-	   then
-	     -- handle case of not enough arguments
-	     err (pos, ETypeTooFewArgs unapTypeName)
-	   else
-	   if (k_expected' == KStar) && (k_inferred' == KNum)
-	   then
-	     err (pos, EKindNumForStar t_str)
-	   else
-	   if (k_expected' == KNum) && (k_inferred' == KStar)
-	   then
-	     err (pos, EKindStarForNum t_str)
-	   else
-	     default_err
+         -- trace ("trace: unifyType: " ++ traceUnapType t) $
+           if (isGroundNonFuncK k_inferred') && (isFuncK k_expected')
+           then
+             -- handle case of too many arguments
+             case unapType of
+                 TCon (TyNum i _) -> err (pos, ENumKindArg)
+                 _ -> if (unapType == t)
+                      then -- type is not partially applied
+                        err (pos, ETypeNoArg unapTypeName)
+                      else
+                          err (pos, ETypeTooManyArgs unapTypeName)
+           else
+           if (isGroundNonFuncK k_expected') && (isFuncK k_inferred')
+           then
+             -- handle case of not enough arguments
+             err (pos, ETypeTooFewArgs unapTypeName)
+           else
+           if (k_expected' == KStar) && (k_inferred' == KNum)
+           then
+             err (pos, EKindNumForStar t_str)
+           else
+           if (k_expected' == KNum) && (k_inferred' == KStar)
+           then
+             err (pos, EKindStarForNum t_str)
+           else
+             default_err
 
 --------------------
 

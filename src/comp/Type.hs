@@ -134,7 +134,7 @@ instance HasKind Type where
     kind (TVar u)  = kind u
     kind tt@(TAp t _) = case kind t of
                         Kfun _ k -> k
-		        k        ->
+                        k        ->
                          internalError ("kind: " ++ ppReadable k ++ (show tt) ++ "\n")
     kind (TGen _ _)  = internalError "Type.HasKind(Type).kind: TGen"
     kind (TDefMonad _) = internalError "Type.HasKind(Type).kind: TDefMonad"

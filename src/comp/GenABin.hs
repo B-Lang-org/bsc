@@ -55,38 +55,38 @@ instance Bin ABin where
             putI 0
             toBin version
             -- output the foreign function info
-	    toBin (abffi_src_name ffinfo)
-	    toBin (abffi_foreign_func ffinfo)
+            toBin (abffi_src_name ffinfo)
+            toBin (abffi_foreign_func ffinfo)
   writeBytes (ABinMod modinfo version) =
          section "ABinMod" $
          do -- tag which kind of module
-	    putI 1
-	    toBin version
+            putI 1
+            toBin version
             -- output module info
-	    toBin (abmi_path modinfo)
-	    toBin (abmi_src_name modinfo)
-	    --toBin (abmi_time modinfo)
-	    toBin (abmi_apkg modinfo)
-	    toBin (abmi_aschedinfo modinfo)
-	    toBin (abmi_pps modinfo)
-	    toBin (abmi_oqt modinfo)
-	    toBin (abmi_method_dump modinfo)
-	    toBin (abmi_pathinfo modinfo)
-	    toBin (abmi_flags modinfo)
+            toBin (abmi_path modinfo)
+            toBin (abmi_src_name modinfo)
+            --toBin (abmi_time modinfo)
+            toBin (abmi_apkg modinfo)
+            toBin (abmi_aschedinfo modinfo)
+            toBin (abmi_pps modinfo)
+            toBin (abmi_oqt modinfo)
+            toBin (abmi_method_dump modinfo)
+            toBin (abmi_pathinfo modinfo)
+            toBin (abmi_flags modinfo)
             toBin (abmi_vprogram modinfo)
   writeBytes (ABinModSchedErr modinfo version) =
          section "ABinModSchedErr" $
          do -- tag which kind of module
-	    putI 2
-	    toBin version
+            putI 2
+            toBin version
             -- output module info
-	    toBin (abmsei_path modinfo)
-	    toBin (abmsei_src_name modinfo)
-	    toBin (abmsei_apkg modinfo)
-	    toBin (abmsei_aschederrinfo modinfo)
-	    toBin (abmsei_pps modinfo)
-	    toBin (abmsei_oqt modinfo)
-	    toBin (abmsei_flags modinfo)
+            toBin (abmsei_path modinfo)
+            toBin (abmsei_src_name modinfo)
+            toBin (abmsei_apkg modinfo)
+            toBin (abmsei_aschederrinfo modinfo)
+            toBin (abmsei_pps modinfo)
+            toBin (abmsei_oqt modinfo)
+            toBin (abmsei_flags modinfo)
   readBytes = do tag <- getI
                  version <- fromBin
                  case (tag) of
@@ -97,29 +97,29 @@ instance Bin ABin where
                    1 -> do path <- fromBin
                            srcName <- fromBin
                            --time <- fromBin
-	  	           apkg <- fromBin
-		           asched <- fromBin
-		           pps <- fromBin
-			   oqt <- fromBin
-			   mi <- fromBin
-		           pathinfo <- fromBin
-		           flags <- fromBin
+                           apkg <- fromBin
+                           asched <- fromBin
+                           pps <- fromBin
+                           oqt <- fromBin
+                           mi <- fromBin
+                           pathinfo <- fromBin
+                           flags <- fromBin
                            vprog <- fromBin
-		           let modinfo =
+                           let modinfo =
                                    ABinModInfo path srcName apkg asched pps
-			                       oqt mi pathinfo flags vprog
-		           return (ABinMod modinfo version)
+                                               oqt mi pathinfo flags vprog
+                           return (ABinMod modinfo version)
                    2 -> do path <- fromBin
                            srcName <- fromBin
-	  	           apkg <- fromBin
-		           aschederr <- fromBin
-		           pps <- fromBin
-			   oqt <- fromBin
-		           flags <- fromBin
-		           let modinfo =
+                           apkg <- fromBin
+                           aschederr <- fromBin
+                           pps <- fromBin
+                           oqt <- fromBin
+                           flags <- fromBin
+                           let modinfo =
                                    ABinModSchedErrInfo path srcName apkg
                                                        aschederr pps oqt flags
-		           return (ABinModSchedErr modinfo version)
+                           return (ABinModSchedErr modinfo version)
                    n -> internalError ("GenABin.Bin(ABin): tag = " ++ show n)
 
 -- ----------
@@ -128,40 +128,40 @@ instance Bin ABin where
 instance Bin APackage where
     writeBytes (APackage {
                apkg_name = mi,
-	       apkg_is_wrapped = is_wrap,
-	       apkg_backend = be,
-	       apkg_size_params = ps,
-	       apkg_inputs = inps,
-	       apkg_clock_domains = clks,
-	       apkg_external_wires = wi,
+               apkg_is_wrapped = is_wrap,
+               apkg_backend = be,
+               apkg_size_params = ps,
+               apkg_inputs = inps,
+               apkg_clock_domains = clks,
+               apkg_external_wires = wi,
                apkg_external_wire_types = wpt,
-	       apkg_reset_list = rsts,
-	       apkg_state_instances = avis,
-	       apkg_local_defs = ds,
-	       apkg_rules = rs,
-	       apkg_schedule_pragmas = asps,
-	       apkg_interface = aifcs,
-	       apkg_inst_comments = ics,
+               apkg_reset_list = rsts,
+               apkg_state_instances = avis,
+               apkg_local_defs = ds,
+               apkg_rules = rs,
+               apkg_schedule_pragmas = asps,
+               apkg_interface = aifcs,
+               apkg_inst_comments = ics,
                apkg_inst_tree = inst_tree,
                apkg_proof_obligations = pos
-	   }) = if (null pos)
+           }) = if (null pos)
                 then section "APackage" $
                      do toBin mi
-	                toBin is_wrap
-		        toBin be
-	                toBin ps
-	                toBin inps
-	                toBin clks
-	                toBin wi
+                        toBin is_wrap
+                        toBin be
+                        toBin ps
+                        toBin inps
+                        toBin clks
+                        toBin wi
                         toBin wpt
-	                toBin rsts
-	                toBin avis
-	                toBin ds
-	                toBin rs
-	                toBin asps
-	                toBin aifcs
+                        toBin rsts
+                        toBin avis
+                        toBin ds
+                        toBin rs
+                        toBin asps
+                        toBin aifcs
                         toBin inst_tree
-	                toBin ics
+                        toBin ics
                         -- proof obligations not written
                 else internalError $ "GenABin.Bin(APackage).readBytes: non-empty proof obligations"
     readBytes = do mi <- fromBin
@@ -182,23 +182,23 @@ instance Bin APackage where
                    ics <- fromBin
                    return (APackage {
                              apkg_name = mi,
-			     apkg_is_wrapped = is_wrap,
-			     apkg_backend = be,
-			     apkg_size_params = ps,
-			     apkg_inputs = inps,
-			     apkg_clock_domains = clks,
-			     apkg_external_wires = wi,
+                             apkg_is_wrapped = is_wrap,
+                             apkg_backend = be,
+                             apkg_size_params = ps,
+                             apkg_inputs = inps,
+                             apkg_clock_domains = clks,
+                             apkg_external_wires = wi,
                              apkg_external_wire_types = wpt,
-			     apkg_reset_list = rsts,
-			     apkg_state_instances = avis,
-			     apkg_local_defs = ds,
-			     apkg_rules = rs,
-			     apkg_schedule_pragmas = asps,
-			     apkg_interface = aifcs,
-			     apkg_inst_comments = ics,
+                             apkg_reset_list = rsts,
+                             apkg_state_instances = avis,
+                             apkg_local_defs = ds,
+                             apkg_rules = rs,
+                             apkg_schedule_pragmas = asps,
+                             apkg_interface = aifcs,
+                             apkg_inst_comments = ics,
                              apkg_inst_tree = inst_tree,
                              apkg_proof_obligations = []
-			            })
+                                    })
 
 -- ----------
 -- Bin Backend
@@ -209,9 +209,9 @@ instance Bin Backend where
     readBytes = do
         i <- getI
         case i of
-	 0 -> return Bluesim
-	 1 -> return Verilog
-	 n -> internalError $ "GenABin.Bin(Backend).readBytes: " ++ show n
+         0 -> return Bluesim
+         1 -> return Verilog
+         n -> internalError $ "GenABin.Bin(Backend).readBytes: " ++ show n
 
 -- ----------
 -- Bin AAbstractInput
@@ -224,11 +224,11 @@ instance Bin AAbstractInput where
     readBytes = do
         i <- getI
         case i of
-	 0 -> do p <- fromBin; return (AAI_Port p)
-	 1 -> do osc <- fromBin; mgate <- fromBin; return (AAI_Clock osc mgate)
-	 2 -> do r <- fromBin; return (AAI_Reset r)
-	 3 -> do r <- fromBin; n <- fromBin; return (AAI_Inout r n)
-	 n -> internalError $ "GenABin.Bin(AAbstractInfo).readBytes: " ++ show n
+         0 -> do p <- fromBin; return (AAI_Port p)
+         1 -> do osc <- fromBin; mgate <- fromBin; return (AAI_Clock osc mgate)
+         2 -> do r <- fromBin; return (AAI_Reset r)
+         3 -> do r <- fromBin; n <- fromBin; return (AAI_Inout r n)
+         n -> internalError $ "GenABin.Bin(AAbstractInfo).readBytes: " ++ show n
 
 -- ----------
 -- Bin ForeignFunction
@@ -261,7 +261,7 @@ instance Bin ForeignFunction where
 instance Bin AVInst where
     writeBytes (AVInst i t ui ms pts vmi ias iarr) =
         section "AVInst" $
-	do toBin i; toBin t; toBin ui; toBin ms; toBin pts;
+        do toBin i; toBin t; toBin ui; toBin ms; toBin pts;
            toBin vmi; toBin ias; toBin iarr
     readBytes = do i <- fromBin; t <- fromBin; ui <- fromBin; ms <- fromBin;
                    pts <- fromBin; vmi <- fromBin; ias <- fromBin; iarr <- fromBin;
@@ -273,12 +273,12 @@ instance Bin AVInst where
 instance Bin ARule where
     writeBytes (ARule i ps d wps pred act asmps mp) =
         section "ARule" $
-	do toBin i; toBin ps; toBin d; toBin wps; toBin pred; toBin act;
-	   toBin asmps; toBin mp
+        do toBin i; toBin ps; toBin d; toBin wps; toBin pred; toBin act;
+           toBin asmps; toBin mp
     readBytes =
-	do i <- fromBin; ps <- fromBin; d <- fromBin; wps <- fromBin;
-	   pred <- fromBin; act <- fromBin; asmps <- fromBin; mp <- fromBin;
-	   return (ARule i ps d wps pred act asmps mp)
+        do i <- fromBin; ps <- fromBin; d <- fromBin; wps <- fromBin;
+           pred <- fromBin; act <- fromBin; asmps <- fromBin; mp <- fromBin;
+           return (ARule i ps d wps pred act asmps mp)
 
 instance Bin AAssumption where
     writeBytes (AAssumption p as) = do toBin p; toBin as
@@ -290,20 +290,20 @@ instance Bin AAction where
     writeBytes (AFCall i f isC as isA) =
         do putI 1; toBin i; toBin f; toBin isC; toBin as; toBin isA
     writeBytes (ATaskAction i f isC c as tmp ty isA) =
-	do putI 2; toBin i; toBin f; toBin isC; toBin c; toBin as;
+        do putI 2; toBin i; toBin f; toBin isC; toBin c; toBin as;
            toBin tmp; toBin ty; toBin isA
     readBytes =
-	do i <- getI
-	   case i of
-	    0 -> do i <- fromBin; m <- fromBin; as <- fromBin;
-	            return (ACall i m as)
-	    1 -> do i <- fromBin; f <- fromBin; isC <- fromBin; as <- fromBin;
-		    isA <- fromBin; return (AFCall i f isC as isA)
-	    2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; c <- fromBin;
-		    as <- fromBin; tmp <- fromBin; ty <- fromBin;
+        do i <- getI
+           case i of
+            0 -> do i <- fromBin; m <- fromBin; as <- fromBin;
+                    return (ACall i m as)
+            1 -> do i <- fromBin; f <- fromBin; isC <- fromBin; as <- fromBin;
+                    isA <- fromBin; return (AFCall i f isC as isA)
+            2 -> do i <- fromBin; f <- fromBin; isC <- fromBin; c <- fromBin;
+                    as <- fromBin; tmp <- fromBin; ty <- fromBin;
                     isA <- fromBin;
-		    return (ATaskAction i f isC c as tmp ty isA)
-	    n -> internalError $ "GenABin.Bin(AAction).readBytes: " ++ show n
+                    return (ATaskAction i f isC c as tmp ty isA)
+            n -> internalError $ "GenABin.Bin(AAction).readBytes: " ++ show n
 
 instance Bin WireProps where
     writeBytes (WireProps cd rs) = do toBin cd; toBin rs
@@ -314,41 +314,41 @@ instance Bin WireProps where
 
 instance Bin AIFace where
     writeBytes (AIDef name is ps pred val vfi asmps) =
-	do putI 0; toBin name; toBin is; toBin ps; toBin pred; toBin val;
-	   toBin vfi; toBin asmps
+        do putI 0; toBin name; toBin is; toBin ps; toBin pred; toBin val;
+           toBin vfi; toBin asmps
     writeBytes (AIAction is ps pred name body vfi) =
-	do putI 1; toBin is; toBin ps; toBin pred; toBin name; toBin body;
-	   toBin vfi
+        do putI 1; toBin is; toBin ps; toBin pred; toBin name; toBin body;
+           toBin vfi
     writeBytes (AIActionValue is ps pred name body val vfi) =
-	do putI 2; toBin is; toBin ps; toBin pred; toBin name; toBin body;
-	   toBin val; toBin vfi
+        do putI 2; toBin is; toBin ps; toBin pred; toBin name; toBin body;
+           toBin val; toBin vfi
     writeBytes (AIClock name clk vfi) =
-	do putI 3; toBin name; toBin clk; toBin vfi
+        do putI 3; toBin name; toBin clk; toBin vfi
     writeBytes (AIReset name rst vfi) =
-	do putI 4; toBin name; toBin rst; toBin vfi
+        do putI 4; toBin name; toBin rst; toBin vfi
     writeBytes (AIInout name iot vfi) =
-	do putI 5; toBin name; toBin iot; toBin vfi
+        do putI 5; toBin name; toBin iot; toBin vfi
     readBytes =
-	do i <- getI
-	   case i of
-	    0 -> do name <- fromBin; is <- fromBin; ps <- fromBin;
-	            pred <- fromBin; val <- fromBin; vfi <- fromBin;
+        do i <- getI
+           case i of
+            0 -> do name <- fromBin; is <- fromBin; ps <- fromBin;
+                    pred <- fromBin; val <- fromBin; vfi <- fromBin;
                     asmps <- fromBin;
-	            return (AIDef name is ps pred val vfi asmps)
-	    1 -> do is <- fromBin; ps <- fromBin; pred <- fromBin;
-		    name <- fromBin; body <- fromBin; vfi <- fromBin;
-	            return (AIAction is ps pred name body vfi)
-	    2 -> do is <- fromBin; ps <- fromBin; pred <- fromBin;
-		    name <- fromBin; body <- fromBin; val <- fromBin;
-		    vfi <- fromBin;
-	            return (AIActionValue is ps pred name body val vfi)
-	    3 -> do name <- fromBin; clk <- fromBin; vfi <- fromBin;
-		    return (AIClock name clk vfi)
-	    4 -> do name <- fromBin; rst <- fromBin; vfi <- fromBin;
-		    return (AIReset name rst vfi)
-	    5 -> do name <- fromBin; iot <- fromBin; vfi <- fromBin;
-		    return (AIInout name iot vfi)
-	    n -> internalError $ "GenABin.Bin(AIFace).readBytes: " ++ show n
+                    return (AIDef name is ps pred val vfi asmps)
+            1 -> do is <- fromBin; ps <- fromBin; pred <- fromBin;
+                    name <- fromBin; body <- fromBin; vfi <- fromBin;
+                    return (AIAction is ps pred name body vfi)
+            2 -> do is <- fromBin; ps <- fromBin; pred <- fromBin;
+                    name <- fromBin; body <- fromBin; val <- fromBin;
+                    vfi <- fromBin;
+                    return (AIActionValue is ps pred name body val vfi)
+            3 -> do name <- fromBin; clk <- fromBin; vfi <- fromBin;
+                    return (AIClock name clk vfi)
+            4 -> do name <- fromBin; rst <- fromBin; vfi <- fromBin;
+                    return (AIReset name rst vfi)
+            5 -> do name <- fromBin; iot <- fromBin; vfi <- fromBin;
+                    return (AIInout name iot vfi)
+            n -> internalError $ "GenABin.Bin(AIFace).readBytes: " ++ show n
 
 -- ----------
 -- Bin AScheduleInfo
@@ -356,24 +356,24 @@ instance Bin AIFace where
 instance Bin AScheduleInfo where
     writeBytes (AScheduleInfo ws mumap rumap rat erdb sorder sch sgraph rrdb vsi) =
         section "AScheduleInfo" $
-	do toBin ws; toBin mumap; toBin rumap; toBin rat; toBin erdb;
-	   toBin sorder; toBin sch; toBin sgraph; toBin rrdb; toBin vsi
+        do toBin ws; toBin mumap; toBin rumap; toBin rat; toBin erdb;
+           toBin sorder; toBin sch; toBin sgraph; toBin rrdb; toBin vsi
     readBytes =
-	do ws <- fromBin; mumap <- fromBin; rumap <- fromBin; rat <- fromBin;
+        do ws <- fromBin; mumap <- fromBin; rumap <- fromBin; rat <- fromBin;
            erdb <- fromBin; sorder <- fromBin; sch <- fromBin;
            sgraph <- fromBin; rrdb <- fromBin; vsi <- fromBin;
-	   return (AScheduleInfo ws mumap rumap rat erdb sorder sch sgraph rrdb vsi)
+           return (AScheduleInfo ws mumap rumap rat erdb sorder sch sgraph rrdb vsi)
 
 instance Bin AScheduleErrInfo where
     writeBytes (AScheduleErrInfo ws es mumap rumap rat erdb sorder sch sgraph rrdb vsi) =
         section "AScheduleErrInfo" $
-	do toBin ws; toBin es; toBin mumap; toBin rumap; toBin rat; toBin erdb;
-	   toBin sorder; toBin sch; toBin sgraph; toBin rrdb; toBin vsi
+        do toBin ws; toBin es; toBin mumap; toBin rumap; toBin rat; toBin erdb;
+           toBin sorder; toBin sch; toBin sgraph; toBin rrdb; toBin vsi
     readBytes =
-	do ws <- fromBin; es <- fromBin; mumap <- fromBin; rumap <- fromBin;
+        do ws <- fromBin; es <- fromBin; mumap <- fromBin; rumap <- fromBin;
            rat <- fromBin; erdb <- fromBin; sorder <- fromBin; sch <- fromBin;
            sgraph <- fromBin; rrdb <- fromBin; vsi <- fromBin;
-	   return (AScheduleErrInfo ws es mumap rumap rat erdb sorder sch sgraph rrdb vsi)
+           return (AScheduleErrInfo ws es mumap rumap rat erdb sorder sch sgraph rrdb vsi)
 
 instance Bin ASchedule where
     writeBytes (ASchedule ss order) = section "ASchedule" $ do toBin ss; toBin order
@@ -393,11 +393,11 @@ instance Bin UniqueUse where
     writeBytes (UUAction a) = section "UUAction" $ do putI 0; toBin a
     writeBytes (UUExpr e c) = section "UUExpr" $ do putI 1; toBin e; toBin c
     readBytes =
-	do i <- getI
-	   case i of
-	    0 -> do a <- fromBin; return (UUAction a)
-	    1 -> do e <- fromBin; c <- fromBin; return (UUExpr e c)
-	    n -> internalError $ "GenABin.Bin(UniqueUse).readBytes: " ++ show n
+        do i <- getI
+           case i of
+            0 -> do a <- fromBin; return (UUAction a)
+            1 -> do e <- fromBin; c <- fromBin; return (UUExpr e c)
+            n -> internalError $ "GenABin.Bin(UniqueUse).readBytes: " ++ show n
 
 -- XXX drop use conditions because of sharing issues
 -- .ba file size explodes (may be better now with CSE of UseCond)
@@ -427,12 +427,12 @@ instance Bin RuleRelationDB where
 
 instance Bin RuleRelationInfo where
     writeBytes (RuleRelationInfo mCF mSC mRes mCycle mPragma mArb) =
-	do toBin mCF; toBin mSC; toBin mRes; toBin mCycle; toBin mPragma;
+        do toBin mCF; toBin mSC; toBin mRes; toBin mCycle; toBin mPragma;
            toBin mArb
     readBytes =
-	do mCF <- fromBin; mSC <- fromBin; mRes <- fromBin;
-	   mCycle <- fromBin; mPragma <- fromBin; mArb <- fromBin;
-	   return (RuleRelationInfo mCF mSC mRes mCycle mPragma mArb)
+        do mCF <- fromBin; mSC <- fromBin; mRes <- fromBin;
+           mCycle <- fromBin; mPragma <- fromBin; mArb <- fromBin;
+           return (RuleRelationInfo mCF mSC mRes mCycle mPragma mArb)
 
 instance Bin Conflicts where
     writeBytes (CUse mms)              = do putI 0; toBin mms
@@ -445,28 +445,28 @@ instance Bin Conflicts where
     writeBytes (CArbitraryChoice)      = do putI 7
     writeBytes (CFFuncArbitraryChoice) = do putI 8
     readBytes =
-	do i <- getI
-	   case i of
-	    0 -> do mms <- fromBin; return (CUse mms)
-	    1 -> do rs <- fromBin; return (CCycle rs)
-	    2 -> return CMethodsBeforeRules
-	    3 -> do pos <- fromBin; return (CUserEarliness pos)
-	    4 -> do pos <- fromBin; return (CUserAttribute pos)
-	    5 -> do pos <- fromBin; return (CUserPreempt pos)
-	    6 -> do m <- fromBin; return (CResource m)
-	    7 -> return CArbitraryChoice
-	    8 -> return CFFuncArbitraryChoice
-	    n -> internalError $ "GenABin.Bin(Conflicts).readBytes: " ++ show n
+        do i <- getI
+           case i of
+            0 -> do mms <- fromBin; return (CUse mms)
+            1 -> do rs <- fromBin; return (CCycle rs)
+            2 -> return CMethodsBeforeRules
+            3 -> do pos <- fromBin; return (CUserEarliness pos)
+            4 -> do pos <- fromBin; return (CUserAttribute pos)
+            5 -> do pos <- fromBin; return (CUserPreempt pos)
+            6 -> do m <- fromBin; return (CResource m)
+            7 -> return CArbitraryChoice
+            8 -> return CFFuncArbitraryChoice
+            n -> internalError $ "GenABin.Bin(Conflicts).readBytes: " ++ show n
 
 instance Bin SchedNode where
     writeBytes (Sched i) = section "SchedNode" $ do putI 0; toBin i
     writeBytes (Exec i)  = section "SchedNode" $ do putI 1; toBin i
     readBytes =
-	do i <- getI
-	   case i of
-	    0 -> do i <- fromBin; return (Sched i)
-	    1 -> do i <- fromBin; return (Exec i)
-	    n -> internalError $ "GenABin.Bin(SchedNode).readBytes: " ++ show n
+        do i <- getI
+           case i of
+            0 -> do i <- fromBin; return (Sched i)
+            1 -> do i <- fromBin; return (Exec i)
+            n -> internalError $ "GenABin.Bin(SchedNode).readBytes: " ++ show n
 
 instance Bin RuleConflictType where
     writeBytes rct = toBin (fromEnum rct)
@@ -501,7 +501,7 @@ instance Bin ResourceFlag where
     writeBytes RFsimple = do putI 1
 
     readBytes = do i <- getI
-	           case i of
+                   case i of
                      0 -> return RFoff
                      1 -> return RFsimple
                      n -> internalError $ "GenABin.Bin(ResourceFlag).readBytes: " ++ show n
@@ -550,18 +550,18 @@ instance Bin MsgListFlag where
 -- should automatically verify no typoes at compile-time XXX
 instance Bin Flags where
     writeBytes (Flags
-		a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
-		a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
-		a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
-		a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
-		a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
-		a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
-		a_060 a_061 a_062 a_063 a_064 a_065 a_066 a_067 a_068 a_069
-		a_070 a_071 a_072 a_073 a_074 a_075 a_076 a_077 a_078 a_079
-		a_080 a_081 a_082 a_083 a_084 a_085 a_086 a_087 a_088 a_089
-		a_090 a_091 a_092 a_093 a_094 a_095 a_096 a_097 a_098 a_099
-		a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
-		a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
+                a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
+                a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
+                a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
+                a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
+                a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
+                a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
+                a_060 a_061 a_062 a_063 a_064 a_065 a_066 a_067 a_068 a_069
+                a_070 a_071 a_072 a_073 a_074 a_075 a_076 a_077 a_078 a_079
+                a_080 a_081 a_082 a_083 a_084 a_085 a_086 a_087 a_088 a_089
+                a_090 a_091 a_092 a_093 a_094 a_095 a_096 a_097 a_098 a_099
+                a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
+                a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
                 a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
                 a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137 a_138) =
        do toBin a_000; toBin a_001; toBin a_002; toBin a_003; toBin a_004;
@@ -588,7 +588,7 @@ instance Bin Flags where
           toBin a_105; toBin a_106; toBin a_107; toBin a_108; toBin a_109;
           toBin a_110; toBin a_111; toBin a_112; toBin a_113; toBin a_114;
           toBin a_115; toBin a_116; toBin a_117; toBin a_118; toBin a_119;
-	  toBin a_120; toBin a_121; toBin a_122; toBin a_123; toBin a_124;
+          toBin a_120; toBin a_121; toBin a_122; toBin a_123; toBin a_124;
           toBin a_125; toBin a_126; toBin a_127; toBin a_128; toBin a_129;
           toBin a_130; toBin a_131; toBin a_132; toBin a_133; toBin a_134;
           toBin a_135; toBin a_136; toBin a_137; toBin a_138
@@ -617,24 +617,24 @@ instance Bin Flags where
           a_105 <- fromBin; a_106 <- fromBin; a_107 <- fromBin; a_108 <- fromBin; a_109 <- fromBin;
           a_110 <- fromBin; a_111 <- fromBin; a_112 <- fromBin; a_113 <- fromBin; a_114 <- fromBin;
           a_115 <- fromBin; a_116 <- fromBin; a_117 <- fromBin; a_118 <- fromBin; a_119 <- fromBin;
-	  a_120 <- fromBin; a_121 <- fromBin; a_122 <- fromBin; a_123 <- fromBin; a_124 <- fromBin;
+          a_120 <- fromBin; a_121 <- fromBin; a_122 <- fromBin; a_123 <- fromBin; a_124 <- fromBin;
           a_125 <- fromBin; a_126 <- fromBin; a_127 <- fromBin; a_128 <- fromBin; a_129 <- fromBin;
           a_130 <- fromBin; a_131 <- fromBin; a_132 <- fromBin; a_133 <- fromBin; a_134 <- fromBin;
           a_135 <- fromBin; a_136 <- fromBin; a_137 <- fromBin; a_138 <- fromBin
           return (Flags
-		a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
-		a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
-		a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
-		a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
-		a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
-		a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
-		a_060 a_061 a_062 a_063 a_064 a_065 a_066 a_067 a_068 a_069
-		a_070 a_071 a_072 a_073 a_074 a_075 a_076 a_077 a_078 a_079
-		a_080 a_081 a_082 a_083 a_084 a_085 a_086 a_087 a_088 a_089
-		a_090 a_091 a_092 a_093 a_094 a_095 a_096 a_097 a_098 a_099
-		a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
-		a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
-		a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
+                a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009
+                a_010 a_011 a_012 a_013 a_014 a_015 a_016 a_017 a_018 a_019
+                a_020 a_021 a_022 a_023 a_024 a_025 a_026 a_027 a_028 a_029
+                a_030 a_031 a_032 a_033 a_034 a_035 a_036 a_037 a_038 a_039
+                a_040 a_041 a_042 a_043 a_044 a_045 a_046 a_047 a_048 a_049
+                a_050 a_051 a_052 a_053 a_054 a_055 a_056 a_057 a_058 a_059
+                a_060 a_061 a_062 a_063 a_064 a_065 a_066 a_067 a_068 a_069
+                a_070 a_071 a_072 a_073 a_074 a_075 a_076 a_077 a_078 a_079
+                a_080 a_081 a_082 a_083 a_084 a_085 a_086 a_087 a_088 a_089
+                a_090 a_091 a_092 a_093 a_094 a_095 a_096 a_097 a_098 a_099
+                a_100 a_101 a_102 a_103 a_104 a_105 a_106 a_107 a_108 a_109
+                a_110 a_111 a_112 a_113 a_114 a_115 a_116 a_117 a_118 a_119
+                a_120 a_121 a_122 a_123 a_124 a_125 a_126 a_127 a_128 a_129
                 a_130 a_131 a_132 a_133 a_134 a_135 a_136 a_137 a_138)
 
 -- ----------

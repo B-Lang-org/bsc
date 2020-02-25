@@ -1359,7 +1359,7 @@ convAPrim p@(PrimExtract) (ATBit sz2) [a, _, _] = do
 --convAPrim PrimRange t as =
 
 convAPrim p t as | p `elem` [ PrimAdd, PrimSub, PrimAnd, PrimOr, PrimXor,
-	                      PrimInv, PrimNeg ] = do
+                              PrimInv, PrimNeg ] = do
    a_exprs <- mapM convAExpr as
    return $ sApply (SVar (prim1Ctx (aSize t) (primId p))) a_exprs
 

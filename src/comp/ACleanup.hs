@@ -117,53 +117,53 @@ cleanupActions flags pred as =
 
       -- Found an action method
       loop merged (first@(ACall id methodid (cond:args)):rest) =
-	 -- Internal loop to scan for matching actions that might be ME
-	 let loopR :: [AAction] -> [AAction] -> CMonad [AAction]
-	     loopR scanned [] =
-		return ((reverse merged) ++ [first] ++ (reverse scanned))
+         -- Internal loop to scan for matching actions that might be ME
+         let loopR :: [AAction] -> [AAction] -> CMonad [AAction]
+             loopR scanned [] =
+                return ((reverse merged) ++ [first] ++ (reverse scanned))
 
-	 -- not necessary - rest has been cleaned already
-	 -- loopR scanned [] = loop (first:merged) (reverse scanned)
-	     loopR scanned (firstR@(ACall id' methodid' (cond':args')):restR)
-				| (id == id') &&
-				    (methodid == methodid') &&
+         -- not necessary - rest has been cleaned already
+         -- loopR scanned [] = loop (first:merged) (reverse scanned)
+             loopR scanned (firstR@(ACall id' methodid' (cond':args')):restR)
+                                | (id == id') &&
+                                    (methodid == methodid') &&
                                     ((length args) == (length args')) =
-		do
-		   dtState <- getDisjointTestState
-		   (isDisjoint,newstate) <-
-			liftIO $ checkDisjointCond dtState pred cond cond'
-		   updateDisjointTestState newstate
+                do
+                   dtState <- getDisjointTestState
+                   (isDisjoint,newstate) <-
+                        liftIO $ checkDisjointCond dtState pred cond cond'
+                   updateDisjointTestState newstate
 
-		   if (isDisjoint) then
-		     do
-			newid <- newName
-			addDef (ADef newid aTBool
-				(APrim newid aTBool PrimBOr [cond, cond']) [])
-			newargs <-
-			    (mapM (\ (arg, arg') ->
-				do
-				    argid <- newName
-				    let argtyp = (aType arg)
-				    addDef (ADef argid argtyp
-					(APrim argid argtyp PrimIf [cond, arg, arg']) [])
-				    return (ASDef argtyp argid))
-					 (zip args args'))
-			let newcall = (ACall id methodid
-				((ASDef aTBool newid):newargs))
+                   if (isDisjoint) then
+                     do
+                        newid <- newName
+                        addDef (ADef newid aTBool
+                                (APrim newid aTBool PrimBOr [cond, cond']) [])
+                        newargs <-
+                            (mapM (\ (arg, arg') ->
+                                do
+                                    argid <- newName
+                                    let argtyp = (aType arg)
+                                    addDef (ADef argid argtyp
+                                        (APrim argid argtyp PrimIf [cond, arg, arg']) [])
+                                    return (ASDef argtyp argid))
+                                         (zip args args'))
+                        let newcall = (ACall id methodid
+                                ((ASDef aTBool newid):newargs))
 
-	  -- restR is guaranteed merged amongst itself (see below)
-	  -- so no more work need be done...
-			return ((reverse merged)
-				++ [newcall]
-				++ (reverse scanned)
-				++ restR)
-		     else loopR (firstR:scanned) restR
-	     loopR scanned (firstR:restR) = loopR (firstR:scanned) restR
+          -- restR is guaranteed merged amongst itself (see below)
+          -- so no more work need be done...
+                        return ((reverse merged)
+                                ++ [newcall]
+                                ++ (reverse scanned)
+                                ++ restR)
+                     else loopR (firstR:scanned) restR
+             loopR scanned (firstR:restR) = loopR (firstR:scanned) restR
 
              -- aggressively merge the rest
              -- which allows the shortcuts in loopR above
-	 in do rest' <- (loop [] rest)
-	       (loopR [] rest')
+         in do rest' <- (loop [] rest)
+               (loopR [] rest')
 
       -- don't try to merge foreign function calls since
       -- those shouldn't get muxed anyway

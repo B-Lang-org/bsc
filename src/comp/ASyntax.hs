@@ -1,57 +1,57 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 module ASyntax(
-	APackage(..),
+        APackage(..),
         getAPackageFieldInfos,
         getAPackageClocks,
-	getAPackageInputs,
-	getAPackageParamsPortsAndInouts,
-	apkgIsMCD,
-	apkgExposesClkOrRst,
-	AId,
-	AMethodId,
-	AType(..),
-	ASize,
-	ARule(..),
+        getAPackageInputs,
+        getAPackageParamsPortsAndInouts,
+        apkgIsMCD,
+        apkgExposesClkOrRst,
+        AId,
+        AMethodId,
+        AType(..),
+        ASize,
+        ARule(..),
         AAssumption(..),
-	ARuleId,
-	APred,
-	AIFace(..),
-	AInput,
-	AAbstractInput(..),
+        ARuleId,
+        APred,
+        AIFace(..),
+        AInput,
+        AAbstractInput(..),
         AOutput,
         AClock(..),
         AReset(..),
         AInout(..),
-	AClockDomain,
+        AClockDomain,
         mkOutputWire,
         mkIfcInoutN,
-	AExpr(..),
-	ADef(..),
-	ASPackage(..),
-	ASPSignalInfo(..),
+        AExpr(..),
+        ADef(..),
+        ASPackage(..),
+        ASPSignalInfo(..),
         ASPMethodInfo(..),
         ASPCommentInfo(..),
         AStateOut,
-	AVInst(..),
+        AVInst(..),
         getSpecialOutputs,
-	getOutputClockWires,
+        getOutputClockWires,
         getOutputClockPorts,
-	getOutputResetPorts,
-	getIfcInoutPorts,
-	ASchedule(..),
-	AScheduler(..),
-	AAction(..),
-	ANoInlineFun(..),
-	ARuleDescr,
-	aTZero,
-	aTBool,
-	aSBool,
-	aXSBool,
-	aRuleName,
-	aRulePred,
-	aTNat,
-	aTAction,
+        getOutputResetPorts,
+        getIfcInoutPorts,
+        ASchedule(..),
+        AScheduler(..),
+        AAction(..),
+        ANoInlineFun(..),
+        ARuleDescr,
+        aTZero,
+        aTBool,
+        aSBool,
+        aXSBool,
+        aRuleName,
+        aRulePred,
+        aTNat,
+        aTAction,
         aTClock,
         aTReset,
         aTInout,
@@ -63,53 +63,53 @@ module ASyntax(
         unifyStringTypes,
         getArrayElemType,
         getArraySize,
-	aIfaceName,
-	aIfaceNameString,
+        aIfaceName,
+        aIfaceNameString,
         aIfaceProps,
-	aIfaceResSize,
-	aIfaceResType,
-	aIfaceResId,
-	aIfaceArgs,
-	aIfaceArgSize,
-	aIfaceRules,
-	aIfaceRulesImpl,
-	aIfaceSchedNames,
-	aIfacePred,
-	aiface_vname,
-	aiface_argnames_width,
-	aIfaceMethods,
+        aIfaceResSize,
+        aIfaceResType,
+        aIfaceResId,
+        aIfaceArgs,
+        aIfaceArgSize,
+        aIfaceRules,
+        aIfaceRulesImpl,
+        aIfaceSchedNames,
+        aIfacePred,
+        aiface_vname,
+        aiface_argnames_width,
+        aIfaceMethods,
         aIfaceHasAction,
-	aTrue,
-	aFalse,
-	isTrue,
-	isFalse,
+        aTrue,
+        aFalse,
+        isTrue,
+        isFalse,
         aNoReset,
         cmpASInt,
         getSchedulerIds,
         dropScheduleIds,
         dropSchedulerIds,
-	aNat,
-	AForeignCall(..),
+        aNat,
+        AForeignCall(..),
         AForeignBlock,
         PPrintExpand(..),
         pPrintExpandFlags,
-	ppeString,
-	ppeAPackage,
-	mkMethId,
-	mkMethStr,
-	isMethId,
-	MethodPart(..),
+        ppeString,
+        ppeAPackage,
+        mkMethId,
+        mkMethStr,
+        isMethId,
+        MethodPart(..),
         getParams,
         getPorts,
         getClocks,
         getResets,
         getInouts,
-	getInstArgs,
-	defaultAId,
+        getInstArgs,
+        defaultAId,
         binOp,
         mkCFCondWireInstId,
         PExpandContext, defContext, bContext, pContext
-	) where
+        ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -144,36 +144,36 @@ import InstNodes(InstTree)
 
 -- packages converted from ISyntax
 data APackage = APackage {
-	    -- package name
+            -- package name
     apkg_name :: AId,
-	    -- module wrapped around a non-inlined function
+            -- module wrapped around a non-inlined function
     apkg_is_wrapped :: Bool,
             -- whether module compilation was specific to the chosen backend
     apkg_backend :: Maybe Backend,
-	    -- size parameters (names in verilog)
+            -- size parameters (names in verilog)
     apkg_size_params :: [AId],
-	    -- package inputs (ports and parameters)
+            -- package inputs (ports and parameters)
             -- in the order described by wireinfo
-	    -- (i.e. clock, reset, inouts, provided method arguments,
+            -- (i.e. clock, reset, inouts, provided method arguments,
             -- module arg ports, module arg parameters)
     apkg_inputs :: [AAbstractInput],
-	    -- table of different clock domains
+            -- table of different clock domains
     apkg_clock_domains :: [AClockDomain],
-	    -- description of external wires (e.g. clock and reset)
+            -- description of external wires (e.g. clock and reset)
     apkg_external_wires :: VWireInfo,
             -- table of port names to source types
     apkg_external_wire_types :: M.Map VName IType,
-	    -- table of resets
+            -- table of resets
     apkg_reset_list :: [(ResetId, AReset)],
-	    -- state elements (Verilog instances)
+            -- state elements (Verilog instances)
     apkg_state_instances :: [AVInst],
-	    -- local defs, in dependency-sorted order?
+            -- local defs, in dependency-sorted order?
     apkg_local_defs :: [ADef],
-	    -- rules, in unspecified order
+            -- rules, in unspecified order
     apkg_rules :: [ARule],
-	    -- relationships among rule names
+            -- relationships among rule names
     apkg_schedule_pragmas :: [ASchedulePragma],
-	    -- interface methods
+            -- interface methods
     apkg_interface :: [AIFace],
             -- comments on submodule instantiations
     apkg_inst_comments :: [(Id, [String])],
@@ -195,51 +195,51 @@ getAPackageClocks APackage { apkg_clock_domains = acds } = concatMap snd acds
 getAPackageInputs :: APackage -> [(AAbstractInput, VArgInfo)]
 getAPackageInputs apkg =
     let
-	-- get the two fields
-	inputs = apkg_inputs apkg
-	arginfos = wArgs (apkg_external_wires apkg)
+        -- get the two fields
+        inputs = apkg_inputs apkg
+        arginfos = wArgs (apkg_external_wires apkg)
 
-	-- check that they are the same length
-	inputs_length = length (apkg_inputs apkg)
-	arginfos_length = length arginfos
+        -- check that they are the same length
+        inputs_length = length (apkg_inputs apkg)
+        arginfos_length = length arginfos
 
-	args_with_info = zip inputs arginfos
+        args_with_info = zip inputs arginfos
     in
-	if (inputs_length /= arginfos_length)
-	then internalError ("getAPackageInputs: " ++
-			    "length inputs != length arginfos: " ++
-			    ppReadable (inputs, arginfos))
-	else args_with_info
+        if (inputs_length /= arginfos_length)
+        then internalError ("getAPackageInputs: " ++
+                            "length inputs != length arginfos: " ++
+                            ppReadable (inputs, arginfos))
+        else args_with_info
 
 -- returns the input ports, separated into params, ports and inouts
 -- (note that this converts abstract inputs to port inputs)
 getAPackageParamsPortsAndInouts :: APackage -> ([AInput], [AInput], [AInput])
 getAPackageParamsPortsAndInouts apkg =
     let args_with_info = getAPackageInputs apkg
-	drop_info (xs, ys, zs) = (map fst xs, map fst ys, map fst zs)
-	cvtToPorts (xs, ys, zs) =
-	    (concatMap absInputToPorts xs,
-	     concatMap absInputToPorts ys,
-	     concatMap absInputToPorts zs)
-	(params, rest) = partition (isParam . snd) args_with_info
-	(inouts,ports) = partition (isInout . snd) rest
+        drop_info (xs, ys, zs) = (map fst xs, map fst ys, map fst zs)
+        cvtToPorts (xs, ys, zs) =
+            (concatMap absInputToPorts xs,
+             concatMap absInputToPorts ys,
+             concatMap absInputToPorts zs)
+        (params, rest) = partition (isParam . snd) args_with_info
+        (inouts,ports) = partition (isInout . snd) rest
     in  cvtToPorts $ drop_info $ (params, ports, inouts)
 
 
 apkgIsMCD :: APackage -> Bool
 apkgIsMCD apkg =
     let domains = apkg_clock_domains apkg
-	clocks = concatMap snd domains
-	resets = apkg_reset_list apkg
+        clocks = concatMap snd domains
+        resets = apkg_reset_list apkg
     in  (length domains /= 1) ||
-	(length clocks /= 1) ||
-	(length resets > 1)
+        (length clocks /= 1) ||
+        (length resets > 1)
 
 apkgExposesClkOrRst :: APackage -> Bool
 apkgExposesClkOrRst apkg =
     let isClkOrRst (AIClock {}) = True
-	isClkOrRst (AIReset {}) = True
-	isClkOrRst _ = False
+        isClkOrRst (AIReset {}) = True
+        isClkOrRst _ = False
     in  any isClkOrRst (apkg_interface apkg)
 
 
@@ -247,65 +247,65 @@ apkgExposesClkOrRst apkg =
 -- rules and interface methods have turned into logic connected to state instances
 data ASPackage = ASPackage {
         -- package name
- 	aspkg_name :: AId,
-	-- module wrapped around a pure function with pragma no-inline
-	aspkg_is_wrapped :: Bool,
-	-- parameters (names in Verilog)
+         aspkg_name :: AId,
+        -- module wrapped around a pure function with pragma no-inline
+        aspkg_is_wrapped :: Bool,
+        -- parameters (names in Verilog)
         -- (i.e. module args generated as params, size parameters)
-	-- XXX there are no size parameters because we don't support
+        -- XXX there are no size parameters because we don't support
         -- XXX synthesis of size-polymorphic modules
-	aspkg_parameters :: [AInput],
-	-- package outputs (output clocks/resets, method results/RDY)
-	aspkg_outputs :: [AOutput],
-	-- package inputs (input clocks/resets, method args/EN, module args)
-	-- (i.e. clock, reset, method arguments, module args as ports)
-	aspkg_inputs :: [AInput],
-	-- package inouts (module args and provided interface)
-	aspkg_inouts :: [AInput],
-	-- state elements (Verilog instances)
-	aspkg_state_instances :: [AVInst],
-	-- state element outputs (wires coming out of state elements)
-	aspkg_state_outputs :: [AStateOut],
-	-- defs (all sorts)
-	aspkg_values :: [ADef],
+        aspkg_parameters :: [AInput],
+        -- package outputs (output clocks/resets, method results/RDY)
+        aspkg_outputs :: [AOutput],
+        -- package inputs (input clocks/resets, method args/EN, module args)
+        -- (i.e. clock, reset, method arguments, module args as ports)
+        aspkg_inputs :: [AInput],
+        -- package inouts (module args and provided interface)
+        aspkg_inouts :: [AInput],
+        -- state elements (Verilog instances)
+        aspkg_state_instances :: [AVInst],
+        -- state element outputs (wires coming out of state elements)
+        aspkg_state_outputs :: [AStateOut],
+        -- defs (all sorts)
+        aspkg_values :: [ADef],
         -- inout defs
         aspkg_inout_values :: [ADef],
-	-- foreign function calls (grouped by clock domain)
-	aspkg_foreign_calls :: [AForeignBlock],
-	-- wire ports from inlined submodules (RWire and CReg)
-	--   which shouldn't be unecessarily inlined away
-	aspkg_inlined_ports :: [AId],
+        -- foreign function calls (grouped by clock domain)
+        aspkg_foreign_calls :: [AForeignBlock],
+        -- wire ports from inlined submodules (RWire and CReg)
+        --   which shouldn't be unecessarily inlined away
+        aspkg_inlined_ports :: [AId],
         -- info about which Ids are for what purpose
         aspkg_signal_info :: ASPSignalInfo,
         -- user comments to be included in the output RTL
         aspkg_comment_info :: ASPCommentInfo
     }
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 instance Hyper ASPackage where
     hyper x y = (x==x) `seq` y
 
 data ASPSignalInfo = ASPSignalInfo {
-	-- input params, ports, clocks, and resets are all in one list
-	-- (can use isParam etc to filter it out)
+        -- input params, ports, clocks, and resets are all in one list
+        -- (can use isParam etc to filter it out)
         aspsi_inputs :: [AId],
         -- the interface output clocks (and possibly empty list of gates)
         aspsi_output_clks :: [(AId,[AId])],
-	aspsi_output_rsts :: [AId],
-	aspsi_ifc_iots :: [AId],
+        aspsi_output_rsts :: [AId],
+        aspsi_ifc_iots :: [AId],
         -- the ifc methods
-	aspsi_methods :: [ASPMethodInfo],
+        aspsi_methods :: [ASPMethodInfo],
 
-	-- inline submodule info (RWire and CReg)
+        -- inline submodule info (RWire and CReg)
         -- XXX this somewhat duplicates the aspkg_inlined_ports field
-	--   * instance name
+        --   * instance name
         --   * module name as String
-	--   * list of ports that became signals
-	aspsi_inlined_ports :: [(AId, String, [AId])],
+        --   * list of ports that became signals
+        aspsi_inlined_ports :: [(AId, String, [AId])],
 
-	-- rule scheduling signals
+        -- rule scheduling signals
         --   relation from rule name to its CAN_FIRE and WILL_FIRE signals
-	aspsi_rule_sched :: [(AId, [AId])],
+        aspsi_rule_sched :: [(AId, [AId])],
 
         -- mux selectors
         --   ids of defs created in AState for the selectors to submod muxes
@@ -317,7 +317,7 @@ data ASPSignalInfo = ASPSignalInfo {
         --   ids of defs created in AState for the enables to submod methods
         aspsi_submod_enables :: [AId]
     }
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 
 instance PPrint ASPSignalInfo where
@@ -332,10 +332,10 @@ instance PPrint ASPSignalInfo where
 
         --   relation from method name to
         --     type of method (value, action, actionvalue) as string
-	--     ports for RDY, EN, val, args
-	--     names of the associated rules (for methods with actions)
+        --     ports for RDY, EN, val, args
+        --     names of the associated rules (for methods with actions)
 data ASPMethodInfo = ASPMethodInfo {
-	                            aspm_name :: AId,
+                                    aspm_name :: AId,
                                     aspm_type :: String,
                                     aspm_mrdyid :: Maybe AId,
                                     aspm_menableid :: Maybe AId,
@@ -361,13 +361,13 @@ instance Hyper ASPSignalInfo where
 
 data ASPCommentInfo = ASPCommentInfo {
         -- comments on submodule instantiations
-	aspci_submod_insts :: [(Id, [String])],
+        aspci_submod_insts :: [(Id, [String])],
         -- comments on rules
-	aspci_rules :: [(AId, [String])]
+        aspci_rules :: [(AId, [String])]
         -- comments on methods
         -- aspsi_methods :: ...
     }
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 instance Hyper ASPCommentInfo where
     hyper x y = (x==x) `seq` y
@@ -375,27 +375,27 @@ instance Hyper ASPCommentInfo where
 -- parallel rule groups; total order on state
 -- (first rule in the list writes, present only if there are state conflicts)
 data ASchedule = ASchedule {
-	asch_scheduler :: [AScheduler],
-			-- list of ruleids is REVERSE ordering for execution
-	asch_rev_exec_order :: [ARuleId]
+        asch_scheduler :: [AScheduler],
+                        -- list of ruleids is REVERSE ordering for execution
+        asch_rev_exec_order :: [ARuleId]
     }
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 instance Hyper ASchedule where
     hyper x y = (x==x) `seq` y
 
 newtype AScheduler =
-	  -- esposito: (r,f) s.t.
-	  --   f is the list of conditions for which
-	  --        rule r should not fire when enabled
-	  --   f is expressed as a
-	  --        list of rules that conflict with the rule r.
-	  --   In the future, f should be a list of list of rules,
-	  --      where the sublists are a list of rules which when
-	  --      enabled should disable the firing of r.
-	  --      So [[a,b],[c],[d,e,f]] = !(ab) && !c && !(def)
+          -- esposito: (r,f) s.t.
+          --   f is the list of conditions for which
+          --        rule r should not fire when enabled
+          --   f is expressed as a
+          --        list of rules that conflict with the rule r.
+          --   In the future, f should be a list of list of rules,
+          --      where the sublists are a list of rules which when
+          --      enabled should disable the firing of r.
+          --      So [[a,b],[c],[d,e,f]] = !(ab) && !c && !(def)
     ASchedEsposito [(ARuleId, [ARuleId])]
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 getSchedulerIds :: AScheduler -> [ARuleId]
 getSchedulerIds (ASchedEsposito fs) = map fst fs
@@ -425,13 +425,13 @@ type AMethodId = AId
 
 data AType =
          -- Bit k
-	 ATBit {
+         ATBit {
             atb_size :: ASize
          }
-	 -- sized or unsized string
+         -- sized or unsized string
        | ATString {
             ats_maybe_size :: Maybe ASize
-	 }
+         }
        -- Verilog real number
        | ATReal
        -- PrimArray
@@ -440,12 +440,12 @@ data AType =
             atr_elem_type :: AType
         }
         -- abstract type, PrimAction, Interface, Clock, ..
-	-- (can take size parameters as arguments)
+        -- (can take size parameters as arguments)
        | ATAbstract {
-	    ata_id :: AId,
-	    ata_sizes :: [ASize]
-	}
-	deriving (Eq, Ord, Show)
+            ata_id :: AId,
+            ata_sizes :: [ASize]
+        }
+        deriving (Eq, Ord, Show)
 
 instance Hyper AType where
     hyper x y = (x==x) `seq` y
@@ -522,13 +522,13 @@ type AInput = (AId, AType)
 data AAbstractInput =
         -- simple input using one port
         AAI_Port AInput |
-	-- clock osc and maybe gate
+        -- clock osc and maybe gate
         AAI_Clock AId (Maybe AId) |
-	AAI_Reset AId |
-	AAI_Inout AId Integer
-	-- room to add other types here, like:
-	--   AAI_Struct [(AId, AType)]
-	--   ...
+        AAI_Reset AId |
+        AAI_Inout AId Integer
+        -- room to add other types here, like:
+        --   AAI_Struct [(AId, AType)]
+        --   ...
     deriving (Eq, Show)
 
 absInputToPorts :: AAbstractInput -> [AInput]
@@ -577,24 +577,24 @@ data AVInst = AVInst {
 getSpecialOutputs :: AVInst -> [(AId, AType, VPort)]
 getSpecialOutputs avi =
     let
-	extractClkPorts (_, osc_port, Nothing)        = [osc_port]
-	extractClkPorts (_, osc_port, Just gate_port) = [osc_port, gate_port]
+        extractClkPorts (_, osc_port, Nothing)        = [osc_port]
+        extractClkPorts (_, osc_port, Just gate_port) = [osc_port, gate_port]
 
-	-- throw away the association with the clock/reset name
-	clk_ports = concatMap extractClkPorts (getOutputClockPorts avi)
-	rst_ports = map snd (getOutputResetPorts avi)
-	iot_ports = map snd (getIfcInoutPorts avi)
+        -- throw away the association with the clock/reset name
+        clk_ports = concatMap extractClkPorts (getOutputClockPorts avi)
+        rst_ports = map snd (getOutputResetPorts avi)
+        iot_ports = map snd (getIfcInoutPorts avi)
     in
-	-- nub because special wires (e.g. an oscillator)
-	-- can theoretically be reused
-	nub (clk_ports ++ rst_ports ++ iot_ports)
+        -- nub because special wires (e.g. an oscillator)
+        -- can theoretically be reused
+        nub (clk_ports ++ rst_ports ++ iot_ports)
 
 
 -- Does not return clock gates ports which are "outhigh"
 getOutputClockWires :: AVInst ->
-		       [(AId,          -- Clock Id
-			 AId,          -- Osc
-			 Maybe AId)]   -- Gate
+                       [(AId,          -- Clock Id
+                         AId,          -- Osc
+                         Maybe AId)]   -- Gate
 getOutputClockWires avi =
   let
       vmi = avi_vmi avi
@@ -602,37 +602,37 @@ getOutputClockWires avi =
       mkOscWire osc_name = mkOutputWireId (avi_vname avi) osc_name
       mkGateWire gate_name = mkOutputWireId (avi_vname avi) gate_name
       clock_wires clk_id =
-	case (lookupOutputClockWires clk_id vmi) of
+        case (lookupOutputClockWires clk_id vmi) of
             (osc_name, Nothing) ->
-		(clk_id, mkOscWire osc_name, Nothing)
-	    (osc_name, Just gate_name) ->
-		(clk_id, mkOscWire osc_name, Just (mkGateWire gate_name))
+                (clk_id, mkOscWire osc_name, Nothing)
+            (osc_name, Just gate_name) ->
+                (clk_id, mkOscWire osc_name, Just (mkGateWire gate_name))
   in
       map clock_wires out_clocks
 
 
 getOutputClockPorts :: AVInst ->
-		       [(AId,                          -- Clock Id
-			 (AId, AType, VPort),          -- Osc
-			 Maybe (AId, AType, VPort))]   -- Gate
+                       [(AId,                          -- Clock Id
+                         (AId, AType, VPort),          -- Osc
+                         Maybe (AId, AType, VPort))]   -- Gate
 getOutputClockPorts avi =
   let
       vmi = avi_vmi avi
       out_clocks = [id | (Clock id) <- vFields vmi]
       mkOscPort clk_name =
-	  (mkOutputWireId (avi_vname avi) clk_name,
-	   ATBit 1,
-	   (clk_name, [VPclock]))
+          (mkOutputWireId (avi_vname avi) clk_name,
+           ATBit 1,
+           (clk_name, [VPclock]))
       mkGatePort (clk_gate_name, portprops) =
-	  (mkOutputWireId (avi_vname avi) clk_gate_name,
-	   ATBit 1,
-	   (clk_gate_name, (VPclockgate:portprops)))
+          (mkOutputWireId (avi_vname avi) clk_gate_name,
+           ATBit 1,
+           (clk_gate_name, (VPclockgate:portprops)))
       clock_ports id =
-	case (lookupOutputClockPorts id vmi) of
+        case (lookupOutputClockPorts id vmi) of
             (clk_name, Nothing) ->
-		(id, mkOscPort clk_name, Nothing)
-	    (clk_name, Just clk_gate_vport) ->
-	        (id, mkOscPort clk_name, Just (mkGatePort clk_gate_vport))
+                (id, mkOscPort clk_name, Nothing)
+            (clk_name, Just clk_gate_vport) ->
+                (id, mkOscPort clk_name, Just (mkGatePort clk_gate_vport))
   in
       map clock_ports out_clocks
 
@@ -643,11 +643,11 @@ getOutputResetPorts avi =
       vmi = avi_vmi avi
       output_resets = [id | (Reset id) <- vFields vmi]
       mkResetPort rst_name = (mkOutputWireId (avi_vname avi) rst_name,
-			      ATBit 1,
-			      (rst_name, [VPreset]))
+                              ATBit 1,
+                              (rst_name, [VPreset]))
       reset_ports id =
-	  let rst_name = lookupOutputResetPort id vmi
-	  in  (id, mkResetPort rst_name)
+          let rst_name = lookupOutputResetPort id vmi
+          in  (id, mkResetPort rst_name)
   in
       map reset_ports output_resets
 
@@ -659,12 +659,12 @@ getIfcInoutPorts avi =
       ifc_inouts = [(id,vn,ty)
                      | (Inout id vn _ _, mr) <- zip (vFields vmi) res_types,
                        let ty = fromJustOrErr ("ASyntax.unknown inout " ++
-					       ppReadable id) mr]
+                                               ppReadable id) mr]
 
 
       mkInoutPort ty vname = (mkOutputWireId (avi_vname avi) vname,
-			      ty,
-			      (vname, [VPinout]))
+                              ty,
+                              (vname, [VPinout]))
       inout_ports (id,vn,ty) = (id, mkInoutPort ty vn)
   in
       map inout_ports ifc_inouts
@@ -684,7 +684,7 @@ getPorts avi = [e | (i, e) <- getInstArgs avi, isPort i]
 getInstArgs :: AVInst -> [(VArgInfo, AExpr)]
 getInstArgs avi = zip (vArgs vi) es
   where vi = avi_vmi avi
-	es = avi_iargs avi
+        es = avi_iargs avi
 
 getClocks :: AVInst -> [AExpr]
 getClocks avi = [e | (i,e) <- getInstArgs avi, isClock i]
@@ -702,7 +702,7 @@ data ADef = ADef {
     adef_expr :: AExpr,
     adef_props :: [DefProp]
     }
-	deriving (Eq, Ord, Show)
+        deriving (Eq, Ord, Show)
 
 instance HasPosition ADef where
     getPosition adef = getPosition (adef_objid adef )
@@ -714,18 +714,18 @@ instance Hyper ADef where
 -- it's only used as an optimization; it's safe to put Nothing there
 data ARule =
     ARule {
-	arule_id :: ARuleId,         -- rule name with a suffix
+        arule_id :: ARuleId,         -- rule name with a suffix
         arule_pragmas :: [RulePragma],    -- rule pragmas,
-					--   e.g., no-implicit-conditions
+                                        --   e.g., no-implicit-conditions
         arule_descr :: ARuleDescr,      -- string that describes the rule
         arule_wprops :: WireProps,      -- clock domain and reset information
         arule_pred :: APred,           -- rule predicate (CAN_FIRE)
         arule_actions :: [AAction],    -- rule body (actions)
         arule_assumps :: [AAssumption], -- assumptions that should hold after this rule executes
         arule_parent :: (Maybe ARuleId) -- if this rule came from a split,
-					 --   Just parent rule name
+                                         --   Just parent rule name
     }
-	deriving (Eq, Show)
+        deriving (Eq, Show)
 
 type ARuleDescr = String
 
@@ -764,12 +764,12 @@ data AIFace =   AIDef { aif_name      :: AId,
                            aif_body      :: [ARule],
                            aif_fieldinfo :: VFieldInfo }
               | AIActionValue { aif_inputs    :: [AInput],
-				aif_props     :: WireProps,
-				aif_pred      :: APred,
-				aif_name      :: AId,
-				aif_body      :: [ARule],
-				aif_value     :: ADef,
-				aif_fieldinfo :: VFieldInfo }
+                                aif_props     :: WireProps,
+                                aif_pred      :: APred,
+                                aif_name      :: AId,
+                                aif_body      :: [ARule],
+                                aif_value     :: ADef,
+                                aif_fieldinfo :: VFieldInfo }
                 -- trivial aif_inputs, props, pred?
               | AIClock { aif_name      :: AId,
                           aif_clock     :: AClock,
@@ -836,8 +836,8 @@ aiface_argnames_width (AIClock {}) = []
 aiface_argnames_width (AIReset {}) = []
 aiface_argnames_width aif =
     zip3 (map fst (aif_inputs aif))
-	(map (getVNameString . fst) (vf_inputs (aif_fieldinfo aif)))
-	(map aIfaceArgSize (aif_inputs aif))
+        (map (getVNameString . fst) (vf_inputs (aif_fieldinfo aif)))
+        (map aIfaceArgSize (aif_inputs aif))
 
 
 aIfaceArgSize :: AInput -> Integer
@@ -854,7 +854,7 @@ aIfaceRulesImpl (AIAction { aif_name = i,
                             aif_body = rs }) = map (addRdyToARule rdyId) rs
   where rdyId = mkRdyId i
 aIfaceRulesImpl (AIActionValue { aif_name = i,
-				 aif_body = rs }) = map (addRdyToARule rdyId) rs
+                                 aif_body = rs }) = map (addRdyToARule rdyId) rs
   where rdyId = mkRdyId i
 aIfaceRulesImpl _ = []
 
@@ -886,9 +886,9 @@ aIfacePred ifc@(AIInout {}) =
 aIfaceMethods :: [AIFace] -> [AIFace]
 aIfaceMethods is =
     let getMethod (AIClock {}) = Nothing
-	getMethod (AIReset {}) = Nothing
-	getMethod (AIInout {}) = Nothing
-	getMethod i            = Just i
+        getMethod (AIReset {}) = Nothing
+        getMethod (AIInout {}) = Nothing
+        getMethod i            = Just i
     in  mapMaybe getMethod is
 
 
@@ -899,35 +899,35 @@ aIfaceHasAction _                  = False
 
 -- note no types because they are implicitly action
 data AAction
-	= ACall {	-- state method call
-	    aact_objid :: AId,
-	    acall_methid :: AMethodId,
-	    aact_args :: [AExpr]	-- first element of the list is the condition
-	}
-	| AFCall {
-	    aact_objid :: AId,       -- foreign function call
-	    afcall_fun :: String,
-	    afcall_isC :: Bool,
-	    aact_args :: [AExpr], -- first element of the list is the condition
+        = ACall {        -- state method call
+            aact_objid :: AId,
+            acall_methid :: AMethodId,
+            aact_args :: [AExpr]        -- first element of the list is the condition
+        }
+        | AFCall {
+            aact_objid :: AId,       -- foreign function call
+            afcall_fun :: String,
+            afcall_isC :: Bool,
+            aact_args :: [AExpr], -- first element of the list is the condition
             -- is it an action inserted by BSC to check an assumption
             aact_assump :: Bool
-	}
+        }
  -- action part of a foreign ActionValue function
         | ATaskAction {
-	    aact_objid :: AId,
-	    ataskact_fun :: String,
-	    ataskact_isC :: Bool,
-	    ataskact_cookie :: Integer, -- correlation cookie
-	    aact_args :: [AExpr], -- first element is the condition
+            aact_objid :: AId,
+            ataskact_fun :: String,
+            ataskact_isC :: Bool,
+            ataskact_cookie :: Integer, -- correlation cookie
+            aact_args :: [AExpr], -- first element is the condition
             -- the temporary to set, spliced in later
-	    ataskact_temp :: (Maybe Id),
+            ataskact_temp :: (Maybe Id),
             -- include the return value type for easy reference,
             -- and to support foreign functions with ignored values
-	    ataskact_value_type :: AType,
+            ataskact_value_type :: AType,
             -- is it an action inserted by BSC to check an assumption
             aact_assump :: Bool
-	}
-	deriving (Eq, Ord, Show)
+        }
+        deriving (Eq, Ord, Show)
 
 instance Hyper AAction where
     hyper x y = (x==x) `seq` y
@@ -945,18 +945,18 @@ data AClock = AClock {
 instance PPrint AClock where
   pPrint d p (AClock osc gate) =
     (text "{ osc: ") <+>
-	(pPrint d p osc) <+>
-	(text "gate: ") <+>
-	(pPrint d p gate) <+>
-	(text "}")
+        (pPrint d p osc) <+>
+        (text "gate: ") <+>
+        (pPrint d p gate) <+>
+        (text "}")
 
 mkOutputWireId :: AId -> VName -> AId
 mkOutputWireId var_id (VName wire_str) =
   let var_fstr  = getIdFString (unQualId var_id)
       wire_fstr = mkFString wire_str
   in mkId
-	noPosition
-	(concatFString [var_fstr, fsDollar, wire_fstr])
+        noPosition
+        (concatFString [var_fstr, fsDollar, wire_fstr])
 
 mkOutputWire :: AId -> VName -> AExpr
 mkOutputWire var_id wire_name = ASPort (ATBit 1) (mkOutputWireId var_id wire_name)
@@ -983,166 +983,166 @@ instance PPrint AInout where
   pPrint d p (AInout { ainout_wire = wire }) = (text "{ wire: ") <+> (pPrint d p wire) <+> (text "}")
 
 -- Every expression is annotated with its (result) type
-	-- all types should be ae_type
-	-- all ids should be ae_objid
+        -- all types should be ae_type
+        -- all ids should be ae_objid
 data AExpr
-	= APrim {	-- Verilog primitive (e.g., +)
-	    ae_objid :: AId,
-	    ae_type :: AType,
-	    aprim_prim :: PrimOp,
-	    ae_args :: [AExpr]
-	}
-	| AMethCall {
-	    ae_type :: AType,
-	    ae_objid :: AId,
-	    ameth_id :: AMethodId,
-	    ae_args :: [AExpr]	-- external state method call
-	}
-	-- like AMethCall, but for the return value of actionvalue methods,
-	-- where the return value no longer has to care about the arguments,
-	-- because the action (AAction) will handle the muxing and arbitration
-	-- of arguments and there is no multiplicity for actionvalue methods
-	| AMethValue {
-	    ae_type :: AType,
-	    ae_objid :: AId,
-	    ameth_id :: AMethodId
-	}
+        = APrim {        -- Verilog primitive (e.g., +)
+            ae_objid :: AId,
+            ae_type :: AType,
+            aprim_prim :: PrimOp,
+            ae_args :: [AExpr]
+        }
+        | AMethCall {
+            ae_type :: AType,
+            ae_objid :: AId,
+            ameth_id :: AMethodId,
+            ae_args :: [AExpr]        -- external state method call
+        }
+        -- like AMethCall, but for the return value of actionvalue methods,
+        -- where the return value no longer has to care about the arguments,
+        -- because the action (AAction) will handle the muxing and arbitration
+        -- of arguments and there is no multiplicity for actionvalue methods
+        | AMethValue {
+            ae_type :: AType,
+            ae_objid :: AId,
+            ameth_id :: AMethodId
+        }
         -- calls a combinatorial function expressed via module instantiation
-	-- XXX this can be created not only via "noinline" in BSV,
-	-- XXX but also "foreign" in Classic syntax; consider renaming?
-	| ANoInlineFunCall {
-	    ae_type :: AType,
-	    ae_objid :: AId,
-	    ae_fun :: ANoInlineFun,
-	    ae_args :: [AExpr]
-	}
-	-- foreign function / task call
-	| AFunCall {
-	    ae_type :: AType,
-	    ae_objid :: AId,
-	    ae_funname :: String,
-	    ae_isC :: Bool,
-	    ae_args :: [AExpr]	-- external function call
-	}
+        -- XXX this can be created not only via "noinline" in BSV,
+        -- XXX but also "foreign" in Classic syntax; consider renaming?
+        | ANoInlineFunCall {
+            ae_type :: AType,
+            ae_objid :: AId,
+            ae_fun :: ANoInlineFun,
+            ae_args :: [AExpr]
+        }
+        -- foreign function / task call
+        | AFunCall {
+            ae_type :: AType,
+            ae_objid :: AId,
+            ae_funname :: String,
+            ae_isC :: Bool,
+            ae_args :: [AExpr]        -- external function call
+        }
         | ATaskValue { -- value returned by an ActionValue foreign task call
-	    ae_type :: AType,
-	    ae_objid :: AId,
-	    ae_funname :: String,
-	    ae_isC :: Bool,
-	    ae_cookie :: Integer -- "cookie" identifying the call for later fixup
+            ae_type :: AType,
+            ae_objid :: AId,
+            ae_funname :: String,
+            ae_isC :: Bool,
+            ae_cookie :: Integer -- "cookie" identifying the call for later fixup
                                  -- arguments, etc. handled by the action side of the call
-	}
-	| ASPort {	-- module ports
-	    ae_type :: AType,
-	    ae_objid :: AId
-	}
-	| ASParam {	-- module parameters
-	    ae_type :: AType,
-	    ae_objid :: AId
-	}
-	| ASDef {	-- reference to local definition or input to module
-	    ae_type :: AType,
-	    ae_objid :: AId
-	}
-	| ASInt {	-- constant
-	    ae_objid :: AId,
-	    ae_type :: AType,
-	    ae_ival :: IntLit
-	}
+        }
+        | ASPort {        -- module ports
+            ae_type :: AType,
+            ae_objid :: AId
+        }
+        | ASParam {        -- module parameters
+            ae_type :: AType,
+            ae_objid :: AId
+        }
+        | ASDef {        -- reference to local definition or input to module
+            ae_type :: AType,
+            ae_objid :: AId
+        }
+        | ASInt {        -- constant
+            ae_objid :: AId,
+            ae_type :: AType,
+            ae_ival :: IntLit
+        }
         | ASReal {      -- real-valued constant
             ae_objid :: AId,
             ae_type  :: AType,
             ae_rval  :: Double }
-	| ASStr {	-- string literal
-	    ae_objid :: AId,
-	    ae_type :: AType,
-	    ae_strval :: String
-	}
-	| ASAny {	-- don't care expression
-	    ae_type :: AType,
+        | ASStr {        -- string literal
+            ae_objid :: AId,
+            ae_type :: AType,
+            ae_strval :: String
+        }
+        | ASAny {        -- don't care expression
+            ae_type :: AType,
             ae_val  :: Maybe (AExpr)
-	}
+        }
         | ASClock {     -- abstract clock
-	    ae_type  :: AType,	-- (will vanish after AState)
-	    ae_clock :: AClock
-	}
+            ae_type  :: AType,        -- (will vanish after AState)
+            ae_clock :: AClock
+        }
         | ASReset {     -- abstract reset
-	    ae_type :: AType,	-- (will vanish after AState),
-	    ae_expr :: AReset
-	}
+            ae_type :: AType,        -- (will vanish after AState),
+            ae_expr :: AReset
+        }
         | ASInout {     -- abstract inout
-	    ae_type :: AType,	-- (will vanish after AState),
-	    ae_expi :: AInout
-	}
+            ae_type :: AType,        -- (will vanish after AState),
+            ae_expi :: AInout
+        }
 {-
         -- instead of using ASPort, ASPackage should create these:
         | AWire {
-	    ae_type :: AType,
-	    ae_objid :: AId
-	}
-	-- reset access on a submodule
-	| AMReset {
-	    ae_type :: AType, -- always ATBit 1
-	    ae_objid :: AId,
-	    ae_rstid :: AId
-	}
-	-- oscillator access on a submodule
-	| AMOsc {
-	    ae_type :: AType, -- always ATBit 1
-	    ae_objid :: AId,
-	    ae_clkid :: AId
-	}
+            ae_type :: AType,
+            ae_objid :: AId
+        }
+        -- reset access on a submodule
+        | AMReset {
+            ae_type :: AType, -- always ATBit 1
+            ae_objid :: AId,
+            ae_rstid :: AId
+        }
+        -- oscillator access on a submodule
+        | AMOsc {
+            ae_type :: AType, -- always ATBit 1
+            ae_objid :: AId,
+            ae_clkid :: AId
+        }
 -}
-	-- oscillator access on a submodule
-	| AMGate {
-	    ae_type :: AType, -- always ATBit 1
-	    ae_objid :: AId,
-	    ae_clkid :: AId
-	}
-	deriving (Ord, Show)
+        -- oscillator access on a submodule
+        | AMGate {
+            ae_type :: AType, -- always ATBit 1
+            ae_objid :: AId,
+            ae_clkid :: AId
+        }
+        deriving (Ord, Show)
 
 instance Hyper AExpr where
     hyper x y = (x==x) `seq` y
 
 instance Eq AExpr where
     APrim _ t op aexprs == APrim _ t' op' aexprs' =
-	(t == t') && (op == op') && (aexprs == aexprs')
+        (t == t') && (op == op') && (aexprs == aexprs')
 
     AMethCall t aid mid aexprs == AMethCall t' aid' mid' aexprs' =
-	(t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid')
+        (t == t') && (mid == mid') && (aexprs == aexprs') && (aid == aid')
 
     AMethValue t aid mid == AMethValue t' aid' mid' =
-	(t == t') && (mid == mid') && (aid == aid')
+        (t == t') && (mid == mid') && (aid == aid')
 
     ANoInlineFunCall t aid af aexprs == ANoInlineFunCall t' aid' af' aexprs' =
-	(t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
+        (t == t') && (af == af') && (aexprs == aexprs') && (aid == aid')
 
     AFunCall t aid af isC aexprs == AFunCall t' aid' af' isC' aexprs' =
-	(t == t') && (af == af') && (isC == isC') && (aexprs == aexprs') && (aid == aid')
+        (t == t') && (af == af') && (isC == isC') && (aexprs == aexprs') && (aid == aid')
 
     ATaskValue t aid af isC n == ATaskValue t' aid' af' isC' n' =
-	(t == t') && (aid == aid') && (af == af') && (isC == isC') && (n == n')
+        (t == t') && (aid == aid') && (af == af') && (isC == isC') && (n == n')
 
     ASPort t aid == ASPort t' aid' =
-	(t == t') && (aid == aid')
+        (t == t') && (aid == aid')
 
     ASParam t aid == ASParam t' aid' =
-	(t == t') && (aid == aid')
+        (t == t') && (aid == aid')
 
     ASDef t aid == ASDef t' aid' =
-	(t == t') && (aid == aid')
+        (t == t') && (aid == aid')
 
     ASInt _ t il == ASInt _ t' il' =
-	(t == t') && (il == il')
+        (t == t') && (il == il')
 
     ASReal _ t r == ASReal _ t' r' =
         (t == t') && (r == r')
 
     ASStr _ t str == ASStr _ t' str' =
-	(t == t') && (str == str')
+        (t == t') && (str == str')
 
     ASAny t me == ASAny t' me' =
-	((t, me) == (t', me'))
+        ((t, me) == (t', me'))
 
     ASClock t c == ASClock t' c' = c == c' -- t and t' should be aTClock
 
@@ -1151,7 +1151,7 @@ instance Eq AExpr where
     ASInout t e  == ASInout t' e' = e == e' -- t and t' should be aTInout
 
     AMGate t oid cid == AMGate t' oid' cid' =
-	(t == t') && (oid == oid') && (cid == cid')
+        (t == t') && (oid == oid') && (cid == cid')
 
     aexpr == aexpr' = False
 
@@ -1182,11 +1182,11 @@ data ANoInlineFun =
          String
          -- numeric types
          [Integer]
-	 -- port list (inputs,outputs), each is port name and size
+         -- port list (inputs,outputs), each is port name and size
          -- XXX sizes all seem to be generated as 0.
          ([(String, Integer)], [(String, Integer)])
-	 -- when an instance name is assigned to the call, it is stored here
-	 (Maybe String)
+         -- when an instance name is assigned to the call, it is stored here
+         (Maybe String)
     deriving (Eq, Ord, Show)
 
 
@@ -1196,14 +1196,14 @@ type AForeignBlock = ([AExpr], [AForeignCall])
 
 -- type not required because it is implicitly Action
 data AForeignCall =
-	AForeignCall {
+        AForeignCall {
           afc_name   :: AId,
           afc_fun    :: String,
           afc_args   :: [AExpr], -- first element of the list is the condition
                                  -- (including the WILL_FIRE of the calling rule)
           afc_writes :: [AId],   -- identifiers set by this foreign function call
           afc_resets :: [AExpr]  -- reset wires connected to this foreign function call
-	  -- inouts not connected to foreign function calls at present
+          -- inouts not connected to foreign function calls at present
        }
   deriving (Eq, Show)
 
@@ -1247,34 +1247,34 @@ cmpASInt x y = internalError("cmpASInt: " ++ show x ++ " == " ++ show y)
 
 instance PPrint APackage where
     pPrint d _ apkg =
-	(text "APackage" <+> ppId d (apkg_name apkg) <>
+        (text "APackage" <+> ppId d (apkg_name apkg) <>
          if (apkg_is_wrapped apkg) then text " -- function" else empty) $+$
         (case (apkg_backend apkg) of
-	     Nothing -> empty
-	     Just be -> text " -- backend:" <+> pPrint d 0 be) $+$
-	text "-- APackage parameters" $+$
-	pPrint d 0 (apkg_size_params apkg) $+$
-	text "-- APackage arguments" $+$
-	foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
+             Nothing -> empty
+             Just be -> text " -- backend:" <+> pPrint d 0 be) $+$
+        text "-- APackage parameters" $+$
+        pPrint d 0 (apkg_size_params apkg) $+$
+        text "-- APackage arguments" $+$
+        foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
         text "-- APackage wire info" $+$
         pPrint d 0 (apkg_external_wires apkg) $+$
         text "-- APackage clock domains" $+$
         pPrint d 0 (apkg_clock_domains apkg) $+$
         text "-- APackage resets" $+$
         pPrint d 0 (apkg_reset_list apkg) $+$
-	text "-- AP state elements" $+$
-	foldr ($+$) empty (map (pPrint d 0) (apkg_state_instances apkg)) $+$
-	text "-- AP local definitions" $+$
-	foldr ($+$) empty (map (pPrint d 0) (apkg_local_defs apkg)) $+$
-	text "-- AP rules" $+$
-	foldr ($+$) empty (map (pPrint d 0) (apkg_rules apkg)) $+$
-	text "-- AP scheduling pragmas" $+$
-	pPrint d 0 (apkg_schedule_pragmas apkg) $+$
-	text "-- AP interface" $+$
-	foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
+        text "-- AP state elements" $+$
+        foldr ($+$) empty (map (pPrint d 0) (apkg_state_instances apkg)) $+$
+        text "-- AP local definitions" $+$
+        foldr ($+$) empty (map (pPrint d 0) (apkg_local_defs apkg)) $+$
+        text "-- AP rules" $+$
+        foldr ($+$) empty (map (pPrint d 0) (apkg_rules apkg)) $+$
+        text "-- AP scheduling pragmas" $+$
+        pPrint d 0 (apkg_schedule_pragmas apkg) $+$
+        text "-- AP interface" $+$
+        foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
                            pPrint d 0 i | i <- apkg_interface apkg] $+$
-	text "-- AP instance comments" $+$
-	foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
+        text "-- AP instance comments" $+$
+        foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
@@ -1287,18 +1287,18 @@ ppV d (i, t) = pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";"
 instance PPrint AAbstractInput where
     pPrint d p (AAI_Port v) = ppV d v
     pPrint d p (AAI_Clock osc Nothing) =
-	text "clock {" <+>
-	(text "osc =" <+> pPrint d 0 osc) <+>
-	text "}"
+        text "clock {" <+>
+        (text "osc =" <+> pPrint d 0 osc) <+>
+        text "}"
     pPrint d p (AAI_Clock osc (Just gate)) =
-	text "clock {" <+>
-	(text "osc =" <+> pPrint d 0 osc <> text "," <+>
-	 text "gate =" <+> pPrint d 0 gate) <+>
-	text "}"
+        text "clock {" <+>
+        (text "osc =" <+> pPrint d 0 osc <> text "," <+>
+         text "gate =" <+> pPrint d 0 gate) <+>
+        text "}"
     pPrint d p (AAI_Reset r) =
-	text "reset {" <+> pPrint d 0 r <+> text "}"
+        text "reset {" <+> pPrint d 0 r <+> text "}"
     pPrint d p (AAI_Inout r n) =
-	text "inout {" <+> pPrint d 0 r <> text"[" <> pPrint d 0 n <> text"]" <+> text "}"
+        text "inout {" <+> pPrint d 0 r <> text"[" <> pPrint d 0 n <> text"]" <+> text "}"
 
 instance PPrint AVInst where
     pPrint d _ (AVInst i t ui mts pts vi es ns) =
@@ -1314,43 +1314,43 @@ ppVTI d (vi, es, ns) = sep [pPrint d 0 (vName vi), pPrint d 0 vi, pPrint d 0 es,
 
 instance PPrint ASPackage where
     pPrint d p pack@(ASPackage mi fmod ps exps is ios ss sos ds iods fs ws ids cmap) =
-	(text "ASPackage" <+> ppId d mi <> if fmod then text " -- function" else text "") $+$
-	text "-- ASPackage parameters" $+$
-	(text "" <+> sep (map (pPrint d 0) ps) <> text ";") $+$
-	text "-- ASPackage outputs" $+$
-	(text "" <+> sep (map (pPrint d 0) exps) <> text ";") $+$
-	text "-- ASPackage inputs" $+$
-	foldr ($+$) (text "") (map (ppV d) is) $+$
-	text "-- ASPackage inouts" $+$
-	foldr ($+$) (text "") (map (ppV d) ios) $+$
-	text "-- ASP state elements" $+$
-	foldr ($+$) (text "") (map (pPrint d 0) ss) $+$
-	text "-- ASP state elements outputs" $+$
-	foldr ($+$) (text "") (map (ppV d) sos) $+$
+        (text "ASPackage" <+> ppId d mi <> if fmod then text " -- function" else text "") $+$
+        text "-- ASPackage parameters" $+$
+        (text "" <+> sep (map (pPrint d 0) ps) <> text ";") $+$
+        text "-- ASPackage outputs" $+$
+        (text "" <+> sep (map (pPrint d 0) exps) <> text ";") $+$
+        text "-- ASPackage inputs" $+$
+        foldr ($+$) (text "") (map (ppV d) is) $+$
+        text "-- ASPackage inouts" $+$
+        foldr ($+$) (text "") (map (ppV d) ios) $+$
+        text "-- ASP state elements" $+$
+        foldr ($+$) (text "") (map (pPrint d 0) ss) $+$
+        text "-- ASP state elements outputs" $+$
+        foldr ($+$) (text "") (map (ppV d) sos) $+$
         text "-- ASP inlined rwire ports" $+$
         foldr ($+$) (text "") (map (pPrint d 0) ws) $+$
-	text "-- ASP definitions" $+$
-	foldr ($+$) (text "") (map (pPrint d 0) ds) $+$
-	text "-- ASP inout definitions" $+$
-	foldr ($+$) (text "") (map (pPrint d 0) iods) $+$
+        text "-- ASP definitions" $+$
+        foldr ($+$) (text "") (map (pPrint d 0) ds) $+$
+        text "-- ASP inout definitions" $+$
+        foldr ($+$) (text "") (map (pPrint d 0) iods) $+$
         text "-- ASP foreign function calls" $+$
         foldr ($+$) (text "") (map (pPrint d 0) fs) $+$
         text "--ASP Signal Info" $+$ pPrint d 0 (aspkg_signal_info pack)
 
 instance PPrint ASchedule where
      pPrint d p (ASchedule groups order) = (text "parallel:" <+> pPrint d 0 groups)
-					   $+$ (text "order:" <+> pPrint d 0 (reverse order))
+                                           $+$ (text "order:" <+> pPrint d 0 (reverse order))
 
 instance PPrint AScheduler where
      pPrint d p (ASchedEsposito fs) =
-	 let ppDep (r,cfs) = pPrint d 0 r <+> text "->" <+> pPrint d 0 cfs
-	 in  text "esposito:" <+> text "[" <> sep (punctuate (text ",") (map ppDep fs)) <> text "]"
+         let ppDep (r,cfs) = pPrint d 0 r <+> text "->" <+> pPrint d 0 cfs
+         in  text "esposito:" <+> text "[" <> sep (punctuate (text ",") (map ppDep fs)) <> text "]"
 
 
 instance PPrint ADef where
     pPrint d _ (ADef i t e props) =
-	(pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";") $+$
-	(pPrint d 0 i <> text "  =" <+> pPrint d 0 e <> text ";") $+$
+        (pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";") $+$
+        (pPrint d 0 i <> text "  =" <+> pPrint d 0 e <> text ";") $+$
         (if (null $ getIdProps i) then empty else
            text "-- IdProp" <+> text (show i) ) $+$
         (if (null props) then empty else
@@ -1362,42 +1362,42 @@ pPred d p pred = text "pred: " <+> pPrint d p pred
 instance PPrint AIFace where
     -- XXX print assumptions
     pPrint d p ai@(AIDef {} )  =
-	(text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
+        (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
         foldr ($+$) empty (map (ppV d) (aif_inputs ai)) $+$
-	pPrint d 0 (aif_value ai) $+$
-	pPred d p (aif_pred ai) $+$
+        pPrint d 0 (aif_value ai) $+$
+        pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
         pPrint d 0 (aif_fieldinfo ai) $+$
-	text ""
+        text ""
     pPrint d p ai@(AIAction {} ) =
-	(text "--AIAction" <+> pPrint d p (aif_name ai)) $+$
-	foldr ($+$) empty (map (ppV d) (aif_inputs ai)) $+$
-	pPrint d p (aif_body ai) $+$
-	pPred d p (aif_pred ai) $+$
-        pPrint d 0 (aif_props ai) $+$
-        pPrint d 0 (aif_fieldinfo ai) $+$
-	text ""
-    pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
-	(text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
-	foldr ($+$) empty (map (ppV d) (aif_inputs ai) ) $+$
-	pPrint d p (aif_value ai) $+$
+        (text "--AIAction" <+> pPrint d p (aif_name ai)) $+$
+        foldr ($+$) empty (map (ppV d) (aif_inputs ai)) $+$
         pPrint d p (aif_body ai) $+$
-	pPred d p (aif_pred ai) $+$
+        pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
         pPrint d 0 (aif_fieldinfo ai) $+$
-	text ""
+        text ""
+    pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
+        (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
+        foldr ($+$) empty (map (ppV d) (aif_inputs ai) ) $+$
+        pPrint d p (aif_value ai) $+$
+        pPrint d p (aif_body ai) $+$
+        pPred d p (aif_pred ai) $+$
+        pPrint d 0 (aif_props ai) $+$
+        pPrint d 0 (aif_fieldinfo ai) $+$
+        text ""
     pPrint d p (AIClock i c _) = pPrint d 0 c
     pPrint d p (AIReset i r _) = pPrint d 0 r
     pPrint d p (AIInout i r _) = pPrint d 0 r
 
 instance PPrint ARule where
     pPrint d@PDDebug _ (ARule s _ _ _ p as _ _) =
-	(text "rule" <+> pPrint d 0 s)
+        (text "rule" <+> pPrint d 0 s)
     pPrint d _ (ARule s rps sd wp p as asmps _) =
-	vcat (map (pPrint d 0) rps) $+$
-	(text "rule" <+> pPrint d 0 s <> text (" " ++ show sd) <> text ":") $+$
-	(text " when" <+> pPrint d 0 p) $+$
-	(text "  ==>" <+> ppActions d as) $+$
+        vcat (map (pPrint d 0) rps) $+$
+        (text "rule" <+> pPrint d 0 s <> text (" " ++ show sd) <> text ":") $+$
+        (text " when" <+> pPrint d 0 p) $+$
+        (text "  ==>" <+> ppActions d as) $+$
         pPrint d 0 asmps $+$
         pPrint d 0 wp
 
@@ -1407,21 +1407,21 @@ instance PPrint AAssumption where
         text "else " <+> pPrint d p as
 
 ppActions d as = text "{" <+> sep (map ppA as) <+> text "}"
-	where ppA a = pPrint d 0 a <> text ";"
+        where ppA a = pPrint d 0 a <> text ";"
 
 -- AFCall/ATaskAction prints i instead of the string name
 -- to print the Bluespec function being called, not the foreign one
 instance PPrint AAction where
     pPrint d _ (ACall i m (c : es)) | isOne c = pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es)
     pPrint d _ (ACall i m (c : es)) = sep [
-	text "if" <+> pPrint d 0 c <+> text "then",
-	nest 2 (pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es))
-	]
+        text "if" <+> pPrint d 0 c <+> text "then",
+        nest 2 (pPrint d 0 i <> text "." <> ppMethId d m <+> sep (map (pPrint d 1) es))
+        ]
     pPrint d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrint d 1) es)
     pPrint d _ (AFCall i _ _ (c : es) _) = sep [
-	text "if" <+> pPrint d 0 c <+> text "then",
-	nest 2 (pPrint d 0 i <+> sep (map (pPrint d 1) es))
-	]
+        text "if" <+> pPrint d 0 c <+> text "then",
+        nest 2 (pPrint d 0 i <+> sep (map (pPrint d 1) es))
+        ]
     pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrint d 1) es)
     pPrint d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
         text "if" <+> pPrint d 0 c <+> text "then",
@@ -1467,30 +1467,30 @@ instance PPrint AExpr where
     pPrint d p (APrim _ _ o es@(_:_:_)) | binOp o =
       pparen (p>0) $ sepList (map (pPrint d 1) es) (text "" <+> pPrint d 1 o)
     pPrint d p (APrim _ _ PrimCase (e:dd:ces)) =
-	(text "case" <+> pPrint d 0 e <+> text "of") $+$
-	foldr ($+$) (text "_ ->" <+> pPrint d 0 dd) (f ces)
-	  where f [] = []
-		f (x:y:xs) = (pPrint d 0 x <+> text "->" <+> pPrint d 0 y) : f xs
-    		f x = internalError ("pPrint AExpr Aprim binOp: " ++ show x)
+        (text "case" <+> pPrint d 0 e <+> text "of") $+$
+        foldr ($+$) (text "_ ->" <+> pPrint d 0 dd) (f ces)
+          where f [] = []
+                f (x:y:xs) = (pPrint d 0 x <+> text "->" <+> pPrint d 0 y) : f xs
+                f x = internalError ("pPrint AExpr Aprim binOp: " ++ show x)
     pPrint d p (APrim _ _ PrimPriMux es) = pparen (p>0) $
-	text "primux" <+> sep (f es)
-	  where f [] = []
-		f (x:y:xs) = pparen True (sep [pPrint d 0 x <> text ",", pPrint d 0 y]) : f xs
-    		f x = internalError ("pPrint AExpr Aprim PriMux 1: " ++ show x)
+        text "primux" <+> sep (f es)
+          where f [] = []
+                f (x:y:xs) = pparen True (sep [pPrint d 0 x <> text ",", pPrint d 0 y]) : f xs
+                f x = internalError ("pPrint AExpr Aprim PriMux 1: " ++ show x)
     pPrint d p (APrim _ _ PrimMux es) = pparen (p>0) $
-	text "mux" <+> sep (f es)
-	  where f [] = []
-		f (x:y:xs) = pparen True (sep [pPrint d 0 x <> text ",", pPrint d 0 y]) : f xs
-    		f x = internalError ("pPrint AExpr Aprim PriMux 2: " ++ show x)
+        text "mux" <+> sep (f es)
+          where f [] = []
+                f (x:y:xs) = pparen True (sep [pPrint d 0 x <> text ",", pPrint d 0 y]) : f xs
+                f x = internalError ("pPrint AExpr Aprim PriMux 2: " ++ show x)
     pPrint d p (APrim _ _ o es) = pparen (p>0) $ pPrint d 1 o <+> sep (map (pPrint d 1) es)
     pPrint d p (ANoInlineFunCall _ i _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (AFunCall _ i _ _ es)  = pparen (p>0) $ pPrint d 1 i <+> sep (map (pPrint d 1) es)
     pPrint d p (ATaskValue _ i _ _ n) = pparen (p>0) $ pPrint d 1 i <> text ("#" ++ itos(n))
     pPrint d p (AMethCall _ i m es) =
-	pparen (p>0 && not (null es)) $
-	pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
+        pparen (p>0 && not (null es)) $
+        pPrint d 1 i <> sep (text "." <> ppMethId d m : map (pPrint d 1) es)
     pPrint d p (AMethValue _ i m) =
-	pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
+        pparen (p>0) $ pPrint d 1 i <> text "." <> ppMethId d m
     pPrint d p (ASPort _ i) = pPrint d p i
     pPrint d p (ASParam _ i) = pPrint d p i
     pPrint d p (ASDef _ i) = pPrint d p i
@@ -1504,7 +1504,7 @@ instance PPrint AExpr where
     pPrint d p (ASReset _ r) = text "reset" <+> pPrint d p r
     pPrint d p (ASInout _ r) = text "inout" <+> pPrint d p r
     pPrint d p (AMGate _ o c) =
-	pPrint d 1 o <> text "." <> pPrint d 1 c <> text ".gate"
+        pPrint d 1 o <> text "." <> pPrint d 1 c <> text ".gate"
 
 ppMethId d@PDReadable m = ppId d (unQualId m)
 ppMethId d m = ppId d m
@@ -1522,15 +1522,15 @@ instance PPrint AType where
 
 binOp :: PrimOp -> Bool
 binOp p = p `elem`
-	[PrimAdd, PrimSub, PrimAnd, PrimOr, PrimXor,
+        [PrimAdd, PrimSub, PrimAnd, PrimOr, PrimXor,
          PrimMul, PrimQuot, PrimRem,
-	 PrimSL, PrimSRL, PrimSRA,
-	 PrimEQ, PrimEQ3,
-	 PrimULE, PrimULT,
-	 PrimSLE, PrimSLT,
-	 PrimBAnd, PrimBOr,
+         PrimSL, PrimSRL, PrimSRA,
+         PrimEQ, PrimEQ3,
+         PrimULE, PrimULT,
+         PrimSLE, PrimSLT,
+         PrimBAnd, PrimBOr,
          PrimConcat
-	]
+        ]
 
 
 -- PRETTY PRINTING WITH DEFINITION EXPANSION --
@@ -1592,9 +1592,9 @@ ppeString ds ec =
 instance (PPrintExpand a) => PPrintExpand [a] where
     pPrintExpand _ d _ [] = text "[]"
     pPrintExpand m d _ xs = let (y:ys) = reverse (map (pPrintExpand m d defContext) xs)
-				ys' = map (<> text ",") ys
-				xs' = reverse (y:ys')
-			    in  text "[" <> sep xs' <> text "]"
+                                ys' = map (<> text ",") ys
+                                xs' = reverse (y:ys')
+                            in  text "[" <> sep xs' <> text "]"
 
 ppeAPackage :: Int -> PDetail -> APackage -> Doc
 ppeAPackage lim d apkg@(APackage { apkg_local_defs = ds }) =
@@ -1602,34 +1602,34 @@ ppeAPackage lim d apkg@(APackage { apkg_local_defs = ds }) =
                           ,lookupLimit = lim
                           ,lookupLevel = 0 }
      in
-	(text "APackage" <+> ppId d (apkg_name apkg) <>
+        (text "APackage" <+> ppId d (apkg_name apkg) <>
          if apkg_is_wrapped apkg then text " -- function" else text "") $+$
         (case (apkg_backend apkg) of
-	     Nothing -> empty
-	     Just be -> text " -- backend:" <+> pPrint d 0 be) $+$
-	text "-- APackage parameters" $+$
-	pPrint d 0 (apkg_size_params apkg) $+$
-	text "-- APackage arguments" $+$
-	foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
+             Nothing -> empty
+             Just be -> text " -- backend:" <+> pPrint d 0 be) $+$
+        text "-- APackage parameters" $+$
+        pPrint d 0 (apkg_size_params apkg) $+$
+        text "-- APackage arguments" $+$
+        foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
         text "-- APackage wire info" $+$
         pPrint d 0 (apkg_external_wires apkg) $+$
         text "-- APackage clock domains" $+$
         pPrint d 0 (apkg_clock_domains apkg) $+$
         text "-- APackage resets" $+$
         pPrint d 0 (apkg_reset_list apkg) $+$
-	text "-- AP state elements" $+$
-	foldr ($+$) empty (map (ppeVI edef d) (apkg_state_instances apkg)) $+$
---	text "-- AP local definitions" $+$
---	foldr ($+$) empty (map (pPrintExpand edef d 0) (apkg_local_defs apkg)) $+$
-	text "-- AP rules" $+$
-	foldr ($+$) empty (map (pPrintExpand edef d defContext) (apkg_rules apkg)) $+$
-	text "-- AP scheduling pragmas" $+$
-	pPrint d 0 (apkg_schedule_pragmas apkg) $+$
-	text "-- AP interface" $+$
-	foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
+        text "-- AP state elements" $+$
+        foldr ($+$) empty (map (ppeVI edef d) (apkg_state_instances apkg)) $+$
+--        text "-- AP local definitions" $+$
+--        foldr ($+$) empty (map (pPrintExpand edef d 0) (apkg_local_defs apkg)) $+$
+        text "-- AP rules" $+$
+        foldr ($+$) empty (map (pPrintExpand edef d defContext) (apkg_rules apkg)) $+$
+        text "-- AP scheduling pragmas" $+$
+        pPrint d 0 (apkg_schedule_pragmas apkg) $+$
+        text "-- AP interface" $+$
+        foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
                            pPrintExpand edef d defContext i | i <- apkg_interface apkg] $+$
-	text "-- AP instance comments" $+$
-	foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
+        text "-- AP instance comments" $+$
+        foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
@@ -1648,18 +1648,18 @@ ppeVTI m d (vi, es, ns) =
 instance PPrintExpand AIFace where
     -- XXX print assumptions
     pPrintExpand m d ec (AIDef id is wp g b _ _) =
-	(text "--" <+> pPrint d (getP ec) g) $+$
-	foldr ($+$) (pPrint d (getP ec) b) (map (ppV d) is) $+$
-	text ""
-    pPrintExpand m d ec (AIAction is wp g _ rs _) =
-	(text "--" <+> pPrint d (getP ec) g) $+$
-	foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
-	text ""
-    pPrintExpand m d ec (AIActionValue is wp g _ rs b _) =
-	(text "--" <+> pPrint d (getP ec) g) $+$
-	foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
+        (text "--" <+> pPrint d (getP ec) g) $+$
         foldr ($+$) (pPrint d (getP ec) b) (map (ppV d) is) $+$
-	text ""
+        text ""
+    pPrintExpand m d ec (AIAction is wp g _ rs _) =
+        (text "--" <+> pPrint d (getP ec) g) $+$
+        foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
+        text ""
+    pPrintExpand m d ec (AIActionValue is wp g _ rs b _) =
+        (text "--" <+> pPrint d (getP ec) g) $+$
+        foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
+        foldr ($+$) (pPrint d (getP ec) b) (map (ppV d) is) $+$
+        text ""
     pPrintExpand m d ec (AIClock i c _) = pPrint d (getP ec) c
     pPrintExpand m d ec (AIReset i r _) = pPrint d (getP ec) r
     pPrintExpand m d ec (AIInout i r _) = pPrint d (getP ec) r
@@ -1667,35 +1667,35 @@ instance PPrintExpand AIFace where
 instance PPrintExpand ARule where
     -- XXX print assumptions
     pPrintExpand m d@PDDebug _ (ARule s _ _ _ p as _ _) =
-	(text "rule" <+> pPrint d 0 s)
+        (text "rule" <+> pPrint d 0 s)
     pPrintExpand m d _ (ARule s rps sd wp p as _ _) =
-	vcat (map (pPrint d 0) rps) $+$
-	(text "rule" <+> pPrint d 0 s <> text (" " ++ show sd) <> text ":") $+$
-	(text " when" <+> pPrintExpand m d bContext  p) $+$
-	(text "  ==>" <+> ppeActions m d as)
+        vcat (map (pPrint d 0) rps) $+$
+        (text "rule" <+> pPrint d 0 s <> text (" " ++ show sd) <> text ":") $+$
+        (text " when" <+> pPrintExpand m d bContext  p) $+$
+        (text "  ==>" <+> ppeActions m d as)
 
 ppeActions m d as = text "{" <+> sep (map ppeA as) <+> text "}"
-	where ppeA a = pPrintExpand m d defContext a <> text ";"
+        where ppeA a = pPrintExpand m d defContext a <> text ";"
 
 instance PPrintExpand AAction where
     pPrintExpand m d _ (ACall i meth (c : es)) | isOne c =
-	pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es)
+        pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es)
     pPrintExpand m d _ (ACall i meth (c : es)) = sep [
-	text "if" <+> pPrintExpand m d bContext c <+> text "then",
-	nest 2 (pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es))
-	]
+        text "if" <+> pPrintExpand m d bContext c <+> text "then",
+        nest 2 (pPrint d 0 i <> text "." <> ppMethId d meth <+> sep (map (pPrintExpand m d pContext) es))
+        ]
     pPrintExpand m d _ (AFCall i _ _ (c : es) _) | isOne c = pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es)
     pPrintExpand m d _ (AFCall i _ _ (c : es) _) = sep [
-	text "if" <+> pPrintExpand m d bContext c <+> text "then",
-	nest 2 (pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es))
+        text "if" <+> pPrintExpand m d bContext c <+> text "then",
+        nest 2 (pPrint d 0 i <+> sep (map (pPrintExpand m d pContext) es))
 
-	]
+        ]
     pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) | isOne c = pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es)
     pPrintExpand m d _ (ATaskAction i _ _ n (c : es) _ _ _) = sep [
-	text "if" <+> pPrintExpand m d defContext c <+> text "then",
-	nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es))
+        text "if" <+> pPrintExpand m d defContext c <+> text "then",
+        nest 2 (pPrint d 0 i <> text ("#" ++ itos(n)) <+> sep (map (pPrintExpand m d pContext) es))
 
-	]
+        ]
     pPrintExpand _ _ _  x = internalError ("pPrintExpand AAction: " ++ show x)
 
 
@@ -1726,28 +1726,28 @@ instance PPrintExpand AExpr where
                   p = useParen ec
 
     pPrintExpand m d ec (APrim _ _ PrimCase (e:dd:ces)) =
-	(text "case" <+> pPrintExpand m d ec' e <+> text "of") $+$
-	foldr ($+$) (text "_ ->" <+> pPrintExpand m d ec' dd) (f ces)
-	  where ec' = defContext
+        (text "case" <+> pPrintExpand m d ec' e <+> text "of") $+$
+        foldr ($+$) (text "_ ->" <+> pPrintExpand m d ec' dd) (f ces)
+          where ec' = defContext
                 f [] = []
-		f (x:y:xs) = (pPrintExpand m d ec' x <+> text "->" <+> pPrintExpand m d ec' y) : f xs
-		f  x = internalError ("pPrintExpand APrim _ PrimCase: " ++ show x)
+                f (x:y:xs) = (pPrintExpand m d ec' x <+> text "->" <+> pPrintExpand m d ec' y) : f xs
+                f  x = internalError ("pPrintExpand APrim _ PrimCase: " ++ show x)
     pPrintExpand m d ec (APrim _ _ PrimPriMux es) = pparen (p) $
-	text "primux" <+> sep (f es)
-	  where p = useParen ec
+        text "primux" <+> sep (f es)
+          where p = useParen ec
                 ec' = defContext { literal= literal ec}
                 ecb = defContext { literal=Boolean }
                 f [] = []
-		f (x:y:xs) = parens (sep [pPrintExpand m d ecb x <> comma,  pPrintExpand m d ec' y]) : f xs
-		f  x = internalError ("pPrintExpand APrim _ PrimPriMux: " ++ show x)
+                f (x:y:xs) = parens (sep [pPrintExpand m d ecb x <> comma,  pPrintExpand m d ec' y]) : f xs
+                f  x = internalError ("pPrintExpand APrim _ PrimPriMux: " ++ show x)
     pPrintExpand m d ec (APrim _ _ PrimMux es) = pparen (p) $
-	text "mux" <+> sep (f es)
-	  where p = useParen ec
+        text "mux" <+> sep (f es)
+          where p = useParen ec
                 ec' = defContext { literal= literal ec}
                 ecb = defContext { literal=Boolean }
                 f [] = []
-		f (x:y:xs) = parens (sep [pPrintExpand m d ecb x <> comma , pPrintExpand m d ec' y]) : f xs
-		f  x = internalError ("pPrintExpand APrim: " ++ show x)
+                f (x:y:xs) = parens (sep [pPrintExpand m d ecb x <> comma , pPrintExpand m d ec' y]) : f xs
+                f  x = internalError ("pPrintExpand APrim: " ++ show x)
     pPrintExpand m d ec (APrim _ _ PrimExtract (var:hi:lo:[])) =
         pPrintExpand m d pContext var <> lbrack
                        <> (if ( dhi == dlo )
@@ -1825,13 +1825,13 @@ data MethodPart =
 -- and infinite number of ports (like a register)
 mkMethId :: Id -> Id -> Maybe Integer -> MethodPart -> Id
 mkMethId o m ino mp =
-	-- trace ("POS O: " ++ (show (getIdPosition o)) ++ " " ++
+        -- trace ("POS O: " ++ (show (getIdPosition o)) ++ " " ++
         --        "POS M: " ++ (show (getIdPosition m))) $
-	addIdProps
-	    (mkId (getIdPosition o) idstring)
-	    (IdPMeth : (enprops ++ getIdProps o))
-	where
-	  idstring = (mkMethStr o m ino mp)
+        addIdProps
+            (mkId (getIdPosition o) idstring)
+            (IdPMeth : (enprops ++ getIdProps o))
+        where
+          idstring = (mkMethStr o m ino mp)
           enprops = if mp == MethodEnable then [IdP_enable] else []
 
 isMethId :: Id -> Bool
@@ -1846,21 +1846,21 @@ mkMethStr obj m m_port mp =
                                       [meth_base,
                                        fsUnderscore,
                                        mkNumFString port]
-	base = case mp of
-		   MethodArg n ->
-		       if (n == 0)
-		       then internalError "mkMethStr"
-		       else concatFString [meth_port,
-					   fsUnderscore,
-					   mkNumFString n]
-		   MethodResult -> meth_port
-		   MethodEnable ->
-		       -- XXX are we overloading fsEnable?
-		       concatFString [fsEnable, meth_port]
-	inst = getIdFString obj
+        base = case mp of
+                   MethodArg n ->
+                       if (n == 0)
+                       then internalError "mkMethStr"
+                       else concatFString [meth_port,
+                                           fsUnderscore,
+                                           mkNumFString n]
+                   MethodResult -> meth_port
+                   MethodEnable ->
+                       -- XXX are we overloading fsEnable?
+                       concatFString [fsEnable, meth_port]
+        inst = getIdFString obj
     in  concatFString [inst,
-		       fsDollar,
-		       base]
+                       fsDollar,
+                       base]
 
 -- #############################################################################
 -- #

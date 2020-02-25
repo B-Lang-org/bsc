@@ -25,7 +25,7 @@ import PPrint
 
 simCOpt :: Flags -> InstModMap ->
            ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo) ->
-	   ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo)
+           ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo)
 simCOpt flags instmodmap (blocks, scheds, clk_groups, gate_info) =
   let (blocks1,scheds1) = moveDefsOntoStack flags instmodmap (blocks,scheds)
       blocks2           = map (mapBlockFns removeUnusedLocals) blocks1
@@ -77,9 +77,9 @@ getFnRefs is_sched fn = concatMap (helper (sf_name fn, is_sched)) (sf_body fn)
         helper fl (SFSResets stmts)           = concatMap (helper fl) stmts
         helper fl (SFSReturn Nothing)         = []
         helper fl (SFSReturn (Just e))        = fl `readsIds` (aVars e)
-	helper fl (SFSOutputReset rstId e)    =
-	    -- the rstId doesn't exist as an entity in the SimCCBlock
-	    fl `readsIds` (aVars e)
+        helper fl (SFSOutputReset rstId e)    =
+            -- the rstId doesn't exist as an entity in the SimCCBlock
+            fl `readsIds` (aVars e)
 
 
 -- ---------------------
@@ -152,13 +152,13 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
       -- wide values into the function, since they pay a construction penalty
       -- on each call.  also don't move string constructors.
       shouldMove (sbid,aid) =
-	  let sizeOkToMove = case (M.lookup (sbid,aid) btype_map) of
-				 (Just ty) -> (ty == ATReal) ||
+          let sizeOkToMove = case (M.lookup (sbid,aid) btype_map) of
+                                 (Just ty) -> (ty == ATReal) ||
                                               ((not (isStringType ty)) &&
                                                ((aSize ty) <= 64))
-				 Nothing   -> False
-	      -- don't move AV task defs
-	      exprOkToMove = S.notMember (sbid,aid) atask_set
+                                 Nothing   -> False
+              -- don't move AV task defs
+              exprOkToMove = S.notMember (sbid,aid) atask_set
               -- only move CF or WF if -keep-fires is not set
               cfwfOkToMove = not ((isFire aid) && (keepFires flags))
               -- only move ports if -keep-fires is not set
@@ -167,7 +167,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
               -- do not move ports if this is the top module of a SystemC model
               isTopSysC = (genSysC flags) && (top_sbid == (Just sbid))
               syscOkToMove = not (isPort && isTopSysC)
-	  in and [ sizeOkToMove
+          in and [ sizeOkToMove
                  , exprOkToMove
                  , cfwfOkToMove
                  , portOkToMove

@@ -161,7 +161,7 @@ data Flags = Flags {
         warnUndetPred :: Bool
         }
 -- don't derive Show -- it causes an optimized ghc build to take a long time
---	deriving (Show)
+--        deriving (Show)
 
 data Verbosity = Quiet | Normal | Verbose | ExtraVerbose
    deriving(Eq, Show, Ord, Enum)

@@ -63,7 +63,7 @@ instance Hyper IntLit where
 
 instance PVPrint IntLit where
      pvPrint d p (IntLit { ilValue = i, ilWidth = w, ilBase = b }) =
-	 text $ intFormat w b i
+         text $ intFormat w b i
 
 intFormat :: Maybe Integer -> Integer -> Integer -> String
 intFormat mwidth base value | value < 0 = '-' : intFormat mwidth base (-value)

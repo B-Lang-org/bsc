@@ -61,7 +61,7 @@ iConvPackage errh flags r (CPackage pi _ _ _ ds _) =
 
 iConvDef :: ErrorHandle -> Flags -> SymTab -> IPackage a -> CDefn -> IDef a
 iConvDef errh flags r (IPackage pi _ _ ds) def =
-    let	env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds])
+    let env = M.fromList ([(i, ICon i (ICDef t e)) | IDef i t e _ <- ds])
         pvs = map IVar tmpVarIds
     in  case iConvD errh flags pi r env pvs def of
         [d] -> d
@@ -79,7 +79,7 @@ iConvVar flags r env i =
                 Just (VarInfo (VarForg name mps) (_ :>: sc) _) ->
                         let t = iConvSc flags r sc
                             ops' = case mps of
-                                   Just (ips, [op]) -> Just (zip ips (repeat 0), [(op, 0)])	-- XXX a hack for single output
+                                   Just (ips, [op]) -> Just (zip ips (repeat 0), [(op, 0)])        -- XXX a hack for single output
                                    Just (ips, ops) -> Just (addSizes ips ops [] t)
                                    Nothing -> Nothing
                             addSizes (i:is) ops ins (ITAp (ITAp arr (ITAp bit (ITNum n))) r) | arr == itArrow && bit == itBit =
@@ -559,7 +559,7 @@ getMethodType flags r ti ts m = iInst selty ts
 iConvR :: ErrorHandle -> Flags -> SymTab -> Env a ->
           IPVars a -> CRule -> IExpr a
 iConvR errh flags r env pvs rule@(CRule rps i qs a) =
-    let	(p, bindFn, env') = iConvQs errh flags r env pvs qs
+    let (p, bindFn, env') = iConvQs errh flags r env pvs qs
         a' = bindFn $ iConvE errh flags r env' pvs a
         s = case i of Nothing -> iMkStringAt (getPosition rule) ""
                       Just i -> iConvE errh flags r env pvs i
@@ -700,7 +700,7 @@ splitITApCon t = case (splitITAp t) of
 -- Get first argument to a (possibly quantified) function
 argType :: IType -> IType
 argType (ITAp (ITAp arr a) _) | arr == itArrow = a
-argType (ITForAll _ _ t) = argType t	-- A hack...
+argType (ITForAll _ _ t) = argType t        -- A hack...
 argType t = internalError ("argType: " ++ ppReadable t)
 
 -- Drop first argument to a (possibly quantified) function

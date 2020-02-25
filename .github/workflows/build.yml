@@ -18,9 +18,9 @@ jobs:
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
           git submodule sync --recursive
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-      - name: Check trailing whitespace
+      - name: Check tabs and whitespace
         shell: bash
-        run: ".github/workflows/check_trailing_whitespace.sh"
+        run: ".github/workflows/check_whitespace.sh"
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_ubuntu.sh"

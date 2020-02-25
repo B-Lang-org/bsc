@@ -29,13 +29,13 @@ iInline inlSimp = iInline1 . iInlineS inlSimp -- . iSortDs
 iSortDs :: IModule a -> IModule a
 iSortDs imod@(IModule { imod_local_defs = ds }) =
     let g = [(i, fdVars e) | IDef i _ e _ <- ds ]
-	m = M.fromList [(i, d) | d@(IDef i _ _ _) <- ds]
-	get i = case M.lookup i m of
-		Nothing -> internalError ("iSortDs: lookup: " ++ ppReadable i)
-		Just d -> d
-	ds' = case tsort g of
-		Left iss -> internalError ("iSortDs: cyclic definition: " ++ ppReadable iss)
-		Right is -> map get is
+        m = M.fromList [(i, d) | d@(IDef i _ _ _) <- ds]
+        get i = case M.lookup i m of
+                Nothing -> internalError ("iSortDs: lookup: " ++ ppReadable i)
+                Just d -> d
+        ds' = case tsort g of
+                Left iss -> internalError ("iSortDs: cyclic definition: " ++ ppReadable iss)
+                Right is -> map get is
     in  imod { imod_local_defs = ds' }
 
 
@@ -51,34 +51,34 @@ iInlineS True imod@(IModule { imod_local_defs = ds,
                               imod_rules      = rs,
                               imod_interface  = ifc}) =
     let smap = M.fromList [ (i, iSubst smap dmap e) | IDef i _ e _ <- ds, not (isKeepId i), simple e ]
-	ds' = iDefsMap (iSubst smap dmap) ds
+        ds' = iDefsMap (iSubst smap dmap) ds
         dmap = M.fromList [ (i, e) | IDef i t e _ <- ds' ]
-	ifc' = map (inline_ifc smap dmap) ifc
-	rs' = irulesMap (iSubst smap dmap) rs
+        ifc' = map (inline_ifc smap dmap) ifc
+        rs' = irulesMap (iSubst smap dmap) rs
         state_vars' = [ (name, sv { isv_iargs = es' })
                       | (name, sv@(IStateVar { isv_iargs = es }))
                             <- imod_state_insts imod,
                         let es' = map (iSubst smap dmap) es ]
-	-- concatenation and bit selection are just wires, inline them
+        -- concatenation and bit selection are just wires, inline them
         -- this is to improve the performance of the ITransform pass
         -- ITransform should re-CSE anything that it does not simplify
-	simple (IAps (ICon _ (ICPrim _ PrimConcat)) _ [e1, e2]) = simple e1 && simple e2
-	simple (IAps (ICon _ (ICPrim _ PrimSelect)) _ [e]) = simple e
-	simple (IAps (ICon _ (ICPrim _ PrimExtract)) _ [e1,e2,e3]) = simple e1 && simple e2 && simple e3
-	-- boolean expressions are just gates, inline them
-	simple (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2]) = simple e1 && simple e2
-	simple (IAps (ICon _ (ICPrim _ PrimBOr)) _ [e1, e2]) = simple e1 && simple e2
-	simple (IAps (ICon _ (ICPrim _ PrimBNot)) _ [e]) = simple e
-	-- these are noops, inline them
+        simple (IAps (ICon _ (ICPrim _ PrimConcat)) _ [e1, e2]) = simple e1 && simple e2
+        simple (IAps (ICon _ (ICPrim _ PrimSelect)) _ [e]) = simple e
+        simple (IAps (ICon _ (ICPrim _ PrimExtract)) _ [e1,e2,e3]) = simple e1 && simple e2 && simple e3
+        -- boolean expressions are just gates, inline them
+        simple (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2]) = simple e1 && simple e2
+        simple (IAps (ICon _ (ICPrim _ PrimBOr)) _ [e1, e2]) = simple e1 && simple e2
+        simple (IAps (ICon _ (ICPrim _ PrimBNot)) _ [e]) = simple e
+        -- these are noops, inline them
         simple (ICon _ (ICMethArg { })) = True
-	simple (ICon _ (ICModPort { })) = True
-	simple (ICon _ (ICModParam { })) = True
-	simple (ICon _ (ICStateVar { })) = True
-	simple (ICon _ (ICValue { })) = True
-	simple (ICon _ (ICInt { })) = True
-	simple (ICon _ (ICReal { })) = True
-	--
-	simple _ = False
+        simple (ICon _ (ICModPort { })) = True
+        simple (ICon _ (ICModParam { })) = True
+        simple (ICon _ (ICStateVar { })) = True
+        simple (ICon _ (ICValue { })) = True
+        simple (ICon _ (ICInt { })) = True
+        simple (ICon _ (ICReal { })) = True
+        --
+        simple _ = False
 
     in  imod { imod_local_defs  = ds',
                imod_rules       = rs',
@@ -89,8 +89,8 @@ ruleVars (IRules sps rs) = concatMap leafVars rs
     where leafVars r = iValVars (irule_pred r) ++ iValVars (irule_body r)
 
 varVars (_, IStateVar { isv_iargs = es }) =
-	let vs = concatMap iValVars es
-	in  vs ++ vs		-- XXX
+        let vs = concatMap iValVars es
+        in  vs ++ vs                -- XXX
 
 -- Inline definitions used once
 iInline1 :: IModule a -> IModule a
@@ -113,30 +113,30 @@ iInlineUseLimit use_limit
              ++ [ i | (IDef i _ _ _) <- ds, keepEvenUnused i]
         keepEvenUnused :: Id -> Bool
         keepEvenUnused i = hasIdProp i IdP_keepEvenUnused
-	defids = S.fromList [ i | IDef i _ _ _ <- ds ]
-	dm = M.fromList ([(i, e) | IDef i _ e _ <- ds ] ++
+        defids = S.fromList [ i | IDef i _ _ _ <- ds ]
+        dm = M.fromList ([(i, e) | IDef i _ e _ <- ds ] ++
                          [ (i, e) | (IEFace i _ (Just (e,_)) _ _ _) <- ifc ])
-	get i = case M.lookup i dm of (Just e) -> e; _-> internalError ("iInlineUseLimit " ++ ppString use_limit ++ ": " ++ ppReadable i)
-	step allIds done [] = allIds
-	step allIds done (i:pend) =
-		if i `S.member` done then
-		    step allIds done pend
-		else
-		    let is = iValVars (get i)
-		    in  -- trace ("add " ++ ppReadable (i, is)) $
-			step (is ++ allIds) (S.insert i done) (nub is ++ pend)
-	dis = step is S.empty (remOrdDup (sort is))
-	ics = [ (i, length is) | is@(i:_) <- group (sort dis), i `S.member` defids ]
-	onemap = M.fromList [ (i, iSubst onemap dmap (get i))
+        get i = case M.lookup i dm of (Just e) -> e; _-> internalError ("iInlineUseLimit " ++ ppString use_limit ++ ": " ++ ppReadable i)
+        step allIds done [] = allIds
+        step allIds done (i:pend) =
+                if i `S.member` done then
+                    step allIds done pend
+                else
+                    let is = iValVars (get i)
+                    in  -- trace ("add " ++ ppReadable (i, is)) $
+                        step (is ++ allIds) (S.insert i done) (nub is ++ pend)
+        dis = step is S.empty (remOrdDup (sort is))
+        ics = [ (i, length is) | is@(i:_) <- group (sort dis), i `S.member` defids ]
+        onemap = M.fromList [ (i, iSubst onemap dmap (get i))
                              | (i, n_uses) <- ics, not (isKeepId i),
                                n_uses <= use_limit ]
-	ds' = iDefsMap (iSubst onemap dmap) ds
-	ifc' = map (inline_ifc onemap dmap) ifc
-	rs' = irulesMap (iSubst onemap dmap) rs
-	uses = M.fromList ics
-	getc' i = case M.lookup i uses of Just c -> c; Nothing -> 0
+        ds' = iDefsMap (iSubst onemap dmap) ds
+        ifc' = map (inline_ifc onemap dmap) ifc
+        rs' = irulesMap (iSubst onemap dmap) rs
+        uses = M.fromList ics
+        getc' i = case M.lookup i uses of Just c -> c; Nothing -> 0
         getc i = {- trace ("getc: " ++ ppReadable (i, getc' i)) $ -} getc' i
-	ds'' = filter (\ (IDef i _ _ _) ->
+        ds'' = filter (\ (IDef i _ _ _) ->
                         let uses = getc i in
                         (keepEvenUnused i || uses > 0 && isKeepId i)
                         || uses > use_limit) ds'
@@ -161,30 +161,30 @@ iValVars e = internalError ("iValVars: " ++ ppReadable e)
 iSubst :: (M.Map Id (IExpr a)) -> (M.Map Id (IExpr a)) -> IExpr a -> IExpr a
 iSubst subMap defMap e = sub e
   where sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-	sub d@(ICon i val@(ICValue {})) =
-	    case M.lookup i subMap of
-	    Nothing ->
+        sub d@(ICon i val@(ICValue {})) =
+            case M.lookup i subMap of
+            Nothing ->
               let ev = fromJustOrErr ("IInline.iSubst ICValue def not found: " ++ ppReadable i)
                                      (M.lookup i defMap)
               in ICon i (val { iValDef = ev })
             Just e -> e
         sub u@(ICon i (ICUndet t k (Just v))) = ICon i (ICUndet t k (Just (sub v)))
         sub c@(ICon {}) = c
-	sub ee = internalError ("iSubst: " ++ ppReadable ee)
+        sub ee = internalError ("iSubst: " ++ ppReadable ee)
 
 iSubst' :: ((IExpr a) -> Bool) -> (M.Map Id (IExpr a)) -> (M.Map Id (IExpr a)) -> IExpr a -> IExpr a
 iSubst' tst subMap defMap e = sub e
   where sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-	sub d@(ICon i val@(ICValue {})) =
-	    case M.lookup i subMap of
-	    Nothing ->
+        sub d@(ICon i val@(ICValue {})) =
+            case M.lookup i subMap of
+            Nothing ->
               let ev = fromJustOrErr ("IInline.iSubst' ICValue def not found: " ++ ppReadable i)
                                      (M.lookup i defMap)
               in ICon i (val { iValDef = ev })
             Just e -> if (tst e) then e else d
         sub u@(ICon i (ICUndet t k (Just v))) = ICon i (ICUndet t k (Just (sub v)))
         sub c@(ICon {}) = c
-	sub ee = internalError ("iSubst': " ++ ppReadable ee)
+        sub ee = internalError ("iSubst': " ++ ppReadable ee)
 
 -- #############################################################################
 -- # Code to inline then eliminate Fmts from ISyntax
@@ -211,10 +211,10 @@ iInlineFmtsT tst imod@(IModule { imod_local_defs = ds,
                                  imod_rules      = rs,
                                  imod_interface  = ifc}) =
     let smap = M.fromList [ (i, iSubst' tst smap dmap e) | IDef i t e _ <- ds, (t == itFmt) ] -- inline any def of type Fmt
-	ds' = iDefsMap (iSubst' tst smap dmap) ds
+        ds' = iDefsMap (iSubst' tst smap dmap) ds
         dmap = M.fromList [ (i, e) | IDef i t e _ <- ds' ]
-	ifc' = map (inline_ifc smap dmap) ifc
-	rs' = irulesMap (iSubst' tst smap dmap) rs
+        ifc' = map (inline_ifc smap dmap) ifc
+        rs' = irulesMap (iSubst' tst smap dmap) rs
         state_vars' = [ (name, sv { isv_iargs = es' })
                       | (name, sv@(IStateVar { isv_iargs = es }))
                             <- imod_state_insts imod,
@@ -242,8 +242,8 @@ modPromoteSome imod@(IModule { imod_local_defs = ds,
         ds'  = map getFirst pairs
         change [] = False
         change ps = (foldr1 (||) (map getSecond ps))
-	ifc' = ifc
-	rs'  = rs
+        ifc' = ifc
+        rs'  = rs
         state_vars' = imod_state_insts imod
     in (imod { imod_local_defs  = ds',
                imod_rules       = rs',
@@ -342,11 +342,11 @@ splitFmtsF imod@(IModule { imod_local_defs  = ds,
     do  let ds' = [ IDef id t e p | IDef id t e p <- ds, (t /= itFmt) ] -- remove (now unused defs)
             updateDef = iDefMapM ssplitFmt
         ds'' <- mapM updateDef ds'
-	ifc' <- ssplitFmt_ifc ifc
-	rs'  <- irulesMapM ssplitFmt rs
+        ifc' <- ssplitFmt_ifc ifc
+        rs'  <- irulesMapM ssplitFmt rs
         let updateStateVar (name, sv@(IStateVar { isv_iargs = es })) = do es' <- mapM ssplitFmt es
                                                                           return (name, sv { isv_iargs = es' })
-	state_vars' <- mapM updateStateVar (imod_state_insts imod)
+        state_vars' <- mapM updateStateVar (imod_state_insts imod)
         return imod { imod_local_defs  = ds'',
                       imod_rules       = rs',
                       imod_interface   = ifc',
@@ -757,63 +757,63 @@ reduceFmt e =
         -- if this is the first time (and a foreign function call) eliminate any type
         -- variables (should this have been done in IExpand?) and recurse down into the arguments
         reduce rm_args True   (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es)
-	    | (rt == itFmt) || (any (== itFmt) at) =
+            | (rt == itFmt) || (any (== itFmt) at) =
             do es' <- mapM (reduce rm_args True) es
                f'  <- reduce rm_args True (ICon fid f {iConType = ict'})
                e'  <- reduce rm_args False (IAps f' [] es')
                return e'
             where (_, rt) = itGetArrows (getInnerType ict)
-		  at = map iGetType es
-		  ict' = itInst ict ts
+                  at = map iGetType es
+                  ict' = itInst ict ts
         -- if this is the first time (and not a foreign function) recurse down into the arguments
         reduce rm_args True  (IAps f ts es) =
             do es' <- mapM (reduce rm_args True) es
                f'  <- reduce rm_args True f
-	       e' <- reduce rm_args False (IAps f' ts es')
+               e' <- reduce rm_args False (IAps f' ts es')
                return e'
         -- if this is a foreign function call and we're removing args
         -- (for the value half of of an AV expression), eliminate the args.
         reduce True    False (IAps (ICon fid f@(ICForeign {iConType = ict})) ts es)
-	    | any (== itFmt) at =
+            | any (== itFmt) at =
             return (IAps (ICon fid f {iConType = rt}) [] [])
             where (at, rt) = itGetArrows (getInnerType ict)
         -- move "if" conditions outside of AVAction_ calls (so the type of the if is action)
-	reduce False   False x@(IAps ica@(ICon m _) ts
-				[(IAps ici@(ICon _ (ICPrim _ PrimIf)) [rt] [cond, e0, e1])])
-		             | m == idAVAction_ =
+        reduce False   False x@(IAps ica@(ICon m _) ts
+                                [(IAps ici@(ICon _ (ICPrim _ PrimIf)) [rt] [cond, e0, e1])])
+                             | m == idAVAction_ =
             do e0' <- reduce False False (IAps ica ts [e0])
                e1' <- reduce False False (IAps ica ts [e1])
                return (IAps ici [itAction] [cond, e0', e1'])
         -- eliminate Fmt ifs when one half is a don't care
         -- we are treating Fmt like Integer or String rather than Bit#(n)
-	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
-		      [cond, e0, (ICon _ (ICUndet it _ _))]) | it == itFmt = return e0
-	reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
-		      [cond, (ICon _ (ICUndet it _ _)), e1]) | it == itFmt = return e1
+        reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
+                      [cond, e0, (ICon _ (ICUndet it _ _))]) | it == itFmt = return e0
+        reduce rm_args False (IAps (ICon _ (ICPrim _ PrimIf)) _
+                      [cond, (ICon _ (ICUndet it _ _)), e1]) | it == itFmt = return e1
         -- move "if" expressions outside of Fmt concat operations
-	reduce rm_args False x@(IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc
-		      [(IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1]), e2]) =
+        reduce rm_args False x@(IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc
+                      [(IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1]), e2]) =
             do e0' <- reduce rm_args False (IAps cc tc [e0,e2])
                e1' <- reduce rm_args False (IAps cc tc [e1,e2])
-	       e'  <- reduce rm_args False (IAps ci ti [cond, e0', e1'])
+               e'  <- reduce rm_args False (IAps ci ti [cond, e0', e1'])
                return e'
-	reduce rm_args False x@(IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc
-		      [e2, (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1])]) =
+        reduce rm_args False x@(IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc
+                      [e2, (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1])]) =
             do e0' <- reduce rm_args False (IAps cc tc [e2,e0])
                e1' <- reduce rm_args False (IAps cc tc [e2,e1])
-	       e'  <- reduce rm_args False (IAps ci ti [cond, e0', e1'])
+               e'  <- reduce rm_args False (IAps ci ti [cond, e0', e1'])
                return e'
         -- reduce a concat of two fmt calls to a single fmt call
-	reduce rm_args False x@(IAps (ICon _ (ICPrim _ PrimFmtConcat)) _
-		      [(IAps (ICon fid fic@(ICForeign {iConType = t0})) [] es0),
-		       (IAps (ICon _       (ICForeign {iConType = t1})) [] es1)]) =
+        reduce rm_args False x@(IAps (ICon _ (ICPrim _ PrimFmtConcat)) _
+                      [(IAps (ICon fid fic@(ICForeign {iConType = t0})) [] es0),
+                       (IAps (ICon _       (ICForeign {iConType = t1})) [] es1)]) =
             do let (at0, dt) = itGetArrows t0
- 		   (at1, _ ) = itGetArrows t1
+                   (at1, _ ) = itGetArrows t1
                    t = foldr1 itFun (at0 ++ at1 ++ [dt])
-	       return (IAps (ICon fid fic {iConType = t}) [] (es0 ++ es1))
+               return (IAps (ICon fid fic {iConType = t}) [] (es0 ++ es1))
         -- move "if" expressions (of type Fmt) outside of foreign function calls
-	reduce rm_args False (IAps (ICon fid f@(ICForeign {iConType = t})) []
-		      ((IAps ici@(ICon _ (ICPrim _ PrimIf)) [it] [cond, e0, e1]):rest)) | it == itFmt =
+        reduce rm_args False (IAps (ICon fid f@(ICForeign {iConType = t})) []
+                      ((IAps ici@(ICon _ (ICPrim _ PrimIf)) [it] [cond, e0, e1]):rest)) | it == itFmt =
             do n0    <- newFFCallNo
                n1    <- newFFCallNo
                n2    <- newFFCallNo
@@ -826,25 +826,25 @@ reduceFmt e =
                e1''' <- reduce rm_args False e1''
                return (IAps ici [rt] [cond, e0''', e1'''])
             where (_  , rt) = itGetArrows t
-	reduce rm_args False (IAps icf@(ICon fid f@(ICForeign {})) [] (first:rest))
-	    | any isIfFmt rest =
+        reduce rm_args False (IAps icf@(ICon fid f@(ICForeign {})) [] (first:rest))
+            | any isIfFmt rest =
             do n  <- newFFCallNo
                e' <- reduce rm_args False (IAps (ICon fid f {fcallNo = (Just n)}) [] rest)
                e'' <- addArg (IAps icf [] [first]) e'
                return e''
-	reduce _ _ x = return x
+        reduce _ _ x = return x
 
         -- finally turn args of type fmt into "real" $display args
         remove (IAps (ICon fid (ICForeign {iConType = t})) [] [])
- 	       | rt == itAction = joinActions []
+                | rt == itAction = joinActions []
                where (_ , rt) = itGetArrows t
         remove (IAps (ICon fid f@(ICForeign {iConType = t})) [] es)
- 	       | any (== itFmt) at = expr
+                | any (== itFmt) at = expr
                where (at , rt) = itGetArrows t
                      es' = map remove es
-		     es'' = concatMap eliminateFormat es'
+                     es'' = concatMap eliminateFormat es'
                      at' = map iGetType es''
- 		     t' = foldr1 itFun (at' ++ [rt])
+                     t' = foldr1 itFun (at' ++ [rt])
                      expr = remove (IAps (ICon fid f {iConType = t'}) [] es'')
         remove (IAps x ts es) = (IAps x ts (map remove es))
         remove x = x

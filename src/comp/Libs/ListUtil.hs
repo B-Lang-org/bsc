@@ -6,8 +6,8 @@ module ListUtil where
 -- Repeatedly extract (and transform) values until a predicate hold.  Return the list of values.
 unfoldr :: (a -> (b, a)) -> (a -> Bool) -> a -> [b]
 unfoldr f p x | p x       = []
-	      | otherwise = y:unfoldr f p x'
-			      where (y, x') = f x
+              | otherwise = y:unfoldr f p x'
+                              where (y, x') = f x
 
 chopList :: ([a] -> (b, [a])) -> [a] -> [b]
 chopList f l = unfoldr f null l

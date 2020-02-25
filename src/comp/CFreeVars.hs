@@ -413,10 +413,10 @@ getFVDl (CLValueSign def qs) =
         -- the "qs" are implicit condition for methods,
         -- so there is no binding there that can affect "def",
         -- thus we don't remove the variables bound there
-	getFVQuals qs `unionFVS` getFVD def
+        getFVQuals qs `unionFVS` getFVD def
 getFVDl (CLValue _ cs qs) =
         -- as above, we don't subtract the vars bound in "qs"
-	unionManyFVS (getFVQuals qs : map getFVC cs)
+        unionManyFVS (getFVQuals qs : map getFVC cs)
 getFVDl (CLMatch p e) =
         -- here, we do want to remove any vars bound in the pattern
         getFVE e `minusVS` getPV p
@@ -429,16 +429,16 @@ getFVD (CDefT _ _ _ cs) = unionManyFVS (map getFVC cs)
 
 getFVC :: CClause -> FVSet
 getFVC (CClause ps qs e) =
-	let bvs = getVQuals qs `S.union` getPVs ps
-	in  ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs) `plusCS` getPCs ps
+        let bvs = getVQuals qs `S.union` getPVs ps
+        in  ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs) `plusCS` getPCs ps
 
 getFVR :: CRule -> FVSet
 getFVR (CRule _ n qs e) =
-	let bvs = getVQuals qs
-	in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs)
+        let bvs = getVQuals qs
+        in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` getFVE e) `minusVS` bvs)
 getFVR (CRuleNest _ n qs rs) =
-	let bvs = getVQuals qs
-	in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` unionManyFVS (map getFVR rs)) `minusVS` bvs)
+        let bvs = getVQuals qs
+        in  getMFVE n `unionFVS` ((getFVQuals qs `unionFVS` unionManyFVS (map getFVR rs)) `minusVS` bvs)
 
 getMFVE :: Maybe CExpr -> FVSet
 getMFVE Nothing = emptyFVS
@@ -460,9 +460,9 @@ getFTCC (CClause ps qs e) =
 
 getFTCR :: CRule -> S.Set Id
 getFTCR (CRule _ n qs e) =
-	getMFTC n `S.union` (getFTCQuals qs `S.union` getFTCE e)
+        getMFTC n `S.union` (getFTCQuals qs `S.union` getFTCE e)
 getFTCR (CRuleNest _ n qs rs) =
-	getMFTC n `S.union` (getFTCQuals qs `S.union` S.unions (map getFTCR rs))
+        getMFTC n `S.union` (getFTCQuals qs `S.union` S.unions (map getFTCR rs))
 
 getMFTC Nothing = S.empty
 getMFTC (Just e) = getFTCE e

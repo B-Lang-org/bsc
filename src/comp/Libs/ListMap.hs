@@ -2,12 +2,12 @@
 -- See LICENSE for the full license.
 --
 module ListMap(
-	ListMap,
-	toList, fromList,
-	length,
-	null,
-	lookup, lookupWithDefault, lookupWithDefaultBy, lookupBy
-	) where
+        ListMap,
+        toList, fromList,
+        length,
+        null,
+        lookup, lookupWithDefault, lookupWithDefaultBy, lookupBy
+        ) where
 
 --import Prelude
 

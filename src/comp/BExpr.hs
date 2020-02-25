@@ -78,8 +78,8 @@ bNothing = A [iTrue]
 bAdd e (A es) = A $ mergeOrdNoDup (get e) es
 
 bImplies (A es) e =
---	if length es > 1 then trace (ppReadable (e, es, isOrdSubset (get e) es)) $ isOrdSubset (get e) es
-	isOrdSubset (get e) es
+--        if length es > 1 then trace (ppReadable (e, es, isOrdSubset (get e) es)) $ isOrdSubset (get e) es
+        isOrdSubset (get e) es
 
 bImpliesB b (A es) = all (bImplies b) es
 

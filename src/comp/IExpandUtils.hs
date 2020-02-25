@@ -387,7 +387,7 @@ heapCellToPExpr (HLoop mn) = internalError ("heapCellToPExpr.HLoop: " ++ ppReada
 instance PPrint HeapCell where
         pPrint d p (HUnev { hc_hexpr = e, hc_name = name}) =
             text "HUnev" <+> pPrint d p e <+> pPrint d 0 name
---	pPrint d p (Harray { hc_hexpr = e, hc_name = name}) =
+--        pPrint d p (Harray { hc_hexpr = e, hc_name = name}) =
 --            text "Harray" <+> pPrint d p e <+> pPrint d 0 name
         pPrint d p (HWHNF { hc_pexpr = e, hc_name = name}) =
             text "HWHNF" <+> pPrint d p e <+> pPrint d 0 name
@@ -3280,8 +3280,8 @@ realPrimOp PrimULT = True
 realPrimOp PrimSLE = True
 realPrimOp PrimSLT = True
 realPrimOp PrimSignExt = True
---realPrimOp PrimZeroExt = True	-- should not occur
---realPrimOp PrimTrunc = True	-- should not occur
+--realPrimOp PrimZeroExt = True        -- should not occur
+--realPrimOp PrimTrunc = True        -- should not occur
 realPrimOp PrimExtract = True
 realPrimOp PrimConcat = True
 realPrimOp PrimSplit = True

@@ -112,7 +112,7 @@ data PProp
         | PPforeignImport Id               -- wrapper for a foreign import
             -- (Id is link name, needed for dependency check, if we're
             --  generating the .ba file for the link name, not the src name)
-        | PPalwaysReady	[Longname]         -- no ready signals for these methods ([] means all)
+        | PPalwaysReady        [Longname]         -- no ready signals for these methods ([] means all)
         | PPalwaysEnabled [Longname]       -- execute on every cycle
         | PPenabledWhenReady [Longname]    -- enable is equivalent to ready
         | PPscanInsert Integer             -- insert scan chain ports

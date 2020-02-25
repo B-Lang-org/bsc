@@ -55,7 +55,7 @@ dropFalseRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
 
     -- we treat the split rules differently, so separate them out
     let (splitFalseRules, nonsplitFalseRules) =
-	    partition isSplitRule falseRules
+            partition isSplitRule falseRules
 
     -- warn about the non-split False rules
     let removeFalseRule = removeFalseRules flags
@@ -65,12 +65,12 @@ dropFalseRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
            then return ()
            else bsWarning errh
                     [(getPosition rid,
-		      WRuleAlwaysFalse (dropRulePrefix rid) removeFalseRule)]
+                      WRuleAlwaysFalse (dropRulePrefix rid) removeFalseRule)]
     mapM_ warnFalseRule nonsplitFalseRules
 
     -- the final set of kept rules and dropped rules, depending on the flag
     let (rs', dropped_rules) =
-	    if removeFalseRule
+            if removeFalseRule
             then -- all False rules are dropped
                  (okRules, falseRules)
             else -- keep the non-split rules, but always drop the split rules
@@ -91,9 +91,9 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
                                           imod_local_defs = ds }) = do
     -- identify empty rules which do not preempt other rules (in sps)
     let (emptyNonPreemptRules, okRules) =
-	    partition (\r -> isNoActionRule r &&
-			     not (isRulePreempt (getIRuleId r) sps))
-	        rs
+            partition (\r -> isNoActionRule r &&
+                             not (isRulePreempt (getIRuleId r) sps))
+                rs
 
     -- we treat the split rules differently, so separate them out
     let (splitEmptyRules, nonsplitEmptyRules) =
@@ -107,12 +107,12 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
            then return ()
            else bsWarning errh
                     [(getPosition rid,
-		      WRuleNoActions (dropRulePrefix rid) removeEmptyRule)]
+                      WRuleNoActions (dropRulePrefix rid) removeEmptyRule)]
     mapM_ warnEmptyRule nonsplitEmptyRules
 
     -- the final set of kept rules and dropped rules, depending on the flag
     let (rs', dropped_rules) =
-	    if removeEmptyRule
+            if removeEmptyRule
             then -- all empty rules are dropped
                  (okRules, emptyNonPreemptRules)
             else -- keep the non-split rules, but always drop the split rules
@@ -132,7 +132,7 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
 isFalseRule (IRule { irule_pred =
                (ICon _ (ICInt { iVal = (IntLit { ilValue = 0 }) }))
                    } )
-	      = True
+              = True
 isFalseRule _ = False
 
 -- is the rule a result of splitting
@@ -188,7 +188,7 @@ warnUndetPreds errh flags imod@(IModule { imod_rules = (IRules _ rs),
         expandExpr (IAps f ts as) = (IAps (expandExpr f) ts (map expandExpr as))
         expandExpr (ICon i (ICValue {})) =
             expandExpr $
-	        fromJustOrErr ("expandExpr: " ++ ppReadable i) $ M.lookup i dmap
+                fromJustOrErr ("expandExpr: " ++ ppReadable i) $ M.lookup i dmap
         expandExpr e = e
 -}
     let

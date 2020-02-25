@@ -38,9 +38,9 @@ data LexItem =
         | L_conid FString
         | L_varsym FString
         | L_consym FString
-        | L_integer (Maybe Integer) Integer Integer		-- bit size (if specified), base, value
+        | L_integer (Maybe Integer) Integer Integer                -- bit size (if specified), base, value
         | L_float Rational
-	| L_char Char
+        | L_char Char
         | L_string String
         | L_lpar
         | L_rpar
@@ -187,7 +187,7 @@ lx lf f l 0 ('#':' ':cs@(c:_)) | isDigit c =
             res = lx lf (mkFString fn) n 0 r
         in  res
 
-lx lf f l c ""			=
+lx lf f l c ""                        =
     [Token (mkPositionFull f (l+1) (-1) (lf_is_stdlib lf)) L_eof]
 lx lf f l c (' ':cs)            = lx lf f l (c+1) cs
 lx lf f l c ('\n':cs)           = lx lf f (l+1) 0 cs
@@ -203,21 +203,21 @@ lx lf f l c ('-':'-':cs) | isComm cs    = skipToEOL lf f l cs
 lx lf f l c ('{':'-':'#':cs)    = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lpragma : lx lf f l (c+3) cs
 lx lf f l c ('#':'-':'}':cs)    = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rpragma : lx lf f l (c+3) cs
 lx lf f l c ('{':'-':cs)        = skipComm lf (l, c) 1 f l (c+2) cs
-lx lf f l c ('(':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lpar : lx lf f l (c+1) cs
-lx lf f l c (')':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rpar : lx lf f l (c+1) cs
-lx lf f l c (',':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_comma : lx lf f l (c+1) cs
-lx lf f l c (';':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_semi : lx lf f l (c+1) cs
-lx lf f l c ('`':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_bquote : lx lf f l (c+1) cs
-lx lf f l c ('{':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lcurl : lx lf f l (c+1) cs
-lx lf f l c ('}':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rcurl : lx lf f l (c+1) cs
-lx lf f l c ('[':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lbra  : lx lf f l (c+1) cs
-lx lf f l c (']':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rbra  : lx lf f l (c+1) cs
-lx lf f l c ('.':cs)		= Token (mkPositionFull f l c (lf_is_stdlib lf)) L_dot  : lx lf f l (c+1) cs
-lx lf f l c ('\'':cs)		=
+lx lf f l c ('(':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lpar : lx lf f l (c+1) cs
+lx lf f l c (')':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rpar : lx lf f l (c+1) cs
+lx lf f l c (',':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_comma : lx lf f l (c+1) cs
+lx lf f l c (';':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_semi : lx lf f l (c+1) cs
+lx lf f l c ('`':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_bquote : lx lf f l (c+1) cs
+lx lf f l c ('{':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lcurl : lx lf f l (c+1) cs
+lx lf f l c ('}':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rcurl : lx lf f l (c+1) cs
+lx lf f l c ('[':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_lbra  : lx lf f l (c+1) cs
+lx lf f l c (']':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_rbra  : lx lf f l (c+1) cs
+lx lf f l c ('.':cs)                = Token (mkPositionFull f l c (lf_is_stdlib lf)) L_dot  : lx lf f l (c+1) cs
+lx lf f l c ('\'':cs)                =
     case lexLitChar' cs of
         Just (cc, n, '\'':cs) -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_char cc) : lx lf f l (c+2+n) cs
         _ -> lexerr f l c LexBadCharLit
-lx lf f l c ('"':cs)		=
+lx lf f l c ('"':cs)                =
         case lexString cs l (c+1) "" of
             Just (str, l', c', cs') -> Token (mkPositionFull f l c (lf_is_stdlib lf)) (L_string str) : lx lf f l' c' cs'
             _ -> lexerr f l c LexBadStringLit
@@ -284,16 +284,16 @@ lx lf f l c (x:cs) | isSym x = spanSym [] (c+1) cs
             p = mkPositionFull f l c (lf_is_stdlib lf)
             lxrs x = Token p x : lx lf f l cn cs'
         in  case s of
-                "::"	-> lxrs L_dcolon
-                ":"	-> lxrs L_colon
+                "::"        -> lxrs L_dcolon
+                ":"        -> lxrs L_colon
                 "="     -> lxrs L_eq
                 "@"     -> lxrs L_at
-                "\\"	-> lxrs L_lam
-                "->"	-> lxrs L_rarrow
-                "==>"	-> lxrs L_drarrow
-                "=>"	-> lxrs L_irarrow
-                "<-"	-> lxrs L_larrow
-                _	-> let fs = mkFString s
+                "\\"        -> lxrs L_lam
+                "->"        -> lxrs L_rarrow
+                "==>"        -> lxrs L_drarrow
+                "=>"        -> lxrs L_irarrow
+                "<-"        -> lxrs L_larrow
+                _        -> let fs = mkFString s
                            in
                             if not (lf_allow_sv_kws lf) && isSvSymbol s
                             then internalError
@@ -316,46 +316,46 @@ lx lf f l c (x:cs) | isAlpha x || x == '_' = spanId [] (c+1) cs
                             Token p (L_varid fs) : lx lf f l cn cs'
         in  case s of
                 "$"             -> lxr (L_varsym (mkFString s))
-                "_"		-> lxr L_uscore
+                "_"                -> lxr L_uscore
                 "action"        -> lxr L_action
-                "case"		-> lxr L_case
-                "class"		-> lxr L_class
-                "data"		-> lxr L_data
-                "deriving"	-> lxr L_deriving
-                "do"		-> lxr L_do
+                "case"                -> lxr L_case
+                "class"                -> lxr L_class
+                "data"                -> lxr L_data
+                "deriving"        -> lxr L_deriving
+                "do"                -> lxr L_do
                 "else"          -> lxr L_else
                 "foreign"       -> lxr L_foreign
                 "if"            -> lxr L_if
                 "import"        -> lxr L_import
-                "in"		-> lxr L_in
+                "in"                -> lxr L_in
                 "coherent"      -> lxr L_coherent
                 "incoherent"    -> lxr L_incoherent
-                "infix"		-> lxr L_infix
-                "infixl"	-> lxr L_infixl
-                "infixr"	-> lxr L_infixr
-                "interface"	-> lxr L_interface
-                "instance"	-> lxr L_instance
-                "let"		-> lxr L_let
-                "letseq"	-> lxr L_letseq
-                "module"	-> lxr L_module
-                "of"		-> lxr L_of
+                "infix"                -> lxr L_infix
+                "infixl"        -> lxr L_infixl
+                "infixr"        -> lxr L_infixr
+                "interface"        -> lxr L_interface
+                "instance"        -> lxr L_instance
+                "let"                -> lxr L_let
+                "letseq"        -> lxr L_letseq
+                "module"        -> lxr L_module
+                "of"                -> lxr L_of
                 -- A hack to allow multiple packages in one file.
                 -- We need to generate a closing '}', so the package keyword has to
                 -- be in column -1.
-                "package"	->
+                "package"        ->
                     Token (mkPositionFull f l (c-1) (lf_is_stdlib lf)) L_package :
                     lx lf f l cn cs'
-                "prefix"	-> lxr L_prefix
-                "primitive"	-> lxr L_primitive
-                "qualified"	-> lxr L_qualified
-                "rules"		-> lxr L_rules
-                "signature"	-> lxr L_signature
-                "struct"	-> lxr L_struct
+                "prefix"        -> lxr L_prefix
+                "primitive"        -> lxr L_primitive
+                "qualified"        -> lxr L_qualified
+                "rules"                -> lxr L_rules
+                "signature"        -> lxr L_signature
+                "struct"        -> lxr L_struct
                 "then"          -> lxr L_then
                 "type"          -> lxr L_type
-                "valueOf"	-> lxr L_valueOf
-                "verilog"	-> lxr L_verilog
-                "synthesize"	-> lxr L_synthesize
+                "valueOf"        -> lxr L_valueOf
+                "verilog"        -> lxr L_verilog
+                "synthesize"        -> lxr L_synthesize
                 "when"          -> lxr L_when
                 "where"         -> lxr L_where
                 _               -> if not (lf_allow_sv_kws lf) && isSvKeyword s
@@ -436,10 +436,10 @@ skipToEOL lf f l ('\n':cs) = lx lf f (l+1) 0 cs
 skipToEOL lf f l (_:cs)    = skipToEOL lf f l cs
 skipToEOL lf f l ""        = lexerr f l 0 LexMissingNL
 
-lexLitChar'		:: String -> Maybe (Char, Int, String)
-lexLitChar' ('\\':s)	= lexEsc s
+lexLitChar'                :: String -> Maybe (Char, Int, String)
+lexLitChar' ('\\':s)        = lexEsc s
         where
-        lexEsc ('x':s)	= let (n,s') = span isHexDigit s in Just (chr (fromInteger (readN 16 n)), 2+length n, s')
+        lexEsc ('x':s)        = let (n,s') = span isHexDigit s in Just (chr (fromInteger (readN 16 n)), 2+length n, s')
         lexEsc ('n':s)  = Just ('\n', 1, s)
         lexEsc ('t':s)  = Just ('\t', 1, s)
         lexEsc ('r':s)  = Just ('\r', 1, s)
@@ -448,17 +448,17 @@ lexLitChar' ('\\':s)	= lexEsc s
         lexEsc ('"':s)  = Just ('"', 1, s)
         lexEsc ('\'':s) = Just ('\'', 1, s)
         lexEsc ('\\':s) = Just ('\\', 1, s)
-        lexEsc s	= Nothing
-lexLitChar' ('\n':_)	= Nothing		-- NL in strings is a bad idea
-lexLitChar' (c:s)	= Just (c, 1, s)
-lexLitChar' ""		= Nothing
+        lexEsc s        = Nothing
+lexLitChar' ('\n':_)        = Nothing                -- NL in strings is a bad idea
+lexLitChar' (c:s)        = Just (c, 1, s)
+lexLitChar' ""                = Nothing
 
 readN :: Integer -> String -> Integer
 readN radix s =
      foldl1 (\n d -> n * radix + d)
             (map (toInteger . digitToInt) s)
 
--- maxexp = 10000 :: Int		-- don't allow exponents greater than this since it would take up too much memory
+-- maxexp = 10000 :: Int                -- don't allow exponents greater than this since it would take up too much memory
 
 isSvKeyword :: String -> Bool
 isSvKeyword str = str `S.member` svKeywordSet

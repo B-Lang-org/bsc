@@ -84,7 +84,7 @@ instance AVars AAction where
 
 instance AVars AForeignCall where
     aVars afc = concatMap aVars (afc_args afc)
-			++ concatMap aVars (afc_resets afc)
+                        ++ concatMap aVars (afc_resets afc)
 
 instance AVars AIFace where
     aVars (AIDef _ _ _ p d _ asmps) = aVars p ++ aVars d ++ aVars asmps
@@ -225,13 +225,13 @@ class ATypeC a where
 
 instance ATypeC AType where
     aSize e =
-	case aType e of
-	ATBit s -> s
+        case aType e of
+        ATBit s -> s
         ATString (Just s) -> 8*s   -- 8 bits per character
-	ATAbstract i [n] | i==idInout_ -> n
+        ATAbstract i [n] | i==idInout_ -> n
         ATArray sz t -> sz * (aSize t)
-	ATReal -> 64
-	t -> internalError ("aSize: " ++ (ppReadable t))
+        ATReal -> 64
+        t -> internalError ("aSize: " ++ (ppReadable t))
     aType t = t
 
 instance ATypeC AExpr where
@@ -279,7 +279,7 @@ instance AExprs AAction where
     mapAExprs f (AFCall id fun isC es isA) =
         (AFCall id fun isC (mapAExprs f es) isA)
     mapAExprs f (ATaskAction id fun isC n es tid tty isA) =
-	(ATaskAction id fun isC n (mapAExprs f es) tid tty isA)
+        (ATaskAction id fun isC n (mapAExprs f es) tid tty isA)
     -- monadic
     mapMAExprs f (ACall id mid es) =
         do es' <- mapMAExprs f es
@@ -288,8 +288,8 @@ instance AExprs AAction where
         do es' <- mapMAExprs f es
            return (AFCall id fun isC es' isA)
     mapMAExprs f (ATaskAction id fun isC n es tid tty isA) =
-	do es' <- mapMAExprs f es
-	   return (ATaskAction id fun isC n es' tid tty isA)
+        do es' <- mapMAExprs f es
+           return (ATaskAction id fun isC n es' tid tty isA)
     -- find
     findAExprs f (ACall id mid es) = findAExprs f es
     findAExprs f (AFCall id fun isC es isA) = findAExprs f es
@@ -306,25 +306,25 @@ instance AExprs ADef where
 instance AExprs AForeignCall where
     -- XXX resets?
     mapAExprs f (AForeignCall id fun es ids resets) =
-	(AForeignCall id fun (mapAExprs f es) ids (mapAExprs f resets))
+        (AForeignCall id fun (mapAExprs f es) ids (mapAExprs f resets))
     -- monadic
     mapMAExprs f (AForeignCall id fun es ids resets) =
-	do es' <- mapMAExprs f es
-	   resets' <- mapMAExprs f resets
-	   return (AForeignCall id fun es' ids resets')
+        do es' <- mapMAExprs f es
+           resets' <- mapMAExprs f resets
+           return (AForeignCall id fun es' ids resets')
     -- find
     findAExprs f (AForeignCall _ _ es _ resets) =
         findAExprs f es ++ findAExprs f resets
 
 instance AExprs ARule where
     mapAExprs f (ARule rid rps d wp p as asmps splitorig) =
-	ARule rid rps d wp (mapAExprs f p) (mapAExprs f as) (mapAExprs f asmps) splitorig
+        ARule rid rps d wp (mapAExprs f p) (mapAExprs f as) (mapAExprs f asmps) splitorig
     -- monadic
     mapMAExprs f (ARule rid rps d wp p as asmps splitorig) =
-	do p' <- mapMAExprs f p
-	   as' <- mapMAExprs f as
+        do p' <- mapMAExprs f p
+           as' <- mapMAExprs f as
            asmps' <- mapMAExprs f asmps
-	   return (ARule rid rps d wp p' as' asmps' splitorig)
+           return (ARule rid rps d wp p' as' asmps' splitorig)
     -- find
     findAExprs f (ARule _ _ _ _ p as asmps _) = findAExprs f p ++ findAExprs f as ++ findAExprs f asmps
 
@@ -338,29 +338,29 @@ instance AExprs AAssumption where
 
 instance AExprs AIFace where
     mapAExprs f (AIDef mid is wp p def fi asmps) =
-	AIDef mid is wp (mapAExprs f p) (mapAExprs f def) fi (mapAExprs f asmps)
+        AIDef mid is wp (mapAExprs f p) (mapAExprs f def) fi (mapAExprs f asmps)
     mapAExprs f (AIAction is wp p id rs fi) =
-	AIAction is wp (mapAExprs f p) id (mapAExprs f rs) fi
+        AIAction is wp (mapAExprs f p) id (mapAExprs f rs) fi
     mapAExprs f (AIActionValue is wp p id rs def fi) =
-	AIActionValue is wp (mapAExprs f p) id (mapAExprs f rs) (mapAExprs f def) fi
+        AIActionValue is wp (mapAExprs f p) id (mapAExprs f rs) (mapAExprs f def) fi
     mapAExprs f c@(AIClock { }) = c
     mapAExprs f r@(AIReset { }) = r
     mapAExprs f r@(AIInout { }) = r
     -- monadic
     mapMAExprs f (AIDef mid is wp p def fi asmps) =
-	do p' <- mapMAExprs f p
-	   def' <- mapMAExprs f def
+        do p' <- mapMAExprs f p
+           def' <- mapMAExprs f def
            asmps' <- mapMAExprs f asmps
-	   return (AIDef mid is wp p' def' fi asmps')
+           return (AIDef mid is wp p' def' fi asmps')
     mapMAExprs f (AIAction is wp p id rs fi) =
-	do p' <- mapMAExprs f p
-	   rs' <- mapMAExprs f rs
-	   return (AIAction is wp p' id rs' fi)
+        do p' <- mapMAExprs f p
+           rs' <- mapMAExprs f rs
+           return (AIAction is wp p' id rs' fi)
     mapMAExprs f (AIActionValue is wp p id rs def fi) =
-	do p' <- mapMAExprs f p
-	   rs' <- mapMAExprs f rs
-	   def' <- mapMAExprs f def
-	   return (AIActionValue is wp p' id rs' def' fi)
+        do p' <- mapMAExprs f p
+           rs' <- mapMAExprs f rs
+           def' <- mapMAExprs f def
+           return (AIActionValue is wp p' id rs' def' fi)
     mapMAExprs f c@(AIClock { }) = return c
     mapMAExprs f r@(AIReset { }) = return r
     mapMAExprs f r@(AIInout { }) = return r
@@ -387,51 +387,51 @@ instance AExprs ASPackage where
     mapAExprs f pkg@(ASPackage { aspkg_state_instances = vs,
                                 aspkg_values = defs,
                                 aspkg_inout_values = iodefs,
-		                aspkg_foreign_calls = fs })
+                                aspkg_foreign_calls = fs })
         = pkg { aspkg_state_instances = (mapAExprs f vs),
-		aspkg_values = (mapAExprs f defs),
-		aspkg_inout_values = (mapAExprs f iodefs),
-		aspkg_foreign_calls = (mapAExprs f fs) }
+                aspkg_values = (mapAExprs f defs),
+                aspkg_inout_values = (mapAExprs f iodefs),
+                aspkg_foreign_calls = (mapAExprs f fs) }
     -- monadic
     mapMAExprs f pkg@(ASPackage { aspkg_state_instances = vs,
                                   aspkg_values = defs,
                                   aspkg_inout_values = iodefs,
-				  aspkg_foreign_calls = fs })
+                                  aspkg_foreign_calls = fs })
         = do vs' <- mapMAExprs f vs
-	     defs' <- mapMAExprs f defs
-	     iodefs' <- mapMAExprs f iodefs
-	     fs' <- mapMAExprs f fs
-	     return (pkg { aspkg_state_instances = vs',
-	                   aspkg_values = defs',
-	                   aspkg_inout_values = iodefs',
-			   aspkg_foreign_calls = fs' })
+             defs' <- mapMAExprs f defs
+             iodefs' <- mapMAExprs f iodefs
+             fs' <- mapMAExprs f fs
+             return (pkg { aspkg_state_instances = vs',
+                           aspkg_values = defs',
+                           aspkg_inout_values = iodefs',
+                           aspkg_foreign_calls = fs' })
     -- find
     findAExprs f pkg@(ASPackage { aspkg_state_instances = vs,
                                 aspkg_values = defs,
                                 aspkg_inout_values = iodefs,
-		                aspkg_foreign_calls = fs })
+                                aspkg_foreign_calls = fs })
         = findAExprs f vs ++ findAExprs f defs ++
           findAExprs f iodefs ++ findAExprs f fs
 
 instance AExprs APackage where
     mapAExprs f pack = pack {
-	apkg_interface = mapAExprs f (apkg_interface pack),
-	apkg_rules = mapAExprs f (apkg_rules pack),
-	apkg_state_instances = mapAExprs f (apkg_state_instances pack),
-	apkg_local_defs = mapAExprs f (apkg_local_defs pack) }
+        apkg_interface = mapAExprs f (apkg_interface pack),
+        apkg_rules = mapAExprs f (apkg_rules pack),
+        apkg_state_instances = mapAExprs f (apkg_state_instances pack),
+        apkg_local_defs = mapAExprs f (apkg_local_defs pack) }
     -- monadic
     mapMAExprs f pack@(APackage { apkg_interface = ifc,
-	                          apkg_rules = rs,
-				  apkg_state_instances = insts,
-				  apkg_local_defs = defs })
+                                  apkg_rules = rs,
+                                  apkg_state_instances = insts,
+                                  apkg_local_defs = defs })
         = do ifc' <- mapMAExprs f ifc
-	     rs' <- mapMAExprs f rs
-	     insts' <- mapMAExprs f insts
-	     defs' <- mapMAExprs f defs
-	     return (pack { apkg_interface = ifc',
-	                    apkg_rules = rs',
-			    apkg_state_instances = insts',
-			    apkg_local_defs = defs' })
+             rs' <- mapMAExprs f rs
+             insts' <- mapMAExprs f insts
+             defs' <- mapMAExprs f defs
+             return (pack { apkg_interface = ifc',
+                            apkg_rules = rs',
+                            apkg_state_instances = insts',
+                            apkg_local_defs = defs' })
     -- find
     findAExprs f pack =
         findAExprs f (apkg_interface pack) ++
@@ -450,15 +450,15 @@ type EMap a = M.Map AId a
 aSubst :: (AExprs a) => EMap AExpr -> a -> a
 aSubst m = mapAExprs xsub
   where xsub :: AExpr -> AExpr
-	xsub x@(ASPort _ i) =
-	  case M.lookup i m of
-            Just e -> e
-            Nothing -> x
-	xsub x@(ASParam _ i) =
+        xsub x@(ASPort _ i) =
           case M.lookup i m of
             Just e -> e
             Nothing -> x
-	xsub x@(ASDef _ i) =
+        xsub x@(ASParam _ i) =
+          case M.lookup i m of
+            Just e -> e
+            Nothing -> x
+        xsub x@(ASDef _ i) =
           case M.lookup i m of
             Just e -> e
             Nothing -> x
@@ -575,8 +575,8 @@ instance AActions AIFace where
 
 instance AActions APackage where
     mapAActions f pack = pack {
-	apkg_interface = mapAActions f (apkg_interface pack),
-	apkg_rules     = mapAActions f (apkg_rules pack)
+        apkg_interface = mapAActions f (apkg_interface pack),
+        apkg_rules     = mapAActions f (apkg_rules pack)
     }
 
 
@@ -605,8 +605,8 @@ instance ARules AIFace where
 
 instance ARules APackage where
     mapARules f pack = pack {
-	apkg_interface = mapARules f (apkg_interface pack),
-	apkg_rules     = mapARules f (apkg_rules pack)
+        apkg_interface = mapARules f (apkg_interface pack),
+        apkg_rules     = mapARules f (apkg_rules pack)
     }
 
 
@@ -657,22 +657,22 @@ tsortADefs ds =
     -- ds_ids are the AIds from the input ADefs
     -- s is a OrdSet of AId from the input ADefs
     let
-	ds_ids = (map adef_objid ds)
-	s = S.fromList ds_ids
+        ds_ids = (map adef_objid ds)
+        s = S.fromList ds_ids
     -- g is a list of (AId, [AIds used by that ADef which are in 's'
     --   drop all other AIds (mostly AVars)
---	g = [(i, filter (`S.member` s) (aVars e)) | ADef i _ e <- ds ]
-	g = zip ds_ids (map ((filter (`S.member` s)) . aVars . adef_expr) ds)
+--        g = [(i, filter (`S.member` s) (aVars e)) | ADef i _ e <- ds ]
+        g = zip ds_ids (map ((filter (`S.member` s)) . aVars . adef_expr) ds)
     -- tsort returns Left if there is a loop, Right if sorted
     in  case tsort g of
-	Left is -> internalError ("tsortADefs: cyclic " ++ ppReadable is ++ ppReadable ds)
-	Right is -> --trace ("tsortADefs exit " ++ show (length is)) $
+        Left is -> internalError ("tsortADefs: cyclic " ++ ppReadable is ++ ppReadable ds)
+        Right is -> --trace ("tsortADefs exit " ++ show (length is)) $
     -- m is OrdMap of (AId of ADef, ADef) from input ADefs
-	    let m = M.fromList (zip ds_ids ds)
+            let m = M.fromList (zip ds_ids ds)
     -- get i is OrdMap lookup giving ADef in m from AId
-		get i = case M.lookup i m of Just d -> d; Nothing -> internalError "tsortADefs: get"
+                get i = case M.lookup i m of Just d -> d; Nothing -> internalError "tsortADefs: get"
     -- return ADefs in tsort-ed order removing AIds.
-	    in  map get is
+            in  map get is
 
 -- ---------------
 
@@ -716,8 +716,8 @@ aAndsLabel _ [] = internalError "ASyntaxUtil::aAnds null list"
 aAndsLabel _ [e] = e
 aAndsLabel aid es = if any isFalse es then aFalse else aAnds' (nub (filter (not . isTrue) es))
   where aAnds' []  = aTrue
-	aAnds' [e] = e
-	aAnds' es  = APrim aid aTBool PrimBAnd es
+        aAnds' [e] = e
+        aAnds' es  = APrim aid aTBool PrimBAnd es
 
 
 aOrLabel :: AId -> AExpr -> AExpr -> AExpr
@@ -740,5 +740,5 @@ aOrsLabel _ [] = internalError "ASyntaxUtil::aOrs null list"
 aOrsLabel _ [e] = e
 aOrsLabel aid es = if any isTrue es then aTrue else aOrs' (nub (filter (not . isFalse) es))
   where aOrs' []  = aFalse
-	aOrs' [e] = e
-	aOrs' es  = APrim aid aTBool PrimBOr es
+        aOrs' [e] = e
+        aOrs' es  = APrim aid aTBool PrimBOr es

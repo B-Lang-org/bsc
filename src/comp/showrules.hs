@@ -101,7 +101,7 @@ defaultOptions bluespecdir =
 
 original_path :: String -> [String]
 original_path bluespecdir = [ "."
-		            , bluespecdir ++ "/Libraries"
+                            , bluespecdir ++ "/Libraries"
                             ]
 
 -- Description of command-line options

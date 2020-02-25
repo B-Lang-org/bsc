@@ -4101,7 +4101,7 @@ a function definition, and a body must be present.
 >        mbody <- pFunctionTail startPos
 >                               True
 >                               (cf_name funProto)
->				args
+>                                args
 >        case mbody of
 >           Nothing -> return funProto
 >           Just e -> return funProto{ cf_default =

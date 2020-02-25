@@ -262,7 +262,7 @@ getFreeT vs (TAp t1 t2) = getFreeT vs t1 ++ getFreeT vs t2
 getFreeT vs t = []
 
 getFreeQT :: [TyVar] -> CQType -> [TyVar]
-getFreeQT vs (CQType ps t) = getFreeT vs t		-- XXX ps
+getFreeQT vs (CQType ps t) = getFreeT vs t                -- XXX ps
 
 getFreeR vs (CRule _ mi qs e) = getFreeME vs mi ++ concatMap (getFreeQ vs) qs ++ getFreeE vs e
 getFreeR vs (CRuleNest _ mi qs rs) = getFreeME vs mi ++ concatMap (getFreeQ vs) qs ++ concatMap (getFreeR vs) rs

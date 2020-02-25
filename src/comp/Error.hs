@@ -478,7 +478,7 @@ data ErrMsg
         | EBadStringEscapeChar Char     -- bad character follows \ in string
         | EStringNewline                -- newline in string
         | EStringEOF                    -- end of file inside string
-        | ESyntax !String ![String]	-- found token, expected tokens
+        | ESyntax !String ![String]        -- found token, expected tokens
 --        | ESyntaxUnknown                -- dummy parse error
         | EUnsupportedBitVector         -- bit vectors [N:0] only
         | EUnsupportedNumReal String    -- real numbers not supported
@@ -979,7 +979,7 @@ data ErrMsg
 
         | EUnexpectedOutputClkGate String
 
---	| WInterfaceArg String
+--        | WInterfaceArg String
         | EInterfaceArg String
 
         | ECrossDomainPragma [String]
@@ -1116,7 +1116,7 @@ data ErrMsg
         | EFlagAfterSrc String
         | ENotVerSrcFile String
         | ENotCSrcFile String
---	| ENeedUpdCheckFlag
+--        | ENeedUpdCheckFlag
         | EMultipleSrcFiles
         | EMissingUserFile String [String]
         | EUnrecognizedCmdLineText String

@@ -6,8 +6,8 @@ import PPrint
 import Eval
 
 data Assump
-	= Id :>: Scheme
-	deriving (Show, Eq)
+        = Id :>: Scheme
+        deriving (Show, Eq)
 
 instance PPrint Assump where
     pPrint d p (i :>: s) = pparen (p > 0) $ pPrint d 0 i <+> text ":>:" <+> pPrint d 0 s

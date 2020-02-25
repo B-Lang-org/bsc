@@ -69,11 +69,11 @@ trees).
 >
 > left, right                   :: LTree a b -> LTree a b
 > left  Start                   =  internalError "left: empty loser tree"
-> left  (LLoser _ _ _ tl _ _tr)	=  tl
-> left  (RLoser _ _ _ tl _ _tr)	=  tl
+> left  (LLoser _ _ _ tl _ _tr)        =  tl
+> left  (RLoser _ _ _ tl _ _tr)        =  tl
 > right Start                   =  internalError "right: empty loser tree"
-> right (LLoser _ _ _ _tl _ tr)	=  tr
-> right (RLoser _ _ _ _tl _ tr)	=  tr
+> right (LLoser _ _ _ _tl _ tr)        =  tr
+> right (RLoser _ _ _ _tl _ tr)        =  tr
 
 > maxKey                        :: PSQ k p -> k
 > maxKey Void                   =  internalError "maxKey: empty queue"
@@ -82,11 +82,11 @@ trees).
 Smart constructors.
 
 > start                         :: LTree k p
-> start				=  Start
+> start                                =  Start
 >
 > lloser, rloser                :: k -> p -> LTree k p -> k -> LTree k p -> LTree k p
-> lloser k p tl m tr		=  LLoser (1 + size tl + size tr) k p tl m tr
-> rloser k p tl m tr		=  RLoser (1 + size tl + size tr) k p tl m tr
+> lloser k p tl m tr                =  LLoser (1 + size tl + size tr) k p tl m tr
+> rloser k p tl m tr                =  RLoser (1 + size tl + size tr) k p tl m tr
 >
 > size                          :: LTree k p -> Size
 > size Start                    =  0
@@ -97,8 +97,8 @@ Smart constructors.
 
 Balance factor.
 
-> omega				:: Int
-> omega				=  2
+> omega                                :: Int
+> omega                                =  2
 
 > lbalance, rbalance           :: Ord p => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
 > lbalance k p l m r
@@ -114,43 +114,43 @@ Balance factor.
 >   | otherwise                 =  rloser        k p l m r
 
 > lbalanceLeft  k p l m r
->   | size (left r) < size (right r)	=  lsingleLeft  k p l m r
+>   | size (left r) < size (right r)        =  lsingleLeft  k p l m r
 >   | otherwise                         =  ldoubleLeft  k p l m r
 > lbalanceRight k p l m r
->   | size (right l) < size (left l)	=  lsingleRight k p l m r
+>   | size (right l) < size (left l)        =  lsingleRight k p l m r
 >   | otherwise                         =  ldoubleRight k p l m r
 >
 > rbalanceLeft  k p l m r
->   | size (left r) < size (right r)	=  rsingleLeft  k p l m r
+>   | size (left r) < size (right r)        =  rsingleLeft  k p l m r
 >   | otherwise                         =  rdoubleLeft  k p l m r
 > rbalanceRight k p l m r
 >   | size (right l) < size (left l)    =  rsingleRight k p l m r
 >   | otherwise                         =  rdoubleRight k p l m r
 
 > lsingleLeft k1 p1 t1 m1 (LLoser _ k2 p2 t2 m2 t3)
->   | p1 <= p2			=  lloser k1 p1 (rloser k2 p2 t1 m1 t2) m2 t3
->   | otherwise			=  lloser k2 p2 (lloser k1 p1 t1 m1 t2) m2 t3
+>   | p1 <= p2                        =  lloser k1 p1 (rloser k2 p2 t1 m1 t2) m2 t3
+>   | otherwise                        =  lloser k2 p2 (lloser k1 p1 t1 m1 t2) m2 t3
 > lsingleLeft k1 p1 t1 m1 (RLoser _ k2 p2 t2 m2 t3)
->				=  rloser k2 p2 (lloser k1 p1 t1 m1 t2) m2 t3
+>                                =  rloser k2 p2 (lloser k1 p1 t1 m1 t2) m2 t3
 > lsingleLeft _ _ _ _ Start = internalError "lsingleLeft"
 >
 > rsingleLeft k1 p1 t1 m1 (LLoser _ k2 p2 t2 m2 t3)
->				=  rloser k1 p1 (rloser k2 p2 t1 m1 t2) m2 t3
+>                                =  rloser k1 p1 (rloser k2 p2 t1 m1 t2) m2 t3
 > rsingleLeft k1 p1 t1 m1 (RLoser _ k2 p2 t2 m2 t3)
->				=  rloser k2 p2 (rloser k1 p1 t1 m1 t2) m2 t3
+>                                =  rloser k2 p2 (rloser k1 p1 t1 m1 t2) m2 t3
 > rsingleLeft _ _ _ _ Start = internalError "rsingleLeft"
 >
 > lsingleRight k1 p1 (LLoser _ k2 p2 t1 m1 t2) m2 t3
->				=  lloser k2 p2 t1 m1 (lloser k1 p1 t2 m2 t3)
+>                                =  lloser k2 p2 t1 m1 (lloser k1 p1 t2 m2 t3)
 > lsingleRight k1 p1 (RLoser _ k2 p2 t1 m1 t2) m2 t3
->				=  lloser k1 p1 t1 m1 (lloser k2 p2 t2 m2 t3)
+>                                =  lloser k1 p1 t1 m1 (lloser k2 p2 t2 m2 t3)
 > lsingleRight _ _ Start _ _ = internalError "lsingleRight"
 >
 > rsingleRight k1 p1 (LLoser _ k2 p2 t1 m1 t2) m2 t3
->				=  lloser k2 p2 t1 m1 (rloser k1 p1 t2 m2 t3)
+>                                =  lloser k2 p2 t1 m1 (rloser k1 p1 t2 m2 t3)
 > rsingleRight k1 p1 (RLoser _ k2 p2 t1 m1 t2) m2 t3
->   | p1 <= p2			=  rloser k1 p1 t1 m1 (lloser k2 p2 t2 m2 t3)
->   | otherwise			=  rloser k2 p2 t1 m1 (rloser k1 p1 t2 m2 t3)
+>   | p1 <= p2                        =  rloser k1 p1 t1 m1 (lloser k2 p2 t2 m2 t3)
+>   | otherwise                        =  rloser k2 p2 t1 m1 (rloser k1 p1 t2 m2 t3)
 > rsingleRight _ _ Start _ _ = internalError "rsingleRight"
 
 > ldoubleLeft k1 p1 t1 m1 (LLoser _ k2 p2 t2 m2 t3)
@@ -222,8 +222,8 @@ Tournament view.
 >
 > single (k :-> p)              =  single' k p
 >
-> single'			:: k -> p -> PSQ k p
-> single' k p			=  Winner k p start k
+> single'                        :: k -> p -> PSQ k p
+> single' k p                        =  Winner k p start k
 >
 > insert b q                    =  case tourView q of
 >   Null                        -> single b
@@ -256,9 +256,9 @@ Determining the second-best player.
 > secondBest                    :: (Ord k, Ord p) => LTree k p -> k -> PSQ k p
 > secondBest Start _m           =  Void
 > secondBest (LLoser _ k p tl m tr) m'
->   		                =  Winner k p tl m `play` secondBest tr m'
+>                                   =  Winner k p tl m `play` secondBest tr m'
 > secondBest (RLoser _ k p tl m tr) m'
->  		                =  secondBest tl m `play` Winner k p tr m'
+>                                  =  secondBest tl m `play` Winner k p tr m'
 
 \paragraph{Observers}
 
@@ -279,23 +279,23 @@ Determining the second-best player.
 >   Single k p                  -> s_single (k :-> p)
 >   tl `Play` tr                -> toOrdLists tl <> toOrdLists tr
 >
-> atMost pt q			=  toList (atMosts pt q)
+> atMost pt q                        =  toList (atMosts pt q)
 >
 > atMosts                       :: Ord p => p -> PSQ k p -> Sequ (Binding k p)
 > atMosts _pt Void              =  s_empty
 > atMosts pt (Winner k p t _)   =  prune k p t
 >   where
 >   prune k p t
->     | p > pt    		=  s_empty
+>     | p > pt                    =  s_empty
 >     | otherwise               =  traverse k p t
 >   traverse k p Start          =  s_single (k :-> p)
 >   traverse k p (LLoser _ k' p' tl _m tr)
->     		                =  prune    k' p' tl <> traverse k  p  tr
+>                                     =  prune    k' p' tl <> traverse k  p  tr
 >   traverse k p (RLoser _ k' p' tl _m tr)
 >                               =  traverse k  p  tl <> prune    k' p' tr
 >
 >
-> atMostRange pt (kl, kr) q	=  toList (atMostRanges pt (kl, kr) q)
+> atMostRange pt (kl, kr) q        =  toList (atMostRanges pt (kl, kr) q)
 
 > atMostRanges                  :: (Ord k, Ord p) => p -> (k, k) -> PSQ k p -> Sequ (Binding k p)
 > atMostRanges _pt _range Void =  s_empty
@@ -303,16 +303,16 @@ Determining the second-best player.
 >                              =  prune k p t
 >   where
 >   prune k p t
->     | p > pt			=  s_empty
+>     | p > pt                        =  s_empty
 >     | otherwise               =  traverse k p t
 >   traverse k p Start
->     | k `inrange` range	=  s_single (k :-> p)
+>     | k `inrange` range        =  s_single (k :-> p)
 >     | otherwise               =  s_empty
 >   traverse k p (LLoser _ k' p' tl m tr)
 >                               =  guard (kl <= m) (prune    k' p' tl)
 >                               <> guard (m <= kr) (traverse k  p  tr)
 >   traverse k p (RLoser _ k' p' tl m tr)
->     		                =  guard (kl <= m) (traverse k  p  tl)
+>                                     =  guard (kl <= m) (traverse k  p  tl)
 >                               <> guard (m <= kr) (prune    k' p' tr)
 
 \paragraph{Modifier}
@@ -349,8 +349,8 @@ Folding a list in a binary-subdivision scheme.
 >                 (a1, as1)     =  rec (n - m) as
 >                 (a2, as2)     =  rec m       as1
 
-> inrange			:: (Ord a) => a -> (a, a) -> Bool
-> a `inrange` (l, r)		=  l <= a && a <= r
+> inrange                        :: (Ord a) => a -> (a, a) -> Bool
+> a `inrange` (l, r)                =  l <= a && a <= r
 
 --------------- Sequ ---------------
 
@@ -371,7 +371,7 @@ Folding a list in a binary-subdivision scheme.
 % - - - - - - - - - - - - - - - = - - - - - - - - - - - - - - - - - - - - - - -
 
 > {-
-> newtype Sequ a		=  Sequ ([a] -> [a])
+> newtype Sequ a                =  Sequ ([a] -> [a])
 >
 > s_empty                       =  Sequ (\as -> as)
 >
@@ -386,13 +386,13 @@ Folding a list in a binary-subdivision scheme.
 > toList (Sequ x)               =  x []
 > -}
 >
-> data Sequ a			=  SEmpty | SUnit a | SFork (Sequ a) (Sequ a)
+> data Sequ a                        =  SEmpty | SUnit a | SFork (Sequ a) (Sequ a)
 >
 > s_empty                       =  SEmpty
 >
 > s_single a                    =  SUnit a
 >
-> x1 <> x2 	                =  SFork x1 x2
+> x1 <> x2                         =  SFork x1 x2
 >
 > -- fromList xs                   =  foldr (<>) SEmpty (map s_single xs)
 >

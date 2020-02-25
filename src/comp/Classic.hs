@@ -7,7 +7,7 @@ import IOMutVar(MutableVar, newVar, readVar, writeVar)
 import System.IO.Unsafe(unsafePerformIO)
 
 data SyntaxMode = BSV | CLASSIC | ESE
-		   deriving Eq
+                   deriving Eq
 
 syntax :: MutableVar SyntaxMode
 syntax = unsafePerformIO $ (newVar CLASSIC)

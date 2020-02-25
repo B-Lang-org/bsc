@@ -361,7 +361,7 @@ compilePackage ::
     IO (Bool, BinMap HeapData, HashMap)
 compilePackage
     errh
-    flags		-- user switches
+    flags                -- user switches
     dumpnames
     tStart
     binmap0
@@ -375,11 +375,11 @@ compilePackage
     -- Values needed for the Environment module
     let env =
             [("compilerVersion",iMkString $ version),
-             ("date",		iMkString $ show clkTime),
+             ("date",                iMkString $ show clkTime),
              ("epochTime",      iMkLitSize 32 $ floor epochTime),
              ("buildVersion",   iMkLitSize 32 $ buildnum),
              ("genPackageName", iMkString $ getIdBaseString pkgId),
-             ("testAssert",	iMkRealBool $ testAssert flags)
+             ("testAssert",        iMkRealBool $ testAssert flags)
             ]
 
     start flags DFimports
@@ -478,7 +478,7 @@ compilePackage
 
     -- Simplify a little
     start flags DFsimplified
-    let	mod' = simplify flags mod
+    let mod' = simplify flags mod
     t <- dump errh flags t DFsimplified dumpnames mod'
     stats flags DFsimplified mod'
 
@@ -2204,11 +2204,11 @@ compileCDefToIDef errh flags dumpnames symt ipkg def =
     t <- dump errh flags t DFtypecheck dumpnames cpkg_chk
 
     start flags DFsimplified
-    let	cpkg_simp@(CPackage _ _ _ _ [def'] _) = simplify flags cpkg_chk
+    let cpkg_simp@(CPackage _ _ _ _ [def'] _) = simplify flags cpkg_chk
     t <- dump errh flags t DFsimplified dumpnames cpkg_simp
 
     start flags DFinternal
-    let	idef = iConvDef errh flags symt ipkg def'
+    let idef = iConvDef errh flags symt ipkg def'
     t <- dump errh flags t DFinternal dumpnames idef
 
     return (idef, not tcErrors)

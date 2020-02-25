@@ -1,70 +1,70 @@
 {-# LANGUAGE CPP #-}
 module CSyntax(
-	CPackage(..),
-	CSignature(..),
-	CExpr(..),
-	CCaseArm(..),
-	CCaseArms,
-	CType,
-	TyVar(..),
-	TyCon(..),
-	Kind(..),
-	PartialKind(..),
-	CImport(..),
-	CInclude(..),
-	CQual(..),
-	CClause(..),
-	CPat(..),
-	Literal(..),
-	Type(..),
-	TISort(..),
-	CQType(..),
-	CDef(..),
-	CExport(..),
-	CRule(..),
-	CDefn(..),
-	CDefl(..),
-	CFunDeps,
-	CPred(..),
+        CPackage(..),
+        CSignature(..),
+        CExpr(..),
+        CCaseArm(..),
+        CCaseArms,
+        CType,
+        TyVar(..),
+        TyCon(..),
+        Kind(..),
+        PartialKind(..),
+        CImport(..),
+        CInclude(..),
+        CQual(..),
+        CClause(..),
+        CPat(..),
+        Literal(..),
+        Type(..),
+        TISort(..),
+        CQType(..),
+        CDef(..),
+        CExport(..),
+        CRule(..),
+        CDefn(..),
+        CDefl(..),
+        CFunDeps,
+        CPred(..),
         CTypeclass(..),
-	CField(..),
-	CFields,
-	CStmt(..),
+        CField(..),
+        CFields,
+        CStmt(..),
         CStmts,
-	IdK(..),
-	CLiteral(..),
-	CMStmt(..),
-	COp(..),
-	CPOp(..),
-	CFixity(..),
-	RulePragma(..),
-	xWrapperModuleVerilog,
+        IdK(..),
+        CLiteral(..),
+        CMStmt(..),
+        COp(..),
+        CPOp(..),
+        CFixity(..),
+        RulePragma(..),
+        xWrapperModuleVerilog,
         xClassicModuleVerilog,
         CInternalSummand(..), CSummands, getCISName,
         COriginalSummand(..), COSummands, getCOSName,
-	cApply,
-	cmtApply,
-	cTApplys,
-	cTCon,
-	cTVar,
-	leftCon,
-	anyExpr,
-	anyExprAt,
-	anyTExpr,
-	noType,
-	cTApply,
-	iKName,
-	impName,
+        cApply,
+        cmtApply,
+        cTApplys,
+        cTCon,
+        cTVar,
+        leftCon,
+        anyExpr,
+        anyExprAt,
+        anyTExpr,
+        noType,
+        cTApply,
+        iKName,
+        impName,
         cVar,
-	cVApply,
-	getName,
-	getLName,
-	getDName,
-	isTDef,
-	getNK,
+        cVApply,
+        getName,
+        getLName,
+        getDName,
+        isTDef,
+        getNK,
         isCQFilter,
-	HasPosition(..),
-	StructSubType(..)) where
+        HasPosition(..),
+        StructSubType(..)) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -102,92 +102,92 @@ data CPackage = CPackage
                                   -- Right exps = export everything but exps
                 [CImport]         -- imported identifiers
                 [CFixity]         -- fixity declarations for infix operators
-                [CDefn]	          -- top level definitions
+                [CDefn]                  -- top level definitions
                 [CInclude]        -- any `include files
-	deriving (Eq, Ord, Show)
+        deriving (Eq, Ord, Show)
 
 data CExport
-	= CExpVar Id    -- export a variable identifier
+        = CExpVar Id    -- export a variable identifier
         | CExpCon Id    -- export a constructor
-	| CExpConAll Id -- export an identifier and constructors
+        | CExpConAll Id -- export an identifier and constructors
                         -- (datatypes, interfaces, etc.)
-	| CExpPkg Id    -- export an entire package
-	deriving (Eq, Ord, Show)
+        | CExpPkg Id    -- export an entire package
+        deriving (Eq, Ord, Show)
 
 data CImport
-	= CImpId Bool Id				-- Bool indicates qualified
-	| CImpSign String Bool CSignature
-	deriving (Eq, Ord, Show)
+        = CImpId Bool Id                                -- Bool indicates qualified
+        | CImpSign String Bool CSignature
+        deriving (Eq, Ord, Show)
 
 -- Package signature from import
 data CSignature
-	= CSignature Id [Id] [CFixity] [CDefn]	-- package name, imported packages, definitions
-	deriving (Eq, Ord, Show)
+        = CSignature Id [Id] [CFixity] [CDefn]        -- package name, imported packages, definitions
+        deriving (Eq, Ord, Show)
 
 data CFixity
-	= CInfix  Integer Id
-	| CInfixl Integer Id
-	| CInfixr Integer Id
-	deriving (Eq, Ord, Show)
+        = CInfix  Integer Id
+        | CInfixl Integer Id
+        | CInfixr Integer Id
+        deriving (Eq, Ord, Show)
 
 -- Top level definition
 data CDefn
-	= Ctype IdK [Id] CType
+        = Ctype IdK [Id] CType
         | Cdata { cd_visible :: Bool,
                   cd_name :: IdK,
                   cd_type_vars :: [Id],
                   cd_original_summands :: COSummands,
                   cd_internal_summands :: CSummands,
                   cd_derivings :: [CTypeclass] }
-	| Cstruct Bool StructSubType IdK [Id] CFields
-		  [CTypeclass]
+        | Cstruct Bool StructSubType IdK [Id] CFields
+                  [CTypeclass]
                   -- Bool indicates the constrs are visible
                   -- first [Id] are the names of this definition's argument type variables
                   -- last [CTypeclass] are derived classes
         -- incoherent_matches superclasses name_with_kind variables fundeps default_methods
-	| Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps CFields
-	| Cinstance CQType [CDefl]
-	| CValue Id [CClause]
-	| CValueSign CDef
-	| Cforeign { cforg_name :: Id,
-		     cforg_type :: CQType,
-		     cforg_foreign_name :: Maybe String,
-		     cforg_ports :: Maybe ([String], [String]) }
-	| Cprimitive Id CQType
-	| CprimType IdK
-	| CPragma Pragma
-	-- only in package signatures
-	| CIinstance Id CQType
+        | Cclass (Maybe Bool) [CPred] IdK [Id] CFunDeps CFields
+        | Cinstance CQType [CDefl]
+        | CValue Id [CClause]
+        | CValueSign CDef
+        | Cforeign { cforg_name :: Id,
+                     cforg_type :: CQType,
+                     cforg_foreign_name :: Maybe String,
+                     cforg_ports :: Maybe ([String], [String]) }
+        | Cprimitive Id CQType
+        | CprimType IdK
+        | CPragma Pragma
+        -- only in package signatures
+        | CIinstance Id CQType
         -- CItype is imported abstractly
-	| CItype IdK [Id] [Position] -- positions of use that caused export
-	| CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [Position] -- positions of use that caused export
-	| CIValueSign Id CQType
+        | CItype IdK [Id] [Position] -- positions of use that caused export
+        | CIclass (Maybe Bool) [CPred] IdK [Id] CFunDeps [Position] -- positions of use that caused export
+        | CIValueSign Id CQType
         deriving (Eq, Ord, Show)
 
 -- Since IdPKind is only expected in some disjuncts of CDefn, we could
 -- create a separate IdPK for those cases, but that seems like overkill.
 -- IdPKind in other locations will just be treated like IdK (no kind info).
 data IdK
-	= IdK Id
-	| IdKind Id Kind
-	-- this should not exist after typecheck
-	| IdPKind Id PartialKind
+        = IdK Id
+        | IdKind Id Kind
+        -- this should not exist after typecheck
+        | IdPKind Id PartialKind
         deriving (Eq, Ord, Show)
 
 type CFunDeps = [([Id],[Id])]
 
 -- Expressions
 data CExpr
-	= CLam (Either Position Id) CExpr
-	| CLamT (Either Position Id) CQType CExpr
+        = CLam (Either Position Id) CExpr
+        | CLamT (Either Position Id) CQType CExpr
         | Cletseq [CDefl] CExpr -- rhs of "let x = x" refers to previous def
                                 --   before current let or in earlier arm
         | Cletrec [CDefl] CExpr -- rhs of "let x = x" refers to self
-	| CSelect CExpr Id			-- expr, field id
-        | CCon Id [CExpr]			-- constructor id, arguments
+        | CSelect CExpr Id                        -- expr, field id
+        | CCon Id [CExpr]                        -- constructor id, arguments
         | Ccase Position CExpr CCaseArms
-	| CStruct Id [(Id, CExpr)]
-	| CStructUpd CExpr [(Id, CExpr)]
+        | CStruct Id [(Id, CExpr)]
+        | CStructUpd CExpr [(Id, CExpr)]
 
         -- for hardware writes
         -- lhs <= rhs
@@ -199,61 +199,61 @@ data CExpr
         | CTaskApply CExpr [CExpr] -- system task calls
         | CTaskApplyT CExpr CType [CExpr] -- type-checked $task (only $display) calls (the type is the inferred function type for the varargs task)
         | CLit CLiteral
-	| CBinOp CExpr Id CExpr
-	| CHasType CExpr CQType
+        | CBinOp CExpr Id CExpr
+        | CHasType CExpr CQType
         | Cif Position CExpr CExpr CExpr
         -- x[a]
-       	| CSub Position CExpr CExpr
+               | CSub Position CExpr CExpr
         -- x[a:b]
-	| CSub2 CExpr CExpr CExpr
+        | CSub2 CExpr CExpr CExpr
         -- x[a:b] = y
         | CSubUpdate Position CExpr (CExpr, CExpr) CExpr
-	| Cmodule Position [CMStmt]
-	| Cinterface Position (Maybe Id) [CDefl]
-	| CmoduleVerilog
+        | Cmodule Position [CMStmt]
+        | Cinterface Position (Maybe Id) [CDefl]
+        | CmoduleVerilog
               CExpr               -- expr for the module name (type String)
               Bool                -- whether it is a user-imported module
-	      VClockInfo          -- clocks
-	      VResetInfo          -- resets
-	      [(VArgInfo,CExpr)]  -- input arguments
-	      [VFieldInfo]        -- output interface fields
-	      VSchedInfo          -- scheduling annotations
-	      VPathInfo           -- path annotations
-	| CForeignFuncC Id CQType -- link name, wrapped type
-	| Cdo Bool CStmts	-- Bool indicates recursive binding
-	| Caction Position CStmts
-	| Crules [CSchedulePragma] [CRule]
-	| CADump [CExpr]
-	-- used before operator parsing
-	| COper [COp]
-	-- from deriving
-	| CCon1 Id Id CExpr			-- type id, con id, expr
-	| CSelectTT Id CExpr Id			-- type id, expr, field id
-	-- INTERNAL in type checker
-        | CCon0 (Maybe Id) Id			-- type id, constructor id
-	-- Not part of the surface syntax, used after type checking
-        | CConT Id Id [CExpr]			-- type id, constructor id, arguments
-	| CStructT CType [(Id, CExpr)]
-	| CSelectT Id Id			-- type id, field id
+              VClockInfo          -- clocks
+              VResetInfo          -- resets
+              [(VArgInfo,CExpr)]  -- input arguments
+              [VFieldInfo]        -- output interface fields
+              VSchedInfo          -- scheduling annotations
+              VPathInfo           -- path annotations
+        | CForeignFuncC Id CQType -- link name, wrapped type
+        | Cdo Bool CStmts        -- Bool indicates recursive binding
+        | Caction Position CStmts
+        | Crules [CSchedulePragma] [CRule]
+        | CADump [CExpr]
+        -- used before operator parsing
+        | COper [COp]
+        -- from deriving
+        | CCon1 Id Id CExpr                        -- type id, con id, expr
+        | CSelectTT Id CExpr Id                        -- type id, expr, field id
+        -- INTERNAL in type checker
+        | CCon0 (Maybe Id) Id                        -- type id, constructor id
+        -- Not part of the surface syntax, used after type checking
+        | CConT Id Id [CExpr]                        -- type id, constructor id, arguments
+        | CStructT CType [(Id, CExpr)]
+        | CSelectT Id Id                        -- type id, field id
         | CLitT CType CLiteral
         | CAnyT Position UndefKind CType
-	| CmoduleVerilogT CType
+        | CmoduleVerilogT CType
               CExpr               -- expr for the module name (type String)
               Bool                -- whether it is a user-imported module
-	      VClockInfo          -- clocks
-	      VResetInfo          -- resets
-	      [(VArgInfo,CExpr)]  -- input arguments
-	      [VFieldInfo]        -- output interface fields
-	      VSchedInfo          -- scheduling annotations
-	      VPathInfo           -- path annotations
-	| CForeignFuncCT Id CType -- link name, primitive type
-	| CTApply CExpr [CType]
+              VClockInfo          -- clocks
+              VResetInfo          -- resets
+              [(VArgInfo,CExpr)]  -- input arguments
+              [VFieldInfo]        -- output interface fields
+              VSchedInfo          -- scheduling annotations
+              VPathInfo           -- path annotations
+        | CForeignFuncCT Id CType -- link name, primitive type
+        | CTApply CExpr [CType]
         -- for passing pprops as values
         | Cattributes [(Position,PProp)]
         deriving (Ord, Show)
 
 instance Hyper CExpr where
-    hyper x y = (x==x) `seq` y		-- XXX
+    hyper x y = (x==x) `seq` y                -- XXX
 
 -- ignore positions when testing equality
 instance Eq CExpr where
@@ -359,19 +359,19 @@ instance Eq CExpr where
 -- function called by the Classic parser to create a CmoduleVerilog
 -- from a Classic "module verilog" (imported Verilog module)
 xClassicModuleVerilog :: CExpr -> [(String, CExpr)] ->
-			 [String] -> [String] ->
-			 [(String, ([VeriPortProp], CExpr))] ->
-			 [VFieldInfo] -> VSchedInfo -> VPathInfo ->
-			 CExpr
+                         [String] -> [String] ->
+                         [(String, ([VeriPortProp], CExpr))] ->
+                         [VFieldInfo] -> VSchedInfo -> VPathInfo ->
+                         CExpr
 xClassicModuleVerilog m params clocks resets ports methodinfo schedinfo pathinfo =
     -- get the current clock and reset and connect them to the imported module
     Cmodule (getPosition m)
             (clock_stmt ++
              reset_stmt ++
              [CMStmt (CSExpr Nothing
-	             (xCmoduleVerilog m True -- it's a user import
-	                  (WireInfo clock_info reset_info arg_info)
-			  args methodinfo' schedinfo pathinfo))])
+                     (xCmoduleVerilog m True -- it's a user import
+                          (WireInfo clock_info reset_info arg_info)
+                          args methodinfo' schedinfo pathinfo))])
   where param_ais   = map (Param . VName . fst) params
         param_args  = map snd params
         port_clock  = case clock_names of
@@ -395,12 +395,12 @@ xClassicModuleVerilog m params clocks resets ports methodinfo schedinfo pathinfo
         clock_names = map (addIdSuffix idClk) [1..(genericLength clocks)]
         clock_ais   = map ClockArg clock_names
         default_clk = listToMaybe clock_names -- Nothing if no clocks
-	-- a single actual clock - no gating ancestors or siblings
-	-- (The clock gate property is False, just to make life easier,
-	-- because all module-verilog in the libs don't care about the gate)
+        -- a single actual clock - no gating ancestors or siblings
+        -- (The clock gate property is False, just to make life easier,
+        -- because all module-verilog in the libs don't care about the gate)
         clock_info  =
-	    let mkInputClockInf i s = (i, Just (VName s, Left False))
-	    in  ClockInfo (zipWith mkInputClockInf clock_names clocks) [] [] []
+            let mkInputClockInf i s = (i, Just (VName s, Left False))
+            in  ClockInfo (zipWith mkInputClockInf clock_names clocks) [] [] []
 
         reset_stmt  =
             if (null resets)
@@ -413,8 +413,8 @@ xClassicModuleVerilog m params clocks resets ports methodinfo schedinfo pathinfo
         reset_ais   = map ResetArg reset_names
         -- Classic modules should have resets synchronized with their clock (if any)
         reset_info  =
-	    let mkInputResetInf i s = (i, (Just (VName s), default_clk))
-	    in  ResetInfo (zipWith mkInputResetInf reset_names resets) []
+            let mkInputResetInf i s = (i, (Just (VName s), default_clk))
+            in  ResetInfo (zipWith mkInputResetInf reset_names resets) []
         default_rst = listToMaybe reset_names -- Nothing if no resets
 
         arg_info    = clock_ais  ++ reset_ais  ++ param_ais  ++ port_ais
@@ -434,35 +434,35 @@ xClassicModuleVerilog m params clocks resets ports methodinfo schedinfo pathinfo
 -- The wrapped CmoduleVerilog is marked as not being a user import
 -- (since it's a synthesized module from Bluespec source).
 xWrapperModuleVerilog :: Bool -> [PProp] -> CExpr -> VWireInfo -> [CExpr] ->
-			 [VFieldInfo] -> VSchedInfo -> VPathInfo ->
-			 CExpr
+                         [VFieldInfo] -> VSchedInfo -> VPathInfo ->
+                         CExpr
 xWrapperModuleVerilog True pps m wireinfo args fields schedinfo pathinfo =
     -- it's a foreign function, which needs to clock or reset
     xCmoduleVerilog m False wireinfo args fields schedinfo pathinfo
 xWrapperModuleVerilog False pps m wireinfo args fields schedinfo pathinfo =
   let (args1,stmts1) =
           if (hasDefaultClk pps)
-	  then ([CVar idClk],
-		[CMStmt (bindVarT idClk tClock (CVar idExposeCurrentClock))])
-	  else ([],[])
+          then ([CVar idClk],
+                [CMStmt (bindVarT idClk tClock (CVar idExposeCurrentClock))])
+          else ([],[])
       (args2,stmts2) =
-	  if (hasDefaultRst pps)
-	  then ([CVar idRst],
-		[CMStmt (bindVarT idRst tReset (CVar idExposeCurrentReset))])
-	  else ([],[])
+          if (hasDefaultRst pps)
+          then ([CVar idRst],
+                [CMStmt (bindVarT idRst tReset (CVar idExposeCurrentReset))])
+          else ([],[])
       args'  = args ++ args1 ++ args2
       stmts' = stmts1 ++ stmts2 ++
                [CMStmt (CSExpr Nothing
-			(xCmoduleVerilog m False -- it's not a user import
-			     wireinfo args' fields schedinfo pathinfo))]
+                        (xCmoduleVerilog m False -- it's not a user import
+                             wireinfo args' fields schedinfo pathinfo))]
   in Cmodule (getPosition m) stmts'
 
 -- ---------------
 
 -- The core of the above functions
 xCmoduleVerilog :: CExpr -> Bool -> VWireInfo -> [CExpr] ->
-		   [VFieldInfo] -> VSchedInfo -> VPathInfo ->
-		   CExpr
+                   [VFieldInfo] -> VSchedInfo -> VPathInfo ->
+                   CExpr
 xCmoduleVerilog m is_user_import wireinfo args fields schedinfo pathinfo =
  let arginfo = wArgs wireinfo in
     if (length args) == (length arginfo) then
@@ -470,28 +470,28 @@ xCmoduleVerilog m is_user_import wireinfo args fields schedinfo pathinfo =
                      is_user_import
                      (wClk wireinfo)
                      (wRst wireinfo)
-		     (zip arginfo args)
-		     fields -- methods or clocks
+                     (zip arginfo args)
+                     fields -- methods or clocks
                      schedinfo
                      pathinfo -- VPathInfo
     else
       internalError
-	  ("CSyntax.xCmoduleVerilog: args and arginfo do not match: " ++
-	   (ppReadable args) ++ (ppReadable arginfo))
+          ("CSyntax.xCmoduleVerilog: args and arginfo do not match: " ++
+           (ppReadable args) ++ (ppReadable arginfo))
 
 
 -- ===============
 
 data CLiteral = CLiteral Position Literal deriving (Show)
 instance Eq CLiteral where
-	CLiteral _ l == CLiteral _ l'  =  l == l'
+        CLiteral _ l == CLiteral _ l'  =  l == l'
 instance Ord CLiteral where
-	CLiteral _ l `compare` CLiteral _ l'  =  l `compare` l'
+        CLiteral _ l `compare` CLiteral _ l'  =  l `compare` l'
 
 data COp
-	= CRand CExpr    -- operand
-	| CRator Int Id  -- infix operator Id, Int is the number of arguments?
-	deriving (Eq, Ord, Show)
+        = CRand CExpr    -- operand
+        | CRator Int Id  -- infix operator Id, Int is the number of arguments?
+        deriving (Eq, Ord, Show)
 
 type CSummands = [CInternalSummand]
 
@@ -509,8 +509,8 @@ data CInternalSummand =
 -- return only the primary name
 getCISName :: CInternalSummand -> Id
 getCISName cis = case (cis_names cis) of
-		     [] -> internalError "getCISName: empty cis_names"
-		     (cn:_) -> cn
+                     [] -> internalError "getCISName: empty cis_names"
+                     (cn:_) -> cn
 
 -- original summands (taking a list of arguments, each of whose types
 -- is given by CQType); the Int is a hack to support Enums with
@@ -529,8 +529,8 @@ data COriginalSummand =
 -- return only the primary name
 getCOSName :: COriginalSummand -> Id
 getCOSName cos = case (cos_names cos) of
-		     [] -> internalError "getCOSName: empty cos_names"
-		     (cn:_) -> cn
+                     [] -> internalError "getCOSName: empty cos_names"
+                     (cn:_) -> cn
 
 -- if CQType is a function, [IfcPragmas] (if present) lists argument names
 -- (used by the backend to generate pretty names for module ports)
@@ -555,13 +555,13 @@ type CCaseArms = [CCaseArm] -- [(CPat, [CQual], CExpr)]
 
 data CStmt
           -- bind cexpr of type cqtype to cpat; id, if present, is instance name
-	= CSBindT CPat (Maybe CExpr) [(Position,PProp)] CQType CExpr
+        = CSBindT CPat (Maybe CExpr) [(Position,PProp)] CQType CExpr
           -- bind cexpr to cpat; id, if present, is instance name
-	| CSBind CPat (Maybe CExpr) [(Position,PProp)] CExpr
-	| CSletseq [CDefl] -- rhs of "let x = x" refers to previous def
+        | CSBind CPat (Maybe CExpr) [(Position,PProp)] CExpr
+        | CSletseq [CDefl] -- rhs of "let x = x" refers to previous def
                            --   before current let or in earlier arm
-	| CSletrec [CDefl] -- rhs of "let x = x" refers to self
-	| CSExpr (Maybe CExpr) CExpr
+        | CSletrec [CDefl] -- rhs of "let x = x" refers to self
+        | CSExpr (Maybe CExpr) CExpr
         deriving (Eq, Ord, Show)
 
 bindVarT :: Id -> CType -> CExpr -> CStmt
@@ -570,42 +570,42 @@ bindVarT i t e = CSBindT (CPVar i) Nothing [] (CQType [] t) e
 type CStmts = [CStmt]
 
 data CMStmt
-	= CMStmt CStmt
-	| CMrules CExpr
-	| CMinterface CExpr
-	| CMTupleInterface Position [CExpr]
+        = CMStmt CStmt
+        | CMrules CExpr
+        | CMinterface CExpr
+        | CMTupleInterface Position [CExpr]
         deriving (Eq, Ord, Show)
 
 data CRule
-	= CRule [RulePragma] (Maybe CExpr) [CQual] CExpr
-	| CRuleNest [RulePragma] (Maybe CExpr) [CQual] [CRule]
+        = CRule [RulePragma] (Maybe CExpr) [CQual] CExpr
+        | CRuleNest [RulePragma] (Maybe CExpr) [CQual] [CRule]
         deriving (Eq, Ord, Show)
 
 -- "let" binding
-data CDefl		-- [CQual] part is when clause used in interfaces
-	= CLValueSign CDef [CQual]
-	| CLValue Id [CClause] [CQual]
-	| CLMatch CPat CExpr
+data CDefl                -- [CQual] part is when clause used in interfaces
+        = CLValueSign CDef [CQual]
+        | CLValue Id [CClause] [CQual]
+        | CLMatch CPat CExpr
         deriving (Eq, Ord, Show)
 
 -- Definition, local or global
 data CDef
-	= CDef Id CQType [CClause]			-- before type checking
-	| CDefT Id [TyVar] CQType [CClause]		-- after type checking, with type variables from the CQType
+        = CDef Id CQType [CClause]                        -- before type checking
+        | CDefT Id [TyVar] CQType [CClause]                -- after type checking, with type variables from the CQType
         deriving (Eq, Ord, Show)
 
 -- Definition clause
 -- each interface's definitions (within the module) correspond to one of these
 data CClause
-	= CClause [CPat]                -- arguments (including patterns)
+        = CClause [CPat]                -- arguments (including patterns)
                   [CQual]               -- qualifier on the args
                   CExpr                 -- the body
         deriving (Eq, Ord, Show)
 
 -- Pattern matching
 data CQual
-	= CQGen CType CPat CExpr
-	| CQFilter CExpr
+        = CQGen CType CPat CExpr
+        | CQFilter CExpr
         deriving (Eq, Ord, Show)
 
 isCQFilter :: CQual -> Bool
@@ -613,27 +613,27 @@ isCQFilter (CQFilter _) = True
 isCQFilter _            = False
 
 data CPat
-	= CPCon Id [CPat]
-	| CPstruct Id [(Id, CPat)]
+        = CPCon Id [CPat]
+        | CPstruct Id [(Id, CPat)]
         | CPVar Id
         | CPAs Id CPat
         | CPAny Position
         | CPLit CLiteral
-	-- position, base, [(length, value or don't-care)] starting from MSB
+        -- position, base, [(length, value or don't-care)] starting from MSB
         -- note that length is length in digits, not bits!
-	| CPMixedLit Position Integer [(Integer, Maybe Integer)]
-	-- used before operator parsing
-	| CPOper [CPOp]
-	-- generated by deriving code
-	| CPCon1 Id Id CPat			-- first Id is type of constructor
-	-- After type checking
-	| CPConTs Id Id [CType] [CPat]
+        | CPMixedLit Position Integer [(Integer, Maybe Integer)]
+        -- used before operator parsing
+        | CPOper [CPOp]
+        -- generated by deriving code
+        | CPCon1 Id Id CPat                        -- first Id is type of constructor
+        -- After type checking
+        | CPConTs Id Id [CType] [CPat]
         deriving (Eq, Ord, Show)
 
 data CPOp
-	= CPRand CPat
-	| CPRator Int Id
-	deriving (Eq, Ord, Show)
+        = CPRand CPat
+        | CPRator Int Id
+        deriving (Eq, Ord, Show)
 
 data CInclude
     = CInclude String
@@ -798,9 +798,9 @@ instance HasPosition CExpr where
     getPosition (Cmodule pos _) = pos
     getPosition (Cinterface pos i ds) = pos
     getPosition (CmoduleVerilog e _ _ _ ses fs _ _) =
-	getPosition (e, map snd ses, fs)
+        getPosition (e, map snd ses, fs)
     getPosition (CmoduleVerilogT _ e _ _ _ ses fs _ _) =
-	getPosition (e, map snd ses, fs)
+        getPosition (e, map snd ses, fs)
     getPosition (CForeignFuncC i _) = getPosition i
     getPosition (CForeignFuncCT i _) = getPosition i
     getPosition (Cdo _ ss) = getPosition ss
@@ -877,8 +877,8 @@ ppExports d (Left exports) = t "(" <> sepList (map (pp d) exports) (t",") <> t")
 
 instance PPrint CPackage where
     pPrint d _ (CPackage i exps imps fixs def includes) =
-	(t"package" <+> ppConId d i <> ppExports d exps <+> t "where {") $+$
-	pBlock d 0 True (map (pp d) imps ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
+        (t"package" <+> ppConId d i <> ppExports d exps <+> t "where {") $+$
+        pBlock d 0 True (map (pp d) imps ++ map (pp d) fixs ++ map (pp d) def ++ map (pp d) includes)
 
 instance PPrint CExport where
     pPrint d p (CExpVar i) = ppVarId d i
@@ -895,8 +895,8 @@ ppQualified False = empty
 
 instance PPrint CSignature where
     pPrint d _ (CSignature i imps fixs def) =
-	(t"signature" <+> ppConId d i <+> t "where" <+> t "{") $+$
-	pBlock d 0 True (map pi imps ++ map (pp d) fixs ++ map (pp d) def)
+        (t"signature" <+> ppConId d i <+> t "where" <+> t "{") $+$
+        pBlock d 0 True (map pi imps ++ map (pp d) fixs ++ map (pp d) def)
       where pi i = t"import" <+> ppConId d i
 
 instance PPrint CFixity where
@@ -906,63 +906,63 @@ instance PPrint CFixity where
 
 instance PPrint CDefn where
     pPrint d p (Ctype i as ty) =
-	sep [sep ((t"type" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <+> t "=",
-		  nest 2 (pp d ty)]
+        sep [sep ((t"type" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <+> t "=",
+                  nest 2 (pp d ty)]
     pPrint d p (Cdata { cd_visible = vis,
                         cd_name = i,
                         cd_type_vars = as,
                         cd_original_summands = cs@(_:_),
                         cd_internal_summands = [],
-                        cd_derivings = ds }) =		-- a hack to print original constructors
-	sep [sep ((t"data" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <> t(if vis then " =" else " =="),
-		  nest 2 (ppOSummands d cs)]
+                        cd_derivings = ds }) =                -- a hack to print original constructors
+        sep [sep ((t"data" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <> t(if vis then " =" else " =="),
+                  nest 2 (ppOSummands d cs)]
     pPrint d p (Cdata { cd_visible = vis,
                         cd_name = i,
                         cd_type_vars = as,
                         cd_internal_summands = cs,
                         cd_derivings = ds }) =
-	sep [sep ((t"data" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <> t(if vis then " =" else " =="),
-		  nest 2 (ppSummands d cs)]
-	<> ppDer d ds
+        sep [sep ((t"data" <+> ppConIdK d i) : map (nest 2 . ppVarId d) as) <> t(if vis then " =" else " =="),
+                  nest 2 (ppSummands d cs)]
+        <> ppDer d ds
     pPrint d p (Cstruct vis (SInterface prags) i as fs ds) =
-	(t("interface ") <> sep (ppConIdK d i : map (nest 2 . ppVarId d) as) <+> ppIfcPragma d prags <+> t(if vis then "= {" else "== {")) $+$
+        (t("interface ") <> sep (ppConIdK d i : map (nest 2 . ppVarId d) as) <+> ppIfcPragma d prags <+> t(if vis then "= {" else "== {")) $+$
         pBlock d 4 False (map (ppField d) fs) <> ppDer d ds
     pPrint d p (Cstruct vis ss i as fs ds) =
-	(t("struct ") <> sep (ppConIdK d i : map (nest 2 . ppVarId d) as) <+> t(if vis then "= {" else "== {")) $+$
+        (t("struct ") <> sep (ppConIdK d i : map (nest 2 . ppVarId d) as) <+> t(if vis then "= {" else "== {")) $+$
         pBlock d 4 False (map (ppField d) fs) <> ppDer d ds
     pPrint d p (Cclass incoh ps ik is fd ss) =
-	(t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (ppVarId d) is)) <> ppFDs d fd <+> t "where {") $+$
+        (t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (ppVarId d) is)) <> ppFDs d fd <+> t "where {") $+$
         pBlock d 4 False (map (ppField d) ss)
       where t_cls = case incoh of
                      Just False -> t"class coherent"
                      Just True  -> t"class incoherent"
                      Nothing    -> t"class"
     pPrint d p (Cinstance qt ds) =
-	(t"instance" <+> pPrint d 0 qt <+> t "where {") $+$
+        (t"instance" <+> pPrint d 0 qt <+> t "where {") $+$
         pBlock d 4 False (map (pPrint d 0) ds)
     pPrint d p (CValueSign def) = pPrint d p def
     pPrint d p (CValue i cs) =
-	vcat (map (\ cl -> ppClause d p [ppVarId d i] cl <> t";") cs)
+        vcat (map (\ cl -> ppClause d p [ppVarId d i] cl <> t";") cs)
     pPrint d p (Cprimitive i ty) =
-	text "primitive" <+> ppVarId d i <+> t "::" <+> pp d ty
+        text "primitive" <+> ppVarId d i <+> t "::" <+> pp d ty
     pPrint d p (CPragma pr) = pPrint d p pr
     pPrint d p (CprimType ik) =
-	t"primitive type" <+>
-	-- don't use ppConIdK because this syntax has no parentheses
-	case (ik) of
-	    (IdK i)        -> ppConId d i
-	    (IdKind i k)   -> ppConId d i <+> t "::" <+> pp d k
-	    (IdPKind i pk) -> ppConId d i <+> t "::" <+> pp d pk
+        t"primitive type" <+>
+        -- don't use ppConIdK because this syntax has no parentheses
+        case (ik) of
+            (IdK i)        -> ppConId d i
+            (IdKind i k)   -> ppConId d i <+> t "::" <+> pp d k
+            (IdPKind i pk) -> ppConId d i <+> t "::" <+> pp d pk
     pPrint d p (Cforeign i ty oname opnames) =
-	text "foreign" <+> ppVarId d i <+> t "::" <+> pp d ty <> (case oname of Nothing -> text ""; Just s -> text (" = " ++ show s)) <> (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
+        text "foreign" <+> ppVarId d i <+> t "::" <+> pp d ty <> (case oname of Nothing -> text ""; Just s -> text (" = " ++ show s)) <> (case opnames of Nothing -> text ""; Just (is, os) -> t"," <> pparen True (sep (map (text . show) is ++ po os)))
       where po [o] = [text ",", text (show o)]
-	    po os = [t"(" <> sepList (map (text . show) os) (t",") <> t ")"]
+            po os = [t"(" <> sepList (map (text . show) os) (t",") <> t ")"]
     pPrint d p (CIinstance i qt) =
-	t"instance" <+> ppConId d i <+> pPrint d 0 qt
+        t"instance" <+> ppConId d i <+> pPrint d 0 qt
     pPrint d p (CItype i as positions) =
-	sep (t"type" <+> ppConIdK d i : map (nest 2 . ppVarId d) as)
+        sep (t"type" <+> ppConIdK d i : map (nest 2 . ppVarId d) as)
     pPrint d p (CIclass incoh ps ik is fd positions) =
-	t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (nest 2 . ppVarId d) is)) <> ppFDs d fd
+        t_cls <+> ppPreds d ps (sep (ppConIdK d ik : map (nest 2 . ppVarId d) is)) <> ppFDs d fd
       where t_cls = case incoh of
                      Just False -> t"class coherent"
                      Just True  -> t"class incoherent"
@@ -1012,9 +1012,9 @@ instance PPrint IdK where
 
 pBlock d n _ [] = t"}"
 pBlock d n nl xs =
-	(t (replicate n ' ') <>
-	foldr1 ($+$) (map (\ x -> x <> if nl then t";" $+$ t"" else t";") (init xs) ++ [last xs])) $+$
-	t"}"
+        (t (replicate n ' ') <>
+        foldr1 ($+$) (map (\ x -> x <> if nl then t";" $+$ t"" else t";") (init xs) ++ [last xs])) $+$
+        t"}"
 
 ppDer d [] = text ""
 ppDer d is = text " deriving (" <> sepList (map (pPrint d 0) is) (text ",") <> text ")"
@@ -1024,14 +1024,14 @@ instance PPrint CExpr where
     pPrint d p (CLam ei e) = ppQuant "\\ "  d p ei e
     pPrint d p (CLamT ei ty e) = ppQuant "\\ "  d p ei e
     pPrint d p (Cletseq [] e) = pparen (p > 0) $
-	(t"letseq in" <+> pp d e)
+        (t"letseq in" <+> pp d e)
     pPrint d p (Cletseq ds e) = pparen (p > 0) $
-	(t"letseq" <+> foldr1 ($+$) (map (pp d) ds)) $+$
+        (t"letseq" <+> foldr1 ($+$) (map (pp d) ds)) $+$
         (t"in  " <> pp d e)
     pPrint d p (Cletrec [] e) = pparen (p > 0) $
-	(t"let in" <+> pp d e)
+        (t"let in" <+> pp d e)
     pPrint d p (Cletrec ds e) = pparen (p > 0) $
-	(t"let" <+> foldr1 ($+$) (map (pp d) ds)) $+$
+        (t"let" <+> foldr1 ($+$) (map (pp d) ds)) $+$
         (t"in  " <> pp d e)
     pPrint d p (CSelect e i) = pparen (p > (maxPrec+2)) $ pPrint d (maxPrec+2) e <> t"." <> ppVarId d i
     pPrint d p (CCon i []) = ppConId d i
@@ -1041,16 +1041,16 @@ instance PPrint CExpr where
     pPrint d p (CVar i) = ppVarId d i
     pPrint d p (CStruct tyc []) | tyc == idPrimUnit = text "()"
     pPrint d p (CStruct tyc ies) = pparen (p > 0) $ pPrint d (maxPrec+1) tyc <+> t "{" <+> sepList (map f ies ++ [t"}"]) (t";")
-	where f (i, e) = ppVarId d i <+> t "=" <+> pp d e
+        where f (i, e) = ppVarId d i <+> t "=" <+> pp d e
     pPrint d p (CStructUpd e ies) = pparen (p > 0) $ pPrint d (maxPrec+1) e <+> t "{" <+> sepList (map f ies ++ [t"}"]) (t";")
-	where f (i, e) = ppVarId d i <+> t "=" <+> pp d e
+        where f (i, e) = ppVarId d i <+> t "=" <+> pp d e
     pPrint d p (Cwrite _ e v)  = pparen (p > 0) $ pPrint d (maxPrec+1) e <+> t ":=" <+> pPrint d p v
     pPrint PDReadable p (CApply e []) = pPrint PDReadable p e
     pPrint d p (CApply e es) = pparen (p>(maxPrec-1)) $
-	sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) es)
+        sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) es)
         where ppApArg e = pPrint d maxPrec e
     pPrint d p (CTaskApply e es) = pparen (p>(maxPrec-1)) $
-	sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) es)
+        sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) es)
         where ppApArg e = pPrint d maxPrec e
     -- XXX: should include t?
     pPrint d p (CTaskApplyT e t es) = pparen (p>(maxPrec-1)) $
@@ -1067,39 +1067,39 @@ instance PPrint CExpr where
     pPrint d p (Cinterface pos Nothing ds) =
         pparen (p>0) (t"interface {" $+$ pBlock d 2 False (map (pp d) ds))
     pPrint d p (Cinterface pos (Just i) ds) =
-	pparen (p>0) (t"interface" <+> pp d i <+> t "{" $+$ pBlock d 2 False (map (pp d) ds))
+        pparen (p>0) (t"interface" <+> pp d i <+> t "{" $+$ pBlock d 2 False (map (pp d) ds))
     pPrint d p (CmoduleVerilog m ui c r ses fs sch ps) =
-	sep [
-	  t"module verilog" <+> pp d m <+>
-	  pp d c <> t"" <+> pp d r <+> t"",
-	  nest 4 (if null ses then t"" else pparen True (sepList (map ppA ses) (t","))),
-	  nest 4 (t"{" $+$ pBlock d 2 False (map f fs)),
-	  nest 4 (pp d sch) ]
-	  where mfi s Nothing = empty
-		mfi s (Just i) = t s <+> ppVarId d i
-		mfp s Nothing = empty
-		mfp s (Just (VName s', _)) = t s <+> t s'
-		f (Clock i) = t "clock_field " <> ppVarId d i
-		f (Reset i) = t "reset_field " <> ppVarId d i
-		f (Inout i (VName p) mc mr) =
-		    t "inout_field " <> ppVarId d i <+> t p <+>
-		    mfi "clocked_by" mc <+> mfi "reset_by" mr
-		f (Method i mc mr n ps mo me) =
-		    ppVarId d i <> g n <+> t "=" <+> t (unwords (map h ps)) <+>
-		    mfi "clocked_by" mc <+> mfi "reset_by" mr <+> mfp "output" mo <+> mfp "enable" me
-		g 1 = t""
-		g n = t("[" ++ itos n ++ "]")
-		h (s,[]) = show s
-		h (s,ps) = show s ++ "{" ++ concat (intersperse "," (map (drop 2 . show) ps)) ++ "}"
-		ppA (ai, e) = text "(" <> text (ppReadable ai) <> text "," <+> pp d e <> text ")"
+        sep [
+          t"module verilog" <+> pp d m <+>
+          pp d c <> t"" <+> pp d r <+> t"",
+          nest 4 (if null ses then t"" else pparen True (sepList (map ppA ses) (t","))),
+          nest 4 (t"{" $+$ pBlock d 2 False (map f fs)),
+          nest 4 (pp d sch) ]
+          where mfi s Nothing = empty
+                mfi s (Just i) = t s <+> ppVarId d i
+                mfp s Nothing = empty
+                mfp s (Just (VName s', _)) = t s <+> t s'
+                f (Clock i) = t "clock_field " <> ppVarId d i
+                f (Reset i) = t "reset_field " <> ppVarId d i
+                f (Inout i (VName p) mc mr) =
+                    t "inout_field " <> ppVarId d i <+> t p <+>
+                    mfi "clocked_by" mc <+> mfi "reset_by" mr
+                f (Method i mc mr n ps mo me) =
+                    ppVarId d i <> g n <+> t "=" <+> t (unwords (map h ps)) <+>
+                    mfi "clocked_by" mc <+> mfi "reset_by" mr <+> mfp "output" mo <+> mfp "enable" me
+                g 1 = t""
+                g n = t("[" ++ itos n ++ "]")
+                h (s,[]) = show s
+                h (s,ps) = show s ++ "{" ++ concat (intersperse "," (map (drop 2 . show) ps)) ++ "}"
+                ppA (ai, e) = text "(" <> text (ppReadable ai) <> text "," <+> pp d e <> text ")"
     pPrint d p (CForeignFuncC i wrap_ty) =
-	-- There's no real Classic syntax for this:
-	t"ForeignFuncC" <+> pp d i
+        -- There's no real Classic syntax for this:
+        t"ForeignFuncC" <+> pp d i
     pPrint d p (Cdo _ ss) = pparen (p>0) $ t "do" <+> t "{" <+> sepList (map (pPrint d 0) ss ++ [t"}"]) (t";")
     pPrint d p (Caction _ ss) = pparen (p>0) $ t "action" <+> t "{" <+> sepList (map (pPrint d 0) ss ++ [t"}"]) (t";")
     pPrint d p (Crules [] rs) = pparen (p>0) $ t"rules {" $+$ pBlock d 2 False (map (pp d) rs)
     pPrint d p (Crules ps rs) = pPrint d p ps $+$
-				(pparen (p>0) $ t"rules {" $+$ pBlock d 2 False (map (pp d) rs))
+                                (pparen (p>0) $ t"rules {" $+$ pBlock d 2 False (map (pp d) rs))
     pPrint d p (CADump es) = prDump d es <+> text ""
     pPrint d p (COper ops) = pparen (p > maxPrec-1) (sep (map (pPrint d (maxPrec-1)) ops))
     ----
@@ -1110,14 +1110,14 @@ instance PPrint CExpr where
     ----
     pPrint d p (CConT _ i es) = pPrint d p (CCon i es)
     pPrint d p (CStructT ty ies) = pPrint d p (CStruct tyc ies)
-	where (Just tyc) = leftCon ty
+        where (Just tyc) = leftCon ty
     pPrint d p (CSelectT _ i) = text "." <> ppVarId d i
     pPrint d p (CLitT _ l) = pPrint d p l
     pPrint d p (CAnyT pos uk t) = text "_"
     pPrint d p (CmoduleVerilogT _ m ui c mr ses fs sch ps) = pPrint d p (CmoduleVerilog m ui c mr ses fs sch ps)
     pPrint d p (CForeignFuncCT i prim_ty) = t"ForeignFuncC" <+> pp d i
     pPrint d p (CTApply e ts) = pparen (p>(maxPrec-1)) $
-	sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) ts)
+        sep (pPrint d (maxPrec-1) e : map (nest 2 . ppApArg) ts)
         where ppApArg ty = t"\183" <> pPrint d maxPrec ty
     pPrint d p (Cattributes pps) = pparen True $ text "Attributes" <+> pPrint d 0 (map snd pps)
 
@@ -1165,14 +1165,14 @@ ppCase detail scrutinee arms =
                  nest 2 (pp detail (cca_consequent arm))]
 
 ppOp d pd i p1 p2 =
-	pparen (pd > 0) (sep [pPrint d 1 p1 <> t"" <+> ppInfix d i, pPrint d 1 p2])
+        pparen (pd > 0) (sep [pPrint d 1 p1 <> t"" <+> ppInfix d i, pPrint d 1 p2])
 {-
-	let (p, lp, rp) =
-		case getFixity i of
-		FInfixl p -> (p, p, p+1)
-		FInfixr p -> (p, p+1, p)
-		FInfix  p -> (p, p+1, p+1)
-	in pparen (d > PDReadable || pd>p)
+        let (p, lp, rp) =
+                case getFixity i of
+                FInfixl p -> (p, p, p+1)
+                FInfixr p -> (p, p+1, p)
+                FInfix  p -> (p, p+1, p+1)
+        in pparen (d > PDReadable || pd>p)
                   (sep [pPrint d lp p1 <> t"" <+> ppInfix d i, pPrint d rp p2])
 -}
 
@@ -1182,10 +1182,10 @@ ppQuals d qs = t" when" <+> sepList (map (pp d) qs) (t",")
 ppOSummands d cs = sepList (map (nest 2 . ppOCon) cs) (t" |")
   where ppOCon summand =
             let pp_name = case (cos_names summand) of
-			    [cn] -> ppConId d cn
-			    cns -> text "(" <>
-			           sepList (map (ppConId d) cns) (text ",") <>
-				   text ")"
+                            [cn] -> ppConId d cn
+                            cns -> text "(" <>
+                                   sepList (map (ppConId d) cns) (text ",") <>
+                                   text ")"
                 pp_args = map (pPrint d maxPrec) (cos_arg_types summand)
                 pp_encoding =
                     case cos_tag_encoding summand of
@@ -1196,27 +1196,27 @@ ppOSummands d cs = sepList (map (nest 2 . ppOCon) cs) (t" |")
 
 ppSummands d cs = sepList (map (nest 2 . ppCon) cs) (t" |")
   where ppCon summand =
-	    let pp_name = case (cis_names summand) of
-			    [cn] -> ppConId d cn
-			    cns -> text "(" <>
-			           sepList (map (ppConId d) cns) (text ",") <>
-				   text ")"
+            let pp_name = case (cis_names summand) of
+                            [cn] -> ppConId d cn
+                            cns -> text "(" <>
+                                   sepList (map (ppConId d) cns) (text ",") <>
+                                   text ")"
                 pp_arg = pPrint d maxPrec (cis_arg_type summand)
-	    in  sep [pp_name, pp_arg]
+            in  sep [pp_name, pp_arg]
 
 instance PPrint CDef where
     pPrint d p (CDef  i    ty cs) = ppValueSign d i [] ty cs
     pPrint d p (CDefT i vs ty cs) = ppValueSign d i vs ty cs
 
 instance PPrint CRule where
-	pPrint d p (CRule rps mlbl mqs e) =
-	        ppRPS d rps $+$
-		(case mlbl of Nothing -> t""; Just i -> pp d i <> t": ") <> sep [ppQuals d mqs, t "  ==>",
-		nest 4 (pp d e)]
-	pPrint d p (CRuleNest rps mlbl mqs rs) =
-	        ppRPS d rps $+$
-		(case mlbl of Nothing -> t""; Just i -> pp d i <> t": ") <>
-			(ppQuals d mqs $+$ pBlock d 2 False (map (pp d) rs))
+        pPrint d p (CRule rps mlbl mqs e) =
+                ppRPS d rps $+$
+                (case mlbl of Nothing -> t""; Just i -> pp d i <> t": ") <> sep [ppQuals d mqs, t "  ==>",
+                nest 4 (pp d e)]
+        pPrint d p (CRuleNest rps mlbl mqs rs) =
+                ppRPS d rps $+$
+                (case mlbl of Nothing -> t""; Just i -> pp d i <> t": ") <>
+                        (ppQuals d mqs $+$ pBlock d 2 False (map (pp d) rs))
 
 ppRPS d [] = text ""
 ppRPS d rps = vcat (map (pPrint d 0) rps)
@@ -1224,7 +1224,7 @@ ppRPS d rps = vcat (map (pPrint d 0) rps)
 instance PPrint CDefl where
     pPrint d p (CLValueSign def me) = optWhen d me $ pPrint d p def
     pPrint d p (CLValue i cs me) = optWhen d me $
-	foldr1 ($+$) (map (\ cl -> ppClause d p [ppVarId d i] cl <> t";") cs)
+        foldr1 ($+$) (map (\ cl -> ppClause d p [ppVarId d i] cl <> t";") cs)
     pPrint d p (CLMatch pat e) = ppClause d p [] (CClause [pat] [] e)
 
 optWhen d [] s = s
@@ -1232,45 +1232,45 @@ optWhen d qs s = s $+$ (t"    " <> ppQuals d qs)
 
 ppValueSign :: PDetail -> Id -> [TyVar] -> CQType -> [CClause] -> Doc
 ppValueSign d i [] ty cs =
-	(ppVarId d i <+> t "::" <+> pp d ty <> t";") $+$
-	foldr1 ($+$) (map (\ cl -> ppClause d (0::Integer) [ppVarId d i] cl <> t";") cs)
+        (ppVarId d i <+> t "::" <+> pp d ty <> t";") $+$
+        foldr1 ($+$) (map (\ cl -> ppClause d (0::Integer) [ppVarId d i] cl <> t";") cs)
 ppValueSign d i vs ty cs =
-	(ppVarId d i <+> t ":: /\\" <> sep (map (pPrint d maxPrec) vs) <> t"." <> pp d ty <> t";") $+$
-	foldr1 ($+$) (map (\ cl -> ppClause d (0::Integer) [ppVarId d i] cl <> t";") cs)
+        (ppVarId d i <+> t ":: /\\" <> sep (map (pPrint d maxPrec) vs) <> t"." <> pp d ty <> t";") $+$
+        foldr1 ($+$) (map (\ cl -> ppClause d (0::Integer) [ppVarId d i] cl <> t";") cs)
 
 instance PPrint CClause where
     pPrint d p cl = ppClause d p [] cl
 
 ppClause d p xs (CClause ps mqs e) =
-	sep [sep (xs ++ map (pPrint d maxPrec) ps) <> ppQuals d mqs <+> t "= ",
-		  nest 4 (pp d e)]
+        sep [sep (xs ++ map (pPrint d maxPrec) ps) <> ppQuals d mqs <+> t "= ",
+                  nest 4 (pp d e)]
 
 instance PPrint CQual where
-	pPrint d p (CQGen _ pa e) = pp d pa <+> t "<-" <+> pp d e
-	pPrint d p (CQFilter e) = pp d e
+        pPrint d p (CQGen _ pa e) = pp d pa <+> t "<-" <+> pp d e
+        pPrint d p (CQFilter e) = pp d e
 
 instance PPrint CPat where
     pPrint d p (CPVar a) = pPrint d p a
     pPrint d p (CPCon i as) = pparen (p>(maxPrec-1)) $ sep (ppConId d i : map (pPrint d maxPrec) as)
     pPrint d p (CPstruct tyc []) | tyc == idPrimUnit = text "()"
     pPrint d p (CPstruct tyc [(_, fst), (_, snd)]) | tyc == idPrimPair =
-	pparen True (pPrint d 0 fst <> t"," <+> pPrint d 0 snd)
+        pparen True (pPrint d 0 fst <> t"," <+> pPrint d 0 snd)
     pPrint d p (CPstruct i fs) = pparen (p>(maxPrec-1)) $ ppConId d i <+> t "{" <+> sep (map ppField fs ++ [t"}"])
-	where ppField (i, CPVar i') | i == i' = ppVarId d i <> t";"
-	      ppField (i, p) = ppVarId d i <+> t "=" <+> pp d p <> t";"
+        where ppField (i, CPVar i') | i == i' = ppVarId d i <> t";"
+              ppField (i, p) = ppVarId d i <+> t "=" <+> pp d p <> t";"
     pPrint d p (CPAs a pp) = pPrint d maxPrec a <> t"@" <> pPrint d maxPrec pp
     pPrint d p (CPAny _) = text "_"
     pPrint d p (CPLit l) = pPrint d p l
     pPrint d p (CPMixedLit _ base ps) =
-	let digitBits = log2 base
+        let digitBits = log2 base
             f (len, Just val) = integerFormat (len `div` digitBits) base val
-	    f (len, Nothing)  = genericReplicate (len `div` digitBits) '?'
-	    pref  2 = "0b"
-	    pref  8 = "0o"
-	    pref 10 = ""
-	    pref 16 = "0x"
-	    pref x = internalError ("bad radix to CPMixedLit: " ++ show x)
-	in  text (pref base ++ concatMap f ps)
+            f (len, Nothing)  = genericReplicate (len `div` digitBits) '?'
+            pref  2 = "0b"
+            pref  8 = "0o"
+            pref 10 = ""
+            pref 16 = "0x"
+            pref x = internalError ("bad radix to CPMixedLit: " ++ show x)
+        in  text (pref base ++ concatMap f ps)
     pPrint d p (CPOper ops) = pparen (p > maxPrec-1) (sep (map (pPrint d (maxPrec-1)) ops))
     pPrint d p (CPCon1 _ i a) = pPrint d p (CPCon i [a])
     ----
@@ -1287,15 +1287,15 @@ ppInfix d i =
     --s@(c:_) | isIdChar c -> t"`" <> t s <> t"`"
     --s -> t s
     let p = getIdQual i
-	b = getIdBase i
+        b = getIdBase i
     in if (p==fsEmpty) then
-	      (case getFString b of
-	       s@(c:_) | isIdChar c -> t"`" <> t s <> t"`"
-	       s -> t s)
+              (case getFString b of
+               s@(c:_) | isIdChar c -> t"`" <> t s <> t"`"
+               s -> t s)
         else (t"`" <> t (getFString p) <> t "." <>
-	      (case getFString b of
-	       s@(c:_) | isIdChar c -> t s
-	       s -> t "(" <> t s <> t")") <> t"`")
+              (case getFString b of
+               s@(c:_) | isIdChar c -> t s
+               s -> t "(" <> t s <> t")") <> t"`")
 
 instance PPrint CInclude where
     pPrint d p (CInclude s) = pPrint d p s

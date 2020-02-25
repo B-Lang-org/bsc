@@ -133,7 +133,7 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
         errMultipleDef is =
             internalError ("MakeSymTab.mkSymTab.errMultipleDef: " ++ show is)
         errUnboundTyCon i = (getIdPosition i, EUnboundTyCon (pfpString i))
-	errRecTypeSyn :: [Id] -> EMsg
+        errRecTypeSyn :: [Id] -> EMsg
         errRecTypeSyn scc = (getPosition scc,
                              ETypeSynRecursive (map pfpString scc))
 
@@ -426,7 +426,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
         altId _ = internalError "MakeSymTab.convInst altId"
         mkf d = (i, CVar (mkUId i)) where i = getLName d
         sds = {-trace (ppReadable supsi)-} supsi
-          where	sups = super cls
+          where sups = super cls
                 -- keep the position of the subclass contexts around
                 (s_ids, s_preds) = unzip sups
                 s_poss = map getPosition s_ids

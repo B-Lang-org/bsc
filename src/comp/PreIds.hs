@@ -660,9 +660,9 @@ taskIds = [ idFinish, idStop,
             idSWritebAV, idSWriteb, idSWriteoAV, idSWriteo,
             idFormat,
             --
-	    idSVA,
+            idSVA,
             --
-	    idDumpon,  idDumpoff, idDumpvars, idDumpflush, idDumpfile,
+            idDumpon,  idDumpoff, idDumpvars, idDumpflush, idDumpfile,
             idDumpall, idDumplimit,
             --
             idTime, idSTime,

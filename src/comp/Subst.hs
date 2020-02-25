@@ -1,15 +1,15 @@
 {-# LANGUAGE CPP #-}
 module Subst(
              Subst,
-	     nullSubst, isNullSubst, (+->), mkSubst,
-	     Types(..), (@@), merge, mergeWith, mergeListWith,
+             nullSubst, isNullSubst, (+->), mkSubst,
+             Types(..), (@@), merge, mergeWith, mergeListWith,
              mergeAgreements,
-	     trimSubst, trimSubstByVars,
-	     {- removeFromSubst, -}
+             trimSubst, trimSubstByVars,
+             {- removeFromSubst, -}
              apSubstToSubst,
-	     getSubstDomain, getSubstRange, sizeSubst,
+             getSubstDomain, getSubstRange, sizeSubst,
              chkSubstOrder
-	     ) where
+             ) where
 
 import PPrint
 import CType
@@ -35,7 +35,7 @@ type Set_vars = Map.Map TyVar Set_TyVar
 type S_map = Map.Map TyVar Type
 
 data Subst  = S S_map Set_vars
-	deriving (Show, Eq)
+        deriving (Show, Eq)
 
 instance PPrint Subst where
     pPrint d p (S s v) = pparen (p>0) $ text "Subst" <+> pPrint d 0
@@ -166,11 +166,11 @@ mergeListWith :: (Subst -> Subst -> Maybe Subst) -> [Maybe Subst] -> Maybe Subst
 mergeListWith merge_func = foldr cons (Just nullSubst)
  where cons :: Maybe Subst -> Maybe Subst -> Maybe Subst
        cons (Just s) (Just s') =
-	   -- rtrace ("mergeListWith: Just, Just: " ++ ppReadable (merge s s', s, s')) $
-	   merge_func s s'
+           -- rtrace ("mergeListWith: Just, Just: " ++ ppReadable (merge s s', s, s')) $
+           merge_func s s'
        cons a        b         =
-	   -- rtrace ("mergeListWith: Nothing: " ++ ppReadable (a,b)) $
-	   Nothing
+           -- rtrace ("mergeListWith: Nothing: " ++ ppReadable (a,b)) $
+           Nothing
 
 -- the merge func is always unification
 -- it is a parameter because Unify imports subst
@@ -206,7 +206,7 @@ class Types t where
 
 instance Types Type where
   apSub (S seo _) v@(TVar u) =
-	case slookup u seo of
+        case slookup u seo of
         Just t  ->
             case t of
             (TGen _ _) -> t -- (kind (TGen _ _)) errors out -- don't check kind
@@ -275,7 +275,7 @@ trimSubstBy filterFunc (S old_map old_back) = S new_map new_back
 -- in numeric order.
 trimSubst :: TyVar -> Subst -> Subst
 trimSubst v (S old_map old_back) = S new_map new_back
-  where	(new_map, _) = Map.split v old_map
+  where (new_map, _) = Map.split v old_map
         new_back     = fixupBack new_map old_back
 
 -- This removes substitution entries whose LHS or RHS contains the variables.

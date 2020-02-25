@@ -107,29 +107,29 @@ assert False s e t x = internalError ("assert failed: " ++ s ++ "\n" ++ ppReadab
 tCheck :: Flags -> SymTab -> Env -> IExpr a -> IType
 tCheck flags symt r ec@(ILam i t e) =
     -- assert (kCheckErr r t == IKStar) "ILam" (ec, kCheckErr r t) $
-	itFun t (tCheck flags symt (addT symt i t r) e)
+        itFun t (tCheck flags symt (addT symt i t r) e)
 tCheck flags symt r ec@(IAps f0 ts [a]) =
-	let f = iAps f0 ts [] in
-	case tCheck flags symt r f of
-	ITAp (ITAp arr at') rt | arr == itArrow ->
-	    let at = tCheck flags symt r a
-	    in  --trace(ppReadable((f,tCheck r f),(a,at))) $
-		assert (eqType flags symt r at at') "IAp"
+        let f = iAps f0 ts [] in
+        case tCheck flags symt r f of
+        ITAp (ITAp arr at') rt | arr == itArrow ->
+            let at = tCheck flags symt r a
+            in  --trace(ppReadable((f,tCheck r f),(a,at))) $
+                assert (eqType flags symt r at at') "IAp"
                     (r, ec, a, (at, at') {-, (f,ft),(a,at)-}) (at, at') rt
-	tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
+        tt -> internalError ("tCheck IAp: " ++ ppReadable(ec, f, tt))
 tCheck flags symt r (IAps f ts (e:es)) =
     tCheck flags symt r (IAps (IAps f ts [e]) [] es)
 tCheck flags symt r (IVar i) = findT i r
 tCheck flags symt r (ILAM i k e) =
     ITForAll i k (tCheck flags symt (addK i k r) e)
 tCheck flags symt r ec@(IAps e [t] []) =
-	case tCheck flags symt r e of
-	ITForAll i k rt ->
-	    let kt = kCheckErr r t
-		rt'= tSubst i t rt
-	    in  --trace ("tCheck " ++ ppReadable ((e,et),(t,kt))) $
-		assert (k == kt) "IAP" (ec, (i,k,rt), kt) (k, kt) rt'
-	tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
+        case tCheck flags symt r e of
+        ITForAll i k rt ->
+            let kt = kCheckErr r t
+                rt'= tSubst i t rt
+            in  --trace ("tCheck " ++ ppReadable ((e,et),(t,kt))) $
+                assert (k == kt) "IAP" (ec, (i,k,rt), kt) (k, kt) rt'
+        tt -> internalError ("tCheck IAP: " ++ ppReadable (ec, tt))
 tCheck flags symt r (IAps f (t:ts) []) =
     tCheck flags symt r (IAps (IAps f [t] []) ts [])
 tCheck flags symt r (ICon c ic) = iConType ic
@@ -164,7 +164,7 @@ kCheckErr r t = fj $ kCheck r t
 tCheckIPackage :: Flags -> SymTab -> IPackage a -> Bool
 tCheckIPackage flags symt (IPackage pi _ _ ds) =
     let r  = emptyEnv
-	defOK (IDef i t e _) =
+        defOK (IDef i t e _) =
             let t' = (tCheck flags symt r e)
             in  assert (eqType flags symt r t' t) "defOK1"
                     (i,e,(t,t')) (t, t') True
@@ -175,8 +175,8 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
                                     imod_local_defs = ds,
                                     imod_rules      = rs,
                                     imod_interface  = ifc }) =
-	let r = foldr (\ (i, k) r -> addK i k r) emptyEnv iks
-	    defOK (IDef i t e _) =
+        let r = foldr (\ (i, k) r -> addK i k r) emptyEnv iks
+            defOK (IDef i t e _) =
                 let t' = (tCheck flags symt r e)
                 in  assert (eqType flags symt r t' t) "defOK2"
                         (i,e,(t,t')) (t, t') True
@@ -189,16 +189,16 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
                           Just rs -> rulesOK rs
                           _ -> True)
 
-	    rulesOK (IRules sps rs) = all ruleOK rs
-	    ruleOK (IRule { irule_pred = p , irule_body = a }) =
-		let tp = tCheck flags symt r p
+            rulesOK (IRules sps rs) = all ruleOK rs
+            ruleOK (IRule { irule_pred = p , irule_body = a }) =
+                let tp = tCheck flags symt r p
                     ta = tCheck flags symt r a
                 in
                     assert (eqType flags symt r tp itBit1) "ruleOK p"
                         (p, tp) (p, tp) True &&
-		    assert (eqType flags symt r ta itAction) "ruleOK a"
+                    assert (eqType flags symt r ta itAction) "ruleOK a"
                         (a, ta) (p, tp) True
-	in  all defOK ds && rulesOK rs && all ifcOK ifc
+        in  all defOK ds && rulesOK rs && all ifcOK ifc
 
 -------
 
@@ -231,8 +231,8 @@ addK i k (E tm km eqs ps) = E tm (M.insert i k km) eqs ps
 
 findT i (E tm _ _ _) =
     case M.lookup i tm of
-	Just t -> t
-	Nothing -> internalError ("ISyntaxCheck.findT " ++ ppString i ++ "\n" ++ ppReadable (M.toList tm))
+        Just t -> t
+        Nothing -> internalError ("ISyntaxCheck.findT " ++ ppString i ++ "\n" ++ ppReadable (M.toList tm))
 
 findK i (E _ km _ _) = M.lookup i km
 

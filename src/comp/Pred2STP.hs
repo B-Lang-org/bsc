@@ -300,7 +300,7 @@ addUnknownType t = do
       Nothing -> do
         when traceConv $ traceM("   making new var.")
         var <- mkUnknownVar
-	let res = (var, [])
+        let res = (var, [])
         addToTypeMap t res
         return res
 

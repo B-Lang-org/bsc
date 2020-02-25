@@ -66,16 +66,16 @@ fixUndet errh flags defmap = g
         -- if it doesn't, and the backends are not allowed to diverge,
         -- then replace it with a constant
         f (ASAny t Nothing) | (not b) = Just (mkUnspec errh tgt t)
-	-- XXX This is a fixup for ITransform not picking the best value.
-	-- XXX The long-term solution is to not pick values in ITransform,
-	-- XXX but to wait until the Path Graph is available.
-	f (APrim i t PrimIf [_, tt, ff]) =
-	    let tt'  = g tt
-		ff'  = g ff
-	    in  case (tt,ff) of
-		  ((ASAny _ _), _) | canFixUndet flags avmap ff' -> Just ff'
-		  (_, (ASAny _ _)) | canFixUndet flags avmap tt' -> Just tt'
-		  _ -> Nothing
+        -- XXX This is a fixup for ITransform not picking the best value.
+        -- XXX The long-term solution is to not pick values in ITransform,
+        -- XXX but to wait until the Path Graph is available.
+        f (APrim i t PrimIf [_, tt, ff]) =
+            let tt'  = g tt
+                ff'  = g ff
+            in  case (tt,ff) of
+                  ((ASAny _ _), _) | canFixUndet flags avmap ff' -> Just ff'
+                  (_, (ASAny _ _)) | canFixUndet flags avmap tt' -> Just tt'
+                  _ -> Nothing
         -- otherwise, don't change it
         f _ = Nothing
 

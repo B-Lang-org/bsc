@@ -17,30 +17,30 @@ import Trace
 -- type check the the state elements, definitions, rules and interface
 aMCheck :: APackage -> Bool
 aMCheck apkg =
-	all chkAVInst (apkg_state_instances apkg)
-	&& all chkADef (apkg_local_defs apkg)
-	&& all chkARule (apkg_rules apkg)
-	&& all chkAIface (apkg_interface apkg)
+        all chkAVInst (apkg_state_instances apkg)
+        && all chkADef (apkg_local_defs apkg)
+        && all chkARule (apkg_rules apkg)
+        && all chkAIface (apkg_interface apkg)
 
-	-- XXX when module parameters carry an expr for default value,
-	-- XXX check that here
+        -- XXX when module parameters carry an expr for default value,
+        -- XXX check that here
 
-	-- XXX if we wanted, we could check that the port list and
-	-- XXX the VArgInfo at the top-level agree on types
-	-- XXX (e.g., clock to clock, reset to reset)
+        -- XXX if we wanted, we could check that the port list and
+        -- XXX the VArgInfo at the top-level agree on types
+        -- XXX (e.g., clock to clock, reset to reset)
 
 
 -- type check the state elements, definitions and foreign function calls
 -- scheduled package
 aSMCheck :: ASPackage -> Bool
 aSMCheck asp =
-	all chkAVInst (aspkg_state_instances asp)
-	&& all chkADef (aspkg_values asp)
-	&& all chkADef (aspkg_inout_values asp)
-	&& all chkAForeignBlock (aspkg_foreign_calls asp)
+        all chkAVInst (aspkg_state_instances asp)
+        && all chkADef (aspkg_values asp)
+        && all chkADef (aspkg_inout_values asp)
+        && all chkAForeignBlock (aspkg_foreign_calls asp)
         && chkDupWires asp
-	-- XXX when module parameters carry an expr for default value,
-	-- XXX check that here
+        -- XXX when module parameters carry an expr for default value,
+        -- XXX check that here
 
 -- make sure a wire is never defined twice in an ASPackage
 chkDupWires :: ASPackage -> Bool
@@ -61,7 +61,7 @@ chkAVInst :: AVInst -> Bool
 chkAVInst aa =
   let
       chkParam e = let t = chkAExpr e
-		   in  isConstAExpr [] e && (isBit t || isString t || isReal t)
+                   in  isConstAExpr [] e && (isBit t || isString t || isReal t)
   in
     (tracePP "chkAVInst Params" aa $ all chkParam (getParams aa)) &&
     (tracePP "chkAVInst Ports"  aa $ all (isBitOrInout_ . chkAExpr) (getPorts aa)) &&
@@ -74,11 +74,11 @@ chkADef :: ADef -> Bool
 chkADef aa@(ADef _ t e _) =
     let et = chkAExpr e
     in if t == et
-	then True
-	else internalError ("chkADef "
-		++ ppReadable aa
-		++ ": (" ++ show aa ++ ") "
-		++ ppReadable t ++ " /= " ++ ppReadable et)
+        then True
+        else internalError ("chkADef "
+                ++ ppReadable aa
+                ++ ": (" ++ show aa ++ ") "
+                ++ ppReadable t ++ " /= " ++ ppReadable et)
 
 chkARule :: ARule -> Bool
 chkARule aa@(ARule _ _ _ _ p as asmps _) =
@@ -114,10 +114,10 @@ chkCond t = isBit t && (let (ATBit sz) = t in (sz == 1))
 chkAAction :: AAction -> Bool
 chkAAction aa@(ACall i m (c:es)) =
     tracePP "chkAAction ACall" aa $
-	all (isBit . chkAExpr) es && chkCond (chkAExpr c)
+        all (isBit . chkAExpr) es && chkCond (chkAExpr c)
 chkAAction afc@(AFCall { aact_objid = i, aact_args = (c:es) }) =
     tracePP "chkAAction AFCall" afc $
-	chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
+        chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
 chkAAction ata@(ATaskAction { aact_args = (c:es) }) =
     tracePP "chkAAction ATaskAction" ata $
         chkCond (chkAExpr c) && all (isForeignArg . chkAExpr) es
@@ -133,83 +133,83 @@ chkAForeignCall afc = False
 
 chkAExpr :: AExpr -> AType
 chkAExpr e@(APrim _ t PrimMul es) =
-	let ts = map chkAExpr es
-	    -- getBit (ATBit n) = n
+        let ts = map chkAExpr es
+            -- getBit (ATBit n) = n
             -- getBit _ = internalError("ACheck checkAExpr.getBit" ++ (show e))
         -- multiplication can widen or narrow the result
-	in  if all isBit ts && isBit t  -- && sum (map getBit ts) == getBit t
-	    then
-		t
-	    else
-		internalError ("chkAExpr * : " ++ ppReadable e)
+        in  if all isBit ts && isBit t  -- && sum (map getBit ts) == getBit t
+            then
+                t
+            else
+                internalError ("chkAExpr * : " ++ ppReadable e)
 chkAExpr e@(APrim _ t PrimQuot es) =
-	let ts = map chkAExpr es
-	    getBit (ATBit n) = n
+        let ts = map chkAExpr es
+            getBit (ATBit n) = n
             getBit _ = internalError("ACheck checkAExpr.getBit" ++ (show e))
-	in  if all isBit ts && isBit t && (getBit t == getBit (ts!!0))
-	    then
-		t
-	    else
-		internalError ("chkAExpr * : " ++ ppReadable e)
+        in  if all isBit ts && isBit t && (getBit t == getBit (ts!!0))
+            then
+                t
+            else
+                internalError ("chkAExpr * : " ++ ppReadable e)
 chkAExpr e@(APrim _ t PrimRem es) =
-	let ts = map chkAExpr es
-	    getBit (ATBit n) = n
+        let ts = map chkAExpr es
+            getBit (ATBit n) = n
             getBit _ = internalError("ACheck checkAExpr.getBit" ++ (show e))
-	in  if all isBit ts && isBit t && (getBit t == getBit (ts!!1))
-	    then
-		t
-	    else
-		internalError ("chkAExpr * : " ++ ppReadable e)
+        in  if all isBit ts && isBit t && (getBit t == getBit (ts!!1))
+            then
+                t
+            else
+                internalError ("chkAExpr * : " ++ ppReadable e)
 chkAExpr e@(APrim _ t PrimConcat es) =
-	let ts = map chkAExpr es
-	    getBit (ATBit n) = n
+        let ts = map chkAExpr es
+            getBit (ATBit n) = n
             getBit _ = internalError("ACheck checkAExpr.getBit" ++ (show e))
-	in  if all isBit ts && isBit t && sum (map getBit ts) == getBit t
-	    then
-		t
-	    else
+        in  if all isBit ts && isBit t && sum (map getBit ts) == getBit t
+            then
+                t
+            else
                 if not (isBit t) then internalError ("chkAExpr ++: result not bit type (" ++ ppString t ++ "): " ++ ppReadable e)
                 else if not (all isBit ts) then internalError ("chkAExpr ++: some args not bit type (" ++ ppString ts ++ "): " ++ ppReadable e)
                 else internalError ("chkAExpr ++: expression bitsize (" ++ ppString (getBit t) ++ ") does not match sum of args bitsizes (" ++ ppString (sum (map getBit ts)) ++ ") from (" ++ ppString ts ++ "): " ++ ppReadable e)
 chkAExpr e@(APrim _ t op es) | isRelOp op =
-	let ts = map chkAExpr es
-	in  if t == aTBool && all isBit ts && allSame ts
-		then t
-		else internalError ("chkAExpr: relop " ++ ppReadable (e, t, ts))
+        let ts = map chkAExpr es
+        in  if t == aTBool && all isBit ts && allSame ts
+                then t
+                else internalError ("chkAExpr: relop " ++ ppReadable (e, t, ts))
 chkAExpr e@(APrim _ t op [v]) | op == PrimSignExt || op == PrimZeroExt =
-	case (chkAExpr v, t) of
-	(ATBit n, ATBit m) | n <= m -> t
-	_ -> internalError ("chkAExpr: " ++ ppReadable (e, chkAExpr v, t))
+        case (chkAExpr v, t) of
+        (ATBit n, ATBit m) | n <= m -> t
+        _ -> internalError ("chkAExpr: " ++ ppReadable (e, chkAExpr v, t))
 chkAExpr e@(APrim _ t PrimIf (c:es)) =
     if all ((compatTypesWthStr t) . chkAExpr) es && chkAExpr c == aTBool
     then t
     else internalError ("chkAExpr: if " ++ ppReadable (e, t))
 chkAExpr e@(APrim _ t op es) | op == PrimPriMux || op == PrimMux =
-	if f es
-		then t
-		else internalError ("chkAExpr: mux " ++ ppReadable t ++ ppReadable e)
+        if f es
+                then t
+                else internalError ("chkAExpr: mux " ++ ppReadable t ++ ppReadable e)
   where f [] = True
-	f (c:x:xs) = chkAExpr c == aTBool && compatTypesWthStr (chkAExpr x)  t && f xs
-	f _ = internalError "chkAExpr mux"
+        f (c:x:xs) = chkAExpr c == aTBool && compatTypesWthStr (chkAExpr x)  t && f xs
+        f _ = internalError "chkAExpr mux"
 -- XXX could check a little more
 chkAExpr e@(APrim _ t PrimCase (x:v:ces)) =
-	if compatTypesWthStr (chkAExpr v) t && chk ces
-		then t
-		else internalError ("chkAExpr: case " ++ ppReadable e)
+        if compatTypesWthStr (chkAExpr v) t && chk ces
+                then t
+                else internalError ("chkAExpr: case " ++ ppReadable e)
   where chk [] = True
-	chk (c:e:ces) = chkAExpr c == te && compatTypesWthStr (chkAExpr e) t && chk ces
+        chk (c:e:ces) = chkAExpr c == te && compatTypesWthStr (chkAExpr e) t && chk ces
         chk _ = False
-	te = chkAExpr x
+        te = chkAExpr x
 
 
 chkAExpr e@(APrim _ t PrimExtract es) =
-	if all (isBit . chkAExpr) es
-		then t
-		else internalError ("chkAExpr: extract " ++ ppReadable e)
+        if all (isBit . chkAExpr) es
+                then t
+                else internalError ("chkAExpr: extract " ++ ppReadable e)
 chkAExpr e@(APrim _ t op [e1, e2]) | isShift op =
-	if chkAExpr e1 == t {- XXX && chkAExpr e2 == aTNat-}
-		then t
-		else internalError ("chkAExpr: shift " ++ ppReadable e)
+        if chkAExpr e1 == t {- XXX && chkAExpr e2 == aTNat-}
+                then t
+                else internalError ("chkAExpr: shift " ++ ppReadable e)
 
 chkAExpr e@(APrim _ arr_ty PrimBuildArray elem_es) =
     case arr_ty of
@@ -258,30 +258,30 @@ chkAExpr e@(APrim _ t PrimStringConcat es)
 
 -- all other primitives
 chkAExpr e@(APrim _ t op es) =
-	if all ((== t) . chkAExpr) es
-		then t
-		else internalError ("chkAExpr: other " ++ ppReadable (e, t, map chkAExpr es))
+        if all ((== t) . chkAExpr) es
+                then t
+                else internalError ("chkAExpr: other " ++ ppReadable (e, t, map chkAExpr es))
 
 chkAExpr e@(AMethCall t _ _ es) =
-	if all (isBit . chkAExpr) es
-		then t
-		else internalError ("chkAExpr: methcall " ++ ppReadable e)
+        if all (isBit . chkAExpr) es
+                then t
+                else internalError ("chkAExpr: methcall " ++ ppReadable e)
 chkAExpr e@(AFunCall { ae_type = t, ae_args = es }) =
-	if all (isForeignArg . chkAExpr) es
-		then t
-		else internalError ("chkAExpr: funcall " ++ ppReadable e)
+        if all (isForeignArg . chkAExpr) es
+                then t
+                else internalError ("chkAExpr: funcall " ++ ppReadable e)
 
 chkAExpr (ASInt _ _ (IntLit _ _ i)) | i < 0 =
-	internalError ("chkAExpr: negative constant: " ++ show i)
+        internalError ("chkAExpr: negative constant: " ++ show i)
 chkAExpr (ASInt _ t@(ATBit sz) (IntLit _ _ i)) =
         -- check that "log2(i+1) <= sz"
         -- or, in otherwords, "2^sz >  i"
         if (2^sz > i)
-	then t
-	else internalError ("chkAExpr: integer does not fit in size: " ++
-	                    ppReadable (i,sz))
+        then t
+        else internalError ("chkAExpr: integer does not fit in size: " ++
+                            ppReadable (i,sz))
 chkAExpr (ASInt _ t (IntLit _ _ i)) =
-	internalError ("chkAExpr: non-bit integer: " ++ ppReadable (t,i))
+        internalError ("chkAExpr: non-bit integer: " ++ ppReadable (t,i))
 
 chkAExpr e@(ASClock t c) =
          if chkAClock c
@@ -299,9 +299,9 @@ chkAExpr e@(ASInout t r) =
            else internalError ("chkAExpr: invalid inout: " ++ show e)
 
 chkAExpr e@(AMGate t _ _) =
-	if isBit1 t
-	then t
-	else internalError ("chkAExpr: invalid clock gate: " ++ ppReadable e)
+        if isBit1 t
+        then t
+        else internalError ("chkAExpr: invalid clock gate: " ++ ppReadable e)
 
 chkAExpr e = aType e
 
@@ -369,35 +369,35 @@ aSignalCheck :: ASPackage -> [AId]
 aSignalCheck (ASPackage _ fmod ps _ is ios insts souts ds iods fs _ _ _) =
     let
         pnames = [ i | (i,_) <- ps ]
-	inames = [ i | (i,_) <- is ]
-	ionames= [ i | (i,_) <- ios ]
-	dnames = [ i | ADef i _ _ _ <- ds ]
-	snames = [ i | (i,_) <- souts ]
+        inames = [ i | (i,_) <- is ]
+        ionames= [ i | (i,_) <- ios ]
+        dnames = [ i | ADef i _ _ _ <- ds ]
+        snames = [ i | (i,_) <- souts ]
 
-	-- used in ASDef
-	defs = dnames
-	-- used in ASPort
-	ports = inames ++ snames ++ ionames
+        -- used in ASDef
+        defs = dnames
+        -- used in ASPort
+        ports = inames ++ snames ++ ionames
         -- used in ASParam
         params = pnames
 
         -- XXX if parameters carried expressions for their default values,
         -- XXX we would check those uses here
 
-	iexprs = concatMap avi_iargs insts
-	dexprs = [ e | ADef i _ e _ <- ds ]
+        iexprs = concatMap avi_iargs insts
+        dexprs = [ e | ADef i _ e _ <- ds ]
         iodexprs = [ e | ADef i _ e _ <- iods ]
-	fexprs = concat [ clks ++ es ++ rsts | (clks, fcalls) <- fs,
+        fexprs = concat [ clks ++ es ++ rsts | (clks, fcalls) <- fs,
                                                AForeignCall _ _ es _ rsts <- fcalls ]
 
-	exprs = fexprs ++ iexprs ++ dexprs ++ iodexprs
+        exprs = fexprs ++ iexprs ++ dexprs ++ iodexprs
         -- build set from the list
         defSet   = S.fromList defs
         portSet  = S.fromList ports
         paramSet = S.fromList params
 
     in
-	checkUses defSet portSet paramSet exprs
+        checkUses defSet portSet paramSet exprs
 
 
 -- return The list of all names not referenced in the given environments

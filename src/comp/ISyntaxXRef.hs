@@ -58,13 +58,13 @@ mapIExprPosition True (expr_0, expr_1) =
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
        else let positionCurrent = (getIExprPositionCross expr_1)
-	    in if (positionModel == positionCurrent)
-	       then expr_1
-	       else if (isEquivIExprIncluded expr_1 expr_0)
-		    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
-			     expr = (updateIExprPosition pos expr_1)
-		         in expr
-		    else (updateIExprPosition positionModel expr_1)
+            in if (positionModel == positionCurrent)
+               then expr_1
+               else if (isEquivIExprIncluded expr_1 expr_0)
+                    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
+                             expr = (updateIExprPosition pos expr_1)
+                         in expr
+                    else (updateIExprPosition positionModel expr_1)
 
 mapIExprPosition2 :: Bool -> (IExpr a, IExpr a) -> IExpr a
 mapIExprPosition2 False (expr_0, expr_1) = expr_1
@@ -73,13 +73,13 @@ mapIExprPosition2 True (expr_0, expr_1) =
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
        else let positionCurrent = (getIExprPositionCross expr_1)
-	    in if (positionModel == positionCurrent)
-	       then expr_1
-	       else if (isEquivIExprIncluded expr_1 expr_0)
-		    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
-			     expr = (updateIExprPosition2 pos expr_1)
-		         in expr
-		    else (updateIExprPosition2 positionModel expr_1)
+            in if (positionModel == positionCurrent)
+               then expr_1
+               else if (isEquivIExprIncluded expr_1 expr_0)
+                    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
+                             expr = (updateIExprPosition2 pos expr_1)
+                         in expr
+                    else (updateIExprPosition2 positionModel expr_1)
 
 mapIExprPositionConservative :: Bool -> (IExpr a,IExpr a) -> IExpr a
 mapIExprPositionConservative False (expr_0, expr_1) = expr_1
@@ -88,13 +88,13 @@ mapIExprPositionConservative True (expr_0, expr_1) =
     in if (positionModel == noPosition) || (not (isUsefulPosition positionModel))
        then expr_1
        else let positionCurrent = (getIExprPositionCross expr_1)
-	    in if (positionModel == positionCurrent) || (isUsefulPosition positionCurrent)
-	       then expr_1
-	       else if (isEquivIExprIncluded expr_1 expr_0)
-		    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
-			     expr = (updateIExprPosition pos expr_1)
-		         in expr
-		    else (updateIExprPosition positionModel expr_1)
+            in if (positionModel == positionCurrent) || (isUsefulPosition positionCurrent)
+               then expr_1
+               else if (isEquivIExprIncluded expr_1 expr_0)
+                    then let pos = (getIExprPositionCross (head (extractEquivIExpr expr_1 expr_0)))
+                             expr = (updateIExprPosition pos expr_1)
+                         in expr
+                    else (updateIExprPosition positionModel expr_1)
 
 -- #############################################################################
 -- #
@@ -120,28 +120,28 @@ isEquivIExprIncluded sub_expr expr@(IRefT t p r) =
 
 extractEquivIExpr :: IExpr a -> IExpr a -> [IExpr a]
 extractEquivIExpr sub_expr expr@(ILam i t e) = if (equivIExprs sub_expr expr)
-					       then [expr]
-					       else (extractEquivIExpr sub_expr e)
+                                               then [expr]
+                                               else (extractEquivIExpr sub_expr e)
 
 extractEquivIExpr sub_expr expr@(IAps e ts es) = if (equivIExprs sub_expr expr)
-						 then [expr]
-						 else (concatMap (extractEquivIExpr sub_expr) es)
+                                                 then [expr]
+                                                 else (concatMap (extractEquivIExpr sub_expr) es)
 
 extractEquivIExpr sub_expr expr@(IVar _) =  if (equivIExprs sub_expr expr)
-					    then [expr]
-					    else []
+                                            then [expr]
+                                            else []
 
 extractEquivIExpr sub_expr expr@(ILAM i kind e) =  if (equivIExprs sub_expr expr)
-						   then [expr]
-						   else (extractEquivIExpr sub_expr e)
+                                                   then [expr]
+                                                   else (extractEquivIExpr sub_expr e)
 
 extractEquivIExpr sub_expr expr@(ICon _ _) =  if (equivIExprs sub_expr expr)
-					      then [expr]
-					      else []
+                                              then [expr]
+                                              else []
 
 extractEquivIExpr sub_expr expr@(IRefT t p r) =  if (equivIExprs sub_expr expr)
-					         then [expr]
-					         else []
+                                                 then [expr]
+                                                 else []
 
 -- #############################################################################
 -- #

@@ -4,8 +4,8 @@
 -- (which imports DisjointTest and requires linking with the SAT libraries)
 --
 module ADumpScheduleInfo(
-		         MethodDumpInfo,
-		         RuleConflictType(..)
+                         MethodDumpInfo,
+                         RuleConflictType(..)
                         ) where
 
 import ASyntax(AId, AExpr)
