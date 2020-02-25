@@ -24,7 +24,7 @@ import Eval
 
 iSimplify :: (Hyper a) => IPackage a -> IPackage a
 iSimplify (IPackage pi lps ps ds) =
-    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))	-- XXX
+    IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))        -- XXX
 
 iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds
 
@@ -50,25 +50,25 @@ iSimpAp n (ILam i _ e) [] (a:as)
         in iSimpAp n e' [] as
 iSimpAp _ (ICon _ (ICPrim _ prim)) ts es | m /= Nothing = r
   where m = doPrim prim ts es
-	Just r = m
+        Just r = m
 iSimpAp n f@(ICon _ (ICSel { selNo = k })) ts
-	es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
+        es@(def : as) | n && m /= Nothing = {-trace (ppReadable (IAps f ts es, e'))-} e'
   where m = getTuple def
-	Just ms = m
-	e' = iSimpAp n (iSimp n (ms !! fromInteger k)) [] as
+        Just ms = m
+        e' = iSimpAp n (iSimp n (ms !! fromInteger k)) [] as
 iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es
 
 getTuple :: (Hyper a) => IExpr a -> Maybe [IExpr a]
 
 getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
-	-- trace ("unfold " ++ ppReadable di) $
-	Just ms
+        -- trace ("unfold " ++ ppReadable di) $
+        Just ms
 getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
-	-- trace ("getTuple " ++ ppReadable (iii,body)) $
-	case iSimpAp False body ts [] of
-	IAps (ICon _ (ICTuple { })) _ ms -> Just ms
-	_ -> Nothing
+        -- trace ("getTuple " ++ ppReadable (iii,body)) $
+        case iSimpAp False body ts [] of
+        IAps (ICon _ (ICTuple { })) _ ms -> Just ms
+        _ -> Nothing
 
 getTuple _ = Nothing
 
@@ -118,8 +118,8 @@ isTriv (ICon _ (ICDef { })) = True
 isTriv _ = False
 
 isHarmless e =
-	--trace (ppReadable (e, onlySimple e, isPerm [] e)) $
-	onlySimple e && isPerm [] e
+        --trace (ppReadable (e, onlySimple e, isPerm [] e)) $
+        onlySimple e && isPerm [] e
 
 -- expression is a proper combinator: somehow permutes arguments and constants
 -- has no free variables and no embedded lambda expressions
@@ -191,8 +191,8 @@ fixUp m e = e
 
 get :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a
 get m i d = let value = get2 m i d
-	    in -- trace("Lookup " ++ (ppReadable i) ++ " => " ++ (ppReadable value)) $
-	       value
+            in -- trace("Lookup " ++ (ppReadable i) ++ " => " ++ (ppReadable value)) $
+               value
 
 get2 :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a
 get2 m i d =

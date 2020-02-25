@@ -2232,7 +2232,7 @@ mkCombinedGraph ruleNames urgencyMap scGraphFinal scConflictMap sched_id_order u
                  in  M.toList $ map_insertManyWith (++) edges' graph0
 
         csmap = mkCSMap nodes edges
-    in	--trace ("s_to_e_edges: " ++ ppReadable s_to_e_edges) $
+    in        --trace ("s_to_e_edges: " ++ ppReadable s_to_e_edges) $
         --trace ("path_edges: " ++ ppReadable path_edges) $
         --trace ("urg_edges: " ++ ppReadable urg_edges) $
         --trace ("early_edges: " ++ ppReadable early_edges) $

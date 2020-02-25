@@ -76,35 +76,35 @@ doDer :: Flags -> SymTab -> Id -> [(Id, CDefn)] -> CDefn ->
          [Either EMsg [CDefn]]
 doDer flags r packageid xs data_decl@(Cdata {}) =
     let unqual_name = iKName (cd_name data_decl)
-	qual_name = qualId packageid unqual_name
+        qual_name = qualId packageid unqual_name
         Just (TypeInfo _ kind _ _) = findType r qual_name
-	ty_var_names = cd_type_vars data_decl
+        ty_var_names = cd_type_vars data_decl
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-	orig_sums = cd_original_summands data_decl
-	int_sums = cd_internal_summands data_decl
-	derivs = cd_derivings data_decl
+        orig_sums = cd_original_summands data_decl
+        int_sums = cd_internal_summands data_decl
+        derivs = cd_derivings data_decl
         derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
         -- XXX ignore derivs' to sneak in recursive data decls
         bad_rec_derivs = filter forbidsRecursiveInstance derivs
     in  if (not (null bad_rec_derivs)) && (isRecursiveData unqual_name orig_sums)
-	then [Left (getPosition data_decl,
-		    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-	else Right [data_decl] :
+        then [Left (getPosition data_decl,
+                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
+        else Right [data_decl] :
                map (doDataDer xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
-	qual_name = qualId packageid unqual_name
+        qual_name = qualId packageid unqual_name
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
         bad_rec_derivs = filter forbidsRecursiveInstance derivs'
     in  if (not (null bad_rec_derivs)) && (isRecursiveStruct unqual_name fields)
-	then [Left (getPosition struct_decl,
-		    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-	else Right [struct_decl] :
-	       map (doStructDer xs qual_name ty_vars fields) derivs'
+        then [Left (getPosition struct_decl,
+                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
+        else Right [struct_decl] :
+               map (doStructDer xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -169,14 +169,14 @@ forbidsRecursiveInstance i = False
 isRecursiveData :: Id -> COSummands -> Bool
 isRecursiveData i ocs =
     let allCQTyCons (CQType _ ty) = allTConNames ty
-	types = unions (map (cos_arg_types) ocs)
-	cons = unions (map allCQTyCons types)
+        types = unions (map (cos_arg_types) ocs)
+        cons = unions (map allCQTyCons types)
     in  i `elem` cons
 
 isRecursiveStruct :: Id -> CFields -> Bool
 isRecursiveStruct i fs =
     let allCQTyCons (CQType _ ty) = allTConNames ty
-	cons = unions (map (allCQTyCons . cf_type) fs)
+        cons = unions (map (allCQTyCons . cf_type) fs)
     in  i `elem` cons
 
 -- my guesses at the arguments:
@@ -189,7 +189,7 @@ isRecursiveStruct i fs =
 --         (an id and one type -- the list became a struct)
 --  di  =  the class to be derived
 doDataDer :: [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
-	     CTypeclass -> Either EMsg [CDefn]
+             CTypeclass -> Either EMsg [CDefn]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
@@ -214,21 +214,21 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
         fieldType = cos_arg_types cos
         fieldSet = S.fromList (tv fieldType)
         Just (Cclass _ _ _ [v] _ fs) = lookup (typeclassId di) xs
-	ity = foldl TAp (cTCon i) vs
-	inst = Cinstance (CQType [CPred di [ty]] (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
-	conv (CField { cf_name = f, cf_type = CQType _ t }) =
-	    CLValue (unQualId f)
+        ity = foldl TAp (cTCon i) vs
+        inst = Cinstance (CQType [CPred di [ty]] (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
+        conv (CField { cf_name = f, cf_type = CQType _ t }) =
+            CLValue (unQualId f)
                         [CClause [] []
                          (mkConv con coCon tmpVarXIds tv t (CVar f))] []
           where (Just kind) = getTypeKind t
                 tv = cTVarKind v kind
-	cn = getCOSName cos
-	con e = CCon cn [e]
-	coCon e = Ccase (getPosition di)
-	                e
-	                [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
+        cn = getCOSName cos
+        con e = CCon cn [e]
+        coCon e = Ccase (getPosition di)
+                        e
+                        [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
-				    cca_consequent = CVar id_y }]
+                                    cca_consequent = CVar id_y }]
 doDataDer xs i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
@@ -259,14 +259,14 @@ doStructDer xs i vs [field] di
         Just (Cclass _ _ _ [v] _ fs) = lookup (typeclassId di) xs
         ity = foldl TAp (cTCon i) vs
         CQType _ type_no_qual = fieldType
-	inst = Cinstance (CQType [CPred di [type_no_qual]]
+        inst = Cinstance (CQType [CPred di [type_no_qual]]
                           (TAp (cTCon $ typeclassId di) ity)) (map conv fs)
-	conv (CField { cf_name = f, cf_type = CQType _ t }) =
-		CLValue (unQualId f) [CClause [] [] (mkConv con coCon tmpVarXIds tv t (CVar f))] []
+        conv (CField { cf_name = f, cf_type = CQType _ t }) =
+                CLValue (unQualId f) [CClause [] [] (mkConv con coCon tmpVarXIds tv t (CVar f))] []
           where (Just kind) = getTypeKind t
                 tv = cTVarKind v kind
-	con e = CStruct i [(cf_name field, e)]
-	coCon e = CSelectTT i e (cf_name field)
+        con e = CStruct i [(cf_name field, e)]
+        coCon e = CSelectTT i e (cf_name field)
 doStructDer _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
   Right []
@@ -279,18 +279,18 @@ doStructDer _ i vs cs (CTypeclass di) =
 doSEq :: Position -> Id -> [Type] -> CFields -> CDefn
 doSEq dpos ti vs fs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
   where ctx = map (\ (CField { cf_type = CQType _ t }) -> CPred (CTypeclass idEq) [t]) fs
-	ty = cTApplys (cTCon ti) vs
-	qt = CQType [] (ty `fn` ty `fn` tBool)
-	eq = CLValueSign (CDef (idEqualNQ dpos) qt [eqc]) []
-	ne = CLValueSign (CDef (idNotEqualNQ dpos) qt [nec]) []
-	eqc = CClause [CPVar id_x, CPVar id_y] [] eqb
-	nec = CClause [CPVar id_x, CPVar id_y] [] (eNot (cVApply idEqual [vx, vy]))
-	vx = CVar id_x
-	vy = CVar id_y
-	eqb =
-		case fs of
-		[] -> eTrue
-		fs -> foldr1 eAnd
+        ty = cTApplys (cTCon ti) vs
+        qt = CQType [] (ty `fn` ty `fn` tBool)
+        eq = CLValueSign (CDef (idEqualNQ dpos) qt [eqc]) []
+        ne = CLValueSign (CDef (idNotEqualNQ dpos) qt [nec]) []
+        eqc = CClause [CPVar id_x, CPVar id_y] [] eqb
+        nec = CClause [CPVar id_x, CPVar id_y] [] (eNot (cVApply idEqual [vx, vy]))
+        vx = CVar id_x
+        vy = CVar id_y
+        eqb =
+                case fs of
+                [] -> eTrue
+                fs -> foldr1 eAnd
                       [cVApply idEqual [CSelectTT ti vx (cf_name field),
                                         CSelectTT ti vy (cf_name field)]
                        | field <- fs ]
@@ -299,38 +299,38 @@ doDEq :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDEq dpos i vs ocs cs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
   where ctx | isEnum ocs = []
             | otherwise = concat [(CPred (CTypeclass idEq) [t] : ps) | oc <- ocs, CQType ps t <- cos_arg_types oc  ]
-	ty = cTApplys (cTCon i) vs
-	qt = CQType [] (ty `fn` ty `fn` tBool)
-	eq = CLValueSign (CDef (idEqualNQ dpos) qt [eqc]) []
-	ne = CLValueSign (CDef (idNotEqualNQ dpos) qt [nec]) []
-	eqc = CClause [CPVar id_x, CPVar id_y] [] eqb
-	nec = CClause [CPVar id_x, CPVar id_y] [] (eNot (cVApply idEqual [vx, vy]))
-	vx = CVar id_x
-	vy = CVar id_y
-	eqb | isEnum ocs = cVApply idEqual [hasSz (cVApply idPrimOrd [vx]) sz,
+        ty = cTApplys (cTCon i) vs
+        qt = CQType [] (ty `fn` ty `fn` tBool)
+        eq = CLValueSign (CDef (idEqualNQ dpos) qt [eqc]) []
+        ne = CLValueSign (CDef (idNotEqualNQ dpos) qt [nec]) []
+        eqc = CClause [CPVar id_x, CPVar id_y] [] eqb
+        nec = CClause [CPVar id_x, CPVar id_y] [] (eNot (cVApply idEqual [vx, vy]))
+        vx = CVar id_x
+        vy = CVar id_y
+        eqb | isEnum ocs = cVApply idEqual [hasSz (cVApply idPrimOrd [vx]) sz,
                                             cVApply idPrimOrd [vy]]
-	    | otherwise =
+            | otherwise =
                 Ccase dpos
-		      vx
-		      (map gen ocs ++
-		       [CCaseArm { cca_pattern = CPAny noPosition,
-		                   cca_filters = [],
-				   cca_consequent = eFalse }])
-	sz = cTNum (log2 (length ocs)) tpos
-	gen :: COriginalSummand -> CCaseArm
-	gen cos =
+                      vx
+                      (map gen ocs ++
+                       [CCaseArm { cca_pattern = CPAny noPosition,
+                                   cca_filters = [],
+                                   cca_consequent = eFalse }])
+        sz = cTNum (log2 (length ocs)) tpos
+        gen :: COriginalSummand -> CCaseArm
+        gen cos =
             CCaseArm { cca_pattern = CPCon1 i cn (CPVar id_x1),
                        cca_filters = [CQGen noType
                                       (CPCon1 i cn (CPVar id_y1)) vy],
                        cca_consequent = cmp }
-		where	ts = cos_arg_types cos
-			cn = getCOSName cos
-		        n = length ts
-			id_x1 = head tmpVarXIds
-			id_y1 = head tmpVarYIds
-			cmp = if n == 0 then eTrue else cVApply idEqual [CVar id_x1, CVar id_y1]
-	tpos = getIdPosition i
-	
+                where ts = cos_arg_types cos
+                      cn = getCOSName cos
+                      n = length ts
+                      id_x1 = head tmpVarXIds
+                      id_y1 = head tmpVarYIds
+                      cmp = if n == 0 then eTrue else cVApply idEqual [CVar id_x1, CVar id_y1]
+        tpos = getIdPosition i
+
 
 -- -------------------------
 
@@ -338,66 +338,66 @@ doSBits :: Position -> Id -> [Type] -> CFields -> CDefn
 doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty, sz])) [pk, un]
   where tiPos = getPosition ti
         ctx = bCtx ++ aCtx ++ cCtx
-	cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
-	bCtx = zipWith (\ (CField { cf_type = cqt@(CQType _ t) }) sv ->
+        cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
+        bCtx = zipWith (\ (CField { cf_type = cqt@(CQType _ t) }) sv ->
                         CPred (CTypeclass idBits)
                                   [t, cTVarKind
                                       (setIdPosition (getPosition cqt) sv)
                                       KNum]) fields bvs
-	aCtx =	let f _ [] _ = []
-		    f a (s:ss) (n:nn) =
-                        CPred (CTypeclass idAdd)
-                                  [cTVarKind s KNum, cTVarKind a KNum,
-                                   cTVarKind n KNum] : f n ss nn
-                    f _ _ _ = internalError "Deriving.doSBits.f: _ (_:_) []"
-		    b:bs = reverse bvs
-		in  if null fields then [] else f b bs avs
-	avs = take (n-1) (everyThird tmpTyVarIds)
-	bvs = take n (everyThird (tail tmpTyVarIds))
-	sz = case fields of
-		[] -> cTNum 0 tiPos
-		[_] -> cTVarKind (setIdPosition tiPos (headOrErr "doSBits" bvs)) KNum
-		_   -> cTVarKind (setIdPosition tiPos (lastOrErr "doSBits" avs)) KNum
-	aty = cTApplys (cTCon ti) vs
-	bty = TAp (cTCon idBit) sz
-	n = length fields
+        aCtx = let f _ [] _ = []
+                   f a (s:ss) (n:nn) =
+                       CPred (CTypeclass idAdd)
+                                 [cTVarKind s KNum, cTVarKind a KNum,
+                                  cTVarKind n KNum] : f n ss nn
+                   f _ _ _ = internalError "Deriving.doSBits.f: _ (_:_) []"
+                   b:bs = reverse bvs
+                in if null fields then [] else f b bs avs
+        avs = take (n-1) (everyThird tmpTyVarIds)
+        bvs = take n (everyThird (tail tmpTyVarIds))
+        sz = case fields of
+                [] -> cTNum 0 tiPos
+                [_] -> cTVarKind (setIdPosition tiPos (headOrErr "doSBits" bvs)) KNum
+                _   -> cTVarKind (setIdPosition tiPos (lastOrErr "doSBits" avs)) KNum
+        aty = cTApplys (cTCon ti) vs
+        bty = TAp (cTCon idBit) sz
+        n = length fields
 
-	pk = CLValueSign (CDef (idPackNQ dpos) (CQType [] (aty `fn` bty)) [pkc]) []
-	pkc = CClause [CPVar id_x] [] pkb
-	vx = CVar id_x
-	pkb = case fields of
-		[] -> anyExprAt tiPos
-		_  -> foldr1 eConcat
+        pk = CLValueSign (CDef (idPackNQ dpos) (CQType [] (aty `fn` bty)) [pkc]) []
+        pkc = CClause [CPVar id_x] [] pkb
+        vx = CVar id_x
+        pkb = case fields of
+                [] -> anyExprAt tiPos
+                _  -> foldr1 eConcat
                       [cVApply idPack [CSelectTT ti vx (cf_name field)]
                        | field <- fields]
 
-	un = CLValueSign (CDef (idUnpackNQ dpos) (CQType [] (bty `fn` aty)) [unc]) []
-	unc = CClause [CPVar id_x] [] ukb
-	ukb = case fields of
-		[] -> CStruct ti []
-		[field] -> CStruct ti [(cf_name field, cVApply idUnpack [vx])]
-		_  -> let xs = take (n-1) tmpVarXIds
-			  bind = mkBind vx xs
-			  mkBind o [] = id
-			  mkBind o (x:xs) =
-				monoDef x (cVApply idPrimSplit [o]) .
-				mkBind (CSelectTT idPrimPair (CVar x) idPrimSnd) xs
-			  mkExp [field] y _ =
+        un = CLValueSign (CDef (idUnpackNQ dpos) (CQType [] (bty `fn` aty)) [unc]) []
+        unc = CClause [CPVar id_x] [] ukb
+        ukb = case fields of
+                [] -> CStruct ti []
+                [field] -> CStruct ti [(cf_name field, cVApply idUnpack [vx])]
+                _  -> let xs = take (n-1) tmpVarXIds
+                          bind = mkBind vx xs
+                          mkBind o [] = id
+                          mkBind o (x:xs) =
+                                monoDef x (cVApply idPrimSplit [o]) .
+                                mkBind (CSelectTT idPrimPair (CVar x) idPrimSnd) xs
+                          mkExp [field] y _ =
                               [(cf_name field, cVApply idUnpack
                                 [CSelectTT idPrimPair (CVar y) idPrimSnd])]
-			  mkExp (field:fields) y (x:xs) =
+                          mkExp (field:fields) y (x:xs) =
                               (cf_name field, cVApply idUnpack
                                [CSelectTT idPrimPair (CVar x) idPrimFst]) :
                               mkExp fields x xs
                           mkExp _ _ _ = internalError "Deriving.doSBits.ukb.mkExp: [] _ _ or _ _ []"
                           err = internalError "Deriving.doSBits.ukb.mkExp: no var"
-		      in  bind (CStruct ti (mkExp fields err xs))
+                      in  bind (CStruct ti (mkExp fields err xs))
 
 
 -- doDBits: derive Bits instance, with the pack and unpack functions,
 --          for a enum or tagged union declaration
 doDBits :: Position -> Id -> [Type] -> COSummands -> CSummands ->
-	   Either EMsg [CDefn]
+           Either EMsg [CDefn]
 doDBits dpos type_name type_vars original_tags tags
     | not (null (duplicate_tag_encoding_errors type_name tags)) =
         Left (head (duplicate_tag_encoding_errors type_name tags))
@@ -430,7 +430,7 @@ doDBits dpos enum_name type_vars original_tags tags
                     hasSz (CLit (num_to_cliteral_at (getPosition tag)
                                  (cis_tag_encoding tag))) num_bits_ctype
             in  CClause unpacked_pattern [] packed_expr
-	unpack_function =
+        unpack_function =
             CDef (idUnpackNQ dpos) (CQType [] (packed_ctype `fn` unpacked_ctype))
                  unpack_body
         -- unpack optimized for [0, 1, ..] (better hardware)
@@ -458,9 +458,9 @@ doDBits dpos type_name type_vars original_tags tags =
         -- fix their position and mark them as KNum
         make_num_vars n l = map (cTVarNum . fix_position) $ take n l
         -- type_ctype: the csyntax type for which we're deriving
-	unpacked_ctype = cTApplys (cTCon type_name) type_vars
+        unpacked_ctype = cTApplys (cTCon type_name) type_vars
         -- num_tags: number of tags in the tagged union
-	num_tags = length tags
+        num_tags = length tags
         -- max tag: the highest tag encoding
         max_tag | null tags = 0
                 | otherwise = foldr1 max [cis_tag_encoding tag | tag <- tags]
@@ -471,12 +471,12 @@ doDBits dpos type_name type_vars original_tags tags =
                    max_field_size_max_provisos ++ final_bit_size_provisos
         -- make sure all subfields can be turned into bits
         fields_provisos_bits =
-	    zipWith (\ field sv -> CPred (CTypeclass idBits) [cis_arg_type field, sv])
+            zipWith (\ field sv -> CPred (CTypeclass idBits) [cis_arg_type field, sv])
                     tags field_bit_sizes
         -- max_field_size_provisos constrain max_num_field_bits to an
         --   upper bound of all subfield sizes by context:
         --       add freshvar sizeof(field) max_num_field_bits
-	max_field_size_add_provisos
+        max_field_size_add_provisos
              | num_tags <= 1 = []
              | otherwise =
                zipWith ( \ x sv ->
@@ -486,77 +486,77 @@ doDBits dpos type_name type_vars original_tags tags =
         -- max_field_size_max_provisos constrain max_num_field_bits to
         --   the least upper bound of all subfield sizes by constraining
         --   lastvar to be the largest
-	max_field_size_max_provisos
+        max_field_size_max_provisos
              | null tags = []
              | otherwise =
                  let f _ [] _ = []
-		     f a (s:ss) (n:nn) =
+                     f a (s:ss) (n:nn) =
                          CPred (CTypeclass idMax) [s, a, n] : f n ss nn
                      f _ _ _ = internalError "Deriving.doDBits.f: _ (_:_) []"
-		     b:bs = reverse field_bit_sizes
-		 in  f b bs max_field_size_sofar_vars
-	num_rep_bits_var:max_field_size_sofar_vars =
+                     b:bs = reverse field_bit_sizes
+                 in  f b bs max_field_size_sofar_vars
+        num_rep_bits_var:max_field_size_sofar_vars =
             make_num_vars num_tags (everyThird tmpTyVarIds)
         -- max_num_field_bits: # bits required to represent all fields w/o tags
-	max_num_field_bits = last max_field_size_sofar_vars
+        max_num_field_bits = last max_field_size_sofar_vars
         -- field_bit_sizes: the bit sizes of the fields (as CTypes)
-	field_bit_sizes = make_num_vars num_tags (everyThird (tail tmpTyVarIds))
+        field_bit_sizes = make_num_vars num_tags (everyThird (tail tmpTyVarIds))
         -- field_bit_size_paddings: padding between individual field size
         --   and the maximum field size; used only once, as dummy variables
-	field_bit_size_paddings = make_num_vars num_tags (everyThird (tail (tail tmpTyVarIds)))
+        field_bit_size_paddings = make_num_vars num_tags (everyThird (tail (tail tmpTyVarIds)))
         -- final_bit_size_provisos constrain the final bit size of the
         --   tagged union: tag size + max(field sizes) = final size
         -- num_rep_bits_ctype: the final bit size of the tagged union
-	(final_bit_size_provisos, num_rep_bits_ctype) =
-		case original_tags of
-		[]  -> ([], cTNum 0 decl_position)
-		[_] -> ([], headOrErr "doDBits" field_bit_sizes)
-		_   -> ([CPred (CTypeclass idAdd)
+        (final_bit_size_provisos, num_rep_bits_ctype) =
+                case original_tags of
+                []  -> ([], cTNum 0 decl_position)
+                [_] -> ([], headOrErr "doDBits" field_bit_sizes)
+                _   -> ([CPred (CTypeclass idAdd)
                                    [num_tag_bits_ctype,
                                     max_num_field_bits,
                                     num_rep_bits_var]],
                         num_rep_bits_var)
-	packed_ctype = TAp (cTCon idBit) num_rep_bits_ctype
-	pack_function =
+        packed_ctype = TAp (cTCon idBit) num_rep_bits_ctype
+        pack_function =
             CDef (idPackNQ dpos) (CQType [] (unpacked_ctype `fn` packed_ctype))
                  pack_clauses
-	pack_clauses
+        pack_clauses
             | num_tags == 1 =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
             | otherwise = zipWith mkPk tags field_bit_sizes
-	mkPk tag field_sz =
+        mkPk tag field_sz =
             CClause [CPCon1 type_name (getCISName tag) (CPVar id_x)] []
-		        (cVApply idPrimConcat
+                        (cVApply idPrimConcat
                          [litSz (cis_tag_encoding tag), pkBody field_sz])
-	pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
+        pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
                                           hasSz (cVApply idPack [vx]) sz ]
-	litSz k = hasSz (CLit $ num_to_cliteral_at decl_position k)
+        litSz k = hasSz (CLit $ num_to_cliteral_at decl_position k)
                   num_tag_bits_ctype
 
-	unpack_function = CDef (idUnpackNQ dpos) unpack_type unpack_clauses
+        unpack_function = CDef (idUnpackNQ dpos) unpack_type unpack_clauses
         unpack_type = CQType [] (packed_ctype `fn` unpacked_ctype)
-	unpack_clauses
+        unpack_clauses
             -- if there's only one, unpack the contents
-	    | num_tags == 1 = [CClause [CPVar id_x] [] (CCon1 type_name (getCISName (headOrErr "doDBits" tags))
+            | num_tags == 1 = [CClause [CPVar id_x] [] (CCon1 type_name (getCISName (headOrErr "doDBits" tags))
                                                   (cVApply idUnpack [vx]))]
              | otherwise = [CClause [CPVar id_x] []
                             (monoDef id_y (cVApply idPrimSplit [vx]) $
-			     Ccase dpos
-				   (hasSz (CSelectTT idPrimPair vy idPrimFst)
+                             Ccase dpos
+                                   (hasSz (CSelectTT idPrimPair vy idPrimFst)
                                     num_tag_bits_ctype)
-				   (map mkUn tags))]
-	mkUn tag =
+                                   (map mkUn tags))]
+        mkUn tag =
             CCaseArm { cca_pattern = CPLit (num_to_cliteral_at decl_position
                                             (cis_tag_encoding tag)),
                        cca_filters = [],
                        cca_consequent = (CCon1 type_name (getCISName tag)
                                          unBody) }
-	unBody = cVApply idUnpack [cVApply idPrimTrunc
+        unBody = cVApply idUnpack [cVApply idPrimTrunc
                                    [CSelectTT idPrimPair vy idPrimSnd]]
-	vx = CVar id_x
-	vy = CVar id_y
+        vx = CVar id_x
+        vy = CVar id_y
     in  Right $
         [Cinstance (CQType provisos
                     (cTApplys (cTCon idBits) [unpacked_ctype,
@@ -573,23 +573,23 @@ doSFShow dpos ti vs fields =
     Cinstance (CQType ctx (cTApplys (cTCon idFShow) [aty])) [fshow_function]
   where
         ctx = bCtx ++ cCtx
-	cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
-	bCtx = map (\ (CField { cf_type = cqt@(CQType _ t) }) ->
+        cCtx = concatMap (\ (CField { cf_type = CQType q _}) -> q) fields
+        bCtx = map (\ (CField { cf_type = cqt@(CQType _ t) }) ->
                         CPred (CTypeclass idFShow) [t])
                    fields
 
-	aty = cTApplys (cTCon ti) vs
-	fty = cTCon idFmt
+        aty = cTApplys (cTCon ti) vs
+        fty = cTCon idFmt
 
-	fshow_function =
+        fshow_function =
             CLValueSign
                 (CDef (idfshowNQ dpos)
                       (CQType [] (aty `fn` fty))
                       [fshow_clause])
                 []
-	fshow_clause = CClause [CPVar id_x] [] fshow_body
+        fshow_clause = CClause [CPVar id_x] [] fshow_body
 
-	vx = CVar id_x
+        vx = CVar id_x
         fshow_body =
             let sid = getIdBaseString ti
             in  CTaskApply (CVar idFormat) $
@@ -641,7 +641,7 @@ doDFShow dpos enum_name type_vars original_tags tags
             [fshow_function]
 doDFShow dpos union_name type_vars original_tags tags =
     let
-	union_ctype = cTApplys (cTCon union_name) type_vars
+        union_ctype = cTApplys (cTCon union_name) type_vars
         fmt_ctype = cTCon idFmt
 
         provisos =
@@ -681,7 +681,7 @@ doDBounded dpos i vs ocs cs =
     --then compileError ("Cannot derive Bounded for " ++ show i)
     --else
         Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [maxB, minB]
-  where	-- this is more restrictive than it needs to be (insisting on Bounded for each term, not just the first and last
+  where -- this is more restrictive than it needs to be (insisting on Bounded for each term, not just the first and last
         -- this is motivated by what Bounded "should" mean rather than the current requirements of the Bounded class
         ctx | isEnum ocs = []
             | otherwise = [CPred (CTypeclass idBounded) [cis_arg_type field] | field <- cs]
@@ -696,8 +696,8 @@ doDBounded dpos i vs ocs cs =
         maxBVal = if lastEmpty
                   then (CCon (getCISName (lastOrErr "doDBounded" cs)) [])
                   else (CCon1 i (getCISName (lastOrErr "doDBounded" cs)) (CVar idMaxBound))
-	minB = CLValueSign (CDef (idMinBoundNQ dpos) (CQType [] aty) [CClause [] [] minBVal]) []
-	maxB = CLValueSign (CDef (idMaxBoundNQ dpos) (CQType [] aty) [CClause [] [] maxBVal]) []
+        minB = CLValueSign (CDef (idMinBoundNQ dpos) (CQType [] aty) [CClause [] [] minBVal]) []
+        maxB = CLValueSign (CDef (idMaxBoundNQ dpos) (CQType [] aty) [CClause [] [] maxBVal]) []
 
 doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
 -- the single-summand case is not already derived for data declarations with no internal type
@@ -758,14 +758,14 @@ doDDeepSeqCond i vs ocs cs = Cinstance instance_cqt $
 
 doSBounded :: Position -> Id -> [Type] -> CFields -> CDefn
 doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [maxB, minB]
-  where	aty = cTApplys (cTCon i) vs
-	ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idBounded) [t]) fs
-	minB = mmDef (idMinBoundNQ dpos) idMinBound
-	maxB = mmDef (idMaxBoundNQ dpos) idMaxBound
-	mmDef md mv =
-	    let mfs = [ (cf_name f, CVar mv) | f <- fs ]
-		str = CStruct i mfs
-	    in	CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
+  where aty = cTApplys (cTCon i) vs
+        ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idBounded) [t]) fs
+        minB = mmDef (idMinBoundNQ dpos) idMinBound
+        maxB = mmDef (idMaxBoundNQ dpos) idMaxBound
+        mmDef md mv =
+            let mfs = [ (cf_name f, CVar mv) | f <- fs ]
+                str = CStruct i mfs
+            in        CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
 
 doSUndefined :: Id -> [Type] -> CFields -> CDefn
 doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
@@ -889,7 +889,7 @@ idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
 mkConv :: (CExpr -> CExpr) -> (CExpr -> CExpr) -> [Id] -> CType -> CType -> (CExpr -> CExpr)
 mkConv con coCon _ v v' | v == v' = con
 mkConv con coCon (x:xs) v (TAp (TAp (TCon (TyCon arr _ _)) a) r) | arr == idArrow noPosition =
-	\ e -> CLam (Right x)
+        \ e -> CLam (Right x)
                  (mkConv con coCon xs v r
                     (CApply e [mkConv coCon con xs v a (CVar x)]))
 mkConv _ _ _ v t = \ e -> e
@@ -917,8 +917,8 @@ addRequiredDeriv flags r i tvs clsId derivs
     | Right True <- fst (runTI flags False r check) = derivs
   where check = do
           let Just (TypeInfo _ kind _ sort) =
-	          {- trace ("check undef: " ++ ppReadable i) $ -}
-		  findType r i
+                  {- trace ("check undef: " ++ ppReadable i) $ -}
+                  findType r i
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)
           vp <- mkVPredFromPred [] (IsIn cls [t])
@@ -940,4 +940,3 @@ addRequiredDerivs flags r i tvs derivs =
 
 
 -- -------------------------
-

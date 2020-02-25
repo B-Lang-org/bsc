@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 module Intervals(VSetInteger, vEmpty, vSing, vFromTo, vGetSing,
-		vCompRange, vUnion, vIntersect, vNull) where
+                vCompRange, vUnion, vIntersect, vNull) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -14,10 +14,10 @@ data IVal = IVal Integer Integer
 
 instance PPrint IVal where
     pPrint d _ (IVal l h) =
-	if l == h then
-	    text "[" <> pPrint d 0 l <> text "]"
-	else
-	    text "[" <> pPrint d 0 l <> text ".." <> pPrint d 0 h <> text "]"
+        if l == h then
+            text "[" <> pPrint d 0 l <> text "]"
+        else
+            text "[" <> pPrint d 0 l <> text ".." <> pPrint d 0 h <> text "]"
 
 -- A set of values is represented as a list of ordered, non-overlapping intervals
 newtype VSetInteger = VSet [IVal]
@@ -54,23 +54,23 @@ vFromTo i j = VSet [IVal i j]
 vUnionI :: IVal -> VSetInteger -> VSetInteger
 vUnionI (IVal l h) (VSet is) = VSet (add l h is)
   where add l h [] = [IVal l h]
-	add l h (i@(IVal vl vh) : is) =
-		if vl <= l then
-		    if vh < l then
-			coal (i : add l h is)	-- (l,h) above i
-		    else if vh < h then
-			add vl h is		-- (l,h) overlaps i
-		    else
-			i : is			-- (l,h) contained in i
-		else if vl > h then
-			coal (IVal l h : i : is)-- (l,h) below i
-		else
-		    if vh <= h then
-			add l h is		-- (l,h) contains i
-		    else
-			add l vh is		-- (l,h) overlaps i
-	coal (IVal l1 h1 : IVal l2 h2 : is) | h1+1 == l2 = IVal l1 h2 : is
-	coal is = is
+        add l h (i@(IVal vl vh) : is) =
+                if vl <= l then
+                    if vh < l then
+                        coal (i : add l h is)        -- (l,h) above i
+                    else if vh < h then
+                        add vl h is                -- (l,h) overlaps i
+                    else
+                        i : is                        -- (l,h) contained in i
+                else if vl > h then
+                        coal (IVal l h : i : is)-- (l,h) below i
+                else
+                    if vh <= h then
+                        add l h is                -- (l,h) contains i
+                    else
+                        add l vh is                -- (l,h) overlaps i
+        coal (IVal l1 h1 : IVal l2 h2 : is) | h1+1 == l2 = IVal l1 h2 : is
+        coal is = is
 
 vUnion :: VSetInteger -> VSetInteger -> VSetInteger
 vUnion (VSet is) vs = foldr vUnionI vs is
@@ -78,21 +78,21 @@ vUnion (VSet is) vs = foldr vUnionI vs is
 vIntersectI :: IVal -> VSetInteger -> VSetInteger
 vIntersectI (IVal l h) (VSet is) = VSet (sub l h is)
   where sub l h [] = []
-	sub l h (i@(IVal vl vh) : is) =
-		if vl <= l then
-		    if vh < l then
-			sub l h is		-- (l,h) above i
-		    else if vh < h then
-			IVal l vh : sub l h is	-- (l,h) overlaps i
-		    else
-			[IVal l h]		-- (l,h) contained in i
-		else if vl > h then
-			[]
-		else
-		    if vh <= h then
-			i : sub l h is		-- (l,h) contains i
-		    else
-			[IVal vl h]		-- (l,h) overlaps i
+        sub l h (i@(IVal vl vh) : is) =
+                if vl <= l then
+                    if vh < l then
+                        sub l h is                -- (l,h) above i
+                    else if vh < h then
+                        IVal l vh : sub l h is        -- (l,h) overlaps i
+                    else
+                        [IVal l h]                -- (l,h) contained in i
+                else if vl > h then
+                        []
+                else
+                    if vh <= h then
+                        i : sub l h is                -- (l,h) contains i
+                    else
+                        [IVal vl h]                -- (l,h) overlaps i
 
 vIntersect :: VSetInteger -> VSetInteger -> VSetInteger
 vIntersect (VSet is) vs = foldr (\ i -> vUnion (vIntersectI i vs)) vEmpty is

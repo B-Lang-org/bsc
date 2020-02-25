@@ -418,7 +418,7 @@ XXX perhaps should see whether the following few clauses could share code
 >                       -- XXX that they *really* don't belong here...
 >                       -- rightHandSides =
 >                       --        concat ([conseq | (pos, pat, tests, conseq) <- arms] ++
->			--                [conseq | (pos, conseq) <- maybeToList dfltArm])
+>                        --                [conseq | (pos, conseq) <- maybeToList dfltArm])
 >                       -- updatedVarList = S.toList updatedVars
 >                       -- variables bound in the patterns
 >                       -- allPatternVars =
@@ -670,13 +670,13 @@ endfunction
 > convImperativeStmtsToCStmts (ISCIsModule,t,_) True [] = do
 >     let it = case t of
 >               Nothing -> Nothing
->		Just t ->  leftCon t
+>               Just t  -> leftCon t
 >     when (isNothing it) (cvtErr (getPosition t) EBadInterface)
 >     return [CSExpr Nothing (CApply (CVar (idReturn noPosition)) [Cinterface noPosition it []])]
 > convImperativeStmtsToCStmts ((ISCModule _),t,_) True [] = do
 >     let it = case t of
 >               Nothing -> Nothing
->		Just t ->  leftCon t
+>               Just t  -> leftCon t
 >     when (isNothing it) (cvtErr (getPosition t) EBadInterface)
 >     return [CSExpr Nothing (CApply (CVar (idReturn noPosition)) [Cinterface noPosition it []])]
 > convImperativeStmtsToCStmts _ _ [] = return []
@@ -799,7 +799,7 @@ endfunction
 > convImperativeStmtsToCStmts c_mt_me@(context,_,_) atEnd (ISWhile pos cond whbody : rest)
 >     | not (isMonadicContext context) = cvtErr pos (EForbiddenWhile (pvpString context))
 > convImperativeStmtsToCStmts
->	c_mt_me@(context,_,_) atEnd (w@(ISWhile pos cond whbody) : rest) =
+>        c_mt_me@(context,_,_) atEnd (w@(ISWhile pos cond whbody) : rest) =
 >   if stmtIsNonMonadic w
 >    then
 >     do e <- convImperativeStmtsToCExpr pos
@@ -1189,7 +1189,7 @@ endfunction
 >     | atEnd && all isISMethod rest =
 >         do let it = case mt of
 >                       Nothing -> Nothing
->			Just t ->  leftCon t
+>                       Just t  -> leftCon t
 >            when (isNothing it) (cvtErr (getPosition mt) EBadInterface)
 >            let methods = [method | ISMethod _ method <- stmts]
 >                ifc = Cinterface pos it methods
@@ -1719,7 +1719,7 @@ Extract each type of statement, making sure to preserve the order
 >                   mcs = methodClauses ms
 >                   ics = map mkBSVIfc is
 >                   clss = mcs++ics
->		in CLValue name [CClause [][] (Cinterface lastPos (Just constr) clss)] []
+>                in CLValue name [CClause [][] (Cinterface lastPos (Just constr) clss)] []
 >
 >            isRealMethod (_,Method i _ _ _ _ _ _,_) = not (isRdyId i)
 >            isRealMethod _ = True
@@ -1733,7 +1733,7 @@ Extract each type of statement, making sure to preserve the order
 >            chkBSVMethod m = return ()
 >            theFamilies cs as fs = do
 >               let dup_cs = findSame cs
->		when (not (null dup_cs)) $
+>               when (not (null dup_cs)) $
 >                   cvtErrs [ (getPosition c, EDuplicateClocks (getIdString c))
 >                                 | (c:_) <- dup_cs ]
 >               let sings = map (\i -> [i]) cs
@@ -1756,8 +1756,8 @@ Extract each type of statement, making sure to preserve the order
 >                                _  -> internalError "duplicate clocks"
 >                      return (if already then fams
 >                               else ((f1 `union` f2):rs))
->		res0 <- foldM unify sings as
->		foldM unify res0 fs
+>               res0 <- foldM unify sings as
+>               foldM unify res0 fs
 
 >        mapM_ chkBSVMethod (map second allmethods)
 >        methods' <- mapM addClockAndReset allmethods
@@ -1771,23 +1771,23 @@ Extract each type of statement, making sure to preserve the order
 
 >        let methodClock nam = do
 >               let mis = [ c | (Method n c r m i o e) <- methods', n==nam]
->		(when (null mis) (cvtErr (getPosition nam) EInvalidMethod))
->		let c = case mis of
+>               (when (null mis) (cvtErr (getPosition nam) EInvalidMethod))
+>               let c = case mis of
 >                        [Nothing] -> idNoClock
 >                        [Just ci] -> ci
 >                        _  -> internalError ("multiple method clocks | " ++
 >                                             show nam ++ " | " ++ show mis)
->		return c
+>               return c
 >            checkScheduleClocks fs (p,(i2s,CF,i1s)) = do (return ())
 >            checkScheduleClocks fs (p,(i2s,_,i1s)) = do
 >               cs <- mapM methodClock (i1s ++ i2s)
->		(when (null cs) (internalError ("empty cs at "++show p)))
+>               (when (null cs) (internalError ("empty cs at "++show p)))
 >               (when (any (==idNoClock) cs) (cvtErr p EScheduleNoClock))
->		let c1 = head cs
->		let fs0 = filter (elem c1) fs
+>               let c1 = head cs
+>               let fs0 = filter (elem c1) fs
 >               (when (null fs0) (internalError ("empty fs0 at "++show p ++
 >                                                "| c1 = " ++ show c1)))
->		let f = head fs0
+>               let f = head fs0
 >               (when (not (all (\ x -> x `elem` f) cs))
 >                     (cvtErr p EScheduleUnrelatedClocks))
 >               return ()
@@ -2513,8 +2513,8 @@ Check for use of unassigned variables; if any are found, report errors
 >                      -> ISConvMonad [ImperativeStatement]
 > checkImperativeStmts context stmts =
 >     do let mInfo pos = case context of
->		ISCModule t -> (t,[])
->		_           -> defaultModuleMonadInfo pos
+>                ISCModule t -> (t,[])
+>                _           -> defaultModuleMonadInfo pos
 >        stmtss' <- mapM (checkImperativeStmt mInfo) stmts
 >        declaredVars <- getDeclaredVars
 >        normallyAssignedVars <- getNormallyAssignedVars
@@ -2568,8 +2568,8 @@ XXX   Detecting function argument collisions TBD
 >        return []
 > checkImperativeStmt mi (ISDecl pos (Left vars) (Just typ) preds) = do
 >     case undoTuple typ of
->	Nothing -> (cvtErr pos EForbiddenTuple)
->	Just ts -> do
+>        Nothing -> (cvtErr pos EForbiddenTuple)
+>        Just ts -> do
 >        when (length ts /= length vars)
 >          (cvtErr pos EForbiddenTuple)
 >        let f (Left _)  _ = return ()

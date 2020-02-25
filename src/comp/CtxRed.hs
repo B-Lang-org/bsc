@@ -56,28 +56,28 @@ instance CtxRed CField where
 
 instance CtxRed CDefn where
     ctxRed (CValueSign d) = do
-	d' <- ctxRed d
-	return (CValueSign d')
+        d' <- ctxRed d
+        return (CValueSign d')
 
 -- primitives should be defined so they don't need ctxRed
 {-
     ctxRed (Cprimitive i cqt) = do
-	(_, cqt') <- ctxRedCQType cqt
+        (_, cqt') <- ctxRedCQType cqt
         popBoundTVs  -- necessary after call to ctxRedCQType
-	return (Cprimitive i cqt')
+        return (Cprimitive i cqt')
 -}
     -- XXX do data&class?
 
     ctxRed (Cstruct vis ss idk vs fs ds) = do
-	fs' <- mapM ctxRed fs
-	return (Cstruct vis ss idk vs fs' ds)
+        fs' <- mapM ctxRed fs
+        return (Cstruct vis ss idk vs fs' ds)
 
     ctxRed (Cinstance cqt ds) = do
-	(s, cqt') <- ctxRedInstHead cqt
-	ds' <- ctxRed (apSub s ds)
+        (s, cqt') <- ctxRedInstHead cqt
+        ds' <- ctxRed (apSub s ds)
         popBoundTVs  -- necessary after call to ctxRedCQType
                      -- but only after we've recursed into the defs
-	return (Cinstance cqt' ds')
+        return (Cinstance cqt' ds')
 
     ctxRed f@(Cforeign {}) = do
         (_, cqt') <- ctxRedCQType (cforg_type f)
@@ -114,72 +114,72 @@ instance CtxRed CDefn where
 
 instance CtxRed CDefl where
     ctxRed (CLValueSign d me) = do
-	d' <- ctxRed d
-	me' <- ctxRed me
-	return (CLValueSign d' me')
+        d' <- ctxRed d
+        me' <- ctxRed me
+        return (CLValueSign d' me')
     ctxRed (CLValue i cs me) = do
-	cs' <- ctxRed cs
-	me' <- ctxRed me
-	return (CLValue i cs' me')
+        cs' <- ctxRed cs
+        me' <- ctxRed me
+        return (CLValue i cs' me')
     ctxRed (CLMatch p e) = do
-	p' <- ctxRed p
-	e' <- ctxRed e
-	return (CLMatch p' e')
+        p' <- ctxRed p
+        e' <- ctxRed e
+        return (CLMatch p' e')
 
 instance CtxRed CDef where
     ctxRed (CDef i cqt cs) = do
-	(s, cqt') <- ctxRedCQType cqt
-	cs' <- ctxRed (apSub s cs)
+        (s, cqt') <- ctxRedCQType cqt
+        cs' <- ctxRed (apSub s cs)
         popBoundTVs  -- necessary after call to ctxRedCQType
                      -- but only after we've recursed into the defs
-	return (CDef i cqt' cs')
+        return (CDef i cqt' cs')
     ctxRed _ = internalError "TypeCheck instance CtxRed CDef"
 
 instance CtxRed CClause where
     ctxRed (CClause ps qs e) = do
-	qs' <- ctxRed qs
-	e' <- ctxRed e
-	return (CClause ps qs' e')
+        qs' <- ctxRed qs
+        e' <- ctxRed e
+        return (CClause ps qs' e')
 
 instance CtxRed CExpr where
     ctxRed (CLam i e) = do
-	e' <- ctxRed e
-	return (CLam i e')
+        e' <- ctxRed e
+        return (CLam i e')
     ctxRed (CLamT i qt e) = do
         -- CLamT does not bind type variable names, so we don't need to
         -- reduce "e" between "ctxRedCQType" and popping the bound tvs
-	e' <- ctxRed e
-	(_, qt') <- ctxRedCQType qt
+        e' <- ctxRed e
+        (_, qt') <- ctxRedCQType qt
         popBoundTVs  -- necessary after call to ctxRedCQType
-	return (CLamT i qt' e')
+        return (CLamT i qt' e')
     ctxRed (Cletseq ds e) = do
-	ds' <- ctxRed ds
-	e' <- ctxRed e
-	return (Cletseq ds' e')
+        ds' <- ctxRed ds
+        e' <- ctxRed e
+        return (Cletseq ds' e')
     ctxRed (Cletrec ds e) = do
-	ds' <- ctxRed ds
-	e' <- ctxRed e
-	return (Cletrec ds' e')
+        ds' <- ctxRed ds
+        e' <- ctxRed e
+        return (Cletrec ds' e')
     ctxRed (CSelect e i) = do
-	e' <- ctxRed e
-	return (CSelect e' i)
+        e' <- ctxRed e
+        return (CSelect e' i)
     ctxRed (CSelectTT ti e i) = do
-	e' <- ctxRed e
-	return (CSelectTT ti e' i)
+        e' <- ctxRed e
+        return (CSelectTT ti e' i)
     ctxRed (CCon i es) = do
-	es' <- ctxRed es
-	return (CCon i es')
+        es' <- ctxRed es
+        return (CCon i es')
     ctxRed (Ccase pos e as) = do
-	e' <- ctxRed e
-	as' <- ctxRed as
-	return (Ccase pos e' as')
+        e' <- ctxRed e
+        as' <- ctxRed as
+        return (Ccase pos e' as')
     ctxRed (CStruct i ies) = do
-	ies' <- ctxRed ies
-	return (CStruct i ies')
+        ies' <- ctxRed ies
+        return (CStruct i ies')
     ctxRed (CStructUpd e ies) = do
-	e' <- ctxRed e
-	ies' <- ctxRed ies
-	return (CStructUpd e' ies')
+        e' <- ctxRed e
+        ies' <- ctxRed ies
+        return (CStructUpd e' ies')
     ctxRed (Cwrite pos e v) = do
         e' <- ctxRed e
         v' <- ctxRed v
@@ -187,39 +187,39 @@ instance CtxRed CExpr where
     ctxRed e@(CAny {}) = return e
     ctxRed e@(CVar _) = return e
     ctxRed (CApply e es) = do
-	e' <- ctxRed e
-	es' <- ctxRed es
-	return (CApply e' es')
+        e' <- ctxRed e
+        es' <- ctxRed es
+        return (CApply e' es')
     ctxRed (CTaskApply e es) = do
-	e' <- ctxRed e
-	es' <- ctxRed es
-	return (CTaskApply e' es')
+        e' <- ctxRed e
+        es' <- ctxRed es
+        return (CTaskApply e' es')
     ctxRed e@(CLit _) = return e
     ctxRed (CBinOp e1 o e2) = do
-	e1' <- ctxRed e1
-	e2' <- ctxRed e2
-	return (CBinOp e1' o e2')
+        e1' <- ctxRed e1
+        e2' <- ctxRed e2
+        return (CBinOp e1' o e2')
     ctxRed (CHasType e cqt) = do
         -- CHasType does not bind type variable names, so we don't need to
         -- reduce "e" between "ctxRedCQType" and popping the bound tvs
-	e' <- ctxRed e
-	(_, cqt') <- ctxRedCQType cqt
+        e' <- ctxRed e
+        (_, cqt') <- ctxRedCQType cqt
         popBoundTVs  -- necessary after call to ctxRedCQType
-	return (CHasType e' cqt')
+        return (CHasType e' cqt')
     ctxRed (Cif pos e1 e2 e3) = do
-	e1' <- ctxRed e1
-	e2' <- ctxRed e2
-	e3' <- ctxRed e3
-	return (Cif pos e1' e2' e3')
+        e1' <- ctxRed e1
+        e2' <- ctxRed e2
+        e3' <- ctxRed e3
+        return (Cif pos e1' e2' e3')
     ctxRed (CSub pos e1 e2) = do
-	e1' <- ctxRed e1
-	e2' <- ctxRed e2
-	return (CSub pos e1' e2')
+        e1' <- ctxRed e1
+        e2' <- ctxRed e2
+        return (CSub pos e1' e2')
     ctxRed (CSub2 e1 e2 e3) = do
-	e1' <- ctxRed e1
-	e2' <- ctxRed e2
-	e3' <- ctxRed e3
-	return (CSub2 e1' e2' e3')
+        e1' <- ctxRed e1
+        e2' <- ctxRed e2
+        e3' <- ctxRed e3
+        return (CSub2 e1' e2' e3')
     ctxRed (CSubUpdate pos e_vec (e_h, e_l) e_rhs) = do
         e_vec' <- ctxRed e_vec
         e_h'   <- ctxRed e_h
@@ -227,36 +227,36 @@ instance CtxRed CExpr where
         e_rhs' <- ctxRed e_rhs
         return (CSubUpdate pos e_vec' (e_h', e_l') e_rhs')
     ctxRed (CCon1 ti i e) = do
-	e' <- ctxRed e
-	return (CCon1 ti i e')
+        e' <- ctxRed e
+        return (CCon1 ti i e')
     ctxRed (Cmodule pos is) = do
-	is' <- ctxRed is
-	return (Cmodule pos is')
+        is' <- ctxRed is
+        return (Cmodule pos is')
     ctxRed (Cinterface pos mi ds) = do
-	ds' <- ctxRed ds
-	return (Cinterface pos mi ds')
+        ds' <- ctxRed ds
+        return (Cinterface pos mi ds')
     ctxRed (CmoduleVerilog m ui c r ses fs sch ps) = do
-	m' <- ctxRed m
-	ses' <- ctxRed ses
-	return (CmoduleVerilog m' ui c r ses' fs sch ps)
+        m' <- ctxRed m
+        ses' <- ctxRed ses
+        return (CmoduleVerilog m' ui c r ses' fs sch ps)
     -- the contexts on the cqt here are not a real type,
     -- but are extra info for better error reporting in tiExpr
     ctxRed e@(CForeignFuncC i cqt) = return e
     ctxRed (Cdo rec ss) = do
-	ss' <- ctxRed ss
-	return (Cdo rec ss')
+        ss' <- ctxRed ss
+        return (Cdo rec ss')
     ctxRed (Caction pos ss) = do
-	ss' <- ctxRed ss
-	return (Caction pos ss')
+        ss' <- ctxRed ss
+        return (Caction pos ss')
     ctxRed (Crules ps rs) = do
-	rs' <- ctxRed rs
-	return (Crules ps rs')
+        rs' <- ctxRed rs
+        return (Crules ps rs')
     ctxRed (CADump es) = do
-	es' <- ctxRed es
-	return (CADump es')
+        es' <- ctxRed es
+        return (CADump es')
     ctxRed (CConT ti i es) = do
-	es' <- ctxRed es
-	return (CConT ti i es')
+        es' <- ctxRed es
+        return (CConT ti i es')
     ctxRed e@(Cattributes _) = return e
     ctxRed e = internalError ("ctxRed: " ++ ppReadable e)
 
@@ -267,74 +267,74 @@ instance CtxRed CStmt where
     ctxRed (CSBindT p name pprops qt e) = do
         -- CSBindT does not bind type variable names, so we don't need to
         -- reduce "e" between "ctxRedCQType" and popping the bound tvs
-	p' <- ctxRed p
-	e' <- ctxRed e
-	(_, qt') <- ctxRedCQType qt
+        p' <- ctxRed p
+        e' <- ctxRed e
+        (_, qt') <- ctxRedCQType qt
         popBoundTVs  -- necessary after call to ctxRedCQType
-	return (CSBindT p name pprops qt' e')
+        return (CSBindT p name pprops qt' e')
     ctxRed (CSBind p name pprops e) = do
-	p' <- ctxRed p
-	e' <- ctxRed e
-	return (CSBind p name pprops e')
+        p' <- ctxRed p
+        e' <- ctxRed e
+        return (CSBind p name pprops e')
     ctxRed (CSletseq ds) = do
-	ds' <- ctxRed ds
-	return (CSletseq ds')
+        ds' <- ctxRed ds
+        return (CSletseq ds')
     ctxRed (CSletrec ds) = do
-	ds' <- ctxRed ds
-	return (CSletrec ds')
+        ds' <- ctxRed ds
+        return (CSletrec ds')
     ctxRed (CSExpr name e) = do
-	e' <- ctxRed e
-	return (CSExpr name e')
+        e' <- ctxRed e
+        return (CSExpr name e')
 
 instance CtxRed CMStmt where
     ctxRed (CMStmt s) = do
-	s' <- ctxRed s
-	return (CMStmt s')
+        s' <- ctxRed s
+        return (CMStmt s')
     ctxRed (CMrules e) = do
-	e' <- ctxRed e
-	return (CMrules e')
+        e' <- ctxRed e
+        return (CMrules e')
     ctxRed (CMinterface e) = do
-	e' <- ctxRed e
-	return (CMinterface e')
+        e' <- ctxRed e
+        return (CMinterface e')
     ctxRed (CMTupleInterface pos es) = do
-	es' <- mapM ctxRed es
-	return (CMTupleInterface pos es')
+        es' <- mapM ctxRed es
+        return (CMTupleInterface pos es')
 
 instance CtxRed CQual where
     ctxRed (CQGen t p e) = do
-	e' <- ctxRed e
-	return (CQGen t p e')
+        e' <- ctxRed e
+        return (CQGen t p e')
     ctxRed (CQFilter e) = do
-	e' <- ctxRed e
-	return (CQFilter e')
+        e' <- ctxRed e
+        return (CQFilter e')
 
 instance CtxRed CRule where
     ctxRed (CRule rps mi qs e) = do
-	mi' <- ctxRed mi
-	qs' <- ctxRed qs
-	e' <- ctxRed e
-	return (CRule rps mi' qs' e')
+        mi' <- ctxRed mi
+        qs' <- ctxRed qs
+        e' <- ctxRed e
+        return (CRule rps mi' qs' e')
     ctxRed (CRuleNest rps mi qs rs) = do
-	mi' <- ctxRed mi
-	qs' <- ctxRed qs
-	rs' <- ctxRed rs
-	return (CRuleNest rps mi' qs' rs')
+        mi' <- ctxRed mi
+        qs' <- ctxRed qs
+        rs' <- ctxRed rs
+        return (CRuleNest rps mi' qs' rs')
 
 instance (CtxRed a) => CtxRed [a] where
     ctxRed xs = mapM ctxRed xs
 
 instance (CtxRed a, CtxRed b) => CtxRed (a, b) where
     ctxRed (a, b) = do
-	a' <- ctxRed a
-	b' <- ctxRed b
-	return (a', b')
+        a' <- ctxRed a
+        b' <- ctxRed b
+        return (a', b')
 
 instance (CtxRed a, CtxRed b, CtxRed c) => CtxRed (a, b, c) where
     ctxRed (a, b, c) = do
-	a' <- ctxRed a
-	b' <- ctxRed b
-	c' <- ctxRed c
-	return (a', b', c')
+        a' <- ctxRed a
+        b' <- ctxRed b
+        c' <- ctxRed c
+        return (a', b', c')
 
 instance (CtxRed a) => CtxRed (Maybe a) where
     ctxRed Nothing = return Nothing
@@ -375,8 +375,8 @@ ctxRedCQType' isInstHead cqt = do
     -- convert the CQType (using the assumptions we know)
     sy <- getSymTab
     (qs0 :=> t0) <- case convCQTypeWithAssumps sy btks cqt of
-		     Left emsg -> err emsg
-		     Right qt -> return qt
+                     Left emsg -> err emsg
+                     Right qt -> return qt
 
     -- do extra reduction on instance heads to avoid synonym-expansion
     -- and SizeOf issues, without unduly disturbing non-instance types

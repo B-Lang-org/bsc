@@ -39,53 +39,53 @@ typeAnalysisToHTclObj (Numeric) = TStr "Numeric"
 typeAnalysisToHTclObj (Primary t k vs isC mwidth) =
     tag "Primary" $
         [TStr $ showType True t k vs] ++
-	showPolymorphic isC ++
-	showWidth mwidth
+        showPolymorphic isC ++
+        showWidth mwidth
 typeAnalysisToHTclObj (Vector isC len el mwidth) =
     tag "Vector" $
         [TStr $ showType True idVector kVector vsVector] ++
         showPolymorphic isC ++
-	[tagStr "length" (pvStr len)] ++
-	[tagStr "elem" (pvStr el)] ++
-	showWidth mwidth
+        [tagStr "length" (pvStr len)] ++
+        [tagStr "elem" (pvStr el)] ++
+        showWidth mwidth
 typeAnalysisToHTclObj (List isC el) =
     tag "List" $
         [TStr $ showType True idList kList vsList] ++
         showPolymorphic isC ++
-	[tagStr "elem" (pvStr el)]
+        [tagStr "elem" (pvStr el)]
 typeAnalysisToHTclObj (Alias t k vs atype) =
     tag "Alias" $
         [TStr $ showType True t k vs,
-	 TStr (pvStr atype)] ++
-	showTaggedPosition t
+         TStr (pvStr atype)] ++
+        showTaggedPosition t
 typeAnalysisToHTclObj (Struct t k vs isC fs mwidth) =
     tag "Struct" $
         [TStr $ showType True t k vs] ++
-	showPolymorphic isC ++
-	[tagLst "members" (map structFieldToHTclObj fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        showPolymorphic isC ++
+        [tagLst "members" (map structFieldToHTclObj fs)] ++
+        showWidth mwidth ++
+        showTaggedPosition t
 typeAnalysisToHTclObj (Enum t fs mwidth) =
     tag "Enum" $
         [TStr $ showType True t KStar []] ++
-	-- remove the package qualifier from the enum fields
-	[tagManyStr "members" (map (pvStr . unQualId) fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        -- remove the package qualifier from the enum fields
+        [tagManyStr "members" (map (pvStr . unQualId) fs)] ++
+        showWidth mwidth ++
+        showTaggedPosition t
 typeAnalysisToHTclObj (TaggedUnion t k vs isC fs mwidth) =
     tag "TaggedUnion" $
-	[TStr $ showType True t k vs] ++
-	showPolymorphic isC ++
+        [TStr $ showType True t k vs] ++
+        showPolymorphic isC ++
         [tagLst "members" (map unionTagToHTclObj fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        showWidth mwidth ++
+        showTaggedPosition t
 typeAnalysisToHTclObj (Interface t k vs isC fs pragmas) =
     -- XXX display the pragmas?
     tag "Interface" $
         [TStr $ showType True t k vs] ++
-	showPolymorphic isC ++
-	[tagLst "members" (map interfaceFieldToHTclObj fs)] ++
-	showTaggedPosition t ++
+        showPolymorphic isC ++
+        [tagLst "members" (map interfaceFieldToHTclObj fs)] ++
+        showTaggedPosition t ++
         (if (not $ null pragmas) then  [tagLst "attributes" (map ifcPragmaToHTclObj pragmas)] else [])
 typeAnalysisToHTclObj (Typeclass t k vs ps fdeps allow insts fs) =
     tag "Typeclass" $
@@ -93,9 +93,9 @@ typeAnalysisToHTclObj (Typeclass t k vs ps fdeps allow insts fs) =
         showSuperclasses ps ++
         showDependencies vs fdeps ++
         showAllowIncoherent allow ++
-	[tagLst "members" (map typeclassFieldToHTclObj fs)] ++
+        [tagLst "members" (map typeclassFieldToHTclObj fs)] ++
         showInstances insts ++
-	showTaggedPosition t
+        showTaggedPosition t
 
 
 -----------------------------------------------------
@@ -204,59 +204,59 @@ typeAnalysisToDetail (Numeric) = TStr "Numeric Type"
 typeAnalysisToDetail (Primary t k vs isC mwidth) =
     tag "Primary" $
         [TLst [TStr $ showType True t k vs]] ++
-	showPolymorphic isC ++
-	showWidth mwidth
+        showPolymorphic isC ++
+        showWidth mwidth
 typeAnalysisToDetail (Vector isC len el mwidth) =
     tag "Vector" $
         [TLst [TStr $ showType True idVector kVector vsVector]] ++
         showPolymorphic isC ++
-	[tagStr "length" (pvStr len)] ++
-	[tagStr "element type" (pvStr el)] ++
-	showWidth mwidth
+        [tagStr "length" (pvStr len)] ++
+        [tagStr "element type" (pvStr el)] ++
+        showWidth mwidth
 typeAnalysisToDetail (List isC el) =
     tag "List" $
         [TLst [TStr $ showType True idList kList vsList]] ++
         showPolymorphic isC ++
-	[tagStr "element type" (pvStr el)]
+        [tagStr "element type" (pvStr el)]
 
 typeAnalysisToDetail (Alias t k vs atype) =
     tag "Alias" $
          [TLst [TStr $ showType True t k vs],
-	  tagLst "Definition" [TStr (pvStr atype)]] ++
-	showTaggedPosition t
+          tagLst "Definition" [TStr (pvStr atype)]] ++
+        showTaggedPosition t
 
 typeAnalysisToDetail (Struct t k vs isC fs mwidth) =
     tag "Struct" $
         [TLst [TStr $ showType True t k vs]] ++
-	showPolymorphic isC ++
-	[tagLst "members" (map structFieldToDetail fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        showPolymorphic isC ++
+        [tagLst "members" (map structFieldToDetail fs)] ++
+        showWidth mwidth ++
+        showTaggedPosition t
 
 typeAnalysisToDetail (Enum t fs mwidth) =
     tag "Enum" $
         [TLst [TStr $ showType True t KStar []]] ++
-	-- remove the package qualifier from the enum fields
-	[tagManyStr "members" (map (pvStr . unQualId) fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        -- remove the package qualifier from the enum fields
+        [tagManyStr "members" (map (pvStr . unQualId) fs)] ++
+        showWidth mwidth ++
+        showTaggedPosition t
 
 typeAnalysisToDetail (TaggedUnion t k vs isC fs mwidth) =
     tag "TaggedUnion" $
-	[TLst [TStr $ showType True t k vs]] ++
-	showPolymorphic isC ++
+        [TLst [TStr $ showType True t k vs]] ++
+        showPolymorphic isC ++
         [tagLst "members" (map unionTagToDetail fs)] ++
-	showWidth mwidth ++
-	showTaggedPosition t
+        showWidth mwidth ++
+        showTaggedPosition t
 
 typeAnalysisToDetail  (Interface t k vs isC fs pragmas) =
     -- XXX display the pragmas?
     tag "Interface" $
         [TLst [TStr $ showType True t k vs]] ++
-	showPolymorphic isC ++
-	[tagLst "members" (map interfaceFieldToDetail fs)] ++
+        showPolymorphic isC ++
+        [tagLst "members" (map interfaceFieldToDetail fs)] ++
         (if (not $ null pragmas) then  [tagLst "attributes" (map ifcPragmaToHTclObj pragmas)] else []) ++
-	showTaggedPosition t
+        showTaggedPosition t
 
 typeAnalysisToDetail (Typeclass t k vs ps fdeps allow insts fs) =
     tag "Typeclass" $
@@ -264,10 +264,10 @@ typeAnalysisToDetail (Typeclass t k vs ps fdeps allow insts fs) =
         showSuperclasses ps ++
         showDependencies vs fdeps ++
         showAllowIncoherent allow ++
-	if (null fs) then []
+        if (null fs) then []
                      else [tagLst "members" (map typeclassFieldToDetail fs)] ++
         showInstances insts ++
-	showTaggedPosition t
+        showTaggedPosition t
 
 
 -- ---------------
@@ -320,16 +320,16 @@ interfaceFieldToHTclObj (is_subifc, fid, (ps :=> t), fpragmas) =
                           TLst (map ifcPragmaToHTclObj fpragmas)
                          ]
     else
-	let (arg_ts, res_t) = getArrows t
-	in  tagLst "method" [TStr (pvStr res_t),
-			     TStr (pvStr (unQualId fid)),
-			     TLst (map (TStr . pvStr) arg_ts),
+        let (arg_ts, res_t) = getArrows t
+        in  tagLst "method" [TStr (pvStr res_t),
+                             TStr (pvStr (unQualId fid)),
+                             TLst (map (TStr . pvStr) arg_ts),
                              TLst (map ifcPragmaToHTclObj fpragmas)
-			    ]
-	    {- (if (null ps)
-		then ""
-		else "provisos " ++
-		     inParens (commaSep (map pvStr ps))) -}
+                            ]
+            {- (if (null ps)
+                then ""
+                else "provisos " ++
+                     inParens (commaSep (map pvStr ps))) -}
 
 
 interfaceFieldToDetail :: (Bool, Id, Qual Type, [IfcPragma]) -> HTclObj
@@ -342,7 +342,7 @@ interfaceFieldToDetail (is_subifc, fid, (ps :=> t), fpragmas) =
                                   pvStr t,
                                   pvpStringNQ fid]
     else
-	let (arg_ts, res_t) = getArrows t
+        let (arg_ts, res_t) = getArrows t
             args' = intercalate ",  " (map pvStr arg_ts)
             args = "(" ++ args' ++ ")"
         in TStr $ intercalate "  " ["method",

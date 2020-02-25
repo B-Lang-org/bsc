@@ -318,7 +318,7 @@ aVerilog errh flags pps aspack ffmap =
         -- XXX might be good to allow the user to specify a default
 
         args :: [VArg]
-        args =	[ VAParameter (vId i) r v
+        args =        [ VAParameter (vId i) r v
                      | (i, t) <- ps,
                        let (r, v) = case t of
                                       ATBit sz -> (Just (VEConst (sz-1),

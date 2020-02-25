@@ -155,18 +155,18 @@ regaligned = VName "RegAligned"
 
 isRegN :: AVInst -> Bool
 isRegN  avi = (getAVDefName avi == regn) ||
-	      (getAVDefName avi == configregn) ||
-	      (getAVDefName avi == crossregn)
+              (getAVDefName avi == configregn) ||
+              (getAVDefName avi == crossregn)
 
 isRegUN :: AVInst -> Bool
 isRegUN avi = (getAVDefName avi == regun) ||
-	      (getAVDefName avi == configregun) ||
-	      (getAVDefName avi == crossregun)
+              (getAVDefName avi == configregun) ||
+              (getAVDefName avi == crossregun)
 
 isRegA :: AVInst -> Bool
 isRegA  avi = (getAVDefName avi == rega) ||
-	      (getAVDefName avi == configrega) ||
-	      (getAVDefName avi == crossrega) ||
+              (getAVDefName avi == configrega) ||
+              (getAVDefName avi == crossrega) ||
               (getAVDefName avi == regaligned)
 
 isRegAligned :: AVInst -> Bool
@@ -202,12 +202,12 @@ widthParamStr = "width"
 findPort :: ErrorHandle -> VName -> AVInst -> AExpr
 findPort errh lookupname avi@(AVInst { avi_vmi = vi, avi_iargs = es }) =
     let pairs :: [(VArgInfo, AExpr)]
-	pairs = zip (vArgs vi) es
-	exprs = [ e | (Port (name,props) mclk mrst, e) <- pairs,
-		      name == lookupname ]
+        pairs = zip (vArgs vi) es
+        exprs = [ e | (Port (name,props) mclk mrst, e) <- pairs,
+                      name == lookupname ]
     in  case (exprs) of
-	  [e] -> e
-	  x ->let msg = (getPosition $ avi_type avi,
+          [e] -> e
+          x ->let msg = (getPosition $ avi_type avi,
                          (EPortNameErrorOnImport
                           (getVNameString $ vName vi)
                           (getVNameString lookupname)))
@@ -217,12 +217,12 @@ findPort errh lookupname avi@(AVInst { avi_vmi = vi, avi_iargs = es }) =
 findParam :: VName -> AVInst -> AExpr
 findParam lookupname (AVInst { avi_vmi = vi, avi_iargs = es }) =
     let pairs :: [(VArgInfo, AExpr)]
-	pairs = zip (vArgs vi) es
-	exprs = [ e | (Param name, e) <- pairs,
-		      name == lookupname ]
+        pairs = zip (vArgs vi) es
+        exprs = [ e | (Param name, e) <- pairs,
+                      name == lookupname ]
     in  case (exprs) of
-	  [e] -> e
-	  x -> internalError ("findParam: " ++ ppReadable (lookupname, pairs))
+          [e] -> e
+          x -> internalError ("findParam: " ++ ppReadable (lookupname, pairs))
 
 -- ----------
 -- clock and reset
@@ -272,8 +272,8 @@ mkQOUT avi = mkPortNameFromFStr (getIdFString (avi_vname avi)) (promoteAVI avi)
 
 -- XXX need better comment
 promoteAVI avi = (setIdPosition
-		    (getIfcIdPosition (avi_vmi avi))
-		    (avi_vname avi))
+                    (getIfcIdPosition (avi_vmi avi))
+                    (avi_vname avi))
 
 -- This makes the AId, use vId (or idToVId) to make a VId
 mkPortName :: String -> AId -> AId
@@ -286,29 +286,29 @@ mkPortNameFromFStr portname_fstr v_inst_name =
     let
         -- the following was copied from vMethId
         -- (is this done in order to carry along properties?)
-	portname_id = setIdBase (unQualId v_inst_name) portname_fstr
-	--portname_id = mkId noPosition portname_fstr
+        portname_id = setIdBase (unQualId v_inst_name) portname_fstr
+        --portname_id = mkId noPosition portname_fstr
     in
-	portname_id
+        portname_id
 
 mkPortNameFStr :: String -> AId -> FString
 mkPortNameFStr v_port_name v_inst_name =
     concatFString [getIdFString v_inst_name,
-		   fsDollar,
-		   mkFString v_port_name]
+                   fsDollar,
+                   mkFString v_port_name]
 
 -- ---------------
 -- Given a port name mapping (produced in ARenameIO),
 -- update it so that "r$Q_OUT" is shortened to just "r"
 
 updateVerilogNameMapForReg :: AVInst ->
-			      [(FString,FString)] -> [(FString,FString)]
+                              [(FString,FString)] -> [(FString,FString)]
 updateVerilogNameMapForReg avi ps =
     let oldname = mkPortNameFStr qoutPortStr (avi_vname avi)
-	newname = getIdFString (avi_vname avi)
-	updPair (a,b) = (a, if (b == oldname) then newname else b)
+        newname = getIdFString (avi_vname avi)
+        updPair (a,b) = (a, if (b == oldname) then newname else b)
     in
-	map updPair ps
+        map updPair ps
 
 -- ---------------
 
@@ -434,13 +434,13 @@ createVerilogNameMapForAVInst :: Flags -> AVInst -> [(FString, FString)]
 createVerilogNameMapForAVInst flags avi@(AVInst { avi_vname = inst_id,
                                                   avi_vmi = vminfo }) =
     let -- the default map
-	default_map = concatMap (createMapForVMod inst_id) (vFields vminfo)
-	-- create a special map for register instance (without $Q_OUT)
-	reg_map = updateVerilogNameMapForReg avi default_map
-	-- choose which to return
-	result = if ((removeReg flags) && (isRegInst avi) && ((not (isClockCrossingRegInst avi)) || (removeCross flags)))
-		 then reg_map
-		 else default_map
+        default_map = concatMap (createMapForVMod inst_id) (vFields vminfo)
+        -- create a special map for register instance (without $Q_OUT)
+        reg_map = updateVerilogNameMapForReg avi default_map
+        -- choose which to return
+        result = if ((removeReg flags) && (isRegInst avi) && ((not (isClockCrossingRegInst avi)) || (removeCross flags)))
+                 then reg_map
+                 else default_map
     in  -- trace("result =" ++ (ppReadable result)) $
         result
 
@@ -534,8 +534,8 @@ createMapForVMod inst_id (Method meth_id _ _ mult ins mo me) = -- trace (ppReada
 -- mkMethId in ASyntax
 -- the two lists should be the same length (this is checked)
 createMapForOneMeth :: Id -> Integer ->
-		       [VPort] -> Maybe VPort -> Maybe VPort ->
-		       ([FString],[FString])
+                       [VPort] -> Maybe VPort -> Maybe VPort ->
+                       ([FString],[FString])
 createMapForOneMeth meth_id mult ins me mo = if check then
                                              -- trace (ppReadable (method_names, verilog_names)) $
                                              (method_names, verilog_names)
@@ -555,23 +555,23 @@ createMapForOneMeth meth_id mult ins me mo = if check then
       method_input_names = [ addNum meth_n arg_n |
                              meth_n <- meth_mult, arg_n  <- [1 .. length ins]]
       addNum fs n =
-	  concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
+          concatFString [fs, fsUnderscore, (mkNumFString (toInteger n))]
 
       -- the Verilog port names for the above
       verilog_input_names = map getFStringForVerilogPair ins
 
       -- names for the output port
       (method_output_names, verilog_output_name) =
-	  case (mo) of
-	      Nothing -> ([], [])
-	      Just p -> (meth_mult, [getFStringForVerilogPair p])
+          case (mo) of
+              Nothing -> ([], [])
+              Just p -> (meth_mult, [getFStringForVerilogPair p])
 
       -- names for the enable
       (method_enable_names, verilog_enable_name) =
-	  case (me) of
-	      Nothing -> ([], [])
-	      Just p -> (map mkEnableName meth_mult,
-			 [getFStringForVerilogPair p])
+          case (me) of
+              Nothing -> ([], [])
+              Just p -> (map mkEnableName meth_mult,
+                         [getFStringForVerilogPair p])
 
       mkEnableName fs =  concatFString [fsEnable, fs]
 
@@ -581,16 +581,16 @@ createMapForOneMeth meth_id mult ins me mo = if check then
                      method_output_names
 
       verilog_names_pre_mult =
-	             verilog_input_names ++
-	             verilog_enable_name ++
-	             verilog_output_name
+                     verilog_input_names ++
+                     verilog_enable_name ++
+                     verilog_output_name
 
       -- handle the multiplicity for verilog names here
       -- note how we go from 1..mult instead of 0..mult-1
       -- as the method side does
       verilog_names = if (mult <= 1)
-		      then verilog_names_pre_mult
-		      else [addNum fs n | -- PORT_N
+                      then verilog_names_pre_mult
+                      else [addNum fs n | -- PORT_N
                             fs <- verilog_names_pre_mult,
                             n <- [1..mult]]
 
@@ -598,11 +598,11 @@ createMapForOneMeth meth_id mult ins me mo = if check then
 getFStringForVerilogPair :: (VName, [VeriPortProp]) -> FString
 getFStringForVerilogPair (vname, proplist) =
     let getvns vs = (verilog_cleanup $ getVNameString vs) ++ suffix
-	verilog_cleanup = filter isAlphaNum_ . map replace
-	isAlphaNum_ c = ((isAlphaNum c) || c == '_')
-	replace ' ' = '_'
-	replace '?' = 'X'
-	replace c = c
+        verilog_cleanup = filter isAlphaNum_ . map replace
+        isAlphaNum_ c = ((isAlphaNum c) || c == '_')
+        replace ' ' = '_'
+        replace '?' = 'X'
+        replace c = c
         -- XXX inhigh ports don't exist, so we mark them with this string,
         -- XXX which AVerilog looks for
         suffix = if (VPinhigh `elem` proplist) then "_AlwaysEnabled" else ""

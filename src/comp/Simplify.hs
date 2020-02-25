@@ -32,8 +32,8 @@ traced name orig result =
 simplify :: Flags -> CPackage -> CPackage
 simplify flags pkg@(CPackage mi exps imps fixs ds includes)
     | simplifyCSyntax flags =
-	let (env, _) = selectSimple [] [ d | CValueSign d <- ds ]
-	in  CPackage mi exps imps fixs (simp env ds) includes
+        let (env, _) = selectSimple [] [ d | CValueSign d <- ds ]
+        in  CPackage mi exps imps fixs (simp env ds) includes
     | otherwise = pkg
 
 cLetRec :: [CDefl] -> CExpr -> CExpr
@@ -53,10 +53,10 @@ cLetRec ds e = Cletrec (map optBind ds) e
 -- into
 --   let i .v1 ... .vn p1 .. pn p1' .. pn' :: qt = e
 optBind orig@(CLValueSign (CDefT i vs qt [CClause ps [] (Cletrec [CLValueSign (CDefT i' [] _ [CClause ps' [] e]) []] (CVar i''))]) [])
-	| i' == i'' && not (isKeepId i') && not (S.member i' (snd (getFVE e))) =
+        | i' == i'' && not (isKeepId i') && not (S.member i' (snd (getFVE e))) =
             (traced "Simplify.optBind" orig
              (CLValueSign (CDefT i vs qt [CClause (ps++ps') [] e]) []))
-	
+
 optBind b = b
 
 isSimple :: CExpr -> Bool
@@ -111,11 +111,11 @@ instance Simp CDef where
     --             when q1 .. qn, q1'' .. qn''
     --         ...
     simp r def@(CDefT i vs t cs) =
-	case simp r cs of
-	[CClause ps qs (Cletrec [CLValueSign (CDefT i' vs' _ cs) []] (CVar i''))]
+        case simp r cs of
+        [CClause ps qs (Cletrec [CLValueSign (CDefT i' vs' _ cs) []] (CVar i''))]
             | i' == i'' && not (isKeepId i') ->
-		CDefT i vs t [CClause (ps ++ ps') (qs ++ qs') e | CClause ps' qs' e <- cs]
-	cs -> CDefT i vs t cs
+                CDefT i vs t [CClause (ps ++ ps') (qs ++ qs') e | CClause ps' qs' e <- cs]
+        cs -> CDefT i vs t cs
     simp r def@(CDef _ _ _) = internalError "Simplify.Simp(CDef).simp: CDef"
 
 -- XXX susceptible to bug #168
@@ -129,7 +129,7 @@ instance Simp CClause where
                            concat ["  captured: " ++
                                    ppString v ++ " = " ++ ppString e ++ "\n"
                                    | (v,(e,_)) <- captures])
-	where patternVars = concatMap (S.toList . getPV) ps
+        where patternVars = concatMap (S.toList . getPV) ps
               r' = dropIs patternVars r
               (captures, _) = sepCaptures patternVars r'
 
@@ -169,7 +169,7 @@ instance Simp CExpr where
     -- XXX is this susceptible to #166?  analyze!
     simp r orig@(Cletrec [CLValueSign (CDefT i [] qtype [CClause ps [] e]) []]
                  (CApply (CVar i') es))
-	| (i == i' && not (isKeepId i) && length ps == length es
+        | (i == i' && not (isKeepId i) && length ps == length es
            && length argTypes == length es && all isCPVar ps
            && not (i `S.member` snd (getFVE e))) =
           traced "Simplify.Simp(CExpr).simp[2]" orig $
@@ -184,17 +184,17 @@ instance Simp CExpr where
     -- XXX is this susceptible to #166?  analyze!
     simp r orig@(Cletrec [CLValueSign (CDefT i vs qtype [CClause ps [] e]) []]
                  (CApply (CTApply (CVar i') ts) es))
-	| (i == i' && not (isKeepId i) && length vs == length ts
+        | (i == i' && not (isKeepId i) && length vs == length ts
            && length ps == length es && all isCPVar ps
            && not (i `S.member` snd (getFVE e))) =
           traced "Simplify.Simp(CExpr).simp[3]" orig $
-	  simp (zip [ x | CPVar x <- ps ] ets ++ r)
+          simp (zip [ x | CPVar x <- ps ] ets ++ r)
                     (apSub typeVarSubst e)
        where (argTypes, _) = getCQArrows qtype
              ets = zip es (map (apSub typeVarSubst) argTypes)
              typeVarSubst = mkSubst (zip vs ts)
     simp r orig@(Cletrec ds e) =
-	let capturedVars :: [Id]
+        let capturedVars :: [Id]
             capturedVars = S.toList $ S.unions $ map capturedVarsCDefl ds
             -- drop substitutions of vars shadowed by let-bindings
             rd = dropIs capturedVars r
@@ -204,7 +204,7 @@ instance Simp CExpr where
             capturedDefs = [CLValueSign (CDefT var [] t [CClause [] [] e]) []
                             | (var, (e, t)) <- captures]
             -- sep substitutions with any capturedVars free on the RHS
-	    (r', ds') = selectSimpleL rd' (simp rd' ds)
+            (r', ds') = selectSimpleL rd' (simp rd' ds)
             blurb =("simp[4]:\n* capturedVars =\n" ++ ppReadable capturedVars ++
                     "* r =\n" ++ ppReadable r ++
                     "* rd =\n" ++ ppReadable rd ++

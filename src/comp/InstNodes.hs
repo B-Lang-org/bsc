@@ -282,7 +282,7 @@ isHidden' True _ _ = False
 isHidden' _ _    y | isUniquifier True y = False
 isHidden' _ True y@(Loc  {node_name = i }) |isHideId i =
          case (M.elems $ node_children y) of
-		  [StateVar {}] -> False
+                  [StateVar {}] -> False
                   _             -> True
 isHidden' _ False y@(Loc  {node_name = i })| isHideId i          = True
 isHidden' _ _     Loc  {node_type = (Just t)} | isGeneratedIfc t = True

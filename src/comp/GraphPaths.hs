@@ -77,12 +77,12 @@ updatePaths mat src dst =
            (src_word_idx,src_bit_offset0) = src `quotRem` 32
            src_bit_offset = fromIntegral src_bit_offset0
            the_arr = arr mat
-	   or_one_word :: Word32 -> Word32 -> IO ()
+           or_one_word :: Word32 -> Word32 -> IO ()
            or_one_word sor n = do w1 <- readArray the_arr (sor + n)
                                   w2 <- readArray the_arr (start_of_dst_row + n)
                                   writeArray the_arr (sor + n) (w1 .|. w2)
            or_one_row sor = mapM_ (or_one_word sor) [0..((words_per_row mat) - 1)]
-	   update_row :: Bool -> Word32 -> IO ()
+           update_row :: Bool -> Word32 -> IO ()
            update_row force r = do let start_of_row = r * (words_per_row mat)
                                    w0 <- readArray the_arr (start_of_row + src_word_idx)
                                    when (force || (testBit w0 src_bit_offset)) $

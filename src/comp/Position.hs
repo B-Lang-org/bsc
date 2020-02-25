@@ -48,7 +48,7 @@ prPosition (Position fs l c pred) =
     if l<0 && c<0 && f=="" then "Unknown position" else
     let lc = if l<0 then "" else "line " ++ show3 l ++ (if c < 0 then "" else ", column "++show3 c)
         show3 = show --until ((>=3) . length) (' ':) . show
-    in	case f of
+    in        case f of
             "" -> lc
             _ -> show f' ++ (if null lc then "" else ", "++lc)
 
@@ -61,7 +61,7 @@ prPositionConcise (Position fs l c pred) =
     if l<0 && c<0 && f=="" then "Unknown position" else
     let lc = if l<0 then "" else ":" ++ show3 l ++ (if c < 0 then "" else ":"++show3 c)
         show3 = show --until ((>=3) . length) (' ':) . show
-    in	case f of
+    in        case f of
             "" -> lc
             _ -> f' ++ lc
 

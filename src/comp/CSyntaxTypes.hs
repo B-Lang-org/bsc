@@ -1,6 +1,6 @@
 module CSyntaxTypes(
-		    Types(..)
-		    ) where
+                    Types(..)
+                    ) where
 
 import Data.List(union, (\\), nub)
 import ListUtil(mapSnd)
@@ -29,30 +29,30 @@ instance Types CDef where
     -- This fixes bug 675, but is it fixing the problem or just masking it?
     -- More thought/investigation is needed.
     apSub s (CDefT i vs qt cs) =
-	let s' = if null vs then s else trimSubstByVars vs s
-	in  CDefT i vs (apSub s' qt) (apSub s' cs)
+        let s' = if null vs then s else trimSubstByVars vs s
+        in  CDefT i vs (apSub s' qt) (apSub s' cs)
 {-
     -- For investigating, use this code to assert an internalError or trace
     -- on bad substitutions.
-	let (s',removed_vs) = removeFromSubst vs s
-	    r = getSubstRange s'
-	in
-	    --if (any (\v -> elem v r) removed_vs)
-	    if (any (\v -> elem v r) vs)
-	    then internalError ("apSub CDefT:\n" ++
-				" i = " ++ ppReadable i ++
-				" vs = " ++ ppReadable vs ++
-				" removed_vs = " ++ ppReadable removed_vs ++
-				" s' = " ++ ppReadable s')
-	    else
-	    if (length removed_vs > 0)
-	    then trace ("apSub CDefT, removing from Subst:\n" ++
-	                " i = " ++ ppReadable i ++
-			" vs = " ++ ppReadable vs ++
-			" removed_vs = " ++ ppReadable removed_vs ++
-			" s = " ++ ppReadable s) $
-	         CDefT i vs (apSub s' qt) (apSub s' cs)
-	    else CDefT i vs (apSub s' qt) (apSub s' cs)
+        let (s',removed_vs) = removeFromSubst vs s
+            r = getSubstRange s'
+        in
+            --if (any (\v -> elem v r) removed_vs)
+            if (any (\v -> elem v r) vs)
+            then internalError ("apSub CDefT:\n" ++
+                                " i = " ++ ppReadable i ++
+                                " vs = " ++ ppReadable vs ++
+                                " removed_vs = " ++ ppReadable removed_vs ++
+                                " s' = " ++ ppReadable s')
+            else
+            if (length removed_vs > 0)
+            then trace ("apSub CDefT, removing from Subst:\n" ++
+                        " i = " ++ ppReadable i ++
+                        " vs = " ++ ppReadable vs ++
+                        " removed_vs = " ++ ppReadable removed_vs ++
+                        " s = " ++ ppReadable s) $
+                 CDefT i vs (apSub s' qt) (apSub s' cs)
+            else CDefT i vs (apSub s' qt) (apSub s' cs)
 -}
     tv (CDef i qt cs) = tv (qt, cs)
     tv (CDefT i vs qt cs) = (nub (tv (qt, cs))) \\ vs
@@ -114,7 +114,7 @@ instance Types CExpr where
     apSub s (CLitT t l) = CLitT (apSub s t) l
     apSub s (CAnyT pos uk t) = CAnyT pos uk (apSub s t)
     apSub s (CmoduleVerilogT t m ui c r ses fs sch ps) =
-	CmoduleVerilogT (apSub s t) (apSub s m) ui c r (mapSnd (apSub s) ses) fs sch ps
+        CmoduleVerilogT (apSub s t) (apSub s m) ui c r (mapSnd (apSub s) ses) fs sch ps
     apSub s (CForeignFuncCT i pty) = CForeignFuncCT i (apSub s pty)
     apSub s (COper os) = internalError ("CSyntaxTypes.Types(CExpr).apSub: COper " ++ ppReadable os)
     apSub s e@(Cattributes pps) = e

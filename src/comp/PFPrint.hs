@@ -1,12 +1,12 @@
 module PFPrint(PPrint(..), module Pretty, PDetail(..),
-	ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
-	pparen, pfPrint, sepList, maxPrec,
-	PVPrint(..),
-	pvpReadable, pvpReadableIndent, pvpAll, pvpDebug, pvpString, pvpStringNQ, pvp80,
-	pvparen,
-	pfpReadable, pfpReadableIndent, pfpAll, pfpDebug, pfpString, pfp80,
-	pfparen, ppDoc
-	) where
+        ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
+        pparen, pfPrint, sepList, maxPrec,
+        PVPrint(..),
+        pvpReadable, pvpReadableIndent, pvpAll, pvpDebug, pvpString, pvpStringNQ, pvp80,
+        pvparen,
+        pfpReadable, pfpReadableIndent, pfpAll, pfpDebug, pfpString, pfp80,
+        pfparen, ppDoc
+        ) where
 import Classic
 -- import Trace
 import PPrint

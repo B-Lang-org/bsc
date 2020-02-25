@@ -1,6 +1,6 @@
 module ARenameIO(
-	      aRenameIO
-	      ) where
+              aRenameIO
+              ) where
 
 import qualified Data.Map as M
 
@@ -10,7 +10,7 @@ import FStringCompat(FString)
 import Flags(Flags)
 import ASyntax
 import BackendNamingConventions(createVerilogNameMap,
-				xLateIdUsingFStringMap)
+                                xLateIdUsingFStringMap)
 import Util(fastNub)
 import Pragma(DefProp)
 
@@ -30,7 +30,7 @@ import Pragma(DefProp)
 
 aRenameIO :: Flags -> ASPackage -> ASPackage
 aRenameIO flags pkg =
-    let	mi    = aspkg_name pkg
+    let mi    = aspkg_name pkg
         fmod  = aspkg_is_wrapped pkg
         ps    = aspkg_parameters pkg
         exps  = aspkg_outputs pkg
@@ -45,17 +45,17 @@ aRenameIO flags pkg =
         si    = aspkg_signal_info pkg
         cmap  = aspkg_comment_info pkg
 
-	-- This is the submodule connection map
-	-- (see comment on "createVerilogNameMap" for examples)
-	vmap = createVerilogNameMap flags pkg
+        -- This is the submodule connection map
+        -- (see comment on "createVerilogNameMap" for examples)
+        vmap = createVerilogNameMap flags pkg
 
         new_pkg =
-	    ASPackage mi
-	              fmod
+            ASPackage mi
+                      fmod
                       ps
                       exps
                       imps
-		      iomps
+                      iomps
                       (map (trI vmap) vs)      -- names in state arg exprs
                       -- remove duplicates because output wires may be hooked up
                       -- to more than one method (e.g. FIFOF_.notFull, FIFOF_.i_notFull)
@@ -63,12 +63,12 @@ aRenameIO flags pkg =
                       (map (trD vmap) defs)    -- names of defs & in def exprs
                       (map (trIOD vmap) iods)  -- names in iodef exprs
                       (map (trFB vmap) fs)     -- names in foreign block exprs
-		      (map (tr vmap) ws)       -- inlined port names
+                      (map (tr vmap) ws)       -- inlined port names
                       (trSI vmap si)           -- names in signal info
-		      cmap  -- instance names should not have changed
+                      cmap  -- instance names should not have changed
 
     in
-	new_pkg
+        new_pkg
 
 
 type FSMap = M.Map FString FString
@@ -139,11 +139,11 @@ trSI mp si =
             aspsi_output_rsts = map (tr mp) (aspsi_output_rsts si),
             aspsi_ifc_iots = map (tr mp) (aspsi_ifc_iots si),
             aspsi_methods = map trMeth (aspsi_methods si),
-	    -- inlined rwire names are not renamed,
-	    -- as the signal exists in the defs with the original name
-	    aspsi_inlined_ports = aspsi_inlined_ports si,
-	    -- rule scheduling ports are not renamed
-	    aspsi_rule_sched = aspsi_rule_sched si,
+            -- inlined rwire names are not renamed,
+            -- as the signal exists in the defs with the original name
+            aspsi_inlined_ports = aspsi_inlined_ports si,
+            -- rule scheduling ports are not renamed
+            aspsi_rule_sched = aspsi_rule_sched si,
             -- mux signals are not renamed
             aspsi_mux_selectors = aspsi_mux_selectors si,
             aspsi_mux_values = aspsi_mux_values si,
@@ -152,4 +152,3 @@ trSI mp si =
 
 
 -- ==============================
-

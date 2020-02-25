@@ -43,8 +43,8 @@ sccEdge ns rns vs
 
     dfs r vs ns []   = (vs,ns)
     dfs r vs ns (x:xs)
-	| x `sElem` vs = dfs r vs ns xs
-	| otherwise    = case dfs r (sAdd x vs) [] (r x) of (vs', ns') ->       dfs r vs' ((x:ns')++ns) xs
+        | x `sElem` vs = dfs r vs ns xs
+        | otherwise    = case dfs r (sAdd x vs) [] (r x) of (vs', ns') ->       dfs r vs' ((x:ns')++ns) xs
 
 rev :: (Ord node) => [Node node] -> NMap node
 rev ns = M.fromListWith (++) [ (d, [s]) | (s, ds) <- ns, d <- ds ]
@@ -70,17 +70,17 @@ getCycles xs =
 
 otsort :: (Ord node) => [Node node] -> Either [[node]] [node]
 otsort ns =
-	let es = [(x,y) | (x, ys) <- ns, y <- ys]
-	    vs = map fst ns
-	    sccs = sccEdge (mFromList ns) (rev ns) vs
-	    isCyclic [] = internalError "otsort isCyclic []"
-	    isCyclic [v] = isElem v es
-	    isCyclic _ = True
-	    isElem v [] = False
-	    isElem v ((x,y):xys) = v == x && v == y  ||  isElem v xys
-	in  case partition isCyclic sccs of
-		([], noncycs) -> Right (concat noncycs)
-		(cycs, _) -> Left cycs
+        let es = [(x,y) | (x, ys) <- ns, y <- ys]
+            vs = map fst ns
+            sccs = sccEdge (mFromList ns) (rev ns) vs
+            isCyclic [] = internalError "otsort isCyclic []"
+            isCyclic [v] = isElem v es
+            isCyclic _ = True
+            isElem v [] = False
+            isElem v ((x,y):xys) = v == x && v == y  ||  isElem v xys
+        in  case partition isCyclic sccs of
+                ([], noncycs) -> Right (concat noncycs)
+                (cycs, _) -> Left cycs
 
 
 ------
@@ -97,12 +97,12 @@ tsort = ntsort
 ntsort :: Ord node => [Node node] -> Either [[node]] [node]
 ntsort g =
     let psq = fromOrdList [ n :-> length ns | (n, ns) <- sort g ]
-	m = M.fromListWith (++) [ (d, [s]) | (s, ds) <- g, d <- ds ]
-	get n = case M.lookup n m of Just ns -> ns; Nothing -> []
-    in	{- loop get psq [] -} -- XXX: leads to buggy cycles
-	case loop get psq [] of
-	Right ns -> Right ns
-	Left _ -> otsort g  -- revert to old version to get accurate cycles
+        m = M.fromListWith (++) [ (d, [s]) | (s, ds) <- g, d <- ds ]
+        get n = case M.lookup n m of Just ns -> ns; Nothing -> []
+    in        {- loop get psq [] -} -- XXX: leads to buggy cycles
+        case loop get psq [] of
+        Right ns -> Right ns
+        Left _ -> otsort g  -- revert to old version to get accurate cycles
 
 
 type TSPSQ node = PSQ node Int
@@ -126,7 +126,7 @@ chkTsort :: (Show node, Ord node) => [Node node] -> Either [[node]] [node] -> Ei
 chkTsort g r@(Left _) = r
 chkTsort g r@(Right ons) = cloop S.empty ons
   where cloop _ [] = r
-	cloop s (n:ns) = if all (`S.member` s) xs then cloop (S.insert n s) ns else internalError ("chkTsort: " ++ show g ++ "\n" ++ show ons ++ "\n" ++ show (n, xs))
-		where xs = find n m
-	m = M.fromList g
+        cloop s (n:ns) = if all (`S.member` s) xs then cloop (S.insert n s) ns else internalError ("chkTsort: " ++ show g ++ "\n" ++ show ons ++ "\n" ++ show (n, xs))
+                where xs = find n m
+        m = M.fromList g
 -}

@@ -52,7 +52,7 @@ module ISyntax(
         getIExprPosition,
         getITypePosition,
         getIExprPositionCross,
---	getITypePositionCross,
+--        getITypePositionCross,
         getIRuleId,
         getIRuleStateLoc,
         sameClockDomain,
@@ -542,7 +542,7 @@ cmpE (IRefT _ _ _)   (ILam _ _ _)    = GT
 cmpE (IRefT _ _ _)   (IAps _ _ _)    = GT
 cmpE (IRefT _ _ _)   (IVar _)        = GT
 cmpE (IRefT _ _ _)   (ICon _ _)      = GT
-cmpE (IRefT _ p1 _)  (IRefT _ p2 _)  = compare p1 p2		-- XXX
+cmpE (IRefT _ p1 _)  (IRefT _ p2 _)  = compare p1 p2                -- XXX
 
 cmpE (IRefT _ _ _)     (ILAM _ _ _)  = LT -- ??????????
 
@@ -977,20 +977,20 @@ eSubst v x e = hyper e' e'
                 in  ILam i' t (sub e')
             else
                 ILam i t (sub e)
---	sub ee@(IVar i) = if i == v then setPos (getIdPosition i) x else ee
+--        sub ee@(IVar i) = if i == v then setPos (getIdPosition i) x else ee
         sub ee@(IVar i) = if i == v then x else ee
         sub (ILAM i k e) = ILAM i k (sub e)
         sub (IAps f ts es) = IAps (sub f) ts (map sub es)
         -- don't sub into ICUndet's optional variable because it doesn't get
         -- populated until after evaluation
         sub ee@(ICon _ _) = ee
-        sub ee@(IRefT _ _ _) = ee	-- no free vars inside IRefT
+        sub ee@(IRefT _ _ _) = ee        -- no free vars inside IRefT
         fvx = fVars' x
         vs = fvx `S.union` aVars' e
 {-
         setPos p (ICon i ci) = ICon (setIdPosition p i) ci
         setPos p (IVar i) = IVar (setIdPosition p i)
---	setPos p (IAps e ts es) = IAps (setPos p e) ts es
+--        setPos p (IAps e ts es) = IAps (setPos p e) ts es
         setPos p e = e
 -}
 
@@ -1024,7 +1024,7 @@ etSubst v x e = sub e
         sub (ICon i ii@(ICForeign { })) = ICon i (ii { iConType = tSubst v x (iConType ii) })
         sub (ICon i ii@(ICType { })) = ICon i (ii { iType = tSubst v x (iType ii) })
         sub ee@(ICon _ _) = ee
-        sub ee@(IRefT _ _ _) = ee	-- no free tyvar inside IRef
+        sub ee@(IRefT _ _ _) = ee        -- no free tyvar inside IRef
         fvx = fTVars' x
         vs = fvx `S.union` aVars' e
 
@@ -1090,7 +1090,7 @@ ftVars' (ILAM i _ e) = S.delete i (ftVars' e)
 ftVars' (IAps f ts es) = (ftVars' f) `S.union` (S.unions (map fTVars' ts))
                                      `S.union` (S.unions (map ftVars' es))
 ftVars' (ICon _ (ICUndet {imVal = Just e})) = ftVars' e
-ftVars' (ICon _ _) = S.empty		-- XXX
+ftVars' (ICon _ _) = S.empty                -- XXX
 ftVars' (IRefT _ _ _) = S.empty
 
 -- ============================================================
@@ -1154,7 +1154,7 @@ instance PPrint (IEFace a) where
     pPrint d p (IEFace i vs et rules wp fi)
         =       text "-- args" $+$
                 foldr ($+$) b (map (ppMV d) vs)
-              where b =	text "-- body" $+$
+              where b =        text "-- body" $+$
                         (case et of
                           Just (e,t) -> ppDef d $ IDef i t e []
                           _ -> empty ) $+$
@@ -1165,7 +1165,7 @@ instance PPrint (IEFace a) where
                         text "-- field info" $+$
                         pPrint d 0 fi $+$
 --                      text "-- guard" $+$
---			ppDef d wi wt we $+$
+--                        ppDef d wi wt we $+$
                         text ""
 
 instance PPrint IAbstractInput where
@@ -1306,7 +1306,7 @@ instance Hyper (IExpr a) where
 
 instance Hyper (IConInfo a) where
 --    hyper (ICDef x1 x2) y = hyper2 x1 x2 y
-    hyper ic@(ICDef x1 x2) y = y			-- XXX a hack to avoid circular defs
+    hyper ic@(ICDef x1 x2) y = y                        -- XXX a hack to avoid circular defs
     hyper (ICPrim x1 x2) y = hyper2 x1 x2 y
     hyper (ICForeign x1 x2 x3 x4 x5) y = hyper5 x1 x2 x3 x4 x5 y
     hyper (ICCon x1 x2 x3) y = hyper3 x1 x2 x3 y
@@ -1325,7 +1325,7 @@ instance Hyper (IConInfo a) where
     hyper (ICMethArg x1) y = hyper x1 y
     hyper (ICModPort x1) y = hyper x1 y
     hyper (ICModParam x1) y = hyper x1 y
---    hyper (ICValue x1 x2 x3) y = hyper3 x1 x2 x3 y	-- XXX causes cycles somehow
+--    hyper (ICValue x1 x2 x3) y = hyper3 x1 x2 x3 y        -- XXX causes cycles somehow
     hyper (ICValue x1 x2) y = y
     hyper (ICIFace x1 x2 x3) y = hyper3 x1 x2 x3 y
     hyper (ICRuleAssert x1 x2) y = hyper2 x1 x2 y
@@ -1341,7 +1341,7 @@ instance Hyper (IConInfo a) where
     hyper (ICPred x1 x2) y = hyper2 x1 x2 y
 
 instance Hyper (IStateVar a) where
-    hyper x y = (x==x) `seq` y		-- XXX (does not evaluate IStateVar components)
+    hyper x y = (x==x) `seq` y                -- XXX (does not evaluate IStateVar components)
 
 -- ============================================================
 -- XRef (and other utilities?) beyond this point

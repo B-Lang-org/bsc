@@ -39,7 +39,7 @@ instance Hyper Scheme where
 -- the reverse of quantify is inst (q.v.)
 quantify :: [TyVar] -> Qual Type -> Scheme
 quantify vs qt@(ps :=> t) =
-	Forall ks (apSub s qt)
+        Forall ks (apSub s qt)
   where vs' = [ v | v <- tv qt, v `elem` vs ]
         ks  = map kind vs'
         s   = mkSubst (zipWith (\ v n -> (v, TGen (getPosition v) n)) vs' [0..])

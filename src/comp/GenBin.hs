@@ -148,7 +148,7 @@ instance Bin CDefn where
                      10 -> do when doTrace $ traceM ("CItype")
                               ik <- fromBin; is <- fromBin; poss <- fromBin
                               return (CItype ik is poss)
-		     11 -> do p <- fromBin; return (CPragma p)
+                     11 -> do p <- fromBin; return (CPragma p)
                      n  -> internalError $ "GenBin.Bin(CDefn).readBytes: " ++ show n
 
 -- ----------
@@ -222,44 +222,44 @@ instance Bin CPat where
     writeBytes (CPConTs i1 i2 ts ps) =
         do putI 9; toBin i1; toBin i2; toBin ts; toBin ps
     readBytes = do tag <- getI
-	           case tag of
-	             0 -> do i <- fromBin; ps <- fromBin
+                   case tag of
+                     0 -> do i <- fromBin; ps <- fromBin
                              return (CPCon i ps)
-	             1 -> do i <- fromBin; ips <- fromBin;
+                     1 -> do i <- fromBin; ips <- fromBin;
                              return (CPstruct i ips)
-	             2 -> do i <- fromBin; return (CPVar i)
+                     2 -> do i <- fromBin; return (CPVar i)
                      3 -> do i <- fromBin; p <- fromBin; return (CPAs i p)
-	             4 -> do p <- fromBin; return (CPAny p)
-	             5 -> do l <- fromBin; return (CPLit l)
-	             6 -> do pos <- fromBin; n <- fromBin; ns <- fromBin;
+                     4 -> do p <- fromBin; return (CPAny p)
+                     5 -> do l <- fromBin; return (CPLit l)
+                     6 -> do pos <- fromBin; n <- fromBin; ns <- fromBin;
                              return (CPMixedLit pos n ns)
-	             7 -> do ops <- fromBin; return (CPOper ops)
-	             8 -> do i1 <- fromBin; i2 <- fromBin; p <- fromBin;
+                     7 -> do ops <- fromBin; return (CPOper ops)
+                     8 -> do i1 <- fromBin; i2 <- fromBin; p <- fromBin;
                              return (CPCon1 i1 i2 p)
-	             9 -> do i1 <- fromBin; i2 <- fromBin;
+                     9 -> do i1 <- fromBin; i2 <- fromBin;
                              ts <- fromBin; ps <- fromBin;
                              return (CPConTs i1 i2 ts ps)
-	             n -> internalError $ "GenBin.Bin(CPat).readBytes: " ++ show n
+                     n -> internalError $ "GenBin.Bin(CPat).readBytes: " ++ show n
 
 instance Bin CPOp where
     writeBytes (CPRand p) = do putI 0; toBin p
     writeBytes (CPRator n i) = do putI 1; toBin n; toBin i
     readBytes =
         do tag <- getI
-	   case tag of
-	     0 -> do p <- fromBin; return (CPRand p)
-	     1 -> do n <- fromBin; i <- fromBin; return (CPRator n i)
-	     n -> internalError $ "GenBin.Bin(CPOp).readBytes: " ++ show n
+           case tag of
+             0 -> do p <- fromBin; return (CPRand p)
+             1 -> do n <- fromBin; i <- fromBin; return (CPRator n i)
+             n -> internalError $ "GenBin.Bin(CPOp).readBytes: " ++ show n
 
 instance Bin COp where
     writeBytes (CRand e) = do putI 0; toBin e
     writeBytes (CRator n i) = do putI 1; toBin n; toBin i
     readBytes =
         do tag <- getI
-	   case tag of
-	     0 -> do e <- fromBin; return (CRand e)
-	     1 -> do n <- fromBin; i <- fromBin; return (CRator n i)
-	     n -> internalError $ "GenBin.Bin(COp).readBytes: " ++ show n
+           case tag of
+             0 -> do e <- fromBin; return (CRand e)
+             1 -> do n <- fromBin; i <- fromBin; return (CRator n i)
+             n -> internalError $ "GenBin.Bin(COp).readBytes: " ++ show n
 
 instance Bin CLiteral where
     writeBytes (CLiteral pos l) = do toBin pos; toBin l
@@ -272,23 +272,23 @@ instance Bin Literal where
     writeBytes (LReal d)   = do putI 3; toBin d
     writeBytes (LPosition) = do putI 4
     readBytes = do tag <- getI
-	           case tag of
-	             0 -> do s <- fromBin; return (LString s)
-	             1 -> do c <- fromBin; return (LChar c)
-	             2 -> do il <- fromBin; return (LInt il)
+                   case tag of
+                     0 -> do s <- fromBin; return (LString s)
+                     1 -> do c <- fromBin; return (LChar c)
+                     2 -> do il <- fromBin; return (LInt il)
                      3 -> do d <- fromBin; return (LReal d)
-	             4 -> return LPosition
-	             n -> internalError $ "GenBin.Bin(Literal).readBytes: " ++ show n
+                     4 -> return LPosition
+                     n -> internalError $ "GenBin.Bin(Literal).readBytes: " ++ show n
 
 instance Bin CQual where
     writeBytes (CQGen t p e) = do putI 0; toBin t; toBin p; toBin e
     writeBytes (CQFilter e)  = do putI 1; toBin e
     readBytes = do tag <- getI
-	           case tag of
-	             0 -> do t <- fromBin; p <- fromBin; e <- fromBin
+                   case tag of
+                     0 -> do t <- fromBin; p <- fromBin; e <- fromBin
                              return (CQGen t p e)
-	             1 -> do e <- fromBin; return (CQFilter e)
-	             n -> internalError $ "GenBin.Bin(CQual).readBytes: " ++ show n
+                     1 -> do e <- fromBin; return (CQFilter e)
+                     n -> internalError $ "GenBin.Bin(CQual).readBytes: " ++ show n
 
 instance Bin CExpr where
     writeBytes (CLam i e) = do putI 0; toBin i; toBin e
@@ -345,72 +345,72 @@ instance Bin CExpr where
       toBin e_l; toBin e_rhs
     readBytes =
         do tag <- getI
-	   case tag of
-	     0 -> do i <- fromBin; e <- fromBin; return (CLam i e)
-	     1 -> do i <- fromBin; qt <- fromBin; e <- fromBin;
+           case tag of
+             0 -> do i <- fromBin; e <- fromBin; return (CLam i e)
+             1 -> do i <- fromBin; qt <- fromBin; e <- fromBin;
                      return (CLamT i qt e)
-	     2 -> do ds <- fromBin; e <- fromBin; return (Cletseq ds e)
-	     3 -> do ds <- fromBin; e <- fromBin; return (Cletrec ds e)
-	     4 -> do e <- fromBin; i <- fromBin; return (CSelect e i)
-	     5 -> do i <- fromBin; es <- fromBin; return (CCon i es)
-	     6 -> do pos <- fromBin; e <- fromBin; arms <- fromBin;
+             2 -> do ds <- fromBin; e <- fromBin; return (Cletseq ds e)
+             3 -> do ds <- fromBin; e <- fromBin; return (Cletrec ds e)
+             4 -> do e <- fromBin; i <- fromBin; return (CSelect e i)
+             5 -> do i <- fromBin; es <- fromBin; return (CCon i es)
+             6 -> do pos <- fromBin; e <- fromBin; arms <- fromBin;
                      return (Ccase pos e arms)
-	     7 -> do i <- fromBin; ies <- fromBin; return (CStruct i ies)
-	     8 -> do i <- fromBin; ies <- fromBin; return (CStructUpd i ies)
-	     9 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
+             7 -> do i <- fromBin; ies <- fromBin; return (CStruct i ies)
+             8 -> do i <- fromBin; ies <- fromBin; return (CStructUpd i ies)
+             9 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
                      return (Cwrite pos e1 e2)
-	     10 -> do pos <- fromBin; uk <- fromBin; return (CAny pos uk)
-	     11 -> do i <- fromBin; return (CVar i)
-	     12 -> do e <- fromBin; es <- fromBin; return (CApply e es)
-	     13 -> do e <- fromBin; es <- fromBin; return (CTaskApply e es)
-	     14 -> do e <- fromBin; t <- fromBin; es <- fromBin;
+             10 -> do pos <- fromBin; uk <- fromBin; return (CAny pos uk)
+             11 -> do i <- fromBin; return (CVar i)
+             12 -> do e <- fromBin; es <- fromBin; return (CApply e es)
+             13 -> do e <- fromBin; es <- fromBin; return (CTaskApply e es)
+             14 -> do e <- fromBin; t <- fromBin; es <- fromBin;
                       return (CTaskApplyT e t es)
-	     15 -> do l <- fromBin; return (CLit l)
-	     16 -> do e1 <- fromBin; i <- fromBin; e2 <- fromBin;
+             15 -> do l <- fromBin; return (CLit l)
+             16 -> do e1 <- fromBin; i <- fromBin; e2 <- fromBin;
                       return (CBinOp e1 i e2)
-	     17 -> do e <- fromBin; qt <- fromBin; return (CHasType e qt)
-	     18 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
+             17 -> do e <- fromBin; qt <- fromBin; return (CHasType e qt)
+             18 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
                       e3 <- fromBin; return (Cif pos e1 e2 e3)
-	     19 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
+             19 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
                       return (CSub pos e1 e2)
-	     20 -> do e1 <- fromBin; e2 <- fromBin; e3 <- fromBin;
+             20 -> do e1 <- fromBin; e2 <- fromBin; e3 <- fromBin;
                       return (CSub2 e1 e2 e3)
-	     21 -> do pos <- fromBin; ss <- fromBin; return (Cmodule pos ss)
-	     22 -> do pos <- fromBin; mi <- fromBin; ds <- fromBin;
+             21 -> do pos <- fromBin; ss <- fromBin; return (Cmodule pos ss)
+             22 -> do pos <- fromBin; mi <- fromBin; ds <- fromBin;
                       return (Cinterface pos mi ds)
-	     23 -> do e <- fromBin; b <- fromBin; vc <- fromBin;
+             23 -> do e <- fromBin; b <- fromBin; vc <- fromBin;
                       vr <- fromBin; va <- fromBin; vf <- fromBin;
                       vs <- fromBin; vp <- fromBin;
                       return (CmoduleVerilog e b vc vr va vf vs vp)
-	     24 -> do i <- fromBin; qt <- fromBin; return (CForeignFuncC i qt)
-	     25 -> do b <- fromBin; ss <- fromBin; return (Cdo b ss)
-	     26 -> do pos <- fromBin; ss <- fromBin; return (Caction pos ss)
-	     27 -> do ps <- fromBin; rs <- fromBin; return (Crules ps rs)
-	     28 -> do es <- fromBin; return (CADump es)
-	     29 -> do ops <- fromBin; return (COper ops)
-	     30 -> do i1 <- fromBin; i2 <- fromBin; e <- fromBin;
+             24 -> do i <- fromBin; qt <- fromBin; return (CForeignFuncC i qt)
+             25 -> do b <- fromBin; ss <- fromBin; return (Cdo b ss)
+             26 -> do pos <- fromBin; ss <- fromBin; return (Caction pos ss)
+             27 -> do ps <- fromBin; rs <- fromBin; return (Crules ps rs)
+             28 -> do es <- fromBin; return (CADump es)
+             29 -> do ops <- fromBin; return (COper ops)
+             30 -> do i1 <- fromBin; i2 <- fromBin; e <- fromBin;
                       return (CCon1 i1 i2 e)
-	     31 -> do i1 <- fromBin; e <- fromBin; i2 <- fromBin;
+             31 -> do i1 <- fromBin; e <- fromBin; i2 <- fromBin;
                       return (CSelectTT i1 e i2)
-	     32 -> do mi <- fromBin; i <- fromBin; return (CCon0 mi i)
-	     33 -> do i1 <- fromBin; i2 <- fromBin; es <- fromBin;
+             32 -> do mi <- fromBin; i <- fromBin; return (CCon0 mi i)
+             33 -> do i1 <- fromBin; i2 <- fromBin; es <- fromBin;
                       return (CConT i1 i2 es)
-	     34 -> do t <- fromBin; ies <- fromBin; return (CStructT t ies)
-	     35 -> do i1 <- fromBin; i2 <- fromBin; return (CSelectT i1 i2)
-	     36 -> do t <- fromBin; l <- fromBin; return (CLitT t l)
-	     37 -> do pos <- fromBin; uk <- fromBin; t <- fromBin;
+             34 -> do t <- fromBin; ies <- fromBin; return (CStructT t ies)
+             35 -> do i1 <- fromBin; i2 <- fromBin; return (CSelectT i1 i2)
+             36 -> do t <- fromBin; l <- fromBin; return (CLitT t l)
+             37 -> do pos <- fromBin; uk <- fromBin; t <- fromBin;
                       return (CAnyT pos uk t)
-	     38 -> do t <- fromBin; e <- fromBin; b <- fromBin; vc <- fromBin;
+             38 -> do t <- fromBin; e <- fromBin; b <- fromBin; vc <- fromBin;
                       vr <- fromBin; va <- fromBin; vf <- fromBin;
                       vs <- fromBin; vp <- fromBin;
                       return (CmoduleVerilogT t e b vc vr va vf vs vp)
-	     39 -> do i <- fromBin; t <- fromBin; return (CForeignFuncCT i t)
-	     40 -> do e <- fromBin; ts <- fromBin; return (CTApply e ts)
+             39 -> do i <- fromBin; t <- fromBin; return (CForeignFuncCT i t)
+             40 -> do e <- fromBin; ts <- fromBin; return (CTApply e ts)
              41 -> do ps <- fromBin; return (Cattributes ps)
              42 -> do pos <- fromBin; e_vec <- fromBin; e_h <- fromBin;
                       e_l <- fromBin; e_rhs <- fromBin
                       return (CSubUpdate pos e_vec (e_h, e_l) e_rhs)
-	     n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
+             n -> internalError $ "GenBin.Bin(CExpr).readBytes: " ++ show n
 
 instance Bin CDefl where
     writeBytes (CLValueSign d qs) = do putI 0; toBin d; toBin qs
@@ -418,12 +418,12 @@ instance Bin CDefl where
     writeBytes (CLMatch p e)  = do putI 2; toBin p; toBin e
     readBytes =
         do tag <- getI
-	   case tag of
-	    0 -> do d <- fromBin; qs <- fromBin; return (CLValueSign d qs)
-	    1 -> do i <- fromBin; cs <- fromBin; qs <- fromBin;
+           case tag of
+            0 -> do d <- fromBin; qs <- fromBin; return (CLValueSign d qs)
+            1 -> do i <- fromBin; cs <- fromBin; qs <- fromBin;
                     return (CLValue i cs qs)
-	    2 -> do p <- fromBin; e <- fromBin; return (CLMatch p e)
-	    n -> internalError $ "GenBin.Bin(CDefl).readBytes: " ++ show n
+            2 -> do p <- fromBin; e <- fromBin; return (CLMatch p e)
+            n -> internalError $ "GenBin.Bin(CDefl).readBytes: " ++ show n
 
 instance Bin CDef where
     writeBytes (CDef i qt cs) = do putI 0; toBin i; toBin qt; toBin cs
@@ -431,12 +431,12 @@ instance Bin CDef where
         do putI 1; toBin i; toBin tvs; toBin qt; toBin cs
     readBytes =
         do tag <- getI
-	   case tag of
-	    0 -> do i <- fromBin; qt <- fromBin; cs <- fromBin;
+           case tag of
+            0 -> do i <- fromBin; qt <- fromBin; cs <- fromBin;
                     return (CDef i qt cs)
-	    1 -> do i <- fromBin; tvs <- fromBin; qt <- fromBin;
+            1 -> do i <- fromBin; tvs <- fromBin; qt <- fromBin;
                     cs <- fromBin; return (CDefT i tvs qt cs)
-	    n -> internalError $ "GenBin.Bin(CDef).readBytes: " ++ show n
+            n -> internalError $ "GenBin.Bin(CDef).readBytes: " ++ show n
 
 instance Bin CStmt where
     writeBytes (CSBindT p me ps qt e) =
@@ -448,15 +448,15 @@ instance Bin CStmt where
     writeBytes (CSExpr me e)  = do putI 4; toBin me; toBin e
     readBytes =
         do tag <- getI
-	   case tag of
-	    0 -> do p <- fromBin; me <- fromBin; ps <- fromBin; qt <- fromBin;
+           case tag of
+            0 -> do p <- fromBin; me <- fromBin; ps <- fromBin; qt <- fromBin;
                     e <- fromBin; return (CSBindT p me ps qt e)
-	    1 -> do p <- fromBin; me <- fromBin; ps <- fromBin; e <- fromBin;
+            1 -> do p <- fromBin; me <- fromBin; ps <- fromBin; e <- fromBin;
                     return (CSBind p me ps e)
-	    2 -> do ds <- fromBin; return (CSletseq ds)
-	    3 -> do ds <- fromBin; return (CSletseq ds)
-	    4 -> do me <- fromBin; e <- fromBin; return (CSExpr me e)
-	    n -> internalError $ "GenBin.Bin(CStmt).readBytes: " ++ show n
+            2 -> do ds <- fromBin; return (CSletseq ds)
+            3 -> do ds <- fromBin; return (CSletseq ds)
+            4 -> do me <- fromBin; e <- fromBin; return (CSExpr me e)
+            n -> internalError $ "GenBin.Bin(CStmt).readBytes: " ++ show n
 
 instance Bin CMStmt where
     writeBytes (CMStmt s) = do putI 0; toBin s
@@ -465,13 +465,13 @@ instance Bin CMStmt where
     writeBytes (CMTupleInterface pos es)  = do putI 3; toBin pos; toBin es
     readBytes =
         do tag <- getI
-	   case tag of
-	    0 -> do s <- fromBin; return (CMStmt s)
-	    1 -> do e <- fromBin; return (CMrules e)
-	    2 -> do e <- fromBin; return (CMinterface e)
-	    3 -> do pos <- fromBin; es <- fromBin;
+           case tag of
+            0 -> do s <- fromBin; return (CMStmt s)
+            1 -> do e <- fromBin; return (CMrules e)
+            2 -> do e <- fromBin; return (CMinterface e)
+            3 -> do pos <- fromBin; es <- fromBin;
                     return (CMTupleInterface pos es)
-	    n -> internalError $ "GenBin.Bin(CMStmt).readBytes: " ++ show n
+            n -> internalError $ "GenBin.Bin(CMStmt).readBytes: " ++ show n
 
 instance Bin CCaseArm where
     writeBytes (CCaseArm p qs e) = do toBin p; toBin qs; toBin e
@@ -485,12 +485,12 @@ instance Bin CRule where
         do putI 1; toBin ps; toBin me; toBin qs; toBin rs
     readBytes =
         do tag <- getI
-	   case tag of
-	    0 -> do ps <- fromBin; me <- fromBin; qs <- fromBin; e <- fromBin;
+           case tag of
+            0 -> do ps <- fromBin; me <- fromBin; qs <- fromBin; e <- fromBin;
                     return (CRule ps me qs e)
-	    1 -> do ps <- fromBin; me <- fromBin; qs <- fromBin; rs <- fromBin;
+            1 -> do ps <- fromBin; me <- fromBin; qs <- fromBin; rs <- fromBin;
                     return (CRuleNest ps me qs rs)
-	    n -> internalError $ "GenBin.Bin(CRule).readBytes: " ++ show n
+            n -> internalError $ "GenBin.Bin(CRule).readBytes: " ++ show n
 
 
 -- ----------
@@ -500,12 +500,12 @@ instance Bin Pragma where
     writeBytes (Pproperties i ps) = do putI 0; toBin i; toBin ps
     writeBytes (Pnoinline is)     = do putI 1; toBin is
     readBytes = do tag <- getI
-	           case tag of
-	             0 -> do i <- fromBin
+                   case tag of
+                     0 -> do i <- fromBin
                              ps <- fromBin
                              return (Pproperties i ps)
-	             1 -> do is <- fromBin; return (Pnoinline is)
-	             n -> internalError $ "GenBin.Bin(Pragma).readBytes: " ++ show n
+                     1 -> do is <- fromBin; return (Pnoinline is)
+                     n -> internalError $ "GenBin.Bin(Pragma).readBytes: " ++ show n
 
 -- ----------
 -- Bin IPackage
@@ -553,8 +553,8 @@ instance Bin (IExpr a) where
     writeBytes (ICon i ic)    = do putI 4; toBin i; toBin ic
     writeBytes (IRefT _ _ _)  = internalError "GenBin.Bin(IExpr).writeBytes: IRefT"
     readBytes = do tag <- getI
-	           case tag of
-	             0 -> do i <- fromBin
+                   case tag of
+                     0 -> do i <- fromBin
                              t <- fromBin
                              e <- fromBin
                              return (ILam i t e)
@@ -562,13 +562,13 @@ instance Bin (IExpr a) where
                              ts <- fromBin
                              es <- fromBin
                              return (IAps e ts es)
-  	             2 -> do i <- fromBin; return (IVar i)
-	             3 -> do i <- fromBin
+                     2 -> do i <- fromBin; return (IVar i)
+                     3 -> do i <- fromBin
                              k <- fromBin
                              e <- fromBin
                              return (ILAM i k e)
-	             4 -> do i <- fromBin; ic <- fromBin; return (ICon i ic)
-	             n -> internalError $ "GenBin.Bin(IExpr).readBytes: " ++ show n
+                     4 -> do i <- fromBin; ic <- fromBin; return (ICon i ic)
+                     n -> internalError $ "GenBin.Bin(IExpr).readBytes: " ++ show n
 
 -- ----------
 -- Bin IConInfo
@@ -623,37 +623,37 @@ instance Bin (IConInfo a) where
     writeBytes (ICHandle { }) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICHandle"
     readBytes = do tag <- getI
-	           t <- fromBin
-	           case tag of
-	             0  -> -- ICDef contains the expression for the def
+                   t <- fromBin
+                   case tag of
+                     0  -> -- ICDef contains the expression for the def
                            -- Here we use a don't-care value for the expression
                            -- XXX Should we use an error there, so it's not silently used?
                            return (ICDef t (icUndet t UNoMatch))
-	             1  -> do p <- fromBin; return (ICPrim t (toEnum p))
-  	             2  -> do n <- fromBin
+                     1  -> do p <- fromBin; return (ICPrim t (toEnum p))
+                     2  -> do n <- fromBin
                               isC <- fromBin
                               ps <- fromBin
                               return (ICForeign t n isC ps Nothing)
-	             3  -> do i <- fromBin; j <- fromBin; return (ICCon t i j)
-	             4  -> do i <- fromBin; j <- fromBin; return (ICIs t i j)
-	             5  -> do i <- fromBin; j <- fromBin; return (ICOut t i j)
-	             6  -> do is <- fromBin; return (ICTuple t is)
-	             7  -> do i <- fromBin; j <- fromBin; return (ICSel t i j)
-	             8  -> do ui <- fromBin
+                     3  -> do i <- fromBin; j <- fromBin; return (ICCon t i j)
+                     4  -> do i <- fromBin; j <- fromBin; return (ICIs t i j)
+                     5  -> do i <- fromBin; j <- fromBin; return (ICOut t i j)
+                     6  -> do is <- fromBin; return (ICTuple t is)
+                     7  -> do i <- fromBin; j <- fromBin; return (ICSel t i j)
+                     8  -> do ui <- fromBin
                               v <- fromBin
                               tss <- fromBin
                               return (ICVerilog t ui v tss)
-	             9  -> do u <- fromBin
+                     9  -> do u <- fromBin
                               mv <- fromBin
                               return (ICUndet t u mv)
-	             10 -> do v <- fromBin; return (ICInt t v)
-	             11 -> do v <- fromBin; return (ICReal t v)
-	             12 -> do s <- fromBin; return (ICString t s)
-	             13 -> do c <- fromBin; return (ICChar t c)
-	             14 -> do as <- fromBin; return (ICRuleAssert t as)
-	             15 -> do sps <- fromBin; return (ICSchedPragmas t sps)
+                     10 -> do v <- fromBin; return (ICInt t v)
+                     11 -> do v <- fromBin; return (ICReal t v)
+                     12 -> do s <- fromBin; return (ICString t s)
+                     13 -> do c <- fromBin; return (ICChar t c)
+                     14 -> do as <- fromBin; return (ICRuleAssert t as)
+                     15 -> do sps <- fromBin; return (ICSchedPragmas t sps)
                      16 -> do n <- fromBin; return (ICName t n)
                      17 -> do pps <- fromBin; return (ICAttrib t pps)
                      18 -> do pos <- fromBin; return (ICPosition t pos)
                      19 -> do it <- fromBin; return (ICType t it)
-	             n  -> internalError $ "GenBin.Bin(IConInfo).readBytes: " ++ show n
+                     n  -> internalError $ "GenBin.Bin(IConInfo).readBytes: " ++ show n

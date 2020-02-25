@@ -34,8 +34,8 @@ mkFString s = fromString s
 
 cloneFString :: [FString] -> FString -> FString
 cloneFString fs f = head [f' | n <- [1..] :: [Integer],
-			  let f' = f ++ fromString ('_':'_':'_':itos n),
-			  f' `notElem` fs]
+                          let f' = f ++ fromString ('_':'_':'_':itos n),
+                          f' `notElem` fs]
 
 tmpFString :: Int -> String -> FString
 tmpFString _ = fromString

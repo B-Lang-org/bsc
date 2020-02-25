@@ -147,10 +147,10 @@ pExpr ft (CCon i es) = do
 pExpr ft (Ccase pos e as) = do
     e' <- pExpr ft e
     let pCaseArm arm = do
-	    new_pattern <- pPat ft (cca_pattern arm)
-	    new_filters <- mapM (pQual ft) (cca_filters arm)
-	    new_consequent <- pExpr ft (cca_consequent arm)
-	    return (CCaseArm { cca_pattern = new_pattern,
+            new_pattern <- pPat ft (cca_pattern arm)
+            new_filters <- mapM (pQual ft) (cca_filters arm)
+            new_consequent <- pExpr ft (cca_consequent arm)
+            return (CCaseArm { cca_pattern = new_pattern,
                                cca_filters = new_filters,
                                cca_consequent = new_consequent })
     as' <- mapM pCaseArm as
@@ -296,33 +296,33 @@ doOne ft [] ((a,o):os) es = doOp ft a o [] os es
 doOne ft (CRand e:rs) os es = doOne ft rs os (e:es)
 doOne ft (CRator a iop:rs) [] es = doOne ft rs [(a,iop)] es
 doOne ft rrs@(CRator ia iop:rs) oos@((sa,sop):os) es =
-	let (iprec,iass) = precOfA ft ia iop
-	    (sprec,sass) = precOfA ft sa sop
-	in  {-if iass==FPrefix iprec && iprec <= sprec then
-		EMError (getIdPosition iop, ESyntax (ppId iop) [])
-	    else-}
-	    if iprec==sprec && (iass/=sass || iass==FInfix iprec) {- && sass /= FPrefix sprec-} then
-		EMError [(getIdPosition sop, EAmbOper (pfpString sop) (pfpString iop))]
-	    else if iprec>sprec || iprec==sprec && iass==FInfixr iprec then
-		doOne ft rs ((ia,iop):oos) es
-	    else
-		doOp ft sa sop rrs os es
+        let (iprec,iass) = precOfA ft ia iop
+            (sprec,sass) = precOfA ft sa sop
+        in  {-if iass==FPrefix iprec && iprec <= sprec then
+                EMError (getIdPosition iop, ESyntax (ppId iop) [])
+            else-}
+            if iprec==sprec && (iass/=sass || iass==FInfix iprec) {- && sass /= FPrefix sprec-} then
+                EMError [(getIdPosition sop, EAmbOper (pfpString sop) (pfpString iop))]
+            else if iprec>sprec || iprec==sprec && iass==FInfixr iprec then
+                doOne ft rs ((ia,iop):oos) es
+            else
+                doOp ft sa sop rrs os es
 doOp :: FixTable -> Int -> Id -> [COp] -> [(Int, Id)] -> [CExpr] -> ErrorMonad CExpr
 doOp ft a op rs os es =
 {-
     if idFString op == fsMinus && a == 1 then
-	case es of
-	    e:es' -> doOne ft rs os (ENegate e : es')
-	    _ -> internalError ("Bad operator arity (1) for "++pfpString op)
+        case es of
+            e:es' -> doOne ft rs os (ENegate e : es')
+            _ -> internalError ("Bad operator arity (1) for "++pfpString op)
     else
 -}
-	case es of
-	    e1:e2:es' -> -- XXX := to Cwrite (see above)
+        case es of
+            e1:e2:es' -> -- XXX := to Cwrite (see above)
                          do let e' = if (op `qualEq` idAssign) then
                                        Cwrite (getPosition op) e2 e1
                                      else CBinOp e2 op e1
                             doOne ft rs os (e' : es')
-	    _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
+            _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
 
 precOfA ft _ i =
     case getIdFixity ft i of

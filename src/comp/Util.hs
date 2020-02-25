@@ -140,7 +140,7 @@ instance ToString Char where
         '\t' -> "\\t"
         '\a' -> "\\a"
         '\\' -> "\\\\"
-        '"' -> "\\\""	-- backslash double-quote
+        '"' -> "\\\""        -- backslash double-quote
         _ | n < 0 ||
             n > 0x100 -> internalError "quoting a character value " ++ show n
         _ | n < 0x20 || n >= 0x7F ->
@@ -194,9 +194,9 @@ concatMapM f as = do
   return (concat temp)
 
 -- Haskell Prelude definition says that this is the same as "any (eq x)"
-elemBy			:: (a -> a -> Bool) -> a -> [a] -> Bool
-elemBy eq _ []		= False
-elemBy eq x (y:ys)	= eq x y || elemBy eq x ys
+elemBy                        :: (a -> a -> Bool) -> a -> [a] -> Bool
+elemBy eq _ []                = False
+elemBy eq x (y:ys)        = eq x y || elemBy eq x ys
 
 splitBy :: [a->Bool] -> [a] -> [[a]]
 splitBy [] _  = []

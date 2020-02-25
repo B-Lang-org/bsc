@@ -35,15 +35,15 @@ fixupDefs (IPackage mi _ ps ds) ipkgs =
 
         -- Create a recursive data structure by populating the map "m"
         -- with defs created using the map itself
-	m = M.fromList [ (i, e) | (IDef i _ e _) <- ads' ]
-	ads' = iDefsMap (fixUp m) ads
+        m = M.fromList [ (i, e) | (IDef i _ e _) <- ads' ]
+        ads' = iDefsMap (fixUp m) ads
 
         -- The new package contents
         ipkg_sigs = [ (mi, s) | (m@(IPackage mi _ _ _), s) <- ipkgs ]
         ds' = iDefsMap (fixUp m) ds
     in
         --trace ("fixup " ++ ppReadable (map fst (M.toList m))) $
-	(IPackage mi ipkg_sigs ps' ds', ads')
+        (IPackage mi ipkg_sigs ps' ds', ads')
 
 
 -- ===============
@@ -85,19 +85,19 @@ fixUp m e = e
 get :: M.Map Id (IExpr a) -> Id -> IExpr a
 get m i = let value = get2 m i
               pos = (getIdPosition i)
-	  in -- trace("LookupX "
-		-- ++ (ppReadable i) ++ " => "
-		-- ++ (ppReadable (updateIExprPosition pos value))) $
-	     (updateIExprPosition pos value)
+          in -- trace("LookupX "
+                -- ++ (ppReadable i) ++ " => "
+                -- ++ (ppReadable (updateIExprPosition pos value))) $
+             (updateIExprPosition pos value)
 
 get2 :: M.Map Id (IExpr a) -> Id -> IExpr a
 get2 m i =
     case M.lookup i m of
     Just e -> e
     Nothing -> internalError (
-	"fixupDefs.get: "
-	++ pfpString i ++ "\n"
-	++ ppReadable (map fst (M.toList m)))
+        "fixupDefs.get: "
+        ++ pfpString i ++ "\n"
+        ++ ppReadable (map fst (M.toList m)))
 
 -- ===============
 

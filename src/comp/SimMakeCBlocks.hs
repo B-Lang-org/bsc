@@ -54,16 +54,16 @@ type CallMap = M.Map String [(ARuleId, [AId])]
 findModDef :: ModDefMap -> String -> DefMap
 findModDef mdmap inst =
     case M.lookup inst mdmap of
-	Just def_map -> def_map
-	Nothing -> internalError ("SimMakeCBlocks.findModDef: cannot find " ++
-				  ppReadable inst ++ ppReadable mdmap)
+        Just def_map -> def_map
+        Nothing -> internalError ("SimMakeCBlocks.findModDef: cannot find " ++
+                                  ppReadable inst ++ ppReadable mdmap)
 
 findModMeth :: ModMethMap -> String -> MethMap
 findModMeth mmmap inst =
     case M.lookup inst mmmap of
-	Just meth_map -> meth_map
-	Nothing -> internalError ("SimMakeCBlocks.findModMeth: cannot find " ++
-				  ppReadable inst ++ ppReadable mmmap)
+        Just meth_map -> meth_map
+        Nothing -> internalError ("SimMakeCBlocks.findModMeth: cannot find " ++
+                                  ppReadable inst ++ ppReadable mmmap)
 
 -- Used several places to name the top-level instance
 top_blk_name = "top"
@@ -88,8 +88,8 @@ simMakeCBlocks flags sim_system =
       -- make a map from module name (as String) to the map for the defs
       -- in that module, so that the scheduler has access to all defs
       full_dmap =
-	  let mkPair sp = (getIdString (sp_name sp), sp_local_defs sp)
-	  in  M.fromList (map mkPair pkgs)
+          let mkPair sp = (getIdString (sp_name sp), sp_local_defs sp)
+          in  M.fromList (map mkPair pkgs)
 
       -- make a map from module name (as String) to the map for all methods
       -- in that module, so that the scheduler has access to all methods
@@ -108,7 +108,7 @@ simMakeCBlocks flags sim_system =
 
       -- build the rest
       other_blocks  = [ onePackageToBlock flags name_map full_mmap sim_system pkg
-	              | pkg <- pkgs
+                      | pkg <- pkgs
                       , pkg /= top_pkg
                       ]
 
@@ -173,7 +173,7 @@ simMakeCBlocks flags sim_system =
 
       -- get and combine stmt lists for each clock edge
       stmt_infos =
-	map (mkScheduleStmts flags
+        map (mkScheduleStmts flags
                  top_methods top_vmeth_set top_ameth_set top_gates
                  inst_map full_dmap full_mmap call_map)
             scheds
@@ -245,8 +245,8 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       raw_defs   = M.elems def_map
       -- alphabetize the avis, by inst Id
       raw_avis   = let -- Ord on Id is broken, so use cmpIdByName
-		       cmpFn a b = fst a `cmpIdByName` fst b
-		   in  map snd $ sortBy cmpFn $ M.toList avinst_map
+                       cmpFn a b = fst a `cmpIdByName` fst b
+                   in  map snd $ sortBy cmpFn $ M.toList avinst_map
 
       -- ----------
       -- the SimCCBlock state info
@@ -270,16 +270,16 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       -- ----------
       -- instantiation parameters (module arguments)
       arg_defs   =
-	  let ains = [ (ai, name, isPort vainfo)
+          let ains = [ (ai, name, isPort vainfo)
                      | (ai, vainfo) <- getSimPackageInputs pkg
                      , not (isClock vainfo || isReset vainfo)
                      , let name = getVArgInfoName vainfo
                      ]
-	      getType (AAI_Port (_,t)) = t
-	      getType ai = internalError ("onePackageToBlock: " ++
-	                                  "unexpected abs input: " ++
-					  ppReadable ai)
-	  in  [ (getType ai,n,ip) | (ai,n,ip) <- ains ]
+              getType (AAI_Port (_,t)) = t
+              getType ai = internalError ("onePackageToBlock: " ++
+                                          "unexpected abs input: " ++
+                                          ppReadable ai)
+          in  [ (getType ai,n,ip) | (ai,n,ip) <- ains ]
 
       -- ----------
       -- gather all method ports
@@ -349,19 +349,19 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
 
       rst_map :: M.Map AReset [(AId, AId)]
       rst_map =
-	  let edges = [ (rst, [(modId, portId)])
-			  | avi <- raw_avis,
-			    (ResetArg rstId, ASReset _ rst) <- getInstArgs avi,
+          let edges = [ (rst, [(modId, portId)])
+                          | avi <- raw_avis,
+                            (ResetArg rstId, ASReset _ rst) <- getInstArgs avi,
                             -- confirm that the port is connected,
                             -- and get the port name
                             (rstId2, (Just portName, _))
-			        <- input_resets (vRst (avi_vmi avi)),
-			    rstId2 == rstId,
-			    let modId = avi_vname avi,
-			    -- XXX we only need the String part of the Id
-			    let portId = vName_to_id portName
-		      ]
-	  in  M.fromListWith (++) edges
+                                <- input_resets (vRst (avi_vmi avi)),
+                            rstId2 == rstId,
+                            let modId = avi_vname avi,
+                            -- XXX we only need the String part of the Id
+                            let portId = vName_to_id portName
+                      ]
+          in  M.fromListWith (++) edges
 
       findRstMods rst_port = M.findWithDefault [] rst_port rst_map
 
@@ -371,32 +371,32 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
       --  * the submodules which are reset by this wire
       --  * the output resets which are defined as this wire
       reset_instances =
-	  [ (rst_id, areset_wire port, findRstMods port, findOutputRsts port)
-	        | (rst_id, port) <- reset_list ]
+          [ (rst_id, areset_wire port, findRstMods port, findOutputRsts port)
+                | (rst_id, port) <- reset_list ]
 
       reset_fns = map cvtReset reset_instances
 
       -- map from reset wire to the source module and output reset Id
       reset_out_ports =
-	  [ (wire, (mod_id, rst_id))
-	        | avi <- raw_avis,
+          [ (wire, (mod_id, rst_id))
+                | avi <- raw_avis,
                   let mod_id = avi_vname avi,
-		  (rst_id, (wire, _, _)) <- getOutputResetPorts avi ]
+                  (rst_id, (wire, _, _)) <- getOutputResetPorts avi ]
 
       -- in case some resets are unused, filter the used resets
       reset_srcs =
-	  let used_rsts = map snd rst_defs
-	      isUsed (i, _) = i `elem` used_rsts
-	  in  filter isUsed reset_out_ports
+          let used_rsts = map snd rst_defs
+              isUsed (i, _) = i `elem` used_rsts
+          in  filter isUsed reset_out_ports
 
       -- ----------
       -- names of input resets
 
       in_resets =
-	  -- is it overkill to check for ResetArg?
-	  -- we could just look for AAI_Reset in "sp_inputs pkg"
-	  [ port_id
-	      | (AAI_Reset port_id, ResetArg _) <- getSimPackageInputs pkg ]
+          -- is it overkill to check for ResetArg?
+          -- we could just look for AAI_Reset in "sp_inputs pkg"
+          [ port_id
+              | (AAI_Reset port_id, ResetArg _) <- getSimPackageInputs pkg ]
 
       -- ----------
       -- Put it all together
@@ -405,7 +405,7 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                               (\ args -> (class_name, args))
                               domains
                               state
-			      arg_defs
+                              arg_defs
                               rst_defs
                               ports
                               pub_defs
@@ -413,10 +413,10 @@ onePackageToBlock flags name_map full_meth_map ss pkg =
                               rule_fns
                               method_fns
                               reset_fns
-			      task_defs
-			      reset_srcs
-			      in_resets
-			      (map fst output_resets)
+                              task_defs
+                              reset_srcs
+                              in_resets
+                              (map fst output_resets)
                               input_clks
                               gate_map
   in sim_block
@@ -443,7 +443,7 @@ mkState name_map avinst =
       -- the only clk/rst, if any, are the defaults.
       -- drop them and only consider the other arguments
       iarg_pairs_no_clk =
-	  filter (\ (i,e) -> not (isClock i || isReset i) ) iarg_pairs
+          filter (\ (i,e) -> not (isClock i || isReset i) ) iarg_pairs
       -- just the exprs
       iarg_exprs_no_clk = map snd iarg_pairs_no_clk
       -- we do not check whether these exprs are static, because that was
@@ -514,7 +514,7 @@ cvtARule modId def_map method_order_map reset_list
 -- arguments to the method.
 cvtIFace :: Id -> [PProp] ->
             DefMap -> MethMap -> MethodOrderMap -> [(ResetId, AReset)] ->
-	    AIFace -> Maybe SimCCFn
+            AIFace -> Maybe SimCCFn
 cvtIFace modId pps def_map meth_map method_order_map reset_list m =
   do let name    = aIfaceName m
          inputs  = aIfaceArgs m
@@ -544,7 +544,7 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                        (mapMaybe (\n -> lookup n reset_list) (wpResets wp))
      (men, ins, mr, _, ifcrules) <- M.lookup name meth_map
      let prt vn     = vName_to_id vn
-	 rt         = do { (t,_) <- mr; return t }
+         rt         = do { (t,_) <- mr; return t }
          en_stmts   = maybe [] (\vn -> [SFSAssign True (prt vn) aTrue]) men
          wf_stmts   = map (\i -> SFSAssign False (mkIdWillFire i) aTrue) ifcrules
          in_stmts   = map (\(t,i,vn) -> SFSAssign True (prt vn) (ASPort t i)) ins
@@ -595,9 +595,9 @@ cvtReset (rst_num, port, inst_ports, output_resets) =
       rstval_ref = ASPort aTBool rstval_id
       body    = [ SFSAssign True (ae_objid port) rstval_ref ] ++
                 [ SFSFunctionCall inst (mkResetFnName rst) [rstval_ref]
-		      | (inst, rst) <- inst_ports ] ++
-		[ SFSOutputReset outRstId rstval_ref
-		      | outRstId <- output_resets ]
+                      | (inst, rst) <- inst_ports ] ++
+                [ SFSOutputReset outRstId rstval_ref
+                      | outRstId <- output_resets ]
   in  SimCCFn (mkResetFnName (ae_objid port))
               [(aTBool, rstval_id)] Nothing body
 
@@ -643,40 +643,40 @@ buildTickStmts is_posedge inst_map prims =
   in  concatMap mkTickStmt sorted_ticks
 
 sortTickCalls :: [(AClock, [(AId,AId,[AExpr])])] ->
-		 [(AClock, [(AId,AId,[AExpr])])]
+                 [(AClock, [(AId,AId,[AExpr])])]
 sortTickCalls ticks =
   let
       -- join ticks for the same clock
       grouped_ticks_map = M.fromListWith (++) ticks
 
       findCalls clk =
-	  case (M.lookup clk grouped_ticks_map) of
-	      Just calls -> (clk, calls)
-	      Nothing -> internalError ("sortTickCalls: missing from map: " ++
-					ppReadable clk)
+          case (M.lookup clk grouped_ticks_map) of
+              Just calls -> (clk, calls)
+              Nothing -> internalError ("sortTickCalls: missing from map: " ++
+                                        ppReadable clk)
 
       clocks = M.keys grouped_ticks_map
       -- map from a gate to its clock
       clock_map =
-	  let mkEdge clk = case (aclock_gate clk) of
-			       (AMGate _ modId _) -> Just (modId, [clk])
+          let mkEdge clk = case (aclock_gate clk) of
+                               (AMGate _ modId _) -> Just (modId, [clk])
                                (ASPort _ objId)   -> Just (mk_homeless_id (getIdQualString objId), [clk])
-			       _ -> Nothing
-	      es = mapMaybe mkEdge clocks
-	  in  M.fromListWith (++) es
+                               _ -> Nothing
+              es = mapMaybe mkEdge clocks
+          in  M.fromListWith (++) es
 
       -- for a set of ticks, find the Ids of the submods that are ticked
       getModIds calls = map fst3 calls
 
       -- make the tsort edges
       mkEdge (clk, calls) =
-	  let mods = getModIds calls
-	      clocks = concat (mapMaybe (\i -> M.lookup i clock_map) mods)
-	  in  (clk, clocks)
+          let mods = getModIds calls
+              clocks = concat (mapMaybe (\i -> M.lookup i clock_map) mods)
+          in  (clk, clocks)
       edges = map mkEdge (M.toList grouped_ticks_map)
   in  case (tsort edges) of
-	Left is -> internalError ("sortTickCalls: cyclic " ++ ppReadable is)
-	Right is -> map findCalls (reverse is)
+        Left is -> internalError ("sortTickCalls: cyclic " ++ ppReadable is)
+        Right is -> map findCalls (reverse is)
 
 -- map from an edge of a clock expression to schedule stmts, tick calls, etc.
 data SchedStmtGroup = SchedFns { sched_stmts :: [SimCCFnStmt]
@@ -692,7 +692,7 @@ combineStmtGroups (SchedFns a1 b1 c1) (SchedFns a2 b2 c2) =
 -- Convert a SimSchedule into a map from clock edges to pairs of
 -- schedule statements and tick statements.
 mkScheduleStmts :: Flags -> [AIFace] -> S.Set AId -> S.Set AId -> [AId] ->
-		   InstModMap -> ModDefMap -> ModMethMap -> CallMap ->
+                   InstModMap -> ModDefMap -> ModMethMap -> CallMap ->
                    SimSchedule -> SchedStmtMap
 mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
                 inst_map full_def_map full_meth_map call_map sim_sched =
@@ -731,10 +731,10 @@ mkScheduleStmts flags top_ifc top_vmeth_set top_ameth_set top_gates
       sched_ME_inhibits =
           mkMERuleInhibits top_vmeth_set sched_order disjoint_map
       sched_conflicts =
-	  case (ss_schedule sim_sched) of
-	    (ASchedule [ASchedEsposito cs] _) -> cs
-	    (ASchedule as _) ->
-	        internalError ("mkScheduleStmts: as = " ++ ppReadable as)
+          case (ss_schedule sim_sched) of
+            (ASchedule [ASchedEsposito cs] _) -> cs
+            (ASchedule as _) ->
+                internalError ("mkScheduleStmts: as = " ++ ppReadable as)
       gate_substs = mkGateSubstMap top_gates $
                         concatMap (di_clock_substs . snd) domain_infos
       mkStmt = mkSchedStmts top_ifc top_vmeth_set top_ameth_set
@@ -872,9 +872,9 @@ mkGateInfo pkg_map top_gates inst_map scheds =
       qualifyId :: String -> AId -> AId
       qualifyId inst i =
           let q_str = getIdQualString i
-	      q_str' = if (q_str == "")
-		       then inst
-		       else inst ++ "." ++ q_str
+              q_str' = if (q_str == "")
+                       then inst
+                       else inst ++ "." ++ q_str
           in  setIdQualString i q_str'
 
       qualifyGate :: String -> AExpr -> AExpr
@@ -909,10 +909,10 @@ mkGateInfo pkg_map top_gates inst_map scheds =
       mkGateInfo (inst, mod) =
           let modId = mk_homeless_id mod
           in  case (M.lookup modId pkg_map) of
-	        Just pkg ->
+                Just pkg ->
                     let gate_map = zip [0..] (sp_gate_map pkg)
                     in  Just (inst, map (mkOneGateInfo inst) gate_map)
-	        _ | isPrimitiveModule mod -> Nothing
+                _ | isPrimitiveModule mod -> Nothing
                 _ -> internalError ("mkGateInfo: " ++ mod ++ "\n" ++
                                     ppReadable (M.keys pkg_map))
   in
@@ -993,7 +993,7 @@ addScope scope (SFSOutputReset rstId val) =
 
 -- Create the SimCCFnStmts that correspond to a schedule node
 mkSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId -> InstModMap -> ModDefMap ->
-		M.Map ARuleId [AId] -> GateSubstMap ->
+                M.Map ARuleId [AId] -> GateSubstMap ->
                 [(AId, [AId])] -> M.Map AId [AId] -> SchedNode -> [SimCCFnStmt]
 mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
              calls_by_rule gate_substs sched_conflicts sched_me_inhibits
@@ -1033,8 +1033,8 @@ mkSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
 -- Make statements for determining if a value method is ready
 mkValueMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                            InstModMap -> ModDefMap -> GateSubstMap ->
-		           [(AId, [AId])] -> M.Map AId [AId] ->
-		           AId -> [SimCCFnStmt]
+                           [(AId, [AId])] -> M.Map AId [AId] ->
+                           AId -> [SimCCFnStmt]
 mkValueMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
                         gate_substs sched_conflicts sched_me_inhibits
                         qual_rid =
@@ -1043,8 +1043,8 @@ mkValueMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
 -- Make statements for determining if an action method should fire
 mkActionMethodSchedStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                             InstModMap -> ModDefMap -> [AId] -> GateSubstMap ->
-		            [(AId, [AId])] -> M.Map AId [AId] ->
-		            AId -> [SimCCFnStmt]
+                            [(AId, [AId])] -> M.Map AId [AId] ->
+                            AId -> [SimCCFnStmt]
 mkActionMethodSchedStmts top_ifc top_vmeth_set top_ameth_set inst_map
                          full_dmap method_calls gate_substs
                          sched_conflicts sched_me_inhibits qual_rid =
@@ -1141,27 +1141,27 @@ mkRuleSchedStmts inst_map full_dmap method_calls
       -- used here is to explicitly add logic to prevent this case.
 
       me_inhibitors =
-	  -- XXX we could take advantage of the fact that the inhibits are
-	  -- XXX in order, so the lookup should be the top of the list
-	  case (M.lookup qual_rid sched_me_inhibits) of
-	      Nothing -> []
-	      Just is -> is
+          -- XXX we could take advantage of the fact that the inhibits are
+          -- XXX in order, so the lookup should be the top of the list
+          case (M.lookup qual_rid sched_me_inhibits) of
+              Nothing -> []
+              Just is -> is
       inhibit_ids = map mkIdCanFire me_inhibitors
       inhibit_expr = reduce PrimBOr (map (ASDef bit_type) inhibit_ids)
       addInhibitExpr base_expr =
-	  case inhibit_expr of
-	      [] -> base_expr
-	      [cfl] -> let not_inhibit = APrim dummy_id bit_type
-			                       PrimBNot [cfl]
-		       in  APrim dummy_id bit_type
-				 PrimBAnd [base_expr, not_inhibit]
-	      _ -> internalError "reduce produced a list of length > 1"
+          case inhibit_expr of
+              [] -> base_expr
+              [cfl] -> let not_inhibit = APrim dummy_id bit_type
+                                               PrimBNot [cfl]
+                       in  APrim dummy_id bit_type
+                                 PrimBAnd [base_expr, not_inhibit]
+              _ -> internalError "reduce produced a list of length > 1"
 
       -- ----------
       -- Update the CF with the inhibitor
 
       updateCFStmt (SFSAssign p i e) | (i == cf) =
-	  SFSAssign p i (addInhibitExpr e)
+          SFSAssign p i (addInhibitExpr e)
       updateCFStmt d = d
       qual_stmts2 = map updateCFStmt qual_stmts1
 
@@ -1187,8 +1187,8 @@ mkRuleSchedStmts inst_map full_dmap method_calls
 -- Make statements for computing value method outputs
 mkValueMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                           InstModMap -> ModDefMap -> GateSubstMap ->
-		          [(AId, [AId])] -> M.Map AId [AId] ->
-		          AId -> [SimCCFnStmt]
+                          [(AId, [AId])] -> M.Map AId [AId] ->
+                          AId -> [SimCCFnStmt]
 mkValueMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
                        gate_substs sched_conflicts sched_me_inhibits rid =
   []
@@ -1196,8 +1196,8 @@ mkValueMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
 -- Make statements for executing an action method
 mkActionMethodExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                            InstModMap -> ModDefMap -> GateSubstMap ->
-		           [(AId, [AId])] -> M.Map AId [AId] ->
-		           AId -> [SimCCFnStmt]
+                           [(AId, [AId])] -> M.Map AId [AId] ->
+                           AId -> [SimCCFnStmt]
 mkActionMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
                         gate_substs sched_conflicts sched_me_inhibits mid =
   let blk_id = mk_homeless_id top_blk_name
@@ -1214,8 +1214,8 @@ mkActionMethodExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
 -- Make statements for executing a rule
 mkRuleExecStmts :: [AIFace] -> S.Set AId -> S.Set AId ->
                    InstModMap -> ModDefMap -> GateSubstMap ->
-		   [(AId, [AId])] -> M.Map AId [AId] ->
-		   AId -> [SimCCFnStmt]
+                   [(AId, [AId])] -> M.Map AId [AId] ->
+                   AId -> [SimCCFnStmt]
 mkRuleExecStmts top_ifc top_vmeth_set top_ameth_set inst_map full_dmap
                 gate_substs sched_conflicts sched_me_inhibits rid =
   let wf = mkIdWillFire rid
@@ -1249,173 +1249,173 @@ tsortActionsAndDefs ::
     [SimCCFnStmt]
 tsortActionsAndDefs modId rId mmap ds acts reset_ids =
     let
-	-- we will create a graph where the edges are:
-	-- * "Left AId" to represent a def (by it's name)
-	-- * "Right Integer" to represent an action (by it's position in acts)
+        -- we will create a graph where the edges are:
+        -- * "Left AId" to represent a def (by it's name)
+        -- * "Right Integer" to represent an action (by it's position in acts)
 
-	-- The use of Left and Right was chosen to make Defs lower in
-	-- the Ord order than Actions.  This way, tsort puts them first.
+        -- The use of Left and Right was chosen to make Defs lower in
+        -- the Ord order than Actions.  This way, tsort puts them first.
 
-	-- ----------
-	-- Defs
+        -- ----------
+        -- Defs
 
-	-- the Ids of the defs
-	-- (we only want to make edges for variable uses from this list)
-	ds_ids = map adef_objid ds
-	-- for efficiency, make it a set
-	s = S.fromList ds_ids
+        -- the Ids of the defs
+        -- (we only want to make edges for variable uses from this list)
+        ds_ids = map adef_objid ds
+        -- for efficiency, make it a set
+        s = S.fromList ds_ids
 
-	-- make edges for def-to-def dependencies
-	def_edges = [ (Left i, map Left uses)
-		          | ADef i _ e _ <- ds,
-		            let uses = filter (`S.member` s) (aVars e) ]
+        -- make edges for def-to-def dependencies
+        def_edges = [ (Left i, map Left uses)
+                          | ADef i _ e _ <- ds,
+                            let uses = filter (`S.member` s) (aVars e) ]
 
-	-- ----------
-	-- Actions
+        -- ----------
+        -- Actions
 
-	-- give the actions a unique number and make a mapping
-	-- (this is necessary because the same action can be repeated
-	-- more than once ... for instance, $display on the same arguments)
+        -- give the actions a unique number and make a mapping
+        -- (this is necessary because the same action can be repeated
+        -- more than once ... for instance, $display on the same arguments)
 
-	-- (numbering in order also helps the Ord order, for tsort)
-	numbered_acts = zip [1..] acts
-	act_map = M.fromList numbered_acts
-	getAct n = case (M.lookup n act_map) of
-		       Just d -> d
-		       Nothing -> internalError "tsortActionsAndDefs: getAct"
+        -- (numbering in order also helps the Ord order, for tsort)
+        numbered_acts = zip [1..] acts
+        act_map = M.fromList numbered_acts
+        getAct n = case (M.lookup n act_map) of
+                       Just d -> d
+                       Nothing -> internalError "tsortActionsAndDefs: getAct"
 
-	-- separate the sorts of actions
-	-- * method calls we will re-order, respecting sequential composability
-	-- * foreign task/function calls we will keep in order, but allow
-	--   other things to come between them (because tasks can return
-	--   values)
+        -- separate the sorts of actions
+        -- * method calls we will re-order, respecting sequential composability
+        -- * foreign task/function calls we will keep in order, but allow
+        --   other things to come between them (because tasks can return
+        --   values)
 
-	isACall (_, ACall {}) = True
-	isACall _ = False
+        isACall (_, ACall {}) = True
+        isACall _ = False
 
-	isATaskAction (_, ATaskAction {}) = True
-	isATaskAction _ = False
+        isATaskAction (_, ATaskAction {}) = True
+        isATaskAction _ = False
 
-	(method_calls, foreign_calls) = partition isACall numbered_acts
-	task_calls = filter isATaskAction foreign_calls
+        (method_calls, foreign_calls) = partition isACall numbered_acts
+        task_calls = filter isATaskAction foreign_calls
 
-	-- ----------
-	-- foreign-to-foreign edges
-	-- (to maintain the user-specified order of system/foreign-func calls)
+        -- ----------
+        -- foreign-to-foreign edges
+        -- (to maintain the user-specified order of system/foreign-func calls)
 
-	-- (are these still needed now that we use Ord to bias tsort?)
-	foreign_edges =
-	    if (length foreign_calls > 1)
-	    then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
-	         in  zipWith mkEdge (init foreign_calls) (tail foreign_calls)
-	    else []
+        -- (are these still needed now that we use Ord to bias tsort?)
+        foreign_edges =
+            if (length foreign_calls > 1)
+            then let mkEdge (n1,_) (n2,_) = (Right n2, [Right n1])
+                 in  zipWith mkEdge (init foreign_calls) (tail foreign_calls)
+            else []
 
-	-- ----------
-	-- Action to def edges
+        -- ----------
+        -- Action to def edges
 
-	-- any defs used by an action have to be computed before the
-	-- action is called
+        -- any defs used by an action have to be computed before the
+        -- action is called
 
-	act_def_edges = [ (Right n, map Left uses)
-	                      | (n,a) <- numbered_acts,
+        act_def_edges = [ (Right n, map Left uses)
+                              | (n,a) <- numbered_acts,
                                 let uses = filter (`S.member` s) (aVars a) ]
 
-	-- ----------
-	-- Action method to Action method edges
+        -- ----------
+        -- Action method to Action method edges
 
-	-- function to create order edges
-	--    m1 `isBefore` m2 == True
+        -- function to create order edges
+        --    m1 `isBefore` m2 == True
         --       when (m1 SB m2) is in the VModInfo for the submodule
-	isBefore (ACall obj1 meth1 _) (ACall obj2 meth2 _) =
-	    -- do they act on the same object?
-	    if (obj1 /= obj2)
-	    then False
-	    else let mset = findMethodOrderSet mmap obj1
-		 in  (unQualId meth1, unQualId meth2) `S.member` mset
-	isBefore _ _ = False
+        isBefore (ACall obj1 meth1 _) (ACall obj2 meth2 _) =
+            -- do they act on the same object?
+            if (obj1 /= obj2)
+            then False
+            else let mset = findMethodOrderSet mmap obj1
+                 in  (unQualId meth1, unQualId meth2) `S.member` mset
+        isBefore _ _ = False
 
-	-- order the method calls
-	--   The edges must be of the form (a, as) s.t. all actions in "as"
-	--   have to execute before "a".
-	meth_edges = [ (Right n1, ns)
-	                  | (n1,a1) <- method_calls,
-			    let ns = [ Right n2 | (n2,a2) <- numbered_acts,
-						 a2 /= a1,
-						 a2 `isBefore` a1 ] ]
+        -- order the method calls
+        --   The edges must be of the form (a, as) s.t. all actions in "as"
+        --   have to execute before "a".
+        meth_edges = [ (Right n1, ns)
+                          | (n1,a1) <- method_calls,
+                            let ns = [ Right n2 | (n2,a2) <- numbered_acts,
+                                                 a2 /= a1,
+                                                 a2 `isBefore` a1 ] ]
 
-	-- ----------
-	-- ActionValue method edges
+        -- ----------
+        -- ActionValue method edges
 
-	(av_meth_edges, av_meth_set, av_meth_local_vars) =
-	    mkAVMethEdges ds method_calls
+        (av_meth_edges, av_meth_set, av_meth_local_vars) =
+            mkAVMethEdges ds method_calls
 
-	-- ----------
-	-- ActionValue task edges
+        -- ----------
+        -- ActionValue task edges
 
-	-- Make edges from the task to the def that it sets
-	-- (ATaskValue is always a top-level def, and the Id is stored
-	-- in the ATaskAction by the ATaskSplice stage.)
-	-- (Rather than remove the def for the ATaskValue and make edges from
-	--  the users of that def to the ATaskAction, we leave the def in
-	--  the graph and just generate nothing for it when we make statements
-	--  from the flattened graph.)
-	av_task_edges =
-	    [ (Left tmp_id, [Right n]) |
+        -- Make edges from the task to the def that it sets
+        -- (ATaskValue is always a top-level def, and the Id is stored
+        -- in the ATaskAction by the ATaskSplice stage.)
+        -- (Rather than remove the def for the ATaskValue and make edges from
+        --  the users of that def to the ATaskAction, we leave the def in
+        --  the graph and just generate nothing for it when we make statements
+        --  from the flattened graph.)
+        av_task_edges =
+            [ (Left tmp_id, [Right n]) |
                (n, ATaskAction { ataskact_temp=(Just tmp_id) }) <- task_calls ]
 
-	-- ----------
-	-- Action / Value method call edges
+        -- ----------
+        -- Action / Value method call edges
 
-	-- like isBefore, but for Action vs Value method
-	isVMethSB v_obj v_meth (ACall a_obj a_meth _) =
-	    -- do they act on the same object?
-	    if (v_obj /= a_obj)
-	    then False
-	    else let mset = findMethodOrderSet mmap v_obj
-		 in  (unQualId v_meth, unQualId a_meth) `S.member` mset
-	isVMethSB _ _ _ = False
+        -- like isBefore, but for Action vs Value method
+        isVMethSB v_obj v_meth (ACall a_obj a_meth _) =
+            -- do they act on the same object?
+            if (v_obj /= a_obj)
+            then False
+            else let mset = findMethodOrderSet mmap v_obj
+                 in  (unQualId v_meth, unQualId a_meth) `S.member` mset
+        isVMethSB _ _ _ = False
 
-	isAMethSB v_obj v_meth (ACall a_obj a_meth _) =
-	    -- do they act on the same object?
-	    if (v_obj /= a_obj)
-	    then False
-	    else let mset = findMethodOrderSet mmap v_obj
-		 in  (unQualId a_meth, unQualId v_meth) `S.member` mset
-	isAMethSB _ _ _ = False
+        isAMethSB v_obj v_meth (ACall a_obj a_meth _) =
+            -- do they act on the same object?
+            if (v_obj /= a_obj)
+            then False
+            else let mset = findMethodOrderSet mmap v_obj
+                 in  (unQualId a_meth, unQualId v_meth) `S.member` mset
+        isAMethSB _ _ _ = False
 
-	-- value method calls which are SB with action methods
-	-- need to be properly ordered
-	--   Edges must be of the form (m1, m2) where the method "m2"
-	--   has to be executed before "m1".
-	mdef_edges =
-	    [ edge | ADef i _ e _ <- ds,
+        -- value method calls which are SB with action methods
+        -- need to be properly ordered
+        --   Edges must be of the form (m1, m2) where the method "m2"
+        --   has to be executed before "m1".
+        mdef_edges =
+            [ edge | ADef i _ e _ <- ds,
                      -- "aMethCalls" can return duplicates, but that's OK
                      (obj,meth) <- aMethCalls e,
-		     edge <-
+                     edge <-
                            -- def SB act
-			   [ (Right n, [Left i])
-			       | (n,a) <- method_calls,
-			         isVMethSB obj meth a ] ++
-			   -- act SB def (XXX can this happen?)
-		           [ (Left i, map Right ns)
-			       | let ns = map fst $
-				          filter ((isAMethSB obj meth) . snd)
-				              method_calls,
-			         not (null ns) ]
-	    ]
+                           [ (Right n, [Left i])
+                               | (n,a) <- method_calls,
+                                 isVMethSB obj meth a ] ++
+                           -- act SB def (XXX can this happen?)
+                           [ (Left i, map Right ns)
+                               | let ns = map fst $
+                                          filter ((isAMethSB obj meth) . snd)
+                                              method_calls,
+                                 not (null ns) ]
+            ]
 
-	-- ----------
-	-- put it together into one graph
+        -- ----------
+        -- put it together into one graph
 
-	g =
+        g =
 {-
-	    trace ("acts = " ++ ppReadable numbered_acts) $
-	    trace ("foreign_edges = " ++ ppReadable (foreign_edges :: [Edge])) $
-	    trace ("av_task_edges = " ++ ppReadable av_task_edges) $
-	    trace ("av_meth_edges = " ++ ppReadable av_meth_edges) $
-	    trace ("meth_edges = " ++ ppReadable (meth_edges :: [Edge])) $
-	    trace ("mdef_edges = " ++ ppReadable mdef_edges) $
-	    trace ("act_def_edges = " ++ ppReadable (act_def_edges :: [Edge])) $
+            trace ("acts = " ++ ppReadable numbered_acts) $
+            trace ("foreign_edges = " ++ ppReadable (foreign_edges :: [Edge])) $
+            trace ("av_task_edges = " ++ ppReadable av_task_edges) $
+            trace ("av_meth_edges = " ++ ppReadable av_meth_edges) $
+            trace ("meth_edges = " ++ ppReadable (meth_edges :: [Edge])) $
+            trace ("mdef_edges = " ++ ppReadable mdef_edges) $
+            trace ("act_def_edges = " ++ ppReadable (act_def_edges :: [Edge])) $
 -}
             M.fromListWith union $ concat [ foreign_edges
                                           , av_task_edges
@@ -1427,25 +1427,25 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                                           ]
 
         -- Convert the graph to the format expected by tsort.
-	g_edges = M.toList g
+        g_edges = M.toList g
 
-	-- ----------
-	-- convert a graph node back into a def/action
-	-- and then to a SimCCFnStmt
+        -- ----------
+        -- convert a graph node back into a def/action
+        -- and then to a SimCCFnStmt
 
-	-- map def ids back to their exprs
-	-- (remember to substitute away AMethValue references)
-	defmap = M.fromList [ (i,d) | d@(ADef i _ _ _) <- ds ]
-	getDef i = case (M.lookup i defmap) of
-		       Just d -> (mapAExprs substAV d)
-		       Nothing -> internalError "tsortActionsAndDefs: getDef"
+        -- map def ids back to their exprs
+        -- (remember to substitute away AMethValue references)
+        defmap = M.fromList [ (i,d) | d@(ADef i _ _ _) <- ds ]
+        getDef i = case (M.lookup i defmap) of
+                       Just d -> (mapAExprs substAV d)
+                       Nothing -> internalError "tsortActionsAndDefs: getDef"
 
-	-- function to substitute ASDef for AMethValue
-	substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
-	substAV (APrim i t o es) = (APrim i t o (map substAV es))
-	substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
-	substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
-	substAV e = e
+        -- function to substitute ASDef for AMethValue
+        substAV (AMethValue ty obj meth) = ASDef ty (mkAVMethTmpId obj meth)
+        substAV (APrim i t o es) = (APrim i t o (map substAV es))
+        substAV (AMethCall t o m es) = (AMethCall t o m (map substAV es))
+        substAV (AFunCall t o f isC es) = (AFunCall t o f isC (map substAV es))
+        substAV e = e
 
         -- allow statements to be conditional on the rule not being reset
         reset_cond = reduce PrimBOr
@@ -1453,35 +1453,35 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                             | rst_id <- reset_ids
                             ]
         addRstCond s =
-	  case reset_cond of
-	      []  -> s
-	      [c] -> [ SFSCond (aNot c) s [] ]
+          case reset_cond of
+              []  -> s
+              [c] -> [ SFSCond (aNot c) s [] ]
               _   -> internalError "reduce produced a list of length > 1"
 
-	-- defs are SFSAssigns, actions are actions,
-	-- actionvalue are assignactions
+        -- defs are SFSAssigns, actions are actions,
+        -- actionvalue are assignactions
         -- filter out the ATaskValue defs (see av_task_edges)
-	convertNode (Left (ADef _ _ (ATaskValue {}) _)) = Nothing
-	convertNode (Left d) = Just [mkDefAssign d]
-	convertNode (Right (False,acts)) = Just (map cvt_action acts)
+        convertNode (Left (ADef _ _ (ATaskValue {}) _)) = Nothing
+        convertNode (Left d) = Just [mkDefAssign d]
+        convertNode (Right (False,acts)) = Just (map cvt_action acts)
         convertNode (Right (True,acts))  = Just (addRstCond (map cvt_action acts))
         cvt_action a@(ACall obj meth _) =
-	    if (S.member (obj,meth) av_meth_set)
-	    then SFSAssignAction False (mkAVMethTmpId obj meth) a
-	    else SFSAction a
-	cvt_action a@(ATaskAction { aact_objid = f_id
+            if (S.member (obj,meth) av_meth_set)
+            then SFSAssignAction False (mkAVMethTmpId obj meth) a
+            else SFSAction a
+        cvt_action a@(ATaskAction { aact_objid = f_id
                                   , ataskact_temp = maybe_tmp_id
                                   }) =
-	    case (maybe_tmp_id) of
-	      Just tmp_id -> SFSAssignAction False tmp_id a
-	      Nothing     -> SFSAction a
+            case (maybe_tmp_id) of
+              Just tmp_id -> SFSAssignAction False tmp_id a
+              Nothing     -> SFSAction a
         cvt_action a@(AFCall {}) = SFSAction a
 
         -- g++ sometimes has a hard time with sequences of conditionals,
         -- so we try to group system tasks, etc. with the same reset
         -- condition into one if block.
         -- It's OK to leave stale values for these when in reset,
-	-- since Verilog does as well.
+        -- since Verilog does as well.
         hasRst (Left _)           = False
         hasRst (Right (ACall {})) = False
         hasRst (Right _)          = True
@@ -1494,26 +1494,26 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                 (group,rest) = span sameRight l
             in (Right (rst,[act | (Right act) <- group])):(groupRsts rest)
     in  -- tsort returns Left if there is a loop, Right if sorted.
-	-- (In the absense of restrictive edges, tsort uses Ord to put
-	-- the lower valued nodes first.  Thus, we have chosen the node
-	-- representation to put Defs first, followed by Actions in the
-	-- order that they were give by the user.)
-	case (tsort g_edges) of
-	    Left iss ->
+        -- (In the absense of restrictive edges, tsort uses Ord to put
+        -- the lower valued nodes first.  Thus, we have chosen the node
+        -- representation to put Defs first, followed by Actions in the
+        -- order that they were give by the user.)
+        case (tsort g_edges) of
+            Left iss ->
                 let -- lookup def and action nodes
                     lookupFn = either (Left . getDef) (Right . getAct)
                     xss = map (map lookupFn) iss
                 in  internalError ("tsortActionsAndDefs: cyclic: " ++
                                    ppReadable (modId, rId) ++
                                    ppReadable xss)
-	    Right is ->
+            Right is ->
                 let -- lookup def and action nodes
                     xs = map (either (Left . getDef) (Right . getAct)) is
                     -- group by reset conditions
                     grouped = groupRsts xs
                 in -- declare the local temporaries
-	           av_meth_local_vars ++
-		   -- convert the sorted and grouped nodes
+                   av_meth_local_vars ++
+                   -- convert the sorted and grouped nodes
                    concat (mapMaybe convertNode grouped)
 
 
@@ -1531,43 +1531,43 @@ type Edge = (Node, [Node])
 -- * a set of the ACall which are action value
 -- * a list of declarations for the new defs (holding the values)
 mkAVMethEdges :: [ADef] -> [(Integer, AAction)] ->
-		 ([Edge], S.Set (AId,AId), [SimCCFnStmt])
+                 ([Edge], S.Set (AId,AId), [SimCCFnStmt])
 mkAVMethEdges ds method_calls =
     let
-	-- check whether an AMethValue is from a particular action
-	isMethValueOf v_obj v_meth (ACall a_obj a_meth _) =
-	    (v_obj == a_obj) && (v_meth == a_meth)
-	isMethValueOf _ _ _ = False
+        -- check whether an AMethValue is from a particular action
+        isMethValueOf v_obj v_meth (ACall a_obj a_meth _) =
+            (v_obj == a_obj) && (v_meth == a_meth)
+        isMethValueOf _ _ _ = False
 
-	-- find the AMethValue references
-	av_meth_refs = [ (i, refs) | ADef i _ e _ <- ds,
+        -- find the AMethValue references
+        av_meth_refs = [ (i, refs) | ADef i _ e _ <- ds,
                                      -- "aMethValues" can return duplicates
-			             let refs = nub $ aMethValues e,
-				     not (null refs) ]
+                                     let refs = nub $ aMethValues e,
+                                     not (null refs) ]
 
-	-- the value reference from an ActionValue needs to come after
-	-- the action method call.
-	--   Edges must be of the form (i, as) where all actions in "as"
-	--   have to execute before "i" is computed.
-	av_meth_edges = [ (Left i, map Right ns)
-			    | (i, refs) <- av_meth_refs,
-			      (obj,meth,_) <- refs,
+        -- the value reference from an ActionValue needs to come after
+        -- the action method call.
+        --   Edges must be of the form (i, as) where all actions in "as"
+        --   have to execute before "i" is computed.
+        av_meth_edges = [ (Left i, map Right ns)
+                            | (i, refs) <- av_meth_refs,
+                              (obj,meth,_) <- refs,
                               let ns = map fst $
-				       filter ((isMethValueOf obj meth) . snd)
-			                   method_calls,
-		              not (null ns) ]
+                                       filter ((isMethValueOf obj meth) . snd)
+                                           method_calls,
+                              not (null ns) ]
 
-	mkAVMethDecl (obj,meth,ty) =
-	    let id = mkAVMethTmpId obj meth
-	    in  SFSDef False (ty, id) Nothing
+        mkAVMethDecl (obj,meth,ty) =
+            let id = mkAVMethTmpId obj meth
+            in  SFSDef False (ty, id) Nothing
 
-	av_meths = unions (map snd av_meth_refs)
-	av_meth_local_vars = map mkAVMethDecl av_meths
+        av_meths = unions (map snd av_meth_refs)
+        av_meth_local_vars = map mkAVMethDecl av_meths
 
-	av_meth_set = S.fromList (map (\ (o,m,t) -> (o,m)) av_meths)
+        av_meth_set = S.fromList (map (\ (o,m,t) -> (o,m)) av_meths)
 
     in
-	(av_meth_edges, av_meth_set, av_meth_local_vars)
+        (av_meth_edges, av_meth_set, av_meth_local_vars)
 
 
 -- We'll need to declare local variables for the actionvalues,
@@ -1576,9 +1576,9 @@ mkAVMethEdges ds method_calls =
 mkAVMethTmpId obj meth =
     -- XXX make sure this Id is unique?
     mkId noPosition (concatFString [mkFString "AVMeth_",
-				    getIdBase obj,
-				    fsUnderscore,
-				    getIdBase meth])
+                                    getIdBase obj,
+                                    fsUnderscore,
+                                    getIdBase meth])
 
 
 -- ===============
@@ -1593,11 +1593,11 @@ mkGateSubstMap top_gates es =
         top_subst = M.fromList $ map mkTopSubst top_gates
 
         -- And update the existing substitions
-	substTop (orig, new) = (orig, M.findWithDefault new new top_subst)
+        substTop (orig, new) = (orig, M.findWithDefault new new top_subst)
 
         -- Convert a clock substitution into a gate substitution
         convEdge (orig_aclk, new_aclk) =
-	    (aclock_gate orig_aclk, aclock_gate new_aclk)
+            (aclock_gate orig_aclk, aclock_gate new_aclk)
 
         es_subst = M.fromList $ map (substTop . convEdge) es
     in
@@ -1609,25 +1609,25 @@ mkGateSubstMap top_gates es =
 substGateReferences :: GateSubstMap -> [SimCCFnStmt] -> [SimCCFnStmt]
 substGateReferences smap stmts =
     let
-	-- replace a gate if found in the map
-	substInAExpr e@(AMGate {}) = M.findWithDefault e e smap
-	substInAExpr e@(ASPort {}) = M.findWithDefault e e smap
-	-- otherwise, follow exprs
-	substInAExpr e@(APrim { ae_args = es }) =
-	    e { ae_args = map substInAExpr es }
-	substInAExpr e@(AMethCall { ae_args = es }) =
-	    e { ae_args = map substInAExpr es }
-	substInAExpr e@(ANoInlineFunCall { ae_args = es }) =
-	    e { ae_args = map substInAExpr es }
-	substInAExpr e@(AFunCall { ae_args = es }) =
-	    e { ae_args = map substInAExpr es }
-	substInAExpr e = e
+        -- replace a gate if found in the map
+        substInAExpr e@(AMGate {}) = M.findWithDefault e e smap
+        substInAExpr e@(ASPort {}) = M.findWithDefault e e smap
+        -- otherwise, follow exprs
+        substInAExpr e@(APrim { ae_args = es }) =
+            e { ae_args = map substInAExpr es }
+        substInAExpr e@(AMethCall { ae_args = es }) =
+            e { ae_args = map substInAExpr es }
+        substInAExpr e@(ANoInlineFunCall { ae_args = es }) =
+            e { ae_args = map substInAExpr es }
+        substInAExpr e@(AFunCall { ae_args = es }) =
+            e { ae_args = map substInAExpr es }
+        substInAExpr e = e
 
-	substInStmt (SFSAssign p i e) = (SFSAssign p i (substInAExpr e))
-	substInStmt s = internalError ("substGateReferences: non-assign: " ++
-	                               ppReadable s)
+        substInStmt (SFSAssign p i e) = (SFSAssign p i (substInAExpr e))
+        substInStmt s = internalError ("substGateReferences: non-assign: " ++
+                                       ppReadable s)
     in
-	map substInStmt stmts
+        map substInStmt stmts
 
 
 -- ===============
@@ -1638,21 +1638,21 @@ mkMERuleInhibits top_vmeth_set sched_order disjoint_map =
     let
         -- value methods can't change state, so they don't need to inhibit
 
-	foldfunc :: (IdSet, [(AId,[AId])]) -> SchedNode ->
-		    (IdSet, [(AId,[AId])])
-	foldfunc (seen_exec_nodes, res) (Exec r) =
+        foldfunc :: (IdSet, [(AId,[AId])]) -> SchedNode ->
+                    (IdSet, [(AId,[AId])])
+        foldfunc (seen_exec_nodes, res) (Exec r) =
             if (S.member r top_vmeth_set)
             then (seen_exec_nodes, res)
-	    else (S.insert r seen_exec_nodes, res)
-	foldfunc (seen_exec_nodes, res) (Sched r) =
-	    case (M.lookup r disjoint_map) of
-		Nothing -> (seen_exec_nodes, res)
-		Just dset ->
-		    let inhibit_set = S.intersection dset seen_exec_nodes
-			new_res = (r, S.toList inhibit_set)
-		    in  (seen_exec_nodes, new_res:res)
+            else (S.insert r seen_exec_nodes, res)
+        foldfunc (seen_exec_nodes, res) (Sched r) =
+            case (M.lookup r disjoint_map) of
+                Nothing -> (seen_exec_nodes, res)
+                Just dset ->
+                    let inhibit_set = S.intersection dset seen_exec_nodes
+                        new_res = (r, S.toList inhibit_set)
+                    in  (seen_exec_nodes, new_res:res)
     in
-	M.fromList $ reverse $ snd $ foldl foldfunc (S.empty, []) sched_order
+        M.fromList $ reverse $ snd $ foldl foldfunc (S.empty, []) sched_order
 
 
 -- ===============

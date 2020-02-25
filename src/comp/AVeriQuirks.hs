@@ -80,8 +80,8 @@ genIdFromAExpr expr = do
         oldId <- gets uniqueId
         put state{ uniqueId = oldId + 1 }
         return $ mkId
-	    noPosition -- XXX aexpr should have an instance of HasPosition
-	    (mkFString (signalNameFromAExpr expr ++
+            noPosition -- XXX aexpr should have an instance of HasPosition
+            (mkFString (signalNameFromAExpr expr ++
                         aVeriQuirksPref ++ itos oldId))
 
 -- Add the expression -- realy the definition to the monad
@@ -89,41 +89,41 @@ addExpr :: AType -> AExpr -> QQState AId
 addExpr t e = do
     rlm <- gets rlookup
     case ( M.lookup (e,t) rlm ) of
-	Nothing ->
-	    do
-	      nid <- genIdFromAExpr e
+        Nothing ->
+            do
+              nid <- genIdFromAExpr e
               addDef (ADef nid t e [])
               return nid
-	-- don't create a new id for an expression that already has an id
-	Just fid -> return fid
+        -- don't create a new id for an expression that already has an id
+        Just fid -> return fid
 
 
 -- Top Level  operations
 -- Deal with various quirks in the Verilog syntax & semantics.
 aVeriQuirks :: Flags -> ASPackage -> ASPackage
 aVeriQuirks flags pkg =
-	evalState action initState
+        evalState action initState
   where
-	initState =
-	    QState {
-	        qs_keepAddSize = keepAddSize flags,
-		qs_rmPrimModules = removePrimModules flags,
-		qs_useNegate = useNegate flags,
-		qs_readableMux = readableMux flags,
-		uniqueId = 1,
-		defs = [],
+        initState =
+            QState {
+                qs_keepAddSize = keepAddSize flags,
+                qs_rmPrimModules = removePrimModules flags,
+                qs_useNegate = useNegate flags,
+                qs_readableMux = readableMux flags,
+                uniqueId = 1,
+                defs = [],
                 rlookup = M.empty
                    }
 
-	action =
-	    do
-		mapM_ aQDef (aspkg_values pkg)
+        action =
+            do
+                mapM_ aQDef (aspkg_values pkg)
                 is' <- mapM aQInst (aspkg_state_instances pkg)
-		fs' <- mapM aQForeignBlock (aspkg_foreign_calls pkg)
-		ds' <- gets defs
-		return (pkg { aspkg_values = (reverse ds'),
+                fs' <- mapM aQForeignBlock (aspkg_foreign_calls pkg)
+                ds' <- gets defs
+                return (pkg { aspkg_values = (reverse ds'),
                               aspkg_state_instances = is',
-		              aspkg_foreign_calls = fs' })
+                              aspkg_foreign_calls = fs' })
 
 
 aQDef :: ADef -> QQState ()
@@ -175,9 +175,9 @@ aQForeignCallAV x = return x
 aQExp :: Bool -> AExpr -> QQState AExpr
 -- non-constant bit extraction turns into shift and mask
 aQExp top (APrim aid t@(ATBit n) PrimExtract [e, h, l])
-		| h /= l && not (isConst h && isConst l) =
+                | h /= l && not (isConst h && isConst l) =
     let te@(ATBit m) = aType e
-	ht = aType h
+        ht = aType h
         -- (e & ~(('1 << 1) << h))
         e1 = APrim aid te PrimAnd [e, mask]
         mask = APrim aid te PrimInv [(APrim aid te PrimSL [maskbase, h])]
@@ -185,7 +185,7 @@ aQExp top (APrim aid t@(ATBit n) PrimExtract [e, h, l])
         -- e1 >> l
         e2 = APrim aid te PrimSRL [e1, l]
         -- extend/truncate e2
-	e3 = case (compare m n) of
+        e3 = case (compare m n) of
                GT -> APrim aid t PrimExtract [e2, aSInt ht (n-1), aSInt ht 0]
                LT -> APrim aid t PrimZeroExt [e2]
                EQ -> e2
@@ -210,13 +210,13 @@ aQExp top eee@(APrim aid t@(ATBit n) PrimSRA [e1, ASInt _ _ (IntLit _ _ k)]) =
 
 -- arithmetic right shift replicates MSB  Need do some shifting and masking
 aQExp top (APrim aid t@(ATBit n) PrimSRA [e1,e2]) = do
-	let sl = APrim aid (ATBit n) PrimSRL [e1, e2]
+        let sl = APrim aid (ATBit n) PrimSRL [e1, e2]
             mask = ASInt aid (ATBit n) (ilHex (2^n - 1))
             maskshift = APrim aid (ATBit n) PrimInv [(APrim aid (ATBit n) PrimSRL [mask, e2])]
             msb = APrim aid (ATBit 1) PrimExtract [e1, aSNat (n-1), aSNat (n-1)]
             msbs = APrim aid (ATBit n) PrimSignExt [msb]
-	    msbmask = APrim aid (ATBit n) PrimAnd [maskshift, msbs]
-	    sel = APrim aid t PrimOr [sl, msbmask]
+            msbmask = APrim aid (ATBit n) PrimAnd [maskshift, msbs]
+            sel = APrim aid t PrimOr [sl, msbmask]
         aQExp top sel
 
 -- PrimExtract needs first argument in a variable
@@ -271,13 +271,13 @@ aQExp top (APrim aid t p es) | p == PrimAdd || p == PrimSub = do
     es' <- mapM (aQExp False) es
     keepAddSize <- gets qs_keepAddSize
     let es'' = if keepAddSize then
-	        let dropzext (APrim aid _ PrimZeroExt [e]) = e
-		    dropzext (APrim aid _ PrimConcat [ASInt _ _ (IntLit _ _ 0), e]) = e
-		    dropzext e = e
-		in  --(if (map dropzext es' /= es') then trace (ppReadable es') else id) $
-		    map dropzext es'
-	       else
-		es'
+                let dropzext (APrim aid _ PrimZeroExt [e]) = e
+                    dropzext (APrim aid _ PrimConcat [ASInt _ _ (IntLit _ _ 0), e]) = e
+                    dropzext e = e
+                in  --(if (map dropzext es' /= es') then trace (ppReadable es') else id) $
+                    map dropzext es'
+               else
+                es'
     return (APrim aid t p es'')
 
 -- All multipliers should already be assigned directly to a
@@ -298,7 +298,7 @@ aQExp top x@(APrim aid t p es) | p == PrimMux || p == PrimPriMux = do
     rmPrimModules <- gets qs_rmPrimModules
     readableMux   <- gets qs_readableMux
     case ( rmPrimModules,  readableMux ) of
-      (True, False) -> 	aQMux aid t p es' -- build AndOr Muxes
+      (True, False) ->         aQMux aid t p es' -- build AndOr Muxes
       (_, _ )       ->  return (APrim aid t p es')
 
 aQExp top (APrim aid t p es)       = mapM (aQExp False) es >>= return . APrim aid t p
@@ -335,18 +335,18 @@ aQMux aid t@(ATBit n) p as = do
     let (ps, es) = if ( isASAny $ last as)
                    then unzip (makePairs $ init as)
                    else unzip (makePairs as)
-	priEnc = map pri . tail . reverse . tails . reverse
+        priEnc = map pri . tail . reverse . tails . reverse
         --
         pri :: [AExpr] -> AExpr
-	pri [x] = x
-	pri (x:xs) = APrim aid aTBool PrimBAnd (x : map aNot xs)
+        pri [x] = x
+        pri (x:xs) = APrim aid aTBool PrimBAnd (x : map aNot xs)
         pri [] = internalError ("AVerilog::aQMux::pri")
         --
-	-- bnot x = APrim aid aTBool PrimBNot [x]
+        -- bnot x = APrim aid aTBool PrimBNot [x]
     ps'  <- mapM mkDefS ps
     ps'' <- if p == PrimMux then return ps' else {- mapM mkDefS -}  return (priEnc ps')
-    let	sext e = if n == 1 then e else APrim aid t PrimSignExt [e]
-	e = aBitOr aid t [ aBitAnd aid t [sext p, e] | (p, e) <- zip ps'' es ]
+    let sext e = if n == 1 then e else APrim aid t PrimSignExt [e]
+        e = aBitOr aid t [ aBitAnd aid t [sext p, e] | (p, e) <- zip ps'' es ]
     return e
 aQMux _ _ _ _  = internalError ("AVerilog::aQMux")
 
@@ -354,33 +354,33 @@ aQMux _ _ _ _  = internalError ("AVerilog::aQMux")
 aBitOr :: AId -> AType -> [AExpr] -> AExpr
 aBitOr aid t@(ATBit n) es =
     let (cs, xs) = partition isConst es
-	one = 2^n-1
-	c = foldr integerOr 0 (map (getConst one) cs)
-	aOr' [] = aInt t 0
-	aOr' [e] = e
-	aOr' es = APrim aid t PrimOr es
+        one = 2^n-1
+        c = foldr integerOr 0 (map (getConst one) cs)
+        aOr' [] = aInt t 0
+        aOr' [e] = e
+        aOr' es = APrim aid t PrimOr es
     in  if c == one then
-	    aInt t one
-	else if c == 0 then
-	    aOr' xs
-	else
-	    aOr' (xs ++ [aSInt t c])
+            aInt t one
+        else if c == 0 then
+            aOr' xs
+        else
+            aOr' (xs ++ [aSInt t c])
 aBitOr _ _ _ = internalError ("AVerilog::aOr")
 
 aBitAnd :: AId -> AType -> [AExpr] -> AExpr
 aBitAnd aid t@(ATBit n) es =
     let (cs, xs) = partition isConst es
-	one = 2^n-1
-	c = foldr integerAnd one (map (getConst 0) cs)
-	aAnd' [] = aInt t one
-	aAnd' [e] = e
-	aAnd' es = APrim aid t PrimAnd es
+        one = 2^n-1
+        c = foldr integerAnd one (map (getConst 0) cs)
+        aAnd' [] = aInt t one
+        aAnd' [e] = e
+        aAnd' es = APrim aid t PrimAnd es
     in  if c == 0 then
-	    aInt t 0
-	else if c == one then
-	    aAnd' xs
-	else
-	    aAnd' (xs ++ [aSInt t c])
+            aInt t 0
+        else if c == one then
+            aAnd' xs
+        else
+            aAnd' (xs ++ [aSInt t c])
 aBitAnd _ _ _ = internalError ("AVerilog::aAnd")
 
 aInt t i = aSInt t i

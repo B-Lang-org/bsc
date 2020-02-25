@@ -1,11 +1,11 @@
 {-# LANGUAGE CPP #-}
 module PPrint(PPrint(..), PDetail(..), module Pretty,
-	ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
-	pparen, sepList, catList, vcatList, ppr, ppDoc,
-	maxPrec, vsep, wrap, commaSep, encloseSep,
+        ppReadable, ppReadableIndent, ppAll, ppDebug, ppString, pp80,
+        pparen, sepList, catList, vcatList, ppr, ppDoc,
+        maxPrec, vsep, wrap, commaSep, encloseSep,
         tracePPS,
         ShortBool, toTF
-	) where
+        ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -112,13 +112,13 @@ instance (PPrint a, PPrint b, PPrint c, PPrint d, PPrint e, PPrint f, PPrint g) 
 instance (PPrint a) => PPrint [a] where
     pPrint d _ [] = text "[]"
     pPrint d _ xs =
-	case reverse (map (pPrint d 0) xs) of
-	(y:ys) ->
-		    let	ys' = map (<> text ",") ys
-			xs' = reverse (y:ys')
---		    in  text "[" <> csep xs' <> text "]"
-		    in  text "[" <> sep xs' <> text "]"
-	[] -> trace "This cannot happen" (text "[]")
+        case reverse (map (pPrint d 0) xs) of
+        (y:ys) ->
+                    let ys' = map (<> text ",") ys
+                        xs' = reverse (y:ys')
+--                    in  text "[" <> csep xs' <> text "]"
+                    in  text "[" <> sep xs' <> text "]"
+        [] -> trace "This cannot happen" (text "[]")
 
 instance (PPrint a, PPrint b) => PPrint (Either a b) where
     pPrint d p (Left x) = pparen (p>9) (text"(Left" <+> pPrint d 10 x <> text")")
@@ -133,7 +133,7 @@ instance PPrint () where
 
 instance (PPrint a, PPrint b) => PPrint (M.Map a b) where
     pPrint d i m = vsep [pPrint d 0 k <+> text "->" <+> pPrint d 0 v
-			 | (k, v) <- M.toList m]
+                         | (k, v) <- M.toList m]
 
 instance (PPrint a, Ord a) => PPrint (S.Set a) where
     pPrint d i s = pPrint d i (S.toList s)
@@ -189,4 +189,3 @@ instance PPrint ShortBool where
 toTF :: Bool -> ShortBool
 toTF True = TRUE
 toTF _    = FALSE
-

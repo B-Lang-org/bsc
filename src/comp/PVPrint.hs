@@ -1,8 +1,8 @@
 {-# LANGUAGE CPP #-}
 module PVPrint(PVPrint(..), module Pretty, PDetail(..),
-	pvpReadable, pvpReadableIndent, pvpAll, pvpDebug, pvpString, pvpStringNQ, pvp80,
-	pvparen
-	) where
+        pvpReadable, pvpReadableIndent, pvpAll, pvpDebug, pvpString, pvpStringNQ, pvp80,
+        pvparen
+        ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))
@@ -78,13 +78,13 @@ instance (PVPrint a, PVPrint b, PVPrint c, PVPrint d, PVPrint e) => PVPrint (a, 
 instance (PVPrint a) => PVPrint [a] where
     pvPrint d _ [] = text "[]"
     pvPrint d _ xs =
-	case reverse (map (pvPrint d 0) xs) of
-	(y:ys) ->
-		    let	ys' = map (<> text ",") ys
-			xs' = reverse (y:ys')
---		    in  text "[" <> csep xs' <> text "]"
-		    in  text "[" <> sep xs' <> text "]"
-	[] -> trace "This cannot happen" (text "[]")
+        case reverse (map (pvPrint d 0) xs) of
+        (y:ys) ->
+                    let ys' = map (<> text ",") ys
+                        xs' = reverse (y:ys')
+--                    in  text "[" <> csep xs' <> text "]"
+                    in  text "[" <> sep xs' <> text "]"
+        [] -> trace "This cannot happen" (text "[]")
 
 instance (PVPrint a, PVPrint b) => PVPrint (Either a b) where
     pvPrint d p (Left x) = pvparen (p>9) (text"(Left" <+> pvPrint d 10 x <> text")")
@@ -101,4 +101,3 @@ pvparen True  x = text"(" <> x <> text")"
 maxPrec :: Int
 maxPrec = 20
 -}
-

@@ -11,28 +11,28 @@ it parses, rewind to before the terminator and return the list so far
 > stmtIsNonMonadic :: ImperativeStatement -> Bool
 > stmtIsNonMonadic stmt =
 >     case stmt of
->                ISDecl _ _ _ _ -> True
->                ISPatEq _ _ _ ->  True
->                ISEqual _ _ _ -> True
->                ISUpdate _ _ _ -> True
+>                ISDecl _ _ _ _   -> True
+>                ISPatEq _ _ _    -> True
+>                ISEqual _ _ _    -> True
+>                ISUpdate _ _ _   -> True
 >                ISFunction _ _ _ -> True
 >                ISFor _ init _ inc body -> stmtsAreNonMonadic init &&
->				            stmtsAreNonMonadic inc  &&
->				            stmtsAreNonMonadic body
->                ISWhile _ _ body ->        stmtsAreNonMonadic body
->                ISBeginEnd _ body ->       stmtsAreNonMonadic body
->                ISIf _ _ con Nothing ->    stmtsAreNonMonadic con
+>                                            stmtsAreNonMonadic inc  &&
+>                                            stmtsAreNonMonadic body
+>                ISWhile _ _ body        -> stmtsAreNonMonadic body
+>                ISBeginEnd _ body       -> stmtsAreNonMonadic body
+>                ISIf _ _ con Nothing    -> stmtsAreNonMonadic con
 >                ISIf _ _ con (Just alt) -> stmtsAreNonMonadic con &&
->				            stmtsAreNonMonadic alt
+>                                            stmtsAreNonMonadic alt
 >                ISCase _ _ cs d         -> (all caseIsNonMonadic cs) &&
->				            defaultIsNonMonadic d
+>                                            defaultIsNonMonadic d
 >                ISCaseTagged _ _ cs d   -> (all caseTIsNonMonadic cs) &&
->				            defaultIsNonMonadic d
->	         _ -> False
->	     where caseIsNonMonadic  (_, _, ss)       = stmtsAreNonMonadic ss
->	           caseTIsNonMonadic (_, _, _, ss)    = stmtsAreNonMonadic ss
->	           defaultIsNonMonadic Nothing        = True
->	           defaultIsNonMonadic (Just (_, ss)) = stmtsAreNonMonadic ss
+>                                            defaultIsNonMonadic d
+>                _ -> False
+>             where caseIsNonMonadic  (_, _, ss)       = stmtsAreNonMonadic ss
+>                   caseTIsNonMonadic (_, _, _, ss)    = stmtsAreNonMonadic ss
+>                   defaultIsNonMonadic Nothing        = True
+>                   defaultIsNonMonadic (Just (_, ss)) = stmtsAreNonMonadic ss
 
 
  >     let fn = (case stmt of

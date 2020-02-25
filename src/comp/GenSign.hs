@@ -298,8 +298,8 @@ getInsts (CPackage _ _ imps _ pds includes) =
         [ i | CImpSign _ _ (CSignature _ _ _ ds) <- imps, i@(CIinstance _ (CQType _ t)) <- ds,
               not (all (fromPrelude . leftTyCon) (t : tyConArgs t)) ]
 -- XXX Might break if a Prelude type was declared outside the Prelude to be an
---	instance of a Prelude typeclass, and an attempt was made to use that
---	instance in a third file.
+--        instance of a Prelude typeclass, and an attempt was made to use that
+--        instance in a third file.
 
 fromPrelude (Just (TyCon i _ _)) = (getIdQFString i == Just fsPrelude
                                     || getIdQFString i == Just fsPreludeBSV)

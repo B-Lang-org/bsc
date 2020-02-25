@@ -76,7 +76,7 @@ optBoolExprQM n e =
                 let (grps', us) = unzip (sweep step grps)
                 in  loop (concat grps' ++ all) (nub (concat us) ++ marked) (filter (not . null) grps')
 
-            prime = loop (concat grps) [] grps		-- prime implicants
+            prime = loop (concat grps) [] grps                -- prime implicants
 
             selPrimes sel cprime [] = sel
             selPrimes sel [] _ = internalError "selPrimes"

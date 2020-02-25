@@ -14,15 +14,15 @@ import Error(EMsg, WMsg, ErrMsg(..), ErrorHandle, bsError, bsWarning)
 import Position(noPosition)
 
 data ErrorMonad v = EMError [EMsg]
-		  | EMWarning [WMsg] v
-		  | EMResult v
+                  | EMWarning [WMsg] v
+                  | EMResult v
 
 instance Monad ErrorMonad where
     (EMError es) >>= _     = EMError es  -- XXX could merge errors
     (EMWarning ws v) >>= f = case f v of
                                EMError es       -> EMError es  -- XXX ws
-			       EMWarning ws' v' -> EMWarning (ws ++ ws') v'
-			       EMResult v'      -> EMWarning ws v'
+                               EMWarning ws' v' -> EMWarning (ws ++ ws') v'
+                               EMResult v'      -> EMWarning ws v'
     (EMResult v) >>= f     = (f v)
     return v               = EMResult v
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)

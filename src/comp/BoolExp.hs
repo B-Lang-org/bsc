@@ -15,14 +15,14 @@ import qualified Data.Set as S
 
 
 data BoolExp a
-	= And (BoolExp a) (BoolExp a)
-	| Or  (BoolExp a) (BoolExp a)
-	| Not (BoolExp a)
-	| If  (BoolExp a) (BoolExp a) (BoolExp a)
-	| Var a
-	| TT
-	| FF
-	deriving (Eq, Ord)
+        = And (BoolExp a) (BoolExp a)
+        | Or  (BoolExp a) (BoolExp a)
+        | Not (BoolExp a)
+        | If  (BoolExp a) (BoolExp a) (BoolExp a)
+        | Var a
+        | TT
+        | FF
+        deriving (Eq, Ord)
 
 --iF :: BoolExp a -> BoolExp a -> BoolExp a -> BoolExp a
 --iF c t e = (c `And` t) `Or` (Not c `And` e)
@@ -46,20 +46,20 @@ substBE v n e = e
 -}
 
 instance (Show a) => Show (BoolExp a) where
-	show e = pp e
+        show e = pp e
 
 pp :: (Show a) => BoolExp a -> String
 pp e = pp' (0::Integer) e
   where pp' p (e1 `And` e2) = paren (p>3) (pp' 3 e1 ++ " & " ++ pp' 3 e2)
-	pp' p (e1 `Or` e2) = paren (p>2) (pp' 2 e1 ++ " | " ++ pp' 2 e2)
-	pp' p (If e1 e2 e3) = paren (p>1) (pp' 1 e1 ++ " ? " ++ pp' 1 e2 ++ " : " ++ pp' 1 e3)
-	pp' _ (Not e) = "~" ++ pp' 10 e
-	pp' _ (Var v) = show v
-	pp' _ TT = "T"
-	pp' _ FF = "F"
+        pp' p (e1 `Or` e2) = paren (p>2) (pp' 2 e1 ++ " | " ++ pp' 2 e2)
+        pp' p (If e1 e2 e3) = paren (p>1) (pp' 1 e1 ++ " ? " ++ pp' 1 e2 ++ " : " ++ pp' 1 e3)
+        pp' _ (Not e) = "~" ++ pp' 10 e
+        pp' _ (Var v) = show v
+        pp' _ TT = "T"
+        pp' _ FF = "F"
 
-	paren True s = "("++s++")"
-	paren False s = s
+        paren True s = "("++s++")"
+        paren False s = s
 
 instance (PPrint a) => PPrint (BoolExp a) where
     pPrint d p (e1 `And` e2) = pparen (p>3) (pPrint d 3 e1 <+> text "&" <+> pPrint d 3 e2)
@@ -84,7 +84,7 @@ reduce (And e1 e2) | e1 == e2 = Just e1
 reduce (And e1 e2) | e1 == bNot e2 = Just FF
 reduce e@(And _ _) = me'
   where me' = fmap (rrAnds . reverse) (redAnd False S.empty [] es)
-	es = collAnd e
+        es = collAnd e
 
 reduce (Or TT e) = Just TT
 reduce (Or FF e) = Just e
@@ -100,7 +100,7 @@ reduce (Or e1 e2) | e1 == e2 = Just e1
 reduce (Or e1 e2) | e1 == bNot e2 = Just TT
 reduce e@(Or _ _) = me'
   where me' = fmap (rrOrs . reverse) (redOr False S.empty [] es)
-	es = collOr e
+        es = collOr e
 
 reduce (Not (And e1 e2)) = Just (Or  (rNot e1) (rNot e2))
 reduce (Not (Or  e1 e2)) = Just (And (rNot e1) (rNot e2))
@@ -125,12 +125,12 @@ reduce _ = Nothing
 redAnd change s rs [] = toMaybe change rs
 redAnd change s rs (e:es) = if e `S.member` s then redAnd True s rs es
                      else if Not e `S.member` s then Just [FF]
-		          else redAnd change (S.insert e s) (e:rs) es
+                          else redAnd change (S.insert e s) (e:rs) es
 
 redOr change s rs [] = toMaybe change rs
 redOr change s rs (e:es) = if e `S.member` s then redOr True s rs es
                     else if Not e `S.member` s then Just [TT]
-		         else redOr change (S.insert e s) (e:rs) es
+                         else redOr change (S.insert e s) (e:rs) es
 
 foldrx f z [] = z
 foldrx f z [x] = x
@@ -170,25 +170,25 @@ rrNot e = Not e
 -- simple simplify
 sSimplify :: (Ord a) => BoolExp a -> BoolExp a
 sSimplify (And e1 e2) =
-	let e' = And (sSimplify e1) (sSimplify e2) in
-	case reduce e' of
-	Just e -> sSimplify e
-	Nothing -> e'
+        let e' = And (sSimplify e1) (sSimplify e2) in
+        case reduce e' of
+        Just e -> sSimplify e
+        Nothing -> e'
 sSimplify (Or e1 e2) =
-	let e' = Or (sSimplify e1) (sSimplify e2) in
-	case reduce e' of
-	Just e -> sSimplify e
-	Nothing -> e'
+        let e' = Or (sSimplify e1) (sSimplify e2) in
+        case reduce e' of
+        Just e -> sSimplify e
+        Nothing -> e'
 sSimplify (If e1 e2 e3) =
-	let e' = If (sSimplify e1) (sSimplify e2) (sSimplify e3) in
-	case reduce e' of
-	Just e -> sSimplify e
-	Nothing -> e'
+        let e' = If (sSimplify e1) (sSimplify e2) (sSimplify e3) in
+        case reduce e' of
+        Just e -> sSimplify e
+        Nothing -> e'
 sSimplify (Not e) =
-	let e' = Not (sSimplify e) in
-	case reduce e' of
-	Just e -> sSimplify e
-	Nothing -> e'
+        let e' = Not (sSimplify e) in
+        case reduce e' of
+        Just e -> sSimplify e
+        Nothing -> e'
 sSimplify e@(Var _) = e
 sSimplify TT = TT
 sSimplify FF = FF
@@ -197,23 +197,23 @@ sSimplify FF = FF
 nSimplify :: (Ord a) => BoolExp a -> BoolExp a
 nSimplify = sSimplify . nSimp . sSimplify
   where nSimp (And e1 e2) =
-	    -- (x || y || z) && !y  -->  (x || z) && !y
-	    simpAO collAnd collOr rrAnds rrOrs e1 e2
-	nSimp (Or  e1 e2) =
-	    -- (x && y && z) || !y  -->  (x && z) || !y
-	    simpAO collOr collAnd rrOrs rrAnds e1 e2
-	nSimp (Not e) = Not (nSimp e)
-	nSimp (If c t e) = If (nSimp c) (nSimp t) (nSimp e)
-	nSimp e = e
-	simpAO cA cO rA rO e1 e2 =
-	    let es = cA (nSimp e1) ++ cA (nSimp e2)
-		ess = map cO es
-		ess' = red S.empty [] ess
-		red remSet rss [] = reverse (map (rem remSet) rss)
-		red remSet rss ([e]:ess) = let e' = rrNot e in red (S.insert e' remSet) ([e]:rss) ess
-		red remSet rss (es:ess) = red remSet (es:rss) ess
-		rem remSet es = filter (\e -> not (S.member e remSet)) es
-	    in  rA (map rO ess')
+            -- (x || y || z) && !y  -->  (x || z) && !y
+            simpAO collAnd collOr rrAnds rrOrs e1 e2
+        nSimp (Or  e1 e2) =
+            -- (x && y && z) || !y  -->  (x && z) || !y
+            simpAO collOr collAnd rrOrs rrAnds e1 e2
+        nSimp (Not e) = Not (nSimp e)
+        nSimp (If c t e) = If (nSimp c) (nSimp t) (nSimp e)
+        nSimp e = e
+        simpAO cA cO rA rO e1 e2 =
+            let es = cA (nSimp e1) ++ cA (nSimp e2)
+                ess = map cO es
+                ess' = red S.empty [] ess
+                red remSet rss [] = reverse (map (rem remSet) rss)
+                red remSet rss ([e]:ess) = let e' = rrNot e in red (S.insert e' remSet) ([e]:rss) ess
+                red remSet rss (es:ess) = red remSet (es:rss) ess
+                rem remSet es = filter (\e -> not (S.member e remSet)) es
+            in  rA (map rO ess')
 
 -- "Advanced" simplify
 aSimplify :: (Ord a) => BoolExp a -> BoolExp a
@@ -234,29 +234,29 @@ simp bdd e =
 --  r=
     let e' = boolExpToBDD e
     in  if bddIsTrue (bddImplies bdd e') then
-	    TT
-	else if bddIsTrue (bddImplies bdd (bddNot e')) then
-	    FF
-	else
-	    red $
-	    case e of
-	    And e1 e2 ->
-		let e1' = boolExpToBDD e1
-		    e2' = boolExpToBDD e2
-		in       if implies bdd e1' e2' then simp bdd e1
-		    else if implies bdd e2' e1' then simp bdd e2
-		    else And (simp (bddAnd bdd e2') e1) (simp (bddAnd bdd e1') e2)
-	    Or  e1 e2 ->
-		let e1' = bddNot (boolExpToBDD e1)
-		    e2' = bddNot (boolExpToBDD e2)
-		in       if implies bdd e1' e2' then simp bdd e1
-		    else if implies bdd e2' e1' then simp bdd e2
-		    else Or (simp (bddAnd bdd e2') e1) (simp (bddAnd bdd e1') e2)
-	    Not e -> Not (simp bdd e)
-	    If e1 e2 e3 ->
-		let e1' = boolExpToBDD e1
-		in  If (simp bdd e1) (simp (bddAnd bdd e1') e2) (simp (bddAnd bdd (bddNot e1')) e3)
-	    e -> e
+            TT
+        else if bddIsTrue (bddImplies bdd (bddNot e')) then
+            FF
+        else
+            red $
+            case e of
+            And e1 e2 ->
+                let e1' = boolExpToBDD e1
+                    e2' = boolExpToBDD e2
+                in       if implies bdd e1' e2' then simp bdd e1
+                    else if implies bdd e2' e1' then simp bdd e2
+                    else And (simp (bddAnd bdd e2') e1) (simp (bddAnd bdd e1') e2)
+            Or  e1 e2 ->
+                let e1' = bddNot (boolExpToBDD e1)
+                    e2' = bddNot (boolExpToBDD e2)
+                in       if implies bdd e1' e2' then simp bdd e1
+                    else if implies bdd e2' e1' then simp bdd e2
+                    else Or (simp (bddAnd bdd e2') e1) (simp (bddAnd bdd e1') e2)
+            Not e -> Not (simp bdd e)
+            If e1 e2 e3 ->
+                let e1' = boolExpToBDD e1
+                in  If (simp bdd e1) (simp (bddAnd bdd e1') e2) (simp (bddAnd bdd (bddNot e1')) e3)
+            e -> e
 -- in traces (ppReadable e ++ "====>\n" ++ ppReadable r) r
 
 ------------
@@ -276,10 +276,10 @@ boolExpToBDD :: (Ord a) => BoolExp a -> BDD a
 boolExpToBDD (And e1 e2) = bddAnd (boolExpToBDD e1) (boolExpToBDD e2)
 boolExpToBDD (Or  e1 e2) = bddOr  (boolExpToBDD e1) (boolExpToBDD e2)
 boolExpToBDD (If  e1 e2 e3) =
-	let e1' = boolExpToBDD e1
-	    e2' = boolExpToBDD e2
-	    e3' = boolExpToBDD e3
-	in  (e1' `bddAnd` e2') `bddOr` (bddNot e1' `bddAnd` e3')
+        let e1' = boolExpToBDD e1
+            e2' = boolExpToBDD e2
+            e3' = boolExpToBDD e3
+        in  (e1' `bddAnd` e2') `bddOr` (bddNot e1' `bddAnd` e3')
 boolExpToBDD (Not e)     = bddNot (boolExpToBDD e)
 boolExpToBDD (Var v)     = bddVar v
 boolExpToBDD TT          = bddTrue

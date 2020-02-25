@@ -1,6 +1,6 @@
 module ErrorUtil (internalError) where
 
--- import Pretty	-- causes loops
+-- import Pretty        -- causes loops
 import System.IO(hPutStr, stderr)
 import System.IO.Unsafe(unsafePerformIO)
 import System.Exit(exitWith, ExitCode(..))

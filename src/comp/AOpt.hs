@@ -1,14 +1,14 @@
 {-# OPTIONS_GHC -fwarn-name-shadowing -fwarn-missing-signatures #-}
 
 module AOpt(aOpt,
-	    aOptBoolExpr,
-	    -- this is needed only because aOptBoolExpr only applies to Bit1
-	    aBoolSimp,
+            aOptBoolExpr,
+            -- this is needed only because aOptBoolExpr only applies to Bit1
+            aBoolSimp,
             -- used by Bluesim backend
             aExpandDynSel, aInsertCaseDef
             -- Used by SERI dump
             ,aOptAPackageLite
-	    ) where
+            ) where
 
 
 import Control.Monad.State
@@ -92,9 +92,9 @@ aOpt errh flags pkg0 = do
     let
         bflags = flagsToBFlags flags
 
-	keepF = keepFires flags -- F
-	optsch = optSched flags -- T
-	optjoin = optJoinDefs flags -- F  see comments on b1072
+        keepF = keepFires flags -- F
+        optsch = optSched flags -- T
+        optjoin = optJoinDefs flags -- F  see comments on b1072
         inlineB = inlineBool flags -- T
 
     when debug $
@@ -123,14 +123,14 @@ aOpt errh flags pkg0 = do
       traceM ("trace defs, post insert-case: " ++ ppReadable (aspkg_values pkg1B))
 
     let
-	-- There are several pass thru aExpand in this function to
+        -- There are several pass thru aExpand in this function to
         --  give better cleanup and inlining.  This is especially true
         -- after case generation since many signal disappear
         --
         -- expcheap  needed as True here to get aInsertCase to work.
         -- aExpand is needed here after scheduling tsort defs
         --
-	pkg2 = aExpand errh keepF False inlineB pkg1B
+        pkg2 = aExpand errh keepF False inlineB pkg1B
 
         ds = aspkg_values pkg2
         fb = aspkg_foreign_calls pkg2
@@ -167,7 +167,7 @@ aOpt errh flags pkg0 = do
     let ds3 = joinDefs optjoin ds2
     when debug $
       traceM ("trace defs, post joinDefs (ds3): " ++ ppReadable ds3)
-    let	pkg6 = pkg5 { aspkg_values = ds3 }
+    let pkg6 = pkg5 { aspkg_values = ds3 }
 
     --
     -- We may want to turn off optsch here, since this undoes the effect of joinDefs
@@ -197,10 +197,10 @@ flagsToBFlags flags = BFlags {
                               -- double to account for select + argument
                               -- in our mux representation
                               ao_ifmuxsize  = 2 * (optIfMuxSize flags),
-		              ao_mux        = optMux flags,       -- T
+                              ao_mux        = optMux flags,       -- T
                               ao_muxExpand  = optMuxExpand flags, -- F
-		              ao_muxconst   = optMuxConst flags,  -- T
-		              ao_bitConst   = optBitConst flags, -- F
+                              ao_muxconst   = optMuxConst flags,  -- T
+                              ao_bitConst   = optBitConst flags, -- F
                               --
                               ao_aggInline    = optAggInline flags, -- T
                               ao_keepfires    = keepFires flags, -- False
@@ -273,7 +273,7 @@ addDef d@(ADef aid t e _) = do
   let uses = (aid,0) : map (\i -> (i,1)) (aVars e)
   put s { o_defs   = d:o_defs s,
           o_defmap = M.insert aid e (o_defmap s),
-	  o_usemap = map_insertManyWith (+) uses (o_usemap s)
+          o_usemap = map_insertManyWith (+) uses (o_usemap s)
         }
 
 -- retrieve the defs (in order they were added)
@@ -361,8 +361,8 @@ expandVarRef _ e = e
 -- use map accompanying the pre-optimization defs.
 expandUniqueVarRef :: (AId -> Bool) -> (AId -> AExpr) -> AExpr -> AExpr
 expandUniqueVarRef isUnique findf e@(ASDef { ae_objid = aid })
-	| (isUnique aid) = expandUniqueVarRef isUnique findf (findf aid)
---	| otherwise = trace ("choosing not to expand " ++ ppReadable aid) $ e
+        | (isUnique aid) = expandUniqueVarRef isUnique findf (findf aid)
+--        | otherwise = trace ("choosing not to expand " ++ ppReadable aid) $ e
 expandUniqueVarRef _ _ e = e
 
 -----
@@ -374,19 +374,19 @@ aOptDefs bflgs ds fblocks ss = (evalState optf initOState)
   where optf :: O ( [ADef], [AForeignBlock], [AVInst] )
         optf = do
             --traceM ("FF " ++ ppReadable ds)
-	    setNonDefUses ss fblocks
+            setNonDefUses ss fblocks
             -- and various prim opt  aPrim (incld some flattening / joining of nested muxes
-	    mapM_ (aOptDef bflgs) ds
+            mapM_ (aOptDef bflgs) ds
             fb1 <- mapM (aOptForeignBlock bflgs) fblocks
-	    ds' <- getDefs
+            ds' <- getDefs
             when debug2 $ traceM ("trace post aoptdef in aoptDefs : " ++ ppReadable ds' )
             clearDefs
-	    setNonDefUses ss fb1
+            setNonDefUses ss fb1
             -- Do the mux optimization
-	    mapM_ (aMuxOptDef bflgs) ds'
+            mapM_ (aMuxOptDef bflgs) ds'
             fb2 <- mapM (aMuxOptForeign bflgs) fb1
             ss1 <- mapM (aOptInstDefs bflgs) ss
-	    newdefs <- getDefs
+            newdefs <- getDefs
             return (newdefs,fb2,ss1)
 
 aOptInstDefs :: BFlags -> AVInst -> O AVInst
@@ -414,18 +414,18 @@ joinDefs False ds = ds
 joinDefs True dsx = reverse (snd (foldl add (M.empty, []) dsx))
   where add :: (M.Map AExpr ADef, [ADef]) -> ADef -> (M.Map AExpr ADef,[ADef])
         add (m, ds) d@(ADef _ _ (ASInt _ _ _) _) = (m, d:ds)
-	add (m, ds) d@(ADef _ _ (ASDef _ _) _)   = (m, d:ds)
-	add (m, ds) d@(ADef _ _ (ASStr _ _ _) _) = (m, d:ds)
-	add (m, ds) d@(ADef _ _ (ASPort _ _) _)  = (m, d:ds)
-	add (m, ds) d@(ADef _ _ (ASParam _ _) _) = (m, d:ds)
-	add (m, ds) d@(ADef _ _ (ASAny _ _) _)   = (m, d:ds)
-	add (m, ds) d@(ADef ie _ e props)            =
-		case M.lookup e m of
-		Nothing
+        add (m, ds) d@(ADef _ _ (ASDef _ _) _)   = (m, d:ds)
+        add (m, ds) d@(ADef _ _ (ASStr _ _ _) _) = (m, d:ds)
+        add (m, ds) d@(ADef _ _ (ASPort _ _) _)  = (m, d:ds)
+        add (m, ds) d@(ADef _ _ (ASParam _ _) _) = (m, d:ds)
+        add (m, ds) d@(ADef _ _ (ASAny _ _) _)   = (m, d:ds)
+        add (m, ds) d@(ADef ie _ e props)            =
+                case M.lookup e m of
+                Nothing
                     | hasIdProp ie IdP_enable  -> (m, d:ds)
                     | defPropsHasNoCSE props   -> (m, d:ds)
-		    | otherwise                -> (M.insert e d m, d:ds)
-		Just (ADef i t _ p) -> -- traces ("adding simple assignment: " ++ ppReadable (ie,i)) $
+                    | otherwise                -> (M.insert e d m, d:ds)
+                Just (ADef i t _ p) -> -- traces ("adding simple assignment: " ++ ppReadable (ie,i)) $
                                      (m, (ADef ie t (ASDef t i) p) : ds)
 
 -- if the expression is a primitive with 1-bit type, optimize it as
@@ -450,11 +450,11 @@ aOptDef bflgs def@(ADef i t rdef@(ASDef rt aid) ps) = do
     mredirect <- lookupDef aid
     -- traceM( "aoptdef redirect: " ++ ppReadable rdef)
     case (mredirect) of
-	Nothing ->
-	    internalError ("Aopt::aOptDef lookup failed: " ++ ppReadable def)
-	Just (ATaskValue {}) -> aOptDef_dflt bflgs def  -- don't redirect
-	Just (AFunCall { ae_isC = True }) -> aOptDef_dflt bflgs def  -- don't redirect
-	Just rdef_expr -> addDef (ADef i t rdef_expr ps)
+        Nothing ->
+            internalError ("Aopt::aOptDef lookup failed: " ++ ppReadable def)
+        Just (ATaskValue {}) -> aOptDef_dflt bflgs def  -- don't redirect
+        Just (AFunCall { ae_isC = True }) -> aOptDef_dflt bflgs def  -- don't redirect
+        Just rdef_expr -> addDef (ADef i t rdef_expr ps)
 aOptDef bflgs def = aOptDef_dflt bflgs def
 
 -- the default case for aOptDef (shared between the two branches above)
@@ -464,7 +464,7 @@ aOptDef_dflt bflgs def@(ADef i t e p) = do
     --when debug2 $ traceM( "aOptDef: IC: " ++ ppReadable e' )
     e'' <- aExp bflgs e
     when debug2 $ traceM( "aOptDef: " ++ ppReadable def ++
-			  "result : " ++ ppReadable e'' )
+                          "result : " ++ ppReadable e'' )
     addDef (ADef i t e'' p)
 
 aOptForeignBlock :: BFlags -> AForeignBlock -> O AForeignBlock
@@ -632,18 +632,18 @@ aPrimInsertCase stringOK findFn aid t PrimIf es@[cond, _, _]
     -- then this will be Just [(v,c), (v2,c2), ...]
     let mcs = getConsts findFn (const True) cond
         res = case mcs of
-	        -- if all the v's are the same
-	        Just cs@((v,_):_) | allSame (map fst cs) ->
-	            -- collect the ifs,
+                -- if all the v's are the same
+                Just cs@((v,_):_) | allSame (map fst cs) ->
+                    -- collect the ifs,
                     -- if there are any nested, convert to case
-	            let (ces, d) = collIf findFn v [] (APrim aid t PrimIf es)
+                    let (ces, d) = collIf findFn v [] (APrim aid t PrimIf es)
                         -- aPrim will check this again
                         -- but we do it here for the Bluesim backend
                         ces' = rmDupsInCasePairs ces
-		    in  if length ces > 1
+                    in  if length ces > 1
                         then APrim aid t PrimCase (v:d:flattenPairs ces')
-		        else APrim aid t PrimIf es
-	        _ -> APrim aid t PrimIf es
+                        else APrim aid t PrimIf es
+                _ -> APrim aid t PrimIf es
     in  tracep debug2 ("aPrimInsertCase: " ++ ppReadable es) $
         tracep debug2 ("aPrimInsertCase: result: " ++ ppReadable res) $
         res
@@ -670,18 +670,18 @@ aExp bflags etop@(ASDef t aid) =
        let e = fromMaybe (internalError("AOpt::aExp ADef lookup failed " ++ ppReadable aid)) mexpr
            aggInline = ao_aggInline bflags
        return $
-	 case (aggInline, e ) of
-	   (True,  el@(APrim _ _ PrimExtract [ _, (ASInt {} ), (ASInt {} ) ]))
-	                                -> el
-	   (True,  el@(AMethValue {} )) -> el
-	   (True,  el@(ASPort {} ))     -> el
-	   (True,  el@(ASParam {} ))    -> el
-	   (True,  el@(ASDef {} ))      -> el
-	   (_,     el@(ASInt {} ))      -> el
-	   (_,     el@(ASStr {} ))      -> el
-	   -- Do not inline in other cases.
-	   -- In particular, ATaskValue must stay toplevel,
-	   -- with the same def name.
+         case (aggInline, e ) of
+           (True,  el@(APrim _ _ PrimExtract [ _, (ASInt {} ), (ASInt {} ) ]))
+                                        -> el
+           (True,  el@(AMethValue {} )) -> el
+           (True,  el@(ASPort {} ))     -> el
+           (True,  el@(ASParam {} ))    -> el
+           (True,  el@(ASDef {} ))      -> el
+           (_,     el@(ASInt {} ))      -> el
+           (_,     el@(ASStr {} ))      -> el
+           -- Do not inline in other cases.
+           -- In particular, ATaskValue must stay toplevel,
+           -- with the same def name.
            _                            -> etop
 
 aExp bflags etop@(ASPort t aid)  = -- port can be constant,  check here
@@ -755,28 +755,28 @@ aPrim bflags aid t PrimIf [cnd, x, y]  | ao_ifmux bflags && not (isStringType t)
     findD <- findDef
     findU <- findUse
     let -- if inlining reveals an expression that's a mux return it, else
-	-- returns the original expression
+        -- returns the original expression
         usePrimPri = ao_ifsToPrimPri bflags
         op = if (usePrimPri) then PrimPriMux else PrimMux
         --
         inlineMux :: AExpr -> O AExpr
-	inlineMux e@(ASDef { }) = do
+        inlineMux e@(ASDef { }) = do
             let e' = (expandUniqueVarRef findU findD e)
-	    case (e') of
-	      (APrim _ _ opx es) | opx == op &&
+            case (e') of
+              (APrim _ _ opx es) | opx == op &&
                                    genericLength es < muxSize -> return e'
-	      _ -> return e
-	inlineMux e = return e
+              _ -> return e
+        inlineMux e = return e
         --
     x' <- inlineMux x
     y' <- inlineMux y
     let notc' = aNot c'
         otherCond = if ( usePrimPri) then aTrue else notc'
-	-- if the underlying expression is a mux, join them
+        -- if the underlying expression is a mux, join them
         addToMux :: AExpr -> AExpr -> [AExpr]
-	addToMux c (APrim _ _ opx es) | opx == op =
-	    flattenPairs $ nubByFst (mapFst (aAnd c) (makePairs es))
-	addToMux c e = [c, e]
+        addToMux c (APrim _ _ opx es) | opx == op =
+            flattenPairs $ nubByFst (mapFst (aAnd c) (makePairs es))
+        addToMux c e = [c, e]
     let es' = addToMux c' x' ++ addToMux otherCond y'
     when debug2 $ traceM("optIfMux size: " ++ show (length es'))
     aPrim bflags aid t op es'
@@ -827,14 +827,14 @@ aPrim bflags aid t@(ATBit n) p exs
     | ao_bitConst bflags &&  bitwise p && any isInt exs = do
     -- trace (ppReadable (APrim _ t p es)) $ return ()
     let mkBit (ASInt _ _ (IntLit { ilValue = i })) =
-		return (integerToAExprs n i) -- fast special case
-	mkBit e = do
-	    e' <- mkDefS e
-	    getf <- findDef
-	    let err = internalError "AOpt.aPrim.mkBit"
+                return (integerToAExprs n i) -- fast special case
+        mkBit e = do
+            e' <- mkDefS e
+            getf <- findDef
+            let err = internalError "AOpt.aPrim.mkBit"
                 e'' = APrim aid err PrimConcat (aFlattenConc True getf e')
-	    return [ aSelect e'' i 1 | i <- [n-1,n-2..0] ]
-	mkCol es = aPrimBool aid aTBool (boolOp p) es
+            return [ aSelect e'' i 1 | i <- [n-1,n-2..0] ]
+        mkCol es = aPrimBool aid aTBool (boolOp p) es
     ess <- mapM mkBit exs
     aPrim bflags aid t PrimConcat (map mkCol (transpose ess))
 
@@ -973,26 +973,26 @@ aBool b = aSBool b
 -- before mapping aOptDef.
 --
 collIf :: (AId -> AExpr) -> AExpr -> [(AExpr, AExpr)] -> AExpr ->
-	  ([(AExpr, AExpr)], AExpr)
+          ([(AExpr, AExpr)], AExpr)
 collIf findf v ces d =
     let -- this is either the original expr or an expanded variable ref
-	d' = expandVarRef findf d
+        d' = expandVarRef findf d
     in
-	case (collIfPrim findf v ces d') of
-	    Just res -> res
-	    Nothing  -> (reverse ces, d)
+        case (collIfPrim findf v ces d') of
+            Just res -> res
+            Nothing  -> (reverse ces, d)
 
 -- This does the real work.
 -- It returns (Just result) if optimization was possible
 collIfPrim :: (AId -> AExpr) -> AExpr -> [(AExpr, AExpr)] -> AExpr -> Maybe ([(AExpr, AExpr)], AExpr)
 collIfPrim findf v ces (APrim _ _ PrimIf [_, t, e]) | t == e =
-	Just $ collIf findf v ces t
+        Just $ collIf findf v ces t
 collIfPrim findf v ces (APrim _ _ PrimIf [cond, t, e]) | me /= Nothing =
-	Just $ collIf findf v (zip (map snd cs) (repeat t) ++ ces) e
+        Just $ collIf findf v (zip (map snd cs) (repeat t) ++ ces) e
   where me = getConsts findf (== v) cond
-	Just cs = me
+        Just cs = me
 collIfPrim findf v ces (APrim _ _ PrimCase (v':d:ces')) | v == v' =
-	Just (reverse ces ++ makePairs ces', d)
+        Just (reverse ces ++ makePairs ces', d)
 collIfPrim _ _ ces d = Nothing
 
 
@@ -1021,13 +1021,13 @@ integerToAExprs n i = map (aSBool . (== 1)) (integerToBits n i)
 -- (cmuxo is the optMuxConst flag)
 aFlattenConc :: Bool -> (AId -> AExpr) -> AExpr -> [AExpr]
 aFlattenConc cmuxo getf ex = flatConc ex
-  where	flatConc e@(ASDef _ i) =
-	    case getf i of
-	    APrim _ _ PrimConcat es -> concatMap flatConc es
-	    _ -> [e]
-	flatConc (APrim _ _ PrimConcat es) = concatMap flatConc es
-	flatConc (ASInt _ (ATBit n) (IntLit { ilValue = i })) | cmuxo = integerToAExprs n i
-	flatConc e = [e]
+  where flatConc e@(ASDef _ i) =
+            case getf i of
+            APrim _ _ PrimConcat es -> concatMap flatConc es
+            _ -> [e]
+        flatConc (APrim _ _ PrimConcat es) = concatMap flatConc es
+        flatConc (ASInt _ (ATBit n) (IntLit { ilValue = i })) | cmuxo = integerToAExprs n i
+        flatConc e = [e]
 
 
 ---
@@ -1072,32 +1072,32 @@ complete t@(ATBit nx) d cepairs =
       step :: Integer -> [(AExpr, AExpr)] -> [(AExpr, AExpr)]
       step n [] | n >= maxlen  = []
       step n _ | n >= maxlen = internalError ("AOpt::complete::step: " ++
-					      "arm out of range: " ++
+                                              "arm out of range: " ++
                                               ppReadable (n, maxlen));
       step n (ce@(ASInt _ _ (IntLit { ilValue = i }), e) : ces)
-	  | (n == i)  = ce : step (n+1) ces
-	  | (n > i)   = internalError ("AOpt::complete::step: " ++
-				       "duplicate arms: " ++
-				       ppReadable (n,i) ++
+          | (n == i)  = ce : step (n+1) ces
+          | (n > i)   = internalError ("AOpt::complete::step: " ++
+                                       "duplicate arms: " ++
+                                       ppReadable (n,i) ++
                                        ppReadable cepairs)
       step n ces =
-	  let new_c = (ASInt defaultAId t (ilDec n)) -- XXX size the literal?
-	  in  (new_c, d) : step (n+1) ces
+          let new_c = (ASInt defaultAId t (ilDec n)) -- XXX size the literal?
+          in  (new_c, d) : step (n+1) ces
 
   in
      if -- there's only one arm missing
         (len == maxlen - 1) ||
-	-- or there's less than a third missing,
-	( (maxlen - len <= maxlen `div` 3) &&
-	  -- and it's an inlineable expression
-	  (isASimple d) &&
-	  -- and the case isn't too large
-	  (maxlen < 8) )
+        -- or there's less than a third missing,
+        ( (maxlen - len <= maxlen `div` 3) &&
+          -- and it's an inlineable expression
+          (isASimple d) &&
+          -- and the case isn't too large
+          (maxlen < 8) )
      then
-	 -- then fill in the missing arm(s)
-	 step 0 sortedPairs
+         -- then fill in the missing arm(s)
+         step 0 sortedPairs
      else
-	 sortedPairs
+         sortedPairs
 
 complete _ _ _ = internalError( "AOpt::complete" )
 
@@ -1240,74 +1240,74 @@ muxOpt bflgs aidx dty op esIn | ao_muxExpand bflgs  = do
     --
     ess <- mapM (mapM mkDefS) (map (aFlattenConc cmuxo getf) asIn)
     let
-	-- Concatenations are broken apart to mux the separate pieces?
+        -- Concatenations are broken apart to mux the separate pieces?
         -- For Strings, the aSize function returns string size *8 which is bad in this case
         -- szs represents all the break points for the various c exprs which are concats.
-	-- for each "es" in "ess" (corresponding to the pieces concatenated
-	-- to form the value for one branch),
-	--   * get the size of each piece
-	--   * produce the list of indices for the start of each piece:
-	--     given the lengths [1,2,3] produces [6,5,3,0]
-	-- from these lengths, one ordered list of all indices is made
-	-- (indicating each location where a concat on some branch starts)
+        -- for each "es" in "ess" (corresponding to the pieces concatenated
+        -- to form the value for one branch),
+        --   * get the size of each piece
+        --   * produce the list of indices for the start of each piece:
+        --     given the lengths [1,2,3] produces [6,5,3,0]
+        -- from these lengths, one ordered list of all indices is made
+        -- (indicating each location where a concat on some branch starts)
         --
         szs = (remOrdDup . sort . concatMap (scanr (+) 0 . map aSize)) ess
-	-- XXX need to CSE expressions that are split
+        -- XXX need to CSE expressions that are split
     let
-	-- lists of the concatenated pieces for each branch of the mux
-	ess' = map (reverse . splitEs 0 szs . reverse) ess
- 	-- to turn mux of concats into a concat of muxes, transpose the
-	-- list into lists for each mux containing the same segment from
-	-- each value
-	tess = transpose ess'
+        -- lists of the concatenated pieces for each branch of the mux
+        ess' = map (reverse . splitEs 0 szs . reverse) ess
+         -- to turn mux of concats into a concat of muxes, transpose the
+        -- list into lists for each mux containing the same segment from
+        -- each value
+        tess = transpose ess'
     let
-	mxs = map (mux psIn) tess
-	mux :: [AExpr] -> [AExpr] -> AExpr
-	mux pxs exs@(ex:_) = mux' [] pxs exs
-	    where mux' :: [(AExpr,AExpr)] -> [AExpr]  -> [AExpr] -> AExpr
+        mxs = map (mux psIn) tess
+        mux :: [AExpr] -> [AExpr] -> AExpr
+        mux pxs exs@(ex:_) = mux' [] pxs exs
+            where mux' :: [(AExpr,AExpr)] -> [AExpr]  -> [AExpr] -> AExpr
                   mux' xs [] []                     = aMakeMux aidx t op (reverse xs)
-		  mux' xs (_:ps) ((ASAny _ _) : es) = mux' xs ps es
-		  mux' xs (p:ps) (e:es)             = mux' ((p,e):xs) ps es
+                  mux' xs (_:ps) ((ASAny _ _) : es) = mux' xs ps es
+                  mux' xs (p:ps) (e:es)             = mux' ((p,e):xs) ps es
                   mux' xs ps es                     = internalError( "AOpt::mux' " ++ ppReadable (xs,ps,es) )
                   -- list ps and es must be same size
-		  t = aType ex
+                  t = aType ex
         mux _ _  = internalError( "AOpt::mux" )
     let
-	jms = joinMuxes mxs
+        jms = joinMuxes mxs
         joinMuxes :: [AExpr] -> [AExpr]
-	joinMuxes (m:m':ms) =
-	    case join2 m m' of
-	    Nothing  -> m : joinMuxes (m':ms)
-	    Just m'' -> joinMuxes (m'':ms)
-	joinMuxes ms = ms
-	join2 (APrim aid ty p pes) (APrim _ _ p' pes') | length pes == length pes'
-				&& p == p' && (p == PrimMux || p == PrimPriMux) = do
-	    pes'' <- joinpes pes pes'
-	    return (APrim aid (aType (pes''!!1)) p pes'')
+        joinMuxes (m:m':ms) =
+            case join2 m m' of
+            Nothing  -> m : joinMuxes (m':ms)
+            Just m'' -> joinMuxes (m'':ms)
+        joinMuxes ms = ms
+        join2 (APrim aid ty p pes) (APrim _ _ p' pes') | length pes == length pes'
+                                && p == p' && (p == PrimMux || p == PrimPriMux) = do
+            pes'' <- joinpes pes pes'
+            return (APrim aid (aType (pes''!!1)) p pes'')
 {-
 -- XXX why is this commented out?  it looks like a good optimization!
-	join2 (APrim _ ty PrimIf [c,t,e]) (APrim _ _ PrimIf [c',t',e']) | c == c' = do
-	    let t'' = aConcat [t, t']
-	        e'' = aConcat [e, e']
-	    return (APrim _ (aType t'') PrimIf [c,t'',e''])
+        join2 (APrim _ ty PrimIf [c,t,e]) (APrim _ _ PrimIf [c',t',e']) | c == c' = do
+            let t'' = aConcat [t, t']
+                e'' = aConcat [e, e']
+            return (APrim _ (aType t'') PrimIf [c,t'',e''])
 -}
-	join2 _ _ = Nothing
-	joinpes (p:e:pes) (p':e':pes') =
-	    if p == p' then do
-		pes'' <- joinpes pes pes'
-		return (p:(aConcat [e, e']):pes'')
-	    else
-		Nothing
-	joinpes [] [] = return []
-	joinpes xs ys = internalError ("joinpes " ++ ppReadable (xs, ys))
+        join2 _ _ = Nothing
+        joinpes (p:e:pes) (p':e':pes') =
+            if p == p' then do
+                pes'' <- joinpes pes pes'
+                return (p:(aConcat [e, e']):pes'')
+            else
+                Nothing
+        joinpes [] [] = return []
+        joinpes xs ys = internalError ("joinpes " ++ ppReadable (xs, ys))
 --        trace (ppReadable d ++ ppReadable ess
 --                ++ ppReadable (concatMap concat dsss)
 --                ++ ppReadable szs ++ ppReadable ess'
 --                ++ ppReadable tess ++ ppReadable ps ++ ppReadable ms ++ ppReadable d')
-	aOptMuxSel :: AExpr -> AExpr
-	aOptMuxSel (APrim aid t p pes) | p == PrimMux || p == PrimPriMux =
-		APrim aid t p (flattenPairs (mapFst aBoolSimp (makePairs pes)))
-	aOptMuxSel _ = internalError "aOptMuxSel"
+        aOptMuxSel :: AExpr -> AExpr
+        aOptMuxSel (APrim aid t p pes) | p == PrimMux || p == PrimPriMux =
+                APrim aid t p (flattenPairs (mapFst aBoolSimp (makePairs pes)))
+        aOptMuxSel _ = internalError "aOptMuxSel"
         result = aConcat (map (aTransAndOrMux . aTransMux . aOptMuxSel) jms)
     --
     when debug2 $ traceM ("muxOpt result:" ++ ppReadable result)
@@ -1328,33 +1328,33 @@ muxOpt _ aid _ _ _ = internalError ("AOpt::muxOpt unexpected" ++ ppReadable aid)
 --            "e" is the piece to start chewing on
 splitEs :: Integer -> [Integer] -> [AExpr] -> [AExpr]
 splitEs offs (l:ss@(h:_)) (e:es) =
-	    let
-		-- the size of the next piece
-		s = aSize e
-		-- the distance from the current index to the next index
-		d = h - l
-	    in
-		-- if the amount chewed from "e" so far plus the distance
-		-- to go is exactly the size of the "e" ...
-		if offs + d == s then
-		    -- then if the amount chewed is 0, just output "e".
-		    -- otherwise, select the portion remaining from "e".
-		    -- in either case, continue chewing on "es" starting
-		    -- with the next index ("ss") and reset offset back to 0
-		    if offs == 0 then
-		        e : splitEs 0 ss es
-		    else
-		        aSelect e offs d : splitEs 0 ss es
-		else
-		    -- otherwise, it must be less than "s", because we
-		    -- know that the sizes list contains an index for
-		    -- end of every "e". so...
-		    -- select the next distance from "e" and
-		    -- continue with the next index, incrementing the
-		    -- offset by "d", and still chewing on "e"
-		    aSelect e offs d : splitEs (offs+d) ss (e : es)
-	-- if "es" is empty, or if the index list is 1 elem or less,
-	-- return nothing
+            let
+                -- the size of the next piece
+                s = aSize e
+                -- the distance from the current index to the next index
+                d = h - l
+            in
+                -- if the amount chewed from "e" so far plus the distance
+                -- to go is exactly the size of the "e" ...
+                if offs + d == s then
+                    -- then if the amount chewed is 0, just output "e".
+                    -- otherwise, select the portion remaining from "e".
+                    -- in either case, continue chewing on "es" starting
+                    -- with the next index ("ss") and reset offset back to 0
+                    if offs == 0 then
+                        e : splitEs 0 ss es
+                    else
+                        aSelect e offs d : splitEs 0 ss es
+                else
+                    -- otherwise, it must be less than "s", because we
+                    -- know that the sizes list contains an index for
+                    -- end of every "e". so...
+                    -- select the next distance from "e" and
+                    -- continue with the next index, incrementing the
+                    -- offset by "d", and still chewing on "e"
+                    aSelect e offs d : splitEs (offs+d) ss (e : es)
+        -- if "es" is empty, or if the index list is 1 elem or less,
+        -- return nothing
 splitEs _ _ _ = []
 
 -- Given a list of expressions to be concatenated (args to PrimConcat),
@@ -1369,70 +1369,70 @@ splitEs _ _ _ = []
 aConcat :: [AExpr] -> AExpr
 aConcat exs =
     let joinPairs :: [AExpr] -> [AExpr]
-	joinPairs ((APrim aid _ PrimExtract
-			[e,  ASInt _ _ (IntLit _ _ hi), ASInt _ _ (IntLit _ _ lo) ]) :
-	           (APrim aid' _ PrimExtract
-			[e', ASInt _ _ (IntLit _ _ hi'), ASInt _ _ (IntLit _ _ lo')]) :
-		as) | e == e' && lo == hi' + 1 =
-			joinPairs (aExtract e hi lo' : as)
-	joinPairs ((ASInt aid (ATBit s) (IntLit _ b i)) : (ASInt aid' (ATBit s') (IntLit _ _ i')) : as) =
+        joinPairs ((APrim aid _ PrimExtract
+                        [e,  ASInt _ _ (IntLit _ _ hi), ASInt _ _ (IntLit _ _ lo) ]) :
+                   (APrim aid' _ PrimExtract
+                        [e', ASInt _ _ (IntLit _ _ hi'), ASInt _ _ (IntLit _ _ lo')]) :
+                as) | e == e' && lo == hi' + 1 =
+                        joinPairs (aExtract e hi lo' : as)
+        joinPairs ((ASInt aid (ATBit s) (IntLit _ b i)) : (ASInt aid' (ATBit s') (IntLit _ _ i')) : as) =
                         -- XXX the literal has no width
-			joinPairs ((ASInt aid (ATBit (s+s')) (IntLit Nothing b (i*2^s' + i'))) : as)
-	joinPairs (a:as) = a : joinPairs as
-	joinPairs [] = []
-	flat (APrim _ _ PrimConcat es) = concatMap flat es
-	flat e = [e]
+                        joinPairs ((ASInt aid (ATBit (s+s')) (IntLit Nothing b (i*2^s' + i'))) : as)
+        joinPairs (a:as) = a : joinPairs as
+        joinPairs [] = []
+        flat (APrim _ _ PrimConcat es) = concatMap flat es
+        flat e = [e]
     in  case joinPairs (concatMap flat exs) of
-	[e] -> e
-	es -> APrim defaultAId (ATBit (sum (map aSize es))) PrimConcat es
+        [e] -> e
+        es -> APrim defaultAId (ATBit (sum (map aSize es))) PrimConcat es
 
 aSelect :: AExpr -> Integer -> Integer -> AExpr
 aSelect (ASAny _ _) _ d = ASAny (ATBit d) Nothing
 aSelect (ASInt aid _ (IntLit w b i)) offs d =
-	ASInt aid (ATBit d) (IntLit Nothing b (integerSelect d offs i))
+        ASInt aid (ATBit d) (IntLit Nothing b (integerSelect d offs i))
 aSelect (APrim aid _ PrimExtract [e, (ASInt _ _ _), ASInt _ _ (IntLit _ _ lo)]) offs d =
-	APrim aid (ATBit d) PrimExtract [e, aNat (offs+d-1+lo), aNat (offs+lo)]
+        APrim aid (ATBit d) PrimExtract [e, aNat (offs+d-1+lo), aNat (offs+lo)]
 aSelect e0@(APrim aid _ PrimConcat exs) offs dx =
     let (es', offs') = chopL (reverse exs) offs
-			where chopL (e:es) o | s <= o = chopL es (o-s) where s = aSize e
-			      chopL es o = (es, o)
-	es'' = chopH es' (dx+offs')
-			where chopH (e:es) d | d > 0 = e : chopH es (d - aSize e)
-			      chopH _ _ = []
+                        where chopL (e:es) o | s <= o = chopL es (o-s) where s = aSize e
+                              chopL es o = (es, o)
+        es'' = chopH es' (dx+offs')
+                        where chopH (e:es) d | d > 0 = e : chopH es (d - aSize e)
+                              chopH _ _ = []
     in  case reverse es'' of
-	[] -> internalError ("aSelect PrimConcat " ++ ppReadable (e0, offs, dx))
-	[e] -> aSelect e offs' dx
-	ses ->	let ce = APrim aid (ATBit (sum (map aSize ses))) PrimConcat ses
-		in APrim aid (ATBit dx) PrimExtract [ce, aNat (offs'+dx-1), aNat offs']
+        [] -> internalError ("aSelect PrimConcat " ++ ppReadable (e0, offs, dx))
+        [e] -> aSelect e offs' dx
+        ses ->        let ce = APrim aid (ATBit (sum (map aSize ses))) PrimConcat ses
+                in APrim aid (ATBit dx) PrimExtract [ce, aNat (offs'+dx-1), aNat offs']
 
 aSelect e offs d = APrim defaultAId (ATBit d) PrimExtract [e, aNat (offs+d-1), aNat offs]
 
 aExtract :: AExpr -> Integer -> Integer -> AExpr
 aExtract e hi 0 | hi+1 == aSize e = e
 aExtract e hi lo =
-	APrim
-	    defaultAId
-	    (ATBit (hi-lo+1))
-	    PrimExtract [e, aNat hi, aNat lo]
+        APrim
+            defaultAId
+            (ATBit (hi-lo+1))
+            PrimExtract [e, aNat hi, aNat lo]
 
 ------------
 
 aMakeMux :: AId -> AType -> PrimOp -> [(AExpr, AExpr)] -> AExpr
 aMakeMux aid t op pexs =
     let pexs' = joinEq (if op == PrimMux then partition else span) pexs
-	joinEq f [] = []
-	joinEq f ((p,e):pes) =
-	    let (xs, pes') = f (aEqual e . snd) pes
-	    in  (aOrs (p : map fst xs), e) : joinEq f pes'
+        joinEq f [] = []
+        joinEq f ((p,e):pes) =
+            let (xs, pes') = f (aEqual e . snd) pes
+            in  (aOrs (p : map fst xs), e) : joinEq f pes'
         aEqual :: AExpr -> AExpr -> Bool
-	aEqual (ASInt _ _ (IntLit _ _ i)) (ASInt _ _ (IntLit _ _ i')) = i == i'
-	aEqual e e' = e == e'
+        aEqual (ASInt _ _ (IntLit _ _ i)) (ASInt _ _ (IntLit _ _ i')) = i == i'
+        aEqual e e' = e == e'
     in  APrim aid t op (flattenPairs pexs')
 
 aIf :: AType -> AExpr -> AExpr -> AExpr -> AExpr
 aIf ty c (ASInt _ _ (IntLit _ _ 1)) (ASInt _ _ (IntLit _ _ 0)) = aZeroExt ty c
 aIf ty c (ASInt _ _ (IntLit _ _ 0)) (ASInt _ _ (IntLit _ _ 1)) =
-	aZeroExt ty (aBoolSimp (APrim dummy_id aTBool PrimBNot [c]))
+        aZeroExt ty (aBoolSimp (APrim dummy_id aTBool PrimBNot [c]))
 aIf ty@(ATBit 1) c t e = aBoolSimp (APrim dummy_id ty PrimIf [c, t, e])
 aIf ty c t e = APrim dummy_id ty PrimIf [c, t, e]
 
@@ -1440,8 +1440,8 @@ aIf ty c t e = APrim dummy_id ty PrimIf [c, t, e]
 aZeroExt :: AType -> AExpr -> AExpr
 aZeroExt (ATBit 1) e = e
 aZeroExt ty@(ATBit sz) e = APrim dummy_id ty PrimConcat
-		[ASInt defaultAId
-			(ATBit (sz-1)) (ilDec 0), e]
+                [ASInt defaultAId
+                        (ATBit (sz-1)) (ilDec 0), e]
 aZeroExt _ _ = internalError( "AOpt::aZeroExt" )
 
 -- This is only called by muxOpt, which only optimizes PrimMux and PrimPriMux
@@ -1449,9 +1449,9 @@ aTransMux :: AExpr -> AExpr
 aTransMux (APrim _ t _ []) = ASAny t Nothing -- ok for both types
 aTransMux (APrim _ _ _ [_, e]) = e     -- ok for both types
 aTransMux (APrim aid t PrimMux [p1, e1, p2, e2]) =
-	if isASimple p2 && not (isASimple p1)
-		then aIf t p2 e2 e1
-		else aIf t p1 e1 e2
+        if isASimple p2 && not (isASimple p1)
+                then aIf t p2 e2 e1
+                else aIf t p1 e1 e2
 aTransMux (APrim aid t PrimPriMux [p1, e1, p2, e2]) = aIf t p1 e1 e2
 aTransMux e@(APrim {}) = e
 aTransMux _ = internalError( "AOpt::aTransMux" )
@@ -1460,13 +1460,13 @@ aTransAndOrMux :: AExpr -> AExpr
 aTransAndOrMux (APrim aid t PrimMux pes) =
     -- all inputs that are 0 can be removed from an AND/OR mux
     let pes' = filter (isNonZero . snd) (makePairs pes)
-	isNonZero (ASInt _ _ (IntLit _ _ 0)) = False
-	isNonZero _ = True
+        isNonZero (ASInt _ _ (IntLit _ _ 0)) = False
+        isNonZero _ = True
     in  if t == aTBool then
-	    -- turn a boolean mux into the corresponding expression.
-	    aBoolSimp (APrim aid t PrimBOr [ APrim aid t PrimBAnd [p, e] | (p, e) <- pes' ])
-	else
-	    APrim aid t PrimMux (flattenPairs pes')
+            -- turn a boolean mux into the corresponding expression.
+            aBoolSimp (APrim aid t PrimBOr [ APrim aid t PrimBAnd [p, e] | (p, e) <- pes' ])
+        else
+            APrim aid t PrimMux (flattenPairs pes')
 aTransAndOrMux e = e
 
 ------------
@@ -1484,17 +1484,17 @@ aBoolSimp e =
 -- a quick and dirty optimization of or-and expressions that are generated for the scheduler
 aOrAnd :: AExpr -> AExpr
 aOrAnd e@(APrim _ t PrimOr es@(_:_)) =
-	let es' = map (S.fromList . getOp PrimBAnd) es
-	    common = foldr1 S.intersect es'
-	    es'' = map (mkAnd . S.toList . (`S.minus` common)) es'
-	    mkAnd :: [AExpr] -> AExpr
-	    mkAnd [] = aBool True
-	    mkAnd [e] = e
-	    mkAnd es = APrim _ aTBool PrimBAnd es
-	in  if S.null common then
-		e
-	    else
-		APrim _ aTBool PrimBAnd (APrim _ aTBool PrimBOr es'') : S.toList common
+        let es' = map (S.fromList . getOp PrimBAnd) es
+            common = foldr1 S.intersect es'
+            es'' = map (mkAnd . S.toList . (`S.minus` common)) es'
+            mkAnd :: [AExpr] -> AExpr
+            mkAnd [] = aBool True
+            mkAnd [e] = e
+            mkAnd es = APrim _ aTBool PrimBAnd es
+        in  if S.null common then
+                e
+            else
+                APrim _ aTBool PrimBAnd (APrim _ aTBool PrimBOr es'') : S.toList common
 aOrAnd e = e
 
 aOrAndS e = e
@@ -1502,7 +1502,7 @@ aOrAndS e = e
 
 optXor :: AExpr -> AExpr
 optXor (APrim _ t PrimXor [ASInt aid _ (IntLit _ _ x), ASInt _ _ (IntLit _ _ y)]) =
-	ASInt aid t (ilSizedBin 1 ((x+y)`mod`2))
+        ASInt aid t (ilSizedBin 1 ((x+y)`mod`2))
 optXor (APrim _ t PrimXor [ASInt _ _ (IntLit _ _ 0), y]) = y
 optXor (APrim aid t PrimXor [ASInt _ _ (IntLit _ _ 1), y]) = aNotLabel aid y
 optXor (APrim _ t PrimXor [x, ASInt _ _ (IntLit _ _ 0)]) = x
@@ -1523,10 +1523,10 @@ toBE e = Var e
 fromBE :: BoolExp AExpr -> AExpr
 fromBE (And b1 b2) = APrim defaultAId aTBool PrimBAnd
                            (getOp PrimBAnd (fromBE b1) ++
-		            getOp PrimBAnd (fromBE b2))
+                            getOp PrimBAnd (fromBE b2))
 fromBE (Or  b1 b2) = APrim defaultAId aTBool PrimBOr
                            (getOp PrimBOr  (fromBE b1) ++
-		            getOp PrimBOr  (fromBE b2))
+                            getOp PrimBOr  (fromBE b2))
 fromBE (Not b) = APrim defaultAId aTBool PrimBNot [fromBE b]
 fromBE (If c t e) = APrim defaultAId aTBool PrimIf [fromBE c, fromBE t, fromBE e]
 fromBE (Var e) = e

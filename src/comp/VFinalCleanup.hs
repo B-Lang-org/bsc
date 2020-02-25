@@ -28,12 +28,12 @@ import BackendNamingConventions(createVerilogNameMapForAVInst)
 -- all the submodule's ports to the connected list.
 
 data ConnState = ConnState {
-	             visited_wires :: S.Set AId,  -- marking for visited nodes
-		     visited_insts :: S.Set AId,
-		     defs          :: M.Map AId ADef,
-		     instances     :: M.Map AId AVInst,  -- instances from the package
+                     visited_wires :: S.Set AId,  -- marking for visited nodes
+                     visited_insts :: S.Set AId,
+                     defs          :: M.Map AId ADef,
+                     instances     :: M.Map AId AVInst,  -- instances from the package
                      flags         :: Flags
-		 }
+                 }
 
 -- ==============================
 
@@ -60,18 +60,18 @@ removeUnusedInsts :: Flags -> ASPackage -> ASPackage
 removeUnusedInsts flags package =
     package { aspkg_state_instances = ss'',
               aspkg_state_outputs = sos',
-	      aspkg_values = ds' }
+              aspkg_values = ds' }
     where
           keepInlinedMods = keepInlined flags
-	  ds = aspkg_values package
-	  ss = aspkg_state_instances package
-	  sos = aspkg_state_outputs package
+          ds = aspkg_values package
+          ss = aspkg_state_instances package
+          sos = aspkg_state_outputs package
 
-	  os = aspkg_outputs package
-	  ios = aspkg_inouts package
-	  fs = aspkg_foreign_calls package
+          os = aspkg_outputs package
+          ios = aspkg_inouts package
+          fs = aspkg_foreign_calls package
 
-	  (cdefs,cinsts) = -- traces("conn outputs is: " ++ ppReadable markedConn) $
+          (cdefs,cinsts) = -- traces("conn outputs is: " ++ ppReadable markedConn) $
                            -- traces("conn pacakge: " ++ ppReadable package ) $
                            connectedNode flags markedConn ss ds
           ds' = filter isDefUsed ds
@@ -82,27 +82,27 @@ removeUnusedInsts flags package =
                  else ss
           isModuleUsed :: AVInst -> Bool
           isModuleUsed inst = S.member (avi_vname inst) cinsts
-	  sos' = if (removeUnusedMods flags)
-		 then filter isPortOfConnectedInst sos
-		 else sos
-	  isPortOfConnectedInst (i,_) =
-	      -- XXX This uses a hack (getRootName) to get the instance name
-	      (getRootName i) `S.member` (S.map (getIdString) cinsts)
+          sos' = if (removeUnusedMods flags)
+                 then filter isPortOfConnectedInst sos
+                 else sos
+          isPortOfConnectedInst (i,_) =
+              -- XXX This uses a hack (getRootName) to get the instance name
+              (getRootName i) `S.member` (S.map (getIdString) cinsts)
 
-	  -- started with the outputs, any kept firing signals, any kept
-	  -- instances, and the wires used in foreign function calls
+          -- started with the outputs, any kept firing signals, any kept
+          -- instances, and the wires used in foreign function calls
           avdefs = concat [afc_writes fc | (_,fcs) <- fs, fc <- fcs]
           markedConn :: [AId]
           markedConn = (map fst os) ++ (map fst ios) ++
-		       fires ++ instconn ++
+                       fires ++ instconn ++
                        aVars fs ++ avdefs ++
                        inlinedports ++ keepEvenUnused
           instconn   = if (removeUnusedMods flags)
-		       then []
-		       else concatMap (getPortIdsFromInst flags) ss
+                       then []
+                       else concatMap (getPortIdsFromInst flags) ss
           fires = if (keepFires flags)
-		  then [i | def@(ADef i t e _) <- ds, isFire i ]
-		  else []
+                  then [i | def@(ADef i t e _) <- ds, isFire i ]
+                  else []
           inlinedports = if (keepInlinedMods)
                          then aspkg_inlined_ports package
                          else []
@@ -153,11 +153,11 @@ handleInst cstate instId = handleInst2 rootId
 -- Get AIds from an instance, ports plus clock and reset
 getPortIdsFromInst :: Flags -> AVInst -> [AId]
 getPortIdsFromInst flags inst =
-	cr ++ portids
+        cr ++ portids
     where
-	cr = aVars inst
-	(_,ports) = unzip $ createVerilogNameMapForAVInst flags inst
-	portids = map (\s -> mkId noPosition s) (nub (ports))
+        cr = aVars inst
+        (_,ports) = unzip $ createVerilogNameMapForAVInst flags inst
+        portids = map (\s -> mkId noPosition s) (nub (ports))
 
 -- XXX This is hack to get the instance name; need a better data model
 getRootName :: Id -> String

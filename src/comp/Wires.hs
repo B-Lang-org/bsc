@@ -6,9 +6,9 @@ module Wires(ClockId, ClockDomain(..), ResetId,
              noClockId, noClockDomain, noResetId,
              noDefaultClockId, noDefaultResetId,
              WireProps(..), emptyWireProps,
-	     writeClockDomain, readClockDomain,
-	     writeResetId, readResetId
-	     ) where
+             writeClockDomain, readClockDomain,
+             writeResetId, readResetId
+             ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
 import Prelude hiding ((<>))

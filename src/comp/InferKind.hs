@@ -18,15 +18,15 @@ import PFPrint
 inferKinds :: Id -> SymTab -> [CDefn] -> Either EMsg (M.Map Id Kind)
 inferKinds mi s ds = run $ do
     let get (Ctype ik _ _) = getIK ik
-	get (Cdata { cd_name = name }) = getIK name
-	get (Cstruct _ _ ik _ _ _) = getIK ik
-	get (Cclass _ _ ik _ _ _) = getIK ik
-	get (CItype ik _ _) = getIK ik
-	get (CIclass _ _ ik _ _ _) = getIK ik
-	get (CprimType ik) = getIK ik
-	get _ = return []
-	getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
-	getIK (IdKind i k) = return [(i, k)]
+        get (Cdata { cd_name = name }) = getIK name
+        get (Cstruct _ _ ik _ _ _) = getIK ik
+        get (Cclass _ _ ik _ _ _) = getIK ik
+        get (CItype ik _ _) = getIK ik
+        get (CIclass _ _ ik _ _ _) = getIK ik
+        get (CprimType ik) = getIK ik
+        get _ = return []
+        getIK (IdK i) = do v <- newKVar (Just i); return [(i, v)]
+        getIK (IdKind i k) = return [(i, k)]
         getIK (IdPKind i pk) = do k <- convertPKindToKind pk; return [(i, k)]
     ass <- mapM get ds
     -- assumptions about the types defined in this package
@@ -35,10 +35,10 @@ inferKinds mi s ds = run $ do
     -- and the assumps about types from imported packages (the symtab)
     -- XXX this relies on the order of M.fromList, to bias earlier pairs
     let as' = -- place these first, so that they are shadowed by
-	      -- any assumps of the same name in "as"
-	      [(i, k) | (i, TypeInfo _ k _ _) <- getAllTypes s ] ++
+              -- any assumps of the same name in "as"
+              [(i, k) | (i, TypeInfo _ k _ _) <- getAllTypes s ] ++
               as ++
-	      map (\ (n,v) -> (qualId mi n, v)) as
+              map (\ (n,v) -> (qualId mi n, v)) as
     let as_map = M.fromList as'
     mapM_ (inferKDefn as_map) ds
     s <- getKSubst
@@ -79,9 +79,9 @@ inferKDefn as (Cstruct _ _ ik vs fs _) = do
     (as', mk) <- unifyDefArgs i con_k vs
     let as'' = map_insertMany as' as
         doField field = do
-		let vs' = getFQTyVarsL (cf_type field) \\ vs
-		as''' <- mapM makeAssump vs'
-		kcCQTypeStar (map_insertMany as''' as'') (cf_type field)
+                let vs' = getFQTyVarsL (cf_type field) \\ vs
+                as''' <- mapM makeAssump vs'
+                kcCQTypeStar (map_insertMany as''' as'') (cf_type field)
     mapM_ doField fs
     unifyDefStar i con_k as' mk
 inferKDefn as (Cclass _ ps ik vs _ fs) = do
@@ -94,9 +94,9 @@ inferKDefn as (Cclass _ ps ik vs _ fs) = do
     pv_as <- mapM makeAssump pvs
     let as' = map_insertMany (v_as ++ pv_as) as
         doField field = do
-		let fvs = getFQTyVarsL (cf_type field) \\ (vs ++ pvs)
-		fv_as <- mapM makeAssump fvs
-		kcCQTypeStar (map_insertMany fv_as as') (cf_type field)
+                let fvs = getFQTyVarsL (cf_type field) \\ (vs ++ pvs)
+                fv_as <- mapM makeAssump fvs
+                kcCQTypeStar (map_insertMany fv_as as') (cf_type field)
     mapM_ doField fs
     mapM_ (inferCPred as') ps
     unifyDefStar i con_k v_as mk

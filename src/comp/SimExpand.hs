@@ -2146,7 +2146,7 @@ simExpandParams errh apkg =
         apkg' = apkg { apkg_state_instances = insts' }
 
         emsgs = concatMap (checkInstArgs port_ids) insts'
-    in	if (null emsgs)
+    in        if (null emsgs)
         then return apkg'
         else bsError errh emsgs
 

@@ -294,7 +294,7 @@ ignoreRet fc =
 -- into 32-bit storage and written back after the call.
 forReturn :: (AExpr, ForeignType) -> (ReturnStyle,Argument)
 forReturn (e,rt) | aSize e > 64 = (Pointer,  noCopy (e,rt))
-		 | isPoly rt    = (Buffered, Alloc (aSize e) True)
+                 | isPoly rt    = (Buffered, Alloc (aSize e) True)
                  | aSize e > 32 = (Buffered, Alloc (aSize e) True)
                  | aSize e > 8  = (Direct,   noCopy (e,rt))
                  | otherwise    = (Buffered, Alloc (aSize e) True)
@@ -518,24 +518,24 @@ mkImportDeclarations ff_map =
 
 toAVId :: Id -> Id
 toAVId id = case (LM.lookupBy qualEq toAVIdMap id) of
-	    Just x -> x
+            Just x -> x
             _      -> internalError $ "ForeignFunctions: (toAVId) No AVId exists for " ++ (ppReadable id)
 
 
 fromAVId :: Id -> Id
 fromAVId id = case (LM.lookupBy qualEq fromAVIdMap id) of
-	      Just x -> x
-	      _      -> internalError $ "ForeignFunctions: (fromAVId) " ++ (ppReadable id) ++ "is not an AVId"
+              Just x -> x
+              _      -> internalError $ "ForeignFunctions: (fromAVId) " ++ (ppReadable id) ++ "is not an AVId"
 
 isAVId :: Id -> Bool
 isAVId id = case (LM.lookupBy qualEq fromAVIdMap id) of
-	    Nothing -> False
-	    _       -> True
+            Nothing -> False
+            _       -> True
 
 isMappedAVId :: Id -> Bool
 isMappedAVId id = case (LM.lookupBy qualEq toAVIdMap id) of
-	    Nothing -> False
-	    _       -> True
+            Nothing -> False
+            _       -> True
 
 toAVIdMap :: [(Id, Id)]
 toAVIdMap = [ (idSWrite,  idSWriteAV)
@@ -556,19 +556,19 @@ fromAVIdMap =
 
 toDisplayId :: Id -> Id
 toDisplayId id = case (LM.lookupBy qualEq toDisplayIdMap id) of
-	    Just x -> x
+            Just x -> x
             _      -> internalError $ "ForeignFunctions: (toDisplayId) No DisplayId exists for " ++ (ppReadable id)
 
 
 fromDisplayId :: Id -> Id
 fromDisplayId id = case (LM.lookupBy qualEq fromDisplayIdMap id) of
-	      Just x -> x
-	      _      -> internalError $ "ForeignFunctions: (fromDisplayId) " ++ (ppReadable id) ++ "is not an DisplayId"
+              Just x -> x
+              _      -> internalError $ "ForeignFunctions: (fromDisplayId) " ++ (ppReadable id) ++ "is not an DisplayId"
 
 isDisplayId :: Id -> Bool
 isDisplayId id = case (LM.lookupBy qualEq fromDisplayIdMap id) of
-	    Nothing -> False
-	    _       -> True
+            Nothing -> False
+            _       -> True
 
 toDisplayIdMap :: [(Id, Id)]
 toDisplayIdMap = [ (idWrite,   idDisplay)
@@ -592,19 +592,19 @@ fromDisplayIdMap =
 
 toFileId :: Id -> Id
 toFileId id = case (LM.lookupBy qualEq toFileIdMap id) of
-	    Just x -> x
+            Just x -> x
             _      -> internalError $ "ForeignFunctions: (toFileId) No FileId exists for " ++ (ppReadable id)
 
 
 fromFileId :: Id -> Id
 fromFileId id = case (LM.lookupBy qualEq fromFileIdMap id) of
-	      Just x -> x
-	      _      -> internalError $ "ForeignFunctions: (fromFileId) " ++ (ppReadable id) ++ "is not an FileId"
+              Just x -> x
+              _      -> internalError $ "ForeignFunctions: (fromFileId) " ++ (ppReadable id) ++ "is not an FileId"
 
 isFileId :: Id -> Bool
 isFileId id = case (LM.lookupBy qualEq fromFileIdMap id) of
-	    Nothing -> False
-	    _       -> True
+            Nothing -> False
+            _       -> True
 
 toFileIdMap :: [(Id, Id)]
 toFileIdMap = [  (idWrite,   idFWrite)

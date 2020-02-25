@@ -534,7 +534,7 @@ defaultFlags bluespecdir = Flags {
         -- The ifcPath value will be produced from the raw value,
         -- by replacing the default-path token with the appropriate value
         -- once all the flag values are known, and adding bdir to the front,
-	-- in adjustFinalFlags.
+        -- in adjustFinalFlags.
         ifcPathRaw = [ defaultPathToken ],
         -- ifcPath = [],
         -- XXX this value is for properly constructing the help message
@@ -633,7 +633,7 @@ defaultFlags bluespecdir = Flags {
         -- The vPath value will be produced from the raw value,
         -- by replacing the default-path token with the appropriate value
         -- once the full ifcPath is known, and adding vdir to the front,
-	-- in adjustFinalFlags.
+        -- in adjustFinalFlags.
         vPathRaw = [ defaultPathToken ],
         vPath = [],
         vpp = True,
@@ -901,7 +901,7 @@ adjustFinalFlags warns0 errs0 flags0 =
         -- -p / -bdir checks
 
         -- add bdir to the head of the import path.
-	-- replace the default path with the Prelude and Libraries locations
+        -- replace the default path with the Prelude and Libraries locations
 
         -- XXX make sure this is in sync with the default value (ifcPath)
         -- XXX displayed in the help message
@@ -1999,7 +1999,7 @@ splitPath bspecdir old_path s =
     let -- break on colons
         paths0 = makePath s
         -- expand symbols, and remove empty dirs
-	paths = let expandPercent c = if (c == '%') then bspecdir else [c]
+        paths = let expandPercent c = if (c == '%') then bspecdir else [c]
                     expandDir d = if (d == "+")
                                   then old_path
                                   else if (d == "")

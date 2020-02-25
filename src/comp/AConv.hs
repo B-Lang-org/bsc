@@ -67,13 +67,13 @@ type CSEMap = M.Map AExpr (AId, AType, AExpr)
 type IEDefMap = M.Map Id (AExpr, [DefProp])
 data AState = AState {
         errHandle :: ErrorHandle,
-	varNo :: !Int, -- for new variable names
-	cseMap :: CSEMap, -- for CSE
-	stVarMap :: IdMap, -- I-expr names to A-expr names
-	ieDefMap :: IEDefMap, -- accumulated definitions
+        varNo :: !Int, -- for new variable names
+        cseMap :: CSEMap, -- for CSE
+        stVarMap :: IdMap, -- I-expr names to A-expr names
+        ieDefMap :: IEDefMap, -- accumulated definitions
         flags :: Flags, -- to hold the flags on the Monad
         wmsgs :: [WMsg] -- to hold accumulated warnings
-	}
+        }
 
 type IdMap = M.Map Id Id
 
@@ -99,13 +99,13 @@ getMap = liftM cseMap (get)
 newAIdFromAExpr :: Position -> AExpr -> M AId
 newAIdFromAExpr p expr = do
         s <- get
-	let n = varNo s
+        let n = varNo s
             new_name = signalNameFromAExpr expr ++ "_" ++ aconvPref ++ itos n
             new_id = setFromRHSId $ mkId p (mkFString new_name)
             new_id' = if (isSignCast expr)
                       then setSignedId new_id
                       else new_id
-	put (s { varNo = n+1 })
+        put (s { varNo = n+1 })
         return new_id'
   where isSignCast (AFunCall { ae_funname = name }) = name == sSigned
         isSignCast _ = False
@@ -113,7 +113,7 @@ newAIdFromAExpr p expr = do
 addMap :: AExpr -> AId -> AType -> M ()
 addMap e i t = do
         s <- get
-	put (s { cseMap = M.insert e (i, t, e) (cseMap s) })
+        put (s { cseMap = M.insert e (i, t, e) (cseMap s) })
 
 transId :: Id -> M Id
 transId i = do s <- get
@@ -148,11 +148,11 @@ aConv errh pps flags imod =
         state = aInitState errh itr flags
     in  case runStateT (runReaderT (aDo imod) False) state of
           Left emsg -> bsError errh [emsg]
-	  Right (apkg, s) ->
+          Right (apkg, s) ->
               do
                   let wmessages = wmsgs s
                   when ((not . null) wmessages) $ bsWarning errh wmessages
-		  return apkg
+                  return apkg
 
 
 -- This checks for methods which are calling tasks or foreign functions.
@@ -172,15 +172,15 @@ checkForeign a@(AIActionValue { }) =
 checkForeignInRules :: AId -> [ARule] -> M [(AId, [Position])]
 checkForeignInRules method rs =
     let foreign_poss =
-	    [getPosition i | (ARule { arule_actions = as }) <- rs,
-			     (AFCall { aact_objid = i }) <- as] ++
+            [getPosition i | (ARule { arule_actions = as }) <- rs,
+                             (AFCall { aact_objid = i }) <- as] ++
             -- task actions are foreign function calls too
             [getPosition i | (ARule { arule_actions = as }) <- rs,
-			     (ATaskAction { aact_objid = i }) <- as]
+                             (ATaskAction { aact_objid = i }) <- as]
         filtered_poss = nub $ filter isUsefulPosition foreign_poss
     in  if (not (null foreign_poss))
-	then return [(method, filtered_poss)]
-	else return []
+        then return [(method, filtered_poss)]
+        else return []
 
 
 aDo :: IModule a -> M APackage
@@ -190,31 +190,31 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
         -- AVInst keeps the types of method ports
         let tsConv :: Id -> [IType] -> ([AType], Maybe AType, Maybe AType)
             tsConv i ts =
-	        let inputs = initOrErr "tsConv" ts
-		    res = lastOrErr "tsConv" ts
-		    in_types = map (aTypeConv i) inputs
-		    (en_type, val_type) =
-			if (isitActionValue_ res) && (getAV_Size res > 0)
-			then (Just (ATBit 1),
-			      Just (ATBit (getAV_Size res)))
-			else if (isActionType res)
-			     then (Just (ATBit 1), Nothing)
-			     else (Nothing, Just (aTypeConv i res))
+                let inputs = initOrErr "tsConv" ts
+                    res = lastOrErr "tsConv" ts
+                    in_types = map (aTypeConv i) inputs
+                    (en_type, val_type) =
+                        if (isitActionValue_ res) && (getAV_Size res > 0)
+                        then (Just (ATBit 1),
+                              Just (ATBit (getAV_Size res)))
+                        else if (isActionType res)
+                             then (Just (ATBit 1), Nothing)
+                             else (Nothing, Just (aTypeConv i res))
                 in (in_types, en_type, val_type)
 
-	let (IRules sps irule_list) = rs
-	arule_list <- mapM aRule irule_list
-	--trace ("aDo rules extracted") $ return ()
+        let (IRules sps irule_list) = rs
+        arule_list <- mapM aRule irule_list
+        --trace ("aDo rules extracted") $ return ()
 
         let lookupInstPorts  i = fromMaybe (M.empty) (M.lookup i pts)
-	aitvs <- mapM (\ (i0, IStateVar b ui _ v es t tss _ _ hnames) ->
-			do i <- transId i0
+        aitvs <- mapM (\ (i0, IStateVar b ui _ v es t tss _ _ hnames) ->
+                        do i <- transId i0
                            let portTypes = lookupInstPorts (Just i0)
-			   es' <- zipWithM aExprArg (vArgs v) es
-			   -- XXX Lennart put a comment here to say "add ifc args in the AVInst list"
-			   -- XXX because I think AVerilog filters out fake entries in the AVInst list as ifc args:
-			   -- XXX patch in args here
-			   return (AVInst (addIdProp i IdPProbe)
+                           es' <- zipWithM aExprArg (vArgs v) es
+                           -- XXX Lennart put a comment here to say "add ifc args in the AVInst list"
+                           -- XXX because I think AVerilog filters out fake entries in the AVInst list as ifc args:
+                           -- XXX patch in args here
+                           return (AVInst (addIdProp i IdPProbe)
                                           (aTypeConv i t)
                                           ui
                                           (map (tsConv i) tss)
@@ -224,17 +224,17 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                                           []))
                       itvs
 
-	aifc <- mapM (aIface flags) ifc
+        aifc <- mapM (aIface flags) ifc
 
-	-- Check whether there are any methods calling tasks or foreign funcs,
-	-- which need to be warned about
+        -- Check whether there are any methods calling tasks or foreign funcs,
+        -- which need to be warned about
         methodss_to_warn <- mapM checkForeign aifc
-	let methods_to_warn = concat methodss_to_warn
-	    meth_info_digested =
-		map (\(i,poss) -> (pfpString i, getPosition i, poss))
-		    methods_to_warn
-	when (not (null methods_to_warn)) $
-	    addWarning (getPosition mi, WFCall meth_info_digested)
+        let methods_to_warn = concat methodss_to_warn
+            meth_info_digested =
+                map (\(i,poss) -> (pfpString i, getPosition i, poss))
+                    methods_to_warn
+        when (not (null methods_to_warn)) $
+            addWarning (getPosition mi, WFCall meth_info_digested)
 
         -- any defs that have the keepEvenUnused property should be forced
         -- to be kept by calling aEDef to add them to maps in the monad
@@ -311,21 +311,21 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                                                return (d, acs))
                               clks
 
-	return  (APackage { apkg_name = unQualId (dropGenSuffixId mi),
-			    apkg_is_wrapped = fmod,
-			    apkg_backend = be,
-			    apkg_size_params = [ i | (i, k) <- iks ],
-			    apkg_inputs = map aAbstractInput its,
+        return  (APackage { apkg_name = unQualId (dropGenSuffixId mi),
+                            apkg_is_wrapped = fmod,
+                            apkg_backend = be,
+                            apkg_size_params = [ i | (i, k) <- iks ],
+                            apkg_inputs = map aAbstractInput its,
                             apkg_external_wires = wi,
                             apkg_external_wire_types = lookupInstPorts Nothing,
                             apkg_clock_domains = clock_domains,
                             apkg_reset_list = reset_list,
-			    apkg_state_instances = aSubst subst_map aitvs,
-			    apkg_local_defs = local_defs,
-			    apkg_rules = aSubst subst_map arule_list,
-			    apkg_schedule_pragmas = sps,
-			    apkg_interface = aSubst subst_map aifc,
-			    apkg_inst_comments = cmap,
+                            apkg_state_instances = aSubst subst_map aitvs,
+                            apkg_local_defs = local_defs,
+                            apkg_rules = aSubst subst_map arule_list,
+                            apkg_schedule_pragmas = sps,
+                            apkg_interface = aSubst subst_map aifc,
+                            apkg_inst_comments = cmap,
                             apkg_inst_tree = mkInstTree imod,
                             apkg_proof_obligations = [] })
 
@@ -337,9 +337,9 @@ aAbstractInput (IAI_Inout r n) = (AAI_Inout r n)
 
 aIface :: Flags -> IEFace a -> M AIFace
 aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
-	--trace ("enter " ++ ppReadable i) $ return ()
-	let its' = [ (arg_i, aTypeConv arg_i arg_t) | (arg_i, arg_t) <- its]
-	    g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
+        --trace ("enter " ++ ppReadable i) $ return ()
+        let its' = [ (arg_i, aTypeConv arg_i arg_t) | (arg_i, arg_t) <- its]
+            g = if isRdyId i then aSBool True else ASDef aTBool (mkRdyId i)
         case (maybe_e, maybe_rs) of
           (Nothing, Nothing) -> internalError ("AConv.aIface nothing in it "
                                               ++ ppReadable iface)
@@ -373,9 +373,9 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
               return (AIDef i its' wp g (ADef i (aTypeConv i t) ae []) fi [])
 
           (Nothing, Just rs) -> do
-	                           arule_list <- mapM aRule (extractRules rs)
-	                           --trace ("exit " ++ ppReadable i) $ return ()
-	                           return $ AIAction its' wp g i arule_list fi
+                                   arule_list <- mapM aRule (extractRules rs)
+                                   --trace ("exit " ++ ppReadable i) $ return ()
+                                   return $ AIAction its' wp g i arule_list fi
 
 
           (Just (val_, t), Just rs) -> do
@@ -383,16 +383,16 @@ aIface flags iface@(IEFace i its maybe_e maybe_rs wp fi) = do
                                    ae <- aExpr val_
                                    --trace ("exit av " ++ ppReadable i) $ return ()
                                    return (AIActionValue its' wp g i arule_list
-				           (ADef i (aTypeConv i t) ae []) fi )
+                                           (ADef i (aTypeConv i t) ae []) fi )
                                    -- should internalError if size(val_)==0 XXX
 
 aRule :: IRule a -> M ARule
 aRule (IRule i rps s wp p a orig isl) = do
-	--trace ("enter rule " ++ ppReadable i) $ return ()
-	p' <- aSExpr p
-	as' <- aAction i a
+        --trace ("enter rule " ++ ppReadable i) $ return ()
+        p' <- aSExpr p
+        as' <- aAction i a
         -- traceM $ "exit rule " ++ ppReadable i
-	return (ARule i rps s wp p' as' [] orig)
+        return (ARule i rps s wp p' as' [] orig)
 
 aReset :: IReset a -> M AReset
 aReset r = do
@@ -400,7 +400,7 @@ aReset r = do
   r' <- case (getResetWire r) of
           IAps (ICon i (ICSel { iConType = itReset })) _ [(ICon vid (ICStateVar {iVar = sv}))] ->
             let i_rstn = lookupOutputResetWire i (getVModInfo sv)
-	    in  return (mkOutputWire vid i_rstn)
+            in  return (mkOutputWire vid i_rstn)
           ICon idNoReset (ICPrim itBit1 PrimResetUnassertedVal) -> do
             return (APrim idNoReset aTBool  PrimResetUnassertedVal [])
           wire_exp -> aSExpr wire_exp
@@ -413,7 +413,7 @@ aInout r = do
           e@(IAps (ICon i (ICSel {})) _ [(ICon vid (ICStateVar {iVar = sv}))])
               -> let t = iGetType e
                      i_iot = lookupIfcInoutWire i (getVModInfo sv)
-	         in  if (isitInout_ t)
+                 in  if (isitInout_ t)
                      then return (mkIfcInoutN (getInout_Size t) vid i_iot)
                      else internalError ("aInout: sel not Inout_ type: " ++
                                          ppReadable e)
@@ -435,34 +435,34 @@ aClock c = do
         return (AClock { aclock_osc = a_osc, aclock_gate = a_gate })
     -- output clock fields
     IAps (ICon i (ICSel { iConType = itClock })) _ [(ICon vid (ICStateVar {iVar = sv}))] ->
-	let (i_osc, mi_gate) = lookupOutputClockWires i (getVModInfo sv)
-	    osc_aexpr = mkOutputWire vid i_osc
-	    gate_aexpr = case (mi_gate) of
-			     Nothing -> aTrue
-			     Just i_gate -> -- mkOutputWire vid i_gate
-			                    AMGate aTBool vid i
-	in  return (AClock { aclock_osc = osc_aexpr,
-		             aclock_gate = gate_aexpr })
+        let (i_osc, mi_gate) = lookupOutputClockWires i (getVModInfo sv)
+            osc_aexpr = mkOutputWire vid i_osc
+            gate_aexpr = case (mi_gate) of
+                             Nothing -> aTrue
+                             Just i_gate -> -- mkOutputWire vid i_gate
+                                            AMGate aTBool vid i
+        in  return (AClock { aclock_osc = osc_aexpr,
+                             aclock_gate = gate_aexpr })
     _ -> internalError ("AConv.ASClock: " ++ (show c))
 
 aSExpr :: IExpr a -> M AExpr
 aSExpr e = do
-	e' <- aExpr e
+        e' <- aExpr e
         noCSE <- ask
-	case e' of
-	 (ASInt _ _ _) -> return e'
-	 (ASDef _ _) -> return e'
-	 (ASPort _ _) -> return e'
-	 (ASParam _ _) -> return e'
-	 (ASStr _ _ _) -> return e'
-	 (ASAny _ _) -> return e'
+        case e' of
+         (ASInt _ _ _) -> return e'
+         (ASDef _ _) -> return e'
+         (ASPort _ _) -> return e'
+         (ASParam _ _) -> return e'
+         (ASStr _ _ _) -> return e'
+         (ASAny _ _) -> return e'
          (ASClock _ _) -> return e'
          (ASReset _ _) -> return e'
          (ASInout _ _) -> return e'
          _ | noCSE -> return e'
-	 _ -> do
-		(i, t, e'') <- find e' (aType e') (getIExprPosition e)
-		return (ASDef t i)
+         _ -> do
+                (i, t, e'') <- find e' (aType e') (getIExprPosition e)
+                return (ASDef t i)
 
 aExprArg :: VArgInfo -> IExpr a -> M AExpr
 aExprArg (Param _) = aExprNoCSE
@@ -473,71 +473,71 @@ aExprNoCSE e = withReaderT (const True) (aExpr e)
 
 aExpr :: IExpr a -> M AExpr
 aExpr exp@(IAps (ICon isel (ICPrim _ PrimSelect)) [ITNum i1, ITNum i2, ITNum i3] [e]) = do
-	e' <- aSExpr e
-	if i2 < i3 && i3-i2 >= i1
-	   then
-	    return $ APrim isel (ATBit i1) PrimExtract [e', aNat (i1+i2-1), aNat i2]
-	   else
+        e' <- aSExpr e
+        if i2 < i3 && i3-i2 >= i1
+           then
+            return $ APrim isel (ATBit i1) PrimExtract [e', aNat (i1+i2-1), aNat i2]
+           else
             internalError ("aExpr select: bad bit selection\n" ++
-		           ppReadable (getIdPosition isel) ++ ppReadable exp)
+                           ppReadable (getIdPosition isel) ++ ppReadable exp)
 
 aExpr (IAps (ICon i (ICPrim _ PrimExtract)) [ITNum i1, _, ITNum i2] [e,h,l]) = do
-	let n = log2 i1
+        let n = log2 i1
         errh <- gets errHandle
-	es' <- mapM aSExpr [e, eTrunc errh n h, eTrunc errh n l]
-	return $ APrim i (ATBit i2) PrimExtract es'
+        es' <- mapM aSExpr [e, eTrunc errh n h, eTrunc errh n l]
+        return $ APrim i (ATBit i2) PrimExtract es'
 -- XXX we can remove PrimRange here, or keep it
 aExpr (IAps (ICon i (ICPrim _ PrimRange)) _ [_,_,e]) =
         aSExpr e
 -- XXX hack to get strings into the compiler (masquerade as integers or bits)
 aExpr (IAps (ICon i1 (ICPrim _ PrimIntegerToBit)) _ [IAps (ICon i2 (ICPrim _ PrimStringToInteger)) _ [s]]) =
-	aExpr s
+        aExpr s
 -- special cases for sign and zero extensions, since they depend on the type information
 aExpr e@(IAps (ICon i (ICPrim _ PrimSignExt)) [_,_,ITNum ii] es) = do
-	es' <- mapM aSExpr es
-	return $ APrim i (ATBit ii) PrimSignExt es'
+        es' <- mapM aSExpr es
+        return $ APrim i (ATBit ii) PrimSignExt es'
 aExpr e@(IAps (ICon i (ICPrim _ p)) ts es) | realPrim p = do
-	es' <- mapM aSExpr (if p `elem` assocPrims then concatMap (joinOp p) es else es)
-	--traceM (ppReadable (es, es'))
-	return $ APrim i (primType p ts es') p es'
+        es' <- mapM aSExpr (if p `elem` assocPrims then concatMap (joinOp p) es else es)
+        --traceM (ppReadable (es, es'))
+        return $ APrim i (primType p ts es') p es'
 
 -- error if "avValue_" is applied to too many arguments
 -- (so that the following other case arms can assume this check)
 aExpr (IAps (ICon i (ICSel { })) ts (e:es))
     | (i == idAVValue_) && (not (null es))
     = internalError ("aExpr: too many arguments to avValue_: " ++
-		     ppReadable es)
+                     ppReadable es)
 
 -- value part of ActionValue task without arguments
 aExpr e@(IAps (ICon m (ICSel { })) _
               [(ICon i (ICForeign {fName = name,
-				   isC = isC,
-	                           foports = Nothing,
-				   fcallNo = mn}))])
+                                   isC = isC,
+                                   foports = Nothing,
+                                   fcallNo = mn}))])
     | m == idAVValue_ =
     let n = case (mn) of
-		Nothing -> internalError
-		               ("aExpr: avValue_ on ICForeign without fcallNo")
-		Just val -> val
-	t@(ATBit _) = aTypeConvE e (iGetType e)
+                Nothing -> internalError
+                               ("aExpr: avValue_ on ICForeign without fcallNo")
+                Just val -> val
+        t@(ATBit _) = aTypeConvE e (iGetType e)
     in
         return (ATaskValue t i name isC n)
 
 -- value part of ActionValue task with arguments
 aExpr e@(IAps (ICon m (ICSel { })) _
-	      [(IAps (ICon i (ICForeign {fName = name,
-					 isC = isC,
-	                                 foports = Nothing,
-					 fcallNo = mn})) fts fes)])
+              [(IAps (ICon i (ICForeign {fName = name,
+                                         isC = isC,
+                                         foports = Nothing,
+                                         fcallNo = mn})) fts fes)])
     | m == idAVValue_ =
     let n = case (mn) of
-		Nothing -> internalError
-		               ("aExpr: avValue_ on ICForeign without fcallNo")
-		Just val -> val
-	t@(ATBit _) = aTypeConvE e (iGetType e)
+                Nothing -> internalError
+                               ("aExpr: avValue_ on ICForeign without fcallNo")
+                Just val -> val
+        t@(ATBit _) = aTypeConvE e (iGetType e)
     in
         -- the value side carries no arguments
-	-- the cookie "n" will connect it back up to the action side
+        -- the cookie "n" will connect it back up to the action side
         return (ATaskValue t i name isC n)
 
 -- value part of ActionValue method
@@ -572,7 +572,7 @@ aExpr e@(IAps (ICon m (ICSel { })) _ [(ICon i (ICClock { iClock = c }))]) | m ==
         ac <- aClock c
         return (aclock_osc ac)
 aExpr (IAps (ICon _ (ICCon { iConType = ITAp _ t, conNo = n })) _ _) | t == itBit1 =
-	return $ aSBool (n /= 0)
+        return $ aSBool (n /= 0)
 aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing})) ts es) = do
         es' <- mapM aSExpr es
         -- XXX should this ever happen?
@@ -582,8 +582,8 @@ aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing}))
         --traceM("AFunCall1: " ++ name)
         return $ AFunCall (aTypeConvE e (iGetType e)) i name isC es'
 aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just ops)})) ts es) = do
-	es' <- mapM aSExpr es
-	let ns = [ n | ITNum n <- ts ]
+        es' <- mapM aSExpr es
+        let ns = [ n | ITNum n <- ts ]
         let t = aTypeConvE e (iGetType e)
             -- because Classic allows foreign functions to be declared,
             -- we need to check if this is a genwrap generated function
@@ -591,7 +591,7 @@ aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = False, foports = (Just op
                  then dropGenSuffixId i
                  else i
         --traceM("AFunCall2: " ++ name)
-	return $ ANoInlineFunCall t i'
+        return $ ANoInlineFunCall t i'
                    (ANoInlineFun name ns ops Nothing) es'
 
 aExpr e@(ICon v (ICModPort { iConType = t })) = return (ASPort (aTypeConvE e t) v)
@@ -618,7 +618,7 @@ aExpr e@(ICon i (ICForeign { iConType = t, fName = name, isC = False, foports = 
                  then dropGenSuffixId i
                  else i
         --traceM("AFunCall4: " ++ name)
-	return $ ANoInlineFunCall (aTypeConvE e t) i'
+        return $ ANoInlineFunCall (aTypeConvE e t) i'
                    (ANoInlineFun name [] ops Nothing) []
 aExpr e@(IAps (ICon _ (ICUndet { })) _ _) =
     internalError ("AConv.ICUndet application " ++ ppReadable e)
@@ -640,22 +640,22 @@ aExpr e@(ICon _ (ICInout { iConType = it, iInout = i})) | (isitInout_ it) = do
   return (ASInout at ai)
 
 aExpr e = internalError
-	      ("AConv.aExpr at " ++ ppString p ++ ":" ++ ppReadable e ++ "\n" ++
-	       (show p) ++ ":" ++ (showTypeless e))
+              ("AConv.aExpr at " ++ ppString p ++ ":" ++ ppReadable e ++ "\n" ++
+               (show p) ++ ":" ++ (showTypeless e))
     where p = getIExprPosition e
 
 aEDef :: Id -> IExpr a -> [DefProp] -> M AExpr
 aEDef i e ps = do
-	da <- getDA
+        da <- getDA
         -- traceM $ "aEDef " ++ ppReadable (i,e,ps)
-	case M.lookup i da of
-	 Just (a, _) -> do
+        case M.lookup i da of
+         Just (a, _) -> do
            return a
-	 Nothing -> do
+         Nothing -> do
             -- traceM $ "not found"
-	    a <- aSExpr e
-	    addDA i a ps
-	    return a
+            a <- aSExpr e
+            addDA i a ps
+            return a
 
 aTypeConv :: Id -> IType -> AType
 aTypeConv _ (ITAp (ITCon b _ _) (ITNum n)) | b == idBit = ATBit n
@@ -671,9 +671,9 @@ aTypeConv _ (ITAp (ITCon i t (TIstruct SStruct fs@(val:_))) (ITNum n)) =
     -- internalError ("Yes\n\n" ++ (show a) ++"\n\n" ++ (show n))
 aTypeConv _ t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
-	abs (ITAp t _) ns = abs t ns
-	abs _ _ = -- ATAbstract idBit []	-- XXX what's this
-		  internalError ("aTypeConv|" ++ show t)
+        abs (ITAp t _) ns = abs t ns
+        abs _ _ = -- ATAbstract idBit []        -- XXX what's this
+                  internalError ("aTypeConv|" ++ show t)
 
 -- This is a variation of "aTypeConv" that is only used by "aExpr".
 -- A String expression can be used to determine the size of the ATString type.
@@ -692,27 +692,27 @@ aTypeConvE a t | t == itString =
     otherwise               -> ATString Nothing
 aTypeConvE a t = abs t []
   where abs (ITCon i _ _) ns = ATAbstract i (reverse ns)
-	abs (ITAp t _) ns = abs t ns
-	abs _ _ = -- ATAbstract idBit []	-- XXX what's this
-		  internalError ("aTypeConvE|" ++ show t)
+        abs (ITAp t _) ns = abs t ns
+        abs _ _ = -- ATAbstract idBit []        -- XXX what's this
+                  internalError ("aTypeConvE|" ++ show t)
 
 realPrim p = p `elem`
-	[
-	 PrimSignExt, PrimZeroExt, PrimTrunc,
-	 PrimExtract, PrimConcat,
-	 PrimIf, PrimCase,
+        [
+         PrimSignExt, PrimZeroExt, PrimTrunc,
+         PrimExtract, PrimConcat,
+         PrimIf, PrimCase,
          PrimBuildArray, PrimArrayDynSelect,
-	 PrimRange,
+         PrimRange,
          -- not primArith because not Bit n -> Bit n -> Bit n
          PrimMul, PrimQuot, PrimRem
-	] ++ primAriths ++ primCmps ++ primBools ++ primStrings
+        ] ++ primAriths ++ primCmps ++ primBools ++ primStrings
 primAriths = [ PrimAdd, PrimSub, PrimAnd, PrimOr, PrimXor,
-	       PrimSL, PrimSRL, PrimSRA,
-	       PrimInv, PrimNeg ]
+               PrimSL, PrimSRL, PrimSRA,
+               PrimInv, PrimNeg ]
 primBools = [ PrimBAnd, PrimBOr, PrimBNot ]
 primCmps = [ PrimEQ, PrimEQ3,
-	     PrimULE, PrimULT,
-	     PrimSLE, PrimSLT ]
+             PrimULE, PrimULT,
+             PrimSLE, PrimSLT ]
 primStrings = [ PrimStringConcat ]
 
 -- Many primops are associative, but if we reassociate we might rebalance a carefully
@@ -735,7 +735,7 @@ sumStrSizes (e:es) = do n  <- case (aType e) of
 aPrim :: AType -> PrimOp -> AExpr -> AExpr
 aPrim t p es | p `elem` assocPrims = APrim _ t p (concatMap join es)
   where join (APrim _ t' p' es) | t == t' && p == p' = es
-	join e = [e]
+        join e = [e]
 aPrim t p es = APrim _ t p es
 -}
 
@@ -758,16 +758,16 @@ primType PrimCase _ (_:d:ps) =
         else dflt_t
 primType PrimConcat _ es = ATBit (sum (map (unbit . aType) es))
     where unbit (ATBit width) = width
-	  unbit _ = internalError "concatenation of abstract types in AConv.primType"
+          unbit _ = internalError "concatenation of abstract types in AConv.primType"
 primType PrimMul ts _ = ATBit (getNum (last ts))
     where getNum (ITNum n) = n
-	  getNum _ = internalError "multiplication of abstract types in AConv.primType"
+          getNum _ = internalError "multiplication of abstract types in AConv.primType"
 primType PrimQuot ts _ = ATBit (getNum (head ts))
     where getNum (ITNum n) = n
-	  getNum _ = internalError "quotient of abstract types in AConv.primType"
+          getNum _ = internalError "quotient of abstract types in AConv.primType"
 primType PrimRem ts _ = ATBit (getNum (last ts))
     where getNum (ITNum n) = n
-	  getNum _ = internalError "remainder of abstract types in AConv.primType"
+          getNum _ = internalError "remainder of abstract types in AConv.primType"
 primType p _ _ | p `elem` (primBools ++ primCmps) = ATBit 1
 primType p _ (e:_) | p `elem` primAriths || p == PrimRange = aType e
 primType (PrimStringConcat) _ es@(_:_) = ATString (sumStrSizes es)
@@ -799,41 +799,41 @@ aAction1 r cond (IAps (IAps f _ es1) _ es2) = aAction1 r cond (IAps f [] (es1++e
 
 -- action part of ActionValue task without arguments
 aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
-		        ((ICon i (ICForeign {iConType = ity,
+                        ((ICon i (ICForeign {iConType = ity,
                                              fName = name,
-					     isC = isC,
-			                     foports = Nothing,
-					     fcallNo = mn})) : es))
+                                             isC = isC,
+                                             foports = Nothing,
+                                             fcallNo = mn})) : es))
    | avAction_ == idAVAction_ = do
    let n = case (mn) of
-	      Nothing -> internalError
-		           ("aAction1: avAction_ on ICForeign without fcallNo")
-	      Just val -> val
+              Nothing -> internalError
+                           ("aAction1: avAction_ on ICForeign without fcallNo")
+              Just val -> val
        value_type = aTypeConv i (snd (itGetArrows ity))
    when (not (null es)) $
        internalError ("aAction1: too many arguments to avAction_: " ++
-		      ppReadable es)
+                      ppReadable es)
    cond' <- aSExpr cond
    return [(ATaskAction i name isC n [cond'] Nothing value_type False)]
 
 -- action part of ActionValue task with arguments
 aAction1 _ cond a@(IAps (ICon avAction_ (ICSel { })) _
-		        ((IAps (ICon i (ICForeign {iConType = ity0,
+                        ((IAps (ICon i (ICForeign {iConType = ity0,
                                                    fName = name,
-						   isC = isC,
-			                           foports = Nothing,
-						   fcallNo = mn})) fts fes) : es))
+                                                   isC = isC,
+                                                   foports = Nothing,
+                                                   fcallNo = mn})) fts fes) : es))
    | avAction_ == idAVAction_ = do
    let n = case (mn) of
-	      Nothing -> internalError
-	                   ("aAction1: avAction_ on ICForeign without fcallNo")
-	      Just val -> val
+              Nothing -> internalError
+                           ("aAction1: avAction_ on ICForeign without fcallNo")
+              Just val -> val
        -- allow for polymorphic foreign functions
        ity = itInst ity0 fts
        value_type = aTypeConv i (snd (itGetArrows ity))
    when (not (null es)) $
        internalError ("aAction1: too many arguments to avAction_: " ++
-		      ppReadable es)
+                      ppReadable es)
    cond' <- aSExpr cond
    fes'   <- mapM aSExpr fes
    return [(ATaskAction i name isC n (cond' : fes') Nothing value_type False)]
@@ -846,23 +846,23 @@ aAction1 r cond a@(IAps (ICon avAction_ (ICSel { })) _ es) | avAction_ == idAVAc
        -- anything else is invalid
        [e] -> internalError
                ("aAction1: avAction_ called on non-primitive actionvalue\n" ++
-		"e = " ++ show e)
+                "e = " ++ show e)
        _ -> internalError "aAction1: avAction_ with wrong number of arguments"
 
 aAction1 _ cond (IAps (ICon m (ICSel { })) _ (ICon i (ICStateVar { }) : es)) = do
-	cond' <- aSExpr cond
-	es' <- mapM aSExpr es
-	i' <- transId i
-	return [ACall i' m (cond' : es')]
+        cond' <- aSExpr cond
+        es' <- mapM aSExpr es
+        i' <- transId i
+        return [ACall i' m (cond' : es')]
 
 aAction1 _ cond (IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing })) ts es) = do
-	cond' <- aSExpr cond
-	es' <- mapM aSExpr es
+        cond' <- aSExpr cond
+        es' <- mapM aSExpr es
         -- XXX should this ever happen?
         -- assume we do not need applied types,
         -- the foreign function is truly polymorphic
-	--let ns = [ n | ITNum n <- ts ]
-	return [AFCall i name isC (cond' : es') False]
+        --let ns = [ n | ITNum n <- ts ]
+        return [AFCall i name isC (cond' : es') False]
 
 -- noinline functions returning Action are not synthesizable, so this
 -- branch is not needed
@@ -875,9 +875,9 @@ aAction1 _ cond (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing 
 
 aAction1 s cond (IAps (ICon _ (ICPrim { primOp = PrimIf })) _ [c, t, e]) = do
         flags <- getFlags
-	t' <- aAction' s (iTransBoolExpr flags (c `ieAnd` cond)) t
-	e' <- aAction' s (iTransBoolExpr flags ((ieNot c) `ieAnd` cond)) e
-	return (t' ++ e')
+        t' <- aAction' s (iTransBoolExpr flags (c `ieAnd` cond)) t
+        e' <- aAction' s (iTransBoolExpr flags ((ieNot c) `ieAnd` cond)) e
+        return (t' ++ e')
 
 {-
 aAction1 s cond (ICon _ (ICPrim { primOp = PrimNoActions })) =
@@ -912,13 +912,13 @@ aAction1 r cond e = internalError ("aAction1 end: " ++ ppReadable (r, cond, e) +
 
 find :: AExpr -> AType -> Position -> M (AId, AType, AExpr)
 find e t pos = do
-	m <- getMap
-	case M.lookup e m of
-	 Just ite -> return ite
-	 Nothing -> do
-		i <- newAIdFromAExpr pos e
-		addMap e i t
-		return (i, t, e)
+        m <- getMap
+        case M.lookup e m of
+         Just ite -> return ite
+         Nothing -> do
+                i <- newAIdFromAExpr pos e
+                addMap e i t
+                return (i, t, e)
 
 -----
 
@@ -939,10 +939,10 @@ makeIdMap ids = M.fromList (zip ids ids)
 -- makeIdMap :: [Id] -> IdMap
 -- makeIdMap = M.fromList . concatMap numGroup . sortGroup le
 --   where le i1 i2 = nonum (getIdString i1) <= nonum (getIdString i2)
--- 	nonum = reverse . tail . dropWhile isDigit . reverse
--- 	numGroup [i] = [(i, noNumId i)]
--- 	numGroup is = zipWith (\ i n -> (i, mkIdPost (noNumId i) (concatFString [fsUnderscore, mkNumFString n]))) is [0..]
--- 	noNumId i = mkId (getIdPosition i) (mkFString (nonum (getIdString i)))
+--         nonum = reverse . tail . dropWhile isDigit . reverse
+--         numGroup [i] = [(i, noNumId i)]
+--         numGroup is = zipWith (\ i n -> (i, mkIdPost (noNumId i) (concatFString [fsUnderscore, mkNumFString n]))) is [0..]
+--         noNumId i = mkId (getIdPosition i) (mkFString (nonum (getIdString i)))
 
 trId :: IdMap -> Id -> Id
 trId m i =

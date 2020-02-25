@@ -26,7 +26,7 @@ instance Unify Type where
         KNum -> numUnify bound_tyvars t1 t2
         _ -> internalError("unify kind mismatch: " ++ ppReadable(t1, kind t1, t2, kind t2))
     mgu bound_tyvars (TAp l r) (TAp l' r') = do
-	(s1, eqs1) <- mgu bound_tyvars l l'
+        (s1, eqs1) <- mgu bound_tyvars l l'
         (s2, eqs2) <- mgu bound_tyvars (apSub s1 r) (apSub s1 r')
         Just (s2 @@ s1, fastNub (eqs1 ++ eqs2))
     -- don't substitute a variable for itself
@@ -82,7 +82,7 @@ varUnify bound_tyvars u v tu tv = varBindWithEqs u tv
 
 instance (Types t, Unify t) => Unify [t] where
     mgu bound_tyvars (x:xs) (y:ys) = do
-	(s1,eqs1) <- mgu bound_tyvars x y
+        (s1,eqs1) <- mgu bound_tyvars x y
         (s2,eqs2) <- mgu bound_tyvars (apSub s1 xs) (apSub s1 ys)
         return (s2 @@ s1, fastNub (eqs1 ++ eqs2))
     mgu bound_tyvars []     []     = return (nullSubst, [])
@@ -94,7 +94,7 @@ varBindWithEqs u t = fmap no_eqs $ varBind u t
 
 varBind :: TyVar -> Type -> Maybe Subst
 varBind u t | t == TVar u      = Just nullSubst
-	    | isUnSatSyn t	       = Nothing
+            | isUnSatSyn t               = Nothing
             | u `elem` tv t    = Nothing
             | kind u == kind t = Just (u +-> t)
             | otherwise        = Nothing

@@ -1269,8 +1269,8 @@ saying whether or not the declaration is local
 > findDecl :: Id -> [DeclaredVars] -> (Maybe DeclarationInfo, Bool)
 >      -- the Maybe says whether it's declared
 > findDecl var issDs = fd issDs True where
->			fd [] _         = (Nothing, False)
->			fd (d:ds) isTop =
+>                        fd [] _         = (Nothing, False)
+>                        fd (d:ds) isTop =
 >                         case var `M.lookup` d of
 >                            Nothing -> fd ds False
 >                            x       -> (x, isTop)

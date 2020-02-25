@@ -22,48 +22,48 @@ genForeign :: ErrorHandle -> Flags -> String -> CPackage ->
               IO [(Id, ForeignFunction)]
 genForeign errh flags prefix (CPackage pkg_id _ _ _ defs _) =
     let
-	isPPforeignImport (PPforeignImport {}) = True
-	isPPforeignImport _ = False
+        isPPforeignImport (PPforeignImport {}) = True
+        isPPforeignImport _ = False
 
         foreignIds = [ i | (CPragma (Pproperties i pps)) <- defs,
                            any isPPforeignImport pps ]
         foreignDefs = [ d | d@(CValueSign (CDefT i _ _ _)) <- defs,
                             i `elem` foreignIds ]
-	foreignInfos = map extractForeignFuncInfo foreignDefs
+        foreignInfos = map extractForeignFuncInfo foreignDefs
 
-	genABin info@(src_id, foreign_func) =
-	    let ffinfo = ABinForeignFuncInfo src_id foreign_func
-		abin = ABinForeignFunc ffinfo version
-		-- generate the filename
-		afilename_base = getIdString (ff_name foreign_func)
-		afilename = mkAName (bdir flags) prefix afilename_base
-		afilename_rel = getRelativeFilePath afilename
-		-- user message
-		abinPrintPrefix = "Foreign import file created: "
-	    in  do
-		   -- write the file with full path
-		   genABinFile errh afilename abin
-		   -- report the file to the user with relative path
-		   -- (typically just the filename, for current directory)
-		   unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
-		   -- return the info, for dumping
-		   return info
+        genABin info@(src_id, foreign_func) =
+            let ffinfo = ABinForeignFuncInfo src_id foreign_func
+                abin = ABinForeignFunc ffinfo version
+                -- generate the filename
+                afilename_base = getIdString (ff_name foreign_func)
+                afilename = mkAName (bdir flags) prefix afilename_base
+                afilename_rel = getRelativeFilePath afilename
+                -- user message
+                abinPrintPrefix = "Foreign import file created: "
+            in  do
+                   -- write the file with full path
+                   genABinFile errh afilename abin
+                   -- report the file to the user with relative path
+                   -- (typically just the filename, for current directory)
+                   unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
+                   -- return the info, for dumping
+                   return info
 
-	-- check for duplicate imports and report an error
-	link_ids = map (ff_name . snd) foreignInfos
-	duplicates = findSame link_ids
-	mkDupErr dups =
-	    let link_id = headOrErr "GenForeign mkDupErr link" dups
-		has_this_link (i,ff) = (ff_name ff == link_id)
-		src_ids = map fst (filter has_this_link foreignInfos)
-		src_ips = map (\i -> (getIdString i, getPosition i)) src_ids
-		link_name = getIdString link_id
-		pos = getPosition link_id
-	    in  (pos, EForeignFuncDuplicates link_name src_ips)
+        -- check for duplicate imports and report an error
+        link_ids = map (ff_name . snd) foreignInfos
+        duplicates = findSame link_ids
+        mkDupErr dups =
+            let link_id = headOrErr "GenForeign mkDupErr link" dups
+                has_this_link (i,ff) = (ff_name ff == link_id)
+                src_ids = map fst (filter has_this_link foreignInfos)
+                src_ips = map (\i -> (getIdString i, getPosition i)) src_ids
+                link_name = getIdString link_id
+                pos = getPosition link_id
+            in  (pos, EForeignFuncDuplicates link_name src_ips)
     in
-	if (not (null duplicates))
-	then bsError errh (map mkDupErr duplicates)
-	else mapM genABin foreignInfos
+        if (not (null duplicates))
+        then bsError errh (map mkDupErr duplicates)
+        else mapM genABin foreignInfos
 
 
 -- After typechecking, the import should contain a CForeignFuncCT expression

@@ -189,8 +189,8 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
       -- ----
       -- do the same for actionvalue calls, with an additional avAction_ selector
       loopT lifted unlifted
-	    (firstT@(IActionCond {action = (IAps sel@(ICon i_sel (ICSel {})) sel_ts
-	                                         [firstTaction@(IAps expT tsT ((icsvT@(ICon _ (svT@(ICStateVar _ _)))):argsT))]),
+            (firstT@(IActionCond {action = (IAps sel@(ICon i_sel (ICSel {})) sel_ts
+                                                 [firstTaction@(IAps expT tsT ((icsvT@(ICon _ (svT@(ICStateVar _ _)))):argsT))]),
                                   condition = firstTcond}):restT) f  | (i_sel == idAVAction_) =
             -- loop through the list of false actions
             -- first parameter is scanned false actions, second is false actions to scan
@@ -204,7 +204,7 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
             loopF scanned ((firstF@(IActionCond {action = IAps sel@(ICon i_sel (ICSel {})) sel_ts
                                                                [firstFaction@(IAps expF _ ((icsvF@(ICon _ (svF@(ICStateVar _ _)))):argsF))],
                                                  condition = firstFcond})):restF) | (i_sel == idAVAction_) &&
-  		  	                 	                                    (expF == expT) && (svF == svT) &&
+                                                                                         (expF == expT) && (svF == svT) &&
                                                                                     ((length argsT) == (length argsF)) =
               -- just make an ActionCond out of this when it matches
               -- eventual conversion back into IExpr will force simplification

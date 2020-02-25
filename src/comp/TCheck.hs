@@ -766,12 +766,12 @@ tiExpr as td exp@(CmoduleVerilog name ui clks rsts args fields sch ps) = do
     qsses <- mapM tiArg args
 --  let   (pses, tys) = unzip paramResults
 --        (pss, es') = unzip pses
-    let	(qss, ts, ses') = unzip3 qsses
-    let  methnames =  [n | (Method { vf_name = n }) <- fields]
-    let  clocknames = [c | (Clock c) <- fields]
-    let  resetnames = [r | (Reset r) <- fields]
-    let  inoutnames = [n | (Inout { vf_name = n }) <- fields]
-    let  self_sb_methods =
+    let (qss, ts, ses') = unzip3 qsses
+    let methnames  = [n | (Method { vf_name = n }) <- fields]
+    let clocknames = [c | (Clock c) <- fields]
+    let resetnames = [r | (Reset r) <- fields]
+    let inoutnames = [n | (Inout { vf_name = n }) <- fields]
+    let self_sb_methods =
              let mci = methodConflictInfo sch
              in  [ m | (m,m') <- sSB mci, m == m' ]
     chkSchedInfo methnames sch
@@ -1813,8 +1813,8 @@ recStmts ss = do
             ptup = pMkTuple pos (map CPVar ids)
             lame = CLam tid (Cletrec [CLMatch ptup (CVar tid)] (Cdo False ss'))
             rss = [CSBind (CPVar nid) (cVApply idMfix [lame]), CSExpr (cVApply (idReturn pos) [CSelect (CVar nid) idPrimFst])]
---	trace (ppReadable (S.toList vs, ls)) $ return ()
---	trace (ppReadable rss) $ return ()
+--        trace (ppReadable (S.toList vs, ls)) $ return ()
+--        trace (ppReadable rss) $ return ()
         return rss
 -}
 
@@ -1867,7 +1867,7 @@ tiStmts' chke mon mt as td (CSBindT p name pprops qt e : ss) = do
         nid <- newVar (getPosition p) "tiStmts1"
         tiStmts' chke mon mt as td (CSBindT (CPVar nid) name pprops qt e : CSletrec [CLMatch p (CVar nid)] : ss)
 tiStmts' chke mon mt as td (CSBind (CPVar i) maybeName pprops e : ss) = do
-        ty <- newTVar "tiStmts' CSBind" KStar e		-- XXX
+        ty <- newTVar "tiStmts' CSBind" KStar e                -- XXX
         tiStmtBind chke mon mt as td i maybeName pprops e ss ty
 tiStmts' chke mon mt as td (CSBind p name pprops e : ss) = do
         nid <- newVar (getPosition p) "tiStmts2"
@@ -2293,14 +2293,14 @@ tiExpl'' as0 i sc alts me oqtvts = do
     return r
 
 --
--- as	the (local) environment
--- i	name of definition
--- sc	type signature of definition
--- alts	clauses of definition
+-- as        the (local) environment
+-- i        name of definition
+-- sc        type signature of definition
+-- alts        clauses of definition
 -- me   the implicit condition patterns of an interface definition
 --      (an empty list for non-interfaces)
--- oqt	instanciated scheme
--- vts	variables used to instantiate sc to oqt
+-- oqt        instanciated scheme
+-- vts        variables used to instantiate sc to oqt
 tiExpl''' :: [Assump] -> Id -> Scheme -> [CClause] -> [CQual] ->
              (Qual Type, [Type]) -> TI ([VPred], CDefl)
 tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
@@ -2356,7 +2356,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfy): " ++ ppReadable ps')
 
-    s              <- getSubst			-- get full subst
+    s              <- getSubst                        -- get full subst
 
     let
         -- Compute the fixed variables
@@ -2375,12 +2375,12 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         --       defer them to the enclosing bindings)
         -- rs1 = preds which contain tyvars general/bound at this level
         -- "d" for deffered and "r" for retained
-        (ds2, rs1) =  splitF fvs ps'		-- non-local, local constraints
+        (ds2, rs1) =  splitF fvs ps'                -- non-local, local constraints
 
         -- All the tyvars ("avs") = the vars of qt' ("lvs") and
         -- the fixed vars ("fvs")
-        lvs        =  tv qt'			-- local tyvars
-        avs        =  lvs `union` fvs		-- all tyvars
+        lvs        =  tv qt'                        -- local tyvars
+        avs        =  lvs `union` fvs                -- all tyvars
 
     ----
 
@@ -2397,7 +2397,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
 
     satTraceM ("tiExpl " ++ ppReadable i ++ " ps'(satisfyFV) " ++ ppReadable ps')
 
-    s              <- getSubst			-- get full subst
+    s              <- getSubst                        -- get full subst
 
     let
         -- Compute the fixed variables
@@ -2415,12 +2415,12 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         --       defer them to the enclosing bindings)
         -- rs2 = preds which contain tyvars general/bound at this level
         -- "d" for deffered and "r" for retained
-        (ds3, rs2) =  splitF fvs ps'		-- non-local, local constraints
+        (ds3, rs2) =  splitF fvs ps'                -- non-local, local constraints
 
         -- All the tyvars ("avs") = the vars of qt' ("lvs") and
         -- the fixed vars ("fvs")
-        lvs        =  tv qt'			-- local tyvars
-        avs        =  lvs `union` fvs		-- all tyvars
+        lvs        =  tv qt'                        -- local tyvars
+        avs        =  lvs `union` fvs                -- all tyvars
 
     let
         -- Bindings for solved constraints have been generated twice,
@@ -2465,7 +2465,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- list "ds".  These contexts were not solved, which means a
         -- context reduction failure (no instance was found for those
         -- types).  Report an error if this list "uds" is not empty.
-        uds        =  filter (null . tv) ds	-- no tyvars and not solvable
+        uds        =  filter (null . tv) ds        -- no tyvars and not solvable
 
         -- Ambiguous predicates
         -- An expression is ill-formed if its most general type ps => t
@@ -2476,7 +2476,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
     -- Apply the substition to the code fragments
-    let	alts''     =  apSub s alts'		-- new alternatives
+    let alts''     =  apSub s alts'             -- new alternatives
         abs        =  apSub s bs1               -- new dict bindings
         me''       =  apSub s me'               -- update guards
 
@@ -2800,7 +2800,7 @@ tiImpls recursive as ibs = do
         --      (we will defer them to the enclosing bindings)
         -- rs = preds which contains tyvars general/bound at this level
         -- "d" for defered and "r" for retained
-        (ds,rs) = splitF fs ps''			-- non-local, local constraints
+        (ds,rs) = splitF fs ps''                        -- non-local, local constraints
 
 
     -- Begin: find unresolvable variables
@@ -3008,7 +3008,7 @@ tiLetseqDef type_env arm@(CLMatch pattern expression) =
 --   defs':     definitions, possibly rewritten
 tiDefls :: [Assump] -> [CDefl] -> TI ([VPred], [Assump], [CDefl])
 tiDefls type_env defs = do
-    dss	<- mapM expCLMatch defs -- convert pattern-matches to regular defs
+    dss        <- mapM expCLMatch defs -- convert pattern-matches to regular defs
     let ds = concat dss
     let -- impl: untyped (implicitly typed) definitions
         impl = doSCC ds
@@ -3042,7 +3042,7 @@ chkERec _ = False
 -- extract untyped let-defs and sort them into interdependent groups
 doSCC :: [CDefl] -> [[Impl]]
 doSCC ds =
-        let g = [ (i, S.toList (snd (getFVDl d) `S.intersection` is)) | d@(CLValue i _ _) <- ds ]		-- XXX CLMatch
+        let g = [ (i, S.toList (snd (getFVDl d) `S.intersection` is)) | d@(CLValue i _ _) <- ds ]                -- XXX CLMatch
             is = S.fromList (map fst g)
             iss = scc g
             get i = (i, (headOrErr ("TCheck.doSCC: missing CLValue " ++

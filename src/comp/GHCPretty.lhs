@@ -900,7 +900,7 @@ display mode page_width ribbon_width txt end doc
                                   (lay1 $! k + shift) s sl p )))
 
                     other -> lay1 k s sl p
-	lay _ _ = internalError "bad case in lay"
+        lay _ _ = internalError "bad case in lay"
 
         lay1 k s sl p = Str (indent k) `txt` (s `txt` (lay2  $! k + sl) p)
 
@@ -908,7 +908,7 @@ display mode page_width ribbon_width txt end doc
         lay2 k (TextBeside s sl p) = s `txt` ((lay2 $! k + sl) p)
         lay2 k (Nest _ p)          = lay2 k p
         lay2 k Empty               = end
-	lay2 _ _ = internalError "bad case in lay2"
+        lay2 _ _ = internalError "bad case in lay2"
     in
     lay 0 doc
     }}

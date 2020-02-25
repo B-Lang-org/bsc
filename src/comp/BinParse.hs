@@ -20,18 +20,18 @@ binop fix bin op atom = (atom >>- (:[])) `into` opsO []
         end _ _ = internalError "binop parse: bad operand stack"
         newop [] as iop = opsA [iop] as
         newop oos@(sop:os) as@(~(a:b:as')) iop =
-	    let (iprec,iass) = prec iop
-	        (sprec,sass) = prec sop
-	    in  if iprec==sprec && (iass/=sass || iass==FInfix iprec) then
-		failure "proper operator combination"
-	    else if iprec>sprec || iprec==sprec && iass==FInfixr iprec then
-		opsA (iop:oos) as
-	    else
-		newop os (bin b sop a : as') iop
+            let (iprec,iass) = prec iop
+                (sprec,sass) = prec sop
+            in  if iprec==sprec && (iass/=sass || iass==FInfix iprec) then
+                failure "proper operator combination"
+            else if iprec>sprec || iprec==sprec && iass==FInfixr iprec then
+                opsA (iop:oos) as
+            else
+                newop os (bin b sop a : as') iop
         prec o =
-	    case fix o of
-	    f@(FInfixl i) -> (i, f)
-	    f@(FInfixr i) -> (i, f)
-	    f@(FInfix  i) -> (i, f)
+            case fix o of
+            f@(FInfixl i) -> (i, f)
+            f@(FInfixr i) -> (i, f)
+            f@(FInfix  i) -> (i, f)
             f             -> internalError("BinParse :: prec  unexpected pattern")
 

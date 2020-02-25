@@ -1,13 +1,13 @@
 module TypeAnalysis (
-		     TypeAnalysis(..),
-		     analyzeType,
-		     analyzeType',
+                     TypeAnalysis(..),
+                     analyzeType,
+                     analyzeType',
                      showType,
                      getWidth,
 
                      -- to be used with showType
                      kVector, vsVector, kList, vsList
-		     ) where
+                     ) where
 
 import Data.List(genericDrop, intersperse, (\\), nub, sortBy)
 import Data.Char(isUpper)
@@ -66,28 +66,28 @@ getWidth _                          = Nothing
 showType :: Bool -> Id -> Kind -> [Id] -> String
 showType showKinds t k user_vs =
     let
-	arg_ks = getArgKinds k
-	arg_names =
-	    let user_arg_names = map getIdString user_vs
-	    in  user_arg_names ++ (inexhaustable_var_names \\ user_arg_names)
+        arg_ks = getArgKinds k
+        arg_names =
+            let user_arg_names = map getIdString user_vs
+            in  user_arg_names ++ (inexhaustable_var_names \\ user_arg_names)
         showArg :: Bool -> Kind -> String -> String
-	showArg True arg_k name =
-	    (if arg_k == KNum then "numeric " else "") ++ "type " ++ name
-	showArg False arg_k name = name
-	showArgs =
-	    "#" ++ inParens
-	             (commaSep
-			 (zipWith (showArg showKinds) arg_ks arg_names))
+        showArg True arg_k name =
+            (if arg_k == KNum then "numeric " else "") ++ "type " ++ name
+        showArg False arg_k name = name
+        showArgs =
+            "#" ++ inParens
+                     (commaSep
+                         (zipWith (showArg showKinds) arg_ks arg_names))
     in
-	pvStr t ++
-	       (if null arg_ks then [] else showArgs)
+        pvStr t ++
+               (if null arg_ks then [] else showArgs)
 
 
 -- make [a,...,z,aa,ab,...,zy,zz,aaa,...]
 inexhaustable_var_names = names
   where
     names = [ x:r | r <- ([]:names),
-		    x <- ['a'..'z'] ]
+                    x <- ['a'..'z'] ]
 
 
 -- Given a list of type arguments already supplied
@@ -116,16 +116,16 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
 
     kindCheck :: CType -> Either [EMsg] CType
     kindCheck t =
-	-- "convCType" will error on too-many-args,
-	-- but we have to detect too-few-args
-	case (convCType symtab t) of
-	  Left err -> Left [err]
-	  Right t' ->
-	      case (kind t') of
-		Kfun _ _ ->
-		    let unapTypeName = ppString $ fst (splitTAp t)
-		    in  Left [(getPosition t, ETypeTooFewArgs unapTypeName)]
-		k -> Right t'
+        -- "convCType" will error on too-many-args,
+        -- but we have to detect too-few-args
+        case (convCType symtab t) of
+          Left err -> Left [err]
+          Right t' ->
+              case (kind t') of
+                Kfun _ _ ->
+                    let unapTypeName = ppString $ fst (splitTAp t)
+                    in  Left [(getPosition t, ETypeTooFewArgs unapTypeName)]
+                k -> Right t'
 
     analyze :: CType -> Either [EMsg] TypeAnalysis
     analyze t =
@@ -140,7 +140,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
              if (null as)
              then Right Numeric
              else -- Right OverApplied
-		  -- (this can't happen, because kindCheck catches it)
+                  -- (this can't happen, because kindCheck catches it)
                   Left [(pos, ENumKindArg)]
          (TCon (TyCon i _ _), as) ->
              -- the other fields are bogus before typechecking
@@ -161,24 +161,24 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
             in  analyzeNonNumTCon t qi k vs as isConcrete tisort
 
     analyzeNonNumTCon :: CType -> Id ->
-			 Kind -> [Id] -> [CType] -> Bool -> TISort ->
-			 Either [EMsg] TypeAnalysis
+                         Kind -> [Id] -> [CType] -> Bool -> TISort ->
+                         Either [EMsg] TypeAnalysis
     -- interface
     analyzeNonNumTCon t qi k vs as isC (TIstruct (SInterface pragmas) fields) =
         if (qi == idPrimPair && (not primpair_is_interface))
         then Right $ Primary qi k vs isC (w t)
         else
-	  let fieldInfos = map (getFieldInfo symtab qi) fields
-	      mkTuple (FieldInfo _ _ _ (fid :>: (Forall ks qt)) fpragmas _ morigtype) =
-		  let as' = addGenVars as ks
+          let fieldInfos = map (getFieldInfo symtab qi) fields
+              mkTuple (FieldInfo _ _ _ (fid :>: (Forall ks qt)) fpragmas _ morigtype) =
+                  let as' = addGenVars as ks
                       fqtype@(ps :=> ft) =
-		          apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
-		      is_subifc = isSubInterface ft &&
-		                  -- subinterfaces have no provisos
-		                  -- XXX this check might be unnecessary
-		                  null ps
-		  in  (is_subifc, fid, fqtype, fpragmas)
-	  in  Right $ Interface qi k vs isC (map mkTuple fieldInfos) pragmas
+                          apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
+                      is_subifc = isSubInterface ft &&
+                                  -- subinterfaces have no provisos
+                                  -- XXX this check might be unnecessary
+                                  null ps
+                  in  (is_subifc, fid, fqtype, fpragmas)
+          in  Right $ Interface qi k vs isC (map mkTuple fieldInfos) pragmas
     -- struct
     analyzeNonNumTCon t qi k vs as isC (TIstruct SStruct fields) =
         if (qi == idActionValue)
@@ -186,13 +186,13 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
         else if (qi == idPrimUnit)
         then Right $ Primary qi k vs isC (w t)
         else
-	  let fieldInfos = map (getFieldInfo symtab qi) fields
-	      mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
+          let fieldInfos = map (getFieldInfo symtab qi) fields
+              mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
                   let as' = addGenVars as ks
                       qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
                       t = qualToType qt'
                   in (i, qt', w t)
-	  in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
+          in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
     -- type alias (n is the number of type parameters)
     analyzeNonNumTCon t qi k vs as isC (TItype n t') =
         if (qi == idAction)
@@ -227,53 +227,53 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
         then Right $ Primary qi k vs isC (w t)
         else if (qi == idList)
         then
-	  case (as) of
-	      [el] -> Right $ List isC el
-	      _ -> internalError ("analyzeType': unexpected List params: " ++
-				  ppReadable as)
+          case (as) of
+              [el] -> Right $ List isC el
+              _ -> internalError ("analyzeType': unexpected List params: " ++
+                                  ppReadable as)
         else if (qi == idVector)
         then
-	  case (as) of
-	      [len,el] -> Right $ Vector isC len el (w t)
-	      _ -> internalError ("analyzeType': unexpected Vector params: " ++
-				  ppReadable as)
+          case (as) of
+              [len,el] -> Right $ Vector isC len el (w t)
+              _ -> internalError ("analyzeType': unexpected Vector params: " ++
+                                  ppReadable as)
         else
-	  let conInfos = map (getConInfo symtab qi) constructors
-	      getConType (ConInfo _ _ (i :>: (Forall ks (ps :=> t))) _ _) = t
-	      getConName (ConInfo _ _ (i :>: _) _ _) = i
-	      hasVoidArg t =
-		  case (fst (getArrows t)) of
-		      [TCon (TyCon i _ _)] | i == idPrimUnit -> True
-		      _ -> False
-	      -- an enum has fields with no data and the type has no params
-	      is_enum = (all hasVoidArg (map getConType conInfos)) &&
-	                (k == KStar)
-	  in
-	      -- figure out if it's enum or tagged union
-	      if (is_enum)
-	      then Right $ Enum qi (map getConName conInfos) (w t)
-	      else let -- we assume that 'ps' is empty (should we check?)
-		       mkTuple ci =
+          let conInfos = map (getConInfo symtab qi) constructors
+              getConType (ConInfo _ _ (i :>: (Forall ks (ps :=> t))) _ _) = t
+              getConName (ConInfo _ _ (i :>: _) _ _) = i
+              hasVoidArg t =
+                  case (fst (getArrows t)) of
+                      [TCon (TyCon i _ _)] | i == idPrimUnit -> True
+                      _ -> False
+              -- an enum has fields with no data and the type has no params
+              is_enum = (all hasVoidArg (map getConType conInfos)) &&
+                        (k == KStar)
+          in
+              -- figure out if it's enum or tagged union
+              if (is_enum)
+              then Right $ Enum qi (map getConName conInfos) (w t)
+              else let -- we assume that 'ps' is empty (should we check?)
+                       mkTuple ci =
                            let (tagT, unionT) = getUnionTypes (getConType ci)
                                new_as = reorderUnionTypeArgs unionT as
                                tf = expandSynN flags symtab $ inst new_as tagT
                            in  (getConName ci, tf, w tf)
-		   in  Right $
-		         TaggedUnion qi k vs isC (map mkTuple conInfos) (w t)
+                   in  Right $
+                         TaggedUnion qi k vs isC (map mkTuple conInfos) (w t)
     -- abstract
     analyzeNonNumTCon t qi k vs as isC (TIabstract) =
-	-- XXX if (k == KNum), should we return Numeric?
-	-- XXX such as for TAdd etc?  Should TAdd#(1,2) return 3?
+        -- XXX if (k == KNum), should we return Numeric?
+        -- XXX such as for TAdd etc?  Should TAdd#(1,2) return 3?
         Right $ Primary qi k vs isC (w t)
     -- anonymous struct in Classic tagged union
     analyzeNonNumTCon t qi k vs as isC (TIstruct (SDataCon _ _) fields) =
         let fieldInfos = map (getFieldInfo symtab qi) fields
-	    mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
+            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
                   let as' = addGenVars as ks
                       qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
                       t = qualToType qt'
                   in (i, qt', w t)
-	in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
+        in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
     -- type class
     analyzeNonNumTCon t qi k vs as isC (TIstruct SClass fields) =
         let
@@ -312,12 +312,12 @@ getConInfo symtab ty con =
       Nothing -> internalError ("findConInfo: not found: " ++ ppReadable con)
       Just [ci] -> ci
       Just cis ->
-	  case [ ci | ci@(ConInfo i _ _ _ _) <- cis, qualEq ty i ] of
-	      [ci] -> ci
-	      []   -> internalError ("findConInfo: not found: " ++
-				     ppReadable con)
-	      _    -> internalError ("findConInfo: ambiguous: " ++
-				     ppReadable (con,ty))
+          case [ ci | ci@(ConInfo i _ _ _ _) <- cis, qualEq ty i ] of
+              [ci] -> ci
+              []   -> internalError ("findConInfo: not found: " ++
+                                     ppReadable con)
+              _    -> internalError ("findConInfo: ambiguous: " ++
+                                     ppReadable (con,ty))
 
 
 -- this expects not to fail to find the field info
@@ -325,7 +325,7 @@ getFieldInfo :: SymTab -> Id -> Id -> FieldInfo
 getFieldInfo symtab ty field =
     case (findFieldInfo symtab ty field) of
       Nothing -> internalError ("findFieldInfo: not found: " ++
-				ppReadable field)
+                                ppReadable field)
       Just fi -> fi
 
 
@@ -334,11 +334,11 @@ getFieldInfo symtab ty field =
 getBitWidth :: Flags -> SymTab -> CType -> Maybe Integer
 getBitWidth flags symtab t =
     case (findSClass symtab (CTypeclass idBits)) of
-	Nothing -> Nothing -- Prelude hasn't been loaded :)
+        Nothing -> Nothing -- Prelude hasn't been loaded :)
         -- Bits is a coherent typeclass
-	Just c -> case (fst $ TI.runTI flags False symtab (getBitWidthM c)) of
-		      Right r -> r
-		      Left _  -> Nothing
+        Just c -> case (fst $ TI.runTI flags False symtab (getBitWidthM c)) of
+                      Right r -> r
+                      Left _  -> Nothing
   where
     getBitWidthM :: Class -> TI (Maybe Integer)
     getBitWidthM bitsCls = do
@@ -346,27 +346,27 @@ getBitWidth flags symtab t =
           -- record any vars in the type,
           -- so that we preserve names as given by the user
           addBoundTVs (tv t)
-	-}
-	-- construct the proviso Bits#(t,szv) for a new var 'szv'
+        -}
+        -- construct the proviso Bits#(t,szv) for a new var 'szv'
         szv <- newTVar "getBitWidth" KNum t
         let p = IsIn bitsCls [t, szv]
-	vp <- mkVPredFromPred [] p
-	-- try to satisfy the proviso
-	{- Do this, if you want to return a parameterized width
-	  -- (use FV version, to allow TAdd/TMul in the result)
-	  (rs,_) <- satisfyFV [] [] [vp]
-	-}
-	(rs,_) <- satisfy [] [vp]
-	s <- getSubst
-	let szv' = apSub s szv
-	-- if it was satisfiable, then apply the substituion to 'szv'
-	-- and that is the width
-	return $
-	    -- if parameterized width is desired, then allow non TyNum
-	    -- here as well (it could be a TyVar of TAp of TMul/TAdd/etc)
-	    if (null rs) && (isTNum szv')
-	    then Just (getTNum szv')
-	    else Nothing
+        vp <- mkVPredFromPred [] p
+        -- try to satisfy the proviso
+        {- Do this, if you want to return a parameterized width
+          -- (use FV version, to allow TAdd/TMul in the result)
+          (rs,_) <- satisfyFV [] [] [vp]
+        -}
+        (rs,_) <- satisfy [] [vp]
+        s <- getSubst
+        let szv' = apSub s szv
+        -- if it was satisfiable, then apply the substituion to 'szv'
+        -- and that is the width
+        return $
+            -- if parameterized width is desired, then allow non TyNum
+            -- here as well (it could be a TyVar of TAp of TMul/TAdd/etc)
+            if (null rs) && (isTNum szv')
+            then Just (getTNum szv')
+            else Nothing
 
 
 -- ---------------
@@ -413,8 +413,8 @@ rmStructArg t = internalError ("rmStructArg: no arrow: " ++ ppReadable t)
 rmUnionRes :: CType -> CType
 rmUnionRes unionT =
     case (getArrows unionT) of
-	([argT], _) -> argT
-	_ -> internalError ("rmUnionRes: wrong kind: " ++ ppReadable unionT)
+        ([argT], _) -> argT
+        _ -> internalError ("rmUnionRes: wrong kind: " ++ ppReadable unionT)
 -}
 
 -- For tagged unions, get the type of the field, which is the argument;
@@ -423,8 +423,8 @@ rmUnionRes unionT =
 getUnionTypes :: CType -> (CType, CType)
 getUnionTypes unionT =
     case (getArrows unionT) of
-	([argT], resT) -> (argT, resT)
-	_ -> internalError ("getUnionTypes: wrong kind: " ++ ppReadable unionT)
+        ([argT], resT) -> (argT, resT)
+        _ -> internalError ("getUnionTypes: wrong kind: " ++ ppReadable unionT)
 
 -- reorder the type arguments to a polymorphic tagged union type,
 -- to match the order in which they are generalized in the scheme for
