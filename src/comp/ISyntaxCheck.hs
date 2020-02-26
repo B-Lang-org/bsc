@@ -25,8 +25,10 @@ import TIMonad
 import IOUtil(progArgs)
 import Util(tracep, fromJustOrErr)
 
+doTraceEqWitnesses :: Bool
 doTraceEqWitnesses = "-trace-eq-witnesses" `elem` progArgs
 
+trace_witness :: String -> a -> a
 trace_witness = tracep doTraceEqWitnesses
 
 -----
@@ -204,8 +206,10 @@ tCheckIModule flags symt (IModule { imod_type_args  = iks,
 
 data Env = E (M.Map Id IType) (M.Map Id IKind) (EC.EquivClasses IType) PredEnv
 
+emptyEnv :: Env
 emptyEnv = E M.empty M.empty EC.empty emptyPredEnv
 
+addDict :: SymTab -> IType -> Env -> Env
 addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
   where new_eqs = case t of
                     (ITAp (ITAp (ITCon i _ _) t1) t2)
@@ -225,15 +229,19 @@ addDict symt t e@(E tm km eqs ps) = E tm km eqs' ps'
                in  foldr eqFn eqs new_eqs
         ps' = addPred symt e t
 
+addT :: SymTab -> Id -> IType -> Env -> Env
 addT symt i t (E tm km eqs ps) = addDict symt t $ E (M.insert i t tm) km eqs ps
 
+addK :: Id -> IKind -> Env -> Env
 addK i k (E tm km eqs ps) = E tm (M.insert i k km) eqs ps
 
+findT :: Id -> Env -> IType
 findT i (E tm _ _ _) =
     case M.lookup i tm of
         Just t -> t
         Nothing -> internalError ("ISyntaxCheck.findT " ++ ppString i ++ "\n" ++ ppReadable (M.toList tm))
 
+findK :: Id -> Env -> Maybe IKind
 findK i (E _ km _ _) = M.lookup i km
 
 instance PPrint Env where
@@ -248,6 +256,7 @@ instance PPrint Env where
 
 data PredEnv = PredEnv Int (M.Map Id TyVar) (S.Set Pred.Pred)
 
+emptyPredEnv :: PredEnv
 emptyPredEnv = PredEnv 0 M.empty S.empty
 
 convType :: Env -> IType -> (Env, Type)
@@ -289,4 +298,3 @@ addPred symt e@(E _ _ _ ps) t =
           Nothing -> ps
 
 ------
-

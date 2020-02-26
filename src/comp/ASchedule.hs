@@ -81,25 +81,42 @@ import PreIds(idErrorTask)
 -- Traces
 --
 
+trace_ncsets :: Bool
 trace_ncsets = "-trace-ncsets" `elem` progArgs
+trace_usemap :: Bool
 trace_usemap = "-trace-usemap" `elem` progArgs
+trace_mutatormap :: Bool
 trace_mutatormap = "-trace-mutatormap" `elem` progArgs
+trace_cfmap :: Bool
 trace_cfmap = "-trace-cfmap" `elem` progArgs
+trace_cfmaps :: Bool
 trace_cfmaps = "-trace-cfmaps" `elem` progArgs
+trace_pcmap :: Bool
 trace_pcmap = "-trace-pcmap" `elem` progArgs
+trace_pcmaps :: Bool
 trace_pcmaps = "-trace-pcmaps" `elem` progArgs
+trace_scmap :: Bool
 trace_scmap = "-trace-scmap" `elem` progArgs
+trace_scmaps :: Bool
 trace_scmaps = "-trace-scmaps" `elem` progArgs
+trace_scgraph :: Bool
 trace_scgraph = "-trace-scgraph" `elem` progArgs
+trace_seqgraph :: Bool
 trace_seqgraph = "-trace-seqgraph" `elem` progArgs
+trace_schedinfo :: Bool
 trace_schedinfo = "-trace-schedinfo" `elem` progArgs
+trace_sched_steps :: Bool
 trace_sched_steps = "-trace-sched-steps" `elem` progArgs
+trace_disjoint_tests :: Bool
 trace_disjoint_tests = "-trace-disjoint-tests" `elem` progArgs
+trace_defs :: Bool
 trace_defs           = "-trace-a-definitions" `elem` progArgs
+trace_no_urgency_edge :: Bool
 trace_no_urgency_edge = "-trace-no-urgency-edge" `elem` progArgs
+disable_urgency_warnings :: Bool
 disable_urgency_warnings = "-hack-disable-urgency-warnings" `elem` progArgs
 
-
+pp :: Doc -> String
 pp = pretty 78 78
 
 
@@ -325,9 +342,11 @@ getCSNId :: CSNode -> AId
 getCSNId (CSN_Sched i _) = i
 getCSNId (CSN_Exec  i _) = i
 
+isCSNSched :: CSNode -> Bool
 isCSNSched (CSN_Sched _ _) = True
 isCSNSched (CSN_Exec  _ _) = False
 
+isCSNExec :: CSNode -> Bool
 isCSNExec = not . isCSNSched
 
 -- convert to the external data type
@@ -1394,7 +1413,6 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
 --       in GHC. The split was done by duplicating some definitions and passing
 --       many values as a huge tuple between them. This was done simply because
 --       it was the easiest refactoring technique to apply.
-
 aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
                                            , cfConflictMap0
                                            , scConflictMapFinal
@@ -1779,8 +1797,10 @@ scheduleEsposito cmap_sc method_names rs =
 --
 
 -- prettyprint a rule name, dropping RL_ prefix when appropriate
+pp_r :: Id -> Doc
 pp_r rule = text (pString_r rule)
 
+pString_r :: Id -> String
 pString_r rule =
     -- XXX use "dropRulePrefixId"?
     let drop_rule_pfx ('R':'L':'_':rest) = rest
@@ -3507,14 +3527,19 @@ verifyAssertionSr (_, rpragma) _ =
 
 -- --------------------
 
+assertErrorMessage :: (ARuleId, RulePragma) -> Maybe Doc -> EMsg
 assertErrorMessage (r,a) mreason =
     (getIdPosition r,
      ERuleAssertion (pfpString r) (getRulePragmaName a) mreason)
 
+errFireWhenEnabledBecauseBlocked :: (ARuleId, RulePragma) -> [ARuleId]
+                                 -> AScheduler -> EMsg
 errFireWhenEnabledBecauseBlocked a rs sch =
     errFireWhenEnabledBecause a rs sch
         "because it is blocked by rule"
 
+errFireWhenEnabledBecause :: (ARuleId, RulePragma) -> [ARuleId]
+                          -> AScheduler -> String -> EMsg
 errFireWhenEnabledBecause a rs sch because_string =
     let s = case rs of { [_] -> ""; _ -> "s" }
         reason = s2par (because_string ++ s) $$
@@ -3524,6 +3549,8 @@ errFireWhenEnabledBecause a rs sch because_string =
                  nest 2 (pPrint PDReadable 0 sch)
     in  assertErrorMessage a (Just reason)
 
+errCannotScheduleFirst :: (ARuleId, RulePragma) -> [CSNode] -> [CSNode]
+                       -> EMsg
 errCannotScheduleFirst a before_sched before_exec =
     let s_msg = describe "scheduled" before_sched
         e_msg = describe "executed" before_exec
@@ -3544,6 +3571,9 @@ errCannotScheduleFirst a before_sched before_exec =
                     ]
           in hdr $+$ (nest 2 (vsep lst))
 
+errCannotScheduleFirstViaMeth :: (ARuleId, RulePragma)
+                              -> [(MethodId, [Either ARuleId AMethodId])]
+                              -> EMsg
 errCannotScheduleFirstViaMeth a befores =
     let hdr = text ("because it uses methods which require rules to execute before it:")
         lst = map describe befores
@@ -3561,6 +3591,7 @@ errCannotScheduleFirstViaMeth a befores =
                ([],_)  -> mname <+> mdoc
                (_,_)   -> mname <+> rdoc <+> (text "and") <+> mdoc
 
+errCascadedDomainCrossing :: (ARuleId, RulePragma) -> [MethodId] -> EMsg
 errCascadedDomainCrossing a unsynced =
     let hdr = text ("because it uses methods which are themselves unsychronized domain crossings:")
         lst = map describe unsynced
@@ -3914,6 +3945,7 @@ drops' graph seen seenList skip root =
                        [(child, root, [CCycle (child:seenList)])
                             | child <- nasty]) good'
 
+errMissingRoot :: a
 errMissingRoot = internalError "ASchedule: root missing from rule graph (!)"
 
 warnCycleDrops :: AId -> [(ARuleId, ARuleId, [Conflicts])] -> ErrorMonad ()
@@ -5150,7 +5182,7 @@ addMEAssumps pragmas r@(ARule { arule_id = rid }) new_id = rs
                                               arule_actions = [],
                                               arule_assumps = assumps }, (new_id, id_list))]
 
-
+mkMEAssump :: ([Id], [Id]) -> [(AAssumption, [Id])]
 mkMEAssump ([], _) = []
 mkMEAssump (_, []) = []
 mkMEAssump (aids, bids) = -- trace("ME: " ++ (ppReadable aids) ++ " " ++ (ppReadable bids)) $

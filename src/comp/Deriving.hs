@@ -134,16 +134,20 @@ doPrimTypeDer i vs (CTypeclass di) =
                         ++ " for primitive type: " ++
                         (ppReadable (cTApplys (cTCon i) vs)))
 
+rawUninitDef :: Type -> CDef
 rawUninitDef ty = CDef idMakeUninitializedNQ (CQType [] aty) [CClause [] [] (CVar idPrimRawUninitialized)]
   where aty = tPosition `fn` tString `fn` ty
 
+doPrimTypeUninitialized :: Id -> [CType] -> CDefn
 doPrimTypeUninitialized i vs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
   where ty = cTApplys (cTCon i) vs
         uninit = CLValueSign (rawUninitDef ty) []
 
+ty_forallb :: Type
 ty_forallb = t `fn` t
   where t = cTVar id_forallb
 
+doPrimTypeUndefined :: Id -> [CType] -> CDefn
 doPrimTypeUndefined i vs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
   where ty  = cTApplys (cTCon i) vs
         aty = tPosition `fn` tInteger `fn` ty
@@ -153,6 +157,7 @@ doPrimTypeUndefined i vs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [u
         error_str = stringLiteralAt noPosition "Attempt to use undetermined "
         type_str = cVApply idPrintType [typeLiteral ty]
 
+doPrimTypeDeepSeqCond :: Id -> [CType] -> CDefn
 doPrimTypeDeepSeqCond i vs = Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) ty)) [dseqcond]
   where ty  = cTApplys (cTCon i) vs
         def_ty = CQType [] (ty `fn` ty_forallb)
@@ -563,6 +568,7 @@ doDBits dpos type_name type_vars original_tags tags =
                                               num_rep_bits_ctype]))
          [CLValueSign pack_function [], CLValueSign unpack_function []]]
 
+hasSz :: CExpr -> Type -> CExpr
 hasSz e s = CHasType e (CQType [] (TAp tBit s))
 
 
@@ -855,15 +861,21 @@ doSDeepSeqCond i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsDeepSeqCond) ty)
 
 -- -------------------------
 
+eNot :: CExpr -> CExpr
 eNot e = cVApply idNot [e]
+eAnd :: CExpr -> CExpr -> CExpr
 eAnd e1 e2 = cVApply idAnd [e1, e2]
+eConcat :: CExpr -> CExpr -> CExpr
 eConcat e1 e2 = cVApply idPrimConcat [e1, e2]
 
+eTrue, eFalse :: CExpr
 eTrue = CCon idTrue []
 eFalse = CCon idFalse []
 
+monoDef :: Id -> CExpr -> CExpr -> CExpr
 monoDef v b e = CApply (CLam (Right v) e) [b]
 
+everyThird :: [Id] -> [Id]
 everyThird (x:_:_:xs) = x : everyThird xs
 everyThird [] = internalError "Deriving.everyThird: []"
 everyThird [_] = internalError "Deriving.everyThird: [_]"
@@ -871,17 +883,27 @@ everyThird [_,_] = internalError "Deriving.everyThird: [_,_]"
 
 -- these identifiers are explicitly unqualified because we do not know
 -- what packages instances for struct or union components are found
+idEqualNQ :: Position -> Id
 idEqualNQ pos = setIdPosition pos (unQualId idEqual)
+idNotEqualNQ :: Position -> Id
 idNotEqualNQ pos = setIdPosition pos (unQualId idNotEqual)
+idPackNQ :: Position -> Id
 idPackNQ pos = setIdPosition pos (unQualId idPack)
+idUnpackNQ :: Position -> Id
 idUnpackNQ pos = setIdPosition pos (unQualId idUnpack)
+idfshowNQ :: Position -> Id
 idfshowNQ pos = setIdPosition pos (unQualId idfshow)
+idMaxBoundNQ :: Position -> Id
 idMaxBoundNQ pos = setIdPosition pos (unQualId idMaxBound)
+idMinBoundNQ :: Position -> Id
 idMinBoundNQ pos = setIdPosition pos (unQualId idMinBound)
+idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
 --idBuildUndefinedNQ = unQualId idBuildUndef
+idMakeUninitializedNQ :: Id
 idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 --idPrimUninitializedNQ = unQualId idPrimUninitialized
+idPrimDeepSeqCondNQ :: Id
 idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
 
 ----
@@ -895,12 +917,15 @@ mkConv con coCon (x:xs) v (TAp (TAp (TCon (TyCon arr _ _)) a) r) | arr == idArro
 mkConv _ _ _ v t = \ e -> e
 
 -- generate errors for duplicate tag encodings
+duplicate_tag_encoding_errors :: Id -> [CInternalSummand] -> [EMsg]
 duplicate_tag_encoding_errors type_name [] = []
 duplicate_tag_encoding_errors type_name (tag:rest_tags) =
     duplicate_tag_encoding_error type_name tag rest_tags ++
     duplicate_tag_encoding_errors type_name rest_tags
 
 -- generate errors for encodings conflicting with that of the current tag
+duplicate_tag_encoding_error :: Id -> CInternalSummand -> [CInternalSummand]
+                             -> [EMsg]
 duplicate_tag_encoding_error type_name tag rest_tags
     | null duplicate_tags = []
     | otherwise = [(getPosition tag,
@@ -912,6 +937,8 @@ duplicate_tag_encoding_error type_name tag rest_tags
                | next_tag <- rest_tags,
                  cis_tag_encoding next_tag == cis_tag_encoding tag]
 
+addRequiredDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
+                 -> [CTypeclass]
 addRequiredDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
     | Right True <- fst (runTI flags False r check) = derivs
@@ -932,6 +959,8 @@ addRequiredDeriv flags r i tvs clsId derivs =
   -- trace ("auto-derive: " ++ ppReadable (cls, i))
   (CTypeclass clsId) : derivs
 
+addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
+                  -> [CTypeclass]
 addRequiredDerivs flags r i tvs derivs =
   foldr f derivs (map setPos requiredClasses)
    where pos    = getIdPosition i

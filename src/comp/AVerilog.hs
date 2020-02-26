@@ -1382,6 +1382,7 @@ mkInstInputDeclMaybe defs in_port_id =
 -- used to check if instantiation parameter exprs are ok
 -- (first argument is a list of ids which are known to be constant --
 -- that is, incoming parameters)
+isConstVE :: [Id] -> VExpr -> Bool
 isConstVE _  (VEConst {}) = True
 isConstVE _  (VEWConst {}) = True
 isConstVE _  (VEUnknown {}) = True
@@ -1408,6 +1409,7 @@ isConstVE _ (VEMacro {}) = True
 -- ==============================
 -- utilities for pass-through comments
 
+insertBlankLines :: [[String]] -> [String]
 insertBlankLines [] = []
 insertBlankLines xss = foldr1 (\xs ys -> xs ++ [""] ++ ys) xss
 
@@ -1545,6 +1547,7 @@ createBitBlast args =
             blast a = internalError ("blast 3 " ++ ppReadable a)
         in  (concat ass, concat dss)
 
+vids_sub_name :: a -> String -> Integer -> [VId]
 vids_sub_name tag su n =
     [mkVId lname | i <- [0..n],
                    let lname = su ++ "_" ++ itos i]

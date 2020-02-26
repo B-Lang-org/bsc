@@ -324,6 +324,7 @@ mkSetResetFnName rstId = "set_reset_fn_" ++ getIdBaseString rstId
 
 
 -- these match defintions in bluesim_types.h
+badClockHandleName :: String
 badClockHandleName = "BAD_CLOCK_HANDLE"
 
 clockType :: CCFragment -> CCFragment
@@ -1491,17 +1492,20 @@ setClkFnDef scope dom =
   in  define (setClkFnProto scope dom) (block [def_assign])
 
 -- Functions used for generating the dump() methods for a SimCCBlock
+dumpFnProto :: Maybe String -> Bool -> String -> CCFragment
 dumpFnProto scope with_handle fn_name =
   let prefix = maybe "" (++ "::") scope
       harg = if with_handle then [clockType (mkVar "handle")] else []
       iarg = [unsigned . int $ (mkVar "indent")]
   in function void (mkVar (prefix ++ fn_name)) (harg ++ iarg)
 
+vcdHdrFnProto :: Maybe String -> CCFragment
 vcdHdrFnProto scope =
   let prefix = maybe "" (++ "::") scope
   in function (unsigned . int) (mkVar (prefix ++ "dump_VCD_defs"))
                                [ unsigned . int $ (mkVar "levels") ]
 
+vcdDumpFnProto :: SimCCBlock -> Maybe String -> String -> Bool -> CCFragment
 vcdDumpFnProto sb scope name with_levels =
   let prefix = maybe "" (++ "::") scope
       args = [ (userType "tVCDDumpType") $ (mkVar "dt") ] ++
@@ -1509,14 +1513,17 @@ vcdDumpFnProto sb scope name with_levels =
              [ reference . (moduleType sb []) $ (mkVar "backing") ]
   in function void (mkVar (prefix ++ name)) args
 
+vcdFnProto :: SimCCBlock -> Maybe String -> CCFragment
 vcdFnProto sb scope = vcdDumpFnProto sb scope "dump_VCD" True
 
+mkSubCall :: AId -> String -> [CCExpr] -> Maybe CCFragment -> CCFragment
 mkSubCall inst fn args lval =
   let rhs = ((aInstIdToC inst) `cDot` fn) `cCall` args
   in case lval of
        (Just lhs) -> lhs `assign` rhs
        Nothing    -> stmt $ rhs
 
+mkVCDDef :: Map.Map (Bool, AId) ClockDomain -> (AType, AId, Bool) -> [CCFragment]
 mkVCDDef clk_map (ty,aid,isPort) =
   let name      = getIdBaseString aid
       def       = if isPort then (aPortIdToC aid) else (aDefIdToC aid)

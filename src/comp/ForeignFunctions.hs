@@ -202,19 +202,25 @@ instance PPrint Argument where
     pPrint d p Null = text "Null"
 
 -- we need to be able to handle unsized strings
+is_str_lit :: AExpr -> Bool
 is_str_lit (ASStr _ _ _)  = True
 is_str_lit _              = False
 
+is_str_def :: AExpr -> Bool
 is_str_def (ASDef (ATString _) _) = True
 is_str_def _                      = False
 
+is_str_param :: AExpr -> Bool
 is_str_param (ASParam (ATString _) _) = True
 is_str_param _ = False
 
+is_str :: AExpr -> Bool
 is_str e = (is_str_lit e) || (is_str_def e) || (is_str_param e)
 
+is_real :: AExpr -> Bool
 is_real e = aType e == ATReal
 
+str_size :: AExpr -> [Char]
 str_size (ASDef (ATString Nothing) _) = ""
 str_size e                            = show (aSize e)
 

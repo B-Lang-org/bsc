@@ -132,6 +132,7 @@ import IOUtil(progArgs)
 -- Tracing
 --
 
+trace_apaths :: Bool
 trace_apaths = "-trace-apaths" `elem` progArgs
 
 -- ====================================
@@ -295,9 +296,11 @@ filterPNDefs pns = filter (not . isPNDef) pns
     where isPNDef (PNDef _) = True
           isPNDef _ = False
 
+alwaysRdyNode :: [PProp] -> PathNode -> Bool
 alwaysRdyNode pps (PNTopMethodRes m) = isAlwaysRdy pps m
 alwaysRdyNode pps _ = False
 
+enWhenRdyNode :: [PProp] -> PathNode -> Bool
 enWhenRdyNode pps (PNTopMethodEnable m) = isEnWhenRdy pps m
 enWhenRdyNode pps _ = False
 

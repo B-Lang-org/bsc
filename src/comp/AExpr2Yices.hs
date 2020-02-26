@@ -179,6 +179,7 @@ checkImplication ye1 ye2 = do
 isConstExpr :: YState -> AExpr -> IO (Maybe Bool, YState)
 isConstExpr s e = runStateT (isConstExprM e) s
 
+isConstExprM :: AExpr -> YM (Maybe Bool)
 isConstExprM e = withTraceTest $ do
 
   when traceTest $ traceM("checking is-constant: " ++ ppString e)
@@ -798,31 +799,47 @@ convPrim2YExpr mty p i w args = do
 
 -- -----
 
+doBinManyPrim_BoolBool :: ([Y.Expr] -> IO Y.Expr) -> [AExpr]
+                       -> YM (Y.Expr, YType)
 doBinManyPrim_BoolBool mkFn args =
     boolArgs args >>= doBinManyPrim mkFn >>= boolRes
 
+doUnPrim_BoolBool :: (Y.Expr -> IO Y.Expr) -> [AExpr]
+                  -> YM (Y.Expr, YType)
 doUnPrim_BoolBool mkFn args =
     boolArgs args >>= doUnPrim mkFn >>= boolRes
 
+doBinPrim_BitsBool :: (Y.Expr -> Y.Expr -> IO Y.Expr) -> [AExpr]
+                   -> YM (Y.Expr, YType)
 doBinPrim_BitsBool mkFn args =
     bitsArgs args >>= doBinPrim mkFn >>= boolRes
 
+doBinPrim_BitsBits :: Integer -> (Y.Expr -> Y.Expr -> IO Y.Expr) -> [AExpr]
+                   -> YM (Y.Expr, YType)
 doBinPrim_BitsBits w mkFn args =
     bitsArgs args >>= doBinPrim mkFn >>= bitsRes w
 
+doUnPrim_BitsBits :: Integer -> (Y.Expr -> IO Y.Expr) -> [AExpr]
+                  -> YM (Y.Expr, YType)
 doUnPrim_BitsBits w mkFn args =
     bitsArgs args >>= doUnPrim mkFn >>= bitsRes w
 
+doBinIntPrim_BitsBits :: Integer -> (Y.Expr -> Int -> IO Y.Expr) -> AExpr -> Int
+                      -> YM (Y.Expr, YType)
 doBinIntPrim_BitsBits w mkFn e n = do
     (ye, _) <- convAExpr2YExpr_Force False e
     yp <- doBinIntPrim mkFn ye n
     bitsRes w yp
 
 
+boolArgs :: [AExpr] -> YM [Y.Expr]
 boolArgs = mapM (\ a -> convAExpr2YExpr_Force True a >>= return . fst)
+bitsArgs :: [AExpr] -> YM [Y.Expr]
 bitsArgs = mapM (\ a -> convAExpr2YExpr_Force False a >>= return . fst)
 
+boolRes :: Monad m => a -> m (a, YType)
 boolRes   ye = return (ye, YBool)
+bitsRes :: Monad m => Integer -> a -> m (a, YType)
 bitsRes w ye = return (ye, YBits w)
 
 
@@ -896,4 +913,3 @@ yTruncate w (ye, yt) =
 
 
 -- -------------------------
-

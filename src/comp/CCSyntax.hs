@@ -203,6 +203,7 @@ templatedT t args = CTtemplate t args
 -- from a pointer to an array.  These are precedence values which
 -- allow pretty-printing to parenthesize correctly.
 -- Higher precedence implies tighter binding.
+functionPrec, arrayPrec, pointerPrec, referencePrec :: Int
 functionPrec  = 3
 arrayPrec     = 2
 pointerPrec   = 1
@@ -311,6 +312,7 @@ data CCExpr = CVar String
 -- These precedence values are used for proper grouping of non-standard
 -- operators.  Other operators have their precedence encoded within COp
 -- below.
+dotPrec, arrowPrec, indexPrec, callPrec, addrPrec, derefPrec, castPrec, ternaryPrec :: Int
 dotPrec     = 17
 arrowPrec   = 17
 indexPrec   = 17
@@ -423,22 +425,29 @@ data COp = COp Int Int Int String
 instance PPrint COp where
   pPrint d p (COp _ _ _ s) = text s
 
+prec :: COp -> Int
 prec  (COp _ p _ _) = p
+lprec :: COp -> Int
 lprec (COp l _ _ _) = l
+rprec :: COp -> Int
 rprec (COp _ _ r _) = r
 
 -- MUST leave 1 number between each precedence level
 -- to allow room for the associativity biasing.
+unaryrOp :: Int -> String -> COp
 unaryrOp p s = COp 0       (2*p) (2*p)   s
+infixlOp :: Int -> String -> COp
 infixlOp p s = COp (2*p+1) (2*p) (2*p)   s
 --unarylOp p s = COp (2*p)   (2*p) 0       s
 --infixrOp p s = COp (2*p)   (2*p) (2*p+1) s
 
 -- operator table arranged into descending precedence groups
 
+oPostInc, oPostDec :: COp
 oPostInc = unaryrOp 17 "++"
 oPostDec = unaryrOp 17 "--"
 
+oPreInc, oPreDec, oCompl, oNot, oUMinus, oUPlus :: COp
 oPreInc  = unaryrOp 16 "++"
 oPreDec  = unaryrOp 16 "--"
 oCompl   = unaryrOp 16 "~"
@@ -447,34 +456,45 @@ oUMinus  = unaryrOp 16 "-"
 oUPlus   = unaryrOp 16 "+"
 --oCast    = unaryrOp 16 "()"
 
+oMul, oQuot, oRem :: COp
 oMul     = infixlOp 14 "*"
 oQuot    = infixlOp 14 "/"
 oRem     = infixlOp 14 "%"
 
+oAdd, oSub :: COp
 oAdd     = infixlOp 13 "+"
 oSub     = infixlOp 13 "-"
 
+oLShift, oRShift :: COp
 oLShift  = infixlOp 12 "<<"
 oRShift  = infixlOp 12 ">>"
 
+oLt, oLe, oGt, oGe :: COp
 oLt      = infixlOp 11 "<"
 oLe      = infixlOp 11 "<="
 oGt      = infixlOp 11 ">"
 oGe      = infixlOp 11 ">="
 
+oEq, oNe :: COp
 oEq      = infixlOp 10 "=="
 oNe      = infixlOp 10 "!="
 
+oBitAnd :: COp
 oBitAnd  = infixlOp  9 "&"
 
+oBitXor :: COp
 oBitXor  = infixlOp  8 "^"
 
+oBitOr :: COp
 oBitOr   = infixlOp  7 "|"
 
+oAnd :: COp
 oAnd     = infixlOp  6 "&&"
 
+oOr :: COp
 oOr      = infixlOp  5 "||"
 
+oComma :: COp
 oComma   = infixlOp  1 ","
 
 -- C language fragments
@@ -1052,8 +1072,11 @@ isTrue _                   = False
 
 -- Combinators for C operators
 
+binOp :: COp -> CCExpr -> CCExpr -> CCExpr
 binOp  op x y = CBinOp x op y
+preOp :: COp -> CCExpr -> CCExpr
 preOp  op x   = CPreOp op x
+postOp :: COp -> CCExpr -> CCExpr
 postOp op x   = CPostOp x op
 
 cPostInc, cPostDec, cPreInc, cPreDec :: CCExpr -> CCExpr

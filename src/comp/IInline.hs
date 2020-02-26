@@ -85,9 +85,11 @@ iInlineS True imod@(IModule { imod_local_defs = ds,
                imod_interface   = ifc',
                imod_state_insts = state_vars' }
 
+ruleVars :: IRules a -> [Id]
 ruleVars (IRules sps rs) = concatMap leafVars rs
     where leafVars r = iValVars (irule_pred r) ++ iValVars (irule_body r)
 
+varVars :: (a, IStateVar b) -> [Id]
 varVars (_, IStateVar { isv_iargs = es }) =
         let vs = concatMap iValVars es
         in  vs ++ vs                -- XXX

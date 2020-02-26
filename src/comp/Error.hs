@@ -1210,6 +1210,7 @@ data ErrMsgTag = Parse    Integer
 errMsgTagWidth :: Integer
 errMsgTagWidth = 4
 
+prErrMsgTag :: ErrMsgTag -> String
 prErrMsgTag (Parse    i) = ('P' : integerFormat errMsgTagWidth 10 i)
 prErrMsgTag (Type     i) = ('T' : integerFormat errMsgTagWidth 10 i)
 prErrMsgTag (System   i) = ('S' : integerFormat errMsgTagWidth 10 i)
@@ -1231,7 +1232,10 @@ showWarningList = showEMsgList swarning emptyContext
 showMessageList :: [EMsg] -> String
 showMessageList = showEMsgList smessage emptyContext
 
+showErrorListWithContext :: MsgContext -> [EMsg] -> String
 showErrorListWithContext   = showEMsgList serror
+
+showWarningListWithContext :: MsgContext -> [EMsg] -> String
 showWarningListWithContext = showEMsgList swarning
 
 -- note that this sorts the messages by position

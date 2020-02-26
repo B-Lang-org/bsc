@@ -32,8 +32,9 @@ pvpAll = pvpr PDAll
 pvpDebug :: (PVPrint a) => a -> String
 pvpDebug = pvpr PDDebug
 
-lineWidth = 120::Int
-linePref = 100::Int
+lineWidth, linePref :: Int
+lineWidth = 120
+linePref = 100
 
 pvpString :: (PVPrint a) => a -> String
 pvpString = init . pretty 100000 100000 . pvPrint PDReadable 0
@@ -41,8 +42,10 @@ pvpString = init . pretty 100000 100000 . pvPrint PDReadable 0
 pvpStringNQ :: (PVPrint a) => a -> String
 pvpStringNQ = init . pretty 100000 100000 . pvPrint PDNoqual 0
 
+pvpr :: PVPrint a => PDetail -> a -> String
 pvpr d = pretty lineWidth linePref . pvPrint d 0
 
+pvprIndent :: PVPrint a => Int -> PDetail -> a -> String
 pvprIndent i d = pretty lineWidth linePref . nest i . pvPrint d 0
 
 instance PVPrint Int where

@@ -33,6 +33,7 @@ updateITypePosition pos (ITCon i kind sort) = (ITCon (setIdPosition pos i) kind 
 updateITypePosition pos t@(ITNum _) = t
 
 
+updateIExprPosition2 :: Position -> IExpr a -> IExpr a
 updateIExprPosition2 pos (ILam i t e) = (ILam (setIdPosition pos i) t (updateIExprPosition pos e))
 updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICCon _ _ _)) ts [e0]) =
     if (not (isUsefulPosition (getIdPosition i)))

@@ -226,7 +226,7 @@ addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
                           n = nArrows t_
                       -- definitions for the wrapper and wrappee
                       d <- funcDef errh symt i qt i_ n qt_
-                      let d_ = funcDef_ n mi i i_ qt_ args
+                      let d_ = funcDef_ mi i i_ qt_ args
                       return [d, d_]
                 _ -> internalError ("addFuncWrap: " ++ ppString (ti_, i_))
 
@@ -240,6 +240,7 @@ addFuncWrap errh symt is (CPackage modid exps imps fixs ds includes) = do
 --   i_ = the escaped id (declared as foreign)
 --   n  = the number of arguments to the foreign function
 --   t  = the base type of the foreign function
+funcDef :: ErrorHandle -> SymTab -> Id -> CQType -> Id -> Int -> CQType -> IO CDefn
 funcDef errh symt i oqt@(CQType octxs ot) i_ n (CQType _ t) =
     let
         -- unfortunately, we have to duplicate the work that genwrap did
@@ -286,15 +287,16 @@ funcDef errh symt i oqt@(CQType octxs ot) i_ n (CQType _ t) =
 -- ---------------
 
 -- make the foreign function declaration (with escaped id) to be wrapped.
---   n   = the number of arguments
---   mi  = the combinational module to instantiate
---   i_  = the escaped identifier to use for the foreign declaration
---   i   = the original identifier, which also happens to be the
---         name of the method on the module, which is the prefix for
---         the port names for the method (used to generate the port names)
---   qt_ = the qualified type of the wrapped function
---         (this has been bitified by GenWrap)
-funcDef_ n mi i i_ qt_ args =
+--   mi   = the combinational module to instantiate
+--   i_   = the escaped identifier to use for the foreign declaration
+--   i    = the original identifier, which also happens to be the
+--          name of the method on the module, which is the prefix for
+--          the port names for the method (used to generate the port names)
+--   qt_  = the qualified type of the wrapped function
+--          (this has been bitified by GenWrap)
+--   args = List of function args
+funcDef_ :: Id -> Id -> Id -> CQType -> [Id] -> CDefn
+funcDef_ mi i i_ qt_ args =
     let
         mstr = getIdString mi
         -- input ports: <methId>_<argId>
@@ -306,6 +308,7 @@ funcDef_ n mi i i_ qt_ args =
 
 -- ---------------
 
+nArrows :: Type -> Int
 nArrows t = length $ fst $ getArrows t
 
 -- ===============

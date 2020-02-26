@@ -4,7 +4,7 @@ import ListUtil(mapSnd)
 import ListMap(lookupWithDefault)
 import qualified Data.Set as S
 import qualified Data.Map as M
-import PPrint(ppReadable, ppString)
+import PPrint(PPrint, ppReadable, ppString)
 import ErrorUtil(internalError)
 import Id(Id, isKeepId, isDictId)
 import CSyntax
@@ -20,8 +20,10 @@ import Flags(Flags, simplifyCSyntax)
 
 --import Util(traces)
 
+trace_simplify :: Bool
 trace_simplify = "-trace-simplify" `elem` progArgs
 
+traced :: (PPrint a, PPrint b) => String -> a -> b -> b
 traced name orig result =
     let message = "Simplify trace: " ++ name ++ ":\n" ++ ppReadable orig ++
                   "=====>\n" ++ ppReadable result
@@ -52,6 +54,7 @@ cLetRec ds e = Cletrec (map optBind ds) e
 --       (i' not in free vars of e)
 -- into
 --   let i .v1 ... .vn p1 .. pn p1' .. pn' :: qt = e
+optBind :: CDefl -> CDefl
 optBind orig@(CLValueSign (CDefT i vs qt [CClause ps [] (Cletrec [CLValueSign (CDefT i' [] _ [CClause ps' [] e]) []] (CVar i''))]) [])
         | i' == i'' && not (isKeepId i') && not (S.member i' (snd (getFVE e))) =
             (traced "Simplify.optBind" orig
@@ -323,6 +326,7 @@ selectSimpleL r lds =
 --                            ppReadable (map (flip CLValueSign []) ds) ++
 --                            "\nwithquals:\n" ++ ppReadable [ ld | ld@(CLValueSign _ (_ : _)) <- lds ] ++ "\n") $
 
+isCPVar :: CPat -> Bool
 isCPVar (CPVar _) = True
 isCPVar _ = False
 
@@ -330,11 +334,16 @@ isCPVar _ = False
 -- different from *bound* variables, e.g., consider:
 --   let f x y = ... in ...
 -- where the *bound* variables are [f] and *captured* variables are [f, x, y]
+capturedVarsCDefl :: CDefl -> S.Set Id
 capturedVarsCDefl (CLValueSign def _) = capturedVarsCDef def
 capturedVarsCDefl (CLMatch pat e) = getPV pat
 capturedVarsCDefl (CLValue var clauses _) =
     S.unions (S.singleton var : map capturedVarsClause clauses)
+
+capturedVarsCDef :: CDef -> S.Set Id
 capturedVarsCDef (CDefT var _ _ clauses) =
     S.unions (S.singleton var : map capturedVarsClause clauses)
 capturedVarsCDef (CDef _ _ _) = internalError "Simplify.capturedVarsCDef: CDef"
+
+capturedVarsClause :: CClause -> S.Set Id
 capturedVarsClause (CClause pats _ _) = S.unions (map getPV pats)

@@ -31,6 +31,7 @@ import PPrint
 -- ==============================
 -- Traces
 
+trace_ralloc, trace_uugraph :: Bool
 trace_ralloc = "-trace-ralloc" `elem` progArgs
 trace_uugraph = "-trace-uugraph" `elem` progArgs
 
@@ -299,4 +300,3 @@ lookupRes r rs = case lookup r rs of
                  Nothing  -> internalError $ "RSchedule: phantom resources" ++ ppReadable r ++ ppReadable rs
 
 -- ==============================
-

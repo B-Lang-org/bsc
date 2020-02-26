@@ -44,6 +44,7 @@ import FileIOUtil(putStrHandles, openFileCatch)
 str_none :: String
 str_none = "(none)"
 
+list_or_none :: [a] -> Doc -> Doc
 list_or_none l doc =
   if (not . null) l then doc else text str_none
 
@@ -401,4 +402,3 @@ removeADefMethodPredsByRuleId dropped_rule_ids ds =
             (isForDroppedRule ps)
     in
         filter (not . dropDef) ds
-

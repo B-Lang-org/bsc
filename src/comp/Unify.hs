@@ -11,7 +11,9 @@ import PFPrint
 import Util(traces)
 import IOUtil(progArgs)
 
+doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs
+rtrace :: String -> a -> a
 rtrace s x = if doRTrace then traces s x else x
 
 class Unify t where
@@ -36,6 +38,7 @@ instance Unify Type where
     mgu bound_tyvars (TCon tc1) (TCon tc2) | tc1==tc2 = Just (nullSubst, [])
     mgu bound_tyvars t1 t2             = Nothing
 
+numUnify :: [TyVar] -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 numUnify bound_tyvars t1 t2
     | t1 == t2 = Just (nullSubst, [])
 numUnify bound_tyvars (TCon (TyNum n1 _)) (TCon (TyNum n2 _))
@@ -57,6 +60,7 @@ numUnify bound_tyvars t (TVar u)
     | not (u `elem` (bound_tyvars ++ tv t)) = varBindWithEqs u t
 numUnify bound_tyvars t1 t2 = Just (nullSubst, [(t1,t2)])
 
+varUnify :: [TyVar] -> TyVar -> TyVar -> Type -> Type -> Maybe (Subst, [(Type, Type)])
 varUnify bound_tyvars u v tu tv
     | u == v = Just (nullSubst, [])
 varUnify bound_tyvars u v tu tv
@@ -100,7 +104,9 @@ varBind u t | t == TVar u      = Just nullSubst
             | otherwise        = Nothing
 
 -- Cannot allow a variable to be bound to an unsaturated type synonym.
+isUnSatSyn :: Type -> Bool
 isUnSatSyn t = isUnSatSyn' t 0
+isUnSatSyn' :: Type -> Integer -> Bool
 isUnSatSyn' (TCon (TyCon _ _ (TItype n _))) args = n > args
 isUnSatSyn' (TAp f a) args = isUnSatSyn' f (args + 1)
 isUnSatSyn' _  _ = False

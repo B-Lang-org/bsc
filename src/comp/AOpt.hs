@@ -312,7 +312,7 @@ findDef = do
   dmap <- gets o_defmap
   return $ makeFindFn "AOpt.findDef" dmap
 
-makeFindFn :: String -> M.Map AId AExpr -> (AId -> AExpr)
+makeFindFn :: String -> DefMap -> (AId -> AExpr)
 makeFindFn str dmap v =
   case M.lookup v dmap of
     Just e -> e

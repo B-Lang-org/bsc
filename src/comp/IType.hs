@@ -132,6 +132,7 @@ itArrow :: IType
 itArrow = ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) tiArrow
 
 -- Pretty print ITForAll
+ppQuant :: String -> PDetail -> Int -> Id -> IKind -> IType -> Doc
 ppQuant s d p i t e =
     pparen (p>0) (sep [text s <> pparen True (pPrint d 0 i <>text" ::" <+> pPrint d 0 t) <+> text ".", pPrint d 0 e])
 
@@ -149,4 +150,3 @@ iToCK :: IKind -> Kind
 iToCK (IKStar) = KStar
 iToCK (IKNum) = KNum
 iToCK (IKFun k1 k2) = Kfun (iToCK k1) (iToCK k2)
-

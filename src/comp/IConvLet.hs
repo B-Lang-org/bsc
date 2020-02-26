@@ -277,19 +277,24 @@ unpoly i e@(Cattributes ppos) = e
 -- Currently exhaustive - uncomment to kill warning
 -- unpoly i e = internalError ("IConv.unpoly: fell off! :"++(show e))
 
+unpolyd :: Id -> CDefl -> CDefl
 unpolyd i (CLValueSign d qs) = CLValueSign (unpolydd i d) (map (unpolyq i) qs)
 unpolyd i (CLValue _ _ _) = internalError "IConv.unpolyd: CLValue"
 unpolyd i (CLMatch _ _) = internalError "IConv.unpolyd: CLValue"
 
+unpolyr :: Id -> CRule -> CRule
 unpolyr i (CRule ps me qs e) = CRule ps (fmap (unpoly i) me) (map (unpolyq i) qs) (unpoly i e)
 unpolyr i (CRuleNest ps me qs rs) = CRuleNest ps (fmap (unpoly i) me) (map (unpolyq i) qs) (map (unpolyr i) rs)
 
+unpolydd :: Id -> CDef -> CDef
 unpolydd i (CDef _ _ _) = internalError "IConv.unpolydd: CDef"
 unpolydd i (CDefT ii vs t cs) = CDefT ii vs t (map (unpolyc i) cs)
 
+unpolyq :: Id -> CQual -> CQual
 unpolyq i (CQGen t p e) = CQGen t p (unpoly i e)
 unpolyq i (CQFilter e) = CQFilter (unpoly i e)
 
+unpolyc :: Id -> CClause -> CClause
 unpolyc i (CClause ps qs e) = CClause ps (map (unpolyq i) qs) (unpoly i e)
 
 reorderDs :: [CDefl] -> [Id] -> [CDefl]

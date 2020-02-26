@@ -51,6 +51,7 @@ import Data.Traversable(forM)
 
 -- XXXX  This will need overhauling
 
+aconvPref :: String
 aconvPref = "__d"
 
 -- This is used by AExpand
@@ -696,6 +697,7 @@ aTypeConvE a t = abs t []
         abs _ _ = -- ATAbstract idBit []        -- XXX what's this
                   internalError ("aTypeConvE|" ++ show t)
 
+realPrim :: PrimOp -> Bool
 realPrim p = p `elem`
         [
          PrimSignExt, PrimZeroExt, PrimTrunc,
@@ -706,20 +708,26 @@ realPrim p = p `elem`
          -- not primArith because not Bit n -> Bit n -> Bit n
          PrimMul, PrimQuot, PrimRem
         ] ++ primAriths ++ primCmps ++ primBools ++ primStrings
+primAriths :: [PrimOp]
 primAriths = [ PrimAdd, PrimSub, PrimAnd, PrimOr, PrimXor,
                PrimSL, PrimSRL, PrimSRA,
                PrimInv, PrimNeg ]
+primBools :: [PrimOp]
 primBools = [ PrimBAnd, PrimBOr, PrimBNot ]
+primCmps :: [PrimOp]
 primCmps = [ PrimEQ, PrimEQ3,
              PrimULE, PrimULT,
              PrimSLE, PrimSLT ]
+primStrings :: [PrimOp]
 primStrings = [ PrimStringConcat ]
 
 -- Many primops are associative, but if we reassociate we might rebalance a carefully
 -- set up tree of computations.
 --assocPrims = [ PrimAdd, PrimAnd, PrimOr, PrimXor, PrimConcat, PrimBAnd, PrimBOr ]
+assocPrims :: [PrimOp]
 assocPrims = [ PrimConcat ]
 
+joinOp :: PrimOp -> IExpr a -> [IExpr a]
 joinOp p (IAps (ICon _ (ICPrim { primOp = p' })) _ es) | p == p' = es
 joinOp _ e = [e]
 
@@ -953,6 +961,7 @@ trId m i =
 -----
 
 -- XXX should insert runtime-error code when we truncate the indices on PrimExtract
+eTrunc :: ErrorHandle -> ASize -> IExpr a -> IExpr a
 eTrunc errh n e =
     if (k > n)
     then let e' = IAps (icSelect noPosition) [ITNum n, ITNum 0, ITNum k] [e]

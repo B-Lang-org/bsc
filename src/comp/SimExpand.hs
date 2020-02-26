@@ -53,6 +53,7 @@ import GraphUtil(extractOneCycle_map, reverseMap)
 -- ===============
 -- Traces
 
+trace_mergesched, trace_bs_mcd :: Bool
 trace_mergesched = "-trace-mergesched" `elem` progArgs
 trace_bs_mcd = "-trace-bs-mcd" `elem` progArgs
 
@@ -1955,6 +1956,7 @@ rUses m (UseInfo _ pred_reads body_reads body_writes) =
     in
         (pred_read_uses, body_action_uses `union` body_read_uses)
 
+mergeUses :: [[(AId, AId)]] -> [(AId, AId)]
 mergeUses = foldr union []
 
 -- Returns the method uses in an action.

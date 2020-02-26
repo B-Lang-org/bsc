@@ -495,6 +495,7 @@ mapSPIds f sps =
 
 -- --------------------
 
+setpos :: Id -> Id -> Id
 setpos id1 id2 = setIdPosition (getIdPosition id1) id2
 
 -- --------------------

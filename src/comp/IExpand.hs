@@ -86,91 +86,109 @@ import IStateLoc
 --   Keep a map of the number of times a top-level def is entered in evalAp
 --   (the number of unfolding steps), indexed by the position of the call Id,
 --   and display the map on each step warning and at the end of evaluation.
+doProfile :: Bool
 doProfile = elem "-trace-profile" progArgs
 
 -- doDebug
 --   A generic trace flag that has been added to over the years.
 --   Includes some basic call flow at the top of evaluating a module,
 --   and debug info when evaluating various structures and primitives.
+doDebug :: Bool
 doDebug = elem "-trace-debug" progArgs
 
 -- doFunExpand
 --   On evaluating a top-level function call, display the call.
 --   If the flag is used twice, the result of evaluation is displayed.
+doFunExpand, doFunExpand2 :: Bool
 doFunExpand = elem "-trace-fun-expand" progArgs
 doFunExpand2 = length (filter (== "-trace-fun-expand") progArgs) > 1
 
 -- doConAp
 --   Trace the entrance and exit to "conAp" (called when evaluating ICon)
 --   and when that calls "bldAp'" or "bldApUH'" (rebuilding the original expr)
+doConAp :: Bool
 doConAp = elem "-trace-conAp" progArgs
 
 -- doTrans
 --   Trace the entrance and exit to iTransExpr (when iExpand resorts
 --   to iTransform for optimization)
+doTrans :: Bool
 doTrans = elem "-trace-eval-trans" progArgs
 
 -- doTraceClock
 --   Trace the creation and analysis of Clock and Reset (and some Inout),
 --   here and in IExpandUtils.
+doTraceClock :: Bool
 doTraceClock = elem "-trace-clock" progArgs
 
 -- doTraceSteps
 --   At the end of evaluation, display the total number of evaluation steps
 --   (the number of times a top-level function was evaluated, including
 --   when using a cached value)
+doTraceSteps :: Bool
 doTraceSteps = elem "-trace-eval-steps" progArgs
 
 -- doTraceHeap
 --   In IExpandUtils, trace when adding an expr to the heap or updating a
 --   heap value.  If the flag is used twice, the overwritten value is shown.
+doTraceHeap :: Bool
 doTraceHeap  = elem "-trace-heap" progArgs
 
 -- doTraceHeapAlloc
 --   In IExpandUtils, trace when a heap cell is created.
 --   And trace in "evalUH" when the value to be unheaped is a reference
 --   (which is considered a "wasted re-heap").
+doTraceHeapAlloc :: Bool
 doTraceHeapAlloc = elem "-trace-heap-alloc" progArgs
 
 -- doTraceHeapSize
 --   At the end of evaluation, print the size of the heap (number of cells).
+doTraceHeapSize :: Bool
 doTraceHeapSize = elem "-trace-heap-size" progArgs
 
 -- doTraceCache
 --   In IExpandUtils, trace cache hit/miss for top-level functions.
+doTraceCache :: Bool
 doTraceCache = elem "-trace-def-cache" progArgs
 
 -- doTraceNF
 --   Trace the entrance and exit of "walkNF".
+doTraceNF :: Bool
 doTraceNF = elem "-trace-eval-nf" progArgs
 
 -- doTracePortTypes
 --   In IExpandUtils, trace the saving of port types, via the primitive and
 --   for the module arguments and interface.
+doTracePortTypes :: Bool
 doTracePortTypes = elem "-trace-port-types" progArgs
 
 -- doTraceIf
 --   Trace the "doIf" and "improveIf" functions for evaluating if exprs.
+doTraceIf :: Bool
 doTraceIf = elem "-trace-eval-if" progArgs
 
 -- doTraceTypes
 --   Add a check that the type of an expression before and after evaluation
 --   (by "evalAp") doesn't match, with an internal error if not.
+doTraceTypes :: Bool
 doTraceTypes = elem "-trace-eval-types" progArgs
 
 -- doTraceLoc
 --   Here and in IExpandUtil, trace some operations on IStateLoc, such as
 --   adding hierarchy for instantiation, rules, and leaf modules.
+doTraceLoc :: Bool
 doTraceLoc = elem "-trace-state-loc" progArgs
 
 -- doDebugFreeVars
 --   Add a check that expressions added to the heap do not have free variables,
 --   with an internal error if so.
+doDebugFreeVars :: Bool
 doDebugFreeVars = elem "-debug-eval-free-vars" progArgs
 
 -- We need to set the buffering of stdout and stderr
 -- if any trace is on (including a trace only used in IExpandUtils)
 -- so make sure that all trace flags are included in this list
+doAnyTrace :: Bool
 doAnyTrace = doProfile ||
              doDebug ||
              doFunExpand ||
@@ -192,9 +210,12 @@ doAnyTrace = doProfile ||
 -- Before we had attributes for controlling whether input clocks have gates,
 -- these backdoor flags were used to add gates.
 -- XXX These can probably be retired now
+gateClockInputs :: Bool
 gateClockInputs = elem "-hack-gate-clock-inputs" progArgs
+gateDefaultClock :: Bool
 gateDefaultClock = elem "-hack-gate-default-clock" progArgs
 
+iExpandPref :: String
 iExpandPref = "__h"
 
 -----------------------------------------------------------------------------
@@ -493,7 +514,7 @@ unpack_method_call' _ e =
 removeInlinedPositions :: Flags -> IModule HeapData -> IModule HeapData
 removeInlinedPositions flags imod0 | (not (methodConditions flags)) = imod0
 removeInlinedPositions flags imod0 =
-    let removeFn :: IExpr HeapData -> IExpr HeapData
+    let removeFn :: HExpr -> HExpr
         removeFn (ICon i ic) = (ICon (removeIdInlinedPositions i) ic)
         -- XXX do we need a recursive branch for IAps?
         removeFn e = e
@@ -1043,7 +1064,7 @@ iExpandMethodLam modId n args implicitCond clkRst (i, bi, eb) li ty p = do
             i_n = mkIdPost (BetterInfo.mi_prefix bi) (concatFString [fsUnderscore, mkNumFString n])
             i' :: Id
             i'  = if null (BetterInfo.mi_args bi) then i_n else (BetterInfo.mi_args bi) !! fromInteger (n-1)
-            eb' :: IExpr HeapData
+            eb' :: HExpr
             eb' = eSubst li (ICon i' (ICMethArg ty)) eb
             -- bi' = if null bi then [] else tail bi
         let m_orig_type :: Maybe IType
@@ -1083,7 +1104,7 @@ iExpandMethod' implicitCond curClk (i, bi, e0) p0 = do
         (readySignal, ws2) <- evalPred p_norm
         setIfcSchedNameScopeProgress (Just (IEP_Method i False))
 
-        let methExpr :: IExpr HeapData
+        let methExpr :: HExpr
             methExpr = (iePrimWhen methType readySignal e')
 
         -- The wireset for a method is really the combination of the
@@ -2207,6 +2228,7 @@ evalType e = do
 ------------------------------------------------------------------------------
 
 -- common code shared by "findClock", "findReset", "findInout", etc
+findNF :: HExpr -> G HExpr
 findNF (IAps (ICon _ (ICPrim _ PrimIf)) _ [c, t, _]) = findNF t
 findNF (IAps (ICon _ (ICPrim _ PrimCase)) _ (idx:def:n0:e0:_)) = findNF e0
 findNF (IAps (ICon _ (ICPrim _ PrimArrayDynSelect)) [elem_t, _] [a, _]) =
@@ -2224,6 +2246,7 @@ findNF e = return e
 
 ------------------------------------------------------------------------------
 
+findClock :: HExpr -> G HExpr
 findClock = findNF
 
 -- evaluate a clock
@@ -2241,7 +2264,7 @@ evalClock e = do
 
 -----------------------------------------------------------------------------
 
-
+findReset :: HExpr -> G HExpr
 findReset = findNF
 
 -- evaluate a reset
@@ -2261,6 +2284,7 @@ evalReset e = do
 -----------------------------------------------------------------------------
 
 -- find a buried Inout, for continuing on after an error
+findInout :: HExpr -> G HExpr
 findInout = findNF
 
 -- evaluate an inout
@@ -2589,6 +2613,7 @@ evaleNF_ModArg inst_id (varg, e) = do
                     EModPortHasImplicit (pfpString inst_id) (pfpString varg_id))]
     return (e', ws)
 
+fuse :: (Integer, HExpr) -> (Integer, HExpr) -> (Integer, HExpr)
 fuse (sz1, e1) (sz2, e2) = (sz3, e)
   where e = IAps icPrimConcat [ITNum sz2, ITNum sz1, ITNum sz3] [e2, e1]
         sz3 = sz1 + sz2
@@ -4691,9 +4716,11 @@ isCanonAV_ (ICon _ (ICForeign { })) = True
 isCanonAV_ (IAps (ICon _ (ICForeign { })) _ _) = True
 isCanonAV_  _ = False
 
+dropT :: [Arg] -> [Arg]
 dropT (T _ : as) = dropT as
 dropT as = as
 
+takeT :: [Arg] -> [IType]
 takeT (T t : as) = t : takeT as
 takeT _ = []
 
@@ -4706,6 +4733,7 @@ firstE err []         = internalError err
 --isUndet (ICon _ (ICUndet {  })) = True
 --isUndet _ = False
 
+isIntLit :: Arg -> Bool
 isIntLit (E (ICon _ (ICInt { }))) = True
 isIntLit (T (ITNum _)) = True
 isIntLit _ = False
@@ -4924,6 +4952,7 @@ instance HeapToDef HRule where
 
 -----------------------------------------------------------------------------
 
+pExpr :: HExpr -> PExpr
 pExpr e = P pTrue e
 
 addPredG :: HPred -> G PExpr -> G PExpr
@@ -4943,6 +4972,7 @@ bIf c t e | isTrue t  = ieOr c e
 bIf c t e             = IAps icIf [itBit1] [c, t, e]
 -}
 
+eAssertion :: Id -> RulePragma -> [Char] -> G ()
 eAssertion rId a str =
     let pos = getPosition rId
         reason = if (null str)
@@ -4952,6 +4982,7 @@ eAssertion rId a str =
 
 --ieIfu ty c t e = if isUndet t then e else if isUndet e then t else ieIfx ty c t e
 
+isCon :: HExpr -> Bool
 isCon (ICon _ _) = True
 isCon _ = False
 

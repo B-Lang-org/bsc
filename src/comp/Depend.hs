@@ -46,6 +46,7 @@ import TopUtils
 --import Trace
 --import Util(traceM)
 
+outlaw_sv_kws_as_classic_ids :: Bool
 outlaw_sv_kws_as_classic_ids = "-outlaw-sv-kws-as-classic-ids" `elem` progArgs
 
 type FileName = String
@@ -236,6 +237,7 @@ findInfo n (_:pis) = findInfo n pis
 -- This tries to return a list of all files that will be generated from
 -- this file after codegen.
 -- XXX This needs to be kept in sync with what the backend actually does!
+getGenFs :: Flags -> PkgInfo -> [String]
 getGenFs flags pi =
     let prefix = dirName (fileName pi) ++ "/"
         getName = getIdString . unQualId

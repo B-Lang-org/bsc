@@ -122,23 +122,30 @@ reduce _ = Nothing
 -- the originally anded or ored expressions in the right
 -- order if no optimization is done
 
+redAnd :: Ord a => Bool -> S.Set (BoolExp a) -> [BoolExp a] -> [BoolExp a]
+       -> Maybe [BoolExp a]
 redAnd change s rs [] = toMaybe change rs
 redAnd change s rs (e:es) = if e `S.member` s then redAnd True s rs es
                      else if Not e `S.member` s then Just [FF]
                           else redAnd change (S.insert e s) (e:rs) es
 
+redOr :: Ord a => Bool -> S.Set (BoolExp a) -> [BoolExp a] -> [BoolExp a]
+      -> Maybe [BoolExp a]
 redOr change s rs [] = toMaybe change rs
 redOr change s rs (e:es) = if e `S.member` s then redOr True s rs es
                     else if Not e `S.member` s then Just [TT]
                          else redOr change (S.insert e s) (e:rs) es
 
+foldrx :: (a -> a -> a) -> a -> [a] -> a
 foldrx f z [] = z
 foldrx f z [x] = x
 foldrx f z xs = foldr1 f xs
 
+collAnd :: BoolExp a -> [BoolExp a]
 collAnd (And e1 e2) = collAnd e1 ++ collAnd e2
 collAnd e = [e]
 
+collOr :: BoolExp a -> [BoolExp a]
 collOr (Or e1 e2) = collOr e1 ++ collOr e2
 collOr e = [e]
 

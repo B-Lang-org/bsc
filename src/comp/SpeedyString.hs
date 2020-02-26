@@ -58,6 +58,7 @@ newSString s = unsafePerformIO $
                                           (hashStr s) [(s,ss)] ssm
                   return ss
 
+err :: a
 err = internalError "SpeedyString: inconsistent representation"
 
 --toNotSoSpeedyString :: SString -> NotSoSpeedyString.SString

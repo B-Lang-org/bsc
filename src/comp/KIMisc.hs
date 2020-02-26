@@ -25,6 +25,7 @@ import qualified Data.IntSet as IS
 
 infixr 4 @@
 
+doTraceKI :: Bool
 doTraceKI = "-trace-kind-inference" `elem` progArgs
 
 type KVar = Int
@@ -156,6 +157,7 @@ extKSubst   :: KSubst -> KI ()
 extKSubst s' = M $
     \ (KState s n) -> Right (KState (s'@@s) n, ())
 
+newKVar' :: KI Kind
 newKVar' = M $
     \ (KState s n) ->
     Right (KState s (n+1), KVar n)
@@ -410,4 +412,3 @@ isFuncK (Kfun _ _) = True
 isFuncK _          = False
 
 --------------------
-

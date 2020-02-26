@@ -243,6 +243,7 @@ getMStmtBind (CMStmt s) = getStmtBind s
 getMStmtBind _ = []
 -}
 
+getFVO :: COp -> FVSet
 getFVO (CRand e) = getFVE e
 getFVO (CRator _ i) = singletonV i  -- XXX should we return operators?
 
@@ -324,6 +325,7 @@ getFTCMStmt (CMrules e) = getFTCE e
 getFTCMStmt (CMinterface e) = getFTCE e
 getFTCMStmt (CMTupleInterface _ es) = S.unions (map getFTCE es)
 
+getFTCO :: COp -> S.Set Id
 getFTCO (CRand e) = getFTCE e
 getFTCO (CRator _ _) = S.empty
 
@@ -401,8 +403,12 @@ getPT (CPCon1 ti _ _) = S.singleton ti
 getPT (CPConTs ti _ ts ps) =
     S.insert ti (S.unions (map getFTyCons ts ++ map getPT ps))
 
+getPTs :: [CPat] -> S.Set Id
 getPTs ps = S.unions (map getPT ps)
+
+getPCs :: [CPat] -> S.Set Id
 getPCs ps = S.unions (map getPC ps)
+
 getPVs :: [CPat] -> S.Set Id
 getPVs ps = S.unions (map getPV ps)
 
@@ -464,6 +470,7 @@ getFTCR (CRule _ n qs e) =
 getFTCR (CRuleNest _ n qs rs) =
         getMFTC n `S.union` (getFTCQuals qs `S.union` S.unions (map getFTCR rs))
 
+getMFTC :: Maybe CExpr -> S.Set Id
 getMFTC Nothing = S.empty
 getMFTC (Just e) = getFTCE e
 
@@ -585,4 +592,3 @@ getVDefIds (CIinstance _ _) = []
 getVDefIds (CItype i _ useposs) = [iKName i]
 getVDefIds (CIclass _ _ i _ _ useposs) = [iKName i]
 getVDefIds (CIValueSign i _) = [i]
-

@@ -26,6 +26,7 @@ iSimplify :: (Hyper a) => IPackage a -> IPackage a
 iSimplify (IPackage pi lps ps ds) =
     IPackage pi lps ps ({-iSimpDefs-} (iSimpDefs (iSimpDefs ds)))        -- XXX
 
+iSimpDefs :: Hyper a => [IDef a] -> [IDef a]
 iSimpDefs ds = fixUpDefs $ iDefsMap (iSimp True) ds
 
 iSimp :: (Hyper a) => Bool -> IExpr a -> IExpr a
@@ -40,6 +41,7 @@ expDef :: IExpr a -> IExpr a
 expDef (ICon _ (ICDef _ e)) | isHarmless e = e
 expDef e = e
 
+iSimpAp' :: Hyper a => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
 iSimpAp' b f ts es = mapIExprPosition True (f, iSimpAp b f ts es)
 
 iSimpAp :: (Hyper a) => Bool -> IExpr a -> [IType] -> [IExpr a] -> IExpr a
@@ -60,7 +62,6 @@ iSimpAp n e [] [] = e -- iSimp has already been called
 iSimpAp n f ts es = IAps f ts es
 
 getTuple :: (Hyper a) => IExpr a -> Maybe [IExpr a]
-
 getTuple (ICon di (ICDef { iConDef = def@(IAps (ICon _ (ICTuple { })) _ ms) })) | di `notElem` dVars def =
         -- trace ("unfold " ++ ppReadable di) $
         Just ms
@@ -69,10 +70,10 @@ getTuple (IAps (ICon iii (ICDef { iConDef = body })) ts []) =
         case iSimpAp False body ts [] of
         IAps (ICon _ (ICTuple { })) _ ms -> Just ms
         _ -> Nothing
-
 getTuple _ = Nothing
 
 -- XXX should we do more PrimOps here?
+doPrim :: PrimOp -> [IType] -> [IExpr a] -> Maybe (IExpr a)
 doPrim PrimIntegerToBit [t@(ITNum s)] [ICon i l@(ICInt { iVal = v })] | ilValue v >= 0 &&
                                                                         s >=0 &&
                                                                         ilValue v < 2^s = Just $ ICon i (l { iConType = aitBit t })
@@ -106,6 +107,7 @@ size (ILAM _ _ e) = size e
 size _ = 0
 -}
 
+isTriv :: IExpr a -> Bool
 isTriv (IVar _) = True
 -- do not inline ActionValue constants
 -- may break correlations for foreign functions
@@ -117,6 +119,7 @@ isTriv (ICon _ (ICUndet { })) = True
 isTriv (ICon _ (ICDef { })) = True
 isTriv _ = False
 
+isHarmless :: IExpr a -> Bool
 isHarmless e =
         --trace (ppReadable (e, onlySimple e, isPerm [] e)) $
         onlySimple e && isPerm [] e
@@ -124,6 +127,7 @@ isHarmless e =
 -- expression is a proper combinator: somehow permutes arguments and constants
 -- has no free variables and no embedded lambda expressions
 --   is: accumulated list of lambda-bound parameters
+isPerm :: [Id] -> IExpr a -> Bool
 isPerm is (ILAM _ _ e) = isPerm is e
 isPerm is (ILam i _ e) = isPerm (i:is) e
 isPerm is e = null (gVars e \\ is)

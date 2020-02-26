@@ -37,6 +37,7 @@ import Unify(mgu)
 v1, v2, v3 :: Id
 v1 : v2 : v3 : _ = tmpTyVarIds
 
+tvarh1, tvarh2, tvarh3 :: TyVar
 tvarh1 = tVarKind v1 KNum
 tvarh2 = tVarKind v2 KNum
 tvarh3 = tVarKind v3 KNum
@@ -1028,6 +1029,7 @@ tiName = TIabstract
 tiPred = TIabstract
 tiSchedPragma = TIabstract
 
+tyiArrow :: TypeInfo
 tyiArrow   = TypeInfo (Just (idArrow noPosition)) (Kfun KStar (Kfun KStar KStar)) [] tiArrow
 {-
 tyiBit     = TypeInfo (Just idBit) (Kfun KNum KStar) [] tiBit

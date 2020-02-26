@@ -52,6 +52,7 @@ import Util(headOrErr)
 import Util(traceM)
 import IOUtil(progArgs)
 
+doVarTrace, doSubstTrace, dontTrim :: Bool
 doVarTrace = elem "-trace-tcvar" progArgs
 doSubstTrace = elem "-trace-type-extsubst" progArgs
 dontTrim = elem "-trace-skip-trim" progArgs

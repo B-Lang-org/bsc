@@ -180,6 +180,7 @@ mkInitialAssignments flags avis =
 
 
 -- make the conditional enable assignment to a register
+mkENAssignment :: AVInst -> VStmt
 mkENAssignment avi =
     let en = VEVar (vId (mkEN avi))
         qout = VLId (vId (mkQOUT avi))
@@ -188,6 +189,7 @@ mkENAssignment avi =
         Vif en (VAssignA qout din)
 
 -- make the assignment on reset (to be put inside a conditional)
+mkRSTAssignment :: VConvtOpts -> AVInst -> VStmt
 mkRSTAssignment vco avi =
     let qout = VLId (vId (mkQOUT avi))
         init_val = vExpr vco (getRegInit avi)
@@ -248,4 +250,3 @@ partitionByClockAndReset errh avis =
 
 
 -- ==============================
-

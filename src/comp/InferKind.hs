@@ -55,6 +55,7 @@ convertPKindToKind (PKfun l r) = do l' <- convertPKindToKind l
 
 type Assumps = M.Map Id Kind
 
+makeAssump :: Id -> KI (Id, Kind)
 makeAssump i = do v <- newKVar (Just i); return (i, v)
 
 inferKDefn :: Assumps -> CDefn -> KI ()
@@ -107,6 +108,7 @@ inferKDefn as (Cinstance qt@(CQType ps t) _) = do
     kcCTypeStar as'' t
 inferKDefn _ _ = return ()
 
+inferCPred :: Assumps -> CPred -> KI ()
 inferCPred as (CPred (CTypeclass i) ts) = kcCTypeStar as (cTApplys (cTCon i) ts)
 
 
@@ -139,9 +141,9 @@ kcCQTypeStar as (CQType ps t) = do
     kcCTypeStar as t
 
 
+getFQTyVarsL :: CQType -> [Id]
 getFQTyVarsL qt = S.toList (getFQTyVars qt)
 
 mustFindK :: Id -> M.Map Id Kind -> Kind
 mustFindK i m | (Just k) <- M.lookup i m = k
 mustFindK i m = internalError ("InferKind.mustFindK" ++ show i)
-

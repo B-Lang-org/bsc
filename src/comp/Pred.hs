@@ -260,8 +260,10 @@ expandSyn t0 = exp [] t0 []
                 notIn v (TDefMonad _) = internalError "expandSyn,truncType (TDefMonad)"
         truncType k n t = internalError ("expandSyn,truncType\n" ++ ppReadable (k, n, t0, t))
 
+isTFun :: Id -> Bool
 isTFun i = i `elem` numOpNames
 
+apTFun :: Type -> Id -> [Type] -> Type
 apTFun _ i [TCon (TyNum x px), TCon (TyNum y py)] | Just n <- opNumT i [x, y] = TCon (TyNum n p')
   where p' = bestPosition px py
 apTFun _ i [TCon (TyNum x px)] | Just n <- opNumT i [x] = TCon (TyNum n px)

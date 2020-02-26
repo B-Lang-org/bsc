@@ -86,12 +86,15 @@ translateId :: FSMap -> AId -> AId
 translateId vmap id = xLateIdUsingFStringMap vmap id
 
 -- a short alias
+tr :: FSMap -> AId -> AId
 tr = translateId
 
 -- translate an instance
+trI :: FSMap -> AVInst -> AVInst
 trI mp avi@(AVInst { avi_iargs = es }) = avi { avi_iargs = map (trE mp) es }
 
 -- translate an expression
+trE :: FSMap -> AExpr -> AExpr
 trE mp (APrim aid t o es)   = APrim aid t o (map (trE mp) es)
 trE mp (AMethCall t i m es) = AMethCall t i m (map (trE mp) es)
 trE mp (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (map (trE mp) es)
@@ -102,6 +105,7 @@ trE mp (ASDef t i)          = ASDef t (tr mp i)
 trE mp e                    = e
 
 -- translate a def
+trD :: FSMap -> ADef -> ADef
 trD mp (ADef i t e p)         = ADef (tr mp i) t (trE mp e) (map (trP mp) p)
 
 -- there are currently no DefProps that mention state ports,
@@ -110,16 +114,20 @@ trP :: FSMap -> DefProp -> DefProp
 trP mp p = p
 
 -- translate an inout def
+trIOD :: FSMap -> ADef -> ADef
 trIOD mp (ADef i t e p)       = ADef i t (trE mp e) (map (trP mp) p)
 
 -- translate a foreign block
+trFB :: FSMap -> AForeignBlock -> AForeignBlock
 trFB mp (clks, fcalls) = (map (trE mp) clks, map (trF mp) fcalls)
 
 -- translate a foreign call
+trF :: FSMap -> AForeignCall -> AForeignCall
 trF mp (AForeignCall id f es ids resets) =
     AForeignCall id f (map (trE mp) es) ids (map (trE mp) resets)
 
 -- translate the signal info
+trSI :: FSMap -> ASPSignalInfo -> ASPSignalInfo
 trSI mp si =
     let trClk (clk,gates) = (tr mp clk, map (tr mp) gates)
 

@@ -16,6 +16,7 @@ import Util(fst3)
 import IntLit
 import IntegerUtil(mask)
 import Classic(isBSV)
+import Flags(Flags)
 import PFPrint
 import Id
 import FStringCompat
@@ -55,16 +56,24 @@ import Util(traceM)
 import Util(traces)
 import IOUtil(progArgs)
 
+doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs
+doRTrace2 :: Bool
 doRTrace2 = length (filter (== "-trace-type") progArgs) > 1
+doETrace :: Bool
 doETrace = elem "-trace-type-expl" progArgs
+rtrace :: String -> a -> a
 rtrace s x = if doRTrace then traces s x else x
+etrace :: String -> a -> a
 etrace s x = if doETrace then traces s x else x
 
+doTraceSatisfy :: Bool
 doTraceSatisfy= elem "-trace-tc-satisfy" progArgs
 -- satTrace s x = if doTraceSatisfy then traces s x else x
+satTraceM :: String -> TI ()
 satTraceM s = when (doTraceSatisfy) $ traceM s
 
+warnMethArgMismatch :: Bool
 warnMethArgMismatch = elem "-warn-meth-arg-mismatch" progArgs
 
 -------
@@ -1070,6 +1079,7 @@ taskCheckNormal as td f es =
     do
       tiExpr as td (CApply f es)
 
+litOne :: Position -> CExpr
 litOne pos = CLit (CLiteral pos (LInt (ilDec 1)))
 
 taskCheckRandom :: [Assump] -> Type -> CExpr -> [CExpr] -> TI ([VPred],CExpr)
@@ -1567,6 +1577,8 @@ taskCheckFormat as td f es =
        paramResults <- mapM (checkDisplayParam False True as) es
        finishFormat as td f es paramResults
 
+finishFormat :: [Assump] -> Type -> CExpr -> a
+             -> [(([VPred], CExpr), Type, CStmts)] -> TI ([VPred], CExpr)
 finishFormat as td f es paramResults =
      do
         s' <- getSubst
@@ -1661,6 +1673,7 @@ taskCheckMap = [(idTime,      taskCheckNormal),
                 (idRealToBits, taskCheckNormal),
                 (idBitsToReal, taskCheckNormal)]
 
+tiApply :: [Assump] -> Type -> a -> CExpr -> CExpr -> TI ([VPred], CExpr)
 tiApply as td exp f e = do
     -- give the tyvar the position of the argument?
     -- if the variable pos becomes the position of a pred, this could
@@ -1682,6 +1695,7 @@ tiApply as td exp f e = do
 -- interface is already being applied (a read, a write, or other method).
 -- This avoids infinitely applying the read method and it allows users to
 -- write to the reg and to apply other methods on Reg-like interfaces.
+tiVar :: ImplReadTag -> [Assump] -> Type -> CExpr -> TI ([VPred], CExpr)
 tiVar readTag as td exp@(CVar i) = do
     (i' :>: sc) <- findAssump i as
 
@@ -1739,6 +1753,8 @@ tiVar _ _ _ _ = internalError "TCheck.tiVar"
 
 -- tiVar_WithImplRead sel = tiVar (ImplRead sel)
 
+noDesugar :: Type -> TI (Type, [VPred], CExpr)
+          -> CExpr -> TI ([VPred], CExpr)
 noDesugar td base_expr orig_expr = do
   (t, ps, e) <- base_expr
   eq_ps <- unify orig_expr t td
@@ -1769,6 +1785,8 @@ tryReadDesugar base_expr (ImplRead msel) as td orig_expr = do
          _ -> read_res
      _ -> def_res
 
+tiSub :: ImplReadTag -> [Assump] -> Type -> Position -> CExpr -> CExpr
+      -> TI ([VPred], CExpr)
 tiSub readTag as td pos e1 e2 = tryReadDesugar (tiWithType as exp) readTag as td exp
   where exp = (cVApply (idPrimSelectFn pos) [posLiteral pos, e1, e2])
 
@@ -2696,6 +2714,8 @@ type Impl   = (Id, ([CClause], [CQual]))
 --   clauses =   the clauses of the definition
 --   quals =     the implicit condition patterns
 --               (an empty list if the def is not for a method)
+tiImpl :: [Assump] -> Type -> (Id, ([CClause], [CQual]))
+       -> TI ([VPred], ([CClause], [CQual]))
 tiImpl type_env type_var (_, (clauses, quals)) = do
         -- Typecheck the implicit condition (only for interfaces)
         -- pqs = introduced predicates (VPred)
@@ -3076,11 +3096,14 @@ ifcFieldIdToTConId i r t =
 
 -- Whether _read/_write desugaring can be applied
 -- (it is an interface type and it has _read/_write as a method)
+isReadType :: SymTab -> CType -> Maybe Id
 isReadType  = ifcFieldIdToTConId (id_read noPosition)
+isWriteType :: SymTab -> CType -> Maybe Id
 isWriteType = ifcFieldIdToTConId (id_write noPosition)
 
 -- check if an interface has a ._write method
 -- or is in PrimWriteable
+writeableIfc :: Flags -> SymTab -> CType -> Bool
 writeableIfc flags r t
     | Just _ <- isWriteType r t = True
     -- incoherent matches are resolved *after* reducePred

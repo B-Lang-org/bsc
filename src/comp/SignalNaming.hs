@@ -12,6 +12,7 @@ import Id
 import PreIds
 
 -- remember to allow a few characters for __d3222 etc suffix
+signal_length_limit :: Int
 signal_length_limit = 50
 
 signalNameFromAExpr :: AExpr -> String

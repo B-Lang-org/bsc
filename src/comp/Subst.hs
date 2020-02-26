@@ -60,6 +60,7 @@ mkSubst vts = -- trace ("mkSubst: " ++ ppReadable vts) $
         S (Map.fromListWith avoid_duplicate_substitutions vts)
           (mk_set_vars vts)
 
+mk_set_vars :: [(TyVar, Type)] -> Set_vars
 mk_set_vars vts = (Map.unionsWith Set.union (map (uncurry back_set) vts))
 {- all calls to union (Map.union, Set.union, *.union*with) will be efficient
    because of the O(N+M) running time.  Repeated inserts would be less
@@ -255,6 +256,7 @@ getSubstRange (S eo _ ) = concat (map tv (Map.elems eo))
 -- it also uses map and set operations to compute the new
 -- substitution efficiently
 
+fixupBack :: S_map -> Set_vars -> Set_vars
 fixupBack new_map old_back = Map.filter
                                (not . Set.null)
                                (Map.map (Set.intersection retained_vars) old_back)

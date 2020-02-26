@@ -45,6 +45,7 @@ import Wires(WireProps(..))
 -- ==============================
 -- Naming conventions
 
+astOrPref, astAndPref :: String
 astOrPref = "_dor"
 astAndPref = "_dand"
 
@@ -739,6 +740,7 @@ getMethMult vi m = head (
 -- ---------------
 -- functions for making the signal info
 
+mkSIClockTuple :: (PPrint a, PPrint b) => ([a], b) -> (a, [a])
 mkSIClockTuple (clk:gates, _) = (clk, gates)
 mkSIClockTuple x = internalError ("aState mkClockIds: " ++ ppReadable x)
 
@@ -988,12 +990,12 @@ mkEmuxss tl cnd rdb value_method_ids om (((o, m), f), emrss) =
 -- XXX The "const aTrue" suggests that the use is unconditional.
 -- XXX This assumption might change some if we fix Bug 37 with
 -- XXX conditional def/use analysis.
-mkEmuxssExpr :: ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob ->  ([ADef], [ADef], [ADef], AExprSubst)
+mkEmuxssExpr :: ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob
+             -> ([ADef], [ADef], [ADef], AExprSubst)
 mkEmuxssExpr = mkEmuxss id (const aTrue)
 
---mkEmuxssAction ::  ExclusiveRulesDB -> [AId] -> OrderMap ->
---            AId -> MethBlob ->
---           ([ADef], [ADef], [ADef], AExprSubst)
+mkEmuxssAction :: ExclusiveRulesDB -> [AId] -> OrderMap -> MethBlob
+               -> ([ADef], [ADef], [ADef], AExprSubst)
 mkEmuxssAction = mkEmuxss tail head
 
 -- ---------------
@@ -1305,6 +1307,7 @@ mkIdGuards _ _ _ exp = internalError $ "mkIdGuards: " ++ ppReadable exp
 -- Helper functions
 --
 
+argId :: Maybe Integer -> Id -> Id -> Integer -> Id
 argId ino o m ano = mkMethId o m ino (MethodArg ano)
 
 aWillFireId :: AId -> AExpr
@@ -1315,6 +1318,7 @@ aRdyId i = ASDef aTBool (mkRdyId i)
 
 -- ---------------
 
+mlookup :: (Ord k, PPrint k, PPrint a) => k -> M.Map k a -> a
 mlookup x m =
     case M.lookup x m of
     Just y -> y

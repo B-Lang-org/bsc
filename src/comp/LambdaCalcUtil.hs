@@ -854,10 +854,13 @@ aBoolNot x              = APrim defaultAId mkATBool PrimBNot [x]
 
 -- -----
 
+updateAExprTypes_Bits :: AExpr -> UTM AExpr
 updateAExprTypes_Bits e =
     updateAExprTypes (Just (getBitType e)) e >>= return . toBits
+updateAExprTypes_BitsRealOrString :: AExpr -> UTM AExpr
 updateAExprTypes_BitsRealOrString e =
     updateAExprTypes (Just (getBitRealOrStringType e)) e >>= return . toBitsRealOrString
+updateAExprTypes_Bool :: AExpr -> UTM AExpr
 updateAExprTypes_Bool e =
     updateAExprTypes (Just mkATBool) e >>= return . toBool
 
@@ -1190,15 +1193,17 @@ updateAPrimTypes _ PrimSLT i t args = updateAPrim_BitsBool i t PrimSLT args
 -- XXX consider updating the sizes to arithmetic operations?
 updateAPrimTypes _ p i t args = updateAPrim_BitsBits i t p args
 
-
+updateAPrim_BoolBool :: AId -> AType -> PrimOp -> [AExpr] -> UTM AExpr
 updateAPrim_BoolBool i _ p as = do
   as' <- mapM updateAExprTypes_Bool as
   return (APrim i mkATBool p as')
 
+updateAPrim_BitsBool :: AId -> AType -> PrimOp -> [AExpr] -> UTM AExpr
 updateAPrim_BitsBool i _ p as = do
   as' <- mapM updateAExprTypes_Bits as
   return (APrim i mkATBool p as')
 
+updateAPrim_BitsBits :: AId -> AType -> PrimOp -> [AExpr] -> UTM AExpr
 updateAPrim_BitsBits i t p as = do
   as' <- mapM updateAExprTypes_Bits as
   return (APrim i t p as')
@@ -1366,4 +1371,3 @@ primMap =
             mkErr mod "filename and BRAM byte enable and size arguments" args
 
 -- -------------------------
-

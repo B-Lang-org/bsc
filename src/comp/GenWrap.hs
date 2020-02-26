@@ -1837,6 +1837,7 @@ chkInterfaceVectorElementType t =
 -- XXX use of "qualEq" is wrong, but "genFuncWrap" generates unqualified names
 
 -- XXX get rid of "isPrimAction" because there should not be raw PrimActions
+isPrimAction :: Type -> GWMonad Bool
 isPrimAction t =
  do
    et <- expandSynSym t
@@ -1844,6 +1845,7 @@ isPrimAction t =
      TCon (TyCon i _ _) -> return (qualEq i idPrimAction)
      _ -> return False
 
+isActionValue :: Type -> GWMonad Bool
 isActionValue t =
  do
    et <- expandSynSym t
@@ -2179,6 +2181,7 @@ chkUserPragmas pps ifc = do
 -- Saving name/type information
 
 -- liftModule $ primSavePortType (Valid v) s t
+savePortTypeStmt :: CExpr -> (VName, b) -> CType -> CMStmt
 savePortTypeStmt v (VName s, _) t =
   CMStmt $ CSExpr Nothing $
     cVApply idLiftModule $
@@ -2186,6 +2189,7 @@ savePortTypeStmt v (VName s, _) t =
         [mkMaybe (Just v), stringLiteralAt noPosition s, typeLiteral t]]
 
 -- liftModule $ primSavePortType (Valid v) s (typeOf e)
+savePortTypeOfStmt :: CExpr -> (VName, b) -> CExpr -> CMStmt
 savePortTypeOfStmt v (VName s, _) e =
   CMStmt $ CSExpr Nothing $
     cVApply idLiftModule $
@@ -2193,12 +2197,14 @@ savePortTypeOfStmt v (VName s, _) e =
         [mkMaybe (Just v), stringLiteralAt noPosition s, cVApply idTypeOf [e]]]
 
 -- primSavePortType Invalid i t
+saveTopModPortTypeStmt :: Id -> CType -> CStmt
 saveTopModPortTypeStmt i t =
   let s = getIdBaseString i
   in  CSExpr Nothing $
         cVApply idSavePortType
           [mkMaybe Nothing, stringLiteralAt noPosition s, typeLiteral t]
 
+saveNameStmt :: Id -> Id -> CMStmt
 saveNameStmt svName resultVar = CMStmt (CSletseq [(CLValue resultVar [CClause [] [] nameExpr]) []])
   where nameExpr = cVApply idGetModuleName [cVApply idAsIfc [CVar svName]]
 

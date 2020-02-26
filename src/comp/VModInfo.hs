@@ -154,6 +154,7 @@ instance PPrint VPathInfo where
             nest 2 (vcat (map ppOne (joinPaths nns)))
 
 -- for debug output
+pShowVPathInfo :: PDetail -> Int -> VPathInfo -> Doc
 pShowVPathInfo d p (VPathInfo nns) = pPrint d p nns
 
 instance Hyper VPathInfo where
@@ -239,11 +240,14 @@ instance PPrint VArgInfo where
         ppMClk d mclk <+> ppMRst d mrst <>
         text ";"
 
+ppMClk :: PDetail -> Maybe Id -> Doc
 ppMClk d mclk =
     let clk = case mclk of
                   Nothing -> text "no_clock"
                   Just c  -> pPrint d 0 c
     in  text "clocked_by (" <> clk <> text ")"
+
+ppMRst :: PDetail -> Maybe Id -> Doc
 ppMRst d mrst =
     let rst = case mrst of
                   Nothing -> text "no_reset"

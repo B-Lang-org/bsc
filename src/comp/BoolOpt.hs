@@ -26,10 +26,12 @@ eval r (Var v) = case lookup v r of Just b -> b; Nothing -> internalError ("Bool
 eval r TT = True
 eval r FF = False
 
+mkAnd :: [BoolExp a] -> BoolExp a
 mkAnd [] = TT
 mkAnd [x] = x
 mkAnd (x:xs) = x `And` mkAnd xs
 
+mkOr :: [BoolExp a] -> BoolExp a
 mkOr [] = FF
 mkOr [x] = x
 mkOr (x:xs) = x `Or` mkOr xs
@@ -37,6 +39,7 @@ mkOr (x:xs) = x `Or` mkOr xs
 data Bool3 = F | T | U
         deriving (Eq, Ord, Show)
 
+to3 :: Bool -> Bool3
 to3 True = T
 to3 False = F
 
