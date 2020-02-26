@@ -15,11 +15,13 @@ main =
          [fn] -> readFile fn >>= bsv2bsc fn
          _ -> error "usage: bsv2bsc filename"
 
+bsv2bsc :: String -> String -> IO ()
 bsv2bsc filename text =
     do errh <- initErrorHandle
        (pkg,_) <- bsvParseString errh (defaultFlags "") True filename (stripExt filename) text
        putStrLn (ppReadable pkg)
 
+stripExt :: String -> String
 stripExt filename =
     case reverse filename of
     ('v':'s':'b':'.':revBase) -> reverse revBase

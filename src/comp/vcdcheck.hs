@@ -154,8 +154,10 @@ checkCmdLine opts args errs =
 
 -- Identify which file the command applies to
 type FileNum = Int
-file1 = (1 :: Int)
-file2 = (2 :: Int)
+
+file1, file2 :: FileNum
+file1 = 1
+file2 = 2
 
 -- String describing which signals a command applies to
 -- For now this is just a name, but may become a regex in the future

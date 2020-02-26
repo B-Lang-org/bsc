@@ -84,7 +84,7 @@ WISHFLAGS += $(EXTRAWISHLIBS)
 GHC ?= ghc
 GHCJOBS ?= 1
 
-GHCVERSION=$(shell $(GHC) --version | head -1 | egrep -o "[0-9]+\.[0-9]+\.[0-9]" | head -1)
+GHCVERSION=$(shell $(GHC) --version | head -1 | egrep -o "[0-9]+\.[0-9]+\.[0-9]" )
 
 ## Extract the major, minor and patch version numbers
 GHCMAJOR=$(shell echo $(GHCVERSION) | cut -d. -f1)
@@ -99,6 +99,8 @@ ifeq ($(GHCMAJOR),8)
 # Several modules require more iterations
 GHC += -fmax-pmcheck-iterations=6000000
 
+GHC += -Wtabs
+
 GHCEXTRAPKGS =-package syb -package integer-gmp
 GHCPROFAUTO = -fprof-auto
 
@@ -109,6 +111,9 @@ ifeq ($(GHCMAJOR),7)
 # Make sure that all calls to GHC 7.0.4 use this flag to suppress
 # messages that were accidentally checked in to that revision
 GHC += -dno-debug-output
+
+GHC += -fwarn-tabs
+
 GHCEXTRAPKGS =-package syb -package integer-gmp
 
 # In 7.4, the auto annotations flag changed
@@ -152,6 +157,8 @@ WISHCLEANPROF = \
 	$(BUILDDIR)/bluewish_stub.{o,p_o,d_o,c_o} \
 	$(BUILDDIR)/BlueTcl_stub.{o,p_o,d_o,c_o} \
 	$(BUILDDIR)/bluetcl_Main.{o,p_o}
+
+GHC += -fwarn-tabs
 
 ifeq ($(GHCMINOR),8)
 GHCEXTRAPKGS =
@@ -223,10 +230,8 @@ GHCFLAGS = \
 	$(FVIA) \
 	-Wall \
 	-fno-warn-orphans \
-	-fno-warn-missing-signatures \
 	-fno-warn-name-shadowing \
 	-fno-warn-unused-matches \
-	-fno-warn-tabs \
 	$(PACKAGES) \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \

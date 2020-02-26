@@ -482,6 +482,34 @@ aSchedule' errh flags prefix urgency_pairs pps amod = do
   tmp2 <- aSchedule_step2 errh flags prefix pps urgency_pairs amod tmp1
   aSchedule_step3 errh flags prefix pps amod tmp2
 
+type Step1Output =
+    (ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     M.Map RuleId Integer,
+     [(ARuleId, [ARuleId])],
+     [ARule],
+     M.Map ARuleId (Maybe ClockDomain),
+     RuleUsesMap,
+     ARuleId -> ARuleId -> Bool,
+     ARuleId -> ARuleId -> Bool,
+     ARuleId -> ARuleId -> Bool,
+     S.Set (ARuleId, ARuleId),
+     Bool,
+     [(RuleId, RuleId, [Conflicts])],
+     [(ARuleId, ARuleId, [Conflicts])],
+     [(ARuleId, ARuleId, [Conflicts])],
+     RuleBetweenMap,
+     RuleMethodUseMap,
+     [(AId, [ARuleId])],
+     Maybe Backend,
+     [ADef]
+    )
+
+aSchedule_step1 :: ErrorHandle -> Flags -> String -> a -> APackage
+                -> SM Step1Output
 aSchedule_step1 errh flags prefix pps amod = do
   -- ====================
   -- Definitions
@@ -1134,6 +1162,37 @@ aSchedule_step1 errh flags prefix pps amod = do
 --       many values as a huge tuple between them. This was done simply because
 --       it was the easiest refactoring technique to apply.
 
+type Step2Output =
+    (ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     ConflictMap,
+     [AId],
+     [AId],
+     M.Map ARuleId (Maybe ClockDomain),
+     UrgencyMap,
+     SchedOrdMap,
+     [(ARuleId, [ARuleId])],
+     [ARule],
+     RuleUsesMap,
+     ARuleId -> ARuleId -> Bool,
+     ARuleId -> ARuleId -> Bool,
+     CSMap,
+     [(CSNode, [CSNode])],
+     Bool,
+     [(ARuleId, ARuleId, [Conflicts])],
+     [(ARuleId, ARuleId, [Conflicts])],
+     [(ARuleId, ARuleId, [Conflicts])],
+     RuleBetweenMap,
+     RuleMethodUseMap,
+     [(AId, [ARuleId])],
+     Maybe Backend,
+     [ADef]
+    )
+aSchedule_step2 :: ErrorHandle -> Flags -> String -> a
+                -> [(ARuleId, ARuleId, [PathNode])] -> APackage
+                -> Step1Output -> SM Step2Output
 aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
                                                          , cfConflictMap0
                                                          , scConflictMapFinal
@@ -1413,6 +1472,9 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
 --       in GHC. The split was done by duplicating some definitions and passing
 --       many values as a huge tuple between them. This was done simply because
 --       it was the easiest refactoring technique to apply.
+
+aSchedule_step3 :: ErrorHandle -> Flags -> String -> [PProp] -> APackage
+                -> Step2Output -> SM APackage
 aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
                                            , cfConflictMap0
                                            , scConflictMapFinal
