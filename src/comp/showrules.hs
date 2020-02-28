@@ -568,6 +568,7 @@ morphVCD errh hOut st (cmd,bytes) =
 -- These are all VCD commands in the header
 
 -- expand timescale to accommodate microticks
+morphVCD' :: ErrorHandle -> Handle -> ConvState -> VCDCmd -> IO ConvState
 morphVCD' errh hOut st (Timescale n u) =
   do let u' = u + (time_factor st)
      writeVCD hOut [Timescale n u']
@@ -1242,11 +1243,14 @@ toNovas :: String -> String
 toNovas s@('\\':_) = '/':(esc s)
 toNovas s          = '/':((esc . dotToSlash) s)
 
-esc s = concatMap (\c -> if (c `elem` " $\\") then ['\\',c] else [c]) s
+esc :: String -> String
+esc = concatMap (\c -> if (c `elem` " $\\") then ['\\',c] else [c])
 
-dotToSlash s = map (\c -> if (c == '.') then '/' else c) s
+dotToSlash :: String -> String
+dotToSlash = map (\c -> if (c == '.') then '/' else c)
 
 -- Boilerplate common to all command scripts
+add_signal_callback :: String
 add_signal_callback = unlines $
   [ "# Setup event callback for setting signal properties"
   , "proc sigCB args {"

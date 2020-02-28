@@ -37,7 +37,7 @@ import Error
 import PPrint
 import Flags(Flags, removeReg, removeCross)
 
-import Position(getPosition, noPosition)
+import Position(Position, getPosition, noPosition)
 
 import ASyntax
 import VModInfo
@@ -49,13 +49,16 @@ import SchedInfo(SchedInfo(..), MethodConflictInfo(..))
 -- Common functions for defining primitives
 
 -- for comparison with the module instances
+getAVDefName :: AVInst -> VName
 getAVDefName avi = vName (avi_vmi avi)
 
+getAVInputClocks :: AVInst -> [InputClockInf]
 getAVInputClocks avi = input_clocks (vClk (avi_vmi avi))
 
 -- ==============================
 -- Primitive Wires
 
+rwire, rwire0, bypasswire, bypasswire0, crossbypasswire :: VName
 rwire           = VName "RWire"
 rwire0          = VName "RWire0"
 bypasswire      = VName "BypassWire"
@@ -78,12 +81,14 @@ isBypassWire0 avi = getAVDefName avi == bypasswire0
 -- Names of RWire methods
 -- (inlining happens before methods are renamed to ports)
 
+rwireSetStr, rwireGetStr, rwireHasStr :: String
 rwireSetStr = "wset"
 rwireGetStr = "wget"
 rwireHasStr = "whas"
 
 -- XXX the Id here (with no position) should never be used, only its FString
 -- XXX perhaps have version of mkMethId which takes an FString instead of Id?
+rwireSetId, rwireGetId, rwireHasId :: Id
 rwireSetId = mkId noPosition (mkFString rwireSetStr)
 rwireGetId = mkId noPosition (mkFString rwireGetStr)
 rwireHasId = mkId noPosition (mkFString rwireHasStr)
@@ -97,6 +102,7 @@ rwireHasResId i = mkMethId i rwireHasId Nothing MethodResult
 -- ==============================
 -- Primitive CReg
 
+cregn, cregun, crega :: VName
 cregn  = VName "CRegN5"
 cregun = VName "CRegUN5"
 crega  = VName "CRegA5"
@@ -117,11 +123,13 @@ isCRegInst avi = (isCRegN avi) || (isCRegUN avi) || (isCRegA avi)
 -- Names of CReg methods
 -- (inlining happens before methods are renamed to ports)
 
+cregReadStr, cregWriteStr :: Int -> String
 cregReadStr  n = "port" ++ show (n::Int) ++ "__read"
 cregWriteStr n = "port" ++ show (n::Int) ++ "__write"
 
 -- XXX the Id here (with no position) should never be used, only its FString
 -- XXX perhaps have version of mkMethId which takes an FString instead of Id?
+cregReadId, cregWriteId :: Int -> Id
 cregReadId  n = mkId noPosition (mkFString (cregReadStr n))
 cregWriteId n = mkId noPosition (mkFString (cregWriteStr n))
 
@@ -133,24 +141,29 @@ cregWriteArgId i n = mkMethId i (cregWriteId n) Nothing (MethodArg 1)
 -- ---------------
 -- Names of ports and parameters on primtive CReg
 
+cregDINPortStr, cregQOUTPortStr :: Int -> String
 cregDINPortStr  n = "D_IN_" ++ show (n::Int)
 cregQOUTPortStr n = "Q_OUT_" ++ show (n::Int)
 
 -- ==============================
--- Primitve registers
+-- Primitive registers
 
+regn, regun, rega :: VName
 regn  = VName "RegN"
 regun = VName "RegUN"
 rega  = VName "RegA"
 
+configregn, configregun, configrega :: VName
 configregn  = VName "ConfigRegN"
 configregun = VName "ConfigRegUN"
 configrega  = VName "ConfigRegA"
 
+crossregn, crossregun, crossrega :: VName
 crossregn  = VName "CrossingRegN"
 crossregun = VName "CrossingRegUN"
 crossrega  = VName "CrossingRegA"
 
+regaligned :: VName
 regaligned = VName "RegAligned"
 
 isRegN :: AVInst -> Bool
@@ -185,13 +198,16 @@ isClockCrossingRegInst avi = isRegInst avi && (length(getAVInputClocks avi) > 1)
 -- ---------------
 -- Names of ports and parameters on primtive registers
 
+clkPortStr, rstnPortStr :: String
 clkPortStr    = "CLK"
 rstnPortStr   = "RST"
 
+dinPortStr, enPortStr, qoutPortStr :: String
 dinPortStr    = "D_IN"
 enPortStr     = "EN"
 qoutPortStr   = "Q_OUT"
 
+initParamStr, widthParamStr :: String
 initParamStr  = "init"
 widthParamStr = "width"
 
@@ -231,6 +247,7 @@ findParam lookupname (AVInst { avi_vmi = vi, avi_iargs = es }) =
 -- The extraction procedure could be slightly less hardcoded by
 -- by looking for PPCLK and PPRSTN properties on the ports.
 
+clkPortName, rstnPortName :: VName
 clkPortName = VName clkPortStr
 rstnPortName = VName rstnPortStr
 
@@ -241,6 +258,7 @@ getRegReset errh = findPort errh rstnPortName
 -- ----------
 -- initialization and width parameters
 
+initParamName, widthParamName :: VName
 initParamName = VName initParamStr
 widthParamName = VName widthParamStr
 
@@ -251,6 +269,7 @@ getRegWidth = findParam widthParamName
 -- ----------
 -- method ports
 
+dinPortName, enPortName, qoutPortName :: VName
 dinPortName  = VName dinPortStr
 enPortName   = VName enPortStr
 qoutPortName = VName qoutPortStr
@@ -271,6 +290,7 @@ mkEN   avi = mkPortName enPortStr   (promoteAVI avi)
 mkQOUT avi = mkPortNameFromFStr (getIdFString (avi_vname avi)) (promoteAVI avi)
 
 -- XXX need better comment
+promoteAVI :: AVInst -> Id
 promoteAVI avi = (setIdPosition
                     (getIfcIdPosition (avi_vmi avi))
                     (avi_vname avi))
@@ -316,13 +336,16 @@ updateVerilogNameMapForReg avi ps =
 -- These are functions for the AVInst.
 
 -- XXX AConv throws away the arguments to abstract types
+regType :: AType
 regType = ATAbstract idVReg []
 
 -- XXX These are in PreStrings
+regReadStr, regWriteStr :: String
 regReadStr  = "read"
 regWriteStr = "write"
 
 -- XXX These are in PreIds, but they're qualified
+regReadId, regWriteId :: Position -> Id
 regReadId  pos = mkId pos (mkFString regReadStr)
 regWriteId pos = mkId pos (mkFString regWriteStr)
 
@@ -447,6 +470,7 @@ createVerilogNameMapForAVInst flags avi@(AVInst { avi_vname = inst_id,
 -- ==============================
 -- Clock primitives
 
+syncreg :: VName
 syncreg  = VName "SyncRegister"
 
 isSyncReg :: AVInst -> Bool
@@ -455,6 +479,7 @@ isSyncReg  avi = (getAVDefName avi == syncreg)
 -- ==============================
 -- FIFO primitives
 
+fifo1, fifo10, fifo2, fifo20, sizedfifo, sizedfifo0 :: VName
 fifo1      = VName "FIFO1"
 fifo10     = VName "FIFO10"
 fifo2      = VName "FIFO2"
@@ -462,6 +487,7 @@ fifo20     = VName "FIFO20"
 sizedfifo  = VName "SizedFIFO"
 sizedfifo0 = VName "SizedFIFO0"
 
+fifoL1, fifoL10, fifoL2, fifoL20, sizedfifoL, sizedfifoL0 :: VName
 fifoL1      = VName "FIFOL1"
 fifoL10     = VName "FIFOL10"
 fifoL2      = VName "FIFOL2"
@@ -492,6 +518,7 @@ isFIFO0 avi =
 -- ============================
 
 -- finding inout connection modules
+inoutconnect :: VName
 inoutconnect = VName "InoutConnect"
 
 isInoutConnect :: AVInst -> Bool
