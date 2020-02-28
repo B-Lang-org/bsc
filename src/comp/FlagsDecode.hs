@@ -51,6 +51,7 @@ import Flags
 
 -- hack around base-3 and base-4 incompatibility
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
+catchIO :: IO a -> (IOError -> IO a) -> IO a
 catchIO = CE.catch
 #else
 import qualified System.IO.Error as IOE (catch)
@@ -115,6 +116,7 @@ isCSrcFile s = hasDotSuf cSuffix s
 --   bsc [flags] -sim -e topmodule            to link objects into a Bluesim binary
 --   bsc [flags] -systemc -e topmodule        to link objects into a SystemC model
 
+usage :: String -> String
 usage prog =
   let mkUsage (cl,desc) =
           let lcol = "  " ++ prog ++ " " ++ cl
@@ -648,6 +650,7 @@ defaultFlags bluespecdir = Flags {
         }
 
 -- Default path value replaced in adjustFinalFlags
+defaultPathToken :: String
 defaultPathToken = "$DEFAULT_PATH"
 
 -- -------------------------
@@ -2067,6 +2070,7 @@ addToMsgList flags flag_name arg_str flagFn updFn =
 -- -------------------------
 -- Other Utilities
 
+mread :: Read a => String -> Maybe a
 mread s =
     case reads s of
     [(x, "")] -> Just x
@@ -2080,4 +2084,3 @@ setBackend flags new_be =
       _ -> Left $ flags { backend = Just new_be }
 
 -- -------------------------
-

@@ -180,6 +180,7 @@ extractCondition (UUAction act) = internalError("AUses - action without conditio
                                                  ++ ppReadable act)
 extractCondition (UUExpr _ uc) = useCondToAExpr uc
 
+useCondToAExpr :: UseCond -> AExpr
 useCondToAExpr uc = foldl aAnd aTrue exprs
   where true_list = S.toList (true_exprs uc)
         false_list = map aNot (S.toList (false_exprs uc))
@@ -526,6 +527,7 @@ getDefUses i = do
       -- traceM ("getDefUses: " ++ ppReadable (i, e, uses))
       return uses
 
+initUCState :: [ADef] -> UCState
 initUCState defs = UCState {
                      nextNo = 1,
                      new_defs = [],
@@ -539,6 +541,7 @@ runUCState :: [ADef] -> UCM a -> (a, [ADef])
 runUCState defs m = (res, new_defs s)
    where (res, s) = runState m (initUCState defs)
 
+aUsesPref :: String
 aUsesPref = "__duses"
 
 getNextNo :: UCM (Int)
@@ -650,10 +653,12 @@ preOrUseCond uc1 uc2 =
         uc2_rest = UseCond true2 false2 eq2 neq2
         or_expr = aOr (useCondToAExpr uc1_rest) (useCondToAExpr uc2_rest)
 
+orUseCond :: UseCond -> UseCond -> UseCond
 orUseCond  uc1 uc2 = if (isTrue or_expr) then uc else uc'
   where (uc, or_expr) = preOrUseCond uc1 uc2
         uc' = uc { true_exprs = S.insert or_expr (true_exprs uc) }
 
+orUseCondM :: UseCond -> UseCond -> UCM UseCond
 orUseCondM uc1 uc2 = do
   let (uc, or_expr) = preOrUseCond uc1 uc2
   if (isTrue or_expr) then
@@ -675,8 +680,10 @@ orUseCondM uc1 uc2 = do
 -- has been re-structured to back out the very last inlined def, if it
 -- doesn't make progress.
 --
+andUseCond :: DefMap -> AExpr -> UseCond -> UseCond
 andUseCond dm e c = andUseCond' dm Nothing e c
 
+andUseCond' :: DefMap -> Maybe AExpr -> AExpr -> UseCond -> UseCond
 andUseCond' dm _ d@(ASDef _ i) uc =
     andUseCond' dm (Just d) (M.findWithDefault err i dm) uc
   where err = internalError ("AUses.andUseCond - unknown def: " ++ ppReadable i)
@@ -698,6 +705,7 @@ andUseCond' dm _ e uc | length es > 1 =
 andUseCond' dm (Just d) _ uc = addTrue d uc  -- don't inline the def
 andUseCond' dm Nothing e' uc = addTrue e' uc
 
+doNEq :: AExpr -> IntLit -> UseCond -> UseCond
 doNEq x i uc =
     case (M.lookup x (eq_map uc)) of
       Just j ->
@@ -706,6 +714,7 @@ doNEq x i uc =
          let neq' = M.insertWith (S.union) x (S.singleton i) (neq_map uc)
          in uc { neq_map = neq' }
 
+doEQ :: AExpr -> IntLit -> UseCond -> UseCond
 doEQ x i uc =
   case (M.lookup x (eq_map uc)) of
     Just j -> if i == j then uc else ucFalse
@@ -719,12 +728,14 @@ doEQ x i uc =
         Nothing -> let eq' = M.insert x i (eq_map uc)
                    in uc { eq_map = eq' }
 
+addFalse :: AExpr -> UseCond -> UseCond
 addFalse e uc =
     if (isFalse e) then uc
     else if (e `S.member` (true_exprs uc) || isTrue e) then ucFalse
     else let false' = S.insert e (false_exprs uc)
          in uc { false_exprs = false' }
 
+addTrue :: AExpr -> UseCond -> UseCond
 addTrue e uc =
     if (e `S.member` (false_exprs uc)) then ucFalse
     else if isFalse e then ucFalse
@@ -930,7 +941,10 @@ concatMethodUsers (a,b,c) (d,e,f) = (a++d, b++e, c++f)
 -- Function: Create a MethodUsesMap
 --     by inverting a RuleUsesMap and adding uses from submodule instance
 
+getMethodUUExprs :: ExprUses -> [(MethodId, [UniqueUse])]
 getMethodUUExprs = toListMethodExprUses . getMethodExprUses
+
+getMethodUUActions :: ActionUses -> [(MethodId, [UniqueUse])]
 getMethodUUActions = toListMethodActionUses . getMethodActionUses
 
 createMethodUsesMap :: RuleUsesMap -> [AVInst] -> UCM (MethodUsesMap)
@@ -984,13 +998,14 @@ aInstUseMap avis = mapM iUses avis
 -- ==============================
 -- Errors
 
+errNotInUseMap :: ARuleId -> a
 errNotInUseMap r =
     internalError $
         "AUses: inconsistent ATS (rule " ++ ppString r ++ " not in use map)"
 
+errNoDef :: AId -> a
 errNoDef d =
     internalError $
         "AUses: inconsistent ATS (no definition for " ++ ppString d ++ ")"
 
 -- ==============================
-

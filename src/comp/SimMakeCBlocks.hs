@@ -66,6 +66,7 @@ findModMeth mmmap inst =
                                   ppReadable inst ++ ppReadable mmmap)
 
 -- Used several places to name the top-level instance
+top_blk_name :: String
 top_blk_name = "top"
 
 -- Create SimCCBlocks and SimCCScheds from a SimSystem.
@@ -1573,6 +1574,7 @@ mkAVMethEdges ds method_calls =
 -- We'll need to declare local variables for the actionvalues,
 -- and replace AMethValue with (bogus) ASDef reference for the new
 -- temporary (prior to being converted to CC)
+mkAVMethTmpId :: Id -> Id -> Id
 mkAVMethTmpId obj meth =
     -- XXX make sure this Id is unique?
     mkId noPosition (concatFString [mkFString "AVMeth_",

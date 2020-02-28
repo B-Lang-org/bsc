@@ -39,6 +39,7 @@ import Util(traces)
 
 
 -- Debug
+doTraceLoc :: Bool
 doTraceLoc = elem "-trace-state-loc" progArgs
 
 
@@ -155,6 +156,7 @@ joinNames (Name n1) (Name n2)                         = Name $ mkIdPre head_ n2
   where head_ = concatFString [getIdBase n1, fsUnderscore]
 
 -- The name when none is present
+noName :: NameGenerate
 noName = Name $ mkId noPosition $ _unnamed_
     where _unnamed_ = concatFString [fsUnderscore, fs_unnamed, fsUnderscore]
 
@@ -410,6 +412,7 @@ underscoreDepth _       = 0
 -- filter out illegal characters and
 -- drop all Id properties
 -- (so they don't cause problems downstream)
+cleanupInstId :: Id -> Id
 cleanupInstId i = mkId pos fstr
   where fstr = mkFString str_filtered
         str_filtered = filter legalChar (getIdString i)

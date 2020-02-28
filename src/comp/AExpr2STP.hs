@@ -188,6 +188,7 @@ checkImplication ye1 ye2 = do
 isConstExpr :: SState -> AExpr -> IO (Maybe Bool, SState)
 isConstExpr s e = runStateT (isConstExprM e) s
 
+isConstExprM :: AExpr -> SM (Maybe Bool)
 isConstExprM e = withTraceTest $ do
 
   when traceTest $ traceM("checking is-constant: " ++ ppString e)
@@ -843,36 +844,63 @@ convPrim2SExpr mty p i w args =
 
 -- -----
 
+doBinManyPrim_BoolBool :: (S.Context -> [S.Expr] -> IO S.Expr) -> [AExpr]
+                       -> SM (S.Expr, SType)
 doBinManyPrim_BoolBool mkFn args =
     boolArgs args >>= doBinManyPrim mkFn >>= boolRes
 
+doUnPrim_BoolBool :: (S.Context -> S.Expr -> IO S.Expr) -> [AExpr]
+                  -> SM (S.Expr, SType)
 doUnPrim_BoolBool mkFn args =
     boolArgs args >>= doUnPrim mkFn >>= boolRes
 
+doBinPrim_BitsBool :: (S.Context -> S.Expr -> S.Expr -> IO S.Expr) -> [AExpr]
+                   -> SM (S.Expr, SType)
 doBinPrim_BitsBool mkFn args =
     bitsArgs args >>= doBinPrim mkFn >>= boolRes
 
+doBinPrim_BitsBits :: Integer
+                   -> (S.Context -> S.Expr -> S.Expr -> IO S.Expr)
+                   -> [AExpr]
+                   -> SM (S.Expr, SType)
 doBinPrim_BitsBits w mkFn args =
     bitsArgs args >>= doBinPrim mkFn >>= bitsRes w
 
+doBinPrimSz_BitsBits :: Integer
+                     -> (S.Context -> Int -> S.Expr -> S.Expr -> IO S.Expr)
+                     -> [AExpr]
+                     -> SM (S.Expr, SType)
 doBinPrimSz_BitsBits w mkFn args =
     bitsArgs args >>=
     doBinPrim (\ctx -> mkFn ctx (fromInteger w)) >>=
     bitsRes w
 
+doUnPrim_BitsBits :: Integer
+                  -> (S.Context -> S.Expr -> IO S.Expr)
+                  -> [AExpr]
+                  -> SM (S.Expr, SType)
 doUnPrim_BitsBits w mkFn args =
     bitsArgs args >>= doUnPrim mkFn >>= bitsRes w
 
+doBinIntPrim_BitsBits :: Integer
+                      -> (S.Context -> S.Expr -> Int -> IO S.Expr)
+                      -> AExpr
+                      -> Int
+                      -> StateT SState IO (S.Expr, SType)
 doBinIntPrim_BitsBits w mkFn e n = do
     (ye, _) <- convAExpr2SExpr_Force False e
     yp <- doBinIntPrim mkFn ye n
     bitsRes w yp
 
 
+boolArgs :: [AExpr] -> SM [S.Expr]
 boolArgs = mapM (\ a -> convAExpr2SExpr_Force True a >>= return . fst)
+bitsArgs :: [AExpr] -> SM [S.Expr]
 bitsArgs = mapM (\ a -> convAExpr2SExpr_Force False a >>= return . fst)
 
+boolRes :: Monad m => a -> m (a, SType)
 boolRes   ye = return (ye, SBool)
+bitsRes :: Monad m => Integer -> a -> m (a, SType)
 bitsRes w ye = return (ye, SBits w)
 
 
@@ -954,4 +982,3 @@ sTruncate w (ye, yt) =
 
 
 -- -------------------------
-

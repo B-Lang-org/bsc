@@ -22,6 +22,7 @@ import Util(concatMapM)
 import Util(traceM)
 import IOUtil(progArgs)
 
+doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
 cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
@@ -478,4 +479,3 @@ getVarKinds (IdPKind _ pk) vs =
               _ -> Nothing
     in
         mkArgKinds vs pk
-

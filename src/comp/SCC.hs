@@ -17,13 +17,19 @@ type Node v = (v, [v])
 type Graph v = [Node v]
 
 type NMap node = M.Map node [node]
+
+mFromList :: Ord k => [(k, a)] -> M.Map k a
 mFromList xs = M.fromList xs
+mLookup :: Ord k => k -> M.Map k a -> Maybe a
 mLookup x m = M.lookup x m
 
 -- Using OrdSet seems to be slower than lists
 
+sElem :: Ord a => a -> S.Set a -> Bool
 sElem x s = S.member x s
+sAdd :: Ord a => a -> S.Set a -> S.Set a
 sAdd x s = S.insert x s
+sEmpty :: S.Set a
 sEmpty = S.empty
 
 sccEdge :: (Ord node) => NMap node -> NMap node -> [node] -> [[node]]

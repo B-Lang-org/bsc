@@ -18,22 +18,25 @@ infixr 4 ||| , ||! , |!!
 type PErrMsg = String
 
 data FailAt a
-        = FailAt !Int [PErrMsg] a                                 -- token pos, list of acceptable tokens, rest of tokens
+        = FailAt !Int [PErrMsg] a        -- token pos, list of acceptable tokens, rest of tokens
         deriving (Show)
 data ParseResult a b
-        = Many [(b, Int, a)] (FailAt a)                                -- parse succeeded with many (>1) parses)
-        | One b !Int a !(FailAt a)                                -- parse succeeded with one parse
-        | None !Bool !(FailAt a)                                -- parse failed. The Bool indicates hard fail
+        = Many [(b, Int, a)] (FailAt a)  -- parse succeeded with many (>1) parses)
+        | One b !Int a !(FailAt a)       -- parse succeeded with one parse
+        | None !Bool !(FailAt a)         -- parse failed. The Bool indicates hard fail
         deriving (Show)
 
 type Parser a b = a -> Int -> ParseResult a b
 
-noFail = FailAt (-1) [] (error "noFail")                -- indicates no failure yet
+noFail :: FailAt a
+noFail = FailAt (-1) [] (error "noFail") -- indicates no failure yet
 
+updFail :: FailAt a -> ParseResult a b -> ParseResult a b
 updFail f (None w f')     = None w (bestFailAt f f')
 updFail f (One c n as f') = One c n as (bestFailAt f f')
 updFail f (Many cas f')   = let r = bestFailAt f f' in seq r (Many cas r)
 
+bestFailAt :: FailAt a -> FailAt a -> FailAt a
 bestFailAt f@(FailAt i a t) f'@(FailAt j a' _) =
         if i > j then
             f
@@ -64,6 +67,7 @@ p ||! q = \as n ->
         (    None _     f , qr               ) -> updFail f qr
         (pr               , _                ) -> pr
 
+processAlts :: FailAt a -> [(b, Int, a)] -> [ParseResult a b] -> ParseResult a b
 processAlts f [] [] = seq f (None False f)
 processAlts f [(b,k,as)]  [] = seq f (One b k as f)
 processAlts f rs [] = seq f (Many rs f)
@@ -72,6 +76,7 @@ processAlts f rs (None False f':rws) = processAlts (bestFailAt f f') rs rws
 processAlts f rs (One b k as f':rws) = processAlts (bestFailAt f f') (rs++[(b,k,as)]) rws
 processAlts f rs (Many rs' f'  :rws) = processAlts (bestFailAt f f') (rs++rs') rws
 
+doMany :: (c -> b) -> [(c, Int, a)] -> FailAt a -> ParseResult a b
 doMany g cas f = Many [ (g c, n, as) | (c,n,as) <- cas] f
 
 -- Sequence

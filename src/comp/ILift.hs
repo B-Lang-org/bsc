@@ -20,6 +20,7 @@ import Prim
 import IOUtil(progArgs)
 import Util(tracep)
 
+trace_lift :: Bool
 trace_lift = "-trace-lift" `elem` progArgs
 
 iLift :: ErrorHandle -> Flags -> IModule a -> IModule a

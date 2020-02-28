@@ -16,8 +16,13 @@ import qualified Data.Generics as Generic
 
 newtype FString = FString S.SString deriving (Eq,Ord,Generic.Data, Generic.Typeable)
 
+fromString :: String -> FString
 fromString = FString . S.fromString
+
+toString :: FString -> String
 toString (FString s) = S.toString s
+
+(++) :: FString -> FString -> FString
 (FString s) ++ (FString s') = FString $ s S.++ s'
 
 instance Show FString where

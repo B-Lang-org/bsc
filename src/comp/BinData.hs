@@ -152,6 +152,7 @@ type BinData = [BinElem]
 data Known k v = Known Int (M.Map k v)
   deriving Show
 
+unknown :: Known k v
 unknown = Known 0 M.empty
 
 -- Cache of known keys and the index assigned to them
@@ -161,21 +162,27 @@ data BinCache = BinCache { string_cache   :: Cache FString
                          , id_cache       :: Cache IdKey
                          , position_cache :: Cache Position
                          , type_cache     :: Cache TypeKey
-                         -- , loc_cache      :: Cache AStateLocPathComponent
                          , itype_cache    :: Cache ITypeKey
-                         -- , aexpr_cache    :: Cache AExpr
                          }
 
 -- Set functions
+set_string_cache :: BinCache -> Cache FString -> BinCache
 set_string_cache   bc c = bc { string_cache = c }
-set_id_cache       bc c = bc { id_cache = c }
-set_position_cache bc c = bc { position_cache = c }
-set_type_cache     bc c = bc { type_cache = c }
--- set_loc_cache      bc c = bc { loc_cache = c }
-set_itype_cache    bc c = bc { itype_cache = c }
--- set_aexpr_cache    bc c = bc { aexpr_cache = c }
 
-unknownCache = BinCache unknown unknown unknown unknown unknown -- unknown unknown
+set_id_cache :: BinCache -> Cache IdKey -> BinCache
+set_id_cache       bc c = bc { id_cache = c }
+
+set_position_cache :: BinCache -> Cache Position -> BinCache
+set_position_cache bc c = bc { position_cache = c }
+
+set_type_cache :: BinCache -> Cache TypeKey -> BinCache
+set_type_cache     bc c = bc { type_cache = c }
+
+set_itype_cache :: BinCache -> Cache ITypeKey -> BinCache
+set_itype_cache    bc c = bc { itype_cache = c }
+
+unknownCache :: BinCache
+unknownCache = BinCache unknown unknown unknown unknown unknown
 
 -- Table of known indexes and the values they map to
 type Table v = Known Int v
@@ -190,15 +197,23 @@ data BinTable = BinTable { string_table   :: Table FString
                          }
 
 -- Set functions
+set_string_table :: BinTable -> Table FString -> BinTable
 set_string_table   bt t = bt { string_table = t }
-set_id_table       bt t = bt { id_table = t }
-set_position_table bt t = bt { position_table = t }
-set_type_table     bt t = bt { type_table = t }
--- set_loc_table      bt t = bt { loc_table = t }
-set_itype_table    bt t = bt { itype_table = t }
--- set_aexpr_table    bt t = bt { aexpr_table = t }
 
-unknownTable = BinTable unknown unknown unknown unknown unknown -- unknown unknown
+set_id_table :: BinTable -> Table Id -> BinTable
+set_id_table       bt t = bt { id_table = t }
+
+set_position_table :: BinTable -> Table Position -> BinTable
+set_position_table bt t = bt { position_table = t }
+
+set_type_table :: BinTable -> Table Type -> BinTable
+set_type_table     bt t = bt { type_table = t }
+
+set_itype_table :: BinTable -> Table IType -> BinTable
+set_itype_table    bt t = bt { itype_table = t }
+
+unknownTable :: BinTable
+unknownTable = BinTable unknown unknown unknown unknown unknown
 
 -- We don't use Id as a key since the Eq instance for Id only
 -- compares the strings, but we want to distinguish Ids with
@@ -458,30 +473,12 @@ instance Shared TypeKey Type where
   recordVal = mkRecordVal type_table set_type_table
   lookupIdx = mkLookupIdx type_table
 
-{-
-instance Shared AStateLocPathComponent AStateLocPathComponent where
-  knownAs   = mkKnownAs loc_cache
-  addKey    = mkAddKey loc_cache set_loc_cache
-  newVal    = mkNewVal loc_table set_loc_table
-  recordVal = mkRecordVal loc_table set_loc_table
-  lookupIdx = mkLookupIdx loc_table
--}
-
 instance Shared ITypeKey IType where
   knownAs   = mkKnownAs itype_cache
   addKey    = mkAddKey itype_cache set_itype_cache
   newVal    = mkNewVal itype_table set_itype_table
   recordVal = mkRecordVal itype_table set_itype_table
   lookupIdx = mkLookupIdx itype_table
-
-{-
-instance Shared AExpr AExpr where
-  knownAs    = mkKnownAs aexpr_cache
-  addKey     = mkAddKey aexpr_cache set_aexpr_cache
-  newVal     = mkNewVal aexpr_table set_aexpr_table
-  recordVal  = mkRecordVal aexpr_table set_aexpr_table
-  lookupIdx  = mkLookupIdx aexpr_table
--}
 
 -- ------------------------------------------------------------------
 -- The Bin typeclass defines automatic conversions to/from a
@@ -539,9 +536,11 @@ instance Bin Integer where
                              then return n
                              else loop (n * baseI + toInteger (ord b))
 
+endNeg, endPos :: Char
 endNeg = chr 255
 endPos = chr 254
-baseI = 254 :: Integer
+baseI :: Integer
+baseI = 254
 
 -- Write a Word32 value as 4 bytes with LSB first
 instance Bin Word32 where
@@ -1411,10 +1410,13 @@ instance Bin UndefKind where
 -- XXX This should be a trace flag, but tracing can overflow the stack
 -- when the data is too large, so I am leaving it as a compile-time
 -- setting for now.
+trace_bindata :: Bool
 trace_bindata = False
 
 type Histogram = M.Map String (Integer, Integer, Integer)
 
+incr :: (Integer, Integer, Integer ) -> (Integer, Integer, Integer)
+     -> (Integer, Integer, Integer)
 incr (x1,y1,z1) (x2,y2,z2) = (x1+x2, y1+y2, z1+z2)
 
 updateBytes :: [String] -> Integer -> Histogram -> Histogram

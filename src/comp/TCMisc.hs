@@ -53,17 +53,26 @@ import IOUtil(progArgs)
 
 -- import Trace
 
-
+doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs
+rtrace :: String -> a -> a
 rtrace s x = if doRTrace then traces s x else x
 
-doTraceSatisfy= elem "-trace-tc-satisfy" progArgs
+doTraceSatisfy :: Bool
+doTraceSatisfy = elem "-trace-tc-satisfy" progArgs
+
+satTrace :: String -> a -> a
 satTrace s x = if doTraceSatisfy then traces s x else x
+
+satTraceM :: Monad m => String -> m ()
 satTraceM s = when (doTraceSatisfy) $ traceM s
 
+doTraceReducePred :: Bool
 doTraceReducePred = elem "-trace-tc-reducepred" progArgs
+rpTrace :: String -> a -> a
 rpTrace s x = if doTraceReducePred then traces s x else x
 
+doVarTrace :: Bool
 doVarTrace = elem "-trace-tcvar" progArgs
 
 -------
@@ -113,6 +122,7 @@ satisfyX dvs es ps = do
 
 -- break up preds into those affected by a substition and those not
 -- in order to loop more efficiently in satisfy'
+split_rs :: Subst -> [VPred] -> ([VPred], [VPred])
 split_rs s' rs  = partition affected_pred rs
           -- should only be a few since classes are small
           -- and the substition comes from a single reducePred
@@ -411,6 +421,7 @@ checkJoinCtxs tag rs s rs' = do
 joinNeededCtxs :: [VPred] -> TI ([VPred], Subst, [Bind])
 joinNeededCtxs = joinNeededCtxs' nullSubst []
 
+joinNeededCtxs' :: Subst -> [Bind] -> [VPred] -> TI ([VPred], Subst, [Bind])
 joinNeededCtxs' s bs ps = do
   bvs <- getBoundTVs
   case (joinCtxs bvs ps) of
@@ -556,10 +567,12 @@ reducePred eps dvs (VPred w pp@(PredWithPositions pr@(IsIn c ts) pos)) = do
                     return $ Just ([], b, nullSubst, Nothing)
       else return r
 
+predUnify :: [TyVar] -> Pred -> Pred -> Bool
 predUnify bound_tyvars (IsIn c1 ts1) (IsIn c2 ts2)
     | c1 == c2 = isJust (mgu bound_tyvars ts1 ts2)
     | otherwise = False
 
+dvsSub :: Subst -> DVS -> DVS
 dvsSub s dvs = dvs
 {-
 dvsSub _ Nothing = Nothing
@@ -630,6 +643,7 @@ lookfor bound_tyvars v@(VPred i pp) eps@(EPred e pr':ps) =
                            ppReadable (bound_tyvars, v, eps, inst_subst, fd_subst))
         Nothing -> lookfor bound_tyvars v ps
 
+commute :: [Type] -> [Type]
 commute ts@[t1,t2] = [t2, t1]
 commute ts@[t1,t2,t3] = [t2, t1, t3]
 commute _ = internalError("commutative class not taking two or three arguments")
@@ -861,10 +875,12 @@ unify x t1 t2 = do
           Nothing -> let (t1'', t2'') = niceTypes (t1', t2')
                      in reportUnifyError bound_vars x t1'' t2''
 
+eqToPred :: (Type, Type) -> TI Pred
 eqToPred (t1, t2) = do
   clsNumEq <- numEqCls
   return $ IsIn clsNumEq [t1, t2]
 
+eqToVPred :: [Position] -> (Type, Type) -> TI VPred
 eqToVPred poss num_eq = do
   p <- eqToPred num_eq
   mkVPredFromPred poss p
@@ -974,7 +990,8 @@ reportUnifyError bound_vars x orig_t1 orig_t2 =
     in
         findMismatch 0 orig_t1 orig_t2
 
-
+defaultUnifyError :: (HasPosition a, PPrint a, PVPrint a)
+                  => a -> Type -> Type -> TI d
 defaultUnifyError x t1 t2 =
     err (getPosition x,
          EUnify (pfpReadable x) (pfpReadable t1) (pfpReadable t2))

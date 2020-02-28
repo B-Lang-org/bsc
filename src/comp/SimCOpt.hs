@@ -50,9 +50,12 @@ instance PPrint DefRecord where
            (text "Readers:") $+$ (nest 2 (commaSep rtxt))
 
 -- create records for a bunch of reads or writes
+readsIds :: FnLoc -> [AId] -> [(AId, DefRecord)]
 fl `readsIds`  ids = [ (aid,DF S.empty (S.singleton fl)) | aid <- ids]
+writesIds :: FnLoc -> [AId] -> [(AId, DefRecord)]
 fl `writesIds` ids = [ (aid,DF (S.singleton fl) S.empty) | aid <- ids]
 
+combine_refs :: DefRecord -> DefRecord -> DefRecord
 combine_refs (DF w1 r1) (DF w2 r2) = DF (w1 `S.union` w2) (r1 `S.union` r2)
 
 -- Get the AIds read or written by a SimCCFn

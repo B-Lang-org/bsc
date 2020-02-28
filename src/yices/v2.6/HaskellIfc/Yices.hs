@@ -164,6 +164,7 @@ import ErrorUtil
 
 
 -- bitSize has been deprecated
+word32_size, word64_size :: Int
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 word32_size = finiteBitSize (0 :: Word)
 word64_size = finiteBitSize (0 :: Word64)
@@ -795,4 +796,3 @@ foreign import ccall "stdio.h"
   fclose :: Ptr CFile -> IO ()
 
 ------------------------------------------------------------------------
-

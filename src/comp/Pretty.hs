@@ -21,6 +21,7 @@ pretty w m x = fullRender PageMode w (toEnum w / toEnum m) string_txt "\n" x
 
 -- The function which tells fullRender how to compose Doc elements
 -- into a String.
+string_txt :: TextDetails -> String -> String
 string_txt (Chr c)   s  = c:s
 string_txt (Str s1)  s2 = s1 ++ s2
 string_txt (PStr s1) s2 = s1 ++ s2
@@ -38,4 +39,3 @@ s2docs :: String -> [Doc]
 s2docs str = map text (words str)
 
 ----
-

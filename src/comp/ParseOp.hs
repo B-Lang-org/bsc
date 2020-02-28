@@ -22,10 +22,12 @@ parseOps errh (CPackage i exps imps fixs defs includes) =
        defs' <- convErrorMonadToIO errh (mapM (pDefn ft) defs)
        return (CPackage i exps imps fixs defs' includes)
 
+getFixes :: CFixity -> (Id, Fixity)
 getFixes (CInfix  p i) = (i, FInfix  (fromInteger p))
 getFixes (CInfixl p i) = (i, FInfixl (fromInteger p))
 getFixes (CInfixr p i) = (i, FInfixr (fromInteger p))
 
+getImpFixes :: CImport -> FixTable
 getImpFixes (CImpSign _ _ (CSignature _ _ fixs _)) = map getFixes fixs
 getImpFixes _ = []
 
@@ -83,6 +85,7 @@ pDefl ft (CLMatch p e) = do
     e' <- pExpr ft e
     return (CLMatch p' e')
 
+pGuard :: FixTable -> Maybe CExpr -> ErrorMonad (Maybe CExpr)
 pGuard ft Nothing = return Nothing
 pGuard ft (Just e) = pExpr ft e >>= return . Just
 
@@ -283,13 +286,14 @@ pRule ft (CRuleNest ps g qs rs) = do
     rs' <- mapM (pRule ft) rs
     return (CRuleNest ps g' qs' rs')
 
+pOp :: FixTable -> COp -> ErrorMonad COp
 pOp ft (CRand e) = pExpr ft e >>= return . CRand
 pOp ft e = return e
 
 parseOp :: FixTable -> [COp] -> ErrorMonad CExpr
 parseOp ft ops = doOne ft ops [] []
 
---doOne :: (Id a) => [COp] -> [(Integer,Id)] -> [CExpr] -> ErrorMonad CExpr
+doOne :: FixTable -> [COp] -> [(Int, Id)] -> [CExpr] -> ErrorMonad CExpr
 doOne ft [] [] [e] = return e
 doOne ft [] [] es = internalError ("ParseOp.doOne: Bad operand stack "++ppDebug es)
 doOne ft [] ((a,o):os) es = doOp ft a o [] os es
@@ -324,6 +328,7 @@ doOp ft a op rs os es =
                             doOne ft rs os (e' : es')
             _ -> internalError ("ParseOp.doOp: Bad operator arity (2) for "++pfpString op)
 
+precOfA :: FixTable -> Int -> Id -> (Int, Fixity)
 precOfA ft _ i =
     case getIdFixity ft i of
     f@(FInfix  i) -> (i, f)
@@ -331,6 +336,7 @@ precOfA ft _ i =
     f@(FInfixr i) -> (i, f)
     i -> internalError ("ParseOp.precOfA: bad op: " ++ show i)
 
+getIdFixity :: FixTable -> Id -> Fixity
 getIdFixity ft i =
     case lookup i ft of
     Nothing -> defaultFixity

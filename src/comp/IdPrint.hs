@@ -15,8 +15,10 @@ import PPrint
 import PVPrint
 import IOUtil(progArgs)
 
+show_qual :: Bool
 show_qual = "-show-qualifiers" `elem` progArgs
 
+local_show :: Id -> String
 local_show id =
     let
         pos = getIdPosition id
@@ -131,8 +133,11 @@ ppConId d i = -- text ( "props:" ++ show (getIdProps i)) <>
     _ -> text (getIdStringCon i)       -- constructor-identifiers
 
 -- These used to encode properties in .bi files
+getIdStringCon :: Id -> String
 getIdStringCon = getIdString
+getIdStringVar :: Id -> String
 getIdStringVar = getIdString
+getIdStringOp :: Id -> String
 getIdStringOp  = getIdString
 
 -- --------------------
@@ -148,4 +153,3 @@ instance PVPrint IdProp where
         pparen True (text "IdPInlinedPositions" <+> pvPrint d 0 poss)
     pvPrint _ _ prop = text (show prop)
 -}
-

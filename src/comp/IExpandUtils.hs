@@ -124,14 +124,23 @@ trace_hcell cell expr | cell `elem` dump_hcells = traceM ("hcell " ++ show cell 
 
 -- The comments for these flags are in IExpand
 
+doProfile :: Bool
 doProfile = elem "-trace-profile" progArgs
+doTraceHeap :: Bool
 doTraceHeap = elem "-trace-heap" progArgs
+doTraceHeap2 :: Bool
 doTraceHeap2 = length (filter (== "-trace-heap") progArgs) > 1
+doTraceHeapAlloc :: Bool
 doTraceHeapAlloc = elem "-trace-heap-alloc" progArgs
+doTraceCache :: Bool
 doTraceCache = elem "-trace-def-cache" progArgs
+doTraceClock :: Bool
 doTraceClock = elem "-trace-clock" progArgs
+doDebugFreeVars :: Bool
 doDebugFreeVars = elem "-debug-eval-free-vars" progArgs
+doTracePortTypes :: Bool
 doTracePortTypes = elem "-trace-port-types" progArgs
+doTraceLoc :: Bool
 doTraceLoc = elem "-trace-state-loc" progArgs
 
 -----------------------------------------------------------------------------
@@ -156,6 +165,7 @@ pIf' c@(IRefT _ _ (HeapData r)) t e =
       _ -> pIf'' c t e
 pIf' c t e = pIf'' c t e
 
+pIf'' :: HExpr -> HPred -> HPred -> HPred
 pIf'' (IAps (ICon _ (ICPrim _ PrimBNot)) [] [c]) t e = pIf' c e t
 pIf'' c t@(PConj ts) e@(PConj es) =
     let te = ts `S.intersection` es
@@ -179,12 +189,15 @@ pConj (PConj ts1) (PConj ts2) = PConj (ts1 `S.union` ts2)
 pConjs :: [Pred a] -> Pred a
 pConjs ps = PConj (S.unions [ ts | PConj ts <- ps ])
 
+isPAtom :: PTerm a -> Bool
 isPAtom (PAtom _) = True
 isPAtom _ = False
 
+pairConj :: (Pred a, Pred b) -> (Pred a, Pred b) -> (Pred a, Pred b)
 pairConj (t1, f1) (t2, f2) = (t1 `pConj` t2, f1 `pConj` f2)
 
 -- like zipWith, but if one list is longer, keep those elements
+listConj :: [Pred a] -> [Pred a] -> [Pred a]
 listConj xs [] = xs
 listConj [] ys = ys
 listConj (x:xs) (y:ys) = (x `pConj` y) : listConj xs ys
@@ -317,6 +330,7 @@ canLiftCond'_List m es =
 
 -- Test if a type is allowed in the residual program.
 
+isPrimType :: IType -> Bool
 -- Primitive interfaces
 isPrimType (ITCon _ _ (TIstruct SInterface{} _)) = True
 -- Primitive base types
@@ -338,7 +352,7 @@ isPrimType (ITAp (ITCon i _ _) elem_ty) | i == idPrimArray = isPrimType elem_ty
 isPrimType _ = False
 
 -- Primitive type applications
-isPrimType :: IType -> Bool
+isPrimTAp :: IType -> Bool
 isPrimTAp (ITCon _ _ (TIstruct SInterface{} _)) = True
 isPrimTAp (ITCon i _ _) = i == idActionValue_ ||
                           i == idBit ||
@@ -379,6 +393,7 @@ heapCellToHExpr (HWHNF { hc_pexpr = p }) = (pExprToHExpr p)
 heapCellToHExpr (HNF { hc_pexpr = p }) = (pExprToHExpr p)
 heapCellToHExpr (HLoop mn) = internalError ("heapCellToHExpr.HLoop: " ++ ppReadable mn)
 
+heapCellToPExpr :: HeapCell -> PExpr
 heapCellToPExpr (HWHNF { hc_pexpr = p }) = p
 heapCellToPExpr (HNF { hc_pexpr = p }) = p
 heapCellToPExpr (HUnev { hc_hexpr = e }) = internalError("heapCellToPExpr.HUnev: " ++ ppReadable e)
@@ -1336,10 +1351,11 @@ addOutputClock clk ci = do
   when doTraceClock $ traceM ("addOutputClock: " ++ ppReadable (clk, getClockDomain clk, ci))
   put (s { out_clock_info = (clk, ci):old_out_clock_info})
 
+getClockIds :: [(HClock, (Id, a))] -> [(HClock, Id)]
+getClockIds = map (\ (c,(i,_)) -> (c, i))
 
-getClockIds cs = map (\ (c,(i,_)) -> (c, i)) cs
-
-getHClocks cs = map fst cs
+getHClocks :: [(HClock, a)] -> [HClock]
+getHClocks = map fst
 
 -- returns Nothing if not found (could make that an internalError)
 getBoundaryClock :: Id -> G (Maybe HClock)
@@ -1383,9 +1399,11 @@ addOutputReset rst ri = do
   let old_out_reset_info = out_reset_info s
   put (s { out_reset_info = (rst, ri):old_out_reset_info })
 
-getResetIds rs = map (\ (r,(i,_)) -> (r, i)) rs
+getResetIds :: [(HReset, (Id, a))] -> [(HReset, Id)]
+getResetIds = map (\ (r,(i,_)) -> (r, i))
 
-getHResets rs = map fst rs
+getHResets :: [(HReset, a)] -> [HReset]
+getHResets = map fst
 
 getBoundaryReset :: Id -> G (Maybe HReset)
 getBoundaryReset i =
@@ -2616,7 +2634,7 @@ toHeapCon tag e@(ICon _ _) cell_name = addHeapUnev tag (iGetType e) e cell_name
 toHeapCon tag e cell_name = toHeap tag e cell_name
 
 {-# INLINE toHeapWHNF #-}
-toHeapWHNF :: String -> IExpr HeapData -> Maybe Id -> G (IExpr HeapData)
+toHeapWHNF :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNF tag e@(ICon _ _) cell_name = return e
 toHeapWHNF tag e@(IRefT _ _ _) cell_name = return e
 toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), e])
@@ -2627,13 +2645,13 @@ toHeapWHNF tag (IAps (ICon _ (ICPrim _ PrimWhenPred)) [t] [ICon _ (ICPred _ p), 
 toHeapWHNF tag e cell_name = addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
 
 {-# INLINE toHeapWHNFCon #-}
-toHeapWHNFCon :: String -> IExpr HeapData -> Maybe Id -> G HExpr
+toHeapWHNFCon :: String -> HExpr -> Maybe Id -> G HExpr
 toHeapWHNFCon tag e@(ICon _ _) cell_name =
     addHeapWHNF tag (iGetType e) (P pTrue e) cell_name
 toHeapWHNFCon tag e cell_name = toHeapWHNF tag e cell_name
 
 {-# INLINE toHeapWHNFInferName #-}
-toHeapWHNFInferName :: String -> HExpr -> G (IExpr HeapData)
+toHeapWHNFInferName :: String -> HExpr -> G HExpr
 toHeapWHNFInferName tag e = inferName e >>= toHeapWHNF tag e
 
 {-# INLINE toHeapInferName #-}
@@ -2673,6 +2691,7 @@ inferName expr@(IAps (ICon con_name (ICSel {})) [_] [object])
 inferName expr@(ICon inst_name (ICStateVar {})) = return (Just inst_name)
 inferName _ = return Nothing
 
+unCacheableType :: IType -> Bool
 unCacheableType (ITForAll _ _ _) = True
 -- top-level pure values of Clock and Reset involve no work
 -- and sometimes we want to play games (e.g. disabled clocks)

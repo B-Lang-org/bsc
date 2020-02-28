@@ -293,10 +293,12 @@ instance PPrint SExpr where
 
 -- return "empty" if there is no comment, which is the unit of $+$,
 -- so there is no extra line in the output when there are no comments
+ppComment :: [String] -> Doc
 ppComment cs =
     let ppline str = text ("-- " ++ str)
     in  foldr ($+$) empty (map ppline cs)
 
+ppField :: PDetail -> (Id, SType) -> Doc
 ppField d (i,t) = pPrint d 0 i <+> text "::" <+> pPrint d 0 t
 
 vsepEmptyLine :: [Doc] -> Doc
@@ -1254,4 +1256,3 @@ convUse (i, (t, e)) = do
   return (defId i, convAType t, e')
 
 -- -------------------------
-

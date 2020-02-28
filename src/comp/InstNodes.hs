@@ -32,6 +32,7 @@ import IStateLoc(IStateLoc, IStateLocPathComponent(..))
 import IOUtil(progArgs)
 import Debug.Trace
 
+doTraceTree :: Bool
 doTraceTree = elem "-trace-inst-tree" progArgs
 
 -- -----------------------------------------------------------

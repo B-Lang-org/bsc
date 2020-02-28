@@ -15,11 +15,13 @@ import IOUtil(progArgs)
 import PPrint(ppReadable, ppString)
 import Error(ErrorHandle)
 
+trace_disjoint_tests :: Bool
 trace_disjoint_tests = "-trace-disjoint-tests" `elem` progArgs
 
 -- =====
 -- Naming conventions
 
+acleanupPref :: String
 acleanupPref = "_dfoo"
 
 -- =====
@@ -184,4 +186,3 @@ checkDisjointCond dtState pred cond1 cond2 =
                    "cond2: " ++ (ppReadable cond2) ++
                    "Result: " ++ (show mres))
       return (res, dtState')
-

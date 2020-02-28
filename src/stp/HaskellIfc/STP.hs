@@ -111,6 +111,7 @@ import System.Posix.Env(getEnvDefault)
 
 
 -- bitSize has been deprecated
+cullong_size :: Int
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 cullong_size = finiteBitSize (0 :: CULLong)
 #else

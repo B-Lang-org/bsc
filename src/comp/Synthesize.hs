@@ -21,11 +21,13 @@ import AExpand(aSRemoveUnused)
 import AOpt(aOptBoolExpr)
 import IOUtil(progArgs)
 
+doTrace :: Bool
 doTrace = elem "-trace-syn" progArgs
 
 -- ---------------
 -- Naming conventions
 
+synthPref :: String
 synthPref = "_dw"
 
 -- ---------------
@@ -232,6 +234,7 @@ normExpr (APrim aid t op es) = do
 normExpr e@(ASDef _ i) = getSimple i e
 normExpr e = return e
 
+aOptPrim :: AId -> AType -> PrimOp -> [AExpr] -> AExpr
 aOptPrim aid t PrimBAnd es  = aAnds aid es
 aOptPrim aid t PrimBOr  es  = aOrs  aid es
 aOptPrim aid t PrimXor  es  = aXors aid es
@@ -308,6 +311,7 @@ splitVar _ _ _ = internalError( "Synthesize::splitVar" )
 
 -- ---------------
 
+isSimple :: AExpr -> Bool
 isSimple (ASInt {}) = True
 isSimple (ASStr {}) = True
 isSimple (ASPort {}) = True
@@ -331,17 +335,20 @@ toS2 (x, y) = do
 toSs :: [AExpr] -> S [AExpr]
 toSs = mapM toS
 
+isBoolOp :: PrimOp -> Bool
 isBoolOp PrimBAnd = True
 isBoolOp PrimBOr = True
 isBoolOp PrimBNot = True
 isBoolOp _ = False
 
+isBoolVecOp :: PrimOp -> Bool
 isBoolVecOp PrimAnd = True
 isBoolVecOp PrimOr = True
 isBoolVecOp PrimInv = True
 isBoolVecOp PrimXor = True
 isBoolVecOp _ = False
 
+primToFun :: PrimOp -> AId -> [AExpr] -> AExpr
 primToFun PrimAnd = aAnds
 primToFun PrimOr = aOrs
 primToFun PrimInv = aNots
@@ -349,6 +356,7 @@ primToFun PrimXor = aXors
 primToFun p =  internalError( "Synthesize::primToFun: " ++ (show p))
 
 
+shiftOf :: PrimOp -> ShiftFun
 shiftOf PrimSL = permSL
 shiftOf PrimSRL = permSRL
 shiftOf PrimSRA = permSRA
@@ -496,6 +504,7 @@ synDecode aid cs = do
         return (map (dec . reverse . integerToBits n) [0..2^n-1])
 
 --aXors xs = foldr1 aXor xs
+aXors :: AId -> [AExpr] -> AExpr
 aXors aid [x, y] = aXor aid x y
 aXors _ _ = internalError "Synthesize.aXors: list should be of length 2"
 
@@ -508,9 +517,11 @@ aXor aid x y =
     else if x == y    then aFalse
     else APrim aid aTBool PrimXor [x, y]
 
+aNots :: AId -> [AExpr] -> AExpr
 aNots aid [e] = aNot aid e
 aNots _ _ = internalError "Synthesize.aNots"
 
+aNot :: AId -> AExpr -> AExpr
 aNot aid e | isTrue e  = aFalse
            | isFalse e = aTrue
            | otherwise = APrim aid aTBool PrimBNot [e]
@@ -636,7 +647,9 @@ type ShiftFun = Int -> [AExpr] -> [AExpr]
 
 permSL :: ShiftFun
 permSL  n xs = take (length xs) (replicate n aFalse ++ xs)
+permSRL :: ShiftFun
 permSRL n xs = take (length xs) (drop n xs ++ repeat aFalse)
+permSRA :: ShiftFun
 permSRA n xs = take (length xs) (drop n xs ++ repeat (last xs))
 -- permRL  n xs = rTake n xs ++ rDrop n xs
 -- permRR  n xs = drop n xs ++ take n xs
@@ -682,4 +695,5 @@ scanM op xs = f 1 xs
                            ys <- zipWithM op xs rs
                            f (2*n) (ls ++ ys)
 
+swap :: (b, a) -> (a, b)
 swap (x, y) = (y, x)

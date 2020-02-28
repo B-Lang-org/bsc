@@ -141,6 +141,16 @@ qualId' :: Id -> Id -> Id
 qualId' pi i = if tilde `elem` getIdString i then i else qualId pi i
   where [tilde] = getFString fsTilde
 
+iConvVS :: ErrorHandle
+           -> Flags
+           -> SymTab
+           -> Env a
+           -> IPVars a
+           -> Id
+           -> [TyVar]
+           -> CQType
+           -> [CClause]
+           -> (Id, IType, IExpr a)
 iConvVS errh flags r env pvs i vs (CQType _ t) cs =
         let t' = iConvT flags r t
             t'' = foldr (\ (TyVar i _ k) t -> ITForAll i (iConvK k) t) t' vs
@@ -588,12 +598,15 @@ joinRuleIds is =
 -- use idPrimStringConcatAt so that the expression has a good position.
 -- for rules, the best position is the second string, since it's the most
 -- specific to the rule
+ruleStrConcat :: CExpr -> CExpr -> CExpr
 ruleStrConcat e1 e2 =
     let pos = getPosition e2
     in  cVApply (idPrimStringConcatAt pos) [e1, e2]
 
+str_ :: CExpr
 str_ = CLitT tString (CLiteral noPosition (LString "_"))
 
+dropDicts :: [(Id, IExpr a)]
 dropDicts = [(idPrimConcat, icPrimConcat),
              (idPrimZeroExt, icPrimZeroExt),
              (idPrimSignExt, icPrimSignExt),
@@ -730,6 +743,7 @@ countForall _ = 0
 
 ------
 
+iLetSimp :: Id -> IType -> IExpr a -> IExpr a -> IExpr a
 iLetSimp i _ e@(IVar _) b | not (isKeepId i) = eSubst i e b
 {-
 iLetSimp i t e b | onlyIAP b = iTypeBeta (eSubst i e b)

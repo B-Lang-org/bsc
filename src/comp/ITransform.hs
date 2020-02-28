@@ -1181,7 +1181,7 @@ expValAndOrCmp (IAps e ts es) = IAps e ts (map expValAndOrCmp es)
 expValAndOrCmp (ICon _ (ICValue { iValDef = e@(IAps (ICon _ (ICPrim _ p)) _ _ )})) | isAndOrCmp p = expValAndOrCmp e
 expValAndOrCmp e = e
 
-
+isAndOrCmp :: PrimOp -> Bool
 isAndOrCmp p = p `elem` [PrimBAnd, PrimBOr, PrimBNot, PrimEQ, PrimULT, PrimULE, PrimSLT, PrimSLE]
 
 expValShallow :: IExpr a -> IExpr a
@@ -1261,6 +1261,7 @@ impliesnot ctx a b = isF (addT a ctx) b
 data Ctx a = Ctx (M.Map (IExpr a) IValue) (BExpr a)
 type IValue = Integer
 
+emptyCtx :: Ctx a
 emptyCtx = Ctx M.empty bNothing
 
 instance PPrint (Ctx a) where
@@ -1300,15 +1301,19 @@ getMaskTail mask size | zeroes_gcd > 1 =
         ones_gcd   = gcd (mask+1) power
         power      = 2^size
 
+isZero :: IExpr a -> Bool
 isZero (ICon _ (ICInt { iVal = IntLit { ilValue = 0 } })) = True
 isZero _ = False
 
+isOne :: IExpr a -> Bool
 isOne (ICon _ (ICInt { iVal = IntLit { ilValue = 1 } })) = True
 isOne _ = False
 
+isAllOnes :: IExpr a -> Bool
 isAllOnes (ICon _ (ICInt { iConType = ITAp b (ITNum i), iVal = IntLit { ilValue = n } })) = b == itBit && 2^i == n+1
 isAllOnes _ = False
 
+isAlmost :: IExpr a -> Bool
 isAlmost (ICon _ (ICInt { iConType = ITAp b (ITNum i), iVal = IntLit { ilValue = n } })) = b == itBit && 2^i == n+2
 isAlmost _ = False
 
@@ -1319,18 +1324,22 @@ iLog2 i =
         else
              Nothing
 
+inc :: IExpr a -> IExpr a
 inc (ICon i c@(ICInt { iVal = il@(IntLit { ilValue = n }) })) =
     -- GHC emits a warning below because it's forgotten that 'c' must be
     -- an ICInt
     ICon i (c { iVal = il { ilValue = n+1 } })
 inc iexpr = internalError ("ITransform.inc: " ++ ppString iexpr)
 
+mkZero :: IType -> IExpr a
 mkZero t = iMkLit (aitBit t) 0
 
 -- only match non-chosen undefined values
+isUndet :: IExpr a -> Bool
 isUndet (ICon _ (ICUndet { imVal = Nothing })) = True
 isUndet _ = False
 
+isIfElseOfIConInt :: IExpr a -> Bool
 isIfElseOfIConInt (IAps (ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) =
     isIfElseOfIConInt' thn && isIfElseOfIConInt' els
   where
@@ -1342,10 +1351,12 @@ isIfElseOfIConInt (IAps (ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) =
 isIfElseOfIConInt (ICon _ (ICValue { iValDef = e })) = isIfElseOfIConInt e
 isIfElseOfIConInt _ = False
 
+isConstExprForPrim :: PrimOp -> IExpr a -> Bool
 isConstExprForPrim prim (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
     (p == prim) && ((isIConInt e1) || (isIConInt e2))
 isConstExprForPrim _ _ = False
 
+constPart :: IExpr a -> IExpr a
 constPart (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
     if (isIConInt e1)
     then e1
@@ -1354,6 +1365,7 @@ constPart (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
          else internalError "constPart: no const part found!"
 constPart _ = internalError "constPart: expected a binary primitive op"
 
+nonConstPart :: IExpr a -> IExpr a
 nonConstPart (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
     if (isIConInt e1) then e2 else e1  -- note: e2 may also be a constant!
 nonConstPart _ = internalError "nonConstPart: expected a binary primitive op"
@@ -1600,11 +1612,13 @@ vsUniv e =
         Just n  -> vFromTo 0 (2^n-1)
         Nothing -> internalError "vsUniv"
 
+vsGetSingleton :: IExpr a -> ValMap a -> Maybe Integer
 vsGetSingleton e m =
     case M.lookup e m of
     Just vs -> vGetSing vs
     Nothing -> Nothing
 
+isCmp :: PrimOp -> Bool
 isCmp PrimEQ = True
 isCmp PrimULT = True
 isCmp PrimULE = True

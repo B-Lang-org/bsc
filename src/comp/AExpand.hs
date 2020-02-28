@@ -625,6 +625,7 @@ inlineable _ = True
 --  - $signed and $unsigned
 --    (since they only work if inlined into the appropriate system task call)
 
+mustInline :: AExpr -> Bool
 mustInline (AFunCall {ae_funname = n }) = n `elem` ["$signed", "$unsigned"]
 mustInline e = isStringType (aType e)
 

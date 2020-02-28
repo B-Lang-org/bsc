@@ -64,6 +64,7 @@ import qualified Data.Generics as Generic
 
 
 -- string to start synthesis attributes with
+synthesis_str :: String
 synthesis_str = "synopsys"
 -- other possibilities
 --synthesis_str = "synthesis"
@@ -115,6 +116,7 @@ type VComment = [String]
 
 -- return "empty" if there is no comment, which is the unit of $+$,
 -- so there is no extra line in the output when there are no comments
+ppComment :: [String] -> Doc
 ppComment cs =
     let ppline str = text ("// " ++ str)
     in  foldr ($+$) empty (map ppline cs)
@@ -206,6 +208,7 @@ instance PPrint VArg where
     pPrint d p (VAParameter i mr e) =
         text "VAParameter" <+> pPrint d 0 i <+> ppMRange d mr <+> pPrint d 0 e
 
+ppVArgPort :: PDetail -> VArg -> Doc
 ppVArgPort d (VAInput i _) = pPrint d 0 i
 ppVArgPort d (VAInout i Nothing _) = pPrint d 0 i
 ppVArgPort d (VAInout i (Just i') _) =
@@ -213,6 +216,7 @@ ppVArgPort d (VAInout i (Just i') _) =
 ppVArgPort d (VAOutput i _) = pPrint d 0 i
 ppVArgPort d (VAParameter {}) = empty
 
+ppVArgDecl :: PDetail -> VArg -> Doc
 ppVArgDecl d (VAInput vi mr) = pPrint d 0 (VVDecl VDInput mr [VVar vi])
 ppVArgDecl d (VAInout vi mvi' (Just mr)) =
     let i = fromMaybe vi mvi'
@@ -327,6 +331,7 @@ instance PPrint VMItem where
             ppComment cs $+$
             pPrint d p stmt
 
+pv95params :: PDetail -> (Maybe String, VExpr) -> Doc
 pv95params d (Nothing,x)  =  pPrint d 0 x
 pv95params d (Just "", x) =  pPrint d 0 x
 pv95params d (Just s,x)   =  text (" /*" ++ s ++ "*/ ") <> pPrint d 0 x
@@ -904,10 +909,13 @@ vIsValidIdent (c:cs) = (isLetterOrUnderscore c) &&
 
 -------
 
+ppLines :: PPrint a => PDetail -> [a] -> Doc
 ppLines d xs = foldr ($+$) empty (map (pPrint d 0) xs)
 
+ppLinesBy :: (a -> b -> Doc) -> a -> [b] -> Doc
 ppLinesBy f d xs = foldr ($+$) empty (map (f d) xs)
 
+labeledPPLines :: PPrint b => a -> PDetail -> [b] -> Doc
 labeledPPLines label d xs = ppLines d xs
 
 vsepEmptyLine :: [Doc] -> Doc
@@ -934,8 +942,10 @@ commaSepEmptyLine xs = foldr1 (nextLine) xs
               | (y == empty)                 = x
               | otherwise                    =  x <> text "," $+$ text "" $+$ y
 
+ppRange :: PDetail -> VExpr -> VExpr -> Doc
 ppRange d a b = text "[" <> pPrint d 0 a <+> text ":" <+> pPrint d 0 b <> text "]"
 
+ppMRange :: PDetail -> Maybe VRange -> Doc
 ppMRange _ Nothing = empty
 ppMRange d (Just (h,l)) = ppRange d h l
 

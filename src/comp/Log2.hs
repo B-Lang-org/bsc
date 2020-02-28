@@ -22,6 +22,7 @@ import GHC.Exts
 import Data.Bits
 
 -- In GHC 7.8, internal primops return Int# instead of Bool
+eqInt, neqInt :: Int# -> Int# -> Bool
 {-# INLINE eqInt #-}
 {-# INLINE neqInt #-}
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)

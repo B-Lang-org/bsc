@@ -64,6 +64,7 @@ tiDefns errh s flags ds = do
   when (have_errors && enablePoisonPills flags) $ bsErrorNoExit errh errors
   return (ds' ++ error_defs', concat wss, have_errors)
 
+nullAssump :: [Assump]
 nullAssump = []
 
 tiOneDef :: CDefn -> TI CDefn
@@ -105,6 +106,7 @@ tiOneDef d@(CValue i s) = errorAtId ENoTopTypeSign i
 tiOneDef d = return d
 
 -- Force the substitution to make sure we don't drag around cruft.
+getSubst' :: TI Subst
 getSubst' = do
         s <- getSubst
         if s == s then return s else internalError "TypeCheck.getSubst': s /= s (WTF!?)"
@@ -264,8 +266,10 @@ getFreeT vs t = []
 getFreeQT :: [TyVar] -> CQType -> [TyVar]
 getFreeQT vs (CQType ps t) = getFreeT vs t                -- XXX ps
 
+getFreeR :: [TyVar] -> CRule -> [TyVar]
 getFreeR vs (CRule _ mi qs e) = getFreeME vs mi ++ concatMap (getFreeQ vs) qs ++ getFreeE vs e
 getFreeR vs (CRuleNest _ mi qs rs) = getFreeME vs mi ++ concatMap (getFreeQ vs) qs ++ concatMap (getFreeR vs) rs
 
+getFreeME :: [TyVar] -> Maybe CExpr -> [TyVar]
 getFreeME vs Nothing = []
 getFreeME vs (Just e) = getFreeE vs e

@@ -345,10 +345,12 @@ instance PPrint SExpr where
 
 -- return "empty" if there is no comment, which is the unit of $+$,
 -- so there is no extra line in the output when there are no comments
+ppComment :: [String] -> Doc
 ppComment cs =
     let ppline str = text ("% " ++ str)
     in  foldr ($+$) empty (map ppline cs)
 
+ppDef :: PDetail -> (SId, SType, SExpr) -> Doc
 ppDef d (i, t, e) =
     let (as_doc, t', body) =
             case (e, t) of
@@ -358,10 +360,13 @@ ppDef d (i, t, e) =
         sep [(pPrint d 0 i <+> as_doc <+> colon <+> pPrint d 0 t' <+> text "="),
              nest 2 (pPrint d 0 body)]
 
+ppField :: PDetail -> (SId, SType) -> Doc
 ppField d (i, t) = pPrint d 0 i <+> colon <+> pPrint d 0 t
 
+ppFieldDef :: PDetail -> (SId, SExpr) -> Doc
 ppFieldDef d (i, e) = pPrint d 0 i <+> text ":=" <+> pPrint d 0 e
 
+ppVarDecls :: PDetail -> [(SId, SType)] -> Doc
 ppVarDecls d [] = internalError ("SAL.ppVarDecls empty")
 ppVarDecls d as =
     let as' = map (\ its@((_,t):_) -> (map fst its, t)) $
@@ -370,6 +375,7 @@ ppVarDecls d as =
             commaSep (map (pPrint d 0) is) <+> colon <+> pPrint d 0 t
     in  lparen <> commaSep (map ppArg as') <> rparen
 
+ppArraySize :: Integer -> Doc
 ppArraySize sz = lbrack <> text ("0.." ++ itos (sz-1)) <> rbrack
 
 lhbrack, rhbrack :: Doc
@@ -1404,4 +1410,3 @@ convUse (i, (t, e)) = do
   return (defId i, convAType t, e')
 
 -- -------------------------
-

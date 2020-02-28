@@ -49,8 +49,9 @@ ppAll = ppr PDAll
 ppDebug :: (PPrint a) => a -> String
 ppDebug = ppr PDDebug
 
-lineWidth = 120::Int
-linePref = 100::Int
+lineWidth, linePref :: Int
+lineWidth = 120
+linePref = 100
 
 ppString :: PPrint a => a -> String
 ppString = init . pretty 100000 100000 . pPrint PDReadable 0
@@ -58,6 +59,7 @@ ppString = init . pretty 100000 100000 . pPrint PDReadable 0
 ppr :: PPrint a => PDetail -> a -> String
 ppr d = pretty lineWidth linePref . pPrint d 0
 
+pprIndent :: PPrint a => Int -> PDetail -> a -> String
 pprIndent i d = pretty lineWidth linePref . nest i . pPrint d 0
 
 ppDoc :: Doc -> String

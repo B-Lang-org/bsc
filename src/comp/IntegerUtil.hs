@@ -106,6 +106,7 @@ integerToString b i | b < 2      =  error "integerToString: base must be >= 2"
                     | otherwise  =  showIntBase (toInteger b) i ""
 
 -- mostly duplicates the function in the Prelude from the Haskell 98 Report
+showIntBase :: Integer -> Integer -> String -> String
 showIntBase b n r | n < 0 = error "Numeric.showInt: can't show negative numbers"
                   | otherwise =
                       let (n',d) = quotRem n b

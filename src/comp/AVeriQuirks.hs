@@ -383,7 +383,9 @@ aBitAnd aid t@(ATBit n) es =
             aAnd' (xs ++ [aSInt t c])
 aBitAnd _ _ _ = internalError ("AVerilog::aAnd")
 
+aInt :: AType -> Integer -> AExpr
 aInt t i = aSInt t i
+aSInt :: AType -> Integer -> AExpr
 aSInt t i = ASInt defaultAId t (ilHex i)
 
 -- mkDefS must return a variable/wire reference

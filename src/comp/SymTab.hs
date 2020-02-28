@@ -165,12 +165,14 @@ data SymTab =
 instance Eq SymTab where -- just because we need one for forcing evaluation
     _ == _ = False
 
+showsPrecList :: Show a => Int -> [a] -> String -> String
 showsPrecList wid (thing@[_]) z =
     concat ( sps wid thing ) ++ z
 
 showsPrecList wid (thing@(_)) z =
      (showsPrec wid thing . showString "\n") z
 
+sps :: Show a => Int -> [a] -> [String]
 sps wid islist =
     [ show thing ++ "\n" | thing <- islist ]
 
@@ -292,6 +294,7 @@ addFieldsQ :: SymTab -> [(Id, FieldInfo)] -> SymTab
 addFieldsQ = addFields mkSameQual
 
 -- For Ids which should be entered as-is
+mkSameQual :: Id -> [Id]
 mkSameQual name = [name]
 
 -- ---------------

@@ -414,6 +414,7 @@ dropSchedulerIds dropIds sch =
                        "\n" ++ ppReadable sch)
       else result
 
+dropSchedulerIds' :: [ARuleId] -> AScheduler -> AScheduler
 dropSchedulerIds' dropIds (ASchedEsposito fs) = ASchedEsposito fs'
   where fs' = [(rid, rs') | (rid, rs) <- fs,
                             not (rid `elem` dropIds),
@@ -1278,10 +1279,12 @@ instance PPrint APackage where
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
+ppInstComment :: PDetail -> (Id, [String]) -> Doc
 ppInstComment d (i, cs) =
     pPrint d 0 i <> colon $+$
     vsep (map text cs)
 
+ppV :: PDetail -> (AId, AType) -> Doc
 ppV d (i, t) = pPrint d 0 i <+> text "::" <+> pPrint d 0 t <> text ";"
 
 instance PPrint AAbstractInput where
@@ -1310,6 +1313,7 @@ instance PPrint AVInst where
 instance Hyper AVInst where
     hyper x y = (x==x) `seq` y
 
+ppVTI :: PDetail -> (VModInfo, [AExpr], [(AId, Integer)]) -> Doc
 ppVTI d (vi, es, ns) = sep [pPrint d 0 (vName vi), pPrint d 0 vi, pPrint d 0 es, pPrint d 0 ns]
 
 instance PPrint ASPackage where
@@ -1356,6 +1360,7 @@ instance PPrint ADef where
         (if (null props) then empty else
            text "-- Properties" <+> pPrint d 0 props)
 
+pPred :: PDetail -> Int -> APred -> Doc
 pPred d p pred = text "pred: " <+> pPrint d p pred
 
 -- XXX cleanup needed.
@@ -1406,6 +1411,7 @@ instance PPrint AAssumption where
         text "assume " <+> pPrint d p pred <+>
         text "else " <+> pPrint d p as
 
+ppActions :: PDetail -> [AAction] -> Doc
 ppActions d as = text "{" <+> sep (map ppA as) <+> text "}"
         where ppA a = pPrint d 0 a <> text ";"
 
@@ -1458,6 +1464,7 @@ instance PPrint AForeignCall where
 instance Hyper AForeignCall where
     hyper x y = (x==x) `seq` y
 
+isOne :: AExpr -> Bool
 isOne (ASInt _ _ (IntLit _ _ 1)) = True
 isOne _                          = False
 
@@ -1506,9 +1513,11 @@ instance PPrint AExpr where
     pPrint d p (AMGate _ o c) =
         pPrint d 1 o <> text "." <> pPrint d 1 c <> text ".gate"
 
+ppMethId :: PDetail -> Id -> Doc
 ppMethId d@PDReadable m = ppId d (unQualId m)
 ppMethId d m = ppId d m
 
+ppExprType :: PDetail -> AType -> Doc -> Doc
 ppExprType d t e = text "(" <> e <+> text "::" <+> pPrint d 0 t <> text ")"
 
 instance PPrint AType where
@@ -1633,12 +1642,14 @@ ppeAPackage lim d apkg@(APackage { apkg_local_defs = ds }) =
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
+ppeVI :: PExpandDef -> PDetail -> AVInst -> Doc
 ppeVI m d (AVInst i t ui mts pts vi es ns) =
     pPrint d 0 i <+> text "::" <+>
     pPrint d 0 t <+> text "=" <+> (ppeVTI m d (vi, es, ns) $+$
     text "meth types=" <> pPrint d 0 mts $+$
     text "port types=" <> pPrint d 0 pts)
 
+ppeVTI :: PExpandDef -> PDetail -> (VModInfo, [AExpr], [(AId, Integer)]) -> Doc
 ppeVTI m d (vi, es, ns) =
     sep [pPrint d 0 (vName vi),
          pPrint d 0 vi,
@@ -1674,6 +1685,7 @@ instance PPrintExpand ARule where
         (text " when" <+> pPrintExpand m d bContext  p) $+$
         (text "  ==>" <+> ppeActions m d as)
 
+ppeActions :: PExpandDef -> PDetail -> [AAction] -> Doc
 ppeActions m d as = text "{" <+> sep (map ppeA as) <+> text "}"
         where ppeA a = pPrintExpand m d defContext a <> text ";"
 

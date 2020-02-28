@@ -113,6 +113,8 @@ Balance factor.
 >   | size l > omega * size r   =  rbalanceRight k p l m r
 >   | otherwise                 =  rloser        k p l m r
 
+> lbalanceLeft, lbalanceRight, rbalanceLeft, rbalanceRight
+>     :: Ord p => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
 > lbalanceLeft  k p l m r
 >   | size (left r) < size (right r)        =  lsingleLeft  k p l m r
 >   | otherwise                         =  ldoubleLeft  k p l m r
@@ -127,6 +129,8 @@ Balance factor.
 >   | size (right l) < size (left l)    =  rsingleRight k p l m r
 >   | otherwise                         =  rdoubleRight k p l m r
 
+> lsingleLeft, lsingleRight, rsingleLeft, rsingleRight
+>     :: Ord p => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
 > lsingleLeft k1 p1 t1 m1 (LLoser _ k2 p2 t2 m2 t3)
 >   | p1 <= p2                        =  lloser k1 p1 (rloser k2 p2 t1 m1 t2) m2 t3
 >   | otherwise                        =  lloser k2 p2 (lloser k1 p1 t1 m1 t2) m2 t3
@@ -153,6 +157,8 @@ Balance factor.
 >   | otherwise                        =  rloser k2 p2 t1 m1 (rloser k1 p1 t2 m2 t3)
 > rsingleRight _ _ Start _ _ = internalError "rsingleRight"
 
+> ldoubleLeft, ldoubleRight, rdoubleLeft, rdoubleRight
+>     :: Ord p => k -> p -> LTree k p -> k -> LTree k p -> LTree k p
 > ldoubleLeft k1 p1 t1 m1 (LLoser _ k2 p2 t2 m2 t3)
 >                               =  lsingleLeft k1 p1 t1 m1 (lsingleRight k2 p2 t2 m2 t3)
 > ldoubleLeft k1 p1 t1 m1 (RLoser _ k2 p2 t2 m2 t3)

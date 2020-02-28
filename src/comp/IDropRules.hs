@@ -129,6 +129,7 @@ dropEmptyRules errh flags imod@(IModule { imod_rules = (IRules sps rs),
 
 
 -- will the rule never fire
+isFalseRule :: IRule a -> Bool
 isFalseRule (IRule { irule_pred =
                (ICon _ (ICInt { iVal = (IntLit { ilValue = 0 }) }))
                    } )
@@ -136,9 +137,11 @@ isFalseRule (IRule { irule_pred =
 isFalseRule _ = False
 
 -- is the rule a result of splitting
+isSplitRule :: IRule a -> Bool
 isSplitRule r = isSplitRuleId (getIRuleId r)
 
 -- is the rule a noAction rule
+isNoActionRule :: IRule a -> Bool
 isNoActionRule (IRule {
        irule_body = (ICon _ (ICPrim { primOp = PrimNoActions })) } )
     = True
@@ -222,4 +225,3 @@ warnUndetPreds errh flags imod@(IModule { imod_rules = (IRules _ rs),
 
     mapM_ (checkRule False []) rs
     mapM_ checkMethod actual_ms
-

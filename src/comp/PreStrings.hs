@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
 module PreStrings where
 import FStringCompat
 import Util(itos)

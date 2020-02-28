@@ -314,26 +314,36 @@ chkAReset (AReset { areset_wire = wire }) = isBit1 (aType wire)
 chkAInout :: AInout -> Bool
 chkAInout (AInout { ainout_wire = wire }) = isInout_ (aType wire)
 
+isBit :: AType -> Bool
 isBit (ATBit _) = True
 isBit _ = False
 
+isBit1 :: AType -> Bool
 isBit1 t = isBit t && (aSize t == 1)
 
+isString :: AType -> Bool
 isString (ATString _) = True
 isString _ = False
 
+isReal :: AType -> Bool
 isReal (ATReal) = True
 isReal _ = False
 
+isClock :: AType -> Bool
 isClock t = t == aTClock
 
+isReset :: AType -> Bool
 isReset t = t == aTReset
 
+isInout_ :: AType -> Bool
 isInout_ (ATAbstract i _) = i == idInout_
 isInout_ _ = False
 
+isForeignArg :: AType -> Bool
 isForeignArg  e = isBit e || isString e || isReal e
+--isBitOrString :: AType -> Bool
 --isBitOrString e = isBit e || isString e
+isBitOrInout_ :: AType -> Bool
 isBitOrInout_ e = isBit e || isInout_ e
 
 -- compare 2 types considering string sizes
@@ -343,10 +353,13 @@ compatTypesWthStr (ATArray sz1 t1) (ATArray sz2 t2) = (sz1 == sz2) && (compatTyp
 compatTypesWthStr t1 t2                         = t1 == t2
 
 
+isRelOp :: PrimOp -> Bool
 isRelOp p = p `elem` [ PrimEQ, PrimULE, PrimULT, PrimSLE, PrimSLT, PrimEQ3 ]
 
+isShift :: PrimOp -> Bool
 isShift p = p `elem` [ PrimSL, PrimSRL, PrimSRA ]
 
+tracePP :: Show a => String -> a -> Bool -> Bool
 tracePP s x True = True
 tracePP s x False = trace ("acheck:" ++ s ++ "\n" ++ show x) False
 
@@ -460,9 +473,11 @@ chkMethAExpr (ATaskValue { }) = True
 chkMethAExpr _ = True
 
 -- Check the expressions in defs
+chkMethADef :: ADef -> Bool
 chkMethADef (ADef _ _ e _) = chkMethAExpr e
 
 -- Check the expressions in instantiations
+chkMethAVInst :: AVInst -> Bool
 chkMethAVInst aa =
     all chkMethAExpr (getPorts aa) &&
     all chkMethAExpr (getInouts aa) &&
@@ -470,8 +485,9 @@ chkMethAVInst aa =
     all chkMethAExpr (getResets aa)
 
 -- Check the expressions in foreign blocks
+chkMethAForeignBlock :: AForeignBlock -> Bool
 chkMethAForeignBlock (clks, fcalls) = all chkMethAForeignCall fcalls
 
+chkMethAForeignCall :: AForeignCall -> Bool
 chkMethAForeignCall (AForeignCall _ _ es _ rsts) =
     all chkMethAExpr (es ++ rsts)
-

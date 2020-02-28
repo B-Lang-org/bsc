@@ -1221,6 +1221,7 @@ instance PPrint (IRules a) where
         foldr ($+$) (text "") (map (pPrint d 0) sps) $+$
         foldr ($+$) (text "") (map (pPrint d 0) rs)
 
+ppQuant :: PPrint a => String -> PDetail -> Int -> Id -> a -> IExpr b -> Doc
 ppQuant s d p i t e =
     pparen (p>0) (sep [text s <> pparen True (pPrint d 0 i <>text" ::" <+> pPrint d 0 t) <+> text ".", pPrint d 0 e])
     --pparen (p>0) (text s <> pparen True (pPrint d 0 i <>text" ::" <+> pPrint d 0 t) <+> text "." <+> pPrint d 0 e)
@@ -1422,6 +1423,7 @@ getITypePositionCrossInternal _ (ITNum _) = noPosition
 -- # A bunch of operators we don't want messing with "real" position info.
 -- #############################################################################
 
+idMonadNoPos, idBindNoPos, idFromIntegerNoPos, idReturnNoPos :: Id
 idMonadNoPos = idMonad noPosition
 idBindNoPos = idBind noPosition
 idFromIntegerNoPos = idFromInteger noPosition
@@ -1558,6 +1560,7 @@ showTypelessCI (ICPosition {iConType = t, iPosition = pos}) = "(ICPosition _ " +
 showTypelessCI (ICType {iType = t}) = "(ICType _ " ++ (show t) ++ ")"
 showTypelessCI (ICPred {iPred = p}) = "(ICPred _ " ++ (show p) ++ ")"
 
+showTypelessStateVar :: IStateVar a -> String
 showTypelessStateVar (IStateVar b ui i v es ts mts ncs nrs l) =
     "(IStateVar " ++ (show b) ++ " "
     ++ (show i)

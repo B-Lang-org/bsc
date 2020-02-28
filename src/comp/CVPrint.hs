@@ -56,7 +56,7 @@ import Lex(isIdChar)
 import PPrint
 import PVPrint
 import ErrorUtil
-import Position(noPosition)
+import Position(Position, noPosition)
 import Id
 import IdPrint
 import PreStrings (fsAcute)
@@ -77,6 +77,7 @@ import Util(itos, quote, log2)
 pp :: (PVPrint a) => PDetail -> a -> Doc
 pp d x = pvPrint d 0 x
 
+t :: String -> Doc
 t s = text s
 
 --
@@ -95,6 +96,7 @@ instance PVPrint CPackage where
         pBlockNT d 0 True (pvpExports d exps ++ map (pp d) imps ++ map (pp d) fixs ++ pdefs d def ++ map (pp d) includes) (t"\n") $+$
         (t"endpackage:" <+> pp d i)
 
+pdefs :: PDetail -> [CDefn] -> [Doc]
 pdefs _ [] = []
 pdefs d (df1@(CPragma (Pproperties i1 props)):df2@(CValueSign (CDef i2 _ _)):rest)
     | i1==i2 =
@@ -117,6 +119,7 @@ instance PVPrint CImport where
 instance PVPrint CInclude where
     pvPrint d p (CInclude i) = t"`include" <+> (doubleQuotes $ t i)
 
+ppQualified :: Bool -> Doc
 ppQualified True = text "/* qualified */"
 ppQualified False = empty
 
@@ -135,15 +138,17 @@ pvPreds :: PVPrint a => PDetail -> [a] -> Doc
 pvPreds d [] = empty
 pvPreds d ps = t "  provisos (" <> sepList (map (pvPrint d 0) ps) (t ",") <> t")"
 
+pvParameterTypeVars :: PDetail -> [Id] -> Doc
 pvParameterTypeVars d [] = empty
 pvParameterTypeVars d as =
     t"#(" <> sepList (map (\ y -> t"type" <+> pvPrint d 0 y) as) (t ",") <> t ")"
 
-pvParameterTypes :: PVPrint a => PDetail -> [a] -> Doc
+pvParameterTypes :: PDetail -> [Type] -> Doc
 pvParameterTypes d [] = empty
 pvParameterTypes d ts =
     t"#(" <> sepList (map (\ y -> pvPrint d 0 y) ts) (t ",") <> t ")"
 
+p2defs :: PDetail -> CDefn -> CDefn -> Doc
 p2defs d (CPragma (Pproperties _ props))
          (CValueSign df2@(CDef i qt@(CQType ps ty) cs@[CClause cps [] cexp])) | all isVar cps =
       let (ys, x) = getArrows ty
@@ -178,7 +183,8 @@ p2defs d (CPragma (Pproperties i1 props)) (CValueSign df2@(CDef i2 _ _)) | i1==i
 
 p2defs d d1 d2 = internalError ("p2defs (" ++ show d1 ++ ")(" ++ show d2 ++ ")")
 
-pProps d [] = empty
+pProps :: PDetail -> [PProp] -> Doc
+pProps _ [] = empty
 pProps d ps = t"(*" <+> sepList (map (pvPrint d 0) ps) (text ",") <+> text "*)"
 
 instance PVPrint CDefn where
@@ -314,9 +320,11 @@ instance PVPrint CDefn where
 -}
     pvPrint d p x = internalError ("pvPrint CDefn bad: " ++ show x)
 
+isVar :: CPat -> Bool
 isVar (CPVar _) = True
 isVar _         = False
 
+getCPVString :: CPat -> String
 getCPVString (CPVar i) = getBSVIdString i
 getCPVString x = internalError ("getCPVString bad: " ++ show x)
 
@@ -327,6 +335,7 @@ likeModule i =
       end = drop (ln-6) s
   in if ln > 5 then end=="Module" else False
 
+isModule :: Maybe Id -> Type -> Bool
 isModule _ (TAp (TCon (TyCon i _ _)) _) =  likeModule i
 isModule (Just i') (TAp (TVar (TyVar i _ _)) _) =  i == i'
 isModule _ _          =  False
@@ -337,14 +346,18 @@ newIdsn n = ("x" ++ itos n):(newIdsn (n+1))
 newIds :: [Doc]
 newIds = map t (newIdsn 1)
 
+isFn :: Type -> Bool
 isFn (TAp (TAp (TCon arr) _) _) = isTConArrow arr
 isFn _         = False
 
+ppUntypedId :: PDetail -> Doc -> [Doc] -> Doc
 ppUntypedId d i ids =
   (t"function") <+> i <> t"(" <> sepList ids (text ",") <> t")"
 
+ppTypedId :: PDetail -> Maybe Id -> Doc -> Type -> [Doc] -> Doc
 ppTypedId d mi i y = ppLabelledTypedId d (if isFn y then t"function" else empty) mi (isFn y) i y
 
+ppLabelledTypedId :: PDetail -> Doc -> Maybe Id -> Bool -> Doc -> Type -> [Doc] -> Doc
 ppLabelledTypedId d intro modId isFnlike i ty ids =
   let (ys, x) = getArrows ty
       ity = case x of (TAp (TCon _) y) -> y;
@@ -383,8 +396,11 @@ ppIfcPrags d (Just xs) = if (null filtered) then empty else prt
     where filtered = (filterPrintIfcArgs xs)
           prt = t"(*" <+> sep (punctuate comma (map (pvPrint d 0) filtered )) <+> t"*)"
 
+pvpFDs :: PDetail -> CFunDeps -> Doc
 pvpFDs d [] = empty
 pvpFDs d fd = text "  dependencies" <+> sepList (map (pvpFD d) fd) (t",")
+
+pvpFD :: PDetail -> ([Id], [Id]) -> Doc
 pvpFD d (as,rs) = sep (map (pvpId d) as) <+> t "->" <+> sep (map (pvpId d) rs)
 
 {-
@@ -401,17 +417,20 @@ instance PVPrint IdK where
     pvPrint d p (IdKind i k) = pparen True $ pp d i <+> t "::" <+> pp d k
     pvPrint d p (IdPKind i pk) = pparen True $ pp d i <+> t "::" <+> pp d pk
 
+pBlock :: p -> Int -> Bool -> [Doc] -> Doc -> Doc -> Doc
 pBlock d n _ [] _ ket = ket
 pBlock d n nl xs sep ket =
         (t (replicate n ' ') <>
         foldr1 ($+$) (map (\ x -> x <> if nl then sep $+$ empty else sep) xs))  $+$
         ket
 
-pBlockNT d n _ [] _ = empty
-pBlockNT d n nl xs sep =
+pBlockNT :: PDetail -> Int -> Bool -> [Doc] -> Doc -> Doc
+pBlockNT _ n _ [] _ = empty
+pBlockNT _ n nl xs sep =
         (t (replicate n ' ') <>
         foldr1 ($+$) (map (\ x -> x <> if nl then sep $+$ empty else sep) xs))
 
+ppDer :: PDetail -> [CTypeclass] -> Doc
 ppDer d [] = empty
 ppDer d is = text "deriving (" <> sepList (map (pvPrint d 0) is) (text ",") <> text ")"
 
@@ -419,6 +438,7 @@ ppDer d is = text "deriving (" <> sepList (map (pvPrint d 0) is) (text ",") <> t
 --isTerminated (Cdo _ _) = True
 --isTerminated _ = False
 
+ppMBody :: PDetail -> CExpr -> Doc
 ppMBody d e@(Cdo _ _) = pp d e
 ppMBody d e@(Caction _ _) = pp d e
 ppMBody d e = ppBody d False e
@@ -433,6 +453,7 @@ ppMClause d xs (CClause ps mqs e) mIf =
                   t"method" <+> sep (xs ++ map (pvPrint d maxPrec) ps) <+> ppQuals d mqs <+> mIf <+> t "=",
                   nest 4 (pp d e)]
 
+ppM :: PDetail -> CDefl -> Doc
 ppM d (CLValue i [CClause _ _ (Cinterface _ (Just i1) subIfc)] []) =
     sep ((t"interface"<+>pvpId d i1 <+> pvpId d i <>t";"):
          (map (\ si -> nest 2 (ppM d si)) subIfc) ++
@@ -445,9 +466,11 @@ ppM d (CLValueSign (CDef i _ [cl]) me) =
         $+$ t"endmethod:" <+> pvpId d i
 ppM d def = pvPrint d 0 def
 
-optIf d [] = empty
+optIf :: PDetail -> [CQual] -> Doc
+optIf _ [] = empty
 optIf d qs = t"if (" <> sepList (map (pp d) qs) (t" && ") <> t")"
 
+ppRules :: PDetail -> Int -> [CSchedulePragma] -> [CRule] -> Bool -> Doc
 ppRules d p [] rs naked =
   let trs = pBlockNT d 0 False (map (pp d) rs)  empty
   in if naked then trs else (t"rules" $+$ nest 2 trs $+$ t"endrules")
@@ -456,6 +479,7 @@ ppRules d p ps rs _ =
   let trs = pBlockNT d 0 False (map (pp d) rs)  empty
   in pPrint d p ps $+$ (t"rules" $+$ nest 2 trs $+$ t"endrules")
 
+ppActions :: PDetail -> CStmts -> Bool -> Doc
 ppActions d ss naked =
   let tas = pBlockNT d 0 False (map (pvPrint d 0) ss)  empty
   in if naked then tas else (t"action" $+$ nest 2 tas $+$ t"endaction")
@@ -479,6 +503,7 @@ findSpecialOps (x:y:xs) =
   let (zs,ys,i) = findSpecialOps xs
   in (x:y:zs, ys, i)
 
+ppStrUpd :: PDetail -> CExpr -> [(Id, CExpr)] -> Doc
 ppStrUpd d e ies =
   t"(begin let new_struct_ = " <> pvPrint d 0 e <> t";" $+$
   sepList(map (\ (i,e)-> t"  new_struct_."<>pvpId d i<+>t"="<+>pvPrint d 0 e<>t";")ies)empty $+$
@@ -596,7 +621,7 @@ instance PVPrint CExpr where
     pvPrint d p (Cdo _ ss) = pparen (p>0) $ t "actionvalue" $+$ nest 2 (ppActions d ss True) $+$ t "endactionvalue"
     pvPrint d p (Caction _ ss) = pparen (p>0) $ ppActions d ss False
     pvPrint d p (Crules ps rs) = ppRules d p ps rs False
-    pvPrint d p (CADump es) = prDump d es <+> text ""
+    pvPrint d p (CADump es) = ppDump d es <+> text ""
     ----
     pvPrint d p (COper []) = empty
     pvPrint d p (COper [(CRand p1)]) = pvPrint d p p1
@@ -632,11 +657,12 @@ instance PVPrint CExpr where
 instance PVPrint CLiteral where
     pvPrint d p (CLiteral _ l) = pvPrint d p l
 
+isInstantiating :: CExpr -> Bool
 isInstantiating (CApply (CVar i) es)  | take 2 (getIdBaseString i) == "mk" = True
 isInstantiating (CVar i)  | take 2 (getIdBaseString i) == "mk" = True
 isInstantiating _ = False
 
-
+separgs :: PDetail -> CExpr -> (Doc, Doc)
 separgs d (CApply e es) = (pp d e,
         t"#(" <> sepList (map (pp d) es) (t",") <>t")" )
 separgs d e = (pp d e, empty)
@@ -669,10 +695,12 @@ instance PVPrint CStmt where
     pvPrint d p (CSExpr _ e@(Ccase _ _ _)) = pvPrint d p e
     pvPrint d p (CSExpr _ e) = pvPrint d (p+2) e <> t";"
 
+isIfce :: CMStmt -> Bool
 isIfce (CMinterface _) = True
 isIfce (CMTupleInterface _ _) = True
 isIfce _ = False
 
+reorderStmts :: [CMStmt] -> [CMStmt]
 reorderStmts stmts = [x | x <- stmts, not(isIfce x)] ++ [x | x <- stmts, isIfce x]
 
 instance PVPrint CMStmt where
@@ -692,20 +720,24 @@ instance PVPrint CMStmt where
         in t ("return(tuple"++show n++"(") <>
             sepList (map (pvPrint d p) es) (text ",") <> text "));"
 
-prDump d es = text "{-# dump" <+> sepList (map (pp d) es) (text ",") <+> text "#-}"
+ppDump :: PDetail -> [CExpr] -> Doc
+ppDump d es = text "{-# dump" <+> sepList (map (pp d) es) (text ",") <+> text "#-}"
 
 instance PVPrint COp where
     pvPrint d pn (CRand p) = pvPrint d pn p
     pvPrint d _ (CRator _ i) = ppInfix d i
 
+ppQuant :: String -> PDetail -> Int -> Either Position Id -> CExpr -> Doc
 ppQuant s d p ei e =
     let ppI (Left _) = text ".*"
         ppI (Right i) = pvPrint d 0 i
     in  pparen (p>0) (sep [t s <> ppI ei <+> t "->", pp d e])
 
+ppCaseBody :: PDetail -> CExpr -> Doc
 ppCaseBody d e@(CApply (CVar i) _) | getIdBaseString i == "return"  = pparen False (pp d e)
 ppCaseBody d e = pparen True (pvPrint d 1 e)
 
+ppCase :: PDetail -> CExpr -> [CCaseArm] -> Doc
 ppCase detail scrutinee arms =
     (t"case" <+> pparen True (pvPrint detail 1 scrutinee) <+> t "matches") $+$
     pBlock detail 0 False (map ppArm arms) empty (t"endcase")
@@ -715,13 +747,16 @@ ppCase detail scrutinee arms =
               nest 2 (ppCaseBody detail (cca_consequent arm))] <> t";"
         ppPat pt = pp detail pt
 
+findPs :: CExpr -> [CExpr]
 findPs (CBinOp e1 i e2) | getBSVIdString i == "," = e1:(findPs e2)
 findPs e = [e]
 
+ppTuple :: PDetail -> [CExpr] -> Doc
 ppTuple d es =
   let n = length es
   in t("tuple" ++ show n) <> pparen True (sepList (map (pvPrint d 1) es) (t","))
 
+ppOp :: PDetail -> Int -> Id -> CExpr -> CExpr -> Doc
 ppOp d pd i p1 p2 =
   let rand1 = pvPrint d 1 p1
       rand2 = pvPrint d 1 p2
@@ -747,12 +782,15 @@ ppOp d pd i p1 p2 =
         _                    -> ppr(sep [rand1 <> t"" <+> ppInfix d i, rand2])
       )
 
+ppRQuals :: PDetail -> [CQual] -> Doc
 ppRQuals d [] = empty
 ppRQuals d qs = t"(" <> sepList (map (pp d) qs) (t" && ") <> t");"
 
+ppQuals :: PDetail -> [CQual] -> Doc
 ppQuals d [] = empty
 ppQuals d qs = t"&&&" <+> sepList (map (pp d) qs) (t" && ")
 
+ppOSummands :: PDetail -> [COriginalSummand] -> Doc
 ppOSummands d cs = sepList (map (nest 2 . ppOCon) cs) (t"; ")
   where ppOCon summand =
             sep (pvpId d (getCOSName summand) -- XXX print all the names?
@@ -766,6 +804,7 @@ ppVeriPort d (s, []) = t s
 ppVeriPort d (s, prs) = t s <> t"{" <> sepList (map (pvPrint d 0) prs) (t",") <> t"}"
 -}
 
+ppVeriArg :: PDetail -> (VArgInfo, CExpr) -> Doc
 ppVeriArg d (Param (VName s), e) = t("parameter " ++ s ++ " = ")<> pvPrint d 0 e
 ppVeriArg d (Port ((VName s), pps) mclk mrst, e) =
     let clk_name = case mclk of
@@ -905,11 +944,13 @@ instance PVPrint CDef where
 
     pvPrint d p (CDef  i    ty cs) = ppValueSign d i [] ty cs
 
+ppPathInfo :: PDetail -> Int -> VPathInfo -> Doc
 ppPathInfo d p ps = pPrint d p ps
 
 instance PVPrint VPathInfo where
     pvPrint d p v = ppPathInfo d p v
 
+ppSchedInfo :: PDetail -> Int -> VSchedInfo -> [Doc]
 ppSchedInfo d p (SchedInfo mci rms rbm ccm) =
     let ds = makeMethodConflictDocs (pvPrint d p) pvpReadable "(" ")" mci
         mci_docs = map (\x -> text "schedule" <+> x) ds
@@ -918,6 +959,7 @@ ppSchedInfo d p (SchedInfo mci rms rbm ccm) =
         ccm_docs = map (\p -> text "cross-domain" <+> pvPrint d 0 p) ccm
     in  mci_docs ++ rms_docs ++ rbm_docs ++ ccm_docs
 
+ppBodyLets :: PDetail -> [CDefl] -> Doc
 ppBodyLets d [] = empty
 ppBodyLets d (d1:ds) =
    t"  " <> pp d d1 $+$ ppBodyLets d ds
@@ -934,6 +976,7 @@ ppBody d isMod (Cletrec ds e) =
 ppBody d True e = (pparen True (pp d e) <> t";")
 ppBody d _ e = (t"  return" <+> pparen True (pvPrint d 1 e) <> t";")
 
+findModId :: [CPred] -> (Maybe Id, [CPred])
 findModId [] = (Nothing,[])
 findModId (p:ps) =
    case p of
@@ -967,11 +1010,13 @@ ppValueSign d i vs ty cs =
         (pvpId d i <+> t ":: /\\" <> sep (map (pvPrint d maxPrec) vs) <> t"." <> pp d ty <> t";") $+$
         foldr1 ($+$) (map (\ cl -> ppClause d [pvpId d i] cl) cs)
 
+ppRuleBody :: PDetail -> CExpr -> Doc
 ppRuleBody d (Cletrec ds (Caction _ ss)) =
            (foldr1 ($+$) (map (pp d) ds)) $+$ ppActions d ss True
 ppRuleBody d (Caction _ ss) = ppActions d ss True
 ppRuleBody d e              = pp d e <> t";"
 
+ppRuleName :: PDetail -> Maybe CExpr -> Doc
 ppRuleName d Nothing = t"dummy_name"
 ppRuleName d (Just(CLit(CLiteral _ (LString s)))) = t(f s) where
    f s = map (\ c -> if c==' ' then '_' else c) ((toLower (head s)):(tail s))
@@ -995,9 +1040,11 @@ instance PVPrint CRule where
             ppRPS d rps $+$ t"rule" <+> ppRuleName d mlbl <+>
               (ppQuals d mqs $+$ pBlock d 2 False (map (pp d) rs) (t";") (t"endrule"))
 
-ppRPS d [] = empty
-ppRPS d rps = t"(*" <+> sepList (map ppRP rps) (t",") <+> t "*)"
+ppRPS :: PDetail -> [RulePragma] -> Doc
+ppRPS _ [] = empty
+ppRPS _ rps = t"(*" <+> sepList (map ppRP rps) (t",") <+> t "*)"
 
+ppRP :: RulePragma -> Doc
 ppRP RPfireWhenEnabled                = t"fire_when_enabled"
 ppRP RPnoImplicitConditions           = t"no_implicit_conditions"
 ppRP RPaggressiveImplicitConditions   = t"aggressive_implicit_conditions"
@@ -1032,6 +1079,7 @@ instance PVPrint CDefl where
         t"match"<+> pp d pat <+> t"=" $+$
                   nest 4 (pp d e) <> t";"
 
+optWhen :: PDetail -> [CQual] -> Doc -> Doc
 optWhen d [] s = s
 optWhen d qs s = s $+$ (t"    " <> ppQuals d qs)
 
@@ -1052,6 +1100,7 @@ ppClause d xs (CClause ps [] e) =
 ppClause d xs (CClause ps mqs e) =
     internalError ("CClause: "++ show (ps,mqs,e))
 
+ppCP :: PDetail -> CPat -> Doc
 ppCP d p =
     case pUnmkTuple p of
      [x] -> pp d x

@@ -362,9 +362,14 @@ handleBracketCtxRed pred_error elem_error pos (vp@(VPred vpi _), _) c arr val = 
         return (elem_error pos vp arr real_val val)
       -- there is no instance of the class for type "arr"
       x -> return (pred_error pos vp arr)
-
+handleCtxRedPrimSelectable :: Position -> (VPred, [VPred]) -> Class -> Type -> Type
+                           -> TI EMsg
 handleCtxRedPrimSelectable = handleBracketCtxRed notSelectableErr wrongSelectionResultErr
+handleCtxRedPrimUpdateable :: Position -> (VPred, [VPred]) -> Class -> Type -> Type
+                           -> TI EMsg
 handleCtxRedPrimUpdateable = handleBracketCtxRed notUpdateableErr wrongUpdateArgErr
+handleCtxRedPrimWriteable  :: Position -> (VPred, [VPred]) -> Class -> Type -> Type
+                           -> TI EMsg
 handleCtxRedPrimWriteable  = handleBracketCtxRed notWriteableErr  wrongWriteArgErr
 
 handleCtxRedPrimIndex :: Position -> (VPred, [VPred]) -> Class ->

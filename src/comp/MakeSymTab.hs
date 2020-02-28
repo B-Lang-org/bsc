@@ -48,8 +48,10 @@ import Util
 import SCC(tsort)
 import ListUtil(mapFst, mapSnd)
 
+doTraceKI :: Bool
 doTraceKI = "-trace-kind-inference" `elem` progArgs
 
+doTraceOverlap :: Bool
 doTraceOverlap = "-trace-instance-overlap" `elem` progArgs
 
 mkSymTab :: ErrorHandle -> CPackage -> IO SymTab
@@ -190,6 +192,7 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
                 Right iks -> final_symT
 
 
+updTypes :: SymTab -> Type -> Type
 updTypes r (TCon (TyCon i _ _)) =
     case findType r i of
     Just (TypeInfo (Just i') k _ ti) -> TCon (TyCon i' (Just k) ti)
@@ -304,11 +307,15 @@ cmpQInsts bss q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) = do
        -- different classes, so error (we sort on class level now)
     _ -> internalError ("cmpQInsts (different classes): " ++ ppReadable (q1, q2))
 
+
 -- equally specific instance heads are the same after alpha-renaming
+mkDuplicateError :: QInst -> QInst -> EMsg
 mkDuplicateError q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) =
   (getPosition t2, EDuplicateInstance (pfpReadable t1) (getPosition t1))
 
+
 -- bad overlapping instances (i.e. cannot be ordered)
+mkOverlapError :: QInst -> QInst -> EMsg
 mkOverlapError q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) =
   (getPosition t1, EBadInstanceOverlap (pfpReadable t1) (pfpReadable t2) (getPosition t2))
 
@@ -693,6 +700,7 @@ qual :: Maybe Id -> Id -> Id
 qual Nothing i = i
 qual (Just mi) i = qualId mi i
 
+getK :: M.Map Id Kind -> IdK -> Kind
 getK iks ik =
     case M.lookup (iKName ik) iks of
     Just k -> k

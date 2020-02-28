@@ -159,7 +159,8 @@ data LFlags = LFlags {
 
 type FileName = FString
 
-tabStop = 8::Int
+tabStop :: Int
+tabStop = 8
 nextTab :: Int -> Int
 nextTab c = ((c+tabStop-1) `div` tabStop) * tabStop
 
@@ -367,6 +368,8 @@ lx lf f l c (x:cs) = lexerr f l c (LexBadLexChar x)
 
 -- Note: The caller is expected to make sure that cs starts with one valid, non-_ digit.
 -- This should ensure that the readN call succeeds.
+lInteger :: Integer -> (Char -> Bool) -> Maybe Integer -> Int -> LFlags
+         -> FileName -> Int -> Int -> String -> [Token]
 lInteger base isBaseDigit sz w_prefix lf f l c cs =
   case span (\c -> c == '_' || isBaseDigit c) cs of
     (s, cs') ->
@@ -374,6 +377,7 @@ lInteger base isBaseDigit sz w_prefix lf f l c cs =
           li = L_integer sz base (readN base $ filter (/= '_') s)
       in Token (mkPositionFull f l c (lf_is_stdlib lf)) li : lx lf f l (c+w) cs'
 
+lReal :: String -> LFlags -> FileName -> Int -> Int -> String -> [Token]
 lReal s lf f l c cs =
     let num = case (readFloat s) of
                 [(n, "")] -> n
@@ -387,6 +391,7 @@ isUpper_ (c:_) = isUpper c
 isUpper_ [] = True
 -}
 
+lexerr :: FileName -> Int -> Int -> LexError -> [Token]
 lexerr f l c err = map (Token (mkPosition f l c)) (L_error err : repeat L_eof)
 
 isSym :: Char -> Bool
@@ -417,6 +422,7 @@ isIdChar '\176' = True
 isIdChar '\180' = True
 isIdChar c = isAlphaNum c
 
+isBinDigit :: Char -> Bool
 isBinDigit c = isDigit c && digitToInt c < 2
 
 --isOctDigit c = c >= '0' && c <= '7'

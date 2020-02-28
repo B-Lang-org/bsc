@@ -119,6 +119,7 @@ classicWarnArm arm =
     withQuals (cca_filters arm) $
      classicWarnExpr $ cca_consequent arm
 
+classicWarnExpr :: CExpr -> ClassicWarnM [WMsg]
 classicWarnExpr (CLam (Right i) e) = withBindings (S.singleton i) $ classicWarnExpr e
 classicWarnExpr (CLam (Left  _) e) = classicWarnExpr e
 classicWarnExpr (CLamT (Right i) _ e) = withBindings (S.singleton i) $ classicWarnExpr e

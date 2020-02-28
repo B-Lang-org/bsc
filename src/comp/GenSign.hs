@@ -286,6 +286,7 @@ genSign errh exportAll symt
 -- ---------------
 
 -- get the name of an export
+eName :: CExport -> Id
 eName (CExpVar i) = i
 eName (CExpCon i) = i
 eName (CExpConAll i) = i
@@ -449,6 +450,7 @@ genDefSign s look currentPkg d = []
 
 -- ---------------
 
+qualIdK :: Id -> SymTab -> IdK -> IdK
 qualIdK currentPkg s (IdKind i k) = IdKind (qualId currentPkg i) k
 qualIdK currentPkg s idk =
     let i = iKName idk

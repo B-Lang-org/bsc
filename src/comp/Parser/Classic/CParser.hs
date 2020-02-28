@@ -38,6 +38,7 @@ import IOUtil(progArgs)
 infix 6 >>>> , >>>>> , >>>>>> , >>>>>>> , {- >>>>>>>> , -} >>>>>>>>>
 
 -- XXX
+useLayout :: Bool
 useLayout = notElem "-no-use-layout" progArgs
 
 type CParser a = Parser [Token] a
@@ -58,6 +59,7 @@ pExports  =  (lp ..+ sepBy pExpId cm +.. rp >>- Left)
          ||! (literal (mkFString "hiding") ..+ lp ..+ sepBy pExpExcludedId cm +.. rp >>- Right)
          ||! succeed (Right [])
 
+pExpId :: CParser CExport
 pExpId = (l L_package ..+ pModId >>- CExpPkg)
      ||! (pConId `into` \ i ->
           lp ..+ dotdot +.. rp .> CExpConAll i
@@ -65,65 +67,66 @@ pExpId = (l L_package ..+ pModId >>- CExpPkg)
      ||! pVarId >>- CExpVar
 
 -- cannot exclude packages or constructor fields
+pExpExcludedId :: CParser CExport
 pExpExcludedId = pConId >>- CExpCon
              ||! pVarId >>- CExpVar
 
 pImport :: CParser CImport
-pImport = l L_import ..+ pOptQualified +.+ pModId                >>> CImpId
+pImport = l L_import ..+ pOptQualified +.+ pModId >>> CImpId
 
 pFixity :: CParser CFixity
 pFixity =
-            l L_infix  ..+ int +.+ pOper                                >>> CInfix
-        ||! l L_infixl ..+ int +.+ pOper                                >>> CInfixl
-        ||! l L_infixr ..+ int +.+ pOper                                >>> CInfixr
+            l L_infix  ..+ int +.+ pOper >>> CInfix
+        ||! l L_infixl ..+ int +.+ pOper >>> CInfixl
+        ||! l L_infixr ..+ int +.+ pOper >>> CInfixr
 
 pOptQualified :: CParser Bool
 pOptQualified = l L_qualified .> True ||! succeed False
 
-pExpr :: Parser [Token] CExpr
+pExpr :: CParser CExpr
 pExpr = exp0
 
 exp0 :: CParser CExpr
-exp0 = exp00                                                                >>- (\x->case x of [CRand e] -> e; _ -> COper x)
+exp0 = exp00                          >>- (\x->case x of [CRand e] -> e; _ -> COper x)
 
 exp00 :: CParser [COp]
-exp00        =   {-negat +.+ expX +.+ exp01                                        >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
-        ||! -} expX +.+ exp01                                                >>- (\ (e, es) -> CRand e : es)
+exp00 =   {-negat +.+ expX +.+ exp01  >>- (\ (u,(e,es)) -> CRator 1 u : CRand e : es)
+        ||! -} expX +.+ exp01                >>- (\ (e, es) -> CRand e : es)
 exp01 :: CParser [COp]
-exp01        =   pOper +.+ exp00                                                >>- (\ (o, es) -> CRator 2 o : es)
-        ||! succeed                                                        []
+exp01 =   pOper +.+ exp00             >>- (\ (o, es) -> CRator 2 o : es)
+        ||! succeed                             []
 
 expX :: CParser CExpr
-expX =      blockKwOf L_let pDeflM +.+ l L_in ..+ exp0                        >>> Cletrec
-        ||! blockKwOf L_letseq pDeflM +.+ l L_in ..+ exp0                        >>> Cletseq
-        ||! l L_case +.+ exp0 +.+ l L_of ..+ blockOf noTrig pCaseArm        >>>> Ccase
-        ||! getPos +.+ l L_lam ..+ many1 pPat +.+ l L_rarrow ..+ exp0        >>>> cLam
+expX =      blockKwOf L_let pDeflM +.+ l L_in ..+ exp0                >>> Cletrec
+        ||! blockKwOf L_letseq pDeflM +.+ l L_in ..+ exp0             >>> Cletseq
+        ||! l L_case +.+ exp0 +.+ l L_of ..+ blockOf noTrig pCaseArm  >>>> Ccase
+        ||! getPos +.+ l L_lam ..+ many1 pPat +.+ l L_rarrow ..+ exp0 >>>> cLam
         ||! l L_if +.+ exp0 +.+ osm ..+
             l L_then ..+ exp0 +.+ osm ..+
-            l L_else ..+ exp0                                           >>>>> Cif
-        ||! pTyConId +.+ pFieldBlock                                        >>> CStruct
-        ||! l L_valueOf +.+ atyp                                        >>- ( \ (p, t) -> cVApply (setIdPosition p idValueOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idBit) t))])
+            l L_else ..+ exp0                                         >>>>> Cif
+        ||! pTyConId +.+ pFieldBlock                                  >>> CStruct
+        ||! l L_valueOf +.+ atyp                                      >>- ( \ (p, t) -> cVApply (setIdPosition p idValueOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idBit) t))])
         ||! aexp `into` (\ e ->
-                blockKwOf L_where pDefl                                        >>- flip Cletrec e
+                blockKwOf L_where pDefl                               >>- flip Cletrec e
             ||! l L_lbra ..+ exp0 `into` (\ e' ->
-                                    l L_colon ..+ exp0 +.. l L_rbra        >>- CSub2 e e')
-            ||! dc ..+ pQType                                                >>- CHasType e
-            ||! pFieldBlock                                                >>- CStructUpd e
-            ||! many aexp                                                >>- cmtApply 9 e)
+                                    l L_colon ..+ exp0 +.. l L_rbra   >>- CSub2 e e')
+            ||! dc ..+ pQType                                         >>- CHasType e
+            ||! pFieldBlock                                           >>- CStructUpd e
+            ||! many aexp                                             >>- cmtApply 9 e)
 --        ||! blkexp
         -- The following could be atomic
-        ||! blockKw L_rules pRules                                        >>- (Crules [])
+        ||! blockKw L_rules pRules                                    >>- (Crules [])
         ||! (getPos `into` \ pos -> l L_interface `into` \ tp -> (pTyConId >>- Just) +.+ blockOf tp pTDefl >>> Cinterface pos)
         ||! pModule
 
 -- blocks that can be regarded as atomic
 blkexp :: CParser CExpr
-blkexp =    l L_do ..+ blockOf noTrig pStmt                                >>- Cdo True
-        ||! l L_action `into` \pos -> blockOf noTrig pStmt              >>- Caction pos
+blkexp =    l L_do ..+ blockOf noTrig pStmt                           >>- Cdo True
+        ||! l L_action `into` \pos -> blockOf noTrig pStmt            >>- Caction pos
 
---pModule :: CParser CExpr
+pModule :: CParser CExpr
 pModule = l L_module `into` \ pos ->
-             blockOf noTrig pMStmt                                                >>- Cmodule pos
+             blockOf noTrig pMStmt                                    >>- Cmodule pos
         ||! l L_verilog ..+ aexp +.+ pOParen (sepBy1 (pParen (pString +.+ cm ..+ pExpr)) cm) +.+
                 sepBy1 pString cm +.+ sepBy pString cm +.+
                 pOParen (sepBy1 (pParen (pString +.+ pVeriPortProps +.+ cm ..+ pExpr)) cm) +.+
@@ -153,8 +156,8 @@ pMStmt =   pModuleInterface
 
 pModuleInterface :: CParser CMStmt
 pModuleInterface = getPos `into` \pos -> l L_interface `into` \ tp ->
-            lp ..+ sepBy exp0 (l L_comma) +.. rp                        >>- CMTupleInterface tp
-        ||! opt pTyConId +.+ blockOf tp pTDefl                                >>- (\ (oty, defs) -> CMinterface (Cinterface pos oty defs))
+            lp ..+ sepBy exp0 (l L_comma) +.. rp    >>- CMTupleInterface tp
+        ||! opt pTyConId +.+ blockOf tp pTDefl      >>- (\ (oty, defs) -> CMinterface (Cinterface pos oty defs))
 
 pModuleRules :: CParser CMStmt
 pModuleRules = blockKw L_rules pRules >>- CMrules . (Crules [])
@@ -181,93 +184,96 @@ pMethodConflictInfo =
 pOMult :: CParser Integer
 pOMult = l L_lbra ..+ int +.. l L_rbra ||! succeed 1
 
+pOParen :: CParser [a] -> CParser [a]
 pOParen p = lp ..+ p +.. rp
         ||! succeed []
 
+pParen :: CParser a -> CParser a
 pParen p = lp ..+ p +.. rp
 
 pStmt :: CParser CStmt
 pStmt = (pHVarId `into` \ i ->
-                dc ..+ (pQType `into` \ t ->
-                            sm ..+ (piHEq i `into` \ j ->
-                                        l L_larrow ..+ pExpr            >>- CSBindT (kCPVar j) Nothing [] t)
-                        ||! l L_larrow ..+ pExpr                        >>- CSBindT (kCPVar i) Nothing [] t)
-            ||!  l L_larrow ..+ pExpr                                        >>- CSBind  (kCPVar i) Nothing [])
---        ||! pPat +.+ dc ..+ pQType +.+ l L_larrow ..+ pExpr                >>>> CSBindT
+        dc ..+ (pQType `into` \ t ->
+                sm ..+ (piHEq i `into` \ j ->
+                            l L_larrow ..+ pExpr  >>- CSBindT (kCPVar j) Nothing [] t)
+            ||! l L_larrow ..+ pExpr              >>- CSBindT (kCPVar i) Nothing [] t)
+            ||!  l L_larrow ..+ pExpr             >>- CSBind  (kCPVar i) Nothing [])
+--        ||! pPat +.+ dc ..+ pQType +.+ l L_larrow ..+ pExpr    >>>> CSBindT
         ||! (pPat `into` \ p ->
-                        dc ..+ pQType +.+ l L_larrow ..+ pExpr                >>> CSBindT p Nothing []
-                    ||! l L_larrow ..+ pExpr                                >>- CSBind p Nothing [])
-        ||! blockKwOf L_let pDeflM                                        >>- CSletrec
-        ||! blockKwOf L_letseq pDeflM                                        >>- CSletseq
-        ||! pExpr                                                        >>- CSExpr Nothing
+                        dc ..+ pQType +.+ l L_larrow ..+ pExpr   >>> CSBindT p Nothing []
+                    ||! l L_larrow ..+ pExpr      >>- CSBind p Nothing [])
+        ||! blockKwOf L_let pDeflM                >>- CSletrec
+        ||! blockKwOf L_letseq pDeflM             >>- CSletseq
+        ||! pExpr                                 >>- CSExpr Nothing
 
+kCPVar :: Id -> CPat
 kCPVar i = (CPVar (setKeepId i))
 
 aexp :: CParser CExpr
-aexp = aexp' +.+ many suff                                                >>> foldl (\ x f -> f x)
+aexp = aexp' +.+ many suff              >>> foldl (\ x f -> f x)
 
 suff :: CParser (CExpr -> CExpr)
-suff =  dot ..+ pFieldId                                                >>- flip CSelect
+suff =  dot ..+ pFieldId                >>- flip CSelect
     ||! l L_lbra ..+ exp0 `into` (\ e' ->
-                                    l L_colon ..+ exp0 +.. l L_rbra        >>- \ e2 -> \ e -> CSub2 e e' e2)
+        l L_colon ..+ exp0 +.. l L_rbra >>- \ e2 -> \ e -> CSub2 e e' e2)
 
 aexp' :: CParser CExpr
-aexp' =     pAny                                                        >>- anyExprAt
-        ||! pVarId                                                        >>- cVar
-        ||! pConId                                                        >>- (\ i -> CCon i [])
-        ||! lp ..+ dot ..+ pFieldId +.. rp                                >>- CLam (Right id_x) . CSelect (cVar id_x)
-        ||! lp +.+ sepBy exp0 (l L_comma) +.. rp                        >>> mkTuple
+aexp' =     pAny                           >>- anyExprAt
+        ||! pVarId                         >>- cVar
+        ||! pConId                         >>- (\ i -> CCon i [])
+        ||! lp ..+ dot ..+ pFieldId +.. rp >>- CLam (Right id_x) . CSelect (cVar id_x)
+        ||! lp +.+ sepBy exp0 (l L_comma) +.. rp  >>> mkTuple
         ||! numericLit
         ||! string
         ||! char
         ||! blkexp -- XXX maybe it should be expX
 
 pQType :: CParser CQType
-pQType = pPreds +.+ pType                                                >>> CQType
+pQType = pPreds +.+ pType                          >>> CQType
 
 pPreds :: CParser [CPred]
 pPreds = lp ..+ sepBy1 pPred cm +.. rp +.. l L_irarrow
      ||| succeed []
 
 pPred :: CParser CPred
-pPred = pTypeclass +.+ many atyp                                        >>> CPred
+pPred = pTypeclass +.+ many atyp                   >>> CPred
 
 pTypeclass :: CParser CTypeclass
-pTypeclass = pTyConId                                                        >>- CTypeclass
+pTypeclass = pTyConId                              >>- CTypeclass
 
 pType :: CParser CType
 pType = typ0
 
 atyp :: CParser CType
-atyp =      pTyConId                                                        >>- cTCon
-        ||! pTyVarId                                                        >>- cTVar
+atyp =      pTyConId                               >>- cTCon
+        ||! pTyVarId                               >>- cTVar
         ||! pTyNumId
-        ||! lp +.+ sepBy typ0 (l L_comma) +.. rp                        >>> tMkTuple
+        ||! lp +.+ sepBy typ0 (l L_comma) +.. rp   >>> tMkTuple
 
 typ0 :: CParser CType
 typ0 = typ10 `into` \ t ->
-                        l L_rarrow +.+ typ0                                >>> (\ p r -> cTApplys (cTCon (idArrow p)) [t,r])
-                    ||! succeed                                                t
+            l L_rarrow +.+ typ0                    >>> (\ p r -> cTApplys (cTCon (idArrow p)) [t,r])
+        ||! succeed                                t
 
 --mkTBinOp l op r = cTApplys (cTCon op) [l, r]
 
 typ10 :: CParser CType
-typ10 = atyp +.+ many atyp                                                >>> cTApplys
+typ10 = atyp +.+ many atyp                         >>> cTApplys
 
 pDeflM :: CParser CDefl
 pDeflM = pDefl
-     ||! pPat +.+ eq ..+ pExpr                                                >>> CLMatch
+     ||! pPat +.+ eq ..+ pExpr                     >>> CLMatch
 
 pDefl :: CParser CDefl
 pDefl =  (pVarId +.+ dc ..+ pQType `into` \ (i,t) ->
-                dsm ..+ pClauses1 i                                        >>- (\ e -> CLValueSign (CDef i t e) [])
-            ||! eq ..+ exp0                                                >>- (\ e -> CLValueSign (CDef i t [CClause [] [] e]) []))
-    ||! pClauseAny `into` \ (i, c) -> pClauses i                        >>- (\ cs -> CLValue i (c:cs) [])
+                dsm ..+ pClauses1 i               >>- (\ e -> CLValueSign (CDef i t e) [])
+            ||! eq ..+ exp0                       >>- (\ e -> CLValueSign (CDef i t [CClause [] [] e]) []))
+    ||! pClauseAny `into` \ (i, c) -> pClauses i  >>- (\ cs -> CLValue i (c:cs) [])
 
 pTDefl :: CParser CDefl
 pTDefl = pDefl `into` \ d ->
-                l L_when ..+ sepBy1 pQual cm                                >>- updWhen d
-            ||! succeed                                                        d
+                l L_when ..+ sepBy1 pQual cm      >>- updWhen d
+            ||! succeed                           d
   where updWhen (CLValueSign d _) qs = CLValueSign d qs
         updWhen (CLValue i cs  _) qs = CLValue i cs  qs
         updWhen (CLMatch _ _) _ = internalError "CParser.pTDefl.updWhen: CLMatch"
@@ -308,7 +314,7 @@ blockBrOf :: CParser a -> CParser [a]
 blockBrOf p = hBlock (sepBy p dsm +.. osm)
 
 pCaseArm :: CParser CCaseArm -- (CPat, [CQual], CExpr)
-pCaseArm =  pPat +.+ pOQuals +.+ l L_rarrow ..+ pExpr                        >>-
+pCaseArm =  pPat +.+ pOQuals +.+ l L_rarrow ..+ pExpr  >>-
             \ (pattern,(qualifiers,consequent)) ->
                 CCaseArm { cca_pattern = pattern,
                            cca_filters = qualifiers,
@@ -385,12 +391,13 @@ pDefnsAndEOF =  block noTrig pDefns +.. osm +.. eof
 
 pDefn' :: CParser CDefn
 pDefn'   =  pVarDefn
-        ||! l L_instance ..+ pQType +.+ l L_where ..+ blockOf noTrig pDefl        >>>   Cinstance
+        ||! l L_instance ..+ pQType +.+ l L_where ..+ blockOf noTrig pDefl  >>>   Cinstance
         ||! pTyDefn True
-        ||! pPragma                                                                >>-   CPragma
+        ||! pPragma                                                         >>-   CPragma
 
 -- parse variable definition
 -- XXX backtracks :(
+pVarDefn :: CParser CDefn
 pVarDefn  =  (pVarId +.+ dc ..+ pQType +.. dsm `into` \(var, typ) -> pClauses1 var >>- CValueSign . CDef var typ)
          ||| (pClauseAny `into` \ (var, clause) -> pClauses var >>- CValue var . (clause :))
 
@@ -414,6 +421,7 @@ pCoherence :: CParser Bool
 pCoherence = l L_incoherent ..+ succeed True
              ||! l L_coherent ..+ succeed False
 
+pForeignRes :: CParser [String]
 pForeignRes = cm ..+ (pString >>- (: []) ||! lp ..+ sepBy1 pString cm +.. rp)
 
 pFunDeps :: CParser CFunDeps
@@ -480,6 +488,7 @@ pDataB b = l L_data ..+ pTyConIdK +.+ many pTyVarId +.+ eql b +.+ sepBy1 pSumman
                 isLeft (Left _) = True
                 isLeft (Right _) = False
 
+eql :: Bool -> CParser Bool
 eql True = eq .> True
 eql False = eqeq .> False ||! eq .> True
 
@@ -545,6 +554,7 @@ pRule = many (pRulePragma +.. osm) +.+
 pRules :: CParser [CRule]
 pRules = sepBy pRule dsm +.. osm
 
+pLabel :: CParser CExpr
 pLabel = aexp +.. l L_colon
 
 piEq :: Id -> CParser Id
@@ -647,16 +657,21 @@ pOper = pAnySym ||! l L_bquote ..+ pAnyId +.. l L_bquote
 pConOper :: CParser Id
 pConOper = pConOp ||! l L_bquote ..+ pConId +.. l L_bquote
 
+pAny :: CParser Position
 pAny = l L_uscore
 
+pVarId :: CParser Id
 pVarId = varSym
       ||! qvar
 
+pVarIdOrU :: CParser (Either Position Id)
 pVarIdOrU = pVarId >>- Right
       ||! l L_uscore >>- Left
 
+varSym :: CParser Id
 varSym = var ||! lp ..+ pAnySym +.. rp
 
+pHVarId :: CParser Id
 pHVarId = (pHidePragma ||! pHideAllPragma) ..+ sm ..+ pVarId     >>- (\ i -> (setHideId i))
       ||! pVarId
 
@@ -665,54 +680,69 @@ piHEq i = testp (getIdString i) (\i'->i==i') pHVarId             >>- (\ j -> if 
 
 
 -- must not use this for qualifying, or confusion with field names will occur
+pModId :: CParser Id
 pModId = var ||! con
 
+pConId :: CParser Id
 pConId = qcon ||! con
 
+pConOp :: CParser Id
 pConOp = qconop ||! conop
 
 pFieldId :: CParser Id
 pFieldId = qvar ||! var ||! lp ..+ pAnySym +.. rp
 
+pTyVarId :: CParser Id
 pTyVarId = var
 
+pTyConId :: CParser Id
 pTyConId = qcon ||! con
 
 -- pAnyId = qvar ||! qcon ||! var ||! con
+pAnyId :: CParser Id
 pAnyId = pVarId ||! pConId
 
 -- pRuleId = var ||! con
 
+pAnySym :: CParser Id
 pAnySym = qvarop ||! qconop ||! varop ||! conop
 
+var :: CParser Id
 var = lcp "<var>" (\p x -> case x of
     L_varid fs -> Just (mkId p fs)
     _ -> Nothing)
 
+con :: CParser Id
 con = lcp "<con>" (\p x->case x of
     L_conid fs -> Just (mkId p fs)
     _ -> Nothing)
 
+varop :: CParser Id
 varop = lcp "<op>" (\p x->case x of
     L_varsym fs -> Just (mkId p fs)
     _ -> Nothing)
 
+conop :: CParser Id
 conop = lcp "<op>" (\p x->case x of
     L_consym fs -> Just (mkId p fs)
     _ -> Nothing)
 
+pTyNumId :: CParser CType
 pTyNumId = lcp "<integer>" (\p x->case x of
     L_integer _ _ i -> Just (cTNum i p)
     _ -> Nothing)
 
+literal :: FString -> CParser ()
 literal  lfs = lcp (getFString lfs) (\p x->case x of
     L_varid  fs | fs == lfs -> Just ()
     _ -> Nothing)
 
+literalC :: FString -> CParser ()
 literalC lfs = lcp (getFString lfs) (\p x->case x of
     L_conid  fs | fs == lfs -> Just ()
     _ -> Nothing)
 
+literalS :: FString -> CParser ()
 literalS lfs = lcp (getFString lfs) (\p x->case x of
     L_varsym fs | fs == lfs -> Just ()
     _ -> Nothing)
@@ -798,10 +828,23 @@ dotdot = dot ..+ dot .> ()
 eqeq :: CParser ()
 eqeq = literalS (mkFString "==")
 
+noTrig :: Position
 noTrig = mkPosition fsEmpty 0 (-1)
 
 -- Utilities
 
+(>>>>)      :: Parser a (b, (c, d))
+            -> (b -> c -> d -> e) -> Parser a e
+(>>>>>)     :: Parser a (b, (c, (d, e)))
+            -> (b -> c -> d -> e -> f) -> Parser a f
+(>>>>>>)    :: Parser a (b, (c, (d, (e, f))))
+            -> (b -> c -> d -> e -> f -> g) -> Parser a g
+(>>>>>>>)   :: Parser a (b, (c, (d, (e, (f, g)))))
+            -> (b -> c -> d -> e -> f -> g -> h) -> Parser a h
+--(>>>>>>>>)  :: Parser a (b, (c, (d, (e, (f, (g, h))))))
+--            -> (b -> c -> d -> e -> f -> g -> h -> i) -> Parser a i
+(>>>>>>>>>) :: Parser a (b, (c, (d, (e, (f, (g, (h, i)))))))
+            -> (b -> c -> d -> e -> f -> g -> h -> i -> j) -> Parser a j
 p >>>> f = p >>- \ (x,(y,z)) -> f x y z
 p >>>>> f = p >>- \ (x,(y,(z,w))) -> f x y z w
 p >>>>>> f = p >>- \ (x,(y,(z,(w,a)))) -> f x y z w a
@@ -809,8 +852,10 @@ p >>>>>>> f = p >>- \ (x,(y,(z,(w,(a,b))))) -> f x y z w a b
 --p >>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,c)))))) -> f x y z w a b c
 p >>>>>>>>> f = p >>- \ (x,(y,(z,(w,(a,(b,(c,d))))))) -> f x y z w a b c d
 
+option :: Parser a b -> Parser a (Maybe b)
 option p = p >>- Just ||! succeed Nothing
 
+optProps :: CParser a -> CParser [a]
 optProps p = l L_lcurl ..+ sepBy p cm +.. l L_rcurl ||! succeed []
 
 
@@ -900,17 +945,24 @@ errSyntax ss ts =
                                     s -> s
         [] -> internalError "CParser.errSyntax: no succeding token"
 
+int :: CParser Integer
 int = lcp "<integer>" (\p x->case x of L_integer _ _ i -> Just i; _ -> Nothing)
 
+integer :: CParser CExpr
 integer = lcp "<integer>" (\p x->case x of L_integer w b i -> Just (CLit (CLiteral p (LInt (IntLit { ilWidth=w, ilBase=b, ilValue=i })))); _ -> Nothing)
+real :: CParser CExpr
 real = lcp "<real>" (\p x->case x of L_float r -> Just (CLit (CLiteral p (LReal (fromRational r)))); _ -> Nothing)
 
+numericLit :: CParser CExpr
 numericLit = real ||! integer
 
+string :: CParser CExpr
 string  = lcp "<string>"  (\p x->case x of L_string  s     -> Just (CLit (CLiteral p (LString s)));  _ -> Nothing)
 
+pString :: CParser String
 pString  = lcp "<string>"  (\p x->case x of L_string  s     -> Just s;  _ -> Nothing)
 
+char :: CParser CExpr
 char = lcp "<char>" (\p x -> case x of L_char c -> Just (CLit (CLiteral p (LChar c))); _ -> Nothing)
 
 hide :: CParser ()

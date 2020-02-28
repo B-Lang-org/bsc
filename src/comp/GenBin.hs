@@ -18,6 +18,7 @@ import Util(traceM)
 import IOUtil(progArgs)
 -- import Debug.Trace
 
+doTrace :: Bool
 doTrace = elem "-trace-genbin" progArgs
 
 -- .bo file tag -- change this whenever the .bo format changes

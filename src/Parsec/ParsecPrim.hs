@@ -137,6 +137,8 @@ setParserState st   = updateParserState (const st)
 type Parser a           = GenParser Char () a
 
 newtype GenParser tok st a = Parser (State tok st -> IO (Consumed (Reply tok st a)))
+
+runP :: GenParser tok st a -> State tok st -> IO (Consumed (Reply tok st a))
 runP (Parser p)            = p
 
 data Consumed a         = Consumed a                --input is consumed
@@ -192,6 +194,7 @@ ioToParser computation =
     Parser (\state -> do result <- computation
                          return (Empty (Ok result state [])))
 
+parserReply :: Consumed a -> a
 parserReply result = case result of
         Consumed reply -> reply
         Empty reply    -> reply
@@ -277,6 +280,7 @@ parsecBind (Parser p) f
                               other        -> return other
                      Error evil err1  -> return (Empty (Error evil err1)))
 
+mergeErrorReply :: [EMsg] -> Reply tok st a -> Reply tok st a
 mergeErrorReply err1 reply
   = case reply of
       Ok x state err2 -> Ok x state (mergeErrors err1 err2)
@@ -299,6 +303,7 @@ mergeErrors' (True, rrec) errs errs' =
     foldl (mergeErrors' (False, rrec)) errs [[e] | e <- sortBy cmpEMsg errs]
 mergeErrors' _ errs errs' = sortBy cmpEMsg (errs ++ errs')
 
+cmpEMsg :: EMsg -> EMsg -> Ordering
 cmpEMsg (pos1, _) (pos2, _) = compare pos1 pos2
 
 -- combine error messages
@@ -566,5 +571,7 @@ tokens shows nextposs s
 
        in walk1 s input)
 
+errSyntax :: Position -> String -> [String] -> EMsg
 errSyntax pos tok toks = (pos, ESyntax tok (nub $ filter (not . null) toks))
+errSyntaxEof :: Position -> [String] -> EMsg
 errSyntaxEof pos toks = (pos, ESyntax "end of file" (nub $ filter (not . null) toks))

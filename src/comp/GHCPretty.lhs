@@ -452,6 +452,8 @@ data TextDetails = Chr  Char
                  | Str  String
                  | PStr String
     deriving (Eq)
+
+space_text, nl_text :: TextDetails
 space_text = Chr ' '
 nl_text    = Chr '\n'
 \end{code}
@@ -490,15 +492,19 @@ lines.
 
 \begin{code}
         -- Arg of a NilAbove is always an RDoc
+nilAbove_ :: Doc -> Doc
 nilAbove_ p = NilAbove p
 
         -- Arg of a TextBeside is always an RDoc
+textBeside_ :: TextDetails -> Int -> Doc -> Doc
 textBeside_ s sl p = TextBeside s sl p
 
         -- Arg of Nest is always an RDoc
+nest_ :: Int -> Doc -> Doc
 nest_ k p = Nest k p
 
         -- Args of union are always RDocs
+union_ :: Doc -> Doc -> Doc
 union_ p q = Union p q
 
 \end{code}
@@ -531,6 +537,7 @@ ptext s = case length s of {sl -> textBeside_ (PStr s) sl Empty}
 nest k  p = mkNest k (reduceDoc p)        -- Externally callable version
 
 -- mkNest checks for Nest's invariant that it doesn't have an Empty inside it
+mkNest :: Int -> Doc -> Doc
 mkNest k       (Nest k1 p) = (mkNest $! k + k1) p
 mkNest k       NoDoc       = NoDoc
 mkNest k       Empty       = Empty
@@ -538,6 +545,7 @@ mkNest 0       p           = p                  -- Worth a try!
 mkNest k       p           = nest_ k p
 
 -- mkUnion checks for an empty document
+mkUnion :: Doc -> Doc -> Doc
 mkUnion Empty q = Empty
 mkUnion p q     = p `union_` q
 \end{code}
@@ -650,6 +658,7 @@ nilBeside g p          | g         = textBeside_ space_text 1 p
 sep = sepX True         -- Separate with spaces
 cat = sepX False        -- Don't
 
+sepX :: Bool -> [Doc] -> Doc
 sepX x []     = empty
 sepX x (p:ps) = sep1 x (reduceDoc p) 0 ps
 
@@ -676,6 +685,7 @@ sep1 _ _ _ _ = internalError "bad case in sep1"
 -- Called when we have already found some text in the first item
 -- We have to eat up nests
 
+sepNB :: Bool -> Doc -> Int -> [Doc] -> Doc
 sepNB g (Nest _ p)  k ys  = sepNB g p k ys
 
 sepNB g Empty k ys        = oneLiner (nilBeside g (reduceDoc rest))
@@ -706,6 +716,7 @@ fcat = fill False
 --                     `union`
 --                      p1 $$ fill ps
 
+fill :: Bool -> [Doc] -> Doc
 fill g []     = empty
 fill g (p:ps) = fill1 g (reduceDoc p) 0 ps
 
@@ -724,6 +735,7 @@ fill1 g (TextBeside s sl p) k ys = textBeside_ s sl ((fillNB g p $! k - sl) ys)
 
 fill1 _ _ _ _ = internalError "bad case in fill1"
 
+fillNB :: Bool -> Doc -> Int -> [Doc] -> Doc
 fillNB g (Nest _ p)  k ys  = fillNB g p k ys
 fillNB g Empty k []        = Empty
 fillNB g Empty k (y:ys)    = k1 `seq`
@@ -789,7 +801,10 @@ best mode w r p
                                                    (get1 w sl q)
     get1 _ _ _ = internalError "bad case in bestmode/get1"
 
+nicest :: Int -> Int -> Doc -> Doc -> Doc
 nicest w r p q = nicest1 w r 0 p q
+
+nicest1 :: Int -> Int -> Int -> Doc -> Doc -> Doc
 nicest1 w r sl p q | fits ((w `minn` r) - sl) p = p
                    | otherwise                   = q
 
@@ -804,6 +819,7 @@ fits n (NilAbove _)        = True
 fits n (TextBeside _ sl p) = fits (n - sl) p
 fits _ _ = internalError "bad case in fits"
 
+minn :: Ord a => a -> a -> a
 minn x y | x < y    = x
          | otherwise = y
 \end{code}
@@ -812,10 +828,12 @@ minn x y | x < y    = x
 @first@ returns its first argument if it is non-empty, otherwise its second.
 
 \begin{code}
+first :: Doc -> Doc -> Doc
 first p q | nonEmptySet p = p
           | otherwise     = q
 
-nonEmptySet NoDoc           = False
+nonEmptySet :: Doc -> Bool
+nonEmptySet NoDoc              = False
 nonEmptySet (p `Union` q)      = True
 nonEmptySet Empty              = True
 nonEmptySet (NilAbove p)       = True           -- NoDoc always in first line
@@ -853,10 +871,12 @@ renderStyle Style{mode, lineLength, ribbonsPerLine} doc
 -}
 
 render doc       = showDoc doc ""
+showDoc :: Doc -> String -> String
 showDoc doc rest = fullRender PageMode 100 1.5 string_txt rest doc
 docToOneLine :: Doc -> String
 docToOneLine doc = fullRender OneLineMode 100 1.5 string_txt "" doc
 
+string_txt :: TextDetails -> String -> String
 string_txt (Chr c)   s  = c:s
 string_txt (Str s1)  s2 = s1 ++ s2
 string_txt (PStr s1) s2 = s1 ++ s2
@@ -876,6 +896,7 @@ fullRender mode line_length ribbons_per_line txt end doc
     ribbon_length = round (fromIntegral line_length / ribbons_per_line)
     hacked_line_length = case mode of { ZigZagMode -> maxBound; other -> line_length }
 
+display :: Mode -> Int -> Int -> (TextDetails -> a -> a) -> a -> Doc -> a
 display mode page_width ribbon_width txt end doc
   = case page_width - ribbon_width of { gap_width ->
     case gap_width `quot` 2 of { shift ->
@@ -913,26 +934,29 @@ display mode page_width ribbon_width txt end doc
     lay 0 doc
     }}
 
+cant_fail :: a
 cant_fail = internalError "easy_display: NoDoc"
+
+easy_display :: TextDetails -> (TextDetails -> a -> a) -> a -> Doc -> a
 easy_display nl_text txt end doc
   = lay doc cant_fail
   where
     lay NoDoc               no_doc = no_doc
-    lay (Union p q)         no_doc = {- lay p -} (lay q cant_fail)              -- Second arg can't be NoDoc
+    lay (Union p q)         no_doc = {- lay p -} (lay q cant_fail) -- Second arg can't be NoDoc
     lay (Nest k p)          no_doc = lay p no_doc
     lay Empty               no_doc = end
-    lay (NilAbove p)        no_doc = nl_text `txt` lay p cant_fail      -- NoDoc always on first line
+    lay (NilAbove p)        no_doc = nl_text `txt` lay p cant_fail -- NoDoc always on first line
     lay (TextBeside s sl p) no_doc = s `txt` lay p no_doc
     lay _ _ = internalError "bad case in lay"
 
+indent :: Int -> String
 indent n | n >= 8 = '\t' : indent (n - 8)
          | otherwise      = spaces n
 
+multi_ch :: Int -> Char -> String
 multi_ch 0 ch = ""
 multi_ch n       ch = ch : multi_ch (n - 1) ch
 
-spaces 0 = ""
-spaces n       = ' ' : spaces (n - 1)
+spaces :: Int -> String
+spaces n = multi_ch n ' '
 \end{code}
-
-
