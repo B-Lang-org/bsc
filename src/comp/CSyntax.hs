@@ -223,7 +223,6 @@ data CExpr
         | Cdo Bool CStmts        -- Bool indicates recursive binding
         | Caction Position CStmts
         | Crules [CSchedulePragma] [CRule]
-        | CADump [CExpr]
         -- used before operator parsing
         | COper [COp]
         -- from deriving
@@ -321,8 +320,6 @@ instance Eq CExpr where
         = (cs1 == cs2)
     (==) (Crules ps1 rs1) (Crules ps2 rs2)
         = (ps1 == ps2) && (rs1 == rs2)
-    (==) (CADump es1) (CADump es2)
-        = (es1 == es2)
     (==) (COper os1) (COper os2)
        = (os1 == os2)
     (==) (CCon1 t1 c1 e1) (CCon1 t2 c2 e2)
@@ -808,7 +805,6 @@ instance HasPosition CExpr where
     getPosition (Cdo _ ss) = getPosition ss
     getPosition (Caction pos ss) = pos
     getPosition (Crules _ rs) = getPosition rs
-    getPosition (CADump es) = getPosition es
     getPosition (COper es) = getPosition es
     getPosition (Cattributes pps) =
         -- take the position of the first pprop with a good position
@@ -1111,7 +1107,6 @@ instance PPrint CExpr where
     pPrint d p (Crules [] rs) = pparen (p>0) $ t"rules {" $+$ pBlock d 2 False (map (pp d) rs)
     pPrint d p (Crules ps rs) = pPrint d p ps $+$
                                 (pparen (p>0) $ t"rules {" $+$ pBlock d 2 False (map (pp d) rs))
-    pPrint d p (CADump es) = ppDump d es <+> text ""
     pPrint d p (COper ops) = pparen (p > maxPrec-1) (sep (map (pPrint d (maxPrec-1)) ops))
     ----
     pPrint d p (CCon1 _ i e) = pPrint d p (CCon i [e])
@@ -1155,9 +1150,6 @@ instance PPrint CMStmt where
     pPrint d p (CMrules e) = pPrint d p e
     pPrint d p (CMinterface e) = pPrint d p (cVApply (idReturn (getPosition e)) [e])
     pPrint d p (CMTupleInterface _ es) = text"(" <> sepList (map (pPrint d p) es) (text ",") <> text ")"
-
-ppDump :: PDetail -> [CExpr] -> Doc
-ppDump d es = text "{-# dump" <+> sepList (map (pp d) es) (text ",") <+> text "#-}"
 
 instance PPrint COp where
     pPrint d _ (CRand p) = pp d p

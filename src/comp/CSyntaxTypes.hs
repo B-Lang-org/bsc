@@ -105,7 +105,6 @@ instance Types CExpr where
     apSub s (Cdo rec ss) = Cdo rec (apSub s ss)
     apSub s (Caction pos ss) = Caction pos (apSub s ss)
     apSub s (Crules ps rs) = Crules ps (apSub s rs)
-    apSub s (CADump es) = CADump (apSub s es)
     apSub s (CTApply e ts) = CTApply (apSub s e) (apSub s ts)
     apSub s (CSelectT ti i) = CSelectT ti i
     apSub s (CStructT t fs) = CStructT (apSub s t) (mapSnd (apSub s) fs)
@@ -150,7 +149,6 @@ instance Types CExpr where
     tv (Cdo rec ss) = tv ss
     tv (Caction pos ss) = tv ss
     tv (Crules ps rs) = tv rs
-    tv (CADump es) = tv es
     tv (CTApply e ts) = tv (e, ts)
     tv (CSelectT ti i) = []
     tv (CStructT t fs) = tv (t, map snd fs)

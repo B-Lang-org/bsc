@@ -324,7 +324,6 @@ instance Bin CExpr where
     writeBytes (Cdo b ss) = do putI 25; toBin b; toBin ss
     writeBytes (Caction pos ss) = do putI 26; toBin pos; toBin ss
     writeBytes (Crules ps rs) = do putI 27; toBin ps; toBin rs
-    writeBytes (CADump es) = do putI 28; toBin es
     writeBytes (COper ops) = do putI 29; toBin ops
     -- these are from deriving and typecheck
     writeBytes (CCon1 i1 i2 e) = do putI 30; toBin i1; toBin i2; toBin e
@@ -387,7 +386,6 @@ instance Bin CExpr where
              25 -> do b <- fromBin; ss <- fromBin; return (Cdo b ss)
              26 -> do pos <- fromBin; ss <- fromBin; return (Caction pos ss)
              27 -> do ps <- fromBin; rs <- fromBin; return (Crules ps rs)
-             28 -> do es <- fromBin; return (CADump es)
              29 -> do ops <- fromBin; return (COper ops)
              30 -> do i1 <- fromBin; i2 <- fromBin; e <- fromBin;
                       return (CCon1 i1 i2 e)

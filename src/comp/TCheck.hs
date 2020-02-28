@@ -954,14 +954,6 @@ tiExpr as td e@(Crules ps rs) = do
     let (pss, rs') = unzip psrs
     return (concat pss, Crules ps rs')
 
-{-
-tiExpr as td e@(CADump es) = do
-    unify e tAction td
-    pses <- mapM (tiExpr as td) es
-    let (pss, es') = unzip pses
-    return (concat pss, CActions es')
--}
-
 tiExpr as td e@(Cattributes pps) = do
     unifyNoEq "Cattributes" e tAttributes td
     return ([], e)

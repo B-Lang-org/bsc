@@ -173,7 +173,6 @@ classicWarnExpr (CForeignFuncC _ _) = return []
 classicWarnExpr (Cdo _ stmts) = classicWarnStmts Nothing stmts
 classicWarnExpr (Caction _ stmts) = classicWarnStmts Nothing stmts
 classicWarnExpr (Crules _ rs) = concatMapM classicWarnRule rs
-classicWarnExpr (CADump es) = concatMapM classicWarnExpr es
 classicWarnExpr (COper ops) = concatMapM classicWarnOp ops
 classicWarnExpr (CCon1 _ _ e) = classicWarnExpr e
 classicWarnExpr (CSelectTT _ e _) = classicWarnExpr e
