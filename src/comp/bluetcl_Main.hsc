@@ -17,7 +17,7 @@
 #include "tcl.h"
 #include "stdlib.h"
 
-extern int init_haskellSystem(int *argc, char **argv[]) ;
+extern int htcl_initHaskellRTS(int *argc, char **argv[]) ;
 extern char *TclSetPreInitScript (char *string);
 
 // Include for the export from Haskell
@@ -59,12 +59,10 @@ extern int Itk_SafeInit(Tcl_Interp *interp) ;
  */
 
 int
-main(argc, argv)
-     int argc;                        /* Number of command-line arguments. */
-     char **argv;                /* Values of command-line arguments. */
+main(int argc, char **argv)
 {
   // Initialize Haskell
-  int stat = init_haskellSystem( &argc, &argv );
+  int stat = htcl_initHaskellRTS( &argc, &argv );
   if (stat != 0) exit(stat);
 
 #ifdef __GLASGOW_HASKELL__

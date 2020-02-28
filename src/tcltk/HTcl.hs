@@ -1,8 +1,5 @@
-{-# LANGUAGE CPP, ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface, CApiFFI #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-{-# LANGUAGE OverlappingInstances #-}
-#endif
 {-# OPTIONS_GHC -Wall -fno-warn-unused-binds -fno-warn-unused-matches -Werror #-}
 
 -- User level Haskell interface for TCL
@@ -179,9 +176,9 @@ instance Enum TclStatus where
     fromEnum TCL_CONTINUE = 4
 
 -- Get real values from tcl world -- there should be an easier way to do this for #defines!
-foreign import ccall "htclFunctions.h HTcl_TclOKValue"
+foreign import capi "tcl.h value TCL_OK"
  htcl_OKc :: CInt
-foreign import ccall "htclFunctions.h HTcl_TclErrorValue"
+foreign import capi "tcl.h value TCL_ERROR"
  htcl_Errorc :: CInt
 
 
@@ -206,43 +203,42 @@ type TclClientData = Ptr Int
 -- Types and functions to deal with     Tcl Objects
 -- Wrapper for foreign (tcl objects)
 -- Objects which are passed to and from commands
-data XTclObj = XTclObj
+data {-# CTYPE "Tcl_Obj" #-} XTclObj = XTclObj
 type PTclObj = Ptr XTclObj
 type TclObj = ForeignPtr XTclObj
 type PTclObjArray = Ptr PTclObj
 
 
 -- Foreign import functions --     Objects
-foreign import ccall "tcl.h Tcl_NewIntObj"
+foreign import ccall "Tcl_NewIntObj"
  tcl_NewIntObj :: CInt -> IO (PTclObj)
 
-foreign import ccall "tcl.h Tcl_NewWideIntObj"
+foreign import ccall "Tcl_NewWideIntObj"
  tcl_NewWideIntObj :: CLLong -> IO (PTclObj) -- tcl uses long long
 
-foreign import ccall "tcl.h Tcl_NewDoubleObj"
+foreign import ccall "Tcl_NewDoubleObj"
  tcl_NewDoubleObj :: CDouble -> IO PTclObj -- tcl double
 
-foreign import ccall "tcl.h Tcl_NewStringObj"
+foreign import ccall "Tcl_NewStringObj"
  tcl_NewStringObj :: Ptr CChar -> CInt -> IO PTclObj
 
-foreign import ccall "tcl.h Tcl_NewListObj"
+foreign import ccall "Tcl_NewListObj"
  tcl_NewListObj :: CInt -> Ptr PTclObj ->  IO PTclObj
 
 
 ---------------------------------------------------------------
 -- Reference count on Objects
-foreign import ccall "htclFunctions.h HTcl_DecrRefCount"
+foreign import capi "tcl.h Tcl_DecrRefCount"
  tcl_DecrRefCount :: PTclObj -> IO ()
 
-foreign import ccall "htclFunctions.h HTcl_IncrRefCount"
+foreign import capi "tcl.h Tcl_IncrRefCount"
  tcl_IncrRefCount :: PTclObj -> IO ()
 
-foreign import ccall "htclFunctions.h &HTcl_DecrRefCount"
-  tcl_DecrRefCountFunc :: FunPtr (PTclObj -> IO ())
-
+foreign import ccall "&htcl_finalizeTclObj"
+  tcl_finalizeTclObj :: FunPtr (PTclObj -> IO ())
 
 tclObjFinalizer :: FinalizerPtr XTclObj
-tclObjFinalizer = tcl_DecrRefCountFunc
+tclObjFinalizer = tcl_finalizeTclObj
 
 -- Function to wrap tcl object into finalizer
 wrapPtrForExport :: PTclObj -> IO TclObj
@@ -386,27 +382,27 @@ instance TclObjCvt WordPtr where
 
 ---------------------------------------------------------------
 -- Conversion from Objects to Native types
-foreign import ccall "tcl.h Tcl_GetIntFromObj"
+foreign import ccall "Tcl_GetIntFromObj"
   tcl_GetIntFromObj :: TclInterp -> PTclObj -> Ptr CInt -> IO CInt
 
-foreign import ccall "tcl.h Tcl_GetLongFromObj"
+foreign import ccall "Tcl_GetLongFromObj"
   tcl_GetLongFromObj :: TclInterp -> PTclObj -> Ptr CLong -> IO CLong
 
-foreign import ccall "tcl.h Tcl_GetBooleanFromObj"
+foreign import ccall "Tcl_GetBooleanFromObj"
   tcl_GetBooleanFromObj :: TclInterp -> PTclObj -> Ptr CInt -> IO CInt
 
-foreign import ccall "tcl.h Tcl_GetDoubleFromObj"
+foreign import ccall "Tcl_GetDoubleFromObj"
   tcl_GetDoubleFromObj :: TclInterp -> PTclObj -> Ptr CDouble -> IO CInt
 
-foreign import ccall "tcl.h Tcl_GetStringFromObj"
+foreign import ccall "Tcl_GetStringFromObj"
   tcl_GetStringFromObj :: PTclObj -> Ptr CInt -> IO (Ptr CChar)  -- TCL
 
-foreign import ccall "tcl.h Tcl_ListObjGetElements"
+foreign import ccall "Tcl_ListObjGetElements"
  tcl_ListObjGetElements :: TclInterp -> PTclObj -> Ptr CInt -> Ptr PTclObjArray -> IO CInt
 
 --------------------------------------------------------------------------------
 -- TODO Never got this to work quite right
-foreign import ccall "tcl.h Tcl_AppendAllObjTypes"
+foreign import ccall "Tcl_AppendAllObjTypes"
  tcl_AppendAllObjTypes :: TclInterp -> PTclObj -> IO ()
 
 
@@ -425,7 +421,7 @@ type TclCmdDeleteProc  = TclClientData -> IO ()
 type PTclCmdDeleteProc = FunPtr TclCmdDeleteProc
 
 -- Foreign import function --     Command objects
-foreign import ccall "tcl.h Tcl_CreateObjCommand"
+foreign import ccall "Tcl_CreateObjCommand"
  tcl_CreateObjCommand :: TclInterp -> CString -> PTclObjCmdProc -> TclClientData -> PTclCmdDeleteProc -> IO TclCommand
 
 --  wrappers to convert Haskell commands to pointer to C functions
@@ -826,10 +822,10 @@ htclRegCommands interp cmds = do
 
 --------------------------------------------------------------------------------
 -- Returning values and errors via the interp
-foreign import ccall "tcl.h Tcl_SetObjResult"
+foreign import ccall "Tcl_SetObjResult"
   tcl_SetObjResult :: TclInterp -> PTclObj -> IO ()
 
-foreign import ccall "tcl.h Tcl_AddObjErrorInfo"
+foreign import ccall "Tcl_AddObjErrorInfo"
  tcl_AddObjErrorInfo :: TclInterp -> Ptr CChar -> CInt -> IO ()
 
 -- Adds String to the global tcl variable errorInfo
@@ -844,7 +840,7 @@ htcl_AddObjErrorInfo interp s = do
   return htcl_Error
 
 -- Not used
-foreign import ccall "tcl.h Tcl_WrongNumArgs"
+foreign import ccall "Tcl_WrongNumArgs"
         htcl_WrongNumArgs :: TclInterp -> CInt -> PTclObjArray -> CChar -> IO ()
 
 htclSetReturnVal :: ( TclObjCvt a) => TclInterp -> a -> IO ()
