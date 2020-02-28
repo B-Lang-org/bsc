@@ -51,7 +51,7 @@ PARSEC_HS = ../Parsec
 # Tcl
 TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
 TCL_HS    = ../tcltk
-TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --cflags-only-I tcl tk)
+TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
             -litcl3.4 -litclstub3.4 -lhtcl

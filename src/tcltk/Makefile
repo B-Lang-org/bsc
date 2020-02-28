@@ -1,6 +1,7 @@
 AR	= ar -r
 
-CCFLAGS += -Wall $(shell pkg-config --cflags-only-I tcl)
+CCFLAGS += -Wall
+CCFLAGS += $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
 
 ifdef DEBUG
 #### for debug
