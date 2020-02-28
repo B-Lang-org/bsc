@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #\
-exec ../tcltk/inst/bin/tclsh8.5 "$0" "$@"
+exec tclsh "$0" "$@"
 
 set tclFiles [lindex $argv 0]
 set packFiles [lindex $argv 1]
@@ -20,14 +20,14 @@ if { [llength $tclFiles] != 0 } {
 # eval pkg_mkIndex -verbose . $packFiles
 # the pkg_mkIndex comand sucks so lets roll our own
 
-# All we need to do for the basic case is get the package provide directives 
+# All we need to do for the basic case is get the package provide directives
 proc getpackagename { f } {
     set fp [open $f "r"]
     set ret [list]
     while { [gets $fp line] >= 0 } {
         if { [regexp -line {^package[\s]+provide[\s]+([\w]+)\s+([\d]+\.[\d]+)} $line l name ver]} {
                 lappend ret [list $name $ver]
-            } 
+            }
     }
     close $fp;
     return $ret
@@ -47,11 +47,9 @@ foreach f $files {
         set root [lindex $nv 0]
         set ver [lindex $nv 1]
         if { $root == "" } { continue }
-    
+
             set s [format {package ifneeded %s %s [list source [file join $dir %s]]} $root $ver $f]
             puts $outfp $s
     }
 }
 close $outfp
-
-

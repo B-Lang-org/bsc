@@ -49,9 +49,12 @@ BUILDDIR=$(TOP)/build
 PARSEC_HS = ../Parsec
 
 # Tcl
-TCL_HS       = ../tcltk/HaskellTcl
-TCL_ARGS  = -I$(TCL_HS) -L$(TCL_HS)
-TCL_LIBS  = -lhtcl -litcl
+TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
+TCL_HS    = ../tcltk/HaskellTcl
+TCL_ARGS  = -L$(TCL_HS) -I/usr/include/tcl
+TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
+            -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
+            -litcl3.4 -litclstub3.4 -lhtcl
 
 # STP
 STP_HS      = ../stp/include_hs
@@ -72,7 +75,7 @@ BSCBUILDLIBS = \
 
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
-WISHFLAGS = -lhtk -litk $(shell pkg-config --libs x11)
+WISHFLAGS = -litkstub3.4 -litk3.4 $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
 
 # -----

@@ -1,64 +1,28 @@
+AR	= ar -r
 
-AR	= ar -r 
-
-CCFLAGS += -Wall
-
-TCLVER ?= 8.5
-TCLVER2 ?= 8.5.4
-
-TCLDIR ?= ../tcltk$(TCLVER2)/tcl$(TCLVER2)/
-TKDIR ?= ../tcltk$(TCLVER2)/tk$(TCLVER2)/
-
-ITCLVER ?= 3.4
-ITCLDIR ?= ../itcl$(ITCLVER)
-
-ITKVER ?= 3.4
-ITKDIR ?= ../itk$(ITCLVER)
-
-
-INCPATH = $(TCLDIR)generic/
-CCFLAGS += -I$(INCPATH)
+INCPATH = /usr/include/tcl
+CCFLAGS += -Wall -I$(INCPATH)
 
 ifdef DEBUG
 #### for debug
 #EXTRAFLAGS   += -debug -optc -g -opta -g -keep-tmp-files
 EXTRAFLAGS   += -debug -opta -g -keep-tmp-files
-CCFLAGS += -g 
+CCFLAGS += -g
 else
 EXTRAFLAGS += -fasm
 endif
 
 GHC ?= ghc
 GHCFLAGS += -Wall -fno-warn-unused-binds -fno-warn-unused-matches -H128m $(EXTRAFLAGS)
-GHCCCFLAGS += -Wall  -I$(INCPATH) $(EXTRAFLAGS)
+GHCCCFLAGS += $(CCFLAGS) $(EXTRAFLAGS)
 
 
-.PHONY: all 
+.PHONY: all
 all: install
 
-libhtcl.a: $(TCLDIR)unix/libtcl$(TCLVER).a htclFunctions.o haskellCall.o 
-	cp $< $@
+libhtcl.a: htclFunctions.o haskellCall.o
 	$(AR)  $@  $(filter %.o, $+)
 
-libhtk.a:  $(TKDIR)unix/libtk$(TCLVER).a htclFunctions.o haskellCall.o 
-	cp $< $@
-	$(AR)  $@  $(filter %.o, $+)
-
-
-libitcl.a:  $(ITCLDIR)/libitcl$(ITCLVER).a
-	cp $< $@
-
-libitk.a:  $(ITKDIR)/libitk$(ITKVER).a
-	cp $< $@
-
-tcl.h: $(TCLDIR)generic/tcl.h
-	cp $(TCLDIR)generic/tcl.h ./
-	cp $(TCLDIR)generic/tclDecls.h ./
-	cp $(TCLDIR)generic/tclPlatDecls.h ./
-
-tk.h: $(TKDIR)generic/tk.h
-	cp $(TKDIR)generic/tk.h ./
-	cp $(TKDIR)generic/tkDecls.h ./
 
 haskellCall.o: haskellCall.hsc
 
@@ -70,14 +34,12 @@ haskellCall.o: haskellCall.hsc
 	$(GHC)  $(GHCCCFLAGS) -c -x c  $<
 
 .PHONY: install
-install: libhtcl.a tcl.h libhtk.a tk.h libitcl.a libitk.a
+install: libhtcl.a
 
 .PHONY: TAGS
-TAGS: *.c *.h $(TCLDIR)generic/tcl.h
+TAGS: *.c *.h
 	etags $+
 
 .PHONY: clean full_clean
 clean full_clean:
 	rm -rf *.o *.a TAGS
-	rm -f tcl.h tclDecls.h tclPlatDecls.h
-	rm -f tk.h tkDecls.h

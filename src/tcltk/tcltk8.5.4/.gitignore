@@ -1,5 +1,0 @@
-*.o
-*.a
-config.log
-config.status
-tclsh

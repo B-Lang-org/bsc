@@ -1,9 +1,0 @@
-
- DEMOS
-------------------------------------------------------------------------
- This directory contains some simple demos which show nifty things
- you can build using [incr Tk]:
-
-   itkedit ......... Simple split-screen editor written
-                     with [incr Widgets] in ~220 lines of code!
-

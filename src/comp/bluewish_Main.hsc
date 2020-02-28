@@ -98,8 +98,6 @@ main(argc, argv)
 // Set up the libraries for the blueshell
 char initScript2[] = "\
   lappend auto_path $env(BLUESPECDIR)/tcllib/bluespec ; \
-  set tk_library $env(BLUESPECDIR)/tcllib/tk8.5 ; \
-  set tcl_library $env(BLUESPECDIR)/tcllib/tcl8.5 ; \
 " ;
 
 // Startoff the execution -- seperate from user source.
