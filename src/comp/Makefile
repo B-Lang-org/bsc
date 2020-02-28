@@ -476,8 +476,8 @@ install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
 install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
 
 .PHONY: install-utils
-install-utils: $(addprefix $(BINDDIR)/,$(UTILEXES))
-install-utils: $(addprefix $(BINDDIR)/core/,$(UTILEXES))
+install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
+install-utils: $(addprefix $(BINDIR)/core/,$(UTILEXES))
 
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))
