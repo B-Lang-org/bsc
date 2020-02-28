@@ -40,15 +40,6 @@ indicated below, with the following exceptions:
     by Lennart Augustsson and Thomas Johnsson at Chalmers University
   * See LICENSES/LICENSE.hbc
 
-* Tcl/Tk and ITcl/ITk
-  * The files under src/tcltk/ are adapted from snapshots of the source
-    code for Tcl/Tk 8.5.4 and ITcl/ITk 3.4
-  * See LICENSES/LICENSE.tcl, LICENSES/LICENSES.tk, and LICENSES/LICENSE.itcltk
-  * Source and license for Tcl/TK obtained from source code downloaded
-    from [1] on 2008-08-28; for ITcl/ITk, from [2] on 2007-06-15.
-      [1] http://www.tcl.tk/software/tcltk/download.html
-      [2] http://incrtcl.sourceforge.net/itcl/ on 2007-06-15
-
 * Parsec
   * Files in src/Parsec/ are adapted from Daan Leijen's Parsec
     Haskell library

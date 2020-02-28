@@ -3,6 +3,3 @@
 #
 src/Parsec/* linguist-vendored
 src/stp/src/* linguist-vendored
-src/tcltk/tcltk8.5.4/* linguist-vendored
-src/tcltk/itcl3.4/* linguist-vendored
-src/tcltk/itk3.4/* linguist-vendored
