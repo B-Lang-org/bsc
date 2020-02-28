@@ -1,8 +1,3 @@
-## Bluespec Makefile for building tcl
-
-PWD := $(shell pwd)
-TOP := $(PWD)/../..
-include $(TOP)/platform.mk
 
 DIRLIST = HaskellTcl
 
@@ -11,10 +6,9 @@ all install: $(DIRLIST)
 
 .PHONY: $(DIRLIST)
 $(DIRLIST):
-	$(MAKE) -C $@ -f Makefile.bluespec install
+	$(MAKE) -C $@ install
 
 .PHONY: clean full_clean
 clean full_clean:
 	$(foreach dir, $(DIRLIST), \
-		$(MAKE) -C $(dir) -f Makefile.bluespec $@ ; )
-	rm -rf inst
+		$(MAKE) -C $(dir) $@ ; )
