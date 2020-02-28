@@ -1,5 +1,5 @@
 
-#include "tcl/tcl.h"
+#include "tcl.h"
 
 
 void HTcl_DecrRefCount ( Tcl_Obj *o) ;

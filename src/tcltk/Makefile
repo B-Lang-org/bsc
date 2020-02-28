@@ -1,6 +1,6 @@
 AR	= ar -r
 
-CCFLAGS += -Wall
+CCFLAGS += -Wall $(shell pkg-config --cflags-only-I tcl)
 
 ifdef DEBUG
 #### for debug
