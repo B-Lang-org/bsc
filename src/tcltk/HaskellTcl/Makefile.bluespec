@@ -1,7 +1,6 @@
 AR	= ar -r
 
-INCPATH = /usr/include/tcl
-CCFLAGS += -Wall -I$(INCPATH)
+CCFLAGS += -Wall
 
 ifdef DEBUG
 #### for debug
