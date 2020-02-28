@@ -50,7 +50,7 @@ PARSEC_HS = ../Parsec
 
 # Tcl
 TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
-TCL_HS    = ../tcltk/HaskellTcl
+TCL_HS    = ../tcltk
 TCL_ARGS  = -L$(TCL_HS) -I/usr/include/tcl
 TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
