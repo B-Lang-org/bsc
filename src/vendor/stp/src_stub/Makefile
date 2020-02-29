@@ -1,5 +1,5 @@
 PWD:=$(shell pwd)
-TOP:=$(PWD)/../../..
+TOP:=$(PWD)/../../../..
 
 include $(TOP)/platform.mk
 

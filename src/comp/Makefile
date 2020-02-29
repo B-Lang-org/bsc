@@ -57,8 +57,8 @@ TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -litcl3.4 -litclstub3.4 -lhtcl
 
 # STP
-STP_HS      = ../stp/include_hs
-STP_ARGS = -I../stp/include -L../stp/lib
+STP_HS      = ../vendor/stp/include_hs
+STP_ARGS = -I../vendor/stp/include -L../vendor/stp/lib
 STP_LIBS = -lstp
 
 # Yices
