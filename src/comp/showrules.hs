@@ -36,7 +36,7 @@ import SimPackage(SimSchedule(..), DefMap)
 import Wires(writeClockDomain)
 import VCD
 import CondTree
-import ListUtil(splitBy, dropRepeatsBy)
+import ListUtil(dropRepeatsBy)
 import APrims
 import PPrint
 import Eval(Hyper(..))
@@ -52,6 +52,7 @@ import Control.Exception(bracket)
 import Data.List( partition, intersperse, genericLength
                 , sort, findIndex, sortBy, groupBy
                 )
+import Data.List.Split(wordsBy)
 import Data.Maybe(isJust, fromJust, fromMaybe, mapMaybe, catMaybes)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -177,7 +178,7 @@ parseOpts argv bluespecdir =
                                  (user_paths,orig_path) = splitAt (n'-n) (optBAPath os)
                                  new_path = foldr addPath orig_path user_paths
                              in os { optBAPath = new_path }
-          addPath s ps = let xs = splitBy (== ':') s
+          addPath s ps = let xs = wordsBy (=='.') s
                              xs' = concatMap (\x -> if (x == "+") then ps else [x]) xs
                              xs'' = [ concatMap (\c -> if (c == '%') then bluespecdir else [c]) x
                                     | x <- xs'
@@ -451,7 +452,7 @@ mkMorphState opts instmap hiermap abmis_by_name top_mod =
        when (optVerbose opts) $ putStrLn $ "found " ++ (show (M.size clkmap)) ++ " clock domains in the design"
 
        -- determine the expected scope for the root
-       let root_scope = reverse (splitBy (== '.') (optRoot opts))
+       let root_scope = reverse (wordsBy (=='.') (optRoot opts))
 
        -- build the data-structures for determining which rule
        -- has updated each value
@@ -1191,7 +1192,7 @@ formatNovas st =
       rmap = rule_map st
       full_names = [ (n, x, xs)
                    | (s,n) <- M.toList rmap
-                   , let (x:xs) = reverse (splitBy (== '.') s)
+                   , let (x:xs) = reverse (wordsBy (=='.') s)
                    ]
       lengthen n name [] = internalError "duplicate keys in map!?!?"
       lengthen n name (x:xs) = (n, x ++ "." ++ name, xs)
@@ -1564,7 +1565,7 @@ strip_width_brackets s = takeWhile (/= '[') s
 -- Turn a string into an AId
 to_id :: String -> AId
 to_id "" = emptyId
-to_id s = let segs = splitBy (== '.') s
+to_id s = let segs = wordsBy (=='.') s
               qual = concat (intersperse "." (init segs))
               base = last segs
           in setIdQualString (mk_homeless_id base) qual

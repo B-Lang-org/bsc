@@ -5,6 +5,7 @@ module SimBlocksToC ( simBlocksToC
 
 import Data.Char(isDigit)
 import Data.List(nub, (\\), find, genericLength, sortBy, groupBy)
+import Data.List.Split(wordsBy)
 import Data.Maybe(catMaybes, isJust, fromJust)
 import Data.Function(on)
 import Control.Monad.State(runState)
@@ -29,7 +30,6 @@ import SimFileUtils(codeGenOptionDescr)
 import TopUtils(TimeInfo(..))
 import Version(versionname)
 import BuildVersion(buildVersion)
-import qualified ListUtil(splitBy)
 import Util(hashInit, nextHash, nextHash32, nextHash64, hashValue, concatMapM)
 
 -- import Trace
@@ -104,7 +104,7 @@ simBlocksToC flags time top_block def_clk def_rst
 lookupInstance :: SBMap -> Maybe SBId -> String -> Maybe SBId
 lookupInstance _ Nothing _ = Nothing
 lookupInstance sb_map (Just top_id) s =
-  let path = ListUtil.splitBy (== '.') s
+  let path = wordsBy (=='.') s
   in case path of
        ("top":rest) -> helper rest top_id
        otherwise    -> Nothing
@@ -483,7 +483,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                                , ptr . ptr . constant . char $ (mkVar "annotation")
                                , ptr . ptr . constant . char $ (mkVar "build")
                                ]
-        parts = ListUtil.splitBy (== '.') versionname
+        parts = wordsBy (=='.') versionname
         (year, month, annotation) =
           if ((length parts == 2) || (length parts == 3)) &&
              (all isDigit (parts!!0)) &&

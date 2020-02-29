@@ -29,10 +29,9 @@ import System.Directory(getDirectoryContents, canonicalizePath)
 import Control.Monad(when)
 import Data.Char(isAlpha, isDigit, toUpper)
 
-import ListUtil(chopList)
+import Data.List.Split(splitWhen)
 import Version(bluespec)
 import Backend
-import Util(breakAt)
 import FileNameUtil(hasDotSuf, takeSuf,
                     bscSrcSuffix, bsvSrcSuffix, bseSrcSuffix,
                     cSuffix, cxxSuffix, cppSuffix, ccSuffix,
@@ -1990,7 +1989,7 @@ flagTypeToString flags key ft = showFlag False flags (key,ft)
 -- (colon-separated list with special symbols % and +)
 
 makePath :: String -> [String]
-makePath ss = chopList (breakAt ':') ss
+makePath = splitWhen (==':')
 
 unPath :: [String] -> String
 unPath path =
@@ -2025,7 +2024,7 @@ replacePathToken tok xs new = concatMap (helper new tok) xs
 -- allowing NONE and ALL as possible values
 
 makeMsgList :: String -> [String]
-makeMsgList ss = chopList (breakAt ':') ss
+makeMsgList = splitWhen (==':')
 
 unMsgList :: [String] -> String
 unMsgList path = concat (intersperse ":" path)

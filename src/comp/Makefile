@@ -196,6 +196,7 @@ PACKAGES = \
 	-package time \
 	-package old-time \
 	-package old-locale \
+	-package split \
 	$(GHCEXTRAPKGS)
 
 # GHC can compile either a single file (use GHCCOMPILEFLAGS) or

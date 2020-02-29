@@ -17,5 +17,6 @@ sudo apt-get install -y \
   libghc-old-time-dev \
   libghc-regex-compat-dev \
   libghc-syb-dev \
+  libghc-split-dev \
   libx11-dev \
   libxft-dev

@@ -63,10 +63,10 @@ import PPrint hiding (char, int)
 import Util(itos, headOrErr, initOrErr, lastOrErr, snd3, makePairs, concatMapM)
 import Eval(Hyper(..))
 import ErrorUtil(internalError)
-import ListUtil(splitBy)
 
 import Data.Maybe
 import Data.List(partition, intersperse, nub, sortBy)
+import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad.State(State, gets, modify, when)
 import Data.Char(toLower)
@@ -506,7 +506,7 @@ mkGateAssign top inst num gate_src =
 adjustInstQuals :: AId -> ([String], String)
 adjustInstQuals id =
     let v = getIdBaseString id
-        qs = splitBy (=='.') (getIdQualString id)
+        qs = wordsBy (=='.') (getIdQualString id)
         qs' = map (pfxInst ++) qs
     in  (qs', v)
 

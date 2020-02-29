@@ -198,11 +198,6 @@ elemBy                        :: (a -> a -> Bool) -> a -> [a] -> Bool
 elemBy eq _ []                = False
 elemBy eq x (y:ys)        = eq x y || elemBy eq x ys
 
-splitBy :: [a->Bool] -> [a] -> [[a]]
-splitBy [] _  = []
-splitBy _  [] = []
-splitBy (p:ps) xs = let (xs', xs'') = span p xs in xs' : splitBy ps xs''
-
 findSame :: (Ord a) => [a] -> [[a]]
 findSame = filter ((>1) . length) . group . sort
 
@@ -213,12 +208,6 @@ findSameBy sortFn groupFn =
 toMaybe :: Bool -> a -> Maybe a
 toMaybe False _ = Nothing
 toMaybe True a = Just a
-
-breakAt :: Eq a => a -> [a] -> ([a], [a])
-breakAt x xs =
-        case span (/= x) xs of
-            (ys,_:zs) -> (ys,zs)
-            p -> p
 
 -- A O(n^2) function to find duplicate entries in a list
 -- appears to find the first duplicated entry and then return it as a list
