@@ -166,20 +166,20 @@ instance PPrint VModule where
                 in  ppComment comment $+$ port_decls
 
             modheader =
-                text "module" <+> labeledPPrint "DEFOF" d p (vm_name vmodule)  <>
+                text "module" <+> pPrint d p (vm_name vmodule)  <>
                 portlist <> text ";"
             modbody =
                 -- I/O decls and VMItems are indented by two spaces,
                 -- and the VMItems have spaces around some items for
                 -- readability
                 let gs = groupVMItems (vm_body vmodule)
-                    ppgroups g = text "  " <> labeledPPLines "NET" d g
+                    ppgroups g = text "  " <> ppLines d g
                 in  text "  " <>
                     vsepEmptyLine (map ppPortDeclGroup ports) $+$
                     text "" $+$ -- empty line
                     vsepEmptyLine (map ppgroups gs)
             modtail =
-                text "endmodule  //" <+> labeledPPrint "IGNORE" d 0 (vm_name vmodule)
+                text "endmodule  //" <+> pPrint d 0 (vm_name vmodule)
         in
             comments $+$ modheader $+$ modbody $+$ modtail
 
@@ -301,7 +301,7 @@ instance PPrint VMItem where
                                         mkSynthPragma "translate_on"
                 | otherwise = pPrint d p (vi_body s)
         pPrint d p (VMAssign v e) = -- trace("Assignment :" ++ (ppReadable v) ++ " = " ++ (ppReadable e) ++ "\n") $
-            sep [text "assign" <+> labeledPPrint "ASSIGN" d 45 v <+> text "=",
+            sep [text "assign" <+> pPrint d 45 v <+> text "=",
                       nest 11 (pPrint d 0 e <+> text ";")]
         pPrint d p (VMInst mid iid pvs cs) = pPrint d 0 mid <>
           (case pvs of
@@ -541,7 +541,7 @@ instance PPrint VCaseArm where
         pPrint d p (VCaseArm es s) =
             -- nest the statement 4 spaces under the expr list
             -- when it doesn't fit on the same line
-            sep [ sepList (map (labeledPPrint "NET" d 0) es) (text ",") <> text ":",
+            sep [ sepList (map (pPrint d 0) es) (text ",") <> text ":",
                   nest 4 (pPrint d 0 s) ]
         pPrint d p (VDefault s) = text "default:" <+> pPrint d 0 s
 
@@ -915,9 +915,6 @@ ppLines d xs = foldr ($+$) empty (map (pPrint d 0) xs)
 ppLinesBy :: (a -> b -> Doc) -> a -> [b] -> Doc
 ppLinesBy f d xs = foldr ($+$) empty (map (f d) xs)
 
-labeledPPLines :: PPrint b => a -> PDetail -> [b] -> Doc
-labeledPPLines label d xs = ppLines d xs
-
 vsepEmptyLine :: [Doc] -> Doc
 vsepEmptyLine [] = empty
 vsepEmptyLine xs = foldr1 (\x y -> x $+$ text "" $+$ y) xs
@@ -981,29 +978,6 @@ getVeriInsts (VProgram ms _) = nub (concatMap getInstsFromVModule ms)
 commonDeclTypes :: VVDecl -> VVDecl -> Bool
 commonDeclTypes (VVDecl t1 r1 _ ) (VVDecl t2 r2 _ )     = (t1,r1) == (t2,r2)
 commonDeclTypes _ _                                     = False
-
--- #############################################################################
--- #
--- #############################################################################
-
-class LabeledPPrint a where
-    labeledPPrint :: String -> PDetail -> Int -> a -> Doc
-
-instance LabeledPPrint VLValue where
-    labeledPPrint label d p value = pPrint d p value
-
-instance LabeledPPrint VExpr where
-    labeledPPrint label d p value = pPrint d p value
-
-
-instance LabeledPPrint VId where
-    labeledPPrint label d p value = pPrint d p value
-
-
-instance LabeledPPrint VMItem where
-    labeledPPrint label d p (VMComment cs stmt) = ppComment cs $+$ labeledPPrint label d p stmt
-    labeledPPrint label d p (VMGroup _ stmtss) = vsepEmptyLine (map (labeledPPLines label d) stmtss)
-    labeledPPrint label d p value = pPrint d p value
 
 -- #############################################################################
 -- #
