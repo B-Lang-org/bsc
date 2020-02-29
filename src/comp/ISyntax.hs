@@ -83,7 +83,7 @@ import Prelude hiding ((<>))
 
 import System.IO(Handle)
 import qualified Data.Map as M
-import Data.List(intersperse)
+import Data.List(intercalate)
 
 import qualified Data.Array as Array
 import IntLit
@@ -1571,7 +1571,7 @@ showTypelessStateVar (IStateVar b ui i v es ts mts ncs nrs l) =
     ++ "<IStateLoc>" ++ ")"
 
 showTypelessList :: [IExpr a] -> String
-showTypelessList es = "[" ++ concat (intersperse ", " (map showTypeless es)) ++ "]"
+showTypelessList es = "[" ++ intercalate ", " (map showTypeless es) ++ "]"
 
 -- #############################################################################
 -- #

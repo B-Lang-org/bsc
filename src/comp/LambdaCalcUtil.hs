@@ -26,9 +26,9 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Control.Monad.State
 import Data.Maybe(isJust, catMaybes)
-import Data.List(partition, union, nub)
+import Data.List(intercalate, partition, union, nub)
 
-import Util(intercalate, makePairs, flattenPairs, allSame, fst2of3)
+import Util(makePairs, flattenPairs, allSame, fst2of3)
 import SCC(tsort)
 
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle)

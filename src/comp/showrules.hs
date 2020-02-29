@@ -49,7 +49,7 @@ import System.IO.Unsafe(unsafePerformIO)
 import System.Time
 import Control.Monad(when, msum, foldM)
 import Control.Exception(bracket)
-import Data.List( partition, intersperse, genericLength
+import Data.List( partition, intercalate, genericLength
                 , sort, findIndex, sortBy, groupBy
                 )
 import Data.List.Split(wordsBy)
@@ -594,7 +594,7 @@ morphVCD' errh hOut st cmd@(Scope _ s) =
 -- record mapping of qualified name to VCD code and width
 morphVCD' errh hOut st cmd@(Var _ w c s) =
   do let s' = strip_width_brackets s
-         name = concat (intersperse "." (reverse (s':(scope st))))
+         name = intercalate "." (reverse (s':(scope st)))
          smap = M.insert name (c,w) (signal_map st)
          st' = st { signal_map = smap }
      writeVCD hOut [cmd]
@@ -691,7 +691,7 @@ morphVCD' errh hOut st EndDefs =
                                                        | (code,conds) <- (realignment cs) ++ (rw_realignment cs)
                                                        , let sig_name = M.findWithDefault "?" code invsigmap
                                                        , let cond_lines =
-                                                                 [ "      [" ++ (concat (intersperse ", " exprs)) ++ "] => " ++ rule_name
+                                                                 [ "      [" ++ (intercalate ", " exprs) ++ "] => " ++ rule_name
                                                                  | (es,rn) <- conds
                                                                  , let exprs = [ inst ++ " " ++ (init (ppReadable e)) | (inst,e) <- es ]
                                                                  , let rule_name = M.findWithDefault "?" rn invrulemap
@@ -1066,7 +1066,7 @@ handleClkEdge (cmds,status,st) (code,clk) =
                    ] ++
                    [ Info $ "Multiple rules wrote to " ++ sig_name ++
                             " at time " ++ (show now) ++": " ++
-                            (concat $ intersperse ", " rule_names)
+                            (intercalate ", " rule_names)
                    | (c,rinfo) <- multiple_writers
                    , let sig_name = M.findWithDefault "?" c invsigmap
                    , let rule_names = [ M.findWithDefault "?" rn invrulemap
@@ -1076,11 +1076,11 @@ handleClkEdge (cmds,status,st) (code,clk) =
                    [ Info $ "Unable to determine which rule(s) changed " ++
                             sig_name ++ " at time " ++
                             (show now) ++ ": " ++
-                            (concat $ intersperse "; " err_msgs)
+                            (intercalate "; " err_msgs)
                    | (c,rinfo) <- undetermined
                    , let sig_name = M.findWithDefault "?" c invsigmap
                    , let err_msgs = [ "For rule " ++ rule_name ++ ": " ++
-                                      (concat $ intersperse ", " errs)
+                                      (intercalate ", " errs)
                                     | (rn,errs) <- rinfo
                                     , let rule_name = M.findWithDefault "?" rn invrulemap
                                     ]
@@ -1105,7 +1105,7 @@ handleClkEdge (cmds,status,st) (code,clk) =
       -- compose a debugging message
       cond_records = [ [ "  For signal " ++ (vcd_code_to_string code) ++ " " ++ sig_name ] ++
                        [ "   " ++ (if ok then "* [" else "  [") ++
-                         (concat $ intersperse ", " vals) ++ "] => " ++ rule_name
+                         (intercalate ", " vals) ++ "] => " ++ rule_name
                        | (xs, rn) <- cond_values
                        , let ok = and [ b
                                       | ebs <- map snd xs
@@ -1566,7 +1566,7 @@ strip_width_brackets s = takeWhile (/= '[') s
 to_id :: String -> AId
 to_id "" = emptyId
 to_id s = let segs = wordsBy (=='.') s
-              qual = concat (intersperse "." (init segs))
+              qual = intercalate "." (init segs)
               base = last segs
           in setIdQualString (mk_homeless_id base) qual
 

@@ -100,7 +100,7 @@ printDOTGraph (DOTGraph strict di gid stmts) =
     ) ++
     "{\n" ++
     -- stmts
-    concat (intersperse ";\n" (map (printDOTStmt di) stmts)) ++
+    intercalate ";\n" (map (printDOTStmt di) stmts) ++
     -- closing
     "\n}\n"
 
@@ -114,7 +114,7 @@ printDOTStmt _ (Node i attrs) =
 printDOTStmt di (Edge es attrs) =
     -- XXX assert that length "es" > 1?
     let op = if di then "->" else "--"
-    in  concat (intersperse op es) ++
+    in  intercalate op es ++
         (if (null attrs)
          then ""
          else " " ++ printEdgeAttrs attrs
@@ -136,7 +136,7 @@ printDOTStmt _ (GraphAttr attr) =
 
 printNodeAttrs :: [NodeAttr] -> String
 printNodeAttrs attrs =
-    "[" ++ concat (intersperse ", " (map printNodeAttr attrs)) ++ "]"
+    "[" ++ intercalate ", " (map printNodeAttr attrs) ++ "]"
 
 printNodeAttr :: NodeAttr -> String
 printNodeAttr (NLabel s) = "label=" ++ s
@@ -159,7 +159,7 @@ printNodeStyle NRounded   = "rounded"
 
 printEdgeAttrs :: [EdgeAttr] -> String
 printEdgeAttrs attrs =
-    "[" ++ concat (intersperse ", " (map printEdgeAttr attrs)) ++ "]"
+    "[" ++ intercalate ", " (map printEdgeAttr attrs) ++ "]"
 
 printEdgeAttr :: EdgeAttr -> String
 printEdgeAttr (ELabel s) = "label=" ++ s
@@ -183,7 +183,7 @@ printEdgeDir ENone    = "none"
 
 printGraphAttrs :: [GraphAttr] -> String
 printGraphAttrs attrs =
-    "[" ++ concat (intersperse ", " (map printGraphAttr attrs)) ++ "]"
+    "[" ++ intercalate ", " (map printGraphAttr attrs) ++ "]"
 
 printGraphAttr :: GraphAttr -> String
 -- XXX check that the label is properly quoted and escaped if necessary?

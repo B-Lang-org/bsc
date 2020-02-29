@@ -4,7 +4,7 @@
 > module Parser.BSV.CVParser {- (bsvParseString, bsvParseFile) -} where
 
 > import Data.Char
-> import Data.List(mapAccumL, group, groupBy, sort, partition, nub)
+> import Data.List(mapAccumL, group, groupBy, intercalate, sort, partition, nub)
 > import Data.Maybe
 > import Control.Monad
 > import qualified Data.Set as S

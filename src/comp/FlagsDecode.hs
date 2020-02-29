@@ -17,7 +17,7 @@ module FlagsDecode(
              getFlagValueString,
         ) where
 
-import Data.List(nub, sort, intersperse, partition)
+import Data.List(nub, sort, intercalate, intersperse, partition)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Control.Exception as CE
@@ -1994,7 +1994,7 @@ makePath = splitWhen (==':')
 unPath :: [String] -> String
 unPath path =
     let convToken s = if (s == defaultPathToken) then "+" else s
-    in  concat (intersperse ":" (map convToken path))
+    in intercalate ":" (map convToken path)
 
 splitPath :: String -> [String] -> String -> [String]
 splitPath bspecdir old_path s =
@@ -2027,7 +2027,7 @@ makeMsgList :: String -> [String]
 makeMsgList = splitWhen (==':')
 
 unMsgList :: [String] -> String
-unMsgList path = concat (intersperse ":" path)
+unMsgList = intercalate ":"
 
 checkMsgList :: String -> [String] -> Either EMsg [String]
 checkMsgList flag_name tags =

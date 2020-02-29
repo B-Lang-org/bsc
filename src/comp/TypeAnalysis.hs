@@ -9,7 +9,7 @@ module TypeAnalysis (
                      kVector, vsVector, kList, vsList
                      ) where
 
-import Data.List(genericDrop, intersperse, (\\), nub, sortBy)
+import Data.List(genericDrop, intercalate, (\\), nub, sortBy)
 import Data.Char(isUpper)
 
 import Util(doRight, itos)
@@ -456,7 +456,7 @@ inParens :: String -> String
 inParens s = "(" ++ s ++ ")"
 
 commaSep :: [String] -> String
-commaSep xs = concat (intersperse ", " xs)
+commaSep = intercalate ", "
 
 
 -- ---------------

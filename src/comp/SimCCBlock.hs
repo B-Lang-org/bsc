@@ -65,7 +65,7 @@ import Eval(Hyper(..))
 import ErrorUtil(internalError)
 
 import Data.Maybe
-import Data.List(partition, intersperse, nub, sortBy)
+import Data.List(partition, intersperse, intercalate, nub, sortBy)
 import Data.List.Split(wordsBy)
 import Numeric(showHex)
 import Control.Monad.State(State, gets, modify, when)
@@ -169,7 +169,7 @@ instance Show SimCCBlock where
                          , show (sb_inputClocks sb)
                          , show (sb_gateMap sb)
                          ]
-            in "SimCCBlock {" ++ (concat $ intersperse ", " fields) ++ "}"
+            in "SimCCBlock {" ++ intercalate ", " fields ++ "}"
 
 get_rule_fns :: SimCCBlock -> [SimCCFn]
 get_rule_fns sb = map snd (concatMap snd (sb_rules sb))

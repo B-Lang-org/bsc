@@ -19,7 +19,7 @@ import qualified Control.Exception as CE
 import System.IO.Error(ioeGetErrorString)
 import Data.IORef
 import Data.Word(Word64)
-import Data.List(find, nub, partition, sort, sortBy, intersperse, isPrefixOf,
+import Data.List(find, nub, partition, sort, sortBy, intercalate, isPrefixOf,
                  groupBy, intersect, nubBy, group, elemIndex)
 import Data.Maybe
 import Data.Ord(comparing)
@@ -33,7 +33,7 @@ import qualified Data.Map as M
 
 -- Bluespec imports
 import Util(quote, concatMapM, concatUnzip3, lastOrErr, fromJustOrErr,
-            intercalate, thd, readOrErr)
+            thd, readOrErr)
 import IOUtil(getEnvDef)
 
 import ListUtil(mapFst, mapSnd)
@@ -345,7 +345,7 @@ helpCmd interp [_,cmd] = do
     (co:aos) -> do cname <- htclObjToString interp co
                    if ((cname == "list") && (null aos))
                     then let cmds = sortBy (\x y -> compare (htclCmdName x) (htclCmdName y)) tclCommands
-                         in return $ concat $ intersperse " " $ map htclCmdName cmds
+                         in return $ intercalate " " $ map htclCmdName cmds
                     else let c = find (\d -> cname == (htclCmdName d)) tclCommands
                          in case c of
                               (Just cd) -> show_help cd (co:aos)
@@ -2709,7 +2709,7 @@ tclSim ("get":hdls) = do
                              do let bad_syms = map fst bad
                                 bad_names <- mapM (bk_get_key bs) bad_syms
                                 let msg = "Cannot get value for symbol(s): " ++
-                                          (concat (intersperse ", " bad_names))
+                                          (intercalate ", " bad_names)
                                 ioError $ userError msg
                         return $ case (map show vs) of
                                    [x] -> TStr x
@@ -3033,7 +3033,7 @@ mkDirString bs relative_to syms =
                         else head relative_to
            ds = reverse $ takeWhile (/= above_root) syms
        names <- mapM (bk_get_key bs) ds
-       return $ concat $ intersperse "." names
+       return $ intercalate "." names
 
 describeSym :: BluesimModel -> BSSymbol -> IO String
 describeSym bs sym =
@@ -3113,7 +3113,7 @@ doSegment bs rel ds seg =
        let (ok,bad) = partition fst $ zip ismod ds
        when (not (null bad)) $
             do names <- mapM (showDir . snd) bad
-               let str = concat $ intersperse ", " names
+               let str = intercalate ", " names
                    msg = if (length names == 1)
                          then "Not a module: " ++ str
                          else "Not modules: " ++ str
@@ -3128,7 +3128,7 @@ doSegment bs rel ds seg =
            (bad2,ok2) = partition ((== bad_symbol) . hierLeaf) new_ds
        when (not (null bad2)) $
             do names <- mapM (showDir . tail) bad2
-               let str = concat $ intersperse ", " names
+               let str = intercalate ", " names
                    to_match = case (seg) of
                                 (Exact name) -> name
                                 (Pattern pat) -> pat

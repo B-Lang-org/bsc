@@ -58,7 +58,7 @@ aRankMethCallsInternal errh orig_ranks orig_pkg =
            unranked_names = rule_method_names \\ ranked_names
            bogus_names = ranked_names \\ rule_method_names
            show_with_commas names =
-               concat (intersperse ", " [show (getIdString n) | n <- names])
+               intercalate ", " [show (getIdString n) | n <- names]
        when (not (null bogus_names))
            (bsError errh
             [(getPosition (head bogus_names),
