@@ -62,8 +62,8 @@ STP_ARGS = -I../stp/include -L../stp/lib
 STP_LIBS = -lstp
 
 # Yices
-YICES_HS      = ../yices/include_hs
-YICES_ARGS = -I../yices/include -L../yices/lib
+YICES_HS      = ../vendor/yices/include_hs
+YICES_ARGS = -I../vendor/yices/include -L../vendor/yices/lib
 YICES_LIBS = -lyices
 
 # Libs which are only needed to build bsc/bluetcl
