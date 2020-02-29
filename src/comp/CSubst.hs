@@ -187,7 +187,6 @@ instance CSubst CExpr where
     cSubst r (Cdo b ss) = Cdo b (cSubstStmts r ss)
     cSubst r (Caction pos ss) = Caction pos (cSubstStmts r ss)
     cSubst r (Crules ps rs) = Crules ps (cSubst r rs)
-    cSubst r (CADump es) = CADump (cSubst r es)
     cSubst r (COper ops) = COper (cSubst r ops)
     cSubst r (CCon1 ti ci e) =
         CCon1 (cSubstTConId r ti) (cSubstConId r ci) (cSubst r e)
@@ -350,4 +349,3 @@ getPatVars :: CPat -> [Id]
 getPatVars = S.toList . getPV
 
 -- --------------------
-

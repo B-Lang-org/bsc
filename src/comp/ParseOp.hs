@@ -232,9 +232,6 @@ pExpr ft (Caction pos ss) = do
 pExpr ft (Crules ps rs) = do
     rs' <- mapM (pRule ft) rs
     return (Crules ps rs')
-pExpr ft (CADump es) = do
-    es' <- mapM (pExpr ft) es
-    return (CADump es')
 pExpr ft (COper os) = do
     os' <- mapM (pOp ft) os
     parseOp ft os'

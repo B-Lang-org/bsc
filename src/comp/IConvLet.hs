@@ -260,7 +260,6 @@ unpoly i (CForeignFuncC { }) = internalError "IConv.unpoly: CForeignFuncC"
 unpoly i (Cdo _ _) = internalError "IConv.unpoly: Cdo"
 unpoly i (Caction _ _) = internalError "IConv.unpoly: Caction"
 unpoly i (Crules ps rs) = Crules ps (map (unpolyr i) rs)
-unpoly i (CADump _) = internalError "IConv.unpoly: CADump"
 unpoly i (COper _) = internalError "IConv.unpoly: COper"
 unpoly i (CCon1 _ _ _) = internalError "IConv.unpoly: CCon1"
 unpoly i (CSelectTT _ _ _) = internalError "IConv.unpoly: CSelectTT"

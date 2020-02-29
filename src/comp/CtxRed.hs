@@ -252,9 +252,6 @@ instance CtxRed CExpr where
     ctxRed (Crules ps rs) = do
         rs' <- ctxRed rs
         return (Crules ps rs')
-    ctxRed (CADump es) = do
-        es' <- ctxRed es
-        return (CADump es')
     ctxRed (CConT ti i es) = do
         es' <- ctxRed es
         return (CConT ti i es')

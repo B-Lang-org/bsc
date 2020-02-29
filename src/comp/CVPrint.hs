@@ -621,7 +621,6 @@ instance PVPrint CExpr where
     pvPrint d p (Cdo _ ss) = pparen (p>0) $ t "actionvalue" $+$ nest 2 (ppActions d ss True) $+$ t "endactionvalue"
     pvPrint d p (Caction _ ss) = pparen (p>0) $ ppActions d ss False
     pvPrint d p (Crules ps rs) = ppRules d p ps rs False
-    pvPrint d p (CADump es) = ppDump d es <+> text ""
     ----
     pvPrint d p (COper []) = empty
     pvPrint d p (COper [(CRand p1)]) = pvPrint d p p1
@@ -719,9 +718,6 @@ instance PVPrint CMStmt where
         let n = length es
         in t ("return(tuple"++show n++"(") <>
             sepList (map (pvPrint d p) es) (text ",") <> text "));"
-
-ppDump :: PDetail -> [CExpr] -> Doc
-ppDump d es = text "{-# dump" <+> sepList (map (pp d) es) (text ",") <+> text "#-}"
 
 instance PVPrint COp where
     pvPrint d pn (CRand p) = pvPrint d pn p

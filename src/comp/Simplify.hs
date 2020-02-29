@@ -243,7 +243,6 @@ instance Simp CExpr where
 --  simp r (CHasType _ _) =
 --  simp r (Cif _ _ _ _) =
 --  simp r (Csub _ _) =
-    simp r (CADump es) = CADump (map (simp r) es)
     simp r (Crules ps rs) = Crules ps (map (simp r) rs)
     simp r orig@(CTApply (CTApply e ts) ts') =
         traced "Simplify.Simp(CExpr).simp[7]" orig $
