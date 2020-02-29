@@ -20,5 +20,5 @@ install clean full_clean:
 	$(MAKE)  -C Verilog.Quartus  PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C Verilog.Vivado   PREFIX=$(PREFIX)  $@
 	$(MAKE)  -C bluetcl    PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C sim        PREFIX=$(PREFIX)  $@
+	$(MAKE)  -C bluesim    PREFIX=$(PREFIX)  $@
 
