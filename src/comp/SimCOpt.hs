@@ -9,12 +9,12 @@ import Id( Id, getIdBaseString, setIdBaseString
          , unQualId, isFire )
 import ABinUtil(InstModMap)
 import ErrorUtil(internalError)
-import Util(splitBy, intercalate)
 import ListUtil(mapSnd)
+import Util(splitBy)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)
-import Data.List(find)
+import Data.List(find, intercalate)
 import qualified Data.Map as M
 import qualified Data.Set as S
 

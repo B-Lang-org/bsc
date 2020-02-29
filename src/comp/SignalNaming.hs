@@ -127,4 +127,4 @@ opToString op = map toUpper $
 connectWith :: String -> [String] -> String
 connectWith connector =
     let rm_s = reverse . dropWhile (== '_') . reverse . dropWhile (== '_')
-    in  concat . intersperse connector . map rm_s
+    in  intercalate connector . map rm_s

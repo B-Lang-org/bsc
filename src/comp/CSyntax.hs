@@ -71,7 +71,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.Char(isAlpha)
-import Data.List(intersperse, genericReplicate)
+import Data.List(intercalate, genericReplicate)
 import Eval
 import Lex(isIdChar)
 import PPrint
@@ -1097,7 +1097,7 @@ instance PPrint CExpr where
                 g 1 = t""
                 g n = t("[" ++ itos n ++ "]")
                 h (s,[]) = show s
-                h (s,ps) = show s ++ "{" ++ concat (intersperse "," (map (drop 2 . show) ps)) ++ "}"
+                h (s,ps) = show s ++ "{" ++ intercalate "," (map (drop 2 . show) ps) ++ "}"
                 ppA (ai, e) = text "(" <> text (ppReadable ai) <> text "," <+> pp d e <> text ")"
     pPrint d p (CForeignFuncC i wrap_ty) =
         -- There's no real Classic syntax for this:

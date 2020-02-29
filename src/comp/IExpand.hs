@@ -3737,7 +3737,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
             (PrimClocksOf, _) -> do
               -- want to pick up implicit conditions (third expr is the one to extract clocks from)
               case (dropT ees) of
-                es@[E nil, E cons, E e] -> do when doTraceClock $ traceM ("PrimClocksOf:\n" ++ concat (intersperse "\n\n" (map show es)))
+                es@[E nil, E cons, E e] -> do when doTraceClock $ traceM ("PrimClocksOf:\n" ++ intercalate "\n\n" (map show es))
                                               ws <- extractWireSet e
                                               eval1 (foldr (\c e ->
                                                              IAps cons [] [icClock prim_id c, e])
@@ -3761,7 +3761,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
             (PrimResetsOf, _) -> do
               -- want to pick up implicit conditions (third expr is the one to extract resets from)
               case (dropT ees) of
-                es@[E nil, E cons, E e] -> do when doTraceClock $ traceM ("PrimResetsOf:\n" ++ concat (intersperse "\n\n" (map show es)))
+                es@[E nil, E cons, E e] -> do when doTraceClock $ traceM ("PrimResetsOf:\n" ++ intercalate "\n\n" (map show es))
                                               ws <- extractWireSet e
                                               eval1 (foldr (\r e ->
                                                              IAps cons [] [icReset prim_id r, e])

@@ -55,7 +55,7 @@ import Prim hiding(PrimArg(..))
 import Util(Hash, hashInit, nextHash, showHash)
 
 import Data.Char(chr, ord)
-import Data.List(sort, intersperse)
+import Data.List(sort, intercalate)
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
 import Control.Applicative(Applicative(..))
 #endif
@@ -132,7 +132,7 @@ data BinElem = B [Byte]
 
 instance Show BinElem where
   show (B bs)    = "[" ++
-                   (concat (intersperse "," [showHex (ord b) "" | b <- bs])) ++
+                   (intercalate "," [showHex (ord b) "" | b <- bs]) ++
                    "]"
   show (S s)     = getFString s
   show (I i)     = show i

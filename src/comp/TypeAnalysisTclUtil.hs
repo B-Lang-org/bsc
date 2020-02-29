@@ -25,8 +25,7 @@ import CType
 import Pred
 import Pragma
 
-import Util(intercalate)
-import Data.List(sort)
+import Data.List(intercalate, sort)
 import IntegerUtil(integerToString)
 
 -- ---------------

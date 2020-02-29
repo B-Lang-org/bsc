@@ -8,7 +8,7 @@ module AVerilog (aVerilog) where
 
 import Data.List(nub,
             partition,
-            intersperse,
+            intercalate,
             sort,
             sortBy,
             group,
@@ -75,7 +75,7 @@ aVerilog errh flags pps aspack ffmap =
         trailer = ["",""]
         comments = if (null comments_list)
                    then []
-                   else (concat (intersperse [""] comments_list)) ++ trailer
+                   else (intercalate [""] comments_list) ++ trailer
 
         -- The modules are:
         --   (1) The main module
@@ -1442,7 +1442,7 @@ makeTopComments item_type ics =
             in  [hdr] ++ splitAndIndent cs
         mkTopComment (is,cs) =
             let quoted_items = map (quote . getIdString) is
-                item_list = concat (intersperse ", " quoted_items)
+                item_list = intercalate ", " quoted_items
                 hdr = "Comments on the inlined " ++ item_type ++ "s " ++
                       item_list ++ ":"
                 wrapped_hdr = pretty 78 78 (s2par hdr)
