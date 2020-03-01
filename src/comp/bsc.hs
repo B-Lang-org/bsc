@@ -2034,6 +2034,7 @@ vSimLink errh flags toplevel prefix vfiles ofiles = do
         ExitSuccess -> unless (quiet flags) $ putStrLnF ("Verilog binary file created: " ++ outFile)
         ExitFailure n -> exitFailWith errh n
 
+veriFiles :: String -> [String]
 veriFiles path =
         map ((path ++ "/Verilog/") ++) ["main.v"]
 

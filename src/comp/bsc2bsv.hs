@@ -19,6 +19,7 @@ main =
          [fn] -> readFile fn >>= bsc2bsv fn
          _ -> error "usage: bsc2bsv filename"
 
+bsc2bsv :: String -> String -> IO ()
 bsc2bsv filename text =
     do let lflags = LFlags { lf_is_stdlib = False,
                              lf_allow_sv_kws = True }

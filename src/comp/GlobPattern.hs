@@ -34,6 +34,7 @@ instance Show GlobPattern where
   show (GlobNotOneOf cs p) = "[!" ++ (concatMap show cs) ++ "]" ++ (show p)
   show (GlobBadPattern s) = "<BADPATTERN: " ++ s ++ ">"
 
+globSeparator :: Char
 globSeparator = '.'
 
 -- Parse a string into a GlobPattern
