@@ -356,7 +356,7 @@ mkForeignCall ret fc@(FFAction ff action) =
 
 -- Determine whether a system task needs a pointer to the kernel state
 fnNeedsSimHdl :: String -> Bool
-fnNeedsSimHdl name = any (\x -> isPrefixOf x name ) tasks
+fnNeedsSimHdl name = any (`isPrefixOf` name ) tasks
     where tasks = [ "$time", "$stime"
 
                   , "$stop", "$finish"
@@ -375,7 +375,7 @@ fnNeedsSimHdl name = any (\x -> isPrefixOf x name ) tasks
 
 -- Determine whether a system task needs a pointer to its module
 fnNeedsLocation :: String -> Bool
-fnNeedsLocation name = any (\x -> isPrefixOf x name ) tasks
+fnNeedsLocation name = any (`isPrefixOf` name ) tasks
     where tasks = ["$write"  , "$fwrite"  , "$swrite"
                   ,"$display", "$fdisplay", "$sformat"
                   ,"$info"   , "$warning" , "$error", "$fatal"

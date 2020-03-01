@@ -415,5 +415,5 @@ putStrHandles' size hdls str = loop str
   where loop []  = return ()
         loop str = do
           let (front, rest) = splitAt size str
-          mapM_ (\h -> hPutStr h front) hdls
+          mapM_ (`hPutStr` front) hdls
           loop rest

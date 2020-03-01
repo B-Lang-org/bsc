@@ -37,8 +37,8 @@ type CharParser st a    = GenParser Char st a
 -- Character parsers
 -----------------------------------------------------------
 oneOf, noneOf :: [Char] -> CharParser st Char
-oneOf cs            = satisfy (\c -> elem c cs)
-noneOf cs           = satisfy (\c -> not (elem c cs))
+oneOf cs            = satisfy (`elem` cs)
+noneOf cs           = satisfy (`notElem` cs)
 
 spaces :: CharParser st ()
 spaces              = skipMany space        <?> "white space"

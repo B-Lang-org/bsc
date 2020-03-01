@@ -1151,7 +1151,7 @@ mkActionEdges env en (ACall state_id qual_meth_id (cond:exprs)) =
         meth_en = PNStateMethodEnable state_id meth_id
         meth_arg_mux = PNStateMethodArgMux state_id meth_id
         meth_args =
-            map (\arg_num -> PNStateMethodArg state_id meth_id arg_num) [1..]
+            map (PNStateMethodArg state_id meth_id) [1..]
     in
       -- if the method has arguments, connect the enable signal of the
       -- action to the control mux for the arguments
@@ -1166,10 +1166,10 @@ mkActionEdges env en (ACall state_id qual_meth_id (cond:exprs)) =
 
 mkActionEdges env en (AFCall { aact_args = es@(cond:exprs) }) =
     -- XXX right now, we don't track cycles through function calls
-    concatMap (\e -> snd3 (findEdges env e)) es
+    concatMap (snd3 . findEdges env) es
 mkActionEdges env en (ATaskAction { aact_args = es@(cond:exprs) }) =
     -- XXX right now, we don't track cycles through task calls
-    concatMap (\e -> snd3 (findEdges env e)) es
+    concatMap (snd3 . findEdges env) es
 mkActionEdges env en action =
     internalError ("APaths.mkActionEdges: " ++ show (en, action))
 

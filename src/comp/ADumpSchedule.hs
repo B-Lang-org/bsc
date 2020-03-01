@@ -273,7 +273,7 @@ doShowSchedule errh flags prefix pkg
         schedPutStr str = putStrHandles outputHandles str
     let schedPutStrLn :: String -> IO ()
         schedPutStrLn str = do schedPutStr str
-                               mapM_ (\h -> hPutChar h '\n') outputHandles
+                               mapM_ (`hPutChar` '\n') outputHandles
     let schedPutDoc :: Doc -> IO ()
         schedPutDoc d = schedPutStr (pretty 78 78 d)
 
