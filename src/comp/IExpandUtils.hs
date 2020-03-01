@@ -241,7 +241,7 @@ normPConj' (PConj ps) =
     in PConj (S.fromList (as ++ concat mifs' ++ concat msels'))
 
 predToIExpr :: Pred a -> IExpr a
-predToIExpr (PConj es) = foldr ieAnd iTrue (map pTermToIExpr (S.toList es))
+predToIExpr (PConj es) = foldr (ieAnd . pTermToIExpr) iTrue (S.toList es)
 
 pTermToIExpr :: PTerm a -> IExpr a
 pTermToIExpr (PAtom e) = e

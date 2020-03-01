@@ -540,9 +540,9 @@ eqPtrs heap ptrs =
                 case (getHeapCell p) of
                 HNF { hc_pexpr = P _ e } -> e
                 e -> internalError ("eqPtrs.heapOf " ++ ppReadable e)
-        hptrs (IAps f _ es) = foldr union [] (map hptrs (f:es))
+        hptrs (IAps f _ es) = foldr (union . hptrs) [] (f:es)
         hptrs (ICon _ (ICStateVar { iVar = IStateVar { isv_iargs = es } }))
-                            = foldr union [] (map hptrs es)
+                            = foldr (union . hptrs) [] es
         hptrs (IRefT _ p _) = [p]
         hptrs _ = []
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]

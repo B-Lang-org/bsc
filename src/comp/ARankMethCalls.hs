@@ -185,7 +185,7 @@ instance RankMethCalls AAction where
 instance (RankMethCalls elt_t) => RankMethCalls [elt_t] where
     rankMethCalls ver elts =
         let ranked_pairs = [rankMethCalls ver elt | elt <- elts]
-        in  (map fst ranked_pairs, foldr union [] (map snd ranked_pairs))
+        in  (map fst ranked_pairs, foldr (union . snd) [] ranked_pairs)
 
 rankId :: Int -> Id -> Id
 rankId rank name =
