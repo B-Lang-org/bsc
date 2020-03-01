@@ -104,7 +104,7 @@ BSC builds with the latest version at the time of this writing, which is 8.8.2.
 
 ### Additional requirements
 
-For building the Bluespec Tcl/Tk shell, you will need the `tcl`, `tk`, 'itcl`,
+For building the Bluespec Tcl/Tk shell, you will need the `tcl`, `tk`, `itcl`,
 `itk`, `fontconfig` and `Xft` libraries:
 
     $ apt-get install \
