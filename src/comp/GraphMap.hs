@@ -3,7 +3,7 @@ module GraphMap (GraphMap, empty, null,
                  addVertex, addEdge, addWeakEdge, addEdgeWith,
                  deleteVertex, deleteEdge, deleteVertices, filterVertices,
                  vertices, neighbors, getOutEdgeMap,
-                 lookup, fromList, toList, toVAList,
+                 lookup, member, notMember, fromList, toList, toVAList,
                  ncc) where
 
 import Prelude hiding (null, lookup
@@ -11,12 +11,12 @@ import Prelude hiding (null, lookup
                       , (<>)
 #endif
                       )
-import Data.Maybe (maybeToList, isJust)
+import Data.Maybe (maybeToList)
 import qualified Data.Map as M
 import PPrint hiding(empty)
 
 
--- represent a graph of vertecies of type v, with weight w
+-- represent a graph of vertices of type v, with weight w
 -- The graph is stored as a Map (M) indexed by Vertex, with
 -- each Vertex containing another Map which represent its outbound edges.
 
@@ -70,6 +70,16 @@ filterVertices g f = deleteVertices g vs
 lookup :: (Ord v) => (v,v) -> GraphMap v w -> Maybe w
 lookup (v1,v2) (GraphMap m) = M.lookup v1 m >>= M.lookup v2
 
+member :: (Ord v) => (v,v) -> GraphMap v w -> Bool
+member (v1,v2) (GraphMap m) = case M.lookup v1 m of
+                                  Just m2 -> M.member v2 m2
+                                  Nothing -> False
+
+notMember :: (Ord v) => (v,v) -> GraphMap v w -> Bool
+notMember (v1,v2) (GraphMap m) = case M.lookup v1 m of
+                                  Just m2 -> M.notMember v2 m2
+                                  Nothing -> True
+
 vertices :: GraphMap v w -> [v]
 vertices (GraphMap m) = M.keys m
 
@@ -102,4 +112,4 @@ ncc :: Ord v => GraphMap v w -> [[v]]
 ncc g | null g = [[]]
       | otherwise = ncvs:(ncc $ deleteVertices g ncvs)
       where (v:vs) = vertices g
-            ncvs = v:[v' | v' <- vs, isJust $ lookup (v,v') g]
+            ncvs = v:[v' | v' <- vs, (v,v') `member` g]

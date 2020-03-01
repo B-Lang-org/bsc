@@ -161,11 +161,9 @@ inlineDefs pkg =
 processDef :: M.Map AId UseInfo -> M.Map AId AExpr ->
               (AId, ADef) -> Maybe (AId, ADef)
 processDef use_map subst (name,def) =
-  let has_subst = isJust (M.lookup name subst)
-      has_use = isJust (M.lookup name use_map)
-      doSubst (ASDef _ i) = case (M.lookup i subst) of
-                              (Just e) -> Just (exprMap doSubst e)
-                              Nothing  -> Nothing
+  let has_subst = name `M.member` subst
+      has_use = name `M.member` use_map
+      doSubst (ASDef _ i) = (\e -> exprMap doSubst e) <$> M.lookup i subst
       doSubst _           = Nothing
       opt d@(ADef _ _ e _) = d { adef_expr = exprMap doSubst e }
   in if has_subst
@@ -346,4 +344,3 @@ convertASAny errh flags apkg = do
                 , sp_local_defs = dmap' }
 
 -- -------------------------
-

@@ -1,6 +1,6 @@
 module GenSign(genUserSign, genEverythingSign) where
 import Data.List((\\), sortBy, unionBy, groupBy, partition)
-import Data.Maybe(isJust, catMaybes)
+import Data.Maybe(catMaybes)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Control.Monad(when)
@@ -255,7 +255,7 @@ genSign errh exportAll symt
             [(getIdPosition name, mkETypeNotExported name)
                 | name <- missingExportNames,
                   -- has uses which aren't hidden
-                  isJust (name `M.lookup` useLoci)]
+                  name `M.member` useLoci]
 
         errors = packageErrors ++ missingExports ++ badExports
 
