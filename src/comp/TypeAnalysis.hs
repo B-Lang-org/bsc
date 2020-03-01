@@ -84,6 +84,7 @@ showType showKinds t k user_vs =
 
 
 -- make [a,...,z,aa,ab,...,zy,zz,aaa,...]
+inexhaustable_var_names :: [String]
 inexhaustable_var_names = names
   where
     names = [ x:r | r <- ([]:names),
@@ -380,6 +381,8 @@ kList   = Kfun KStar KStar
 vsVector, vsList :: [Id]
 vsVector = map mk_homeless_id ["vsize", "element_type"]
 vsList   = map mk_homeless_id ["element_type"]
+
+vsTuple :: Int -> [Id]
 vsTuple sz = if sz > 8
              then internalError ("vsTuple: size > 7: " ++ ppReadable sz)
              else map mk_homeless_id (take sz ["a","b","c","d","e","f","g","h"])
@@ -390,6 +393,7 @@ apType f (ps :=> t) = ps :=> f t
 
 -- Whether a type is a valid subinterface type
 -- (and should be marked "interface" and not "method").
+isSubInterface :: CType -> Bool
 isSubInterface t =
     case (leftCon t, tyConArgs t) of
       (Just con, []) | (qualEq con idClock) -> True
@@ -451,9 +455,8 @@ pvStr = pvpString
 inParens :: String -> String
 inParens s = "(" ++ s ++ ")"
 
-commaSep = intercalate ", "
-
---spaceSep = intercalate " "
+commaSep :: [String] -> String
+commaSep = intercalate ", " xs
 
 
 -- ---------------

@@ -17,7 +17,7 @@ import IExpand(iExpand)
 import ISplitIf(iSplitIf)
 import AConv(aConv)
 import ASchedule(extractCFPairsSP, errAction)
-import AUses(MethodId(..), UniqueUse(..), MethodUsesList, ucTrue,
+import AUses(MethodId(..), MethodUsers, UniqueUse(..), MethodUsesList, ucTrue,
              mergeUseMapData, extractCondition, ruleMethodUsesToUUs)
 import AScheduleInfo(AScheduleInfo(..))
 import VModInfo(VMethodConflictInfo, vSched)
@@ -26,6 +26,7 @@ import PreIds
 import qualified Data.Map as M
 import qualified Data.Set as S
 import PPrint
+import Pragma(ASchedulePragma)
 import Error(internalError, ErrMsg(..), showErrorList, ErrorHandle)
 import Id
 import Position(noPosition)
@@ -54,6 +55,7 @@ buildOMCondMap uses = M.fromListWith (M.unionWith aOr) omuses'
 buildUseConditions :: [UniqueUse] -> AExpr
 buildUseConditions = aOrs . (map extractCondition)
 
+uqWGet, uqWSet :: Id
 uqWGet = unQualId idWGet
 uqWSet = unQualId idWSet
 
@@ -91,6 +93,9 @@ aAddSchedAssumps apkg schedule schedinfo = (apkg'', schedinfo')
                                  asi_resource_alloc_table = newRat }
 
 
+addCFAssumps :: [ASchedulePragma] -> RuleMethodMap -> OSchedMap
+             -> (ARuleId -> ARuleId -> Ordering) -> ARule
+             -> (ARule, [(ARuleId, MethodId, UniqueUse)])
 addCFAssumps pragmas ruleMethodMap instSchedMap cmpRule = proc_rule
   where cf_pairs = extractCFPairsSP pragmas
         sorted_cf_pairs = map (ordPairBy cmpRule) cf_pairs
@@ -103,8 +108,12 @@ addCFAssumps pragmas ruleMethodMap instSchedMap cmpRule = proc_rule
              let (new_assumps, useinfos) = unzip (mkCFAssumps ruleMethodMap instSchedMap rid rids)
              in (r { arule_assumps = arule_assumps r ++ new_assumps }, useinfos)
 
+mkCFAssumps :: RuleMethodMap -> OSchedMap -> ARuleId -> [ARuleId]
+            -> [(AAssumption, (ARuleId, MethodId, UniqueUse))]
 mkCFAssumps ruleMethodMap instSchedMap rid rids = concatMap (mkCFAssump ruleMethodMap instSchedMap rid) rids
 
+mkCFAssump :: RuleMethodMap -> OSchedMap -> ARuleId -> ARuleId
+           -> [(AAssumption, (ARuleId, MethodId, UniqueUse))]
 mkCFAssump ruleMethodMap instSchedMap r1 r2 = concat $ M.elems overlapMap
   where
     omcm_r1 = getOMCond r1
@@ -187,7 +196,12 @@ aAddCFConditionWires errh r alldefs flags apkg schedinfo =
                       (asi_method_uses_map schedinfo)
                       (M.fromListWith (mergeUseMapData) newUseMapEntries)
 
+useInfoToRatEntry :: (ARuleId, MethodId, UniqueUse)
+                  -> (MethodId, [(UniqueUse, Integer)])
 useInfoToRatEntry (_,mid,u) = (mid, [(u, 1)])
+
+useInfoToUseMapEntry :: (ARuleId, MethodId, UniqueUse)
+                     -> (MethodId, [(UniqueUse, MethodUsers)])
 useInfoToUseMapEntry (rid, mid, u) = (mid, [(u, ([],[rid],[]))])
 
 buildMethCondList :: MethodUsesList -> [(MethodId, AExpr)]
