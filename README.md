@@ -97,10 +97,10 @@ use the `cabal` command to install Haskell libraries:
     $ apt-get install cabal-install
     $ cabal install regex-compat syb old-time
 
-The version of GHC should not matter, since the source code has been written
-with extensive preprocessor macros, to support nearly every minor release since
-as far back as 6.12 and earlier. BSC builds with the latest version at the time
-of this writing, which is 8.8.2.
+The version of GHC must be 7.10.1 or greater.
+Beyond that, any version will work, since the source code has been written
+with extensive preprocessor macros, to support every minor release since.
+BSC builds with the latest version at the time of this writing, which is 8.8.2.
 
 ### Additional requirements
 
