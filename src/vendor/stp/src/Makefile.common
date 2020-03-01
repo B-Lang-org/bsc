@@ -1,4 +1,4 @@
-TOP=$(SRCTOP)/../../..
+TOP=$(SRCTOP)/../../../..
 include $(TOP)/platform.mk
 
 # Optimization

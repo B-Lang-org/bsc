@@ -1,4 +1,4 @@
-TOP=../..
+TOP=../../..
 PREFIX?=$(TOP)/inst
 
 .PHONY: all install clean full_clean

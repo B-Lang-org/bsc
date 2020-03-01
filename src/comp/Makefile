@@ -50,20 +50,20 @@ PARSEC_HS = ../Parsec
 
 # Tcl
 TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
-TCL_HS    = ../tcltk
+TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
             -litcl3.4 -litclstub3.4 -lhtcl
 
 # STP
-STP_HS      = ../stp/include_hs
-STP_ARGS = -I../stp/include -L../stp/lib
+STP_HS      = ../vendor/stp/include_hs
+STP_ARGS = -I../vendor/stp/include -L../vendor/stp/lib
 STP_LIBS = -lstp
 
 # Yices
-YICES_HS      = ../yices/include_hs
-YICES_ARGS = -I../yices/include -L../yices/lib
+YICES_HS      = ../vendor/yices/include_hs
+YICES_ARGS = -I../vendor/yices/include -L../vendor/yices/lib
 YICES_LIBS = -lyices
 
 # Libs which are only needed to build bsc/bluetcl
@@ -477,8 +477,8 @@ install-bluetcl: $(addprefix $(BINDIR)/,$(TCLEXES))
 install-bluetcl: $(addprefix $(BINDIR)/core/,$(TCLEXES))
 
 .PHONY: install-utils
-install-utils: $(addprefix $(BINDDIR)/,$(UTILEXES))
-install-utils: $(addprefix $(BINDDIR)/core/,$(UTILEXES))
+install-utils: $(addprefix $(BINDIR)/,$(UTILEXES))
+install-utils: $(addprefix $(BINDIR)/core/,$(UTILEXES))
 
 .PHONY: install-showrules
 install-showrules: $(addprefix $(BINDIR)/,$(SHOWRULESEXES))

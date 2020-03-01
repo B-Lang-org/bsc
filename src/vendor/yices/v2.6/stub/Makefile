@@ -1,4 +1,4 @@
-TOP=../../../..
+TOP=../../../../..
 include $(TOP)/platform.mk
 
 YICES_INST = ../yices2-inst

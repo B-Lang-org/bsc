@@ -1,5 +1,5 @@
 PWD:=$(shell pwd)
-TOP:=$(PWD)/../../..
+TOP:=$(PWD)/../../../..
 
 include $(TOP)/platform.mk
 
@@ -10,9 +10,9 @@ LIB_DIR=../lib
 INC_DIR=../include
 
 ifeq ($(OSTYPE), Darwin)
-LDFLAGS = -dynamiclib -Wl,-install_name,libbdpi.so
+LDFLAGS = -dynamiclib -Wl,-install_name,libstp_stub.so
 else
-LDFLAGS = -shared -Wl,-soname,libbdpi.so
+LDFLAGS = -shared -Wl,-soname,libstp_stub.so
 endif
 
 .PHONY: all
