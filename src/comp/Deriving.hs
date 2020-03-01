@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 module Deriving(derive) where
 
-import Data.List(nub, intersperse)
+import Data.List(nub, intercalate)
 import Util(log2, checkEither, unions, toMaybe, headOrErr, lastOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
@@ -614,7 +614,7 @@ doSFShow dpos ti vs fields =
                         [ stringLiteralAt dpos (fstr ++ ": "),
                           cVApply idfshow [CSelectTT ti vx (cf_name field)] ]
                 sepstr = stringLiteralAt dpos ", "
-            in  concat $ intersperse [sepstr] $ map mkFieldFmt fields
+            in  intercalate [sepstr] $ map mkFieldFmt fields
 
 
 doDFShow :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn

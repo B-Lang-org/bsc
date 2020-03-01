@@ -26,7 +26,7 @@ import SimCCBlock(pfxModel)
 
 import System.Posix.DynamicLinker
 import Data.Bits
-import Data.List(intersperse, isPrefixOf)
+import Data.List(intercalate, isPrefixOf)
 import Data.Int
 import Data.Word
 import Data.Time.Clock
@@ -675,7 +675,7 @@ getCurDirStr :: BluesimModel -> IO String
 getCurDirStr bs =
     do let ds = current_directory bs
        segments <- mapM (bk_get_key bs) ds
-       let dir = concat (intersperse "." (reverse segments))
+       let dir = intercalate "." (reverse segments)
        return $ if (null dir) then "." else dir
 
 getCurDirSym :: BluesimModel -> IO BSSymbol

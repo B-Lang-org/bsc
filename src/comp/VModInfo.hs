@@ -610,7 +610,7 @@ pePrint d p v = text $ concat [
             ", vPath = ", show (vPath v),
             "}}" ]
     where
-        sit a b = "[" ++ concat (intersperse "," (map a (b v))) ++ "]"
+        sit a b = "[" ++ intercalate "," (map a (b v)) ++ "]"
 { -
         re_id (a, b, c) =
                 "(" ++ getIdString a

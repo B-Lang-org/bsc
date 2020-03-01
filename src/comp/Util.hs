@@ -4,7 +4,7 @@ module Util where
 import Data.Char(intToDigit)
 import Data.Word(Word32,Word64)
 import Data.Bits
-import Data.List(sort, sortBy, group, groupBy, nubBy, union, intersperse, foldl')
+import Data.List(sort, sortBy, group, groupBy, nubBy, union, foldl')
 import Control.Monad(foldM)
 import Debug.Trace(trace)
 import qualified Data.Set as S
@@ -106,11 +106,6 @@ unwordsWith :: String -> [String] -> String
 unwordsWith d [] = ""
 unwordsWith d [x] = x
 unwordsWith d (x:xs) = x++d++unwordsWith d xs
-
--- This function is in Data.List as of GHC 6.8
--- At some point in the future, this version can be removed.
-intercalate :: [a] -> [[a]] -> [a]
-intercalate xs xss = concat (intersperse xs xss)
 
 readOrErr :: (Read a) => String -> String -> a
 readOrErr err s = fst $ headOrErr err $ reads s

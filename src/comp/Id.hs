@@ -750,7 +750,7 @@ instance ToString Id where
 
 instance ToString [Id] where
     itos a = internalError "itos applied to [Id] " ++ show a
-    to_string a = "[" ++ concat (intersperse "," (map to_string a)) ++ "]"
+    to_string a = "[" ++ intercalate "," (map to_string a) ++ "]"
 
 instance ToString (Id, Id) where
     itos a = internalError "itos applied to (a) " ++ show a

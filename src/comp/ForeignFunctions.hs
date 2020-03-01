@@ -46,7 +46,7 @@ import Util(tailOrErr, itos)
 import PPrint hiding (char, int)
 import Eval(Hyper(..))
 
-import Data.List(intersperse,isPrefixOf)
+import Data.List(intercalate, isPrefixOf)
 import Data.Maybe(mapMaybe, maybeToList)
 import PreIds
 import ListMap as LM
@@ -260,7 +260,7 @@ encodeArgs args =
       encode (Copy a)    = encode a
       encode (NoConst a) = encode a
       encode _           = Nothing
-  in concat (intersperse "," (mapMaybe encode args))
+  in intercalate "," (mapMaybe encode args)
 
 -- A value treated polymorphically must be handled based on the type of
 -- the actual expression.

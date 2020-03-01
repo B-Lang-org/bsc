@@ -4,7 +4,7 @@ import Version
 import FileNameUtil(hasDotSuf, vcdSuffix)
 import Position
 import Error(internalError, EMsg, ErrMsg(..), showErrorList)
-import Util(intercalate, separate)
+import Util(separate)
 import IOUtil(getEnvDef)
 import TopUtils(dfltBluespecDir)
 import VCD
@@ -15,7 +15,7 @@ import System.IO
 import System.Exit
 import Control.Exception(bracket)
 import Control.Monad(when, msum)
-import Data.List(partition, isPrefixOf)
+import Data.List(intercalate, partition, isPrefixOf)
 import Data.Maybe(fromMaybe, isJust, isNothing, fromJust)
 import Data.Bits(shiftL, xor, (.|.), shiftR)
 

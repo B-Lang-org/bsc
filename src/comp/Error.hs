@@ -55,7 +55,7 @@ import Prelude hiding ((<>))
 import ErrorUtil(internalError)
 
 -- displaying messages
-import Data.List(sortBy, intersperse, nub, delete, partition)
+import Data.List(sortBy, intercalate, nub, delete, partition)
 import Data.Char(toUpper)
 
 import Util(quote, unwordsOr, unwordsAnd, itos, doubleQuote, fst3, fth4)
@@ -2541,7 +2541,7 @@ getErrorText (EDeriveRecursive classes ty) =
              cls_msg ++ " not permit recursive instances."))
   where cls_msg = case classes of
                    [cls]   -> " typeclass " ++ cls ++ " does "
-                   (_ : _) -> " typeclasses (" ++ (concat (intersperse ", " classes)) ++ ") do "
+                   (_ : _) -> " typeclasses (" ++ (intercalate ", " classes) ++ ") do "
                    [] -> internalError "EDeriveRecursive no classes"
 
 getErrorText (EForeignFuncDuplicates link_name src_ids) =
@@ -2799,7 +2799,7 @@ getErrorText (EClassFundepsNotFull cls vars fundeps) =
     (Type 124, empty,
      s2par ("Dependencies for typeclass " ++ quote cls ++
             " must mention all the following typeclass variables (as sources or targets): " ++
-            concat (intersperse ", " vars)) $$
+            intercalate ", " vars) $$
      text "The following dependencies are not full:" $$
        nest 2 (vcatList (map pDependency fundeps) empty))
   where pDependency (sources, targets) =
@@ -2895,7 +2895,7 @@ getErrorText (EClassFundepsExtra cls extra_vs) =
     (Type 136, empty,
      s2par ("Dependencies for typeclass " ++ quote cls ++
             " mention the following variables which are not parameters " ++
-            "of the typeclass: " ++ concat (intersperse ", " extra_vs)))
+            "of the typeclass: " ++ intercalate ", " extra_vs))
 getErrorText (EClassFundepsEmpty cls) =
     (Type 137, empty,
      s2par ("Dependencies for typeclass " ++ quote cls ++
@@ -2994,7 +2994,7 @@ getErrorText (WCycleDrop child root cycle) =
     (Generate 9, empty, s2par "The scheduling phase created a conflict between the following rules:" $$
                         nest 4 (s2par (ishow child ++ " and " ++ ishow root)) $$
                         s2par "to break the following cycle:" $$
-                        nest 4 (s2par (concat (intersperse " -> " (map ishow cycle)))))
+                        nest 4 (s2par (intercalate " -> " (map ishow cycle))))
 getErrorText (WUrgencyChoice { em_more_urgent = moreUrgent,
                                em_less_urgent = lessUrgent,
                                em_conflicts = conflicts_info }) =
@@ -3125,7 +3125,7 @@ getErrorText (EUrgencyCycle cycle explanations other_ids) =
     (Generate 30, empty,
      let intro = s2par ("A cycle was detected in the urgency requirements " ++
                         "for this module:") $$
-                 nest 2 (s2par (concat (intersperse " -> " (map ishow cycle))))
+                 nest 2 (s2par (intercalate " -> " (map ishow cycle)))
          expl = s2par ("The relationships were introduced for " ++
                        "the following reasons:") $$
                 nest 2 (vcat explanations)
@@ -3229,7 +3229,7 @@ getErrorText (ECombinedSchedCycle cycle explanations other_ids) =
     (Generate 41, empty,
      let intro = s2par ("A cycle was detected in the ordering requirements " ++
                         "for this module:") $$
-                 nest 2 (s2par (concat (intersperse " -> " (map ishow cycle))))
+                 nest 2 (s2par (intercalate " -> " (map ishow cycle)))
          expl = s2par ("The relationships were introduced for " ++
                        "the following reasons:") $$
                 nest 2 (vcat explanations)
@@ -3624,7 +3624,7 @@ getErrorText (EMethodSchedToExec method cycle explanations) =
                         "This is not allowed, as the method may be called " ++
                         "conditionally inside a rule in the parent " ++
                         "module.  The path is as follows:") $$
-                 nest 2 (s2par (concat (intersperse " -> " (map ishow cycle))))
+                 nest 2 (s2par (intercalate " -> " (map ishow cycle)))
          expl = s2par ("The relationships were introduced for " ++
                        "the following reasons:") $$
                 nest 2 (vcat explanations)
@@ -3702,7 +3702,7 @@ getErrorText (EDynamicExecOrderTwoRules rule1 rule2 uses path explanations) =
            nest 2 (vcat (map showMeth uses))
          debugPath =
              s2par ("The execution order path is as follows:") $$
-             nest 2 (s2par (concat (intersperse " -> " (map ishow path)))) $$
+             nest 2 (s2par (intercalate " -> " (map ishow path))) $$
              s2par ("The relationships were introduced for the following " ++
                     "reasons:") $$
              nest 2 (vcat explanations)
@@ -3852,7 +3852,7 @@ getErrorText (EDynamicExecOrderTwoRulesLoop path explanations) =
                  "and possible solutions.")
          debugPath =
              s2par ("The ordering loop is as follows:") $$
-             nest 2 (s2par (concat (intersperse " -> " (map ishow path)))) $$
+             nest 2 (s2par (intercalate " -> " (map ishow path))) $$
              s2par ("The relationships were introduced for the following " ++
                     "reasons:") $$
              nest 2 (vcat explanations)
@@ -4137,7 +4137,7 @@ getErrorText (EWrongBackend source_backend flag_backend) =
             " back end, but the " ++ flag_backend ++
             " back end was specified."))
 getErrorText (EMissingUserFile filename path) =
-    let path_str = concat (intersperse ":" path)
+    let path_str = intercalate ":" path
     in (System 45, empty, s2par ("Unable to read file " ++ ishow filename ++ " using the path " ++ path_str))
 
 getErrorText (EMissingABinForeignFuncFile ffunc_name using_module) =
