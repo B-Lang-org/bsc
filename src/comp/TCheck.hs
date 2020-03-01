@@ -1,7 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 module TCheck(tiExpr, tiExpl) where
 
-import Data.Maybe(isJust)
 import Data.List
 import Control.Monad(when, unless)
 import qualified Data.Map as M
@@ -2656,7 +2655,7 @@ simplifyDictBindings all_bs =
             [ (i, e)
               | (CLValueSign (CDefT i _ _ [CClause _ _ e]) _) <- simple_bs ]
         defmap = M.fromList defpairs
-        isdef i = isJust (M.lookup i defmap)
+        isdef i = i `M.member` defmap
         usegraph = [ (i, is) | (i, e) <- defpairs,
                                let is0 = fvSetToFreeVars (getFVE e),
                                let is = filter isdef is0 ]

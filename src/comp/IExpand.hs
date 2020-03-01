@@ -4899,7 +4899,7 @@ instance HeapToDef HExpr where
         in  collPtrs refs m
     collPtrs (ICon _ _) m = m
     collPtrs (IRefT _ p r) m =
-        if isJust (IM.lookup p m) then
+        if p `IM.member` m then
             m
         else
             let c = unsafeDerefHeap r in

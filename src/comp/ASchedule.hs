@@ -1066,8 +1066,8 @@ aSchedule_step1 errh flags prefix pps amod = do
       -- is only a conflict from r1 to r2 (and not a conflict the other way)
       scGraph = tr "let scGraph" $
           [(r,[r' | r' <- ruleNames, r' /= r,
-                          isNothing (G.lookup (r',r) scConflictMapResources),
-                          isJust (G.lookup (r,r') scConflictMapResources)])
+                          (r',r) `G.notMember` scConflictMapResources,
+                          (r,r') `G.member` scConflictMapResources])
               | r <- ruleNames]
 
       -- scGraph is going to be used to determine a static global TRS
@@ -1273,8 +1273,8 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
       --     r2 must sequence before r1 (if they fire in the same cycle)
       scGraphFinal = tr "let scGraphFinal" $
           [(r,[r' | r' <- G.vertices scConflictMapFinal, r' /= r,
-                    isNothing (G.lookup (r',r) scConflictMapFinal),
-                    isJust (G.lookup (r,r') scConflictMapFinal)])
+                    (r',r) `G.notMember` scConflictMapFinal,
+                    (r,r') `G.member` scConflictMapFinal])
               | r <- G.vertices scConflictMapFinal]
 
   -- dump scgraphFinal if flagged
@@ -1324,8 +1324,8 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
           let -- only keep the edges where there *is* a conflict
               rulesConflict (r1, r2, _) =
                   -- it can't be SB in any direction
-                  isJust (G.lookup (r1, r2) scConflictMapFinal) &&
-                  isJust (G.lookup (r2, r1) scConflictMapFinal)
+                  (r1, r2) `G.member` scConflictMapFinal &&
+                  (r2, r1) `G.member` scConflictMapFinal
           in  partition rulesConflict schedUrgencyEdges
 
       urgencyNodes = ruleNames
@@ -1839,11 +1839,11 @@ scheduleEsposito cmap_sc method_names rs =
         --   It is reflected in the ifc annotations, leaving the urgency
         --   decision to the caller.
         rulesConflict r1 r2 =
-          if ((isMethod r1) && (isMethod r2)) then
+          if isMethod r1 && isMethod r2 then
              False
            else
-            (isJust (G.lookup (r1,r2) cmap_sc) &&
-             isJust (G.lookup (r2,r1) cmap_sc))
+             (r1,r2) `G.member` cmap_sc &&
+             (r2,r1) `G.member` cmap_sc
 
         foldfunc (res, rs_so_far) r =
             let conflicts = [r' | r' <- rs_so_far, rulesConflict r r']
@@ -1920,9 +1920,9 @@ warnAndRecordArbitraryEarliness
         -- in cmap_cf, by removing conflict edges for disjoint rules)
         -- XXX look to make sure a path didn't force the order
         is_earliness_arbitrary r1 r2 =
-            isJust (G.lookup (r1, r2) cmap_cf)          -- CF conflict and
-            && not (isJust (G.lookup (r1, r2) cmap_sc)) -- no SC conflict
-            && not (isJust (G.lookup (r2, r1) cmap_sc)) -- either way
+            (r1, r2) `G.member`    cmap_cf -- CF conflict and
+            && (r1, r2) `G.notMember` cmap_sc -- no SC conflict
+            && (r2, r1) `G.notMember` cmap_sc -- either way
 
         no_warn rid = let rs = [i | i <- user_arules, (arule_id i) == rid]
                       in case (rs) of
@@ -1969,8 +1969,8 @@ warnAndRecordArbitraryEarliness
             && ((domain r1) == (domain r2))
 
         has_shadowing r1 r2 =
-            let sc1 = isJust (G.lookup (r1, r2) cmap_sc)
-                sc2 = isJust (G.lookup (r2, r1) cmap_sc)
+            let sc1 = (r1, r2) `G.member` cmap_sc
+                sc2 = (r2, r1) `G.member` cmap_sc
                 can_fire_together = (not sc1) || (not sc2)
             in if ((not ((no_warn r1) && (no_warn r2))) && can_fire_together)
                then let affected_calls = conflicting_methods r1 r2
@@ -2035,8 +2035,7 @@ warnAndRecordArbitraryUrgency
         -- The existence of an edge from r2 to r1 means that the
         -- decision was not arbitrary.
         -- XXX look for a path in the csmap, not just an edge
-        is_urgency_arbitrary r1 r2 =
-            not (isJust (G.lookup (r2,r1) umap))
+        is_urgency_arbitrary r1 r2 = (r2,r1) `G.notMember` umap
 
         always_warn rid = let rs = [i | i <- user_arules, (arule_id i) == rid]
                           in case (rs) of
@@ -3700,7 +3699,7 @@ mkExclusiveRulesDB rule_names rule_uses_map are_disjoint are_cf cf_map sc_map
             let match_rule_names (r1',r2',_) = r1 == r1' && r2 == r2'
                 -- XXX lookup in sc_map only means that r1 affects something
                 -- XXX that r2 reads, not they are exclusive!
-                conflicts_sc = isJust (G.lookup (r1,r2) sc_map)
+                conflicts_sc = (r1,r2) `G.member` sc_map
                 conflicts_res = any match_rule_names res_drops
                 conflicts_cycle = any match_rule_names cycle_drops
                 conflicts_prio = any match_rule_names earliness_drops
@@ -4037,7 +4036,6 @@ flattenUrgencyMap moduleId umap =
     let
         -- vertices of the graph
         vs = G.vertices umap
-        lookupG edge = G.lookup edge umap
 
         -- Convert umap to the format expected by tsort (topological sort).
         -- The pair (r1,r2) is added if there is a directed edge (r2,r1)
@@ -4050,8 +4048,8 @@ flattenUrgencyMap moduleId umap =
                             r' /= r,
                             -- let's try making the graph in the
                             -- opposite direction
-                            -- isJust (lookupG (r,r'))])
-                            isJust (lookupG (r',r))])
+                            -- (r,r') `G.member` umap])
+                           (r',r) `G.member` umap])
                     | r <- vs]
 
     in
@@ -4939,15 +4937,15 @@ conflictMapToDOT clockSuffix modName ifcRuleNames userRuleNames cmap =
             let r1name = getIdString r1
                 mkE r2 =
                     -- (r1,r2) in the map means r1 cannot seq before r2
-                    if (isJust (G.lookup (r1,r2) cmap))
-                    then if (isJust (G.lookup (r2,r1) cmap))
+                    if (r1,r2) `G.member` cmap
+                    then if (r2,r1) `G.member` cmap
                          then -- total conflict
                               [Edge [r1name, getIdString r2]
                                     [EStyle EBold, EDir ENone]]
                          else -- r2 SB r1
                               [Edge [getIdString r2, r1name]
                                     [EStyle EDashed]]
-                    else if (isJust (G.lookup (r2,r1) cmap))
+                    else if (r2,r1) `G.member` cmap
                          then -- r1 SB r2
                               [Edge [r1name, getIdString r2]
                                     [EStyle EDashed]]

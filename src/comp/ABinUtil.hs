@@ -269,7 +269,7 @@ followABMIHierarchy curpkg = do
             hmap <- getHierMap
             -- primitives will already be in the map
             -- (as well as foreign imports already encountered)
-            if (isJust (M.lookup mod hmap))
+            if mod `M.member` hmap
               then return ()
               else do
                   -- error if the backend is Bluesim
@@ -326,7 +326,7 @@ followABMIHierarchy curpkg = do
         addFFuncUse ffunc_name = do
             s <- get
             let ffunc_map = m_foundffunc_map s
-            if (isJust (M.lookup ffunc_name ffunc_map))
+            if ffunc_name `M.member` ffunc_map
               then return ()
               else do abi <- findForeignFuncABI curmodname ffunc_name
                       let ffinfo = abffi_foreign_func abi
@@ -344,7 +344,7 @@ followABMIHierarchy curpkg = do
         followOneSubMod modname = do
             s <- get
             let hier_map = m_foundmod_map s
-            if (isJust (M.lookup modname hier_map))
+            if modname `M.member` hier_map
               then return ()
               else followABIHierarchy (Just curmodname) modname >> return ()
 
