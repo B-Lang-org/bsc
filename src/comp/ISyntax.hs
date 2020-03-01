@@ -1103,11 +1103,11 @@ instance PPrint (IPackage a) where
  pPrint d p (IPackage mi lps ps ds) =
         (text "IPackage" <+> ppId d mi) $+$
         (text "  --linked packages") $+$
-        foldr ($+$) (text "") (map (pPrintLink d 0) lps) $+$
+        foldr (($+$) . pPrintLink d 0) (text "") lps $+$
         (text "  --pragmas ")  $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ps) $+$
+        foldr (($+$) . pPrint d 0) (text "") ps $+$
         (text "  --idefs ")  $+$
-        foldr (sep (text "next def..........................................................")) (text "") (map (ppDef d) ds)
+        foldr (sep (text "next def..........................................................") . ppDef d) (text "") ds
   where sep a b c = b $+$ a $+$ c
 
 instance PPrint (IModule a) where
@@ -1119,26 +1119,25 @@ instance PPrint (IModule a) where
         text "-- wire info" $+$
         pPrint d p wi $+$
         text "-- pragmas" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ps) $+$
+        foldr (($+$) . pPrint d 0) (text "") ps $+$
         text "-- imod parameters" $+$
-        foldr ($+$) (text "") (map (ppMV d) ks) $+$
+        foldr (($+$) . ppMV d) (text "") ks $+$
         text "-- imod args" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) as) $+$
+        foldr (($+$) . pPrint d 0) (text "") as $+$
         text "-- imod clock domains" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) clks) $+$
-        text "-- imod resets" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) rsts) $+$
+        foldr (($+$) . pPrint d 0) (text "") clks $+$
+        foldr (($+$) . pPrint d 0) (text "") rsts $+$
         text "-- imod state instances" $+$
-        foldr ($+$) (text "") (map ppSV vs) $+$
+        foldr (($+$) . ppSV) (text "") vs $+$
         text "-- port types" $+$
-        foldr ($+$) (text "") (map ppPT (M.toList pts)) $+$
+        foldr (($+$) . ppPT) (text "") (M.toList pts) $+$
         text "-- imod local defs" $+$
-        foldr ($+$) (text "") (map (ppDef d) ds) $+$
+        foldr (($+$) . ppDef d) (text "") ds $+$
         text "-- imod rules" $+$
         pPrint d 0 rs $+$
         text "" $+$
         text "-- imod interface" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ifc)
+        foldr (($+$) . pPrint d 0) (text "") ifc
   where ppSV (i, sv) = ppId d i <> pPrint d 0 sv
         ppPT (i, m) =
             foldr ($+$) (text "")
@@ -1153,7 +1152,7 @@ ppMV d (i, ty) = ppId d i <+> text "::" <+> pPrint d 0 ty
 instance PPrint (IEFace a) where
     pPrint d p (IEFace i vs et rules wp fi)
         =       text "-- args" $+$
-                foldr ($+$) b (map (ppMV d) vs)
+                foldr (($+$) . ppMV d) b vs
               where b =        text "-- body" $+$
                         (case et of
                           Just (e,t) -> ppDef d $ IDef i t e []
@@ -1218,8 +1217,8 @@ instance PPrint (IRule a) where
 
 instance PPrint (IRules a) where
     pPrint d p (IRules sps rs) =
-        foldr ($+$) (text "") (map (pPrint d 0) sps) $+$
-        foldr ($+$) (text "") (map (pPrint d 0) rs)
+        foldr (($+$) . pPrint d 0) (text "") sps $+$
+        foldr (($+$) . pPrint d 0) (text "") rs
 
 ppQuant :: PPrint a => String -> PDetail -> Int -> Id -> a -> IExpr b -> Doc
 ppQuant s d p i t e =

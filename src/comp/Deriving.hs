@@ -962,7 +962,7 @@ addRequiredDeriv flags r i tvs clsId derivs =
 addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
                   -> [CTypeclass]
 addRequiredDerivs flags r i tvs derivs =
-  foldr f derivs (map setPos requiredClasses)
+  foldr (f . setPos) derivs requiredClasses
    where pos    = getIdPosition i
          setPos clsId = setIdPosition pos (unQualId clsId)
          f = addRequiredDeriv flags r i tvs

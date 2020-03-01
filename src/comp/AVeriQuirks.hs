@@ -355,7 +355,7 @@ aBitOr :: AId -> AType -> [AExpr] -> AExpr
 aBitOr aid t@(ATBit n) es =
     let (cs, xs) = partition isConst es
         one = 2^n-1
-        c = foldr integerOr 0 (map (getConst one) cs)
+        c = foldr (integerOr . getConst one) 0 cs
         aOr' [] = aInt t 0
         aOr' [e] = e
         aOr' es = APrim aid t PrimOr es
@@ -371,7 +371,7 @@ aBitAnd :: AId -> AType -> [AExpr] -> AExpr
 aBitAnd aid t@(ATBit n) es =
     let (cs, xs) = partition isConst es
         one = 2^n-1
-        c = foldr integerAnd one (map (getConst 0) cs)
+        c = foldr (integerAnd . getConst 0) one cs
         aAnd' [] = aInt t one
         aAnd' [e] = e
         aAnd' es = APrim aid t PrimAnd es

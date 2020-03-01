@@ -207,7 +207,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
   -- only go when none of the connected resets are active (except for $SVA)
   -- traces ("vfc " ++ show resets) $
   if aid==idSVA then fcall es
-                  else foldr Vif fcall_body (map (mkNotEqualsReset . vExpr vco) resets)
+                  else foldr (Vif . mkNotEqualsReset . vExpr vco) fcall_body resets
   where
     vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids

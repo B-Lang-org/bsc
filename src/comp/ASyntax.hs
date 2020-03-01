@@ -1256,7 +1256,7 @@ instance PPrint APackage where
         text "-- APackage parameters" $+$
         pPrint d 0 (apkg_size_params apkg) $+$
         text "-- APackage arguments" $+$
-        foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
+        foldr (($+$) . pPrint d 0) empty (apkg_inputs apkg) $+$
         text "-- APackage wire info" $+$
         pPrint d 0 (apkg_external_wires apkg) $+$
         text "-- APackage clock domains" $+$
@@ -1264,18 +1264,18 @@ instance PPrint APackage where
         text "-- APackage resets" $+$
         pPrint d 0 (apkg_reset_list apkg) $+$
         text "-- AP state elements" $+$
-        foldr ($+$) empty (map (pPrint d 0) (apkg_state_instances apkg)) $+$
+        foldr (($+$) . pPrint d 0) empty (apkg_state_instances apkg) $+$
         text "-- AP local definitions" $+$
-        foldr ($+$) empty (map (pPrint d 0) (apkg_local_defs apkg)) $+$
+        foldr (($+$) . pPrint d 0) empty (apkg_local_defs apkg) $+$
         text "-- AP rules" $+$
-        foldr ($+$) empty (map (pPrint d 0) (apkg_rules apkg)) $+$
+        foldr (($+$) . pPrint d 0) empty (apkg_rules apkg) $+$
         text "-- AP scheduling pragmas" $+$
         pPrint d 0 (apkg_schedule_pragmas apkg) $+$
         text "-- AP interface" $+$
         foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
                            pPrint d 0 i | i <- apkg_interface apkg] $+$
         text "-- AP instance comments" $+$
-        foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
+        foldr (($+$) . ppInstComment d) empty (apkg_inst_comments apkg) $+$
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
@@ -1324,21 +1324,21 @@ instance PPrint ASPackage where
         text "-- ASPackage outputs" $+$
         (text "" <+> sep (map (pPrint d 0) exps) <> text ";") $+$
         text "-- ASPackage inputs" $+$
-        foldr ($+$) (text "") (map (ppV d) is) $+$
+        foldr (($+$) . ppV d) (text "") is $+$
         text "-- ASPackage inouts" $+$
-        foldr ($+$) (text "") (map (ppV d) ios) $+$
+        foldr (($+$) . ppV d) (text "") ios $+$
         text "-- ASP state elements" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ss) $+$
+        foldr (($+$) . pPrint d 0) (text "") ss $+$
         text "-- ASP state elements outputs" $+$
-        foldr ($+$) (text "") (map (ppV d) sos) $+$
+        foldr (($+$) . ppV d) (text "") sos $+$
         text "-- ASP inlined rwire ports" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ws) $+$
+        foldr (($+$) . pPrint d 0) (text "") ws $+$
         text "-- ASP definitions" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) ds) $+$
+        foldr (($+$) . pPrint d 0) (text "") ds $+$
         text "-- ASP inout definitions" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) iods) $+$
+        foldr (($+$) . pPrint d 0) (text "") iods $+$
         text "-- ASP foreign function calls" $+$
-        foldr ($+$) (text "") (map (pPrint d 0) fs) $+$
+        foldr (($+$) . pPrint d 0) (text "") fs $+$
         text "--ASP Signal Info" $+$ pPrint d 0 (aspkg_signal_info pack)
 
 instance PPrint ASchedule where
@@ -1368,7 +1368,7 @@ instance PPrint AIFace where
     -- XXX print assumptions
     pPrint d p ai@(AIDef {} )  =
         (text "--AIDef" <+> pPrint d p (aif_name ai)) $+$
-        foldr ($+$) empty (map (ppV d) (aif_inputs ai)) $+$
+        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
         pPrint d 0 (aif_value ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1376,7 +1376,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIAction {} ) =
         (text "--AIAction" <+> pPrint d p (aif_name ai)) $+$
-        foldr ($+$) empty (map (ppV d) (aif_inputs ai)) $+$
+        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
         pPrint d 0 (aif_props ai) $+$
@@ -1384,7 +1384,7 @@ instance PPrint AIFace where
         text ""
     pPrint d p ai@(AIActionValue {})  = -- XXX this should be done better
         (text "--AIActionValue" <+> pPrint d p (aif_name ai)) $+$
-        foldr ($+$) empty (map (ppV d) (aif_inputs ai) ) $+$
+        foldr (($+$) . ppV d) empty (aif_inputs ai) $+$
         pPrint d p (aif_value ai) $+$
         pPrint d p (aif_body ai) $+$
         pPred d p (aif_pred ai) $+$
@@ -1619,7 +1619,7 @@ ppeAPackage lim d apkg@(APackage { apkg_local_defs = ds }) =
         text "-- APackage parameters" $+$
         pPrint d 0 (apkg_size_params apkg) $+$
         text "-- APackage arguments" $+$
-        foldr ($+$) empty (map (pPrint d 0) (apkg_inputs apkg)) $+$
+        foldr (($+$) . pPrint d 0) empty (apkg_inputs apkg) $+$
         text "-- APackage wire info" $+$
         pPrint d 0 (apkg_external_wires apkg) $+$
         text "-- APackage clock domains" $+$
@@ -1627,18 +1627,18 @@ ppeAPackage lim d apkg@(APackage { apkg_local_defs = ds }) =
         text "-- APackage resets" $+$
         pPrint d 0 (apkg_reset_list apkg) $+$
         text "-- AP state elements" $+$
-        foldr ($+$) empty (map (ppeVI edef d) (apkg_state_instances apkg)) $+$
+        foldr (($+$) . ppeVI edef d) empty (apkg_state_instances apkg) $+$
 --        text "-- AP local definitions" $+$
 --        foldr ($+$) empty (map (pPrintExpand edef d 0) (apkg_local_defs apkg)) $+$
         text "-- AP rules" $+$
-        foldr ($+$) empty (map (pPrintExpand edef d defContext) (apkg_rules apkg)) $+$
+        foldr (($+$) . pPrintExpand edef d defContext) empty (apkg_rules apkg) $+$
         text "-- AP scheduling pragmas" $+$
         pPrint d 0 (apkg_schedule_pragmas apkg) $+$
         text "-- AP interface" $+$
         foldr ($+$) empty [(text "-- AP  apkg_interface def" <+> pPrint d 0 (apkg_name apkg)) $+$
                            pPrintExpand edef d defContext i | i <- apkg_interface apkg] $+$
         text "-- AP instance comments" $+$
-        foldr ($+$) empty (map (ppInstComment d) (apkg_inst_comments apkg)) $+$
+        foldr (($+$) . ppInstComment d) empty (apkg_inst_comments apkg) $+$
         text "-- AP remaining proof obligations" $+$
         pPrint d 0 (apkg_proof_obligations apkg)
 
@@ -1660,16 +1660,16 @@ instance PPrintExpand AIFace where
     -- XXX print assumptions
     pPrintExpand m d ec (AIDef id is wp g b _ _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr ($+$) (pPrint d (getP ec) b) (map (ppV d) is) $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
         text ""
     pPrintExpand m d ec (AIAction is wp g _ rs _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
         text ""
     pPrintExpand m d ec (AIActionValue is wp g _ rs b _) =
         (text "--" <+> pPrint d (getP ec) g) $+$
-        foldr ($+$) (pPrintExpand m d ec rs) (map (ppV d) is) $+$
-        foldr ($+$) (pPrint d (getP ec) b) (map (ppV d) is) $+$
+        foldr (($+$) . ppV d) (pPrintExpand m d ec rs) is $+$
+        foldr (($+$) . ppV d) (pPrint d (getP ec) b) is $+$
         text ""
     pPrintExpand m d ec (AIClock i c _) = pPrint d (getP ec) c
     pPrintExpand m d ec (AIReset i r _) = pPrint d (getP ec) r
