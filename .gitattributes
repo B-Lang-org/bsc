@@ -2,4 +2,4 @@
 # in statistics about this repo
 #
 src/Parsec/* linguist-vendored
-src/stp/src/* linguist-vendored
+src/vendor/stp/src/* linguist-vendored
