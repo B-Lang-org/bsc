@@ -9,12 +9,12 @@ import Id( Id, getIdBaseString, setIdBaseString
          , unQualId, isFire )
 import ABinUtil(InstModMap)
 import ErrorUtil(internalError)
-import Util(splitBy, intercalate)
 import ListUtil(mapSnd)
 import SimPrimitiveModules(isPrimitiveModule)
 
 import Data.Maybe(maybeToList)
-import Data.List(find)
+import Data.List(find, intercalate)
+import Data.List.Split(split, condense, oneOf)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
@@ -212,7 +212,7 @@ moveDefsOntoStack flags instmodmap (blocks,scheds) =
       sndOf3 (_,x,_) = x
       inline aid = let q = getIdQualString aid
                        b = getIdBaseString aid
-                       segs = filter (/=".") $ splitBy (cycle [(/='.'),(=='.')]) q
+                       segs = filter (/=".") $ split (condense (oneOf ".")) q
                        name = intercalate "_" $ (map ("INST_"++) segs) ++ ["DEF_" ++ b]
                    in setIdBaseString (unQualId aid) name
       moveDefs (Just sbid) fn =  -- move within block

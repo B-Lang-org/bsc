@@ -83,10 +83,11 @@ Debian and Ubuntu systems, you can say:
     $ apt-get install \
         libghc-regex-compat-dev \
         libghc-syb-dev \
-        libghc-old-time-dev
+        libghc-old-time-dev \
+        libghc-split-dev
 
 The second command will install the Haskell libraries `regex-compat`, `syb`,
-and `old-time`, as well as some libraries that they depend on.
+`old-time`, and `split`, as well as some libraries that they depend on.
 
 You can do the analogous package-install on other Linux distributions using
 their native package mechanisms, and use Macports on Apple OS X. Full details
