@@ -5143,6 +5143,6 @@ getNonSynthTypes expr =
         (ts, expr') = getTyVars [] expr
         vts = getVars [] expr'
     in
-        catMaybes $ map (\x -> lookup x vts) ts
+        catMaybes $ map (`lookup` vts) ts
 
 -- ===============

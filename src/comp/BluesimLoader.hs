@@ -523,15 +523,15 @@ loadBluesimModel fname top_name wait = do
       get_clk_fn :: WordPtr -> String -> IO BSClock
       get_clk_fn simHdl s =
           let fn = dl_ptr_str_ret_uint c_bk_get_clock_by_name
-          in withCString s (\cs -> fromC $ fn (toC simHdl) cs)
+          in withCString s (fromC . fn (toC simHdl))
       set_vcd_fn :: WordPtr -> String -> IO BSStatus
       set_vcd_fn simHdl s =
           let fn = dl_ptr_str_ret_int c_bk_set_VCD_file
-          in withCString s (\cs -> fromC $ fn (toC simHdl) cs)
+          in withCString s (fromC . fn (toC simHdl))
       plusarg_fn :: WordPtr -> String -> IO ()
       plusarg_fn simHdl s =
           let fn = dl_ptr_str_ret_void c_bk_append_argument
-          in withCString s (\cs -> fromC $ fn (toC simHdl) cs)
+          in withCString s (fromC . fn (toC simHdl))
       set_timescale_fn :: WordPtr -> String -> BSTime -> IO BSStatus
       set_timescale_fn simHdl ts_unit ts_factor =
           let fn = dl_ptr_str_ullong_ret_int c_bk_set_timescale
@@ -540,7 +540,7 @@ loadBluesimModel fname top_name wait = do
       lookup_fn :: BSSymbol -> String -> IO BSSymbol
       lookup_fn sym s =
           withCString s
-            (\cs -> fromC $ dl_ptr_str_ret_ptr c_bk_lookup_symbol (toC sym) cs)
+            (fromC . dl_ptr_str_ret_ptr c_bk_lookup_symbol (toC sym))
       -- version structure needs full-on Storable support
       version_fn :: WordPtr -> IO (Word32, Word32, String, String, UTCTime)
       version_fn simHdl =
@@ -615,16 +615,16 @@ loadBluesimModel fname top_name wait = do
                           , bk_top_symbol          = (fromC $ dl_ptr_ret_ptr c_bk_top_symbol) sim_hdl
                           , bk_lookup_symbol       = lookup_fn
                           , bk_get_key             = sym_name_fn
-                          , bk_is_module           = (\p -> fromC $ dl_ptr_ret_uchar c_bk_is_module (toC p))
-                          , bk_is_rule             = (\p -> fromC $ dl_ptr_ret_uchar c_bk_is_rule (toC p))
-                          , bk_is_single_value     = (\p -> fromC $ dl_ptr_ret_uchar c_bk_is_single_value (toC p))
-                          , bk_is_value_range      = (\p -> fromC $ dl_ptr_ret_uchar c_bk_is_value_range (toC p))
+                          , bk_is_module           = (fromC . dl_ptr_ret_uchar c_bk_is_module . toC)
+                          , bk_is_rule             = (fromC . dl_ptr_ret_uchar c_bk_is_rule . toC)
+                          , bk_is_single_value     = (fromC . dl_ptr_ret_uchar c_bk_is_single_value . toC)
+                          , bk_is_value_range      = (fromC . dl_ptr_ret_uchar c_bk_is_value_range . toC)
                           , bk_peek_symbol_value   = peek_symbol_fn
-                          , bk_get_range_min_addr  = (\p -> fromC $ dl_ptr_ret_ullong c_bk_get_range_min_addr (toC p))
-                          , bk_get_range_max_addr  = (\p -> fromC $ dl_ptr_ret_ullong c_bk_get_range_max_addr (toC p))
+                          , bk_get_range_min_addr  = (fromC . dl_ptr_ret_ullong c_bk_get_range_min_addr . toC)
+                          , bk_get_range_max_addr  = (fromC . dl_ptr_ret_ullong c_bk_get_range_max_addr . toC)
                           , bk_peek_range_value    = peek_range_fn
-                          , bk_num_symbols         = (\p -> fromC $ dl_ptr_ret_uint c_bk_num_symbols (toC p))
-                          , bk_get_nth_symbol      = (\p -> fromC $ dl_ptr_uint_ret_ptr c_bk_get_nth_symbol (toC p))
+                          , bk_num_symbols         = (fromC . dl_ptr_ret_uint c_bk_num_symbols . toC)
+                          , bk_get_nth_symbol      = (fromC . dl_ptr_uint_ret_ptr c_bk_get_nth_symbol . toC)
                           , bk_set_VCD_file        = set_vcd_fn sim_hdl
                           , bk_enable_VCD_dumping  = (fromC $ dl_ptr_ret_uchar c_bk_enable_VCD_dumping) sim_hdl
                           , bk_disable_VCD_dumping = (fromC $ dl_ptr_ret_void c_bk_disable_VCD_dumping) sim_hdl

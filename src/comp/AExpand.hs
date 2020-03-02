@@ -365,7 +365,7 @@ xaSRemoveUnused keepFires pkg =
             let en = case (vf_enable m) of
                          Nothing -> []
                          Just _ -> [MethodEnable]
-                args = map (\n -> MethodArg n) [1..genericLength (vf_inputs m)]
+                args = map MethodArg [1..genericLength (vf_inputs m)]
             in  [ mkMethId v i ino part |
                   part <- en ++ args, ino <- if mult > 1
                                              then map Just [0 .. mult-1]

@@ -222,7 +222,7 @@ newIStateLocTop slmap inst_id ifc_id ifc_type parent@(head_loc:_) = trid $ fchil
         trid = if (doTraceLoc) then tr else id
         tr = traces ("IStateloc " ++ name ++ ": " ++ ppReadable
                      (inst_id,(map toTF [new_vector, element, parentIsVector, same_ifc, same_namloc, parentIsLoop]))
-                     ++ ppReadable (map (\x -> (isl_inst_id x)) $ (take 3 parent) )
+                     ++ ppReadable (map isl_inst_id (take 3 parent) )
                      )
 
 

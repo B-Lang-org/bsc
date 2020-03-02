@@ -1679,13 +1679,13 @@ externalFlags = [
           "output directory for .v files", Visible)),
 
         ("verbose",
-         (NoArg (\f -> Left $ moreTalkative f) (Just verbose),
+         (NoArg (Left . moreTalkative) (Just verbose),
           "be more talkative", Visible)),
         ("v",
          (Alias "verbose", "same as -verbose", Visible)),
 
         ("quiet",
-         (NoArg (\f -> Left $ lessTalkative f) (Just quiet),
+         (NoArg (Left . lessTalkative) (Just quiet),
           "be less talkative", Visible)),
         ("q",
          (Alias "quiet", "same as -quiet", Visible)),

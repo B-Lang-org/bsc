@@ -569,7 +569,7 @@ getDef generating ds (i, pps) =
                  mkNewName n = mkIdPost v (mkSuffix n)
                  new_vs = map mkNewName [0..(sz-1)]
              -- see if the underlying type is itself a vector
-             sub_infos <- mapM (\new_v -> expandInfo new_v tVec) new_vs
+             sub_infos <- mapM (`expandInfo` tVec) new_vs
              return (Vector isListN v tVec sub_infos)
      info <- expandInfo v_orig vt_orig
      return (v_orig, vt_orig, info)
@@ -612,7 +612,7 @@ genWrapInfo genifcs (d@(CDef modName oqt@(CQType _ t) cls), cqt, _, pps) =
  do
    ifcName_ <- ifcNameFromMod pps t
    -- lookup the generate ifc for this module
-   let mifc = find (\gi -> qualEq ifcName_ (genifc_id gi)) genifcs
+   let mifc = find (qualEq ifcName_ . genifc_id) genifcs
        err = internalError ( "genWrapInfo:: cannot find interface " ++
                              ppReadable ifcName_ ++ ppReadable genifcs )
        ifc = maybe err id mifc
@@ -889,7 +889,7 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
               let v:vs = map cTVarNum (take (length argtypes + 1) tmpTyVarIds)
               let bitsCtx a s = CPred (CTypeclass idBits) [a, s]
               let ctx = zipWith bitsCtx argtypes vs
-              let ss = map (\ lv -> TAp tBit lv) vs
+              let ss = map (TAp tBit) vs
 
               isClock <- isClockType rettype
               isReset <- isResetType rettype
@@ -1532,7 +1532,7 @@ mkDef iprags pps (CDef i (CQType _ qt) _) cqt = do
              selector n = cVApply primselect [posLiteral noPosition,
                                               vexpr, lit n]
              elem_sels = map selector nums
-         elem_exprs <- mapM (\e -> genArg e tVec) elem_sels
+         elem_exprs <- mapM (`genArg` tVec) elem_sels
          return (concat elem_exprs)
 
   (st4, argss) <- runGWMonadGetNoFail (zipWithM genArg (map CVar vs) ts) st3

@@ -643,7 +643,7 @@ aSchedule_step1 errh flags prefix pps amod = do
   -- (if a compiler bug has led to divergence between the rule names
   -- and ids in the pragmas, then the user will see this message)
   let spids = extractSchedPragmaIds schedPragmas
-  let (_ {- goodids -}, badids) = partition (\x -> elem x ruleNames) spids
+  let (_ {- goodids -}, badids) = partition (`elem` ruleNames) spids
   when (length badids > 0) $
        convEM errh (errUnknownRules badids)
 
