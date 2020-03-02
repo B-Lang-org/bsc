@@ -26,12 +26,6 @@ import qualified AExpr2Yices as Yices
 import STP(checkVersion)
 import Yices(checkVersion)
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-type ExceptionType = CE.SomeException
-#else
-type ExceptionType = CE.Exception
-#endif
-
 -- -------------------------
 
 -- A single data type for either of the solver state
@@ -56,7 +50,7 @@ checkSATFlags :: ErrorHandle -> Flags -> IO Flags
 checkSATFlags eh f =
   let
       hasYices :: IO Bool
-      hasYices = let handler :: ExceptionType -> IO Bool
+      hasYices = let handler :: CE.SomeException -> IO Bool
                      handler _ = return False
                  in  CE.catch (Yices.checkVersion >> return True) handler
 
@@ -114,4 +108,3 @@ checkNotEq (SATS_STP stp_state) e1 e2 = do
     return (res, SATS_STP stp_state')
 
 -- -------------------------
-

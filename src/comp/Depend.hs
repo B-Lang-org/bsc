@@ -308,7 +308,7 @@ needsUpd myMod pis n =
 
 getModTime :: String -> IO MClockTime
 getModTime f = CE.catch (getModificationTime' f >>= return . Just) handler
-  where handler :: ExceptionType -> IO MClockTime
+  where handler :: CE.SomeException -> IO MClockTime
         handler _ = return Nothing
 
 -----

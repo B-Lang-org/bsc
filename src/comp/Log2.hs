@@ -3,21 +3,7 @@
 -- types that is efficient even for very large integers.
 module Log2(log2,log10) where
 
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-#if (__GLASGOW_HASKELL__ >= 611)
-#define NEW_INTEGER_GMP
-#else
-#define NEW_INTEGER
-#endif
-#endif
-
-#ifdef NEW_INTEGER
-import GHC.Integer.Internals
-#endif
-#ifdef NEW_INTEGER_GMP
 import GHC.Integer.GMP.Internals
-#endif
 import GHC.Exts
 import Data.Bits
 

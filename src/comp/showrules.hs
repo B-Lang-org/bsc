@@ -1,13 +1,6 @@
 {-# LANGUAGE CPP #-}
 module Main_showrules(main) where
 
--- GHC 6.12 and beyond honor the default character encoding
--- based on the current locale.  We have to set it explicitly
--- to Latin1 for backward compatibility.
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 611)
-#define SET_LATIN1_ENCODING
-#endif
-
 import Exceptions(bsCatch)
 import Version
 import FileNameUtil(hasDotSuf, hasNoSuffix, vcdSuffix)
@@ -285,10 +278,8 @@ main :: IO ()
 main = do
           hSetBuffering stdout LineBuffering
           hSetBuffering stderr LineBuffering
-#ifdef SET_LATIN1_ENCODING
           hSetEncoding stdout latin1
           hSetEncoding stderr latin1
-#endif
           argv <- getArgs
           -- catch errors, print them nicely, and exit
           bsCatch (hmain argv)

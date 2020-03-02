@@ -8,7 +8,6 @@ import Prelude hiding ((<>))
 import Text.Printf(printf)
 import System.IO(hFlush, stdout)
 import System.CPUTime(getCPUTime)
-import qualified Control.Exception as CE
 import Control.Monad(when, unless)
 import Control.Monad.Trans(MonadIO(..))
 import System.Time -- XXX: from old-time package
@@ -36,12 +35,6 @@ import Error(ErrorHandle, exitOK)
 
 import Eval
 --import Trace
-
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-type ExceptionType = CE.SomeException
-#else
-type ExceptionType = CE.Exception
-#endif
 
 dfltBluespecDir, dfltVSim, dfltMACRODEF :: String
 dfltBluespecDir = "/usr/local/lib/" ++ bluespec
