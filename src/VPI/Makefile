@@ -1,6 +1,8 @@
 PWD:=$(shell pwd)
 TOP:=$(PWD)/../..
 
+include $(TOP)/platform.mk
+
 INSTALL ?= install
 
 PREFIX?=$(TOP)/inst

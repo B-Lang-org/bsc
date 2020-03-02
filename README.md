@@ -95,7 +95,7 @@ can be found at <https://www.haskell.org/>. On some systems, you may need to
 use the `cabal` command to install Haskell libraries:
 
     $ apt-get install cabal-install
-    $ cabal install regex-compat syb old-time
+    $ cabal v1-install regex-compat syb old-time split
 
 The version of GHC must be 7.10.1 or greater.
 Beyond that, any version will work, since the source code has been written
