@@ -41,12 +41,8 @@ module MVarStrict
 
 import Control.Concurrent.MVar(newEmptyMVar, takeMVar,
                                tryTakeMVar, isEmptyMVar, addMVarFinalizer)
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 611)
 import GHC.IO(IO(..))
 import GHC.MVar(MVar(..))
-#else
-import GHC.IOBase(IO(..), MVar(..))
-#endif
 import GHC.Exts(putMVar#, tryPutMVar#)
 
 import qualified Control.Exception as CE
@@ -54,16 +50,6 @@ import qualified Control.Exception as CE
 -- Instead of rnf, use hyper
 --import Control.DeepSeq
 import Eval
-
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-#define NEW_EXCEPTION_API
-#endif
-
--- block/unblock were deprecated in GHC 7
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 700)
-#define HAS_EXCEPTION_MASK
-#endif
 
 -- |Put a value into an 'MVar'.  If the 'MVar' is currently full,
 -- 'putMVar' will wait until it becomes empty.
@@ -107,11 +93,7 @@ newMVar value =
 -}
 readMVar :: Hyper a => MVar a -> IO a
 readMVar m =
-#ifdef HAS_EXCEPTION_MASK
   CE.mask_ $ do
-#else
-  CE.block $ do
-#endif
     a <- takeMVar m
     putMVar m a
     return a
@@ -124,11 +106,7 @@ readMVar m =
 -}
 swapMVar :: Hyper a => MVar a -> a -> IO a
 swapMVar mvar new =
-#ifdef HAS_EXCEPTION_MASK
   CE.mask_ $ do
-#else
-  CE.block $ do
-#endif
     old <- takeMVar mvar
     putMVar mvar new
     return old
@@ -144,19 +122,10 @@ swapMVar mvar new =
 -- http://www.haskell.org//pipermail/haskell/2006-May/017907.html
 withMVar :: Hyper a => MVar a -> (a -> IO b) -> IO b
 withMVar m io =
-#ifdef HAS_EXCEPTION_MASK
   CE.mask $ \ restore -> do
-#else
-  CE.block $ do
-    let restore = CE.unblock
-#endif
     a <- takeMVar m
     let
-#ifdef NEW_EXCEPTION_API
         handler :: CE.SomeException -> IO b
-#else
-        handler :: CE.Exception -> IO b
-#endif
         handler e = do putMVar m a
                        CE.throw e
     b <- CE.catch (restore (io a)) handler
@@ -171,19 +140,10 @@ withMVar m io =
 {-# INLINE modifyMVar_ #-}
 modifyMVar_ :: Hyper a => MVar a -> (a -> IO a) -> IO ()
 modifyMVar_ m io =
-#ifdef HAS_EXCEPTION_MASK
   CE.mask $ \ restore -> do
-#else
-  CE.block $ do
-    let restore = CE.unblock
-#endif
     a  <- takeMVar m
     let
-#ifdef NEW_EXCEPTION_API
         handler :: CE.SomeException -> IO b
-#else
-        handler :: CE.Exception -> IO b
-#endif
         handler e = do putMVar m a
                        CE.throw e
     a' <- CE.catch (restore (io a)) handler
@@ -196,22 +156,12 @@ modifyMVar_ m io =
 {-# INLINE modifyMVar #-}
 modifyMVar :: Hyper a => MVar a -> (a -> IO (a,b)) -> IO b
 modifyMVar m io =
-#ifdef HAS_EXCEPTION_MASK
   CE.mask $ \ restore -> do
-#else
-  CE.block $ do
-    let restore = CE.unblock
-#endif
     a      <- takeMVar m
     let
-#ifdef NEW_EXCEPTION_API
         handler :: CE.SomeException -> IO b
-#else
-        handler :: CE.Exception -> IO b
-#endif
         handler e = do putMVar m a
                        CE.throw e
     (a',b) <- CE.catch (restore (io a)) handler
     putMVar m a'
     return b
-

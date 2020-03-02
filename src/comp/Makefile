@@ -127,59 +127,8 @@ endif
 
 # end ifeq ($(GHCMAJOR),7)
 else
-ifeq ($(GHCMAJOR),6)
-
-GHCPROFAUTO = -auto-all
-
-# GHC 6 generates stub.c files (which GHC 7 doesn't?)
-#
-# stub files to link in during profiling, hpc, debug builds
-# (because ghc doesn't find them automatically)
-TCLSTUBPROF = $(TCL_HS)/HTcl_stub.c bluetcl_stub.c
-WISHSTUBPROF = $(TCL_HS)/HTcl_stub.c bluewish_stub.c
-#
-# files to remove to force rebuilding of stubs for profiling
-# profiling and non-profiling stubs are not compatible
-TCLCLEANPROF = \
-	$(BUILDDIR)/HTcl.{o,p_o,d_o,c_o} \
-	$(TCL_HS)/HTcl_stub.{c,h,} \
-	$(BUILDDIR)/HTcl_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/BlueTcl.{o,p_o,d_o,c_o} \
-	bluetcl_stub.{c,h} \
-	$(BUILDDIR)/bluetcl_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/BlueTcl_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/bluetcl_Main.{o,p_o}
-WISHCLEANPROF = \
-	$(BUILDDIR)/HTcl.{o,p_o,d_o,c_o} \
-	$(TCL_HS)/HTcl_stub.{c,h,} \
-	$(BUILDDIR)/HTcl_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/BlueTcl.{o,p_o,d_o,c_o} \
-	bluewish_stub.{c,h} \
-	$(BUILDDIR)/bluewish_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/BlueTcl_stub.{o,p_o,d_o,c_o} \
-	$(BUILDDIR)/bluetcl_Main.{o,p_o}
-
-GHC += -fwarn-tabs
-
-ifeq ($(GHCMINOR),8)
-GHCEXTRAPKGS =
-else
-ifeq ($(GHCMINOR),10)
-GHCEXTRAPKGS =-package syb -package integer
-else
-ifeq ($(GHCMINOR),12)
-GHCEXTRAPKGS =-package syb -package integer-gmp
-else
-$(error Unrecognized GHC 6 minor version: $(GHCMINOR))
-endif
-endif
-endif
-
-# end ifeq ($(GHCMAJOR),6)
-else
-# Not GHC 8, 7, or 6
+# Not GHC 8 or 7
 $(error Unrecognized GHC major version: $(GHCMAJOR))
-endif
 endif
 endif
 

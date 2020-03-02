@@ -39,13 +39,6 @@ module FileIOUtil
 --
 -- ==================================================
 
--- GHC 6.12 and beyond honor the default character encoding
--- based on the current locale.  We have to set it explicitly
--- to Latin1 for backward compatibility.
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 611)
-#define SET_LATIN1_ENCODING
-#endif
-
 import Data.List(foldl')
 import Data.Maybe(isJust)
 import System.IO
@@ -62,14 +55,8 @@ import Position
 import Error(ErrMsg(..), ErrorHandle, MsgContext, emptyContext,
              bsError, bsErrorWithContext, bsWarning)
 
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
 catchIO :: IO a -> (CE.IOException -> IO a) -> IO a
 catchIO = CE.catch
-#else
-import qualified System.IO.Error as IOE (catch)
-catchIO = IOE.catch
-#endif
 
 -- =====
 -- Searching for a file to read
@@ -181,7 +168,6 @@ existsButUnreadableWarning errh pos file io_msg =
 -- =====
 -- Catch versions of file IO
 
-#ifdef SET_LATIN1_ENCODING
 readFileCompat :: FilePath -> IO String
 readFileCompat fname = do hdl <- openFile fname ReadMode
                           hSetEncoding hdl latin1
@@ -196,16 +182,6 @@ appendFileCompat :: FilePath -> String -> IO ()
 appendFileCompat fname txt =
     withFile fname AppendMode (\hdl -> do hSetEncoding hdl latin1
                                           hPutStr hdl txt)
-#else
-readFileCompat :: FilePath -> IO String
-readFileCompat = readFile
-
-writeFileCompat :: FilePath -> String -> IO ()
-writeFileCompat = writeFile
-
-appendFileCompat :: FilePath -> String -> IO ()
-appendFileCompat = appendFile
-#endif
 
 -- This returns whether the read was successful,
 -- for callers who will move on if the file is not available

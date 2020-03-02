@@ -48,14 +48,8 @@ import VFileName
 import Verilog(vIsValidIdent)
 import Flags
 
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
 catchIO :: IO a -> (IOError -> IO a) -> IO a
 catchIO = CE.catch
-#else
-import qualified System.IO.Error as IOE (catch)
-catchIO = IOE.catch
-#endif
 
 -- -------------------------
 -- File name testing

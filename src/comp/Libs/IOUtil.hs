@@ -5,13 +5,6 @@ import System.Environment(getArgs,getEnv)
 import System.IO.Unsafe
 import qualified Control.Exception as CE
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-type ExceptionType = CE.SomeException
-#else
-type ExceptionType = CE.Exception
-#endif
-
-
 {-# NOINLINE progArgs #-}
 progArgs :: [String]
 progArgs = unsafePerformIO $ do
@@ -22,6 +15,5 @@ progArgs = unsafePerformIO $ do
 getEnvDef :: String -> String -> IO String
 getEnvDef e d = CE.catch (getEnv e) handler
   where
-    handler :: ExceptionType -> IO String
+    handler :: CE.SomeException -> IO String
     handler _ = return d
-

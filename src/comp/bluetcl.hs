@@ -96,27 +96,16 @@ import InstNodes(InstNode(..), InstTree, isHidden, isHiddenKP, isHiddenAll, node
 -- import Util(traceM)
 -- import Trace
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-type ExceptionType = CE.IOException
-localCatch :: IO a -> (ExceptionType -> IO a) -> IO a
-localCatch = CE.catch
-#else
-import qualified System.IO.Error as IOE
-type ExceptionType = IOError
-localCatch :: IO a -> (ExceptionType -> IO a) -> IO a
-localCatch = IOE.catch
-#endif
-
 -------------------------------------
 foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int
 
 --  1st call to haskell world (run time system has already been setup)
 blueshell_Init :: TclInterp -> IO Int
 blueshell_Init interp =
-  let handler :: ExceptionType -> IO Int
+  let handler :: CE.IOException -> IO Int
       handler e = htcl_AddObjErrorInfo interp (ioeGetErrorString e)
                     >>= return . fromEnum
-  in  localCatch
+  in  CE.catch
          (do
              initTclPackage
              -- register commands
@@ -264,9 +253,9 @@ getGFlags = readIORef globalVar >>= (return . tp_flags)
 
 initTclPackage :: IO ()
 initTclPackage = do
-  let handler :: ExceptionType -> IO String
+  let handler :: CE.IOException -> IO String
       handler e = ioError $ userError "BLUESPECDIR environment is not set."
-  bsdir <- localCatch (getEnv "BLUESPECDIR" ) handler
+  bsdir <- CE.catch (getEnv "BLUESPECDIR" ) handler
 
   bscopts <- getEnvDef "BSC_OPTIONS" ""
   flags <- updateFlags globalErrHandle cmdPosition (words bscopts) $ defaultFlags bsdir
@@ -481,9 +470,9 @@ tclFlags ("set":strs) = do
   mapM (getFlagValueString flags2) (reverse sets) >>= return . concat
 ----------
 tclFlags ["reset"] = do
-  let handler :: ExceptionType -> IO String
+  let handler :: CE.IOException -> IO String
       handler e = ioError $ userError "BLUESPECDIR environment is not set."
-  bsdir <- localCatch (getEnv "BLUESPECDIR") handler
+  bsdir <- CE.catch (getEnv "BLUESPECDIR") handler
 
   bscopts <- getEnvDef "BSC_OPTIONS" ""
   flags <- updateFlags globalErrHandle  cmdPosition (words bscopts) $ defaultFlags bsdir

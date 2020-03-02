@@ -1,18 +1,6 @@
 {-# LANGUAGE BangPatterns, CPP #-}
 module Main_bsc(main, hmain) where
 
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-#define NEW_EXCEPTION_API
-#endif
-
--- GHC 6.12 and beyond honor the default character encoding
--- based on the current locale.  We have to set it explicitly
--- to Latin1 for backward compatibility.
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 611)
-#define SET_LATIN1_ENCODING
-#endif
-
 -- Haskell libs
 import Prelude
 import System.Environment(getArgs, getProgName)
@@ -24,9 +12,7 @@ import System.Cmd(system)
 #endif
 import System.Exit(ExitCode(ExitFailure, ExitSuccess))
 import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuffering, BufferMode(LineBuffering))
-#ifdef SET_LATIN1_ENCODING
 import System.IO(hSetEncoding, latin1)
-#endif
 import System.Posix.Files(fileMode,  unionFileModes, ownerExecuteMode, groupExecuteMode, setFileMode, getFileStatus, fileAccess)
 import System.Directory(getDirectoryContents, doesFileExist, getCurrentDirectory)
 import System.Time(getClockTime, ClockTime(TOD)) -- XXX: from old-time package
@@ -185,10 +171,8 @@ main :: IO ()
 main = do
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
-#ifdef SET_LATIN1_ENCODING
     hSetEncoding stdout latin1
     hSetEncoding stderr latin1
-#endif
     args <- getArgs
     -- bsc can raise exception,  catch them here  print the message and exit out.
     bsCatch (hmain args)
@@ -594,14 +578,9 @@ compilePackage
                 fwrapper = i `elem` map (\ (i, _, _, _, _) -> i) funcs
 
             let
-#ifdef NEW_EXCEPTION_API
                 -- in the Maybe monad
                 ex_filt ex = do (CE.ErrorCall s) <- (CE.fromException ex)::(Maybe CE.ErrorCall)
                                 return s
-#else
-                ex_filt (CE.ErrorCall s) = Just s
-                ex_filt _                = Nothing
-#endif
                 def_comp = do
                   def <- genModule errh wi fwrapper flags dumpnames'
                              prefix (getIdBaseString pkgId)
@@ -2074,11 +2053,7 @@ findAllAvailableSims flags =
        return (nub successful_sim_scripts)
     `CE.catch` return_empty_list
     where
-#ifdef NEW_EXCEPTION_API
     return_empty_list :: CE.SomeException -> IO [String]
-#else
-    return_empty_list :: CE.Exception -> IO [String]
-#endif
     return_empty_list e = return []
 
 -- XXX: replace this implementation with one using readProcessWithExitCode
