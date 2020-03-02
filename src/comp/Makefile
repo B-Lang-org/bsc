@@ -50,11 +50,12 @@ PARSEC_HS = ../Parsec
 
 # Tcl
 TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
+ITCL_VER  = $(shell echo 'puts [package require Itcl]' | tclsh)
 TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
-            -litcl3.4 -litclstub3.4 -lhtcl
+            -litcl$(ITCL_VER) -litclstub$(ITCL_VER) -lhtcl
 
 # STP
 STP_HS      = ../vendor/stp/include_hs
@@ -75,7 +76,7 @@ BSCBUILDLIBS = \
 
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
-WISHFLAGS = -litkstub3.4 -litk3.4 $(shell pkg-config --libs x11)
+WISHFLAGS = -litkstub$(ITCL_VER) -litk$(ITCL_VER) $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
 
 # -----
