@@ -3,7 +3,7 @@ when indicated otherwise in the file itself) and are licensed as
 indicated below, with the following exceptions:
 
 * STP - Constraint solver
-  * The files in src/stp/src/ are adapted from a snapshot of STP
+  * The files in src/vendor/stp/src/ are adapted from a snapshot of STP
   * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
   * The source and license were obtained from the SVN repository [1]
     at revision 1643 on 2012-04-18.  A patch at [2] obtained on
@@ -12,7 +12,7 @@ indicated below, with the following exceptions:
       [2] https://github.com/stp/stp/commit/ece1a55fb367bd905078baca38476e35b4df06c3
 
 * The Yices SMT Solver
-  * The files in src/yices/ define a Haskell interface for using
+  * The files in src/vendor/yices/ define a Haskell interface for using
     the Yices library (via its C API); there is also code for a
     stub library, if the real Yices library is not available
   * See LICENSES/LICENSE.yices
@@ -20,7 +20,7 @@ indicated below, with the following exceptions:
     https://github.com/SRI-CSL/yices2
 
 * yices-painless - Haskell package
-  * The foreign function declarations in src/yices/v2.6/HaskellIfc/
+  * The foreign function declarations in src/vendor/yices/v2.6/HaskellIfc/
     are adapted from Don Stewart's yice-painless package
   * See LICENSES/LICENSE.yices-painless
   * The source and license where obtained on 2012-01-27 from:
