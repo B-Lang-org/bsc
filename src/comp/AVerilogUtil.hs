@@ -980,7 +980,7 @@ vState  flags rewire_map avinst =
                          vi_inst_params  = if ( vco_v95 vco )
                                            then Left (mapFst (Just . getVIdString)  paramExprs)
                                            else Right (mapSnd Just paramExprs),
-                         vi_inst_ports   = map (updateArgPosition ifc_position) (map tildeHack args)
+                         vi_inst_ports   = map (updateArgPosition ifc_position . tildeHack) args
                         }
 
         inst_info =

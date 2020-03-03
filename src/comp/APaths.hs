@@ -412,8 +412,7 @@ aPathsPreSched errh flags apkg = do
       clk_inputs = concatMap getClkPorts
                        [ ai | (n, ai, arginfo) <- numbered_inputs,
                               isClock arginfo ]
-      rst_inputs = map getRstPort
-                       [ ai | (n, ai, arginfo) <- numbered_inputs,
+      rst_inputs = [ getRstPort ai | (n, ai, arginfo) <- numbered_inputs,
                               isReset arginfo ]
       -- keep the numbering and type for ports/params
       port_inputs  = [ (n,p) | (n, ai, arginfo) <- numbered_inputs,

@@ -133,7 +133,7 @@ lift1 errh flags ifexp@(IAps (ICon id (ICPrim {primOp = PrimIf, iConType = conty
           -- combines predicates usefully
           (raclcvt lifted) ++
           (raclcvt (map (addCond flags c) unlifted)) ++ -- true side
-          (map (actionCondToIExpr errh flags) (map (addCond flags ((iTransBoolExpr flags) (ieNot c))) false)) -- false side
+          (map (actionCondToIExpr errh flags . addCond flags ((iTransBoolExpr flags) (ieNot c))) false) -- false side
 
 {-
           [(iTransExpr

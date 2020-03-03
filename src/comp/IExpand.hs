@@ -260,8 +260,8 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- expect in IModule, but the function "pDef" below also relies on it
       -- (since "pDef" and "m" are recursively built)
       (tsorted_cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
-      -- functon for translating old pointers to new ones
-      ptran p = case IM.lookup p ptr_map of Just n -> n; Nothing -> p
+      -- function for translating old pointers to new ones
+      ptran p = IM.findWithDefault p p ptr_map
 
       -- from a heap pointer, get the expression and its name info
       --   Note that wire info in dropped.  In the MCD merge (rev 6456),
@@ -548,9 +548,8 @@ eqPtrs heap ptrs =
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
         ptrs' = case tSortInt g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
-                                            (concatMap ppReadable
-                                               (map (heapCellToHExpr . getHeapCell)
-                                                    (concatMap id iss))))
+                                            (concatMap (ppReadable . heapCellToHExpr . getHeapCell)
+                                                    (concatMap id iss)))
                 Right ps -> ps
         step p (dsm, ptrm) =
                 let e = sub (heapOf p)

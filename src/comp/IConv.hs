@@ -5,6 +5,7 @@ module IConv(
             ) where
 
 import Data.List(union, findIndex)
+import Data.Maybe(catMaybes)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.List as List
@@ -588,7 +589,7 @@ flattenRules :: [RulePragma] -> [Maybe CExpr] -> [CQual] -> CRule -> [CRule]
 flattenRules rps is qs (CRuleNest rps' i qs' rs) =
     concatMap (flattenRules (rps `union` rps') (i:is) (qs++qs')) rs
 flattenRules rps is qs (CRule rps' l qs' a) =
-    [CRule (rps `union` rps') (joinRuleIds [ i | Just i <- l:is]) (qs++qs') a]
+    [CRule (rps `union` rps') (joinRuleIds (catMaybes (l:is))) (qs++qs') a]
 
 joinRuleIds :: [CExpr] -> Maybe CExpr
 joinRuleIds [] = Nothing

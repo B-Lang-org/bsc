@@ -450,18 +450,9 @@ type EMap a = M.Map AId a
 aSubst :: (AExprs a) => EMap AExpr -> a -> a
 aSubst m = mapAExprs xsub
   where xsub :: AExpr -> AExpr
-        xsub x@(ASPort _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
-        xsub x@(ASParam _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
-        xsub x@(ASDef _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
+        xsub x@(ASPort _ i) = M.findWithDefault x i m
+        xsub x@(ASParam _ i) = M.findWithDefault x i m
+        xsub x@(ASDef _ i) = M.findWithDefault x i m
         xsub (APrim aid t p es) = APrim aid t p (aSubst m es)
         xsub (AMethCall t i meth es) = AMethCall t i meth (aSubst m es)
         xsub (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (aSubst m es)

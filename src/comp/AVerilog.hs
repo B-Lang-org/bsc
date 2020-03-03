@@ -615,10 +615,7 @@ groupRuleDefs vDef si ci ds =
             let (rule_defs, other_defs) = findADefs signal_ids defs
                 (rule_vdecls, rule_vdefs) = mkVDeclsAndDefs vDef rule_defs
                 -- make the rule group
-                user_comment =
-                    case (lookup rule_id comment_map) of
-                        Nothing -> []
-                        Just cs -> cs
+                user_comment = fromMaybe [] (lookup rule_id comment_map)
                 comment = ["rule " ++ getIdString rule_id] ++
                           indentLines 2 (concatMap lines user_comment)
                 -- if (null rule_vdefs) this returns []
