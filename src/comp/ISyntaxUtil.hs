@@ -1105,3 +1105,14 @@ iDefMapM :: (Monad m) => (IExpr a -> m (IExpr a)) -> IDef a -> m (IDef a)
 iDefMapM f (IDef i t e p) = do
   e' <- f e
   return $ IDef i t e' p
+
+emptyFmt :: (IExpr a)
+emptyFmt = (IAps (ICon idFormat (ICForeign {fName    = getIdString(unQualId(idFormat)),
+                                            foports  = Nothing,
+                                            fcallNo  = (Just 0),
+                                            iConType = tt,
+                                            isC = False -- unsure what this should be?
+                                            })) [] [e])
+   where e = iMkString ""
+         t = iGetType e
+         tt = (t `itFun` itFmt)
