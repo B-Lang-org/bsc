@@ -186,13 +186,9 @@ splitFmt e =
         -- expression come first
         -- bottom up processing
         promoteConcat r (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti es@[cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e0, e1]), e2]) =
-          do ef <- emptyFmtM
-             e' <- promoteConcat False (IAps cc tc [(IAps ci ti [cond, e0, e2]), (IAps ci ti [cond, e1, ef])])
-             return e'
+          promoteConcat False (IAps cc tc [(IAps ci ti [cond, e0, e2]), (IAps ci ti [cond, e1, emptyFmt])])
         promoteConcat r (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e2, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e0, e1])]) =
-          do ef <- emptyFmtM
-             e' <- promoteConcat False (IAps cc tc [(IAps ci ti [cond, e2, e0]), (IAps ci ti [cond, ef, e1])])
-             return e'
+          promoteConcat False (IAps cc tc [(IAps ci ti [cond, e2, e0]), (IAps ci ti [cond, emptyFmt, e1])])
         promoteConcat False (IAps x@(ICon _ (ICForeign {})) ts es) =
           do es' <- mapM (promoteConcat False) es
              return (IAps x ts es')
@@ -343,9 +339,6 @@ splitFmt e =
         getLists (IAps (ICon _ (ICPrim _ PrimFmtConcat)) _ [e0, e1]) =
                (getLists e0) ++ (getLists e1)
         getLists x = [[x]]
-
-emptyFmtM :: F a (IExpr a)
-emptyFmtM = return emptyFmt
 
 -- #############################################################################
 -- #
