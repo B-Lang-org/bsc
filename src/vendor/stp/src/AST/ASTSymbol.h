@@ -47,7 +47,7 @@ namespace BEEV
       size_t operator()(const ASTSymbol *sym_ptr) const
       {
 #ifdef TR1_UNORDERED_MAP
-        tr1::hash<string> h;
+        std::hash<string> h;
 #else
         //hash<char *> h;
 #endif

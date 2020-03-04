@@ -24,7 +24,7 @@ namespace BEEV
 	template <class T>
 	struct hashF {
 				  size_t operator() (const T & x) const {
-						  return __gnu_cxx::hash<const char*>()(x.c_str());
+						  return std::hash<const char*>()(x.c_str());
 				  }
 		  };
 

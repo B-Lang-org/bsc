@@ -16,7 +16,7 @@ namespace simplifier
     class NodeToFixedBitsMap
     {
     public:
-      typedef BEEV::hash_map<BEEV::ASTNode, FixedBits*,
+      typedef std::unordered_map<BEEV::ASTNode, FixedBits*,
           BEEV::ASTNode::ASTNodeHasher, BEEV::ASTNode::ASTNodeEqual>
           NodeToFixedBitsMapType;
 
