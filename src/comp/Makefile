@@ -55,7 +55,10 @@ TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
             -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
-            -litcl$(ITCL_VER) -litclstub$(ITCL_VER) -lhtcl
+            -litcl$(ITCL_VER) -lhtcl
+ifeq ($(OSTYPE), Darwin)
+TCL_LIBS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
+endif
 
 # STP
 STP_HS      = ../vendor/stp/include_hs
@@ -76,8 +79,12 @@ BSCBUILDLIBS = \
 
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
-WISHFLAGS = -litkstub$(ITCL_VER) -litk$(ITCL_VER) $(shell pkg-config --libs x11)
+WISHFLAGS = -litk$(ITCL_VER) $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
+ifeq ($(OSTYPE), Darwin)
+WISHFLAGS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITCL_VER).dylib))"
+WISHFLAGS += -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Tk.framework/Headers/
+endif
 
 # -----
 # GHC
@@ -161,6 +168,7 @@ GHCCOMPILEFLAGS = -o $@ -c $<
 # On Mac OS, we'll need to update the dylib location,
 # so linking needs to pad the field so that there's room to overwrite
 ifeq ($(OSTYPE), Darwin)
+GHC += -optc -Wno-deprecated-declarations
 GHC += -optl -headerpad_max_install_names
 endif
 
