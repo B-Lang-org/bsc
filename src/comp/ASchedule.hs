@@ -931,9 +931,9 @@ aSchedule_step1 errh flags prefix pps amod = do
       -- Also consider conflicting methods available infinitely many times
       -- because the schedule resolves that resource conflict
   let resMax' = tr "let resMax'" $
-          [(r,n') | (r,n) <- resMax,
-                    let (NoConflictSet pc) = ncSetPC,
+          [(r,n') | let (NoConflictSet pc) = ncSetPC,
                     let (NoConflictSet cf) = ncSetCF,
+                    (r,n) <- resMax,
                     -- 0 means all to one port
                     let n' = if ((r,r) `S.member` pc || (r,r) `S.member` cf)
                              then n
@@ -1533,8 +1533,8 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
   -- different domains.
   let conflict_pairs  = [ ((r1, fromJust d1), (r2, fromJust d2))
                         | (r1,r2s) <- urgency_conflicts
-                        , r2 <- r2s
                         , let d1 = M.findWithDefault Nothing r1 rule_domain_map
+                        , r2 <- r2s
                         , let d2 = M.findWithDefault Nothing r2 rule_domain_map
                         , (isJust d1) && (isJust d2)
                         ]
@@ -2578,8 +2578,9 @@ extractCFConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:
@@ -2605,8 +2606,9 @@ extractPCConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:
@@ -2631,8 +2633,9 @@ extractSCConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:

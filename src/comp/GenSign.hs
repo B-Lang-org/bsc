@@ -168,13 +168,14 @@ genSign errh exportAll symt
         --       can import that other package; if it's in this package,
         --       nothing can be done, so we will error ... see below)
         udef :: [CDefn]
-        udef = sortBy cmpName [ td | i <- S.toList (S.difference use def),
-                                -- primitive's which are available but
+        udef = sortBy cmpName [ td |
+                                -- primitives which are available but
                                 -- not declared/exported should be ignored
                                 -- (idArrow, idAdd, idMax, idLog, idDiv, etc)
                                 -- for simplicity, we ignore all prelude
                                 -- qualified types
                                 fsCurrentPkg /= fsPrelude,
+                                i <- S.toList (S.difference use def),
                                 -- only consider Ids from this package
                                 getIdQFString i == Just fsCurrentPkg,
                                 {- not (isTCId i), -} td <- tdef i ]
