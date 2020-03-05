@@ -265,8 +265,7 @@ doShowSchedule errh flags prefix pkg
     schedFileH <- openFileCatch errh emptyContext schedName WriteMode
     unless (quiet flags) $ putStrLn $ "Schedule dump file created: " ++
                                       (getRelativeFilePath schedName )
-    let   outputHandles = [schedFileH] ++
-                          if (hasDump flags DFschedule) then [stdout] else []
+    let   outputHandles = schedFileH : [stdout | hasDump flags DFschedule]
     --
     --
     let schedPutStr :: String -> IO ()

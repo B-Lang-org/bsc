@@ -4788,7 +4788,7 @@ checkMethodCycles moduleId ifcRuleNames reachmap seq_map sched_id_order = do
                Just raw_path -> -- the path is in reverse
                                 -- and add the final node to the front,
                                 -- to make it a cycle
-                                Just $ (m, [mkCSNSched sched_id_order m] ++ reverse raw_path)
+                                Just (m, mkCSNSched sched_id_order m : reverse raw_path)
 
       -- bad methods
       bad_meths :: [(AId,[CSNode])]

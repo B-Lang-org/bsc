@@ -1788,7 +1788,7 @@ showFlags flags =
          pprintedFlags = filter ((/=) [] ) $ showFlagsLst flags
          showFlagStr :: [String] -> String
          showFlagStr ss = "     " ++ unwords (intersperse " " ss)
-    in  unlines (["Flags:"] ++ (map showFlagStr pprintedFlags))
+    in  unlines ("Flags:" : map showFlagStr pprintedFlags)
 
 showFlag :: Bool -> Flags -> (String, FlagType) -> [String]
 showFlag False flags (f, (Toggle _ (Just showf))) =
