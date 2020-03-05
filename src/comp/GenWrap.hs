@@ -2212,8 +2212,7 @@ extSel sel xid | xid == idEmpty = sel
 extSel sel xid = CSelect sel xid
 
 cLams :: [Id] -> CExpr -> CExpr
-cLams [] e = e
-cLams (i:is) e = CLam (Right i) (cLams is e)
+cLams is e = foldr (CLam . Right) e is
 
 unLams :: CExpr -> ([CPat], CExpr)
 unLams (CLam (Right i) e) = ((CPVar i):is, e') where (is, e') = unLams e
