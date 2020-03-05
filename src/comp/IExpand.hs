@@ -2888,13 +2888,11 @@ evalAp' f@(ICon i (ICDef t e)) as = do
         step i
         e' <- cacheDef i t e
         when doFunExpand $ do
-            u <- return (mkAp f as) --unheapAll (mkAp f as)
-            traceM ("expand " ++ ppReadable u)
+            traceM ("expand " ++ ppReadable (mkAp f as))
         r <- evalAp "ICDef" e' as
         when doFunExpand2 $ do
             let P _ re = r
-            u <- return re --unheapAll re
-            traceM ("expand done\n" ++ ppReadable (mkAp f as, u))
+            traceM ("expand done\n" ++ ppReadable (mkAp f as, re))
         return r
 evalAp' e@(ICon i ic)          as = conAp i ic e as
 -- it's WHNF
