@@ -26,6 +26,7 @@ void
 htcl_finalizeTclObj(Tcl_Obj* o)
 {
 #if defined(__APPLE__) && defined(__MACH__)
+/* Workaround for https://sourceforge.net/p/tcl/bugs/4043/ */
   if (Tcl_IsShared(o) == 1)
 #endif
   Tcl_DecrRefCount(o);

@@ -168,7 +168,6 @@ GHCCOMPILEFLAGS = -o $@ -c $<
 # On Mac OS, we'll need to update the dylib location,
 # so linking needs to pad the field so that there's room to overwrite
 ifeq ($(OSTYPE), Darwin)
-#GHC += -optc -Wno-deprecated-declarations
 GHC += -optl -headerpad_max_install_names
 endif
 
