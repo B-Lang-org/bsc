@@ -76,7 +76,7 @@ data PrimOp =
         | PrimCase
 
         -- Only used in intermediate code
-        -- primSelect ·k ·m ·n e  selects k bits at position m from n bits
+        -- primSelect @k @m @n e  selects k bits at position m from n bits
         -- primSelect :: \/ k, m, n :: * -> Bit n -> Bit k
         | PrimSelect
 
@@ -1013,4 +1013,3 @@ instance PrimResult (Bool, Integer, Integer) where
 
 instance PrimResult ([Integer], Integer) where
   primResult op ts vs = evalPrimToListIntInt op ts vs
-
