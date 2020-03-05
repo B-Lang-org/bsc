@@ -233,8 +233,7 @@ aVerilog errh flags pps aspack ffmap =
            apFst concat $
             apSnd concat $
               unzip $
-                catMaybes $
-                  map (vForeignBlock vco ffmap (aspkg_values aspack)) fs
+                mapMaybe (vForeignBlock vco ffmap (aspkg_values aspack)) fs
 
         -- bool is True b/c foreign function blocks should be separated
         foreignfunc_block_group =
@@ -1270,7 +1269,7 @@ mkProbeGroup sos defs comments_map probe_infos =
                                  indentLines 2 (concatMap lines cs))
         inst_comments =
             insertBlankLines $
-                catMaybes (map (mkProbeComment . fst3) probe_infos)
+                mapMaybe (mkProbeComment . fst3) probe_infos
         hdr_comment = ["probes"]
         comment = if (null inst_comments)
                   then hdr_comment
@@ -1299,7 +1298,7 @@ mkRegGroup sos defs comments_map (inst_vid, def_name, _, inps, (out, out_size)) 
 
 mkRWireGroup :: [VMItem] -> [AId] -> ([VId], [VMItem])
 mkRWireGroup defs rws =
-    let rw_decls = catMaybes (map (mkInstInputDeclMaybe defs . vId) rws)
+    let rw_decls = mapMaybe (mkInstInputDeclMaybe defs . vId) rws
         decl_ids = [ i | (VMDecl (VVDecl _ _ [VVar i])) <- rw_decls ]
         comment = ["inlined wires"]
         group = VMComment comment (VMGroup False [(mergeCommonDecl rw_decls)])

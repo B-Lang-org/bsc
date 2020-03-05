@@ -1976,7 +1976,7 @@ warnAndRecordArbitraryEarliness
             let arbs = filter (is_earliness_arbitrary r) rs_so_far
                 new_arb_msgs = mapMaybe (warn_earliness_choice r) arbs
                 ffunc_arbs = filter (has_task_order r) rs_so_far
-                shadows = catMaybes $ map (has_shadowing r) rs_so_far
+                shadows = mapMaybe (has_shadowing r) rs_so_far
                 new_shadow_msgs = map warn_action_shadowing shadows
                 new_edges =
                     -- r is the later rule, so create an edge that
@@ -3153,7 +3153,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                                 -- we've already checked for rules-between
                                 -- in opposite directions, so these will
                                 -- either be Left or Right (if any at all)
-                                catMaybes $ map (uncurry lookupRule) pairs
+                                mapMaybe (uncurry lookupRule) pairs
                         in
                             case rules_between_one_instance of
                                 ((Left r):_) ->
@@ -3165,7 +3165,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                                 [] -> Nothing
 
                     rules_between_one_rule =
-                        catMaybes $ map checkOneInstance (M.toList r1_usemap)
+                        mapMaybe checkOneInstance (M.toList r1_usemap)
                 in case rules_between_one_rule of
                         ((Left r):_) ->
                             let node = mkCSNExec_tmp r
@@ -3181,8 +3181,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                             in  Just (node, edges)
                         [] -> Nothing
 
-              rules_between =
-                  catMaybes (map checkSecondRule r2s)
+              rules_between = mapMaybe checkSecondRule r2s
 
               -- for a pair of rules, we only need one node
               current_result =
@@ -3539,7 +3538,7 @@ verifyAssertion sch@(ASchedule ss _) pred_map before_map unsync_set meth_map sch
                                    (rpragma == RPclockCrossingRule)
            check_no_unsync_methods = (rpragma == RPclockCrossingRule)
            fwe_msgs = if check_fire_when_enabled
-                      then catMaybes (map (verifyAssertionSr a) ss)
+                      then mapMaybe (verifyAssertionSr a) ss
                       else []
            before_sched = M.findWithDefault [] (mkCSNSched sched_id_order rid) pred_map
            before_exec  = M.findWithDefault [] (mkCSNExec  sched_id_order rid) pred_map
@@ -4431,8 +4430,7 @@ verifyStaticScheduleOneRule errh flags gen_backend
                then Nothing
                else Just (rule, badPairs)
 
-        err_pairs = catMaybes $
-                    map checkOneRule (M.toList rulePCConflictUseMap)
+        err_pairs = mapMaybe checkOneRule (M.toList rulePCConflictUseMap)
 
         mkErr (r, ms) =
             let mkPair (m1, m2, rs) = (pfpString m1, pfpString m2,
@@ -4795,7 +4793,7 @@ checkMethodCycles moduleId ifcRuleNames reachmap seq_map sched_id_order = do
 
       -- bad methods
       bad_meths :: [(AId,[CSNode])]
-      bad_meths = catMaybes $ map hasSchedToExecPath ifcRuleNames
+      bad_meths = mapMaybe hasSchedToExecPath ifcRuleNames
 
       mkMethSchedErr :: (AId,[CSNode]) -> EMsg
       mkMethSchedErr (meth, path_nodes) =

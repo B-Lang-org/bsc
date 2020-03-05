@@ -1639,8 +1639,8 @@ newState b ui t tss vi ns es = do
          let makeOutClock :: [(Id,HClock)] -> (Id, HExpr) -> G [(Id,HClock)]
              makeOutClock clockMap (id, wires) = do
                  let same_domain_ids =  fromMaybe [] $ listToMaybe [ delete id vs | vs <- domain_groups, id `elem` vs ]
-                     mclock = listToMaybe $ catMaybes $
-                              map ((flip lookup) clockMap) same_domain_ids
+                     mclock = listToMaybe $ mapMaybe
+                              ((flip lookup) clockMap) same_domain_ids
                      parent_ids = [p | (c,p) <- ancestors, id == c]
                      child_ids  = [c | (c,p) <- ancestors, id == p]
                      get_hclk   = flip lookup clockMap
@@ -5140,6 +5140,6 @@ getNonSynthTypes expr =
         (ts, expr') = getTyVars [] expr
         vts = getVars [] expr'
     in
-        catMaybes $ map (`lookup` vts) ts
+        mapMaybe (`lookup` vts) ts
 
 -- ===============
