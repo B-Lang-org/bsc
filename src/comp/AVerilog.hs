@@ -1621,7 +1621,7 @@ mergeCommonDecl ins =
 
     mergeOneDecl :: [VMItem] -> VMItem
     mergeOneDecl [] = internalError ("mergeCommonDecl: unexpected empty list!")
-    mergeOneDecl (a:[]) = a
+    mergeOneDecl [a] = a
     mergeOneDecl (a@(VMDecl (VVDecl vt vr vars)):as) =
         let -- extract the vars from the other decls
             extrVars :: VMItem -> [VVar]

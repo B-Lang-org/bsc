@@ -4266,7 +4266,7 @@ doIf f@(ICon _ (ICPrim _ PrimIf)) [T t, E cnd, E thn, E els] = do
                 when doTraceIf $ traceM("improveIf result: " ++ ppReadable (b, e'))
                 case (b, pthn == pels) of
                   -- back out the change if a useful merge did not occur (for better "heaping")
-                  (False, _) -> bldAp' "PrimIf" f (T t : E ecnd : E ethn : E eels : [])
+                  (False, _) -> bldAp' "PrimIf" f [T t, E ecnd, E ethn, E eels]
                   -- if we merged and the implicit conditions match we can have a simple PExpr
                   (True, True) -> return (P pthn e')
                   -- if we merged, but the implicit conditions don't match we need to use pIf
@@ -4419,7 +4419,7 @@ improveIf f t cnd thn els = do
   when (doTrans && improved) $ traceM ("improveIf: iTransform improved: " ++ ppReadable e')
   return $ if improved
            then (e', True) -- do we need to evaluate further?
-           else (mkAp f (T t : E cnd : E thn : E els : []), False)
+           else (mkAp f [T t, E cnd, E thn, E els], False)
                 -- XXX the above is just a convoluted way of writing this?
                 -- (IAps f [t] [cnd, thn, els], False)
 

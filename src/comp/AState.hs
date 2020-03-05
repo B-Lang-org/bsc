@@ -803,7 +803,7 @@ mkSignalInfoMethod aifaces = merged
           mergePorts ::  [ASPMethodInfo] -> [ASPMethodInfo]
           mergePorts [] = []
           mergePorts [a] = [a]
-          mergePorts (a:b:[]) = [res]
+          mergePorts [a, b] = [res]
               where res = case (isRdyId (aspm_name a), isRdyId (aspm_name b)) of
                           (True, False) -> b { aspm_mrdyid = (aspm_mresultid a) }
                           (False, True) -> a { aspm_mrdyid = (aspm_mresultid b) }
