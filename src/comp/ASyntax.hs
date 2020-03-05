@@ -967,14 +967,14 @@ mkIfcInoutN n var_id wire_name = ASPort (aTInout_ n) (mkOutputWireId var_id wire
 
 type AClockDomain = (ClockDomain, [AClock]) -- domain identifier and all the associated clocks
 
-data AReset = AReset {
-                       areset_wire :: AExpr -- must be of type ATBit 1
-                     }
+newtype AReset = AReset {
+                          areset_wire :: AExpr -- must be of type ATBit 1
+                        }
   deriving (Eq, Ord, Show)
 
-data AInout = AInout {
-                       ainout_wire :: AExpr
-                     }
+newtype AInout = AInout {
+                          ainout_wire :: AExpr
+                        }
   deriving (Eq, Ord, Show)
 
 instance PPrint AReset where

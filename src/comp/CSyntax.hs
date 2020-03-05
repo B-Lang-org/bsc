@@ -632,8 +632,8 @@ data CPOp
         | CPRator Int Id
         deriving (Eq, Ord, Show)
 
-data CInclude
-    = CInclude String
+newtype CInclude
+       = CInclude String
     deriving (Eq, Ord, Show)
 --------
 -- Utilities

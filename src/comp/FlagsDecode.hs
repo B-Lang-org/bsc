@@ -1045,7 +1045,7 @@ data ArgReturnType = FRTString (Flags -> String)
                    | FRTMaybeString (Flags -> Maybe String)
                    | FRTListString (Flags -> [String])
 
-data Arg2ReturnType = FRTListPairString (Flags -> [(String,String)])
+newtype Arg2ReturnType = FRTListPairString (Flags -> [(String,String)])
 
 flagsTable :: [(String, FlagType)]
 flagsTable = [(s,ft) | (s,(ft,_,_)) <- externalFlags]
