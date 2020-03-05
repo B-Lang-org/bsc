@@ -185,7 +185,7 @@ defaultContextReductionErr pos (p, reduced_ps) =
         pred = toPred p
         varposs = map mkVarPos (tv pred)
     in
-        if (length reduced_ps == 0)
+        if null reduced_ps
         then (pos, EContextReduction (pfpString pred) poss varposs)
         else (pos, EContextReductionReduces
                       (pfpString pred) (map (predToDescr . toPred) reduced_ps)
@@ -488,9 +488,7 @@ handleWeakContext pos t qs ds rs = do
     -- traceM("handleWeakContext rs': " ++ ppReadable rs')
 
     -- report the remaining errors in one emsg
-    let def_errs = if (length rs' > 0)
-                   then [defaultWeakContextErr pos t qs rs']
-                   else []
+    let def_errs = [defaultWeakContextErr pos t qs rs' | not (null rs')]
     -- report the specific errors first
     errs "handleWeakContext" (ctx_errs ++ def_errs)
 

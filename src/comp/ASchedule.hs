@@ -632,7 +632,7 @@ aSchedule_step1 errh flags prefix pps amod = do
   -- and ids in the pragmas, then the user will see this message)
   let spids = extractSchedPragmaIds schedPragmas
   let (_ {- goodids -}, badids) = partition (`elem` ruleNames) spids
-  when (length badids > 0) $
+  when (not (null badids)) $
        convEM errh (errUnknownRules badids)
 
   -- check that pragmas are not applied across clock domains
@@ -2676,7 +2676,7 @@ extractUrgencyEdgesSP nm sps =
         reflexive_edges = filter isReflexiveEdge edges
     in
         do
-           when (length reflexive_edges > 0) $
+           when (not (null reflexive_edges)) $
                errReflexiveUserUrgency reflexive_edges
            return edges
 
@@ -2924,7 +2924,7 @@ schedInfo flags moduleId cfmap scmap pcmap
             }
       res = SchedInfo mci hasRulePairs hasRuleBefore unsyncMethods
   in
-      if (trace_schedinfo && (length wmsgs > 0))
+      if trace_schedinfo && not (null wmsgs)
       then EMWarning wmsgs res
       else EMResult res
 
@@ -3558,7 +3558,7 @@ verifyAssertion sch@(ASchedule ss _) pred_map before_map unsync_set meth_map sch
                        then [errCascadedDomainCrossing a unsynced]
                        else []
            emsgs = fwe_msgs ++ nrb_msgs ++ nrb2_msgs ++ unsync_msgs
-       when (length emsgs > 0) $
+       when (not (null emsgs)) $
               throwError (EMsgs emsgs)
 
 -- Given an assertion and a scheduler group, returns Maybe EMsg

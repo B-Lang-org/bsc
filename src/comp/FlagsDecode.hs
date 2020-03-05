@@ -267,11 +267,11 @@ checkLinkFlags flags names =
     in  -- check for flags
         checkNamesForFlag bad_names $
         -- report bad file extensions
-        if (length bad_names > 0)
+        if not (null bad_names)
         then DError bad_name_errs
         else
         -- generation flag not supported during linking
-        if (not (null (genName flags)))
+        if not (null (genName flags))
         then DError [(cmdPosition, EGenNamesForLinking (genName flags))]
         else
         if (removeVerilogDollar flags)
@@ -286,7 +286,7 @@ checkLinkFlags flags names =
         else
         -- handle Bluesim (check for entry point)
         if (backend flags == Just Bluesim)
-        then if (length hdlnames > 0)
+        then if not (null hdlnames)
              then DError [(cmdPosition, EVerilogFilesWithSimBackend hdlnames)]
              else
                  case (entry flags) of
