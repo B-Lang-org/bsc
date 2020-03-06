@@ -2173,11 +2173,9 @@ evalInt e = do
   n <- evalInteger e
   let max_int = (maxBound :: Int)
       min_int = (minBound :: Int)
-  let n' = if (n > toInteger max_int)
-           then max_int
-           else if (n < toInteger min_int)
-                then min_int
-                else fromInteger n
+  let n' | n > toInteger max_int = max_int
+         | n < toInteger min_int = min_int
+         | otherwise             = fromInteger n
   return n'
 
 -----------------------------------------------------------------------------
@@ -3383,12 +3381,14 @@ conAp' i (ICPrim _ PrimTrunc) _   [_, n@(T _), m@(T _), e@(E _)] =
 
 -- Special case of doPrimOp that checks bounds and keeps the base.
 conAp' tfs (ICPrim _ PrimIntegerToBit) fe [T ty@(ITNum k), E e] = evalStaticOp e (itBitN k) handleInt
-  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) })) =
+  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) }))
             -- if structure tuned to avoid negative exponents in 2^k
-            if k < 0 then err
-            else if k == 0 then
-               if l /= 0 then err else result
-            else if l >= 2^k || l < -(2^(k-1)) then err else result
+            | k < 0            = err
+            | k == 0 && l /= 0 = err
+            | k == 0           = result
+            | l >= 2^k         = err
+            | l < -(2^(k-1))   = err
+            | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Bit" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
         handleInt e' = nfError "primIntegerToBit" $ mkAp fe [T ty, E e']
@@ -3406,12 +3406,14 @@ conAp' tfs (ICPrim _ PrimIntegerToUIntBits) fe [T ty@(ITNum k), E e] = evalStati
 -- Special case of doPrimOp that checks bounds and keeps the base.
 -- XXX we can now implement this in the prelude, with primIntegerToBits
 conAp' tfs (ICPrim _ PrimIntegerToIntBits) fe [T ty@(ITNum k), E e] = evalStaticOp e (itBitN k) handleInt
-  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) })) =
+  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) }))
             -- structure tuned to avoid negative exponents in 2^k
-            if k < 0 then err
-            else if k == 0 then
-              if l /= 0 then err else result
-            else if l >= 2^(k-1) || l < -(2^(k-1)) then err else result
+            | k < 0            = err
+            | k == 0 && l /= 0 = err
+            | k == 0           = result
+            | l >= 2^(k-1)     = err
+            | l < -(2^(k-1))   = err
+            | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Int" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
         handleInt e' = nfError "primIntegerToIntBits" $ mkAp fe [T ty, E e']
@@ -3943,12 +3945,10 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                 let k = out_sz - in_sz
                     ts = [ITNum k, ITNum in_sz, ITNum out_sz]
                 in  IAps icPrimZeroExt ts [e]
-            eq_e = let (max_sz, e1, e2) =
-                           if (idx_sz > upd_idx_sz)
-                           then (idx_sz, idx_e, mkExtend upd_idx_sz idx_sz upd_idx_e)
-                           else if (idx_sz < upd_idx_sz)
-                           then (upd_idx_sz, mkExtend idx_sz upd_idx_sz idx_e, upd_idx_e)
-                           else (upd_idx_sz, idx_e, upd_idx_e)
+            eq_e = let (max_sz, e1, e2)
+                         | idx_sz > upd_idx_sz = (idx_sz, idx_e, mkExtend upd_idx_sz idx_sz upd_idx_e)
+                         | idx_sz < upd_idx_sz = (upd_idx_sz, mkExtend idx_sz upd_idx_sz idx_e, upd_idx_e)
+                         | otherwise           =  (upd_idx_sz, idx_e, upd_idx_e)
                    in  iePrimEQ (ITNum max_sz) e1 e2
             if_e = ieIf elem_ty eq_e upd_val_e res0
         addPredG p0 $ evalAp "array-select-update" if_e as'

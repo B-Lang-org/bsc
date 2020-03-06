@@ -125,16 +125,18 @@ reduce _ = Nothing
 redAnd :: Ord a => Bool -> S.Set (BoolExp a) -> [BoolExp a] -> [BoolExp a]
        -> Maybe [BoolExp a]
 redAnd change s rs [] = toMaybe change rs
-redAnd change s rs (e:es) = if e `S.member` s then redAnd True s rs es
-                     else if Not e `S.member` s then Just [FF]
-                          else redAnd change (S.insert e s) (e:rs) es
+redAnd change s rs (e:es)
+    | e `S.member` s     = redAnd True s rs es
+    | Not e `S.member` s = Just [FF]
+    | otherwise          = redAnd change (S.insert e s) (e:rs) es
 
 redOr :: Ord a => Bool -> S.Set (BoolExp a) -> [BoolExp a] -> [BoolExp a]
       -> Maybe [BoolExp a]
 redOr change s rs [] = toMaybe change rs
-redOr change s rs (e:es) = if e `S.member` s then redOr True s rs es
-                    else if Not e `S.member` s then Just [TT]
-                         else redOr change (S.insert e s) (e:rs) es
+redOr change s rs (e:es)
+    | e `S.member` s     = redOr True s rs es
+    | Not e `S.member` s = Just [TT]
+    | otherwise          = redOr change (S.insert e s) (e:rs) es
 
 foldrx :: (a -> a -> a) -> a -> [a] -> a
 foldrx f z [] = z

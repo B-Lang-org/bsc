@@ -921,14 +921,11 @@ genIfcField trec ifcIdIn prefixes (FInf fieldIdQ argtypes rettype _) =
                                    else (TAp tBit v, bitsCtx rettype v : ctx)
                        let fi = binId prefixes fieldId
                        --
-                       let (mprops,ifcPragmas) =
-                               if isClock
-                               then genNewClockIfcPragmas prefixes ciPrags fieldId fi
-                               else if isReset
-                               then genNewResetIfcPragmas prefixes ciPrags fieldId fi
-                               else if isIot
-                               then genNewInoutIfcPragmas prefixes ciPrags fieldId fi
-                               else genNewMethodIfcPragmas prefixes ciPrags fieldId fi
+                       let (mprops, ifcPragmas) = gen prefixes ciPrags fieldId fi
+                           gen | isClock   = genNewClockIfcPragmas
+                               | isReset   = genNewResetIfcPragmas
+                               | isIot     = genNewInoutIfcPragmas
+                               | otherwise = genNewMethodIfcPragmas
 
                        let ifc_field = CField { cf_name = fi,
                                                 cf_pragmas = Just ifcPragmas,
@@ -997,17 +994,18 @@ genIfcFieldFN trec rootId  prefixes (FInf fieldIdQ argtypes r _) =
                 case lookup t typeMap of
                   Just t' -> (t', lctx)
                   Nothing ->
-                      if isTClock t then (t,lctx)
-                      else if isTReset t then (t,lctx)
-                      else if leftCon t == Just idBit then (t,lctx)
-                      else if leftCon t == Just idActionValue_
-                           then (t,lctx)
-                      else if leftCon t == Just idActionValue
-                           then (t,lctx)
-                      else if isTInout t
-                           then let it = headOrErr "inout arg" (tyConArgs t)
+                      let newTCtx
+                            | isTClock t                       = (t,lctx)
+                            | isTReset t                       = (t,lctx)
+                            | leftCon t == Just idBit          = (t,lctx)
+                            | leftCon t == Just idActionValue_ = (t,lctx)
+                            | leftCon t == Just idActionValue  = (t,lctx)
+                            | isTInout t                       =
+                                let it = headOrErr "inout arg" (tyConArgs t)
                                 in  (TAp tInout_ lv, bitsCtx it lv : lctx)
-                      else (TAp tBit lv, bitsCtx t lv : lctx)
+                            | otherwise                        =
+                                (TAp tBit lv, bitsCtx t lv : lctx)
+                      in newTCtx
             fldfn (t,lv) (largtypes,lctx) =
                 let (t',ctx') = newTypeCtx t lctx lv
                 in  (t':largtypes, ctx')
@@ -1024,14 +1022,11 @@ genIfcFieldFN trec rootId  prefixes (FInf fieldIdQ argtypes r _) =
         let fi = binId prefixes fieldId
 
         ----traceM ("Making readyFN for " ++ (ppReadable fi) ++ " of " ++ (show pps) ++ ": " ++ (show makingReady))
-        let (mprops,ifcPragmas) =
-                if isClock
-                then genNewClockIfcPragmas prefixes [] fieldId fi
-                else if isReset
-                then genNewResetIfcPragmas prefixes [] fieldId fi
-                else if isIot
-                then genNewInoutIfcPragmas prefixes [] fieldId fi
-                else genNewMethodIfcPragmas prefixes [] fieldId fi
+        let (mprops,ifcPragmas) = gen prefixes [] fieldId fi
+            gen | isClock   = genNewClockIfcPragmas
+                | isReset   = genNewResetIfcPragmas
+                | isIot     = genNewInoutIfcPragmas
+                | otherwise = genNewMethodIfcPragmas
 
         let ifc_field = CField { cf_name = fi, cf_pragmas = Just ifcPragmas,
                                  cf_type = CQType ctx' (foldr arrow r' newAs),

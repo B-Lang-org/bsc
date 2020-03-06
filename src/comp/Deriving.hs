@@ -123,14 +123,11 @@ doDer flags r packageid xs (CprimType idk) =
 doDer flags r packageid xs d = [Right [d]]
 
 doPrimTypeDer :: Id -> [Type] -> CTypeclass -> Either EMsg [CDefn]
-doPrimTypeDer i vs (CTypeclass di) =
-    if qualEq di idUndefined then
-      Right [doPrimTypeUndefined i vs]
-    else if qualEq di idClsUninitialized then
-      Right [doPrimTypeUninitialized i vs]
-    else if qualEq di idClsDeepSeqCond then
-      Right [doPrimTypeDeepSeqCond i vs]
-    else internalError ("attempt to derive " ++ ppReadable di
+doPrimTypeDer i vs (CTypeclass di)
+    | qualEq di idUndefined        = Right [doPrimTypeUndefined i vs]
+    | qualEq di idClsUninitialized = Right [doPrimTypeUninitialized i vs]
+    | qualEq di idClsDeepSeqCond   = Right [doPrimTypeDeepSeqCond i vs]
+    | otherwise =  internalError ("attempt to derive " ++ ppReadable di
                         ++ " for primitive type: " ++
                         (ppReadable (cTApplys (cTCon i) vs)))
 

@@ -194,13 +194,13 @@ aDo imod@(IModule mi fmod be wi ps iks its clks rsts itvs pts idefs rs ifc ffcal
                 let inputs = initOrErr "tsConv" ts
                     res = lastOrErr "tsConv" ts
                     in_types = map (aTypeConv i) inputs
-                    (en_type, val_type) =
-                        if (isitActionValue_ res) && (getAV_Size res > 0)
-                        then (Just (ATBit 1),
-                              Just (ATBit (getAV_Size res)))
-                        else if (isActionType res)
-                             then (Just (ATBit 1), Nothing)
-                             else (Nothing, Just (aTypeConv i res))
+                    (en_type, val_type)
+                      | isitActionValue_ res && getAV_Size res > 0
+                          = (Just (ATBit 1), Just (ATBit (getAV_Size res)))
+                      | isActionType res
+                          = (Just (ATBit 1), Nothing)
+                      | otherwise
+                          = (Nothing, Just (aTypeConv i res))
                 in (in_types, en_type, val_type)
 
         let (IRules sps irule_list) = rs

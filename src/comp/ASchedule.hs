@@ -238,42 +238,30 @@ instance Eq CSNode where
   _ == _ = False -- mixed Sched and Exec are never equal
 
 instance Ord CSNode where
-  compare (CSN_Sched i1 n1) (CSN_Sched i2 n2) =
-      if n1 == -1
-      then if n2 == -1
-           then compare i1 i2 -- temporary nodes use id order
-           else GT
-      else if n2 == -1
-           then LT
-           else compare n1 n2 -- ordinary nodes use numeric order
-  compare a@(CSN_Exec i1 n1) b@(CSN_Exec i2 n2) =
-      if n1 == -1
-      then if n2 == -1
-           then compare i1 i2 -- temporary nodes use id order
-           else GT
-      else if n2 == -1
-           then LT
-           else compare n1 n2 -- ordinary nodes use numeric order
-  compare (CSN_Sched i1 n1) (CSN_Exec i2 n2) =
-      if n1 == -1
-      then if n2 == -1
-           -- temporary nodes use id order, then Sched < Exec
-           then case (compare i1 i2) of { EQ -> LT; ord -> ord }
-           else GT
-      else if n2 == -1
-           then LT
-           -- ordinary nodes use numeric order, then Sched < Exec
-           else case (compare n1 n2) of { EQ -> LT; ord -> ord }
-  compare (CSN_Exec i1 n1) b@(CSN_Sched i2 n2) =
-      if n1 == -1
-      then if n2 == -1
-           -- temporary nodes use id order, then Exec > Sched
-           then case (compare i1 i2) of { EQ -> GT; ord -> ord }
-           else GT
-      else if n2 == -1
-           then LT
-           -- ordinary nodes use numeric order, then Exec > Sched
-           else case (compare n1 n2) of { EQ -> GT; ord -> ord }
+  compare (CSN_Sched i1 n1) (CSN_Sched i2 n2)
+      | n1 == -1 && n2 == -1 = compare i1 i2 -- temporary nodes use id order
+      | n1 == -1 = GT
+      | n2 == -1 = LT
+      | otherwise = compare n1 n2 -- ordinary nodes use numeric order
+  compare a@(CSN_Exec i1 n1) b@(CSN_Exec i2 n2)
+      | n1 == -1 && n2 == -1 = compare i1 i2 -- temporary nodes use id order
+      | n1 == -1 = GT
+      | n2 == -1 = LT
+      | otherwise = compare n1 n2 -- ordinary nodes use numeric order
+  compare (CSN_Sched i1 n1) (CSN_Exec i2 n2)
+      -- temporary nodes use id order, then Sched < Exec
+      | n1 == -1 && n2 == -1 = case (compare i1 i2) of { EQ -> LT; ord -> ord }
+      | n1 == -1 = GT
+      | n2 == -1 = LT
+      -- ordinary nodes use numeric order, then Sched < Exec
+      | otherwise =  case (compare n1 n2) of { EQ -> LT; ord -> ord }
+  compare (CSN_Exec i1 n1) b@(CSN_Sched i2 n2)
+      -- temporary nodes use id order, then Exec > Sched
+      | n1 == -1 && n2 == -1 = case (compare i1 i2) of { EQ -> GT; ord -> ord }
+      | n1 == -1 = GT
+      | n2 == -1 = LT
+      -- ordinary nodes use numeric order, then Exec > Sched
+      | otherwise = case (compare n1 n2) of { EQ -> GT; ord -> ord }
 
 instance Show CSNode where
   show (CSN_Sched i n) = "CSN_Sched #" ++ (show n) ++ " " ++ (show i)
@@ -3730,12 +3718,10 @@ mkExclusiveRulesDB rule_names rule_uses_map are_disjoint are_cf cf_map sc_map
                   in  not (S.null (r1_uses `S.intersection` r2_uses))
               r1 `disjoint` r2 = shares_uses r2 && are_disjoint r1 r2
 
-              foldFunc (accum_ds, accum_es) r2 =
-                  if (r1 `disjoint` r2)
-                  then (S.insert r2 accum_ds, accum_es)
-                  else if (r1 `excludes` r2)
-                       then (accum_ds, S.insert r2 accum_es)
-                       else (accum_ds, accum_es)
+              foldFunc (accum_ds, accum_es) r2
+                  | (r1 `disjoint` r2) = (S.insert r2 accum_ds, accum_es)
+                  | (r1 `excludes` r2) = (accum_ds, S.insert r2 accum_es)
+                  | otherwise          = (accum_ds, accum_es)
               (ds, es) = foldl foldFunc (S.empty, S.empty) rule_names
           in
               if (S.null ds && S.null es)
@@ -4288,17 +4274,14 @@ verifySafeRuleActions flags userDefs rulePCConflictUseMap dtstate = do
       -- Prepare the error messages
       let show_all = showRangeConflict flags
           ppe = pPrintExpandFlags flags userDefs PDReadable bContext
-          mkCondInfo c =
-              if (isTrue c)
-              then (False, Nothing)
-              else if (show_all)
-                   then (False, Just $ ppe c)
-                   else (True, Just $ text "...")
-          mkArgs es = if (length es == 0)
-                      then (False, empty)
-                      else if (show_all)
-                      then (False, ppeCommaSep es)
-                      else (True, text "...")
+          mkCondInfo c
+              | isTrue c  = (False, Nothing)
+              | show_all  = (False, Just $ ppe c)
+              | otherwise = (True, Just $ text "...")
+          mkArgs es
+              | null es   = (False, empty)
+              | show_all  = (False, ppeCommaSep es)
+              | otherwise = (True, text "...")
           ppeCommaSep xs = let (y:ys) = reverse (map ppe xs)
                                ys' = map (<> text ",") ys
                            in  sep $ reverse (y:ys')
@@ -4935,22 +4918,18 @@ conflictMapToDOT clockSuffix modName ifcRuleNames userRuleNames cmap =
                        | i <- userRuleNames ]
         mkEdges (r1:rs) =
             let r1name = getIdString r1
-                mkE r2 =
+                mkE r2
                     -- (r1,r2) in the map means r1 cannot seq before r2
-                    if (r1,r2) `G.member` cmap
-                    then if (r2,r1) `G.member` cmap
-                         then -- total conflict
-                              [Edge [r1name, getIdString r2]
-                                    [EStyle EBold, EDir ENone]]
-                         else -- r2 SB r1
-                              [Edge [getIdString r2, r1name]
-                                    [EStyle EDashed]]
-                    else if (r2,r1) `G.member` cmap
-                         then -- r1 SB r2
-                              [Edge [r1name, getIdString r2]
-                                    [EStyle EDashed]]
-                         else -- no conflict
-                              []
+                  | (r1,r2) `G.member` cmap && (r2,r1) `G.member` cmap =
+                      -- total conflict
+                      [Edge [r1name, getIdString r2] [EStyle EBold, EDir ENone]]
+                  | (r1,r2) `G.member` cmap =
+                      -- r2 SB r1
+                      [Edge [getIdString r2, r1name] [EStyle EDashed]]
+                  | (r2,r1) `G.member` cmap =
+                       -- r1 SB r2
+                      [Edge [r1name, getIdString r2] [EStyle EDashed]]
+                  | otherwise = [] -- no conflict
             in  (concatMap mkE rs) ++ (mkEdges rs)
         mkEdges [] = []
         edge_stmts = mkEdges ruleNames
