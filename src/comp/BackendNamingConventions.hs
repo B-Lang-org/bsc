@@ -395,12 +395,10 @@ cregToReg old_avi =
                     zip (vFields old_vmi) (avi_meth_types old_avi)
 
         new_port_types =
-            let convPortType (vn, t) =
-                    if (getVNameString vn == cregDINPortStr 0)
-                    then Just (VName dinPortStr, t)
-                    else if (getVNameString vn == cregQOUTPortStr 0)
-                         then Just (VName qoutPortStr, t)
-                         else Nothing
+            let convPortType (vn, t)
+                    | getVNameString vn == cregDINPortStr 0  = Just (VName dinPortStr, t)
+                    | getVNameString vn == cregQOUTPortStr 0 = Just (VName qoutPortStr, t)
+                    | otherwise = Nothing
             in  M.fromList $
                   mapMaybe convPortType $
                     M.toList (avi_port_types old_avi)

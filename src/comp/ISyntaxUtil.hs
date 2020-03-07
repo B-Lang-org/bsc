@@ -414,13 +414,9 @@ ieIf ty c t e | isFalse c = e
 ieIf ty c t e               = IAps icIf [ty] [c, t, e]
 
 ieIfx :: IType -> IExpr a -> IExpr a -> IExpr a -> IExpr a
-ieIfx ty c t e =
-    if t == e then
-        t
-    else if ty == itBit1 && isTrue t && isFalse e then
-        c
-    else
-        ieIf ty c t e
+ieIfx ty c t e | t == e                                = t
+               | ty == itBit1 && isTrue t && isFalse e = c
+               | otherwise                             = ieIf ty c t e
 
 ieArraySel :: IType -> Integer -> IExpr a -> [IExpr a] -> IExpr a
 -- XXX check if the index is constant and return that element?

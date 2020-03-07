@@ -1996,11 +1996,9 @@ splitPath bspecdir old_path s =
         paths0 = makePath s
         -- expand symbols, and remove empty dirs
         paths = let expandPercent c = if (c == '%') then bspecdir else [c]
-                    expandDir d = if (d == "+")
-                                  then old_path
-                                  else if (d == "")
-                                  then []
-                                  else [concatMap expandPercent d]
+                    expandDir "+" = old_path
+                    expandDir ""  = []
+                    expandDir d   = [concatMap expandPercent d]
                 in  concatMap expandDir paths0
     in
         paths

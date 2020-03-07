@@ -189,11 +189,11 @@ getInfo errh flags gflags fname = do
     let tbo = if (isJust tbo_bdir) then tbo_bdir else tbo_samedir
 
     -- include the prelude to avoid failures when predule was updated.
-    let prelude = if (not $ usePrelude flags) ||  (i == idPrelude)
-                  then []
-                  else if (i == idPreludeBSV)
-                       then [idPrelude]
-                       else [idPrelude, idPreludeBSV]
+    let prelude
+           | not (usePrelude flags) = []
+           | i == idPrelude = []
+           | i == idPreludeBSV = [idPrelude]
+           | otherwise = [idPrelude, idPreludeBSV]
     return $ PkgInfo {
                       pkgName = i,
                       fileName = fname,
