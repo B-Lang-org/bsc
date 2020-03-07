@@ -1613,10 +1613,7 @@ vsUniv e =
         Nothing -> internalError "vsUniv"
 
 vsGetSingleton :: IExpr a -> ValMap a -> Maybe Integer
-vsGetSingleton e m =
-    case M.lookup e m of
-    Just vs -> vGetSing vs
-    Nothing -> Nothing
+vsGetSingleton e m = M.lookup e m >>= vGetSing
 
 isCmp :: PrimOp -> Bool
 isCmp PrimEQ = True
@@ -1749,9 +1746,6 @@ iTransRenameIdsInDef rename_map (IDef name typ expr _) =
 
 -- given a map from old to new identifiers, replace any old id with a new one
 iTransRenameId :: M.Map Id Id -> Id -> Id
-iTransRenameId rename_map name =
-    case M.lookup name rename_map of
-         Just new_name -> new_name
-         Nothing -> name
+iTransRenameId rename_map name = M.findWithDefault name name rename_map
 
 -----------------------------------------------------------------------------

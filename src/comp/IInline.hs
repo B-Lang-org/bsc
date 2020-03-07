@@ -136,7 +136,7 @@ iInlineUseLimit use_limit
         ifc' = map (inline_ifc onemap dmap) ifc
         rs' = irulesMap (iSubst onemap dmap) rs
         uses = M.fromList ics
-        getc' i = case M.lookup i uses of Just c -> c; Nothing -> 0
+        getc' i = M.findWithDefault 0 i uses
         getc i = {- trace ("getc: " ++ ppReadable (i, getc' i)) $ -} getc' i
         ds'' = filter (\ (IDef i _ _ _) ->
                         let uses = getc i in

@@ -5247,7 +5247,7 @@ mkMEAssump ([], _) = []
 mkMEAssump (_, []) = []
 mkMEAssump (aids, bids) = -- trace("ME: " ++ (ppReadable aids) ++ " " ++ (ppReadable bids)) $
                           [(AAssumption p ea, (aids ++ bids))]
-  where p   = aAnd (aOrs (map aBoolVar (map mkIdWillFire aids))) (aOrs (map aBoolVar (map mkIdWillFire bids)))
+  where p   = aAnd (aOrs (map (aBoolVar . mkIdWillFire) aids)) (aOrs (map (aBoolVar . mkIdWillFire) bids))
         ea  = [errAction str]
         str = showErrorList [(getPosition aids, EMutuallyExclusiveRulesFire (ppReadable aids) (ppReadable bids))]
 

@@ -71,7 +71,7 @@ optBoolExprQM n e =
         let vs = sort (getVars e)
             nvs = length vs
             rs = genEnvs vs
-            rows = map (map to3) (map (map snd) (filter (flip eval e) rs))
+            rows = map (map (to3 . snd)) (filter (`eval` e) rs)
             grps = filter (not . null) (map (\ n -> filter (\ row -> length (filter (==T) row) == n) rows) [0..nvs])
 
             loop all marked [] = all \\ marked
