@@ -417,9 +417,9 @@ getFixity i =
     "*"   -> FInfixl 11
     "/"   -> FInfixl 11
 
-    "»"   -> FInfixr 12
+    "\xbb"-> FInfixr 12 -- https://en.wikipedia.org/wiki/Guillemet or '>>'
 
-    "·"   -> FInfixr 13
+    "\xb7"-> FInfixr 13 -- https://en.wikipedia.org/wiki/Interpunct or '.'
 
     "|>"  -> FInfixr 15
 -}
