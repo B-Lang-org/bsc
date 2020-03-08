@@ -1,6 +1,6 @@
 module GenSign(genUserSign, genEverythingSign) where
 import Data.List((\\), sortBy, unionBy, groupBy, partition)
-import Data.Maybe(catMaybes)
+import Data.Maybe(mapMaybe)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Control.Monad(when)
@@ -168,13 +168,14 @@ genSign errh exportAll symt
         --       can import that other package; if it's in this package,
         --       nothing can be done, so we will error ... see below)
         udef :: [CDefn]
-        udef = sortBy cmpName [ td | i <- S.toList (S.difference use def),
-                                -- primitive's which are available but
+        udef = sortBy cmpName [ td |
+                                -- primitives which are available but
                                 -- not declared/exported should be ignored
                                 -- (idArrow, idAdd, idMax, idLog, idDiv, etc)
                                 -- for simplicity, we ignore all prelude
                                 -- qualified types
                                 fsCurrentPkg /= fsPrelude,
+                                i <- S.toList (S.difference use def),
                                 -- only consider Ids from this package
                                 getIdQFString i == Just fsCurrentPkg,
                                 {- not (isTCId i), -} td <- tdef i ]
@@ -374,7 +375,7 @@ genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
         [(CIinstance currentPkg (qualCQType s qt), [(getPosition d, WOrphanInst (pfpString (expandSyn t))) | orphan_inst ])]
     else
         []
-  where leftTyCons = catMaybes . map leftTyCon
+  where leftTyCons = mapMaybe leftTyCon
         addQual i = if (getIdQual i == fsEmpty)
                     then qualId currentPkg i
                     else i
@@ -618,7 +619,7 @@ expandPkgExports symt imps exps =
             in  case (dss) of
                     [] -> let pos = getPosition pkg
                           in  Right (pos, EUnboundPackage (pvpString pkg))
-                    (ds:_) -> Left $ catMaybes $ map pkgExport ds
+                    (ds:_) -> Left $ mapMaybe pkgExport ds
         expandOne e = Left [e]
 
         -- function to re-export a def

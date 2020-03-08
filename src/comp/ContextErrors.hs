@@ -185,7 +185,7 @@ defaultContextReductionErr pos (p, reduced_ps) =
         pred = toPred p
         varposs = map mkVarPos (tv pred)
     in
-        if (length reduced_ps == 0)
+        if null reduced_ps
         then (pos, EContextReduction (pfpString pred) poss varposs)
         else (pos, EContextReductionReduces
                       (pfpString pred) (map (predToDescr . toPred) reduced_ps)
@@ -488,9 +488,7 @@ handleWeakContext pos t qs ds rs = do
     -- traceM("handleWeakContext rs': " ++ ppReadable rs')
 
     -- report the remaining errors in one emsg
-    let def_errs = if (length rs' > 0)
-                   then [defaultWeakContextErr pos t qs rs']
-                   else []
+    let def_errs = [defaultWeakContextErr pos t qs rs' | not (null rs')]
     -- report the specific errors first
     errs "handleWeakContext" (ctx_errs ++ def_errs)
 
@@ -831,74 +829,59 @@ mkAmbVarExplanation :: PredWithPositions -> Doc
 mkAmbVarExplanation (PredWithPositions p@(IsIn c _) poss) =
     let cid = typeclassId $ name c
         use_poss_doc = nest 2 (vcat (map (text . prPosition) (nub poss)))
-        use_doc =
-            if (cid == idBitwise) then
+        use_doc
+            | cid == idBitwise =
                s2par ("Bitwise operators" ++
                       " in or at the following locations:")
-            else
-            if (cid == idBitReduce) then
+            | cid == idBitReduce =
                s2par ("Bit reduction operator" ++
                       " in or at the following locations:")
-            else
-            if (cid == idBits) then
+            | cid == idBits =
                s2par ("Bits#() proviso introduced" ++
                       " (for bit vector packing/unpacking)" ++
                       " in or at the following locations:")
-            else
-            if (cid == idBitExtend) then
+            | cid == idBitExtend =
                s2par ("Bit vector extend or truncate" ++
                       " in or at the following locations:")
-            else
-            if (cid == idPrimSelectable) then
+            | cid == idPrimSelectable =
                s2par ("Selection with []" ++
                       " in or at the following locations:")
-            else
-            if (cid == idPrimIndex) then
+            | cid == idPrimIndex =
                -- this shouldn't happen?
                -- unless we change "<<" and "[x:y]" to take index types?
                s2par ("Indexing into a vector" ++
                       " in or at the following locations:")
-            else
-            if (cid == idEq) then
+            | cid == idEq =
                s2par ("Equality or inequality operator" ++
                       " in or at the following locations:")
-            else
-            if (cid == idLiteral) then
+            | cid == idLiteral =
                s2par ("Numeric constant" ++
                       " in or at the following locations:")
-            else
-            if (cid == idSizedLiteral) then
+            | cid == idSizedLiteral =
                s2par ("Sized numeric constant" ++
                       " in or at the following locations:")
-            else
-            if (cid == idRealLiteral) then
+            | cid == idRealLiteral =
                s2par ("Real numeric constant" ++
                       " in or at the following locations:")
-            else
-            if (cid == idStringLiteral) then
+            | cid == idStringLiteral =
                s2par ("String constant" ++
                       " in or at the following locations:")
-            else
-            if (cid == idArith) then
+            | cid == idArith =
                s2par ("Arithmetic operator" ++
                       " in or at the following locations:")
-            else
-            if (cid == idOrd) then
+            | cid == idOrd =
                s2par ("Comparison operator" ++
                       " in or at the following locations:")
-            else
-            if (cid == idBounded) then
+            | cid == idBounded =
                s2par ("Use of minBound or maxBound" ++
                       " in or at the following locations:")
-            else
-            if (cid == idPrimParam) then
+            | cid == idPrimParam =
                s2par ("Assignment to an imported module parameter" ++
                       " in or at the following locations:")
-            else
-            if (cid == idPrimPort) then
+            | cid == idPrimPort =
                s2par ("Assignment to an imported module port" ++
                       " in or at the following locations:")
-            else
+            | otherwise =
                -- just display the predicate
                s2par ("The proviso " ++ pfpString p ++ " introduced" ++
                       " in or at the following locations:")

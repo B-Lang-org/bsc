@@ -967,14 +967,14 @@ mkIfcInoutN n var_id wire_name = ASPort (aTInout_ n) (mkOutputWireId var_id wire
 
 type AClockDomain = (ClockDomain, [AClock]) -- domain identifier and all the associated clocks
 
-data AReset = AReset {
-                       areset_wire :: AExpr -- must be of type ATBit 1
-                     }
+newtype AReset = AReset {
+                          areset_wire :: AExpr -- must be of type ATBit 1
+                        }
   deriving (Eq, Ord, Show)
 
-data AInout = AInout {
-                       ainout_wire :: AExpr
-                     }
+newtype AInout = AInout {
+                          ainout_wire :: AExpr
+                        }
   deriving (Eq, Ord, Show)
 
 instance PPrint AReset where
@@ -1760,7 +1760,7 @@ instance PPrintExpand AExpr where
                 f [] = []
                 f (x:y:xs) = parens (sep [pPrintExpand m d ecb x <> comma , pPrintExpand m d ec' y]) : f xs
                 f  x = internalError ("pPrintExpand APrim: " ++ show x)
-    pPrintExpand m d ec (APrim _ _ PrimExtract (var:hi:lo:[])) =
+    pPrintExpand m d ec (APrim _ _ PrimExtract [var, hi, lo]) =
         pPrintExpand m d pContext var <> lbrack
                        <> (if ( dhi == dlo )
                            then dhi <> rbrack
@@ -1769,7 +1769,7 @@ instance PPrintExpand AExpr where
                              dhi = pPrintExpand m d eci hi
                              dlo = pPrintExpand m d eci lo
 
-    pPrintExpand m d ec (APrim _ _ PrimIf (cond:thn:els:[])) =
+    pPrintExpand m d ec (APrim _ _ PrimIf [cond, thn, els]) =
          pparen(p) $ pPrintExpand m d ecc cond $$ text "?"
                        <+> pPrintExpand m d ect thn $$ colon
                        <+> pPrintExpand m d ece els

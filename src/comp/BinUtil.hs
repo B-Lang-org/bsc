@@ -220,20 +220,20 @@ mergeHashes errh hashmap binId binhash impHashes =
 
       mergeFn :: Id -> (String, [Id]) -> (String, [Id]) ->
                  IO (String, [Id])
-      mergeFn k (new_s, [new_i]) (old_s, old_is@(old_i:_)) =
-          if (new_s == old_s)
-          then return (old_s, (new_i:old_is))
-          else if (new_i == k)
-               then -- the "old_is" expected a different hash than the
-                    -- package "new_i" actually has
-                    mismatchErr1 new_i old_i
-               else if (k `elem` old_is)
-                    then -- the "new_i" is expecting different than the package
-                         -- actually has (and possibly other "old_is" agree)
-                         mismatchErr1 k new_i
-                    else -- we don't yet know what the package's hash is,
-                         -- but two users disagree on its hash
-                         mismatchErr2 k new_i old_i
+      mergeFn k (new_s, [new_i]) (old_s, old_is@(old_i:_))
+          | new_s == old_s = return (old_s, (new_i:old_is))
+          | new_i == k
+              -- the "old_is" expected a different hash than the
+              -- package "new_i" actually has
+              = mismatchErr1 new_i old_i
+          | k `elem` old_is
+              -- the "new_i" is expecting different than the package
+              -- actually has (and possibly other "old_is" agree)
+              = mismatchErr1 k new_i
+          | otherwise
+              -- we don't yet know what the package's hash is,
+              -- but two users disagree on its hash
+              = mismatchErr2 k new_i old_i
       mergeFn _ new_val _ =
           internalError ("mergeHashes: " ++ ppReadable new_val)
 
@@ -265,4 +265,3 @@ replaceImports (CPackage i exps imps fixs defs includes) impsigs =
                 ("replaceImports: CImpId: " ++ ppReadable i)
 
 -- =========================
-

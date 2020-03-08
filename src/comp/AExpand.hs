@@ -559,10 +559,7 @@ getExprSize (AMGate t i c)           = ([c],  1,1) -- XXX ? c is not unique to t
 -- If the Id to be looked up is not in the map, then getUses returns 0.
 
 getUses :: M.Map Id Int -> Id -> Int
-getUses m i =
-    case M.lookup i m of
-    Just n -> n
-    Nothing -> 0
+getUses m i = M.findWithDefault 0 i m
 
 
 -- ==============================
@@ -570,9 +567,7 @@ getUses m i =
 
 getDef :: M.Map Id ADef -> Id -> ADef
 getDef m i =
-    case M.lookup i m of
-    Just d -> d
-    Nothing -> internalError ("AExpand.getDef " ++ ppString i)
+    M.findWithDefault (internalError ("AExpand.getDef " ++ ppString i)) i m
 
 
 -- ==============================

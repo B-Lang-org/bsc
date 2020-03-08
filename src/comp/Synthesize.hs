@@ -167,14 +167,12 @@ toE (APrim aid t p [x,y]) | p == PrimSLE || p == PrimSLT =
 -- XXX bad code
 toE (APrim aid t@(ATBit n) PrimExtract [e, h, l]) | h /= l && not (isConst h && isConst l) =
         let te@(ATBit m) = aType e
-            e1 = if m > n
-                then APrim aid t PrimExtract
-                        [e1f,
-                         ASInt defaultAId aTNat (ilDec (n-1)),
-                         ASInt defaultAId (aType h) (ilDec 0)]
-                else if n < m
-                    then APrim aid t PrimZeroExt [e1f]
-                    else e1f
+            e1 | m > n     = APrim aid t PrimExtract
+                                [e1f,
+                                 ASInt defaultAId aTNat (ilDec (n-1)),
+                                 ASInt defaultAId (aType h) (ilDec 0)]
+               | n < m     = APrim aid t PrimZeroExt [e1f]
+               | otherwise = e1f
             e1f = APrim aid te PrimSRL [e, l]
             e2 = APrim aid t PrimSub
                         [onesh,
@@ -509,13 +507,12 @@ aXors aid [x, y] = aXor aid x y
 aXors _ _ = internalError "Synthesize.aXors: list should be of length 2"
 
 aXor :: AId -> AExpr -> AExpr -> AExpr
-aXor aid x y =
-         if isFalse x then y
-    else if isTrue  x then aNot aid y
-    else if isFalse y then x
-    else if isTrue  y then aNot aid x
-    else if x == y    then aFalse
-    else APrim aid aTBool PrimXor [x, y]
+aXor aid x y | isFalse x = y
+             | isTrue  x = aNot aid y
+             | isFalse y = x
+             | isTrue  y = aNot aid x
+             | x == y    = aFalse
+             | otherwise = APrim aid aTBool PrimXor [x, y]
 
 aNots :: AId -> [AExpr] -> AExpr
 aNots aid [e] = aNot aid e

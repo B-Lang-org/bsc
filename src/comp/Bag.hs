@@ -15,7 +15,7 @@ type Count = Int
 unity :: Count
 unity = 1
 
-data Bag k = Bag (M.Map k Count) deriving Show
+newtype Bag k = Bag (M.Map k Count) deriving Show
 
 empty :: Bag k
 empty = Bag $ M.empty
@@ -72,4 +72,3 @@ removeIntersection b1 b2 =
 
 instance (Eq k) => Eq (Bag k) where
   (Bag m1) == (Bag m2)  =  (m1 == m2)
-

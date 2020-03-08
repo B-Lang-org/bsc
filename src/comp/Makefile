@@ -53,9 +53,8 @@ TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
 ITCL_VER  = $(shell echo 'puts [package require Itcl]' | tclsh)
 TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
-TCL_LIBS  = -ltcl$(TCL_VER) -ltclstub$(TCL_VER) \
-            -ltk$(TCL_VER) -ltkstub$(TCL_VER) \
-            -litcl$(ITCL_VER) -lhtcl
+TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
+            -lhtcl
 ifeq ($(OSTYPE), Darwin)
 TCL_LIBS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
 endif

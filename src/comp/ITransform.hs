@@ -171,12 +171,10 @@ iTrExpr ctx idxs@((idx,sz_idx):rest_idxs) (IAps pupd@(ICon _ (ICPrim _ PrimArray
                 let k = out_sz - in_sz
                     ts = [ITNum k, ITNum in_sz, ITNum out_sz]
                 in  IAps icPrimZeroExt ts [e]
-            eq_e = let (max_sz, e1, e2) =
-                           if (sz_idx > sz_upd_idx)
-                           then (sz_idx, idx, mkExtend sz_upd_idx sz_idx upd_idx)
-                           else if (sz_idx < sz_upd_idx)
-                           then (sz_upd_idx, mkExtend sz_idx sz_upd_idx idx, upd_idx)
-                           else (sz_upd_idx, idx, upd_idx)
+            eq_e = let (max_sz, e1, e2)
+                           | sz_idx > sz_upd_idx = (sz_idx, idx, mkExtend sz_upd_idx sz_idx upd_idx)
+                           | sz_idx < sz_upd_idx = (sz_upd_idx, mkExtend sz_idx sz_upd_idx idx, upd_idx)
+                           | otherwise           = (sz_upd_idx, idx, upd_idx)
                    in  iePrimEQ (ITNum max_sz) e1 e2
         val' <- iTrExpr (addT eq_e ctx) idxs (expValShallow val)
         arr' <- iTrExpr (addF eq_e ctx) idxs (expValShallow arr)
@@ -308,11 +306,11 @@ iTrAp ctx (ICon _ (ICPrim _ PrimJoinActions)) _ [e, ICon _ (ICPrim _ PrimNoActio
 -- if c t False         -->  c && t
 -- if c t _             -->  t
 -- if c _ e             -->  e
-iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els] =
-           if isT ctx cnd then (thn, True)
-      else if isF ctx cnd then (els, True)
-      else if eqE thn els then (thn, True)
-      else case (t == itBit1, thn, els) of
+iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]
+        | isT ctx cnd = (thn, True)
+        | isF ctx cnd = (els, True)
+        | eqE thn els = (thn, True)
+        | otherwise   = case (t == itBit1, thn, els) of
            (True, ICon _ (ICInt { iVal = IntLit { ilValue = 1 } }), ICon _ (ICInt { iVal = IntLit { ilValue = 0 } })) -> (cnd, True)
            (True, ICon _ (ICInt { iVal = IntLit { ilValue = 1 } }), _                            ) -> iTrAp2 ctx iOr  [] [cnd, els]
            (True, ICon _ (ICInt { iVal = IntLit { ilValue = 0 } }), ICon _ (ICInt { iVal = IntLit { ilValue = 1 } })) -> iTrAp2 ctx iNot [] [cnd]
@@ -442,14 +440,14 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els] =
 -- compiler might be able to optimize one path and not the other
 -- e1 && e2    --> False        IF e1 IMPLIES ~e2
 -- e2 && e1    --> False        IF e2 IMPLIES ~e1
-iTrAp ctx p@(ICon _ (ICPrim _ PrimBAnd)) _ [c1, c2] =
-         if      isF ctx c1 || isF ctx c2 then (iFalse, True)                -- fast special case
-         else if isUndet c1 || isUndet c2 then (iFalse, True)
-         else if implies ctx c1 c2        then (c1, True)
-         else if implies ctx c2 c1        then (c2, True)
-         else if impliesnot ctx c1 c2     then (iFalse, True)
-         else if impliesnot ctx c2 c1     then (iFalse, True)
-         else                                        (IAps p [] [c1, c2], False)
+iTrAp ctx p@(ICon _ (ICPrim _ PrimBAnd)) _ [c1, c2]
+         | isF ctx c1 || isF ctx c2 = (iFalse, True) -- fast special case
+         | isUndet c1 || isUndet c2 = (iFalse, True)
+         | implies ctx c1 c2        = (c1, True)
+         | implies ctx c2 c1        = (c2, True)
+         | impliesnot ctx c1 c2     = (iFalse, True)
+         | impliesnot ctx c2 c1     = (iFalse, True)
+         | otherwise                = (IAps p [] [c1, c2], False)
 
 -- True || e  --> True
 -- e || True  --> True
@@ -460,14 +458,14 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimBAnd)) _ [c1, c2] =
 -- e1 || e2   --> True                 IF ~e1 IMPLIES e2
 -- e1 || e2   --> True          IF ~e2 IMPLIES e1
 
-iTrAp ctx p@(ICon _ (ICPrim _ PrimBOr)) _ [c1, c2] =
-              if isT ctx c1 || isT ctx c2 then (iTrue, True)                -- fast special case
-         else if isUndet c1 || isUndet c2 then (iTrue, True)
-         else if implies ctx c2 c1        then (c1, True)
-         else if implies ctx c1 c2        then (c2, True)
-         else if notimplies ctx c1 c2     then (iTrue, True)
-         else if notimplies ctx c2 c1     then (iTrue, True)
-         else                                        (IAps p [] [c1, c2], False)
+iTrAp ctx p@(ICon _ (ICPrim _ PrimBOr)) _ [c1, c2]
+         | isT ctx c1 || isT ctx c2 = (iTrue, True) -- fast special case
+         | isUndet c1 || isUndet c2 = (iTrue, True)
+         | implies ctx c2 c1        = (c1, True)
+         | implies ctx c1 c2        = (c2, True)
+         | notimplies ctx c1 c2     = (iTrue, True)
+         | notimplies ctx c2 c1     = (iTrue, True)
+         | otherwise                = (IAps p [] [c1, c2], False)
 
 -- not True           -->  False
 -- not False          -->  True
@@ -477,10 +475,10 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimBOr)) _ [c1, c2] =
 -- not (e1 RELOP e2)  -->  e1 (inv RELOP) e2
 -- not (if c t e)     -->  if c (not t) (not e)
 -- XXX There is no rule for pushing inside dynamic array select/update
-iTrAp ctx p@(ICon _ (ICPrim _ PrimBNot)) _ [c] =
-              if isF ctx c then (iTrue, True)
-         else if isT ctx c then (iFalse, True)
-         else case expVal c of
+iTrAp ctx p@(ICon _ (ICPrim _ PrimBNot)) _ [c]
+         | isF ctx c = (iTrue, True)
+         | isT ctx c = (iFalse, True)
+         | otherwise = case expVal c of
               IAps   (ICon _ (ICPrim _ PrimBNot)) _  [e]        -> (e, True)
               IAps   (ICon _ (ICPrim _ PrimBAnd)) _  [e1, e2]   -> iTrAp2 ctx iOr  [] [iTrApExp ctx iNot [] [e1], iTrApExp ctx iNot [] [e2]]
               IAps   (ICon _ (ICPrim _ PrimBOr))  _  [e1, e2]   -> iTrAp2 ctx iAnd [] [iTrApExp ctx iNot [] [e1], iTrApExp ctx iNot [] [e2]]
@@ -875,13 +873,10 @@ iTrAp ctx fun@(ICon iext (ICPrim _ PrimExtract)) args@[T tn, T tk, E e, E eh, E 
 
 -- x::Bit1 == 1  -->  x
 -- x::Bit1 == 0  -->  not x
-iTrAp ctx e0@(ICon _ (ICPrim _ PrimEQ)) [ITNum 1] [e, ICon _ (ICInt { iVal = IntLit { ilValue = i } })] =
-        if i == 0 then
-            iTrAp2 ctx iNot [] [e]
-        else if i == 1 then
-            (e, True)
-        else
-            internalError ("conApN ==")
+iTrAp ctx e0@(ICon _ (ICPrim _ PrimEQ)) [ITNum 1] [e, ICon _ (ICInt { iVal = IntLit { ilValue = i } })]
+        | i == 0    = iTrAp2 ctx iNot [] [e]
+        | i == 1    = (e, True)
+        | otherwise = internalError ("conApN ==")
 
 -- if b1 then c1 else if b2 then c2 else ... cn == c
 -- (other direction is handled by the flip rule below)
@@ -1357,12 +1352,10 @@ isConstExprForPrim prim (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
 isConstExprForPrim _ _ = False
 
 constPart :: IExpr a -> IExpr a
-constPart (IAps (ICon _ (ICPrim _ p)) _ [e1,e2]) =
-    if (isIConInt e1)
-    then e1
-    else if (isIConInt e2)
-         then e2
-         else internalError "constPart: no const part found!"
+constPart (IAps (ICon _ (ICPrim _ p)) _ [e1,e2])
+    | isIConInt e1 = e1
+    | isIConInt e2 = e2
+    | otherwise    = internalError "constPart: no const part found!"
 constPart _ = internalError "constPart: expected a binary primitive op"
 
 nonConstPart :: IExpr a -> IExpr a
@@ -1517,10 +1510,9 @@ toBE (IAps (ICon _ (ICPrim _ PrimBAnd)) _ [e1, e2])   = And (toBE e1) (toBE e2)
 toBE (IAps (ICon _ (ICPrim _ PrimBOr))  _ [e1, e2])   = Or  (toBE e1) (toBE e2)
 toBE (IAps (ICon _ (ICPrim _ PrimBNot)) _ [e])        = Not (toBE e)
 toBE (IAps (ICon _ (ICPrim _ PrimIf))   _ [e1,e2,e3]) = If (toBE e1) (toBE e2) (toBE e3)
-toBE e                                                =
-        if      e == iTrue  then TT
-        else if e == iFalse then FF
-        else Var e
+toBE e | e == iTrue  = TT
+       | e == iFalse = FF
+       | otherwise   = Var e
 
 -- A quick hack for optimizing comparisons
 sOptCmp :: IExpr a -> IExpr a
@@ -1613,10 +1605,7 @@ vsUniv e =
         Nothing -> internalError "vsUniv"
 
 vsGetSingleton :: IExpr a -> ValMap a -> Maybe Integer
-vsGetSingleton e m =
-    case M.lookup e m of
-    Just vs -> vGetSing vs
-    Nothing -> Nothing
+vsGetSingleton e m = M.lookup e m >>= vGetSing
 
 isCmp :: PrimOp -> Bool
 isCmp PrimEQ = True
@@ -1749,9 +1738,6 @@ iTransRenameIdsInDef rename_map (IDef name typ expr _) =
 
 -- given a map from old to new identifiers, replace any old id with a new one
 iTransRenameId :: M.Map Id Id -> Id -> Id
-iTransRenameId rename_map name =
-    case M.lookup name rename_map of
-         Just new_name -> new_name
-         Nothing -> name
+iTransRenameId rename_map name = M.findWithDefault name name rename_map
 
 -----------------------------------------------------------------------------

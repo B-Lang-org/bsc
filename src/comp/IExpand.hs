@@ -260,8 +260,8 @@ iExpand errh flags symt alldefs is_noinlined_func pps def@(IDef mi _ _ _) = do
       -- expect in IModule, but the function "pDef" below also relies on it
       -- (since "pDef" and "m" are recursively built)
       (tsorted_cse_ptrs, ptr_map) = eqPtrs iheap ptrs0
-      -- functon for translating old pointers to new ones
-      ptran p = case IM.lookup p ptr_map of Just n -> n; Nothing -> p
+      -- function for translating old pointers to new ones
+      ptran p = IM.findWithDefault p p ptr_map
 
       -- from a heap pointer, get the expression and its name info
       --   Note that wire info in dropped.  In the MCD merge (rev 6456),
@@ -548,9 +548,8 @@ eqPtrs heap ptrs =
         g = [(p, hptrs (heapOf p)) | p <- ptrs ]
         ptrs' = case tSortInt g of
                 Left iss -> internalError ("eqPtrs: circular: " ++ ppReadable iss ++ "\n" ++
-                                            (concatMap ppReadable
-                                               (map (heapCellToHExpr . getHeapCell)
-                                                    (concatMap id iss))))
+                                            (concatMap (ppReadable . heapCellToHExpr . getHeapCell)
+                                                    (concatMap id iss)))
                 Right ps -> ps
         step p (dsm, ptrm) =
                 let e = sub (heapOf p)
@@ -1640,8 +1639,8 @@ newState b ui t tss vi ns es = do
          let makeOutClock :: [(Id,HClock)] -> (Id, HExpr) -> G [(Id,HClock)]
              makeOutClock clockMap (id, wires) = do
                  let same_domain_ids =  fromMaybe [] $ listToMaybe [ delete id vs | vs <- domain_groups, id `elem` vs ]
-                     mclock = listToMaybe $ catMaybes $
-                              map ((flip lookup) clockMap) same_domain_ids
+                     mclock = listToMaybe $ mapMaybe
+                              ((flip lookup) clockMap) same_domain_ids
                      parent_ids = [p | (c,p) <- ancestors, id == c]
                      child_ids  = [c | (c,p) <- ancestors, id == p]
                      get_hclk   = flip lookup clockMap
@@ -2173,11 +2172,9 @@ evalInt e = do
   n <- evalInteger e
   let max_int = (maxBound :: Int)
       min_int = (minBound :: Int)
-  let n' = if (n > toInteger max_int)
-           then max_int
-           else if (n < toInteger min_int)
-                then min_int
-                else fromInteger n
+  let n' | n > toInteger max_int = max_int
+         | n < toInteger min_int = min_int
+         | otherwise             = fromInteger n
   return n'
 
 -----------------------------------------------------------------------------
@@ -2891,13 +2888,11 @@ evalAp' f@(ICon i (ICDef t e)) as = do
         step i
         e' <- cacheDef i t e
         when doFunExpand $ do
-            u <- return (mkAp f as) --unheapAll (mkAp f as)
-            traceM ("expand " ++ ppReadable u)
+            traceM ("expand " ++ ppReadable (mkAp f as))
         r <- evalAp "ICDef" e' as
         when doFunExpand2 $ do
             let P _ re = r
-            u <- return re --unheapAll re
-            traceM ("expand done\n" ++ ppReadable (mkAp f as, u))
+            traceM ("expand done\n" ++ ppReadable (mkAp f as, re))
         return r
 evalAp' e@(ICon i ic)          as = conAp i ic e as
 -- it's WHNF
@@ -3383,12 +3378,14 @@ conAp' i (ICPrim _ PrimTrunc) _   [_, n@(T _), m@(T _), e@(E _)] =
 
 -- Special case of doPrimOp that checks bounds and keeps the base.
 conAp' tfs (ICPrim _ PrimIntegerToBit) fe [T ty@(ITNum k), E e] = evalStaticOp e (itBitN k) handleInt
-  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) })) =
+  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) }))
             -- if structure tuned to avoid negative exponents in 2^k
-            if k < 0 then err
-            else if k == 0 then
-               if l /= 0 then err else result
-            else if l >= 2^k || l < -(2^(k-1)) then err else result
+            | k < 0            = err
+            | k == 0 && l /= 0 = err
+            | k == 0           = result
+            | l >= 2^k         = err
+            | l < -(2^(k-1))   = err
+            | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Bit" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
         handleInt e' = nfError "primIntegerToBit" $ mkAp fe [T ty, E e']
@@ -3406,12 +3403,14 @@ conAp' tfs (ICPrim _ PrimIntegerToUIntBits) fe [T ty@(ITNum k), E e] = evalStati
 -- Special case of doPrimOp that checks bounds and keeps the base.
 -- XXX we can now implement this in the prelude, with primIntegerToBits
 conAp' tfs (ICPrim _ PrimIntegerToIntBits) fe [T ty@(ITNum k), E e] = evalStaticOp e (itBitN k) handleInt
-  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) })) =
+  where handleInt (ICon i (ICInt { iVal = il@(IntLit { ilValue = l, ilWidth = w, ilBase = b }) }))
             -- structure tuned to avoid negative exponents in 2^k
-            if k < 0 then err
-            else if k == 0 then
-              if l /= 0 then err else result
-            else if l >= 2^(k-1) || l < -(2^(k-1)) then err else result
+            | k < 0            = err
+            | k == 0 && l /= 0 = err
+            | k == 0           = result
+            | l >= 2^(k-1)     = err
+            | l < -(2^(k-1))   = err
+            | otherwise        = result
           where err = errG (getIdPosition i, EInvalidLiteral "Int" k (pfpString il))
                 result = return $ pExpr $ iMkLitWBAt (getIdPosition i) (itBitN k) w b (mask k l)
         handleInt e' = nfError "primIntegerToIntBits" $ mkAp fe [T ty, E e']
@@ -3943,12 +3942,10 @@ conAp' sel_i sel_c@(ICPrim _ PrimArrayDynSelect) _
                 let k = out_sz - in_sz
                     ts = [ITNum k, ITNum in_sz, ITNum out_sz]
                 in  IAps icPrimZeroExt ts [e]
-            eq_e = let (max_sz, e1, e2) =
-                           if (idx_sz > upd_idx_sz)
-                           then (idx_sz, idx_e, mkExtend upd_idx_sz idx_sz upd_idx_e)
-                           else if (idx_sz < upd_idx_sz)
-                           then (upd_idx_sz, mkExtend idx_sz upd_idx_sz idx_e, upd_idx_e)
-                           else (upd_idx_sz, idx_e, upd_idx_e)
+            eq_e = let (max_sz, e1, e2)
+                         | idx_sz > upd_idx_sz = (idx_sz, idx_e, mkExtend upd_idx_sz idx_sz upd_idx_e)
+                         | idx_sz < upd_idx_sz = (upd_idx_sz, mkExtend idx_sz upd_idx_sz idx_e, upd_idx_e)
+                         | otherwise           =  (upd_idx_sz, idx_e, upd_idx_e)
                    in  iePrimEQ (ITNum max_sz) e1 e2
             if_e = ieIf elem_ty eq_e upd_val_e res0
         addPredG p0 $ evalAp "array-select-update" if_e as'
@@ -4269,7 +4266,7 @@ doIf f@(ICon _ (ICPrim _ PrimIf)) [T t, E cnd, E thn, E els] = do
                 when doTraceIf $ traceM("improveIf result: " ++ ppReadable (b, e'))
                 case (b, pthn == pels) of
                   -- back out the change if a useful merge did not occur (for better "heaping")
-                  (False, _) -> bldAp' "PrimIf" f (T t : E ecnd : E ethn : E eels : [])
+                  (False, _) -> bldAp' "PrimIf" f [T t, E ecnd, E ethn, E eels]
                   -- if we merged and the implicit conditions match we can have a simple PExpr
                   (True, True) -> return (P pthn e')
                   -- if we merged, but the implicit conditions don't match we need to use pIf
@@ -4422,7 +4419,7 @@ improveIf f t cnd thn els = do
   when (doTrans && improved) $ traceM ("improveIf: iTransform improved: " ++ ppReadable e')
   return $ if improved
            then (e', True) -- do we need to evaluate further?
-           else (mkAp f (T t : E cnd : E thn : E els : []), False)
+           else (mkAp f [T t, E cnd, E thn, E els], False)
                 -- XXX the above is just a convoluted way of writing this?
                 -- (IAps f [t] [cnd, thn, els], False)
 
@@ -5143,6 +5140,6 @@ getNonSynthTypes expr =
         (ts, expr') = getTyVars [] expr
         vts = getVars [] expr'
     in
-        catMaybes $ map (`lookup` vts) ts
+        mapMaybe (`lookup` vts) ts
 
 -- ===============

@@ -176,7 +176,7 @@ aTaskValues (AMGate {}) = []
 exprForeignCalls :: AExpr -> [AExpr]
 exprForeignCalls e@(AFunCall {})  =
   if (ae_isC e)
-  then [e] ++ (concatMap exprForeignCalls (ae_args e))
+  then e : concatMap exprForeignCalls (ae_args e)
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
 exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
@@ -188,11 +188,11 @@ exprForeignCalls _                  = []
 actionForeignCalls :: AAction -> [Either AAction AExpr]
 actionForeignCalls a@(AFCall {}) =
   if (afcall_isC a)
-  then [Left a] ++ (map Right (concatMap exprForeignCalls (aact_args a)))
+  then Left a : map Right (concatMap exprForeignCalls (aact_args a))
   else map Right (concatMap exprForeignCalls (aact_args a))
 actionForeignCalls a@(ATaskAction {}) =
   if (ataskact_isC a)
-  then [Left a] ++ (map Right (concatMap exprForeignCalls (aact_args a)))
+  then Left a : map Right (concatMap exprForeignCalls (aact_args a))
   else map Right (concatMap exprForeignCalls (aact_args a))
 actionForeignCalls a@(ACall {})  =
   map Right (concatMap exprForeignCalls (aact_args a))
@@ -450,18 +450,9 @@ type EMap a = M.Map AId a
 aSubst :: (AExprs a) => EMap AExpr -> a -> a
 aSubst m = mapAExprs xsub
   where xsub :: AExpr -> AExpr
-        xsub x@(ASPort _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
-        xsub x@(ASParam _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
-        xsub x@(ASDef _ i) =
-          case M.lookup i m of
-            Just e -> e
-            Nothing -> x
+        xsub x@(ASPort _ i) = M.findWithDefault x i m
+        xsub x@(ASParam _ i) = M.findWithDefault x i m
+        xsub x@(ASDef _ i) = M.findWithDefault x i m
         xsub (APrim aid t p es) = APrim aid t p (aSubst m es)
         xsub (AMethCall t i meth es) = AMethCall t i meth (aSubst m es)
         xsub (ANoInlineFunCall t i f es) = ANoInlineFunCall t i f (aSubst m es)

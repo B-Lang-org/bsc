@@ -167,13 +167,10 @@ mangleFileName s =
 -- Paths which were provided absolutely have /// at the beginning.
 
 createEncodedFullFilePath :: FilePath -> FilePath -> FilePath
-createEncodedFullFilePath filePath pwd =
-        if head (filePath ++ " ") == '/'
-        then "//" ++ filePath
-        else
-          if (take 2 (filePath ++ "  ")) == "./"
-          then pwd ++ "///" ++ (drop 2 filePath)
-          else pwd ++ "///" ++ filePath
+createEncodedFullFilePath filePath pwd
+    | head (filePath ++ " ") == '/'     = "//" ++ filePath
+    | take 2 (filePath ++ "  ") == "./" = pwd ++ "///" ++ (drop 2 filePath)
+    | otherwise                         = pwd ++ "///" ++ filePath
 
 -- /// is replaced with /
 getFullFilePath :: FilePath -> FilePath

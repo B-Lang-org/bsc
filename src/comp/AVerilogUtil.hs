@@ -212,7 +212,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
     vtaskid = VId (vCommentTaskName vco taskid) aid Nothing
     (ids',es') = let lv = headOrErr "vForeignCall: missing return value" ids
                  in case polyReturnType ffmap f of
-                     (Just ty) -> ([], [ASDef ty lv] ++ es)
+                     (Just ty) -> ([], (ASDef ty lv) : es)
                      Nothing   -> (ids,es)
 
     fcall exprs | Just (cnd, es_T, es_F) <- splitString exprs =
@@ -577,7 +577,7 @@ vDefMpd vco (ADef i_t t_t@(ATBit _) fn@(AFunCall {}) _) ffmap
         vtaskid = VId name (ae_objid fn) Nothing
         sensitivityList = nub (concatMap aIds (ae_args fn))
         ev = foldr1 VEEOr (map (VEE . VEVar) sensitivityList)
-        arg_list = [ ASDef t_t i_t ] ++ (ae_args fn)
+        arg_list = (ASDef t_t i_t) : ae_args fn
         args = map (vExpr vco) arg_list
         body = if (null sensitivityList)
                then Vinitial $ VSeq [VTask vtaskid args]
@@ -980,7 +980,7 @@ vState  flags rewire_map avinst =
                          vi_inst_params  = if ( vco_v95 vco )
                                            then Left (mapFst (Just . getVIdString)  paramExprs)
                                            else Right (mapSnd Just paramExprs),
-                         vi_inst_ports   = map (updateArgPosition ifc_position) (map tildeHack args)
+                         vi_inst_ports   = map (updateArgPosition ifc_position . tildeHack) args
                         }
 
         inst_info =

@@ -427,7 +427,7 @@ hierMapToInstModMap hiermap topmod =
         addSubMods _ _ _ res@(Left _) = res
         addSubMods mods_so_far inst_so_far (inst, mod) (Right imap) =
           if (isJust (lookup mod mods_so_far))
-          then let cycle = [(mod, inst)] ++
+          then let cycle = (mod, inst) :
                            takeWhile ((/= mod) . fst) mods_so_far
                in  Left [(noPosition, ECircularABin mod (reverse cycle))]
           else

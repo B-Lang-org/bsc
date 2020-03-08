@@ -417,9 +417,9 @@ getFixity i =
     "*"   -> FInfixl 11
     "/"   -> FInfixl 11
 
-    "»"   -> FInfixr 12
+    "\xbb"-> FInfixr 12 -- https://en.wikipedia.org/wiki/Guillemet or '>>'
 
-    "·"   -> FInfixr 13
+    "\xb7"-> FInfixr 13 -- https://en.wikipedia.org/wiki/Interpunct or '.'
 
     "|>"  -> FInfixr 15
 -}
@@ -430,14 +430,13 @@ mkUId a = setIdBase a (concatFString [fsUnderscore, getIdBase a])
 
 -- Join Ids
 join2ids :: Id -> Id -> FString -> Id -> Id
-join2ids pid a j b =
-    if isEmptyId a then b
-    else if isEmptyId b then a
-    else
-      addIdProps
-        (setIdBase pid
-            (concatFString [getIdBase a, j, getIdBase b]))
-        (union (getIdProps b) (getIdProps a))
+join2ids pid a j b
+    | isEmptyId a = b
+    | isEmptyId b = a
+    | otherwise   = addIdProps
+                       (setIdBase pid
+                           (concatFString [getIdBase a, j, getIdBase b]))
+                       (union (getIdProps b) (getIdProps a))
 
 -- Joins 2 ids with underscore connector
 mkUSId :: Id -> Id -> Id
@@ -862,12 +861,13 @@ removeSuffix idx =
     let count = getSuffixCount idx
         keep_prop prop = not (isSuffixCountProp prop)
         id_clean = rmIdPropBy idx keep_prop
-        out = if (hasIdProp id_clean IdP_suffixed)
-              then internalError("Id:removeSuffix: Inconsistent use of suffix forms: " ++ show idx)
-              else if (count == 0)
-              then internalError("Id:removeSuffix: Id has no suffix: " ++ show idx)
-              else let (fstring, suffix) = removeFStringSuffix (getIdBase id_clean)
-                   in  ((addIdProp (setIdBase id_clean fstring) (IdP_SuffixCount (count - 1))), suffix)
+        out | hasIdProp id_clean IdP_suffixed
+                = internalError("Id:removeSuffix: Inconsistent use of suffix forms: " ++ show idx)
+            | count == 0
+                = internalError("Id:removeSuffix: Id has no suffix: " ++ show idx)
+            | otherwise
+                = let (fstring, suffix) = removeFStringSuffix (getIdBase id_clean)
+                  in  ((addIdProp (setIdBase id_clean fstring) (IdP_SuffixCount (count - 1))), suffix)
     in out
 
 removeFStringSuffix :: FString -> (FString, Integer)
@@ -916,11 +916,9 @@ addToQual :: String -> Id -> Id
 addToQual prefix a =
   let fsPrefix = mkFString prefix
       fsQual   = getIdQual a
-      fsQual'  = if (fsQual == fsEmpty)
-                 then fsPrefix
-                 else if (fsPrefix == fsEmpty)
-                      then fsQual
-                      else concatFString [fsPrefix, fsDot, fsQual]
+      fsQual' | fsQual == fsEmpty   = fsPrefix
+              | fsPrefix == fsEmpty = fsQual
+              | otherwise           = concatFString [fsPrefix, fsDot, fsQual]
   in setIdQual a fsQual'
 
 

@@ -190,16 +190,5 @@ fixUp :: M.Map Id (IExpr a) -> IExpr a -> IExpr a
 fixUp m (ILam i t e) = ILam i t (fixUp m e)
 fixUp m (ILAM i k e) = ILAM i k (fixUp m e)
 fixUp m (IAps f ts es) = IAps (fixUp m f) ts (map (fixUp m) es)
-fixUp m (ICon i (ICDef t d)) = ICon i (ICDef t (get m i d))
+fixUp m (ICon i (ICDef t d)) = ICon i (ICDef t (M.findWithDefault d i m))
 fixUp m e = e
-
-get :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a
-get m i d = let value = get2 m i d
-            in -- trace("Lookup " ++ (ppReadable i) ++ " => " ++ (ppReadable value)) $
-               value
-
-get2 :: M.Map Id (IExpr a) -> Id -> IExpr a -> IExpr a
-get2 m i d =
-    case M.lookup i m of
-    Just e -> e
-    Nothing -> d

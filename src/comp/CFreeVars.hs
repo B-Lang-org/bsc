@@ -162,8 +162,8 @@ getFVE (Cinterface pos mi ds) =
     in  case mi of
           Nothing -> dfvs
           Just i -> addC i dfvs
-getFVE (CmoduleVerilog e _ _ _ ses _ _ _) = unionManyFVS ([getFVE e] ++map (getFVE . snd) ses)
-getFVE (CmoduleVerilogT _ e _ _ _ ses _ _ _) = unionManyFVS ([getFVE e] ++ map (getFVE . snd) ses)
+getFVE (CmoduleVerilog e _ _ _ ses _ _ _) = unionManyFVS (getFVE e : map (getFVE . snd) ses)
+getFVE (CmoduleVerilogT _ e _ _ _ ses _ _ _) = unionManyFVS (getFVE e : map (getFVE . snd) ses)
 getFVE (CForeignFuncC { }) = emptyFVS
 getFVE (CForeignFuncCT { }) = emptyFVS
 getFVE (Cdo _ ss) = getFVStmts ss
@@ -267,7 +267,7 @@ getFTCE (CVar i) = S.empty
 getFTCE (CApply e es) = S.unions (map getFTCE (e:es))
 getFTCE (CTaskApply e es) = S.unions (map getFTCE (e:es))
 getFTCE (CTaskApplyT e t es) =
-    S.unions ([getFTyCons t] ++ map getFTCE (e:es))
+    S.unions (getFTyCons t : map getFTCE (e:es))
 getFTCE (CLit _) = S.empty
 getFTCE (CBinOp l i r) = getFTCE l `S.union` getFTCE r
 getFTCE (CHasType e t) = getFTCE e `S.union` getFQTyCons t
@@ -284,7 +284,7 @@ getFTCE (Cinterface pos mi ds) =
           Nothing -> dcs
           Just i  -> S.insert i dcs
 getFTCE (CmoduleVerilog e _ _ _ ses _ _ _) =
-    S.unions ([getFTCE e] ++ map (getFTCE . snd) ses)
+    S.unions (getFTCE e : map (getFTCE . snd) ses)
 getFTCE (CmoduleVerilogT t e _ _ _ ses _ _ _) =
     S.unions ([getFTyCons t, getFTCE e] ++ map (getFTCE . snd) ses)
 getFTCE (CForeignFuncC _ t) = getFQTyCons t
@@ -293,7 +293,7 @@ getFTCE (Cdo _ ss) = S.unions (map getFTCStmt ss)
 getFTCE (Caction _ ss) = S.unions (map getFTCStmt ss)
 getFTCE (Crules _ rs) = S.unions (map getFTCR rs)
 getFTCE (COper es) = S.unions (map getFTCO es)
-getFTCE (CTApply e ts) = S.unions ([getFTCE e] ++ map getFTyCons ts)
+getFTCE (CTApply e ts) = S.unions (getFTCE e : map getFTyCons ts)
 getFTCE (CSelectT ti _) = S.singleton ti
 getFTCE (CCon0 mi _) =
     case mi of
@@ -301,7 +301,7 @@ getFTCE (CCon0 mi _) =
       Just i  -> S.singleton i
 getFTCE (CConT ti _ es) = S.insert ti (S.unions (map getFTCE es))
 getFTCE (CStructT t ies) =
-    S.unions ([getFTyCons t] ++ [getFTCE e | (_, e) <- ies])
+    S.unions (getFTyCons t : [getFTCE e | (_, e) <- ies])
 getFTCE (CLitT t _) = getFTyCons t
 getFTCE (CAnyT _ _ t) = getFTyCons t
 getFTCE (Cattributes _) = S.empty

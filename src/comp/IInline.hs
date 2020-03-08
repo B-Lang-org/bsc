@@ -136,7 +136,7 @@ iInlineUseLimit use_limit
         ifc' = map (inline_ifc onemap dmap) ifc
         rs' = irulesMap (iSubst onemap dmap) rs
         uses = M.fromList ics
-        getc' i = case M.lookup i uses of Just c -> c; Nothing -> 0
+        getc' i = M.findWithDefault 0 i uses
         getc i = {- trace ("getc: " ++ ppReadable (i, getc' i)) $ -} getc' i
         ds'' = filter (\ (IDef i _ _ _) ->
                         let uses = getc i in
@@ -382,7 +382,7 @@ addFileArg :: IExpr a -> IExpr a -> IExpr a
 addFileArg e (IAps (ICon fid f@(ICForeign {iConType = t})) [] es)
              | isFileId fid = (IAps (ICon fid f {iConType = t'}) [] es')
     where (_ , rt) = itGetArrows (getInnerType t)
-          es'      = [e] ++ es
+          es'      = e : es
           at'      = map iGetType es'
           t'       = foldr1 itFun (at' ++ [rt])
 addFileArg e (IAps x ts es) = (IAps x ts (map (addFileArg e) es))

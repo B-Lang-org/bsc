@@ -2027,7 +2027,7 @@ getErrorText (EContextReduction context positions vps) =
                   "the following positions:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
 {-
@@ -2064,7 +2064,7 @@ getErrorText (EContextReductionReduces context reduced_contexts positions vps) =
                   "but it depends on the following " ++ ctx ++ p ++
                   " for which there " ++ be ++ " no instance" ++ p ++ ":") $$
            nest 2 (vcatList (map text reduced_contexts) comma)
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg            $$ reduce_msg
                else intro_msg $$ pos_msg $$ reduce_msg
      in  msg
@@ -2189,7 +2189,7 @@ getErrorText (ECtxRedBitwiseBool positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2206,7 +2206,7 @@ getErrorText (ECtxRedBitwise t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2225,7 +2225,7 @@ getErrorText (ECtxRedBitExtendBadSizes sz1 sz2 positions) =
                   "in or near the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2242,7 +2242,7 @@ getErrorText (ECtxRedBitExtendBadType t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2268,7 +2268,7 @@ getErrorText (EWeakCtxBitExtendNeedsAddCtx t qs addctx reduced_rs positions) =
                     "extend or truncate operation, which requires that " ++
                     "the extended size be larger.")
          pos_msg =
-           if (length positions == 0)
+           if null positions
            then empty
            else s2par ("The extend or truncate occurs " ++
                        "in or at the following locations:") $$
@@ -2326,7 +2326,7 @@ getErrorText (ECtxRedNotSelectable t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2345,7 +2345,7 @@ getErrorText (ECtxRedWrongSelectionResult arr expect_val found_val positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2361,7 +2361,7 @@ getErrorText (ECtxRedBadSelectionIndex found_idx positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2381,7 +2381,7 @@ getErrorText (ECtxRedBitReduce t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2587,7 +2587,7 @@ getErrorText (ECtxRedNotUpdateable t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2606,7 +2606,7 @@ getErrorText (ECtxRedWrongUpdateArg arr expect_val found_val positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2623,7 +2623,7 @@ getErrorText (ECtxRedNotWriteable t positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2642,7 +2642,7 @@ getErrorText (ECtxRedWrongWriteArg arr expect_val found_val positions) =
                   "in or at the following locations:") $$
            -- use "nub" out of paranoia (saw repeats with EWeakContext)
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
+         msg = if null positions
                then intro_msg
                else intro_msg $$ pos_msg
      in msg
@@ -2696,7 +2696,7 @@ getErrorText (ECtxRedIsModule mod_type positions) =
          pos_msg =
            s2par ("Consider the modules at the following locations:") $$
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-     in  if (length positions == 0)
+     in  if null positions
          then intro_msg
          else intro_msg $$ pos_msg
     )
@@ -2707,7 +2707,7 @@ getErrorText (EModInstWrongArgs positions) =
          pos_msg =
            s2par ("Consider the modules at the following locations:") $$
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-     in  if (length positions == 0)
+     in  if null positions
          then intro_msg
          else intro_msg $$ pos_msg
     )
@@ -2739,7 +2739,7 @@ getErrorText (ECtxRedIsModuleActionValue positions) =
          pos_msg =
            s2par ("Consider the modules at the following locations:") $$
            nest 2 (vcat (map (text . prPosition) (nub positions)))
-     in  if (length positions == 0)
+     in  if null positions
          then intro_msg
          else intro_msg $$ pos_msg
      )
@@ -3132,7 +3132,7 @@ getErrorText (EUrgencyCycle cycle explanations other_ids) =
          others = s2par ("This cycle also extends through the following " ++
                          "other rules/methods:") $$
                   nest 2 (sepList (map text other_ids) comma)
-     in  if (length other_ids == 0)
+     in  if null other_ids
          then intro $$ expl
          else intro $$ expl $$ others
     )
@@ -3240,7 +3240,7 @@ getErrorText (ECombinedSchedCycle cycle explanations other_ids) =
                         "urgency dependency from the cycle or removing " ++
                         "an execution order requirement (by causing the " ++
                         "two rules to conflict or be mutually exclusive).")
-     in  if (length other_ids == 0)
+     in  if null other_ids
          then intro $$ expl $$ to_do
          else intro $$ expl $$ others $$ to_do
     )

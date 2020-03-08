@@ -729,19 +729,18 @@ doEQ x i uc =
                    in uc { eq_map = eq' }
 
 addFalse :: AExpr -> UseCond -> UseCond
-addFalse e uc =
-    if (isFalse e) then uc
-    else if (e `S.member` (true_exprs uc) || isTrue e) then ucFalse
-    else let false' = S.insert e (false_exprs uc)
-         in uc { false_exprs = false' }
+addFalse e uc
+    | isFalse e                    = uc
+    | e `S.member` (true_exprs uc) = ucFalse
+    | isTrue e                     = ucFalse
+    | otherwise                    = uc { false_exprs = S.insert e (false_exprs uc) }
 
 addTrue :: AExpr -> UseCond -> UseCond
-addTrue e uc =
-    if (e `S.member` (false_exprs uc)) then ucFalse
-    else if isFalse e then ucFalse
-    else if isTrue e then uc
-    else let true' = S.insert e (true_exprs uc)
-         in uc { true_exprs = true' }
+addTrue e uc
+    | e `S.member` (false_exprs uc) = ucFalse
+    | isFalse e                     = ucFalse
+    | isTrue e                      = uc
+    | otherwise                     = uc { true_exprs = S.insert e (true_exprs uc) }
 
 -- ==============================
 -- Function: Build the RuleUsesMap and use it to build the MethodUsesMap

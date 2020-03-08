@@ -412,8 +412,7 @@ aPathsPreSched errh flags apkg = do
       clk_inputs = concatMap getClkPorts
                        [ ai | (n, ai, arginfo) <- numbered_inputs,
                               isClock arginfo ]
-      rst_inputs = map getRstPort
-                       [ ai | (n, ai, arginfo) <- numbered_inputs,
+      rst_inputs = [ getRstPort ai | (n, ai, arginfo) <- numbered_inputs,
                               isReset arginfo ]
       -- keep the numbering and type for ports/params
       port_inputs  = [ (n,p) | (n, ai, arginfo) <- numbered_inputs,
@@ -435,8 +434,8 @@ aPathsPreSched errh flags apkg = do
                      "non-clk/rst inputs found as clk/rst in VWireInfo")
 
   -- We don't handle size parameters yet
-  when (length size_ps > 0) $
-      internalError ("APath.aPathsPreSched: size parameters not supported")
+  when (not (null size_ps)) $
+      internalError "APath.aPathsPreSched: size parameters not supported"
 
 
   -- ====================
@@ -519,7 +518,7 @@ aPathsPreSched errh flags apkg = do
           [ PNStateMethodArgMux inst_id meth_id |
                 (inst_id, _, _, methods) <- state_instances,
                 (meth_id, args, _, _, _) <- methods,
-                length args > 0 ]
+                not (null args) ]
 
   -- ----------
 
@@ -867,7 +866,7 @@ aPathsPreSched errh flags apkg = do
   let unknown_nodes =
           [ n | (n1,n2) <- pathedges,
                 n <- filter (\x -> not (S.member x pathnodeset)) [n1,n2] ]
-  when (length unknown_nodes > 0) $
+  when (not (null unknown_nodes)) $
       internalError ("APath.aPaths': nodes not in graph: " ++
                       show unknown_nodes)
 
@@ -880,8 +879,8 @@ aPathsPreSched errh flags apkg = do
   -- Check for cycles
 
   cycles <- findCycles pathgraph
-  when (length cycles > 0) $
-      convErrorMonadToIO errh $ (errPathCycles mi pathgraph cycles)
+  when (not (null cycles)) $
+      convErrorMonadToIO errh $ errPathCycles mi pathgraph cycles
 
   -- ====================
   -- Find urgency restrictions
@@ -1025,7 +1024,7 @@ aPathsPostSched flags pps apkg pathGraphInfo (ASchedule scheds _) = do
 
   cycles <- findCycles pathgraph
 
-  when (length cycles > 0) $
+  when (not (null cycles)) $
       internalError ("APath: cycles found post scheduling: " ++
                      ppReadable cycles)
 
@@ -1155,7 +1154,7 @@ mkActionEdges env en (ACall state_id qual_meth_id (cond:exprs)) =
     in
       -- if the method has arguments, connect the enable signal of the
       -- action to the control mux for the arguments
-      (if (length exprs > 0) then [(en, meth_arg_mux)] else []) ++
+      (if null exprs then [] else [(en, meth_arg_mux)]) ++
       -- connect the enable of the action to the enable of the method
       [(en, meth_en)] ++
       -- connect the arg expressions to the arguments
@@ -1202,7 +1201,7 @@ findEdges env (AMethCall t i qmi exprs) =
                     in  (es, muxes)
         (edges, ms) = concatUnzip (map f (zip [1..] exprs))
         meth_arg_mux = PNStateMethodArgMux i mi
-        muxes = if (length exprs > 0) then (meth_arg_mux:ms) else ms
+        muxes = if null exprs then ms else meth_arg_mux:ms
     in  ([PNStateMethodRes i mi], edges, muxes)
 findEdges env (AMethValue t i qmi) =
     ([PNStateMethodRes i (unQualId qmi)], [], [])
@@ -1313,9 +1312,9 @@ errPathCycle moduleId graph cycle =
 
         -- ---------------
     in
-        if (length method_errs > 0)
+        if not (null method_errs)
         then method_errs
-        else if (length rule_errs > 0)
+        else if not (null rule_errs)
         then rule_errs
         else [default_err]
 
