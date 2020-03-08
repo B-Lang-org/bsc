@@ -99,7 +99,7 @@ splitFmt e =
   do let e0 = replaceDisplays e
      e1 <- unNestFmts [] [] e0
      let e2 = combineFmts e1
-     e3 <- promoteConcat False e2
+         e3 = promoteConcat False e2
      e4 <- splitFF True [] [] e3
      e5 <- removeConcat e4
      return e5;
@@ -190,13 +190,10 @@ splitFmt e =
         promoteConcat r (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e2, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e0, e1])]) =
           promoteConcat False (IAps cc tc [(IAps ci ti [cond, e2, e0]), (IAps ci ti [cond, emptyFmt, e1])])
         promoteConcat False (IAps x@(ICon _ (ICForeign {})) ts es) =
-          do es' <- mapM (promoteConcat False) es
-             return (IAps x ts es')
+          IAps x ts (map (promoteConcat False) es)
         promoteConcat False (IAps x ts es) =
-          do es' <- mapM (promoteConcat False) es
-             e'  <- promoteConcat True (IAps x ts es')
-             return e'
-        promoteConcat _ x = return x
+          promoteConcat True (IAps x ts (map (promoteConcat False) es))
+        promoteConcat _ x = x
 
         -- next the first phase of action-ff splitting
         -- all action-ff calls (which include Fmt arguments) are split
