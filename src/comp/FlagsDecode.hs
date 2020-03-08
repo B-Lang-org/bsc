@@ -267,11 +267,11 @@ checkLinkFlags flags names =
     in  -- check for flags
         checkNamesForFlag bad_names $
         -- report bad file extensions
-        if (length bad_names > 0)
+        if not (null bad_names)
         then DError bad_name_errs
         else
         -- generation flag not supported during linking
-        if (not (null (genName flags)))
+        if not (null (genName flags))
         then DError [(cmdPosition, EGenNamesForLinking (genName flags))]
         else
         if (removeVerilogDollar flags)
@@ -286,7 +286,7 @@ checkLinkFlags flags names =
         else
         -- handle Bluesim (check for entry point)
         if (backend flags == Just Bluesim)
-        then if (length hdlnames > 0)
+        then if not (null hdlnames)
              then DError [(cmdPosition, EVerilogFilesWithSimBackend hdlnames)]
              else
                  case (entry flags) of
@@ -1045,7 +1045,7 @@ data ArgReturnType = FRTString (Flags -> String)
                    | FRTMaybeString (Flags -> Maybe String)
                    | FRTListString (Flags -> [String])
 
-data Arg2ReturnType = FRTListPairString (Flags -> [(String,String)])
+newtype Arg2ReturnType = FRTListPairString (Flags -> [(String,String)])
 
 flagsTable :: [(String, FlagType)]
 flagsTable = [(s,ft) | (s,(ft,_,_)) <- externalFlags]
@@ -1788,7 +1788,7 @@ showFlags flags =
          pprintedFlags = filter ((/=) [] ) $ showFlagsLst flags
          showFlagStr :: [String] -> String
          showFlagStr ss = "     " ++ unwords (intersperse " " ss)
-    in  unlines (["Flags:"] ++ (map showFlagStr pprintedFlags))
+    in  unlines ("Flags:" : map showFlagStr pprintedFlags)
 
 showFlag :: Bool -> Flags -> (String, FlagType) -> [String]
 showFlag False flags (f, (Toggle _ (Just showf))) =

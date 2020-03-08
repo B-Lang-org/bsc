@@ -382,7 +382,7 @@ addFileArg :: IExpr a -> IExpr a -> IExpr a
 addFileArg e (IAps (ICon fid f@(ICForeign {iConType = t})) [] es)
              | isFileId fid = (IAps (ICon fid f {iConType = t'}) [] es')
     where (_ , rt) = itGetArrows (getInnerType t)
-          es'      = [e] ++ es
+          es'      = e : es
           at'      = map iGetType es'
           t'       = foldr1 itFun (at' ++ [rt])
 addFileArg e (IAps x ts es) = (IAps x ts (map (addFileArg e) es))

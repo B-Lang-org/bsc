@@ -211,7 +211,7 @@ buildConflictExpr :: Id -> [Id] -> AExpr
 buildConflictExpr name conflicts =
   let cf    = aBoolVar (mkIdCanFire name)
       wfs  = [ aBoolVar (mkIdWillFire i) | i <- conflicts ]
-  in  aAnds ([cf] ++ (map aNot wfs))
+  in  aAnds (cf : map aNot wfs)
 
 -- Create a CAN_FIRE def for a rule based on the rule predicate
 mkUserCF :: ARule -> ADef
@@ -417,4 +417,3 @@ handleSubmodAlwaysEnabled mumap insts =
       map makeAlwaysEnProof always_en_methods
 
 -- -------------------------
-

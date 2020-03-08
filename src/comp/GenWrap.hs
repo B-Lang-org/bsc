@@ -779,7 +779,7 @@ procType ::
               -- numeric types "sn_#"
     )
 procType (n, ns, as, ts, ctx) ty = do
-  let hasVars t = (length (tv t) /= 0)
+  let hasVars t = not (null (tv t))
       newSVar = cTVarNum (enumId "sn" noPosition n)
       newId  = enumId "n" noPosition n
       cBit t = cTApplys tBit [t]
@@ -1384,7 +1384,7 @@ mkNewModDef genIfcMap (def@(CDef i (CQType _ t) dcls), cqt, vtis, vps) =
        arg_sptStmts = map (uncurry saveTopModPortTypeStmt) arg_pts
        -- a do-block around the module body, so that we can include the
        -- save-port-type statements
-       lexp = if (length arg_sptStmts > 0)
+       lexp = if not (null arg_sptStmts)
               then Cdo False (arg_sptStmts ++ [CSExpr Nothing mexp])
               else mexp
        -- liftM of the do-block
@@ -2212,8 +2212,7 @@ extSel sel xid | xid == idEmpty = sel
 extSel sel xid = CSelect sel xid
 
 cLams :: [Id] -> CExpr -> CExpr
-cLams [] e = e
-cLams (i:is) e = CLam (Right i) (cLams is e)
+cLams is e = foldr (CLam . Right) e is
 
 unLams :: CExpr -> ([CPat], CExpr)
 unLams (CLam (Right i) e) = ((CPVar i):is, e') where (is, e') = unLams e

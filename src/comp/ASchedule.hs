@@ -632,7 +632,7 @@ aSchedule_step1 errh flags prefix pps amod = do
   -- and ids in the pragmas, then the user will see this message)
   let spids = extractSchedPragmaIds schedPragmas
   let (_ {- goodids -}, badids) = partition (`elem` ruleNames) spids
-  when (length badids > 0) $
+  when (not (null badids)) $
        convEM errh (errUnknownRules badids)
 
   -- check that pragmas are not applied across clock domains
@@ -931,9 +931,9 @@ aSchedule_step1 errh flags prefix pps amod = do
       -- Also consider conflicting methods available infinitely many times
       -- because the schedule resolves that resource conflict
   let resMax' = tr "let resMax'" $
-          [(r,n') | (r,n) <- resMax,
-                    let (NoConflictSet pc) = ncSetPC,
+          [(r,n') | let (NoConflictSet pc) = ncSetPC,
                     let (NoConflictSet cf) = ncSetCF,
+                    (r,n) <- resMax,
                     -- 0 means all to one port
                     let n' = if ((r,r) `S.member` pc || (r,r) `S.member` cf)
                              then n
@@ -1533,8 +1533,8 @@ aSchedule_step3 errh flags prefix pps amod ( scConflictMap0
   -- different domains.
   let conflict_pairs  = [ ((r1, fromJust d1), (r2, fromJust d2))
                         | (r1,r2s) <- urgency_conflicts
-                        , r2 <- r2s
                         , let d1 = M.findWithDefault Nothing r1 rule_domain_map
+                        , r2 <- r2s
                         , let d2 = M.findWithDefault Nothing r2 rule_domain_map
                         , (isJust d1) && (isJust d2)
                         ]
@@ -1976,7 +1976,7 @@ warnAndRecordArbitraryEarliness
             let arbs = filter (is_earliness_arbitrary r) rs_so_far
                 new_arb_msgs = mapMaybe (warn_earliness_choice r) arbs
                 ffunc_arbs = filter (has_task_order r) rs_so_far
-                shadows = catMaybes $ map (has_shadowing r) rs_so_far
+                shadows = mapMaybe (has_shadowing r) rs_so_far
                 new_shadow_msgs = map warn_action_shadowing shadows
                 new_edges =
                     -- r is the later rule, so create an edge that
@@ -2578,8 +2578,9 @@ extractCFConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:
@@ -2605,8 +2606,9 @@ extractPCConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:
@@ -2631,8 +2633,9 @@ extractSCConflictEdgesSP sps =
         mkEdges (SPMutuallyExclusive _) = []
         mkEdges (SPConflictFree _) = []
         mkEdges (SPPreempt ids1 ids2) =
-            ([ edge | id1 <- ids1, id2 <- ids2,
+            ([ edge | id1 <- ids1,
                       let pos = getPosition id1,
+                      id2 <- ids2,
                       edge <- [(id1, id2, [CUserPreempt pos]),
                                (id2, id1, [CUserPreempt pos])]])
         -- Handle user overrides:
@@ -2676,7 +2679,7 @@ extractUrgencyEdgesSP nm sps =
         reflexive_edges = filter isReflexiveEdge edges
     in
         do
-           when (length reflexive_edges > 0) $
+           when (not (null reflexive_edges)) $
                errReflexiveUserUrgency reflexive_edges
            return edges
 
@@ -2924,7 +2927,7 @@ schedInfo flags moduleId cfmap scmap pcmap
             }
       res = SchedInfo mci hasRulePairs hasRuleBefore unsyncMethods
   in
-      if (trace_schedinfo && (length wmsgs > 0))
+      if trace_schedinfo && not (null wmsgs)
       then EMWarning wmsgs res
       else EMResult res
 
@@ -3150,7 +3153,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                                 -- we've already checked for rules-between
                                 -- in opposite directions, so these will
                                 -- either be Left or Right (if any at all)
-                                catMaybes $ map (uncurry lookupRule) pairs
+                                mapMaybe (uncurry lookupRule) pairs
                         in
                             case rules_between_one_instance of
                                 ((Left r):_) ->
@@ -3162,7 +3165,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                                 [] -> Nothing
 
                     rules_between_one_rule =
-                        catMaybes $ map checkOneInstance (M.toList r1_usemap)
+                        mapMaybe checkOneInstance (M.toList r1_usemap)
                 in case rules_between_one_rule of
                         ((Left r):_) ->
                             let node = mkCSNExec_tmp r
@@ -3178,8 +3181,7 @@ makeRuleBetweenEdges ruleBetweenMap ruleMethodUseMap ruleNames sched_id_order =
                             in  Just (node, edges)
                         [] -> Nothing
 
-              rules_between =
-                  catMaybes (map checkSecondRule r2s)
+              rules_between = mapMaybe checkSecondRule r2s
 
               -- for a pair of rules, we only need one node
               current_result =
@@ -3536,7 +3538,7 @@ verifyAssertion sch@(ASchedule ss _) pred_map before_map unsync_set meth_map sch
                                    (rpragma == RPclockCrossingRule)
            check_no_unsync_methods = (rpragma == RPclockCrossingRule)
            fwe_msgs = if check_fire_when_enabled
-                      then catMaybes (map (verifyAssertionSr a) ss)
+                      then mapMaybe (verifyAssertionSr a) ss
                       else []
            before_sched = M.findWithDefault [] (mkCSNSched sched_id_order rid) pred_map
            before_exec  = M.findWithDefault [] (mkCSNExec  sched_id_order rid) pred_map
@@ -3558,7 +3560,7 @@ verifyAssertion sch@(ASchedule ss _) pred_map before_map unsync_set meth_map sch
                        then [errCascadedDomainCrossing a unsynced]
                        else []
            emsgs = fwe_msgs ++ nrb_msgs ++ nrb2_msgs ++ unsync_msgs
-       when (length emsgs > 0) $
+       when (not (null emsgs)) $
               throwError (EMsgs emsgs)
 
 -- Given an assertion and a scheduler group, returns Maybe EMsg
@@ -4428,8 +4430,7 @@ verifyStaticScheduleOneRule errh flags gen_backend
                then Nothing
                else Just (rule, badPairs)
 
-        err_pairs = catMaybes $
-                    map checkOneRule (M.toList rulePCConflictUseMap)
+        err_pairs = mapMaybe checkOneRule (M.toList rulePCConflictUseMap)
 
         mkErr (r, ms) =
             let mkPair (m1, m2, rs) = (pfpString m1, pfpString m2,
@@ -4788,11 +4789,11 @@ checkMethodCycles moduleId ifcRuleNames reachmap seq_map sched_id_order = do
                Just raw_path -> -- the path is in reverse
                                 -- and add the final node to the front,
                                 -- to make it a cycle
-                                Just $ (m, [mkCSNSched sched_id_order m] ++ reverse raw_path)
+                                Just (m, mkCSNSched sched_id_order m : reverse raw_path)
 
       -- bad methods
       bad_meths :: [(AId,[CSNode])]
-      bad_meths = catMaybes $ map hasSchedToExecPath ifcRuleNames
+      bad_meths = mapMaybe hasSchedToExecPath ifcRuleNames
 
       mkMethSchedErr :: (AId,[CSNode]) -> EMsg
       mkMethSchedErr (meth, path_nodes) =

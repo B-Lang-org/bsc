@@ -737,7 +737,7 @@ instance PPrint (Pred a) where
 instance PPrint (PTerm a) where
     pPrint d p (PAtom e) = pPrint d p e
     pPrint d p (PIf c t e) = text "PIf(" <> sepList [pPrint d 0 c, pPrint d 0 t, pPrint d 0 e] (text ",") <> text ")"
-    pPrint d p (PSel idx _ es) = text "PSel(" <> sepList ([pPrint d 0 idx] ++ map (pPrint d 0) es) (text ",") <> text ")"
+    pPrint d p (PSel idx _ es) = text "PSel(" <> sepList (pPrint d 0 idx : map (pPrint d 0) es) (text ",") <> text ")"
 
 instance Hyper (Pred a) where
 -- XXX - see if we can get away with not forcing

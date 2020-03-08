@@ -176,7 +176,7 @@ aTaskValues (AMGate {}) = []
 exprForeignCalls :: AExpr -> [AExpr]
 exprForeignCalls e@(AFunCall {})  =
   if (ae_isC e)
-  then [e] ++ (concatMap exprForeignCalls (ae_args e))
+  then e : concatMap exprForeignCalls (ae_args e)
   else (concatMap exprForeignCalls (ae_args e))
 exprForeignCalls e@(APrim {})     = concatMap exprForeignCalls (ae_args e)
 exprForeignCalls e@(AMethCall {}) = concatMap exprForeignCalls (ae_args e)
@@ -188,11 +188,11 @@ exprForeignCalls _                  = []
 actionForeignCalls :: AAction -> [Either AAction AExpr]
 actionForeignCalls a@(AFCall {}) =
   if (afcall_isC a)
-  then [Left a] ++ (map Right (concatMap exprForeignCalls (aact_args a)))
+  then Left a : map Right (concatMap exprForeignCalls (aact_args a))
   else map Right (concatMap exprForeignCalls (aact_args a))
 actionForeignCalls a@(ATaskAction {}) =
   if (ataskact_isC a)
-  then [Left a] ++ (map Right (concatMap exprForeignCalls (aact_args a)))
+  then Left a : map Right (concatMap exprForeignCalls (aact_args a))
   else map Right (concatMap exprForeignCalls (aact_args a))
 actionForeignCalls a@(ACall {})  =
   map Right (concatMap exprForeignCalls (aact_args a))

@@ -233,8 +233,7 @@ aVerilog errh flags pps aspack ffmap =
            apFst concat $
             apSnd concat $
               unzip $
-                catMaybes $
-                  map (vForeignBlock vco ffmap (aspkg_values aspack)) fs
+                mapMaybe (vForeignBlock vco ffmap (aspkg_values aspack)) fs
 
         -- bool is True b/c foreign function blocks should be separated
         foreignfunc_block_group =
@@ -616,7 +615,7 @@ groupRuleDefs vDef si ci ds =
                 (rule_vdecls, rule_vdefs) = mkVDeclsAndDefs vDef rule_defs
                 -- make the rule group
                 user_comment = fromMaybe [] (lookup rule_id comment_map)
-                comment = ["rule " ++ getIdString rule_id] ++
+                comment = ("rule " ++ getIdString rule_id) :
                           indentLines 2 (concatMap lines user_comment)
                 -- if (null rule_vdefs) this returns []
                 g = vGroupWithComment False rule_vdefs comment
@@ -1226,7 +1225,7 @@ mkInstGroup flags sos defs comments_map (instname, vmi, info) =
                            Nothing -> []
                            Just cs -> concatMap lines cs
         inst_comment =
-            ["submodule " ++ getIdString instname] ++ user_comment
+            ("submodule " ++ getIdString instname) : user_comment
         decl_comment =
             ["ports of submodule " ++ getIdString instname]
         -- if we keep decls and instantiation together:
@@ -1265,12 +1264,12 @@ mkProbeGroup sos defs comments_map probe_infos =
         mkProbeComment instname =
             case (lookup instname comments_map) of
                 Nothing -> Nothing
-                Just cs -> Just (["Comments for probe " ++
-                                  quote (getIdString instname) ++ ":"] ++
+                Just cs -> Just (("Comments for probe " ++
+                                  quote (getIdString instname) ++ ":") :
                                  indentLines 2 (concatMap lines cs))
         inst_comments =
             insertBlankLines $
-                catMaybes (map (mkProbeComment . fst3) probe_infos)
+                mapMaybe (mkProbeComment . fst3) probe_infos
         hdr_comment = ["probes"]
         comment = if (null inst_comments)
                   then hdr_comment
@@ -1299,7 +1298,7 @@ mkRegGroup sos defs comments_map (inst_vid, def_name, _, inps, (out, out_size)) 
 
 mkRWireGroup :: [VMItem] -> [AId] -> ([VId], [VMItem])
 mkRWireGroup defs rws =
-    let rw_decls = catMaybes (map (mkInstInputDeclMaybe defs . vId) rws)
+    let rw_decls = mapMaybe (mkInstInputDeclMaybe defs . vId) rws
         decl_ids = [ i | (VMDecl (VVDecl _ _ [VVar i])) <- rw_decls ]
         comment = ["inlined wires"]
         group = VMComment comment (VMGroup False [(mergeCommonDecl rw_decls)])
@@ -1436,7 +1435,7 @@ makeTopComments item_type ics =
         mkTopComment ([i],cs) =
             let hdr = "Comments on the inlined " ++ item_type ++ " " ++
                       quote (getIdString i) ++ ":"
-            in  [hdr] ++ splitAndIndent cs
+            in  hdr : splitAndIndent cs
         mkTopComment (is,cs) =
             let quoted_items = map (quote . getIdString) is
                 item_list = intercalate ", " quoted_items
@@ -1622,7 +1621,7 @@ mergeCommonDecl ins =
 
     mergeOneDecl :: [VMItem] -> VMItem
     mergeOneDecl [] = internalError ("mergeCommonDecl: unexpected empty list!")
-    mergeOneDecl (a:[]) = a
+    mergeOneDecl [a] = a
     mergeOneDecl (a@(VMDecl (VVDecl vt vr vars)):as) =
         let -- extract the vars from the other decls
             extrVars :: VMItem -> [VVar]

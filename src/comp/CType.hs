@@ -446,7 +446,7 @@ getTConName (TyCon i _ _) = Just i
 getTConName (TyNum {}) = Nothing
 
 allTConNames :: CType -> [Id]
-allTConNames = catMaybes . map getTConName . allTyCons
+allTConNames = mapMaybe getTConName . allTyCons
 
 -- like the above functions, but works even if the left-most is not a tycon
 splitTAp :: CType -> (CType, [CType])

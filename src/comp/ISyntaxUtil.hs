@@ -328,8 +328,7 @@ iMkCons t e_hd e_tl =
   in  IAps ic [t] [e]
 
 iMkList :: IType -> [IExpr a] -> IExpr a
-iMkList t [] = iMkNil t
-iMkList t (x:xs) = iMkCons t x (iMkList t xs)
+iMkList t xs = foldr (iMkCons t) (iMkNil t) xs
 
 iMkBool :: Bool -> IExpr a
 iMkBool True  = iTrue
