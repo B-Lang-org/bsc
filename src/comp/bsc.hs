@@ -102,7 +102,8 @@ import GenForeign(genForeign)
 import IExpand(iExpand)
 import IExpandUtils(HeapData)
 import ITransform(iTransform)
-import IInline(iInline, iInlineFmts, splitFmts)
+import IInline(iInline, iInlineFmts)
+import ISplitFmt(splitFmts)
 import Params(iParams)
 import ASyntax(APackage(..), ASPackage(..),
                ppeAPackage,
