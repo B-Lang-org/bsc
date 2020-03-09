@@ -1,4 +1,4 @@
-module IInline(iInline, iSortDs, iInlineFmts) where
+module IInline(iInline, iSortDs) where
 import Data.List(group, sort, nub)
 import Util
 import qualified Data.Set as S
@@ -6,9 +6,10 @@ import qualified Data.Map as M
 import SCC(tsort)
 import PPrint
 import ErrorUtil
-import ISyntax
-import ISyntaxUtil(irulesMap, itFmt, iGetType, iDefsMap, emptyFmt);
 import Id
+import ISyntax
+import ISyntaxUtil(irulesMap, iDefsMap)
+import IInlineUtil(iSubst, iSubstIfc)
 import Prim
 import Data.Maybe(catMaybes)
 -- import Debug.Trace(trace)
@@ -32,11 +33,6 @@ iSortDs imod@(IModule { imod_local_defs = ds }) =
     in  imod { imod_local_defs = ds' }
 
 
-inline_ifc :: M.Map Id (IExpr a) -> M.Map Id (IExpr a) -> IEFace a -> IEFace a
-inline_ifc smap dmap (IEFace i xs me mrs wp fi) = IEFace i xs me' mrs' wp fi
-  where me'  = fmap (\(e, t) -> (iSubst smap dmap e, t)) me
-        mrs' = fmap (irulesMap (iSubst smap dmap)) mrs
-
 -- Inline definitions that are simple
 iInlineS :: Bool -> IModule a -> IModule a
 iInlineS False m = m
@@ -46,7 +42,7 @@ iInlineS True imod@(IModule { imod_local_defs = ds,
     let smap = M.fromList [ (i, iSubst smap dmap e) | IDef i _ e _ <- ds, not (isKeepId i), simple e ]
         ds' = iDefsMap (iSubst smap dmap) ds
         dmap = M.fromList [ (i, e) | IDef i t e _ <- ds' ]
-        ifc' = map (inline_ifc smap dmap) ifc
+        ifc' = map (iSubstIfc smap dmap) ifc
         rs' = irulesMap (iSubst smap dmap) rs
         state_vars' = [ (name, sv { isv_iargs = es' })
                       | (name, sv@(IStateVar { isv_iargs = es }))
@@ -126,7 +122,7 @@ iInlineUseLimit use_limit
                              | (i, n_uses) <- ics, not (isKeepId i),
                                n_uses <= use_limit ]
         ds' = iDefsMap (iSubst onemap dmap) ds
-        ifc' = map (inline_ifc onemap dmap) ifc
+        ifc' = map (iSubstIfc onemap dmap) ifc
         rs' = irulesMap (iSubst onemap dmap) rs
         uses = M.fromList ics
         getc' i = M.findWithDefault 0 i uses
@@ -152,151 +148,6 @@ iValVars (ICon i (ICValue { })) = [i]
 iValVars (ICon i (ICUndet {imVal = Just e})) = iValVars e
 iValVars (ICon _ _) = []
 iValVars e = internalError ("iValVars: " ++ ppReadable e)
-
-iSubst :: (M.Map Id (IExpr a)) -> (M.Map Id (IExpr a)) -> IExpr a -> IExpr a
-iSubst subMap defMap e = sub e
-  where sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-        sub d@(ICon i val@(ICValue {})) =
-            case M.lookup i subMap of
-            Nothing ->
-              let ev = fromJustOrErr ("IInline.iSubst ICValue def not found: " ++ ppReadable i)
-                                     (M.lookup i defMap)
-              in ICon i (val { iValDef = ev })
-            Just e -> e
-        sub u@(ICon i (ICUndet t k (Just v))) = ICon i (ICUndet t k (Just (sub v)))
-        sub c@(ICon {}) = c
-        sub ee = internalError ("iSubst: " ++ ppReadable ee)
-
-iSubst' :: ((IExpr a) -> Bool) -> (M.Map Id (IExpr a)) -> (M.Map Id (IExpr a)) -> IExpr a -> IExpr a
-iSubst' tst subMap defMap e = sub e
-  where sub (IAps f ts es) = IAps (sub f) ts (map sub es)
-        sub d@(ICon i val@(ICValue {})) =
-            case M.lookup i subMap of
-            Nothing ->
-              let ev = fromJustOrErr ("IInline.iSubst' ICValue def not found: " ++ ppReadable i)
-                                     (M.lookup i defMap)
-              in ICon i (val { iValDef = ev })
-            Just e -> if (tst e) then e else d
-        sub u@(ICon i (ICUndet t k (Just v))) = ICon i (ICUndet t k (Just (sub v)))
-        sub c@(ICon {}) = c
-        sub ee = internalError ("iSubst': " ++ ppReadable ee)
-
--- #############################################################################
--- # Code to inline then eliminate Fmts from ISyntax
--- #############################################################################
-
-iInlineFmts :: IModule a -> IModule a
-iInlineFmts imod =
-    let tst _ = True
-        imod'  = iInlineFmtsPhase1 imod
-        imod'' = iInlineFmtsT tst imod'
-    in imod''
-
-iInlineFmtsPhase1 :: IModule a -> IModule a
-iInlineFmtsPhase1 imod =
-    let tst (IAps (ICon _ (ICPrim _ PrimFmtConcat)) _ _) = True
-        tst (IAps (ICon _ (ICForeign {})) _ _) = True
-        tst e = False
-        imod' = (iInlineFmtsT tst imod)
-        (imod'', change) = (modPromoteSome imod')
-    in if (change) then iInlineFmtsPhase1 imod'' else imod''
-
-iInlineFmtsT :: ((IExpr a) -> Bool) -> IModule a -> IModule a
-iInlineFmtsT tst imod@(IModule { imod_local_defs = ds,
-                                 imod_rules      = rs,
-                                 imod_interface  = ifc}) =
-    let smap = M.fromList [ (i, iSubst' tst smap dmap e) | IDef i t e _ <- ds, (t == itFmt) ] -- inline any def of type Fmt
-        ds' = iDefsMap (iSubst' tst smap dmap) ds
-        dmap = M.fromList [ (i, e) | IDef i t e _ <- ds' ]
-        ifc' = map (inline_ifc smap dmap) ifc
-        rs' = irulesMap (iSubst' tst smap dmap) rs
-        state_vars' = [ (name, sv { isv_iargs = es' })
-                      | (name, sv@(IStateVar { isv_iargs = es }))
-                            <- imod_state_insts imod,
-                        let es' = map (iSubst' tst smap dmap) es ]
-        ds'' = [ IDef id t e p | IDef id t e p <- ds', (t /= itFmt || (not (tst e))) ] -- remove any def of type Fmt
-
-    in imod { imod_local_defs  = ds'',
-              imod_rules       = rs',
-              imod_interface   = ifc',
-              imod_state_insts = state_vars' }
-
--- #############################################################################
--- #
--- #############################################################################
-
-modPromoteSome :: IModule a -> (IModule a, Bool)
-modPromoteSome imod@(IModule { imod_local_defs = ds,
-                               imod_rules      = rs,
-                               imod_interface  = ifc}) =
-    let getFirst (a, b)   = a
-        getSecond (a, b)  = b
-        pDef (IDef id t e p) = ((IDef id t e' p), change)
-            where (e', change) = promoteSome e
-        pairs = map pDef ds
-        ds'  = map getFirst pairs
-        change [] = False
-        change ps = (foldr1 (||) (map getSecond ps))
-        ifc' = ifc
-        rs'  = rs
-        state_vars' = imod_state_insts imod
-    in (imod { imod_local_defs  = ds',
-               imod_rules       = rs',
-               imod_interface   = ifc',
-               imod_state_insts = state_vars' },
-        (change pairs))
-
-promoteSome :: IExpr a -> (IExpr a, Bool)
-promoteSome e |  t /= itFmt = (e, False)
-              where t = iGetType e
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])])
-              | (pMatch e00 e10) = ((IAps cc tc [e00, (IAps ci ti [cond, e01, e11])]), True)
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                            (IAps    (ICon _ (ICPrim _ PrimFmtConcat)) _  [e10, e11])])
-              | (pMatch e01 e11) = ((IAps cc tc [(IAps ci ti [cond, e00, e10]), e01]), True)
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                           e10])
-             | (pMatch e00 e10) = promoteSome (IAps ci ti [cond, (IAps cc tc [e00, e01     ]),
-                                                             (IAps cc tc [e10, emptyFmt])])
-
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e00, e01]),
-                                                           e10])
-             | (pMatch e01 e10) = promoteSome (IAps ci ti [cond, (IAps cc tc [e00,      e01]),
-                                                             (IAps cc tc [emptyFmt, e10])])
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e00,
-                                                            (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e10, e11])])
-             | (pMatch e00 e10) = promoteSome (IAps ci ti [cond, (IAps cc tc [e00, emptyFmt]),
-                                                             (IAps cc tc [e10, e11     ])])
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e00,
-                                                            (IAps cc@(ICon _ (ICPrim _ PrimFmtConcat)) tc [e10, e11])])
-             | (pMatch e00 e11) = promoteSome (IAps ci ti [cond, (IAps cc tc [emptyFmt, e00]),
-                                                             (IAps cc tc [e10,      e11])])
-
-promoteSome (IAps ci@(ICon _ (ICPrim _ PrimIf)) ti [cond, e0, e1])
-             | (pMatch e0 e1) = (e0, True)
-
-promoteSome (IAps x ts es) =
-              let pairs = map promoteSome es
-                  getFirst  (a, b) = a
-                  getSecond (a, b) = b
-                  es' = map getFirst pairs
-                  change [] = False
-                  change ps = (foldr1 (||) (map getSecond ps))
-              in ((IAps x ts es'), (change pairs))
-promoteSome x = (x, False)
-
-pMatch :: IExpr a -> IExpr a -> Bool
-pMatch e0 e1 = e0 == e1
--- pMatch (IAps (ICon fid0 (ICForeign {iConType = t0})) [] [e0]) (IAps (ICon fid1 (ICForeign {iConType = t1})) [] [e1])
---        | fid0 == fid1 && pMatch e0 e1 = True
--- pMatch e0 e1 = e0 == e1
 
 -- #############################################################################
 -- #
