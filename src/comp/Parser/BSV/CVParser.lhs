@@ -762,7 +762,7 @@ XXX allow constants other than decimal
 >            (next_default_enc, summands) <- pEnumTag default_enc
 >            rest_summands <- pEnumTags0 True next_default_enc
 >            return (summands ++ rest_summands)
->     <|> do return []
+>     <|> return []
 
 > pEnumTags :: Bool -> Integer ->
 >              SV_Parser [(COriginalSummand, CInternalSummand)]
@@ -1170,11 +1170,11 @@ TYPE CLASSES AND INSTANCES
 >     do varType <- pTypeExpr
 >        varName <- pIdentifier
 >        defValue <-
->          do ((do pSymbol SV_SYM_eq
->                  value <- pExpression
->                  return [CClause [] [] value])
+>              do pSymbol SV_SYM_eq
+>                 value <- pExpression
+>                 return [CClause [] [] value]
 >              <|>
->              return [])
+>              return []
 >        pSemi
 >        return (CField { cf_name = varName,
 >                         cf_pragmas = Nothing,
@@ -1371,11 +1371,11 @@ specific entrance points
 >     -- unfortunately, the lexer tokenizes 'reg' and 'const' inside '(*'
 >     -- this code works, but the error message when the user writes e.g.
 >     -- (* this *) is about the keyword and not that "this" isn't a property
->     propString <- (do pKeyword SV_KW_reg >> return "reg"
+>     propString <- (pKeyword SV_KW_reg >> return "reg")
 >                    <|>
->                    do pKeyword SV_KW_const >> return "const"
+>                    (pKeyword SV_KW_const >> return "const")
 >                    <|>
->                    pWord <?> "property")
+>                    (pWord <?> "property")
 >     case (lookup propString allowed_props) of
 >         Nothing -> let allowed_strs = map fst allowed_props
 >                    in  -- if we want to be complete, we can keep a list of
@@ -1734,7 +1734,6 @@ primary with arguments, e.g. prim(a,b,c)
 > pPrimaryWithArgs :: CExpr -> SV_Parser CExpr
 > pPrimaryWithArgs e =
 >--     do args <- many1 (pInParens (pCommaSep pExpression))
->     do
 >     do pos <- getPos
 >        amcmrmps <- many1 pPortListArgs
 >        let ((args, mClock, mReset, mPower),ok) =
@@ -2081,7 +2080,7 @@ to which we attach those attributes
 >         else if allowNakedExpr flags then do
 >            e <- pActionsExprAt pos
 >            return [ISNakedExpr pos e]
->         else do failWithErr (pos, EForbiddenAction (pvpString (stmtContext flags)))
+>         else failWithErr (pos, EForbiddenAction (pvpString (stmtContext flags)))
 
 > pImperativeNestedActionValue :: Attributes -> ImperativeFlags
 >                              -> SV_Parser [ImperativeStatement]
@@ -2107,7 +2106,7 @@ to which we attach those attributes
 >            assertEmptyAttributes EAttribsActionValue atts
 >            e <- pActionValueExpr
 >            return [ISNakedExpr pos e]
->         else do failWithErr (pos, EForbiddenActionValue (pvpString (stmtContext flags)))
+>         else failWithErr (pos, EForbiddenActionValue (pvpString (stmtContext flags)))
 
 > pImperativeExpression :: SV_Parser CExpr
 > pImperativeExpression =
@@ -2408,7 +2407,7 @@ once, e.g. (* split, split *), though it has no extra effect.
 
 Both "found" and "accumulator" are accumulating parameters.
 
->   s' found accumulator atts = do
+>   s' found accumulator atts =
 >     case atts of
 >       [] -> return (found, reverse accumulator)
 >       att@(Attribute { attr_name = name,
@@ -3932,7 +3931,7 @@ function argument, type is required
 >                return (Just typ', var2)
 >             <|>
 >             -- no identifier follows; var1 must be a value variable
->             do return (Nothing, var1))
+>             return (Nothing, var1))
 >     <|> do (typ, var, _) <- pFunctionArg False
 >            return (Just typ, var)
 >     -- XXX this used to accept "?" as an argument name (without a type)
@@ -4035,9 +4034,9 @@ a function definition, and a body must be present.
 >                                    (pvpString arg1) (getIdPosition arg1))))
 >        context <- option [] pProvisos
 >        mbody   <- pFunctionTail startPos False name args
->        body <- do case mbody of
->                      Just e  -> return e
->                      Nothing -> failWithErr (startPos, EMissingFunctionBody)
+>        body <- case mbody of
+>                   Just e  -> return e
+>                   Nothing -> failWithErr (startPos, EMissingFunctionBody)
 >        -- return type and argument types may be omitted
 >        -- if enough type information is provided, generate
 >        -- a signed definition; otherwise an unsigned definition
@@ -4211,8 +4210,7 @@ the ports created for the argument (clock port names, gates, etc.).
 >                                                      (getIdBaseString ifc)
 >                                                      "an interface"))
 >          return (params ++ args, itft, param_pps ++ arg_pps)
->        Just itft -> do
->          return (params, itft, param_pps)
+>        Just itft -> return (params, itft, param_pps)
 
 > pModuleExpression :: SV_Parser CExpr
 > pModuleExpression =
@@ -4644,12 +4642,11 @@ PACKAGES
 >     do pkgPos <- getPos
 >        pkg <- pWord <?> "package name"
 >        pSymbol SV_SYM_colon_colon
->        (do pSymbol SV_SYM_star >>
->                       return (mkId pkgPos (mkFString pkg))
+>        (pSymbol SV_SYM_star >> return (mkId pkgPos (mkFString pkg)))
 >         <|>
 >         do pos <- getPos
 >            var <- pWord <?> "imported identifier"
->            (failWithErr (pos, EUnsupportedImport pkg var)))
+>            (failWithErr (pos, EUnsupportedImport pkg var))
 
 Some of the topdefs (modules and functions) may be preceded by attributes.  To
 avoid backtracking, we read the attributes first, and supply them as
@@ -5305,9 +5302,9 @@ Handle port attributes associated with a function/method argument.
 >
 > checkIfcPragma :: (Position,String,Bool) -> String -> SV_Parser String
 > checkIfcPragma (pos, attrname, emptyAllowed) str =
->     do case isValid of
->           True -> return str
->           False -> failWithErr ( pos, (EBadPortRenameAttributeString attrname str))
+>     case isValid of
+>        True -> return str
+>        False -> failWithErr (pos, EBadPortRenameAttributeString attrname str)
 >     where isValid = (emptyAllowed || not (null str)) && not (any isWhitespace str)
 
 > checkNoPragmaArg :: AttValue -> Id -> a -> SV_Parser a
@@ -5494,7 +5491,6 @@ and eschewing all forms which couldn't possibly have the right type.
 
 > pSPTerm :: SV_Parser SVA_SP
 > pSPTerm =
->  do
 >    pMatchItem
 >    <|> pFirstMatch
 >    <|> pSPIf
@@ -5583,7 +5579,7 @@ and eschewing all forms which couldn't possibly have the right type.
 
 > pHashDelay :: SV_Parser SVA_Delay
 > pHashDelay =
->  do SVA_Delay_Const <$> pDelayExpr
+>  SVA_Delay_Const <$> pDelayExpr
 >   <|> (do
 >         pSymbol SV_SYM_lbracket
 >         res <- pDelayRange -- XXX Delay_const should not be allowed here
@@ -5703,7 +5699,6 @@ ASSERTIONS
 
 > pAssertStmt :: Maybe Id -> Attributes -> ImperativeFlags -> SV_Parser SVA_STMT
 > pAssertStmt mid atts flags =
->  do
 >    pAssert mid atts flags
 >    <|> pAssume mid atts flags
 >    <|> pCover mid atts flags

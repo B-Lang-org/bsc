@@ -94,9 +94,9 @@ withQuals (CQGen _ p e : qs) m = do
 
 -- Recursion is handled outside of classicWarnDefl, based on context.
 classicWarnDefl :: CDefl -> ClassicWarnM [WMsg]
-classicWarnDefl (CLValueSign d qs) = do
+classicWarnDefl (CLValueSign d qs) =
   withQuals qs $ classicWarnDef d
-classicWarnDefl (CLValue i cs qs) = do
+classicWarnDefl (CLValue i cs qs) =
   withQuals qs $ concatMapM classicWarnClause cs
 classicWarnDefl (CLMatch p e) =
   -- CLMatch binds variables based on the value of e, so they aren't
@@ -110,7 +110,7 @@ classicWarnDef (CDefT i _ _ cs) = concatMapM classicWarnClause cs
 
 classicWarnClause :: CClause -> ClassicWarnM [WMsg]
 classicWarnClause (CClause ps qs e) =
-  withBindings (S.unions $ map getPV ps) $ do
+  withBindings (S.unions $ map getPV ps) $
     withQuals qs $ classicWarnExpr e
 
 classicWarnArm :: CCaseArm -> ClassicWarnM [WMsg]
@@ -129,7 +129,7 @@ classicWarnExpr (Cletseq (d:ds) e) = do
   ws1 <- classicWarnDefl d
   ws2 <- withBindings (S.fromList $ getLDefs d) $ classicWarnExpr (Cletseq ds e)
   return $ ws1 ++ ws2
-classicWarnExpr (Cletrec ds e) = do
+classicWarnExpr (Cletrec ds e) =
   withBindings (S.fromList $ concatMap getLDefs ds) $ do
     ws1 <- concatMapM classicWarnDefl ds
     ws2 <- classicWarnExpr e

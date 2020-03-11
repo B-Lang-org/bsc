@@ -232,7 +232,6 @@ These fix an ambiguity in the parser's handling of $
 
 > fixUnboundRep :: SVA_REP ->ISConvMonad SVA_REP
 > fixUnboundRep (SVA_REP_None) =
->  do
 >    return SVA_REP_None
 > fixUnboundRep (SVA_REP_Cons d) =
 >    SVA_REP_Cons <$> fixUnboundDelay d
@@ -243,21 +242,16 @@ These fix an ambiguity in the parser's handling of $
 
 > fixUnboundDelay :: SVA_Delay -> ISConvMonad SVA_Delay
 > fixUnboundDelay (SVA_Delay_Range e1 e2) =
->  do
 >    if isUnbound e1
 >      then cvtErr noPosition (EIllegalAssertExpr "" "lower range")
 >      else if isUnbound e2
 >        then return (SVA_Delay_Unbound e1)
->        else do
->         return (SVA_Delay_Range e1 e2)
+>        else return (SVA_Delay_Range e1 e2)
 > fixUnboundDelay (SVA_Delay_Const exp) =
->  do
 >    if isUnbound exp
 >      then cvtErr noPosition (EIllegalAssertExpr "" "constant delay")
 >      else return (SVA_Delay_Const exp)
-> fixUnboundDelay x =
->  do
->    return x
+> fixUnboundDelay x = return x
 
 > isUnbound :: CExpr -> Bool
 > isUnbound (CTaskApply (CVar i) []) | getIdBaseString i == "$" = True
@@ -270,7 +264,6 @@ for recursive properties may be allowed.
 > checkRecursionSP :: [Id] -> SVA_SP -> ISConvMonad ()
 
 > checkRecursionSP calls (SVA_SP_Not p) =
->  do
 >    checkRecursionSP calls p
 > checkRecursionSP calls (SVA_SP_Or p1 p2) =
 >  do
@@ -293,10 +286,8 @@ for recursive properties may be allowed.
 >    checkRecursionSP calls p1
 >    checkRecursionSP calls p2
 > checkRecursionSP calls (SVA_SP_If exp p1 Nothing) =
->  do
 >    checkRecursionSP calls p1
 > checkRecursionSP calls (SVA_SP_Expr exp rep) =
->  do
 >    checkRecursionExpr calls exp
 > checkRecursionSP calls (SVA_SP_DelayU d rest sq) =
 >  do
@@ -312,7 +303,6 @@ for recursive properties may be allowed.
 > --    checkRecursionSP calls s1
 > --    checkRecursionSP calls s2
 > checkRecursionSP calls (SVA_SP_Match sq matches rep) =
->  do
 >    checkRecursionSP calls sq
 > checkRecursionSP calls (SVA_SP_Intersect s1 s2) =
 >  do
@@ -327,15 +317,12 @@ for recursive properties may be allowed.
 >    checkRecursionSP calls s1
 >    checkRecursionSP calls s2
 > checkRecursionSP calls (SVA_SP_Parens sq rep) =
->  do
 >    checkRecursionSP calls sq
 > checkRecursionSP calls (SVA_SP_FirstMatch sq matches rep) =
->  do
 >    checkRecursionSP calls sq
 
 > checkRecursionExpr :: [Id] -> CExpr -> ISConvMonad ()
 > checkRecursionExpr calls e@(CVar nm) =
->  do
 >    if nm `elem` calls
 >      then cvtErr (getPosition e) (EUnsupportedMutualRecursion (map show (nm : calls)))
 >      else do
@@ -361,7 +348,6 @@ for recursive properties may be allowed.
 >    checkRecursionExpr calls e1
 >    checkRecursionExpr calls e2
 > checkRecursionExpr calls exp =
->  do
 >    return ()
 
 These functions replace all parameters with their passed-in values.
@@ -542,7 +528,6 @@ These functions replace all parameters with their passed-in values.
 >    e2' <- replaceParamExpr pos e2 p
 >    return (CBinOp e1' nm e2')
 > replaceParamExpr pos (CLit nm) p =
->  do
 >    return (CLit nm)
 > replaceParamExpr pos (CHasType expr typ) p =
 >  do
@@ -629,18 +614,15 @@ XXX Check for negative ranges... probably bad...
 > deSugarSeq :: SVA_SEQ -> ISConvMonad SVA_CORE_SEQ
 > -- b
 > deSugarSeq (SVA_SEQ_Expr exp SVA_REP_None) =
->  do
 >    return (SVA_CORE_SEQ_Expr exp)
 > -- b [*0]
 > -- The isOne check is added because somehow nulls were (incorrectly) getting wrapped around alwaysTrues.
 > deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Const n))) | isZero n =
->  do
 >    if (isOne exp)
 >       then return (SVA_CORE_SEQ_Expr exp)
 >       else return (SVA_CORE_SEQ_Null (SVA_CORE_SEQ_Expr exp))
 > -- b [*1]
 > deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Const n))) | isOne n =
->  do
 >    return (SVA_CORE_SEQ_Expr exp)
 > -- b [*n]
 
@@ -654,7 +636,6 @@ XXX Check for negative ranges... probably bad...
 > -- b [*1:$]
 > -- The isOne check is added because also unbounds were (incorrectly) getting wrapped around alwaysTrues.
 > deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Unbound low))) | isOne low =
->  do
 >    if (isOne exp)
 >       then return (SVA_CORE_SEQ_Expr exp)
 >       else return (SVA_CORE_SEQ_Unbound (SVA_CORE_SEQ_Expr exp))
@@ -676,12 +657,10 @@ XXX Check for negative ranges... probably bad...
 
 > -- b [*n:n]  (base case)
 > deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Range low high))) | low `assertEq` high =
->  do
 >    deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Const low)))
 
  > -- b [*m:n]  (recursive case)
  > deSugarSeq (SVA_SEQ_Expr exp (SVA_REP_Cons (SVA_Delay_Range low high))) =
- >  do
  >      if (low > high)
  >       then cvtErr (getPosition low)
  >          (EIllegalAssertDelayRange
@@ -695,7 +674,6 @@ XXX Check for negative ranges... probably bad...
  >           deSugarSeq (SVA_SEQ_Or s1 s2)
 
 > deSugarSeq (SVA_SEQ_Expr exp d@(SVA_REP_Cons _)) =
->  do
 >    return (SVA_CORE_SEQ_Rep (SVA_CORE_SEQ_Expr exp) d)
 
 > -- b [->n], b [->m:n], b [->m:$]
@@ -829,11 +807,9 @@ XXX Check for negative ranges... probably bad...
 >    deSugarSeq (SVA_SEQ_Intersect sq s2)
 > -- This case should never come up...
 > deSugarSeq (SVA_SEQ_Match sq [] rep) =
->  do
 >    deSugarSeq (SVA_SEQ_Parens sq rep)
 > -- (1, v = x)
 > deSugarSeq (SVA_SEQ_Match sq [match] SVA_REP_None) | isTrue sq =
->  do
 >    return (SVA_CORE_SEQ_Asgn match)
 > -- (S, v = x)
 > deSugarSeq (SVA_SEQ_Match sq [match] SVA_REP_None) =
@@ -848,7 +824,6 @@ XXX Check for negative ranges... probably bad...
 >    deSugarSeq (delay0 s' (SVA_SEQ_Match (SVA_SEQ_Expr aT SVA_REP_None) matches SVA_REP_None))
 > -- (S, v1 = x...) [x]
 > deSugarSeq (SVA_SEQ_Match sq matches rep) =
->  do
 >    deSugarSeq (SVA_SEQ_Parens (SVA_SEQ_Match sq matches SVA_REP_None) rep)
 > -- first_match(S)
 > deSugarSeq (SVA_SEQ_FirstMatch sq [] SVA_REP_None) =
@@ -857,19 +832,15 @@ XXX Check for negative ranges... probably bad...
 >    return  (SVA_CORE_SEQ_FirstMatch s')
 > -- first_match(S) [x]
 > deSugarSeq (SVA_SEQ_FirstMatch sq [] rep) =
->  do
 >    deSugarSeq (SVA_SEQ_Parens (SVA_SEQ_FirstMatch sq [] SVA_REP_None) rep)
 > -- first_match(S, v1 = x, v2 = y...) [x]
 > deSugarSeq (SVA_SEQ_FirstMatch sq matches rep) =
->  do
 >    deSugarSeq (SVA_SEQ_Match (SVA_SEQ_FirstMatch sq [] SVA_REP_None) matches rep)
 > -- (S)
 > deSugarSeq (SVA_SEQ_Parens sq SVA_REP_None) =
->  do
 >    deSugarSeq sq
 > -- (S) [x]
 > deSugarSeq (SVA_SEQ_Parens sq rep) =
->  do
 >    distributeRep sq rep
 > --death
 > -- deSugarSeq sq =
@@ -923,7 +894,6 @@ Consecutive repetition is just repeating a sequence back to back.
 >    s' <- deSugarSeq seq
 >    return (SVA_CORE_SEQ_Null s')
 > consRep seq (SVA_Delay_Const n) | isOne n =
->  do
 >    deSugarSeq seq
 > consRep seq (SVA_Delay_Const n) =
 >  do
@@ -932,7 +902,6 @@ Consecutive repetition is just repeating a sequence back to back.
 >    s2 <- consRep seq (SVA_Delay_Const n')
 >    return (SVA_CORE_SEQ_Concat s' s2)
 > consRep seq (SVA_Delay_Range low high) | low `assertEq` high =
->  do
 >    consRep seq (SVA_Delay_Const low)
 > consRep seq (SVA_Delay_Range low high) =
 >  do
@@ -962,7 +931,6 @@ ASSERTION Helper functions
 > fuseRest ::  SVA_CORE_SEQ -> [SVA_CORE_SEQ] -> ISConvMonad SVA_CORE_SEQ
 > fuseRest sq [] = return sq
 > fuseRest sq [s] =
->  do
 >    return (SVA_CORE_SEQ_Fuse sq s)
 > fuseRest sq (s:ss) =
 >  do
@@ -988,7 +956,6 @@ ASSERTION Helper functions
 > incrExpr e = return (CBinOp e idPlus one)
 
  > incrExpr e =
- >  do
  >    cvtErr (getPosition e) (EIllegalAssertExpr (show e) "range")
 
 > decrExpr :: CExpr -> ISConvMonad CExpr
@@ -997,7 +964,6 @@ ASSERTION Helper functions
 > decrExpr e = return (CBinOp e idMinus one)
 
  > decrExpr e =
- >  do
  >    cvtErr (getPosition e) (EIllegalAssertExpr (show e) "range")
 
 > isTrue :: SVA_SEQ -> Bool
@@ -1103,10 +1069,8 @@ Also transforms away vacuous CORE_SEQ_Null
 >    s2' <- cleanupSeq s2
 >    return (SVA_CORE_SEQ_Fuse s1' s2')
 > cleanupSeq (SVA_CORE_SEQ_Expr e) =
->  do
 >    return (SVA_CORE_SEQ_Expr e)
 > cleanupSeq (SVA_CORE_SEQ_Asgn is) =
->  do
 >    return (SVA_CORE_SEQ_Asgn is)
 > cleanupSeq (SVA_CORE_SEQ_FirstMatch s1) =
 >  do
@@ -1315,10 +1279,8 @@ Instantiate the assertion module itself
 
 > instAssertMod :: Bool -> SVA_CORE_PROP -> (CExpr, CExpr, CExpr) -> ISConvMonad CExpr
 > instAssertMod False prop (p_mod, passExpr, failExpr) =
->  do
 >    return (CApply (mkAssertMod "mkAssert") [p_mod, passExpr, failExpr])
 > instAssertMod True prop (lst, passExpr, failExpr) =
->  do
 >    return (CApply (mkAssertMod "mkAssertAlways") [lst, passExpr, failExpr])
 
 > mkAction :: [ImperativeStatement] -> ISConvMonad CExpr
@@ -1494,7 +1456,6 @@ Creates a binding declaration
 >                          [n, mod]
 >         assertBind rep
 >     else -- "initial assert":
->       do
 >         assertBind mod
 
 > transAssertBody :: Bool -> SVA_CORE_PROP -> ISConvMonad ([ImperativeStatement], CExpr)
@@ -1516,14 +1477,11 @@ The actual translation functions
 
 > transSEQ :: SVA_CORE_SEQ -> ISConvMonad CExpr
 > transSEQ (SVA_CORE_SEQ_Expr e) | isOne e =
->  do
 >    assertDef (CApply (mkAssertMod "mkSeqTrue") [])
 > transSEQ (SVA_CORE_SEQ_Expr e) =
->  do
 >    assertDef (CApply (mkAssertMod "mkSeqExpr") [e])
 > transSEQ (SVA_CORE_SEQ_Asgn as) =
 >    -- XXX Local variables are disabled
->  do
 >    internalError "Local variables are not yet supported."
 >    --as' <- checkImperativeStmts as
 >    --action <- convImperativeStmtsToCExpr noPosition ISCAction False as
@@ -1569,7 +1527,6 @@ The actual translation functions
 >    e <- transSEQ s
 >    assertDef (CApply (mkAssertMod "mkSeqRepRange") [e, low, high])
 > transSEQ (SVA_CORE_SEQ_Rep _ d) =
->  do
 >    internalError ("CVParserAssertion:transSEQ (Rep): " ++ (show d))
 > transSEQ (SVA_CORE_SEQ_Delay (SVA_Delay_Unbound e) ss s1 s2) =
 >  do
