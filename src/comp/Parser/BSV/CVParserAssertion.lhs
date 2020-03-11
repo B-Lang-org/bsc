@@ -349,12 +349,14 @@ for recursive properties may be allowed.
 >        isPROP <- isProperty nm
 >        if isSEQ
 >         then do
->           (Just (ISSequence pos (_,_,_,_,seq))) <- findSeqM nm
+>           mISSeq <- findSeqM nm
+>           let (Just (ISSequence _ (_,_,_,_,seq))) = mISSeq
 >           checkRecursionSP (nm:calls) seq
 >           return ()
 >         else if (isPROP)
 >           then do
->             (Just (ISProperty pos (_,_,_,_,seq))) <- findPropM nm
+>             mISProp <- findPropM nm
+>             let (Just (ISProperty _ (_,_,_,_,seq))) = mISProp
 >             checkRecursionSP (nm:calls) seq
 >             return ()
 >           else return ()

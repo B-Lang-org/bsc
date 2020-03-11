@@ -2322,8 +2322,9 @@ to uniquify them.
 > convImperativeStmtsToCDefns (ISFunction pos prags _ : rest) =
 >     cvtErr pos EForbiddenLetFn
 > convImperativeStmtsToCDefns (ISEqual pos (Right var) value : rest) =
->     do (Just (mdeclType, ps)) <- getDeclInfo var
->        let qualType = CQType ps (fromJust mdeclType)
+>     do di <- getDeclInfo var
+>        let (Just (mdeclType, ps)) = di
+>            qualType = CQType ps (fromJust mdeclType)
 >            cls = [CClause [] [] value]
 >            def = if isNothing mdeclType
 >                   then CValue var cls
