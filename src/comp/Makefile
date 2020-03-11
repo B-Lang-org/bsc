@@ -103,9 +103,6 @@ GHCPATCH=$(shell echo $(GHCVERSION) | cut -d. -f3)
 #$(info Building with GHC $(GHCMAJOR).$(GHCMINOR))
 ifeq ($(GHCMAJOR),8)
 
-# Several modules require more iterations
-GHC += -fmax-pmcheck-iterations=6000000
-
 GHC += -Wtabs
 
 GHCEXTRAPKGS =-package syb -package integer-gmp
