@@ -5,10 +5,6 @@ module SEMonad(SEM(..), err, run) where
 import Control.Applicative(Applicative(..))
 #endif
 import Control.Monad(liftM, ap)
-#if !defined(__GLASGOW_HASKELL__) || ((__GLASGOW_HASKELL__ >= 800) && (__GLASGOW_HASKELL__ < 808))
-import Control.Monad.Fail(MonadFail(..))
-#endif
-import ErrorUtil(internalError)
 
 newtype SEM e s a = M (s -> Either e (s, a))
 
@@ -20,14 +16,6 @@ instance Monad (SEM e s) where
         Right (s', b) ->
             let M f' = f b
             in  f' s'
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 808)
-    fail msg = internalError ("SEMonad fail: " ++ msg)
-#endif
-
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 800)
-instance MonadFail (SEM e s) where
-    fail msg = internalError ("SEMonad fail: " ++ msg)
-#endif
 
 instance Functor (SEM e s) where
   fmap = liftM
