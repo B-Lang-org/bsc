@@ -53,6 +53,6 @@ jobs:
         shell: bash
         run: ".github/workflows/install_dependencies_macos.sh"
       - name: Build
-        run: "make -j2"
+        run: "make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS'"
       - name: Smoketest
         run: "make check"
