@@ -34,3 +34,25 @@ jobs:
         run: "make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS'"
       - name: Smoketest
         run: "make check"
+
+  build-macOS:
+    strategy:
+      matrix:
+        os: [ macos-10.15 ]
+    name: "Build: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_macos.sh"
+      - name: Build
+        run: "make -j2"
+      - name: Smoketest
+        run: "make check"

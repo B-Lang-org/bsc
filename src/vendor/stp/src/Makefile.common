@@ -16,8 +16,8 @@ CFLAGS += -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
 
 #CXXFLAGS = $(CFLAGS) -Wall -Wextra -DEXT_HASH_MAP -Wno-deprecated
 #CXXFLAGS = $(CFLAGS) -Wextra -DEXT_HASH_MAP -Wno-deprecated
-CXXFLAGS = $(CFLAGS) -DEXT_HASH_MAP -Wno-deprecated
-#CXXFLAGS = $(CFLAGS) -Wall -DTR1_UNORDERED_MAP -Wno-deprecated
+#CXXFLAGS = $(CFLAGS) -DEXT_HASH_MAP -Wno-deprecated
+CXXFLAGS = $(CFLAGS) -Wall -std=c++11 -DTR1_UNORDERED_MAP -Wno-deprecated
 #CXXFLAGS = $(CFLAGS) -Wall 
 #LDFLAGS= -lstdc++
 #LDFLAGS= -lstdc++ -pg

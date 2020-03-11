@@ -30,11 +30,11 @@
 #include <ext/hash_set>
 #include <ext/hash_map>
 #elif defined(TR1_UNORDERED_MAP)
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
-#define hash_map tr1::unordered_map
-#define hash_set tr1::unordered_set
-#define hash_multiset tr1::unordered_multiset
+#include <unordered_map>
+#include <unordered_set>
+#define hash_map std::unordered_map
+#define hash_set std::unordered_set
+#define hash_multiset std::unordered_multiset
 #else
 #include <hash_set>
 #include <hash_map>
@@ -108,10 +108,10 @@ namespace BEEV {
 
   // function_counters: Table for storing function count stats.
 #ifdef TR1_UNORDERED_MAP
-  typedef tr1::unordered_map<
+  typedef std::unordered_map<
     const char*,
     int,
-    tr1::hash<const char *>,
+    std::hash<const char *>,
     eqstr> function_counters;
 #else
   typedef HASHMAP<const char*,

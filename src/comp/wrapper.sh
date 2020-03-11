@@ -2,12 +2,12 @@
 
 # Find the absolute name and location of this script
 #
-ABSNAME=$(realpath -e "$0")
+ABSNAME="$(cd "$(dirname "$0")"; pwd -P)/$(basename "$0")"
 SCRIPTNAME=`basename "${ABSNAME}"`
 BINDIR=`dirname "${ABSNAME}"`
 
 # Set BLUESPECDIR based on the location
-BLUESPECDIR=$(realpath -e "${BINDIR}/../lib")
+BLUESPECDIR="${BINDIR}/../lib"
 export BLUESPECDIR
 
 # Add the dynamically-linked SAT libraris the load path

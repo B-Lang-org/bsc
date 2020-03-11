@@ -55,6 +55,9 @@ TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
             -lhtcl
+ifeq ($(OSTYPE), Darwin)
+TCL_LIBS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
+endif
 
 # STP
 STP_HS      = ../vendor/stp/include_hs
@@ -77,6 +80,10 @@ EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
 WISHFLAGS = -litk$(ITCL_VER) $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
+ifeq ($(OSTYPE), Darwin)
+WISHFLAGS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITCL_VER).dylib))"
+WISHFLAGS += -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Tk.framework/Headers/
+endif
 
 # -----
 # GHC
