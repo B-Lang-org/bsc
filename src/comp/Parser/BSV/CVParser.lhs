@@ -137,9 +137,7 @@ Tuple elements may be ".*" to indicate no name.  (See also pQualIdOrTuple.)
 >                           return $ Right i
 >         -- XXX a single Just element could be returned as Right
 >         return $ Left is
->     pOneId = do
->         i <- pIdentifier
->         return $ Right i
+>     pOneId = Right <$> pIdentifier
 
 Parse a task-identifier (starting with $)
 
@@ -433,9 +431,7 @@ Tuple elements may be ".*" to indicate no name.
 >                    return $ Right i
 >       -- XXX a single Just element could be returned as Right
 >       return $ Left is
->     pOneQualId = do
->       i <- pQualIdentifier
->       return $ Right i
+>     pOneQualId = Right <$> pQualIdentifier
 
 Parse a constructor (identifier starting with uppercase), which may or
 may not be qualified
@@ -729,9 +725,9 @@ XXX allow constants other than decimal
 >     do pos <- getPos
 >        name <- pConstructor <?> "enum tag"
 >        -- parse the range notation for generating tags with the same prefix
->        range <- option Nothing (pInBrackets pEnumRange >>= return . Just)
+>        range <- option Nothing (Just <$> pInBrackets pEnumRange)
 >        -- parse the bit-encoding
->        encoding <- option Nothing (pEq >> pDecimal >>= return . Just)
+>        encoding <- option Nothing (Just <$> (pEq >> pDecimal))
 >        let encoding_start = case encoding of
 >                             Just n  -> n
 >                             Nothing -> default_enc
@@ -766,7 +762,7 @@ XXX allow constants other than decimal
 >            (next_default_enc, summands) <- pEnumTag default_enc
 >            rest_summands <- pEnumTags0 True next_default_enc
 >            return (summands ++ rest_summands)
->     <|> do return []
+>     <|> return []
 
 > pEnumTags :: Bool -> Integer ->
 >              SV_Parser [(COriginalSummand, CInternalSummand)]
@@ -874,9 +870,7 @@ returns names of classes to be derived, or error if deriving not permitted
 
 
 > pTypeclass :: SV_Parser CTypeclass
-> pTypeclass = do
->   a <- pQualConstructor
->   return (CTypeclass a)
+> pTypeclass = CTypeclass <$> pQualConstructor
 
 STRUCT/UNION NOTE
 
@@ -1176,11 +1170,11 @@ TYPE CLASSES AND INSTANCES
 >     do varType <- pTypeExpr
 >        varName <- pIdentifier
 >        defValue <-
->          do ((do pSymbol SV_SYM_eq
->                  value <- pExpression
->                  return [CClause [] [] value])
+>              do pSymbol SV_SYM_eq
+>                 value <- pExpression
+>                 return [CClause [] [] value]
 >              <|>
->              return [])
+>              return []
 >        pSemi
 >        return (CField { cf_name = varName,
 >                         cf_pragmas = Nothing,
@@ -1377,11 +1371,11 @@ specific entrance points
 >     -- unfortunately, the lexer tokenizes 'reg' and 'const' inside '(*'
 >     -- this code works, but the error message when the user writes e.g.
 >     -- (* this *) is about the keyword and not that "this" isn't a property
->     propString <- (do pKeyword SV_KW_reg >> return "reg"
+>     propString <- (pKeyword SV_KW_reg >> return "reg")
 >                    <|>
->                    do pKeyword SV_KW_const >> return "const"
+>                    (pKeyword SV_KW_const >> return "const")
 >                    <|>
->                    pWord <?> "property")
+>                    (pWord <?> "property")
 >     case (lookup propString allowed_props) of
 >         Nothing -> let allowed_strs = map fst allowed_props
 >                    in  -- if we want to be complete, we can keep a list of
@@ -1411,9 +1405,7 @@ The following reads a long name (i.e. a dot-separated list of identifiers, and
 returns a single identifier formed by joining the components with underscores.
 
 > pDottedName :: SV_Parser Id
-> pDottedName =
->     do ns <- pCompoundIdentifier
->        return (foldr1 mkUSId ns)
+> pDottedName = foldr1 mkUSId <$> pCompoundIdentifier
 
 
 > pMethodOption :: SV_Parser (MethodOption, MOdata)
@@ -1536,7 +1528,7 @@ Subinterface -- an interface field inside another interface
 > pImperativeSubinterfaceAt :: Attributes -> ImperativeFlags -> Position
 >                           -> SV_Parser [ImperativeStatement]
 > pImperativeSubinterfaceAt atts flags interfacePos =
->     do constr <- option Nothing (pQualConstructor >>= return . Just)
+>     do constr <- option Nothing (Just <$> pQualConstructor)
 >        name <- pIdentifier <?> "subinterface name"
 >        (pImperativeSubinterfaceSemiAt atts flags interfacePos constr name
 >         <|> pImperativeSubinterfaceEqAt atts flags interfacePos name)
@@ -1742,7 +1734,6 @@ primary with arguments, e.g. prim(a,b,c)
 > pPrimaryWithArgs :: CExpr -> SV_Parser CExpr
 > pPrimaryWithArgs e =
 >--     do args <- many1 (pInParens (pCommaSep pExpression))
->     do
 >     do pos <- getPos
 >        amcmrmps <- many1 pPortListArgs
 >        let ((args, mClock, mReset, mPower),ok) =
@@ -1772,8 +1763,8 @@ parse suffix .method1 .method2 .Tag1 etc
 > pPrimaryWithFields :: CExpr -> SV_Parser CExpr
 > pPrimaryWithFields e =
 >     do let pIdentifierOrTag =
->                (pQualIdentifier >>= return . Left)
->                <|> (pConstructor >>= return . Right)
+>                (Left <$> pQualIdentifier)
+>                <|> (Right <$> pConstructor)
 >            mkSelect expr (Left name) = CSelect expr name
 >            mkSelect expr (Right tag) =
 >                -- translate to: case expr of Tag var -> var
@@ -1919,7 +1910,7 @@ to which we attach those attributes
 > pImperativeStmtWithAttrs  :: Attributes -> ImperativeFlags -> SV_Parser [ImperativeStatement]
 > pImperativeStmtWithAttrs orig_atts flags  = do
 >     let (classic_defs, atts1) = partition isClassicDef orig_atts
->     classic_stmts <- mapM pClassicDefinition classic_defs >>= return . concat
+>     classic_stmts <- concat <$> mapM pClassicDefinition classic_defs
 >     (splitness, atts) <- splitInAttributes atts1
 >     stmts <-    pImperativeBVI atts flags
 >             <|> pImperativeModule atts flags
@@ -2089,7 +2080,7 @@ to which we attach those attributes
 >         else if allowNakedExpr flags then do
 >            e <- pActionsExprAt pos
 >            return [ISNakedExpr pos e]
->         else do failWithErr (pos, EForbiddenAction (pvpString (stmtContext flags)))
+>         else failWithErr (pos, EForbiddenAction (pvpString (stmtContext flags)))
 
 > pImperativeNestedActionValue :: Attributes -> ImperativeFlags
 >                              -> SV_Parser [ImperativeStatement]
@@ -2115,7 +2106,7 @@ to which we attach those attributes
 >            assertEmptyAttributes EAttribsActionValue atts
 >            e <- pActionValueExpr
 >            return [ISNakedExpr pos e]
->         else do failWithErr (pos, EForbiddenActionValue (pvpString (stmtContext flags)))
+>         else failWithErr (pos, EForbiddenActionValue (pvpString (stmtContext flags)))
 
 > pImperativeExpression :: SV_Parser CExpr
 > pImperativeExpression =
@@ -2341,10 +2332,8 @@ must be bound (no mix and match of eq, decl only, bind with the same attrib).
 >                 (failWithErr (pos, EForbiddenReturn
 >                               (pvpString (stmtContext flags))))
 >        assertEmptyAttributes EAttribsReturn atts
->        expr <- if (ctxt /= ISCSequence) then do e <- pExpression
->                                                 return (Just e)
->                                         else option (Nothing) (try $ do e <- pExpression
->                                                                         return (Just e))
+>        expr <- if (ctxt /= ISCSequence) then Just <$> pExpression
+>                                         else option Nothing (try $ Just <$> pExpression)
 >        pSemi
 >        return [ISReturn pos expr]
 
@@ -2418,7 +2407,7 @@ once, e.g. (* split, split *), though it has no extra effect.
 
 Both "found" and "accumulator" are accumulating parameters.
 
->   s' found accumulator atts = do
+>   s' found accumulator atts =
 >     case atts of
 >       [] -> return (found, reverse accumulator)
 >       att@(Attribute { attr_name = name,
@@ -2637,7 +2626,7 @@ pattern-matching case statements
 >     do pKeyword SV_KW_matches <?> "case-matches statement"
 >        arms <- many (pImperativeCaseMatchesArm flags)
 >        dflt <- option Nothing
->                (pImperativeCaseDefault flags >>= return . Just)
+>                (Just <$> pImperativeCaseDefault flags)
 >        pKeyword SV_KW_endcase
 >        return [ISCaseTagged casePos subject arms dflt]
 
@@ -2969,7 +2958,7 @@ statements: interface, method, output_clock, output_reset
 >           pSymbol SV_SYM_star_rparen
 >           return p
 >       pInputGateWire = do
->           mprop <- option Nothing (pInputGateProps >>= return . Just)
+>           mprop <- option Nothing (Just <$> pInputGateProps)
 >           vn_gate <- pVName
 >           case mprop of
 >               Nothing -> return (Right vn_gate)
@@ -3942,7 +3931,7 @@ function argument, type is required
 >                return (Just typ', var2)
 >             <|>
 >             -- no identifier follows; var1 must be a value variable
->             do return (Nothing, var1))
+>             return (Nothing, var1))
 >     <|> do (typ, var, _) <- pFunctionArg False
 >            return (Just typ, var)
 >     -- XXX this used to accept "?" as an argument name (without a type)
@@ -4045,9 +4034,9 @@ a function definition, and a body must be present.
 >                                    (pvpString arg1) (getIdPosition arg1))))
 >        context <- option [] pProvisos
 >        mbody   <- pFunctionTail startPos False name args
->        body <- do case mbody of
->                      Just e  -> return e
->                      Nothing -> failWithErr (startPos, EMissingFunctionBody)
+>        body <- case mbody of
+>                   Just e  -> return e
+>                   Nothing -> failWithErr (startPos, EMissingFunctionBody)
 >        -- return type and argument types may be omitted
 >        -- if enough type information is provided, generate
 >        -- a signed definition; otherwise an unsigned definition
@@ -4221,8 +4210,7 @@ the ports created for the argument (clock port names, gates, etc.).
 >                                                      (getIdBaseString ifc)
 >                                                      "an interface"))
 >          return (params ++ args, itft, param_pps ++ arg_pps)
->        Just itft -> do
->          return (params, itft, param_pps)
+>        Just itft -> return (params, itft, param_pps)
 
 > pModuleExpression :: SV_Parser CExpr
 > pModuleExpression =
@@ -4654,12 +4642,11 @@ PACKAGES
 >     do pkgPos <- getPos
 >        pkg <- pWord <?> "package name"
 >        pSymbol SV_SYM_colon_colon
->        (do pSymbol SV_SYM_star >>
->                       return (mkId pkgPos (mkFString pkg))
+>        (pSymbol SV_SYM_star >> return (mkId pkgPos (mkFString pkg)))
 >         <|>
 >         do pos <- getPos
 >            var <- pWord <?> "imported identifier"
->            (failWithErr (pos, EUnsupportedImport pkg var)))
+>            (failWithErr (pos, EUnsupportedImport pkg var))
 
 Some of the topdefs (modules and functions) may be preceded by attributes.  To
 avoid backtracking, we read the attributes first, and supply them as
@@ -5315,9 +5302,9 @@ Handle port attributes associated with a function/method argument.
 >
 > checkIfcPragma :: (Position,String,Bool) -> String -> SV_Parser String
 > checkIfcPragma (pos, attrname, emptyAllowed) str =
->     do case isValid of
->           True -> return str
->           False -> failWithErr ( pos, (EBadPortRenameAttributeString attrname str))
+>     case isValid of
+>        True -> return str
+>        False -> failWithErr (pos, EBadPortRenameAttributeString attrname str)
 >     where isValid = (emptyAllowed || not (null str)) && not (any isWhitespace str)
 
 > checkNoPragmaArg :: AttValue -> Id -> a -> SV_Parser a
@@ -5350,7 +5337,7 @@ Convert argument strings of attributes to CSchedulePragmas etc.
 >         pClocked = do prs <- many1 pPair
 >                       eof svTokenToString <?> "end of string"
 >                       return prs
->     pAttributeWithParser pClocked p s >>= return . PPclocked_by
+>     PPclocked_by <$> pAttributeWithParser pClocked p s
 > -}
 
 > psInputClocks :: Position -> String -> SV_Parser PProp
@@ -5358,27 +5345,27 @@ Convert argument strings of attributes to CSchedulePragmas etc.
 >  do let pInp = do lns <- pCommaSep1 pIdentifier
 >                   eof svTokenToString <?> "end of string"
 >                   return lns
->     pAttributeWithParser pInp p s >>= return . PPgate_input_clocks
+>     PPgate_input_clocks <$> pAttributeWithParser pInp p s
 
 > psUrgency :: Position -> String -> SV_Parser CSchedulePragma
-> psUrgency p s = string2Longnames p s >>= return . SPUrgency
+> psUrgency p s = SPUrgency <$> string2Longnames p s
 
 > psExecutionOrder :: Position -> String -> SV_Parser CSchedulePragma
-> psExecutionOrder p s = string2Longnames p s >>= return . SPExecutionOrder
+> psExecutionOrder p s = SPExecutionOrder <$> string2Longnames p s
 
 > psMutuallyExclusive :: Position -> String -> SV_Parser CSchedulePragma
 > psMutuallyExclusive p s =
 >  do let pME  = do lns <- pCommaSep1 pGroup
 >                   eof svTokenToString <?> "end of string"
 >                   return lns
->     pAttributeWithParser pME p s >>= return . SPMutuallyExclusive
+>     SPMutuallyExclusive <$> pAttributeWithParser pME p s
 
 > psConflictFree :: Position -> String -> SV_Parser CSchedulePragma
 > psConflictFree p s =
 >  do let pCF  = do lns <- pCommaSep1 pGroup
 >                   eof svTokenToString <?> "end of string"
 >                   return lns
->     pAttributeWithParser pCF p s >>= return . SPConflictFree
+>     SPConflictFree <$> pAttributeWithParser pCF p s
 
 > string2Longnames :: Position -> String -> SV_Parser [Longname]
 > string2Longnames p s =
@@ -5403,7 +5390,7 @@ Convert argument strings of attributes to CSchedulePragmas etc.
 > psPerfSpec :: Position -> String -> SV_Parser PProp
 > psPerfSpec pos str =
 >   do let pPSpec  =  (pInBrackets (pCommaSep pIdentifier))
->                 <|> (pIdentifier >>= return . (:[]))
+>                 <|> ((:[]) <$> pIdentifier)
 >          pPSpecs = do ranks <- pPSpec `sepBy` pSymbol SV_SYM_lt
 >                       eof svTokenToString <?> "end of string"
 >                       return ranks
@@ -5416,7 +5403,7 @@ Convert argument strings of attributes to CSchedulePragmas etc.
 >         pInp = do lns <- pCommaSep1 pClockName
 >                   eof svTokenToString <?> "end of string"
 >                   return lns
->     pAttributeWithParser pInp p s >>= return . PPclock_family
+>     PPclock_family <$> pAttributeWithParser pInp p s
 
 > psClockAncestors :: Position -> String -> SV_Parser PProp
 > psClockAncestors p s =
@@ -5428,7 +5415,7 @@ Convert argument strings of attributes to CSchedulePragmas etc.
 >         pInp  = do lns <- pCommaSep1 pASeq
 >                    eof svTokenToString <?> "end of string"
 >                    return lns
->     pAttributeWithParser pInp p s >>= return . PPclock_ancestors
+>     PPclock_ancestors <$> pAttributeWithParser pInp p s
 
 =========
 
@@ -5504,7 +5491,6 @@ and eschewing all forms which couldn't possibly have the right type.
 
 > pSPTerm :: SV_Parser SVA_SP
 > pSPTerm =
->  do
 >    pMatchItem
 >    <|> pFirstMatch
 >    <|> pSPIf
@@ -5593,10 +5579,7 @@ and eschewing all forms which couldn't possibly have the right type.
 
 > pHashDelay :: SV_Parser SVA_Delay
 > pHashDelay =
->  do
->   (do
->      e <- pDelayExpr
->      return (SVA_Delay_Const e))
+>  SVA_Delay_Const <$> pDelayExpr
 >   <|> (do
 >         pSymbol SV_SYM_lbracket
 >         res <- pDelayRange -- XXX Delay_const should not be allowed here
@@ -5618,9 +5601,7 @@ and eschewing all forms which couldn't possibly have the right type.
 >   pRangeUnbound = do
 >             pDollar
 >             return (SVA_Delay_Unbound e)
->   pRangeBound = do
->            e2 <- pDelayExpr
->            return (SVA_Delay_Range e e2)
+>   pRangeBound = SVA_Delay_Range e <$> pDelayExpr
 
 SEQUENCES
 
@@ -5629,7 +5610,7 @@ SEQUENCES
 >  do
 >   pos <- getPos
 >   pKeyword SV_KW_sequence <?> "sequence"
->   ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>   ignoreAssertions <- disableAssertions <$> getParserFlags
 >   when (not ignoreAssertions) (parseWarn (pos, WExperimental "SV assertions"))
 >   when (not (allowSequence flags))
 >        (failWithErr (pos, EForbiddenSequenceDecl (pvpString (stmtContext flags)) ""))
@@ -5656,7 +5637,7 @@ PROPERTIES
 >  do
 >   pos <- getPos
 >   pKeyword SV_KW_property <?> "property declaration"
->   ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>   ignoreAssertions <- disableAssertions <$> getParserFlags
 >   when (not ignoreAssertions) (parseWarn (pos, WExperimental "SV assertions"))
 >   when (not (allowProperty flags))
 >        (failWithErr (pos, EForbiddenPropertyDecl (pvpString (stmtContext flags)) ""))
@@ -5718,7 +5699,6 @@ ASSERTIONS
 
 > pAssertStmt :: Maybe Id -> Attributes -> ImperativeFlags -> SV_Parser SVA_STMT
 > pAssertStmt mid atts flags =
->  do
 >    pAssert mid atts flags
 >    <|> pAssume mid atts flags
 >    <|> pCover mid atts flags
@@ -5731,7 +5711,7 @@ ASSERTIONS
 >    pKeyword SV_KW_assert
 >    when (not (allowAssert flags))
 >        (failWithErr (pos, EForbiddenAssert (pvpString (stmtContext flags))))
->    ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>    ignoreAssertions <- disableAssertions <$> getParserFlags
 >    when (not ignoreAssertions) (parseWarn (pos, WExperimental "SV assertions"))
 >    assertEmptyAttributes EAttribsAssert atts
 >    pKeyword SV_KW_property
@@ -5748,7 +5728,7 @@ ASSERTIONS
 >    pKeyword SV_KW_assume
 >    when (not (allowAssume flags))
 >        (failWithErr (pos, EForbiddenAssume (pvpString (stmtContext flags))))
->    ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>    ignoreAssertions <- disableAssertions <$>  getParserFlags
 >    when (not ignoreAssertions) (parseWarn (pos, WExperimental "SV assertions"))
 >    assertEmptyAttributes EAttribsAssume atts
 >    pKeyword SV_KW_property
@@ -5763,7 +5743,7 @@ ASSERTIONS
 >     pKeyword SV_KW_cover
 >     when (not (allowCover flags))
 >        (failWithErr (pos, EForbiddenCover (pvpString (stmtContext flags))))
->     ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>     ignoreAssertions <- disableAssertions <$> getParserFlags
 >     when (not ignoreAssertions)
 >              (parseWarn (pos, WExperimental "SV assertions"))
 >     assertEmptyAttributes EAttribsCover atts
@@ -5780,7 +5760,7 @@ ASSERTIONS
 >     pKeyword SV_KW_expect
 >     when (not (allowExpect flags))
 >        (failWithErr (pos, EForbiddenExpect (pvpString (stmtContext flags))))
->     ignoreAssertions <- getParserFlags >>= return . disableAssertions
+>     ignoreAssertions <- disableAssertions <$> getParserFlags
 >     when (not ignoreAssertions)
 >              (parseWarn (pos, WExperimental "SV assertions"))
 >     assertEmptyAttributes EAttribsExpect atts

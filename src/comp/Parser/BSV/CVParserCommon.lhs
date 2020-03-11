@@ -152,15 +152,15 @@ sufficient to just include a single position for the start of the tuple).
 > mapIdOrTuple f (Left mis) = Left (map (apRight f) mis)
 
 > mapIdOrTupleM :: (Monad m) => (Id -> m Id) -> IdOrTuple -> m IdOrTuple
-> mapIdOrTupleM f (Right i) = f i >>= return . Right
-> mapIdOrTupleM f (Left mis) = mapM f' mis >>= return . Left
->   where f' (Right i) = f i >>= return . Right
+> mapIdOrTupleM f (Right i) = Right <$> f i
+> mapIdOrTupleM f (Left mis) = Left <$> mapM f' mis
+>   where f' (Right i) = Right <$> f i
 >         f' mi        = return mi
 
 > mapIdOrTupleM_ :: (Monad m) => (Id -> m a) -> IdOrTuple -> m ()
 > -- mapIdOrTupleM_ f vs = mapIdOrTupleM f vs >> return ()
 > mapIdOrTupleM_ f (Right i) = f i >> return ()
-> mapIdOrTupleM_ f (Left mis) = mapM f' mis >> return ()
+> mapIdOrTupleM_ f (Left mis) = mapM_ f' mis >> return ()
 >   where f' (Right i) = f i >> return ()
 >         f' mi        = return ()
 
@@ -1124,19 +1124,13 @@ variables declared earlier in the list)
 >                                                    svaWarned = True}
 
 > getParseWarnings :: SV_Parser [WMsg]
-> getParseWarnings =
->     do state <- getState
->        return (warnings state)
+> getParseWarnings = warnings <$> getState
 
 > getParserFlags :: SV_Parser Flags
-> getParserFlags =
->     do state <- getState
->        return (parserflags state)
+> getParserFlags = parserflags <$> getState
 
 > getErrHandle :: SV_Parser ErrorHandle
-> getErrHandle =
->     do state <- getState
->        return (errHandle state)
+> getErrHandle = errHandle <$> getState
 
 given a list of guards and the consequent and alternative expressions,
 make either an if-then-else expression on an appropriate case expression
