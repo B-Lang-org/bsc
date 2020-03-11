@@ -358,7 +358,7 @@ showrules: $(SOURCES) $(EXTRAOBJS)
 .PHONY: bluetcl
 bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
+	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ) $(WISHFLAGS)
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
 		-o $@ \
 		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
@@ -375,7 +375,7 @@ bluewish.hs: bluetcl.hs
 .PHONY: bluewish
 bluewish: bluewish.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
+	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ) $(WISHFLAGS)
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
 		-o $@ \
 		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
