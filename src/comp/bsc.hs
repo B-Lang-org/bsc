@@ -102,8 +102,8 @@ import GenForeign(genForeign)
 import IExpand(iExpand)
 import IExpandUtils(HeapData)
 import ITransform(iTransform)
-import IInline(iInline, iInlineFmts)
-import ISplitFmt(splitFmts)
+import IInline(iInline)
+import IInlineFmt(iInlineFmt)
 import Params(iParams)
 import ASyntax(APackage(..), ASPackage(..),
                ppeAPackage,
@@ -712,8 +712,7 @@ genModule
       putStr (ppReadable rule_locs)
 
     start flags DFinlineFmt
-    let imod_fmt0 = iInlineFmts imod0
-    imod_fmt <- splitFmts errh imod_fmt0
+    imod_fmt <- iInlineFmt errh imod0
     iMCheck flags symt imod_fmt "Fmt inline"
     t <- dump errh flags t DFinlineFmt dumpnames imod_fmt
     stats flags DFinlineFmt imod_fmt
