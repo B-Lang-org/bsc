@@ -235,17 +235,11 @@ These fix an ambiguity in the parser's handling of $
 >  do
 >    return SVA_REP_None
 > fixUnboundRep (SVA_REP_Cons d) =
->  do
->    d' <- fixUnboundDelay d
->    return (SVA_REP_Cons d')
+>    SVA_REP_Cons <$> fixUnboundDelay d
 > fixUnboundRep (SVA_REP_NonCons d) =
->  do
->    d' <- fixUnboundDelay d
->    return (SVA_REP_NonCons d')
+>    SVA_REP_NonCons <$> fixUnboundDelay d
 > fixUnboundRep (SVA_REP_Goto d) =
->  do
->    d' <- fixUnboundDelay d
->    return (SVA_REP_Goto d')
+>    SVA_REP_Goto <$> fixUnboundDelay d
 
 > fixUnboundDelay :: SVA_Delay -> ISConvMonad SVA_Delay
 > fixUnboundDelay (SVA_Delay_Range e1 e2) =
@@ -1136,8 +1130,7 @@ Also transforms away vacuous CORE_SEQ_Null
 > cleanupSeq z = return z
 
 > passThrough :: ISConvMonad Bool
-> passThrough = do state <- getISCState
->                  return (issPassThrough state)
+> passThrough = issPassThrough <$> getISCState
 
 > transAssertStmt :: Position -> SVA_Statement -> ISConvMonad [ImperativeStatement]
 > transAssertStmt p s =
