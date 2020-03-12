@@ -20,13 +20,11 @@ extern "C" {
  * kernel API functions.
  * When master is non-zero, it indicates that the model
  * is its own master.
- * When wait_for_license is non-zero, it indicates that the
- * kernel should wait for a license if it is not available.
  *
  * Returns a handle to the simulation state, which is needed
  * as an argument to the other Bluesim kernel API functions.
  */
-tSimStateHdl bk_init(tModel model, tBool master, tBool wait_for_license);
+tSimStateHdl bk_init(tModel model, tBool master);
 
 /* This should be called at the end of simulation
  * to free resources controlled by the simulation kernel.

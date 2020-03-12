@@ -117,10 +117,6 @@ typedef struct
  * Simulation kernel state
  */
 struct tSimState {
-  // license information
-  bool wait_for_license;
-  bool holding_license;
-
   // handle to the design
   Model* model;
 

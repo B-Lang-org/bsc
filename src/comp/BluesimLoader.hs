@@ -332,8 +332,8 @@ foreign import ccall "dynamic"
                         (Ptr CUInt -> CString -> IO CInt)
 
 foreign import ccall "dynamic"
-  dl_ptr_uchar_uchar_ret_ptr :: FunPtr (Ptr CUInt -> CUChar -> CUChar -> IO (Ptr CUInt)) ->
-                                (Ptr CUInt -> CUChar -> CUChar -> IO (Ptr CUInt))
+  dl_ptr_uchar_ret_ptr :: FunPtr (Ptr CUInt -> CUChar -> IO (Ptr CUInt)) ->
+                          (Ptr CUInt -> CUChar -> IO (Ptr CUInt))
 
 foreign import ccall "dynamic"
   dl_ptr_uint_int_ullong_ret_int :: FunPtr (Ptr CUInt -> CUInt -> CInt -> CULLong -> IO CInt) ->
@@ -448,8 +448,8 @@ data BluesimModel =
 -- a BluesimModel value which allows access to the Bluesim object.
 -- Returns Nothing if an error occurs during loading
 
-loadBluesimModel :: String -> String -> Bool -> IO (Maybe BluesimModel)
-loadBluesimModel fname top_name wait = do
+loadBluesimModel :: String -> String -> IO (Maybe BluesimModel)
+loadBluesimModel fname top_name = do
   -- load the shared object
   let fname' = (dirName fname) ++ "/" ++ (baseName fname)
   dl <- dlopen fname' [RTLD_NOW]
@@ -503,8 +503,8 @@ loadBluesimModel fname top_name wait = do
   -- convert functions to Haskell types and build BluesimModel
   let new_model :: IO WordPtr
       new_model = fromC $ dl_ret_ptr c_new_model
-      bk_init :: WordPtr -> Bool -> Bool -> IO WordPtr
-      bk_init = fromC $ dl_ptr_uchar_uchar_ret_ptr c_bk_init
+      bk_init :: WordPtr -> Bool -> IO WordPtr
+      bk_init = fromC $ dl_ptr_uchar_ret_ptr c_bk_init
       -- string return must be handled specially for bk_clock_name, etc.
       clk_name_fn :: WordPtr -> BSClock -> IO String
       clk_name_fn simHdl c =
@@ -573,7 +573,7 @@ loadBluesimModel fname top_name wait = do
                       return $ Value { num_bits = (fromC sz), value = v }
               else return NoValue
   model_hdl <- new_model
-  sim_hdl <- bk_init model_hdl True wait
+  sim_hdl <- bk_init model_hdl True
   if (sim_hdl == ptrToWordPtr nullPtr)
    then return Nothing
    else do

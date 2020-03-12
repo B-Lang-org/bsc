@@ -218,8 +218,7 @@ wrapSystemC flags sim_system = do
             [ (mkVar "_model_hdl") `assign`
                   ((var ("new_MODEL_" ++ name)) `cCall` [])
             , (mkVar "_sim_hdl") `assign`
-                  ((var "bk_init") `cCall` [ var "_model_hdl"
-                                           , mkBool False, mkBool True ])
+                  ((var "bk_init") `cCall` [ var "_model_hdl", mkBool False])
             , stmt $ (var "bk_set_interactive") `cCall` [var "_sim_hdl"]
             , (mkVar "_model_inst") `assign`
                   (cCast (ptrType sub_mod_type)

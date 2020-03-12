@@ -25,7 +25,6 @@ class Model
   virtual void dump_state() = 0;
   virtual void dump_VCD_defs() = 0;
   virtual void dump_VCD(tVCDDumpType dt) = 0;
-  virtual tUInt64 skip_license_check() = 0;
 
  // Require construction be of the derived classes, not this class
  protected:

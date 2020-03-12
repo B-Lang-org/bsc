@@ -30,7 +30,7 @@ import SimFileUtils(codeGenOptionDescr)
 import TopUtils(TimeInfo(..))
 import Version(versionname)
 import BuildVersion(buildVersion)
-import Util(hashInit, nextHash, nextHash32, nextHash64, hashValue, concatMapM)
+import Util(concatMapM)
 
 -- import Trace
 
@@ -255,7 +255,6 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
               , decl $ function void (mkVar "dump_VCD_defs") []
               , decl $ function void (mkVar "dump_VCD")
                            [ (userType "tVCDDumpType") (mkVar "dt") ]
-              , decl $ function (userType "tUInt64") (mkVar "skip_license_check") []
               ]
             ]
         class_decl =
@@ -516,25 +515,6 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                           , comment "Get the model creation time" gct_def
                           ]
 
-        -- function for controlling run-time licensing
-        time_hash = \x -> nextHash64 x (fromInteger t)
-        year_hash = if (null parts) then id else (\x -> nextHash32 x (read (parts!!0)))
-        month_hash = if (length parts < 2) then id else (\x -> nextHash32 x (read (parts!!1)))
-        ann_hash = if (length parts < 3) then id else (\x -> nextHash x (parts!!2))
-        build_hash = \x -> nextHash x buildVersion
-        hash_val = if (runTimeLic flags)
-                   then 0
-                   else let h = foldl (flip ($)) hashInit [ time_hash
-                                                          , year_hash
-                                                          , month_hash
-                                                          , ann_hash
-                                                          , build_hash
-                                                          ]
-                        in toInteger (hashValue h)
-        skip_lic = function (userType "tUInt64") (mkScopedVar "skip_license_check") []
-        skip_lic_def = define skip_lic (ret (Just (mkUInt64 hash_val)))
-        lic_methods = [ comment "Control run-time licensing" skip_lic_def ]
-
         -- functions for dumping state values and rule firings
         state_dump    = function void (mkScopedVar "dump_state") []
         mkDumpCall sb fn_name args =
@@ -578,7 +558,6 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                  sched_fns ++
                  model_methods ++
                  version_methods ++
-                 lic_methods ++
                  dump_methods ++
                  vcd_methods
                 )

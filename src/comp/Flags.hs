@@ -115,7 +115,6 @@ data Flags = Flags {
         resource :: ResourceFlag,
         rstGate :: Bool,
         ruleNameCheck :: Bool,
-        runTimeLic :: Bool,
         satBackend :: SATFlag,
         schedConds:: Bool,
         schedDOT :: Bool,

@@ -2587,8 +2587,7 @@ simGrammar = (tclcmd "sim" namespace helpStr "") .+.
                        (optional $ arg "addr2" IntArg "end address")
           loadGrammar = (kw "load" "Load a bluesim model object" "") .+.
                         (arg "model" StringArg "Bluesim model file") .+.
-                        (arg "top" StringArg "Top-level module name") .+.
-                        (optional $ kw "wait" "" "")
+                        (arg "top" StringArg "Top-level module name")
           lookupGrammar = (kw "lookup" "Lookup symbol handles" "") .+.
                           (arg "pattern" StringArg "Symbol name (wildcards allowed)") .+.
                           (optional $ arg "root" PtrArg "Starting point for lookup")
@@ -2745,11 +2744,11 @@ tclSim ("getrange":args) = do
     (Just bs, _) -> internalError $ "tclSim: grammar mismatch: " ++ (show args)
     (Nothing,_)   -> ioError $ userError ("There is no bluesim model loaded")
 --------------------
-tclSim ("load":fname:top_name:wa) = do
+tclSim ["load", fname, top_name] = do
   g <- readIORef globalVar
   let mbs0 = tp_bluesim g
   when (isJust mbs0) $ unloadBluesimModel (fromJust mbs0)
-  mbs1 <- loadBluesimModel fname top_name (not (null wa))
+  mbs1 <- loadBluesimModel fname top_name
   when (isNothing mbs1) $
        ioError $ userError ("Unable to load model " ++ fname)
   modifyIORef globalVar (\gv -> gv { tp_bluesim = mbs1 })

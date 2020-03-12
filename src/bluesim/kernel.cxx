@@ -634,103 +634,10 @@ bool check_version(tBluesimVersionInfo* version)
            !strcmp(annotation,version->annotation)));
 }
 
-/* helper routines for computing hash values */
-
-static tUInt64 add_hash(tUInt64 h, tUInt8 n)
-{
-  tUInt32 lo = h & 0xffffffff;
-  tUInt32 hi = h >> 32;
-  tUInt32 new_lo = ((hi >> 27) | (hi << 5)) + (tUInt32) n;
-  tUInt32 new_hi = lo + new_lo + 1442968193;
-  return ((tUInt64) new_hi << 32) | (tUInt64) new_lo;
-}
-
-static tUInt64 add_hash(tUInt64 h, tUInt32 n)
-{
-  tUInt32 lo = h & 0xffffffff;
-  tUInt32 hi = h >> 32;
-  tUInt32 new_lo = ((hi >> 12) | (hi << 20)) + n;
-  tUInt32 new_hi = lo + new_lo + 1442968193;
-  return ((tUInt64) new_hi << 32) | (tUInt64) new_lo;
-}
-
-static tUInt64 add_hash(tUInt64 h, tUInt64 n)
-{
-  tUInt32 lo = n & 0xffffffff;
-  tUInt32 hi = n >> 32;
-  return add_hash(add_hash(h,lo),hi);
-}
-
-static tUInt64 add_hash(tUInt64 h, time_t t)
-{
-  return add_hash(h, (tUInt64) t);
-}
-
-static tUInt64 add_hash(tUInt64 h, char c)
-{
-  return add_hash(h, (tUInt8) c);
-}
-
-static tUInt64 add_hash(tUInt64 h, const char* s)
-{
-  if (s == NULL)
-    return h;
-  while (*s)
-    h = add_hash(h,*s++);
-  return h;
-}
-
-static tUInt64 lic_hash(tBluesimVersionInfo* version)
-{
-  tUInt64 hash = 4000000063llu;
-  hash = add_hash(hash, version->creation_time);
-  hash = add_hash(hash, version->year);
-  hash = add_hash(hash, version->month);
-  hash = add_hash(hash, version->annotation);
-  hash = add_hash(hash, version->build);
-  return hash;
-}
-
-/* helper routine for checking out a run-time license */
-bool get_license(tSimStateHdl simHdl)
-{
-  int sig_res;
-  sigset_t prev_set;
-
-  // If we've been called from inside GHC (Bluetcl)
-  // then we need to block any timer interrupts that it requested.
-  // (If setting the mask fails, then just move on.)
-  sig_res = pthread_sigmask(0, NULL, &prev_set);
-  if (sig_res == 0) {
-    sigset_t new_set = prev_set;
-    sig_res = sigaddset(&new_set, SIGVTALRM);
-    if (sig_res == 0) {
-      sig_res = pthread_sigmask(SIG_SETMASK, &new_set, NULL);
-    }
-  }
-
-  // checkout the run-time license
-  int lic_res = 0;  // always succeed
-
-  // Unblock timer events, if the block was successful.
-  // (If unblock fails, we can't just move on, we need to report an error.)
-  if (sig_res == 0) {
-    sig_res = pthread_sigmask(SIG_SETMASK, &prev_set, NULL);
-    if (sig_res != 0) {
-      perror("pthread_sigmask");
-    }
-  }
-
-  return (lic_res == 0);
-}
-
 /* Initialize the Bluesim kernel */
-tSimStateHdl bk_init(tModel model, tBool master, tBool wait_for_license)
+tSimStateHdl bk_init(tModel model, tBool master)
 {
   tSimStateHdl simHdl = new tSimState;
-
-  simHdl->wait_for_license = false;
-  simHdl->holding_license = false;
 
   simHdl->model = (Model*)model;
 
@@ -782,11 +689,7 @@ tSimStateHdl bk_init(tModel model, tBool master, tBool wait_for_license)
   simHdl->sim_timescale = 1;
   (simHdl->vcd).vcd_timescale = port_strdup("1 us");
 
-  if (wait_for_license)
-    simHdl->wait_for_license = true;
-
   tBluesimVersionInfo version;
-  simHdl->holding_license = false;
   simHdl->model->get_version(&(version.year),
 			     &(version.month),
 			     &(version.annotation),
@@ -797,24 +700,6 @@ tSimStateHdl bk_init(tModel model, tBool master, tBool wait_for_license)
 	    "%s\n%s\n",
 	    "Warning: the Bluesim kernel version does not match the BSC version used to",
 	    "generate the Bluesim model");
-  }
-  tUInt64 h = simHdl->model->skip_license_check();
-  if (h != 0)
-  {
-    // this is attempting to skip the run-time license check
-    // so make sure it has the right hash
-    if (h != lic_hash(&version))
-    {
-      fprintf(stderr, "Error: invalid key from skip_license_check()\n");
-      return NULL; // ERROR
-    }
-  }
-  else
-  {
-    // checkout the run-time license
-    if (! get_license(simHdl))
-      return NULL; // ERROR
-    simHdl->holding_license = true;
   }
   init_mem_allocator();
   simHdl->sim_time = 0llu;
@@ -879,11 +764,6 @@ void bk_shutdown(tSimStateHdl simHdl)
   simHdl->queue = NULL;
   clear_plusargs(simHdl);
   vcd_reset(simHdl);
-  if (simHdl->holding_license)
-  {
-    // release license
-    simHdl->holding_license = false;
-  }
   delete simHdl;
 }
 

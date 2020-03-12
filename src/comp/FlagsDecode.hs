@@ -592,7 +592,6 @@ defaultFlags bluespecdir = Flags {
         resource = RFoff,
         rstGate = False,
         ruleNameCheck = True,
-        runTimeLic = True,
         satBackend = SAT_Yices,
         schedConds = False,
         schedDOT = False,
@@ -1056,9 +1055,6 @@ showIfTrue fn = Just (\flags -> (fn flags,False))
 showIfEq :: (Eq a) => (Flags -> a) -> a -> Maybe (Flags -> Bool)
 showIfEq fn v = Just (\flags -> fn flags == v)
 
-showAlways :: (Flags -> Bool) -> Maybe (Flags -> (Bool,Bool))
-showAlways fn = Just (\flags -> (fn flags,True))
-
 showPath :: (Flags -> [String]) -> Maybe ArgReturnType
 showPath path_fn =
     let argFn flags = let p = unPath (path_fn flags)
@@ -1447,10 +1443,6 @@ externalFlags = [
         ("rule-name-check",
          (Toggle (\f x -> f {ruleNameCheck=x}) (showIfTrue ruleNameCheck),
           "check that rule names are unique (when disabled unique numbers are assigned)", Hidden)),
-
-        ("runtime-license",
-         (Toggle (\f x -> f {runTimeLic=x}) (showAlways runTimeLic),
-          "control use of run-time license vs. compile-time license", Visible)),
 
         ("scheduler-effort",
          (Arg "limit"
@@ -1920,7 +1912,6 @@ showFlagsRaw flags =
         "\tresource = " ++ show (resource flags) ++ ",\n" ++
         "\trstGate = " ++ show (rstGate flags) ++ ",\n" ++
         "\truleNameCheck = " ++ show (ruleNameCheck flags) ++ ",\n" ++
-        "\trunTimeLic = " ++ show (runTimeLic flags) ++ ",\n" ++
         "\tsatBackend = " ++ show (satBackend flags) ++ ",\n" ++
         "\tschedConds = " ++ show (schedConds flags) ++ ",\n" ++
         "\tschedDOT = " ++ show (schedDOT flags) ++ ",\n" ++
