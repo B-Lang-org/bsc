@@ -7,7 +7,7 @@ SCRIPTNAME=`basename "${ABSNAME}"`
 BINDIR=`dirname "${ABSNAME}"`
 
 # Set BLUESPECDIR based on the location
-BLUESPECDIR="${BINDIR}/../lib"
+BLUESPECDIR="$(cd ${BINDIR}/../lib; pwd -P)"
 export BLUESPECDIR
 
 # Add the dynamically-linked SAT libraris the load path
