@@ -7,12 +7,13 @@
 
 #endif
 
+> import Control.Monad.State
+> import Control.Monad.Except
 > import SystemVerilogTokens
 > import Flags(Flags, passThroughAssertions)
 
 > import Data.List
 > import Data.Maybe
-> import Control.Monad
 > import qualified Data.Set as S
 > import qualified Data.Map as M
 > import Debug.Trace(trace)
@@ -1235,27 +1236,29 @@ THE IMPERATIVE STATEMENT CONVERSION MONAD
 >      return s
 
 > pushState :: ISConvMonad ()
-> pushState = SEMonad.M $ \ state ->
->      Right (state { -- issFunction = Nothing :  issFunction state,
+> pushState =  modify $ \state -> state
+>                { -- issFunction = Nothing :  issFunction state,
 >                     issDeclared = M.empty : issDeclared state,
->                     issAssigned = M.empty : issAssigned state }, ())
+>                     issAssigned = M.empty : issAssigned state }
 
 > popState :: ISConvMonad ()
-> popState = SEMonad.M $ \ state ->
+> popState = do
+>   state <- get
 >   if (null (issFunction state)
 >       || null (issDeclared state)
 >       || null (issAssigned state))
 >    then internalError "CVParserCommon.popState: non-existent state"
 >    else
->      Right (state { -- issFunction = tail $ issFunction state,
+>      put $ state { -- issFunction = tail $ issFunction state,
 >                     issDeclared = tail $ issDeclared state,
->                     issAssigned = tail $ issAssigned state }, ())
+>                     issAssigned = tail $ issAssigned state }
+>
 
 > traceState :: ISConvMonad ()
-> traceState = SEMonad.M $ \ state -> trace (show state) $ Right (state, ())
+> traceState = modify $ \ state -> trace (show state) state
 
 > getISCState :: ISConvMonad ISConvState
-> getISCState = SEMonad.M $ \ state -> Right (state, state)
+> getISCState = get
 
 findDecl produces the info for a variable if declared, together with a flag
 saying whether or not the declaration is local
@@ -1271,33 +1274,32 @@ saying whether or not the declaration is local
 
 > -- XXX error on duplicate declaration should permit declaring locals
 > declare :: Position -> Id -> (Maybe CType) -> [CPred] -> ISConvMonad ()
-> declare pos var typ preds = SEMonad.M $ \state ->
+> declare pos var typ preds = do
+>  state <- get
 >  let decls = issDeclared state
 >      nextState warns =
->          Right (state { issDeclared =
->                           (let d:ds = decls
->                                declInfo = (pos, getIdProps var, typ, preds)
->                            in  (M.insert var declInfo d):ds),
->                         issWarnings = reverse warns ++ issWarnings state },
->                 ())
->  in case findDecl var decls of
->         (Nothing,_) -> nextState []
+>          state { issDeclared =
+>                    (let d:ds = decls
+>                         declInfo = (pos, getIdProps var, typ, preds)
+>                     in  (M.insert var declInfo d):ds),
+>                  issWarnings = reverse warns ++ issWarnings state }
+>   in case findDecl var decls of
+>         (Nothing,_) -> put $ nextState []
 >         (Just (prevPos, _, _, _), False) ->
->             nextState [(pos, WShadowDecl (getIdString var) prevPos)]
+>             put $ nextState [(pos, WShadowDecl (getIdString var) prevPos)]
 >         (Just (prevPos, _, _, _), True)  ->
->             Left [(pos, EMultipleDecl (pvpString var) prevPos)]
+>             throwError [(pos, EMultipleDecl (pvpString var) prevPos)]
 
 > isDeclared :: Id -> ISConvMonad Bool
-> isDeclared var = SEMonad.M $ \state -> Right (state,
->   case findDecl var $ issDeclared state of
->     (Nothing,_) -> False
->     (Just _, _) -> True)
+> isDeclared var = do
+>   state <- get
+>   return $ isJust $ fst $ findDecl var $ issDeclared state
 
 > isFunctionName :: Id -> ISConvMonad Bool
-> isFunctionName var =
->     SEMonad.M (\state@(ISConvState {issFunction = funcs}) ->
->                Right (state, (let func = head funcs
->                               in isJust func && fst (fromJust func) == var)))
+> isFunctionName var = do
+>     funcs <- gets issFunction
+>     let func = head funcs
+>     return $ isJust func && fst (fromJust func) == var
 
 > isFunctionNameIdOrTuple :: IdOrTuple -> ISConvMonad (Maybe Id)
 > isFunctionNameIdOrTuple vars =
@@ -1309,66 +1311,60 @@ saying whether or not the declaration is local
 >           _ -> return Nothing
 
 > updateIdProps :: Id -> ISConvMonad Id
-> updateIdProps var =
->     let updateIdProps' var = SEMonad.M $ \state ->
->           case findDecl var (issDeclared state) of
->           (Just (pos, props, _, _), _) ->
->               Right (state, var `addIdProps` props)
->           _ -> Left[(getIdPosition var, EAssignBeforeDecl (pvpString var))]
->     in do isFunction <- isFunctionName var
->           if isFunction then return var else updateIdProps' var
+> updateIdProps var = do
+>     state <- get
+>     isFunction <- isFunctionName var
+>     if isFunction
+>     then return var
+>     else case findDecl var (issDeclared state) of
+>           (Just (pos, props, _, _), _) -> return $ var `addIdProps` props
+>           _ -> throwError [(getIdPosition var, EAssignBeforeDecl (pvpString var))]
 
 > getDeclInfo :: Id -> ISConvMonad (Maybe (Maybe CType, [CPred]))
 >      -- the outer Maybe says whether it's declared
 >      -- the inner Maybe says whether the type has been specified
-> getDeclInfo var = SEMonad.M $
->                   \state -> Right (state, extract $ findDecl var $
->                                    issDeclared state)
->     where extract (Nothing, _) = Nothing
->           extract (Just (_, _, typ, preds), _) = Just (typ, preds)
+> getDeclInfo var = do
+>     state <- get
+>     let extract (Nothing, _) = Nothing
+>         extract (Just (_, _, typ, preds), _) = Just (typ, preds)
+>     return $ extract $ findDecl var $ issDeclared state
 
 > assign :: Position -> Id -> AssignmentType -> ISConvMonad ()
-> assign pos var atype =
->     SEMonad.M $ \state -> Right (state { issAssigned =
->                                    let a:as = issAssigned state
->                                    in (M.insert var (pos, atype) a):as},
->                                  ())
+> assign pos var atype = modify
+>     $ \state -> let a:as = issAssigned state
+>                 in state { issAssigned = (M.insert var (pos, atype) a):as}
 
 > isAssigned :: Id -> ISConvMonad Bool
-> isAssigned var = SEMonad.M (\state@(ISConvState {issAssigned = ass}) ->
->                             Right (state, isAssigned' ass))
->     where  isAssigned' [] = False
->            isAssigned' (a:as) =
+> isAssigned var = do
+>    ass <- gets issAssigned
+>    let isAssigned' [] = False
+>        isAssigned' (a:as) =
 >                maybe (isAssigned' as) (const True) (var `M.lookup` a)
+>    return $ isAssigned' ass
 
 > isUninitialized :: Id -> ISConvMonad Bool
-> isUninitialized var = SEMonad.M (\state@(ISConvState {issAssigned = ass}) ->
->                             Right (state, isAssigned' ass))
->     where  isAssigned' [] = False
->            isAssigned' (a:as) =
->                maybe (isAssigned' as) hasUninit (var `M.lookup` a)
->            hasUninit (_, ATUninitialized) = True
->            hasUninit _ = False
+> isUninitialized var = do
+>     ass <- gets issAssigned
+>     let isAssigned' [] = False
+>         isAssigned' (a:as) =
+>             maybe (isAssigned' as) hasUninit (var `M.lookup` a)
+>         hasUninit (_, ATUninitialized) = True
+>         hasUninit _ = False
+>     return $ isAssigned' ass
 
 > getNormallyAssignedVars :: ISConvMonad (S.Set Id)
-> getNormallyAssignedVars =
->     SEMonad.M (\state@(ISConvState {issAssigned = ass}) ->
->                let assignedVars =
->                      (headOrErr
->                       "CVParserCommon.getVarsAssignedInThisScope"
->                       ass)
->                    normallyAssignedVars = S.fromList
+> getNormallyAssignedVars = do
+>     ass <- gets issAssigned
+>     let assignedVars = headOrErr "CVParserCommon.getNormallyAssignedVars" ass
+>         normallyAssignedVars = S.fromList
 >                        [v | (v, (pos, ATNormal)) <- M.toList assignedVars]
->                in  Right (state, normallyAssignedVars))
+>     return normallyAssignedVars
 
 > getDeclaredVars :: ISConvMonad (S.Set Id)
-> getDeclaredVars =
->     SEMonad.M (\state@(ISConvState {issDeclared = dss}) ->
->                let declaredVars =
->                      (headOrErr
->                       "CVParserCommon.getVarsDeclaredInThisScope"
->                       dss)
->                in  Right (state, M.keysSet declaredVars))
+> getDeclaredVars = do
+>     dss <- gets issDeclared
+>     let declaredVars = headOrErr "CVParserCommon.getDeclaredVars" dss
+>     return $ M.keysSet declaredVars
 
 > defaultModuleMonadInfo :: Position -> (CType, [CPred])
 > defaultModuleMonadInfo pos = (mVar, [CPred (CTypeclass (idIsModuleAt pos)) [mVar, cVar]])
@@ -1397,31 +1393,23 @@ make a temporary id, appending accent acute, and removing keep attribute
 > csLetrec defs = [CSletrec defs]
 
 > cvtErr :: p -> e -> SEMonad.SEM [(p, e)] s a
-> cvtErr pos err = SEMonad.err [(pos, err)]
+> cvtErr pos err = throwError [(pos, err)]
 
 > cvtErrs :: e -> SEMonad.SEM e s a
-> cvtErrs errs = SEMonad.err errs
+> cvtErrs errs = throwError errs
 
 > cvtWarn :: Position -> ErrMsg -> ISConvMonad ()
-> cvtWarn pos warning =
->     SEMonad.M $ \state ->
->         Right (state { issWarnings =
->                        (pos, warning) : issWarnings state },
->                ())
+> cvtWarn pos warning = modify $ \state -> state { issWarnings = (pos, warning) : issWarnings state }
 
 > cvtWarns :: [WMsg] -> ISConvMonad ()
-> cvtWarns warnings =
->     SEMonad.M $ \state ->
->         Right (state { issWarnings =
->                        reverse warnings ++ issWarnings state },
->                ())
+> cvtWarns warnings = modify $ \state -> state { issWarnings = reverse warnings ++ issWarnings state }
 
 
 > semToParser :: ISConvState -> SEMonad.SEM [EMsg] ISConvState a -> SV_Parser a
 > semToParser initState monad =
->     case SEMonad.run initState monad of
+>     case SEMonad.run monad initState of
 >           Left  errs                 -> failWithErrs errs
->           Right (finalState, result) ->
+>           Right (result, finalState) ->
 >               do mapM_ parseWarn (reverse (issWarnings finalState))
 >                  return result
 

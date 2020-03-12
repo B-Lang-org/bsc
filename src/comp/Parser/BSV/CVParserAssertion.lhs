@@ -17,6 +17,8 @@ Look at transAssertStmt for a template.
 
 > import Data.Maybe
 > import Control.Monad
+> import Control.Monad.Except
+> import Control.Monad.State
 > import qualified Data.Map as M
 
 > import Parser.BSV.CVParserCommon
@@ -1101,7 +1103,7 @@ Also transforms away vacuous CORE_SEQ_Null
 > transAssertStmt :: Position -> SVA_Statement -> ISConvMonad [ImperativeStatement]
 > transAssertStmt p s =
 >  do pt <- passThrough
->     if pt then transAssertStmtPT p s else transAssertStmtFSM p s
+>     (if pt then transAssertStmtPT else transAssertStmtFSM) p s
 
 PASSTHROUGH ASSERTIONS
 
@@ -1288,13 +1290,9 @@ Instantiate the assertion module itself
 > mkAction :: [ImperativeStatement] -> ISConvMonad CExpr
 > mkAction [] =
 >   return $ cVar (mkId noPosition (mkFString "noAction"))
-> mkAction as = SEMonad.M $ \state ->
->  let
->     convExpr = issExprConverter state
->     flags = actionFlags { stmtContext = ISCExpression }
->     res = run state (convExpr noPosition flags True as)
->  in
->    res
+> mkAction as = do
+>  convExpr <- gets issExprConverter
+>  convExpr noPosition actionFlags { stmtContext = ISCExpression } True as
 
 
 Creates the rule which is added to the module which uses assertions to
@@ -1314,85 +1312,78 @@ call the advance method on every clock cycle.
 >    return imp
 
 > newAssertName :: Position -> ISConvMonad String
-> newAssertName (Position f l _ _) = SEMonad.M $ \state ->
->  let
->    s = takeWhile (/='.') $ reverse $ takeWhile (/='/') $ reverse $ getFString f
+> newAssertName (Position f l _ _) = do
+>  state <- get
+>  let s = takeWhile (/='.') $ reverse $ takeWhile (/='/') $ reverse $ getFString f
+>      n = issAssertNum state
+>      mkStr = "assertion_" ++ s ++ "_" ++ (show l) ++ "__" ++ (show n)
 >
->    state' = state {issFile = s, issLine = l,
->                    issAssertNum = n + 1, issAssertSubNum = 0, issAssertDecls = []}
->    n = issAssertNum state
->    mkStr = "assertion_" ++ s ++ "_" ++ (show l) ++ "__" ++ (show n)
->  in
->    Right (state', mkStr)
+>  put $ state {issFile = s, issLine = l,
+>               issAssertNum = n + 1, issAssertSubNum = 0, issAssertDecls = []}
+>  return mkStr
 
 > curAssertName :: ISConvMonad String
-> curAssertName = SEMonad.M $ \state ->
->  let
->    s = issFile state
->    l = issLine state
->    n = issAssertNum state
->    mkStr = "assertion_" ++ s ++ "_" ++ (show l) ++ "__" ++ (show n)
->  in
->    Right (state, mkStr)
+> curAssertName = do
+>   state <- get
+>   let s = issFile state
+>       l = issLine state
+>       n = issAssertNum state
+>       mkStr = "assertion_" ++ s ++ "_" ++ (show l) ++ "__" ++ (show n)
+>   return mkStr
 
 We do a stack of decls in case we decide to turn a bunch of them into
 a sub-module definition
 
 > pushDecls :: ISConvMonad ()
-> pushDecls = SEMonad.M $ \state ->
->  let
->    decls' = [] : (issAssertDecls state)
->  in
->    Right (state {issAssertDecls = decls'}, ())
+> pushDecls = modify $ \s -> s {issAssertDecls = [] : issAssertDecls s}
 
 > popDecls :: ISConvMonad [ImperativeStatement]
-> popDecls = SEMonad.M $ \state ->
->  let
->    decls = issAssertDecls state
->    (decls', res) = case decls of
->       [] -> ([[]], [])
->       [x] -> ([[]], x)
->       z -> (tail decls, head decls)
->  in
->    Right (state {issAssertDecls = decls'}, res)
+> popDecls = do
+>   state <- get
+>   let decls = issAssertDecls state
+>       (decls', res) = case decls of
+>         [] -> ([[]], [])
+>         [x] -> ([[]], x)
+>         z -> (tail decls, head decls)
+>   put $ state {issAssertDecls = decls'}
+>   return res
 
 Makes a sub-module for mkPropImplies. This submodule can then be replicated
 
 > mkSubModule :: [ImperativeStatement] -> ISConvMonad CExpr
-> mkSubModule body = SEMonad.M $ \state ->
->  let
->    propType =
->       CQType [(CPred (CTypeclass (idIsModuleAt noPosition))
->                        [cTVar (idM noPosition), cTVar (idC noPosition)])]
->              (TAp (cTVar (idM noPosition))
->                   (cTCon (mkId noPosition (mkFString "Property"))))
->    intType = cTCon (mkId noPosition (mkFString "Property"))
->    f = issFile state
->    l = issLine state
->    s = issAssertSubNum state
->    n = issAssertNum state
->    mkStr = "assertion_" ++ f ++ "_" ++ (show l) ++ "__" ++ (show n)
->    nm = mkId noPosition (mkFString (mkStr ++ "_" ++ (show s)))
->    bFixed = fixReturn body
->    stmtChecker = issStmtChecker state ISCIsModule
->    convStmts = issStmtConverter state
->    r1 = run state (stmtChecker (reverse bFixed))
->    r2 = case r1 of
->      (Right (sChecked, body')) -> run sChecked (convStmts (ISCIsModule, Just intType, Nothing) False body')
->      Left s -> Left s
->    stmts = case r2 of
->     (Right (s', res)) -> map CMStmt res
->     z -> []
->    mod = ISModule noPosition nm Nothing propType (CClause [] [] (Cmodule noPosition stmts))
->    decls = issAssertDecls state
->    decls' = case decls of
->      [] -> [[mod]]
->      (x:xs) -> (mod : x) : xs
->    state' = state { issAssertSubNum = s + 1, issAssertDecls = decls' }
->  in
->    case r2 of
->    (Right (s', res)) -> Right (state', cVar nm)
->    Left s -> Left s
+> mkSubModule body = do
+>   state <- get
+>   let propType =
+>         CQType [(CPred (CTypeclass (idIsModuleAt noPosition))
+>                          [cTVar (idM noPosition), cTVar (idC noPosition)])]
+>                (TAp (cTVar (idM noPosition))
+>                     (cTCon (mkId noPosition (mkFString "Property"))))
+>       intType = cTCon (mkId noPosition (mkFString "Property"))
+>       f = issFile state
+>       l = issLine state
+>       s = issAssertSubNum state
+>       n = issAssertNum state
+>       mkStr = "assertion_" ++ f ++ "_" ++ (show l) ++ "__" ++ (show n)
+>       nm = mkId noPosition (mkFString (mkStr ++ "_" ++ (show s)))
+>       bFixed = fixReturn body
+>       stmtChecker = issStmtChecker state ISCIsModule
+>       convStmts = issStmtConverter state
+>       r1 = run (stmtChecker (reverse bFixed)) state
+>       r2 = case r1 of
+>         (Right (body', sChecked)) -> run (convStmts (ISCIsModule, Just intType, Nothing) False body') sChecked
+>         Left s -> Left s
+>       stmts = case r2 of
+>        (Right (res, s')) -> map CMStmt res
+>        z -> []
+>       mod = ISModule noPosition nm Nothing propType (CClause [] [] (Cmodule noPosition stmts))
+>       decls = issAssertDecls state
+>       decls' = case decls of
+>         [] -> [[mod]]
+>         (x:xs) -> (mod : x) : xs
+>   put $ state { issAssertSubNum = s + 1, issAssertDecls = decls' }
+>   case r2 of
+>     (Right (s', res)) -> return $ cVar nm
+>     Left s            -> throwError s
 
 
 > fixReturn :: [ImperativeStatement] -> [ImperativeStatement]
@@ -1403,45 +1394,43 @@ Makes a sub-module for mkPropImplies. This submodule can then be replicated
 Creates a binding declaration
 
 > assertBind :: CExpr -> ISConvMonad CExpr
-> assertBind e = SEMonad.M $ \state ->
->  let
->    f = issFile state
->    l = issLine state
->    s = issAssertSubNum state
->    n = issAssertNum state
->    mkStr = "assertion_" ++ f ++ "_" ++ (show l) ++ "__" ++ (show n) ++ "_" ++ (show s)
->    decls = issAssertDecls state
->    newdecl = ISDecl noPosition (Right newName) Nothing []
->    newbind = ISBind noPosition [] (Right newName) e
->    decls' :: [[ImperativeStatement]]
->    decls' = case decls of
->      [] -> [[newbind, newdecl]]
->      (x:xs) -> ([newbind, newdecl] ++ x) : xs
->    newName = mkId noPosition (mkFString mkStr)
->    state' = state { issAssertSubNum = s + 1, issAssertDecls = decls' }
->  in
->    Right (state', cVar newName)
+> assertBind e = do
+>   state <- get
+>   let f = issFile state
+>       l = issLine state
+>       s = issAssertSubNum state
+>       n = issAssertNum state
+>       mkStr = concat ["assertion_", f, "_", show l, "__", show n, "_", show s]
+>       decls = issAssertDecls state
+>       newdecl = ISDecl noPosition (Right newName) Nothing []
+>       newbind = ISBind noPosition [] (Right newName) e
+>       decls' :: [[ImperativeStatement]]
+>       decls' = case decls of
+>         [] -> [[newbind, newdecl]]
+>         (x:xs) -> ([newbind, newdecl] ++ x) : xs
+>       newName = mkId noPosition (mkFString mkStr)
+>   put $ state { issAssertSubNum = s + 1, issAssertDecls = decls' }
+>   return $ cVar newName
 
 
 > assertDef :: CExpr -> ISConvMonad CExpr
-> assertDef e = SEMonad.M $ \state ->
->  let
->    f = issFile state
->    l = issLine state
->    s = issAssertSubNum state
->    n = issAssertNum state
->    mkStr = "assertion_" ++ f ++ "_" ++ (show l) ++ "__" ++ (show n) ++ "_" ++ (show s)
->    decls = issAssertDecls state
->    newdecl = ISDecl noPosition (Right newName) Nothing []
->    newequal = ISEqual noPosition (Right newName) e
->    decls' :: [[ImperativeStatement]]
->    decls' = case decls of
->      [] -> [[newequal, newdecl]]
->      (x:xs) -> ([newequal, newdecl] ++ x) : xs
->    newName = mkId noPosition (mkFString mkStr)
->    state' = state { issAssertSubNum = s + 1, issAssertDecls = decls' }
->  in
->    Right (state', cVar newName)
+> assertDef e = do
+>   state <- get
+>   let f = issFile state
+>       l = issLine state
+>       s = issAssertSubNum state
+>       n = issAssertNum state
+>       mkStr = concat ["assertion_", f, "_", show l, "__", show n, "_", show s]
+>       decls = issAssertDecls state
+>       newdecl = ISDecl noPosition (Right newName) Nothing []
+>       newequal = ISEqual noPosition (Right newName) e
+>       decls' :: [[ImperativeStatement]]
+>       decls' = case decls of
+>         [] -> [[newequal, newdecl]]
+>         (x:xs) -> ([newequal, newdecl] ++ x) : xs
+>       newName = mkId noPosition (mkFString mkStr)
+>   put $ state { issAssertSubNum = s + 1, issAssertDecls = decls' }
+>   return $ CVar newName
 
 
 > transAssertProp :: Bool -> SVA_CORE_PROP -> ISConvMonad CExpr
@@ -1461,13 +1450,13 @@ Creates a binding declaration
 >         assertBind mod
 
 > transAssertBody :: Bool -> SVA_CORE_PROP -> ISConvMonad ([ImperativeStatement], CExpr)
-> transAssertBody isAlways p = SEMonad.M $ \state ->
->  let
->    res = run state (transAssertProp isAlways p)
->  in
->    case res of
->      (Right (s', res)) -> Right (s', (reverse (concat (issAssertDecls s')), res))
->      Left s -> Left s
+> transAssertBody isAlways p = do
+>   state <- get
+>   case run (transAssertProp isAlways p) state of
+>      (Right (res, s)) -> do
+>         put s
+>         return (reverse (concat (issAssertDecls s)), res)
+>      Left e -> throwError e
 
 The actual translation functions
 
@@ -1656,17 +1645,14 @@ calling first_match on it according to the LRM
 HELPER Functions
 
 > isSequence :: Id -> ISConvMonad Bool
-> isSequence var = SEMonad.M $ \state -> Right (state,
->   case findSeq var $ issSequences state of
->     Nothing -> False
->     (Just _) -> True)
+> isSequence var = do
+>   state <- get
+>   return $ isJust $ findSeq var $ issSequences state
 
 > isProperty :: Id -> ISConvMonad Bool
-> isProperty var = SEMonad.M $ \state -> Right (state,
->   case findProp var $ issProperties state of
->     Nothing -> False
->     (Just _) -> True)
-
+> isProperty var = do
+>   state <- get
+>   return $ isJust $ findProp var $ issProperties state
 
 Find a declared sequence
 
@@ -1679,24 +1665,25 @@ Find a declared sequence
 >     Nothing -> fd ss
 
 > findSeqM :: Id -> ISConvMonad (Maybe ImperativeStatement)
-> findSeqM nm = SEMonad.M $ \state -> Right (state, fd (issSequences state))
->  where
->   fd [] = Nothing
->   fd (s:ss) = case M.lookup nm s of
->     Just res -> Just res
->     Nothing -> fd ss
+> findSeqM nm = do
+>   state <- get
+>   let fd [] = Nothing
+>       fd (s:ss) = case M.lookup nm s of
+>         Just res -> Just res
+>         Nothing -> fd ss
+>   return $ fd (issSequences state)
 
 Add a sequence to the environment
 
 > addSequence :: Id -> ImperativeStatement -> ISConvMonad ()
-> addSequence nm body@(ISSequence pos _) = SEMonad.M $ \state ->
->  let
->     seqs@(s:ss) = issSequences state
->  in case findSeq nm seqs of
->      Nothing -> Right (state {issSequences = (M.insert nm body s):ss}, ())
->      Just (ISSequence prevPos decl) ->
->        Left [(pos, EMultipleDecl (pvpString nm) prevPos)]
->      _ -> internalError ("CVParserImperative:addProperty: " ++ (pvpString body))
+> addSequence nm body@(ISSequence pos _) = do
+>  state <- get
+>  let seqs@(s:ss) = issSequences state
+>  case findSeq nm seqs of
+>    Nothing -> put $ state {issSequences = (M.insert nm body s):ss}
+>    Just (ISSequence prevPos decl) ->
+>        throwError [(pos, EMultipleDecl (pvpString nm) prevPos)]
+>    _ -> internalError ("CVParserImperative:addProperty: " ++ (pvpString body))
 > addSequence _ body = internalError ("CVParserImperative:addSequence:2: " ++ (pvpString body))
 
 Find a declared property
@@ -1710,21 +1697,22 @@ Find a declared property
 >     Nothing -> fd ps
 
 > findPropM :: Id -> ISConvMonad (Maybe ImperativeStatement)
-> findPropM nm = SEMonad.M $ \state -> Right (state, fd (issProperties state))
->  where
->   fd [] = Nothing
->   fd (s:ss) = case M.lookup nm s of
->     Just res -> Just res
->     Nothing -> fd ss
+> findPropM nm = do
+>   state <- get
+>   let fd [] = Nothing
+>       fd (s:ss) = case M.lookup nm s of
+>          Just res -> Just res
+>          Nothing -> fd ss
+>   return $ fd $ issProperties state
 
 Add a property to the environment
 
 > addProperty :: Id -> ImperativeStatement -> ISConvMonad ()
-> addProperty nm body@(ISProperty pos _) = SEMonad.M $ \state ->
->  let
->     props@(p:ps) = issProperties state
->  in case findProp nm props of
->      Nothing -> Right (state {issProperties = (M.insert nm body p):ps}, ())
->      Just (ISProperty prevPos _) -> Left [(pos, EMultipleDecl (pvpString nm) prevPos)]
->      _ -> internalError ("CVParserImperative:addProperty: " ++ (pvpString body))
+> addProperty nm body@(ISProperty pos _) = do
+>  state <- get
+>  let props@(p:ps) = issProperties state
+>  case findProp nm props of
+>    Nothing -> put $ state {issProperties = (M.insert nm body p):ps}
+>    Just (ISProperty prevPos _) -> throwError $ [(pos, EMultipleDecl (pvpString nm) prevPos)]
+>    _ -> internalError ("CVParserImperative:addProperty: " ++ (pvpString body))
 > addProperty _ body = internalError ("CVParserImperative:addProperty:2: " ++ (pvpString body))

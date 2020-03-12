@@ -5,6 +5,7 @@
 > import Data.List
 > import Data.Maybe
 > import Control.Monad
+> import Control.Monad.State
 > import qualified Data.Set as S
 > import qualified Data.Map as M
 
@@ -1979,13 +1980,10 @@ Extract each type of statement, making sure to preserve the order
 >     cvtErr (getPosition stmt) EForbiddenStatement
 
 > setupAssertFunctions :: ISConvMonad ()
-> setupAssertFunctions = SEMonad.M $ \state ->
->   let
->      state' = state { issStmtChecker = checkImperativeStmts,
->                       issStmtConverter = convImperativeStmtsToCStmts,
->                       issExprConverter = convImperativeStmtsToCExpr}
->   in
->     Right (state', ())
+> setupAssertFunctions = modify $ \state ->
+>      state { issStmtChecker = checkImperativeStmts,
+>              issStmtConverter = convImperativeStmtsToCStmts,
+>              issExprConverter = convImperativeStmtsToCExpr}
 
 The following function turns a [CExpr] into a CExpr denoting the (BSV) list of the original expressions.
 
