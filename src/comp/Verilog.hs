@@ -429,9 +429,15 @@ instance PPrint VStmt where
         pPrint d p (Valways (VAt e s)) = sep [text "always@" <> pparen True (pPrint d 0 e), pPrint d 0 s]
         pPrint d p (Valways s) = sep [text "always", pPrint d 0 s]
         pPrint d p (Vinitial s) =
+             -- NB: see https://github.com/B-Lang-org/bsc/issues/118 TL;DR
+             -- some tools like yosys hate synopsys pragmas, so gate them
+             -- *behind* the preprocessor block, so it will ignore them,
+             -- and not issue a warning.
              text "`ifdef BSV_NO_INITIAL_BLOCKS" $$
              text "`else // not BSV_NO_INITIAL_BLOCKS" $$
+             mkSynthPragma "translate_off" $$
              sep [text "initial", pPrint d 0 s] $$
+             mkSynthPragma "translate_on" $$
              text "`endif // BSV_NO_INITIAL_BLOCKS"
         pPrint d p (VSeq ss) = text "begin" $+$ (text "  " <> ppLines d ss) $+$ text "end"
         pPrint d p s@(Vcasex {}) =
