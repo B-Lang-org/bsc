@@ -3,7 +3,7 @@ import PPrint
 import ErrorUtil
 import ISyntax
 import IInlineUtil(iSubstIfc, iSubstWhen)
-import ISyntaxUtil(itString, icJoinActions, irulesMap, irulesMapM, itFmt, itGetArrows, itFun, itInst, itAction, iGetType, joinActions, iMkString, isitAction, isitActionValue_, iDefMapM, iDefsMap, emptyFmt)
+import ISyntaxUtil(itBit, itString, icJoinActions, irulesMap, irulesMapM, itFmt, itGetArrows, itFun, itInst, itAction, iGetType, joinActions, iMkString, isitAction, isitActionValue_, iDefMapM, iDefsMap, emptyFmt)
 import Id
 import Prim
 import PreIds(idActionValue_, idArrow, tmpVarIds, idAVValue_, idAVAction_, idPrimFmtConcat)
@@ -354,6 +354,12 @@ createValueExprs x                                        = [createValueExpr x]
 -- #############################################################################
 
 createValueExpr :: IExpr a -> IExpr a
+createValueExpr (IAps (ICon c (ICSel {})) [ITNum s] [e@(IAps (ICon _ (ICForeign {})) _ _)]) | c == idAVAction_
+                = x
+                where x = (IAps (ICon idAVValue_ (ICSel {iConType = tt , selNo = 0, numSel = 2 })) [ITNum s] [e])
+                      v0 = head tmpVarIds
+                      tt = ITForAll v0 IKNum (ITAp (ITAp (ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon idActionValue_ (IKFun IKNum IKStar) (TIstruct SStruct [idAVValue_,idAVAction_])) (ITVar v0)))
+                                                   (ITAp itBit (ITVar v0)) )
 createValueExpr (IAps cc@(ICon i (ICPrim _ PrimIf)) ts [cond, e0, e1])
                 = x
                 where x = (IAps cc [rt] [cond, e0', e1'])
