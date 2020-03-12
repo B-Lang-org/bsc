@@ -3642,7 +3642,7 @@ module mkGCD(CLK,
 	  WILL_FIRE_RL_flip or
 	  reg_1 or WILL_FIRE_RL_sub or MUX_reg_2$write_1__VAL_3)
   begin
-    case (1'b1) // synopsys parallel_case
+    (* parallel_case *) case (1'b1)
       EN_start: reg_2$D_IN = start_num2;
       WILL_FIRE_RL_flip: reg_2$D_IN = reg_1;
       WILL_FIRE_RL_sub: reg_2$D_IN = MUX_reg_2$write_1__VAL_3;

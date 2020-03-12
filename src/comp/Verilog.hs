@@ -430,13 +430,13 @@ instance PPrint VStmt where
              text "`endif // BSV_NO_INITIAL_BLOCKS"
         pPrint d p (VSeq ss) = text "begin" $+$ (text "  " <> ppLines d ss) $+$ text "end"
         pPrint d p s@(Vcasex {}) =
-            (text "casex" <+> pparen True (pPrint d 0 (vs_case_expr s))) <+>
-                pprintCaseAttributes (vs_parallel s) (vs_full s) $+$
+            pprintCaseAttributes (vs_parallel s) (vs_full s) <+>
+                (text "casex" <+> pparen True (pPrint d 0 (vs_case_expr s))) $+$
             (text "  " <> ppLines d (vs_case_arms s)) $+$
             (text "endcase")
         pPrint d p s@(Vcase {}) =
-            (text "case" <+> pparen True (pPrint d 0 (vs_case_expr s))) <+>
-                pprintCaseAttributes (vs_parallel s) (vs_full s) $+$
+            pprintCaseAttributes (vs_parallel s) (vs_full s) <+>
+                (text "case" <+> pparen True (pPrint d 0 (vs_case_expr s))) $+$
             (text "  " <> ppLines d (vs_case_arms s)) $+$
             (text "endcase")
         pPrint d p (VAssign v e) =
@@ -495,10 +495,9 @@ ppAs1 d i cs xs = text c1 <> ppAs1 d i c2 xs where
 
 pprintCaseAttributes :: Bool -> Bool -> Doc
 pprintCaseAttributes False False = empty
-pprintCaseAttributes True  False = mkSynthPragma "parallel_case"
-pprintCaseAttributes False True  = mkSynthPragma "full_case"
-pprintCaseAttributes True  True  = mkSynthPragma "parallel_case full_case"
-
+pprintCaseAttributes True  False = text "(* parallel_case *)"
+pprintCaseAttributes False True  = text "(* full_case *)"
+pprintCaseAttributes True  True  = text "(* parallel_case, full_case *)"
 
 -- hack to check if expressions are known to be true or false
 isOne :: VExpr -> Bool
