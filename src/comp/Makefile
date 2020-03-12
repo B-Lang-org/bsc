@@ -271,36 +271,20 @@ ifeq ($(BSC_BUILD),PROF)
 $(info ----- Profiling build options -----)
 BUILDFLAGS = $(GHCOPTPROFFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
 EXTRAOBJ = $(EXTRAOBJPROF)
-TCLSTUB = $(TCLSTUBPROF)
-TCLCLEAN = $(TCLCLEANPROF)
-WISHSTUB = $(WISHSTUBPROF)
-WISHCLEAN = $(WISHCLEANPROF)
 else
 ifeq ($(BSC_BUILD),DEBUG)
 $(info ----- Debug build options -----)
 BUILDFLAGS = $(GHCOPTDEBUGFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
 EXTRAOBJ = $(EXTRAOBJNORMAL)
-TCLSTUB = $(TCLSTUBPROF)
-TCLCLEAN = $(TCLCLEANPROF)
-WISHSTUB = $(WISHSTUBPROF)
-WISHCLEAN = $(WISHCLEANPROF)
 else
 ifeq ($(BSC_BUILD),NOOPT)
 $(info ----- Unoptimized build options -----)
 BUILDFLAGS = $(GHCFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
 EXTRAOBJ = $(EXTRAOBJNORMAL)
-TCLSTUB =
-TCLCLEAN =
-WISHSTUB =
-WISHCLEAN =
 else
 $(info ----- Normal build options -----)
 BUILDFLAGS = $(GHCOPTFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
 EXTRAOBJ = $(EXTRAOBJNORMAL)
-TCLSTUB =
-TCLCLEAN =
-WISHSTUB =
-WISHCLEAN =
 endif
 endif
 endif
@@ -374,13 +358,11 @@ showrules: $(SOURCES) $(EXTRAOBJS)
 .PHONY: bluetcl
 bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(RM) -f $(TCLCLEAN)
 	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
 		-o $@ \
-		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) $(TCLSTUB) \
+		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
 		-x c bluetcl_Main.hsc
-	$(RM) -f $(TCLCLEAN)
 	$(POSTBUILDCOMMAND)
 
 BLUEWISHCP = cp -p bluetcl.hs bluewish.hs
@@ -393,13 +375,11 @@ bluewish.hs: bluetcl.hs
 .PHONY: bluewish
 bluewish: bluewish.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(RM) -f $(WISHCLEAN)
 	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
 		-o $@ \
-		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) $(WISHSTUB) \
+		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
 		-x c bluewish_Main.hsc
-	$(RM) -f $(WISHCLEAN)
 	$(POSTBUILDCOMMAND)
 
 # -----
