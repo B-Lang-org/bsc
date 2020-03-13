@@ -61,12 +61,12 @@ jobs:
         run: ".github/workflows/install_dependencies_macos.sh"
       - name: Build
         run: |
-          make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS'
+          make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' MACOSX_DEPLOYMENT_TARGET=10.13
           tar czf inst.tar.gz inst
       - name: Smoketest
         run: "make check"
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.os }} build
+          name: macos-10.13+ build
           path: inst.tar.gz
