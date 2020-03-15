@@ -126,7 +126,7 @@ For Debian 10 and later, and Ubuntu 19.04 and later, version 4 is available
 and the package names have been changed:
 
     $ apt-get install \
-        tk-itcl4-dev \
+        tcl-itcl4-dev \
         tk-itk4-dev
 
 Building BSC also requires standard Unix shell and Makefile utilities.
