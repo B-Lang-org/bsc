@@ -21,4 +21,5 @@ sudo apt-get install -y \
   libghc-syb-dev \
   libghc-split-dev \
   libx11-dev \
-  libxft-dev
+  libxft-dev \
+  xvfb

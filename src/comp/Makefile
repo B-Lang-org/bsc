@@ -45,21 +45,17 @@ BUILDDIR=$(TOP)/build
 # Parsec
 PARSEC_HS = ../Parsec
 
-#Have makefile avoid brew's install of tcl on Mac
+# Have Makefile avoid Homebrew's install of tcl on Mac
 ifeq ($(OSTYPE), Darwin)
-TCL_VER        = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
-ITCL_VER_FULL  = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
+TCL_VER  = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
+ITCL_VER = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
+ITK_VER  = $(shell echo 'catch {puts [package require Itk]};exit' | /usr/bin/wish)
 else
-TCL_VER        = $(shell echo 'puts [info tclversion]' | tclsh)
-ITCL_VER_FULL  = $(shell echo 'puts [package require Itcl]' | tclsh)
+TCL_VER  = $(shell echo 'puts [info tclversion]' | tclsh)
+ITCL_VER = $(shell echo 'puts [package require Itcl]' | tclsh)
+ITK_VER  = $(shell echo 'catch {puts [package require Itk]};exit' | xvfb-run -a /usr/bin/wish)
 endif
 
-ITCL_VER_MAJ   = $(shell echo $(ITCL_VER_FULL) | sed -e 's/^\([0-9]\).*/\1/')
-ifeq ($(ITCL_VER_MAJ), 4)
-ITCL_VER = $(ITCL_VER_MAJ)
-else
-ITCL_VER = $(ITCL_VER_FULL)
-endif
 TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
@@ -92,10 +88,10 @@ endif
 
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
-WISHFLAGS = -litk$(ITCL_VER) $(shell pkg-config --libs x11)
+WISHFLAGS = -litk$(ITK_VER) $(shell pkg-config --libs x11)
 WISHFLAGS += $(EXTRAWISHLIBS)
 ifeq ($(OSTYPE), Darwin)
-WISHFLAGS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITCL_VER).dylib))"
+WISHFLAGS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITK_VER).dylib))"
 endif
 
 # -----
