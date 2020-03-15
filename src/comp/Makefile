@@ -49,8 +49,14 @@ BUILDDIR=$(TOP)/build
 PARSEC_HS = ../Parsec
 
 # Tcl
-TCL_VER   = $(shell echo 'puts [info tclversion]' | tclsh)
-ITCL_VER  = $(shell echo 'puts [package require Itcl]' | tclsh)
+TCL_VER        = $(shell echo 'puts [info tclversion]' | tclsh)
+ITCL_VER_FULL  = $(shell echo 'puts [package require Itcl]' | tclsh)
+ITCL_VER_MAJ   = $(shell echo $(ITCL_VER_FULL) | sed -e 's/^\([0-9]\).*/\1/')
+ifeq ($(ITCL_VER_MAJ), 4)
+ITCL_VER = $(ITCL_VER_MAJ)
+else
+ITCL_VER = $(ITCL_VER_FULL)
+endif
 TCL_HS    = ../vendor/htcl
 TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
 TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
