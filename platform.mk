@@ -19,7 +19,7 @@
 MACHTYPE = $(shell $(TOP)/platform.sh machtype)
 export MACHTYPE
 
-ifneq ($(MACHTYPE), $(findstring $(MACHTYPE), x86_64 i386 i486 i586 i686))
+ifneq ($(MACHTYPE), $(findstring $(MACHTYPE), x86_64 i386 i486 i586 i686 ppc64le))
 $(error MACHTYPE environment not recognized: $(MACHTYPE))
 endif
 
@@ -46,7 +46,10 @@ ifeq ($(MACHTYPE), $(findstring $(MACHTYPE), x86_64))
 CFLAGS ?= -m64
 CXXFLAGS ?= -m64
 else
+ifeq ($(MACHTYPE), $(findstring $(MACHTYPE), ppc64le))
+else
 $(error MACHTYPE environment not recognized: $(MACHTYPE))
+endif
 endif
 endif
 export CFLAGS
