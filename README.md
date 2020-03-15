@@ -106,14 +106,15 @@ BSC builds with the latest version at the time of this writing, which is 8.8.2.
 ### Additional requirements
 
 For building the Bluespec Tcl/Tk shell, you will need the `tcl`, `tk`,
-`fontconfig` and `Xft` libraries:
+`fontconfig` and `Xft` libraries, and `Xvfb`:
 
     $ apt-get install \
         tcl-dev \
         tk-dev \
         libfontconfig1-dev \
         libx11-dev \
-        libxft-dev
+        libxft-dev \
+        xvfb
 
 The tcl shell also requires the `itcl` and `itk` libraries. For Debian 8,
 Debian 9, Ubuntu 16.04, and Ubuntu 18.04 version 3.4 of these libraries
