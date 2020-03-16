@@ -134,10 +134,12 @@ Building BSC also requires standard Unix shell and Makefile utilities.
 The repository for [the Yices SMT Solver](https://github.com/SRI-CSL/yices2) is
 cloned as a submodule of this repository. Building the BSC tools will recurse
 into this directory and build the Yices library for linking into BSC and
-Bluetcl. Yices currently requires the `gperf` perfect hashing library to
-compile:
+Bluetcl. Yices currently requires `autoconf` and the `gperf` perfect hashing
+library to compile:
 
-    $ apt-get install gperf
+    $ apt-get install \
+        autoconf \
+        gperf
 
 Building the BSC tools will also recurse into a directory for the STP SMT
 solver. This is currently an old snapshot of the STP source code, including the
