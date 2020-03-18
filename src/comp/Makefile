@@ -62,7 +62,7 @@ TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl 
 TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
             -lhtcl
 ifeq ($(OSTYPE), Darwin)
-TCL_ARGS += -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Tk.framework/Headers
+TCL_ARGS += -I$(shell xcrun --show-sdk-path)/System/Library/Frameworks/Tk.framework/Headers
 TCL_LIBS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
 endif
 
