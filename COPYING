@@ -21,7 +21,7 @@ indicated below, with the following exceptions:
 
 * yices-painless - Haskell package
   * The foreign function declarations in src/vendor/yices/v2.6/HaskellIfc/
-    are adapted from Don Stewart's yice-painless package
+    are adapted from Don Stewart's yices-painless package
   * See LICENSES/LICENSE.yices-painless
   * The source and license where obtained on 2012-01-27 from:
     http://hackage.haskell.org/package/yices-painless
