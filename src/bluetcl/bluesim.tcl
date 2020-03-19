@@ -37,7 +37,6 @@ proc usage {} {
     puts "  -m <N>        = execute for N cycles"
     puts "  -v            = print version information and exit"
     puts "  -V \[<file>\]   = dump waveforms to VCD file (default: dump.vcd)"
-    puts "  -w            = wait for a license if none is immediately available"
     puts "  +<arg>        = Verilog-style plus-arg"
     puts ""    
     puts "Examples:"
@@ -85,7 +84,6 @@ set script_file ""
 set run_cmd "run"
 set vcd_arg ""
 set arg_list [list]
-set wait 0
 set show_version 0
 
 set stop_at_arg $actual_argc
@@ -177,9 +175,6 @@ while {$current_arg != $stop_at_arg} {
 		      incr current_arg 1
                   }
                 } 
-      "-w"      { incr current_arg 1
-	          set wait 1
-                }
       "+*"      { incr current_arg 1
 	          lappend arg_list [string range $arg 1 [string length $arg]]
                 }
@@ -190,11 +185,7 @@ while {$current_arg != $stop_at_arg} {
 }
 
 # always load the model first
-if {$wait} {
-sim load $model_name $top_module wait
-} else {
 sim load $model_name $top_module
-}
 
 # handle version request
 if {$show_version != 0} {
