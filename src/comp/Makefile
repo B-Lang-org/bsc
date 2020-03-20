@@ -86,6 +86,10 @@ BSCBUILDLIBS = \
 	$(STP_LIBS) \
 	$(YICES_LIBS) \
 
+ifeq ($(OSTYPE), Linux)
+BSCBUILDLIBS += -lpthread
+endif
+
 EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
 
 WISHFLAGS = -litk$(ITCL_VER) $(shell pkg-config --libs x11)
