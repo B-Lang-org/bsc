@@ -35,7 +35,8 @@ mask s i = internalError ("mask " ++ show (s, i))
 -- sign extend to s bits
 ext :: Integer -> Integer -> Integer
 ext s i | s >= 1 = if i >= 2^(s-1) then i - 2^s else i
-ext _ _ = internalError "ext only defined for positive input"
+ext 0 i = i
+ext _ _ = internalError "ext only defined for non-negative size"
 
 
 integerInvert :: Integer -> Integer
