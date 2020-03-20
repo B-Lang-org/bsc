@@ -15,7 +15,7 @@ module AExpr2Yices(
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Yices as Y
---import qualified Data.Vector.Storable as V
+import Data.Word(Word32)
 
 import ErrorUtil(internalError)
 import Flags
@@ -751,18 +751,18 @@ convPrim2YExpr _ PrimSRA _ w [e1,e2] =
       e2' = aZeroExtend arg_size e2
   in  doBinPrim_BitsBits arg_size Y.mkBVShiftRightArith [e1',e2'] >>= yTruncate w
 
--- Bit argument, identical static Int argument, Bool result
+-- Bit argument, identical static Int arguments, Bool result
 convPrim2YExpr (Just YBool) PrimExtract _ _
                [e, ub@(ASInt {}), lb@(ASInt {})] | (yub == ylb) = do
     (ye, _) <- convAExpr2YExpr_Force False e
     yext <- liftIO $ Y.mkBVBoolExtract ye ylb
     return (yext, YBool)
-  where yub = extractInt ub
-        ylb = extractInt lb
--- Bit argument, static Int argument, Bit result
+  where yub = extractWord32 ub
+        ylb = extractWord32 lb
+-- Bit argument, static Int arguments, Bit result
 convPrim2YExpr _ PrimExtract _ _ [e, ub@(ASInt {}), lb@(ASInt {})] = do
-    let yub = extractInt ub
-        ylb = extractInt lb
+    let yub = extractWord32 ub
+        ylb = extractWord32 lb
         width = toInteger (yub - ylb + 1)
         ty = YBits width
     (ye, _) <- convAExpr2YExpr_Force False e
@@ -788,7 +788,7 @@ convPrim2YExpr _ PrimConcat i width (a1:args) =
 
 -- Sign extend,  sizes take from argument and return type
 convPrim2YExpr _ PrimSignExt i w [e] =
-  doBinIntPrim_BitsBits w Y.mkBVSignExtend e (fromInteger (w - (aSize e)))
+  doBinWord32Prim_BitsBits w Y.mkBVSignExtend e (fromInteger (w - (aSize e)))
 
 convPrim2YExpr mty p i w args = do
   -- XXX This could be an unevaluated function, applied to converted arguments
@@ -824,11 +824,11 @@ doUnPrim_BitsBits :: Integer -> (Y.Expr -> IO Y.Expr) -> [AExpr]
 doUnPrim_BitsBits w mkFn args =
     bitsArgs args >>= doUnPrim mkFn >>= bitsRes w
 
-doBinIntPrim_BitsBits :: Integer -> (Y.Expr -> Int -> IO Y.Expr) -> AExpr -> Int
+doBinWord32Prim_BitsBits :: Integer -> (Y.Expr -> Word32 -> IO Y.Expr) -> AExpr -> Word32
                       -> YM (Y.Expr, YType)
-doBinIntPrim_BitsBits w mkFn e n = do
+doBinWord32Prim_BitsBits w mkFn e n = do
     (ye, _) <- convAExpr2YExpr_Force False e
-    yp <- doBinIntPrim mkFn ye n
+    yp <- doBinWord32Prim mkFn ye n
     bitsRes w yp
 
 
@@ -865,16 +865,16 @@ doBinManyPrim mkFn ys_args = do
     liftIO $ mkFn ys_args
 
 -- Second argument cannot be dynamic
-doBinIntPrim :: (Y.Expr -> Int -> IO Y.Expr) -> Y.Expr -> Int -> YM Y.Expr
-doBinIntPrim mkFn y_arg1 n_arg2 = do
+doBinWord32Prim :: (Y.Expr -> Word32 -> IO Y.Expr) -> Y.Expr -> Word32 -> YM Y.Expr
+doBinWord32Prim mkFn y_arg1 n_arg2 = do
     liftIO $ mkFn y_arg1 n_arg2
 
 
 -- -----
 
-extractInt :: AExpr -> Int
-extractInt (ASInt _ _ (IntLit _ _ val)) = fromInteger val
-extractInt e = internalError ("extractInt: unexpected pattern: " ++ show e)
+extractWord32 :: AExpr -> Word32
+extractWord32 (ASInt _ _ (IntLit _ _ val)) = fromInteger val
+extractWord32 e = internalError ("extractWord32: unexpected pattern: " ++ show e)
 
 
 -- -----

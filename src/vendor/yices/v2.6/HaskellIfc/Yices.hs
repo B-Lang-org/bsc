@@ -51,7 +51,7 @@ module Yices (
 
     -- * Arithmetic term constructors
     mkZero,
-    mkIntFromWord32, mkIntFromWord64,
+    mkIntFromInt32, mkIntFromInt64,
     mkIntFromInteger,
 
     mkAdd, mkSub, mkNeg, mkMul,
@@ -296,10 +296,10 @@ doInit = do
 mkBoolType :: IO Type
 mkBoolType = mkTypeRes "mkBoolType" $ yices_bool_type
 
-mkBitVectorType :: Word -> IO Type
+mkBitVectorType :: Word32 -> IO Type
 mkBitVectorType 0 = internalError "Yices.mkBitVectorType: size must be positive"
 mkBitVectorType n = mkTypeRes "mkBitVectorType" $
-                    yices_bv_type (fromIntegral n)
+                    yices_bv_type n
 
 mkIntType :: IO Type
 mkIntType = mkTypeRes "mkIntType" $ yices_int_type
@@ -313,8 +313,8 @@ mkTrue = mkExprRes "mkTrue" $ yices_true
 mkFalse :: IO Expr
 mkFalse = mkExprRes "mkFalse" $ yices_false
 
-mkConst :: Type -> Int -> IO Expr
-mkConst t n = mkExprRes "mkConst" $ yices_constant (unType t) (fromIntegral n)
+mkConst :: Type -> Int32 -> IO Expr
+mkConst t n = mkExprRes "mkConst" $ yices_constant (unType t) n
 
 mkUninterpretedTerm :: Type -> IO Expr
 mkUninterpretedTerm t =
@@ -389,20 +389,23 @@ mkExists vs body =
 mkZero :: IO Expr
 mkZero = mkExprRes "mkZero" $ yices_zero
 
-mkIntFromWord32 :: Word32 -> IO Expr
-mkIntFromWord32 v =
-  mkExprRes "mkIntFromWord32" $ yices_int32 (fromIntegral v)
+mkIntFromInt32 :: Int32 -> IO Expr
+mkIntFromInt32 v =
+  mkExprRes "mkIntFromInt32" $ yices_int32 v
 
-mkIntFromWord64 :: Word64 -> IO Expr
-mkIntFromWord64 v =
-  mkExprRes "mkIntFromWord64" $ yices_int64 (fromIntegral v)
+mkIntFromInt64 :: Int64 -> IO Expr
+mkIntFromInt64 v =
+  mkExprRes "mkIntFromInt64" $ yices_int64 v
 
 mkIntFromInteger :: Integer -> IO Expr
 mkIntFromInteger 0 = mkZero
-mkIntFromInteger v | (v <= toInteger (maxBound::Word32)) =
-  mkIntFromWord32 (fromInteger v)
-mkIntFromInteger v | (v <= toInteger (maxBound::Word64)) =
-  mkIntFromWord64 (fromInteger v)
+-- XXX More efficient to just always use Word64?
+mkIntFromInteger v | fitsInInt32 = mkIntFromInt32 (fromInteger v)
+  where fitsInInt32 = (v <= toInteger (maxBound::Int32)) &&
+                      (v >= toInteger (minBound::Int32))
+mkIntFromInteger v | fitsInInt64 = mkIntFromInt64 (fromInteger v)
+  where fitsInInt64 = (v <= toInteger (maxBound::Int64)) &&
+                      (v >= toInteger (minBound::Int64))
 mkIntFromInteger v =
   internalError ("mkIntFromInteger: too large: " ++ show v)
 
@@ -421,8 +424,8 @@ mkMul e1 e2 = mkExprRes "mkMul" $ yices_mul (unExpr e1) (unExpr e2)
 mkSquare :: Expr -> Expr -> IO Expr
 mkSquare e1 e2 = mkExprRes "mkSquare" $ yices_square (unExpr e1) (unExpr e2)
 
-mkPower :: Expr -> Int -> IO Expr
-mkPower e n = mkExprRes "mkPower" $ yices_power (unExpr e) (fromIntegral n)
+mkPower :: Expr -> Word32 -> IO Expr
+mkPower e n = mkExprRes "mkPower" $ yices_power (unExpr e) n
 
 mkArithEq :: Expr -> Expr -> IO Expr
 mkArithEq e1 e2 =
@@ -469,15 +472,15 @@ mkArithLT0 e = mkExprRes "mkArithLT0" $ yices_arith_lt0_atom (unExpr e)
 ------------------------------------------------------------------------
 -- Bit vector term constructors
 
-mkBVConstantFromWord32 :: Int -> Word32 -> IO Expr
+mkBVConstantFromWord32 :: Word32 -> Word32 -> IO Expr
 mkBVConstantFromWord32 n v =
     mkExprRes "mkBVConstantFromWord32" $
-    yices_bvconst_uint32 (fromIntegral n) (fromIntegral v)
+    yices_bvconst_uint32 n v
 
-mkBVConstantFromWord64 :: Int -> Word64 -> IO Expr
+mkBVConstantFromWord64 :: Word32 -> Word64 -> IO Expr
 mkBVConstantFromWord64 n v =
     mkExprRes "mkBVConstantFromWord64" $
-    yices_bvconst_uint64 (fromIntegral n) (fromIntegral v)
+    yices_bvconst_uint64 n v
 
 mkBVConstantFromInteger :: Integer -> Integer -> IO Expr
 mkBVConstantFromInteger width _ | (width < 1) =
@@ -502,17 +505,17 @@ makeVPtrWith width val f =
       str = map mkBit $ reverse [0 .. fromInteger (width-1)]
   in  withCString str f
 
-mkBVConstantZero :: Int -> IO Expr
+mkBVConstantZero :: Word32 -> IO Expr
 mkBVConstantZero n =
-  mkExprRes "mkBVConstantZero" $ yices_bvconst_zero (fromIntegral n)
+  mkExprRes "mkBVConstantZero" $ yices_bvconst_zero n
 
-mkBVConstantOne :: Int -> IO Expr
+mkBVConstantOne :: Word32 -> IO Expr
 mkBVConstantOne n =
-  mkExprRes "mkBVConstantOne" $ yices_bvconst_one (fromIntegral n)
+  mkExprRes "mkBVConstantOne" $ yices_bvconst_one n
 
-mkBVConstantMinusOne :: Int -> IO Expr
+mkBVConstantMinusOne :: Word32 -> IO Expr
 mkBVConstantMinusOne n =
-  mkExprRes "mkBVConstantMinusOne" $ yices_bvconst_minus_one (fromIntegral n)
+  mkExprRes "mkBVConstantMinusOne" $ yices_bvconst_minus_one n
 
 mkBVAdd :: Expr -> Expr -> IO Expr
 mkBVAdd e1 e2 = mkExprRes "mkBVAdd" $ yices_bvadd (unExpr e1) (unExpr e2)
@@ -565,21 +568,21 @@ mkBVShiftRightLogical :: Expr -> Expr -> IO Expr
 mkBVShiftRightLogical e1 e2 =
   mkExprRes "mkBVShiftRightLogical" $ yices_bvlshr (unExpr e1) (unExpr e2)
 
-mkBVExtract :: Expr -> Int -> Int -> IO Expr
+mkBVExtract :: Expr -> Word32 -> Word32 -> IO Expr
 mkBVExtract e begin end =
   mkExprRes "mkBVExtract" $
-  yices_bvextract (unExpr e) (fromIntegral begin) (fromIntegral end)
+  yices_bvextract (unExpr e) begin end
 
 mkBVConcat :: Expr -> Expr -> IO Expr
 mkBVConcat e1 e2 = mkExprRes "mkBVConcat" $ yices_bvconcat2 (unExpr e1) (unExpr e2)
 
-mkBVSignExtend :: Expr -> Int -> IO Expr
+mkBVSignExtend :: Expr -> Word32 -> IO Expr
 mkBVSignExtend e n =
-  mkExprRes "mkBVSignExtend" $ yices_sign_extend (unExpr e) (fromIntegral n)
+  mkExprRes "mkBVSignExtend" $ yices_sign_extend (unExpr e) n
 
-mkBVZeroExtend :: Expr -> Int -> IO Expr
+mkBVZeroExtend :: Expr -> Word32 -> IO Expr
 mkBVZeroExtend e n =
-  mkExprRes "mkBVZeroExtend" $ yices_zero_extend (unExpr e) (fromIntegral n)
+  mkExprRes "mkBVZeroExtend" $ yices_zero_extend (unExpr e) n
 
 mkBVReduceAnd :: Expr -> IO Expr
 mkBVReduceAnd e = mkExprRes "mkBVReduceAnd" $ yices_redand (unExpr e)
@@ -595,9 +598,9 @@ mkBoolsToBitVector es =
   withArray (map unExpr es) $ \aptr ->
   mkExprRes "mkBoolsToBitVector" $ yices_bvarray (fromIntegral (length es)) aptr
 
-mkBVBoolExtract :: Expr -> Int -> IO Expr
+mkBVBoolExtract :: Expr -> Word32 -> IO Expr
 mkBVBoolExtract e n =
-  mkExprRes "mkBVBoolExtract" $ yices_bitextract (unExpr e) (fromIntegral n)
+  mkExprRes "mkBVBoolExtract" $ yices_bitextract (unExpr e) n
 
 mkBVEq :: Expr -> Expr -> IO Expr
 mkBVEq e1 e2 = mkExprRes "mkBVEq" $ yices_bveq_atom (unExpr e1) (unExpr e2)
@@ -671,12 +674,12 @@ isBitVector e = do
     1 -> return True
     _ -> errorWithCode "Yices.isBitVector: unexpected result"
 
-getBVSize :: Expr -> IO Int
+getBVSize :: Expr -> IO Word32
 getBVSize e = do
   res <- yices_term_bitsize (unExpr e)
   if (res == 0)
     then errorWithCode "Yices.getBVSize: error result"
-    else return $ fromIntegral res
+    else return res
 
 ------------------------------------------------------------------------
 -- Contexts
@@ -720,14 +723,14 @@ ctxPush :: Context -> IO ()
 ctxPush c = modifyMVar_ (yDepth c) $ \n ->
   if n < 0
     then internalError "Yices.ctxPush: corrupted context, stack depth < 0"
-    else do checkIntRes "ctxPush" $ withForeignPtr (yContext c) $ yices_push
+    else do checkInt32Res "ctxPush" $ withForeignPtr (yContext c) $ yices_push
             return (n+1)
 
 ctxPop :: Context -> IO ()
 ctxPop c = modifyMVar_ (yDepth c) $ \n ->
   if n < 1
      then internalError "Yices.ctxPop: corrupted context, stack depth < 1"
-     else do checkIntRes "ctxPop" $ withForeignPtr (yContext c) $ yices_pop
+     else do checkInt32Res "ctxPop" $ withForeignPtr (yContext c) $ yices_pop
              return (n-1)
 
 assert :: Context -> Expr -> IO ()
@@ -761,14 +764,14 @@ printModel mdl = do
 
 ------------------------------------------------------------------------
 
-checkIntRes :: String -> IO CInt -> IO ()
-checkIntRes str fn = do
+checkInt32Res :: String -> IO Int32 -> IO ()
+checkInt32Res str fn = do
   res <- fn
   case res of
     -1 -> errorWithCode ("Yices." ++ str ++ ": error result")
     _ -> return ()
 
-checkPtrRes :: String -> IO CInt -> IO CInt
+checkPtrRes :: String -> IO Int32 -> IO Int32
 checkPtrRes str fn = do
   res <- fn
   -- NULL_TERM and NULL_TYPE are -1, but any value < 0 is also an error

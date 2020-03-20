@@ -420,14 +420,10 @@ import Foreign.C.String
 -- C Types
 
 -- Abstract type representing a Yices term (term_t)
--- XXX actually, since we need to check for NULL_TERM as a return value,
--- XXX we expose that it's int32
-type YExpr = CInt
+type YExpr = Int32
 
 -- Abstract type representing a Yices type (type_t)
--- XXX actually, since we need to check for NULL_TYPE as a return value,
--- XXX we expose that it's int32
-type YType = CInt
+type YType = Int32
 
 -- Abstract type representing a Yices context (context_t)
 data YContext
@@ -445,7 +441,7 @@ data YContextConfig
 data YParams
 
 -- Type for Yices error codes
-type YErrorCode = CUInt
+type YErrorCode = CInt
 
 ------------------------------------------------------------------------
 -- Version numbers
@@ -492,7 +488,7 @@ foreign import ccall unsafe "yices.h"
     yices_bool_type :: IO YType
 
 foreign import ccall unsafe "yices.h"
-    yices_bv_type :: CUInt -> IO YType
+    yices_bv_type :: Word32 -> IO YType
 
 foreign import ccall unsafe "yices.h"
     yices_int_type :: IO YType
@@ -509,7 +505,7 @@ foreign import ccall unsafe "yices.h"
     yices_false :: IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_constant :: YType -> CInt -> IO YExpr
+    yices_constant :: YType -> Int32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
     yices_new_uninterpreted_term :: YType -> IO YExpr
@@ -532,13 +528,13 @@ foreign import ccall unsafe "yices.h"
     yices_not :: YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_or :: CUInt -> Ptr YExpr -> IO YExpr
+    yices_or :: Word32 -> Ptr YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_and :: CUInt -> Ptr YExpr -> IO YExpr
+    yices_and :: Word32 -> Ptr YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_xor :: CUInt -> Ptr YExpr -> IO YExpr
+    yices_xor :: Word32 -> Ptr YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
     yices_or2 :: YExpr -> YExpr -> IO YExpr
@@ -563,10 +559,10 @@ foreign import ccall unsafe "yices.h"
     yices_distinct :: YExpr -> YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_forall :: CUInt -> Ptr YExpr -> YExpr -> IO YExpr
+    yices_forall :: Word32 -> Ptr YExpr -> YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_exists :: CUInt -> Ptr YExpr -> YExpr -> IO YExpr
+    yices_exists :: Word32 -> Ptr YExpr -> YExpr -> IO YExpr
 
 -- ...
 
@@ -577,10 +573,10 @@ foreign import ccall unsafe "yices.h"
     yices_zero :: IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_int32 :: CInt -> IO YExpr
+    yices_int32 :: Int32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_int64 :: CLLong -> IO YExpr
+    yices_int64 :: Int64 -> IO YExpr
 
 -- ...
 
@@ -600,7 +596,7 @@ foreign import ccall unsafe "yices.h"
     yices_square :: YExpr -> YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_power :: YExpr -> CUInt -> IO YExpr
+    yices_power :: YExpr -> Word32 -> IO YExpr
 
 -- ...
 
@@ -644,21 +640,21 @@ foreign import ccall unsafe "yices.h"
 -- Bit vector term constructors
 
 foreign import ccall unsafe "yices.h"
-    yices_bvconst_uint32 :: CUInt -> CUInt -> IO YExpr
+    yices_bvconst_uint32 :: Word32 -> Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_bvconst_uint64 :: CUInt -> CULLong -> IO YExpr
+    yices_bvconst_uint64 :: Word32 -> Word64 -> IO YExpr
 
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_bvconst_zero :: CUInt -> IO YExpr
+    yices_bvconst_zero :: Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_bvconst_one :: CUInt -> IO YExpr
+    yices_bvconst_one :: Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_bvconst_minus_one :: CUInt -> IO YExpr
+    yices_bvconst_minus_one :: Word32 -> IO YExpr
 
 -- ...
 
@@ -725,7 +721,7 @@ foreign import ccall unsafe "yices.h"
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_bvextract :: YExpr -> CUInt -> CUInt -> IO YExpr
+    yices_bvextract :: YExpr -> Word32 -> Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
     yices_bvconcat2 :: YExpr -> YExpr -> IO YExpr
@@ -733,10 +729,10 @@ foreign import ccall unsafe "yices.h"
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_sign_extend :: YExpr -> CUInt -> IO YExpr
+    yices_sign_extend :: YExpr -> Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_zero_extend :: YExpr -> CUInt -> IO YExpr
+    yices_zero_extend :: YExpr -> Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
     yices_redand :: YExpr -> IO YExpr
@@ -748,10 +744,10 @@ foreign import ccall unsafe "yices.h"
     yices_redcomp :: YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_bvarray :: CUInt -> Ptr YExpr -> IO YExpr
+    yices_bvarray :: Word32 -> Ptr YExpr -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
-    yices_bitextract :: YExpr -> CUInt -> IO YExpr
+    yices_bitextract :: YExpr -> Word32 -> IO YExpr
 
 foreign import ccall unsafe "yices.h"
     yices_bveq_atom :: YExpr -> YExpr -> IO YExpr
@@ -805,15 +801,15 @@ foreign import ccall unsafe "yices.h"
     yices_type_of_term :: YExpr -> IO YType
 
 foreign import ccall unsafe "yices.h"
-    yices_term_is_bool :: YExpr -> IO CInt
+    yices_term_is_bool :: YExpr -> IO Int32
 
 foreign import ccall unsafe "yices.h"
-    yices_term_is_bitvector :: YExpr -> IO CInt
+    yices_term_is_bitvector :: YExpr -> IO Int32
 
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_term_bitsize :: YExpr -> IO CUInt
+    yices_term_bitsize :: YExpr -> IO Word32
 
 -- ...
 
@@ -832,10 +828,10 @@ foreign import ccall unsafe "yices.h"
     yices_free_config :: Ptr YContextConfig -> IO ()
 
 foreign import ccall unsafe "yices.h"
-    yices_set_config :: Ptr YContextConfig -> CString -> CString -> IO CInt
+    yices_set_config :: Ptr YContextConfig -> CString -> CString -> IO Int32
 
 foreign import ccall unsafe "yices.h"
-    yices_default_config_for_logic :: Ptr YContextConfig -> CString -> IO CInt
+    yices_default_config_for_logic :: Ptr YContextConfig -> CString -> IO Int32
 
 ------------------------------------------------------------------------
 -- Contexts
@@ -853,18 +849,18 @@ foreign import ccall unsafe "yices.h"
     yices_reset_context :: Ptr YContext -> IO ()
 
 foreign import ccall unsafe "yices.h"
-    yices_push :: Ptr YContext -> IO CInt
+    yices_push :: Ptr YContext -> IO Int32
 
 foreign import ccall unsafe "yices.h"
-    yices_pop :: Ptr YContext -> IO CInt
+    yices_pop :: Ptr YContext -> IO Int32
 
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_assert_formula :: Ptr YContext -> YExpr -> IO CInt
+    yices_assert_formula :: Ptr YContext -> YExpr -> IO Int32
 
 foreign import ccall unsafe "yices.h"
-    yices_assert_formulas :: Ptr YContext -> CUInt -> Ptr YExpr -> IO CInt
+    yices_assert_formulas :: Ptr YContext -> CUInt -> Ptr YExpr -> IO Int32
 
 foreign import ccall unsafe "yices.h"
     yices_check_context :: Ptr YContext -> Ptr YParams -> IO YStatus
@@ -878,7 +874,7 @@ foreign import ccall unsafe "yices.h"
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_set_param :: Ptr YParams -> CString -> CString -> IO CInt
+    yices_set_param :: Ptr YParams -> CString -> CString -> IO Int32
 
 foreign import ccall unsafe "yices.h"
     yices_free_param_record :: Ptr YParams -> IO ()
@@ -892,7 +888,7 @@ foreign import ccall unsafe "yices.h"
 -- Models
 
 foreign import ccall unsafe "yices.h"
-    yices_get_model :: Ptr YContext -> CInt -> IO (Ptr YModel)
+    yices_get_model :: Ptr YContext -> Int32 -> IO (Ptr YModel)
 
 foreign import ccall unsafe "yices.h"
     yices_free_model :: Ptr YModel -> IO ()
@@ -903,12 +899,12 @@ foreign import ccall unsafe "yices.h"
 -- Values in a model
 
 foreign import ccall unsafe "yices.h"
-    yices_get_bool_value :: Ptr YModel -> YExpr -> Ptr CInt -> IO CInt
+    yices_get_bool_value :: Ptr YModel -> YExpr -> Ptr Int32 -> IO Int32
 
 -- ...
 
 foreign import ccall unsafe "yices.h"
-    yices_get_bv_value :: Ptr YModel -> YExpr -> Ptr CInt -> IO CInt
+    yices_get_bv_value :: Ptr YModel -> YExpr -> Ptr Int32 -> IO Int32
 
 -- ...
 
@@ -941,10 +937,10 @@ foreign import ccall unsafe "yices.h"
 -- Pretty printing
 
 foreign import ccall unsafe "yices.h"
-    yices_pp_type :: Ptr CFile -> YType -> CUInt -> CUInt -> CUInt -> IO CInt
+    yices_pp_type :: Ptr CFile -> YType -> Word32 -> Word32 -> Word32 -> IO Int32
 
 foreign import ccall unsafe "yices.h"
-    yices_pp_term :: Ptr CFile -> YExpr -> CUInt -> CUInt -> CUInt -> IO CInt
+    yices_pp_term :: Ptr CFile -> YExpr -> Word32 -> Word32 -> Word32 -> IO Int32
 
 -- ...
 
