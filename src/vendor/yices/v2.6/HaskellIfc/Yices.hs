@@ -166,10 +166,10 @@ import ErrorUtil
 -- bitSize has been deprecated
 word32_size, word64_size :: Int
 #if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
-word32_size = finiteBitSize (0 :: Word)
+word32_size = finiteBitSize (0 :: Word32)
 word64_size = finiteBitSize (0 :: Word64)
 #else
-word32_size = bitSize (0 :: Word)
+word32_size = bitSize (0 :: Word32)
 word64_size = bitSize (0 :: Word64)
 #endif
 
@@ -395,7 +395,7 @@ mkIntFromWord32 v =
 
 mkIntFromWord64 :: Word64 -> IO Expr
 mkIntFromWord64 v =
-  mkExprRes "mkIntFromWord64" $ yices_int32 (fromIntegral v)
+  mkExprRes "mkIntFromWord64" $ yices_int64 (fromIntegral v)
 
 mkIntFromInteger :: Integer -> IO Expr
 mkIntFromInteger 0 = mkZero
