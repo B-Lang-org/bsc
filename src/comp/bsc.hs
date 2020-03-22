@@ -1496,8 +1496,7 @@ compileBluesimCFile errh flags cName = do
 -- (this is shared by the serial and parallel compilation paths)
 cmdCompileBluesimCFile :: Flags -> String -> IO (String, String, String)
 cmdCompileBluesimCFile flags cName = do
-    -- show is used for quoting
-    systemc <- liftM show $ getEnvDef "SYSTEMC" ""
+    systemc <- getEnvDef "SYSTEMC" ""
     let engine = if (genSysC flags) && ("_systemc" `isSuffixOf` (dropSuf cName))
                  then "SystemC"
                  else "Bluesim"
@@ -1505,7 +1504,7 @@ cmdCompileBluesimCFile flags cName = do
     -- show is used for quoting
     let incflags = ["-I" ++ show (bluespecDir flags) ++ "/Bluesim"] ++
                    (if ((engine == "SystemC") && (systemc /= ""))
-                    then ["-I" ++ systemc ++ "/include"]
+                    then ["-I" ++ show systemc ++ "/include"]
                     else [])
         -- Generated C++ code may reference uninitialized variables when it
         -- is known to be safe.
