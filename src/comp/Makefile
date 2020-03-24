@@ -51,6 +51,13 @@ PARSEC_HS = ../Parsec
 # Tcl
 TCL_VER        = $(shell echo 'puts [info tclversion]' | tclsh)
 ITCL_VER_FULL  = $(shell echo 'puts [package require Itcl]' | tclsh)
+
+#Have makefile avoid brew's install of tcl on Mac
+ifeq ($(OSTYPE), Darwin)
+TCL_VER        = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
+ITCL_VER_FULL  = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
+endif
+
 ITCL_VER_MAJ   = $(shell echo $(ITCL_VER_FULL) | sed -e 's/^\([0-9]\).*/\1/')
 ifeq ($(ITCL_VER_MAJ), 4)
 ITCL_VER = $(ITCL_VER_MAJ)
