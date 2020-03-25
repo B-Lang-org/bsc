@@ -425,9 +425,11 @@ data VStmt
 
 
 instance PPrint VStmt where
-        pPrint d p (VAt e s) = sep [text "@" <> pparen True (pPrint d 0 e), pPrint d 0 s]
-        pPrint d p (Valways (VAt e s)) = sep [text "always@" <> pparen True (pPrint d 0 e), pPrint d 0 s]
-        pPrint d p (Valways s) = sep [text "always", pPrint d 0 s]
+        pPrint d p (VAt e s)
+          | isEventCombinational e = sep [text "@*", pPrint d 0 s]
+          | otherwise              = sep [text "@" <> pparen True (pPrint d 0 e), pPrint d 0 s]
+
+        pPrint d p (Valways s) = text "always" <+> pPrint d 0 s
         pPrint d p (Vinitial s) =
              -- NB: see https://github.com/B-Lang-org/bsc/issues/118 TL;DR
              -- some tools like yosys hate synopsys pragmas, so gate them
@@ -669,6 +671,12 @@ instance PPrint VEventExpr where
         pPrint d p (VEE e) = pPrint d p e
         pPrint d p (VEEMacro s e) = text ("`" ++ s) <+> pPrint d (p+1) e
 
+isEventCombinational :: VEventExpr -> Bool
+isEventCombinational (VEEposedge _) = False
+isEventCombinational (VEEnegedge _) = False
+isEventCombinational (VEEMacro _ _) = False
+isEventCombinational (VEE _)        = True
+isEventCombinational (VEEOr l r)    = isEventCombinational l && isEventCombinational r
 
 data VExpr
         = VEConst Integer
