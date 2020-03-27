@@ -233,8 +233,8 @@ tclPosition  (Position fs l c pred) =
 
 addBSDir :: String -> String
 addBSDir ff | ff' /= ff = ff'
- where regex = mkRegex "^[ ]*/.+/src/lib/Libraries"
-       ff'   = subRegex regex ff "%/Libraries"
+ where regex = mkRegex "^[ ]*/.+/src/Libraries/Base.+/"
+       ff'   = subRegex regex ff "%/Libraries/"
 addBSDir ff = ff
 
 showTaggedPosition :: (HasPosition a) => a -> [HTclObj]
