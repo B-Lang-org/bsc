@@ -5,19 +5,21 @@ STPDIR=..
 LIB_DIR=$(STPDIR)/lib
 INCLUDE_DIR=$(STPDIR)/include
 
-LIBRARIES=lib/libstp.so.1 lib/libstp.so
 HEADERS=c_interface/*.h
-SNAME = libstp.so.1
 
 # BSD cp does not have the -d flag
 ifeq ($(OSTYPE), Darwin)
+LIBRARIES=lib/libstp.dylib
+SNAME = libstp.dylib
 CP = cp -Rf
 else
+LIBRARIES=lib/libstp.so.1 lib/libstp.so
+SNAME = libstp.so.1
 CP = cp -df
 endif
 
 .PHONY: all
-all: lib/libstp.so
+all: $(LIBRARIES)
 
 
 # The CC command for linking static libraries into a library is tricky
@@ -48,7 +50,7 @@ LIBCCARGS =     -Lto-sat -Wl,--whole-archive -ltosat -Wl,--no-whole-archive \
 		main/libmain.a
 endif
 
-lib/libstp.so.1:  c_interface/c_interface.o \
+lib/$(SNAME):  c_interface/c_interface.o \
 		extlib-constbv/libconstantbv.a extlib-abc/libabc.a \
 		to-sat/libtosat.a \
 		STPManager/libstpmgr.a simplifier/libsimplifier.a \
@@ -66,9 +68,11 @@ lib/libstp.so.1:  c_interface/c_interface.o \
 	@# We use --whole-archive to ensure that all symbols in to-sat are used
 	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(SNAME) -o $@ $(LIBCCARGS)
 
+ifneq ($(OSTYPE), Darwin)
 lib/libstp.so: lib/libstp.so.1
 	-rm -f $@
 	(cd lib; ln -s libstp.so.1 libstp.so)
+endif
 
 
 # During the build of AST some classes are built that most of the other

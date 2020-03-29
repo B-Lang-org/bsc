@@ -4,3 +4,4 @@ test_hdr.c
 *.o
 *.d
 lib*.so
+lib*.dylib
