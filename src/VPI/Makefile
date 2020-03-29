@@ -38,9 +38,11 @@ CFLAGS += $(PROF) $(COPT) $(CDEBUG)
 ifeq ($(OSTYPE), Darwin)
 # for Mac OS X, declare that the binary is dynamic and undefined references
 # will be looked up later when the library is linked
-LDFLAGS = -dynamiclib -Wl,-install_name,libbdpi.so,-undefined,dynamic_lookup
+LIBBDPI=libbdpi.dylib
+LDFLAGS = -dynamiclib -Wl,-install_name,$(LIBBDPI),-undefined,dynamic_lookup
 else
-LDFLAGS = -shared -Wl,-soname,libbdpi.so
+LIBBDPI=libbdpi.so
+LDFLAGS = -shared -Wl,-soname,$(LIBBDPI)
 endif
 
 vpath %.c ../
@@ -55,8 +57,8 @@ vpath %.c ../
 
 # -------------------------
 
-libbdpi.so: libbdpi.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o libbdpi.so libbdpi.o
+$(LIBBDPI): libbdpi.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 # Static check of the header files before releasing them.
 .PHONY: test-headers
@@ -68,15 +70,15 @@ test-headers:
 	$(CC) -c -o /dev/null test_hdr.c
 
 .PHONY: install
-install: $(HEADERS) libbdpi.so test-headers
+install: $(HEADERS) $(LIBBDPI) test-headers
 	$(INSTALL) -m 755 -d $(INSTALLDIR)
 	$(INSTALL) -m 644 $(HEADERS) $(INSTALLDIR)
-	$(INSTALL) -m 644 libbdpi.so $(INSTALLDIR)
+	$(INSTALL) -m 644 $(LIBBDPI) $(INSTALLDIR)
 
 .PHONY: clean
 clean:
 	$(RM) test_hdr.c
-	$(RM) *.o *.d libbdpi.so
+	$(RM) *.o *.d $(LIBBDPI)
 
 .PHONY: full_clean
 full_clean: clean
