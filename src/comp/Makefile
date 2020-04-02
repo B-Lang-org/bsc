@@ -15,9 +15,6 @@ LN = ln -sf
 
 FIND = find
 
-#for compiler-script.sh
-export CC
-
 # -----
 # Options
 
@@ -198,9 +195,6 @@ GHCFLAGS = \
 	$(TCL_ARGS) \
 	$(STP_ARGS) \
 	$(YICES_ARGS) \
-	'-pgma ./compiler-script.sh' \
-	'-pgmc ./compiler-script.sh' \
-	'-pgml ./compiler-script.sh'
 
 GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
 ifeq ($(GHCMAJORGTE7),1)
