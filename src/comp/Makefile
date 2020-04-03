@@ -87,6 +87,8 @@ BSCBUILDLIBS = \
 	$(YICES_LIBS) \
 
 ifeq ($(OSTYPE), Linux)
+# Some GHC installations may fail to include this automatically,
+# and it's benign to include otherwise
 BSCBUILDLIBS += -lpthread
 endif
 
@@ -295,26 +297,6 @@ else
 $(info ----- Normal build options -----)
 BUILDFLAGS = $(GHCOPTFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
 EXTRAOBJ = $(EXTRAOBJNORMAL)
-endif
-endif
-endif
-
-# Choose a license policy
-ifeq ($(BSC_LIC_POLICY),XGEN)
-BUILDFLAGS += -DBSC_LIC_POLICY_XGEN
-# To add the name of a specific customer to error messages,
-# edit xgenCustomer in Authorization.hs
-else
-ifeq ($(BSC_LIC_POLICY),DATE_REVERT)
-BSPEC_EXP_DAYS ?= 0
-CUR_TIME_IN_SECS = $(shell date +%s)
-EXP_TIME_IN_SECS ?= $(shell expr $(CUR_TIME_IN_SECS) + 60 \* 60 \* 24 \* $(BSPEC_EXP_DAYS))
-BUILDFLAGS += -DBSC_LIC_POLICY_DATE_REVERT=$(EXP_TIME_IN_SECS)
-else
-ifneq ($(BSC_LIC_POLICY),DEFAULT)
-ifneq ($(BSC_LIC_POLICY),)
-$(error Unrecognized BSC_LIC_POLICY: $(BSC_LIC_POLICY))
-endif
 endif
 endif
 endif
