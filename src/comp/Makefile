@@ -45,56 +45,51 @@ BUILDDIR=$(TOP)/build
 # Parsec
 PARSEC_HS = ../Parsec
 
-# Have Makefile avoid Homebrew's install of tcl on Mac
-ifeq ($(OSTYPE), Darwin)
-TCL_VER  = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
-ITCL_VER = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
-ITK_VER  = $(shell echo 'catch {puts [package require Itk]};exit' | /usr/bin/wish)
-else
-TCL_VER  = $(shell echo 'puts [info tclversion]' | tclsh)
-ITCL_VER = $(shell echo 'puts [package require Itcl]' | tclsh)
-ITK_VER  = $(shell echo 'catch {puts [package require Itk]};exit' | xvfb-run -a /usr/bin/wish)
-endif
-
-TCL_HS    = ../vendor/htcl
-TCL_ARGS  = -L$(TCL_HS) $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
-TCL_LIBS  = -ltcl$(TCL_VER) -ltk$(TCL_VER) -litcl$(ITCL_VER) \
-            -lhtcl
-ifeq ($(OSTYPE), Darwin)
-TCL_ARGS += -I$(shell xcrun --show-sdk-path)/System/Library/Frameworks/Tk.framework/Headers
-TCL_LIBS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
-endif
-
 # STP
-STP_HS      = ../vendor/stp/include_hs
-STP_ARGS = -I../vendor/stp/include -L../vendor/stp/lib
-STP_LIBS = -lstp
+STP_HS = ../vendor/stp/include_hs
+STP_INC_FLAGS = -I../vendor/stp/include
+STP_LIB_FLAGS = -L../vendor/stp/lib -lstp
 
 # Yices
-YICES_HS      = ../vendor/yices/include_hs
-YICES_ARGS = -I../vendor/yices/include -L../vendor/yices/lib
-YICES_LIBS = -lyices
+YICES_HS = ../vendor/yices/include_hs
+YICES_INC_FLAGS = -I../vendor/yices/include
+YICES_LIB_FLAGS = -L../vendor/yices/lib -lyices
 
-# Libs which are only needed to build bsc/bluetcl
-# and which shouldn't be used to build other Haskell binaries
-BSCBUILDLIBS = \
-	$(TCL_LIBS) \
-	$(STP_LIBS) \
-	$(YICES_LIBS) \
+# HTCL
+HTCL_HS = ../vendor/htcl
+HTCL_INC_FLAGS = -L$(HTCL_HS)
+HTCL_LIB_FLAGS = -lhtcl
 
-ifeq ($(OSTYPE), Linux)
-# Some GHC installations may fail to include this automatically,
-# and it's benign to include otherwise
-BSCBUILDLIBS += -lpthread
-endif
-
-EXTRAWISHLIBS = $(shell pkg-config --libs fontconfig xft)
-
-WISHFLAGS = -litk$(ITK_VER) $(shell pkg-config --libs x11)
-WISHFLAGS += $(EXTRAWISHLIBS)
+# TCL/TK versions
+# TCL and TK are always the same, but ITCL/ITK may have different minor versions
 ifeq ($(OSTYPE), Darwin)
-WISHFLAGS += -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITK_VER).dylib))"
+# Have Makefile avoid Homebrew's install of tcl on Mac
+TCLTK_VER = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
+ITCL_VER  = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
+ITK_VER   = $(shell echo 'catch {puts [package require Itk]};exit' | /usr/bin/wish)
+else
+TCLTK_VER = $(shell echo 'puts [info tclversion]' | tclsh)
+ITCL_VER  = $(shell echo 'puts [package require Itcl]' | tclsh)
+ITK_VER   = $(shell echo 'catch {puts [package require Itk]};exit' | xvfb-run -a /usr/bin/wish)
 endif
+
+# TCL/TK include flags
+TCLTK_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
+ifeq ($(OSTYPE), Darwin)
+TCLTK_INC_FLAGS += -I$(shell xcrun --show-sdk-path)/System/Library/Frameworks/Tk.framework/Headers
+endif
+
+# TCL library flags
+ifeq ($(OSTYPE), Darwin)
+TCL_LIB_FLAGS = -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
+endif
+TCL_LIB_FLAGS += -ltcl$(TCLTK_VER) -litcl$(ITCL_VER)
+
+# TK library flags
+ifeq ($(OSTYPE), Darwin)
+TK_LIB_FLAGS = -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITK_VER).dylib))"
+endif
+TK_LIB_FLAGS += -ltk$(TCLTK_VER) -litk$(ITK_VER) $(shell pkg-config --libs x11 fontconfig xft)
 
 # -----
 # GHC
@@ -187,7 +182,7 @@ GHCINCLUDES =  \
 	-i$(PARSEC_HS) \
 	-i$(STP_HS) \
 	-i$(YICES_HS) \
-	-i$(TCL_HS)
+	-i$(HTCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
 FVIA ?= -fasm
 GHCFLAGS = \
@@ -200,9 +195,21 @@ GHCFLAGS = \
 	$(PACKAGES) \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \
-	$(TCL_ARGS) \
-	$(STP_ARGS) \
-	$(YICES_ARGS) \
+
+# GHC will recompile a module if certain flags (such as -I) have changed.
+# To avoid recompiling the shared modules each time we compile a tool,
+# we provide the -I flags for all tools in every use of GHC.
+GHCFLAGS += \
+	$(STP_INC_FLAGS) \
+	$(YICES_INC_FLAGS) \
+	$(HTCL_INC_FLAGS) \
+	$(TCLTK_INC_FLAGS) \
+
+ifeq ($(OSTYPE), Linux)
+# Some GHC installations may fail to include this automatically,
+# and it's benign to include otherwise
+GHCFLAGS += -lpthread
+endif
 
 GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
 ifeq ($(GHCMAJORGTE7),1)
@@ -241,7 +248,7 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 	$(PARSEC_HS)/*.hs \
 	$(STP_HS)/*.hs \
 	$(YICES_HS)/*.hs \
-	$(TCL_HS)/*.hs
+	$(HTCL_HS)/*.hs
 
 SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
@@ -274,6 +281,24 @@ PREBUILDCOMMAND = $(BUILDSTART); mkdir -p $(BUILDDIR)
 BUILDCOMMAND = $(GHC) -hidir $(BUILDDIR) -odir $(BUILDDIR) -stubdir $(BUILDDIR)
 POSTBUILDCOMMAND = $(BUILDDONE)
 
+# While GHCFLAGS contains the sum of all -I flags for every tool
+# (to avoid recompilation of modules because flags changed)
+# we only provide the -L and -l flags for the specific tools that need them
+# (to avoid creating binaries with unnecessary library requirements)
+#
+BSC_BUILDLIBS = \
+	$(STP_LIB_FLAGS) \
+	$(YICES_LIB_FLAGS) \
+
+BLUETCL_BUILDLIBS = \
+	$(BSC_BUILDLIBS) \
+	$(TCL_LIB_FLAGS) \
+	$(HTCL_LIB_FLAGS) \
+
+BLUEWISH_BUILDLIBS = \
+	$(BLUETCL_BUILDLIBS) \
+	$(TK_LIB_FLAGS) \
+
 # Choose prof/debug/normal based on environment variables
 ifeq ($(BSC_BUILD),PROF)
 $(info ----- Profiling build options -----)
@@ -304,7 +329,7 @@ bsc: $(SOURCES) $(EXTRAOBJS)
 	./update-build-version.sh
 	./update-build-system.sh
 	$(BUILDCOMMAND) -main-is Main_$@ \
-		$(BUILDFLAGS) $(BSCBUILDLIBS) $(EXTRAOBJ)
+		$(BUILDFLAGS) $(BSC_BUILDLIBS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsc2bsv
@@ -346,10 +371,10 @@ showrules: $(SOURCES) $(EXTRAOBJS)
 .PHONY: bluetcl
 bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ) $(WISHFLAGS)
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
+	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
+	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) \
 		-o $@ \
-		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
+		-no-hs-main $(EXTRAOBJ) \
 		-x c bluetcl_Main.hsc
 	$(POSTBUILDCOMMAND)
 
@@ -363,10 +388,10 @@ bluewish.hs: bluetcl.hs
 .PHONY: bluewish
 bluewish: bluewish.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ) $(WISHFLAGS)
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BSCBUILDLIBS) \
+	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
+	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUEWISH_BUILDLIBS) \
 		-o $@ \
-		-no-hs-main $(WISHFLAGS) $(EXTRAOBJ) \
+		-no-hs-main $(EXTRAOBJ) \
 		-x c bluewish_Main.hsc
 	$(POSTBUILDCOMMAND)
 
@@ -409,7 +434,7 @@ install-showrules: $(addprefix $(BINDIR)/core/,$(SHOWRULESEXES))
 # Other targets
 
 tags:   *hs */*hs bluewish.hs
-	$(FIND) . $(PARSEC_HS) $(STP_HS) $(YICES_HS) $(TCL_HS) \
+	$(FIND) . $(PARSEC_HS) $(STP_HS) $(YICES_HS) $(HTCL_HS) \
 		-type f -name \*hs | xargs hasktags
 	mv tags tags.tmpfile
 	sort tags.tmpfile > tags
