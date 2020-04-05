@@ -34,12 +34,6 @@ int Bluespec_Init(Tcl_Interp *interp);
 extern int Itcl_Init(Tcl_Interp *interp) ;
 extern int Itcl_SafeInit(Tcl_Interp *interp) ;
 
-extern int Tk_Init(Tcl_Interp *interp) ;
-extern int Itk_Init(Tcl_Interp *interp) ;
-
-extern int Tk_SafeInit(Tcl_Interp *interp) ;
-extern int Itk_SafeInit(Tcl_Interp *interp) ;
-
 
 /*
  *----------------------------------------------------------------------
@@ -154,10 +148,6 @@ bluetcl_AppInit(interp)
     fprintf(stderr,"Trouble starting bluetcl -- %s\n", Tcl_GetStringResult(interp));
     exit(-1);
   }
-
-  // Allow tk and itk to be loaded in the bluetcl shell
-  Tcl_StaticPackage(NULL, "Tk", Tk_Init, Tk_SafeInit);
-  Tcl_StaticPackage(NULL, "Itk", Itk_Init, Itk_SafeInit);
 
   return TCL_OK;
 }
