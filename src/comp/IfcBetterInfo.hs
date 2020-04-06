@@ -47,11 +47,11 @@ data BetterInfo = BetterMethodInfo
                   { io_id :: Id
                   }
 
--- utilitity comparion function for use in lookup/find
+-- utilitity comparison function for use in lookup/find
 matchMethodName :: Id ->  BetterInfo -> Bool
 matchMethodName id mn = qualEq id (mi_id mn)
 
--- creats a basic method remaing
+-- creates a basic method remaing
 noMethodInfo :: Id -> BetterInfo
 noMethodInfo fieldId = BetterMethodInfo {mi_id = fieldId,
                                      mi_result = id_to_vPort fieldId,
@@ -117,11 +117,10 @@ fieldInfoToBetterInfo flags symTab (fieldId, Just fi) =
 -- Create a list of Ids for method argument names
 -- Used by IExpand  thru IfcbetterNames   maybe move it here
 -- Note that this only uses IPrefixStr and iArgNames, which must be
--- kept on the FieldInfo inthe SymTab
+-- kept on the FieldInfo in the SymTab
 genArgNames :: Maybe String -> Id -> [Id] -> [Id]
 genArgNames mprefix fieldId ids = map (addPrefix mprefix fieldId)  ids
     where addPrefix :: Maybe String -> Id -> Id -> Id
           addPrefix Nothing fid aid   = mkUSId fid aid
           addPrefix (Just "") _ aid   = aid
           addPrefix (Just pstr) _ aid = mkIdPre (mkFString $ pstr ++ "_" ) aid
-

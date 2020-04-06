@@ -486,7 +486,7 @@ rumGetMethodIds m r = [ MethodId objId methId
 -- Expr collection monad
 
 -- This Use-Condition Monad (UCM) performs CSE on expression use conditions,
--- possibily creating new defs.  This is to address the "Ek bug" (1388) where
+-- possibly creating new defs.  This is to address the "Ek bug" (1388) where
 -- conditions that can be expressed with linear defs were instead being
 -- expressed with expontential defs.
 

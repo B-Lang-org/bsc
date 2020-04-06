@@ -40,7 +40,7 @@ addEdge (GraphMap m) (v1,v2,w) = --addEdgeWith const g e
         alterFn (Just m') = Just (M.insert v2 w m')
     in  GraphMap $ M.alter alterFn v1 m
 
--- insert an edge, but do NOT overwite an existing edge, if any
+-- insert an edge, but do NOT overwrite an existing edge, if any
 addWeakEdge :: (Ord v) => GraphMap v w -> (v, v, w) -> GraphMap v w
 addWeakEdge g e = addEdgeWith (flip const) g e
 

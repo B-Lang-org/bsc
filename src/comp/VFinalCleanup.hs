@@ -52,7 +52,7 @@ finalCleanup flags pin = (unusedm) pin
 -- Returns the package with only the wires and instances which are
 -- connected to an output.  (Optionally keeps all the instances, and
 -- their port connection, if the removeUnusedMods flag is off.)
---   Note: This assumes that all foriegn function calls are connected.
+--   Note: This assumes that all foreign function calls are connected.
 --   Typically synthesizable modules will not have any foreign functions.
 --   Note: Removed instances also need to have their ports removed from
 --   the state output list in the ASPackage.  XXX hack used to do this
@@ -72,7 +72,7 @@ removeUnusedInsts flags package =
           fs = aspkg_foreign_calls package
 
           (cdefs,cinsts) = -- traces("conn outputs is: " ++ ppReadable markedConn) $
-                           -- traces("conn pacakge: " ++ ppReadable package ) $
+                           -- traces("conn package: " ++ ppReadable package ) $
                            connectedNode flags markedConn ss ds
           ds' = filter isDefUsed ds
           isDefUsed :: ADef -> Bool
@@ -162,4 +162,3 @@ getPortIdsFromInst flags inst =
 -- XXX This is hack to get the instance name; need a better data model
 getRootName :: Id -> String
 getRootName id = takeWhile ((/=) '$') (getIdString id)
-

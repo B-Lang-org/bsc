@@ -116,7 +116,7 @@ aRankMethCallsInternal errh orig_ranks orig_pkg =
 
 -- class of types which contain methods and method calls with a function
 -- to append a rank to all method definitions and calls
--- returs rewritten ats plus local definitions which need ranking
+-- returns rewritten ats plus local definitions which need ranking
 class RankMethCalls ats_t where
     rankMethCalls :: Int -> ats_t -> (ats_t, [Id] {- local defs to rank -})
 

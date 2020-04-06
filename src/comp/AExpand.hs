@@ -155,7 +155,7 @@ aExpDefs errh keepFires expnond expcheap expTest sigInfo os ios muxes (ss', ws',
         keepSchIds = if ( keepFires) then concat $ map snd (aspsi_rule_sched sigInfo) else []
         -- this prevents AExpand from dropping WILL_FIRE and CAN_FIRE signals
         -- when their uses drop to 0
-        -- keep sched ids, defs for module ouputs, and submodule inputs
+        -- keep sched ids, defs for module outputs, and submodule inputs
         -- XXX the us of isMethId should be conditional with the keep-inlined-boundaries flag.
         keepIds = keepSchIds ++
                   (map fst os) ++ (map fst ios) ++
@@ -311,7 +311,7 @@ collDefs used ds = coll (S.fromList used) [] (reverse (tsortADefs ds))
 --    the "stArgs" of the submodule instantiations
 --    (the names of signals attached to submodule input ports)
 --
--- The defintions ("ds") of the package are then filtered to keep only
+-- The definitions ("ds") of the package are then filtered to keep only
 -- the definitions which are needed to define these Ids.
 
 -- Note that the list "ws" (inlined RWire ports) are fair game to be
@@ -498,12 +498,12 @@ cheap _        es                                = False
 
 
 -- this is heuristic to determine is an expression is small
--- for some defintion of small
+-- for some definition of small
 isSmall :: AExpr -> Bool
 isSmall e = or [
                 length vars <= 2, -- if there is only 2 vars, then it is small
                                   -- consder a==1 && a==2 && a==3, etc.
-                depth <= 2 && terms <= 4, -- just a wierd idea -- short but fat
+                depth <= 2 && terms <= 4, -- just a weird idea -- short but fat
                 length vars <= 3 && terms <= 8 && depth <= 4 -- and yet another one for b292
                 ,length vars <= 4 && terms <= 6 && depth <= 3 -- shorter and fatter
                ]
@@ -512,7 +512,7 @@ isSmall e = or [
 -----------------------------------------------------------------
 
 -- get the size -- number of terms, and the depth of the expression
--- usefule to measure a expression for isSimple
+-- useful to measure a expression for isSimple
 getExprSize :: AExpr -> ([AId],Int,Int)
 
 -- consider some logic operation as having no cost.  x  and !x,  e[const]
@@ -655,7 +655,7 @@ mustInline e = isStringType (aType e)
 -- When all definitions have been considered, it returns:
 --  * the list of AVInst ("ss") with inlining applied to the "es" of
 --    the instantiation.
---  * the list of defintions, in dependency order (thus the call to
+--  * the list of definitions, in dependency order (thus the call to
 --    "reverse" after compiling the "nds")
 --  * the list of foreign function calls ("fs") with inlining applied
 --    to the "es"

@@ -293,7 +293,7 @@ printCSEdge use_pvprint d p edge =
                       -- XXX should we display them all?
                       pp (getConflict cedge)]
             (CSE_SchedBeforeExec) ->
-                s2par "scheduling of a rule preceeds its execution"
+                s2par "scheduling of a rule precedes its execution"
 
 instance PPrint CSEdge where
     pPrint d p = printCSEdge False d p
@@ -319,7 +319,7 @@ mkCSNExec som i = CSN_Exec i (M.findWithDefault (err i) i som)
   where err aid = internalError $ "Id " ++ (ppReadable aid) ++ " is not in the schedule order map (mkCSNExec)"
 
 -- This creates a CSNExec node without trying to find a unique number
--- for it.  These nodes are for temporary addition to auxilliary
+-- for it.  These nodes are for temporary addition to auxiliary
 -- graphs (used in reachability analysis through qualified rules),
 -- and should not be added into the main graph which assumes a total
 -- ordering on all nodes.
@@ -1338,7 +1338,7 @@ aSchedule_step2 errh flags prefix pps urgency_pairs amod ( scConflictMap0
   -- Now we combine earliness and urgency graphs into one,
   -- before flattening.
   -- We still flatten the urgency map, though, because we want to detect
-  -- cycles.  It is more user-friendly to report cycles as specificly
+  -- cycles.  It is more user-friendly to report cycles as specifically
   -- urgency cycles, than to wait and report cycles in the combined graph.
   _ <- tr "urgency order" $
            convEM errh $
@@ -1936,7 +1936,7 @@ warnAndRecordArbitraryEarliness
         domain rid = do r <- find (\r -> (arule_id r) == rid) user_arules
                         wpClockDomain (arule_wprops r)
 
-        -- in the absense of having added foreign func edges to the
+        -- in the absence of having added foreign func edges to the
         -- cfConflict graph to begin with, we check for orders now
         has_task_order r1 r2 =
             -- it has no order (and was not reported as arbitrary)
@@ -1945,7 +1945,7 @@ warnAndRecordArbitraryEarliness
             && not (rule_disjoint r1 r2)
             -- and there are foreign funcs in both rules
             -- XXX this does not account for disjoint conditions on the ffuncs
-            -- XXX nor does it excempt some functions, like $time
+            -- XXX nor does it exempt some functions, like $time
             -- XXX nor does it handle the fact that a predicate use
             -- XXX probably ought to imply an urgency edge.
             -- XXX (This can be cleaned up when a better mechanism for
@@ -2168,8 +2168,8 @@ reduceUrgencyWarnings cs =
 -- (2) A less conservative method is to allow rules to fall wherever they
 --     may, as long as it does not violate the pair-wise method annotations.
 --     For instance, a rule cannot fall between two parallel composable
---     methods if the rule would enforce a sequential order on the exection
---     of all threee.  This is because any parallel methods have the
+--     methods if the rule would enforce a sequential order on the execution
+--     of all three.  This is because any parallel methods have the
 --     potential to be call together in one atomic action.  If a rule fired
 --     between the methods, the method execution would not be atomic.
 --     Another situation to watch for is when a rule sequences between two
@@ -2374,7 +2374,7 @@ flattenCombinedGraph flags moduleId userRuleNames ifcRuleNames
               (sched_nodes, exec_nodes) = partition isCSNSched order1
 
               -- walk the order, collecting the bias edges which are known
-              -- to be OK (becuase the rule/method pair appears in that order)
+              -- to be OK (because the rule/method pair appears in that order)
               -- and the candidate bias edges for rule/method pairs that we
               -- want to appear in the opposite order.
               getEdges :: [CSNode] -> ([(CSNode,[CSNode])], [(CSNode, CSNode)])
@@ -3214,7 +3214,7 @@ findRuleBetweenMethods ifcRuleNames
 
       -- A function which tells whether m1 SB m2 due to a rule being
       -- executable only between the two.  (By applying m1 first, and
-      -- then using on multiple m2, we can avoid mutliple lookups.)
+      -- then using on multiple m2, we can avoid multiple lookups.)
       hasRuleBetween :: ARuleId -> ARuleId -> Maybe [ARuleId]
       hasRuleBetween m1 m2 | m1 == m2 = Nothing
       hasRuleBetween m1 m2 =
@@ -3510,7 +3510,7 @@ fixMethodConflictInfo ((rOrig, rs):rss) (MethodConflictInfo sCF sSB _ _ sSBR sC 
       intersectAll xs = foldl1 intersect xs
 
       -- isCWithAny : give a list of pairs of rules, where the left rule
-      --              comes from rOrig, return all rules occuring on the right
+      --              comes from rOrig, return all rules occurring on the right
       --              without duplicates (since if any branch conflicts with you
       --              the method as a whole conflicts
       isCWithAny :: [(ARuleId, ARuleId)] -> [ARuleId]

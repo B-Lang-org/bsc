@@ -61,7 +61,7 @@ genIdFromAExpr expr = do
                noPosition -- XXX aexpr should have an instance of HasPosition
                (mkFString newIdStr)
 
--- Add the expression -- realy the definition to the monad
+-- Add the expression -- really the definition to the monad
 addExpr :: AType -> AExpr -> NIStateMonad AId
 addExpr t e = do
     ds <- gets nis_defs
@@ -182,4 +182,3 @@ updateNoInlineDefs defs =
         snd $ foldr updateDef (0,[]) defs
 
 -- ===============
-

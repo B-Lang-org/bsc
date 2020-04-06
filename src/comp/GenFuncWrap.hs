@@ -113,7 +113,7 @@ wrapFun :: ErrorHandle -> Id -> CDef ->
 wrapFun errh pkgId d@(CDef i qt@(CQType [] t) cs) =
     -- traces( "GenFuncWrap::wrapFun: d " ++ ppReadable d ) $
     let
-        -- position of the function, for transfering to the new defs
+        -- position of the function, for transferring to the new defs
         pos = getIdPosition i
 
         -- propagate arguments names, if possible
@@ -314,7 +314,7 @@ nArrows t = length $ fst $ getArrows t
 -- ===============
 
 -- utilities copied from GenWrap, but are not monadic here, because
--- the symbol table comes in as a paramater (not as monad state)
+-- the symbol table comes in as a parameter (not as monad state)
 
 -- expand type aliases and apply type functions
 expandSynSym :: SymTab -> Type -> Type

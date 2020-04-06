@@ -166,7 +166,7 @@ Clone this repository by running:
 
     $ git clone --recursive https://github.com/B-Lang-org/bsc
 
-That will clone this respository and all of the submodules that it depends on.
+That will clone this repository and all of the submodules that it depends on.
 If you have cloned the repository without the `--recursive` flag, you can setup
 the submodules later with a separate command:
 

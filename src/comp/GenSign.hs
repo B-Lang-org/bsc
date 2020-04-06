@@ -65,7 +65,7 @@ genSign :: ErrorHandle -> Bool -> SymTab -> CPackage ->
 genSign errh exportAll symt
         pkg@(CPackage currentPkg exportList imps fixs ds0 includes) =
     let
-        -- in the absense of typeclass defaults that are typechecked,
+        -- in the absence of typeclass defaults that are typechecked,
         -- at least record the scope by qualifying identifiers
         -- XXX see comment in tiOneDef for Cclass
         ds = qualifyClassDefaults errh symt ds0

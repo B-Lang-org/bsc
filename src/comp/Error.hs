@@ -3316,13 +3316,13 @@ getErrorText (WMethodAnnotChangeArb method1 method2 rules) =
 -}
 
 getErrorText (WSchedulerEffortLimit limit setlimit short) =
-    let endding = if short then "."
-                  else  ". The generated scheduling logic is correct, but may or may not be fully optimized. " ++
-                            "Use the flag -scheduler-effort <n> to increase or decrease the limit from its current value: "
-                            ++ ishow setlimit ++ "."
+    let ending = if short then "."
+                 else  ". The generated scheduling logic is correct, but may or may not be fully optimized. " ++
+                           "Use the flag -scheduler-effort <n> to increase or decrease the limit from its current value: "
+                           ++ ishow setlimit ++ "."
     in
      (Generate 52, empty,
-     s2par ("The scheduling effort has been exceeded: " ++ ishow limit ++ endding)
+     s2par ("The scheduling effort has been exceeded: " ++ ishow limit ++ ending)
     )
 
 getErrorText (EModParameterDynamic inst_name param_name) =
@@ -4361,7 +4361,7 @@ getErrorText (EABinModSchedErr module_name mparent) =
     (System 76, empty,
      let hdr = s2par ("The elaboration file (.ba) provided for " ++
                       ishow module_name ++ " indicates that a scheduling " ++
-                      "error occured during compilation.")
+                      "error occurred during compilation.")
      in case (mparent) of
           Nothing -> hdr -- The context does not allow error modules
           Just parent_name ->

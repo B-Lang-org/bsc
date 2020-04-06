@@ -1013,7 +1013,7 @@ getConsts find _ _ = Nothing
 integerToAExprs :: Integer -> Integer -> [AExpr]
 integerToAExprs n i = map (aSBool . (== 1)) (integerToBits n i)
 
--- Flatten a concatentation so that nested concats are merged, and
+-- Flatten a concatenation so that nested concats are merged, and
 -- if "cmuxo" then split a constant into its separate bits, all to
 -- be concat'd together.  Use the "get" function to follow variable
 -- references.
@@ -1174,7 +1174,7 @@ mergeIdenExpr op eps = if ( length newpairs < length eps ) then newpairs else ep
 muxOptConst :: BFlags -> AId -> AType -> PrimOp -> [AExpr] -> O AExpr
 muxOptConst bflgs aid dty op exs | not $ ao_mux bflgs = return (APrim aid dty op exs)
 muxOptConst bflgs aid dty op exs = do
-    -- trival mux opt
+    -- trivial mux opt
     -- optimize the pairs
     let exs1 = optMuxPairs bflgs aid dty op (makePairs exs)
         bflgs' = optFlagsOff bflgs
@@ -1207,7 +1207,7 @@ isAnyExprAString exprs = any isAExprStr exprs
 -- function which optimizes mux pairs
 muxOpt :: BFlags -> AId -> AType -> PrimOp -> [AExpr] -> O AExpr
 muxOpt bflgs aid dty op esx | not $ ao_muxExpand bflgs = do
-    -- trival mux opt
+    -- trivial mux opt
   return $
     case esx of
             []          -> internalError "muxOpt"

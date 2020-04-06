@@ -227,7 +227,7 @@ module regW1tC#(LbAddr#(sa,sd) aw, Integer an, Bit#(1) x)(LBReg#(sa, sd, Reg#(Bi
 
    let vsd =  valueOf(sd);
    if(1 + an > vsd)
-      error("regW1tC: field wont fit");
+      error("regW1tC: field won't fit");
 
    interface LBSReg bus;
       method lbsAddr();
@@ -267,7 +267,7 @@ module regRO#(ResetType syncType, LbAddr#(sa,sd) aw, Integer an, r x)(LBReg#(sa,
    let vsr =  valueOf(sr);
    let vsd =  valueOf(sd);
    if (vsr + an > vsd)
-      error("regRO: field wont fit");
+      error("regRO: field won't fit");
 
    interface LBSReg bus;
       method lbsAddr();
@@ -362,7 +362,7 @@ module accum#(LbAddr#(sa,sd) aw, Integer an, Bit#(k) x)(LBReg#(sa, sd, Accum#(k)
    let vk =  valueOf(k);
    let vsd =  valueOf(sd);
    if (vk + an > vsd)
-      error("accum: field wont fit");
+      error("accum: field won't fit");
 
    interface LBSReg bus;
       method lbsAddr();

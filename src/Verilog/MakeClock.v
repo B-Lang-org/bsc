@@ -46,7 +46,7 @@ module MakeClock ( CLK, RST,
 
    // The use of blocking assignment within this block insures
    // that the clock generated from the generate clock (current_clK) occurs before any
-   // LHS of nonblocking assigments also from CLKoccur.
+   // LHS of nonblocking assignments also from CLKoccur.
    // Basically, this insures that CLK_OUT and CLK occur within
    // the same phase of the execution cycle,  before any state
    // updates occur. see

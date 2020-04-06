@@ -10,7 +10,7 @@ BINDIR=`dirname "${ABSNAME}"`
 BLUESPECDIR="$(cd ${BINDIR}/../lib; pwd -P)"
 export BLUESPECDIR
 
-# Add the dynamically-linked SAT libraris the load path
+# Add the dynamically-linked SAT libraries to the load path
 if [ -n "$BLUESPEC_LD_LIBRARY_PATH" ] ; then
     LD_LIBRARY_PATH=${BLUESPEC_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}
     DYLD_LIBRARY_PATH=${BLUESPEC_LD_LIBRARY_PATH}:${DYLD_LIBRARY_PATH}

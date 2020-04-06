@@ -71,7 +71,7 @@ Version 2.0     24 April 1997
         nest k empty = empty
     which wasn't true before.
 
-  * Fixed an obscure bug in sep that occassionally gave very wierd behaviour
+  * Fixed an obscure bug in sep that occasionally gave very weird behaviour
 
   * Added $+$
 
@@ -357,7 +357,7 @@ Laws for oneLiner
 \end{verbatim}
 
 
-You might think that the following verion of <m1> would
+You might think that the following version of <m1> would
 be neater:
 \begin{verbatim}
 <3 NO>  (text s <> x) $$ y = text s <> ((empty <> x)) $$
@@ -465,7 +465,7 @@ The argument of @NilAbove@ is never @Empty@. Therefore
 a @NilAbove@ occupies at least two lines.
 
 \item
-The arugment of @TextBeside@ is never @Nest@.
+The argument of @TextBeside@ is never @Nest@.
 
 \item
 The layouts of the two arguments of @Union@ both flatten to the same string.
@@ -567,7 +567,7 @@ above p@(Beside _ _ _) g  q  = aboveNest (reduceDoc p) g 0 (reduceDoc q)
 above p g q                  = aboveNest p             g 0 (reduceDoc q)
 
 aboveNest :: RDoc -> Bool -> Int -> RDoc -> RDoc
--- Specfication: aboveNest p g k q = p $g$ (nest k q)
+-- Specification: aboveNest p g k q = p $g$ (nest k q)
 
 aboveNest NoDoc               g k q = NoDoc
 aboveNest (p1 `Union` p2)     g k q = aboveNest p1 g k q `union_`

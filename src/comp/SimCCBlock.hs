@@ -323,7 +323,7 @@ mkSetResetFnName :: AId -> String
 mkSetResetFnName rstId = "set_reset_fn_" ++ getIdBaseString rstId
 
 
--- these match defintions in bluesim_types.h
+-- these match definitions in bluesim_types.h
 badClockHandleName :: String
 badClockHandleName = "BAD_CLOCK_HANDLE"
 

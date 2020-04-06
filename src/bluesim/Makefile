@@ -84,7 +84,7 @@ CDEBUG ?= -UUSE_ENTER
 CFLAGS += $(PROF) $(COPT) $(CDEBUG)
 CXXFLAGS += $(PROF) $(COPT) $(CDEBUG) 
 
-# Descrition of library of Bluesim primitives
+# Description of library of Bluesim primitives
 LIB_PRIM = libbsprim.a
 PRIM_OBJS = prim_ops.o wide_data.o mem_alloc.o target.o \
             prim_mod_reg.o prim_mod_wire.o prim_mod_probe.o \

@@ -69,7 +69,7 @@ module SyncRegister(
 
 
    // Transfer the data to destination domain when dPulsed is asserted.
-   // Setup and hold time are assured since at least 2 dClks occured since
+   // Setup and hold time are assured since at least 2 dClks occurred since
    // sDataSyncIn have been written.
    always @(posedge dCLK or `BSV_RESET_EDGE sRST)
       begin
@@ -148,5 +148,3 @@ module testSyncRegister() ;
 
 endmodule // testSyncFIFO
 `endif
-
-

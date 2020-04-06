@@ -645,7 +645,7 @@ convPrim2SExpr mty PrimIf _ _ [c, t, f] = do
 
 -- XXX what if the type of the case is String etc?
 convPrim2SExpr mty PrimCase i w (idx : dflt : ces) =
-    -- in the absense of a "case" construct, just convert to if-then-else
+    -- in the absence of a "case" construct, just convert to if-then-else
     let foldFn (v, e) res =
             let c = APrim i aTBool PrimEQ [idx, v]
             in  APrim i (ATBit w) PrimIf [c, e, res]
@@ -689,7 +689,7 @@ convPrim2SExpr mty PrimCase i w (idx : dflt : ces) =
 convPrim2SExpr mty PrimArrayDynSelect i w args =
     case args of
       [APrim _ _ PrimBuildArray es, idx] ->
-          -- in the absense of a "case" construct, just convert to if-then-else
+          -- in the absence of a "case" construct, just convert to if-then-else
           let foldFn (n, e) res =
                   let n_lit = ASInt i (ae_type idx) (ilDec n)
                       c = APrim i aTBool PrimEQ [idx, n_lit]

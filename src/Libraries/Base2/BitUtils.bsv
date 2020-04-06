@@ -12,7 +12,7 @@ import List :: * ;
 //@ they have been verified and are known to produce good hardware.
 //@
 //@   Often several versions of functions are given, where each
-//@ version may optimize the hardare along a different axis. 
+//@ version may optimize the hardware along a different axis. 
 
 
 //@ Creates a Vector of size m, listing the indexes of the
@@ -43,7 +43,7 @@ genLowestIndexes(
 endfunction
 
 //@ This function takes a Bit#(n) and returns a Bit#(n) but the resulting bit vector
-//@ has at most nSetBits bit which are set.  When more thatn nSetBits are set within
+//@ has at most nSetBits bit which are set.  When more than nSetBits are set within
 //@ din, the bits with the lowest indexed are copied, while the higher indexed ones
 //@ are zeroed.
 //@  The argument nSetBits can be changed during runtime.  The resulting hardware
@@ -74,7 +74,7 @@ endfunction
 
 
 //@ This function takes a Bit#(n) and returns a Bit#(n) but the resulting bit vector
-//@ has at most nSetBits bit which are set.  When more thatn nSetBits are set within
+//@ has at most nSetBits bit which are set.  When more than nSetBits are set within
 //@ din, the bits with the lowest indexed are copied, while the higher indexed ones
 //@ are zeroed.
 //@  The argument nSetBits is a compile-time constant.

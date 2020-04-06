@@ -387,7 +387,7 @@ findPackages errh flags name = do
   pi <- getInfo errh flags gflags name
   transClose errh flags ([],[pi]) (imports pi)
 
--- generate the file name dependancies for filename
+-- generate the file name dependencies for filename
 -- A package depends on its own source file name
 -- plus the imported packages (.bo)
 -- plus the included files

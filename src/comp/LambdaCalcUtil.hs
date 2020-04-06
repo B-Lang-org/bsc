@@ -437,7 +437,7 @@ tsortActionsAndDefs mmap defmap uses acts =
       then internalError ("tsortActionsAndDefs: unexpected inlining:\n" ++ ppReadable bad_acts)
       else
         -- tsort returns Left if there is a loop, Right if sorted.
-        -- (In the absense of restrictive edges, tsort uses Ord to put
+        -- (In the absence of restrictive edges, tsort uses Ord to put
         -- the lower valued nodes first.  Thus, we have chosen the node
         -- representation to put Defs first, followed by Actions in the
         -- order that they were give by the user.)
@@ -747,7 +747,7 @@ mergeStmts defmap stmts0 =
                 reverseStmt s = s
             in  reverse (map reverseStmt ss)
 
-        -- convert the Either into the inital (non-merged) statements
+        -- convert the Either into the initial (non-merged) statements
         -- XXX if "getAndTerms" does inlining here, then we loose the ability
         -- XXX to revert to the original def for actions that don't merge, etc
         makeStmt :: Either ADef AAction -> AStmt
@@ -1131,7 +1131,7 @@ updateAPrimTypes mty PrimArrayDynSelect i t [arr, idx] = do
   let new_t = case (ae_type new_arr) of
              ATArray _ t -> t
              _ -> internalError ("updateAPrimTypes: PrimArrayDynSelect: " ++
-                                 "unepected array type: " ++ ppReadable new_arr)
+                                 "unexpected array type: " ++ ppReadable new_arr)
   return (APrim i new_t PrimArrayDynSelect [new_arr, new_idx])
 updateAPrimTypes mty PrimArrayDynSelect i t as =
   internalError ("updateAPrimTypes: PrimArrayDynSelect: wrong number of args: "

@@ -2057,7 +2057,7 @@ getABI mod abis =
 -- by the Bluesim backend:
 -- - Inout not supported in the provided interface
 -- - Inout not supported as a module argument
--- - Dynamic expressions for ports on submodule instantations
+-- - Dynamic expressions for ports on submodule instantiations
 --   (for this, we also inline the
 -- Returns the package, possibly with submod port expressions inlined.
 -- When compiling for Verilog, we just return the package, unchanged.

@@ -163,7 +163,7 @@ parseOpts argv bluespecdir =
           -- and then must be analyzed to determine the resulting path.
           -- The optBAPath will have one element for each --path option,
           -- followed for the original path elements.  The elements from
-          -- the user are split off, broken up at ':' seperators and then
+          -- the user are split off, broken up at ':' separators and then
           -- interpreted in order (replacing '+' and '%') to determine
           -- the final path.
           interpretPath os = let n = length (original_path bluespecdir)
@@ -712,7 +712,7 @@ morphVCD' errh hOut st EndDefs =
 
 -- These are all VCD commands in the value change section
 
--- update time, scale up timestamps to accomodate microticks, and
+-- update time, scale up timestamps to accommodate microticks, and
 -- handle any clock edges at the previous time
 morphVCD' errh hOut st (Timestamp t) =
   do let t' = t * (10 ^ (time_factor st))
@@ -794,7 +794,7 @@ doProgress st bytes =
                           }
      else return st'
 
--- Auxilliary routines used during VCD conversion
+-- Auxiliary routines used during VCD conversion
 
 -- Check that the root scope was found
 found_root_scope :: ConvState -> [Status]

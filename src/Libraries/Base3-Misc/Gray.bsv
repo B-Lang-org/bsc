@@ -15,7 +15,7 @@ typedef struct {
 		} Gray#(numeric type n) deriving (Bits, Eq);
 
 
-// Instance of Literal allows conversion from Intergers to Grey
+// Instance of Literal allows conversion from Integers to Grey
 instance Literal #( Gray#(n) )
    provisos(Add#(1, msb, n));
    function Gray#(n) fromInteger (Integer i);

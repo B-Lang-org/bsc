@@ -892,13 +892,13 @@ l :: LexItem -> CParser Position
 l li =  token ( \ls->
         case ls of
         Token p li' : ls' -> if li==li' then Right (p, ls') else Left (prLexItem li)
-        [] -> internalError "CParser.l: no succeding token")
+        [] -> internalError "CParser.l: no succeeding token")
 
 getPos :: CParser Position
 getPos = token ( \ls->
         case ls of
         Token p _ : _ -> Right (p, ls)
-        [] -> internalError "CParser.getPos: no succeding token")
+        [] -> internalError "CParser.getPos: no succeeding token")
 
 lcp :: String -> (Position -> LexItem -> Maybe a) -> CParser a
 lcp s f =
@@ -908,7 +908,7 @@ lcp s f =
             case f p li of
             Just x  -> Right (x, ls')
             Nothing -> Left s
-        [] -> internalError "CParser.lcp: no succeding token"
+        [] -> internalError "CParser.lcp: no succeeding token"
 
 startBlock :: Position -> CParser Bool
 startBlock tp@(Position _ _ trigCol _) =
@@ -943,7 +943,7 @@ errSyntax ss ts =
                 where showt t = case show t of
                                     "\"\\\\\"" -> "\"\\\""
                                     s -> s
-        [] -> internalError "CParser.errSyntax: no succeding token"
+        [] -> internalError "CParser.errSyntax: no succeeding token"
 
 int :: CParser Integer
 int = lcp "<integer>" (\p x->case x of L_integer _ _ i -> Just i; _ -> Nothing)

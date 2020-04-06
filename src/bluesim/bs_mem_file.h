@@ -4,7 +4,7 @@
 #include "bluesim_types.h"
 #include "bs_wide_data.h"
 
-// Status values retuned by format handler calls
+// Status values returned by format handler calls
 typedef enum { MF_ACCEPTED       // Address or data accepted
              , MF_BAD_FORMAT     // Address or data was not formatted correctly
              , MF_IGNORED        // Out-of-bound data was ignored

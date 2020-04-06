@@ -339,7 +339,7 @@ genWrapE generating ppmap cpack@(CPackage packageId exps imps fixs ds includes) 
        -- The following make up the new definition list in the CPackage.
        let ifcdefns = map genifc_cdefn newFlatIfcs  -- new interface definitions
 
-       -- create new new module definitons for the CPackage
+       -- create new new module definitions for the CPackage
        newModule_s <- mapM (mkNewModDef genIfcMap) moduledefs
 
        to_Defs <- mapM mkTo_ trs
@@ -532,7 +532,7 @@ getDef generating ds (i, pps) =
    symt <- getSymTab
    let defs = [ d | d@(CValueSign (CDef i' _ _)) <- ds, unQualId i == unQualId i' ]
    case defs of
-     [d] -> do                  -- single element list of the module defintion
+     [d] -> do                  -- single element list of the module definition
         let red = cCtxReduceDef flgs symt d
         case red of
           Left msgs -> bads msgs
@@ -837,7 +837,7 @@ genTDef trec@(IfcTRec newId rootId _ sty _ k fts args _) =
 -- Generate a new interface definition for the CPackage
 -- Basically, this consists of a Cstruct of sub-type Sintrface.
 -- The fields are generated in genIfcField
--- accomplished by traversing down the possiblly nested interface definitions
+-- accomplished by traversing down the possibly nested interface definitions
 -- The props are ones extracted from the ifc, and must be propagated to the module
 genIfc :: IfcTRec -> [Id] -> Kind -> GWMonad (CDefn, [PProp] )
 genIfc trec args knd =

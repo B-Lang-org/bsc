@@ -63,7 +63,7 @@ module mkConstrainedRandomizer#(a min, a max) (Randomize#(a))
 	 rule every (!initialized);
 	    let value <- _r.next();
 	    ignore <= value;
-//	    $display("Module %m unintialized (%5d).", $time);
+//	    $display("Module %m uninitialized (%5d).", $time);
 	 endrule
 
 
@@ -89,7 +89,7 @@ module mkConstrainedRandomizer#(a min, a max) (Randomize#(a))
 	 rule every (!initialized);
 	    let value <- _r.next();
 	    ignore <= value;
-	    //      $display("Module %m unintialized (%5d).", $time);
+	    //      $display("Module %m uninitialized (%5d).", $time);
 	 endrule
 
 	 ifc = interface Randomize;

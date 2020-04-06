@@ -30,7 +30,7 @@ static const unsigned int minor_rev = 1;
  * calculated delay for each signal is used to correct the VCD times.
  *
  * VCD changes are buffered and accumulated until all clocks which
- * can assign a change to that time have occured, at which point
+ * can assign a change to that time have occurred, at which point
  * changes for that time are written to the VCD file.
  */ 
 

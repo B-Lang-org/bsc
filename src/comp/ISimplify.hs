@@ -153,7 +153,7 @@ gVars (IRefT _ _ _) = []
 dVars :: IExpr a -> [Id]
 dVars e = dVars' [] e
 
--- auxilary function to guard against circular traversals
+-- auxiliary function to guard against circular traversals
 dVars' :: [Id] -> IExpr a -> [Id]
 dVars' ids (ILam _ _ e) = dVars' ids e
 dVars' ids (IVar _) = []

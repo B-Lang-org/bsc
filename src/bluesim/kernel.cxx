@@ -170,7 +170,7 @@ unsigned int set_clock_event_data(tClock clk, tEdgeDirection dir)
 }
 
 /*
- * Event callbacks which are used to trigger exection
+ * Event callbacks which are used to trigger execution
  * of kernel features.
  */
 
@@ -786,7 +786,7 @@ static void setup_clock_edges(tSimStateHdl simHdl, tClock clk)
 
   // and, add new schedule events for the altered clock
 
-  // determine if the initial edge has already occured
+  // determine if the initial edge has already occurred
   bool initial_done = false;
   if (simHdl->sim_time > simHdl->clocks[clk].initial_delay)
     initial_done = true;

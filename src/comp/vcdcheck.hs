@@ -319,7 +319,7 @@ parseCheckCmd opts s = parse (words s)
                   in [Right (Sequence cmd{sc_fileNum=f}) | f <- getFNums opts]
               (Nothing, _, _) -> [Left $ "Error in scanning CRC command -- start value " ++ startv]
               (_, Nothing, _) -> [Left $ "Error in scanning CRC command -- every time " ++ every]
-              (_, _, Nothing) -> [Left $ "Error in scanning CRC command -- sequence lenght " ++ for]
+              (_, _, Nothing) -> [Left $ "Error in scanning CRC command -- sequence length " ++ for]
               _                -> [Left $ "Error in scanning CRC command " ++ s]
         parse ("CRC":_) = [Left $"CRC command expects 4 arguments " ++ s]
         parse _ = [Left s]

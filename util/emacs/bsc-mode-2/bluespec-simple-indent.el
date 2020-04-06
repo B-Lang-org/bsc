@@ -80,7 +80,7 @@
 (defun bluespec-simple-indent ()
   "Space out to under next visible indent point.
 Indent points are positions of non-whitespace following whitespace in
-lines preceeding point. A position is visible if it is to the left of
+lines preceding point. A position is visible if it is to the left of
 the first non-whitespace of every nonblank line between the position and
 the current line. If there is no visible indent point beyond the current
 column, `tab-to-tab-stop' is done instead."

@@ -1,6 +1,6 @@
 # --------------------------------------------------
 #
-# Makefile for building a standalone, staticly linked Bluesim executable
+# Makefile for building a standalone, statically linked Bluesim executable
 #
 # Usage:
 #

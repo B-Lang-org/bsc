@@ -136,7 +136,7 @@ type MethPortBlob = [(AExpr, Maybe [ARuleId])]
 --       plus the enable signals for action methods used on submodules,
 --       plus the enable signals for always enabled methods (which are
 --       wired to 1, rather than coming in as inputs)
---   vs = the orginal "vs" from the APackage but expanded for multiplicity
+--   vs = the original "vs" from the APackage but expanded for multiplicity
 --       (which is currently done wrong because it is handled on the instance
 --       and not on the method) and with clock and reset port structures
 --       fixed up to use the Verilog wire names (saving later stages from
@@ -428,7 +428,7 @@ aState' flags pps schedule_info apkg = do
         mux_out_defs = concat emux_outss ++ concat amux_outss
         mux_defsRed = mux_sel_defs ++ mux_val_defs ++ mux_out_defs
         --
-        -- filter out the redundant def from the new defintions
+        -- filter out the redundant def from the new definitions
         -- leave the mux_val_defs since these may not have good names.
         esubmap = M.fromList $ genAliases (mux_sel_defs)
         mux_defs = map (aSubst esubmap)  mux_defsRed
@@ -799,7 +799,7 @@ mkSignalInfoMethod aifaces = merged
           toRdy :: AId -> AId
           toRdy idin = if (isRdyId idin) then idin else mkRdyId idin
           --
-          -- mergePort cleans up from the seperate ready methods.
+          -- mergePort cleans up from the separate ready methods.
           mergePorts ::  [ASPMethodInfo] -> [ASPMethodInfo]
           mergePorts [] = []
           mergePorts [a] = [a]

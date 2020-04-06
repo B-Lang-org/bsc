@@ -268,7 +268,7 @@ cmpQInsts bss q1@(QInst _ (_ :=> t1)) q2@(QInst _ (_ :=> t2)) = do
   let (Forall t1_ks (_ :=> sc1)) = quantify t1_vs ([] :=> t1')
   let (Forall t2_ks (_ :=> sc2)) = quantify t2_vs ([] :=> t2')
 
-  -- replace all the tvs to avoid accidential tv overlap
+  -- replace all the tvs to avoid accidental tv overlap
   -- don't use tmpTyVarIds since they might be in t1_vs or t2_vs
   let tvs = zipWith tVarKind tmpVarIds (t1_ks ++ t2_ks)
   let t1_vs'' = take (length t1_vs) tvs

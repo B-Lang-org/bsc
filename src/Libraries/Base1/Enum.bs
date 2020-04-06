@@ -31,7 +31,7 @@ enumB :: Bit n -> Bit n -> List (Bit n)
 enumB lo hi =
 	if lo > hi then
 	    Nil
-	-- Have to test this explicitely since the addition may overflow.
+	-- Have to test this explicitly since the addition may overflow.
 	else if lo == hi then
 	    Cons lo Nil
 	else

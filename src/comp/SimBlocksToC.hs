@@ -354,7 +354,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         -- calls for registering clock schedules
         -- Note: the argument list must match the
         -- declaration in sim/bluesim_kernel_api.h and
-        -- implemention in sim/kernel.cxx
+        -- implementation in sim/kernel.cxx
         register_clk sched =
           let clk        = sched_clock sched
               clk_name   = mkClkName clk
@@ -388,7 +388,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                      ++ (if any_false then [mkGateConst False] else [])
                 else []
 
-        -- functions for creating, destroying and reseting the model
+        -- functions for creating, destroying and resetting the model
         create_model_decl  = function void (mkScopedVar "create_model")
                                  [ (userType "tSimStateHdl") (mkVar "simHdl")
                                  , bool (mkVar "master") ]

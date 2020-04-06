@@ -433,7 +433,7 @@ funcType ts rt = STFunc (STTuple ts) rt
 
 -- Primitives
 
--- no paramaters
+-- no parameters
 primCtx :: SId -> SQId
 primCtx baseId = SQId (Just (SId "Prim", [], [])) baseId
 
@@ -679,7 +679,7 @@ modCtorId = SId "ctor"
 submodCtor :: String -> [Integer] -> SExpr
 submodCtor mod ns = SVar $ qualSId (mk_homeless_id mod) ns $ modCtorId
 
--- Lambda-binding for instantation values passed to the constructor
+-- Lambda-binding for instantiation values passed to the constructor
 -- (for setting the port/param values in the state): val_<name>
 modArgId :: Id -> SId
 modArgId argId = SId ("val_" ++ getIdBaseString argId)

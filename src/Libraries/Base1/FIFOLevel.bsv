@@ -36,7 +36,7 @@ export mkGSyncFIFOCount ;
 //@ \te{Integer} constants.
 //@ Note that \te{FIFOLevelIfc} interface has a parameter for the
 //@ fifoDepth.  This numeric type parameter is needed, since the width
-//@ of the counter is dependant on the FIFO depth.
+//@ of the counter is dependent on the FIFO depth.
 
 //@ # 15
 interface FIFOLevelIfc#( type a_type, numeric type fifoDepth ) ;
@@ -214,7 +214,7 @@ endmodule
 //@
 //@ Note that \te{SyncFIFOLevelIfc} interface has a parameter for the
 //@ fifoDepth.  This numeric type parameter is needed, since the width
-//@ of the counter is dependant on the FIFO depth.
+//@ of the counter is dependent on the FIFO depth.
 
 //@ # 19
 interface SyncFIFOLevelIfc#( type a_type, numeric type fifoDepth ) ;

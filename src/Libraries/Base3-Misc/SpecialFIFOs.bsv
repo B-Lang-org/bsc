@@ -15,7 +15,7 @@ package SpecialFIFOs;
 //     Note: every value spends at least 1 cycle in the FIFO
 //
 //     Thus, this FIFO is useful for "registered" data,
-//     where the expectation is a latency of 1 tick due to regstering.
+//     where the expectation is a latency of 1 tick due to registering.
 //
 //   - a BypassFIFO allows a simultaneous enq and deq when empty,
 //     behaving like an enq followed by deq so that the new value

@@ -29,4 +29,4 @@ bsc2bsv filename text =
                                 in  CE.throw $ CE.ErrorCall (showErrorList es)
          Right ((package,_):_) ->
            putStrLn $ pvpReadable package
-         Right [] -> internalError "bsc2bsv: parse succeded with no packages"
+         Right [] -> internalError "bsc2bsv: parse succeeded with no packages"

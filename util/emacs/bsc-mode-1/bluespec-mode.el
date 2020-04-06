@@ -69,7 +69,7 @@
 
   (make-local-variable 'bluespec-std-list-indent)
   ;;Non-nil means indent to the offset, 'bluespec-list-offset' in a bracket rather than
-  ;; moving to the next word afer a function name
+  ;; moving to the next word after a function name
   (setq bluespec-std-list-indent t)
 
   (make-local-variable 'bluespec-nest-ifs)
@@ -183,7 +183,7 @@
   "Major mode for editing BlueSpec code.
 Linefeed reindents current line, takes newline and indents.
 Tab indents current line for BlueSpec code.
-Functions are seperated by blank lines.
+Functions are separated by blank lines.
 Delete converts tabs to spaces as it moves back.
 \\{bluespec-mode-map}
 Variables controlling indentation style:
@@ -331,7 +331,7 @@ Otherwise, don't indent."
 	(t
 	 (if (bluespec-code-on-linep)
 	     ;;There is code on the line
-	     ;; and guarenteed that a comment
+	     ;; and guaranteed that a comment
 	     ;; does not already exist.
 	     ;;Move to the last nonspace char
 	     ;; (there may be spaces after the last char)
@@ -726,7 +726,7 @@ point is moved to the first char."
     (let ((indent (bluespec-calculate-indentation)))
       (beginning-of-line)
       (delete-horizontal-space)
-      ;;Kill any spaces that may preceed the code
+      ;;Kill any spaces that may precede the code
       ;; and reindent to the correct level.
       (indent-to indent)))
   (if (< (current-column) (current-indentation))
@@ -758,7 +758,7 @@ newline and indents this new line."
 ;;; is the same as the first word of the current line.
 ;;; This function is based on the (reasonable?) assumption that 
 ;;; a function definition occurs on the left hand margin.
-;;; This is not quit reasonable since recusive functions are not
+;;; This is not quite reasonable since recursive functions are not
 ;;; recognised.
 
 (defun bluespec-continued-fn-defp ()
@@ -790,7 +790,7 @@ matches the first word on the current line."
 		(char-after previous-pos))
 	    ;;The two chars are the same
 	    (progn
-	      ;;Increment the two postions
+	      ;;Increment the two positions
 	      ;; and update location of point
 	      (setq current-pos (1+ current-pos))
 	      (setq previous-pos (1+ previous-pos))
@@ -1234,7 +1234,7 @@ the previous line to dictate the indentation."
 					  (bluespec-back-to-keyword)
 					  (point))))
 				  (goto-char eol-limit))
-			      ;;esle just go to the end of the line
+			      ;;else just go to the end of the line
 			      (goto-char (bluespec-eol)))
 			    (setq paren-indent 't)
 			    ;;Set 'paren-indent' to true to indicate we
@@ -1863,7 +1863,7 @@ value which is less than the current indentation."
 	    (progn 
 	      (setq indent 0)
 	      (setq done t))
-	  ;;Otherwise, indent is less than orignal indent.
+	  ;;Otherwise, indent is less than original indent.
 	  (forward-line 1)
 	  (setq indent (bluespec-context-indent))
 	  (if (< indent original-indent)
@@ -2095,14 +2095,14 @@ determines extra indentation for a `==>' keyword after a `when'."
 
 (defun set-bluespec-comment-column (column)
   "Changes the value of bluespec-comment-column, the variable which
-determines where to postition a line comment `--'."
+determines where to position a line comment `--'."
   (interactive "nSet bluespec-comment-column to: ")
   (if (and (>= column 0) (<= column 100))
       (setq bluespec-comment-column column)))
 	 
 (defun set-bluespec-concat-column (column)
   "Changes the value of bluespec-concat-column, the variable which
-determines where to postition a concatenation operator `++'."
+determines where to position a concatenation operator `++'."
   (interactive "nSet bluespec-concat-column to: ")
   (if (and (>= column 0) (<= column 100))
       (setq bluespec-concat-column column)))

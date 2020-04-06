@@ -39,7 +39,7 @@ module APaths(
 --   * (There are no separate ready signals -- they are return values)
 --   * All instantiation arguments to modules (those that become ports,
 --     not parameters), except clocks (and their gates) and resets
---     (though there is some infrastruture for tracking this, if we want,
+--     (though there is some infrastructure for tracking this, if we want,
 --     but it is not finished, because it will change with MCD support)
 --   * A control mux for all methods of submodules with arguments
 --     (the arguments to a single resource is potentially muxed, based on
@@ -325,7 +325,7 @@ enWhenRdyNode pps _ = False
 --     rt = rule tree
 --     ifc = interface methods ([AIFaceT])
 --
--- Ouputs:
+-- Outputs:
 --   Graph information used in the next stage of path computation.
 --   A list of urgency requirements implied by paths, to be used in
 --   scheduling.

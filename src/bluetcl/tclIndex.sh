@@ -18,7 +18,7 @@ if { [llength $tclFiles] != 0 } {
 }
 
 # eval pkg_mkIndex -verbose . $packFiles
-# the pkg_mkIndex comand sucks so lets roll our own
+# the pkg_mkIndex command sucks so lets roll our own
 
 # All we need to do for the basic case is get the package provide directives
 proc getpackagename { f } {

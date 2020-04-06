@@ -851,7 +851,7 @@ mkGateInfo :: PackageMap -> [AId] -> InstModMap -> [SimSchedule] ->
 mkGateInfo pkg_map top_gates inst_map scheds =
   let
       -- --------------------
-      -- The SimSchedule contains a substition mapping from gates in the
+      -- The SimSchedule contains a substitution mapping from gates in the
       -- modules (with fully qualified hierarchy) to the real source of the
       -- gate (a primitive, also with fully qualified hierarchy)
 
@@ -1495,7 +1495,7 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
                 (group,rest) = span sameRight l
             in (Right (rst,[act | (Right act) <- group])):(groupRsts rest)
     in  -- tsort returns Left if there is a loop, Right if sorted.
-        -- (In the absense of restrictive edges, tsort uses Ord to put
+        -- (In the absence of restrictive edges, tsort uses Ord to put
         -- the lower valued nodes first.  Thus, we have chosen the node
         -- representation to put Defs first, followed by Actions in the
         -- order that they were give by the user.)
@@ -1594,7 +1594,7 @@ mkGateSubstMap top_gates es =
         mkTopSubst gateId = (ASPort (ATBit 1) gateId, aTrue)
         top_subst = M.fromList $ map mkTopSubst top_gates
 
-        -- And update the existing substitions
+        -- And update the existing substitutions
         substTop (orig, new) = (orig, M.findWithDefault new new top_subst)
 
         -- Convert a clock substitution into a gate substitution

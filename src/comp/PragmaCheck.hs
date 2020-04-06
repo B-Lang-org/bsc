@@ -637,7 +637,7 @@ checkModulePortNames flgs pos pps vtis ftps =
     -- check that each arg port name is a valid Verilog identifier
 
     -- We also check that param arguments do not clash, but note that
-    -- XXX parameters will be refered to as "ports" in the error message
+    -- XXX parameters will be referred to as "ports" in the error message
 
         arg_names = sort [ (getIdBaseString n, getAPIArgName api)
                          | api@(API { api_port = Just n }) <- all_arg_info ]
@@ -769,4 +769,3 @@ joinStrings_  s1 "" = s1
 joinStrings_  s1 s2 = s1 ++ "_" ++ s2
 
 -- ==============================
-

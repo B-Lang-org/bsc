@@ -477,7 +477,7 @@ WideData::WideData(unsigned int bits, const char* str)
 }
 
 
-// copy contructor
+// copy constructor
 WideData::WideData(const WideData& v)
 {
   nBits  = v.nBits;
@@ -1221,7 +1221,7 @@ void wide_quot_rem(const WideData& v1, const WideData& v2,
   memset(quot, 0, BYTES_PER_WORD * dividend.numWords());
   memset(rem,  0, BYTES_PER_WORD * divisor.numWords());
 
-  // find the most signifcant bit set in the divisor
+  // find the most significant bit set in the divisor
   int first_divisor_bit = divisor.size() - 1;
   while (first_divisor_bit >= 0)
   {
@@ -1234,7 +1234,7 @@ void wide_quot_rem(const WideData& v1, const WideData& v2,
   if (first_divisor_bit < 0)
     raise(SIGFPE);
 
-  // find the most signifcant bit set in the dividend
+  // find the most significant bit set in the dividend
   int first_dividend_bit = dividend.size() - 1;
   while (first_dividend_bit >= 0)
   {

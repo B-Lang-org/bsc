@@ -89,7 +89,7 @@ int32 = TAp tInt t32
 
 data ImplReadTag = NoRead | ImplRead (Maybe Id)
 
--- tiExpr: type-infer an expresssion
+-- tiExpr: type-infer an expression
 --   first argument (as):    type environment (a.k.a., assumptions)
 --   second argument (td):   expected type of exp
 --   third argument (exp):   expression to typecheck
@@ -258,7 +258,7 @@ tiExpr as td exp@(CStruct c ies) = do
             case findDup dfs of
              i : _ -> err (getPosition i, EDupField (pfpString i))
              [] -> case (is `del_func` qfs) of
-                   i : _ -> -- report the qualfied type name (c')
+                   i : _ -> -- report the qualified type name (c')
                             err (getPosition i, ENotField (pfpString c') (pfpString i))
                    [] -> do
                     -- identify the missing fields
@@ -377,11 +377,11 @@ tiExpr as td exp@(CTaskApply f@(CVar task) es) =
   in checker as td f es
 
 -- already type-checked - just ensure expected type is PrimAction
--- and qualify the task identifer
+-- and qualify the task identifier
 -- unify is not needed since these are wrapped with a fromAction or fromPrimAction
 tiExpr as td exp@(CTaskApplyT (CVar task) t es) =
   do
-    -- pick out the matching qualified task identifer
+    -- pick out the matching qualified task identifier
     let task' = headOrErr ("TCheck.tiExpr: unmatched task: " ++
                            pfpString task)
                 (filter (qualEq task) taskIds)
@@ -867,7 +867,7 @@ tiExpr as td exp@(CForeignFuncC link_id wrap_cqt) = do
         mapM (\t -> newVar (getPosition t) "tiExprCForeignFuncC") argTypes
     let pat_args = map CPVar pattern_var_ids
 
-    -- construct info for the agruments
+    -- construct info for the arguments
     arg_triples <- mapM mkArg (zip argTypes pattern_var_ids)
     let (arg_ctxss, arg_prim_tys, arg_cexprs) = unzip3 arg_triples
     let arg_ctxs = concat arg_ctxss
@@ -2308,7 +2308,7 @@ tiExpl'' as0 i sc alts me oqtvts = do
 -- alts        clauses of definition
 -- me   the implicit condition patterns of an interface definition
 --      (an empty list for non-interfaces)
--- oqt        instanciated scheme
+-- oqt        instantiated scheme
 -- vts        variables used to instantiate sc to oqt
 tiExpl''' :: [Assump] -> Id -> Scheme -> [CClause] -> [CQual] ->
              (Qual Type, [Type]) -> TI ([VPred], CDefl)
@@ -2383,7 +2383,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- ds2 = preds, all of whose tyvars are all fixed (we will
         --       defer them to the enclosing bindings)
         -- rs1 = preds which contain tyvars general/bound at this level
-        -- "d" for deffered and "r" for retained
+        -- "d" for deferred and "r" for retained
         (ds2, rs1) =  splitF fvs ps'                -- non-local, local constraints
 
         -- All the tyvars ("avs") = the vars of qt' ("lvs") and
@@ -2423,7 +2423,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- ds3 = preds, all of whose tyvars are all fixed (we will
         --       defer them to the enclosing bindings)
         -- rs2 = preds which contain tyvars general/bound at this level
-        -- "d" for deffered and "r" for retained
+        -- "d" for deferred and "r" for retained
         (ds3, rs2) =  splitF fvs ps'                -- non-local, local constraints
 
         -- All the tyvars ("avs") = the vars of qt' ("lvs") and
@@ -2484,7 +2484,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         -- The intermediate type is ambiguous.
         (rs_amb, rs_unamb) = partition (any (`elem` amb_vars) . tv) rs
 
-    -- Apply the substition to the code fragments
+    -- Apply the substitution to the code fragments
     let alts''     =  apSub s alts'             -- new alternatives
         abs        =  apSub s bs1               -- new dict bindings
         me''       =  apSub s me'               -- update guards
@@ -2553,7 +2553,7 @@ tiExpl''' as0 i sc alts me (oqt@(oqs :=> ot), vts) = do
         vs = map (\ (EPred (CVar i) _) -> i) eqs
 
     -- The predicates which will be returned, to be handled by the
-    -- enclosing binding.  It includes the deffered predicates "ds"
+    -- enclosing binding.  It includes the deferred predicates "ds"
     -- and the predicates for the interface method ready expression
     -- "mps" (if this is in an interface).
     let rds = mps ++ ds
@@ -2810,7 +2810,7 @@ tiImpls recursive as ibs = do
         -- ds = preds, all of whose tyvars are fixed (in fs)
         --      (we will defer them to the enclosing bindings)
         -- rs = preds which contains tyvars general/bound at this level
-        -- "d" for defered and "r" for retained
+        -- "d" for deferred and "r" for retained
         (ds,rs) = splitF fs ps''                        -- non-local, local constraints
 
 

@@ -8,8 +8,8 @@ module vInoutConnect#(Inout#(a) x1, Inout#(a) x2) (Empty)
    
    /*
     x1 and x2 must be on the same clock, which itself may be a DIFFERENT
-    clock than the parent module of the mkConnection.  
-    This is a somewhat arbitarily chosen
+    clock than the parent module of the mkConnection.
+    This is a somewhat arbitrarily chosen
     design decision corresponding to a degree of strictness in clock
     checking on inouts that we (stoy and ken) believe would be useful
     to a user of inouts.
@@ -35,7 +35,7 @@ module inoutSplit#(Inout#(a0) x0, Inout#(a1) x1, Inout#(a2) x2) (Empty)
    
    /*
     All args must be on the same clock, which itself may be a DIFFERENT
-    clock than the parent module.  This is a somewhat arbitarily chosen design
+    clock than the parent module.  This is a somewhat arbitrarily chosen design
     decision corresponding to a degree of strictness in clock checking on
     inouts that we (stoy and ken) believe would be useful to a user of
     inouts. 

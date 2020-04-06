@@ -733,7 +733,7 @@ module [Module] mkMap_with_funnel_indexed
 endmodule: mkMap_with_funnel_indexed
 
 // ----------------------------------------------------------------
-// The following is functionally equivalent to useing mkMap_with_funnel_indexed,
+// The following is functionally equivalent to using mkMap_with_funnel_indexed,
 // but a little cheaper because for the embedded mapping, it just uses map(fn)
 // instead of mkMap, which is slightly cheaper (see comment at mkMap)
 
