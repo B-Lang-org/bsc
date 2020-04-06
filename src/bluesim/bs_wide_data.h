@@ -71,7 +71,7 @@ class WideData
   // special constructor used for literal values
   WideData(unsigned int bits, const unsigned int array[]);
 
-  // special constructor for static-wide-data -- no intialization
+  // special constructor for static-wide-data -- no initialization
   //  WideData(unsigned int * data, unsigned int bits);
 
   // special constructors used to promote non-wide values
@@ -81,7 +81,7 @@ class WideData
   // special constructor used to represent strings
   WideData(unsigned int bits, const char* str);
 
-  // copy contructor
+  // copy constructor
   WideData(const WideData& v);
 
   // copy assignment

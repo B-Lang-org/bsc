@@ -127,7 +127,7 @@ instance PVPrint IType where
 -- ---------------------------------------------------
 -- Other utility functions
 
--- Funtion type (a -> b)
+-- Function type (a -> b)
 itArrow :: IType
 itArrow = ITCon (idArrow noPosition) (IKFun IKStar (IKFun IKStar IKStar)) tiArrow
 

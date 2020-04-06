@@ -90,7 +90,7 @@ ss1@(S s1 _) @@ ss2@(S _ var_old) =
           (merge_sv (apSubstToSubst ss1 ss2) ss1)
 
 
--- Apply the knowledge from one substition to another, but without adding
+-- Apply the knowledge from one substitution to another, but without adding
 -- the bindings
 --
 apSubstToSubst :: Subst -> Subst -> Subst

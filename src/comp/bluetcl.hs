@@ -2225,9 +2225,9 @@ instance ExpandInfoHelper BInst where
                   getDebug ::  BInstSub -> Doc
                   getDebug n = pPrint PDReadable 0 n
         --
-    {- TODO  get at the position infomation
+    {- TODO  get at the position information
                   --
-                  -- Auxilary info
+                  -- Auxiliary info
                   getIfcMod :: Bool -> BSVInstance -> [HTclObj]
                   getIfcMod False _ = []
                   getIfcMod True  i = [TStr "Interface",      toHTObj (bsvi_ifc_name i)

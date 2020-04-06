@@ -1768,7 +1768,7 @@ showFlagsLst flags =
 
 showFlagsAllLst :: Flags -> [[String]]
 showFlagsAllLst flags =
-    let -- everything but depricated
+    let -- everything but deprecated
         flagsToBeShown = [ (f,ft) | (f,(ft,_,he)) <- externalFlags,
                                     he == Visible || he == Hidden]
         pprintedFlags = map (showFlag True flags) flagsToBeShown
@@ -1961,7 +1961,7 @@ getFlagValueString flags key = do
     Nothing -> ioError $ userError ("Unknown flag \"" ++ key ++ "\" when looking up it value" )
     Just ft -> return $ flagTypeToString flags key ft
 
--- This is similary to showFlag, but it is more verbose -no options are shown
+-- This is similar to showFlag, but it is more verbose -no options are shown
 flagTypeToString :: Flags -> String -> FlagType -> [String]
 flagTypeToString flags key (Toggle _ Nothing)  = []
 flagTypeToString flags key (Toggle _ (Just f)) =

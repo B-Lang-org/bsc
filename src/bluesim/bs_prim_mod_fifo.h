@@ -15,7 +15,7 @@ typedef enum { FIFO_SIMPLE, FIFO_LOOPY, FIFO_BYPASS} tFifoType;
  *
  * 1. deq() and first() can occur in either order,
  *    as can clear() and first().
- * 2. notFull() and notEmpty() can occcur before or
+ * 2. notFull() and notEmpty() can occur before or
  *    after enq(), deq(), and clear().
  * 3. For a FIFO_LOOPY, deq() then enq() is allowed
  *    even if the fifo was full at the start of the

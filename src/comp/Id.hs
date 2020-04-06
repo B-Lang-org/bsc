@@ -244,7 +244,7 @@ unq_eqs idx str = getIdBaseString idx == str
 instance Ord Id where
     compare  = idCompare
 
--- a seperate function becomes a cost center for performance runs
+-- a separate function becomes a cost center for performance runs
 idCompare :: Id -> Id -> Ordering
 idCompare a b = case (compare (id_fs a) (id_fs b)) of
                 EQ -> compare (id_mfs a) (id_mfs b)

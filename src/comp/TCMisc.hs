@@ -120,12 +120,12 @@ satisfyX dvs es ps = do
         extSubst "satisfyX" s
         return $ (rs, apSub s (map mkDefl bs))
 
--- break up preds into those affected by a substition and those not
+-- break up preds into those affected by a substitution and those not
 -- in order to loop more efficiently in satisfy'
 split_rs :: Subst -> [VPred] -> ([VPred], [VPred])
 split_rs s' rs  = partition affected_pred rs
           -- should only be a few since classes are small
-          -- and the substition comes from a single reducePred
+          -- and the substitution comes from a single reducePred
           -- or joinCtx (at the end)
     where changed_tv = getSubstDomain s'
           affected_var v = v `elem` changed_tv
@@ -433,7 +433,7 @@ joinNeededCtxs' s bs ps = do
         in joinNeededCtxs' (s' @@ s) (b:bs) rs'
 
 -- as we commit to substitutions, we extend the monad with them
--- we preserve them this far so we can efficently decide which
+-- we preserve them this far so we can efficiently decide which
 -- preds to retry satisfying
 --
 -- Return values are similar to "sat" since they recursively call each other.
@@ -662,7 +662,7 @@ bySuperE ep@(EPred e p@(IsIn c ts)) = ep : eps ++ comm
 -- Given:
 -- * bound variables
 -- * a function for determining when two predicates "match"
---   (by matching their lists of type paramaters)
+--   (by matching their lists of type parameters)
 --   which returns the substitution which makes them match
 -- * two predicates
 -- Returns:
@@ -919,7 +919,7 @@ reportUnifyError bound_vars x orig_t1 orig_t2 =
                  EFuncMismatchNumArgs x' orig_t1' orig_t2' n1 n2 Nothing)
 
         -- mismatch in num of args, but we know where the first
-        -- type mismatch occured, so maybe the arg is missing there?
+        -- type mismatch occurred, so maybe the arg is missing there?
         err_wrong_arg_num_maybe_n n1 n2 startnum =
             err (getPosition x,
                  EFuncMismatchNumArgs x' orig_t1' orig_t2' n1 n2 (Just startnum))
@@ -1178,7 +1178,7 @@ niceTypes given_type =
 -------
 
 -- The following code is for defaulting types when an explicit type
--- declaration is reached but for which type inference has infered
+-- declaration is reached but for which type inference has inferred
 -- more contexts than appear in the explicit type.  Any contexts which
 -- have variables that appear in the base type result in "context too
 -- weak" errors.  For multi-parameter type classes, if some variables
@@ -1499,7 +1499,7 @@ expandNumericTCons (orig_qs :=> orig_t) =
 
 -- propagateFunDeps returns the supplied predicates updated with
 -- any information learned by matching instances. It does not
--- drop any matched predicates beause it doesn't bind dictionaries.
+-- drop any matched predicates because it doesn't bind dictionaries.
 -- propagateFunDeps also returns the (possibly smaller) list of
 -- unsatisfied predicates for use in fail-fast context reduction
 -- (see updateContexts)

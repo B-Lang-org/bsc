@@ -1220,7 +1220,7 @@ writeVerilog errh flags prefix
        let useNameRel = dropSuf vNameRel ++ "." ++ useSuffix
            useName = dropSuf (vfnString vName) ++ "." ++ useSuffix
 
-       -- Comments at the top ofthe Verilog file
+       -- Comments at the top of the Verilog file
        let pathInfoBlurb = lines (pp80 vPathInfo)
            ioblurb = "" : "Ports:" : lines (pp80 ioprops)
            comment = commentV (blurb ++ methodConflictBlurb ++ methodConflictBVI ++
@@ -1422,7 +1422,7 @@ simLink errh flags toplevel afilenames cfilenames = do
     -- print a message to the user that we are reusing the files
     ofiles_reused <- mapM (reuseBluesimCFile flags) to_reuse
 
-    -- XXX in the absense of genModuleC returning separate lists of header
+    -- XXX in the absence of genModuleC returning separate lists of header
     -- XXX files and actual C files to be compiled, partition them here
     let ({-hfiles-}_, gen_cfiles) = partition (hasDotSuf hSuffix) to_compile
     let (user_cfiles, user_ofiles) =

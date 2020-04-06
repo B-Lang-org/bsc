@@ -360,7 +360,7 @@ getBitWidth flags symtab t =
         (rs,_) <- satisfy [] [vp]
         s <- getSubst
         let szv' = apSub s szv
-        -- if it was satisfiable, then apply the substituion to 'szv'
+        -- if it was satisfiable, then apply the substitution to 'szv'
         -- and that is the width
         return $
             -- if parameterized width is desired, then allow non TyNum
@@ -372,7 +372,7 @@ getBitWidth flags symtab t =
 
 -- ---------------
 
--- Type utilites
+-- Type utilities
 
 kVector, kList :: Kind
 kVector = Kfun KNum (Kfun KStar KStar)

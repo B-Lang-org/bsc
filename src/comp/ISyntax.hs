@@ -282,7 +282,7 @@ instance Hyper (IRules a) where
     hyper (IRules sps rs) y = hyper2 sps rs y
 
 
--- renames the rules accoring to the Id,Id list
+-- renames the rules according to the Id,Id list
 renameIRules :: [(Id,Id)] -> IRules a -> IRules a
 renameIRules [] rls = rls
 renameIRules idmap rls@(IRules schedPara rules) = IRules newSchedPara newRules

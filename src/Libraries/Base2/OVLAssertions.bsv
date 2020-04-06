@@ -616,7 +616,7 @@ endfunction
 //
 //     o has a single Action method "test" that takes a single polymorphic 
 //       argument.
-//     o good for invarient assertions that check a test expression on
+//     o good for invariant assertions that check a test expression on
 //       every clock cycle (for instance bsv_assert_one_hot)
 //
 //  2) AssertSampleTest_IFC

@@ -1087,7 +1087,7 @@ genInstances errh flags ff_blocks vDef aspack =
                            reg_decl_groups ++
                            submod_decl_groups
 
-        -- only non-inlined modules have instantations
+        -- only non-inlined modules have instantiations
         -- (everything else is pure decls)
         -- if verilogDeclareAllFirst flag is off, then the insts will be
         -- included in the decl groups and this list will be empty
@@ -1333,7 +1333,7 @@ addInstPortDecls defs decls (gs, new_decls) (i, inst_g, ps) =
 
 -- for a submodule output, lookup the size and create a Verilog decl
 -- of the appropriate size (with the given type)
--- (the type is specified, because inlined Reg ouputs are of type VDReg)
+-- (the type is specified, because inlined Reg outputs are of type VDReg)
 mkInstOutputDecl :: [AStateOut] -> AId -> VDType -> VId -> VMItem
 mkInstOutputDecl sos inst_id decl_type out_port_id =
     let mkDecl i sz = VMDecl (VVDecl decl_type sz [VVar i])

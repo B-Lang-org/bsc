@@ -621,7 +621,7 @@ iConvLit (LString s) pos t = iMkStringAt pos s
 iConvLit (LChar c) pos t = iMkCharAt pos c
 iConvLit LPosition pos t = iMkPosition pos
 
--- converts implict field extract functions to bit select.
+-- converts implicit field extract functions to bit select.
 iConvField :: Flags -> SymTab -> Id -> Id -> IExpr a
 iConvField flags r ti i =
     case findType r ti of

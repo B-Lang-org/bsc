@@ -3846,7 +3846,7 @@ actions without "action .. endaction" (actionBlock and rule body)
 >        block <- pImperativeNestedActionValue attrs flags
 >        imperativeToCExpr pos flags block
 
-STATEMENT SEQENCES (for turning into FSMs)
+STATEMENT SEQUENCES (for turning into FSMs)
 
 > pSequenceExpr :: SV_Parser CExpr
 > pSequenceExpr =
@@ -3924,7 +3924,7 @@ function argument, type is required
 >                typ' <- pOptArrayDimensions typ
 >                return (Just typ', var2)
 >             <|>
->             -- followed by another identifer, var1 is a type variable
+>             -- followed by another identifier, var1 is a type variable
 >             do -- XXX this used to accept "?"
 >                var2 <- pIdentifier
 >                typ' <- pOptArrayDimensions (cTVar var1)

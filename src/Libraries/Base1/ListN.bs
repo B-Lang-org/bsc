@@ -32,7 +32,7 @@ infixr  8 :>
 --@ preferred for list processing functions, such as head, tail, map,
 --@ fold, etc.  All Vector functions are available, by substituting
 --@ ListN for Vector.  See the Vector docuemntation (\ref{lib-vector})
---@ for details.  If the implementation requries random access to
+--@ for details.  If the implementation requires random access to
 --@ items in the list, the Vector construct is recommended.  Using
 --@ ListN where Vectors is recommended (and visa-versa) can lead to
 --@ very long static elaboration times. 

@@ -1671,7 +1671,7 @@ unsigned int* copy_arg(const tUInt64* data, unsigned int n = 2);
 unsigned int* copy_arg(const unsigned int* data, unsigned int n);
 char* copy_arg(const std::string& str);
 
-// Allocate an unitialized temporary array
+// Allocate an uninitialized temporary array
 unsigned int* ignore_arg(unsigned int n);
 unsigned int* return_arg(unsigned int n);
 

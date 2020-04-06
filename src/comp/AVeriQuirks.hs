@@ -84,7 +84,7 @@ genIdFromAExpr expr = do
             (mkFString (signalNameFromAExpr expr ++
                         aVeriQuirksPref ++ itos oldId))
 
--- Add the expression -- realy the definition to the monad
+-- Add the expression -- really the definition to the monad
 addExpr :: AType -> AExpr -> QQState AId
 addExpr t e = do
     rlm <- gets rlookup
@@ -197,7 +197,7 @@ aQExp top eee@(APrim aid t@(ATBit 1) op [e1, n]) | op `elem` [PrimSL, PrimSRL] =
     let cond = APrim aid t PrimEQ [n, ASInt aid (ae_type n) (ilDec 0)]
     in aQExp top (APrim aid t PrimBAnd [cond, e1])
 
--- e << n && e is singed 1 bit,  --> e
+-- e << n && e is signed 1 bit,  --> e
 aQExp top eee@(APrim aid t@(ATBit 1) PrimSRA [e1, n]) = aQExp top e1
 
 -- Arithmetic (Signed) shift right by constants
@@ -320,8 +320,8 @@ aQExp _ (ASReset { })              = internalError("AVerilog.aQExp: unexpected r
 aQExp _ (ASInout { })              = internalError("AVerilog.aQExp: unexpected inout")
 aQExp _ (AMGate { })               = internalError("AVerilog.aQExp: unexpected gate")
 
--- these are opration which cannot be nested, since the generated verilog pushed
--- them into a seperate always block.
+-- these are operations which cannot be nested, since the generated verilog pushed
+-- them into a separate always block.
 topOp :: PrimOp -> Bool
 topOp PrimCase   = True
 topOp PrimMux    = True

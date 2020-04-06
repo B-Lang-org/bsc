@@ -760,7 +760,7 @@ noIfcPragmas :: [IfcPragma]
 noIfcPragmas = []
 
 
--- convience function -- extract out PIArgNames ids.
+-- convenience function -- extract out PIArgNames ids.
 filterIArgNames :: [IfcPragma] -> [Id]
 filterIArgNames prags = concatMap getArgNames prags
     where getArgNames :: IfcPragma -> [Id]

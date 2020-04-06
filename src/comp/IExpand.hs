@@ -929,7 +929,7 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
 
         -- The field positions are generated in GenWrap from the position
         -- of the type in the symtab, so let's insert a better position for
-        -- error messages.  In the absense of indicating the location of the
+        -- error messages.  In the absence of indicating the location of the
         -- def in the module, we just point to the module itself.
         let modPos = getIdPosition modId
             fs = map (setIdPosition modPos) fs0
@@ -3194,7 +3194,7 @@ conAp' _ (ICPrim _ PrimImpCondOf) fe (T t : E e : as) = do
   -- XXX this is duplicate work if primSeqCond was employed?
   p_buried <- getBuriedPreds e'
   -- This line is needed to simplify away if-exprs so that we return the
-  -- simplest expression (so it won't pick up unnecesary implicit conditions)
+  -- simplest expression (so it won't pick up unnecessary implicit conditions)
   pFinal <- normPConj $ pConj p (pConj p' p_buried)
   -- XXX This conversion produces the aggressive form
   -- XXX we should get the choice of aggressive vs conservative from the
@@ -3651,7 +3651,7 @@ conAp' _ (ICPrim _ op) fe@(ICon prim_id _) as | strictPrim op = do
             isDyn _ = False
         -- XXX we can also push the op into the arms of PrimIf/PrimArrayDynSelect
         -- XXX if all of the arms are IntLit, at least for single argument ops
-        -- XXX (in the absense of this, we do a special case for PrimBNot, see below)
+        -- XXX (in the absence of this, we do a special case for PrimBNot, see below)
         if all isIntLit as' && not (null as') then
             case doPrimOp bestPosition op
                      [ t | T t@(ITNum _) <- as' ]
@@ -4188,7 +4188,7 @@ doArraySelect f (T elem_t : E arr_e : E idx_e : as) = do
                     idx_bits_e = ICon idx_i (idx_ic { iConType = upd_idx_t })
                     eq_e = iePrimEQ (ITNum upd_idx_sz) upd_idx_e idx_bits_e
                     if_e = ieIf elem_t eq_e upd_val_e res0
-                -- despite the name, this is actualy 1 greater than the max
+                -- despite the name, this is actually 1 greater than the max
                 let max_upd_idx = 2 ^ upd_idx_sz
                     res = if (max_upd_idx > index) then if_e else res0
                 addPredG (pConj p0 p) $ evalAp "array-select-update" res as

@@ -1405,7 +1405,7 @@ class MOD_DualPortRam : public Module
   ~MOD_DualPortRam<AT,DT>() { delete[] data; }
  public:
   // Note: the read and write methods of a DualPortRam are
-  // conflict free.  When the edges coincide and a simulataneous
+  // conflict free.  When the edges coincide and a simultaneous
   // read and write occur the same address, we want the read to
   // return the value from the beginning of the cycle.
   const DT METH_read(const AT& addr) const

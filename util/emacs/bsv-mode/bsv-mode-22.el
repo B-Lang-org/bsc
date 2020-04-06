@@ -2632,7 +2632,7 @@ Insert `// NAME ' if this line ends a module or primitive named NAME."
 		      (if err (ding 't))
 		      ))))
 	       
-	       (;- this is end{function,task,module,primative,table,generate}
+	       (;- this is end{function,task,module,primitive,table,generate}
 		t
 		(let (string reg (width nil))
 		  (end-of-line)
@@ -3918,7 +3918,7 @@ ARG is ignored, for `comment-indent-function' compatibility."
 	  ;;(insert "/*start*/")
 	  (if (> (- end start) 100)
 	      (message "Lining up expressions..(please stand by)"))
-	  ;; Get the begining of line indent first
+	  ;; Get the beginning of line indent first
 	  (while (progn (setq e (marker-position edpos))
 			(< (point) e))
 	    (beginning-of-line)
@@ -4227,7 +4227,7 @@ TYPE is 'module, 'tf for task or function, or t if unknown."
 
 (defun bsv-get-completion-decl (end)
   "Macro for searching through current declaration (var, type or const)
-for matches of `str' and adding the occurence tp `all' through point END."
+for matches of `str' and adding the occurrence tp `all' through point END."
   (let ((re (or (and bsv-indent-declaration-macros
 		     bsv-declaration-re-2-macro)
 		bsv-declaration-re-2-no-macro))
@@ -7054,7 +7054,7 @@ Limitations:
 
 /*AUTORESET*/ presumes that any signals mentioned between the previous
 begin/case/if statement and the AUTORESET comment are being reset manually
-and should not be automatically reset.  This includes ommitting any signals
+and should not be automatically reset.  This includes omitting any signals
 used on the right hand side of assignments.
 
 A simple example:
@@ -7460,11 +7460,11 @@ Wilson Snyder (wsnyder@wsnyder.org or wsnyder@world.std.com)"
   "output: " str)
 
 (define-skeleton bsv-sk-prompt-msb
-  "Prompt for least signifcant bit specification."
+  "Prompt for least significant bit specification."
   "msb:" str & ?: & (bsv-sk-prompt-lsb) | -1 )
 
 (define-skeleton bsv-sk-prompt-lsb
-  "Prompt for least signifcant bit specification."
+  "Prompt for least significant bit specification."
   "lsb:" str )
 
 (defvar bsv-sk-p nil)
@@ -7865,7 +7865,7 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 	     (match-string 1))))
       )))
 
-;; ffap isn't useable for bsv mode. It uses library paths.
+;; ffap isn't usable for bsv mode. It uses library paths.
 ;; so define this function to do more or less the same as ffap
 ;; but first resolve filename...
 (defun bsv-load-file-at-point ()

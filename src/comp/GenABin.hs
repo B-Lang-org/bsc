@@ -547,7 +547,7 @@ instance Bin MsgListFlag where
         1 -> do msgs <- fromBin; return (SomeMsgs msgs)
         n -> internalError $ "GenABin.Bin(MsgListFlag).readBytes: " ++ show n
 
--- should automatically verify no typoes at compile-time XXX
+-- should automatically verify no typos at compile-time XXX
 instance Bin Flags where
     writeBytes (Flags
                 a_000 a_001 a_002 a_003 a_004 a_005 a_006 a_007 a_008 a_009

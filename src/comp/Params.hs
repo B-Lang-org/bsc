@@ -136,14 +136,14 @@ isConstIExpr (ICon _ (ICCon {} )) =
     -- XXX check this!
     False
 isConstIExpr (IAps f _ es) =
-    -- application of acceptible operators on constant args is constant
+    -- application of acceptable operators on constant args is constant
     (isConstIExprFunc f && all isConstIExpr es)
 isConstIExpr _ = False
 
 
 isConstIExprFunc :: IExpr a -> Bool
 -- XXX this should check for only prims which can be turned into
--- XXX acceptible Verilog primitives, and return False for others
+-- XXX acceptable Verilog primitives, and return False for others
 isConstIExprFunc (ICon _ (ICPrim {})) = True
 -- tuples, selector functions, constructor selectors etc, should all
 -- have been evaluated away, leaving only bits
@@ -184,7 +184,7 @@ isConstAExpr _ _ = False
 
 -- XXX Should this go into Prims.hs?
 
--- Check whether a primitive is an acceptible operator for
+-- Check whether a primitive is an acceptable operator for
 -- a constant ASyntax expression.
 -- (This check should not be specific to any backend.)
 

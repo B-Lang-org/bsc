@@ -36,7 +36,7 @@ import Flags(Flags, removeCross)
 --      rw$whas and rw$wget.  If the set signals aren't defined, then we
 --      do have to declare a new def for the outputs, with constant values.
 --      Note that we do not define rw$whas for BypassWires (since it should be
---      just a contstant 1).
+--      just a constant 1).
 --
 --  (3) Create a substitution from (ASPort rw$whas) to (ASDef rw$whas),
 --      and substitute over the ASPackage.  (Because the signals are no
@@ -193,4 +193,3 @@ aInlineWires flags pkg@(ASPackage { aspkg_state_instances = vs,
                     (if always_en then [] else [rw_has_id])
             in
                 (i, outputs, whas_def ++ wget_def, whas_subst ++ wget_subst, wmsg, emsg)
-

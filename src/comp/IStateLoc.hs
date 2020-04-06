@@ -99,7 +99,7 @@ instance PPrint IStateLocPathComponent where
             lp        = isl_loop_suffix islpc
 
 
--- Common contructor
+-- Common constructor
 mkISLPC :: Id -> Id -> IType -> IStateLocPathComponent
 mkISLPC inst_id ifc_id ifc_type = islpc
   where ignore_name = ignoreInstIdName inst_id
@@ -144,7 +144,7 @@ instance PPrint NameGenerate where
 
 --
 -- Join 2 names together
--- indexes alway go on the end of the name
+-- indexes always go on the end of the name
 -- names are joined with underscore
 joinNames :: NameGenerate -> NameGenerate -> NameGenerate
 joinNames NameEmpty x                                 = x
@@ -184,7 +184,7 @@ indexName _ _           = NameEmpty
 -- Entry point for generating a state loc at this level
 newIStateLocTop :: StateLocMap -> Id -> Id -> IType -> IStateLoc -> IStateLoc
 newIStateLocTop slmap inst_id ifc_id ifc_type [] = [comp]
-  -- first entry in the hierachy
+  -- first entry in the hierarchy
   where comp = IStateLocPathComponent {
             isl_inst_id          = inst_id,
             isl_ifc_id           = ifc_id,
@@ -397,11 +397,11 @@ ignoreInstId id | (idUnderscoreDepth id > 1)                        = True
 ignoreInstId id | (not (isKeepId id)) && (idUnderscoreDepth id > 0) = True
 ignoreInstId _                                                      = False
 
--- count the numer of underscore at the start of an Id
+-- count the number of underscores at the start of an Id
 idUnderscoreDepth :: Id -> Integer
 idUnderscoreDepth = underscoreDepth . getIdString
 
--- count the numer of underscore at the start of a string
+-- count the number of underscores at the start of a string
 underscoreDepth :: String -> Integer
 underscoreDepth ('_':s) = 1 + underscoreDepth s
 underscoreDepth _       = 0
@@ -477,7 +477,7 @@ addStateLocToPragmaRuleId ns i = id
        id = setIdPosition pos (mkIdPost (stateLocToPrefix ns) id_fstr)
 
 
--- extact the value and incrment  1-based
+-- extract the value and increment  1-based
 incrMaybe :: Maybe Integer -> Integer
 incrMaybe Nothing  = 1
 incrMaybe (Just i) = (i+1)
@@ -512,7 +512,7 @@ isElementName i = (fsElements == (getIdFString $ unQualId i))
 type StateLocMap = M.Map [(Id, Maybe Integer)] Integer
 
 -- given a stateloc path, generate a key for the statelocmap
--- the head alway has Nothing as its key, the head is never ignored.
+-- the head always has Nothing as its key, the head is never ignored.
 -- Keeping hidden head entries allosing unique tree nodes for hidden name
 -- such as those generated in moduleContext.
 createStateLocMapKey :: IStateLoc -> [(Id, Maybe Integer)]

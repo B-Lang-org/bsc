@@ -119,7 +119,7 @@ where the "a", "b", and "c" mask the "outer" definitions of them and
 allow the original expressions that defined "a" "b" and "c" to be used
 unchanged.  Somewhat miraculously, this construction (variables, e.g.,
 "a", bound inside a "let" referring to the function within which it
-defined, e.g., "a$b$c") does not count as mutual recusion.
+defined, e.g., "a$b$c") does not count as mutual recursion.
 
 -}
 

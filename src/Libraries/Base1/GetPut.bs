@@ -197,7 +197,7 @@ fifoToGetS f =
 --@ import GetPut::*;
 --@ import FIFO::*;
 --@
---@ // Watch bus traffic beteween a bus and a bus target
+--@ // Watch bus traffic between a bus and a bus target
 --@ interface ProtocolMonitorIfc;
 --@    // These subinterfaces are defined inside the module
 --@    interface Put#(Bus_to_Target_Request)  bus_to_targ_req_ifc;

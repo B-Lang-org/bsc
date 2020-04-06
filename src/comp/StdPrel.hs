@@ -948,7 +948,7 @@ genNumEqInsts symT _ _ p@(IsIn c [t1, t2])
   where p = IsIn c [t1, t1]
         r = anyTExpr (predToType p)
 
--- reduce a requested equality to a simplier provisos
+-- reduce a requested equality to a simpler provisos
 -- (i.e. fewer type functions)
 genNumEqInsts symT _ _ p@(IsIn c [t, t'])
     | tcon == tAdd, [t1, t2] <- args = [ mkImpliedInst (IsIn clsAdd' [t1, t2, tB]) p ]

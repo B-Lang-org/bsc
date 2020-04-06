@@ -6,7 +6,7 @@
 #   with a specific instance which may instantiate a synthesized module.
 #   The general flow is:
 #      1) compile with bsc as normal
-#      2) specifiy the packages and module for a instance specific syntheis and
+#      2) specify the packages and module for a instance specific synthesis and
 #         automatically generate typeclass and default instances for these modules.
 #      3) Manually edit file to include the generated file (<package>.include.bsv)
 #      4) Manually edit file to change module names to used typeclass
@@ -26,7 +26,7 @@
 #   % namespace import ::InstSynth::*
 #   # To create the "generated include" file for a package with a
 #   # typeclass for overloading of a module (Step 2)
-#   # Output in <package>.include.bsv (note file is erased with this invokation
+#   # Output in <package>.include.bsv (note file is erased with this invocation
 #   % genTypeClass <package> { <module1> <module2> .. }
 #   # To generate specific instances execute (Step 6)
 #   # Outputs are appended in <package>.include.bsv

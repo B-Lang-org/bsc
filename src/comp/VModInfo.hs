@@ -682,7 +682,7 @@ mkNamedOutput vfi = if (newStr == "") then baseid else setIdBaseString baseid ne
     where  baseid = (vf_name vfi)
            newStr = maybe ""  getVPortString (vf_output vfi)
 
--- VFieldInfo does not have a ready field, so we jsut use the default construction for the ready signal.
+-- VFieldInfo does not have a ready field, so we just use the default construction for the ready signal.
 -- in aState we merge method and RDY_method to do the right thing.
 mkNamedReady :: VFieldInfo -> Id
 mkNamedReady vfi = baseid -- if (newStr == "") then baseid else setIdBaseString baseid newStr

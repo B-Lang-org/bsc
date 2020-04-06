@@ -86,7 +86,7 @@ flagsToVco flags = VConvtOpts {
                                vco_sv_tasks = systemVerilogTasks flags
                               }
 
--- This has been abolished from the compiler everwhere but the Verilog backend
+-- This has been abolished from the compiler everywhere but the Verilog backend
 dummy_string_size :: Integer
 dummy_string_size = 666
 
@@ -229,7 +229,7 @@ vForeignCall vco f@(AForeignCall aid taskid (c:es) ids resets) ffmap =
     -- splitString is used because $display etc. don't treat naked String arguments correctly
     -- (i.e. they treat them as bits not strings).
     -- splitString is not needed however if we know the String argument is being consumed by a %s
-    -- Thats hard to know in general but we will detect a few special cases here and in those cases skip
+    -- That's hard to know in general but we will detect a few special cases here and in those cases skip
     -- splitString
     isSpecialFormatString ASStr { ae_strval = s} | s == "%0s" = True
     isSpecialFormatString ASStr { ae_strval = s} | s == "%s"  = True

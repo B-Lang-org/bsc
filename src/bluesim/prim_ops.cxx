@@ -77,7 +77,7 @@ char* copy_arg(const std::string& str)
   return copy;
 }
 
-// Allocate an unitialized temporary array
+// Allocate an uninitialized temporary array
 unsigned int* ignore_arg(unsigned int n)
 {
   unsigned int* arg = (unsigned int*) alloc_mem(n);

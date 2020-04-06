@@ -13,7 +13,7 @@
 `endif
 
 
-// A seperate module which instantiates clock selection logic
+// A separate module which instantiates clock selection logic
 // It is expected that custom logic will replace this module
 // in general use.
 // Module selects between 2 clock.
@@ -111,4 +111,3 @@ module UngatedClockSelect(
 `endif // BSV_NO_INITIAL_BLOCKS
 
 endmodule
-

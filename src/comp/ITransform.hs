@@ -263,7 +263,7 @@ runCSE (ICon i (ICUndet t k (Just v))) = do
   return e'
 runCSE e = return e
 
--- recursively tranform an expression
+-- recursively transform an expression
 -- noting that a nontrivial transformation has happened
 {-# INLINE iTrAp2 #-}
 iTrAp2 :: (?errh :: ErrorHandle) =>

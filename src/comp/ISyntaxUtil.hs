@@ -698,7 +698,7 @@ noReset = makeReset noResetId noClock (ICon idNoReset (ICPrim itBit1 PrimResetUn
 missingDefaultReset :: IReset a
 missingDefaultReset = makeReset noDefaultResetId noClock (iMkLit itBit1 1)
 
--- clock extraction utilites
+-- clock extraction utilities
 -- required here because they need noClock which needs itClockCons
 -- (via makeClockWires)
 getNamedClock :: Id -> IStateVar a -> IClock a

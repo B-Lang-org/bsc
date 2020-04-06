@@ -1940,7 +1940,7 @@ Extract each type of statement, making sure to preserve the order
 >     internalError "atEnd not True for ISBVI stmt"
 
 > convImperativeStmtsToCStmts context atEnd stmts@(ISSequence pos seq : rest) =
->  do    --checking has been defered to this point
+>  do    --checking has been deferred to this point
 >    let (nm, params, _ {-provisos-}, vardecls, body) = seq
 >    pushState
 >    mapM_ (addParam pos) params

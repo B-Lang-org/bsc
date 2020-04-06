@@ -46,7 +46,7 @@ and replace a sub-expression, e.g.
   ;; string looking for matches of REGEXP and building up a (reversed)
   ;; list MATCHES.  This comprises segments of STRING which weren't
   ;; matched interspersed with replacements for segments that were.
-  ;; [For a `large' number of replacments it's more efficient to
+  ;; [For a `large' number of replacements it's more efficient to
   ;; operate in a temporary buffer; we can't tell from the function's
   ;; args whether to choose the buffer-based implementation, though it
   ;; might be reasonable to do so for long enough STRING.]
@@ -94,4 +94,3 @@ and replace a sub-expression, e.g.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-

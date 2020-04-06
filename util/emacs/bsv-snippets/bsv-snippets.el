@@ -21,7 +21,7 @@
 		   (yas/minor-mode-on)))))
 
 ;; with this, when you open a file, say, Foo.bsv, you should see this (or something
-;; alot like it in the bottom status bar
+;; a lot like it in the bottom status bar
 ;;
 ;; --:---   Foo.bsv    Top L1  (BSV yas)
 ;;

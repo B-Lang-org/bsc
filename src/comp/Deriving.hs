@@ -718,7 +718,7 @@ doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [u
         undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
 
 doDUninitialized :: Id -> [Type] -> COSummands -> CSummands -> CDefn
--- the single-summand case is not already derived for data delarations with no internal type
+-- the single-summand case is not already derived for data declarations with no internal type
 -- e.g. ActionWorld, so include it below
 doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
   where ty = cTApplys (cTCon i) vs

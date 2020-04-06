@@ -24,7 +24,7 @@
 //       (1,0,1) is a divide by 2, duty cycle  1/2
 //       (3,1,5) is a divide by 5  duty cycle  2/5
 //       (3,2,6) is a divide by 5  duty cycle  3/5
-// The offset allow edges for seperate modules to be determined
+// The offset allow edges for separate modules to be determined
 // relative to each other. a clock divider with offset 1 occurs one
 // (fast) clock later than a clock with offset 0.
 module ClockDiv(CLK_IN, RST, PREEDGE,  CLK_OUT);
@@ -69,7 +69,7 @@ module ClockDiv(CLK_IN, RST, PREEDGE,  CLK_OUT);
      begin
         // The use of blocking assignment within this block insures
         // that the clock generated from cntr[MSB] occurs before any
-        // LHS of nonblocking assigments also from CLK_IN occur.
+        // LHS of nonblocking assignments also from CLK_IN occur.
         // Basically, this insures that CLK_OUT and CLK_IN occur within
         // the same phase of the execution cycle,  before any state
         // updates occur. see

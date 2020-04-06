@@ -787,7 +787,7 @@ addRules rs = do
   updNewRuleSuffix suf'
 
   -- check the names in attributes of the new rules
-  -- (any errors are defered and it returns the rules without bad Ids)
+  -- (any errors are deferred and it returns the rules without bad Ids)
   rs''@(IRules sps2 rs2) <- checkAddRulesAttributes cur_ns cur_nameMap rs'
 
   -- add the new rule names to the scope

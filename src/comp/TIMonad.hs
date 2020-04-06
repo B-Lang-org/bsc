@@ -176,7 +176,7 @@ accumulateError es = do
   -- traceM "hello accumulateError"
   lift (modify addError)
   -- list might have poor time complexity when building
-  -- this kind of concatentation. XXX
+  -- this kind of concatenation. XXX
   -- Possibly explore "finger trees" in the future.
   where addError s = s { tsRecoveredErrors = (tsRecoveredErrors s) ++ (errmsgs es) }
 

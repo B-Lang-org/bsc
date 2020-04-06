@@ -1,4 +1,4 @@
-A basic BSV syntax highlighing mode for the vi clone VIM
+A basic BSV syntax highlighting mode for the vi clone VIM
 (http://www.vim.org).  The mode is mostly written from scratch, with
 two regexps copied from VIM's Verilog mode.
 
@@ -7,13 +7,13 @@ subdirectories ~/.vim/ftdetect , ~/.vim/indent and ~/.vim/syntax.
 Then copy the files from ftdetect/ , indent/ and syntax/ to
 ~/.vim/ftdetect/ , ~/.vim/indent and ~/.vim/syntax/ respectively.
 
-Or in unix terms tcsh: 
+Or in unix terms tcsh:
 
 >   mkdir -p ~/.vim/ftdetect
 >   mkdir -p ~/.vim/indent
 >   mkdir -p ~/.vim/syntax
 >  (cd $BLUESPECDIR/../util/vim; tar cf - *) | (cd ~/.vim; tar xvf -)
- 
+
 in your .tcshrc you may need to set the environment variable VIMRUNTIME
 
    setenv VIMRUNTIME /usr/share/vim/vim71
@@ -36,4 +36,3 @@ if has("autocmd")
  filetype indent on
 endif " has ("autocmd")
 let b:verilog_indent_modules = 1
-

@@ -249,10 +249,10 @@ proc mkRelativePath { from to } {
     join [concat $up $st] /
 }
 
-# processs options for command.
+# process options for command.
 # returns unaccounted for arguments, and array of key/value argument
-# boolArgs are list of present/absent argument
-# optArgs are options which take a argument
+# boolArgs are list of present/absent arguments
+# optArgs are options which take an argument
 proc scanOptions { boolArgs optArgs checkAll outArray argList } {
     upvar 1 $outArray ARG
     set result {}

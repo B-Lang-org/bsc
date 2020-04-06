@@ -122,7 +122,7 @@ namespace eval ::portUtil {
     
 
     ######################################################################
-    # recusively flatten down to a single list of lists
+    # recursively flatten down to a single list of lists
     proc flattenPinList { lst1 } {
         variable tmpList [list]
 

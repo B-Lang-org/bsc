@@ -218,7 +218,7 @@ addMEId num me_map id = do
 
 -- -------------------------
 -- Disjoint testing can be avoided if there is no overlap i the logic cones of each rule,
--- that is f(as) == 1 and g(bs) == 1 can be satisified if set as /= set bs
+-- that is f(as) == 1 and g(bs) == 1 can be satisfied if set as /= set bs
 -- we build a map containing the support set (as, bs) for each Aid,  rule
 type DSupportMap =  M.Map AId (S.Set ASupport)
 data ASupport = DMethod AId AId -- state port

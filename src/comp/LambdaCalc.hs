@@ -501,7 +501,7 @@ modType modId ns =
 modCtorId :: Id -> Id
 modCtorId modId = mk_homeless_id ("ctor_" ++ getIdBaseString modId)
 
--- Lambda-binding for instantation values passed to the constructor
+-- Lambda-binding for instantiation values passed to the constructor
 -- (for setting the port/param values in the state): val_<name>
 modArgId :: Id -> Id
 modArgId argId = mk_homeless_id ("val_" ++ getIdBaseString argId)

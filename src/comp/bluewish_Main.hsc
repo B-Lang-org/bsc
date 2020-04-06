@@ -98,7 +98,7 @@ char initScript2[] = "\
   lappend auto_path $env(BLUESPECDIR)/tcllib/bluespec ; \
 " ;
 
-// Startoff the execution -- seperate from user source.
+// Startoff the execution -- separate from user source.
 char startBS[] = "source $env(BLUESPECDIR)/tcllib/bluespec/bluespec.tcl ;";
 
 
@@ -106,7 +106,7 @@ char userStartFile[] = "~/.bluetclrc";
 
 
 /* Bluespec Shell initialization
-  0. The tcl interperter is already started.
+  0. The tcl interpreter is already started.
   1. set up the path and tcl_library for tcl before loading standard tcl files
   2. load the standard tcl libraries (under Tcl_Init)
   3. Start the Haskell engine for bluespec
