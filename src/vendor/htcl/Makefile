@@ -1,9 +1,9 @@
-CFLAGS += -Wall $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
+GHCFLAGS += -Wall $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
 GHC ?= ghc
 
 # We use GHC to compile this, so it has the proper RTS includes
 %.o: %.c
-	$(GHC) $(CFLAGS) -c $<
+	$(GHC) $(GHCFLAGS) -c $<
 
 libhtcl.a: haskell.o
 	ar -r $@ $(filter %.o, $+)
