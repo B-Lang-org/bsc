@@ -13,6 +13,7 @@ export COPTIMIZE=$(CFLAGS_M32) $(CFLAGS_FPIC) -O3
 core: $(LIB)
 
 # $(LIB) depends on */lib$(SUB)_release.a and will be rebuilt only if they have been updated
+.NOTPARALLEL:
 $(LIB): core/libcore_release.a core_prop/libcore_prop_release.a simp/libsimp_release.a utils/libutils_release.a cryptominisat2/libminisat.a $(OBJS)
 	$(RM) $@
 	$(call arcat,$@,$(filter %.a,$^))
