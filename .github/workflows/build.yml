@@ -29,7 +29,7 @@ jobs:
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
       - name: Install dependencies
         shell: bash
-        run: ".github/workflows/install_dependencies_ubuntu.sh"
+        run: "sudo .github/workflows/install_dependencies_ubuntu.sh"
       - name: Build
         run: |
           make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS'
