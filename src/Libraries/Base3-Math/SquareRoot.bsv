@@ -17,9 +17,9 @@ export mkNonPipelinedSquareRooter;
 
 module mkSquareRooter#(Integer n)(Server#(UInt#(m),Tuple2#(UInt#(m),Bool)))
    provisos(
-      // per request of bsc
-      Add#(a__, 2, m),
-      Log#(TAdd#(1, m), TLog#(TAdd#(m, 1)))
+      Div#(m, 2, m2),
+      // m must be even for this implementation to work
+      Mul#(m2, 2, m)
       );
 
    FIFO#(UInt#(m)) fRequest <- mkLFIFO;
@@ -48,7 +48,7 @@ module mkSquareRooter#(Integer n)(Server#(UInt#(m),Tuple2#(UInt#(m),Bool)))
    FIFO#(Tuple4#(Maybe#(Bit#(m)),Bit#(m),Bit#(m),Bit#(m))) fThis = fFirst;
    FIFO#(Tuple4#(Maybe#(Bit#(m)),Bit#(m),Bit#(m),Bit#(m))) fNext;
 
-   for (Integer i = 0; i < (valueOf(m)/2)/n+1; i = i + 1) begin
+   for (Integer i = 0; i < valueOf(m2)/n+1; i = i + 1) begin
       fNext <- mkLFIFO;
       rule work;
 	 //match {.res, .s, .r, .b} <- toGet(fThis).get;
@@ -59,7 +59,7 @@ module mkSquareRooter#(Integer n)(Server#(UInt#(m),Tuple2#(UInt#(m),Bool)))
 	 Bit#(m) b = tpl_4(x);
 
 	 for (Integer j = 0; j < n; j = j + 1) begin
-	    if ((i + j) <= (valueOf(m)/2)) begin
+	    if ((i + j) <= valueOf(m2)) begin
 	       if (res matches tagged Invalid) begin
 		  if (b == 0) begin
 		     res = tagged Valid r;
@@ -100,11 +100,9 @@ endmodule
 module mkFixedPointSquareRooter#(Integer n)(Server#(FixedPoint#(isize,fsize),Tuple2#(FixedPoint#(isize,fsize),Bool)))
    provisos(
       Add#(isize,fsize,m),
-      // per request of bsc
-      Add#(a__, 2, m),
-      Add#(b__, TLog#(TAdd#(1, m)), TAdd#(TLog#(m), 1)),
-      Log#(TAdd#(1, m), TLog#(TAdd#(m, 1))),
-      Add#(c__, TLog#(TAdd#(m, 1)), TAdd#(TLog#(m), 1))
+      // m must be even for this implementation to work
+      Mul#(TDiv#(m, 2), 2, m),
+      Add#(a__, 1, TLog#(TAdd#(1, m)))
       );
 
    FIFO#(FixedPoint#(isize,fsize)) fRequest <- mkLFIFO;
@@ -118,19 +116,22 @@ module mkFixedPointSquareRooter#(Integer n)(Server#(FixedPoint#(isize,fsize),Tup
       UInt#(m) value = unpack({op.i,op.f});
 
       let zeros = countZerosMSB(pack(value));
-      Int#(TAdd#(TLog#(m),1)) shift;
+      // The decimal place in 'value' is at 'fsize' bit place.
+      // After alignment, it is 'zeros + fsize' bit place.
+      // After square root, it is '(zeros + fsize) / 2' bit place.
+      //
+      // The shift restores the decimal to 'fsize' bit place, thus a
+      // right (left, if negative) shift by '(zeros + fsize) / 2 -
+      // fsize' or '(zeros - fsize) / 2'.
+      //
+      // Since it is not possible to shift by half a bit, adjust
+      // zeros, if necessary, so that shift is an integer.
+      Int#(TAdd#(TLog#(m),2)) shift2 = cExtend(zeros) - fromInteger(valueOf(fsize));
+      Int#(TAdd#(TLog#(m),1)) shift = cExtendLSB(shift2);
+      UInt#(1) lsb = cExtend(shift2);
 
       // align input
-      value = value << (zeros - 1);
-
-      // compute shift for output
-      shift = (fromInteger(valueOf(isize)) - cExtend(zeros)) >> 1;
-      shift = shift + 1;
-      if ((shift & 1) == 0) begin
-	 value = value >> 1;
-      end
-
-      shift = fromInteger(valueOf(isize)) - shift;
+      value = value << (zeros - extend(lsb));
 
       sqrt.request.put(value);
       fShift.enq(shift);
@@ -141,11 +142,14 @@ module mkFixedPointSquareRooter#(Integer n)(Server#(FixedPoint#(isize,fsize),Tup
       let shift <- toGet(fShift).get;
 
       // shift result as necessary
-      result = result >> shift;
+      if (shift >= 0)
+         result = result >> shift;
+      else  // invert direction if shift is negative
+         result = result << (-shift);
 
       FixedPoint#(isize,fsize) fx;
-      fx.i = cExtendLSB(result);
-      fx.f = cExtend(result);
+      fx.i = truncateLSB(pack(result));
+      fx.f = truncate(pack(result));
 
       fResponse.enq(tuple2(fx,inexact));
    endrule
@@ -287,6 +291,8 @@ module mkTb(Empty);
       testSqrtPipe('hffff0000_00000000);
       testSqrtPipe('hfffe0000);
 
+      testSqrtPipe(536870912.9375);
+      testSqrtPipe(1073741824.96875);
       testSqrtPipe(0.5);
       testSqrtPipe(0.25);
 
@@ -307,10 +313,10 @@ module mkTb(Empty);
       end
 
       if (rfx != rrfx) begin
-	 $display("sqrtfx(", fshow(nfx), ") = ", fshow(rfx), " (expected ", fshow(rrfx) ,")");
+	 $display("sqrtfx(", fshow(nfx), ") = ", fshow(rrfx), " (expected ", fshow(rfx) ,")");
       end
       else begin
-	 $display("sqrtfx(", fshow(nfx), ") = ", fshow(rfx));
+	 $display("sqrtfx(", fshow(nfx), ") = ", fshow(rrfx));
       end
    endrule
 
