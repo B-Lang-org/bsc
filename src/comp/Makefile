@@ -63,9 +63,13 @@ HTCL_LIB_FLAGS = -lhtcl
 # TCL/TK version
 ifeq ($(OSTYPE), Darwin)
 # Have Makefile avoid Homebrew's install of tcl on Mac
-TCLTK_VER = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
+TCLSH=/usr/bin/tclsh
 else
-TCLTK_VER = $(shell echo 'puts [info tclversion]' | tclsh)
+TCLSH=tclsh
+endif
+TCLTK_VER = $(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH) || echo fail)
+ifeq ($(TCLTK_VER),fail)
+$(error TCL version check failed)
 endif
 
 # TCL/TK include flags
