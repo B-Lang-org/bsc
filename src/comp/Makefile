@@ -60,17 +60,12 @@ HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
 HTCL_LIB_FLAGS = -lhtcl
 
-# TCL/TK versions
-# TCL and TK are always the same, but ITCL/ITK may have different minor versions
+# TCL/TK version
 ifeq ($(OSTYPE), Darwin)
 # Have Makefile avoid Homebrew's install of tcl on Mac
 TCLTK_VER = $(shell echo 'puts [info tclversion]' | /usr/bin/tclsh)
-ITCL_VER  = $(shell echo 'puts [package require Itcl]' | /usr/bin/tclsh)
-ITK_VER   = $(shell echo 'catch {puts [package require Itk]};exit' | /usr/bin/wish)
 else
 TCLTK_VER = $(shell echo 'puts [info tclversion]' | tclsh)
-ITCL_VER  = $(shell echo 'puts [package require Itcl]' | tclsh)
-ITK_VER   = $(shell echo 'catch {puts [package require Itk]};exit' | xvfb-run -a /usr/bin/wish)
 endif
 
 # TCL/TK include flags
@@ -80,16 +75,10 @@ TCLTK_INC_FLAGS += -I$(shell xcrun --show-sdk-path)/System/Library/Frameworks/Tk
 endif
 
 # TCL library flags
-ifeq ($(OSTYPE), Darwin)
-TCL_LIB_FLAGS = -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitcl$(ITCL_VER).dylib))"
-endif
-TCL_LIB_FLAGS += -ltcl$(TCLTK_VER) -litcl$(ITCL_VER)
+TCL_LIB_FLAGS = -ltcl$(TCLTK_VER)
 
 # TK library flags
-ifeq ($(OSTYPE), Darwin)
-TK_LIB_FLAGS = -L"$(shell dirname $(shell $(FIND) /System/Library/Tcl -type f -name libitk$(ITK_VER).dylib))"
-endif
-TK_LIB_FLAGS += -ltk$(TCLTK_VER) -litk$(ITK_VER) $(shell pkg-config --libs x11 fontconfig xft)
+TK_LIB_FLAGS = -ltk$(TCLTK_VER) $(shell pkg-config --libs x11 fontconfig xft)
 
 # -----
 # GHC

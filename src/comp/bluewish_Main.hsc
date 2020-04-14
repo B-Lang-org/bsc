@@ -32,12 +32,8 @@ extern void __stginit_BlueTcl ( void );
 int bluewish_AppInit(Tcl_Interp *interp);
 int Bluespec_Init(Tcl_Interp *interp) ;
 
-extern int Itcl_Init(Tcl_Interp *interp) ;
 extern int Tk_Init(Tcl_Interp *interp) ;
-extern int Itk_Init(Tcl_Interp *interp) ;
-extern int Itcl_SafeInit(Tcl_Interp *interp) ;
 extern int Tk_SafeInit(Tcl_Interp *interp) ;
-extern int Itk_SafeInit(Tcl_Interp *interp) ;
 
 
 /*
@@ -139,20 +135,6 @@ bluewish_AppInit(interp)
     exit (-1);
   }
   Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
-
-  // Itcl startup
-  if (Itcl_Init(interp) != TCL_OK) {
-    fprintf(stderr,"Unable to start itcl -- %s\n", Tcl_GetStringResult(interp));
-    exit (-1);
-  }
-  Tcl_StaticPackage(interp, "Itcl", Itcl_Init, Itcl_SafeInit);
-
-  // ITk startup
-  if (Itk_Init(interp) != TCL_OK) {
-    fprintf(stderr,"Unable to start itk -- %s\n", Tcl_GetStringResult(interp));
-    exit (-1);
-  }
-  Tcl_StaticPackage(interp, "Itk", Itk_Init, Itk_SafeInit);
 
   // Bluespec startup
   if (Bluespec_Init (interp) != TCL_OK) {
