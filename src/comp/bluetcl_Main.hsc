@@ -31,9 +31,6 @@ extern void __stginit_BlueTcl ( void );
 int bluetcl_AppInit(Tcl_Interp *interp);
 int Bluespec_Init(Tcl_Interp *interp);
 
-extern int Itcl_Init(Tcl_Interp *interp) ;
-extern int Itcl_SafeInit(Tcl_Interp *interp) ;
-
 
 /*
  *----------------------------------------------------------------------
@@ -128,13 +125,6 @@ bluetcl_AppInit(interp)
     fprintf(stderr,"Unable to start tcl -- %s\n", Tcl_GetStringResult(interp));
     exit (-1);
   }
-
-  // Itcl startup
-  if (Itcl_Init(interp) != TCL_OK) {
-    fprintf(stderr,"Unable to start itcl -- %s\n", Tcl_GetStringResult(interp));
-    exit (-1);
-  }
-  Tcl_StaticPackage(interp, "Itcl", Itcl_Init, Itcl_SafeInit);
 
   // Bluespec startup
   if (Bluespec_Init (interp) != TCL_OK) {
