@@ -177,6 +177,8 @@ GHCINCLUDES =  \
 	-i$(YICES_HS) \
 	-i$(HTCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
+# Default RTS flags for programs built with a Haskell main
+RTSFLAGS =
 FVIA ?= -fasm
 GHCFLAGS = \
 	-hide-all-packages \
@@ -206,7 +208,9 @@ endif
 
 GHCMAJORGTE7 := $(shell expr $(GHCMAJOR) \>= 7)
 ifeq ($(GHCMAJORGTE7),1)
-GHCFLAGS += -rtsopts
+# Get Haskell runtime to parse and filter +RTS ... -RTS args
+# from command line arguments at program start
+RTSFLAGS += -rtsopts
 endif
 
 # Use -O2, except with GHC 7.7 which is very slow with -O2
@@ -322,43 +326,43 @@ bsc: $(SOURCES) $(EXTRAOBJS)
 	./update-build-version.sh
 	./update-build-system.sh
 	$(BUILDCOMMAND) -main-is Main_$@ \
-		$(BUILDFLAGS) $(BSC_BUILDLIBS) $(EXTRAOBJ)
+		$(BUILDFLAGS) $(RTSFLAGS) $(BSC_BUILDLIBS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsc2bsv
 bsc2bsv: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsv2bsc
 bsv2bsc: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpbo
 dumpbo: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpba
 dumpba: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: vcdcheck
 vcdcheck: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: showrules
 showrules: $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bluetcl
