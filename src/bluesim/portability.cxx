@@ -12,44 +12,7 @@
 
 #include "portability.h"
 
-/* our own implementation of strdup() */
-char* port_strdup(const char* str)
-{
-  if (str == NULL)
-    return NULL;
-  char* ret = (char*) malloc(strlen(str)+1);
-  if (ret != NULL)
-    strcpy(ret, str);
-  return ret;
-}
-
-char* port_strndup(const char* str, unsigned int n)
-{
-  if (str == NULL)
-    return NULL;
-  unsigned int num_chars = strlen(str);
-  if (num_chars > n)
-    num_chars = n;
-  char* ret = (char*) malloc(num_chars+1);
-  if (ret != NULL)
-  {
-    strncpy(ret, str, num_chars);
-    ret[num_chars] = '\0';
-  }
-  return ret;
-}
-
-/* older libraries don't have ftello() */
-off_t port_ftello(FILE* stream)
-{
-#ifdef __USE_LARGEFILE  // from <features.h>
-  return ftello(stream);
-#else
-  return (off_t) ftell(stream);
-#endif
-}
-
-/* expnonentiation on unsigned ints */
+/* exponentiation on unsigned ints */
 unsigned long long powll(unsigned int base, unsigned int exp)
 {
   if (exp == 0)  return 1llu;

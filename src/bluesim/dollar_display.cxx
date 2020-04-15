@@ -9,7 +9,7 @@
 #include "bs_wide_data.h"
 #include "bs_module.h"
 #include "bs_target.h"
-#include "portability.h"  // needs port_strdup
+#include "portability.h"
 
 // This structure is used to record information
 // parsed from a format field specifier.
@@ -183,7 +183,7 @@ class ArgList
   ArgList(const char* str, va_list* ap)
     : ap_ptr(ap)
   {
-    type_str = port_strdup(str);  // use malloc(), so pair with free()
+    type_str = strdup(str);  // use malloc(), so pair with free()
     cptr = type_str;
     next();
   }

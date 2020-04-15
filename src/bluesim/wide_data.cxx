@@ -29,19 +29,6 @@ static inline unsigned int* word_ptr(unsigned int* buf, unsigned int bit)
   return buf + (bit / WORD_SIZE);
 }
 
-// Which byte is this bit in?
-static inline unsigned int byte_idx(unsigned int bit)
-{
-  return (bit / BYTE_SIZE);
-}
-
-// Get a pointer to the byte containing this bit
-// What offset within the byte is the bit at?
-static inline unsigned int byte_offset(unsigned int bit)
-{
-  return (bit % BYTE_SIZE);
-}
-
 static inline char* byte_ptr(unsigned int* buf, unsigned int bit)
 {
   return ((char*) buf) + (bit / BYTE_SIZE);

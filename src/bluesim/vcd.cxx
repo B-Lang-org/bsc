@@ -7,7 +7,6 @@
 #include "kernel.h"
 #include "bs_vcd.h"
 #include "bs_target.h"
-#include "portability.h"  // need port_ftello
 
 // VCD generator version
 static const unsigned int major_rev = 2;
@@ -236,7 +235,7 @@ bool vcd_check_file_size(tSimStateHdl simHdl)
   tVCDState* s = &(simHdl->vcd);
   if ((s->vcd_file != NULL) && (s->vcd_filesize_limit != 0llu))
   {
-    unsigned long long sz = (unsigned long long) port_ftello(s->vcd_file);
+    unsigned long long sz = (unsigned long long) ftello(s->vcd_file);
     if (sz > s->vcd_filesize_limit)
     {
       vcd_write_comment(simHdl, "VCD file size limit exceeded\n");
