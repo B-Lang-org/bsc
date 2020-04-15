@@ -42,7 +42,7 @@ LINKFILES = bs_linux_export_map.txt \
 
 # -------------------------
 
-CFLAGS += -Wall \
+CFLAGS += -Wall -Wextra -Werror \
 	-Wmissing-prototypes \
 	-Wstrict-prototypes \
 	-Wpointer-arith \
@@ -53,14 +53,14 @@ CFLAGS += -Wall \
 	-std=c99 \
         -D_FILE_OFFSET_BITS=64 \
 	-fPIC
-CXXFLAGS += -Wall \
+CXXFLAGS += -Wall -Wextra -Werror \
 	-Wpointer-arith \
 	-Wshadow \
 	-Wcast-qual \
 	-Wno-unused-parameter \
 	-g \
 	-D_ISOC99_SOURCE \
-	-std=gnu++98 \
+	-std=c++11 \
         -D_FILE_OFFSET_BITS=64 \
         -fno-rtti \
 	-fPIC
@@ -140,7 +140,7 @@ test-headers:
 	    echo "#include \"$$hdr\"" >> test_hdr.cxx ; \
 	  fi ; \
 	done
-	$(CXX) -std=gnu++98 -c -o /dev/null test_hdr.cxx
+	$(CXX) -std=c++11 -c -o /dev/null test_hdr.cxx
 
 .PHONY: install
 install: $(LIBS) test-headers

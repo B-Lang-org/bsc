@@ -5,7 +5,6 @@
 #include "bluesim_kernel_api.h"
 #include "kernel.h"
 #include "plusargs.h"
-#include "portability.h"  // needs port_strdup
 
 void clear_plusargs(tSimStateHdl simHdl)
 {
@@ -21,7 +20,7 @@ void clear_plusargs(tSimStateHdl simHdl)
 void bk_append_argument(tSimStateHdl simHdl, const char* arg)
 {
   if (arg != NULL)
-    simHdl->plus_args.push_back(port_strdup(arg));
+    simHdl->plus_args.push_back(strdup(arg));
 }
 
 const char* bk_match_argument(tSimStateHdl simHdl, const char* name)

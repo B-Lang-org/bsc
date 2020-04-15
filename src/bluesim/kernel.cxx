@@ -687,7 +687,7 @@ tSimStateHdl bk_init(tModel model, tBool master)
 
   // initialize directly so bk_set_timescale doesn't try to free garbage
   simHdl->sim_timescale = 1;
-  (simHdl->vcd).vcd_timescale = port_strdup("1 us");
+  (simHdl->vcd).vcd_timescale = strdup("1 us");
 
   tBluesimVersionInfo version;
   simHdl->model->get_version(&(version.year),
@@ -900,7 +900,7 @@ tClock bk_define_clock(tSimStateHdl simHdl,
   tClock clk = simHdl->clocks.size();
 
   tClockInfo ci;
-  ci.name = port_strdup(name);
+  ci.name = strdup(name);
   ci.current_value = initial_value;
   ci.initial_value = initial_value;
   ci.has_initial_value = (has_initial_value != 0);
@@ -1212,7 +1212,7 @@ tStatus bk_set_timescale(tSimStateHdl simHdl, const char* scale_unit, tTime scal
 
   simHdl->sim_timescale = scale_factor;
   char* current_timescale = simHdl->vcd.vcd_timescale;
-  simHdl->vcd.vcd_timescale = port_strdup(scale_unit);
+  simHdl->vcd.vcd_timescale = strdup(scale_unit);
   if(current_timescale != NULL) {
     free(current_timescale);
   }

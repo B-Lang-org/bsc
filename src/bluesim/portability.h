@@ -29,13 +29,6 @@
 
 extern "C" {
 
-/* our own implementation of strdup() */
-char* port_strdup(const char* str);
-char* port_strndup(const char* str, unsigned int n);
-
-/* older libraries don't have ftello() */
-off_t port_ftello(FILE* stream);
-
 /* exponentiation on integers */
 unsigned long long powll(unsigned int base, unsigned int exp);
 
