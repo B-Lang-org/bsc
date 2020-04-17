@@ -157,7 +157,9 @@ PACKAGES = \
 # The make flags do not include "-o" because bluetcl and bluewish
 # are compiled in two steps and the first step doesn't have that option.
 # So all users of GHCMAKEFLAGS have to include "-o" themselves.
-GHCMAKEFLAGS = --make $@ -j$(GHCJOBS)
+# NB the first prerequisite of rules using this must be the Haskell source
+# file corresponding to the binary, eg "bsc2cobol: bsc2cobol.hs $(SOURCES)"
+GHCMAKEFLAGS = --make $< -j$(GHCJOBS)
 GHCCOMPILEFLAGS = -o $@ -c $<
 
 # On Mac OS, we'll need to update the dylib location,
@@ -320,7 +322,7 @@ endif
 endif
 
 .PHONY: bsc
-bsc: $(SOURCES) $(EXTRAOBJS)
+bsc: bsc.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
         # to force updating of BuildVersion/BuildSystem when necessary
 	./update-build-version.sh
@@ -330,37 +332,37 @@ bsc: $(SOURCES) $(EXTRAOBJS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsc2bsv
-bsc2bsv: $(SOURCES) $(EXTRAOBJS)
+bsc2bsv: bsc2bsv.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsv2bsc
-bsv2bsc: $(SOURCES) $(EXTRAOBJS)
+bsv2bsc: bsv2bsc.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpbo
-dumpbo: $(SOURCES) $(EXTRAOBJS)
+dumpbo: dumpbo.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpba
-dumpba: $(SOURCES) $(EXTRAOBJS)
+dumpba: dumpba.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: vcdcheck
-vcdcheck: $(SOURCES) $(EXTRAOBJS)
+vcdcheck: vcdcheck.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: showrules
-showrules: $(SOURCES) $(EXTRAOBJS)
+showrules: showrules.hs $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
 	$(POSTBUILDCOMMAND)
@@ -375,15 +377,8 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 		-x c bluetcl_Main.hsc
 	$(POSTBUILDCOMMAND)
 
-BLUEWISHCP = cp -p bluetcl.hs bluewish.hs
-BLUEWISHDIFF = diff -q bluetcl.hs bluewish.hs || $(BLUEWISHCP)
-
-.PHONY: bluewish.hs
-bluewish.hs: bluetcl.hs
-	if test -f bluewish.hs; then $(BLUEWISHDIFF); else $(BLUEWISHCP); fi;
-
 .PHONY: bluewish
-bluewish: bluewish.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
+bluewish: bluetcl.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
 	$(PREBUILDCOMMAND)
 	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUEWISH_BUILDLIBS) \
