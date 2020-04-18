@@ -60,29 +60,23 @@ HTCL_HS = ../vendor/htcl
 HTCL_INC_FLAGS = -L$(HTCL_HS)
 HTCL_LIB_FLAGS = -lhtcl
 
-# TCL/TK version
+# TCL version
 ifeq ($(OSTYPE), Darwin)
 # Have Makefile avoid Homebrew's install of tcl on Mac
 TCLSH=/usr/bin/tclsh
 else
 TCLSH=tclsh
 endif
-TCLTK_VER = $(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH) || echo fail)
-ifeq ($(TCLTK_VER),fail)
+TCL_VER = $(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH) || echo fail)
+ifeq ($(TCL_VER),fail)
 $(error TCL version check failed)
 endif
 
-# TCL/TK include flags
-TCLTK_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl tk || echo -I/usr/include/tcl)
-ifeq ($(OSTYPE), Darwin)
-TCLTK_INC_FLAGS += -I$(shell xcrun --show-sdk-path)/System/Library/Frameworks/Tk.framework/Headers
-endif
+# TCL include flags
+TCL_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
 
 # TCL library flags
-TCL_LIB_FLAGS = -ltcl$(TCLTK_VER)
-
-# TK library flags
-TK_LIB_FLAGS = -ltk$(TCLTK_VER) $(shell pkg-config --libs x11 fontconfig xft)
+TCL_LIB_FLAGS = -ltcl$(TCL_VER)
 
 # -----
 # GHC
@@ -198,7 +192,7 @@ GHCFLAGS += \
 	$(STP_INC_FLAGS) \
 	$(YICES_INC_FLAGS) \
 	$(HTCL_INC_FLAGS) \
-	$(TCLTK_INC_FLAGS) \
+	$(TCL_INC_FLAGS) \
 
 ifeq ($(OSTYPE), Linux)
 # Some GHC installations may fail to include this automatically,
@@ -250,7 +244,7 @@ SOURCES_WO_EXTRA_BUILDVERSION = \
 SOURCES = BuildVersion.hs BuildSystem.hs $(SOURCES_WO_EXTRA_BUILDVERSION)
 
 BSCEXES = bsc
-TCLEXES = bluetcl bluewish
+TCLEXES = bluetcl
 UTILEXES = bsc2bsv bsv2bsc dumpbo dumpba vcdcheck
 SHOWRULESEXES = showrules
 
@@ -291,10 +285,6 @@ BLUETCL_BUILDLIBS = \
 	$(BSC_BUILDLIBS) \
 	$(TCL_LIB_FLAGS) \
 	$(HTCL_LIB_FLAGS) \
-
-BLUEWISH_BUILDLIBS = \
-	$(BLUETCL_BUILDLIBS) \
-	$(TK_LIB_FLAGS) \
 
 # Choose prof/debug/normal based on environment variables
 ifeq ($(BSC_BUILD),PROF)
@@ -373,23 +363,6 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 		-o $@ \
 		-no-hs-main $(EXTRAOBJ) \
 		-x c bluetcl_Main.hsc
-	$(POSTBUILDCOMMAND)
-
-BLUEWISHCP = cp -p bluetcl.hs bluewish.hs
-BLUEWISHDIFF = diff -q bluetcl.hs bluewish.hs || $(BLUEWISHCP)
-
-.PHONY: bluewish.hs
-bluewish.hs: bluetcl.hs
-	if test -f bluewish.hs; then $(BLUEWISHDIFF); else $(BLUEWISHCP); fi;
-
-.PHONY: bluewish
-bluewish: bluewish.hs bluewish_Main.hsc $(SOURCES) $(EXTRAOBJS)
-	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
-	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUEWISH_BUILDLIBS) \
-		-o $@ \
-		-no-hs-main $(EXTRAOBJ) \
-		-x c bluewish_Main.hsc
 	$(POSTBUILDCOMMAND)
 
 # -----

@@ -110,19 +110,6 @@ you will need the `tcl` library:
 
     $ apt-get install tcl-dev
 
-For building and using the Bluespec Tcl/Tk windowing shell (`bluewish`),
-you will also need the `tk`, `fontconfig`, `X11`, and `Xft` libraries:
-
-    $ apt-get install \
-        tk-dev \
-        libfontconfig1-dev \
-        libx11-dev \
-        libxft-dev
-
-Some applications using the Bluespec Tcl/Tk shells will also require
-the `itcl` and `itk` libraries, but those libraries are not required
-for building or using any of the tools in this repository.
-
 Building BSC also requires standard Unix shell and Makefile utilities.
 
 The repository for [the Yices SMT Solver](https://github.com/SRI-CSL/yices2) is

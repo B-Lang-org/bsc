@@ -12,9 +12,8 @@ apt-get install -y \
     git \
     gperf \
     iverilog \
-    libfontconfig1-dev \
     libghc-old-time-dev \
     libghc-regex-compat-dev \
     libghc-syb-dev \
-    libx11-dev \
-    libxft-dev
+    libghc-split-dev \
+    tcl-dev

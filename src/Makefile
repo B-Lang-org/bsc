@@ -9,14 +9,12 @@ ifndef NO_DEPS_CHECKS
 CC_TOOLS=$(CC) $(CXX) $(LD)
 BSC_TOOLS=ghc ghc-pkg
 BLUETCL_TOOLS=tclsh
-BLUEWISH_TOOLS=wish
 YICES_TOOLS=gperf autoconf
 STP_TOOLS=flex bison
 
 TOOLS=$(CC_TOOLS) \
       $(BSC_TOOLS) \
       $(BLUETCL_TOOLS) \
-      $(BLUEWISH_TOOLS) \
       $(YICES_TOOLS) \
       $(STP_TOOLS) \
 
