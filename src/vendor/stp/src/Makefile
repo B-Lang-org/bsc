@@ -11,10 +11,14 @@ HEADERS=c_interface/*.h
 ifeq ($(OSTYPE), Darwin)
 LIBRARIES=lib/libstp.dylib
 SNAME = libstp.dylib
+# When linked into a binary, use this 'install_name'. @rpath makes library
+# be loaded relative to the rpath baked into the binary.
+INAME = @rpath/$(SNAME)
 CP = cp -Rf
 else
 LIBRARIES=lib/libstp.so.1 lib/libstp.so
 SNAME = libstp.so.1
+INAME = $(SNAME)
 CP = cp -df
 endif
 
@@ -66,7 +70,7 @@ lib/$(SNAME):  c_interface/c_interface.o \
 	@# For some reason, this line doesn't work
 	@# $(CXX) $(CFLAGS) $(SHAREDFLAG) -o $@ $^
 	@# We use --whole-archive to ensure that all symbols in to-sat are used
-	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(SNAME) -o $@ $(LIBCCARGS)
+	$(CXX) $(CFLAGS) $(SHAREDFLAG)  -Wl,$(SONAMEFLAG),$(INAME) -o $@ $(LIBCCARGS)
 
 ifneq ($(OSTYPE), Darwin)
 lib/libstp.so: lib/libstp.so.1

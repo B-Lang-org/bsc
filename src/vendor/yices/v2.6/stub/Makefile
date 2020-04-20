@@ -26,8 +26,15 @@ HEADERS = \
 
 FULLVER = $(VER).$(SUBVER)
 
+ifeq ($(OSTYPE), Darwin)
+SNAME = $(LIBNAME).$(VER).dylib
+FULLNAME = $(LIBNAME).$(FULLVER).dylib
+NOVERNAME = $(LIBNAME).dylib
+else
 SNAME = $(LIBNAME).so.$(VER)
 FULLNAME = $(LIBNAME).so.$(FULLVER)
+NOVERNAME = $(LIBNAME).so
+endif
 OBJECTS = $(addsuffix .o, $(basename $(SRC)))
 
 # -------------------------
@@ -50,20 +57,24 @@ endif
 ifeq ($(OSTYPE), Darwin)
 SHAREDFLAG = -dynamiclib
 SONAMEFLAG = -install_name
+# When linked into a binary, use this 'install_name'. @rpath makes library
+# be loaded relative to the rpath baked into the binary.
+INAME = @rpath/$(SNAME)
 else
 SHAREDFLAG = -shared
 SONAMEFLAG = -soname
+INAME = $(SNAME)
 endif
 
 # -------------------------
 
 all: $(FULLNAME)
 	ln -sf $< $(SNAME)
-	ln -sf $< $(LIBNAME).so
+	ln -sf $< $(NOVERNAME)
 
 
 $(FULLNAME): $(OBJECTS)
-	$(CC) $(SHAREDFLAG) -Wl,$(SONAMEFLAG),$(SNAME) -o $@ $<
+	$(CC) $(SHAREDFLAG) -Wl,$(SONAMEFLAG),$(INAME) -o $@ $<
 
 
 $(LIBNAME).a:	$(OBJECTS)
@@ -75,14 +86,14 @@ $(LIBNAME).a:	$(OBJECTS)
 
 install: all
 	mkdir -p $(YICES_INST)/lib
-	$(CP) $(FULLNAME) $(SNAME) $(LIBNAME).so  $(YICES_INST)/lib/
+	$(CP) $(FULLNAME) $(SNAME) $(NOVERNAME)  $(YICES_INST)/lib/
 	mkdir -p $(YICES_INST)/include
 	$(CP) $(HEADERS) $(YICES_INST)/include/
 
 .PHONY: clean full_clean
 
 clean:
-	$(RM) *.o $(FULLNAME) $(SNAME) $(LIBNAME).so
+	$(RM) *.o $(FULLNAME) $(SNAME) $(NOVERNAME)
 
 full_clean: clean
 	$(RM) $(YICES_INST)/lib
