@@ -222,7 +222,7 @@ module SizedFIFO(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
                    deqerror = 1 ;
                    $display( "Warning: SizedFIFO: %m -- Dequeuing from empty fifo" ) ;
                 end
-              if ( ! FULL_N && ENQ && (!DEQ || guarded) )
+              if ( ! FULL_N && ENQ && (!DEQ || (guarded == 32'd1)) )
                 begin
                    enqerror =  1 ;
                    $display( "Warning: SizedFIFO: %m -- Enqueuing to a full fifo" ) ;

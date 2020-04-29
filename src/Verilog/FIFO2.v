@@ -141,7 +141,7 @@ module FIFO2(CLK,
                   deqerror =  1;
                   $display( "Warning: FIFO2: %m -- Dequeuing from empty fifo" ) ;
                end
-             if ( ! full_reg && ENQ && (!DEQ || guarded) )
+             if ( ! full_reg && ENQ && (!DEQ || (guarded == 32'd1)) )
                begin
                   enqerror = 1;
                   $display( "Warning: FIFO2: %m -- Enqueuing to a full fifo" ) ;

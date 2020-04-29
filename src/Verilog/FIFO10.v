@@ -95,7 +95,7 @@ module FIFO10(CLK,
                    deqerror = 1 ;
                    $display( "Warning: FIFO10: %m -- Dequeuing from empty fifo" ) ;
                 end
-              if ( ! FULL_N && ENQ && (!DEQ || guarded) )
+              if ( ! FULL_N && ENQ && (!DEQ || (guarded == 32'd1)) )
                 begin
                    enqerror =  1 ;
                    $display( "Warning: FIFO10: %m -- Enqueuing to a full fifo" ) ;
