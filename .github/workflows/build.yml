@@ -30,10 +30,28 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: "sudo .github/workflows/install_dependencies_ubuntu.sh"
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every build,
+      # and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v1
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
       - name: Build
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: |
-          make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS'
+          ccache --zero-stats --max-size 250M
+          export PATH=/usr/lib/ccache:$PATH
+          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M5G -A128m -RTS'
           tar czf inst.tar.gz inst
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
       - name: Smoketest
         run: "make check"
       - name: Upload artifact
@@ -59,10 +77,28 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: ".github/workflows/install_dependencies_macos.sh"
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every build,
+      # and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v1
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
       - name: Build
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: |
-          make -j2 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' MACOSX_DEPLOYMENT_TARGET=10.13
+          ccache --zero-stats --max-size 250M
+          export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+          make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' MACOSX_DEPLOYMENT_TARGET=10.13
           tar czf inst.tar.gz inst
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
       - name: Smoketest
         run: "make check"
       - name: Upload artifact
