@@ -91,7 +91,7 @@ static unsigned int maxWidth(unsigned int nBits, bool isSigned,
 
 // Return the number of digits required to represent a given value
 // in the specified base.
-static unsigned int numDigits(const tValue& v, unsigned int base=10)
+static unsigned short numDigits(const tValue& v, unsigned int base=10)
 {
   if (v.bits < 2)
     return 1;
@@ -569,7 +569,7 @@ const char* print_decimal(tFieldDesc& spec, ArgList* args, Target* dest)
   }
   else if (v.bits == 1)
   {
-    unsigned int value_width = numDigits(v);
+    unsigned short value_width = numDigits(v);
     pad(spec.width, field_width, value_width, ' ', dest);
     if (v.isSigned && v.data.bitVal)
       dest->write_char('-');
@@ -577,7 +577,7 @@ const char* print_decimal(tFieldDesc& spec, ArgList* args, Target* dest)
   }
   else
   {
-    unsigned int value_width = numDigits(v);
+    unsigned short value_width = numDigits(v);
     pad(spec.width, field_width, value_width, ' ', dest);
     unsigned long long x;
     if (v.isSigned)
@@ -632,13 +632,13 @@ const char* print_hex(tFieldDesc& spec, ArgList* args, Target* dest)
   }
   else if (v.bits == 1)
   {
-    unsigned int value_width = numDigits(v,16);
+    unsigned short value_width = numDigits(v,16);
     pad(spec.width, field_width, value_width, '0', dest);
     dest->write_char(v.data.bitVal ? '1' : '0');
   }
   else
   {
-    unsigned int value_width = numDigits(v,16);
+    unsigned short value_width = numDigits(v,16);
     pad(spec.width, field_width, value_width, '0', dest);
     unsigned long long x = v.data.uVal;
     if (v.bits < 64)
@@ -685,13 +685,13 @@ const char* print_octal(tFieldDesc& spec, ArgList* args, Target* dest)
   }
   else if (v.bits == 1)
   {
-    unsigned int value_width = numDigits(v,8);
+    unsigned short value_width = numDigits(v,8);
     pad(spec.width, field_width, value_width, '0', dest);
     dest->write_char(v.data.bitVal ? '1' : '0');
   }
   else
   {
-    unsigned int value_width = numDigits(v,8);
+    unsigned short value_width = numDigits(v,8);
     pad(spec.width, field_width, value_width, '0', dest);
     unsigned long long x = v.data.uVal;
     if (v.bits < 64)
@@ -735,7 +735,7 @@ const char* print_binary(tFieldDesc& spec, ArgList* args, Target* dest)
   }
   else
   {
-    unsigned int value_width = numDigits(v,2);
+    unsigned short value_width = numDigits(v,2);
     pad(spec.width, field_width, value_width, '0', dest);
     char buf[value_width+1];
     buf[value_width] = '\0';
