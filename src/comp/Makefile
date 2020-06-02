@@ -372,7 +372,7 @@ bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
 install: $(BSCEXES) $(TCLEXES) install-bsc install-bluetcl
 
 .PHONY: install-extra
-install-extra: $(UTILEXES) $(SHOWRULESEXES) install-util install-showrules
+install-extra: $(UTILEXES) $(SHOWRULESEXES) install-utils install-showrules
 
 # Until the need for BLUESPECDIR and LD_LIBRARY_PATH to be set is removed
 # put the binaries in a "core" subdirectory and a wrapper script in "bin"
