@@ -24,6 +24,8 @@ install:
 	$(INSTALL) -m 755 bsc_build_vsim_modelsim $(INSTALLDIR)/bsc_build_vsim_modelsim
 	$(INSTALL) -m 755 bsc_build_vsim_modelsim $(INSTALLDIR)/bsc_build_vsim_Modelsim
 	$(INSTALL) -m 755 bsc_build_vsim_modelsim $(INSTALLDIR)/bsc_build_vsim_ModelSim
+	$(INSTALL) -m 755 bsc_build_vsim_modelsim $(INSTALLDIR)/bsc_build_vsim_questa
+	$(INSTALL) -m 755 bsc_build_vsim_modelsim $(INSTALLDIR)/bsc_build_vsim_Questa
 	$(INSTALL) -m 755 bsc_build_vsim_iverilog $(INSTALLDIR)/bsc_build_vsim_iverilog
 	$(INSTALL) -m 755 bsc_build_vsim_iverilog $(INSTALLDIR)/bsc_build_vsim_icarus
 	$(INSTALL) -m 755 bsc_build_vsim_veriwell $(INSTALLDIR)/bsc_build_vsim_veriwell

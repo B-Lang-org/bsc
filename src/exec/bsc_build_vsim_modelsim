@@ -189,6 +189,22 @@ if [ "$BSC_VHDL_FILES" != "" ]; then
 fi
 
 ######################################################################
+# Have the optimizer preserve access to all signals, for VCD dumping
+
+if [ "$VERBOSE" = "yes" ]; then
+    VOPT_VERBOSE=""
+    echo "exec: vopt -work $work_dir main +acc -o main_opt"
+else
+    VOPT_VERBOSE="-quiet"
+fi
+vopt $VOPT_VERBOSE -work $work_dir main +acc -o main_opt
+status=$?
+if [ "$status" != "0" ]; then
+    echo "ERROR: cannot optimize the design" >&2
+    exit $status
+fi
+
+######################################################################
 rm -f $BSC_SIM_EXECUTABLE
 status=$?
 if [ "$status" != "0" ]; then
@@ -219,7 +235,7 @@ fi
 
 # generate a "simulator executable" shell script
 echo '#!/bin/sh' > $BSC_SIM_EXECUTABLE
-echo "vsim -quiet -novopt -lib $work_dir $VPI_LINK -do \"run -all; quit\" -c main \$*" >> $BSC_SIM_EXECUTABLE
+echo "vsim -quiet -lib $work_dir $VPI_LINK -do \"run -all; quit\" -c main_opt \$*" >> $BSC_SIM_EXECUTABLE
 echo 'status=$?' >> $BSC_SIM_EXECUTABLE
 echo 'if [ "$status" != "0" ]; then' >> $BSC_SIM_EXECUTABLE
 echo '    echo "ERROR: cannot simulate design" >&2' >> $BSC_SIM_EXECUTABLE
