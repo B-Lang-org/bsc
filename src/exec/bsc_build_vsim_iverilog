@@ -81,7 +81,8 @@ while [ $# -gt 0 ]; do
     BSC_C_LIB_PATH="$BSC_C_LIB_PATH -L$1"
   elif [ "$1" = "-y" ]; then
     shift 1
-    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1"
+    # Also search for Verilog include files in these directories
+    BSC_VERILOG_DIRS="$BSC_VERILOG_DIRS -y $1 -I $1"
   elif [ "$1" = "-l" ]; then
     shift 1
     BSC_C_LIBS="$BSC_C_LIBS -l$1"
