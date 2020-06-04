@@ -24,6 +24,12 @@ namespace eval ::Depend {
             }
             return true
     }
+    proc isNotBO { f } {
+        if { [regexp "\.bo$" $f] } {
+            return false
+        }
+        return true
+    }
     proc cleanupdepend { line } {
         set f [lindex $line 0]
         set ds [lindex $line 1]
@@ -36,6 +42,13 @@ namespace eval ::Depend {
         }
         regsub  {^./} $f "" f
         return "${f}:\t${ds2}"
+    }
+    proc sources { tree } {
+        set ss [list]
+        foreach line $tree {
+            set ss [concat $ss [utils::filter Depend::isNotBO [lindex $line 1]]]
+        }
+        return $ss
     }
 }
 
@@ -57,7 +70,9 @@ if { $rootfiles == "" } {
 # scan options looking for -o
 utils::scanOptions {} [list -o] 0 OPT $argv
 set outfile stdout
+set outfilename ""
 if { [info exists OPT(-o)] } {
+    set outfilename $OPT(-o)
     if { [catch "open $OPT(-o) w" err] } {
         puts stderr $err
         exit 1
@@ -81,6 +96,9 @@ foreach root $rootfiles {
     if { [catch "Bluetcl::depend make $root" tree] } {
         puts stderr "$tree"
         exit 1
+    }
+    if { $outfilename != "" } {
+        lappend tree [list $outfilename [Depend::sources $tree]]
     }
     set md [utils::map Depend::cleanupdepend $tree]
     set all [concat $all $md]
