@@ -38,7 +38,7 @@ import CSyntax
 import CSyntaxUtil
 import CFreeVars(getFVDl, getFVE, fvSetToFreeVars)
 import CType(noTyVarNo, getTyVarId, getArrows, isTConArrow,
-             isTypeBit, isTypeString, isTypePrimAction, isTVar, isUpdateable, 
+             isTypeBit, isTypeString, isTypePrimAction, isTVar, isUpdateable,
              isTypeActionValue, isTypeActionValue_, getActionValueArg,
              splitTAp, tyConArgs, cTVarKind)
 import VModInfo(VSchedInfo, VFieldInfo(..), VArgInfo(..), VPort)
