@@ -223,9 +223,9 @@ pExpr ft (CmoduleVerilog n ui ck rs ses ms vi ps) = do
     ses' <- mapSndM (pExpr ft) ses
     return (CmoduleVerilog n' ui ck rs ses' ms vi ps)
 pExpr ft e@(CForeignFuncC { }) = return e
-pExpr ft (Cdo rec ss) = do
+pExpr ft (Cdo r ss) = do
     ss' <- mapM (pStmt ft) ss
-    return (Cdo rec ss')
+    return (Cdo r ss')
 pExpr ft (Caction pos ss) = do
     ss' <- mapM (pStmt ft) ss
     return (Caction pos ss')

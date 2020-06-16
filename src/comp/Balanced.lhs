@@ -348,12 +348,12 @@ Folding a list in a binary-subdivision scheme.
 > foldm                         :: (a -> a -> a) -> a -> [a] -> a
 > foldm (*) e x
 >   | null x                    =  e
->   | otherwise                 =  fst (rec (length x) x)
->   where rec 1 (a : as)        =  (a, as)
->         rec n as              =  (a1 * a2, as2)
+>   | otherwise                 =  fst (r (length x) x)
+>   where r 1 (a : as)          =  (a, as)
+>         r n as                =  (a1 * a2, as2)
 >           where m             =  n `div` 2
->                 (a1, as1)     =  rec (n - m) as
->                 (a2, as2)     =  rec m       as1
+>                 (a1, as1)     =  r (n - m) as
+>                 (a2, as2)     =  r m       as1
 
 > inrange                        :: (Ord a) => a -> (a, a) -> Bool
 > a `inrange` (l, r)                =  l <= a && a <= r

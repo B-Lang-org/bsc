@@ -2,7 +2,6 @@
 :set -XForeignFunctionInterface
 :set -fglasgow-exts
 :set -XUndecidableInstances
-:set -XNoDoRec
 
 -- Packages
 :set -package base
@@ -22,8 +21,9 @@
 :set -package syb
 
 -- Include path
-:set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../vendor/Parsec:../vendor/lib
+:set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
 :set -i../vendor/include:../vendor/stp/include_hs:../vendor/yices/include_hs:../vendor/htcl
+:set -I/usr/include/tcl
 
 -- Faster compilation times
 :set -j

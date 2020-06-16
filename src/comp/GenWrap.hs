@@ -188,17 +188,17 @@ data IfcTRec = IfcTRec
   deriving (Eq, Show)
 
 instance PPrint IfcTRec where
-    pPrint d p rec =
-        text "IfcTRec:" <+> ppId d (rec_id rec) <+> equals <+>
+    pPrint d p r =
+        text "IfcTRec:" <+> ppId d (rec_id r) <+> equals <+>
         braces (
-                (if (rec_isforeign rec) then text "(Foreign)" else empty) <+>
-                text "rootid:" <> pPrint d p (rec_rootid rec) $+$
-                text "type:" <> pPrint d p (rec_type rec) $+$
-                text "pprops:" <> pPrint d p (rec_pprops rec) $+$
-                pPrint d p (rec_kind rec) $+$
-                pPrint d p (rec_finfs rec) $+$
-                pPrint d p (rec_numargs rec) <+>
-                pPrint d p (rec_typemap rec)
+                (if (rec_isforeign r) then text "(Foreign)" else empty) <+>
+                text "rootid:" <> pPrint d p (rec_rootid r) $+$
+                text "type:" <> pPrint d p (rec_type r) $+$
+                text "pprops:" <> pPrint d p (rec_pprops r) $+$
+                pPrint d p (rec_kind r) $+$
+                pPrint d p (rec_finfs r) $+$
+                pPrint d p (rec_numargs r) <+>
+                pPrint d p (rec_typemap r)
                )
 
 -- ====================
