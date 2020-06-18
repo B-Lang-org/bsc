@@ -8,7 +8,7 @@ module CType(
   -- ** Examining Types
   getTyVarId, getTypeKind,
   isTNum, getTNum,
-  isTVar, isTCon, isIfc, isInterface,
+  isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
   isTypeBit, isTypeString,
@@ -352,6 +352,11 @@ isIfc _ = False
 isInterface :: CType -> Bool
 isInterface t | Just (TyCon _ _ (TIstruct s _)) <- leftTyCon t = isIfc s
 isInterface _ = False
+
+isUpdateable :: StructSubType -> Bool
+isUpdateable SStruct = True
+isUpdateable SInterface {} = True
+isUpdateable _ = False
 
 noType :: Type
 noType = TGen noPosition (-1)

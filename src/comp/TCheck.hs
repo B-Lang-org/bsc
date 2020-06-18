@@ -38,7 +38,7 @@ import CSyntax
 import CSyntaxUtil
 import CFreeVars(getFVDl, getFVE, fvSetToFreeVars)
 import CType(noTyVarNo, getTyVarId, getArrows, isTConArrow,
-             isTypeBit, isTypeString, isTypePrimAction, isTVar,
+             isTypeBit, isTypeString, isTypePrimAction, isTVar, isUpdateable,
              isTypeActionValue, isTypeActionValue_, getActionValueArg,
              splitTAp, tyConArgs, cTVarKind)
 import VModInfo(VSchedInfo, VFieldInfo(..), VArgInfo(..), VPort)
@@ -287,7 +287,7 @@ tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
     (_, ti, _) <- findFields td i
     sy <- getSymTab
     case findType sy ti of
-     Just (TypeInfo _ _ _ (TIstruct SStruct qfs)) -> do
+     Just (TypeInfo _ _ _ (TIstruct sst qfs)) | isUpdateable sst -> do
         --posCheck "C" e
         x <- newVar (getPosition e) "tiExprCStructUpd"
         let v = CVar x
