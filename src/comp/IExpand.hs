@@ -1215,15 +1215,15 @@ methodResetName i ws = do
 -- "run" the module monad, collecting rules, interfaces, and state
 iExpandModule :: Bool -> (HClock, HReset) ->
                  IStateLoc -> HPred -> HExpr -> G PExpr
-iExpandModule r curClkRstn ns p e = do
+iExpandModule isMFix curClkRstn ns p e = do
         when doDebug $ traceM "iExpandModule"
         (_, P p e') <- evalUH e
-        handlePrim r curClkRstn ns p e'
+        handlePrim isMFix curClkRstn ns p e'
 
 handlePrim :: Bool -> (HClock, HReset) ->
               IStateLoc -> HPred -> HExpr -> G PExpr
 
-handlePrim r curClkRstn ns@(islpc:rest) p eee@(IAps prim@(ICon _ (ICPrim _ PrimStateName)) [ifc_t] [e, em]) = do
+handlePrim isMFix curClkRstn ns@(islpc:rest) p eee@(IAps prim@(ICon _ (ICPrim _ PrimStateName)) [ifc_t] [e, em]) = do
    when doDebug $ traceM "handlePrim: PrimStateName"
    e' <- evaleUH e -- extract name
    case e' of
@@ -1234,13 +1234,13 @@ handlePrim r curClkRstn ns@(islpc:rest) p eee@(IAps prim@(ICon _ (ICPrim _ PrimS
          ns' <- newIStateLoc i (isl_ifc_id islpc) ifc_t rest
          showModProgress ns' "Elaborating module"
          pushModuleSchedNameScope ns' ifc_t
-         res <- iExpandModule r curClkRstn ns' p em
+         res <- iExpandModule isMFix curClkRstn ns' p em
          popModuleSchedNameScope
          showModProgress ns' "Finished module"
          return res
      _ -> nfError "PrimStateName" e'
 
-handlePrim r curClkRstn ns p eee@(IAps prim@(ICon _ (ICPrim _ PrimStateAttrib)) ts [e, em]) = do
+handlePrim isMFix curClkRstn ns p eee@(IAps prim@(ICon _ (ICPrim _ PrimStateAttrib)) ts [e, em]) = do
    when doDebug $ traceM "handlePrim: PrimStateAttrib"
    e' <- evaleUH e -- extract attributes
    case e' of
@@ -1255,10 +1255,10 @@ handlePrim r curClkRstn ns p eee@(IAps prim@(ICon _ (ICPrim _ PrimStateAttrib)) 
          let comments = [line | PPdoc comment <- map snd as,
                                 line <- lines comment]
          addSubmodComments instname comments
-         iExpandModule r curClkRstn ns p em
+         iExpandModule isMFix curClkRstn ns p em
      _ -> nfError "PrimStateAttrib" e'
 
-handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleBind })) [t1, t2] [e1, e2]) = do
+handlePrim isMFix curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleBind })) [t1, t2] [e1, e2]) = do
         -- expand monadic binding x <- e1; e2
         when doDebug $ traceM "handlePrim: PrimModuleBind"
 
@@ -1289,24 +1289,24 @@ handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleBind 
         when doDebug $ traceM ("bind\n" ++ ppReadable e2u)
         when doDebug $ traceM ("bind " ++ ppReadable e1)
         when doDebug $ traceM ("bind " ++ ppReadable ea)
-        P p1 e1' <- iExpandModule r curClkRstn ns' p e1
+        P p1 e1' <- iExpandModule isMFix curClkRstn ns' p e1
         when do_msg $ do
             showModProgress ns' "Finished module"
             popModuleSchedNameScope
-        iExpandModule r curClkRstn ns p1 (IAps e2 [] [e1'])
+        iExpandModule isMFix curClkRstn ns p1 (IAps e2 [] [e1'])
 
-handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleReturn })) _ [e]) = do
+handlePrim isMFix curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleReturn })) _ [e]) = do
         when doDebug $ traceM "handlePrim: PrimModuleReturn"
-        if r then {- lazy -} return (P p e) else {- strict -} eval1 (pExprToHExpr (P p e))
+        if isMFix then {- lazy -} return (P p e) else {- strict -} eval1 (pExprToHExpr (P p e))
 
-handlePrim r curClkRstn ns p e_rs@(IAps (ICon _ (ICPrim { primOp = PrimAddRules })) _ [rs]) = do
+handlePrim isMFix curClkRstn ns p e_rs@(IAps (ICon _ (ICPrim { primOp = PrimAddRules })) _ [rs]) = do
         when doDebug $ traceM "handlePrim: PrimAddRules"
-        if r then saveRules curClkRstn ns p e_rs
+        if isMFix then saveRules curClkRstn ns p e_rs
          else iExpandRules curClkRstn ns p rs
         -- just need to return ()
         return (P p (icUndet itPrimUnit UNotUsed))
 
-handlePrim r (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrentClock })) = do
+handlePrim isMFix (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrentClock })) = do
        when doDebug $ traceM "handlePrim: PrimCurrentClock"
        if (isMissingDefaultClock curClock) then do
          let err_pos = getPosition ns
@@ -1314,7 +1314,7 @@ handlePrim r (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrent
          eval1 icNoClock
         else eval1 (pExprToHExpr (P p (icClock i curClock)))
 
-handlePrim r (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrentReset })) = do
+handlePrim isMFix (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrentReset })) = do
        when doDebug $ traceM "handlePrim: PrimCurrentReset"
        if (isMissingDefaultReset curReset) then do
          let err_pos = getPosition ns
@@ -1323,7 +1323,7 @@ handlePrim r (curClock, curReset) ns p ea@(ICon i (ICPrim { primOp = PrimCurrent
         else eval1 (pExprToHExpr (P p (icReset i curReset)))
 
 -- module fix: reorders, but does not handle mutually recursive bindings
-handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleFix })) [t] [e]) = do
+handlePrim isMFix curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleFix })) [t] [e]) = do
         when doDebug $ traceM "handlePrim: enter PrimModuleFix"
         showModProgress ns ("Attempting recursive module instantiation")
         (ptr, ref) <- addHeapCell "prim-mod-fix" (HLoop (Just (stateLocToId ns)))
@@ -1341,7 +1341,7 @@ handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleFix }
         oldAggressive <- isAggressive
         mapM_ (\(agg,a,b,c,d) -> do
                   setAggressive agg
-                  _ <- handlePrim r a b c d
+                  _ <- handlePrim isMFix a b c d
                   setAggressive oldAggressive
                   ) new_rblobs
 
@@ -1352,18 +1352,18 @@ handlePrim r curClkRstn ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleFix }
         showModProgress ns ("Finished recursive module instantiation")
         return (pExpr rt)
 
-handlePrim r (_, rst) ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleClock })) _ [clke, e]) = do
+handlePrim isMFix (_, rst) ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleClock })) _ [clke, e]) = do
         (clk, _) <- evalClock clke
         when doTraceClock $ traceM ("PrimModuleClock " ++ ppReadable (clk, rst))
-        iExpandModule r (clk, rst) ns p e
+        iExpandModule isMFix (clk, rst) ns p e
 
-handlePrim r (clk, _) ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleReset })) _ [rste, e]) = do
+handlePrim isMFix (clk, _) ns p ea@(IAps (ICon _ (ICPrim { primOp = PrimModuleReset })) _ [rste, e]) = do
         (rst, _) <- evalReset rste
         when doTraceClock $ traceM ("PrimModuleReset " ++ ppReadable (clk, rst))
-        iExpandModule r (clk, rst) ns p e
+        iExpandModule isMFix (clk, rst) ns p e
 
 -- instantiate a Verilog module
-handlePrim r (curClk, curRstn) ns p
+handlePrim isMFix (curClk, curRstn) ns p
     ea@(IAps (ICon _ x@(ICVerilog { vInfo = vmi,
                                     isUserImport = isImport }))
     _ (name:es)) =
@@ -1379,7 +1379,7 @@ handlePrim r (curClk, curRstn) ns p
         let inst_id = stateLocToId ns
             vargs = vArgs vmi
         (es', port_infos) <-
-            -- if r -- defer evaluation for PrimModuleFix
+            -- if isMFix -- defer evaluation for PrimModuleFix
             -- then return (es, [])
             {- else -} mapAndUnzipM (iExpandSubmodArg inst_id) (zip vargs es)
         (estr, _) <- evalString name
@@ -1396,7 +1396,7 @@ handlePrim r (curClk, curRstn) ns p
         mapM_ (chkModuleArgumentClkRst inst_id v) (zip3 vargs es' port_infos)
         return (P p e)
 
-handlePrim r curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimSavePortType })) _ [e_mname, e_port, e_type]) = do
+handlePrim isMFix curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimSavePortType })) _ [e_mname, e_port, e_type]) = do
   mname <- do m <- evalMaybe e_mname
               case (m) of
                 Nothing -> return Nothing
@@ -1407,7 +1407,7 @@ handlePrim r curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimSavePortType
   -- just need to return ()
   return (P p (icUndet itPrimUnit UNotUsed))
 
-handlePrim r curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimChkClockDomain })) _ [e_name, e_object, e_chk]) = do
+handlePrim isMFix curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = PrimChkClockDomain })) _ [e_name, e_object, e_chk]) = do
   name <- evalName e_name
   (object_str,_) <- evalString e_object
   (P _ e', ws) <- evalNF e_chk
@@ -1504,7 +1504,7 @@ handlePrim _ _ _ p e@(IAps (ICon _ (ICPrim { primOp = PrimReadHandleChar })) _ [
   c <- liftIO $ hGetCharCatch errh ctx pos h
   return $ P p (iMkCharAt pos c)
 
-handlePrim r curClkRstn ns p e@(ICon i (ICUndet { iuKind=iuKind })) =
+handlePrim isMFix curClkRstn ns p e@(ICon i (ICUndet { iuKind=iuKind })) =
     let emsg = if (iuKind == UNoMatch)
                then EModuleUndetNoMatch
                else -- XXX should we handle UNotUsed separately too?
@@ -1514,10 +1514,10 @@ handlePrim r curClkRstn ns p e@(ICon i (ICUndet { iuKind=iuKind })) =
 -- it should have evaluated to a module
 -- if it didn't it is because it didn't evaluate "all the way"
 -- report if/case/dynsel as a friendly user error and others with nfError
-handlePrim r curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = op })) _ _)
+handlePrim isMFix curClkRstn ns p e@(IAps (ICon _ (ICPrim { primOp = op })) _ _)
   | (condPrim op) =
     errG (getIExprPosition e, EDynamicModule)
-handlePrim r curClkRstn ns p e = do
+handlePrim isMFix curClkRstn ns p e = do
   when doDebug $ traceM ("handlePrim: no match " ++ (ppReadable e))
   nfError "handlePrim" e
 --        internalError ("iExpandModule handlePrim\n" ++ ppReadable e)
