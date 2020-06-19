@@ -243,9 +243,9 @@ instance CtxRed CExpr where
     -- the contexts on the cqt here are not a real type,
     -- but are extra info for better error reporting in tiExpr
     ctxRed e@(CForeignFuncC i cqt) = return e
-    ctxRed (Cdo rec ss) = do
+    ctxRed (Cdo r ss) = do
         ss' <- ctxRed ss
-        return (Cdo rec ss')
+        return (Cdo r ss')
     ctxRed (Caction pos ss) = do
         ss' <- ctxRed ss
         return (Caction pos ss')

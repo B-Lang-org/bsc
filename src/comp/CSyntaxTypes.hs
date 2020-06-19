@@ -102,7 +102,7 @@ instance Types CExpr where
     apSub s (Cinterface pos mi ds) = Cinterface pos mi (apSub s ds)
     apSub s (CmoduleVerilog m ui c r ses fs sch ps) = CmoduleVerilog (apSub s m) ui c r (mapSnd (apSub s) ses) fs sch ps
     apSub s (CForeignFuncC i wty) = CForeignFuncC i (apSub s wty)
-    apSub s (Cdo rec ss) = Cdo rec (apSub s ss)
+    apSub s (Cdo r ss) = Cdo r (apSub s ss)
     apSub s (Caction pos ss) = Caction pos (apSub s ss)
     apSub s (Crules ps rs) = Crules ps (apSub s rs)
     apSub s (CTApply e ts) = CTApply (apSub s e) (apSub s ts)
@@ -146,7 +146,7 @@ instance Types CExpr where
     tv (Cinterface pos mi ds) = tv ds
     tv (CmoduleVerilog m ui c r ses fs sch ps) = tv (m, map snd ses)
     tv (CForeignFuncC i wty) = tv wty
-    tv (Cdo rec ss) = tv ss
+    tv (Cdo r ss) = tv ss
     tv (Caction pos ss) = tv ss
     tv (Crules ps rs) = tv rs
     tv (CTApply e ts) = tv (e, ts)

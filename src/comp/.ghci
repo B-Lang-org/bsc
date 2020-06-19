@@ -1,15 +1,29 @@
+-- Extensions
 :set -XForeignFunctionInterface
 :set -fglasgow-exts
 :set -XUndecidableInstances
+
+-- Packages
 :set -package base
-:set -package unix
+:set -package containers
+:set -package array
 :set -package mtl
-:set -i../../src/comp:../../src/comp/Libs:../../src/comp/GHC:../../src/comp/GHC/posix:../../vendor/Parsec:../../vendor/lib:../../vendor/sha1
-:set -I../../vendor/include
-:set -L../../vendor/lib/cudd
-:set -lhcudd
-:set -lcudd
-:set -lmtr
-:set -lst
-:set -lepd
-:set -lutil 
+:set -package unix
+:set -package regex-compat
+:set -package bytestring
+:set -package directory
+:set -package process
+:set -package filepath
+:set -package time
+:set -package old-time
+:set -package old-locale
+:set -package split
+:set -package syb
+
+-- Include path
+:set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
+:set -i../vendor/include:../vendor/stp/include_hs:../vendor/yices/include_hs:../vendor/htcl
+:set -I/usr/include/tcl
+
+-- Faster compilation times
+:set -j
