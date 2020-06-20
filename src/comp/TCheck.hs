@@ -189,7 +189,7 @@ tiExpr as td exp@(CCon c es) = do
             [argTy] | isTypeUnit argTy -> 0
                     | Just (TyCon _ _ (TIstruct (SDataCon _ False) fs)) <- leftTyCon argTy -> genericLength fs
             _ -> 1
-        numGiven = genericLength es 
+        numGiven = genericLength es
     -- traceM ("CCon: " ++ ppReadable c ++ " " ++ show t ++ " " ++ show numExpected ++ " " ++ show numGiven)
     if numGiven > numExpected
       then err (getPosition exp, EConMismatchNumArgs (show c') (pfpReadable t) numExpected numGiven)
