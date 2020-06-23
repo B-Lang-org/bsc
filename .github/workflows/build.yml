@@ -54,6 +54,25 @@ jobs:
         run: ccache --show-stats
       - name: Smoketest
         run: "make check"
+      # Check that .ghci has all the right flags to load the source.
+      # This is important for text editor integration & tools like ghcid
+      # NB stp, yices and htcl must be built first, so do this after Build.
+      - name: Check GHCI :load
+        run: |
+          cd src/comp
+          export NOGIT=0
+          export NOUPDATEBUILDVERSION=0
+          ./update-build-version.sh
+          ./update-build-system.sh
+          echo ':load bsc.hs' | ghci 2>&1 | tee ghci.log
+          if grep '\(Failed\|error:\)' ghci.log
+          then
+            echo "GHCi reported errors."
+            exit 1
+          else
+            echo "GHCi loaded successfully."
+            exit 0
+          fi
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
@@ -101,6 +120,25 @@ jobs:
         run: ccache --show-stats
       - name: Smoketest
         run: "make check"
+      # Check that .ghci has all the right flags to load the source.
+      # This is important for text editor integration & tools like ghcid
+      # NB stp, yices and htcl must be built first, so do this after Build.
+      - name: Check GHCI :load
+        run: |
+          cd src/comp
+          export NOGIT=0
+          export NOUPDATEBUILDVERSION=0
+          ./update-build-version.sh
+          ./update-build-system.sh
+          echo ':load bsc.hs' | ghci 2>&1 | tee ghci.log
+          if grep '\(Failed\|error:\)' ghci.log
+          then
+            echo "GHCi reported errors."
+            exit 1
+          else
+            echo "GHCi loaded successfully."
+            exit 0
+          fi
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
