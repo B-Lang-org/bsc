@@ -156,10 +156,12 @@ idLiteral = prelude_id_no fsLiteral
 idRealLiteral = prelude_id_no fsRealLiteral
 idSizedLiteral = prelude_id_no fsSizedLiteral
 idStringLiteral = prelude_id_no fsStringLiteral
-idPrimParam, idPrimPort, idBounded, idClsDeepSeqCond, idPrimDeepSeqCond :: Id
+idPrimParam, idPrimPort, idBounded, idDefaultValue, id_defaultValue, idClsDeepSeqCond, idPrimDeepSeqCond :: Id
 idPrimParam = prelude_id_no fsPrimParam
 idPrimPort = prelude_id_no fsPrimPort
 idBounded = prelude_id_no fsBounded
+idDefaultValue = prelude_id_no fsDefaultValue
+id_defaultValue = prelude_id_no fs_defaultValue
 idClsDeepSeqCond = prelude_id_no fsClsDeepSeqCond
 idPrimDeepSeqCond = prelude_id_no fsPrimDeepSeqCond
 idPrimSeqCond, idUndefined, idEqual, idNotEqual, idPack, idUnpack, idFmap :: Id
