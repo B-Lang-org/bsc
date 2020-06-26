@@ -3331,6 +3331,7 @@ composeM f g x = do
 
 -- Parts of List library required for desugaring in BSV
 data List a = Nil | Cons a (List a)
+  deriving (Eq)
 
 -- New functions required for BSV
 
@@ -3362,13 +3363,6 @@ listPrimAppend (Cons x xs) ys = Cons x (listPrimAppend xs ys)
 listPrimConcat :: List (List a) -> List a
 listPrimConcat Nil = Nil
 listPrimConcat (Cons x xs) = listPrimAppend x (listPrimConcat xs)
-
-instance (Eq a) => Eq (List a)
-  where
-    (==) Nil Nil                 = True
-    (==) (Cons x xs) (Cons y ys) = x == y && xs == ys
-    (==) _ _                     = False
-    (/=) xs ys                   = not (xs == ys)
 
 instance PrimSelectable (List a) a
   where
