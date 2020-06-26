@@ -25,12 +25,13 @@ import PreIds(
               -- type constructors
               idBit, idAdd, idMax,
               -- classes
-              idEq, idBits, idFShow, idBounded,
+              idEq, idBits, idFShow, idBounded, idDefaultValue,
               -- class members
               idPack, idUnpack,
               idPreludePlus, idEqual, idNotEqual,
               idfshow,
               idMaxBound, idMinBound,
+              id_defaultValue,
               -- functions
               idPrintType,
               idPrimError,
@@ -198,6 +199,8 @@ doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
+doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+  Right [doDDefaultValue (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
@@ -242,6 +245,8 @@ doStructDer _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
+doStructDer _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
+  Right [doSDefaultValue (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idUndefined =
@@ -702,6 +707,14 @@ doDBounded dpos i vs ocs cs =
         minB = CLValueSign (CDef (idMinBoundNQ dpos) (CQType [] aty) [CClause [] [] minBVal]) []
         maxB = CLValueSign (CDef (idMaxBoundNQ dpos) (CQType [] aty) [CClause [] [] maxBVal]) []
 
+doDDefaultValue :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
+doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
+  where ctx   = [ CPred (CTypeclass idDefaultValue) [getRes (cis_arg_type cs)] ]
+        ty    = cTApplys (cTCon i) vs
+        body  = CCon1 i (getCISName cs) (CVar id_defaultValue)
+        def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
+doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
+
 doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
 -- the single-summand case is not already derived for data declarations with no internal type
 -- e.g. ActionWorld
@@ -769,6 +782,13 @@ doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [ma
             let mfs = [ (cf_name f, CVar mv) | f <- fs ]
                 str = CStruct i mfs
             in        CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
+
+doSDefaultValue :: Position -> Id -> [Type] -> CFields -> CDefn
+doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
+  where ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idDefaultValue) [t]) fs
+        ty  = cTApplys (cTCon i) vs
+        str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
+        def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
 doSUndefined :: Id -> [Type] -> CFields -> CDefn
 doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
@@ -894,6 +914,8 @@ idMaxBoundNQ :: Position -> Id
 idMaxBoundNQ pos = setIdPosition pos (unQualId idMaxBound)
 idMinBoundNQ :: Position -> Id
 idMinBoundNQ pos = setIdPosition pos (unQualId idMinBound)
+id_defaultValueNQ :: Id
+id_defaultValueNQ = unQualId id_defaultValue
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
 --idBuildUndefinedNQ = unQualId idBuildUndef

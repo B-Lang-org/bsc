@@ -1207,7 +1207,7 @@ replaceBit pos w i b =
 --@ typedef enum {False, True} Bool deriving (Eq, Bits, Bounded);
 --@ \end{libverbatim}
 data Bool = False | True
-        deriving (Eq, Bits, Bounded, FShow)
+        deriving (Eq, Bits, Bounded, FShow, DefaultValue)
 
 isStaticBool :: Bool -> Bool
 isStaticBool = compose areStaticBits pack
@@ -2902,7 +2902,7 @@ primitive primModuleReturn :: a -> Module a
 --- PrimUnit
 
 struct PrimUnit = { }
-	deriving (Eq, Bits, Bounded)
+	deriving (Eq, Bits, Bounded, DefaultValue)
 
 --- Integer
 
@@ -4044,3 +4044,15 @@ instance (FShow a) => FShow (List a)
 
 ------------------
 
+
+class DefaultValue a where
+   defaultValue :: a
+
+-- Any type in the Literal class can have a default value -- simply 0
+-- This picks up Bit#(n), Int#(n), UInt#(n), Real, Integer
+-- as well as FixedPoint, Complex
+instance (Literal t) => DefaultValue t where
+   defaultValue = fromInteger 0
+
+defBool :: Bool
+defBool = defaultValue
