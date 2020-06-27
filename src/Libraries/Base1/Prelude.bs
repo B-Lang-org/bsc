@@ -3,7 +3,7 @@ package Prelude(
 	Monad(..), MonadFix(..),
 	Bits(..), Eq(..),
 	Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
-	Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..),
+	Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
 	PrimParam(..), PrimPort(..),
 	Bit, Rules, Module, Integer, Real, String, Char, SizeOf, Id__,
 	PrimAction, ActionValue, Action, ActionValue_, ActionWorld, AVStruct,
@@ -1413,7 +1413,7 @@ $bitstoreal x = primBitsToReal x
 --@ } Maybe #(type a) deriving (Eq, Bits);
 --@ \end{libverbatim}
 data Maybe a = (Invalid, Nothing) | (Valid, Just) a
-        deriving (Eq, Bits, FShow)
+        deriving (Eq, Bits, FShow, DefaultValue)
 type Perhaps  = Maybe
 
 --X@ The \te{Maybe} type is a monad.
@@ -2809,7 +2809,7 @@ primitive primSplit :: (Add n m k) => Bit k -> PrimPair (Bit n) (Bit m)
 
 -----
 
-interface PrimPair a b = { fst :: a; snd :: b } deriving (Eq, Bits, Bounded)
+interface PrimPair a b = { fst :: a; snd :: b } deriving (Eq, Bits, Bounded, DefaultValue)
 
 -- Ord is not derivable in Bluespec, but the others are.
 instance (Ord a, Ord b, Eq a) => Ord (a, b) where
@@ -4038,8 +4038,28 @@ instance (FShow a) => FShow (List a)
 
 ------------------
 
+-- The idea of the DefaultValue typeclass is to provide an overloaded
+-- value, defaultValue (for defaultValue), for the type t.
 
-class DefaultValue a where
+-- Uses:
+-- This should be useful for specifying initial or reset value for
+-- structures. E.g.
+--   Reg#(Int#(17))               rint  <- mkReg#(defaultValue); -- initial value 0
+--   Reg#(Tuple2#(Bool,UInt#(5))) tbui  <- mkReg#(defaultValue); -- value is(False,0)
+--   Reg#(Vector#(n,Bool)         vbool <- mkReg(defaultValue)   --  initial value all False
+--   Reg#(MyStruct)               mstr  <- mkReg(defaultValue);  -- defined by user
+-- using this typeclass should replace the unsafe use of unpack. e.g.
+--   Reg#(MyStruct)               mybad <- mkReg(unpack(0)); -- Bad use of unpack
+
+-- Another use model is for module instantiation which require a large structure as
+-- as argument.
+-- ModParam modParams = defaultValue ; -- generate default value
+-- modParams.field1 = 5 ;        -- override some default values
+-- modParams.field2 = 1.4 ;      --
+-- ModIfc <- mkMod (modParams) ; -- construct the module
+
+
+class coherent DefaultValue a where
    defaultValue :: a
 
 -- Any type in the Literal class can have a default value -- simply 0
@@ -4047,6 +4067,3 @@ class DefaultValue a where
 -- as well as FixedPoint, Complex
 instance (Literal t) => DefaultValue t where
    defaultValue = fromInteger 0
-
-defBool :: Bool
-defBool = defaultValue
