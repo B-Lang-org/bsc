@@ -661,7 +661,7 @@ function Action fxptWrite( Integer fwidth,
       if (( ipart < 0 ) && (fpart != 0))
          begin
             fpart = 0 - fpart ;
-            ipart = ipart + 1;
+            ipart = ipart - (-1);
             if ( ipart == 0 )
                $write( "-0." ) ;
             else
