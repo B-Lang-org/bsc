@@ -518,8 +518,9 @@ function FixedPoint#(ri,rf) fxptSignExtend( FixedPoint#(ai,af) a )
    provisos( Add#(xxA,ai,ri),      // ri >= ai
              Add#(fdiff,af,rf)    // rf >= af
             )  ;
-   return FixedPoint {i:signExtend(a.i),
-                      f:{a.f,0} } ;
+   Bit#(TAdd#(ai, 1)) i_a = {a.i, msb(a.f)};
+   Bit#(TAdd#(ri, 1)) i_r = signExtend(i_a) >> 1;
+   return FixedPoint {i: truncate(i_r), f: {a.f, 0}};
 endfunction
 
 
@@ -654,7 +655,8 @@ function Action fxptWrite( Integer fwidth,
             );
    action
       // this can be i bits, but iverilog gets confused!
-      Int#(TAdd#(1,i))  ipart = extend(fxptGetInt(a));
+      FixedPoint#(TAdd#(i,1), f) a_ext = fxptSignExtend(a);
+      Int#(TAdd#(1,i))  ipart = fxptGetInt(a_ext);
       Bit#(f)           fpart = pack( fxptGetFrac( a ) ) ;
 
       // negate the fractional part if the integer part is less than 0
