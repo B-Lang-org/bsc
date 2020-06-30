@@ -1,6 +1,5 @@
 -- Extensions
 :set -XForeignFunctionInterface
-:set -fglasgow-exts
 :set -XUndecidableInstances
 
 -- Packages
@@ -20,10 +19,23 @@
 :set -package split
 :set -package syb
 
--- Include path
+-- Haskell source
 :set -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
-:set -i../vendor/include:../vendor/stp/include_hs:../vendor/yices/include_hs:../vendor/htcl
+
+-- Shared libraries and FFI bindings
+:set -i../vendor/stp/include_hs
+:set -i../vendor/yices/include_hs
+:set -i../vendor/htcl
+
 :set -I/usr/include/tcl
+:set -L../vendor/htcl
+:set -lhtcl
+
+:set -L../vendor/stp/lib
+:set -lstp
+
+:set -L../vendor/yices/lib
+:set -lyices
 
 -- Faster compilation times
 :set -j
