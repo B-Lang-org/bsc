@@ -578,11 +578,13 @@ data CRule
         | CRuleNest [RulePragma] (Maybe CExpr) [CQual] [CRule]
         deriving (Eq, Ord, Show)
 
--- "let" binding
-data CDefl                -- [CQual] part is when clause used in interfaces
-        = CLValueSign CDef [CQual]
-        | CLValue Id [CClause] [CQual]
-        | CLMatch CPat CExpr
+-- | A definition with a binding. Can occur as a let expression, let statement
+-- in a do block, a typeclass instance defn, or bindings in an interface.
+data CDefl                -- [CQual] part is the when clause used in an interface
+                          -- binding, ie the explicit condition attached to each method
+        = CLValueSign CDef [CQual]     -- let x :: T = e2 -- explicit type sig
+        | CLValue Id [CClause] [CQual] -- let y = e2      -- no explicit type sig
+        | CLMatch CPat CExpr           -- let [z] = e3
         deriving (Eq, Ord, Show)
 
 -- Definition, local or global
