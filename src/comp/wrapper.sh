@@ -2,12 +2,12 @@
 
 # Find the absolute name and location of this script
 #
-ABSNAME="$(cd "$(dirname "$0")"; pwd -P)/$(basename "$0")"
-SCRIPTNAME=`basename "${ABSNAME}"`
-BINDIR=`dirname "${ABSNAME}"`
+ABSNAME="$(cd "${0%/*}"; echo $PWD)/${0##*/}"
+SCRIPTNAME="${ABSNAME##*/}"
+BINDIR="${ABSNAME%/*}"
 
 # Set BLUESPECDIR based on the location
-BLUESPECDIR="$(cd ${BINDIR}/../lib; pwd -P)"
+BLUESPECDIR="$(cd ${BINDIR}/../lib; echo $PWD)"
 export BLUESPECDIR
 
 # Add the dynamically-linked SAT libraries to the load path
@@ -23,7 +23,7 @@ export DYLD_LIBRARY_PATH
 # Determine the actual executable to run
 BLUESPECEXEC=${BINDIR}/core/${SCRIPTNAME}
 
-if [ -z "$BLUESPECEXEC" ] || [ ! -x $BLUESPECEXEC ] ; then
+if [ ! -x "$BLUESPECEXEC" ] ; then
     echo "Error Bluespec executable not found: ${BLUESPECEXEC}"
     exit 1;
 fi
