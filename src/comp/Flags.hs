@@ -131,6 +131,7 @@ data Flags = Flags {
         systemVerilogTasks :: Bool,
         tclShowHidden :: Bool,
         timeStamps :: Bool,
+        showVersion :: Bool,
         testAssert :: Bool,
         unsafeAlwaysRdy :: Bool,
         unSpecTo :: String,

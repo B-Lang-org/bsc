@@ -1,7 +1,7 @@
 LABNAME = Smoke Test to check Bluespec installation
 SMOKENAME = FibOne
 
-BSC=bsc
+BSC=bsc -no-show-timestamps -no-show-version
 
 
 ## Default simulator is iverilog
