@@ -101,6 +101,10 @@ data TyCon = -- | A constructor for a type of non-numeric kind
            | TyNum { tynum_value :: Integer  -- ^ type-level numeric value
                    , tynum_pos   :: Position -- ^ position of introduction
                    }
+             -- | A constructor for a type of string kind
+           | TyStr { tystr_value :: String   -- ^ type-level string value
+                   , tystr_pos   :: Position -- ^ position of introduction
+                   }
     deriving (Show, Generic.Data, Generic.Typeable)
 
 data TISort
@@ -126,6 +130,7 @@ type CType = Type
 -- | Representation of kinds
 data Kind = KStar           -- ^ kind of a simple non-numeric type
           | KNum            -- ^ kind of a simple numeric type
+          | KStr            -- ^ kind of a simple string type
           | Kfun Kind Kind  -- ^ kind of type constructors (type-level function)
           | KVar Int        -- ^ generated kind variable (used only during kind inference)
     deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
@@ -135,6 +140,7 @@ data PartialKind
         = PKNoInfo -- this is what makes it partial
         | PKStar
         | PKNum
+        | PKStr
         | PKfun PartialKind PartialKind
         deriving (Eq, Ord, Show)
 
@@ -475,6 +481,7 @@ getTypeKind :: Type -> Maybe Kind
 getTypeKind (TVar (TyVar _ _ k))  = Just k
 getTypeKind (TCon (TyCon _ mk _)) = mk
 getTypeKind (TCon (TyNum _ _)) = Just KNum
+getTypeKind (TCon (TyStr _ _)) = Just KStr
 getTypeKind (TAp t1 t2) = case (getTypeKind t1) of
                             Just (Kfun k1 k2) -> Just k2
                             _ -> Nothing -- don't know or isn't Kfun

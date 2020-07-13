@@ -33,6 +33,7 @@ import qualified Data.Generics as Generic
 data IKind
         = IKStar
         | IKNum
+        | IKStr
         | IKFun IKind IKind
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
@@ -56,6 +57,7 @@ instance Hyper IType where
 instance Hyper IKind where
     hyper IKStar y = y
     hyper IKNum y = y
+    hyper IKStr y = y
     hyper (IKFun a b) y = hyper2 a b y
 
 -- --------------------------------
@@ -101,6 +103,7 @@ cmpT (ITNum _)           _                   = GT
 instance PPrint IKind where
     pPrint _ _ IKStar = text "*"
     pPrint _ _ IKNum = text "#"
+    pPrint _ _ IKStr = text "$"
     pPrint d p (IKFun l r) = pparen (p>9) $ pPrint d 9 l <+> text "->" <+> pPrint d 10 r
 
 instance PPrint IType where

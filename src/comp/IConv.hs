@@ -172,6 +172,7 @@ iConvT' t = internalError("iConvT': " ++ ppReadable t)
 iConvK :: Kind -> IKind
 iConvK KStar = IKStar
 iConvK KNum = IKNum
+iConvK KStr = IKStr
 iConvK (Kfun k1 k2) = IKFun (iConvK k1) (iConvK k2)
 iConvK (KVar _) = internalError "iConvK"
 

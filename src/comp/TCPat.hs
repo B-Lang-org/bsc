@@ -61,6 +61,7 @@ tiPat' td pat@(CPstruct c ips) = do
                      mkTS t (Kfun ka k) = do v <- newTVar "tiPat CPstruct" ka c; mkTS (TAp t v) k
                      mkTS _ (KVar v) = internalError ("TCPat.tiPat': KVar " ++ show v)
                      mkTS _ KNum = internalError ("TCPat.tiPat': KNum")
+                     mkTS _ KStr = internalError ("TCPat.tiPat': KStr")
                  st <- mkTS (TCon tyc) k
                  _ <- unify pat st td
                  psasips <- mapM (tiPField qc fs td) ips
