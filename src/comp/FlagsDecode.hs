@@ -492,8 +492,6 @@ defaultFlags bluespecdir = Flags {
         aggImpConds = False,
         allowIncoherentMatches = False,
         backend = Nothing,
-        bddLimit = 100.0,
-        bddCacheLimit = 0,
         bdir = Nothing,
         biasMethodScheduling = False,
         bluespecDir = bluespecdir,
@@ -516,8 +514,6 @@ defaultFlags bluespecdir = Flags {
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
-        esecomp = False,
-        expandATSdef = False,
         expandATSlimit = 20,
         expandIf = False,
         fdir = Nothing,
@@ -576,7 +572,6 @@ defaultFlags bluespecdir = Flags {
         redStepsWarnInterval = 100000,
         redStepsMaxIntervals = 10,
         relaxMethodEarliness = True,
-        relaxMethodUrgency = False,
         removeEmptyRules = True,
         removeFalseRules = True,
         removeInoutConnect = True,
@@ -637,7 +632,6 @@ defaultFlags bluespecdir = Flags {
         verilogFilter = [],
         warnActionShadowing = True,
         warnMethodUrgency = True,
-        warnSchedLimit = False,
         warnUndetPred = False
         }
 
@@ -1143,14 +1137,6 @@ externalFlags = [
          (Toggle (\f x -> f {genABinVerilog=x}) (showIfTrue genABinVerilog),
           "include generated Verilog in .ba files", Hidden)),
 
-        ("esecomp",
-         (Toggle (\f x -> f {esecomp=x}) (showIfTrue esecomp),
-          "source is from eseparse", Hidden)),
-
-        ("expand-ATS-def",
-         (Toggle (\f x -> f {expandATSdef=x}) (showIfTrue expandATSdef),
-          "expand (some) ATS definitions", Hidden)),
-
         ("expand-ATS-limit",
          (Arg "n"
           (\f s -> case (mread s) of
@@ -1404,11 +1390,6 @@ externalFlags = [
          (Toggle (\f x -> f {relaxMethodEarliness=x}) (showIfTrue relaxMethodEarliness),
           "Allows rules to be scheduled before method calls", Hidden)),
 
-        ("relax-method-urgency",
-         (Toggle
-              (\f x -> f) (showIfTrue relaxMethodUrgency),
-          "Allows rules to be more urgent than method calls",  Deprecated "The behavior of this flag is now the default behavior. This flag is deprecated and should not be used.")),
-
         ("remove-unused-modules",
          (Toggle (\f x -> f {removeUnusedMods=x}) (showIfTrue removeUnusedMods),
           "remove unconnected modules from the Verilog", Visible)),
@@ -1444,25 +1425,10 @@ externalFlags = [
          (Toggle (\f x -> f {ruleNameCheck=x}) (showIfTrue ruleNameCheck),
           "check that rule names are unique (when disabled unique numbers are assigned)", Hidden)),
 
-        ("scheduler-effort",
-         (Arg "limit"
-             (\f s -> case (mread s) of
-                          Nothing -> Right (cmdPosition, EFloatArgFlag "-scheduler-effort")
-                          Just arg -> Left (f {bddLimit = arg}))
-             (Just (FRTString (show . bddLimit))),
-          "set effort for disjoint testing during scheduling", Visible)),
 
         ("system-verilog-tasks",
          (Toggle (\f x -> f {systemVerilogTasks=x}) (showIfTrue systemVerilogTasks),
          "preserve SystemVerilog tasks (e.g. $error) in output code", Hidden)),
-
-        ("bdd-cache",
-         (Arg "size"
-             (\f s -> case (mread s) of
-                          Nothing -> Right (cmdPosition, EIntegerArgFlag "-bdd-cache")
-                          Just arg -> Left (f {bddCacheLimit = arg}))
-             (Just (FRTString (show . bddCacheLimit))),
-          "set bdd cache size during scheduling", Hidden)),
 
         ("sched-conditions",
          (Toggle (\f x -> f {schedConds=x}) (showIfTrue schedConds),
@@ -1715,10 +1681,6 @@ externalFlags = [
          (Toggle (\f x -> f {warnMethodUrgency=x}) (showIfTrue warnMethodUrgency),
           "warn when a method's urgency is arbitrarily chosen", Visible)),
 
-        ("warn-scheduler-effort",
-         (Toggle (\f x -> f {warnSchedLimit=x}) (showIfTrue warnSchedLimit),
-          "displays warnings when the scheduler limit is reached", Visible)),
-
         ("warn-undet-predicate",
          (Toggle (\f x -> f {warnUndetPred=x}) (showIfTrue warnUndetPred),
           "warn when a rule or method predicate has an undetermined value", Hidden)),
@@ -1826,7 +1788,6 @@ showFlagsRaw flags =
         "Flags {\n" ++
         "\taggImpConds = " ++ show (aggImpConds flags) ++ ",\n" ++
         "\tbackend = " ++ show (backend flags) ++ ",\n" ++
-        "\tbddLimit = " ++ show (bddLimit flags) ++ ",\n" ++
         "\tbdir = " ++ show (bdir flags) ++ ",\n" ++
         "\tbiasMethodScheduling = " ++ show (biasMethodScheduling flags) ++ ",\n" ++
         "\tbluespecDir = " ++ show (bluespecDir flags) ++ ",\n" ++
@@ -1849,8 +1810,6 @@ showFlagsRaw flags =
         "\tdumps = " ++ show (dumps flags) ++ ",\n" ++
         "\tenablePoisonPills = " ++ show (enablePoisonPills flags) ++ ",\n" ++
         "\tentry = " ++ show (entry flags) ++ ",\n" ++
-        "\tesecomp = " ++ show (esecomp flags) ++ ",\n" ++
-        "\texpandATSdef = " ++ show (expandATSdef flags) ++ ",\n" ++
         "\texpandATSlimit = " ++ show (expandATSlimit flags) ++ ",\n" ++
         "\texpandIf = " ++ show (expandIf flags) ++ ",\n" ++
         "\textraVerbose = " ++ show (extraVerbose flags) ++ ",\n" ++
@@ -1898,7 +1857,6 @@ showFlagsRaw flags =
         "\tredStepsWarnInterval = " ++ show (redStepsWarnInterval flags) ++ ",\n" ++
         "\tredStepsMaxIntervals = " ++ show (redStepsMaxIntervals flags) ++ ",\n" ++
         "\trelaxMethodEarliness = " ++ show (relaxMethodEarliness flags) ++ ",\n" ++
-        "\trelaxMethodUrgency = " ++ show (relaxMethodUrgency flags) ++ ",\n" ++
         "\tremoveEmptyRules = " ++ show (removeEmptyRules flags) ++ ",\n" ++
         "\tremoveFalseRules = " ++ show (removeFalseRules flags) ++ ",\n" ++
         "\tremoveInoutConnect = " ++ show (removeInoutConnect flags) ++ ",\n" ++
@@ -1947,7 +1905,6 @@ showFlagsRaw flags =
         "\tverilogDeclareAllFirst = " ++ show (verilogDeclareAllFirst flags) ++ ",\n" ++
         "\twarnActionShadowing = " ++ show (warnActionShadowing flags) ++ ",\n" ++
         "\twarnMethodUrgency = " ++ show (warnMethodUrgency flags) ++ ",\n" ++
-        "\twarnSchedLimit = " ++ show (warnSchedLimit flags) ++ ",\n" ++
         "\twarnUndetPred = " ++ show (warnUndetPred flags) ++ ",\n" ++
         "\tvFlags = " ++ show (vFlags flags) ++ "\n" ++
         "}"
