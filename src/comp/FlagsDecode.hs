@@ -609,6 +609,7 @@ defaultFlags bluespecdir = Flags {
         tclShowHidden = False,
         testAssert = False,
         timeStamps = True,
+        showVersion = True,
         unsafeAlwaysRdy = False,
         unSpecTo = "A",
         updCheck = False,
@@ -1495,6 +1496,10 @@ externalFlags = [
          (Toggle (\f x -> f {timeStamps=x}) (showIfTrue timeStamps),
           "include timestamps in generated files", Visible)),
 
+        ("show-version",
+         (Toggle (\f x -> f {showVersion=x}) (showIfTrue showVersion),
+          "include compiler version in generated files", Visible)),
+
         ("sim",
          let setFn f = case setBackend f Bluesim of
                          Left f' -> Left f' { genABin = True }
@@ -1890,6 +1895,7 @@ showFlagsRaw flags =
         "\tsystemVerilogTasks = " ++ show (systemVerilogTasks flags) ++ ".\n" ++
         "\ttestAssert = " ++ show (testAssert flags) ++ ",\n" ++
         "\ttimeStamps = " ++ show (timeStamps flags) ++ ",\n" ++
+        "\tshowVersion = " ++ show (showVersion flags) ++ ",\n" ++
         "\tupdCheck = " ++ show (updCheck flags) ++ ",\n" ++
         "\tuseNegate = " ++ show (useNegate flags) ++ ",\n" ++
         "\tusePrelude = " ++ show (usePrelude flags) ++ ",\n" ++

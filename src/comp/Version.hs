@@ -1,5 +1,5 @@
-module Version(bluespec, version, versionStr, versionname, versiondate, copyright,
-               buildnum
+module Version(bluespec, bsc, version, versionStr, versionname, versiondate,
+               copyright, buildnum
               ) where
 
 import BuildVersion(buildVersion, buildVersionNum)
@@ -39,9 +39,10 @@ versionStr toolname =
       versiondate ++
       (if (null buildstr && null versiondate) then "" else ")")
 
--- The version string for the Bluespec Compiler
-version :: String
-version = versionStr (bluespec ++ " Compiler")
+-- The Bluespec Compiler and version string for bsc
+bsc, version :: String
+bsc = bluespec ++ " Compiler"
+version = versionStr bsc
 
 copyright :: String
 copyright = unlines copyrights
