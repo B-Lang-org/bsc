@@ -23,8 +23,6 @@ data Flags = Flags {
         aggImpConds :: Bool,
         allowIncoherentMatches :: Bool,
         backend :: Maybe Backend,
-        bddLimit :: Double,
-        bddCacheLimit :: Int,
         bdir :: Maybe String,
         biasMethodScheduling :: Bool,
         bluespecDir :: String,
@@ -47,8 +45,6 @@ data Flags = Flags {
         dumps :: [(DumpFlag, Maybe FilePath)], -- dump to file or stdout
         enablePoisonPills :: Bool,
         entry :: Maybe String,
-        esecomp :: Bool,
-        expandATSdef :: Bool,
         expandATSlimit :: Int,
         expandIf :: Bool,
         fdir :: Maybe String,
@@ -99,7 +95,6 @@ data Flags = Flags {
         redStepsWarnInterval :: Integer,
         redStepsMaxIntervals :: Integer,
         relaxMethodEarliness :: Bool,
-        relaxMethodUrgency :: Bool,
         removeEmptyRules :: Bool,
         removeFalseRules :: Bool,
         removeInoutConnect :: Bool,
@@ -156,7 +151,6 @@ data Flags = Flags {
         verilogFilter :: [String],
         warnActionShadowing :: Bool,
         warnMethodUrgency :: Bool,
-        warnSchedLimit :: Bool,
         warnUndetPred :: Bool
         }
 -- don't derive Show -- it causes an optimized ghc build to take a long time
@@ -232,7 +226,6 @@ data DumpFlag
         | DFATSperfspec
         | DFATSsplice
         | DFATSclean
-        -- | DFATSfold
         | DFpathsPreSched
         | DFschedule
         | DFresources
@@ -245,7 +238,6 @@ data DumpFlag
         | DFaddSchedAssumps
         | DFremoveAssumps
         | DFdropundet
-        -- | DFhierarchy
         | DFwriteABin
         | DFwrappergen
         | DFwrappercomp
