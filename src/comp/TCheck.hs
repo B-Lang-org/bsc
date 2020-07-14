@@ -184,18 +184,24 @@ tiExpr as td (CSelectTT ti e i) = tiSelect NoRead as td e i (const t)
 tiExpr as td exp@(CCon c es) = do
     (c' :>: sc, ti) <- findCons td c
     (ps :=> t, ts) <- freshInstT "C" c sc td
-    let numExpected =
+    s <- getSubst
+    let finalTD = apSub s td
+        numTDExpected = genericLength $ fst $ getArrows $ finalTD
+        numConExpected =
           case fst $ getArrows t of
             [argTy] | isTypeUnit argTy -> 0
                     | Just (TyCon _ _ (TIstruct (SDataCon _ False) fs)) <- leftTyCon argTy -> genericLength fs
             _ -> 1
         numGiven = genericLength es
+        numRemaining = numConExpected - numGiven
     -- traceM ("CCon: " ++ ppReadable c ++ " " ++ show t ++ " " ++ show numExpected ++ " " ++ show numGiven)
-    if numGiven > numExpected
-      then err (getPosition exp, EConMismatchNumArgs (show c') (pfpReadable t) numExpected numGiven)
+    if numGiven > numConExpected
+      then err (getPosition exp, EConMismatchNumArgs (show c') (pfpReadable t) numConExpected numGiven)
+      else if not (isTVar finalTD) && numGiven < numConExpected && numRemaining /= numTDExpected
+      then err (getPosition exp, EPartialConMismatchNumArgs (show c') (pfpReadable finalTD) (pfpReadable t) numConExpected numGiven numTDExpected)
       else do extraArgs <- sequence $
                    map ((newVar $ getPosition c) . ("a" ++) . show) $
-                   range (0, numExpected - numGiven - 1)
+                   range (0, numRemaining - 1)
               let res =
                     case es ++ map CVar extraArgs of
                       []  -> let unit = setIdPosition (getPosition c) idPrimUnit
