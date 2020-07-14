@@ -106,7 +106,7 @@ module BRAM2Load(CLKA,
    RAM
      (
       .wren_a                              (WENA),
-      .rden_a                              (RENB),
+      .rden_a                              (RENA),
       .data_a                              (DIA),
       .address_a                           (ADDRA),
       .clock0                              (CLKA),
