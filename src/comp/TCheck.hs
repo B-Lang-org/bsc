@@ -196,9 +196,11 @@ tiExpr as td exp@(CCon c es) = do
         numRemaining = numConExpected - numGiven
     -- traceM ("CCon: " ++ ppReadable c ++ " " ++ show t ++ " " ++ show numExpected ++ " " ++ show numGiven)
     if numGiven > numConExpected
-      then err (getPosition exp, EConMismatchNumArgs (show c') (pfpReadable t) numConExpected numGiven)
+      -- XXX Errors about consturctor argument mismatches should contain the type of
+      -- the constructor, but this is overly hard to actually compute.
+      then err (getPosition exp, EConMismatchNumArgs (show c') numConExpected numGiven)
       else if not (isTVar finalTD) && numGiven < numConExpected && numRemaining /= numTDExpected
-      then err (getPosition exp, EPartialConMismatchNumArgs (show c') (pfpReadable finalTD) (pfpReadable t) numConExpected numGiven numTDExpected)
+      then err (getPosition exp, EPartialConMismatchNumArgs (show c') (pfpReadable finalTD) numConExpected numGiven numTDExpected)
       else do extraArgs <- sequence $
                    map ((newVar $ getPosition c) . ("a" ++) . show) $
                    range (0, numRemaining - 1)
