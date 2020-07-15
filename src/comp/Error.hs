@@ -756,9 +756,6 @@ data ErrMsg
 
         | EFuncMismatchResult  String String String  String String
         | EFuncMismatchNumArgs String String String  Integer Integer (Maybe Integer)
-        -- XXX these should contain the type of the constructor
-        | EConMismatchNumArgs  String{-String-}      Integer Integer
-        | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
         | EFuncMismatchArgN    String String String  Integer String String
         | EFuncMismatchNoArgsExpected String String String
         | EFuncMismatchArgsExpected   String String String  Integer
@@ -1191,6 +1188,10 @@ data ErrMsg
         | ENoTopTypeSign String
         | WUnusedDef String
         | EConPatArgs String (Maybe String) Int Int
+
+        -- XXX these should contain the type of the constructor
+        | EConMismatchNumArgs  String{-String-}      Integer Integer
+        | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
         deriving (Eq,Show)
 
 instance PPrint ErrMsg where
@@ -2452,39 +2453,6 @@ getErrorText (EFuncMismatchNumArgs e t1 t2 n1 n2 maybe_startnum) =
      s2par "Inferred type:" $$
      nest 2 (text t2))
 
--- XXX Errors about consturctor argument mismatches should contain the type of
--- the constructor, but this is overly hard to actually compute.
-getErrorText (EConMismatchNumArgs e {-t-} n1 n2) =
-    (Type 81, empty,
-     s2par "Too many arguments in the use of the following constructor:" $$
-     nest 2 (text e) $$
-     s2par ("The constructor expects " ++ show n1 ++
-            " arguments but was used with " ++ show n2 ++ " arguments.") {-$$
-     if n1 > 0
-     then
-       s2par "Constructor has type:" $$
-       nest 2 (text t)
-     else text ""-})
-
-getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
-    (Type 81, empty,
-     s2par "Wrong number of arguments in the partial application of the following constructor:" $$
-     nest 2 (text e) $$
-     s2par ("The constructor expects " ++ show n1 ++
-            " arguments and was used with " ++ show n2 ++
-            " arguments, leaving " ++ show (n1 - n2) ++
-            " unfilled, however a function " ++
-            if n3 > 0
-            then  "with " ++ show n3 ++ " arguments was expected."
-            else "was not expected.") $$
-     s2par "The expected type is:" $$
-     nest 2 (text t1){- $$
-     if n1 > 0
-     then
-       s2par "Constructor has type:" $$
-       nest 2 (text t2)
-     else text ""-})
-
 getErrorText (EFuncMismatchArgN e t1 t2 num argt1 argt2) =
     (Type 82, empty,
      s2par ("Type mismatch in argument " ++ show num ++
@@ -2962,6 +2930,39 @@ getErrorText (ENoTopTypeSign n) =
 getErrorText (EConPatArgs c mt expected actual) =
   (Type 142, empty, s2par ("Pattern for constructor " ++ ishow c ++ (maybe " " (" of type " ++) mt) ++
                            " requires " ++ show expected ++ " arguments," ++ " found " ++ show actual ++ "."))
+
+-- XXX Errors about consturctor argument mismatches should contain the type of
+-- the constructor, but this is overly hard to actually compute.
+getErrorText (EConMismatchNumArgs e {-t-} n1 n2) =
+    (Type 143, empty,
+     s2par "Too many arguments in the use of the following constructor:" $$
+     nest 2 (text e) $$
+     s2par ("The constructor expects " ++ show n1 ++
+            " arguments but was used with " ++ show n2 ++ " arguments.") {-$$
+     if n1 > 0
+     then
+       s2par "Constructor has type:" $$
+       nest 2 (text t)
+     else text ""-})
+
+getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
+    (Type 144, empty,
+     s2par "Wrong number of arguments in the partial application of the following constructor:" $$
+     nest 2 (text e) $$
+     s2par ("The constructor expects " ++ show n1 ++
+            " arguments and was used with " ++ show n2 ++
+            " arguments, leaving " ++ show (n1 - n2) ++
+            " unfilled, however a function " ++
+            if n3 > 0
+            then  "with " ++ show n3 ++ " arguments was expected."
+            else "was not expected.") $$
+     s2par "The expected type is:" $$
+     nest 2 (text t1){- $$
+     if n1 > 0
+     then
+       s2par "Constructor has type:" $$
+       nest 2 (text t2)
+     else text ""-})
 
 -- Generation Errors
 
