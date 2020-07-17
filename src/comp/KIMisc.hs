@@ -111,6 +111,7 @@ mgu (KVar u) t        = varBind u t
 mgu t (KVar u)        = varBind u t
 mgu KStar KStar       = Just nullKSubst
 mgu KNum KNum         = Just nullKSubst
+mgu KStr KStr         = Just nullKSubst
 mgu t1 t2             = Nothing
 
 
