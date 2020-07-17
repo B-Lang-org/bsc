@@ -1337,17 +1337,17 @@ instance Bin StructSubType where
 instance Bin Kind where
   writeBytes KStar = putI 0
   writeBytes KNum = putI 1
-  writeBytes KStr = putI 2
-  writeBytes (Kfun k1 k2) = do putI 3; toBin k1; toBin k2
-  writeBytes (KVar i) = do putI 4; toBin i
+  writeBytes (Kfun k1 k2) = do putI 2; toBin k1; toBin k2
+  writeBytes (KVar i) = do putI 3; toBin i
+  writeBytes KStr = putI 4
   readBytes =
       do i <- getI
          case i of
            0 -> return KStar
            1 -> return KNum
-           2 -> return KStr
-           3 -> do k1 <- fromBin; k2 <- fromBin; return (Kfun k1 k2)
-           4 -> do i <- fromBin; return (KVar i)
+           2 -> do k1 <- fromBin; k2 <- fromBin; return (Kfun k1 k2)
+           3 -> do i <- fromBin; return (KVar i)
+           4 -> return KStr
            n -> internalError $ "BinData.Bin(Kind).readBytes: " ++ show n
 
 instance Bin CQType where
