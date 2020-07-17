@@ -8,6 +8,7 @@ module CType(
   -- ** Examining Types
   getTyVarId, getTypeKind,
   isTNum, getTNum,
+  isTStr, getTStr,
   isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
@@ -25,7 +26,7 @@ module CType(
   isTConArrow, isTConPair,
 
   -- ** Constructing Types
-  noType, tVar, tVarKind, cTVar, cTVarKind, cTVarNum, cTCon, cTNum,
+  noType, tVar, tVarKind, cTVar, cTVarKind, cTVarNum, cTCon, cTNum, cTStr,
   cTApplys, setTypePosition,
 
   -- * Kinds
@@ -202,7 +203,12 @@ instance Ord TyVar where
 instance Ord TyCon where
     TyCon i k _ `compare` TyCon i' k' _   =  (getIdBase i, getIdQual i, k) `compare` (getIdBase i', getIdQual i', k')
     TyCon _ _ _ `compare` TyNum _  _      =  LT
+    TyCon _ _ _ `compare` TyStr _  _      =  LT
+    TyStr _ _   `compare` TyCon _  _  _   =  GT
+    TyStr _ _   `compare` TyNum _  _      =  LT
+    TyStr s _   `compare` TyStr s' _      =  s `compare` s'
     TyNum _ _   `compare` TyCon _  _  _   =  GT
+    TyNum _ _   `compare` TyStr _  _      =  GT
     TyNum i _   `compare` TyNum i' _      =  i `compare` i'
 
 
@@ -251,14 +257,17 @@ instance PPrint TyVar where
 instance PPrint TyCon where
     pPrint d _ (TyCon i _ _) = ppConId d i
     pPrint d _ (TyNum i _) = text (itos i)
+    pPrint d _ (TyStr s _) = text (show s)
 
 instance Hyper TyCon where
     hyper (TyCon i k s) y = hyper3 i k s y
     hyper (TyNum i p) y = hyper2 i p y
+    hyper (TyStr s p) y = hyper2 s p y
 
 instance HasPosition TyCon where
     getPosition (TyCon name k _) = getPosition name
     getPosition (TyNum _ pos) = pos
+    getPosition (TyStr _ pos) = pos
 
 instance HasPosition CQType where
     -- prefer t to ps, since that is a better position for BSV
@@ -338,6 +347,17 @@ isTNum _ = False
 getTNum :: CType -> Integer
 getTNum (TCon (TyNum n _)) = n
 getTNum t = internalError $ "getTNum: not a type-level integer -- " ++ (show t)
+
+cTStr :: String -> Position -> CType
+cTStr s pos = TCon (TyStr s pos)
+
+isTStr :: CType -> Bool
+isTStr (TCon (TyStr _ _)) = True
+isTStr _ = False
+
+getTStr :: CType -> String
+getTStr (TCon (TyStr s _)) = s
+getTStr t = internalError $ "getTNum: not a type-level string -- " ++ (show t)
 
 isTVar :: Type -> Bool
 isTVar (TVar _) = True
@@ -455,6 +475,7 @@ allTyCons _ = []
 getTConName :: TyCon -> Maybe Id
 getTConName (TyCon i _ _) = Just i
 getTConName (TyNum {}) = Nothing
+getTConName (TyStr {}) = Nothing
 
 allTConNames :: CType -> [Id]
 allTConNames = mapMaybe getTConName . allTyCons
@@ -523,6 +544,7 @@ getResKind k = k
 instance PPrint Kind where
     pPrint _ _ KStar = text "*"
     pPrint _ _ KNum = text "#"
+    pPrint _ _ KStr = text "$"
     pPrint d p (Kfun l r) = pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
     pPrint _ _ (KVar i) = text (showKVar i)
 
@@ -536,6 +558,7 @@ instance PPrint PartialKind where
     pPrint _ _ PKNoInfo = text "?"
     pPrint _ _ PKStar = text "*"
     pPrint _ _ PKNum = text "#"
+    pPrint _ _ PKStr = text "$"
     pPrint d p (PKfun l r) =
         pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
 
@@ -577,6 +600,7 @@ setTypePosition :: Position -> Type -> Type
 setTypePosition pos (TVar (TyVar id n k)) = (TVar (TyVar (setIdPosition pos id) n k))
 setTypePosition pos (TCon (TyCon id k s)) = (TCon (TyCon (setIdPosition pos id) k s))
 setTypePosition pos (TCon (TyNum n _)) = (TCon (TyNum n pos))
+setTypePosition pos (TCon (TyStr s _)) = (TCon (TyStr s pos))
 setTypePosition pos (TAp f a) = (TAp (setTypePosition pos f) (setTypePosition pos a))
 setTypePosition pos (TGen _ n)    = (TGen pos n)
 setTypePosition pos (TDefMonad _) = (TDefMonad pos)

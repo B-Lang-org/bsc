@@ -507,6 +507,7 @@ getFTyCons :: CType -> S.Set Id
 getFTyCons (TVar (TyVar i _ _)) = S.empty
 getFTyCons (TCon (TyCon i _ _)) = S.singleton i
 getFTyCons (TCon (TyNum _ _)) = S.empty
+getFTyCons (TCon (TyStr _ _)) = S.empty
 getFTyCons (TAp t t') = S.union (getFTyCons t) (getFTyCons t')
 getFTyCons (TGen _ _) = S.empty
 getFTyCons (TDefMonad _) = S.empty  -- internalError "getFTyCons: TDefMonad"
@@ -521,6 +522,7 @@ getFTyVars :: CType -> S.Set Id
 getFTyVars (TVar (TyVar i _ _)) = S.singleton i
 getFTyVars (TCon (TyCon i _ _)) = S.empty
 getFTyVars (TCon (TyNum _ _)) = S.empty
+getFTyVars (TCon (TyStr _ _)) = S.empty
 getFTyVars (TAp t t') = S.union (getFTyVars t) (getFTyVars t')
 getFTyVars (TGen _ _) = S.empty
 getFTyVars (TDefMonad _) = S.empty  -- internalError "getFTyVars: TDefMonad"
@@ -540,6 +542,7 @@ getFTyVarsT :: CType -> S.Set TyVar
 getFTyVarsT (TVar i) = S.singleton i
 getFTyVarsT (TCon (TyCon i _ _)) = S.empty
 getFTyVarsT (TCon (TyNum _ _)) = S.empty
+getFTyVarsT (TCon (TyStr _ _)) = S.empty
 getFTyVarsT (TAp t t') = S.union (getFTyVarsT t) (getFTyVarsT t')
 getFTyVarsT (TGen _ _) = S.empty
 getFTyVarsT (TDefMonad _) = internalError "getFTyVars: TDefMonad"

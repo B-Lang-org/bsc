@@ -152,4 +152,5 @@ iToCT (ITNum n) = TCon (TyNum n noPosition)
 iToCK :: IKind -> Kind
 iToCK (IKStar) = KStar
 iToCK (IKNum) = KNum
+iToCK (IKStr) = KStr
 iToCK (IKFun k1 k2) = Kfun (iToCK k1) (iToCK k2)

@@ -127,6 +127,7 @@ instance HasKind TyVar where
 instance HasKind TyCon where
     kind (TyCon v (Just k) _) = k
     kind (TyNum _ _) = KNum
+    kind (TyStr _ _) = KStr
     kind (TyCon v Nothing _) = internalError "Type.HasKind(TyCon).kind: TyCon without kind"
 
 instance HasKind Type where

@@ -554,6 +554,7 @@ findFields struct_ty0 field_id = do
             case (leftTyCon (expandSyn t)) of
               Nothing -> Nothing
               Just (TyNum n _) -> Just (mkNumId n, True, True, Nothing)
+              Just (TyStr s _) -> Just (mkStrId s, True, True, Nothing)
               Just (TyCon tc _ _) ->
                   case (findType symt tc) of
                     Just (TypeInfo (Just qtc) _ _ tcsort)

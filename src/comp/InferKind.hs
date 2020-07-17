@@ -49,6 +49,7 @@ convertPKindToKind :: PartialKind -> KI Kind
 convertPKindToKind (PKNoInfo) = do v <- newKVar Nothing; return v
 convertPKindToKind (PKStar) = return KStar
 convertPKindToKind (PKNum) = return KNum
+convertPKindToKind (PKStr) = return KStr
 convertPKindToKind (PKfun l r) = do l' <- convertPKindToKind l
                                     r' <- convertPKindToKind r
                                     return (Kfun l' r')
@@ -118,6 +119,7 @@ kcCType as (TVar (TyVar i _ _)) =
     Just k -> return k
     Nothing -> err (getPosition i, EUnboundTyVar (pfpString i))
 kcCType as (TCon (TyNum _ _)) = return KNum
+kcCType as (TCon (TyStr _ _)) = return KStr
 kcCType as (TCon (TyCon i _ _)) =
     case M.lookup i as of
     Just k -> return k

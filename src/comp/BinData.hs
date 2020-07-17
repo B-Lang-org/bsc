@@ -229,6 +229,7 @@ id_key i = IK (getIdBase i) (getIdQual i) (getIdPosition i) (getIdProps i)
 data TypeKey = TKV IdKey Int Kind
              | TKC IdKey (Maybe Kind) TISort
              | TKN Integer Position
+             | TKS String Position
              | TKA TypeKey TypeKey
              | TKG Position Int
   deriving (Eq, Ord, Show)
@@ -237,6 +238,7 @@ type_key :: Type -> TypeKey
 type_key (TVar (TyVar i n k))  = TKV (id_key i) n k
 type_key (TCon (TyCon i mk s)) = TKC (id_key i) mk s
 type_key (TCon (TyNum n p))    = TKN n p
+type_key (TCon (TyStr s p))    = TKS s p
 type_key (TAp t1 t2)           = TKA (type_key t1) (type_key t2)
 type_key (TGen p n)            = TKG p n
 type_key (TDefMonad _) = internalError $ "BinData.type_key: TDefMonad"
@@ -727,6 +729,7 @@ instance Bin IdProp where
     writeBytes (IdPInlinedPositions poss)
                                   = do putI 35 ; toBin poss
     writeBytes IdPParserGenerated = putI 36
+    writeBytes IdP_Str            = putI 37
     readBytes = do
         i <- getI
         case i of
@@ -759,6 +762,7 @@ instance Bin IdProp where
           34 -> return IdPMethodPredicate
           35 -> do poss <- fromBin; return (IdPInlinedPositions poss)
           36 -> return IdPParserGenerated
+          37 -> return IdP_Str
           n  -> internalError $ "BinData.Bin(IdProp).readBytes: " ++ show n
 
 
@@ -1293,6 +1297,7 @@ instance Bin TyVar where
 instance Bin TyCon where
     writeBytes (TyCon i mk s) = do putI 0; toBin i; toBin mk; toBin s
     writeBytes (TyNum i pos) = do putI 1; toBin i; toBin pos
+    writeBytes (TyStr s pos) = do putI 2; toBin s; toBin pos
     readBytes =
         do i <- getI
            case i of
@@ -1332,15 +1337,17 @@ instance Bin StructSubType where
 instance Bin Kind where
   writeBytes KStar = putI 0
   writeBytes KNum = putI 1
-  writeBytes (Kfun k1 k2) = do putI 2; toBin k1; toBin k2
-  writeBytes (KVar i) = do putI 3; toBin i
+  writeBytes KStr = putI 2
+  writeBytes (Kfun k1 k2) = do putI 3; toBin k1; toBin k2
+  writeBytes (KVar i) = do putI 4; toBin i
   readBytes =
       do i <- getI
          case i of
            0 -> return KStar
            1 -> return KNum
-           2 -> do k1 <- fromBin; k2 <- fromBin; return (Kfun k1 k2)
-           3 -> do i <- fromBin; return (KVar i)
+           2 -> return KStr
+           3 -> do k1 <- fromBin; k2 <- fromBin; return (Kfun k1 k2)
+           4 -> do i <- fromBin; return (KVar i)
            n -> internalError $ "BinData.Bin(Kind).readBytes: " ++ show n
 
 instance Bin CQType where
@@ -1384,7 +1391,8 @@ instance Bin IType where
 instance Bin IKind where
     writeBytes IKStar        = do putI 0
     writeBytes IKNum         = do putI 1
-    writeBytes (IKFun k1 k2) = do putI 2; toBin k1; toBin k2
+    writeBytes IKStr         = do putI 2
+    writeBytes (IKFun k1 k2) = do putI 3; toBin k1; toBin k2
     readBytes = do tag <- getI
                    case tag of
                      0 -> return IKStar

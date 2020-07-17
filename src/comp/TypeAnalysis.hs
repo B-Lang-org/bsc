@@ -42,6 +42,7 @@ data TypeAnalysis =
     | Variable
     | Function
     | Numeric
+    | String
     | Primary     Id Kind [Id] Bool (Maybe Integer)
     | Vector      Bool CType CType (Maybe Integer)
     | List        Bool CType
@@ -72,7 +73,10 @@ showType showKinds t k user_vs =
             in  user_arg_names ++ (inexhaustable_var_names \\ user_arg_names)
         showArg :: Bool -> Kind -> String -> String
         showArg True arg_k name =
-            (if arg_k == KNum then "numeric " else "") ++ "type " ++ name
+            (case arg_k of
+               KNum -> "numeric "
+               KStr -> "string "
+               _ -> "") ++ "type " ++ name
         showArg False arg_k name = name
         showArgs =
             "#" ++ inParens
@@ -143,6 +147,12 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
              else -- Right OverApplied
                   -- (this can't happen, because kindCheck catches it)
                   Left [(pos, ENumKindArg)]
+         (TCon (TyStr s pos), as) ->
+             if (null as)
+             then Right String
+             else -- Right OverApplied
+                  -- (this can't happen, because kindCheck catches it)
+                  Left [(pos, EStrKindArg)]
          (TCon (TyCon i _ _), as) ->
              -- the other fields are bogus before typechecking
              analyzeTCon t i as

@@ -62,12 +62,14 @@ apKSu (S s _) v@(KVar u) =
 apKSu s (Kfun l r) = Kfun (apKSu s l) (apKSu s r)
 apKSu s KStar = KStar
 apKSu s KNum = KNum
+apKSu s KStr = KStr
 
 tv :: Kind -> [KVar]
 tv (KVar u)   = [u]
 tv (Kfun l r) = tv l `union` tv r
 tv KStar      = []
-tv KNum      = []
+tv KNum       = []
+tv KStr       = []
 
 (@@) :: KSubst -> KSubst -> KSubst
 (S s1 b1) @@ S s2 b2 | IS.null (IS.intersection (IM.keysSet b2)
@@ -362,6 +364,7 @@ unifyType t k_inferred k_expected = do
 groundK :: Kind -> Kind
 groundK KStar = KStar
 groundK KNum = KNum
+groundK KStr = KStr
 groundK (Kfun l r) = Kfun (groundK l) (groundK r)
 groundK (KVar k) = tracep doTraceKI ("groundK: " ++ show k) $ KStar
 
@@ -379,6 +382,7 @@ showUnapType t =
     case (removeTypeAps t) of
       TCon (TyCon i _ _) -> getIdString i
       TCon (TyNum i _) -> show i
+      TCon (TyStr s _) -> show s
       TVar (TyVar i _ _) -> getIdString i
       unapType@(TGen _ _) -> show unapType
       -- These shouldn't happen

@@ -803,6 +803,7 @@ trCTypeN r as _ (TVar (TyVar i n _)) =
         K.err (getPosition i, EUnboundTyVar (pfpString i))
 
 trCTypeN r as _ t@(TCon (TyNum _ _)) = return (t, KNum)
+trCTypeN r as _ t@(TCon (TyStr _ _)) = return (t, KStr)
 trCTypeN r as _ (TCon (TyCon i _ _)) =
     let pos = getPosition i in
     case findType r i of

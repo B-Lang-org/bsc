@@ -19,7 +19,7 @@ import Position
 import Error(internalError, EMsg, ErrMsg(..))
 import CSyntax
 import CSyntaxUtil
-import CType(cTNum)
+import CType(cTNum, cTStr)
 import VModInfo(VPathInfo(..), VSchedInfo, VPort,
                 VFieldInfo(..), VeriPortProp(..), VName(..),
                 VMethodConflictInfo)
@@ -248,6 +248,7 @@ atyp :: CParser CType
 atyp =      pTyConId                               >>- cTCon
         ||! pTyVarId                               >>- cTVar
         ||! pTyNumId
+        ||! pTyStrId
         ||! lp +.+ sepBy typ0 (l L_comma) +.. rp   >>> tMkTuple
 
 typ0 :: CParser CType
@@ -730,6 +731,11 @@ conop = lcp "<op>" (\p x->case x of
 pTyNumId :: CParser CType
 pTyNumId = lcp "<integer>" (\p x->case x of
     L_integer _ _ i -> Just (cTNum i p)
+    _ -> Nothing)
+
+pTyStrId :: CParser CType
+pTyStrId = lcp "<string>" (\p x->case x of
+    L_string s -> Just (cTStr s p)
     _ -> Nothing)
 
 literal :: FString -> CParser ()

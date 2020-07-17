@@ -385,10 +385,12 @@ genDefSign s look currentPkg d@(Cinstance qt@(CQType ps t) _) =
         exported c@(TyCon i _ _) =
             look (addQual i) /= Nothing ||
                                 (isTConArrow c && getIdFString currentPkg == fsPrelude)
+        exported (TyStr _ _) = False
         exported (TyNum _ _) = False
         imported (TyCon i _ _) = getIdQual i /= getIdFString currentPkg
-        -- TyNum is imported for the purposes of the "orphan check"
+        -- TyNum/TyStr are imported for the purposes of the "orphan check"
         imported (TyNum _ _) = True
+        imported (TyStr _ _) = True
         fj1 = fromJustOrErr ("bad instance con: " ++ ppReadable qt)
         cls_tcon = fj1 $ leftTyCon t
         cls_con_name = CTypeclass $ fj1 $ leftCon t
@@ -476,6 +478,7 @@ qualFields currentPkg s fs = [f { cf_name = qualId currentPkg (cf_name f),
 qualType :: SymTab -> CType -> CType
 qualType s (TCon (TyCon i k si)) = TCon (TyCon (qualTId s i) k si)
 qualType s t@(TCon (TyNum _ _)) = t
+qualType s t@(TCon (TyStr _ _)) = t
 qualType s t@(TVar _) = t
 qualType s (TAp t t') = TAp (qualType s t) (qualType s t')
 qualType s t@(TGen _ _) = t

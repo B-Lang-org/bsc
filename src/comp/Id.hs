@@ -42,6 +42,7 @@ module Id(
         splitTCId,
         mkStId,
         mkNumId, mkNumIdWithProp, rmNumIdProp,
+        mkStrId, mkStrIdWithProp, rmStrIdProp,
         mkRdyId, isRdyId,
         isKeepId, setKeepId, rmKeepId,
         isHideId, setHideId, rmHideId,
@@ -148,6 +149,7 @@ data IdProp = IdPCanFire
               | IdP_from_rhs            -- a name generated from the right-hand-side of an assignment (e.g., x_PLUS_5__d32)
               | IdP_signed              -- in C backend, an id created from $signed()
               | IdP_Num                 -- numeric id (for hierarchy only)
+              | IdP_Str                 -- string id (for hierarchy only)
               | IdP_NakedInst           -- id associated with a "naked" instantiation (i.e. without a bind)
               | IdPDisplayName FString  -- provide an alternate display string
               | IdP_hide
@@ -480,6 +482,15 @@ mkNumIdWithProp i = addIdProp (mkNumId i) IdP_Num
 
 rmNumIdProp :: Id -> Id
 rmNumIdProp i = rmIdProp i IdP_Num
+
+mkStrId :: String -> Id
+mkStrId s = Id noPosition fsEmpty (mkStrFString s) []
+
+mkStrIdWithProp :: String -> Id
+mkStrIdWithProp s = addIdProp (mkStrId s) IdP_Str
+
+rmStrIdProp :: Id -> Id
+rmStrIdProp s = rmIdProp s IdP_Str
 
 mkIdPre :: FString -> Id -> Id
 mkIdPre fs a = setIdBase a (concatFString [fs, getIdBase a])

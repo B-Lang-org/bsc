@@ -761,6 +761,7 @@ data ErrMsg
         | EFuncMismatchArgsExpected   String String String  Integer
 
         | ENumKindArg
+        | EStrKindArg
         | ETypeNoArg String
         | ETypeTooManyArgs String
         | ETypeTooFewArgs String
@@ -1966,6 +1967,8 @@ getErrorText (EUnifyKind t k_inferred k_expected) =
      nest 2 (text k_inferred))
 getErrorText (ENumKindArg) =
     (Type 22, empty, s2par "Numeric types do not take arguments.")
+getErrorText (EStrKindArg) =
+    (Type 22, empty, s2par "String types do not take arguments.") -- TODO: Pick a new error code to avoid conflict
 getErrorText (ETypeNoArg i) =
     (Type 23, empty, s2par ("The type " ++ ishow i ++ " does not take an argument."))
 getErrorText (ETypeTooManyArgs i) =
