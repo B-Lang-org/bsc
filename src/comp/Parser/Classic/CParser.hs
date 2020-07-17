@@ -9,7 +9,7 @@ import Data.List(nub)
 import Parse
 import IntLit
 import FStringCompat
-import PreStrings(fsBar, fsStar, fsHash, fsLT, fsLTGT, fsLsh, fsNoinline,
+import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline,
                   fsASSERT, fsFire, fsEnabled, fsNo, fsImplicit, fsConditions,
                   fsCan, fsSchedule, fsFirst, fsClockCrossing, fsRule,
                   fsEmpty, fsConfOp, fsHide, fsHideAll,
@@ -504,6 +504,7 @@ pKind = pAKind `into` \ k ->  l L_rarrow ..+ pKind                              
 pAKind :: CParser Kind
 pAKind = star                                                                        .>  KStar
      ||! hash                                                                        .>  KNum
+     ||! dollar                                                                      .>  KStr
      ||! lp ..+ pKind +.. rp
 
 pSummandConIds :: CParser [Id]
@@ -815,6 +816,9 @@ star = literalS fsStar
 
 hash :: CParser ()
 hash = literalS fsHash
+
+dollar :: CParser ()
+dollar = literalS fsDollar
 
 lt :: CParser ()
 lt = literalS fsLT
