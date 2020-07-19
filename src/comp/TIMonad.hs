@@ -78,8 +78,7 @@ data TStateRecover = TStateRecover {
   -- stack of bound tyvars (list of lists for stuff bound at each level)
   tsBoundTyVarStack :: [[TyVar]],
   tsExplPreds :: [[EPred]],
-  tsSatStack :: TSSuperSatStack,
-  tsFundepStack :: Int
+  tsSatStack :: TSSuperSatStack
 }
 
 type TSSatElement = EPred
@@ -149,8 +148,7 @@ initRecoverState = TStateRecover {
     tsCurSubst = nullSubst,
     tsBoundTyVarStack = [],
     tsExplPreds = [],
-    tsSatStack = mkSizedStack [mkSizedStack []],
-    tsFundepStack = 0
+    tsSatStack = mkSizedStack [mkSizedStack []]
   }
 
 runTI :: Flags -> Bool -> SymTab -> TI a -> (Either [EMsg] a, [WMsg])
