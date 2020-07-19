@@ -28,7 +28,6 @@ type  ExpandTest a2 = ExpandData a2 -> AId -> AExpr -> Bool
 
 data ExpandData a2 = ExpandData{
                              skeepFire :: Bool,
-                             sexpnond  :: Bool,
                              sexpcheap :: Bool,
                              suses     :: M.Map Id Int,
                              skeeps    :: S.Set Id,
@@ -66,20 +65,20 @@ data ExpandData a2 = ExpandData{
 -- expansion from a point inside the recursive structure.
 
 
-aExpand :: ErrorHandle -> Bool -> Bool -> Bool -> ASPackage -> ASPackage
-aExpand errh keepFires expnond expcheap pkg =
+aExpand :: ErrorHandle -> Bool -> Bool -> ASPackage -> ASPackage
+aExpand errh keepFires expcheap pkg =
     aSRemoveUnused keepFires
-                   (expandASPackage errh keepFires expnond expcheap pkg)
+                   (expandASPackage errh keepFires expcheap pkg)
 
-xaXExpand :: ErrorHandle -> Bool -> Bool -> Bool -> ASPackage -> ASPackage
-xaXExpand errh keepFires expnond expcheap pkg =
+xaXExpand :: ErrorHandle -> Bool -> Bool -> ASPackage -> ASPackage
+xaXExpand errh keepFires expcheap pkg =
     xaSRemoveUnused keepFires
-        (expandASPackage errh keepFires expnond expcheap pkg)
+        (expandASPackage errh keepFires expcheap pkg)
 
 
 -- common core
-expandASPackage :: ErrorHandle -> Bool -> Bool -> Bool -> ASPackage -> ASPackage
-expandASPackage errh keepFires expnond expcheap pkg =
+expandASPackage :: ErrorHandle -> Bool -> Bool -> ASPackage -> ASPackage
+expandASPackage errh keepFires expcheap pkg =
     let
         ss = aspkg_state_instances pkg
         ws = aspkg_inlined_ports pkg
@@ -95,7 +94,7 @@ expandASPackage errh keepFires expnond expcheap pkg =
 
         (ss', ws', ds', fs') =
             -- trace ("aExpand " ++ ppReadable ds) $
-            aExpDefs errh keepFires expnond expcheap aoptExpandTest
+            aExpDefs errh keepFires expcheap aoptExpandTest
                      sigInfo os ios muxes (ss, ws, ds, fs)
     in
         pkg { aspkg_state_instances = ss',
@@ -129,7 +128,6 @@ expandASPackage errh keepFires expnond expcheap pkg =
 --         XXX It should at least use ASyntax::isMethId)
 -- (5) Create the ExpandData data structure with:
 --        skeepFire = whether to preserve rule firing signals (keepFires flag)
---        sexpnond  = whether to expand "non-d"efs (expandATSdef flag)
 --        sexpcheap = whether to inline "cheap" operations (inlineBool flag)
 --        suses  = the usemap from step 3 (a map to the rough number of uses)
 --        skeeps = a list of Ids to keep (not inline)
@@ -142,11 +140,11 @@ expandASPackage errh keepFires expnond expcheap pkg =
 -- (7) Call "expand" on the ordered definitions, with the ExpandData
 
 
-aExpDefs :: ErrorHandle -> Bool -> Bool -> Bool -> ExpandTest [AForeignBlock] ->
+aExpDefs :: ErrorHandle -> Bool -> Bool -> ExpandTest [AForeignBlock] ->
             ASPSignalInfo -> [AOutput] -> [AInput] -> [AId] ->
             ([AVInst], [AId], [ADef], [AForeignBlock]) ->
             ([AVInst], [AId], [ADef], [AForeignBlock])
-aExpDefs errh keepFires expnond expcheap expTest sigInfo os ios muxes (ss', ws', ds', fs') =
+aExpDefs errh keepFires expcheap expTest sigInfo os ios muxes (ss', ws', ds', fs') =
     let
         usemap = createUseMap muxes (ss', ws', ds', fs')
         sorted_defs = tsortDefs errh ds'
@@ -162,7 +160,7 @@ aExpDefs errh keepFires expnond expcheap expTest sigInfo os ios muxes (ss', ws',
                   [ i | ADef i _ _ _ <- ds', isMethId i || hasIdProp i IdP_keepEvenUnused ]
 
         edata = -- traces( "keepids: " ++ ppReadable keepIds ) $
-                ExpandData { skeepFire = keepFires, sexpnond = expnond,
+                ExpandData { skeepFire = keepFires,
                              sexpcheap = expcheap, suses = usemap,
                              skeeps = (S.fromList keepIds),
                              sss = ss', sws = ws', sfs = fs',
@@ -707,12 +705,11 @@ expand edata edefs (ADef i t e ps : ds) nds =
 aoptExpandTest :: ExpandData e2 -> AId -> AExpr -> Bool
 aoptExpandTest edata i e =
   let keepFires = skeepFire edata
-      expnond   = sexpnond edata
       expcheap  = sexpcheap edata
       uses      = suses edata
       nuse      = getUses uses i
       instVars  = aVars (sss edata)
-  in  ((expnond || isLocalAId i) &&
+  in  ((isLocalAId i) &&
        ((not keepFires) || (not (isFire i))) &&
        (not (isKeepId i)) &&
        inlineable e &&
@@ -731,7 +728,6 @@ expandAPackage errh apkg = apkgN
           --
           edata = ExpandData {
             skeepFire = False   -- Not present
-            ,sexpnond = False -- not used
             ,sexpcheap = True -- not used
             ,suses = usemap
             ,skeeps = (S.empty)
