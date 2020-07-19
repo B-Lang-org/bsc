@@ -84,7 +84,7 @@ aOpt errh flags pkg0 | not (optATS flags) =
         -- case/if expressions.
         pkg1 = aExpandDynSelASPkg pkg0
 
-        pkg2 = aExpand errh keepF False inlineB pkg1
+        pkg2 = aExpand errh keepF inlineB pkg1
     in
         return pkg2
 -- when optATS is specified
@@ -130,7 +130,7 @@ aOpt errh flags pkg0 = do
         -- expcheap  needed as True here to get aInsertCase to work.
         -- aExpand is needed here after scheduling tsort defs
         --
-        pkg2 = aExpand errh keepF False inlineB pkg1B
+        pkg2 = aExpand errh keepF inlineB pkg1B
 
         ds = aspkg_values pkg2
         fb = aspkg_foreign_calls pkg2
@@ -151,7 +151,7 @@ aOpt errh flags pkg0 = do
         pkg4 = xaSRemoveUnused keepF pkg3
     when debug $
       traceM ("trace defs, post xaSRemoveUnused (ds2): " ++ ppReadable (aspkg_values pkg4))
-    let pkg5 = xaXExpand errh keepF optsch False pkg4
+    let pkg5 = xaXExpand errh keepF optsch pkg4
 
     -- Run thru the SAT solver for and/or optimzation
     --
@@ -173,7 +173,7 @@ aOpt errh flags pkg0 = do
     -- We may want to turn off optsch here, since this undoes the effect of joinDefs
     -- for the simple cases
     let
-        pkg7 = xaXExpand errh keepF optsch False pkg6
+        pkg7 = xaXExpand errh keepF optsch pkg6
         pkg8 = aOptFinalPass flags pkg7
     --
     return pkg8
