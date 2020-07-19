@@ -753,10 +753,11 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         body  = CCon1 i (getCISName cs) (CVar id_defaultValue)
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
+
 -- | Derive the PrimMakeUndefined instance for a data (sum type), and
 -- return the instance definition.
 -- See the comment on 'doDUninitialized` about how BSV's sequential
--- syntax is implemented as nest let-expressions, and how we can optimize
+-- syntax is implemented as nested let-expressions, and how we can optimize
 -- the work in each re-assignment by constructing data structures once at
 -- the start. As with the 'uninitialized' primitive value, we do the same thing
 -- here for the 'undefined' primitive value: when an undefined value is created
