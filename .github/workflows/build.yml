@@ -34,7 +34,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: ${{ matrix.os }}-ccache-${{ github.sha }}
@@ -100,7 +100,7 @@ jobs:
       # in the key so that a new cache file is generated after every build,
       # and have the restore-key use the most recent.
       - name: CCache cache files
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ GITHUB.WORKSPACE }}/ccache
           key: ${{ matrix.os }}-ccache-${{ github.sha }}
