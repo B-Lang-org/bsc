@@ -1,7 +1,8 @@
-module Version(bluespec, bsc, version, versionStr, versionname, versiondate,
+module Version(bluespec, bscVersionStr, versionStr, versionname, versiondate,
                copyright, buildnum
               ) where
 
+import Data.List
 import BuildVersion(buildVersion, buildVersionNum)
 
 {-# NOINLINE bluespec #-}
@@ -27,22 +28,21 @@ buildnum :: Integer
 buildnum = buildVersionNum
 
 -- Generate the version string (for a given tool)
-versionStr :: String -> String
-versionStr toolname =
-  let versionstr = if null versionname then "" else ", version " ++ versionname
-      buildstr = if null buildVersion then "" else "build " ++ buildVersion
-  in  toolname ++
-      versionstr ++
-      (if (null buildstr && null versiondate) then "" else " (") ++
-      buildstr ++
-      (if (null buildstr || null versiondate) then "" else ", ") ++
-      versiondate ++
-      (if (null buildstr && null versiondate) then "" else ")")
+versionStr :: Bool -> String -> String
+versionStr showVersion toolname
+  | not showVersion = toolname
+  | otherwise =
+    let emptyOr a b = if null a then a else b
+        versionstr  = versionname `emptyOr` (", version " ++ versionname)
+        buildstr    = buildVersion `emptyOr` ("build " ++ buildVersion)
+        build_date  = intercalate ", " (filter (not . null) [buildstr, versiondate])
+        build_date' = build_date `emptyOr` (" (" ++ build_date ++ ")")
+  in  concat [toolname, versionstr, build_date']
 
 -- The Bluespec Compiler and version string for bsc
-bsc, version :: String
-bsc = bluespec ++ " Compiler"
-version = versionStr bsc
+
+bscVersionStr :: Bool -> String
+bscVersionStr showVersion = versionStr showVersion (bluespec ++ " Compiler")
 
 copyright :: String
 copyright = unlines copyrights

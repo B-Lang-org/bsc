@@ -11,7 +11,7 @@ import Data.Maybe(isJust, fromJust)
 import Control.Monad.State
 import ErrorTCompat
 
-import Version(version)
+import Version(bscVersionStr)
 import Backend
 import FileNameUtil(abinSuffix)
 import FileIOUtil(readBinaryFileCatch, readBinFilePath)
@@ -507,7 +507,7 @@ decodeABin errh backend filename contents =
       -- XXX do something to check the sig?
       -- XXX check that each module has the signature of the others?
       -- does the ABI BSC version match?
-      if (ab_version abi /= version)
+      if (ab_version abi /= bscVersionStr True)
       then
           -- reuse message for Bin rather than create a new error for ABin
           Left [(noPosition, EBinFileVerMismatch filename)]

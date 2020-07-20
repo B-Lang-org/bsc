@@ -9,7 +9,7 @@ import SimPrimitiveModules(isPrimitiveModule)
 import ASyntax(AVInst(..))
 import ABinUtil(ABinMap)
 import VModInfo(VModInfo(..), getVNameString)
-import Version(version)
+import Version(bscVersionStr)
 import FileNameUtil
 import ErrorUtil(internalError)
 
@@ -53,7 +53,7 @@ readCodeGenOptionDescr f =
 
 isStale :: Flags -> FilePath -> ABinMap -> Id -> SimPackage -> IO Bool
 isStale flags prefix ba_map top_pkg pkg =
-    if (sp_version pkg /= version)
+    if (sp_version pkg /= bscVersionStr True)
     then return True
     else let name = getIdBaseString (sp_name pkg)
          in case (M.lookup name ba_map) of

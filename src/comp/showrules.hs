@@ -57,7 +57,7 @@ import Text.Regex
 
 -- Version string (matches main BSC version numbering)
 versionString :: String
-versionString = versionStr (bluespec ++ " showrules utility")
+versionString = versionStr True (bluespec ++ " showrules utility")
 
 -- -------------------------------------------------------------------
 -- Option processing
