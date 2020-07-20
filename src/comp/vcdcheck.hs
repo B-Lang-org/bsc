@@ -30,7 +30,7 @@ import Numeric(readDec, readHex, readSigned)
 
 -- Version string (matches main BSC version numbering)
 versionString :: String
-versionString = versionStr (bluespec ++ " vcdcheck utility")
+versionString = versionStr True (bluespec ++ " vcdcheck utility")
 
 -- -------------------------------------------------------------------
 -- Option processing
