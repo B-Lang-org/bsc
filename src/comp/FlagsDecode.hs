@@ -1790,7 +1790,7 @@ showFlagArg flags f (FRTListString showf) =
 -- user-understandable terms.
 showFlagsRaw :: Flags -> String
 showFlagsRaw flags =
-    let render (k, v) = "\t" ++ k ++ " = " ++ show v
+    let render (k, v) = "\t" ++ k ++ " = " ++ v
         fields =
          [("aggImpConds", show (aggImpConds flags)),
           ("backend", show (backend flags)),
