@@ -39,8 +39,7 @@ versionStr showVersion toolname
         build_date' = build_date `emptyOr` (" (" ++ build_date ++ ")")
   in  concat [toolname, versionstr, build_date']
 
--- The Bluespec Compiler and version string for bsc
-
+-- The version string for BSC
 bscVersionStr :: Bool -> String
 bscVersionStr showVersion = versionStr showVersion (bluespec ++ " Compiler")
 
