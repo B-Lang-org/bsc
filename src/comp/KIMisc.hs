@@ -279,16 +279,14 @@ unifyDefType t k_inferred k_expected = do
            default_err = err (pos, EUnifyKind (pfpReadable t)
                                       (ppReadable k_inferred')
                                       (ppReadable k_expected'))
-       in
-           if (k_expected' == KStar) && (k_inferred' == KNum)
-           then
-             err (pos, EKindNumForStar t_str)
-           else
-           if (k_expected' == KNum) && (k_inferred' == KStar)
-           then
-             err (pos, EKindStarForNum t_str)
-           else
-             default_err
+       in case (k_expected', k_inferred') of
+         (KStar, KNum)  -> err (pos, EKindNumForStar t_str)
+         (KStar, KStr)  -> err (pos, EKindStrForStar t_str)
+         (KNum,  KStar) -> err (pos, EKindStarForNum t_str)
+         (KNum,  KStr)  -> err (pos, EKindStrForNum t_str)
+         (KStr,  KStar) -> err (pos, EKindStarForStr t_str)
+         (KStr,  KNum)  -> err (pos, EKindNumForStr t_str)
+         _              -> default_err
 
 
 -- Takes the function and its kind and the argument to which the function

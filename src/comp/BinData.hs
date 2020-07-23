@@ -250,6 +250,7 @@ data ITypeKey = ITKF IdKey IKind ITypeKey
               | ITKV IdKey
               | ITKC IdKey IKind TISort
               | ITKN Integer
+              | ITKS String
   deriving (Eq, Ord, Show)
 
 itype_key :: IType -> ITypeKey
@@ -258,6 +259,7 @@ itype_key (ITAp t1 t2)     = ITKA (itype_key t1) (itype_key t2)
 itype_key (ITVar i)        = ITKV (id_key i)
 itype_key (ITCon i k s)    = ITKC (id_key i) k s
 itype_key (ITNum n)        = ITKN n
+itype_key (ITStr s)        = ITKS s
 
 -- -------------------------------------------------------------
 -- The Out monad makes it easy to generate composite BinData
@@ -1372,6 +1374,7 @@ instance Bin IType where
     writeBytes (ITVar i)        = do putI 2; toBin i
     writeBytes (ITCon i k s)    = do putI 3; toBin i; toBin k; toBin s
     writeBytes (ITNum n)        = do putI 4; toBin n
+    writeBytes (ITStr s)        = do putI 5; toBin s
     readBytes = do tag <- getI
                    case tag of
                      0 -> do i <- fromBin; k <- fromBin; t <- fromBin
@@ -1382,6 +1385,7 @@ instance Bin IType where
                      3 -> do i <- fromBin; k <- fromBin; s <- fromBin
                              return $ ITCon i k s
                      4 -> do n <- fromBin; return $ ITNum n
+                     5 -> do s <- fromBin; return $ ITStr s
                      n -> internalError $ "BinData.Bin(IType).readBytes: " ++ show n
 
     -- IType is shared
@@ -1391,13 +1395,14 @@ instance Bin IType where
 instance Bin IKind where
     writeBytes IKStar        = do putI 0
     writeBytes IKNum         = do putI 1
-    writeBytes IKStr         = do putI 2
-    writeBytes (IKFun k1 k2) = do putI 3; toBin k1; toBin k2
+    writeBytes (IKFun k1 k2) = do putI 2; toBin k1; toBin k2
+    writeBytes IKStr         = do putI 3
     readBytes = do tag <- getI
                    case tag of
                      0 -> return IKStar
                      1 -> return IKNum
                      2 -> do k1 <- fromBin; k2 <- fromBin; return (IKFun k1 k2)
+                     3 -> return IKStr
                      n -> internalError $ "BinData.Bin(IKind).readBytes: " ++ show n
 
 instance Bin UndefKind where

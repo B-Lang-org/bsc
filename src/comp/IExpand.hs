@@ -3360,6 +3360,13 @@ conAp' i (ICPrim _ PrimValueOf) _ [T (ITNum n), _] =
 -- errors here because we handle it in evalAp'
 conAp' i (ICPrim _ PrimValueOf) _ [T t, _] = internalError ("PrimValueOf unsimplified: " ++ ppReadable t)
 
+-- stringOf, fast case for ITStr
+conAp' i (ICPrim _ PrimStringOf) _ [T (ITStr s), _] =
+    return $ pExpr $ iMkStringAt (getPosition i) s
+-- stringOf, for non-expanded type operators
+-- errors here because we handle it in evalAp'
+conAp' i (ICPrim _ PrimStringOf) _ [T t, _] = internalError ("PrimStringOf unsimplified: " ++ ppReadable t)
+
 -- typeOf needs to expand type operators like SizeOf that are implemented via
 -- synonym-expansion - no other synonyms should survive in the evaluator
 -- XXX using iToCT here means we're assuming the type is not polymorphic

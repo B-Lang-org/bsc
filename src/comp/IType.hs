@@ -18,7 +18,7 @@ import ErrorUtil(internalError)
 import Id(Id)
 import PreIds(idArrow)
 import CType(Type(..), CType, TyCon(..), Kind(..),
-             TISort, cTApplys, cTVar, cTCon, cTNum)
+             TISort, cTApplys, cTVar, cTCon, cTNum, cTStr)
 import StdPrel(tiArrow)
 import Eval(Hyper(..),hyper3, hyper2, hyper)
 import PPrint
@@ -43,6 +43,7 @@ data IType
         | ITVar Id
         | ITCon Id IKind TISort
         | ITNum Integer
+        | ITStr String
         deriving (Show, Generic.Data, Generic.Typeable)
 
 -- --------------------------------
@@ -53,6 +54,7 @@ instance Hyper IType where
     hyper (ITVar i) y = hyper i y
     hyper (ITCon i k s) y = hyper3 i k s y
     hyper (ITNum i) y = hyper i y
+    hyper (ITStr s) y = hyper s y
 
 instance Hyper IKind where
     hyper IKStar y = y
@@ -94,8 +96,15 @@ cmpT (ITCon _  _ _)      (ITVar _)           = GT
 cmpT (ITCon i1 _ _)      (ITCon i2 _ _)      = compare i1 i2
 cmpT (ITCon _  _ _)      _                   = LT
 
+cmpT (ITNum _)           (ITForAll _  _  _)  = GT
+cmpT (ITNum _)           (ITAp _ _)          = GT
+cmpT (ITNum _)           (ITVar _)           = GT
+cmpT (ITNum _)           (ITCon _ _ _)       = GT
 cmpT (ITNum n1)          (ITNum n2)          = compare n1 n2
-cmpT (ITNum _)           _                   = GT
+cmpT (ITNum _)           _                   = LT
+
+cmpT (ITStr s1)          (ITStr s2)          = compare s1 s2
+cmpT (ITStr _)           _                   = GT
 
 -- -----------------------------------------
 -- Pretty Print instances PPrint and PVPrint
@@ -115,6 +124,7 @@ instance PPrint IType where
     pPrint d p (ITVar i) = pPrint d 0 i
     pPrint d p (ITCon c _ _) = pPrint d 0 c
     pPrint d p (ITNum n) = text (itos n)
+    pPrint d p (ITStr s) = text (show s)
 
 instance PVPrint IType where
     -- convert to CType and use the PVPrint instance for that
@@ -125,6 +135,7 @@ instance PVPrint IType where
             convITyToCTy (ITVar i)     = cTVar i
             convITyToCTy (ITCon i _ _) = cTCon i
             convITyToCTy (ITNum n)     = cTNum n noPosition
+            convITyToCTy (ITStr s)     = cTStr s noPosition
         in  pvPrint d p (convITyToCTy ity)
 
 -- ---------------------------------------------------
@@ -148,6 +159,7 @@ iToCT (ITAp t1 t2) = TAp (iToCT t1) (iToCT t2)
 iToCT (ITVar i) = internalError "IConv.iToCT: ITVar"
 iToCT (ITCon i k s) = TCon (TyCon i (Just (iToCK k)) s)
 iToCT (ITNum n) = TCon (TyNum n noPosition)
+iToCT (ITStr s) = TCon (TyStr s noPosition)
 
 iToCK :: IKind -> Kind
 iToCK (IKStar) = KStar

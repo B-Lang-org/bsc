@@ -31,6 +31,7 @@ updateITypePosition pos (ITAp t t') = (ITAp (updateITypePosition pos t) (updateI
 updateITypePosition pos (ITVar i) = (ITVar (setIdPosition pos i))
 updateITypePosition pos (ITCon i kind sort) = (ITCon (setIdPosition pos i) kind sort)
 updateITypePosition pos t@(ITNum _) = t
+updateITypePosition pos t@(ITStr _) = t
 
 
 updateIExprPosition2 :: Position -> IExpr a -> IExpr a

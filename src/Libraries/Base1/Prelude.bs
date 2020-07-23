@@ -49,6 +49,8 @@ package Prelude(
 	primConcat, primSplit, PrimPair(..),
 	primOrd, primChr,
 	primValueOf,
+        primStringOf,
+        StringOfProxy,
         _when_,
 	primExtract,
         Position__, getStringPosition, setStringPosition, printPosition, noPosition,
@@ -2825,6 +2827,10 @@ primitive primChr :: Bit n -> a
 
 -- The value n, i.e., the size of the bit vector
 primitive primValueOf :: Bit n -> Integer
+
+-- The string value of a string type (wrapped in a proxy type)
+data (StringOfProxy :: $ -> *) s = StringOfProxy
+primitive primStringOf :: StringOfProxy s -> String
 
 -- add an implicit condition to an expression
 primitive primWhen :: Bit 1 -> a -> a

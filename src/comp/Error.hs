@@ -1189,6 +1189,12 @@ data ErrMsg
         | ENoTopTypeSign String
         | WUnusedDef String
         | EConPatArgs String (Maybe String) Int Int
+
+        | EStringOf String
+        | EKindStrForNum String
+        | EKindStrForStar String
+        | EKindStarForStr String
+        | EKindNumForStr String
         deriving (Eq,Show)
 
 instance PPrint ErrMsg where
@@ -2929,6 +2935,17 @@ getErrorText (ENoTopTypeSign n) =
 getErrorText (EConPatArgs c mt expected actual) =
   (Type 142, empty, s2par ("Pattern for constructor " ++ ishow c ++ (maybe " " (" of type " ++) mt) ++
                            " requires " ++ show expected ++ " arguments," ++ " found " ++ show actual ++ "."))
+
+getErrorText (EStringOf s) =
+  (Type 143, empty, s2par ("Cannot take stringOf " ++ ishow s ++ " (symbol might not be in scope)"))
+getErrorText (EKindStrForNum i) =
+  (Type 144, empty, s2par ("The string type " ++ ishow i ++ " was found where a numeric type was expected."))
+getErrorText (EKindStrForStar i) =
+  (Type 145, empty, s2par ("The string type " ++ ishow i ++ " was found where a non-string type was expected."))
+getErrorText (EKindStarForStr i) =
+  (Type 146, empty, s2par ("The non-string type " ++ ishow i ++ " was found where a string type was expected."))
+getErrorText (EKindNumForStr i) =
+  (Type 147, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
 
 -- Generation Errors
 

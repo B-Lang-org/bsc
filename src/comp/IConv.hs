@@ -166,6 +166,7 @@ iConvT' :: Type -> IType
 iConvT' (TVar (TyVar i _ _)) = ITVar i
 iConvT' (TCon (TyCon i (Just k) s)) = ITCon i (iConvK k) s
 iConvT' (TCon (TyNum n _)) = ITNum n
+iConvT' (TCon (TyStr s _)) = ITStr s
 iConvT' (TAp t1 t2) = normITAp (iConvT' t1) (iConvT' t2)
 iConvT' t = internalError("iConvT': " ++ ppReadable t)
 
