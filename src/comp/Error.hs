@@ -472,14 +472,12 @@ data ErrMsg
         | ECPPDirective -- cpp directive found when not expected
         | EUntermComm Position
         | EMissingNL
---        | EBSVReservedWord              -- BSV reserved word in a Classic program
         | EBadLineDirective             -- bad `line directive
         | EBadSymbol String             -- bad operator/symbol
         | EBadStringEscapeChar Char     -- bad character follows \ in string
         | EStringNewline                -- newline in string
         | EStringEOF                    -- end of file inside string
         | ESyntax !String ![String]        -- found token, expected tokens
---        | ESyntaxUnknown                -- dummy parse error
         | EUnsupportedBitVector         -- bit vectors [N:0] only
         | EUnsupportedNumReal String    -- real numbers not supported
         | EUnsupportedNumUndetermined String -- number with x's and z's
@@ -581,7 +579,6 @@ data ErrMsg
         | EForbiddenRepeat !String -- repeat construct forbidden here
         | EForbiddenBreak !String -- break statement forbidden here
         | EForbiddenExpr !String !String
-        -- | EForbiddenDummyId String -- dummy identifier ("?" or "_") forbidden here
         | EForbiddenProvisos !String
         | EForbiddenMethod !String
         | EForbiddenReturn !String
@@ -693,8 +690,6 @@ data ErrMsg
         | ESplitAttrUpd Bool [String]
         | ESplitAttrBinding Bool
         | ESplitAttrReturn Bool
-        -- retired now that we can split actionvalues
-        -- | ESplitAttrActionValue Bool
         | ESplitAttrNonActionCtx Bool
         | EMissingFunctionBody
 
@@ -789,7 +784,6 @@ data ErrMsg
         | ECtxRedNotWriteable String [Position]
         | ECtxRedWrongWriteArg String String String [Position]
         | ECtxRedBadSelectionIndex String [Position]
-        -- | ECtxRedSelectionIndexTooLong String Integer Integer [Position]
         | ECtxRedIsModule String [Position]
         | ECtxRedIsModuleActionValue [Position]
         | ENotNumEq String String [Position]
@@ -866,15 +860,12 @@ data ErrMsg
         | ENoInlineContext String
         | ENoInlinePolymorphic String
 
-        -- | EBindDummyId
         | ETypeStackOverflow
-        -- | ETypeFundepStackOverflow
         | ETypeSuperStackOverflow
         | ERecursiveBits String String
 
         -- Type mismatch with assignment operator
         | EAssignNotReg String
-        -- | EAssignListReg
 
         | EMethodArgNameMismatch String [(String,String)]
 
@@ -980,7 +971,6 @@ data ErrMsg
 
         | EUnexpectedOutputClkGate String
 
---        | WInterfaceArg String
         | EInterfaceArg String
 
         | ECrossDomainPragma [String]
@@ -993,8 +983,6 @@ data ErrMsg
                              em_less_early :: Doc,
                              em_conflicts :: Doc }
         | WActionShadowing String String [String]
---      | EUnsupportedRuleUrgency String [String] [String]
---      | EUrgentRuleConflict String [String]
         | EMERulesIdentical String String
         | WRuleNeverFires String Bool
         | WRuleAlwaysFalse String Bool
@@ -1004,8 +992,6 @@ data ErrMsg
         | WNoScheduleDump String [String]
 
         | WMethodAnnotChange String String [String]
---      | WMethodAnnotChangeArb String String [String]
-        | WSchedulerEffortLimit String String Bool
         | WSATNotAvailable String String (Maybe String)
 
         | EModuleUndet
@@ -1037,7 +1023,6 @@ data ErrMsg
 
         | EUrgencyCycle [String] [Doc] [String]
               -- cycle, explanation of edges, other rules in the SCC
-        -- | EMethodUrgency [(String,[Doc])] -- method and list of positions
         | EPreSchedCycle Doc  -- description of the cycle
         | ESelfUrgency String Doc -- the ruleId, description of the path
         | EPathMethodArgToRdy String String Doc -- method, arg, descr of path
@@ -1117,7 +1102,6 @@ data ErrMsg
         | EFlagAfterSrc String
         | ENotVerSrcFile String
         | ENotCSrcFile String
---        | ENeedUpdCheckFlag
         | EMultipleSrcFiles
         | EMissingUserFile String [String]
         | EUnrecognizedCmdLineText String
@@ -1190,6 +1174,10 @@ data ErrMsg
         | WUnusedDef String
         | EConPatArgs String (Maybe String) Int Int
 
+        -- XXX these should contain the type of the constructor
+        | EConMismatchNumArgs  String{-String-}      Integer Integer
+        | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
+        
         | EStringOf String
         | EKindStrForNum String
         | EKindStrForStar String
@@ -1405,9 +1393,7 @@ getErrorText (EForbiddenModule context) =
     (Parse 59, empty, s2par ("Modules forbidden in " ++ context ++ " context"))
 getErrorText (EForbiddenForeignModule context) =
     (Parse 60, empty, s2par ("Foreign modules forbidden in " ++ context ++ " context"))
-{-
-Parse 61 obsoleted by EBadAttributeName
--}
+-- Removed Parse 61 obsoleted by EBadAttributeName
 getErrorText (EForbiddenStatement) =
     (Parse 62, empty, s2par ("Invalid statement in this context"))
 getErrorText (EBadAttributeValue name expected) =
@@ -1497,9 +1483,7 @@ getErrorText (EUnsupportedPatAll1 num) =
     (Parse 98, empty, s2par ("Undetermined number of 1 bits not supported in pattern: " ++ quote num))
 getErrorText (ESequenceIfPattern) =
     (Parse 99, empty, s2par ("Conditions in a sequence if-statement may not be patterns"))
-{-
--- Parse 100 was obsoleted by EBadAttributeName
--}
+-- Removed Parse 100 obsoleted by EBadAttributeName
 getErrorText (EInstanceInterfaceNameConflict name) =
     (Parse 101, empty,
      s2par ("Instance and interface names must differ for " ++ quote name))
@@ -1577,9 +1561,7 @@ getErrorText (EIllegalAssertStmt context) =
 getErrorText (EIllegalRepetition rep) =
     (Parse 125, empty,
      s2par (rep ++ " may only follow simple boolean expressions"))
-{-
-Parse 126 was obsoleted by EBadAttributeName
--}
+-- Removed Parse 126 obsoleted by EBadAttributeName
 getErrorText (EForbiddenLet context) =
     (Parse 127, empty, s2par (quote "let" ++ " forbidden in " ++ context ++ " context"))
 getErrorText (EBadAssignSubscript context) =
@@ -1593,9 +1575,7 @@ getErrorText (EBVISeparated) =
     (Parse 131, empty, s2par ("BVI statements must all be together at end of BVI block"))
 getErrorText (EBVIInvalidResets) =
     (Parse 132, empty, s2par ("invalid reset specification in BVI block"))
-{-
-Parse 133 (EForbiddenDummyId) removed b/c "_" variable name is now valid in BSV
--}
+-- Removed Parse 133 (EForbiddenDummyId) b/c "_" variable name is now valid BSV
 getErrorText (EUndeclaredClock clk_name) =
     (Parse 134, empty, s2par ("undeclared clock " ++ quote clk_name))
 getErrorText (EForeignModEmptyBody) =
@@ -1672,7 +1652,7 @@ getErrorText (EDuplicatePortRenameAttribute attrname method) =
                               quote method ++ "." ))
 getErrorText (EAttributeArgNotAllowed name) =
     (Parse 159, empty, s2par ("Attribute " ++ quote name ++ " does not support an argument in this context." ))
--- Parse 160 (EActionSelfSB has been moved out of parse errors
+-- Removed Parse 160, EActionSelfSB has been reclassified as Type 94
 getErrorText (EForbiddenDeclaration context) =
     (Parse 161, empty, s2par ("declarations forbidden in " ++ context ++ " context"))
 getErrorText (EForbiddenRepeat context) =
@@ -1769,13 +1749,7 @@ getErrorText (ESplitAttrReturn split)  =
 getErrorText (ESplitAttrNonActionCtx split)  =
     let attr = if split then "split" else "nosplit" in
     (Parse 192, empty, s2par ("The " ++ attr ++ " attribute is not permitted in a non-action context."))
-
-{- retired now that we allow splitting actionvalues
-getErrorText (ESplitAttrActionValue split)  =
-    let attr = if split then "split" else "nosplit" in
-    (Parse 193, empty, s2par ("The " ++ attr ++ " attribute is not permitted in on an actionvalue block."))
--}
-
+-- Removed Parse 193 ESplitAttrActionValue, now that we allow splitting actionvalues
 getErrorText (EBVIInputOverlap port) =
     (Parse 194, empty, s2par ("The foreign module input " ++ port ++ " is not unique."))
 getErrorText (EBVIInputOutputOverlap port) =
@@ -2166,9 +2140,7 @@ getErrorText (EForeignModTooManyPorts method) =
     (Type 57, empty, s2par ("The method " ++ ishow method ++ " is connected to too many foreign module ports."))
 getErrorText (EForeignModTooFewPorts method) =
     (Type 58, empty, s2par ("The method " ++ ishow method ++ " is connected to too few foreign module ports."))
-{-
-Type 59 (EBindDummyId) removed b/c "_" variable name is now valid in BSV
--}
+-- Removed Type 59 EBindDummyId b/c "_" variable name is now valid in BSV
 getErrorText (ECtxRedWrongBitSize t tsz sz2 positions) =
     (Type 60, empty,
      let intro_msg =
@@ -2299,17 +2271,8 @@ getErrorText (EAssignNotReg t) =
                 "register or interface type.  The expression at this location has type:") $$
          nest 2 (s2par t))
 
-{-
--- This error should only be called when !isClassic()
-getErrorText (EAssignListReg) =
-    (Type 67, empty,
-     s2par ("The left-hand side of this assignment is a list of " ++
-            "registers, not a register containing a list (or vector).  " ++
-            "Perhaps you meant to enclose the expression in " ++
-            "parentheses?  If the left-hand side of an assignment is " ++
-            "an expression intended to return a register, it must be " ++
-            "placed in parentheses."))
--}
+-- Removed Type 67 EAssignListReg. Made obsolete by typeclass PrimUpdateable
+-- and the special case handling of provisos errors containing it.
 
 getErrorText (EBoundTyVarKindMismatch tyvar_id kind1 kind1_pos kind2 kind2_pos) =
     (Type 68, empty,
@@ -2376,7 +2339,9 @@ getErrorText (ECtxRedBadSelectionIndex found_idx positions) =
      in msg
     )
 
--- remove Type 73, EWeakCtxPrimSelectableNeedsPrimIndexCtx
+-- Removed Type 73, EWeakCtxPrimSelectableNeedsPrimIndexCtx. PrimIndex
+-- is no longer a superclass of PrimSelectable but is just part of the
+-- member function's signature
 
 getErrorText (ECtxRedBitReduce t positions) =
     (Type 74, empty,
@@ -2491,29 +2456,12 @@ getErrorText (EFuncMismatchArgsExpected e t1 t2 n) =
      nest 2 (text t1) $$
      s2par "But it was used with the following type:" $$
      nest 2 (text t2))
-{-
-getErrorText (ECtxRedSelectionIndexTooLong found_idx found_sz max_sz positions) =
-    (Type 85, empty,
-     let intro_msg =
-           s2par ("Selection with []-syntax " ++
-                  "is not possible with an index of type:") $$
-           nest 2 (text found_idx) $$
-           s2par ("The maximum size of an index is " ++ itos max_sz ++
-                  ", while this type has size " ++ itos found_sz ++
-                  ".  Consider truncating the index.")
-         pos_msg =
-           s2par ("Selection was performed with this index type " ++
-                  "in or at the following locations:") $$
-           -- use "nub" out of paranoia (saw repeats with EWeakContext)
-           nest 2 (vcat (map (text . prPosition) (nub positions)))
-         msg = if (length(positions) == 0)
-               then intro_msg
-               else intro_msg $$ pos_msg
-     in msg
-    )
--}
 
--- removed Type 86, EWeakCtxPrimIndexNeedsAddCtx
+-- Removed Type 85, ECtxRedSelectionIndexTooLong
+-- Removed Type 86, EWeakCtxPrimIndexNeedsAddCtx
+-- Both removed due to PrimIndex improvements. The PrimIndex instance for
+-- Bit vector no longer has an Add context, because there's no longer an
+-- arbitrary 32-bit limit applied to all indexing.
 
 getErrorText (EForeignFuncStringRes) =
     (Type 87, empty,
@@ -2752,13 +2700,10 @@ getErrorText (ECtxRedIsModuleActionValue positions) =
          then intro_msg
          else intro_msg $$ pos_msg
      )
-{-
--- retired since code was removed from TIMonad
-getErrorText (ETypeFundepStackOverflow) =
-    (Type 114, empty,
-         s2par ("Type inference stack overflow occurred " ++
-               "while trying to satisfy functional dependencies."))
---}
+
+-- Removed Type 114 ETypeFundepStackOverflow. TIMonad no longer keeps a
+-- fundeps stack, since fundep handling became simpler by requiring fundeps
+-- on classes to be fully specified.
 
 getErrorText (ERecursiveBits bits s) =
     (Type 115, empty,
@@ -2936,16 +2881,49 @@ getErrorText (EConPatArgs c mt expected actual) =
   (Type 142, empty, s2par ("Pattern for constructor " ++ ishow c ++ (maybe " " (" of type " ++) mt) ++
                            " requires " ++ show expected ++ " arguments," ++ " found " ++ show actual ++ "."))
 
+-- XXX Errors about consturctor argument mismatches should contain the type of
+-- the constructor, but this is overly hard to actually compute.
+getErrorText (EConMismatchNumArgs e {-t-} n1 n2) =
+    (Type 143, empty,
+     s2par "Too many arguments in the use of the following constructor:" $$
+     nest 2 (text e) $$
+     s2par ("The constructor expects " ++ show n1 ++
+            " arguments but was used with " ++ show n2 ++ " arguments.") {-$$
+     if n1 > 0
+     then
+       s2par "Constructor has type:" $$
+       nest 2 (text t)
+     else text ""-})
+
+getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
+    (Type 144, empty,
+     s2par "Wrong number of arguments in the partial application of the following constructor:" $$
+     nest 2 (text e) $$
+     s2par ("The constructor expects " ++ show n1 ++
+            " arguments and was used with " ++ show n2 ++
+            " arguments, leaving " ++ show (n1 - n2) ++
+            " unfilled, however a function " ++
+            if n3 > 0
+            then  "with " ++ show n3 ++ " arguments was expected."
+            else "was not expected.") $$
+     s2par "The expected type is:" $$
+     nest 2 (text t1){- $$
+     if n1 > 0
+     then
+       s2par "Constructor has type:" $$
+       nest 2 (text t2)
+     else text ""-})
+
 getErrorText (EStringOf s) =
-  (Type 143, empty, s2par ("Cannot take stringOf " ++ ishow s ++ " (symbol might not be in scope)"))
+  (Type 145, empty, s2par ("Cannot take stringOf " ++ ishow s ++ " (symbol might not be in scope)"))
 getErrorText (EKindStrForNum i) =
-  (Type 144, empty, s2par ("The string type " ++ ishow i ++ " was found where a numeric type was expected."))
+  (Type 146, empty, s2par ("The string type " ++ ishow i ++ " was found where a numeric type was expected."))
 getErrorText (EKindStrForStar i) =
-  (Type 145, empty, s2par ("The string type " ++ ishow i ++ " was found where a non-string type was expected."))
+  (Type 147, empty, s2par ("The string type " ++ ishow i ++ " was found where a non-string type was expected."))
 getErrorText (EKindStarForStr i) =
-  (Type 146, empty, s2par ("The non-string type " ++ ishow i ++ " was found where a string type was expected."))
+  (Type 148, empty, s2par ("The non-string type " ++ ishow i ++ " was found where a string type was expected."))
 getErrorText (EKindNumForStr i) =
-  (Type 147, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
+  (Type 149, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
 
 -- Generation Errors
 
@@ -3004,8 +2982,10 @@ getErrorText (EClockDomain object name clock_domains) =
             quote name ++ ".") $$
      prMethodsByClockDomain clock_domains)
 
--- getErrorText (WInterfaceArg f) =
---  (Generate 8, empty, "Code generation for module " ++ f ++ ", which has an interface argument.  This is unreliable.")
+-- Removed Generate 8, WInterfaceArg since synthesis of interface module
+-- args changed from an experimental feature (which produced a warning) to
+-- an outright unsupported feature (producing an error).
+
 getErrorText (EInterfaceArg f) =
     (Generate 8, empty, s2par ("Separate code generation for module " ++ ishow f ++
                                ", which has an interface argument, is not supported"))
@@ -3157,18 +3137,7 @@ getErrorText (EUrgencyCycle cycle explanations other_ids) =
          else intro $$ expl $$ others
     )
 
-{-
--- Retired now that we support attributes on methods
-getErrorText (EMethodUrgency mps) =
-    (Generate 31, empty,
-     let showMP (mId, poss) =
-             let ps = if (length poss == 1) then "" else "s"
-             in  s2par ("Method " ++ quote mId ++
-                        " at the following position" ++ ps ++ ":") $$
-                 nest 2 (vcat poss)
-     in  s2par ("Urgency attributes for methods are not supported.") $$
-         nest 2 (vcat (map showMP mps)))
--}
+-- Removed Generate 31, EMethodUrgency, since attrs are supported on methods
 
 getErrorText (EPreSchedCycle cycle_doc) =
     (Generate 32, empty,
@@ -3323,27 +3292,11 @@ getErrorText (WOutputResetNoBoundaryClock reset) =
             "in that domain, so the reset is being marked as clocked by " ++
             quote "no_clock" ++ "."))
 
-{-
--- This is not needed since we no longer consult the flattened execution
--- order to determine if a rule executes between two methods.
-getErrorText (WMethodAnnotChangeArb method1 method2 rules) =
-    (Generate 51, empty,
-     s2par ("The scheduling relationship between method " ++ ishow method1 ++
-            " and method " ++ ishow method2 ++ " was changed to SBR " ++
-            "because rules were arbitrarily placed between them in the " ++
-            "execution order.")
-    )
--}
+-- Removed Generate 51, WMethodAnnotChangeArb. This is not needed since we
+-- no longer consult the flattened execution order to determine if a rule
+-- executes between two methods.
 
-getErrorText (WSchedulerEffortLimit limit setlimit short) =
-    let ending = if short then "."
-                 else  ". The generated scheduling logic is correct, but may or may not be fully optimized. " ++
-                           "Use the flag -scheduler-effort <n> to increase or decrease the limit from its current value: "
-                           ++ ishow setlimit ++ "."
-    in
-     (Generate 52, empty,
-     s2par ("The scheduling effort has been exceeded: " ++ ishow limit ++ ending)
-    )
+-- Removed Generate 52, WSchedulerEffortLimit, only needed for CUDD SAT solver
 
 getErrorText (EModParameterDynamic inst_name param_name) =
     (Generate 53, empty,
@@ -3361,25 +3314,9 @@ getErrorText (EPortNamesClashFromMethod m1 m2 port loc ) =
             " which conflicts with a port of the same name generated by method " ++ quote m2 ++
             " at location " ++ prPosition loc ++ "."))
 
-{-
--- This feature is now supported by both backends, so no need for the error
-getErrorText (EUnsupportedRuleUrgency target methods rules) =
-    (Generate 56, empty,
-     s2par("Rules more urgent than methods are not supported for " ++
-           target ++ " generation.  The rules:") $$
-     nest 2 (sepList (map text rules) comma) $$
-     s2par("are more urgent than the methods:") $$
-     nest 2 (sepList (map text methods) comma))
--}
-
-{-
--- This feature is now supported by both backends, so no need for the error
-getErrorText (EUrgentRuleConflict method conflicting_rules) =
-    (Generate 57, empty,
-     s2par("The method " ++ quote method ++
-           " conflicts with rules which are more urgent than it: ") $$
-     nest 2 (sepList (map text conflicting_rules) comma))
--}
+-- Removed Generate 56 EUnsupportedRuleUrgency
+-- Removed Generate 57 EUrgentRuleConflict
+-- Both removed because rules can now be more urgent than methods.
 
 getErrorText (EBSimDynamicArg inst_name param_names) =
     (Generate 58, empty,
@@ -3510,18 +3447,12 @@ getErrorText (EClkGateNotUnused clk) =
     (Generate 77, empty,
      s2par ("The gate of the clock " ++ quote clk ++ " is used within the " ++
             "module, but is marked with an attribute as being unused."))
-{-
-implemented via primGenerateError in the library
-getErrorText (EUpdateUndeterminedListOrArray) =
-   (Generate 78, empty,
-    s2par ("Attempt to update an undetermined list/array"))
-getErrorText (EUpdateListOrArrayUndeterminedIndex) =
-   (Generate 79, empty,
-    s2par ("Attempt to update a list/array at an undetermined index"))
-getErrorText (EUndeterminedListOrArrayLength) =
-   (Generate 80, empty,
-    s2par ("Attempt to get the length of an undetermined list/array"))
--}
+
+-- Reserved Generate 78 EUpdateUndeterminedListOrArray
+-- Reserved Generate 79 EUpdateListOrArrayUndeterminedIndex
+-- Reserved Generate 80 EUndeterminedListOrArrayLength
+-- These 3 errors are now reserved and generated by library code in the
+-- prelude instead of in the compiler itself.
 
 getErrorText (EModPortHasImplicit inst_id arg_id) =
     (Generate 81, empty,
@@ -3989,9 +3920,7 @@ getErrorText (EMissingPackage p) =
     (System 0, empty, s2par ("Cannot find package " ++ ishow p))
 getErrorText (WFilePackageNameMismatch fname pname) =
     (System 1, empty, s2par ("File name " ++ ishow fname ++ " does not match package name " ++ ishow pname))
---getErrorText (EFailOpenSrcFile fname err_descr) =
---    (System 2, empty,
---     s2par ("Cannot open source file " ++ ishow fname) $$ s2par err_descr)
+-- Removed System 2 EFailOpenSrcFile. Obsoleted by EFileReadFailure.
 getErrorText (EMissingBinFile fname package) =
     (System 3, empty, s2par ("Cannot find the binary file " ++ ishow fname ++ " for package " ++ ishow package))
 getErrorText (EMissingIfcFile fname package) =
@@ -4035,11 +3964,7 @@ getErrorText (ENotVerSrcFile fname) =
     (System 19, empty, s2par ("Filename does not have a recognized Verilog extension: " ++ ishow fname))
 getErrorText (ENotCSrcFile fname) =
     (System 20, empty, s2par ("Filename does not have a recognized C extension: " ++ ishow fname))
-{-
--- This feature is not supported, so its error will not occur.
-getErrorText (ENeedUpdCheckFlag) =
-    (System 21, empty, s2par ("Linking during compilation requires the " ++ quote "-u" ++ " flag"))
--}
+-- Removed System 21 ENeedUpdCheckFlag, unsupported feature
 getErrorText (EMultipleSrcFiles) =
     (System 22, empty, s2par ("Only one source file may be given at a time.  Use the " ++
                               quote "-u" ++ " flag to compile dependencies."))
@@ -4226,15 +4151,7 @@ getErrorText (EEntryForCodeGen names) =
     (System 54, empty,
      s2par ("The -e flag does not apply to Bluespec source files."))
 
-{-
--- Retired now that releases are for a single platform
--- (not attempting to support multiple in the same directory tree)
-getErrorText (EBluesimBadCxxFamily version supported) =
-    (System 55, empty,
-     s2par ("Unsupported C++ compiler family '" ++ version ++
-            "'.  Supported C++ compiler families are:") $+$
-     nest 2 (sepList (map text supported) comma))
--}
+-- Removed System 55, EBluesimBadCxxFamily -- only support one platform in dir tree
 
 getErrorText EDollarNoVerilog =
     (System 56, empty,
@@ -4244,31 +4161,10 @@ getErrorText EDollarLink =
     (System 57, empty,
      s2par ("The flag -remove-dollar in only supported for compiling source, not linking."))
 
-{-
--- Retired now that BSC is open source
-getErrorText (ELicenseUnavailable msg) =
-    (System 58, empty,
-     s2par ("Bluespec is unable to checkout the required license. " ++
-            "Information from license software is given below.") $+$
-     vcat (map text msg))
-
-getErrorText (WLicenseExpires feature dayStr ) =
-    (System 59, empty,
-     s2par ("License feature " ++ feature ++ " expires " ++ dayStr) $$
-     s2par ("This message may be silenced by using \"-licenseWarning <days>\" option.")
-    )
-
-getErrorText WWaitForLicense =
-    (System 60, empty,
-     s2par ("All available Bluespec licenses are in use; Bluespec will wait for next available license.") $$
-     s2par ("Killing or interrupting this process may lead to license checkout and a hanging process.")
-    )
-
-getErrorText (WLicenseSearchPath paths) =
-    (System 61, empty,
-     s2par ( "License search path is:" ) $$ hcat (punctuate colon (map text paths))
-    )
--}
+-- Removed System 58 ELicenseUnavailable, BSC is now open source
+-- Removed System 59 WLicenseExpires, BSC is now open source
+-- Removed System 60 WWaitForLicense, BSC is now open source
+-- Removed Sysetm 61 WLicenseSearchPath, BSC is now open source
 
 getErrorText (WDeprecatedFlag flag message) =
     (System 62, empty,
@@ -4403,14 +4299,7 @@ getErrorText (EBinFileSignatureMismatch2 pkgfile importer1 importer2) =
             quote pkgfile ++ ".") $$
      s2par ("Please recompile the affected packages in dependency order or with -u."))
 
-{-
--- Retired now that BSC is open source
-getErrorText (ELicenseElabLimit mod limit size) =
-  (System 79, empty,
-   s2par ("A Bluespec size-limited license is in use, and this module " ++ quote mod ++
-          " has exceeded the size limit (" ++ show size ++ " > " ++ show limit ++ ").")
-  )
--}
+-- Removed System 79 ELicenseElabLimit, BSC is open source
 
 getErrorText (WSuppressedWarnings count) =
   (System 80, empty,

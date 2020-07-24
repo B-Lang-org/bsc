@@ -737,7 +737,7 @@ const char* print_binary(tFieldDesc& spec, ArgList* args, Target* dest)
   {
     unsigned int value_width = numDigits(v,2);
     pad(spec.width, field_width, value_width, '0', dest);
-    char buf[value_width+1];
+    char buf[(size_t)value_width + 1];
     buf[value_width] = '\0';
     for (unsigned int bit=0, idx=value_width-1; bit < value_width; ++bit,--idx)
       buf[idx] = ((v.data.uVal & (1llu << bit)) != 0llu) ? '1' : '0';

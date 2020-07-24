@@ -25,12 +25,13 @@ import PreIds(
               -- type constructors
               idBit, idAdd, idMax,
               -- classes
-              idEq, idBits, idFShow, idBounded,
+              idEq, idBits, idFShow, idBounded, idDefaultValue,
               -- class members
               idPack, idUnpack,
               idPreludePlus, idEqual, idNotEqual,
               idfshow,
               idMaxBound, idMinBound,
+              id_defaultValue,
               -- functions
               idPrintType,
               idPrimError,
@@ -59,12 +60,19 @@ import qualified Data.Set as S
 -- import Trace
 -- import Debug.Trace
 
+-- | Derive instances for all types with deriving (...) in a package, and
+-- return the package agumented with the instance definitions.
 derive :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
 derive errh flags r (CPackage i exps imps fixs ds includes) =
     let all_ds = ds ++ concat [ cs | (CImpSign _ _ (CSignature _ _ _ cs)) <- imps ]
+        -- Create an environment, that maps IDs to definitions for *all*
+        -- top-level definitions (eg value defns, type decls, tyepeclass decls,
+        -- instance defns etc). NB we only need the typeclass decls
         env = [ (unQualId i, d) | d <- all_ds, (Right i) <- [getName d] ]
     in  case checkEither (concatMap (doDer flags r i env) ds) of
-          Right ds  -> return (CPackage i exps imps fixs (concat ds) includes)
+          -- If deriving succeeded, return the updated CPackage with the extra
+          -- declarations.
+          Right dss'  -> return (CPackage i exps imps fixs (concat dss') includes)
           Left msgs@(msg:rest) -> bsError errh msgs
           Left [] -> internalError "Deriving.derive: doDer failed with empty error list!]"
 
@@ -181,6 +189,8 @@ isRecursiveStruct i fs =
         cons = unions (map (allCQTyCons . cf_type) fs)
     in  i `elem` cons
 
+-- | Derive an instance of a typeclass that the compiler knows about (eg Eq
+-- or FShow) for a given data (sum type), and return the instance definitions.
 -- my guesses at the arguments:
 --  xs  =  available bindings
 --  i   =  qualified id of the data type
@@ -198,6 +208,8 @@ doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
+doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+  Right [doDDefaultValue (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
@@ -234,6 +246,8 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
 doDataDer xs i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
+-- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
+-- FShow) for a given struct (prod type), and return the instance definitions.
 doStructDer :: [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
             -> Either EMsg [CDefn]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idEq =
@@ -242,6 +256,8 @@ doStructDer _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
+doStructDer _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
+  Right [doSDefaultValue (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idUndefined =
@@ -278,6 +294,8 @@ doStructDer _ i vs cs (CTypeclass di) =
 
 -- -------------------------
 
+-- | Derive Eq for a struct (product type), and return the instance definition.
+-- Two struct values are equal if all their fields are equal.
 doSEq :: Position -> Id -> [Type] -> CFields -> CDefn
 doSEq dpos ti vs fs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
   where ctx = map (\ (CField { cf_type = CQType _ t }) -> CPred (CTypeclass idEq) [t]) fs
@@ -297,6 +315,10 @@ doSEq dpos ti vs fs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
                                         CSelectTT ti vy (cf_name field)]
                        | field <- fs ]
 
+-- | Derive Eq for a data (sum type), and return the instance definition
+-- Two sum type values are equal if they have the same constructor and the
+-- constructor args are equal. Enums are handled similarly (but with slight
+-- simplification.)
 doDEq :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDEq dpos i vs ocs cs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
   where ctx | isEnum ocs = []
@@ -336,6 +358,8 @@ doDEq dpos i vs ocs cs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
 
 -- -------------------------
 
+-- | Derive Bits for a struct (product type), and return the instance defn.
+-- Recursively pack/unpack each field, and concatenate/split the results.
 doSBits :: Position -> Id -> [Type] -> CFields -> CDefn
 doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty, sz])) [pk, un]
   where tiPos = getPosition ti
@@ -396,8 +420,19 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
                       in  bind (CStruct ti (mkExp fields err xs))
 
 
--- doDBits: derive Bits instance, with the pack and unpack functions,
---          for a enum or tagged union declaration
+-- | Derive Bits instance for a data (sum) type, with the pack and unpack
+-- functions. The packing for a data type consists of a tag and a body. The tag
+-- size is log2(n) bits when there are n constructors, and the constructors are
+-- numbered from 0 in order of appearance). The body is the packing of each of
+-- a constructor's fields concatenated from left to right. When the constructor
+-- bodies are not all the same length, they are left padded to the length of
+-- the longest body.
+-- An enum is like a degenerate form of data type where none of the constructors
+-- have a body, and with the added flexibility that the user can specify the
+-- tag for a given value.
+-- Data tags aren't dense (i.e. don't cover all possible bit encodings) unless
+-- there are 2^n constructors, and additionally enum tags may be sparse if
+-- the user specifies gaps in the tags.
 doDBits :: Position -> Id -> [Type] -> COSummands -> CSummands ->
            Either EMsg [CDefn]
 doDBits dpos type_name type_vars original_tags tags
@@ -571,6 +606,9 @@ hasSz e s = CHasType e (CQType [] (TAp tBit s))
 
 -- -------------------------
 
+-- | Derive FShow for a struct (product type), and return the instance defn.
+-- FShow is the name of each field followed by show of its value, all wrapped
+-- in braces.
 doSFShow :: Position -> Id -> [Type] -> CFields -> CDefn
 doSFShow dpos ti vs fields =
     Cinstance (CQType ctx (cTApplys (cTCon idFShow) [aty])) [fshow_function]
@@ -614,6 +652,9 @@ doSFShow dpos ti vs fields =
             in  intercalate [sepstr] $ map mkFieldFmt fields
 
 
+-- | Derive FShow for a data (sum type), and return the instance definition.
+-- FShow is the constructor name followed by show of each constructor arg
+-- in braces.
 doDFShow :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDFShow dpos enum_name type_vars original_tags tags
     | isEnum original_tags =
@@ -678,6 +719,9 @@ doDFShow dpos union_name type_vars original_tags tags =
 
 -- -------------------------
 
+-- | Derive the Bounded instance for a data (sum type), and return the instance
+-- definition. The min/max is the first/last constructor, with the min/max of
+-- each constructor arg, if present.
 doDBounded :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDBounded dpos i vs ocs cs =
     --if not (all (null . snd) ocs)
@@ -702,6 +746,32 @@ doDBounded dpos i vs ocs cs =
         minB = CLValueSign (CDef (idMinBoundNQ dpos) (CQType [] aty) [CClause [] [] minBVal]) []
         maxB = CLValueSign (CDef (idMaxBoundNQ dpos) (CQType [] aty) [CClause [] [] maxBVal]) []
 
+doDDefaultValue :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
+doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
+  where ctx   = [ CPred (CTypeclass idDefaultValue) [getRes (cis_arg_type cs)] ]
+        ty    = cTApplys (cTCon i) vs
+        body  = CCon1 i (getCISName cs) (CVar id_defaultValue)
+        def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
+doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
+
+-- | Derive the PrimMakeUndefined instance for a data (sum type), and
+-- return the instance definition.
+-- See the comment on 'doDUninitialized` about how BSV's sequential
+-- syntax is implemented as nested let-expressions, and how we can optimize
+-- the work in each re-assignment by constructing data structures once at
+-- the start. As with the 'uninitialized' primitive value, we do the same thing
+-- here for the 'undefined' primitive value: when an undefined value is created
+-- (either explicitly or implicitly) we could call the primitive 'undefined'
+-- function; instead, we call a typeclass member function, whose instances are
+-- defined to return a structure with undefined values at the leaves.
+-- The polymorphic function 'primMakeRawUndefined' is the primitive, and
+-- `PrimMakeUndefined' is the typeclass, with 'primMakeUndefined' as its
+-- member function.
+-- The derived instance for types with multiple constructors just returns
+-- `primMakeRawUndefined` because we don't know any more about the
+-- structure. When the type has a single constructor, we can build that
+-- structure, with undefined arguments (via calls to the typeclass member,
+-- not the primitive, in case the sub-types themselves have structure).
 doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
 -- the single-summand case is not already derived for data declarations with no internal type
 -- e.g. ActionWorld
@@ -717,6 +787,32 @@ doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [u
         aty   = tPosition `fn` tInteger `fn` ty
         undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
 
+-- | Derive the PrimMakeUninitialized instance for a data (sum type), and
+-- return the instance definition.
+-- BSV is a sequential syntax where a variable can be declared (uninitialized)
+-- and then assigned a value by later sequential statements. This is implemented
+-- in the BSV parser by nested let-expressions: the outer let-expression assigns
+-- the variable to a 'uninitialized' primitive value, and then later assignment
+-- statements become nested let-expressions that shadow that definition with a
+-- new definition that replaces the value. If the 'uninitialized' primitive is
+-- ever evaluated, that indicates that the program is reading the variable's
+-- value without ever assigning a value, so BSC gives a warning/error.
+-- The polymorphic function 'primMakeRawUninitialized' is that primitive.
+-- However, instead of using this primitive directly, we define the typeclass
+-- `PrimMakeUninitialized` with the member function `primMakeUninitialized`
+-- and we use that function instead.
+-- This is because we want to support BSV programs that declare a variable
+-- for a complex type and then subsequently assign individual fields/arguments
+-- of the type. This could be implemented by constructing the new value
+-- every time, but we can save work by constructing the 'uninitialized' value
+-- as a structure with uninitialized leaves. We use `primMakeUninitialized` to
+-- construct that structure.
+-- The derived instance for types with multiple constructors just returns
+-- `primMakeRawUninitialized` because we don't know any more about the
+-- structure. When the type has a single constructor, we can build that
+-- structure, with uninitialized arguments (via calls to the typeclass member,
+-- not the primitive, in case the sub-types themselves have structure).
+-- XXX Why isn't there an arm for single-constructor types, as with 'doDUndefined'?
 doDUninitialized :: Id -> [Type] -> COSummands -> CSummands -> CDefn
 -- the single-summand case is not already derived for data declarations with no internal type
 -- e.g. ActionWorld, so include it below
@@ -724,6 +820,11 @@ doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitializ
   where ty = cTApplys (cTCon i) vs
         uninit = CLValueSign (rawUninitDef ty) []
 
+-- | Derive the PrimDeepSeqCond typeclass for data (sum) types.
+-- For each constructor, fully evaluate the data structure. Do this by,
+-- for each constructor arg, calling primDeepSeqCond (if the type arguments
+-- are known), or primSeqCond (if they are not known) in which case the
+-- correct function is called at elaboation time.
 -- we put it here for consistency even though it is more related to
 -- doDBits and/or dSDeepSeqCond
 -- we need to do the freeset `isSubsetOf` tvset check here because
@@ -759,6 +860,9 @@ doDDeepSeqCond i vs ocs cs = Cinstance instance_cqt $
 
 -- -------------------------
 
+-- | Derive Bounded for a struct (product type), and return the definition of
+-- the instance.
+-- The min/max for a struct is the min/max for each of its fields.
 doSBounded :: Position -> Id -> [Type] -> CFields -> CDefn
 doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [maxB, minB]
   where aty = cTApplys (cTCon i) vs
@@ -770,6 +874,32 @@ doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [ma
                 str = CStruct i mfs
             in        CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
 
+doSDefaultValue :: Position -> Id -> [Type] -> CFields -> CDefn
+doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
+  where ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idDefaultValue) [t]) fs
+        ty  = cTApplys (cTCon i) vs
+        str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
+        def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
+
+-- | Derive the PrimMakeUndefined instance for a struct (product type), and
+-- return the instance definition.
+-- See the comment on 'doDUndefined` for an explanation.
+-- The derived instance for structs is like for data types with a single
+-- constructor: a struct value is returned with undefined values in its
+-- fields. The undefined value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
+-- The exception is when a field is polymorphic (has free type variables);
+-- in that case, the type of the undefined value won't be known until
+-- elaboration time, so we use `primBuildUndefined` to delay the decision
+-- until then. In the elaborator, `primBuildUndefined` becomes a simple
+-- call to `primMakeUndefined', of the appropriate type.
+-- Another exception is that structs with no fields have a derived instance
+-- that just returns `primMakeRawUndefined`. This is to avoid infinite
+-- recursion, because IConv uses `primBuildUndefined` to build values
+-- for empty structs (because IConv normalizes all constructors to take
+-- a single argument of a tuple, and presumably it's easier to use a
+-- don't-care value than to construct an empty tuple? and no one
+-- revisited this decision when `PrimMakeUndefined` was introduced?).
 doSUndefined :: Id -> [Type] -> CFields -> CDefn
 doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
   where tvset  = S.fromList (concatMap tv vs)
@@ -795,6 +925,18 @@ doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [unde
         undef = --trace ("ctx: " ++ ppReadable ctx) $
                 CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str']) []
 
+-- | Derive the PrimMakeUninitialized instance for a struct (product type), and
+-- return the instance definition.
+-- See the comment on `doDUninitialized` for an explanation.
+-- The derived instance for structs is like for data types with a single
+-- constructor: a struct value is returned with uninitialized values in its
+-- fields. The uninitialized value of a field is created by calling the
+-- typeclass member, not the primitive, in case the field's type also has
+-- structure. The exception is when a field is polymorphic (has free type
+-- variables); in that case, the type of the uninitialized value won't be
+-- known until elaboration time, so we use `primUninitialized` to delay the
+-- decision until then. In the elaborator, `primUninitialized` becomes a
+-- simple call to `primMakeUninitialized`, of the appropriate type.
 doSUninitialized:: Id -> [Type] -> CFields -> CDefn
 doSUninitialized i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsUninitialized) ty)) [uninit]
   where tvset  = S.fromList (concatMap tv vs)
@@ -820,6 +962,10 @@ doSUninitialized i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsUninitialized)
         uninit = --trace ("ctx: " ++ ppReadable ctx) $
                 CLValueSign (CDef idMakeUninitializedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str]) []
 
+-- | Derive the PrimDeepSeqCond typeclass for struct (product) types.
+-- Fully evaluate the struct by, for each field, calling primDeepSeqCond
+-- (if the type arguments are known), or primSeqCond (if they are not known)
+-- in which case the correct function is called at elaboation time.
 doSDeepSeqCond :: Id -> [Type] -> CFields -> CDefn
 doSDeepSeqCond i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsDeepSeqCond) ty)) [dseqcond]
   where tvset  = S.fromList (concatMap tv vs)
@@ -894,6 +1040,8 @@ idMaxBoundNQ :: Position -> Id
 idMaxBoundNQ pos = setIdPosition pos (unQualId idMaxBound)
 idMinBoundNQ :: Position -> Id
 idMinBoundNQ pos = setIdPosition pos (unQualId idMinBound)
+id_defaultValueNQ :: Id
+id_defaultValueNQ = unQualId id_defaultValue
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
 --idBuildUndefinedNQ = unQualId idBuildUndef
@@ -956,6 +1104,9 @@ addRequiredDeriv flags r i tvs clsId derivs =
   -- trace ("auto-derive: " ++ ppReadable (cls, i))
   (CTypeclass clsId) : derivs
 
+-- All types are automatically given instances for the typeclasses in
+-- requiredClasses if an explicit instance isn't provided by the user.
+-- Implement this by adding the classes to the derive list for each type.
 addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
                   -> [CTypeclass]
 addRequiredDerivs flags r i tvs derivs =

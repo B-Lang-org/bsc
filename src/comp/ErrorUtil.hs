@@ -5,7 +5,7 @@ import System.IO(hPutStr, stderr)
 import System.IO.Unsafe(unsafePerformIO)
 import System.Exit(exitWith, ExitCode(..))
 
-import Version(version)
+import Version(bscVersionStr)
 
 {-# NOINLINE internalError #-}
 --
@@ -26,7 +26,7 @@ safeInternalError msg_data =
                  "If you do not know your contact, you may email support@bluespec.com.\n"
         desc2 = "The following internal error message should be included in your\n" ++
                 "correspondence along with any other relevant details:\n"
-        ver = version ++ "\n"
+        ver = bscVersionStr True ++ "\n"
 {- pretty-printing causes reference loops here.
         msg_doc = (text title) <> (char ':') $$
                   nest 2 ((s2par desc1) $$

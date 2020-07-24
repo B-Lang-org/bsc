@@ -144,7 +144,7 @@ import SystemCWrapper(checkSystemCIfc, wrapSystemC)
 import SimFileUtils(analyzeBluesimDependencies)
 import Verilog(VProgram(..), vGetMainModName, getVeriInsts)
 import Depend
-import Version(version, copyright, buildnum)
+import Version(bscVersionStr, copyright, buildnum)
 import Classic
 import ILift(iLift)
 import ACleanup(aCleanup)
@@ -189,7 +189,7 @@ hmain args = do
     -- add a newline at the end so it is offset
     let cmdLine = concat ("Invoking command line:\n" : (intersperse " " (pprog:args'))) ++ "\n"
     let showPreamble flags = do
-          when (verbose flags) $ putStrLnF version
+          when (verbose flags) $ putStrLnF (bscVersionStr True)
           when (verbose flags) $ putStrLnF copyright
           when ((verbose flags) || (printFlags flags)) $ putStrLnF cmdLine
           when ((printFlags flags) || (printFlagsHidden flags)) $
@@ -359,7 +359,7 @@ compilePackage
 
     -- Values needed for the Environment module
     let env =
-            [("compilerVersion",iMkString $ version),
+            [("compilerVersion",iMkString $ bscVersionStr True),
              ("date",                iMkString $ show clkTime),
              ("epochTime",      iMkLitSize 32 $ floor epochTime),
              ("buildVersion",   iMkLitSize 32 $ buildnum),
@@ -454,7 +454,7 @@ compilePackage
 
     -- Generate VPI wrappers for foreign function imports
     start flags DFgenVPI
-    blurb <- mkGeneratedCComment flags
+    blurb <- mkGenFileHeader flags
     let ffuncs = map snd foreign_func_info
     vpi_wrappers <- if (backend flags == Just Verilog)
                     then genVPIWrappers errh flags "./" blurb ffuncs
@@ -919,7 +919,7 @@ genModule
     let wireinfo = apkg_external_wires amod_final
     let fieldinfo = getAPackageFieldInfos amod_final
 
-    blurb <- mkGeneratedCComment flags
+    blurb <- mkGenFileHeader flags
     let methodConflictBlurb :: [String] -- string printed in top of Verilog file
         methodConflictBlurb
             | methodConf flags =
@@ -1018,7 +1018,7 @@ writeABin errh pps flags dumpnames t prefix modstr srcName oqt
                           abmi_vprogram    = if (genABinVerilog flags)
                                              then vprog else Nothing
                      }
-           abin = ABinMod modinfo version
+           abin = ABinMod modinfo (bscVersionStr True)
        genABinFile errh afilename abin
        unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
        dump errh flags t DFwriteABin dumpnames afilename
@@ -1045,7 +1045,7 @@ writeABinSchedErr errh pps flags dumpnames t prefix modstr srcName oqt
                           abmsei_oqt           = oqt,
                           abmsei_flags         = flags
                      }
-           abin = ABinModSchedErr modinfo version
+           abin = ABinModSchedErr modinfo (bscVersionStr True)
        genABinFile errh afilename abin
        unless (quiet flags) $ putStrLnF $ abinPrintPrefix ++ afilename_rel
        dump errh flags t DFwriteABin dumpnames afilename
@@ -1313,7 +1313,7 @@ genModuleC errh flags dumpnames time0 toplevel abis =
        -- get the map of ForeignFunctions
        let ff_map = ssys_ffuncmap sim_system_opt
 
-       blurb <- mkGeneratedCComment flags
+       blurb <- mkGenFileHeader flags
        let mkEncodedName s = genFileName mkNameWithoutSuffix (cdir flags) prefix s
            -- write CCSyntax to file and return the relative file name
            writeFileC :: String -> String -> IO String
@@ -2078,7 +2078,7 @@ vGenFFuncs :: ErrorHandle -> Flags -> TimeInfo -> String ->
 vGenFFuncs errh flags t prefix cfilenames_unique [] = return (t,[])
 vGenFFuncs errh flags t prefix cfilenames_unique ffuncs = do
       -- generate the vpi_startup_array file
-      blurb <- mkGeneratedCComment flags
+      blurb <- mkGenFileHeader flags
       genVPIRegistrationArray errh flags prefix blurb ffuncs
       t <- timestampStr flags "generate VPI registration array" t
 
@@ -2131,7 +2131,7 @@ vGenMods t0 flags abmis = do
             let filename' = createEncodedFullFilePath filename pwd
                 prefix = dirName filename' ++ "/"
             -- call into the regular flow
-            blurb <- mkGeneratedCComment flags
+            blurb <- mkGenFileHeader flags
             let apkg = abmi_apkg abmi
                 pps = abmi_pps abmi
                 methodConflict = abmi_method_dump abmi

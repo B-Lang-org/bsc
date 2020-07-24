@@ -129,8 +129,10 @@ expandASPackage errh keepFires expnond expcheap pkg =
 --         XXX It should at least use ASyntax::isMethId)
 -- (5) Create the ExpandData data structure with:
 --        skeepFire = whether to preserve rule firing signals (keepFires flag)
---        sexpnond  = whether to expand "non-d"efs (expandATSdef flag)
---        sexpcheap = whether to inline "cheap" operations (inlineBool flag)
+--        sexpnond  = whether all defs can be considered for inlining
+--                    not just defs with "bad" names
+--                    (such defs used to start with "d", hence "expand non-d")
+--        sexpcheap = whether "cheap" operations can be considered for inlining
 --        suses  = the usemap from step 3 (a map to the rough number of uses)
 --        skeeps = a list of Ids to keep (not inline)
 --        sss    = ss

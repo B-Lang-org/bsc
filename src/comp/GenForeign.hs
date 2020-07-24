@@ -10,7 +10,7 @@ import PPrint
 import ABin (ABin(..), ABinForeignFuncInfo(..))
 import GenABin(genABinFile)
 import ForeignFunctions(ForeignFunction(..), mkForeignFunction)
-import Version(version)
+import Version(bscVersionStr)
 import FileNameUtil(mkAName, getRelativeFilePath)
 import TopUtils(putStrLnF)
 
@@ -33,7 +33,7 @@ genForeign errh flags prefix (CPackage pkg_id _ _ _ defs _) =
 
         genABin info@(src_id, foreign_func) =
             let ffinfo = ABinForeignFuncInfo src_id foreign_func
-                abin = ABinForeignFunc ffinfo version
+                abin = ABinForeignFunc ffinfo (bscVersionStr True)
                 -- generate the filename
                 afilename_base = getIdString (ff_name foreign_func)
                 afilename = mkAName (bdir flags) prefix afilename_base

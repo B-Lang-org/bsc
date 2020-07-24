@@ -492,8 +492,6 @@ defaultFlags bluespecdir = Flags {
         aggImpConds = False,
         allowIncoherentMatches = False,
         backend = Nothing,
-        bddLimit = 100.0,
-        bddCacheLimit = 0,
         bdir = Nothing,
         biasMethodScheduling = False,
         bluespecDir = bluespecdir,
@@ -516,8 +514,6 @@ defaultFlags bluespecdir = Flags {
         dumps = [],
         enablePoisonPills = False,
         entry = Nothing,
-        esecomp = False,
-        expandATSdef = False,
         expandATSlimit = 20,
         expandIf = False,
         fdir = Nothing,
@@ -576,7 +572,6 @@ defaultFlags bluespecdir = Flags {
         redStepsWarnInterval = 100000,
         redStepsMaxIntervals = 10,
         relaxMethodEarliness = True,
-        relaxMethodUrgency = False,
         removeEmptyRules = True,
         removeFalseRules = True,
         removeInoutConnect = True,
@@ -614,6 +609,7 @@ defaultFlags bluespecdir = Flags {
         tclShowHidden = False,
         testAssert = False,
         timeStamps = True,
+        showVersion = True,
         unsafeAlwaysRdy = False,
         unSpecTo = "A",
         updCheck = False,
@@ -637,7 +633,6 @@ defaultFlags bluespecdir = Flags {
         verilogFilter = [],
         warnActionShadowing = True,
         warnMethodUrgency = True,
-        warnSchedLimit = False,
         warnUndetPred = False
         }
 
@@ -1143,14 +1138,6 @@ externalFlags = [
          (Toggle (\f x -> f {genABinVerilog=x}) (showIfTrue genABinVerilog),
           "include generated Verilog in .ba files", Hidden)),
 
-        ("esecomp",
-         (Toggle (\f x -> f {esecomp=x}) (showIfTrue esecomp),
-          "source is from eseparse", Hidden)),
-
-        ("expand-ATS-def",
-         (Toggle (\f x -> f {expandATSdef=x}) (showIfTrue expandATSdef),
-          "expand (some) ATS definitions", Hidden)),
-
         ("expand-ATS-limit",
          (Arg "n"
           (\f s -> case (mread s) of
@@ -1404,11 +1391,6 @@ externalFlags = [
          (Toggle (\f x -> f {relaxMethodEarliness=x}) (showIfTrue relaxMethodEarliness),
           "Allows rules to be scheduled before method calls", Hidden)),
 
-        ("relax-method-urgency",
-         (Toggle
-              (\f x -> f) (showIfTrue relaxMethodUrgency),
-          "Allows rules to be more urgent than method calls",  Deprecated "The behavior of this flag is now the default behavior. This flag is deprecated and should not be used.")),
-
         ("remove-unused-modules",
          (Toggle (\f x -> f {removeUnusedMods=x}) (showIfTrue removeUnusedMods),
           "remove unconnected modules from the Verilog", Visible)),
@@ -1444,25 +1426,10 @@ externalFlags = [
          (Toggle (\f x -> f {ruleNameCheck=x}) (showIfTrue ruleNameCheck),
           "check that rule names are unique (when disabled unique numbers are assigned)", Hidden)),
 
-        ("scheduler-effort",
-         (Arg "limit"
-             (\f s -> case (mread s) of
-                          Nothing -> Right (cmdPosition, EFloatArgFlag "-scheduler-effort")
-                          Just arg -> Left (f {bddLimit = arg}))
-             (Just (FRTString (show . bddLimit))),
-          "set effort for disjoint testing during scheduling", Visible)),
 
         ("system-verilog-tasks",
          (Toggle (\f x -> f {systemVerilogTasks=x}) (showIfTrue systemVerilogTasks),
          "preserve SystemVerilog tasks (e.g. $error) in output code", Hidden)),
-
-        ("bdd-cache",
-         (Arg "size"
-             (\f s -> case (mread s) of
-                          Nothing -> Right (cmdPosition, EIntegerArgFlag "-bdd-cache")
-                          Just arg -> Left (f {bddCacheLimit = arg}))
-             (Just (FRTString (show . bddCacheLimit))),
-          "set bdd cache size during scheduling", Hidden)),
 
         ("sched-conditions",
          (Toggle (\f x -> f {schedConds=x}) (showIfTrue schedConds),
@@ -1528,6 +1495,10 @@ externalFlags = [
         ("show-timestamps",
          (Toggle (\f x -> f {timeStamps=x}) (showIfTrue timeStamps),
           "include timestamps in generated files", Visible)),
+
+        ("show-version",
+         (Toggle (\f x -> f {showVersion=x}) (showIfTrue showVersion),
+          "include compiler version in generated files", Visible)),
 
         ("sim",
          let setFn f = case setBackend f Bluesim of
@@ -1715,10 +1686,6 @@ externalFlags = [
          (Toggle (\f x -> f {warnMethodUrgency=x}) (showIfTrue warnMethodUrgency),
           "warn when a method's urgency is arbitrarily chosen", Visible)),
 
-        ("warn-scheduler-effort",
-         (Toggle (\f x -> f {warnSchedLimit=x}) (showIfTrue warnSchedLimit),
-          "displays warnings when the scheduler limit is reached", Visible)),
-
         ("warn-undet-predicate",
          (Toggle (\f x -> f {warnUndetPred=x}) (showIfTrue warnUndetPred),
           "warn when a rule or method predicate has an undetermined value", Hidden)),
@@ -1823,134 +1790,134 @@ showFlagArg flags f (FRTListString showf) =
 -- user-understandable terms.
 showFlagsRaw :: Flags -> String
 showFlagsRaw flags =
-        "Flags {\n" ++
-        "\taggImpConds = " ++ show (aggImpConds flags) ++ ",\n" ++
-        "\tbackend = " ++ show (backend flags) ++ ",\n" ++
-        "\tbddLimit = " ++ show (bddLimit flags) ++ ",\n" ++
-        "\tbdir = " ++ show (bdir flags) ++ ",\n" ++
-        "\tbiasMethodScheduling = " ++ show (biasMethodScheduling flags) ++ ",\n" ++
-        "\tbluespecDir = " ++ show (bluespecDir flags) ++ ",\n" ++
-        "\tcIncPath = " ++ show (cIncPath flags) ++ ",\n" ++
-        "\tcLibPath = " ++ show (cLibPath flags) ++ ",\n" ++
-        "\tcLibs = " ++ show (cLibs flags) ++ ",\n" ++
-        "\tcDebug = " ++ show (cDebug flags) ++ ",\n" ++
-        "\tcFlags = " ++ show (cFlags flags) ++ ",\n" ++
-        "\tcxxFlags = " ++ show (cxxFlags flags) ++ ",\n" ++
-        "\tcdir = " ++ show (cdir flags) ++ ",\n" ++
-        "\tcpp = " ++ show (cpp flags) ++ ",\n" ++
-        "\tcppFlags = " ++ show (cppFlags flags) ++ ",\n" ++
-        "\tcrossInfo = " ++ show (crossInfo flags) ++ ",\n" ++
-        "\tdefines = " ++ show (defines flags) ++ ",\n" ++
-        "\tdemoteErrors = " ++ show (demoteErrors flags) ++ ",\n" ++
-        "\tdisableAssertions = " ++ show (disableAssertions flags) ++ ",\n" ++
-        "\tpassThroughAssertions = " ++ show (passThroughAssertions flags) ++ ",\n" ++
-        "\tdoICheck = " ++ show (doICheck flags) ++ ",\n" ++
-        "\tdumpAll = " ++ show (dumpAll flags) ++ ",\n" ++
-        "\tdumps = " ++ show (dumps flags) ++ ",\n" ++
-        "\tenablePoisonPills = " ++ show (enablePoisonPills flags) ++ ",\n" ++
-        "\tentry = " ++ show (entry flags) ++ ",\n" ++
-        "\tesecomp = " ++ show (esecomp flags) ++ ",\n" ++
-        "\texpandATSdef = " ++ show (expandATSdef flags) ++ ",\n" ++
-        "\texpandATSlimit = " ++ show (expandATSlimit flags) ++ ",\n" ++
-        "\texpandIf = " ++ show (expandIf flags) ++ ",\n" ++
-        "\textraVerbose = " ++ show (extraVerbose flags) ++ ",\n" ++
-        "\tfdir = " ++ show (fdir flags) ++ ",\n" ++
-        "\tfinalcleanup = " ++ show (finalcleanup flags) ++ ",\n" ++
-        "\tgenABin = " ++ show (genABin flags) ++ ",\n" ++
-        "\tgenABinVerilog = " ++ show (genABinVerilog flags) ++ ",\n" ++
-        "\tgenName = " ++ show (genName flags) ++ ",\n" ++
-        "\tgenSysC = " ++ show (genSysC flags) ++ ",\n" ++
-        "\tifcPathRaw = " ++ show (ifcPathRaw flags) ++ ",\n" ++
-        "\tifcPath = " ++ show (ifcPath flags) ++ ",\n" ++
-        "\tinlineBool = " ++ show (inlineBool flags) ++ ",\n" ++
-        "\tinlineISyntax = " ++ show (inlineISyntax flags) ++ ",\n" ++
-        "\tinlineSimple = " ++ show (inlineSimple flags) ++ ",\n" ++
-        "\tkeepAddSize = " ++ show (keepAddSize flags) ++ ",\n" ++
-        "\tkeepFires = " ++ show (keepFires flags) ++ ",\n" ++
-        "\tkeepInlined = " ++ show (keepInlined flags) ++ ",\n" ++
-        "\tkill = " ++ show (kill flags) ++ ",\n" ++
-        "\tlinkFlags = " ++ show (linkFlags flags) ++ ",\n" ++
-        "\tifLift = " ++ show (ifLift flags) ++ ",\n" ++
-        "\tmaxTIStackDepth = " ++ show (maxTIStackDepth flags) ++ ",\n" ++
-        "\tmethodBVI = " ++ show (methodBVI flags) ++ ",\n" ++
-        "\tmethodConf = " ++ show (methodConf flags) ++ ",\n" ++
-        "\tneatNames = " ++ show (neatNames flags) ++ ",\n" ++
-        "\toFile = " ++ show (oFile flags) ++ ",\n" ++
-        "\toptATS = " ++ show (optATS flags) ++ ",\n" ++
-        "\toptAggInline = " ++ show (optAggInline flags) ++ ",\n" ++
-        "\toptAndOr = " ++ show (optAndOr flags) ++ ",\n" ++
-        "\toptBitConst = " ++ show (optBitConst flags) ++ ",\n" ++
-        "\toptBool = " ++ show (optBool flags) ++ ",\n" ++
-        "\toptIfMux = " ++ show (optIfMux flags) ++ ",\n" ++
-        "\toptIfMuxSize = " ++ show (optIfMuxSize flags) ++ ",\n" ++
-        "\toptJoinDefs = " ++ show (optJoinDefs flags) ++ ",\n" ++
-        "\toptMux = " ++ show (optMux flags) ++ ",\n" ++
-        "\toptMuxExpand = " ++ show (optMuxExpand flags) ++ ",\n" ++
-        "\toptMuxConst = " ++ show (optMuxConst flags) ++ ",\n" ++
-        "\toptSched = " ++ show (optSched flags) ++ ",\n" ++
-        "\toptUndet = " ++ show (optUndet flags) ++ ",\n" ++
-        "\tparallelSimLink = " ++ show (parallelSimLink flags) ++ ",\n" ++
-        "\tprintFlags = " ++ show (printFlags flags) ++ ",\n" ++
-        "\tprintFlagsHidden = " ++ show (printFlagsHidden flags) ++ ",\n" ++
-        "\tprintFlagsRaw = " ++ show (printFlagsRaw flags) ++ ",\n" ++
-        "\tpromoteWarnings = " ++ show (promoteWarnings flags) ++ ",\n" ++
-        "\treadableMux = " ++ show (readableMux flags) ++ ",\n" ++
-        "\tredStepsWarnInterval = " ++ show (redStepsWarnInterval flags) ++ ",\n" ++
-        "\tredStepsMaxIntervals = " ++ show (redStepsMaxIntervals flags) ++ ",\n" ++
-        "\trelaxMethodEarliness = " ++ show (relaxMethodEarliness flags) ++ ",\n" ++
-        "\trelaxMethodUrgency = " ++ show (relaxMethodUrgency flags) ++ ",\n" ++
-        "\tremoveEmptyRules = " ++ show (removeEmptyRules flags) ++ ",\n" ++
-        "\tremoveFalseRules = " ++ show (removeFalseRules flags) ++ ",\n" ++
-        "\tremoveInoutConnect = " ++ show (removeInoutConnect flags) ++ ",\n" ++
-        "\tremovePrimModules = " ++ show (removePrimModules flags) ++ ",\n" ++
-        "\tremoveStarvedRules = " ++ show (removeStarvedRules flags) ++ ",\n" ++
-        "\tremoveCReg = " ++ show (removeCReg flags) ++ ",\n" ++
-        "\tremoveReg = " ++ show (removeReg flags) ++ ",\n" ++
-        "\tremoveRWire = " ++ show (removeRWire flags) ++ ",\n" ++
-        "\tremoveCross = " ++ show (removeCross flags) ++ ",\n" ++
-        "\tremoveUnusedMods = " ++ show (removeUnusedMods flags) ++ ",\n" ++
-        "\tresource = " ++ show (resource flags) ++ ",\n" ++
-        "\trstGate = " ++ show (rstGate flags) ++ ",\n" ++
-        "\truleNameCheck = " ++ show (ruleNameCheck flags) ++ ",\n" ++
-        "\tsatBackend = " ++ show (satBackend flags) ++ ",\n" ++
-        "\tschedConds = " ++ show (schedConds flags) ++ ",\n" ++
-        "\tschedDOT = " ++ show (schedDOT flags) ++ ",\n" ++
-        "\tschedQueries = " ++ show (schedQueries flags) ++ ",\n" ++
-        "\tshowCSyntax = " ++ show (showCSyntax flags) ++ ",\n" ++
-        "\tshowCodeGen = " ++ show (showCodeGen flags) ++ ",\n" ++
-        "\tshowElabProgress = " ++ show (showElabProgress flags) ++ ",\n" ++
-        "\tshowIESyntax = " ++ show (showIESyntax flags) ++ ",\n" ++
-        "\tshowISyntax = " ++ show (showISyntax flags) ++ ",\n" ++
-        "\tshowRangeConflict = " ++ show (showRangeConflict flags) ++ ",\n" ++
-        "\tshowModuleUse = " ++ show (showModuleUse flags) ++ ",\n" ++
-        "\tshowSchedule = " ++ show (showSchedule flags) ++ ",\n" ++
-        "\tshowStats = " ++ show (showStats flags) ++ ",\n" ++
-        "\tshowUpds = " ++ show (showUpds flags) ++ ",\n" ++
-        "\tstrictMethodSched = " ++ show (strictMethodSched flags) ++ ",\n" ++
-        "\tsuppressWarnings = " ++ show (suppressWarnings flags) ++ ",\n" ++
-        "\tsynthesize = " ++ show (synthesize flags) ++ ",\n" ++
-        "\tsystemVerilogTasks = " ++ show (systemVerilogTasks flags) ++ ".\n" ++
-        "\ttestAssert = " ++ show (testAssert flags) ++ ",\n" ++
-        "\ttimeStamps = " ++ show (timeStamps flags) ++ ",\n" ++
-        "\tupdCheck = " ++ show (updCheck flags) ++ ",\n" ++
-        "\tuseNegate = " ++ show (useNegate flags) ++ ",\n" ++
-        "\tusePrelude = " ++ show (usePrelude flags) ++ ",\n" ++
-        "\tuseProvisoSAT = " ++ show (useProvisoSAT flags) ++ ",\n" ++
-        "\tv95 = " ++ show (v95 flags) ++ ",\n" ++
-        "\tvdir = " ++ show (vdir flags) ++ ",\n" ++
-        "\tverilogFilter = " ++ show (verilogFilter flags) ++ ",\n" ++
-        "\tvPathRaw = " ++ show (vPathRaw flags) ++ ",\n" ++
-        "\tvPath = " ++ show (vPath flags) ++ ",\n" ++
-        "\tvpp = " ++ show (vpp flags) ++ ",\n" ++
-        "\tvsim = " ++ show (vsim flags) ++ ",\n" ++
-        "\tverbose = " ++ show (verbose flags) ++ ",\n" ++
-        "\tverilogDeclareAllFirst = " ++ show (verilogDeclareAllFirst flags) ++ ",\n" ++
-        "\twarnActionShadowing = " ++ show (warnActionShadowing flags) ++ ",\n" ++
-        "\twarnMethodUrgency = " ++ show (warnMethodUrgency flags) ++ ",\n" ++
-        "\twarnSchedLimit = " ++ show (warnSchedLimit flags) ++ ",\n" ++
-        "\twarnUndetPred = " ++ show (warnUndetPred flags) ++ ",\n" ++
-        "\tvFlags = " ++ show (vFlags flags) ++ "\n" ++
-        "}"
+    let render (k, v) = "\t" ++ k ++ " = " ++ v
+        fields =
+         [("aggImpConds", show (aggImpConds flags)),
+          ("backend", show (backend flags)),
+          ("bdir", show (bdir flags)),
+          ("biasMethodScheduling", show (biasMethodScheduling flags)),
+          ("bluespecDir", show (bluespecDir flags)),
+          ("cIncPath", show (cIncPath flags)),
+          ("cLibPath", show (cLibPath flags)),
+          ("cLibs", show (cLibs flags)),
+          ("cDebug", show (cDebug flags)),
+          ("cFlags", show (cFlags flags)),
+          ("cxxFlags", show (cxxFlags flags)),
+          ("cdir", show (cdir flags)),
+          ("cpp", show (cpp flags)),
+          ("cppFlags", show (cppFlags flags)),
+          ("crossInfo", show (crossInfo flags)),
+          ("defines", show (defines flags)),
+          ("demoteErrors", show (demoteErrors flags)),
+          ("disableAssertions", show (disableAssertions flags)),
+          ("passThroughAssertions", show (passThroughAssertions flags)),
+          ("doICheck", show (doICheck flags)),
+          ("dumpAll", show (dumpAll flags)),
+          ("dumps", show (dumps flags)),
+          ("enablePoisonPills", show (enablePoisonPills flags)),
+          ("entry", show (entry flags)),
+          ("expandATSlimit", show (expandATSlimit flags)),
+          ("expandIf", show (expandIf flags)),
+          ("extraVerbose", show (extraVerbose flags)),
+          ("fdir", show (fdir flags)),
+          ("finalcleanup", show (finalcleanup flags)),
+          ("genABin", show (genABin flags)),
+          ("genABinVerilog", show (genABinVerilog flags)),
+          ("genName", show (genName flags)),
+          ("genSysC", show (genSysC flags)),
+          ("ifcPathRaw", show (ifcPathRaw flags)),
+          ("ifcPath", show (ifcPath flags)),
+          ("inlineBool", show (inlineBool flags)),
+          ("inlineISyntax", show (inlineISyntax flags)),
+          ("inlineSimple", show (inlineSimple flags)),
+          ("keepAddSize", show (keepAddSize flags)),
+          ("keepFires", show (keepFires flags)),
+          ("keepInlined", show (keepInlined flags)),
+          ("kill", show (kill flags)),
+          ("linkFlags", show (linkFlags flags)),
+          ("ifLift", show (ifLift flags)),
+          ("maxTIStackDepth", show (maxTIStackDepth flags)),
+          ("methodBVI", show (methodBVI flags)),
+          ("methodConf", show (methodConf flags)),
+          ("neatNames", show (neatNames flags)),
+          ("oFile", show (oFile flags)),
+          ("optATS", show (optATS flags)),
+          ("optAggInline", show (optAggInline flags)),
+          ("optAndOr", show (optAndOr flags)),
+          ("optBitConst", show (optBitConst flags)),
+          ("optBool", show (optBool flags)),
+          ("optIfMux", show (optIfMux flags)),
+          ("optIfMuxSize", show (optIfMuxSize flags)),
+          ("optJoinDefs", show (optJoinDefs flags)),
+          ("optMux", show (optMux flags)),
+          ("optMuxExpand", show (optMuxExpand flags)),
+          ("optMuxConst", show (optMuxConst flags)),
+          ("optSched", show (optSched flags)),
+          ("optUndet", show (optUndet flags)),
+          ("parallelSimLink", show (parallelSimLink flags)),
+          ("printFlags", show (printFlags flags)),
+          ("printFlagsHidden", show (printFlagsHidden flags)),
+          ("printFlagsRaw", show (printFlagsRaw flags)),
+          ("promoteWarnings", show (promoteWarnings flags)),
+          ("readableMux", show (readableMux flags)),
+          ("redStepsWarnInterval", show (redStepsWarnInterval flags)),
+          ("redStepsMaxIntervals", show (redStepsMaxIntervals flags)),
+          ("relaxMethodEarliness", show (relaxMethodEarliness flags)),
+          ("removeEmptyRules", show (removeEmptyRules flags)),
+          ("removeFalseRules", show (removeFalseRules flags)),
+          ("removeInoutConnect", show (removeInoutConnect flags)),
+          ("removePrimModules", show (removePrimModules flags)),
+          ("removeStarvedRules", show (removeStarvedRules flags)),
+          ("removeCReg", show (removeCReg flags)),
+          ("removeReg", show (removeReg flags)),
+          ("removeRWire", show (removeRWire flags)),
+          ("removeCross", show (removeCross flags)),
+          ("removeUnusedMods", show (removeUnusedMods flags)),
+          ("resource", show (resource flags)),
+          ("rstGate", show (rstGate flags)),
+          ("ruleNameCheck", show (ruleNameCheck flags)),
+          ("satBackend", show (satBackend flags)),
+          ("schedConds", show (schedConds flags)),
+          ("schedDOT", show (schedDOT flags)),
+          ("schedQueries", show (schedQueries flags)),
+          ("showCSyntax", show (showCSyntax flags)),
+          ("showCodeGen", show (showCodeGen flags)),
+          ("showElabProgress", show (showElabProgress flags)),
+          ("showIESyntax", show (showIESyntax flags)),
+          ("showISyntax", show (showISyntax flags)),
+          ("showRangeConflict", show (showRangeConflict flags)),
+          ("showModuleUse", show (showModuleUse flags)),
+          ("showSchedule", show (showSchedule flags)),
+          ("showStats", show (showStats flags)),
+          ("showUpds", show (showUpds flags)),
+          ("strictMethodSched", show (strictMethodSched flags)),
+          ("suppressWarnings", show (suppressWarnings flags)),
+          ("synthesize", show (synthesize flags)),
+          ("systemVerilogTasks", show (systemVerilogTasks flags)),
+          ("testAssert", show (testAssert flags)),
+          ("timeStamps", show (timeStamps flags)),
+          ("showVersion", show (showVersion flags)),
+          ("updCheck", show (updCheck flags)),
+          ("useNegate", show (useNegate flags)),
+          ("usePrelude", show (usePrelude flags)),
+          ("useProvisoSAT", show (useProvisoSAT flags)),
+          ("v95", show (v95 flags)),
+          ("vdir", show (vdir flags)),
+          ("verilogFilter", show (verilogFilter flags)),
+          ("vPathRaw", show (vPathRaw flags)),
+          ("vPath", show (vPath flags)),
+          ("vpp", show (vpp flags)),
+          ("vsim", show (vsim flags)),
+          ("verbose", show (verbose flags)),
+          ("verilogDeclareAllFirst", show (verilogDeclareAllFirst flags)),
+          ("warnActionShadowing", show (warnActionShadowing flags)),
+          ("warnMethodUrgency", show (warnMethodUrgency flags)),
+          ("warnUndetPred", show (warnUndetPred flags)),
+          ("vFlags", show (vFlags flags))
+         ]
+        in "Flags {\n" ++
+               (intercalate ",\n" (map render fields)) ++
+           "\n}"
 
 -- -------------------------
 -- Support for querying the flags in bluetcl

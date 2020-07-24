@@ -1340,3 +1340,8 @@ instance FShow (Ascii n)
   where
     fshow value = $format "<Ascii %s>" (pack value)
 
+
+-- A default default value for a Vector replicates the element's default value
+instance (DefaultValue t) => DefaultValue (Vector n t)
+  where
+    defaultValue = replicate defaultValue

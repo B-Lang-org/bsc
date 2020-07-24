@@ -6,6 +6,7 @@ import Control.Monad(when, unless)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified GraphWrapper as GW
+import Data.Ix(range)
 
 import ListMap(lookupWithDefaultBy)
 import SCC(scc)
@@ -37,8 +38,8 @@ import CtxRed
 import CSyntax
 import CSyntaxUtil
 import CFreeVars(getFVDl, getFVE, fvSetToFreeVars)
-import CType(noTyVarNo, getTyVarId, getArrows, isTConArrow,
-             isTypeBit, isTypeString, isTypePrimAction, isTVar, isUpdateable,
+import CType(noTyVarNo, getTyVarId, getArrows, isTConArrow, leftTyCon,
+             isTypeBit, isTypeString, isTypeUnit, isTypePrimAction, isTVar, isUpdateable,
              isTypeActionValue, isTypeActionValue_, getActionValueArg,
              splitTAp, tyConArgs, cTVarKind)
 import VModInfo(VSchedInfo, VFieldInfo(..), VArgInfo(..), VPort)
@@ -180,13 +181,36 @@ tiExpr as td (CSelect e i) = tiSelect (ImplRead Nothing) as td e i id
 tiExpr as td (CSelectTT ti e i) = tiSelect NoRead as td e i (const t)
   where t = TCon (TyCon ti (Just KStar) TIabstract)
 
--- XXX should expand unsaturated application with lambdas
-tiExpr as td xxx@(CCon c es) = do
-    case es of
-     []  -> let unit = setIdPosition (getPosition c) idPrimUnit
-            in  tiExpr as td (CApply (CCon0 Nothing c) [CStruct unit []])
-     [e] -> tiExpr as td (CApply (CCon0 Nothing c) [e])
-     es  -> tiExpr as td (CStruct c (zipWith (\ i e -> (setIdPosition (getPosition e) i, e)) tupleIds es))
+tiExpr as td exp@(CCon c es) = do
+    (c' :>: sc, ti) <- findCons td c
+    (ps :=> t, ts) <- freshInstT "C" c sc td
+    s <- getSubst
+    let finalTD = apSub s td
+        numTDExpected = genericLength $ fst $ getArrows $ finalTD
+        numConExpected =
+          case fst $ getArrows t of
+            [argTy] | isTypeUnit argTy -> 0
+                    | Just (TyCon _ _ (TIstruct (SDataCon _ False) fs)) <- leftTyCon argTy -> genericLength fs
+            _ -> 1
+        numGiven = genericLength es
+        numRemaining = numConExpected - numGiven
+    -- traceM ("CCon: " ++ ppReadable c ++ " " ++ show t ++ " " ++ show numExpected ++ " " ++ show numGiven)
+    if numGiven > numConExpected
+      -- XXX Errors about consturctor argument mismatches should contain the type of
+      -- the constructor, but this is overly hard to actually compute.
+      then err (getPosition exp, EConMismatchNumArgs (show c') numConExpected numGiven)
+      else if not (isTVar finalTD) && numGiven < numConExpected && numRemaining /= numTDExpected
+      then err (getPosition exp, EPartialConMismatchNumArgs (show c') (pfpReadable finalTD) numConExpected numGiven numTDExpected)
+      else do extraArgs <- sequence $
+                   map ((newVar $ getPosition c) . ("a" ++) . show) $
+                   range (0, numRemaining - 1)
+              let res =
+                    case es ++ map CVar extraArgs of
+                      []  -> let unit = setIdPosition (getPosition c) idPrimUnit
+                             in CApply (CCon0 Nothing c) [CStruct unit []]
+                      [e] -> CApply (CCon0 Nothing c) [e]
+                      es  -> CStruct c (zipWith (\ i e -> (setIdPosition (getPosition e) i, e)) tupleIds es)
+              tiExpr as td $ foldr CLam res $ map Right extraArgs
 
 tiExpr as td (CCon1 ti c e) = tiExpr as td (CApply (CCon0 (Just ti) c) [e])
 
