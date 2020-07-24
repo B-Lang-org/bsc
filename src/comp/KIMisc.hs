@@ -237,6 +237,16 @@ mkKFun :: [Kind] -> Kind -> Kind
 mkKFun []     k = k
 mkKFun (a:as) k = Kfun a (mkKFun as k)
 
+kindErr :: Type -> Kind -> Kind -> ErrMsg
+kindErr t KStar KNum  = EKindNumForStar (pfpString t)
+kindErr t KStar KStr  = EKindStrForStar (pfpString t)
+kindErr t KNum  KStar = EKindStarForNum (pfpString t)
+kindErr t KNum  KStr  = EKindStrForNum (pfpString t)
+kindErr t KStr  KStar = EKindStarForStr (pfpString t)
+kindErr t KStr  KNum  = EKindNumForStr (pfpString t)
+-- XXX replace Readable with String
+kindErr t exp   inf   = EUnifyKind (pfpReadable t) (ppReadable inf) (ppReadable exp)
+
 
 -- The following two functions are like "unifyType", except that they do
 -- not report errors about being applied to too many or too few arguments.
@@ -262,8 +272,8 @@ unifyDef i k_inferred k_expected = do
                                 (ppReadable k_inferred')
                                 (ppReadable k_expected'))
 
--- This reports the error on the alias expression, and reports numeric
--- and non-numeric kinds specially.
+-- This reports the error on the alias expression, and reports numeric,
+-- string and star kinds specially.
 unifyDefType :: Type -> Kind -> Kind -> KI ()
 unifyDefType t k_inferred k_expected = do
     s <- getKSubst
@@ -271,22 +281,7 @@ unifyDefType t k_inferred k_expected = do
         k_expected' = apKSu s k_expected
     case mgu k_inferred' k_expected' of
      Just u  -> extKSubst u
-     Nothing ->
-       let
-           pos = getPosition t
-           t_str = pfpString t
-           -- XXX replace Readable with String
-           default_err = err (pos, EUnifyKind (pfpReadable t)
-                                      (ppReadable k_inferred')
-                                      (ppReadable k_expected'))
-       in case (k_expected', k_inferred') of
-         (KStar, KNum)  -> err (pos, EKindNumForStar t_str)
-         (KStar, KStr)  -> err (pos, EKindStrForStar t_str)
-         (KNum,  KStar) -> err (pos, EKindStarForNum t_str)
-         (KNum,  KStr)  -> err (pos, EKindStrForNum t_str)
-         (KStr,  KStar) -> err (pos, EKindStarForStr t_str)
-         (KStr,  KNum)  -> err (pos, EKindNumForStr t_str)
-         _              -> default_err
+     Nothing -> err (getPosition t, kindErr t k_expected' k_inferred')
 
 
 -- Takes the function and its kind and the argument to which the function
@@ -320,11 +315,6 @@ unifyType t k_inferred k_expected = do
      Nothing ->
        let
            pos = getPosition t
-           t_str = pfpString t
-           -- XXX replace Readable with String
-           default_err = err (pos, EUnifyKind (pfpReadable t)
-                                      (ppReadable k_inferred')
-                                      (ppReadable k_expected'))
 
            -- if a type constructor is being partially applied, get the core
            unapType = removeTypeAps t
@@ -348,15 +338,7 @@ unifyType t k_inferred k_expected = do
              -- handle case of not enough arguments
              err (pos, ETypeTooFewArgs unapTypeName)
            else
-           if (k_expected' == KStar) && (k_inferred' == KNum)
-           then
-             err (pos, EKindNumForStar t_str)
-           else
-           if (k_expected' == KNum) && (k_inferred' == KStar)
-           then
-             err (pos, EKindStarForNum t_str)
-           else
-             default_err
+           err (getPosition t, kindErr t k_expected' k_inferred')
 
 --------------------
 
