@@ -186,6 +186,7 @@ instance Eq TyVar where
 instance Eq TyCon where
     TyCon i k _ == TyCon i' k' _  =  qualEq i i' && k == k'
     TyNum i _   == TyNum i' _     =  i == i'
+    TyStr s _   == TyStr s' _     =  s == s'
     _           == _              =  False
 
 -- Ord instances

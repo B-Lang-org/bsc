@@ -469,6 +469,7 @@ mkInstId mi t =
   where flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
+        flat (TCon (TyStr s _)) = [mkStrId s]
         flat (TAp t1 t2) = flat t1 ++ flat t2
         flat _ = internalError "MakeSymTab.mkInstId flat"
 
