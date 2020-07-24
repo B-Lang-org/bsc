@@ -1177,7 +1177,7 @@ data ErrMsg
         -- XXX these should contain the type of the constructor
         | EConMismatchNumArgs  String{-String-}      Integer Integer
         | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
-        
+
         | EStringOf String
         | EKindStrForNum String
         | EKindStrForStar String
