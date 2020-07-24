@@ -75,7 +75,7 @@ The core of BSC is written in Haskell, with some libraries in C/C++.
 ### Install the Haskell compiler (GHC)
 
 You will need the standard Haskell compiler `ghc` which is available for Linux,
-MacOS and Windows, along with some additional Haskell libraries. These are
+macOS and Windows, along with some additional Haskell libraries. These are
 available as standard packages in most Linux distributions. For example, on
 Debian and Ubuntu systems, you can say:
 
@@ -101,15 +101,13 @@ On Debian and Ubuntu, this can be done with:
         libghc-split-prof
 
 You can do the analogous package-install on other Linux distributions using
-their native package mechanisms, and use Macports on Apple OS X. Full details
-can be found at <https://www.haskell.org/>, and in particular ghcup is a popular
-installer for recent Haskell releases. <https://www.haskell.org/ghcup/>.
+their native package mechanisms, and on macOS using Homebrew or Macports. Full details
+can be found at <https://www.haskell.org/>, and in particular `ghcup` is a popular
+installer for recent Haskell releases <https://www.haskell.org/ghcup/>.
 
 On some systems, you may need to use the `cabal` command to install Haskell
-libraries. On Debian and Ubuntu, `cabal` can be installed with.
-
-    $ apt-get install cabal-install
-
+libraries.  This tool is installed by `ghcup` but is also available as a package
+for many distributions.
 If you are using cabal 3.0 or later, you will need to use the legacy `v1-`
 commands to install Haskell libraries.
 
