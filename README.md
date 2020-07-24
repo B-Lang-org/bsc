@@ -89,19 +89,47 @@ Debian and Ubuntu systems, you can say:
 The second command will install the Haskell libraries `regex-compat`, `syb`,
 `old-time`, and `split`, as well as some libraries that they depend on.
 
+If you wish to do profiling builds of the compiler itself, you will also need
+to install versions of the Haskell libraries built using the profiling flags.
+On Debian and Ubuntu, this can be done with:
+
+    $ apt-get install \
+        ghc-prof \
+        libghc-regex-compat-prof \
+        libghc-syb-prof \
+        libghc-old-time-prof \
+        libghc-split-prof
+
 You can do the analogous package-install on other Linux distributions using
 their native package mechanisms, and use Macports on Apple OS X. Full details
-can be found at <https://www.haskell.org/>. On some systems, you may need to
-use the `cabal` command to install Haskell libraries:
+can be found at <https://www.haskell.org/>, and in particular ghcup is a popular
+installer for recent Haskell releases. <https://www.haskell.org/ghcup/>.
+
+On some systems, you may need to use the `cabal` command to install Haskell
+libraries. On Debian and Ubuntu, `cabal` can be installed with.
 
     $ apt-get install cabal-install
+
+If you are using cabal 3.0 or later, you will need to use the legacy `v1-`
+commands to install Haskell libraries.
+
+For cabal v2.x:
+
     $ cabal update
     $ cabal install regex-compat syb old-time split
 
-The version of GHC must be 7.10.1 or greater.
-Beyond that, any version will work, since the source code has been written
-with extensive preprocessor macros, to support every minor release since.
-BSC builds with the latest version at the time of this writing, which is 8.8.2.
+For cabal v3.x:
+
+    $ cabal update
+    $ cabal v1-install regex-compat syb old-time split
+
+
+Bluespec compiler builds are tested with GHC 7.10.1 and greater, and older
+GHC releases are not supported.
+
+Beyond that, any version up to 8.10.1 (the latest at the time of writing) will
+work, since the source code has been written with extensive preprocessor macros
+to support every minor release since.
 
 ### Additional requirements
 
@@ -168,6 +196,12 @@ If you wish, you can install into another location by assigning the variable
 `PREFIX` in the environment:
 
     $ make PREFIX=/tools/bluespec
+
+An unoptimized, debug, or profiling build can be done using one of:
+
+    $ make BSC_BUILD=NOOPT
+    $ make BSC_BUILD=DEBUG
+    $ make BSC_BUILD=PROF
 
 #### Choosing a Verilog simulator
 
