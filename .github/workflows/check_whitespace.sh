@@ -2,7 +2,7 @@
 
 set -e
 
-# For now, restrict to Haskell/bluspec code as we've a lot of third party
+# For now, restrict to Haskell/Bluespec code as we've a lot of third party
 # vendored code in the repo that we don't want to needlessly modify
 if git ls-files | egrep '\.(lhs|hs|hsc|bs|bsv)$' | xargs grep -n ' $'; then
   echo "Trailing whitespace found!"
