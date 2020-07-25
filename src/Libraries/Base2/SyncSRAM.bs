@@ -3,7 +3,7 @@ import ClientServer
 
 --@ \subsubsection{\te{SyncSRAM}}
 --@ \index{SyncSRAM@\te{SyncSRAM} (package)|textbf}
---@ 
+--@
 --@ The \te{SyncSRAM} package contains definitions of the low level type
 --@ for connecting to synchronous SRAMs.  It is not intended for programming
 --@ with directly; it is only used to interface to internal and external SRAMs.
@@ -30,7 +30,7 @@ type SyncSRAMS lat adrs dtas = Server (SyncSRAMrequest lat adrs dtas) (Bit dtas)
 type SyncSRAMC lat adrs dtas = Client (SyncSRAMrequest lat adrs dtas) (Bit dtas)
 
 --@ An SRAM request is simply the wires to the SRAM.
---@ 
+--@
 --@ \note{\te{SyncSRAMrequest} should really be a struct, but we get nice wire names by using an interface.}
 --@ \begin{libverbatim}
 --@ interface (SyncSRAMrequest :: # -> # -> # -> *) #(type lat, type adrs, type dtas);

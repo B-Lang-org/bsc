@@ -15,7 +15,7 @@ import List
 --@ representations; thus the bit representation of the ``lower'' bound must be
 --@ less (in the sense of an unsigned bit-pattern) than that of the ``upper''
 --@ bound.
---@ 
+--@
 --@ Note: In a design that uses RegFiles, some of the read ports may remain
 --@ unused. This may generate a warning in various downstream tools.  These
 --@ should also be optimized away by downstream tools.
@@ -49,7 +49,7 @@ interface VRegFile ni na =
 -- Only for i>0 and a>0
 vMkRegFile :: Bit i -> Bit i -> Module (VRegFile i a)
 vMkRegFile lo hi =
-    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a), 
+    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a),
 			      ("lo",lo), ("hi",hi)) "CLK" {
 	upd    = "ADDR_IN" "D_IN"{reg} "WE";
 	sub[5] = "ADDR" "D_OUT";
@@ -114,7 +114,7 @@ wrapRegFile modname isWCF vMk l h = liftModule $
 --@ \lineup
 --@ \begin{libverbatim}
 --@ module mkRegFileFull( RegFile#(index_t, data_t) )
---@   provisos (Bits#(index_t, si), 
+--@   provisos (Bits#(index_t, si),
 --@             Bits#(data_t, sa),
 --@             Bounded#(index_t) );
 --@ \end{libverbatim}
@@ -123,7 +123,7 @@ mkRegFileFull = mkRegFile minBound maxBound
 
 vMkRegFileWCF :: Bit i -> Bit i -> Module (VRegFile i a)
 vMkRegFileWCF lo hi =
-    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a), 
+    module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a),
 			      ("lo",lo), ("hi",hi)) "CLK" {
 	upd    = "ADDR_IN" "D_IN"{reg} "WE";
 	sub[5] = "ADDR" "D_OUT";
@@ -134,7 +134,7 @@ vMkRegFileWCF lo hi =
 --@ \begin{libverbatim}
 --@ module mkRegFileWCF#( index_t lo, index_t hi )
 --@                     ( RegFile#(index_t, data_t) )
---@   provisos (Bits#(index_t, si), 
+--@   provisos (Bits#(index_t, si),
 --@             Bits#(data_t, sa));
 --@ \end{libverbatim}
 mkRegFileWCF :: (IsModule m c, Bits i si, Bits a sa) => i -> i -> m (RegFile i a)
@@ -150,7 +150,7 @@ mkRegFileWCF = wrapRegFile "mkRegFileWCF" True vMkRegFileWCF
 --@ \te{RegFile}, but each constructor function takes an additional
 --@ file name argument.  The file contains the initial contents of the array.
 --@ The file should use the {\veri} hex memory file syntax.
---@ 
+--@
 --@ The functions in this package cannot normally be used in synthesis.
 
 
@@ -179,7 +179,7 @@ mkRegFileLoadHex file =
 --@ \begin{libverbatim}
 --@ module mkRegFileFullLoad#( String file)
 --@                          ( RegFile#(index_t, data_t))
---@   provisos (Bits#(index_t, si), 
+--@   provisos (Bits#(index_t, si),
 --@             Bits#(data_t, sa),
 --@             Bounded#(index_t) );
 --@ \end{libverbatim}
@@ -194,12 +194,12 @@ vMkRegFileWCFLoad isBin file lo hi =
        ("lo",lo), ("hi",hi), ("binary",pack isBin)) "CLK" {
 	upd    = "ADDR_IN" "D_IN"{reg} "WE";
 	sub[5] = "ADDR" "D_OUT";
-    } [ upd <> sub, sub <> sub, upd >< upd ] 
+    } [ upd <> sub, sub <> sub, upd >< upd ]
 
 --@ \begin{libverbatim}
 --@ module mkRegFileWCFLoad#( String file, index_t lo, index_t hi )
 --@                         ( RegFile#(index_t, data_t) )
---@   provisos (Bits#(index_t, si), 
+--@   provisos (Bits#(index_t, si),
 --@             Bits#(data_t, sa));
 --@ \end{libverbatim}
 mkRegFileWCFLoadHex :: (IsModule m c, Bits i si, Bits a sa) =>
@@ -237,7 +237,7 @@ mkRegFileFullLoad file = mkRegFileFullLoadHex file
 
 mkRegFileWCFLoad :: (IsModule m c, Bits i si, Bits a sa) =>
                   String -> i -> i -> m (RegFile i a)
-mkRegFileWCFLoad file l h = mkRegFileWCFLoadHex file l h 
+mkRegFileWCFLoad file l h = mkRegFileWCFLoadHex file l h
 
 
 

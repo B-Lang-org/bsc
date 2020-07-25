@@ -2,7 +2,7 @@ package Enum(enumFromTo, enumAll) where
 import List
 
 --@ \subsubsection{Enum}
---@ 
+--@
 --@ \index{Enum@\te{Enum} (package)|textbf}
 --@ The functions in this package can be used to enumerate values
 --@ by using their bit representation.

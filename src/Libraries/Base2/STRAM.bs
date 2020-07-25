@@ -8,7 +8,7 @@ import SyncSRAM
 import SRAM
 import TRAM
 
---@ 
+--@
 --@ \index{STRAM@\te{STRAM} (package)|textbf}
 --@ The \te{TSRAM} package corresponds to the \te{SRAM} package, but for tagged SRAMs.
 
@@ -41,7 +41,7 @@ mkWrapSTRAM mkRam = do
 --@ \end{libverbatim}
 wrapSTRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Bits tg tgs, Add 1 lat lat1, Log lat1 llat) =>
              m (SyncSRAMC lat adrs dtas, TRAM tg adr dta)
-wrapSTRAM = 
+wrapSTRAM =
   module
     fifo :: FIFOF tg <- mkSizedFIFOF (valueOf lat + 4)
     cs :: (SyncSRAMC lat adrs dtas, RAM adr dta) <- wrapSRAM
@@ -55,7 +55,7 @@ wrapSTRAM =
                 action
 		 fifo.enq tag
 		 ram.request.put (RAM.Read address)
-	       put (TRAM.Write (address, value)) = 
+	       put (TRAM.Write (address, value)) =
 	               ram.request.put (RAM.Write (address, value))
 	    response =
 	     interface Get

@@ -3,13 +3,13 @@ import ClientServer
 
 --@ \subsubsection{\te{RAM} and \te{TRAM}}
 --@ \index{RAM@\te{RAM} (package)|textbf}
---@ 
+--@
 --@ The \te{RAM} type is used for various types of memories.
 --@ The memory is a \te{Server} which accepts read or write requests.
 --@ A read request will generate a response containing the read data.
 --@ The latency for a \te{RAM} is arbitrary, it does not even have to
 --@ be a fixed latency.
---@ 
+--@
 --@ Note, the types of the address and data are arbitrary.
 
 --@ \index{RAM@\te{RAM} (type)|textbf}
@@ -36,7 +36,7 @@ data RAMreq adr dta
         | Write (adr, dta)
     deriving (Eq)
 
-instance (Bits adr sa, Bits dta sd, Add sa sd sz1, Add sz1 1 sz) => 
+instance (Bits adr sa, Bits dta sd, Add sa sd sz1, Add sz1 1 sz) =>
          Bits (RAMreq adr dta) sz where
   pack (Read adr) = (0 :: Bit 1) ++ (pack adr) ++ _
   pack (Write (adr, dta)) = (1 :: Bit 1) ++ (pack adr) ++ (pack dta)

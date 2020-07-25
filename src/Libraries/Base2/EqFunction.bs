@@ -4,7 +4,7 @@ import Enum
 import List
 
 --@ \subsubsection{EqFunction}
---@ 
+--@
 --@ \index{EqFunction@\te{EqFunction} (package)|textbf}
 --@ Functions can be compared for equality if the domain
 --@ can be enumerated and the range can be compared for equality.

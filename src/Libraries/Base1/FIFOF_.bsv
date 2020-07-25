@@ -39,7 +39,7 @@ instance FShow#(FIFOF_#(a))
 	 {False, False}: return  $format("EMPTY");
       endcase
    endfunction
-endinstance 
+endinstance
 
 // The name is prefixed with V because this is an internal interface.
 // We don't expect users to instantiate a zero-width FIFO directly;

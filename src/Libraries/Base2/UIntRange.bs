@@ -2,21 +2,21 @@ package UIntRange(UIntRange, incr, decr) where
 
 
 --@ \subsubsection{UIntRange}
---@ 
+--@
 --@ \index{UIntRange@\te{UIntRange} (type)|textbf}
 --@ The type {\mbox{\te{UIntRange lo hi}}} represents an unsigned integer
 --@ using the number of bits needed to store \qbs{hi}.
 --@ The values of the type are in the range \qbs{lo..hi}.
---@ 
+--@
 --@ The advantage of using \te{UIntRange} over \te{UInt}
 --@ is that the compiler can take advantage of the range information
 --@ when compiling the program.  It also makes the code more self-documenting
 --@ and catches more type errors.
---@ 
+--@
 --@ {\bf NOTE}, using \te{unpack} it is possible to make a value that is
 --@ not within the specified range.  Doing so will result in unspecified
 --@ behaviour.
---@ 
+--@
 --@ \BBS
 --@ data UIntRange lo hi = {\rm{\emph{$\cdots$ abstract $\cdots$}}}
 --@ \EBS

@@ -70,9 +70,9 @@ vMkCounter v =
 	setF = "DATA_F"{reg} "SETF";
     } [ value <> value,
 	[addA,addB,setC] <> [addA,addB,setC],
-	value < [addA,addB,setC],  
+	value < [addA,addB,setC],
 	value < setF,
-        setF << setF, 
+        setF << setF,
         [addA, addB, setC] << setF
       ]
 

@@ -10,7 +10,7 @@ import Wallace
 import Tabulate
 
 --@ \subsubsection{PopCount}
---@ 
+--@
 --@ \index{PopCount@\te{PopCount} (package)|textbf}
 
 --@ The function \te{popCountNaive} just generates the sum of all the bits

@@ -8,29 +8,29 @@ import Vector
 infixr 15 |>
 
 --@ \subsubsection{ActionSeq}
---@ 
+--@
 -- {\te{ActionSeq}} is an interface type with a field called
 -- {\te{start}} of type {\te{Action}}.
---@ 
+--@
 --@ {\te{ActionSeq}} allows you to simplify the description of a state
 --@ machine.  For example, suppose you had a module with an interface to
 --@ load some data and, after loading, you simply wanted to sequence
 --@ through 5 actions.  Instead of explicitly coding the state and writing
 --@ the (boring) rules to transition from one state to the next, you could
 --@ simply define the following in your module:
---@ 
+--@
 --@ \BBS
 --@ s :: ActionSeq
 --@ s <- actionSeq ( {\rm\emph{action$_1$}} |> $\cdots$ |> {\rm\emph{action$_n$}} )
 --@ \EBS
 --@ \index{"|>@{\verb'"|>'} (\te{ActionSeq} interface method)|textbf}
---@ 
+--@
 --@ and then call {\te{s.start}} to kick off the state sequence.  The
 --@ compiler will work out all the states for you and prevent
 --@ {\te{s.start}} from being called until it has sequenced through all
 --@ the actions.  The {\qbs{|>}} operator combines actions into a suitable
 --@ list of actions for {\te{actionSeq}}.
---@ 
+--@
 
 --@ \index{ActionList@\te{ActionList} (\te{ActionSeq} type)|textbf}
 --@ The argument to \te{actionSeq} is an \te{ActionList}, which is simply
@@ -91,7 +91,7 @@ actionSeq as = liftModule $
             start = var := 0
         	when var == bn
 	    done  = (var == bn)
-	    checkDone = noAction 
+	    checkDone = noAction
                 when var == bn
 
 -- ActionSeq wrapper with a phantom type for the counter size
@@ -201,7 +201,7 @@ seqOfActionSeq xs = liftModule $
 	    start = var := 0
 		when var == bn
 	    done  = (var == bn)
- 	    checkDone = noAction 
+ 	    checkDone = noAction
        	        when var == bn
 
 mkSeqRules :: (Add n 1 j) => RegB k -> SeqList n -> Rules

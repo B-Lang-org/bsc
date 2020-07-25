@@ -27,7 +27,7 @@ endinterface: TriState
 ////////////////////////////////////////////////////////////////////////////////
 module mkTriState#(Bool oe, t i)(TriState#(t))
    provisos(Bits#(t, st));
-   
+
    TriState#(t) _a <- vMkTriState(oe, i);
    return _a;
 endmodule
@@ -36,17 +36,17 @@ endmodule
 import "BVI" TriState =
 module vMkTriState#(Bool oe, t i)(TriState#(t))
    provisos(Bits#(t, st));
-   
+
    default_clock clk();
    default_reset rst();
-   
+
    parameter     width = valueof(st);
-   
+
    ifc_inout     io(IO);
-   
+
    port          I  = i;
    port          OE = oe;
-   
+
    method O      _read;
 
    path (I,  IO);

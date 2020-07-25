@@ -12,7 +12,7 @@
   `ifdef OVL_PSL
      `ifdef OVL_VERILOG
         `undef OVL_PSL
-     `endif 
+     `endif
      `ifdef OVL_SVA
         `ifdef OVL_PSL
           `undef OVL_PSL
@@ -22,7 +22,7 @@
     `ifdef OVL_VERILOG
     `else
       `define OVL_VERILOG
-    `endif 
+    `endif
     `ifdef OVL_SVA
        `undef OVL_VERILOG
     `endif

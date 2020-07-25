@@ -49,11 +49,11 @@ endfunction
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
-   
+
 module mkMEState#(Integer icount) (MEState);
-   
+
    let count = icount + 1;
-   
+
    function MEState convertInterface (MEStateInternal#(a) ifc);
       return (interface MEState
 		 method set = ifc.set;
@@ -63,9 +63,9 @@ module mkMEState#(Integer icount) (MEState);
 		 method is = ifc.is;
 	      endinterface);
    endfunction
-   
+
    MEState ifc;
-      
+
    if (count < 2)
       begin
 	 MEStateInternal#(Bit#(1)) _mod <- mkMEStateInternal;
@@ -133,9 +133,9 @@ module mkMEState#(Integer icount) (MEState);
       end
    else
       error("FSM too big.");
-   
+
    return ifc;
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,14 +144,14 @@ endmodule
 
 module mkMEStateInternal (MEStateInternal#(a))
    provisos(Bounded#(a), Bits#(a, sa), Bitwise#(a), Eq#(a), Literal#(a));
-   
-   Wire#(a) value_wire <- mkDWire(0);   
+
+   Wire#(a) value_wire <- mkDWire(0);
    Reg#(a) value_reg <- mkReg(1);
    a current_value = 0;
    a delayed_value = 0;
    Bool set_value = False;
    Bool set_delayed_value = False;
-   
+
    Wire#(a) current_wire_0 <- mkDWire(0);
    Wire#(a) current_wire_1 <- mkDWire(0);
    Wire#(a) delayed_wire_0 <- mkDWire(0);
@@ -160,41 +160,41 @@ module mkMEStateInternal (MEStateInternal#(a))
    Wire#(Bool) set_delayed_wire_0 <- mkDWire(False);
    Wire#(Bool) set_wire_1 <- mkDWire(False);
    Wire#(Bool) set_delayed_wire_1 <- mkDWire(False);
-   
+
    current_value = current_wire_0 | current_wire_1;
    delayed_value = delayed_wire_0 | delayed_wire_1;
    set_value = set_wire_0 || set_wire_1;
    set_delayed_value = set_delayed_wire_0 || set_delayed_wire_1;
-   
+
    rule every;
       if (set_value)
 	 value_wire <= current_value;
       else
 	 value_wire <= value_reg;
    endrule
-   
+
    rule every_delayed;
       if (set_delayed_value)
 	 value_reg <= delayed_value;
       else if (set_value)
 	 value_reg <= current_value;
    endrule
-			   
+			
    method Action set (Integer value);
       current_wire_0 <= fromInteger(value);
       set_wire_0 <= True;
    endmethod
-   
+
    method Action set_delayed (Integer value);
       delayed_wire_0 <= fromInteger(value);
       set_delayed_wire_0 <= True;
    endmethod
-      
+
    method Action reset ();
       current_wire_1 <= 0;
       set_wire_1 <= True;
    endmethod
-   
+
    method Action reset_delayed ();
       delayed_wire_1 <= 0;
       set_delayed_wire_1 <= True;
@@ -203,7 +203,7 @@ module mkMEStateInternal (MEStateInternal#(a))
    method Bool is (Integer value);
       return (fromInteger(value) == value_wire);
    endmethod
-   
+
 endmodule
 
 endpackage

@@ -12,7 +12,7 @@ import SyncSRAM
 
 --@ \subsubsection{\te{SRAM} and \te{TSRAM}}
 --@ \index{SRAM@\te{SRAM} (package)|textbf}
---@ 
+--@
 --@ The \te{SRAM} package contains functions for wrapping a raw SRAM so that
 --@ it has the more convenient RAM interface.
 
@@ -84,7 +84,7 @@ wrapSRAM =
 
     interface -- Pair
        (interface Client
-	    request = 
+	    request =
              interface Get
 	      get = return $
 		interface SyncSRAMrequest
@@ -144,10 +144,10 @@ mkShiftReg i =
 	    output = last sr
 	    shift s = sr := (s :> init sr)
 
---@ Both the \te{mkWrapSRAM} and \te{wrapSRAM} modules add two cycles of 
+--@ Both the \te{mkWrapSRAM} and \te{wrapSRAM} modules add two cycles of
 --@ latency to the SRAM latency.  The reason for this is that the raw interface
 --@ to the SRAM has fully ``registered'' inputs and outputs (which is necessary
 --@ for many SRAMs).
---@ 
+--@
 --@ \note{The current implementation of these functions is broken, it adds three
 --@ extra cycles of latency.}

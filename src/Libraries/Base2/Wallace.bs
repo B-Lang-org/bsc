@@ -3,7 +3,7 @@ package Wallace(wallaceAdd, wallaceAddBags) where
 import Tabulate
 
 --@ \subsubsection{Wallace}
---@ 
+--@
 --@ \index{Wallace@\te{Wallace} (package)|textbf}
 
 --@ A Wallace tree adder is useful when many numbers need to
@@ -15,7 +15,7 @@ import Tabulate
 --@ weights).  By repeating this over and over we finally reach a point
 --@ when there is only one bit left at each weight, and this is the final
 --@ result.
---@ 
+--@
 
 
 import List
@@ -151,10 +151,10 @@ wallaceTest =
 	{ }
     rules
 	when not done
-	 ==> {	r := r'; 
+	 ==> {	r := r';
 		done := r' == 0;
 		if wallaceAdd (Cons x (Cons y (Cons z Nil))) /= sum then
-		    { bad := bad+1; 
+		    { bad := bad+1;
 		     -- $display "test failed 0x%02x 0x%02x 0x%02x\n" (arg x) (arg y) (arg z)
 		    }
 		else

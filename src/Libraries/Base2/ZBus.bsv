@@ -20,7 +20,7 @@ import ZBusUtil::*;
 //@ predefined interfaces which do not allow direct access to internal
 //@ signals (which could potentially have high-impedance or undefined
 //@ values).
-//@ 
+//@
 //@ The Verilog implementation of the tri-state module includes a number
 //@ of primitive sub-modules that are implemented using Verilog tri-state
 //@ wires. The BSV representation of the bus, however, only models the
@@ -33,16 +33,16 @@ import ZBusUtil::*;
 
 module mkZBus#(List#(ZBusBusIFC#(t)) ifc_list)(Empty)
    provisos (Eq#(t), Bits#(t, st));
-   
+
    ZBusInternalIFC#(t) bus();
    mkZBusInternal#(ifc_list) the_bus(bus);
-   
+
    let fromBusValid =  bStateToValid(resolveBusBState(ifc_list));
-   
+
    rule update_IFCs (True);
       updateFromBus(ifc_list, bus.zout, fromBusValid);
    endrule
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,9 +97,9 @@ module mkZBusInternal#(List#(ZBusBusIFC#(t)) ifc_list)(ZBusInternalIFC#(t))
       begin
   	 ResolveZ#(t) i1();
   	 mkResolveZ the_i1(i1);
-	 
-  	 zout_final = 
-  	 i1.resolve(zBusIFCGetToBusValue(head(ifc_list)), 
+	
+  	 zout_final =
+  	 i1.resolve(zBusIFCGetToBusValue(head(ifc_list)),
   		    zBusIFCGetToBusValue(head(tail(ifc_list))));
       end
    else
@@ -107,19 +107,19 @@ module mkZBusInternal#(List#(ZBusBusIFC#(t)) ifc_list)(ZBusInternalIFC#(t))
 
   	 ResolveZ#(t) i1();
   	 mkResolveZ the_i1(i1);
-	 
+	
  	 ZBusInternalIFC#(t) i2();
   	 mkZBusInternal#(tail(ifc_list)) the_i2(i2);
 
 	 zout_final =
-	 i1.resolve(zBusIFCGetToBusValue(head(ifc_list)), 
+	 i1.resolve(zBusIFCGetToBusValue(head(ifc_list)),
 		    i2.zout);
       end
 
-   method zout() ;  
+   method zout() ;
       return zout_final;
    endmethod
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,25 +189,25 @@ endinterface
 //@
 //@ \index{mkZBusBuffer@\te{mkZBusBuffer} (function)|textbf}
 //@ \begin{libverbatim}
-//@ module mkZBusBuffer (ZBusDualIFC #(t)) 
+//@ module mkZBusBuffer (ZBusDualIFC #(t))
 //@    provisos (Eq#(t), Bits#(t,st));
 //@ \end{libverbatim}
-//@ 
+//@
 //@ This module provides essentially the functionality of a tri-state
 //@ buffer.  The following code fragment creates a tri-state buffer (with
 //@ an interface named buffer\_0) for a 32 bit signal.
-//@ 
+//@
 //@ \begin{libverbatim}
-//@    ZBusDualIFC#(Bit#(32)) buffer_0(); 
+//@    ZBusDualIFC#(Bit#(32)) buffer_0();
 //@    mkZBusBuffer inst_buffer_0(buffer_0);
 //@ \end{libverbatim}
-//@ 
+//@
 //@ This code fragment drives a value of \te{12} onto the associated bus.
-//@ 
+//@
 //@ \begin{libverbatim}
 //@    buffer_0.clientIFC.drive(12);
 //@ \end{libverbatim}
-//@ 
+//@
 //@ The \te{get()} and \te{fromBusValid()} methods (associated
 //@ with the \te{ZBusClientIFC} interface) allow each bus client to access the
 //@ current value on the bus. If the bus is in an invalid state (i.e. has
@@ -278,7 +278,7 @@ endfunction
 
 //@ Finally, the \te{ZBus} library provides the \te{mkZBus} module
 //@ constructor function.
-//@ 
+//@
 //@ \index{mkZBus@\te{mkZBus} (function)|textbf}
 //@ \begin{libverbatim}
 //@ module mkZBus#(List#(ZBusBusIFC#(t)) ifc_list)(Empty)
@@ -288,24 +288,24 @@ endfunction
 //@ This function takes a list of \te{ZBusBusIFC} interfaces as arguments
 //@ and creates a module which ties them all together in a bus. The
 //@ following code fragment demonstrates its use.
-//@ 
+//@
 //@ \begin{libverbatim}
 //@    ZBusDualIFC#(Bit#(32)) buffer_0();
 //@    mkZBusBuffer inst_buffer_0(buffer_0);
-//@ 
+//@
 //@    ZBusDualIFC#(Bit#(32)) buffer_1();
 //@    mkZBusBuffer inst_buffer_1(buffer_1);
-//@ 
+//@
 //@    ZBusDualIFC#(Bit#(32)) buffer_2();
 //@    mkZBusBuffer inst_buffer_2(buffer_2);
-//@ 
+//@
 //@    List#(ZBusIFC#(Bit#(32))) ifc_list;
-//@ 
+//@
 //@    bus_ifc_list = cons(buffer_0.busIFC,
 //@                         cons(buffer_1.busIFC,
 //@                              cons(buffer_2.busIFC,
 //@                                        nil)));
-//@ 
+//@
 //@    Empty bus_ifc();
 //@    mkZBus#(bus_ifc_list) inst_bus(bus_ifc);
 //@ \end{libverbatim}
@@ -325,7 +325,7 @@ interface ZBusDualIFC #(type t) ;
    interface ZBusClientIFC#(t) clientIFC;
 endinterface
 
-module mkZBusBuffer (ZBusDualIFC #(t)) 
+module mkZBusBuffer (ZBusDualIFC #(t))
    provisos (Eq#(t), Bits#(t,st));
 
    RWire#(t) value_reg();
@@ -392,11 +392,11 @@ module mkZBusBuffer (ZBusDualIFC #(t))
       method Bool fromBusValid();
 	 return unJust(bus_valid_reg_out.wget());
       endmethod
-      
+
    endinterface
-   
+
 endmodule
-      
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

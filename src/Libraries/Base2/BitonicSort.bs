@@ -8,7 +8,7 @@ import List
 -- http://www.xilinx.com/labs/lava/sorter/sorter.htm
 
 --@ \subsubsection{BitonicSort}
---@ 
+--@
 --@ \index{BitonicSort@\te{BitonicSort} (package)|textbf}
 
 pairs :: List a -> List (a, a)
@@ -67,7 +67,7 @@ cmpSwap (<=) (x, y) = if x <= y then (x, y) else (y, x)
 --@ \end{libverbatim}
 --sortLe :: (Log n k, Add n 1 m, Add k 1 j, Log m j) => (a -> a -> Bool) -> Vector n a -> Vector n a
 sortLe :: (Log n k) => (a -> a -> Bool) -> Vector.Vector n a -> Vector.Vector n a
-sortLe (<=) = 
+sortLe (<=) =
   if ( (2 ** (valueOf k)) /= valueOf n) then error "sortLe: length of list not power of 2"
   else (Vector.toVector · sorter (cmpSwap (<=)) (valueOf k) · Vector.toList)
 

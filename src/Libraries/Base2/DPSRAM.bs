@@ -6,7 +6,7 @@ import SyncSRAM
 
 --@ \subsubsection{\te{DPSRAM}}
 --@ \index{DPSRAM@\te{DPSRAM} (package)|textbf}
---@ 
+--@
 --@ The \te{DPSRAM} package contains is used to generate
 --@ internal dual ported SRAMs (for the LSI libraries).
 --@ The argument specifies the size of the SRAM.
@@ -44,7 +44,7 @@ mkDPSRAM nwords = liftModule $
 		request =
 	         interface Put
 	          put req = fromPrimAction (vram.execA req.addr req.wdata req.we req.ena)
-		response = 
+		response =
 	         interface Get
 	          get = return vram.rdataA
 	    ,
@@ -92,7 +92,7 @@ mkDPSRAM_C nwords =
 			outB := arr.sub req.addr
 		else
 		    outB := 0
-	    response = 
+	    response =
 	     interface Get
 	      get = return outB
        )

@@ -6,7 +6,7 @@ import SyncSRAM
 
 --@ \subsubsection{\te{SPSRAM}}
 --@ \index{SPSRAM@\te{SPSRAM} (package)|textbf}
---@ 
+--@
 --@ The \te{SPSRAM} package is used to generate
 --@ internal single ported SRAMs (for the LSI libraries).
 --@ The argument specifies the size of the SRAM.
@@ -59,7 +59,7 @@ mkSPSRAM_C nwords =
 			out := arr.sub req.addr
 		else
 		    out := 0
-	    response = 
+	    response =
 	     interface Get
 	      get = return out
 

@@ -326,9 +326,9 @@ module mkAVFn_to_Pipe
                 (PipeOut #(tb))
  provisos (Bits #(ta, wd_ta),
 	   Bits #(tb, wd_tb));
-		       
+		
    FIFOF #(tb) fifof <- mkPipelineFIFOF;
-   
+
    rule rl_do_avfn;
       tb y <- avfn (po_in.first);
       fifof.enq (y);
@@ -583,7 +583,7 @@ module mkUnfunnel
 
       Vector #(k, Reg #(Vector #(m, a)))   values <- replicateM (mkRegU);
       Array #(Reg #(UInt #(logk_plus_1)))  index  <- mkCReg (2, 0);
-      
+
       UInt #(logk_plus_1) k = fromInteger (valueof(k));
 
       rule rl_receive (index[1] != k);

@@ -11,8 +11,8 @@ package OVLAssertions;
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef enum {OVL_FATAL = `OVL_FATAL,
-	      OVL_ERROR = `OVL_ERROR, 
-	      OVL_WARNING = `OVL_WARNING, 
+	      OVL_ERROR = `OVL_ERROR,
+	      OVL_WARNING = `OVL_WARNING,
 	      OVL_INFO = `OVL_INFO,
 	      DEFAULT, ILLEGAL} OVLSeverityLevel deriving(Bits, Eq);
 
@@ -23,7 +23,7 @@ typedef enum {OVL_ASSERT = `OVL_ASSERT,
 
 typedef enum {OVL_COVER_NONE = `OVL_COVER_NONE,
 	      OVL_COVER_ALL = `OVL_COVER_ALL,
-	      OVL_COVER_SANITY = `OVL_COVER_SANITY, 
+	      OVL_COVER_SANITY = `OVL_COVER_SANITY,
 	      OVL_COVER_BASIC = `OVL_COVER_BASIC,
 	      OVL_COVER_CORNER = `OVL_COVER_CORNER,
 	      OVL_COVER_STATISTIC = `OVL_COVER_STATISTIC,
@@ -77,7 +77,7 @@ typedef struct {
 		a                     max;
 		Bool                  check_overlapping;
 		Bool                  check_missing_start;
-		Bool                  simultaneous_push_pop; 
+		Bool                  simultaneous_push_pop;
    		} OVLDefaults#(type a);
 
 typedef struct {
@@ -132,7 +132,7 @@ function OVLDefaults#(a) mkOVLDefaults()
 			   max_ack_length:      default_num,
 			   req_drop:            default_num,
 			   deassert_count:      default_num,
-			   depth:               default_num,  
+			   depth:               default_num,
 		       value:               minBound,
 		       min:                 minBound,
 		       max:                 maxBound,
@@ -174,11 +174,11 @@ endfunction
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-function OVLDefaults#(a) updateOVLDefaults (OVLDefaults#(a) defaults, 
+function OVLDefaults#(a) updateOVLDefaults (OVLDefaults#(a) defaults,
 					    OVLDefaultsTemplate#(a) template,
 					    String name)
    provisos(Bounded#(a), Eq#(a));
-   
+
    defaults = updateOVLSeverityLevel(defaults, template, name);
    defaults = updateOVLPropertyType(defaults, template, name);
    defaults = updateOVLMsg(defaults, template, name);
@@ -204,10 +204,10 @@ function OVLDefaults#(a) updateOVLDefaults (OVLDefaults#(a) defaults,
    defaults = updateOVLSimultaneousPushPop(defaults, template, name);
 
    return defaults;
-   
+
 endfunction
 
-function OVLDefaults#(a) updateOVLSeverityLevel (OVLDefaults#(a) defaults, 
+function OVLDefaults#(a) updateOVLSeverityLevel (OVLDefaults#(a) defaults,
 						 OVLDefaultsTemplate#(a) template,
 						 String name);
    let defaults_mod = defaults;
@@ -215,17 +215,17 @@ function OVLDefaults#(a) updateOVLSeverityLevel (OVLDefaults#(a) defaults,
       defaults_mod.severity_level = validValue(template.severity_level);
 
    let value = ((defaults.severity_level == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.severity_level == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"severity_level\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-      
+
 endfunction
 
 
-function OVLDefaults#(a) updateOVLPropertyType (OVLDefaults#(a) defaults, 
+function OVLDefaults#(a) updateOVLPropertyType (OVLDefaults#(a) defaults,
 						OVLDefaultsTemplate#(a) template,
 						String name);
    let defaults_mod = defaults;
@@ -233,16 +233,16 @@ function OVLDefaults#(a) updateOVLPropertyType (OVLDefaults#(a) defaults,
       defaults_mod.property_type = validValue(template.property_type);
 
    let value = ((defaults.property_type == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.property_type == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"property_type\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-      
+
 endfunction
 
-function OVLDefaults#(a) updateOVLMsg (OVLDefaults#(a) defaults, 
+function OVLDefaults#(a) updateOVLMsg (OVLDefaults#(a) defaults,
 				       OVLDefaultsTemplate#(a) template,
 				       String name);
    let defaults_mod = defaults;
@@ -250,16 +250,16 @@ function OVLDefaults#(a) updateOVLMsg (OVLDefaults#(a) defaults,
       defaults_mod.msg = validValue(template.msg);
 
    let value = ((defaults.msg ==  default_msg) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.msg == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"msg\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-      
+
 endfunction
 
-function OVLDefaults#(a) updateOVLCoverageLevel (OVLDefaults#(a) defaults, 
+function OVLDefaults#(a) updateOVLCoverageLevel (OVLDefaults#(a) defaults,
 						 OVLDefaultsTemplate#(a) template,
 						 String name);
    let defaults_mod = defaults;
@@ -267,13 +267,13 @@ function OVLDefaults#(a) updateOVLCoverageLevel (OVLDefaults#(a) defaults,
       defaults_mod.coverage_level = validValue(template.coverage_level);
 
    let value = ((defaults.coverage_level == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.coverage_level == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"coverage_level\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-      
+
 endfunction
 
 function OVLDefaults#(a) updateOVLActionOnNewStart (OVLDefaults#(a) defaults,
@@ -284,13 +284,13 @@ function OVLDefaults#(a) updateOVLActionOnNewStart (OVLDefaults#(a) defaults,
       defaults_mod.action_on_new_start = validValue(template.action_on_new_start);
 
    let value = ((defaults.action_on_new_start == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.action_on_new_start == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"action_on_new_start\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-      
+
 endfunction
 
 function OVLDefaults#(a) updateOVLEdgeType (OVLDefaults#(a) defaults,
@@ -301,13 +301,13 @@ function OVLDefaults#(a) updateOVLEdgeType (OVLDefaults#(a) defaults,
       defaults_mod.edge_type = validValue(template.edge_type);
 
    let value = ((defaults.edge_type == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.edge_type == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"edge_type\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 
@@ -319,13 +319,13 @@ function OVLDefaults#(a) updateOVLNecessaryCondition (OVLDefaults#(a) defaults,
       defaults_mod.necessary_condition = validValue(template.necessary_condition);
 
    let value = ((defaults.necessary_condition == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.necessary_condition == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"necessary_condition\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLInactive (OVLDefaults#(a) defaults,
@@ -336,13 +336,13 @@ function OVLDefaults#(a) updateOVLInactive (OVLDefaults#(a) defaults,
       defaults_mod.inactive = validValue(template.inactive);
 
    let value = ((defaults.inactive == DEFAULT) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.inactive == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"inactive\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLNumCks (OVLDefaults#(a) defaults,
@@ -353,70 +353,70 @@ function OVLDefaults#(a) updateOVLNumCks (OVLDefaults#(a) defaults,
       defaults_mod.num_cks = validValue(template.num_cks);
 
    let value = ((defaults.num_cks == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.num_cks == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"num_cks\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLValue (OVLDefaults#(a) defaults,
 					 OVLDefaultsTemplate#(a) template,
 					 String name)
    provisos(Bounded#(a), Eq#(a));
-   
+
    let defaults_mod = defaults;
    if (isValid(template.value))
       defaults_mod.value = validValue(template.value);
 
    let value = ((defaults.value == minBound) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.value == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"value\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLMin (OVLDefaults#(a) defaults,
 				       OVLDefaultsTemplate#(a) template,
 				       String name)
    provisos(Bounded#(a), Eq#(a));
-   
+
    let defaults_mod = defaults;
    if (isValid(template.min))
       defaults_mod.min = validValue(template.min);
 
    let value = ((defaults.min == minBound) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.min == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"min\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLMax (OVLDefaults#(a) defaults,
 				       OVLDefaultsTemplate#(a) template,
 				       String name)
    provisos(Bounded#(a), Eq#(a));
-   
+
    let defaults_mod = defaults;
    if (isValid(template.max))
       defaults_mod.max = validValue(template.max);
 
    let value = ((defaults.max == maxBound) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.max == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"max\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 
@@ -428,13 +428,13 @@ function OVLDefaults#(a) updateOVLMinCks (OVLDefaults#(a) defaults,
       defaults_mod.min_cks = validValue(template.min_cks);
 
    let value = ((defaults.min_cks == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.min_cks == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"min_cks\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLMaxCks (OVLDefaults#(a) defaults,
@@ -445,13 +445,13 @@ function OVLDefaults#(a) updateOVLMaxCks (OVLDefaults#(a) defaults,
       defaults_mod.max_cks = validValue(template.max_cks);
 
    let value = ((defaults.max_cks == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.max_cks == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"max_cks\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLMinAckCycle (OVLDefaults#(a) defaults,
@@ -462,14 +462,14 @@ function OVLDefaults#(a) updateOVLMinAckCycle (OVLDefaults#(a) defaults,
       defaults_mod.min_ack_cycle = validValue(template.min_ack_cycle);
 
    let value = ((defaults.min_ack_cycle == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.min_ack_cycle == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"min_ack_cycle\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
-endfunction				  
+
+endfunction				
 
 function OVLDefaults#(a) updateOVLMaxAckCycle (OVLDefaults#(a) defaults,
 					  OVLDefaultsTemplate#(a) template,
@@ -479,13 +479,13 @@ function OVLDefaults#(a) updateOVLMaxAckCycle (OVLDefaults#(a) defaults,
       defaults_mod.max_ack_cycle = validValue(template.max_ack_cycle);
 
    let value = ((defaults.max_ack_cycle == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.max_ack_cycle == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"max_ack_cycle\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLMaxAckLength (OVLDefaults#(a) defaults,
@@ -496,13 +496,13 @@ function OVLDefaults#(a) updateOVLMaxAckLength (OVLDefaults#(a) defaults,
       defaults_mod.max_ack_length = validValue(template.max_ack_length);
 
    let value = ((defaults.max_ack_length == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.max_ack_length == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"max_ack_length\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLReqDrop (OVLDefaults#(a) defaults,
@@ -513,13 +513,13 @@ function OVLDefaults#(a) updateOVLReqDrop (OVLDefaults#(a) defaults,
       defaults_mod.req_drop = validValue(template.req_drop);
 
    let value = ((defaults.req_drop == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.req_drop == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"req_drop\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLDeassertCount(OVLDefaults#(a) defaults,
@@ -530,13 +530,13 @@ function OVLDefaults#(a) updateOVLDeassertCount(OVLDefaults#(a) defaults,
       defaults_mod.deassert_count = validValue(template.deassert_count);
 
    let value = ((defaults.deassert_count == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.deassert_count == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"deassert_count\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLDepth (OVLDefaults#(a) defaults,
@@ -547,13 +547,13 @@ function OVLDefaults#(a) updateOVLDepth (OVLDefaults#(a) defaults,
       defaults_mod.depth = validValue(template.depth);
 
    let value = ((defaults.depth == default_num) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.depth == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"depth\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 
@@ -565,13 +565,13 @@ function OVLDefaults#(a) updateOVLCheckOverlapping (OVLDefaults#(a) defaults,
       defaults_mod.check_overlapping = validValue(template.check_overlapping);
 
    let value = ((defaults.check_overlapping == True) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.check_overlapping == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"check_overlapping\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
+
 endfunction
 
 function OVLDefaults#(a) updateOVLCheckMissingStart (OVLDefaults#(a) defaults,
@@ -582,13 +582,13 @@ function OVLDefaults#(a) updateOVLCheckMissingStart (OVLDefaults#(a) defaults,
       defaults_mod.check_missing_start = validValue(template.check_missing_start);
 
    let value = ((defaults.check_missing_start == False) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.check_missing_start == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"check_missing_start\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-     
+
 endfunction
 
 function OVLDefaults#(a) updateOVLSimultaneousPushPop (OVLDefaults#(a) defaults,
@@ -599,14 +599,14 @@ function OVLDefaults#(a) updateOVLSimultaneousPushPop (OVLDefaults#(a) defaults,
       defaults_mod.simultaneous_push_pop = validValue(template.simultaneous_push_pop);
 
    let value = ((defaults.simultaneous_push_pop == True) ?
-		defaults_mod : 
+		defaults_mod :
       ((template.simultaneous_push_pop == Invalid) ?
        error(strConcat("Error:  Attempt to set the value of \"simultaneous_push_pop\" which is not a valid parameter for ", name)) :
        defaults));
 
    return value;
-   
-endfunction 
+
+endfunction
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -614,7 +614,7 @@ endfunction
 //
 //  1) AssertTest_IFC
 //
-//     o has a single Action method "test" that takes a single polymorphic 
+//     o has a single Action method "test" that takes a single polymorphic
 //       argument.
 //     o good for invariant assertions that check a test expression on
 //       every clock cycle (for instance bsv_assert_one_hot)
@@ -622,23 +622,23 @@ endfunction
 //  2) AssertSampleTest_IFC
 //
 //     o has an Action method "sample" and an Action method "test"
-//     o each method takes a single argument (sample is of type Bool, test is 
+//     o each method takes a single argument (sample is of type Bool, test is
 //       polymorphic)
-//     o same as AssertTest_IFC but the test expression is only checked when 
+//     o same as AssertTest_IFC but the test expression is only checked when
 //       sample is asserted.
 //
 //  3) AssertStartTest_IFC
 //
 //     o has an Action method "start" and an Action method "test"
-//     o each method takes a single argument (start is of type Bool, test is 
+//     o each method takes a single argument (start is of type Bool, test is
 //       polymorphic)
 //     o used to check a test expression only subsequent to a start_event.
 //
 //  4) AssertStartStopTest_IFC
 //
-//     o has an Action method "start", and Action method stop, and an Action 
+//     o has an Action method "start", and Action method stop, and an Action
 //       method "test"
-//     o each method takes a single argument (start and stop are of type Bool, 
+//     o each method takes a single argument (start and stop are of type Bool,
 //       test is polymorphic)
 //     o used to check a test expression between a start_event and an end_event.
 //
@@ -648,41 +648,41 @@ endfunction
 interface AssertTest_IFC #(type a);
 
    method Action test(a value);
-      
+
 endinterface
 
 interface VAssertTest_IFC #(type n);
 
    method Action test(Bit#(n) value);
-      
+
 endinterface
 
 interface AssertSampleTest_IFC #(type a);
 
    method Action sample(Bool value);
    method Action test(a value);
-      
+
 endinterface
 
 interface VAssertSampleTest_IFC #(type n);
 
    method Action sample(Bit#(1) value);
    method Action test(Bit#(n) value);
-      
+
 endinterface
 
 interface AssertStartTest_IFC #(type a);
 
    method Action start(Bool value);
    method Action test(a value);
-      
+
 endinterface
 
 interface VAssertStartTest_IFC #(type n);
 
    method Action start(Bit#(1) value);
    method Action test(Bit#(n) value);
-      
+
 endinterface
 
 interface AssertStartStopTest_IFC #(type a);
@@ -690,15 +690,15 @@ interface AssertStartStopTest_IFC #(type a);
    method Action start(Bool value);
    method Action stop(Bool value);
    method Action test(a value);
-      
+
 endinterface
 
 interface VAssertStartStopTest_IFC #(type n);
 
    method Action start(Bit#(1) value);
-   method Action stop(Bit#(1) value);      
+   method Action stop(Bit#(1) value);
    method Action test(Bit#(n) value);
-      
+
 endinterface
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -713,7 +713,7 @@ endinterface
 function OVLDefaultsTemplate#(a) create_assert_always_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -726,8 +726,8 @@ endfunction
 module bsv_assert_always#(OVLDefaults#(Bool) defaults) (AssertTest_IFC#(Bool));
 
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_always_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_always");
 
@@ -760,7 +760,7 @@ endmodule
 ///
 //       ASSERT_ALWAYS_ON_EDGE
 //
-// bsv_assert_always_on_edge - Checks that the test expression evaluates true 
+// bsv_assert_always_on_edge - Checks that the test expression evaluates true
 //                             whenever the sample method is asserted.
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -768,7 +768,7 @@ endmodule
 function OVLDefaultsTemplate#(a) create_assert_always_on_edge_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -779,15 +779,15 @@ function OVLDefaultsTemplate#(a) create_assert_always_on_edge_defaults ();
    return defaults;
 
 endfunction
- 
+
 module bsv_assert_always_on_edge#(OVLDefaults#(Bool) defaults) (AssertSampleTest_IFC#(Bool));
 
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_always_on_edge_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_always_on_edge");
-   
+
    let _m = liftModule(v_assert_always_on_edge(defaults_final));
    VAssertSampleTest_IFC#(1) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -826,11 +826,11 @@ endmodule
 //                     "num_cks" cycles the test expression will change value.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_change_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -848,10 +848,10 @@ module bsv_assert_change#(OVLDefaults#(a) defaults) (AssertStartTest_IFC#(a))
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_change_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_change");
-   
+
    let _m = liftModule(v_assert_change(defaults_final, valueOf(sa)));
    VAssertStartTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -898,7 +898,7 @@ function OVLDefaultsTemplate#(a) create_assert_decrement_defaults ()
    provisos (Literal#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -912,10 +912,10 @@ endfunction
 
 module bsv_assert_decrement#(OVLDefaults#(a) defaults)(AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Literal#(a), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_decrement_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_decrement");
 
@@ -960,7 +960,7 @@ function OVLDefaultsTemplate#(a) create_assert_delta_defaults ()
    provisos (Literal#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -978,10 +978,10 @@ module bsv_assert_delta#(OVLDefaults#(a) defaults)(AssertTest_IFC#(a))
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_delta_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_delta");
-   
+
    let _m = liftModule(v_assert_delta(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -999,7 +999,7 @@ module v_assert_delta#(OVLDefaults#(a) defaults, Integer width)(VAssertTest_IFC#
    default_reset reset (reset_n);
 
    parameter width = width;
-   
+
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
@@ -1017,15 +1017,15 @@ endmodule
 //       ASSERT_EVEN_PARITY
 //
 // bsv_assert_even_parity - An invariant concurrent assertion to ensure that
-//                          an even number of bits in the test expression are 
+//                          an even number of bits in the test expression are
 //                          active high.
 //
 //////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_even_parity_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1040,10 +1040,10 @@ module bsv_assert_even_parity#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_even_parity_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_even_parity");
-   
+
    let _m = liftModule(v_assert_even_parity(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1076,16 +1076,16 @@ endmodule
 ///
 //       ASSERT_FRAME
 //
-//  bsv_assert_frame - Checks that once the start method is asserted, the test 
-//                     expression evaluates true not before MIN clock cycles 
+//  bsv_assert_frame - Checks that once the start method is asserted, the test
+//                     expression evaluates true not before MIN clock cycles
 //                     and not after MAX clock cycles.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_frame_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1102,8 +1102,8 @@ endfunction
 module bsv_assert_frame#(OVLDefaults#(Bool) defaults) (AssertStartTest_IFC#(Bool));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_frame_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_frame");
 
@@ -1143,17 +1143,17 @@ endmodule
 ///
 //       ASSERT_HANDSHAKE
 //
-//  bsv_assert_handshake - Similar to assert_frame except that requirements as to 
-//                         how if req must remain active until ack arrives and 
-//                         if so how long afterack it must remain active are 
+//  bsv_assert_handshake - Similar to assert_frame except that requirements as to
+//                         how if req must remain active until ack arrives and
+//                         if so how long afterack it must remain active are
 //                         controllable by checker parameters.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_handshake_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1172,8 +1172,8 @@ endfunction
 module bsv_assert_handshake#(OVLDefaults#(Bool) defaults) (AssertStartTest_IFC#(Bool));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_handshake_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_handshake");
 
@@ -1202,10 +1202,10 @@ module v_assert_handshake#(OVLDefaults#(Bool) defaults) (VAssertStartTest_IFC#(1
    parameter max_ack_length      = pack(defaults.max_ack_length);
    parameter req_drop            = pack(defaults.req_drop);
    parameter deassert_count      = pack(defaults.deassert_count);
-   
+
    parameter min_ack_cycle       = pack(defaults.min_ack_cycle);
    parameter max_ack_cycle       = pack(defaults.max_ack_cycle);
-   
+
 
    method start(req) enable((* inhigh *)EN_start);
    method test(ack)  enable((* inhigh *)EN_test);
@@ -1218,15 +1218,15 @@ endmodule
 //       ASSERT_IMPLICATION
 //
 //  bsv_assert_implication - Checks that once the start method is asserted, the
-//                        
-//                        
+//
+//
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_implication_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1239,8 +1239,8 @@ endfunction
 module bsv_assert_implication#(OVLDefaults#(Bool) defaults) (AssertStartTest_IFC#(Bool));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_implication_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_implication");
 
@@ -1258,7 +1258,7 @@ endmodule
 
 import "BVI" assert_implication =
 module v_assert_implication#(OVLDefaults#(Bool) defaults) (VAssertStartTest_IFC#(1));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -1286,7 +1286,7 @@ function OVLDefaultsTemplate#(a) create_assert_increment_defaults ()
    provisos (Literal#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1302,12 +1302,12 @@ module bsv_assert_increment#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Literal#(a), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_increment_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_increment");
 
-   
+
    let _m = liftModule(v_assert_increment(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1344,11 +1344,11 @@ endmodule
 //                    argument never evaluates TRUE.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_never_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1359,13 +1359,13 @@ function OVLDefaultsTemplate#(a) create_assert_never_defaults ();
 endfunction
 
 module bsv_assert_never#(OVLDefaults#(Bool) defaults) (AssertTest_IFC#(Bool));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_never_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_never");
-   
+
    let _m = liftModule(v_assert_never(defaults_final));
    VAssertTest_IFC#(1) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1377,7 +1377,7 @@ endmodule
 
 import "BVI" assert_never =
 module v_assert_never#(OVLDefaults#(Bool) defaults) (VAssertTest_IFC#(1));
-   
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -1396,15 +1396,15 @@ endmodule
 //       ASSERT_ODD_PARITY
 //
 // bsv_assert_odd_parity - An invariant concurrent assertion to ensure that
-//                         an odd number of bits in the test expression are 
+//                         an odd number of bits in the test expression are
 //                         active high.
 //
 //////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_odd_parity_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1416,13 +1416,13 @@ endfunction
 
 module bsv_assert_odd_parity#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-    
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_odd_parity_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_odd_parity");
-   
+
    let _m = liftModule(v_assert_odd_parity(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1458,15 +1458,15 @@ endmodule
 //
 //  bsv_assert_next - Checks that the start method is asserted, after
 //                    "num_cks" cycles the test method will be asserted, or in
-//                    logical terms, where X denotes the next cycle operator, 
+//                    logical terms, where X denotes the next cycle operator,
 //                    "start_event  => X^n (test_expr)"
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_next_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1485,7 +1485,7 @@ module bsv_assert_next#(OVLDefaults#(Bool) defaults)(AssertStartTest_IFC#(Bool))
 
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_next_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_next");
 
@@ -1503,7 +1503,7 @@ endmodule
 
 import "BVI" assert_next =
 module v_assert_next#(OVLDefaults#(Bool) defaults)(VAssertStartTest_IFC#(1));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -1527,7 +1527,7 @@ endmodule
 //
 // bsv_assert_no_overflow - An invariant concurrent assertion to ensure that:
 //                          After an expression has reached a MAX limit
-//                          value, the expression does not subsequently exceed 
+//                          value, the expression does not subsequently exceed
 //                          the MAX limit or reach a MIN limit value.
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -1536,7 +1536,7 @@ function OVLDefaultsTemplate#(a) create_assert_no_overflow_defaults ()
    provisos (Bounded#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1554,11 +1554,11 @@ module bsv_assert_no_overflow#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_no_overflow_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_no_overflow");
-   
+
    let _m = liftModule(v_assert_no_overflow(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1576,7 +1576,7 @@ module v_assert_no_overflow#(OVLDefaults#(a) defaults, Integer width) (VAssertTe
    default_reset reset (reset_n);
 
    parameter width = width;
-   
+
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
@@ -1596,7 +1596,7 @@ endmodule
 //
 // bsv_assert_no_underflow - An invariant concurrent assertion to ensure that:
 //                           After an expression has reached a MIN limit
-//                           value, the expression does not subsequently 
+//                           value, the expression does not subsequently
 //                           fall below the MIN limit or reach a MAX limit value.
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -1605,7 +1605,7 @@ function OVLDefaultsTemplate#(a) create_assert_no_underflow_defaults ()
    provisos (Bounded#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1622,11 +1622,11 @@ module bsv_assert_no_underflow#(OVLDefaults#(a) defaults)(AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_no_underflow_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_no_underflow");
-   
+
 
    let _m = liftModule(v_assert_no_underflow(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
@@ -1645,7 +1645,7 @@ module v_assert_no_underflow#(OVLDefaults#(a) defaults, Integer width)(VAssertTe
    default_reset reset (reset_n);
 
    parameter width = width;
-   
+
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
@@ -1667,11 +1667,11 @@ endmodule
 //                       exactly one bit of a variable is active low.
 //
 //////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_one_cold_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1687,11 +1687,11 @@ module bsv_assert_one_cold#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_one_cold_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_one_cold");
-   
+
    let _m = liftModule(v_assert_one_cold(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1729,11 +1729,11 @@ endmodule
 //                      exactly one bit of a variable is active high.
 //
 //////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_one_hot_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1745,13 +1745,13 @@ endfunction
 
 module bsv_assert_one_hot#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_one_hot_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_one_hot");
-   
+
    let _m = liftModule(v_assert_one_hot(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1787,11 +1787,11 @@ endmodule
 //                          is not sampled by the clock.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_proposition_defaults();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1803,7 +1803,7 @@ endfunction
 
 module bsv_assert_proposition#(OVLDefaults#(Bool) defaults) (AssertTest_IFC#(Bool));
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_proposition_defaults();
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_always");
    let _m = liftModule(v_assert_proposition(defaults_final));
@@ -1818,16 +1818,16 @@ endmodule
 import "BVI" assert_proposition =
 module v_assert_proposition#(OVLDefaults#(Bool) defaults) (VAssertTest_IFC#(1));
 
-   
+
    default_clock (); // syntax for no clock port.
    default_reset reset (reset_n);
-   
+
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
    parameter coverage_level = pack(defaults.coverage_level);
 
-   method test(test_expr) enable((* inhigh *)EN_test); 
+   method test(test_expr) enable((* inhigh *)EN_test);
 
    schedule (test) CF (test);
 endmodule
@@ -1846,7 +1846,7 @@ function OVLDefaultsTemplate#(a) create_assert_range_defaults ()
    provisos (Bounded#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1863,11 +1863,11 @@ module bsv_assert_range#(OVLDefaults#(a) defaults)(AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_range_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_range");
-   
+
    let _m = liftModule(v_assert_range(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -1885,7 +1885,7 @@ module v_assert_range#(OVLDefaults#(a) defaults, Integer width)(VAssertTest_IFC#
    default_reset reset (reset_n);
 
    parameter width = width;
-   
+
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
@@ -1904,15 +1904,15 @@ endmodule
 //       ASSERT_TIME
 //
 //  bsv_assert_time - Checks that once the start method is asserted, the
-//                        test expression does not change value within "num_cks" 
+//                        test expression does not change value within "num_cks"
 //                        cycles.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_time_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1926,13 +1926,13 @@ function OVLDefaultsTemplate#(a) create_assert_time_defaults ();
 endfunction
 
 module bsv_assert_time#(OVLDefaults#(Bool) defaults)(AssertStartTest_IFC#(Bool));
-   
+
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_time_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_time");
-   
+
 
    let _m = liftModule(v_assert_time(defaults_final));
    VAssertStartTest_IFC#(1) _r();
@@ -1948,7 +1948,7 @@ endmodule
 
 import "BVI" assert_time =
 module v_assert_time#(OVLDefaults#(Bool) defaults)(VAssertStartTest_IFC#(1));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -1970,15 +1970,15 @@ endmodule
 //       ASSERT_UNCHANGE
 //
 //  bsv_assert_unchange - Checks that once the start method is asserted, the
-//                        test expression does not change value within "num_cks" 
+//                        test expression does not change value within "num_cks"
 //                        cycles.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_unchange_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -1993,13 +1993,13 @@ endfunction
 
 module bsv_assert_unchange#(OVLDefaults#(a) defaults)(AssertStartTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_unchange_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_unchange");
-   
+
    let _m = liftModule(v_assert_unchange(defaults_final, valueOf(sa)));
    VAssertStartTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2014,18 +2014,18 @@ endmodule
 
 import "BVI" assert_unchange =
 module v_assert_unchange#(OVLDefaults#(a) defaults, Integer width)(VAssertStartTest_IFC#(n));
-   
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
    parameter width               = width;
-   
+
    parameter severity_level      = pack(defaults.severity_level);
    parameter property_type       = pack(defaults.property_type);
    parameter msg                 = defaults.msg;
    parameter coverage_level      = pack(defaults.coverage_level);
    parameter action_on_new_start = pack(defaults.action_on_new_start);
-      
+
    parameter num_cks             = pack(defaults.num_cks);
 
    method start(start_event) enable((* inhigh *)EN_start);
@@ -2039,15 +2039,15 @@ endmodule
 //       ASSERT_WIDTH
 //
 //  bsv_assert_width - An invariant concurrent assertion to ensure that when the
-//                     test expression goes high it stays high for at least MIN 
+//                     test expression goes high it stays high for at least MIN
 //                     and at most MAX clock cycles.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_width_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2061,10 +2061,10 @@ function OVLDefaultsTemplate#(a) create_assert_width_defaults ();
 endfunction
 
 module bsv_assert_width#(OVLDefaults#(Bool) defaults)(AssertTest_IFC#(Bool));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_frame_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_frame");
 
@@ -2079,7 +2079,7 @@ endmodule
 
 import "BVI" assert_width =
 module v_assert_width#(OVLDefaults#(Bool) defaults)(VAssertTest_IFC#(1));
-   
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2105,11 +2105,11 @@ endmodule
 //                          including when the stop method is asserted.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_win_change_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2121,13 +2121,13 @@ endfunction
 
 module bsv_assert_win_change#(OVLDefaults#(a) defaults) (AssertStartStopTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_win_change_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_win_change");
-   
+
    let _m = liftModule(v_assert_win_change(defaults_final, valueOf(sa)));
    VAssertStartStopTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2145,7 +2145,7 @@ endmodule
 
 import "BVI" assert_win_change =
 module v_assert_win_change#(OVLDefaults#(a) defaults, Integer width)(VAssertStartStopTest_IFC#(n));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2160,7 +2160,7 @@ module v_assert_win_change#(OVLDefaults#(a) defaults, Integer width)(VAssertStar
    method stop(end_event)    enable((* inhigh *)EN_stop);
    method test(test_expr)    enable((* inhigh *)EN_test);
 
-   schedule (start, stop, test) CF (start, stop, test);      
+   schedule (start, stop, test) CF (start, stop, test);
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2172,11 +2172,11 @@ endmodule
 //                            including when the stop method is asserted.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_win_unchange_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2188,13 +2188,13 @@ endfunction
 
 module bsv_assert_win_unchange#(OVLDefaults#(a) defaults) (AssertStartStopTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_win_unchange_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_win_unchange");
-   
+
    let _m = liftModule(v_assert_win_unchange(defaults_final, valueOf(sa)));
    VAssertStartStopTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2212,7 +2212,7 @@ endmodule
 
 import "BVI" assert_win_unchange =
 module v_assert_win_unchange#(OVLDefaults#(a) defaults, Integer width)(VAssertStartStopTest_IFC#(n));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2227,7 +2227,7 @@ module v_assert_win_unchange#(OVLDefaults#(a) defaults, Integer width)(VAssertSt
    method stop(end_event)    enable((* inhigh *)EN_stop);
    method test(test_expr)    enable((* inhigh *)EN_test);
 
-   schedule (start, stop, test) CF (start, stop, test);      
+   schedule (start, stop, test) CF (start, stop, test);
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2239,11 +2239,11 @@ endmodule
 //                      start_event.
 //
 ////////////////////////////////////////////////////////////////////////////////
- 
+
 function OVLDefaultsTemplate#(a) create_assert_window_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2254,13 +2254,13 @@ function OVLDefaultsTemplate#(a) create_assert_window_defaults ();
 endfunction
 
 module bsv_assert_window#(OVLDefaults#(Bool) defaults) (AssertStartStopTest_IFC#(Bool));
-   
+
    OVLDefaultsTemplate#(Bool) defaults_template = create_assert_window_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_window");
-   
+
    let _m = liftModule(v_assert_window(defaults_final));
    VAssertStartStopTest_IFC#(1) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2278,7 +2278,7 @@ endmodule
 
 import "BVI" assert_window =
 module v_assert_window#(OVLDefaults#(Bool) defaults) (VAssertStartStopTest_IFC#(1));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2307,7 +2307,7 @@ endmodule
 function OVLDefaultsTemplate#(a) create_assert_zero_one_hot_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2319,13 +2319,13 @@ endfunction
 
 module bsv_assert_zero_one_hot#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_zero_one_hot_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_zero_one_hot");
-   
+
    let _m = liftModule(v_assert_zero_one_hot(defaults_final, valueOf(sa)));
    VAssertTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2337,7 +2337,7 @@ endmodule
 
 import "BVI" assert_zero_one_hot =
 module v_assert_zero_one_hot#(OVLDefaults#(a) defaults, Integer width)(VAssertTest_IFC#(n));
-   
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2355,11 +2355,11 @@ module v_assert_zero_one_hot#(OVLDefaults#(a) defaults, Integer width)(VAssertTe
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////////
-///  
+///
 //    ASSERT_CYCLE_SEQUENCE
 //
-//    bsv_assert_cycle_sequence- Ensures that if a specified necessary condition 
-//                               occurs,it is followed by a specified sequence 
+//    bsv_assert_cycle_sequence- Ensures that if a specified necessary condition
+//                               occurs,it is followed by a specified sequence
 //								 of events.
 //
 ///////////////////////////////////////////////////////////////////////////////////
@@ -2367,23 +2367,23 @@ endmodule
 function OVLDefaultsTemplate#(a) create_assert_cycle_sequence_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
    defaults.coverage_level = Valid(OVL_COVER_ALL);
    defaults.necessary_condition = Valid(OVL_TRIGGER_ON_MOST_PIPE);
-   
+
    return defaults;
 
 endfunction
 
-module bsv_assert_cycle_sequence#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))  
+module bsv_assert_cycle_sequence#(OVLDefaults#(a) defaults) (AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Add#(ignore, 2, sa), Bounded#(a), Eq#(a));
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_cycle_sequence_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_cycle_sequence");
 
@@ -2418,17 +2418,17 @@ endmodule
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //      ASSERT_NEVER_UNKNOWN
-//    
-//      bsv_assert_never_unknown- Ensures that the value of a specified expression contains only 
+//
+//      bsv_assert_never_unknown- Ensures that the value of a specified expression contains only
 //                                0 and 1 bits when a qualifying expression is TRUE.
 //
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-                  
+
 function OVLDefaultsTemplate#(a) create_assert_never_unknown_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2443,10 +2443,10 @@ module bsv_assert_never_unknown#(OVLDefaults#(a) defaults) (AssertStartTest_IFC#
 
    OVLDefaultsTemplate#(a) defaults_template = create_assert_never_unknown_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_never_unknown");
-   
+
    let _m = liftModule(v_assert_never_unknown(defaults_final, valueOf(sa)));
    VAssertStartTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2470,7 +2470,7 @@ module v_assert_never_unknown#(OVLDefaults#(a) defaults, Integer width)(VAssertS
    parameter property_type       = pack(defaults.property_type);
    parameter msg                 = defaults.msg;
    parameter coverage_level      = pack(defaults.coverage_level);
-   
+
    method start(qualifier) enable((* inhigh *)EN_start);
    method test(test_expr)  enable((* inhigh *)EN_test);
 
@@ -2503,7 +2503,7 @@ endinterface
 function OVLDefaultsTemplate#(a) create_assert_no_transition_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2515,13 +2515,13 @@ endfunction
 
 module bsv_assert_no_transition#(OVLDefaults#(a) defaults) (AssertTransitionTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_no_transition_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_no_transition");
-   
+
    let _m = liftModule(v_assert_no_transition(defaults_final, valueOf(sa)));
    VAssertTransitionTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2539,7 +2539,7 @@ endmodule
 
 import "BVI" assert_no_transition =
 module v_assert_no_transition#(OVLDefaults#(a) defaults, Integer width)(VAssertTransitionTest_IFC#(n));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2554,7 +2554,7 @@ module v_assert_no_transition#(OVLDefaults#(a) defaults, Integer width)(VAssertT
    method start(start_state)    enable((* inhigh *)EN_start);
    method next(next_state)      enable((* inhigh *)EN_next);
 
-   schedule (test, start, next) CF (test, start, next);      
+   schedule (test, start, next) CF (test, start, next);
 
 endmodule
 
@@ -2562,7 +2562,7 @@ endmodule
 //
 //             ASSERT_TRANSITION
 //
-//             bsv_assert_transition- Ensures that the value of a specified expression transitions 
+//             bsv_assert_transition- Ensures that the value of a specified expression transitions
 //                                    properly from a start state to the specified next state.
 //
 //
@@ -2571,7 +2571,7 @@ endmodule
 function OVLDefaultsTemplate#(a) create_assert_transition_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2583,13 +2583,13 @@ endfunction
 
 module bsv_assert_transition#(OVLDefaults#(a) defaults) (AssertTransitionTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_transition_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_transition");
-   
+
    let _m = liftModule(v_assert_transition(defaults_final, valueOf(sa)));
    VAssertTransitionTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2607,7 +2607,7 @@ endmodule
 
 import "BVI" assert_transition =
 module v_assert_transition#(OVLDefaults#(a) defaults, Integer width)(VAssertTransitionTest_IFC#(n));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2622,7 +2622,7 @@ module v_assert_transition#(OVLDefaults#(a) defaults, Integer width)(VAssertTran
    method start(start_state)    enable((* inhigh *)EN_start);
    method next(next_state)      enable((* inhigh *)EN_next);
 
-   schedule (test, start, next) CF (test, start, next);      
+   schedule (test, start, next) CF (test, start, next);
 
 endmodule
 
@@ -2630,13 +2630,13 @@ endmodule
 //
 //        ASSERT_QUIESCENT_STATE
 //
-//        bsv_assert_quiescent_state- Ensures that the value of a specified state expression equals a 
-//                                    corresponding check value if a specified sample event has 
+//        bsv_assert_quiescent_state- Ensures that the value of a specified state expression equals a
+//                                    corresponding check value if a specified sample event has
 //                                    transitioned to TRUE.
 //
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-            
+
 interface AssertQuiescentTest_IFC #(type a);
     method Action sample(Bool value);
 	method Action state(a value);
@@ -2653,7 +2653,7 @@ endinterface
 function OVLDefaultsTemplate#(a) create_assert_quiescent_state_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2665,13 +2665,13 @@ endfunction
 
 module bsv_assert_quiescent_state#(OVLDefaults#(a) defaults) (AssertQuiescentTest_IFC#(a))
    provisos (Bits#(a, sa), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_quiescent_state_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_quiescent_state");
-   
+
    let _m = liftModule(v_assert_quiescent_state(defaults_final, valueOf(sa)));
    VAssertQuiescentTest_IFC#(sa) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2689,7 +2689,7 @@ endmodule
 
 import "BVI" assert_quiescent_state =
 module v_assert_quiescent_state#(OVLDefaults#(a) defaults, Integer width)(VAssertQuiescentTest_IFC#(n));
-      
+
    default_clock clk (clk);
    default_reset reset (reset_n);
 
@@ -2704,7 +2704,7 @@ module v_assert_quiescent_state#(OVLDefaults#(a) defaults, Integer width)(VAsser
    method state(state_expr)    enable((* inhigh *)EN_state);
    method check(check_value)   enable((* inhigh *)EN_check);
 
-   schedule (sample, state, check) CF (sample, state, check);      
+   schedule (sample, state, check) CF (sample, state, check);
 
 endmodule
 
@@ -2721,7 +2721,7 @@ function OVLDefaultsTemplate#(a) create_assert_never_unknown_async_defaults ()
    provisos (Literal#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
@@ -2733,10 +2733,10 @@ endfunction
 
 module bsv_assert_never_unknown_async#(OVLDefaults#(a) defaults)(AssertTest_IFC#(a))
    provisos (Bits#(a, sa), Literal#(a), Bounded#(a), Eq#(a));
-   
+
    OVLDefaultsTemplate#(a) defaults_template = create_assert_never_unknown_async_defaults();
 
-   let defaults_final = updateOVLDefaults(defaults, 
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_never_unknown_async");
 
@@ -2772,9 +2772,9 @@ endmodule
 //
 //         ASSERT_FIFO_INDEX
 //
-//         bsv_assert_fifo_index- Ensures that a FIFO-type structure never overflows or underflows. 
-//                                This checker can be configured to support multiple pushes 
-//                                (FIFO writes) and pops (FIFO reads) during the same clock cycle. 
+//         bsv_assert_fifo_index- Ensures that a FIFO-type structure never overflows or underflows.
+//                                This checker can be configured to support multiple pushes
+//                                (FIFO writes) and pops (FIFO reads) during the same clock cycle.
 //
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2787,20 +2787,20 @@ endinterface
 interface VAssertFifoTest_IFC #(type n, type m);
    method Action push(Bit#(n) value);
    method Action pop(Bit#(m) value);
-endinterface 
+endinterface
 
 function OVLDefaultsTemplate#(a) create_assert_fifo_index_defaults ()
    provisos (Bounded#(a));
 
    let defaults = mkOVLDefaultsTemplate;
-   
+
    defaults.severity_level = Valid(OVL_ERROR);
    defaults.property_type  = Valid(OVL_ASSERT);
    defaults.msg            = Valid("VIOLATION");
    defaults.coverage_level = Valid(OVL_COVER_ALL);
    defaults.depth          = Valid(1);
    defaults.simultaneous_push_pop = Valid(True);
-  
+
   return defaults;
 
 endfunction
@@ -2809,11 +2809,11 @@ module bsv_assert_fifo_index#(OVLDefaults#(Bit#(0)) defaults) (AssertFifoTest_IF
    provisos (Bits#(a, sa), Bits#(b, sb));
 
    OVLDefaultsTemplate#(Bit#(0)) defaults_template = create_assert_fifo_index_defaults();
-   
-   let defaults_final = updateOVLDefaults(defaults, 
+
+   let defaults_final = updateOVLDefaults(defaults,
 					  defaults_template,
 					  "bsv_assert_fifo_index");
-   
+
    let _m = liftModule(v_assert_fifo_index(defaults_final, valueOf(sa), valueOf(sb)));
    VAssertFifoTest_IFC#(sa, sb) _r();
    _m __(_r); // the "__" makes this instantiation anonymous
@@ -2834,14 +2834,14 @@ module v_assert_fifo_index#(OVLDefaults#(Bit#(0)) defaults, Integer push_width, 
 
    parameter push_width = push_width;
    parameter pop_width  = pop_width;
-   
-   parameter depth          = pack(defaults.depth);  
+
+   parameter depth          = pack(defaults.depth);
    parameter severity_level = pack(defaults.severity_level);
    parameter property_type  = pack(defaults.property_type);
    parameter msg            = defaults.msg;
    parameter coverage_level = pack(defaults.coverage_level);
    parameter simultaneous_push_pop = pack(defaults.simultaneous_push_pop);
-   
+
    method push(push) enable((* inhigh *)EN_push);
    method pop(pop)   enable((* inhigh *)EN_pop);
 

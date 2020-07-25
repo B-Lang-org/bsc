@@ -466,7 +466,7 @@ instance ExtendNP#( Bit, m, n );
    function Bit#(m) zeroExtendNP( Bit#(n) b) = zeroExtendNPBits (b);
    function Bit#(m) signExtendNP( Bit#(n) b) = signExtendNPBits (b);
    function Bit#(m) truncateNP( Bit#(n) b)   = truncateNPBits (b);
-   function Bit#(m) truncateLSBNP( Bit#(n) b)   = truncateLSBNPBits (b);   
+   function Bit#(m) truncateLSBNP( Bit#(n) b)   = truncateLSBNPBits (b);
 endinstance
 
 
@@ -475,7 +475,7 @@ instance ExtendNP#( Int, m, n );
    function Int#(m) zeroExtendNP( Int#(n) b) = unpack (zeroExtendNPBits (pack(b)));
    function Int#(m) signExtendNP( Int#(n) b) = unpack (signExtendNPBits (pack(b)));
    function Int#(m) truncateNP( Int#(n) b)   = unpack (truncateNPBits (pack(b)));
-   function Int#(m) truncateLSBNP( Int#(n) b) = unpack (truncateLSBNPBits (pack(b)));   
+   function Int#(m) truncateLSBNP( Int#(n) b) = unpack (truncateLSBNPBits (pack(b)));
 endinstance
 
 instance ExtendNP#( UInt, m, n );
@@ -483,7 +483,7 @@ instance ExtendNP#( UInt, m, n );
    function UInt#(m) zeroExtendNP( UInt#(n) b)  = unpack (zeroExtendNPBits (pack(b)));
    function UInt#(m) signExtendNP( UInt#(n) b)  = unpack (signExtendNPBits (pack(b)));
    function UInt#(m) truncateNP( UInt#(n) b)    = unpack (truncateNPBits (pack(b)));
-   function UInt#(m) truncateLSBNP( UInt#(n) b) = unpack (truncateLSBNPBits (pack(b)));   
+   function UInt#(m) truncateLSBNP( UInt#(n) b) = unpack (truncateLSBNPBits (pack(b)));
 endinstance
 
 function Bit#(m) zeroExtendNPBits (Bit#(n) din)

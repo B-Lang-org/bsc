@@ -27,18 +27,18 @@ export keepType;
 
 interface ProbeWire#(type a);
   method a id(a x);
-endinterface	  
+endinterface	
 
 module mkProbeWire(ProbeWire#(a))
    provisos (Bits#(a, sa));
    (* hide *)
    ProbeWire#(a) _r <- vMkProbeWire;
-   
+
    return _r;
 
 endmodule
 
-import "BVI" ProbeWire = 
+import "BVI" ProbeWire =
   module vMkProbeWire (ProbeWire#(a))
      provisos (Bits#(a, sa));
      parameter size = valueOf(sa);
@@ -49,11 +49,11 @@ import "BVI" ProbeWire =
   endmodule
 
 function a keepType(a x) provisos(Bits#(a,sa));
-  let c = clockOf(x);	  
+  let c = clockOf(x);	
   let r = noReset;
   let f = primBuildModule(primGetName(x),c,r,mkProbeWire());
   return (f.id(x));
 endfunction
 
 endpackage
-    
+
