@@ -4,24 +4,24 @@ import List
 import Enum
 
 --@ \subsubsection{Tabulate}
---@ 
+--@
 --@ \index{Tabulate@\te{Tabulate} (package)|textbf}
 --@ The \te{tabulate} function can be used to tabulate an
 --@ arbitrary function (given the type constraints).
 --@ This means that that the function will be precomputed for
 --@ its argument at compile time and the right value will be
 --@ selected at run time by a case expression.
---@ 
+--@
 --@ This is a powerful function that captures several design
 --@ patterns where a mux is used.
---@ 
+--@
 --@ \index{tabulate@\te{tabulate} (\te{Tabulate} function)}
 --@ \begin{libverbatim}
 --@ function b tabulate(function b f(a x1), a x)
 --@   provisos (Bounded#(a), Bits#(a, sa));
 --@ \end{libverbatim}
 tabulate :: (Bounded a, Bits a sa) => (a -> b) -> (a -> b)
-tabulate f x = 
+tabulate f x =
 --    foldr (\ b r -> if pack x == pack b then f b else r) _ enumAll
 --    foldr (\ b r -> if x == b then f b else r) _ enumAll
 

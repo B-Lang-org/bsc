@@ -74,7 +74,7 @@ mcp3_buffer init src =
       interface
         pull = do x :: a
 		  x <- src.pull
-		  action {r_mcp3 := x; counter := 2} -- counter must be set to 
+		  action {r_mcp3 := x; counter := 2} -- counter must be set to
                                                      -- (length of path) - 1
 	          return r_mcp3
                when mcp_en_src
@@ -100,7 +100,7 @@ mcp4_buffer init src =
       interface
         pull = do x :: a
 		  x <- src.pull
-		  action {r_mcp4 := x; counter := 3} -- counter must be set to 
+		  action {r_mcp4 := x; counter := 3} -- counter must be set to
                                                      -- (length of path) - 1
 	          return r_mcp4
                when mcp_en_src
@@ -126,7 +126,7 @@ mcp2_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False
@@ -170,7 +170,7 @@ mcp3_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False
@@ -217,7 +217,7 @@ mcp4_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False
@@ -265,7 +265,7 @@ mcp2_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False
@@ -309,7 +309,7 @@ mcp3_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False
@@ -356,7 +356,7 @@ mcp4_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT no implicit conditions #-}
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
-              when (mcp_en_src && not changed)  ==>  
+              when (mcp_en_src && not changed)  ==>
 	        action
 		  valid := True
 		  mcp_en_src := False

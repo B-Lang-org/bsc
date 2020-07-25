@@ -5,13 +5,13 @@ package RPush(RPush(..), apply, tee, pass, passed,
 import FIFO
 
 --@ \subsubsection{RPush}
---@ 
+--@
 --@ \index{RPush@\te{RPush} (interface type)|textbf}
 --@ The {\mbox{\te{RPush a}}} interface represents a stream that
 --@ consumes values of type ``\te{a}'' only when ``pushed'' by a producer.
 --@ The stream can also be ``cleared'' (or reset), forgetting all buffered state (which is
 --@ what distinguishes it from the \te{Push} interface.)
---@ 
+--@
 --@ Modules with the RPush interface can be combined using the function
 --@ \te{pipe},
 --@ to model computations that comprise several steps,

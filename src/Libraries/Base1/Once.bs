@@ -1,11 +1,11 @@
 package Once(Once(..), mkOnce) where
 
 --@ \subsection{Once}
---@ 
+--@
 --@ \index{Once@\te{Once} (type)|textbf}
 --@ The \te{Once} package encapsulates the notion of an action
 --@ that should only be performed once.
---@ 
+--@
 --@ \index{start@\te{start}|textbf}
 --@ \index{reset@\te{clear}|textbf}
 --@ The \te{start} method performs the action that has been

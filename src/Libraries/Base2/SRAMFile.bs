@@ -6,7 +6,7 @@ import SyncSRAM
 
 --@ \subsubsection{\te{SRAMFile}}
 --@ \index{SRAMFile@\te{SRAMFile} (package)|textbf}
---@ 
+--@
 --@ The \te{SRAMFile} package is used to generate
 --@ single ported SRAMs, where the initial contents is taken from a file.
 --@ The arguments specify the file name and the size of the SRAM.

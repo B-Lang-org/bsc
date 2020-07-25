@@ -14,7 +14,7 @@ export mkProbe;
 //@ away by the compiler and that it is given a known name.  In terms of
 //@ BSV syntax, the \te{Probe} primitive it used just like a register
 //@ except that only a write method exists.  Since reads are not
-//@ possible, The use of a \te{Probe} has has no effect on scheduling.  
+//@ possible, The use of a \te{Probe} has has no effect on scheduling.
 //@ In the generated Verilog, the associated signal will be named just
 //@ like the port of any Verilog module, in this case
 //@ \te{<instance\_name>\$PROBE}.  No actual \te{Probe} instance will be
@@ -39,12 +39,12 @@ module mkProbe(Probe#(a))
    provisos (Bits#(a, sa));
    (* hide *)
    Probe#(a) _r <- vMkProbe;
-   
+
    return _r;
 
 endmodule
-  
-import "BVI" Probe = 
+
+import "BVI" Probe =
    module vMkProbe (Probe#(a))
       provisos (Bits#(a, sa));
       parameter size = valueOf(sa);

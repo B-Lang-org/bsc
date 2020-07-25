@@ -9,12 +9,12 @@ package FIFOF (FIFOF(..), mkFIFOF, mkFIFOF1, mkSizedFIFOF, mkLFIFOF,
 import FIFOF_
 
 --@ \subsubsection{FIFOF}
---@ 
+--@
 --@ \index{FIFOF@\te{FIFOF} (package)|textbf}
 --@ The \te{FIFOF} interface is for FIFOs with explicit full and empty
---@ signals. The standard version of FIFOF has FIFOs with the enq, 
+--@ signals. The standard version of FIFOF has FIFOs with the enq,
 --@ deq and first methods guarded by the appropriate (notFull or notEmpty)
---@ implicit condition for safety and improved scheduling. Unguarded (UG) 
+--@ implicit condition for safety and improved scheduling. Unguarded (UG)
 --@ versions of FIFOF are available for the rare cases when implicit conditions are
 --@ not desired.
 --@ \index{FIFOF@\te{FIFOF} (type)|textbf}
@@ -201,7 +201,7 @@ mkGSizedFIFOF  ugenq ugdeq n = do
 --@   provisos (Bits#(a, as));
 --@ \end{libverbatim}
 mkGLFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> m (FIFOF a)
-mkGLFIFOF  ugenq ugdeq = do 
+mkGLFIFOF  ugenq ugdeq = do
     {-# hide #-}
     _f :: FIFOF_ a <- mkLFIFOF_
     return (fifof_ToGFifof  ugenq ugdeq _f)
@@ -249,7 +249,7 @@ mkUGFIFOF1 = do
 mkUGSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
 mkUGSizedFIFOF n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkSizedFIFOF_ n 0 
+  _f :: FIFOF_ a <- mkSizedFIFOF_ n 0
   return (fifof_ToUGFifof _f)
 
 --@ \index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)|textbf}
@@ -258,7 +258,7 @@ mkUGSizedFIFOF n = do
 --@   provisos (Bits#(a, as));
 --@ \end{libverbatim}
 mkUGLFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
-mkUGLFIFOF = do 
+mkUGLFIFOF = do
     {-# hide #-}
     _f :: FIFOF_ a <- mkLFIFOF_
     return (fifof_ToUGFifof _f)
@@ -284,7 +284,7 @@ mkDepthParamFIFOF n =  do
 mkUGDepthParamFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
 mkUGDepthParamFIFOF n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 0 
+  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 0
   return (fifof_ToUGFifof _f)
 
 mkGDepthParamFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> UInt 32 -> m (FIFOF a)

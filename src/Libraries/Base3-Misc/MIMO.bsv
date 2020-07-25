@@ -57,7 +57,7 @@ interface MIMO#(  numeric type max_in  // maximum number of objects enqueued in 
    method    Action                      enq(LUInt#(max_in) count, Vector#(max_in, t) data);
    method    Vector#(max_out, t)         first;
    method    Action                      deq(LUInt#(max_out) count);
-      
+
    (* always_ready *)
    method    Bool                        enqReady;
    (* always_ready *)
@@ -66,7 +66,7 @@ interface MIMO#(  numeric type max_in  // maximum number of objects enqueued in 
    method    Bool                        deqReady;
    (* always_ready *)
    method    Bool                        deqReadyN(LUInt#(max_out) count);
-      
+
    (* always_ready *)
    method    LUInt#(size)                count;
    method    Action                      clear;
@@ -94,24 +94,24 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	     , Add#(em1, 1, e)
 	     , Add#(__e, max_out, max)
              );
-   
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Design Elements
    ////////////////////////////////////////////////////////////////////////////////
    Vector#(max, FIFOF#(t))         vfStorage           <- replicateM(mkSizedBRAMFIFOF(valueOf(e)));
    Counter#(32)                    rDataCount          <- mkCounter(0);
-   
+
    Reg#(LUInt#(max))               rWriteIndex         <- mkReg(0);
    Reg#(LUInt#(max))               rReadIndex          <- mkReg(0);
-   
+
    Vector#(max, RWire#(Bool))      vrwDeqFifo          <- replicateM(mkRWire);
    Vector#(max, RWire#(t))         vrwEnqFifo          <- replicateM(mkRWire);
- 
+
    RWire#(LUInt#(size))            rwDeqCount          <- mkRWire;
    RWire#(LUInt#(size))            rwEnqCount          <- mkRWire;
    RWire#(Bit#(intot))             rwEnqData           <- mkRWire;
    PulseWire                       pwClear             <- mkPulseWire;
-   
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Functions
    ////////////////////////////////////////////////////////////////////////////////
@@ -130,21 +130,21 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	 if (doit) ifc.deq();
       endaction
    endfunction
-   
+
    function Vector#(max, Bool) createMask(LUInt#(max) count);
       Bit#(max) v = (1 << count) - 1;
       return unpack(v);
    endfunction
-   
+
    function Vector#(v, el) rotateRBy(Vector#(v, el) vect, UInt#(logv) n)
       provisos(Log#(v, logv));
       return reverse(rotateBy(reverse(vect), n));
    endfunction
-   
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Rules
    ////////////////////////////////////////////////////////////////////////////////
-   Rules d = 
+   Rules d =
    rules
       (* aggressive_implicit_conditions *)
       rule dequeue if (rwDeqCount.wget matches tagged Valid .dcount);
@@ -152,33 +152,33 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	 for(Integer i = 0; i < valueOf(max); i = i + 1) begin
 	    if (deqDoIt[i]) vrwDeqFifo[i].wset(True);
 	 end
-	 
+	
 	 rDataCount.dec(cExtend(dcount));
-	 
+	
 	 UInt#(32) ridx = cExtend(rReadIndex);
 	 UInt#(32) dcnt = cExtend(dcount);
-	 if ((ridx + dcnt) >= fromInteger(valueOf(max))) 
+	 if ((ridx + dcnt) >= fromInteger(valueOf(max)))
 	    rReadIndex <= rReadIndex - fromInteger(valueOf(max)) + cExtend(dcount);
 	 else
 	    rReadIndex <= rReadIndex + cExtend(dcount);
       endrule
-      
+
       (* aggressive_implicit_conditions *)
-      rule enqueue if (rwEnqCount.wget matches tagged Valid .ecount &&& 
+      rule enqueue if (rwEnqCount.wget matches tagged Valid .ecount &&&
 		      rwEnqData.wget matches tagged Valid .edata
 		      );
 	 Vector#(max, t)    enqData = rotateBy(unpack(cExtend(edata)), cExtend(rWriteIndex));
 	 Vector#(max, Bool) enqDoIt = rotateBy(createMask(cExtend(ecount)), cExtend(rWriteIndex));
-	 
+	
 	 for(Integer i = 0; i < valueOf(max); i = i + 1) begin
 	    if (enqDoIt[i]) vrwEnqFifo[i].wset(enqData[i]);
 	 end
-	 
+	
 	 rDataCount.inc(cExtend(ecount));
-	 
+	
 	 UInt#(32) widx = cExtend(rWriteIndex);
 	 UInt#(32) ecnt = cExtend(ecount);
-	 if ((widx + ecnt) >= fromInteger(valueOf(max))) 
+	 if ((widx + ecnt) >= fromInteger(valueOf(max)))
 	    rWriteIndex <= rWriteIndex - fromInteger(valueOf(max)) + cExtend(ecount);
 	 else
 	    rWriteIndex <= rWriteIndex + cExtend(ecount);
@@ -187,7 +187,7 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 
    Rules re = emptyRules;
    for(Integer i = 0; i < valueOf(max); i = i + 1) begin
-      re = rJoinConflictFree(re, 
+      re = rJoinConflictFree(re,
 	 rules
 	    rule enqueue_fifo if (vrwEnqFifo[i].wget matches tagged Valid .enqdata);
 	       vfStorage[i].enq(enqdata);
@@ -195,10 +195,10 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	 endrules
 	 );
    end
-   
+
    Rules rd = emptyRules;
    for(Integer i = 0; i < valueOf(max); i = i + 1) begin
-      rd = rJoinConflictFree(rd, 
+      rd = rJoinConflictFree(rd,
 	 rules
 	    rule dequeue_fifo if (vrwDeqFifo[i].wget matches tagged Valid .*);
 	       vfStorage[i].deq();
@@ -206,7 +206,7 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	 endrules
 	 );
    end
-   
+
    Rules r = rJoinConflictFree(rd, re);
    r = rJoin(d, r);
    r = rJoinPreempts(
@@ -220,10 +220,10 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 			   joinActions(map(getClear, vfStorage));
 			endrule
 		     endrules, r);
-   
+
    addRules(r);
-   
-   
+
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Interface Connections / Methods
    ////////////////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
       rwEnqCount.wset(cExtend(count));
       rwEnqData.wset(pack(data));
    endmethod
-   
+
    method Vector#(max_out, t) first() if (cfg.unguarded || (rDataCount.value() > 0));
       Vector#(max, t) v = newVector;
       for(Integer i = 0; i < valueOf(max); i = i + 1) begin
@@ -240,32 +240,32 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
       end
       return take(rotateRBy(v, cExtend(rReadIndex)));
    endmethod
-      
+
    method Action deq(LUInt#(max_out) count) if (cfg.unguarded || (rDataCount.value() > 0));
       LUInt#(size) szcount = cExtend(count);
       rwDeqCount.wset(szcount);
    endmethod
-         
+
    method Bool enqReady();
       return rDataCount.value < fromInteger(valueOf(size));
    endmethod
-   
+
    method Bool enqReadyN(LUInt#(max_in) count);
       return (rDataCount.value() + cExtend(count)) <= fromInteger(valueOf(size));
    endmethod
-      
+
    method Bool deqReady();
       return rDataCount.value() > 0;
    endmethod
-   
+
    method Bool deqReadyN(LUInt#(max_out) count);
       return rDataCount.value() >= cExtend(count);
    endmethod
-   
+
    method LUInt#(size) count();
       return cExtend(rDataCount.value());
    endmethod
-   
+
    method Action clear();
       pwClear.send();
    endmethod
@@ -288,7 +288,7 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
              , Mul#(st, max_out, outtot)  // total bits to be dequeued
              , Add#(__d, outtot, total)   // make sure the number of dequeue bits is not larger than the total storage
              );
-            
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Design Elements
    ////////////////////////////////////////////////////////////////////////////////
@@ -296,7 +296,7 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
    Reg#(Bit#(total))                rStorageMask        <- mkReg(0);
    Reg#(LUInt#(size))               rDataCount          <- mkReg(0);
    Reg#(LUInt#(size))               rDataAvail          <- mkReg(fromInteger(valueOf(size)));
-   
+
    RWire#(LUInt#(size))             rwDeqCount          <- mkRWire;
    RWire#(LUInt#(size))             rwEnqCount          <- mkRWire;
    RWire#(Bit#(intot))              rwEnqData           <- mkRWire;
@@ -313,7 +313,7 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
       Bit#(total)  nextStorage   = rStorage;
       Bit#(total)  nextMask      = rStorageMask;
       UInt#(32)    shift_amt     = 0;
-      
+
       // Adjust the storage with dequeue data first
       LUInt#(size) deqCount = cExtend(fromMaybe(0, rwDeqCount.wget));
       shift_amt = cExtend(deqCount) * fromInteger(valueOf(st));
@@ -321,7 +321,7 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
       nextMask      = nextMask    >> shift_amt;
       nextDataCount = nextDataCount - deqCount;
       nextDataAvail = nextDataAvail + deqCount;
-      
+
       // Add Enqueue data next
       LUInt#(size) enqCount = cExtend(fromMaybe(0, rwEnqCount.wget));
       shift_amt = cExtend(nextDataCount) * fromInteger(valueOf(st));
@@ -331,7 +331,7 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
       nextMask      = nextMask | enqMask;
       nextDataCount = nextDataCount + enqCount;
       nextDataAvail = nextDataAvail - enqCount;
-     
+
       // Clear if needed (clearing overrides any enq/deq operation)
       if (pwClear) begin
          nextDataCount = 0;
@@ -353,46 +353,46 @@ module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
    method Action enq(LUInt#(max_in) count, Vector#(max_in, t) data) if (cfg.unguarded || (rDataCount < fromInteger(valueOf(size))));
       function Bit#(st) create_bitmask(Bit#(1) in) = (in == 1) ? '1 : '0;
       function Bit#(max_in) create_mask(LUInt#(max_in) i) = (1 << i)-1;
-         
+
       LUInt#(size) szcount = cExtend(count);
       Vector#(max_in, Bit#(1)) mask = unpack(create_mask(count));
       Bit#(intot)  bitmask = pack(map(create_bitmask, mask));
-      
+
       rwEnqCount.wset(szcount);
       rwEnqData.wset(pack(data));
       rwEnqMask.wset(bitmask);
    endmethod
-   
+
    method Vector#(max_out, t) first() if (cfg.unguarded || (rDataCount > 0));
       Bit#(outtot) result = truncate(rStorage);
       return unpack(result);
    endmethod
-      
+
    method Action deq(LUInt#(max_out) count) if (cfg.unguarded || (rDataCount > 0));
       LUInt#(size) szcount = cExtend(count);
       rwDeqCount.wset(szcount);
    endmethod
-         
+
    method Bool enqReady();
       return rDataAvail > 0;
    endmethod
-   
+
    method Bool enqReadyN(LUInt#(max_in) count);
       return rDataAvail >= cExtend(count);
    endmethod
-      
+
    method Bool deqReady();
       return rDataCount > 0;
    endmethod
-   
+
    method Bool deqReadyN(LUInt#(max_out) count);
       return rDataCount >= cExtend(count);
    endmethod
-   
+
    method LUInt#(size) count();
       return cExtend(rDataCount);
    endmethod
-   
+
    method Action clear();
       pwClear.send();
    endmethod
@@ -416,9 +416,9 @@ module mkMIMO#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
              , Mul#(st, max_out, outtot)  // total bits to be dequeued
              , Add#(__d, outtot, total)   // make sure the number of dequeue bits is not larger than the total storage
              );
-   
+
    MIMO#(max_in, max_out, size, t) ifc;
-   
+
    if (cfg.bram_based) begin
       (* hide *)
       ifc <- mkMIMOBram(cfg);

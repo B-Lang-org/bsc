@@ -1,15 +1,15 @@
 package Pull(Pull(..), apply, tee, pass, passed, buffer, buffered, (»), pipe, sink, spew) where
 
 --@ \subsubsection{Pull}
---@ 
+--@
 --@ \index{Pull@\te{Pull} (interface type)|textbf}
 --@ The {\mbox{\te{Pull a}}} interface represents a stream that
 --@ produces values of type ``\te{a}'' only when ``pulled'' by a consumer.
---@ 
+--@
 --@ Modules with the Pull interface can be combined using
 --@ \te{»} to model computations that comprise several steps,
 --@ each of which may be buffered.
---@ 
+--@
 
 infixl 12 »
 
@@ -33,7 +33,7 @@ apply f src = interface Pull { pull = src.pull `bind` (return · f)  }
 --@ function Pull#(a) tee(function Action p(a x1), Pull#(a) src);
 --@ \end{libverbatim}
 tee :: (a -> Action) -> Pull a -> Pull a
-tee p src = interface Pull 
+tee p src = interface Pull
 		pull = do
 			v :: a
 			v <- src.pull

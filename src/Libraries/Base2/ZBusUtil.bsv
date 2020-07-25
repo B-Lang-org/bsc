@@ -62,7 +62,7 @@ endinterface
 import "BVI" ConvertToZ = module vMkConvertToZ (ConvertToZ#(i))
 			  provisos (Bits#(i,si));
                              default_clock clk();
-			     parameter width = valueOf(si);   
+			     parameter width = valueOf(si);
 			     no_reset;
 			     method OUT convert(IN, CTL);
                                 schedule convert CF convert ;
@@ -73,7 +73,7 @@ module mkConvertToZ(ConvertToZ#(i))
    ConvertToZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ConvertToZ
-	       method convert(word, enable) ;  
+	       method convert(word, enable) ;
 		  return (bitToZBit(word, enable));
 	       endmethod
 	    endinterface;
@@ -101,7 +101,7 @@ endinterface
 import "BVI" ConvertFromZ = module vMkConvertFromZ (ConvertFromZ#(i))
 			    provisos (Bits#(i,si));
                                default_clock clk();
-			       parameter width = valueOf(si);   
+			       parameter width = valueOf(si);
 			       no_reset;
 			       method OUT convert(IN);
 			       schedule convert CF convert;
@@ -112,7 +112,7 @@ module mkConvertFromZ(ConvertFromZ#(i))
    ConvertFromZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ConvertFromZ
-	       method convert(k) ;   
+	       method convert(k) ;
 		  return (zBitToBit(k));
 	       endmethod
 	    endinterface;
@@ -151,7 +151,7 @@ module mkResolveZ(ResolveZ#(i))
    ResolveZ#(i) ifc;
    if (`BSV_GENC)
       ifc = interface ResolveZ
-	       method resolve(in_0, in_1) ;   
+	       method resolve(in_0, in_1) ;
 		  return (resolveZ(in_0, in_1));
 	       endmethod
 	    endinterface;

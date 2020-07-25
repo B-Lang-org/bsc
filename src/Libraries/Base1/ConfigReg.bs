@@ -5,7 +5,7 @@ package ConfigReg(ConfigReg(..), mkConfigReg, mkConfigRegU, mkConfigRegA) where
 --@ \index{mkConfigReg@\te{mkConfigReg} (module)|textbf}
 --@ \index{mkConfigRegA@\te{mkConfigRegA} (module)|textbf}
 --@ \index{mkConfigRegU@\te{mkConfigRegU} (module)|textbf}
---@ 
+--@
 --@ The \te{ConfigReg} package provides a way to create configuration
 --@ registers, where each update clobbers the current value, and
 --@ the precise timing of updates is not important.

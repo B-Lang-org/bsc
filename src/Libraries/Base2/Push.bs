@@ -5,11 +5,11 @@ package Push(Push(..), apply, tee, pass, passed,
 import FIFO
 
 --@ \subsubsection{Push}
---@ 
+--@
 --@ \index{Push@\te{Push} (interface type)|textbf}
 --@ The {\mbox{\te{Push a}}} interface represents a stream that
 --@ consumes values of type ``\te{a}'' only when ``pushed'' by a producer.
---@ 
+--@
 --@ Modules with the Push interface can be combined using the function
 --@ \te{pipe},
 --@ to model computations that comprise several steps,
@@ -90,7 +90,7 @@ qbuffer dst =
 
 
 --@ Wrap a stream in a module
---@ with a 1 element (loopy) FIFO buffer.  This saves register elements, but 
+--@ with a 1 element (loopy) FIFO buffer.  This saves register elements, but
 --@ the push action logic may depend on checking all elements in the pipe.
 --@ \begin{libverbatim}
 --@ module qbuffer#(Push#(a) dst)(Push#(a))

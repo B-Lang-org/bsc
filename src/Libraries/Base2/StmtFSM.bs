@@ -58,7 +58,7 @@ data Freedom
         | Overlap
     deriving (Eq)
 
-data ActionType 
+data ActionType
         = Default
         | Update Freedom
         | Jump String
@@ -348,7 +348,7 @@ type TwoStateDescriptor_orig
 data TwoStateDescriptor = TSD Bool Integer Integer TSDType
                           deriving (Eq)
 
-data TSDType 
+data TSDType
         = Default
         | Start
         | End
@@ -376,7 +376,7 @@ matchingNSDs a b = ((compareNSDs a b) == EQ)
 
 
 compareTSDs :: TwoStateDescriptor -> TwoStateDescriptor -> Ordering
-compareTSDs (TSD _conda a0 a1 _) (TSD _condb b0 b1 _) = 
+compareTSDs (TSD _conda a0 a1 _) (TSD _condb b0 b1 _) =
             if      (a1 < b1) then LT
             else if (a1 > b1) then GT
             else if (a0 < b0) then LT
@@ -434,7 +434,7 @@ data StmtFT a
 	| SFWhile PosInfo Bool (StmtFT a)
 
 -- #############################################################################
--- # 
+-- #
 -- #############################################################################
 
 struct LabelState a
@@ -463,22 +463,22 @@ isLabelUsed label ls =
   in isJust r
 
 createUniqueLabel :: String -> (LabelState a) -> String
-createUniqueLabel label ls = 
-   if (isLabelUsed label ls) 
+createUniqueLabel label ls =
+   if (isLabelUsed label ls)
    then (createUniqueLabelWithSuffix label 1 ls)
    else label
 
 createUniqueLabelWithSuffix :: String -> Integer -> (LabelState a) -> String
-createUniqueLabelWithSuffix label suffix ls = 
+createUniqueLabelWithSuffix label suffix ls =
    let l = (label +++ "_" +++ (integerToString suffix))
-   in if (isLabelUsed l ls) 
+   in if (isLabelUsed l ls)
       then (createUniqueLabelWithSuffix label (suffix + 1) ls)
       else l
 
-addLabel :: String -> (LabelState a) -> (LabelState a) 
+addLabel :: String -> (LabelState a) -> (LabelState a)
 addLabel label ls = ls { label_names = (Cons label ls.label_names) }
 
-addLoopLabels :: String -> String -> (LabelState a) -> (LabelState a) 
+addLoopLabels :: String -> String -> (LabelState a) -> (LabelState a)
 addLoopLabels continue break ls = ls { loop_labels = (Just (continue, break)) }
 
 -- #############################################################################
@@ -502,15 +502,15 @@ labelActions (SCall p a_abort a_start a_done) ls =
        return (st, incrLabelState(incrLabelState(ls)))
 
 labelActions (SIf1 p c st) ls =
-    if (isStaticAndFalse c) 
+    if (isStaticAndFalse c)
     then labelActions (SSkip p) ls
     else do (r, ls') <- labelActions st ls
             return ((SFIf1 p c r), ls')
 
 labelActions (SIf2 p c s0 s1) ls =
-    if (isStaticAndFalse c) 
+    if (isStaticAndFalse c)
     then labelActions s1 ls
-    else if (isStaticAndTrue c) 
+    else if (isStaticAndTrue c)
     then labelActions s0 ls
     else do (r0, ls0) <- labelActions s0 ls
             (r1, ls1) <- labelActions s1 ls0
@@ -585,15 +585,15 @@ labelActions (SContinue p)    ls =
         if (not (isJust loop_labels)) then error msg
                                       else labelActions r ls
 
-labelActions (SLabel p name True Nothing) ls = 
+labelActions (SLabel p name True Nothing) ls =
      do return ((SFLabel p name Nil Nothing), (addLabel name ls))
 
-labelActions (SLabel p name False Nothing) ls = 
+labelActions (SLabel p name False Nothing) ls =
      do let msg = setStringPosition ("label '" +++ name +++ "' is already in use.") (getPIPosition p)
         if (isLabelUsed name ls) then error msg
                                  else return ((SFLabel p name Nil Nothing), (addLabel name ls))
 
-labelActions (SJump p name) ls = 
+labelActions (SJump p name) ls =
     labelActions (SAction p noAction (Just (Jump name))) ls
 
 labelActions (SNamed p name (Cons st Nil)) ls =
@@ -608,8 +608,8 @@ labelActions (SNamed p name Nil) ls =
        return ((SFNamed p name Nil), ls)
 
 labelActions (SUntil p cond) ls =
-    do (s', ls') <- labelActions (SAction p              action { --  $display "(%0d) wait!" $time 
---    do (s', ls') <- labelActions (SAction ("WAIT" +++ p) action { --  $display "(%0d) wait!" $time 
+    do (s', ls') <- labelActions (SAction p              action { --  $display "(%0d) wait!" $time
+--    do (s', ls') <- labelActions (SAction ("WAIT" +++ p) action { --  $display "(%0d) wait!" $time
                                                                 } (Just Wait)) ls
        return ((SFSeq p (Cons (SFUntil p cond) (Cons s' Nil))), ls')
 --    do return ((SFUntil p cond), ls)
@@ -641,7 +641,7 @@ labelActions (SWhile p c s0 Nothing s_pre s_post) ls =
 
         c_no_action <- getNoActionCondition body
 
-        (st, ls'') <- if (isStaticAndFalse c_no_action) 
+        (st, ls'') <- if (isStaticAndFalse c_no_action)
                       then do (t, ls'') <- labelActions body ls'
                               let st' = (SFSeq p
                                        (Cons (SFWhile p c t)
@@ -684,9 +684,9 @@ labelActions (SRepeat p x st) ls =
             size = if is_static then (zExtend x) else 33000 -- gets a Bit#(16)
             pos  = getPIPosition p
         {-# hide #-}
-        jj <- if (is_static && x == 1) 
+        jj <- if (is_static && x == 1)
               then labelActions st ls
-              else if (is_static && x == 0) 
+              else if (is_static && x == 0)
                    then return ((SFSkip p), ls)
                    else do repeat_count <- mkNCount is_static size
                            let p_init   = setStringPosition ("_r_init" +++ p) pos
@@ -694,7 +694,7 @@ labelActions (SRepeat p x st) ls =
                                action_init  = action { repeat_count.reset }
                                s_init = (SIf1 p (not (repeat_count.is 0)) (SAction p_init action_init Nothing))
                                update_action = action {if (repeat_count.is (x - 1)) then action {repeat_count.reset} else action { repeat_count.incr }}
-           
+
                                s_pre = (SIf1 p (not (x == 0)) (SAction p_update update_action (Just (Update Overlap))))
                                s_post = (SIf1 p (repeat_count.is 0) (SBreak p))
                            labelActions (SWhile p (not (x == 0)) st (Just s_init) (Just s_pre) (Just s_post)) ls
@@ -745,9 +745,9 @@ isStaticAndTrue cond = (isStatic (pack cond)) && cond
 -- #
 -- #############################################################################
 
-addNextStateDescriptors :: (Monad m) => (StmtFT a) -> NextStateDescriptors 
+addNextStateDescriptors :: (Monad m) => (StmtFT a) -> NextStateDescriptors
                        -> m ((StmtFT a), NextStateDescriptors)
-addNextStateDescriptors (SFAction p id _ a_abort a at rs) nsd = 
+addNextStateDescriptors (SFAction p id _ a_abort a at rs) nsd =
     do
        let r = (SFAction p id nsd a_abort a at rs)
        -- messageM("adding " +++ (nextStateDescriptorsToString nsd) +++ " to action" +++ p +++ " (" +++ (integerToString id) +++ ") nsd_rtrn = " +++ (nextStateDescriptorsToString nsd_rtrn))
@@ -762,7 +762,7 @@ addNextStateDescriptors (SFSeq p (Cons st Nil)) nsd =
        return ((SFSeq p (Cons r Nil)), x)
 
 addNextStateDescriptors (SFSeq p (Cons st ss)) nsd =
-    do (r0, nsd0) <- addNextStateDescriptors (SFSeq p ss) nsd 
+    do (r0, nsd0) <- addNextStateDescriptors (SFSeq p ss) nsd
        (r, nsd1) <- addNextStateDescriptors st nsd0
        let rr = (getStmtFTList r0)
        return ((SFSeq p (Cons r rr)), nsd1)
@@ -933,7 +933,7 @@ getNoActionCondition (SReturn _) = return False
 getNoActionCondition (SIf1 _ c s1)  =
     do c1 <- getNoActionCondition s1
        return ((c && c1) || (not c))
-getNoActionCondition (SIf2 _ c s1 s2) = 
+getNoActionCondition (SIf2 _ c s1 s2) =
     do c1 <- getNoActionCondition s1
        c2 <- getNoActionCondition s2
        return ((c && c1) || ((not c) && c2))
@@ -945,7 +945,7 @@ getNoActionCondition (SSeq p (Cons st ss)) =
 getNoActionCondition (SExprS p e) =
     do (_, ss) <- liftModule (unS e)
        getNoActionCondition (SSeq p ss)
-getNoActionCondition (SWhile _ c _ (Just ss_init) _ _) = 
+getNoActionCondition (SWhile _ c _ (Just ss_init) _ _) =
     do c_init <- getNoActionCondition ss_init
        return (c_init  && (not c))
 getNoActionCondition (SWhile _ c _ _ _ _) = return (not c)
@@ -1040,7 +1040,7 @@ integerListToStringInternal (Cons x rest) =
 -- #############################################################################
 
 -- #############################################################################
--- # Pipe abort signal to sub_fsms 
+-- # Pipe abort signal to sub_fsms
 -- #############################################################################
 
 mkModFromStmtFT :: (IsModule m c) => Bool -> Bool -> (StmtFT a) -> m FSMAbort
@@ -1237,7 +1237,7 @@ mkRFSMNRS  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RS
 mkRFSMNRS pred in_par always ifc (S st) =
     module
 	(_, ss) <- liftModule st
-        
+
         mkRFSMNR0 pred in_par always ifc ss
 
 mkRFSMNR0  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RStmts a -> m (RuleSet, (RFSM a))
@@ -1260,7 +1260,7 @@ mkRFSMNR0 pred in_par always ifc (Cons (SSeq _ (Cons x Nil)) Nil) =
 
 mkRFSMNR0 pred _in_par _always _ifc (Cons (SAction p a Nothing) Nil) =
      module
-       
+
        let l = getPIString p
        start_wire :: Wire(Bool)
        start_wire <- mkDWire False
@@ -1278,7 +1278,7 @@ mkRFSMNR0 pred _in_par _always _ifc (Cons (SAction p a Nothing) Nil) =
                    ==> action {fired := True; a}}
 
        let do_start = action { start_wire := True; start_reg := True}
-       let stalled = start_reg && (not fired);                  
+       let stalled = start_reg && (not fired);
        let cond_ready = (not stalled)
 
        rules { "restart": when (stalled && (not abort))
@@ -1401,7 +1401,7 @@ getRefinedTSDs allow_open do_warn start seq =
         let zzz1_r = combineTSDs (sortBy compareTSDs (filter not_false zzz1))
         zzz3      <- addAllWaitBypassTSDs ws zzz1_r
         (lseq', zzz4) <- addAllEarlyUpdateBypassTSDs es (lseq, zzz3) do_warn
-        
+
         return (lseq', zzz4)
 
 -- #############################################################################
@@ -1474,7 +1474,7 @@ removePars pred (SFPar p (SFAction _ num _ _ a _ _) ss) =
                                                                        } nAT (Just rs))
                               (Cons (SFLabel p label Nil Nothing)
                                 (Cons (SFIf1 p (not (and (map modReady fsm_list)))
-                                               (SFSeq p 
+                                               (SFSeq p
                                                 (Cons  (SFAction ("par_run" +++ p) (num+1) Nil noAction action { par_running := True;} (Just NoME)         nR)
                                                  (Cons (SFAction p             (num+2) Nil noAction noAction                   (Just (Jump label)) nR) Nil)))) Nil))))
        return seq
@@ -1558,7 +1558,7 @@ listAttachNames (Cons st rest) =
 addActionAt :: (Monad m) => Action -> Integer -> (StmtFT a) -> m (StmtFT a)
 addActionAt a n st@(SFAction p na nsd a_abort a_body at rs) =
          do let a_combined = joinActions (Cons a_body (Cons a Nil))
-            if (n == na) then return (SFAction p n nsd a_abort a_combined at rs) 
+            if (n == na) then return (SFAction p n nsd a_abort a_combined at rs)
                          else return st
 
 addActionAt a n (SFIf1 p c s1) =
@@ -1819,8 +1819,8 @@ collectTSDs _ _ st =
       error "unhandled case"
 
 createTSD :: Integer -> (Integer -> Integer -> Bool) -> Bool -> NextStateDescriptor -> (List TwoStateDescriptor)
-createTSD num f start (cond, i) = 
-   let kind = if (num == idle_state)    then Start 
+createTSD num f start (cond, i) =
+   let kind = if (num == idle_state)    then Start
               else if (i == idle_state) then End
               else                           Default
        c    = if (num == idle_state) then cond && start else cond
@@ -1831,8 +1831,8 @@ combineTSDs :: TwoStateDescriptors -> TwoStateDescriptors
 combineTSDs (Cons a@(TSD conda fa ta ka) (Cons b@(TSD condb fb tb kb) rest)) =
 --       if      (isStaticAndFalse conda)   then combineTSDs (Cons b rest)
 --       else if (isStaticAndFalse condb)   then combineTSDs (Cons a rest)
---       else if ((fa == fb) && (ta == tb) && (ka == kb)) 
-       if ((fa == fb) && (ta == tb) && (ka == kb)) 
+--       else if ((fa == fb) && (ta == tb) && (ka == kb))
+       if ((fa == fb) && (ta == tb) && (ka == kb))
                                           then combineTSDs (Cons (TSD (conda || condb) fa ta ka) rest)
        else                                    (Cons a (combineTSDs (Cons b rest)))
 combineTSDs (Cons a@(TSD _ _ _ _) Nil) = (Cons a Nil)
@@ -1860,7 +1860,7 @@ startTSDs f t = (toNTSDs idle_state f t) || (fromNTSDs idle_state f t)
 
 addAllWaitBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
 addAllWaitBypassTSDs Nil tsds = return tsds
-addAllWaitBypassTSDs (Cons n rest) tsds = 
+addAllWaitBypassTSDs (Cons n rest) tsds =
     do x <- addAllWaitBypassTSDs rest tsds
        addWaitBypassTSDs n x
 
@@ -1886,7 +1886,7 @@ addWaitBypassTSDs n tsds =
 
 addAllJumpBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
 addAllJumpBypassTSDs Nil tsds = return tsds
-addAllJumpBypassTSDs (Cons n rest) tsds = 
+addAllJumpBypassTSDs (Cons n rest) tsds =
     do x <- addAllJumpBypassTSDs rest tsds
        addJumpBypassTSDs n x
 
@@ -1943,7 +1943,7 @@ addJump2BypassTSDs n tsds =
 
 addAllOvlpUpdateBypassTSDs :: (Monad m) => (List Integer) -> TwoStateDescriptors -> m TwoStateDescriptors
 addAllOvlpUpdateBypassTSDs Nil tsds = return tsds
-addAllOvlpUpdateBypassTSDs (Cons n rest) tsds = 
+addAllOvlpUpdateBypassTSDs (Cons n rest) tsds =
     do x <- addAllOvlpUpdateBypassTSDs rest tsds
        addOvlpUpdateBypassTSDs n x
 
@@ -2254,7 +2254,7 @@ mkNCount' =
       incr'  = _x := _x + 1
 
 mkNCountOneHot :: (IsModule m c) => m (NCount' n)
-mkNCountOneHot = 
+mkNCountOneHot =
   module
     {-# hide #-}
     _x :: Reg(Bit n)
@@ -2288,7 +2288,7 @@ ffNM mm =
 
 mkNCount :: (IsModule m c) => Bool -> Nat -> m NCount
 mkNCount static n =
-  if (static) 
+  if (static)
     then
       if      (n == 1)  then ffNM(mkNCountOneHot :: m(NCount'  1))
       else if (n == 2)  then ffNM(mkNCountOneHot :: m(NCount'  2))
@@ -2340,7 +2340,7 @@ mkNCount static n =
 -- #############################################################################
 
 addNoActionState :: (Monad m) => TwoStateDescriptors -> LabelState a -> m (TwoStateDescriptors)
-addNoActionState tsds ls = 
+addNoActionState tsds ls =
  do let no_action (TSD _ f t _) = t == idle_state && f == idle_state
         no_action_list = filter no_action tsds
         rest tsd = not (no_action tsd)
@@ -2354,7 +2354,7 @@ addNoActionState tsds ls =
              return tsds'''
         handle _                  = error "unhandled case"
     handle no_action_list
-    
+
 
 -- #############################################################################
 -- #

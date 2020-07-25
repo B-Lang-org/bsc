@@ -53,7 +53,7 @@ module mkSizedBRAMFIFOF#(Integer m)(FIFOF#(t))
 	    );
 
    let _i = ?;
-   
+
    if      (m<2)      	  begin (* hide *) IBRAMFIFOF#(1, t)  _bramfifo1 <- mkSzBRAMFIFOF(m);  _i = _bramfifo1.fifo;  end
    else if (m<4)      	  begin (* hide *) IBRAMFIFOF#(2, t)  _bramfifo2 <- mkSzBRAMFIFOF(m);  _i = _bramfifo2.fifo;  end
    else if (m<8)      	  begin (* hide *) IBRAMFIFOF#(3, t)  _bramfifo3 <- mkSzBRAMFIFOF(m);  _i = _bramfifo3.fifo;  end
@@ -121,9 +121,9 @@ module mkSzBRAMFIFOF#(Integer m)(IBRAMFIFOF#(l, t))
    Wire#(t)                                  wDataIn             <- mkDWire(unpack(0));
    Reg#(Bit#(d))                             rRdPtr              <- mkConfigReg(0);
    Wire#(t)                                  wDataOut            <- mkWire;
-   
+
    Reg#(Maybe#(Tuple2#(Bit#(d),t)))          rCache              <- mkReg(tagged Invalid);
-   
+
    Bool empty = (rRdPtr == rWrPtr);
    Bool full  = ((rRdPtr + fromInteger(m)) == rWrPtr);
 
@@ -230,7 +230,7 @@ module mkSyncBRAMFIFO#(Integer depth, Clock sClkIn, Reset sRstIn, Clock dClkIn, 
 	    );
 
    let _i = ?;
-   
+
 
    if      (depth<2)          begin (* hide *) ISyncBRAMFIFOFIfc#(1, t)  _bramfifo1 <- mkSncBRAMFIFOF(depth, sClkIn, sRstIn, dClkIn, dRstIn);  _i = _bramfifo1.fifo;  end
    else if (depth<4)          begin (* hide *) ISyncBRAMFIFOFIfc#(2, t)  _bramfifo2 <- mkSncBRAMFIFOF(depth, sClkIn, sRstIn, dClkIn, dRstIn);  _i = _bramfifo2.fifo;  end

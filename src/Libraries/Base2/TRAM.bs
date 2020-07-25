@@ -1,4 +1,4 @@
-package TRAM(TRAM(..), TRAMclient(..), TRAMreq(..), TRAMresp(..), 
+package TRAM(TRAM(..), TRAMclient(..), TRAMreq(..), TRAMresp(..),
              tagRAM) where
 import FIFO
 import ClientServer
@@ -12,7 +12,7 @@ import RAM
 --@ \index{TRAM@\te{TRAM} (package)|textbf}
 --@ \index{TRAM@\te{TRAM} (type)|textbf}
 --@ \begin{libverbatim}
---@ typedef Server#(TRAMreq#(tag, adr, dta), TRAMresp#(tag, dta)) 
+--@ typedef Server#(TRAMreq#(tag, adr, dta), TRAMresp#(tag, dta))
 --@                           TRAM #(type tag, type adr, type dta);
 --@ \end{libverbatim}
 type TRAM tag adr dta = Server (TRAMreq tag adr dta) (TRAMresp tag dta)
@@ -31,12 +31,12 @@ type TRAMclient tag adr dta = Client (TRAMreq tag adr dta) (TRAMresp tag dta)
 --@     TRAMreqRead#(tag, adr, dta) Read;
 --@     TRAMreqWrite#(tag, adr, dta) Write;
 --@ } TRAMreq #(type tag, type adr, type dta) deriving (Eq, Bits);
---@ 
+--@
 --@ typedef struct {
 --@     tg  tag;
 --@     adr address;
 --@ } TRAMreqRead #(type tg, type adr, type dta) deriving (Eq, Bits);
---@ 
+--@
 --@ typedef struct {
 --@     dta value;
 --@     adr address;
@@ -72,17 +72,17 @@ tagRAM sz mkRAM =
     ram :: RAM adr dta <- mkRAM
     fifo :: FIFO tg <- mkSizedFIFO sz
     interface -- Server
-        request = 
+        request =
          interface Put
           put :: TRAMreq tg adr dta -> Action
           put (Read (tag, address)) =
             action
                 fifo.enq tag
                 ram.request.put (RAM.Read address)
-          put (Write (address, value)) = 
+          put (Write (address, value)) =
                        ram.request.put (RAM.Write (address, value))
 
-        response = 
+        response =
          interface Get
           get =
             do

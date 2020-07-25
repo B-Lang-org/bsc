@@ -19,15 +19,15 @@ import List
 infixr  8 :>
 
 --@ \subsubsection{ListN}
---@ 
+--@
 --@ \index{ListN@\te{ListN} (type)|textbf}
---@ 
+--@
 --@ {\bf Package name}
---@ 
+--@
 --@ import ListN :: * ;
---@ 
+--@
 --@ {\bf Description}
---@ 
+--@
 --@ ListN is an alternative implementation of Vector which is
 --@ preferred for list processing functions, such as head, tail, map,
 --@ fold, etc.  All Vector functions are available, by substituting
@@ -35,20 +35,20 @@ infixr  8 :>
 --@ for details.  If the implementation requires random access to
 --@ items in the list, the Vector construct is recommended.  Using
 --@ ListN where Vectors is recommended (and visa-versa) can lead to
---@ very long static elaboration times. 
---@ 
+--@ very long static elaboration times.
+--@
 --@ The {\te{ListN}}  package defines an abstract data type which is
 --@ a listN of a specific length.  Functions which create and operate
 --@ on this type are also defined within this package.
 --@ Because it is abstract, there are no constructors available for this type
 --@ (like {\te{Cons}} and {\te{Nil}} for the {\te{List}} type).
 --@ \BBS
---@  struct ListN\#(vsize,a\_type) 
+--@  struct ListN\#(vsize,a\_type)
 --@        {\rm{\emph{$\cdots$ abstract $\cdots$}}}
 --@ \EBS
 --@
 --@ Here, the type variable {\qbs{a\_type}} represents the type of the
---@ contents of the listN 
+--@ contents of the listN
 --@ while type variable {\qbs{vsize}} represents the length of the
 --@ ListN.
 
@@ -59,10 +59,10 @@ data (ListN :: # -> * -> *) n a = L (List a) deriving (Eq)
 unL :: ListN n a -> List a
 unL (L xs) = xs
 
---X 
+--X
 --X A listN can be turned into bits if the individual elements can be turned
 --X into bits.  When packed and unpacked, the zeroth element of the
---X listN is stored in the least 
+--X listN is stored in the least
 --X significant bits.  The size of the resulting bits is given by
 --X $ tsize = vsize * {\tt sizeof}( a\_type )$ which is specified in the
 --X provisos.
@@ -81,14 +81,14 @@ instance (PrimMakeUndefined a) => PrimMakeUndefined (ListN n a)
 
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized (ListN n a)
   where
-    primMakeUninitialized pos name = 
+    primMakeUninitialized pos name =
       let f i = primMakeUninitialized pos (name + "[" + integerToString(i) + "]")
       in genWith f
 
---X 
+--X
 --X ListNs can be compared for equality if the elements can.
 --X \begin{libverbatim}
---X instance Eq #( ListN#(vsize, a_type) ) 
+--X instance Eq #( ListN#(vsize, a_type) )
 --X    provisos( Eq#( a_type ) ) ;
 --X \end{libverbatim}
 
@@ -114,12 +114,12 @@ grabN i n bs =
 ------------------------------------------------------------------------------
 --X \begin{itemize}
 --X \item{\bf Creating and Generating ListNs}
---X 
+--X
 --X There are no {\blue} constructors available for this abstract type
 --X (and hence no pattern-matching is available for this type)
 --X but the following ordinary functions may be used to construct values of
 --X the \te{ListN} type.
---X 
+--X
 
 --X Generate a ListN with undefined elements, typically used when
 --X ListNs are declared.
@@ -191,11 +191,11 @@ nil = L Nil
 
 
 
---X   
+--X
 --X Append two ListNs, returning the combined ListN.
 --X \index{append@\te{append} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,a_type) append (ListN#(v0size,a_type) vecta, 
+--X function ListN#(vsize,a_type) append (ListN#(v0size,a_type) vecta,
 --X                                        ListN#(v1size,a_type) vectb )
 --X   provisos (Add#(v0size, v1size, vsize));
 --X \end{libverbatim}
@@ -215,9 +215,9 @@ concat (L xs) = L (List.concat (List.map unL xs))
 
 ------------------------------------------------------------------------------
 --X   \item{\bf Extracting Elements and Sub-ListNs}
---X 
+--X
 
---X 
+--X
 --X In BSV, the square-bracket notation is available to extract an
 --X element from a ListN, but only during compile-time elaboration.  Use the
 --X select or update functions for runtime access of ListNs.
@@ -249,12 +249,12 @@ instance PrimUpdateable (ListN n a) a
 --X   provisos (Eq#(idx_type), Literal#(idx_type));
 --X \end{libverbatim}
 select :: (PrimIndex ix dx) => ListN n a -> ix -> a
-select = primSelectFn (getStringPosition "") 
+select = primSelectFn (getStringPosition "")
 
 --X Update an element in a listN.
 --X \index{update@\te{update} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,a_type) update( ListN#(vsize,a_type) vectIn, 
+--X function ListN#(vsize,a_type) update( ListN#(vsize,a_type) vectIn,
 --X                                        idx_type index,
 --X                                        a_type newElem)
 --X   provisos (Eq#(idx_type), Literal#(idx_type));
@@ -264,11 +264,11 @@ update = primUpdateFn (getStringPosition "")
 
 
 --X Functions are provided which extract the first (head) element or
---X the last element of a listN. 
+--X the last element of a listN.
 --X \index{head@\te{head} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function a_type head (ListN#(vsize,a_type) vect)
---X   provisos (Add#(1, xxx, vsize));  // vsize >= 1 
+--X   provisos (Add#(1, xxx, vsize));  // vsize >= 1
 --X \end{libverbatim}
 head :: (Add 1 m n) => ListN n a -> a
 head (L (Cons x _)) = x
@@ -276,7 +276,7 @@ head (L (Cons x _)) = x
 --X \index{last@\te{last} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function a_type last (ListN#(vsize,a_type) vect);
---X   provisos (Add#(1, xxx, vsize));  // vsize >= 1 
+--X   provisos (Add#(1, xxx, vsize));  // vsize >= 1
 --X \end{libverbatim}
 last ::  (Add 1 m n) =>  ListN n a -> a
 last (L xs) = List.last xs
@@ -284,11 +284,11 @@ last (L xs) = List.last xs
 --X
 --X Other functions can remove the head or last element of a
 --X ListN leaving its tail or initial part in a smaller
---X ListN. 
+--X ListN.
 --X \index{tail@\te{tail} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function ListN#(vsize,a_type) tail (ListN#(vsize1,a_type) xs)
---X   provisos (Add#(1, vsize, vsize1)); 
+--X   provisos (Add#(1, vsize, vsize1));
 --X \end{libverbatim}
 tail :: (Add 1 m n) => ListN n a -> ListN m a
 tail (L (Cons _ xs)) = L xs
@@ -306,7 +306,7 @@ init (L xs) = L (List.init xs)
 --X \index{take@\te{take} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function ListN#(vsize2,a_type) take (ListN#(vsize,a_type) vect)
---X   provisos (Add#(vsize2,xxx,vsize)); // vsize2 <= vsize 
+--X   provisos (Add#(vsize2,xxx,vsize)); // vsize2 <= vsize
 --X \end{libverbatim}
 take :: (Add m k n) => ListN n a -> ListN m a
 take (L xs) = L (List.take (valueOf m) xs)
@@ -314,17 +314,17 @@ take (L xs) = L (List.take (valueOf m) xs)
 
 ---------------------------------------------------------------------------------
 --X \item{\bf Combining ListNs with Zip}
---X    
+--X
 --X  The family of ``zip'' functions takes two or more ListNs and
 --X combines them into one ListN of \te{Tuples}.   Several
 --X variations are provided for different resulting \te{Tuple}s, as
---X well as support for mis-matched ListN sizes. 
---X   
+--X well as support for mis-matched ListN sizes.
+--X
 
 --X@ Combine two ListNs into one ListN of pairs (2-tuples).
 --X \index{zip@\te{zip} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,Tuple2 #(a_type, b_type)) 
+--X function ListN#(vsize,Tuple2 #(a_type, b_type))
 --X          zip ( ListN#(vsize,a_type) vecta, ListN#(vsize,b) vectb ) ;
 --X \end{libverbatim}
 zip :: ListN n a -> ListN n b -> ListN n (a,b)
@@ -333,9 +333,9 @@ zip (L xs) (L ys) = L (List.zip xs ys)
 --X@ Combine three ListNs into one ListN of tuples.
 --X \index{zip@\te{zip} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,Tuple3 #(a_type, b_type, c_type)) 
---X          zip3 (ListN#(vsize,a_type) vecta, 
---X                ListN#(vsize,b_type) vectb, 
+--X function ListN#(vsize,Tuple3 #(a_type, b_type, c_type))
+--X          zip3 (ListN#(vsize,a_type) vecta,
+--X                ListN#(vsize,b_type) vectb,
 --X                ListN#(vsize,c_type) vectc );
 --X \end{libverbatim}
 zip3 :: ListN n a -> ListN n b -> ListN n c -> ListN n (a, b, c)
@@ -344,21 +344,21 @@ zip3 (L xs) (L ys) (L zs) = L (List.zip3 xs ys zs)
 --X@ Combine four ListNs into one ListN of tuples.
 --X \index{zip@\te{zip} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,Tuple4 #(a_type, b_type, c_type, d_type)) 
---X          zip4  ( ListN#(vsize,a_type) vecta, 
---X                  ListN#(vsize,b_type) vectb, 
---X                  ListN#(vsize,c_type) vectc, 
+--X function ListN#(vsize,Tuple4 #(a_type, b_type, c_type, d_type))
+--X          zip4  ( ListN#(vsize,a_type) vecta,
+--X                  ListN#(vsize,b_type) vectb,
+--X                  ListN#(vsize,c_type) vectc,
 --X                  ListN#(vsize,d_type) vectd );
 --X \end{libverbatim}
 zip4 :: ListN n a -> ListN n b -> ListN n c -> ListN n d -> ListN n (a, b, c, d)
 zip4 (L xs) (L ys) (L zs) (L ws) = L (List.zip4 xs ys zs ws)
 
 --X Combine two ListNs into one ListN of pairs (2-tuples); result
---X is as long as the smaller listN. 
+--X is as long as the smaller listN.
 --X \index{zipAny@\te{zipAny} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function ListN#(vsize,Tuple2 #(a_type, b_type))
---X          zipAny ( ListN#(m,a_type) xs, 
+--X          zipAny ( ListN#(m,a_type) xs,
 --X                   ListN#(n,b_type) ys);
 --X   provisos (Max#(m, vsize, m), Max#(n, vsize, n));
 --X \end{libverbatim}
@@ -369,7 +369,7 @@ zipAny = zipWithAny (\x y -> (x,y))
 --X Separate a ListN of pairs into a pair of two ListNs.
 --X \index{unzip@\te{unzip} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function Tuple2#(ListN#(vsize,a_type), ListN#(vsize,b_type)) 
+--X function Tuple2#(ListN#(vsize,a_type), ListN#(vsize,b_type))
 --X          unzip ( ListN#(vsize,Tuple2 #(a_type, b_type))  vectab );
 --X \end{libverbatim}
 unzip :: ListN n (a, b) -> (ListN n a , ListN n b)
@@ -379,21 +379,21 @@ unzip (L l) = letseq (as, bs) = List.unzip l
 
 --------------------------------------------------------------------------------
 --X \item{\bf Mapping Functions over ListNs}
---X 
+--X
 --X A function can be applied to all elements of a ListN, using
 --X high-order functions such as {\tt map}.  These functions take, as
 --X an argument, a which is applied to the elements
---X of the ListN.  
---X 
+--X of the ListN.
+--X
 --X Map a function over a ListN, returning a new ListN of results.
 --X \index{map@\te{map} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,b_type) map ( function b_type func(a_type x), 
+--X function ListN#(vsize,b_type) map ( function b_type func(a_type x),
 --X                                      ListN#(vsize,a_type) vect  );
 --X \end{libverbatim}
 --X For examples, consider the following code example which applies
 --X the {\tt zeroExtends} function to each element of alistN into a
---X new ListN.  
+--X new ListN.
 --X \begin{libverbatim}
 --X       ListN#(13,Bit#(5))   alistN;
 --X       ListN#(13,Bit#(10))   resultlistN;
@@ -405,20 +405,20 @@ map :: (a -> b) -> ListN n a -> ListN n b
 map f (L xs) = L (List.map f xs)
 
 --X The ``fold'' family of functions reduces a listN by applying a
---X function over all its elements. 
+--X function over all its elements.
 --X That is, given a
 --X listN of {\tt a\_type}, $V_0, V_1, V_2, ..., V_{n-1}$, a seed of
 --X type {\tt b\_type}, and a function {\tt func}, the reduction for
 --X foldr is given by
---X \[ func( V_0, func(V_{1},  ... , func ( V_{n-2} , func( V_{n-1}, seed) ))) ; \] 
+--X \[ func( V_0, func(V_{1},  ... , func ( V_{n-2} , func( V_{n-1}, seed) ))) ; \]
 --X Note that foldr start processing from the right, the
 --X highest index position to the lowest, while {\tt foldl} starts
 --X from the lowest index (zero), i.e.,
 --X \[ func( ... ( func( func(seed, V_0), V_1), ... )  V_{n-1} ) \]
 --X \index{foldr@\te{foldr} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function b_type foldr(b_type function func(a_type x, b_type y), 
---X                       b_type seed, 
+--X function b_type foldr(b_type function func(a_type x, b_type y),
+--X                       b_type seed,
 --X                       ListN#(vsize,a_type) vect);
 --X \end{libverbatim}
 foldr :: (a -> b -> b) -> b -> ListN n a -> b
@@ -427,8 +427,8 @@ foldr f z (L xs) = List.foldr f z xs
 --X@ Reduction (from the left) over a ListN.
 --X \index{foldl@\te{foldl} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function b_type foldl (b_type function func(b_type y, a_type x), 
---X                        b_type seed, 
+--X function b_type foldl (b_type function func(b_type y, a_type x),
+--X                        b_type seed,
 --X                        ListN#(vsize,a_type) vect);
 --X \end{libverbatim}
 foldl :: (b -> a -> b) -> b -> ListN n a -> b
@@ -441,7 +441,7 @@ foldl f z (L xs) = List.foldl f z xs
 --X non-zero sized listNs.
 --X \index{foldr1@\te{foldr1} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function a_type foldr1 (a_type function func(a_type x, a_type y), 
+--X function a_type foldr1 (a_type function func(a_type x, a_type y),
 --X                         ListN#(vsize,a_type) vect)
 --X   provisos (Add#(1, xxx, vsize));  // ListN has at least 1 element
 --X \end{libverbatim}
@@ -452,7 +452,7 @@ foldr1 f (L xs) = List.foldr1 f xs
 --X@ Reduction (from the left) over a non-empty ListN
 --X \index{foldl1@\te{foldl1} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function a_type foldl1 (a_type function func(a_type y, a_type x), 
+--X function a_type foldl1 (a_type function func(a_type y, a_type x),
 --X                         ListN#(vsize,a_type) vect)
 --X   provisos (Add#(1, xxx, vsize));  // ListN has at least 1 element
 --X \end{libverbatim}
@@ -462,10 +462,10 @@ foldl1 f (L xs) = List.foldl1 f xs
 --X  The {\tt fold} function performs a reduction over a non-empty
 --X listN, but processing is accomplished in a binary tree-like structure.
 --X Hence the depth or delay through the resulting function will be
---X $O(log_2( vsize ) $ rather than $O( vsize ) $. 
+--X $O(log_2( vsize ) $ rather than $O( vsize ) $.
 --X \index{fold@\te{fold} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function a_type fold (a_type function func(a_type y, a_type x), 
+--X function a_type fold (a_type function func(a_type y, a_type x),
 --X                       ListN#(vsize,a_type) vect )
 --X   provisos (Add#(1, xxx, vsize));  // ListN has at least 1 element
 --X \end{libverbatim}
@@ -475,12 +475,12 @@ fold f (L xs) = List.fold f xs
 
 --X The ``scan'' family of functions applies a function over a listN,
 --X creating a new listN result.
---X That is, given a 
+--X That is, given a
 --X listN of {\tt a\_type}, $V_0, V_1, ..., V_{n-1}$, an initial
 --X value {\tt initb}  of
 --X type {\tt b\_type}, and a function {\tt func}, application of the
---X {\tt scanr} functions creates a new listN $W$, where 
---X 
+--X {\tt scanr} functions creates a new listN $W$, where
+--X
 --X \begin{eqnarray*}
 --X W_n     & = & init ; \\
 --X W_{n-1} & = & func( V_{n-1}, W_n ) ; \\
@@ -491,16 +491,16 @@ fold f (L xs) = List.fold f xs
 --X \end{eqnarray*}
 --X
 --X Note that the {\tt scanr} processes elements from the right, the
---X highest index position 
+--X highest index position
 --X to the lowest, and fill the resulting ListN in the same
 --X way.  The {\tt sscanr} function drops the $W_n$ element from the
---X result. 
+--X result.
 
 --X \index{scanr@\te{scanr} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize1,b_type) 
---X          scanr(function b_type func(a_type x1, b_type x2), 
---X                b_type initb, 
+--X function ListN#(vsize1,b_type)
+--X          scanr(function b_type func(a_type x1, b_type x2),
+--X                b_type initb,
 --X                ListN#(vsize,a_type) vect)
 --X   provisos (Add#(1, vsize, vsize1));
 --X \end{libverbatim}
@@ -509,9 +509,9 @@ scanr f q (L xs) = L (List.scanr f q xs)
 
 --X \index{sscanr@\te{sscanr} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,b_type) 
---X          sscanr( function b_type func(a_type x1, b_type x2), 
---X                 b_type initb, 
+--X function ListN#(vsize,b_type)
+--X          sscanr( function b_type func(a_type x1, b_type x2),
+--X                 b_type initb,
 --X                 ListN#(vsize,a_type) vect );
 --X \end{libverbatim}
 sscanr :: (a -> b -> b) -> b -> ListN n a -> ListN n b
@@ -520,7 +520,7 @@ sscanr f q (L xs) = L (List.sscanr f q xs)
 
 --X The {\tt scanl} function creates the resulting ListN in a
 --X similar way as {\tt scanr} except that the processing happens
---X from the zeroth element up to the nth element.  
+--X from the zeroth element up to the nth element.
 --X
 --X \begin{eqnarray*}
 --X W_0 & = & init ; \\
@@ -532,13 +532,13 @@ sscanr f q (L xs) = L (List.sscanr f q xs)
 --X \end{eqnarray*}
 --X
 --X The {\tt sscanl} function drops the first result, $init$, shifting
---X the result index by one. 
+--X the result index by one.
 
 --X \index{scanl@\te{scanl} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize1,a_type) 
---X          scanl( function a_type func(a_type x1, b_type x2), 
---X                 a_type q, 
+--X function ListN#(vsize1,a_type)
+--X          scanl( function a_type func(a_type x1, b_type x2),
+--X                 a_type q,
 --X                 ListN#(vsize,b_type) vect)
 --X   provisos (Add#(1, vsize, vsize1));
 --X \end{libverbatim}
@@ -547,9 +547,9 @@ scanl f q (L xs) = L (List.scanl f q xs)
 
 --X \index{sscanl@\te{sscanl} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,a_type) 
---X          sscanl( function a_type func(a_type x1, b_type x2), 
---X                  a_type q, 
+--X function ListN#(vsize,a_type)
+--X          sscanl( function a_type func(a_type x1, b_type x2),
+--X                  a_type q,
 --X                  ListN#(vsize,b) vect );
 --X \end{libverbatim}
 sscanl :: (a -> b -> a) -> a -> ListN n b -> ListN n a
@@ -561,8 +561,8 @@ sscanl f q (L xs) = L (List.sscanl f q xs)
 --X \index{zipWith@\te{zipWith} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function ListN#(vsize,c_type)
---X          zipWith (function c_type func(a_type x, b_type y), 
---X                   ListN#(vsize,a_type) vecta, 
+--X          zipWith (function c_type func(a_type x, b_type y),
+--X                   ListN#(vsize,a_type) vecta,
 --X                   ListN#(vsize,b_type) vectb );
 --X \end{libverbatim}
 zipWith :: (a -> b -> c) -> ListN n a -> ListN n b -> ListN n c
@@ -571,9 +571,9 @@ zipWith f (L xs) (L ys) = L (List.zipWith f xs ys)
 --X Combine two ListNs with a function; result is as long as the smaller listN.
 --X \index{zipWithAny@\te{zipWithAny} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,c_type) 
---X          zipWithAny (function c_type func(a_type x, b_type y), 
---X                       ListN#(m,a_type) vecta, 
+--X function ListN#(vsize,c_type)
+--X          zipWithAny (function c_type func(a_type x, b_type y),
+--X                       ListN#(m,a_type) vecta,
 --X                       ListN#(n,b_type) vectb )
 --X   provisos (Max#(n, vsize, n), Max#(m, vsize, m));
 --X \end{libverbatim}
@@ -584,10 +584,10 @@ zipWithAny f (L xs) (L ys) = L (List.zipWith f xs ys)
 --X Combine three ListNs with a function.
 --X \index{zipWith3@\te{zipWith3} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,d_type) 
---X          zipWith3 ( function d_type func(a_type x, b_type y, c_type z), 
---X                     ListN#(vsize,a_type) vecta, 
---X                     ListN#(vsize,b_type) vectb, 
+--X function ListN#(vsize,d_type)
+--X          zipWith3 ( function d_type func(a_type x, b_type y, c_type z),
+--X                     ListN#(vsize,a_type) vecta,
+--X                     ListN#(vsize,b_type) vectb,
 --X                     ListN#(vsize,c_type) vectc );
 --X \end{libverbatim}
 zipWith3 :: (a -> b -> c -> d) -> ListN n a -> ListN n b -> ListN n c -> ListN n d
@@ -596,10 +596,10 @@ zipWith3 f (L xs) (L ys) (L zs) = L (List.zipWith3 f xs ys zs)
 --X Combine three ListNs with a function; result is as long as the smallest listN.
 --X \index{zipWithAny3@\te{zipWithAny3} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize,c_type) 
---X          zipWithAny3 ( function d_type func(a_type x, b_type y, c_type z), 
---X                        ListN#(m,a_type) vecta, 
---X                        ListN#(n,b_type) vectb, 
+--X function ListN#(vsize,c_type)
+--X          zipWithAny3 ( function d_type func(a_type x, b_type y, c_type z),
+--X                        ListN#(m,a_type) vecta,
+--X                        ListN#(n,b_type) vectb,
 --X                        ListN#(o,c_type) vectc )
 --X   provisos (Max#(n, vsize, n), Max#(m, vsize, m), Max#(o, vsize, o));
 --X \end{libverbatim}
@@ -611,8 +611,8 @@ zipWithAny3 f (L xs) (L ys) (L zs) = L (List.zipWith3 f xs ys zs)
 
 --------------------------------------------------------------------------------
 --X   \item{\bf ListN to ListN Functions}
---X 
---X 
+--X
+--X
 --X Move first elements last.
 --X \index{rotate@\te{rotate} (\te{ListN} function)}
 --X \begin{libverbatim}
@@ -640,7 +640,7 @@ reverse (L xs) = L (List.reverse xs)
 --X Matrix transposition of a listN of listNs.
 --X \index{transpose@\te{transpose} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(m,ListN#(n,a_type)) 
+--X function ListN#(m,ListN#(n,a_type))
 --X          transpose ( ListN#(n,ListN#(m,a_type)) matrx );
 --X \end{libverbatim}
 transpose :: ListN m (ListN n a) -> ListN n (ListN m a)
@@ -649,7 +649,7 @@ transpose (L ls) =  L (List.map (\xs -> L xs) (List.transpose (List.map unL ls))
 --X Matrix transposition of a ListN of Lists.
 --X \index{transposeLN@\te{transposeLN} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize, List#(a_type)) 
+--X function ListN#(vsize, List#(a_type))
 --X          transposeLN( List#(ListN#(vsize, a_type)) lvs );
 --X \end{libverbatim}
 transposeLN :: List (ListN n a) -> ListN n (List a)
@@ -657,9 +657,9 @@ transposeLN ls =  L (List.transpose (List.map unL ls))
 
 --------------------------------------------------------------------------------
 
---X   
+--X
 --X \item{\bf Monadic Operations}
---X   
+--X
 --X Within Bluespec, there are some functions which can only be
 --X invoked in certain contexts.  Two common examples are:
 --X \te{ActionValue}, and module instantiation.  ActionValues can only be
@@ -670,17 +670,17 @@ transposeLN ls =  L (List.transpose (List.map unL ls))
 --X are the module instance (the action), and the interface (the
 --X result).  These types are considered monadic.
 --  XXXX Same something about bind (<-) operation.
---X   
+--X
 --X When a monadic function is to be applied over a ListN using
 --X a map-like functions such
 --X as {\tt map, zipWith}, or {\tt replicate} function, the monadic versions
 --X of these functions must be used.  Moreover, the context requirements of the
 --X applied function must hold. The common application where for these functions
 --X are in the generation (or instantiation) of ListNs of hardware
---X components.  
+--X components.
 --X
---X 
---X 
+--X
+--X
 --X {\tt mapM} takes a monadic function and a ListN, and applies the function to
 --X all ListN elements returning
 --X the ListN of corresponding results.  The second version
@@ -688,7 +688,7 @@ transposeLN ls =  L (List.transpose (List.map unL ls))
 --X \index{mapM@\te{mapM} (\te{Monad} function on {\te{ListN}})}
 --X \begin{libverbatim}
 --X function m#(ListN#(vsize, b_type))
---X          mapM ( function m#(b_type) func(a_type x), 
+--X          mapM ( function m#(b_type) func(a_type x),
 --X                  ListN#(vsize, a_type) vecta )
 --X    provisos (Monad#(m));
 --X \end{libverbatim}
@@ -699,12 +699,12 @@ mapM f (L xs) = do
     _ys <- List.mapM f xs
     return (L _ys)
 
---X 
+--X
 --X@ Like {\te{mapM}} but throws away the resulting listN.
 --X \index{mapM\US@\te{mapM\US} (\te{ListN} function)}
---X 
+--X
 --X \begin{libverbatim}
---X function m#(void) mapM_(function m#(b_type) func(a_type x), 
+--X function m#(void) mapM_(function m#(b_type) func(a_type x),
 --X                         ListN#(vsize, a_type) vect)
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -720,11 +720,11 @@ mapM_ f xs = do _ <- mapM f xs
 --X Return an action representing all those actions
 --X and the listN of corresponding results.  The second version
 --X throws away the result leaving the action.
---X 
+--X
 --X \begin{libverbatim}
 --X function m#(ListN#(vsize, c_type))
---X          zipWithM( function m#(c_type) func(a_type x, b_type y), 
---X                    ListN#(vsize, a_type) vecta, 
+--X          zipWithM( function m#(c_type) func(a_type x, b_type y),
+--X                    ListN#(vsize, a_type) vecta,
 --X                    ListN#(vsize, b_type) vectb )
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -736,11 +736,11 @@ zipWithM f (L xs) (L ys) = do
 
 --X@ Like {\te{zipWithM}} but throws away the resulting listN
 --X \index{zipWithM\US@\te{zipWithM\US} (\te{ListN} function)}
---X 
+--X
 --X \begin{libverbatim}
 --X function m#(void)
---X          zipWithM_(function m#(c_type) func(a_type x, b_type y), 
---X                    ListN#(vsize, a_type) vecta, 
+--X          zipWithM_(function m#(c_type) func(a_type x, b_type y),
+--X                    ListN#(vsize, a_type) vecta,
 --X                    ListN#(vsize, b_type) vectb )
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -755,12 +755,12 @@ zipWithM_ f xs ys = do _ <- zipWithM f xs ys
 --X each listN would return an action and result.
 --X Return an action representing all those actions
 --X and the listN of corresponding results.
---X 
+--X
 --X \begin{libverbatim}
---X function m#(ListN#(vsize, c_type)) 
+--X function m#(ListN#(vsize, c_type))
 --X          zipWith3M( function m#(d_type) func(a_type x, b_type y, c_type z),
---X                     ListN#(vsize, a_type) vecta, 
---X                     ListN#(vsize, b_type) vectb, 
+--X                     ListN#(vsize, a_type) vecta,
+--X                     ListN#(vsize, b_type) vectb,
 --X                     ListN#(vsize, c_type) vectc )
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -794,8 +794,8 @@ replicateM c = mapM (const c) genList
 --X \index{foldlM@\te{foldlM} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function m#(b_type) foldlM (
---X                              function m#(b_type) func(b_type y, a_type x), 
---X                              b_type initb, 
+--X                              function m#(b_type) func(b_type y, a_type x),
+--X                              b_type initb,
 --X                              ListN#(vsize,a_type) vect )
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -805,19 +805,19 @@ foldlM f a (L xs) = List.foldlM f a xs
 --X \index{foldM@\te{foldM} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function m#(a_type) foldM (
---X                    function m#(a_type) func(a_type y, a_type x), 
+--X                    function m#(a_type) func(a_type y, a_type x),
 --X                 ListN#(vsize,a_type) vecta )
 --X   provisos (Monad#(m), Add#(1, xxx, vsize)); // ListN has at least 1 element
 --X \end{libverbatim}
 foldM :: (Monad m, Add 1 k n) => (a -> a -> m a) -> ListN n a -> m a
 foldM f (L xs) = List.foldM f xs
---X   
+--X
 
 --X \index{foldM@\te{foldM} (\te{ListN} function)}
 --X \begin{libverbatim}
 --X function m#(b_type) foldrM (
---X             function m#(b_type) func(a_type x, b_type y), 
---X             b_type e, 
+--X             function m#(b_type) func(a_type x, b_type y),
+--X             b_type e,
 --X             ListN#(vsize,a_type) vecta )
 --X   provisos (Monad#(m));
 --X \end{libverbatim}
@@ -840,7 +840,7 @@ sequence (L xs) = do
 
 ----------------------------------------------------------------------------
 --X \item{\bf Tests on ListNs}
---X  
+--X
 --X Check if an element is in a listN.
 --X \index{elem@\te{elem} (\te{ListN} function)}
 --X \begin{libverbatim}
@@ -855,7 +855,7 @@ elem y (L xs) = List.elem y xs
 --X \index{all@\te{all} (\te{ListN} function)}
 --X \index{any@\te{any} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function Bool any(function Bool pred(a_type x1), 
+--X function Bool any(function Bool pred(a_type x1),
 --X                   ListN#(vsize,a_type) vect );
 --X \end{libverbatim}
 any :: (a -> Bool) -> ListN n a -> Bool
@@ -863,7 +863,7 @@ any p (L xs) = List.any p xs
 
 
 --X \begin{libverbatim}
---X function Bool all(function Bool pred(a_type x1), 
+--X function Bool all(function Bool pred(a_type x1),
 --X                   ListN#(vsize,a_type) vect );
 --X \end{libverbatim}
 all :: (a -> Bool) -> ListN n a -> Bool
@@ -874,7 +874,7 @@ all p (L xs) = List.all p xs
 
 -------------------------------------------------------------------------------------
 --X \item{\bf Converting to and from ListNs}
---X  
+--X
 --X There are functions which convert to and from a \te{List} and a \te{ListN}.
 --X \index{toList@\te{toList} (\te{ListN} function)}
 --X \begin{libverbatim}
@@ -890,15 +890,15 @@ toList (L xs) = xs
 --X \end{libverbatim}
 toListN :: List a -> ListN n a
 toListN xs = if length xs /= valueOf n
-             then error ("ListN.toListN: bad argument length " +++ 
-                         integerToString (length xs) +++ " /= " +++ 
+             then error ("ListN.toListN: bad argument length " +++
+                         integerToString (length xs) +++ " /= " +++
                          integerToString (valueOf n))
              else L xs
 
 
 ---------------------------------------------------------------------------------------------------
 --X \item{\bf Miscellaneous Functions on ListNs}
---X 
+--X
 --X Join a number of actions together.
 --X \index{joinActions@\te{joinActions} (\te{ListN} function)}
 --X \begin{libverbatim}
@@ -918,9 +918,9 @@ joinRules (L rs) = List.joinRules rs
 --X Map a function, but pass an accumulator from head to tail.
 --X \index{mapAccumL@\te{mapAccumL} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function Tuple2 #(a_type, ListN#(vsize,c_type)) 
---X          mapAccumL ( function Tuple2 #(a_type, c_type) func(a_type x, b_type y), 
---X                      a_type x0, 
+--X function Tuple2 #(a_type, ListN#(vsize,c_type))
+--X          mapAccumL ( function Tuple2 #(a_type, c_type) func(a_type x, b_type y),
+--X                      a_type x0,
 --X                      ListN#(vsize,b_type) vect );
 --X \end{libverbatim}
 mapAccumL :: (a -> b -> (a, c)) -> a -> ListN n b -> (a, ListN n c)
@@ -931,9 +931,9 @@ mapAccumL f s (L xs) =
 --X Map a function, but pass an accumulator from tail to head.
 --X \index{mapAccumR@\te{mapAccumR} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function Tuple2 #(a_type, ListN#(vsize,c_type)) 
---X          mapAccumR( function Tuple2 #(a_type, c_type) func(a_type x, b_type y), 
---X                     a_type x0, 
+--X function Tuple2 #(a_type, ListN#(vsize,c_type))
+--X          mapAccumR( function Tuple2 #(a_type, c_type) func(a_type x, b_type y),
+--X                     a_type x0,
 --X                     ListN#(vsize,b_type) vect );
 --X \end{libverbatim}
 mapAccumR :: (a -> b -> (a, c)) -> a -> ListN n b -> (a, ListN n c)
@@ -945,10 +945,10 @@ mapAccumR f s (L xs) =
 --X Any straggling element is processed by the second function.
 --X \index{mapPairs@\te{mapPairs} (\te{ListN} function)}
 --X \begin{libverbatim}
---X function ListN#(vsize2,b_type) 
+--X function ListN#(vsize2,b_type)
 --X          mapPairs (
---X             function b_type func1(a_type x, a_type y), 
---X             function b_type func2(a_type x), 
+--X             function b_type func1(a_type x, a_type y),
+--X             function b_type func2(a_type x),
 --X             ListN#(vsize,a_type) vect )
 --X   provisos (Div#(vsize, 2, vsize2));
 --X \end{libverbatim}
@@ -958,62 +958,62 @@ mapPairs f g (L xs) = L (List.mapPairs f g xs)
 
 
 --X \item{\bf Examples Using the ListN Type}
---X 
+--X
 --X The following example shows some common uses of the {\te{ListN}}
 --X type. We first create a ListN of registers, and show how to
 --X populate this listN.   We then continue with some examples of
 --X accessing and updating the registers within the ListN, as
---X well as alternate ways to do the same. 
---X 
---X 
+--X well as alternate ways to do the same.
+--X
+--X
 --X \begin{libverbatim}
---X    // First define a variable to hold the registers. 
+--X    // First define a variable to hold the registers.
 --X    // Notice the variable is really a ListN of Interfaces of type Reg,
 --X    // not a listN of modules.
 --X    ListN#(10,Reg#(DataT))   vectRegs ;
---X 
+--X
 --X    // Now we want to populate the ListN, by filling it with Reg type
 --X    // interfaces, via the mkReg module.
 --X    // Notice that the replicateM function is used since mkReg function
 --X    // is creating a module.
 --X    vectRegs <- replicateM( mkReg( 0 ) ) ;
---X 
+--X
 --X    // ...
---X 
+--X
 --X    // A rule showing a read and write of one register within the
 --X    // ListN.
 --X    // The readReg function is required since the selection of an
 --X    // element from vectRegs returns a Reg#(DType) interface, not the
 --X    // value of the register.  The readReg functions converts from a
---X    // Reg#(DataT) type to a DataT type. 
+--X    // Reg#(DataT) type to a DataT type.
 --X    rule zerothElement ( readReg( vectRegs[0] ) > 20 ) ;
 --X       // set 0 element to 0
 --X       // The parentheses are required in this context to give
 --X       // precedence to the selection over the write operation.
 --X       (vectRegs[0]) <= 0 ;
---X       
+--X
 --X       // Set the 1st element to 5
---X       // An alternate syntax 
+--X       // An alternate syntax
 --X       vectRegs[1]._write( 5 ) ;
 --X    endrule
---X 
+--X
 --X    rule lastElement ( readReg( vectRegs[9] ) > 200 ) ;
 --X       // Set the 9th element to -10000
 --X       (vectRegs[9]) <= -10000 ;
 --X    endrule
---X    
+--X
 --X    // These rules defined above can execute simultaneously, since
 --X    // they touch independent registers
---X 
+--X
 --X    // Here is an example of dynamic selection,  first we define a
---X    // register to be used as the selector. 
+--X    // register to be used as the selector.
 --X    Reg#(UInt#(4))  selector <- mkReg(0) ;
---X 
+--X
 --X    // Now define another Reg variable which is selected from the
 --X    // vectReg variable.  Note that no register is created here, just
 --X    // an alias is defined.
 --X    Reg#(DataT)  thisReg = select(vectRegs, selector ) ;
---X 
+--X
 --X    // If the selected register is greater than 20'h7_0000, then its
 --X    // value is reset to zero.  Note that the ListN update function in
 --X    // not required since we are changing the contents of a register
@@ -1022,12 +1022,12 @@ mapPairs f g (L xs) = L (List.mapPairs f g xs)
 --X       thisReg <= 0 ;
 --X       selector <= ( selector < 9 ) ? selector + 1 : 0 ;
 --X    endrule
---X 
+--X
 --X    // As an alternative, we can define create n rules which check the
 --X    // value of each register and update accordingly.  This is done by
 --X    // generating each rule inside an elaboration-time for-loop.
---X    // The 
---X    Integer i;  // a compile time variable 
+--X    // The
+--X    Integer i;  // a compile time variable
 --X    for ( i = 0 ; i < 10 ; i = i + 1 ) begin
 --X       rule checkValue( readReg( vectRegs[i] ) > 20'h7_0000 ) ;
 --X          (vectRegs[i]) <= 0 ;

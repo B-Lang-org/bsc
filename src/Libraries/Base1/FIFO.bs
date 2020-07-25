@@ -4,7 +4,7 @@ import FIFOF_
 import FIFOF
 
 --@ \subsubsection{FIFO}
---@ 
+--@
 --@ \index{FIFO@\te{FIFO} (package)|textbf}
 --@ The \te{FIFO} interface is for FIFOs with implicit full and empty
 --@ signals.

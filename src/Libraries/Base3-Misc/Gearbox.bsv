@@ -42,9 +42,9 @@ endinterface
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-/// 
+///
 /// Implementation of N:1 Gearbox
-/// 
+///
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 module mkNto1Gearbox(Clock sClock, Reset sReset,
@@ -62,11 +62,11 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
    // and readable in the destination (fast) domain.
    CrossingReg#(Vector#(in, a))              block0              <- mkNullCrossingReg(dClock, unpack(0), clocked_by sClock, reset_by sReset);
    CrossingReg#(Vector#(in, a))              block1              <- mkNullCrossingReg(dClock, unpack(0), clocked_by sClock, reset_by sReset);
-   
+
    // The source alternates which block it writes into.
    Reg#(UInt#(1))                            write_block         <- mkReg(0, clocked_by sClock, reset_by sReset);
    Reg#(UInt#(1))                            read_block          <- mkReg(0, clocked_by dClock, reset_by dReset);
-   
+
    // The status of each block is distributed across the source
    // and destination domains.  There is a bit in the source
    // domain for each block and a bit in the destination domain
@@ -90,25 +90,25 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
    // by toggling the block bit on the source side, and
    // to return to the empty state in N steps by toggling
    // the element bits on the destination side.
-   
+
    CrossingReg#(Bool)                        block0_status       <- mkNullCrossingReg(dClock, False, clocked_by sClock, reset_by sReset);
    Vector#(in, CrossingReg#(Bool))           elem0_status        <- replicateM(mkNullCrossingReg(sClock, False, clocked_by dClock, reset_by dReset));
 
    CrossingReg#(Bool)                        block1_status       <- mkNullCrossingReg(dClock, False, clocked_by sClock, reset_by sReset);
    Vector#(in, CrossingReg#(Bool))           elem1_status        <- replicateM(mkNullCrossingReg(sClock, False, clocked_by dClock, reset_by dReset));
-   
+
    function Bool isEqualToBlock0Status(Bool elemStatus);
       return (elemStatus == block0_status);
    endfunction
-   
+
    function Bool isEqualToBlock1Status(Bool elemStatus);
       return (elemStatus == block1_status);
    endfunction
-   
+
    function Bool isEqualToBlock0CStatus(Bool elemStatus);
       return (elemStatus == block0_status.crossed());
    endfunction
-   
+
    function Bool isEqualToBlock1CStatus(Bool elemStatus);
       return (elemStatus == block1_status.crossed());
    endfunction
@@ -118,14 +118,14 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
    // the state of the blocks.
    Bool sBlock0_empty = unpack(&pack(map(isEqualToBlock0Status, readVCCReg(elem0_status))));
    Bool sBlock1_empty = unpack(&pack(map(isEqualToBlock1Status, readVCCReg(elem1_status))));
-   
+
    Bool dBlock0_empty = unpack(&pack(map(isEqualToBlock0CStatus, readVCReg(elem0_status))));
    Bool dBlock1_empty = unpack(&pack(map(isEqualToBlock1CStatus, readVCReg(elem1_status))));
-   
+
    // We can enqueue whenever the target write block is empty
    Bool ok_to_enq     = ((write_block == 0) && sBlock0_empty) ||
                         ((write_block == 1) && sBlock1_empty);
-   
+
    // We can dequeue whenever the target read block is not empty
    Bool ok_to_deq     = ((read_block == 0) && !dBlock0_empty) ||
                         ((read_block == 1) && !dBlock1_empty);
@@ -137,27 +137,27 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
    Reset                                     dCrossedsReset      <- mkAsyncReset(0, sReset, dClock);
    Reset                                     sCombinedReset      <- mkResetEither(sReset, sCrosseddReset, clocked_by sClock);
    Reset                                     dCombinedReset      <- mkResetEither(dReset, dCrossedsReset, clocked_by dClock);
-   
+
    ReadOnly#(Bool)                           sInReset_pre        <- isResetAsserted(clocked_by sClock, reset_by sCombinedReset);
    ReadOnly#(Bool)                           dInReset_pre        <- isResetAsserted(clocked_by dClock, reset_by dCombinedReset);
-   
+
    // Use pulsewires with noReset to eliminate compiler warnings when
    // the combined resets are used
 
    Wire#(Bool) sInReset <- mkBypassWire(clocked_by sClock, reset_by noReset);
-   
+
    (* fire_when_enabled, no_implicit_conditions *)
    rule launder_sInReset;
       sInReset <= sInReset_pre;
    endrule
-   
+
    Wire#(Bool) dInReset <- mkBypassWire(clocked_by dClock, reset_by noReset);
 
    (* fire_when_enabled, no_implicit_conditions *)
    rule launder_dInReset;
       dInReset <= dInReset_pre;
-   endrule   
-   
+   endrule
+
    ////////////////////////////////////////////////////////////////////////////////
    /// Interface Connections / Methods
    ////////////////////////////////////////////////////////////////////////////////
@@ -175,7 +175,7 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
 	 block1_status <= !block1_status;
       end
    endmethod
-   
+
    // Dequeue in destination (fast) domain by flipping an
    // element status bit, moving the block from Full to
    // Half-Full, or from Half-Full to Half-Full, or from
@@ -198,7 +198,7 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
 	 end
       end
    endmethod
-   
+
    // Retrieve the next value in the destination (fast) domain
    // by selecting the correct portion of the current read block.
    method Vector#(out, a) first() if (ok_to_deq && !dInReset);
@@ -227,17 +227,17 @@ module mkNto1Gearbox(Clock sClock, Reset sReset,
 	 return result;
       end
    endmethod
-   
+
    // Retrieve the notEmpty status in the destination (fast) domain.
    method Bool notEmpty();
       return ok_to_deq;
    endmethod
-   
+
    // Retrieve the notFull status in the source (slow) domain.
    method Bool notFull();
       return ok_to_enq;
    endmethod
-   
+
 endmodule: mkNto1Gearbox
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,13 +264,13 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
    // Each block is writable in the source (fast) domain
    // and readable in the destination (slow) domain.
    Vector#(elements, CrossingReg#(a))        elem                <- replicateM(mkNullCrossingReg(dClock, unpack(0), clocked_by sClock, reset_by sReset));
-   
+
    // The source alternates which block it writes into.
    Reg#(UInt#(1))                            write_block         <- mkReg(0, clocked_by sClock, reset_by sReset);
 
    // The destination alternates which block it reads from.
    Reg#(UInt#(1))                            read_block          <- mkReg(0, clocked_by dClock, reset_by dReset);
-   
+
    // The status of each block is distributed across the source
    // and destination domains.  There is a bit in the source
    // domain for each element and a bit in the destination
@@ -293,39 +293,39 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
    // and then full by toggling two bits on the source side,
    // and to return to the empty state in one step by toggling
    // the block bit on the destination side.
-   
+
    CrossingReg#(Bool)                        block0_status       <- mkNullCrossingReg(sClock, False, clocked_by dClock, reset_by dReset);
    Vector#(out, CrossingReg#(Bool))          elem0_status        <- replicateM(mkNullCrossingReg(dClock, False, clocked_by sClock, reset_by sReset));
-   
+
    CrossingReg#(Bool)                        block1_status       <- mkNullCrossingReg(sClock, False, clocked_by dClock, reset_by dReset);
    Vector#(out, CrossingReg#(Bool))          elem1_status        <- replicateM(mkNullCrossingReg(dClock, False, clocked_by sClock, reset_by sReset));
-   
+
    function Bool isNotEqualToBlock0Status(Bool elemStatus);
       return (elemStatus != block0_status);
    endfunction
-   
+
    function Bool isNotEqualToBlock1Status(Bool elemStatus);
       return (elemStatus != block1_status);
    endfunction
-   
+
    function Bool isNotEqualToBlock0CStatus(Bool elemStatus);
       return (elemStatus != block0_status.crossed());
    endfunction
-   
+
    function Bool isNotEqualToBlock1CStatus(Bool elemStatus);
       return (elemStatus != block1_status.crossed());
    endfunction
-   
+
    // The encoding bits can be read in both domains, allowing
    // both the source and destination sides to agree on
    // the state of the blocks.
-   
+
    Bool sBlock0_full = unpack(&pack(map(isNotEqualToBlock0CStatus, readVCReg(elem0_status))));
    Bool sBlock1_full = unpack(&pack(map(isNotEqualToBlock1CStatus, readVCReg(elem1_status))));
-   
+
    Bool dBlock0_full = unpack(&pack(map(isNotEqualToBlock0Status, readVCCReg(elem0_status))));
    Bool dBlock1_full = unpack(&pack(map(isNotEqualToBlock1Status, readVCCReg(elem1_status))));
-   
+
    // We can enqueue whenever the target write block is not full
    Bool ok_to_enq    = ((write_block == 0) && !sBlock0_full) ||
                        ((write_block == 1) && !sBlock1_full);
@@ -340,7 +340,7 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
    Reset                                     dCrossedsReset      <- mkAsyncReset(0, sReset, dClock);
    Reset                                     sCombinedReset      <- mkResetEither(sReset, sCrosseddReset, clocked_by sClock);
    Reset                                     dCombinedReset      <- mkResetEither(dReset, dCrossedsReset, clocked_by dClock);
-   
+
    ReadOnly#(Bool)                           sInReset_pre        <- isResetAsserted(clocked_by sClock, reset_by sCombinedReset);
    ReadOnly#(Bool)                           dInReset_pre        <- isResetAsserted(clocked_by dClock, reset_by dCombinedReset);
 
@@ -348,21 +348,21 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
    // the combined resets are used
 
    Wire#(Bool) sInReset <- mkBypassWire(clocked_by sClock, reset_by noReset);
-   
+
    (* fire_when_enabled, no_implicit_conditions *)
    rule launder_sInReset;
       sInReset <= sInReset_pre;
    endrule
-   
+
    Wire#(Bool) dInReset <- mkBypassWire(clocked_by dClock, reset_by noReset);
 
    (* fire_when_enabled, no_implicit_conditions *)
    rule launder_dInReset;
       dInReset <= dInReset_pre;
    endrule
-   
+
    // Wires used to signal enq and deq
-   
+
    PulseWire pwEnqueue <- mkPulseWire(clocked_by sClock, reset_by sReset);
    PulseWire pwDequeue <- mkPulseWire(clocked_by dClock, reset_by dReset);
 
@@ -407,7 +407,7 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
 	 end
       end
    endmethod
-   
+
    // Dequeue in destination (slow) domain by flipping the block
    // status bit, moving the block from Full to Empty.
    method Action deq() if (ok_to_deq && !dInReset);
@@ -420,7 +420,7 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
 	 block1_status <= !block1_status;
       end
    endmethod
-   
+
    // Retrieve the next value in the destination (slow) domain
    // by combining both elements of the current read block.
    method Vector#(out, a) first() if (ok_to_deq && !dInReset);
@@ -433,17 +433,17 @@ module mk1toNGearbox(Clock sClock, Reset sReset,
       end
       return v;
    endmethod
-   
+
    // Retrieve the notEmpty status in the destination (fast) domain.
    method Bool notEmpty();
       return ok_to_deq;
    endmethod
-   
+
    // Retrieve the notFull status in the source (slow) domain.
    method Bool notFull();
       return ok_to_enq;
    endmethod
-   
+
 endmodule: mk1toNGearbox
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -476,5 +476,5 @@ function Action writeVCReg(Vector#(n, CrossingReg#(b)) rs, Vector#(n, b) ds);
 	      joinActions(zipWith(writeCReg, rs, ds));
 	   endaction);
 endfunction
-			 
+			
 endpackage: Gearbox

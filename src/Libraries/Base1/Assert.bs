@@ -6,11 +6,11 @@ assertMessage which mess =
   in (which +++" assertion failed: " +++ printPosition pos +++ mess)
 
 --@ \subsubsection{Assert}
---@ 
+--@
 --@ \index{Assert@\te{Assert} (package)|textbf}
 --@ The \te{Assert} package contains definitions to test assertions
 --@ in the code.
---@ 
+--@
 
 empty :: Empty
 empty = interface Empty
@@ -21,8 +21,8 @@ empty = interface Empty
 --@ function Module#(Void) staticAssert(Bool b, String s);
 --@ \end{libverbatim}
 staticAssert :: (IsModule m c) => Bool -> String -> m (Empty)
-staticAssert b s = if not testAssert || b then 
-                      return empty 
+staticAssert b s = if not testAssert || b then
+                      return empty
                    else primError (getStringPosition s) ("Static assertion failed: " +++ s)
 
 --@ \index{dynamicAssert@\te{dynamicAssert}|textbf}
@@ -33,7 +33,7 @@ staticAssert b s = if not testAssert || b then
 --@ \end{libverbatim}
 dynamicAssert :: Bool -> String -> Action
 dynamicAssert = if not testAssert then (\ _ _ -> noAction)
-		else (\ b s -> if b then noAction else 
+		else (\ b s -> if b then noAction else
                         action
                           $display (assertMessage "Dynamic" s)
                           $finish 0
@@ -52,13 +52,13 @@ nullModule =
 --@ \end{libverbatim}
 continuousAssert :: (IsModule m c) => Bool -> String -> m Empty
 continuousAssert = if not testAssert then (\_ _ -> nullModule)
-		else (\ b s -> addRules $ 
-                        rules 
+		else (\ b s -> addRules $
+                        rules
                          {-# ASSERT no implicit conditions #-}
                          {-# ASSERT fire when enabled #-}
                          "continuousAssert":
                           when not b ==>
-                           action 
+                           action
                             $display (assertMessage "Continuous" s)
                             $finish 0
                      )

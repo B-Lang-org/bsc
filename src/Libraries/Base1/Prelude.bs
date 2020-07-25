@@ -3565,7 +3565,7 @@ instance PrimUpdateable (Array a) a
               primError pos (listMessage i "array update")
 	   else primArrayUpdate v i n
      else primArrayDynUpdate v (toDynamicIndex x) n
-          
+
 instance (Eq a) => Eq  (Array a) where
     (==) :: Array a -> Array a -> Bool
     (==) v1 v2 = let doEq :: Integer -> Integer -> Array a -> Array a -> Bool

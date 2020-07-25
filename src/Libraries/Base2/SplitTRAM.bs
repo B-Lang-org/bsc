@@ -29,7 +29,7 @@ splitBTRAM tram =
              interface Put
               put req = tram.request.put (
 			  case req of
-			    Read (tag, address) -> 
+			    Read (tag, address) ->
 			      Read ((Left tag), address)
 			    Write (address, value) ->
 			      Write (address, value)
@@ -41,7 +41,7 @@ splitBTRAM tram =
              interface Put
               put req = tram.request.put (
 			  case req of
-			    Read (tag, address) -> 
+			    Read (tag, address) ->
 			      Read ((Right tag), address)
 			    Write (address, value) ->
 			      Write (address, value)
@@ -60,7 +60,7 @@ splitTRAM tram =
              interface Put
               put req = tram.request.put (
 			  case req of
-			    Read (tag, address) -> 
+			    Read (tag, address) ->
 			      Read ((Left tag), address)
 			    Write (address, value) ->
 			      Write (address, value)
@@ -77,7 +77,7 @@ splitTRAM tram =
              interface Put
               put req = tram.request.put (
 			  case req of
-			    Read (tag, address) -> 
+			    Read (tag, address) ->
 			      Read ((Right tag),  address)
 			    Write (address, value) ->
 			      Write (address, value)

@@ -162,7 +162,7 @@ module vBRAM1#(
    parameter ADDR_WIDTH = valueof(addr_sz);
    parameter DATA_WIDTH = valueof(data_sz);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
-   
+
    method put(WE, (* reg *)ADDR, (* reg *)DI) enable(EN) clocked_by(clk) reset_by(rst);
    method DO  read() clocked_by(clk) reset_by(rst);
 
@@ -212,7 +212,7 @@ module vBRAM1Load#(
    parameter DATA_WIDTH = valueof(data_sz);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
    parameter BINARY     = Bit#(1) ' (pack(binary));
-   
+
    method put(WE, (* reg *)ADDR, (* reg *)DI) enable(EN) clocked_by(clk) reset_by(rst);
    method DO read() clocked_by(clk) reset_by(rst);
 
@@ -283,7 +283,7 @@ module vBRAM1BE#(
    parameter CHUNKSIZE  = valueof(chunk_sz);
    parameter WE_WIDTH   = valueof(n);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
-   
+
    method put(WE, (* reg *)ADDR, (* reg *)DI) enable(EN) clocked_by(clk) reset_by(rst);
    method DO  read() clocked_by(clk) reset_by(rst);
 
@@ -343,7 +343,7 @@ module vBRAM1BELoad#(
    parameter WE_WIDTH   = valueof(n);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
    parameter BINARY     = Bit#(1) ' (pack(binary));
-   
+
    method put(WE, (* reg *)ADDR, (* reg *)DI) enable(EN) clocked_by(clk) reset_by(rst);
    method DO read() clocked_by(clk) reset_by(rst);
 
@@ -421,7 +421,7 @@ module vSyncBRAM2#(
    parameter ADDR_WIDTH = valueof(addr_sz);
    parameter DATA_WIDTH = valueof(data_sz);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
-   
+
    interface BRAM_PORT a;
       method put(WEA, (* reg *)ADDRA, (* reg *)DIA) enable(ENA) clocked_by(clkA) reset_by(rstA);
       method DOA read() clocked_by(clkA) reset_by(rstA);
@@ -550,7 +550,7 @@ module vSyncBRAM2Load#(Integer memSize,
    parameter DATA_WIDTH = valueof(data_sz);
    parameter MEMSIZE    = Bit#(TAdd#(1,addr_sz)) ' (fromInteger(memSize));
    parameter BINARY     = Bit#(1) ' (pack(binary));
-   
+
    interface BRAM_PORT a;
       method put(WEA, (* reg *)ADDRA, (* reg *)DIA) enable(ENA) clocked_by(clkA) reset_by(rstA);
       method DOA read() clocked_by(clkA) reset_by(rstA);

@@ -6,7 +6,7 @@ import ListReg
 
 --@ \subsubsection{ListFIFO}
 --@ \index{ListFIFO@\te{ListFIFO} (package)|textbf}
---@ 
+--@
 --@ The \te{ListFIFO} package provides constructors for making FIFOs for
 --@ values of type \te{List}.
 --@ \begin{libverbatim}
