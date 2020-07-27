@@ -25,6 +25,7 @@ import PPrint
 import PFPrint
 import Position(noPosition)
 import Util(itos)
+import FStringCompat(FString)
 import qualified Data.Generics as Generic
 
 -- ==============================
@@ -43,7 +44,7 @@ data IType
         | ITVar Id
         | ITCon Id IKind TISort
         | ITNum Integer
-        | ITStr String
+        | ITStr FString
         deriving (Show, Generic.Data, Generic.Typeable)
 
 -- --------------------------------

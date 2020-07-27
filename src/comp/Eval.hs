@@ -9,6 +9,7 @@ import Data.IntMap as IM
 import Data.IntSet as IS
 import Data.Set as DS
 import Data.Map as DM
+import FStringCompat(FString)
 
 -- Hyperstrict identity function
 class Hyper a where
@@ -27,6 +28,9 @@ instance Hyper Handle where
     hyper x y = seq x y
 
 instance Hyper Char where
+    hyper x y = seq x y
+
+instance Hyper FString where
     hyper x y = seq x y
 
 instance Hyper Double where

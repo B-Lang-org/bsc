@@ -471,8 +471,8 @@ mkNumId i =
     else
         Id noPosition fsEmpty (mkNumFString i) []
 
-mkStrId :: String -> Id
-mkStrId s = Id noPosition fsEmpty (mkStrFString s) []
+mkStrId :: FString -> Id
+mkStrId s = Id noPosition fsEmpty s []
 
 mkIdPre :: FString -> Id -> Id
 mkIdPre fs a = setIdBase a (concatFString [fs, getIdBase a])

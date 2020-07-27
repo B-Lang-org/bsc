@@ -138,7 +138,7 @@ instance TclObjCvt IType where
       tn <- toTclObj n
       toTclObj (TLst [TStr "ITNum", TCL tn])
     toTclObj (ITStr s) = do
-      tn <- toTclObj s
+      tn <- toTclObj $ getFString s
       toTclObj (TLst [TStr "ITStr", TCL tn])
 
 instance TclObjCvt IKind where

@@ -3362,7 +3362,7 @@ conAp' i (ICPrim _ PrimValueOf) _ [T t, _] = internalError ("PrimValueOf unsimpl
 
 -- stringOf, fast case for ITStr
 conAp' i (ICPrim _ PrimStringOf) _ [T (ITStr s), _] =
-    return $ pExpr $ iMkStringAt (getPosition i) s
+    return $ pExpr $ iMkStringAt (getPosition i) $ getFString s
 -- stringOf, for non-expanded type operators
 -- errors here because we handle it in evalAp'
 conAp' i (ICPrim _ PrimStringOf) _ [T t, _] = internalError ("PrimStringOf unsimplified: " ++ ppReadable t)

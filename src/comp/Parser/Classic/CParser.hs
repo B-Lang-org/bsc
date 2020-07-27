@@ -737,7 +737,7 @@ pTyNumId = lcp "<integer>" (\p x->case x of
 
 pTyStrId :: CParser CType
 pTyStrId = lcp "<string>" (\p x->case x of
-    L_string s -> Just (cTStr s p)
+    L_string s -> Just (cTStr (mkFString s) p)
     _ -> Nothing)
 
 literal :: FString -> CParser ()

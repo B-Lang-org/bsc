@@ -229,7 +229,7 @@ id_key i = IK (getIdBase i) (getIdQual i) (getIdPosition i) (getIdProps i)
 data TypeKey = TKV IdKey Int Kind
              | TKC IdKey (Maybe Kind) TISort
              | TKN Integer Position
-             | TKS String Position
+             | TKS FString Position
              | TKA TypeKey TypeKey
              | TKG Position Int
   deriving (Eq, Ord, Show)
@@ -250,7 +250,7 @@ data ITypeKey = ITKF IdKey IKind ITypeKey
               | ITKV IdKey
               | ITKC IdKey IKind TISort
               | ITKN Integer
-              | ITKS String
+              | ITKS FString
   deriving (Eq, Ord, Show)
 
 itype_key :: IType -> ITypeKey

@@ -73,6 +73,7 @@ import ErrorUtil
 import Pragma(IfcPragma)
 import NumType
 import PVPrint(PVPrint(..))
+import FStringCompat(FString)
 
 -- Data structures
 
@@ -103,7 +104,7 @@ data TyCon = -- | A constructor for a type of value kind
                    , tynum_pos   :: Position -- ^ position of introduction
                    }
              -- | A constructor for a type of string kind
-           | TyStr { tystr_value :: String   -- ^ type-level string value
+           | TyStr { tystr_value :: FString  -- ^ type-level string value
                    , tystr_pos   :: Position -- ^ position of introduction
                    }
     deriving (Show, Generic.Data, Generic.Typeable)
@@ -349,14 +350,14 @@ getTNum :: CType -> Integer
 getTNum (TCon (TyNum n _)) = n
 getTNum t = internalError $ "getTNum: not a type-level integer -- " ++ (show t)
 
-cTStr :: String -> Position -> CType
+cTStr :: FString -> Position -> CType
 cTStr s pos = TCon (TyStr s pos)
 
 isTStr :: CType -> Bool
 isTStr (TCon (TyStr _ _)) = True
 isTStr _ = False
 
-getTStr :: CType -> String
+getTStr :: CType -> FString
 getTStr (TCon (TyStr s _)) = s
 getTStr t = internalError $ "getTNum: not a type-level string -- " ++ (show t)
 
