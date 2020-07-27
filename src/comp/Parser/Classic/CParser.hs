@@ -106,7 +106,7 @@ expX =      blockKwOf L_let pDeflM +.+ l L_in ..+ exp0                >>> Cletre
             l L_else ..+ exp0                                         >>>>> Cif
         ||! pTyConId +.+ pFieldBlock                                  >>> CStruct
         ||! l L_valueOf +.+ atyp                                      >>- ( \ (p, t) -> cVApply (setIdPosition p idValueOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idBit) t))])
-        ||! l L_stringOf +.+ atyp                                     >>- ( \ (p, t) -> cVApply (setIdPosition p idStringOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idStringOfProxy) t))])
+        ||! l L_stringOf +.+ atyp                                     >>- ( \ (p, t) -> cVApply (setIdPosition p idStringOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idStringProxy) t))])
         ||! aexp `into` (\ e ->
                 blockKwOf L_where pDefl                               >>- flip Cletrec e
             ||! l L_lbra ..+ exp0 `into` (\ e' ->

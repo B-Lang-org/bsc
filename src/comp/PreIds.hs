@@ -95,14 +95,14 @@ idAction = prelude_id_no fsAction
 idPrimAction = prelude_id_no fsPrimAction
 idToPrimAction = prelude_id_no fsToPrimAction
 idFromPrimAction = prelude_id_no fsFromPrimAction
-idFromActionValue_, idToActionValue_, idRules, idSchedPragma, idValueOf, idStringOf, idStringOfProxy :: Id
+idFromActionValue_, idToActionValue_, idRules, idSchedPragma, idValueOf, idStringOf, idStringProxy :: Id
 idFromActionValue_ = prelude_id_no fsFromActionValue_
 idToActionValue_ = prelude_id_no fsToActionValue_
 idRules = prelude_id_no fsRules
 idSchedPragma = prelude_id_no fsSchedPragma
 idValueOf = prelude_id_no fsPrimValueOf
 idStringOf = prelude_id_no fsPrimStringOf
-idStringOfProxy = prelude_id_no fsStringOfProxy
+idStringProxy = prelude_id_no fsStringProxy
 idPrimIndex, idPrimSelectable, idPrimUpdateable, idPrimWriteable :: Id
 idPrimIndex = prelude_id_no fsPrimIndex
 idPrimSelectable = prelude_id_no fsPrimSelectable

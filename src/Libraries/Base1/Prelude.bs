@@ -50,7 +50,7 @@ package Prelude(
 	primOrd, primChr,
 	primValueOf,
         primStringOf,
-        StringOfProxy,
+        StringProxy,
         _when_,
 	primExtract,
         Position__, getStringPosition, setStringPosition, printPosition, noPosition,
@@ -2829,8 +2829,8 @@ primitive primChr :: Bit n -> a
 primitive primValueOf :: Bit n -> Integer
 
 -- The string value of a string type (wrapped in a proxy type)
-data (StringOfProxy :: $ -> *) s = StringOfProxy
-primitive primStringOf :: StringOfProxy s -> String
+data (StringProxy :: $ -> *) s = StringProxy
+primitive primStringOf :: StringProxy s -> String
 
 -- add an implicit condition to an expression
 primitive primWhen :: Bit 1 -> a -> a
