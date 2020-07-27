@@ -2919,9 +2919,9 @@ getErrorText (EStringOf s) =
 getErrorText (EKindStrForNum i) =
   (Type 146, empty, s2par ("The string type " ++ ishow i ++ " was found where a numeric type was expected."))
 getErrorText (EKindStrForStar i) =
-  (Type 147, empty, s2par ("The string type " ++ ishow i ++ " was found where a non-string type was expected."))
+  (Type 147, empty, s2par ("The string type " ++ ishow i ++ " was found where a value type was expected."))
 getErrorText (EKindStarForStr i) =
-  (Type 148, empty, s2par ("The non-string type " ++ ishow i ++ " was found where a string type was expected."))
+  (Type 148, empty, s2par ("The value type " ++ ishow i ++ " was found where a string type was expected."))
 getErrorText (EKindNumForStr i) =
   (Type 149, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
 getErrorText (EStrKindArg) =
