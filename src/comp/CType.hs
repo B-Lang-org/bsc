@@ -93,7 +93,7 @@ data TyVar = TyVar { tv_name :: Id    -- ^ name of the type variable
 
 
 -- | Representation of a type constructor
-data TyCon = -- | A constructor for a type of non-numeric kind
+data TyCon = -- | A constructor for a type of value kind
              TyCon { tcon_name :: Id           -- ^ name of the type constructor
                    , tcon_kind :: (Maybe Kind) -- ^ kind of the type constructor
                    , tcon_sort :: TISort       -- ^ purpose of the type constructor
@@ -129,7 +129,7 @@ data StructSubType
 type CType = Type
 
 -- | Representation of kinds
-data Kind = KStar           -- ^ kind of a simple non-numeric type
+data Kind = KStar           -- ^ kind of a simple value type
           | KNum            -- ^ kind of a simple numeric type
           | KStr            -- ^ kind of a simple string type
           | Kfun Kind Kind  -- ^ kind of type constructors (type-level function)

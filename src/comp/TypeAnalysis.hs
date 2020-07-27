@@ -166,7 +166,7 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
        case (findType symtab i) of
          Nothing -> Right Unknown
          Just (TypeInfo Nothing k vs ti) ->
-            internalError "analyzeType': non-numeric without Id"
+            internalError "analyzeType': value without Id"
          Just (TypeInfo (Just qi) k vs tisort) ->
             let isConcrete = null (tv as)
             in  analyzeNonNumTCon t qi k vs as isConcrete tisort

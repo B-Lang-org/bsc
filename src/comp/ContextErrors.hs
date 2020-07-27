@@ -261,7 +261,7 @@ handleCtxRedBitReduce pos (vp, reduced_ps) vec_type vec_size =
 -- --------------------
 
 -- Check to see if replacing the size types with variables matches any
--- instance.  If not, then the non-numeric type does not have
+-- instance.  If not, then the value type does not have
 -- extend/truncate defined for it.  (This is a rare case, but what
 -- the heck, let's check for it.)  If this passes, then check to see
 -- if the two numeric sizes are known.  If so, and if sz1 > sz2, then

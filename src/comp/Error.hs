@@ -755,13 +755,22 @@ data ErrMsg
         | EFuncMismatchNoArgsExpected String String String
         | EFuncMismatchArgsExpected   String String String  Integer
 
+        | EValueOf String
+        | EStringOf String
+
         | ENumKindArg
         | EStrKindArg
         | ETypeNoArg String
         | ETypeTooManyArgs String
         | ETypeTooFewArgs String
+        -- XXX we have O(n^2) of these for n kinds, this will get unmanagable if we add more kinds.
+        -- Perhaps merge them into a single constructor parameterized by the names of the kinds?
         | EKindStarForNum String
         | EKindNumForStar String
+        | EKindStrForNum String
+        | EKindStrForStar String
+        | EKindStarForStr String
+        | EKindNumForStr String
 
         | EBoundTyVarKindMismatch String String Position String Position
 
@@ -818,7 +827,6 @@ data ErrMsg
         | EBadMatch String
         | EBitSel String String String String
         | EMultipleInterfaces
-        | EValueOf String
         | EMissingFileArgument String String String
         | EBadVeriType String
 
@@ -1177,12 +1185,6 @@ data ErrMsg
         -- XXX these should contain the type of the constructor
         | EConMismatchNumArgs  String{-String-}      Integer Integer
         | EPartialConMismatchNumArgs  String String{-String-}Integer Integer Integer
-
-        | EStringOf String
-        | EKindStrForNum String
-        | EKindStrForStar String
-        | EKindStarForStr String
-        | EKindNumForStr String
         deriving (Eq,Show)
 
 instance PPrint ErrMsg where
@@ -1947,8 +1949,6 @@ getErrorText (EUnifyKind t k_inferred k_expected) =
      nest 2 (text k_inferred))
 getErrorText (ENumKindArg) =
     (Type 22, empty, s2par "Numeric types do not take arguments.")
-getErrorText (EStrKindArg) =
-    (Type 22, empty, s2par "String types do not take arguments.") -- TODO: Pick a new error code to avoid conflict
 getErrorText (ETypeNoArg i) =
     (Type 23, empty, s2par ("The type " ++ ishow i ++ " does not take an argument."))
 getErrorText (ETypeTooManyArgs i) =
@@ -1956,9 +1956,9 @@ getErrorText (ETypeTooManyArgs i) =
 getErrorText (ETypeTooFewArgs i) =
     (Type 25, empty, s2par ("The type " ++ ishow i ++ " is applied to too few arguments."))
 getErrorText (EKindStarForNum i) =
-    (Type 26, empty, s2par ("The non-numeric type " ++ ishow i ++ " was found where a numeric type was expected."))
+    (Type 26, empty, s2par ("The value type " ++ ishow i ++ " was found where a numeric type was expected."))
 getErrorText (EKindNumForStar i) =
-    (Type 27, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a non-numeric type was expected."))
+    (Type 27, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a value type was expected."))
 getErrorText (EKindArg s) =
     (Type 28, empty, s2par ("Wrong number of arguments to class: " ++ s))
 getErrorText (ETooGeneral sc sc') =
@@ -2924,6 +2924,8 @@ getErrorText (EKindStarForStr i) =
   (Type 148, empty, s2par ("The non-string type " ++ ishow i ++ " was found where a string type was expected."))
 getErrorText (EKindNumForStr i) =
   (Type 149, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
+getErrorText (EStrKindArg) =
+  (Type 150, empty, s2par "String types do not take arguments.")
 
 -- Generation Errors
 

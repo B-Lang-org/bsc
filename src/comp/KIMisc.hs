@@ -256,7 +256,7 @@ kindErr t exp   inf   = EUnifyKind (pfpReadable t) (ppReadable inf) (ppReadable 
 -- XXX We could have a special error for type def kind signature mismatch,
 -- XXX instead of using EUnifyKind.
 
--- This one does not report special errors about numeric vs non-numeric.
+-- This one does not report special errors about numeric vs value.
 -- The only situation where that should occur is for type aliases, and
 -- that's handled with "unifyDefType".
 unifyDef :: Id -> Kind -> Kind -> KI ()
@@ -273,7 +273,7 @@ unifyDef i k_inferred k_expected = do
                                 (ppReadable k_expected'))
 
 -- This reports the error on the alias expression, and reports numeric,
--- string and star kinds specially.
+-- string and value kinds specially.
 unifyDefType :: Type -> Kind -> Kind -> KI ()
 unifyDefType t k_inferred k_expected = do
     s <- getKSubst
@@ -385,10 +385,11 @@ traceUnapType t =
 -}
 
 -- Returns whether a kind is grounded (has no variables) and is not
--- a function; i.e. a star or a num kind.
+-- a function; i.e. a value, num or string kind.
 isGroundNonFuncK :: Kind -> Bool
 isGroundNonFuncK KStar = True
 isGroundNonFuncK KNum  = True
+isGroundNonFuncK KStr  = True
 isGroundNonFuncK _     = False
 
 -- Returns whether a kind is a function
