@@ -248,7 +248,10 @@ package Prelude(
 	BufferMode(..),
 	hSetBuffering, hGetBuffering, hFlush,
 	hPutStr, hPutStrLn, hPutChar,
-	hGetLine, hGetChar
+	hGetLine, hGetChar,
+
+        -- Generics
+        Generic(..), Conc(..), MetaData(..), MetaCons(..), MetaField(..), MetaFieldAnon(..)
 	) where
 
 infixr  0 $
@@ -4073,3 +4076,17 @@ class coherent DefaultValue a where
 -- as well as FixedPoint, Complex
 instance (Literal t) => DefaultValue t where
    defaultValue = fromInteger 0
+
+
+------------------
+
+class Generic a r | a -> r where
+  from :: a -> r
+  to :: r -> a
+
+data Conc a = Conc a
+
+data (MetaData :: $ -> $ -> * -> *) name pkg r = MetaData r
+data (MetaCons :: $ -> # -> * -> *) name idx r = MetaCons r
+data (MetaField :: $ -> # -> * -> *) name idx r = MetaField r
+data (MetaFieldAnon :: # -> * -> *) idx r = MetaFieldAnon r

@@ -1345,3 +1345,22 @@ instance FShow (Ascii n)
 instance (DefaultValue t) => DefaultValue (Vector n t)
   where
     defaultValue = replicate defaultValue
+
+-- Generics
+class (GenericVector :: # -> # -> * -> * -> *) i n a r | i n a -> r where
+  fromV :: Vector n a -> r
+  toV :: r -> Vector n a
+
+instance (Generic a rh, GenericVector j n a rt, Add i 1 j, Add n 1 m) =>
+         GenericVector i m a (MetaFieldAnon i rh, rt) where
+  fromV v = (MetaFieldAnon (from (head v)), fromV (tail v))
+  toV (MetaFieldAnon h, t) = (to h) :> (toV t)
+
+instance GenericVector i 0 a () where
+  fromV _ = ()
+  toV () = nil
+
+
+instance (GenericVector 0 n a r) => Generic (Vector n a) (MetaData "Vector" "Vector" r) where
+  from v = MetaData (fromV v)
+  to (MetaData vr) = toV vr
