@@ -73,7 +73,7 @@ import ErrorUtil
 import Pragma(IfcPragma)
 import NumType
 import PVPrint(PVPrint(..))
-import FStringCompat(FString)
+import FStringCompat
 
 -- Data structures
 
@@ -336,6 +336,7 @@ cTVarNum name = cTVarKind name KNum
 
 cTCon :: Id -> CType
 cTCon i | all isDigit s = cTNum (read s) (getIdPosition i)
+        | head s == '"' = cTStr (mkFString $ read s) (getIdPosition i)
   where s = getIdString i
 cTCon i = TCon (TyCon i (Just KStar) TIabstract)
 
