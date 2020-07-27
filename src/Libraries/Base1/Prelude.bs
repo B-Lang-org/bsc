@@ -1735,7 +1735,7 @@ type Nat = Bit 32
 --@ } Either #(type a, type b) deriving (Eq, Bits);
 --@ \end{libverbatim}
 data Either a b = Left a | Right b
-        deriving (Eq, Bits)
+        deriving (Eq, Bits, FShow)
 
 --@ The function {\tt isLeft} tests if an \te{Either} value is
 --@ the \te{Left} variant.
