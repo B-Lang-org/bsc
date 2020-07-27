@@ -721,7 +721,6 @@ instance Bin IdProp where
     writeBytes IdP_bad_name       = putI 26
     writeBytes IdP_from_rhs       = putI 27
     writeBytes IdP_signed         = putI 28
-    writeBytes IdP_Num            = putI 29
     writeBytes IdP_NakedInst      = putI 30
     writeBytes (IdPDisplayName name)
                                   = do putI 31 ; toBin name
@@ -731,7 +730,6 @@ instance Bin IdProp where
     writeBytes (IdPInlinedPositions poss)
                                   = do putI 35 ; toBin poss
     writeBytes IdPParserGenerated = putI 36
-    writeBytes IdP_Str            = putI 37
     readBytes = do
         i <- getI
         case i of
@@ -756,7 +754,6 @@ instance Bin IdProp where
           26 -> return IdP_bad_name
           27 -> return IdP_from_rhs
           28 -> return IdP_signed
-          29 -> return IdP_Num
           30 -> return IdP_NakedInst
           31 -> do k <- fromBin; return (IdPDisplayName k)
           32 -> do a <- fromBin; b <- fromBin; return $ IdP_TypeJoin a b
@@ -764,7 +761,6 @@ instance Bin IdProp where
           34 -> return IdPMethodPredicate
           35 -> do poss <- fromBin; return (IdPInlinedPositions poss)
           36 -> return IdPParserGenerated
-          37 -> return IdP_Str
           n  -> internalError $ "BinData.Bin(IdProp).readBytes: " ++ show n
 
 
