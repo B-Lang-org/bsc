@@ -95,7 +95,7 @@ module BRAM2Load(CLKA,
        .read_during_write_mode_mixed_ports ("DONT_CARE"),//
        .ram_block_type                     ("AUTO"),//
        .init_file                          (FILENAME),//
-       .init_file_layout                   ("PORTA"),//
+       .init_file_layout                   ("PORT_A"),//
        .maximum_depth                      (MEMSIZE), // number of elements in memory
        .intended_device_family             ("Stratix"),//
        .lpm_hint                           ("ENABLE_RUNTIME_MOD=NO"),
