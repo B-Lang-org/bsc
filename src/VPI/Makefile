@@ -39,7 +39,7 @@ ifeq ($(OSTYPE), Darwin)
 # for Mac OS X, declare that the binary is dynamic and undefined references
 # will be looked up later when the library is linked
 LIBBDPI=libbdpi.dylib
-LDFLAGS = -dynamiclib -Wl,-install_name,$(LIBBDPI),-undefined,dynamic_lookup
+LDFLAGS = -dynamiclib -Wl,-install_name,@rpath/$(LIBBDPI),-undefined,dynamic_lookup
 else
 LIBBDPI=libbdpi.so
 LDFLAGS = -shared -Wl,-soname,$(LIBBDPI)
