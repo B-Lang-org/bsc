@@ -1,0 +1,31 @@
+cradle:
+  direct:
+    arguments:
+      - -XForeignFunctionInterface
+      - -XUndecidableInstances
+      - -package base
+      - -package containers
+      - -package array
+      - -package mtl
+      - -package unix
+      - -package regex-compat
+      - -package bytestring
+      - -package directory
+      - -package process
+      - -package filepath
+      - -package time
+      - -package old-time
+      - -package old-locale
+      - -package split
+      - -package syb
+      - -i../comp:../comp/Libs:../comp/GHC:../comp/GHC/posix:../Parsec
+      - -i../vendor/stp/include_hs
+      - -i../vendor/yices/include_hs
+      - -i../vendor/htcl
+      - -I/usr/include/tcl
+      - -L../vendor/htcl
+      - -lhtcl
+      - -L../vendor/stp/lib
+      - -lstp
+      - -L../vendor/yices/lib
+      - -lyices
