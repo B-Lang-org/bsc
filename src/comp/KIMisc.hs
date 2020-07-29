@@ -256,7 +256,7 @@ kindErr t exp   inf   = EUnifyKind (pfpReadable t) (ppReadable inf) (ppReadable 
 -- XXX We could have a special error for type def kind signature mismatch,
 -- XXX instead of using EUnifyKind.
 
--- This one does not report special errors about numeric vs value.
+-- This one does not report special errors about numeric vs string vs value.
 -- The only situation where that should occur is for type aliases, and
 -- that's handled with "unifyDefType".
 unifyDef :: Id -> Kind -> Kind -> KI ()

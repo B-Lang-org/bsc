@@ -485,7 +485,7 @@ findTyCon i = do
             Nothing -> return (TyCon i' (Just k) ts)
      Just (TypeInfo (Just i') k _ ts) -> return (TyCon i' (Just k) ts)
      Just (TypeInfo Nothing _ _ _) ->
-        internalError ("findTyCon: unexpected numeric type: " ++ ppReadable i)
+        internalError ("findTyCon: unexpected numeric or string type: " ++ ppReadable i)
      Nothing -> errorAtId EUnboundTyCon i
 
 findCls :: CTypeclass -> TI Class
@@ -564,7 +564,7 @@ findFields struct_ty0 field_id = do
                                        Just _  -> True
                              (isVis, tisort_info) = getSortInfo qtc tcsort
                          in  Just (qtc, isImp, isVis, tisort_info)
-                    -- We don't expect it to be a numeric type
+                    -- We expect it to be a value type
                     -- and we expect that the type has already been checked
                     _ -> internalError ("getTInfo: " ++ ppReadable tc)
         getSortInfo qtc tcsort@(TItype {}) =

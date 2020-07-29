@@ -1038,7 +1038,7 @@ tyiInteger = TypeInfo (Just idInteger) KStar [] tiInteger
 
 -- -------------------------
 
--- all preTypes should have identifiers (i.e. be value) because the usage in MakeSymTab.hs depends on this
+-- all preTypes should have identifiers (i.e. be non-numeric, non-string) because the usage in MakeSymTab.hs depends on this
 preTypes :: [TypeInfo]
 preTypes = [
         tyiArrow,

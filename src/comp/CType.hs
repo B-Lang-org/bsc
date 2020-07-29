@@ -206,12 +206,12 @@ instance Ord TyCon where
     TyCon i k _ `compare` TyCon i' k' _   =  (getIdBase i, getIdQual i, k) `compare` (getIdBase i', getIdQual i', k')
     TyCon _ _ _ `compare` TyNum _  _      =  LT
     TyCon _ _ _ `compare` TyStr _  _      =  LT
-    TyStr _ _   `compare` TyCon _  _  _   =  GT
-    TyStr _ _   `compare` TyNum _  _      =  LT
-    TyStr s _   `compare` TyStr s' _      =  s `compare` s'
     TyNum _ _   `compare` TyCon _  _  _   =  GT
-    TyNum _ _   `compare` TyStr _  _      =  GT
     TyNum i _   `compare` TyNum i' _      =  i `compare` i'
+    TyNum _ _   `compare` TyStr _  _      =  LT
+    TyStr _ _   `compare` TyCon _  _  _   =  GT
+    TyStr _ _   `compare` TyNum _  _      =  GT
+    TyStr s _   `compare` TyStr s' _      =  s `compare` s'
 
 
 
@@ -338,7 +338,7 @@ cTCon :: Id -> CType
 cTCon i | all isDigit s = cTNum (read s) (getIdPosition i)
         | head s == '"' = cTStr (mkFString $ read s) (getIdPosition i)
   where s = getIdString i
-cTCon i = TCon (TyCon i (Just KStar) TIabstract)
+cTCon i = TCon (TyCon i Nothing TIabstract)
 
 cTNum :: Integer -> Position -> CType
 cTNum n pos = TCon (TyNum n pos)
