@@ -24,14 +24,16 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
+              idConc, idMetaData, idMetaCons, idMetaField, idMetaFieldAnon,
               -- classes
-              idEq, idBits, idFShow, idBounded, idDefaultValue,
+              idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
               idPack, idUnpack,
               idPreludePlus, idEqual, idNotEqual,
               idfshow,
               idMaxBound, idMinBound,
               id_defaultValue,
+              idFrom, idTo,
               -- functions
               idPrintType,
               idPrimError,
@@ -209,6 +211,8 @@ doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
+doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
+  Right [doDGeneric (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
@@ -257,6 +261,8 @@ doStructDer _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doSDefaultValue (getPosition di) i vs cs]
+doStructDer _ i vs cs (CTypeclass di) | qualEq di idGeneric =
+  Right [doSGeneric (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
 doStructDer _ i vs cs (CTypeclass di) | qualEq di idUndefined =
@@ -741,6 +747,13 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
 
+doDGeneric :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
+doDGeneric dpos i vs ocs cs = Cinstance (CQType ctx (TAp (TAp (cTCon idGeneric) ty) rep)) [def]
+  where ctx   = [ CPred (CTypeclass idGeneric) [getRes (cis_arg_type cs)] ]
+        ty    = cTApplys (cTCon i) vs
+        body  = CCon1 i (getCISName cs) (CVar id_defaultValue)
+        def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
+
 -- | Derive the PrimMakeUndefined instance for a data (sum type), and
 -- return the instance definition.
 -- See the comment on 'doDUninitialized` about how BSV's sequential
@@ -864,6 +877,13 @@ doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [ma
 doSDefaultValue :: Position -> Id -> [Type] -> CFields -> CDefn
 doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
   where ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idDefaultValue) [t]) fs
+        ty  = cTApplys (cTCon i) vs
+        str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
+        def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
+
+doSGeneric :: Position -> Id -> [Type] -> CFields -> CDefn
+doSGeneric dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idGeneric) ty)) [def]
+  where ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idGeneric) [t]) fs
         ty  = cTApplys (cTCon i) vs
         str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
