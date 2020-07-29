@@ -172,7 +172,9 @@ GHCINCLUDES =  \
 	-i$(HTCL_HS)
 GHCTMP = '-tmpdir $(TMPDIR)'
 # Default RTS flags for programs built with a Haskell main
-RTSFLAGS =
+# 256MB heap, 10MB stack, 1 second interval between heap profiles
+# If you modify this, also update rts_opts in ../vendor/htcl/haskell.c
+RTSFLAGS = "-with-rtsopts=-H256m -K10m -i1"
 FVIA ?= -fasm
 GHCFLAGS = \
 	-hide-all-packages \
@@ -250,11 +252,6 @@ SHOWRULESEXES = showrules
 
 EXES = $(BSCEXES) $(TCLEXES) $(UTILEXES) $(SHOWRULESEXES)
 
-# always depend on both sets of RTS hooks, but link only one in
-EXTRAOBJNORMAL = rts_hooks.o
-EXTRAOBJPROF = rts_hooks_prof.o
-EXTRAOBJS = $(EXTRAOBJNORMAL) $(EXTRAOBJPROF)
-
 .PHONY: all
 all: $(EXES)
 
@@ -290,78 +287,78 @@ BLUETCL_BUILDLIBS = \
 ifeq ($(BSC_BUILD),PROF)
 $(info ----- Profiling build options -----)
 BUILDFLAGS = $(GHCOPTPROFFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
-EXTRAOBJ = $(EXTRAOBJPROF)
 else
 ifeq ($(BSC_BUILD),DEBUG)
 $(info ----- Debug build options -----)
 BUILDFLAGS = $(GHCOPTDEBUGFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
-EXTRAOBJ = $(EXTRAOBJNORMAL)
 else
 ifeq ($(BSC_BUILD),NOOPT)
 $(info ----- Unoptimized build options -----)
 BUILDFLAGS = $(GHCFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
-EXTRAOBJ = $(EXTRAOBJNORMAL)
 else
 $(info ----- Normal build options -----)
 BUILDFLAGS = $(GHCOPTFLAGS) $(GHCMAKEFLAGS) $(GHCRTSFLAGS)
-EXTRAOBJ = $(EXTRAOBJNORMAL)
 endif
 endif
 endif
 
 .PHONY: bsc
-bsc: $(SOURCES) $(EXTRAOBJS)
+bsc: $(SOURCES)
 	$(PREBUILDCOMMAND)
         # to force updating of BuildVersion/BuildSystem when necessary
 	./update-build-version.sh
 	./update-build-system.sh
 	$(BUILDCOMMAND) -main-is Main_$@ \
-		$(BUILDFLAGS) $(RTSFLAGS) $(BSC_BUILDLIBS) $(EXTRAOBJ)
+		$(BUILDFLAGS) $(RTSFLAGS) $(BSC_BUILDLIBS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsc2bsv
-bsc2bsv: $(SOURCES) $(EXTRAOBJS)
+bsc2bsv: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: bsv2bsc
-bsv2bsc: $(SOURCES) $(EXTRAOBJS)
+bsv2bsc: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpbo
-dumpbo: $(SOURCES) $(EXTRAOBJS)
+dumpbo: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: dumpba
-dumpba: $(SOURCES) $(EXTRAOBJS)
+dumpba: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: vcdcheck
-vcdcheck: $(SOURCES) $(EXTRAOBJS)
+vcdcheck: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
 .PHONY: showrules
-showrules: $(SOURCES) $(EXTRAOBJS)
+showrules: $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS) $(EXTRAOBJ)
+	$(BUILDCOMMAND) -main-is Main_$@ $(BUILDFLAGS) $(RTSFLAGS)
 	$(POSTBUILDCOMMAND)
 
+# bluetcl is built in two steps:
+# 1. Build BlueTcl module using -c to emit .hi/.o files, and also the
+#    BlueTcl_stub.h reqired by bluetcl_Main.hsc in the next action
+# 2. Link BlueTcl with a custom C main that #includes BlueTcl_stub.h
 .PHONY: bluetcl
-bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES) $(EXTRAOBJS)
+bluetcl: bluetcl.hs bluetcl_Main.hsc $(SOURCES)
 	$(PREBUILDCOMMAND)
-	$(BUILDCOMMAND) $(BUILDFLAGS) -c $(EXTRAOBJ)
+	$(BUILDCOMMAND) $(BUILDFLAGS) -c
 	$(BUILDCOMMAND) $(BUILDFLAGS) $(BLUETCL_BUILDLIBS) \
 		-o $@ \
-		-no-hs-main $(EXTRAOBJ) \
+		-no-hs-main \
 		-x c bluetcl_Main.hsc
 	$(POSTBUILDCOMMAND)
 
@@ -416,12 +413,10 @@ tags:   *hs */*hs bluewish.hs
 .PHONY: clean
 clean:
 	$(RM) -rf $(EXES) $(BUILDDIR)
-	$(RM) -f bluetcl_stub.[ch] bluewish_stub.[ch] bluewish.hs
 
 .PHONY: full_clean
 full_clean: clean
 	$(RM) -f BuildSystem.hs BuildVersion.hs
-	$(RM) -f rts_hooks.o rts_hooks_prof.o
 	$(RM) tags TAGS
 
 # -----
