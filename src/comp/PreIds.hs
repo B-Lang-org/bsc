@@ -5,27 +5,27 @@ import Id
 import FStringCompat(FString)
 
 
--- identifier without a position
+-- | Identifier without a position
 mk_no :: FString -> Id
 mk_no fs = mkId noPosition fs
 
--- identifier in the Standard Prelude, with a position
+-- | Identifier in the Standard Prelude, with a position
 prelude_id :: Position -> FString -> Id
 prelude_id p fs = mkQId p fsPrelude fs
 
--- identifier in the Standard Prelude, with no position
+-- | Identifier in the Standard Prelude, with no position
 prelude_id_no :: FString -> Id
 prelude_id_no fs = prelude_id noPosition fs
 
--- identifier in the Standard Prelude, with a position
+-- | Identifier in the Standard Prelude, with a position
 prelude_bsv_id :: Position -> FString -> Id
 prelude_bsv_id p fs = mkQId p fsPreludeBSV fs
 
--- identifier in the Standard Prelude, with no position
+-- | Identifier in the Standard Prelude, with no position
 prelude_bsv_id_no :: FString -> Id
 prelude_bsv_id_no fs = prelude_bsv_id noPosition fs
 
--- add id properties to an already existing identifier
+-- | Add id properties to an already existing identifier
 prop_prelude_id_no :: FString -> [IdProp] -> Id
 prop_prelude_id_no fs props =
     addIdProps (prelude_id (updatePosStdlib noPosition True) fs) props
@@ -203,7 +203,7 @@ idPrimChr = prelude_id_no fsPrimChr
 idLiftM = prelude_id_no fsLiftM
 idPrimError = prelude_id_no fsPrimError
 
--- used by GenWrap for "polymorphic" modules
+-- | Used by GenWrap for "polymorphic" modules
 idLiftModule :: Id
 idLiftModule = prelude_id_no fsLiftModule
 
@@ -285,7 +285,7 @@ idNil     pos = mkId pos fsNil
 idNothing pos = mkId pos fsNothing
 idSprime  pos = mkId pos fsSprime
 
--- used to prevent implicit read etc.
+-- | Used to prevent implicit read etc.
 idAsIfc, idAsReg :: Id
 idAsIfc = prelude_id_no fsAsIfc
 idAsReg = prelude_id_no fsAsReg
@@ -306,18 +306,18 @@ idSetStateNameAt pos = prelude_id pos fsSetStateName
 idGetModuleName :: Id
 idGetModuleName = prelude_id_no fsGetModuleName
 
--- used to force the monad in a "module" expression to be a module,
--- so that we fail fast for good error positions
+-- | Used to force the monad in a "module" expression to be a module,
+--   so that we fail fast for good error positions
 idForceIsModuleAt :: Position -> Id
 idForceIsModuleAt pos = prelude_id pos fsForceIsModule
 
--- use for communicating positions for errors, warnings and messages
+-- | Use for communicating positions for errors, warnings and messages
 idPosition, idNoPosition, idPrimGetEvalPosition :: Id
 idPosition = prelude_id_no fsPosition
 idNoPosition = prelude_id_no fsNoPosition
 idPrimGetEvalPosition = prelude_id_no fsPrimGetEvalPosition
 
--- used to carry attributes
+-- | Used to carry attributes
 idAttributes :: Id
 idAttributes = prelude_id_no fsAttributes
 idSetStateAttribAt :: Position -> Id
@@ -329,7 +329,7 @@ idTypeOf = prelude_id_no fsTypeOf
 idSavePortType = prelude_id_no fsSavePortType
 idPrintType = prelude_id_no fsPrintType
 
--- abstract type for implicit conditions
+-- | Abstract type for implicit conditions
 idPred :: Id
 idPred = prelude_id_no fsPred
 
@@ -393,7 +393,7 @@ idStringAt pos = prelude_id pos fsString
 idFmtAt pos = prelude_id pos fsFmt
 idPrimStringConcatAt pos = prelude_id pos fsPrimStringConcat
 
--- clock and reset identifiers
+-- | Clock and reset identifiers
 idClock, idClockOsc, idClockGate, idReset, idInout, idInout_ :: Id
 idClock = prelude_id_no fsClock
 idClockOsc = prelude_id_no fsClockOsc
@@ -452,7 +452,7 @@ tmpTyNumIds, tmpTyVarIds :: [Id]
 tmpTyNumIds = map (enumId "tnum" noPosition) [4000000..]
 tmpTyVarIds = map (enumId "v" noPosition) [100..]
 
--- used by iExpand
+-- | Used by iExpand
 idPrimEQ, idPrimULE, idPrimULT, idPrimSLE, idPrimSLT :: Id
 idPrimEQ = prelude_id_no fsPrimEQ
 idPrimULE = prelude_id_no fsPrimULE
@@ -460,12 +460,12 @@ idPrimULT = prelude_id_no fsPrimULT
 idPrimSLE = prelude_id_no fsPrimSLE
 idPrimSLT = prelude_id_no fsPrimSLT
 
--- used by iTransform
+-- | Used by iTransform
 idPrimAdd, idPrimSub :: Id
 idPrimAdd = prelude_id_no fsPrimAdd
 idPrimSub = prelude_id_no fsPrimSub
 
--- used by AddCFWire
+-- | Used by AddCFWire
 idVRWireN, idVmkRWire1, idWGet, idWSet, idWHas :: Id
 idVRWireN   = prelude_bsv_id_no fsVRWireN
 idVmkRWire1 = prelude_bsv_id_no fsVmkRWire1
@@ -531,7 +531,7 @@ idRulesAt pos = prelude_id pos fsRules
 idConstAllBitsSetAt pos = prelude_id pos fsConstAllBitsSet
 idConstAllBitsUnsetAt pos = prelude_id pos fsConstAllBitsUnset
 
--- list declaration desugaring
+-- | List declaration desugaring
 idListAt :: Position -> Id
 idListAt pos = prelude_id pos fsList
 
@@ -545,7 +545,7 @@ idPrimArrayLengthAt pos = prelude_id pos fsPrimArrayLength
 idPrimArrayInitializeAt pos = prelude_id pos fsPrimArrayInitialize
 idPrimArrayCheckAt pos = prelude_id pos fsPrimArrayCheck
 
--- list identifiers for catching type errors on lists
+-- | List identifiers for catching type errors on lists
 idList, idListN, idVector, idToVector, idToListN, idPrimArray :: Id
 idList = prelude_id_no fsList  -- there is no List::List
 idListN = mkQId noPosition fsListN fsListN  -- not yet moved to Prelude
@@ -682,7 +682,7 @@ idSigned, idUnsigned :: Position -> Id
 idSigned   pos = prelude_id pos fsSigned
 idUnsigned pos = prelude_id pos fsUnsigned
 
--- classes hardcoded in the Prelude which were added for ContextErrors
+-- | Classes hardcoded in the Prelude which were added for ContextErrors
 idBitwise, idBitReduce, idBitExtend, idArith, idOrd :: Id
 idBitwise   = prelude_id_no fsBitwise
 idBitReduce = prelude_id_no fsBitReduce
@@ -690,10 +690,10 @@ idBitExtend = prelude_id_no fsBitExtend
 idArith     = prelude_id_no fsArith
 idOrd       = prelude_id_no fsOrd
 
--- names used for tuple fields internally?
+-- | Names used for tuple fields internally?
 tupleIds :: [Id]
 tupleIds = map (\fs -> mkId noPosition fs) fsTuples
--- names exposed to the BSV user
+-- | Names exposed to the BSV user
 idTuple2, idTuple3, idTuple4, idTuple5, idTuple6, idTuple7, idTuple8 :: Id
 idTuple2 = prelude_id_no fsTuple2
 idTuple3 = prelude_id_no fsTuple3
@@ -703,7 +703,7 @@ idTuple6 = prelude_id_no fsTuple6
 idTuple7 = prelude_id_no fsTuple7
 idTuple8 = prelude_id_no fsTuple8
 
--- Typeclassses that are automatically derived for all types (unless the
+-- | Typeclassses that are automatically derived for all types (unless the
 -- user manually defines instances).
 requiredClasses :: [Id]
 requiredClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
