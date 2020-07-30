@@ -62,12 +62,14 @@ apKSu (S s _) v@(KVar u) =
 apKSu s (Kfun l r) = Kfun (apKSu s l) (apKSu s r)
 apKSu s KStar = KStar
 apKSu s KNum = KNum
+apKSu s KStr = KStr
 
 tv :: Kind -> [KVar]
 tv (KVar u)   = [u]
 tv (Kfun l r) = tv l `union` tv r
 tv KStar      = []
-tv KNum      = []
+tv KNum       = []
+tv KStr       = []
 
 (@@) :: KSubst -> KSubst -> KSubst
 (S s1 b1) @@ S s2 b2 | IS.null (IS.intersection (IM.keysSet b2)
@@ -109,6 +111,7 @@ mgu (KVar u) t        = varBind u t
 mgu t (KVar u)        = varBind u t
 mgu KStar KStar       = Just nullKSubst
 mgu KNum KNum         = Just nullKSubst
+mgu KStr KStr         = Just nullKSubst
 mgu t1 t2             = Nothing
 
 
@@ -234,6 +237,16 @@ mkKFun :: [Kind] -> Kind -> Kind
 mkKFun []     k = k
 mkKFun (a:as) k = Kfun a (mkKFun as k)
 
+kindErr :: Type -> Kind -> Kind -> ErrMsg
+kindErr t KStar KNum  = EKindNumForStar (pfpString t)
+kindErr t KStar KStr  = EKindStrForStar (pfpString t)
+kindErr t KNum  KStar = EKindStarForNum (pfpString t)
+kindErr t KNum  KStr  = EKindStrForNum (pfpString t)
+kindErr t KStr  KStar = EKindStarForStr (pfpString t)
+kindErr t KStr  KNum  = EKindNumForStr (pfpString t)
+-- XXX replace Readable with String
+kindErr t exp   inf   = EUnifyKind (pfpReadable t) (ppReadable inf) (ppReadable exp)
+
 
 -- The following two functions are like "unifyType", except that they do
 -- not report errors about being applied to too many or too few arguments.
@@ -243,7 +256,7 @@ mkKFun (a:as) k = Kfun a (mkKFun as k)
 -- XXX We could have a special error for type def kind signature mismatch,
 -- XXX instead of using EUnifyKind.
 
--- This one does not report special errors about numeric vs non-numeric.
+-- This one does not report special errors about numeric vs string vs value.
 -- The only situation where that should occur is for type aliases, and
 -- that's handled with "unifyDefType".
 unifyDef :: Id -> Kind -> Kind -> KI ()
@@ -259,8 +272,8 @@ unifyDef i k_inferred k_expected = do
                                 (ppReadable k_inferred')
                                 (ppReadable k_expected'))
 
--- This reports the error on the alias expression, and reports numeric
--- and non-numeric kinds specially.
+-- This reports the error on the alias expression, and reports numeric,
+-- string and value kinds specially.
 unifyDefType :: Type -> Kind -> Kind -> KI ()
 unifyDefType t k_inferred k_expected = do
     s <- getKSubst
@@ -268,24 +281,7 @@ unifyDefType t k_inferred k_expected = do
         k_expected' = apKSu s k_expected
     case mgu k_inferred' k_expected' of
      Just u  -> extKSubst u
-     Nothing ->
-       let
-           pos = getPosition t
-           t_str = pfpString t
-           -- XXX replace Readable with String
-           default_err = err (pos, EUnifyKind (pfpReadable t)
-                                      (ppReadable k_inferred')
-                                      (ppReadable k_expected'))
-       in
-           if (k_expected' == KStar) && (k_inferred' == KNum)
-           then
-             err (pos, EKindNumForStar t_str)
-           else
-           if (k_expected' == KNum) && (k_inferred' == KStar)
-           then
-             err (pos, EKindStarForNum t_str)
-           else
-             default_err
+     Nothing -> err (getPosition t, kindErr t k_expected' k_inferred')
 
 
 -- Takes the function and its kind and the argument to which the function
@@ -319,11 +315,6 @@ unifyType t k_inferred k_expected = do
      Nothing ->
        let
            pos = getPosition t
-           t_str = pfpString t
-           -- XXX replace Readable with String
-           default_err = err (pos, EUnifyKind (pfpReadable t)
-                                      (ppReadable k_inferred')
-                                      (ppReadable k_expected'))
 
            -- if a type constructor is being partially applied, get the core
            unapType = removeTypeAps t
@@ -347,21 +338,14 @@ unifyType t k_inferred k_expected = do
              -- handle case of not enough arguments
              err (pos, ETypeTooFewArgs unapTypeName)
            else
-           if (k_expected' == KStar) && (k_inferred' == KNum)
-           then
-             err (pos, EKindNumForStar t_str)
-           else
-           if (k_expected' == KNum) && (k_inferred' == KStar)
-           then
-             err (pos, EKindStarForNum t_str)
-           else
-             default_err
+           err (getPosition t, kindErr t k_expected' k_inferred')
 
 --------------------
 
 groundK :: Kind -> Kind
 groundK KStar = KStar
 groundK KNum = KNum
+groundK KStr = KStr
 groundK (Kfun l r) = Kfun (groundK l) (groundK r)
 groundK (KVar k) = tracep doTraceKI ("groundK: " ++ show k) $ KStar
 
@@ -379,6 +363,7 @@ showUnapType t =
     case (removeTypeAps t) of
       TCon (TyCon i _ _) -> getIdString i
       TCon (TyNum i _) -> show i
+      TCon (TyStr s _) -> show s
       TVar (TyVar i _ _) -> getIdString i
       unapType@(TGen _ _) -> show unapType
       -- These shouldn't happen
@@ -400,10 +385,11 @@ traceUnapType t =
 -}
 
 -- Returns whether a kind is grounded (has no variables) and is not
--- a function; i.e. a star or a num kind.
+-- a function; i.e. a value, num or string kind.
 isGroundNonFuncK :: Kind -> Bool
 isGroundNonFuncK KStar = True
 isGroundNonFuncK KNum  = True
+isGroundNonFuncK KStr  = True
 isGroundNonFuncK _     = False
 
 -- Returns whether a kind is a function

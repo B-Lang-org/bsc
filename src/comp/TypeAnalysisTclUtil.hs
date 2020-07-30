@@ -35,6 +35,7 @@ typeAnalysisToHTclObj (Unknown) = TStr "Unknown"
 typeAnalysisToHTclObj (Variable) = TStr "Variable"
 typeAnalysisToHTclObj (Function) = TStr "Function"
 typeAnalysisToHTclObj (Numeric) = TStr "Numeric"
+typeAnalysisToHTclObj (String) = TStr "String"
 typeAnalysisToHTclObj (Primary t k vs isC mwidth) =
     tag "Primary" $
         [TStr $ showType True t k vs] ++
@@ -182,6 +183,7 @@ typeAnalysisShort (Unknown) =  "Unknown"
 typeAnalysisShort (Variable) = "variable"
 typeAnalysisShort (Function) = "function"
 typeAnalysisShort (Numeric) = "numeric type"
+typeAnalysisShort (String) = "string type"
 typeAnalysisShort (Primary _ _ _ _ _) = ""
 typeAnalysisShort (Vector _ _ _ _) = "vector"
 typeAnalysisShort (List _ _) = "list"
@@ -200,6 +202,7 @@ typeAnalysisToDetail (Unknown) = TStr "Unknown"
 typeAnalysisToDetail (Variable) = TStr "Variable"
 typeAnalysisToDetail (Function) = TStr "Function"
 typeAnalysisToDetail (Numeric) = TStr "Numeric Type"
+typeAnalysisToDetail (String) = TStr "String Type"
 typeAnalysisToDetail (Primary t k vs isC mwidth) =
     tag "Primary" $
         [TLst [TStr $ showType True t k vs]] ++

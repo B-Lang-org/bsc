@@ -755,12 +755,22 @@ data ErrMsg
         | EFuncMismatchNoArgsExpected String String String
         | EFuncMismatchArgsExpected   String String String  Integer
 
+        | EValueOf String
+        | EStringOf String
+
         | ENumKindArg
+        | EStrKindArg
         | ETypeNoArg String
         | ETypeTooManyArgs String
         | ETypeTooFewArgs String
+        -- XXX we have O(n^2) of these for n kinds, this will get unmanagable if we add more kinds.
+        -- Perhaps merge them into a single constructor parameterized by the names of the kinds?
         | EKindStarForNum String
         | EKindNumForStar String
+        | EKindStrForNum String
+        | EKindStrForStar String
+        | EKindStarForStr String
+        | EKindNumForStr String
 
         | EBoundTyVarKindMismatch String String Position String Position
 
@@ -817,7 +827,6 @@ data ErrMsg
         | EBadMatch String
         | EBitSel String String String String
         | EMultipleInterfaces
-        | EValueOf String
         | EMissingFileArgument String String String
         | EBadVeriType String
 
@@ -1947,9 +1956,9 @@ getErrorText (ETypeTooManyArgs i) =
 getErrorText (ETypeTooFewArgs i) =
     (Type 25, empty, s2par ("The type " ++ ishow i ++ " is applied to too few arguments."))
 getErrorText (EKindStarForNum i) =
-    (Type 26, empty, s2par ("The non-numeric type " ++ ishow i ++ " was found where a numeric type was expected."))
+    (Type 26, empty, s2par ("The value type " ++ ishow i ++ " was found where a numeric type was expected."))
 getErrorText (EKindNumForStar i) =
-    (Type 27, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a non-numeric type was expected."))
+    (Type 27, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a value type was expected."))
 getErrorText (EKindArg s) =
     (Type 28, empty, s2par ("Wrong number of arguments to class: " ++ s))
 getErrorText (ETooGeneral sc sc') =
@@ -2904,6 +2913,19 @@ getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
        s2par "Constructor has type:" $$
        nest 2 (text t2)
      else text ""-})
+
+getErrorText (EStringOf s) =
+  (Type 145, empty, s2par ("Cannot take stringOf " ++ ishow s ++ " (symbol might not be in scope)"))
+getErrorText (EKindStrForNum i) =
+  (Type 146, empty, s2par ("The string type " ++ ishow i ++ " was found where a numeric type was expected."))
+getErrorText (EKindStrForStar i) =
+  (Type 147, empty, s2par ("The string type " ++ ishow i ++ " was found where a value type was expected."))
+getErrorText (EKindStarForStr i) =
+  (Type 148, empty, s2par ("The value type " ++ ishow i ++ " was found where a string type was expected."))
+getErrorText (EKindNumForStr i) =
+  (Type 149, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
+getErrorText (EStrKindArg) =
+  (Type 150, empty, s2par "String types do not take arguments.")
 
 -- Generation Errors
 

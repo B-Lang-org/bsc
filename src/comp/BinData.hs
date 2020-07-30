@@ -229,6 +229,7 @@ id_key i = IK (getIdBase i) (getIdQual i) (getIdPosition i) (getIdProps i)
 data TypeKey = TKV IdKey Int Kind
              | TKC IdKey (Maybe Kind) TISort
              | TKN Integer Position
+             | TKS FString Position
              | TKA TypeKey TypeKey
              | TKG Position Int
   deriving (Eq, Ord, Show)
@@ -237,6 +238,7 @@ type_key :: Type -> TypeKey
 type_key (TVar (TyVar i n k))  = TKV (id_key i) n k
 type_key (TCon (TyCon i mk s)) = TKC (id_key i) mk s
 type_key (TCon (TyNum n p))    = TKN n p
+type_key (TCon (TyStr s p))    = TKS s p
 type_key (TAp t1 t2)           = TKA (type_key t1) (type_key t2)
 type_key (TGen p n)            = TKG p n
 type_key (TDefMonad _) = internalError $ "BinData.type_key: TDefMonad"
@@ -248,6 +250,7 @@ data ITypeKey = ITKF IdKey IKind ITypeKey
               | ITKV IdKey
               | ITKC IdKey IKind TISort
               | ITKN Integer
+              | ITKS FString
   deriving (Eq, Ord, Show)
 
 itype_key :: IType -> ITypeKey
@@ -256,6 +259,7 @@ itype_key (ITAp t1 t2)     = ITKA (itype_key t1) (itype_key t2)
 itype_key (ITVar i)        = ITKV (id_key i)
 itype_key (ITCon i k s)    = ITKC (id_key i) k s
 itype_key (ITNum n)        = ITKN n
+itype_key (ITStr s)        = ITKS s
 
 -- -------------------------------------------------------------
 -- The Out monad makes it easy to generate composite BinData
@@ -717,7 +721,6 @@ instance Bin IdProp where
     writeBytes IdP_bad_name       = putI 26
     writeBytes IdP_from_rhs       = putI 27
     writeBytes IdP_signed         = putI 28
-    writeBytes IdP_Num            = putI 29
     writeBytes IdP_NakedInst      = putI 30
     writeBytes (IdPDisplayName name)
                                   = do putI 31 ; toBin name
@@ -751,7 +754,6 @@ instance Bin IdProp where
           26 -> return IdP_bad_name
           27 -> return IdP_from_rhs
           28 -> return IdP_signed
-          29 -> return IdP_Num
           30 -> return IdP_NakedInst
           31 -> do k <- fromBin; return (IdPDisplayName k)
           32 -> do a <- fromBin; b <- fromBin; return $ IdP_TypeJoin a b
@@ -1293,6 +1295,7 @@ instance Bin TyVar where
 instance Bin TyCon where
     writeBytes (TyCon i mk s) = do putI 0; toBin i; toBin mk; toBin s
     writeBytes (TyNum i pos) = do putI 1; toBin i; toBin pos
+    writeBytes (TyStr s pos) = do putI 2; toBin s; toBin pos
     readBytes =
         do i <- getI
            case i of
@@ -1334,6 +1337,7 @@ instance Bin Kind where
   writeBytes KNum = putI 1
   writeBytes (Kfun k1 k2) = do putI 2; toBin k1; toBin k2
   writeBytes (KVar i) = do putI 3; toBin i
+  writeBytes KStr = putI 4
   readBytes =
       do i <- getI
          case i of
@@ -1341,6 +1345,7 @@ instance Bin Kind where
            1 -> return KNum
            2 -> do k1 <- fromBin; k2 <- fromBin; return (Kfun k1 k2)
            3 -> do i <- fromBin; return (KVar i)
+           4 -> return KStr
            n -> internalError $ "BinData.Bin(Kind).readBytes: " ++ show n
 
 instance Bin CQType where
@@ -1365,6 +1370,7 @@ instance Bin IType where
     writeBytes (ITVar i)        = do putI 2; toBin i
     writeBytes (ITCon i k s)    = do putI 3; toBin i; toBin k; toBin s
     writeBytes (ITNum n)        = do putI 4; toBin n
+    writeBytes (ITStr s)        = do putI 5; toBin s
     readBytes = do tag <- getI
                    case tag of
                      0 -> do i <- fromBin; k <- fromBin; t <- fromBin
@@ -1375,6 +1381,7 @@ instance Bin IType where
                      3 -> do i <- fromBin; k <- fromBin; s <- fromBin
                              return $ ITCon i k s
                      4 -> do n <- fromBin; return $ ITNum n
+                     5 -> do s <- fromBin; return $ ITStr s
                      n -> internalError $ "BinData.Bin(IType).readBytes: " ++ show n
 
     -- IType is shared
@@ -1385,11 +1392,13 @@ instance Bin IKind where
     writeBytes IKStar        = do putI 0
     writeBytes IKNum         = do putI 1
     writeBytes (IKFun k1 k2) = do putI 2; toBin k1; toBin k2
+    writeBytes IKStr         = do putI 3
     readBytes = do tag <- getI
                    case tag of
                      0 -> return IKStar
                      1 -> return IKNum
                      2 -> do k1 <- fromBin; k2 <- fromBin; return (IKFun k1 k2)
+                     3 -> return IKStr
                      n -> internalError $ "BinData.Bin(IKind).readBytes: " ++ show n
 
 instance Bin UndefKind where

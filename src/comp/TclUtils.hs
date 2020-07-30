@@ -137,6 +137,9 @@ instance TclObjCvt IType where
     toTclObj (ITNum n) = do
       tn <- toTclObj n
       toTclObj (TLst [TStr "ITNum", TCL tn])
+    toTclObj (ITStr s) = do
+      tn <- toTclObj $ getFString s
+      toTclObj (TLst [TStr "ITStr", TCL tn])
 
 instance TclObjCvt IKind where
     toTclObj k = toTclObj (pPrint PDReadable 0 k)

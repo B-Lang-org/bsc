@@ -94,7 +94,7 @@ instance PPrint ConInfo where
 
 data TypeInfo
         = TypeInfo {
-              ti_qual_id   :: (Maybe Id),  -- Nothing for numeric types
+              ti_qual_id   :: (Maybe Id),  -- Nothing for numeric and string types
               ti_kind      :: Kind,
               ti_type_vars :: [Id],
               ti_sort      :: TISort

@@ -8,6 +8,7 @@ module CType(
   -- ** Examining Types
   getTyVarId, getTypeKind,
   isTNum, getTNum,
+  isTStr, getTStr,
   isTVar, isTCon, isIfc, isInterface, isUpdateable,
   leftCon, leftTyCon, allTyCons, allTConNames, tyConArgs,
   splitTAp, normTAp,
@@ -25,7 +26,7 @@ module CType(
   isTConArrow, isTConPair,
 
   -- ** Constructing Types
-  noType, tVar, tVarKind, cTVar, cTVarKind, cTVarNum, cTCon, cTNum,
+  noType, tVar, tVarKind, cTVar, cTVarKind, cTVarNum, cTCon, cTNum, cTStr,
   cTApplys, setTypePosition,
 
   -- * Kinds
@@ -72,6 +73,7 @@ import ErrorUtil
 import Pragma(IfcPragma)
 import NumType
 import PVPrint(PVPrint(..))
+import FStringCompat
 
 -- Data structures
 
@@ -92,7 +94,7 @@ data TyVar = TyVar { tv_name :: Id    -- ^ name of the type variable
 
 
 -- | Representation of a type constructor
-data TyCon = -- | A constructor for a type of non-numeric kind
+data TyCon = -- | A constructor for a type of value kind
              TyCon { tcon_name :: Id           -- ^ name of the type constructor
                    , tcon_kind :: (Maybe Kind) -- ^ kind of the type constructor
                    , tcon_sort :: TISort       -- ^ purpose of the type constructor
@@ -100,6 +102,10 @@ data TyCon = -- | A constructor for a type of non-numeric kind
              -- | A constructor for a type of numeric kind
            | TyNum { tynum_value :: Integer  -- ^ type-level numeric value
                    , tynum_pos   :: Position -- ^ position of introduction
+                   }
+             -- | A constructor for a type of string kind
+           | TyStr { tystr_value :: FString  -- ^ type-level string value
+                   , tystr_pos   :: Position -- ^ position of introduction
                    }
     deriving (Show, Generic.Data, Generic.Typeable)
 
@@ -124,8 +130,9 @@ data StructSubType
 type CType = Type
 
 -- | Representation of kinds
-data Kind = KStar           -- ^ kind of a simple non-numeric type
+data Kind = KStar           -- ^ kind of a simple value type
           | KNum            -- ^ kind of a simple numeric type
+          | KStr            -- ^ kind of a simple string type
           | Kfun Kind Kind  -- ^ kind of type constructors (type-level function)
           | KVar Int        -- ^ generated kind variable (used only during kind inference)
     deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
@@ -135,6 +142,7 @@ data PartialKind
         = PKNoInfo -- this is what makes it partial
         | PKStar
         | PKNum
+        | PKStr
         | PKfun PartialKind PartialKind
         deriving (Eq, Ord, Show)
 
@@ -179,6 +187,7 @@ instance Eq TyVar where
 instance Eq TyCon where
     TyCon i k _ == TyCon i' k' _  =  qualEq i i' && k == k'
     TyNum i _   == TyNum i' _     =  i == i'
+    TyStr s _   == TyStr s' _     =  s == s'
     _           == _              =  False
 
 -- Ord instances
@@ -196,8 +205,13 @@ instance Ord TyVar where
 instance Ord TyCon where
     TyCon i k _ `compare` TyCon i' k' _   =  (getIdBase i, getIdQual i, k) `compare` (getIdBase i', getIdQual i', k')
     TyCon _ _ _ `compare` TyNum _  _      =  LT
+    TyCon _ _ _ `compare` TyStr _  _      =  LT
     TyNum _ _   `compare` TyCon _  _  _   =  GT
     TyNum i _   `compare` TyNum i' _      =  i `compare` i'
+    TyNum _ _   `compare` TyStr _  _      =  LT
+    TyStr _ _   `compare` TyCon _  _  _   =  GT
+    TyStr _ _   `compare` TyNum _  _      =  GT
+    TyStr s _   `compare` TyStr s' _      =  s `compare` s'
 
 
 
@@ -245,14 +259,17 @@ instance PPrint TyVar where
 instance PPrint TyCon where
     pPrint d _ (TyCon i _ _) = ppConId d i
     pPrint d _ (TyNum i _) = text (itos i)
+    pPrint d _ (TyStr s _) = text (show s)
 
 instance Hyper TyCon where
     hyper (TyCon i k s) y = hyper3 i k s y
     hyper (TyNum i p) y = hyper2 i p y
+    hyper (TyStr s p) y = hyper2 s p y
 
 instance HasPosition TyCon where
     getPosition (TyCon name k _) = getPosition name
     getPosition (TyNum _ pos) = pos
+    getPosition (TyStr _ pos) = pos
 
 instance HasPosition CQType where
     -- prefer t to ps, since that is a better position for BSV
@@ -319,8 +336,9 @@ cTVarNum name = cTVarKind name KNum
 
 cTCon :: Id -> CType
 cTCon i | all isDigit s = cTNum (read s) (getIdPosition i)
+        | head s == '"' = cTStr (mkFString $ read s) (getIdPosition i)
   where s = getIdString i
-cTCon i = TCon (TyCon i (Just KStar) TIabstract)
+cTCon i = TCon (TyCon i Nothing TIabstract)
 
 cTNum :: Integer -> Position -> CType
 cTNum n pos = TCon (TyNum n pos)
@@ -332,6 +350,17 @@ isTNum _ = False
 getTNum :: CType -> Integer
 getTNum (TCon (TyNum n _)) = n
 getTNum t = internalError $ "getTNum: not a type-level integer -- " ++ (show t)
+
+cTStr :: FString -> Position -> CType
+cTStr s pos = TCon (TyStr s pos)
+
+isTStr :: CType -> Bool
+isTStr (TCon (TyStr _ _)) = True
+isTStr _ = False
+
+getTStr :: CType -> FString
+getTStr (TCon (TyStr s _)) = s
+getTStr t = internalError $ "getTNum: not a type-level string -- " ++ (show t)
 
 isTVar :: Type -> Bool
 isTVar (TVar _) = True
@@ -449,6 +478,7 @@ allTyCons _ = []
 getTConName :: TyCon -> Maybe Id
 getTConName (TyCon i _ _) = Just i
 getTConName (TyNum {}) = Nothing
+getTConName (TyStr {}) = Nothing
 
 allTConNames :: CType -> [Id]
 allTConNames = mapMaybe getTConName . allTyCons
@@ -475,6 +505,7 @@ getTypeKind :: Type -> Maybe Kind
 getTypeKind (TVar (TyVar _ _ k))  = Just k
 getTypeKind (TCon (TyCon _ mk _)) = mk
 getTypeKind (TCon (TyNum _ _)) = Just KNum
+getTypeKind (TCon (TyStr _ _)) = Just KStr
 getTypeKind (TAp t1 t2) = case (getTypeKind t1) of
                             Just (Kfun k1 k2) -> Just k2
                             _ -> Nothing -- don't know or isn't Kfun
@@ -516,6 +547,7 @@ getResKind k = k
 instance PPrint Kind where
     pPrint _ _ KStar = text "*"
     pPrint _ _ KNum = text "#"
+    pPrint _ _ KStr = text "$"
     pPrint d p (Kfun l r) = pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
     pPrint _ _ (KVar i) = text (showKVar i)
 
@@ -529,6 +561,7 @@ instance PPrint PartialKind where
     pPrint _ _ PKNoInfo = text "?"
     pPrint _ _ PKStar = text "*"
     pPrint _ _ PKNum = text "#"
+    pPrint _ _ PKStr = text "$"
     pPrint d p (PKfun l r) =
         pparen (p>9) $ pPrint d 10 l <+> text "->" <+> pPrint d 9 r
 
@@ -570,6 +603,7 @@ setTypePosition :: Position -> Type -> Type
 setTypePosition pos (TVar (TyVar id n k)) = (TVar (TyVar (setIdPosition pos id) n k))
 setTypePosition pos (TCon (TyCon id k s)) = (TCon (TyCon (setIdPosition pos id) k s))
 setTypePosition pos (TCon (TyNum n _)) = (TCon (TyNum n pos))
+setTypePosition pos (TCon (TyStr s _)) = (TCon (TyStr s pos))
 setTypePosition pos (TAp f a) = (TAp (setTypePosition pos f) (setTypePosition pos a))
 setTypePosition pos (TGen _ n)    = (TGen pos n)
 setTypePosition pos (TDefMonad _) = (TDefMonad pos)

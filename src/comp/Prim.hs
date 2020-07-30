@@ -95,6 +95,7 @@ data PrimOp =
         | PrimAreStaticBits
 
         | PrimValueOf
+        | PrimStringOf
 
         | PrimWhen
         | PrimWhenPred -- takes abstract predicate
@@ -364,6 +365,7 @@ toPrim i = tp (getIdBaseString i)                -- XXXXX
         tp "primAreStaticBits" = PrimAreStaticBits
         tp "primWhen" = PrimWhen
         tp "primValueOf" = PrimValueOf
+        tp "primStringOf" = PrimStringOf
         tp "primOrd" = PrimOrd
         tp "primChr" = PrimChr
         tp "primIf" = PrimIf
@@ -593,6 +595,7 @@ toString PrimInoutUncast = "primInoutUncast"
 toString PrimIf = "_if_"
 toString PrimSelect = "select"
 toString PrimValueOf = "valueOf"
+toString PrimStringOf = "stringOf"
 toString PrimOrd = "ord"
 toString PrimChr = "chr"
 toString PrimError = "_error"
@@ -631,6 +634,7 @@ toWString PrimBOr = "bor"
 toWString PrimIf = "_if_"
 toWString PrimSelect = "select"
 toWString PrimValueOf = "valueOf"
+toWString PrimStringOf = "stringOf"
 toWString PrimOrd = "ord"
 toWString PrimChr = "chr"
 toWString PrimError = "_error"

@@ -64,7 +64,7 @@ mkSymTab errh (CPackage mi _ imps _ ds _) =
 
         -- the types which are built into the compiler
         -- (not defined in the Prelude etc)
-        -- (filtering out numeric types is ok because all of the
+        -- (filtering out numeric and string types is ok because all of the
         -- prelude types have identifiers)
         preTypes' = [(i, ti) | ti@(TypeInfo (Just i) _ _ _) <- preTypes]
 
@@ -197,7 +197,7 @@ updTypes r (TCon (TyCon i _ _)) =
     case findType r i of
     Just (TypeInfo (Just i') k _ ti) -> TCon (TyCon i' (Just k) ti)
     Just (TypeInfo Nothing k _ ti) ->
-        internalError ("updTypes: unexpected numeric type:" ++ ppReadable i)
+        internalError ("updTypes: unexpected numeric or string type:" ++ ppReadable i)
     Nothing -> internalError ("updTypes " ++ ppReadable i)
 updTypes r (TAp f a) = TAp (updTypes r f) (updTypes r a)
 updTypes r t = t
@@ -469,6 +469,7 @@ mkInstId mi t =
   where flat (TVar (TyVar i _ _)) = [i]
         flat (TCon (TyCon i _ _)) = [i]
         flat (TCon (TyNum n _)) = [mkNumId n]
+        flat (TCon (TyStr s _)) = [mkStrId s]
         flat (TAp t1 t2) = flat t1 ++ flat t2
         flat _ = internalError "MakeSymTab.mkInstId flat"
 
@@ -803,6 +804,7 @@ trCTypeN r as _ (TVar (TyVar i n _)) =
         K.err (getPosition i, EUnboundTyVar (pfpString i))
 
 trCTypeN r as _ t@(TCon (TyNum _ _)) = return (t, KNum)
+trCTypeN r as _ t@(TCon (TyStr _ _)) = return (t, KStr)
 trCTypeN r as _ (TCon (TyCon i _ _)) =
     let pos = getPosition i in
     case findType r i of

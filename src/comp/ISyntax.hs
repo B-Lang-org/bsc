@@ -412,6 +412,7 @@ tSubst v x t = sub t
         sub tt@(ITVar i) = if i == v then x else tt
         sub tt@(ITCon _ _ _) = tt
         sub tt@(ITNum _) = tt
+        sub tt@(ITStr _) = tt
         fvx = fTVars' x
         vs = fvx `S.union` aTVars' t
 
@@ -442,6 +443,7 @@ aTVars' (ITAp f a) = (aTVars' f) `S.union` (aTVars' a)
 aTVars' (ITVar i) = S.singleton i
 aTVars' (ITCon _ _ _) = S.empty
 aTVars' (ITNum _) = S.empty
+aTVars' (ITStr _) = S.empty
 
 -- fTVars :: IType -> [Id]
 -- fTVars t = S.toList (fTVars' t)
@@ -452,6 +454,7 @@ fTVars' (ITAp f a) = fTVars' f `S.union` fTVars' a
 fTVars' (ITVar i) = S.singleton i
 fTVars' (ITCon _ _ _) = S.empty
 fTVars' (ITNum _) = S.empty
+fTVars' (ITStr _) = S.empty
 
 
 splitITAp :: IType -> (IType, [IType])
@@ -1409,6 +1412,7 @@ getITypePositionCrossInternal n (ITAp t t') =
 getITypePositionCrossInternal _ (ITVar i) = getIdPosition i
 getITypePositionCrossInternal _ (ITCon i _ _) = getIdPosition i
 getITypePositionCrossInternal _ (ITNum _) = noPosition
+getITypePositionCrossInternal _ (ITStr _) = noPosition
 
 
 
@@ -1469,6 +1473,7 @@ getITypePosition (ITAp t t') =
 getITypePosition (ITVar i) = getIdPosition i
 getITypePosition (ITCon i _ _) = getIdPosition i
 getITypePosition (ITNum _) = noPosition
+getITypePosition (ITStr _) = noPosition
 
 --------
 

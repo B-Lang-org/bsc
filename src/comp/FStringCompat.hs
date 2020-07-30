@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module FStringCompat(FString, getFString,
                      tmpFString, cloneFString, concatFString,
-                     mkNumFString, mkFString,
+                     mkNumFString, mkStrFString, mkFString,
                      filterFString
                     ) where
 
@@ -53,3 +53,6 @@ filterFString pred (FString s) = FString $ S.filter pred s
 
 mkNumFString :: Integer -> FString
 mkNumFString i = fromString (itos i)
+
+mkStrFString :: String -> FString
+mkStrFString s = fromString (show s)

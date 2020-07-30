@@ -249,6 +249,7 @@ instance CSubst Type where
     cSubst r (TVar v) = cSubstTyVar r v
     cSubst r (TCon (TyCon i k s)) = TCon (TyCon (cSubstTConId r i) k s)
     cSubst r t@(TCon (TyNum {})) = t
+    cSubst r t@(TCon (TyStr {})) = t
     cSubst r (TAp t1 t2) = TAp (cSubst r t1) (cSubst r t2)
     cSubst r t@(TGen {}) = t
     cSubst r t@(TDefMonad {}) = t

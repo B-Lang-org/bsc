@@ -9,7 +9,7 @@ import Data.List(nub)
 import Parse
 import IntLit
 import FStringCompat
-import PreStrings(fsBar, fsStar, fsHash, fsLT, fsLTGT, fsLsh, fsNoinline,
+import PreStrings(fsBar, fsStar, fsHash, fsDollar, fsLT, fsLTGT, fsLsh, fsNoinline,
                   fsASSERT, fsFire, fsEnabled, fsNo, fsImplicit, fsConditions,
                   fsCan, fsSchedule, fsFirst, fsClockCrossing, fsRule,
                   fsEmpty, fsConfOp, fsHide, fsHideAll,
@@ -19,7 +19,7 @@ import Position
 import Error(internalError, EMsg, ErrMsg(..))
 import CSyntax
 import CSyntaxUtil
-import CType(cTNum)
+import CType(cTNum, cTStr)
 import VModInfo(VPathInfo(..), VSchedInfo, VPort,
                 VFieldInfo(..), VeriPortProp(..), VName(..),
                 VMethodConflictInfo)
@@ -106,6 +106,7 @@ expX =      blockKwOf L_let pDeflM +.+ l L_in ..+ exp0                >>> Cletre
             l L_else ..+ exp0                                         >>>>> Cif
         ||! pTyConId +.+ pFieldBlock                                  >>> CStruct
         ||! l L_valueOf +.+ atyp                                      >>- ( \ (p, t) -> cVApply (setIdPosition p idValueOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idBit) t))])
+        ||! l L_stringOf +.+ atyp                                     >>- ( \ (p, t) -> cVApply (setIdPosition p idStringOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idStringProxy) t))])
         ||! aexp `into` (\ e ->
                 blockKwOf L_where pDefl                               >>- flip Cletrec e
             ||! l L_lbra ..+ exp0 `into` (\ e' ->
@@ -248,6 +249,7 @@ atyp :: CParser CType
 atyp =      pTyConId                               >>- cTCon
         ||! pTyVarId                               >>- cTVar
         ||! pTyNumId
+        ||! pTyStrId
         ||! lp +.+ sepBy typ0 (l L_comma) +.. rp   >>> tMkTuple
 
 typ0 :: CParser CType
@@ -503,6 +505,7 @@ pKind = pAKind `into` \ k ->  l L_rarrow ..+ pKind                              
 pAKind :: CParser Kind
 pAKind = star                                                                        .>  KStar
      ||! hash                                                                        .>  KNum
+     ||! dollar                                                                      .>  KStr
      ||! lp ..+ pKind +.. rp
 
 pSummandConIds :: CParser [Id]
@@ -732,6 +735,11 @@ pTyNumId = lcp "<integer>" (\p x->case x of
     L_integer _ _ i -> Just (cTNum i p)
     _ -> Nothing)
 
+pTyStrId :: CParser CType
+pTyStrId = lcp "<string>" (\p x->case x of
+    L_string s -> Just (cTStr (mkFString s) p)
+    _ -> Nothing)
+
 literal :: FString -> CParser ()
 literal  lfs = lcp (getFString lfs) (\p x->case x of
     L_varid  fs | fs == lfs -> Just ()
@@ -809,6 +817,9 @@ star = literalS fsStar
 
 hash :: CParser ()
 hash = literalS fsHash
+
+dollar :: CParser ()
+dollar = literalS fsDollar
 
 lt :: CParser ()
 lt = literalS fsLT

@@ -463,6 +463,14 @@ Parse a numeric constructor (number type)
 >        n <- pDecimal <?> "number type"
 >        return $ mkId pos (mkFString (show n))
 
+Parse a string constructor (string type)
+
+> pStringConstructor :: SV_Parser Id
+> pStringConstructor =
+>     do pos <- getPos
+>        s <- pQuotedString <?> "string type"
+>        return $ mkId pos (mkFString (show s))
+
 Parse a static casting: type ' value
 
 > pCasting :: SV_Parser CExpr
@@ -527,7 +535,7 @@ EXPRESSIONS
 
 > pTypeConstructor :: SV_Parser CType
 > pTypeConstructor =
->     do cons <- ((pNumberConstructor <|> pQualConstructor)
+>     do cons <- ((pNumberConstructor <|> pStringConstructor <|> pQualConstructor)
 >                 <?> "type constructor")
 >        return (cTCon cons)
 
@@ -815,7 +823,9 @@ type parameter: parameter type <name>
 > pTypedefParam :: SV_Parser (Id, PartialKind)
 > pTypedefParam =
 >     (do option () (pKeyword SV_KW_parameter)
->         pkind <- option PKNoInfo (pTheString "numeric" >> return PKNum)
+>         pkind <- option PKNoInfo $
+>                  (pTheString "numeric" >> return PKNum) <|> -- XXX Seems like these should be an actual keyword?
+>                  (pKeyword SV_KW_string >> return PKStr)
 >         pKeyword SV_KW_type
 >         pid <- pIdentifier
 >         return (pid, pkind)
@@ -1837,7 +1847,7 @@ parse suffix: function call or select or combination thereof
 >            (ex, _) = foldr1 cat expPoses
 >        return ex
 
-parse valueOf: it's like function call, but it's applied to a type
+parse valueOf and stringOf: these are like function call, but applied to a type
 
 > pValueOf :: SV_Parser CExpr
 > pValueOf =
@@ -1847,6 +1857,15 @@ parse valueOf: it's like function call, but it's applied to a type
 >        return (cVApply (setIdPosition p idValueOf)
 >                [CHasType (anyExprAt p)
 >                 (CQType [] (TAp (cTCon idBit) ty))])
+
+> pStringOf :: SV_Parser CExpr
+> pStringOf =
+>     do p <- getPos
+>        (pKeyword SV_KW_stringOf <|> pKeyword SV_KW_stringof)
+>        ty <- pInParens pTypeExpr
+>        return (cVApply (setIdPosition p idStringOf)
+>                [CHasType (anyExprAt p)
+>                 (CQType [] (TAp (cTCon idStringProxy) ty))])
 
 > pPrimary :: SV_Parser CExpr
 > pPrimary = pPrimaryCaring True
@@ -1867,6 +1886,7 @@ parse valueOf: it's like function call, but it's applied to a type
 >         <|> pModuleExpression
 >         <|> pTaskCallPrimary
 >         <|> pValueOf
+>         <|> pStringOf
 >         -- variable, function call, method select
 >         <|> ((if allowDontCare
 >               then pVariable <|> pDontCare <|> pInParens pExpression

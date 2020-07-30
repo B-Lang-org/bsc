@@ -1218,6 +1218,7 @@ instance PVPrint TyVar where
 instance PVPrint TyCon where
     pvPrint d _ (TyCon i _ _) = pvpId d i
     pvPrint d _ (TyNum i _) = text (itos i)
+    pvPrint d _ (TyStr s _) = text (show s)
 
 -- CQTypes and CPreds
 
@@ -1228,9 +1229,11 @@ instance PVPrint CQType where
 instance PVPrint CPred where
     pvPrint d p (CPred (CTypeclass c) []) = pvpId d c
     pvPrint d p (CPred (CTypeclass c) ts) = pvpId d c <> text "#(" <> sepList (map (pvPrint d 0) ts) (text ",") <> text ")"
+
 instance PVPrint Kind where
     pvPrint _ _ KStar = text "*"
     pvPrint _ _ KNum = text "#"
+    pvPrint _ _ KStr = text "$"
     pvPrint d p (Kfun l r) = pparen (p>9) $ pvPrint d 10 l <+> text "->" <+> pvPrint d 9 r
     pvPrint _ _ (KVar i) = text (show i)
 
@@ -1238,6 +1241,7 @@ instance PVPrint PartialKind where
     pvPrint _ _ PKNoInfo = text "?"
     pvPrint _ _ PKStar = text "*"
     pvPrint _ _ PKNum = text "#"
+    pvPrint _ _ PKStr = text "$"
     pvPrint d p (PKfun l r) = pparen (p>9) $ pvPrint d 10 l <+> text "->" <+> pvPrint d 9 r
 
 instance PVPrint TISort where

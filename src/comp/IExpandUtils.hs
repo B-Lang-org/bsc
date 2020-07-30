@@ -3457,6 +3457,7 @@ strictPrim PrimBNot = True
 strictPrim PrimSelect = True
 strictPrim PrimBitToInteger = True
 strictPrim PrimValueOf = True
+strictPrim PrimStringOf = True
 strictPrim PrimOrd = True
 strictPrim PrimChr = True
 strictPrim PrimSameFamilyClock = True

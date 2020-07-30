@@ -155,6 +155,7 @@ kCheck r tc@(ITAp f a) = do
 kCheck r (ITVar i) = findK i r
 kCheck r (ITCon _ k _) = return k
 kCheck r (ITNum _) = return IKNum
+kCheck r (ITStr _) = return IKStr
 
 iGetKind :: IType -> Maybe IKind
 iGetKind = kCheck emptyEnv
@@ -275,6 +276,7 @@ convType e@(E tm km eqs (PredEnv n m s)) (ITVar i) =
           in  (e', TVar tyvar)
 convType e (ITCon i k s) = (e, TCon (TyCon i (Just (iToCK k)) s))
 convType e (ITNum n) = (e, TCon (TyNum n noPosition))
+convType e (ITStr s) = (e, TCon (TyStr s noPosition))
 
 convTypes :: Env -> [IType] -> (Env, [Type])
 convTypes e [] = (e, [])

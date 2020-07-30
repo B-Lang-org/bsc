@@ -279,6 +279,8 @@ Data type declaration for the keywords:
 >--     | SV_KW_noreset
 >     | SV_KW_valueof
 >     | SV_KW_valueOf
+>     | SV_KW_stringof
+>     | SV_KW_stringOf
 >     | SV_KW_clocked_by
 >     | SV_KW_reset_by
 >     | SV_KW_powered_by
@@ -626,6 +628,8 @@ scanner and to prettyprint keywords.
 >--      (SV_KW_noreset,             "noreset",              Bluespec38),
 >      (SV_KW_valueof,             "valueof",              Bluespec38),
 >      (SV_KW_valueOf,             "valueOf",              Bluespec38),
+>      (SV_KW_stringof,            "stringof",             Bluespec38), -- XXX should these be "Bluespec38"?
+>      (SV_KW_stringOf,            "stringOf",             Bluespec38),
 >      (SV_KW_clocked_by,           "clocked_by",            Bluespec38),
 >      (SV_KW_reset_by,             "reset_by",              Bluespec38),
 >      (SV_KW_powered_by,           "powered_by",            Bluespec38),

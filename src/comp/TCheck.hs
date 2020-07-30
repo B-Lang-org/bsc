@@ -389,6 +389,13 @@ tiExpr as td exp@(CApply f@(CVar vo) [e@(CHasType _ t)]) | vo == idValueOf = do
         [] -> tiApply as td exp f e
         v : _ -> err (getPosition exp, EValueOf (pfpString v))
 
+tiExpr as td exp@(CApply f@(CVar vo) [e@(CHasType _ t)]) | vo == idStringOf = do
+    let vs = nub (tv t)
+    bvs <- getBoundTVs
+    case vs \\ bvs of
+        [] -> tiApply as td exp f e
+        v : _ -> err (getPosition exp, EStringOf (pfpString v))
+
 tiExpr as td (CApply e []) = tiExpr as td e
 tiExpr as td exp@(CApply f [e]) = tiApply as td exp f e
 tiExpr as td (CApply e es) = tiExpr as td (foldl ap e es)

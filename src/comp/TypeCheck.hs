@@ -159,7 +159,7 @@ qualifyClassDefaults errh symt ds =
               Just (TypeInfo (Just qt) _ _ _) -> (t, qt)
               Just (TypeInfo Nothing _ _ _) ->
                   internalError ("qualifyClassDefaults: " ++
-                                 "unexpected numeric type: " ++ ppReadable t)
+                                 "unexpected numeric or string type: " ++ ppReadable t)
               Nothing -> internalError ("qualifyClassDefaults: " ++
                                         "type not found: " ++ ppReadable t)
         mkVQual v =

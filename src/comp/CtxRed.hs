@@ -470,6 +470,7 @@ getVarKinds (IdPKind _ pk) vs =
         getKind PKNoInfo = Nothing
         getKind PKStar = Just KStar
         getKind PKNum = Just KNum
+        getKind PKStr = Just KStr
         getKind (PKfun a b) =
             case (getKind a, getKind b) of
               (Just ak, Just bk) -> Just $ Kfun ak bk
