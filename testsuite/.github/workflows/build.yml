@@ -84,7 +84,7 @@ jobs:
           export CXXFLAGS="-fuse-ld=gold -O0"
           make \
                TEST_SYSTEMC_INC=$HOME/systemc/include \
-               TEST_SYSTEMC_LIB=$HOME/systemc/lib
+               TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
