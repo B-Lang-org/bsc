@@ -1,0 +1,17 @@
+checking package dependencies
+compiling BadCase.bs
+Error: "BadCase.bs", line 13, column 4: (T0142)
+  Pattern for constructor `Zero' of type BadCase.TestADT requires 0 arguments,
+  found 1.
+Error: "BadCase.bs", line 22, column 4: (T0142)
+  Pattern for constructor `Zero' of type BadCase.TestADT requires 0 arguments,
+  found 2.
+Error: "BadCase.bs", line 31, column 4: (T0142)
+  Pattern for constructor `Zero' of type BadCase.TestADT requires 0 arguments,
+  found 1.
+Error: "BadCase.bs", line 41, column 4: (T0142)
+  Pattern for constructor `One' of type BadCase.TestADT requires 1 arguments,
+  found 2.
+Error: "BadCase.bs", line 51, column 4: (T0142)
+  Pattern for constructor `Two' of type BadCase.TestADT requires 2 arguments,
+  found 3.

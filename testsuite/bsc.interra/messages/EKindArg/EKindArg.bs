@@ -1,0 +1,24 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EKindArg.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EKindArg error of the bluespec
+-- compiler (Wrong Number of Arguments to class)
+--
+-----------------------------------------------------------------------
+
+
+
+package EKindArg() where
+
+-- import Int
+
+
+
+sum :: (Add 1 a b, Add a 1) => Int a -> Int a -> Int 1 -> Int b
+sum x y z = zeroExtend x + zeroExtend y + zeroExtend z;
+
+

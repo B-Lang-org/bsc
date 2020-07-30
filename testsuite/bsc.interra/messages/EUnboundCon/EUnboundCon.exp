@@ -1,0 +1,5 @@
+compile_fail EUnboundCon.bs
+compare_file EUnboundCon.bs.bsc-out
+
+compile_fail EUnboundCon1.bs
+compare_file EUnboundCon1.bs.bsc-out

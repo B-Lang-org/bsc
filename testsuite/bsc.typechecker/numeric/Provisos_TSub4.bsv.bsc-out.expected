@@ -1,0 +1,8 @@
+checking package dependencies
+compiling Provisos_TSub4.bsv
+Error: "Provisos_TSub4.bsv", line 1, column 18: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Add#(4, 1, 3)
+  The proviso was implied by expressions at the following positions:
+    "Provisos_TSub4.bsv", line 3, column 11

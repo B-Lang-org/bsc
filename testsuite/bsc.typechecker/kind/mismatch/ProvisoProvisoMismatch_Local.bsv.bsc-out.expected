@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ProvisoProvisoMismatch_Local.bsv
+Error: "ProvisoProvisoMismatch_Local.bsv", line 3, column 40: (T0026)
+  The value type `szt' was found where a numeric type was expected.

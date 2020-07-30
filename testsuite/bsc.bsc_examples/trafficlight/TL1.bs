@@ -1,0 +1,52 @@
+package TL1 (sysTL, TL) where {
+
+  -- Simple model of a traffic light
+
+  -- Version 1: collapsed all the Reds into one, just remembering the
+  --            next green.  Retained separate Ambers, because each
+  --            Amber controls a different set of lights
+
+  interface TL = { };
+
+  data TLstates = AllRed
+                | GreenNS  | AmberNS
+                | GreenE   | AmberE
+                | GreenW   | AmberW
+                deriving (Eq, Bits);
+
+  sysTL :: Module TL;
+  sysTL =
+      module {
+          state :: Reg TLstates;
+          state <- mkReg AllRed;
+
+          next_green :: Reg TLstates;
+          next_green <- mkReg GreenNS;
+      interface {
+          -- Empty interface
+      };
+      addRules $
+        rules {
+          "fromAllRed":
+            when (state == AllRed)     ==> state := next_green;
+
+          "fromGreenNS":
+            when (state == GreenNS)    ==> state := AmberNS;
+
+          "fromAmberNS":
+            when (state == AmberNS)    ==> action { state := AllRed; next_green := GreenE; };
+
+          "fromGreenE":
+            when (state == GreenE)     ==> state := AmberE;
+
+          "fromAmberE":
+            when (state == AmberE)     ==> action { state := AllRed; next_green := GreenW; };
+
+          "fromGreenW":
+            when (state == GreenW)     ==> state := AmberW;
+
+          "fromAmberW":
+            when (state == AmberW)     ==> action { state := AllRed; next_green := GreenNS; };
+        }
+      }
+}

@@ -1,0 +1,40 @@
+package PortReplicator () where
+
+import FIFO
+
+import AsyncROM
+
+type Adr = (Bit 32)
+type Dta = (Bit 32)
+
+type Tag = (Bit 2)
+
+type ROM lat = AsyncROM lat Adr Dta
+
+mk3ROMports :: (Add lat 1 lat1)
+	    => ROM lat -> Module (ROM lat1, ROM lat1, ROM lat1)
+mk3ROMports rom =
+  module
+    tags :: FIFO Tag <- mkSizedFIFO (valueOf lat)
+
+    let mkPort :: (Add lat 1 lat1) => Tag -> Module (ROM lat1)
+	mkPort i =
+	  module
+	    out :: FIFO Dta <- mkSizedFIFO (valueOf lat)
+	    rules
+	      when tags.first == i
+		==> action tags.deq
+	                   rom.ack
+	                   out.enq rom.result
+            interface
+	      read a = action rom.read a
+	                      tags.enq i
+              result = out.first
+              ack = out.deq
+
+    port0 :: ROM lat1 <- mkPort 0
+    port1 :: ROM lat1 <- mkPort 1
+    port2 :: ROM lat1 <- mkPort 2
+    interface (port0, port1, port2)
+
+

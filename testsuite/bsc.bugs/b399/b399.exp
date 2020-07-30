@@ -1,0 +1,6 @@
+compile_verilog_pass Bug399.bsv
+if { $vtest == 1 } {
+string_does_not_occur mkBug399.v {input  CLK;}
+string_does_not_occur mkBug399.v {input  CLK_GATE;}
+string_does_not_occur mkBug399.v {input  RST_N;}
+}

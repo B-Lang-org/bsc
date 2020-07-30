@@ -1,0 +1,7 @@
+if {$vtest == 1} {
+compile_verilog_pass WUrgencyChoice1.bs mkWUrgencyChoice1
+compare_file WUrgencyChoice1.bs.bsc-vcomp-out
+
+compile_verilog_pass WUrgencyChoice2.bs mkWUrgencyChoice2
+compare_file WUrgencyChoice2.bs.bsc-vcomp-out
+}

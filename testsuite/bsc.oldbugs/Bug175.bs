@@ -1,0 +1,16 @@
+package Bug175(sysBug175) where
+
+import Vector
+
+sysBug175 :: Module Empty
+sysBug175 = 
+  let 
+    l :: Vector 2 (Bit 16) = replicate 1 
+  in  
+      module 
+        finalvals :: Reg (Bit (TMul 2 16))
+        finalvals <- mkReg (pack l)
+
+        rules
+          when True ==> $display "%0d" (finalvals :: Bit (TMul 2 16))
+  

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Define_BITVECTOR.bsv
+Warning: Unknown position: (S0001)
+  File name `Define_BITVECTOR.bsv' does not match package name `Design'
+All packages are up to date.

@@ -1,0 +1,18 @@
+package NormalMult(sysNormalMult) where
+
+sysNormalMult :: Module Empty
+sysNormalMult = 
+  module 
+    r :: Reg (Bit 5) <- mkReg 31
+    s :: Reg (Bit 5) <- mkReg 15
+    t :: Reg (Bit 5) <- mkReg 0
+    done :: Reg(Bool) <- mkReg False  
+    rules
+      when not done ==>
+        action
+          t := r * s 
+          done := True
+      when done ==>
+        action
+          $display "%0d" t
+          $finish 0

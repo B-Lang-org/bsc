@@ -1,0 +1,7 @@
+Error: Unknown position: (S0065)
+  A search for the elaboration file (.ba) for module `mkRightMod' found the
+  following file:
+    ./mkRightMod.ba
+  However, this file is for module `mkWrongMod'. Please rename this file,
+  adjust the search path, or provide the correct elaboration file on the
+  command line.

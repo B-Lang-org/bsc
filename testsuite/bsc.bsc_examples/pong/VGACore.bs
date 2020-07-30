@@ -1,0 +1,214 @@
+--
+-- either one of the sync signals
+--
+--       |<-- Active Region ---->|<----------- Blanking Region ---------->|
+--       |      (Pixels)         |                                        |
+--       |                       |                                        |
+--       |                       |                                        |
+--   ----+--------- ... ---------+-------------             --------------+---
+--   |   |                       |            |             |             |
+--   |   |                       |<--Front    |<---Sync     |<---Back     |
+--   |   |                       |    Porch-->|     Time--->|    Porch--->|
+-- ---   |                       |            ---------------             |
+--       |                       |                                        |
+--       |<------------------- Period ----------------------------------->|
+--
+
+package VGACore(
+	VGATiming(..), VGAHVTiming(..),
+	vga640x480, vga1280x480, sizeToTiming, hzToTiming,
+	mkVGACore, VGACore(..)
+	) where
+
+-- Sync info for horizontal or vertical
+struct VGAHVTiming =
+     activeSize :: Integer
+     syncStart  :: Integer
+     syncEnd    :: Integer
+     totalSize  :: Integer
+
+-- Sync info for VGA
+struct VGATiming =
+     h :: VGAHVTiming
+     v :: VGAHVTiming
+
+-- Better?
+-- 640  650  710  762    480  482  488  500
+-- 800  812  888  952    600  602  610  626
+
+vga640x480 :: VGATiming
+vga640x480 =
+    VGATiming {
+	h = VGAHVTiming { activeSize = 640; syncStart = 664; syncEnd = 760; totalSize = 800 };
+	v = VGAHVTiming { activeSize = 480; syncStart = 490; syncEnd = 494; totalSize = 526 };
+    }
+
+vga1280x480 :: VGATiming
+vga1280x480 =
+    VGATiming {
+	h = VGAHVTiming { activeSize = 1280; syncStart =1328; syncEnd = 1520; totalSize = 1600 };
+	v = VGAHVTiming { activeSize = 480; syncStart = 490; syncEnd = 494; totalSize = 526 };
+    }
+
+
+hzToTiming :: Integer -> VGATiming
+hzToTiming hz = 
+  let
+    nsCycles :: Integer -> Integer
+    nsCycles x = (x * hz) `div` 1000000000
+
+    usCycles :: Integer -> Integer
+    usCycles x = (x * hz) `div` 1000000
+
+    hTotalSize = nsCycles 31770
+  in
+    VGATiming {
+	h = VGAHVTiming { activeSize = nsCycles 25170;
+			  syncStart  = nsCycles 26110;
+			  syncEnd    = nsCycles 29880;
+			  totalSize  = hTotalSize;
+			};
+	v = VGAHVTiming { activeSize = usCycles 15250 `div` hTotalSize;
+			  syncStart  = usCycles 15700 `div` hTotalSize;
+			  syncEnd    = usCycles 15764 `div` hTotalSize;
+			  totalSize  = usCycles 16784 `div` hTotalSize;
+			}
+    }
+
+
+sizeToTiming :: Integer -> Integer -> VGATiming
+sizeToTiming hSize vSize =
+    VGATiming {
+	h = VGAHVTiming { activeSize = hSize;
+			   syncStart = (hSize * 856) `div` 800;
+			   syncEnd = (hSize * 880) `div` 800;
+			   totalSize = (hSize * 982) `div` 800 };
+	v = VGAHVTiming { activeSize = vSize;
+			  syncStart = (vSize * 602) `div` 600;
+			  syncEnd = (vSize * 610) `div` 600;
+			  totalSize = (vSize * 626) `div` 600 };
+    }
+{-
+    VGATiming {
+	h = VGAHVTiming { activeSize = hSize;
+			   syncStart = (hSize * 812) `div` 800;
+			   syncEnd = (hSize * 888) `div` 800;
+			   totalSize = (hSize * 952) `div` 800 };
+	v = VGAHVTiming { activeSize = vSize;
+			  syncStart = (vSize * 602) `div` 600;
+			  syncEnd = (vSize * 610) `div` 600;
+			  totalSize = (vSize * 626) `div` 600 };
+    }
+-}
+
+interface VGACore hCoord vCoord =
+   not_hsync :: Bool
+   not_vsync :: Bool
+   blank :: Bool
+   
+   hPos  :: hCoord
+   vPos  :: vCoord
+
+   lineTick :: Bool
+   frameTick :: Bool
+
+
+mkVGACore :: (Bits hCoord hs, Literal hCoord, Eq hCoord, Arith hCoord,
+	      Bits vCoord vs, Literal vCoord, Eq vCoord, Arith vCoord) =>
+	     Integer -> VGATiming -> Module (VGACore hCoord vCoord)
+mkVGACore preScale vt = do
+    hPosR :: Reg hCoord <- mkReg 0
+    vPosR :: Reg vCoord <- mkReg 0
+
+    hVisible :: Reg Bool <- mkReg True -- False
+    vVisible :: Reg Bool <- mkReg True -- False
+
+    not_hsyncR :: Reg Bool <- mkReg True
+    not_vsyncR :: Reg Bool <- mkReg True
+
+    scale :: Reg (Bit 4) <- mkReg 0
+    
+    let
+        hSize = fromInteger vt.h.activeSize
+        vSize = fromInteger vt.v.activeSize
+        hSyncStart = fromInteger vt.h.syncStart
+        vSyncStart = fromInteger vt.v.syncStart
+        hSyncEnd = fromInteger vt.h.syncEnd
+        vSyncEnd = fromInteger vt.v.syncEnd
+        hTotal = fromInteger vt.h.totalSize
+        vTotal = fromInteger vt.v.totalSize
+
+        hTickLocal = hPosR == hTotal
+        vTickLocal = hTickLocal && vPosR == vTotal
+
+        hTickExternal = hPosR == hSize + 1
+        vTickExternal = hTickExternal && vPosR == vSize + 1
+
+
+    addRules $
+        rules
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "tick":
+	      when preScale /= 1 ==>
+	      action
+		  scale := if scale == 0 then fromInteger (preScale - 1) else scale - 1
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "hclk":
+	      when preScale == 1 || scale == 0 ==>
+	      action
+        	hPosR := if hTickLocal then 0 else hPosR + 1
+		hVisible := hPosR /= hSize && (hTickLocal || hVisible)
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "vclk":
+	      when hTickLocal ==>
+	      action
+	        vPosR := if vTickLocal then 0 else vPosR + 1 
+		vVisible := vPosR /= vSize && (vTickLocal || vVisible)
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "hsyncOn":
+	      when hPosR == hSyncStart ==>
+	      action
+		not_hsyncR := False
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "hsyncOff":
+	      when hPosR == hSyncEnd ==>
+	      action
+		not_hsyncR := True
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "vsyncOn":
+	      when vPosR == vSyncStart ==>
+	      action
+		not_vsyncR := False
+
+	  {-# ASSERT no implicit conditions #-}
+	  {-# ASSERT fire when enabled #-}
+	  "vsyncOff":
+	      when vPosR == vSyncEnd ==>
+	      action
+		not_vsyncR := True
+
+    return $
+      interface VGACore
+
+        hPos = hPosR
+        vPos = vPosR
+
+        -- blank video outside of visible region
+        blank = not (hVisible && vVisible)
+
+        not_hsync = not_hsyncR
+        not_vsync = not_vsyncR
+
+        lineTick = hTickExternal && vVisible
+        frameTick = vTickExternal

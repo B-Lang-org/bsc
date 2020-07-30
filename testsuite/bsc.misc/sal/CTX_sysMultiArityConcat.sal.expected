@@ -1,0 +1,29 @@
+CTX_sysMultiArityConcat : CONTEXT =
+BEGIN
+  
+  STATE : TYPE =
+    [# inst_src1 : CTX_RegUN{3}!STATE
+     , inst_src2 : CTX_RegUN{4}!STATE
+     , inst_src3 : CTX_RegUN{5}!STATE
+     , inst_snk : CTX_RegUN{12}!STATE
+     #] ;
+  
+  ctor : STATE =
+    (# inst_src1 := CTX_RegUN{3}!ctor
+     , inst_src2 := CTX_RegUN{4}!ctor
+     , inst_src3 := CTX_RegUN{5}!ctor
+     , inst_snk := CTX_RegUN{12}!ctor
+     #) ;
+  
+  rule_RL_d (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def__read__h44 : Bit{3}!T = CTX_RegUN{3}!meth_read(state0.inst_src1)
+    IN LET def__read__h76 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_src2)
+    IN LET def__read__h108 : Bit{5}!T = CTX_RegUN{5}!meth_read(state0.inst_src3)
+    IN LET act1 : [ CTX_RegUN{12}!STATE, Unit!T ] =
+	     CTX_RegUN{12}!meth_write(Prim2{3,9}!primConcat(def__read__h44,
+							    Prim2{4,5}!primConcat(def__read__h76, def__read__h108)),
+				      state0.inst_snk)
+    IN LET state1 : STATE = state0 WITH .inst_snk := act1.1
+    IN ( TRUE, state1 ) ;
+  
+END

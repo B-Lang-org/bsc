@@ -1,0 +1,53 @@
+package RAM2(sysRAM2) where
+import RegFile
+import ActionSeq
+
+interface RAM2Req a d =
+	write :: a -> d -> Action
+	read  :: a -> Action
+
+interface RAM2Rep d =
+	rdata :: d -> Action
+
+slowRAM2 :: (Bits a sa, Bits d sd) => a -> a -> RAM2Rep d -> Module (RAM2Req a d)
+slowRAM2 lo hi rep =
+    module
+	arr :: RegFile a d
+	arr <- mkRegFile lo hi
+	rd :: Reg Bool
+	rd <- mkRegU
+	val :: Reg d
+	val <- mkRegU
+	delay :: ActionSeq
+	delay <- actionSeq ( action {} |> action {} |> if rd then rep.rdata val else action {} )	-- delay for 3 cycles
+        interface
+	    write a d = action { arr.upd a d;      rd := False; delay.start }
+	    read  a   = action { val := arr.sub a; rd := True;  delay.start }
+
+
+type A = UInt 10
+type I = UInt 32
+
+sysRAM2 :: Module Empty
+sysRAM2 =
+    module
+	acc :: Reg I
+	acc <- mkReg 0
+	let reply = RAM2Rep { rdata = \ d -> acc := acc + d }
+	ram :: RAM2Req A I
+	ram <- slowRAM2 0 1023 reply
+	cnt :: Reg A
+	cnt <- mkReg 0
+	rcnt :: Reg A
+	rcnt <- mkReg 0
+        rules
+          "inc":
+	    when True
+	     ==> cnt := cnt + 5
+          "write":
+	    when (cnt & 0x7) == 0
+	     ==> ram.write cnt (zeroExtend cnt + 1000)
+          "read":
+	    when (cnt & 0x7) == 4
+	     ==> action { ram.read rcnt; rcnt := rcnt + 1 }
+

@@ -1,0 +1,25 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EStmtContext1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "statement context" error (EStmtContext)
+
+-- Error Message : bsc EStmtContext1.bs
+-- bsc: Compilation errors:
+-- "/usr/lib/Bluespec/Prelude/Prelude.bi", line 51, column 15, Binding has context: (Prelude.Bits a 1) => Prelude.Reg Prelude.Bool
+-----------------------------------------------------------------------
+
+package EStmtContext1 (EStmtContext1(..)) where
+
+interface EStmtContext1 =
+                         start :: Bool -> Action
+
+
+mkEStmtContext1 :: Module (Reg Bool)
+mkEStmtContext1 =
+
+                    do
+                       { x :: (Bits a 1) => Reg Bool <- mkRegU; return x }

@@ -1,0 +1,20 @@
+checking package dependencies
+compiling RuleHier_ClockDomainErr.bsv
+code generation for sysRuleHier_ClockDomainErr starts
+Error: "RuleHier_ClockDomainErr.bsv", line 14, column 9: (G0007)
+  Reference across clock domain in rule `m1_m2_r'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	m1_m2_rg1.write
+    Clock domain 2:
+      clk2:
+	m1_m2_rg2.read
+  During elaboration of rule `r' at "RuleHier_ClockDomainErr.bsv", line 14,
+  column 9.
+  During elaboration of `m2' at "RuleHier_ClockDomainErr.bsv", line 7, column
+  8.
+  During elaboration of `m1' at "RuleHier_ClockDomainErr.bsv", line 3, column
+  8.
+  During elaboration of `sysRuleHier_ClockDomainErr' at
+  "RuleHier_ClockDomainErr.bsv", line 2, column 8.

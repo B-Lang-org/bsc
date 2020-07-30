@@ -1,0 +1,53 @@
+package Score(mkScore, mkDisplay) where
+import qualified Vector
+import List
+import Global
+import Shape
+import Color
+import LedDecoder
+import Decimal
+
+long :: (Literal a) => a
+long = fromInteger scoreLong
+short :: (Literal a) => a
+short = fromInteger scoreShort
+longs :: (Literal a, Arith a) => a
+longs = long - short
+
+--    6
+--  5   4
+--    3
+--  2   1
+--    0
+mkDigit :: LedDigit -> XCoord -> YCoord -> Module Shape
+mkDigit digit x y = do
+
+    let mkRectangle2 x xw y yw = mkRectangle x xw (y>>1) (yw>>1)
+
+    seg6 :: Shape <- mkRectangle2 x         long    y           short cWhite
+    seg5 :: Shape <- mkRectangle2 x         short   y           long  cWhite
+    seg4 :: Shape <- mkRectangle2 (x+longs) short   y           long  cWhite
+    seg3 :: Shape <- mkRectangle2 x         long    (y+longs)   short cWhite
+    seg2 :: Shape <- mkRectangle2 x         short   (y+longs)   long  cWhite
+    seg1 :: Shape <- mkRectangle2 (x+longs) short   (y+longs)   long  cWhite
+    seg0 :: Shape <- mkRectangle2 x         long    (y+2*longs) short cWhite
+
+    ldec :: LedDecoder <- mkLedDecoder
+    let mask :: List Bool
+	mask = Vector.toList (unpack (ldec.decode digit))
+	segs = seg0 :> seg1 :> seg2 :> seg3 :> seg4 :> seg5 :> seg6 :> Nil
+	maskShape vis s = modShapeVis (\ c -> if vis then c else cNone) s
+	disp = joinManyShapes (zipWith maskShape mask segs)
+
+    return disp
+
+mkScore :: DecCounter n -> XCoord -> YCoord -> Module Shape
+mkScore cnt x y = mkDisplay cnt.getDigits x y
+
+mkDisplay :: Vector.Vector n (Bit 4) -> XCoord -> YCoord -> Module Shape
+mkDisplay digits x y = do
+    let n1 = valueOf n - 1
+	sep = long+short
+	right = fromInteger (n1*sep) + x
+    glyphs :: List Shape <- mapM (\ i -> mkDigit (Vector.toList digits !! i) (right - fromInteger i*sep) y) (upto 0 n1)
+    return (joinManyShapes glyphs)

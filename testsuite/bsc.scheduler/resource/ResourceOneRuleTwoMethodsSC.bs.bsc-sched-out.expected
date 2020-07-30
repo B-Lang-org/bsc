@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ResourceOneRuleTwoMethodsSC.bs
+code generation for sysResourceOneRuleTwoMethodsSC starts
+Error: "ResourceOneRuleTwoMethodsSC.bs", line 16, column 13: (G0004)
+  Rule `RL_unnamed' uses methods that conflict in parallel:
+    b.enq(...)
+  and
+    b.clear()
+  For the complete expressions use the flag `-show-range-conflict'.

@@ -1,0 +1,39 @@
+#
+# This file contains tests for bsc Verilog-backend -e flag
+#
+
+if { $vtest == 1 } {
+
+compile_verilog_pass Hello.bsv sysHello
+
+# check that the default testsuite vsim works
+link_verilog_pass sysHello.v sysHello
+sim_verilog sysHello
+check_verilog_output sysHello.out sysHello.out.expected {}
+
+# check that it also works when invoking via full path
+link_verilog_pass sysHello.v sysHello "-vsim $bsdir/exec/bsc_build_vsim_$verilog_compiler"
+sim_verilog sysHello
+check_verilog_output sysHello.out sysHello.out.expected {}
+
+# check that the right arguments are passed to verilog script
+link_verilog_pass sysHello.v sysHello "-vsim /bin/echo"
+move sysHello.bsc-vcomp-out sysHello.sim-echo.bsc-vcomp-out
+m4_process "-DBLUESPECDIR=$bsdir" bsc-sim-echo.expected bsc-sim-echo.expected.post-m4
+compare_file sysHello.sim-echo.bsc-vcomp-out bsc-sim-echo.expected.post-m4
+
+# check that a bogus sim name causes a clean error
+link_verilog_fail sysHello.v sysHello "-vsim bogus_sim"
+find_n_error sysHello.bsc-vcomp-out S0035 1
+
+# check that a bogus path causes a clean error
+link_verilog_fail sysHello.v sysHello "-vsim $bsdir/exec/bogus_sim"
+find_n_error sysHello.bsc-vcomp-out S0035 1
+
+# check that -D used with -e passes the define along to Verilog
+link_verilog_pass sysHello.v sysHello "-D foo -D bar=128 -vsim /bin/echo"
+move sysHello.bsc-vcomp-out sysHello.D-test.bsc-vcomp-out
+m4_process "-DBLUESPECDIR=$bsdir" bsc-D-test.expected bsc-D-test.expected.post-m4
+compare_file sysHello.D-test.bsc-vcomp-out bsc-D-test.expected.post-m4
+
+}

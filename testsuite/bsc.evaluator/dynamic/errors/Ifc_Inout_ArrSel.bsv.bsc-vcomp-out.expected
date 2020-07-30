@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Ifc_Inout_ArrSel.bsv
+code generation for sysIfc_Inout_If starts
+Error: "Ifc_Inout_ArrSel.bsv", line 13, column 4: (G0094)
+  The expression for a inout could not be evaluated. Inouts must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface inout `io_out' at
+  "Ifc_Inout_ArrSel.bsv", line 6, column 8.
+  During elaboration of `sysIfc_Inout_If' at "Ifc_Inout_ArrSel.bsv", line 6,
+  column 8.

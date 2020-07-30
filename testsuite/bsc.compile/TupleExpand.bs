@@ -1,0 +1,11 @@
+package TupleExpand() where
+
+-- make sure tuple expansion in ISimplify doesn't "go off the deep end"
+struct My_pair1 = {fst :: Bit 16; snd :: Bit 16}
+  deriving(Eq, Bits)
+
+y :: My_pair1
+y = My_pair1 {fst=z.fst;snd=z.snd}
+        
+z :: My_pair1
+z = My_pair1 {fst=y.fst;snd=y.snd}

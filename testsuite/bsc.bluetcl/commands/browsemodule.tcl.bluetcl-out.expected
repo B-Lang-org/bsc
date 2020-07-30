@@ -1,0 +1,66 @@
+-verilog
+mkIfcWithVec mkI mkM mkT
+{1 {top (mkT)} {}}
+{2 {r1 (mkM)} {}} {3 {r2 (mkM)} {}} {4 {mi (mkI)} {}} {5 {mb (VFoo)} {}} {6 {iv (mkIfcWithVec)} {}}
+{7 {ptr (RegN)} {}} {8 {r1 (RegN)} {}} {9 {r2 (RegN)} {}}
+
+primitive
+user {instance r1} {module mkM} {interface Reg#(Bool)} {methods {_write _read}} {rules {RL_rHello RL_rWorld}} {schedule {parallel: [esposito: [_write -> [], _read -> [], RL_rHello -> [], RL_rWorld -> []]]
+order: [_read, RL_rHello, RL_rWorld, _write]}}
+1 -----------
+{2 {r1 (mkM)} {}} {3 {r2 (mkM)} {}} {4 {mi (mkI)} {}} {5 {mb (VFoo)} {}} {6 {iv (mkIfcWithVec)} {}}
+user {instance top} {module mkT} {interface Test::InoutRegIFC#(Bool)} {methods {r__write r__read b}} {rules {}} {schedule {parallel: [esposito: [r__write -> [], r__read -> []]]
+order: [r__write, r__read]}}
+2 -----------
+{7 {ptr (RegN)} {}} {8 {r1 (RegN)} {}} {9 {r2 (RegN)} {}}
+user {instance r1} {module mkM} {interface Reg#(Bool)} {methods {_write _read}} {rules {RL_rHello RL_rWorld}} {schedule {parallel: [esposito: [_write -> [], _read -> [], RL_rHello -> [], RL_rWorld -> []]]
+order: [_read, RL_rHello, RL_rWorld, _write]}}
+3 -----------
+{10 {ptr (RegN)} {}} {11 {r1 (RegN)} {}} {12 {r2 (RegN)} {}}
+user {instance r2} {module mkM} {interface Reg#(Bool)} {methods {_write _read}} {rules {RL_rHello RL_rWorld}} {schedule {parallel: [esposito: [_write -> [], _read -> [], RL_rHello -> [], RL_rWorld -> []]]
+order: [_read, RL_rHello, RL_rWorld, _write]}}
+4 -----------
+
+user {instance mi} {module mkI} {interface Test::InoutIFC} {methods b} {rules {}} {schedule {parallel: [esposito: []]
+order: []}}
+5 -----------
+
+import
+6 -----------
+
+user {instance iv} {module mkIfcWithVec} {interface Test::IfcWithVec} {methods {clks1_0 clks1_1 rsts1_0 rsts1_1 vec1_0__write vec1_0__read vec1_1__write vec1_1__read vec2_0_0__write vec2_0_0__read vec2_0_1__write vec2_0_1__read vec2_1_0__write vec2_1_0__read vec2_1_1__write vec2_1_1__read vec3_0_0_0__write vec3_0_0_0__read vec3_0_0_1__write vec3_0_0_1__read vec3_0_1_0__write vec3_0_1_0__read vec3_0_1_1__write vec3_0_1_1__read vec3_1_0_0__write vec3_1_0_0__read vec3_1_0_1__write vec3_1_0_1__read vec3_1_1_0__write vec3_1_1_0__read vec3_1_1_1__write vec3_1_1_1__read data1 data2 data3 ios1_0 ios1_1}} {rules {}} {schedule {parallel: [esposito: [vec1_0__write -> [], vec1_0__read -> [], vec1_1__write -> [], vec1_1__read -> [], vec2_0_0__write -> [], vec2_0_0__read -> [], vec2_0_1__write -> [], vec2_0_1__read -> [], vec2_1_0__write -> [], vec2_1_0__read -> [], vec2_1_1__write -> [], vec2_1_1__read -> [], vec3_0_0_0__write -> [], vec3_0_0_0__read -> [], vec3_0_0_1__write -> [], vec3_0_0_1__read -> [], vec3_0_1_0__write -> [], vec3_0_1_0__read -> [], vec3_0_1_1__write -> [], vec3_0_1_1__read -> [], vec3_1_0_0__write -> [], vec3_1_0_0__read -> [], vec3_1_0_1__write -> [], vec3_1_0_1__read -> [], vec3_1_1_0__write -> [], vec3_1_1_0__read -> [], vec3_1_1_1__write -> [], vec3_1_1_1__read -> [], data1 -> [], data2 -> [], data3 -> []]]
+order: [vec1_0__write, vec1_0__read, vec1_1__write, vec1_1__read, vec2_0_0__write, vec2_0_0__read, vec2_0_1__write, vec2_0_1__read, vec2_1_0__write, vec2_1_0__read, vec2_1_1__write, vec2_1_1__read, vec3_0_0_0__write, vec3_0_0_0__read, vec3_0_0_1__write, vec3_0_0_1__read, vec3_0_1_0__write, vec3_0_1_0__read, vec3_0_1_1__write, vec3_0_1_1__read, vec3_1_0_0__write, vec3_1_0_0__read, vec3_1_0_1__write, vec3_1_0_1__read, vec3_1_1_0__write, vec3_1_1_0__read, vec3_1_1_1__write, vec3_1_1_1__read, data1, data2, data3]}}
+7 -----------
+
+primitive
+8 -----------
+
+primitive
+9 -----------
+
+primitive
+top level 
+user
+instance top
+module mkT
+interface Test::InoutRegIFC#(Bool)
+methods {r__write r__read b}
+rules {}
+schedule {parallel: [esposito: [r__write -> [], r__read -> []]]
+order: [r__write, r__read]}
+mkM
+
+{1 {top (mkM)} {}}
+1 -----------
+{2 {ptr (RegN)} {}} {3 {r1 (RegN)} {}} {4 {r2 (RegN)} {}}
+user {instance top} {module mkM} {interface Reg#(Bool)} {methods {_write _read}} {rules {RL_rHello RL_rWorld}} {schedule {parallel: [esposito: [_write -> [], _read -> [], RL_rHello -> [], RL_rWorld -> []]]
+order: [_read, RL_rHello, RL_rWorld, _write]}}
+2 -----------
+
+primitive
+3 -----------
+
+primitive
+4 -----------
+
+primitive

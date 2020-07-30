@@ -1,0 +1,36 @@
+if { $vtest == 1 && [isPositiveReset] == 0} {
+
+compile_verilog_pass  TbEnv.bsv
+link_verilog_pass {mkTbEnv.v} mkTbEnv
+sim_verilog mkTbEnv "+receive +transmit"
+compare_file mkTbEnv.out mkTbEnv.out.expected
+
+compile_verilog_pass  SimpleSwitch.bsv
+link_verilog_pass {mkSimpleSwitch.v} mkSimpleSwitch
+sim_verilog mkSimpleSwitch "+receive +transmit"
+compare_file mkSimpleSwitch.out mkSimpleSwitch.out.expected
+
+}
+
+if { $ctest == 1 } {
+
+# Bluesim can't handle these tests because they import foreign Verilog
+
+set common_objs { mkTbTop.ba
+                  mkMiiPhyLayer.ba
+                  mkMiiPhyLayerRx.ba
+                  mkMiiPhyLayerTx.ba
+                  mkCrcCalculator.ba
+	          module_calculateCrcNext.ba }
+
+compile_object_pass TbEnv.bsv
+link_objects_fail_error \
+    "mkTbEnv.ba mkScoreboard.ba $common_objs" \
+    mkTbEnv G0084 1
+
+compile_object_pass SimpleSwitch.bsv
+link_objects_fail_error \
+    "mkSimpleSwitch.ba mkDummyScoreboard.ba $common_objs" \
+    mkSimpleSwitch G0084 1
+
+}

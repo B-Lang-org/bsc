@@ -1,0 +1,19 @@
+package StringOf where
+
+data (Foo :: $ -> *) s = Foo
+
+actStringOf :: Foo s -> Action
+actStringOf f = $display (stringOf s)
+
+a :: Foo "aaa"
+a = Foo
+
+sysStringOf :: Module Empty
+sysStringOf = module
+  let b :: Foo "bbb" = Foo
+
+  rules
+    when True ==> do
+      actStringOf a
+      actStringOf b
+      $finish

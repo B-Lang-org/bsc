@@ -1,0 +1,31 @@
+                   5 *********** START OF TRANSFER          0 ***************
+                3945 Checksum:        4950        4950
+                3945 sub-test passed
+                3955 *********** START OF TRANSFER          1 ***************
+                9065 Checksum:       24090       24090
+                9065 sub-test passed
+                9075 *********** START OF TRANSFER          2 ***************
+               14185 Checksum:       64620       64620
+               14185 sub-test passed
+               14195 *********** START OF TRANSFER          3 ***************
+               19305 Checksum:      134940      134940
+               19305 sub-test passed
+               19315 *********** START OF TRANSFER          4 ***************
+               25705 Checksum:      244650      244650
+               25705 sub-test passed
+               25715 *********** START OF TRANSFER          5 ***************
+               32105 Checksum:      404550      404550
+               32105 sub-test passed
+               32115 *********** START OF TRANSFER          6 ***************
+               38505 Checksum:      626640      626640
+               38505 sub-test passed
+               38515 *********** START OF TRANSFER          7 ***************
+               44905 Checksum:      924120      924120
+               44905 sub-test passed
+               44915 *********** START OF TRANSFER          8 ***************
+               52585 Checksum:     1311390     1311390
+               52585 sub-test passed
+               52595 *********** START OF TRANSFER          9 ***************
+               60265 Checksum:     1804050     1804050
+               60265 sub-test passed
+               60265 test passed

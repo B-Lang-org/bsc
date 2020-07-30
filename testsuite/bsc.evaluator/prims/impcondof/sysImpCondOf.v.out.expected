@@ -1,0 +1,16 @@
+Enq ready: 1 Deq ready: 0 Time: 5
+Enq ready: 1 Deq ready: 0 Time: 15
+Enq one item at time 15
+Enq ready: 1 Deq ready: 1 Time: 25
+Enq another item at time 25
+Enq ready: 0 Deq ready: 1 Time: 35
+Wait at time 35
+Enq ready: 0 Deq ready: 1 Time: 45
+Deq at time 45
+Enq ready: 1 Deq ready: 1 Time: 55
+Deq at time 55
+Enq ready: 1 Deq ready: 0 Time: 65
+Wait at time 65
+Enq ready: 1 Deq ready: 0 Time: 75
+Testbench finished at time 75
+Enq ready: 1 Deq ready: 0 Time: 85

@@ -1,0 +1,43 @@
+set expandPorts [file join [get_bsdir] tcllib bluespec expandPorts.tcl]
+
+if { [file exists $expandPorts] } {
+    note "Script 'expandPorts' is available!"
+    #set tests [glob *.bsv]
+    set bsvfiles [list Test1.bsv Test10.bsv Test1a.bsv Test1b.bsv Test2.bsv Test3.bsv Test4.bsv Test5.bsv Test6.bsv Test7.bsv Test7a.bsv Test7b.bsv Test12.bsv]
+    # set bsvfiles [list Test1.bsv]
+} else {
+    note "Script 'expandPorts' is NOT available"
+    set bsvfiles [list]
+}
+
+foreach bsv $bsvfiles {
+    bsc_compile $bsv {-verilog -elab}
+
+    regsub {\.bsv$} $bsv {} package
+
+    # figure out where we are
+    global srcdir subdir
+    set here [absolute $srcdir]
+    set renameFile [file join $here $subdir "$package.rename.tcl"]
+    set wrapper    [file join $here $subdir "mk$package.wrapper.got.v"]
+    set include    [file join $here $subdir "mk$package.includes.got.vh"]
+    set wrapperExp [file join $here $subdir "$package.wrapper.exp.v"]
+    set includeExp [file join $here $subdir "$package.includes.exp.vh"]
+
+    if [file exists $renameFile] {
+        # rename file renames the pins of the output verilog (yehaw!)
+        bluetcl_opt_pass $expandPorts "-quiet -rename $renameFile \
+                                       -wrapper  $wrapper \
+                                       -include  $include \
+                                       $package mk$package mk$package.v" run.out
+
+    } else {
+        bluetcl_opt_pass $expandPorts "-quiet \
+                                       -wrapper  $wrapper \
+                                       -include  $include \
+                                       $package mk$package mk$package.v" run.out
+    }
+
+    bluetcl_compare $wrapper $wrapperExp
+    bluetcl_compare $include $includeExp
+}

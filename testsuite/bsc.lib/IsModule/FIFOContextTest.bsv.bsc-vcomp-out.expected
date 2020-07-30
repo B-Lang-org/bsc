@@ -1,0 +1,6 @@
+checking package dependencies
+compiling FIFOContextTest.bsv
+code generation for mkFIFOContextTest starts
+Compilation message: "FIFOContextTest.bsv", line 34, column 42: Final state was: 7
+Verilog file created: mkFIFOContextTest.v
+All packages are up to date.

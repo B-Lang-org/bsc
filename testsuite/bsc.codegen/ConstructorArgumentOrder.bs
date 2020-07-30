@@ -1,0 +1,41 @@
+package ConstructorArgumentOrder(sysConstructorArgumentOrder) where
+
+-- Order of arguments when C constructors are declared and invoked
+-- must be the same (see bug #195).
+-- Expect this system to compile to C and run, producing the output:
+--     baby here: 0x0000007f
+--     child speaking: 0x000000ff
+-- Now cc warns on the generated code and the binary segfaults.
+
+interface Speak =
+  speak :: Action
+
+sysConstructorArgumentOrder :: Module Empty
+sysConstructorArgumentOrder =
+  module
+    b :: Speak
+    b <- constructorArgumentOrderBaby 127
+    c :: Speak
+    c <- constructorArgumentOrderChild b 255
+    active :: Reg Bool
+    active <- mkReg True
+    rules
+      when active ==> action { active := False; c.speak }
+
+{-# verilog constructorArgumentOrderBaby #-}
+constructorArgumentOrderBaby :: Nat -> Module Speak
+constructorArgumentOrderBaby i =
+  module
+    interface
+      speak = action {
+		$display "baby here: %b" i
+	      	}
+
+{-# verilog constructorArgumentOrderChild #-}
+constructorArgumentOrderChild :: Speak -> Nat -> Module Speak
+constructorArgumentOrderChild baby i =
+  module
+    interface
+      speak = action {
+		$display "child speaking: %b";
+	      	baby.speak; }

@@ -1,0 +1,16 @@
+
+## FUll test of working system
+##test_veri_only_bsv RstTest 
+
+## variation -- mkReset input can be from any domain
+## test_veri_only_bsv RstTest_V1
+
+
+
+compile_verilog_pass Example1.bsv
+compile_verilog_pass Example2.bsv
+
+compile_object_pass Example1.bsv
+compile_object_pass Example2.bsv
+
+##

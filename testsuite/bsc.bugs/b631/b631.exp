@@ -1,0 +1,4 @@
+compile_verilog_fail_error Select.bsv S0015
+if { $vtest == 1 } {
+compare_file Select.bsv.bsc-vcomp-out
+}

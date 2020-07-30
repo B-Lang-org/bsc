@@ -1,0 +1,11 @@
+checking package dependencies
+compiling Logs.bsv
+code generation for sysLogs starts
+Compilation message: "Logs.bsv", line 13, column 23: log(1) = 0.0
+Compilation message: "Logs.bsv", line 14, column 22: 128.0 = 128.0
+Compilation message: "Logs.bsv", line 15, column 28: log2(128.0) = 7.0
+Compilation message: "Logs.bsv", line 16, column 22: 100.0 = 100.0
+Compilation message: "Logs.bsv", line 17, column 29: log10(100.0) = 2.0
+Compilation message: "Logs.bsv", line 18, column 28: logb(3,9.0) = 2.0
+Verilog file created: sysLogs.v
+All packages are up to date.

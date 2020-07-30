@@ -1,0 +1,17 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv PrintTime sysPrintTime.v.out.expected
+test_c_only_bsv PrintTime 
+
+test_veri_only_bsv DisplayTime sysDisplayTime.v.out.expected
+test_c_only_bsv DisplayTime
+
+test_veri_only_bsv RegTime sysRegTime.v.out.expected
+test_c_only_bsv RegTime 
+
+
+
+

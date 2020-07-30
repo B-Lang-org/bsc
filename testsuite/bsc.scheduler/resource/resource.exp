@@ -1,0 +1,74 @@
+# test resource allocation
+if {$vtest == 1} {
+
+compile_verilog_schedule_fail ResourceOneRuleFail.bs sysResourceOneRuleFail
+compare_file_filter_ids ResourceOneRuleFail.bs.bsc-sched-out
+
+compile_verilog_schedule_fail ResourceOneRuleFailII.bs sysResourceOneRuleFailII
+compare_file_filter_ids ResourceOneRuleFailII.bs.bsc-sched-out
+
+compile_verilog_schedule_fail ResourceOneRuleFailIII.bs sysResourceOneRuleFailIII
+compare_file_filter_ids ResourceOneRuleFailIII.bs.bsc-sched-out
+
+compile_verilog_schedule_pass ResourceOneRuleOK.bs sysResourceOneRuleOK
+compare_file_filter_ids ResourceOneRuleOK.bs.bsc-sched-out
+
+compile_verilog_schedule_pass ResourceTwoRules.bs sysResourceTwoRules
+compare_file_filter_ids ResourceTwoRules.bs.bsc-sched-out
+
+compile_verilog_schedule_pass ResourceTwoRulesCond.bsv
+compare_file_filter_ids ResourceTwoRulesCond.bsv.bsc-sched-out
+
+#don't use schedule because it will pass -resource-simple
+compile_verilog_fail ResourceTwoRulesFail.bs sysResourceTwoRulesFail
+
+#schedule passes -resource-simple so it should work, but doesn't
+compile_verilog_schedule_pass_bug ResourceTwoRulesFail.bs sysResourceTwoRulesFail 98 
+
+#don't use schedule function because it will pass -resource-simple
+compile_verilog_fail ResourceSixRulesFail.bs sysResourceSixRulesFail
+
+#schedule passes -resource-simple so it works now
+compile_verilog_schedule_pass ResourceSixRulesFail.bs sysResourceSixRulesFail
+
+# This is a bug (#99) because the wrong rules are arbitrated - the most
+# urgent rather than the least urgent.  The second find_n_strings is meant
+# to check that this test is failing for the expected reason.
+#compare_file_filter_ids ResourceSixRulesFail.bs.bsc-sched-out
+find_n_strings_bug ResourceSixRulesFail.bs.bsc-sched-out {Rule "Bogus5" was treated as more urgent than "Bogus6"} 1 99
+find_n_strings ResourceSixRulesFail.bs.bsc-sched-out {Rule "Bogus1" was treated as more urgent than "Bogus2"} 1
+
+compile_verilog_schedule_pass ResourcePredicates.bs sysResourcePredicates
+compare_file_filter_ids ResourcePredicates.bs.bsc-sched-out
+
+compile_verilog_schedule_fail ResourceOneRuleSC.bs sysResourceOneRuleSC
+compare_file_filter_ids ResourceOneRuleSC.bs.bsc-sched-out
+
+compile_verilog_schedule_fail ResourceOneRuleCSE.bs sysResourceOneRuleCSE
+compare_file_filter_ids ResourceOneRuleCSE.bs.bsc-sched-out
+
+compile_verilog_schedule_fail ResourceOneRuleCSE2.bs sysResourceOneRuleCSE2
+compare_file_filter_ids ResourceOneRuleCSE2.bs.bsc-sched-out
+
+# This was supposedly bug 42, but isn't
+compile_verilog_schedule_fail ResourceOneRuleCSEnoSC.bs sysResourceOneRuleCSEnoSC
+compare_file_filter_ids ResourceOneRuleCSEnoSC.bs.bsc-sched-out
+
+# This was added to test bug 42 (there should be a second write port)
+compile_verilog_fail ResourceOneRuleMultiportAction.bs sysResourceOneRuleMultiportAction
+#find_n_strings_bug sysResourceOneRuleMultiportAction.v {wire arr\$WE_2} 1 42
+
+compile_verilog_schedule_fail ResourceOneRuleTwoMethodsSC.bs sysResourceOneRuleTwoMethodsSC
+find_n_error ResourceOneRuleTwoMethodsSC.bs.bsc-sched-out G0004 1 
+##compare_file_filter_ids ResourceOneRuleTwoMethodsSC.bs.bsc-sched-out
+
+compile_verilog_schedule_pass ResourceOneRuleTwoMethodsNotSC.bs sysResourceOneRuleTwoMethodsNotSC
+
+# Test that resource analysis includes method calls made in submodule
+# instantiations.  These files make 5 and 6 instantiation uses of a
+# RegFile.  Since there are only 5 read ports, the first should
+# success and the other fail.
+compile_verilog_pass RegFileFiveInstUses.bsv
+compile_verilog_fail_error RegFileSixInstUses.bsv G0002
+
+}

@@ -1,0 +1,7 @@
+compile_verilog_pass_no_warning_bug OIntBroken.bsv G0010 1268
+compile_verilog_fail_error OIntLow.bsv S0015
+compile_verilog_fail_error OIntHigh.bsv S0015
+
+test_c_veri_bsv OIntDynamic 
+compile_verilog_fail_error OIntDynamicLow.bsv S0015
+compile_verilog_fail_error OIntDynamicHigh.bsv S0015

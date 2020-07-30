@@ -1,0 +1,45 @@
+checking package dependencies
+compiling DummyInDo.bs
+Warning: "DummyInDo.bs", line 9, column 9: (P0223)
+  Definition of `a' is not used.
+=== internal:
+IPackage DummyInDo
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInDo.x :: Prelude.ActionValue (Prelude.PrimPair Prelude.Bool Prelude.Bool)
+DummyInDo.x =
+  let _tcdict1009 :: Prelude.Monad Prelude.ActionValue
+      _tcdict1009 = Prelude.Prelude.Monad~Prelude.ActionValue=
+      -- IdProp: _tcdict1009[IdP_bad_name,IdPDict]
+  in  .Prelude.return ·Prelude.ActionValue _tcdict1009
+	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
+	(Prelude.PrimPair
+	   ·Prelude.Bool
+	   ·Prelude.Bool
+	   (Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+	   (Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1)))
+next def..........................................................
+DummyInDo.dummyInDo :: Prelude.ActionValue (Prelude.Bit 12)
+DummyInDo.dummyInDo =
+  let _tcdict1024 :: Prelude.Monad Prelude.ActionValue
+      _tcdict1024 = Prelude.Prelude.Monad~Prelude.ActionValue=
+      -- IdProp: _tcdict1024[IdP_bad_name,IdPDict]
+  in  .Prelude.bind ·Prelude.ActionValue _tcdict1024
+	·(Prelude.PrimPair Prelude.Bool Prelude.Bool)
+	·(Prelude.Bit 12)
+	DummyInDo.x=
+	(\ (_tctemp1004 :: Prelude.PrimPair Prelude.Bool Prelude.Bool) .
+	 let a :: Prelude.Bool
+	     a = .Prelude.snd ·Prelude.Bool ·Prelude.Bool _tctemp1004
+	 in  .Prelude.return ·Prelude.ActionValue _tcdict1024
+	       ·(Prelude.Bit 12)
+	       (PrimBuildUndefined ·(Prelude.Bit 12) _ 1))
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

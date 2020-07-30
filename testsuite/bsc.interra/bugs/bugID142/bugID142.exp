@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail GCD.bs mkGCD
+compare_file GCD.bs.bsc-vcomp-out
+}

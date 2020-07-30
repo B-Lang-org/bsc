@@ -1,0 +1,10 @@
+package LineDisplay(sysLineDisplay) where
+
+sysLineDisplay :: Module Empty
+sysLineDisplay = 
+  module 
+    rules
+      when True ==>
+        action
+           $display
+           $finish 0

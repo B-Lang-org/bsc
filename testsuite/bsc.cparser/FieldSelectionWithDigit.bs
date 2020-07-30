@@ -1,0 +1,4 @@
+package FieldSelectionWithDigit where
+
+x :: Integer
+x = foo.bar.0.baz

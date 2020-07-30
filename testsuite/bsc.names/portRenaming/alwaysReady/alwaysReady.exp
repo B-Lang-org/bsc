@@ -1,0 +1,55 @@
+if { $vtest == 1 } {
+
+### Tests for basic working
+
+compile_verilog_pass Test01.bsv
+string_does_not_occur mkDesign_01.v "RDY_start"
+string_does_not_occur mkDesign_01.v "RDY_check"
+string_does_not_occur mkDesign_01.v "RDY_result"
+
+
+compile_verilog_pass Test02.bsv
+string_does_not_occur mkDesign_02.v "RDY_start"
+string_does_not_occur mkDesign_02.v "RDY_check"
+string_does_not_occur mkDesign_02.v "RDY_result"
+
+
+compile_verilog_pass Test03.bsv
+string_does_not_occur mkDesign_03.v "RDY_check"
+string_does_not_occur mkDesign_03.v "RDY_result"
+
+
+compile_verilog_pass Test07.bsv
+string_does_not_occur mkDesign_07.v "RDY_subIFC_0_start"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_0_check"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_0_result"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_1_start"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_1_check"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_1_result"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_2_start"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_2_check"
+string_does_not_occur mkDesign_07.v "RDY_subIFC_2_result"
+
+compile_verilog_fail_error Test08.bsv G0006 3
+
+#Test for module with precompiled interface
+
+compile_verilog_pass IFC1.bsv
+compile_verilog_pass Test04.bsv
+string_does_not_occur mkDesign_04.v "RDY_start"
+string_does_not_occur mkDesign_04.v "RDY_check"
+string_does_not_occur mkDesign_04.v "RDY_result"
+
+
+compile_verilog_pass IFC2.bsv
+compile_verilog_pass Test05.bsv
+string_does_not_occur mkDesign_05.v "RDY_check"
+string_does_not_occur mkDesign_05.v "RDY_result"
+
+
+compile_verilog_pass S1.bsv
+compile_verilog_pass Test06.bsv
+string_does_not_occur mkDesign_06.v "RDY_check"
+string_does_not_occur mkDesign_06.v "RDY_result"
+
+}

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling UnionDupCons.bsv
+Error: "UnionDupCons.bsv", line 3, column 9: (P0073)
+  Duplicate definition of member `First' in union `TaggedUnionSimple'

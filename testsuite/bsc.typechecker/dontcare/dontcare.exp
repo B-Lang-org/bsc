@@ -1,0 +1,57 @@
+# See also tests in:
+#   bsc.syntax/underscore/
+#   bsc.bsv05/
+#   bsc.bsv05/underscore
+
+# -----
+
+#
+# dontcare bindings (bug 170)
+#
+
+compile_fail_error BindDummyDef.bs P0005
+compile_fail_error BindDummyDefl.bs P0005
+
+# we allow dontcares here to be considered patterns, not identifiers
+compile_pass BindDummyLambda.bs
+
+# -----
+
+#
+# dontcare identifiers in patterns (bugs 154 and 221)
+#
+
+compile_pass DummyInCase.bs "-dinternal"
+compare_file DummyInCase.bs.bsc-out
+
+compile_pass DummyInDo.bs "-dinternal"
+compare_file DummyInDo.bs.bsc-out
+
+compile_pass DummyInDeflMatch.bs "-dinternal"
+compare_file DummyInDeflMatch.bs.bsc-out
+
+compile_pass DummyInDeflValue.bs "-dinternal"
+compare_file DummyInDeflValue.bs.bsc-out
+
+compile_pass DummyInDeflValueSign.bs "-dinternal"
+compare_file DummyInDeflValueSign.bs.bsc-out
+
+compile_pass DummyInDeflValueSignOp.bs "-dinternal"
+compare_file DummyInDeflValueSignOp.bs.bsc-out
+
+compile_pass DummyInDef.bs "-dinternal"
+compare_file DummyInDef.bs.bsc-out
+
+compile_pass DummyInDefOp.bs "-dinternal"
+compare_file DummyInDefOp.bs.bsc-out
+
+compile_pass DummyInDeflQual.bs "-dinternal"
+compare_file DummyInDeflQual.bs.bsc-out
+
+if {$vtest == 1} {
+compile_verilog_pass DummyInRuleQual.bs sysDummyInRuleQual "-dATS"
+compare_file DummyInRuleQual.bs.bsc-vcomp-out
+}
+
+# ------
+

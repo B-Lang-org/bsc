@@ -1,0 +1,7 @@
+package EmptyCase() where
+
+x :: Bool
+x = True
+
+emptyCase :: Bool
+emptyCase = case x of {};

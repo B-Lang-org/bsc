@@ -1,0 +1,7 @@
+checking package dependencies
+compiling ./StructSelect_NotImported_Sub.bsv
+compiling StructSelect_NotImported.bsv
+Error: "StructSelect_NotImported.bsv", line 8, column 23: (T0140)
+  Cannot access fields in this expression since its type `GetPut::Get' has not
+  been imported. Perhaps an import statement is missing, e.g., `import
+  GetPut::*;'

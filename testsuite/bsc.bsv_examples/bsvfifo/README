@@ -1,0 +1,25 @@
+This example contains a parameterized, sized FIFO, written entirely in BSV
+(instead of as a primitive element), but still implementing the standard
+FIFO interface. 
+
+You can build the FIFO (with its testbench) by running:
+bsc -u -c SizedFIFOTest.bsv
+or
+bsc -u -verilog -inline-rwire SizedFIFOTest.bsv
+
+Using the -u flag will tell the compiler to look up and 
+recompile dependencies as necessary (in particular BSVFIFO.bsv).
+
+To run the FIFO testbench you can do:
+bsc -e sysSizedFIFOTest -o sysSizedFIFOTest sysSizedFIFOTest.o
+or you can provide a Verilog top-level (like $BLUESPECDIR/lib/Verilog/main.v)
+to reset the sysSizedFIFOTest module and drive its clock.
+
+Consult the user guide for more information about compiling, linking and
+running BSV modules.
+
+Files
+-----
+BSVFIFO.bsv			BSV FIFO implementation
+SizedFIFOTest.bsv		Simple FIFO testbench
+sysSizedFIFOTest.out.expected	Expected output from FIFO testbench

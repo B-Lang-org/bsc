@@ -1,0 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+void xbuf(unsigned int *resp, unsigned int *req, unsigned int *data) {
+  int i;
+  for(i=0;i<3;i++) resp[i]=1;
+}
+
+

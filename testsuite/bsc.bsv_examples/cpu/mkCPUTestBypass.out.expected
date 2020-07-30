@@ -1,0 +1,5 @@
+Stalling instr = (         4,       4194)
+Stalling instr = (         5,     108673)
+Stalling instr = (         7,      43013)
+Stalling instr = (         8,       4228)
+DMem location           0 has value         35 at time        300

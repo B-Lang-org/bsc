@@ -1,0 +1,18 @@
+package IfLifting4 () where
+
+import ActionValueModule
+
+{-# verilog sysIfLifting #-}
+sysIfLifting :: Module Empty
+sysIfLifting =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: AVIFC
+    b <- mkAVMod
+    rules
+	-- "nosplitIf" doesn't work on actionvalue
+	-- so make sure to run this test with -no-split-if
+        when True ==> do x <- if a then (b.f False) else (b.f True)
+                         a := (x > 17)
+

@@ -1,0 +1,113 @@
+# ----------
+# Tests for typeclasses with default expressions for some members
+
+# ----------
+
+# Simple test that:
+# (1) a class can have a default
+# (2) we can define an instance without some members;  we get warnings
+#     about fields not defined, but not about those which default
+# (3) the correct definition of the default is used in a synthesized
+#     module
+
+# only one warning, not two
+compile_verilog_pass_warning ClassWithDefault.bs T0054 1
+
+# The proper answers are in the verilog
+if { $vtest == 1 } {
+find_regexp sysClassWithDefault.v {1yes}
+find_regexp sysClassWithDefault.v {2no}
+}
+
+# ----------
+
+# Test that the class defined above can be imported into a BSV file
+# and an instance can rely on the default value of a member
+
+# only one warning, not two
+compile_verilog_pass_warning ImportClassWithDefault.bsv T0054 1
+
+# The proper answers are in the verilog
+if { $vtest == 1 } {
+find_regexp sysImportClassWithDefault.v {1yes}
+find_regexp sysImportClassWithDefault.v {2no}
+}
+
+# ----------
+
+# Test that struct/interface constructions typecheck
+compile_pass ClassWithDefault_Interface.bsv
+
+# And that the .bi file can be read back in
+compile_pass ImportClassWithDefault_Interface.bsv
+
+# ----------
+
+# Test that typechecking of the class defaults happens,
+# by checking that a missing proviso results in an error
+
+compile_fail_error TypeCheck_Fail_MissingProviso.bs T0030
+
+# Test that adding the provisos as superclasses, that the example compiles
+compile_verilog_pass_no_warning TypeCheck_Pass_SuperClass.bs
+
+# ----------
+
+# Test that the default can be defined with multiple clauses
+
+compile_verilog_pass_no_warning ClassWithDefault_Clauses.bs
+
+# The proper answers are in the verilog
+if { $vtest == 1 } {
+find_regexp sysClassWithDefault_Clauses.v {1yes}
+find_regexp sysClassWithDefault_Clauses.v {2no}
+}
+
+# ----------
+
+# Test that the class with clauses can be imported and instances defined
+
+compile_verilog_pass_warning ImportClassWithDefault_Clauses.bsv T0127 1
+
+# The proper answers are in the verilog
+if { $vtest == 1 } {
+find_regexp sysImportClassWithDefault_Clauses.v {1yes}
+find_regexp sysImportClassWithDefault_Clauses.v {2no}
+}
+
+# ----------
+
+# Test that defaults can recursively call each other
+
+compile_verilog_pass_no_warning MutuallyRecursiveDefaults.bs
+# The proper answers are in the verilog
+if { $vtest == 1 } {
+find_regexp sysMutuallyRecursiveDefaults.v {1no}
+find_regexp sysMutuallyRecursiveDefaults.v {2yes}
+find_regexp sysMutuallyRecursiveDefaults.v {3yes}
+}
+
+# ----------
+
+# Test that sometimes constructors cannot be disambiguated
+# (because we don't do full typecheck to qualify the defaults)
+# XXX the error is EGeneric
+compile_verilog_fail_error DuplicateConstr_Unqual.bs S0015
+
+# Test that manually adding a qualifier can help
+compile_verilog_pass_no_warning DuplicateConstr_Qual.bs
+if { $vtest == 1 } {
+find_regexp sysDuplicateConstr_Qual.v {1no}
+}
+
+# ----------
+
+# Test that defaults with operators are handled correctly
+# (Since they are written out to .bi file and parsed back in,
+# there was a bug that the operators in the parsed CSyntax were not
+# converted to proper CSyntax, as is done in "parseOp")
+
+compile_pass ImportedInfixInDefault.bs
+test_veri_only ImportedInfixInDefaultImported
+
+# ----------

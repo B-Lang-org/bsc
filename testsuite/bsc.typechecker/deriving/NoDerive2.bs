@@ -1,0 +1,9 @@
+package NoDerive2(sysNoDerive2) where
+
+struct Test = { a :: Integer; b :: Bool }
+  deriving(Eq,Bits)
+
+sysNoDerive2 :: Module Empty
+sysNoDerive2 = 
+  module
+    r :: Reg(Test) <- mkRegU

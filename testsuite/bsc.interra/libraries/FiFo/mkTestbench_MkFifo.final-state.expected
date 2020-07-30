@@ -1,0 +1,28 @@
+Cycle Number =   0, Value written = 0f
+Cycle Number =   1, Value written = 10
+Cycle Number =   2, Value read = 0f
+Cycle Number =   3, Value read = 10
+Cycle Number =   4, Value written = 13
+Cycle Number =   5, Value written = 14
+Cycle Number =   6, Clearing FIFO
+Cycle Number =   7, Value written = 20
+Cycle Number =   8, Value written = 21
+Cycle Number =   9, Value read = 20
+Cycle Number =  10, Value read = 21
+Cycle Number =  11, Value Written = 11
+Cycle Number =  12, Value Written = 12
+Cycle Number = 20, Value read = 11
+Cycle Number = 21, Value read = 12
+Cycle Number =  22, Value Written = 50
+Cycle Number =  23, Value Written = 60
+Cycle Number = 23, Value read = 50
+Cycle Number =  24,Value read = 60
+Simulation Passes
+Final state:
+top:
+  count1 = 0x00
+  counter = 0x1a
+  datafifo:
+    datafifo = EMPTY
+  fail = False
+  sizeoflist = 0x00

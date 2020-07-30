@@ -1,0 +1,10 @@
+# This is a testcase for bug 780, which was fixed
+compile_pass MethodCallOnIfcWithRead.bsv
+
+# Test that import of module with _read doesn't give an "EFieldAmb"
+# error on the other method
+compile_pass ImportWithReadMethod.bsv
+
+# Test the asIfc primitive
+compile_pass AsIfc.bsv
+

@@ -1,0 +1,29 @@
+package ResourceOneRuleFail(sysResourceOneRuleFail) where
+
+import RegFile
+import List
+
+-- We are attempting to access six elements of an array simultaneously
+-- in one rule, but Arrays only permit five simultaneous subs.
+-- Expect to fail with a resource allocation error.
+
+type Index = Bit 8
+type Value = Bit 8
+
+lo :: Integer
+lo = 0
+
+hi :: Integer
+hi = 5
+
+sysResourceOneRuleFail :: Module Empty
+sysResourceOneRuleFail =
+      module
+        r :: Reg Value
+	r <- mkReg _
+	a :: RegFile Index Value
+	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        rules
+            "Bogus":
+               when True
+                ==> r := (foldr (+) 0 $ map a.sub $ map fromInteger $ upto lo hi)

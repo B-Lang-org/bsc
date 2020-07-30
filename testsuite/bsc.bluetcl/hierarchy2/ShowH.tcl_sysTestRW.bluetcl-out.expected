@@ -1,0 +1,4 @@
+    sysTestRW      	 --  	 
+        rw             	 -- RWire RWire#(UInt#(14))	rw 
+        pw             	 -- RWire0 PulseWire	pw 
+        ww             	 -- RWire Reg#(UInt#(14))	ww 

@@ -1,0 +1,19 @@
+checking package dependencies
+compiling ELocalRec.bs
+Warning: "ELocalRec.bs", line 40, column 44: (P0102)
+  Declaration of `x' shadows previous declaration at "ELocalRec.bs", line 27,
+  column 8
+Warning: "ELocalRec.bs", line 41, column 44: (P0102)
+  Declaration of `x' shadows previous declaration at "ELocalRec.bs", line 27,
+  column 8
+Warning: "ELocalRec.bs", line 41, column 46: (P0102)
+  Declaration of `y' shadows previous declaration at "ELocalRec.bs", line 30,
+  column 8
+Warning: "ELocalRec.bs", line 42, column 44: (P0102)
+  Declaration of `x' shadows previous declaration at "ELocalRec.bs", line 27,
+  column 8
+Warning: "ELocalRec.bs", line 42, column 46: (P0102)
+  Declaration of `y' shadows previous declaration at "ELocalRec.bs", line 30,
+  column 8
+Error: "ELocalRec.bs", line 40, column 31: (T0037)
+  Local recursion without signature not allowed: `function_GCD'

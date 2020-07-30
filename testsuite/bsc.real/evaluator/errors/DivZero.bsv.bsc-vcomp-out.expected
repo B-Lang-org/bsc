@@ -1,0 +1,8 @@
+checking package dependencies
+compiling DivZero.bsv
+code generation for sysDivZero starts
+Error: "DivZero.bsv", line 3, column 17: (G0059)
+  Division by zero occurred during elaboration.
+  During elaboration of the body of rule `r' at "DivZero.bsv", line 5, column
+  10.
+  During elaboration of `sysDivZero' at "DivZero.bsv", line 2, column 8.

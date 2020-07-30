@@ -1,0 +1,6 @@
+test_c_veri_worker Tabulate1 mkTestbench_Tabulate1 {} "bsv" 1 1 "mkTestbench_Tabulate1.v.out.expected" "" ""
+
+test_c_veri_worker Tabulate2 mkTestbench_Tabulate2 {} "bsv" 1 1 "mkTestbench_Tabulate2.v.out.expected" "" ""
+
+test_c_veri_worker Tabulate3 mkTestbench_Tabulate3 {} "bsv" 1 1 "mkTestbench_Tabulate3.v.out.expected" "" ""
+

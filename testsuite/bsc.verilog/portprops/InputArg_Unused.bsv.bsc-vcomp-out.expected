@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InputArg_Unused.bsv
+code generation for sysInputArg_Unused starts
+=== IOproperties:
+Name                         I/O  size props
+b                              I    16 unused
+CLK                            I     1 unused
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: sysInputArg_Unused.v
+All packages are up to date.

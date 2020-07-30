@@ -1,0 +1,72 @@
+
+# -------------------------
+
+# Test functionality of each size and reset style
+# (testing Verilog both with and without inlining)
+
+proc testSize { sz } {
+    set ntest  "TestCReg${sz}"
+    set atest  "TestCRegA${sz}"
+    set untest "TestCRegU${sz}"
+
+    test_c_veri_bsv_modules_options $ntest {} {-no-inline-creg}
+    test_c_veri_bsv_modules_options $atest {} {-no-inline-creg}
+    # Verilog updates the register during reset
+    test_c_only_bsv $untest
+    test_veri_only_bsv_modules_options $untest \
+	{} {-no-inline-creg} "sysTestCRegU${sz}.v.out.expected"
+
+    proc move_test_output { tname } {
+	# Move the compile stage output
+	move "${tname}.bsv.bsc-vcomp-out" "${tname}_NoInline.bsv.bsc-vcomp-out"
+	move "sys${tname}.v" "sys${tname}_NoInline.v"
+	# Move the link stage output
+	move "sys${tname}.bsc-vcomp-out" "sys${tname}_NoInline.bsc-vcomp-out"
+	move "sys${tname}.vexe" "sys${tname}_NoInline.vexe"
+	# Move the sim stage output
+	move "sys${tname}.v.out" "sys${tname}_NoInline.v.out"
+	move "sys${tname}.v-vcd.out" "sys${tname}_NoInline.v-vcd.out"
+    }
+
+    move_test_output $ntest
+    move_test_output $atest
+    move_test_output $untest
+
+    # Repeat the Verilog tests with inlining
+    test_veri_only_bsv_modules_options $ntest {} {-inline-creg}
+    test_veri_only_bsv_modules_options $atest {} {-inline-creg}
+    test_veri_only_bsv_modules_options $untest \
+	{} {-inline-creg} "sysTestCRegU${sz}.v.out.expected"
+}
+
+testSize 5
+testSize 4
+testSize 3
+testSize 2
+
+# XXX test sizes 1 and 0
+
+# -------------------------
+
+# Test the handling of invalid sizes
+
+if { $vtest == 1 } {
+
+compile_verilog_fail TestCReg_TooBig.bsv
+compare_file TestCReg_TooBig.bsv.bsc-vcomp-out
+
+compile_verilog_fail TestCReg_TooSmall.bsv
+compare_file TestCReg_TooSmall.bsv.bsc-vcomp-out
+
+# XXX Test CRegU, CRegA
+
+}
+
+# -------------------------
+
+# Test that 0-width registers synthesize, link, and sim OK
+
+testSize {_ZeroWidth}
+
+# -------------------------
+

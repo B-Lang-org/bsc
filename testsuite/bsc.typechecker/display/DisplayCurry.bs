@@ -1,0 +1,5 @@
+package DisplayCurry() where
+-- checks whether $display applications can be curried
+
+foo :: Action
+foo = ($display "Test" (17 :: Bit 12) "Test 2") "Test 3"

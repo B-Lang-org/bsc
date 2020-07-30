@@ -1,0 +1,6 @@
+if {$vtest == 1} {
+    compile_verilog_fail_error Bug312.bsv G0053 1 sysBug312
+    # check that there is no aCheck failure
+    find_n_strings Bug312.bsv.bsc-vcomp-out "acheck" 0
+}
+

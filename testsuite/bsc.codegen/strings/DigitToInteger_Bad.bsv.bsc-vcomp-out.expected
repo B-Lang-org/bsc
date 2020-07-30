@@ -1,0 +1,9 @@
+checking package dependencies
+compiling DigitToInteger_Bad.bsv
+code generation for sysDigitToInteger_Bad starts
+Error: "DigitToInteger_Bad.bsv", line 4, column 31: (S0015)
+  Bluespec evaluation-time error: digitToInteger: not a digit: `a'
+  During elaboration of the body of rule `r' at "DigitToInteger_Bad.bsv", line
+  3, column 9.
+  During elaboration of `sysDigitToInteger_Bad' at "DigitToInteger_Bad.bsv",
+  line 2, column 8.

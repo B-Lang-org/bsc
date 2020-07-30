@@ -1,0 +1,10 @@
+ghc iftestcase.ll.hs
+
+./a.out runall | perl iftestcase-perl.pl
+
+will create 9240 testcase instances in the current directory exploring
+various combinations of `define `ifdef `ifndef `elif `else
+
+As of version 10010, they all passed.  Five of them (namely
+ifdef4891.bsv ifdef7672.bsv ifdef2556.bsv ifdef5991.bsv ifdef7720.bsv)
+have been selected mostly at random and are placed in this directory.

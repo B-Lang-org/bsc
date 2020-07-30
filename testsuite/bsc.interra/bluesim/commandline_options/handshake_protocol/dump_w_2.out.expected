@@ -1,0 +1,990 @@
+$date
+	Thu Mar  9 16:33:06 2006
+$end
+$version
+	Bluespec VCD _dumper $Revision: 1.11 $
+$end
+$timescale
+	1us/1ns
+$end
+$scope module main.top $end
+$var reg 1 ! CLK $end
+$var reg 1 " WILL_FIRE_RL_done $end
+$var reg 1 # WILL_FIRE_RL_recdAck $end
+$var reg 1 $ WILL_FIRE_RL_recdRequest $end
+$var reg 1 % WILL_FIRE_RL_start $end
+$var reg 1 & CAN_FIRE_RL_done $end
+$var reg 1 ' CAN_FIRE_RL_recdAck $end
+$var reg 1 ( CAN_FIRE_RL_recdRequest $end
+$var reg 1 ) CAN_FIRE_RL_start $end
+$var reg 32 * passes__read__h282 [31:0] $end
+$var reg 32 + x__h283 [31:0] $end
+$var reg 32 , fails__read__h290 [31:0] $end
+$var reg 32 - x__h291 [31:0] $end
+$var reg 16 . k__h623 [15:0] $end
+$var reg 16 / x__h229 [15:0] $end
+$var reg 1 0 state__h611 $end
+$var reg 1 1 counter_EQ_0_OR_counter_EQ_1_OR_counter_EQ_2_O_ETC___d11 $end
+$var reg 1 2 top_req____d42 $end
+$var reg 1 3 counter_EQ_0_OR_counter_EQ_1_OR_counter_EQ_2_O_ETC___d43 $end
+$var reg 1 4 NOT_counter_EQ_0_5_AND_NOT_counter_EQ_1_6_AND__ETC___d41 $end
+$var reg 1 5 top_RDY_setInput____d47 $end
+$var reg 1 6 top_RDY_setInput__5_AND_NOT_state_3___d34 $end
+$var reg 1 7 top_valid____d46 $end
+$var reg 1 8 top_start____d44 $end
+$var reg 1 9 counter_EQ_0_OR_counter_EQ_1_OR_counter_EQ_2_O_ETC___d22 $end
+$var reg 1 : counter_EQ_0_OR_counter_EQ_1_OR_counter_EQ_2_O_ETC___d18 $end
+$var reg 1 ; top_done____d45 $end
+$var reg 1 < NOT_top_done_6_AND_top_start__3_AND_top_valid__ETC___d32 $end
+$var reg 1 = top_RDY_setInput__5_AND_NOT_top_done_6_AND_NOT_ETC___d30 $end
+$scope module top $end
+$var reg 1 C WILL_FIRE_RL_fromAcquisition $end
+$var reg 1 D WILL_FIRE_RL_fromRequest $end
+$var reg 1 E WILL_FIRE_RL_fromIdle $end
+$var reg 1 F WILL_FIRE_setInput $end
+$var reg 1 G CAN_FIRE_RL_fromAcquisition $end
+$var reg 1 H CAN_FIRE_RL_fromRequest $end
+$var reg 1 I CAN_FIRE_RL_fromIdle $end
+$var reg 1 J EN_setInput $end
+$var reg 2 K counter__read__h125 [1:0] $end
+$var reg 2 L x__h197 [1:0] $end
+$var reg 2 M t_state__h122 [1:0] $end
+$var reg 1 N x_req__h323 $end
+$var reg 1 O x_start__h324 $end
+$var reg 1 P x_valid__h325 $end
+$var reg 1 Q x_done__h326 $end
+$var reg 1 R t_ack1_whas____d8 $end
+$var reg 1 S t_ack1_wget____d9 $end
+$var reg 1 T t_counter_EQ_3___d5 $end
+$var reg 1 U NOT_t_counter_EQ_3___d6 $end
+$var reg 1 V t_ack1_whas_AND_t_ack1_wget___d10 $end
+$var reg 1 X RDY_setInput $end
+$var reg 1 Y req $end
+$var reg 1 Z RDY_req $end
+$var reg 1 [ start $end
+$var reg 1 \ RDY_start $end
+$var reg 1 ] valid $end
+$var reg 1 ^ RDY_valid $end
+$var reg 1 _ done $end
+$var reg 1 ` RDY_done $end
+$var reg 2 f t_state [1:0] $end
+$var reg 1 g t_state$EN $end
+$var reg 1 i t_req_reg $end
+$var reg 1 j t_req_reg$EN $end
+$var reg 1 l t_start_reg $end
+$var reg 1 m t_start_reg$EN $end
+$var reg 1 o t_valid_reg $end
+$var reg 1 p t_valid_reg$EN $end
+$var reg 1 r t_done_reg $end
+$var reg 1 s t_done_reg$EN $end
+$var reg 2 u t_counter [1:0] $end
+$var reg 1 v t_counter$EN $end
+$var reg 1 x t_ack1$whas $end
+$var reg 1 y t_ack1$EN_wset $end
+$upscope $end
+$var reg 16 | counter [15:0] $end
+$var reg 1 } counter$EN $end
+$var reg 1 "! state $end
+$var reg 1 "" state$EN $end
+$var reg 32 "$ passes [31:0] $end
+$var reg 1 "% passes$EN $end
+$var reg 32 "' fails [31:0] $end
+$var reg 1 "( fails$EN $end
+$upscope $end
+$enddefinitions $end
+#40
+$dumpvars
+1!
+0"
+0#
+0$
+0%
+0&
+0'
+0(
+0)
+b0 *
+b0 +
+b0 ,
+b0 -
+b0 .
+b0 /
+00
+01
+02
+03
+04
+05
+06
+07
+08
+09
+0:
+0;
+0<
+0=
+0C
+0D
+0E
+0F
+0G
+0H
+0I
+0J
+b0 K
+b0 L
+b0 M
+0N
+0O
+0P
+0Q
+0R
+0S
+0T
+0U
+0V
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+b0 f
+0g
+0i
+0j
+0l
+0m
+0o
+0p
+1r
+0s
+b0 u
+0v
+0x
+0y
+b0 |
+0}
+0"!
+0""
+b0 "$
+0"%
+b0 "'
+0"(
+$end
+#41
+1;
+1E
+1I
+1Q
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+1g
+1j
+1s
+1v
+#45
+0!
+#50
+1!
+b1 f
+1i
+0r
+1%
+1)
+11
+12
+13
+15
+16
+0;
+0C
+1D
+0E
+1F
+1H
+0I
+1J
+b1 M
+1N
+0Q
+1R
+1S
+1V
+1X
+1Y
+1Z
+0[
+1\
+0]
+1^
+0_
+1`
+1m
+1p
+0s
+0v
+1x
+1y
+1""
+#55
+0!
+#60
+1!
+b10 f
+0i
+1l
+1o
+1"!
+1$
+0%
+1(
+0)
+10
+05
+06
+17
+18
+1<
+1C
+0D
+0F
+1G
+0H
+0J
+b1 L
+b10 M
+1O
+1P
+1U
+0X
+0Y
+1Z
+1[
+1\
+1]
+1^
+0_
+1`
+0g
+1v
+0x
+0y
+#65
+0!
+#70
+1!
+0l
+b1 u
+0$
+0(
+08
+0<
+1C
+b1 K
+b10 L
+0N
+0O
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+0""
+#75
+0!
+#80
+1!
+b10 u
+1C
+b10 K
+b11 L
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+#85
+0!
+#90
+1!
+b11 u
+1C
+b11 K
+b0 L
+1T
+0U
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+1g
+1s
+#95
+0!
+#100
+1!
+b0 f
+0o
+1r
+b0 u
+1"
+1&
+b1 +
+b1 /
+07
+1:
+1;
+0C
+1E
+0G
+1I
+b0 M
+0P
+1Q
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+0m
+0p
+1}
+1""
+1"%
+#105
+0!
+#110
+1!
+b1 f
+1i
+0r
+b1 |
+0"!
+b1 "$
+0"
+1%
+0&
+1)
+b1 .
+00
+15
+16
+0;
+0C
+1D
+0E
+1F
+1H
+0I
+1J
+b1 M
+1N
+0Q
+1X
+1Y
+1Z
+0[
+1\
+0]
+1^
+0_
+1`
+1m
+1p
+0s
+0v
+1x
+1y
+0}
+0"%
+#115
+0!
+#120
+1!
+b10 f
+0i
+1l
+1o
+1"!
+1$
+0%
+1(
+0)
+10
+05
+06
+17
+18
+1<
+1C
+0D
+0F
+1G
+0H
+0J
+b0 K
+b1 L
+b10 M
+1O
+1P
+0T
+1U
+0X
+0Y
+1Z
+1[
+1\
+1]
+1^
+0_
+1`
+0g
+1v
+0x
+0y
+#125
+0!
+#130
+1!
+0l
+b1 u
+0$
+0(
+08
+0<
+1C
+b1 K
+b10 L
+0N
+0O
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+0""
+#135
+0!
+#140
+1!
+b10 u
+1C
+b10 K
+b11 L
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+#145
+0!
+#150
+1!
+b11 u
+1C
+b11 K
+b0 L
+1T
+0U
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+1g
+1s
+#155
+0!
+#160
+1!
+b0 f
+0o
+1r
+b0 u
+1"
+1&
+b1 *
+b10 +
+b10 /
+07
+1;
+0C
+1E
+0G
+1I
+b0 M
+0P
+1Q
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+0m
+0p
+1}
+1""
+1"%
+#165
+0!
+#170
+1!
+b1 f
+1i
+0r
+b10 |
+0"!
+b10 "$
+0"
+1%
+0&
+1)
+b10 .
+00
+15
+16
+0;
+0C
+1D
+0E
+1F
+1H
+0I
+1J
+b1 M
+1N
+0Q
+1X
+1Y
+1Z
+0[
+1\
+0]
+1^
+0_
+1`
+1m
+1p
+0s
+0v
+1x
+1y
+0}
+0"%
+#175
+0!
+#180
+1!
+b10 f
+0i
+1l
+1o
+1"!
+1$
+0%
+1(
+0)
+10
+05
+06
+17
+18
+1<
+1C
+0D
+0F
+1G
+0H
+0J
+b0 K
+b1 L
+b10 M
+1O
+1P
+0T
+1U
+0X
+0Y
+1Z
+1[
+1\
+1]
+1^
+0_
+1`
+0g
+1v
+0x
+0y
+#185
+0!
+#190
+1!
+0l
+b1 u
+0$
+0(
+08
+0<
+1C
+b1 K
+b10 L
+0N
+0O
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+0""
+#195
+0!
+#200
+1!
+b10 u
+1C
+b10 K
+b11 L
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+#205
+0!
+#210
+1!
+b11 u
+1C
+b11 K
+b0 L
+1T
+0U
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+1g
+1s
+#215
+0!
+#220
+1!
+b0 f
+0o
+1r
+b0 u
+1"
+1&
+b10 *
+b11 +
+b11 /
+07
+1;
+0C
+1E
+0G
+1I
+b0 M
+0P
+1Q
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+0m
+0p
+1}
+1""
+1"%
+#225
+0!
+#230
+1!
+b1 f
+1i
+0r
+b11 |
+0"!
+b11 "$
+0"
+1%
+0&
+1)
+b11 .
+00
+15
+16
+0;
+0C
+1D
+0E
+1F
+1H
+0I
+1J
+b1 M
+1N
+0Q
+1X
+1Y
+1Z
+0[
+1\
+0]
+1^
+0_
+1`
+1m
+1p
+0s
+0v
+1x
+1y
+0}
+0"%
+#235
+0!
+#240
+1!
+b10 f
+0i
+1l
+1o
+1"!
+1$
+0%
+1(
+0)
+10
+05
+06
+17
+18
+1<
+1C
+0D
+0F
+1G
+0H
+0J
+b0 K
+b1 L
+b10 M
+1O
+1P
+0T
+1U
+0X
+0Y
+1Z
+1[
+1\
+1]
+1^
+0_
+1`
+0g
+1v
+0x
+0y
+#245
+0!
+#250
+1!
+0l
+b1 u
+0$
+0(
+08
+0<
+1C
+b1 K
+b10 L
+0N
+0O
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+0""
+#255
+0!
+#260
+1!
+b10 u
+1C
+b10 K
+b11 L
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+#265
+0!
+#270
+1!
+b11 u
+1C
+b11 K
+b0 L
+1T
+0U
+0X
+0Y
+1Z
+0[
+1\
+1]
+1^
+0_
+1`
+1g
+1s
+#275
+0!
+#280
+1!
+b0 f
+0o
+1r
+b0 u
+1"
+1&
+b11 *
+b100 +
+b100 /
+07
+1;
+0C
+1E
+0G
+1I
+b0 M
+0P
+1Q
+0X
+0Y
+1Z
+0[
+1\
+0]
+1^
+1_
+1`
+0m
+0p
+1}
+1""
+1"%
+#285
+0!
+#290
+1!
+b1 f
+1i
+0r
+b100 |
+0"!
+b100 "$
+0"
+1%
+0&
+1)
+b100 *
+b100 .
+00
+14
+15
+16
+0;
+0C
+1D
+0E
+1H
+0I
+b1 M
+0Q
+1X
+1Y
+1Z
+0[
+1\
+0]
+1^
+0_
+1`
+#305
+0!

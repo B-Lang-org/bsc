@@ -1,0 +1,62 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundField1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an unbound field error (EUnboundField)
+
+-- Error Message : bsc EUnboundField1.bs
+-- bsc: Compilation errors:
+-- "EUnboundField1.bs", line 55, column 48, Unbound field: "First.a"
+-----------------------------------------------------------------------
+package EUnboundField1 (EUnboundField1(..)) where
+
+-- import Int
+
+data Keep       = First  { a::Int 32; b::Bool; }
+                | Second { c::Int 32; }
+                deriving (Eq, Bits)
+
+struct MyStruct =        { give :: Int 32; judge :: Bool; }
+                deriving (Eq, Bits)
+
+
+interface EUnboundField1 =
+            start :: Int 32 -> Bool -> Action
+            end   :: Bool
+
+mkEUnboundField1 :: Module EUnboundField1
+mkEUnboundField1 = 
+           module
+
+                x :: Reg (Int 32)
+                x <- mkReg 0 
+
+                y :: Reg (Bool)
+                y <- mkReg False
+
+                u :: Reg (MyStruct) 
+                u <- mkRegU 
+
+                v :: Reg (Keep) 
+                v <- mkRegU
+
+                w :: Reg (Keep) 
+                w <- mkRegU
+
+
+                rules
+                   "One":
+                      when True 
+                          ==> action
+--                                v := y { give = 1; judge = True }
+                                 w := v { First.a = 1 ; First.b = True }
+
+
+                interface
+                    start ix iy = action
+                                    x := ix 
+                                    y := iy 
+                    end = y when x == 0

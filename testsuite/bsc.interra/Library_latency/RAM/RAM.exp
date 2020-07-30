@@ -1,0 +1,15 @@
+if {$ctest == 1} {
+compile_object_pass TestRAM.bsv mkTestbench_Ram
+link_objects_pass {"mkTestbench_Ram"} mkTestbench_Ram
+# sim_final_state mkTestbench_Ram 10010
+# compare_file "mkTestbench_Ram.final-state"
+sim_output mkTestbench_Ram {-m 10010}
+compare_file "mkTestbench_Ram.out"
+
+compile_object_pass TagRam.bsv mkTestbench_TagRam
+link_objects_pass {"mkTestbench_TagRam"} mkTestbench_TagRam
+# sim_final_state mkTestbench_TagRam 10010
+# compare_file "mkTestbench_TagRam.final-state"
+sim_output mkTestbench_TagRam {-m 10010}
+compare_file "mkTestbench_TagRam.out"
+}

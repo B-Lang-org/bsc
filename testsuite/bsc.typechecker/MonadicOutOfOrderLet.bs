@@ -1,0 +1,9 @@
+package MonadicOutOfOrderLet() where
+
+-- bindings within a single let should be allowed to be recursive
+
+sysMonadicOutOfOrderLet :: Module Empty
+sysMonadicOutOfOrderLet =
+    module
+       let x = y
+           y = 5

@@ -1,0 +1,131 @@
+
+if { $vtest } {
+    test_veri_only_bsv FOpen
+    compare_file FOpen.dat.out 
+}
+if { $ctest } {
+    test_c_only_bsv FOpen
+    compare_file FOpen.dat.out 
+}
+
+if { $vtest } {
+    test_veri_only_bsv FOpen2
+    compare_file FOpen2.dat.out 
+}
+
+if { $ctest } {
+    test_c_only_bsv FOpen2
+    compare_file FOpen2.dat.out 
+}
+
+## 
+compile_fail_error FOpen3.bsv T0020
+
+
+## Some multi channel tests
+
+if { $vtest } {
+    test_veri_only_bsv FOpen_MCD
+    compare_file FOpen_MCD.dat.out 
+}
+if { $ctest } {
+    test_c_only_bsv FOpen_MCD
+    compare_file FOpen_MCD.dat.out 
+}
+
+if { $vtest } {
+    test_veri_only_bsv FOpen_MCD2
+    compare_file FOpen_MCD2.dat.out 
+}
+if { $ctest } {
+    test_c_only_bsv FOpen_MCD2
+    compare_file FOpen_MCD2.dat.out 
+}
+
+if { $vtest } {
+    test_veri_only_bsv FCloseTypes
+    compare_file FCloseTypes1.dat.out
+    compare_file FCloseTypes2.dat.out
+    compare_file FCloseTypes3.dat.out
+}
+if { $ctest } {
+    test_c_only_bsv FCloseTypes
+    compare_file FCloseTypes1.dat.out
+    compare_file FCloseTypes2.dat.out
+    compare_file FCloseTypes3.dat.out
+}
+# Test Bluesim's behavior when writing to closed handles
+if { $ctest } {
+    test_c_only_bsv FCloseTypesBad sysFCloseTypes.out.expected
+    compare_file FCloseTypes1.dat.out
+    compare_file FCloseTypes2.dat.out
+    compare_file FCloseTypes3.dat.out
+}
+
+if { $vtest } {
+    test_veri_only_bsv MCD_ops
+    compare_file MCD_ops1.dat.out
+    compare_file MCD_ops2.dat.out
+    compare_file MCD_ops3.dat.out
+}
+if { $ctest } {
+    test_c_only_bsv MCD_ops
+    compare_file MCD_ops1.dat.out
+    compare_file MCD_ops2.dat.out
+    compare_file MCD_ops3.dat.out
+}
+
+if { $vtest } {
+    test_veri_only_bsv  GetC1
+    test_veri_only_bsv  GetC3
+}
+if { $ctest } {
+    test_c_only_bsv  GetC1
+    test_c_only_bsv  GetC3
+}
+
+
+compile_fail_error FileTypeErr1.bsv T0031
+compile_fail_error FileTypeErr2.bsv T0092
+compile_fail_error FileTypeErr3.bsv T0020
+compile_fail_error GetC_err1.bsv T0080 
+compile_fail_error GetC_err2.bsv T0020 
+compile_fail_error GetC_err3.bsv T0031
+
+
+if { $vtest && $verilog_compiler != "iverilog" } {
+    test_veri_only_bsv FWrites
+    compare_file FWrites.dat.out
+
+    test_veri_only_bsv FWrite2
+    compare_file FWrite2.dat.out
+
+    test_veri_only_bsv FWrite3
+    compare_file FWrite3o.dat.out
+    compare_file FWrite3h.dat.out
+    compare_file FWrite3d.dat.out
+    compare_file FWrite3b.dat.out
+}
+
+if { $ctest } {
+    test_c_only_bsv FWrites
+    compare_file FWrites.dat.out
+
+    test_c_only_bsv FWrite2
+    compare_file FWrite2.dat.out
+
+    test_c_only_bsv FWrite3
+    compare_file FWrite3o.dat.out
+    compare_file FWrite3h.dat.out
+    compare_file FWrite3d.dat.out
+    compare_file FWrite3b.dat.out
+
+}
+
+
+
+
+# FDisplay.bsv
+# FileTypeInfer0.bsv
+
+#FWr  

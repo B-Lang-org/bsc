@@ -1,0 +1,30 @@
+# Generators for the test data
+
+CC = gcc 
+
+TESTDATA = testa.dat testm.dat testmac.dat \
+	   testa64.dat testm64.dat testmac64.dat 
+
+.PHONY: test_data
+test_data:	$(TESTDATA) dumper 
+
+dumper:  dumper.c
+	$(CC) -o dumper dumper.c
+
+testa.dat:	dumper
+	./dumper 0 | tee $@
+testm.dat:	dumper
+	./dumper 1 | tee $@
+testmac.dat:	dumper
+	./dumper 2 | tee $@
+testa64.dat:	dumper
+	./dumper 3 | tee $@
+
+testm64.dat:	dumper
+	./dumper 4 | tee $@
+testmac64.dat:	dumper
+	./dumper 5 | tee $@
+
+
+cleandata:
+	rm -rf *.dat dumper

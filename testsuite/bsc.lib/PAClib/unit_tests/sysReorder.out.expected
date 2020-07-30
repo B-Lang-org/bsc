@@ -1,0 +1,18 @@
+Cycle 1: Test start: mkReorder
+Cycle 6: Out [0]: expected (0)
+Cycle 8: Out [1]: expected (1)
+Cycle 12: Out [2]: expected (2)
+Cycle 13: Out [3]: expected (3)
+Cycle 17: Out [4]: expected (4)
+Cycle 19: Out [5]: expected (5)
+Cycle 23: Out [6]: expected (6)
+Cycle 24: Out [7]: expected (7)
+Cycle 28: Out [8]: expected (8)
+Cycle 30: Out [9]: expected (9)
+Cycle 34: Out [10]: expected (10)
+Cycle 35: Out [11]: expected (11)
+Cycle 39: Out [12]: expected (12)
+Cycle 41: Out [13]: expected (13)
+Cycle 45: Out [14]: expected (14)
+Cycle 46: Out [15]: expected (15)
+Cycle 46: Test ok: mkReorder: all 16 outputs ok

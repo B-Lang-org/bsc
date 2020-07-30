@@ -1,0 +1,13 @@
+# bluesim allows SizedFIFO to have depth of 2 or less
+test_veri_only_bsv_modules ErrorFIFO2 {mySizedFIFO} fifo_verilog_error2.expected
+test_veri_only_bsv_modules ErrorFIFO1 {mySizedFIFO} fifo_verilog_error1.expected
+test_veri_only_bsv_modules ErrorFIFO0 {mySizedFIFO} fifo_verilog_error0.expected
+test_veri_only_bsv_modules ErrorLFIFO2 {myLSizedFIFO} lfifo_verilog_error2.expected
+test_veri_only_bsv_modules ErrorLFIFO1 {myLSizedFIFO} lfifo_verilog_error1.expected
+test_veri_only_bsv_modules ErrorLFIFO0 {myLSizedFIFO} lfifo_verilog_error0.expected
+compile_verilog_fail_error ErrorFIFONegative.bsv T0051
+compile_object_fail_error  ErrorFIFONegative.bsv T0051
+
+test_c_veri_bsv_modules FIFOParamTest {mySizedFIFO}
+test_c_veri_bsv_modules LFIFOParamTest {myLSizedFIFO}
+test_c_veri_bsv_modules ZeroFIFOParamTest {myZeroWidthFIFO}

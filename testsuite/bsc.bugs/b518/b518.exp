@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_schedule_pass MethodUrg.bsv
+compare_file MethodUrg.bsv.bsc-sched-out
+}

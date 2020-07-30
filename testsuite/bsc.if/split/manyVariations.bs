@@ -1,0 +1,189 @@
+package manyVariations(mymodule) where
+mymodule :: Module Empty
+mymodule =
+  module
+    v1 :: Reg Bool
+    v1 <- mkRegU
+    v2 :: Reg Bool
+    v2 <- mkRegU
+    v3 :: Reg Bool
+    v3 <- mkRegU
+    v4 :: Reg Bool
+    v4 <- mkRegU
+    v5 :: Reg Bool
+    v5 <- mkRegU
+    v6 :: Reg Bool
+    v6 <- mkRegU
+    v7 :: Reg Bool
+    v7 <- mkRegU
+    v8 :: Reg Bool
+    v8 <- mkRegU
+    v9 :: Reg Bool
+    v9 <- mkRegU
+    v10 :: Reg Bool
+    v10 <- mkRegU
+    v11 :: Reg Bool
+    v11 <- mkRegU
+    v12 :: Reg Bool
+    v12 <- mkRegU
+    v13 :: Reg Bool
+    v13 <- mkRegU
+    v14 :: Reg Bool
+    v14 <- mkRegU
+    v15 :: Reg Bool
+    v15 <- mkRegU
+    v16 :: Reg Bool
+    v16 <- mkRegU
+    v17 :: Reg Bool
+    v17 <- mkRegU
+    v18 :: Reg Bool
+    v18 <- mkRegU
+    v19 :: Reg Bool
+    v19 <- mkRegU
+    v20 :: Reg Bool
+    v20 <- mkRegU
+    v21 :: Reg Bool
+    v21 <- mkRegU
+    v22 :: Reg Bool
+    v22 <- mkRegU
+    v23 :: Reg Bool
+    v23 <- mkRegU
+    v24 :: Reg Bool
+    v24 <- mkRegU
+    v25 :: Reg Bool
+    v25 <- mkRegU
+    v26 :: Reg Bool
+    v26 <- mkRegU
+    v27 :: Reg Bool
+    v27 <- mkRegU
+    v28 :: Reg Bool
+    v28 <- mkRegU
+    v29 :: Reg Bool
+    v29 <- mkRegU
+    v30 :: Reg Bool
+    v30 <- mkRegU
+    v31 :: Reg Bool
+    v31 <- mkRegU
+    v32 :: Reg Bool
+    v32 <- mkRegU
+    v33 :: Reg Bool
+    v33 <- mkRegU
+    v34 :: Reg Bool
+    v34 <- mkRegU
+    v35 :: Reg Bool
+    v35 <- mkRegU
+    v36 :: Reg Bool
+    v36 <- mkRegU
+    v37 :: Reg Bool
+    v37 <- mkRegU
+    v38 :: Reg Bool
+    v38 <- mkRegU
+    v39 :: Reg Bool
+    v39 <- mkRegU
+    v40 :: Reg Bool
+    v40 <- mkRegU
+    v41 :: Reg Bool
+    v41 <- mkRegU
+    v42 :: Reg Bool
+    v42 <- mkRegU
+    v43 :: Reg Bool
+    v43 <- mkRegU
+    v44 :: Reg Bool
+    v44 <- mkRegU
+    v45 :: Reg Bool
+    v45 <- mkRegU
+    v46 :: Reg Bool
+    v46 <- mkRegU
+    v47 :: Reg Bool
+    v47 <- mkRegU
+    v48 :: Reg Bool
+    v48 <- mkRegU
+    v49 :: Reg Bool
+    v49 <- mkRegU
+    v50 :: Reg Bool
+    v50 <- mkRegU
+    v51 :: Reg Bool
+    v51 <- mkRegU
+    v52 :: Reg Bool
+    v52 <- mkRegU
+    v53 :: Reg Bool
+    v53 <- mkRegU
+    v54 :: Reg Bool
+    v54 <- mkRegU
+    v55 :: Reg Bool
+    v55 <- mkRegU
+    v56 :: Reg Bool
+    v56 <- mkRegU
+    v57 :: Reg Bool
+    v57 <- mkRegU
+    v58 :: Reg Bool
+    v58 <- mkRegU
+    v59 :: Reg Bool
+    v59 <- mkRegU
+    v60 :: Reg Bool
+    v60 <- mkRegU
+    v61 :: Reg Bool
+    v61 <- mkRegU
+    v62 :: Reg Bool
+    v62 <- mkRegU
+    v63 :: Reg Bool
+    v63 <- mkRegU
+    v64 :: Reg Bool
+    v64 <- mkRegU
+    v65 :: Reg Bool
+    v65 <- mkRegU
+    v66 :: Reg Bool
+    v66 <- mkRegU
+    v67 :: Reg Bool
+    v67 <- mkRegU
+    v68 :: Reg Bool
+    v68 <- mkRegU
+    v69 :: Reg Bool
+    v69 <- mkRegU
+    v70 :: Reg Bool
+    v70 <- mkRegU
+    v71 :: Reg Bool
+    v71 <- mkRegU
+    v72 :: Reg Bool
+    v72 <- mkRegU
+    v73 :: Reg Bool
+    v73 <- mkRegU
+    v74 :: Reg Bool
+    v74 <- mkRegU
+    v75 :: Reg Bool
+    v75 <- mkRegU
+    v76 :: Reg Bool
+    v76 <- mkRegU
+    v77 :: Reg Bool
+    v77 <- mkRegU
+    v78 :: Reg Bool
+    v78 <- mkRegU
+    v79 :: Reg Bool
+    v79 <- mkRegU
+    v80 :: Reg Bool
+    v80 <- mkRegU
+    v81 :: Reg Bool
+    v81 <- mkRegU
+    v82 :: Reg Bool
+    v82 <- mkRegU
+    v83 :: Reg Bool
+    v83 <- mkRegU
+    v84 :: Reg Bool
+    v84 <- mkRegU
+    v85 :: Reg Bool
+    v85 <- mkRegU
+    v86 :: Reg Bool
+    v86 <- mkRegU
+    v87 :: Reg Bool
+    v87 <- mkRegU
+    v88 :: Reg Bool
+    v88 <- mkRegU
+    rules
+      when True ==> (splitDeepIf v1 (if v2 then (nosplitDeepIf v3 (if v4 then ($display "1") else ($display "2")) (if v5 then ($display "3") else ($display "4"))) else (if v6 then ($display "5") else ($display "6"))) (if v7 then ($display "7") else ($display "8")))
+      when True ==> (nosplitDeepIf v8 (if v9 then (splitDeepIf v10 (if v11 then ($display "9") else ($display "10")) (if v12 then ($display "11") else ($display "12"))) else (if v13 then ($display "13") else ($display "14"))) (if v14 then ($display "15") else ($display "16")))
+      when True ==> (splitDeepIf v15 (if v16 then (nosplitIf v17 (if v18 then (nosplitDeepIf v19 (if v20 then (splitIf v21 (if v22 then ($display "17") else ($display "18")) (if v23 then ($display "19") else ($display "20"))) else (if v24 then ($display "21") else ($display "22"))) (if v25 then ($display "23") else ($display "24"))) else (if v26 then ($display "25") else ($display "26"))) (if v27 then ($display "27") else ($display "28"))) else (if v28 then ($display "29") else ($display "30"))) (if v29 then ($display "31") else ($display "32")))
+      when True ==> (nosplitDeepIf v30 (if v31 then (splitIf v32 (if v33 then (splitDeepIf v34 (if v35 then (nosplitIf v36 (if v37 then ($display "33") else ($display "34")) (if v38 then ($display "35") else ($display "36"))) else (if v39 then ($display "37") else ($display "38"))) (if v40 then ($display "39") else ($display "40"))) else (if v41 then ($display "41") else ($display "42"))) (if v42 then ($display "43") else ($display "44"))) else (if v43 then ($display "45") else ($display "46"))) (if v44 then ($display "47") else ($display "48")))
+      when True ==> (splitDeepIf v45 (if v46 then (nosplitDeepIf v47 (if v48 then ($display "49") else ($display "50")) (if v49 then ($display "51") else ($display "52"))) else (if v50 then ($display "53") else ($display "54"))) (if v51 then ($display "55") else ($display "56")))
+      when True ==> (nosplitDeepIf v52 (if v53 then (splitDeepIf v54 (if v55 then ($display "57") else ($display "58")) (if v56 then ($display "59") else ($display "60"))) else (if v57 then ($display "61") else ($display "62"))) (if v58 then ($display "63") else ($display "64")))
+      when True ==> (splitDeepIf v59 (if v60 then (nosplitIf v61 (if v62 then (nosplitDeepIf v63 (if v64 then (splitIf v65 (if v66 then ($display "65") else ($display "66")) (if v67 then ($display "67") else ($display "68"))) else (if v68 then ($display "69") else ($display "70"))) (if v69 then ($display "71") else ($display "72"))) else (if v70 then ($display "73") else ($display "74"))) (if v71 then ($display "75") else ($display "76"))) else (if v72 then ($display "77") else ($display "78"))) (if v73 then ($display "79") else ($display "80")))
+      when True ==> (nosplitDeepIf v74 (if v75 then (splitIf v76 (if v77 then (splitDeepIf v78 (if v79 then (nosplitIf v80 (if v81 then ($display "81") else ($display "82")) (if v82 then ($display "83") else ($display "84"))) else (if v83 then ($display "85") else ($display "86"))) (if v84 then ($display "87") else ($display "88"))) else (if v85 then ($display "89") else ($display "90"))) (if v86 then ($display "91") else ($display "92"))) else (if v87 then ($display "93") else ($display "94"))) (if v88 then ($display "95") else ($display "96")))

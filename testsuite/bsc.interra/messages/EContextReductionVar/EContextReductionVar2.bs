@@ -1,0 +1,67 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReductionVar2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Context reduction failed" error (EContextReductionVar)
+
+-- Error Message : bsc EContextReductionVar2.bs
+-- bsc: Compilation errors:
+-- "EContextReductionVar2.bs", line 31, column 0, Context reduction failed, because there are no instances of the form: (Prelude.Bits EContextReductionVar2.MyType1 _v1157, Prelude.Bits EContextReductionVar2.MyType2 _v1162)
+-- The type variable "_v1157" was introduced at "EContextReductionVar2.bs", line 40, column 25
+-----------------------------------------------------------------------
+
+package EContextReductionVar2 (EContextReductionVar2(..)) where
+
+data MyType1 = Integer | Bool
+             deriving (Eq) 
+
+data MyType2 = Integer | Bool
+             deriving (Eq) 
+
+data MyType3 = MyType1 | MyType2
+             deriving (Eq,Bits) 
+
+interface EContextReductionVar2 =
+             start :: MyType3 -> MyType3 -> Action
+             end   :: MyType3
+
+mkEContextReductionVar2 :: Module EContextReductionVar2
+mkEContextReductionVar2 =
+              module
+
+
+                    u :: Reg (MyType1)   
+                    u <- mkRegU
+
+                    v :: Reg (MyType1)   
+                    v <- mkRegU
+
+                    w :: Reg (MyType2)   
+                    w <- mkRegU
+
+                    z :: Reg (MyType2)   
+                    z <- mkRegU
+
+                    x :: Reg (MyType3)   
+                    x <- mkRegU
+
+                    y :: Reg (MyType3)   
+                    y <- mkRegU
+ 
+                    rules
+                      "One":
+                             when True
+                               ==> action
+                                     if (u == v) && (w == z)
+                                      then   x := y
+                                      else   y := x 
+
+
+                    interface 
+                        start ix iy = action
+                                        x := ix
+                                        y := iy
+                        end = y when True

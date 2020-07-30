@@ -1,0 +1,36 @@
+package NoSplitIfNested(sysIfTest) where
+
+interface IfTest =
+  flip_a :: Action
+  flip_b :: Action
+  flip_c :: Action
+
+sysIfTest :: Module (IfTest)
+sysIfTest =
+  module
+    a :: Reg Bool
+    a <- mkReg False
+    b :: Reg Bool
+    b <- mkReg False
+    c :: Reg Bool
+    c <- mkReg False
+    d :: Reg (UInt 3)
+    d <- mkReg 0
+
+    interface 
+	flip_a = a :=  not a
+	flip_b = b :=  not b
+	flip_c = c :=  not c
+   
+    rules
+        "Nested": when True ==> 
+                    (nosplitIf a 
+		       (nosplitIf b 
+			  (nosplitIf c (d := 7) (d := 6)) 
+                          (nosplitIf c (d := 5) (d := 4)))
+		       (nosplitIf b 
+			  (nosplitIf c (d := 3) (d := 2)) 
+			  (nosplitIf c (d := 1) (d := 0))))
+			
+		
+

@@ -1,0 +1,17 @@
+checking package dependencies
+compiling StructUninitErr3.bsv
+code generation for mkStructUninitErr3 starts
+Error: "StructUninitErr3.bsv", line 10, column 13: (G0028)
+  `foo.b' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr3.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructUninitErr3' at "StructUninitErr3.bsv", line
+  8, column 8.
+Error: "StructUninitErr3.bsv", line 10, column 13: (G0028)
+  `foo.c' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr3.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructUninitErr3' at "StructUninitErr3.bsv", line
+  8, column 8.

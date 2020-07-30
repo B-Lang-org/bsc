@@ -1,0 +1,11 @@
+package NiceType where
+
+badCons1 :: List a -> Integer
+badCons1 Nil = 1
+badCons1 (Cons _) = 2
+
+badCons2 :: List Integer -> Integer
+badCons2 Nil = 1
+badCons2 (Cons i) = i
+
+

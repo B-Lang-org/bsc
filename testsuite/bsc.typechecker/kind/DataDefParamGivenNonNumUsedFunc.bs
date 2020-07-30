@@ -1,0 +1,4 @@
+package DataDefParamGivenNonNumUsedFunc () where
+
+data (Foo :: * -> * -> *) x y = Bar (x y)
+

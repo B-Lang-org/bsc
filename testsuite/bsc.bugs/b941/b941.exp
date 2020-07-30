@@ -1,0 +1,3 @@
+compile_verilog_pass UnderscoreIfc.bsv
+compile_verilog_pass UnderscoreModule.bsv
+

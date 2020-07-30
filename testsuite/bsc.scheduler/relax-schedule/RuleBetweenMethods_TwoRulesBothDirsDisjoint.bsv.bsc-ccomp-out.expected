@@ -1,0 +1,21 @@
+checking package dependencies
+compiling RuleBetweenMethods_TwoRulesBothDirsDisjoint.bsv
+code generation for mkRuleBetweenMethods_TwoRulesBothDirsDisjoint_Sub starts
+Elaborated module file created: mkRuleBetweenMethods_TwoRulesBothDirsDisjoint_Sub.ba
+code generation for sysRuleBetweenMethods_TwoRulesBothDirsDisjoint starts
+Error: "RuleBetweenMethods_TwoRulesBothDirsDisjoint.bsv", line 9, column 9: (G0101)
+  The rules `RL_top_rule_A' and `RL_top_rule_B' require dynamic scheduling,
+  which is not supported by Bluesim. This is because the rules use methods
+  which have a rule that executes between them in the static execution order
+  of the separately synthesized submodule, but some pairs must execute in one
+  order and some pairs must execute in the opposite order. See entry #30 in
+  the KPNS document for more information and possible solutions.
+  The methods and the rules between them which must execute in the forward
+  direction are as follows:
+    (s2.m2, s2.m1)
+      RL_sub_rule
+  The methods and the rules between them which must execute in the reverse
+  direction are as follows:
+    (s1.m1, s1.m2)
+      RL_sub_rule
+Elaborated error module file created: sysRuleBetweenMethods_TwoRulesBothDirsDisjoint.ba

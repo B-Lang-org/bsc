@@ -1,0 +1,11 @@
+test_veri_only_bsv GearboxFullSpeedTest sysGearboxFullSpeedTest.v.out.expected
+test_c_only_bsv GearboxFullSpeedTest sysGearboxFullSpeedTest.c.out.expected
+
+test_veri_only_bsv GearboxBubbleTest sysGearboxBubbleTest.v.out.expected
+test_c_only_bsv GearboxBubbleTest sysGearboxBubbleTest.c.out.expected
+
+test_veri_only_bsv Gearbox1to1Test sysGearbox1to1Test.v.out.expected
+test_c_only_bsv Gearbox1to1Test sysGearbox1to1Test.c.out.expected
+
+test_veri_only_bsv GearboxSameClockTest sysGearboxSameClockTest.v.out.expected
+test_c_only_bsv GearboxSameClockTest sysGearboxSameClockTest.c.out.expected

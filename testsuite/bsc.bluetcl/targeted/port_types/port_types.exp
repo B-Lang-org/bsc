@@ -1,0 +1,21 @@
+
+# ---------------
+# Test that inhigh enable ports are not reported by the "porttypes"
+# and "ports" subcommands
+
+bsc_compile InhighEnable.bsv {-verilog -elab}
+bluetcl_run_compare_pass inhigh.tcl
+
+# ---------------
+# Test that zero-size ports are not reported
+
+bsc_compile ZeroSize.bsv {-verilog -elab}
+bluetcl_run_compare_pass zero_size.tcl
+
+# ---------------
+# Test the port types and ifc mapping for primitives
+
+bsc_compile Prims.bsv {-verilog -elab}
+bluetcl_run_compare_pass prims.tcl "" ""
+
+# ---------------

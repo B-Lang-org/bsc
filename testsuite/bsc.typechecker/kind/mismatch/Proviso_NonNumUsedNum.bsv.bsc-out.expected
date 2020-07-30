@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Proviso_NonNumUsedNum.bsv
+Error: "Proviso_NonNumUsedNum.bsv", line 2, column 25: (T0026)
+  The value type `Bit#(k)' was found where a numeric type was expected.

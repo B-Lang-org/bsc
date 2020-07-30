@@ -1,0 +1,120 @@
+Welcome to Blueshell
+Version: 2008.03.beta1; Date: 2008-03-28; Revision 13574
+----------
+Available commands:
+  bpackage       Manipulate and query BSV packages
+  browseinst     Utility function for viewing instance hierarchy
+  browsemodule   Utility function for viewing module hierarchy
+  browsepackage  Utility function for viewing package contents
+  browsetype     Utility function for viewing types
+  defs           Show the definitions in a package
+  depend         Show the file and package dependencies for a given file.
+  flags          Set or show a flag value
+  help           Get help on available commands
+  module         Load and query information on a module
+  parse          Parse a string and show its internal representation
+  rule           Query rules and rule relationships in a module
+  schedule       Query a module schedule
+  showArg        Describes the arguments of the command
+  sim            Control Bluesim simulation
+  submodule      Query submodules
+  type           Display information about a type
+  version        Returns version information for Bluespec software
+
+Use 'help <command>' to get help on a specific command.
+----------
+Command: module - Load and query information on a module
+
+Usage: module ...subcommands...
+
+Subcommands: 
+  load <module>                 Load a synthesized module
+  clear                         Clear all loaded modules
+  submods <module>              Show submodules of a module
+  rules <module>                Show rules in a module
+  ifc <module>                  Show the interface type of a module
+  methods <module>              Show the flattened methods of a module
+  flags <module> <flag>*        Show the flag settings when the module was built
+  ports <module>                Show the ports of a module
+  porttypes <module>            Show the types of the ports of a module
+  list                          List the loaded modules
+  methodconditions <module>     Show the method predicates of a module
+----------
+Command: module load - Load a synthesized module
+
+Usage: module load <module>
+----------
+Command: defs - Show the definitions in a package
+
+Usage: defs (all | type | module | func) <pkg>
+
+Subcommands: 
+  all <pkg>                     Show all definitions in a package
+  type <pkg>                    Show all types defined in a package
+  module <pkg>                  Show all modules defined in a package
+  func <pkg>                    Show all functions defined in a package
+----------
+There is no command named 'nonesuch'
+
+Use 'help' to see available commands.
+----------
+Command: type - Display information about a type
+
+Usage: type (full <arg> | constr <arg> | bitify <arg>)
+
+Examples:
+  type constr Maybe
+  type full Maybe#(Int#(32))
+  type full [type constr Maybe]
+
+Subcommands: 
+  full <arg>                    Describe the properties of a type
+  constr <arg>                  Show the type associated with a type constructor
+  bitify <arg>                  get bit information
+----------
+Command: type full - Describe the properties of a type
+
+Usage: type full <arg>
+----------
+Command: type full - Describe the properties of a type
+
+Usage: type full <arg>
+----------
+Note: invalid command form specified -- describing closest match
+
+Command: type full - Describe the properties of a type
+
+Usage: type full <arg>
+----------
+Command: flags show - Show a flag value
+
+Usage: flags show <flag>*
+
+Without an argument, shows the current settings of all flags.
+With an argument, shows the current value of each flag named
+in the argument.  Flag names are given without the leading '-'
+character.  If a boolean flag is not currently set, an empty
+list ({}) is returned for its value, otherwise the name of the
+flag is returned.
+
+Examples:
+  flags show
+  flags show verbose
+  flags show scheduler-effort
+  flags show steps steps-max-intervals steps-warn-interval
+----------
+Command: help - Get help on available commands
+
+Usage: help [<command> | list]
+
+Help with no arguments will list all available help topics.
+Optionally, an argument can be provided to get help on a specific topic.
+Also, 'help list' will return a string listing the names of all commands.
+
+Examples:
+  help
+  help module
+  help {flags show}
+  help list
+----------
+bpackage browseinst browsemodule browsepackage browsetype debug defs depend flags help module parse rule schedule showArg sim submodule type version

@@ -1,0 +1,8 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number:   1, Writing Data:   1
+Counter value at read:   3
+Cycle Number =   3, Value read =   0
+Counter value at read:   4
+Cycle Number =   4, Value read =   1
+Counter value: 100
+Simulation Passes

@@ -1,0 +1,28 @@
+package RestrictiveModuleLayout where
+
+mkRegFlex0 :: (IsModule m c, Bits a sa) => a -> m (Reg a)
+mkRegFlex0 a =
+ module
+  r <- mkReg a
+  interface
+    _read  = r
+    _write = r._write
+
+mkRegFlex1 :: (IsModule m c, Bits a sa) => m (Reg a)
+mkRegFlex1 =
+ module
+  mkRegU
+
+mkTbFlex :: (IsModule m c) => m Empty
+mkTbFlex =
+ module
+  r :: Reg (Bit 16) <- mkReg 0
+
+  rules
+   "exit": when (r == 10) ==>
+    action
+     $display "Test done"
+     $finish 0
+
+   "count": when True ==> r := r + 1
+

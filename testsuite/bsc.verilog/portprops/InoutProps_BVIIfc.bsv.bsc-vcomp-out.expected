@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InoutProps_BVIIfc.bsv
+code generation for sysInoutProps_BVIIfc starts
+=== IOproperties:
+Name                         I/O  size props
+CLK                            I     1 clock
+RST_N                          I     1 reset
+io_ifc                        IO    32 inout
+
+
+-----
+
+Verilog file created: sysInoutProps_BVIIfc.v
+All packages are up to date.

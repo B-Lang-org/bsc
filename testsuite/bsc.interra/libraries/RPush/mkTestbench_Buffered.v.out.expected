@@ -1,0 +1,33 @@
+Cycle Number =   0, Pushing in value =   0
+Cycle Number =   1, Pushing in value =   1
+Cycle Number =   2, Popped Out Value =     0
+Cycle Number =   2, Pushing in value =   2
+Cycle Number =   3, Popped Out Value =     1
+Cycle Number =   3, Pushing in value =   3
+Cycle Number =   4, Popped Out Value =     4
+Cycle Number =   4, Pushing in value =   4
+Cycle Number =   5, Clearing Buffer
+Cycle Number =   6, Pushing in value =   6
+Cycle Number =   7, Pushing in value =   7
+Cycle Number =   8, Pushing in value =   8
+Cycle Number =   9, Popped Out Value =    36
+Cycle Number =   9, Pushing in value =   9
+Cycle Number =  10, Popped Out Value =    49
+Cycle Number =  10, Clearing Buffer
+Cycle Number =  11, Pushing in value =  11
+Cycle Number =  12, Pushing in value =  12
+Cycle Number =  13, Popped Out Value =   121
+Cycle Number =  13, Pushing in value =  13
+Cycle Number =  14, Popped Out Value =   144
+Cycle Number =  14, Pushing in value =  14
+Cycle Number =  15, Popped Out Value =   169
+Cycle Number =  15, Clearing Buffer
+Cycle Number =  16, Pushing in value =  16
+Cycle Number =  17, Pushing in value =  17
+Cycle Number =  18, Popped Out Value =   256
+Cycle Number =  18, Pushing in value =  18
+Cycle Number =  19, Popped Out Value =   289
+Cycle Number =  19, Pushing in value =  19
+Cycle Number =  20, Popped Out Value =   324
+Cycle Number =  21, Popped Out Value =   361
+Simulation Passes

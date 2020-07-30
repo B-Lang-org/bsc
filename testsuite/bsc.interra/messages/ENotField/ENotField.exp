@@ -1,0 +1,11 @@
+compile_fail ENotField1.bs
+compare_file ENotField1.bs.bsc-out
+
+compile_fail ENotField2.bs
+compare_file ENotField2.bs.bsc-out
+
+compile_fail ENotField3.bs
+compare_file ENotField3.bs.bsc-out
+
+compile_fail ENotField4.bs
+compare_file ENotField4.bs.bsc-out

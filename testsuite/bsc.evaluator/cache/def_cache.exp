@@ -1,0 +1,4 @@
+compile_object_pass TestDefCache.bsv
+if {$ctest == 1} {
+compare_file TestDefCache.bsv.bsc-ccomp-out
+}

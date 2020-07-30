@@ -1,0 +1,5 @@
+checking package dependencies
+compiling RuleNameInSubmod.bsv
+code generation for sysRuleNameInSubmod starts
+Error: "RuleNameInSubmod.bsv", line 2, column 36: (G0054)
+  Rule `s_r' was referenced in a rule attribute before it was defined.

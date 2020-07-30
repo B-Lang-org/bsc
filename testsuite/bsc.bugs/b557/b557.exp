@@ -1,0 +1,2 @@
+compile_pass Bug557_1.bsv
+compile_fail_error Bug557_2.bsv P0109

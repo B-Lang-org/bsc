@@ -1,0 +1,30 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EForeignNotBit.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EForeignNotBit error of the bluespec
+-- compiler (Foreign Function has non-Bit argument/result)
+--
+-----------------------------------------------------------------------
+
+
+
+package EForeignNotBit () where
+
+-- import Int
+
+data MyType = Constructor
+
+foreign function ::  MyType -> Bit 32 = "Zero_Extend"
+
+x :: MyType
+x = Constructor
+
+y :: Bit 32
+y = function x  -- The function has a non Bit # type argument
+
+
+

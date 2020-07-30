@@ -1,0 +1,2 @@
+package Import0 ( S(..) ) where
+data S = S0 { a :: Bool } | S1 { a :: Bool } deriving (Bits)

@@ -1,0 +1,105 @@
+#
+# Tests for generating module arguments as parameters
+#
+
+# ----------
+# Test for proper generation and simulation of parameters,
+# in Verilog and Bluesim
+
+test_c_veri_bsv_modules ParamTest mkParamTestSub
+
+# ----------
+# Tests for module arguments as ports
+
+# Test that Verilog allows a dynamic value (register output) as the
+# expression for a dynamic module argument
+compile_verilog_pass PortExpr_SubmodPort.bsv
+
+# Test that BlueSim rejects this
+touch PortExpr_SubmodPort.bsv
+compile_object_fail_error PortExpr_SubmodPort.bsv G0058
+
+# Test that Bluesim allows a port, as long as it is instantiated with a
+# constant value.
+# And test Verilog for the heck of it.
+test_c_veri_bsv_modules ModulePort_WithStaticValue_TwoLevel \
+    {mkModulePort_WithStaticValue_TwoLevel_Sub1
+     mkModulePort_WithStaticValue_TwoLevel_Sub2 }
+# Test that Bluesim had no warnings
+if {$ctest == 1} {
+find_n_strings sysModulePort_WithStaticValue_TwoLevel.bsc-ccomp-out \
+    {warning} 0
+}
+
+# Test what Bluesim and Verilog do with a top-level with a port.
+# Given our main.v, Verilog treats it as 'z'
+test_veri_only_bsv ModulePort_WithStaticValue_TopLevel \
+    sysModulePort_WithStaticValue_TopLevel.v.out.expected
+# Bluesim fails to link, at the moment
+# XXX should it treat the value as 0? or give a user error?
+compile_object_pass ModulePort_WithStaticValue_TopLevel.bsv
+link_objects_pass_bug sysModulePort_WithStaticValue_TopLevel.ba \
+    sysModulePort_WithStaticValue_TopLevel
+
+# ----------
+# Tests for module arguments as parameters
+
+# Test that the compiler properly allows/prohibits expressions
+# to submodule instantiation parameters
+
+# Expression is a port
+compile_verilog_fail_error ParamExpr_Port.bsv G0053
+
+# Expression is a parameter
+# (should work with both Bluesim and Verilog)
+# (by not using mkReg as the submodule, we also test that code works
+# in the absence of register inlining)
+test_c_veri_bsv_modules ParamExpr_Param \
+    {mkParamExpr_Param_Sub1 mkParamExpr_Param_Sub2 }
+# Test that Verilog generates a parameter
+if { $vtest == 1 } {
+    find_regexp mkParamExpr_Param_Sub1.v {parameter \[0 \: 0\] foo \= 1\'b0\;}
+}
+
+# Expression is a submod output port
+compile_verilog_fail_error ParamExpr_SubmodPort.bsv G0053
+
+# Expression is from a task
+# XXX is this possible?  We don't have any $-tasks that return a pure
+# XXX value, without an accompanying Action
+#compile_verilog_fail_error ParamExpr_Task.bsv G0053
+
+# ---
+# Test for expressions involving the above
+
+#...
+
+# ---
+# Test that the right primitive operators are allowed in the constant
+# expressions to submod instantiations
+# (as checked by isConstOp in IParams)
+
+#...
+
+# ----------
+# Test the size of parameter values
+
+# Test that a parameter inside a design is given the appropriate size
+test_c_veri_bsv ParamSize
+
+# Test that a parameter default is given the appropriate size
+# (Only works for Verilog, since Bluesim doesn't support top-level modules
+# with parameters.)
+test_veri_only_bsv ParamSizeDefault
+
+# Test that the module enforces a size (by assigning to a wire of the
+# appropriate size), such that the behavior isn't changed if a
+# hand-written Verilog parent module doesn't give the right size
+if { $vtest == 1 } {
+    link_verilog_pass {tbParamSize.v mkParamSize_Sub.v} tbParamSize
+    sim_verilog tbParamSize
+    move tbParamSize.out tbParamSize.v.out
+    check_verilog_output tbParamSize.v.out sysParamSize.out.expected {}
+}
+
+# ----------

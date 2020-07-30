@@ -1,0 +1,10 @@
+checking package dependencies
+compiling StaticAssert.bsv
+code generation for mkTestbench_StaticAssert starts
+Error: "StaticAssert.bsv", line 26, column 40: (S0015)
+  Bluespec evaluation-time error: Static assertion failed: Failure: Add2 !=
+  Tabulated_Add
+  During elaboration of `staticAssert' at "StaticAssert.bsv", line 26, column
+  3.
+  During elaboration of `mkTestbench_StaticAssert' at "StaticAssert.bsv", line
+  20, column 8.

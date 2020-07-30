@@ -1,0 +1,8 @@
+compile_verilog_pass Test.bsv
+if { $vtest == 1 } {
+    find_regexp mkTest.v {input  \[7 \: 0\] VAL\;}
+}
+
+# Check that nameclash is detected, too
+compile_verilog_fail_error Test2.bsv G0107
+

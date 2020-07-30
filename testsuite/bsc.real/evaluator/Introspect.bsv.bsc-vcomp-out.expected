@@ -1,0 +1,51 @@
+checking package dependencies
+compiling Introspect.bsv
+code generation for sysIntrospect starts
+Compilation message: "Introspect.bsv", line 24, column 24: w = 2.0 = 2.0
+Compilation message: "Introspect.bsv", line 28, column 39: w bits = (+, 4503599627370496, -51)
+Compilation message: "Introspect.bsv", line 32, column 40: -w bits = (-, -4503599627370496, -51)
+Compilation message: "Introspect.bsv", line 36, column 40: w2 bits = (+, 4503599627370496, -41)
+Compilation message: "Introspect.bsv", line 40, column 40: w3 bits = (+, 5629499534213120, -51)
+Compilation message: "Introspect.bsv", line 42, column 55: w3 mantissa should be '5629499534213120'
+Compilation message: "Introspect.bsv", line 44, column 24: x = 2.5 = 2.5
+Compilation message: "Introspect.bsv", line 47, column 35: x parts = (2, 0.5)
+Compilation message: "Introspect.bsv", line 49, column 18: y = 3.333333366666667e11
+Compilation message: "Introspect.bsv", line 50, column 9: y digits: 
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    7
+Compilation message: "Introspect.bsv", line 52, column 26: y exponent: 12
+Compilation message: "Introspect.bsv", line 54, column 19: -y = -3.333333366666667e11
+Compilation message: "Introspect.bsv", line 55, column 9: -y digits: 
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    3
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    6
+Compilation message: "Introspect.bsv", line 21, column 39:    7
+Compilation message: "Introspect.bsv", line 57, column 27: -y exponent: 12
+Verilog file created: sysIntrospect.v
+All packages are up to date.

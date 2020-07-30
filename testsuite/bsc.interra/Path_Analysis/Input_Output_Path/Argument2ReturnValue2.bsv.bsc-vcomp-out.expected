@@ -1,0 +1,11 @@
+checking package dependencies
+compiling Argument2ReturnValue2.bsv
+code generation for mkArgument2ReturnValue2 starts
+=== pathsPostSched:
+Combinational paths from inputs to outputs:
+  start_inp -> start
+
+-----
+
+Verilog file created: mkArgument2ReturnValue2.v
+All packages are up to date.

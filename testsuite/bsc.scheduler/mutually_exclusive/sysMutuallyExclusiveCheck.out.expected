@@ -1,0 +1,4 @@
+Error: "MutuallyExclusiveCheck.bsv", line 21, column 29: (R0001)
+  Mutually exclusive rules (from the ME sets [RL_zero] and [RL_two] ) fired in
+  the same clock cycle.
+

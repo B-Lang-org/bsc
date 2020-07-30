@@ -1,0 +1,40 @@
+# Tests for type checking parameter statements in import-BVI
+
+# Integer is allowed
+compile_pass BVI_Param_Integer.bsv
+
+# Integer is defaulted for literals
+compile_pass BVI_Param_Literal.bsv
+
+# Bit is allowed
+compile_pass BVI_Param_Bit32.bsv
+
+# Bit is defaulted for sized literals
+compile_pass BVI_Param_SizedLiteral.bsv
+
+# String is allowed
+compile_pass BVI_Param_String.bsv
+
+# String literal
+compile_pass BVI_Param_StringLiteral.bsv
+
+# Real is allowed
+compile_pass BVI_Param_Real.bsv
+
+# Real literal
+compile_pass BVI_Param_RealLiteral.bsv
+
+# Any other type is allowed, if it has an instance for Bits
+compile_pass BVI_Param_InBits_NoPack.bsv
+# With explicit pack
+compile_pass BVI_Param_InBits_Pack.bsv
+
+# If no instance of Bits, test the error message
+compile_fail_error BVI_Param_NotInBits.bsv T0133
+compare_file BVI_Param_NotInBits.bsv.bsc-out
+
+# If the type is not concrete, perhaps the user forgot a Bits proviso;
+# test the error message
+compile_fail_error BVI_Param_NeedsProviso.bsv T0133
+compare_file BVI_Param_NeedsProviso.bsv.bsc-out
+

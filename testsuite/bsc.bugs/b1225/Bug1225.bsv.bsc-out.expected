@@ -1,0 +1,13 @@
+checking package dependencies
+compiling Bug1225.bsv
+Error: "Bug1225.bsv", line 11, column 16: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    Bit#(vsz)
+  The following provisos are needed:
+    Bits#(Vector::Vector#(n, a_T), vsz)
+      Introduced at the following locations:
+	"Bug1225.bsv", line 11, column 22
+      The proviso could also be deduced from the following information:
+	Bits#(a_T, a__),
+	Mul#(n, a__, vsz)

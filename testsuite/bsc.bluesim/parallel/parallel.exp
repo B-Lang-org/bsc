@@ -1,0 +1,61 @@
+# Test the parallel Bluesim C++ compilation feature
+
+# -------------------------
+
+if { $ctest == 1 } {
+
+# First, compile and generate C++ for just mkGCD
+compile_object_pass GCD.bsv mkGCD
+link_objects_pass {} mkGCD {-v -parallel-sim-link 2}
+# Check the output
+find_regexp mkGCD.bsc-ccomp-out {exec\: make}
+find_n_strings mkGCD.bsc-ccomp-out {reuse} 0
+find_n_strings mkGCD.bsc-ccomp-out {Bluesim object created:} 2
+
+# Compile and generate C++ for mkTbGCD
+compile_object_pass TbGCD.bsv mkTbGCD
+link_objects_pass {} mkTbGCD {-v -parallel-sim-link 2}
+# Store the output to a new name, since we are going to re-link later
+move mkTbGCD.bsc-ccomp-out mkTbGCD-1.bsc-ccomp-out
+# Check that the object file for mkGCD was reused
+find_regexp mkTbGCD-1.bsc-ccomp-out {exec\: make}
+find_n_strings mkTbGCD-1.bsc-ccomp-out {reuse} 1
+find_n_strings mkTbGCD-1.bsc-ccomp-out {Bluesim object created:} 2
+find_regexp mkTbGCD-1.bsc-ccomp-out {Bluesim object created\: mkTbGCD\.}
+find_regexp mkTbGCD-1.bsc-ccomp-out {Bluesim object created\: model\_mkTbGCD\.}
+
+# Generate C++ again for mkTbGCD
+link_objects_pass {} mkTbGCD {-v -parallel-sim-link 2}
+# Store the output to a new name
+move mkTbGCD.bsc-ccomp-out mkTbGCD-2.bsc-ccomp-out
+# Check that both object files are reused, but that the "model" object
+# is forced to recompile
+# XXX We should avoid recompiling the model if no modules changed?
+find_regexp mkTbGCD-2.bsc-ccomp-out {exec\: make}
+find_n_strings mkTbGCD-2.bsc-ccomp-out {reuse} 2
+find_n_strings mkTbGCD-2.bsc-ccomp-out {Bluesim object created:} 1
+find_regexp mkTbGCD-2.bsc-ccomp-out {Bluesim object created\: model\_mkTbGCD\.}
+
+}
+
+# -------------------------
+
+# Test that special Makefile characters in file paths are OK
+
+if { $ctest == 1 } {
+
+# make a directory with all the special characters
+# XXX for now, the rest of BSC does not support $ or whitespace
+
+# This is in DONTKEEPFILES so that "make clean" will delete it
+set simdir {dir:with,many;spec#ial=char%acters}
+mkdir $simdir
+
+test_c_only_bsv_multi_options TbGCD mkTbGCD {} \
+    "-simdir \"$simdir\"" {} {} \
+    "-simdir \"$simdir\" -v -parallel-sim-link 2"
+
+}
+
+# -------------------------
+

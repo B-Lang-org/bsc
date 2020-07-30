@@ -1,0 +1,40 @@
+package Infix() where
+
+infixl 7 %%
+infixl 6 $$
+infixl 2 +#
+
+infixr 7 %%%
+infixr 6 $$$
+
+
+(%%) :: Bit 5 -> Bit 5 -> Bit 8
+(%%) a b = zeroExtend (a+b)
+
+($$) :: Bit 8 -> Bit 8 -> Bit 10
+($$) a b = zeroExtend (a+b)
+
+f1 :: Bit 5 -> Bit 5 -> Bit 8 -> Bit 10
+f1 a b c = a %% b $$ c
+
+f2 :: Bit 5 -> Bit 5 -> Bit 8 -> Bit 10
+f2 a b c = c $$ a %% b
+
+(+#) :: (Add 1 n n1) => Bit n -> Bit n -> Bit n1
+(+#) a b = (0b0 ++ a) + (0b0 ++ b)
+
+sum4 :: Bit 3 -> Bit 3 -> Bit 3 -> Bit 3 -> Bit 5
+sum4 x y z w = x +# y +# (z +# w)
+
+(%%%) :: Bit 5 -> Bit 5 -> Bit 8
+(%%%) a b = zeroExtend (a+b)
+
+($$$) :: Bit 8 -> Bit 8 -> Bit 10
+($$$) a b = zeroExtend (a+b)
+
+f3 :: Bit 5 -> Bit 5 -> Bit 8 -> Bit 10
+f3 a b c = a %%% b $$$ c
+
+f4 :: Bit 5 -> Bit 5 -> Bit 8 -> Bit 10
+f4 a b c = c $$$ a %%% b
+

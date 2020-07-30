@@ -1,0 +1,26 @@
+checking package dependencies
+compiling StructUninitErr4.bsv
+Warning: "StructUninitErr4.bsv", line 11, column 4: (P0042)
+  Assignment to `foo' missing from some paths
+code generation for mkStructUninitErr4 starts
+Error: "StructUninitErr4.bsv", line 10, column 13: (G0028)
+  `foo.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr4.bsv",
+  line 14, column 9.
+  During elaboration of `mkStructUninitErr4' at "StructUninitErr4.bsv", line
+  8, column 8.
+Error: "StructUninitErr4.bsv", line 10, column 13: (G0028)
+  `foo.b' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr4.bsv",
+  line 14, column 9.
+  During elaboration of `mkStructUninitErr4' at "StructUninitErr4.bsv", line
+  8, column 8.
+Error: "StructUninitErr4.bsv", line 10, column 13: (G0028)
+  `foo.c' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr4.bsv",
+  line 14, column 9.
+  During elaboration of `mkStructUninitErr4' at "StructUninitErr4.bsv", line
+  8, column 8.

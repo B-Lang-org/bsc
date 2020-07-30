@@ -1,0 +1,15 @@
+if {$ctest == 1} {
+compile_object_pass MkWrapSRAM.bsv mkTestbench_MkWrapSRAM
+link_objects_pass {"mkTestbench_MkWrapSRAM"} mkTestbench_MkWrapSRAM
+# sim_final_state mkTestbench_MkWrapSRAM 10010
+# compare_file "mkTestbench_MkWrapSRAM.final-state"
+sim_output mkTestbench_MkWrapSRAM {-m 10010}
+compare_file "mkTestbench_MkWrapSRAM.out"
+
+compile_object_pass MkWrapSTRAM.bsv mkTestbench_MkWrapSTRAM
+link_objects_pass {"mkTestbench_MkWrapSTRAM"} mkTestbench_MkWrapSTRAM
+# sim_final_state mkTestbench_MkWrapSTRAM 10010
+# compare_file "mkTestbench_MkWrapSTRAM.final-state"
+sim_output mkTestbench_MkWrapSTRAM {-m 10010}
+compare_file "mkTestbench_MkWrapSTRAM.out"
+}

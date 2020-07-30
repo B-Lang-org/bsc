@@ -1,0 +1,37 @@
+checking package dependencies
+compiling WCycleDrop1.bs
+code generation for mkWCycleDrop1 starts
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0009)
+  The scheduling phase created a conflict between the following rules:
+      `RL_One' and `RL_Two'
+  to break the following cycle:
+      `RL_One' -> `RL_Two' -> `RL_Three' -> `RL_Four' -> `RL_One'
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0010)
+  Rule "One" was treated as more urgent than "Two". Conflicts:
+    "One" cannot fire before "Two":
+      dropped cycle (RL_One -> RL_Two -> RL_Three -> RL_Four -> RL_One)
+    "Two" cannot fire before "One": calls to x.write vs. x.read
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0117)
+  Rule `start' shadows the effects of `One' when they execute in the same
+  clock cycle. Affected method calls:
+    w.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0117)
+  Rule `start' shadows the effects of `Four' when they execute in the same
+  clock cycle. Affected method calls:
+    z.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0117)
+  Rule `start' shadows the effects of `Three' when they execute in the same
+  clock cycle. Affected method calls:
+    y.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WCycleDrop1.bs", line 30, column 0: (G0117)
+  Rule `start' shadows the effects of `Two' when they execute in the same
+  clock cycle. Affected method calls:
+    x.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WCycleDrop1.bs", line 54, column 22: (G0021)
+  According to the generated schedule, rule `Two' can never fire.
+Verilog file created: mkWCycleDrop1.v
+All packages are up to date.

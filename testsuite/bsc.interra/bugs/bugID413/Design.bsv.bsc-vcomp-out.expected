@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Design.bsv
+code generation for mkDesign starts
+Verilog file created: mkDesign.v
+All packages are up to date.

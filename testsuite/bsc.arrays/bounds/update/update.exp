@@ -1,0 +1,29 @@
+test_c_veri_bsv ArrayInBounds1
+# -1 in bounds because of Bit#(2) range
+test_c_veri_bsv ArrayInBounds2
+compile_verilog_fail_error ArrayOutOfBounds1.bsv S0015
+compile_verilog_fail_error ArrayOutOfBounds2.bsv S0015
+
+test_c_veri_bsv ListInBounds1
+# -1 in bounds because of Bit#(1) range
+test_c_veri_bsv ListInBounds2
+compile_verilog_fail_error ListOutOfBounds1.bsv S0015
+compile_verilog_fail_error ListOutOfBounds2.bsv S0015
+
+test_c_veri_bsv VectorInBounds1
+# -2 in bounds because of Bit#(2) range
+test_c_veri_bsv VectorInBounds2
+compile_verilog_fail_error VectorOutOfBounds1.bsv S0015
+compile_verilog_fail_error VectorOutOfBounds2.bsv S0015
+
+test_c_veri_bsv ListNInBounds1
+# -1 in bounds because of Bit#(1) range
+test_c_veri_bsv ListNInBounds2
+compile_verilog_fail_error ListNOutOfBounds1.bsv S0015
+compile_verilog_fail_error ListNOutOfBounds2.bsv S0015
+
+test_c_veri_bsv BitInBounds1
+# -1 in bounds because of Bit#(2) range
+test_c_veri_bsv BitInBounds2
+compile_verilog_fail_error BitOutOfBounds1.bsv S0015
+compile_verilog_fail_error BitOutOfBounds2.bsv S0015

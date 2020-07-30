@@ -1,0 +1,8 @@
+checking package dependencies
+compiling EClockMux2.bsv
+code generation for sysEClockMux2 starts
+Error: "EClockMux2.bsv", line 11, column 3: (G0071)
+  Input clock `clk_in' of submodule `the_g' is instantiated with a dynamic
+  expression. Input clocks must be determined at compile time.
+  During elaboration of `the_g' at "EClockMux2.bsv", line 11, column 3.
+  During elaboration of `sysEClockMux2' at "EClockMux2.bsv", line 4, column 8.

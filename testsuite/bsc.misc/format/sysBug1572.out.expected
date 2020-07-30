@@ -1,0 +1,9 @@
+Completed Exists  transition from Exists 
+Completed Initialized  transition from Exists 
+Completed Operating  transition from Exists 
+Completed Exists  transition from Initialized 
+Completed Initialized  transition from Initialized 
+Completed Operating  transition from Initialized 
+Completed Exists  transition from Operating 
+Completed Initialized  transition from Operating 
+Completed Operating  transition from Operating 

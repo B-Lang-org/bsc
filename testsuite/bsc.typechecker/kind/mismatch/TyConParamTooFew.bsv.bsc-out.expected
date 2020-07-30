@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TyConParamTooFew.bsv
+Error: "TyConParamTooFew.bsv", line 1, column 15: (T0025)
+  The type `TAdd' is applied to too few arguments.

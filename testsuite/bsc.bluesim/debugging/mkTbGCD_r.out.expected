@@ -1,0 +1,1966 @@
+Selected rules:
+top:
+  exit fired
+  the_gcd:
+    sub fired
+result =  750599937895082
+gcd.start(19,5)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(22,7)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(25,9)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(28,11)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(31,13)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(34,15)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(37,17)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(40,19)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(43,21)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(46,23)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =               23
+gcd.start(49,25)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(52,27)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(55,29)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(58,31)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(61,33)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(64,35)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(67,37)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(70,39)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(73,41)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(76,43)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(79,45)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(82,47)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(85,49)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(88,51)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(91,53)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(94,55)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(97,57)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    flip fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+Selected rules:
+top:
+  the_gcd:
+    sub fired
+result =                1
+gcd.start(100,59)
+Selected rules:
+top:
+  rule1SendInput fired
+  rule2GetResult fired
+Selected rules:
+top:
+  exit fired
+  the_gcd:
+    flip fired

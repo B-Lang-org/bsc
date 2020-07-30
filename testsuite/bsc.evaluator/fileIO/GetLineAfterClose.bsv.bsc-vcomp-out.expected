@@ -1,0 +1,9 @@
+checking package dependencies
+compiling GetLineAfterClose.bsv
+code generation for sysGetLineAfterClose starts
+Error: "GetLineAfterClose.bsv", line 13, column 11: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `str' at "GetLineAfterClose.bsv", line 13, column 4.
+  During elaboration of `sysGetLineAfterClose' at "GetLineAfterClose.bsv",
+  line 2, column 8.

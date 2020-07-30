@@ -1,0 +1,4 @@
+checking package dependencies
+compiling OneArgPlusOne.bs
+Error: "OneArgPlusOne.bs", line 3, column 5: (T0024)
+  The type `Bit' is applied to too many arguments.

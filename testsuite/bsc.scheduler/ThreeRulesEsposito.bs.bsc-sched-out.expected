@@ -1,0 +1,45 @@
+checking package dependencies
+compiling ThreeRulesEsposito.bs
+code generation for sysThreeRulesEsposito starts
+=== schedule:
+parallel: [esposito: [RL_setT -> [], RL_setF -> [RL_setT], RL_flip -> [RL_setF, RL_setT]]]
+order: [RL_setT, RL_setF, RL_flip]
+
+-----
+
+=== resources:
+[(a.read, [(a.read, 1)]), (a.write, [(a.write NOT_a___d2, 1), (a.write 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysThreeRulesEsposito.sched
+=== Generated schedule for sysThreeRulesEsposito ===
+
+Rule schedule
+-------------
+Rule: setT
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: setF
+Predicate: True
+Blocking rules: setT
+ 
+Rule: flip
+Predicate: True
+Blocking rules: setF, setT
+ 
+Logical execution order: setT, setF, flip
+
+=====================================================
+Warning: "ThreeRulesEsposito.bs", line 18, column 15: (G0021)
+  According to the generated schedule, rule `setF' can never fire.
+Warning: "ThreeRulesEsposito.bs", line 21, column 15: (G0021)
+  According to the generated schedule, rule `flip' can never fire.
+Verilog file created: sysThreeRulesEsposito.v
+All packages are up to date.

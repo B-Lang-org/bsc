@@ -1,0 +1,21 @@
+package ExpectedMuxTest(sysExpectedMuxTest) where
+
+{-# verilog sysExpectedMuxTest #-}
+sysExpectedMuxTest :: Module Empty
+sysExpectedMuxTest = 
+  module
+    r :: Reg (Bit 3) <- mkReg 0
+    counter :: Reg (Bit 8) <- mkReg 0
+    a :: Reg (Bool) <- mkReg False
+    b :: Reg (Bool) <- mkReg False
+
+    rules 
+      when True ==> counter := counter + 1
+      when (counter == 2) ==> a := True
+      when (counter == 5) ==> action {a := False; b := True}
+      when a ==>
+         r := 5 
+      when b ==>
+         r := 7 
+      when True ==>
+         if (counter == 10) then ($finish 0) else $display "%0d" r

@@ -1,0 +1,53 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputReset_NoName_VarExpr;
+module mkMyReg#(Reset irst)(Reg#(Bool));
+  let _bv0 <- exposeCurrentClock;
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, CLK_GATE);
+		     reset irst(IRST) clocked_by(_clk__1);
+			 ((ClockArg _clk__1, _bv0), (ResetArg irst, irst))
+			 {
+			   method QOUT _read() clocked_by (_clk__1) reset_by (irst);
+			   method _write(DIN) enable (EN) clocked_by (_clk__1) reset_by (irst);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_InputReset_NoName_VarExpr
+
+-----
+
+compiling ImportForeignModule_InputReset_NoName_VarExpr.bsv
+=== parsed:
+package ImportForeignModule_InputReset_NoName_VarExpr;
+module mkMyReg#(Reset irst)(Reg#(Bool));
+  let _bv0 <- exposeCurrentClock;
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, CLK_GATE);
+		     reset irst(IRST) clocked_by(_clk__1);
+			 ((ClockArg _clk__1, _bv0), (ResetArg irst, irst))
+			 {
+			   method QOUT _read() clocked_by (_clk__1) reset_by (irst);
+			   method _write(DIN) enable (EN) clocked_by (_clk__1) reset_by (irst);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_InputReset_NoName_VarExpr
+
+-----
+
+All packages are up to date.

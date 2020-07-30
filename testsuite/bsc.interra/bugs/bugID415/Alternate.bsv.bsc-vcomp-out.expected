@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Alternate.bsv
+code generation for mkAlternate starts
+Verilog file created: mkAlternate.v
+All packages are up to date.

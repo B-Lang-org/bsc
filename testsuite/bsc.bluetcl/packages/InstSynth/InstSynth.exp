@@ -1,0 +1,19 @@
+
+if { [bluetcl_package_available InstSynth] == 1 } {
+
+bluetcl_run_compare_pass instsynth.tcl 
+compare_file  FIFO.include.bsv
+compare_file  FIFOLevel.include.bsv
+
+bsc_compile Inst_auto.bsv {-verilog  -keep-fires}
+compile_verilog_pass Inst.bsv sysInst {-keep-fires}
+## Check for expected strings for correct module usage
+if { $vtest == 1 } {
+find_n_strings Inst.bsv.bsc-vcomp-out "Using mkFIFO__FIFO_int_ for mkFIFO of type" 4
+find_n_strings Inst.bsv.bsc-vcomp-out "No concrete definition of mkFIFO for type" 2
+find_n_strings Inst.bsv.bsc-vcomp-out "Using mkFIFOCount__FIFOCountIfc_int_10_ for mkFIFOCount of type:" 2
+find_n_strings Inst.bsv.bsc-vcomp-out "Using mkFIFOCount__FIFOCountIfc_int_11_ for mkFIFOCount of type:" 2
+find_n_strings Inst.bsv.bsc-vcomp-out "No concrete definition of mkFIFOCount" 4
+}
+
+}

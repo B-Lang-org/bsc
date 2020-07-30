@@ -1,0 +1,6 @@
+ `line(HERE///MultilineIfdef.bsv,2,1,0)
+ `line(HERE///MultilineIfdef.bsv,5,4,0)
+Bool x = True;
+ `line(HERE///MultilineIfdef.bsv,7,7,0)
+
+

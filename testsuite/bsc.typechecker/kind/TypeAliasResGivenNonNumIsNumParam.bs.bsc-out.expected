@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TypeAliasResGivenNonNumIsNumParam.bs
+Error: "TypeAliasResGivenNonNumIsNumParam.bs", line 3, column 25: (T0027)
+  The numeric type `a' was found where a value type was expected.

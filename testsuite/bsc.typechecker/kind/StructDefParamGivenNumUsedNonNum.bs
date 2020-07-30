@@ -1,0 +1,7 @@
+package StructDefParamGivenNumUsedNonNum () where
+
+data (Foo :: * -> *) a = Bar a
+
+struct (Baz :: # -> *) b =
+    glurph :: Foo b
+

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling DefUnused.bs
+Warning: "DefUnused.bs", line 4, column 8: (P0223)
+  Definition of `y' is not used.
+Warning: "DefUnused.bs", line 14, column 17: (P0223)
+  Definition of `v' is not used.
+Warning: "DefUnused.bs", line 36, column 6: (P0223)
+  Definition of `name' is not used.
+All packages are up to date.

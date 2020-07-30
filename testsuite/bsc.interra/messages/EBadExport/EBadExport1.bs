@@ -1,0 +1,51 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadExport1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a multiply exported error (EBadExport)
+
+-- Error Message : bsc EBadExport1.bs
+-- bsc: Compilation errors:
+-- "EBadExport1.bs", line 15, column 53, Unbound or multiply exported: "mkEBadExport1"
+-----------------------------------------------------------------------
+
+package EBadExport1 (EBadExport1(..), mkEBadExport1, mkEBadExport1) where
+
+-- import Int
+
+interface EBadExport1 =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+
+mkEBadExport1 :: Module EBadExport1
+mkEBadExport1 =
+    module
+
+        x :: Reg (Int 32)
+        x <- mkReg 0
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+       
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0

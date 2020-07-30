@@ -1,0 +1,22 @@
+# lexical scanner errors
+compile_fail_error UnterminatedString.bsv P0092
+compile_fail_error BadStringEscape.bsv P0091
+
+# specifying a character greater than octal 377 = decimal 255
+# error could be better (the bad sequence is \378 instead of \3) 
+compile_fail_error BadOctalEscape.bsv P0091
+
+# test that we compile and link in Bluesim
+# the output isn't interesting if the C code compiles
+compile_object_pass OctalChars.bsv
+link_objects_pass sysOctalChars sysOctalChars
+
+test_c_veri_bsv OctalCharsAsInteger
+
+# make sure we can handle 0-255 as octal escape sequences
+compile_verilog_pass OctalChars.bsv
+compare_verilog sysOctalChars.v
+
+# string literals
+compile_pass StringLit.bsv
+

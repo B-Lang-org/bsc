@@ -1,0 +1,16 @@
+package IfInNosplitIfEvil(sysIfInNosplitIfEvil) where
+
+-- inner rules get split
+
+sysIfInNosplitIfEvil :: Module Empty
+sysIfInNosplitIfEvil =
+  module
+    r :: Reg (Bit 16) <- mkRegU
+    s :: Reg (Bit 16) <- mkRegU
+    c :: Reg Bool <- mkRegU
+    d :: Reg Bool <- mkRegU
+    rules
+        when True ==> 
+	     nosplitIf c
+	     (splitIf d (r:=1) (noAction))
+	     (splitIf d (noAction) (s:= 5))

@@ -1,0 +1,70 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ETooGeneral1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Signature mismatch" error (ETooGeneral)
+
+-- Error Message : bsc ETooGeneral1.bs
+-- bsc: Compilation errors:
+-- "ETooGeneral1.bs", line 65, column 13, Signature mismatch (given too general):
+-- given:
+-- a -> a -> Prelude.Action
+-- deduced:
+-- ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> Prelude.Action
+-----------------------------------------------------------------------
+
+package ETooGeneral1 () where 
+
+data MyType1 a = Integer | Bool
+             deriving (Eq)
+
+data MyType2 b = Bool | Integer
+             deriving ()
+
+data MyType3 c = MyType1 | MyType2
+             deriving (Eq,Bits)
+
+interface ETooGeneral1 =
+     start :: c -> c -> Action
+     end   :: c
+
+mkETooGeneral1 :: Module ETooGeneral1
+mkETooGeneral1 =
+      module
+
+          u :: Reg (MyType1 Bool)
+          u <- mkRegU
+
+          v :: Reg (MyType1 Bool)
+          v <- mkRegU
+
+          w :: Reg (MyType2 Integer)
+          w <- mkRegU
+
+          z :: Reg (MyType2 Integer)
+          z <- mkRegU
+
+          x :: Reg (MyType3 (MyType1 Integer))
+          x <- mkRegU
+
+          y :: Reg (MyType3 (MyType1 Integer))
+          y <- mkRegU
+
+          rules
+           "One":
+             when (u==v)
+              ==> action
+                     x := y
+                     y := x
+
+
+          interface
+             start ix iy = action
+                               x := ix
+                               y := iy
+                           when True
+             end = x when True
+

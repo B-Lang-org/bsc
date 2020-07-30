@@ -1,0 +1,2 @@
+compile_pass Bug589_1.bsv
+compile_pass Bug589_2.bsv

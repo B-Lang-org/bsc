@@ -1,0 +1,7 @@
+
+`define TLM_TYPE_PRMS numeric type id_size, numeric type addr_size, numeric type data_size, numeric type uint_size, type cstm_type
+`define TLM_TYPES                  id_size,              addr_size,              data_size,              uint_size,      cstm_type
+
+`define TLM_MPMC_TYPES                   4,                     32,                     32,                     10,        UInt#(4)
+
+`define dv deriving(Bits,Eq)

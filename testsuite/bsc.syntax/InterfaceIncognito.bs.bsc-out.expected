@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "InterfaceIncognito.bs", line 12, column 16: (P0005)
+  Unexpected "read"; expected "<con>"

@@ -1,0 +1,7 @@
+package RegInitReg(sysRegInitReg) where
+
+sysRegInitReg :: Module Empty
+sysRegInitReg = 
+  module
+   r :: Reg (Bit 8) <- mkReg 0
+   s :: Reg (Bit 8) <- mkReg r

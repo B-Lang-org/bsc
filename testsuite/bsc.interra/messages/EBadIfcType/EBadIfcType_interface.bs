@@ -1,0 +1,26 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadIfcType_interface.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EBadIfcType_interface error of the bluespec
+-- compiler (Bad top level type...not an interface {typpe})
+--
+-- Generates error if a verilog for mkNull is requested
+-----------------------------------------------------------------------
+
+
+
+package EBadIfcType_interface () where
+
+-- import Int
+
+struct Null = {}
+
+mkNull :: Module Null
+mkNull =
+    module
+
+

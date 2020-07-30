@@ -1,0 +1,35 @@
+package MutuallyRecursiveDefaults (OddEven(..)) where
+
+import List
+
+class OddEven a where
+  odd :: List a -> Bool
+  odd Nil = False
+  odd (Cons x xs) = even xs
+  even :: List a -> Bool
+  even Nil = True
+  even (Cons x xs) = odd xs
+
+instance OddEven Integer where {}
+
+v :: List Integer
+v = upto 0 5
+
+v2 :: List Integer
+v2 = tail v
+
+-- should use the proper definition of "g"
+{-# verilog sysMutuallyRecursiveDefaults #-}
+sysMutuallyRecursiveDefaults :: Module Empty
+sysMutuallyRecursiveDefaults =
+  module
+    rules
+      "r":
+        when True
+          ==> action
+                if (odd v) then $display "1yes" else $display "1no"
+                if (odd v2) then $display "2yes" else $display "2no"
+                if (even v) then $display "3yes" else $display "3no"
+                $display(length v)
+                $display(length v2)
+

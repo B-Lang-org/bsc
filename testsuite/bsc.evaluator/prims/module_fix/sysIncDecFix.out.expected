@@ -1,0 +1,10 @@
+a: 0 b: 0 count: 0
+a: 1 b: 1 count: 1
+a: 0 b: 0 count: 2
+a: 1 b: 1 count: 3
+a: 0 b: 0 count: 4
+a: 1 b: 1 count: 5
+a: 0 b: 0 count: 6
+a: 1 b: 1 count: 7
+a: 0 b: 0 count: 8
+a: 1 b: 1 count: 9

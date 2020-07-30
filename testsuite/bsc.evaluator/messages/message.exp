@@ -1,0 +1,10 @@
+if { $vtest == 1 } {
+
+compile_verilog_pass BasicMessage.bsv
+find_n_strings BasicMessage.bsv.bsc-vcomp-out "Testing sysBasicMessage..." 1
+
+compile_verilog_pass LoopMessage.bsv
+find_n_strings LoopMessage.bsv.bsc-vcomp-out "Testing sysLoopMessage..." 8
+
+}
+

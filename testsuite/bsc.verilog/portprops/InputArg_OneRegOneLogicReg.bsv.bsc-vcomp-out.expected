@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InputArg_OneRegOneLogicReg.bsv
+code generation for sysInputArg_OneReg starts
+=== IOproperties:
+Name                         I/O  size props
+b                              I    16
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysInputArg_OneReg.v
+All packages are up to date.

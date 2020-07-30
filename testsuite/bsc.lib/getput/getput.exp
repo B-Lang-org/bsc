@@ -1,0 +1,48 @@
+
+# iverilog 0.9 fails on some tests
+set iverilog09_bug {}
+if { $verilog_compiler == "iverilog" &&
+     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] &&
+     $majmin < 10
+ } {
+    # add 'iverilog' to the list of simulators to exempt
+    set iverilog09_bug $verilog_compiler
+}
+
+test_c_veri_bsv TestToGPFunc
+test_c_veri_bsv TestToGPReg
+test_c_veri_bsv TestToGPWire
+test_c_veri_bsv TestToGPRWire
+
+test_c_veri_bsv TestFIFO
+test_c_veri_bsv TestFIFOF
+test_c_veri_bsv TestFIFOFToFIFO
+
+test_c_only_bsv TestUGFIFOF sysTestUGFIFOF.c.out.expected
+test_veri_only_bsv TestUGFIFOF sysTestUGFIFOF.v.out.expected
+
+test_c_veri_bsv TestFIFOSync
+test_c_veri_bsv TestFIFOSync0
+
+test_c_veri_bsv TestFIFOSync1
+test_c_veri_bsv TestFIFOSync10
+
+test_c_veri_bsv TestFIFOLevel
+test_c_veri_bsv TestFIFOLevel0
+
+test_c_veri_bsv TestFIFOCount
+test_c_veri_bsv TestFIFOCount0
+
+test_c_veri_bsv TestFIFOSyncLevel  {} {} $iverilog09_bug
+test_c_veri_bsv TestFIFOSyncLevel0 {} {} $iverilog09_bug
+
+test_c_veri_bsv TestFIFOSyncCount  {} {} $iverilog09_bug
+test_c_veri_bsv TestFIFOSyncCount0 {} {} $iverilog09_bug
+
+test_c_veri_bsv TestFIFOF2
+
+compile_verilog_fail_error Err1.bsv  T0031 1
+
+compile_fail_error Err2.bsv T0031 1
+# the message should reference Connectable, not ToGet or ToPut
+find_n_strings Err2.bsv.bsc-out "Connectable::Connectable" 1 

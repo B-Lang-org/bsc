@@ -1,0 +1,157 @@
+This directory contains BSV source for several versions of a 
+pong game implemented for a Xilinx FPGA. The generated hardware 
+processes input to control (and play) the game and generates the 
+VGA output to display the ball, paddles, etc. To simplify the 
+example, the support files required to load the game on an FPGA 
+have not been provided, but you can compile (and generate Verilog RTL) 
+for the example by running:
+
+bsc -u -verilog TopLevel.bsv
+
+ISLANDS ETC.
+
+This directory contains versions 0, 1 and 2 of some files.
+
+Ball.bsv --     versions 0, 1 and 2
+Island.bsv --   versions 0, 1 and 2
+TopLevel.bsv -- versions 0, 1 and 2
+
+Version 0 corresponds to no island, version 1 to a stationary island, and
+version 2 to the elliptically moving island.
+
+The unadorned versions should be set to copies of the version you want to
+compile.
+
+To do a manual conversion of Version 0 to Version 1, you have to do the
+following:
+1. Adapt the definition of Paddle to make an Island.
+2. Get the TopLevel to instantiate it, to add it to its list of shapes, and to
+pass it as a parameter to Ball (so that the ball can bounce off it).
+3. Edit Ball, to incorporate the island into its calculations about bouncing.
+Proceed as follows.
+
+1.
+Copy the file Paddle.bsv to make Island.bsv.  Globally replace all occurrences
+of "paddle" therein to "island" (preserving case differences).
+
+2a.
+In Island.bsv, amend the size and position information, by replacing
+------------
+XSize islandWidthC;
+islandWidthC = fromInteger(islandWidth);
+					
+YSize islandHeightC;
+islandHeightC = fromInteger(islandHeight);
+					  
+YCoord islandLowC;
+islandLowC = fromInteger(islandEdgeDist);
+					 
+YCoord islandHighC;
+islandHighC = fromInteger(vSize - islandHeight - islandEdgeDist);
+								 
+YCoord islandStartC;
+islandStartC = fromInteger(div((vSize- islandHeight), 2));
+------------
+with
+------------
+XSize islandWidthC;     islandWidthC = 100;
+YSize islandHeightC;    islandHeightC = 60;
+
+XCoord islandLeftC;     islandLeftC = 590;
+YCoord islandLowC;      islandLowC = 210;
+------------
+
+2b.
+Delete the unneeded methods
+------------
+    method YCoord center;
+    method Action inc_dec(Bool x1);
+------------
+from the Island interface definition.
+
+2c.
+Delete the various instantiations before and after that of islandRect, and
+amend islandRect itself, leaving just
+------------
+  Shape islandRect();
+  mkRectangle#(islandLeftC,
+	       islandWidthC,
+	       islandLowC,
+	       islandHeightC,
+	       cRed) the_islandRect(islandRect);
+------------
+
+2d.
+Amend the innards of function inside1 to read
+------------
+  return (x > islandLeftC &&
+	  x < islandLeftC + islandWidthC &&
+	  y > islandLowC &&
+	  y < islandLowC + islandHeightC);
+------------
+
+2e.
+Delete the rule rule1island (corresponding to moving the paddle), and the
+method definitions for  center  and  inc_dec.
+
+2f.
+In method inside, replace the line
+------------
+                   ((y0 - yposr.get) - ((islandHeightC- dy)>> 1))
+------------
+with 0
+
+3a.
+In TopLevel.bsv, add
+------------
+  import Island::*;
+------------
+
+3b.
+Add (e.g. after the second mkPaddle)
+------------
+  Island island();
+  mkIsland the_island(island);
+------------
+
+3c.
+Supply the island as an extra parameter to the ball, by adding "island," after
+"paddleR" in the parameter list for mkBall.
+
+3d.
+Increase the size of the array shapes by 1, and add the line
+------------
+  shapes[6] = island.shape;
+------------
+
+4a.
+In Ball.bsv, add "import Island::*;"
+
+4b.
+Add
+------------
+	       Island island,
+------------
+to the parameter list of mkBall.
+
+4c.
+In tickActions[0], duplicate the lines
+------------
+               // Right Paddle
+	       rpd <= paddleR.inside(ball_x, ball_x_r, ball_y, ball_y_b, ballHeightC);
+------------
+and change the second copy to
+------------
+               // Island
+	       ipd <= island.inside(ball_x, ball_x_r, ball_y, ball_y_b, ballHeightC);
+------------
+
+4d.
+In the definition of diry, duplicate the lines
+------------
+                      bounce( (tpl_1(lpd) || tpl_3(lpd)),
+                              (tpl_2(lpd) || tpl_4(lpd)), 
+------------
+and change the occurrences of "lpd" in the second copy to "ipd".  Add an extra
+closing paren to the line ");".  Treat the definition of dirx similarly.
+

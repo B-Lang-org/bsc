@@ -1,0 +1,32 @@
+test_c_veri_bsv SyncBitTest
+test_c_veri_bsv SyncBit1Test
+test_c_veri_bsv SyncBit05Test
+test_c_veri_bsv SyncBit15Test
+test_c_veri_bsv SyncPulseTest
+test_c_veri_bsv SyncHandshakeTest
+test_c_veri_bsv SyncRegTest
+
+test_veri_only_bsv  SyncHandshakeTest2
+test_c_only_bsv SyncHandshakeTest2 sysSyncHandshakeTest2.c.out.expected
+
+# an unstable test since messages are mixed from multiple clock domains...
+# test_c_veri_bsv SyncRegTest2
+
+test_veri_only_bsv SyncRegTest3
+test_c_only_bsv SyncRegTest3 sysSyncRegTest3.c.out.expected
+
+# The SyncFIFOTest output differs with message re-ordering artifacts
+# due to the $display on the negedge in Verilog.  Since they differ
+# anyway, $time is used to check the exact timing.
+test_veri_only_bsv SyncFIFOTest
+test_c_only_bsv SyncFIFOTest sysSyncFIFOTest.c.out.expected
+
+
+test_veri_only_bsv SyncFIFOTest1
+test_c_only_bsv SyncFIFOTest1 sysSyncFIFOTest1.c.out.expected
+
+test_veri_only_bsv SyncFIFOTest1A
+test_c_only_bsv SyncFIFOTest1A sysSyncFIFOTest1A.c.out.expected
+
+test_veri_only_bsv SyncFIFOTest2
+test_c_only_bsv SyncFIFOTest2 sysSyncFIFOTest2.c.out.expected

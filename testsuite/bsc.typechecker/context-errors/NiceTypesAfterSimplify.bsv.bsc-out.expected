@@ -1,0 +1,6 @@
+checking package dependencies
+compiling NiceTypesAfterSimplify.bsv
+Error: "NiceTypesAfterSimplify.bsv", line 21, column 31: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    GetPut::ToGet#(FIFO::FIFO#(NiceTypesAfterSimplify::Req#(ctr_addr_t)), NiceTypesAfterSimplify::Req#(a__))

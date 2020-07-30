@@ -1,0 +1,22 @@
+package Init1024Bit (sysInit1024Bit) where
+
+bigConst :: Bit 1024
+bigConst = 0xfedcba9876543210
+
+bigInt :: Bit 1024
+bigInt = makeBigInt 1024
+
+makeBigInt :: Bit 1024 -> Bit 1024
+makeBigInt x = if (x <= 0) then 0 else (makeBigInt (x - 64) << 64) + bigConst
+
+sysInit1024Bit :: Module Empty
+sysInit1024Bit = 
+  module 
+    r :: Reg (Bit 1024) <- mkReg bigInt
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

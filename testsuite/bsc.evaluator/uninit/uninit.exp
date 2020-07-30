@@ -1,0 +1,280 @@
+# Tests for uninitialized values
+
+# -------------------------
+
+proc test_uninit_fail { file {count 1} } {
+    global ctest
+    set out [make_bsc_ccomp_output_name $file]
+    if {$ctest == 1} {
+      compile_object_fail_error $file G0028 $count
+      compare_file $out
+    }
+}
+
+# -------------------------
+
+# Demonstrate that the parser rejects uses of entirely uninitialized variables
+#
+compile_fail_error ParserUninit.bsv P0040
+
+# Demonstrate that once there is an assignment statement, the parser can no
+# longer determine if an uninitialized value is used and, instead, it is up
+# to the evaluator to report the error.  (Test both static and dynamic conds.)
+#
+# (Note that the parser will report that some paths don't contain assignments,
+# which is error P0042.)
+#
+compile_verilog_fail_error EvaluatorUninit1.bsv G0028
+compile_verilog_fail_error EvaluatorUninit2.bsv G0028
+
+# If all branches of a dynamic condition have an assignment, then that's OK
+#
+test_c_veri_bsv IfUninit
+
+# initialization is complete, but compiler does not see it
+# (But 598)
+#
+compile_verilog_pass_bug_error IfUninit2.bsv G0028 "" 598 "" 1
+compile_verilog_pass_bug_error CaseInitOfIfc.bsv G0028 "" 598 "" 1
+
+# -------------------------
+# Vectors (and Arrays)
+
+# You can initialize the elements individually and that's OK
+#
+test_c_veri_bsv VectorUninitOK1
+
+# If you leave some elements uninitialized, then you get a special error
+# about just those elements, when using the whole Vector
+#
+test_uninit_fail VectorUninitErr6.bsv 4
+
+# And when selecting one of the uninitialized elements
+#
+test_uninit_fail VectorUninitErr1.bsv
+test_uninit_fail VectorUninitErr2.bsv
+test_uninit_fail VectorUninitErr3.bsv 2
+
+# But if you don't initialize the Vector at all, we report one error about
+# the full Vector, instead of an error for each element
+#
+test_uninit_fail VectorUninitErr4.bsv
+
+# Because these are deferred errors, you will get a copy of the error
+# each time through a for-loop that uses the Vector
+#
+test_uninit_fail VectorUninitErr5.bsv 6
+
+# You get the same error on the full vector, when selecting an element
+#
+test_uninit_fail VectorUninitErr7.bsv
+
+# It is OK to leave some elements uninitialized, if you never use them
+#
+test_c_veri_bsv VectorUninitOK2
+
+# -------------------------
+# Bit Vectors
+
+# Our goal is for bit vectors to behave like Vector
+
+# You can initialize the bits individually
+#
+test_c_veri_bsv UninitBitOK1
+
+# If you leave some bits uninitialized, then you get a special error
+# about just those bits, when using the whole vector
+#
+test_uninit_fail UninitBitErr1.bsv
+test_uninit_fail UninitBitErr2.bsv
+
+# And when selecting one of the uninitialized bits
+# XXX Except BSC forces the whole vector, so actually you get all errors!
+#
+test_uninit_fail UninitBitErr4.bsv 2
+
+# If you don't initialize the vector at all, you should get one error
+#
+test_uninit_fail UninitBitErr3.bsv
+
+# You get the same error on the full vector, when selecting a bit
+#
+test_uninit_fail UninitBitErr5.bsv
+
+# And when selecting a range
+#
+test_uninit_fail UninitBitErr6.bsv
+
+# It is OK to leave some bits uninitialized, if you never use them
+# XXX Except BSC forces the whole vector, so actually you get an error!
+#
+compile_verilog_pass_bug UninitBitOK2.bsv
+if { $vtest == 1 } {
+    compare_file UninitBitOK2.bsv.bsc-vcomp-out
+}
+
+# A range selection over the initialized bits is OK
+# XXX Except BSC forces the whole vector, so actually you get an error!
+#
+compile_verilog_pass_bug UninitBitOK3.bsv
+if { $vtest == 1 } {
+    compare_file UninitBitOK3.bsv.bsc-vcomp-out
+}
+
+# But if the range selection covers some uninitialized bits,
+# then you get an error for each uninitialized bit
+# XXX Except BSC forces the whole vector, so you get an error about all
+# XXX uninitialized bits, regardless of which ones are touched.
+#
+test_uninit_fail UninitBitErr7.bsv 2
+
+# -----
+
+# Range update is unfortunately not handled the same way as single updates
+# (Bug 1545)
+
+# Updating the full vector by range updates is OK
+#
+test_c_veri_bsv UninitBitRangeUpdOK
+
+# Failing to update the whole vector should be an error, but it's not
+#
+compile_verilog_fail_bug UninitBitRangeUpdErr.bsv {} 1545
+
+# -----
+# Bit#(1)
+
+# The PrimMakeUninitialized instance for Bit#(1) is not represented as an
+# array of length 1, so it cannot be updated by an index!
+# XXX We should fix this
+#
+test_uninit_fail UninitBit1OK1.bsv
+
+# However, an assignment without the []-syntax works
+#
+test_c_veri_bsv UninitBit1OK2
+
+# The error when using an uninitialized bit looks like this
+#
+test_uninit_fail UninitBit1Err1.bsv
+
+# -----
+# Bit#(0)
+
+# The PrimMakeUninitialized instance for Bit#(0) is to return an undefined
+# value, so you don't get an error!
+# XXX We should fix this?
+#
+compile_verilog_fail_bug UninitBit0Err1.bsv
+
+# -------------------------
+# Structures
+
+# We define the PrimMakeUninitialized instance for structures to return
+# a structure with uninitialized fields.
+
+# You can initialize the fields individually and that's OK
+#
+test_c_veri_bsv StructUninitOK1
+
+# If you leave some fields uninitialized, then you get a special error
+# about just those fields, when using the whole struct
+#
+test_uninit_fail StructUninitErr1.bsv
+test_uninit_fail StructUninitErr3.bsv 2
+
+# And when selecting one of the uninitialized fields
+#
+test_uninit_fail StructUninitErr2.bsv
+
+# Unlike for arrays, if you don't initialize the structure at all,
+# there is no special message for just the struct -- you get a message
+# for every uninitialized field.
+#
+test_uninit_fail StructUninitErr4.bsv 3
+
+# If you just select one field, you only get a message about that field, though
+#
+test_uninit_fail StructUninitErr5.bsv
+
+# It is OK to leave some fields uninitialized, if you never use them
+#
+test_c_veri_bsv StructUninitOK2
+
+# -----
+
+# Single-field struct still shows field name
+#
+test_uninit_fail SingleFieldStructUninitErr.bsv
+
+# -------------------------
+# Combinations
+
+# Test bit vectors inside Vector and structs
+
+test_c_veri_bsv VectorBitOK
+test_c_veri_bsv UninitStructBitOK
+
+test_uninit_fail UninitStructBitErr.bsv
+test_uninit_fail VectorBitErr.bsv
+
+# -----
+
+# test that blocking isomorphic deriving works
+# Int#(n) (inside ListN) does not reveal structure
+test_uninit_fail IntUninit.bsv
+
+# -----
+
+# a couple of compound-error testcases
+
+# XXX It would be nice to report that the Vector element is uninitialized,
+# XXX instead of all the fields of the struct in that element
+#
+test_uninit_fail VectorStructUninitErr.bsv 2
+
+# XXX It would be nice to report that the struct field is uninitialized,
+# XXX instead of all the elements of the ListN in that field
+#
+test_uninit_fail StructListNUninitErr.bsv 3
+
+# -------------------------
+# Multiple fields / elements
+
+# XXX Not sure the original intent of these tests.
+# XXX They are probably duplicating tests for Vector / struct from above,
+# XXX but we might as well leave them to be tested.
+
+test_uninit_fail MultiUninitErr1.bsv 2
+test_uninit_fail MultiUninitErr2.bsv 2
+
+# -------------------------
+# Loops
+
+# using an uninitialized value (to re-initialize) inside a loop
+# (only see one error)
+#
+compile_verilog_fail_error UninitLoop.bsv G0028
+
+# Because we defer errors, the same field reference multiple times
+# in a loop will result in multiple errors.
+# XXX Perhaps we should store the deferred errors and not report duplicates?
+#
+# XXX Is this a duplicate of a previous bit-vector test?
+#
+test_uninit_fail BitUninitLoop.bsv 5
+
+# make sure uninitialized values don't lead to infinite loops
+compile_verilog_fail_error UninitLoopErr.bsv G0024 1 "" "-steps 100"
+if { $vtest == 1 } {
+find_n_error [make_bsc_vcomp_output_name "UninitLoopErr.bsv"] G0028 1
+}
+
+# make sure uninitialized values don't lead to infinite loops
+compile_verilog_fail_error UninitLoopErr2.bsv G0024 1 "" "-steps 100"
+if { $vtest == 1 } {
+find_n_error [make_bsc_vcomp_output_name "UninitLoopErr2.bsv"] G0028 1
+}
+
+# -------------------------
+

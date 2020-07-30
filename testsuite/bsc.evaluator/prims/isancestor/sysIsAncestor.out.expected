@@ -1,0 +1,19 @@
+OK: reflexive on clk1
+OK: reflexive on clk1_1_2
+OK: reflexive on clk1_2_1
+OK: reflexive on clk2
+OK: clk1 AOF clk1_2
+OK: antisymmetric (clk1_2 NOT AOF clk1)
+OK: clk1_1 AOF clk1_1_1
+OK: antisymmetric (clk1_1_1 NOT AOF clk1_1)
+OK: clk1_2 AOF clk1_2_2
+OK: transitive (clk1 AOF clk1_2_2)
+OK: antisymmetric (clk1_2_2 NOT AOF clk1)
+OK: unrelated (clk1 NOT AOF clk2)
+OK: unrelated (clk2 NOT AOF clk1)
+OK: unrelated (clk1_1 NOT AOF clk1_2)
+OK: unrelated (clk1_2 NOT AOF clk1_1)
+OK: unrelated (clk1_2_1 NOT AOF clk1_1)
+OK: unrelated (clk1_1 NOT AOF clk1_2_1)
+OK: unrelated (clk1_1_1 NOT AOF clk1_2_2)
+OK: unrelated (clk1_2_2 NOT AOF clk1_1_1)

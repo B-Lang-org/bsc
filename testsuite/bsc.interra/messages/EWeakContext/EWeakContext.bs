@@ -1,0 +1,42 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EWeakContext.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EWeakContext error of the bluespec
+-- compiler (Context too weak)
+--
+-----------------------------------------------------------------------
+
+
+
+package EWeakContext() where
+
+-- import Int
+
+sum :: (Add 1 a b, Add a 1 b) => Int a -> Int a -> Int 1 -> Int b
+sum x y z = zeroExtend x + zeroExtend y + zeroExtend z;
+
+
+my_split :: (Add m n mn, Add n m mn) => Int mn -> (Int m, Int n)
+my_split x = let y=(split (pack x)).fst
+                 z=(split (pack x)).snd
+             in (unpack y, unpack z)
+
+
+interface Adder a =
+           carry_sum :: Int a -> Int a -> Int 1 -> (Int 1, Int a)
+
+
+mkAdd :: Module (Adder a)
+mkAdd = 
+        module
+           interface
+              carry_sum ix iy iz = my_split (sum ix iy iz)
+                                   
+
+add :: Module (Adder 5)
+add = mkAdd 
+

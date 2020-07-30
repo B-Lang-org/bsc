@@ -1,0 +1,120 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_time_assert_vunit (assert_time_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_TIME_P = always (
+           { (num_cks > 0) && (ignore_new_start || error_on_new_start) && 
+             start_event && !window} |=>  
+              {test_expr[*num_cks]} abort(!reset_n) ) ;
+  
+  property ASSERT_TIME_RESET_ON_START_P = always (
+           { (num_cks > 0) && reset_on_new_start && start_event && window} 
+           |=> {test_expr[*num_cks]} abort(!reset_n) );
+
+  property ASSERT_TIME_ERR_ON_START_P = never 
+           {error_on_new_start && reset_n && start_event && window};
+
+  //Properties for X/Z checking
+
+  property ASSERT_TIME_XZ_ON_START_P =
+           always( xzcheck_enable && (reset_n && !(window)) -> !isunknown(start_event));
+
+  property ASSERT_TIME_XZ_ON_NEW_START_P =
+           always( xzcheck_enable && (reset_n && (!ignore_new_start) && (window)) -> 
+                   !isunknown(start_event));
+
+  property ASSERT_TIME_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && (reset_n && (window)) -> !isunknown(test_expr));
+
+  A_ASSERT_TIME_P:
+  assert ASSERT_TIME_P
+  report "VIOLATION: ASSERT_TIME Checker Fires: Test expression is not TRUE within specified num_cks cycles from the start_event";
+
+  A_ASSERT_TIME_RESET_ON_START_P:
+  assert ASSERT_TIME_RESET_ON_START_P
+  report "VIOLATION: ASSERT_TIME Checker Fires: Test expression is not TRUE within specified num_cks cycles from the start_event";
+
+  A_ASSERT_TIME_ERR_ON_START_P:
+  assert ASSERT_TIME_ERR_ON_START_P 
+  report "VIOLATION: ASSERT_TIME Checker Fires : Illegal start event which has reoccured before completion of current window";
+
+  A_ASSERT_TIME_XZ_ON_START_P:
+  assert ASSERT_TIME_XZ_ON_START_P
+  report "VIOLATION: ASSERT_TIME Checker Fires: start_event contains X or Z";
+
+  A_ASSERT_TIME_XZ_ON_NEW_START_P:
+  assert ASSERT_TIME_XZ_ON_NEW_START_P
+  report "VIOLATION: ASSERT_TIME Checker Fires: start_event contains X or Z";
+
+  A_ASSERT_TIME_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_TIME_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_TIME Checker Fires: test_expr contains X or Z";
+}
+
+vunit assert_time_assume_vunit (assert_time_assume)
+{
+  default clock = (posedge clk);
+ 
+  property ASSERT_TIME_P = always (
+           { (num_cks > 0) && (ignore_new_start || error_on_new_start) &&
+             start_event && !window} |=>
+             {test_expr[*num_cks]} abort(!reset_n) );
+
+  property ASSERT_TIME_RESET_ON_START_P = always (
+           { (num_cks > 0) && reset_on_new_start && start_event && window}
+           |=>  {test_expr[*num_cks]} abort(!reset_n) );
+
+  property ASSERT_TIME_ERR_ON_START_P = never
+           {error_on_new_start && reset_n && start_event && window};
+ 
+  //Properties for X/Z checking
+
+  property ASSERT_TIME_XZ_ON_START_P =
+           always( xzcheck_enable && (reset_n && !(window)) -> !isunknown(start_event));
+
+  property ASSERT_TIME_XZ_ON_NEW_START_P =
+           always( xzcheck_enable && (reset_n && (!ignore_new_start) && (window)) -> 
+                   !isunknown(start_event));
+
+  property ASSERT_TIME_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && (reset_n && (window)) -> !isunknown(test_expr));
+
+  M_ASSERT_TIME_P:
+  assume ASSERT_TIME_P;
+
+  M_ASSERT_TIME_RESET_ON_START_P:
+  assume ASSERT_TIME_RESET_ON_START_P;
+
+  M_ASSERT_TIME_ERR_ON_START_P:
+  assume ASSERT_TIME_ERR_ON_START_P;
+
+  M_ASSERT_TIME_XZ_ON_START_P:
+  assume ASSERT_TIME_XZ_ON_START_P;
+
+  M_ASSERT_TIME_XZ_ON_NEW_START_P:
+  assume ASSERT_TIME_XZ_ON_NEW_START_P;
+
+  M_ASSERT_TIME_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_TIME_XZ_ON_TEST_EXPR_P;
+}
+
+vunit assert_time_cover_vunit (assert_time_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_window_open:
+  cover {OVL_COVER_BASIC_ON && reset_n && start_event && !window}
+  report "COVERAGE REPORT : ASSERT_TIME Checker: window_open covered";
+                                                                                                                                     
+  cover_window_close:
+  cover {OVL_COVER_BASIC_ON && reset_n && window && (window_close && ((!reset_on_new_start) || (!start_event)))}
+  report "COVERAGE REPORT : ASSERT_TIME Checker: window_close covered";
+                                                                                                                                     
+  cover_window_resets:
+  cover {OVL_COVER_CORNER_ON && reset_n && reset_on_new_start && start_event && window}
+  report "COVERAGE REPORT : ASSERT_TIME Checker: window_resets covered";
+}
+ 

@@ -1,0 +1,5 @@
+package StructDefResGivenNum () where
+
+struct (Foo :: #) =
+    x :: Bool
+

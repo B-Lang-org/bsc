@@ -1,0 +1,6 @@
+package Defl_NoType () where
+
+x :: Bool
+x = let _ = True
+    in  True
+

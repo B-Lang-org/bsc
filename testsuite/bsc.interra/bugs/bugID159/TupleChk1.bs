@@ -1,0 +1,15 @@
+----------------------------------------------------
+-- FileName : TupleChk1.bs
+-- Author   : Interra
+-- BugID    : 159
+-- CommandLine : bsc TupleChk1.bs
+-- Status : Fixed for BSC 3.74
+----------------------------------------------------
+
+package TupleChk1 () where
+
+import List
+
+struct Primpair a b =  fst :: List a
+                       fst :: Int b
+                      deriving (Eq,Bits)

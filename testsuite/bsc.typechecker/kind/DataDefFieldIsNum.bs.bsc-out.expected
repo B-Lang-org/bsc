@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DataDefFieldIsNum.bs
+Error: "DataDefFieldIsNum.bs", line 3, column 15: (T0027)
+  The numeric type `12' was found where a value type was expected.

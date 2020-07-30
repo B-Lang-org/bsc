@@ -1,0 +1,5 @@
+package DuplicateMember_Interface_Classic where
+
+interface Ifc =
+  m :: Action
+  m :: Action

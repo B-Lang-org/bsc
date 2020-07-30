@@ -1,0 +1,5 @@
+compile_pass WMissingField.bs
+compare_file WMissingField.bs.bsc-out
+
+compile_pass WMissingField1.bs
+compare_file WMissingField1.bs.bsc-out

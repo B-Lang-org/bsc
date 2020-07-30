@@ -1,0 +1,23 @@
+# locally mutually recursive let bindings
+compile_pass_bug Letrect.bs
+test_c_veri Letrec3
+test_c_veri Letrecbit
+test_c_veri Letrecmod
+test_c_veri Letrecmodx
+compile_fail_error Letrecmodbool.bs S0066
+
+# recursive types trigger a recursive let binding
+test_c_veri_bsv List1
+test_c_veri_bsv List2
+test_c_veri_bsv List3
+test_c_veri_bsv List3b
+
+# deriving bits on recursive types should fail
+compile_fail_error DeriveBits1.bsv T0115
+compile_fail_error DeriveBits2.bsv T0115
+compile_fail_error DeriveBits3.bsv T0115
+compile_fail_error DeriveBits3b.bsv T0115
+
+# testing deriving of primmakeundefined
+test_c_veri_bsv Undef
+compile_object_fail_error Undef2.bsv G0024 1 "" "-steps 12345"

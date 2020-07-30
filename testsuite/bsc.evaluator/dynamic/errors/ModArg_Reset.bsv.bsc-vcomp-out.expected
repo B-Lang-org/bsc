@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ModArg_Reset.bsv
+code generation for mkSub_ModArg_Reset starts
+Verilog file created: mkSub_ModArg_Reset.v
+code generation for sysModArg_Reset starts
+Error: "ModArg_Reset.bsv", line 21, column 8: (G0072)
+  Input reset `rst_in' of submodule `s' is instantiated with a dynamic
+  expression. Input resets must be determined at compile time.
+  During elaboration of `s' at "ModArg_Reset.bsv", line 21, column 8.
+  During elaboration of `sysModArg_Reset' at "ModArg_Reset.bsv", line 9,
+  column 8.

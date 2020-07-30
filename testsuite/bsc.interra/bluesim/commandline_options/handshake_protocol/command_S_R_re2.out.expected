@@ -1,0 +1,45 @@
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+Passes          4, Fails          0
+
+Final state:
+main.top.top.t_state = REQUEST
+main.top.top.t_req_reg = 0x1
+main.top.top.t_start_reg = 0x0
+main.top.top.t_valid_reg = 0x0
+main.top.top.t_done_reg = 0x0
+main.top.top.t_counter = 0x0
+main.top.top.t_ack1 = 0x1
+   RWire set = 0  val = 0x1
+main.top.passes = 0x00000004
+main.top.fails = 0x00000000

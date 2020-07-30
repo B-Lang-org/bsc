@@ -1,0 +1,131 @@
+checking package dependencies
+compiling ./Zow.bsv
+compiling Example.bsv
+code generation for mkExample starts
+Instantiation tree
+    { [Loc zow False (Just ((Prelude.Reg Prelude.Bool)))
+          { [Loc (H) _wire False (Just ((¶PreludeBSV®¶.¶RWire®¶ Prelude.Bool)))
+	        { [Loc (H) _r False (Just ((¶PreludeBSV®¶.¶VRWire®¶ Prelude.Bool)))
+		      { StateVar zow } ] } ] } ]
+      [Loc xx False (Just ((Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5)))))
+          { [Loc (H) _ys False (Just ((¶Prelude®¶.¶List®¶ (Prelude.Reg (Prelude.Bit 5)))))
+	        { [Loc _y_0 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 5)))
+			    { StateVar xx } ] } ]
+		  [Loc _y_1 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 5)))
+			    { StateVar xx_1 } ] } ]
+		  [Loc _y_2 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 5)))
+			    { StateVar xx_2 } ] } ] } ] } ]
+      [Loc ww False (Just ((Vector.Vector 3 (Prelude.Reg (Prelude.Bit 5)))))
+          { [Loc (H) _ys False (Just ((¶Prelude®¶.¶List®¶ (Prelude.Reg (Prelude.Bit 5)))))
+	        { [Loc _y_0 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _wire False (Just ((¶PreludeBSV®¶.¶RWire®¶ (Prelude.Bit 5))))
+			    { [Loc (H) _r False (Just ((¶PreludeBSV®¶.¶VRWire®¶ (Prelude.Bit 5))))
+			          { StateVar ww } ] } ] } ]
+		  [Loc _y_1 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _wire False (Just ((¶PreludeBSV®¶.¶RWire®¶ (Prelude.Bit 5))))
+			    { [Loc (H) _r False (Just ((¶PreludeBSV®¶.¶VRWire®¶ (Prelude.Bit 5))))
+			          { StateVar ww_1 } ] } ] } ]
+		  [Loc _y_2 False (Just ((Prelude.Reg (Prelude.Bit 5))))
+		      { [Loc (H) _wire False (Just ((¶PreludeBSV®¶.¶RWire®¶ (Prelude.Bit 5))))
+			    { [Loc (H) _r False (Just ((¶PreludeBSV®¶.¶VRWire®¶ (Prelude.Bit 5))))
+			          { StateVar ww_2 } ] } ] } ] } ] } ]
+      [Loc _theResult__ True (Just (()))
+          { [Loc _theResult__ False (Just (Prelude.Integer))
+	        { [Loc z_1 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar z_1 } ] } ]
+		  [Loc z_2 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar z_2 } ] } ]
+		  [Loc z_0 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar z } ] } ] } ] } ]
+      [Loc _a1003 True (Just (Prelude.Empty))
+          { [Loc Zow._inst_mkZow False (Just (Prelude.Empty))
+	        { [Loc zow2 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar Zow_inst_mkZow_zow2 } ] } ] } ] } ]
+      [Loc _theResult_____1 False (Just (Prelude.Integer))
+          { [Loc _theResult_____1_0 True (Just (()))
+	        { [Loc _theResult_____1 False (Just (Prelude.Integer))
+		      { [Loc _theResult_____1_0 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_0 False (Just (()))
+				        { Rule RL_update } ] } ]
+			      [Loc y_0 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y } ] } ] } ]
+			[Loc _theResult_____1_1 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_1 False (Just (()))
+				        { Rule RL_update_1 } ] } ]
+			      [Loc y_1 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_1 } ] } ] } ]
+			[Loc _theResult_____1_2 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_2 False (Just (()))
+				        { Rule RL_update_2 } ] } ]
+			      [Loc y_2 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_2 } ] } ] } ] } ]
+		  [Loc x_0 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar x } ] } ] } ]
+	    [Loc _theResult_____1_1 True (Just (()))
+	        { [Loc _theResult_____1 False (Just (Prelude.Integer))
+		      { [Loc _theResult_____1_0 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_3 False (Just (()))
+				        { Rule RL_update_3 } ] } ]
+			      [Loc y_3 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_3 } ] } ] } ]
+			[Loc _theResult_____1_1 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_4 False (Just (()))
+				        { Rule RL_update_4 } ] } ]
+			      [Loc y_4 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_4 } ] } ] } ]
+			[Loc _theResult_____1_2 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_5 False (Just (()))
+				        { Rule RL_update_5 } ] } ]
+			      [Loc y_5 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_5 } ] } ] } ] } ]
+		  [Loc x_1 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar x_1 } ] } ] } ]
+	    [Loc _theResult_____1_2 True (Just (()))
+	        { [Loc _theResult_____1 False (Just (Prelude.Integer))
+		      { [Loc _theResult_____1_0 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_6 False (Just (()))
+				        { Rule RL_update_6 } ] } ]
+			      [Loc y_6 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_6 } ] } ] } ]
+			[Loc _theResult_____1_1 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_7 False (Just (()))
+				        { Rule RL_update_7 } ] } ]
+			      [Loc y_7 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_7 } ] } ] } ]
+			[Loc _theResult_____1_2 True (Just (()))
+			    { [Loc _add_rules True (Just (Prelude.Empty))
+			          { [Loc update_8 False (Just (()))
+				        { Rule RL_update_8 } ] } ]
+			      [Loc y_8 False (Just ((Prelude.Reg Prelude.Bool)))
+			          { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+				        { StateVar y_8 } ] } ] } ] } ]
+		  [Loc x_2 False (Just ((Prelude.Reg Prelude.Bool)))
+		      { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 1)))
+			    { StateVar x_2 } ] } ] } ] } ] }
+Verilog file created: mkExample.v
+All packages are up to date.

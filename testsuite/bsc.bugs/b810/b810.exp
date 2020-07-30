@@ -1,0 +1,10 @@
+
+
+
+test_c_veri_bsv Bug810_1
+
+compile_fail_error Bug810_2.bsv T0031
+
+
+test_c_veri_bsv Bug810_3
+test_c_veri_bsv Opt_bug

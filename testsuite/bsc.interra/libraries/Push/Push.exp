@@ -1,0 +1,25 @@
+test_c_veri_bsv_multi Apply mkTestbench_Apply {} "mkTestbench_Apply.out.expected" 
+
+test_c_veri_bsv_multi Tee mkTestbench_Tee {} "mkTestbench_Tee.out.expected" 
+
+test_c_veri_bsv_multi Pass mkTestbench_Pass {} "mkTestbench_Pass.out.expected" 
+
+test_c_veri_bsv_multi Passed mkTestbench_Passed {} "mkTestbench_Passed.out.expected" 
+
+test_c_veri_bsv_multi Buffer mkTestbench_Buffer {} "mkTestbench_Buffer.out.expected" 
+
+test_c_veri_bsv_multi Qbuffer mkTestbench_Qbuffer {} "mkTestbench_Qbuffer.out.expected" 
+
+test_c_veri_bsv_multi Buffered mkTestbench_Buffered {} "mkTestbench_Buffered.out.expected" 
+
+test_c_veri_bsv_multi Qbuffered mkTestbench_Qbuffered {} "mkTestbench_Qbuffered.out.expected" 
+
+test_c_veri_bsv_multi Sink mkTestbench_Sink {} "mkTestbench_Sink.out.expected" 
+
+test_c_veri_bsv_multi Spew mkTestbench_Spew {} "mkTestbench_Spew.out.expected" 
+
+test_c_veri_bsv_multi Pipe mkTestbench_Pipe {} "mkTestbench_Pipe.out.expected" 
+
+test_c_veri_bsv_multi RegToPush mkTestbench_RegToPush {} "mkTestbench_RegToPush.out.expected" 
+
+test_c_veri_bsv_multi FifoToPush mkTestbench_FifoToPush {} "mkTestbench_FifoToPush.out.expected" 

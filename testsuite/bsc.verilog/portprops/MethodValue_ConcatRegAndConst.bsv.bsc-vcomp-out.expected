@@ -1,0 +1,15 @@
+checking package dependencies
+compiling MethodValue_ConcatRegAndConst.bsv
+code generation for sysMethodValue_ConcatRegAndConst starts
+=== IOproperties:
+Name                         I/O  size props
+m                              O    16
+RDY_m                          O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysMethodValue_ConcatRegAndConst.v
+All packages are up to date.

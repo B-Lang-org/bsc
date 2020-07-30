@@ -1,0 +1,6 @@
+ `line(HERE///NoNewlineIfdef.bsv,2,1,0)
+ `line(HERE///NoNewlineIfdef.bsv,3,11,0) Bool
+x = True;
+ `line(HERE///NoNewlineIfdef.bsv,5,7,0)
+
+

@@ -1,0 +1,5 @@
+package OneArgPlusOne () where
+
+x :: Bit 1 2
+x = _
+

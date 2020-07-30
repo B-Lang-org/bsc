@@ -1,0 +1,9 @@
+-- Testcase for bug 715
+
+package KindMismatchExplHas () where
+
+import List
+
+x :: Bit a
+x = fromInteger (length (Nil :: (List a)))
+

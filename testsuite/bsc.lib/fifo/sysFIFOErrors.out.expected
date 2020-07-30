@@ -1,0 +1,8 @@
+Warning: FIFO2: main.top.d_fifo2.error_checks -- Dequeuing from empty fifo
+Warning: SizedFIFO: main.top.d_sizedFIFO.error_checks -- Dequeuing from empty fifo
+Warning: FIFO1: main.top.d_fifo1.error_checks -- Dequeuing from empty fifo
+Warning: FIFOL1: main.top.d_lfifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.e_fifo2.error_checks -- Enqueuing to a full fifo
+Warning: SizedFIFO: main.top.e_sizedFIFO.error_checks -- Enqueuing to a full fifo
+Warning: FIFO1: main.top.e_fifo1.error_checks -- Enqueuing to a full fifo
+Warning: FIFOL1: main.top.e_lfifo.error_checks -- Enqueuing to a full fifo

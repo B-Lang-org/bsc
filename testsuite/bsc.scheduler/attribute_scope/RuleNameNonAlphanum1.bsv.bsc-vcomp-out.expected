@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameNonAlphanum1.bsv
+code generation for sysRuleNameNonAlphanum1 starts
+Warning: "RuleNameNonAlphanum1.bsv", line 10, column 9: (G0021)
+  According to the generated schedule, rule `r2' can never fire.
+Verilog file created: sysRuleNameNonAlphanum1.v
+All packages are up to date.

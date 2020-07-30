@@ -1,0 +1,63 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_even_parity_assert_vunit (assert_even_parity_assert)
+{
+  default clock is rose(clk);
+--  default abort is (reset_n='0');
+--  default abort = not(reset_n) ;
+  property ASSERT_EVEN_PARITY_P is always ( not(xor_reduce(test_expr)) )abort(not(reset_n)) ;
+
+  --Property for X/Z checking
+
+  property ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P is
+           always( (xzcheck_enable = 1) -> not(is_x(test_expr))) abort(not(reset_n)) ;
+
+  A_ASSERT_EVEN_PARITY_P:
+  assert ASSERT_EVEN_PARITY_P
+  report "VIOLATION: ASSERT_EVEN_PARITY Checker Fires : Test expression does not exhibit even parity";
+
+  A_ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P 
+  report "VIOLATION: ASSERT_EVEN_PARITY Checker Fires: test_expr contains X or Z";
+
+}
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_even_parity_assume_vunit (assert_even_parity_assume)
+{
+  default clock is rose(clk);
+
+  property ASSERT_EVEN_PARITY_P is always ( not(xor_reduce(test_expr))  abort(not(reset_n)) );
+
+  --Property for X/Z checking
+
+  property ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P is
+           always( (xzcheck_enable = 1) -> not(is_x(test_expr)) abort(not(reset_n)) );
+
+  M_ASSERT_EVEN_PARITY_P:
+  assume ASSERT_EVEN_PARITY_P;
+
+  M_ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_even_parity_cover_vunit (assert_even_parity_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_test_expr_change:
+  cover {((OVL_COVER_SANITY_ON = OVL_COVER_SANITY) or (OVL_COVER_SANITY_ON = OVL_COVER_ALL)) and (prev(reset_n) = '1') and (reset_n = '1') and not(stable(test_expr))}
+  report "COVERAGE REPORT : ASSERT_EVEN_PARITY Checker: test_expr_change covered";
+}
+ 

@@ -1,0 +1,109 @@
+UNIT TEST PLAN FOR PREPOCESSOR DIRECTIVES IN BSV
+
+Total Effort Estimate
+  3-4 Days
+
+Responsibilgty
+  Anurag
+
+Deliverables
+  Testcases using bsv preprocessor directives
+
+Total number of Testcases to be developed
+  40 to 50
+
+Dependencies
+  BSC release supporting preprocessor directives
+
+The table below gives details of the categories of testcases to
+developed in BSV.  The scenario of the testcases includes both
+-ve and +ve testcases.
+
+The following terminology is used:
+  `define MAX 10
+Here MAX is an macro name and 10 is value of the macro name MAX
+
+----
+
+(1) `define
+
+ 1. Testcase using the `define inside various bsv constructs namely
+      a) Method
+      b) Module
+      c) Package(i.e at the top level)
+      d) Rule
+
+ 2. Testcases in which already defined macros names are used inside:
+      a) Control Statements : if-else,case,ternary operators.
+      b) Loops - for,while
+      c) Bit Vector declarations
+
+ 3. Testcase in which a macro is defined in terms of other macros like:
+      `define ONE 1
+      `define TWO ONE + ONE
+
+ 4. Testcase in which macro value is defined on&nbsp; more than one line.
+
+ 5. Testcases in which macros name is a BSV keyword.
+
+ 6. Testcases where different type of value is given to the macro name
+    like:
+      `define BitLen 12
+      `define BitVector 2'b00
+      `define Bool True
+
+ 7. Testcase where a macro name is defined in terms of itself
+    (recursive) like:
+      `define MAX MAX + 1
+      `define bus_width top.bus_width
+
+ 8. Testcase in which&nbsp; macro takes parameters.
+
+ 9. Testcase in which macro value takes line comment.
+
+10. Testcase which checks that macro is&nbsp; used to create parts of
+    numbers.
+
+11. Testcases which checks if the macros are case insensitive and what
+    all characters are permissible in the macro name
+
+----
+
+(2) `undef
+
+ 1. Testcase using undef inside various BSV constructs
+      a) Method
+      b) Module
+      c) Package (i.e at the top level)
+      d) Rule
+
+ 2. Testcase using undef on macro name not defined.
+
+----
+
+(3) `include
+
+ 1. Use `include in BSV code to include a file.
+
+ 2. Use `include in BSV code to include a file which does not exist.
+
+ 3. Use `include to include a file which contains macros which are
+    also defined in file including that file.
+
+----
+
+(4) 'resetall
+
+ 1. To test if the resetall compiler directive works.
+
+----
+
+(5) `ifdef,`ifndef,`else,`elseif,`endif
+
+ 1. Testcase using these directives inside various BSV constructs
+      a) Method
+      b) Module
+      c) Package(i.e at the top level)
+      d) Rule
+
+----

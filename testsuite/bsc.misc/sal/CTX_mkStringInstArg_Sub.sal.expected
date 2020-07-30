@@ -1,0 +1,10 @@
+CTX_mkStringInstArg_Sub : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# param_s : String!T #] ;
+  
+  ctor (val_s : String!T) : STATE = (# param_s := val_s #) ;
+  
+  rule_RL_doDisp (state0 : STATE) : [ BOOLEAN, STATE ] = ( TRUE, state0 ) ;
+  
+END

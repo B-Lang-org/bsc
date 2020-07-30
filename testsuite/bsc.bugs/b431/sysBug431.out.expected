@@ -1,0 +1,2 @@
+res = 0; showbug(res) = 0
+res = 1; showbug(res) = 11

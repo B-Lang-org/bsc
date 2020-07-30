@@ -1,0 +1,89 @@
+
+# test legacy examples
+
+compile_pass Counters.bs
+
+compile_pass Elf.bs
+
+compile_pass ElfData.bs
+
+if {$ctest == 1} {
+  compile_object_pass GCD.bs sysGCD
+  link_objects_pass {sysGCD} sysGCD
+#  sim_final_state sysGCD 106
+#  compare_file sysGCD.final-state
+  sim_output sysGCD "-m 106"
+}
+
+compile_pass Joe.bs
+
+compile_object_pass LCG.bs sysLCG
+
+if {$ctest == 1} {
+  link_objects_pass {sysLCG} sysLCG
+#  sim_final_state sysLCG 3
+#  compare_file sysLCG.final-state
+  sim_output sysLCG "-m 3"
+
+}
+
+compile_pass LookupU.bs
+
+compile_pass NewMipsInstr.bs
+compile_pass NewMipsDefs.bs
+
+if {$ctest == 1} {
+  compile_object_pass NewMipsROM.bs sysNewMipsROM
+  compile_object_pass NewMips.bs sysNewMips
+}
+
+compile_pass RC6.bs
+
+compile_pass RPN.bs
+
+compile_pass RegisterArray.bs
+
+compile_pass Seq.bs
+
+compile_pass SeqO.bs
+
+compile_pass Test.bs
+
+compile_pass Test1.bs
+
+compile_pass Two.bs
+
+compile_pass FSM.bs
+
+compile_pass Life.bs
+
+compile_pass ListToBit.bs
+
+compile_pass Misc.bs
+
+compile_pass RAM2.bs
+
+compile_pass RecUpd.bs
+
+compile_pass Ring.bs
+
+compile_pass SharedRAMArbiter.bs
+
+compile_pass UseAct.bs
+
+compile_pass MipsInstr.bs
+
+compile_pass MipsDefs.bs
+
+if {$ctest == 1} {
+  compile_object_pass MipsROM.bs sysMipsROM
+}
+
+compile_pass MipsCPU.bs
+
+if {$ctest == 1} {
+  compile_object_pass Mips.bs sysMips
+}
+
+link_objects_pass {sysMipsROM sysMips} sysMips
+link_objects_pass {sysNewMipsROM sysNewMips} sysNewMips

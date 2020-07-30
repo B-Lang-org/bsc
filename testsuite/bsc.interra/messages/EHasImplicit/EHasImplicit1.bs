@@ -1,0 +1,69 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EHasImplicit1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Code provided by Jacob Schwartz
+
+-- Description: This testcase triggers a "Implicit condition" error (EHasImplicit)
+
+-- Error Message : bsc -verilog -g mkEHasImplicit1 EHasImplicit1.bs
+-- bsc: Compilation errors:
+-- "ClockConv.bs", line 49, column 19, Implicit condition not allowed for expression: .ClockConv._2
+--   (outClockConv.Clock
+--      (PrimWhen
+--         ·ClockConv.Clock
+--         (.EHasImplicit1.ready f_0)
+--         (ClockConv.Clock
+--            (ClockConv.Clock°Clock
+--               (.Prelude.fst
+--                  ·(Prelude.Bit 1)
+--                  ·(Prelude.Bit 1)
+--                  (Prelude.PrimPair
+--                     ·(Prelude.Bit 1)
+--                     ·(Prelude.Bit 1)
+--                     (PrimSelect ·1 ·1 ·2 (PrimConcat ·1 ·1 ·2 (.EHasImplicit1.clock f_0) (.EHasImplicit1.reset f_0)))
+--                     (PrimSelect ·1 ·0 ·2 (PrimConcat ·1 ·1 ·2 (.EHasImplicit1.clock f_0) (.EHasImplicit1.reset f_0)))))
+--               (PrimWhen
+--                  ·(Prelude.Bit 1)
+--                  (.EHasImplicit1.ready f_0)
+--                  (PrimSelect
+--                     ·1
+--                     ·0
+--                     ·2
+--                     (PrimConcat ·1 ·1 ·2 (.EHasImplicit1.clock f_0) (.EHasImplicit1.reset f_0))))))))
+-----------------------------------------------------------------------
+
+package EHasImplicit1 () where
+
+import ClockConv
+import GetPut
+
+interface Foo =
+  clock :: Clock
+
+interface VFoo =
+  clock :: Bit 1
+  reset :: Bit 1
+  ready :: Bit 1
+
+vMkFoo :: Module VFoo
+vMkFoo = module verilog "Foo" "CLK" "RST_N" {
+           clock = "clock";
+           reset = "reset";
+           ready = "ready" }
+
+mkFoo :: Module Foo
+mkFoo =
+  module
+    f :: VFoo <- vMkFoo
+    interface
+      clock = unpack (f.clock ++ f.reset) when (unpack f.ready)
+
+mkEHasImplicit1 :: Module Empty
+mkEHasImplicit1 =
+  module
+    f :: Foo <- mkFoo
+    g :: (Get Bool, Put Bool) <- clockConv f.clock mkGetPut

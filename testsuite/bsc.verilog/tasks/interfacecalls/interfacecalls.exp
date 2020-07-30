@@ -1,0 +1,66 @@
+# check interface methods that call system tasks
+# does not use a test_c_veri variant because it is missing option-passing capabilities
+
+# ----------
+
+# this works because of inlining
+test_c_veri InterfaceTaskCalls
+
+# Test Verilog with synthesis boundary
+if {$vtest == 1} {
+  compile_verilog_pass InterfaceTaskCalls.bs sysInterfaceTaskCalls "-g sysBar"
+  link_verilog_pass {sysInterfaceTaskCalls.v sysBar.v} sysInterfaceTaskCalls
+  sim_verilog sysInterfaceTaskCalls
+  copy sysInterfaceTaskCalls.out sysInterfaceTaskCalls.sysBar.v.out
+  erase sysInterfaceTaskCalls.out
+  # Verilog executes tasks in methods in wrong order
+  compare_file_bug sysInterfaceTaskCalls.sysBar.v.out sysInterfaceTaskCalls.out.expected 215
+  # Check that the wrong order is at least the same wrong order as it has
+  # always been (otherwise, a change in sim output could go undetected)
+  compare_file sysInterfaceTaskCalls.sysBar.v.out sysInterfaceTaskCalls.sysBar.v.out.bug-expected
+}
+
+# Test Blueim with synthesis boundary
+if {$ctest == 1} {
+  compile_object_pass InterfaceTaskCalls.bs sysInterfaceTaskCalls "-g sysBar"
+  link_objects_pass {sysInterfaceTaskCalls sysBar} sysInterfaceTaskCalls
+  sim_output sysInterfaceTaskCalls
+  copy sysInterfaceTaskCalls.out sysInterfaceTaskCalls.sysBar.c.out
+  erase sysInterfaceTaskCalls.out
+  # Bluesim executes tasks in the correct order
+  compare_file sysInterfaceTaskCalls.sysBar.c.out sysInterfaceTaskCalls.out.expected
+}
+
+# ----------
+
+# this works because of inlining
+test_c_veri LiftedInterfaceTaskCalls
+
+# Test Verilog with synthesis boundary
+if {$vtest == 1} {
+  compile_verilog_pass LiftedInterfaceTaskCalls.bs sysLiftedInterfaceTaskCalls "-g sysLiftedBar"
+  link_verilog_pass {sysLiftedInterfaceTaskCalls.v sysLiftedBar.v} sysLiftedInterfaceTaskCalls
+  sim_verilog sysLiftedInterfaceTaskCalls 
+  copy sysLiftedInterfaceTaskCalls.out sysLiftedInterfaceTaskCalls.sysLiftedBar.v.out
+  erase sysLiftedInterfaceTaskCalls.out
+  # Verilog executes tasks in methods in wrong order
+  compare_file_bug sysLiftedInterfaceTaskCalls.sysLiftedBar.v.out sysLiftedInterfaceTaskCalls.out.expected 215
+  # Check that the wrong order is at least the same wrong order as it has
+  # always been (otherwise, a change in sim output could go undetected)
+  compare_file sysLiftedInterfaceTaskCalls.sysLiftedBar.v.out sysLiftedInterfaceTaskCalls.sysLiftedBar.v.out.bug-expected
+}
+
+# Test Blueim with synthesis boundary
+if {$ctest == 1} {
+  compile_object_pass LiftedInterfaceTaskCalls.bs sysLiftedInterfaceTaskCalls "-g sysLiftedBar"
+  link_objects_pass {sysLiftedInterfaceTaskCalls sysLiftedBar} sysLiftedInterfaceTaskCalls
+  sim_output sysLiftedInterfaceTaskCalls
+  copy sysLiftedInterfaceTaskCalls.out sysLiftedInterfaceTaskCalls.sysLiftedBar.c.out
+  erase sysLiftedInterfaceTaskCalls.out
+  # lifting causes tasks in methods to execute in a different order
+  # (still TRS ok?, but in the order written by the user)
+  compare_file_bug sysLiftedInterfaceTaskCalls.sysLiftedBar.c.out sysLiftedInterfaceTaskCalls.out.expected 220
+  # Check that the wrong order is at least the same wrong order as it has
+  # always been (otherwise, a change in sim output could go undetected)
+  compare_file sysLiftedInterfaceTaskCalls.sysLiftedBar.c.out sysLiftedInterfaceTaskCalls.sysLiftedBar.c.out.bug-expected
+}

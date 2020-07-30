@@ -1,0 +1,60 @@
+checking package dependencies
+compiling DescendingUrgencyAttributeSplitIf.bsv
+code generation for sysDescendingUrgencyAttributeSplitIf starts
+=== schedule:
+parallel: [esposito: [RL_test_rule_2_T_T -> [],
+		      RL_test_rule_2_T_F -> [],
+		      RL_test_rule_2_F -> [],
+		      RL_test_rule_1 -> [RL_test_rule_2_F, RL_test_rule_2_T_F, RL_test_rule_2_T_T]]]
+order: [RL_test_rule_2_T_T, RL_test_rule_2_T_F, RL_test_rule_1, RL_test_rule_2_F]
+
+-----
+
+=== resources:
+[(count_r.read, [(count_r.read, 1)]),
+ (count_r.write,
+  [(count_r.write x__h210, 1),
+   (count_r.write x__h241, 1),
+   (count_r.write x__h244, 1),
+   (count_r.write x__h248, 1)]),
+ (p_r.read, [(p_r.read, 1)]),
+ (q_r.read, [(q_r.read, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysDescendingUrgencyAttributeSplitIf.sched
+=== Generated schedule for sysDescendingUrgencyAttributeSplitIf ===
+
+Rule schedule
+-------------
+Rule: test_rule_1
+Predicate: True
+Blocking rules: test_rule_2_F, test_rule_2_T_F, test_rule_2_T_T
+ 
+Rule: test_rule_2_T_T
+Predicate: p_r && q_r
+Blocking rules: (none)
+ 
+Rule: test_rule_2_T_F
+Predicate: p_r && (! q_r)
+Blocking rules: (none)
+ 
+Rule: test_rule_2_F
+Predicate: ! p_r
+Blocking rules: (none)
+ 
+Logical execution order: test_rule_2_T_T,
+			 test_rule_2_T_F,
+			 test_rule_1,
+			 test_rule_2_F
+
+====================================================================
+Warning: "DescendingUrgencyAttributeSplitIf.bsv", line 14, column 8: (G0021)
+  According to the generated schedule, rule `test_rule_1' can never fire.
+Verilog file created: sysDescendingUrgencyAttributeSplitIf.v
+All packages are up to date.

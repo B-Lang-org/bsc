@@ -1,0 +1,8 @@
+
+test_c_veri_bsv Eq0
+test_c_veri_bsv Eq1
+test_c_veri_bsv Eq2
+
+compile_verilog_fail_no_internal_error Eq3
+
+test_c_veri_bs_modules TuplePack {}

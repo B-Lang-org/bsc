@@ -1,0 +1,100 @@
+if { $vtest == 1 } {
+
+# -----
+# Basic test of writing and appending
+
+compile_verilog_pass BasicWrite.bsv
+find_n_strings sysBasicWrite.log "Hello World" 1
+
+# -----
+# Basic test of reading (and hIsEOF)
+
+compile_verilog_pass BasicRead.bsv
+find_regexp sysBasicRead.v {
+    \$display\(\"\%s\"\, \"Hello World\"\)\;
+    \$display\(\"\%s\"\, \"Hi\, there\"\)\;
+    \$display\(\"\%s\"\, \"the end\"\)\;
+    \$display\(\"Hello World\\nHi\, there\\nthe end\"\)\;
+}
+
+# -----
+# Basic tests for Handle queries
+
+# If this exits with success, then the tests passed
+compile_verilog_pass Queries.bsv
+
+# -----
+# Basic test that the flush and buffering commands exist
+# and that BSC will close/flush handles that the user did not close
+
+compile_verilog_pass Buffering.bsv
+find_n_strings sysBuffering.log "Hi" 1
+
+# -----
+# Tests for error messages
+
+# Directory does not exist
+# XXX The failure message is from checking the directory
+compile_verilog_fail_error OpenNonExistentFile.bsv S0031
+
+# Calling close on a closed handle is OK
+compile_verilog_pass CloseTwice.bsv
+
+# Calling anything else on a closed handle is an error
+# (and the error should show an elaboration context)
+# XXX the position of these errors could be better
+
+compile_verilog_fail_error PutAfterClose.bsv S0085
+compare_file PutAfterClose.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error FlushAfterClose.bsv S0085
+compare_file_filter_prelude FlushAfterClose.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error GetBufferingAfterClose.bsv S0085
+compare_file GetBufferingAfterClose.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error SetBufferingAfterClose.bsv S0085
+compare_file_filter_prelude SetBufferingAfterClose.bsv.bsc-vcomp-out
+
+# test that failures for hGetLine/hGetChar are caught
+
+compile_verilog_fail_error GetLineAfterClose.bsv S0085
+compare_file GetLineAfterClose.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error GetCharAfterClose.bsv S0085
+compare_file GetCharAfterClose.bsv.bsc-vcomp-out
+
+# XXX could also test for other errors (like get at EOF)
+
+# test that failures for queries are caught
+
+compile_verilog_fail_error IsEOFAfterClose.bsv S0085
+compare_file_filter_prelude IsEOFAfterClose.bsv.bsc-vcomp-out
+
+# XXX could also test for IsEOF on non-readable handles (is that a failure?)
+
+compile_verilog_fail_error IsReadableAfterClose.bsv S0085
+compare_file_filter_prelude IsReadableAfterClose.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error IsWritableAfterClose.bsv S0085
+compare_file_filter_prelude IsWritableAfterClose.bsv.bsc-vcomp-out
+
+# -----
+# Test the -fdir flag
+
+# XXX This should test that absolute paths are not touched
+
+mkdir ffiles
+compile_verilog_pass FilePaths.bsv {} {-fdir ffiles}
+files_exist { ffiles/relative.log }
+
+# -----
+# Test that the package name and module name can be queried
+
+compile_verilog_pass EnvNames.bsv
+compare_file sysEnvNames.log
+
+# -----
+
+}
+

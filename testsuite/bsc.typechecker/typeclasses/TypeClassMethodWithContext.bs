@@ -1,0 +1,13 @@
+package TypeClassMethodWithContext() where
+
+class CLS a b where
+    method :: (IsModule m c) => a -> b -> m Empty
+
+-- This definition should not cause an internal compiler error
+m :: (CLS a b, IsModule m c) => a -> b -> m Empty
+m x y = method x y
+
+-- This definition should not require an IsModule context
+instance CLS Bool Bool where
+    method x y = return _
+

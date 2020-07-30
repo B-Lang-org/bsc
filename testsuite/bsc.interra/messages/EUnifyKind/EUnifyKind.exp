@@ -1,0 +1,8 @@
+compile_fail EUnifyKind.bs
+compare_file EUnifyKind.bs.bsc-out
+
+compile_fail EUnifyKind1.bs
+compare_file EUnifyKind1.bs.bsc-out
+
+compile_fail EUnifyKind2.bs
+compare_file EUnifyKind2.bs.bsc-out

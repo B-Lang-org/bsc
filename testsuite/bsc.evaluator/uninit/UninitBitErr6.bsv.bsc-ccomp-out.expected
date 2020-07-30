@@ -1,0 +1,12 @@
+checking package dependencies
+compiling UninitBitErr6.bsv
+Warning: "UninitBitErr6.bsv", line 4, column 4: (P0042)
+  Assignment to `x' missing from some paths
+code generation for sysUninitBitErr6 starts
+Error: "UninitBitErr6.bsv", line 3, column 12: (G0028)
+  `x' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "UninitBitErr6.bsv", line
+  7, column 9.
+  During elaboration of `sysUninitBitErr6' at "UninitBitErr6.bsv", line 2,
+  column 8.

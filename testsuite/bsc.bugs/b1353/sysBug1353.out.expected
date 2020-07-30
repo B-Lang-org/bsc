@@ -1,0 +1,10 @@
+Enq all fifos when r is 0
+Enq all fifos when r is 1
+Deq fifo 1 value 1
+Deq fifo 2 value 2
+Deq fifo 3 value 3
+Deq fifo 4 value 4
+Deq fifo 5 value 5
+Deq fifo 6 value 6
+Deq fifo 7 value 7
+Simulation deadlocked

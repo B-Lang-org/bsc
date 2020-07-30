@@ -1,0 +1,8 @@
+test_c_veri_bsv_modules_options TestSwitch "" -split-if
+
+sim_output sysTestSwitch {-c {sim run; puts [sim clock]}}
+if { $ctest == 1 } {
+# the split-if version should take fewer cycles
+compare_file sysTestSwitch.out fast.expected
+}
+

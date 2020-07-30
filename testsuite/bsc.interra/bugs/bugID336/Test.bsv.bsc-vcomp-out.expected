@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Test.bsv
+code generation for mkTestbench starts
+Error: "RegFile.bs", line 104, column 69: (S0015)
+  Bluespec evaluation-time error: bad indices for mkRegFile: [5:2]
+  During elaboration of `the_dut' at "Test.bsv", line 10, column 5.
+  During elaboration of `mkTestbench' at "Test.bsv", line 7, column 8.

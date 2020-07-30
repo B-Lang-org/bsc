@@ -1,0 +1,10 @@
+checking package dependencies
+compiling IntegerToChar_OutOfRange_Low.bsv
+code generation for sysIntegerToChar_OutOfRange_Low starts
+Error: "IntegerToChar_OutOfRange_Low.bsv", line 4, column 30: (G0126)
+  Cannot convert the number -1 to a character because it is out of range (0 -
+  255).
+  During elaboration of the body of rule `r' at
+  "IntegerToChar_OutOfRange_Low.bsv", line 3, column 9.
+  During elaboration of `sysIntegerToChar_OutOfRange_Low' at
+  "IntegerToChar_OutOfRange_Low.bsv", line 2, column 8.

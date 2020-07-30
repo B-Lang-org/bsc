@@ -1,0 +1,18 @@
+checking package dependencies
+compiling MaxFunDeps.bsv
+Error: "MaxFunDeps.bsv", line 9, column 18: (T0079)
+  The following type variables:
+    b
+  are not uniquely determined by the following provisos:
+    Max#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(a) x1)
+  Rewrite the provisos so that there are no ambiguous variables.
+Error: "MaxFunDeps.bsv", line 14, column 18: (T0079)
+  The following type variables:
+    a
+  are not uniquely determined by the following provisos:
+    Max#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(b) x1)
+  Rewrite the provisos so that there are no ambiguous variables.

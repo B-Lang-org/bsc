@@ -1,0 +1,7 @@
+checking package dependencies
+compiling ETooManySteps.bs
+code generation for top16 starts
+Error: "Prelude.bs", line 1471, column 0: (G0024)
+  The number of function unfolding steps has been exceeded when unfolding
+  `Prelude.primFix'. Use flag ``-steps N'' to set the number of steps.
+  Current value is 50000.

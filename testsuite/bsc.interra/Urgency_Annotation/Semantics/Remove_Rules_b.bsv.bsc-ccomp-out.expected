@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Remove_Rules_b.bsv
+code generation for mkRemove_Rules_b starts
+Warning: "Remove_Rules_b.bsv", line 26, column 10: (G0023)
+  The condition for rule `test_rule_3' is always false. Removing...
+Elaborated module file created: mkRemove_Rules_b.ba
+All packages are up to date.

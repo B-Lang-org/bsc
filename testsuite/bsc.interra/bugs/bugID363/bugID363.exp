@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass Design.bsv mkDesign -aggressive-conditions
+compare_file Design.bsv.bsc-vcomp-out
+}

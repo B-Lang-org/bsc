@@ -1,0 +1,58 @@
+String
+Hello
+
+Char
+~
+
+Bool
+False
+True
+
+Maybe
+tagged Invalid 
+tagged Valid True
+
+Int
+    17
+
+UInt
+        42
+
+Bit
+'habcd
+
+FIFOF_
+EMPTY
+  2 FULL
+  3
+
+FIFOF
+EMPTY
+  2 FULL
+  3
+
+Vector
+<V  >
+<V 'h00  >
+<V 'h00 'h01 'h02 'h03  >
+
+Ascii
+<Ascii  >
+<Ascii Hi>
+
+List
+<List  >
+<List 'h00  >
+<List 'h00 'h01 'h02 'h03  >
+
+Tuples
+<  0,  1>
+<  0,  1,  2>
+<  0,  1,  2,  3>
+<  0,  1,  2,  3,  4>
+<  0,  1,  2,  3,  4,  5>
+<  0,  1,  2,  3,  4,  5,  6>
+<  0,  1,  2,  3,  4,  5,  6,  7>
+
+Fmt
+ThisIsAString

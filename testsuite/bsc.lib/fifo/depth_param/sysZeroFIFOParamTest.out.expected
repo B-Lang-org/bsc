@@ -1,0 +1,62 @@
+adding element at cycle 0      0
+adding element at cycle 1      1
+adding element at cycle 2      2
+adding element at cycle 3      3
+adding element at cycle 4      4
+adding element at cycle 5      5
+adding element at cycle 6      6
+adding element at cycle 7      7
+adding element at cycle 8      8
+adding element at cycle 9      9
+adding element at cycle 10     10
+adding element at cycle 11     11
+adding element at cycle 12     12
+adding element at cycle 13     13
+adding element at cycle 14     14
+adding element at cycle 15     15
+adding element at cycle 16     16
+adding element at cycle 17     17
+adding element at cycle 18     18
+adding element at cycle 19     19
+adding element at cycle 20     20
+adding element at cycle 21     21
+adding element at cycle 22     22
+adding element at cycle 23     23
+adding element at cycle 24     24
+adding element at cycle 25     25
+adding element at cycle 26     26
+adding element at cycle 27     27
+adding element at cycle 28     28
+adding element at cycle 29     29
+adding element at cycle 30     30
+adding element at cycle 31     31
+adding element at cycle 32     32
+removing element at cycle 41
+enq_count: 33
+removing element at cycle 42
+enq_count: 33
+adding element at cycle 33     42
+removing element at cycle 43
+enq_count: 34
+adding element at cycle 34     43
+removing element at cycle 44
+enq_count: 35
+adding element at cycle 35     44
+removing element at cycle 45
+enq_count: 36
+adding element at cycle 36     45
+removing element at cycle 46
+enq_count: 37
+adding element at cycle 37     46
+removing element at cycle 47
+enq_count: 38
+adding element at cycle 38     47
+removing element at cycle 48
+enq_count: 39
+adding element at cycle 39     48
+removing element at cycle 49
+enq_count: 40
+adding element at cycle 40     49
+removing element at cycle 50
+enq_count: 41
+adding element at cycle 41     50

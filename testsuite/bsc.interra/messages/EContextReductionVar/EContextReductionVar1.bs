@@ -1,0 +1,33 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReductionVar1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Context reduction failed" error (EContextReductionVar)
+
+-- Error Message : bsc EContextReductionVar1.bs
+-- bsc: Compilation errors:
+-- "EContextReductionVar1.bs", line 28, column 0, Context reduction failed, because there are no instances of the form: (Prelude.Bits EContextReductionVar1.MyStruct _v1006)
+-- The type variable "_v1006" was introduced at "EContextReductionVar1.bs", line 32, column 25
+-----------------------------------------------------------------------
+
+package EContextReductionVar1 (EContextReductionVar1(..)) where
+
+-- import Int
+
+struct MyStruct = a::(Int 32)
+                  b::(Int 32)
+                  c::(Int 32) 
+
+interface EContextReductionVar1 =
+                         start :: Int 32
+                         end   :: Int 32
+
+mkEContextReductionVar1 :: Module EContextReductionVar1
+mkEContextReductionVar1 =
+              module
+
+                    z :: Reg (MyStruct)
+                    z <- mkRegU

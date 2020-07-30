@@ -1,0 +1,12 @@
+package TestROM(TestROM(..), sysTestROM) where
+-- fake test package to simulate a port-limited ROM
+
+interface TestROM =
+   read :: (Bit 16) -> (Bit 32)
+
+{-# verilog sysTestROM #-}
+sysTestROM :: Module (TestROM)
+sysTestROM =
+  module
+    interface
+       read x = zeroExtend x

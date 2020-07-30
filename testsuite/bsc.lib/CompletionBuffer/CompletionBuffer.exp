@@ -1,0 +1,17 @@
+
+# -----
+
+# Test functionality with a simulation
+
+test_c_veri_bsv TestCompletionBuffer
+
+# -----
+
+# Test the method scheduling
+# XXX Nikhil has an EHR-based version where the methods are CF
+
+compile_verilog_schedule_pass TestCompletionBufferSchedule.bsv
+compare_file mkCompletionBuffer_4_Bit32.sched
+
+# -----
+

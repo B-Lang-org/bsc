@@ -1,0 +1,3 @@
+
+test_c_veri_bsv_modules_options Aes_TB {mkRconRom mkSboxRom mkInvSboxRom mkAes} {-steps 500000}
+

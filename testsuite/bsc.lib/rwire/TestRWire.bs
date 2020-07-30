@@ -1,0 +1,16 @@
+package TestRWire() where
+
+sysTestRWire :: Module Empty
+sysTestRWire = 
+  module
+    rwire :: RWire (Bit 16) <- mkRWire
+    
+    rules
+      when True ==>
+        action
+          $display "RWire gets 12"
+          rwire.wset 12
+      when Valid x <- (rwire.wget) ==>
+        action
+          $display "RWire has %0d" x
+          $finish 0

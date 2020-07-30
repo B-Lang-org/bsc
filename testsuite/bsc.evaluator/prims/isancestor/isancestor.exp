@@ -1,0 +1,7 @@
+# -----
+# Test basic operation
+
+test_c_veri_bsv IsAncestor
+
+# -----
+

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Add_Elimination_TSub3.bsv
+Error: "Add_Elimination_TSub3.bsv", line 1, column 15: (T0131)
+  The numeric types `z' and `y' could not be shown to be equal.
+  This equality was required at the following position:
+    "Add_Elimination_TSub3.bsv", line 12, column 18

@@ -1,0 +1,23 @@
+checking package dependencies
+compiling RuleBetweenMethods_TwoRulesConflict.bsv
+code generation for mkRuleBetweenMethods_TwoRulesConflict_Sub starts
+Elaborated module file created: mkRuleBetweenMethods_TwoRulesConflict_Sub.ba
+code generation for sysRuleBetweenMethods_TwoRulesConflict starts
+Error: "RuleBetweenMethods_TwoRulesConflict.bsv", line 37, column 9: (G0100)
+  The rules `RL_top_rule_1' and `RL_top_rule_3' require dynamic scheduling,
+  which is not supported by Bluesim. This is because the rules use methods
+  which have a rule that executes between them in the static execution order
+  of the separately synthesized submodule, but the rules must execute in the
+  opposite order according to the current module's schedule. See entry #30 in
+  the KPNS document for more information and possible solutions.
+  The methods and the rules between them are as follows:
+    (sub.method2, sub.method1)
+      RL_sub_rule
+  The execution order path is as follows:
+    `RL_top_rule_1' -> `RL_top_rule_2' -> `RL_top_rule_3'
+  The relationships were introduced for the following reasons:
+    (RL_top_rule_1, RL_top_rule_2)
+    execution order because of calls to rg12.write vs. rg12.read
+    (RL_top_rule_2, RL_top_rule_3)
+    execution order because of calls to rg23.write vs. rg23.read
+Elaborated error module file created: sysRuleBetweenMethods_TwoRulesConflict.ba

@@ -1,0 +1,35 @@
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+Passes          4, Fails          0
+
+coverage: 0 out of 7 rules (0%)

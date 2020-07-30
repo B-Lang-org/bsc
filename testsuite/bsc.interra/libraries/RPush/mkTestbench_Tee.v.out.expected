@@ -1,0 +1,106 @@
+Cycle Number =   0
+Pushing Value =  0 
+
+Cycle Number =   1
+Popped Out Value =     0
+
+Cycle Number =   1
+Pushing Value =  1 
+
+Cycle Number =   2
+Popped Out Value =     1
+
+Cycle Number =   2
+Pushing Value =  2 
+
+Cycle Number =   3
+Popped Out Value =     4
+
+Cycle Number =   3
+Pushing Value =  3 
+
+Cycle Number =   4
+Popped Out Value =     9
+
+Cycle Number =   4
+Pushing Value =  4 
+
+Cycle Number =   5
+Clearing Buffer
+
+Cycle Number =   6
+Pushing Value =  6 
+
+Cycle Number =   7
+Popped Out Value =    36
+
+Cycle Number =   7
+Pushing Value =  7 
+
+Cycle Number =   8
+Pushing Value =  8 
+
+Cycle Number =   9
+Popped Out Value =    49
+
+Cycle Number =   9
+Pushing Value =  9 
+
+Cycle Number =  10
+Popped Out Value =    64
+
+Cycle Number =  10
+Clearing Buffer
+
+Cycle Number =  11
+Pushing Value = 11 
+
+Cycle Number =  12
+Popped Out Value =   121
+
+Cycle Number =  12
+Pushing Value = 12 
+
+Cycle Number =  13
+Popped Out Value =   144
+
+Cycle Number =  13
+Pushing Value = 13 
+
+Cycle Number =  14
+Popped Out Value =   169
+
+Cycle Number =  14
+Pushing Value = 14 
+
+Cycle Number =  15
+Popped Out Value =   196
+
+Cycle Number =  15
+Clearing Buffer
+
+Cycle Number =  16
+Pushing Value = 16 
+
+Cycle Number =  17
+Popped Out Value =   256
+
+Cycle Number =  17
+Pushing Value = 17 
+
+Cycle Number =  18
+Popped Out Value =   289
+
+Cycle Number =  18
+Pushing Value = 18 
+
+Cycle Number =  19
+Popped Out Value =   324
+
+Cycle Number =  19
+Pushing Value = 19 
+
+Cycle Number =  20
+Popped Out Value =   361
+
+Simulation Passes

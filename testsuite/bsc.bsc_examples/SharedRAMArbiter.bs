@@ -1,0 +1,102 @@
+package SharedRAMArbiter ( mkSharedRAMArbiter, RAM ) where
+
+import Vector
+import FIFO
+
+
+interface RAM a b =
+    send :: a -> Action
+    receive :: ActionValue b
+
+
+mkSharedRAMArbiter :: (Log n k) => RAM a b -> Module (Vector n (RAM a b))
+mkSharedRAMArbiter ram = do
+    tagFifo :: FIFO (Bit k)
+    tagFifo <- mkFIFO
+
+    let mkSharedRam :: Integer -> Module (RAM a b)
+	mkSharedRam i = return $
+	    interface RAM
+		send x = action { tagFifo.enq (fromInteger i);
+		           ram.send x; }
+		receive = do
+		            tagFifo.deq
+		            ram.receive
+		          when (tagFifo.first == fromInteger i)
+
+    mapM mkSharedRam genList
+
+
+----
+
+type Word = Bit 16
+
+mkArbiterTest :: Module Empty
+mkArbiterTest =
+    module
+	sram :: RAM Word Word
+	sram <- mkRAM
+
+	rams :: Vector 3 (RAM Word Word)
+	rams <- mkSharedRAMArbiter sram
+
+	mkContender 2 "1" (rams!!0)
+	mkContender 3 "2" (rams!!1)
+	mkContender 5 "3" (rams!!2)
+
+mkContender :: Word -> String -> RAM Word Word -> Module Empty
+mkContender initial_request str ram =
+    module
+	request :: Reg (Maybe Word)
+	request <- mkReg (Valid initial_request)
+
+	counter :: Reg Word
+	counter <- mkReg 0
+
+	counter_step :: Reg Word
+	counter_step <- mkReg 1
+
+	counter_last :: Reg Word
+	counter_last <- mkReg 1
+
+	let name = "User" +++ str
+        rules
+          (name +++ "_Count"):
+	    when True
+	      ==> counter := counter + 1
+    
+          (name +++ "_Request"):
+	    when (counter >= counter_last), Valid x <- request
+	      ==> action
+		    counter_step := counter_step + 1
+	            counter_last := counter + counter_step
+	            ram.send x
+	            request := Invalid
+    
+          (name +++ "_Receive"):
+	    when True
+	      ==> action
+                     res :: Word
+                     res <- ram.receive
+                     request := Valid res
+
+
+mkRAM :: (Bits n s, Arith n) => Module (RAM n n)
+mkRAM =
+    module
+	incoming :: FIFO n
+	incoming <- mkFIFO
+
+	outgoing :: FIFO n
+	outgoing <- mkFIFO
+        interface
+	    send x = incoming.enq x
+	    receive = do
+	                action outgoing.deq
+	                return (outgoing.first * 2)
+        rules
+	    -- simulate latency?
+	    when True
+	      ==> action
+		    outgoing.enq incoming.first
+	            incoming.deq

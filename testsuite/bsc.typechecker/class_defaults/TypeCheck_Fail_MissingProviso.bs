@@ -1,0 +1,14 @@
+package TypeCheck_Fail_MissingProviso (C(..)) where
+
+class C a where
+  f :: a -> Bool
+  g :: a -> Bool
+  g x = x < 17
+  h :: a -> Bool
+
+{-
+instance C Integer where
+  f x = x > 17
+  h x = x > 2
+-}
+

@@ -1,0 +1,2 @@
+COND_RL_r2_s2_am1_1 {positions {MethodConds_DroppedRule_Blocked.bsv 39 13}} {rule RL_r2} {instance s2} {method am1}
+COND_RL_r2_s2_am1_2 {positions {MethodConds_DroppedRule_Blocked.bsv 41 13}} {rule RL_r2} {instance s2} {method am1}

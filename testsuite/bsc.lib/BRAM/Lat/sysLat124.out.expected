@@ -1,0 +1,63 @@
+BRAM configuration: Latency:           2,  fifoDepth           4
+1 read
+   1 ReadRequest:  Address: 000
+   3 Read result from    0 -->    0
+2 read
+   0 ReadRequest:  Address: 001
+   1 ReadRequest:  Address: 002
+   2 Read result from    1 -->    1
+   3 Read result from    2 -->    2
+3 read
+   0 ReadRequest:  Address: 003
+   1 ReadRequest:  Address: 004
+   2 ReadRequest:  Address: 005
+   2 Read result from    3 -->    3
+   3 Read result from    4 -->    4
+   4 Read result from    5 -->    5
+4 read
+   0 ReadRequest:  Address: 006
+   1 ReadRequest:  Address: 007
+   2 ReadRequest:  Address: 008
+   2 Read result from    6 -->    6
+   3 ReadRequest:  Address: 009
+   3 Read result from    7 -->    7
+   4 Read result from    8 -->    8
+   5 Read result from    9 -->    9
+4 reads, with delayed reads of 2
+   1 ReadRequest:  Address: 01e
+   2 ReadRequest:  Address: 01f
+   3 ReadRequest:  Address: 020
+   3 Read result from   30 -->   30
+   4 ReadRequest:  Address: 021
+   4 Read result from   31 -->   31
+   5 Read result from   32 -->   32
+   6 Read result from   33 -->   33
+4 reads, with delay of 10 
+   1 ReadRequest:  Address: 028
+   2 ReadRequest:  Address: 029
+   3 ReadRequest:  Address: 02a
+   4 ReadRequest:  Address: 02b
+  11 Read result from   40 -->   40
+  12 Read result from   41 -->   41
+  13 Read result from   42 -->   42
+  14 Read result from   43 -->   43
+4 reads, with delay of ZERO 
+   0 ReadRequest:  Address: 032
+   1 ReadRequest:  Address: 033
+   2 ReadRequest:  Address: 034
+   2 Read result from   50 -->   50
+   3 ReadRequest:  Address: 035
+   3 Read result from   51 -->   51
+   4 Read result from   52 -->   52
+   5 Read result from   53 -->   53
+5 reads, with delay of 10 
+   1 ReadRequest:  Address: 028
+   2 ReadRequest:  Address: 029
+   3 ReadRequest:  Address: 02a
+   4 ReadRequest:  Address: 02b
+  11 Read result from   40 -->   40
+  12 ReadRequest:  Address: 02c
+  12 Read result from   41 -->   41
+  13 Read result from   42 -->   42
+  14 Read result from   43 -->   43
+  15 Read result from   44 -->   44

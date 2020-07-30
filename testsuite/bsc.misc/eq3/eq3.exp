@@ -1,0 +1,10 @@
+# Google issue #75962352: Support strict equality operators
+
+compile_verilog_pass EQ3.bs
+if { $vtest == 1 } {
+    find_n_strings mkEQ3.v "===" 1
+    find_n_strings mkEQ3.v "!==" 1
+}
+
+compile_object_pass EQ3.bs
+link_objects_pass {} mkEQ3

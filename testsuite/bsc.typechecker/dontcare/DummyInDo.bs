@@ -1,0 +1,11 @@
+package DummyInDo () where
+
+x :: ActionValue (Bool, Bool)
+x = return (True, True)
+
+dummyInDo :: ActionValue (Bit 12)
+dummyInDo =
+    do
+      (_,a) <- x
+      return _
+

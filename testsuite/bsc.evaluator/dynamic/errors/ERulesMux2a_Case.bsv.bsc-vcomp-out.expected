@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ERulesMux2a_Case.bsv
+code generation for sysERulesMux2a_Case starts
+Error: "ERulesMux2a_Case.bsv", line 26, column 4: (G0070)
+  The expression for a module instantiation could not be evaluated. Modules
+  must be determined at compile time and cannot be computed dynamically.
+  During elaboration of `sysERulesMux2a_Case' at "ERulesMux2a_Case.bsv", line
+  2, column 8.

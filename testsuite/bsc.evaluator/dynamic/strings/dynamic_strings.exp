@@ -1,0 +1,29 @@
+proc test_iverilog_version {} {
+    global verilog_compiler
+    set code [catch "exec $verilog_compiler -V 2>/dev/null | head -1" x2]
+    set icarus [string first "Icarus Verilog" $x2]
+    set version [string first "0.8" $x2]
+    return [expr {$icarus == -1 || $version == -1}] 
+}
+
+# iverilog 0.8 is broken on the StringInteger testcase
+# and probably other simulators too
+# Actually, iverilog 0.9 is still a little broken.  I am leaving this
+# code in here because 0.9 will probably get fixed but 0.8 won't.
+set verilog_StringInteger_broken ""
+
+if [ test_iverilog_version ] {
+    set verilog_StringInteger_broken $verilog_StringInteger_broken
+} else {
+    set verilog_StringInteger_broken "$verilog_StringInteger_broken iverilog"
+}
+
+test_c_veri_bsv StringMux
+test_c_veri_bsv StringConcat
+test_c_veri_bsv StringInteger "" "" {iverilog}
+# check if we do the right thing if there are
+# null characters in the string
+# modelsim and iverilog get this wrong in different ways
+test_c_veri_bsv StringIntegerWithNull "" "" {iverilog modelsim}
+test_c_veri_bsv StringEQ
+test_c_veri_bsv DynamicFormatString

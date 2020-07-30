@@ -1,0 +1,23 @@
+WRITING : Cycle Number:   0, Writing Data:   2
+WRITING : Cycle Number:   1, Writing Data:   3
+WRITING : Cycle Number:   2, Writing Data:   4
+READING Cycle Number =   2, Value read =   2
+WRITING : Cycle Number:   3, Writing Data:   5
+READING Cycle Number =   3, Value read =   3
+WRITING : Cycle Number:   4, Writing Data:   6
+READING Cycle Number =   4, Value read =   4
+WRITING : Cycle Number:   5, Writing Data:   7
+READING Cycle Number =   5, Value read =   5
+WRITING : Cycle Number:   6, Writing Data:   8
+READING Cycle Number =   6, Value read =   6
+WRITING : Cycle Number:   7, Writing Data:   9
+READING Cycle Number =   7, Value read =   7
+WRITING : Cycle Number:   8, Writing Data:  10
+READING Cycle Number =   8, Value read =   8
+WRITING : Cycle Number:   9, Writing Data:  11
+READING Cycle Number =   9, Value read =   9
+WRITING : Cycle Number:  10, Writing Data:  12
+READING Cycle Number =  10, Value read =  10
+WRITING : Cycle Number:  11, Writing Data:  13
+READING Cycle Number =  11, Value read =  11
+Simulation Fails

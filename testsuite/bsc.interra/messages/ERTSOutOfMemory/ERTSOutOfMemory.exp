@@ -1,0 +1,7 @@
+# make the allocation area take you over the max memory to guarantee 
+# "out of memory" error
+if {$vtest == 1} {
+    compile_verilog_fail ERTSOutOfMemory1.bs mkERTSOutOfMemory1 "+RTS -A128M -M128M -H128M -RTS"
+    find_n_strings ERTSOutOfMemory1.bs.bsc-vcomp-out "Heap exhausted" 1
+
+}

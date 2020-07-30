@@ -1,0 +1,17 @@
+checking package dependencies
+compiling RuleNameNonAlphanumClashLoop.bsv
+code generation for sysRuleNameNonAlphanumClashLoop starts
+Warning: "RuleNameNonAlphanumClashLoop.bsv", line 4, column 8: (G0010)
+  Rule "r1" was treated as more urgent than "r1_1". Conflicts:
+    "r1" cannot fire before "r1_1": calls to rg_0.write vs. rg_0.read
+    "r1_1" cannot fire before "r1": calls to rg_0.write vs. rg_0.read
+Warning: "RuleNameNonAlphanumClashLoop.bsv", line 4, column 8: (G0010)
+  Rule "r1_1_1" was treated as more urgent than "r1_1_2". Conflicts:
+    "r1_1_1" cannot fire before "r1_1_2": calls to rg_1.write vs. rg_1.read
+    "r1_1_2" cannot fire before "r1_1_1": calls to rg_1.write vs. rg_1.read
+Warning: "RuleNameNonAlphanumClashLoop.bsv", line 12, column 12: (G0021)
+  According to the generated schedule, rule `r1_1' can never fire.
+Warning: "RuleNameNonAlphanumClashLoop.bsv", line 12, column 12: (G0021)
+  According to the generated schedule, rule `r1_1_2' can never fire.
+Verilog file created: sysRuleNameNonAlphanumClashLoop.v
+All packages are up to date.

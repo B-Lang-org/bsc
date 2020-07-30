@@ -1,0 +1,10 @@
+checking package dependencies
+compiling SingleFieldStructUninitErr.bsv
+code generation for mkSingleFieldStructUninitErr starts
+Error: "SingleFieldStructUninitErr.bsv", line 9, column 14: (G0028)
+  `foo.my_complex.img' uses uninitialized value (the position shown is the
+  object's declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at
+  "SingleFieldStructUninitErr.bsv", line 12, column 9.
+  During elaboration of `mkSingleFieldStructUninitErr' at
+  "SingleFieldStructUninitErr.bsv", line 8, column 8.

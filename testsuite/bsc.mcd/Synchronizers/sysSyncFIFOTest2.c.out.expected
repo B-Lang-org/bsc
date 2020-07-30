@@ -1,0 +1,1702 @@
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                  20: Sent val   1
+sync1.notEmpty = 0
+sync2.notFull  = 0
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                  30: Sent val   1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                  40: Sent val   1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                  44: Recorded val   1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                  50: Sent val   1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                  51: Reflected val   1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                  70: Sent val   1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                  90: Sent val   1
+                  90: Got value   1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 100: Sent val   2
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 110: Sent val   2
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 120: Sent val   2
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 128: Recorded val   2
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 135: Reflected val   2
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 140: Sent val   2
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 160: Sent val   2
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 170: Sent val   2
+                 170: Got value   2
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 180: Sent val   3
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 190: Sent val   3
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 205: Recorded val   3
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 210: Sent val   3
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 212: Reflected val   3
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 230: Sent val   3
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 240: Sent val   3
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 250: Sent val   3
+                 250: Got value   3
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 260: Sent val   4
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 280: Sent val   4
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 282: Recorded val   4
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 289: Reflected val   4
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 300: Sent val   4
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 310: Sent val   4
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 320: Sent val   4
+                 320: Got value   4
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 330: Sent val   5
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 350: Sent val   5
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 352: Recorded val   5
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 359: Reflected val   5
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 370: Sent val   5
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 380: Sent val   5
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 390: Sent val   5
+                 390: Got value   5
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 400: Sent val   6
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 420: Sent val   6
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 422: Recorded val   6
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 429: Reflected val   6
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 440: Sent val   6
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 450: Sent val   6
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 460: Sent val   6
+                 460: Got value   6
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 470: Sent val   7
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 490: Sent val   7
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 492: Recorded val   7
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 499: Reflected val   7
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 510: Sent val   7
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 520: Sent val   7
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 530: Sent val   7
+                 530: Got value   7
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 540: Sent val   8
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 560: Sent val   8
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 562: Recorded val   8
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 569: Reflected val   8
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 580: Sent val   8
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 590: Sent val   8
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 600: Sent val   8
+                 600: Got value   8
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 610: Sent val   9
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 630: Sent val   9
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 632: Recorded val   9
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 639: Reflected val   9
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 650: Sent val   9
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 660: Sent val   9
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 670: Sent val   9
+                 670: Got value   9
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 680: Sent val  10
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 700: Sent val  10
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 702: Recorded val  10
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 709: Reflected val  10
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 720: Sent val  10
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 730: Sent val  10
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 740: Sent val  10
+                 740: Got value  10
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 750: Sent val  11
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 770: Sent val  11
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 772: Recorded val  11
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 779: Reflected val  11
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 790: Sent val  11
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 800: Sent val  11
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 810: Sent val  11
+                 810: Got value  11
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 820: Sent val  12
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 840: Sent val  12
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 842: Recorded val  12
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 849: Reflected val  12
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 860: Sent val  12
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 870: Sent val  12
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 880: Sent val  12
+                 880: Got value  12
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 890: Sent val  13
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 910: Sent val  13
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 912: Recorded val  13
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 919: Reflected val  13
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 930: Sent val  13
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 940: Sent val  13
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                 950: Sent val  13
+                 950: Got value  13
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 960: Sent val  14
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                 980: Sent val  14
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                 982: Recorded val  14
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                 989: Reflected val  14
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1000: Sent val  14
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1010: Sent val  14
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1020: Sent val  14
+                1020: Got value  14
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1030: Sent val  15
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1050: Sent val  15
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1052: Recorded val  15
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1059: Reflected val  15
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1070: Sent val  15
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1080: Sent val  15
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1090: Sent val  15
+                1090: Got value  15
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1100: Sent val  16
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1120: Sent val  16
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1122: Recorded val  16
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1129: Reflected val  16
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1140: Sent val  16
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1150: Sent val  16
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1160: Sent val  16
+                1160: Got value  16
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1170: Sent val  17
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1190: Sent val  17
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1192: Recorded val  17
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1199: Reflected val  17
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1210: Sent val  17
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1220: Sent val  17
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1230: Sent val  17
+                1230: Got value  17
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1240: Sent val  18
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1260: Sent val  18
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1262: Recorded val  18
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1269: Reflected val  18
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1280: Sent val  18
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1290: Sent val  18
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1300: Sent val  18
+                1300: Got value  18
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1310: Sent val  19
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1330: Sent val  19
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1332: Recorded val  19
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1339: Reflected val  19
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1350: Sent val  19
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1360: Sent val  19
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1370: Sent val  19
+                1370: Got value  19
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1380: Sent val  20
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1400: Sent val  20
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1402: Recorded val  20
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1409: Reflected val  20
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1420: Sent val  20
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1430: Sent val  20
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1440: Sent val  20
+                1440: Got value  20
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1450: Sent val  21
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1470: Sent val  21
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1472: Recorded val  21
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1479: Reflected val  21
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1490: Sent val  21
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1500: Sent val  21
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1510: Sent val  21
+                1510: Got value  21
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1520: Sent val  22
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1540: Sent val  22
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1542: Recorded val  22
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1549: Reflected val  22
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1560: Sent val  22
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1570: Sent val  22
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1580: Sent val  22
+                1580: Got value  22
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1590: Sent val  23
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1610: Sent val  23
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1612: Recorded val  23
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1619: Reflected val  23
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1630: Sent val  23
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1640: Sent val  23
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1650: Sent val  23
+                1650: Got value  23
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1660: Sent val  24
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1680: Sent val  24
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1682: Recorded val  24
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1689: Reflected val  24
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1700: Sent val  24
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1710: Sent val  24
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1720: Sent val  24
+                1720: Got value  24
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1730: Sent val  25
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1750: Sent val  25
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1752: Recorded val  25
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1759: Reflected val  25
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1770: Sent val  25
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1780: Sent val  25
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1790: Sent val  25
+                1790: Got value  25
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1800: Sent val  26
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1820: Sent val  26
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1822: Recorded val  26
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1829: Reflected val  26
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1840: Sent val  26
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1850: Sent val  26
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1860: Sent val  26
+                1860: Got value  26
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1870: Sent val  27
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1890: Sent val  27
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1892: Recorded val  27
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1899: Reflected val  27
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1910: Sent val  27
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1920: Sent val  27
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                1930: Sent val  27
+                1930: Got value  27
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1940: Sent val  28
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1960: Sent val  28
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                1962: Recorded val  28
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                1969: Reflected val  28
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1980: Sent val  28
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                1990: Sent val  28
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2000: Sent val  28
+                2000: Got value  28
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2010: Sent val  29
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2030: Sent val  29
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2032: Recorded val  29
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2039: Reflected val  29
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2050: Sent val  29
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2060: Sent val  29
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2070: Sent val  29
+                2070: Got value  29
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2080: Sent val  30
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2100: Sent val  30
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2102: Recorded val  30
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2109: Reflected val  30
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2120: Sent val  30
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2130: Sent val  30
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2140: Sent val  30
+                2140: Got value  30
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2150: Sent val  31
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2170: Sent val  31
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2172: Recorded val  31
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2179: Reflected val  31
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2190: Sent val  31
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2200: Sent val  31
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2210: Sent val  31
+                2210: Got value  31
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2220: Sent val  32
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2240: Sent val  32
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2242: Recorded val  32
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2249: Reflected val  32
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2260: Sent val  32
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2270: Sent val  32
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2280: Sent val  32
+                2280: Got value  32
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2290: Sent val  33
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2310: Sent val  33
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2312: Recorded val  33
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2319: Reflected val  33
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2330: Sent val  33
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2340: Sent val  33
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2350: Sent val  33
+                2350: Got value  33
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2360: Sent val  34
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2380: Sent val  34
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2382: Recorded val  34
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2389: Reflected val  34
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2400: Sent val  34
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2410: Sent val  34
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2420: Sent val  34
+                2420: Got value  34
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2430: Sent val  35
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2450: Sent val  35
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2452: Recorded val  35
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2459: Reflected val  35
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2470: Sent val  35
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2480: Sent val  35
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2490: Sent val  35
+                2490: Got value  35
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2500: Sent val  36
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2520: Sent val  36
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2522: Recorded val  36
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2529: Reflected val  36
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2540: Sent val  36
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2550: Sent val  36
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2560: Sent val  36
+                2560: Got value  36
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2570: Sent val  37
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2590: Sent val  37
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2592: Recorded val  37
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2599: Reflected val  37
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2610: Sent val  37
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2620: Sent val  37
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2630: Sent val  37
+                2630: Got value  37
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2640: Sent val  38
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2660: Sent val  38
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2662: Recorded val  38
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2669: Reflected val  38
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2680: Sent val  38
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2690: Sent val  38
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2700: Sent val  38
+                2700: Got value  38
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2710: Sent val  39
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2730: Sent val  39
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2732: Recorded val  39
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2739: Reflected val  39
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2750: Sent val  39
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2760: Sent val  39
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2770: Sent val  39
+                2770: Got value  39
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2780: Sent val  40
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2800: Sent val  40
+sync1.notEmpty = 1
+sync2.notFull  = 1
+                2802: Recorded val  40
+sync1.notEmpty = 0
+sync2.notFull  = 1
+                2809: Reflected val  40
+sync1.notFull  = 0
+sync2.notEmpty = 0
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2820: Sent val  40
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2830: Sent val  40
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notEmpty = 0
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 1
+                2840: Sent val  40
+                2840: Got value  40
+sync1.notEmpty = 1
+sync2.notFull  = 1
+sync1.notFull  = 1
+sync2.notEmpty = 0
+                2850: Sent val  41

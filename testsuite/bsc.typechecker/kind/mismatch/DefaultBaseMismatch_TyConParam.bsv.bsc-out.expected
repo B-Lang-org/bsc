@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DefaultBaseMismatch_TyConParam.bsv
+Error: "DefaultBaseMismatch_TyConParam.bsv", line 6, column 47: (T0027)
+  The numeric type `2' was found where a value type was expected.

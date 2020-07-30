@@ -1,0 +1,74 @@
+if { $vtest == 1 } {
+
+# ---------------
+
+# The compile should fail with a rule assertion error
+compile_verilog_fail_error StepsIntervalError.bsv G0005
+# There should be only one unfolding message (because of the error)
+find_n_error StepsIntervalError.bsv.bsc-vcomp-out G0024 1
+
+# ---------------
+
+compile_verilog_fail_error ImplicitErrors.bsv G0014 2
+
+# ---------------
+
+compile_verilog_fail_error RuleAttributeErrors.bsv G0054 8
+
+# ---------------
+# Integer operations
+
+# Integer division by zero
+compile_verilog_fail_error DivByZero.bsv G0059
+compare_file DivByZero.bsv.bsc-vcomp-out
+
+# Integer mod by zero
+compile_verilog_fail_error ModByZero.bsv G0059
+compare_file ModByZero.bsv.bsc-vcomp-out
+
+# Integer exponent is negative
+compile_verilog_fail_error NegativeExp.bsv G0060
+compare_file NegativeExp.bsv.bsc-vcomp-out
+
+# Integer log base zero
+compile_verilog_fail_error LogZero.bsv G0085
+compare_file LogZero.bsv.bsc-vcomp-out
+
+# Integer log with a negative base
+compile_verilog_fail_error LogNegative.bsv G0085
+compare_file LogNegative.bsv.bsc-vcomp-out
+
+# ---------------
+# Prim Extract
+
+# Bug 1663: Static indices which result in an extraction larger than
+# the expected result should be an error pointing at the extraction
+compile_verilog_fail_error PrimExtract_ResultTooLarge.bsv S0015
+compare_file PrimExtract_ResultTooLarge.bsv.bsc-vcomp-out
+
+# Literal indices are detected in the typechecker
+compile_verilog_fail_error PrimExtract_ResultTooLarge_Literal.bsv T0020
+
+# ---------------
+# Rule errors
+
+# Bug 1606: Test that the messages provide enough hierarchy information
+
+# "no_implicit_condition" assertion failure
+compile_verilog_fail_error RuleHier_NoImplCondErr.bsv G0005
+compare_file RuleHier_NoImplCondErr.bsv.bsc-vcomp-out
+
+# "clock_crossing_rule" assertion failure
+compile_verilog_fail_error RuleHier_ClockCrossRuleErr.bsv G0005
+compare_file RuleHier_ClockCrossRuleErr.bsv.bsc-vcomp-out
+
+# Clock domain failure
+compile_verilog_fail_error RuleHier_ClockDomainErr.bsv G0007
+compare_file RuleHier_ClockDomainErr.bsv.bsc-vcomp-out
+
+# Reset warning
+# XXX
+
+# ---------------
+
+}

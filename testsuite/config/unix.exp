@@ -1,0 +1,3246 @@
+
+#  Top 10 useful procs
+# also look for sibling proc such as:
+#  test_c_veri_bsv  test_c_only_bsv,  _bug _fail suffixes, etc.
+
+# Test both C and Verilog backend via simulation -- single module
+# assumes top is sys<module>
+# proc test_c_veri_bsv { module {expected ""} {cbug ""} {veribug ""} {sort_output 0} }
+
+# Same as above except allow compile options
+# proc test_c_veri_bsv_modules_options { top modules gen_options {expected ""} {cbug ""} {veribug ""} {link_options ""} {sim_options ""} {sort_output 0} }
+
+# procedure to test c and verilog where the top modules name is not sys<module>
+# or if there are multiple module required for simulation(s)
+# proc test_c_veri_bsv_multi { topbsv topmod modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} {check_vcd 1} }
+
+
+### Use the following only if a simulation cannot be done.
+# straight compile  no backend
+# proc compile_pass { source {options ""} {nodeps 0}}
+
+# straight compile c backend
+# proc compile_object_pass { source { module "" } {options "" }}
+
+# compile to verilog
+# proc compile_verilog_pass { source { module "" } {options ""}}
+
+
+# create a simulation executable using C outputs
+#proc link_objects_pass { objects toplevel {options ""}}
+
+# create a simulation executable from verilog
+# proc link_verilog_pass { objects toplevel {options ""}}
+
+
+## Some utilities to compare files or to find strings or messages
+# proc compare_file { filename {expected ""} }
+# proc find_n_strings { filename string expcount }
+# proc find_n_emsg { filename errkind tag expcount }
+
+
+
+# Note: There is a logic behind the placement of
+# `quotes' and "quotes" in pass and fail messages generated
+# from this script.  Items placed in `quotes' should be details
+# which do not describe the essential nature of the
+# test, so that removing the quoted items gives a template
+# describing the test without irrelevant details.
+# For instance, in a test which checks that a file contains
+# a certain string, the string is important and should not
+# be quoted (or should be double-quoted), but the filename it
+# searches in is not essential to the nature of the test, so
+# should be single-quoted.
+#
+# This quoting discipline allows messages to be parsed
+# and the irrelevant details abstracted away to group
+# related failure messages.  For instance, all failures of
+# the form "string "foo" not found in file `*'" could
+# be identified as instances of the same problem and different
+# from failures of the form "string "bar" not found in file `*'".
+
+
+# The "absolute" function is obsolete and has been removed on some systems
+# so define it locally to avoid an error on those systems
+proc absolute {fpath} {
+    return [file normalize $fpath]
+}
+
+
+proc time_file {} {
+    global outdir;
+    return [file join $outdir time.out];
+    #return "time.out"
+}
+
+proc time_cmd {type} {
+    if { [which_os] == "Darwin" } {
+        # the default "time" on Mac OS X does not support output to a file
+        set timecmd {}
+    } else {
+        set timecmd "time -a -o [time_file] -f \"check_$type, %S, %U, %e, [pwd]\""
+    }
+    return $timecmd
+}
+
+proc time_walk {} {
+    global TEST_CONFIG_DIR
+    set collator [file join $TEST_CONFIG_DIR .. scripts collapse.pl ]
+    verbose -log " collating script: $collator"
+    global LOCAL_TIME_WALK
+    if {[info exists LOCAL_TIME_WALK] && $LOCAL_TIME_WALK} {
+        if [file exists [time_file] ] {
+            verbose -log [exec perl $collator [time_file] ] 0
+        }
+    } else {
+        #depending on exactly how --outdir is used, this may or may not do the right thing.
+        #  it does do the right thing if outdir is not set, or if it "."
+        verbose -log " running (find . -name [file tail [time_file]] ) out of this directory: [pwd]"
+        verbose -log [exec find . -name [file tail [time_file]] -exec cat \{\} \; | perl $collator ] 0
+    }
+}
+
+############################################################################
+proc bsc_start {} {
+}
+
+## the exit proc if tool name is not set.
+proc _exit {} {
+    print_stats
+    time_walk
+}
+
+proc bsc_exit {} {
+    print_stats
+    time_walk
+}
+
+
+##### test stats ###############################################################
+proc print_stats {} {
+    global BSCSTATS ;
+
+    set total 0
+    verbose "\n       === Test Distribution Summary === " 0
+    foreach {name} [lsort [array names BSCSTATS]] {
+        verbose  [format "   %-40s -- %5d" $name  $BSCSTATS($name) ] 0
+        incr total $BSCSTATS($name)
+    }
+    verbose  [format "%-40s    -- %5d" Total:  $total ] 0
+}
+
+proc incr_stat { name } {
+    global BSCSTATS ;
+
+    if { [info exists BSCSTATS($name)] } {
+        incr BSCSTATS($name)
+    } else {
+        set BSCSTATS($name) 1
+    }
+}
+##### end test stats ###########################################################
+
+proc which_bsc {} {
+    global env
+
+    if [info exists BSC] then {
+        set bsc [absolute_filename $BSC]
+    } elseif [info exists env(BSC)] then {
+        set bsc [absolute_filename $env(BSC)]
+    } else {
+        set bsc [which bsc]
+    }
+    if {$bsc == 0} then {
+        perror "can't find bsc -- set BSC to /path/filename"
+        exit 1
+    }
+    return $bsc
+}
+
+proc which_bluetcl {} {
+    global env
+
+    if { [info exists BLUETCL] && [file exists $BLUETCL] } then {
+        set bluetcl [absolute_filename $BLUETCL]
+    } elseif { [info exists env(BLUETCL)] && [file exists $env(BLUETCL)] } then {
+        set bluetcl [absolute_filename $env(BLUETCL)]
+    } else {
+        set bluetcl [which bluetcl]
+    }
+    if {$bluetcl == 0} then {
+        perror "can't find bluetcl -- set BLUETCL to /path/filename"
+        exit 1
+    }
+    return $bluetcl
+}
+
+proc which_showrules {} {
+    global env
+
+    if [info exists SHOWRULES] then {
+        set showrules [absolute_filename $SHOWRULES]
+    } elseif [info exists env(SHOWRULES)] then {
+        set showrules [absolute_filename $env(SHOWRULES)]
+    } else {
+        set showrules [which showrules]
+    }
+    if {$showrules == 0} then {
+        perror "can't find showrules -- set SHOWRULES to /path/filename"
+        exit 1
+    }
+    return $showrules
+}
+
+proc which_os {} {
+    global env
+    if {! [info exists env(OSTYPE)]} {
+        perror "can't find operating system -- set OSTYPE to the name"
+        exit 1
+    }
+    return $env(OSTYPE)
+}
+
+proc which_systemc_inc {} {
+    global env
+
+    if [info exists SYSTEMC_INC] then {
+        set systemc_inc [absolute_filename $SYSTEMC_INC]
+    } elseif [info exists env(SYSTEMC_INC)] then {
+        set systemc_inc [absolute_filename $env(SYSTEMC_INC)]
+    }
+    if {$systemc_inc == 0} then {
+        perror "can't find systemc_inc -- set SYSTEMC_INC to path"
+        exit 1
+    }
+    return $systemc_inc
+}
+
+
+proc which_systemc_lib {} {
+    global env
+
+    if [info exists SYSTEMC_LIB] then {
+        set systemc_lib [absolute_filename $SYSTEMC_LIB]
+    } elseif [info exists env(SYSTEMC_LIB)] then {
+        set systemc_lib [absolute_filename $env(SYSTEMC_LIB)]
+    }
+    if {$systemc_lib == 0} then {
+        perror "can't find systemc_lib -- set SYSTEMC_LIB to path"
+        exit 1
+    }
+    return $systemc_lib
+}
+
+# return true if the given Bluetcl packahe is available
+proc bluetcl_package_available { pkg } {
+    global bluetcl
+
+    bluetcl_initialize
+
+    if { [catch "exec echo \"package require $pkg\" | $bluetcl"] } {
+        note "Package '$pkg' is NOT available"
+        return 0
+    }
+    note "Package '$pkg' is available!"
+    return 1
+}
+
+proc which_bsc2bsv {} {
+    global env
+
+    if { [info exists BSC2BSV] && [file exists $BSC2BSV] } {
+        set bsc2bsv [absolute_filename $BSC2BSV]
+    } elseif { [info exists env(BSC2BSV)] && [file exists $env(BSC2BSV)] } then {
+        set bsc2bsv [absolute_filename $env(BSC2BSV)]
+    } else {
+        set bsc2bsv [which bsc2bsv]
+    }
+    if {$bsc2bsv == 0} then {
+        perror "can't find bsc2bsv -- set BSC2BSV to /path/filename"
+        exit 1
+    }
+    return $bsc2bsv
+}
+
+proc which_dumpbo {} {
+    global env
+
+    if { [info exists DUMPBO] && [file exists $DUMPBO] } then {
+        set dumpbo [absolute_filename $DUMPBO]
+    } elseif { [info exists env(DUMPBO)] && [file exists $env(DUMPBO)] } then {
+        set dumpbo [absolute_filename $env(DUMPBO)]
+    } else {
+        set dumpbo [which dumpbo]
+    }
+    if {$dumpbo == 0} then {
+        perror "can't find dumpbo -- set DUMPBO to /path/filename"
+        exit 1
+    }
+    return $dumpbo
+}
+
+proc which_vcdcheck {} {
+    global env
+
+    if { [info exists VCDCHECK] && [file exists $VCDCHECK] } {
+        set vcdcheck [absolute_filename $VCDCHECK]
+    } elseif { [info exists env(VCDCHECK)] && [file exists $env(VCDCHECK)] } then {
+        set vcdcheck [absolute_filename $env(VCDCHECK)]
+    } else {
+        set vcdcheck [which vcdcheck]
+    }
+    if {$vcdcheck == 0} then {
+        perror "can't find vcdcheck -- set VCDCHECK to /path/filename"
+        exit 1
+    }
+    return $vcdcheck
+}
+
+
+proc which_m4 {} {
+
+    set m4 [which m4]
+
+    if {$m4 == 0} then {
+        perror "can't find m4 -- please install"
+        exit 1
+    }
+    return $m4
+}
+
+proc do_internal_checks {} {
+    global DO_INTERNAL_CHECKS
+
+    return $DO_INTERNAL_CHECKS
+}
+
+# environment variables to control which backends to test
+# vtest means test verilog backend
+# ctest means test c backend
+# systemctest means test BSV-to-SystemC (requires ctest != 0)
+# true by default
+proc get_test_options {} {
+    global env
+    global vtest
+    global ctest
+    global systemctest
+    global DO_INTERNAL_CHECKS
+    global contrib_inst
+    global contribtest
+
+    if [info exists env(VTEST)] then {
+        set vtest $env(VTEST)
+    } else {
+        set vtest 1
+    }
+
+    if [info exists env(CTEST)] then {
+        set ctest $env(CTEST)
+    } else {
+        set ctest 1
+    }
+
+    if [info exists env(SYSTEMCTEST)] then {
+        set systemctest $env(SYSTEMCTEST)
+    } else {
+        set systemctest 1
+    }
+
+    # only allow SystemC tests if C tests are also enabled
+    if { $ctest == 0 } then {
+        set systemctest 0
+    }
+
+    if [info exists env(DO_INTERNAL_CHECKS)] then {
+	set DO_INTERNAL_CHECKS $env(DO_INTERNAL_CHECKS)
+    } else {
+	# XXX We could enable it if the tools are found?
+	set DO_INTERNAL_CHECKS 0
+    }
+
+    if { [info exists env(CONTRIB_INST)] && [file isdirectory $env(CONTRIB_INST)] } then {
+	set contrib_inst $env(CONTRIB_INST)
+	set contribtest 1
+    } else {
+	set contrib_inst ""
+	set contribtest 0
+    }
+}
+
+## These are the Verilog Sim output executable run time flags
+## when not dumping VCD
+proc get_vrun_novcd_flags {} {
+    global vrun_novcd_flags
+    global env
+    global verilog_compiler
+
+    if [info exists env(VRUN_NOVCD_FLAGS)] then {
+       set vrun_novcd_flags $env(VRUN_NOVCD_FLAGS)
+    } elseif { [string match $verilog_compiler "iverilog"] } then {
+        set vrun_novcd_flags "-vcd-none"
+    } else {
+        set vrun_novcd_flags ""
+    }
+}
+
+
+## These are any Verilog Sim output executable run time flags
+## when dumping VCD
+proc get_vrun_vcd_flags {} {
+    global vrun_vcd_flags
+    global env
+
+    if [info exists env(VRUN_VCD_FLAGS)] then {
+       set vrun_vcd_flags $env(VRUN_VCD_FLAGS)
+    } else {
+       set vrun_vcd_flags "+bscvcd"
+    }
+}
+
+## These are the Verilog Compile and Link options specifying flags.
+proc get_vcomp_flags {} {
+    global vcomp_flags
+    global env
+
+    if [info exists env(VCOMP_FLAGS)] then {
+       set vcomp_flags $env(VCOMP_FLAGS)
+    } else {
+       set vcomp_flags ""
+    }
+}
+
+#separated get_bsdir from get_bsc_prelude to get the right BLUESPECDIR for m4
+proc get_bsdir {} {
+    global srcdir
+    global BSDIR
+    global env
+
+    if [info exists BSDIR] then {
+        set bsdir [absolute [file join $srcdir $BSDIR]]
+        verbose -log "Using Prelude from `$bsdir.'" 2
+    } elseif [info exists env(BSDIR)] then {
+        set bsdir [absolute [file join $srcdir $env(BSDIR)]]
+        verbose -log "Using Prelude from `$bsdir.'" 2
+    } elseif [info exists env(BLUESPECDIR)] then {
+        set bsdir [absolute [file join $srcdir $env(BLUESPECDIR)]]
+        verbose -log "Using Prelude from `$bsdir.'" 2
+    } else {
+        warning "No Prelude found."
+    }
+
+    return $bsdir
+}
+
+proc get_bsc_prelude {} {
+    global bsdir
+
+    set prelude "-i $bsdir"
+
+    return $prelude
+}
+
+# Emulate bsc's logic for finding the Prelude.
+# This is different from get_bsdir, which tries to find the bsdir of the
+# testsuite invoker's environment, in order to give the appropriate flags
+# to bsc when running compilation tests.  This function is to figure out
+# what the bsc help message will print, when bsc is invoked with -help.
+# (Used with m4 in bsc.options)
+proc get_default_bsdir {} {
+    global env
+
+    if [info exists env(BLUESPECDIR)] then {
+        set default_bsdir $env(BLUESPECDIR)
+    } else {
+        set default_bsdir "/usr/local/lib/Bluespec"
+    }
+
+    return $default_bsdir
+}
+
+proc get_bsc_version {} {
+    global bsc
+
+    if {$bsc != 0} then {
+        set helloworld [exec $bsc -v]
+        regexp "version .*" $helloworld version
+        if {![info exists version]} then {
+            #warning "Couldn't determine version of $bsc from `$helloworld'"
+            set version "unknown version"
+        }
+    } else { # this should have been detected
+        warning "Can't find bsc to determine version"
+        set version "unknown version"
+    }
+    return $version
+}
+
+## Get the directory where the unix.exp is loacated
+proc get_test_config_dir {} {
+    global TEST_CONFIG_DIR
+    global env
+
+    if [info exist TEST_CONFIG_DIR] then {
+        ## Nothing
+    } elseif [info exist env(TEST_CONFIG_DIR) ] then {
+        set TEST_CONFIG_DIR $env(TEST_CONFIG_DIR)
+    } else {
+        error "TEST_CONFIG_DIR has not been set"
+    }
+    verbose "testconfig dir is: $TEST_CONFIG_DIR" 0
+    return $TEST_CONFIG_DIR
+}
+
+# sleep 1 second and update file mtime.
+# This is often used to test BSC's behavior when timestamps change.
+# Other tests use it as workaround to the fact that BSC doesn't force
+# recompile when called again on the same files but with different flags.
+# (BSC only recompiles based on timestamps, so by touching the source file,
+# the test can force the generated files to be considered out of date,
+# and force recompile.)
+proc touch { file } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    after 1000
+    # If the file doesn't exist, create it
+    close [open $file a]
+    # If the file already exists, update the modification time
+    file mtime $file [clock seconds]
+    cd $here
+}
+
+# Return files matching the pattern `file` in the current test subdir
+proc glob_pattern { file } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set r [glob -nocomplain $file]
+    cd $here
+    return $r
+}
+
+# remove a file
+proc erase { file } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    if {[file exists $file]} then {
+        file delete $file
+    } else {
+    #    warning "file $file could not be deleted because it does not exist"
+    }
+
+    cd $here
+}
+
+proc erase_many { pattern } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    # Prior to Tcl 8.6, 'file delete' will error if no pathname is given
+    set files [glob -nocomplain $pattern]
+    if { $files != "" } {
+	file delete {*}$files
+    }
+
+    cd $here
+}
+
+# copies a file
+proc copy { file1 file2 } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    if {[file exists $file1]} then {
+         file copy -force $file1 $file2
+         file mtime $file2 [clock seconds]
+    }
+
+    cd $here
+}
+
+# moves/renames a file
+proc move { file1 file2 } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    if {[file exists $file1]} then {
+         file rename -force $file1 $file2
+    }
+
+    cd $here
+}
+
+# create an empty directory
+proc mkdir { dir { mode "" } } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    file mkdir $dir
+    if { ! [string equal $mode ""] } {
+        file attributes $dir -permissions $mode
+    }
+    cd $here
+}
+
+# remove directory (and any files/subdirectories in it)
+proc nukedir { dir } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    file delete -force $dir
+    cd $here
+}
+
+proc chmod { mode fname } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    catch "exec chmod $mode $fname"
+    cd $here
+}
+
+# grep a file into an output file based on a particular pattern + options
+proc grep { file out_file pattern {options ""} } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    if {$options == ""} {
+        set status [catch "exec grep \"$pattern\" $file > $out_file"]
+    } else {
+        set status [catch "exec grep $options \"$pattern\" $file > $out_file"]
+    }
+    cd $here
+    return $status
+}
+
+# process a file with awk
+proc awk { file out_file program } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set status [catch "exec awk $program $file > $out_file"]
+    cd $here
+    return $status
+}
+
+# process a file with perl
+proc perl { program file out_file  } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set status [catch "exec perl $program $file > $out_file"]
+    cd $here
+    return $status
+}
+
+# process a file with sort
+proc sort { file out_file {options ""} } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    set status [catch "exec sort $options $file > $out_file"]
+    cd $here
+    return $status
+}
+
+# process a file with sed
+proc sed { file out_file {bre_options ""} {ere_options ""} } {
+    global srcdir
+    global subdir
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    # GNU sed uses -r to turn on extended regexp, while BSD sed uses -E.
+    # BSD sed also doesn't allow mixed regexp types on the command line,
+    # so we have to split it into two commands
+    if { [which_os] == "Darwin" } {
+        if { $bre_options == "" } {
+            set sed_cmd "sed -E $ere_options $file"
+        } elseif { $ere_options == "" } {
+            set sed_cmd "sed $bre_options $file"
+        } else {
+            set sed_cmd "sed $bre_options $file | sed -E $ere_options"
+        }
+    } else {
+        set sed_cmd "sed $bre_options -r $ere_options $file"
+    }
+
+    if { [exec_with_log_and_return "sed" "$sed_cmd > $out_file" err ] } {
+        puts "Caught error in sed: $err"
+    }
+    cd $here
+}
+
+# run head on a file
+proc head { file out_file {options ""} } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    if {$options == ""} {
+        set status [catch "exec head $file > $out_file"]
+    } else {
+        set status [catch "exec head $options $file > $out_file"]
+    }
+    cd $here
+    return $status
+}
+
+# run tail on a file
+proc tail { file out_file {options ""} } {
+    global srcdir
+    global subdir
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+    if {$options == ""} {
+        set status [catch "exec tail $file > $out_file"]
+    } else {
+        set status [catch "exec tail $options $file > $out_file"]
+    }
+    cd $here
+    return $status
+}
+
+# When running "exec", run it like this:
+#    set raw_status [catch {exec $theCommand $arg1 $arg2 ...} lasterr]
+# And then use this function to decode the status:
+#    set status [get_exec_status $raw_status]
+# Code adapted from:
+# * http://wiki.tcl.tk/1039
+# * http://www.tcl.tk/man/tcl8.3/TclCmd/tclvars.htm#M18
+#
+proc get_exec_status { status } {
+
+    # A non-zero return value will show up as 1 (TCL_ERROR)
+    if { $status == 1 } {
+
+        #puts "$::errorCode"
+
+        switch -exact -- [lindex $::errorCode 0] {
+
+            NONE {
+                # The command exited with a normal status, but wrote something
+                # to stderr, which is included in $lasterr.
+                noop
+            }
+
+            CHILDKILLED {
+                # A child process, whose process ID was $pid,
+                # died on a signal named $sigName.  A human-readable
+                # messages appears in $msg.
+                foreach { - pid sigName msg } $::errorCode break
+
+                set status $sigName
+            }
+
+            CHILDSTATUS {
+                # A child process, whose process ID was $pid,
+                # exited with a non-zero exit status, $code.
+                foreach { - pid code } $::errorCode break
+
+                set status $code
+            }
+
+            CHILDSUSP {
+                # A child process, whose process ID was $pid,
+                # has been suspended because of a signal named
+                # $sigName.  A human-readable description of the
+                # signal appears in $msg.
+                foreach { - pid sigName msg } $::errorCode break
+
+                set status $sigName
+            }
+
+            POSIX {
+                # One of the kernel calls to launch the command failed.
+                # The error code is in $errName, and a human-readable
+                # message is in $msg.
+                foreach { - errName msg } $::errorCode break
+
+                set status $errName
+            }
+
+            ARITH {
+                # An arithmetic error occurred.  The error code is in
+                # $code and a human-readable message is in $msg.
+                foreach { - code msg } $::errorCode break
+
+                set status $code
+            }
+
+        }
+    }
+
+    return $status
+}
+
+proc exec_with_log { tag cmdline {verbosity 1} } {
+# do not call this function directly from a testcase unless you
+# "cd" to where you want to be first
+    timestamp_enter
+    verbose -log "Executing ($tag): $cmdline" $verbosity
+    set t [time_cmd $tag]
+    set status [catch "exec $t $cmdline"]  ;#do i need braces?
+    timestamp_exit
+    return $status
+}
+
+proc exec_with_log_and_return { tag cmdline retvalname {verbosity 1} } {
+    upvar $retvalname retval
+    timestamp_enter
+    verbose -log "Executing /r ($tag): $cmdline" $verbosity
+    set t [time_cmd $tag]
+    set status [catch "exec $t $cmdline" retval ]
+    timestamp_exit
+    return $status
+}
+
+
+#
+# m4 functions
+#
+
+proc m4_process { m4_options infile outfile } {
+    global srcdir
+    global subdir
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    verbose -log "Generating expected output"
+#    set status [exec_with_log "m4_process" "m4 $m4_options $infile > $outfile"]
+    exec m4 $m4_options $infile > $outfile
+
+    cd $here
+}
+
+#
+# Configuration
+#
+# These are functions to standardize the creation of output names
+# (and avoid hard-coding them in multiple places)
+#
+
+proc make_bsc_output_name { source } {
+    set filename "$source.bsc-out"
+    return $filename
+}
+
+proc make_dumpbi_output_name { file } {
+    set filename "$file.dumpbi-out"
+    return $filename
+}
+
+proc make_dumpbo_output_name { file } {
+    set filename "$file.dumpbo-out"
+    return $filename
+}
+
+proc make_vcdcheck_output_name { file } {
+    set filename "$file.vcdcheck-out"
+    return $filename
+}
+
+proc make_bsc_ccomp_output_name { source } {
+    set filename "$source.bsc-ccomp-out"
+    return $filename
+}
+
+proc make_bsc_vcomp_output_name { source } {
+    set filename "$source.bsc-vcomp-out"
+    return $filename
+}
+
+proc make_bsc_vcomp_syn_output_name { source } {
+    set filename "$source.bsc-vcomp-syn-out"
+    return $filename
+}
+
+proc make_bsc_sched_output_name { source } {
+    set filename "$source.bsc-sched-out"
+    return $filename
+}
+
+proc make_diff_output_name { source } {
+    set filename "$source.diff-out"
+    return $filename
+}
+
+proc make_bsc2bsv_output_name { file } {
+    set filename "$file.bsc2bsv-out"
+    return $filename
+}
+
+proc make_cxx_comp_output_name { source } {
+    set filename "$source.cxx-comp-out"
+    return $filename
+}
+
+proc make_cexe_name { file } {
+    set filename [format "%s.cexe" $file ]
+    return $filename
+}
+proc make_vexe_name { file } {
+    set filename [format "%s.vexe" $file ]
+    return $filename
+}
+proc make_syscexe_name { file } {
+    set filename [format "%s.syscexe" $file ]
+    return $filename
+}
+
+proc make_showrules_output_name { file } {
+    set filename "$file.showrules-out"
+    return $filename
+}
+
+proc make_patch_file_name { file } {
+    set filename "$file.patch"
+    return $filename
+}
+
+#
+# Compilation routines
+#
+
+# compile no source, just to test options
+proc gen_basic_output { options output } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set status [exec_with_log "gen_basic_output" "$bsc $options >& $output" 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# test options with an expected output file
+proc test_basic_options { options output expected} {
+    gen_basic_output $options $output
+    compare_file $output $expected
+}
+
+proc compile_no_source_fail_error { testname options tag {expcount 1} } {
+
+    set output [make_bsc_output_name $testname]
+
+    if [ gen_basic_output $options $output ] then {
+        fail "Test `$testname' shouldn't pass"
+    } else {
+        find_n_error $output $tag $expcount
+    }
+}
+
+proc timestamp_enter {} {
+    #verbose -log "TIMESTAMP milliseconds enter... [clock clicks -milliseconds]" 4
+}
+
+proc timestamp_exit {} {
+    #verbose -log "TIMESTAMP milliseconds ....exit [clock clicks -milliseconds]" 4
+}
+
+# compile (with or without -u) no backend
+# returns true iff compilation succeeded
+proc bsc_compile { source {options ""} {nodeps 0} } {
+    # FIX: append compiler output to log
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_output_name $source]
+    set bsc_compile_options "-no-show-timestamps -no-show-version"
+    if { ! $nodeps } {
+        append bsc_compile_options " -u"
+    }
+    set cmd "$bsc $options $bsc_compile_options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_compile" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# file needs to be an *absolute* path for invoking dumpbo
+proc dumpbo {source} {
+    global dumpbo
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_dumpbo_output_name $source]
+    set cmd "$dumpbo $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "dumpbo" $cmd 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+# file needs to be an *absolute* path for invoking dumpbo
+proc dumpbi {source} {
+    global dumpbo
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_dumpbi_output_name $source]
+    set cmd "$dumpbo -bi $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "dumpbi" $cmd 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+# file needs to be an *absolute* path for invoking vcdcheck
+proc vcdcheck {source options} {
+    global vcdcheck
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_vcdcheck_output_name $source]
+    set cmd "$vcdcheck $options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "vcdcheck" $cmd 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+proc bsc2bsv {source} {
+    #do not call this procedure directly, instead use run_bsc2bsv
+
+    global bsc2bsv
+    global srcdir
+    global subdir
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_bsc2bsv_output_name $source]
+    set cmd "$bsc2bsv $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc2bsv"$cmd 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+
+
+# -u -sim compile
+# returns true iff compilation succeeded
+proc bsc_compile_to_object { source { module ""} { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_ccomp_output_name $source]
+
+    set c_comp_options "-no-show-timestamps -no-show-version -u -sim"
+    if { [string length $module] > 0 } {
+        append c_comp_options " -g $module"
+    }
+
+    set cmd "$bsc $options $c_comp_options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_compile_to_object" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# -sim link
+# returns true iff linking succeeded
+# link here generating executable from C objects.
+proc bsc_link_objects { objects toplevel { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_ccomp_output_name $toplevel]
+    set exefile [make_cexe_name $toplevel ]
+
+    # add .ba extension for each object which doesn't already have an extension
+    set mods []
+    foreach obj $objects {
+        set idx [string last "." $obj]
+        if { $idx == -1 } {
+          lappend mods $obj.ba
+        } else {
+          lappend mods $obj
+        }
+    }
+    set objects $mods
+
+    set link_options "-no-show-timestamps -no-show-version -sim -e $toplevel -o $exefile"
+    set cmd "$bsc $link_options $options $objects >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_link_objects" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# -verilog -u compile
+# returns true iff compilation succeeded
+proc bsc_compile_verilog { source { module "" } { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_vcomp_output_name $source]
+
+    set v_comp_options "-no-show-timestamps -no-show-version -u -verilog"
+    if { [string length $module] > 0} {
+        append v_comp_options " -g $module"
+    }
+
+    set cmd "$bsc $options $v_comp_options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_compile_verilog" "$cmd" 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# -verilog -synthesize compile
+# returns true iff compilation succeeded
+proc bsc_compile_synthesize_verilog { source { module "" } { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_vcomp_syn_output_name $source]
+    # don't use -u, we want to force compilation to happen
+    set v_comp_options "-no-show-timestamps -no-show-version -synthesize -verilog "
+    if { [string length $module] > 0 } {
+        append v_comp_options " -g $module"
+    }
+
+    set cmd "$bsc $options $v_comp_options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_compile_synthesize_verilog" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# returns true iff compilation succeeded
+# compile to verilog and dump scheduler
+proc bsc_compile_verilog_dump_schedule { source { module "" } { options "" } } {
+    global bsc
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    set bsc_path [file join $here $bsc]
+    cd [file join $here $subdir]
+    set output [make_bsc_sched_output_name $source]
+
+    set v_comp_options "-no-show-timestamps -no-show-version -u -resource-simple -show-schedule -dschedule -dresources -dvschedinfo -verilog"
+    if { [string length $module] > 0 } {
+        append v_comp_options " -verilog -g $module"
+    }
+
+    set cmd "$bsc $options $v_comp_options $source >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "bsc_compile_verilog_dump_schedule" $cmd 2]
+    cd $here
+    return [expr $status == 0]
+}
+
+# -systemc link
+# returns true iff linking succeeded
+# link here generating SystemC model from C objects.
+proc bsc_create_systemc_objects { objects toplevel { options "" } } {
+    global systemctest
+    global bsc
+    global srcdir
+    global subdir
+    global systemc_inc
+
+    if { $systemctest == 1 } {
+        bsc_initialize
+
+        set here [absolute $srcdir]
+        set bsc_path [file join $here $bsc]
+        cd [file join $here $subdir]
+        set output [make_bsc_ccomp_output_name $toplevel]
+
+	# Alternatively, if SYSTEMC is set in the environment,
+	# then BSC implicitly adds "-I $SYSTEMC/include"
+        if { $systemc_inc == "" } {
+            set inc_options ""
+        } else {
+            set inc_options "-Xc++ \"-I$systemc_inc\""
+        }
+        set link_options "-no-show-timestamps -no-show-version -systemc -e $toplevel"
+
+        set cmd "$bsc $inc_options $options $link_options $objects >& $output"
+        verbose "Executing: $cmd" 4
+        set status [exec_with_log "bsc_create_systemc_objects" $cmd 2]
+        cd $here
+        return [expr $status == 0]
+    } else {
+        return 1
+    }
+}
+
+# C++ compile incorporating SystemC libs
+# returns true iff compile succeeded
+proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods "" } { options "" } } {
+    global systemctest
+    global bsdir
+    global srcdir
+    global subdir
+    global systemc_inc
+    global systemc_lib
+
+    if { $systemctest == 1 } {
+        bsc_initialize
+
+        set here [absolute $srcdir]
+        cd [file join $here $subdir]
+
+        set output [make_cxx_comp_output_name $exe]
+        set scexe [make_syscexe_name $exe]
+
+        set cxx "g++"
+        set systemc_paths "-I$systemc_inc -L$systemc_lib"
+        set bluesim_paths "-I$bsdir/Bluesim -L$bsdir/Bluesim"
+        set systemc_libs "-lsystemc"
+        set bluesim_libs "-lbskernel -lbsprim"
+        set thread_libs "-lpthread"
+
+        # The list of object files for the bsim modules
+        set objs []
+        foreach mod $bsim_other_mods {
+            lappend objs ${mod}.o
+        }
+        # including the top module(s)
+        foreach mod $bsim_top_mods {
+            lappend objs ${mod}.o
+        }
+
+        # add *_systemc.o versions for each module
+        foreach mod $bsim_other_mods {
+            lappend objs ${mod}_systemc.o
+        }
+        foreach mod $bsim_top_mods {
+            lappend objs ${mod}_systemc.o
+        }
+
+        # add model_*.o for the top module(s)
+        foreach mod $bsim_top_mods {
+            lappend objs model_${mod}.o
+        }
+
+        set cmd "$cxx -fpermissive $options $systemc_paths $bluesim_paths -o $scexe $objs -x c++ $sysc_srcs $systemc_libs $bluesim_libs $thread_libs >& $output"
+        verbose "Executing : $cmd" 4
+        set status [exec_with_log "build_systemc_executable" $cmd 2]
+        cd $here
+        return [expr $status == 0]
+    } else {
+        return 1
+    }
+}
+
+proc run_systemc_executable { exe {options ""} {expected ""} {sort_args ""} } {
+    global systemctest
+    global srcdir
+    global subdir
+    global lasterr
+    global target_triplet
+
+    if { $systemctest == 1 } {
+        if {[string compare $expected ""] == 0} {
+            set expected "$exe.out.expected"
+        }
+
+        set raw    "$exe.raw.out"
+        set output "$exe.out"
+
+        set here [absolute $srcdir]
+
+        set sim_execN [file join $here $subdir $exe]
+        set sim_exec [make_syscexe_name $sim_execN]
+
+        cd [file join $here $subdir]
+        set status [exec_with_log_and_return "run_systemc_executable" "$sim_exec $options >& $raw" lasterr 2]
+        cd $here
+
+        # Remove OSCI SystemC banner and stop message
+        # (Versions 2.2 and 2.3 have different stop messages)
+        set banner_script {-e 1,4d}
+        set stop_script1 {-e {/^SystemC: simulation stopped by user$/d}}
+        set stop_script2 {-e {/^$/{;N;/\nInfo: \/OSCI\/SystemC: Simulation stopped by user.$/d;}}}
+        sed $raw $output $banner_script "$stop_script1 $stop_script2"
+        if { $sort_args != "" } {
+            sort $output $output.sorted $sort_args
+            set output $output.sorted
+        }
+
+        compare_file $output $expected
+
+        return [expr $status == 0]
+    } else {
+        return 1
+    }
+}
+
+# run the simulator for n cycle
+# c simulator only
+proc sim_final_state { sim cycles } {
+    global srcdir
+    global subdir
+    global ctest
+    global lasterr
+    global target_triplet
+
+    bsc_initialize
+
+    if { $ctest == 1 } {
+      set output "$sim.final-state"
+
+      set here [absolute $srcdir]
+      cd [file join $here $subdir]
+
+      set sim_execN [file join $here $subdir $sim]
+      set sim_exec [make_cexe_name $sim_execN]
+      set options "-m $cycles -s"
+
+      set status [exec_with_log_and_return "sim_final_state" "$sim_exec $options >& $output" lasterr 2]
+      cd $here
+
+      incr_stat "sim_final_state"
+      if { $status == 0 } then {
+          pass "`$sim' executes for `$cycles' cycles"
+          set lasterr ""
+      } else {
+          fail "`$sim' should execute for `$cycles' cycles - $lasterr"
+      }
+    }
+}
+
+proc sim_output_int { sim  {options ""} } {
+    global srcdir
+    global subdir
+    global lasterr
+    global target_triplet
+
+    bsc_initialize
+
+      set output "$sim.out"
+
+      set here [absolute $srcdir]
+      cd [file join $here $subdir]
+
+      set sim_execN [file join $here $subdir $sim]
+      set sim_exec [make_cexe_name $sim_execN ]
+#     set options ""
+
+      set status [exec_with_log_and_return "sim_output" "$sim_exec $options >& $output" lasterr 2]
+      cd $here
+
+      return $status
+}
+
+## This is where the compiled simulator is executed.
+## C simulator only
+proc sim_output { sim  {options ""} } {
+    global ctest
+    global lasterr
+
+    if { $ctest == 1 } {
+      set status [sim_output_int $sim $options]
+      incr_stat "sim_output"
+      if { $status == 0 } then {
+          pass "Bluesim simulation `$sim' executes"
+      } else {
+          fail "Bluesim simulation `$sim' should execute: $lasterr"
+      }
+    }
+}
+
+# expstatus is a list to support different architectures
+proc sim_output_status { sim expstatus {options ""} } {
+    global ctest
+    global lasterr
+
+    if { $ctest == 1 } {
+      set status [sim_output_int $sim $options]
+      incr_stat "sim_output"
+
+      # process the result
+      set status [get_exec_status $status]
+
+      if { [lsearch -exact  $expstatus $status] != -1 } then {
+          pass "Bluesim simulation `$sim' exits with expected status"
+      } else {
+          fail "Bluesim simulation `$sim' exits with status $status (expected $expstatus)"
+      }
+    }
+}
+
+
+proc sim_final_state_bug { sim cycles { bug "" } } {
+    global target_triplet
+    global ctest
+    if { $ctest == 1 } {
+      setup_xfail $target_triplet $bug
+      sim_final_state $sim $cycles
+    }
+}
+
+
+proc dumpbo_pass { source xfail } {
+
+    if {[do_internal_checks] && $xfail != 1} {
+
+        incr_stat "dumpbo"
+
+        if [dumpbo $source] then {
+           pass "Intermediate file `$source' can be loaded"
+        } else {
+           fail "Intermediate file `$source' should load"
+        }
+    }
+}
+
+# check the .bi and .bo files generated by source
+proc check_intermediate_files { source xfail {options ""} } {
+
+    if [regexp -- {-bdir ([^ ]+)} $options bdirflag bdir] then {
+        set source "$bdir/$source"
+    }
+
+    set base [file rootname $source]
+
+    dumpbo_pass $base.bo $xfail
+}
+
+# straight compile  no backend
+proc compile_pass { source {options ""} {nodeps 0}} {
+
+    global xfail_flag
+
+    set current_xfail $xfail_flag
+
+    incr_stat "compile_pass"
+
+    if [bsc_compile $source $options $nodeps] then {
+        pass "`$source' compiles"
+    } else {
+        fail "`$source' should compile"
+    }
+
+    check_intermediate_files $source $current_xfail $options
+}
+
+proc compile_pass_no_warning { source {options ""} {nodeps 0}} {
+    compile_pass $source $options $nodeps
+    no_warnings [make_bsc_output_name $source]
+}
+
+
+# compile to verilog and fail without an internal error
+proc compile_verilog_fail_no_internal_error {name} {
+    global vtest
+
+    if { $vtest == 1 } {
+
+        if [compile_verilog_fail $name] then {
+        } else {
+            find_n_strings "$name.bsc-vcomp-out" {Internal.*Error} 0
+        }
+    }
+}
+
+# straight compile  no backend
+proc compile_fail { source {options ""} {nodeps 0} } {
+    incr_stat "compile_fail"
+
+    if [bsc_compile $source $options $nodeps] then {
+        fail "`$source' shouldn't compile"
+    } else {
+        pass "`$source' doesn't compile"
+    }
+}
+
+# straight compile  no backend
+proc compile_pass_bug { source {bug ""} {options "" } {nodeps 0}} {
+    global target_triplet
+
+    setup_xfail $target_triplet $bug
+    compile_pass $source $options $nodeps
+}
+
+# straight compile  no backend
+proc compile_fail_bug { source {bug ""} {options "" } {nodeps 0}} {
+    global target_triplet
+
+    setup_xfail $target_triplet $bug
+    compile_fail $source $options $nodeps
+
+    # intermediate files should still be valid
+    # so force xfail to be 0
+    check_intermediate_files $source 0 $options
+}
+
+# straight compile c backend
+proc compile_object_pass { source { module "" } {options "" }} {
+
+    global xfail_flag
+    global ctest
+
+    if { $ctest == 1 } {
+      set current_xfail $xfail_flag
+
+      incr_stat "compile_object_pass"
+
+      if [bsc_compile_to_object $source $module $options] then {
+          pass "module `$module' in `$source' compiles to `$module.ba'"
+      } else {
+          fail "module `$module' in `$source' should compile to `$module.ba'"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+    }
+}
+
+# straight compile C backend, should pass with a specific warning
+proc compile_object_pass_warning { source tag {expcount 1} {module ""} {options ""} } {
+
+    global xfail_flag
+    global ctest
+
+    if {$ctest == 1} {
+      set current_xfail $xfail_flag
+      # The file containing the output of compilation
+      set output [make_bsc_ccomp_output_name $source]
+
+      incr_stat "compile_object_pass_warning"
+      if [bsc_compile_to_object $source $module $options] then {
+          find_n_warning $output $tag $expcount
+      } else {
+          fail "module `$module' in `$source' should compile to `$module.ba'"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+  }
+}
+
+# straight compile C backend -- expected to fail
+proc compile_object_fail { source { module "" } {options "" }} {
+    global ctest
+
+    if { $ctest == 1 } {
+      incr_stat "compile_object_fail"
+
+      if [bsc_compile_to_object $source $module $options] then {
+          fail "module `$module' in `$source' shouldn't compile to `$module.ba'"
+      } else {
+          pass "module `$module' in `$source' doesn't compile to `$module.ba'"
+      }
+   }
+}
+
+# straight compile c backed - fails but should pass
+proc compile_object_pass_bug { source { module "" } {bug ""} {options "" }} {
+    global target_triplet
+    global ctest
+
+    if { $ctest == 1 } {
+      setup_xfail $target_triplet $bug
+      compile_object_pass $source $module $options
+    }
+}
+
+
+# straight compile C backend -- should fail but doesn't
+proc compile_object_fail_bug { source { module "" } {bug ""} {options "" }} {
+    global target_triplet
+    global ctest
+
+    if {$ctest == 1} {
+      setup_xfail $target_triplet $bug
+      compile_object_fail $source $module $options
+
+      # intermediate files should still be valid
+      # force xfail to be 0
+      check_intermediate_files $source 0 $options
+    }
+}
+
+# create a simulation executable using C outputs
+proc link_objects_pass_bug { objects toplevel {bug ""} {options ""}} {
+    global target_triplet
+    global ctest
+
+    if {$ctest == 1} {
+      setup_xfail $target_triplet $bug
+      link_objects_pass $objects $toplevel $options
+    }
+}
+
+# create a simulation executable using C outputs
+proc link_objects_pass { objects toplevel {options ""}} {
+    global ctest
+
+    if {$ctest == 1} {
+      incr_stat "link_objects_pass"
+
+      if [bsc_link_objects $objects $toplevel $options] then {
+          pass "`$objects' link to executable `$toplevel'"
+      } else {
+          fail "`$objects' should link to executable `$toplevel'"
+      }
+    }
+}
+
+# create a simulation executable using C outputs
+proc link_objects_fail { objects toplevel {options ""}} {
+    global ctest
+
+    if {$ctest == 1} {
+      incr_stat "link_objects_fail"
+
+      if [bsc_link_objects $objects $toplevel $options] then {
+          fail "`$objects' shouldn't link to executable `$toplevel'"
+      } else {
+          pass "`$objects' don't link to executable `$toplevel'"
+      }
+    }
+}
+
+proc link_objects_fail_error { objects toplevel tag {expcount 1} {options ""}} {
+    global ctest
+
+    if {$ctest == 1} {
+      incr_stat "link_objects_fail"
+
+      if [bsc_link_objects $objects $toplevel $options] then {
+          fail "`$objects' shouldn't link to executable `$toplevel'"
+      } else {
+          set output [make_bsc_ccomp_output_name $toplevel]
+          verbose -log "`$objects' don't link to executable `$toplevel'"
+          find_n_error $output $tag $expcount
+      }
+    }
+}
+
+# create a SystemC object using the C backend
+proc create_systemc_objects_pass { objects toplevel {options ""}} {
+    global systemctest
+
+    if {$systemctest == 1} {
+      incr_stat "create_systemc_objects_pass"
+
+      if [bsc_create_systemc_objects $objects $toplevel $options] then {
+          pass "`$objects' link to SystemC model `$toplevel'"
+      } else {
+          fail "`$objects' should link to SystemC model `$toplevel'"
+      }
+    }
+}
+
+# Compile a SystemC model incorporating a wrapped Bluesim object
+proc build_systemc_executable_pass { exe sysc_srcs bsim_top_mods { bsim_other_mods "" } {options ""}} {
+    global systemctest
+
+    if {$systemctest == 1} {
+      incr_stat "build_systemc_executable_pass"
+      if [build_systemc_executable $exe $sysc_srcs $bsim_top_mods $bsim_other_mods $options] then {
+          pass "`$bsim_top_mods' and `$sysc_srcs' build to SystemC executable `$exe'"
+      } else {
+          fail "`$bsim_top_mods' and `$sysc_srcs' should build to SystemC executable `$exe'"
+      }
+    }
+}
+
+# compile to verilog and dump scheduler
+proc compile_verilog_schedule_pass { source { module "" } {options ""} } {
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1 } {
+      set current_xfail $xfail_flag
+
+      incr_stat "compile_verilog_schedule_pass"
+      if [bsc_compile_verilog_dump_schedule $source $module $options] then {
+          pass "module `$module' in `$source' compiles to Verilog"
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+    }
+}
+
+# compile to verilog and dump scheduler
+proc compile_verilog_schedule_pass_bug { source { module "" } { bug "" } {options ""} } {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1} {
+      setup_xfail $target_triplet $bug
+      compile_verilog_schedule_pass $source $module $options
+    }
+}
+
+# compile to verilog and dump scheduler
+proc compile_verilog_schedule_fail { source { module "" } {options ""}} {
+    global vtest
+
+    if {$vtest == 1} {
+
+      incr_stat "compile_verilog_schedule_fail"
+
+      if [bsc_compile_verilog_dump_schedule $source $module $options] then {
+          fail "module `$module' in `$source' shouldn't compile to Verilog"
+
+          check_intermediate_files $source 0 $options
+      } else {
+          pass "module `$module' in `$source' doesn't compile to Verilog"
+      }
+  }
+}
+
+
+# compile to verilog and dump scheduler
+proc compile_verilog_schedule_fail_error { source tag {expcount 1} { module "" } {options ""}} {
+    global vtest
+
+    if {$vtest == 1} {
+
+      if [bsc_compile_verilog_dump_schedule $source $module $options] then {
+          fail "module `$module' in `$source' shouldn't compile to Verilog"
+          check_intermediate_files $source 0 $options
+      } else {
+          set output [make_bsc_sched_output_name $source]
+          find_n_error $output $tag $expcount
+      }
+  }
+}
+
+# compile to verilog
+proc compile_verilog_pass { source { module "" } {options ""}} {
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+
+      incr_stat "compile_verilog_pass"
+      if [bsc_compile_verilog $source $module $options] then {
+          pass "module `$module' in `$source' compiles to Verilog"
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+    }
+}
+
+
+# Use this if the test case ought to compile with a specific warning.
+proc compile_verilog_pass_warning { source tag {expcount 1} {module ""} {options ""} } {
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+      # The file containing the output of compilation
+      set output [make_bsc_vcomp_output_name $source]
+
+      incr_stat "compile_verilog_pass_warning"
+      if [bsc_compile_verilog $source $module $options] then {
+          find_n_warning $output $tag $expcount
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+  }
+}
+
+# the verilog is expected to pass, but the warning is expected
+# (and not found because of a bug)
+proc compile_verilog_pass_warning_bug { source tag {bug ""} {expcount 1} {module ""} {options ""} } {
+
+    global target_triplet
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+      # The file containing the output of compilation
+      set output [make_bsc_vcomp_output_name $source]
+
+      incr_stat "compile_verilog_pass_warning"
+      if [bsc_compile_verilog $source $module $options] then {
+          setup_xfail $target_triplet $bug
+          find_n_warning $output $tag $expcount
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+  }
+}
+
+# Expected to compile to Verilog with no warnings
+proc compile_verilog_pass_no_warning { source {module ""} {options ""} } {
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+      # The file containing the output of compilation
+      set output [make_bsc_vcomp_output_name $source]
+
+      incr_stat "compile_verilog_pass_no_warning"
+      if [bsc_compile_verilog $source $module $options] then {
+          no_warnings $output
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+  }
+}
+
+# the verilog is expected to pass
+# but a warning is generated because of a known bug
+proc compile_verilog_pass_no_warning_bug { source tag {bug ""} {expcount 1} {module ""} {options ""} } {
+
+    global target_triplet
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+      # The file containing the output of compilation
+      set output [make_bsc_vcomp_output_name $source]
+
+      incr_stat "compile_verilog_pass_warning"
+      if [bsc_compile_verilog $source $module $options] then {
+          setup_xfail $target_triplet $bug
+          no_warnings $output
+          find_n_warning $output $tag $expcount
+      } else {
+          fail "module `$module' in `$source' should compile to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+  }
+}
+
+# compile to verilog with -synthesize
+proc compile_synthesize_verilog_pass { source { module "" } {options ""}} {
+
+    global xfail_flag
+    global vtest
+
+    if {$vtest == 1} {
+      set current_xfail $xfail_flag
+
+      incr_stat "compile_synthesize_verilog_pass"
+      if [bsc_compile_synthesize_verilog $source $module $options] then {
+          pass "module `$module' in `$source' synthesizes to Verilog"
+      } else {
+          fail "module `$module' in `$source' should synthesize to Verilog"
+      }
+
+      check_intermediate_files $source $current_xfail $options
+    }
+}
+
+proc compile_synthesize_verilog_pass_bug { source { module "" } {bug "" } {options ""}} {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1} {
+      setup_xfail $target_triplet $bug
+      compile_synthesize_verilog_pass $source $module $options
+    }
+}
+
+proc compile_verilog_pass_bug { source { module "" } { bug "" } {options ""}} {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1} {
+      setup_xfail $target_triplet $bug
+      compile_verilog_pass $source $module $options
+    }
+}
+
+proc compile_verilog_pass_bug_error { source tag { module "" } { bug "" } {options ""} {expcount 1}} {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1} {
+      setup_xfail $target_triplet $bug
+      compile_verilog_pass $source $module $options
+
+      set output [make_bsc_vcomp_output_name $source]
+
+      # It would be nice to only do this test if the compile failed
+      find_n_error $output $tag $expcount
+    }
+
+}
+
+proc compile_verilog_fail { source { module "" } {options ""} } {
+
+    global vtest
+
+    if {$vtest == 1} {
+      incr_stat "compile_verilog_fail"
+      if [bsc_compile_verilog $source $module $options] then {
+          fail "module `$module' in `$source' shouldn't compile to Verilog"
+      } else {
+          pass "module `$module' in `$source' doesn't compile to Verilog"
+      }
+    }
+}
+
+proc compile_verilog_fail_bug { source { module "" } { bug "" } {options ""} } {
+    global target_triplet
+    global vtest
+
+    if { $vtest == 1 } {
+      setup_xfail $target_triplet $bug
+      compile_verilog_fail $source $module $options
+
+      # intermediate files should still be valid
+      # force xfail to be 0
+      check_intermediate_files $source 0 $options
+    }
+}
+
+proc compile_verilog_schedule_fail_bug { source { module "" } { bug "" } {options ""}} {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1 } {
+      setup_xfail $target_triplet $bug
+      compile_verilog_schedule_fail $source $module $options
+
+      # intermediate files should still be valid
+      # force xfail to be 0
+      check_intermediate_files $source 0 $options
+    }
+}
+
+
+
+proc files_exist { filenames } {
+    global subdir
+
+    incr_stat "files_exist"
+
+    set failedfile ""
+    foreach filename $filenames {
+        set fullname [join [concat $subdir $filename] "/" ]
+        if {![file exists $fullname] || ![file isfile $fullname]} {
+            set failedfile $filename
+            break
+        }
+    }
+
+    if {$failedfile == ""} {
+        pass "found all files: $filenames"
+    } else {
+        fail "file `$failedfile' does not exist or is not a file"
+    }
+}
+
+proc files_exist_bug { filenames { bug "" } } {
+    global target_triplet
+
+    setup_xfail $target_triplet $bug
+    files_exist $filenames
+}
+
+proc compare_file { filename {expected ""} {stat "compare_file"}} {
+    # FIX: make diff ignore alpha renaming?
+    global srcdir
+    global subdir
+
+    incr_stat $stat
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    if {[string compare $expected ""] == 0} {
+        set expected "$filename.expected"
+    }
+    set output [make_diff_output_name $filename]
+
+    set diff_flags "-u"
+
+    set ignore_pattern [format "-I \"SystemC\" -I \"dumpfile parameter\"" ]
+
+    set cmd "diff $diff_flags -b $ignore_pattern $expected $filename >& $output"
+    verbose "Diffing: $cmd" 2
+
+    set diff_status [catch "exec $cmd"]
+
+    if { $diff_status == 0 } {
+        set status 0
+        pass "`$filename' identical to `$expected'"
+        file delete -force $output
+    } else {
+        set status 1
+        fail "`$filename' differs from `$expected'"
+        verbose -log "(Differences written to `[file join $subdir $output]')" 1
+    }
+    cd $here
+    return $status
+}
+
+# compare 2 files, first filtering through a sed script
+proc compare_file_filtered { output {expected ""} {bre_options ""} {ere_options ""} } {
+
+    if {[string compare $expected ""] == 0} {
+	set expected "$output.expected"
+    }
+
+    set ofiltered "$output.filtered"
+    sed $output $ofiltered $bre_options $ere_options
+
+    set efiltered "$expected.filtered"
+    sed $expected $efiltered  $bre_options $ere_options
+
+    compare_file $ofiltered $efiltered "compare_file_filtered"
+
+    file delete -force $efiltered $ofiltered
+}
+
+proc compare_file_filter_ids { output {expected ""} {bre_options ""} {ere_options ""} } {
+
+    append bre_options ""
+    append ere_options { -e s/__h\[0-9\]\+(\$|\[^0-9A-Za-z_\])/__hNNNN\\1/g}
+    append ere_options { -e s/__d\[0-9\]\+(\$|\[^0-9A-Za-z_\])/__dNNNN\\1/g}
+
+    compare_file_filtered $output $expected $bre_options $ere_options
+}
+
+
+# Replace positions in the prelude with MMM/NNN
+#   "Prelude.bs", line 359, column 20
+proc compare_file_filter_prelude { output {expected ""} } {
+
+    append bre_options ""
+    append ere_options { -e "s/(\"Prelude\\.(bs|bsv)\"\, line )\[0-9\]+(\, column )\[0-9\]+/\\1MMM\\3NNN/g"}
+    # XXX add rules that can match across newlines
+    # XXX (requires the N feature?)
+
+    compare_file_filtered $output $expected $bre_options $ere_options
+}
+
+
+# Apply a patch to a master_file and test it against a generated file
+proc compare_file_diff { generated_filename master_filename {patch_file ""} {stat "compare_file_diff"}} {
+    global srcdir
+    global subdir
+
+    set patched_file "$generated_filename.expected-out"
+
+    if {[string compare $patch_file ""] == 0} {
+        set patch_file [make_patch_file_name $generated_filename]
+    }
+
+    # copy master file to patched file and then apply the patch
+    verbose "Executing: cp $master_filename $patched_file" 2
+    copy $master_filename $patched_file
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set cmd "patch $patched_file < $patch_file"
+    verbose "Executing: $cmd" 2
+    set patch_status [catch "exec $cmd" err]
+
+    cd $here
+
+    if { $patch_status == 0 } {
+        compare_file $generated_filename $patched_file $stat
+    } else {
+        set status 1
+        fail "Patch `$patch_file' did not apply cleanly to `$master_filename' -- $err"
+        return $status
+    }
+}
+
+proc compare_vcd_file { filename {expected ""} } {
+    # FIX: make diff ignore alpha renaming?
+    global srcdir
+    global subdir
+    global vtest
+
+    incr_stat "compare_vcd_file"
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    if {[string compare $expected ""] == 0} {
+        set expected "$filename.expected"
+    }
+
+    set output [make_diff_output_name $filename]
+
+    set cmd "diff -u -b $expected $filename >& $output"
+    verbose -log "Diffing: $cmd" 2
+
+    set diff_status [catch "exec $cmd"]
+
+    if { $diff_status == 0 } {
+        pass "`$filename' identical to `$expected'"
+        ## remove empty diff-out files
+        file delete -force $output
+    } else {
+        fail "`$filename' differs from `$expected'"
+        verbose -log "(Differences written to `[file join $subdir $output]')" 1
+    }
+    cd $here
+}
+
+## looks for _expcount_ of _string_ in _filename_
+## fails if counts differ, or grep errors out
+## Note: For those not familiar with tcl, you might want to enclose
+## the string in braces {} to avoid interpretation of special characters
+## like \ and $.
+proc find_n_strings { filename string expcount } {
+    global srcdir
+    global subdir
+
+    incr_stat "find_n_strings"
+
+    set afile [join [concat $subdir $filename] "/" ]
+
+    set cmd {grep -c -F "$string" $afile}
+    verbose -log [concat "Executing:" $cmd] 2
+    set cerror [catch "exec $cmd" fcount]
+
+    # grep returns 1 when no pattern are found
+    if { 1 == $cerror && "0" == [string index  $fcount 0] } {
+        set cerror 0
+        set fcount 0
+    }
+
+    if { 0 != $cerror } {
+        fail "Error executing find_n_strings for file `$filename' -- `$fcount'"
+    } elseif { $expcount == $fcount } {
+        pass "found `$fcount' copies of \"$string\" in `$filename' "
+    } else {
+        fail "expected `$expcount' copies of \"$string\" in `$filename', found `$fcount'"
+    }
+}
+
+proc string_occurs { filename string } {
+    global srcdir
+    global subdir
+
+    incr_stat "string_occurs"
+
+    set afile [join [concat $subdir $filename] "/" ]
+
+    set cmd {grep -c -F "$string" $afile}
+    verbose -log [concat "Executing:" $cmd] 2
+    set cerror [catch "exec $cmd" fcount]
+
+    # grep returns 1 when no pattern are found
+    if { 1 == $cerror && "0" == [string index  $fcount 0] } {
+        set cerror 0
+        set fcount 0
+    }
+
+    if { 0 != $cerror } {
+        fail "Error executing string_occurs for file `$filename' -- `$fcount'"
+    } elseif { 0 != $fcount } {
+        pass "string \'$string\' occurs in `$filename' "
+    } else {
+        fail "string \'$string\' does not occur in `$filename'"
+    }
+}
+
+proc string_does_not_occur { filename string } {
+    global srcdir
+    global subdir
+
+    incr_stat "string_does_not_occur"
+
+    set afile [join [concat $subdir $filename] "/" ]
+
+    set cmd {grep -c -F "$string" $afile}
+    verbose -log [concat "Executing:" $cmd] 2
+    set cerror [catch "exec $cmd" fcount]
+
+    # grep returns 1 when no pattern are found
+    if { 1 == $cerror && "0" == [string index  $fcount 0] } {
+        set cerror 0
+        set fcount 0
+    }
+
+    if { 0 != $cerror } {
+        fail "Error executing string_occurs for file `$filename' -- `$fcount'"
+    } elseif { 0 == $fcount } {
+        pass "string \'$string\' does not occur in `$filename' "
+    } else {
+        fail "string \'$string\' occurs in `$filename'"
+    }
+}
+
+proc find_n_strings_bug { filename string expcount { bug "" }} {
+    global target_triplet
+
+    setup_xfail $target_triplet $bug
+    find_n_strings $filename $string $expcount
+}
+
+# Look for a tcl (egrep) regular expression in a file.
+# Uses native tcl regexp command, and can find multiline patterns.
+proc find_regexp { filename string } {
+    find_regexp_int $filename $string 0 1
+}
+
+proc find_regexp_bug { filename string { bug "" }} {
+    find_regexp_int $filename $string 0 1 1 $bug
+}
+
+# Expect to not find the regexp
+proc find_regexp_fail { filename string } {
+    find_regexp_int $filename $string 0 0
+}
+
+# Hope to not find the regexp, but expect to find it due to bug
+proc find_regexp_fail_bug { filename string { bug "" }} {
+    find_regexp_int $filename $string 0 0 1 $bug
+}
+
+# Find multiple matches for a regular expression
+proc find_n_regexp { filename string expcount } {
+    find_regexp_int $filename $string 1 $expcount
+}
+
+# The core procedure which supports all the variants for "find_regexp"
+proc find_regexp_int { filename string exact_count {expfind 1} {expbug 0} {bug ""} } {
+    global target_triplet
+    global srcdir
+    global subdir
+
+    incr_stat "find_regexp"
+
+    set filename [join [concat $subdir $filename] "/" ]
+    set status [catch {open $filename r} filestream]
+    if { $status != 0 } {
+        fail "Error executing find_regexp -- could not open `$filename'"
+        return
+    }
+
+    set status [catch {read $filestream} filecontents]
+    catch "close $filestream" ignore
+    if { $status != 0 } {
+        fail "Error executing find_regexp -- could not read `$filename'"
+        return
+    }
+
+    verbose -log "Looking for regexp {$string} in $filename" 2
+    set status [catch {regexp -line -all -- $string $filecontents} found]
+    if { $status != 0 } {
+        fail "Error executing find_regexp -- failed regexp {$string}"
+        return
+    }
+
+    # if expbug is not zero setup to expect failure
+    if { $expbug != 0 } {
+        setup_xfail $target_triplet $bug
+    }
+
+    # generate the appropriate pass/fail message depending on expected and found count
+    if { $expfind == $found } {
+        if { 0 == $expfind } {
+            pass "did not match {$string} in `$filename'"
+        } else {
+            pass "matched {$string} $found times in `$filename'"
+        }
+    } else {
+        if { 0 == $found } {
+            fail "did not match {$string} in `$filename'"
+        } else {
+            if { 0 == $expfind } {
+                fail "matched {$string} $found times in `$filename'"
+            } else {
+                if { $exact_count != 0 } {
+                    fail "matched {$string} $found times (instead of $expfind times) in `$filename'"
+                } else {
+                    pass "matched {$string} in `$filename'"
+                }
+            }
+        }
+    }
+}
+
+
+proc compare_file_bug { filename  {expected ""} { bug "" }} {
+    global target_triplet
+
+    setup_xfail $target_triplet $bug
+    compare_file $filename $expected
+}
+
+## Top level function to run bsc2bsv.
+## this is disabled for outside tests, since bsc2bsv is not exported
+## in the release.
+proc run_bsc2bsv { source } {
+    global xfail_flag
+
+    bsc_initialize
+
+    if { [do_internal_checks] } {
+        set current_xfail $xfail_flag
+
+        incr_stat "run_bsc2bsv"
+
+        if [bsc2bsv $source] then {
+            pass "`$source' passes bsc2bsv"
+        } else {
+            fail "`$source' should pass bsc2bsv"
+        }
+    }
+}
+
+proc absolute_filename { fn } {
+    set path [file dirname $fn]
+    set file [file tail $fn]
+    set abspath [absolute $path]
+    return [file join $abspath $file]
+}
+
+# compare simulation outputs from C and verilog -- classic bs
+proc test_c_veri { module {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bs" 1 1 $expected $cbug $veribug $sort_output
+}
+
+proc test_c_veri_bsv { module {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bsv" 1 1 $expected $cbug $veribug $sort_output
+}
+
+#avoid the -elab flag (when there is backend dependent BSV code)
+proc test_c_veri_bsv_separately { module {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    test_c_only_bsv    $module $expected $cbug    $sort_output
+    test_veri_only_bsv $module $expected $veribug $sort_output
+}
+
+proc test_c_veri_bsv_modules { top modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $top $modules "bsv" 1 1 $expected $cbug $veribug $sort_output
+}
+
+proc test_c_veri_bsv_modules_options { top modules gen_options {expected ""} {cbug ""} {veribug ""} {link_options ""} {sim_options "" } {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker_int $top $sysmod $modules "bsv" 1 1 $gen_options $link_options $sim_options $expected $cbug $veribug $sort_output
+}
+
+#avoid the -elab flag (when there is backend dependent BSV code)
+proc test_c_veri_bsv_modules_options_separately { top modules gen_options {expected ""} {cbug ""} {veribug ""} {link_options ""} {sim_options "" } {sort_output 0} } {
+    test_c_only_bsv_modules_options $top $modules $gen_options $expected $cbug $link_options $sim_options $sort_output
+    test_veri_only_bsv_modules_options $top $modules $gen_options $expected $veribug $link_options $sim_options $sort_output
+}
+
+proc test_c_veri_bs_modules { top modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $top $modules "bs" 1 1 $expected $cbug $veribug $sort_output
+}
+
+
+# test verilog output via simulation  classic only
+proc test_veri_only { module {expected ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bs" 0 1 $expected "" $veribug $sort_output
+}
+
+# test the verilog output via simulation
+proc test_veri_only_bsv { module {expected ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bsv" 0 1 $expected "" $veribug $sort_output
+}
+
+# test the verilog output via simulation
+proc test_veri_only_bsv_modules { top modules {expected ""} {veribug ""} {sort_output 0} } {
+    test_c_veri_internal $top $modules "bsv" 0 1 $expected "" $veribug $sort_output
+}
+
+# test the verilog output via simulation with compile options
+proc test_veri_only_bsv_modules_options { top modules gen_options {expected ""} {veribug ""} {link_options ""} {sim_options ""} {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker_int $top $sysmod $modules "bsv" 0 1 $gen_options $link_options $sim_options $expected "" $veribug $sort_output
+}
+
+
+# compile link and test the C simulator output
+proc test_c_only { module {expected ""} {cbug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bs" 1 0 $expected $cbug "" $sort_output
+}
+
+# compile link and test the C simulator output
+proc test_c_only_bsv { module {expected ""} {cbug ""} {sort_output 0} } {
+    test_c_veri_internal $module {} "bsv" 1 0 $expected $cbug "" $sort_output
+}
+
+# test the C simulator output via simulation
+proc test_c_only_bsv_modules { top modules {expected ""} {cbug ""} {sort_output 0} } {
+    test_c_veri_internal $top $modules "bsv" 1 0 $expected $cbug "" $sort_output
+}
+
+# test the C simulator output via simulation with compile options
+proc test_c_only_bsv_modules_options { top modules gen_options {expected ""} {cbug ""} {link_options ""} {sim_options ""} {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker_int $top $sysmod $modules "bsv" 1 0 $gen_options $link_options $sim_options $expected $cbug "" $sort_output
+}
+
+
+# procedure to test c and verilog where the top modules name is not sys$module
+proc test_c_veri_bsv_multi { topbsv topmod modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bsv" 1 1 $expected $cbug $veribug $sort_output $check_vcd
+}
+
+# procedure to test c only when the top module name is not sys$module
+proc test_c_only_bsv_multi { topbsv topmod modules {expected ""} {cbug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bsv" 1 0 $expected $cbug "" $sort_output $check_vcd
+}
+
+# procedure to test Verilog only when the top module is not sys$module
+proc test_veri_only_bsv_multi { topbsv topmod modules {expected ""} {veribug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bsv" 0 1 $expected "" $veribug $sort_output $check_vcd
+}
+
+# same as test_c_veri_bsv_multi but with options
+proc test_c_veri_bsv_multi_options { topbsv topmod modules gen_options {expected ""} {cbug ""} {veribug ""} {doC 1} {doV 1} {link_options ""} {sim_options ""} {sort_output 0} } {
+    test_c_veri_worker_int $topbsv $topmod $modules "bsv" $doC $doV $gen_options $link_options $sim_options $expected $cbug $veribug $sort_output
+}
+
+#avoid the -elab flag (when there is backend dependent BSV code)
+#gen_options has a default empty-string value in order not to have to write
+# test_c_veri_bsv_multi_separately
+proc test_c_veri_bsv_multi_options_separately { topbsv topmod modules {gen_options ""} {expected ""} {cbug ""} {veribug ""} {doC 1} {doV 1} {link_options ""} {sim_options ""} {sort_output 0} } {
+    if { $doC == 1 } {
+        test_c_only_bsv_multi_options $topbsv $topmod $modules $gen_options $expected $cbug $link_options $sim_options $sort_output
+    }
+    if { $doV == 1 } {
+        test_veri_only_bsv_multi_options $topbsv $topmod $modules $gen_options $expected $veribug $link_options $sim_options $sort_output
+    }
+}
+
+proc test_c_only_bsv_multi_options { topbsv topmod modules gen_options {expected ""} {cbug ""} {link_options ""} {sim_options ""} {sort_output 0 } {check_vcd 1} } {
+    test_c_veri_worker_int $topbsv $topmod $modules "bsv" 1 0 $gen_options $link_options $sim_options $expected $cbug "" $sort_output $check_vcd
+}
+
+proc test_veri_only_bsv_multi_options { topbsv topmod modules gen_options {expected ""} {vbug ""} {link_options ""} {sim_options ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker_int $topbsv $topmod $modules "bsv" 0 1 $gen_options $link_options $sim_options $expected "" $vbug $sort_output $check_vcd
+}
+
+
+# Wrapper to add the sysmod name -- the test module name -- it should have an empty interface
+proc test_c_veri_internal { top modules extension doC doV {expected ""} {cbug ""} {veribug ""} {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker $top $sysmod $modules $extension $doC $doV $expected $cbug $veribug $sort_output
+}
+
+proc test_c_veri_worker {top sysmod modules extension doC doV expected cbug veribug {sort_output 0 } {check_vcd 1} } {
+    test_c_veri_worker_int $top $sysmod $modules $extension $doC $doV "" "" "" $expected $cbug $veribug $sort_output $check_vcd
+}
+
+# compare simulation outputs from C and verilog
+# internal procedure doing the "real work"
+# modules is a list of other modules to link in (assumed generated by synthesize pragmas)
+# test_c_veri and test_c_veri_bsv are wrappers passing in the extension
+proc test_c_veri_worker_int { top sysmod modules extension doC doV gen_options link_options sim_options expected cbug veribug {sort_output 0} {check_vcd 1} } {
+    global ctest
+    global vtest
+    global lasterr
+    global target_triplet
+
+    if {[string compare $expected ""] == 0} {
+        set expected "$sysmod.out.expected"
+    }
+
+    # $display output from unrelated rules can change if the scheduler changes,
+    # so for output that starts with a timestamp (and otherwise doesn't have
+    # any ordering expectations in the same cycle), we sort the file to get
+    # a canonical expected output (and we'll sort the simulation output later)
+    #
+    if { $sort_output == 1 } {
+	sort $expected $expected.sorted
+	set expected $expected.sorted
+    }
+
+    set actually_doC [expr $doC != 0 && $ctest == 1]
+    set actually_doV [expr $doV != 0 && $vtest == 1]
+
+    if { $actually_doV == 1 } {
+        set vmods [list $sysmod.v]
+        foreach mod $modules {
+          set idx [string last "." $mod]
+          if { $idx == -1 } {
+            lappend vmods $mod.v
+          } else {
+            lappend vmods $mod
+          }
+        }
+        if { $actually_doC == 1} {
+            set gen_options "$gen_options -elab"
+        }
+
+        compile_verilog_pass $top.$extension $sysmod $gen_options
+        link_verilog_pass [join $vmods] $sysmod $link_options
+        # if veribug is specified, we know the output will differ,
+        # but we don't know if the sim will exit normally or not
+        if { $veribug == "" } {
+            sim_verilog $sysmod $sim_options
+        } else {
+            sim_verilog_int $sysmod $sim_options 0
+        }
+
+	set outfile $sysmod.v.out
+        move $sysmod.out $outfile
+
+        # clean up to be safe
+        erase $sysmod.out
+        erase dump.vcd
+
+	if { $sort_output == 1 } {
+	    sort $outfile $outfile.sorted
+	    set outfile $outfile.sorted
+	}
+
+        check_verilog_output $outfile $expected $veribug
+
+        if { $check_vcd == 1 } {
+            if { $veribug == "" } {
+                sim_verilog_vcd $sysmod $sim_options
+            } else {
+                sim_verilog_int $sysmod $sim_options 1
+            }
+
+            move $sysmod.out $sysmod.v-vcd.out
+
+            move dump.vcd $sysmod.v.vcd
+
+            # Insert future VCD comparison here when implemented
+
+            erase $sysmod.v.vcd
+
+            # XXX
+            #check_verilog_output $sysmod.v-vcd.out $expected $veribug
+        }
+    }
+
+    if { $actually_doC == 1 } {
+        if { $actually_doV != 1 } {
+            compile_object_pass $top.$extension $sysmod $gen_options
+        }
+
+        set cmods [concat $sysmod $modules]
+        link_objects_pass $cmods $sysmod $link_options
+        sim_output $sysmod $sim_options
+
+	set outfile $sysmod.c.out
+        move $sysmod.out $outfile
+
+        # clean up to be safe
+        erase $sysmod.out
+
+	if { $sort_output == 1 } {
+	    sort $outfile $outfile.sorted
+	    set outfile $outfile.sorted
+	}
+
+        if {[string compare $cbug ""] == 0} {
+           compare_file $outfile $expected
+        } else {
+           compare_file_bug $outfile $expected $cbug
+        }
+
+        if { $check_vcd == 1 } {
+            # check that Bluesim vcd is not totally broken
+            sim_output $sysmod "-V $sysmod.c.vcd $sim_options"
+            move $sysmod.out $sysmod.c-vcd.out
+
+            # clean up to be safe
+            erase $sysmod.out
+
+            # check that vcd dumping does not change behavior
+            # (assuming this is not a known simulator bug)
+            if {[string compare $cbug ""] == 0} {
+                compare_file $sysmod.c-vcd.out $sysmod.c.out
+            }
+
+            erase $sysmod.c.vcd
+        }
+    }
+
+}
+
+proc check_verilog_output { output expected veribug } {
+    global verilog_compiler
+
+    if {[string compare $veribug ""] == 0} {
+        compare_file $output $expected
+    } elseif {[string is integer -strict $veribug] == 1} {
+        # $veribug contains a bug number
+        compare_file_bug $output $expected $veribug
+    } elseif {[lsearch -exact $veribug $verilog_compiler] != -1} {
+        # veribug contains a list of broken verilog simulators
+        compare_file_bug $output $expected $veribug
+    } else {
+        # the verilog simulator we are using is non-broken
+        compare_file $output $expected
+    }
+}
+
+# Test the -synthesize option by comparing verilog out to c sim out
+proc test_syn { module {expected ""} {synbug ""} {simbug ""}} {
+    global vtest
+
+    if {$vtest == 1} {
+    set sysmod sys$module
+
+    if {[string compare $synbug ""] == 0} {
+       compile_synthesize_verilog_pass $module.bs $sysmod
+    } else {
+       compile_synthesize_verilog_pass_bug $module.bs $sysmod $synbug
+    }
+
+    if {[string compare $synbug ""] == 0} {
+        link_verilog_pass $sysmod.v $sysmod
+        sim_verilog $sysmod
+
+        check_verilog_output $sysmod.out $expected $simbug
+    }
+    }
+}
+
+# Use the vcdcheck utility to analyze VCD files
+
+proc vcdcheck_pass { vcdfile options } {
+
+    if [do_internal_checks] {
+
+       incr_stat "vcdcheck"
+
+       if [vcdcheck $vcdfile $options] then {
+          pass "VCD file `$vcdfile' passes"
+       } else {
+          fail "VCD file `$vcdfile' failed check `$options'"
+       }
+    }
+}
+
+proc vcdcheck_fail { vcdfile options } {
+
+    if [do_internal_checks] {
+
+       incr_stat "vcdcheck"
+
+       if [vcdcheck $vcdfile $options] then {
+          fail "VCD file `$vcdfile' should not pass '$options'"
+       } else {
+          pass "VCD file `$vcdfile' caught the error"
+       }
+    }
+}
+
+# Use the showrules utility to modify VCD files
+proc showrules { topmod vcdin vcdout {options ""}} {
+    global showrules
+    global srcdir
+    global subdir
+
+    bsc_initialize
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set output [make_showrules_output_name $vcdin]
+    set cmd "$showrules $options $topmod $vcdin -o $vcdout >& $output"
+    verbose "Executing: $cmd" 4
+    set status [exec_with_log "showrules" $cmd 2 ]
+
+    cd $here
+
+    if { $status == 0 } then {
+        pass "showrules completed successfully"
+    } else {
+        fail "showrules terminated abnormally"
+    }
+}
+
+#
+# Expecting specific errors
+#
+
+#
+# Improvements:
+#
+# * At the moment, we don't check that the position information
+#   matches the expected position information
+#
+
+# Use this if the test case ought to fail with a specific error.
+proc compile_fail_error { source tag {expcount 1} {options ""} {nodeps 0}} {
+
+    # The file containing the output of compilation
+    set output [make_bsc_output_name $source]
+
+    #compile_fail $source $options
+    if [bsc_compile $source $options $nodeps] then {
+        fail "`$source' shouldn't compile"
+
+        # intermediate files should still be valid
+        # force xfail to be 0
+        check_intermediate_files $source 0 $options
+    } else {
+        find_n_error $output $tag $expcount
+    }
+}
+
+# This test case ought to fail with a specific error but the error isn't
+# found because of a known bug (though the test case still doesn't compile)
+proc compile_fail_error_bug { source tag {bug ""} {expcount 1} {options ""}} {
+    global target_triplet
+
+    set output [make_bsc_output_name $source]
+
+    if [bsc_compile $source $options] then {
+        fail "`$source' shouldn't compile"
+
+        # intermediate files should be still valid
+        # force xfail to be 0
+        check_intermediate_files $source 0 $options
+
+    } else {
+        setup_xfail $target_triplet $bug
+        find_n_error $output $tag $expcount
+    }
+}
+
+# Use this if the test case ought to fail with a specific error.
+proc compile_verilog_fail_error { source tag {expcount 1} {module ""} {options ""} } {
+    global vtest
+
+    if {$vtest == 1 } {
+      # The file containing the output of compilation
+      set output [make_bsc_vcomp_output_name $source]
+
+      #compile_verilog_fail $source $module $options
+      if [bsc_compile_verilog $source $module $options] then {
+          fail "`$source' shouldn't compile"
+
+          check_intermediate_files $source 0 $options
+
+      } else {
+          find_n_error $output $tag $expcount
+      }
+   }
+}
+
+# This test case ought to fail with a specific error but the error isn't
+# found because of a known bug (though the test case still doesn't compile)
+proc compile_verilog_fail_error_bug { source tag {bug ""} {expcount 1} {module ""} {options ""}} {
+    global target_triplet
+    global vtest
+
+    if {$vtest == 1} {
+      set output [make_bsc_vcomp_output_name $source]
+
+      if [bsc_compile_verilog $source $module $options] then {
+          fail "`$source' shouldn't compile"
+
+          # intermediate files should be still valid
+          # force xfail to be 0
+          check_intermediate_files $source 0 $options
+
+      } else {
+          setup_xfail $target_triplet $bug
+          find_n_error $output $tag $expcount
+      }
+    }
+}
+
+proc compile_object_fail_error { source tag {expcount 1} { module "" } {options "" }} {
+    global ctest
+
+    if { $ctest == 1 } {
+      # The file containing the output of compilation
+      set output [make_bsc_ccomp_output_name $source]
+
+      if [bsc_compile_to_object $source $module $options] then {
+          fail "module `$module' in `$source' shouldn't compile to `$module.ba'"
+          check_intermediate_files $source 0 $options
+      } else {
+          find_n_error $output $tag $expcount
+      }
+   }
+}
+
+
+# Use this if the test case ought to fail with a specific error, and a bunch of warnings
+# e.g.,
+#   compile_fail_error_warnings somebug.bsv ERRTAG 1 { WTAG1 { WTAG2 2 } WTAG3 }
+proc compile_fail_error_warnings { source errtag {errexpcount 1} {warnings ""} {options ""} } {
+
+    # The file containing the output of compilation
+    set output [make_bsc_output_name $source]
+
+    #compile_fail $source $options
+    if [bsc_compile $source $options] then {
+        fail "`$source' shouldn't compile"
+        check_intermediate_files $source 0 $options
+    } else {
+        find_n_error $output $errtag $errexpcount
+        foreach { warning } $warnings {
+            if { [llength $warning] == 1 } then {
+                find_n_warning $output $warning 1
+            } else {
+                find_n_warning $output [lindex $warning 0] [lindex $warning 1]
+            }
+        }
+    }
+}
+
+# Use this if the test case ought to compile, but fails with a
+# specific error due to a known bug.
+proc compile_pass_bug_error { source tag {bug ""} {expcount 1} {options "" }} {
+    global target_triplet
+
+    compile_pass_bug $source $bug $options
+
+    # The file containing the output of compilation
+    set output [make_bsc_output_name $source]
+
+    # It would be nice to only do this test if the compile failed
+    find_n_error $output $tag $expcount
+}
+
+
+# Use this if the test case ought to compile with a specific warning
+proc compile_pass_warning { source tag {expcount 1} {options ""} } {
+
+    global xfail_flag
+
+    # The file containing the output of compilation
+    set output [make_bsc_output_name $source]
+    set current_xfail $xfail_flag
+
+    #compile_fail $source $options
+    if [bsc_compile $source $options] then {
+        find_n_warning $output $tag $expcount
+    } else {
+        fail "`$source' should compile"
+    }
+
+    # whether we find the warning or not we expect the intermediate files to be valid
+    check_intermediate_files $source 0 $options
+}
+
+# This test case ought to compile with a warning but the warning isn't found because
+# of a known bug (though the test case still compiles)
+proc compile_pass_warning_bug { source tag {bug ""} {expcount 1} {options ""}} {
+    global target_triplet
+
+    set output [make_bsc_output_name $source]
+
+    if [bsc_compile $source $options] then {
+        setup_xfail $target_triplet $bug
+        find_n_warning $output $tag $expcount
+    } else {
+        fail "`$source' should compile"
+    }
+
+    # intermediate files should be still valid
+    # force xfail to be 0 (since we expect it to compile)
+    check_intermediate_files $source 0 $options
+}
+
+proc find_n_error { filename tag expcount } {
+    find_n_emsg $filename "Error" $tag $expcount
+}
+
+proc find_n_warning { filename tag expcount } {
+    find_n_emsg $filename "Warning" $tag $expcount
+}
+
+## Looks for _expcount_ of an error or warning (specified by
+## _errkind_) with tag _tag_ (by grep regexp) in _filename_.
+## Fails if counts differ, or grep errors out.
+##
+## Uses braces (instead of quotes) to prevent tcl from interpreting strings
+proc find_n_emsg { filename errkind tag expcount } {
+    global srcdir
+    global subdir
+
+    incr_stat "find_n_emsg"
+
+    set filename [join [concat $subdir $filename] "/" ]
+    set status [catch {open $filename r} filestream]
+    if { $status != 0 } {
+        fail "Error executing find_n_emsg -- could not open `$filename'"
+        return
+    }
+
+    set status [catch {read $filestream} filecontents]
+    catch "close $filestream" ignore
+
+    if { $status != 0 } {
+        fail "Error executing find_n_emsg -- could not read `$filename'"
+        return
+    }
+
+    # This command looks for things that start with:
+    #   ERRKIND:
+    #
+    # Followed by:
+    #   Command line:
+    #   Unknown position:
+    #   "FILENAME":
+    #   "FILENAME", line XX:
+    #   "FILENAME", line XX, column XX:
+    #   line XX:
+    #   line XX, column XX:
+    #
+    # Followed by on next line:
+    #   (TAG): error text
+    #
+
+    set string [format {%s:.+\(%s\)$} $errkind $tag]
+    set status [catch {regexp -all -line $string $filecontents} fcount]
+    if { 0 != $status } {
+        fail "Error executing find_n_emsg for file `$filename' -- `$fcount'"
+    } elseif { $expcount == $fcount } {
+        pass "found `$fcount' copies of $errkind $tag in `$filename'"
+    } else {
+        fail "expected `$expcount' copies of $errkind $tag in `$filename', found `$fcount'"
+    }
+}
+
+## Succeeds if there is no warning in the output file
+##
+## XXX It would be nice if this code and find_n_msgs could be combined
+## XXX somehow to use a common basic function -- perhaps a function which
+## XXX produces a list of all warnings/errors/messages, and then find_n_msgs
+## XXX could just scan the list, etc.
+##
+## Uses braces (instead of quotes) to prevent tcl from interpreting strings
+proc no_warnings { filename } {
+    global srcdir
+    global subdir
+
+    incr_stat "no_warnings"
+
+    set filename [join [concat $subdir $filename] "/" ]
+    set status [catch {open $filename r} filestream]
+    if { $status != 0 } {
+        fail "Error executing no_warnings -- could not open `$filename'"
+        return
+    }
+
+    set status [catch {read $filestream} filecontents]
+    catch "close $filestream" ignore
+    if { $status != 0 } {
+        fail "Error executing no_warnings -- could not read `$filename'"
+        return
+    }
+
+    # This command looks for things that start with:
+    #   ERRKIND:
+    #
+    # Followed by:
+    #   Command line:
+    #   Unknown position:
+    #   "FILENAME":
+    #   "FILENAME", line XX:
+    #   "FILENAME", line XX, column XX:
+    #   line XX:
+    #   line XX, column XX:
+    #
+    # Followed by on next line:
+    #   (TAG): error text
+    #
+
+    set string {Warning:.+\(.....\)$}
+    set status [catch {regexp -all -line $string $filecontents} fcount]
+
+    if { 0 != $status } {
+        fail "Error executing no_warnings for file `$filename' -- `$fcount'"
+    } elseif { $fcount == 0 } {
+        pass "found no warnings in `$filename'"
+    } else {
+        fail "found `$fcount' warnings in `$filename'"
+    }
+}
+
+# execute a make file
+proc make_ignore { target {make_opt "" }  { outfile "nulloutfile" } } {
+    global srcdir
+    global subdir
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    set status [exec_with_log "make_ignore" "make $make_opt $target >& $outfile" 2]
+
+    cd $here
+    return [expr $status == 0]
+}
+
+proc make_pass { target {make_opt "" }  { outfile "make.log" } }  {
+    global srcdir
+    global subdir
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    #pass -j1 to avoid weird behavior when running in parallel -- it is
+    #probably a bug in make or the linux kernel
+
+    #pass MAKEFLAGS=(empty) to avoid inheriting flags from grandparent makes
+    set status [exec_with_log_and_return "make_pass" "make -j1 MAKEFLAGS= $make_opt $target >& $outfile" lasterr ]
+    incr_stat "make_pass"
+    if { $status == 0 } {
+        pass "make `$target' succeeded"
+        set lasterr ""
+    } else {
+        fail "make `$target' failed  status `$status'  lasterr $lasterr"
+    }
+    cd $here
+    return [expr $status == 0 ]
+}
+
+
+#
+# Initialization
+#
+
+## Load additional tcl file
+set filesToLoad [list "verilog" "bluetcl"]
+
+foreach file $filesToLoad {
+    set fileName [format "%s/%s.tcl" [get_test_config_dir] $file ]
+    verbose [format "Sourcing: %s" $fileName ] 0
+    source $fileName
+}
+
+# find m4
+set m4 [which_m4]
+
+# warning should not convert PASS or FAIL to UNRESOLVED in our testsuite
+set_warning_threshold 0
+
+################################################################################
+### Turn environment variables into glocal tcl variables
+################################################################################
+
+# Initialize global information that should be available regardless
+# of which tool we initialize
+
+# ---------------
+# General
+
+set bsdir [get_bsdir]
+verbose -log "Bluespec dir: $bsdir" 1
+
+get_test_options
+verbose -log "Do verilog backend tests is $vtest" 1
+verbose -log "Do c backend tests is $ctest" 1
+verbose -log "Do SystemC tests is $systemctest" 1
+verbose -log "Do internal checks is [do_internal_checks]" 1
+verbose -log "Do contrib tests is $contribtest" 1
+if { $contribtest } {
+    verbose -log "Contrib inst is $contrib_inst" 1
+}
+
+
+# ---------------
+# System settings
+
+verbose -log "Operating system is [which_os]" 1
+
+# Assume 64-bit
+set ::is64 "64"
+
+
+# ---------------
+# Verilog
+
+set verilog_compiler $env(BSC_VERILOG_SIM)
+
+get_verilog_compiler_version
+
+get_vcomp_flags
+get_vrun_novcd_flags
+get_vrun_vcd_flags
+
+verbose -log "Verilog compiler: $verilog_compiler" 1
+verbose -log "Verilog compiler version: $verilog_compiler_version" 1
+
+verbose -log "Verilog link options: $vcomp_flags" 1
+verbose -log "Verilog no-VCD run options: $vrun_novcd_flags" 1
+verbose -log "Verilog VCD run options: $vrun_vcd_flags" 1
+
+# ---------------
+# SystemC
+
+if { $systemctest == 1 } {
+    set systemc_inc [which_systemc_inc]
+    set systemc_lib [which_systemc_lib]
+
+    verbose -log "SystemC include location is $systemc_inc" 1
+    verbose -log "SystemC library location is $systemc_lib" 1
+}
+
+################################################################################
+###
+################################################################################
+
+global bsc_initialized
+
+set bsc_initialized 0
+
+proc bsc_initialize {} {
+
+    global bsc_initialized
+    global env
+    global bsc
+    global bsdir
+    global showrules
+
+    global DO_INTERNAL_CHECKS
+
+    global dumpbo
+    global vcdcheck
+    global bsc2bsv
+
+
+    if {!$bsc_initialized} {
+
+        set bsc_initialized 1
+
+        # find bsc and version and bs prelude
+        set bsc [which_bsc]
+        set bsc_version [get_bsc_version]
+
+        # These functions insist that the binaries be available.
+        # Since they are only used for internal tests, we should only insist on
+        # the binaries if we are running internal tests.
+        if [do_internal_checks] {
+            set dumpbo [which_dumpbo]
+            set vcdcheck [which_vcdcheck]
+            set bsc2bsv [which_bsc2bsv]
+        }
+
+        # Find the showrules tool
+        set showrules [which_showrules]
+
+        # Add the test prelude to the BSC_OPTIONS
+	# XXX This may no longer be necessary, now that the tools
+	# XXX don't get BLUESPECDIR from the environment
+        if [info exists env(BSC_OPTIONS)] {
+            set ::env(BSC_OPTIONS) "$::env(BSC_OPTIONS) [get_bsc_prelude]"
+        } else {
+            set ::env(BSC_OPTIONS) "[get_bsc_prelude]"
+        }
+
+        verbose -log "Using $bsc ($bsc_version) for tests." 1
+        verbose -log "Compiler options: $::env(BSC_OPTIONS)" 1
+        if [do_internal_checks] {
+            verbose -log "Path to dumpbo: $dumpbo" 1
+            verbose -log "Path to vcdcheck: $vcdcheck" 1
+            verbose -log "Path to bsc2bsv: $bsc2bsv" 1
+        }
+        verbose -log "Showrules: $showrules" 1
+    }
+}
+
+if [info exists FORCE_INITIALIZE] then {
+    switch $FORCE_INITIALIZE {
+        bsc {
+            bsc_initialize
+            bluetcl_initialize
+        }
+    }
+}
+
+# DejaGnu by default disables CCache caching because it's mostly used for
+# testing toolchains and cross compilers, and changes in the compiler will
+# not be detected by CCache. In our case, we're testing the (C++) output of
+# the bluespec compiler against a fixed C++ compiler and the C++ compiler
+# is invoked simply to produce an executable that generates a trace. So we
+# can assume that if bsc produces a .cxx file CCache has seen before, it
+# should produce exactly the same object/executable too.
+unset -nocomplain env(CCACHE_DISABLE)

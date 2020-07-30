@@ -1,0 +1,47 @@
+----------------------------------------------------
+-- FileName : GCD.bs
+-- Author   : Interra
+-- BugID    : 142
+-- CommandLine : bsc -verilog -g mkGCD GCD.bs
+-- Status : Fixed for BSC 3.74 
+----------------------------------------------------
+
+package GCD (GCD(..), mkGCD) where
+
+-- import Int
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkGCD :: GCD -> Module GCD
+mkGCD intrfce =
+    module
+        x :: Reg (Int 32)
+        x <- mkRegU
+
+        y :: Reg (Int 32)
+        y <- mkReg 0
+
+        rules
+          "Swap":
+            when x > y, y /= 0
+              ==> action
+                      x := y
+                      y := x
+
+          "Subtract":
+            when x <= y, y /= 0
+              ==> action
+                      y := y - x
+
+        interface
+            start ix iy = action
+                              x := ix
+                              y := iy
+                          when y == 0
+            result = x when y == 0
+
+
+
+

@@ -1,0 +1,10 @@
+package PolyLam(x1, x2) where
+x1 :: (Literal a) => (a, Bool)
+x1 = let id = \y -> y 
+     in
+       (id 1, id True)
+
+x2 :: (Integer, Bool)
+x2 = let id = \y -> y
+     in
+       (id 1, id True)

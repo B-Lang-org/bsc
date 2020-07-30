@@ -1,0 +1,14 @@
+checking package dependencies
+compiling EUnifyKind1.bs
+Warning: "EUnifyKind1.bs", line 57, column 32: (P0102)
+  Declaration of `x' shadows previous declaration at "EUnifyKind1.bs", line
+  41, column 8
+Warning: "EUnifyKind1.bs", line 57, column 32: (P0223)
+  Definition of `x' is not used.
+Warning: "EUnifyKind1.bs", line 57, column 34: (P0102)
+  Declaration of `y' shadows previous declaration at "EUnifyKind1.bs", line
+  44, column 8
+Warning: "EUnifyKind1.bs", line 57, column 34: (P0223)
+  Definition of `y' is not used.
+Error: "EUnifyKind1.bs", line 47, column 13: (T0025)
+  The type `Mystruct' is applied to too few arguments.

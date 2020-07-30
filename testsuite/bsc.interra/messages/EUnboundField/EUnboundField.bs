@@ -1,0 +1,25 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundField.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EUnboundField error of the bluespec
+-- compiler (Unbound Field)
+--
+-----------------------------------------------------------------------
+
+
+
+package EUnboundField () where
+
+data My_pair = Cons1 {fst :: Integer; snd :: Integer}
+
+
+firstpair :: My_pair 
+firstpair = Cons1 {fst =5; snd =10}
+
+secondpair :: My_pair
+secondpair = firstpair {fst=5}
+

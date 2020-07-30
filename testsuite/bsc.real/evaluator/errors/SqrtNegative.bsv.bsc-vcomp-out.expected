@@ -1,0 +1,9 @@
+checking package dependencies
+compiling SqrtNegative.bsv
+code generation for sysSqrtNegative starts
+Error: "SqrtNegative.bsv", line 5, column 14: (G0112)
+  A square-root operation was applied to a negative number during elaboration.
+  During elaboration of the body of rule `r' at "SqrtNegative.bsv", line 7,
+  column 10.
+  During elaboration of `sysSqrtNegative' at "SqrtNegative.bsv", line 4,
+  column 8.

@@ -1,0 +1,16 @@
+package IncoherentOK(EqInteger(..), eqLiteral) where
+
+import Real
+
+class incoherent EqInteger a where
+  eqInteger :: a -> Integer -> Bool
+
+instance (Literal a, Eq a) => (EqInteger a) where
+  eqInteger a i = a == (fromInteger i)
+
+instance EqInteger Real where
+  eqInteger r i = trunc r == i
+
+-- ok only because incoherent
+eqLiteral :: (Literal a, Eq a) => a -> Integer -> Bool
+eqLiteral = eqInteger

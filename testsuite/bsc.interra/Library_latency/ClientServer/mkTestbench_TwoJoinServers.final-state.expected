@@ -1,0 +1,108 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number:   1, Writing Data:   1
+Cycle Number =   2, Value read =   0
+Cycle Number:   2, Writing Data:   2
+Cycle Number =   3, Value read =   1
+Cycle Number:   3, Writing Data:   3
+Cycle Number =   4, Value read =   2
+Cycle Number:   4, Writing Data:   4
+Cycle Number =   5, Value read =   3
+Cycle Number:   5, Writing Data:   5
+Cycle Number =   6, Value read =   4
+Cycle Number:   6, Writing Data:   6
+Cycle Number =   7, Value read =   5
+Cycle Number:   7, Writing Data:   7
+Cycle Number =   8, Value read =   6
+Cycle Number:   8, Writing Data:   8
+Cycle Number =   9, Value read =   7
+Cycle Number:   9, Writing Data:   9
+Cycle Number =  10, Value read =   8
+Cycle Number:  10, Writing Data:  10
+Cycle Number =  11, Value read =   9
+Cycle Number:  11, Writing Data:  11
+Cycle Number =  12, Value read =  10
+Cycle Number:  12, Writing Data:  12
+Cycle Number =  13, Value read =  11
+Cycle Number:  13, Writing Data:  13
+Cycle Number =  14, Value read =  12
+Cycle Number:  14, Writing Data:  14
+Cycle Number =  15, Value read =  13
+Cycle Number:  15, Writing Data:  15
+Cycle Number =  16, Value read =  14
+Cycle Number =  17, Value read =  15
+Cycle Number =  18, Value read =   0
+Mismatch Actual server1 =    0  Exp=  16
+Cycle Number:  18, Writing Data:  16
+Cycle Number =  19, Value read =   1
+Mismatch Actual server1 =    1  Exp=  17
+Cycle Number:  19, Writing Data:  17
+Cycle Number =  20, Value read =  16
+Mismatch Exp =  18 Actual=  16
+Cycle Number:  20, Writing Data1:  18 
+Cycle Number =  21, Value read =  17
+Mismatch Exp =  19 Actual=  17
+Cycle Number:  21, Writing Data1:  19 
+Cycle Number =  22, Value read =  18
+Mismatch Exp =  20 Actual=  18
+Cycle Number:  22, Writing Data1:  20 
+Cycle Number =  23, Value read =  19
+Mismatch Exp =  21 Actual=  19
+Cycle Number:  23, Writing Data1:  21 
+Cycle Number =  24, Value read =  20
+Mismatch Exp =  22 Actual=  20
+Cycle Number:  24, Writing Data1:  22 
+Cycle Number =  25, Value read =  21
+Mismatch Exp =  23 Actual=  21
+Cycle Number:  25, Writing Data1:  23 
+Cycle Number =  26, Value read =  22
+Mismatch Exp =  24 Actual=  22
+Cycle Number:  26, Writing Data1:  24 
+Cycle Number =  27, Value read =  23
+Mismatch Exp =  25 Actual=  23
+Cycle Number:  27, Writing Data1:  25 
+Cycle Number =  28, Value read =  24
+Mismatch Exp =  26 Actual=  24
+Cycle Number:  28, Writing Data1:  26 
+Cycle Number =  29, Value read =  25
+Mismatch Exp =  27 Actual=  25
+Cycle Number:  29, Writing Data1:  27 
+Cycle Number =  30, Value read =  26
+Mismatch Exp =  28 Actual=  26
+Cycle Number:  30, Writing Data1:  28 
+Cycle Number =  31, Value read =  27
+Mismatch Exp =  29 Actual=  27
+Cycle Number:  31, Writing Data1:  29 
+Cycle Number =  32, Value read =  28
+Mismatch Exp =  30 Actual=  28
+Cycle Number:  32, Writing Data1:  30 
+Cycle Number =  33, Value read =  29
+Mismatch Exp =  31 Actual=  29
+Cycle Number:  33, Writing Data1:  31 
+Cycle Number =  34, Value read =  30
+Mismatch Exp =  32 Actual=  30
+Cycle Number:  34, Writing Data1:  32 
+Cycle Number =  35, Value read =  31
+Mismatch Exp =  33 Actual=  31
+Cycle Number:  35, Writing Data1:  33 
+Cycle Number =  36, Value read =  32
+Mismatch Exp =  34 Actual=  32
+Cycle Number:  36, Writing Data1:  34 
+Cycle Number =  37, Value read =  33
+Mismatch Exp =  35 Actual=  33
+Cycle Number:  37, Writing Data1:  35 
+Cycle Number =  38, Value read =  34
+Mismatch Exp =  36 Actual=  34
+Cycle Number:  38, Writing Data1:  36 
+Cycle Number =  39, Value read =  35
+Mismatch Exp =  37 Actual=  35
+Cycle Number:  39, Writing Data1:  37 
+Simulation Fails
+Final state:
+top:
+  counter = 0x29
+  fail = True
+  in_data = 0x27
+  joinedservers_f = { 0x25 }
+  out_data = 0x27
+  serv1_server_datafifo = { 0x26 }
+  serv2_server_datafifo = { 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11 }

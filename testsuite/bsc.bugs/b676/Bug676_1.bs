@@ -1,0 +1,8 @@
+package Bug676_1(Foo(..), x) where
+
+type Foo = Bar
+type Bar = Foo
+
+x :: Foo
+x = _
+

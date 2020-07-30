@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TupleChk1.bs
+Error: "TupleChk1.bs", line 14, column 23: (P0073)
+  Duplicate definition of member `fst' in structure `Primpair'

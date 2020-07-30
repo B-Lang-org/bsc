@@ -1,0 +1,147 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+/* Generic support for packing and unpacking */
+
+#define WORD_SIZE (8*sizeof(unsigned int))
+
+// Take bits from a packed BSV data structure and write it into
+// a C memory location
+void take_bits(const unsigned int* data_in, // packed BSV data
+               unsigned int*       pos,       // this will be decremented
+               unsigned int        bits,      // must be 0 < bits <= WORD_SIZE
+               unsigned int*       data_out)  // C data pointer
+{
+  unsigned int idx    = *pos - bits;
+  unsigned int word   = idx / WORD_SIZE;
+  unsigned int offset = idx % WORD_SIZE;
+  unsigned int n      = WORD_SIZE - offset;
+  unsigned int mask   = (bits == WORD_SIZE) ? (~0) : ((1 << bits)-1);
+  unsigned int val    = 0;
+
+  if (n >= bits)
+  {
+    val = (data_in[word] >> offset) & mask;
+  }
+  else /* handle data split across words */
+  {
+    unsigned int mask_a = (1 << n) - 1;
+    unsigned int mask_b = (1 << (bits - n)) - 1;
+    val = ((data_in[word] >> offset) & mask_a)
+        | ((data_in[word+1] & mask_b) << n);
+  }
+
+  *data_out = ((*data_out) & (~mask)) | val;
+
+  *pos = idx;  // update the position  
+}
+
+
+// Take bits from a C memory location and pack it into a BSV
+// data structure
+void give_bits(const unsigned int* data_in,   // C data pointer
+               unsigned int*       pos,       // this will be decremented
+               unsigned int        bits,      // must be 0 < bits <= WORD_SIZE
+               unsigned int*       data_out)  // packed BSV data
+{
+  unsigned int idx    = *pos - bits;
+  unsigned int word   = idx / WORD_SIZE;
+  unsigned int offset = idx % WORD_SIZE;
+  unsigned int n      = WORD_SIZE - offset;
+  unsigned int mask   = (bits == WORD_SIZE) ? (~0) : ((1 << bits)-1);
+
+  if (n >= bits)
+  {
+    data_out[word] = (data_out[word] & ~(mask << offset)) 
+                   | ((*data_in & mask) << offset);
+  }
+  else /* handle data split across words */
+  {
+    unsigned int mask_a = (1 << n) - 1;
+    unsigned int mask_b = (1 << (bits - n)) - 1;
+    data_out[word] = (data_out[word] & ~(mask_a << offset))
+                   | ((*data_in & mask_a) << offset);
+    data_out[word+1] = (data_out[word+1] & ~mask_b)
+                     | (((*data_in) >> n) & mask_b);
+  }
+
+  *pos = idx;  // update the position  
+}
+
+
+/* code specific for this structure / testcase */
+
+struct tMyStruct
+{
+  unsigned field1:5;
+  unsigned field2:6;
+  char     field3[15];
+  unsigned field4:1;
+};
+
+void unpack_tMyStruct(const unsigned int* packed, struct tMyStruct* out)
+{
+  /* packed will be 132 bits packed into an array of 5 unsigned ints */
+  unsigned int pos = 132;
+  int i;
+  unsigned int tmp = 0;
+
+  /* unpack the BSV structure */
+  take_bits(packed, &pos, 5, &tmp);
+  out->field1 = tmp; // &(out->field1) is illegal when field1 is a bit-field  
+  take_bits(packed, &pos, 6, &tmp);
+  out->field2 = tmp; // &(out->field1) is illegal when field2 is a bit-field
+  for (i = 14; i >= 0; --i)
+    take_bits(packed, &pos, 8, (unsigned int*) (out->field3 + i));
+  take_bits(packed, &pos, 1, &tmp);
+  out->field4 = tmp; // &(out->field4) is illegal when field4 is a bit-field
+}
+
+void pack_tMyStruct(const struct tMyStruct* in, unsigned int* packed)
+{
+  /* data_in will be 132 bits packed into an array of 5 unsigned ints */
+  unsigned int pos = 132;
+  int i;
+  unsigned int tmp;
+
+  memset(packed, 0, 15);  // clear all BSV words
+
+  /* pack into a BSV structure */
+  tmp = in->field1; // &(in->field1) is illegal when field1 is a bit-field
+  give_bits(&tmp, &pos, 5, packed);
+  tmp = in->field2; // &(in->field2) is illegal when field2 is a bit-field
+  give_bits(&tmp, &pos, 6, packed);
+  for (i = 14; i >= 0; --i)
+    give_bits((unsigned int*)(in->field3 + i), &pos, 8, packed);
+  tmp = in->field4; // &(in->field4) is illegal when field4 is a bit-field
+  give_bits(&tmp, &pos, 1, packed);
+}
+
+void modify_struct(unsigned int* data_out, unsigned int* data_in)
+{
+  static int counter = 0;
+  struct tMyStruct s;
+  unsigned int i;
+  
+  /* unpack the BSV structure */
+  unpack_tMyStruct(data_in, &s);
+
+  /* use/modify the structure */
+  if (++counter == 1) // only print this on the first call
+  {
+    printf("field1 = %d\n", s.field1);
+    printf("field2 = %d\n", s.field2);
+    printf("field3 = %s\n", s.field3);
+    printf("field4 = %d\n", s.field4);
+  }
+
+  s.field1 = s.field1 << 1;
+  s.field2 = s.field2 | 0xf;
+  for (i = 0; i < 15; ++i)
+    s.field3[i] = toupper(s.field3[i]);
+  s.field4 = 0;
+
+  /* pack the modified structure into the BSV return field */
+  pack_tMyStruct(&s, data_out);
+}

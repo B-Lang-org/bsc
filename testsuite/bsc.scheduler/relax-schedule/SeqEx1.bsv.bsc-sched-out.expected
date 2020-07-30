@@ -1,0 +1,59 @@
+checking package dependencies
+compiling SeqEx1.bsv
+code generation for mkSeqEx1 starts
+=== schedule:
+parallel: [esposito: [a -> [], b -> [], RL_c -> [], RL_d -> [RL_c]]]
+order: [b, RL_c, RL_d, a]
+
+-----
+
+=== resources:
+[(r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write x__h291, 1), (r1.write x__h335, 1)]),
+ (r2.write, [(r2.write rw2_whas____d5, 1)]),
+ (rw1.whas, [(rw1.whas, 1)]),
+ (rw1.wset, [(rw1.wset 1'd1, 1)]),
+ (rw2.whas, [(rw2.whas, 1)]),
+ (rw2.wset, [(rw2.wset 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_a CF [RDY_a, RDY_b, a, b], RDY_b CF [RDY_b, a, b], [a, b] SBR a, b C b]
+[((b, a), [RL_c, RL_d])]
+[(a, [(Left RL_c), (Left RL_d)])]
+[]
+
+-----
+
+Schedule dump file created: mkSeqEx1.sched
+=== Generated schedule for mkSeqEx1 ===
+
+Method schedule
+---------------
+Method: a
+Ready signal: True
+Sequenced before (restricted): a
+Sequenced after (restricted): b
+ 
+Method: b
+Ready signal: True
+Sequenced before (restricted): a
+Conflicts: b
+ 
+Rule schedule
+-------------
+Rule: c
+Predicate: rw1.whas
+Blocking rules: (none)
+ 
+Rule: d
+Predicate: True
+Blocking rules: c
+ 
+Logical execution order: b, c, d, a
+
+========================================
+Verilog file created: mkSeqEx1.v
+All packages are up to date.

@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail Fib.bs mkFib8
+compare_file Fib.bs.bsc-vcomp-out
+}

@@ -1,0 +1,8 @@
+package StructDefParamConflictingUses () where
+
+data (Foo :: * -> *) a = Bar a
+
+struct Baz b =
+    x :: Bit b
+    y :: Foo b
+

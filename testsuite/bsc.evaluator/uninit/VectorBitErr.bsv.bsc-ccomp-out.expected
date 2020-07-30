@@ -1,0 +1,10 @@
+checking package dependencies
+compiling VectorBitErr.bsv
+code generation for sysVectorBitErr starts
+Error: "VectorBitErr.bsv", line 5, column 25: (G0028)
+  `v[2]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorBitErr.bsv", line
+  11, column 9.
+  During elaboration of `sysVectorBitErr' at "VectorBitErr.bsv", line 4,
+  column 8.

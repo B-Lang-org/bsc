@@ -1,0 +1,89 @@
+checking package dependencies
+compiling IgnoreRdy.bs
+code generation for mkBar starts
+=== schedule:
+parallel: [esposito: [bar -> [], glurph -> []]]
+order: [bar, glurph]
+
+-----
+
+=== resources:
+[(f.deq, [(f.deq, 1)]),
+ (f.enq, [(f.enq bar_1, 1)]),
+ (f.i_notEmpty, [(f.i_notEmpty, 1)]),
+ (f.i_notFull, [(f.i_notFull, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_bar CF [RDY_bar, RDY_glurph, bar, glurph],
+ RDY_glurph CF [RDY_glurph, bar, glurph],
+ bar CF glurph,
+ bar C bar,
+ glurph C glurph]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: mkBar.sched
+=== Generated schedule for mkBar ===
+
+Method schedule
+---------------
+Method: bar
+Ready signal: f.i_notFull
+Conflict-free: glurph
+Conflicts: bar
+ 
+Method: glurph
+Ready signal: f.i_notEmpty
+Conflict-free: bar
+Conflicts: glurph
+ 
+Logical execution order: bar, glurph
+
+=====================================
+Verilog file created: mkBar.v
+code generation for sysIgnoreRdy starts
+=== schedule:
+parallel: [esposito: [foo -> [], RL_do_glurph -> []]]
+order: [foo, RL_do_glurph]
+
+-----
+
+=== resources:
+[(b.RDY_bar, [(b.RDY_bar, 1)]),
+ (b.RDY_glurph, [(b.RDY_glurph, 1)]),
+ (b.bar, [(b.bar foo_1, 1)]),
+ (b.glurph, [(b.glurph, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_foo CF [RDY_foo, foo], foo C foo] [] [] []
+
+-----
+
+Schedule dump file created: sysIgnoreRdy.sched
+=== Generated schedule for sysIgnoreRdy ===
+
+Method schedule
+---------------
+Method: foo
+Ready signal: b.RDY_bar
+Conflicts: foo
+ 
+Rule schedule
+-------------
+Rule: do_glurph
+Predicate: b.RDY_glurph
+Blocking rules: (none)
+ 
+Logical execution order: foo, do_glurph
+
+============================================
+Verilog file created: sysIgnoreRdy.v
+All packages are up to date.

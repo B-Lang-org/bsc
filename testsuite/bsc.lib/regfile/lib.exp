@@ -1,0 +1,49 @@
+test_c_veri ArrayFileTest
+test_c_veri_bsv TestRegFileLoad
+test_c_veri_bsv ParseTest
+
+# Test that various uses of comments and whitespace are accepted by
+# the Bluesim implementation.  (Verilog simulation not entirely
+# necessary, except to sanity check the test and the simulator.)
+test_c_veri_bsv ParseTest2
+
+# Test gap and overlap warnings in Bluesim
+test_c_only_bsv WarningTest
+
+# Test that the warning mechanism doesn't roll-over pointers when
+# the range goes all the way to the highest possible value
+# (7 in a 3-bit address for instance)
+test_c_only_bsv WarningTest2
+
+# XXX There should also be error condition tests for Bluesim:
+# when a C comment isn't terminated, when data is in the wrong format,
+# correct position of messages, etc
+
+# -------------------------
+
+# Test that bounds checking is done for all variants
+
+compile_verilog_fail_error RegFileIndexError.bsv S0015
+compile_verilog_fail_error RegFileLoadBinIndexError.bsv S0015
+compile_verilog_fail_error RegFileLoadHexIndexError.bsv S0015
+compile_verilog_fail_error RegFileWCFIndexError.bsv S0015
+compile_verilog_fail_error RegFileWCFLoadBinIndexError.bsv S0015
+compile_verilog_fail_error RegFileWCFLoadHexIndexError.bsv S0015
+
+# -------------------------
+
+# Check that zero-size data is implemented without modules
+compile_verilog_pass_no_warning RegFileZeroData.bsv
+if { $vtest == 1 } {
+find_n_strings sysRegFileZeroData.v {submodule} 0
+}
+
+# Check that zero-size index is implemented with single registers
+# (with mkConfigReg for WCF variants)
+compile_verilog_pass_no_warning RegFileZeroIndex.bsv
+if { $vtest == 1 } {
+find_n_strings sysRegFileZeroIndex.v {submodule} 0
+find_n_strings sysRegFileZeroIndex.v {register rf} 12
+}
+
+# -------------------------

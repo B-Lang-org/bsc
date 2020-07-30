@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ENotAnInterface.bs
+Error: "ENotAnInterface.bs", line 22, column 24: (T0038)
+  Not of interface type

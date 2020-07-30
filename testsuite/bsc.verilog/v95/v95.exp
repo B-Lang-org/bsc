@@ -1,0 +1,20 @@
+
+## Output should be the same regardless of v95 switch
+test_veri_only_bsv_modules_options ParamOrder "" "" "" 
+
+erase ParamOrder.bo
+erase ParamOrder.bi
+test_veri_only_bsv_modules_options ParamOrder "" "-v95" 
+
+erase ParamOrder.bo
+erase ParamOrder.bi
+test_veri_only_bsv_modules_options ParamOrder "" "-no-v95" 
+
+
+test_veri_only_bsv_modules_options Signed "" "" 
+erase Signed.bo
+erase Signed.bi
+test_veri_only_bsv_modules_options Signed "" "-v95" "sysSigned.v95.out.expected"
+
+
+

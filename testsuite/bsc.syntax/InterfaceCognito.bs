@@ -1,0 +1,13 @@
+package InterfaceCognito(cognito, Cognito) where
+
+-- The `interface' keyword can make anonymous interfaces.
+-- Expect this to compile and typecheck.
+
+interface Cognito =
+    read :: Bool
+    write :: Bool -> Action
+
+cognito :: Reg Bool -> Cognito
+cognito r = interface Cognito
+              read = r
+	      write v = r := v

@@ -1,0 +1,9 @@
+Cycle Number =  0, Value written = 0f
+Cycle Number =  2, Value read = 0f
+Cycle Number =  3, Value written = 12
+Cycle Number =  4, Clearing Fifo
+Cycle Number =  5, Value written = 1e
+Cycle Number =  6, Value read = 1e
+Cycle Number =  7, Value Written = 0d
+Cycle Number = 20, Value read = 0d
+Simulation Passes

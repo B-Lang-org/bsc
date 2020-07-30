@@ -1,0 +1,6 @@
+test_c_veri_bsv Basic sysBasic.expected
+test_c_veri_bsv Arith sysArith.expected
+test_c_veri_bsv Synth sysSynth.expected
+test_c_veri_bsv ArithPipe sysArithPipe.expected
+test_c_veri_bsv PipeMult sysPipeMult.expected
+

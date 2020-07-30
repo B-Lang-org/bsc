@@ -1,0 +1,9 @@
+compile_pass StructExplicitRead.bsv
+compile_pass StructExplicitWrite.bsv
+
+# Typecheck mismatch
+compile_fail_error StructImplicitRead.bsv T0020
+
+# Left-hand side of '<=' operator must be an interface
+compile_fail_error StructImplicitWrite.bsv T0066
+

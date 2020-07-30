@@ -1,0 +1,9 @@
+checking package dependencies
+compiling StringSelect_OutOfRange.bsv
+code generation for sysStringSelect_OutOfRange starts
+Error: "StringSelect_OutOfRange.bsv", line 5, column 19: (S0015)
+  Bluespec evaluation-time error: index 3 out-of-range (list selection)
+  During elaboration of the body of rule `r' at "StringSelect_OutOfRange.bsv",
+  line 3, column 9.
+  During elaboration of `sysStringSelect_OutOfRange' at
+  "StringSelect_OutOfRange.bsv", line 2, column 8.

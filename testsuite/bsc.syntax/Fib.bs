@@ -1,0 +1,29 @@
+package Fib (mkFib, mkFib8) where
+
+import FIFO
+
+func :: (Arith a) => Bool -> Reg a -> Reg a -> Reg a
+func b x1 x2 = if b then x1 else x2
+
+mkFib8 :: Module (Reg (Bit 8))
+mkFib8 = mkFib
+
+mkFib :: (Bits a sa, Arith a) => Module (Reg a)
+mkFib =
+    module
+        x :: Reg a
+        x <- mkReg 1
+
+        y :: Reg a
+        y <- mkReg 1
+
+	z :: Reg Bool
+	z <- mkReg True
+        interface
+	    _write _ = action { x := 1; y := 1; z := True }
+	    _read = (func z x y)._read
+        rules
+	    when True
+	      ==> action
+		     (func z x y) := x + y;
+	             z := not z;

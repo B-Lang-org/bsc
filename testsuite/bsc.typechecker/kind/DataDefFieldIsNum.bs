@@ -1,0 +1,4 @@
+package DataDefFieldIsNum () where
+
+data Foo = Bar 12
+

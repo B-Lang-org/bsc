@@ -1,0 +1,133 @@
+package Loop(for, forN, forBreak, forever) where
+
+import Vector
+import ActionSeq
+
+--@ \subsection{Loop}
+--@ 
+--@ \index{Loop@\te{Loop} (package)}
+--@ The \te{Loop} package contains some functions to simplify the
+--@ construction of loops.  All the constructs here take an
+--@ \te{ActionList} as the loop body.  These action are then executed
+--@ in sequence a number of times, where the number depends on the
+--@ looping construct.
+--@ 
+
+--@ \index{for@\te{for} (\te{Loop} function)}
+--@ The \te{for} function constructs a for loop where a register
+--@ will take on the specified values in sequence.
+--@ It is invoked as follows \qbs{for $var$ $low$ $high$ $body$},
+--@ where $var$ is a register, $low$ is the lower bound, $high$ is
+--@ the upper bound, and $body$ is the action sequence that forms
+--@ the loop body.
+--@ \begin{verbatim}
+--@ module for#(Reg#(a) i, a lo, a hi, ActionList#(n) stmts)(ActionSeq)
+--@   provisos (Arith#(a), Ord#(a), Bits#(a, sa),
+--@             Add#(1, m, n), Add#(n, 1, n1), Log#(n1, l));
+--@ \end{verbatim}
+for :: (IsModule mod cons,
+        Arith a, Ord a, Bits a sa,
+        Add 1 m n, Add n 1 n1, Log n1 l) =>
+       Reg a -> a -> a -> ActionList n -> mod ActionSeq
+for i lo hi stmts = liftModule $
+    module
+      run :: Reg Bool <- mkReg False
+      body :: ActionSeq <- actionSeq $ append (init stmts) (action { last stmts; run := i < hi; i := i + 1 } :> nil)
+      interface
+	start = if lo <= hi then action { run := True; i := lo; body.start } else action { }
+	    when not run
+	done = not run
+        checkDone = noAction
+            when not run
+      rules
+       "for":
+	when run
+	 ==> body.start
+
+--@ \index{forN@\te{forN} (\te{Loop} function)}
+--@ The function \te{forN} is like \te{for}, except that the loop
+--@ counts down from $high$ to zero (inclusive).
+--@ It is invoked as follows \qbs{forN $var$ $high$ $body$}.
+--@ \begin{verbatim}
+--@ module forN#(Reg#(a) i, a hi, ActionList#(n) stmts)(ActionSeq)
+--@   provisos (Arith#(a), Ord#(a), Bits#(a, sa),
+--@             Add#(1, m, n), Add#(n, 1, n1), Log#(n1, l));
+--@ \end{verbatim}
+forN :: (IsModule mod cons,
+         Arith a, Ord a, Bits a sa,
+         Add 1 m n, Add n 1 n1, Log n1 l) =>
+       Reg a -> a -> ActionList n -> mod ActionSeq;
+forN i hi stmts = liftModule $
+    module
+      run :: Reg Bool <- mkReg False
+      body :: ActionSeq <- actionSeq $ append (init stmts) (action {
+								last stmts;
+								run := i > 0; 
+								i := i - 1 } 
+							      :> nil)
+      interface
+	start = if hi >= 0 then action { run := True; i := hi; body.start } else action { }
+	    when not run
+	done = not run
+        checkDone = noAction
+            when not run
+      rules
+       "for":
+	when run
+	 ==> body.start
+
+--@ \index{forBreak@\te{forBreak} (\te{Loop} function)}
+--@ The function \te{forBreak} is like \te{for}, except that the loop
+--@ can be terminated early (just as with a \te{break} in C).
+--@ It is invoked as follows \qbs{for $var$ $low$ $high$ (\BSL break -> $body$ )}
+--@ \begin{verbatim}
+--@ module forBreak#(Reg#(a) i, a lo, a hi,
+--@                   function ActionList#(n) stmts (Action br))(ActionSeq)
+--@   provisos (Arith#(a), Ord#(a), Bits#(a, sa),
+--@             Add#(n, 1, n1), Add#(n1, 1, n2), Log#(n2, l));
+--@ \end{verbatim}
+forBreak :: (IsModule mod cons,
+             Arith a, Ord a, Bits a sa,
+             Add n 1 n1, Add n1 1 n2, Log n2 l) =>
+            Reg a -> a -> a -> (Action -> ActionList n) -> mod ActionSeq
+forBreak i lo hi stmts = liftModule $
+    module
+      run :: Reg Bool <- mkReg False
+      go :: Reg Bool <- mkRegU
+      body :: ActionSeq <- actionSeqBreak $ \ brk ->
+		append (stmts (action { go := False; brk })) (action { run := i < hi; i := i + 1 } :> nil)
+      let rdy = not run || not go
+      interface
+	start = action { go := True; run := True; i := lo; body.start }
+	    when rdy
+	done = rdy
+        checkDone = noAction
+            when rdy
+      rules
+       "forBreak":
+	when run && go
+	 ==> body.start
+
+--@ \index{forever@\te{forever} (\te{Loop} function)}
+--@ The \te{forever} function constructs a loop that terminates when
+--@ the ``break'' function is called.
+--@ It is invoked as follows \qbs{forever (\BSL break -> $body$ )}
+--@ \begin{verbatim}
+--@ module forever#(function ActionList#(n) stmts (Action br))(ActionSeq);
+--@ \end{verbatim}
+forever :: (IsModule mod cons) => (Action -> ActionList n) -> mod ActionSeq
+forever stmts = liftModule $
+    module
+      run :: Reg Bool <- mkReg False
+      body :: ActionSeq <- actionSeqBreak $ \ brk ->
+		stmts (action { run := False; brk })
+      interface
+	start = action { run := True; body.start }
+	    when not run
+	done = not run
+        checkDone = noAction
+            when not run
+      rules
+       "forever":
+	when run
+	 ==> body.start

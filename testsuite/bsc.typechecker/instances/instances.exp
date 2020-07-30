@@ -1,0 +1,58 @@
+compile_fail_error DuplicateInstanceImported.bs T0099
+compile_fail_error DuplicateInstanceLocal.bs T0099
+compile_fail_error DuplicateInstanceRename.bsv T0099
+compile_fail_error BadOverlap.bsv T0128
+
+# confirm that we detect bits instances of different sizes
+compile_fail_error DuplicateBitsSize.bs T0099
+
+compile_fail_error NotMethod.bs T0016
+compile_fail_error NotMethod.bsv T0016
+# Test that you get the error even if the field name exists for some other
+# class, just not the class being defined
+compile_fail_error NotMethod2.bs T0016
+
+test_c_veri Overlap1 sysOverlap.out.expected
+test_c_veri Overlap2 sysOverlap.out.expected
+test_c_veri Overlap3 sysOverlap.out.expected
+
+test_c_veri OverlapWithSyn sysOverlapWithSyn.out.expected
+
+# ----------
+
+# Test for bug 632
+# More deterministic instance-ordering sorts out the recursion
+# So now we just warn about the orphan instance
+compile_pass_warning RecursiveInstance.bsv T0127
+
+# ----------
+
+# Test for bug 1499
+# CtxReduce does not pre-maturely reduce provisos
+
+test_c_veri_bsv OverlapCtxReduce
+
+# ----------
+
+# Polymorphic instances that use themselves need a proviso for themselves
+# because there isn't one instance to resolve
+# XXX actually, it's when the proviso overlaps with another instance
+# XXX that resolution doesn't happen -- but it *ought* to in this case,
+# XXX because if this instance is being used, then that means the resolution
+# XXX already picked this instance.
+#
+compile_pass_no_warning SelfRecursiveInstance.bsv
+
+# Mutually exclusive instances are detected
+#
+compile_fail MutuallyRecursiveInstances.bsv
+# XXX but are reported with an internal error
+find_n_strings [make_bsc_output_name MutuallyRecursiveInstances.bsv] \
+    {Internal Bluespec Compiler Error} 1
+
+# Test that BSC requires the user to add a proviso on self recursive instances
+# where instance overlap prevents resolution of the use.  (Bug 1882)
+compile_fail_error SelfRecursiveInstance_NoProviso.bsv T0030
+
+# ----------
+

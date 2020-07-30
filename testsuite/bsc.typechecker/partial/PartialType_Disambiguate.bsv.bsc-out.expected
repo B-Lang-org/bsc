@@ -1,0 +1,12 @@
+checking package dependencies
+compiling PartialType_Disambiguate.bsv
+Warning: "PartialType_Disambiguate.bsv", line 4, column 7: (P0221)
+  Partial type information for this function is being ignored. At the moment,
+  only full type declarations are supported. If a type is missing for the
+  return value or any of the arguments, then all types are ignored.
+Error: "PartialType_Disambiguate.bsv", line 5, column 20: (T0018)
+  The field `_read' is a member of multiple structs or interfaces, and there
+  was not enough type information to decide which one is being referred to.
+  Consider adding more explicit types, to help the compiler choose. The
+  following structs/interfaces have a field named `_read':
+    Reg, ReadOnly, PulseWire

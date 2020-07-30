@@ -1,0 +1,10 @@
+package PrintTypeClassic(sysPrintTypeClassic) where
+
+x :: Maybe (Bit 5)
+x = Nothing
+
+{-# verilog sysPrintTypeClassic #-}
+sysPrintTypeClassic :: Module Empty
+sysPrintTypeClassic = do
+  messageM $ printType $ typeOf x
+  return (Empty {})

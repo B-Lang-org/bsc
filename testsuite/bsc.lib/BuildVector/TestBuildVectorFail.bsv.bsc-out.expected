@@ -1,0 +1,40 @@
+checking package dependencies
+compiling TestBuildVectorFail.bsv
+Error: "TestBuildVectorFail.bsv", line 8, column 19: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    BuildVector::BuildVector#(Bool, function Vector::Vector#(3, Bool) f(Bool x1, Bool x2, Bool x3), 0)
+  The proviso was implied by expressions at the following positions:
+    "TestBuildVectorFail.bsv", line 8, column 23
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Add#(3, 1, 3)
+Error: "TestBuildVectorFail.bsv", line 14, column 19: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    BuildVector::BuildVector#(Bool, function Vector::Vector#(3, Bool) f(Bool x1), 0)
+  The proviso was implied by expressions at the following positions:
+    "TestBuildVectorFail.bsv", line 14, column 23
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Add#(1, 1, 3)
+Error: "TestBuildVectorFail.bsv", line 20, column 24: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Literal#(Bool)
+  The proviso was implied by expressions at the following positions:
+    "TestBuildVectorFail.bsv", line 20, column 28
+Error: "TestBuildVectorFail.bsv", line 26, column 23: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    BuildVector::BuildVector#(Bool, function Vector::Vector#(3, Integer) f(Bool x1, Bool x2), 0)
+  The proviso was implied by expressions at the following positions:
+    "TestBuildVectorFail.bsv", line 26, column 27
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    BuildVector::BuildVector#(Bool, Vector::Vector#(3, Integer), 2)
+Error: "TestBuildVectorFail.bsv", line 32, column 11: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    BuildVector::BuildVector#(Bool, function Bit#(3) f(Bool x1, Bool x2), 0)
+  The proviso was implied by expressions at the following positions:
+    "TestBuildVectorFail.bsv", line 32, column 15
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    BuildVector::BuildVector#(Bool, Bit#(3), 2)

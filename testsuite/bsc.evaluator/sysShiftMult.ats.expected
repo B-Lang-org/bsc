@@ -1,0 +1,73 @@
+APackage sysShiftMult
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-inhigh-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+x :: ABSTRACT:  Prelude.VReg = RegN
+			       (VModInfo
+				RegN
+				clock _clk__1(CLK, {-unused-});
+				reset _rst__1(RST) clocked_by(_clk__1);
+				[clockarg _clk__1;, resetarg _rst__1;, param width;, param init;]
+				[method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (_rst__1);,
+				 method write((D_IN, [reg])) enable ((EN, [])) clocked_by (_clk__1) reset_by (_rst__1);]
+				SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				[])
+			       [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd17]
+			       []
+			       meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+			       port types=D_IN -> Prelude.Bit 32
+					  Q_OUT -> Prelude.Bit 32
+y :: ABSTRACT:  Prelude.VReg = RegN
+			       (VModInfo
+				RegN
+				clock _clk__1(CLK, {-unused-});
+				reset _rst__1(RST) clocked_by(_clk__1);
+				[clockarg _clk__1;, resetarg _rst__1;, param width;, param init;]
+				[method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (_rst__1);,
+				 method write((D_IN, [reg])) enable ((EN, [])) clocked_by (_clk__1) reset_by (_rst__1);]
+				SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				[])
+			       [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd24]
+			       []
+			       meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+			       port types=D_IN -> Prelude.Bit 32
+					  Q_OUT -> Prelude.Bit 32
+-- AP local definitions
+x__h177 :: Bit 32;
+x__h177  = x_BITS_28_TO_0___h184 ++ 3'd0;
+-- IdProp x__h177[IdP_keep]
+x__h145 :: Bit 32;
+x__h145  = x_BITS_29_TO_0___h174 ++ 2'd0;
+-- IdProp x__h145[IdP_keep]
+x_BITS_28_TO_0___h184 :: Bit 29;
+x_BITS_28_TO_0___h184  = extract x___d1 32'd28 32'd0;
+-- IdProp x_BITS_28_TO_0___h184[IdP_keep]
+x_BITS_29_TO_0___h174 :: Bit 30;
+x_BITS_29_TO_0___h174  = extract x___d1 32'd29 32'd0;
+-- IdProp x_BITS_29_TO_0___h174[IdP_keep]
+x___d1 :: Bit 32;
+x___d1  = x.read;
+-- IdProp x___d1[IdP_from_rhs]
+-- AP rules
+rule RL_unnamed "":
+ when 1'd1
+  ==> { x.write x__h145; y.write x__h177; }
+[]
+clock domain = Just (0), resets = [0]
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]

@@ -1,0 +1,10 @@
+Error: "ConflictFreeNotOKLarge.bsv", line 23, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_0.
+
+Incrementing i to 1
+Error: "ConflictFreeNotOKLarge.bsv", line 23, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_1.
+
+Incrementing i to 2

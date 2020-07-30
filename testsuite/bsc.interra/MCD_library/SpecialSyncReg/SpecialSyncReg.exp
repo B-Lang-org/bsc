@@ -1,0 +1,6 @@
+test_c_veri_bsv_multi_options_separately Testbench_fast_to_slow mkTestbench_fast_to_slow {mkSyncRegSlow}
+
+test_c_veri_bsv_multi_options_separately Testbench_slow_to_fast mkTestbench_slow_to_fast {mkSyncRegFast}
+
+compile_verilog_fail Negative.bsv {mkDesign}
+

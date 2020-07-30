@@ -1,0 +1,34 @@
+-- #############################################################################
+-- #
+-- #############################################################################
+
+package Converter(Converter(..), mkConverter) where
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface Converter i =
+    convert :: i -> (i, i)
+
+interface VConverter ni =
+    convert :: Bit ni -> Bit mi
+
+vMkConverter :: Module (VConverter i)
+vMkConverter =
+    module verilog "Converter" (("foo", (valueOf i))) "CLK" {
+	convert = "IN" "OUT";
+    } [ convert <> convert ]
+
+mkConverter :: (IsModule m c, Bits i si) => m (Converter i)
+mkConverter = liftModule $
+     module
+      _a :: VConverter si
+      _a <- vMkConverter
+      interface
+	convert i = unpack (_a.convert (pack i))
+
+-- #############################################################################
+-- #
+-- #############################################################################
+

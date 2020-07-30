@@ -1,0 +1,21 @@
+=== Generated schedule for mkCompletionBuffer_4_Bit32 ===
+
+Method schedule
+---------------
+Method: reserve_get
+Ready signal: n.value <= 3'd3
+Conflicts: reserve_get, complete_put, drain_get
+ 
+Method: complete_put
+Ready signal: True
+Conflict-free: drain_get
+Conflicts: reserve_get, complete_put
+ 
+Method: drain_get
+Ready signal: (! (n.value == 3'd0)) && buff.sub(o)[32]
+Conflict-free: complete_put
+Conflicts: reserve_get, drain_get
+ 
+Logical execution order: reserve_get, complete_put, drain_get
+
+==========================================================

@@ -1,0 +1,15 @@
+package Bug212(sysBug212) where
+
+import FIFO
+import OInt
+import OInt
+import FIFO
+
+
+sysBug212 :: Module Empty
+sysBug212 = 
+  module 
+    x :: Reg (OInt 32)
+    x <- mkReg 0
+    f :: FIFO (OInt 32)
+    f <- mkFIFO

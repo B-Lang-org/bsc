@@ -1,0 +1,18 @@
+package ResourceOneRuleTwoMethodsNotSC(sysResourceOneRuleTwoMethodsNotSC) where
+
+-- Test that the compiler appropriately does not report a conflict for two
+-- conflicting methods in a single rule when they are in different parts of 
+-- an if
+
+import FIFO 
+
+sysResourceOneRuleTwoMethodsNotSC :: Module Empty
+sysResourceOneRuleTwoMethodsNotSC =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: FIFO Bool
+    b <- mkFIFO
+    rules
+        when True ==> if a then b.clear else b.enq False
+

@@ -1,0 +1,26 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+# Bluesim warns when the memory file does not initialize all words,
+# but some simulators (iverilog) do not.  So for NC we remove the
+# warnings from the output, and we test Bluesim separately.
+
+if { $vtest == 1 } {
+#this code extracted from ../course_lab
+compile_verilog_pass TestMesa.bsv sysTestMesa
+link_verilog_pass {sysTestMesa.v mkMesaTxLpm.v mkMesa_Vff.v mkMesa_Dm.v mkMesa_Mif.v mkMesa.v} sysTestMesa
+sim_verilog sysTestMesa
+move sysTestMesa.out sysTestMesa.v.out
+# *.out gets cleaned by make clean
+move sysTestMesa.out.bak sysTestMesa.v.bak.out
+erase sysTestMesa.out
+erase dump.vcd
+check_verilog_output sysTestMesa.v.out sysTestMesa.v.out.expected ""
+sim_verilog sysTestMesa "+bscvcd"
+move dump.vcd sysTestMesa.v.vcd
+# Insert future VCD comparison here when implemented
+}
+
+test_c_only_bsv_modules TestMesa {mkMesaTxLpm mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesa} sysTestMesa.out.expected

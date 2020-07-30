@@ -1,0 +1,5 @@
+checking package dependencies
+compiling SplitTopMethodName.bsv
+code generation for sysSplitTopMethodName starts
+Verilog file created: sysSplitTopMethodName.v
+All packages are up to date.

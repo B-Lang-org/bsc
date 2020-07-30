@@ -1,0 +1,36 @@
+----------------------------------------------------
+-- FileName : BsTop.bs
+-- Author   : Interra
+-- BugID    : 153
+-- CommandLine : bsc BsTop.bs
+-- Status : Fixed for BSC 3.74 
+----------------------------------------------------
+
+package BsTop (top) where
+
+data Datastates = Idle | First_F6 | Second_F6 | Third_F6 | First_28 | Second_28
+              deriving (Eq,Bits)
+
+interface BsTop =
+          data_in :: Bit 8 -> ActionValue(Bool) {-# arg_names = [dat] #-}
+
+{-# properties top = {
+       alwaysReady ,
+       CLK = clk,
+       RSTN = rst
+--       name data_in_1 = dat
+} #-}
+
+
+top :: Module (BsTop)
+top =
+    module
+
+        state :: Reg Datastates <- mkReg Idle
+        sof   :: Reg Bool <- mkReg False
+
+        interface
+           data_in in_data = do  {
+                              case state of {};
+                              return sof;
+                              }

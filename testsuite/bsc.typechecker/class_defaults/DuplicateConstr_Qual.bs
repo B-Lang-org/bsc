@@ -1,0 +1,25 @@
+package DuplicateConstr_Qual () where
+
+data MyT = Cons Bool
+
+class C a where
+  f :: a -> MyT
+  f x = DuplicateConstr_Qual.Cons False
+
+instance C Integer where {}
+
+v :: Integer
+v = 5
+
+-- should use the proper definition of "g"
+{-# verilog sysDuplicateConstr_Qual #-}
+sysDuplicateConstr_Qual :: Module Empty
+sysDuplicateConstr_Qual =
+  module
+    rules
+      "r":
+        when True
+          ==> case (f v) of
+                Cons True -> $display "1yes"
+                Cons False -> $display "1no"
+

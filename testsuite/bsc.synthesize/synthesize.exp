@@ -1,0 +1,9 @@
+#
+# These are tests for the experimental synthesis pass of the compiler
+# (the "-synthesize" flag), which reduces the Verilog output to simple gates.
+#
+
+
+# Bug 121 (FIXED)
+compile_synthesize_verilog_pass_bug FACT.bs sysFACT
+

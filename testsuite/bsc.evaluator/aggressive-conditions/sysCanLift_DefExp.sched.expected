@@ -1,0 +1,20 @@
+=== Generated schedule for sysCanLift_DefExp ===
+
+Rule schedule
+-------------
+Rule: r
+Predicate: ({chunk[31:1], (chunk[0]
+			   ? 32'd1
+			   : 32'd0)[0]} ==
+	    32'd0)
+	   ? link_resp_fifo.i_notFull
+	   : ((! ({chunk[31:1], (chunk[0]
+				 ? 32'd1
+				 : 32'd0)[0]} ==
+		  32'd1)) ||
+	      link_resp_fifo.i_notFull)
+Blocking rules: (none)
+ 
+Logical execution order: r
+
+=================================================

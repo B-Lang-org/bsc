@@ -1,0 +1,33 @@
+package Lib(sysLib) where
+import Vector
+import LFSR
+import PopCount
+import BitonicSort
+
+sum :: (Add 1 n1 n, Log n ln, Add ln m mn) => Vector n (Bit m) -> Bit mn
+sum xs = fold (+) (map zeroExtend xs)
+
+end :: Bit 32
+end = 200
+
+{-# verilog sysLib #-}
+sysLib :: Module Empty
+sysLib =
+    module
+        n :: Reg (Bit 32) <- mkReg 0
+        gen :: LFSR (Bit 16) <- mkLFSR_16
+        arr :: Vector 8 (Reg (Bit 16)) <- mapM (const (mkReg 0)) genList
+        arrs :: Vector 8 (Reg (Bit 16)) <- mapM (const (mkReg 0)) genList
+        r :: Reg (Bit 19) <- mkReg 0
+        let lasg dst src = joinActions (zipWith writeReg dst src)
+            f :: Reg (Bit 16) -> Bit 16
+            f x = x
+            shift = lasg (tail arr) (map f (init arr))
+            sarr = sortLe (<=) (map f arr)
+            s = sum (map f arrs)
+            pc = popCountWallace r
+        rules
+            when n < end
+             ==> action { n := n+1; shift; head arr := gen.value; gen.next; lasg arrs sarr; r := s; displayHex (pc :: Bit 5)}
+            when n == end
+             ==> $finish 0

@@ -1,0 +1,17 @@
+# Tests for string type handling
+
+compile_pass StringKindPolyToSpecific.bs
+
+compile_fail_error StringKindSpecificToPoly.bs T0029
+compare_file StringKindSpecificToPoly.bs.bsc-out
+
+compile_fail_error StringKindPhantomMismatch.bs T0020
+compare_file StringKindPhantomMismatch.bs.bsc-out
+
+compile_fail KindMismatch.bs
+compare_file KindMismatch.bs.bsc-out
+
+test_c_veri StringOf
+test_c_veri_bsv StringOfBSV
+
+test_c_veri TypeClassString

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ERuleAssertion2.bs
+code generation for mkGCDTest starts
+Error: "ERuleAssertion2.bs", line 32, column 10: (G0005)
+  The assertion `no_implicit_conditions' failed for rule `Send Input'
+  During elaboration of rule `Send Input' at "ERuleAssertion2.bs", line 32,
+  column 10.
+  During elaboration of `mkGCDTest' at "ERuleAssertion2.bs", line 20, column
+  0.

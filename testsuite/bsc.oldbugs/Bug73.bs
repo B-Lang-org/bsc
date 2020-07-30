@@ -1,0 +1,16 @@
+package Bug73(sysBug73) where
+
+data Type1 = Ready | Empty
+  deriving (Eq, Bits)
+  
+data Type2 = Ready | NotReady
+  deriving (Eq, Bits)
+
+sysBug73 :: Module Empty
+sysBug73 = 
+  module 
+    x :: Reg Type1 <- mkReg Ready
+    y :: Reg Type2 <- mkReg Ready
+
+    rules 
+      when True ==> action {x := Empty; y := NotReady}

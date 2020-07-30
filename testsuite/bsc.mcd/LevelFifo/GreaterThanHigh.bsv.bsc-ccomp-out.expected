@@ -1,0 +1,10 @@
+checking package dependencies
+compiling GreaterThanHigh.bsv
+code generation for sysLevelFIFOTest starts
+Error: "FIFOLevel.bsv", line 424, column 34: (S0015)
+  Bluespec evaluation-time error: Argument of isGreaterThan must be in the
+  range of 0 to 6; 7 is out of range.
+  During elaboration of the body of rule `print_levels' at
+  "GreaterThanHigh.bsv", line 21, column 8.
+  During elaboration of `sysLevelFIFOTest' at "GreaterThanHigh.bsv", line 5,
+  column 8.

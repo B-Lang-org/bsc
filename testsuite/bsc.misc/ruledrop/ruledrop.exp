@@ -1,0 +1,2 @@
+compile_verilog_pass_warning WarnFalse.bsv G0023
+compile_verilog_pass_warning WarnEmpty.bsv G0023

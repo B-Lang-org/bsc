@@ -1,0 +1,22 @@
+package AccessorPredicates(sysAccessorPredicates, I) where
+
+-- We are reading from and writing to a register in two interface methods.
+-- But these rules are mutually exclusive, so the interface scheduling info
+-- should have [[s,g] <> g, s << s].
+
+interface I =
+	s :: Action
+	g :: Bool
+
+sysAccessorPredicates :: Module I
+sysAccessorPredicates =
+    module
+	r :: Reg Bool
+	r <- mkRegU
+	b :: Reg Bool
+	b <- mkRegU
+        interface
+	    s = r := True
+	        when b
+	    g = r
+	        when not b

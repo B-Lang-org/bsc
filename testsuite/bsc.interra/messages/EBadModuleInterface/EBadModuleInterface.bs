@@ -1,0 +1,79 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadModuleInterface.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EModuleInterface error of the bluespec
+-- compiler (Multiple interface expressions )
+--
+-----------------------------------------------------------------------
+
+
+
+package EBadModuleInterface (GCD(..), mkGCD) where
+
+-- import Int
+
+interface GCD =
+    start1  :: Int 32 -> Int 32 -> Action
+    result1 :: Int 32
+    start2  :: Int 32 -> Int 32 -> Action
+    result2 :: Int 32
+
+mkGCD :: Module GCD
+mkGCD =
+    module
+	x1 :: Reg (Int 32)
+	x1 <- mkRegU
+
+        x2 :: Reg (Int 32)
+        x2 <- mkRegU
+
+	y1 :: Reg (Int 32)
+	y1 <- mkReg 0
+
+        y2 :: Reg (Int 32)
+        y2 <- mkReg 0
+
+        rules
+          "Swap":
+            when x1 > y1, y1 /= 0
+              ==> action
+                      x1 := y1
+                      y1 := x1
+
+          "Subtract":
+            when x1 <= y1, y1 /= 0
+              ==> action
+                      y1 := y1 - x1
+        interface
+            start1 ix1 iy1 = action
+                              x1 := ix1
+                              y1 := iy1
+                          when y1 == 0
+            result1 = x1 when y1 == 0
+
+
+        rules
+
+	  "Swap":
+	    when x2 > y2, y2 /= 0
+	      ==> action
+		      x2 := y2
+		      y2 := x2
+
+	  "Subtract":
+	    when x2 <= y2, y2 /= 0
+	      ==> action
+		      y2 := y2 - x2
+
+        interface
+	    start2 ix2 iy2 = action
+	                      x2 := ix2
+	                      y2 := iy2
+	                  when y2 == 0
+	    result2 = y2 when y2 == 0
+
+

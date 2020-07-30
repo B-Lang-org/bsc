@@ -1,0 +1,28 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadIfcType_module.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EBadIfcType_module error of the bluespec
+-- compiler (Bad tope level type...not a module {type})
+--
+--generates error if verilog code is requested for function_GCD
+-----------------------------------------------------------------------
+
+
+package EBadIfcType_module () where
+
+-- import Int
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+function_GCD :: Int 32 -> Int 32 -> Int 32
+function_GCD x 0 = x
+function_GCD x y when x>y = function_GCD y x 
+function_GCD x y = function_GCD x (y-x)
+
+

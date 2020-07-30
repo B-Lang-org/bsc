@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "EBadLexChar2.bs", line 26, column 8: (P0002)
+  Bad character in input: '\DEL'

@@ -1,0 +1,2 @@
+compile_fail EWrongArity.bs
+compare_file EWrongArity.bs.bsc-out

@@ -1,0 +1,5 @@
+package StructDefFieldIsNum () where
+
+struct Foo =
+    bar :: 12
+

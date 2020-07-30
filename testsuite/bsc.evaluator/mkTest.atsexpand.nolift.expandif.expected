@@ -1,0 +1,94 @@
+APackage mkTest
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-inhigh-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+slots :: ABSTRACT:  Prelude.VReg = RegUN
+				   (VModInfo
+				    RegUN
+				    clock _clk__1(CLK, {-unused-});
+				    [clockarg _clk__1;, param width;]
+				    [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				     method write((D_IN, [reg])) enable ((EN,
+									  [])) clocked_by (_clk__1) reset_by (no_reset);]
+				    SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				    [])
+				   [clock { osc:  CLK gate:  1'd1 }, 32'd1]
+				   []
+				   meth types=[([], Nothing, Just (Bit 1)), ([Bit 1], Just (Bit 1), Nothing)]
+				   port types=D_IN -> Prelude.Bool
+					      Q_OUT -> Prelude.Bool
+slots_1 :: ABSTRACT:  Prelude.VReg = RegUN
+				     (VModInfo
+				      RegUN
+				      clock _clk__1(CLK, {-unused-});
+				      [clockarg _clk__1;, param width;]
+				      [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				       method write((D_IN, [reg])) enable ((EN,
+									    [])) clocked_by (_clk__1) reset_by (no_reset);]
+				      SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				      [])
+				     [clock { osc:  CLK gate:  1'd1 }, 32'd1]
+				     []
+				     meth types=[([], Nothing, Just (Bit 1)), ([Bit 1], Just (Bit 1), Nothing)]
+				     port types=D_IN -> Prelude.Bool
+						Q_OUT -> Prelude.Bool
+ptr :: ABSTRACT:  Prelude.VReg = RegUN
+				 (VModInfo
+				  RegUN
+				  clock _clk__1(CLK, {-unused-});
+				  [clockarg _clk__1;, param width;]
+				  [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				   method write((D_IN, [reg])) enable ((EN,
+									[])) clocked_by (_clk__1) reset_by (no_reset);]
+				  SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				  [])
+				 [clock { osc:  CLK gate:  1'd1 }, 32'd5]
+				 []
+				 meth types=[([], Nothing, Just (Bit 5)), ([Bit 5], Just (Bit 1), Nothing)]
+				 port types=D_IN -> Prelude.Bit 5
+					    Q_OUT -> Prelude.Bit 5
+pred :: ABSTRACT:  Prelude.VReg = RegUN
+				  (VModInfo
+				   RegUN
+				   clock _clk__1(CLK, {-unused-});
+				   [clockarg _clk__1;, param width;]
+				   [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				    method write((D_IN, [reg])) enable ((EN,
+									 [])) clocked_by (_clk__1) reset_by (no_reset);]
+				   SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				   [])
+				  [clock { osc:  CLK gate:  1'd1 }, 32'd1]
+				  []
+				  meth types=[([], Nothing, Just (Bit 1)), ([Bit 1], Just (Bit 1), Nothing)]
+				  port types=D_IN -> Prelude.Bool
+					     Q_OUT -> Prelude.Bool
+-- AP rules
+rule RL_Rule_F_T_T_F "Rule_F_T_T_F":
+ when (ptr == 5'd0) && pred
+  ==> { slots.write 1'd1; slots_1.write 1'd0; }
+rule RL_Rule_F_T_F_T "Rule_F_T_F_T":
+ when (ptr == 5'd1) && pred
+  ==> { slots.write 1'd0; slots_1.write 1'd1; }
+rule RL_Rule_F_F_T "Rule_F_F_T":
+ when (ptr == 5'd0) && (! pred)
+  ==> { slots.write 1'd1; }
+rule RL_Rule_F_F_F "Rule_F_F_F":
+ when (ptr == 5'd1) && (! pred)
+  ==> { slots_1.write 1'd1; }
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]

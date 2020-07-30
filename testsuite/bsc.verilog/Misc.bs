@@ -1,0 +1,42 @@
+package Misc(sysMisc) where
+import ActionSeq
+import Vector
+import Loop
+
+as :: Action -> ActionList 1
+as a = a :> nil
+
+{-# verilog sysMisc #-}
+sysMisc :: Module Empty
+sysMisc =
+    module
+	val16 :: Reg (Bit 16) <- mkReg 0x123f
+	val48 :: Reg (Bit 48) <- mkReg 0x123456789abc
+	hi :: Reg Nat <- mkReg 14
+	lo :: Reg Nat <- mkRegU
+
+	let pref x s = do
+		sx :: ActionSeq <- actionSeq (as $ displayHex (x :: (Bit 32)))
+		ss :: ActionSeq <- s
+		seqOfActionSeq $ sx :> ss :> nil
+
+{- Icarus broken
+	test1 :: ActionSeq <- pref 0x11111111 $ for lo 0 15 $ as $ displayHex $ (zeroExtend val16[lo:lo]) :: Bit 16
+	test2 :: ActionSeq <- pref 0x22222222 $ for lo 0 47 $ as $ displayHex $ (zeroExtend val48[lo:lo]) :: Bit 16
+-}
+
+	test3 :: ActionSeq <- pref 0x33333333 $ for lo 0 8 $ as $ displayHex $ (signExtend val16[lo+4:lo]) :: (Bit 16)
+	test4 :: ActionSeq <- pref 0x44444444 $ for lo 0 8 $ as $ displayHex $ (signExtend val48[lo+4:lo]) :: (Bit 16)
+
+	test5 :: ActionSeq <- pref 0x55555555 $ for lo 0 8 $ as $ displayHex $ (val16[hi:lo] :: (Bit 16))
+	test6 :: ActionSeq <- pref 0x66666666 $ for lo 0 8 $ as $ displayHex $ (val48[hi:lo] :: (Bit 16))
+
+	prologue :: ActionSeq <- actionSeq $ displayHex (0 :: Bit 32) :> nil
+	epilogue :: ActionSeq <- actionSeq $ (do {t <- $time; $display "%t" t;}) :> ($finish 0) :> nil
+	test :: ActionSeq <- seqOfActionSeq $ 
+		prologue :> 
+		{- test1 :> test2 :> -} test3 :> test4 :> test5 :> test6 :>
+		epilogue :> nil
+        rules
+	    when True
+	     ==> test.start

@@ -1,0 +1,17 @@
+package InputMangle(sysInputMangle, IM(..)) where
+
+import RegFile
+
+interface IM =
+  lookup1 :: Bit 16 -> Bit 32
+  lookup2 :: (Bit 16, Bit 16) -> (Bit 32, Bit 32)
+
+
+sysInputMangle :: Module IM
+sysInputMangle =
+  module
+    arr :: (RegFile (Bit 16) (Bit 32)) <- mkRegFile 0 4
+    
+    interface
+      lookup1 x = arr.sub x
+      lookup2 (x, y) = (arr.sub x, arr.sub y)

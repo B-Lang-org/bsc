@@ -1,0 +1,211 @@
+# test generation of signature files
+
+# test bug 104
+compile_fail LBusX.bs
+compare_file LBusX.bs.bsc-out
+
+# all identifiers are exported with no export list
+compile_pass ExportAllExport.bs
+if { [do_internal_checks] } {
+    dumpbi ExportAllExport.bo
+    compare_file [make_dumpbi_output_name ExportAllExport.bo]
+}
+compile_pass ExportAllImport.bs
+
+# no identifiers are exported with empty export list
+compile_pass ExportAllExportBad.bs
+if { [do_internal_checks] } {
+    dumpbi ExportAllExportBad.bo
+    compare_file [make_dumpbi_output_name ExportAllExportBad.bo]
+}
+compile_fail_error ExportAllImportBad.bs T0004
+
+# ---------------
+
+# Test re-exporting a whole package
+
+# Test for scenarios which should compile
+compile_pass ReExportPkg_Top.bs
+
+# Test that using hidden constructors fails
+compile_fail_error ReExportPkg_TopAbstract.bs T0003
+
+# Test the BSV syntax
+compile_pass ReExportPkgBSV_Top.bsv
+
+# ---------------
+
+# Test re-exporting individual names
+# and test that type aliases are expanded OK
+# and that using re-exported types in exported defs works OK
+
+compile_pass ReExport_Top.bs
+
+# ---------------
+
+compile_pass ReExportItems_TopOK.bsv
+
+compile_fail_error ReExportItems_TopNotOK.bsv T0004
+
+# Test that re-exported types appear in the internal symbols list
+# of the bo file (both when re-exported as a package and individually)
+# only run as an engineering test
+if { [do_internal_checks] } {
+# reexport of an item
+dumpbo ReExportItems_Q.bo
+set outfile [make_dumpbo_output_name ReExportItems_Q.bo]
+# XXX do a better job of making sure that it's in the "internal symbols"?
+find_n_strings $outfile {data (ReExportItems_P.AB :: } 2
+find_n_strings $outfile {ReExportItems_P.a :: ReExportItems_P.AB} 2
+
+# reexport of a package
+dumpbo ReExportPkg_Q.bo
+set outfile [make_dumpbo_output_name ReExportPkg_Q.bo]
+find_n_strings $outfile {data (ReExportPkg_P.T :: } 2
+find_n_strings $outfile {data (ReExportPkg_P.T2 :: } 2
+find_n_strings $outfile {ReExportPkg_P.v :: } 2
+}
+
+# ---------------
+# Test that keywords are escaped in the bi-file
+
+compile_pass TestKeywords.bsv
+
+# ---------------
+# Test that package qualifiers are considered
+# when there are multiple functions with the same base name
+
+# -----
+# Steve's original example
+# (The name of the sub-file impacts the sorting order, hence the prefixes.)
+# Files: Bar_VectorReExport.bsv, Foo_TestVectorReExport.bsv
+
+compile_pass Foo_TestVectorReExport.bsv
+
+# -----
+# Directed test for re-export and re-re-export
+# (Includes a type, a var, and a pragma.  Re-re-export tests CIValueSign
+# and CIType.)
+# Files: Basic.bsv, BasicReExport.bsv, BasicReReExport.bsv, TestReReExport.bsv
+
+test_veri_only_bsv TestReReExport
+if { $vtest == 1 } {
+find_n_warning [make_bsc_vcomp_output_name TestReReExport.bsv] P0072 2
+}
+
+# -----
+# Directed tests that the presence of local defs with the same base name is OK
+# Files: Basic.bsv, Shadow.bsv, Shadow2.bsv, Shadow3.bsv
+
+# Re-export a package which contains var and type defs that are the same
+# as local defs that are not exported
+# (The imported defs which are shadowed by local defs are not exported.)
+compile_pass Shadow.bsv
+if { [do_internal_checks] } {
+    dumpbi Shadow.bo
+    set outfile [make_dumpbi_output_name Shadow.bo]
+    find_n_strings $outfile {properties myFn2 =} 1
+    find_n_strings $outfile {Basic.myFn2 ::} 1
+    find_n_strings $outfile {myFn1} 0
+    find_n_strings $outfile {Basic.S} 0
+}
+
+# Don't re-export the package but explicitly export the local var and def
+# (The names are exported, with the type signature of the local defs.)
+compile_pass Shadow2.bsv
+if { [do_internal_checks] } {
+    dumpbi Shadow2.bo
+    set outfile [make_dumpbi_output_name Shadow2.bo]
+    # none of the Basic vars or types
+    find_n_strings $outfile {Basic.myFn} 0
+    find_n_strings $outfile {Basic.S} 0
+    # the S type is the local one
+    find_n_strings $outfile {Shadow2.A} 1
+    # the myFn1 function is the local one
+    find_regexp $outfile {Shadow2\.myFn1 \:: .*Bool.*\;}
+}
+
+# Re-export the package and the local defs
+# (All names are exported, but the local names have their local signatures.)
+compile_pass Shadow3.bsv
+if { [do_internal_checks] } {
+    dumpbi Shadow3.bo
+    set outfile [make_dumpbi_output_name Shadow3.bo]
+    # the S type is the local one
+    find_n_strings $outfile {Shadow3.A} 1
+    # the myFn1 function is the local one
+    find_regexp $outfile {Shadow3\.myFn1 \:: .*Bool.*\;}
+    # the remaining function from Basic is exported
+    find_n_strings $outfile {properties myFn2 =} 1
+    find_n_strings $outfile {Basic.myFn2 ::} 1
+}
+
+# -----
+# We don't have to deal with qualified re-exports of individual names
+# because that syntax is not supported
+
+# XXX should this be a more specific error about an unsupported feature?
+compile_fail_error QualifiedExportShadow.bsv P0005
+
+# -----
+# Test that instances for
+# Files: ImportTestDataCon.bsv, TestDataCon.bsv
+
+# Bug 1522
+compile_pass ImportTestDataCon.bsv
+compile_pass ImportTestDataCon2.bsv
+
+# Bug 1458
+compile_pass ImportReExportTestDataConFull.bsv
+
+# XXX other correctness tests of the check for when an instance should
+# XXX be exported
+
+# ---------------
+# Test that rexport of packages which reexport the same package are OK
+
+compile_pass ReExportSame_Top.bsv
+
+# ---------------
+# Shadowing tests
+
+# XXX Do these duplicate any tests from above?
+
+compile_pass ReExportSame_TopBad.bsv
+compile_pass ReExportSame_TopBad2.bsv
+
+# XXX We should consider warning in these cases
+no_warnings [make_bsc_output_name ReExportSame_TopBad.bsv]
+no_warnings [make_bsc_output_name ReExportSame_TopBad2.bsv]
+
+# ---------------
+# Test bad exports
+
+# -----
+# Test unrecognized names
+
+compile_fail_error UnboundPackage.bsv T0117
+
+# -----
+# Test duplicate exports
+
+compile_fail DupVar.bsv
+# Check that each duplicate gets an error
+compare_file [make_bsc_output_name DupVar.bsv]
+
+compile_fail DupPackage.bsv
+compare_file [make_bsc_output_name DupPackage.bsv]
+
+compile_fail DupIdVsPackage.bsv
+compare_file [make_bsc_output_name DupIdVsPackage.bsv]
+
+compile_fail DupIdVsPackage2.bsv
+# Check that duplicate Ids get reported, and only one overlap message
+compare_file [make_bsc_output_name DupIdVsPackage2.bsv]
+
+# ---------------
+
+# Test that qualified operator Ids are properly escaped in .bi files
+compile_pass TestInfixOp.bsv
+
+# ---------------

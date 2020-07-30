@@ -1,0 +1,38 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number =   4, Value read =   0
+Cycle Number:   6, Writing Data:   1
+Cycle Number:  12, Writing Data:   2
+Cycle Number =  16, Value read =   1
+Cycle Number =  18, Value read =   2
+Cycle Number:  61, Writing Data:   3
+Cycle Number =  65, Value read =   3
+Cycle Number:  67, Writing Data:   4
+Cycle Number =  71, Value read =   4
+Cycle Number:  73, Writing Data:   5
+Cycle Number =  77, Value read =   5
+Cycle Number:  79, Writing Data:   6
+Cycle Number =  83, Value read =   6
+Cycle Number:  85, Writing Data:   7
+Cycle Number =  89, Value read =   7
+Cycle Number:  91, Writing Data:   8
+Cycle Number =  95, Value read =   8
+Cycle Number:  97, Writing Data:   9
+Simulation Passes
+Final state:
+top:
+  counter = 0x65
+  fail = False
+  in_data = 0x0a
+  out_data = 0x09
+  the_rx_datafifo_doneSrcState = True
+  the_rx_datafifo_dstData = True
+  the_rx_datafifo_dstState = False
+  the_rx_datafifo_latch = 0x09
+  the_rx_datafifo_srcState = False
+  the_rx_datafifo_srcStateP = False
+  the_rx_datafifo_value = 0x09
+  the_tx_datafifo_dstState = True
+  the_tx_datafifo_dstStateP = True
+  the_tx_datafifo_latch = 0x09
+  the_tx_datafifo_srcData = True
+  the_tx_datafifo_srcState = False

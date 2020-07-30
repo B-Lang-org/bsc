@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ECannotDerive2.bs
+Error: "ECannotDerive2.bs", line 19, column 34: (T0000)
+  Illegal deriving: Arith

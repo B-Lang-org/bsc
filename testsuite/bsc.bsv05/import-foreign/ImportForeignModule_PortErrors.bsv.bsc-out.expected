@@ -1,0 +1,45 @@
+checking package dependencies
+Error: "ImportForeignModule_PortErrors.bsv", line 21, column 3: (P0194)
+  The foreign module input PORT1 is not unique.
+Error: "ImportForeignModule_PortErrors.bsv", line 23, column 3: (P0194)
+  The foreign module input PORT2 is not unique.
+Error: "ImportForeignModule_PortErrors.bsv", line 25, column 3: (P0195)
+  The foreign module port PARAM1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 27, column 3: (P0195)
+  The foreign module port OUTPUT1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 29, column 3: (P0195)
+  The foreign module port GATE1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 30, column 3: (P0194)
+  The foreign module input CLK1 is not unique.
+Error: "ImportForeignModule_PortErrors.bsv", line 32, column 3: (P0195)
+  The foreign module port CLK2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 34, column 3: (P0195)
+  The foreign module port EN1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 34, column 3: (P0194)
+  The foreign module input EN1 is not unique.
+Error: "ImportForeignModule_PortErrors.bsv", line 34, column 3: (P0195)
+  The foreign module port EN1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 35, column 3: (P0195)
+  The foreign module port ARG1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 35, column 3: (P0195)
+  The foreign module port ARG2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 35, column 3: (P0195)
+  The foreign module port EN2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 35, column 3: (P0195)
+  The foreign module port OUTPUT2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 35, column 3: (P0195)
+  The foreign module port RDY2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 38, column 3: (P0194)
+  The foreign module input CLK3 is not unique.
+Error: "ImportForeignModule_PortErrors.bsv", line 39, column 3: (P0195)
+  The foreign module port RDY1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 41, column 3: (P0195)
+  The foreign module port CLK4 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 43, column 6: (P0195)
+  The foreign module port RST1 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 44, column 6: (P0195)
+  The foreign module port RST2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 45, column 6: (P0195)
+  The foreign module port GATE2 is used as an input and an output.
+Error: "ImportForeignModule_PortErrors.bsv", line 45, column 6: (P0195)
+  The foreign module port RST2 is used as an input and an output.

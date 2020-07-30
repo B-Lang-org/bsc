@@ -1,0 +1,150 @@
+if {$vtest == 1} {
+# Tests for urgency warnings and guidance
+
+# --------------------------------------------------
+# Conflicting methods of same urgency should not result in scheduling
+# conflicts (and thus not produce a warning)
+compile_verilog_schedule_pass IfcIfcWarning.bsv sysIfcIfcWarning
+compare_file_filter_ids IfcIfcWarning.bsv.bsc-sched-out
+
+# --------------------------------------------------
+# A rule which conflicts with a method which is more urgent by
+# convention should have a scheduling conflict,
+# and we used to not warn, but now we do
+
+compile_verilog_schedule_pass IfcRuleWarning.bsv sysIfcRuleWarning
+compare_file_filter_ids IfcRuleWarning.bsv.bsc-sched-out
+
+# --------------------------------------------------
+# Verify that when you have to pick an ordering you only give the O(n)
+# errors which are needed to explain the total ordering
+
+compile_verilog_schedule_pass MinimalRuleWarnings.bsv sysMinimalRuleWarnings
+compare_file_filter_ids MinimalRuleWarnings.bsv.bsc-sched-out
+
+# Test that we aren't suppressing too many urgency warnings (Bug #1083)
+compile_verilog_pass_warning MinimalRuleWarnings2.bsv G0010 3
+
+# --------------------------------------------------
+# If two rules conflict and no direct urgency order is specified between
+# then, urgency warnings should still not be issued if a sequence
+# of edges in the graph restricts the urgency to one direction.
+
+# when the edges are urgency edges
+compile_verilog_pass_warning_bug NoErrorDueToSeq1.bsv G0010 1082 0
+
+# when the edges are due to a path (contrived)
+compile_verilog_pass_warning_bug NoErrorDueToSeq2.bsv G0010 1082 0
+
+# --------------------------------------------------
+# always_enabled should not be allowed for modules with conflicting methods
+
+compile_verilog_schedule_fail_bug AlwaysEnabled.bsv sysAlwaysEnabled 469
+
+# --------------------------------------------------
+
+# Test that urgency attributes on locally referenced rules works
+# (if the urgency is respected, then there is a warning that the
+# less-urgent rule is disable)
+
+compile_verilog_schedule_pass DescendingUrgencyAttribute1.bsv sysDescendingUrgencyAttribute1
+compare_file_filter_ids DescendingUrgencyAttribute1.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass DescendingUrgencyAttribute2.bsv sysDescendingUrgencyAttribute2
+compare_file_filter_ids DescendingUrgencyAttribute2.bsv.bsc-sched-out
+
+# Test that split rules retain the urgency relationships of the
+# original rule
+
+compile_verilog_schedule_pass DescendingUrgencyAttributeSplitIf.bsv sysDescendingUrgencyAttributeSplitIf "-no-lift -split-if"
+compare_file_filter_ids DescendingUrgencyAttributeSplitIf.bsv.bsc-sched-out
+
+# Test that bad rule identifiers result in an error
+
+compile_verilog_fail_error DescendingUrgencyAttributeBadRule.bsv G0054 1 sysDescendingUrgencyAttributeBadRule
+
+# Test that dot-notation works for submodules
+
+compile_verilog_schedule_pass DescendingUrgencyAttributeSubModule1.bsv sysDescendingUrgencyAttributeSubModule1
+# Instead of compare_file_filter_ids, could check that there is no urgency choice warning
+compare_file_filter_ids DescendingUrgencyAttributeSubModule1.bsv.bsc-sched-out
+
+# Test that names of rules in for loops get split into urgencies for all
+# of the unique rules
+
+compile_verilog_schedule_pass DescendingUrgencyAttributeForLoop.bsv sysDescendingUrgencyAttributeForLoop
+# Instead of compare_file_filter_ids, could check that there is no urgency choice warning
+compare_file_filter_ids DescendingUrgencyAttributeForLoop.bsv.bsc-sched-out
+
+# Test that urgency cycles are detected
+
+compile_verilog_fail_error UrgencyCycleError.bsv G0030 1 sysUrgencyCycleError
+
+# Test that descending_urgency from a rule to itself is an error
+compile_verilog_fail_error ReflexiveDescendingUrgency.bsv G0040 1
+
+# Test for a rule which is more urgent than a value method
+compile_verilog_pass_warning RulePreemptsValueMethod.bsv G0022 1
+
+# Test for a value method which is more urgent than a rule
+compile_verilog_pass_warning ValueMethodPreemptsRule.bsv G0021 1
+
+# --------------------------------------------------
+
+## Testing of Urgency and preempt function.
+
+compile_verilog_schedule_pass DUFunction1.bsv 
+compare_file_filter_ids DUFunction1.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass DUFunction2.bsv 
+compare_file_filter_ids DUFunction2.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass DUFunction3.bsv 
+compare_file_filter_ids DUFunction3.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass DUFunction4.bsv 
+compare_file_filter_ids DUFunction4.bsv.bsc-sched-out
+
+compile_verilog_fail_error DUFunction5.bsv G0054 6 sysDUFunction5
+
+compile_verilog_schedule_pass DUFunction6.bsv 
+compare_file_filter_ids DUFunction6.bsv.bsc-sched-out
+
+# --------------------------------------------------
+
+# Test that user-specified urgency which is trivially satisfied
+# (the rules do not conflict) do not create an edge in the graph
+# (and thus no cycle is reported in this example).
+
+# Test that we drop edges when the rules are conflict free
+compile_verilog_pass NoUrgencyEdgeCF.bsv
+
+# Test that we drop edges when the rules are are not conflict free,
+# but can still execute in the same cycle, just in a specific order
+compile_verilog_pass NoUrgencyEdgeSB.bsv
+
+# Test that we drop edges when the rules are mutually exclusive
+compile_verilog_pass NoUrgencyEdgeME.bsv
+
+# --------------------------------------------------
+# Test that rJoinDescendingUrgency applied to two groups of rules
+# doesn't create relationships between rules in the same group
+
+compile_verilog_pass_warning JoinUrgencyMany.bsv G0010
+find_n_strings JoinUrgencyMany.bsv.bsc-vcomp-out \
+    {Rule "r1" was treated as more urgent than "r2"} 1
+
+# --------------------------------------------------
+# Test for bug 649
+# Urgency specified in several lines differs from specifying in one line
+
+compile_verilog_pass_no_warning_bug Transitivity.bsv G0010 649
+
+# --------------------------------------------------
+# Test how trivial attributes are handled
+
+compile_verilog_pass_warning DUSingleton.bsv G0010
+
+# --------------------------------------------------
+
+}

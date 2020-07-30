@@ -1,0 +1,120 @@
+Foreign Function Calls
+av_narrow
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    popcount = 8
+ rn1 = 00000008
+av_narrow
+    n = 00000060
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = 00000011 00000011 00000011
+    s = Hi mom!
+    popcount = 120
+ rn2 = 00000078
+av_wide
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~w = ffffffee ffffffee ffffffee ffffffee
+ rw1 = ffffffeeffffffeeffffffeeffffffee
+av_wide
+    n = 00000060
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = 00000011 00000011 00000011
+    s = Hi mom!
+    ~w = 00000011 00000011 00000011 00000011
+ rw2 = 00000011000000110000001100000011
+av_poly
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~p = ffffffee ffffffee
+ rp1 = ffffffeeffffffee
+av_poly
+    n = 00000060
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = 00000011 00000011 00000011
+    s = Hi mom!
+    ~p = ffffffee ffffffee ffffffee
+ rp2 = ffffffeeffffffeeffffffee
+av_poly
+    n = 00000020
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011
+    s = Hi mom!
+    ~p = ffffffee
+ rp0 = ffffffee
+random_narrow
+    res = 35bbd0a8
+ no_arg_n = 35bbd0a8
+random_wide
+    res = 75a09dfc 75a09dfc 75a09dfc 75a09dfc
+ no_arg_w = 75a09dfc75a09dfc75a09dfc75a09dfc
+av_narrow
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    popcount = 8
+ rn3 = 00000008
+av_wide
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~w = ffffffee ffffffee ffffffee ffffffee
+ rw3 = ffffffeeffffffeeffffffeeffffffee
+av_poly
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~p = ffffffee ffffffee
+ rp3 = ffffffeeffffffee
+av_narrow
+    n = 00000040
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = ffffffee ffffffee
+    s = Hi mom!
+    popcount = 120
+ rn4 = 00000078
+av_wide
+    n = 00000040
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = ffffffee ffffffee
+    s = Hi mom!
+    ~w = 00000011 00000011 00000011 00000011
+ rw4 = 00000011000000110000001100000011
+av_poly
+    n = 00000040
+    w = ffffffee ffffffee ffffffee ffffffee
+    p = ffffffee ffffffee
+    s = Hi mom!
+    ~p = 00000011 00000011
+ rp4 = 0000001100000011
+av_wide
+    n = 00000040
+    w = 00000000 00000000 00000000 00000001
+    p = ffffffff ffffffff
+    s = Hi
+    ~w = ffffffff ffffffff ffffffff fffffffe
+av_poly
+    n = 00000040
+    w = 00000000 00000000 00000000 00000000
+    p = 00000000 00000000
+    s = Hello
+    ~p = ffffffff ffffffff
+
+Register contents
+ res_n1 = 00000008
+ res_w1 = ffffffeeffffffeeffffffeeffffffee
+ res_p1 = ffffffeeffffffee
+ res_n2 = 00000078
+ res_w2 = 00000011000000110000001100000011
+ res_p2 = 0000001100000011
+ res_w3 = fffffffffffffffffffffffffffffffe
+ res_p3 = ffffffffffffffff

@@ -1,0 +1,21 @@
+unsigned char my_and(unsigned char x, unsigned char y)
+{
+  return (x & y);
+}
+
+unsigned char my_C_or(unsigned char x, unsigned char y)
+{
+  return (x | y);
+}
+
+unsigned char my_xor(unsigned char x, unsigned char y)
+{
+  return (x ^ y);
+}
+
+// link name which starts with a capital letter
+unsigned char MyAnd(unsigned char x, unsigned char y)
+{
+  return (x & y);
+}
+

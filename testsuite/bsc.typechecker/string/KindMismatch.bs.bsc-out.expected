@@ -1,0 +1,14 @@
+checking package dependencies
+compiling KindMismatch.bs
+Error: "KindMismatch.bs", line 10, column 15: (T0149)
+  The numeric type `42' was found where a string type was expected.
+Error: "KindMismatch.bs", line 13, column 17: (T0148)
+  The value type `Int 16' was found where a string type was expected.
+Error: "KindMismatch.bs", line 16, column 15: (T0146)
+  The string type `"a"' was found where a numeric type was expected.
+Error: "KindMismatch.bs", line 22, column 17: (T0026)
+  The value type `Int 16' was found where a numeric type was expected.
+Error: "KindMismatch.bs", line 25, column 17: (T0147)
+  The string type `"a"' was found where a value type was expected.
+Error: "KindMismatch.bs", line 28, column 17: (T0027)
+  The numeric type `42' was found where a value type was expected.

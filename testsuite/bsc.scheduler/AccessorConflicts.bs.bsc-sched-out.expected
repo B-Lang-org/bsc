@@ -1,0 +1,39 @@
+checking package dependencies
+compiling AccessorConflicts.bs
+code generation for sysAccessorConflicts starts
+=== schedule:
+parallel: [esposito: [s -> [], g -> []]]
+order: [g, s]
+
+-----
+
+=== resources:
+[(b.read, [(b.read, 1)]), (r.read, [(r.read, 1)]), (r.write, [(if b__h121 then r.write 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_g CF [RDY_g, g, s], RDY_s CF [RDY_g, RDY_s, g, s], g CF g, g SB s, s SBR s] [] [] []
+
+-----
+
+Schedule dump file created: sysAccessorConflicts.sched
+=== Generated schedule for sysAccessorConflicts ===
+
+Method schedule
+---------------
+Method: s
+Ready signal: True
+Sequenced before (restricted): s
+Sequenced after: g
+ 
+Method: g
+Ready signal: True
+Conflict-free: g
+Sequenced before: s
+ 
+Logical execution order: g, s
+
+====================================================
+Verilog file created: sysAccessorConflicts.v
+All packages are up to date.

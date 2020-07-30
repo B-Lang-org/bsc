@@ -1,0 +1,51 @@
+checking package dependencies
+compiling Bug1619C.bsv
+code generation for sysBug1619C starts
+=== schedule:
+parallel: [esposito: [RL_normal -> [],
+		      RL_normal_1 -> [],
+		      RL_normal_2 -> [],
+		      RL_low_priority -> [RL_normal_2, RL_normal_1, RL_normal]]]
+order: [RL_normal, RL_normal_1, RL_low_priority, RL_normal_2]
+
+-----
+
+=== resources:
+[(decr1.read, [(decr1.read, 1)]),
+ (n.read, [(n.read, 1)]),
+ (x.read, [(x.read, 1)]),
+ (x.write, [(x.write x_PLUS_0_CONCAT_n___d7, 1), (x.write x_MINUS_1___d3, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysBug1619C.sched
+=== Generated schedule for sysBug1619C ===
+
+Rule schedule
+-------------
+Rule: low_priority
+Predicate: decr1
+Blocking rules: normal_2, normal_1, normal
+ 
+Rule: normal
+Predicate: n == 2'd0
+Blocking rules: (none)
+ 
+Rule: normal_1
+Predicate: n == 2'd1
+Blocking rules: (none)
+ 
+Rule: normal_2
+Predicate: n == 2'd2
+Blocking rules: (none)
+ 
+Logical execution order: normal, normal_1, low_priority, normal_2
+
+===========================================
+Verilog file created: sysBug1619C.v
+All packages are up to date.

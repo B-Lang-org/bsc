@@ -1,0 +1,1 @@
+test_c_veri_bsv_multi_options_separately square5 sysValidValue5 {mkSquare} "" "square5.out.expected"

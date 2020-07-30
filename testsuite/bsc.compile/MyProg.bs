@@ -1,0 +1,13 @@
+package MyProg() where
+
+import List
+
+inc :: Integer -> Integer
+inc x = x + 1
+
+evens :: List Integer
+evens = 0 :> (map inc odds)
+
+odds :: List Integer
+odds = map inc evens
+

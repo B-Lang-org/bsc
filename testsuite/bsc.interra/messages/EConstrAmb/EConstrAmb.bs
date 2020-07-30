@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EConstrAmb.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EConstrAmb error of the bluespec
+-- compiler (Constructor {Identifier} is not disambiguated by type {type})
+--
+-----------------------------------------------------------------------
+
+
+
+package EConstrAmb () where
+
+data My_type1 = Constructor1 | Constructor2
+data My_type2 = Constructor1 | Constructor2
+
+function :: My_type1 -> My_type1
+function x = let z = Constructor1
+             in z

@@ -1,0 +1,25 @@
+Invoking command line:
+bsc -print-flags -vsearch foo -steps 12345678 -i BLUESPECDIR
+
+Flags:
+    -i BLUESPECDIR
+    -lift
+    -o a.out
+    -parallel-sim-link   1
+    -print-flags
+    -remove-empty-rules
+    -remove-false-rules
+    -reset-prefix RST_N
+    -resource-off
+    -sat-yices
+    -show-compiles
+    -show-timestamps
+    -show-version
+    -steps 12345678
+    -steps-max-intervals 1
+    -steps-warn-interval 12345678
+    -unspecified-to A
+    -vsearch foo
+    -warn-action-shadowing
+    -warn-method-urgency
+

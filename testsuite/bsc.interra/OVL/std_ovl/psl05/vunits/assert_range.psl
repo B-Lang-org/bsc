@@ -1,0 +1,61 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_range_assert_vunit (assert_range_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_RANGE_P = always (
+           (reset_n != 1'b0) -> (test_expr >= min && test_expr <= max) );
+  
+  //Property for X/Z checking
+
+  property ASSERT_RANGE_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && reset_n -> !isunknown(test_expr));
+
+  A_ASSERT_RANGE_P:
+  assert ASSERT_RANGE_P
+  report "VIOLATION: ASSERT_RANGE Checker Fires: Test expression evaluates to a value outside the range specified by parameters min and max";
+
+  A_ASSERT_RANGE_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_RANGE_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_RANGE Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_range_assume_vunit (assert_range_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_RANGE_P = always (
+           (reset_n != 1'b0) -> (test_expr >= min && test_expr <= max) );
+
+  //Property for X/Z checking
+
+  property ASSERT_RANGE_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && reset_n -> !isunknown(test_expr));
+
+  M_ASSERT_RANGE_P:
+  assume ASSERT_RANGE_P;
+
+  M_ASSERT_RANGE_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_RANGE_XZ_ON_TEST_EXPR_P;
+}
+
+vunit assert_range_cover_vunit (assert_range_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_SANITY_ON && prev(reset_n) && reset_n && (test_expr != prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_RANGE Checker: test_expr_change covered";
+
+  cover_test_expr_range_at_min:
+  cover {OVL_COVER_CORNER_ON && reset_n && (test_expr == min) }
+  report "COVERAGE REPORT : ASSERT_RANGE Checker: test_expr_range_at_min covered";
+
+  cover_test_expr_range_at_max:
+  cover {OVL_COVER_CORNER_ON && reset_n && (test_expr == max) }
+  report "COVERAGE REPORT : ASSERT_RANGE Checker: test_expr_range_at_max covered";
+}
+

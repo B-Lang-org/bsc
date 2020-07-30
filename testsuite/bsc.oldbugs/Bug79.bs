@@ -1,0 +1,14 @@
+package Bug79(sysBug79) where
+
+import Bug79b
+import Bug79a
+
+sysBug79 :: Module Empty
+sysBug79 = 
+  module
+    ra :: Reg (B) 
+    ra <- mkReg (A AnA)
+    rb :: Reg (B)
+    rb <- mkReg B
+    rc :: Reg (A) 
+    rc <- mkReg Invalid

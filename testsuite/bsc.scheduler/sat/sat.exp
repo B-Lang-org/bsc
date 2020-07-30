@@ -1,0 +1,61 @@
+# test scheduling and resource allocation
+# (other tests are in subdirectories)
+
+set sources [list \
+                 BoolTest AddTest MultTest \
+                 DivTest  RemTest \
+                 ShiftRTest ShiftRATest ShiftLTest \
+                 LessThanSTest LessThanTest \
+                 ZextTest SextTest  IteTest \
+                 TruncateTest ShiftRATest2 \
+		 ArraySelectTest CaseTest \
+		 ArraySelectShortIndexTest ArraySelectLongIndexTest \
+		 ArraySelectImplCondTest \
+		 ParamBoolTest ParamBitsTest \
+		 Word64Test
+                ]
+
+set solvers [list yices stp]
+
+
+set failures [list]
+
+## Note that these tests give incorrect schedules due to limitations in the
+## solver abaility
+## For STP:    Shift*
+
+
+if {$vtest == 1} {
+
+    set flags [list]
+
+    foreach solver $solvers {
+	bsc_compile AddTest.bsv -sat-$solver
+	set stat [grep AddTest.bsv.bsc-out test.log S0081]
+	set name [string totitle $solver]
+	if { $stat == 0 } {
+	    note "$name is NOT available"
+	} else {
+	    note "$name is available"
+	    lappend flags sat-$solver
+	}
+    }
+
+    foreach s $sources {
+        foreach flag $flags {
+
+            set fname ${s}_${flag}
+            copy $s.bsv $fname.bsv
+
+            if { [lsearch $failures $fname] == -1 } {
+                compile_verilog_schedule_pass $fname.bsv "" "-$flag"
+                compare_file_filter_ids $fname.bsv.bsc-sched-out
+            } else {
+                compile_verilog_schedule_fail $fname.bsv "" "-$flag"
+            }
+
+            erase $fname.bsv
+        }
+    }
+}
+

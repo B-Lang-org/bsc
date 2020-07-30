@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InputArg_TwoReg.bsv
+code generation for sysInputArg_TwoReg starts
+=== IOproperties:
+Name                         I/O  size props
+b                              I    16 reg
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysInputArg_TwoReg.v
+All packages are up to date.

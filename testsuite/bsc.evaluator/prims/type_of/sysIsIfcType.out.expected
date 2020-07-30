@@ -1,0 +1,5 @@
+Integer: 0
+Bit#(32): 0
+Reg#(Bit#(32)): 1
+FIFO::FIFO#(Bit#(32)): 1
+Maybe#(Reg#(Bit#(32))): 0

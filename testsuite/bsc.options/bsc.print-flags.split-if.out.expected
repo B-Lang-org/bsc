@@ -1,0 +1,26 @@
+Invoking command line:
+bsc -i BLUESPECDIR -print-flags -split-if
+
+Flags:
+    -aggressive-conditions
+    -i BLUESPECDIR
+    -lift
+    -o a.out
+    -parallel-sim-link   1
+    -print-flags
+    -remove-empty-rules
+    -remove-false-rules
+    -reset-prefix   RST_N
+    -resource-off
+    -sat-yices
+    -show-compiles
+    -show-timestamps
+    -show-version
+    -split-if
+    -steps 1000000
+    -steps-max-intervals 10
+    -steps-warn-interval 100000
+    -unspecified-to A
+    -warn-action-shadowing
+    -warn-method-urgency
+

@@ -1,0 +1,48 @@
+checking package dependencies
+compiling SplitIfMeth.bsv
+code generation for mkSplitIfMeth starts
+=== schedule:
+parallel: [esposito: [a1_T -> [], a1_F -> [], a2 -> []]]
+order: [a1_T, a2, a1_F]
+
+-----
+
+=== resources:
+[(b.read, [(b.read, 1)]),
+ (x.read, [(x.read, 1)]),
+ (x.write, [(x.write b__h252, 1)]),
+ (y.read, [(y.read, 1)]),
+ (y.write, [(y.write b__h272, 1)]),
+ (z.read, [(z.read, 1)]),
+ (z.write, [(z.write b__h253, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_a1 CF [RDY_a1, RDY_a2, a1, a2], RDY_a2 CF [RDY_a2, a1, a2], a2 SBR a2, a1 C [a1, a2]]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: mkSplitIfMeth.sched
+=== Generated schedule for mkSplitIfMeth ===
+
+Method schedule
+---------------
+Method: a1
+Ready signal: b || (! b)
+Conflicts: a1, a2
+ 
+Method: a2
+Ready signal: True
+Sequenced before (restricted): a2
+Conflicts: a1
+ 
+Logical execution order: a1_T, a2, a1_F
+
+=============================================
+Verilog file created: mkSplitIfMeth.v
+All packages are up to date.

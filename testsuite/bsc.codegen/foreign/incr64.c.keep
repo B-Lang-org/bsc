@@ -1,0 +1,7 @@
+#include <stdio.h>
+
+unsigned long long func64(unsigned long long arg)
+{
+    printf("%llx\n", arg);
+    return arg + 1llu;
+}

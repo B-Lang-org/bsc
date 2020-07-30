@@ -1,0 +1,45 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ResourceTwoRules.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Code picked from Bluespec testsuite "bsc.scheduler"
+
+-- Description: This testcase triggers a "Rules Arbitration" Warning (EArbitrate)
+
+-- Error Message :  bsc -verilog -resource-simple -g sysResourceTwoRules ResourceTwoRules.bs 
+-- bsc: Compilation warnings:
+-- Unknown position, Arbitrating between `Contender__1' and `Contender__2'.
+-- "ResourceTwoRules.bs", line 42, column 8, `a.sub' needs more than 5 ports to use `a.sub 0 "ResourceTwoRules.bs", line 42, column 8', `a.sub 1 "ResourceTwoRules.bs", line 42, column 8', `a.sub 2 "ResourceTwoRules.bs", line 42, column 8', `a.sub 3 "ResourceTwoRules.bs", line 42, column 8', `a.sub 4 "ResourceTwoRules.bs", line 42, column 8', and `a.sub 5 "ResourceTwoRules.bs", line 42, column 8'.
+-----------------------------------------------------------------------
+package ResourceTwoRules(sysResourceTwoRules) where
+
+import RegFile
+-- import Int
+import List
+
+-- We are attempting to access six elements of an array simultaneously,
+-- but Arrays only permit five simultaneous subs.
+-- Expect a priority encoder between two rules (resource constraints).
+
+type Indx = Bit 8
+type Value = Bit 8
+
+lo :: Integer
+lo = 0
+
+hi :: Integer
+hi = 5
+
+sysResourceTwoRules :: Module Empty
+sysResourceTwoRules =
+      module
+	let mkRule a n = rules
+			   "Contender": when True
+			   	       ==> $display (a.sub n)
+	a :: RegFile Indx Value
+	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        addRules $ foldr1 (<+>) $ map (mkRule a) $ map fromInteger $ upto lo hi 
+

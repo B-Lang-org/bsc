@@ -1,0 +1,46 @@
+# -----
+# Test that BSC warns if the search path contains multiple .ba files
+# by the same name
+
+if { $ctest == 1 } {
+
+# Compile a design with two modules, to generate .ba files
+compile_object_pass TbGCD.bsv
+
+# Make subdirs with a copy of the imported .ba file
+mkdir libdir1
+mkdir libdir2
+copy mkGCD.ba libdir1
+copy mkGCD.ba libdir2
+
+# Make one unreadable (Bug 1010)
+chmod {u-r} libdir1/mkGCD.ba
+
+# Try linking with three .ba files in the path
+link_objects_pass {} mkTbGCD {-p libdir1:+:libdir2}
+
+# Check that we get warnings (S0088, S0089)
+compare_file mkTbGCD.bsc-ccomp-out
+
+}
+
+# -----
+# Test that BSC errors if a .ba file is read that does not contain
+# the expected module
+
+if { $ctest == 1 } {
+
+compile_object_pass WrongMod.bsv
+compile_object_pass WrongTop.bsv
+
+move mkWrongMod.ba mkRightMod.ba
+
+link_objects_fail {} mkWrongTop
+
+# checkt that we get the error (S0065)
+compare_file mkWrongTop.bsc-ccomp-out
+
+}
+
+# -----
+

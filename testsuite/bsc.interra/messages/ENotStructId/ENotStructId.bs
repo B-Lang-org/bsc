@@ -1,0 +1,25 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotStructId.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ENotStructId error of the bluespec
+-- compiler (Identifier is not a struct name)
+--
+-----------------------------------------------------------------------
+
+
+
+package ENotStructId () where
+
+data Null = Invalid
+
+interface GCD = {}   -- struct name expected here
+
+mkGCD :: Module Null
+mkGCD =
+    module {}
+
+

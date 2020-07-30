@@ -1,0 +1,2 @@
+compile_fail EAmbOper.bs
+compare_file EAmbOper.bs.bsc-out

@@ -1,0 +1,1249 @@
+tr rl fired at                   45, areg =           0
+ap rl fired at                   45, areg =           0 creg =           0
+ap rl fired at                   55, areg =           1 creg =           0
+ap rl fired at                   65, areg =           2 creg =           0
+ap rl fired at                   75, areg =           3 creg =           0
+ap rl fired at                   85, areg =           4 creg =           0
+ap rl fired at                   95, areg =           5 creg =           0
+ap rl fired at                  105, areg =           6 creg =           0
+ap rl fired at                  115, areg =           7 creg =           0
+tr rl fired at                  125, areg =           8
+ap rl fired at                  125, areg =           8 creg =           0
+ap rl fired at                  135, areg =           9 creg =           0
+ap rl fired at                  145, areg =          10 creg =           0
+ap rl fired at                  155, areg =          11 creg =           0
+ap rl fired at                  165, areg =          12 creg =           0
+ap rl fired at                  175, areg =          13 creg =           0
+ap rl fired at                  185, areg =          14 creg =           0
+ap rl fired at                  195, areg =          15 creg =           0
+tr rl fired at                  205, areg =          16
+ap rl fired at                  205, areg =          16 creg =           0
+ap rl fired at                  215, areg =          17 creg =           0
+ap rl fired at                  225, areg =          18 creg =           0
+ap rl fired at                  235, areg =          19 creg =           0
+ap rl fired at                  245, areg =          20 creg =           0
+ap rl fired at                  255, areg =          21 creg =           0
+ap rl fired at                  265, areg =          22 creg =           0
+ap rl fired at                  275, areg =          23 creg =           0
+tr rl fired at                  285, areg =          24
+ap rl fired at                  285, areg =          24 creg =           0
+b rl fired at                  285, breg =           0, crossReg =           0 
+ap rl fired at                  295, areg =          25 creg =           0
+ap rl fired at                  305, areg =          26 creg =           0
+ap rl fired at                  315, areg =          27 creg =           0
+ap rl fired at                  325, areg =          28 creg =           0
+ap rl fired at                  335, areg =          29 creg =           0
+ap rl fired at                  345, areg =          30 creg =           0
+ap rl fired at                  355, areg =          31 creg =           0
+tr rl fired at                  365, areg =          32
+ap rl fired at                  365, areg =          32 creg =           0
+b rl fired at                  365, breg =           1, crossReg =          24 
+ap rl fired at                  375, areg =          33 creg =           1
+ap rl fired at                  385, areg =          34 creg =           1
+ap rl fired at                  395, areg =          35 creg =           1
+ap rl fired at                  405, areg =          36 creg =           1
+ap rl fired at                  415, areg =          37 creg =           1
+ap rl fired at                  425, areg =          38 creg =           1
+ap rl fired at                  435, areg =          39 creg =           1
+tr rl fired at                  445, areg =          40
+ap rl fired at                  445, areg =          40 creg =           1
+b rl fired at                  445, breg =           2, crossReg =          32 
+ap rl fired at                  455, areg =          41 creg =           2
+ap rl fired at                  465, areg =          42 creg =           2
+ap rl fired at                  475, areg =          43 creg =           2
+ap rl fired at                  485, areg =          44 creg =           2
+ap rl fired at                  495, areg =          45 creg =           2
+ap rl fired at                  505, areg =          46 creg =           2
+ap rl fired at                  515, areg =          47 creg =           2
+tr rl fired at                  525, areg =          48
+ap rl fired at                  525, areg =          48 creg =           2
+b rl fired at                  525, breg =           3, crossReg =          40 
+ap rl fired at                  535, areg =          49 creg =           3
+ap rl fired at                  545, areg =          50 creg =           3
+ap rl fired at                  555, areg =          51 creg =           3
+ap rl fired at                  565, areg =          52 creg =           3
+ap rl fired at                  575, areg =          53 creg =           3
+ap rl fired at                  585, areg =          54 creg =           3
+ap rl fired at                  595, areg =          55 creg =           3
+tr rl fired at                  605, areg =          56
+ap rl fired at                  605, areg =          56 creg =           3
+b rl fired at                  605, breg =           4, crossReg =          48 
+ap rl fired at                  615, areg =          57 creg =           4
+ap rl fired at                  625, areg =          58 creg =           4
+ap rl fired at                  635, areg =          59 creg =           4
+ap rl fired at                  645, areg =          60 creg =           4
+ap rl fired at                  655, areg =          61 creg =           4
+ap rl fired at                  665, areg =          62 creg =           4
+ap rl fired at                  675, areg =          63 creg =           4
+tr rl fired at                  685, areg =          64
+ap rl fired at                  685, areg =          64 creg =           4
+b rl fired at                  685, breg =           5, crossReg =          56 
+ap rl fired at                  695, areg =          65 creg =           5
+ap rl fired at                  705, areg =          66 creg =           5
+ap rl fired at                  715, areg =          67 creg =           5
+ap rl fired at                  725, areg =          68 creg =           5
+ap rl fired at                  735, areg =          69 creg =           5
+ap rl fired at                  745, areg =          70 creg =           5
+ap rl fired at                  755, areg =          71 creg =           5
+tr rl fired at                  765, areg =          72
+ap rl fired at                  765, areg =          72 creg =           5
+b rl fired at                  765, breg =           6, crossReg =          64 
+ap rl fired at                  775, areg =          73 creg =           6
+ap rl fired at                  785, areg =          74 creg =           6
+ap rl fired at                  795, areg =          75 creg =           6
+ap rl fired at                  805, areg =          76 creg =           6
+ap rl fired at                  815, areg =          77 creg =           6
+ap rl fired at                  825, areg =          78 creg =           6
+ap rl fired at                  835, areg =          79 creg =           6
+tr rl fired at                  845, areg =          80
+ap rl fired at                  845, areg =          80 creg =           6
+b rl fired at                  845, breg =           7, crossReg =          72 
+ap rl fired at                  855, areg =          81 creg =           7
+ap rl fired at                  865, areg =          82 creg =           7
+ap rl fired at                  875, areg =          83 creg =           7
+ap rl fired at                  885, areg =          84 creg =           7
+ap rl fired at                  895, areg =          85 creg =           7
+ap rl fired at                  905, areg =          86 creg =           7
+ap rl fired at                  915, areg =          87 creg =           7
+tr rl fired at                  925, areg =          88
+ap rl fired at                  925, areg =          88 creg =           7
+b rl fired at                  925, breg =           8, crossReg =          80 
+ap rl fired at                  935, areg =          89 creg =           8
+ap rl fired at                  945, areg =          90 creg =           8
+ap rl fired at                  955, areg =          91 creg =           8
+ap rl fired at                  965, areg =          92 creg =           8
+ap rl fired at                  975, areg =          93 creg =           8
+ap rl fired at                  985, areg =          94 creg =           8
+ap rl fired at                  995, areg =          95 creg =           8
+tr rl fired at                 1005, areg =          96
+ap rl fired at                 1005, areg =          96 creg =           8
+b rl fired at                 1005, breg =           9, crossReg =          88 
+ap rl fired at                 1015, areg =          97 creg =           9
+ap rl fired at                 1025, areg =          98 creg =           9
+ap rl fired at                 1035, areg =          99 creg =           9
+ap rl fired at                 1045, areg =         100 creg =           9
+ap rl fired at                 1055, areg =         101 creg =           9
+ap rl fired at                 1065, areg =         102 creg =           9
+ap rl fired at                 1075, areg =         103 creg =           9
+tr rl fired at                 1085, areg =         104
+ap rl fired at                 1085, areg =         104 creg =           9
+b rl fired at                 1085, breg =          10, crossReg =          96 
+ap rl fired at                 1095, areg =         105 creg =          10
+ap rl fired at                 1105, areg =         106 creg =          10
+ap rl fired at                 1115, areg =         107 creg =          10
+ap rl fired at                 1125, areg =         108 creg =          10
+ap rl fired at                 1135, areg =         109 creg =          10
+ap rl fired at                 1145, areg =         110 creg =          10
+ap rl fired at                 1155, areg =         111 creg =          10
+tr rl fired at                 1165, areg =         112
+ap rl fired at                 1165, areg =         112 creg =          10
+b rl fired at                 1165, breg =          11, crossReg =         104 
+ap rl fired at                 1175, areg =         113 creg =          11
+ap rl fired at                 1185, areg =         114 creg =          11
+ap rl fired at                 1195, areg =         115 creg =          11
+ap rl fired at                 1205, areg =         116 creg =          11
+ap rl fired at                 1215, areg =         117 creg =          11
+ap rl fired at                 1225, areg =         118 creg =          11
+ap rl fired at                 1235, areg =         119 creg =          11
+tr rl fired at                 1245, areg =         120
+ap rl fired at                 1245, areg =         120 creg =          11
+b rl fired at                 1245, breg =          12, crossReg =         112 
+ap rl fired at                 1255, areg =         121 creg =          12
+ap rl fired at                 1265, areg =         122 creg =          12
+ap rl fired at                 1275, areg =         123 creg =          12
+ap rl fired at                 1285, areg =         124 creg =          12
+ap rl fired at                 1295, areg =         125 creg =          12
+ap rl fired at                 1305, areg =         126 creg =          12
+ap rl fired at                 1315, areg =         127 creg =          12
+tr rl fired at                 1325, areg =         128
+ap rl fired at                 1325, areg =         128 creg =          12
+b rl fired at                 1325, breg =          13, crossReg =         120 
+ap rl fired at                 1335, areg =         129 creg =          13
+ap rl fired at                 1345, areg =         130 creg =          13
+ap rl fired at                 1355, areg =         131 creg =          13
+ap rl fired at                 1365, areg =         132 creg =          13
+ap rl fired at                 1375, areg =         133 creg =          13
+ap rl fired at                 1385, areg =         134 creg =          13
+ap rl fired at                 1395, areg =         135 creg =          13
+tr rl fired at                 1405, areg =         136
+ap rl fired at                 1405, areg =         136 creg =          13
+b rl fired at                 1405, breg =          14, crossReg =         128 
+ap rl fired at                 1415, areg =         137 creg =          14
+ap rl fired at                 1425, areg =         138 creg =          14
+ap rl fired at                 1435, areg =         139 creg =          14
+ap rl fired at                 1445, areg =         140 creg =          14
+ap rl fired at                 1455, areg =         141 creg =          14
+ap rl fired at                 1465, areg =         142 creg =          14
+ap rl fired at                 1475, areg =         143 creg =          14
+tr rl fired at                 1485, areg =         144
+ap rl fired at                 1485, areg =         144 creg =          14
+b rl fired at                 1485, breg =          15, crossReg =         136 
+ap rl fired at                 1495, areg =         145 creg =          15
+ap rl fired at                 1505, areg =         146 creg =          15
+ap rl fired at                 1515, areg =         147 creg =          15
+ap rl fired at                 1525, areg =         148 creg =          15
+ap rl fired at                 1535, areg =         149 creg =          15
+ap rl fired at                 1545, areg =         150 creg =          15
+ap rl fired at                 1555, areg =         151 creg =          15
+tr rl fired at                 1565, areg =         152
+ap rl fired at                 1565, areg =         152 creg =          15
+b rl fired at                 1565, breg =          16, crossReg =         144 
+ap rl fired at                 1575, areg =         153 creg =          16
+ap rl fired at                 1585, areg =         154 creg =          16
+ap rl fired at                 1595, areg =         155 creg =          16
+ap rl fired at                 1605, areg =         156 creg =          16
+ap rl fired at                 1615, areg =         157 creg =          16
+ap rl fired at                 1625, areg =         158 creg =          16
+ap rl fired at                 1635, areg =         159 creg =          16
+tr rl fired at                 1645, areg =         160
+ap rl fired at                 1645, areg =         160 creg =          16
+b rl fired at                 1645, breg =          17, crossReg =         152 
+ap rl fired at                 1655, areg =         161 creg =          17
+ap rl fired at                 1665, areg =         162 creg =          17
+ap rl fired at                 1675, areg =         163 creg =          17
+ap rl fired at                 1685, areg =         164 creg =          17
+ap rl fired at                 1695, areg =         165 creg =          17
+ap rl fired at                 1705, areg =         166 creg =          17
+ap rl fired at                 1715, areg =         167 creg =          17
+tr rl fired at                 1725, areg =         168
+ap rl fired at                 1725, areg =         168 creg =          17
+b rl fired at                 1725, breg =          18, crossReg =         160 
+ap rl fired at                 1735, areg =         169 creg =          18
+ap rl fired at                 1745, areg =         170 creg =          18
+ap rl fired at                 1755, areg =         171 creg =          18
+ap rl fired at                 1765, areg =         172 creg =          18
+ap rl fired at                 1775, areg =         173 creg =          18
+ap rl fired at                 1785, areg =         174 creg =          18
+ap rl fired at                 1795, areg =         175 creg =          18
+tr rl fired at                 1805, areg =         176
+ap rl fired at                 1805, areg =         176 creg =          18
+b rl fired at                 1805, breg =          19, crossReg =         168 
+ap rl fired at                 1815, areg =         177 creg =          19
+ap rl fired at                 1825, areg =         178 creg =          19
+ap rl fired at                 1835, areg =         179 creg =          19
+ap rl fired at                 1845, areg =         180 creg =          19
+ap rl fired at                 1855, areg =         181 creg =          19
+ap rl fired at                 1865, areg =         182 creg =          19
+ap rl fired at                 1875, areg =         183 creg =          19
+tr rl fired at                 1885, areg =         184
+ap rl fired at                 1885, areg =         184 creg =          19
+b rl fired at                 1885, breg =          20, crossReg =         176 
+ap rl fired at                 1895, areg =         185 creg =          20
+ap rl fired at                 1905, areg =         186 creg =          20
+ap rl fired at                 1915, areg =         187 creg =          20
+ap rl fired at                 1925, areg =         188 creg =          20
+ap rl fired at                 1935, areg =         189 creg =          20
+ap rl fired at                 1945, areg =         190 creg =          20
+ap rl fired at                 1955, areg =         191 creg =          20
+tr rl fired at                 1965, areg =         192
+ap rl fired at                 1965, areg =         192 creg =          20
+b rl fired at                 1965, breg =          21, crossReg =         184 
+ap rl fired at                 1975, areg =         193 creg =          21
+ap rl fired at                 1985, areg =         194 creg =          21
+ap rl fired at                 1995, areg =         195 creg =          21
+ap rl fired at                 2005, areg =         196 creg =          21
+ap rl fired at                 2015, areg =         197 creg =          21
+ap rl fired at                 2025, areg =         198 creg =          21
+ap rl fired at                 2035, areg =         199 creg =          21
+tr rl fired at                 2045, areg =         200
+ap rl fired at                 2045, areg =         200 creg =          21
+b rl fired at                 2045, breg =          22, crossReg =         192 
+ap rl fired at                 2055, areg =         201 creg =          22
+ap rl fired at                 2065, areg =         202 creg =          22
+ap rl fired at                 2075, areg =         203 creg =          22
+ap rl fired at                 2085, areg =         204 creg =          22
+ap rl fired at                 2095, areg =         205 creg =          22
+ap rl fired at                 2105, areg =         206 creg =          22
+ap rl fired at                 2115, areg =         207 creg =          22
+tr rl fired at                 2125, areg =         208
+ap rl fired at                 2125, areg =         208 creg =          22
+b rl fired at                 2125, breg =          23, crossReg =         200 
+ap rl fired at                 2135, areg =         209 creg =          23
+ap rl fired at                 2145, areg =         210 creg =          23
+ap rl fired at                 2155, areg =         211 creg =          23
+ap rl fired at                 2165, areg =         212 creg =          23
+ap rl fired at                 2175, areg =         213 creg =          23
+ap rl fired at                 2185, areg =         214 creg =          23
+ap rl fired at                 2195, areg =         215 creg =          23
+tr rl fired at                 2205, areg =         216
+ap rl fired at                 2205, areg =         216 creg =          23
+b rl fired at                 2205, breg =          24, crossReg =         208 
+ap rl fired at                 2215, areg =         217 creg =          24
+ap rl fired at                 2225, areg =         218 creg =          24
+ap rl fired at                 2235, areg =         219 creg =          24
+ap rl fired at                 2245, areg =         220 creg =          24
+ap rl fired at                 2255, areg =         221 creg =          24
+ap rl fired at                 2265, areg =         222 creg =          24
+ap rl fired at                 2275, areg =         223 creg =          24
+tr rl fired at                 2285, areg =         224
+ap rl fired at                 2285, areg =         224 creg =          24
+b rl fired at                 2285, breg =          25, crossReg =         216 
+ap rl fired at                 2295, areg =         225 creg =          25
+ap rl fired at                 2305, areg =         226 creg =          25
+ap rl fired at                 2315, areg =         227 creg =          25
+ap rl fired at                 2325, areg =         228 creg =          25
+ap rl fired at                 2335, areg =         229 creg =          25
+ap rl fired at                 2345, areg =         230 creg =          25
+ap rl fired at                 2355, areg =         231 creg =          25
+tr rl fired at                 2365, areg =         232
+ap rl fired at                 2365, areg =         232 creg =          25
+b rl fired at                 2365, breg =          26, crossReg =         224 
+ap rl fired at                 2375, areg =         233 creg =          26
+ap rl fired at                 2385, areg =         234 creg =          26
+ap rl fired at                 2395, areg =         235 creg =          26
+ap rl fired at                 2405, areg =         236 creg =          26
+ap rl fired at                 2415, areg =         237 creg =          26
+ap rl fired at                 2425, areg =         238 creg =          26
+ap rl fired at                 2435, areg =         239 creg =          26
+tr rl fired at                 2445, areg =         240
+ap rl fired at                 2445, areg =         240 creg =          26
+b rl fired at                 2445, breg =          27, crossReg =         232 
+ap rl fired at                 2455, areg =         241 creg =          27
+ap rl fired at                 2465, areg =         242 creg =          27
+ap rl fired at                 2475, areg =         243 creg =          27
+ap rl fired at                 2485, areg =         244 creg =          27
+ap rl fired at                 2495, areg =         245 creg =          27
+ap rl fired at                 2505, areg =         246 creg =          27
+ap rl fired at                 2515, areg =         247 creg =          27
+tr rl fired at                 2525, areg =         248
+ap rl fired at                 2525, areg =         248 creg =          27
+b rl fired at                 2525, breg =          28, crossReg =         240 
+ap rl fired at                 2535, areg =         249 creg =          28
+ap rl fired at                 2545, areg =         250 creg =          28
+ap rl fired at                 2555, areg =         251 creg =          28
+ap rl fired at                 2565, areg =         252 creg =          28
+ap rl fired at                 2575, areg =         253 creg =          28
+ap rl fired at                 2585, areg =         254 creg =          28
+ap rl fired at                 2595, areg =         255 creg =          28
+tr rl fired at                 2605, areg =         256
+ap rl fired at                 2605, areg =         256 creg =          28
+b rl fired at                 2605, breg =          29, crossReg =         248 
+ap rl fired at                 2615, areg =         257 creg =          29
+ap rl fired at                 2625, areg =         258 creg =          29
+ap rl fired at                 2635, areg =         259 creg =          29
+ap rl fired at                 2645, areg =         260 creg =          29
+ap rl fired at                 2655, areg =         261 creg =          29
+ap rl fired at                 2665, areg =         262 creg =          29
+ap rl fired at                 2675, areg =         263 creg =          29
+tr rl fired at                 2685, areg =         264
+ap rl fired at                 2685, areg =         264 creg =          29
+b rl fired at                 2685, breg =          30, crossReg =         256 
+ap rl fired at                 2695, areg =         265 creg =          30
+ap rl fired at                 2705, areg =         266 creg =          30
+ap rl fired at                 2715, areg =         267 creg =          30
+ap rl fired at                 2725, areg =         268 creg =          30
+ap rl fired at                 2735, areg =         269 creg =          30
+ap rl fired at                 2745, areg =         270 creg =          30
+ap rl fired at                 2755, areg =         271 creg =          30
+tr rl fired at                 2765, areg =         272
+ap rl fired at                 2765, areg =         272 creg =          30
+b rl fired at                 2765, breg =          31, crossReg =         264 
+ap rl fired at                 2775, areg =         273 creg =          31
+ap rl fired at                 2785, areg =         274 creg =          31
+ap rl fired at                 2795, areg =         275 creg =          31
+ap rl fired at                 2805, areg =         276 creg =          31
+ap rl fired at                 2815, areg =         277 creg =          31
+ap rl fired at                 2825, areg =         278 creg =          31
+ap rl fired at                 2835, areg =         279 creg =          31
+tr rl fired at                 2845, areg =         280
+ap rl fired at                 2845, areg =         280 creg =          31
+b rl fired at                 2845, breg =          32, crossReg =         272 
+ap rl fired at                 2855, areg =         281 creg =          32
+ap rl fired at                 2865, areg =         282 creg =          32
+ap rl fired at                 2875, areg =         283 creg =          32
+ap rl fired at                 2885, areg =         284 creg =          32
+ap rl fired at                 2895, areg =         285 creg =          32
+ap rl fired at                 2905, areg =         286 creg =          32
+ap rl fired at                 2915, areg =         287 creg =          32
+tr rl fired at                 2925, areg =         288
+ap rl fired at                 2925, areg =         288 creg =          32
+b rl fired at                 2925, breg =          33, crossReg =         280 
+ap rl fired at                 2935, areg =         289 creg =          33
+ap rl fired at                 2945, areg =         290 creg =          33
+ap rl fired at                 2955, areg =         291 creg =          33
+ap rl fired at                 2965, areg =         292 creg =          33
+ap rl fired at                 2975, areg =         293 creg =          33
+ap rl fired at                 2985, areg =         294 creg =          33
+ap rl fired at                 2995, areg =         295 creg =          33
+tr rl fired at                 3005, areg =         296
+ap rl fired at                 3005, areg =         296 creg =          33
+b rl fired at                 3005, breg =          34, crossReg =         288 
+ap rl fired at                 3015, areg =         297 creg =          34
+ap rl fired at                 3025, areg =         298 creg =          34
+ap rl fired at                 3035, areg =         299 creg =          34
+ap rl fired at                 3045, areg =         300 creg =          34
+ap rl fired at                 3055, areg =         301 creg =          34
+ap rl fired at                 3065, areg =         302 creg =          34
+ap rl fired at                 3075, areg =         303 creg =          34
+tr rl fired at                 3085, areg =         304
+ap rl fired at                 3085, areg =         304 creg =          34
+b rl fired at                 3085, breg =          35, crossReg =         296 
+ap rl fired at                 3095, areg =         305 creg =          35
+ap rl fired at                 3105, areg =         306 creg =          35
+ap rl fired at                 3115, areg =         307 creg =          35
+ap rl fired at                 3125, areg =         308 creg =          35
+ap rl fired at                 3135, areg =         309 creg =          35
+ap rl fired at                 3145, areg =         310 creg =          35
+ap rl fired at                 3155, areg =         311 creg =          35
+tr rl fired at                 3165, areg =         312
+ap rl fired at                 3165, areg =         312 creg =          35
+b rl fired at                 3165, breg =          36, crossReg =         304 
+ap rl fired at                 3175, areg =         313 creg =          36
+ap rl fired at                 3185, areg =         314 creg =          36
+ap rl fired at                 3195, areg =         315 creg =          36
+ap rl fired at                 3205, areg =         316 creg =          36
+ap rl fired at                 3215, areg =         317 creg =          36
+ap rl fired at                 3225, areg =         318 creg =          36
+ap rl fired at                 3235, areg =         319 creg =          36
+tr rl fired at                 3245, areg =         320
+ap rl fired at                 3245, areg =         320 creg =          36
+b rl fired at                 3245, breg =          37, crossReg =         312 
+ap rl fired at                 3255, areg =         321 creg =          37
+ap rl fired at                 3265, areg =         322 creg =          37
+ap rl fired at                 3275, areg =         323 creg =          37
+ap rl fired at                 3285, areg =         324 creg =          37
+ap rl fired at                 3295, areg =         325 creg =          37
+ap rl fired at                 3305, areg =         326 creg =          37
+ap rl fired at                 3315, areg =         327 creg =          37
+tr rl fired at                 3325, areg =         328
+ap rl fired at                 3325, areg =         328 creg =          37
+b rl fired at                 3325, breg =          38, crossReg =         320 
+ap rl fired at                 3335, areg =         329 creg =          38
+ap rl fired at                 3345, areg =         330 creg =          38
+ap rl fired at                 3355, areg =         331 creg =          38
+ap rl fired at                 3365, areg =         332 creg =          38
+ap rl fired at                 3375, areg =         333 creg =          38
+ap rl fired at                 3385, areg =         334 creg =          38
+ap rl fired at                 3395, areg =         335 creg =          38
+tr rl fired at                 3405, areg =         336
+ap rl fired at                 3405, areg =         336 creg =          38
+b rl fired at                 3405, breg =          39, crossReg =         328 
+ap rl fired at                 3415, areg =         337 creg =          39
+ap rl fired at                 3425, areg =         338 creg =          39
+ap rl fired at                 3435, areg =         339 creg =          39
+ap rl fired at                 3445, areg =         340 creg =          39
+ap rl fired at                 3455, areg =         341 creg =          39
+ap rl fired at                 3465, areg =         342 creg =          39
+ap rl fired at                 3475, areg =         343 creg =          39
+tr rl fired at                 3485, areg =         344
+ap rl fired at                 3485, areg =         344 creg =          39
+b rl fired at                 3485, breg =          40, crossReg =         336 
+ap rl fired at                 3495, areg =         345 creg =          40
+ap rl fired at                 3505, areg =         346 creg =          40
+ap rl fired at                 3515, areg =         347 creg =          40
+ap rl fired at                 3525, areg =         348 creg =          40
+ap rl fired at                 3535, areg =         349 creg =          40
+ap rl fired at                 3545, areg =         350 creg =          40
+ap rl fired at                 3555, areg =         351 creg =          40
+tr rl fired at                 3565, areg =         352
+ap rl fired at                 3565, areg =         352 creg =          40
+b rl fired at                 3565, breg =          41, crossReg =         344 
+ap rl fired at                 3575, areg =         353 creg =          41
+ap rl fired at                 3585, areg =         354 creg =          41
+ap rl fired at                 3595, areg =         355 creg =          41
+ap rl fired at                 3605, areg =         356 creg =          41
+ap rl fired at                 3615, areg =         357 creg =          41
+ap rl fired at                 3625, areg =         358 creg =          41
+ap rl fired at                 3635, areg =         359 creg =          41
+tr rl fired at                 3645, areg =         360
+ap rl fired at                 3645, areg =         360 creg =          41
+b rl fired at                 3645, breg =          42, crossReg =         352 
+ap rl fired at                 3655, areg =         361 creg =          42
+ap rl fired at                 3665, areg =         362 creg =          42
+ap rl fired at                 3675, areg =         363 creg =          42
+ap rl fired at                 3685, areg =         364 creg =          42
+ap rl fired at                 3695, areg =         365 creg =          42
+ap rl fired at                 3705, areg =         366 creg =          42
+ap rl fired at                 3715, areg =         367 creg =          42
+tr rl fired at                 3725, areg =         368
+ap rl fired at                 3725, areg =         368 creg =          42
+b rl fired at                 3725, breg =          43, crossReg =         360 
+ap rl fired at                 3735, areg =         369 creg =          43
+ap rl fired at                 3745, areg =         370 creg =          43
+ap rl fired at                 3755, areg =         371 creg =          43
+ap rl fired at                 3765, areg =         372 creg =          43
+ap rl fired at                 3775, areg =         373 creg =          43
+ap rl fired at                 3785, areg =         374 creg =          43
+ap rl fired at                 3795, areg =         375 creg =          43
+tr rl fired at                 3805, areg =         376
+ap rl fired at                 3805, areg =         376 creg =          43
+b rl fired at                 3805, breg =          44, crossReg =         368 
+ap rl fired at                 3815, areg =         377 creg =          44
+ap rl fired at                 3825, areg =         378 creg =          44
+ap rl fired at                 3835, areg =         379 creg =          44
+ap rl fired at                 3845, areg =         380 creg =          44
+ap rl fired at                 3855, areg =         381 creg =          44
+ap rl fired at                 3865, areg =         382 creg =          44
+ap rl fired at                 3875, areg =         383 creg =          44
+tr rl fired at                 3885, areg =         384
+ap rl fired at                 3885, areg =         384 creg =          44
+b rl fired at                 3885, breg =          45, crossReg =         376 
+ap rl fired at                 3895, areg =         385 creg =          45
+ap rl fired at                 3905, areg =         386 creg =          45
+ap rl fired at                 3915, areg =         387 creg =          45
+ap rl fired at                 3925, areg =         388 creg =          45
+ap rl fired at                 3935, areg =         389 creg =          45
+ap rl fired at                 3945, areg =         390 creg =          45
+ap rl fired at                 3955, areg =         391 creg =          45
+tr rl fired at                 3965, areg =         392
+ap rl fired at                 3965, areg =         392 creg =          45
+b rl fired at                 3965, breg =          46, crossReg =         384 
+ap rl fired at                 3975, areg =         393 creg =          46
+ap rl fired at                 3985, areg =         394 creg =          46
+ap rl fired at                 3995, areg =         395 creg =          46
+ap rl fired at                 4005, areg =         396 creg =          46
+ap rl fired at                 4015, areg =         397 creg =          46
+ap rl fired at                 4025, areg =         398 creg =          46
+ap rl fired at                 4035, areg =         399 creg =          46
+tr rl fired at                 4045, areg =         400
+ap rl fired at                 4045, areg =         400 creg =          46
+b rl fired at                 4045, breg =          47, crossReg =         392 
+ap rl fired at                 4055, areg =         401 creg =          47
+ap rl fired at                 4065, areg =         402 creg =          47
+ap rl fired at                 4075, areg =         403 creg =          47
+ap rl fired at                 4085, areg =         404 creg =          47
+ap rl fired at                 4095, areg =         405 creg =          47
+ap rl fired at                 4105, areg =         406 creg =          47
+ap rl fired at                 4115, areg =         407 creg =          47
+tr rl fired at                 4125, areg =         408
+ap rl fired at                 4125, areg =         408 creg =          47
+b rl fired at                 4125, breg =          48, crossReg =         400 
+ap rl fired at                 4135, areg =         409 creg =          48
+ap rl fired at                 4145, areg =         410 creg =          48
+ap rl fired at                 4155, areg =         411 creg =          48
+ap rl fired at                 4165, areg =         412 creg =          48
+ap rl fired at                 4175, areg =         413 creg =          48
+ap rl fired at                 4185, areg =         414 creg =          48
+ap rl fired at                 4195, areg =         415 creg =          48
+tr rl fired at                 4205, areg =         416
+ap rl fired at                 4205, areg =         416 creg =          48
+b rl fired at                 4205, breg =          49, crossReg =         408 
+ap rl fired at                 4215, areg =         417 creg =          49
+ap rl fired at                 4225, areg =         418 creg =          49
+ap rl fired at                 4235, areg =         419 creg =          49
+ap rl fired at                 4245, areg =         420 creg =          49
+ap rl fired at                 4255, areg =         421 creg =          49
+ap rl fired at                 4265, areg =         422 creg =          49
+ap rl fired at                 4275, areg =         423 creg =          49
+tr rl fired at                 4285, areg =         424
+ap rl fired at                 4285, areg =         424 creg =          49
+b rl fired at                 4285, breg =          50, crossReg =         416 
+ap rl fired at                 4295, areg =         425 creg =          50
+ap rl fired at                 4305, areg =         426 creg =          50
+ap rl fired at                 4315, areg =         427 creg =          50
+ap rl fired at                 4325, areg =         428 creg =          50
+ap rl fired at                 4335, areg =         429 creg =          50
+ap rl fired at                 4345, areg =         430 creg =          50
+ap rl fired at                 4355, areg =         431 creg =          50
+tr rl fired at                 4365, areg =         432
+ap rl fired at                 4365, areg =         432 creg =          50
+b rl fired at                 4365, breg =          51, crossReg =         424 
+ap rl fired at                 4375, areg =         433 creg =          51
+ap rl fired at                 4385, areg =         434 creg =          51
+ap rl fired at                 4395, areg =         435 creg =          51
+ap rl fired at                 4405, areg =         436 creg =          51
+ap rl fired at                 4415, areg =         437 creg =          51
+ap rl fired at                 4425, areg =         438 creg =          51
+ap rl fired at                 4435, areg =         439 creg =          51
+tr rl fired at                 4445, areg =         440
+ap rl fired at                 4445, areg =         440 creg =          51
+b rl fired at                 4445, breg =          52, crossReg =         432 
+ap rl fired at                 4455, areg =         441 creg =          52
+ap rl fired at                 4465, areg =         442 creg =          52
+ap rl fired at                 4475, areg =         443 creg =          52
+ap rl fired at                 4485, areg =         444 creg =          52
+ap rl fired at                 4495, areg =         445 creg =          52
+ap rl fired at                 4505, areg =         446 creg =          52
+ap rl fired at                 4515, areg =         447 creg =          52
+tr rl fired at                 4525, areg =         448
+ap rl fired at                 4525, areg =         448 creg =          52
+b rl fired at                 4525, breg =          53, crossReg =         440 
+ap rl fired at                 4535, areg =         449 creg =          53
+ap rl fired at                 4545, areg =         450 creg =          53
+ap rl fired at                 4555, areg =         451 creg =          53
+ap rl fired at                 4565, areg =         452 creg =          53
+ap rl fired at                 4575, areg =         453 creg =          53
+ap rl fired at                 4585, areg =         454 creg =          53
+ap rl fired at                 4595, areg =         455 creg =          53
+tr rl fired at                 4605, areg =         456
+ap rl fired at                 4605, areg =         456 creg =          53
+b rl fired at                 4605, breg =          54, crossReg =         448 
+ap rl fired at                 4615, areg =         457 creg =          54
+ap rl fired at                 4625, areg =         458 creg =          54
+ap rl fired at                 4635, areg =         459 creg =          54
+ap rl fired at                 4645, areg =         460 creg =          54
+ap rl fired at                 4655, areg =         461 creg =          54
+ap rl fired at                 4665, areg =         462 creg =          54
+ap rl fired at                 4675, areg =         463 creg =          54
+tr rl fired at                 4685, areg =         464
+ap rl fired at                 4685, areg =         464 creg =          54
+b rl fired at                 4685, breg =          55, crossReg =         456 
+ap rl fired at                 4695, areg =         465 creg =          55
+ap rl fired at                 4705, areg =         466 creg =          55
+ap rl fired at                 4715, areg =         467 creg =          55
+ap rl fired at                 4725, areg =         468 creg =          55
+ap rl fired at                 4735, areg =         469 creg =          55
+ap rl fired at                 4745, areg =         470 creg =          55
+ap rl fired at                 4755, areg =         471 creg =          55
+tr rl fired at                 4765, areg =         472
+ap rl fired at                 4765, areg =         472 creg =          55
+b rl fired at                 4765, breg =          56, crossReg =         464 
+ap rl fired at                 4775, areg =         473 creg =          56
+ap rl fired at                 4785, areg =         474 creg =          56
+ap rl fired at                 4795, areg =         475 creg =          56
+ap rl fired at                 4805, areg =         476 creg =          56
+ap rl fired at                 4815, areg =         477 creg =          56
+ap rl fired at                 4825, areg =         478 creg =          56
+ap rl fired at                 4835, areg =         479 creg =          56
+tr rl fired at                 4845, areg =         480
+ap rl fired at                 4845, areg =         480 creg =          56
+b rl fired at                 4845, breg =          57, crossReg =         472 
+ap rl fired at                 4855, areg =         481 creg =          57
+ap rl fired at                 4865, areg =         482 creg =          57
+ap rl fired at                 4875, areg =         483 creg =          57
+ap rl fired at                 4885, areg =         484 creg =          57
+ap rl fired at                 4895, areg =         485 creg =          57
+ap rl fired at                 4905, areg =         486 creg =          57
+ap rl fired at                 4915, areg =         487 creg =          57
+tr rl fired at                 4925, areg =         488
+ap rl fired at                 4925, areg =         488 creg =          57
+b rl fired at                 4925, breg =          58, crossReg =         480 
+ap rl fired at                 4935, areg =         489 creg =          58
+ap rl fired at                 4945, areg =         490 creg =          58
+ap rl fired at                 4955, areg =         491 creg =          58
+ap rl fired at                 4965, areg =         492 creg =          58
+ap rl fired at                 4975, areg =         493 creg =          58
+ap rl fired at                 4985, areg =         494 creg =          58
+ap rl fired at                 4995, areg =         495 creg =          58
+tr rl fired at                 5005, areg =         496
+ap rl fired at                 5005, areg =         496 creg =          58
+b rl fired at                 5005, breg =          59, crossReg =         488 
+ap rl fired at                 5015, areg =         497 creg =          59
+ap rl fired at                 5025, areg =         498 creg =          59
+ap rl fired at                 5035, areg =         499 creg =          59
+ap rl fired at                 5045, areg =         500 creg =          59
+ap rl fired at                 5055, areg =         501 creg =          59
+ap rl fired at                 5065, areg =         502 creg =          59
+ap rl fired at                 5075, areg =         503 creg =          59
+tr rl fired at                 5085, areg =         504
+ap rl fired at                 5085, areg =         504 creg =          59
+b rl fired at                 5085, breg =          60, crossReg =         496 
+ap rl fired at                 5095, areg =         505 creg =          60
+ap rl fired at                 5105, areg =         506 creg =          60
+ap rl fired at                 5115, areg =         507 creg =          60
+ap rl fired at                 5125, areg =         508 creg =          60
+ap rl fired at                 5135, areg =         509 creg =          60
+ap rl fired at                 5145, areg =         510 creg =          60
+ap rl fired at                 5155, areg =         511 creg =          60
+tr rl fired at                 5165, areg =         512
+ap rl fired at                 5165, areg =         512 creg =          60
+b rl fired at                 5165, breg =          61, crossReg =         504 
+ap rl fired at                 5175, areg =         513 creg =          61
+ap rl fired at                 5185, areg =         514 creg =          61
+ap rl fired at                 5195, areg =         515 creg =          61
+ap rl fired at                 5205, areg =         516 creg =          61
+ap rl fired at                 5215, areg =         517 creg =          61
+ap rl fired at                 5225, areg =         518 creg =          61
+ap rl fired at                 5235, areg =         519 creg =          61
+tr rl fired at                 5245, areg =         520
+ap rl fired at                 5245, areg =         520 creg =          61
+b rl fired at                 5245, breg =          62, crossReg =         512 
+ap rl fired at                 5255, areg =         521 creg =          62
+ap rl fired at                 5265, areg =         522 creg =          62
+ap rl fired at                 5275, areg =         523 creg =          62
+ap rl fired at                 5285, areg =         524 creg =          62
+ap rl fired at                 5295, areg =         525 creg =          62
+ap rl fired at                 5305, areg =         526 creg =          62
+ap rl fired at                 5315, areg =         527 creg =          62
+tr rl fired at                 5325, areg =         528
+ap rl fired at                 5325, areg =         528 creg =          62
+b rl fired at                 5325, breg =          63, crossReg =         520 
+ap rl fired at                 5335, areg =         529 creg =          63
+ap rl fired at                 5345, areg =         530 creg =          63
+ap rl fired at                 5355, areg =         531 creg =          63
+ap rl fired at                 5365, areg =         532 creg =          63
+ap rl fired at                 5375, areg =         533 creg =          63
+ap rl fired at                 5385, areg =         534 creg =          63
+ap rl fired at                 5395, areg =         535 creg =          63
+tr rl fired at                 5405, areg =         536
+ap rl fired at                 5405, areg =         536 creg =          63
+b rl fired at                 5405, breg =          64, crossReg =         528 
+ap rl fired at                 5415, areg =         537 creg =          64
+ap rl fired at                 5425, areg =         538 creg =          64
+ap rl fired at                 5435, areg =         539 creg =          64
+ap rl fired at                 5445, areg =         540 creg =          64
+ap rl fired at                 5455, areg =         541 creg =          64
+ap rl fired at                 5465, areg =         542 creg =          64
+ap rl fired at                 5475, areg =         543 creg =          64
+tr rl fired at                 5485, areg =         544
+ap rl fired at                 5485, areg =         544 creg =          64
+b rl fired at                 5485, breg =          65, crossReg =         536 
+ap rl fired at                 5495, areg =         545 creg =          65
+ap rl fired at                 5505, areg =         546 creg =          65
+ap rl fired at                 5515, areg =         547 creg =          65
+ap rl fired at                 5525, areg =         548 creg =          65
+ap rl fired at                 5535, areg =         549 creg =          65
+ap rl fired at                 5545, areg =         550 creg =          65
+ap rl fired at                 5555, areg =         551 creg =          65
+tr rl fired at                 5565, areg =         552
+ap rl fired at                 5565, areg =         552 creg =          65
+b rl fired at                 5565, breg =          66, crossReg =         544 
+ap rl fired at                 5575, areg =         553 creg =          66
+ap rl fired at                 5585, areg =         554 creg =          66
+ap rl fired at                 5595, areg =         555 creg =          66
+ap rl fired at                 5605, areg =         556 creg =          66
+ap rl fired at                 5615, areg =         557 creg =          66
+ap rl fired at                 5625, areg =         558 creg =          66
+ap rl fired at                 5635, areg =         559 creg =          66
+tr rl fired at                 5645, areg =         560
+ap rl fired at                 5645, areg =         560 creg =          66
+b rl fired at                 5645, breg =          67, crossReg =         552 
+ap rl fired at                 5655, areg =         561 creg =          67
+ap rl fired at                 5665, areg =         562 creg =          67
+ap rl fired at                 5675, areg =         563 creg =          67
+ap rl fired at                 5685, areg =         564 creg =          67
+ap rl fired at                 5695, areg =         565 creg =          67
+ap rl fired at                 5705, areg =         566 creg =          67
+ap rl fired at                 5715, areg =         567 creg =          67
+tr rl fired at                 5725, areg =         568
+ap rl fired at                 5725, areg =         568 creg =          67
+b rl fired at                 5725, breg =          68, crossReg =         560 
+ap rl fired at                 5735, areg =         569 creg =          68
+ap rl fired at                 5745, areg =         570 creg =          68
+ap rl fired at                 5755, areg =         571 creg =          68
+ap rl fired at                 5765, areg =         572 creg =          68
+ap rl fired at                 5775, areg =         573 creg =          68
+ap rl fired at                 5785, areg =         574 creg =          68
+ap rl fired at                 5795, areg =         575 creg =          68
+tr rl fired at                 5805, areg =         576
+ap rl fired at                 5805, areg =         576 creg =          68
+b rl fired at                 5805, breg =          69, crossReg =         568 
+ap rl fired at                 5815, areg =         577 creg =          69
+ap rl fired at                 5825, areg =         578 creg =          69
+ap rl fired at                 5835, areg =         579 creg =          69
+ap rl fired at                 5845, areg =         580 creg =          69
+ap rl fired at                 5855, areg =         581 creg =          69
+ap rl fired at                 5865, areg =         582 creg =          69
+ap rl fired at                 5875, areg =         583 creg =          69
+tr rl fired at                 5885, areg =         584
+ap rl fired at                 5885, areg =         584 creg =          69
+b rl fired at                 5885, breg =          70, crossReg =         576 
+ap rl fired at                 5895, areg =         585 creg =          70
+ap rl fired at                 5905, areg =         586 creg =          70
+ap rl fired at                 5915, areg =         587 creg =          70
+ap rl fired at                 5925, areg =         588 creg =          70
+ap rl fired at                 5935, areg =         589 creg =          70
+ap rl fired at                 5945, areg =         590 creg =          70
+ap rl fired at                 5955, areg =         591 creg =          70
+tr rl fired at                 5965, areg =         592
+ap rl fired at                 5965, areg =         592 creg =          70
+b rl fired at                 5965, breg =          71, crossReg =         584 
+ap rl fired at                 5975, areg =         593 creg =          71
+ap rl fired at                 5985, areg =         594 creg =          71
+ap rl fired at                 5995, areg =         595 creg =          71
+ap rl fired at                 6005, areg =         596 creg =          71
+ap rl fired at                 6015, areg =         597 creg =          71
+ap rl fired at                 6025, areg =         598 creg =          71
+ap rl fired at                 6035, areg =         599 creg =          71
+tr rl fired at                 6045, areg =         600
+ap rl fired at                 6045, areg =         600 creg =          71
+b rl fired at                 6045, breg =          72, crossReg =         592 
+ap rl fired at                 6055, areg =         601 creg =          72
+ap rl fired at                 6065, areg =         602 creg =          72
+ap rl fired at                 6075, areg =         603 creg =          72
+ap rl fired at                 6085, areg =         604 creg =          72
+ap rl fired at                 6095, areg =         605 creg =          72
+ap rl fired at                 6105, areg =         606 creg =          72
+ap rl fired at                 6115, areg =         607 creg =          72
+tr rl fired at                 6125, areg =         608
+ap rl fired at                 6125, areg =         608 creg =          72
+b rl fired at                 6125, breg =          73, crossReg =         600 
+ap rl fired at                 6135, areg =         609 creg =          73
+ap rl fired at                 6145, areg =         610 creg =          73
+ap rl fired at                 6155, areg =         611 creg =          73
+ap rl fired at                 6165, areg =         612 creg =          73
+ap rl fired at                 6175, areg =         613 creg =          73
+ap rl fired at                 6185, areg =         614 creg =          73
+ap rl fired at                 6195, areg =         615 creg =          73
+tr rl fired at                 6205, areg =         616
+ap rl fired at                 6205, areg =         616 creg =          73
+b rl fired at                 6205, breg =          74, crossReg =         608 
+ap rl fired at                 6215, areg =         617 creg =          74
+ap rl fired at                 6225, areg =         618 creg =          74
+ap rl fired at                 6235, areg =         619 creg =          74
+ap rl fired at                 6245, areg =         620 creg =          74
+ap rl fired at                 6255, areg =         621 creg =          74
+ap rl fired at                 6265, areg =         622 creg =          74
+ap rl fired at                 6275, areg =         623 creg =          74
+tr rl fired at                 6285, areg =         624
+ap rl fired at                 6285, areg =         624 creg =          74
+b rl fired at                 6285, breg =          75, crossReg =         616 
+ap rl fired at                 6295, areg =         625 creg =          75
+ap rl fired at                 6305, areg =         626 creg =          75
+ap rl fired at                 6315, areg =         627 creg =          75
+ap rl fired at                 6325, areg =         628 creg =          75
+ap rl fired at                 6335, areg =         629 creg =          75
+ap rl fired at                 6345, areg =         630 creg =          75
+ap rl fired at                 6355, areg =         631 creg =          75
+tr rl fired at                 6365, areg =         632
+ap rl fired at                 6365, areg =         632 creg =          75
+b rl fired at                 6365, breg =          76, crossReg =         624 
+ap rl fired at                 6375, areg =         633 creg =          76
+ap rl fired at                 6385, areg =         634 creg =          76
+ap rl fired at                 6395, areg =         635 creg =          76
+ap rl fired at                 6405, areg =         636 creg =          76
+ap rl fired at                 6415, areg =         637 creg =          76
+ap rl fired at                 6425, areg =         638 creg =          76
+ap rl fired at                 6435, areg =         639 creg =          76
+tr rl fired at                 6445, areg =         640
+ap rl fired at                 6445, areg =         640 creg =          76
+b rl fired at                 6445, breg =          77, crossReg =         632 
+ap rl fired at                 6455, areg =         641 creg =          77
+ap rl fired at                 6465, areg =         642 creg =          77
+ap rl fired at                 6475, areg =         643 creg =          77
+ap rl fired at                 6485, areg =         644 creg =          77
+ap rl fired at                 6495, areg =         645 creg =          77
+ap rl fired at                 6505, areg =         646 creg =          77
+ap rl fired at                 6515, areg =         647 creg =          77
+tr rl fired at                 6525, areg =         648
+ap rl fired at                 6525, areg =         648 creg =          77
+b rl fired at                 6525, breg =          78, crossReg =         640 
+ap rl fired at                 6535, areg =         649 creg =          78
+ap rl fired at                 6545, areg =         650 creg =          78
+ap rl fired at                 6555, areg =         651 creg =          78
+ap rl fired at                 6565, areg =         652 creg =          78
+ap rl fired at                 6575, areg =         653 creg =          78
+ap rl fired at                 6585, areg =         654 creg =          78
+ap rl fired at                 6595, areg =         655 creg =          78
+tr rl fired at                 6605, areg =         656
+ap rl fired at                 6605, areg =         656 creg =          78
+b rl fired at                 6605, breg =          79, crossReg =         648 
+ap rl fired at                 6615, areg =         657 creg =          79
+ap rl fired at                 6625, areg =         658 creg =          79
+ap rl fired at                 6635, areg =         659 creg =          79
+ap rl fired at                 6645, areg =         660 creg =          79
+ap rl fired at                 6655, areg =         661 creg =          79
+ap rl fired at                 6665, areg =         662 creg =          79
+ap rl fired at                 6675, areg =         663 creg =          79
+tr rl fired at                 6685, areg =         664
+ap rl fired at                 6685, areg =         664 creg =          79
+b rl fired at                 6685, breg =          80, crossReg =         656 
+ap rl fired at                 6695, areg =         665 creg =          80
+ap rl fired at                 6705, areg =         666 creg =          80
+ap rl fired at                 6715, areg =         667 creg =          80
+ap rl fired at                 6725, areg =         668 creg =          80
+ap rl fired at                 6735, areg =         669 creg =          80
+ap rl fired at                 6745, areg =         670 creg =          80
+ap rl fired at                 6755, areg =         671 creg =          80
+tr rl fired at                 6765, areg =         672
+ap rl fired at                 6765, areg =         672 creg =          80
+b rl fired at                 6765, breg =          81, crossReg =         664 
+ap rl fired at                 6775, areg =         673 creg =          81
+ap rl fired at                 6785, areg =         674 creg =          81
+ap rl fired at                 6795, areg =         675 creg =          81
+ap rl fired at                 6805, areg =         676 creg =          81
+ap rl fired at                 6815, areg =         677 creg =          81
+ap rl fired at                 6825, areg =         678 creg =          81
+ap rl fired at                 6835, areg =         679 creg =          81
+tr rl fired at                 6845, areg =         680
+ap rl fired at                 6845, areg =         680 creg =          81
+b rl fired at                 6845, breg =          82, crossReg =         672 
+ap rl fired at                 6855, areg =         681 creg =          82
+ap rl fired at                 6865, areg =         682 creg =          82
+ap rl fired at                 6875, areg =         683 creg =          82
+ap rl fired at                 6885, areg =         684 creg =          82
+ap rl fired at                 6895, areg =         685 creg =          82
+ap rl fired at                 6905, areg =         686 creg =          82
+ap rl fired at                 6915, areg =         687 creg =          82
+tr rl fired at                 6925, areg =         688
+ap rl fired at                 6925, areg =         688 creg =          82
+b rl fired at                 6925, breg =          83, crossReg =         680 
+ap rl fired at                 6935, areg =         689 creg =          83
+ap rl fired at                 6945, areg =         690 creg =          83
+ap rl fired at                 6955, areg =         691 creg =          83
+ap rl fired at                 6965, areg =         692 creg =          83
+ap rl fired at                 6975, areg =         693 creg =          83
+ap rl fired at                 6985, areg =         694 creg =          83
+ap rl fired at                 6995, areg =         695 creg =          83
+tr rl fired at                 7005, areg =         696
+ap rl fired at                 7005, areg =         696 creg =          83
+b rl fired at                 7005, breg =          84, crossReg =         688 
+ap rl fired at                 7015, areg =         697 creg =          84
+ap rl fired at                 7025, areg =         698 creg =          84
+ap rl fired at                 7035, areg =         699 creg =          84
+ap rl fired at                 7045, areg =         700 creg =          84
+ap rl fired at                 7055, areg =         701 creg =          84
+ap rl fired at                 7065, areg =         702 creg =          84
+ap rl fired at                 7075, areg =         703 creg =          84
+tr rl fired at                 7085, areg =         704
+ap rl fired at                 7085, areg =         704 creg =          84
+b rl fired at                 7085, breg =          85, crossReg =         696 
+ap rl fired at                 7095, areg =         705 creg =          85
+ap rl fired at                 7105, areg =         706 creg =          85
+ap rl fired at                 7115, areg =         707 creg =          85
+ap rl fired at                 7125, areg =         708 creg =          85
+ap rl fired at                 7135, areg =         709 creg =          85
+ap rl fired at                 7145, areg =         710 creg =          85
+ap rl fired at                 7155, areg =         711 creg =          85
+tr rl fired at                 7165, areg =         712
+ap rl fired at                 7165, areg =         712 creg =          85
+b rl fired at                 7165, breg =          86, crossReg =         704 
+ap rl fired at                 7175, areg =         713 creg =          86
+ap rl fired at                 7185, areg =         714 creg =          86
+ap rl fired at                 7195, areg =         715 creg =          86
+ap rl fired at                 7205, areg =         716 creg =          86
+ap rl fired at                 7215, areg =         717 creg =          86
+ap rl fired at                 7225, areg =         718 creg =          86
+ap rl fired at                 7235, areg =         719 creg =          86
+tr rl fired at                 7245, areg =         720
+ap rl fired at                 7245, areg =         720 creg =          86
+b rl fired at                 7245, breg =          87, crossReg =         712 
+ap rl fired at                 7255, areg =         721 creg =          87
+ap rl fired at                 7265, areg =         722 creg =          87
+ap rl fired at                 7275, areg =         723 creg =          87
+ap rl fired at                 7285, areg =         724 creg =          87
+ap rl fired at                 7295, areg =         725 creg =          87
+ap rl fired at                 7305, areg =         726 creg =          87
+ap rl fired at                 7315, areg =         727 creg =          87
+tr rl fired at                 7325, areg =         728
+ap rl fired at                 7325, areg =         728 creg =          87
+b rl fired at                 7325, breg =          88, crossReg =         720 
+ap rl fired at                 7335, areg =         729 creg =          88
+ap rl fired at                 7345, areg =         730 creg =          88
+ap rl fired at                 7355, areg =         731 creg =          88
+ap rl fired at                 7365, areg =         732 creg =          88
+ap rl fired at                 7375, areg =         733 creg =          88
+ap rl fired at                 7385, areg =         734 creg =          88
+ap rl fired at                 7395, areg =         735 creg =          88
+tr rl fired at                 7405, areg =         736
+ap rl fired at                 7405, areg =         736 creg =          88
+b rl fired at                 7405, breg =          89, crossReg =         728 
+ap rl fired at                 7415, areg =         737 creg =          89
+ap rl fired at                 7425, areg =         738 creg =          89
+ap rl fired at                 7435, areg =         739 creg =          89
+ap rl fired at                 7445, areg =         740 creg =          89
+ap rl fired at                 7455, areg =         741 creg =          89
+ap rl fired at                 7465, areg =         742 creg =          89
+ap rl fired at                 7475, areg =         743 creg =          89
+tr rl fired at                 7485, areg =         744
+ap rl fired at                 7485, areg =         744 creg =          89
+b rl fired at                 7485, breg =          90, crossReg =         736 
+ap rl fired at                 7495, areg =         745 creg =          90
+ap rl fired at                 7505, areg =         746 creg =          90
+ap rl fired at                 7515, areg =         747 creg =          90
+ap rl fired at                 7525, areg =         748 creg =          90
+ap rl fired at                 7535, areg =         749 creg =          90
+ap rl fired at                 7545, areg =         750 creg =          90
+ap rl fired at                 7555, areg =         751 creg =          90
+tr rl fired at                 7565, areg =         752
+ap rl fired at                 7565, areg =         752 creg =          90
+b rl fired at                 7565, breg =          91, crossReg =         744 
+ap rl fired at                 7575, areg =         753 creg =          91
+ap rl fired at                 7585, areg =         754 creg =          91
+ap rl fired at                 7595, areg =         755 creg =          91
+ap rl fired at                 7605, areg =         756 creg =          91
+ap rl fired at                 7615, areg =         757 creg =          91
+ap rl fired at                 7625, areg =         758 creg =          91
+ap rl fired at                 7635, areg =         759 creg =          91
+tr rl fired at                 7645, areg =         760
+ap rl fired at                 7645, areg =         760 creg =          91
+b rl fired at                 7645, breg =          92, crossReg =         752 
+ap rl fired at                 7655, areg =         761 creg =          92
+ap rl fired at                 7665, areg =         762 creg =          92
+ap rl fired at                 7675, areg =         763 creg =          92
+ap rl fired at                 7685, areg =         764 creg =          92
+ap rl fired at                 7695, areg =         765 creg =          92
+ap rl fired at                 7705, areg =         766 creg =          92
+ap rl fired at                 7715, areg =         767 creg =          92
+tr rl fired at                 7725, areg =         768
+ap rl fired at                 7725, areg =         768 creg =          92
+b rl fired at                 7725, breg =          93, crossReg =         760 
+ap rl fired at                 7735, areg =         769 creg =          93
+ap rl fired at                 7745, areg =         770 creg =          93
+ap rl fired at                 7755, areg =         771 creg =          93
+ap rl fired at                 7765, areg =         772 creg =          93
+ap rl fired at                 7775, areg =         773 creg =          93
+ap rl fired at                 7785, areg =         774 creg =          93
+ap rl fired at                 7795, areg =         775 creg =          93
+tr rl fired at                 7805, areg =         776
+ap rl fired at                 7805, areg =         776 creg =          93
+b rl fired at                 7805, breg =          94, crossReg =         768 
+ap rl fired at                 7815, areg =         777 creg =          94
+ap rl fired at                 7825, areg =         778 creg =          94
+ap rl fired at                 7835, areg =         779 creg =          94
+ap rl fired at                 7845, areg =         780 creg =          94
+ap rl fired at                 7855, areg =         781 creg =          94
+ap rl fired at                 7865, areg =         782 creg =          94
+ap rl fired at                 7875, areg =         783 creg =          94
+tr rl fired at                 7885, areg =         784
+ap rl fired at                 7885, areg =         784 creg =          94
+b rl fired at                 7885, breg =          95, crossReg =         776 
+ap rl fired at                 7895, areg =         785 creg =          95
+ap rl fired at                 7905, areg =         786 creg =          95
+ap rl fired at                 7915, areg =         787 creg =          95
+ap rl fired at                 7925, areg =         788 creg =          95
+ap rl fired at                 7935, areg =         789 creg =          95
+ap rl fired at                 7945, areg =         790 creg =          95
+ap rl fired at                 7955, areg =         791 creg =          95
+tr rl fired at                 7965, areg =         792
+ap rl fired at                 7965, areg =         792 creg =          95
+b rl fired at                 7965, breg =          96, crossReg =         784 
+ap rl fired at                 7975, areg =         793 creg =          96
+ap rl fired at                 7985, areg =         794 creg =          96
+ap rl fired at                 7995, areg =         795 creg =          96
+ap rl fired at                 8005, areg =         796 creg =          96
+ap rl fired at                 8015, areg =         797 creg =          96
+ap rl fired at                 8025, areg =         798 creg =          96
+ap rl fired at                 8035, areg =         799 creg =          96
+tr rl fired at                 8045, areg =         800
+ap rl fired at                 8045, areg =         800 creg =          96
+b rl fired at                 8045, breg =          97, crossReg =         792 
+ap rl fired at                 8055, areg =         801 creg =          97
+ap rl fired at                 8065, areg =         802 creg =          97
+ap rl fired at                 8075, areg =         803 creg =          97
+ap rl fired at                 8085, areg =         804 creg =          97
+ap rl fired at                 8095, areg =         805 creg =          97
+ap rl fired at                 8105, areg =         806 creg =          97
+ap rl fired at                 8115, areg =         807 creg =          97
+tr rl fired at                 8125, areg =         808
+ap rl fired at                 8125, areg =         808 creg =          97
+b rl fired at                 8125, breg =          98, crossReg =         800 
+ap rl fired at                 8135, areg =         809 creg =          98
+ap rl fired at                 8145, areg =         810 creg =          98
+ap rl fired at                 8155, areg =         811 creg =          98
+ap rl fired at                 8165, areg =         812 creg =          98
+ap rl fired at                 8175, areg =         813 creg =          98
+ap rl fired at                 8185, areg =         814 creg =          98
+ap rl fired at                 8195, areg =         815 creg =          98
+tr rl fired at                 8205, areg =         816
+ap rl fired at                 8205, areg =         816 creg =          98
+b rl fired at                 8205, breg =          99, crossReg =         808 
+ap rl fired at                 8215, areg =         817 creg =          99
+ap rl fired at                 8225, areg =         818 creg =          99
+ap rl fired at                 8235, areg =         819 creg =          99
+ap rl fired at                 8245, areg =         820 creg =          99
+ap rl fired at                 8255, areg =         821 creg =          99
+ap rl fired at                 8265, areg =         822 creg =          99
+ap rl fired at                 8275, areg =         823 creg =          99
+tr rl fired at                 8285, areg =         824
+ap rl fired at                 8285, areg =         824 creg =          99
+b rl fired at                 8285, breg =         100, crossReg =         816 
+ap rl fired at                 8295, areg =         825 creg =         100
+ap rl fired at                 8305, areg =         826 creg =         100
+ap rl fired at                 8315, areg =         827 creg =         100
+ap rl fired at                 8325, areg =         828 creg =         100
+ap rl fired at                 8335, areg =         829 creg =         100
+ap rl fired at                 8345, areg =         830 creg =         100
+ap rl fired at                 8355, areg =         831 creg =         100
+tr rl fired at                 8365, areg =         832
+ap rl fired at                 8365, areg =         832 creg =         100
+b rl fired at                 8365, breg =         101, crossReg =         824 
+ap rl fired at                 8375, areg =         833 creg =         101
+ap rl fired at                 8385, areg =         834 creg =         101
+ap rl fired at                 8395, areg =         835 creg =         101
+ap rl fired at                 8405, areg =         836 creg =         101
+ap rl fired at                 8415, areg =         837 creg =         101
+ap rl fired at                 8425, areg =         838 creg =         101
+ap rl fired at                 8435, areg =         839 creg =         101
+tr rl fired at                 8445, areg =         840
+ap rl fired at                 8445, areg =         840 creg =         101
+b rl fired at                 8445, breg =         102, crossReg =         832 
+ap rl fired at                 8455, areg =         841 creg =         102
+ap rl fired at                 8465, areg =         842 creg =         102
+ap rl fired at                 8475, areg =         843 creg =         102
+ap rl fired at                 8485, areg =         844 creg =         102
+ap rl fired at                 8495, areg =         845 creg =         102
+ap rl fired at                 8505, areg =         846 creg =         102
+ap rl fired at                 8515, areg =         847 creg =         102
+tr rl fired at                 8525, areg =         848
+ap rl fired at                 8525, areg =         848 creg =         102
+b rl fired at                 8525, breg =         103, crossReg =         840 
+ap rl fired at                 8535, areg =         849 creg =         103
+ap rl fired at                 8545, areg =         850 creg =         103
+ap rl fired at                 8555, areg =         851 creg =         103
+ap rl fired at                 8565, areg =         852 creg =         103
+ap rl fired at                 8575, areg =         853 creg =         103
+ap rl fired at                 8585, areg =         854 creg =         103
+ap rl fired at                 8595, areg =         855 creg =         103
+tr rl fired at                 8605, areg =         856
+ap rl fired at                 8605, areg =         856 creg =         103
+b rl fired at                 8605, breg =         104, crossReg =         848 
+ap rl fired at                 8615, areg =         857 creg =         104
+ap rl fired at                 8625, areg =         858 creg =         104
+ap rl fired at                 8635, areg =         859 creg =         104
+ap rl fired at                 8645, areg =         860 creg =         104
+ap rl fired at                 8655, areg =         861 creg =         104
+ap rl fired at                 8665, areg =         862 creg =         104
+ap rl fired at                 8675, areg =         863 creg =         104
+tr rl fired at                 8685, areg =         864
+ap rl fired at                 8685, areg =         864 creg =         104
+b rl fired at                 8685, breg =         105, crossReg =         856 
+ap rl fired at                 8695, areg =         865 creg =         105
+ap rl fired at                 8705, areg =         866 creg =         105
+ap rl fired at                 8715, areg =         867 creg =         105
+ap rl fired at                 8725, areg =         868 creg =         105
+ap rl fired at                 8735, areg =         869 creg =         105
+ap rl fired at                 8745, areg =         870 creg =         105
+ap rl fired at                 8755, areg =         871 creg =         105
+tr rl fired at                 8765, areg =         872
+ap rl fired at                 8765, areg =         872 creg =         105
+b rl fired at                 8765, breg =         106, crossReg =         864 
+ap rl fired at                 8775, areg =         873 creg =         106
+ap rl fired at                 8785, areg =         874 creg =         106
+ap rl fired at                 8795, areg =         875 creg =         106
+ap rl fired at                 8805, areg =         876 creg =         106
+ap rl fired at                 8815, areg =         877 creg =         106
+ap rl fired at                 8825, areg =         878 creg =         106
+ap rl fired at                 8835, areg =         879 creg =         106
+tr rl fired at                 8845, areg =         880
+ap rl fired at                 8845, areg =         880 creg =         106
+b rl fired at                 8845, breg =         107, crossReg =         872 
+ap rl fired at                 8855, areg =         881 creg =         107
+ap rl fired at                 8865, areg =         882 creg =         107
+ap rl fired at                 8875, areg =         883 creg =         107
+ap rl fired at                 8885, areg =         884 creg =         107
+ap rl fired at                 8895, areg =         885 creg =         107
+ap rl fired at                 8905, areg =         886 creg =         107
+ap rl fired at                 8915, areg =         887 creg =         107
+tr rl fired at                 8925, areg =         888
+ap rl fired at                 8925, areg =         888 creg =         107
+b rl fired at                 8925, breg =         108, crossReg =         880 
+ap rl fired at                 8935, areg =         889 creg =         108
+ap rl fired at                 8945, areg =         890 creg =         108
+ap rl fired at                 8955, areg =         891 creg =         108
+ap rl fired at                 8965, areg =         892 creg =         108
+ap rl fired at                 8975, areg =         893 creg =         108
+ap rl fired at                 8985, areg =         894 creg =         108
+ap rl fired at                 8995, areg =         895 creg =         108
+tr rl fired at                 9005, areg =         896
+ap rl fired at                 9005, areg =         896 creg =         108
+b rl fired at                 9005, breg =         109, crossReg =         888 
+ap rl fired at                 9015, areg =         897 creg =         109
+ap rl fired at                 9025, areg =         898 creg =         109
+ap rl fired at                 9035, areg =         899 creg =         109
+ap rl fired at                 9045, areg =         900 creg =         109
+ap rl fired at                 9055, areg =         901 creg =         109
+ap rl fired at                 9065, areg =         902 creg =         109
+ap rl fired at                 9075, areg =         903 creg =         109
+tr rl fired at                 9085, areg =         904
+ap rl fired at                 9085, areg =         904 creg =         109
+b rl fired at                 9085, breg =         110, crossReg =         896 
+ap rl fired at                 9095, areg =         905 creg =         110
+ap rl fired at                 9105, areg =         906 creg =         110
+ap rl fired at                 9115, areg =         907 creg =         110
+ap rl fired at                 9125, areg =         908 creg =         110
+ap rl fired at                 9135, areg =         909 creg =         110
+ap rl fired at                 9145, areg =         910 creg =         110
+ap rl fired at                 9155, areg =         911 creg =         110
+tr rl fired at                 9165, areg =         912
+ap rl fired at                 9165, areg =         912 creg =         110
+b rl fired at                 9165, breg =         111, crossReg =         904 
+ap rl fired at                 9175, areg =         913 creg =         111
+ap rl fired at                 9185, areg =         914 creg =         111
+ap rl fired at                 9195, areg =         915 creg =         111
+ap rl fired at                 9205, areg =         916 creg =         111
+ap rl fired at                 9215, areg =         917 creg =         111
+ap rl fired at                 9225, areg =         918 creg =         111
+ap rl fired at                 9235, areg =         919 creg =         111
+tr rl fired at                 9245, areg =         920
+ap rl fired at                 9245, areg =         920 creg =         111
+b rl fired at                 9245, breg =         112, crossReg =         912 
+ap rl fired at                 9255, areg =         921 creg =         112
+ap rl fired at                 9265, areg =         922 creg =         112
+ap rl fired at                 9275, areg =         923 creg =         112
+ap rl fired at                 9285, areg =         924 creg =         112
+ap rl fired at                 9295, areg =         925 creg =         112
+ap rl fired at                 9305, areg =         926 creg =         112
+ap rl fired at                 9315, areg =         927 creg =         112
+tr rl fired at                 9325, areg =         928
+ap rl fired at                 9325, areg =         928 creg =         112
+b rl fired at                 9325, breg =         113, crossReg =         920 
+ap rl fired at                 9335, areg =         929 creg =         113
+ap rl fired at                 9345, areg =         930 creg =         113
+ap rl fired at                 9355, areg =         931 creg =         113
+ap rl fired at                 9365, areg =         932 creg =         113
+ap rl fired at                 9375, areg =         933 creg =         113
+ap rl fired at                 9385, areg =         934 creg =         113
+ap rl fired at                 9395, areg =         935 creg =         113
+tr rl fired at                 9405, areg =         936
+ap rl fired at                 9405, areg =         936 creg =         113
+b rl fired at                 9405, breg =         114, crossReg =         928 
+ap rl fired at                 9415, areg =         937 creg =         114
+ap rl fired at                 9425, areg =         938 creg =         114
+ap rl fired at                 9435, areg =         939 creg =         114
+ap rl fired at                 9445, areg =         940 creg =         114
+ap rl fired at                 9455, areg =         941 creg =         114
+ap rl fired at                 9465, areg =         942 creg =         114
+ap rl fired at                 9475, areg =         943 creg =         114
+tr rl fired at                 9485, areg =         944
+ap rl fired at                 9485, areg =         944 creg =         114
+b rl fired at                 9485, breg =         115, crossReg =         936 
+ap rl fired at                 9495, areg =         945 creg =         115
+ap rl fired at                 9505, areg =         946 creg =         115
+ap rl fired at                 9515, areg =         947 creg =         115
+ap rl fired at                 9525, areg =         948 creg =         115
+ap rl fired at                 9535, areg =         949 creg =         115
+ap rl fired at                 9545, areg =         950 creg =         115
+ap rl fired at                 9555, areg =         951 creg =         115
+tr rl fired at                 9565, areg =         952
+ap rl fired at                 9565, areg =         952 creg =         115
+b rl fired at                 9565, breg =         116, crossReg =         944 
+ap rl fired at                 9575, areg =         953 creg =         116
+ap rl fired at                 9585, areg =         954 creg =         116
+ap rl fired at                 9595, areg =         955 creg =         116
+ap rl fired at                 9605, areg =         956 creg =         116
+ap rl fired at                 9615, areg =         957 creg =         116
+ap rl fired at                 9625, areg =         958 creg =         116
+ap rl fired at                 9635, areg =         959 creg =         116
+tr rl fired at                 9645, areg =         960
+ap rl fired at                 9645, areg =         960 creg =         116
+b rl fired at                 9645, breg =         117, crossReg =         952 
+ap rl fired at                 9655, areg =         961 creg =         117
+ap rl fired at                 9665, areg =         962 creg =         117
+ap rl fired at                 9675, areg =         963 creg =         117
+ap rl fired at                 9685, areg =         964 creg =         117
+ap rl fired at                 9695, areg =         965 creg =         117
+ap rl fired at                 9705, areg =         966 creg =         117
+ap rl fired at                 9715, areg =         967 creg =         117
+tr rl fired at                 9725, areg =         968
+ap rl fired at                 9725, areg =         968 creg =         117
+b rl fired at                 9725, breg =         118, crossReg =         960 
+ap rl fired at                 9735, areg =         969 creg =         118
+ap rl fired at                 9745, areg =         970 creg =         118
+ap rl fired at                 9755, areg =         971 creg =         118
+ap rl fired at                 9765, areg =         972 creg =         118
+ap rl fired at                 9775, areg =         973 creg =         118
+ap rl fired at                 9785, areg =         974 creg =         118
+ap rl fired at                 9795, areg =         975 creg =         118
+tr rl fired at                 9805, areg =         976
+ap rl fired at                 9805, areg =         976 creg =         118
+b rl fired at                 9805, breg =         119, crossReg =         968 
+ap rl fired at                 9815, areg =         977 creg =         119
+ap rl fired at                 9825, areg =         978 creg =         119
+ap rl fired at                 9835, areg =         979 creg =         119
+ap rl fired at                 9845, areg =         980 creg =         119
+ap rl fired at                 9855, areg =         981 creg =         119
+ap rl fired at                 9865, areg =         982 creg =         119
+ap rl fired at                 9875, areg =         983 creg =         119
+tr rl fired at                 9885, areg =         984
+ap rl fired at                 9885, areg =         984 creg =         119
+b rl fired at                 9885, breg =         120, crossReg =         976 
+ap rl fired at                 9895, areg =         985 creg =         120
+ap rl fired at                 9905, areg =         986 creg =         120
+ap rl fired at                 9915, areg =         987 creg =         120
+ap rl fired at                 9925, areg =         988 creg =         120
+ap rl fired at                 9935, areg =         989 creg =         120
+ap rl fired at                 9945, areg =         990 creg =         120
+ap rl fired at                 9955, areg =         991 creg =         120
+tr rl fired at                 9965, areg =         992
+ap rl fired at                 9965, areg =         992 creg =         120
+b rl fired at                 9965, breg =         121, crossReg =         984 
+ap rl fired at                 9975, areg =         993 creg =         121
+ap rl fired at                 9985, areg =         994 creg =         121
+ap rl fired at                 9995, areg =         995 creg =         121
+ap rl fired at                10005, areg =         996 creg =         121
+ap rl fired at                10015, areg =         997 creg =         121
+ap rl fired at                10025, areg =         998 creg =         121
+ap rl fired at                10035, areg =         999 creg =         121
+tr rl fired at                10045, areg =        1000
+ap rl fired at                10045, areg =        1000 creg =         121

@@ -1,0 +1,12 @@
+package AbstractList(MyList, nil, cons) where
+
+data MyList a = N | C a (MyList a)
+  deriving(Eq)
+
+nil :: MyList a
+nil = N
+
+cons :: a -> MyList a -> MyList a
+cons a l = C a l
+
+

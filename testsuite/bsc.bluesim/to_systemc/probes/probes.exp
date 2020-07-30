@@ -1,0 +1,8 @@
+if { ($ctest == 1) && ($systemctest == 1) } {
+
+compile_object_pass Dut.bsv
+create_systemc_objects_pass mkDut.ba mkDut
+build_systemc_executable_pass probes top.sc mkDut
+run_systemc_executable probes
+
+}

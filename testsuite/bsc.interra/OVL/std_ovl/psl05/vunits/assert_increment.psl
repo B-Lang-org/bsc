@@ -1,0 +1,59 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_increment_assert_vunit (assert_increment_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_INCREMENT_P = always (
+            (value > 0) && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+            (test_expr > prev(test_expr) ? 
+            (test_expr - prev(test_expr)) == value :
+            (test_expr + ({width{1'b1}} - prev(test_expr)) + 1'b1 == value)));
+
+  //Property for X/Z checking
+
+  property ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  A_ASSERT_INCREMENT_P:
+  assert ASSERT_INCREMENT_P
+  report "VIOLATION: ASSERT_INCREMENT Checker Fires: Test expression is increased by a value other than specified";
+
+  A_ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_INCREMENT Checker Fires: test_expr contains X or Z";
+}
+
+vunit assert_increment_assume_vunit (assert_increment_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_INCREMENT_P = always (
+            (value > 0) && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+            (test_expr > prev(test_expr) ?
+            (test_expr - prev(test_expr)) == value :
+            (test_expr + ({width{1'b1}} - prev(test_expr)) + 1'b1 == value)));
+
+  //Property for X/Z checking
+
+  property ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  M_ASSERT_INCREMENT_P:
+  assume ASSERT_INCREMENT_P;
+
+  M_ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_INCREMENT_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_increment_cover_vunit (assert_increment_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_BASIC_ON && prev(reset_n) && reset_n && (test_expr != prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_INCREMENT Checker: test_expr_change covered";
+}
+ 

@@ -1,0 +1,23 @@
+
+This directory contains transaction-level models of a bus protocol,
+using specific AMBA adapters.  These adapters provide simple
+intrfaces, which are not abma protocol specific, thus allowing the
+same models to connect with different bus implementations or models.
+
+
+TODO:
+
+-- Use OInt for slave select -- except that is one-hot all zeros OK
+-- File bug for OInt type needs to be using for rule analysis
+-- Master Select hmaster is a 4 bit value
+-- review mkIfcMaster/Slave   can these be simiplfied.
+-- combine all work into packages
+        AmbaTModels
+        AmbaSModels
+   DMA
+   DMA_Envir
+-- see if there are simulation differences with them (Rob)
+-- Check hack for one hot.
+-- Needs version with OInt fixes
+-- Sort port list via method name.....
+-- rename methods to match pinouts.

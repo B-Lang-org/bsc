@@ -1,0 +1,100 @@
+Usage:
+  bsc -help                                to get help
+  bsc [flags] file.bsv                     to partially compile a Bluespec file
+  bsc [flags] -verilog -g mod file.bsv     to compile a module to Verilog
+  bsc [flags] -verilog -g mod -u file.bsv  to recursively compile modules to Verilog
+  bsc [flags] -verilog -e topmodule        to link Verilog into a simulation model
+  bsc [flags] -sim -g mod file.bsv         to compile to a Bluesim object
+  bsc [flags] -sim -g mod -u file.bsv      to recursively compile to Bluesim objects
+  bsc [flags] -sim -e topmodule            to link objects into a Bluesim binary
+  bsc [flags] -systemc -e topmodule        to link objects into a SystemC model
+
+Compiler flags:
+-D macro                define a macro for the BSV or Verilog preprocessor
+-E                      run just the preprocessor, dumping result to stdout
+-I path                 include path for compiling foreign C/C++ source
+-L path                 library path for linking foreign C/C++ objects
+-Xc arg                 pass argument to the C compiler
+-Xc++ arg               pass argument to the C++ compiler
+-Xcpp arg               pass argument to the C preprocessor
+-Xl arg                 pass argument to the C/C++ linker
+-Xv arg                 pass argument to the Verilog link process
+-aggressive-conditions  construct implicit conditions aggressively
+-bdir dir               output directory for .bo and .ba files
+-check-assert           test assertions with the Assert library
+-continue-after-errors  aggressively continue compilation after an error has been detected
+-cpp                    preprocess the source with the C preprocessor
+-demote-errors list     treat a list of errors as warnings (``:'' sep list of tags)
+-e module               top-level module for simulation
+-elab                   generate a .ba file after elaboration and scheduling
+-fdir dir               working directory for relative file paths during elaboration
+-g module               generate code for ``module'' (requires -sim or -verilog)
+-help                   generate help message
+-i dir                  override `$BLUESPECDIR'
+-info-dir dir           output directory for informational files
+-keep-fires             preserve CAN_FIRE and WILL_FIRE signals
+-keep-inlined-boundaries preserve inlined register and wire boundaries
+-l library              library to use when linking foreign C/C++ objects
+-lift                   lift method calls in "if" actions
+-o name                 name of generated executable
+-opt-undetermined-vals  aggressive optimization of undetermined values
+-p path                 directory path (``:'' sep.) for source and intermediate files
+-parallel-sim-link jobs specify the # of simultaneous jobs when linking Bluesim
+-print-flags            print flag values after command-line parsing
+-promote-warnings list  treat a list of warnings as errors (``:'' sep list of tags)
+-q                      same as -quiet
+-quiet                  be less talkative
+-remove-dollar          remove dollar signs from Verilog identifiers
+-remove-empty-rules     remove rules whose bodies have no actions
+-remove-false-rules     remove rules whose condition is provably false
+-remove-starved-rules   remove rules that are never fired by the generated schedule
+-remove-unused-modules  remove unconnected modules from the Verilog
+-reset-prefix name      reset name or prefix for generated modules
+-resource-off           fail on insufficient resources
+-resource-simple        reschedule on insufficient resources
+-sat-stp                use STP SMT for disjoint testing and SAT
+-sat-yices              use Yices SMT for disjoint testing and SAT
+-sched-dot              generate .dot files with schedule information
+-show-compiles          show recompilations
+-show-elab-progress     display trace as modules, rules, methods are elaborated
+-show-method-bvi        show BVI format method schedule information in the generated code
+-show-method-conf       show method conflict information in the generated code
+-show-module-use        output instantiated Verilog modules names
+-show-range-conflict    show predicates when reporting a parallel-composability error
+-show-rule-rel r1 r2    display scheduling information about rules r1 and r2
+-show-schedule          show generated schedule
+-show-stats             show package statistics
+-show-timestamps        include timestamps in generated files
+-show-version           include compiler version in generated files
+-sim                    compile BSV generating Bluesim object
+-simdir dir             output directory for Bluesim intermediate files
+-split-if               split "if" in actions
+-steps n                terminate elaboration after this many function unfolding steps
+-steps-max-intervals n  terminate elaboration after this number of unfolding messages
+-steps-warn-interval n  issue a warning each time this many unfolding steps are executed
+-suppress-warnings list ignore a list of warnings (``:'' sep list of tags)
+-systemc                generate a SystemC model
+-u                      check and recompile packages that are not up to date
+-unspecified-to val     remaining unspecified values are set to: 'X', '0', '1', 'Z', or 'A'
+-v                      same as -verbose
+-v95                    generate strict Verilog 95 code
+-vdir dir               output directory for .v files
+-verbose                be more talkative
+-verilog                compile BSV generating Verilog file
+-verilog-filter cmd     invoke a command to post-process the generated Verilog
+-vsearch path           search path (``:'' sep.) for Verilog files
+-vsim simulator         specify which Verilog simulator to use
+-warn-action-shadowing  warn when a rule's action is overwritten by a later rule
+-warn-method-urgency    warn when a method's urgency is arbitrarily chosen
+
+Most flags may be preceded by a ``no-'' to reverse the effect.
+Flags later on the command line override earlier ones.
+Path strings such as the import path may contain the character
+``%'' representing the current Bluespec directory, as well as
+``+'' representing the current value of the path.
+Lists of error or warning tags may take the values ``ALL'' and ``NONE''.
+
+Default flags:
+Bluespec directory: BLUESPECDIR
+import path: .:BLUESPECDIR/Libraries
+

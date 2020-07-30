@@ -1,0 +1,42 @@
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+Passes          4, Fails          0
+
+not covered: RL_done `done'
+not covered: RL_recdAck `recdAck'
+not covered: RL_recdRequest `recdRequest'
+not covered: RL_start `start'
+not covered: RL_fromAcquisition `fromAcquisition'
+not covered: RL_fromRequest `fromRequest'
+not covered: RL_fromIdle `fromIdle'
+coverage: 0 out of 7 rules (0%)

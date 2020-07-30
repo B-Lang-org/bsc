@@ -1,0 +1,19 @@
+checking package dependencies
+compiling MsgTest_ResetOfMultiReset.bsv
+code generation for sysMsgTest_MultiReset starts
+Warning: "MsgTest_ResetOfMultiReset.bsv", line 27, column 8: (G0044)
+  Multiple contributing reset signals were found in the argument to `resetOf'.
+  Use `resetsOf' to extract all of the resets or change the argument
+  expression.
+  Method calls by reset:
+    Reset 1 (default_reset):
+      rg1.read rg1.write
+    Reset 2 (rst2):
+      rg2.read rg2.write
+    Reset 3 (mr.new_rst):
+      rg3.read rg3.write
+  During elaboration of `sysMsgTest_MultiReset' at
+  "MsgTest_ResetOfMultiReset.bsv", line 8, column 8.
+Compilation message: "MsgTest_ResetOfMultiReset.bsv", line 28, column 15: True
+Verilog file created: sysMsgTest_MultiReset.v
+All packages are up to date.

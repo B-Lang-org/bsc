@@ -1,0 +1,5 @@
+compile_fail ECannotDerive1.bs
+compare_file ECannotDerive1.bs.bsc-out
+
+compile_fail ECannotDerive2.bs
+compare_file ECannotDerive2.bs.bsc-out

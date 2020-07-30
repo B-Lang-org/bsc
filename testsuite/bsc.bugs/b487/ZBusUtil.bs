@@ -1,0 +1,165 @@
+-- #############################################################################
+-- #
+-- #############################################################################
+
+package ZBusUtil(ZBit,
+		     mkZBit,
+		     zBitGetWord,
+		     ConvertToZ(..), 
+		     mkConvertToZ,
+		     ConvertFromZ(..), 
+		     mkConvertFromZ,
+		     ResolveZ(..), 
+		     mkResolveZ
+		     ) where
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+import List
+import Environment
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+
+struct ZBit t = {
+		 word :: t;
+		} deriving (Eq, Bits);
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkZBit :: t -> ZBit t
+mkZBit w = ZBit {
+		 word = w;
+		}
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+zBitGetWord :: ZBit t -> t
+zBitGetWord wz = wz.word
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface ConvertToZ i =
+    convert :: i -> Bool -> ZBit i
+
+interface VConvertToZ si sz =
+    convert :: Bit si -> Bit 1 -> Bit sz
+
+vMkConvertToZ :: Module (VConvertToZ i j)
+vMkConvertToZ =
+    module verilog "ConvertToZ" (("foo", (valueOf i))) "CLK" {
+	convert = "IN" "ENABLE" "OUT";
+    } [ convert <> convert ]
+
+mkConvertToZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) => 
+		m (ConvertToZ i)
+mkConvertToZ = 
+    if genC then liftModule $
+       module
+	   interface
+	      convert word enable = bitToZBit word enable
+    else liftModule $
+       module
+	   _a :: VConvertToZ si sz
+	   _a <- vMkConvertToZ
+           interface
+	      convert word enable = unpack (_a.convert (pack word) (pack enable))
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+bitToZBit :: (Eq i, Literal i) => i -> Bool -> ZBit i
+bitToZBit word enable =
+    if (enable) then mkZBit word
+    else mkZBit 0
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface ConvertFromZ i =
+    convert :: ZBit i -> i
+
+interface VConvertFromZ sz si1 =
+    convert :: Bit sz -> Bit si1
+
+vMkConvertFromZ :: Module (VConvertFromZ i j)
+vMkConvertFromZ =
+    module verilog "ConvertFromZ" (("foo", (valueOf j))) "CLK" {
+	convert = "IN" "OUT";
+    } [ convert <> convert ]
+
+mkConvertFromZ :: (IsModule m c, Eq i, Literal i, 
+		   Bits (ZBit i) sz, Bits i si1) => 
+		  m (ConvertFromZ i)
+mkConvertFromZ = 
+    if genC then liftModule $
+       module
+	   interface
+	      convert k = zBitToBit k
+    else liftModule $
+       module 
+	   _a :: VConvertFromZ sz si1
+	   _a <- vMkConvertFromZ
+           interface
+	      convert k = unpack (_a.convert (pack k))
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+zBitToBit :: (Eq i, Literal i) => ZBit i -> i
+zBitToBit wz  = (zBitGetWord wz)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface ResolveZ i =
+    resolve :: ZBit i -> ZBit i -> ZBit i
+
+interface VResolveZ si =
+    resolve :: Bit si -> Bit si -> Bit si
+
+vMkResolveZ :: Module (VResolveZ i)
+vMkResolveZ =
+    module verilog "ResolveZ" (("foo", (valueOf i))) "CLK" {
+	resolve = "IN_0" "IN_1" "OUT";
+    } [ resolve <> resolve ]
+
+mkResolveZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) => 
+	      m (ResolveZ i)
+mkResolveZ = 
+    if genC then liftModule $
+       module
+	   interface
+	      resolve in_0 in_1 = resolveZ in_0 in_1
+    else liftModule $
+       module 
+	   _a :: VResolveZ sz
+	   _a <- vMkResolveZ
+           interface
+	      resolve in_0 in_1 = unpack (_a.resolve (pack in_0) (pack in_1))
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+resolveZ :: (Eq i, Literal i, Bits i si) => ZBit i -> ZBit i -> ZBit i
+resolveZ wz_0 wz_1 = mkZBit(unpack(pack(zBitGetWord wz_0) | pack(zBitGetWord wz_1)))
+
+-- #############################################################################
+-- #
+-- #############################################################################

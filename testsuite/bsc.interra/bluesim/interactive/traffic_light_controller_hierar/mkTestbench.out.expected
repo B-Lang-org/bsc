@@ -1,0 +1,258 @@
+TLC METHOD FIRES
+bsv_c_drvfile: 1: no object         (problem with: top)
+bsv_c_drvfile: 1: skipping method call: top.tlc 0 0x05 0x02
+TLC METHOD FIRES
+Car present on Farm Road 
+Reg Design.TIMstates(2) top_t_timer_state
+ read
+ write
+  -> Design.TIMstates(2) (Action PrimUnit(0)) _write
+  Design.TIMstates(2) _read
+
+Reg Design.TLstates(2) top_t_hwy_state
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg Design.TLstates(2) top_t_frm_state
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg (Bit(5) 5) top_t_timer
+ read
+ write
+  -> (Bit(5) 5) (Action PrimUnit(0)) _write
+  Bit(5) 5 _read
+
+Reg (Bit(8) 8) counter
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(16) 16) count_wait
+ read
+ write
+  -> (Bit(16) 16) (Action PrimUnit(0)) _write
+  Bit(16) 16 _read
+
+Reg (Bit(8) 8) count_sig2_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig3_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig4_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig5_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig6_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig7_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg Testbench.State(5) state
+ read
+ write
+  -> Testbench.State(5) (Action PrimUnit(0)) _write
+  Testbench.State(5) _read
+
+Reg Design.TLstates(2) hwy_sig
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg Design.TLstates(2) frm_sig
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg (Bit(5) 5) long_timer_value
+ read
+ write
+  -> (Bit(5) 5) (Action PrimUnit(0)) _write
+  Bit(5) 5 _read
+
+Reg (Bit(5) 5) short_timer_value
+ read
+ write
+  -> (Bit(5) 5) (Action PrimUnit(0)) _write
+  Bit(5) 5 _read
+
+bsv_c_drvfile: 4: no object                (problem with: top)
+bsv_c_drvfile: 4: skipping method call: top.farm_light
+bsv_c_drvfile: 5: no object               (problem with: top)
+bsv_c_drvfile: 5: skipping method call: top.hwy_light
+bsv_c_drvfile: 6: no object         (problem with: top)
+bsv_c_drvfile: 6: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 8: no object         (problem with: top)
+bsv_c_drvfile: 8: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 10: no object         (problem with: top)
+bsv_c_drvfile: 10: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 12: no object         (problem with: top)
+bsv_c_drvfile: 12: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 14: no object         (problem with: top)
+bsv_c_drvfile: 14: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 16: no object         (problem with: top)
+bsv_c_drvfile: 16: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+bsv_c_drvfile: 18: no object                (problem with: top)
+bsv_c_drvfile: 18: skipping method call: top.farm_light
+bsv_c_drvfile: 19: no object               (problem with: top)
+bsv_c_drvfile: 19: skipping method call: top.hwy_light
+bsv_c_drvfile: 20: no object         (problem with: top)
+bsv_c_drvfile: 20: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+hwy_light turns Yellow 
+bsv_c_drvfile: 22: no object         (problem with: top)
+bsv_c_drvfile: 22: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+bsv_c_drvfile: 24: no object         (problem with: top)
+bsv_c_drvfile: 24: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+bsv_c_drvfile: 26: no object         (problem with: top)
+bsv_c_drvfile: 26: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+bsv_c_drvfile: 28: no object                (problem with: top)
+bsv_c_drvfile: 28: skipping method call: top.farm_light
+bsv_c_drvfile: 29: no object               (problem with: top)
+bsv_c_drvfile: 29: skipping method call: top.hwy_light
+bsv_c_drvfile: 30: no object         (problem with: top)
+bsv_c_drvfile: 30: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+hwy_light turns Red 
+bsv_c_drvfile: 32: no object         (problem with: top)
+bsv_c_drvfile: 32: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+farm_light turns Green 
+bsv_c_drvfile: 34: no object         (problem with: top)
+bsv_c_drvfile: 34: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+bsv_c_drvfile: 36: no object         (problem with: top)
+bsv_c_drvfile: 36: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+bsv_c_drvfile: 38: no object         (problem with: top)
+bsv_c_drvfile: 38: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+bsv_c_drvfile: 40: no object         (problem with: top)
+bsv_c_drvfile: 40: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+bsv_c_drvfile: 42: no object         (problem with: top)
+bsv_c_drvfile: 42: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+bsv_c_drvfile: 44: no object                (problem with: top)
+bsv_c_drvfile: 44: skipping method call: top.farm_light
+bsv_c_drvfile: 45: no object               (problem with: top)
+bsv_c_drvfile: 45: skipping method call: top.hwy_light
+bsv_c_drvfile: 46: no object         (problem with: top)
+bsv_c_drvfile: 46: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+farm_light turns Yellow 
+bsv_c_drvfile: 48: no object         (problem with: top)
+bsv_c_drvfile: 48: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+bsv_c_drvfile: 50: no object         (problem with: top)
+bsv_c_drvfile: 50: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+bsv_c_drvfile: 52: no object         (problem with: top)
+bsv_c_drvfile: 52: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+main.top.top_t_timer_state = START
+main.top.top_t_hwy_state = GREEN
+main.top.top_t_frm_state = RED
+main.top.top_t_timer = 0x01
+main.top.counter = 0x00
+main.top.count_wait = 0x0000
+main.top.count_sig2_state = 0x06
+main.top.count_sig3_state = 0x03
+main.top.count_sig4_state = 0x00
+main.top.count_sig5_state = 0x05
+main.top.count_sig6_state = 0x03
+main.top.count_sig7_state = 0x00
+main.top.state = Sig6
+main.top.hwy_sig = RED
+main.top.frm_sig = RED
+main.top.long_timer_value = 0x05
+main.top.short_timer_value = 0x02
+bsv_c_drvfile: 55: no object                (problem with: top)
+bsv_c_drvfile: 55: skipping method call: top.farm_light
+bsv_c_drvfile: 56: no object               (problem with: top)
+bsv_c_drvfile: 56: skipping method call: top.hwy_light
+bsv_c_drvfile: 57: no object         (problem with: top)
+bsv_c_drvfile: 57: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+farm_light turns Red 
+bsv_c_drvfile: 59: no object         (problem with: top)
+bsv_c_drvfile: 59: skipping method call: top.tlc 1 0x05 0x02
+TLC METHOD FIRES
+Waiting for hwy_light to turn Green 
+bsv_c_drvfile: 61: no object         (problem with: top)
+bsv_c_drvfile: 61: skipping method call: top.tlc 1 0x05 0x02
+main.top.top_t_timer_state = SHORT
+main.top.top_t_hwy_state = GREEN
+main.top.top_t_frm_state = RED
+main.top.top_t_timer = 0x03
+main.top.counter = 0x00
+main.top.count_wait = 0x0000
+main.top.count_sig2_state = 0x06
+main.top.count_sig3_state = 0x03
+main.top.count_sig4_state = 0x00
+main.top.count_sig5_state = 0x05
+main.top.count_sig6_state = 0x03
+main.top.count_sig7_state = 0x01
+main.top.state = Sig7
+main.top.hwy_sig = GREEN
+main.top.frm_sig = RED
+main.top.long_timer_value = 0x05
+main.top.short_timer_value = 0x02
+TLC METHOD FIRES
+hwy_light turns Green 
+Simulation Passes 

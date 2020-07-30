@@ -1,0 +1,107 @@
+checking package dependencies
+compiling SplitIf.bsv
+code generation for mkSplitIf_Test starts
+Warning: "SplitIf.bsv", line 6, column 8: (G0020)
+  System functions (e.g., $display) called by interface methods execute in an
+  unpredictable order during Verilog simulations.
+      Top-level interface method `xfer' calls a system function (e.g.,
+      $display) at the following positions:
+	  "SplitIf.bsv", line 26, column 7
+	  "SplitIf.bsv", line 31, column 7
+Warning: "SplitIf.bsv", line 6, column 8: (G0117)
+  Rule `xfer_F' shadows the effects of `toggle2' when they execute in the same
+  clock cycle. Affected method calls:
+    r2.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== schedule:
+parallel: [esposito: [RL_toggle2 -> [], xfer_T -> [], xfer_F -> [], RL_toggle1 -> [xfer_T]]]
+order: [RL_toggle2, xfer_T, xfer_F, RL_toggle1]
+
+-----
+
+=== resources:
+[(r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write xfer_sel, 1), (r1.write NOT_r1___d2, 1)]),
+ (r2.read, [(r2.read, 1)]),
+ (r2.write, [(r2.write xfer_sel, 1), (r2.write NOT_r2___d4, 1)]),
+ (w.whas, [(w.whas, 1)]),
+ (w.wset, [(w.wset r2__h256, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_xfer CF [RDY_xfer, xfer], xfer C xfer] [] [(xfer, [(Left RL_toggle2)])] []
+
+-----
+
+Schedule dump file created: mkSplitIf_Test.sched
+=== Generated schedule for mkSplitIf_Test ===
+
+Method schedule
+---------------
+Method: xfer
+Ready signal: (w.whas && r1) || (w.whas && (! r1))
+Conflicts: xfer
+ 
+Rule schedule
+-------------
+Rule: toggle1
+Predicate: True
+Blocking rules: xfer_T
+ 
+Rule: toggle2
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: toggle2, xfer_T, xfer_F, toggle1
+
+==============================================
+Verilog file created: mkSplitIf_Test.v
+code generation for sysSplitIf starts
+=== schedule:
+parallel: [esposito: [RL_toggleDir -> [], RL_r -> [], RL_incr -> [], RL_done -> []]]
+order: [RL_r, RL_toggleDir, RL_done, RL_incr]
+
+-----
+
+=== resources:
+[(count.read, [(count.read, 1)]),
+ (count.write, [(count.write count_PLUS_1___d5, 1)]),
+ (dir.read, [(dir.read, 1)]),
+ (dir.write, [(dir.write NOT_dir___d2, 1)]),
+ (test.RDY_xfer, [(test.RDY_xfer, 1)]),
+ (test.xfer, [(test.xfer dir__h205, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysSplitIf.sched
+=== Generated schedule for sysSplitIf ===
+
+Rule schedule
+-------------
+Rule: toggleDir
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: r
+Predicate: test.RDY_xfer
+Blocking rules: (none)
+ 
+Rule: incr
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: done
+Predicate: count == 4'd15
+Blocking rules: (none)
+ 
+Logical execution order: r, toggleDir, done, incr
+
+==========================================
+Verilog file created: sysSplitIf.v
+All packages are up to date.

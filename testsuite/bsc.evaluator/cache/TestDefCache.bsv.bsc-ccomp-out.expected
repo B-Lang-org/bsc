@@ -1,0 +1,6 @@
+checking package dependencies
+compiling TestDefCache.bsv
+code generation for sysTestDefCache starts
+Compilation message: "TestDefCache.bsv", line 1, column 24: five
+Elaborated module file created: sysTestDefCache.ba
+All packages are up to date.

@@ -1,0 +1,24 @@
+checking package dependencies
+compiling ResourceOneRuleCSEnoSC.bs
+code generation for sysResourceOneRuleCSEnoSC starts
+Error: "ResourceOneRuleCSEnoSC.bs", line 15, column 17: (G0004)
+  Rule `RL_unnamed' uses methods that conflict in parallel:
+    q.enq(...)
+  and
+    q.enq(...)
+  For the complete expressions use the flag `-show-range-conflict'.
+=== schedule:
+Nothing
+
+-----
+
+Schedule dump file created: sysResourceOneRuleCSEnoSC.sched
+=== Generated schedule for sysResourceOneRuleCSEnoSC ===
+
+Rule schedule
+-------------
+Rule: unnamed
+Predicate: q.i_notFull
+ 
+
+=========================================================

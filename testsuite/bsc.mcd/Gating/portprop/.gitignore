@@ -1,0 +1,8 @@
+mkPropDeduce_SubmodUseInhigh_Sub.wrap
+sysPropDeduce_InClockAsOutClock.wrap
+sysPropDeduce_MethodUse.wrap
+sysPropDeduce_NoUse.wrap
+sysPropDeduce_RuleAndMethodShareUse.wrap
+sysPropDeduce_RuleUse.wrap
+sysPropDeduce_SubmodUseInhigh.wrap
+sysPropDeduce_SubmodUseUnused.wrap

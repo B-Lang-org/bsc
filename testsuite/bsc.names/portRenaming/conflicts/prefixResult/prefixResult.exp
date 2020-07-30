@@ -1,0 +1,1 @@
+compile_fail_error Test01.bsv G0055 1 "-verilog"

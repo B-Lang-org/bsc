@@ -1,0 +1,19 @@
+
+# This takes too long to compile -- 20+ minutes 2+Gb
+# test_c_only_bsv_modules_options Tb_v0 FixedPointIO.c "-p ../..:+ -bdir . -steps 640000000"
+
+test_c_only_bsv_modules_options Tb_v1 FixedPointIO.c {-elab}
+if { $ctest == 1 } {
+compare_file Test_out_v1.dat.out
+}
+
+test_c_only_bsv_modules_options Tb_v2 FixedPointIO.c {-elab}
+if { $ctest == 1 } {
+compare_file Test_out_v2.dat.out
+}
+
+test_c_only_bsv_modules_options Tb_v5 FixedPointIO.c {-elab}
+if { $ctest == 1 } {
+compare_file Test_out_v5.dat.out
+}
+

@@ -1,0 +1,57 @@
+# Test the parsing of interfaces
+
+# ---------------
+
+# Test that interfaces with local statements are allowed
+# (doesn't case an internal error, in the parser or later in typecheck)
+
+# Interface statement in a module
+compile_pass ModuleInterface_LocalStmt_DeclAssign.bsv
+compile_pass ModuleInterface_LocalStmt_DeclAssignLet.bsv
+compile_pass ModuleInterface_LocalStmt_DeclFunction.bsv
+compile_pass ModuleInterface_LocalStmt_DeclLet_Assign.bsv
+compile_pass ModuleInterface_LocalStmt_DeclModule.bsv
+compile_pass ModuleInterface_LocalStmt_Decl_Assign.bsv
+compile_pass ModuleInterface_LocalStmt_DeclArray_ForLoop.bsv
+compile_pass ModuleInterface_LocalStmt_DeclAssign_If.bsv
+compile_pass ModuleInterface_LocalStmt_DeclAssign_Case.bsv
+compile_pass ModuleInterface_LocalStmt_DeclArrayAssign_AssignSub.bsv
+compile_pass ModuleInterface_LocalStmt_Decl_AssignField.bsv
+
+# Interface primary expression
+compile_pass PrimaryInterface_LocalStmt_DeclAssign.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclAssignLet.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclFunction.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclLet_Assign.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclModule.bsv
+compile_pass PrimaryInterface_LocalStmt_Decl_Assign.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclArray_ForLoop.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclAssign_If.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclAssign_Case.bsv
+compile_pass PrimaryInterface_LocalStmt_DeclArrayAssign_AssignSub.bsv
+compile_pass PrimaryInterface_LocalStmt_Decl_AssignField.bsv
+
+# ---------------
+
+# Test that variables have to be defined in the interface scope
+# XXX Is this a bug to be fixed?
+
+compile_fail ModuleInterface_LocalStmt_NoDecl.bsv P0039
+compile_fail PrimaryInterface_LocalStmt_NoDecl.bsv P0039
+
+# ---------------
+
+# Test that leaving out the fields is OK
+
+compile_pass ModuleInterface_LocalStmt_NoFields.bsv
+compile_pass PrimaryInterface_LocalStmt_NoFields.bsv
+
+# ---------------
+
+# Test that local statements still have to come before all the methods
+
+compile_fail ModuleInterface_LocalStmt_Between.bsv P0032
+compile_fail PrimaryInterface_LocalStmt_Between.bsv P0032
+
+# ---------------
+

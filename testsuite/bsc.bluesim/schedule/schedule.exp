@@ -1,0 +1,47 @@
+if { $ctest == 1 } {
+
+# =========================
+# Test that the ME inhibitor for a rule in a submodule doesn't have extra
+# scope added
+# (wasn't noticed for the top-mod because it has no additional scope there)
+
+compile_object_pass MERulesInSubmod.bsv
+link_objects_pass {sysMERulesInSubmod mkMERulesInSubmod_Sub} sysMERulesInSubmod {-keep-fires}
+find_regexp model_sysMERulesInSubmod.cxx {INST\_top\.INST\_x\.DEF\_CAN\_FIRE\_RL\_r2 \= (.*) \&\& \!\(INST\_top\.INST\_x\.DEF\_CAN\_FIRE\_RL\_r1\)}
+
+# =========================
+# Test that ME rules in different parts of the hierarchy (via method call)
+# don't introduce wrong scope in the ME inhibitor
+
+compile_object_pass MERuleAndMethodInSubmod.bsv
+link_objects_pass {sysMERuleAndMethodInSubmod mkMERuleAndMethodInSubmod_Sub1 mkMERuleAndMethodInSubmod_Sub2} sysMERuleAndMethodInSubmod {-keep-fires}
+find_regexp model_sysMERuleAndMethodInSubmod.cxx {INST\_top\.INST\_x\.INST\_s\.DEF\_CAN\_FIRE\_RL\_r2 \= (.*) \&\& \!\(INST\_top\.INST\_x\.DEF\_CAN\_FIRE\_RL\_r1}
+
+# =========================
+# Bug 1422:
+# Test that inserted actions for ME assumption testing does not contribute
+# to the method-call uses calculated in SimExpand (leading to a failure
+# when merging module schedules)
+
+compile_object_pass MutuallyExclusiveAssump_CombSched.bsv
+link_objects_pass {sysMutuallyExclusiveAssump_CombSched mkMutuallyExclusiveAssump_CombSched_Sub} sysMutuallyExclusiveAssump_CombSched
+
+# =========================
+# Bug 1515:
+
+# Test that when a top-level value method is ME with a rule and the
+# method executes first that, if Bluesim inserts an inhibitor, the
+# inserted signal (such as "CAN_FIRE_<method>") actually exists.
+
+compile_object_pass MEValueMethod.bsv
+link_objects_pass {sysMEValueMethod} sysMEValueMethod
+
+# The above test will now pass in any case because we have removed
+# inhibitors due to value methods (also part of bug 1515).
+# Test that there is no inhibitor:
+
+find_n_strings model_sysMEValueMethod.cxx {DEF_CAN_FIRE_get} 0
+
+# =========================
+
+}

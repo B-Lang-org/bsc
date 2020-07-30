@@ -1,0 +1,37 @@
+if {$ctest == 1} {
+
+    # use "test_c_only" ?  don't need to check against expected...
+    compile_object_pass SameCanFire.bsv
+    link_objects_pass sysSameCanFire sysSameCanFire {-keep-fires}
+    sim_output sysSameCanFire {-V sysSameCanFire.vcd}
+    # check that both CAN_FIRE signals exist in the vcd dump
+    vcdcheck_pass sysSameCanFire.vcd {-c "main.top.CAN_FIRE_RL_r1 exists" \
+                                      -c "main.top.CAN_FIRE_RL_r2 exists" }
+
+    # use "test_c_only" ?  don't need to check against expected...
+    compile_object_pass CounterTest.bsv
+    link_objects_pass sysCounterTest sysCounterTest
+    sim_output sysCounterTest {-V sysCounterTest.vcd}
+    # check that counter ports exist and toggle correctly
+    vcdcheck_pass sysCounterTest.vcd {-c "main.top.counter.ADDA becomes 1 @30" \
+                                      -c "main.top.counter.DATA_A equals 100 @40" \
+                                      -c "main.top.counter.ADDA becomes 0 @40" \
+                                      -c "main.top.counter.Q_OUT becomes 100 @40" \
+                                      -c "main.top.counter.ADDB becomes 1 @70" \
+                                      -c "main.top.counter.q_state becomes 50 @80" \
+                                      -c "main.top.counter.ADDB becomes 0 @80" \
+                                      -c "main.top.counter.ADDA remains 1 @120" \
+                                      -c "main.top.counter.DATA_A remains 1 @120" \
+                                      -c "main.top.counter.SETC becomes 1 @300" \
+                                      -c "main.top.counter.DATA_C equals 70 @310" \
+                                      -c "main.top.counter.Q_OUT becomes 75 @310" \
+                                      -c "main.top.counter.SETC becomes 0 @310" \
+                                      -c "main.top.counter.SETF becomes 1 @600" \
+                                      -c "main.top.counter.DATA_F equals 150 @610" \
+                                      -c "main.top.counter becomes 150 @610" \
+                                      -c "main.top.counter.SETF becomes 0 @610" }
+}
+
+test_c_veri_bsv_multi VCDTest1 sysVCDTest1 {mkMid mkSub}
+
+test_c_veri_bsv_multi VCDTest2 sysVCDTest2 {mkMid mkSub}

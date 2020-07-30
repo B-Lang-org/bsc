@@ -1,0 +1,4 @@
+COND_RL_r1_rgs_0_write_1 {positions {MethodConds_VecSelAction_SamePos.bsv 10 10}} {rule RL_r1} {instance rgs_0} {method write}
+COND_RL_r1_rgs_1_write_2 {positions {MethodConds_VecSelAction_SamePos.bsv 10 10}} {rule RL_r1} {instance rgs_1} {method write}
+COND_RL_r1_rgs_2_write_3 {positions {MethodConds_VecSelAction_SamePos.bsv 10 10}} {rule RL_r1} {instance rgs_2} {method write}
+COND_RL_r1_rgs_3_write_4 {positions {MethodConds_VecSelAction_SamePos.bsv 10 10}} {rule RL_r1} {instance rgs_3} {method write}

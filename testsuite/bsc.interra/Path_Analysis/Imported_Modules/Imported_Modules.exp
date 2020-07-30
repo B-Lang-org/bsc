@@ -1,0 +1,30 @@
+
+compile_verilog_fail_error Argument2Rdy2.bsv G0034
+compile_verilog_fail_error Argument2Rdy2.bsv G0035
+compile_verilog_fail_error Argument2Rdy.bsv G0033
+
+compile_verilog_fail_error Argument2ReturnValue2.bsv G0032
+
+# These two examples are similar to the above test (see the above comment),
+# except that they should compile but are expected to fail with an "aCheck"
+# internal error due to bug #312.  If these tests start succeeding,
+# replace the second line with the commented-out line.
+compile_verilog_pass Parameter2Rdy.bsv "" "-dpathsPostSched"
+#find_n_strings Parameter2Rdy.bsv.bsc-vcomp-out "acheck:chkAVInstLiterals" 1
+compare_file_bug "Parameter2Rdy.bsv.bsc-vcomp-out" 770
+
+compile_verilog_pass Parameter2ReturnValue.bsv "" "-dpathsPostSched"
+#find_n_strings Parameter2ReturnValue.bsv.bsc-vcomp-out "acheck:chkAVInstLiterals" 1
+if {$vtest == 1} {
+compare_file_bug "Parameter2ReturnValue.bsv.bsc-vcomp-out" 770
+}
+
+compile_verilog_fail_error Argument2ReturnValue.bsv G0032
+compile_verilog_fail_error En2Rdy2.bsv G0030
+compile_verilog_fail_error En2Rdy3.bsv G0035
+compile_verilog_fail_error En2Rdy.bsv G0033
+compile_verilog_fail_error En2ReturnValue2.bsv G0033
+compile_verilog_fail_error En2ReturnValue.bsv G0033
+compile_verilog_fail_error Ten_Inverters.bsv G0032
+compile_verilog_fail_error Ten_Inverters.bsv G0032
+

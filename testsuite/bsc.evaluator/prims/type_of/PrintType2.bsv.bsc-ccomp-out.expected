@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintType2.bsv
+code generation for sysPrintType2 starts
+Compilation message: Bit#(17)
+Elaborated module file created: sysPrintType2.ba
+All packages are up to date.

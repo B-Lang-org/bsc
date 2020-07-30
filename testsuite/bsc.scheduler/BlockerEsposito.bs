@@ -1,0 +1,20 @@
+package BlockerEsposito(sysBlockerEsposito) where
+
+-- Rules `A' and `B' are independent and could fire simultaneously
+-- were it not for rule `Blocker.'
+-- The direct schedulers allows `A' and `B' to fire whenever Blocker
+-- is not enabled.
+
+import RegFile
+
+sysBlockerEsposito :: Module Empty
+sysBlockerEsposito =
+    module
+                 a :: RegFile Bool Bool
+		 a <- mkRegFileFull
+                 b :: RegFile Bool Bool
+		 b <- mkRegFileFull
+	         rules
+	             "Blocker": when True ==> action { a.upd True True; b.upd True True }
+	             "A": when True ==> a.upd True False
+	             "B": when True ==> b.upd True False

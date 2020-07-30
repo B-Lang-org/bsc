@@ -1,0 +1,100 @@
+package Counters (sysCounters, CounterUpdate, Counter) where
+
+import List
+
+
+-- ########################
+-- # Generic Declarations #
+-- ########################
+
+class (Bounded a) => Enumerate a where
+    enumerate :: List a
+
+-- Are the packs and unpacks in this code compiled away?
+-- ex: enumerateByBits minBound maxBound
+enumerateByBits :: (Bits a sa) => a -> a -> List a
+enumerateByBits min max =
+    if (pack min > pack max)
+    then Nil
+    else if (pack min == pack max)
+    then Cons min Nil
+    else let next = unpack (pack min + 1)
+	 in  Cons min (enumerateByBits next max)
+
+enumerateBits :: Bit n -> Bit n -> List (Bit n)
+enumerateBits min max =
+    if (min > max)
+    then Nil
+    else if (min == max)
+    then Cons min Nil
+    else Cons min (enumerateBits (min + 1) max)
+
+instance Enumerate (Bit n) where
+    enumerate = enumerateBits minBound maxBound
+
+
+-- ##############
+-- # Data Types #
+-- ##############
+
+type CounterValue = Bit 32
+
+data Counter = Counter1 | Counter2 | Counter3 | Counter4 | Counter5
+	     | Counter6 | Counter7 | Counter8
+	     deriving (Eq, Bits, Bounded)
+
+interface CounterUpdate =
+    incr :: Counter -> Action
+    decr :: Counter -> Action
+    -- set :: Counter -> CounterValue -> Action
+
+{-
+-- alternatively:
+
+interface CounterUpdate =
+    applyOp :: Op -> Counter -> CounterValue -> Action
+
+data CounterOp = Incr | Decr | Clear | Add | Sub | Set
+	       deriving (Eq,Bits)
+-}
+
+
+struct CounterInfo =
+    counter :: Counter
+    value :: Reg CounterValue
+
+
+-- ###########
+-- # Modules #
+-- ###########
+
+initialValue :: CounterValue
+initialValue = 0
+
+mkCounter :: Counter -> Module CounterInfo
+mkCounter c = do
+    v :: Reg CounterValue
+    v <- mkReg initialValue
+    return (CounterInfo { counter = c; value = v })
+
+findCounter :: Counter -> List CounterInfo -> Maybe (Reg CounterValue)
+findCounter _ Nil = Invalid
+findCounter c (Cons i is) =
+    if (c == i.counter)
+    then Valid i.value
+    else findCounter c is
+
+
+sysCounters :: Module CounterUpdate
+sysCounters =
+    module
+      counters :: List CounterInfo
+      counters <- mapM mkCounter (enumerateByBits minBound maxBound)
+      interface
+	-- should we handle overflow?
+	incr c = case (findCounter c counters) of
+		     Invalid -> action {}
+		     Valid r -> action { r := r + 1 }
+	decr c = case (findCounter c counters) of
+		     Invalid -> action {}
+		     Valid r -> action { r := r - 1 }

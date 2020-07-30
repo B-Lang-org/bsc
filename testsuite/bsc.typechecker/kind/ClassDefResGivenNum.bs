@@ -1,0 +1,5 @@
+package ClassDefResGivenNum () where
+
+class (Foo :: * -> #) a where
+    x :: Bool
+

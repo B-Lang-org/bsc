@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Incorrect_Attribute_List1.bsv
+code generation for mkIncorrect_Attribute_List1 starts
+Error: "Incorrect_Attribute_List1.bsv", line 17, column 53: (G0054)
+  Rule `dummy' was referenced in a rule attribute before it was defined.
+  During elaboration of `mkIncorrect_Attribute_List1' at
+  "Incorrect_Attribute_List1.bsv", line 6, column 8.

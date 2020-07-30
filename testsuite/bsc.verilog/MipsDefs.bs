@@ -1,0 +1,82 @@
+package MipsDefs(
+	Address,
+	Value, vToI, iToV, vToA, vLT, vLE, vGT, vGE, vSRA, vToNat, vZeroExt, vSignExt,
+	IAddress, jumpExtend, iaSignExt,
+	IValue,
+	ROM(..), RAM(..)
+	) where
+
+import MipsInstr
+
+-------
+-- The type of addresses into the RAM, addressing values
+
+data Address = A (Bit 30) deriving (Eq, Literal, Arith, Bits)
+
+-------
+-- The type of values
+
+data Value = V (Bit 32) deriving (Eq, Ord, Literal, Arith, Bitwise, Bits)
+
+--- Value-address conversions, account for the memories being word addressed
+vToI :: Value -> IAddress
+vToI (V x) = IA x[31:2]
+
+iToV :: IAddress -> Value
+iToV (IA x) = V (x ++ 0b00)
+
+vToA :: Value -> Address
+vToA (V x) = A x[31:2]
+
+--- Bit fiddling
+vLT :: Value -> Value -> Bool
+vLT (V x) (V y) = x `signedLT` y
+
+vLE :: Value -> Value -> Bool
+vLE (V x) (V y) = x `signedLE` y
+
+vGT :: Value -> Value -> Bool
+vGT (V x) (V y) = x `signedGT` y
+
+vGE :: Value -> Value -> Bool
+vGE (V x) (V y) = x `signedGE` y
+
+vSRA :: Value -> Nat -> Value
+vSRA (V x) y = V (x `signedShiftRight` y)
+
+vToNat :: Value -> Nat
+vToNat (V x) = x
+
+vZeroExt :: (Add k n (SizeOf Value)) => Bit n -> Value
+vZeroExt x = V (zeroExtend x)
+
+vSignExt :: (Add k n (SizeOf Value)) => Bit n -> Value
+vSignExt x = V (signExtend x)
+
+-------
+-- The type of addresses into the ROM, addressing instructions
+
+data IAddress = IA (Bit 30) deriving (Eq, Literal, Arith, Bits)
+
+jumpExtend :: IAddress -> UInt26 -> IAddress
+jumpExtend (IA pc) off = IA (pc[29:26] ++ off)
+
+iaSignExt :: UInt16 -> IAddress
+iaSignExt x = IA (signExtend x)
+
+-------
+-- The type of instructions in memory
+
+type IValue = Bit (SizeOf Instruction)
+
+
+-------
+-- Memory interfaces
+
+interface ROM a v =
+    read :: a -> v
+
+interface RAM a v =
+    write :: a -> v -> Action
+    read :: a -> v
+

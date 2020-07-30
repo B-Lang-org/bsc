@@ -1,0 +1,7 @@
+package FunDepUnify2(y) where
+
+x :: Int 5
+x = 0
+
+y :: Int 6
+y = unpack (pack x)

@@ -1,0 +1,9 @@
+if {$vtest == 1} {
+
+    compile_verilog_schedule_pass MutEx.bsv
+    compare_file MutEx.bsv.bsc-sched-out
+
+    compile_verilog_schedule_pass MutExBig.bsv
+    compare_file MutExBig.bsv.bsc-sched-out
+
+}

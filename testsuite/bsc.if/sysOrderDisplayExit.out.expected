@@ -1,0 +1,12 @@
+MSG 1of6 This one OUTSIDE the -if- statement
+
+MSG 2of6 This one OUTSIDE the -if- statement
+
+MSG 3of6 This one OUTSIDE the -if- statement
+
+MSG 4of6 This one INSIDE the -if- statement 
+
+MSG 5of6 This one INSIDE the -if- statement 
+
+MSG 6of6 This one INSIDE the -if- statement 
+

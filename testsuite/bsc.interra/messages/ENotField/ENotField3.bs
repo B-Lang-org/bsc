@@ -1,0 +1,55 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotField3.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an (ENotField) error
+
+-- Error Message : bsc ENotField3.bs
+-- bsc: Compilation errors:
+-- "ENotField3.bs", line 48, column 70, Field "extra" is not in "ENotField3.MyStruct"
+-----------------------------------------------------------------------
+
+package ENotField3 (ENotField3(..)) where
+
+-- import Int
+
+
+struct MyStruct =        { give :: Int 32; judge :: Bool; }
+                deriving (Eq, Bits)
+
+
+interface ENotField3 =
+            start :: Int 32 -> Int 32 -> Action
+            end   :: Int 32
+
+mkENotField3 :: Module ENotField3
+mkENotField3 = 
+           module
+
+                x :: Reg (Int 32)
+                x <- mkRegU
+
+                y :: Reg (Int 32)
+                y <- mkReg 0
+
+                u1 :: Reg (MyStruct) 
+                u1 <- mkRegU 
+
+                u2 :: Reg (MyStruct) 
+                u2 <- mkRegU 
+
+                rules
+                   "One":
+                      when True 
+                          ==> action
+                                 u2 := u1 { give = 1 ; judge = True ; extra = 0 }
+
+
+                interface
+                    start ix iy = action
+                                    x := ix 
+                                    y := iy 
+                    end = y when x == 0

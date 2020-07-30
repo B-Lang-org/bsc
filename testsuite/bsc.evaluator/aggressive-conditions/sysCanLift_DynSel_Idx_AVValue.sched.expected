@@ -1,0 +1,24 @@
+=== Generated schedule for sysCanLift_DynSel_Idx_AVValue ===
+
+Rule schedule
+-------------
+Rule: r1
+Predicate: f1.i_notFull && f2.i_notFull
+Blocking rules: (none)
+ 
+Rule: r2
+Predicate: (PrimArrayDynSelect (PrimBuildArray bs_0
+					       bs_1
+					       bs_2
+					       bs_3
+					       bs_4
+					       bs_5
+					       bs_6)
+			       idx2)
+	   ? f3.i_notFull
+	   : f4.i_notFull
+Blocking rules: (none)
+ 
+Logical execution order: r1, r2
+
+=============================================================

@@ -1,0 +1,21 @@
+if { $vtest == 1 } {
+
+####  Test that path analysis isn't broken by renaming
+
+# This only tests output port renaming
+# (Add tests for EN and method argument?)
+compile_verilog_pass PathTest.bsv
+find_regexp mkPathTestSub.v {
+// Combinational paths from inputs to outputs:
+//   \(put_x, EN_put\) -> req_info
+//   EN_put -> req
+}
+# If the path analysis broke, this path won't show up
+find_regexp mkPathTestTop.v {
+// Combinational paths from inputs to outputs:
+//   \(put_x, EN_put\) -> req_info
+//   EN_put -> req
+}
+
+}
+

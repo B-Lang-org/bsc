@@ -1,0 +1,15 @@
+checking package dependencies
+compiling ActionShadowing.bsv
+code generation for sysTest starts
+Warning: "ActionShadowing.bsv", line 4, column 8: (G0117)
+  Rule `r4' shadows the effects of `r3' when they execute in the same clock
+  cycle. Affected method calls:
+    rg3.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "ActionShadowing.bsv", line 4, column 8: (G0117)
+  Rule `r2' shadows the effects of `r1' when they execute in the same clock
+  cycle. Affected method calls:
+    rg1.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Verilog file created: sysTest.v
+All packages are up to date.

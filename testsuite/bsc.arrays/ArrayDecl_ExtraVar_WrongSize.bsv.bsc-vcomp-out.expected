@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ArrayDecl_ExtraVar_WrongSize.bsv
+code generation for sysArrayDecl_ExtraVar_WrongSize starts
+Error: "ArrayDecl_ExtraVar_WrongSize.bsv", line 5, column 49: (S0015)
+  Bluespec evaluation-time error: Array was declared as length 2 but was
+  initialized to length 3.
+  During elaboration of the body of rule `r' at
+  "ArrayDecl_ExtraVar_WrongSize.bsv", line 8, column 8.
+  During elaboration of `sysArrayDecl_ExtraVar_WrongSize' at
+  "ArrayDecl_ExtraVar_WrongSize.bsv", line 3, column 8.

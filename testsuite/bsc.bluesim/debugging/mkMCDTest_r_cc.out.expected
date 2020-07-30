@@ -1,0 +1,168 @@
+/CLK @ 0 (cycle 1)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 2 (cycle 1)
+Selected rules:
+top:
+  incr_clk2 fired
+  stop_clk2 fired
+/clk2$CLK_OUT @ 9 (cycle 2)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 10 (cycle 2)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 16 (cycle 3)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 20 (cycle 3)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 23 (cycle 4)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 30 (cycle 4)
+/clk2$CLK_OUT @ 30 (cycle 5)
+Selected rules:
+top:
+  flip_default_clock fired
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 37 (cycle 6)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 40 (cycle 5)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 44 (cycle 7)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 50 (cycle 6)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 51 (cycle 8)
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 58 (cycle 9)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 60 (cycle 7)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 65 (cycle 10)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 70 (cycle 8)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 72 (cycle 11)
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 79 (cycle 12)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 80 (cycle 9)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 86 (cycle 13)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 90 (cycle 10)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 93 (cycle 14)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 100 (cycle 11)
+/clk2$CLK_OUT @ 100 (cycle 15)
+Selected rules:
+top:
+  flip_default_clock fired
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 107 (cycle 16)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 110 (cycle 12)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 114 (cycle 17)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 120 (cycle 13)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 121 (cycle 18)
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 128 (cycle 19)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 130 (cycle 14)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 135 (cycle 20)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 140 (cycle 15)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 142 (cycle 21)
+Selected rules:
+top:
+  incr_clk2 fired
+/clk2$CLK_OUT @ 149 (cycle 22)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 150 (cycle 16)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 156 (cycle 23)
+Selected rules:
+top:
+  incr_clk2 fired
+/CLK @ 160 (cycle 17)
+Selected rules:
+top:
+  flip_default_clock fired
+/clk2$CLK_OUT @ 163 (cycle 24)
+Selected rules:
+top:
+  incr_clk2 fired
+  stop_clk2 fired
+Final counts: 17 CLK cycles
+              24 clk2$CLK_OUT cycles

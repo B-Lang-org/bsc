@@ -1,0 +1,12 @@
+checking package dependencies
+compiling EqNeeded.bsv
+Error: "EqNeeded.bsv", line 9, column 21: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Eq#(EqNeeded::MyStruct)
+Error: "EqNeeded.bsv", line 9, column 21: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    Eq#(EqNeeded::MyUnion)
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Eq#(EqNeeded::MyStruct)

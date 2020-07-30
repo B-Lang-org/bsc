@@ -1,0 +1,12 @@
+test_veri_only_bsv_modules_options TbWideGCD "" -remove-dollar mkTbWideGCD.out.expected
+
+#testing that it errors out with -sim and -remove-dollar
+compile_object_fail TbWideGCD.bsv "" "-remove-dollar"
+
+compile_object_pass TbWideGCD.bsv
+
+#testing that it errors out with -e sysTbWideGCD -sim and -remove-dollar
+link_objects_fail "sysTbWideGCD.ba mkWideGCD.ba mkWideGCDken.ba" sysTbWideGCD -remove-dollar
+
+#there is no test that it errors out with with -remove-dollar -verilog at link time.
+# XXX this is a bug, that is, in fact it does not error out.  (Bug 1272)

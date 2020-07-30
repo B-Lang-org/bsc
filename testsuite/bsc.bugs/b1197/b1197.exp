@@ -1,0 +1,6 @@
+compile_pass TestFixedPointMultiFiles.bsv
+if { [do_internal_checks] } {
+    dumpbi FixedPointLibrary.bo
+    compare_file [make_dumpbi_output_name FixedPointLibrary.bo]
+}
+

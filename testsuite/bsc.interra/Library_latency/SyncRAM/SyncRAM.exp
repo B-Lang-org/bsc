@@ -1,0 +1,8 @@
+if {$ctest == 1} {
+compile_object_pass TestSPSRAM.bsv mkTestbench_SPSRam
+link_objects_pass {"mkTestbench_SPSRam"} mkTestbench_SPSRam
+# sim_final_state mkTestbench_SPSRam 10010
+# compare_file "mkTestbench_SPSRam.final-state"
+sim_output mkTestbench_SPSRam {-m 10010}
+compare_file "mkTestbench_SPSRam.out"
+}

@@ -1,0 +1,5 @@
+compile_fail EUnboundField.bs
+compare_file EUnboundField.bs.bsc-out
+
+compile_fail EUnboundField1.bs
+compare_file EUnboundField1.bs.bsc-out

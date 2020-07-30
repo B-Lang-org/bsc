@@ -1,0 +1,3 @@
+compile_pass Bug446_1.bsv
+compile_fail_error Bug446_2.bsv T0011
+

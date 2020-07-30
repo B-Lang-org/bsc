@@ -1,0 +1,181 @@
+Cycle Number =  0, Value written = 00, Full =0, Empty =1
+Cycle Number =  1, Value written = 01, Full =0, Empty =0
+Cycle Number =  2, Value written = 02, Full =0, Empty =0
+Cycle Number =  3, Value written = 03, Full =0, Empty =0
+Cycle Number =  4, Value written = 04, Full =0, Empty =0
+Cycle Number =  5, Value written = 05, Full =0, Empty =0
+Cycle Number =  6, Value written = 06, Full =0, Empty =0
+Cycle Number =  7, Value written = 07, Full =0, Empty =0
+Cycle Number =  8, Value written = 08, Full =0, Empty =0
+Cycle Number =  9, Value written = 09, Full =0, Empty =0
+Cycle Number = 10, Value written = 0a, Full =0, Empty =0
+Cycle Number = 11, Value written = 0b, Full =0, Empty =0
+Cycle Number = 12, Value written = 0c, Full =0, Empty =0
+Cycle Number = 13, Value written = 0d, Full =0, Empty =0
+Cycle Number = 14, Value written = 0e, Full =0, Empty =0
+Cycle Number = 15, Value written = 0f, Full =0, Empty =0
+Cycle Number = 21, Value read = 00, Full =1, Empty =0
+Cycle Number = 22, Value read = 01, Full =0, Empty =0
+Cycle Number = 23, Value read = 02, Full =0, Empty =0
+Cycle Number = 24, Value read = 03, Full =0, Empty =0
+Cycle Number = 25, Value read = 04, Full =0, Empty =0
+Cycle Number = 26, Value read = 05, Full =0, Empty =0
+Cycle Number = 27, Value read = 06, Full =0, Empty =0
+Cycle Number = 28, Value read = 07, Full =0, Empty =0
+Cycle Number = 29, Value read = 08, Full =0, Empty =0
+Cycle Number = 30, Value read = 09, Full =0, Empty =0
+Cycle Number = 31, Value read = 0a, Full =0, Empty =0
+Cycle Number = 32, Value read = 0b, Full =0, Empty =0
+Cycle Number = 33, Value read = 0c, Full =0, Empty =0
+Cycle Number = 34, Value read = 0d, Full =0, Empty =0
+Cycle Number = 35, Value read = 0e, Full =0, Empty =0
+Cycle Number = 36, Value read = 0f, Full =0, Empty =0
+Cycle Number = 41, Value written = 60, Full =0, Empty =1
+Cycle Number = 42, Value written = 61, Full =0, Empty =0
+Cycle Number = 43, Value written = 62, Full =0, Empty =0
+Cycle Number = 44, Value written = 63, Full =0, Empty =0
+Cycle Number = 45, Value written = 64, Full =0, Empty =0
+Cycle Number = 46, Value written = 65, Full =0, Empty =0
+Cycle Number = 47, Value written = 66, Full =0, Empty =0
+Cycle Number = 48, Value written = 67, Full =0, Empty =0
+Cycle Number = 49, Value written = 68, Full =0, Empty =0
+Cycle Number = 50, Value written = 69, Full =0, Empty =0
+Cycle Number = 51, Value written = 6a, Full =0, Empty =0
+Cycle Number = 52, Value written = 6b, Full =0, Empty =0
+Cycle Number = 53, Value written = 6c, Full =0, Empty =0
+Cycle Number = 54, Value written = 6d, Full =0, Empty =0
+Cycle Number = 55, Value written = 6e, Full =0, Empty =0
+Cycle Number = 56, Value written = 6f, Full =0, Empty =0
+Cycle Number = 60, Clearing Buffer
+Cycle Number = 62, Value written = 00, Full =0, Empty =1
+Cycle Number = 63, Value written = 01, Full =0, Empty =0
+Cycle Number = 64, Value written = 02, Full =0, Empty =0
+Cycle Number = 65, Value written = 03, Full =0, Empty =0
+Cycle Number = 66, Value written = 04, Full =0, Empty =0
+Cycle Number = 67, Value written = 05, Full =0, Empty =0
+Cycle Number = 68, Value written = 06, Full =0, Empty =0
+Cycle Number = 69, Value written = 07, Full =0, Empty =0
+Cycle Number = 70, Value written = 08, Full =0, Empty =0
+Cycle Number = 71, Value written = 09, Full =0, Empty =0
+Cycle Number = 72, Value written = 0a, Full =0, Empty =0
+Cycle Number = 73, Value written = 0b, Full =0, Empty =0
+Cycle Number = 74, Value written = 0c, Full =0, Empty =0
+Cycle Number = 75, Value written = 0d, Full =0, Empty =0
+Cycle Number = 76, Value written = 0e, Full =0, Empty =0
+Cycle Number = 77, Value written = 0f, Full =0, Empty =0
+Cycle Number = 81, Value read = 00, Full =1, Empty =0
+Cycle Number = 82, Value read = 01, Full =0, Empty =0
+Cycle Number = 83, Value read = 02, Full =0, Empty =0
+Cycle Number = 84, Value read = 03, Full =0, Empty =0
+Cycle Number = 85, Value read = 04, Full =0, Empty =0
+Cycle Number = 86, Value read = 05, Full =0, Empty =0
+Cycle Number = 87, Value read = 06, Full =0, Empty =0
+Cycle Number = 88, Value read = 07, Full =0, Empty =0
+Cycle Number = 89, Value read = 08, Full =0, Empty =0
+Cycle Number = 90, Value read = 09, Full =0, Empty =0
+Cycle Number = 91, Value read = 0a, Full =0, Empty =0
+Cycle Number = 92, Value read = 0b, Full =0, Empty =0
+Cycle Number = 93, Value read = 0c, Full =0, Empty =0
+Cycle Number = 94, Value read = 0d, Full =0, Empty =0
+Cycle Number = 95, Value read = 0e, Full =0, Empty =0
+Cycle Number = 96, Value read = 0f, Full =0, Empty =0
+Cycle Number =100, Value written = 64, Full =0, Empty =1
+Cycle Number =101, Value written = 65, Full =0, Empty =0
+Cycle Number =101, Value read = 64, Full =0, Empty =0
+Cycle Number =102, Value written = 66, Full =0, Empty =0
+Cycle Number =102, Value read = 65, Full =0, Empty =0
+Cycle Number =103, Value written = 67, Full =0, Empty =0
+Cycle Number =103, Value read = 66, Full =0, Empty =0
+Cycle Number =104, Value written = 68, Full =0, Empty =0
+Cycle Number =104, Value read = 67, Full =0, Empty =0
+Cycle Number =105, Value written = 69, Full =0, Empty =0
+Cycle Number =105, Value read = 68, Full =0, Empty =0
+Cycle Number =106, Value written = 6a, Full =0, Empty =0
+Cycle Number =106, Value read = 69, Full =0, Empty =0
+Cycle Number =107, Value written = 6b, Full =0, Empty =0
+Cycle Number =107, Value read = 6a, Full =0, Empty =0
+Cycle Number =108, Value written = 6c, Full =0, Empty =0
+Cycle Number =108, Value read = 6b, Full =0, Empty =0
+Cycle Number =109, Value written = 6d, Full =0, Empty =0
+Cycle Number =109, Value read = 6c, Full =0, Empty =0
+Cycle Number =110, Value written = 6e, Full =0, Empty =0
+Cycle Number =110, Value read = 6d, Full =0, Empty =0
+Cycle Number =111, Value written = 6f, Full =0, Empty =0
+Cycle Number =111, Value read = 6e, Full =0, Empty =0
+Cycle Number =112, Value written = 70, Full =0, Empty =0
+Cycle Number =112, Value read = 6f, Full =0, Empty =0
+Cycle Number =113, Value written = 71, Full =0, Empty =0
+Cycle Number =113, Value read = 70, Full =0, Empty =0
+Cycle Number =114, Value written = 72, Full =0, Empty =0
+Cycle Number =114, Value read = 71, Full =0, Empty =0
+Cycle Number =115, Value written = 73, Full =0, Empty =0
+Cycle Number =115, Value read = 72, Full =0, Empty =0
+Cycle Number =116, Value written = 74, Full =0, Empty =0
+Cycle Number =116, Value read = 73, Full =0, Empty =0
+Cycle Number =117, Value written = 75, Full =0, Empty =0
+Cycle Number =117, Value read = 74, Full =0, Empty =0
+Cycle Number =118, Value written = 76, Full =0, Empty =0
+Cycle Number =118, Value read = 75, Full =0, Empty =0
+Cycle Number =119, Value written = 77, Full =0, Empty =0
+Cycle Number =119, Value read = 76, Full =0, Empty =0
+Cycle Number =120, Value written = 78, Full =0, Empty =0
+Cycle Number =120, Value read = 77, Full =0, Empty =0
+Cycle Number =121, Value written = 79, Full =0, Empty =0
+Cycle Number =121, Value read = 78, Full =0, Empty =0
+Cycle Number =122, Value written = 7a, Full =0, Empty =0
+Cycle Number =122, Value read = 79, Full =0, Empty =0
+Cycle Number =123, Value written = 7b, Full =0, Empty =0
+Cycle Number =123, Value read = 7a, Full =0, Empty =0
+Cycle Number =124, Value written = 7c, Full =0, Empty =0
+Cycle Number =124, Value read = 7b, Full =0, Empty =0
+Cycle Number =125, Value written = 7d, Full =0, Empty =0
+Cycle Number =125, Value read = 7c, Full =0, Empty =0
+Cycle Number =126, Value written = 7e, Full =0, Empty =0
+Cycle Number =126, Value read = 7d, Full =0, Empty =0
+Cycle Number =127, Value written = 7f, Full =0, Empty =0
+Cycle Number =127, Value read = 7e, Full =0, Empty =0
+Cycle Number =128, Value written = 80, Full =0, Empty =0
+Cycle Number =128, Value read = 7f, Full =0, Empty =0
+Cycle Number =129, Value written = 81, Full =0, Empty =0
+Cycle Number =129, Value read = 80, Full =0, Empty =0
+Cycle Number =130, Value written = 82, Full =0, Empty =0
+Cycle Number =130, Value read = 81, Full =0, Empty =0
+Cycle Number =131, Value written = 83, Full =0, Empty =0
+Cycle Number =131, Value read = 82, Full =0, Empty =0
+Cycle Number =132, Value written = 84, Full =0, Empty =0
+Cycle Number =132, Value read = 83, Full =0, Empty =0
+Cycle Number =133, Value written = 85, Full =0, Empty =0
+Cycle Number =133, Value read = 84, Full =0, Empty =0
+Cycle Number =134, Value written = 86, Full =0, Empty =0
+Cycle Number =134, Value read = 85, Full =0, Empty =0
+Cycle Number =135, Value written = 87, Full =0, Empty =0
+Cycle Number =135, Value read = 86, Full =0, Empty =0
+Cycle Number =136, Value written = 88, Full =0, Empty =0
+Cycle Number =136, Value read = 87, Full =0, Empty =0
+Cycle Number =137, Value written = 89, Full =0, Empty =0
+Cycle Number =137, Value read = 88, Full =0, Empty =0
+Cycle Number =138, Value written = 8a, Full =0, Empty =0
+Cycle Number =138, Value read = 89, Full =0, Empty =0
+Cycle Number =139, Value written = 8b, Full =0, Empty =0
+Cycle Number =139, Value read = 8a, Full =0, Empty =0
+Cycle Number =140, Value written = 8c, Full =0, Empty =0
+Cycle Number =140, Value read = 8b, Full =0, Empty =0
+Cycle Number =141, Value written = 8d, Full =0, Empty =0
+Cycle Number =141, Value read = 8c, Full =0, Empty =0
+Cycle Number =142, Value written = 8e, Full =0, Empty =0
+Cycle Number =142, Value read = 8d, Full =0, Empty =0
+Cycle Number =143, Value written = 8f, Full =0, Empty =0
+Cycle Number =143, Value read = 8e, Full =0, Empty =0
+Cycle Number =144, Value written = 90, Full =0, Empty =0
+Cycle Number =144, Value read = 8f, Full =0, Empty =0
+Cycle Number =145, Value written = 91, Full =0, Empty =0
+Cycle Number =145, Value read = 90, Full =0, Empty =0
+Cycle Number =146, Value written = 92, Full =0, Empty =0
+Cycle Number =146, Value read = 91, Full =0, Empty =0
+Cycle Number =147, Value written = 93, Full =0, Empty =0
+Cycle Number =147, Value read = 92, Full =0, Empty =0
+Cycle Number =148, Value written = 94, Full =0, Empty =0
+Cycle Number =148, Value read = 93, Full =0, Empty =0
+Cycle Number =149, Value written = 95, Full =0, Empty =0
+Cycle Number =149, Value read = 94, Full =0, Empty =0
+Simulation Passes

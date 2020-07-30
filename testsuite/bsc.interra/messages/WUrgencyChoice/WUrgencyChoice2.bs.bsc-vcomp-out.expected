@@ -1,0 +1,21 @@
+checking package dependencies
+compiling WUrgencyChoice2.bs
+code generation for mkWUrgencyChoice2 starts
+Warning: "WUrgencyChoice2.bs", line 23, column 0: (G0010)
+  Rule "One" was treated as more urgent than "Two". Conflicts:
+    "One" cannot fire before "Two": calls to x.write vs. x.read
+    "Two" cannot fire before "One": calls to y.write vs. y.read
+Warning: "WUrgencyChoice2.bs", line 23, column 0: (G0117)
+  Rule `start' shadows the effects of `Two' when they execute in the same
+  clock cycle. Affected method calls:
+    y.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice2.bs", line 23, column 0: (G0117)
+  Rule `start' shadows the effects of `One' when they execute in the same
+  clock cycle. Affected method calls:
+    x.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice2.bs", line 39, column 17: (G0021)
+  According to the generated schedule, rule `Two' can never fire.
+Verilog file created: mkWUrgencyChoice2.v
+All packages are up to date.

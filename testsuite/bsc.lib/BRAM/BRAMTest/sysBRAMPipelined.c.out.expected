@@ -1,0 +1,39 @@
+Warning: file 'bram2.txt' for memory 'dut1_memory' has a gap at addresses 8 to 255.
+Warning: file 'bram2.txt' for memory 'dut3_memory' has a gap at addresses 8 to 255.
+Warning: file 'bram2.txt' for memory 'dut5_memory' has a gap at addresses 8 to 255.
+Non-Pipelined write->read
+[                 130] BRAM[0] <= FF
+[                 140] read request
+[                 150] BRAM[0] => ff
+Pipelined write->read
+[                 170] BRAM[0] <= FE
+[                 180] read request
+[                 200] BRAM[0] => fe
+dut1
+[                 220] read request
+[                 240] BRAM[0] => 50
+Non-Pipelined write->read
+[                 260] BRAM[0] <= FF
+[                 270] read request
+[                 280] BRAM[0] => ff
+Pipelined write->read
+[                 300] BRAM[0] <= FE
+[                 310] read request
+[                 330] BRAM[0] => fe
+dut1
+[                 350] read request
+[                 370] BRAM[0] => 50
+dut2
+[                 390] BRAM[0] <= FD
+[                 400] read request
+[                 420] BRAM[0] => fd
+dut3
+[                 440] read request
+[                 460] BRAM[3] => 53
+dut4
+[                 480] BRAM[0] <= FFFFFFFF (00001110)
+[                 490] read request
+[                 510] BRAM[0] => ffffffaa
+dut5
+[                 530] read request
+[                 550] BRAM[5] => 00000055

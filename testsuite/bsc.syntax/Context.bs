@@ -1,0 +1,9 @@
+package Context (mkContext) where
+
+type Foo = Bit 16
+
+mkContext :: Module Empty
+mkContext =
+    module
+        x :: (Log (SizeOf Foo) k) => Reg (Bit k)
+        x <- mkReg _

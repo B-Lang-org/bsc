@@ -1,0 +1,32 @@
+data MOD_sysMethodReturn_AMethValue =
+    MOD_sysMethodReturn_AMethValue
+	{ inst_s__sysMethodReturn_AMethValue :: MOD_mkMethodReturn_AMethValue_Sub };
+
+ctor_sysMethodReturn_AMethValue :: MOD_sysMethodReturn_AMethValue;
+ctor_sysMethodReturn_AMethValue =
+    MOD_sysMethodReturn_AMethValue
+	{ inst_s__sysMethodReturn_AMethValue = ctor_mkMethodReturn_AMethValue_Sub };
+
+dim_sysMethodReturn_AMethValue :: MOD_sysMethodReturn_AMethValue -> MOD_sysMethodReturn_AMethValue -> Bool;
+dim_sysMethodReturn_AMethValue =
+    (\ (mod1 :: MOD_sysMethodReturn_AMethValue) ->
+     (\ (mod2 :: MOD_sysMethodReturn_AMethValue) ->
+      dim_mkMethodReturn_AMethValue_Sub
+	  (inst_s__sysMethodReturn_AMethValue mod1)
+	  (inst_s__sysMethodReturn_AMethValue mod2)));
+
+meth_m_sysMethodReturn_AMethValue :: MOD_sysMethodReturn_AMethValue -> (Bool, MOD_sysMethodReturn_AMethValue, Bit #1);
+meth_m_sysMethodReturn_AMethValue =
+    (\ (state0 :: MOD_sysMethodReturn_AMethValue) ->
+     let { (act1 :: (Bool, MOD_mkMethodReturn_AMethValue_Sub, Bit #1)) =
+	       meth_m_mkMethodReturn_AMethValue_Sub (inst_s__sysMethodReturn_AMethValue state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysMethodReturn_AMethValue) =
+	       state0 { inst_s__sysMethodReturn_AMethValue = snd3 act1 }
+	 ; (def_m__avValue1 :: Bit #1) = thd act1
+	 }
+     in mktuple guard1 state1 def_m__avValue1);
+
+meth_RDY_m_sysMethodReturn_AMethValue :: MOD_sysMethodReturn_AMethValue -> Bool;
+meth_RDY_m_sysMethodReturn_AMethValue =
+    (\ (state0 :: MOD_sysMethodReturn_AMethValue) -> True);

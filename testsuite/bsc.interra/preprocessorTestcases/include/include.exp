@@ -1,0 +1,8 @@
+compile_fail include_Test1.bsv
+compare_file include_Test1.bsv.bsc-out
+
+compile_fail include_Test2.bsv
+compare_file include_Test2.bsv.bsc-out
+
+compile_fail include_Test3.bsv
+compare_file include_Test3.bsv.bsc-out

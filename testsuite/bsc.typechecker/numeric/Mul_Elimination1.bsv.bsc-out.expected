@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Mul_Elimination1.bsv
+Error: "Mul_Elimination1.bsv", line 7, column 8: (T0131)
+  The numeric types `n' and `m' could not be shown to be equal.
+  This equality was required at the following position:
+    "Mul_Elimination1.bsv", line 18, column 14

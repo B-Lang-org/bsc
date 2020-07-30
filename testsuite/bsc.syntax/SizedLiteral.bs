@@ -1,0 +1,4 @@
+package SizedLiteral where
+
+x :: Bit 5
+x = 5'd10

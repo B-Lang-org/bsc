@@ -1,0 +1,5 @@
+compile_verilog_fail_error Bug1720-1.bsv T0031 2 mkTb
+if { $vtest == 1 } {
+compare_file Bug1720-1.bsv.bsc-vcomp-out
+}
+

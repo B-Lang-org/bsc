@@ -1,0 +1,28 @@
+List1:
+ 1
+ 2
+ 3
+ 4
+ 5
+List2:
+ 2
+ 3
+ 4
+ 5
+List3:
+1
+0
+1
+0
+1
+0
+1
+0
+1
+0
+Zipped List (Add list1, list2 if corresponding element in list 3 is True)
+ 3
+ 0
+ 7
+ 0
+Simulation Passes

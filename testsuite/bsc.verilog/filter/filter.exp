@@ -1,0 +1,36 @@
+# construct an appropriate command line for the current OS
+proc make_sed_cmd { cmd_file out_file_ext } {
+    if { [which_os] == "Darwin" } {
+        set sed_cmd "sed -i \"$out_file_ext\" -f $cmd_file"
+    } else {
+        set sed_cmd "sed -i$out_file_ext -f $cmd_file"
+    }
+    return $sed_cmd
+}
+
+#  Check verilog filter -- basicinout
+set filter1 "./basicinout.pl"
+set filter2 [make_sed_cmd {simple.sed} {}]
+set filter3 [make_sed_cmd {doesnotexist.sed} {}]
+
+compile_verilog_pass RedoInoutConnect.bsv "" [list -verilog-filter $filter1]
+compare_verilog mkRedoInoutConnect.v
+
+compile_verilog_pass ImpArgConnect.bsv ""  [list -verilog-filter $filter1]
+compare_verilog mkImpArgConnect.v
+compare_verilog mkArgImpConnect.v
+
+
+
+# this should not fail basicinout should be able to run twice.
+compile_verilog_pass_bug ImpArgConnect2.bsv ""  "basicinout Bug" [list -verilog-filter $filter1 -verilog-filter $filter1]
+
+
+# Test for multiple script
+compile_verilog_pass ImpArgConnect3.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter2]
+compare_verilog mkImpArgConnect3.v
+compare_verilog mkArgImpConnect3.v
+
+
+compile_verilog_fail ImpArgConnect4.bsv ""  [list -verilog-filter $filter1 -verilog-filter $filter3]
+

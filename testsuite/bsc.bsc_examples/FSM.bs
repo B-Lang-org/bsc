@@ -1,0 +1,87 @@
+package FSM ( sysFSM, BitParityCounter(..) ) where
+
+import List
+
+--
+-- sample FSM
+--
+
+interface BitParityCounter =
+    reset :: Action
+    -- this is because we can't synthesize non-Action inputs:
+    nextBit :: Bit 1 -> Action
+    count :: Bit 1
+
+data BitParityStates = Zero | One
+                     deriving (Eq, Bits)
+
+sysFSM :: Module BitParityCounter
+sysFSM =
+    module
+	-- this is because we can't synthesize inputs:
+	bit :: Reg (Bit 1)
+	bit <- mkReg 0
+
+	-- Special list syntax would be nice here:
+	fsm :: FSM BitParityStates
+	fsm <- mkFSM Zero (Cons (FSMRule Zero (bit == 1) One)
+				(Cons (FSMRule One (bit == 1) Zero)
+				    Nil))
+        interface
+	    reset = fsm.reset
+	    nextBit b = action { bit := b }
+	    count = pack fsm.state
+
+
+--
+-- FSM construction system
+--
+
+{-
+-- We could use a struct like this, which is easier to read, but
+-- which makes writing rules harder.  Consider:
+--    (FSMRule { state = Zero; cond = (bit == 1); newState = One })
+-- versus
+--    (FSMRule Zero (bit == 1) One)
+--
+struct FSMRule a =
+    state :: a
+    cond :: Bool
+    newState :: a
+--
+-- Instead, we use unnamed fields:
+-}
+data FSMRule a = FSMRule a Bool a
+
+-- At the moment, the output of the FSM is the state.  How could we
+-- make the output more general?  Ah!  We could add a field "action"
+-- to the table which would be actions performed as part of the rule
+-- transition.  For example:
+--     data FSMRule a = FSMRule a Bool a Action
+
+interface FSM a =
+    reset :: Action
+    state :: a
+
+mkFSM :: (Eq a, Bits a sa) => a -> List (FSMRule a) -> Module (FSM a)
+mkFSM initial_state rs =
+    module
+	st :: Reg a
+	st <- mkReg initial_state
+        addRules $ mkFSMRules st rs
+        interface
+	    reset = action { st := initial_state }
+	    state = st
+
+mkFSMRules :: (Eq a) => Reg a -> List (FSMRule a) -> Rules
+mkFSMRules _ Nil = rules {}
+mkFSMRules s (Cons r rs) =
+    let
+	createRule :: FSMRule a -> Rules
+	createRule (FSMRule state cond newstate) =
+	    rules
+		"FSMRule":
+		  when s == state, cond
+		    ==> action { s := newstate }  -- perform an "action" field here
+    in
+	createRule r <+> mkFSMRules s rs

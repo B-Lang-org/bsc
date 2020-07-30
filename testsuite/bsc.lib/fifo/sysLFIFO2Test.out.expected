@@ -1,0 +1,45 @@
+enq dead at cycle 1
+enq beef at cycle 2
+Removing element dead at cycle 41
+enq baad at cycle 41
+Removing element beef at cycle 42
+enq f00d at cycle 42
+Removing element baad at cycle 43
+enq 0000 at cycle 43
+Removing element f00d at cycle 44
+enq dead at cycle 44
+Removing element 0000 at cycle 45
+enq beef at cycle 45
+Removing element dead at cycle 46
+enq baad at cycle 46
+Removing element beef at cycle 47
+enq f00d at cycle 47
+Removing element baad at cycle 48
+enq 0000 at cycle 48
+Removing element f00d at cycle 49
+enq dead at cycle 49
+Removing element 0000 at cycle 50
+enq beef at cycle 50
+Clearing fifo at cycle 50
+enq baad at cycle 51
+Removing element baad at cycle 52
+enq f00d at cycle 52
+Removing element f00d at cycle 53
+enq 0000 at cycle 53
+Removing element 0000 at cycle 54
+enq dead at cycle 54
+Removing element dead at cycle 55
+enq beef at cycle 55
+Removing element beef at cycle 56
+enq baad at cycle 56
+Removing element baad at cycle 57
+enq f00d at cycle 57
+Removing element f00d at cycle 58
+enq 0000 at cycle 58
+Removing element 0000 at cycle 59
+enq dead at cycle 59
+Removing element dead at cycle 60
+enq beef at cycle 60
+Removing element beef at cycle 61
+enq baad at cycle 61
+enq f00d at cycle 62

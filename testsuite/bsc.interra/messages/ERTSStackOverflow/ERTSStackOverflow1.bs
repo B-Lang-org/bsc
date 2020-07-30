@@ -1,0 +1,41 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ERTSStackOverflow1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Stack space overflow" error (ERTSStackOverflow)
+
+-- Error Message : bsc -verilog -g mkERTSStackOverflow1 ERTSStackOverflow1.bs
+-- Stack space overflow: current size 1048576 bytes.
+-- Use `+RTS -Ksize' to increase it.
+-----------------------------------------------------------------------
+
+
+package ERTSStackOverflow1 (ERTSStackOverflow1(..)) where
+
+-- import Int
+
+interface ERTSStackOverflow1 =
+          start  :: Int 32 -> Action
+          result :: Int 32
+
+factorial :: Int 32 -> Int 32
+-- factorial =
+factorial 1 = 1
+factorial x = x*factorial(x-1)
+
+mkERTSStackOverflow1 :: Module ERTSStackOverflow1
+mkERTSStackOverflow1 =
+         module
+
+            x :: Reg (Int 32)
+            x <- mkRegU
+
+            interface 
+
+               start ix = action
+                           x := ix
+               result = factorial x
+

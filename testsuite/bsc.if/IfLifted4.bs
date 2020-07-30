@@ -1,0 +1,16 @@
+package IfLifting4 () where
+
+import ActionValueModule
+
+{-# verilog sysIfLifting #-}
+sysIfLifting :: Module Empty
+sysIfLifting =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: AVIFC
+    b <- mkAVMod
+    rules
+        when True ==> do x <- b.f (if a then False else True)
+                         a := (x > 17)
+

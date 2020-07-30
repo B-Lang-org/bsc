@@ -1,0 +1,33 @@
+package KindMismatch where
+
+data (Str :: $ -> *) a = Str
+data (Num :: # -> *) a = Num
+data (Star :: * -> *) a = Star
+
+str_str :: Str "a"
+str_str = Str
+
+str_num :: Str 42
+str_num = Str
+
+str_star :: Str (Int 16)
+str_star = Str
+
+num_str :: Num "a"
+num_str = Num
+
+num_num :: Num 42
+num_num = Num
+
+num_star :: Num (Int 16)
+num_star = Num
+
+star_str :: Star "a"
+star_str = Star
+
+star_num :: Star 42
+star_num = Star
+
+star_star :: Star (Int 16)
+star_star = Star
+

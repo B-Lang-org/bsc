@@ -1,0 +1,26 @@
+Warning: file 'warning-test.bin' for memory 'regMem' has a gap at addresses 1 to 2.
+Warning: file 'warning-test.bin' for memory 'regMem' has a gap at address 6.
+Warning: file 'warning-test.bin' for memory 'regMem' has duplicate values for addresses 8 to 11.
+Warning: file 'warning-test.bin' for memory 'regMem' has duplicate values for address 12.
+Warning: file 'warning-test.bin' for memory 'regMem' has a gap at addresses 14 to 15.
+Warning: file 'warning-test.bin' for memory 'regMem' has a gap at addresses 19 to 20.
+regMem[01] = aaaaaaaa
+regMem[02] = aaaaaaaa
+regMem[03] = 00000001
+regMem[04] = 00000010
+regMem[05] = 00000011
+regMem[06] = aaaaaaaa
+regMem[07] = 00001000
+regMem[08] = 00010001
+regMem[09] = 00010010
+regMem[0a] = 00010011
+regMem[0b] = 00010101
+regMem[0c] = 00010000
+regMem[0d] = 00010110
+regMem[0e] = aaaaaaaa
+regMem[0f] = aaaaaaaa
+regMem[10] = 00000100
+regMem[11] = 00000101
+regMem[12] = 00000110
+regMem[13] = aaaaaaaa
+regMem[14] = aaaaaaaa

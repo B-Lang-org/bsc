@@ -1,0 +1,3 @@
+compile_pass Board.bsv
+compile_pass Test2.bs
+

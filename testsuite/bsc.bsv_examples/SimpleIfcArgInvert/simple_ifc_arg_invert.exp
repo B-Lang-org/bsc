@@ -1,0 +1,6 @@
+# different expected files only because of $time
+test_veri_only_bsv_multi Proc1 mkProc1_TB "" proc.v.out.expected
+test_c_only_bsv_multi Proc1 mkProc1_TB "" proc.c.out.expected
+test_veri_only_bsv_multi Proc2 mkProc2_TB mkProc2 proc.v.out.expected
+test_c_only_bsv_multi Proc2 mkProc2_TB mkProc2 proc.c.out.expected
+

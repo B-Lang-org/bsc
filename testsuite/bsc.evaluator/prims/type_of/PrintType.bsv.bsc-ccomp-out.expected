@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintType.bsv
+code generation for sysPrintType starts
+Compilation message: Bool
+Elaborated module file created: sysPrintType.ba
+All packages are up to date.

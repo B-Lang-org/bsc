@@ -1,0 +1,2 @@
+test_c_veri_worker Sortle mkTestbench_Sortle {} "bsv" 1 1 "mkTestbench_Sortle.v.out.expected" "" ""
+

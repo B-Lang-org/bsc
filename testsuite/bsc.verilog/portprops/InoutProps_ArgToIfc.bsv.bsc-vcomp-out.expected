@@ -1,0 +1,15 @@
+checking package dependencies
+compiling InoutProps_ArgToIfc.bsv
+code generation for sysInoutProps_ArgToIfc starts
+=== IOproperties:
+Name                         I/O  size props
+CLK                            I     1 unused
+RST_N                          I     1 unused
+io_arg                        IO    32 unused
+io_ifc                        IO    32 inout
+
+
+-----
+
+Verilog file created: sysInoutProps_ArgToIfc.v
+All packages are up to date.

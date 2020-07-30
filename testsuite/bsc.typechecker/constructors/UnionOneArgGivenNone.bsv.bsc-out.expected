@@ -1,0 +1,11 @@
+checking package dependencies
+compiling UnionOneArgGivenNone.bsv
+Error: "UnionOneArgGivenNone.bsv", line 3, column 9: (T0144)
+  Wrong number of arguments in the partial application of the following
+  constructor:
+    UnionOneArgGivenNone::Foo
+  The constructor expects 1 arguments and was used with 0 arguments, leaving 1
+  unfilled, however a function was not expected.
+  The expected type is:
+    UnionOneArgGivenNone::Bar
+

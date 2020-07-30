@@ -1,0 +1,10 @@
+compile_pass FSM1.bsv
+compile_verilog_pass FSM1.bsv mkFSM
+compile_pass FSM2.bsv
+compile_verilog_pass FSM2.bsv mkFSM
+compile_pass FSM3.bsv
+compile_verilog_pass FSM3.bsv mkFSM
+compile_pass FSM4.bsv
+compile_verilog_pass FSM4.bsv mkFSM
+compile_fail_error FSMbug1.bsv P0005
+

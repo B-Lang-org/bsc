@@ -1,0 +1,5 @@
+signature ExportAllExport where {
+ExportAllExport.foo :: Prelude.Bool;
+					 
+ExportAllExport.bar :: Prelude.Bool
+}

@@ -1,0 +1,34 @@
+Warning: Command line: (S0073)
+  Duplicate directories were found in the path specified with the -p flag.
+  Only the first occurrence will be used. The duplicates are:
+    HERE/bar
+    HERE/baz
+    HERE/foo
+  Note that when the -bdir flag is used, that directory is automatically added
+  to the head of the path.
+Invoking command line:
+bsc -i BLUESPECDIR -print-flags -p foo::foo:bar:foo:baz:baz:foo -bdir bar
+
+Flags:
+    -bdir bar
+    -i BLUESPECDIR
+    -lift
+    -o a.out
+    -p foo:bar:baz
+    -parallel-sim-link   1
+    -print-flags
+    -remove-empty-rules
+    -remove-false-rules
+    -reset-prefix   RST_N
+    -resource-off
+    -sat-yices
+    -show-compiles
+    -show-timestamps
+    -show-version
+    -steps 1000000
+    -steps-max-intervals 10
+    -steps-warn-interval 100000
+    -unspecified-to A
+    -warn-action-shadowing
+    -warn-method-urgency
+

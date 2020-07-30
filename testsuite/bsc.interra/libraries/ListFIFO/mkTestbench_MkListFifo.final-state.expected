@@ -1,0 +1,17 @@
+Simulation Passes
+Final state:
+top:
+  counter = 0x07
+  datafifo_r1_rs = 0x05
+  datafifo_r1_rs_1 = 0x06
+  datafifo_r1_rs_2 = 0x07
+  datafifo_r1_rs_3 = 0x08
+  datafifo_r1_rs_4 = 0x09
+  datafifo_r2_rs = 0x05
+  datafifo_r2_rs_1 = 0x06
+  datafifo_r2_rs_2 = 0x07
+  datafifo_r2_rs_3 = 0x08
+  datafifo_r2_rs_4 = 0x09
+  datafifo_rNotEmpty = False
+  datafifo_rNotFull = True
+  fail = False

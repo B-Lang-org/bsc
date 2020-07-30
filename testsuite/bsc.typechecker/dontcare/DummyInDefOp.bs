@@ -1,0 +1,4 @@
+package DummyInDefOp () where
+
+(+):: Bool -> Bool -> Bit 12
+_ + x = _

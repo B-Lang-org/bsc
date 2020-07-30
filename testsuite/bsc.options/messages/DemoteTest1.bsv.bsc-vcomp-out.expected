@@ -1,0 +1,11 @@
+checking package dependencies
+compiling DemoteTest1.bsv
+code generation for sysErrors starts
+Warning: "DemoteTest1.bsv", line 13, column 16: (G0066)
+  Instance `w' requires the following method to be always enabled, but the
+  condition for executing the method is always False:
+    _write
+  This can be because the method is not used in any rules or because the
+  condition of those uses can be shown to be False.
+Error: Unknown position: (G0027)
+  The generated net id "m_x" conflicts with an instance of the same name.

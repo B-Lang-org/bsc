@@ -1,0 +1,61 @@
+checking package dependencies
+compiling SBRCount.bsv
+code generation for mkSBRCount starts
+Warning: "SBRCount.bsv", line 7, column 8: (G0117)
+  Rule `incCount' shadows the effects of `driveCounter' when they execute in
+  the same clock cycle. Affected method calls:
+    counter.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== schedule:
+parallel: [esposito: [readCount -> [], RL_driveCounter -> [], incCount -> []]]
+order: [readCount, RL_driveCounter, incCount]
+
+-----
+
+=== resources:
+[(counter.read, [(counter.read, 1)]),
+ (counter.write, [(counter.write x__h240, 1), (counter.write 26'd0, 1)]),
+ (counterWire.wget, [(counterWire.wget, 1)]),
+ (counterWire.whas, [(counterWire.whas, 1)]),
+ (counterWire.wset, [(counterWire.wset new_value__h188, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_incCount CF [RDY_incCount, incCount, readCount],
+ RDY_readCount CF [RDY_incCount, RDY_readCount, incCount, readCount],
+ readCount CF readCount,
+ [incCount, readCount] SBR incCount]
+[((readCount, incCount), [RL_driveCounter])]
+[(incCount, [(Left RL_driveCounter)])]
+[]
+
+-----
+
+Schedule dump file created: mkSBRCount.sched
+=== Generated schedule for mkSBRCount ===
+
+Method schedule
+---------------
+Method: readCount
+Ready signal: True
+Conflict-free: readCount
+Sequenced before (restricted): incCount
+ 
+Method: incCount
+Ready signal: counterWire.whas
+Sequenced before (restricted): incCount
+Sequenced after (restricted): readCount
+ 
+Rule schedule
+-------------
+Rule: driveCounter
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: readCount, driveCounter, incCount
+
+==========================================
+Verilog file created: mkSBRCount.v
+All packages are up to date.

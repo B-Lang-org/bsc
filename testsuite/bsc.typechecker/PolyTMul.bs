@@ -1,0 +1,20 @@
+package PolyTMul() where
+
+import Vector
+
+interface PolyTMul l m = 
+   save :: (Vector l (Bit m)) -> Action
+
+sysworks :: Module (PolyTMul 4 16) 
+sysworks = 
+  module
+    r :: Reg (Bit (TMul 4 16)) <- mkReg 0
+    interface
+      save x = r := pack x
+
+sysPolyTMul :: Module (PolyTMul l m)
+sysPolyTMul = 
+  module 
+    r :: Reg (Bit (TMul l m)) <- mkReg 0
+    interface
+      save x = r := pack x 

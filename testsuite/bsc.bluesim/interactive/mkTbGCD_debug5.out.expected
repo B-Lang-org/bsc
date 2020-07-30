@@ -1,0 +1,1463 @@
+---- Rules firing at 0 ----
+In module .:
+  RL_exit fired
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 10 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 20 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 30 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 40 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 50 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 60 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 70 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 80 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 90 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 100 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 110 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 120 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 130 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 140 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 150 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 160 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 170 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 180 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 190 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 200 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 210 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 220 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 230 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 240 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 250 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 260 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 270 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 280 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 290 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 300 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 310 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 320 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 330 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 340 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 350 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 360 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 370 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 380 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 390 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 400 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 410 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 420 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 430 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 440 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 450 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 460 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 470 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 480 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 490 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 500 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 510 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 520 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 530 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 540 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 550 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 560 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 570 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 580 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 590 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 600 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 610 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 620 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 630 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 640 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 650 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 660 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 670 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 680 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 690 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 700 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 710 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 720 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 730 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 740 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 750 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 760 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 770 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 780 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 790 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 800 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 810 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 820 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 830 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 840 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 850 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 860 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 870 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 880 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 890 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 900 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 910 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 920 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 930 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 940 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 950 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 960 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 970 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 980 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 990 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1000 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1010 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1020 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1030 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1040 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1050 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1060 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1070 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1080 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1090 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1100 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1110 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1120 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1130 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 1140 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1150 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1160 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1170 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1180 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1190 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1200 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1210 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1220 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1230 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1240 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1250 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1260 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1270 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1280 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1290 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1300 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1310 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1320 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1330 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1340 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1350 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1360 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1370 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1380 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1390 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 1400 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1410 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1420 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1430 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 1440 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1450 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1460 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1470 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1480 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1490 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1500 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1510 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1520 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1530 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1540 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1550 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1560 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1570 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1580 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1590 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1600 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1610 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1620 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1630 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1640 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1650 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1660 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1670 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1680 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1690 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1700 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1710 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1720 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1730 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 1740 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1750 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1760 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1770 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1780 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1790 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1800 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1810 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1820 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1830 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1840 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1850 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1860 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1870 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1880 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1890 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1900 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1910 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1920 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1930 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1940 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 1950 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1960 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1970 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 1980 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 1990 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2000 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2010 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2020 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2030 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2040 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2050 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2060 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2070 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2080 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2090 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2100 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2110 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2120 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2130 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 2140 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2150 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2160 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2170 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2180 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2190 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2200 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2210 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2220 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2230 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2240 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2250 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2260 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2270 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2280 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2290 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2300 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2310 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 2320 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2330 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2340 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2350 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2360 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2370 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2380 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2390 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2400 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2410 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2420 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2430 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2440 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2450 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2460 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2470 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2480 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2490 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 2500 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2510 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2520 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2530 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2540 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2550 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2560 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2570 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2580 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2590 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2600 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2610 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2620 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2630 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2640 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2650 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2660 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2670 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 2680 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2690 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2700 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2710 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2720 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2730 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2740 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2750 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2760 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2770 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2780 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2790 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2800 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2810 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2820 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2830 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2840 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 2850 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2860 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2870 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2880 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2890 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2900 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2910 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2920 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2930 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2940 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2950 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 2960 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2970 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2980 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 2990 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3000 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3010 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3020 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3030 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 3040 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3050 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3060 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3070 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3080 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3090 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3100 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3110 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3120 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3130 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3140 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3150 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3160 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3170 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3180 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3190 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3200 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3210 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 3220 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3230 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3240 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3250 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3260 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3270 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3280 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3290 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3300 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3310 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3320 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3330 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3340 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3350 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3360 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3370 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3380 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 3390 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3400 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3410 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3420 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3430 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3440 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3450 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3460 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3470 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3480 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3490 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3500 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3510 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3520 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3530 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3540 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3550 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3560 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3570 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3580 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3590 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 3600 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3610 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3620 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3630 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3640 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3650 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3660 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3670 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3680 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3690 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3700 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3710 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3720 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3730 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3740 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3750 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3760 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3770 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3780 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3790 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3800 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3810 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 3820 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3830 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3840 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3850 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3860 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3870 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3880 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3890 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3900 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3910 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3920 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3930 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3940 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3950 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 3960 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3970 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3980 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 3990 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 4000 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4010 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4020 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4030 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4040 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4050 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4060 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4070 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4080 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4090 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4100 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4110 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4120 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4130 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4140 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4150 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4160 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4170 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4180 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 4190 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4200 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4210 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4220 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4230 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4240 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4250 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4260 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4270 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4280 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4290 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4300 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4310 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4320 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4330 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4340 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4350 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4360 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4370 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4380 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 4390 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4400 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4410 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4420 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4430 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4440 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4450 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4460 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4470 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4480 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4490 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4500 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4510 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4520 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4530 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4540 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4550 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4560 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 4570 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4580 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4590 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4600 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4610 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4620 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4630 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4640 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4650 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4660 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4670 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4680 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4690 ----
+In module .gcd:
+  RL_flip fired
+---- Rules firing at 4700 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4710 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4720 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4730 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4740 ----
+In module .gcd:
+  RL_sub fired
+---- Rules firing at 4750 ----
+In module .:
+  RL_rule1SendInput fired
+  RL_rule2GetResult fired
+---- Rules firing at 4760 ----
+In module .:
+  RL_exit fired
+In module .gcd:
+  RL_flip fired

@@ -1,0 +1,32 @@
+checking package dependencies
+compiling Bug782_Div_mkDivide_firstProvisos.bsv
+Error: "Bug782_Div_mkDivide_firstProvisos.bsv", line 28, column 8: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    _m__#(Bug782_Div_mkDivide_firstProvisos::Divide#(int_n, fra_n, int_d,
+    fra_d, int_q, fra_q))
+  With the following provisos:
+    Add#(int_d, h__, TAdd#(int_n, fra_n))
+    Add#(1, g__, TAdd#(int_q, fra_n))
+    Add#(int_q, f__, TAdd#(int_n, fra_d))
+    Add#(int_n, fra_d, TAdd#(int_q, e__))
+    Add#(int_n, fra_n, TAdd#(int_d, d__))
+    Add#(c__, 1, int_ex)
+    Add#(b__, int_q, 2)
+    Add#(a__, fra_q, 21)
+    Add#(3, fra_d, int_ex)
+    IsModule#(_m__, _c__)
+  The following additional provisos are needed:
+    Add#(i__, TAdd#(int_q, fra_n), TAdd#(fra_d, TAdd#(int_d, d__)))
+      Introduced at the following locations:
+	"Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63
+    Add#(j__, TAdd#(int_n, fra_n), TAdd#(fra_d, TAdd#(int_d, d__)))
+      Introduced at the following locations:
+	"Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63
+    Add#(k__, TAdd#(int_d, fra_d), TAdd#(TAdd#(int_q, e__), fra_n))
+      Introduced at the following locations:
+	"Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63
+  The type variables are from the following positions:
+    "i__" at "Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63
+    "j__" at "Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63
+    "k__" at "Bug782_Div_mkDivide_firstProvisos.bsv", line 92, column 63

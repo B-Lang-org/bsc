@@ -1,0 +1,8 @@
+package ClassDefParamConflictingUses () where
+
+data (Foo :: * -> *) a = Bar a
+
+class Baz b where
+    x :: Bit b
+    y :: Foo b
+

@@ -1,0 +1,43 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_always_assert_vunit (assert_always_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_ALWAYS_P is always ( 
+	 test_expr abort(not(reset_n)) );
+
+  --Property for X/Z checking
+  property ASSERT_ALWAYS_XZ_P is always ( 
+          (xzcheck_enable = 1) -> not(is_x(test_expr)) ) abort(not(reset_n)) ;
+
+  A_ASSERT_ALWAYS_P:
+  assert ASSERT_ALWAYS_P
+  report "VIOLATION: ASSERT_ALWAYS Checker Fires : Test expression is FALSE";
+
+  A_ASSERT_ALWAYS_XZ_P:
+  assert ASSERT_ALWAYS_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS Checker Fires : test_expr contains X or Z";
+}
+
+vunit assert_always_assume_vunit (assert_always_assume)
+{
+  default clock is rose(clk);
+
+  property ASSERT_ALWAYS_P is always ( test_expr abort(not(reset_n)) );
+
+  --Property for X/Z checking
+  property ASSERT_ALWAYS_XZ_P is always ( 
+          (xzcheck_enable = 1) -> not(is_x(test_expr)) ) abort(not(reset_n)) ;
+
+  M_ASSERT_ALWAYS_P:
+  assume ASSERT_ALWAYS_P;
+
+  M_ASSERT_ALWAYS_XZ_P:
+  assume ASSERT_ALWAYS_XZ_P;
+
+}
+
+
+

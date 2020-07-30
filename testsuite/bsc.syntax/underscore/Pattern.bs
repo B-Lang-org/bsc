@@ -1,0 +1,6 @@
+package Pattern () where
+
+x :: Bool -> Bool
+x v = case (v) of
+        _ -> True
+

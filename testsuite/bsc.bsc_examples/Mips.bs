@@ -1,0 +1,25 @@
+package Mips(sysMips) where
+import RegFile
+import MipsInstr	-- XXX
+import MipsDefs
+import MipsCPU
+import MipsROM
+
+sysMips :: Module Empty
+sysMips = 
+    module
+	ram :: MRAM
+	ram <- mkRAM
+	rom :: MROM
+	rom <- sysMipsROM
+	sysMipsCPU rom ram
+
+mkRAM :: Module MRAM
+mkRAM =
+    module
+	-- 64 kbyte memory
+	arr :: RegFile Address Value
+	arr <- mkRegFile 0 0x3fff
+        interface
+	    write a d = arr.upd a d
+	    read a = arr.sub a

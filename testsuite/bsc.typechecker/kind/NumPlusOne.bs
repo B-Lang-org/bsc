@@ -1,0 +1,5 @@
+package NumPlusOne () where
+
+x :: 1 Bool
+x = _
+

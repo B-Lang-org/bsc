@@ -1,0 +1,10 @@
+Cycle 1: Test start: mkMap
+Cycle 2: Out [0]:   Expected:  10 10 10 10  Actual:    10 10 10 10
+Cycle 3: Out [1]:   Expected:  11 11 11 11  Actual:    11 11 11 11
+Cycle 4: Out [2]:   Expected:  12 12 12 12  Actual:    12 12 12 12
+Cycle 5: Out [3]:   Expected:  13 13 13 13  Actual:    13 13 13 13
+Cycle 6: Out [4]:   Expected:  14 14 14 14  Actual:    14 14 14 14
+Cycle 7: Out [5]:   Expected:  15 15 15 15  Actual:    15 15 15 15
+Cycle 8: Out [6]:   Expected:  16 16 16 16  Actual:    16 16 16 16
+Cycle 9: Out [7]:   Expected:  17 17 17 17  Actual:    17 17 17 17
+Cycle 9: Test ok: mkMap: all 8 outputs ok

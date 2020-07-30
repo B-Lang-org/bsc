@@ -1,0 +1,16 @@
+package ResourceOneRuleCSEnoSC(sysResourceOneRuleCSEnoSC) where
+
+import FIFO
+
+-- The two enq's to q conflict and should cause a resource error.
+-- Currently, however, they cause an internal compiler error (phantom resources).
+-- In fact, if enq had two ports, the two enq's should be assigned to the two ports,
+-- which won't currently happen.
+
+sysResourceOneRuleCSEnoSC :: Module Empty
+sysResourceOneRuleCSEnoSC =
+    module
+        q :: FIFO (Bit 32) <- mkFIFO
+        rules
+            when True
+             ==> action { q.enq 1; q.enq 1 }

@@ -1,0 +1,43 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputClock_NoName_ExposeCurClk;
+module mkMod(Empty);
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentClock;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__2(CLK2, {-inhigh-});
+			 ((ClockArg _clk__1, _bv1), (ClockArg _clk__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_ExposeCurClk
+
+-----
+
+compiling ImportForeignModule_InputClock_NoName_ExposeCurClk.bsv
+=== parsed:
+package ImportForeignModule_InputClock_NoName_ExposeCurClk;
+module mkMod(Empty);
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentClock;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__2(CLK2, {-inhigh-});
+			 ((ClockArg _clk__1, _bv1), (ClockArg _clk__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_ExposeCurClk
+
+-----
+
+All packages are up to date.

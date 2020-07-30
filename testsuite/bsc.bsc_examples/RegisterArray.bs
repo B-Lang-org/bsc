@@ -1,0 +1,76 @@
+package RegisterArray (
+		       mkRegisterArray,
+		       mkRegisterArrayFull,
+		       sysRegisterArray
+		       ) where
+import RegFile
+import List
+
+--
+-- list function
+--
+
+enumerate :: (Arith a, Ord a, Eq a) => a -> a -> List a
+enumerate low high =
+    if (low > high)
+    then Nil
+    else if (low == high)
+         then Cons low Nil
+	 else Cons low (enumerate (low + 1) high)
+
+--
+-- data structure
+--
+
+struct BufferEntry i v =
+    index :: i
+    value :: Reg v
+
+--
+-- helper functions
+--
+
+mkBufferEntry :: (Bits v sv) => Maybe v -> i -> Module (BufferEntry i v)
+mkBufferEntry init_value x = do
+    r :: Reg v
+    r <- case init_value of
+	     Invalid -> mkRegU
+	     Valid val -> mkReg val
+    return (BufferEntry { index = x; value = r })
+
+getReg :: (Eq i) => i -> List (BufferEntry i v) -> Maybe (Reg v)
+getReg i (Cons e es) = if e.index==i then Valid e.value else getReg i es
+getReg _ Nil = Invalid
+
+--
+-- module for making an array of registers
+--
+
+mkRegisterArray :: (Bits v sv, Arith i, Ord i, Eq i) =>
+                   i -> i -> Maybe v -> Module (RegFile i v)
+mkRegisterArray l h initial_value =
+    module
+	ps :: List (BufferEntry i v)
+        ps <- mapM (mkBufferEntry initial_value) (enumerate l h)
+        interface
+	    sub index   = case getReg index ps of
+			      Valid r  -> r._read
+			      Invalid -> _
+	    upd index value = case getReg index ps of
+			          Valid r  -> r := value
+			          Invalid -> action { }
+
+--
+-- module for making a register array that spans the entire range of indices
+--
+
+mkRegisterArrayFull :: (Bits v sv, Arith i, Ord i, Eq i, Bounded i) =>
+                       Maybe v -> Module (RegFile i v)
+mkRegisterArrayFull init_val = mkRegisterArray minBound maxBound init_val
+
+--
+-- a module which can be compiled
+-- 
+
+sysRegisterArray :: Module (RegFile (Bit 5) (Bit 8))
+sysRegisterArray = mkRegisterArray 0 3 Invalid

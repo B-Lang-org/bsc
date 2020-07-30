@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "bug1.bsv", line 8, column 19: (P0005)
+  Unexpected SV 3.0 keyword `return'; expected `[' or function name

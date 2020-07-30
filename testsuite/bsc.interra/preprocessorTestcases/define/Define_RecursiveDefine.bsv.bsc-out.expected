@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Define_RecursiveDefine.bsv
+Warning: Unknown position: (S0001)
+  File name `Define_RecursiveDefine.bsv' does not match package name `Design'
+Error: "Define_RecursiveDefine.bsv", line 9, column 17: (T0004)
+  Unbound variable `max_val'

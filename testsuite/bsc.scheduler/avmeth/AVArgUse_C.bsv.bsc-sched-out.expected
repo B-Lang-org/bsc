@@ -1,0 +1,78 @@
+checking package dependencies
+compiling AVArgUse_C.bsv
+code generation for mkAVArgUse_C starts
+=== schedule:
+parallel: [esposito: [m -> []]]
+order: [m]
+
+-----
+
+=== resources:
+[(rg.write, [(rg.write m_a, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_m CF [RDY_m, m], m C m] [] [] []
+
+-----
+
+Schedule dump file created: mkAVArgUse_C.sched
+=== Generated schedule for mkAVArgUse_C ===
+
+Method schedule
+---------------
+Method: m
+Ready signal: True
+Conflicts: m
+ 
+Logical execution order: m
+
+============================================
+Verilog file created: mkAVArgUse_C.v
+code generation for sysAVArgUse_C starts
+Warning: "AVArgUse_C.bsv", line 19, column 8: (G0010)
+  Rule "rA" was treated as more urgent than "rB". Conflicts:
+    "rA" cannot fire before "rB":
+      calls to
+	dut.m vs. dut.m
+	r1.write vs. r1.read
+    "rB" cannot fire before "rA": calls to dut.m vs. dut.m
+=== schedule:
+parallel: [esposito: [RL_rA -> [], RL_rB -> [RL_rA]]]
+order: [RL_rA, RL_rB]
+
+-----
+
+=== resources:
+[(dut.m, [(dut.m b__h178 32'd1, 1), (dut.m 32'd5 b__h178, 1)]),
+ (r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write r1_PLUS_1___d4, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysAVArgUse_C.sched
+=== Generated schedule for sysAVArgUse_C ===
+
+Rule schedule
+-------------
+Rule: rA
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rB
+Predicate: True
+Blocking rules: rA
+ 
+Logical execution order: rA, rB
+
+=============================================
+Warning: "AVArgUse_C.bsv", line 30, column 10: (G0021)
+  According to the generated schedule, rule `rB' can never fire.
+Verilog file created: sysAVArgUse_C.v
+All packages are up to date.

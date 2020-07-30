@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintType4.bsv
+code generation for sysPrintType4 starts
+Compilation message: Integer
+Elaborated module file created: sysPrintType4.ba
+All packages are up to date.

@@ -1,0 +1,59 @@
+package Seq(mkSeq, MyList, Go(..)) where
+
+data (MyList :: * -> # -> *) a n = MyNil | MyCons a (MyList a n)
+
+flex :: MyList a n -> MyList a m
+flex MyNil = MyNil
+flex (MyCons x xs) = MyCons x (flex xs)
+
+end :: MyList a 0
+end = MyNil
+
+($) :: (Add 1 n m) => a -> MyList a n -> MyList a m
+($) x xs = MyCons x (flex xs)
+
+-----
+
+interface Go =
+    start :: Action
+    done  :: Bool
+
+type RegB k = Reg (Bit k)
+
+mkSeq :: (Add n 1 m, Log m k) => MyList Action n -> Module Go
+mkSeq as = 
+    module
+	var :: RegB k
+	var <- mkReg 0
+        addRules (mkRules var 1 as)
+        interface
+	    start = var := 0
+	    done  = var == 0
+
+mkRules :: RegB k -> Integer -> MyList Action n -> Rules
+mkRules var i (MyCons a MyNil) =
+    rules 
+	when var == fromInteger i
+	 ==> action { var := 0; a }
+mkRules var i (MyCons a as) =
+    rules 
+	when var == fromInteger i
+	 ==> action { var := fromInteger (i+1); a }
+  <+>
+    mkRules var (i+1) as
+
+sysSeq :: Module Empty
+sysSeq =
+    module
+	x1 :: Reg (Bit 10)
+	x1 <- mkReg 0
+	x2 :: Reg (Bit 12)
+	x2 <- mkReg 0
+	seq :: Go
+	seq <- mkSeq (
+		action { x1 := 88 } $
+		action { x2 := 77 } $
+		action { x1 := 99 } $
+		action { x2 := 66 } $
+		end
+		)

@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail EResources.bs mkDifference
+compare_file_filter_ids EResources.bs.bsc-vcomp-out
+}

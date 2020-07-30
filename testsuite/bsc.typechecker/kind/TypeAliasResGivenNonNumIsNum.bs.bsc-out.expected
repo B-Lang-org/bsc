@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TypeAliasResGivenNonNumIsNum.bs
+Error: "TypeAliasResGivenNonNumIsNum.bs", line 3, column 18: (T0027)
+  The numeric type `12' was found where a value type was expected.

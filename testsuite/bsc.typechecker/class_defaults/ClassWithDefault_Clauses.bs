@@ -1,0 +1,28 @@
+package ClassWithDefault_Clauses (C(..)) where
+
+class C a where
+  f :: Integer -> a
+  h :: Integer -> a
+  g :: Integer -> a
+  g 0 = f 0
+  g x = h x
+
+instance C Bool where
+  f x = x > 17
+  h x = x > 2
+
+v :: Integer
+v = 5
+
+-- should use the proper definition of "g"
+{-# verilog sysClassWithDefault_Clauses #-}
+sysClassWithDefault_Clauses :: Module Empty
+sysClassWithDefault_Clauses =
+  module
+    rules
+      "r":
+        when True
+          ==> action
+                if (g v) then $display "1yes" else $display "1no"
+                if (f v) then $display "2yes" else $display "2no"
+

@@ -1,0 +1,2 @@
+COND_RL_r_rg_write_1 {positions {MethodConds_RegWrite.bsv 11 13}} {rule RL_r} {instance rg} {method write}
+COND_RL_r_rg_write_2 {positions {MethodConds_RegWrite.bsv 13 13}} {rule RL_r} {instance rg} {method write}

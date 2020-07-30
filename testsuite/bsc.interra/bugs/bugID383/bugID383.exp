@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass MkCompletionBuffer.bsv mkDesign
+compare_file MkCompletionBuffer.bsv.bsc-vcomp-out
+}

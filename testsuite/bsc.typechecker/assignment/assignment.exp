@@ -1,0 +1,61 @@
+#
+# Tests for type-checking of assignment operator
+# ("<=" in BSV, ":=" in Classic)
+#
+
+
+# --------------------------------------------------
+# Register assignments should compile regardless of
+# whether the user put parens or not
+
+# For ListN
+compile_pass ListNSelectNoParens.bsv
+compile_pass ListNSelectParens.bsv
+
+# For List
+compile_pass ListSelectNoParens.bsv
+compile_pass ListSelectParens.bsv
+
+# For Vector
+compile_pass VectorSelectNoParens.bsv
+compile_pass VectorSelectParens.bsv
+
+# For implied Array (with [] notation)
+compile_pass PrimArraySelectNoParens.bsv
+compile_pass PrimArraySelectParens.bsv
+
+
+# -------------------------------------------------
+# When the user forgets parens around a 2-deep
+# selection, should still give the same error
+
+compile_pass ListSelect2NoParens.bsv
+compile_pass ListSelect2Parens.bsv
+
+
+# -------------------------------------------------
+# When the left-hand side is not a register or a list
+# of registers, report a generic error
+
+compile_fail_error ListMissingSelectNoParens.bsv T0066
+compile_fail_error ListMissingSelectParens.bsv T0066
+
+
+# -------------------------------------------------
+# If the left-hand side is a list of registers,
+# that should compile without warning!
+# (It didn't at first!)
+
+# Update of a register of a Vector requires no parens
+compile_pass VectorUpdateNoParens.bsv
+# With parens works now because we're being flexible
+compile_pass VectorUpdateParens.bsv
+
+
+#-------------------------------------------------
+# Structs and regs
+compile_pass StructRegWrite.bsv
+compile_pass RegStructWrite.bsv
+compile_verilog_fail_error RegStructWrite.bsv G0004
+
+compile_fail StructUpdReg.bsv T0015

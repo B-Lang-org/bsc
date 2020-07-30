@@ -1,0 +1,9 @@
+package DummyInCase () where
+
+-- This used to cause iCheck to fail because the pattern was binding
+-- the name "_" and the case was interpreted as "\a -> a".
+
+dummyInCase :: Bit 1 -> Bool
+dummyInCase x = case x of
+		    _ -> _
+

@@ -1,0 +1,4 @@
+test_c_veri_worker MkOInt mkTestbench_MkOInt {} "bsv" 1 1 "mkTestbench_MkOInt.v.out.expected" "" ""
+
+test_c_veri_worker MkOInt1 mkTestbench_MkOInt1 {} "bsv" 1 1 "mkTestbench_MkOInt1.v.out.expected" "" ""
+

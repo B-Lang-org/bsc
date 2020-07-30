@@ -1,0 +1,7 @@
+package Bug262() where
+
+sysBug262 :: Module Empty
+sysBug262 = 
+  module
+    r :: Reg (Maybe (Bit 32)) <- mkReg Invalid
+    

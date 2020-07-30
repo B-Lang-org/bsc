@@ -1,0 +1,34 @@
+checking package dependencies
+compiling Bug782_Div_fxptDivide_noProvisos.bsv
+Error: "Bug782_Div_fxptDivide_noProvisos.bsv", line 9, column 29: (T0065)
+  The provisos for this expression are too general.
+  Given type:
+    function Bug782_Div_fxptDivide_noProvisos::FixedPoint#(ri, nf)
+    f(Bug782_Div_fxptDivide_noProvisos::FixedPoint#(ni, nf) x1,
+    Bug782_Div_fxptDivide_noProvisos::FixedPoint#(di, df) x2)
+  With the following provisos:
+    Add#(ni, df, sz3)
+    Add#(df, sz, sz2)
+    Add#(ni, nf, sz)
+  The following additional proviso is needed:
+    Add#(a__, TAdd#(di, df), sz2)
+  This proviso was introduced by an extend or truncate operation, which
+  requires that the extended size be larger.
+  The extend or truncate occurs in or at the following locations:
+    "Bug782_Div_fxptDivide_noProvisos.bsv", line 18, column 25
+Error: "Bug782_Div_fxptDivide_noProvisos.bsv", line 9, column 29: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Bug782_Div_fxptDivide_noProvisos::FixedPoint#(ri, nf)
+    f(Bug782_Div_fxptDivide_noProvisos::FixedPoint#(ni, nf) x1,
+    Bug782_Div_fxptDivide_noProvisos::FixedPoint#(di, df) x2)
+  With the following provisos:
+    Add#(ni, df, sz3)
+    Add#(df, sz, sz2)
+    Add#(ni, nf, sz)
+  The following additional provisos are needed:
+    Add#(ri, a__, sz3)
+      Introduced at the following locations:
+	"Bug782_Div_fxptDivide_noProvisos.bsv", line 21, column 11
+  The type variables are from the following positions:
+    "a__" at "Bug782_Div_fxptDivide_noProvisos.bsv", line 21, column 11

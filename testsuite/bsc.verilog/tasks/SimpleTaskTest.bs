@@ -1,0 +1,15 @@
+package SimpleTaskTest(sysSimpleTaskTest) where
+
+sysSimpleTaskTest :: Module Empty
+sysSimpleTaskTest = 
+  module
+    done :: Reg(Bool) <- mkReg False
+    
+    rules
+      when done ==> $finish (0 :: Bit 2)
+      when not done ==> 
+        action
+               $display "%0h" (5 :: Bit 5)
+               $displayo "Line 2"
+               $displayh "Line %0d: %0d" (3 :: Bit 5) (9 :: Integer)
+               done := True

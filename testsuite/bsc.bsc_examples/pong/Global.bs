@@ -1,0 +1,111 @@
+package Global(
+	XCoord, YCoord, XSize, YSize, shiftY, posX, posY, limitY,
+	hSize, vSize,
+	paddleWidth, paddleHeight, paddleEdgeDist, paddleDistFromWall,
+	ballWidth, ballHeight,
+	xMin, xMax, yMin, yMax,
+	scoreLong, scoreShort, scoreLx, scoreRx, scoreY, NScoreDigits,
+	vgaTiming, preScale
+	) where
+
+import VGACore
+
+
+-- Border width
+border :: Integer
+border = 10
+
+-- Paddle parameters
+paddleDistFromWall :: Integer
+paddleDistFromWall = 64
+paddleWidth :: Integer
+paddleWidth = 16
+paddleHeight :: Integer
+paddleHeight = 80
+paddleEdgeDist :: Integer
+paddleEdgeDist = 20+border
+
+-- Ball parameters
+-- Width must be smaller than paddle, since we only check corners for hit
+ballWidth :: Integer
+ballWidth = paddleWidth - 1
+ballHeight :: Integer
+ballHeight = ballWidth `div` 2
+
+-- Score
+scoreLong :: Integer	-- segment length
+scoreLong = 40
+scoreShort :: Integer	-- segment width
+scoreShort = 8
+
+type NScoreDigits = 3
+
+scoreWallDist :: Integer
+scoreWallDist = 100
+
+scoreLx :: Integer
+scoreLx = xMin + scoreWallDist
+
+scoreRx :: Integer
+scoreRx = xMax - (scoreWallDist + (valueOf NScoreDigits) * (scoreLong + scoreShort))
+
+scoreY :: Integer
+scoreY = 30
+
+vgaTiming :: VGATiming
+vgaTiming = vga1280x480
+--vgaTiming = sizeToTiming hSize vSize
+--vgaTiming = hzToTiming 50000000
+
+-- Derived values
+
+-- Size of the screen
+hSize :: Integer
+hSize = 1280 -- 800 -- vgaTiming.h.activeSize
+vSize :: Integer
+vSize = 480 -- 600 -- vgaTiming.v.activeSize
+
+-- Prescale divides the clock
+preScale :: Integer
+preScale = 1
+
+-- Playing field
+xMin :: Integer
+xMin = 2*border
+xMax :: Integer
+xMax = hSize - 2*border
+yMin :: Integer
+yMin = border
+yMax :: Integer
+yMax = vSize - border
+
+
+-------------------------
+
+type XCoordSize =  12
+type YCoordSize =  11
+
+data XCoord = XCoord (Bit XCoordSize)
+	deriving (Literal, Eq, Ord, Arith, Bits, Bitwise)
+data YCoord = YCoord (Bit YCoordSize)
+	deriving (Literal, Eq, Ord, Arith, Bits, Bitwise)
+
+type XSize = XCoord
+type YSize = YCoord
+
+shiftY :: YCoord -> Nat -> YCoord
+shiftY (YCoord x) s = YCoord ( signedShiftRight x s )
+
+posY :: YCoord -> Bool
+posY (YCoord x) = x[fromInteger $ valueOf YCoordSize - 1
+		   :fromInteger $ valueOf YCoordSize - 1]==0
+
+posX :: XCoord -> Bool
+posX (XCoord x) = x[fromInteger $ valueOf XCoordSize - 1
+		   :fromInteger $ valueOf XCoordSize - 1]==0
+
+limitY :: YCoord -> YCoord
+limitY (YCoord y) = let limit = 8
+                    in if signedLT y (negate limit) then YCoord (negate limit)
+                       else if signedLT limit y then YCoord limit 
+                       else YCoord y

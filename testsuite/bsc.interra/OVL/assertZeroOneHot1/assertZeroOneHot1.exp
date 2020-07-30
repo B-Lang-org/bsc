@@ -1,0 +1,4 @@
+set here [file join [absolute $srcdir] $subdir]
+source $here/../common.tcl
+
+test_ovl  assertZeroOneHot1  assert_zero_one_hot.vlib

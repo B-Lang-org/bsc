@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DataDefParamGivenNonNumUsedFunc.bs
+Error: "DataDefParamGivenNonNumUsedFunc.bs", line 3, column 37: (T0023)
+  The type `x' does not take an argument.

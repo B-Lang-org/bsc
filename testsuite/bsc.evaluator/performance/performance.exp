@@ -1,0 +1,2 @@
+compile_verilog_pass broken.bsv "" "+RTS -M384M -RTS"
+compile_verilog_pass TestPIf.bsv "" "+RTS -M265M -RTS"

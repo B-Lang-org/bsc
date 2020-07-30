@@ -1,0 +1,4 @@
+# Working version
+
+compile_pass SyntaxTest.bsv
+test_c_veri_bsv SemanticsTest

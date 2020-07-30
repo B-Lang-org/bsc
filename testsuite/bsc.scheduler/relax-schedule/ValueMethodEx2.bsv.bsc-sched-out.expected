@@ -1,0 +1,103 @@
+checking package dependencies
+compiling ValueMethodEx2.bsv
+code generation for mkValueMethodEx2Mod1 starts
+=== schedule:
+parallel: [esposito: [m1 -> [], m2 -> [], RL_r -> []]]
+order: [m1, RL_r, m2]
+
+-----
+
+=== resources:
+[(rg.read, [(rg.read, 1)]),
+ (rg.write, [(rg.write 1'd1, 1)]),
+ (rw.wget, [(rw.wget, 1)]),
+ (rw.whas, [(rw.whas, 1)]),
+ (rw.wset, [(rw.wset 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_m1 CF [RDY_m1, RDY_m2, m1, m2], RDY_m2 CF [RDY_m2, m1, m2], m1 CF m1, m2 CF m2, m1 SBR m2]
+[((m1, m2), [RL_r])]
+[(m2, [(Left RL_r)])]
+[]
+
+-----
+
+Schedule dump file created: mkValueMethodEx2Mod1.sched
+=== Generated schedule for mkValueMethodEx2Mod1 ===
+
+Method schedule
+---------------
+Method: m1
+Ready signal: True
+Conflict-free: m1
+Sequenced before (restricted): m2
+ 
+Method: m2
+Ready signal: True
+Conflict-free: m2
+Sequenced after (restricted): m1
+ 
+Rule schedule
+-------------
+Rule: r
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: m1, r, m2
+
+====================================================
+Verilog file created: mkValueMethodEx2Mod1.v
+code generation for mkValueMethodEx2Mod2 starts
+=== schedule:
+parallel: [esposito: [m1 -> [], RL_r -> [], m2 -> []]]
+order: [m1, RL_r, m2]
+
+-----
+
+=== resources:
+[(rg.read, [(rg.read, 1)]),
+ (rg.write, [(rg.write 1'd1, 1)]),
+ (rw.wget, [(rw.wget, 1)]),
+ (rw.whas, [(rw.whas, 1)]),
+ (rw.wset, [(rw.wset 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_m1 CF [RDY_m1, RDY_m2, m1, m2], RDY_m2 CF [RDY_m2, m1, m2], m1 CF m1, m2 CF m2, m1 SBR m2]
+[((m1, m2), [RL_r])]
+[(m2, [(Left RL_r)])]
+[]
+
+-----
+
+Schedule dump file created: mkValueMethodEx2Mod2.sched
+=== Generated schedule for mkValueMethodEx2Mod2 ===
+
+Method schedule
+---------------
+Method: m1
+Ready signal: rg
+Conflict-free: m1
+Sequenced before (restricted): m2
+ 
+Method: m2
+Ready signal: (! rw.whas) || rw.wget
+Conflict-free: m2
+Sequenced after (restricted): m1
+ 
+Rule schedule
+-------------
+Rule: r
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: m1, r, m2
+
+====================================================
+Verilog file created: mkValueMethodEx2Mod2.v
+All packages are up to date.

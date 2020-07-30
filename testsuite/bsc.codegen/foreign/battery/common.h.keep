@@ -1,0 +1,12 @@
+
+unsigned int do_mask (unsigned int v, unsigned int sz);
+
+void four_copies(unsigned int* buf, unsigned int x);
+
+void invert_poly(unsigned int* res, unsigned int* src, unsigned int n);
+
+void display_four(unsigned int n, unsigned int w[4], unsigned int *p, char *s);
+void display_hex_poly (unsigned int n, unsigned int *p);
+
+unsigned int popcount(unsigned int* data, unsigned int n);
+

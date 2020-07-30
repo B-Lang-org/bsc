@@ -1,0 +1,2 @@
+compile_verilog_pass Design1.bsv
+compare_verilog mkDesign1.v

@@ -1,0 +1,8 @@
+# check that appropriate instances are exported for abstractly exported types
+
+compile_pass AbstractList.bs
+
+# this shows we don't need to be careful to use the original summands for Bits
+# because non-recursive instances get simplified "all-the-way" anyway
+# and Bits can't have recursive instances
+compile_pass AbstractMaybe.bs

@@ -1,0 +1,7 @@
+package Bug359_2 where
+
+{-# verilog sysBug359_2 #-}
+sysBug359_2 :: Bool -> Module Empty
+sysBug359_2 cond =
+  module
+    x <- if cond then return 5 else return 7

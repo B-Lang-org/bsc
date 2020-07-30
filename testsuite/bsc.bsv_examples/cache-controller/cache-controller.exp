@@ -1,0 +1,11 @@
+# Makefile.dist sets these, so why not do it here too
+set opt_flags {-opt-bool -opt-bit-const -opt-undetermined-vals -opt-if-mux -opt-mux-const -opt-sched -opt-ATS -inline-rwire}
+
+# the dut modules
+set dut_mods {cache cache_controller}
+
+# Test 1
+test_c_veri_bsv_multi_options Testbench testbench $dut_mods $opt_flags
+
+# Test 2
+test_c_veri_bsv_multi_options RandomTestbench random_testbench $dut_mods $opt_flags

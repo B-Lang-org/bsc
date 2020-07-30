@@ -1,0 +1,3 @@
+Error: "./Foo.bsv", line 7, column 13: (P0005)
+  Unexpected end of file; expected `,' or `;'
+

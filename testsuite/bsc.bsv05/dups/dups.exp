@@ -1,0 +1,19 @@
+#duplicate fields in structures, interfaces and unions
+
+compile_fail InterfaceDupFields.bsv 
+compare_file InterfaceDupFields.bsv.bsc-out  
+
+compile_fail StructDupFields.bsv 
+compare_file StructDupFields.bsv.bsc-out  
+
+compile_fail SubstructDupFields.bsv 
+compare_file SubstructDupFields.bsv.bsc-out  
+
+compile_fail UnionDupCons.bsv 
+compare_file UnionDupCons.bsv.bsc-out  
+
+compile_fail DupTypeclassFunction.bsv 
+compare_file DupTypeclassFunction.bsv.bsc-out  
+
+compile_fail DupTopLevelVariableDef.bsv
+compare_file DupTopLevelVariableDef.bsv.bsc-out

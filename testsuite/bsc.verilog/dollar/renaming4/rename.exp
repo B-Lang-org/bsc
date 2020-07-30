@@ -1,0 +1,11 @@
+#test_veri_only_bsv_modules_options TbGCD "" -remove-dollar mkTbGCD.out.expected
+compile_verilog_pass TbGCD.bsv ""
+link_verilog_pass sysTbGCD.v sysTbGCD
+
+erase sysTbGCD.v
+erase mkTbGCD.v
+
+#all bets are off if there are dollar signs specified by the user
+compile_verilog_pass TbGCD.bsv "" -remove-dollar
+link_verilog_pass_bug sysTbGCD.v sysTbGCD
+

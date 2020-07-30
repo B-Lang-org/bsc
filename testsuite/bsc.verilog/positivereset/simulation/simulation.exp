@@ -1,0 +1,34 @@
+# Need to test several of the verilog modules with positive reset 
+# Verify that reset is asserted hi in the vcd file
+
+
+# reset_by noReset
+set preset "-reset-prefix RESET_P -D BSV_POSITIVE_RESET"
+
+
+test_c_veri_bsv_modules_options NoReset "" $preset "" "" "" $preset
+
+
+if {$vtest == 1} {
+    # resimulate with vcd enabled
+    sim_verilog_vcd sysNoReset $preset
+    move dump.vcd sysNoReset_veri.vcd
+
+    # Look for reset value....  main.top.RESET_P  
+    vcdcheck_pass sysNoReset_veri.vcd {-c "main.top.RESET_P becomes 0 @2" \
+                            }
+
+}
+
+# Include a bluesim test here,  but bluesim does not look at the reset macro!
+if {$ctest == 1} {
+    # resimulate with vcd enabled
+    sim_output sysNoReset "-V sysNoReset_sim.vcd"
+    move dump.vcd sysNoReset.vcd
+
+    # Look for reset value....  main.top.RESET_P  
+    vcdcheck_pass sysNoReset_sim.vcd {-c "main.top.RESET_P becomes 1 @5" \
+                            }
+
+}
+

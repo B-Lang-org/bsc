@@ -1,0 +1,65 @@
+# -------------------------
+
+# test scheduling and resource allocation  and specifically disjoint tests 
+
+compile_verilog_pass ResourceOneRuleME.bs sysResourceOneRuleME
+compile_verilog_pass ResourceOneRuleb31Fixed.bs sysResourceOneRuleMEb31
+
+
+if {$vtest == 1} {
+compile_verilog_schedule_pass GCD_t1.bs sysGCD
+compare_file_filter_ids GCD_t1.bs.bsc-sched-out
+}
+
+# note bug 31 is fixed, and this test is correct -- it should and mustfail as there is a conflict. 
+#compile_verilog_fail ResourceOneRuleMEbug.bs sysResourceOneRuleMEbug
+
+compile_verilog_fail_error ResourceOneRuleMEbug.bs G0004 1 sysResourceOneRuleMEbug "-print-flags" 
+
+
+# Disjoint checking is no longer done lazily
+#
+#if {$vtest == 1} {
+#compile_verilog_schedule_pass DisjointCheck1.bsv "" "-trace-disjoint-tests"
+#find_n_strings DisjointCheck1.bsv.bsc-sched-out "checkDisjointRules" 3
+#}
+#
+#if {$vtest == 1} {
+#compile_verilog_schedule_pass DisjointCheck2.bsv "" "-trace-disjoint-tests"
+#find_n_strings DisjointCheck2.bsv.bsc-sched-out "checkDisjointRules" 4
+#}
+
+# -------------------------
+
+# Test that submodule methods which share the same ports are treated
+# as equivalent for disjoint testing.
+
+# Here, test that (fifo.notEmpty) is disjoint with (! fifo.i_notEmpty)
+# because the methods are defined as the same port
+if { $vtest == 1 } {
+    compile_verilog_schedule_pass SharedPortsFIFO.bsv
+    compare_file_filter_ids SharedPortsFIFO.bsv.bsc-sched-out
+}
+
+# But make sure that ports with multiplicity are not accidentally considered
+# the same wheny they should not be.  Here, reg file "sub" with two different
+# index expressions should not be considered the same
+# (and so the rules are not disjoint and should conflict).
+if { $vtest == 1 } {
+    compile_verilog_schedule_pass SharedPortsRegFile.bsv
+    compare_file_filter_ids SharedPortsRegFile.bsv.bsc-sched-out
+}
+
+# -------------------------
+
+# Foreign functions and method calls etc with arguments should be treated
+# unevaluated functions applied to its arguments, so that the solver can
+# decide when the arguments are the same (rather than considering it the
+# same only by being identical).
+
+# This test shows that method calls which are equivalent (by sharing a port)
+# when laundered through a noinline function are no longer seen as identical.
+compile_verilog_pass_no_warning_bug SharedPortsInArg.bsv G0010
+
+# -------------------------
+

@@ -1,0 +1,12 @@
+*.h
+*.c
+*.o
+*.v
+*.bi
+*.bo
+*.bsc-out
+*.bsc-ccomp-out
+*.diff-out
+*.final-state
+sysConstructorArgumentOrder
+sysTmpsIfcArgs

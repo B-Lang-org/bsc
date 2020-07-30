@@ -1,0 +1,12 @@
+compile_verilog_pass DefaultValue1.bsv
+compare_verilog mkDefaultValue1.v
+
+compile_verilog_pass DefaultValue2OK1.bsv
+compare_verilog mkDefaultValue2OK1.v
+
+compile_verilog_pass DefaultValue2OK2.bsv
+compare_verilog mkDefaultValue2OK2.v
+
+compile_verilog_fail_error DefaultValue2Broken.bsv G0007
+
+

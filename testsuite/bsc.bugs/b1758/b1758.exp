@@ -1,0 +1,83 @@
+
+# -----
+# Value methods returning Bit#(0)
+#
+# These worked fine, but test them going forward
+
+compile_verilog_pass ZeroBitValueMethod.bsv {} {-dexpanded -dATS}
+
+# Test that the method reference has been replaced by 0 in the evaluator
+if { $vtest == 1 } {
+    # XXX This still need to be fixed
+    find_regexp ZeroBitValueMethod.bsv.bsc-vcomp-out \
+	{\= \.ZeroBitValueMethod\.getVal g}
+    # XXX AConv doesn't replace it either
+    find_regexp ZeroBitValueMethod.bsv.bsc-vcomp-out \
+	{\= g\.getVal}
+}
+
+# -----
+# ActionValue methods returning Bit#(0)
+
+compile_verilog_pass ZeroBitActionValueMethod.bsv {} {-dexpanded -dATS}
+
+# Test that the method reference has been replaced by 0 in the evaluator
+if { $vtest == 1 } {
+    # XXX This still need to be fixed
+    find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
+	{\= \.Prelude\.avValue_ .0 \(\.ZeroBitActionValueMethod\.get g\)}
+    # At least AConv replaces it
+    find_regexp ZeroBitActionValueMethod.bsv.bsc-vcomp-out \
+	{g\.get\; p\.put 0\'d0\;}
+}
+
+# -----
+# ActionValue tasks without arguments returning Bit#(0)
+
+# ...
+
+# -----
+# ActionValue tasks with arguments returning Bit#(0)
+
+# ...
+
+# -----
+# Value foreign functions returning Bit#(0)
+
+# Try concrete and polymorphic versions, with and without arguments
+
+# ...
+
+# -----
+# ActionValue foreign functions returning Bit#(0)
+
+# --
+# Concrete with arguments
+
+compile_verilog_pass ZeroBitActionValueForeignWithArgs.bsv \
+    {} {-dexpanded -dATS}
+
+# Test that the method reference has been replaced by 0 in the evaluator
+if { $vtest == 1 } {
+    # XXX The call even survives into the Verilog!
+    find_regexp sysZeroBitActionValueForeignWithArgs.v \
+	{\$imported\_my\_time\(8\'d0\)}
+}
+
+# --
+# Concrete without arguments
+
+# ...
+
+# --
+# Polymorphic with arguments
+
+# ...
+
+# --
+# Polymorphic without arguments
+
+# ...
+
+# -----
+

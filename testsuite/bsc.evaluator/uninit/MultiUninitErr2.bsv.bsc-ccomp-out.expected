@@ -1,0 +1,17 @@
+checking package dependencies
+compiling MultiUninitErr2.bsv
+code generation for mkMultiUninitErr2 starts
+Error: "MultiUninitErr2.bsv", line 9, column 8: (G0028)
+  `color.blue' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "MultiUninitErr2.bsv", line
+  12, column 9.
+  During elaboration of `mkMultiUninitErr2' at "MultiUninitErr2.bsv", line 8,
+  column 8.
+Error: "MultiUninitErr2.bsv", line 9, column 8: (G0028)
+  `color.green' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "MultiUninitErr2.bsv", line
+  12, column 9.
+  During elaboration of `mkMultiUninitErr2' at "MultiUninitErr2.bsv", line 8,
+  column 8.

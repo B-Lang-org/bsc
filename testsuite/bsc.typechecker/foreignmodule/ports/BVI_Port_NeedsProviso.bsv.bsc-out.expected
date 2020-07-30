@@ -1,0 +1,8 @@
+checking package dependencies
+compiling BVI_Port_NeedsProviso.bsv
+Error: "BVI_Port_NeedsProviso.bsv", line 2, column 11: (T0134)
+  Ports of imported modules can be of any type which has an instance of Bits.
+  A port of type `t' is declared at the following position:
+    "BVI_Port_NeedsProviso.bsv", line 3, column 16
+  Perhaps a proviso is needed:
+    Bits#(t, a__)

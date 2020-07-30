@@ -1,0 +1,346 @@
+package FIFOF_ (FIFOF_(..), mkFIFOF_, mkFIFOF1_, mkSizedFIFOF_, mkLFIFOF_) where
+
+import Environment
+
+--@ This is an internal, undocumented package
+--@ To use FIFOs in BSV use the \te{FIFO} or \te{FIFOF} packages
+
+interface FIFOF_ a =
+  enq        :: a -> Action
+  deq        :: Action
+  first      :: a
+  clear      :: Action
+  notFull    :: Bool
+  i_notFull  :: Bool
+  notEmpty   :: Bool
+  i_notEmpty :: Bool
+
+-- the i_ versions of the notFull and notEmpty signals are conflict-free
+-- with enq and deq so that the implicit conditions in a guarded FIFO
+-- (with or without explicit full and empty signals)
+-- do not create a conflict between enq and deq
+interface VFIFOF_ n = 
+  enq_        :: Bit n -> PrimAction
+  deq_        :: PrimAction
+  first_      :: Bit n
+  clear_      :: PrimAction
+  notFull_    :: Bit 1
+  i_notFull_  :: Bit 1
+  notEmpty_   :: Bit 1
+  i_notEmpty_ :: Bit 1
+
+interface VFIFOF0_ =
+  enq_        :: PrimAction
+  deq_        :: PrimAction
+  clear_      :: PrimAction
+  notFull_    :: Bit 1
+  i_notFull_  :: Bit 1
+  notEmpty_   :: Bit 1
+  i_notEmpty_ :: Bit 1  
+
+
+-- Depth 1, width > 0
+vMk1FIFOF :: Module (VFIFOF_ n)
+vMk1FIFOF =
+  module verilog "FIFO1" (("depth",valueOf n)) "CLK" "RST_N" {
+    enq_        = "D_IN"{reg} "ENQ";
+    deq_        = "DEQ";
+    first_      = "D_OUT"{reg};
+    notFull_    = "FULL_N";
+    i_notFull_  = "FULL_N";
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, first_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notFull_, i_notEmpty_],
+	first_ < deq_,
+        [notFull_, notEmpty_] < [enq_, deq_],
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
+        [i_notFull_, i_notEmpty_] <> clear_
+      ]
+
+-- Depth 1, width == 0
+vMk1FIFOF0 :: Module VFIFOF0_
+vMk1FIFOF0 =
+  module verilog "FIFO10" "CLK" "RST_N" {
+    enq_        = "ENQ";
+    deq_        = "DEQ";
+    notFull_    = "FULL_N";
+    i_notFull_  = "FULL_N";
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notFull_, i_notEmpty_],
+        [notFull_, notEmpty_] < [enq_, deq_],
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [i_notFull_, i_notEmpty_] <> clear_
+      ]
+
+-- Depth 1
+mkFIFOF1_ :: (IsModule m, Bits a sa) => m (FIFOF_ a)
+mkFIFOF1_ = liftModule $
+ if valueOf sa == 0 && genVerilog then
+  module
+   _f :: VFIFOF0_
+   _f <- vMk1FIFOF0
+   interface
+     enq x      = fromPrimAction _f.enq_
+     deq        = fromPrimAction _f.deq_
+     first      = _
+     notFull    = unpack _f.notFull_
+     i_notFull  = unpack _f.i_notFull_
+     notEmpty   = unpack _f.notEmpty_
+     i_notEmpty = unpack _f.i_notEmpty_
+     clear      = fromPrimAction _f.clear_
+  else
+   module
+     _f :: VFIFOF_ sa
+     _f <- vMk1FIFOF
+     interface
+       enq x      = fromPrimAction (_f.enq_ (pack x))
+       deq        = fromPrimAction _f.deq_
+       first      = unpack _f.first_
+       notFull    = unpack _f.notFull_
+       i_notFull  = unpack _f.i_notFull_
+       notEmpty   = unpack _f.notEmpty_
+       i_notEmpty = unpack _f.i_notEmpty_
+       clear      = fromPrimAction _f.clear_
+
+-- Depth 2, width > 0.
+vMk2FIFOF :: Module (VFIFOF_ n)
+vMk2FIFOF =
+  module verilog "FIFO2" (("width",valueOf n)) "CLK" "RST_N" {
+    enq_        = "D_IN" "ENQ";
+    deq_        = "DEQ";
+    first_      = "D_OUT"{reg};
+    notFull_    = "FULL_N"{reg};
+    i_notFull_  = "FULL_N"{reg};
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, first_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notFull_, i_notEmpty_],
+	first_ < deq_,
+        [notFull_, notEmpty_] < [enq_, deq_],
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
+        [i_notFull_, i_notEmpty_] <> clear_
+      ]
+
+-- Depth 2, width == 0.
+vMk2FIFOF0 :: Module VFIFOF0_
+vMk2FIFOF0 =
+  module verilog "FIFO20" "CLK" "RST_N" {
+    enq_        = "ENQ";
+    deq_        = "DEQ";
+    notFull_    = "FULL_N"{reg};
+    i_notFull_  = "FULL_N"{reg};
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notFull_, i_notEmpty_],
+        [notFull_, notEmpty_] < [enq_, deq_],
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [i_notFull_, i_notEmpty_] < clear_
+      ]
+
+-- Depth 2.
+mkFIFOF2_ :: (IsModule m, Bits a sa) => m (FIFOF_ a)
+mkFIFOF2_ = liftModule $
+  if valueOf sa == 0 && genVerilog then
+    module
+      _f :: VFIFOF0_
+      _f <- vMk2FIFOF0
+      interface
+        enq x      = fromPrimAction _f.enq_
+        deq        = fromPrimAction _f.deq_
+        first      = _
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_
+   else
+    module
+      _f :: VFIFOF_ sa
+      _f <- vMk2FIFOF
+      interface
+        enq x      = fromPrimAction (_f.enq_ (pack x))
+        deq        = fromPrimAction _f.deq_
+        first      = unpack _f.first_
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_
+
+-- default depth is 2
+mkFIFOF_ :: (IsModule m, Bits a sa) => m (FIFOF_ a)
+mkFIFOF_ = mkFIFOF2_
+
+-- Depth n, width > 0
+-- log2 (n-1) is allowed since the Verilog model has a registered output
+-- which is not considered in the head/tail pointers size.
+vMkSizedNFIFOF :: Integer -> Module (VFIFOF_ sa)
+vMkSizedNFIFOF n =
+  module verilog "SizedFIFO" (("width",valueOf sa),("depth", n), ("cntr_width",log2 (n-1))) "CLK" "RST_N" {
+    enq_        = "D_IN" "ENQ";
+    deq_        = "DEQ";
+    first_      = "D_OUT"{reg};
+    notFull_    = "FULL_N"{reg};
+    i_notFull_  = "FULL_N"{reg};
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  } [ enq_ <> [deq_, first_, i_notFull_, i_notEmpty_],
+      deq_ <> [enq_, i_notFull_, i_notEmpty_],
+      first_ < deq_,
+      [notFull_, notEmpty_] < [enq_, deq_],
+      [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+      [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+      [enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
+      [i_notFull_, i_notEmpty_] <> clear_
+    ]
+
+-- Depth n, width == 0
+vMkSizedNFIFOF0 :: Integer -> Module VFIFOF0_
+vMkSizedNFIFOF0 n =
+  module verilog "SizedFIFO0" (("depth",n), ("cntr_width",log2 (n+1))) "CLK" "RST_N" {
+    enq_        = "ENQ";
+    deq_        = "DEQ";
+    notFull_    = "FULL_N"{reg};
+    i_notFull_  = "FULL_N"{reg};
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notFull_, i_notEmpty_],
+        [notFull_, notEmpty_] < [enq_, deq_],
+        [notFull_, i_notFull_, notEmpty_, i_notFull_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notFull_],
+	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [i_notFull_, i_notEmpty_] <> clear_
+      ]
+
+-- Depth n
+mkSizedNFIFOF_ :: (IsModule m, Bits a sa) => Integer -> m (FIFOF_ a)
+mkSizedNFIFOF_ n = liftModule $
+  if valueOf sa == 0 && genVerilog then
+    module
+      _f :: VFIFOF0_
+      _f <- vMkSizedNFIFOF0 n
+      interface
+        enq x      = fromPrimAction _f.enq_
+        deq        = fromPrimAction _f.deq_
+        first      = _
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_
+  else
+    module
+      _f :: VFIFOF_ sa
+      _f <- vMkSizedNFIFOF n
+      interface
+        enq x      = fromPrimAction (_f.enq_ (pack x))
+        deq        = fromPrimAction _f.deq_
+        first      = unpack _f.first_
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_
+
+mkSizedFIFOF_ :: (IsModule m, Bits a sa) => Integer -> m (FIFOF_ a)
+mkSizedFIFOF_ 0 = error "sized fifo created with depth 0!"
+mkSizedFIFOF_ 1 = mkFIFOF1_
+mkSizedFIFOF_ 2 = mkFIFOF_
+mkSizedFIFOF_ n = mkSizedNFIFOF_ n
+
+-- XXX loopy FIFOs need to be thought through more carefully
+-- one attempt below
+-- Depth 1, width > 0, loopy
+vMkL1FIFOF :: Module (VFIFOF_ n)
+vMkL1FIFOF =
+  module verilog "FIFOL1" (("depth",valueOf n)) "CLK" "RST_N" {
+    enq_        = "D_IN"{reg} "ENQ";
+    deq_        = "DEQ";
+    first_      = "D_OUT"{reg};
+    notFull_    = "FULL_N";
+    i_notFull_  = "FULL_N";
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [first_, deq_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notEmpty_],
+	first_ < deq_,
+	[enq_, deq_] < [notEmpty_, notFull_],
+        deq_ < i_notFull_,
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, first_, notFull_, i_notFull_, notEmpty_, 
+         clear_] < clear_,
+        i_notEmpty_ <> clear_
+      ]
+
+-- Depth 1, width == 0, loopy
+vMkL1FIFOF0 :: Module VFIFOF0_
+vMkL1FIFOF0 =
+  module verilog "FIFOL10" "CLK" "RST_N" {
+    enq_        = "ENQ";
+    deq_        = "DEQ";
+    notFull_    = "FULL_N";
+    i_notFull_  = "FULL_N";
+    notEmpty_   = "EMPTY_N"{reg};
+    i_notEmpty_ = "EMPTY_N"{reg};
+    clear_      = "CLR";
+  }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
+        deq_ <> [enq_, i_notEmpty_],
+	[enq_, deq_] < [notFull_, notEmpty_],
+        deq_ < i_notFull_,
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
+	[enq_, deq_, notFull_, i_notFull_, notEmpty_, clear_] 
+        < clear_,
+        i_notEmpty_ <> clear_
+      ]
+
+-- Depth 1, loopy
+mkLFIFOF_ :: (IsModule m, Bits a sa) => m (FIFOF_ a)
+mkLFIFOF_ = liftModule $
+  if valueOf sa == 0 && genVerilog then
+    module
+      _f :: VFIFOF0_
+      _f <- vMkL1FIFOF0
+      interface
+        enq x      = fromPrimAction _f.enq_
+        deq        = fromPrimAction _f.deq_
+        first      = _
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_
+  else
+    module
+      _f :: VFIFOF_ sa
+      _f <- vMkL1FIFOF
+      interface
+        enq x      = fromPrimAction (_f.enq_ (pack x))
+        deq        = fromPrimAction _f.deq_
+        first      = unpack _f.first_
+        notFull    = unpack _f.notFull_
+        i_notFull  = unpack _f.i_notFull_
+        notEmpty   = unpack _f.notEmpty_
+        i_notEmpty = unpack _f.i_notEmpty_
+        clear      = fromPrimAction _f.clear_

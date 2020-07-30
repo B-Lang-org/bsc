@@ -1,0 +1,6 @@
+checking package dependencies
+compiling StructSelect_NotStruct_Function.bsv
+Error: "StructSelect_NotStruct_Function.bsv", line 15, column 11: (T0138)
+  The expression does not have a field `f1' because it is not a struct or
+  interface. Found type:
+    function StructSelect_NotStruct_Function::MyStruct f(Bool x1)

@@ -1,0 +1,40 @@
+package ReaderModuleTest where
+
+import ReaderModule
+
+interface Counter =
+   counter :: Bit 16
+
+interface OuterCounter =
+   counter :: Bit 16
+   innerCounter :: Counter
+
+innerCounter :: ReaderModule (Bit 16) Counter
+innerCounter =
+  module
+    magicInitValue :: Bit 16 <- ask
+    count <- mkReg magicInitValue
+    interface Counter
+      counter = count
+    rules
+      when True ==> count := count + 1
+
+{-# verilog mkReaderModuleTestInner #-}
+mkReaderModuleTestInner :: Module Counter
+mkReaderModuleTestInner = runR innerCounter 17
+
+outerCounter :: ReaderModule (Bit 16) OuterCounter
+outerCounter =
+  module
+    magicInitValue :: Bit 16 <- ask
+    count <- mkReg magicInitValue
+    inner <- liftModule mkReaderModuleTestInner
+    interface OuterCounter
+      counter = count
+      innerCounter = inner
+    rules
+      when True ==> count := count + 1
+
+{-# verilog mkReaderModuleTestOuter #-}
+mkReaderModuleTestOuter :: Module OuterCounter
+mkReaderModuleTestOuter = runR outerCounter 23

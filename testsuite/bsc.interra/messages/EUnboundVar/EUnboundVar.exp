@@ -1,0 +1,5 @@
+compile_fail EUnboundVar.bs
+compare_file EUnboundVar.bs.bsc-out
+
+compile_fail EUnboundVar1.bs
+compare_file EUnboundVar1.bs.bsc-out

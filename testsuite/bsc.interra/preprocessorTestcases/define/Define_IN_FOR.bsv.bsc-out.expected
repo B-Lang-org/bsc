@@ -1,0 +1,8 @@
+checking package dependencies
+compiling Define_IN_FOR.bsv
+Warning: "Define_IN_FOR.bsv", line 15, column 9: (P0102)
+  Declaration of `i' shadows previous declaration at "Define_IN_FOR.bsv", line
+  14, column 5
+Warning: Unknown position: (S0001)
+  File name `Define_IN_FOR.bsv' does not match package name `Design'
+All packages are up to date.

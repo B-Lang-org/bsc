@@ -1,0 +1,51 @@
+#20
+#top.req == 1 
+#top.RDY_setInput 1
+top.setInput 1
+#top.start == 0
+#top.done == 0
+#top.valid == 0
+top.valid
+top.req
+top.start
+top.done
+#1
+-- method name [argument]
+#top.req == 0
+#top.start == 1
+top.req
+top.start
+# print top.done == 0 
+top.done
+#top.done == 1
+top.done
+top.valid
+top.start
+top.req
+#2
+#top.req == 1 
+#top.start == 0
+#top.done == 0
+#top.valid == 0
+top.valid
+top.req
+top.start
+top.done
+#1
+#top.RDY_setInput 1
+top.setInput 1
+#top.req == 0
+-- #[condition]
+#top.start == 1
+top.req
+top.start
+-- method name [argument]
+top.done
+#top.done == 1
+top.done
+top.valid
+top.start
+top.req
+-- # stop[condition]
+#stop top.done==1
+top.valid

@@ -1,0 +1,8 @@
+test_c_veri_worker Boolify1 mkTestbench_Boolify1 {} "bsv" 1 1 "mkTestbench_Boolify1.v.out.expected" "" ""
+
+test_c_veri_worker Boolify2 mkTestbench_Boolify2 {} "bsv" 1 1 "mkTestbench_Boolify2.v.out.expected" "" ""
+
+test_c_veri_worker Boolify3 mkTestbench_Boolify3 {} "bsv" 1 1 "mkTestbench_Boolify3.v.out.expected" "" ""
+
+test_c_veri_worker Boolify4 mkTestbench_Boolify4 {} "bsv" 1 1 "mkTestbench_Boolify4.v.out.expected" "" ""
+

@@ -1,0 +1,98 @@
+if { $vtest == 1 } {
+
+# ---------------
+# Test Literal, Eq, Ord instances
+
+compile_verilog_pass LiteralEqOrd.bsv
+compare_file [make_bsc_vcomp_output_name LiteralEqOrd.bsv]
+
+# ---------------
+# Test basic Arith instance operators
+
+compile_verilog_pass Arith.bsv
+compare_file [make_bsc_vcomp_output_name Arith.bsv]
+
+# ---------------
+# Test Arith logarithmic operators
+
+compile_verilog_pass Logs.bsv
+compare_file [make_bsc_vcomp_output_name Logs.bsv]
+
+# ---------------
+# Test Arith exponentiation operators
+
+compile_verilog_pass Exps.bsv
+compare_file [make_bsc_vcomp_output_name Exps.bsv]
+
+# ---------------
+# Test $realtobits and $bitstoreal system tasks
+
+compile_verilog_pass Bits.bsv
+compare_file [make_bsc_vcomp_output_name Bits.bsv]
+
+# ---------------
+# Test library function sqrt
+
+compile_verilog_pass Sqrt.bsv
+compare_file [make_bsc_vcomp_output_name Sqrt.bsv]
+
+# ---------------
+# Test library functions round, ceil, floor, trunc
+
+compile_verilog_pass Rounds.bsv
+compare_file [make_bsc_vcomp_output_name Rounds.bsv]
+
+# ---------------
+# Test library function isInfinite
+
+compile_verilog_pass IsInfinite.bsv
+compare_file [make_bsc_vcomp_output_name IsInfinite.bsv]
+
+# ---------------
+# Test library function isNegativeZero
+
+compile_verilog_pass IsNegativeZero.bsv
+compare_file [make_bsc_vcomp_output_name IsNegativeZero.bsv]
+
+# ---------------
+# Test library introspection functions
+
+compile_verilog_pass Introspect.bsv
+compare_file [make_bsc_vcomp_output_name Introspect.bsv]
+
+# ---------------
+# Test library constants
+
+compile_verilog_pass Constants.bsv
+compare_file [make_bsc_vcomp_output_name Constants.bsv]
+
+# ---------------
+# Test for acceptable addition and subtraction of INF
+
+compile_verilog_pass AddSubInf.bsv
+compare_file [make_bsc_vcomp_output_name AddSubInf.bsv]
+
+# ---------------
+# Test that the introspection functions don't error on INF
+
+# XXX Should BSV consider this an error, even though GHC doesn't?
+
+compile_verilog_pass IntrospectInfinite.bsv
+compare_file [make_bsc_vcomp_output_name IntrospectInfinite.bsv]
+
+# ---------------
+# Test that round, ceil, floor, trunc don't error on INF
+
+# XXX Should BSV consider this an error, even though GHC doesn't?
+
+compile_verilog_pass RoundInfinite.bsv
+compare_file [make_bsc_vcomp_output_name RoundInfinite.bsv]
+
+# ---------------
+# Test "decodeReal" on positive and negative zero
+
+compile_verilog_pass Zero.bsv
+compare_file [make_bsc_vcomp_output_name Zero.bsv]
+
+# ---------------
+}

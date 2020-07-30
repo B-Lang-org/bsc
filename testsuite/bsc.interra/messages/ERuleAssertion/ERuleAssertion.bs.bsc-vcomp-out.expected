@@ -1,0 +1,19 @@
+checking package dependencies
+compiling ERuleAssertion.bs
+code generation for mkGCD starts
+Warning: "ERuleAssertion.bs", line 26, column 0: (G0010)
+  Rule "Swap" was treated as more urgent than "Subtract". Conflicts:
+    "Swap" cannot fire before "Subtract":
+      calls to
+	x.write vs. x.read
+	y.write vs. y.read
+    "Subtract" cannot fire before "Swap": calls to y.write vs. y.read
+Error: "ERuleAssertion.bs", line 43, column 10: (G0005)
+  The assertion `fire_when_enabled' failed for rule `RL_Subtract'
+  because it is blocked by rule
+    RL_Swap
+  in the scheduler
+    esposito: [start -> [],
+	       result -> [],
+	       RL_Swap -> [],
+	       RL_Subtract -> [RL_Swap]]

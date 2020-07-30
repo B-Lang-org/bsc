@@ -1,0 +1,66 @@
+CTX_sysMergeIf2 : CONTEXT =
+BEGIN
+  
+  STATE : TYPE =
+    [# inst_w : CTX_RegN{17}!STATE
+     , inst_x : CTX_RegN{17}!STATE
+     , inst_y : CTX_RegN{17}!STATE
+     , inst_z : CTX_RegN{17}!STATE
+     , inst_c1 : CTX_RegN{1}!STATE
+     , inst_c2 : CTX_RegN{1}!STATE
+     , inst_c3 : CTX_RegN{1}!STATE
+     , inst_c4 : CTX_RegN{1}!STATE
+     #] ;
+  
+  ctor : STATE =
+    (# inst_w := CTX_RegN{17}!ctor(Bit{17}!mkConst(0))
+     , inst_x := CTX_RegN{17}!ctor(Bit{17}!mkConst(0))
+     , inst_y := CTX_RegN{17}!ctor(Bit{17}!mkConst(5))
+     , inst_z := CTX_RegN{17}!ctor(Bit{17}!mkConst(5))
+     , inst_c1 := CTX_RegN{1}!ctor(Bit{1}!mkConst(0))
+     , inst_c2 := CTX_RegN{1}!ctor(Bit{1}!mkConst(0))
+     , inst_c3 := CTX_RegN{1}!ctor(Bit{1}!mkConst(0))
+     , inst_c4 := CTX_RegN{1}!ctor(Bit{1}!mkConst(0))
+     #) ;
+  
+  rule_RL_r (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def_c1__h304 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_c1)
+    IN LET def_c2__h306 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_c2)
+    IN LET def_c3__h364 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_c3)
+    IN LET def_c4__h428 : Bit{1}!T = CTX_RegN{1}!meth_read(state0.inst_c4)
+    IN LET def_c3_AND_NOT_c2___d6 : BOOLEAN =
+	     Prim!bitToBool(def_c3__h364) AND (NOT Prim!bitToBool(def_c2__h306))
+    IN LET def_c2_AND_c3___d9 : BOOLEAN = Prim!bitToBool(def_c2__h306) AND Prim!bitToBool(def_c3__h364)
+    IN LET def_c2_AND_c3_AND_c4_0___d11 : BOOLEAN = def_c2_AND_c3___d9 AND Prim!bitToBool(def_c4__h428)
+    IN LET def_c4_0_AND_NOT_c1___d13 : BOOLEAN =
+	     Prim!bitToBool(def_c4__h428) AND (NOT Prim!bitToBool(def_c1__h304))
+    IN LET def_c4_0_AND_NOT_c1_3_AND_c3___d14 : BOOLEAN =
+	     def_c4_0_AND_NOT_c1___d13 AND Prim!bitToBool(def_c3__h364)
+    IN LET def_c1_AND_c2___d3 : BOOLEAN = Prim!bitToBool(def_c1__h304) AND Prim!bitToBool(def_c2__h306)
+    IN LET def_c3_AND_NOT_c2_AND_NOT_c1___d8 : BOOLEAN =
+	     def_c3_AND_NOT_c2___d6 AND (NOT Prim!bitToBool(def_c1__h304))
+    IN LET def_c2_AND_c3_AND_c4_0_1_AND_c1___d12 : BOOLEAN =
+	     def_c2_AND_c3_AND_c4_0___d11 AND Prim!bitToBool(def_c1__h304)
+    IN LET def_c4_0_AND_NOT_c1_3_AND_c3_4_AND_NOT_c2___d15 : BOOLEAN =
+	     def_c4_0_AND_NOT_c1_3_AND_c3___d14 AND (NOT Prim!bitToBool(def_c2__h306))
+    IN LET act1 : [ CTX_RegN{17}!STATE, Unit!T ] =
+	     CTX_RegN{17}!meth_write(Bit{17}!mkConst(0), state0.inst_w)
+    IN LET state1 : STATE = IF def_c1_AND_c2___d3 THEN state0 WITH .inst_w := act1.1 ELSE state0 ENDIF
+    IN LET act2 : [ CTX_RegN{17}!STATE, Unit!T ] =
+	     CTX_RegN{17}!meth_write(Bit{17}!mkConst(1), state1.inst_x)
+    IN LET state2 : STATE =
+	     IF def_c3_AND_NOT_c2_AND_NOT_c1___d8 THEN state1 WITH .inst_x := act2.1 ELSE state1 ENDIF
+    IN LET act3 : [ CTX_RegN{17}!STATE, Unit!T ] =
+	     CTX_RegN{17}!meth_write(Bit{17}!mkConst(2), state2.inst_y)
+    IN LET state3 : STATE =
+	     IF def_c2_AND_c3_AND_c4_0_1_AND_c1___d12 THEN state2 WITH .inst_y := act3.1 ELSE state2 ENDIF
+    IN LET act4 : [ CTX_RegN{17}!STATE, Unit!T ] =
+	     CTX_RegN{17}!meth_write(Bit{17}!mkConst(3), state3.inst_z)
+    IN LET state4 : STATE =
+	     IF def_c4_0_AND_NOT_c1_3_AND_c3_4_AND_NOT_c2___d15
+	       THEN state3 WITH .inst_z := act4.1
+	       ELSE state3
+	     ENDIF
+    IN ( TRUE, state4 ) ;
+  
+END

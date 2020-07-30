@@ -1,0 +1,8 @@
+package BinaryLiterals() where
+
+x :: Bit 8
+x = 0b0
+
+a :: Bit 8
+a = unpack (0b1 :: Bit 8)
+

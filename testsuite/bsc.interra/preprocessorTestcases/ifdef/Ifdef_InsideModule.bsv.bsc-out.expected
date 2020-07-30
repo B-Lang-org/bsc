@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Ifdef_InsideModule.bsv
+Warning: Unknown position: (S0001)
+  File name `Ifdef_InsideModule.bsv' does not match package name `Design'
+All packages are up to date.

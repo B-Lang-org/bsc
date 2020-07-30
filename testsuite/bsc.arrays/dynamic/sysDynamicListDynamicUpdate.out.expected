@@ -1,0 +1,15 @@
+b is False
+l[0]: 3
+l[1]: 4
+l[2]: 5
+l[3]: 6
+List is equal
+l2 is equal
+l2 equals l1
+b is True
+l[0]: 3
+l[1]: 1
+l[2]: 2
+List is equal
+l2 is not equal
+l2 does not equal l1

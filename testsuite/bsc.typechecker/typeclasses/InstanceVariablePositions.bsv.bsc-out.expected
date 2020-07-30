@@ -1,0 +1,6 @@
+checking package dependencies
+compiling InstanceVariablePositions.bsv
+Error: "InstanceVariablePositions.bsv", line 1, column 13: (T0035)
+  Bit vector of unknown size introduced near this location.
+  Please remove unnecessary extensions, truncations and concatenations and/or
+  provide more type information to resolve this ambiguity.

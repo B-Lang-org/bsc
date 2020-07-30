@@ -1,0 +1,16 @@
+package PredicateConflicts(sysPredicateConflicts) where
+
+-- Predicates must be taken into account in conflict computations
+-- `x' and `y' are read in both rules and written in `foo' and `bar,' respectively;
+-- this causes an SC loop that should prevent `foo' and `bar' from being co-scheduled.
+
+sysPredicateConflicts :: Module Empty
+sysPredicateConflicts =
+    module
+	x :: Reg Bool
+	x <- mkReg _
+	y :: Reg Bool
+	y <- mkReg _
+        rules
+            "foo": when x ==> y := not y
+	    "bar": when y ==> x := not x

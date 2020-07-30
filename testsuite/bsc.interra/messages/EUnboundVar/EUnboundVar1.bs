@@ -1,0 +1,46 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundVar1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an unbound variable error (EUnboundVar)
+
+-- Error Message : bsc EUnboundVar1.bs
+-- bsc: Compilation errors:
+-- "EUnboundVar1.bs", line 31, column 12, Unbound variable: "clk"
+-----------------------------------------------------------------------
+
+package EUnboundVar1 (EUnboundVar1(..)) where
+ 
+-- import Int
+
+interface EUnboundVar1 = 
+       dtoq   :: Int 1 -> Int 1 -> Bit 1 -> Action
+       result :: Int 1
+
+mkEUnboundVar1 :: Module EUnboundVar1
+mkEUnboundVar1 =
+        module
+
+            d   :: Reg (Int 1)
+            d <- mkRegU
+            q   :: Reg (Int 1)
+            q <- mkRegU
+            clk ::  Bit 1
+
+            rules
+              "Assign":
+                  when clk == 1
+                   ==> action
+                    q := d 
+   
+            interface
+                dtoq ix iy iz = action
+                                 d := ix
+                                 q := iy
+                               clk := iz
+                        when clk == 1
+                    
+                result = q when clk == 1

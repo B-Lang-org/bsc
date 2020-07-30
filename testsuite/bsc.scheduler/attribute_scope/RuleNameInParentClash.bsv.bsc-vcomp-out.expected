@@ -1,0 +1,9 @@
+checking package dependencies
+compiling RuleNameInParentClash.bsv
+code generation for sysRuleNameInParent starts
+Error: "RuleNameInParentClash.bsv", line 13, column 33: (G0054)
+  Rule `b_r1' was referenced in a rule attribute before it was defined.
+  During elaboration of `m' at "RuleNameInParentClash.bsv", line 28, column
+  10.
+  During elaboration of `sysRuleNameInParent' at "RuleNameInParentClash.bsv",
+  line 21, column 8.

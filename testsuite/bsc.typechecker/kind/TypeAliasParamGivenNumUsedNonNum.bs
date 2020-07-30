@@ -1,0 +1,6 @@
+package TypeAliasParamGivenNumUsedNonNum () where
+
+data (Foo :: * -> *) a = Bar a
+
+type (Baz :: # -> *) b = Foo b
+

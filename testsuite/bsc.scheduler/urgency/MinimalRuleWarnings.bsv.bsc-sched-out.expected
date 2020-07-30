@@ -1,0 +1,72 @@
+checking package dependencies
+compiling MinimalRuleWarnings.bsv
+code generation for sysMinimalRuleWarnings starts
+Warning: "MinimalRuleWarnings.bsv", line 1, column 8: (G0010)
+  Rule "theRuleOne" was treated as more urgent than "theRuleTwo". Conflicts:
+    "theRuleOne" cannot fire before "theRuleTwo":
+      calls to the_r.write vs. the_r.read
+    "theRuleTwo" cannot fire before "theRuleOne":
+      calls to the_r.write vs. the_r.read
+Warning: "MinimalRuleWarnings.bsv", line 1, column 8: (G0010)
+  Rule "theRuleTwo" was treated as more urgent than "theRuleThree". Conflicts:
+    "theRuleTwo" cannot fire before "theRuleThree":
+      calls to the_r.write vs. the_r.read
+    "theRuleThree" cannot fire before "theRuleTwo":
+      calls to the_r.write vs. the_r.read
+Warning: "MinimalRuleWarnings.bsv", line 1, column 8: (G0010)
+  Rule "theRuleThree" was treated as more urgent than
+  "theRuleFour". Conflicts:
+    "theRuleThree" cannot fire before "theRuleFour":
+      calls to the_r.write vs. the_r.read
+    "theRuleFour" cannot fire before "theRuleThree":
+      calls to the_r.write vs. the_r.read
+=== schedule:
+parallel: [esposito: [RL_theRuleOne -> [],
+		      RL_theRuleTwo -> [RL_theRuleOne],
+		      RL_theRuleThree -> [RL_theRuleTwo, RL_theRuleOne],
+		      RL_theRuleFour -> [RL_theRuleThree, RL_theRuleTwo, RL_theRuleOne]]]
+order: [RL_theRuleOne, RL_theRuleTwo, RL_theRuleThree, RL_theRuleFour]
+
+-----
+
+=== resources:
+[(the_r.read, [(the_r.read, 1)]),
+ (the_r.write,
+  [(the_r.write x__h113, 1),
+   (the_r.write x__h145, 1),
+   (the_r.write x__h162, 1),
+   (the_r.write x__h181, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysMinimalRuleWarnings.sched
+=== Generated schedule for sysMinimalRuleWarnings ===
+
+Rule schedule
+-------------
+Rule: theRuleOne
+Predicate: ! (the_r <= 8'd10)
+Blocking rules: (none)
+ 
+Rule: theRuleTwo
+Predicate: ! (the_r <= 8'd7)
+Blocking rules: theRuleOne
+ 
+Rule: theRuleThree
+Predicate: ! (the_r <= 8'd5)
+Blocking rules: theRuleTwo, theRuleOne
+ 
+Rule: theRuleFour
+Predicate: ! (the_r <= 8'd1)
+Blocking rules: theRuleThree, theRuleTwo, theRuleOne
+ 
+Logical execution order: theRuleOne, theRuleTwo, theRuleThree, theRuleFour
+
+======================================================
+Verilog file created: sysMinimalRuleWarnings.v
+All packages are up to date.

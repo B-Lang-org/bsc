@@ -1,0 +1,56 @@
+result =  787061080478274202282
+computing gcd(                    19,                     5)
+result =                      1
+computing gcd(                    22,                     7)
+result =                      1
+computing gcd(                    25,                     9)
+result =                      1
+computing gcd(                    28,                    11)
+result =                      1
+computing gcd(                    31,                    13)
+result =                      1
+computing gcd(                    34,                    15)
+result =                      1
+computing gcd(                    37,                    17)
+result =                      1
+computing gcd(                    40,                    19)
+result =                      1
+computing gcd(                    43,                    21)
+result =                      1
+computing gcd(                    46,                    23)
+result =                     23
+computing gcd(                    49,                    25)
+result =                      1
+computing gcd(                    52,                    27)
+result =                      1
+computing gcd(                    55,                    29)
+result =                      1
+computing gcd(                    58,                    31)
+result =                      1
+computing gcd(                    61,                    33)
+result =                      1
+computing gcd(                    64,                    35)
+result =                      1
+computing gcd(                    67,                    37)
+result =                      1
+computing gcd(                    70,                    39)
+result =                      1
+computing gcd(                    73,                    41)
+result =                      1
+computing gcd(                    76,                    43)
+result =                      1
+computing gcd(                    79,                    45)
+result =                      1
+computing gcd(                    82,                    47)
+result =                      1
+computing gcd(                    85,                    49)
+result =                      1
+computing gcd(                    88,                    51)
+result =                      1
+computing gcd(                    91,                    53)
+result =                      1
+computing gcd(                    94,                    55)
+result =                      1
+computing gcd(                    97,                    57)
+result =                      1
+computing gcd(                   100,                    59)

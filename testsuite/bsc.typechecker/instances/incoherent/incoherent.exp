@@ -1,0 +1,4 @@
+compile_pass IncoherentOK.bs
+compile_fail_error IncoherentBad.bs T0030 1 "-incoherent-instance-matches"
+compile_fail_error IncoherentFlag.bs T0030
+compile_pass_warning IncoherentFlag.bs T0126 1 "-incoherent-instance-matches"

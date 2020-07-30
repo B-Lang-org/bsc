@@ -1,0 +1,6 @@
+package TypeAliasParamConflictingUses () where
+
+data (Foo :: * -> *) a = Bar a
+
+type Baz b = (Bit b, Foo b)
+

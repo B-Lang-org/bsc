@@ -1,0 +1,17 @@
+package MyProg2() where
+
+import List
+
+inc :: Integer -> Integer
+inc x = x + 1
+
+evens :: List Integer
+evens = let i_evens :: List Integer
+            i_evens = 0 :> (map inc i_odds)
+            i_odds :: List Integer
+            i_odds = (map inc i_evens)
+        in i_evens
+
+odds :: List Integer
+odds = map inc evens
+

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling TcheckFail.bsv
+Warning: "TcheckFail.bsv", line 36, column 14: (P0103)
+  `x' declared but never assigned
+Warning: "TcheckFail.bsv", line 37, column 14: (P0103)
+  `y' declared but never assigned
+Warning: Unknown position: (S0001)
+  File name `TcheckFail.bsv' does not match package name `Design'
+All packages are up to date.

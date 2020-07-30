@@ -1,0 +1,27 @@
+checking package dependencies
+compiling Synthesized_Submodule_With_Conflicting_Rules.bsv
+code generation for mkTest_SSWCR starts
+Warning: "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 13, column 8: (G0010)
+  Rule "start" was treated as more urgent than "test_rule_1". Conflicts:
+    "start" cannot fire before "test_rule_1":
+      calls to count_r.write vs. count_r.read
+    "test_rule_1" cannot fire before "start":
+      calls to count_r.write vs. count_r.read
+Warning: "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 13, column 8: (G0010)
+  Rule "start" was treated as more urgent than "test_rule_2". Conflicts:
+    "start" cannot fire before "test_rule_2":
+      calls to count_r.write vs. count_r.read
+    "test_rule_2" cannot fire before "start":
+      calls to count_r.write vs. count_r.read
+Elaborated module file created: mkTest_SSWCR.ba
+code generation for mkSynthesized_Submodule_With_Conflicting_Rules starts
+Error: "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 43, column 39: (G0054)
+  Rule `the_dut_test_rule_2' was referenced in a rule attribute before it was
+  defined.
+  During elaboration of `mkSynthesized_Submodule_With_Conflicting_Rules' at
+  "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 38, column 8.
+Error: "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 44, column 39: (G0054)
+  Rule `the_dut_test_rule_1' was referenced in a rule attribute before it was
+  defined.
+  During elaboration of `mkSynthesized_Submodule_With_Conflicting_Rules' at
+  "Synthesized_Submodule_With_Conflicting_Rules.bsv", line 38, column 8.

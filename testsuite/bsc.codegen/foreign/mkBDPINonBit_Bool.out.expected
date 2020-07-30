@@ -1,0 +1,8 @@
+F and F = 0
+F and T = 0
+T and F = 0
+T and T = 1
+F xor F = 0
+F xor T = 1
+T xor F = 1
+T xor T = 0

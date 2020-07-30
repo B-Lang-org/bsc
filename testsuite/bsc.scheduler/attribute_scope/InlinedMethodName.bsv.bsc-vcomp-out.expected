@@ -1,0 +1,27 @@
+checking package dependencies
+compiling InlinedMethodName.bsv
+code generation for sysTopMethodNameTopModule1 starts
+Warning: "InlinedMethodName.bsv", line 30, column 29: (G0123)
+  Ignoring reference to method `sub_mymethod2'. Scheduling attributes on
+  inlined methods are not yet supported.
+  During elaboration of `m' at "InlinedMethodName.bsv", line 15, column 8.
+  During elaboration of `sysTopMethodNameTopModule1' at
+  "InlinedMethodName.bsv", line 14, column 8.
+Warning: "InlinedMethodName.bsv", line 31, column 29: (G0123)
+  Ignoring reference to method `mymethod1'. Scheduling attributes on inlined
+  methods are not yet supported.
+  During elaboration of `m' at "InlinedMethodName.bsv", line 15, column 8.
+  During elaboration of `sysTopMethodNameTopModule1' at
+  "InlinedMethodName.bsv", line 14, column 8.
+Warning: "InlinedMethodName.bsv", line 14, column 8: (G0010)
+  Rule "r1" was treated as more urgent than "m_r". Conflicts:
+    "r1" cannot fire before "m_r": calls to m_rg1.write vs. m_rg1.read
+    "m_r" cannot fire before "r1": calls to m_rg1.write vs. m_rg1.read
+Warning: "InlinedMethodName.bsv", line 14, column 8: (G0010)
+  Rule "r2" was treated as more urgent than "m_r". Conflicts:
+    "r2" cannot fire before "m_r": calls to m_rg2.write vs. m_rg2.read
+    "m_r" cannot fire before "r2": calls to m_rg2.write vs. m_rg2.read
+Warning: "InlinedMethodName.bsv", line 32, column 9: (G0021)
+  According to the generated schedule, rule `m_r' can never fire.
+Verilog file created: sysTopMethodNameTopModule1.v
+All packages are up to date.

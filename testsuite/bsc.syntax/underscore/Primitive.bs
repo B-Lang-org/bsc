@@ -1,0 +1,4 @@
+package Primitive () where
+
+primitive _ :: Bit 1
+

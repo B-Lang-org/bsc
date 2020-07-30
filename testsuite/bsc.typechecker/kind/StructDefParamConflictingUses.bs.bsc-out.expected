@@ -1,0 +1,4 @@
+checking package dependencies
+compiling StructDefParamConflictingUses.bs
+Error: "StructDefParamConflictingUses.bs", line 7, column 13: (T0027)
+  The numeric type `b' was found where a value type was expected.

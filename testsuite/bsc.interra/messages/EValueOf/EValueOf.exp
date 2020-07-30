@@ -1,0 +1,2 @@
+compile_fail EValueOf.bs
+compare_file EValueOf.bs.bsc-out

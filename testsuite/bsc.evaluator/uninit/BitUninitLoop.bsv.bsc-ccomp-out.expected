@@ -1,0 +1,38 @@
+checking package dependencies
+compiling BitUninitLoop.bsv
+code generation for mkBitUninitLoop starts
+Error: "BitUninitLoop.bsv", line 8, column 13: (G0028)
+  `s.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "BitUninitLoop.bsv", line
+  11, column 9.
+  During elaboration of `mkBitUninitLoop' at "BitUninitLoop.bsv", line 7,
+  column 8.
+Error: "BitUninitLoop.bsv", line 8, column 13: (G0028)
+  `s.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "BitUninitLoop.bsv", line
+  11, column 9.
+  During elaboration of `mkBitUninitLoop' at "BitUninitLoop.bsv", line 7,
+  column 8.
+Error: "BitUninitLoop.bsv", line 8, column 13: (G0028)
+  `s.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "BitUninitLoop.bsv", line
+  11, column 9.
+  During elaboration of `mkBitUninitLoop' at "BitUninitLoop.bsv", line 7,
+  column 8.
+Error: "BitUninitLoop.bsv", line 8, column 13: (G0028)
+  `s.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "BitUninitLoop.bsv", line
+  11, column 9.
+  During elaboration of `mkBitUninitLoop' at "BitUninitLoop.bsv", line 7,
+  column 8.
+Error: "BitUninitLoop.bsv", line 8, column 13: (G0028)
+  `s.a' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "BitUninitLoop.bsv", line
+  11, column 9.
+  During elaboration of `mkBitUninitLoop' at "BitUninitLoop.bsv", line 7,
+  column 8.

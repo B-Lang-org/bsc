@@ -1,0 +1,14 @@
+# These testcases use $time, so there are separate expected files for
+# Verilog and Bluesim
+
+test_veri_only_bsv_multi Testbench_fast_to_slow mkTestbench_fast_to_slow {mkDesign}
+test_c_only_bsv_multi Testbench_fast_to_slow mkTestbench_fast_to_slow {mkDesign} mkTestbench_fast_to_slow.c.out.expected
+
+test_veri_only_bsv_multi Testbench_slow_to_fast mkTestbench_slow_to_fast {mkDesign}
+test_c_only_bsv_multi Testbench_slow_to_fast mkTestbench_slow_to_fast {mkDesign} mkTestbench_slow_to_fast.c.out.expected
+
+test_veri_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {mkDesign}
+test_c_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {mkDesign} mkTestbench_same_with_phase_diff.c.out.expected
+
+compile_verilog_fail Negative_testcase.bsv {mkDesign}
+

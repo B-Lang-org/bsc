@@ -1,0 +1,5 @@
+compile_pass Ifdef_NegPackageLevel.bsv
+compare_file Ifdef_NegPackageLevel.bsv.bsc-out
+
+compile_pass Ifdef_PackageLevel.bsv
+compare_file Ifdef_PackageLevel.bsv.bsc-out

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EContextReduction.bs
+Error: "EContextReduction.bs", line 24, column 13: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Literal (Prelude.Module EContextReduction.Constant)

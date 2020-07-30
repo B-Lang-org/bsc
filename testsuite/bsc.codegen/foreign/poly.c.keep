@@ -1,0 +1,23 @@
+#define WORD_SIZE (8 * sizeof(unsigned int))
+
+void poly_add(unsigned int* sum, unsigned int* a, unsigned int* b,
+              unsigned int size)
+{
+  unsigned int nWords = (size + WORD_SIZE - 1) / WORD_SIZE;
+  unsigned int carry = 0;
+  unsigned int x,y,z;
+  unsigned int i;
+  for (i = 0; i < nWords; ++i)
+  {
+    x = a[i];
+    y = b[i];
+    z = x + y + carry;
+    sum[i] = z;
+    // carry if z is less than either of the arguments
+    carry = (z < x || z < y) ? 1 : 0;
+  }
+
+  // prevent overflow into the unused bits 
+  if ((size % WORD_SIZE) != 0)
+    sum[nWords-1] &= (1 << (size % WORD_SIZE)) - 1;
+}

@@ -1,0 +1,23 @@
+checking package dependencies
+compiling ./StructSelect_NotVisible_Sub.bsv
+compiling StructSelect_NotVisible.bsv
+Error: "StructSelect_NotVisible.bsv", line 6, column 12: (T0139)
+  Cannot access fields in this expression since its type
+  `StructSelect_NotVisible_Sub::MyT1' is abstract. The type was imported from
+  a package that did not export its representation, so any fields that it may
+  have are not visible.
+Error: "StructSelect_NotVisible.bsv", line 12, column 12: (T0139)
+  Cannot access fields in this expression since its type
+  `StructSelect_NotVisible_Sub::MyT1' is abstract. The type was imported from
+  a package that did not export its representation, so any fields that it may
+  have are not visible.
+Error: "StructSelect_NotVisible.bsv", line 18, column 12: (T0139)
+  Cannot access fields in this expression since its type
+  `StructSelect_NotVisible_Sub::MyT2' is abstract. The type was imported from
+  a package that did not export its representation, so any fields that it may
+  have are not visible.
+Error: "StructSelect_NotVisible.bsv", line 24, column 12: (T0139)
+  Cannot access fields in this expression since its type
+  `StructSelect_NotVisible_Sub::MyT2' is abstract. The type was imported from
+  a package that did not export its representation, so any fields that it may
+  have are not visible.

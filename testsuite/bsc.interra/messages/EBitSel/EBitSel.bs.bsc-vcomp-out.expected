@@ -1,0 +1,10 @@
+checking package dependencies
+compiling EBitSel.bs
+code generation for mkShifter64 starts
+Error: "EBitSel.bs", line 47, column 41: (S0015)
+  Bluespec evaluation-time error: index 2 out-of-range (bit extraction - high
+  index)
+  During elaboration of the body of rule `push' at "Push.bs", line 86, column
+  8.
+  During elaboration of `shifter' at "EBitSel.bs", line 28, column 11.
+  During elaboration of `mkShifter64' at "EBitSel.bs", line 25, column 0.

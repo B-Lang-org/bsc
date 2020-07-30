@@ -1,0 +1,12 @@
+
+# Test extractions to and from various size data
+test_c_veri_bsv ExtractSizes
+
+# Test those extractions but with out of bounds extractions (should return 0)
+test_c_veri_bsv ExtractBounds "" 1548 1575
+
+# Test shifting left and right with various size data
+test_c_veri_bsv ShiftL
+test_c_veri_bsv ShiftR
+test_c_veri_bsv ShiftRA
+

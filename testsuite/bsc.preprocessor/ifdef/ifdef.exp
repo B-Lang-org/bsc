@@ -1,0 +1,5 @@
+compile_pass bug1190.bsv
+compile_pass ifdef2556.bsv
+compile_pass ifdef4891.bsv
+compile_pass ifdef7672.bsv
+compile_pass ifdef7720.bsv

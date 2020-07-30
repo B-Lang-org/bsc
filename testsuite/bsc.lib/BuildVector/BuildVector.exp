@@ -1,0 +1,8 @@
+
+# Test functionality
+test_veri_only_bsv TestBuildVector
+
+# Test type check error messages
+compile_fail TestBuildVectorFail.bsv
+compare_file TestBuildVectorFail.bsv.bsc-out
+

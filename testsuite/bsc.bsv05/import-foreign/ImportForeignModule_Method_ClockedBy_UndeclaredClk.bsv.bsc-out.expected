@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "ImportForeignModule_Method_ClockedBy_UndeclaredClk.bsv", line 5, column 37: (P0134)
+  undeclared clock `foo'

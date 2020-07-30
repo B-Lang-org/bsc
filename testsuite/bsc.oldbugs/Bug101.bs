@@ -1,0 +1,30 @@
+package Bug101(mkSyncRAM, sysBug101, SyncRAM) where
+
+import FIFO 
+
+struct Cntl i a =
+    addr  :: i
+    wdata :: a
+    we    :: Bool
+  deriving (Bits)
+
+interface SyncRAM i a =
+    read ::  i -> Action
+    write :: i -> a -> Action
+
+mkSyncRAM :: (Bounded i, Bits i si, Bits a sa) => Module (SyncRAM i a)
+mkSyncRAM =
+    module
+        f :: FIFO (Cntl i a)
+        f <- mkFIFO
+        
+        interface
+          read i = noAction
+          write i a = noAction
+
+
+sysBug101 :: Module (SyncRAM (Int 32) (Int 32))
+sysBug101 = mkSyncRAM
+
+
+

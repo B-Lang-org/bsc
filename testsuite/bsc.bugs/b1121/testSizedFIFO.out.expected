@@ -1,0 +1,20 @@
+Enqueue  1
+Enqueue  2
+Enqueue  3
+Enqueue  4
+Value read     1
+Enqueue  5
+Value read     2
+Value read     3
+Value read     4
+Enqueue  6
+Value read     5
+Value read     6
+Enqueue  7
+Value read     7
+Enqueue  8
+Value read     8
+Enqueue  9
+Value read     9
+Enqueue 10
+Value read    10

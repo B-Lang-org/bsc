@@ -1,0 +1,43 @@
+if { $ctest == 1 } {
+compile_object_fail_error MultClockCrossErr.bsv G0007 4
+compare_file MultClockCrossErr.bsv.bsc-ccomp-out
+
+compile_object_fail_error MultBoundaryClockErr.bsv G0045 2
+find_n_error MultBoundaryClockErr.bsv.bsc-ccomp-out G0042 1
+find_n_error MultBoundaryClockErr.bsv.bsc-ccomp-out G0014 2
+
+compile_object_fail_error MultArgErrors.bsv G0014 2
+find_n_error MultArgErrors.bsv.bsc-ccomp-out G0081 2
+find_n_error MultArgErrors.bsv.bsc-ccomp-out G0068 1
+find_n_error MultArgErrors.bsv.bsc-ccomp-out G0067 1
+find_n_error MultArgErrors.bsv.bsc-ccomp-out G0053 1
+}
+
+# -----
+
+# Test that the messages include the clock/reset name,
+# either a submodule access or an input clock/reset argument
+# (including possibly "default_clock" or "default_reset")
+# and check that output clock/reset names don't interfer.
+
+if { $vtest == 1 } {
+
+# Rule/method has multiple domains
+compile_verilog_fail_error MsgTest_MultiClock.bsv G0007
+compare_file [make_bsc_vcomp_output_name MsgTest_MultiClock.bsv]
+
+# Rule/method has multiple resets
+compile_verilog_pass_warning MsgTest_MultiReset.bsv G0043
+compare_file [make_bsc_vcomp_output_name MsgTest_MultiReset.bsv]
+
+# "clockOf" argument has multiple domains
+compile_verilog_pass_warning MsgTest_ClockOfMultiClock.bsv G0038
+compare_file [make_bsc_vcomp_output_name MsgTest_ClockOfMultiClock.bsv]
+
+# "resetOf" argument has multiple resets
+compile_verilog_pass_warning MsgTest_ResetOfMultiReset.bsv G0044
+compare_file [make_bsc_vcomp_output_name MsgTest_ResetOfMultiReset.bsv]
+
+}
+
+# -----

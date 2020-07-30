@@ -1,0 +1,101 @@
+if {$vtest == 1} {
+# Tests for earliness warnings and guidance
+
+  # --------------------------------------------------
+  # Warnings
+
+  # test for the warning between rules that write to the same register
+  compile_verilog_pass_warning AmbiguousEarliness.bsv G0036 1
+
+  # test that there is no warning if one rule reads the register
+  compile_verilog_pass_warning UnambiguousEarliness.bsv G0036 0
+
+  # test that there is a warning even if one user is a method
+  compile_verilog_pass_warning AmbiguousEarlinessMethodRule.bsv G0036 1
+
+  # test that there is no warning if the order is required by the
+  # sequencing of other rules
+  compile_verilog_pass_warning_bug NoErrorDueToSeq.bsv G0036 1082 0
+
+  # test that method-method earliness decisions are warned about
+  # and recorded in the interface scheduling annotations
+  compile_verilog_schedule_pass AmbiguousEarlinessMethodMethod.bsv
+  set sched_out [make_bsc_sched_output_name AmbiguousEarlinessMethodMethod.bsv]
+  find_n_warning $sched_out G0036 1
+  # the schedinfo should have one method SBR with the other, not both
+  # directions
+  string_occurs $sched_out {m1 SBR [m1, m2], m2 SBR m2]}
+
+  # -----
+
+  # test that methods with no arguments do not generate warnings
+  compile_verilog_pass_no_warning AmbiguousEarlinessNoArgs.bsv
+
+  # test that methods with the same arguments do not generate warnings
+  compile_verilog_pass_no_warning AmbiguousEarlinessSameArgs_OneCall.bsv
+  compile_verilog_pass_no_warning AmbiguousEarlinessSameArgs_OneCall_DiffCond.bsv
+  compile_verilog_pass_no_warning AmbiguousEarlinessSameArgs_ManyCalls.bsv
+
+  # test that multiple calls to the methods are only exempted if the
+  compile_verilog_pass_warning \
+    AmbiguousEarlinessSameArgs_ManyCalls_DiffCond.bsv G0036
+
+  # -----
+  # test warnings about action shadowing
+
+  # no warning when the flag is off
+  copy ActionShadowing.bsv ActionShadowingNoWarn.bsv
+  compile_verilog_pass_warning ActionShadowingNoWarn.bsv G0117 0 {} \
+      {-no-warn-action-shadowing}
+  erase ActionShadowingNoWarn.bsv
+
+  compile_verilog_pass ActionShadowing.bsv {} {-warn-action-shadowing}
+  compare_file [make_bsc_vcomp_output_name ActionShadowing.bsv]
+
+  # --------------------------------------------------
+  # rJoinExecutionOrder
+
+  # Test that rJoinExecutionOrder applied to two groups of rules
+  # creates relationships between rules in the separate groups and
+  # doesn't create relationships between rules in the same group
+
+  # expect only one warning
+  compile_verilog_pass_warning JoinExecutionOrderMany.bsv G0036 1
+  string_occurs JoinExecutionOrderMany.bsv.bsc-vcomp-out \
+      {Rule "r1" will appear to fire before "r2"}
+
+  # --------------------------------------------------
+  # Attribute "execution_order"
+
+  # Test that the attribute on a rule suppresses the warning
+  # and schedules them in the appropriate order
+  compile_verilog_pass ExecutionOrderAttrRule.bsv {} {-dschedule}
+  find_n_warning ExecutionOrderAttrRule.bsv.bsc-vcomp-out G0036 0
+  string_occurs ExecutionOrderAttrRule.bsv.bsc-vcomp-out \
+      {order: [RL_r1, RL_r2]}
+
+  # Test that the attribute on a module suppresses the warning
+  compile_verilog_pass ExecutionOrderAttrModule.bsv {} {-dschedule}
+  find_n_warning ExecutionOrderAttrRule.bsv.bsc-vcomp-out G0036 0
+  string_occurs ExecutionOrderAttrRule.bsv.bsc-vcomp-out \
+      {order: [RL_r1, RL_r2]}
+
+  # Test that if the attribute specifies an order but the rules
+  # conflict in that order, that a full conflict results
+  # (look for an arbitrary urgency warning)
+  compile_verilog_pass_warning ExecutionOrderAttrRule_Conflict.bsv G0010
+
+  # Test that methods can be mentioned
+  compile_verilog_pass ExecutionOrderAttr_Method.bsv
+  # Confirm that there is no arbitrary choice message and that
+  # the correct execution order is chosen
+  compare_file ExecutionOrderAttr_Method.bsv.bsc-vcomp-out
+
+  # --------------------------------------------------
+  # Test how trivial attributes are handled
+
+  compile_verilog_pass_warning EOSingleton.bsv G0036
+
+  # --------------------------------------------------
+
+}

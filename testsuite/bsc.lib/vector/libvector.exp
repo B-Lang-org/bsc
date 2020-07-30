@@ -1,0 +1,13 @@
+
+test_c_veri_bsv MiscFunc
+
+## Tests shifting and dynamic index select
+test_c_veri_bsv ShiftOutTest
+test_c_veri_bsv ShiftTest
+
+test_c_veri_bsv CountElem
+test_c_veri_bsv CountIf
+test_c_veri_bsv FindElem
+test_c_veri_bsv FindIndex
+test_c_veri_bsv RotateBy
+test_c_veri_bsv ZeroVector

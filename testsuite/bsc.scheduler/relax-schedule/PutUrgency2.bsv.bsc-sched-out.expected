@@ -1,0 +1,45 @@
+checking package dependencies
+compiling PutUrgency2.bsv
+code generation for mkPutTest2 starts
+=== schedule:
+parallel: [esposito: [RL_display_output -> [], put -> [RL_display_output]]]
+order: [RL_display_output, put]
+
+-----
+
+=== resources:
+[(count.read, [(count.read, 1)]),
+ (count.write, [(count.write count_MINUS_1___d5, 1), (count.write count_PLUS_1___d6, 1)]),
+ (lfifo.deq, [(lfifo.deq, 1)]),
+ (lfifo.enq, [(lfifo.enq put, 1)]),
+ (lfifo.first, [(lfifo.first, 1)]),
+ (lfifo.i_notEmpty, [(lfifo.i_notEmpty, 1)]),
+ (lfifo.i_notFull, [(lfifo.i_notFull, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_put CF [RDY_put, put], put C put] [] [(put, [(Left RL_display_output)])] []
+
+-----
+
+Schedule dump file created: mkPutTest2.sched
+=== Generated schedule for mkPutTest2 ===
+
+Method schedule
+---------------
+Method: put
+Ready signal: lfifo.i_notFull && (! lfifo.i_notEmpty)
+Conflicts: put
+ 
+Rule schedule
+-------------
+Rule: display_output
+Predicate: lfifo.i_notEmpty
+Blocking rules: (none)
+ 
+Logical execution order: display_output, put
+
+==========================================
+Verilog file created: mkPutTest2.v
+All packages are up to date.

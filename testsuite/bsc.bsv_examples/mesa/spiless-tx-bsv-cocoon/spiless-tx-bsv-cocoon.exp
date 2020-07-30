@@ -1,0 +1,16 @@
+if { $vtest == 1 } {
+#this code extracted from ../course_lab
+compile_verilog_pass TestMesa.bsv sysTestMesa
+link_verilog_pass {sysTestMesa.v mkLPMMemory.v mkMesaTxLpm.v mkMesa_Dm.v mkMesa_Vff.v mkMesa.v mkMesaTxLpm0.v mkMesa_Mif.v mkTheCocoon.v RPC.v} sysTestMesa
+sim_verilog sysTestMesa
+move sysTestMesa.out sysTestMesa.v.out
+# *.out gets cleaned by make clean
+move sysTestMesa.out.bak sysTestMesa.v.bak.out
+erase sysTestMesa.out
+erase dump.vcd
+check_verilog_output sysTestMesa.v.out sysTestMesa.out.expected ""
+sim_verilog sysTestMesa "+bscvcd"
+move dump.vcd sysTestMesa.v.vcd
+# Insert future VCD comparison here when implemented
+}
+

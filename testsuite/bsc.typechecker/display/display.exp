@@ -1,0 +1,48 @@
+# --------------------
+# Tests for $display type-checking
+
+# -----
+
+# Arguments of type Bit#(n), for different n, can be displayed
+compile_pass BasicDisplay.bs
+
+# XXX Same as the basic test?
+compile_pass DisplayTypeCheck.bs
+
+# Wrapping an argument in "unpack" is OK because the proviso will be defaulted
+compile_pass NonConflictingBitTypes.bs
+
+# XXX Whatever this was testing, it no longer does
+compile_fail_error ConflictingBitTypes.bs T0033
+
+# When an argument is not in the Bits class
+compile_fail NotDisplayable.bs
+# XXX The error message could be improved?
+compare_file NotDisplayable.bs.bsc-out
+
+# A Vector can be displayed (because there is a Bits instance)
+compile_pass ListDisplay.bs
+# A List cannot (because there is no Bits instance)
+compile_fail NotListDisplay.bs
+# XXX Again, the message could be improved?
+compare_file NotListDisplay.bs.bsc-out
+
+# Currying of displays permitted
+compile_pass DisplayCurry.bs
+
+# -----
+
+# Test that, if an argument type is a variable, BSC uses provisos to
+# decide what to do -- Bits, Literal, Real Literal, SizedLiteral.
+
+test_c_veri_bsv DisplayBits
+test_c_veri_bsv DisplayLiteral
+test_c_veri_bsv DisplaySizedLiteral
+
+# Bug 1620
+# iVerilog no longer rounds and Bluesim no longer internal errors,
+# but Bluesim rounds and gives an error about the casting
+test_veri_only_bsv DisplayRealLiteral
+test_c_only_bsv DisplayRealLiteral sysDisplayRealLiteral.c.out.expected
+
+# --------------------

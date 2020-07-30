@@ -1,0 +1,9 @@
+checking package dependencies
+compiling StringUpdate_OutOfRange.bsv
+code generation for sysStringUpdate_OutOfRange starts
+Error: "StringUpdate_OutOfRange.bsv", line 5, column 10: (S0015)
+  Bluespec evaluation-time error: index 3 out-of-range (list updating)
+  During elaboration of the body of rule `r' at "StringUpdate_OutOfRange.bsv",
+  line 3, column 9.
+  During elaboration of `sysStringUpdate_OutOfRange' at
+  "StringUpdate_OutOfRange.bsv", line 2, column 8.

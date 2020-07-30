@@ -1,0 +1,24 @@
+if {$ctest == 1} {
+compile_object_pass MkCClientServer.bsv mkTestbench_MkCClientServer
+link_objects_pass {"mkTestbench_MkCClientServer"} mkTestbench_MkCClientServer
+sim_output mkTestbench_MkCClientServer
+compare_file "mkTestbench_MkCClientServer.out"
+}
+test_c_veri_worker MkCClientServer mkTestbench_MkCClientServer {} "bsv" 0 1 "mkTestbench_MkCClientServer.v.out.expected" "" ""
+
+if {$ctest == 1 } {
+compile_object_pass MkCGetCPut.bsv mkTestbench_MkCGetCPut
+link_objects_pass {"mkTestbench_MkCGetCPut"} mkTestbench_MkCGetCPut
+sim_output mkTestbench_MkCGetCPut
+compare_file "mkTestbench_MkCGetCPut.out"
+}
+test_c_veri_worker MkCGetCPut mkTestbench_MkCGetCPut {} "bsv" 0 1 "mkTestbench_MkCGetCPut.v.out.expected" "" ""
+
+if {$ctest == 1} {
+compile_object_pass MkCGetPut.bsv mkTestbench_MkCGetPut
+link_objects_pass {"mkTestbench_MkCGetPut"} mkTestbench_MkCGetPut
+sim_output mkTestbench_MkCGetPut
+compare_file "mkTestbench_MkCGetPut.out"
+}
+test_c_veri_worker MkCGetPut mkTestbench_MkCGetPut {} "bsv" 0 1 "mkTestbench_MkCGetPut.v.out.expected" "" ""
+

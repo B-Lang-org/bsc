@@ -1,0 +1,18 @@
+package FinAnd where
+
+data (Fin :: # -> # -> *) n k = Fin (UInt k)
+  deriving(Eq) -- expect custom bit-level encodings so don't derive Bits
+
+type PackedFin n = Fin n (TLog n)
+
+-- If we know that n = 2^k, there's a unique Bits instance we want
+instance (Log n k, NumEq n (TExp (TLog n))) => Bits (Fin n k) k where
+    pack (Fin x) = pack x
+    unpack x = Fin (unpack x)
+
+data PackedFinOr t n
+  = IsPackedFin (PackedFin n)
+  | IsNotPackedFin t
+  deriving(Bits)
+
+

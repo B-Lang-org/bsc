@@ -1,0 +1,22 @@
+package Classic (sysClassic) where
+
+{-# verilog sysClassic #-}
+sysClassic :: Module Empty
+sysClassic =
+  module
+     let w :: Real = 3.625
+         x :: Real = 3e10
+         y :: Real = 2e-1
+         z :: Real = 2.5e+0
+
+         m :: String -> Action
+         m s = $display (message s s)
+
+     rules
+      "r":
+       when True ==> action
+                       m ("3.625 = " + realToString w)
+                       m ("3e10 = " + realToString x)
+                       m ("2e-1 = " + realToString y)
+                       m ("2.5e+0 = " + realToString z)
+

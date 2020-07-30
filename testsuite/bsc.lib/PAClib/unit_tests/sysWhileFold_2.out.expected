@@ -1,0 +1,18 @@
+Cycle 1: Test start: mkWhileFold 2
+Cycle 6: Out [0], expected_y = 6, actual_y = 6
+Cycle 10: Out [1], expected_y = 22, actual_y = 22
+Cycle 14: Out [2], expected_y = 38, actual_y = 38
+Cycle 18: Out [3], expected_y = 54, actual_y = 54
+Cycle 22: Out [4], expected_y = 70, actual_y = 70
+Cycle 26: Out [5], expected_y = 86, actual_y = 86
+Cycle 30: Out [6], expected_y = 102, actual_y = 102
+Cycle 34: Out [7], expected_y = 118, actual_y = 118
+Cycle 38: Out [8], expected_y = 134, actual_y = 134
+Cycle 42: Out [9], expected_y = 150, actual_y = 150
+Cycle 46: Out [10], expected_y = 166, actual_y = 166
+Cycle 50: Out [11], expected_y = 182, actual_y = 182
+Cycle 54: Out [12], expected_y = 198, actual_y = 198
+Cycle 58: Out [13], expected_y = 214, actual_y = 214
+Cycle 62: Out [14], expected_y = 230, actual_y = 230
+Cycle 66: Out [15], expected_y = 246, actual_y = 246
+Cycle 66: Test ok: mkWhileFold 2: all 16 outputs ok

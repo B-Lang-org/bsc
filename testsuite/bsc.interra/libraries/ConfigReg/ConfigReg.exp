@@ -1,0 +1,56 @@
+# ----------
+# MkConfigReg
+
+test_c_veri_bsv_multi_options MkConfigReg mkTestbench_MkConfigReg {mkDesign_MkConfigReg} "-no-inline-reg"
+
+# Save the Verilog output
+copy MkConfigReg.bsv.bsc-vcomp-out MkConfigReg.bsv.bsc-vcomp-out.no-inline-reg
+copy mkTestbench_MkConfigReg.v mkTestbench_MkConfigReg.v.no-inline-reg
+copy mkDesign_MkConfigReg.v mkDesign_MkConfigReg.v.no-inline-reg
+copy mkTestbench_MkConfigReg.bsc-vcomp-out mkTestbench_MkConfigReg.bsc-vcomp-out.no-inline-reg
+copy mkTestbench_MkConfigReg.vexe mkTestbench_MkConfigReg.vexe.no-inline-reg
+copy mkTestbench_MkConfigReg.v.out mkTestbench_MkConfigReg.v.out.no-inline-reg
+# Force recompilation
+erase MkConfigReg.bi
+erase MkConfigReg.bo
+
+# same test as above with rtl_readability flag enabled (Verilog only)
+test_c_veri_bsv_multi_options MkConfigReg mkTestbench_MkConfigReg {mkDesign_MkConfigReg} "-inline-reg" "" "" "" 0 1
+
+# Save the Verilog output
+copy MkConfigReg.bsv.bsc-vcomp-out MkConfigReg.bsv.bsc-vcomp-out.inline-reg
+copy mkTestbench_MkConfigReg.v mkTestbench_MkConfigReg.v.inline-reg
+copy mkDesign_MkConfigReg.v mkDesign_MkConfigReg.v.inline-reg
+copy mkTestbench_MkConfigReg.bsc-vcomp-out mkTestbench_MkConfigReg.bsc-vcomp-out.inline-reg
+copy mkTestbench_MkConfigReg.vexe mkTestbench_MkConfigReg.vexe.inline-reg
+copy mkTestbench_MkConfigReg.v.out mkTestbench_MkConfigReg.v.out.inline-reg
+
+# ----------
+# MkConfigRegU
+
+test_c_veri_bsv_multi_options MkConfigRegU mkTestbench_MkConfigRegU {mkDesign_MkConfigRegU} "-no-inline-reg"
+
+# Save the Verilog output
+copy MkConfigRegU.bsv.bsc-vcomp-out MkConfigRegU.bsv.bsc-vcomp-out.no-inline-reg
+copy mkTestbench_MkConfigRegU.v mkTestbench_MkConfigRegU.v.no-inline-reg
+copy mkDesign_MkConfigRegU.v mkDesign_MkConfigRegU.v.no-inline-reg
+copy mkTestbench_MkConfigRegU.bsc-vcomp-out mkTestbench_MkConfigRegU.bsc-vcomp-out.no-inline-reg
+copy mkTestbench_MkConfigRegU.vexe mkTestbench_MkConfigRegU.vexe.no-inline-reg
+copy mkTestbench_MkConfigRegU.v.out mkTestbench_MkConfigRegU.v.out.no-inline-reg
+# Force recompilation
+erase MkConfigRegU.bi
+erase MkConfigRegU.bo
+
+# same test as above with rtl_readability flag enabled (Verilog only)
+test_c_veri_bsv_multi_options MkConfigRegU mkTestbench_MkConfigRegU {mkDesign_MkConfigRegU} "-inline-reg" "" "" "" 0 1
+
+# Save the Verilog output
+copy MkConfigRegU.bsv.bsc-vcomp-out MkConfigRegU.bsv.bsc-vcomp-out.inline-reg
+copy mkTestbench_MkConfigRegU.v mkTestbench_MkConfigRegU.v.inline-reg
+copy mkDesign_MkConfigRegU.v mkDesign_MkConfigRegU.v.inline-reg
+copy mkTestbench_MkConfigRegU.bsc-vcomp-out mkTestbench_MkConfigRegU.bsc-vcomp-out.inline-reg
+copy mkTestbench_MkConfigRegU.vexe mkTestbench_MkConfigRegU.vexe.inline-reg
+copy mkTestbench_MkConfigRegU.v.out mkTestbench_MkConfigRegU.v.out.inline-reg
+
+# ----------
+

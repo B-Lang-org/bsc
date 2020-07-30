@@ -1,0 +1,42 @@
+initial
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+shift 9 in at 0
+Values are [5:0]:    4, 3, 2, 1, 0, 9
+Packed values are: 432109
+shift 10 in at 0 
+Values are [5:0]:    3, 2, 1, 0, 9, a
+Packed values are: 32109a
+shift 1 in at 0
+Values are [5:0]:    2, 1, 0, 9, a, 1
+Packed values are: 2109a1
+shift 1 in at N
+Values are [5:0]:    1, 2, 1, 0, 9, a
+Packed values are: 12109a
+shift 6 in at N
+Values are [5:0]:    6, 1, 2, 1, 0, 9
+Packed values are: 612109
+shift f in at N
+Values are [5:0]:    f, 6, 1, 2, 1, 0
+Packed values are: f61210
+foo of 0 is 0
+take from 16
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+take Take from 16
+Values are [5:0]:    f, e, d, c, b, a
+Packed values are: fedcba
+take from 16 at 1
+Values are [5:0]:    6, 5, 4, 3, 2, 1
+Packed values are: 654321
+take from 16 at 7
+Values are [5:0]:    c, b, a, 9, 8, 7
+Packed values are: cba987
+take from 16 at 7
+Values are [5:0]:    f, e, d, c, b, a
+Packed values are: fedcba
+Index 1 of foo is b
+Index 3 of foo is d
+Index 5 of foo is f
+Index 7 of foo is a
+Index 1 of foo is b

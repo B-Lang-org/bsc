@@ -1,0 +1,426 @@
+Initial State:
+top:
+  counter = 0xaaaa
+  fails = 0xaaaaaaaa
+  passes = 0xaaaaaaaa
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x2
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = False
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = True
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x0
+    t_valid_reg = False
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False
+
+Starting with New Request
+
+
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = True
+  top:
+    t_ack1 = True
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = True
+    t_state = 0x2
+    t_valid_reg = True
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x1
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x2
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x3
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0000
+  fails = 0x00000000
+  passes = 0x00000000
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = True
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x0
+    t_valid_reg = False
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False
+
+Starting with New Request
+
+
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = True
+  top:
+    t_ack1 = True
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = True
+    t_state = 0x2
+    t_valid_reg = True
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x1
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x2
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x3
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0001
+  fails = 0x00000000
+  passes = 0x00000001
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = True
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x0
+    t_valid_reg = False
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False
+
+Starting with New Request
+
+
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = True
+  top:
+    t_ack1 = True
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = True
+    t_state = 0x2
+    t_valid_reg = True
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x1
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x2
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x3
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0002
+  fails = 0x00000000
+  passes = 0x00000002
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = True
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x0
+    t_valid_reg = False
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False
+
+Starting with New Request
+
+
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = True
+  top:
+    t_ack1 = True
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = True
+    t_state = 0x2
+    t_valid_reg = True
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x1
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x2
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x3
+    t_done_reg = False
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x2
+    t_valid_reg = True
+State:
+top:
+  counter = 0x0003
+  fails = 0x00000000
+  passes = 0x00000003
+  state = True
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = True
+    t_req_reg = False
+    t_start_reg = False
+    t_state = 0x0
+    t_valid_reg = False
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+State:
+top:
+  counter = 0x0004
+  fails = 0x00000000
+  passes = 0x00000004
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False
+Passes          4, Fails          0
+
+State:
+top:
+  counter = 0x0004
+  fails = 0x00000000
+  passes = 0x00000004
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False

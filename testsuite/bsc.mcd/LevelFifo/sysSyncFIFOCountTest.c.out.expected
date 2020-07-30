@@ -1,0 +1,5272 @@
+S:          0 sCount is   0
+S:          1 sCount is   0
+S:          2 sCount is   0
+D:          1 dCount is   0
+S:          3 sCount is   0
+S          3: Enqueueing       0
+S:          4 sCount is   1
+D:          2 dCount is   0
+S:          5 sCount is   1
+S          5: Enqueueing       1
+D:          3 dCount is   0
+S:          6 sCount is   2
+D:          4 dCount is   0
+S:          7 sCount is   2
+S          7: Enqueueing       2
+S:          8 sCount is   3
+D:          5 dCount is   1
+S:          9 sCount is   3
+S          9: Enqueueing       3
+D:          6 dCount is   1
+S:         10 sCount is   3
+D:          7 dCount is   1
+S:         11 sCount is   3
+S         11: Enqueueing       4
+D:          8 dCount is   2
+S:         12 sCount is   4
+S:         13 sCount is   4
+S         13: Enqueueing       5
+D:          9 dCount is   3
+S:         14 sCount is   5
+D:         10 dCount is   3
+S:         15 sCount is   5
+S         15: Enqueueing       6
+D:         11 dCount is   4
+S:         16 sCount is   6
+S:         17 sCount is   6
+S         17: Enqueueing       7
+D:         12 dCount is   5
+S:         18 sCount is   7
+D:         13 dCount is   5
+S:         19 sCount is   7
+S         19: Enqueueing       8
+D:         14 dCount is   6
+S:         20 sCount is   8
+S:         21 sCount is   8
+S         21: Enqueueing       9
+D:         15 dCount is   7
+S:         22 sCount is   9
+D:         16 dCount is   7
+S:         23 sCount is   9
+S         23: Enqueueing      10
+D:         17 dCount is   8
+S:         24 sCount is  10
+D:         18 dCount is   8
+S:         25 sCount is  10
+S         25: Enqueueing      11
+S:         26 sCount is  11
+D:         19 dCount is   9
+S:         27 sCount is  11
+S         27: Enqueueing      12
+D:         20 dCount is  10
+S:         28 sCount is  12
+D:         21 dCount is  10
+S:         29 sCount is  12
+S         29: Enqueueing      13
+S:         30 sCount is  13
+D:         22 dCount is  11
+S:         31 sCount is  13
+S         31: Enqueueing      14
+D:         23 dCount is  12
+S:         32 sCount is  14
+D:         24 dCount is  12
+S:         33 sCount is  14
+S         33: Enqueueing      15
+S:         34 sCount is  15
+D:         25 dCount is  13
+S:         35 sCount is  15
+S         35: Enqueueing      16
+D:         26 dCount is  14
+S:         36 sCount is  16
+D:         27 dCount is  14
+S:         37 sCount is  16
+S         37: Enqueueing      17
+D:         28 dCount is  15
+S:         38 sCount is  17
+S:         39 sCount is  17
+S         39: Enqueueing      18
+D:         29 dCount is  16
+S:         40 sCount is  18
+D:         30 dCount is  16
+S:         41 sCount is  18
+S         41: Enqueueing      19
+D:         31 dCount is  17
+S:         42 sCount is  19
+S:         43 sCount is  19
+S         43: Enqueueing      20
+D:         32 dCount is  18
+S:         44 sCount is  20
+D:         33 dCount is  18
+S:         45 sCount is  20
+S         45: Enqueueing      21
+D:         34 dCount is  19
+S:         46 sCount is  21
+S:         47 sCount is  21
+S         47: Enqueueing      22
+D:         35 dCount is  20
+S:         48 sCount is  22
+D:         36 dCount is  20
+S:         49 sCount is  22
+S         49: Enqueueing      23
+D:         37 dCount is  21
+S:         50 sCount is  23
+D:         38 dCount is  21
+S:         51 sCount is  23
+S         51: Enqueueing      24
+S:         52 sCount is  24
+D:         39 dCount is  22
+S:         53 sCount is  24
+S         53: Enqueueing      25
+D:         40 dCount is  23
+S:         54 sCount is  25
+D:         41 dCount is  23
+S:         55 sCount is  25
+S         55: Enqueueing      26
+S:         56 sCount is  26
+D:         42 dCount is  24
+S:         57 sCount is  26
+S         57: Enqueueing      27
+D:         43 dCount is  25
+S:         58 sCount is  27
+D:         44 dCount is  25
+S:         59 sCount is  27
+S         59: Enqueueing      28
+S:         60 sCount is  28
+D:         45 dCount is  26
+S:         61 sCount is  28
+S         61: Enqueueing      29
+D:         46 dCount is  27
+S:         62 sCount is  29
+D:         47 dCount is  27
+S:         63 sCount is  29
+S         63: Enqueueing      30
+D:         48 dCount is  28
+S:         64 sCount is  30
+S:         65 sCount is  30
+S         65: Enqueueing      31
+D:         49 dCount is  29
+S:         66 sCount is  31
+D:         50 dCount is  29
+S:         67 sCount is  31
+S         67: Enqueueing      32
+D:         51 dCount is  30
+S:         68 sCount is  32
+S:         69 sCount is  32
+S         69: Enqueueing      33
+D:         52 dCount is  31
+S:         70 sCount is  33
+D:         53 dCount is  31
+S:         71 sCount is  33
+S         71: Enqueueing      34
+D:         54 dCount is  32
+S:         72 sCount is  34
+S:         73 sCount is  34
+S         73: Enqueueing      35
+D:         55 dCount is  33
+S:         74 sCount is  35
+D:         56 dCount is  33
+S:         75 sCount is  35
+S         75: Enqueueing      36
+D:         57 dCount is  34
+S:         76 sCount is  36
+D:         58 dCount is  34
+S:         77 sCount is  36
+S         77: Enqueueing      37
+S:         78 sCount is  37
+D:         59 dCount is  35
+S:         79 sCount is  37
+S         79: Enqueueing      38
+D:         60 dCount is  36
+S:         80 sCount is  38
+D:         61 dCount is  36
+S:         81 sCount is  38
+S         81: Enqueueing      39
+S:         82 sCount is  39
+D:         62 dCount is  37
+S:         83 sCount is  39
+S         83: Enqueueing      40
+D:         63 dCount is  38
+S:         84 sCount is  40
+D:         64 dCount is  38
+S:         85 sCount is  40
+S         85: Enqueueing      41
+S:         86 sCount is  41
+D:         65 dCount is  39
+S:         87 sCount is  41
+S         87: Enqueueing      42
+D:         66 dCount is  40
+S:         88 sCount is  42
+D:         67 dCount is  40
+S:         89 sCount is  42
+S         89: Enqueueing      43
+D:         68 dCount is  41
+S:         90 sCount is  43
+S:         91 sCount is  43
+S         91: Enqueueing      44
+D:         69 dCount is  42
+S:         92 sCount is  44
+D:         70 dCount is  42
+S:         93 sCount is  44
+S         93: Enqueueing      45
+D:         71 dCount is  43
+S:         94 sCount is  45
+S:         95 sCount is  45
+S         95: Enqueueing      46
+D:         72 dCount is  44
+S:         96 sCount is  46
+D:         73 dCount is  44
+S:         97 sCount is  46
+S         97: Enqueueing      47
+D:         74 dCount is  45
+S:         98 sCount is  47
+S:         99 sCount is  47
+S         99: Enqueueing      48
+D:         75 dCount is  46
+S:        100 sCount is  48
+D:         76 dCount is  46
+S:        101 sCount is  48
+S        101: Enqueueing      49
+D:         77 dCount is  47
+S:        102 sCount is  49
+D:         78 dCount is  47
+S:        103 sCount is  49
+S        103: Enqueueing      50
+S:        104 sCount is  50
+D:         79 dCount is  48
+S:        105 sCount is  50
+S        105: Enqueueing      51
+D:         80 dCount is  49
+S:        106 sCount is  51
+D:         81 dCount is  49
+S:        107 sCount is  51
+S        107: Enqueueing      52
+S:        108 sCount is  52
+D:         82 dCount is  50
+S:        109 sCount is  52
+S        109: Enqueueing      53
+D:         83 dCount is  51
+S:        110 sCount is  53
+D:         84 dCount is  51
+S:        111 sCount is  53
+S        111: Enqueueing      54
+S:        112 sCount is  54
+D:         85 dCount is  52
+S:        113 sCount is  54
+S        113: Enqueueing      55
+D:         86 dCount is  53
+S:        114 sCount is  55
+D:         87 dCount is  53
+S:        115 sCount is  55
+S        115: Enqueueing      56
+D:         88 dCount is  54
+S:        116 sCount is  56
+S:        117 sCount is  56
+S        117: Enqueueing      57
+D:         89 dCount is  55
+S:        118 sCount is  57
+D:         90 dCount is  55
+S:        119 sCount is  57
+S        119: Enqueueing      58
+D:         91 dCount is  56
+S:        120 sCount is  58
+S:        121 sCount is  58
+S        121: Enqueueing      59
+D:         92 dCount is  57
+S:        122 sCount is  59
+D:         93 dCount is  57
+S:        123 sCount is  59
+S        123: Enqueueing      60
+D:         94 dCount is  58
+S:        124 sCount is  60
+S:        125 sCount is  60
+S        125: Enqueueing      61
+D:         95 dCount is  59
+S:        126 sCount is  61
+D:         96 dCount is  59
+S:        127 sCount is  61
+S        127: Enqueueing      62
+D:         97 dCount is  60
+S:        128 sCount is  62
+D:         98 dCount is  60
+S:        129 sCount is  62
+S        129: Enqueueing      63
+S:        130 sCount is  63
+D:         99 dCount is  61
+S:        131 sCount is  63
+S        131: Enqueueing      64
+D:        100 dCount is  62
+S:        132 sCount is  64
+D:        101 dCount is  62
+S:        133 sCount is  64
+S        133: Enqueueing      65
+S:        134 sCount is  65
+D:        102 dCount is  63
+S:        135 sCount is  65
+S        135: Enqueueing      66
+D:        103 dCount is  64
+S:        136 sCount is  66
+D:        104 dCount is  64
+S:        137 sCount is  66
+S        137: Enqueueing      67
+S:        138 sCount is  67
+D:        105 dCount is  65
+S:        139 sCount is  67
+S        139: Enqueueing      68
+D:        106 dCount is  66
+S:        140 sCount is  68
+D:        107 dCount is  66
+S:        141 sCount is  68
+S        141: Enqueueing      69
+D:        108 dCount is  67
+S:        142 sCount is  69
+S:        143 sCount is  69
+S        143: Enqueueing      70
+D:        109 dCount is  68
+S:        144 sCount is  70
+D:        110 dCount is  68
+S:        145 sCount is  70
+S        145: Enqueueing      71
+D:        111 dCount is  69
+S:        146 sCount is  71
+S:        147 sCount is  71
+S        147: Enqueueing      72
+D:        112 dCount is  70
+S:        148 sCount is  72
+D:        113 dCount is  70
+S:        149 sCount is  72
+S        149: Enqueueing      73
+D:        114 dCount is  71
+S:        150 sCount is  73
+S:        151 sCount is  73
+S        151: Enqueueing      74
+D:        115 dCount is  72
+S:        152 sCount is  74
+D:        116 dCount is  72
+S:        153 sCount is  74
+S        153: Enqueueing      75
+D:        117 dCount is  73
+S:        154 sCount is  75
+D:        118 dCount is  73
+S:        155 sCount is  75
+S        155: Enqueueing      76
+S:        156 sCount is  76
+D:        119 dCount is  74
+S:        157 sCount is  76
+S        157: Enqueueing      77
+D:        120 dCount is  75
+S:        158 sCount is  77
+D:        121 dCount is  75
+S:        159 sCount is  77
+S        159: Enqueueing      78
+S:        160 sCount is  78
+D:        122 dCount is  76
+S:        161 sCount is  78
+S        161: Enqueueing      79
+D:        123 dCount is  77
+S:        162 sCount is  79
+D:        124 dCount is  77
+S:        163 sCount is  79
+S        163: Enqueueing      80
+S:        164 sCount is  80
+D:        125 dCount is  78
+S:        165 sCount is  80
+S        165: Enqueueing      81
+D:        126 dCount is  79
+S:        166 sCount is  81
+D:        127 dCount is  79
+S:        167 sCount is  81
+S        167: Enqueueing      82
+D:        128 dCount is  80
+S:        168 sCount is  82
+S:        169 sCount is  82
+S        169: Enqueueing      83
+D:        129 dCount is  81
+S:        170 sCount is  83
+D:        130 dCount is  81
+S:        171 sCount is  83
+S        171: Enqueueing      84
+D:        131 dCount is  82
+S:        172 sCount is  84
+S:        173 sCount is  84
+S        173: Enqueueing      85
+D:        132 dCount is  83
+S:        174 sCount is  85
+D:        133 dCount is  83
+S:        175 sCount is  85
+S        175: Enqueueing      86
+D:        134 dCount is  84
+S:        176 sCount is  86
+S:        177 sCount is  86
+S        177: Enqueueing      87
+D:        135 dCount is  85
+S:        178 sCount is  87
+D:        136 dCount is  85
+S:        179 sCount is  87
+S        179: Enqueueing      88
+D:        137 dCount is  86
+S:        180 sCount is  88
+D:        138 dCount is  86
+S:        181 sCount is  88
+S        181: Enqueueing      89
+S:        182 sCount is  89
+D:        139 dCount is  87
+S:        183 sCount is  89
+S        183: Enqueueing      90
+D:        140 dCount is  88
+S:        184 sCount is  90
+D:        141 dCount is  88
+S:        185 sCount is  90
+S        185: Enqueueing      91
+S:        186 sCount is  91
+D:        142 dCount is  89
+S:        187 sCount is  91
+S        187: Enqueueing      92
+D:        143 dCount is  90
+S:        188 sCount is  92
+D:        144 dCount is  90
+S:        189 sCount is  92
+S        189: Enqueueing      93
+S:        190 sCount is  93
+D:        145 dCount is  91
+S:        191 sCount is  93
+S        191: Enqueueing      94
+D:        146 dCount is  92
+S:        192 sCount is  94
+D:        147 dCount is  92
+S:        193 sCount is  94
+S        193: Enqueueing      95
+D:        148 dCount is  93
+S:        194 sCount is  95
+S:        195 sCount is  95
+S        195: Enqueueing      96
+D:        149 dCount is  94
+S:        196 sCount is  96
+D:        150 dCount is  94
+S:        197 sCount is  96
+S        197: Enqueueing      97
+D:        151 dCount is  95
+S:        198 sCount is  97
+S:        199 sCount is  97
+S        199: Enqueueing      98
+D:        152 dCount is  96
+S:        200 sCount is  98
+D:        153 dCount is  96
+S:        201 sCount is  98
+S        201: Enqueueing      99
+D:        154 dCount is  97
+S:        202 sCount is  99
+S:        203 sCount is  99
+S        203: Enqueueing     100
+D:        155 dCount is  98
+S:        204 sCount is 100
+D:        156 dCount is  98
+S:        205 sCount is 100
+S        205: Enqueueing     101
+D:        157 dCount is  99
+S:        206 sCount is 101
+D:        158 dCount is  99
+S:        207 sCount is 101
+S        207: Enqueueing     102
+S:        208 sCount is 102
+D:        159 dCount is 100
+S:        209 sCount is 102
+S        209: Enqueueing     103
+D:        160 dCount is 101
+S:        210 sCount is 103
+D:        161 dCount is 101
+S:        211 sCount is 103
+S        211: Enqueueing     104
+S:        212 sCount is 104
+D:        162 dCount is 102
+S:        213 sCount is 104
+S        213: Enqueueing     105
+D:        163 dCount is 103
+S:        214 sCount is 105
+D:        164 dCount is 103
+S:        215 sCount is 105
+S        215: Enqueueing     106
+S:        216 sCount is 106
+D:        165 dCount is 104
+S:        217 sCount is 106
+S        217: Enqueueing     107
+D:        166 dCount is 105
+S:        218 sCount is 107
+D:        167 dCount is 105
+S:        219 sCount is 107
+S        219: Enqueueing     108
+D:        168 dCount is 106
+S:        220 sCount is 108
+S:        221 sCount is 108
+S        221: Enqueueing     109
+D:        169 dCount is 107
+S:        222 sCount is 109
+D:        170 dCount is 107
+S:        223 sCount is 109
+S        223: Enqueueing     110
+D:        171 dCount is 108
+S:        224 sCount is 110
+S:        225 sCount is 110
+S        225: Enqueueing     111
+D:        172 dCount is 109
+S:        226 sCount is 111
+D:        173 dCount is 109
+S:        227 sCount is 111
+S        227: Enqueueing     112
+D:        174 dCount is 110
+S:        228 sCount is 112
+S:        229 sCount is 112
+S        229: Enqueueing     113
+D:        175 dCount is 111
+S:        230 sCount is 113
+D:        176 dCount is 111
+S:        231 sCount is 113
+S        231: Enqueueing     114
+D:        177 dCount is 112
+S:        232 sCount is 114
+D:        178 dCount is 112
+S:        233 sCount is 114
+S        233: Enqueueing     115
+S:        234 sCount is 115
+D:        179 dCount is 113
+S:        235 sCount is 115
+S        235: Enqueueing     116
+D:        180 dCount is 114
+S:        236 sCount is 116
+D:        181 dCount is 114
+S:        237 sCount is 116
+S        237: Enqueueing     117
+S:        238 sCount is 117
+D:        182 dCount is 115
+S:        239 sCount is 117
+S        239: Enqueueing     118
+D:        183 dCount is 116
+S:        240 sCount is 118
+D:        184 dCount is 116
+S:        241 sCount is 118
+S        241: Enqueueing     119
+S:        242 sCount is 119
+D:        185 dCount is 117
+S:        243 sCount is 119
+S        243: Enqueueing     120
+D:        186 dCount is 118
+S:        244 sCount is 120
+D:        187 dCount is 118
+S:        245 sCount is 120
+S        245: Enqueueing     121
+D:        188 dCount is 119
+S:        246 sCount is 121
+S:        247 sCount is 121
+S        247: Enqueueing     122
+D:        189 dCount is 120
+S:        248 sCount is 122
+D:        190 dCount is 120
+S:        249 sCount is 122
+S        249: Enqueueing     123
+D:        191 dCount is 121
+S:        250 sCount is 123
+S:        251 sCount is 123
+S        251: Enqueueing     124
+D:        192 dCount is 122
+D:        192 dequeueing       0
+S:        252 sCount is 124
+D:        193 dCount is 122
+D:        193 dequeueing       1
+S:        253 sCount is 124
+S        253: Enqueueing     125
+D:        194 dCount is 122
+D:        194 dequeueing       2
+S:        254 sCount is 125
+S:        255 sCount is 124
+S        255: Enqueueing     126
+D:        195 dCount is 122
+D:        195 dequeueing       3
+S:        256 sCount is 124
+D:        196 dCount is 121
+D:        196 dequeueing       4
+S:        257 sCount is 123
+S        257: Enqueueing     127
+D:        197 dCount is 121
+D:        197 dequeueing       5
+S:        258 sCount is 124
+D:        198 dCount is 120
+D:        198 dequeueing       6
+S:        259 sCount is 123
+S        259: Enqueueing     128
+S:        260 sCount is 123
+D:        199 dCount is 120
+D:        199 dequeueing       7
+S:        261 sCount is 122
+S        261: Enqueueing     129
+D:        200 dCount is 120
+D:        200 dequeueing       8
+S:        262 sCount is 122
+D:        201 dCount is 119
+D:        201 dequeueing       9
+S:        263 sCount is 122
+S        263: Enqueueing     130
+S:        264 sCount is 122
+D:        202 dCount is 119
+D:        202 dequeueing      10
+S:        265 sCount is 121
+S        265: Enqueueing     131
+D:        203 dCount is 119
+D:        203 dequeueing      11
+S:        266 sCount is 121
+D:        204 dCount is 118
+D:        204 dequeueing      12
+S:        267 sCount is 121
+S        267: Enqueueing     132
+S:        268 sCount is 121
+D:        205 dCount is 118
+D:        205 dequeueing      13
+S:        269 sCount is 120
+S        269: Enqueueing     133
+D:        206 dCount is 118
+D:        206 dequeueing      14
+S:        270 sCount is 120
+D:        207 dCount is 117
+D:        207 dequeueing      15
+S:        271 sCount is 120
+S        271: Enqueueing     134
+D:        208 dCount is 117
+D:        208 dequeueing      16
+S:        272 sCount is 120
+S:        273 sCount is 119
+S        273: Enqueueing     135
+D:        209 dCount is 117
+D:        209 dequeueing      17
+S:        274 sCount is 119
+D:        210 dCount is 116
+D:        210 dequeueing      18
+S:        275 sCount is 118
+S        275: Enqueueing     136
+D:        211 dCount is 116
+D:        211 dequeueing      19
+S:        276 sCount is 119
+S:        277 sCount is 118
+S        277: Enqueueing     137
+D:        212 dCount is 116
+D:        212 dequeueing      20
+S:        278 sCount is 118
+D:        213 dCount is 115
+D:        213 dequeueing      21
+S:        279 sCount is 117
+S        279: Enqueueing     138
+D:        214 dCount is 115
+D:        214 dequeueing      22
+S:        280 sCount is 118
+S:        281 sCount is 117
+S        281: Enqueueing     139
+D:        215 dCount is 115
+D:        215 dequeueing      23
+S:        282 sCount is 117
+D:        216 dCount is 114
+D:        216 dequeueing      24
+S:        283 sCount is 116
+S        283: Enqueueing     140
+D:        217 dCount is 114
+D:        217 dequeueing      25
+S:        284 sCount is 117
+D:        218 dCount is 113
+D:        218 dequeueing      26
+S:        285 sCount is 116
+S        285: Enqueueing     141
+S:        286 sCount is 116
+D:        219 dCount is 113
+D:        219 dequeueing      27
+S:        287 sCount is 115
+S        287: Enqueueing     142
+D:        220 dCount is 113
+D:        220 dequeueing      28
+S:        288 sCount is 115
+D:        221 dCount is 112
+D:        221 dequeueing      29
+S:        289 sCount is 115
+S        289: Enqueueing     143
+S:        290 sCount is 115
+D:        222 dCount is 112
+D:        222 dequeueing      30
+S:        291 sCount is 114
+S        291: Enqueueing     144
+D:        223 dCount is 112
+D:        223 dequeueing      31
+S:        292 sCount is 114
+D:        224 dCount is 111
+D:        224 dequeueing      32
+S:        293 sCount is 114
+S        293: Enqueueing     145
+S:        294 sCount is 114
+D:        225 dCount is 111
+D:        225 dequeueing      33
+S:        295 sCount is 113
+S        295: Enqueueing     146
+D:        226 dCount is 111
+D:        226 dequeueing      34
+S:        296 sCount is 113
+D:        227 dCount is 110
+D:        227 dequeueing      35
+S:        297 sCount is 113
+S        297: Enqueueing     147
+D:        228 dCount is 110
+D:        228 dequeueing      36
+S:        298 sCount is 113
+S:        299 sCount is 112
+S        299: Enqueueing     148
+D:        229 dCount is 110
+D:        229 dequeueing      37
+S:        300 sCount is 112
+D:        230 dCount is 109
+D:        230 dequeueing      38
+S:        301 sCount is 111
+S        301: Enqueueing     149
+D:        231 dCount is 109
+D:        231 dequeueing      39
+S:        302 sCount is 112
+S:        303 sCount is 111
+S        303: Enqueueing     150
+D:        232 dCount is 109
+D:        232 dequeueing      40
+S:        304 sCount is 111
+D:        233 dCount is 108
+D:        233 dequeueing      41
+S:        305 sCount is 110
+S        305: Enqueueing     151
+D:        234 dCount is 108
+D:        234 dequeueing      42
+S:        306 sCount is 111
+S:        307 sCount is 110
+S        307: Enqueueing     152
+D:        235 dCount is 108
+D:        235 dequeueing      43
+S:        308 sCount is 110
+D:        236 dCount is 107
+D:        236 dequeueing      44
+S:        309 sCount is 109
+S        309: Enqueueing     153
+D:        237 dCount is 107
+D:        237 dequeueing      45
+S:        310 sCount is 110
+D:        238 dCount is 106
+D:        238 dequeueing      46
+S:        311 sCount is 109
+S        311: Enqueueing     154
+S:        312 sCount is 109
+D:        239 dCount is 106
+D:        239 dequeueing      47
+S:        313 sCount is 108
+S        313: Enqueueing     155
+D:        240 dCount is 106
+D:        240 dequeueing      48
+S:        314 sCount is 108
+D:        241 dCount is 105
+D:        241 dequeueing      49
+S:        315 sCount is 108
+S        315: Enqueueing     156
+S:        316 sCount is 108
+D:        242 dCount is 105
+D:        242 dequeueing      50
+S:        317 sCount is 107
+S        317: Enqueueing     157
+D:        243 dCount is 105
+D:        243 dequeueing      51
+S:        318 sCount is 107
+D:        244 dCount is 104
+D:        244 dequeueing      52
+S:        319 sCount is 107
+S        319: Enqueueing     158
+S:        320 sCount is 107
+D:        245 dCount is 104
+D:        245 dequeueing      53
+S:        321 sCount is 106
+S        321: Enqueueing     159
+D:        246 dCount is 104
+D:        246 dequeueing      54
+S:        322 sCount is 106
+D:        247 dCount is 103
+D:        247 dequeueing      55
+S:        323 sCount is 106
+S        323: Enqueueing     160
+D:        248 dCount is 103
+D:        248 dequeueing      56
+S:        324 sCount is 106
+S:        325 sCount is 105
+S        325: Enqueueing     161
+D:        249 dCount is 103
+D:        249 dequeueing      57
+S:        326 sCount is 105
+D:        250 dCount is 102
+D:        250 dequeueing      58
+S:        327 sCount is 104
+S        327: Enqueueing     162
+D:        251 dCount is 102
+D:        251 dequeueing      59
+S:        328 sCount is 105
+S:        329 sCount is 104
+S        329: Enqueueing     163
+D:        252 dCount is 102
+D:        252 dequeueing      60
+S:        330 sCount is 104
+D:        253 dCount is 101
+D:        253 dequeueing      61
+S:        331 sCount is 103
+S        331: Enqueueing     164
+D:        254 dCount is 101
+D:        254 dequeueing      62
+S:        332 sCount is 104
+S:        333 sCount is 103
+S        333: Enqueueing     165
+D:        255 dCount is 101
+D:        255 dequeueing      63
+S:        334 sCount is 103
+D:        256 dCount is 100
+D:        256 dequeueing      64
+S:        335 sCount is 102
+S        335: Enqueueing     166
+D:        257 dCount is 100
+D:        257 dequeueing      65
+S:        336 sCount is 103
+D:        258 dCount is  99
+D:        258 dequeueing      66
+S:        337 sCount is 102
+S        337: Enqueueing     167
+S:        338 sCount is 102
+D:        259 dCount is  99
+D:        259 dequeueing      67
+S:        339 sCount is 101
+S        339: Enqueueing     168
+D:        260 dCount is  99
+D:        260 dequeueing      68
+S:        340 sCount is 101
+D:        261 dCount is  98
+D:        261 dequeueing      69
+S:        341 sCount is 101
+S        341: Enqueueing     169
+S:        342 sCount is 101
+D:        262 dCount is  98
+D:        262 dequeueing      70
+S:        343 sCount is 100
+S        343: Enqueueing     170
+D:        263 dCount is  98
+D:        263 dequeueing      71
+S:        344 sCount is 100
+D:        264 dCount is  97
+D:        264 dequeueing      72
+S:        345 sCount is 100
+S        345: Enqueueing     171
+S:        346 sCount is 100
+D:        265 dCount is  97
+D:        265 dequeueing      73
+S:        347 sCount is  99
+S        347: Enqueueing     172
+D:        266 dCount is  97
+D:        266 dequeueing      74
+S:        348 sCount is  99
+D:        267 dCount is  96
+D:        267 dequeueing      75
+S:        349 sCount is  99
+S        349: Enqueueing     173
+D:        268 dCount is  96
+D:        268 dequeueing      76
+S:        350 sCount is  99
+S:        351 sCount is  98
+S        351: Enqueueing     174
+D:        269 dCount is  96
+D:        269 dequeueing      77
+S:        352 sCount is  98
+D:        270 dCount is  95
+D:        270 dequeueing      78
+S:        353 sCount is  97
+S        353: Enqueueing     175
+D:        271 dCount is  95
+D:        271 dequeueing      79
+S:        354 sCount is  98
+S:        355 sCount is  97
+S        355: Enqueueing     176
+D:        272 dCount is  95
+D:        272 dequeueing      80
+S:        356 sCount is  97
+D:        273 dCount is  94
+D:        273 dequeueing      81
+S:        357 sCount is  96
+S        357: Enqueueing     177
+D:        274 dCount is  94
+D:        274 dequeueing      82
+S:        358 sCount is  97
+S:        359 sCount is  96
+S        359: Enqueueing     178
+D:        275 dCount is  94
+D:        275 dequeueing      83
+S:        360 sCount is  96
+D:        276 dCount is  93
+D:        276 dequeueing      84
+S:        361 sCount is  95
+S        361: Enqueueing     179
+D:        277 dCount is  93
+D:        277 dequeueing      85
+S:        362 sCount is  96
+D:        278 dCount is  92
+D:        278 dequeueing      86
+S:        363 sCount is  95
+S        363: Enqueueing     180
+S:        364 sCount is  95
+D:        279 dCount is  92
+D:        279 dequeueing      87
+S:        365 sCount is  94
+S        365: Enqueueing     181
+D:        280 dCount is  92
+D:        280 dequeueing      88
+S:        366 sCount is  94
+D:        281 dCount is  91
+D:        281 dequeueing      89
+S:        367 sCount is  94
+S        367: Enqueueing     182
+S:        368 sCount is  94
+D:        282 dCount is  91
+D:        282 dequeueing      90
+S:        369 sCount is  93
+S        369: Enqueueing     183
+D:        283 dCount is  91
+D:        283 dequeueing      91
+S:        370 sCount is  93
+D:        284 dCount is  90
+D:        284 dequeueing      92
+S:        371 sCount is  93
+S        371: Enqueueing     184
+S:        372 sCount is  93
+D:        285 dCount is  90
+D:        285 dequeueing      93
+S:        373 sCount is  92
+S        373: Enqueueing     185
+D:        286 dCount is  90
+D:        286 dequeueing      94
+S:        374 sCount is  92
+D:        287 dCount is  89
+D:        287 dequeueing      95
+S:        375 sCount is  92
+S        375: Enqueueing     186
+D:        288 dCount is  89
+D:        288 dequeueing      96
+S:        376 sCount is  92
+S:        377 sCount is  91
+S        377: Enqueueing     187
+D:        289 dCount is  89
+D:        289 dequeueing      97
+S:        378 sCount is  91
+D:        290 dCount is  88
+D:        290 dequeueing      98
+S:        379 sCount is  90
+S        379: Enqueueing     188
+D:        291 dCount is  88
+D:        291 dequeueing      99
+S:        380 sCount is  91
+S:        381 sCount is  90
+S        381: Enqueueing     189
+D:        292 dCount is  88
+D:        292 dequeueing     100
+S:        382 sCount is  90
+D:        293 dCount is  87
+D:        293 dequeueing     101
+S:        383 sCount is  89
+S        383: Enqueueing     190
+D:        294 dCount is  87
+D:        294 dequeueing     102
+S:        384 sCount is  90
+S:        385 sCount is  89
+S        385: Enqueueing     191
+D:        295 dCount is  87
+D:        295 dequeueing     103
+S:        386 sCount is  89
+D:        296 dCount is  86
+D:        296 dequeueing     104
+S:        387 sCount is  88
+S        387: Enqueueing     192
+D:        297 dCount is  86
+D:        297 dequeueing     105
+S:        388 sCount is  89
+D:        298 dCount is  85
+D:        298 dequeueing     106
+S:        389 sCount is  88
+S        389: Enqueueing     193
+S:        390 sCount is  88
+D:        299 dCount is  85
+D:        299 dequeueing     107
+S:        391 sCount is  87
+S        391: Enqueueing     194
+D:        300 dCount is  85
+D:        300 dequeueing     108
+S:        392 sCount is  87
+D:        301 dCount is  84
+D:        301 dequeueing     109
+S:        393 sCount is  87
+S        393: Enqueueing     195
+S:        394 sCount is  87
+D:        302 dCount is  84
+D:        302 dequeueing     110
+S:        395 sCount is  86
+S        395: Enqueueing     196
+D:        303 dCount is  84
+D:        303 dequeueing     111
+S:        396 sCount is  86
+D:        304 dCount is  83
+D:        304 dequeueing     112
+S:        397 sCount is  86
+S        397: Enqueueing     197
+S:        398 sCount is  86
+D:        305 dCount is  83
+D:        305 dequeueing     113
+S:        399 sCount is  85
+S        399: Enqueueing     198
+D:        306 dCount is  83
+D:        306 dequeueing     114
+S:        400 sCount is  85
+D:        307 dCount is  82
+D:        307 dequeueing     115
+S:        401 sCount is  85
+S        401: Enqueueing     199
+D:        308 dCount is  82
+D:        308 dequeueing     116
+S:        402 sCount is  85
+S:        403 sCount is  84
+S        403: Enqueueing     200
+D:        309 dCount is  82
+D:        309 dequeueing     117
+S:        404 sCount is  84
+D:        310 dCount is  81
+D:        310 dequeueing     118
+S:        405 sCount is  83
+S        405: Enqueueing     201
+D:        311 dCount is  81
+D:        311 dequeueing     119
+S:        406 sCount is  84
+S:        407 sCount is  83
+S        407: Enqueueing     202
+D:        312 dCount is  81
+D:        312 dequeueing     120
+S:        408 sCount is  83
+D:        313 dCount is  80
+D:        313 dequeueing     121
+S:        409 sCount is  82
+S        409: Enqueueing     203
+D:        314 dCount is  80
+D:        314 dequeueing     122
+S:        410 sCount is  83
+S:        411 sCount is  82
+S        411: Enqueueing     204
+D:        315 dCount is  80
+D:        315 dequeueing     123
+S:        412 sCount is  82
+D:        316 dCount is  79
+D:        316 dequeueing     124
+S:        413 sCount is  81
+S        413: Enqueueing     205
+D:        317 dCount is  79
+D:        317 dequeueing     125
+S:        414 sCount is  82
+D:        318 dCount is  78
+D:        318 dequeueing     126
+S:        415 sCount is  81
+S        415: Enqueueing     206
+S:        416 sCount is  81
+D:        319 dCount is  78
+D:        319 dequeueing     127
+S:        417 sCount is  80
+S        417: Enqueueing     207
+D:        320 dCount is  78
+D:        320 dequeueing     128
+S:        418 sCount is  80
+D:        321 dCount is  77
+D:        321 dequeueing     129
+S:        419 sCount is  80
+S        419: Enqueueing     208
+S:        420 sCount is  80
+D:        322 dCount is  77
+D:        322 dequeueing     130
+S:        421 sCount is  79
+S        421: Enqueueing     209
+D:        323 dCount is  77
+D:        323 dequeueing     131
+S:        422 sCount is  79
+D:        324 dCount is  76
+D:        324 dequeueing     132
+S:        423 sCount is  79
+S        423: Enqueueing     210
+S:        424 sCount is  79
+D:        325 dCount is  76
+D:        325 dequeueing     133
+S:        425 sCount is  78
+S        425: Enqueueing     211
+D:        326 dCount is  76
+D:        326 dequeueing     134
+S:        426 sCount is  78
+D:        327 dCount is  75
+D:        327 dequeueing     135
+S:        427 sCount is  78
+S        427: Enqueueing     212
+D:        328 dCount is  75
+D:        328 dequeueing     136
+S:        428 sCount is  78
+S:        429 sCount is  77
+S        429: Enqueueing     213
+D:        329 dCount is  75
+D:        329 dequeueing     137
+S:        430 sCount is  77
+D:        330 dCount is  74
+D:        330 dequeueing     138
+S:        431 sCount is  76
+S        431: Enqueueing     214
+D:        331 dCount is  74
+D:        331 dequeueing     139
+S:        432 sCount is  77
+S:        433 sCount is  76
+S        433: Enqueueing     215
+D:        332 dCount is  74
+D:        332 dequeueing     140
+S:        434 sCount is  76
+D:        333 dCount is  73
+D:        333 dequeueing     141
+S:        435 sCount is  75
+S        435: Enqueueing     216
+D:        334 dCount is  73
+D:        334 dequeueing     142
+S:        436 sCount is  76
+S:        437 sCount is  75
+S        437: Enqueueing     217
+D:        335 dCount is  73
+D:        335 dequeueing     143
+S:        438 sCount is  75
+D:        336 dCount is  72
+D:        336 dequeueing     144
+S:        439 sCount is  74
+S        439: Enqueueing     218
+D:        337 dCount is  72
+D:        337 dequeueing     145
+S:        440 sCount is  75
+D:        338 dCount is  71
+D:        338 dequeueing     146
+S:        441 sCount is  74
+S        441: Enqueueing     219
+S:        442 sCount is  74
+D:        339 dCount is  71
+D:        339 dequeueing     147
+S:        443 sCount is  73
+S        443: Enqueueing     220
+D:        340 dCount is  71
+D:        340 dequeueing     148
+S:        444 sCount is  73
+D:        341 dCount is  70
+D:        341 dequeueing     149
+S:        445 sCount is  73
+S        445: Enqueueing     221
+S:        446 sCount is  73
+D:        342 dCount is  70
+D:        342 dequeueing     150
+S:        447 sCount is  72
+S        447: Enqueueing     222
+D:        343 dCount is  70
+D:        343 dequeueing     151
+S:        448 sCount is  72
+D:        344 dCount is  69
+D:        344 dequeueing     152
+S:        449 sCount is  72
+S        449: Enqueueing     223
+S:        450 sCount is  72
+D:        345 dCount is  69
+D:        345 dequeueing     153
+S:        451 sCount is  71
+S        451: Enqueueing     224
+D:        346 dCount is  69
+D:        346 dequeueing     154
+S:        452 sCount is  71
+D:        347 dCount is  68
+D:        347 dequeueing     155
+S:        453 sCount is  71
+S        453: Enqueueing     225
+D:        348 dCount is  68
+D:        348 dequeueing     156
+S:        454 sCount is  71
+S:        455 sCount is  70
+S        455: Enqueueing     226
+D:        349 dCount is  68
+D:        349 dequeueing     157
+S:        456 sCount is  70
+D:        350 dCount is  67
+D:        350 dequeueing     158
+S:        457 sCount is  69
+S        457: Enqueueing     227
+D:        351 dCount is  67
+D:        351 dequeueing     159
+S:        458 sCount is  70
+S:        459 sCount is  69
+S        459: Enqueueing     228
+D:        352 dCount is  67
+D:        352 dequeueing     160
+S:        460 sCount is  69
+D:        353 dCount is  66
+D:        353 dequeueing     161
+S:        461 sCount is  68
+S        461: Enqueueing     229
+D:        354 dCount is  66
+D:        354 dequeueing     162
+S:        462 sCount is  69
+S:        463 sCount is  68
+S        463: Enqueueing     230
+D:        355 dCount is  66
+D:        355 dequeueing     163
+S:        464 sCount is  68
+D:        356 dCount is  65
+D:        356 dequeueing     164
+S:        465 sCount is  67
+S        465: Enqueueing     231
+D:        357 dCount is  65
+D:        357 dequeueing     165
+S:        466 sCount is  68
+D:        358 dCount is  64
+D:        358 dequeueing     166
+S:        467 sCount is  67
+S        467: Enqueueing     232
+S:        468 sCount is  67
+D:        359 dCount is  64
+D:        359 dequeueing     167
+S:        469 sCount is  66
+S        469: Enqueueing     233
+D:        360 dCount is  64
+D:        360 dequeueing     168
+S:        470 sCount is  66
+D:        361 dCount is  63
+D:        361 dequeueing     169
+S:        471 sCount is  66
+S        471: Enqueueing     234
+S:        472 sCount is  66
+D:        362 dCount is  63
+D:        362 dequeueing     170
+S:        473 sCount is  65
+S        473: Enqueueing     235
+D:        363 dCount is  63
+D:        363 dequeueing     171
+S:        474 sCount is  65
+D:        364 dCount is  62
+D:        364 dequeueing     172
+S:        475 sCount is  65
+S        475: Enqueueing     236
+S:        476 sCount is  65
+D:        365 dCount is  62
+D:        365 dequeueing     173
+S:        477 sCount is  64
+S        477: Enqueueing     237
+D:        366 dCount is  62
+D:        366 dequeueing     174
+S:        478 sCount is  64
+D:        367 dCount is  61
+D:        367 dequeueing     175
+S:        479 sCount is  64
+S        479: Enqueueing     238
+D:        368 dCount is  61
+D:        368 dequeueing     176
+S:        480 sCount is  64
+S:        481 sCount is  63
+S        481: Enqueueing     239
+D:        369 dCount is  61
+D:        369 dequeueing     177
+S:        482 sCount is  63
+D:        370 dCount is  60
+D:        370 dequeueing     178
+S:        483 sCount is  62
+S        483: Enqueueing     240
+D:        371 dCount is  60
+D:        371 dequeueing     179
+S:        484 sCount is  63
+S:        485 sCount is  62
+S        485: Enqueueing     241
+D:        372 dCount is  60
+D:        372 dequeueing     180
+S:        486 sCount is  62
+D:        373 dCount is  59
+D:        373 dequeueing     181
+S:        487 sCount is  61
+S        487: Enqueueing     242
+D:        374 dCount is  59
+D:        374 dequeueing     182
+S:        488 sCount is  62
+S:        489 sCount is  61
+S        489: Enqueueing     243
+D:        375 dCount is  59
+D:        375 dequeueing     183
+S:        490 sCount is  61
+D:        376 dCount is  58
+D:        376 dequeueing     184
+S:        491 sCount is  60
+S        491: Enqueueing     244
+D:        377 dCount is  58
+D:        377 dequeueing     185
+S:        492 sCount is  61
+D:        378 dCount is  57
+D:        378 dequeueing     186
+S:        493 sCount is  60
+S        493: Enqueueing     245
+S:        494 sCount is  60
+D:        379 dCount is  57
+D:        379 dequeueing     187
+S:        495 sCount is  59
+S        495: Enqueueing     246
+D:        380 dCount is  57
+D:        380 dequeueing     188
+S:        496 sCount is  59
+D:        381 dCount is  56
+D:        381 dequeueing     189
+S:        497 sCount is  59
+S        497: Enqueueing     247
+S:        498 sCount is  59
+D:        382 dCount is  56
+D:        382 dequeueing     190
+S:        499 sCount is  58
+S        499: Enqueueing     248
+D:        383 dCount is  56
+D:        383 dequeueing     191
+S:        500 sCount is  58
+D:        384 dCount is  55
+D:        384 dequeueing     192
+S:        501 sCount is  58
+S        501: Enqueueing     249
+S:        502 sCount is  58
+D:        385 dCount is  55
+D:        385 dequeueing     193
+S:        503 sCount is  57
+S        503: Enqueueing     250
+D:        386 dCount is  55
+D:        386 dequeueing     194
+S:        504 sCount is  57
+D:        387 dCount is  54
+D:        387 dequeueing     195
+S:        505 sCount is  57
+S        505: Enqueueing     251
+D:        388 dCount is  54
+D:        388 dequeueing     196
+S:        506 sCount is  57
+S:        507 sCount is  56
+S        507: Enqueueing     252
+D:        389 dCount is  54
+D:        389 dequeueing     197
+S:        508 sCount is  56
+D:        390 dCount is  53
+D:        390 dequeueing     198
+S:        509 sCount is  55
+S        509: Enqueueing     253
+D:        391 dCount is  53
+D:        391 dequeueing     199
+S:        510 sCount is  56
+S:        511 sCount is  55
+S        511: Enqueueing     254
+D:        392 dCount is  53
+D:        392 dequeueing     200
+S:        512 sCount is  55
+D:        393 dCount is  52
+D:        393 dequeueing     201
+S:        513 sCount is  54
+S        513: Enqueueing     255
+D:        394 dCount is  52
+D:        394 dequeueing     202
+S:        514 sCount is  55
+S:        515 sCount is  54
+S        515: Enqueueing     256
+D:        395 dCount is  52
+D:        395 dequeueing     203
+S:        516 sCount is  54
+D:        396 dCount is  51
+D:        396 dequeueing     204
+S:        517 sCount is  53
+S        517: Enqueueing     257
+D:        397 dCount is  51
+D:        397 dequeueing     205
+S:        518 sCount is  54
+D:        398 dCount is  50
+D:        398 dequeueing     206
+S:        519 sCount is  53
+S        519: Enqueueing     258
+S:        520 sCount is  53
+D:        399 dCount is  50
+D:        399 dequeueing     207
+S:        521 sCount is  52
+S        521: Enqueueing     259
+D:        400 dCount is  50
+D:        400 dequeueing     208
+S:        522 sCount is  52
+D:        401 dCount is  49
+D:        401 dequeueing     209
+S:        523 sCount is  52
+S        523: Enqueueing     260
+S:        524 sCount is  52
+D:        402 dCount is  49
+D:        402 dequeueing     210
+S:        525 sCount is  51
+S        525: Enqueueing     261
+D:        403 dCount is  49
+D:        403 dequeueing     211
+S:        526 sCount is  51
+D:        404 dCount is  48
+D:        404 dequeueing     212
+S:        527 sCount is  51
+S        527: Enqueueing     262
+S:        528 sCount is  51
+D:        405 dCount is  48
+D:        405 dequeueing     213
+S:        529 sCount is  50
+S        529: Enqueueing     263
+D:        406 dCount is  48
+D:        406 dequeueing     214
+S:        530 sCount is  50
+D:        407 dCount is  47
+D:        407 dequeueing     215
+S:        531 sCount is  50
+S        531: Enqueueing     264
+D:        408 dCount is  47
+D:        408 dequeueing     216
+S:        532 sCount is  50
+S:        533 sCount is  49
+S        533: Enqueueing     265
+D:        409 dCount is  47
+D:        409 dequeueing     217
+S:        534 sCount is  49
+D:        410 dCount is  46
+D:        410 dequeueing     218
+S:        535 sCount is  48
+S        535: Enqueueing     266
+D:        411 dCount is  46
+D:        411 dequeueing     219
+S:        536 sCount is  49
+S:        537 sCount is  48
+S        537: Enqueueing     267
+D:        412 dCount is  46
+D:        412 dequeueing     220
+S:        538 sCount is  48
+D:        413 dCount is  45
+D:        413 dequeueing     221
+S:        539 sCount is  47
+S        539: Enqueueing     268
+D:        414 dCount is  45
+D:        414 dequeueing     222
+S:        540 sCount is  48
+S:        541 sCount is  47
+S        541: Enqueueing     269
+D:        415 dCount is  45
+D:        415 dequeueing     223
+S:        542 sCount is  47
+D:        416 dCount is  44
+D:        416 dequeueing     224
+S:        543 sCount is  46
+S        543: Enqueueing     270
+D:        417 dCount is  44
+D:        417 dequeueing     225
+S:        544 sCount is  47
+D:        418 dCount is  43
+D:        418 dequeueing     226
+S:        545 sCount is  46
+S        545: Enqueueing     271
+S:        546 sCount is  46
+D:        419 dCount is  43
+D:        419 dequeueing     227
+S:        547 sCount is  45
+S        547: Enqueueing     272
+D:        420 dCount is  43
+D:        420 dequeueing     228
+S:        548 sCount is  45
+D:        421 dCount is  42
+D:        421 dequeueing     229
+S:        549 sCount is  45
+S        549: Enqueueing     273
+S:        550 sCount is  45
+D:        422 dCount is  42
+D:        422 dequeueing     230
+S:        551 sCount is  44
+S        551: Enqueueing     274
+D:        423 dCount is  42
+D:        423 dequeueing     231
+S:        552 sCount is  44
+D:        424 dCount is  41
+D:        424 dequeueing     232
+S:        553 sCount is  44
+S        553: Enqueueing     275
+S:        554 sCount is  44
+D:        425 dCount is  41
+D:        425 dequeueing     233
+S:        555 sCount is  43
+S        555: Enqueueing     276
+D:        426 dCount is  41
+D:        426 dequeueing     234
+S:        556 sCount is  43
+D:        427 dCount is  40
+D:        427 dequeueing     235
+S:        557 sCount is  43
+S        557: Enqueueing     277
+D:        428 dCount is  40
+D:        428 dequeueing     236
+S:        558 sCount is  43
+S:        559 sCount is  42
+S        559: Enqueueing     278
+D:        429 dCount is  40
+D:        429 dequeueing     237
+S:        560 sCount is  42
+D:        430 dCount is  39
+D:        430 dequeueing     238
+S:        561 sCount is  41
+S        561: Enqueueing     279
+D:        431 dCount is  39
+D:        431 dequeueing     239
+S:        562 sCount is  42
+S:        563 sCount is  41
+S        563: Enqueueing     280
+D:        432 dCount is  39
+D:        432 dequeueing     240
+S:        564 sCount is  41
+D:        433 dCount is  38
+D:        433 dequeueing     241
+S:        565 sCount is  40
+S        565: Enqueueing     281
+D:        434 dCount is  38
+D:        434 dequeueing     242
+S:        566 sCount is  41
+S:        567 sCount is  40
+S        567: Enqueueing     282
+D:        435 dCount is  38
+D:        435 dequeueing     243
+S:        568 sCount is  40
+D:        436 dCount is  37
+D:        436 dequeueing     244
+S:        569 sCount is  39
+S        569: Enqueueing     283
+D:        437 dCount is  37
+D:        437 dequeueing     245
+S:        570 sCount is  40
+D:        438 dCount is  36
+D:        438 dequeueing     246
+S:        571 sCount is  39
+S        571: Enqueueing     284
+S:        572 sCount is  39
+D:        439 dCount is  36
+D:        439 dequeueing     247
+S:        573 sCount is  38
+S        573: Enqueueing     285
+D:        440 dCount is  36
+D:        440 dequeueing     248
+S:        574 sCount is  38
+D:        441 dCount is  35
+D:        441 dequeueing     249
+S:        575 sCount is  38
+S        575: Enqueueing     286
+S:        576 sCount is  38
+D:        442 dCount is  35
+D:        442 dequeueing     250
+S:        577 sCount is  37
+S        577: Enqueueing     287
+D:        443 dCount is  35
+D:        443 dequeueing     251
+S:        578 sCount is  37
+D:        444 dCount is  34
+D:        444 dequeueing     252
+S:        579 sCount is  37
+S        579: Enqueueing     288
+S:        580 sCount is  37
+D:        445 dCount is  34
+D:        445 dequeueing     253
+S:        581 sCount is  36
+S        581: Enqueueing     289
+D:        446 dCount is  34
+D:        446 dequeueing     254
+S:        582 sCount is  36
+D:        447 dCount is  33
+D:        447 dequeueing     255
+S:        583 sCount is  36
+S        583: Enqueueing     290
+D:        448 dCount is  33
+D:        448 dequeueing     256
+S:        584 sCount is  36
+S:        585 sCount is  35
+S        585: Enqueueing     291
+D:        449 dCount is  33
+D:        449 dequeueing     257
+S:        586 sCount is  35
+D:        450 dCount is  32
+D:        450 dequeueing     258
+S:        587 sCount is  34
+S        587: Enqueueing     292
+D:        451 dCount is  32
+D:        451 dequeueing     259
+S:        588 sCount is  35
+S:        589 sCount is  34
+S        589: Enqueueing     293
+D:        452 dCount is  32
+D:        452 dequeueing     260
+S:        590 sCount is  34
+D:        453 dCount is  31
+D:        453 dequeueing     261
+S:        591 sCount is  33
+S        591: Enqueueing     294
+D:        454 dCount is  31
+D:        454 dequeueing     262
+S:        592 sCount is  34
+S:        593 sCount is  33
+S        593: Enqueueing     295
+D:        455 dCount is  31
+D:        455 dequeueing     263
+S:        594 sCount is  33
+D:        456 dCount is  30
+D:        456 dequeueing     264
+S:        595 sCount is  32
+S        595: Enqueueing     296
+D:        457 dCount is  30
+D:        457 dequeueing     265
+S:        596 sCount is  33
+D:        458 dCount is  29
+D:        458 dequeueing     266
+S:        597 sCount is  32
+S        597: Enqueueing     297
+S:        598 sCount is  32
+D:        459 dCount is  29
+D:        459 dequeueing     267
+S:        599 sCount is  31
+S        599: Enqueueing     298
+D:        460 dCount is  29
+D:        460 dequeueing     268
+S:        600 sCount is  31
+S:        600 clearing
+D:        461 dCount is  28
+D:        461 dequeueing     269
+S:        601 sCount is   0
+S:        602 sCount is   0
+D:        462 dCount is  28
+D:        462 dequeueing     270
+S:        603 sCount is   0
+D:        463 dCount is  28
+D:        463 dequeueing     271
+S:        604 sCount is   0
+D:        464 dCount is   0
+S:        605 sCount is   0
+S:        606 sCount is 240
+S        606: Enqueueing     300
+D:        465 dCount is   0
+S:        607 sCount is   1
+D:        466 dCount is   0
+S:        608 sCount is   1
+S        608: Enqueueing     301
+D:        467 dCount is   0
+S:        609 sCount is   2
+D:        468 dCount is   0
+S:        610 sCount is   2
+S        610: Enqueueing     302
+S:        611 sCount is   3
+D:        469 dCount is   1
+S:        612 sCount is   3
+S        612: Enqueueing     303
+D:        470 dCount is   1
+S:        613 sCount is   3
+D:        471 dCount is   1
+S:        614 sCount is   3
+S        614: Enqueueing     304
+S:        615 sCount is   4
+D:        472 dCount is   2
+S:        616 sCount is   4
+S        616: Enqueueing     305
+D:        473 dCount is   3
+S:        617 sCount is   5
+D:        474 dCount is   3
+S:        618 sCount is   5
+S        618: Enqueueing     306
+S:        619 sCount is   6
+D:        475 dCount is   4
+S:        620 sCount is   6
+S        620: Enqueueing     307
+D:        476 dCount is   5
+S:        621 sCount is   7
+D:        477 dCount is   5
+S:        622 sCount is   7
+S        622: Enqueueing     308
+D:        478 dCount is   6
+S:        623 sCount is   8
+S:        624 sCount is   8
+S        624: Enqueueing     309
+D:        479 dCount is   7
+S:        625 sCount is   9
+D:        480 dCount is   7
+S:        626 sCount is   9
+S        626: Enqueueing     310
+D:        481 dCount is   8
+S:        627 sCount is  10
+S:        628 sCount is  10
+S        628: Enqueueing     311
+D:        482 dCount is   9
+S:        629 sCount is  11
+D:        483 dCount is   9
+S:        630 sCount is  11
+S        630: Enqueueing     312
+D:        484 dCount is  10
+S:        631 sCount is  12
+S:        632 sCount is  12
+S        632: Enqueueing     313
+D:        485 dCount is  11
+S:        633 sCount is  13
+D:        486 dCount is  11
+S:        634 sCount is  13
+S        634: Enqueueing     314
+D:        487 dCount is  12
+S:        635 sCount is  14
+D:        488 dCount is  12
+S:        636 sCount is  14
+S        636: Enqueueing     315
+S:        637 sCount is  15
+D:        489 dCount is  13
+S:        638 sCount is  15
+S        638: Enqueueing     316
+D:        490 dCount is  14
+S:        639 sCount is  16
+D:        491 dCount is  14
+S:        640 sCount is  16
+S        640: Enqueueing     317
+S:        641 sCount is  17
+D:        492 dCount is  15
+S:        642 sCount is  17
+S        642: Enqueueing     318
+D:        493 dCount is  16
+S:        643 sCount is  18
+D:        494 dCount is  16
+S:        644 sCount is  18
+S        644: Enqueueing     319
+S:        645 sCount is  19
+D:        495 dCount is  17
+S:        646 sCount is  19
+S        646: Enqueueing     320
+D:        496 dCount is  18
+S:        647 sCount is  20
+D:        497 dCount is  18
+S:        648 sCount is  20
+S        648: Enqueueing     321
+D:        498 dCount is  19
+S:        649 sCount is  21
+S:        650 sCount is  21
+S        650: Enqueueing     322
+D:        499 dCount is  20
+S:        651 sCount is  22
+D:        500 dCount is  20
+S:        652 sCount is  22
+S        652: Enqueueing     323
+D:        501 dCount is  21
+S:        653 sCount is  23
+S:        654 sCount is  23
+S        654: Enqueueing     324
+D:        502 dCount is  22
+S:        655 sCount is  24
+D:        503 dCount is  22
+S:        656 sCount is  24
+S        656: Enqueueing     325
+D:        504 dCount is  23
+S:        657 sCount is  25
+S:        658 sCount is  25
+S        658: Enqueueing     326
+D:        505 dCount is  24
+S:        659 sCount is  26
+D:        506 dCount is  24
+S:        660 sCount is  26
+S        660: Enqueueing     327
+D:        507 dCount is  25
+S:        661 sCount is  27
+D:        508 dCount is  25
+S:        662 sCount is  27
+S        662: Enqueueing     328
+S:        663 sCount is  28
+D:        509 dCount is  26
+S:        664 sCount is  28
+S        664: Enqueueing     329
+D:        510 dCount is  27
+S:        665 sCount is  29
+D:        511 dCount is  27
+S:        666 sCount is  29
+S        666: Enqueueing     330
+S:        667 sCount is  30
+D:        512 dCount is  28
+S:        668 sCount is  30
+S        668: Enqueueing     331
+D:        513 dCount is  29
+S:        669 sCount is  31
+D:        514 dCount is  29
+S:        670 sCount is  31
+S        670: Enqueueing     332
+S:        671 sCount is  32
+D:        515 dCount is  30
+S:        672 sCount is  32
+S        672: Enqueueing     333
+D:        516 dCount is  31
+S:        673 sCount is  33
+D:        517 dCount is  31
+S:        674 sCount is  33
+S        674: Enqueueing     334
+D:        518 dCount is  32
+S:        675 sCount is  34
+S:        676 sCount is  34
+S        676: Enqueueing     335
+D:        519 dCount is  33
+S:        677 sCount is  35
+D:        520 dCount is  33
+S:        678 sCount is  35
+S        678: Enqueueing     336
+D:        521 dCount is  34
+S:        679 sCount is  36
+S:        680 sCount is  36
+S        680: Enqueueing     337
+D:        522 dCount is  35
+S:        681 sCount is  37
+D:        523 dCount is  35
+S:        682 sCount is  37
+S        682: Enqueueing     338
+D:        524 dCount is  36
+S:        683 sCount is  38
+S:        684 sCount is  38
+S        684: Enqueueing     339
+D:        525 dCount is  37
+S:        685 sCount is  39
+D:        526 dCount is  37
+S:        686 sCount is  39
+S        686: Enqueueing     340
+D:        527 dCount is  38
+S:        687 sCount is  40
+D:        528 dCount is  38
+S:        688 sCount is  40
+S        688: Enqueueing     341
+S:        689 sCount is  41
+D:        529 dCount is  39
+S:        690 sCount is  41
+S        690: Enqueueing     342
+D:        530 dCount is  40
+S:        691 sCount is  42
+D:        531 dCount is  40
+S:        692 sCount is  42
+S        692: Enqueueing     343
+S:        693 sCount is  43
+D:        532 dCount is  41
+S:        694 sCount is  43
+S        694: Enqueueing     344
+D:        533 dCount is  42
+S:        695 sCount is  44
+D:        534 dCount is  42
+S:        696 sCount is  44
+S        696: Enqueueing     345
+S:        697 sCount is  45
+D:        535 dCount is  43
+S:        698 sCount is  45
+S        698: Enqueueing     346
+D:        536 dCount is  44
+S:        699 sCount is  46
+D:        537 dCount is  44
+S:        700 sCount is  46
+S        700: Enqueueing     347
+D:        538 dCount is  45
+S:        701 sCount is  47
+S:        702 sCount is  47
+S        702: Enqueueing     348
+D:        539 dCount is  46
+S:        703 sCount is  48
+D:        540 dCount is  46
+S:        704 sCount is  48
+S        704: Enqueueing     349
+D:        541 dCount is  47
+S:        705 sCount is  49
+S:        706 sCount is  49
+S        706: Enqueueing     350
+D:        542 dCount is  48
+S:        707 sCount is  50
+D:        543 dCount is  48
+S:        708 sCount is  50
+S        708: Enqueueing     351
+D:        544 dCount is  49
+S:        709 sCount is  51
+S:        710 sCount is  51
+S        710: Enqueueing     352
+D:        545 dCount is  50
+S:        711 sCount is  52
+D:        546 dCount is  50
+S:        712 sCount is  52
+S        712: Enqueueing     353
+D:        547 dCount is  51
+S:        713 sCount is  53
+D:        548 dCount is  51
+S:        714 sCount is  53
+S        714: Enqueueing     354
+S:        715 sCount is  54
+D:        549 dCount is  52
+S:        716 sCount is  54
+S        716: Enqueueing     355
+D:        550 dCount is  53
+S:        717 sCount is  55
+D:        551 dCount is  53
+S:        718 sCount is  55
+S        718: Enqueueing     356
+S:        719 sCount is  56
+D:        552 dCount is  54
+S:        720 sCount is  56
+S        720: Enqueueing     357
+D:        553 dCount is  55
+S:        721 sCount is  57
+D:        554 dCount is  55
+S:        722 sCount is  57
+S        722: Enqueueing     358
+S:        723 sCount is  58
+D:        555 dCount is  56
+S:        724 sCount is  58
+S        724: Enqueueing     359
+D:        556 dCount is  57
+S:        725 sCount is  59
+D:        557 dCount is  57
+S:        726 sCount is  59
+S        726: Enqueueing     360
+D:        558 dCount is  58
+S:        727 sCount is  60
+S:        728 sCount is  60
+S        728: Enqueueing     361
+D:        559 dCount is  59
+S:        729 sCount is  61
+D:        560 dCount is  59
+S:        730 sCount is  61
+S        730: Enqueueing     362
+D:        561 dCount is  60
+S:        731 sCount is  62
+S:        732 sCount is  62
+S        732: Enqueueing     363
+D:        562 dCount is  61
+S:        733 sCount is  63
+D:        563 dCount is  61
+S:        734 sCount is  63
+S        734: Enqueueing     364
+D:        564 dCount is  62
+S:        735 sCount is  64
+S:        736 sCount is  64
+S        736: Enqueueing     365
+D:        565 dCount is  63
+S:        737 sCount is  65
+D:        566 dCount is  63
+S:        738 sCount is  65
+S        738: Enqueueing     366
+D:        567 dCount is  64
+S:        739 sCount is  66
+D:        568 dCount is  64
+S:        740 sCount is  66
+S        740: Enqueueing     367
+S:        741 sCount is  67
+D:        569 dCount is  65
+S:        742 sCount is  67
+S        742: Enqueueing     368
+D:        570 dCount is  66
+S:        743 sCount is  68
+D:        571 dCount is  66
+S:        744 sCount is  68
+S        744: Enqueueing     369
+S:        745 sCount is  69
+D:        572 dCount is  67
+S:        746 sCount is  69
+S        746: Enqueueing     370
+D:        573 dCount is  68
+S:        747 sCount is  70
+D:        574 dCount is  68
+S:        748 sCount is  70
+S        748: Enqueueing     371
+S:        749 sCount is  71
+D:        575 dCount is  69
+S:        750 sCount is  71
+S        750: Enqueueing     372
+D:        576 dCount is  70
+S:        751 sCount is  72
+D:        577 dCount is  70
+S:        752 sCount is  72
+S        752: Enqueueing     373
+D:        578 dCount is  71
+S:        753 sCount is  73
+S:        754 sCount is  73
+S        754: Enqueueing     374
+D:        579 dCount is  72
+S:        755 sCount is  74
+D:        580 dCount is  72
+S:        756 sCount is  74
+S        756: Enqueueing     375
+D:        581 dCount is  73
+S:        757 sCount is  75
+S:        758 sCount is  75
+S        758: Enqueueing     376
+D:        582 dCount is  74
+S:        759 sCount is  76
+D:        583 dCount is  74
+S:        760 sCount is  76
+S        760: Enqueueing     377
+D:        584 dCount is  75
+S:        761 sCount is  77
+S:        762 sCount is  77
+S        762: Enqueueing     378
+D:        585 dCount is  76
+S:        763 sCount is  78
+D:        586 dCount is  76
+S:        764 sCount is  78
+S        764: Enqueueing     379
+D:        587 dCount is  77
+S:        765 sCount is  79
+D:        588 dCount is  77
+S:        766 sCount is  79
+S        766: Enqueueing     380
+S:        767 sCount is  80
+D:        589 dCount is  78
+S:        768 sCount is  80
+S        768: Enqueueing     381
+D:        590 dCount is  79
+S:        769 sCount is  81
+D:        591 dCount is  79
+S:        770 sCount is  81
+S        770: Enqueueing     382
+S:        771 sCount is  82
+D:        592 dCount is  80
+S:        772 sCount is  82
+S        772: Enqueueing     383
+D:        593 dCount is  81
+S:        773 sCount is  83
+D:        594 dCount is  81
+S:        774 sCount is  83
+S        774: Enqueueing     384
+S:        775 sCount is  84
+D:        595 dCount is  82
+S:        776 sCount is  84
+S        776: Enqueueing     385
+D:        596 dCount is  83
+S:        777 sCount is  85
+D:        597 dCount is  83
+S:        778 sCount is  85
+S        778: Enqueueing     386
+D:        598 dCount is  84
+S:        779 sCount is  86
+S:        780 sCount is  86
+S        780: Enqueueing     387
+D:        599 dCount is  85
+S:        781 sCount is  87
+D:        600 dCount is  85
+S:        782 sCount is  87
+S        782: Enqueueing     388
+D:        601 dCount is  86
+S:        783 sCount is  88
+S:        784 sCount is  88
+S        784: Enqueueing     389
+D:        602 dCount is  87
+S:        785 sCount is  89
+D:        603 dCount is  87
+S:        786 sCount is  89
+S        786: Enqueueing     390
+D:        604 dCount is  88
+S:        787 sCount is  90
+S:        788 sCount is  90
+S        788: Enqueueing     391
+D:        605 dCount is  89
+S:        789 sCount is  91
+D:        606 dCount is  89
+S:        790 sCount is  91
+S        790: Enqueueing     392
+D:        607 dCount is  90
+S:        791 sCount is  92
+D:        608 dCount is  90
+S:        792 sCount is  92
+S        792: Enqueueing     393
+S:        793 sCount is  93
+D:        609 dCount is  91
+S:        794 sCount is  93
+S        794: Enqueueing     394
+D:        610 dCount is  92
+S:        795 sCount is  94
+D:        611 dCount is  92
+S:        796 sCount is  94
+S        796: Enqueueing     395
+S:        797 sCount is  95
+D:        612 dCount is  93
+S:        798 sCount is  95
+S        798: Enqueueing     396
+D:        613 dCount is  94
+S:        799 sCount is  96
+D:        614 dCount is  94
+S:        800 sCount is  96
+S        800: Enqueueing     397
+S:        801 sCount is  97
+D:        615 dCount is  95
+S:        802 sCount is  97
+S        802: Enqueueing     398
+D:        616 dCount is  96
+S:        803 sCount is  98
+D:        617 dCount is  96
+S:        804 sCount is  98
+S        804: Enqueueing     399
+D:        618 dCount is  97
+S:        805 sCount is  99
+S:        806 sCount is  99
+S        806: Enqueueing     400
+D:        619 dCount is  98
+S:        807 sCount is 100
+D:        620 dCount is  98
+S:        808 sCount is 100
+S        808: Enqueueing     401
+D:        621 dCount is  99
+S:        809 sCount is 101
+S:        810 sCount is 101
+S        810: Enqueueing     402
+D:        622 dCount is 100
+S:        811 sCount is 102
+D:        623 dCount is 100
+S:        812 sCount is 102
+S        812: Enqueueing     403
+D:        624 dCount is 101
+S:        813 sCount is 103
+S:        814 sCount is 103
+S        814: Enqueueing     404
+D:        625 dCount is 102
+S:        815 sCount is 104
+D:        626 dCount is 102
+S:        816 sCount is 104
+S        816: Enqueueing     405
+D:        627 dCount is 103
+S:        817 sCount is 105
+D:        628 dCount is 103
+S:        818 sCount is 105
+S        818: Enqueueing     406
+S:        819 sCount is 106
+D:        629 dCount is 104
+S:        820 sCount is 106
+S        820: Enqueueing     407
+D:        630 dCount is 105
+S:        821 sCount is 107
+D:        631 dCount is 105
+S:        822 sCount is 107
+S        822: Enqueueing     408
+S:        823 sCount is 108
+D:        632 dCount is 106
+S:        824 sCount is 108
+S        824: Enqueueing     409
+D:        633 dCount is 107
+S:        825 sCount is 109
+D:        634 dCount is 107
+S:        826 sCount is 109
+S        826: Enqueueing     410
+S:        827 sCount is 110
+D:        635 dCount is 108
+S:        828 sCount is 110
+S        828: Enqueueing     411
+D:        636 dCount is 109
+S:        829 sCount is 111
+D:        637 dCount is 109
+S:        830 sCount is 111
+S        830: Enqueueing     412
+D:        638 dCount is 110
+S:        831 sCount is 112
+S:        832 sCount is 112
+S        832: Enqueueing     413
+D:        639 dCount is 111
+S:        833 sCount is 113
+D:        640 dCount is 111
+S:        834 sCount is 113
+S        834: Enqueueing     414
+D:        641 dCount is 112
+S:        835 sCount is 114
+S:        836 sCount is 114
+S        836: Enqueueing     415
+D:        642 dCount is 113
+S:        837 sCount is 115
+D:        643 dCount is 113
+S:        838 sCount is 115
+S        838: Enqueueing     416
+D:        644 dCount is 114
+S:        839 sCount is 116
+S:        840 sCount is 116
+S        840: Enqueueing     417
+D:        645 dCount is 115
+S:        841 sCount is 117
+D:        646 dCount is 115
+S:        842 sCount is 117
+S        842: Enqueueing     418
+D:        647 dCount is 116
+S:        843 sCount is 118
+D:        648 dCount is 116
+S:        844 sCount is 118
+S        844: Enqueueing     419
+S:        845 sCount is 119
+D:        649 dCount is 117
+S:        846 sCount is 119
+S        846: Enqueueing     420
+D:        650 dCount is 118
+S:        847 sCount is 120
+D:        651 dCount is 118
+S:        848 sCount is 120
+S        848: Enqueueing     421
+S:        849 sCount is 121
+D:        652 dCount is 119
+S:        850 sCount is 121
+S        850: Enqueueing     422
+D:        653 dCount is 120
+S:        851 sCount is 122
+D:        654 dCount is 120
+S:        852 sCount is 122
+S        852: Enqueueing     423
+S:        853 sCount is 123
+D:        655 dCount is 121
+S:        854 sCount is 123
+S        854: Enqueueing     424
+D:        656 dCount is 122
+D:        656 dequeueing     300
+S:        855 sCount is 124
+D:        657 dCount is 122
+D:        657 dequeueing     301
+S:        856 sCount is 124
+S        856: Enqueueing     425
+D:        658 dCount is 122
+D:        658 dequeueing     302
+S:        857 sCount is 125
+S:        858 sCount is 124
+S        858: Enqueueing     426
+D:        659 dCount is 122
+D:        659 dequeueing     303
+S:        859 sCount is 124
+D:        660 dCount is 121
+D:        660 dequeueing     304
+S:        860 sCount is 123
+S        860: Enqueueing     427
+D:        661 dCount is 121
+D:        661 dequeueing     305
+S:        861 sCount is 124
+S:        862 sCount is 123
+S        862: Enqueueing     428
+D:        662 dCount is 121
+D:        662 dequeueing     306
+S:        863 sCount is 123
+D:        663 dCount is 120
+D:        663 dequeueing     307
+S:        864 sCount is 122
+S        864: Enqueueing     429
+D:        664 dCount is 120
+D:        664 dequeueing     308
+S:        865 sCount is 123
+S:        866 sCount is 122
+S        866: Enqueueing     430
+D:        665 dCount is 120
+D:        665 dequeueing     309
+S:        867 sCount is 122
+D:        666 dCount is 119
+D:        666 dequeueing     310
+S:        868 sCount is 121
+S        868: Enqueueing     431
+D:        667 dCount is 119
+D:        667 dequeueing     311
+S:        869 sCount is 122
+D:        668 dCount is 118
+D:        668 dequeueing     312
+S:        870 sCount is 121
+S        870: Enqueueing     432
+S:        871 sCount is 121
+D:        669 dCount is 118
+D:        669 dequeueing     313
+S:        872 sCount is 120
+S        872: Enqueueing     433
+D:        670 dCount is 118
+D:        670 dequeueing     314
+S:        873 sCount is 120
+D:        671 dCount is 117
+D:        671 dequeueing     315
+S:        874 sCount is 120
+S        874: Enqueueing     434
+S:        875 sCount is 120
+D:        672 dCount is 117
+D:        672 dequeueing     316
+S:        876 sCount is 119
+S        876: Enqueueing     435
+D:        673 dCount is 117
+D:        673 dequeueing     317
+S:        877 sCount is 119
+D:        674 dCount is 116
+D:        674 dequeueing     318
+S:        878 sCount is 119
+S        878: Enqueueing     436
+S:        879 sCount is 119
+D:        675 dCount is 116
+D:        675 dequeueing     319
+S:        880 sCount is 118
+S        880: Enqueueing     437
+D:        676 dCount is 116
+D:        676 dequeueing     320
+S:        881 sCount is 118
+D:        677 dCount is 115
+D:        677 dequeueing     321
+S:        882 sCount is 118
+S        882: Enqueueing     438
+D:        678 dCount is 115
+D:        678 dequeueing     322
+S:        883 sCount is 118
+S:        884 sCount is 117
+S        884: Enqueueing     439
+D:        679 dCount is 115
+D:        679 dequeueing     323
+S:        885 sCount is 117
+D:        680 dCount is 114
+D:        680 dequeueing     324
+S:        886 sCount is 116
+S        886: Enqueueing     440
+D:        681 dCount is 114
+D:        681 dequeueing     325
+S:        887 sCount is 117
+S:        888 sCount is 116
+S        888: Enqueueing     441
+D:        682 dCount is 114
+D:        682 dequeueing     326
+S:        889 sCount is 116
+D:        683 dCount is 113
+D:        683 dequeueing     327
+S:        890 sCount is 115
+S        890: Enqueueing     442
+D:        684 dCount is 113
+D:        684 dequeueing     328
+S:        891 sCount is 116
+S:        892 sCount is 115
+S        892: Enqueueing     443
+D:        685 dCount is 113
+D:        685 dequeueing     329
+S:        893 sCount is 115
+D:        686 dCount is 112
+D:        686 dequeueing     330
+S:        894 sCount is 114
+S        894: Enqueueing     444
+D:        687 dCount is 112
+D:        687 dequeueing     331
+S:        895 sCount is 115
+D:        688 dCount is 111
+D:        688 dequeueing     332
+S:        896 sCount is 114
+S        896: Enqueueing     445
+S:        897 sCount is 114
+D:        689 dCount is 111
+D:        689 dequeueing     333
+S:        898 sCount is 113
+S        898: Enqueueing     446
+D:        690 dCount is 111
+D:        690 dequeueing     334
+S:        899 sCount is 113
+D:        691 dCount is 110
+D:        691 dequeueing     335
+S:        900 sCount is 113
+S        900: Enqueueing     447
+S:        901 sCount is 113
+D:        692 dCount is 110
+D:        692 dequeueing     336
+S:        902 sCount is 112
+S        902: Enqueueing     448
+D:        693 dCount is 110
+D:        693 dequeueing     337
+S:        903 sCount is 112
+D:        694 dCount is 109
+D:        694 dequeueing     338
+S:        904 sCount is 112
+S        904: Enqueueing     449
+S:        905 sCount is 112
+D:        695 dCount is 109
+D:        695 dequeueing     339
+S:        906 sCount is 111
+S        906: Enqueueing     450
+D:        696 dCount is 109
+D:        696 dequeueing     340
+S:        907 sCount is 111
+D:        697 dCount is 108
+D:        697 dequeueing     341
+S:        908 sCount is 111
+S        908: Enqueueing     451
+D:        698 dCount is 108
+D:        698 dequeueing     342
+S:        909 sCount is 111
+S:        910 sCount is 110
+S        910: Enqueueing     452
+D:        699 dCount is 108
+D:        699 dequeueing     343
+S:        911 sCount is 110
+D:        700 dCount is 107
+D:        700 dequeueing     344
+S:        912 sCount is 109
+S        912: Enqueueing     453
+D:        701 dCount is 107
+D:        701 dequeueing     345
+S:        913 sCount is 110
+S:        914 sCount is 109
+S        914: Enqueueing     454
+D:        702 dCount is 107
+D:        702 dequeueing     346
+S:        915 sCount is 109
+D:        703 dCount is 106
+D:        703 dequeueing     347
+S:        916 sCount is 108
+S        916: Enqueueing     455
+D:        704 dCount is 106
+D:        704 dequeueing     348
+S:        917 sCount is 109
+S:        918 sCount is 108
+S        918: Enqueueing     456
+D:        705 dCount is 106
+D:        705 dequeueing     349
+S:        919 sCount is 108
+D:        706 dCount is 105
+D:        706 dequeueing     350
+S:        920 sCount is 107
+S        920: Enqueueing     457
+D:        707 dCount is 105
+D:        707 dequeueing     351
+S:        921 sCount is 108
+D:        708 dCount is 104
+D:        708 dequeueing     352
+S:        922 sCount is 107
+S        922: Enqueueing     458
+S:        923 sCount is 107
+D:        709 dCount is 104
+D:        709 dequeueing     353
+S:        924 sCount is 106
+S        924: Enqueueing     459
+D:        710 dCount is 104
+D:        710 dequeueing     354
+S:        925 sCount is 106
+D:        711 dCount is 103
+D:        711 dequeueing     355
+S:        926 sCount is 106
+S        926: Enqueueing     460
+S:        927 sCount is 106
+D:        712 dCount is 103
+D:        712 dequeueing     356
+S:        928 sCount is 105
+S        928: Enqueueing     461
+D:        713 dCount is 103
+D:        713 dequeueing     357
+S:        929 sCount is 105
+D:        714 dCount is 102
+D:        714 dequeueing     358
+S:        930 sCount is 105
+S        930: Enqueueing     462
+S:        931 sCount is 105
+D:        715 dCount is 102
+D:        715 dequeueing     359
+S:        932 sCount is 104
+S        932: Enqueueing     463
+D:        716 dCount is 102
+D:        716 dequeueing     360
+S:        933 sCount is 104
+D:        717 dCount is 101
+D:        717 dequeueing     361
+S:        934 sCount is 104
+S        934: Enqueueing     464
+D:        718 dCount is 101
+D:        718 dequeueing     362
+S:        935 sCount is 104
+S:        936 sCount is 103
+S        936: Enqueueing     465
+D:        719 dCount is 101
+D:        719 dequeueing     363
+S:        937 sCount is 103
+D:        720 dCount is 100
+D:        720 dequeueing     364
+S:        938 sCount is 102
+S        938: Enqueueing     466
+D:        721 dCount is 100
+D:        721 dequeueing     365
+S:        939 sCount is 103
+S:        940 sCount is 102
+S        940: Enqueueing     467
+D:        722 dCount is 100
+D:        722 dequeueing     366
+S:        941 sCount is 102
+D:        723 dCount is  99
+D:        723 dequeueing     367
+S:        942 sCount is 101
+S        942: Enqueueing     468
+D:        724 dCount is  99
+D:        724 dequeueing     368
+S:        943 sCount is 102
+S:        944 sCount is 101
+S        944: Enqueueing     469
+D:        725 dCount is  99
+D:        725 dequeueing     369
+S:        945 sCount is 101
+D:        726 dCount is  98
+D:        726 dequeueing     370
+S:        946 sCount is 100
+S        946: Enqueueing     470
+D:        727 dCount is  98
+D:        727 dequeueing     371
+S:        947 sCount is 101
+D:        728 dCount is  97
+D:        728 dequeueing     372
+S:        948 sCount is 100
+S        948: Enqueueing     471
+S:        949 sCount is 100
+D:        729 dCount is  97
+D:        729 dequeueing     373
+S:        950 sCount is  99
+S        950: Enqueueing     472
+D:        730 dCount is  97
+D:        730 dequeueing     374
+S:        951 sCount is  99
+D:        731 dCount is  96
+D:        731 dequeueing     375
+S:        952 sCount is  99
+S        952: Enqueueing     473
+S:        953 sCount is  99
+D:        732 dCount is  96
+D:        732 dequeueing     376
+S:        954 sCount is  98
+S        954: Enqueueing     474
+D:        733 dCount is  96
+D:        733 dequeueing     377
+S:        955 sCount is  98
+D:        734 dCount is  95
+D:        734 dequeueing     378
+S:        956 sCount is  98
+S        956: Enqueueing     475
+S:        957 sCount is  98
+D:        735 dCount is  95
+D:        735 dequeueing     379
+S:        958 sCount is  97
+S        958: Enqueueing     476
+D:        736 dCount is  95
+D:        736 dequeueing     380
+S:        959 sCount is  97
+D:        737 dCount is  94
+D:        737 dequeueing     381
+S:        960 sCount is  97
+S        960: Enqueueing     477
+D:        738 dCount is  94
+D:        738 dequeueing     382
+S:        961 sCount is  97
+S:        962 sCount is  96
+S        962: Enqueueing     478
+D:        739 dCount is  94
+D:        739 dequeueing     383
+S:        963 sCount is  96
+D:        740 dCount is  93
+D:        740 dequeueing     384
+S:        964 sCount is  95
+S        964: Enqueueing     479
+D:        741 dCount is  93
+D:        741 dequeueing     385
+S:        965 sCount is  96
+S:        966 sCount is  95
+S        966: Enqueueing     480
+D:        742 dCount is  93
+D:        742 dequeueing     386
+S:        967 sCount is  95
+D:        743 dCount is  92
+D:        743 dequeueing     387
+S:        968 sCount is  94
+S        968: Enqueueing     481
+D:        744 dCount is  92
+D:        744 dequeueing     388
+S:        969 sCount is  95
+S:        970 sCount is  94
+S        970: Enqueueing     482
+D:        745 dCount is  92
+D:        745 dequeueing     389
+S:        971 sCount is  94
+D:        746 dCount is  91
+D:        746 dequeueing     390
+S:        972 sCount is  93
+S        972: Enqueueing     483
+D:        747 dCount is  91
+D:        747 dequeueing     391
+S:        973 sCount is  94
+D:        748 dCount is  90
+D:        748 dequeueing     392
+S:        974 sCount is  93
+S        974: Enqueueing     484
+S:        975 sCount is  93
+D:        749 dCount is  90
+D:        749 dequeueing     393
+S:        976 sCount is  92
+S        976: Enqueueing     485
+D:        750 dCount is  90
+D:        750 dequeueing     394
+S:        977 sCount is  92
+D:        751 dCount is  89
+D:        751 dequeueing     395
+S:        978 sCount is  92
+S        978: Enqueueing     486
+S:        979 sCount is  92
+D:        752 dCount is  89
+D:        752 dequeueing     396
+S:        980 sCount is  91
+S        980: Enqueueing     487
+D:        753 dCount is  89
+D:        753 dequeueing     397
+S:        981 sCount is  91
+D:        754 dCount is  88
+D:        754 dequeueing     398
+S:        982 sCount is  91
+S        982: Enqueueing     488
+S:        983 sCount is  91
+D:        755 dCount is  88
+D:        755 dequeueing     399
+S:        984 sCount is  90
+S        984: Enqueueing     489
+D:        756 dCount is  88
+D:        756 dequeueing     400
+S:        985 sCount is  90
+D:        757 dCount is  87
+D:        757 dequeueing     401
+S:        986 sCount is  90
+S        986: Enqueueing     490
+D:        758 dCount is  87
+D:        758 dequeueing     402
+S:        987 sCount is  90
+S:        988 sCount is  89
+S        988: Enqueueing     491
+D:        759 dCount is  87
+D:        759 dequeueing     403
+S:        989 sCount is  89
+D:        760 dCount is  86
+D:        760 dequeueing     404
+S:        990 sCount is  88
+S        990: Enqueueing     492
+D:        761 dCount is  86
+D:        761 dequeueing     405
+S:        991 sCount is  89
+S:        992 sCount is  88
+S        992: Enqueueing     493
+D:        762 dCount is  86
+D:        762 dequeueing     406
+S:        993 sCount is  88
+D:        763 dCount is  85
+D:        763 dequeueing     407
+S:        994 sCount is  87
+S        994: Enqueueing     494
+D:        764 dCount is  85
+D:        764 dequeueing     408
+S:        995 sCount is  88
+S:        996 sCount is  87
+S        996: Enqueueing     495
+D:        765 dCount is  85
+D:        765 dequeueing     409
+S:        997 sCount is  87
+D:        766 dCount is  84
+D:        766 dequeueing     410
+S:        998 sCount is  86
+S        998: Enqueueing     496
+D:        767 dCount is  84
+D:        767 dequeueing     411
+S:        999 sCount is  87
+D:        768 dCount is  83
+D:        768 dequeueing     412
+S:       1000 sCount is  86
+S       1000: Enqueueing     497
+S:       1001 sCount is  86
+D:        769 dCount is  83
+D:        769 dequeueing     413
+S:       1002 sCount is  85
+S       1002: Enqueueing     498
+D:        770 dCount is  83
+D:        770 dequeueing     414
+S:       1003 sCount is  85
+D:        771 dCount is  82
+D:        771 dequeueing     415
+S:       1004 sCount is  85
+S       1004: Enqueueing     499
+S:       1005 sCount is  85
+D:        772 dCount is  82
+D:        772 dequeueing     416
+S:       1006 sCount is  84
+S       1006: Enqueueing     500
+D:        773 dCount is  82
+D:        773 dequeueing     417
+S:       1007 sCount is  84
+D:        774 dCount is  81
+D:        774 dequeueing     418
+S:       1008 sCount is  84
+S       1008: Enqueueing     501
+S:       1009 sCount is  84
+D:        775 dCount is  81
+D:        775 dequeueing     419
+S:       1010 sCount is  83
+S       1010: Enqueueing     502
+D:        776 dCount is  81
+D:        776 dequeueing     420
+S:       1011 sCount is  83
+D:        777 dCount is  80
+D:        777 dequeueing     421
+S:       1012 sCount is  83
+S       1012: Enqueueing     503
+D:        778 dCount is  80
+D:        778 dequeueing     422
+S:       1013 sCount is  83
+S:       1014 sCount is  82
+S       1014: Enqueueing     504
+D:        779 dCount is  80
+D:        779 dequeueing     423
+S:       1015 sCount is  82
+D:        780 dCount is  79
+D:        780 dequeueing     424
+S:       1016 sCount is  81
+S       1016: Enqueueing     505
+D:        781 dCount is  79
+D:        781 dequeueing     425
+S:       1017 sCount is  82
+S:       1018 sCount is  81
+S       1018: Enqueueing     506
+D:        782 dCount is  79
+D:        782 dequeueing     426
+S:       1019 sCount is  81
+D:        783 dCount is  78
+D:        783 dequeueing     427
+S:       1020 sCount is  80
+S       1020: Enqueueing     507
+D:        784 dCount is  78
+D:        784 dequeueing     428
+S:       1021 sCount is  81
+S:       1022 sCount is  80
+S       1022: Enqueueing     508
+D:        785 dCount is  78
+D:        785 dequeueing     429
+S:       1023 sCount is  80
+D:        786 dCount is  77
+D:        786 dequeueing     430
+S:       1024 sCount is  79
+S       1024: Enqueueing     509
+D:        787 dCount is  77
+D:        787 dequeueing     431
+S:       1025 sCount is  80
+D:        788 dCount is  76
+D:        788 dequeueing     432
+S:       1026 sCount is  79
+S       1026: Enqueueing     510
+S:       1027 sCount is  79
+D:        789 dCount is  76
+D:        789 dequeueing     433
+S:       1028 sCount is  78
+S       1028: Enqueueing     511
+D:        790 dCount is  76
+D:        790 dequeueing     434
+S:       1029 sCount is  78
+D:        791 dCount is  75
+D:        791 dequeueing     435
+S:       1030 sCount is  78
+S       1030: Enqueueing     512
+S:       1031 sCount is  78
+D:        792 dCount is  75
+D:        792 dequeueing     436
+S:       1032 sCount is  77
+S       1032: Enqueueing     513
+D:        793 dCount is  75
+D:        793 dequeueing     437
+S:       1033 sCount is  77
+D:        794 dCount is  74
+D:        794 dequeueing     438
+S:       1034 sCount is  77
+S       1034: Enqueueing     514
+S:       1035 sCount is  77
+D:        795 dCount is  74
+D:        795 dequeueing     439
+S:       1036 sCount is  76
+S       1036: Enqueueing     515
+D:        796 dCount is  74
+D:        796 dequeueing     440
+S:       1037 sCount is  76
+D:        797 dCount is  73
+D:        797 dequeueing     441
+S:       1038 sCount is  76
+S       1038: Enqueueing     516
+D:        798 dCount is  73
+D:        798 dequeueing     442
+S:       1039 sCount is  76
+S:       1040 sCount is  75
+S       1040: Enqueueing     517
+D:        799 dCount is  73
+D:        799 dequeueing     443
+S:       1041 sCount is  75
+D:        800 dCount is  72
+D:        800 dequeueing     444
+S:       1042 sCount is  74
+S       1042: Enqueueing     518
+D:        801 dCount is  72
+D:        801 dequeueing     445
+S:       1043 sCount is  75
+S:       1044 sCount is  74
+S       1044: Enqueueing     519
+D:        802 dCount is  72
+D:        802 dequeueing     446
+S:       1045 sCount is  74
+D:        803 dCount is  71
+D:        803 dequeueing     447
+S:       1046 sCount is  73
+S       1046: Enqueueing     520
+D:        804 dCount is  71
+D:        804 dequeueing     448
+S:       1047 sCount is  74
+S:       1048 sCount is  73
+S       1048: Enqueueing     521
+D:        805 dCount is  71
+D:        805 dequeueing     449
+S:       1049 sCount is  73
+D:        806 dCount is  70
+D:        806 dequeueing     450
+S:       1050 sCount is  72
+S       1050: Enqueueing     522
+D:        807 dCount is  70
+D:        807 dequeueing     451
+S:       1051 sCount is  73
+D:        808 dCount is  69
+D:        808 dequeueing     452
+S:       1052 sCount is  72
+S       1052: Enqueueing     523
+S:       1053 sCount is  72
+D:        809 dCount is  69
+D:        809 dequeueing     453
+S:       1054 sCount is  71
+S       1054: Enqueueing     524
+D:        810 dCount is  69
+D:        810 dequeueing     454
+S:       1055 sCount is  71
+D:        811 dCount is  68
+D:        811 dequeueing     455
+S:       1056 sCount is  71
+S       1056: Enqueueing     525
+S:       1057 sCount is  71
+D:        812 dCount is  68
+D:        812 dequeueing     456
+S:       1058 sCount is  70
+S       1058: Enqueueing     526
+D:        813 dCount is  68
+D:        813 dequeueing     457
+S:       1059 sCount is  70
+D:        814 dCount is  67
+D:        814 dequeueing     458
+S:       1060 sCount is  70
+S       1060: Enqueueing     527
+S:       1061 sCount is  70
+D:        815 dCount is  67
+D:        815 dequeueing     459
+S:       1062 sCount is  69
+S       1062: Enqueueing     528
+D:        816 dCount is  67
+D:        816 dequeueing     460
+S:       1063 sCount is  69
+D:        817 dCount is  66
+D:        817 dequeueing     461
+S:       1064 sCount is  69
+S       1064: Enqueueing     529
+D:        818 dCount is  66
+D:        818 dequeueing     462
+S:       1065 sCount is  69
+S:       1066 sCount is  68
+S       1066: Enqueueing     530
+D:        819 dCount is  66
+D:        819 dequeueing     463
+S:       1067 sCount is  68
+D:        820 dCount is  65
+D:        820 dequeueing     464
+S:       1068 sCount is  67
+S       1068: Enqueueing     531
+D:        821 dCount is  65
+D:        821 dequeueing     465
+S:       1069 sCount is  68
+S:       1070 sCount is  67
+S       1070: Enqueueing     532
+D:        822 dCount is  65
+D:        822 dequeueing     466
+S:       1071 sCount is  67
+D:        823 dCount is  64
+D:        823 dequeueing     467
+S:       1072 sCount is  66
+S       1072: Enqueueing     533
+D:        824 dCount is  64
+D:        824 dequeueing     468
+S:       1073 sCount is  67
+S:       1074 sCount is  66
+S       1074: Enqueueing     534
+D:        825 dCount is  64
+D:        825 dequeueing     469
+S:       1075 sCount is  66
+D:        826 dCount is  63
+D:        826 dequeueing     470
+S:       1076 sCount is  65
+S       1076: Enqueueing     535
+D:        827 dCount is  63
+D:        827 dequeueing     471
+S:       1077 sCount is  66
+D:        828 dCount is  62
+D:        828 dequeueing     472
+S:       1078 sCount is  65
+S       1078: Enqueueing     536
+S:       1079 sCount is  65
+D:        829 dCount is  62
+D:        829 dequeueing     473
+S:       1080 sCount is  64
+S       1080: Enqueueing     537
+D:        830 dCount is  62
+D:        830 dequeueing     474
+S:       1081 sCount is  64
+D:        831 dCount is  61
+D:        831 dequeueing     475
+S:       1082 sCount is  64
+S       1082: Enqueueing     538
+S:       1083 sCount is  64
+D:        832 dCount is  61
+D:        832 dequeueing     476
+S:       1084 sCount is  63
+S       1084: Enqueueing     539
+D:        833 dCount is  61
+D:        833 dequeueing     477
+S:       1085 sCount is  63
+D:        834 dCount is  60
+D:        834 dequeueing     478
+S:       1086 sCount is  63
+S       1086: Enqueueing     540
+S:       1087 sCount is  63
+D:        835 dCount is  60
+D:        835 dequeueing     479
+S:       1088 sCount is  62
+S       1088: Enqueueing     541
+D:        836 dCount is  60
+D:        836 dequeueing     480
+S:       1089 sCount is  62
+D:        837 dCount is  59
+D:        837 dequeueing     481
+S:       1090 sCount is  62
+S       1090: Enqueueing     542
+D:        838 dCount is  59
+D:        838 dequeueing     482
+S:       1091 sCount is  62
+S:       1092 sCount is  61
+S       1092: Enqueueing     543
+D:        839 dCount is  59
+D:        839 dequeueing     483
+S:       1093 sCount is  61
+D:        840 dCount is  58
+D:        840 dequeueing     484
+S:       1094 sCount is  60
+S       1094: Enqueueing     544
+D:        841 dCount is  58
+D:        841 dequeueing     485
+S:       1095 sCount is  61
+S:       1096 sCount is  60
+S       1096: Enqueueing     545
+D:        842 dCount is  58
+D:        842 dequeueing     486
+S:       1097 sCount is  60
+D:        843 dCount is  57
+D:        843 dequeueing     487
+S:       1098 sCount is  59
+S       1098: Enqueueing     546
+D:        844 dCount is  57
+D:        844 dequeueing     488
+S:       1099 sCount is  60
+S:       1100 sCount is  59
+S       1100: Enqueueing     547
+D:        845 dCount is  57
+D:        845 dequeueing     489
+S:       1101 sCount is  59
+D:        846 dCount is  56
+D:        846 dequeueing     490
+S:       1102 sCount is  58
+S       1102: Enqueueing     548
+D:        847 dCount is  56
+D:        847 dequeueing     491
+S:       1103 sCount is  59
+D:        848 dCount is  55
+D:        848 dequeueing     492
+S:       1104 sCount is  58
+S       1104: Enqueueing     549
+S:       1105 sCount is  58
+D:        849 dCount is  55
+D:        849 dequeueing     493
+S:       1106 sCount is  57
+S       1106: Enqueueing     550
+D:        850 dCount is  55
+D:        850 dequeueing     494
+S:       1107 sCount is  57
+D:        851 dCount is  54
+D:        851 dequeueing     495
+S:       1108 sCount is  57
+S       1108: Enqueueing     551
+S:       1109 sCount is  57
+D:        852 dCount is  54
+D:        852 dequeueing     496
+S:       1110 sCount is  56
+S       1110: Enqueueing     552
+D:        853 dCount is  54
+D:        853 dequeueing     497
+S:       1111 sCount is  56
+D:        854 dCount is  53
+D:        854 dequeueing     498
+S:       1112 sCount is  56
+S       1112: Enqueueing     553
+S:       1113 sCount is  56
+D:        855 dCount is  53
+D:        855 dequeueing     499
+S:       1114 sCount is  55
+S       1114: Enqueueing     554
+D:        856 dCount is  53
+D:        856 dequeueing     500
+S:       1115 sCount is  55
+D:        857 dCount is  52
+D:        857 dequeueing     501
+S:       1116 sCount is  55
+S       1116: Enqueueing     555
+D:        858 dCount is  52
+D:        858 dequeueing     502
+S:       1117 sCount is  55
+S:       1118 sCount is  54
+S       1118: Enqueueing     556
+D:        859 dCount is  52
+D:        859 dequeueing     503
+S:       1119 sCount is  54
+D:        860 dCount is  51
+D:        860 dequeueing     504
+S:       1120 sCount is  53
+S       1120: Enqueueing     557
+D:        861 dCount is  51
+D:        861 dequeueing     505
+S:       1121 sCount is  54
+S:       1122 sCount is  53
+S       1122: Enqueueing     558
+D:        862 dCount is  51
+D:        862 dequeueing     506
+S:       1123 sCount is  53
+D:        863 dCount is  50
+D:        863 dequeueing     507
+S:       1124 sCount is  52
+S       1124: Enqueueing     559
+D:        864 dCount is  50
+D:        864 dequeueing     508
+S:       1125 sCount is  53
+S:       1126 sCount is  52
+S       1126: Enqueueing     560
+D:        865 dCount is  50
+D:        865 dequeueing     509
+S:       1127 sCount is  52
+D:        866 dCount is  49
+D:        866 dequeueing     510
+S:       1128 sCount is  51
+S       1128: Enqueueing     561
+D:        867 dCount is  49
+D:        867 dequeueing     511
+S:       1129 sCount is  52
+D:        868 dCount is  48
+D:        868 dequeueing     512
+S:       1130 sCount is  51
+S       1130: Enqueueing     562
+S:       1131 sCount is  51
+D:        869 dCount is  48
+D:        869 dequeueing     513
+S:       1132 sCount is  50
+S       1132: Enqueueing     563
+D:        870 dCount is  48
+D:        870 dequeueing     514
+S:       1133 sCount is  50
+D:        871 dCount is  47
+D:        871 dequeueing     515
+S:       1134 sCount is  50
+S       1134: Enqueueing     564
+S:       1135 sCount is  50
+D:        872 dCount is  47
+D:        872 dequeueing     516
+S:       1136 sCount is  49
+S       1136: Enqueueing     565
+D:        873 dCount is  47
+D:        873 dequeueing     517
+S:       1137 sCount is  49
+D:        874 dCount is  46
+D:        874 dequeueing     518
+S:       1138 sCount is  49
+S       1138: Enqueueing     566
+S:       1139 sCount is  49
+D:        875 dCount is  46
+D:        875 dequeueing     519
+S:       1140 sCount is  48
+S       1140: Enqueueing     567
+D:        876 dCount is  46
+D:        876 dequeueing     520
+S:       1141 sCount is  48
+D:        877 dCount is  45
+D:        877 dequeueing     521
+S:       1142 sCount is  48
+S       1142: Enqueueing     568
+D:        878 dCount is  45
+D:        878 dequeueing     522
+S:       1143 sCount is  48
+S:       1144 sCount is  47
+S       1144: Enqueueing     569
+D:        879 dCount is  45
+D:        879 dequeueing     523
+S:       1145 sCount is  47
+D:        880 dCount is  44
+D:        880 dequeueing     524
+S:       1146 sCount is  46
+S       1146: Enqueueing     570
+D:        881 dCount is  44
+D:        881 dequeueing     525
+S:       1147 sCount is  47
+S:       1148 sCount is  46
+S       1148: Enqueueing     571
+D:        882 dCount is  44
+D:        882 dequeueing     526
+S:       1149 sCount is  46
+D:        883 dCount is  43
+D:        883 dequeueing     527
+S:       1150 sCount is  45
+S       1150: Enqueueing     572
+D:        884 dCount is  43
+D:        884 dequeueing     528
+S:       1151 sCount is  46
+S:       1152 sCount is  45
+S       1152: Enqueueing     573
+D:        885 dCount is  43
+D:        885 dequeueing     529
+S:       1153 sCount is  45
+D:        886 dCount is  42
+D:        886 dequeueing     530
+S:       1154 sCount is  44
+S       1154: Enqueueing     574
+D:        887 dCount is  42
+D:        887 dequeueing     531
+S:       1155 sCount is  45
+D:        888 dCount is  41
+D:        888 dequeueing     532
+S:       1156 sCount is  44
+S       1156: Enqueueing     575
+S:       1157 sCount is  44
+D:        889 dCount is  41
+D:        889 dequeueing     533
+S:       1158 sCount is  43
+S       1158: Enqueueing     576
+D:        890 dCount is  41
+D:        890 dequeueing     534
+S:       1159 sCount is  43
+D:        891 dCount is  40
+D:        891 dequeueing     535
+S:       1160 sCount is  43
+S       1160: Enqueueing     577
+S:       1161 sCount is  43
+D:        892 dCount is  40
+D:        892 dequeueing     536
+S:       1162 sCount is  42
+S       1162: Enqueueing     578
+D:        893 dCount is  40
+D:        893 dequeueing     537
+S:       1163 sCount is  42
+D:        894 dCount is  39
+D:        894 dequeueing     538
+S:       1164 sCount is  42
+S       1164: Enqueueing     579
+S:       1165 sCount is  42
+D:        895 dCount is  39
+D:        895 dequeueing     539
+S:       1166 sCount is  41
+S       1166: Enqueueing     580
+D:        896 dCount is  39
+D:        896 dequeueing     540
+S:       1167 sCount is  41
+D:        897 dCount is  38
+D:        897 dequeueing     541
+S:       1168 sCount is  41
+S       1168: Enqueueing     581
+D:        898 dCount is  38
+D:        898 dequeueing     542
+S:       1169 sCount is  41
+S:       1170 sCount is  40
+S       1170: Enqueueing     582
+D:        899 dCount is  38
+D:        899 dequeueing     543
+S:       1171 sCount is  40
+D:        900 dCount is  37
+D:        900 dequeueing     544
+S:       1172 sCount is  39
+S       1172: Enqueueing     583
+D:        901 dCount is  37
+D:        901 dequeueing     545
+S:       1173 sCount is  40
+S:       1174 sCount is  39
+S       1174: Enqueueing     584
+D:        902 dCount is  37
+D:        902 dequeueing     546
+S:       1175 sCount is  39
+D:        903 dCount is  36
+D:        903 dequeueing     547
+S:       1176 sCount is  38
+S       1176: Enqueueing     585
+D:        904 dCount is  36
+D:        904 dequeueing     548
+S:       1177 sCount is  39
+S:       1178 sCount is  38
+S       1178: Enqueueing     586
+D:        905 dCount is  36
+D:        905 dequeueing     549
+S:       1179 sCount is  38
+D:        906 dCount is  35
+D:        906 dequeueing     550
+S:       1180 sCount is  37
+S       1180: Enqueueing     587
+D:        907 dCount is  35
+D:        907 dequeueing     551
+S:       1181 sCount is  38
+D:        908 dCount is  34
+D:        908 dequeueing     552
+S:       1182 sCount is  37
+S       1182: Enqueueing     588
+S:       1183 sCount is  37
+D:        909 dCount is  34
+D:        909 dequeueing     553
+S:       1184 sCount is  36
+S       1184: Enqueueing     589
+D:        910 dCount is  34
+D:        910 dequeueing     554
+S:       1185 sCount is  36
+D:        911 dCount is  33
+D:        911 dequeueing     555
+S:       1186 sCount is  36
+S       1186: Enqueueing     590
+S:       1187 sCount is  36
+D:        912 dCount is  33
+D:        912 dequeueing     556
+S:       1188 sCount is  35
+S       1188: Enqueueing     591
+D:        913 dCount is  33
+D:        913 dequeueing     557
+S:       1189 sCount is  35
+D:        914 dCount is  32
+D:        914 dequeueing     558
+S:       1190 sCount is  35
+S       1190: Enqueueing     592
+S:       1191 sCount is  35
+D:        915 dCount is  32
+D:        915 dequeueing     559
+S:       1192 sCount is  34
+S       1192: Enqueueing     593
+D:        916 dCount is  32
+D:        916 dequeueing     560
+S:       1193 sCount is  34
+D:        917 dCount is  31
+D:        917 dequeueing     561
+S:       1194 sCount is  34
+S       1194: Enqueueing     594
+D:        918 dCount is  31
+D:        918 dequeueing     562
+S:       1195 sCount is  34
+S:       1196 sCount is  33
+S       1196: Enqueueing     595
+D:        919 dCount is  31
+D:        919 dequeueing     563
+S:       1197 sCount is  33
+D:        920 dCount is  30
+D:        920 dequeueing     564
+S:       1198 sCount is  32
+S       1198: Enqueueing     596
+D:        921 dCount is  30
+D:        921 dequeueing     565
+S:       1199 sCount is  33
+S:       1200 sCount is  32
+S       1200: Enqueueing     597
+D:        922 dCount is  30
+D:        922 dequeueing     566
+S:       1201 sCount is  32
+D:        923 dCount is  29
+D:        923 dequeueing     567
+S:       1202 sCount is  31
+S       1202: Enqueueing     598
+D:        924 dCount is  29
+D:        924 dequeueing     568
+S:       1203 sCount is  32
+S:       1204 sCount is  31
+S       1204: Enqueueing     599
+D:        925 dCount is  29
+D:        925 dequeueing     569
+S:       1205 sCount is  31
+D:        926 dCount is  28
+D:        926 dequeueing     570
+S:       1206 sCount is  30
+S       1206: Enqueueing     600
+D:        927 dCount is  28
+D:        927 dequeueing     571
+S:       1207 sCount is  31
+D:        928 dCount is  27
+D:        928 dequeueing     572
+S:       1208 sCount is  30
+S       1208: Enqueueing     601
+S:       1209 sCount is  30
+D:        929 dCount is  27
+D:        929 dequeueing     573
+S:       1210 sCount is  29
+S       1210: Enqueueing     602
+D:        930 dCount is  27
+D:        930 dequeueing     574
+S:       1211 sCount is  29
+D:        931 dCount is  26
+D:        931 dequeueing     575
+S:       1212 sCount is  29
+S       1212: Enqueueing     603
+S:       1213 sCount is  29
+D:        932 dCount is  26
+D:        932 dequeueing     576
+S:       1214 sCount is  28
+S       1214: Enqueueing     604
+D:        933 dCount is  26
+D:        933 dequeueing     577
+S:       1215 sCount is  28
+D:        934 dCount is  25
+D:        934 dequeueing     578
+S:       1216 sCount is  28
+S       1216: Enqueueing     605
+S:       1217 sCount is  28
+D:        935 dCount is  25
+D:        935 dequeueing     579
+S:       1218 sCount is  27
+S       1218: Enqueueing     606
+D:        936 dCount is  25
+D:        936 dequeueing     580
+S:       1219 sCount is  27
+D:        937 dCount is  24
+D:        937 dequeueing     581
+S:       1220 sCount is  27
+S       1220: Enqueueing     607
+D:        938 dCount is  24
+D:        938 dequeueing     582
+S:       1221 sCount is  27
+S:       1222 sCount is  26
+S       1222: Enqueueing     608
+D:        939 dCount is  24
+D:        939 dequeueing     583
+S:       1223 sCount is  26
+D:        940 dCount is  23
+D:        940 dequeueing     584
+S:       1224 sCount is  25
+S       1224: Enqueueing     609
+D:        941 dCount is  23
+D:        941 dequeueing     585
+S:       1225 sCount is  26
+S:       1226 sCount is  25
+S       1226: Enqueueing     610
+D:        942 dCount is  23
+D:        942 dequeueing     586
+S:       1227 sCount is  25
+D:        943 dCount is  22
+D:        943 dequeueing     587
+S:       1228 sCount is  24
+S       1228: Enqueueing     611
+D:        944 dCount is  22
+D:        944 dequeueing     588
+S:       1229 sCount is  25
+S:       1230 sCount is  24
+S       1230: Enqueueing     612
+D:        945 dCount is  22
+D:        945 dequeueing     589
+S:       1231 sCount is  24
+D:        946 dCount is  21
+D:        946 dequeueing     590
+S:       1232 sCount is  23
+S       1232: Enqueueing     613
+D:        947 dCount is  21
+D:        947 dequeueing     591
+S:       1233 sCount is  24
+D:        948 dCount is  20
+D:        948 dequeueing     592
+S:       1234 sCount is  23
+S       1234: Enqueueing     614
+S:       1235 sCount is  23
+D:        949 dCount is  20
+D:        949 dequeueing     593
+S:       1236 sCount is  22
+S       1236: Enqueueing     615
+D:        950 dCount is  20
+D:        950 dequeueing     594
+S:       1237 sCount is  22
+D:        951 dCount is  19
+D:        951 dequeueing     595
+S:       1238 sCount is  22
+S       1238: Enqueueing     616
+S:       1239 sCount is  22
+D:        952 dCount is  19
+D:        952 dequeueing     596
+S:       1240 sCount is  21
+S       1240: Enqueueing     617
+D:        953 dCount is  19
+D:        953 dequeueing     597
+S:       1241 sCount is  21
+D:        954 dCount is  18
+D:        954 dequeueing     598
+S:       1242 sCount is  21
+S       1242: Enqueueing     618
+S:       1243 sCount is  21
+D:        955 dCount is  18
+D:        955 dequeueing     599
+S:       1244 sCount is  20
+S       1244: Enqueueing     619
+D:        956 dCount is  18
+D:        956 dequeueing     600
+S:       1245 sCount is  20
+D:        957 dCount is  17
+D:        957 dequeueing     601
+S:       1246 sCount is  20
+S       1246: Enqueueing     620
+D:        958 dCount is  17
+D:        958 dequeueing     602
+S:       1247 sCount is  20
+S:       1248 sCount is  19
+S       1248: Enqueueing     621
+D:        959 dCount is  17
+D:        959 dequeueing     603
+S:       1249 sCount is  19
+D:        960 dCount is  16
+D:        960 dequeueing     604
+S:       1250 sCount is  18
+S       1250: Enqueueing     622
+D:        961 dCount is  16
+D:        961 dequeueing     605
+S:       1251 sCount is  19
+S:       1252 sCount is  18
+S       1252: Enqueueing     623
+D:        962 dCount is  16
+D:        962 dequeueing     606
+S:       1253 sCount is  18
+D:        963 dCount is  15
+D:        963 dequeueing     607
+S:       1254 sCount is  17
+S       1254: Enqueueing     624
+D:        964 dCount is  15
+D:        964 dequeueing     608
+S:       1255 sCount is  18
+S:       1256 sCount is  17
+S       1256: Enqueueing     625
+D:        965 dCount is  15
+D:        965 dequeueing     609
+S:       1257 sCount is  17
+D:        966 dCount is  14
+D:        966 dequeueing     610
+S:       1258 sCount is  16
+S       1258: Enqueueing     626
+D:        967 dCount is  14
+D:        967 dequeueing     611
+S:       1259 sCount is  17
+D:        968 dCount is  13
+D:        968 dequeueing     612
+S:       1260 sCount is  16
+S       1260: Enqueueing     627
+S:       1261 sCount is  16
+D:        969 dCount is  13
+D:        969 dequeueing     613
+S:       1262 sCount is  15
+S       1262: Enqueueing     628
+D:        970 dCount is  13
+D:        970 dequeueing     614
+S:       1263 sCount is  15
+D:        971 dCount is  12
+D:        971 dequeueing     615
+S:       1264 sCount is  15
+S       1264: Enqueueing     629
+S:       1265 sCount is  15
+D:        972 dCount is  12
+D:        972 dequeueing     616
+S:       1266 sCount is  14
+S       1266: Enqueueing     630
+D:        973 dCount is  12
+D:        973 dequeueing     617
+S:       1267 sCount is  14
+D:        974 dCount is  11
+S:       1268 sCount is  14
+S       1268: Enqueueing     631
+S:       1269 sCount is  14
+D:        975 dCount is  11
+S:       1270 sCount is  13
+S       1270: Enqueueing     632
+D:        976 dCount is  12
+S:       1271 sCount is  14
+D:        977 dCount is  12
+S:       1272 sCount is  14
+S       1272: Enqueueing     633
+D:        978 dCount is  13
+S:       1273 sCount is  15
+S:       1274 sCount is  15
+S       1274: Enqueueing     634
+D:        979 dCount is  14
+S:       1275 sCount is  16
+D:        980 dCount is  14
+S:       1276 sCount is  16
+S       1276: Enqueueing     635
+D:        981 dCount is  15
+S:       1277 sCount is  17
+S:       1278 sCount is  17
+S       1278: Enqueueing     636
+D:        982 dCount is  16
+S:       1279 sCount is  18
+D:        983 dCount is  16
+S:       1280 sCount is  18
+S       1280: Enqueueing     637
+D:        984 dCount is  17
+S:       1281 sCount is  19
+S:       1282 sCount is  19
+S       1282: Enqueueing     638
+D:        985 dCount is  18
+S:       1283 sCount is  20
+D:        986 dCount is  18
+S:       1284 sCount is  20
+S       1284: Enqueueing     639
+D:        987 dCount is  19
+S:       1285 sCount is  21
+D:        988 dCount is  19
+S:       1286 sCount is  21
+S       1286: Enqueueing     640
+S:       1287 sCount is  22
+D:        989 dCount is  20
+S:       1288 sCount is  22
+S       1288: Enqueueing     641
+D:        990 dCount is  21
+S:       1289 sCount is  23
+D:        991 dCount is  21
+S:       1290 sCount is  23
+S       1290: Enqueueing     642
+S:       1291 sCount is  24
+D:        992 dCount is  22
+S:       1292 sCount is  24
+S       1292: Enqueueing     643
+D:        993 dCount is  23
+S:       1293 sCount is  25
+D:        994 dCount is  23
+S:       1294 sCount is  25
+S       1294: Enqueueing     644
+S:       1295 sCount is  26
+D:        995 dCount is  24
+S:       1296 sCount is  26
+S       1296: Enqueueing     645
+D:        996 dCount is  25
+S:       1297 sCount is  27
+D:        997 dCount is  25
+S:       1298 sCount is  27
+S       1298: Enqueueing     646
+D:        998 dCount is  26
+S:       1299 sCount is  28
+S:       1300 sCount is  28
+S       1300: Enqueueing     647
+D:        999 dCount is  27
+S:       1301 sCount is  29
+D:       1000 dCount is  27
+S:       1302 sCount is  29
+S       1302: Enqueueing     648
+D:       1001 dCount is  28
+S:       1303 sCount is  30
+S:       1304 sCount is  30
+S       1304: Enqueueing     649
+D:       1002 dCount is  29
+S:       1305 sCount is  31
+D:       1003 dCount is  29
+S:       1306 sCount is  31
+S       1306: Enqueueing     650
+D:       1004 dCount is  30
+S:       1307 sCount is  32
+S:       1308 sCount is  32
+S       1308: Enqueueing     651
+D:       1005 dCount is  31
+S:       1309 sCount is  33
+D:       1006 dCount is  31
+S:       1310 sCount is  33
+S       1310: Enqueueing     652
+D:       1007 dCount is  32
+S:       1311 sCount is  34
+D:       1008 dCount is  32
+S:       1312 sCount is  34
+S       1312: Enqueueing     653
+S:       1313 sCount is  35
+D:       1009 dCount is  33
+S:       1314 sCount is  35
+S       1314: Enqueueing     654
+D:       1010 dCount is  34
+S:       1315 sCount is  36
+D:       1011 dCount is  34
+S:       1316 sCount is  36
+S       1316: Enqueueing     655
+S:       1317 sCount is  37
+D:       1012 dCount is  35
+S:       1318 sCount is  37
+S       1318: Enqueueing     656
+D:       1013 dCount is  36
+S:       1319 sCount is  38
+D:       1014 dCount is  36
+S:       1320 sCount is  38
+S       1320: Enqueueing     657
+S:       1321 sCount is  39
+D:       1015 dCount is  37
+S:       1322 sCount is  39
+S       1322: Enqueueing     658
+D:       1016 dCount is  38
+S:       1323 sCount is  40
+D:       1017 dCount is  38
+S:       1324 sCount is  40
+S       1324: Enqueueing     659
+D:       1018 dCount is  39
+S:       1325 sCount is  41
+S:       1326 sCount is  41
+S       1326: Enqueueing     660
+D:       1019 dCount is  40
+S:       1327 sCount is  42
+D:       1020 dCount is  40
+S:       1328 sCount is  42
+S       1328: Enqueueing     661
+D:       1021 dCount is  41
+S:       1329 sCount is  43
+S:       1330 sCount is  43
+S       1330: Enqueueing     662
+D:       1022 dCount is  42
+S:       1331 sCount is  44
+D:       1023 dCount is  42
+S:       1332 sCount is  44
+S       1332: Enqueueing     663
+D:       1024 dCount is  43
+S:       1333 sCount is  45
+S:       1334 sCount is  45
+S       1334: Enqueueing     664
+D:       1025 dCount is  44
+S:       1335 sCount is  46
+D:       1026 dCount is  44
+S:       1336 sCount is  46
+S       1336: Enqueueing     665
+D:       1027 dCount is  45
+S:       1337 sCount is  47
+D:       1028 dCount is  45
+S:       1338 sCount is  47
+S       1338: Enqueueing     666
+S:       1339 sCount is  48
+D:       1029 dCount is  46
+S:       1340 sCount is  48
+S       1340: Enqueueing     667
+D:       1030 dCount is  47
+S:       1341 sCount is  49
+D:       1031 dCount is  47
+S:       1342 sCount is  49
+S       1342: Enqueueing     668
+S:       1343 sCount is  50
+D:       1032 dCount is  48
+S:       1344 sCount is  50
+S       1344: Enqueueing     669
+D:       1033 dCount is  49
+S:       1345 sCount is  51
+D:       1034 dCount is  49
+S:       1346 sCount is  51
+S       1346: Enqueueing     670
+S:       1347 sCount is  52
+D:       1035 dCount is  50
+S:       1348 sCount is  52
+S       1348: Enqueueing     671
+D:       1036 dCount is  51
+S:       1349 sCount is  53
+D:       1037 dCount is  51
+S:       1350 sCount is  53
+S       1350: Enqueueing     672
+D:       1038 dCount is  52
+S:       1351 sCount is  54
+S:       1352 sCount is  54
+S       1352: Enqueueing     673
+D:       1039 dCount is  53
+S:       1353 sCount is  55
+D:       1040 dCount is  53
+S:       1354 sCount is  55
+S       1354: Enqueueing     674
+D:       1041 dCount is  54
+S:       1355 sCount is  56
+S:       1356 sCount is  56
+S       1356: Enqueueing     675
+D:       1042 dCount is  55
+S:       1357 sCount is  57
+D:       1043 dCount is  55
+S:       1358 sCount is  57
+S       1358: Enqueueing     676
+D:       1044 dCount is  56
+S:       1359 sCount is  58
+S:       1360 sCount is  58
+S       1360: Enqueueing     677
+D:       1045 dCount is  57
+S:       1361 sCount is  59
+D:       1046 dCount is  57
+S:       1362 sCount is  59
+S       1362: Enqueueing     678
+D:       1047 dCount is  58
+S:       1363 sCount is  60
+D:       1048 dCount is  58
+S:       1364 sCount is  60
+S       1364: Enqueueing     679
+S:       1365 sCount is  61
+D:       1049 dCount is  59
+S:       1366 sCount is  61
+S       1366: Enqueueing     680
+D:       1050 dCount is  60
+S:       1367 sCount is  62
+D:       1051 dCount is  60
+S:       1368 sCount is  62
+S       1368: Enqueueing     681
+S:       1369 sCount is  63
+D:       1052 dCount is  61
+S:       1370 sCount is  63
+S       1370: Enqueueing     682
+D:       1053 dCount is  62
+S:       1371 sCount is  64
+D:       1054 dCount is  62
+S:       1372 sCount is  64
+S       1372: Enqueueing     683
+S:       1373 sCount is  65
+D:       1055 dCount is  63
+S:       1374 sCount is  65
+S       1374: Enqueueing     684
+D:       1056 dCount is  64
+S:       1375 sCount is  66
+D:       1057 dCount is  64
+S:       1376 sCount is  66
+S       1376: Enqueueing     685
+D:       1058 dCount is  65
+S:       1377 sCount is  67
+S:       1378 sCount is  67
+S       1378: Enqueueing     686
+D:       1059 dCount is  66
+S:       1379 sCount is  68
+D:       1060 dCount is  66
+S:       1380 sCount is  68
+S       1380: Enqueueing     687
+D:       1061 dCount is  67
+S:       1381 sCount is  69
+S:       1382 sCount is  69
+S       1382: Enqueueing     688
+D:       1062 dCount is  68
+S:       1383 sCount is  70
+D:       1063 dCount is  68
+S:       1384 sCount is  70
+S       1384: Enqueueing     689
+D:       1064 dCount is  69
+S:       1385 sCount is  71
+S:       1386 sCount is  71
+S       1386: Enqueueing     690
+D:       1065 dCount is  70
+S:       1387 sCount is  72
+D:       1066 dCount is  70
+S:       1388 sCount is  72
+S       1388: Enqueueing     691
+D:       1067 dCount is  71
+S:       1389 sCount is  73
+D:       1068 dCount is  71
+S:       1390 sCount is  73
+S       1390: Enqueueing     692
+S:       1391 sCount is  74
+D:       1069 dCount is  72
+S:       1392 sCount is  74
+S       1392: Enqueueing     693
+D:       1070 dCount is  73
+S:       1393 sCount is  75
+D:       1071 dCount is  73
+S:       1394 sCount is  75
+S       1394: Enqueueing     694
+S:       1395 sCount is  76
+D:       1072 dCount is  74
+S:       1396 sCount is  76
+S       1396: Enqueueing     695
+D:       1073 dCount is  75
+S:       1397 sCount is  77
+D:       1074 dCount is  75
+S:       1398 sCount is  77
+S       1398: Enqueueing     696
+S:       1399 sCount is  78
+D:       1075 dCount is  76
+S:       1400 sCount is  78
+S       1400: Enqueueing     697
+D:       1076 dCount is  77
+S:       1401 sCount is  79
+D:       1077 dCount is  77
+S:       1402 sCount is  79
+S       1402: Enqueueing     698
+D:       1078 dCount is  78
+S:       1403 sCount is  80
+S:       1403 clearing
+S:       1404 sCount is   0
+D:       1079 dCount is  79
+S:       1405 sCount is   0
+D:       1080 dCount is  79
+S:       1406 sCount is   0
+D:       1081 dCount is  80
+S:       1407 sCount is   0
+S:       1408 sCount is   0
+D:       1082 dCount is   0
+S:       1409 sCount is 193
+S       1409: Enqueueing     700
+D:       1083 dCount is   0
+S:       1410 sCount is   1
+D:       1084 dCount is   0
+S:       1411 sCount is   1
+S       1411: Enqueueing     701
+S:       1412 sCount is   2
+D:       1085 dCount is   0
+S:       1413 sCount is   2
+S       1413: Enqueueing     702
+D:       1086 dCount is   1
+S:       1414 sCount is   3
+D:       1087 dCount is   0
+S:       1415 sCount is   3
+S       1415: Enqueueing     703
+D:       1088 dCount is   1
+S:       1416 sCount is   3
+S:       1417 sCount is   3
+S       1417: Enqueueing     704
+D:       1089 dCount is   2
+S:       1418 sCount is   4
+D:       1090 dCount is   2
+S:       1419 sCount is   4
+S       1419: Enqueueing     705
+D:       1091 dCount is   3
+S:       1420 sCount is   5
+S:       1421 sCount is   5
+S       1421: Enqueueing     706
+D:       1092 dCount is   4
+S:       1422 sCount is   6
+D:       1093 dCount is   4
+S:       1423 sCount is   6
+S       1423: Enqueueing     707
+D:       1094 dCount is   5
+S:       1424 sCount is   7
+S:       1425 sCount is   7
+S       1425: Enqueueing     708
+D:       1095 dCount is   6
+S:       1426 sCount is   8
+D:       1096 dCount is   6
+S:       1427 sCount is   8
+S       1427: Enqueueing     709
+D:       1097 dCount is   7
+S:       1428 sCount is   9
+D:       1098 dCount is   7
+S:       1429 sCount is   9
+S       1429: Enqueueing     710
+S:       1430 sCount is  10
+D:       1099 dCount is   8
+S:       1431 sCount is  10
+S       1431: Enqueueing     711
+D:       1100 dCount is   9
+S:       1432 sCount is  11
+D:       1101 dCount is   9
+S:       1433 sCount is  11
+S       1433: Enqueueing     712
+S:       1434 sCount is  12
+D:       1102 dCount is  10
+S:       1435 sCount is  12
+S       1435: Enqueueing     713
+D:       1103 dCount is  11
+S:       1436 sCount is  13
+D:       1104 dCount is  11
+S:       1437 sCount is  13
+S       1437: Enqueueing     714
+S:       1438 sCount is  14
+D:       1105 dCount is  12
+S:       1439 sCount is  14
+S       1439: Enqueueing     715
+D:       1106 dCount is  13
+S:       1440 sCount is  15
+D:       1107 dCount is  13
+S:       1441 sCount is  15
+S       1441: Enqueueing     716
+D:       1108 dCount is  14
+S:       1442 sCount is  16
+S:       1443 sCount is  16
+S       1443: Enqueueing     717
+D:       1109 dCount is  15
+S:       1444 sCount is  17
+D:       1110 dCount is  15
+S:       1445 sCount is  17
+S       1445: Enqueueing     718
+D:       1111 dCount is  16
+S:       1446 sCount is  18
+S:       1447 sCount is  18
+S       1447: Enqueueing     719
+D:       1112 dCount is  17
+S:       1448 sCount is  19
+D:       1113 dCount is  17
+S:       1449 sCount is  19
+S       1449: Enqueueing     720
+D:       1114 dCount is  18
+S:       1450 sCount is  20
+S:       1451 sCount is  20
+S       1451: Enqueueing     721
+D:       1115 dCount is  19
+S:       1452 sCount is  21
+D:       1116 dCount is  19
+S:       1453 sCount is  21
+S       1453: Enqueueing     722
+D:       1117 dCount is  20
+S:       1454 sCount is  22
+D:       1118 dCount is  20
+S:       1455 sCount is  22
+S       1455: Enqueueing     723
+S:       1456 sCount is  23
+D:       1119 dCount is  21
+S:       1457 sCount is  23
+S       1457: Enqueueing     724
+D:       1120 dCount is  22
+S:       1458 sCount is  24
+D:       1121 dCount is  22
+S:       1459 sCount is  24
+S       1459: Enqueueing     725
+S:       1460 sCount is  25
+D:       1122 dCount is  23
+S:       1461 sCount is  25
+S       1461: Enqueueing     726
+D:       1123 dCount is  24
+S:       1462 sCount is  26
+D:       1124 dCount is  24
+S:       1463 sCount is  26
+S       1463: Enqueueing     727
+S:       1464 sCount is  27
+D:       1125 dCount is  25
+S:       1465 sCount is  27
+S       1465: Enqueueing     728
+D:       1126 dCount is  26
+S:       1466 sCount is  28
+D:       1127 dCount is  26
+S:       1467 sCount is  28
+S       1467: Enqueueing     729
+D:       1128 dCount is  27
+S:       1468 sCount is  29
+S:       1469 sCount is  29
+S       1469: Enqueueing     730
+D:       1129 dCount is  28
+S:       1470 sCount is  30
+D:       1130 dCount is  28
+S:       1471 sCount is  30
+S       1471: Enqueueing     731
+D:       1131 dCount is  29
+S:       1472 sCount is  31
+S:       1473 sCount is  31
+S       1473: Enqueueing     732
+D:       1132 dCount is  30
+S:       1474 sCount is  32
+D:       1133 dCount is  30
+S:       1475 sCount is  32
+S       1475: Enqueueing     733
+D:       1134 dCount is  31
+S:       1476 sCount is  33
+S:       1477 sCount is  33
+S       1477: Enqueueing     734
+D:       1135 dCount is  32
+S:       1478 sCount is  34
+D:       1136 dCount is  32
+S:       1479 sCount is  34
+S       1479: Enqueueing     735
+D:       1137 dCount is  33
+S:       1480 sCount is  35
+D:       1138 dCount is  33
+S:       1481 sCount is  35
+S       1481: Enqueueing     736
+S:       1482 sCount is  36
+D:       1139 dCount is  34
+S:       1483 sCount is  36
+S       1483: Enqueueing     737
+D:       1140 dCount is  35
+S:       1484 sCount is  37
+D:       1141 dCount is  35
+S:       1485 sCount is  37
+S       1485: Enqueueing     738
+S:       1486 sCount is  38
+D:       1142 dCount is  36
+S:       1487 sCount is  38
+S       1487: Enqueueing     739
+D:       1143 dCount is  37
+S:       1488 sCount is  39
+D:       1144 dCount is  37
+S:       1489 sCount is  39
+S       1489: Enqueueing     740
+S:       1490 sCount is  40
+D:       1145 dCount is  38
+S:       1491 sCount is  40
+S       1491: Enqueueing     741
+D:       1146 dCount is  39
+S:       1492 sCount is  41
+D:       1147 dCount is  39
+S:       1493 sCount is  41
+S       1493: Enqueueing     742
+D:       1148 dCount is  40
+S:       1494 sCount is  42
+S:       1495 sCount is  42
+S       1495: Enqueueing     743
+D:       1149 dCount is  41
+S:       1496 sCount is  43
+D:       1150 dCount is  41
+S:       1497 sCount is  43
+S       1497: Enqueueing     744
+D:       1151 dCount is  42
+S:       1498 sCount is  44
+S:       1499 sCount is  44
+S       1499: Enqueueing     745
+D:       1152 dCount is  43
+S:       1500 sCount is  45
+D:       1153 dCount is  43
+S:       1501 sCount is  45
+S       1501: Enqueueing     746
+D:       1154 dCount is  44
+S:       1502 sCount is  46
+S:       1503 sCount is  46
+S       1503: Enqueueing     747
+D:       1155 dCount is  45
+S:       1504 sCount is  47
+D:       1156 dCount is  45
+S:       1505 sCount is  47
+S       1505: Enqueueing     748
+D:       1157 dCount is  46
+S:       1506 sCount is  48
+D:       1158 dCount is  46
+S:       1507 sCount is  48
+S       1507: Enqueueing     749
+S:       1508 sCount is  49
+D:       1159 dCount is  47
+S:       1509 sCount is  49
+S       1509: Enqueueing     750
+D:       1160 dCount is  48
+S:       1510 sCount is  50
+D:       1161 dCount is  48
+S:       1511 sCount is  50
+S       1511: Enqueueing     751
+S:       1512 sCount is  51
+D:       1162 dCount is  49
+S:       1513 sCount is  51
+S       1513: Enqueueing     752
+D:       1163 dCount is  50
+S:       1514 sCount is  52
+D:       1164 dCount is  50
+S:       1515 sCount is  52
+S       1515: Enqueueing     753
+S:       1516 sCount is  53
+D:       1165 dCount is  51
+S:       1517 sCount is  53
+S       1517: Enqueueing     754
+D:       1166 dCount is  52
+S:       1518 sCount is  54
+D:       1167 dCount is  52
+S:       1519 sCount is  54
+S       1519: Enqueueing     755
+D:       1168 dCount is  53
+S:       1520 sCount is  55
+S:       1521 sCount is  55
+S       1521: Enqueueing     756
+D:       1169 dCount is  54
+S:       1522 sCount is  56
+D:       1170 dCount is  54
+S:       1523 sCount is  56
+S       1523: Enqueueing     757
+D:       1171 dCount is  55
+S:       1524 sCount is  57
+S:       1525 sCount is  57
+S       1525: Enqueueing     758
+D:       1172 dCount is  56
+S:       1526 sCount is  58
+D:       1173 dCount is  56
+S:       1527 sCount is  58
+S       1527: Enqueueing     759
+D:       1174 dCount is  57
+S:       1528 sCount is  59
+S:       1529 sCount is  59
+S       1529: Enqueueing     760
+D:       1175 dCount is  58
+S:       1530 sCount is  60
+D:       1176 dCount is  58
+S:       1531 sCount is  60
+S       1531: Enqueueing     761
+D:       1177 dCount is  59
+S:       1532 sCount is  61
+D:       1178 dCount is  59
+S:       1533 sCount is  61
+S       1533: Enqueueing     762
+S:       1534 sCount is  62
+D:       1179 dCount is  60
+S:       1535 sCount is  62
+S       1535: Enqueueing     763
+D:       1180 dCount is  61
+S:       1536 sCount is  63
+D:       1181 dCount is  61
+S:       1537 sCount is  63
+S       1537: Enqueueing     764
+S:       1538 sCount is  64
+D:       1182 dCount is  62
+S:       1539 sCount is  64
+S       1539: Enqueueing     765
+D:       1183 dCount is  63
+S:       1540 sCount is  65
+D:       1184 dCount is  63
+S:       1541 sCount is  65
+S       1541: Enqueueing     766
+S:       1542 sCount is  66
+D:       1185 dCount is  64
+S:       1543 sCount is  66
+S       1543: Enqueueing     767
+D:       1186 dCount is  65
+S:       1544 sCount is  67
+D:       1187 dCount is  65
+S:       1545 sCount is  67
+S       1545: Enqueueing     768
+D:       1188 dCount is  66
+S:       1546 sCount is  68
+S:       1547 sCount is  68
+S       1547: Enqueueing     769
+D:       1189 dCount is  67
+S:       1548 sCount is  69
+D:       1190 dCount is  67
+S:       1549 sCount is  69
+S       1549: Enqueueing     770
+D:       1191 dCount is  68
+S:       1550 sCount is  70
+S:       1551 sCount is  70
+S       1551: Enqueueing     771
+D:       1192 dCount is  69
+S:       1552 sCount is  71
+D:       1193 dCount is  69
+S:       1553 sCount is  71
+S       1553: Enqueueing     772
+D:       1194 dCount is  70
+S:       1554 sCount is  72
+S:       1555 sCount is  72
+S       1555: Enqueueing     773
+D:       1195 dCount is  71
+S:       1556 sCount is  73
+D:       1196 dCount is  71
+S:       1557 sCount is  73
+S       1557: Enqueueing     774
+D:       1197 dCount is  72
+S:       1558 sCount is  74
+D:       1198 dCount is  72
+S:       1559 sCount is  74
+S       1559: Enqueueing     775
+S:       1560 sCount is  75
+D:       1199 dCount is  73
+S:       1561 sCount is  75
+S       1561: Enqueueing     776
+D:       1200 dCount is  74
+D:       1200 clearing
+S:       1562 sCount is  76
+D:       1201 dCount is   0
+S:       1563 sCount is  76
+S       1563: Enqueueing     777
+S:       1564 sCount is  77
+D:       1202 dCount is   0
+S:       1565 sCount is   0
+D:       1203 dCount is   0
+S:       1566 sCount is   0
+S       1566: Enqueueing     778
+D:       1204 dCount is   0
+S:       1567 sCount is   1
+S:       1568 sCount is   1
+S       1568: Enqueueing     779
+D:       1205 dCount is   0
+S:       1569 sCount is   2
+D:       1206 dCount is   0
+S:       1570 sCount is   2
+S       1570: Enqueueing     780
+D:       1207 dCount is   1
+S:       1571 sCount is   3
+D:       1208 dCount is   0
+S:       1572 sCount is   3
+S       1572: Enqueueing     781
+S:       1573 sCount is   3
+D:       1209 dCount is   1
+S:       1574 sCount is   3
+S       1574: Enqueueing     782
+D:       1210 dCount is   2
+S:       1575 sCount is   4
+D:       1211 dCount is   2
+S:       1576 sCount is   4
+S       1576: Enqueueing     783
+S:       1577 sCount is   5
+D:       1212 dCount is   3
+S:       1578 sCount is   5
+S       1578: Enqueueing     784
+D:       1213 dCount is   4
+S:       1579 sCount is   6
+D:       1214 dCount is   4
+S:       1580 sCount is   6
+S       1580: Enqueueing     785
+S:       1581 sCount is   7
+D:       1215 dCount is   5
+S:       1582 sCount is   7
+S       1582: Enqueueing     786
+D:       1216 dCount is   6
+S:       1583 sCount is   8
+D:       1217 dCount is   6
+S:       1584 sCount is   8
+S       1584: Enqueueing     787
+D:       1218 dCount is   7
+S:       1585 sCount is   9
+S:       1586 sCount is   9
+S       1586: Enqueueing     788
+D:       1219 dCount is   8
+S:       1587 sCount is  10
+D:       1220 dCount is   8
+S:       1588 sCount is  10
+S       1588: Enqueueing     789
+D:       1221 dCount is   9
+S:       1589 sCount is  11
+S:       1590 sCount is  11
+S       1590: Enqueueing     790
+D:       1222 dCount is  10
+S:       1591 sCount is  12
+D:       1223 dCount is  10
+S:       1592 sCount is  12
+S       1592: Enqueueing     791
+D:       1224 dCount is  11
+S:       1593 sCount is  13
+S:       1594 sCount is  13
+S       1594: Enqueueing     792
+D:       1225 dCount is  12
+S:       1595 sCount is  14
+D:       1226 dCount is  12
+S:       1596 sCount is  14
+S       1596: Enqueueing     793
+D:       1227 dCount is  13
+S:       1597 sCount is  15
+D:       1228 dCount is  13
+S:       1598 sCount is  15
+S       1598: Enqueueing     794
+S:       1599 sCount is  16
+D:       1229 dCount is  14
+S:       1600 sCount is  16
+S       1600: Enqueueing     795
+D:       1230 dCount is  15
+S:       1601 sCount is  17
+D:       1231 dCount is  15
+S:       1602 sCount is  17
+S       1602: Enqueueing     796
+S:       1603 sCount is  18
+D:       1232 dCount is  16
+S:       1604 sCount is  18
+S       1604: Enqueueing     797
+D:       1233 dCount is  17
+S:       1605 sCount is  19
+D:       1234 dCount is  17
+S:       1606 sCount is  19
+S       1606: Enqueueing     798
+S:       1607 sCount is  20
+D:       1235 dCount is  18
+S:       1608 sCount is  20
+S       1608: Enqueueing     799
+D:       1236 dCount is  19
+S:       1609 sCount is  21
+D:       1237 dCount is  19
+S:       1610 sCount is  21
+S       1610: Enqueueing     800
+D:       1238 dCount is  20
+S:       1611 sCount is  22
+S:       1612 sCount is  22
+S       1612: Enqueueing     801
+D:       1239 dCount is  21
+S:       1613 sCount is  23
+D:       1240 dCount is  21
+S:       1614 sCount is  23
+S       1614: Enqueueing     802
+D:       1241 dCount is  22
+S:       1615 sCount is  24
+S:       1616 sCount is  24
+S       1616: Enqueueing     803
+D:       1242 dCount is  23
+S:       1617 sCount is  25
+D:       1243 dCount is  23
+S:       1618 sCount is  25
+S       1618: Enqueueing     804
+D:       1244 dCount is  24
+S:       1619 sCount is  26
+S:       1620 sCount is  26
+S       1620: Enqueueing     805
+D:       1245 dCount is  25
+S:       1621 sCount is  27
+D:       1246 dCount is  25
+S:       1622 sCount is  27
+S       1622: Enqueueing     806
+D:       1247 dCount is  26
+S:       1623 sCount is  28
+D:       1248 dCount is  26
+S:       1624 sCount is  28
+S       1624: Enqueueing     807
+S:       1625 sCount is  29
+D:       1249 dCount is  27
+S:       1626 sCount is  29
+S       1626: Enqueueing     808
+D:       1250 dCount is  28
+S:       1627 sCount is  30
+D:       1251 dCount is  28
+S:       1628 sCount is  30
+S       1628: Enqueueing     809
+S:       1629 sCount is  31
+D:       1252 dCount is  29
+S:       1630 sCount is  31
+S       1630: Enqueueing     810
+D:       1253 dCount is  30
+S:       1631 sCount is  32
+D:       1254 dCount is  30
+S:       1632 sCount is  32
+S       1632: Enqueueing     811
+S:       1633 sCount is  33
+D:       1255 dCount is  31
+S:       1634 sCount is  33
+S       1634: Enqueueing     812
+D:       1256 dCount is  32
+S:       1635 sCount is  34
+D:       1257 dCount is  32
+S:       1636 sCount is  34
+S       1636: Enqueueing     813
+D:       1258 dCount is  33
+S:       1637 sCount is  35
+S:       1638 sCount is  35
+S       1638: Enqueueing     814
+D:       1259 dCount is  34
+S:       1639 sCount is  36
+D:       1260 dCount is  34
+S:       1640 sCount is  36
+S       1640: Enqueueing     815
+D:       1261 dCount is  35
+S:       1641 sCount is  37
+S:       1642 sCount is  37
+S       1642: Enqueueing     816
+D:       1262 dCount is  36
+S:       1643 sCount is  38
+D:       1263 dCount is  36
+S:       1644 sCount is  38
+S       1644: Enqueueing     817
+D:       1264 dCount is  37
+S:       1645 sCount is  39
+S:       1646 sCount is  39
+S       1646: Enqueueing     818
+D:       1265 dCount is  38
+S:       1647 sCount is  40
+D:       1266 dCount is  38
+S:       1648 sCount is  40
+S       1648: Enqueueing     819
+D:       1267 dCount is  39
+S:       1649 sCount is  41
+D:       1268 dCount is  39
+S:       1650 sCount is  41
+S       1650: Enqueueing     820
+S:       1651 sCount is  42
+D:       1269 dCount is  40
+S:       1652 sCount is  42
+S       1652: Enqueueing     821
+D:       1270 dCount is  41
+S:       1653 sCount is  43
+D:       1271 dCount is  41
+S:       1654 sCount is  43
+S       1654: Enqueueing     822
+S:       1655 sCount is  44
+D:       1272 dCount is  42
+S:       1656 sCount is  44
+S       1656: Enqueueing     823
+D:       1273 dCount is  43
+S:       1657 sCount is  45
+D:       1274 dCount is  43
+S:       1658 sCount is  45
+S       1658: Enqueueing     824
+S:       1659 sCount is  46
+D:       1275 dCount is  44
+S:       1660 sCount is  46
+S       1660: Enqueueing     825
+D:       1276 dCount is  45
+S:       1661 sCount is  47
+D:       1277 dCount is  45
+S:       1662 sCount is  47
+S       1662: Enqueueing     826
+D:       1278 dCount is  46
+S:       1663 sCount is  48
+S:       1664 sCount is  48
+S       1664: Enqueueing     827
+D:       1279 dCount is  47
+S:       1665 sCount is  49
+D:       1280 dCount is  47
+S:       1666 sCount is  49
+S       1666: Enqueueing     828
+D:       1281 dCount is  48
+S:       1667 sCount is  50
+S:       1668 sCount is  50
+S       1668: Enqueueing     829
+D:       1282 dCount is  49
+S:       1669 sCount is  51
+D:       1283 dCount is  49
+S:       1670 sCount is  51
+S       1670: Enqueueing     830
+D:       1284 dCount is  50
+S:       1671 sCount is  52
+S:       1672 sCount is  52
+S       1672: Enqueueing     831
+D:       1285 dCount is  51
+S:       1673 sCount is  53
+D:       1286 dCount is  51
+S:       1674 sCount is  53
+S       1674: Enqueueing     832
+D:       1287 dCount is  52
+S:       1675 sCount is  54
+D:       1288 dCount is  52
+S:       1676 sCount is  54
+S       1676: Enqueueing     833
+S:       1677 sCount is  55
+D:       1289 dCount is  53
+S:       1678 sCount is  55
+S       1678: Enqueueing     834
+D:       1290 dCount is  54
+S:       1679 sCount is  56
+D:       1291 dCount is  54
+S:       1680 sCount is  56
+S       1680: Enqueueing     835
+S:       1681 sCount is  57
+D:       1292 dCount is  55
+S:       1682 sCount is  57
+S       1682: Enqueueing     836
+D:       1293 dCount is  56
+S:       1683 sCount is  58
+D:       1294 dCount is  56
+S:       1684 sCount is  58
+S       1684: Enqueueing     837
+S:       1685 sCount is  59
+D:       1295 dCount is  57
+S:       1686 sCount is  59
+S       1686: Enqueueing     838
+D:       1296 dCount is  58
+S:       1687 sCount is  60
+D:       1297 dCount is  58
+S:       1688 sCount is  60
+S       1688: Enqueueing     839
+D:       1298 dCount is  59
+S:       1689 sCount is  61
+S:       1690 sCount is  61
+S       1690: Enqueueing     840
+D:       1299 dCount is  60
+S:       1691 sCount is  62
+D:       1300 dCount is  60
+S:       1692 sCount is  62
+S       1692: Enqueueing     841
+D:       1301 dCount is  61
+S:       1693 sCount is  63
+S:       1694 sCount is  63
+S       1694: Enqueueing     842
+D:       1302 dCount is  62
+S:       1695 sCount is  64
+D:       1303 dCount is  62
+S:       1696 sCount is  64
+S       1696: Enqueueing     843
+D:       1304 dCount is  63
+S:       1697 sCount is  65
+S:       1698 sCount is  65
+S       1698: Enqueueing     844
+D:       1305 dCount is  64
+S:       1699 sCount is  66
+D:       1306 dCount is  64
+S:       1700 sCount is  66
+S       1700: Enqueueing     845
+D:       1307 dCount is  65
+S:       1701 sCount is  67
+D:       1308 dCount is  65
+S:       1702 sCount is  67
+S       1702: Enqueueing     846
+S:       1703 sCount is  68
+D:       1309 dCount is  66
+S:       1704 sCount is  68
+S       1704: Enqueueing     847
+D:       1310 dCount is  67
+S:       1705 sCount is  69
+D:       1311 dCount is  67
+S:       1706 sCount is  69
+S       1706: Enqueueing     848
+S:       1707 sCount is  70
+D:       1312 dCount is  68
+S:       1708 sCount is  70
+S       1708: Enqueueing     849
+D:       1313 dCount is  69
+S:       1709 sCount is  71
+D:       1314 dCount is  69
+S:       1710 sCount is  71
+S       1710: Enqueueing     850
+S:       1711 sCount is  72
+D:       1315 dCount is  70
+S:       1712 sCount is  72
+S       1712: Enqueueing     851
+D:       1316 dCount is  71
+S:       1713 sCount is  73
+D:       1317 dCount is  71
+S:       1714 sCount is  73
+S       1714: Enqueueing     852
+D:       1318 dCount is  72
+S:       1715 sCount is  74
+S:       1716 sCount is  74
+S       1716: Enqueueing     853
+D:       1319 dCount is  73
+S:       1717 sCount is  75
+D:       1320 dCount is  73
+S:       1718 sCount is  75
+S       1718: Enqueueing     854
+D:       1321 dCount is  74
+S:       1719 sCount is  76
+S:       1720 sCount is  76
+S       1720: Enqueueing     855
+D:       1322 dCount is  75
+S:       1721 sCount is  77
+D:       1323 dCount is  75
+S:       1722 sCount is  77
+S       1722: Enqueueing     856
+D:       1324 dCount is  76
+S:       1723 sCount is  78
+S:       1724 sCount is  78
+S       1724: Enqueueing     857
+D:       1325 dCount is  77
+S:       1725 sCount is  79
+D:       1326 dCount is  77
+S:       1726 sCount is  79
+S       1726: Enqueueing     858
+D:       1327 dCount is  78
+S:       1727 sCount is  80
+D:       1328 dCount is  78
+S:       1728 sCount is  80
+S       1728: Enqueueing     859
+S:       1729 sCount is  81
+D:       1329 dCount is  79
+S:       1730 sCount is  81
+S       1730: Enqueueing     860
+D:       1330 dCount is  80
+S:       1731 sCount is  82
+D:       1331 dCount is  80
+S:       1732 sCount is  82
+S       1732: Enqueueing     861
+S:       1733 sCount is  83
+D:       1332 dCount is  81
+S:       1734 sCount is  83
+S       1734: Enqueueing     862
+D:       1333 dCount is  82
+S:       1735 sCount is  84
+D:       1334 dCount is  82
+S:       1736 sCount is  84
+S       1736: Enqueueing     863
+S:       1737 sCount is  85
+D:       1335 dCount is  83
+S:       1738 sCount is  85
+S       1738: Enqueueing     864
+D:       1336 dCount is  84
+S:       1739 sCount is  86
+D:       1337 dCount is  84
+S:       1740 sCount is  86
+S       1740: Enqueueing     865
+D:       1338 dCount is  85
+S:       1741 sCount is  87
+S:       1742 sCount is  87
+S       1742: Enqueueing     866
+D:       1339 dCount is  86
+S:       1743 sCount is  88
+D:       1340 dCount is  86
+S:       1744 sCount is  88
+S       1744: Enqueueing     867
+D:       1341 dCount is  87
+S:       1745 sCount is  89
+S:       1746 sCount is  89
+S       1746: Enqueueing     868
+D:       1342 dCount is  88
+S:       1747 sCount is  90
+D:       1343 dCount is  88
+S:       1748 sCount is  90
+S       1748: Enqueueing     869
+D:       1344 dCount is  89
+S:       1749 sCount is  91
+S:       1750 sCount is  91
+S       1750: Enqueueing     870
+D:       1345 dCount is  90
+S:       1751 sCount is  92
+D:       1346 dCount is  90
+S:       1752 sCount is  92
+S       1752: Enqueueing     871
+D:       1347 dCount is  91
+S:       1753 sCount is  93
+D:       1348 dCount is  91
+S:       1754 sCount is  93
+S       1754: Enqueueing     872
+S:       1755 sCount is  94
+D:       1349 dCount is  92
+S:       1756 sCount is  94
+S       1756: Enqueueing     873
+D:       1350 dCount is  93
+S:       1757 sCount is  95
+D:       1351 dCount is  93
+S:       1758 sCount is  95
+S       1758: Enqueueing     874
+S:       1759 sCount is  96
+D:       1352 dCount is  94
+S:       1760 sCount is  96
+S       1760: Enqueueing     875
+D:       1353 dCount is  95
+S:       1761 sCount is  97
+D:       1354 dCount is  95
+S:       1762 sCount is  97
+S       1762: Enqueueing     876
+S:       1763 sCount is  98
+D:       1355 dCount is  96
+S:       1764 sCount is  98
+S       1764: Enqueueing     877
+D:       1356 dCount is  97
+S:       1765 sCount is  99
+D:       1357 dCount is  97
+S:       1766 sCount is  99
+S       1766: Enqueueing     878
+D:       1358 dCount is  98
+S:       1767 sCount is 100
+S:       1768 sCount is 100
+S       1768: Enqueueing     879
+D:       1359 dCount is  99
+S:       1769 sCount is 101
+D:       1360 dCount is  99
+S:       1770 sCount is 101
+S       1770: Enqueueing     880
+D:       1361 dCount is 100
+S:       1771 sCount is 102
+S:       1772 sCount is 102
+S       1772: Enqueueing     881
+D:       1362 dCount is 101
+S:       1773 sCount is 103
+D:       1363 dCount is 101
+S:       1774 sCount is 103
+S       1774: Enqueueing     882
+D:       1364 dCount is 102
+S:       1775 sCount is 104
+S:       1776 sCount is 104
+S       1776: Enqueueing     883
+D:       1365 dCount is 103
+S:       1777 sCount is 105
+D:       1366 dCount is 103
+S:       1778 sCount is 105
+S       1778: Enqueueing     884
+D:       1367 dCount is 104
+S:       1779 sCount is 106
+D:       1368 dCount is 104
+S:       1780 sCount is 106
+S       1780: Enqueueing     885
+S:       1781 sCount is 107
+D:       1369 dCount is 105
+S:       1782 sCount is 107
+S       1782: Enqueueing     886
+D:       1370 dCount is 106
+S:       1783 sCount is 108
+D:       1371 dCount is 106
+S:       1784 sCount is 108
+S       1784: Enqueueing     887
+S:       1785 sCount is 109
+D:       1372 dCount is 107
+S:       1786 sCount is 109
+S       1786: Enqueueing     888
+D:       1373 dCount is 108
+S:       1787 sCount is 110
+D:       1374 dCount is 108
+S:       1788 sCount is 110
+S       1788: Enqueueing     889
+S:       1789 sCount is 111
+D:       1375 dCount is 109
+S:       1790 sCount is 111
+S       1790: Enqueueing     890
+D:       1376 dCount is 110
+S:       1791 sCount is 112
+D:       1377 dCount is 110
+S:       1792 sCount is 112
+S       1792: Enqueueing     891
+D:       1378 dCount is 111
+S:       1793 sCount is 113
+S:       1794 sCount is 113
+S       1794: Enqueueing     892
+D:       1379 dCount is 112
+S:       1795 sCount is 114
+D:       1380 dCount is 112
+S:       1796 sCount is 114
+S       1796: Enqueueing     893
+D:       1381 dCount is 113
+S:       1797 sCount is 115
+S:       1798 sCount is 115
+S       1798: Enqueueing     894
+D:       1382 dCount is 114
+S:       1799 sCount is 116
+D:       1383 dCount is 114
+S:       1800 sCount is 116
+S       1800: Enqueueing     895
+D:       1384 dCount is 115
+S:       1801 sCount is 117
+S:       1802 sCount is 117
+S       1802: Enqueueing     896
+D:       1385 dCount is 116
+S:       1803 sCount is 118
+D:       1386 dCount is 116
+S:       1804 sCount is 118
+S       1804: Enqueueing     897
+D:       1387 dCount is 117
+S:       1805 sCount is 119
+D:       1388 dCount is 117
+S:       1806 sCount is 119
+S       1806: Enqueueing     898
+S:       1807 sCount is 120
+D:       1389 dCount is 118
+S:       1808 sCount is 120
+S       1808: Enqueueing     899
+D:       1390 dCount is 119
+S:       1809 sCount is 121
+D:       1391 dCount is 119
+S:       1810 sCount is 121
+S       1810: Enqueueing     900
+S:       1811 sCount is 122
+D:       1392 dCount is 120
+S:       1812 sCount is 122
+S       1812: Enqueueing     901
+D:       1393 dCount is 121
+S:       1813 sCount is 123
+D:       1394 dCount is 121
+D:       1394 dequeueing     778
+S:       1814 sCount is 123
+S       1814: Enqueueing     902
+S:       1815 sCount is 124
+D:       1395 dCount is 122
+D:       1395 dequeueing     779
+S:       1816 sCount is 124
+S       1816: Enqueueing     903
+D:       1396 dCount is 122
+D:       1396 dequeueing     780
+S:       1817 sCount is 124
+D:       1397 dCount is 121
+D:       1397 dequeueing     781
+S:       1818 sCount is 124
+S       1818: Enqueueing     904
+D:       1398 dCount is 121
+D:       1398 dequeueing     782
+S:       1819 sCount is 124
+S:       1820 sCount is 123
+S       1820: Enqueueing     905
+D:       1399 dCount is 121
+D:       1399 dequeueing     783
+S:       1821 sCount is 123
+D:       1400 dCount is 120
+D:       1400 dequeueing     784
+S:       1822 sCount is 122
+S       1822: Enqueueing     906
+D:       1401 dCount is 120
+D:       1401 dequeueing     785
+S:       1823 sCount is 123
+S:       1824 sCount is 122
+S       1824: Enqueueing     907
+D:       1402 dCount is 120
+D:       1402 dequeueing     786
+S:       1825 sCount is 122
+D:       1403 dCount is 119
+D:       1403 dequeueing     787
+S:       1826 sCount is 121
+S       1826: Enqueueing     908
+D:       1404 dCount is 119
+D:       1404 dequeueing     788
+S:       1827 sCount is 122
+S:       1828 sCount is 121
+S       1828: Enqueueing     909
+D:       1405 dCount is 119
+D:       1405 dequeueing     789
+S:       1829 sCount is 121
+D:       1406 dCount is 118
+D:       1406 dequeueing     790
+S:       1830 sCount is 120
+S       1830: Enqueueing     910
+D:       1407 dCount is 118
+D:       1407 dequeueing     791
+S:       1831 sCount is 121
+D:       1408 dCount is 117
+D:       1408 dequeueing     792
+S:       1832 sCount is 120
+S       1832: Enqueueing     911
+S:       1833 sCount is 120
+D:       1409 dCount is 117
+D:       1409 dequeueing     793
+S:       1834 sCount is 119
+S       1834: Enqueueing     912
+D:       1410 dCount is 117
+D:       1410 dequeueing     794
+S:       1835 sCount is 119
+D:       1411 dCount is 116
+D:       1411 dequeueing     795
+S:       1836 sCount is 119
+S       1836: Enqueueing     913
+S:       1837 sCount is 119
+D:       1412 dCount is 116
+D:       1412 dequeueing     796
+S:       1838 sCount is 118
+S       1838: Enqueueing     914
+D:       1413 dCount is 116
+D:       1413 dequeueing     797
+S:       1839 sCount is 118
+D:       1414 dCount is 115
+D:       1414 dequeueing     798
+S:       1840 sCount is 118
+S       1840: Enqueueing     915
+S:       1841 sCount is 118
+D:       1415 dCount is 115
+D:       1415 dequeueing     799
+S:       1842 sCount is 117
+S       1842: Enqueueing     916
+D:       1416 dCount is 115
+D:       1416 dequeueing     800
+S:       1843 sCount is 117
+D:       1417 dCount is 114
+D:       1417 dequeueing     801
+S:       1844 sCount is 117
+S       1844: Enqueueing     917
+D:       1418 dCount is 114
+D:       1418 dequeueing     802
+S:       1845 sCount is 117
+S:       1846 sCount is 116
+S       1846: Enqueueing     918
+D:       1419 dCount is 114
+D:       1419 dequeueing     803
+S:       1847 sCount is 116
+D:       1420 dCount is 113
+D:       1420 dequeueing     804
+S:       1848 sCount is 115
+S       1848: Enqueueing     919
+D:       1421 dCount is 113
+D:       1421 dequeueing     805
+S:       1849 sCount is 116
+S:       1850 sCount is 115
+S       1850: Enqueueing     920
+D:       1422 dCount is 113
+D:       1422 dequeueing     806
+S:       1851 sCount is 115
+D:       1423 dCount is 112
+D:       1423 dequeueing     807
+S:       1852 sCount is 114
+S       1852: Enqueueing     921
+D:       1424 dCount is 112
+D:       1424 dequeueing     808
+S:       1853 sCount is 115
+S:       1854 sCount is 114
+S       1854: Enqueueing     922
+D:       1425 dCount is 112
+D:       1425 dequeueing     809
+S:       1855 sCount is 114
+D:       1426 dCount is 111
+D:       1426 dequeueing     810
+S:       1856 sCount is 113
+S       1856: Enqueueing     923
+D:       1427 dCount is 111
+D:       1427 dequeueing     811
+S:       1857 sCount is 114
+D:       1428 dCount is 110
+D:       1428 dequeueing     812
+S:       1858 sCount is 113
+S       1858: Enqueueing     924
+S:       1859 sCount is 113
+D:       1429 dCount is 110
+D:       1429 dequeueing     813
+S:       1860 sCount is 112
+S       1860: Enqueueing     925
+D:       1430 dCount is 110
+D:       1430 dequeueing     814
+S:       1861 sCount is 112
+D:       1431 dCount is 109
+D:       1431 dequeueing     815
+S:       1862 sCount is 112
+S       1862: Enqueueing     926
+S:       1863 sCount is 112
+D:       1432 dCount is 109
+D:       1432 dequeueing     816
+S:       1864 sCount is 111
+S       1864: Enqueueing     927
+D:       1433 dCount is 109
+D:       1433 dequeueing     817
+S:       1865 sCount is 111
+D:       1434 dCount is 108
+D:       1434 dequeueing     818
+S:       1866 sCount is 111
+S       1866: Enqueueing     928
+S:       1867 sCount is 111
+D:       1435 dCount is 108
+D:       1435 dequeueing     819
+S:       1868 sCount is 110
+S       1868: Enqueueing     929
+D:       1436 dCount is 108
+D:       1436 dequeueing     820
+S:       1869 sCount is 110
+D:       1437 dCount is 107
+D:       1437 dequeueing     821
+S:       1870 sCount is 110
+S       1870: Enqueueing     930
+D:       1438 dCount is 107
+D:       1438 dequeueing     822
+S:       1871 sCount is 110
+S:       1872 sCount is 109
+S       1872: Enqueueing     931
+D:       1439 dCount is 107
+D:       1439 dequeueing     823
+S:       1873 sCount is 109
+D:       1440 dCount is 106
+D:       1440 dequeueing     824
+S:       1874 sCount is 108
+S       1874: Enqueueing     932
+D:       1441 dCount is 106
+D:       1441 dequeueing     825
+S:       1875 sCount is 109
+S:       1876 sCount is 108
+S       1876: Enqueueing     933
+D:       1442 dCount is 106
+D:       1442 dequeueing     826
+S:       1877 sCount is 108
+D:       1443 dCount is 105
+D:       1443 dequeueing     827
+S:       1878 sCount is 107
+S       1878: Enqueueing     934
+D:       1444 dCount is 105
+D:       1444 dequeueing     828
+S:       1879 sCount is 108
+S:       1880 sCount is 107
+S       1880: Enqueueing     935
+D:       1445 dCount is 105
+D:       1445 dequeueing     829
+S:       1881 sCount is 107
+D:       1446 dCount is 104
+D:       1446 dequeueing     830
+S:       1882 sCount is 106
+S       1882: Enqueueing     936
+D:       1447 dCount is 104
+D:       1447 dequeueing     831
+S:       1883 sCount is 107
+D:       1448 dCount is 103
+D:       1448 dequeueing     832
+S:       1884 sCount is 106
+S       1884: Enqueueing     937
+S:       1885 sCount is 106
+D:       1449 dCount is 103
+D:       1449 dequeueing     833
+S:       1886 sCount is 105
+S       1886: Enqueueing     938
+D:       1450 dCount is 103
+D:       1450 dequeueing     834
+S:       1887 sCount is 105
+D:       1451 dCount is 102
+D:       1451 dequeueing     835
+S:       1888 sCount is 105
+S       1888: Enqueueing     939
+S:       1889 sCount is 105
+D:       1452 dCount is 102
+D:       1452 dequeueing     836
+S:       1890 sCount is 104
+S       1890: Enqueueing     940
+D:       1453 dCount is 102
+D:       1453 dequeueing     837
+S:       1891 sCount is 104
+D:       1454 dCount is 101
+D:       1454 dequeueing     838
+S:       1892 sCount is 104
+S       1892: Enqueueing     941
+S:       1893 sCount is 104
+D:       1455 dCount is 101
+D:       1455 dequeueing     839
+S:       1894 sCount is 103
+S       1894: Enqueueing     942
+D:       1456 dCount is 101
+D:       1456 dequeueing     840
+S:       1895 sCount is 103
+D:       1457 dCount is 100
+D:       1457 dequeueing     841
+S:       1896 sCount is 103
+S       1896: Enqueueing     943
+D:       1458 dCount is 100
+D:       1458 dequeueing     842
+S:       1897 sCount is 103
+S:       1898 sCount is 102
+S       1898: Enqueueing     944
+D:       1459 dCount is 100
+D:       1459 dequeueing     843
+S:       1899 sCount is 102
+D:       1460 dCount is  99
+D:       1460 dequeueing     844
+S:       1900 sCount is 101
+S       1900: Enqueueing     945
+D:       1461 dCount is  99
+D:       1461 dequeueing     845
+S:       1901 sCount is 102
+S:       1902 sCount is 101
+S       1902: Enqueueing     946
+D:       1462 dCount is  99
+D:       1462 dequeueing     846
+S:       1903 sCount is 101
+D:       1463 dCount is  98
+D:       1463 dequeueing     847
+S:       1904 sCount is 100
+S       1904: Enqueueing     947
+D:       1464 dCount is  98
+D:       1464 dequeueing     848
+S:       1905 sCount is 101
+S:       1906 sCount is 100
+S       1906: Enqueueing     948
+D:       1465 dCount is  98
+D:       1465 dequeueing     849
+S:       1907 sCount is 100
+D:       1466 dCount is  97
+D:       1466 dequeueing     850
+S:       1908 sCount is  99
+S       1908: Enqueueing     949
+D:       1467 dCount is  97
+D:       1467 dequeueing     851
+S:       1909 sCount is 100
+D:       1468 dCount is  96
+D:       1468 dequeueing     852
+S:       1910 sCount is  99
+S       1910: Enqueueing     950
+S:       1911 sCount is  99
+D:       1469 dCount is  96
+D:       1469 dequeueing     853
+S:       1912 sCount is  98
+S       1912: Enqueueing     951
+D:       1470 dCount is  96
+D:       1470 dequeueing     854
+S:       1913 sCount is  98
+D:       1471 dCount is  95
+D:       1471 dequeueing     855
+S:       1914 sCount is  98
+S       1914: Enqueueing     952
+S:       1915 sCount is  98
+D:       1472 dCount is  95
+D:       1472 dequeueing     856
+S:       1916 sCount is  97
+S       1916: Enqueueing     953
+D:       1473 dCount is  95
+D:       1473 dequeueing     857
+S:       1917 sCount is  97
+D:       1474 dCount is  94
+D:       1474 dequeueing     858
+S:       1918 sCount is  97
+S       1918: Enqueueing     954
+S:       1919 sCount is  97
+D:       1475 dCount is  94
+D:       1475 dequeueing     859
+S:       1920 sCount is  96
+S       1920: Enqueueing     955
+D:       1476 dCount is  94
+D:       1476 dequeueing     860
+S:       1921 sCount is  96
+D:       1477 dCount is  93
+D:       1477 dequeueing     861
+S:       1922 sCount is  96
+S       1922: Enqueueing     956
+D:       1478 dCount is  93
+D:       1478 dequeueing     862
+S:       1923 sCount is  96
+S:       1924 sCount is  95
+S       1924: Enqueueing     957
+D:       1479 dCount is  93
+D:       1479 dequeueing     863
+S:       1925 sCount is  95
+D:       1480 dCount is  92
+D:       1480 dequeueing     864
+S:       1926 sCount is  94
+S       1926: Enqueueing     958
+D:       1481 dCount is  92
+D:       1481 dequeueing     865
+S:       1927 sCount is  95
+S:       1928 sCount is  94
+S       1928: Enqueueing     959
+D:       1482 dCount is  92
+D:       1482 dequeueing     866
+S:       1929 sCount is  94
+D:       1483 dCount is  91
+D:       1483 dequeueing     867
+S:       1930 sCount is  93
+S       1930: Enqueueing     960
+D:       1484 dCount is  91
+D:       1484 dequeueing     868
+S:       1931 sCount is  94
+S:       1932 sCount is  93
+S       1932: Enqueueing     961
+D:       1485 dCount is  91
+D:       1485 dequeueing     869
+S:       1933 sCount is  93
+D:       1486 dCount is  90
+D:       1486 dequeueing     870
+S:       1934 sCount is  92
+S       1934: Enqueueing     962
+D:       1487 dCount is  90
+D:       1487 dequeueing     871
+S:       1935 sCount is  93
+D:       1488 dCount is  89
+D:       1488 dequeueing     872
+S:       1936 sCount is  92
+S       1936: Enqueueing     963
+S:       1937 sCount is  92
+D:       1489 dCount is  89
+D:       1489 dequeueing     873
+S:       1938 sCount is  91
+S       1938: Enqueueing     964
+D:       1490 dCount is  89
+D:       1490 dequeueing     874
+S:       1939 sCount is  91
+D:       1491 dCount is  88
+D:       1491 dequeueing     875
+S:       1940 sCount is  91
+S       1940: Enqueueing     965
+S:       1941 sCount is  91
+D:       1492 dCount is  88
+D:       1492 dequeueing     876
+S:       1942 sCount is  90
+S       1942: Enqueueing     966
+D:       1493 dCount is  88
+D:       1493 dequeueing     877
+S:       1943 sCount is  90
+D:       1494 dCount is  87
+D:       1494 dequeueing     878
+S:       1944 sCount is  90
+S       1944: Enqueueing     967
+S:       1945 sCount is  90
+D:       1495 dCount is  87
+D:       1495 dequeueing     879
+S:       1946 sCount is  89
+S       1946: Enqueueing     968
+D:       1496 dCount is  87
+D:       1496 dequeueing     880
+S:       1947 sCount is  89
+D:       1497 dCount is  86
+D:       1497 dequeueing     881
+S:       1948 sCount is  89
+S       1948: Enqueueing     969
+D:       1498 dCount is  86
+D:       1498 dequeueing     882
+S:       1949 sCount is  89
+S:       1950 sCount is  88
+S       1950: Enqueueing     970
+D:       1499 dCount is  86
+D:       1499 dequeueing     883
+S:       1951 sCount is  88
+D:       1500 dCount is  85
+D:       1500 dequeueing     884
+S:       1952 sCount is  87
+S       1952: Enqueueing     971
+D:       1501 dCount is  85
+D:       1501 dequeueing     885
+S:       1953 sCount is  88
+S:       1954 sCount is  87
+S       1954: Enqueueing     972
+D:       1502 dCount is  85
+D:       1502 dequeueing     886
+S:       1955 sCount is  87
+D:       1503 dCount is  84
+D:       1503 dequeueing     887
+S:       1956 sCount is  86
+S       1956: Enqueueing     973
+D:       1504 dCount is  84
+D:       1504 dequeueing     888
+S:       1957 sCount is  87
+S:       1958 sCount is  86
+S       1958: Enqueueing     974
+D:       1505 dCount is  84
+D:       1505 dequeueing     889
+S:       1959 sCount is  86
+D:       1506 dCount is  83
+D:       1506 dequeueing     890
+S:       1960 sCount is  85
+S       1960: Enqueueing     975
+D:       1507 dCount is  83
+D:       1507 dequeueing     891
+S:       1961 sCount is  86
+D:       1508 dCount is  82
+D:       1508 dequeueing     892
+S:       1962 sCount is  85
+S       1962: Enqueueing     976
+S:       1963 sCount is  85
+D:       1509 dCount is  82
+D:       1509 dequeueing     893
+S:       1964 sCount is  84
+S       1964: Enqueueing     977
+D:       1510 dCount is  82
+D:       1510 dequeueing     894
+S:       1965 sCount is  84
+D:       1511 dCount is  81
+D:       1511 dequeueing     895
+S:       1966 sCount is  84
+S       1966: Enqueueing     978
+S:       1967 sCount is  84
+D:       1512 dCount is  81
+D:       1512 dequeueing     896
+S:       1968 sCount is  83
+S       1968: Enqueueing     979
+D:       1513 dCount is  81
+D:       1513 dequeueing     897
+S:       1969 sCount is  83
+D:       1514 dCount is  80
+D:       1514 dequeueing     898
+S:       1970 sCount is  83
+S       1970: Enqueueing     980
+S:       1971 sCount is  83
+D:       1515 dCount is  80
+D:       1515 dequeueing     899
+S:       1972 sCount is  82
+S       1972: Enqueueing     981
+D:       1516 dCount is  80
+D:       1516 dequeueing     900
+S:       1973 sCount is  82
+D:       1517 dCount is  79
+D:       1517 dequeueing     901
+S:       1974 sCount is  82
+S       1974: Enqueueing     982
+D:       1518 dCount is  79
+D:       1518 dequeueing     902
+S:       1975 sCount is  82
+S:       1976 sCount is  81
+S       1976: Enqueueing     983
+D:       1519 dCount is  79
+D:       1519 dequeueing     903
+S:       1977 sCount is  81
+D:       1520 dCount is  78
+D:       1520 dequeueing     904
+S:       1978 sCount is  80
+S       1978: Enqueueing     984
+D:       1521 dCount is  78
+D:       1521 dequeueing     905
+S:       1979 sCount is  81
+S:       1980 sCount is  80
+S       1980: Enqueueing     985
+D:       1522 dCount is  78
+D:       1522 dequeueing     906
+S:       1981 sCount is  80
+D:       1523 dCount is  77
+D:       1523 dequeueing     907
+S:       1982 sCount is  79
+S       1982: Enqueueing     986
+D:       1524 dCount is  77
+D:       1524 dequeueing     908
+S:       1983 sCount is  80
+S:       1984 sCount is  79
+S       1984: Enqueueing     987
+D:       1525 dCount is  77
+D:       1525 dequeueing     909
+S:       1985 sCount is  79
+D:       1526 dCount is  76
+D:       1526 dequeueing     910
+S:       1986 sCount is  78
+S       1986: Enqueueing     988
+D:       1527 dCount is  76
+D:       1527 dequeueing     911
+S:       1987 sCount is  79
+D:       1528 dCount is  75
+D:       1528 dequeueing     912
+S:       1988 sCount is  78
+S       1988: Enqueueing     989
+S:       1989 sCount is  78
+D:       1529 dCount is  75
+D:       1529 dequeueing     913
+S:       1990 sCount is  77
+S       1990: Enqueueing     990
+D:       1530 dCount is  75
+D:       1530 dequeueing     914
+S:       1991 sCount is  77
+D:       1531 dCount is  74
+D:       1531 dequeueing     915
+S:       1992 sCount is  77
+S       1992: Enqueueing     991
+S:       1993 sCount is  77
+D:       1532 dCount is  74
+D:       1532 dequeueing     916
+S:       1994 sCount is  76
+S       1994: Enqueueing     992
+D:       1533 dCount is  74
+D:       1533 dequeueing     917
+S:       1995 sCount is  76
+D:       1534 dCount is  73
+D:       1534 dequeueing     918
+S:       1996 sCount is  76
+S       1996: Enqueueing     993
+S:       1997 sCount is  76
+D:       1535 dCount is  73
+D:       1535 dequeueing     919
+S:       1998 sCount is  75
+S       1998: Enqueueing     994
+D:       1536 dCount is  73
+D:       1536 dequeueing     920
+S:       1999 sCount is  75
+D:       1537 dCount is  72
+D:       1537 dequeueing     921
+S:       2000 sCount is  75
+S       2000: Enqueueing     995
+D:       1538 dCount is  72
+D:       1538 dequeueing     922
+S:       2001 sCount is  75

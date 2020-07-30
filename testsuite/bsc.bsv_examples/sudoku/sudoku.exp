@@ -1,0 +1,3 @@
+# Don't generate a VCD because it exceeds our max file size
+set check_vcd 0
+test_c_veri_bsv_multi GenerateTest3 mkGenerateTest3 {} {} {} {} {} $check_vcd

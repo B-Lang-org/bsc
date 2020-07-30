@@ -1,0 +1,112 @@
+checking package dependencies
+compiling MethodActionValue.bsv
+code generation for mkMethodActionValue_Sub starts
+=== ATS:
+APackage mkMethodActionValue_Sub
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+-- AP local definitions
+-- AP rules
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP  apkg_interface def mkMethodActionValue_Sub
+--AIActionValue m
+m :: Bit 8;
+m  = (_ :: Bit 8);
+[rule m "m":
+  when 1'd1
+   ==> { }
+ []
+ clock domain = Just (0), resets = []]
+pred:  RDY_m
+clock domain = Just (0), resets = []
+method (m, [])m enable ((EN_m, [])) clocked_by (default_clock) reset_by (no_reset);
+
+-- AP  apkg_interface def mkMethodActionValue_Sub
+--AIDef RDY_m
+RDY_m :: Bit 1;
+RDY_m  = 1'd1;
+-- IdProp RDY_m[IdPReady]
+pred:  1'b1
+clock domain = Just (0), resets = []
+method (RDY_m, [])RDY_m clocked_by (default_clock) reset_by (no_reset);
+
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: mkMethodActionValue_Sub.v
+code generation for sysMethodActionValue starts
+=== ATS:
+APackage sysMethodActionValue
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-inhigh-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+i :: ABSTRACT:  MethodActionValue.Ifc­ = mkMethodActionValue_Sub
+					 (VModInfo
+					  mkMethodActionValue_Sub
+					  clock default_clock(CLK, {-unused-});
+					  reset default_reset(RST_N) clocked_by(default_clock);
+					  [clockarg default_clock;, resetarg default_reset;]
+					  [method (m, [const])m enable ((EN_m,
+									 [unused])) clocked_by (default_clock) reset_by (no_reset);,
+					   method (RDY_m, [const])RDY_m clocked_by (default_clock) reset_by (no_reset);]
+					  SchedInfo [RDY_m CF [RDY_m, m], m CF m] [] [] []
+					  [])
+					 [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }]
+					 []
+					 meth types=[([], Just (Bit 1), Just (Bit 8)), ([], Nothing, Just (Bit 1))]
+					 port types=m -> Prelude.Bit 8
+-- AP local definitions
+i_m_PLUS_8___d2 :: Bit 8;
+i_m_PLUS_8___d2  = v__h90 + 8'd8;
+-- IdProp i_m_PLUS_8___d2[IdP_from_rhs]
+i_m_MINUS_1___d3 :: Bit 8;
+i_m_MINUS_1___d3  = v__h90 - 8'd1;
+-- IdProp i_m_MINUS_1___d3[IdP_from_rhs]
+v__h90 :: Bit 8;
+v__h90  = i.m;
+-- IdProp v__h90[IdP_keep]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { i.m; Prelude.$display i_m_PLUS_8___d2; Prelude.$display i_m_MINUS_1___d3; }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysMethodActionValue.v
+All packages are up to date.

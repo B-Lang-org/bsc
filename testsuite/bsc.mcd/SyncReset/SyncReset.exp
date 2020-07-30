@@ -1,0 +1,25 @@
+## Verilog output has the clock domain displays intermingled differently
+## and has missing or extra displays at the beginning and end of sim,
+## due to displaying on the negedge.  So we use a separate expected file.
+## Also, because asynchronous resets can deassert between the negedge and
+## the posedge, Verilog will not show a $display (since reset was asserted
+## during the negedge) while Bluesim will show the $display (because reset
+## was not asserted when the posedge arrived).  This is the case with the
+## test RstTest_V2, for rule "c2".
+
+## Full test of working system
+test_c_only_bsv RstTest
+test_veri_only_bsv RstTest sysRstTest.v.out.expected
+
+## variation -- mkReset input can be from any domain
+test_c_only_bsv RstTest_V1
+test_veri_only_bsv RstTest_V1 sysRstTest_V1.v.out.expected
+
+## bad reset arguments
+compile_verilog_fail_error RstTest_E1.bsv  G0042
+
+##
+## Check the null reset logic
+test_c_only_bsv RstTest_V2
+test_veri_only_bsv RstTest_V2 sysRstTest_V2.v.out.expected
+

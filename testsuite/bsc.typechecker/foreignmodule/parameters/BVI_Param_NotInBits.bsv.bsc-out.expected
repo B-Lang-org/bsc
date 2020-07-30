@@ -1,0 +1,7 @@
+checking package dependencies
+compiling BVI_Param_NotInBits.bsv
+Error: "BVI_Param_NotInBits.bsv", line 2, column 11: (T0133)
+  Parameters to imported modules can be of type Integer, String, Real, or any
+  type which has an instance of Bits. A parameter of type `Clock' is declared
+  at the following position:
+    "BVI_Param_NotInBits.bsv", line 3, column 21

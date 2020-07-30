@@ -1,0 +1,6 @@
+checking package dependencies
+compiling DataConstrOfNoArgsAppliedToMultipleArgs.bsv
+Error: "DataConstrOfNoArgsAppliedToMultipleArgs.bsv", line 5, column 12: (T0143)
+  Too many arguments in the use of the following constructor:
+    DataConstrOfNoArgsAppliedToMultipleArgs::Red
+  The constructor expects 0 arguments but was used with 2 arguments.

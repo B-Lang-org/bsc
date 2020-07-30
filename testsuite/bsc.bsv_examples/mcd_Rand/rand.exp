@@ -1,0 +1,7 @@
+
+# Bluesim
+test_c_only_bsv_multi Top mkTop {mkRandTop}
+
+# Verilog outputs a few coincident edges differently
+test_veri_only_bsv_multi Top mkTop {mkRandTop} mkTop.v.out.expected
+

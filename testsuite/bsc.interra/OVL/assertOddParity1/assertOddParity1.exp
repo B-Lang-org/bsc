@@ -1,0 +1,4 @@
+set here [file join [absolute $srcdir] $subdir]
+source $here/../common.tcl
+
+test_ovl  assertOddParity1  assert_odd_parity.vlib

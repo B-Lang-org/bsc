@@ -1,0 +1,19 @@
+
+compile_verilog_pass_warning SynthesizedModule.bsv T0093 3 "" "-warn-meth-arg-mismatch"
+
+compile_pass_warning NonSynthesizedModule.bsv T0093 1 "-warn-meth-arg-mismatch"
+
+compile_verilog_pass_warning MethodCond.bsv T0093 1 "" "-warn-meth-arg-mismatch -aggressive-conditions"
+
+compile_pass_warning MethodCond2.bsv T0093 1 "-warn-meth-arg-mismatch"
+
+# how about a test that should pass?
+compile_verilog_pass MethodCond3.bsv "" "-warn-meth-arg-mismatch -aggressive-conditions"
+if { $vtest == 1 } {
+    no_warnings MethodCond3.bsv.bsc-vcomp-out
+}
+
+# check that the lookup of the methods is not interfered when there exists
+# another interface with the same name and methods
+compile_verilog_pass_no_warning IfcMethodArgsQualLookup.bsv {} {-warn-meth-arg-mismatch}
+

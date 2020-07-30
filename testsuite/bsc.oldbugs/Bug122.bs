@@ -1,0 +1,14 @@
+package Bug122(sysBug122) where 
+
+data RAMOp = Write | Read
+  deriving (Bits, Eq)
+
+sysBug122 :: Module Empty
+sysBug122 = 
+  module
+    x :: Reg RAMOp <- mkReg Write
+
+    rules 
+      when (x == Write) ==> action { x := Read; $display "%0d" (0 :: Bit 3) }
+      when (x == Read)  ==> action { $finish 0 }
+

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling BsTop.bs
+Warning: "BsTop.bs", line 33, column 19: (P0223)
+  Definition of `in_data' is not used.
+Error: "BsTop.bs", line 34, column 30: (P0075)
+  Case statement with no clauses

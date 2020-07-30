@@ -1,0 +1,15 @@
+checking package dependencies
+compiling MethodValue_Const.bsv
+code generation for sysMethodValue_Const starts
+=== IOproperties:
+Name                         I/O  size props
+m                              O    16 const
+RDY_m                          O     1 const
+CLK                            I     1 unused
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: sysMethodValue_Const.v
+All packages are up to date.

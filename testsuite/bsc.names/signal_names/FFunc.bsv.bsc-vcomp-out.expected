@@ -1,0 +1,45 @@
+checking package dependencies
+compiling FFunc.bsv
+Foreign import file created: fnFFunc.ba
+VPI wrapper files created: vpi_wrapper_fnFFunc.{c,h}
+code generation for sysFFunc starts
+=== ATS:
+APackage sysFFunc
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+-- AP local definitions
+fnFFunc_0_PLUS_8___d2 :: Bit 8;
+fnFFunc_0_PLUS_8___d2  = fnFFunc_0___d1 + 8'd8;
+-- IdProp fnFFunc_0_PLUS_8___d2[IdP_from_rhs]
+fnFFunc_0___d1 :: Bit 8;
+fnFFunc_0___d1  = fnFFunc 8'd0;
+-- IdProp fnFFunc_0___d1[IdP_from_rhs]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { Prelude.$display fnFFunc_0_PLUS_8___d2; }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysFFunc.v
+All packages are up to date.

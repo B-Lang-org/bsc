@@ -1,0 +1,6 @@
+# check that the original example compiles 
+# because the read-desugaring is suppressed
+compile_pass Zow.bsv
+# make sure it still works with an explicit asIfc
+# (which is not unreasonable to require if it becomes necessary)
+compile_pass Zow2.bsv

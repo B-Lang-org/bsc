@@ -1,0 +1,2 @@
+# Basic tests
+bluetcl_run_compare_pass utils_test.tcl

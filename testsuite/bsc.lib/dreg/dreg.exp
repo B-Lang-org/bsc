@@ -1,0 +1,10 @@
+# The only difference between the outputs is $time.
+# It would be nice to either make them the same by removing the $time
+# or have one expected file and use, say, m4 to make the other expected file.
+# This would prevent the two expected files from getting out of sync.
+
+test_veri_only_bsv DRegTest0 sysDRegTest0.v.out.expected
+test_c_only_bsv DRegTest0
+
+test_veri_only_bsv DRegTest1 sysDRegTest1.v.out.expected
+test_c_only_bsv DRegTest1

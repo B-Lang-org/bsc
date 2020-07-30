@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InoutProps_UnusedArg.bsv
+code generation for sysInoutProps_UnusedArg starts
+=== IOproperties:
+Name                         I/O  size props
+CLK                            I     1 unused
+RST_N                          I     1 unused
+io_arg                        IO    32 unused
+
+
+-----
+
+Verilog file created: sysInoutProps_UnusedArg.v
+All packages are up to date.

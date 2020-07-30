@@ -1,0 +1,97 @@
+# Tests for type errors on constructors and fields
+
+# ----------
+# Union tag with one argument, but used with none
+
+# These are examples of Bug 1012
+
+# Test for constructor applied to too few arguments
+compile_fail_error UnionOneArgGivenNone.bsv T0144
+# Check that the position and message are as expected
+compare_file [make_bsc_output_name UnionOneArgGivenNone.bsv]
+
+# Test in a pattern match
+compile_fail_error UnionOneArgGivenNone_Pattern.bsv T0142
+# Check that the position and message are as expected
+compare_file [make_bsc_output_name UnionOneArgGivenNone_Pattern.bsv]
+
+# ----------
+
+# XXX Test for other combinations (no arg, one arg, struct arg, actual struct)
+
+# ----------
+
+# Test that struct field update reports a mismatch if the field is not in
+# the struct (Bug #1368)
+
+compile_fail_error StructUpd_WrongField.bsv T0016
+
+# Test that when looking up a struct field (such as for field selection),
+# if multiple structs have the field but the expected struct does not,
+# that the user gets an error that the field is not in the struct (Bug #317)
+
+compile_fail_error StructSelect_MultipleTypes_WrongField.bs T0016
+
+# Test that struct literals that mention the wrong field report T0016
+
+compile_fail_error StructLit_WrongField.bsv T0016
+
+# ----------
+
+# When selecting a field, if the type of the value has not been imported
+# give an error (Bug 1444)
+
+compile_fail_error StructSelect_NotImported.bsv T0140
+compare_file [make_bsc_output_name StructSelect_NotImported.bsv]
+
+# When selecting a field, if the type of the value has been exported
+# abstractly, given an error (Bug 1444)
+# Test both unions and structs
+
+compile_fail_error StructSelect_NotVisible.bsv T0139 4
+compare_file [make_bsc_output_name StructSelect_NotVisible.bsv]
+
+# When selecting a field, if the type is imported and visible but it
+# is not a struct, then report an error about the type
+
+compile_fail_error StructSelect_NotStruct_Function.bsv T0138
+# compare the output to confirm that the full type is reported (in BSV syntax)
+compare_file [make_bsc_output_name StructSelect_NotStruct_Function.bsv]
+
+# ----------
+
+# Test for bug 1405: That when a field select or update is ambiguous,
+# the user gets an error that lists which structs/interfaces have the field
+
+compile_fail_error FieldAmb_Select.bsv T0018
+find_regexp [make_bsc_output_name FieldAmb_Select.bsv] \
+    {FieldAmb_Select::Bar, FieldAmb_Select::Foo}
+
+compile_fail_error FieldAmb_Update.bsv T0018
+find_regexp [make_bsc_output_name FieldAmb_Update.bsv] \
+    {FieldAmb_Update::Bar, FieldAmb_Update::Foo}
+
+# ----------
+
+# Test for bug 1623: When a struct pattern matches two different structs,
+# pick the one which is in scope without the qualifier.
+
+compile_pass FieldAmb_Pattern_Unqualified.bsv
+
+# Test that the user can qualify disambiguate with a qualifier
+compile_pass FieldAmb_Pattern_Qualified.bsv
+
+# ----------
+
+# Support for record updates on interfaces
+# (Google issue #112205334)
+test_c_veri IfcUpd
+
+# ----------
+
+# Support for partial constructor application
+# (Google issue #79946097)
+compile_pass PartialApp.bs
+
+compile_fail_error PartialAppTooManyArgs.bs T0144
+compare_file [make_bsc_output_name PartialAppTooManyArgs.bs]

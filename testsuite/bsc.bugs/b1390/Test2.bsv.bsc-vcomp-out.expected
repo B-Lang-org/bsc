@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Test2.bsv
+code generation for mkTest2 starts
+Schedule dump file created: mkTest2.sched
+Verilog file created: mkTest2.v
+All packages are up to date.

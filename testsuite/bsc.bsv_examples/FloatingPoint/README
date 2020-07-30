@@ -1,0 +1,53 @@
+
+The examples in this directory show how BSV is used to implement an
+IEEE-754 floating point operations.   Use of parameterized
+functions and type inference is used extensively to maximize code
+reuse.  The examples are an adder, multiplier, and mac (multiply and
+accumulate) unit.  These examples are available in both IEEE 32 and
+IEEE 64 bit formats, where the addition of the 64-bit format involved
+the addition of a 10 line function.
+
+
+
+- FPLibrary.bsv:  Contains common functions which can become the
+building block of a floating point library.  Examples of functions
+included here conversion to and from IEEE format and an internal
+format, normalization, rounding, finding leading bit.
+
+- FPAdd.bsv:  Contains the add specific functions, and bsv code which
+creates the FPAdd and FPAdd64 modules.
+
+- FPMult.bsv:   Contains the multiply specific functions, and bsv code
+which creates the FPMult and FPMult64 modules.
+
+- FPMac.bsv:   Contains the multiple and accumulate code for 32 and 64
+bit versions.  Each of these function is 15 lines of code.
+
+
+- TesterLib.bsv:  Contains interface definitions and common module
+wrappers for the binary (add and multiple) and ternary (mac) functions.
+
+- Tester.bsv:  Contains testbench code which 
+
+- dumper.C:   Is a c file which is used to generate test data for the
+add, multiple and mac modules.
+
+
+Extensions:
+There are many directions which to take this code, specifically, the
+addition of other functions, such as abs, comparisons, conversions,
+alternate rounding modes, optimizing by combining normalizing and
+rounding, etc. 
+
+It may be interesting to build, from these primitives, a module which
+implements (A*B + C*D) where the addition occurs in extended
+precision, before the final rounding and normalization.
+
+There may be other optimizations and supporting primitives which can
+be implemented based on the higher-level function.  For example, the
+normalize, round and normalize1 functions can be combined during
+additions, since at most one normalization will be required.
+
+The current code has not be extensively tested and may not correctly
+flag overflow and underflow conditions.  The same holds for
+denormalized IEEE representations.

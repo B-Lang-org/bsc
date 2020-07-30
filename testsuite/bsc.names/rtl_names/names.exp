@@ -1,0 +1,39 @@
+# test preservation of names in the RTL output
+
+# check_rtl_name: compile to Verilog and find a pattern in the .v file
+proc check_rtl_name { filename_root pattern } {
+    global vtest
+
+    if {$vtest == 1} {
+    compile_verilog_pass "$filename_root.bsv"
+    string_occurs "$filename_root.v" "$pattern"
+    }
+}
+
+proc check_rtl_name_bug { filename_root pattern } {
+    global vtest
+
+    if {$vtest == 1} {
+    compile_verilog_pass "$filename_root.bsv"
+    find_n_strings_bug "$filename_root.v" "$pattern" 1
+    }
+}
+
+# user-named signals
+### XXX I (Ed) think these tests are broken.   Consider changing the
+#operator from & to + and   r_x <= x_y + r_x.   Coming out of astate,
+#x_y is not present at all in the def list?
+
+
+
+check_rtl_name rtl_names_00 {assign r_x$D_IN = r_x & r_y ;}
+check_rtl_name rtl_names_01 {assign r_y$D_IN = r_x & r_y ;}
+check_rtl_name rtl_names_02 {assign r_y$D_IN = r_x & r_y ;}
+check_rtl_name rtl_names_03 {assign r_y$D_IN = r_x & r_y ;}
+check_rtl_name rtl_names_04 {assign r_y$D_IN = r_x & r_y ;}
+
+# bit-selects of other preserved signals
+check_rtl_name rtl_names_10 {assign r$D_IN = { r[3:2], r[0], r[0] } }
+
+# rtl_names_11 should generate user-specified r_zero, not auto-generated r_0
+check_rtl_name rtl_names_11 { assign r_x$D_IN = { r_x[3:2], r_x[0], r_x[0] } }

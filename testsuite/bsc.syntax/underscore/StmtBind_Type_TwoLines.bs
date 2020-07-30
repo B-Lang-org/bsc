@@ -1,0 +1,8 @@
+package StmtBind_Type_TwoLines () where
+
+x :: Module Empty
+x = module
+      _ :: Reg Bool <- mkReg True
+
+      interface {}
+

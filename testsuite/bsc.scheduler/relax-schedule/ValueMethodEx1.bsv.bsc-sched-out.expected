@@ -1,0 +1,99 @@
+checking package dependencies
+compiling ValueMethodEx1.bsv
+code generation for mkTloop starts
+=== schedule:
+parallel: [esposito: [a -> [], b -> [], RL_copy_it -> []]]
+order: [a, RL_copy_it, b]
+
+-----
+
+=== resources:
+[(r1.wget, [(r1.wget, 1)]),
+ (r1.whas, [(r1.whas, 1)]),
+ (r1.wset, [(r1.wset a_x, 1)]),
+ (r2.whas, [(r2.whas, 1)]),
+ (r2.wset, [(r2.wset r1_wget____d2, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_a CF [RDY_a, RDY_b, a, b], RDY_b CF [RDY_b, a, b], b CF b, a SBR b, a C a]
+[((a, b), [RL_copy_it])]
+[(b, [(Left RL_copy_it)])]
+[]
+
+-----
+
+Schedule dump file created: mkTloop.sched
+=== Generated schedule for mkTloop ===
+
+Method schedule
+---------------
+Method: a
+Ready signal: True
+Sequenced before (restricted): b
+Conflicts: a
+ 
+Method: b
+Ready signal: True
+Conflict-free: b
+Sequenced after (restricted): a
+ 
+Rule schedule
+-------------
+Rule: copy_it
+Predicate: r1.whas
+Blocking rules: (none)
+ 
+Logical execution order: a, copy_it, b
+
+=======================================
+Verilog file created: mkTloop.v
+code generation for sysTloop starts
+=== schedule:
+parallel: [esposito: [RL_count -> [], RL_quit -> [], RL_poke -> [], RL_yell -> []]]
+order: [RL_quit, RL_poke, RL_count, RL_yell]
+
+-----
+
+=== resources:
+[(counter.addA, [(counter.addA 4'd1, 1)]),
+ (counter.value, [(counter.value, 1)]),
+ (result.write, [(result.write 1'd1, 1)]),
+ (tl.a, [(tl.a 1'd1, 1)]),
+ (tl.b, [(tl.b, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysTloop.sched
+=== Generated schedule for sysTloop ===
+
+Rule schedule
+-------------
+Rule: count
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: quit
+Predicate: counter.value == 4'd5
+Blocking rules: (none)
+ 
+Rule: poke
+Predicate: counter.value == 4'd2
+Blocking rules: (none)
+ 
+Rule: yell
+Predicate: tl.b
+Blocking rules: (none)
+ 
+Logical execution order: quit, poke, count, yell
+
+========================================
+Verilog file created: sysTloop.v
+All packages are up to date.

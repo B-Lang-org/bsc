@@ -1,0 +1,13 @@
+if {$vtest == 1} {
+compile_verilog_pass FifoTest.bsv
+
+link_verilog_pass { mkDesignI.v } mkDesignI
+sim_verilog mkDesignI 
+compare_file mkDesignI.out
+
+link_verilog_pass { mkDesignE.v } mkDesignE
+sim_verilog mkDesignE 
+compare_file mkDesignE.out
+}
+
+

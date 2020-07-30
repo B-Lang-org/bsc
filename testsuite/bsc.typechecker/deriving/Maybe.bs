@@ -1,0 +1,7 @@
+package Maybe() where
+
+data Maybe a = Invalid | Valid a
+   deriving(Eq,Bits, Bounded)
+
+data Bool = False | True
+        deriving (Eq, Bits, Bounded)

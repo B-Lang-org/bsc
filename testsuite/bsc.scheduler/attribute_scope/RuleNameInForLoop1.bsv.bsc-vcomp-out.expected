@@ -1,0 +1,13 @@
+checking package dependencies
+compiling RuleNameInForLoop1.bsv
+code generation for sysRuleNameInForLoop1 starts
+Warning: "RuleNameInForLoop1.bsv", line 24, column 12: (G0021)
+  According to the generated schedule, rule `r4' can never fire.
+Warning: "RuleNameInForLoop1.bsv", line 24, column 12: (G0021)
+  According to the generated schedule, rule `r4_1' can never fire.
+Warning: "RuleNameInForLoop1.bsv", line 24, column 12: (G0021)
+  According to the generated schedule, rule `r4_2' can never fire.
+Warning: "RuleNameInForLoop1.bsv", line 24, column 12: (G0021)
+  According to the generated schedule, rule `r4_3' can never fire.
+Verilog file created: sysRuleNameInForLoop1.v
+All packages are up to date.

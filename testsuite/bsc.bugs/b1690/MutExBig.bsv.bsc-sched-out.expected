@@ -1,0 +1,103 @@
+checking package dependencies
+compiling MutExBig.bsv
+code generation for sysMutExBig starts
+Warning: "MutExBig.bsv", line 4, column 8: (G0010)
+  Rule "r1" was treated as more urgent than "r4". Conflicts:
+    "r1" cannot fire before "r4": calls to x.write vs. x.read
+    "r4" cannot fire before "r1": calls to x.write vs. x.read
+Warning: "MutExBig.bsv", line 4, column 8: (G0010)
+  Rule "r3" was treated as more urgent than "r4". Conflicts:
+    "r3" cannot fire before "r4": calls to x.write vs. x.read
+    "r4" cannot fire before "r3": calls to x.write vs. x.read
+Warning: "MutExBig.bsv", line 4, column 8: (G0010)
+  Rule "r2y" was treated as more urgent than "r5y". Conflicts:
+    "r2y" cannot fire before "r5y": calls to y.write vs. y.read
+    "r5y" cannot fire before "r2y": calls to y.write vs. y.read
+Warning: "MutExBig.bsv", line 4, column 8: (G0010)
+  Rule "r3y" was treated as more urgent than "r5y". Conflicts:
+    "r3y" cannot fire before "r5y": calls to y.write vs. y.read
+    "r5y" cannot fire before "r3y": calls to y.write vs. y.read
+=== schedule:
+parallel: [esposito: [RL_r1 -> [],
+		      RL_r2 -> [],
+		      RL_r3 -> [],
+		      RL_r4 -> [RL_r3, RL_r1],
+		      RL_done -> [],
+		      RL_r1y -> [],
+		      RL_r2y -> [],
+		      RL_r3y -> [],
+		      RL_r4y -> [],
+		      RL_r5y -> [RL_r3y, RL_r2y]]]
+order: [RL_r1, RL_r2, RL_r3, RL_r4, RL_done, RL_r1y, RL_r2y, RL_r3y, RL_r4y, RL_r5y]
+
+-----
+
+=== resources:
+[(flag_0.read, [(flag_0.read, 1)]),
+ (flag_1.read, [(flag_1.read, 1)]),
+ (flag_2.read, [(flag_2.read, 1)]),
+ (flag_3.read, [(flag_3.read, 1)]),
+ (flag_4.read, [(flag_4.read, 1)]),
+ (flagr.read, [(flagr.read, 1)]),
+ (x.read, [(x.read, 1)]),
+ (x.write, [(x.write NOT_x___d7, 1)]),
+ (y.read, [(y.read, 1)]),
+ (y.write, [(y.write NOT_y_9___d20, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysMutExBig.sched
+=== Generated schedule for sysMutExBig ===
+
+Rule schedule
+-------------
+Rule: r1
+Predicate: {flag_4, flag_3, flag_2} == 3'b11
+Blocking rules: (none)
+ 
+Rule: r2
+Predicate: {flag_2, flag_1, flag_0} == 3'b11
+Blocking rules: (none)
+ 
+Rule: r3
+Predicate: flag_4 && (! flag_0)
+Blocking rules: (none)
+ 
+Rule: r4
+Predicate: flag_2
+Blocking rules: r3, r1
+ 
+Rule: done
+Predicate: {flag_4, flag_3, flag_2, flag_1, flag_0} == 5'd0
+Blocking rules: (none)
+ 
+Rule: r1y
+Predicate: flagr[4:2] == 3'b11
+Blocking rules: (none)
+ 
+Rule: r2y
+Predicate: flagr[2:0] == 3'b11
+Blocking rules: (none)
+ 
+Rule: r3y
+Predicate: {flagr[4:2], flagr[2:0]} == 6'b111111
+Blocking rules: (none)
+ 
+Rule: r4y
+Predicate: flagr[4] && (! flagr[0])
+Blocking rules: (none)
+ 
+Rule: r5y
+Predicate: flagr[4] && flagr[0]
+Blocking rules: r3y, r2y
+ 
+Logical execution order: r1, r2, r3, r4, done, r1y, r2y, r3y, r4y, r5y
+
+===========================================
+Verilog file created: sysMutExBig.v
+All packages are up to date.

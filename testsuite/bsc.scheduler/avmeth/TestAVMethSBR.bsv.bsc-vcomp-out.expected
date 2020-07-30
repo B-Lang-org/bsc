@@ -1,0 +1,14 @@
+checking package dependencies
+compiling TestAVMethSBR.bsv
+code generation for sysTestAVMethSBR starts
+Warning: "TestAVMethSBR.bsv", line 14, column 8: (G0036)
+  Rule "rA" will appear to fire before "rB" when both fire in the same clock
+  cycle, affecting:
+    calls to dut.m vs. dut.m
+Warning: "TestAVMethSBR.bsv", line 14, column 8: (G0117)
+  Rule `rB' shadows the effects of `rA' when they execute in the same clock
+  cycle. Affected method calls:
+    dut.m
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Verilog file created: sysTestAVMethSBR.v
+All packages are up to date.

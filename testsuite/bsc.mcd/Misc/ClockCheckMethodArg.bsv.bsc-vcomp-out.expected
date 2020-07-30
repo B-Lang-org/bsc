@@ -1,0 +1,16 @@
+checking package dependencies
+compiling ClockCheckMethodArg.bsv
+code generation for sysClockCheckMethodArg starts
+Error: "ClockCheckMethodArg.bsv", line 8, column 6: (G0007)
+  Reference across clock domain in rule `test'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	r.write at "ClockCheckMethodArg.bsv", line 9, column 5,
+    Clock domain 2:
+      c:
+	the_s.read at "ClockCheckMethodArg.bsv", line 9, column 8,
+  During elaboration of rule `test' at "ClockCheckMethodArg.bsv", line 8,
+  column 6.
+  During elaboration of `sysClockCheckMethodArg' at "ClockCheckMethodArg.bsv",
+  line 2, column 8.

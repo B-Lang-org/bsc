@@ -1,0 +1,25 @@
+checking package dependencies
+compiling Cyclic_Urgency_Five_Rules.bsv
+code generation for mkCyclic_Urgency_Five_Rules starts
+Error: "Cyclic_Urgency_Five_Rules.bsv", line 6, column 8: (G0030)
+  A cycle was detected in the urgency requirements for this module:
+    `RL_test_rule_1' -> `RL_test_rule_2' -> `RL_test_rule_3' ->
+    `RL_test_rule_4' -> `RL_test_rule_1'
+  The relationships were introduced for the following reasons:
+    (RL_test_rule_1, RL_test_rule_2) introduced because of
+    user urgencies located at the following positions:
+      "Cyclic_Urgency_Five_Rules.bsv", line 11, column 27
+      "Cyclic_Urgency_Five_Rules.bsv", line 11, column 40
+    (RL_test_rule_2, RL_test_rule_3) introduced because of
+    user urgencies located at the following positions:
+      "Cyclic_Urgency_Five_Rules.bsv", line 17, column 27
+      "Cyclic_Urgency_Five_Rules.bsv", line 17, column 40
+    (RL_test_rule_3, RL_test_rule_4) introduced because of
+    user urgencies located at the following positions:
+      "Cyclic_Urgency_Five_Rules.bsv", line 24, column 27
+      "Cyclic_Urgency_Five_Rules.bsv", line 24, column 40
+    (RL_test_rule_4, RL_test_rule_1) introduced because of
+    user urgencies located at the following positions:
+      "Cyclic_Urgency_Five_Rules.bsv", line 29, column 27
+      "Cyclic_Urgency_Five_Rules.bsv", line 29, column 40
+Elaborated error module file created: mkCyclic_Urgency_Five_Rules.ba

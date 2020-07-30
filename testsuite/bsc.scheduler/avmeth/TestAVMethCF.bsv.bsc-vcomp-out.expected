@@ -1,0 +1,7 @@
+checking package dependencies
+compiling TestAVMethCF.bsv
+code generation for sysTestAVMethCF starts
+Error: "TestAVMethCF.bsv", line 15, column 8: (G0002)
+  `dut.m' needs more than 1 ports for the following uses:
+      `dut.m 1'd0' at "TestAVMethCF.bsv", line 15, column 8
+      `dut.m 1'd1' at "TestAVMethCF.bsv", line 15, column 8

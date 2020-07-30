@@ -1,0 +1,16 @@
+Enqueuing: 0
+Enqueuing: 1
+Enqueuing: 2
+Enqueuing: 3
+Enqueuing: 4
+Enqueuing: 5
+Enqueuing: 6
+FIFO is full
+Dequeuing: 0
+Dequeuing: 1
+Dequeuing: 2
+Dequeuing: 3
+Dequeuing: 4
+Dequeuing: 5
+Dequeuing: 6
+Done

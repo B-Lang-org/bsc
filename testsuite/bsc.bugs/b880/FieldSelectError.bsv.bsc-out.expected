@@ -1,0 +1,6 @@
+checking package dependencies
+compiling FieldSelectError.bsv
+Error: "FieldSelectError.bsv", line 8, column 7: (T0138)
+  The expression does not have a field `deq' because it is not a struct or
+  interface. Found type:
+    Bit#(32)

@@ -1,0 +1,9 @@
+if {$vtest == 1} {
+    compile_verilog_pass Design.bsv mkDesign 
+    compile_verilog_pass Design_def.bsv mkDesign_def
+    compile_verilog_pass Design_full.bsv mkDesign_full
+    # The enable for the reg_a should be 1
+    find_n_strings mkDesign.v "state\$EN = 1'b1" 0
+    find_n_strings mkDesign_def.v "state\$EN = 1'd1" 1
+    find_n_strings mkDesign_full.v "state\$EN = 1'b1" 1
+}

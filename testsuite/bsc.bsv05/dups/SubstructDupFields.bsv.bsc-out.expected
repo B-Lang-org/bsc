@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SubstructDupFields.bsv
+Error: "SubstructDupFields.bsv", line 2, column 26: (P0073)
+  Duplicate definition of member `f' in substructure of union `U'

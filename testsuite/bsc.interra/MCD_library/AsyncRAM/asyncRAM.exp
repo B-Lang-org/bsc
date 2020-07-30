@@ -1,0 +1,10 @@
+# These tests use $time, so they have separate expected files for
+# Verilog and Bluesim 
+test_veri_only_bsv_multi Testbench_write_fast_read_slow mkTestbench_write_fast_read_slow {}
+test_c_only_bsv_multi Testbench_write_fast_read_slow mkTestbench_write_fast_read_slow {} mkTestbench_write_fast_read_slow.c.out.expected
+
+test_veri_only_bsv_multi Testbench_write_slow_read_fast mkTestbench_write_slow_read_fast {}
+test_c_only_bsv_multi Testbench_write_slow_read_fast mkTestbench_write_slow_read_fast {} mkTestbench_write_slow_read_fast.c.out.expected
+
+test_veri_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {}
+test_c_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {} mkTestbench_same_with_phase_diff.c.out.expected

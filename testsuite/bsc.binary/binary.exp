@@ -1,0 +1,13 @@
+if [info exists env(GHCRTS)] {
+  set ghcrts_save $env(GHCRTS)
+}
+
+set env(GHCRTS) "-M1.2G"
+
+compile_verilog_pass ManyMeths.bsv
+
+if [info exists ghcrts_save] {
+  set env(GHCRTS) $ghcrts_save
+} else {
+  unset env(GHCRTS)
+}

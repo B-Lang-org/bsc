@@ -1,0 +1,2 @@
+compile_fail_error Bug304_1.bsv T0011
+compile_fail_error Bug304_2.bs T0011

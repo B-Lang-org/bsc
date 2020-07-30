@@ -1,0 +1,8 @@
+compile_fail_error ListDesugarFail.bsv T0060
+compile_fail_error ListDesugarFail2.bsv T0020
+
+compile_fail_error StructRegFail.bsv T0020
+
+test_c_veri_bsv ListDesugar
+test_c_veri_bsv StructReg
+test_c_veri_bsv TwoDUpdateTest

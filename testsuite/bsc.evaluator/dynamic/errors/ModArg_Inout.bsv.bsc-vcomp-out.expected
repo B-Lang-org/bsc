@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ModArg_Inout.bsv
+code generation for mkSub_ModArg_Inout starts
+Verilog file created: mkSub_ModArg_Inout.v
+code generation for sysModArg_Inout starts
+Error: "ModArg_Inout.bsv", line 11, column 25: (G0094)
+  The expression for a inout could not be evaluated. Inouts must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of `s' at "ModArg_Inout.bsv", line 13, column 8.
+  During elaboration of `sysModArg_Inout' at "ModArg_Inout.bsv", line 7,
+  column 8.

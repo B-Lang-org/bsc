@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintTypeClassic.bs
+code generation for sysPrintTypeClassic starts
+Compilation message: Prelude.Maybe (Prelude.Bit 5)
+Elaborated module file created: sysPrintTypeClassic.ba
+All packages are up to date.

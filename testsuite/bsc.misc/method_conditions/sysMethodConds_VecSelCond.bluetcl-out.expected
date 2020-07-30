@@ -1,0 +1,1 @@
+COND_RL_r_s_am1_1 {positions {MethodConds_VecSelCond.bsv 14 12}} {rule RL_r} {instance s} {method am1}

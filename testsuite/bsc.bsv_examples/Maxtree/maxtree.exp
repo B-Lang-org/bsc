@@ -1,0 +1,27 @@
+#
+# The disabled tests below are disabled because of an urgency loop in
+# the design.  The respective modules have had their synthesize attribute
+# commented out in the MaxTree.bsv and TestPush.bsv files, to avoid a
+# compile failure for simulations on other modules.
+#
+
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv_multi TestPush sys_fifo  {mktestpush_fifo} sys_fifo.v.out.expected
+test_c_only_bsv_multi TestPush sys_fifo  {mktestpush_fifo} 
+
+## DISABLED # # Tests the Push interface 
+## DISABLED test_c_veri_bsv_multi TestPush  sys_fifo_loopy {mktestpush_fifo_loopy} 
+## DISABLED 
+## DISABLED 
+## DISABLED # # create the Max Tree 
+## DISABLED test_c_veri_bsv_multi TestMaxTree sys_p2_fifo {mkMaxTree8_p2_fifo} 
+## DISABLED 
+
+## another test for maxtree
+test_veri_only_bsv_multi TestMaxTree sys_2q {mkMaxTree8_2q} sys_2q.v.out.expected
+test_c_only_bsv_multi TestMaxTree sys_2q {mkMaxTree8_2q}
+

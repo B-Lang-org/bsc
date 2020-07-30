@@ -1,0 +1,15 @@
+package InitUndet(sysInitUndet) where
+
+sysInitUndet :: Module Empty
+sysInitUndet =
+  module
+
+    r :: Reg (Bit 8) <- mkReg (3 + _)
+    done :: Reg (Bool) <- mkReg False
+    rules 
+      when not done ==>
+        action 
+          $display "%0d" r
+          done := True
+      when done ==> $finish 0
+        

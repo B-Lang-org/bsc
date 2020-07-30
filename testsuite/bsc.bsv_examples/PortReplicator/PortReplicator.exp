@@ -1,0 +1,10 @@
+#
+# TODO: Add testbench, codegen, and simulation
+#
+
+# Test version 1
+compile_pass PortReplicator.bsv
+
+# Test version 2
+compile_pass PortReplicator2.bsv
+

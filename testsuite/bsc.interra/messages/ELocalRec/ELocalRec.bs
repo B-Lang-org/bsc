@@ -1,0 +1,51 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ELocalRec.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ELocalRec error of the bluespec
+-- compiler (Local Recursion without signature not allowed)
+--
+-----------------------------------------------------------------------
+
+
+
+package ELocalRec (GCD(..), mkGCD) where
+
+-- import Int
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+
+mkGCD :: Module GCD
+mkGCD =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkRegU
+  
+        z :: Reg (Int 32)
+        z <- mkReg 0
+
+        rules
+
+	    when True
+	      ==> action
+		      z := let function_GCD x 0 = x
+                               function_GCD x y when x > y = function_GCD y x
+                               function_GCD x y = function_GCD x (y-x) 
+                           in function_GCD x y
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	    result = z
+
+

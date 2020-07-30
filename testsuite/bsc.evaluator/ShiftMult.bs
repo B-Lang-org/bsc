@@ -1,0 +1,13 @@
+package ShiftMult(sysShiftMult) where
+-- test shifting optimization of multiplication
+
+sysShiftMult :: Module Empty
+sysShiftMult = 
+  module
+    x :: Reg (Bit 32) <- mkReg 17
+    y :: Reg (Bit 32) <- mkReg 24
+    rules 
+      when True ==>
+         action
+           x := x * 4
+           y := 8 * x

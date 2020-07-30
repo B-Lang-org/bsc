@@ -1,0 +1,31 @@
+# invalid attribute name on a module
+compile_fail_error T1.bsv P0155
+
+# invalid value for "descending_urgency" (on a module)
+compile_fail_error T2.bsv P0063
+
+# invalid attribute for an interface
+compile_fail_error T3.bsv P0155
+
+# invalid attribute for a method decl
+compile_fail_error T4.bsv P0155
+
+# invalid attribute for a subinterface decl
+compile_fail_error T5.bsv P0155
+
+# invalid value for parsing of Id in "always_ready" attribute
+compile_fail_error T6.bsv P0005
+
+# -----
+# Tests for multiple of the same attribute
+
+# Don't allow multiple of certain attributes if the value is different
+compile_fail_error MultipleAttribModule.bsv P0156
+compile_fail_error MultipleAttribFunc.bsv P0156
+compile_fail_error MultipleAttribRule.bsv P0156
+
+# Allow if the value is the same?
+compile_pass MultipleSameAttribModule.bsv
+
+# -----
+

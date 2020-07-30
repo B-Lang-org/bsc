@@ -1,0 +1,56 @@
+if {$ctest == 1} {
+compile_object_pass Hierarchical_Rule_a.bsv mkHierarchical_Rule_a
+no_warnings Hierarchical_Rule_a.bsv.bsc-ccomp-out
+
+compile_object_pass Hierarchical_Rule_b.bsv mkHierarchical_Rule_b
+no_warnings Hierarchical_Rule_b.bsv.bsc-ccomp-out
+
+compile_object_pass Method_Rule_Conflict.bsv mkMethod_Rule_Conflict
+find_n_warning Method_Rule_Conflict.bsv.bsc-ccomp-out G0010 2
+
+compile_object_pass Method_Rules_Conflict_a.bsv mkMethod_Rules_Conflict_a
+find_n_warning Method_Rules_Conflict_a.bsv.bsc-ccomp-out G0010 1
+
+compile_object_pass Method_Rules_Conflict_b.bsv mkMethod_Rules_Conflict_b
+find_n_warning Method_Rules_Conflict_b.bsv.bsc-ccomp-out G0010 1
+
+compile_object_pass Remove_Rules_a.bsv mkRemove_Rules_a
+# The following checks for G0023
+compare_file Remove_Rules_a.bsv.bsc-ccomp-out
+
+compile_object_pass Remove_Rules_b.bsv mkRemove_Rules_b
+# The following checks for G0023
+compare_file Remove_Rules_b.bsv.bsc-ccomp-out
+
+compile_object_pass Rule_Splitting_a.bsv mkRule_Splitting_a -split-if
+# The following checks for G0021
+compare_file Rule_Splitting_a.bsv.bsc-ccomp-out
+
+compile_object_pass Rule_Splitting_b.bsv mkRule_Splitting_b -split-if
+# The following checks for G0021
+compare_file Rule_Splitting_b.bsv.bsc-ccomp-out
+
+compile_object_pass Six_Conflicting_Rules_ListAttribute_a.bsv mkSix_Conflicting_Rules_ListAttribute_a
+no_warnings Six_Conflicting_Rules_ListAttribute_a.bsv.bsc-ccomp-out
+
+compile_object_pass Six_Conflicting_Rules_ListAttribute_b.bsv mkSix_Conflicting_Rules_ListAttribute_b
+no_warnings Six_Conflicting_Rules_ListAttribute_b.bsv.bsc-ccomp-out
+
+compile_object_pass Six_Conflicting_Rules_PairsAttribute_a.bsv mkSix_Conflicting_Rules_PairsAttribute_a
+no_warnings Six_Conflicting_Rules_PairsAttribute_a.bsv.bsc-ccomp-out
+
+compile_object_pass Six_Conflicting_Rules_PairsAttribute_b.bsv mkSix_Conflicting_Rules_PairsAttribute_b
+no_warnings Six_Conflicting_Rules_PairsAttribute_b.bsv.bsc-ccomp-out
+
+compile_object_pass Three_Conflicting_Rules_ListAttribute_a.bsv mkThree_Conflicting_Rules_ListAttribute_a
+no_warnings Three_Conflicting_Rules_ListAttribute_a.bsv.bsc-ccomp-out
+
+compile_object_pass Three_Conflicting_Rules_ListAttribute_b.bsv mkThree_Conflicting_Rules_ListAttribute_b
+no_warnings Three_Conflicting_Rules_ListAttribute_b.bsv.bsc-ccomp-out
+
+compile_object_pass Three_Conflicting_Rules_PairsAttribute_a.bsv mkThree_Conflicting_Rules_PairsAttribute_a
+no_warnings Three_Conflicting_Rules_PairsAttribute_a.bsv.bsc-ccomp-out
+
+compile_object_pass Three_Conflicting_Rules_PairsAttribute_b.bsv mkThree_Conflicting_Rules_PairsAttribute_b
+no_warnings Three_Conflicting_Rules_PairsAttribute_b.bsv.bsc-ccomp-out
+}

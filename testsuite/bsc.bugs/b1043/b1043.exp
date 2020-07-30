@@ -1,0 +1,2 @@
+compile_verilog_fail_error PrimitiveBVI_BadPortName.bsv G0124
+

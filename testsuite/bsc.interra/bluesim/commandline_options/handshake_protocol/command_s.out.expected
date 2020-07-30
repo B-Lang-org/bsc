@@ -1,0 +1,48 @@
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+Passes          4, Fails          0
+
+Final state:
+top:
+  counter = 0x0004
+  fails = 0x00000000
+  passes = 0x00000004
+  state = False
+  top:
+    t_ack1 = Not set
+    t_counter = 0x0
+    t_done_reg = False
+    t_req_reg = True
+    t_start_reg = False
+    t_state = 0x1
+    t_valid_reg = False

@@ -1,0 +1,8 @@
+package DummyInDef () where
+
+x :: Bool -> Bit 12
+x _ = _
+
+dummyInDef :: Bit 12
+dummyInDef = x True
+

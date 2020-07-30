@@ -1,0 +1,90 @@
+package Misc(sysMisc) where
+import RegFile
+import FIFO
+import ActionSeq
+
+type Int32 = UInt 32
+
+sysMisc :: Module Empty
+sysMisc =
+     module
+	m :: Thingy
+	m <- mkThingy
+	x :: Reg Int32
+	x <- mkRegU
+	done :: Reg Bool
+	done <- mkReg False
+	s :: ActionSeq
+	s <- actionSeq ( m.fill |> m.square |> m.sum |> action { x := m.total; done := True } )
+	unused :: Reg Bool
+	unused <- mkRegU
+        rules
+	    when not done
+	     ==> action { s.start }
+
+interface Thingy =
+	fill :: Action
+	square :: Action
+	sum :: Action
+	total :: Int32
+
+type Size = 5
+type Indx = UInt Size
+
+data State = Idle | Fill | Square | Sum
+	deriving (Bits, Eq)
+
+-- XXX
+ext :: Indx -> Int32
+ext x = unpack (0 ++ pack x)
+
+mkThingy :: Module Thingy
+mkThingy =
+    module
+	a1 :: RegFile Indx Int32
+	a1 <- mkRegFileFull
+	a2 :: RegFile Indx Int32
+	a2 <- mkRegFileFull
+	f1 :: FIFO Int32
+	f1 <- mkFIFO
+	f2 :: FIFO Int32
+	f2 <- mkFIFO
+	state :: Reg State
+	state <- mkReg Idle
+        i :: Reg Indx
+	i <- mkRegU
+        j :: Reg Indx
+	j <- mkRegU
+	s :: Reg Int32
+	s <- mkRegU
+	let inc = action { if i == maxBound then state := Idle else i := i+1 }
+        rules
+          "fill":
+	    when state == Fill
+	     ==> action { a1.upd i (ext i); inc }
+          "square":
+	    when state == Square
+	     rules {
+	      -- XXX should not proceed when j wraps around
+	      "get":
+	        when True
+	         ==> action { f1.enq (a1.sub j); j := j+1 };
+	      "mul":
+	        when True
+	         ==> action { (let { x = f1.first } in f2.enq (x*x)); f1.deq };
+	      "put":
+	        when True
+	         ==> action { a2.upd i f2.first; f2.deq; inc }
+	    }
+          "sum":
+	    when state == Sum
+	     ==> action { s := s + a2.sub i; inc }
+        interface
+	    fill = action { i := 0; state := Fill }
+	        when state == Idle
+	    square = action { i := 0; j := 0; state := Square }
+	        when state == Idle
+	    sum = action { i := 0; state := Sum }
+	        when state == Idle
+	    total = s
+	        when state == Idle

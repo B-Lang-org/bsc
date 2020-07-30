@@ -1,0 +1,46 @@
+package Shape(Shape(..), emptyShape, joinShapes, joinManyShapes, mkRectangle, modShapeVis) where
+import List
+import Global
+import Color
+
+interface Shape =
+    newPos :: XCoord -> YCoord -> Action
+    color  :: Color
+
+emptyShape :: Shape
+emptyShape =
+    interface Shape
+	newPos x y = noAction
+	color = cNone
+
+joinShapes :: Shape -> Shape -> Shape
+joinShapes s s' =
+    interface Shape
+	newPos x y = action { s.newPos x y; s'.newPos x y }
+	color = s.color <|> s'.color
+
+visCheck :: (Eq a) => Reg Bool -> a -> a -> a -> Action
+visCheck r lo v hi = r := v /= hi && (v == lo || r)
+
+mkRectangle :: XCoord -> XSize -> YCoord -> YSize -> Color -> Module Shape
+mkRectangle xl xs yl ys col = do
+    xVis :: Reg Bool <- mkRegU
+    yVis :: Reg Bool <- mkRegU
+    let xh = xl + xs
+	yh = yl + ys
+    return $
+	interface Shape
+	    newPos x y =
+		action
+		    visCheck xVis xl x xh
+		    visCheck yVis yl y yh
+	    color = if xVis && yVis then col else cNone
+
+modShapeVis :: (Color -> Color) -> Shape -> Shape
+modShapeVis f s =
+    interface Shape
+	newPos = s.newPos
+	color = f s.color
+
+joinManyShapes :: List Shape -> Shape
+joinManyShapes = foldr joinShapes emptyShape

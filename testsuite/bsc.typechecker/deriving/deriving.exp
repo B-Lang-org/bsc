@@ -1,0 +1,65 @@
+# --------------------
+# test that shadowing types works with deriving 
+
+compile_pass Maybe.bs
+
+
+# --------------------
+# test failure to derive bits for non-bitable types (e.g. Integer)
+
+# Bug 197
+compile_fail_error NoDerive.bs T0032
+# The message currently lists too many provisos, but next-gen numeric
+# proviso handling should fix that
+compare_file NoDerive.bs.bsc-out
+
+compile_fail_error NoDerive2.bs T0032
+# The message currently lists too many provisos, but next-gen numeric
+# proviso handling should fix that
+compare_file NoDerive2.bs.bsc-out
+
+
+# --------------------
+# test for correct creation of derived instances
+
+compile_pass DerivingTest.bs 
+
+
+# --------------------
+# more deriving tests (using verilog only for $display and $finish) 
+
+test_veri_only DerivingMod
+
+
+# --------------------
+# test that structs of one field can derive for instances from that field
+# (bug 601)
+# uses Verilog for $display to prove that instances were derived correctly
+
+test_veri_only_bsv IsoStruct
+
+
+# --------------------
+# test that deriving of recursive data and struct is allowed
+
+compile_fail_error RecDeriveStructManyFields.bsv T0115
+compile_pass RecDeriveDataInsideList.bs
+compile_pass RecDeriveDataOneArg.bs
+compile_pass RecDeriveDataOneArgManyTypeArgs.bs
+
+# these are testing PrimMakeUndefined deriving for polymorphic cases
+compile_pass PolyStruct.bsv
+compile_pass_bug_error PolyUnion.bsv T0008 1290
+compile_pass PolyUnion2.bsv
+compile_pass_bug_error PolyData.bs T0008 1290
+compile_pass PolyData2.bs
+
+# --------------------
+# functionality tests for specific derived typeclasses
+
+test_veri_only_bsv DeriveFShow
+
+test_veri_only_bsv DeriveDefaultValue
+
+# --------------------
+

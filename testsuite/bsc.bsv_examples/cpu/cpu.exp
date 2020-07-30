@@ -1,0 +1,87 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+#############################
+# Original version
+
+if {$ctest == 1} {
+compile_object_pass CPUTest.bsv mkCPUTest
+link_objects_pass {mkCPUTest} mkCPUTest
+sim_output mkCPUTest
+copy mkCPUTest.out mkCPUTest.c.out
+compare_file mkCPUTest.c.out mkCPUTest.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass CPUTest.bsv mkCPUTest
+link_verilog_pass {mkCPUTest.v} mkCPUTest
+sim_verilog mkCPUTest
+copy mkCPUTest.out mkCPUTest.v.out
+compare_file mkCPUTest.v.out mkCPUTest.v.out.expected
+}
+
+#############################
+# Version2
+
+if {$ctest == 1} {
+compile_object_pass CPUTestV2.bsv mkCPUTestV2
+link_objects_pass {mkCPUTestV2} mkCPUTestV2
+sim_output mkCPUTestV2
+copy mkCPUTestV2.out mkCPUTestV2.c.out
+compare_file mkCPUTestV2.c.out mkCPUTestV2.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass CPUTestV2.bsv mkCPUTestV2
+link_verilog_pass {mkCPUTestV2.v} mkCPUTestV2
+sim_verilog mkCPUTestV2 
+copy mkCPUTestV2.out mkCPUTestV2.v.out
+compare_file mkCPUTestV2.v.out mkCPUTestV2.v.out.expected
+}
+
+#############################
+# Bypass
+
+if {$ctest == 1} {
+compile_object_pass CPUTestBypass.bsv mkCPUTestBypass
+link_objects_pass {mkCPUTestBypass} mkCPUTestBypass
+sim_output mkCPUTestBypass
+copy mkCPUTestBypass.out mkCPUTestBypass.c.out
+compare_file mkCPUTestBypass.c.out mkCPUTestBypass.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass CPUTestBypass.bsv mkCPUTestBypass
+link_verilog_pass {mkCPUTestBypass.v} mkCPUTestBypass
+sim_verilog mkCPUTestBypass
+copy mkCPUTestBypass.out mkCPUTestBypass.v.out
+compare_file mkCPUTestBypass.v.out mkCPUTestBypass.v.out.expected
+}
+
+#############################
+# BypassPreFIFO
+
+if {$ctest == 1} {
+compile_object_pass CPUTestBypassPreFIFO.bsv mkCPUTestBypassPreFIFO
+link_objects_pass {mkCPUTestBypassPreFIFO} mkCPUTestBypassPreFIFO
+sim_output mkCPUTestBypassPreFIFO
+copy mkCPUTestBypassPreFIFO.out mkCPUTestBypassPreFIFO.c.out
+compare_file mkCPUTestBypassPreFIFO.c.out mkCPUTestBypassPreFIFO.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass CPUTestBypassPreFIFO.bsv mkCPUTestBypassPreFIFO
+link_verilog_pass {mkCPUTestBypassPreFIFO.v} mkCPUTestBypassPreFIFO
+sim_verilog mkCPUTestBypassPreFIFO
+copy mkCPUTestBypassPreFIFO.out mkCPUTestBypassPreFIFO.v.out
+compare_file mkCPUTestBypassPreFIFO.v.out mkCPUTestBypassPreFIFO.v.out.expected
+}
+
+#############################
+# Misc code
+
+compile_pass FindFIFO.bsv
+compile_pass FindFIFO3.bsv
+compile_pass FindFIFOM.bsv

@@ -1,0 +1,7 @@
+
+
+compile_verilog_pass RegisterFile.bsv
+
+compare_verilog_bug mkRegisterFileFixed_3_2.v 1341
+
+

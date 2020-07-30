@@ -1,0 +1,66 @@
+-- this is the test case for Bug 28
+-- this is modified slightly from the original
+-- to avoid depending on a problem we have when compiling
+-- conditional actions that are mutually exclusive in a single
+-- rule - instead a complicating action is moved so it is liftable
+
+package IfLiftingPredOpt (mkTest) where
+
+import List
+
+-- --------------------------------------------------------
+
+selectM :: (Eq b, Literal b) => List a -> b -> Maybe a
+selectM l k =
+    let f p r = if (k == fromInteger p.snd) then Valid p.fst else r
+    in  foldr f Invalid (num l 0)
+
+num :: List a -> Integer -> List (a, Integer)
+num Nil n = Nil
+num (Cons x xs) n = Cons (x, n) (num xs (n+1))
+
+-- --------------------------------------------------------
+
+numSlots :: Integer
+numSlots = 2
+
+type SlotPtr  = Bit 5
+
+mkTest :: Module Empty
+mkTest =
+  module
+
+    slots :: List (Reg Bool)
+    slots <- mapM (const mkRegU) (upto 0 (numSlots - 1))
+
+    -- dynamic list selection needs a register
+    ptr  :: Reg SlotPtr  <- mkRegU
+
+    -- dynamic choice for predicted/mispredicted
+    pred :: Reg Bool <- mkRegU
+
+    rules
+
+      -- Using selectM with the naive kill func, split, oversized ptr
+      "Rule":
+         when True
+          ==> let
+                  slotm = selectM slots ptr
+
+                  killfunc :: (Integer, Reg Bool) -> Action
+                  killfunc (loc,s) =
+                      let i = fromInteger loc
+                      in if (i == ptr)
+                         then s := True
+                         else s := False
+
+                  killact = joinActions
+                              (map killfunc (zip (upto 0 (numSlots-1)) slots))
+
+                in case slotm of
+                       Invalid -> noAction
+                       Valid slot -> action
+--                                    slot := True
+                                      if (pred)
+                                        then killact
+                                        else slot := True

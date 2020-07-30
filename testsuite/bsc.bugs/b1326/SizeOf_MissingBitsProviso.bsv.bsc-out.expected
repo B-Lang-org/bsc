@@ -1,0 +1,12 @@
+checking package dependencies
+compiling SizeOf_MissingBitsProviso.bsv
+Error: "SizeOf_MissingBitsProviso.bsv", line 1, column 17: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Action f(t x1)
+  The following provisos are needed:
+    Bits#(t, a__)
+    Introduced at the following locations:
+      "SizeOf_MissingBitsProviso.bsv", line 2, column 10
+  The type variables are from the following positions:
+    "a__" at "SizeOf_MissingBitsProviso.bsv", line 2, column 10

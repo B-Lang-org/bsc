@@ -1,0 +1,15 @@
+b is False
+arr[0]: -1
+arr[1]: 4
+arr[2]: 5
+arr[3]: 6
+Array is equal
+arr2 is not equal
+arr2 equals arr1
+b is True
+arr[0]: 0
+arr[1]: -1
+arr[2]: 2
+Array is equal
+arr2 is not equal
+arr2 does not equal arr1

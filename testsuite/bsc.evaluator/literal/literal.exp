@@ -1,0 +1,34 @@
+compile_verilog_fail_error NegativeUInt.bsv T0051
+
+test_c_veri_bsv NegativeIntOK
+compile_verilog_fail_error NegativeIntErr.bsv T0051
+
+test_c_veri_bsv PositiveIntOK
+compile_verilog_fail_error PositiveIntErr.bsv T0051
+
+compile_verilog_fail_error ConcatTestOK.bsv T0035
+
+compile_verilog_fail_error ConcatTestFail.bsv T0035
+
+# -----
+# Test that the message for too-large literals displays the value
+# in its original base (when possible)
+
+if { $vtest == 1 } {
+
+compile_verilog_fail_error Invalid_Bit_Bin.bsv T0051
+find_n_strings [make_bsc_vcomp_output_name Invalid_Bit_Bin.bsv] {'b10101} 1
+
+compile_verilog_fail_error Invalid_Bit_Hex.bsv T0051
+find_n_strings [make_bsc_vcomp_output_name Invalid_Bit_Hex.bsv] {'hFF} 1
+
+compile_verilog_fail_error Invalid_Int_Oct.bsv T0051
+find_n_strings [make_bsc_vcomp_output_name Invalid_Int_Oct.bsv] {'o777} 1
+
+compile_verilog_fail_error Invalid_UInt_Dec.bsv T0051
+find_n_strings [make_bsc_vcomp_output_name Invalid_UInt_Dec.bsv] {256} 1
+
+}
+
+# -----
+

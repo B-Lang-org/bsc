@@ -1,0 +1,6 @@
+checking package dependencies
+compiling IsInfinite.bsv
+code generation for sysIsInfinite starts
+Compilation message: "IsInfinite.bsv", line 12, column 29: isInfinite: Infinity
+Verilog file created: sysIsInfinite.v
+All packages are up to date.

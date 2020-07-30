@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ExpandFalse.bsv
+code generation for sysExpandFalse starts
+Verilog file created: sysExpandFalse.v
+All packages are up to date.

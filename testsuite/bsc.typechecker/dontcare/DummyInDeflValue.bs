@@ -1,0 +1,7 @@
+package DummyInDeflValue () where
+
+dummyInDeflValue :: Bit 12
+dummyInDeflValue =
+    let f _ = _
+    in  f True
+

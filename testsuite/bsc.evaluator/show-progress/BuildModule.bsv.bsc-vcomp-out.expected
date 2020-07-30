@@ -1,0 +1,34 @@
+checking package dependencies
+compiling BuildModule.bsv
+code generation for sysBuildModule starts
+[TIME] elab progress: Elaborating module `sysBuildModule'
+[TIME] elab progress: (testReg) Elaborating module
+[TIME] elab progress: (testReg) Finished module
+[TIME] elab progress: Elaborating rule (count)
+[TIME] elab progress: Elaborating rule explicit condition (count)
+[TIME] elab progress: Elaborating rule body (count)
+[TIME] elab progress: Elaborating rule implicit condition (count)
+[TIME] elab progress: Finished rule (count)
+[TIME] elab progress: Elaborating rule (test)
+[TIME] elab progress: Elaborating rule explicit condition (test)
+[TIME] elab progress: Elaborating rule body (test)
+[TIME] elab progress: (foo) Elaborating module
+[TIME] elab progress: (foo.oldVal) Elaborating module
+[TIME] elab progress: (foo.oldVal) Finished module
+[TIME] elab progress: (foo) Elaborating rule (update)
+[TIME] elab progress: (foo) Elaborating rule explicit condition (update)
+[TIME] elab progress: (foo) Elaborating rule body (update)
+[TIME] elab progress: (foo) Elaborating rule implicit condition (update)
+[TIME] elab progress: (foo) Finished rule (update)
+[TIME] elab progress: (foo) Finished module
+[TIME] elab progress: Elaborating rule implicit condition (test)
+[TIME] elab progress: Finished rule (test)
+[TIME] elab progress: Elaborating rule (exit)
+[TIME] elab progress: Elaborating rule explicit condition (exit)
+[TIME] elab progress: Elaborating rule body (exit)
+[TIME] elab progress: Elaborating rule implicit condition (exit)
+[TIME] elab progress: Finished rule (exit)
+[TIME] elab progress: Elaborating interface
+[TIME] elab progress: Finished elaborating module `sysBuildModule'
+Verilog file created: sysBuildModule.v
+All packages are up to date.

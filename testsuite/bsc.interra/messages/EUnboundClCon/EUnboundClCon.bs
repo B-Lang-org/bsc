@@ -1,0 +1,19 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundClCon.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EUnboundClCon error of the bluespec
+-- compiler (Unbound Class)
+--
+-----------------------------------------------------------------------
+
+
+package EUnboundClCon () where
+
+-- import Int
+
+identity :: (Int a) => a -> a
+identity a = a

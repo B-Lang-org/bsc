@@ -1,0 +1,6 @@
+test_c_veri_bsv_multi TbGCD mkTbGCD mkGCD 
+
+test_c_veri_bsv_multi TbWideGCD mkTbWideGCD mkWideGCD 
+
+test_c_veri_bsv_multi TbDIV3 mkTbDIV3 mkDIV3
+

@@ -1,0 +1,62 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnifyKind2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a Kind error (EUnifyKind)
+
+-- Error Message : bsc EUnifyKind2.bs
+-- bsc: Compilation errors:
+-- "EUnifyKind2.bs", line 27, column 29, Kind error at:
+-- 16
+
+-- Expected kind:
+-- *
+
+-- Inferred kind:
+-- #
+
+-----------------------------------------------------------------------
+
+package EUnifyKind2 (EUnifyKind2(..), mkEUnifyKind2) where 
+
+-- import Int
+
+data MyType1 = Integer | Bit 16
+             deriving (Eq,Bits)
+
+interface EUnifyKind2 =
+        start :: MyType1 -> MyType1 -> Action
+        end   :: MyType1 
+
+mkEUnifyKind2 :: Module EUnifyKind2
+mkEUnifyKind2 =
+     module
+
+        x :: Reg (MyType1) 
+        x <- mkRegU
+
+        y :: Reg (MyType1) 
+        y <- mkReg 0
+
+        rules
+          "Swap":
+            when x > y, y /= 0
+              ==> action
+                      x := y
+                      y := x
+
+          "Subtract":
+            when x <= y, y /= 0
+              ==> action
+                      y := y - x
+
+        interface
+            start ix iy = action
+                              x := ix
+                              y := iy
+                          when y == 0
+            end = x when y == 0
+

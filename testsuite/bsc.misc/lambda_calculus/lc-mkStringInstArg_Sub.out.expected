@@ -1,0 +1,13 @@
+data MOD_mkStringInstArg_Sub = MOD_mkStringInstArg_Sub { param_s__mkStringInstArg_Sub :: String };
+
+ctor_mkStringInstArg_Sub :: String -> MOD_mkStringInstArg_Sub;
+ctor_mkStringInstArg_Sub =
+    (\ (val_s :: String) -> MOD_mkStringInstArg_Sub { param_s__mkStringInstArg_Sub = val_s });
+
+dim_mkStringInstArg_Sub :: MOD_mkStringInstArg_Sub -> MOD_mkStringInstArg_Sub -> Bool;
+dim_mkStringInstArg_Sub =
+    (\ (mod1 :: MOD_mkStringInstArg_Sub) -> (\ (mod2 :: MOD_mkStringInstArg_Sub) -> True));
+
+rule_RL_doDisp_mkStringInstArg_Sub :: MOD_mkStringInstArg_Sub -> (Bool, MOD_mkStringInstArg_Sub, ());
+rule_RL_doDisp_mkStringInstArg_Sub =
+    (\ (state0 :: MOD_mkStringInstArg_Sub) -> mktuple True state0 ());

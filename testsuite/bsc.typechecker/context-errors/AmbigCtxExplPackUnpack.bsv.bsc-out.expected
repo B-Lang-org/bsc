@@ -1,0 +1,13 @@
+checking package dependencies
+compiling AmbigCtxExplPackUnpack.bsv
+Error: "AmbigCtxExplPackUnpack.bsv", line 3, column 9: (T0033)
+  There is not enough explicit type information to deduce the types of all
+  expressions. Consider adding more type declarations to help resolve this
+  ambiguity.
+    An ambiguous type was introduced at "AmbigCtxExplPackUnpack.bsv", line 3,
+    column 19
+    This type resulted from:
+      Bits#() proviso introduced (for bit vector packing/unpacking) in or at
+      the following locations:
+	"AmbigCtxExplPackUnpack.bsv", line 3, column 19
+	"AmbigCtxExplPackUnpack.bsv", line 3, column 13

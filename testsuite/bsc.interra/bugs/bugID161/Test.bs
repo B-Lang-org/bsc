@@ -1,0 +1,19 @@
+----------------------------------------------------
+-- FileName : Test.bs
+-- Author   : Interra
+-- BugID    : 161
+-- CommandLine : bsc Test.bs
+-- Status : Fixed for BSC 3.74 
+----------------------------------------------------
+
+package Test () where
+
+struct My_pair1 = {fst :: Integer; snd :: Integer}
+
+y :: My_pair1
+y = My_pair1 {fst=z.fst;snd=z.snd}
+        
+z :: My_pair1
+z = My_pair1 {fst=y.fst;snd=y.snd}
+
+

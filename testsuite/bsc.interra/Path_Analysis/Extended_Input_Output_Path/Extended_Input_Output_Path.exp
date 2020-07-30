@@ -1,0 +1,19 @@
+
+compile_verilog_fail_error Argument2Rdy.bsv G0033 2
+
+compile_verilog_fail_error Argument2ReturnValue2.bsv G0032
+
+compile_verilog_fail_error Argument2ReturnValue3.bsv G0032
+
+compile_verilog_fail_error Argument2ReturnValue.bsv G0032
+
+compile_verilog_fail_error En2Rdy2.bsv G0030
+
+compile_verilog_fail_error En2Rdy.bsv G0033
+
+compile_verilog_fail_error En2ReturnValue2.bsv G0033
+
+compile_verilog_fail_error En2ReturnValue.bsv G0033
+
+compile_verilog_fail_error Ten_Inverters.bsv G0032
+

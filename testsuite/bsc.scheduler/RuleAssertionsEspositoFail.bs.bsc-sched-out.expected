@@ -1,0 +1,37 @@
+checking package dependencies
+compiling RuleAssertionsEspositoFail.bs
+code generation for sysRuleAssertionsEspositoFail starts
+Error: "RuleAssertionsEspositoFail.bs", line 17, column 48: (G0005)
+  The assertion `fire_when_enabled' failed for rule `RL_setF'
+  because it is blocked by rule
+    RL_setT
+  in the scheduler
+    esposito: [RL_setT -> [],
+	       RL_setF -> [RL_setT],
+	       RL_flip -> [RL_setF, RL_setT]]
+=== schedule:
+Just (parallel: [esposito: [RL_setT -> [], RL_setF -> [RL_setT], RL_flip -> [RL_setF, RL_setT]]]
+      order: [RL_setT, RL_setF, RL_flip])
+
+-----
+
+Schedule dump file created: sysRuleAssertionsEspositoFail.sched
+=== Generated schedule for sysRuleAssertionsEspositoFail ===
+
+Rule schedule
+-------------
+Rule: setT
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: setF
+Predicate: True
+Blocking rules: setT
+ 
+Rule: flip
+Predicate: True
+Blocking rules: setF, setT
+ 
+Logical execution order: setT, setF, flip
+
+=============================================================

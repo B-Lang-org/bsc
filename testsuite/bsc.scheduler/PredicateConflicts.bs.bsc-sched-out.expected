@@ -1,0 +1,44 @@
+checking package dependencies
+compiling PredicateConflicts.bs
+code generation for sysPredicateConflicts starts
+Warning: "PredicateConflicts.bs", line 7, column 0: (G0010)
+  Rule "foo" was treated as more urgent than "bar". Conflicts:
+    "foo" cannot fire before "bar": calls to y.write vs. y.read
+    "bar" cannot fire before "foo": calls to x.write vs. x.read
+=== schedule:
+parallel: [esposito: [RL_foo -> [], RL_bar -> [RL_foo]]]
+order: [RL_foo, RL_bar]
+
+-----
+
+=== resources:
+[(x.read, [(x.read, 1)]),
+ (x.write, [(x.write NOT_x___d4, 1)]),
+ (y.read, [(y.read, 1)]),
+ (y.write, [(y.write NOT_y___d3, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysPredicateConflicts.sched
+=== Generated schedule for sysPredicateConflicts ===
+
+Rule schedule
+-------------
+Rule: foo
+Predicate: x
+Blocking rules: (none)
+ 
+Rule: bar
+Predicate: y
+Blocking rules: foo
+ 
+Logical execution order: foo, bar
+
+=====================================================
+Verilog file created: sysPredicateConflicts.v
+All packages are up to date.

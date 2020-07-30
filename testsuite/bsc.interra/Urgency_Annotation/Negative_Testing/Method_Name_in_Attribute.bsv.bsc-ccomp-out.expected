@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Method_Name_in_Attribute.bsv
+code generation for mkMethod_Name_in_Attribute starts
+Warning: "Method_Name_in_Attribute.bsv", line 10, column 8: (G0022)
+  According to the generated schedule, method `start' is never ready.
+Elaborated module file created: mkMethod_Name_in_Attribute.ba
+All packages are up to date.

@@ -1,0 +1,21 @@
+package RecUpd(sysRecUpd) where
+
+type T = Bit 5
+
+struct S =
+	a :: T
+	b :: T
+	c :: T
+	d :: T
+    deriving (Bits)
+
+sysRecUpd :: Module Empty
+sysRecUpd =
+    module
+	s :: Reg S
+	s <- mkReg (S { b = 10; d = 10 })
+        rules
+	    when s.b < s.d - 10
+	     ==> s := s { b = s.b + 1; c = negate s.c }
+	    when s.d < s.b - 10
+	     ==> s := s { d = s.d + 1; }

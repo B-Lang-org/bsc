@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotField4.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an (ENotField) error
+
+-- Error Message : bsc ENotField4.bs
+-- bsc: Compilation errors:
+-- "ENotField4.bs", line 20, column 29, Field "thr" is not in "My_pair"
+-----------------------------------------------------------------------
+
+package ENotField4 () where
+
+struct My_pair = {fst :: Integer; snd :: Integer}
+
+firstpair :: My_pair
+firstpair = My_pair {fst =5; thr = 10}
+

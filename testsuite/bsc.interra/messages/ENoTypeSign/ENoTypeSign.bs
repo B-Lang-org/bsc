@@ -1,0 +1,90 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENoTypeSign.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ENoTypeSign error of the bluespec
+-- compiler (Missing or bad signature for module : {expression})
+--
+-----------------------------------------------------------------------
+
+
+
+package ENoTypeSign () where
+
+import List
+
+type Elem = Reg (Bit 8)
+
+            
+interface (LIFO :: # -> * -> *) n a =
+    push     :: a -> Action
+    pop      :: Action
+    out_data :: a
+    overflow :: Bool
+    underflow :: Bool
+
+
+top :: (Bits a sa) => Module (LIFO n a)
+top =
+    module
+
+        
+        sizeoflist :: Reg (Bit (TLog (TAdd n 1))) <- mkReg 0
+        stack :: List (Reg a )
+        stack <- mapM (const mkRegU) (upto 0 (valueOf n -1))
+        data_read :: Reg a <- mkRegU
+
+        let full = (sizeoflist == fromInteger(valueOf n))
+            empty = (sizeoflist == 0)
+
+
+	interface
+           overflow = full 
+
+           underflow = empty
+
+           push in_data = 
+                if (not full) then
+                   action
+                     let
+                       in_reg =  interface Reg
+                                    _write = const noAction
+                                    _read  = in_data
+                       stack1:: List (Reg a)
+                       stack1 = Cons in_reg (init stack)
+                       pairs = zip stack1 stack
+                       embedded_module = module{}
+                       f :: (Reg a,Reg a) -> Action
+                       f(a,b) = 
+                            b:= a._read
+                       assigns = map f pairs
+                     joinActions assigns
+                     sizeoflist := sizeoflist + 1
+                else
+                   noAction
+   
+           pop = 
+                if (not empty) then
+                   action
+                    let
+                      stack1 = (tail stack) `append` (Cons _ Nil)
+                      pairs = zip stack1 stack
+                      f :: (Reg a,Reg a) -> Action
+                      f(a,b) = 
+                           b:= a._read
+                      assigns = map f pairs
+                    joinActions assigns
+                    sizeoflist := sizeoflist - 1
+                    data_read := (head stack)._read
+                else
+                   noAction
+
+           out_data = data_read
+                 
+
+
+top16 :: Module (LIFO 16 (Bit 8))
+top16 = top 

@@ -1,0 +1,16 @@
+package IfLifting2(sysIfLifting) where
+
+-- Test out the lifting of method calls that are not just sets
+
+import FIFO 
+
+sysIfLifting :: Module Empty
+sysIfLifting =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: FIFO Bool
+    b <- mkFIFO
+    rules
+        when True ==> b.enq (if a then False else True)
+

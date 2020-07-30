@@ -1,0 +1,15 @@
+vcdcheck_pass gcd_vlog.vcd {-c "main.top.the_tbresult exists"}
+vcdcheck_pass gcd_vlog.vcd {-c "main.top.gcd.WILL_FIRE_RL_flip toggles"}
+vcdcheck_pass gcd_bsim.vcd {-c "main.top.gcd.the_x toggles @300" \
+                            -c "main.top.gcd.the_x equals 9 @299" \
+                            -c "main.top.gcd.the_x equals 7 @300" }
+vcdcheck_pass gcd_bsim.vcd {-c "main.top.WILL_FIRE_RL_exit toggles"}
+vcdcheck_pass gcd_bsim.vcd {-c "main.top.CLK becomes 0 @4755"}
+vcdcheck_pass long.vcd     {-c "main.top.scemi_uclkgen\$CLK_OUT becomes 1 @10"}
+
+# These are expected to fail -- to test that the checks actually work!
+vcdcheck_fail gcd_vlog.vcd {-c "main.top.NO_SUCH_SIGNAL exists"}
+vcdcheck_fail gcd_bsim.vcd {-c "main.top.CLK becomes 1 @4755"}
+vcdcheck_fail gcd_bsim.vcd {-c "main.top.CLK toggles @4756"}
+vcdcheck_fail gcd_bsim.vcd {-c "main.top.gcd.the_y equals 0 @455"}
+vcdcheck_fail gcd_vlog.vcd {-c "main.top.gcd.the_y\$EN toggles"}

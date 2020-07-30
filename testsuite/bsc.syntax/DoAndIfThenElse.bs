@@ -1,0 +1,14 @@
+package DoAndIfThenElse where
+
+mkTest :: (IsModule m c) => m Empty
+mkTest =
+  module
+    r :: Reg (Int 12) <- if genVerilog
+                         then mkRegA 0
+                         else mkReg 0
+    rules
+      "test": when True ==> do
+        r := r + 1
+        if r > 0
+        then $finish 0
+        else $display "r is still positive (%0d) at %0t" r $time

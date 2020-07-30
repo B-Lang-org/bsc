@@ -1,0 +1,40 @@
+data MOD_sysMultiArityConcat =
+    MOD_sysMultiArityConcat
+	{ inst_src1__sysMultiArityConcat :: MOD_RegUN #3
+	, inst_src2__sysMultiArityConcat :: MOD_RegUN #4
+	, inst_src3__sysMultiArityConcat :: MOD_RegUN #5
+	, inst_snk__sysMultiArityConcat :: MOD_RegUN #12
+	};
+
+ctor_sysMultiArityConcat :: MOD_sysMultiArityConcat;
+ctor_sysMultiArityConcat =
+    MOD_sysMultiArityConcat
+	{ inst_src1__sysMultiArityConcat = ctor_RegUN (3 :: Bit #32)
+	, inst_src2__sysMultiArityConcat = ctor_RegUN (4 :: Bit #32)
+	, inst_src3__sysMultiArityConcat = ctor_RegUN (5 :: Bit #32)
+	, inst_snk__sysMultiArityConcat = ctor_RegUN (12 :: Bit #32)
+	};
+
+dim_sysMultiArityConcat :: MOD_sysMultiArityConcat -> MOD_sysMultiArityConcat -> Bool;
+dim_sysMultiArityConcat =
+    (\ (mod1 :: MOD_sysMultiArityConcat) ->
+     (\ (mod2 :: MOD_sysMultiArityConcat) ->
+      (dim_RegUN (inst_src1__sysMultiArityConcat mod1) (inst_src1__sysMultiArityConcat mod2))
+      && (dim_RegUN (inst_src2__sysMultiArityConcat mod1) (inst_src2__sysMultiArityConcat mod2))
+      && (dim_RegUN (inst_src3__sysMultiArityConcat mod1) (inst_src3__sysMultiArityConcat mod2))
+      && (dim_RegUN (inst_snk__sysMultiArityConcat mod1) (inst_snk__sysMultiArityConcat mod2))));
+
+rule_RL_d_sysMultiArityConcat :: MOD_sysMultiArityConcat -> (Bool, MOD_sysMultiArityConcat, ());
+rule_RL_d_sysMultiArityConcat =
+    (\ (state0 :: MOD_sysMultiArityConcat) ->
+     let { (def__read__h44 :: Bit #3) = meth_read_RegUN (inst_src1__sysMultiArityConcat state0)
+	 ; (def__read__h76 :: Bit #4) = meth_read_RegUN (inst_src2__sysMultiArityConcat state0)
+	 ; (def__read__h108 :: Bit #5) = meth_read_RegUN (inst_src3__sysMultiArityConcat state0)
+	 ; (act1 :: (Bool, MOD_RegUN #12, ())) =
+	       meth_write_RegUN
+		   (primConcat def__read__h44 (primConcat def__read__h76 def__read__h108))
+		   (inst_snk__sysMultiArityConcat state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysMultiArityConcat) = state0 { inst_snk__sysMultiArityConcat = snd3 act1 }
+	 }
+     in mktuple guard1 state1 ());

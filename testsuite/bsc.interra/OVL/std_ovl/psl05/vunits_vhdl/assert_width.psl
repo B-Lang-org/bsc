@@ -1,0 +1,85 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_width_assert_vunit (assert_width_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_WIDTH_MIN_CHECK_P is always (
+           ({(min_cks > 0) and rose(test_expr)} |->
+           {test_expr[*min_cks]})
+           abort(not(reset_n)));
+
+  property ASSERT_WIDTH_MAX_CHECK_P is always (
+           ({(max_cks > 0) and rose(test_expr)} |=>
+           {test_expr[*0 to checked_max_cks];not(test_expr)})
+           abort (not(reset_n)));
+
+  -- Property for X/Z checking
+
+  property ASSERT_WIDTH_XZ_ON_TEST_EXPR_P is
+           always( xzcheck_enable = 1 -> not(is_x(test_expr))) abort(not(reset_n)) ;
+
+  A_ASSERT_WIDTH_MIN_CHECK_P:
+  assert ASSERT_WIDTH_MIN_CHECK_P 
+  report "VIOLATION: ASSERT_WIDTH Checker Fires: Test expression was held TRUE for less than specified minimum min_cks cycles";
+
+  A_ASSERT_WIDTH_MAX_CHECK_P:
+  assert ASSERT_WIDTH_MAX_CHECK_P
+  report "VIOLATION: ASSERT_WIDTH Checker Fires: Test expression was held TRUE for more than specified maximum max_cks cycles";
+
+  A_ASSERT_WIDTH_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_WIDTH_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_WIDTH Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_width_assume_vunit (assert_width_assume)
+{
+  default clock is rose(clk);
+  
+  property ASSERT_WIDTH_MIN_CHECK_P is always (
+           ({(min_cks > 0) and rose(test_expr)} |->
+           {test_expr[*min_cks]})
+           abort(not(reset_n)));
+
+  property ASSERT_WIDTH_MAX_CHECK_P is always (
+           ({(max_cks > 0) and rose(test_expr)} |=>
+           {test_expr[*0 to checked_max_cks];not(test_expr)})
+           abort (not(reset_n)));
+  
+  -- Property for X/Z checking
+
+  property ASSERT_WIDTH_XZ_ON_TEST_EXPR_P is
+           always( xzcheck_enable = 1 -> not(is_x(test_expr))) abort(not(reset_n)) ;
+
+  M_ASSERT_WIDTH_MIN_CHECK_P:
+  assume ASSERT_WIDTH_MIN_CHECK_P;
+                                                                                                                 
+  M_ASSERT_WIDTH_MAX_CHECK_P:
+  assume ASSERT_WIDTH_MAX_CHECK_P;
+                                                                                                                 
+  M_ASSERT_WIDTH_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_WIDTH_XZ_ON_TEST_EXPR_P;
+}
+
+
+vunit assert_width_cover_vunit (assert_width_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_test_expr_asserts:
+  cover {(OVL_COVER_BASIC_ON = OVL_COVER_BASIC or OVL_COVER_BASIC_ON = OVL_COVER_ALL) and reset_n = '1' and rose(test_expr)}
+  report "COVERAGE REPORT : ASSERT_WIDTH Checker: test_expr_asserts covered";
+
+  cover_test_expr_asserted_for_min_cks:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and (min_cks > 0) and reset_n = '1' and rose(test_expr);
+	 (reset_n = '1' and test_expr = '1')[*(checked_min_cks)];reset_n = '1' and test_expr = '0'}
+  report "COVERAGE REPORT : ASSERT_WIDTH Checker: test_expr_asserted_for_min_cks covered";
+
+  cover_test_expr_asserted_for_max_cks:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and (max_cks > 0) and reset_n = '1' and rose(test_expr);
+	(reset_n = '1' and test_expr = '1')[*(checked_max_cks)];reset_n = '1' and test_expr = '0'}
+  report "COVERAGE REPORT : ASSERT_WIDTH Checker: test_expr_asserted_for_max_cks covered";
+}
+ 

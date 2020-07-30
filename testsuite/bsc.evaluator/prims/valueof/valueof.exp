@@ -1,0 +1,22 @@
+# -----
+# Tests for bug 1601
+
+if { $vtest == 1 } {
+
+compile_verilog_fail Position1.bsv
+# Look for the expected position
+find_regexp [make_bsc_vcomp_output_name Position1.bsv] \
+    {Error\: \"Position1\.bsv\"\, line 4\, column 42\:}
+
+compile_verilog_fail Position2.bsv
+find_regexp [make_bsc_vcomp_output_name Position2.bsv] \
+    {Error\: \"Position2\.bsv\"\, line 14\, column 42\:}
+
+compile_verilog_fail Position3Top.bsv
+find_regexp_fail_bug [make_bsc_vcomp_output_name Position3Top.bsv] \
+    {Error\: \"Position3Top\.bsv\"\, line 8\, column 32\:}
+
+}
+
+# -----
+

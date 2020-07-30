@@ -1,0 +1,5 @@
+
+compile_pass Bug1493.bsv
+# Test that "_" is bound by using it as the wrong type
+compile_fail_error Bug1493_Bad.bsv T0020
+

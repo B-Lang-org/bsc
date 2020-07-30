@@ -1,0 +1,52 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_even_parity_assert_vunit (assert_even_parity_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_EVEN_PARITY_P = always (reset_n -> !(^test_expr));
+
+  //Property for X/Z checking
+
+  property ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  A_ASSERT_EVEN_PARITY_P:
+  assert ASSERT_EVEN_PARITY_P
+  report "VIOLATION: ASSERT_EVEN_PARITY Checker Fires : Test expression does not exhibit even parity";
+
+  A_ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_EVEN_PARITY Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_even_parity_assume_vunit (assert_even_parity_assume)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_EVEN_PARITY_P = always (reset_n -> !(^test_expr));
+
+  //Property for X/Z checking
+
+  property ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  M_ASSERT_EVEN_PARITY_P:
+  assume ASSERT_EVEN_PARITY_P;
+
+  M_ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_EVEN_PARITY_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_even_parity_cover_vunit (assert_even_parity_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_SANITY_ON && prev(reset_n) && reset_n && !stable(test_expr)}
+  report "COVERAGE REPORT : ASSERT_EVEN_PARITY Checker: test_expr_change covered";
+}
+ 

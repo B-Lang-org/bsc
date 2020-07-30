@@ -1,0 +1,2 @@
+compile_fail_error Bug580_1.bsv P0128
+compile_fail_error Bug580_2.bsv P0129

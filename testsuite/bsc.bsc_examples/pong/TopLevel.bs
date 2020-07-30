@@ -1,0 +1,112 @@
+package TopLevel (mkTopLevel, TopLevel(..)) where
+import qualified Vector
+import List
+import LFSR
+import VGACore
+import Global
+import LedDecoder
+import Controller
+import Kbd
+import Switch
+import Border
+import Paddle
+import Ball
+import Shape
+import Score
+import Color
+import Decimal
+
+interface TopLevel =
+   hsync :: Bit 1
+   vsync :: Bit 1
+
+   red   :: Bit 2
+   green :: Bit 2
+   blue  :: Bit 2
+
+   rawkbd :: RawKbd
+   rawsw1 :: RawSwitch
+   rawsw2 :: RawSwitch
+
+   aL :: Bit 1
+   aR :: Bit 1
+
+paddleLXMin :: Integer
+paddleLXMin = xMin + paddleDistFromWall
+paddleRXMin :: Integer
+paddleRXMin = xMax - paddleDistFromWall - paddleWidth
+
+{-# verilog mkTopLevel { noReady, alwaysEnabled } #-}
+mkTopLevel :: Module TopLevel
+mkTopLevel =
+  module
+
+    (raw_kbd, kbd) :: (RawKbd, Kbd) <- mkKbd
+    (raw_switch1, sw1) :: (RawSwitch, Switch) <- mkSwitch
+    (raw_switch2, sw2) :: (RawSwitch, Switch) <- mkSwitch
+
+    lfsr :: LFSR (Bit 32) <- mkLFSR_32
+
+    scoreL :: DecCounter NScoreDigits <- mkDecCounter
+    scoreR :: DecCounter NScoreDigits <- mkDecCounter
+
+    dispL :: Shape <- mkScore scoreL (fromInteger scoreRx) (fromInteger scoreY)
+    dispR :: Shape <- mkScore scoreR (fromInteger scoreLx) (fromInteger scoreY)
+
+    vgaCore :: VGACore XCoord YCoord <- mkVGACore preScale vgaTiming
+
+    border :: Shape <- mkBorder
+    paddleL :: Paddle <- mkPaddle paddleLXMin
+    paddleR :: Paddle <- mkPaddle paddleRXMin
+    ball :: Ball <- mkBall lfsr.value paddleL paddleR scoreL.inc scoreR.inc
+
+
+-- XXX This was moved here because the fire when enabled assertion
+-- is only true by virtue of an arbitrary urgency choice.
+    rules
+--    has implicit condition
+      {-# ASSERT fire when enabled #-}
+      "Tick":
+       when vgaCore.frameTick ==>
+         action
+           ball.tick
+
+    controller :: Controller <- mkController kbd paddleL paddleR ball
+
+    color :: Reg Color <- mkRegU
+
+    let flipCol col b = modShapeVis (\ c -> if b && c /= cNone then col <^> c else c)
+	flipBCol col b = modShapeVis (\ c -> if b then col <^> c else c)
+	padL = flipCol cYellow controller.autoPlayL paddleL.shape
+	padR = flipCol cYellow controller.autoPlayR paddleR.shape
+	border' = flipCol (mkRGB 2 0 1) sw1.value border
+	ball' = flipCol (mkRGB 1 1 3) sw1.value ball.shape
+	pict = joinManyShapes (border' :> ball' :> padL :> padR :> dispL :> dispR :> Nil)
+	pict' = flipBCol cWhite sw2.value pict
+	pictBl = modShapeVis (\ c -> if vgaCore.blank then cNone else c) pict'
+
+    interface
+
+	hsync = pack vgaCore.not_hsync
+	vsync = pack vgaCore.not_vsync
+
+	red   = getRed   color
+	green = getGreen color
+	blue  = getBlue  color
+
+        rawkbd = raw_kbd
+	rawsw1 = raw_switch1
+	rawsw2 = raw_switch2
+
+	aL = pack controller.autoPlayL
+	aR = pack controller.autoPlayR
+
+    rules
+
+      {-# ASSERT no implicit conditions #-}
+      {-# ASSERT fire when enabled #-}
+      when True ==>
+        action
+          pict.newPos vgaCore.hPos vgaCore.vPos
+	  lfsr.next
+	  color := pictBl.color

@@ -1,0 +1,24 @@
+checking package dependencies
+compiling ContextTooWeakDeferred.bsv
+Error: "ContextTooWeakDeferred.bsv", line 14, column 41: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    Vector::Vector#(max_elems, elem_type)
+  The following provisos are needed:
+    Bits#(Vector::Vector#(max_elems, Vector::Vector#(e_bytes, Bit#(8))), a__)
+      Introduced at the following locations:
+	"ContextTooWeakDeferred.bsv", line 16, column 58
+      The proviso could also be deduced from the following information:
+	Mul#(max_elems, TMul#(e_bytes, 8), a__)
+  The type variables are from the following positions:
+    "a__" at "ContextTooWeakDeferred.bsv", line 16, column 58
+Error: "ContextTooWeakDeferred.bsv", line 18, column 61: (T0020)
+  Type error at:
+    bs
+
+  Expected type:
+    Vector::Vector#(max_elems, Bit#(a__))
+
+  Inferred type:
+    Vector::Vector#(max_elems, Vector::Vector#(e_bytes, Bit#(8)))
+

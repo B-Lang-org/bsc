@@ -1,0 +1,13 @@
+package StructWithContext () where
+	
+struct Foo =
+    bar :: (Bits a sa) => a -> Action
+
+f1 :: Foo
+f1 = let g :: (Bits a sa) => a -> Action
+         g = displayHex
+     in  Foo { bar = g }
+
+f2 :: Foo
+f2 = Foo { bar = displayHex }
+

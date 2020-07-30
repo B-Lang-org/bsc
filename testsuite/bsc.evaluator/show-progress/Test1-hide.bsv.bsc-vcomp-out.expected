@@ -1,0 +1,31 @@
+checking package dependencies
+compiling Test1-hide.bsv
+code generation for sysTest1 starts
+[TIME] elab progress: Elaborating module `sysTest1'
+[TIME] elab progress: (sub1) Elaborating module
+[TIME] elab progress: (sub1.f1) Elaborating module
+[TIME] elab progress: (sub1.f1) Finished module
+[TIME] elab progress: (sub1.f2) Elaborating module
+[TIME] elab progress: (sub1.f2) Finished module
+[TIME] elab progress: (sub1.mkConnection) Elaborating module
+[TIME] elab progress: (sub1.mkConnection) Elaborating rule (mkConnectionGetPut)
+[TIME] elab progress: (sub1.mkConnection) Elaborating rule explicit condition (mkConnectionGetPut)
+[TIME] elab progress: (sub1.mkConnection) Elaborating rule body (mkConnectionGetPut)
+[TIME] elab progress: (sub1.mkConnection) Elaborating rule implicit condition (mkConnectionGetPut)
+[TIME] elab progress: (sub1.mkConnection) Finished rule (mkConnectionGetPut)
+[TIME] elab progress: (sub1.mkConnection) Finished module
+[TIME] elab progress: (sub1) Elaborating rule (r1)
+[TIME] elab progress: (sub1) Elaborating rule explicit condition (r1)
+[TIME] elab progress: (sub1) Elaborating rule body (r1)
+[TIME] elab progress: (sub1) Elaborating rule implicit condition (r1)
+[TIME] elab progress: (sub1) Finished rule (r1)
+[TIME] elab progress: (sub1) Finished module
+[TIME] elab progress: Elaborating rule (r0)
+[TIME] elab progress: Elaborating rule explicit condition (r0)
+[TIME] elab progress: Elaborating rule body (r0)
+[TIME] elab progress: Elaborating rule implicit condition (r0)
+[TIME] elab progress: Finished rule (r0)
+[TIME] elab progress: Elaborating interface
+[TIME] elab progress: Finished elaborating module `sysTest1'
+Verilog file created: sysTest1.v
+All packages are up to date.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnboundTyVar1.bs
+Error: "EUnboundTyVar1.bs", line 30, column 39: (T0008)
+  Unbound type variable `z'

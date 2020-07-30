@@ -1,0 +1,18 @@
+field1 = 3
+field2 = 5
+field3 = Hello world
+field4 = 1
+field1: 00110
+field2: 001111
+field3[ 0]: H
+field3[ 1]: E
+field3[ 2]: L
+field3[ 3]: L
+field3[ 4]: O
+field3[ 5]:  
+field3[ 6]: W
+field3[ 7]: O
+field3[ 8]: R
+field3[ 9]: L
+field3[10]: D
+field4: 0

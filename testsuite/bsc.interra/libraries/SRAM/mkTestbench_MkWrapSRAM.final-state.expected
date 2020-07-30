@@ -1,0 +1,54 @@
+Cycle Number:   0, Writing Data: 5555 address 0000 offset 0000
+Cycle Number:   1, Writing Data: 556e address 0001 offset 0005
+Cycle Number:   2, Writing Data: 5587 address 0007 offset 000a
+Cycle Number:   3, Writing Data: 55a0 address 0012 offset 000f
+Cycle Number:   4, Writing Data: 55b9 address 0022 offset 0014
+Cycle Number:   5, Writing Data: 55d2 address 0037 offset 0019
+Cycle Number:   6, Writing Data: 55eb address 0051 offset 001e
+Cycle Number:   7, Writing Data: 5604 address 0070 offset 0023
+Cycle Number:   8, Writing Data: 561d address 0094 offset 0028
+Cycle Number:   9, Writing Data: 5636 address 00bd offset 002d
+Cycle Number:  10, Writing Data: 564f address 00eb offset 0032
+Cycle Number:  11, Writing Data: 5668 address 011e offset 0037
+Cycle Number:  12, Writing Data: 5681 address 0156 offset 003c
+Cycle Number:  13, Writing Data: 569a address 0193 offset 0041
+Cycle Number:  14, Writing Data: 56b3 address 01d5 offset 0046
+Cycle Number:  15, Writing Data: 56cc address 021c offset 004b
+Cycle Number =  20, Value read 5555 address 0022 offset 0014
+Cycle Number =  20, Value read 556e address 0022 offset 0014
+Cycle Number =  20, Value read 5587 address 0022 offset 0014
+Cycle Number =  20, Value read 55a0 address 0022 offset 0014
+Cycle Number =  24, Value read 55b9 address 0094 offset 0028
+Cycle Number =  24, Value read 55d2 address 0094 offset 0028
+Cycle Number =  24, Value read 55eb address 0094 offset 0028
+Cycle Number =  24, Value read 5604 address 0094 offset 0028
+Cycle Number =  28, Value read 561d address 0156 offset 003c
+Cycle Number =  28, Value read 5636 address 0156 offset 003c
+Cycle Number =  28, Value read 564f address 0156 offset 003c
+Cycle Number =  28, Value read 5668 address 0156 offset 003c
+Cycle Number =  32, Value read 5681 address 0268 offset 0050
+Cycle Number =  32, Value read 569a address 0268 offset 0050
+Cycle Number =  32, Value read 56b3 address 0268 offset 0050
+Cycle Number =  32, Value read 56cc address 0268 offset 0050
+Simulation Passes
+Final state:
+top:
+  counter = 0x24
+  fail = False
+  in_address = 0x0268
+  in_data = 0x56e5
+  in_offset = 0x0050
+  out_address = 0x0268
+  out_data = 0x56e5
+  out_offset = 0x0050
+  request = True
+  tx_act = False
+  tx_adr = 0x021c
+  tx_cnt = 0x5
+  tx_dta = 0xaaaa
+  tx_obf = 0x0000
+  tx_out = EMPTY
+  tx_rds_sr = 0x0
+  tx_sram_arr = <RegFile with 65536 entries>
+  tx_sram_out = 0x0000
+  tx_wen = False

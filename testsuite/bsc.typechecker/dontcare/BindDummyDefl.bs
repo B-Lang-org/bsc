@@ -1,0 +1,9 @@
+package BindDummyDefl () where
+
+x :: Int 32
+x = let
+        _ :: Int 32
+        _ = _
+    in
+        _
+

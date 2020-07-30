@@ -1,0 +1,8 @@
+Negate concat: PASS
+Invert concat: PASS
+Double negate concat: PASS
+Double invert concat: PASS
+Negate if 1: PASS
+Invert if 1: PASS
+Negate if 2: PASS
+Invert if 2: PASS

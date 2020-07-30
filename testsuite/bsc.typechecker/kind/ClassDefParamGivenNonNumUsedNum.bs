@@ -1,0 +1,5 @@
+package ClassDefParamGivenNonNumUsedNum () where
+
+class (Foo :: * -> *) a where
+    bar :: Bit a
+

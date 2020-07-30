@@ -1,0 +1,108 @@
+package ElfData (sysElfData) where
+import RegFile
+
+sysElfData :: Module Empty
+sysElfData = mkState
+
+----------------------------------
+-- Types, Interfaces, Modules --
+----------------------------------
+
+type Word = Bit 8
+type CPUReg = Bit 5
+
+data IWord
+	= LoadC CPUReg Word
+	| LoadPC CPUReg
+	| Load CPUReg CPUReg
+	| Store CPUReg CPUReg
+	| OpSub CPUReg CPUReg CPUReg
+	| OpLT CPUReg CPUReg CPUReg
+	| Jump CPUReg
+	| JZ CPUReg CPUReg
+	deriving (Bits)
+
+
+mkState :: Module Empty
+mkState = 
+    module
+      pc :: Reg Word
+      pc <- mkReg 0
+      rf :: RegFile CPUReg Word
+      rf <- mkRegFileFull
+      imem :: RegFile Word IWord
+      imem <- mkRegFileFull
+      dmem :: RegFile Word Word
+      dmem <- mkRegFileFull
+      addRules $ mkRules pc rf imem dmem
+
+mkRules :: Reg Word -> RegFile CPUReg Word -> RegFile Word IWord ->
+	   RegFile Word Word -> Rules
+mkRules pc rf imem dmem =
+    let
+	instr :: IWord
+	instr = imem.sub pc
+
+	pc' :: Word
+	pc' = pc + 1
+    in
+	rules
+	  "LoadC":
+	    when LoadC dst imm <- instr
+	      ==> action {
+	            pc := pc';
+	            rf.upd dst imm;
+		  }
+
+	  "LoadPC":
+	    when LoadPC dst <- instr
+	      ==> action {
+	            pc := pc';
+	            rf.upd dst pc;
+		  }
+
+	  "Load":
+	    when Load dst src1 <- instr
+	      ==> action {
+	            pc := pc';
+	            rf.upd dst (dmem.sub (rf.sub src1));
+		  }
+
+	  "Store":
+	    when Store src1 src2 <- instr
+	      ==> action {
+		    pc := pc';
+		    dmem.upd (rf.sub src1) (rf.sub src2);
+		  }
+
+	  "OpSub":
+	    when OpSub dst src1 src2 <- instr
+	      ==> action {
+		    pc := pc';
+		    rf.upd dst (rf.sub src1 - rf.sub src2);
+		  }
+
+	  "Jump":
+	    when Jump src1 <- instr
+	      ==> action {
+		    pc := rf.sub src1;
+		  }
+
+	  "JZ taken":
+	    when JZ src1 src2 <- instr, rf.sub src2 == 0
+	      ==> action {
+		    pc := rf.sub src1;
+		  }
+
+	  "JZ not taken":
+	    when JZ src1 src2 <- instr, rf.sub src2 /= 0
+	      ==> action {
+		    pc := pc';
+		  }
+
+	  "OpLT":
+	    when OpLT dst src1 src2 <- instr
+	      ==> action {
+		    pc := pc';
+		    rf.upd dst (if rf.sub src1 < rf.sub src2 then 1 else 0);
+		  }

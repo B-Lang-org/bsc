@@ -1,0 +1,32 @@
+// test for comment
+     // test for comment after whitespace
+   /* test for comment inside whitespace */   
+/* test for data after comment*/000000000000
+/* test for data after whitespace after comment */       000000000001
+   /* test whitespace at the beginning and end */   010000000010   
+/* test for comment alone on line */
+/* test two comments *//* now test multiple data on line */
+000000000011 000000000100
+/* now test for more spaces between */   /* la la la */
+000000001001      000000001010
+  /* test for more data */    000000001011   000000001100  000000001110   /* la */
+
+/* test for multi-line comment
+
+  la la la 
+  */ 
+
+ /* test for address, skip two slots */
+  @0c     000000010000       000000010001
+/* skip a space */
+  @F   /* test a comment */     000000010010   
+// skip a space again
+/* la */@11/* la */000000010011/* la */
+
+  000000010100   000000010101    000000010110     000000010111      000000011000       000000011001        000000011010         000000011011          000000011100           000000011101  000000011110  000000011111  000000100000 000000000000
+
+// fill in the rest of the slots, to avoid Bluesim warnings
+@a 111000000001 111000000010
+@e 111000000011 @10 111000000100
+
+// end in a comment

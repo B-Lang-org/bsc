@@ -1,0 +1,6 @@
+Error: Command line: (S0092)
+  Could not open the directory specified with the -info-dir flag.
+  Directory:
+    INVALID
+  System message:
+    does not exist

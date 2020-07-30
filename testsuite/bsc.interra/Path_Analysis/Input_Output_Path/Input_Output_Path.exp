@@ -1,0 +1,52 @@
+if {$vtest == 1} {
+compile_verilog_fail_error Argument2Rdy2.bsv G0034
+
+compile_verilog_fail_error Argument2Rdy2.bsv G0035
+
+compile_verilog_pass Argument2Rdy.bsv mkArgument2Rdy "-dpathsPostSched"
+compare_file "Argument2Rdy.bsv.bsc-vcomp-out"
+
+
+compile_verilog_pass Argument2ReturnValue2.bsv "" "-dpathsPostSched"
+compare_file "Argument2ReturnValue2.bsv.bsc-vcomp-out"
+
+compile_verilog_pass Argument2ReturnValue3.bsv mkArgument2ReturnValue3 "-dpathsPostSched" 
+compare_file "Argument2ReturnValue3.bsv.bsc-vcomp-out"
+
+compile_verilog_pass Argument2ReturnValue.bsv mkArgument2ReturnValue "-dpathsPostSched"
+compare_file "Argument2ReturnValue.bsv.bsc-vcomp-out"
+
+
+compile_verilog_fail_error En2Rdy2.bsv G0030
+
+compile_verilog_fail_error En2Rdy3.bsv G0035
+
+compile_verilog_fail_error En2Rdy4.bsv G0033 2
+
+compile_verilog_pass En2Rdy5.bsv mkEn2Rdy5 "-dpathsPostSched"
+compare_file "En2Rdy5.bsv.bsc-vcomp-out"
+
+compile_verilog_fail_error En2Rdy.bsv G0033
+
+compile_verilog_pass En2ReturnValue.bsv mkEn2ReturnValue "-dpathsPostSched"
+compare_file "En2ReturnValue.bsv.bsc-vcomp-out"
+
+# This is testing an RWire wset and wget in the same method,
+# which is not valid with scheduling annotation wset SBR (wget, whas).
+#compile_verilog_pass En2ReturnValue2.bsv mkEn2ReturnValue2 "-dpathsPostSched"
+#compare_file "En2ReturnValue2.bsv.bsc-vcomp-out"
+
+compile_verilog_pass MuxMethods1.bsv mkMuxMethods1 "-dpathsPostSched"
+compare_file "MuxMethods1.bsv.bsc-vcomp-out"
+
+# This used to compile, but now fails because of don't-care in the rule
+# conditions.  We could rewrite the condition to make a version (MuxMethods3)
+# that does compile.
+compile_verilog_fail_error MuxMethods2.bsv G0002 1
+
+compile_verilog_pass Parameter2Rdy.bsv mkParameter2Rdy "-dpathsPostSched"
+compare_file "Parameter2Rdy.bsv.bsc-vcomp-out"
+
+compile_verilog_pass Parameter2ReturnValue.bsv mkParameter2ReturnValue "-dpathsPostSched"
+compare_file "Parameter2ReturnValue.bsv.bsc-vcomp-out"
+}

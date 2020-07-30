@@ -1,0 +1,9 @@
+checking package dependencies
+compiling PutAfterClose.bsv
+code generation for sysPutAfterClose starts
+Error: "PutAfterClose.bsv", line 10, column 15: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `hPutStr' at "PutAfterClose.bsv", line 10, column 4.
+  During elaboration of `sysPutAfterClose' at "PutAfterClose.bsv", line 2,
+  column 8.

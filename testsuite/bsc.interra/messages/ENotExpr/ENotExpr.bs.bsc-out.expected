@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ENotExpr.bs
+Warning: "ENotExpr.bs", line 24, column 8: (P0223)
+  Definition of `a' is not used.
+Warning: "ENotExpr.bs", line 25, column 8: (P0223)
+  Definition of `b' is not used.
+Error: "ENotExpr.bs", line 25, column 8: (T0036)
+  Last statement in a `do' must be an expression

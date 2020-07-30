@@ -1,0 +1,70 @@
+CTX_sysMethods : CONTEXT =
+BEGIN
+  
+  STATE : TYPE =
+    [# inst_x : CTX_RegN{51}!STATE
+     , inst_y : CTX_RegN{51}!STATE
+     #] ;
+  
+  ctor : STATE =
+    (# inst_x := CTX_RegN{51}!ctor(Bit{51}!undef)
+     , inst_y := CTX_RegN{51}!ctor(Bit{51}!mkConst(0))
+     #) ;
+  
+  rule_RL_flip (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def_b__h117 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_y)
+    IN LET def_b__h116 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_x)
+    IN LET def_y_EQ_0___d5 : BOOLEAN = Prim1{51}!primEQ(def_b__h117, Bit{51}!mkConst(0))
+    IN LET def_x_ULE_y___d3 : BOOLEAN = Prim1{51}!primULE(def_b__h116, def_b__h117)
+    IN LET def_NOT_x_ULE_y_AND_NOT_y_EQ_0___d7 : BOOLEAN =
+	     (NOT def_x_ULE_y___d3) AND (NOT def_y_EQ_0___d5)
+    IN LET act1 : [ CTX_RegN{51}!STATE, Unit!T ] = CTX_RegN{51}!meth_write(def_b__h117, state0.inst_x)
+    IN LET state1 : STATE = state0 WITH .inst_x := act1.1
+    IN LET act2 : [ CTX_RegN{51}!STATE, Unit!T ] = CTX_RegN{51}!meth_write(def_b__h116, state1.inst_y)
+    IN LET state2 : STATE = state1 WITH .inst_y := act2.1
+    IN ( def_NOT_x_ULE_y_AND_NOT_y_EQ_0___d7, state2 ) ;
+  
+  rule_RL_sub (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def_b__h117 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_y)
+    IN LET def_b__h116 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_x)
+    IN LET def_y_EQ_0___d5 : BOOLEAN = Prim1{51}!primEQ(def_b__h117, Bit{51}!mkConst(0))
+    IN LET def_x_ULE_y___d3 : BOOLEAN = Prim1{51}!primULE(def_b__h116, def_b__h117)
+    IN LET def_x_ULE_y_AND_NOT_y_EQ_0___d8 : BOOLEAN = def_x_ULE_y___d3 AND (NOT def_y_EQ_0___d5)
+    IN LET def_y_MINUS_x___d9 : Bit{51}!T = Prim1{51}!primSub(def_b__h117, def_b__h116)
+    IN LET act1 : [ CTX_RegN{51}!STATE, Unit!T ] =
+	     CTX_RegN{51}!meth_write(def_y_MINUS_x___d9, state0.inst_y)
+    IN LET state1 : STATE = state0 WITH .inst_y := act1.1
+    IN ( def_x_ULE_y_AND_NOT_y_EQ_0___d8, state1 ) ;
+  
+  meth_result (state0 : STATE) : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_x) ;
+  
+  meth_RDY_result (state0 : STATE) : BOOLEAN =
+    LET def_b__h117 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_y)
+    IN Prim1{51}!primEQ(def_b__h117, Bit{51}!mkConst(0)) ;
+  
+  meth_start (arg_start_num1, arg_start_num2 : Bit{51}!T, state0 : STATE) : [ STATE, Unit!T ] =
+    LET act1 : [ CTX_RegN{51}!STATE, Unit!T ] = CTX_RegN{51}!meth_write(arg_start_num1, state0.inst_x)
+    IN LET state1 : STATE = state0 WITH .inst_x := act1.1
+    IN LET act2 : [ CTX_RegN{51}!STATE, Unit!T ] =
+	     CTX_RegN{51}!meth_write(arg_start_num2, state1.inst_y)
+    IN LET state2 : STATE = state1 WITH .inst_y := act2.1
+    IN ( state2, Unit!unit ) ;
+  
+  meth_RDY_start (state0 : STATE) : BOOLEAN =
+    LET def_b__h117 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_y)
+    IN Prim1{51}!primEQ(def_b__h117, Bit{51}!mkConst(0)) ;
+  
+  meth_start_and_result (arg_start_and_result_num1, arg_start_and_result_num2 : Bit{51}!T,
+			 state0 : STATE) : [ STATE, Bit{51}!T ] =
+    LET def_b__h116 : Bit{51}!T = CTX_RegN{51}!meth_read(state0.inst_x)
+    IN LET act1 : [ CTX_RegN{51}!STATE, Unit!T ] =
+	     CTX_RegN{51}!meth_write(arg_start_and_result_num1, state0.inst_x)
+    IN LET state1 : STATE = state0 WITH .inst_x := act1.1
+    IN LET act2 : [ CTX_RegN{51}!STATE, Unit!T ] =
+	     CTX_RegN{51}!meth_write(arg_start_and_result_num2, state1.inst_y)
+    IN LET state2 : STATE = state1 WITH .inst_y := act2.1
+    IN ( state2, def_b__h116 ) ;
+  
+  meth_RDY_start_and_result (state0 : STATE) : BOOLEAN = TRUE ;
+  
+END

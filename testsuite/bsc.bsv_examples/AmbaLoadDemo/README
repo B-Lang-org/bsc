@@ -1,0 +1,7 @@
+AmbaLoadDemo
+
+This directory contains a demonstation of a AMBA bus, modeled at the
+transactional level.  The master is a configurable, synthetic load
+generator.  The bus and slave models can be also be easily configured
+to various architectures and delays, thus enabling their rapid
+analysis.

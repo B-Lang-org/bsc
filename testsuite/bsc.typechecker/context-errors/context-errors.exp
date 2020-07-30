@@ -1,0 +1,246 @@
+# --------------------
+# Tests for Ctx Too Weak
+
+compile_fail ContextTooWeak.bs
+compare_file ContextTooWeak.bs.bsc-out
+
+compile_fail ContextTooWeak2.bsv
+compare_file ContextTooWeak2.bsv.bsc-out
+
+# ---
+# Test that renaming type variables to nice names doesn't incorrectly
+# use user-given names
+
+# Default weak context
+compile_fail DuplicateNiceName_WeakCtx_Default.bsv
+compare_file DuplicateNiceName_WeakCtx_Default.bsv.bsc-out
+
+# BitExtend weak context
+compile_fail DuplicateNiceName_WeakCtx_BitExtend.bsv
+compare_file DuplicateNiceName_WeakCtx_BitExtend.bsv.bsc-out
+
+# XXX PrimSelectable
+# XXX PrimUpdateable
+# XXX PrimWriteable
+# XXX NumEq
+
+# --------------------
+# Tests for Ctx Reduction Failed
+
+# Tests for bug 237
+
+compile_fail ContextReductionMethod.bsv
+compare_file ContextReductionMethod.bsv.bsc-out
+
+compile_fail ContextReductionImplFunction.bsv
+compare_file ContextReductionImplFunction.bsv.bsc-out
+
+compile_fail ContextReductionImplFunction2.bsv
+compare_file ContextReductionImplFunction2.bsv.bsc-out
+
+compile_fail ContextReductionExplFunction.bsv
+compare_file ContextReductionExplFunction.bsv.bsc-out
+
+# --------------------
+# Tests for Ambiguous Ctx
+
+# These tests check that ambiguous contexts derived by the compiler
+# are not reported to the user as weak context (but as lack of type
+# info for inference)
+
+compile_fail AmbigCtxExplPackUnpack.bsv
+compare_file AmbigCtxExplPackUnpack.bsv.bsc-out
+
+compile_fail AmbigCtxImplPackUnpack.bsv
+compare_file AmbigCtxImplPackUnpack.bsv.bsc-out
+
+# This could maybe have a better error
+compile_fail_error AmbigCtxExplTruncateExtend.bsv T0035
+compare_file AmbigCtxExplTruncateExtend.bsv.bsc-out
+
+compile_fail_error AmbigCtxImplTruncateExtend.bsv T0035 2
+compare_file AmbigCtxImplTruncateExtend.bsv.bsc-out
+
+# These tests check that ambiguous contexts written explicitly by the
+# user are detected and reported as bad contexts.
+
+compile_fail_error AmbigCtxExplWithProviso.bsv T0079
+
+compile_fail_error AmbigCtxInstance.bsv T0079
+
+# Test that BSC removes ambiguous variables that are determined by
+# other ambiguous variables
+compile_fail AmbigCtx_RemoveFunDeps.bsv
+compare_file AmbigCtx_RemoveFunDeps.bsv.bsc-out
+
+# --------------------
+# Testing that implied predicates are not reported (bug 546)
+
+# In this case should see only one T0031 error, not two
+compile_fail_error ContextReductionRemoveImplied.bs T0031
+
+compile_fail_error ContextReductionRemoveImplied2.bsv T0032
+compare_file ContextReductionRemoveImplied2.bsv.bsc-out
+
+# In this case we need to compare the output because there is only one error
+compile_fail ContextTooWeakRemoveImplied.bs
+compare_file ContextTooWeakRemoveImplied.bs.bsc-out
+
+# --------------------
+# Test that removing of implied preds takes into account dependent variables
+# (Bug 1720)
+
+compile_fail_error ContextReductionRemoveImpliedCloseFD.bsv T0032
+# Test the output just for completeness
+compare_file ContextReductionRemoveImpliedCloseFD.bsv.bsc-out
+
+# --------------------
+# Test that deferred contexts are used when reporting TooWeak errors
+# (bug 1716)
+
+# (There is also a T0020 error, which is due to a missing "pack" that is
+# necessary to trigger the T0030 error.)
+compile_fail_error ContextTooWeakDeferred.bsv T0030
+# XXX The error could report the deferred contexts which mention variables
+# XXX in the message (showing how they are further constrained)
+compare_file ContextTooWeakDeferred.bsv.bsc-out
+
+# --------------------
+# Test that resolved contexts are used when reporting TooWeak errors
+# (bug 1745)
+
+# XXX This example no longer tests the bug fix, because it no longer reports a
+# context error (since Bug 782 was addressed).  However, it's unclear whether
+# the bug here can still occur, when Bug 782 is fixed, so there's no new test
+# in its place.
+compile_pass ContextTooWeakResolved.bsv
+
+# --------------------
+# Tests for catching specific classes
+
+# -----
+# Testing handling of Bits mismatch (bug 353)
+compile_fail_error ECtxRedWrongBitSize.bsv T0060
+# Test that multiple layers of contexts are reduced
+compile_fail_error ECtxRedWrongBitSize2.bsv T0060
+
+# -----
+# Testing handling of Bitwise context errors (bug 390)
+compile_fail_error ECtxRedBitwiseBool.bsv T0061
+compile_fail_error ECtxRedBitwise.bsv T0062
+# This used to be a weak-ctx because it involves a bound variable,
+# but we can fail fast now (since no instance exists for Pair#(t)),
+# but the handle function defaults to EContextReduction because the
+# type has type variables
+# XXX This should be fixed -- we don't need to handle tyvars differently
+compile_fail_error ContextReductionBitwiseWithTVars.bsv T0031
+
+# -----
+# Testing handling of BitExtend context errors (bug 400)
+compile_fail_error EWeakCtxBitExtendNeedsAddCtx.bsv T0065
+compile_fail_error ECtxRedBitExtendBadSizes.bsv T0063
+compile_fail_error ECtxRedBitExtendBadType.bsv T0064
+
+# -----
+# Testing handling of PrimSelectable context errors
+compile_fail_error ECtxRedNotSelectable.bsv T0070
+compile_fail_error ECtxRedWrongSelectionResult.bsv T0020
+compile_fail_error ECtxRedBadSelectionIndex.bsv T0072
+
+# Testing handling of PrimSelectable context errors
+compile_fail_error ECtxRedNotUpdateable.bsv T0095
+# could be T0096, but the fundep and context are reduced away
+compile_fail_error ECtxRedWrongUpdateArg.bsv T0020
+
+# Testing handling of PrimSelectable context errors
+compile_fail_error ECtxRedNotWriteable.bsv T0097
+
+# compile_fail_error ECtxRedWrongWriteArg.bsv T0098
+# T0020 is just as good as the special mismatch error
+# It changed when propagateFunDeps was simplified
+compile_fail_error ECtxRedWrongWriteArg.bsv T0020
+
+# we now do standard context-to-weak because we're just asking
+# for the PrimIndex context
+compile_fail_error EWeakCtxPrimSelectableNeedsPrimIndexCtx.bsv T0030
+
+# Wrong selection can sometimes appear as context-too-weak if
+# there are variables in any of the types.  But even without knowing
+# the values of those variables, there may be enough mismatch to
+# prevent unification, so we check for that and report wrong selection.
+compile_fail_error ECtxRedWrongSelectionResult_ViaWeakCtx.bsv T0020
+# XXX note however that some user-given type variable names are lost
+# XXX (see bug 761)
+
+# Ambiguous indices should just have ambiguous size (and error appropriately)
+compile_fail_error AmbigCtxPrimSelectableIndex.bsv T0035
+
+# Also test for when the ambiguous variable doesn't matter because
+# the selection result didn't match.  (And if it had matched, defaulting
+# would have worked on the index, and it wouldn't be ambiguous.)
+compile_fail_error ECtxRedWrongSelectionResult_ViaAmbigCtx.bsv T0020
+
+# could be T0096, but context and fundep are reduced away
+compile_fail_error ECtxRedWrongUpdateArg_ViaWeakCtx.bsv T0020
+compile_fail_error ECtxRedWrongUpdateArg_ViaAmbigCtx.bsv T0020
+
+# could be T0098, but context and fundep are reduced away
+compile_fail_error ECtxRedWrongWriteArg_ViaWeakCtx.bsv T0080
+compile_fail_error ECtxRedWrongWriteArg_ViaAmbigCtx.bsv T0080
+
+# PrimIndex now works for arbitrary size, so these should compile
+compile_pass ECtxRedSelectionIndexTooLong.bsv 
+compile_pass EWeakCtxPrimIndexNeedsAddCtx.bsv 
+
+# test when PrimIndex size is wrong
+compile_fail ContextReductionPrimIndexWrongSize.bsv
+compare_file ContextReductionPrimIndexWrongSize.bsv.bsc-out
+
+# -----
+# Testing handling of BitReduce context errors
+compile_fail_error ECtxRedBitReduce.bsv T0074
+
+# -----
+# Testing handling of IsModule context errors
+
+# bug 902/1038
+compile_fail_error ECtxRedIsModule.bsv T0107
+
+# bug 194
+compile_fail_error EModInstWrongArgs_TooMany1.bsv T0108
+compile_fail_error EModInstWrongArgs_TooMany2.bsv T0108
+compile_fail_error EModInstWrongArgs_TooManyViaMap.bsv T0108
+
+# bug 872
+compile_fail_error EModInstWrongArgs_TooFew1.bsv T0108
+compile_fail_error EModInstWrongArgs_TooFew2.bsv T0084
+compile_fail_error EModInstWrongArgs_TooFewViaMap.bsv T0107
+
+# -----
+# Test for Bug 1645
+
+compile_fail_error NiceTypesAfterSimplify.bsv T0031
+# Check that the variable names are correct
+compare_file NiceTypesAfterSimplify.bsv.bsc-out
+
+# -----
+# Tests for IsModule context errors resulting from mixing up ActionValue
+# and module contents (bug 1324)
+
+# check for specific positions
+compile_fail_error ECtxRedIsModuleActionValue_AVBindInModBlock.bsv T0113
+find_regexp ECtxRedIsModuleActionValue_AVBindInModBlock.bsv.bsc-out \
+    {AVBindInModBlock\.bsv", line 2, column 8:}
+
+compile_fail_error ECtxRedIsModuleActionValue_AVExprInModBlock.bsv T0113
+find_regexp ECtxRedIsModuleActionValue_AVExprInModBlock.bsv.bsc-out \
+    {AVExprInModBlock\.bsv", line 2, column 4:}
+
+compile_fail_error ECtxRedIsModuleActionValue_ModBindInAVBlock.bsv T0113
+find_regexp ECtxRedIsModuleActionValue_ModBindInAVBlock.bsv.bsc-out \
+    {ModBindInAVBlock\.bsv", line 3, column 17:}
+
+# a module expression in an AV block results in a normal type error
+
+# --------------------
+

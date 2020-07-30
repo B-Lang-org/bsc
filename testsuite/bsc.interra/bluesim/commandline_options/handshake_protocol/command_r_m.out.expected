@@ -1,0 +1,28 @@
+Selected rules:
+top:
+  top:
+    fromAcquisition fired
+Selected rules:
+top:
+  top:
+    fromIdle fired
+
+Starting with New Request
+
+
+Selected rules:
+top:
+  start fired
+  top:
+    fromRequest fired
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+Selected rules:
+top:
+  recdRequest fired
+  top:
+    fromAcquisition fired
+Selected rules:
+top:
+  top:
+    fromAcquisition fired

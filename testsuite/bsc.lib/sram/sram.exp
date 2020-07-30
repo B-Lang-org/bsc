@@ -1,0 +1,8 @@
+# test throughput to memory
+
+if {$ctest == 1} {
+compile_object_pass     Throughput.bs throughput
+link_objects_pass {throughput} throughput
+sim_output       throughput
+compare_file     throughput.out
+}

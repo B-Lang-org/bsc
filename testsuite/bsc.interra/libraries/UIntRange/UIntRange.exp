@@ -1,0 +1,4 @@
+test_c_veri_worker Decr mkTestbench_Decr {} "bsv" 1 1 "mkTestbench_Decr.v.out.expected" "" ""
+
+test_c_veri_worker Incr mkTestbench_Incr {} "bsv" 1 1 "mkTestbench_Incr.v.out.expected" "" ""
+

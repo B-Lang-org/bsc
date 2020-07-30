@@ -1,0 +1,20 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WMissingField1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "missing field" warning (WMissingField)
+
+-- Error Message : bsc WMissingField1.bs 
+-- "WMissingField1.bs", line 18, column 27, Warning, Field not defined: "result"
+-----------------------------------------------------------------------
+package WMissingField1 (WMissingField1(..)) where
+
+interface WMissingField1 =
+            result :: Integer -> Bool
+
+mkWMissingField1 :: Module WMissingField1
+mkWMissingField1 = 
+           module

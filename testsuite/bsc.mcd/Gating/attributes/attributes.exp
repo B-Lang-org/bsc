@@ -1,0 +1,52 @@
+# ----------
+# Helper routines, to make it easy to change how we find a port (if necessary)
+
+# look for the input line, to guarantee that this exact port name exists
+proc find_port { filename port } {
+    find_regexp $filename "input  $port;"
+}
+
+proc dont_find_port { filename port } {
+    find_regexp_fail $filename "input  $port;"
+}
+
+# ----------
+
+if { $vtest == 1 } {
+
+compile_verilog_pass GateAllClocks.bsv sysGateAllClocks
+# All ports should be found
+find_port sysGateAllClocks.v {CLK_GATE}
+find_port sysGateAllClocks.v {CLK_GATE_c1}
+find_port sysGateAllClocks.v {CLK_GATE_c2}
+find_port sysGateAllClocks.v {CLK_GATE_c3}
+
+compile_verilog_pass GateDefaultClock.bsv sysGateDefaultClock
+# Only default clock gate should be found
+find_port      sysGateDefaultClock.v {CLK_GATE}
+dont_find_port sysGateDefaultClock.v {CLK_GATE_c1}
+dont_find_port sysGateDefaultClock.v {CLK_GATE_c2}
+dont_find_port sysGateDefaultClock.v {CLK_GATE_c3}
+
+compile_verilog_pass GateInputClocks1.bsv sysGateInputClocks1
+# Only some input clock gate should be found
+dont_find_port sysGateInputClocks1.v {CLK_GATE}
+find_port      sysGateInputClocks1.v {CLK_GATE_c1}
+dont_find_port sysGateInputClocks1.v {CLK_GATE_c2}
+find_port      sysGateInputClocks1.v {CLK_GATE_c3}
+
+compile_verilog_pass GateInputClocks2.bsv sysGateInputClocks2
+# Only some input clock gate should be found
+dont_find_port sysGateInputClocks2.v {CLK_GATE}
+find_port      sysGateInputClocks2.v {CLK_GATE_c1}
+find_port      sysGateInputClocks2.v {CLK_GATE_c2}
+dont_find_port sysGateInputClocks2.v {CLK_GATE_c3}
+
+# empty list not allowed
+compile_verilog_fail_error GateInputClocks3.bsv P0063 1 sysGateInputClocks3
+
+# non-clock names not allowed
+compile_verilog_fail_error GateInputClocks4.bsv P0182 1 sysGateInputClocks4
+
+}
+

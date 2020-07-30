@@ -1,0 +1,13 @@
+test_veri_only_bsv_multi Testbench_fast_to_slow mkTestbench_fast_to_slow {mkDesign}
+
+test_veri_only_bsv_multi Testbench_slow_to_fast mkTestbench_slow_to_fast {mkDesign}
+
+test_veri_only_bsv_multi Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {mkDesign}
+
+compile_verilog_fail Negative.bsv {mkDesign}
+
+# Bluesim does not support dynamic arguments yet
+compile_object_fail_error Testbench_fast_to_slow.bsv G0058 1 mkTestbench_fast_to_slow
+compile_object_fail_error Testbench_slow_to_fast.bsv G0058 1 mkTestbench_slow_to_fast
+compile_object_fail_error Testbench_same_with_phase_diff.bsv G0058 1  mkTestbench_same_with_phase_diff
+

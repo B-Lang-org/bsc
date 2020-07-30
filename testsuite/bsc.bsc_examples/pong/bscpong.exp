@@ -1,0 +1,2 @@
+compile_pass TbTopLevel.bs
+compile_verilog_pass TbTopLevel.bs mkTbTopLevel

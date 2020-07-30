@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass TestSyn.bs mkStack
+compare_file TestSyn.bs.bsc-vcomp-out
+}

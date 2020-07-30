@@ -1,0 +1,10 @@
+checking package dependencies
+compiling LogBaseOneOne.bsv
+code generation for sysLogBaseOneOne starts
+Error: "LogBaseOneOne.bsv", line 3, column 14: (G0111)
+  A logarithm operator of base 1 was applied to the value 1 during
+  elaboration.
+  During elaboration of the body of rule `r' at "LogBaseOneOne.bsv", line 5,
+  column 10.
+  During elaboration of `sysLogBaseOneOne' at "LogBaseOneOne.bsv", line 2,
+  column 8.

@@ -1,0 +1,2 @@
+COND_RL_r_s_rg_write_1 {positions {MethodConds_TwoLevel.bsv 20 10} {MethodConds_TwoLevel.bsv 10 12}} {rule RL_r} {instance s_rg} {method write}
+COND_RL_r_s_rg_write_2 {positions {MethodConds_TwoLevel.bsv 20 10} {MethodConds_TwoLevel.bsv 12 12}} {rule RL_r} {instance s_rg} {method write}

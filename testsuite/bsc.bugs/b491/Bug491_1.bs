@@ -1,0 +1,12 @@
+package Bug491_1 where
+
+struct NeitherStruct =
+  neither :: Neither
+
+data Neither = Left Bool | Right Bool
+
+unNeitherStruct :: NeitherStruct -> Bool
+unNeitherStruct neitherStruct =
+    case neitherStruct.neither of
+    Left b -> b
+    Right b -> b

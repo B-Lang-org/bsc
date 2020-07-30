@@ -1,0 +1,37 @@
+proc test_plusargs { module plusargs testname { expected "" } } {
+   global ctest
+   global vtest
+   global lasterr
+
+   set fname "$module.$testname"
+
+   if {[string compare $expected ""] == 0} {
+      set expected "$fname.out.expected"
+   }
+
+   if { $ctest == 1 } {
+      sim_output $module $plusargs
+      move $module.out $fname.c.out
+      compare_file $fname.c.out $expected
+   }
+
+   if { $vtest == 1 } {
+      sim_verilog $module $plusargs
+      move $module.out $fname.v.out
+      compare_file $fname.v.out $expected
+   }
+}
+
+
+test_c_veri_bsv TestPlusargsSimple
+test_plusargs sysTestPlusargsSimple {+HI +Hello +Howdy} test1
+test_plusargs sysTestPlusargsSimple {+HI +Howdy +HE}    test2
+
+test_c_veri_bsv TestPlusargsTwoUseSameArg
+test_plusargs sysTestPlusargsTwoUseSameArg {+He} test1
+
+test_c_veri_bsv TestPlusargsTwoUseDiffArg
+test_plusargs sysTestPlusargsTwoUseDiffArg {+He}      test1
+test_plusargs sysTestPlusargsTwoUseDiffArg {+llo}     test2
+test_plusargs sysTestPlusargsTwoUseDiffArg {+He +llo} test3
+

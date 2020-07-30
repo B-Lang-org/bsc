@@ -1,0 +1,3 @@
+noinline_add :: Bit #51 -> Bit #51 -> Bit #51;
+noinline_add =
+    (\ (arg_add_x :: Bit #51) -> (\ (arg_add_y :: Bit #51) -> primAdd arg_add_x arg_add_y));

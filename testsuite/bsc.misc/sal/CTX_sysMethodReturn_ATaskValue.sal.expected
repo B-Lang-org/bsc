@@ -1,0 +1,14 @@
+CTX_sysMethodReturn_ATaskValue : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = Unit!T ;
+  
+  ctor : STATE = Unit!unit ;
+  
+  meth_m (state0 : STATE) : [ STATE, Bit{64}!T ] =
+    LET def_m__avValue1 : Bit{64}!T = Bit{64}!undef
+    IN ( state0, def_m__avValue1 ) ;
+  
+  meth_RDY_m (state0 : STATE) : BOOLEAN = TRUE ;
+  
+END

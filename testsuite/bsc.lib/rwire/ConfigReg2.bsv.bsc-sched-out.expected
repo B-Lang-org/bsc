@@ -1,0 +1,55 @@
+checking package dependencies
+compiling ConfigReg2.bsv
+code generation for sysConfigReg starts
+=== schedule:
+parallel: [esposito: [_write -> [], _read -> [], RL_the_r_propagate -> []]]
+order: [_write, _read, RL_the_r_propagate]
+
+-----
+
+=== resources:
+[(the_r_the_r.read, [(the_r_the_r.read, 1)]),
+ (the_r_the_r.write, [(the_r_the_r.write x__h151, 1)]),
+ (the_r_the_rw.wget, [(the_r_the_rw.wget, 1)]),
+ (the_r_the_rw.whas, [(the_r_the_rw.whas, 1)]),
+ (the_r_the_rw.wset, [(the_r_the_rw.wset _write_1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY__read CF [RDY__read, _read, _write],
+ RDY__write CF [RDY__read, RDY__write, _read, _write],
+ [_read, _write] CF _read,
+ _write C _write]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: sysConfigReg.sched
+=== Generated schedule for sysConfigReg ===
+
+Method schedule
+---------------
+Method: _write
+Ready signal: True
+Conflict-free: _read
+Conflicts: _write
+ 
+Method: _read
+Ready signal: True
+Conflict-free: _write, _read
+ 
+Rule schedule
+-------------
+Rule: the_r_propagate
+Predicate: the_r_the_rw.whas
+Blocking rules: (none)
+ 
+Logical execution order: _write, _read, the_r_propagate
+
+============================================
+Verilog file created: sysConfigReg.v
+All packages are up to date.

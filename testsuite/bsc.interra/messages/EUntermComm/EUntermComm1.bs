@@ -1,0 +1,58 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUntermComm1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an Unterminated comment error (EUntermComm)
+
+-- Error Message : bsc EUntermComm1.bs
+-- bsc: Compilation errors:
+-- "EUntermComm1.bs", line 59, column 0, Unterminated {- comment, started at line 51, column 0
+-----------------------------------------------------------------------
+package GCD (GCD(..), mkGCD) where
+
+import Int
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkGCD :: Module GCD
+mkGCD =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0
+
+
+{-
+
+
+    {-
+   
+
+
+-}

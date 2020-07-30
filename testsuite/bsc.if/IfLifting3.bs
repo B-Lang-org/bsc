@@ -1,0 +1,15 @@
+package IfLifting(sysIfLifting) where
+
+-- Lifting of if-branches: `b.set False' and `b.set True' on two sides
+-- of the `if' should be lifted out to `b.set (nosplitIf a False True)'
+
+sysIfLifting :: Module Empty
+sysIfLifting =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: Reg (Int 3)
+    b <- mkRegU
+    rules
+        when True ==> if a then b := 1 else b := 2
+

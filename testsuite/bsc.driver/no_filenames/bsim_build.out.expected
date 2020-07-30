@@ -1,0 +1,9 @@
+Bluesim object created: sd/mkTop.{h,o}
+Bluesim object created: sd/mkMid1.{h,o}
+Bluesim object created: sd/mkSub1.{h,o}
+Bluesim object created: sd/mkSub2.{h,o}
+Bluesim object created: sd/mkMid2.{h,o}
+Bluesim object created: sd/mkSub3.{h,o}
+Bluesim object created: sd/model_mkTop.{h,o}
+Simulation shared library created: mkTop.cexe.so
+Simulation executable created: mkTop.cexe

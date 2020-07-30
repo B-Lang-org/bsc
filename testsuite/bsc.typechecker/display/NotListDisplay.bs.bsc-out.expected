@@ -1,0 +1,6 @@
+checking package dependencies
+compiling NotListDisplay.bs
+Error: "NotListDisplay.bs", line 6, column 17: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits (Prelude.List a) a__

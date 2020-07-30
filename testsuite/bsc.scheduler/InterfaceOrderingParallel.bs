@@ -1,0 +1,19 @@
+package InterfaceOrderingParallel(sysInterfaceOrderingParallel, Act) where
+
+-- Interface rules are scheduled to fire `before' other rules.
+-- `act' should fire before `write', and the two should be coscheduled.
+
+interface Act =
+    act :: Action
+
+sysInterfaceOrderingParallel :: Module Act
+sysInterfaceOrderingParallel =
+    module
+	r :: Reg Bool
+	r <- mkReg _
+	r' :: Reg Bool
+	r' <- mkReg _
+        interface
+            act = r' := False when r
+        rules
+            "write": when True ==> r := False

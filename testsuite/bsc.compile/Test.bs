@@ -1,0 +1,16 @@
+package Test(sysTest) where
+
+import Six
+
+{-# verilog sysTest #-}
+sysTest :: Module Empty
+sysTest =
+  module
+    rules
+       when True ==> 
+         action
+           if (six == (myFive False) + 1) then
+              $display "Pass"
+            else
+              $display "Fail"
+           ($finish 0)

@@ -1,0 +1,91 @@
+checking package dependencies
+compiling ResourceTwoRules.bs
+code generation for sysResourceTwoRules starts
+Warning: "ResourceTwoRules.bs", line 19, column 0: (G0003)
+  Arbitrating in module `sysResourceTwoRules' between rules `RL_Contender' and
+  `RL_Contender_1'.
+Warning: "ResourceTwoRules.bs", line 25, column 8: (G0002)
+  `a.sub' needs more than 5 ports for the following uses:
+      `a.sub 8'd0' at "ResourceTwoRules.bs", line 25, column 8
+      `a.sub 8'd1' at "ResourceTwoRules.bs", line 25, column 8
+      `a.sub 8'd2' at "ResourceTwoRules.bs", line 25, column 8
+      `a.sub 8'd3' at "ResourceTwoRules.bs", line 25, column 8
+      `a.sub 8'd4' at "ResourceTwoRules.bs", line 25, column 8
+      `a.sub 8'd5' at "ResourceTwoRules.bs", line 25, column 8
+Warning: "ResourceTwoRules.bs", line 19, column 0: (G0010)
+  Rule "Contender" was treated as more urgent than "Contender_1". Conflicts:
+    "Contender" cannot fire before "Contender_1": resource limit on a.sub
+    "Contender_1" cannot fire before "Contender": resource limit on a.sub
+=== schedule:
+parallel: [esposito: [RL_Contender -> [],
+		      RL_Contender_1 -> [RL_Contender],
+		      RL_Contender_2 -> [],
+		      RL_Contender_3 -> [],
+		      RL_Contender_4 -> [],
+		      RL_Contender_5 -> []]]
+order: [RL_Contender,
+	RL_Contender_1,
+	RL_Contender_2,
+	RL_Contender_3,
+	RL_Contender_4,
+	RL_Contender_5]
+
+-----
+
+=== resources:
+[(a.sub,
+  [(a.sub 8'd0, 5),
+   (a.sub 8'd1, 5),
+   (a.sub 8'd2, 4),
+   (a.sub 8'd3, 3),
+   (a.sub 8'd4, 2),
+   (a.sub 8'd5, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysResourceTwoRules.sched
+=== Generated schedule for sysResourceTwoRules ===
+
+Rule schedule
+-------------
+Rule: Contender
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: Contender_1
+Predicate: True
+Blocking rules: Contender
+ 
+Rule: Contender_2
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: Contender_3
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: Contender_4
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: Contender_5
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: Contender,
+			 Contender_1,
+			 Contender_2,
+			 Contender_3,
+			 Contender_4,
+			 Contender_5
+
+===================================================
+Warning: "ResourceTwoRules.bs", line 23, column 26: (G0021)
+  According to the generated schedule, rule `Contender_1' can never fire.
+Verilog file created: sysResourceTwoRules.v
+All packages are up to date.

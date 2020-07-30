@@ -1,0 +1,8 @@
+compile_fail EContextReductionVar.bs
+compare_file EContextReductionVar.bs.bsc-out
+
+compile_fail EContextReductionVar1.bs
+compare_file EContextReductionVar1.bs.bsc-out
+
+compile_fail EContextReductionVar2.bs
+compare_file EContextReductionVar2.bs.bsc-out

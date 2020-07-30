@@ -1,0 +1,24 @@
+checking package dependencies
+compiling ResourceOneRuleFailIII.bs
+code generation for sysResourceOneRuleFailIII starts
+Error: "ResourceOneRuleFailIII.bs", line 27, column 12: (G0004)
+  Rule `RL_Bogus' uses methods that conflict in parallel:
+    a.upd(...)
+  and
+    a.upd(...)
+  For the complete expressions use the flag `-show-range-conflict'.
+=== schedule:
+Nothing
+
+-----
+
+Schedule dump file created: sysResourceOneRuleFailIII.sched
+=== Generated schedule for sysResourceOneRuleFailIII ===
+
+Rule schedule
+-------------
+Rule: Bogus
+Predicate: True
+ 
+
+=========================================================

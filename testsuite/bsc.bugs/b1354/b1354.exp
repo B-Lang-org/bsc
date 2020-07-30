@@ -1,0 +1,2 @@
+compile_verilog_pass Test.bsv
+compare_verilog mkMulti.v

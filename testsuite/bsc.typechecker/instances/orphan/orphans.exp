@@ -1,0 +1,5 @@
+compile_pass_warning EitherOrphan.bsv T0127
+compile_pass_no_warning ExceptionNotOrphan.bsv
+compile_pass_warning BoundedOrphan.bsv T0127
+compile_pass_no_warning MyBoundedNotOrphan.bsv
+

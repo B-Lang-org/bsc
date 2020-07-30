@@ -1,0 +1,109 @@
+Current count: 0
+Less    than: 11111110
+Greater than: 0
+Enq 0
+Incrementing counter
+Current count: 1
+Less    than: 11111100
+Greater than: 1
+Enq 1
+Incrementing counter
+Current count: 2
+Less    than: 11111000
+Greater than: 11
+Enq 2
+Incrementing counter
+Current count: 3
+Less    than: 11110000
+Greater than: 111
+Enq 3
+Incrementing counter
+Current count: 4
+Less    than: 11100000
+Greater than: 1111
+Enq 4
+Incrementing counter
+Current count: 5
+Less    than: 11000000
+Greater than: 11111
+Clear
+Incrementing counter
+Current count: 6
+Less    than: 11111110
+Greater than: 0
+Enq 6
+Incrementing counter
+Current count: 7
+Less    than: 11111100
+Greater than: 1
+Enq 7
+Incrementing counter
+Current count: 8
+Less    than: 11111000
+Greater than: 11
+Enq 8
+Incrementing counter
+Current count: 9
+Less    than: 11110000
+Greater than: 111
+Enq 9
+Incrementing counter
+Current count: 10
+Less    than: 11100000
+Greater than: 1111
+Enq 10
+Incrementing counter
+Current count: 11
+Less    than: 11000000
+Greater than: 11111
+Enq 11
+Incrementing counter
+Current count: 12
+Less    than: 10000000
+Greater than: 111111
+Enq 12
+Incrementing counter
+Current count: 13
+Less    than: 0
+Greater than: 1111111
+FIFO full. Start deq...
+Incrementing counter
+Current count: 14
+Less    than: 0
+Greater than: 1111111
+Deq 6
+Incrementing counter
+Current count: 15
+Less    than: 10000000
+Greater than: 111111
+Deq 7
+Incrementing counter
+Current count: 16
+Less    than: 11000000
+Greater than: 11111
+Deq 8
+Incrementing counter
+Current count: 17
+Less    than: 11100000
+Greater than: 1111
+Deq 9
+Incrementing counter
+Current count: 18
+Less    than: 11110000
+Greater than: 111
+Deq 10
+Incrementing counter
+Current count: 19
+Less    than: 11111000
+Greater than: 11
+Deq 11
+Incrementing counter
+Current count: 20
+Less    than: 11111100
+Greater than: 1
+Deq 12
+Incrementing counter
+Current count: 21
+Less    than: 11111110
+Greater than: 0
+FIFO empty. Exiting...

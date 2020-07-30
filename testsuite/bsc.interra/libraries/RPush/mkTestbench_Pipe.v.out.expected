@@ -1,0 +1,16 @@
+Clock Cycle Number =   0, Pushing Value =   5
+Clock Cycle Number =   1, Pushing Value =  20
+Clock Cycle Number =   2, Pushing Value =  50
+Clock Cycle Number =   3, Value Got =  40, Expected Value =  40
+Clock Cycle Number =   3, Pushing Value =  82
+Clock Cycle Number =   4, Value Got = 160, Expected Value = 160
+Clock Cycle Number =   4, Clearing Pipeline.
+Clock Cycle Number =   5, Pushing Value =  48
+Clock Cycle Number =   6, Pushing Value =  79
+Clock Cycle Number =   7, Pushing Value =  38
+Clock Cycle Number =   8, Value Got = 128, Expected Value = 128
+Clock Cycle Number =   8, Pushing Value =  42
+Clock Cycle Number =   9, Value Got = 120, Expected Value = 120
+Clock Cycle Number =  10, Value Got =  48, Expected Value =  48
+Clock Cycle Number =  11, Value Got =  80, Expected Value =  80
+Simulation Passes

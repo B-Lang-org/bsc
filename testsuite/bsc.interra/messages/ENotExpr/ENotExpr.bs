@@ -1,0 +1,27 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotExpr.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ENotExpr error of the bluespec
+-- compiler (Last statement in a 'do' must be an expression)
+--
+-----------------------------------------------------------------------
+
+
+
+package ENotExpr () where
+
+-- import Int
+
+struct Null = {}
+
+mkTwo :: Module Null
+mkTwo =
+    do
+        a <- mkReg 0
+        b <- mkReg 0
+
+

@@ -1,0 +1,33 @@
+
+# Test that it works
+compile_verilog_pass MakeName.bsv
+if { $vtest == 1 } {
+find_n_strings sysMakeName.v {assign bp$PROBE = !rg ;} 1
+}
+
+# Test that bad names just get massaged into acceptable names
+compile_verilog_pass MakeNameBadName.bsv
+if { $vtest == 1 } {
+find_n_strings sysMakeNameBadName.v {assign thisisabadname$PROBE = !rg ;} 1
+}
+
+# Test that dynamic strings trigger an error
+compile_verilog_fail_error MakeNameDynamicString.bsv G0012
+
+# -----
+
+# Test primGetParamName (and primSetStateName) used in a Monad instance
+# to propagate names in left-arrow assignments to the state elements
+# that are ultimately generated
+
+compile_verilog_pass ReaderModuleTest.bs {} {-dATS}
+
+# Check that mkReaderModuleTestInner has a submodule called "count"
+find_n_strings mkReaderModuleTestInner.v {reg [15 : 0] count;} 1
+
+# Check that mkReaderModuleTestOuter has submodules "count" and "inner"
+find_n_strings mkReaderModuleTestOuter.v {reg [15 : 0] count;} 1
+find_n_strings mkReaderModuleTestOuter.v {mkReaderModuleTestInner inner(} 1
+
+# -----
+

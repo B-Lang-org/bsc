@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Add_Elimination3.bsv
+Error: "Add_Elimination3.bsv", line 2, column 15: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Bool f(Bit#(x) x1, Bit#(y) x2, Bit#(z) x3)
+  The following provisos are needed:
+    Add#(x, y, z)
+    Introduced at the following locations:
+      "Add_Elimination3.bsv", line 4, column 15

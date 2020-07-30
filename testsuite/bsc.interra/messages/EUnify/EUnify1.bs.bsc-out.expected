@@ -1,0 +1,12 @@
+checking package dependencies
+compiling EUnify1.bs
+Error: "EUnify1.bs", line 54, column 12: (T0020)
+  Type error at:
+  start
+
+  Expected type:
+  Prelude.Action
+
+  Inferred type:
+  Prelude.Int 32 -> Prelude.Int 32 -> Prelude.Action
+

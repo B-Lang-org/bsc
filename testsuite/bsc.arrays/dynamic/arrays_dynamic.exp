@@ -1,0 +1,242 @@
+test_c_veri_bsv SimpleDynamicTest
+test_c_veri_bsv SimpleDynamicList
+test_c_veri_bsv SimpleDynamicAction
+test_c_veri_bsv SimpleDynamicListAction
+test_c_veri_bsv DynamicArrayDynamicUpdate
+test_c_veri_bsv DynamicListDynamicUpdate
+test_c_veri_bsv DynamicActionDynamicIndex
+test_c_veri_bsv DynamicListDynamicActionDynamicIndex
+test_c_veri_bsv TwoLevelUpdate
+test_c_veri_bsv TwoLevelUpdateList
+test_c_veri_bsv DynamicSelectUpdateArray
+test_c_veri_bsv DynamicSelectUpdateList
+
+compile_verilog_pass PermuteVector.bsv
+compile_verilog_pass PermuteListN.bsv
+
+# make sure we report out-of-bounds when it can be deduced at compile-time
+compile_object_fail_error SimpleDynamicBounds.bsv S0015
+compile_object_fail_error SimpleDynamicListBounds.bsv S0015
+
+# ---------------
+
+if { $vtest == 1 } {
+
+# Test elaboration when the index is Bit#(0)
+# (should select the first element)
+#
+compile_verilog_pass SizeZeroIndex.bsv {} {-dexpanded}
+find_regexp SizeZeroIndex.bsv.bsc-vcomp-out {\.Prelude\.write .8 rg2 17}
+
+# Test elaboration when the elements of the array are Bit#(0)
+# (all values should be 0, so the selection reduces away to constant 0)
+#
+compile_verilog_pass SizeZeroElems.bsv {} {-dexpanded}
+find_regexp SizeZeroElems.bsv.bsc-vcomp-out {Prelude\.\$display\#0 0}
+
+}
+
+# ---------------
+
+# Test optimization of selection into an array
+# (in "handleDynSel" and in "improveDynSel")
+
+if { $vtest == 1 } {
+
+# Selection into an array of one element is an if-else expr
+compile_verilog_pass OneElemLargeIndex.bsv
+find_regexp sysOneElemLargeIndex.v \
+    {assign arr_0\$EN \= idx \=\= 4\'d0 \;}
+
+# Selection into an array of all the same element is an if-else expr
+# (that checks the bounds)
+compile_verilog_pass SameElems1.bsv
+find_regexp sysSameElems1.v \
+    {assign rg\$EN \= idx \<\= 4\'d2 \;}
+
+# We do not unheap expressions, so it's possible for the evaluator not
+# to uncover that they are the same; and no later pass (on ISyntax or
+# ASyntax) re-tries this optimization.
+compile_verilog_pass SameElems2.bsv
+find_regexp sysSameElems2.v \
+    {
+    if \(RST_N \!\= \`BSV_RESET_VALUE\) if \(idx \=\= 4\'d0\) \$display\(\"Hi\.\"\)\;
+    if \(RST_N \!\= \`BSV_RESET_VALUE\) if \(idx \=\= 4\'d1\) \$display\(\"Hi\.\"\)\;
+    if \(RST_N \!\= \`BSV_RESET_VALUE\) if \(idx \=\= 4\'d2\) \$display\(\"Hi\.\"\)\;}
+
+}
+
+# ---------------
+
+# Basic tests for static operations on dynamic arrays
+
+if { $vtest == 1 } {
+
+compile_verilog_pass ArrayLength_If.bsv
+# In this case, the result is dynamic!
+find_regexp sysArrayLength_If.v {\$display\(\$signed\(c \? 32\'d3 \: 32\'d4\)\)}
+
+compile_verilog_pass ArrayLength_ArrSel.bsv
+find_regexp sysArrayLength_ArrSel.v {\$display\(\$signed\(32\'d3\)\)}
+
+compile_verilog_pass ArrayLength_ArrSel_2D.bsv
+find_regexp sysArrayLength_ArrSel_2D.v {\$display\(\"3\"\)}
+
+}
+
+if { $vtest == 1 } {
+
+compile_verilog_pass ArrayToVector_If.bsv
+find_regexp sysArrayToVector_If.v \
+    {assign rg\$D\_IN \= c \? 15\'d0 \: 15\'d1057 \;}
+
+compile_verilog_pass ArrayToVector_ArrSel.bsv
+# XXX Test for specific output?
+
+}
+
+# ---------------
+
+# Tests for selecting out of bounds in static expression
+
+# It looks like rely on "improveIf" to merge the don't-care default
+# with the last element of the array in some cases.
+#
+compile_verilog_pass SelDefault.bsv
+compile_verilog_pass SelDefaultElse.bsv
+
+# When one of the elements triggers the static check, we expect the error.
+compile_verilog_fail_error SelDefaultFail.bsv S0015
+
+# XXX This version triggers an nfError!
+# XXX For now, expect that error, but it should be S0015
+compile_verilog_fail_error SelDefaultFail2.bsv G0013
+
+# ---------------
+
+# Test that dynamic selection of expressions with conditions will
+# generate a dynamic selection of the conditions (when aggr-conds is on)
+#
+compile_verilog_schedule_pass ImpCond.bsv {} {-aggressive-conditions}
+# For now, just expect PrimIf in the condition
+if { $vtest == 1 } {
+    compare_file_filter_ids ImpCond.bsv.bsc-sched-out
+}
+
+# ---------------
+
+# Tests for selecting Actions and conditions on selecting Actions
+
+if { $vtest == 1 } {
+
+# Check the implicit condition of an Action vector:
+# How is the out-of-bounds case handled?  Is it noAction or merged with
+# the last element?  And the implicit condition?
+#
+compile_verilog_pass ActionVec.bsv {} {-aggressive-conditions}
+#
+# Test that the CAN_FIRE is True when out-of-bounds (not the impcond of fs_2)
+# And test that fs_2$ENQ is only when idx==2, not when idx==3.
+#
+compare_verilog sysActionVec.v
+
+# The test, but check that we properly handle when the index is too short
+# to reach all of the elements
+#
+compile_verilog_pass ActionVecShortIndex.bsv {} {-aggressive-conditions}
+#
+# Test that fs[4] and fs[5] are unused and that the conditions on fs[0] to
+# fs[3] are correct.
+#
+compare_verilog sysActionVecShortIndex.v
+
+# When an array selection is used as the condition for an Action,
+# the merging of the out-of-bounds with the last element *does* happen.
+#
+compile_verilog_pass VecCondAction.bsv
+#
+# The f$ENQ signal is True when idx==3
+# XXX Fix this bug?
+#
+compare_verilog sysVecCondAction.v
+
+}
+
+# ---------------
+
+# Some of these might duplicate tests from above,
+# but they were useful testcases in implementing PrimArrayDynSelect
+
+if { $vtest == 1 } {
+
+compile_verilog_pass RegOfVec.bsv
+compare_verilog sysRegOfVec.v
+
+compile_verilog_pass RegToReg.bsv
+compare_verilog sysRegToReg.v
+
+compile_verilog_pass VecOfReg.bsv
+compare_verilog sysVecOfReg.v
+
+compile_verilog_pass DisplayConstArray.bsv
+compare_verilog sysDisplayConstArray.v
+
+compile_verilog_pass DisplayDynConstArray.bsv
+compare_verilog sysDisplayDynConstArray.v
+
+}
+
+# ---------------
+
+# Tests for Vector of type String
+
+if { $vtest == 1 } {
+
+# Test the interaction between array selection and the expansion of
+# conditional arguments to $display etc
+compile_verilog_pass StringVecDisplay.bsv
+find_regexp sysStringVecDisplay.v \
+    {if \(idx \=\= 2\'d0\)
+	\$display\(\"str \= \%s\"\, \"Hello\"\)\;
+      else
+	if \(idx \=\= 2\'d1\)
+	  \$display\(\"str \= \%s\"\, \"World\!\"\)\;
+	else
+	  if \(idx \=\= 2\'d2\)
+	    \$display\(\"str \= \%s\"\, \"Hi\"\)\;
+	  else
+	    \$display\(\"str \= \%s\"\, \"Bye\"\)\;}
+
+# This also tests that the "case" is expanded into "if-else" for parameters,
+# where always blocks are not allowed (but are required to implement "case")
+compile_verilog_pass StringVecParam.bsv
+find_regexp sysStringVecParam.v \
+    {mkStringVecParam_Sub \#\(\.str\(\(idx \=\= 2\'d0\) \?
+				\"Hello\" \:
+				\(\(idx \=\= 2\'d1\) \?
+				   \"World\!\" \:
+				   \(\(idx \=\= 2\'d2\) \?
+				      \"Hi\" \:
+				      \"Bye\"\)\)\)\) s\(\.CLK\(CLK\)\, \.RST_N\(RST_N\)\)\;}
+
+}
+
+# ---------------
+
+# Test application of a method of arguments to a selected module
+# (there was a bug in calls to "evalStaticOp", where the result type was
+# miscomputed because the additional arguments were not considered)
+
+compile_verilog_pass VecOfRegFile_Sub.bsv
+
+# ---------------
+
+# Test that optimizations for PrimIf are now also implemented for
+# dynamic array select
+
+# In this example, a loop over the elements of an array will not terminate
+# unless there is an optimization for pushing PrimBNot into the arms of
+# the array.
+compile_verilog_pass PrimBNot_DynArrSelect.bsv
+
+# ---------------

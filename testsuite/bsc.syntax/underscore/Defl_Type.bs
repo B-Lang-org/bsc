@@ -1,0 +1,7 @@
+package Defl_Type () where
+
+x :: Bool
+x = let _ :: Bool
+        _ = True
+    in  True
+

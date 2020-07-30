@@ -1,0 +1,18 @@
+Cycle 1: Test start: mkForLoop
+Cycle 19: Out [0], expected_y = 8, actual_y = 8
+Cycle 20: Out [1], expected_y = 108, actual_y = 108
+Cycle 37: Out [2], expected_y = 208, actual_y = 208
+Cycle 38: Out [3], expected_y = 308, actual_y = 308
+Cycle 55: Out [4], expected_y = 408, actual_y = 408
+Cycle 56: Out [5], expected_y = 508, actual_y = 508
+Cycle 73: Out [6], expected_y = 608, actual_y = 608
+Cycle 74: Out [7], expected_y = 708, actual_y = 708
+Cycle 91: Out [8], expected_y = 808, actual_y = 808
+Cycle 92: Out [9], expected_y = 908, actual_y = 908
+Cycle 109: Out [10], expected_y = 1008, actual_y = 1008
+Cycle 110: Out [11], expected_y = 1108, actual_y = 1108
+Cycle 127: Out [12], expected_y = 1208, actual_y = 1208
+Cycle 128: Out [13], expected_y = 1308, actual_y = 1308
+Cycle 145: Out [14], expected_y = 1408, actual_y = 1408
+Cycle 146: Out [15], expected_y = 1508, actual_y = 1508
+Cycle 146: Test ok: mkForLoop: All 16 outputs ok

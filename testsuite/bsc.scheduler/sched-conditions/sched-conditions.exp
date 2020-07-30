@@ -1,0 +1,67 @@
+#
+# Tests for Bug 1233: When computing conflict relationships between rules,
+# take into acccount the conditions on method calls and ignore pairs of
+# methods that won't be called at the same time (conditions are exclusive).
+#
+
+# ---------------
+
+# Simple example, where the conditions are exclusive
+
+# Test without sched-conditions
+copy SchedCondsSimple.bsv SchedCondsSimple-FlagOff.bsv
+compile_verilog_pass_warning SchedCondsSimple-FlagOff.bsv G0010 1 {} \
+    {-no-sched-conditions}
+erase SchedCondsSimple-FlagOff.bsv
+
+# Test with sched-conditions
+compile_verilog_pass_no_warning SchedCondsSimple.bsv {} \
+    {-sched-conditions}
+
+# ---------------
+
+# Example that requires including the rule predicate
+
+# This is a submodule with an init rule, which several people have run
+# across.  It requires -aggressive-conditions (with conservative conditions,
+# the rule predicates are exclusive).
+
+# Test without sched-conditions
+copy SchedCondsInit.bsv SchedCondsInit-FlagOff.bsv
+compile_verilog_pass_warning SchedCondsInit-FlagOff.bsv G0010 1 {} \
+    {-aggressive-conditions -no-sched-conditions}
+erase SchedCondsInit-FlagOff.bsv
+
+# Test with sched-conditions
+compile_verilog_pass_no_warning SchedCondsInit.bsv {} \
+    {-aggressive-conditions -sched-conditions}
+
+# ---------------
+
+# Test that ignored method pairs are still tested for dynamic scheduling
+# (warn/error if a rule between methods conflicts with other orders)
+
+if { $vtest == 1} {
+
+# Test without sched-conditions
+copy SchedCondsDynamicSchedule.bsv SchedCondsDynamicSchedule-FlagOff.bsv
+compile_verilog_pass_warning SchedCondsDynamicSchedule-FlagOff.bsv G0010 1 {} \
+    {-no-sched-conditions}
+erase SchedCondsDynamicSchedule-FlagOff.bsv
+# Confirm that there was no G0100 warning
+find_n_warning \
+    [make_bsc_vcomp_output_name SchedCondsDynamicSchedule-FlagOff.bsv] \
+    G0100 0
+
+# Test with sched-conditions
+compile_verilog_pass_warning SchedCondsDynamicSchedule.bsv G0100 1 {} \
+    {-sched-conditions}
+# Confirm that there was no G0010 warning
+find_n_warning \
+    [make_bsc_vcomp_output_name SchedCondsDynamicSchedule.bsv] \
+    G0010 0
+
+}
+
+# ---------------
+

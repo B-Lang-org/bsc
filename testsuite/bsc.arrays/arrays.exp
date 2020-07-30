@@ -1,0 +1,84 @@
+
+compile_pass ArrayBenchmark.bsv  
+compile_pass ArrayFunc.bsv
+compile_pass SelectUpdate.bsv
+compile_pass MultiSelectUpdate.bsv
+
+test_c_veri_bsv LoopUpdate
+test_c_veri_bsv LoopUpdate2
+
+# -----
+
+if { $vtest == 1 } {
+
+# Test that sized declaration with {}-syntax works
+compile_verilog_pass ArrayDecl.bsv
+
+# Test the same for multi-dimension arrays
+# (including using an expr to return a sub-array)
+compile_verilog_pass MultiArrayDecl.bsv 
+
+# Test that sized declaration with value is allowed at the top-level
+compile_verilog_pass ArrayDecl_TopLevel.bsv
+
+# Test that incorrect size is detected
+compile_verilog_fail ArrayDecl_WrongSize.bsv
+compare_file ArrayDecl_WrongSize.bsv.bsc-vcomp-out
+
+# Test that incorrect size is detected in subarrays
+compile_verilog_fail MultiArrayDecl_WrongSize.bsv
+compare_file MultiArrayDecl_WrongSize.bsv.bsc-vcomp-out
+
+# Test that expressions are checked for size
+compile_verilog_fail ArrayDecl_Expr_WrongSize.bsv
+compare_file ArrayDecl_Expr_WrongSize.bsv.bsc-vcomp-out
+
+# Same for multi-dimension arrays
+compile_verilog_fail MultiArrayDecl_Expr_WrongSize.bsv
+compare_file MultiArrayDecl_Expr_WrongSize.bsv.bsc-vcomp-out
+
+# Test that sub-array expressions are checked for size
+compile_verilog_fail MultiArrayDecl_SubExpr_WrongSize.bsv
+compare_file MultiArrayDecl_SubExpr_WrongSize.bsv.bsc-vcomp-out
+
+# But sub-arrays of an expression are not yet checked
+compile_verilog_fail_bug MultiArrayDecl_Expr_WrongSubSize.bsv
+
+}
+
+# -----
+
+# Test that declaration and bind are allowed in the same statement
+compile_verilog_pass ArrayDecl_Bind.bsv
+
+# Test that the size of the returned array is checked against the
+# declared dimension
+compile_verilog_fail ArrayDecl_Bind_WrongSize.bsv
+compare_file ArrayDecl_Bind_WrongSize.bsv.bsc-vcomp-out
+
+# Test that declaration of multiple variables is allowed to bind
+# to all of the variables
+compile_verilog_pass ArrayDecl_Bind_ExtraVar.bsv
+
+# XXX Test that attributes on the bind apply to all the instances?
+
+# Test that using an explicit Array#() type instead of the bracket syntax
+# is properly handled by the parser (the Array is part of the base type)
+compile_verilog_pass ArrayDecl_Bind_ExtraVar_ArrayType.bsv
+
+# Test that wrong sizes in later variables are detected
+compile_verilog_fail ArrayDecl_Bind_ExtraVar_WrongSize.bsv
+compare_file ArrayDecl_Bind_ExtraVar_WrongSize.bsv.bsc-vcomp-out
+
+# -----
+
+# Test that declaration of multiple variables is allowed to assign
+# array expressions to all of the variables
+compile_verilog_pass ArrayDecl_ExtraVar.bsv
+
+# Test that wrong sizes in later variables are detected
+compile_verilog_fail ArrayDecl_ExtraVar_WrongSize.bsv
+compare_file ArrayDecl_ExtraVar_WrongSize.bsv.bsc-vcomp-out
+
+# -----
+

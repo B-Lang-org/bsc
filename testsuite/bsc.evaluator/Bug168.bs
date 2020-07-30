@@ -1,0 +1,13 @@
+package Bug168() where
+
+mkBug168 :: Module Empty
+mkBug168 =
+    module
+        tick :: Reg Bool <- mkReg False
+        tock :: Reg Bool <- mkReg False
+        rules "tick_tock":
+                when True ==>
+                     action let x = tick
+                                y = x
+                                f x = not x
+                            tock := f tock

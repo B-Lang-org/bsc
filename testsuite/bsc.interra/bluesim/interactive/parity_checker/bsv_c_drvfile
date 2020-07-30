@@ -1,0 +1,43 @@
+-- This is a comment and must be ignored
+cont
+#@20
+cont
+dut.parity 0b0000 
+#2
+dut.parity 0b1000
+#2 
+dump
+dut.parity 0b0100
+#2
+#@20
+dut.parity 0b1100
+-- This is a comment and must be ignored
+#2 
+list
+dut.parity 0b0010 
+#2
+cont
+dut.parity 0b1010
+#2 
+dut.parity 0b0110
+#2 
+cont
+dut.parity 0b1110
+#2 
+cont
+dut.parity 0b0001
+#2 
+dut.parity 0b1001
+#2 
+dut.parity 0b0101
+#2 
+dut.parity 0b1101
+#2 
+dut.parity 0b0011 
+#2
+dut.parity 0b1011
+#2 
+dut.parity 0b0111
+#2
+exit
+dut.parity 0b1111 

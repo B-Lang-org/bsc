@@ -1,0 +1,18 @@
+checking package dependencies
+compiling MultipleResetsForRule.bsv
+code generation for sysMultipleResetsForRule starts
+Warning: "MultipleResetsForRule.bsv", line 27, column 9: (G0043)
+  Multiple reset signals influence rule `r1'.
+  This can lead to inconsistent, non-atomic results when not all of these
+  signals are asserted.
+  Method calls by reset:
+    Reset 1 (default_reset):
+      x0.read x0.write
+    Reset 2 (rst1.gen_rst):
+      x1.read x1.write
+  During elaboration of rule `r1' at "MultipleResetsForRule.bsv", line 27,
+  column 9.
+  During elaboration of `sysMultipleResetsForRule' at
+  "MultipleResetsForRule.bsv", line 19, column 8.
+Verilog file created: sysMultipleResetsForRule.v
+All packages are up to date.

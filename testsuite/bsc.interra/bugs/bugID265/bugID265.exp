@@ -1,0 +1,7 @@
+if {$vtest == 1} {
+compile_verilog_pass Design_0.bsv mkDesign_in
+compare_file Design_0.bsv.bsc-vcomp-out
+
+compile_verilog_pass Design_1.bsv mkDesign
+compare_file Design_1.bsv.bsc-vcomp-out
+}

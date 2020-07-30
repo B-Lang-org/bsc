@@ -1,0 +1,11 @@
+checking package dependencies
+compiling Parameter2ReturnValue.bsv
+code generation for mkParameter2ReturnValue starts
+=== pathsPostSched:
+Combinational paths from inputs to outputs:
+  param -> result
+
+-----
+
+Verilog file created: mkParameter2ReturnValue.v
+All packages are up to date.

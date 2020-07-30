@@ -1,0 +1,13 @@
+package InterfaceIncognito(incognito) where
+
+-- The `interface' keyword can make anonymous interfaces.
+-- Expect this to compile and typecheck.
+
+interface Incognito =
+    read :: Bool
+    write :: Bool -> Action
+
+incognito :: Reg Bool -> Incognito
+incognito r = interface
+                read = r
+		write v = r := v

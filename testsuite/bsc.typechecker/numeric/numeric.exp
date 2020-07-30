@@ -1,0 +1,422 @@
+# Tests for numeric type handling,
+# including operators (TAdd etc) and typeclassses (NumEq, Add, etc)
+
+# ---------------
+# Test for numeric unification bug
+
+compile_pass TAddNoUnify.bsv
+
+# ---------------
+
+# Don't introduce numeric equalities before expanding synonmys and
+# normalizing types (fixed in rev 18330)
+
+compile_pass NumEq_TypeSyn.bsv
+
+# ---------------
+
+# Test for bug 1445
+compile_verilog_pass PolyMax.bsv
+
+# ---------------
+# Basic tests that the typeclass exists
+
+compile_pass Min.bsv
+
+# ---------------
+# Tests for Bug 1435
+
+# BSC should require a proviso (TSub should become an Add proviso)
+compile_fail_bug Provisos_TSub1.bsv 1435
+compile_fail_bug Provisos_TSub2.bsv 1435
+
+# TLog and TDiv should become Log and Div provisos (or at least that n /= 0)
+compile_fail_bug Provisos_TLog.bsv 1435
+compile_fail_bug Provisos_TDiv.bsv 1435
+
+# Uses inside a function should also propagate up
+compile_fail_bug Provisos_TSub3.bsv 1435
+compile_fail_bug Provisos_TSub5.bsv 1435
+
+# The error on this has improved, but could be better?
+compile_fail Provisos_TSub4.bsv
+compare_file Provisos_TSub4.bsv.bsc-out
+
+# ----
+
+# These are not necessarily Bug 1435, but similar;
+# provisos that are not resolvable should be detected --
+# BSC should error if the user provides a set of conflicting provisos,
+# and BSC should not give a message suggesting that conflicting provisos
+# need to be added.
+
+compile_fail_bug Unsatisfiable_TDiv.bsv
+compile_fail_bug Unsatisfiable_Given.bsv
+
+compile_fail Unsatisfiable_GivenAndInferred.bsv
+# This should not ask for a proviso (T0030)
+compare_file Unsatisfiable_GivenAndInferred.bsv.bsc-out
+
+compile_fail Unsatisfiable_Inferred.bsv
+# This should not ask for a proviso (T0030)
+compare_file Unsatisfiable_Inferred.bsv.bsc-out
+
+compile_fail Unsatisfiable_TSub.bsv
+# This should not ask for a proviso (T0030)
+compare_file Unsatisfiable_TSub.bsv.bsc-out
+
+# ---------------
+# Tests for arithematic rules for numeric typeclass instances
+
+compile_pass_no_warning Div.bsv
+
+# XXX do the same for more Add, Mul, Log, Div, Max, Sub equalities
+
+# Add#(x,y,TAdd#(x,y))
+compile_pass AddTAdd_Taut.bsv
+
+# Add#(x,TSub#(x,y),y)
+compile_pass AddTSub_Taut.bsv
+
+# Mul#(x,y,TMul#(x,y))
+compile_pass MulTMul_Taut.bsv
+compile_pass MulTMul_Taut2.bsv
+
+# Bug 1624: Add#(x,y,TAdd#(x,z)) => NumEq(y,z)
+compile_pass AddTAdd_Eq.bsv
+
+# Bug 1624: Mul#(x,y,TMul#(x,z)) => NumEq(y,z) as a last resort
+compile_pass MulTMul_Eq.bsv
+
+# XXX Still need a rule for when not a last resort?
+# Bug 1624: Mul#(x,y,TMul#(x,z)) => NumEq(y,z), NotZero(x)
+
+# ---------------
+# More complicated rules that are handled by the SAT solver
+
+# Add#(_, n, TExp#(n))
+compile_pass_bug TExp_Add.bsv
+
+# Add#(_, n, TMul#(TExp#(n), 8))
+compile_pass_bug TMulTExp_Add.bsv
+
+# Add#(_, TLog#(TDiv#(n,32)), TLog#(n))
+# [Could this be fixed with a rule Add#(_,TLog#(x),TLog#(y)) => Add#(_,x,y) ?]
+compile_pass_bug TLogTDiv_Add.bsv
+
+# ---------------
+# Test for part of Bug 1624:
+# Early context reduction properly handles Prelude classes
+# (for now, they are exempted)
+
+compile_pass EarlyCtxRed.bsv
+
+# ---------------
+# Test that common TAdd terms are eliminated (Bug 1497)
+
+# simple example
+compile_pass Add_Elimination1.bsv
+
+# slightly more complicated example
+compile_pass Add_Elimination2.bsv
+
+# test that even if the proviso is not reducible,
+# BSC still reduces it part way and only request the simplified proviso
+compile_fail_error Add_Elimination3.bsv T0030
+# Confirm that the error asks for "Add#(x, y, z)"
+compare_file Add_Elimination3.bsv.bsc-out
+
+# Test with TSub
+compile_pass Add_Elimination_TSub1.bsv
+
+# Similar test but don't construct terms where the TSub can be reduced
+# right away (before comparing for equality with another set of terms)
+compile_pass Add_Elimination_TSub2.bsv
+
+# Test that TSub is simplified away even if the provisos don't reduce
+compile_fail_error Add_Elimination_TSub3.bsv T0131
+# Confirm that the error asks for "Add#(x, y, z)"
+compare_file Add_Elimination_TSub3.bsv.bsc-out
+
+# Test that EWeakCtxBitExtendNeedsAddCtx displays the further simplified preds
+compile_fail_error Add_Elimination_TSub4.bsv T0065
+# Confirm that the error asks for "Add#(z, z, TAdd#(y, a__))"
+compare_file Add_Elimination_TSub4.bsv.bsc-out
+
+# ---------------
+# Test that Add(t,?,TMax#(t,?)) isn't required (Bugs 782, 1497)
+
+compile_pass AddTMax_Simple.bsv
+
+# Test that this includes nested TMax
+compile_pass AddTMax_Multiple.bsv
+
+# Test that ISyntaxCheck can equate TMax of same terms but different structure
+compile_pass AddTMax_Multiple2.bsv
+
+# ---------------
+# Test that Add(?,TMin#(t,?),t) isn't required
+
+compile_pass AddTMin_Simple.bsv
+
+# Test that this includes nested TMax
+# and that ISyntaxCheck can equate TMax of same terms but different structure
+compile_pass AddTMin_Multiple.bsv
+
+# ---------------
+# Test that other commutative operators are seen as equal even if they
+# have different structure
+
+compile_pass AddTAdd_Multiple.bsv
+
+# XXX TSub?
+
+compile_pass MulTMul_Multiple.bsv
+
+# ---------------
+# Tests for Mul/TMul and Div/TDiv
+
+# These are not as easy to solve as for TAdd/TSub because:
+# * TDiv is not commutative
+# * Similarly, remaining unknown TMul terms cannot be said to be equal
+#    without stipulations about non-zeroness
+#
+# However, we can test for pure commutativity of Mul/TMul, as is done
+# in the MulTMul_Multiple test, above.
+
+# We can also simplify constants, even if we can't equate the remaining terms
+compile_fail_error Mul_Elimination1.bsv T0131
+# Confirm that the error asks for equality of "n" and  "m"
+compare_file Mul_Elimination1.bsv.bsc-out
+
+# ---------------
+# Test that SizeOf is reduced by ISyntaxCheck (Bug 1605)
+
+if { $vtest == 1 } {
+    compile_verilog_pass SizeOf_Bool.bsv
+    compile_verilog_pass SizeOf_UserType_TMul.bsv
+} else {
+    # if not generating Verilog, at least typecheck
+    compile_pass SizeOf_Bool.bsv
+    compile_pass SizeOf_UserType_TMul.bsv
+}
+
+# ---------------
+# Test that numeric equalities are visible to ISyntaxCheck (Bug 1625)
+
+if { $vtest == 1 } {
+    # Simple test of Add vs TAdd (in an explicit type)
+    compile_verilog_pass NumEq_AddTAdd.bsv
+    # Test that transitive equality is visible
+    compile_verilog_pass NumEq_TwoTAdd.bsv
+} else {
+    # if not generating Verilog, at least typecheck
+    compile_pass NumEq_AddTAdd.bsv
+    compile_pass NumEq_TwoTAdd.bsv
+}
+
+# ---------------
+# Bug 1281
+
+# Test that the value of "x" can be computed in Mul#(x,x,C)
+# when C is a perfect square
+compile_pass Mul_SameType.bsv
+
+# Test that the value of "x" can be computed in Add#(x,x,C)
+# when C is even
+compile_pass Add_SameType.bsv
+
+# ---------------
+# Test that ambiguous variables due to uses of TLog etc are detected
+
+compile_fail_error AmbigTCon_SizeOf.bsv T0079
+
+compile_fail_error AmbigTCon_TAdd.bsv T0079
+compile_fail_error AmbigTCon_TSub.bsv T0079
+
+compile_fail_error AmbigTCon_TMul.bsv T0079
+compile_fail_error AmbigTCon_TDiv.bsv T0079
+
+compile_fail_error AmbigTCon_TLog.bsv T0079
+# This one is OK
+compile_pass AmbigTCon_TExp.bsv
+
+compile_fail_error AmbigTCon_TMax.bsv T0079
+compile_fail_error AmbigTCon_TMin.bsv T0079
+
+# ---------------
+# Test that given provisos can be used to satisfied required provisos
+# (Bug 782)
+
+# Add#(2,_,n) should satisfy Add#(1,_,n)
+compile_pass_bug Imply_Add_Add.bsv 782
+
+# Max#(x,y,m) should satisfy Add#(x,_,m) and Add#(y,_,m)
+compile_pass_bug Imply_Max_Add.bsv 782
+
+# Add#(ai,bi,pi) and Add#(af,bf,pf)
+# should imply Add#(TAdd#(ai,af), TAdd#(bi,bf), TAdd#(pi,pf))
+compile_pass Imply_Adds_Add.bsv
+# The same thing but simpler, and using a typeclass instance
+# (this is from Bug 782's duplicate bug 1745)
+compile_pass Imply_Adds_Add2.bsv
+
+# Add#(a__, n, 32), Add#(b__, m, n)
+# should imply Add#(c__, m, 32)
+compile_pass_bug Imply_LTEs_LTE.bsv 782
+
+# Div#(x,32,n) should imply Add#(x,_,TMul#(32,n))
+compile_pass_bug Imply_Div_AddTMax.bsv 782
+
+# Add#(a__, 1, n), Add#(b__, 1, m)
+# should imply Add#(c__, 1, TDiv#(n,m))
+# (this is from Bug 782 comment 16 -- an example for comment17 is below)
+compile_pass_bug Imply_LTEs_LTETDiv.bsv 782
+
+# Div#(n, m, numchunks), Mul#(numchunks, m, maxsz)
+# should imply Add#(a__, n, maxsz)
+# (this is from Bug 782 comment 22)
+compile_pass_bug Imply_DivMul_Add.bsv 782
+
+# Add#(n, j, 3)
+# should imply Mul#(TExp#(n), TExp#(j), 8)
+compile_pass Imply_Add_AddTExp.bsv
+
+# Add#(x, x, n)
+# should imply Mul#(x, 2, n)
+compile_pass Imply_Add_Mul.bsv
+
+# Mul#(x, 2, n)
+# should imply Add#(x, x, n)
+compile_pass Imply_Mul_Add.bsv
+
+# Add#(a__, n, TMul#(2, n))
+# should be resolvable
+# (this is from Bug 782 comment 27)
+compile_pass_bug Imply_Mul_Add_LessThan.bsv
+
+# Mul#(2, n, m)
+# should imply Add#(a__, n, m)
+# (this is from Bug 782 comment 27)
+compile_pass_bug Imply_Mul_Add_LessThan2.bsv
+
+# Test that superclasses are considered in the analysis
+compile_pass_bug Imply_Superclass_Add_Add.bsv 782
+
+# ---------------
+# More examples from Bug 782
+
+# ---
+# Joe's divider
+
+# This also tests the messages asking for provisos, to see that BSC is
+# asking for a minimal set of reasonable provisos.
+# XXX We don't do enough testing of this!
+
+# Test what provisos BSC asks for when the "fxptDivide" module has none
+compile_fail Bug782_Div_fxptDivide_noProvisos.bsv
+compare_file Bug782_Div_fxptDivide_noProvisos.bsv.bsc-out
+
+# Test that the set of provisos is OK
+# XXX some provisos here are unnecessary and can be removed when 782 is fixed
+compile_pass Bug782_Div_fxptDivide_OK.bsv
+
+# Test what provisos BSC asks for when the "mkDivide" module has none,
+# and it uses the old version of "fxptDivide" with convoluted provisos
+compile_fail Bug782_Div_mkDivide_noProvisos.bsv
+compare_file Bug782_Div_mkDivide_noProvisos.bsv.bsc-out
+
+# Test that, after adding those provisos, BSC still asks for more
+# XXX why didn't it ask for those to begin with? is it because, once we name
+# XXX variables, we can't replace them with TAdd/etc?
+compile_fail Bug782_Div_mkDivide_firstProvisos.bsv
+compare_file Bug782_Div_mkDivide_firstProvisos.bsv.bsc-out
+
+# Test that adding those provisos makes it compile
+# XXX some provisos here are unnecessary and can be removed when 782 is fixed
+compile_pass Bug782_Div_mkDivide_OK.bsv
+
+# Test the simplified set of provisos on both "fxptDivide" and "mkDivide"
+# XXX some provisos here are unnecessary and can be removed when 782 is fixed
+compile_pass Bug782_Div_OK.bsv
+
+# Test using the current FixedPoint library
+# XXX some provisos here are unnecessary and can be removed when 782 is fixed
+compile_pass Bug782_Div_OK2.bsv
+
+# ---
+# Examples from comments 11 and 12
+
+# This has a proviso (with no free variables) that should be resolvable
+compile_pass Bug782_ProvisoClassic.bs
+
+# This has a proviso (with a free variable) that should be resolvable
+# (but the resolution will need to return a substitution)
+compile_fail Bug782_ProvisoBSV.bsv
+compare_file Bug782_ProvisoBSV.bsv.bsc-out
+
+# ---
+# Example from comment 13 (duplicate Bug 1743)
+
+compile_fail Bug782_TLM2BRAM.bsv
+compare_file Bug782_TLM2BRAM.bsv.bsc-out
+
+compile_pass Bug782_TLM2BRAM_OK.bsv
+
+# ---
+# Example from comment 17
+
+compile_fail Bug782_AddUp.bsv
+compare_file Bug782_AddUp.bsv.bsc-out
+
+compile_pass Bug782_AddUp_OK.bsv
+
+# ---
+# Example from comment 18 (ciecam)
+
+# This seems like Imply_Adds_Add2, but doesn't hurt to include
+compile_pass Bug782_FixedDivSmall.bsv
+
+# ---
+# Example from comment 19
+
+# XXX Add the AAHM examples here
+
+# ---------------
+# Bug 1640
+# Test that ISyntaxCheck accumulates all given provisos, not just a
+# select pre-defined few.
+
+compile_pass UserDefinedTypeFunction.bsv
+
+# ---------------
+# Bug 1673
+# Test that Log#(0,?) doesn't match an instance when satisfyFV
+
+compile_fail_error LogZero.bsv T0031
+
+# ---------------
+# Test that built-in typeclasses have the proper dependencies
+# (Div had the wrong dependencies, so amiguity errors were not being caught)
+
+# These typeclasses have dependencies in all directions
+
+compile_pass_no_warning AddFunDeps.bsv
+compile_pass_no_warning MulFunDeps.bsv
+compile_pass_no_warning NumEqFunDeps.bsv
+
+# These typeclasses do not, which results in ambiguity errors
+
+compile_fail_error DivFunDeps.bsv T0079 2
+compare_file DivFunDeps.bsv.bsc-out
+
+compile_fail_error LogFunDeps.bsv T0079 1
+compare_file LogFunDeps.bsv.bsc-out
+
+compile_fail_error MaxFunDeps.bsv T0079 2
+compare_file MaxFunDeps.bsv.bsc-out
+
+compile_fail_error MinFunDeps.bsv T0079 2
+compare_file MinFunDeps.bsv.bsc-out
+
+# ---------------

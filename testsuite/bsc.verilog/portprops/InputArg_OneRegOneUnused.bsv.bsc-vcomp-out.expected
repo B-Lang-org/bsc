@@ -1,0 +1,27 @@
+checking package dependencies
+compiling InputArg_OneRegOneUnused.bsv
+code generation for mkInputArg_OneRegOneUnused_Sub starts
+=== IOproperties:
+Name                         I/O  size props
+RDY_m                          O     1 const
+CLK                            I     1 unused
+RST_N                          I     1 unused
+m_b                            I    16 unused
+EN_m                           I     1 unused
+
+
+-----
+
+Verilog file created: mkInputArg_OneRegOneUnused_Sub.v
+code generation for sysInputArg_OneRegOneUnused starts
+=== IOproperties:
+Name                         I/O  size props
+b                              I    16 reg
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysInputArg_OneRegOneUnused.v
+All packages are up to date.

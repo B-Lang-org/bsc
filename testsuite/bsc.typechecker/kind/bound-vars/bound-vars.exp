@@ -1,0 +1,50 @@
+#
+# Tests for kind errors on bound type variables
+#
+
+# -----
+
+#
+# When kind checking was not performed on type variables, this
+# was found via an internal error in apSub (once Mieszko added a check
+# in apSub).  Related bugs: 715, 798
+#
+
+# With the fix for bug 1414, these no longer report T0068
+
+# check for bound variables in CHasType
+compile_fail_error  CHasType.bs  T0027
+
+# check for bound variables in CDefL
+compile_fail_error  CDefl.bs  T0027
+
+# and with a BSV example
+compile_fail_error  CDeflBSV.bsv  T0026
+
+# check for bound variables in CBindT
+# (explicitly-typed variable binding in a statement context)
+compile_fail_error  CBindT.bsv  T0026
+
+# we don't have a test for bound variables in CLamT (which is likely broken),
+# but it is unclear whether a user can create a CLamT (or if they are only
+# created by the type checker)
+
+# -----
+
+# Check the message when the kind mismatch is not as simple as * and #
+
+# Here, the error is on the bound var
+compile_fail_error KindMismatchMissingArg.bsv T0025
+
+# Here, the error is on the arg to the bound var
+compile_fail_error KindMismatchArgToBoundVar.bsv T0026
+
+# -----
+
+# Tests for bug 1414
+
+compile_pass WideningPlus.bsv
+compile_pass AdjustSize.bsv
+
+# -----
+

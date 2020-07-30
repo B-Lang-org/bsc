@@ -1,0 +1,43 @@
+
+# Bluesim gives correct results, Verilog has special expected file due
+# to negedge display problem
+test_c_only_bsv ClockMux
+test_veri_only_bsv ClockMux "sysClockMux.v.out.expected"
+
+# Bluesim gives correct results, Verilog has special expected file due
+# to negedge display problem
+test_c_only_bsv ClockSelect
+test_veri_only_bsv ClockSelect "sysClockSelect.v.out.expected"
+
+# ----------
+
+# Ungated versions
+
+# Bluesim gives correct results, Verilog has special expected file due
+# to negedge display problem
+test_c_only_bsv UngatedClockMux
+test_veri_only_bsv UngatedClockMux "sysUngatedClockMux.v.out.expected"
+
+# Bluesim gives correct results, Verilog has special expected file due
+# to negedge display problem
+test_c_only_bsv UngatedClockSelect
+test_veri_only_bsv UngatedClockSelect "sysUngatedClockSelect.v.out.expected"
+
+# ----------
+
+# Test the definition of the ClockSelect reset:
+# The reset is asserted for one cycle of the selector clock, and held for N
+# cycles of the output clock after that.  (An output clock which occurs at the
+# same time as the final edge of the 1 selector clock is ignored.  The count
+# starts with the next output clock.)
+
+# This test has a slow selector clock to confirm that output clock ticks
+# during the 1 selector clock cycle are not counted toward the hold count.
+# The test is also set up to have an output clock tick coincident with the
+# final edge of the selector cycle (to test that this too is not counted).
+# (Verilog output differs due to negedge display problem)
+test_c_only_bsv SlowSelectClock
+test_veri_only_bsv SlowSelectClock "sysSlowSelectClock.v.out.expected"
+
+# ----------
+

@@ -1,0 +1,36 @@
+Non-Pipelined write->read
+[                 125] BRAM[0] <= FF
+[                 135] read request
+[                 145] BRAM[0] => ff
+Pipelined write->read
+[                 165] BRAM[0] <= FE
+[                 175] read request
+[                 195] BRAM[0] => fe
+dut1
+[                 215] read request
+[                 235] BRAM[0] => 50
+Non-Pipelined write->read
+[                 255] BRAM[0] <= FF
+[                 265] read request
+[                 275] BRAM[0] => ff
+Pipelined write->read
+[                 295] BRAM[0] <= FE
+[                 305] read request
+[                 325] BRAM[0] => fe
+dut1
+[                 345] read request
+[                 365] BRAM[0] => 50
+dut2
+[                 385] BRAM[0] <= FD
+[                 395] read request
+[                 415] BRAM[0] => fd
+dut3
+[                 435] read request
+[                 455] BRAM[3] => 53
+dut4
+[                 475] BRAM[0] <= FFFFFFFF (00001110)
+[                 485] read request
+[                 505] BRAM[0] => ffffffaa
+dut5
+[                 525] read request
+[                 545] BRAM[5] => 00000055

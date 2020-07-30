@@ -1,0 +1,4 @@
+unsigned int c_func()
+{
+  return 0;
+}

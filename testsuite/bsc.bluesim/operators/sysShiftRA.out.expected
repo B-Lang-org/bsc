@@ -1,0 +1,40 @@
+Initial value 80
+Shifting right (arith) data size           8 with index size           8: c0
+Shifting right (arith) data size           8 with index size          32: e0
+Shifting right (arith) data size           8 with index size          64: f0
+Shifting right (arith) data size           8 with index size         128: f8
+Initial value 7f
+Shifting right (arith) data size           8 with index size           8: 3f
+Shifting right (arith) data size           8 with index size          32: 1f
+Shifting right (arith) data size           8 with index size          64: 0f
+Shifting right (arith) data size           8 with index size         128: 07
+Initial value 80000000
+Shifting right (arith) data size          32 with index size           8: c0000000
+Shifting right (arith) data size          32 with index size          32: e0000000
+Shifting right (arith) data size          32 with index size          64: f0000000
+Shifting right (arith) data size          32 with index size         128: f8000000
+Initial value 7fffffff
+Shifting right (arith) data size          32 with index size           8: 3fffffff
+Shifting right (arith) data size          32 with index size          32: 1fffffff
+Shifting right (arith) data size          32 with index size          64: 0fffffff
+Shifting right (arith) data size          32 with index size         128: 07ffffff
+Initial value 8000000000000000
+Shifting right (arith) data size          64 with index size           8: c000000000000000
+Shifting right (arith) data size          64 with index size          32: e000000000000000
+Shifting right (arith) data size          64 with index size          64: f000000000000000
+Shifting right (arith) data size          64 with index size         128: f800000000000000
+Initial value 7fffffffffffffff
+Shifting right (arith) data size          64 with index size           8: 3fffffffffffffff
+Shifting right (arith) data size          64 with index size          32: 1fffffffffffffff
+Shifting right (arith) data size          64 with index size          64: 0fffffffffffffff
+Shifting right (arith) data size          64 with index size         128: 07ffffffffffffff
+Initial value 80000000000000000000000000000000
+Shifting right (arith) data size         128 with index size           8: c0000000000000000000000000000000
+Shifting right (arith) data size         128 with index size          32: e0000000000000000000000000000000
+Shifting right (arith) data size         128 with index size          64: f0000000000000000000000000000000
+Shifting right (arith) data size         128 with index size         128: f8000000000000000000000000000000
+Initial value 7fffffffffffffffffffffffffffffff
+Shifting right (arith) data size         128 with index size           8: 3fffffffffffffffffffffffffffffff
+Shifting right (arith) data size         128 with index size          32: 1fffffffffffffffffffffffffffffff
+Shifting right (arith) data size         128 with index size          64: 0fffffffffffffffffffffffffffffff
+Shifting right (arith) data size         128 with index size         128: 07ffffffffffffffffffffffffffffff

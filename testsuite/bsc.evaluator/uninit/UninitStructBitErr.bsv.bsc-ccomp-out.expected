@@ -1,0 +1,10 @@
+checking package dependencies
+compiling UninitStructBitErr.bsv
+code generation for sysUninitStructBitErr starts
+Error: "UninitStructBitErr.bsv", line 5, column 22: (G0028)
+  `x.rel[5]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "UninitStructBitErr.bsv",
+  line 10, column 9.
+  During elaboration of `sysUninitStructBitErr' at "UninitStructBitErr.bsv",
+  line 4, column 8.

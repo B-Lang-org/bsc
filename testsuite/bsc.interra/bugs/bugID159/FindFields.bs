@@ -1,0 +1,18 @@
+----------------------------------------------------
+-- FileName : FindFields.bs
+-- Author   : Interra
+-- BugID    : 159
+-- CommandLine : bsc FindFields.bs
+-- Status : Fixed for BSC 3.74
+----------------------------------------------------
+
+package FindFields (FindFields(..)) where
+
+interface FindFields =
+    start  :: Int 32 -> Int 32 -> Action
+    start  :: Bool -> Bool -> Action
+    result :: Int 32
+
+mkFindFields :: Module FindFields
+mkFindFields =
+    module

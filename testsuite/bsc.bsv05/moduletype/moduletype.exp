@@ -1,0 +1,7 @@
+# Test that keyword "module" is handled correctly when used as a type
+
+# Bug 1617
+compile_pass ModuleTypeInFunction.bsv
+compile_fail_error ModuleTypeInFunction_MissingArg.bsv T0025
+
+# -----

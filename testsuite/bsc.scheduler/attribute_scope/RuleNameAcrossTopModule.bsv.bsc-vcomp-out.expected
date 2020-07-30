@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameAcrossTopModule.bsv
+code generation for sysRuleNameAcrossTopModule starts
+Warning: "RuleNameAcrossTopModule.bsv", line 14, column 9: (G0021)
+  According to the generated schedule, rule `r2' can never fire.
+Verilog file created: sysRuleNameAcrossTopModule.v
+All packages are up to date.

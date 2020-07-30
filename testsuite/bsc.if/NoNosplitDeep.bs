@@ -1,0 +1,18 @@
+package NoNosplitDeep (sysNoNosplitDeep) where
+
+sysNoNosplitDeep :: Module Empty
+sysNoNosplitDeep = 
+  module
+    r :: Reg (Int 32) <- mkReg 10
+    s :: Reg (Int 32) <- mkReg 20
+    rules
+      when True ==> 
+                       (if (r == 15) then
+                           if (s == 27) then
+                             r:=20
+                           else 
+                             s:=27  
+                        else if (r == 10) then
+                               r:=15 
+                             else
+                               (noAction))

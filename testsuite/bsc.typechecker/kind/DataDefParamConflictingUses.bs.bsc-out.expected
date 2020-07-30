@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DataDefParamConflictingUses.bs
+Error: "DataDefParamConflictingUses.bs", line 5, column 33: (T0027)
+  The numeric type `b' was found where a value type was expected.

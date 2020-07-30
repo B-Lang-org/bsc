@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Bug578_simple.bs
+Error: "Bug578_simple.bs", line 10, column 12: (T0131)
+  The numeric types `s' and `x' could not be shown to be equal.
+  This equality was required at the following position:
+    "Bug578_simple.bs", line 11, column 22

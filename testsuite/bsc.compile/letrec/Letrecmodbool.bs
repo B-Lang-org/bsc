@@ -1,0 +1,18 @@
+package Letrecmodbool(sysLetrecmodbool) where
+
+import List
+
+seven :: Bool
+seven = let evens :: Bool -> List Bool
+            evens x = cons x odds
+            odds  :: List Bool = (evens True)
+        in odds !! 3
+
+sysLetrecmodbool :: Module Empty
+sysLetrecmodbool =
+  module
+    rules
+      when True ==>
+         action
+            $display seven
+            $finish 0

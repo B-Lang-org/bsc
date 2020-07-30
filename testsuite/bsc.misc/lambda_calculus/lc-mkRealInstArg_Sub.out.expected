@@ -1,0 +1,13 @@
+data MOD_mkRealInstArg_Sub = MOD_mkRealInstArg_Sub { param_r__mkRealInstArg_Sub :: Double };
+
+ctor_mkRealInstArg_Sub :: Double -> MOD_mkRealInstArg_Sub;
+ctor_mkRealInstArg_Sub =
+    (\ (val_r :: Double) -> MOD_mkRealInstArg_Sub { param_r__mkRealInstArg_Sub = val_r });
+
+dim_mkRealInstArg_Sub :: MOD_mkRealInstArg_Sub -> MOD_mkRealInstArg_Sub -> Bool;
+dim_mkRealInstArg_Sub =
+    (\ (mod1 :: MOD_mkRealInstArg_Sub) -> (\ (mod2 :: MOD_mkRealInstArg_Sub) -> True));
+
+rule_RL_doDisp_mkRealInstArg_Sub :: MOD_mkRealInstArg_Sub -> (Bool, MOD_mkRealInstArg_Sub, ());
+rule_RL_doDisp_mkRealInstArg_Sub =
+    (\ (state0 :: MOD_mkRealInstArg_Sub) -> mktuple True state0 ());

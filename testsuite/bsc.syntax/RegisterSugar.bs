@@ -1,0 +1,53 @@
+package RegisterSugar(sysRegisterSugar) where
+
+-- compiler bug
+sysRegisterSugar :: Module Empty
+sysRegisterSugar =
+    module
+        r :: FunnyReg (Bit 5) <- mkFunnyRegU
+        rules
+          when True ==> r := r + 1
+
+--@ \subsection{FunnyReg}
+--@ \index{FunnyReg@\te{FunnyReg} (package)|textbf}
+--@ 
+--@ The \te{FunnyReg} package provides a way to create configuration
+--@ registers, where each update clobbers the current value, and
+--@ the precise timing of updates is not important.
+--@
+--@ Rules fired during the clock cycle the register is written will
+--@ read a stale value regardless of firing order.
+
+--@ # 3
+interface FunnyReg a =
+    _write :: a -> Action
+    _read  :: a
+
+--@ # 1
+mkFunnyRegU :: (IsModule m c, Bits a sa) => m (FunnyReg a)
+mkFunnyRegU = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+	_read = unpack 0
+	_write x = return ()
+  else
+    module
+      _r :: VFunnyReg sa
+      _r <- vMkFunnyRegU
+      interface
+	_read = unpack _r.get
+	_write x = fromPrimAction (_r.set (pack x))
+
+interface VFunnyReg n =
+    set :: Bit n -> PrimAction
+    get :: Bit n
+
+-- only for n>0
+vMkFunnyRegU :: Module (VFunnyReg n)
+vMkFunnyRegU =
+    module verilog "RegUN" (("init", (valueOf n))) "CLK" {
+	get = "get"{reg};
+	set = "val"{reg} "SET";
+    } [ get <> [get, set], set << set ]
+

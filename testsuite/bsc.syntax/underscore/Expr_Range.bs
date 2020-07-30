@@ -1,0 +1,5 @@
+package Expr_Range () where
+
+x :: Bit 2
+x = _[1:0]
+

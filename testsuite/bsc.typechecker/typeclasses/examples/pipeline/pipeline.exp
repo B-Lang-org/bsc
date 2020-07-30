@@ -1,0 +1,21 @@
+#
+# Examples from Peter Iannucci using typeclasses to construct a pipeline
+#
+
+
+# --------------------------------------------------
+# Attempted version that results in an error about ambiguous variables
+# (the message is interesting because it has duplicate messages, due to
+# variables introduced at the same locations)
+# XXX The source of the ambiguity is really because the typeclass instances
+# XXX break the stated dependency requirement; why doesn't BSC catch this?
+
+compile_fail_error Tb1.bsv T0033 1
+compare_file Tb1.bsv.bsc-out
+
+# --------------------------------------------------
+# A version that compiles
+
+compile_pass Tb2.bsv
+
+# --------------------------------------------------

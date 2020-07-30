@@ -1,0 +1,50 @@
+if {$ctest == 1} {
+compile_object_pass JoinServers1.bsv mkTestbench_JoinServers
+link_objects_pass {"mkTestbench_JoinServers"} mkTestbench_JoinServers
+# sim_final_state mkTestbench_JoinServers 10010
+# compare_file "mkTestbench_JoinServers.final-state"
+sim_output mkTestbench_JoinServers {-m 10010}
+compare_file "mkTestbench_JoinServers.out"
+
+compile_object_pass JoinServers_twoserver.bsv mkTestbench_TwoJoinServers
+link_objects_pass {"mkTestbench_TwoJoinServers"} mkTestbench_TwoJoinServers
+# sim_final_state mkTestbench_TwoJoinServers 10010
+# compare_file "mkTestbench_TwoJoinServers.final-state"
+sim_output mkTestbench_TwoJoinServers {-m 10010}
+compare_file "mkTestbench_TwoJoinServers.out"
+
+compile_object_pass MkRequestBuffer.bsv mkTestbench_MkRequestBuffer
+link_objects_pass {"mkTestbench_MkRequestBuffer"} mkTestbench_MkRequestBuffer
+# sim_final_state mkTestbench_MkRequestBuffer 10010
+# compare_file "mkTestbench_MkRequestBuffer.final-state"
+sim_output mkTestbench_MkRequestBuffer {-m 10010}
+compare_file "mkTestbench_MkRequestBuffer.out"
+
+compile_object_pass MkRequestResponseBuffer1.bsv mkTestbench_MkRequestResponseBuffer1
+link_objects_pass {"mkTestbench_MkRequestResponseBuffer1"} mkTestbench_MkRequestResponseBuffer1
+# sim_final_state mkTestbench_MkRequestResponseBuffer1 10010
+# compare_file "mkTestbench_MkRequestResponseBuffer1.final-state"
+sim_output mkTestbench_MkRequestResponseBuffer1 {-m 10010}
+compare_file "mkTestbench_MkRequestResponseBuffer1.out"
+
+compile_object_pass MkRequestResponseBuffer_1.bsv mkTestbench_MkRequestResponseBuffer_1
+link_objects_pass {"mkTestbench_MkRequestResponseBuffer_1"} mkTestbench_MkRequestResponseBuffer_1
+# sim_final_state mkTestbench_MkRequestResponseBuffer_1 10010
+# compare_file "mkTestbench_MkRequestResponseBuffer_1.final-state"
+sim_output mkTestbench_MkRequestResponseBuffer_1 {-m 10010}
+compare_file "mkTestbench_MkRequestResponseBuffer_1.out"
+
+compile_object_pass MkResponseBuffer.bsv mkTestbench_MkResponseBuffer
+link_objects_pass {"mkTestbench_MkResponseBuffer"} mkTestbench_MkResponseBuffer
+# sim_final_state mkTestbench_MkResponseBuffer 10010
+# compare_file "mkTestbench_MkResponseBuffer.final-state"
+sim_output mkTestbench_MkResponseBuffer {-m 10010}
+compare_file "mkTestbench_MkResponseBuffer.out"
+
+compile_object_pass MkSizedRequestResponseBuffer.bsv mkTestbench_MkSizedRequestResponseBuffer
+link_objects_pass {"mkTestbench_MkSizedRequestResponseBuffer"} mkTestbench_MkSizedRequestResponseBuffer
+# sim_final_state mkTestbench_MkSizedRequestResponseBuffer 10010
+# compare_file "mkTestbench_MkSizedRequestResponseBuffer.final-state"
+sim_output mkTestbench_MkSizedRequestResponseBuffer {-m 10010}
+compare_file "mkTestbench_MkSizedRequestResponseBuffer.out"
+}

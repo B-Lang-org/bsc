@@ -1,0 +1,3 @@
+A implementation of the SHA-512 cryptographic hash algorithm (part of
+the SHA-2 family of hash functions), one cycle per iteration.
+

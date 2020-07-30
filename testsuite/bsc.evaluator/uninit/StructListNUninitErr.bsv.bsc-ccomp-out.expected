@@ -1,0 +1,24 @@
+checking package dependencies
+compiling StructListNUninitErr.bsv
+code generation for mkStructListNUninitErr starts
+Error: "StructListNUninitErr.bsv", line 10, column 8: (G0028)
+  `bar.bs[0]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructListNUninitErr.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructListNUninitErr' at
+  "StructListNUninitErr.bsv", line 9, column 8.
+Error: "StructListNUninitErr.bsv", line 10, column 8: (G0028)
+  `bar.bs[1]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructListNUninitErr.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructListNUninitErr' at
+  "StructListNUninitErr.bsv", line 9, column 8.
+Error: "StructListNUninitErr.bsv", line 10, column 8: (G0028)
+  `bar.bs[2]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructListNUninitErr.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructListNUninitErr' at
+  "StructListNUninitErr.bsv", line 9, column 8.

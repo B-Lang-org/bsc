@@ -1,0 +1,36 @@
+# Tests for type checking port statements in import-BVI
+
+# Bit is allowed
+compile_pass BVI_Port_Bit32.bsv
+
+# Bit is defaulted for sized literals
+compile_pass BVI_Port_SizedLiteral.bsv
+
+# Bit is also defaulted for unsized literals (!!)
+compile_pass BVI_Port_Literal.bsv
+
+# Any other type is allowed, if it has an instance for Bits
+compile_pass BVI_Port_InBits_NoPack.bsv
+# With explicit pack
+compile_pass BVI_Port_InBits_Pack.bsv
+
+# If no instance of Bits, test the error message
+compile_fail_error BVI_Port_NotInBits.bsv T0134
+compare_file BVI_Port_NotInBits.bsv.bsc-out
+
+# If the type is not concrete, perhaps the user forgot a Bits proviso;
+# test the error message
+compile_fail_error BVI_Port_NeedsProviso.bsv T0134
+compare_file BVI_Port_NeedsProviso.bsv.bsc-out
+
+# Test types that are allowed for parameters, but not for ports
+compile_fail_error BVI_Port_Integer.bsv T0134
+compile_fail_error BVI_Port_String.bsv T0134
+compile_fail_error BVI_Port_StringLiteral.bsv T0134
+compile_fail_error BVI_Port_Real.bsv T0134
+# This produces an ambiguity error, because the default for real literals
+# is not in Bits
+compile_fail_error BVI_Port_RealLiteral.bsv T0033
+# XXX Why is the position duplicated?
+compare_file BVI_Port_RealLiteral.bsv.bsc-out
+

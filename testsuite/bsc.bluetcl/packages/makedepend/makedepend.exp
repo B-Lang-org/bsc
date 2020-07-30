@@ -1,0 +1,30 @@
+
+# Check usage and help message
+bluetcl_exec_compare_fail "-exec makedepend" usage1
+
+bluetcl_exec_compare_fail "-exec makedepend.tcl" usage2
+
+bluetcl_exec_compare_fail "-exec makedepend -v" nofile
+
+bluetcl_exec_compare_fail "-exec makedepend -xxx Dep1.bsv" badflag
+
+bluetcl_exec_compare_fail "-exec makedepend -D SYNTAXERROR Dep1.bsv" error1
+
+bluetcl_exec_compare_fail "-exec makedepend -D CIRCERROR Dep1.bsv" error2
+
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps Dep1.bsv" test1
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps *.bsv" patterns
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps -D INC1 Dep1.bsv" defines
+
+# this will be removed by "make clean"
+mkdir objs
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps -bdir objs -D INC1 Dep1.bsv" bdir
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps -bdir objs -p ../makedepend/:%/Libraries -D INC1 Dep1.bsv" updir
+
+bluetcl_exec_compare_pass "-exec makedepend -no-show-timestamps -o minusO.depend-out Dep1.bsv" minus_o
+bluetcl_compare minusO.depend-out

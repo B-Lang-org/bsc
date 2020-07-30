@@ -1,0 +1,22 @@
+package Init2048Bit (sysInit2048Bit) where
+
+bigConst :: Bit 2048
+bigConst = 0xfedcba9876543210
+
+bigInt :: Bit 2048
+bigInt = makeBigInt 2048
+
+makeBigInt :: Bit 2048 -> Bit 2048
+makeBigInt x = if (x <= 0) then 0 else (makeBigInt (x - 64) << 64) + bigConst
+
+sysInit2048Bit :: Module Empty
+sysInit2048Bit = 
+  module 
+    r :: Reg (Bit 2048) <- mkReg bigInt
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

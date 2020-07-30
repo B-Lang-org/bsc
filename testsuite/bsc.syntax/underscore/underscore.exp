@@ -1,0 +1,109 @@
+
+# tests for the parsing of "_" where a variable is expected
+
+# -----
+
+# top-level def, no type
+# (symbol is rejected by parser)
+compile_fail_error VarDefn_NoType.bs P0005
+
+# top-level def, with type
+# (symbol is rejected by parser)
+compile_fail_error VarDefn_Type.bs P0005
+
+# top-level def, with clauses and no type
+# (symbol is rejected by parser)
+compile_fail_error VarDefn_Clauses_NoType.bs P0005
+
+# -----
+
+# local def, no type
+# (this is parsed as a pattern assignment!)
+# XXX confirm that it parses into (CPAny) and not (CPVar "_")
+compile_pass Defl_NoType.bs
+
+# local def, with type
+# (symbol is rejected by parser)
+compile_fail_error Defl_Type.bs P0005
+
+# local def, with clauses
+# (symbol is rejected by parser)
+compile_fail_error Defl_Clauses_NoType.bs P0005
+
+# -----
+
+# struct field declaration
+# (symbol is rejected by parser)
+compile_fail_error StructDefn_Field.bs P0005
+
+# struct field declaration with default
+# (symbol is rejected by parser)
+compile_fail_error StructDefn_Field_WithDefault.bs P0005
+
+# -----
+
+# bind, no type
+compile_pass StmtBind_NoType.bs
+# XXX confirm that it parses into (CPAny) and not (CPVar "_")
+
+# bind, with type same line
+compile_pass StmtBind_Type_OneLine.bs
+# XXX confirm that it parses into (CPAny) and not (CPVar "_")
+
+# bind, with type different line
+compile_pass StmtBind_Type_TwoLines.bs
+# XXX confirm that it parses into (CPAny) and not (CPVar "_")
+
+# -----
+
+# package export
+# (symbol is rejected by parser)
+compile_fail_error Export.bs P0005
+
+# lambda argument
+compile_pass Lambda_Arg.bs
+# XXX confirm that it is interpreted as not binding to a name)
+
+# foreign declaration
+# (symbol is rejected by parser)
+compile_fail_error Foreign.bs P0005
+
+# primitive declaration
+# (symbol is rejected by parser)
+compile_fail_error Primitive.bs P0005
+
+# -----
+
+# XXX confirm that these parse as don't-care values
+
+# expr
+compile_pass Expr.bs
+
+# expr where ...
+compile_pass Expr_Where.bs
+
+# expr [h:l]
+# (typecheck rejects it because the size is unknown)
+compile_fail_error Expr_Range.bs T0035
+
+# expr :: t
+compile_pass Expr_HasType.bs
+
+# expr { f = ... }
+compile_pass Expr_FieldUpd.bs
+
+# expr a1 a2
+compile_pass Expr_Ap.bs
+
+# -----
+
+# pattern: _
+# XXX confirm that it was parsed as CPAny
+compile_pass Pattern.bs
+
+# pattern _@(...)
+# XXX confirm that the name is ignored
+compile_pass Pattern_As.bs
+
+# -----
+

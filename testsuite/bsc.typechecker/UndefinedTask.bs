@@ -1,0 +1,4 @@
+package UndefinedTask() where
+
+foo :: Action
+foo = $foobar 17

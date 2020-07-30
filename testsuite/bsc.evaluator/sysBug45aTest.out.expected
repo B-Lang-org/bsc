@@ -1,0 +1,40 @@
+Initial State:
+top:
+  b45:
+    f = EMPTY
+  counter = 0xa
+State:
+top:
+  b45:
+    f = EMPTY
+  counter = 0x0
+State:
+top:
+  b45:
+    f = { True }
+  counter = 0x1
+State:
+top:
+  b45:
+    f = { True, True }
+  counter = 0x2
+State:
+top:
+  b45:
+    f = { True, True, True }
+  counter = 0x3
+State:
+top:
+  b45:
+    f = { True, True, True, True }
+  counter = 0x4
+State:
+top:
+  b45:
+    f = { True, True, True, True }
+  counter = 0x5
+State:
+top:
+  b45:
+    f = { True, True, True, True }
+  counter = 0x6

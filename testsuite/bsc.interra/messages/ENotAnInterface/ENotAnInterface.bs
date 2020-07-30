@@ -1,0 +1,27 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotAnInterface.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ENotAnInterface error of the bluespec
+-- compiler (Not of interface type)
+--
+-----------------------------------------------------------------------
+
+
+package ENotAnInterface() where
+
+struct Counter = 
+   up     :: PrimAction
+   preset :: Bit 4 -> PrimAction
+   value  :: Bit 4
+
+vcount :: Module Counter
+vcount = module verilog "count_4" "clk"
+         {
+            up = "enable";
+            preset = "input" "set";
+            value = "output";
+         } 

@@ -1,0 +1,53 @@
+package BadCase where
+
+data TestADT
+  = Zero
+  | One Bool
+  | Two Bool Integer
+  | Three Bool Integer String
+  | Four Bool Integer String (Bit 32)
+
+badCase0_1 :: TestADT -> Integer
+badCase0_1 x =
+  case x of
+    Zero _ -> 0
+    One _ -> 1
+    Two _ _ -> 2
+    Three _ _ _ -> 3
+    Four _ _ _ -> 4
+
+badCase0_2 :: TestADT -> Integer
+badCase0_2 x =
+  case x of
+    Zero _ _ -> 0
+    One _ -> 1
+    Two _ _ -> 2
+    Three _ _ _ -> 3
+    Four _ _ _ -> 4
+
+badCase0_3 :: TestADT -> Integer
+badCase0_3 x =
+  case x of
+    Zero True -> 0
+    One _ -> 1
+    Two _ _ -> 2
+    Three _ _ _ -> 3
+    Four _ _ _ -> 4
+
+badCase1 :: TestADT -> Integer
+badCase1 x =
+  case x of
+    Zero -> 0
+    One _ _ -> 1
+    Two _ _ -> 2
+    Three _ _ _ -> 3
+    Four _ _ _ _ -> 4
+
+badCase2 :: TestADT -> Integer
+badCase2 x =
+  case x of
+    Zero -> 0
+    One _ -> 1
+    Two _ _ _ -> 2
+    Three _ _ _ -> 3
+    Four _ _ _ _ -> 4

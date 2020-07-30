@@ -1,0 +1,29 @@
+package ResourceOneRuleME(sysResourceOneRuleME) where
+
+import FIFO
+
+sysResourceOneRuleME :: Module Empty
+sysResourceOneRuleME = 
+  module
+    w :: Reg (Int 32) <- mkRegU
+    x :: Reg (Int 32) <- mkRegU
+    y :: Reg (Int 32) <- mkRegU
+    z :: Reg (Int 32) <- mkRegU
+    f :: FIFO (Int 16) <- mkFIFO
+    g :: FIFO (Int 16) <- mkFIFO
+    
+    rules 
+      when True ==>
+        action 
+          if (x == 5) && (y == 7) then (g.clear) else (noAction);
+          if (g.first == 19) && (x == 6) then (g.enq 1) else (f.enq 2);
+          if (g.first == 19) && (x == 6) then f.clear else noAction;
+          if (z == 12) then y := y + 1 else (noAction);
+          if (z /= 12) then y := y + 2 else (noAction);
+          if (x == 5) || (x == 7) || (x == 17) then x := x + 1 else (noAction);
+          if (x == 6) || (x == 12) || (x == 19) then x := 23 else (noAction);
+ --         if (x == 5) && (y == x) then w := 0 else (noAction)
+ --         if (y == 6) then w := 1 else (noAction)
+ --         if (x == 12) && (y == 17) then (z := z + 2) else (noAction);
+ --         if (x == 11) || (y /= 17) then (z := z + 5) else (x := x + 1);
+

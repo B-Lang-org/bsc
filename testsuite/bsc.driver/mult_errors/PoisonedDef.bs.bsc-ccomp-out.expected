@@ -1,0 +1,11 @@
+checking package dependencies
+compiling PoisonedDef.bs
+code generation for sysPoisonedDef starts
+Error: "PoisonedDef.bs", line 7, column 54: (G0087)
+  Code generation failed because the definition 'test' whose compilation
+  failed with errors, was used during elaboration. You should correct the
+  errors with the definition of 'test' or stop using it in your design before
+  proceeding.
+  During elaboration of `sysPoisonedDef' at "PoisonedDef.bs", line 6, column
+  0.
+All packages compiled (some with errors).

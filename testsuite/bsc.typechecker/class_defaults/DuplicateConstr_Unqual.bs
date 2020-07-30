@@ -1,0 +1,10 @@
+package DuplicateConstr_Unqual () where
+
+data MyT = Cons Bool
+
+class C a where
+  f :: a -> MyT
+  f x = Cons False
+
+instance C Integer where {}
+

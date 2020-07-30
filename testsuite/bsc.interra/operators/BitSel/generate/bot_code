@@ -1,0 +1,120 @@
+ reg dummy;
+ initial dummy <= $random(seed);
+/************* Extracting Bits ************/
+
+ wire [5:0]  ex_crs_1_1,
+             ex_crs_1_2,
+		     ex_crs_1_3;
+ 
+ wire [35:0] ex_crs_2_1,
+             ex_crs_2_2;
+ 
+ wire [65:0] ex_crs_3;
+
+ wire [5:0]  ex_tch_1_1,
+             ex_tch_1_2,
+			 ex_tch_1_3,
+             ex_tch_1_4,
+			 ex_tch_1_5,
+			 ex_tch_1_6;
+ 
+ wire [31:0] ex_tch_2_1,
+             ex_tch_2_2,
+			 ex_tch_2_3;
+
+ wire [63:0] ex_tch_2_4,
+             ex_tch_2_5;
+
+ wire [95:0] ex_tch_2_6;
+ 
+/******************************************
+
+*********** Concatinating Bits ***********/
+
+ wire [35:0] con_crs_1;
+ wire [67:0] con_crs_2;
+ wire [99:0] con_crs_3;
+
+ wire [31:0] con_tch_1_1;
+ wire [63:0] con_tch_1_2;
+ wire [95:0] con_tch_1_3;
+ wire [127:0] con_tch_1_4;
+
+/************* Assignments **************/
+
+ assign ex_crs_1_1 = a[34:29]; 
+ assign ex_crs_1_2 = a[66:61]; 
+ assign ex_crs_1_3 = a[98:93]; 
+ assign ex_crs_2_1 = a[65:30]; 
+ assign ex_crs_2_2 = a[97:62]; 
+ assign ex_crs_3 = a[96:31]; 
+
+ assign ex_tch_1_1 = a[31:26];
+ assign ex_tch_1_2 = a[63:58];
+ assign ex_tch_1_3 = a[95:90];
+ assign ex_tch_1_4 = a[101:96];
+ assign ex_tch_1_5 = a[69:64];
+ assign ex_tch_1_6 = a[37:32];
+ assign ex_tch_2_1 = a[63:32];
+ assign ex_tch_2_2 = a[95:64];
+ assign ex_tch_2_3 = a[127:96];
+ assign ex_tch_2_4 = a[127:64];
+ assign ex_tch_2_5 = a[95:32];
+ assign ex_tch_2_6 = a[127:32];
+ 
+ 
+ assign con_crs_1 = {ex_tch_1_1,ex_tch_1_2,ex_tch_1_3,
+                     ex_tch_1_4,ex_tch_1_5,ex_tch_1_6};
+
+ assign con_crs_2 = {ex_tch_2_1,ex_tch_2_2,4'd2};
+ 
+ assign con_crs_3 = {con_crs_1,ex_tch_2_4};
+
+ assign con_tch_1_1 = {ex_tch_1_1,ex_tch_1_2,ex_tch_1_3,
+                       ex_tch_1_4,ex_tch_1_5,2'd2};
+ 
+ assign con_tch_1_2 = {ex_tch_2_1,ex_tch_2_2};
+
+ assign con_tch_1_3 = {con_tch_1_2,ex_tch_2_3};
+ 
+ assign con_tch_1_4 = {ex_tch_2_1,con_tch_1_3};
+ 
+
+/************ Generate TestVectors *************/
+
+ always @(posedge CLK)
+ begin
+   if(vectors>=12) $finish;
+   a <= {$random,$random,$random,$random};
+   vectors <= vectors + 1;
+   $display("128\'b%b  6\'b%b 6\'b%b 6\'b%b 36\'b%b 36\'b%b 66\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 6\'b%b 32\'b%b 32\'b%b 32\'b%b 64\'b%b 64\'b%b 96\'b%b 36\'b%b 68\'b%b 100\'b%b 32\'b%b 64\'b%b 96\'b%b 128\'b%b",
+ a,
+ ex_crs_1_1,
+ ex_crs_1_2,
+ ex_crs_1_3,
+ ex_crs_2_1,
+ ex_crs_2_2,
+ ex_crs_3,
+ ex_tch_1_1,
+ ex_tch_1_2,
+ ex_tch_1_3,
+ ex_tch_1_4,
+ ex_tch_1_5,
+ ex_tch_1_6,
+ ex_tch_2_1,
+ ex_tch_2_2,
+ ex_tch_2_3,
+ ex_tch_2_4,
+ ex_tch_2_5,
+ ex_tch_2_6,
+ con_crs_1,
+ con_crs_2,
+ con_crs_3,
+ con_tch_1_1,
+ con_tch_1_2,
+ con_tch_1_3,
+ con_tch_1_4);
+
+ end
+ 
+ endmodule

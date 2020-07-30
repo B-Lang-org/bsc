@@ -1,0 +1,16 @@
+checking package dependencies
+compiling TopMethodNameSubModule.bsv
+code generation for sysTopMethodNameSubModule starts
+Error: "TopMethodNameSubModule.bsv", line 32, column 29: (G0054)
+  Rule `sub_mymethod2' was referenced in a rule attribute before it was
+  defined.
+  During elaboration of `m' at "TopMethodNameSubModule.bsv", line 18, column
+  10.
+  During elaboration of `sysTopMethodNameSubModule' at
+  "TopMethodNameSubModule.bsv", line 14, column 8.
+Error: "TopMethodNameSubModule.bsv", line 33, column 29: (G0054)
+  Rule `mymethod1' was referenced in a rule attribute before it was defined.
+  During elaboration of `m' at "TopMethodNameSubModule.bsv", line 18, column
+  10.
+  During elaboration of `sysTopMethodNameSubModule' at
+  "TopMethodNameSubModule.bsv", line 14, column 8.

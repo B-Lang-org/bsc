@@ -1,0 +1,25 @@
+if {$ctest == 1} {
+compile_object_fail Cyclic_Urgency_Five_Rules.bsv mkCyclic_Urgency_Five_Rules
+compare_file Cyclic_Urgency_Five_Rules.bsv.bsc-ccomp-out
+
+compile_object_fail Cyclic_Urgency_Two_Rules.bsv mkCyclic_Urgency_Two_Rules
+compare_file Cyclic_Urgency_Two_Rules.bsv.bsc-ccomp-out
+
+compile_object_fail Incorrect_Attribute_List1.bsv mkIncorrect_Attribute_List1
+compare_file Incorrect_Attribute_List1.bsv.bsc-ccomp-out
+
+compile_object_fail Incorrect_Attribute_List2.bsv mkIncorrect_Attribute_List2
+compare_file Incorrect_Attribute_List2.bsv.bsc-ccomp-out
+
+compile_object_fail Incorrect_Attribute_List3.bsv mkIncorrect_Attribute_List3
+compare_file Incorrect_Attribute_List3.bsv.bsc-ccomp-out
+
+# This is now allowed
+compile_object_pass Method_Name_in_Attribute.bsv mkMethod_Name_in_Attribute
+compare_file Method_Name_in_Attribute.bsv.bsc-ccomp-out
+
+compile_object_fail Synthesized_Submodule_With_Conflicting_Rules.bsv mkSynthesized_Submodule_With_Conflicting_Rules
+compare_file Synthesized_Submodule_With_Conflicting_Rules.bsv.bsc-ccomp-out
+
+compile_object_pass Two_Attributes_On_Single_Rule.bsv mkTwo_Attributes_On_Single_Rule
+}

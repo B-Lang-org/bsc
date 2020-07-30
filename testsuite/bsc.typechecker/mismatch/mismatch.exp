@@ -1,0 +1,47 @@
+
+compile_fail_error FuncMismatchTooManyArgs.bsv T0081
+compile_fail_error FuncMismatchTooFewArgs.bsv T0081
+
+compile_fail_error FuncMismatchNumArgsMaybeArgN.bsv T0081
+# if type-checking were able to check the arguments first,
+# it would also report optional info about the location of the first mismatch
+#find_n_strings FuncMismatchNumArgsMaybeArgN.bsv.bsc-out {argument 5} 1
+
+compile_fail_error MethMismatchNumArgsMaybeArgN.bsv T0081
+# if type-checking were able to check the arguments first,
+# it would also report optional info about the location of the first mismatch
+# (For methods, we report the 6th argument, because the
+# method is a function whose first argument is the interface)
+#find_n_strings MethMismatchNumArgsMaybeArgN.bsv.bsc-out {argument 6} 1
+
+compile_fail_error FuncMismatchResult.bsv T0080
+
+# If we type-checked arguments before the function, we'd see T0082
+# for this (about mismatch in argument 2).  Instead, we get a mismatch
+# directly on the argument.
+# (Actually, we run into bug 437, in which "True" is reported as a func!
+# and so we see T0080 when we would expected T0020.)
+compile_fail_error FuncMismatchArgN.bsv T0080
+
+compile_fail_error FuncMismatchNoArgsDef.bsv T0083
+
+compile_fail_error FuncMismatchNoArgsUse.bsv T0084
+
+# ----
+
+# Test what happens when "g = f" but the func types don't match
+
+compile_fail_error FuncMismatchAssignTooManyArgs.bsv T0081
+
+compile_fail_error FuncMismatchAssignArgN.bsv T0082
+
+compile_fail_error FuncMismatchAssignNumArgsMaybeArgN.bsv T0081
+# Here we *can* test that the optional info is provided:
+find_n_strings FuncMismatchAssignNumArgsMaybeArgN.bsv.bsc-out {argument 2} 1
+
+# ---
+
+# test mismatches that we don't catch because they involve keeping
+# the substitution, like a->a->a vs Bool->Int->Int
+compile_fail_error FuncMismatchCannotUnify.bsv T0020
+

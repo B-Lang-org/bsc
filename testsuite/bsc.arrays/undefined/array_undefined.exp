@@ -1,0 +1,79 @@
+# Note that there are also tests in bsc.evaluator/undefined/
+
+# -------------------------
+# Test the array update syntax for undefined arrays and undefined indices
+
+compile_verilog_fail_error UpdateUndefinedArray.bsv G0078
+compile_verilog_fail_error UpdateArrayUndefinedIndex.bsv G0079
+
+compile_verilog_fail_error UpdateUndefinedList.bsv G0078
+compile_verilog_fail_error UpdateListUndefinedIndex.bsv G0079
+
+compile_verilog_fail_error UpdateVectorUndefinedIndex.bsv G0079
+# An undefined Vector is a defined Vector containing undefined elements
+compile_verilog_pass UpdateUndefinedVector.bsv
+if { $vtest == 1 } {
+    find_regexp sysUpdateUndefinedVector.v \
+	{\$displayh\(128\'hAAAAAAAAAAAAAAAAAAAAAAAA00000011\)}
+}
+
+# Bit vectors use the array syntax but undefined values are not implemented
+# as arrays (though they could be, similar to how uninitialized values are)
+#
+compile_verilog_pass UpdateUndefinedBitArray.bsv
+# XXX Undefined indexing should still report G0079
+compile_verilog_fail_bug UpdateBitArrayUndefinedIndex.bsv {} {} \
+    {-opt-undetermined-vals}
+# While not correct, check that the output has not changed
+if { $vtest == 1 } {
+    find_regexp sysUpdateBitArrayUndefinedIndex.v {32\'d1 \<\< 32\'hAAAAAAAA}
+}
+
+# -------------------------
+# Test the length function for undefined arrays
+
+compile_verilog_fail_error LengthUndefinedArray.bsv G0080
+compile_verilog_fail_error LengthUndefinedList.bsv G0080
+
+# -------------------------
+# Test selection of undefined arrays or with undefined indices
+
+# Selection from an undefined array returns undefined ('hAAAA)
+#
+test_c_veri_bsv SelectUndefinedArray
+test_c_veri_bsv SelectUndefinedArrayStatic
+
+test_c_veri_bsv SelectUndefinedList
+test_c_veri_bsv SelectUndefinedListStatic
+
+test_c_veri_bsv SelectUndefinedVector
+test_c_veri_bsv SelectUndefinedVectorStatic
+
+# Selection with an undefined index returns undefined
+#
+test_c_veri_bsv SelectArrayUndefinedIndex
+test_c_veri_bsv SelectListUndefinedIndex 
+
+# An undefined result for type Clock or Reset means that the user
+# should get a message about an undefined Clock or Reset.
+#
+compile_verilog_fail_error SelectClockUndefinedIndex.bsv G0047
+compile_verilog_fail_error SelectResetUndefinedList.bsv G0048
+
+# An undefined result for type Action is just noAction.
+#
+compile_verilog_pass SelectActionUndefinedIndex.bsv
+compare_verilog sysSelectActionUndefinedIndex.v
+compile_verilog_pass SelectListActionUndefinedIndex.bsv
+compare_verilog sysSelectListActionUndefinedIndex.v
+
+# -------------------------
+
+# The evaluator uses ICUndet as the return value in a few places where
+# it could just return a unit value "()".
+
+# Test what happens if we try to use the return value of "addRules"
+compile_verilog_pass RuleIUNotUsed.bsv
+
+# -------------------------
+

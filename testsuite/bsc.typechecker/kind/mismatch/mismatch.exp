@@ -1,0 +1,55 @@
+
+# Battery of kind mismatch errors
+
+# This is to test that "found" and "expected" are reported in the right order
+# (Bug 991).  Also, the position and wording (Bug 992, Bug 1418).
+
+# There are basic tests in the parent directory, but these tests are
+# intended to fill out the remaining cases.
+
+# ----------
+
+compile_fail_error ProvisoBaseMismatch_TopLevel.bsv T0027
+# Position is in the base type, and the kind is according to the proviso
+compare_file ProvisoBaseMismatch_TopLevel.bsv.bsc-out
+
+compile_fail_error ProvisoBaseMismatch_Local.bsv T0027
+# Position is in the base type, and the kind is according to the proviso
+compare_file ProvisoBaseMismatch_Local.bsv.bsc-out
+
+compile_fail_error UnionDefValueIsNum_ByParam.bsv T0027
+# Position is the value, and the kind is according to the user
+compare_file UnionDefValueIsNum_ByParam.bsv.bsc-out
+
+compile_fail_error StructDefFieldIsNum_ByParam.bsv T0027
+# Position is the field, and the kind is according to the user
+compare_file StructDefFieldIsNum_ByParam.bsv.bsc-out
+
+compile_fail_error Proviso_NonNumUsedNum.bsv T0026
+# The type should be the full "Bit#(k)" and the kind is non-numeric
+compare_file Proviso_NonNumUsedNum.bsv.bsc-out
+
+compile_fail_error TyConParamTooFew.bsv T0025
+compare_file TyConParamTooFew.bsv.bsc-out
+
+compile_fail_error TyConParamTooFew_InProviso.bsv T0025
+compare_file TyConParamTooFew_InProviso.bsv.bsc-out
+
+# The mismatch is because of defaulting (Bug 922)
+compile_fail_error DefaultProvisoMismatch_TyCon.bsv T0027
+compare_file DefaultProvisoMismatch_TyCon.bsv.bsc-out
+
+# The mismatch is because of defaulting (Bug 922)
+compile_fail_error DefaultBaseMismatch_TyConParam.bsv T0027
+compare_file DefaultBaseMismatch_TyConParam.bsv.bsc-out
+
+# The order of provisos affects whether BSC first determines the var to
+# be numeric or non-numeric.  Bug 1418 is about reporting both positions.
+compile_fail_error ProvisoProvisoMismatch_TopLevel.bsv T0026
+compare_file ProvisoProvisoMismatch_TopLevel.bsv.bsc-out
+
+compile_fail_error ProvisoProvisoMismatch_Local.bsv T0026
+compare_file ProvisoProvisoMismatch_Local.bsv.bsc-out
+
+# ----------
+

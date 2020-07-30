@@ -1,0 +1,34 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EGeneric.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EGeneric error of the bluespec
+-- compiler (Rule {Rulename} uses write methods that conflict in parallel
+--
+-- Error Generated when verilog code is requested for mkTest
+-----------------------------------------------------------------------
+
+
+
+package EGeneric () where
+
+-- import Int
+
+interface Null = {}
+
+mkTest :: Module Null
+mkTest =
+    module
+	x :: Reg (Int 32)
+	x <- mkReg 0
+
+        rules
+	  "Assign x":
+            when True ==> action 
+                            x := 5
+                            x := 6
+
+

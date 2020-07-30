@@ -1,0 +1,9 @@
+Warning: file 'warning-test.2.bin' for memory 'regMem' has duplicate values for addresses 4 to 7.
+regMem[0] = 00000001
+regMem[1] = 00000010
+regMem[2] = 00000011
+regMem[3] = 00000100
+regMem[4] = 00001001
+regMem[5] = 00001010
+regMem[6] = 00001101
+regMem[7] = 00001110

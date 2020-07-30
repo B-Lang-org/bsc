@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EContextReduction2.bs
+Error: "EContextReduction2.bs", line 49, column 36: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Eq EContextReduction2.MyType1

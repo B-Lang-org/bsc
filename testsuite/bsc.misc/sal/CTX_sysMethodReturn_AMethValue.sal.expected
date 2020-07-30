@@ -1,0 +1,17 @@
+CTX_sysMethodReturn_AMethValue : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# inst_s : CTX_mkMethodReturn_AMethValue_Sub!STATE #] ;
+  
+  ctor : STATE = (# inst_s := CTX_mkMethodReturn_AMethValue_Sub!ctor #) ;
+  
+  meth_m (state0 : STATE) : [ STATE, Bit{1}!T ] =
+    LET act1 : [ CTX_mkMethodReturn_AMethValue_Sub!STATE, Bit{1}!T ] =
+	  CTX_mkMethodReturn_AMethValue_Sub!meth_m(state0.inst_s)
+    IN LET state1 : STATE = state0 WITH .inst_s := act1.1
+    IN LET def_m__avValue1 : Bit{1}!T = act1.2
+    IN ( state1, def_m__avValue1 ) ;
+  
+  meth_RDY_m (state0 : STATE) : BOOLEAN = TRUE ;
+  
+END

@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "include_Test2.bsv", line 2, column 1: (S0034)
+  Cannot find the file `include_file1.bsv' to be included

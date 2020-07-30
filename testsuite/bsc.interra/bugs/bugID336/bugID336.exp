@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail Test.bsv mkTestbench 
+compare_file Test.bsv.bsc-vcomp-out
+}

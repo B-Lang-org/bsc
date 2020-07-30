@@ -1,0 +1,13 @@
+# Nikhil's Traffic Light Tutorial
+
+compile_pass TL0.bs
+compile_pass TL1.bs
+compile_pass TL2.bs
+compile_pass TL3.bs
+compile_pass TL4.bs
+compile_pass TL5.bs
+compile_pass TL6.bs
+compile_pass TL7.bs
+compile_pass TL8.bs
+compile_pass TL9.bs
+

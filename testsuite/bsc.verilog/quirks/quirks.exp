@@ -1,0 +1,18 @@
+compile_verilog_pass UnaryOps.bsv sysUnaryOps
+link_verilog_pass sysUnaryOps.v sysUnaryOps
+
+compile_verilog_pass SRAZero.bsv 
+compare_verilog mkSRAZero.v
+
+compile_verilog_pass ZeroWidth.bsv mkTst
+link_verilog_pass {mkTst.v module_selectThread.v module_selectThread2.v}  mkTst
+
+# --------------------
+# Test "aQExp" translation of non-constant bit extraction
+
+test_veri_only_bsv NonConstantBitExtraction
+
+# --------------------
+
+test_c_veri_bsv SRAConst
+test_c_veri_bsv SRADynamic

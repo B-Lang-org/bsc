@@ -1,0 +1,13 @@
+*.h
+*.c
+*.o
+*.bi
+*.bo
+*.bsc-out
+*.bsc-ccomp-out
+*.diff-out
+*.final-state
+sysGCD
+sysLCG
+sysMips
+sysIfcArg

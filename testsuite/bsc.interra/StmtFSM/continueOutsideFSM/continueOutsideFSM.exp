@@ -1,0 +1,2 @@
+compile_fail_error continueOutsideFSM.bsv "P0164" 1 "-verilog"
+

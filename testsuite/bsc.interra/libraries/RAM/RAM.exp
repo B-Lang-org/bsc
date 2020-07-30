@@ -1,0 +1,4 @@
+test_c_veri_worker TestRAM mkTestbench_Ram {} "bsv" 1 1 "mkTestbench_Ram.v.out.expected" "" ""
+
+test_c_veri_worker TagRam mkTestbench_TagRam {} "bsv" 1 1 "mkTestbench_TagRam.v.out.expected" "" ""
+

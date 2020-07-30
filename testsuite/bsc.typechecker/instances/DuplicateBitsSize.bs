@@ -1,0 +1,7 @@
+package DuplicateBitsSize() where
+
+-- this duplicates a Prelude instance
+instance Bits (Int n) (TAdd n 1) where
+  pack   i = 0
+  unpack b = fromInteger 0
+

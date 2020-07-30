@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameNonAlphanum2.bsv
+code generation for sysRuleNameNonAlphanum2 starts
+Error: "RuleNameNonAlphanum2.bsv", line 9, column 29: (G0054)
+  Rule `r1' was referenced in a rule attribute before it was defined.
+  During elaboration of `sysRuleNameNonAlphanum2' at
+  "RuleNameNonAlphanum2.bsv", line 2, column 8.

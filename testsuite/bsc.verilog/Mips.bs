@@ -1,0 +1,33 @@
+package Mips(sysMips) where
+import RegFile
+import ActionSeq
+import Vector
+import MipsInstr	-- XXX
+import MipsDefs
+import MipsCPU
+import MipsROM
+
+{-# verilog sysMips #-}
+sysMips :: Module Empty
+sysMips = 
+    module
+	ram :: MRAM <- mkRAM
+	rom :: MROM <- sysMipsROM
+	cpu :: ActionSeq <- sysMipsCPU rom ram
+	-- input number in memory word 0, output in memory word 0
+	prologue :: ActionSeq <- actionSeq $ ram.write 0 15 :> nil
+	epilogue :: ActionSeq <- actionSeq $ displayHex (ram.read 0):> (do {t <- $time; $display "%t" t;}) :> $finish 0 :> nil
+	prog :: ActionSeq <- seqOfActionSeq $ prologue :> cpu :> epilogue :> nil
+        rules
+	    when True
+	     ==> prog.start
+
+mkRAM :: Module MRAM
+mkRAM =
+    module
+	-- 64 kbyte memory
+	arr :: RegFile Address Value
+	arr <- mkRegFile 0 0x3fff
+        interface
+	    write a d = arr.upd a d
+	    read a = arr.sub a

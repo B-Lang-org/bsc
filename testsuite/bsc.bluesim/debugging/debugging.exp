@@ -1,0 +1,33 @@
+if {$ctest == 1} {
+    compile_object_pass TbGCD.bsv mkTbGCD
+    link_objects_pass {mkTbGCD mkGCD} mkTbGCD
+
+# Disable these tests until their replacement functionality
+# is ready in bluetcl.
+
+#    sim_output mkTbGCD "-r"
+#    copy mkTbGCD.out mkTbGCD_r.out
+#    compare_file mkTbGCD_r.out mkTbGCD_r.out.expected
+
+#    sim_output mkTbGCD "-ss -c"
+#    copy mkTbGCD.out mkTbGCD_ss_c.out
+#    compare_file mkTbGCD_ss_c.out mkTbGCD_ss_c.out.expected
+
+    compile_object_pass RF.bsv mkRF
+    link_objects_pass {mkRF} mkRF
+
+#    sim_output mkRF "-p 7 -r -s -cc"
+#    copy mkRF.out mkRF_p7_r_s_cc.out
+#    compare_file mkRF_p7_r_s_cc.out mkRF_p7_r_s_cc.out.expected
+
+#    sim_output mkRF "-ss -c"
+#    copy mkRF.out mkRF_ss_c.out
+#    compare_file mkRF_ss_c.out mkRF_ss_c.out.expected
+
+    compile_object_pass MCDTest.bsv mkMCDTest
+    link_objects_pass {mkMCDTest} mkMCDTest
+
+#    sim_output mkMCDTest "-r -cc"
+#    copy mkMCDTest.out mkMCDTest_r_cc.out
+#    compare_file mkMCDTest_r_cc.out mkMCDTest_r_cc.out.expected
+}

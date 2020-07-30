@@ -1,0 +1,4 @@
+checking package dependencies
+compiling UnionDefValueIsNum_ByParam.bsv
+Error: "UnionDefValueIsNum_ByParam.bsv", line 4, column 4: (T0027)
+  The numeric type `a' was found where a value type was expected.

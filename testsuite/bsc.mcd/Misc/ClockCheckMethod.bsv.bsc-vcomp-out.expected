@@ -1,0 +1,16 @@
+checking package dependencies
+compiling ClockCheckMethod.bsv
+code generation for sysClockCheckMethod starts
+Error: "ClockCheckMethod.bsv", line 6, column 8: (G0007)
+  Reference across clock domain in method `out'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	r.read at "ClockCheckMethod.bsv", line 13, column 11,
+    Clock domain 2:
+      c:
+	the_s.read at "ClockCheckMethod.bsv", line 13, column 13,
+  During elaboration of the interface method `out' at "ClockCheckMethod.bsv",
+  line 6, column 8.
+  During elaboration of `sysClockCheckMethod' at "ClockCheckMethod.bsv", line
+  6, column 8.

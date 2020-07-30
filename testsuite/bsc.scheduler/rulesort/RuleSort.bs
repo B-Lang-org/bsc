@@ -1,0 +1,22 @@
+package RuleSort(sysRuleSort) where
+
+-- this is a test case for Bug 123 (bad sort order on the rules)
+import Counter
+
+print :: String -> Action
+print s = $display s
+
+sysRuleSort :: Module Empty
+sysRuleSort = 
+  module
+    r :: Reg (Bit 8) <- mkReg 0
+    c :: Counter 8 <- mkCounter 0
+    
+    rules
+      "zero": when (c.value == 0) ==>  print "counter is zero"
+      "inc": when (c.value < 10) ==>
+       action
+         c.up
+         print "counter up"
+      "five": when (c.value == 5) ==> print "counter is five"
+      "ten": when (c.value == 10) ==> $finish 0

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling SuppressTest3.bsv
+code generation for sysWarnings starts
+Verilog file created: sysWarnings.v
+All packages are up to date.

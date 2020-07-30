@@ -1,0 +1,46 @@
+package ResourceSixRulesFail(sysResourceSixRulesFail) where
+
+import RegFile
+import List
+
+-- We are attempting to access six elements of an array simultaneously
+-- in one rule, but Arrays only permit five simultaneous subs.
+-- Expect to fail with a resource allocation error (unless
+-- we compile with -resource-simple, in which case the compiler should
+-- magically arbitrate between the rules
+
+type Index = Bit 8
+type Value = Bit 8
+
+sysResourceSixRulesFail :: Module Empty
+sysResourceSixRulesFail =
+      module
+        r1 :: Reg Value <- mkRegU
+        r2 :: Reg Value <- mkRegU
+        r3 :: Reg Value <- mkRegU
+        r4 :: Reg Value <- mkRegU
+        r5 :: Reg Value <- mkRegU
+        r6 :: Reg Value <- mkRegU
+
+	a :: RegFile Index Value
+	a <- mkRegFileFull
+        rules
+            "Bogus1":
+               when True
+                ==> r1 := (a.sub 1) + 1 
+            "Bogus2":
+               when True
+                ==> r2 := (a.sub 2) + 2 
+            "Bogus3":
+               when True
+                ==> r3 := (a.sub 3) + 3 
+            "Bogus4":
+               when True
+                ==> r4 := (a.sub 4) + 4 
+            "Bogus5":
+               when True
+                ==> r5 := (a.sub 5) + 5 
+            "Bogus6":
+               when True
+                ==> r6 := (a.sub 6) + 6 
+

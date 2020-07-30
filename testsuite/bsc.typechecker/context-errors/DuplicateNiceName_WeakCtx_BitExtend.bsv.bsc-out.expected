@@ -1,0 +1,14 @@
+checking package dependencies
+compiling DuplicateNiceName_WeakCtx_BitExtend.bsv
+Error: "DuplicateNiceName_WeakCtx_BitExtend.bsv", line 10, column 18: (T0065)
+  The provisos for this expression are too general.
+  Given type:
+    function Bit#(z) f(Bit#(a__) x1, Bit#(x) x2)
+  With the following provisos:
+    Add#(x, b__, z)
+  The following additional proviso is needed:
+    Add#(c__, 1, x)
+  This proviso was introduced by an extend or truncate operation, which
+  requires that the extended size be larger.
+  The extend or truncate occurs in or at the following locations:
+    "DuplicateNiceName_WeakCtx_BitExtend.bsv", line 13, column 17

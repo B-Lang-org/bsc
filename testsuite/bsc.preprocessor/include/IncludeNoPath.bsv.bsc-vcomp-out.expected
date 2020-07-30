@@ -1,0 +1,6 @@
+checking package dependencies
+compiling IncludeNoPath.bsv
+code generation for sysIncludeNoPath starts
+Compilation message: "./defines1", line 1, column 11: defines1
+Verilog file created: sysIncludeNoPath.v
+All packages are up to date.

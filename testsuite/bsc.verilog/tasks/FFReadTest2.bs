@@ -1,0 +1,14 @@
+package FFReadTest2(sysFFReadTest2) where
+
+sysFFReadTest2 :: Module Empty
+sysFFReadTest2 = 
+  module
+    r :: Reg (Bit 16) <- mkReg 7
+    done :: Reg (Bool) <- mkReg False
+
+    rules 
+      when done ==> $finish 0
+      when not done ==> 
+        action
+          $display "0x%h" r
+          done := True

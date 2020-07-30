@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail Sizebug.bs top
+compare_file Sizebug.bs.bsc-vcomp-out
+}

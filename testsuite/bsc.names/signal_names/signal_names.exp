@@ -1,0 +1,27 @@
+
+proc check_ats { filename_root } {
+    global vtest
+
+    if {$vtest == 1} {
+	set filename "$filename_root.bsv"
+	set output [make_bsc_vcomp_output_name $filename]
+	compile_verilog_pass $filename {} {-dATS}
+	compare_file_filter_ids $output
+    }
+}
+
+check_ats FFunc
+check_ats Method
+check_ats MethodActionValue
+check_ats MethodRead
+check_ats NoInline
+check_ats TaskValue
+
+# XXX ASPort
+# XXX ASParam
+# XXX ASDef
+# XXX ASInt
+# XXX ASReal
+# XXX ASStr
+# XXX ASAny
+# XXX AMGate

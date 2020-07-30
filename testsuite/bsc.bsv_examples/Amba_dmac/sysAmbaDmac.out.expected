@@ -1,0 +1,48 @@
+                 164: Reset complete
+                 164: Fill Memory Bank 0 (Incrementing Pattern)
+                4476: Fill Memory Bank 1 (Constant Pattern)
+                8788: xfer 100 from 0 to 1
+               10612: xfer 200 from 1 to 0
+               14028: xfer 100 from 0 to 1
+               15852: xfer 100 from 2 to 1
+               29044: xfer 100 from 2 to 1
+               41940: xfer 100 from 0 to 1
+               43764: xfer 200 from 1 to 0
+               44884:    change wait-state
+               45116: xfer 100 from 2 to 1
+               51556: xfer 100 from 0 to 1
+               54972: xfer 200 from 1 to 0
+               57004:    change wait-state
+               57220: xfer 100 from 2 to 1
+               70236: xfer 100 from 0 to 1
+               75244: xfer 200 from 1 to 0
+               78188:    change wait-state
+               78412: xfer 100 from 2 to 1
+               97732: xfer 100 from 0 to 1
+              104356: xfer 200 from 1 to 0
+              108212:    change wait-state
+              108444: xfer 100 from 2 to 1
+              134316: xfer 100 from 0 to 1
+              142532: xfer 200 from 1 to 0
+              147300:    change wait-state
+              147540: xfer 100 from 2 to 1
+              179804: xfer 100 from 0 to 1
+              189612: xfer 200 from 1 to 0
+              195292:    change wait-state
+              195540: xfer 100 from 2 to 1
+              233684: xfer 100 from 0 to 1
+              245108: xfer 200 from 1 to 0
+              251700:    change wait-state
+              251908: xfer 100 from 2 to 1
+              296876: xfer 100 from 0 to 1
+              309892: xfer 200 from 1 to 0
+              317396:    change wait-state
+              317612: xfer 100 from 2 to 1
+              369028: xfer 100 from 0 to 1
+              383636: xfer 200 from 1 to 0
+              392052:    change wait-state
+              392276: xfer 100 from 2 to 1
+              449996:              fillmem
+              450204: Destination Error Test
+              450516: Source Error Test
+End of Test

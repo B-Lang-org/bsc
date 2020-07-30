@@ -1,0 +1,5 @@
+*.o
+*.bi
+*.bo
+*.bsc-out
+*.diff-out

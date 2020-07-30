@@ -1,0 +1,45 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_never_unknown_assert_vunit (assert_never_unknown_assert)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_NEVER_UNKNOWN_P = always (
+           reset_n && xzcheck_enable && qualifier -> 
+           !isunknown(test_expr)); 
+
+  A_ASSERT_NEVER_UNKNOWN_P:
+  assert ASSERT_NEVER_UNKNOWN_P
+  report "VIOLATION: ASSERT_NEVER_UNKNOWN Checker Fires : test_expr contains X or Z";
+
+}
+
+vunit assert_never_unknown_assume_vunit (assert_never_unknown_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NEVER_UNKNOWN_P = always (
+           reset_n && xzcheck_enable && qualifier -> 
+           !isunknown(test_expr)); 
+                                                                                                                                                 
+  M_ASSERT_NEVER_UNKNOWN_P:
+  assume ASSERT_NEVER_UNKNOWN_P;
+                                                                                                                             
+}
+
+vunit assert_never_unknown_cover_vunit (assert_never_unknown_cover)
+{
+  default clock = (posedge clk);
+                                                                                                                                                 
+  cover_qualifier:
+  cover {OVL_COVER_BASIC_ON && reset_n && qualifier}
+  report "COVERAGE REPORT: ASSERT_NEVER_UNKNOWN Checker: qualifier covered";
+                                                                                      
+  cover_test_expr_change:
+  cover {OVL_COVER_SANITY_ON && prev(reset_n) && reset_n &&
+         qualifier && (test_expr != prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_NEVER_UNKNOWN Checker: test_expr_change covered";
+
+}
+

@@ -1,0 +1,4 @@
+set here [file join [absolute $srcdir] $subdir]
+source $here/../common.tcl
+
+test_ovl  assertFifoIndex1  assert_fifo_index.vlib

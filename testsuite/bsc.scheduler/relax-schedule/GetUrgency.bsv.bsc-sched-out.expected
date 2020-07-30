@@ -1,0 +1,88 @@
+checking package dependencies
+compiling ./BypassFIFO.bsv
+compiling GetUrgency.bsv
+code generation for mkGetTest starts
+=== schedule:
+parallel: [esposito: [RL_enq -> [],
+		      RL_bypass_fifo_doResult -> [],
+		      get -> [],
+		      RL_bypass_fifo_doUpdate_enq -> [],
+		      RL_bypass_fifo_doUpdate_deq -> []]]
+order: [RL_enq,
+	RL_bypass_fifo_doResult,
+	get,
+	RL_bypass_fifo_doUpdate_enq,
+	RL_bypass_fifo_doUpdate_deq]
+
+-----
+
+=== resources:
+[(bypass_fifo_deqw.whas, [(bypass_fifo_deqw.whas, 1)]),
+ (bypass_fifo_deqw.wset, [(bypass_fifo_deqw.wset, 1)]),
+ (bypass_fifo_enqw.wget, [(bypass_fifo_enqw.wget, 1)]),
+ (bypass_fifo_enqw.whas, [(bypass_fifo_enqw.whas, 1)]),
+ (bypass_fifo_enqw.wset, [(bypass_fifo_enqw.wset 16'd0, 1)]),
+ (bypass_fifo_result.wget, [(bypass_fifo_result.wget, 1)]),
+ (bypass_fifo_result.whas, [(bypass_fifo_result.whas, 1)]),
+ (bypass_fifo_result.wset,
+  [(if bypass_fifo_the_fifof_i_notEmpty_OR_bypass_fif_ETC___d20 then
+      bypass_fifo_result.wset IF_bypass_fifo_the_fifof_i_notEmpty_THEN_bypas_ETC___d6,
+    1)]),
+ (bypass_fifo_the_fifof.deq,
+  [(if bypass_fifo_deqw_whas_AND_bypass_fifo_the_fifo_ETC___d11 then bypass_fifo_the_fifof.deq, 1)]),
+ (bypass_fifo_the_fifof.enq,
+  [(if bypass_fifo_enqw_whas_AND_bypass_fifo_the_fifo_ETC___d10 then
+      bypass_fifo_the_fifof.enq x__h367,
+    1)]),
+ (bypass_fifo_the_fifof.first, [(bypass_fifo_the_fifof.first, 1)]),
+ (bypass_fifo_the_fifof.i_notEmpty, [(bypass_fifo_the_fifof.i_notEmpty, 1)]),
+ (bypass_fifo_the_fifof.i_notFull, [(bypass_fifo_the_fifof.i_notFull, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_get CF [RDY_get, get], get C get]
+[]
+[(get, [(Left RL_enq), (Left RL_bypass_fifo_doResult)])]
+[]
+
+-----
+
+Schedule dump file created: mkGetTest.sched
+=== Generated schedule for mkGetTest ===
+
+Method schedule
+---------------
+Method: get
+Ready signal: (bypass_fifo_the_fifof.i_notEmpty || bypass_fifo_enqw.whas) &&
+	      bypass_fifo_result.whas
+Conflicts: get
+ 
+Rule schedule
+-------------
+Rule: bypass_fifo_doResult
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: bypass_fifo_doUpdate_enq
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: bypass_fifo_doUpdate_deq
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: enq
+Predicate: bypass_fifo_the_fifof.i_notFull
+Blocking rules: (none)
+ 
+Logical execution order: enq,
+			 bypass_fifo_doResult,
+			 get,
+			 bypass_fifo_doUpdate_enq,
+			 bypass_fifo_doUpdate_deq
+
+=========================================
+Verilog file created: mkGetTest.v
+All packages are up to date.

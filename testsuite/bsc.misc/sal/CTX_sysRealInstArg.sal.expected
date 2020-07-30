@@ -1,0 +1,8 @@
+CTX_sysRealInstArg : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# inst_i : CTX_mkRealInstArg_Sub!STATE #] ;
+  
+  ctor : STATE = (# inst_i := CTX_mkRealInstArg_Sub!ctor(0.0) #) ;
+  
+END

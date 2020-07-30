@@ -1,0 +1,16 @@
+test_c_veri_worker JoinServers mkTestbench_JoinServers {} "bsv" 1 1 "mkTestbench_JoinServers.v.out.expected" "" ""
+
+test_c_veri_worker JoinServersBC mkTestbench_JoinServersBC {} "bsv" 1 1 "mkTestbench_JoinServersBC.v.out.expected" "" ""
+
+test_c_veri_worker MkRequestBuffer mkTestbench_MkRequestBuffer {} "bsv" 1 1 "mkTestbench_MkRequestBuffer.v.out.expected" "" ""
+
+test_c_veri_worker MkRequestResponseBuffer mkTestbench_MkRequestResponseBuffer {} "bsv" 1 1 "mkTestbench_MkRequestResponseBuffer.v.out.expected" "" ""
+
+test_c_veri_worker MkRequestResponseBuffer1 mkTestbench_MkRequestResponseBuffer1 {} "bsv" 1 1 "mkTestbench_MkRequestResponseBuffer1.v.out.expected" "" ""
+
+test_c_veri_worker MkResponseBuffer mkTestbench_MkResponseBuffer {} "bsv" 1 1 "mkTestbench_MkResponseBuffer.v.out.expected" "" ""
+
+test_c_veri_worker MkSizedRequestResponseBuffer mkTestbench_MkSizedRequestResponseBuffer {} "bsv" 1 1 "mkTestbench_MkSizedRequestResponseBuffer.v.out.expected" "" ""
+
+test_c_veri_worker SplitServer mkTestbench_SplitServer {} "bsv" 1 1 "mkTestbench_SplitServer.v.out.expected" "" ""
+

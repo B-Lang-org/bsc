@@ -1,0 +1,59 @@
+# Tests on the inferKinds step that happens at the beginning of typechecking
+# to determine the kinds of top-level declared types (data, type, ifcs)
+
+# The kinds are mutually determined from all top-level declarations.
+# This is also where partial kind info is used.
+
+# -----
+
+# Test for the error message when param is grounded to *, but used as #
+# (This message could be improved, see enhancement #XXX.)
+compile_fail_error InterfaceGroundedIncorrectly.bsv T0027
+
+# Test that the same design compiles if a type alias is used to provide
+# more info for kind inference
+compile_pass InterfaceInferedFromTypedef.bsv
+
+# Test that the same design compiles if partial kind info is used to
+# provide more info
+compile_pass InterfacePartialKind.bsv
+
+# -----
+
+# More tests on partial kinds
+
+# Test the error message when partial kind info is contradicted
+compile_fail_error InterfaceWrongPartialKind.bsv T0026
+
+# Test partial kind with other un-specified parameters
+compile_pass InterfacePartialKindManyParams.bsv
+
+# Contrived test that partial kind makes no assumption about the kind
+# of the result of application
+compile_pass TypedefNumericResult.bsv
+
+# -----
+
+# Tests for subUnion and subStruct
+
+# A struct inside a union inside a struct
+compile_pass SubUnionSubStructPartialKind.bsv
+# XXX look for ":: # -> * -> # -> * -> *) a b c d" in the .bi file?
+
+# -----
+
+# Test that partial kind can be added to classes
+
+compile_pass ClassPartialKind.bsv
+
+# -----
+
+# Test that a type alias can shadow an existing type declaration
+# (Bug 388)
+
+compile_pass TypeAliasShadow.bsv
+
+# XXX Test the same for data declaration?
+
+# -----
+

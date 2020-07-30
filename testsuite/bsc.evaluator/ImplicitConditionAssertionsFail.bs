@@ -1,0 +1,15 @@
+package ImplicitConditionAssertionsFail(sysImplicitConditionAssertionsFail) where
+
+import FIFO
+
+-- Dequeuing a FIFO requires that the fifo be not empty, an implicit condition.
+-- Expect the assertion to fail.
+
+sysImplicitConditionAssertionsFail :: Module Empty
+sysImplicitConditionAssertionsFail =
+  module
+    q :: FIFO Bool
+    q <- mkFIFO
+    rules
+        {-# ASSERT no implicit conditions #-}
+        "bogus": when True ==> q.deq

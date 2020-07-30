@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass WCycleDrop1.bs mkWCycleDrop1
+compare_file WCycleDrop1.bs.bsc-vcomp-out
+}

@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameInRJoin1.bsv
+code generation for sysRuleNameInRJoin1 starts
+Warning: "RuleNameInRJoin1.bsv", line 16, column 15: (G0021)
+  According to the generated schedule, rule `r2' can never fire.
+Verilog file created: sysRuleNameInRJoin1.v
+All packages are up to date.

@@ -1,0 +1,18 @@
+checking package dependencies
+compiling StaticAssert.bsv
+code generation for sysStaticAssert starts
+[TIME] elab progress: Elaborating module `sysStaticAssert'
+[TIME] elab progress: (Loop) Elaborating module
+[TIME] elab progress: (Loop.staticAssert) Elaborating module
+[TIME] elab progress: (Loop.staticAssert) Finished module
+[TIME] elab progress: (Loop.staticAssert) Elaborating module
+[TIME] elab progress: (Loop.staticAssert) Finished module
+[TIME] elab progress: (Loop.staticAssert) Elaborating module
+[TIME] elab progress: (Loop.staticAssert) Finished module
+[TIME] elab progress: (Loop.staticAssert) Elaborating module
+[TIME] elab progress: (Loop.staticAssert) Finished module
+[TIME] elab progress: (Loop) Finished module
+[TIME] elab progress: Elaborating interface
+[TIME] elab progress: Finished elaborating module `sysStaticAssert'
+Verilog file created: sysStaticAssert.v
+All packages are up to date.

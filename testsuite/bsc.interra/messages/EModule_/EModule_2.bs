@@ -1,0 +1,38 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EModule_2.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EModule_ error of the bluespec
+-- compiler (Trying to generate a module for _)
+--
+-- Error generated when code is requested for myReg
+-----------------------------------------------------------------------
+
+
+package EModule_2 () where
+
+interface VReg n = 
+    set :: Bit n -> PrimAction 
+    get :: Bit n 
+
+
+vMkReg :: Bit n -> Module (VReg n) 
+vMkReg v when v==1 = module verilog "RegN" (("width", (valueOf n))) "CLK" "RST" (("init", v )) { 
+                      get = "get"{reg}; 
+                      set = "val"{reg} "SET"; } 
+                    [ get <> get, get < set, set << set ] 
+
+
+mkReg :: (Bits a sa) => a -> Module (Reg a) 
+mkReg v = module 
+            r :: VReg sa 
+            r <- vMkReg (pack v) 
+            interface 
+              _read = unpack r.get 
+              _write x = fromPrimAction (r.set (pack x))
+
+myReg :: Module (Reg (Bit 5))
+myReg = mkReg 0

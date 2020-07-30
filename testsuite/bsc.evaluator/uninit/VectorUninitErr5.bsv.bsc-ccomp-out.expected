@@ -1,0 +1,47 @@
+checking package dependencies
+compiling VectorUninitErr5.bsv
+Warning: "VectorUninitErr5.bsv", line 8, column 3: (P0042)
+  Assignment to `v' missing from some paths
+code generation for sysVectorUninitErr4 starts
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.
+Error: "VectorUninitErr5.bsv", line 6, column 24: (G0028)
+  `v' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "VectorUninitErr5.bsv",
+  line 12, column 8.
+  During elaboration of `sysVectorUninitErr4' at "VectorUninitErr5.bsv", line
+  4, column 8.

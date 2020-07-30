@@ -1,0 +1,5 @@
+compile_fail EBadLexChar1.bs
+compare_file EBadLexChar1.bs.bsc-out
+
+compile_fail EBadLexChar2.bs
+compare_file EBadLexChar2.bs.bsc-out

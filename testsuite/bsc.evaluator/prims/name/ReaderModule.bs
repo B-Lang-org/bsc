@@ -1,0 +1,28 @@
+package ReaderModule(ReaderModule, ask, runR) where
+
+data ReaderModule r i = R (r -> Module i)
+
+runR :: ReaderModule r i -> r -> Module i
+runR (R _x) = _x
+
+ask :: ReaderModule r r
+ask = R (\_r -> return _r)
+
+instance Monad (ReaderModule r) where
+  return _i = R (const $ return _i)
+  bind _x _f = R (\_r -> do let _n = primGetParamName _f
+                            -- messageM $ primGetNameString _n
+                            _x' <- runR (setStateName _n _x) _r
+                            runR (_f _x') _r
+                 )
+
+instance MonadFix (ReaderModule r) where
+  mfix :: (i -> ReaderModule r i) -> ReaderModule r i
+  mfix _f = R (\_r -> let _f' :: i -> Module i
+                          _f' _i = runR (_f _i) _r
+                      in mfix _f'
+              )
+
+instance (IsModule (ReaderModule r) Id__) where
+  liftModule _m = R (const _m)
+  liftModuleOp _f _x = R (\_r -> _f (runR _x _r))

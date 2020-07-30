@@ -1,0 +1,94 @@
+result = 43690
+computing gcd(3,7)
+result = 1
+computing gcd(6,9)
+result = 3
+computing gcd(9,11)
+result = 1
+computing gcd(12,13)
+result = 1
+computing gcd(15,15)
+result = 15
+computing gcd(18,17)
+result = 1
+computing gcd(21,19)
+result = 1
+computing gcd(24,21)
+result = 3
+computing gcd(27,23)
+result = 1
+computing gcd(30,25)
+result = 5
+computing gcd(33,27)
+result = 3
+computing gcd(36,29)
+result = 1
+computing gcd(39,31)
+result = 1
+computing gcd(42,33)
+result = 3
+computing gcd(45,35)
+result = 5
+computing gcd(48,37)
+result = 1
+computing gcd(51,39)
+result = 3
+computing gcd(54,41)
+result = 1
+computing gcd(57,43)
+result = 1
+computing gcd(60,45)
+result = 15
+computing gcd(63,47)
+result = 1
+computing gcd(66,49)
+result = 1
+computing gcd(69,51)
+result = 3
+computing gcd(72,53)
+result = 1
+computing gcd(75,55)
+result = 5
+computing gcd(78,57)
+result = 3
+computing gcd(81,59)
+result = 1
+computing gcd(84,61)
+result = 1
+computing gcd(87,63)
+result = 3
+computing gcd(90,65)
+result = 5
+computing gcd(93,67)
+result = 1
+computing gcd(96,69)
+result = 3
+computing gcd(99,71)
+result = 1
+computing gcd(102,73)
+result = 1
+computing gcd(105,75)
+result = 15
+computing gcd(108,77)
+result = 1
+computing gcd(111,79)
+result = 1
+computing gcd(114,81)
+result = 3
+computing gcd(117,83)
+result = 1
+computing gcd(120,85)
+result = 5
+computing gcd(123,87)
+result = 3
+computing gcd(126,89)
+result = 1
+computing gcd(129,91)
+result = 1
+computing gcd(132,93)
+result = 3
+computing gcd(135,95)
+result = 5
+computing gcd(138,97)
+result = 1
+computing gcd(141,99)

@@ -1,0 +1,6 @@
+compile_verilog_pass Disjoint.bsv mkTest
+compare_verilog mkTest.v
+
+compile_verilog_pass DisjointConflict.bsv mkCTest
+compare_verilog mkCTest.v
+

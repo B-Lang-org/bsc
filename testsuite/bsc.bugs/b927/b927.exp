@@ -1,0 +1,4 @@
+# Test that there is no typechecker error
+# (specifically about ambiguous type variables)
+compile_pass Bug927.bsv
+

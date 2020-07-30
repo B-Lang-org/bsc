@@ -1,0 +1,13 @@
+package Init128Bit (sysInit128Bit) where
+
+sysInit128Bit :: Module Empty
+sysInit128Bit = 
+  module 
+    r :: Reg (Bit 128) <- mkReg 0xfedcba98765432100123456789abcdef
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

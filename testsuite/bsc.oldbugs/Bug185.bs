@@ -1,0 +1,13 @@
+package Bug185(sysBug185) where
+
+sysBug185 :: Module Empty
+sysBug185 =
+    module
+	r :: Reg Bool
+	r <- mkRegU
+	done :: Reg Bool
+	done <- mkRegU
+
+        rules
+	    when not done ==> r := True
+            when done ==> r := False

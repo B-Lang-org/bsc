@@ -1,0 +1,18 @@
+package ArrayFileTest() where
+
+import RegFile
+import RegFile
+
+sysArrayFileTest :: Module Empty
+sysArrayFileTest = 
+  module 
+    counter :: Reg (Bit 4) <- mkReg 0
+    arr :: RegFile (Bit 4) (Bit 64) <- (mkRegFileLoad "mem.data" 0 15)
+
+    rules
+      when True ==>
+         action  
+           $display "Address: %h Data: %h" counter (arr.sub counter)
+           if (counter == 15) then $finish 0 else noAction
+      when True ==> counter := counter + 1
+  

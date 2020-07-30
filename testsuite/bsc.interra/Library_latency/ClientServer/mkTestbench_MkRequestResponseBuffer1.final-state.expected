@@ -1,0 +1,31 @@
+Cycle Number:   0, Writing Data On Client Side:   0
+Cycle Number:   0, Writing Data On Server Side:   0
+Cycle Number =   1, Value read from Server Side=   0
+Cycle Number =   1, Value read from Client Side=   0
+Cycle Number:   2, Writing Data On Client Side:   5
+Cycle Number:   2, Writing Data On Server Side:   1
+Cycle Number =   3, Value read from Server Side=   5
+Cycle Number =   3, Value read from Client Side=   1
+Cycle Number:   4, Writing Data On Client Side:  10
+Cycle Number:   4, Writing Data On Server Side:   2
+Cycle Number =   5, Value read from Server Side=  10
+Cycle Number =   5, Value read from Client Side=   2
+Cycle Number:   6, Writing Data On Client Side:  15
+Cycle Number:   6, Writing Data On Server Side:   3
+Cycle Number =   7, Value read from Server Side=  15
+Cycle Number =   7, Value read from Client Side=   3
+Cycle Number:   8, Writing Data On Client Side:  20
+Cycle Number:   8, Writing Data On Server Side:   4
+Cycle Number =   9, Value read from Server Side=  20
+Cycle Number =   9, Value read from Client Side=   4
+Simulation Passes
+Final state:
+top:
+  counter = 0x0b
+  fail = False
+  in_data1 = 0x06
+  in_data2 = 0x1e
+  out_data1 = 0x05
+  out_data2 = 0x19
+  the_tx_datafifo_f = { 0x05 }
+  the_tx_datafifo_f_1 = { 0x19 }

@@ -1,0 +1,8 @@
+module gen_arith (CLK,RST_N);
+ input CLK, RST_N; 
+ reg [128:0] a;
+ reg [128:0] b;
+ reg [1:0] cnt;
+ reg [11:0] vectors;
+ initial vectors = 0;
+

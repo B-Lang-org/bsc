@@ -1,0 +1,25 @@
+checking package dependencies
+compiling RuleNameInForLoop3.bsv
+code generation for sysRuleNameInForLoop3 starts
+Warning: "RuleNameInForLoop3.bsv", line 4, column 8: (G0010)
+  Rule "r2_1" was treated as more urgent than "r4_1". Conflicts:
+    "r2_1" cannot fire before "r4_1": calls to rg_1.write vs. rg_1.read
+    "r4_1" cannot fire before "r2_1": calls to rg_1.write vs. rg_1.read
+Warning: "RuleNameInForLoop3.bsv", line 4, column 8: (G0010)
+  Rule "r2_2" was treated as more urgent than "r4_2". Conflicts:
+    "r2_2" cannot fire before "r4_2": calls to rg_2.write vs. rg_2.read
+    "r4_2" cannot fire before "r2_2": calls to rg_2.write vs. rg_2.read
+Warning: "RuleNameInForLoop3.bsv", line 4, column 8: (G0010)
+  Rule "r2_3" was treated as more urgent than "r4_3". Conflicts:
+    "r2_3" cannot fire before "r4_3": calls to rg_3.write vs. rg_3.read
+    "r4_3" cannot fire before "r2_3": calls to rg_3.write vs. rg_3.read
+Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
+  According to the generated schedule, rule `r4' can never fire.
+Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
+  According to the generated schedule, rule `r4_1' can never fire.
+Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
+  According to the generated schedule, rule `r4_2' can never fire.
+Warning: "RuleNameInForLoop3.bsv", line 30, column 12: (G0021)
+  According to the generated schedule, rule `r4_3' can never fire.
+Verilog file created: sysRuleNameInForLoop3.v
+All packages are up to date.

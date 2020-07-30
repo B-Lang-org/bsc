@@ -1,0 +1,55 @@
+compile_verilog_fail_error UnclockedCond.bsv G0073 1
+compile_verilog_fail_error Resource.bsv G0073 1 sysResource "-resource-simple"
+compile_verilog_fail_error MutuallyExclusive.bsv G0074
+compile_verilog_fail_error Preempt.bsv G0074
+compile_verilog_pass Urgency.bsv
+test_c_veri_bsv UnclockedModule
+
+# -----
+
+# Test that an output clock defined as noClock and surrounding by more than
+# one synthesis boundary doesn't cause an internal error in Bluesim
+test_c_veri_bsv OutputNoClock
+
+# -----
+
+# Test that rules with no associated clock are removed
+# and Action/ActionValue methods with no associated clock are marked as such
+# (and that neither impedes Verilog or Blueim compilation)
+
+compile_verilog_pass_warning FixupRule_NoDefaultClock.bsv G0023
+compile_object_pass_warning FixupRule_NoDefaultClock.bsv G0023
+link_objects_pass {} sysFixupRule_NoDefaultClock
+
+compile_verilog_pass_warning FixupRule_NoClock.bsv G0023
+compile_object_pass_warning FixupRule_NoClock.bsv G0023
+link_objects_pass {} sysFixupRule_NoClock
+
+compile_verilog_pass FixupMethod_NoDefaultClock.bsv {} {-dexpanded}
+find_n_strings [make_bsc_vcomp_output_name FixupMethod_NoDefaultClock.bsv] \
+    {method (m, [])m enable ((EN_m, [])) clocked_by (no_clock) reset_by (no_reset);} 1
+compile_object_pass FixupMethod_NoDefaultClock.bsv
+link_objects_pass {} sysFixupMethod_NoDefaultClock
+
+# The NoClock situation isn't possible for methods
+
+# -----
+
+# Test that when a module argument gets the default clock and
+# there is no default clock, that it gets no_clock
+
+compile_verilog_pass NoDefaultClock_Port.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings NoDefaultClock_Port.bsv.bsc-vcomp-out
+    find_regexp NoDefaultClock_Port.bsv.bsc-vcomp-out \
+	{port \(p, \[\]\) clocked_by \(no_clock\) reset_by \(default_reset\)}
+}
+
+compile_verilog_pass NoDefaultClock_Inout.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings NoDefaultClock_Inout.bsv.bsc-vcomp-out
+    find_regexp NoDefaultClock_Inout.bsv.bsc-vcomp-out \
+	{inoutarg io clocked_by \(no_clock\) reset_by \(default_reset\)}
+}
+
+# -----

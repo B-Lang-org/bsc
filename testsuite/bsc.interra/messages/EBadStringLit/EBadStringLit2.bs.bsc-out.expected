@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "EBadStringLit2.bs", line 20, column 37: (P0001)
+  Bad String literal

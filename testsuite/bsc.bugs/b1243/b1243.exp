@@ -1,0 +1,3 @@
+compile_object_pass Bug1243.bsv
+link_objects_pass {} sysBug1243
+

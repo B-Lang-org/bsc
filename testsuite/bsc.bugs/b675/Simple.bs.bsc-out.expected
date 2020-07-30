@@ -1,0 +1,12 @@
+checking package dependencies
+compiling Simple.bs
+Error: "Simple.bs", line 9, column 8: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Prelude.Bit m
+  The following contexts are needed:
+    Prelude.Bits (ListN.ListN n Prelude.Bool) m
+      Introduced at the following locations:
+	"Simple.bs", line 10, column 12
+      The context could also be deduced from the following information:
+	type `n' and type `m' are equal

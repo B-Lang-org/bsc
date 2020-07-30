@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnifyKind2.bs
+Error: "EUnifyKind2.bs", line 27, column 29: (T0027)
+  The numeric type `16' was found where a value type was expected.

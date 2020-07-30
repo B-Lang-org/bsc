@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnboundClCon.bs
+Error: "EUnboundClCon.bs", line 18, column 13: (T0006)
+  Unbound class `Int'

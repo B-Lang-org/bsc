@@ -1,0 +1,6 @@
+checking package dependencies
+compiling BVI_Port_NotInBits.bsv
+Error: "BVI_Port_NotInBits.bsv", line 2, column 11: (T0134)
+  Ports of imported modules can be of any type which has an instance of Bits.
+  A port of type `Clock' is declared at the following position:
+    "BVI_Port_NotInBits.bsv", line 3, column 16

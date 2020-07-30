@@ -1,0 +1,4 @@
+compile_verilog_pass Bug.bsv
+compile_verilog_pass NotBug_ValueMethod.bsv
+compile_verilog_pass NotBug_Init.bsv
+

@@ -1,0 +1,8 @@
+# use 50000 steps (in 5 intervals) so this testcase does not take too long
+compile_fail_error ETooManySteps.bs G0024  1 "-verilog -g top16 -steps-warn-interval 10000 -steps-max-intervals 5"
+
+# make sure to find the other 4 warnings
+find_n_warning ETooManySteps.bs.bsc-out G0024 4
+
+# compile_verilog_fail ETooManySteps.bs top16
+# compare_file ETooManySteps.bs.bsc-vcomp-out

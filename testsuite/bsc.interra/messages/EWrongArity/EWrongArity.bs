@@ -1,0 +1,80 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EWrongArity.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EWrongArity error of the bluespec
+-- compiler (Clause has wrong number of arguments)
+--
+-----------------------------------------------------------------------
+
+
+
+package EWrongArity () where
+
+-- import UInt
+             
+interface Fib = 
+   start :: UInt 4 -> UInt 4 -> Action
+   result:: UInt 4
+
+ffibonacci :: UInt 4 -> UInt 4
+ffibonacci 1 = 1
+ffibonacci = n + ffibonacci (n-1)
+
+                          
+          
+   
+             
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

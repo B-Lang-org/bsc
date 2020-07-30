@@ -1,0 +1,15 @@
+{{} signal}
+16'h4
+{{} signal} {isValid signal} {value signal}
+16'h3 1'h0
+{fifo {module range(0:1)}}
+{fifo. {signal range(0:1)}} {fifo.depth signal} {fifo.level signal}
+32'h2
+16'h2
+{{} {signal range(0:1)}} {depth signal} {level signal}
+16'h2 16'h3
+{{} {signal range(0:255)}} {high_addr signal} {low_addr signal}
+8'hff
+16'h0 16'h1 16'h2 16'h3 16'haaaa 16'haaaa 16'haaaa 16'haaaa 16'haaaa 16'haaaa 16'haaaa
+{probe. signal}
+16'h2

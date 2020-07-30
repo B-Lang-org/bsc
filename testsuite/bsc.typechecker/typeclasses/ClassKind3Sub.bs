@@ -1,0 +1,5 @@
+package ClassKind3Sub (TC(..)) where
+
+class (TC :: (# -> *) -> *) c where
+   fn :: c n -> c n
+

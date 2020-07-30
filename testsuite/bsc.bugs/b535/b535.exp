@@ -1,0 +1,17 @@
+test_c_veri_bsv UnsetRWire
+
+#clean up
+erase UnsetRWire.bo
+erase UnsetRWire.bi
+erase sysUnsetRWire.v
+erase sysUnsetRWire
+erase sysUnsetRWire.out
+
+if {$vtest == 1} {
+compile_verilog_pass UnsetRWire.bsv sysUnsetRWire "-inline-rwire"
+link_verilog_pass sysUnsetRWire.v sysUnsetRWire
+sim_verilog sysUnsetRWire 
+
+compare_file sysUnsetRWire.out
+copy sysUnsetRWire.out sysUnsetRWire.v.out.inline-rwire
+}

@@ -1,0 +1,37 @@
+# Note: Bluesim issues a warning out about an incomplete memory
+# file, but Verilog does not.  Therefore, they are given
+# separate expected files.
+
+# TODO:
+# xtclsh
+# - prove each primitive creates BRAMs
+#   - test standard sizes , odd sizes and for byte enabled BRAMs test every size that is valid
+
+# Test for various data widths (for Bluesim)
+test_veri_only_bsv BRAMWidthTest
+# Bluesim fails to link (Bug 1731)
+compile_object_pass BRAMWidthTest.bsv
+link_objects_pass_bug {} sysBRAMWidthTest 1731
+
+if { $ctest == 1 } {
+compile_object_fail_error BRAMBE1Test.bsv S0015
+compare_file BRAMBE1Test.bsv.bsc-ccomp-out
+
+compile_object_pass_warning BRAMBE2Test.bsv S0015
+compare_file BRAMBE2Test.bsv.bsc-ccomp-out
+
+compile_object_pass_warning BRAMBE3Test.bsv S0015
+compare_file BRAMBE3Test.bsv.bsc-ccomp-out
+
+compile_object_fail_error BRAMBE4Test.bsv S0015
+compare_file BRAMBE4Test.bsv.bsc-ccomp-out
+}
+
+test_veri_only_bsv BRAMLoadTest sysBRAMLoadTest.v.out.expected
+test_c_only_bsv BRAMLoadTest sysBRAMLoadTest.c.out.expected
+
+test_c_veri_bsv SizedBRAMFIFOTest
+
+test_c_veri_bsv GrayCounterTest
+
+test_c_veri_bsv SyncBRAM2PortBETest

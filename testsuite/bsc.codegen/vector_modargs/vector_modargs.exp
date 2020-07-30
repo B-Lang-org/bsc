@@ -1,0 +1,137 @@
+# Tests for synthesizing modules with arguments of type Vector
+
+# ==========
+
+# Test that the order of splitting the Vector in the wrapper is the
+# same as recombining the Vector inside the module (using a nested Vector)
+test_c_veri_bsv VecVecVecInt_Order
+
+# ==========
+
+# Test that a Vector of clocks and resets can be sent to a submodule
+# to clock registers which are exposed in the module's interface,
+# whose methods get the appropriate clocks and can be used on those
+# clocks in the parent.
+test_c_veri_bsv VecClockResetToRegIfc
+
+# Test that connecting to the wrong methods gives a clock error
+compile_verilog_fail_error VecClockResetToRegIfc_WrongClock.bsv G0007 4
+
+# ==========
+
+# Test for clocks coming in and going out
+compile_verilog_pass VecClock.bsv
+if { $vtest == 1 } {
+    find_n_strings sysVecClock.v \
+	{assign CLK_clks_out_0_clk_out = CLK_clks_in_0 ;} 1
+    find_n_strings sysVecClock.v \
+	{assign CLK_clks_out_1_clk_out = CLK_clks_in_1 ;} 1
+    find_n_strings sysVecClock.v \
+	{assign CLK_clks_out_2_clk_out = CLK_clks_in_2 ;} 1
+    find_n_strings sysVecClock.v \
+	{assign CLK_clks_out_3_clk_out = CLK_clks_in_3 ;} 1
+}
+
+# ==========
+# Test for name collision
+
+compile_verilog_fail NameCollision.bsv P0183
+compile_verilog_fail NameCollision_Rename.bsv P0183
+# XXX Test that the name of the arg in the message is the original arg
+# XXX name as the user wrote it (not with the vector suffixes)
+
+# ==========
+# Test for invalid identifiers
+
+compile_verilog_fail InvalidPortName.bsv P0185
+
+# ==========
+# Param attribute tests
+
+# The keyword "parameter" becomes an attribute, which BSC should expand
+# into the individual elements.
+compile_verilog_pass VecParam.bsv
+if { $vtest == 1 } {
+    find_n_regexp sysVecParam.v {parameter \[0 \: 0\] bs_\d \=} 4
+}
+
+# ==========
+# Port attribute tests
+
+# Test that "port" renaming attribute works on Vector port args
+compile_verilog_pass RenamePort.bsv
+if { $vtest == 1 } {
+    find_n_strings sysRenamePort.v {module sysRenamePort(B_0,} 1
+}
+
+# Test that "clocked_by" and "reset_by" attributes work on Vector port args
+test_veri_only_bsv ClockedByPort
+# This test doesn't work in Bluesim because it has a dynamic module argument
+
+# XXX Test that reset, clock, and param attributes are rejected?
+
+# ==========
+# Reset attribute tests
+
+# Test that "reset" renaming attribute works on Vector of Reset
+compile_verilog_pass RenameReset.bsv
+if { $vtest == 1 } {
+    find_n_strings sysRenameReset.v {module sysRenameReset(R_0,} 1
+}
+
+# Test that "clocked_by" attribute works
+test_c_veri_bsv ClockedByReset
+
+# Test that "port" is rejected when the modarg is Vector of Reset
+compile_verilog_fail_error RenameResetFail.bsv P0181
+# XXX could also test that other non-reset attributes are rejected,
+# XXX like "reset_by" and clock renaming/gating attributes
+
+# ==========
+# Clock attribute tests
+
+# Test "osc", "gate", "gate_inhigh", and "gate_unused"
+compile_verilog_pass RenameClock.bsv
+if { $vtest == 1 } {
+    find_regexp sysRenameClock.v \
+	{module sysRenameClock\(O\_0\,(\s*)G\_0\,(\s*)O\_1\,(\s*)G\_1\,}
+}
+
+# Test "gate_input_clocks"
+compile_verilog_pass GateInputClocks_VecClock.bsv
+if { $vtest == 1 } {
+    find_regexp sysGateInputClocks_VecClock.v \
+	{module sysGateInputClocks\_VecClock\(CLK\_clks\_0\,(\s*)CLK\_GATE\_clks\_0\,(\s*)CLK\_clks\_1\,(\s*)CLK\_GATE\_clks\_1\,}
+}
+
+# Test "gate_all_clocks"
+compile_verilog_pass GateAllClocks_VecClock.bsv
+if { $vtest == 1 } {
+    find_regexp sysGateAllClocks_VecClock.v \
+	{module sysGateAllClocks\_VecClock\(CLK\_clks\_0\,(\s*)CLK\_GATE\_clks\_0\,(\s*)CLK\_clks\_1\,(\s*)CLK\_GATE\_clks\_1\,}
+}
+
+# Test that "port", "clocked_by", and "reset_by" are rejected when the
+# modarg is Vector of Clock
+compile_verilog_fail_error ClockedByClock.bsv P0181
+
+# ==========
+# Attributes which refer to Vectors of Clock/Reset
+
+# Test that we gracefully fail if a user tries "clocked_by" a Vector
+# XXX It's not graceful, but it'll do
+compile_verilog_fail ClockedByPort_VecClock.bsv P0196
+
+# Test that we gracefully fail if a user tries "reset_by" a Vector
+# XXX It's not graceful, but it'll do
+compile_verilog_fail ClockedByPort_VecReset.bsv P0198
+
+# ==========
+# Size zero vectors
+
+compile_verilog_pass SizeZero.bsv
+
+# XXX More tests for attributes that mention size zero modargs
+
+# ==========
+

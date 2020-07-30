@@ -1,0 +1,49 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputClock_NoName_VarExpr;
+module mkMyReg#(Clock iclk)(Reg#(Bool));
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock iclk(ICLK, {-inhigh-});
+			 ((ClockArg iclk, iclk))
+			 {
+			   method QOUT _read() clocked_by (iclk);
+			   method _write(DIN) enable (EN) clocked_by (iclk);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_InputClock_NoName_VarExpr
+
+-----
+
+compiling ImportForeignModule_InputClock_NoName_VarExpr.bsv
+=== parsed:
+package ImportForeignModule_InputClock_NoName_VarExpr;
+module mkMyReg#(Clock iclk)(Reg#(Bool));
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock iclk(ICLK, {-inhigh-});
+			 ((ClockArg iclk, iclk))
+			 {
+			   method QOUT _read() clocked_by (iclk);
+			   method _write(DIN) enable (EN) clocked_by (iclk);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_InputClock_NoName_VarExpr
+
+-----
+
+All packages are up to date.

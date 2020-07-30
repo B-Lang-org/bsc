@@ -1,0 +1,39 @@
+CTX_sysExtract : CONTEXT =
+BEGIN
+  
+  STATE : TYPE =
+    [# inst_src1 : CTX_RegUN{12}!STATE
+     , inst_snk1 : CTX_RegUN{8}!STATE
+     , inst_src2 : CTX_RegUN{12}!STATE
+     , inst_snk2 : CTX_RegUN{8}!STATE
+     , inst_hi_idx : CTX_RegUN{4}!STATE
+     , inst_lo_idx : CTX_RegUN{4}!STATE
+     #] ;
+  
+  ctor : STATE =
+    (# inst_src1 := CTX_RegUN{12}!ctor
+     , inst_snk1 := CTX_RegUN{8}!ctor
+     , inst_src2 := CTX_RegUN{12}!ctor
+     , inst_snk2 := CTX_RegUN{8}!ctor
+     , inst_hi_idx := CTX_RegUN{4}!ctor
+     , inst_lo_idx := CTX_RegUN{4}!ctor
+     #) ;
+  
+  rule_RL_do_static (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def_src1__h138 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src1)
+    IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
+	     CTX_RegUN{8}!meth_write(Prim2{12,8}!primExtract(def_src1__h138), state0.inst_snk1)
+    IN LET state1 : STATE = state0 WITH .inst_snk1 := act1.1
+    IN ( TRUE, state1 ) ;
+  
+  rule_RL_do_dynamic (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET def_bs__h293 : Bit{12}!T = CTX_RegUN{12}!meth_read(state0.inst_src2)
+    IN LET def_i1__h294 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_hi_idx)
+    IN LET def_i2__h295 : Bit{4}!T = CTX_RegUN{4}!meth_read(state0.inst_lo_idx)
+    IN LET def_x__h287 : Bit{8}!T = Prim2{12,8}!primExtract(def_bs__h293)
+    IN LET act1 : [ CTX_RegUN{8}!STATE, Unit!T ] =
+	     CTX_RegUN{8}!meth_write(def_x__h287, state0.inst_snk2)
+    IN LET state1 : STATE = state0 WITH .inst_snk2 := act1.1
+    IN ( TRUE, state1 ) ;
+  
+END

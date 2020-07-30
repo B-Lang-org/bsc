@@ -1,0 +1,76 @@
+package Life ( sysLife, mkLife ) where
+
+import List
+
+-----------
+-- Types --
+-----------
+
+type Coord = (Integer, Integer)
+type Cell = Reg Bool
+
+type NeighborCount = Bit 3
+
+---------------
+-- Functions --
+---------------
+
+joinRules :: List Rules -> Rules
+joinRules = foldr (<+>) (rules { })
+
+findCell :: (Eq a) => a -> List (a,b) -> b -> b
+findCell i (Cons (x,y) xs) def = if (i == x)
+			       then y
+			       else findCell i xs def
+findCell _ Nil def = def
+
+mkRules :: List (Coord, Cell) -> (Coord, Cell) -> Rules
+mkRules cs ((x, y), cell) =
+    let
+	isAlive :: Coord -> NeighborCount
+	isAlive coord =
+	    let f :: (Coord, Reg Bool) -> (Coord, NeighborCount)
+		f (a,b) = (a, if b then 1 else 0)
+	    in  findCell coord (map f cs) 1
+
+	up = isAlive (x,y-1)
+	down = isAlive (x,y+1)
+	left = isAlive (x-1,y)
+	right = isAlive (x+1,y)
+	upleft = isAlive (x-1,y-1)
+	upright = isAlive (x+1,y-1)
+	dnleft = isAlive (x-1,y+1)
+	dnright = isAlive (x+1,y+1)
+
+	sum :: NeighborCount
+	sum = up + down + left + right + upleft + upright + dnleft + dnright
+    in
+	rules
+	    when cell, (sum < 3) || (sum > 5)
+	      ==> action { cell := False }
+	    when not cell, (sum >= 3) && (sum <= 5)
+	      ==> action { cell := True }
+		
+-------------
+-- Modules --
+-------------
+
+sysLife :: Module Empty
+sysLife = mkLife 2 3
+
+mkLife :: Integer -> Integer -> Module Empty
+mkLife n m =
+    module
+	let coords :: List (Integer,Integer)
+	    coords = concat (map (\y -> map (\x -> (x,y)) (upto 0 n))
+				(upto 0 m))
+
+	    mkCell :: Coord -> Module (Coord, Cell)
+	    mkCell coord = do
+	                       r :: Cell
+	                       r <- mkReg False
+			       return (coord,r)
+
+        regs :: List (Coord, Cell)
+        regs <- mapM mkCell coords
+        addRules $ foldr (<+>) (rules { }) (map (mkRules regs) regs)

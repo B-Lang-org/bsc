@@ -1,0 +1,259 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_always_on_edge_assert_vunit (assert_always_on_edge_assert)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_ALWAYS_ON_EDGE_NOEDGE_P = always (
+           reset_n && noedge_type -> test_expr);
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_P = always (
+           ( {posedge_type && !sampling_event; sampling_event}
+             |-> {test_expr} )
+           abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P = always (
+           ( {negedge_type && sampling_event; !sampling_event}
+             |-> {test_expr} )
+           abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P = always (
+           reset_n && prev(reset_n) && anyedge_type &&
+           (sampling_event != prev(sampling_event))
+           ->  test_expr);
+
+  //properties for X/Z checking
+
+  property ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P =
+           always( (noedge_type && xzcheck_enable) -> !isunknown(test_expr)
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P =
+           always( ((posedge_type) && (!prev(sampling_event)) && xzcheck_enable) -> 
+                   (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P =
+           always( (posedge_type && isunknown(prev(sampling_event)) && (!isunknown(sampling_event)) && xzcheck_enable)
+                   -> (!sampling_event)
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P =
+           always( (posedge_type || negedge_type) && xzcheck_enable && isunknown(sampling_event) -> 
+                   (!isunknown(prev(sampling_event)))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P =
+           always( (posedge_type && rose(sampling_event) && xzcheck_enable) -> (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P =
+           always( (negedge_type && prev(sampling_event) && xzcheck_enable) -> (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P =
+           always( (negedge_type && isunknown(prev(sampling_event)) && (!isunknown(sampling_event)) && xzcheck_enable)
+                   -> sampling_event
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P =
+           always( (negedge_type && fell(sampling_event) && xzcheck_enable) -> (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P =
+           always( (anyedge_type && xzcheck_enable) -> (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P =
+           always( (anyedge_type && isunknown(prev(sampling_event)) && xzcheck_enable)
+                   -> isunknown(sampling_event)
+                   abort(!reset_n) );
+  
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P =
+           always( (xzcheck_enable && anyedge_type && (fell(sampling_event) || rose(sampling_event))) -> 
+                   (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  A_ASSERT_ALWAYS_ON_EDGE_NOEDGE_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NOEDGE_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires : Test expression is FALSE irrespective of sampling event";
+
+  A_ASSERT_ALWAYS_ON_EDGE_POSEDGE_P:
+  assert ASSERT_ALWAYS_ON_EDGE_POSEDGE_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires : Test expression is FALSE on posedge of sampling event";
+
+  A_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires : Test expression is FALSE on negedge of sampling event";
+
+  A_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P:
+  assert ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires : Test expression is FALSE on any edge of sampling event";
+
+  A_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P:
+  assert ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+
+  A_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z ";
+
+  A_ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: sampling_event contains X or Z";
+  
+  A_ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P:
+  assert ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P
+  report "VIOLATION: ASSERT_ALWAYS_ON_EDGE Checker Fires: test_expr contains X or Z";
+}
+
+vunit assert_always_on_edge_assume_vunit (assert_always_on_edge_assume)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_ALWAYS_ON_EDGE_NOEDGE_P = always (
+           reset_n && noedge_type -> test_expr);
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_P = always (
+           ( {posedge_type && !sampling_event; sampling_event}
+             |-> {test_expr} )
+           abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P = always (
+           ( {negedge_type && sampling_event; !sampling_event}
+             |-> {test_expr} )
+           abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P = always (
+           reset_n && prev(reset_n) && anyedge_type &&
+           (sampling_event != prev(sampling_event))
+           ->  test_expr);
+
+  //properties for X/Z checking
+
+  property ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P =
+           always( (noedge_type && xzcheck_enable) -> !isunknown(test_expr)
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P =
+           always( ((posedge_type) && (!prev(sampling_event)) && xzcheck_enable) -> 
+                   (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P =
+           always( (posedge_type && isunknown(prev(sampling_event)) && (!isunknown(sampling_event)) && xzcheck_enable)
+                   -> (!sampling_event)
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P =
+           always( (posedge_type || negedge_type) && xzcheck_enable && isunknown(sampling_event) -> 
+                   (!isunknown(prev(sampling_event)))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P =
+           always( (posedge_type && rose(sampling_event) && xzcheck_enable) -> (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P =
+           always( (negedge_type && prev(sampling_event) && xzcheck_enable) -> (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P =
+           always( (negedge_type && isunknown(prev(sampling_event)) && (!isunknown(sampling_event)) && xzcheck_enable)
+                   -> sampling_event
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P =
+           always( (negedge_type && fell(sampling_event) && xzcheck_enable) -> (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P =
+           always( (anyedge_type && xzcheck_enable) -> (!isunknown(sampling_event))
+                   abort(!reset_n) );
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P =
+           always( (anyedge_type && isunknown(prev(sampling_event)) && xzcheck_enable)
+                   -> isunknown(sampling_event)
+                   abort(!reset_n) );
+  
+
+  property ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P =
+           always( (xzcheck_enable && anyedge_type && (fell(sampling_event) || rose(sampling_event))) -> 
+                   (!isunknown(test_expr))
+                   abort(!reset_n) );
+
+  M_ASSERT_ALWAYS_ON_EDGE_NOEDGE_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NOEDGE_P;
+                                                                                                                                           
+  M_ASSERT_ALWAYS_ON_EDGE_POSEDGE_P:
+  assume ASSERT_ALWAYS_ON_EDGE_POSEDGE_P;
+                                                                                                                                           
+  M_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NEGEDGE_P;
+                                                                                                                                           
+  M_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P:
+  assume ASSERT_ALWAYS_ON_EDGE_ANYEDGE_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_ANYEDGE_TEST_EXPR_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_ANYEDGE_SAMP_EVENT_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_ANYEDGE_PREV_SAMP_EVENT_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_POSEDGE_TEST_EXPR_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_0_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P:
+  assume ASSERT_ALWAYS_ON_EDGE_POSEDGE_SAMP_EVENT_XZ_1_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NEGEDGE_TEST_EXPR_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_1_XZ_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NEGEDGE_SAMP_EVENT_XZ_0_P;
+
+  M_ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_SAMP_EVENT_XZ_XZ_P;
+  
+  M_ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P:
+  assume ASSERT_ALWAYS_ON_EDGE_NOEDGE_TEST_EXPR_XZ_P;
+}
+

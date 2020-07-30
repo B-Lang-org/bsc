@@ -1,0 +1,11 @@
+checking package dependencies
+compiling En2ReturnValue2.bsv
+code generation for mkEn2ReturnValue2 starts
+=== pathsPostSched:
+Combinational paths from inputs to outputs:
+  EN_start -> start
+
+-----
+
+Verilog file created: mkEn2ReturnValue2.v
+packages up-to-date

@@ -1,0 +1,192 @@
+
+# Test the Lambda Calculus dump
+# (used SRI as input to their Smten tool)
+
+set opts {-ddumpLambdaCalculus=lc-%m.out}
+
+# -----
+
+# Test value components in method return expressions
+
+if { $vtest == 1 } {
+compile_verilog_pass MethodReturn_AMethValue.bsv {} $opts
+compare_file_filter_ids lc-sysMethodReturn_AMethValue.out
+
+compile_verilog_pass MethodReturn_ATaskValue.bsv {} $opts
+compare_file_filter_ids lc-sysMethodReturn_ATaskValue.out
+}
+
+# -----
+
+# Test split methods
+
+if { $vtest == 1 } {
+compile_verilog_pass Method_Split.bsv {} $opts
+compare_file_filter_ids lc-sysMethod_Split.out
+}
+
+# -----
+
+# Test methods, system tasks, and noinline functions
+
+if { $vtest == 1 } {
+# This will also compile Methods.bsv and NoInline.bsv
+compile_verilog_pass Tb.bsv {} $opts
+compare_file_filter_ids lc-sysMethods.out
+compare_file_filter_ids lc-module_add.out
+compare_file_filter_ids lc-sysTb.out
+}
+
+# -----
+
+# Test that the return type of AV methods is correctly handled
+# when the value is unused (and does not get assigned to a def)
+if { $vtest == 1 } {
+compile_verilog_pass AVMethod_UnusedValue.bsv {} $opts
+compare_file_filter_ids lc-sysAVMethod_UnusedValue.out
+}
+
+# -----
+
+# Test for optimization
+if { $vtest == 1 } {
+compile_verilog_pass Structs.bsv {} $opts
+compare_file_filter_ids lc-sysStructs.out
+}
+
+# -----
+
+# Test for lifting if condition in action
+if { $vtest == 1 } {
+
+compile_verilog_pass MergeIf.bsv {} $opts
+compare_file_filter_ids lc-sysMergeIf.out
+
+# XXX Nothing merges here yet, because the defs are not inlined
+compile_verilog_pass MergeIf2.bsv {} $opts
+compare_file_filter_ids lc-sysMergeIf2.out
+
+# XXX Nothing merges here yet, because the defs are not inlined
+compile_verilog_pass MergeIf3.bsv {} $opts
+compare_file_filter_ids lc-sysMergeIf3.out
+
+}
+
+# -----
+
+# Test Real types
+
+if { $vtest == 1 } {
+compile_verilog_pass RealInstArg.bsv {} $opts
+compare_file_filter_ids lc-sysRealInstArg.out
+compare_file_filter_ids lc-mkRealInstArg_Sub.out
+}
+
+# XXX Test other places where Real might appear
+
+# -----
+
+# Test String types
+
+if { $vtest == 1 } {
+compile_verilog_pass StringInstArg.bsv {} $opts
+compare_file_filter_ids lc-sysStringInstArg.out
+compare_file_filter_ids lc-mkStringInstArg_Sub.out
+}
+
+# XXX Test other places where String might appear
+
+# -----
+
+# Test when a design uses dynamic instantiation arguments
+
+if { $vtest == 1 } {
+compile_verilog_pass DynamicInstArg.bsv {} $opts
+compare_file_filter_ids DynamicInstArg.bsv.bsc-vcomp-out
+compare_file_filter_ids lc-sysDynamicInstArg.out
+}
+
+# -----
+
+# Test PrimCase and PrimArrayDynSelect
+
+if { $vtest == 1 } {
+# PrimCase occurs because of aggressive conditions
+compile_verilog_pass DynArrSelWithImplCond.bsv {} \
+    "$opts -aggressive-conditions"
+compare_file_filter_ids lc-sysDynArrSelWithImplCond.out
+}
+
+# -----
+
+# Test that polymorphic primitive modules have their size arguments lifted
+# to type parameters
+
+if { $vtest == 1 } {
+compile_verilog_pass PrimMods.bsv {} $opts
+# BRAM modules are wrappers that have a lot of extra state and rules,
+# so just look for the module instantiations that we care about
+find_regexp lc-sysPrimMods.out \
+    {MOD_sysPrimMods
+	\{ inst_rg0__sysPrimMods \:\: MOD_RegN \#1
+	\, inst_rg1__sysPrimMods \:\: MOD_RegUN \#5
+	\, inst_rg2__sysPrimMods \:\: MOD_RegA \#8
+	\, inst_crg0__sysPrimMods \:\: MOD_CRegN5 \#1
+	\, inst_crg1__sysPrimMods \:\: MOD_CRegUN5 \#5
+	\, inst_crg2__sysPrimMods \:\: MOD_CRegA5 \#8
+	\, inst_rw0__sysPrimMods \:\: MOD_RWire \#17
+	\, inst_rw1__sysPrimMods \:\: MOD_RWire0
+	\, inst_f0__sysPrimMods \:\: MOD_FIFO2 \#1
+	\, inst_f1__sysPrimMods \:\: MOD_FIFO1 \#32
+	\, inst_f2__sysPrimMods \:\: MOD_SizedFIFO \#3
+	\, inst_f3__sysPrimMods \:\: MOD_FIFOL1 \#4
+	\, inst_f4__sysPrimMods \:\: MOD_FIFO20
+	\, inst_f5__sysPrimMods \:\: MOD_FIFO10
+	\, inst_f6__sysPrimMods \:\: MOD_SizedFIFO0
+	\, inst_f7__sysPrimMods \:\: MOD_FIFOL10
+	\, inst_rf0__sysPrimMods \:\: MOD_RegFile \#7 \#12
+	\, inst_rf1__sysPrimMods \:\: MOD_RegFileLoad \#4 \#9
+	\, inst_br0_memory__sysPrimMods \:\: MOD_BRAM1 \#3 \#5
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br1_memory__sysPrimMods \:\: MOD_BRAM1Load \#4 \#6
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br2_memory__sysPrimMods \:\: MOD_BRAM1BE \#5 \#16 \#2
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br3_memory__sysPrimMods \:\: MOD_BRAM1BELoad \#6 \#32 \#4
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br4_memory__sysPrimMods \:\: MOD_BRAM2 \#3 \#5
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br5_memory__sysPrimMods \:\: MOD_BRAM2Load \#4 \#6
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br6_memory__sysPrimMods \:\: MOD_BRAM2BE \#5 \#16 \#2
+}
+find_regexp lc-sysPrimMods.out \
+    {, inst_br7_memory__sysPrimMods \:\: MOD_BRAM2BELoad \#6 \#32 \#4
+}
+}
+
+# -----
+
+# Test that PrimConcat on more than two arguments is converted to nested
+# calls to the binary primitive in the LC
+
+if { $vtest == 1 } {
+compile_verilog_pass MultiArityConcat.bsv {} $opts
+compare_file_filter_ids lc-sysMultiArityConcat.out
+}
+
+# Test that PrimExtract has an explicit type for its return type
+
+if { $vtest == 1 } {
+compile_verilog_pass Extract.bsv {} $opts
+compare_file_filter_ids lc-sysExtract.out
+}
+
+# -----
+

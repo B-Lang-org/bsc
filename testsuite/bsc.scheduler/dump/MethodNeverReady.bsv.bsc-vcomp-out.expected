@@ -1,0 +1,5 @@
+checking package dependencies
+compiling MethodNeverReady.bsv
+code generation for sysMethodNeverReady starts
+Error: "MethodNeverReady.bsv", line 6, column 8: (G0022)
+  According to the generated schedule, method `test' is never ready.

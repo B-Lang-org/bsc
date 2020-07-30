@@ -1,0 +1,57 @@
+data MOD_sysExtract =
+    MOD_sysExtract
+	{ inst_src1__sysExtract :: MOD_RegUN #12
+	, inst_snk1__sysExtract :: MOD_RegUN #8
+	, inst_src2__sysExtract :: MOD_RegUN #12
+	, inst_snk2__sysExtract :: MOD_RegUN #8
+	, inst_hi_idx__sysExtract :: MOD_RegUN #4
+	, inst_lo_idx__sysExtract :: MOD_RegUN #4
+	};
+
+ctor_sysExtract :: MOD_sysExtract;
+ctor_sysExtract =
+    MOD_sysExtract
+	{ inst_src1__sysExtract = ctor_RegUN (12 :: Bit #32)
+	, inst_snk1__sysExtract = ctor_RegUN (8 :: Bit #32)
+	, inst_src2__sysExtract = ctor_RegUN (12 :: Bit #32)
+	, inst_snk2__sysExtract = ctor_RegUN (8 :: Bit #32)
+	, inst_hi_idx__sysExtract = ctor_RegUN (4 :: Bit #32)
+	, inst_lo_idx__sysExtract = ctor_RegUN (4 :: Bit #32)
+	};
+
+dim_sysExtract :: MOD_sysExtract -> MOD_sysExtract -> Bool;
+dim_sysExtract =
+    (\ (mod1 :: MOD_sysExtract) ->
+     (\ (mod2 :: MOD_sysExtract) ->
+      (dim_RegUN (inst_src1__sysExtract mod1) (inst_src1__sysExtract mod2))
+      && (dim_RegUN (inst_snk1__sysExtract mod1) (inst_snk1__sysExtract mod2))
+      && (dim_RegUN (inst_src2__sysExtract mod1) (inst_src2__sysExtract mod2))
+      && (dim_RegUN (inst_snk2__sysExtract mod1) (inst_snk2__sysExtract mod2))
+      && (dim_RegUN (inst_hi_idx__sysExtract mod1) (inst_hi_idx__sysExtract mod2))
+      && (dim_RegUN (inst_lo_idx__sysExtract mod1) (inst_lo_idx__sysExtract mod2))));
+
+rule_RL_do_static_sysExtract :: MOD_sysExtract -> (Bool, MOD_sysExtract, ());
+rule_RL_do_static_sysExtract =
+    (\ (state0 :: MOD_sysExtract) ->
+     let { (def_src1__h138 :: Bit #12) = meth_read_RegUN (inst_src1__sysExtract state0)
+	 ; (act1 :: (Bool, MOD_RegUN #8, ())) =
+	       meth_write_RegUN
+		   ((primExtract def_src1__h138 (9 :: Bit #32) (2 :: Bit #32)) :: Bit #8)
+		   (inst_snk1__sysExtract state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysExtract) = state0 { inst_snk1__sysExtract = snd3 act1 }
+	 }
+     in mktuple guard1 state1 ());
+
+rule_RL_do_dynamic_sysExtract :: MOD_sysExtract -> (Bool, MOD_sysExtract, ());
+rule_RL_do_dynamic_sysExtract =
+    (\ (state0 :: MOD_sysExtract) ->
+     let { (def_bs__h293 :: Bit #12) = meth_read_RegUN (inst_src2__sysExtract state0)
+	 ; (def_i1__h294 :: Bit #4) = meth_read_RegUN (inst_hi_idx__sysExtract state0)
+	 ; (def_i2__h295 :: Bit #4) = meth_read_RegUN (inst_lo_idx__sysExtract state0)
+	 ; (def_x__h287 :: Bit #8) = ((primExtract def_bs__h293 def_i1__h294 def_i2__h295) :: Bit #8)
+	 ; (act1 :: (Bool, MOD_RegUN #8, ())) = meth_write_RegUN def_x__h287 (inst_snk2__sysExtract state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysExtract) = state0 { inst_snk2__sysExtract = snd3 act1 }
+	 }
+     in mktuple guard1 state1 ());

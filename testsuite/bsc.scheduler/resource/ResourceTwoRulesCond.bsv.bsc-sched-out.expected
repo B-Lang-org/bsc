@@ -1,0 +1,243 @@
+checking package dependencies
+compiling ResourceTwoRulesCond.bsv
+code generation for sysResourceTwoRulesCond starts
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_1'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_1'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_1'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_1'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_1'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_2'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend'
+  and `RL_contend_1'.
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0003)
+  Arbitrating in module `sysResourceTwoRulesCond' between rules `RL_contend_2'
+  and `RL_contend_3'.
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd0' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd1' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd0' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd1' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd0' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd1' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd1' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd1' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 8, column 33: (G0002)
+  `rf.sub' needs more than 5 ports for the following uses:
+      `rf.sub 3'd2' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd3' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd4' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd5' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd6' at "ResourceTwoRulesCond.bsv", line 8, column 33
+      `rf.sub 3'd7' at "ResourceTwoRulesCond.bsv", line 8, column 33
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0010)
+  Rule "contend" was treated as more urgent than "contend_1". Conflicts:
+    "contend" cannot fire before "contend_1": resource limit on rf.sub
+    "contend_1" cannot fire before "contend": resource limit on rf.sub
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0010)
+  Rule "contend_1" was treated as more urgent than "contend_2". Conflicts:
+    "contend_1" cannot fire before "contend_2": resource limit on rf.sub
+    "contend_2" cannot fire before "contend_1": resource limit on rf.sub
+Warning: "ResourceTwoRulesCond.bsv", line 6, column 8: (G0010)
+  Rule "contend_2" was treated as more urgent than "contend_3". Conflicts:
+    "contend_2" cannot fire before "contend_3": resource limit on rf.sub
+    "contend_3" cannot fire before "contend_2": resource limit on rf.sub
+=== schedule:
+parallel: [esposito: [RL_contend -> [],
+		      RL_contend_1 -> [RL_contend],
+		      RL_contend_2 -> [RL_contend_1, RL_contend],
+		      RL_contend_3 -> [RL_contend_2, RL_contend_1, RL_contend],
+		      RL_contend_4 -> [],
+		      RL_contend_5 -> [],
+		      RL_contend_6 -> [],
+		      RL_contend_7 -> []]]
+order: [RL_contend,
+	RL_contend_1,
+	RL_contend_2,
+	RL_contend_3,
+	RL_contend_4,
+	RL_contend_5,
+	RL_contend_6,
+	RL_contend_7]
+
+-----
+
+=== resources:
+[(dest_0.write, [(if do_write_0__h1695 then dest_0.write x__h1930, 1)]),
+ (dest_1.write, [(if do_write_1__h1996 then dest_1.write x__h2007, 1)]),
+ (dest_2.write, [(if do_write_2__h2071 then dest_2.write x__h2082, 1)]),
+ (dest_3.write, [(if do_write_3__h2146 then dest_3.write x__h2157, 1)]),
+ (dest_4.write, [(if do_write_4__h2221 then dest_4.write x__h2232, 1)]),
+ (dest_5.write, [(if do_write_5__h2296 then dest_5.write x__h2307, 1)]),
+ (dest_6.write, [(if do_write_6__h2371 then dest_6.write x__h2382, 1)]),
+ (dest_7.write, [(if do_write_7__h2446 then dest_7.write x__h2457, 1)]),
+ (do_write_0.read, [(do_write_0.read, 1)]),
+ (do_write_1.read, [(do_write_1.read, 1)]),
+ (do_write_2.read, [(do_write_2.read, 1)]),
+ (do_write_3.read, [(do_write_3.read, 1)]),
+ (do_write_4.read, [(do_write_4.read, 1)]),
+ (do_write_5.read, [(do_write_5.read, 1)]),
+ (do_write_6.read, [(do_write_6.read, 1)]),
+ (do_write_7.read, [(do_write_7.read, 1)]),
+ (rf.sub,
+  [(rf.sub 3'd0, 5),
+   (rf.sub 3'd1, 5),
+   (rf.sub 3'd2, 5),
+   (rf.sub 3'd3, 5),
+   (rf.sub 3'd4, 4),
+   (rf.sub 3'd5, 3),
+   (rf.sub 3'd6, 2),
+   (rf.sub 3'd7, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysResourceTwoRulesCond.sched
+=== Generated schedule for sysResourceTwoRulesCond ===
+
+Rule schedule
+-------------
+Rule: contend
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: contend_1
+Predicate: True
+Blocking rules: contend
+ 
+Rule: contend_2
+Predicate: True
+Blocking rules: contend_1, contend
+ 
+Rule: contend_3
+Predicate: True
+Blocking rules: contend_2, contend_1, contend
+ 
+Rule: contend_4
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: contend_5
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: contend_6
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: contend_7
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: contend,
+			 contend_1,
+			 contend_2,
+			 contend_3,
+			 contend_4,
+			 contend_5,
+			 contend_6,
+			 contend_7
+
+=======================================================
+Warning: "ResourceTwoRulesCond.bsv", line 15, column 12: (G0021)
+  According to the generated schedule, rule `contend_1' can never fire.
+Warning: "ResourceTwoRulesCond.bsv", line 15, column 12: (G0021)
+  According to the generated schedule, rule `contend_2' can never fire.
+Warning: "ResourceTwoRulesCond.bsv", line 15, column 12: (G0021)
+  According to the generated schedule, rule `contend_3' can never fire.
+Verilog file created: sysResourceTwoRulesCond.v
+All packages are up to date.

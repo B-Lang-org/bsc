@@ -1,0 +1,46 @@
+checking package dependencies
+compiling TaskValue.bsv
+code generation for sysTaskValue starts
+=== ATS:
+APackage sysTaskValue
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+-- AP local definitions
+TASK_sformatAV_PLUS_8___d3 :: Bit 32;
+TASK_sformatAV_PLUS_8___d3  = v__h42 + 32'd8;
+-- IdProp TASK_sformatAV_PLUS_8___d3[IdP_from_rhs]
+signed_0___d1 :: Bit 32;
+signed_0___d1  = Prelude.$signed 32'd0;
+-- IdProp signed_0___d1[IdP_from_rhs,IdP_signed]
+v__h42 :: Bit 32;
+v__h42  = Prelude.$sformatAV#0;
+-- IdProp v__h42[IdP_keep]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { Prelude.$sformatAV#0 signed_0___d1; Prelude.$display TASK_sformatAV_PLUS_8___d3; }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysTaskValue.v
+All packages are up to date.

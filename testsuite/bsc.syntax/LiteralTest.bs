@@ -1,0 +1,32 @@
+package LiteralTest where
+
+{-# verilog sysLiteralTest #-}
+sysLiteralTest :: Module Empty
+sysLiteralTest =
+  module
+    let a :: Bit 17
+        a = 0x1_1_1
+	b :: Bit 17
+        b = 0x111
+	z = 273
+	c :: UInt 4
+	c = 0b0__01_1_00
+	d :: UInt 4
+	d = 0b001100
+	y = 12
+	e :: Int 12
+	e = unpack $ 0o7_7_7_7
+	f :: Int 12
+	f = unpack $ 0o7777
+	x = (0 - 1)
+    rules
+      when True ==>
+        action
+	  $display a " " b " " c " " d " " e " " f
+	  if a == b && b == z &&
+	     c == d && d == y &&
+	     e == f && f == x   
+	    then $display "PASS"
+	    else $display "FAIL"
+	  $finish 0
+	  

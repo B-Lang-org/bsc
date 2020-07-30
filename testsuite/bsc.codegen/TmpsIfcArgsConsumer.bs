@@ -1,0 +1,21 @@
+package TmpsIfcArgsConsumer ( mkTmpsIfcArgsConsumer ) where
+
+import TmpsIfcArgsDefs
+import TmpsIfcArgsProducer
+
+{-# verilog mkTmpsIfcArgsConsumer #-}
+mkTmpsIfcArgsConsumer :: TmpsIfcArgsProducer -> Module Empty
+mkTmpsIfcArgsConsumer producer =
+    module
+	cycle :: Reg (UInt 6)
+	cycle <- mkReg 0
+        rules
+	    when cycle < 63
+	     ==> let
+		     x = producer.get_item
+		 in action
+			producer.get_done
+			$write "Consumer: received "
+			print_ts_item x
+			$display
+			cycle := cycle + 1

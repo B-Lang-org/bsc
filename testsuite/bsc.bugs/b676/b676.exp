@@ -1,0 +1,9 @@
+compile_fail_error Bug676_1.bs T0106
+compare_file Bug676_1.bs.bsc-out
+
+compile_fail_error Bug676_2.bsv T0106
+compare_file Bug676_2.bsv.bsc-out
+
+compile_fail_error SelfRecursiveSyn.bsv T0106
+compare_file SelfRecursiveSyn.bsv.bsc-out
+

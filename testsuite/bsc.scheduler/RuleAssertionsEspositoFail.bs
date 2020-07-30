@@ -1,0 +1,20 @@
+package RuleAssertionsEspositoFail(sysRuleAssertionsEspositoFail) where
+
+-- `setF' should not fire unless `setT' is not applicable.
+-- Expect assertion to fail.
+
+sysRuleAssertionsEspositoFail :: Module Empty
+sysRuleAssertionsEspositoFail =
+    module
+	a :: Reg Bool
+	a <- mkReg True
+        addRules $ setT a <+ setF a <+ flip a
+
+setT :: Reg Bool -> Rules
+setT a = rules "setT": when True ==> a := True
+
+setF :: Reg Bool -> Rules
+setF a = rules {-# ASSERT fire when enabled #-} "setF": when True ==> a := True
+
+flip :: Reg Bool -> Rules
+flip a = rules "flip": when True ==> a := not a

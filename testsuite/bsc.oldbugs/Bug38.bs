@@ -1,0 +1,6 @@
+package Bug38 (broken_fifo_foldr) where 
+
+import FIFOF
+
+broken_fifo_foldr :: (Bits a (SizeOf a)) => (a -> b -> b) -> b -> FIFOF a -> b
+broken_fifo_foldr f z fifo = if fifo.notEmpty then f (fifo.first) z else z  

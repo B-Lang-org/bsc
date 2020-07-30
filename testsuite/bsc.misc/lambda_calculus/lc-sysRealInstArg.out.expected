@@ -1,0 +1,11 @@
+data MOD_sysRealInstArg = MOD_sysRealInstArg { inst_i__sysRealInstArg :: MOD_mkRealInstArg_Sub };
+
+ctor_sysRealInstArg :: MOD_sysRealInstArg;
+ctor_sysRealInstArg =
+    MOD_sysRealInstArg { inst_i__sysRealInstArg = ctor_mkRealInstArg_Sub (0.0 :: Double) };
+
+dim_sysRealInstArg :: MOD_sysRealInstArg -> MOD_sysRealInstArg -> Bool;
+dim_sysRealInstArg =
+    (\ (mod1 :: MOD_sysRealInstArg) ->
+     (\ (mod2 :: MOD_sysRealInstArg) ->
+      dim_mkRealInstArg_Sub (inst_i__sysRealInstArg mod1) (inst_i__sysRealInstArg mod2)));

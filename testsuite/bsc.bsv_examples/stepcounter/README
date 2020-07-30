@@ -1,0 +1,36 @@
+This directory contains a simple step counter example.
+
+You can compile the step counter, with its testbench, by running:
+bsc [-c or -verilog] TestStepCounter.bsv
+
+This will also synthesize an example of a separately generated 
+step counter (not used with the testbench), called sysStepCounter17.
+
+You link the object file to a simulation binary named 
+sysTestStepCounter by doing the following:
+bsc -e sysTestStepCounter -o sysTestStepCounter sysTestStepCounter.o
+
+See the style guide (section 7) for notes on using the generated RTL
+with other EDA tools. If you want to run sysTestStepCounter you will 
+need to provide a top-level driver that instantiates, resets and 
+clocks the testbench module. See $BLUESPECDIR/Verilog/main.v for an 
+example of this (replace TOP with the name of your top-level module 
+- i.e. sysTestStepCounter). 
+
+If you produce RTL for sysStepCounter17 you can also write a Verilog 
+testbench for that directly (which would clock, reset and call methods 
+on the resulting module). To call an action method you would need to raise
+the enable signal for that method for the clock cycle you want to call it.
+Since the counter value method takes no parameters you can just look at
+the value it returns (otherwise you would have to provide the parameter 
+values before looking at the result). Since the always_ready attribute has 
+been used to compile sysStepCounter17, the implicit ready signals have been 
+omitted and you do not need to check if the methods are ready while calling 
+them.
+
+Files
+-----
+StepCounter.bsv			Step counter source code
+TestStepCounter.bsv		Testbench and separate synthesis example
+sysTestStepCounter.out.expected Expected output from testbench
+

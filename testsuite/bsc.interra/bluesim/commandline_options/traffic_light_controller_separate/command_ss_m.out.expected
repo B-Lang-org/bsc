@@ -1,0 +1,102 @@
+Initial State:
+top:
+  count_sig2_state = 0xaa
+  count_sig3_state = 0xaa
+  count_sig4_state = 0xaa
+  count_sig5_state = 0xaa
+  count_sig6_state = 0xaa
+  count_sig7_state = 0xaa
+  count_wait = 0xaaaa
+  counter = 0xaa
+  frm_sig = 0x2
+  hwy_sig = 0x2
+  long_timer_value = 0x0a
+  short_timer_value = 0x0a
+  state = 0x0a
+  top:
+    t_frm_state = 0x2
+    t_hwy_state = 0x2
+    t_timer = 0x0a
+    t_timer_state = 0x2
+State:
+top:
+  count_sig2_state = 0x00
+  count_sig3_state = 0x00
+  count_sig4_state = 0x00
+  count_sig5_state = 0x00
+  count_sig6_state = 0x00
+  count_sig7_state = 0x00
+  count_wait = 0x0000
+  counter = 0x00
+  frm_sig = 0x2
+  hwy_sig = 0x2
+  long_timer_value = 0x05
+  short_timer_value = 0x02
+  state = 0x00
+  top:
+    t_frm_state = 0x0
+    t_hwy_state = 0x2
+    t_timer = 0x00
+    t_timer_state = 0x0
+State:
+top:
+  count_sig2_state = 0x00
+  count_sig3_state = 0x00
+  count_sig4_state = 0x00
+  count_sig5_state = 0x00
+  count_sig6_state = 0x00
+  count_sig7_state = 0x00
+  count_wait = 0x0000
+  counter = 0x00
+  frm_sig = 0x2
+  hwy_sig = 0x2
+  long_timer_value = 0x05
+  short_timer_value = 0x02
+  state = 0x02
+  top:
+    t_frm_state = 0x0
+    t_hwy_state = 0x2
+    t_timer = 0x01
+    t_timer_state = 0x0
+Car present on Farm Road 
+State:
+top:
+  count_sig2_state = 0x00
+  count_sig3_state = 0x00
+  count_sig4_state = 0x00
+  count_sig5_state = 0x00
+  count_sig6_state = 0x00
+  count_sig7_state = 0x00
+  count_wait = 0x0000
+  counter = 0x00
+  frm_sig = 0x2
+  hwy_sig = 0x2
+  long_timer_value = 0x05
+  short_timer_value = 0x02
+  state = 0x03
+  top:
+    t_frm_state = 0x0
+    t_hwy_state = 0x2
+    t_timer = 0x02
+    t_timer_state = 0x0
+Waiting for hwy_light to turn Yellow 
+State:
+top:
+  count_sig2_state = 0x01
+  count_sig3_state = 0x00
+  count_sig4_state = 0x00
+  count_sig5_state = 0x00
+  count_sig6_state = 0x00
+  count_sig7_state = 0x00
+  count_wait = 0x0000
+  counter = 0x00
+  frm_sig = 0x2
+  hwy_sig = 0x2
+  long_timer_value = 0x05
+  short_timer_value = 0x02
+  state = 0x03
+  top:
+    t_frm_state = 0x0
+    t_hwy_state = 0x2
+    t_timer = 0x03
+    t_timer_state = 0x1

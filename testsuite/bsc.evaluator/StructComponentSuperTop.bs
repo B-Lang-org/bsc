@@ -1,0 +1,11 @@
+package StructComponentSuperTop(sysStructComponentSuperTop) where
+
+import StructComponentTop
+
+-- Compiling this should not cause an internal error.  The error
+-- arises because StructComponentTop.bi includes instances for
+-- SomeStruct°Cons2 but not the type declaration for it.
+-- (Variation on bug #207).
+
+sysStructComponentSuperTop :: Module Empty
+sysStructComponentSuperTop = module {}

@@ -1,0 +1,185 @@
+Sending packet (0,dead) on input 0 at cycle 18
+Sending packet (1,beef) on input 1 at cycle 18
+Sending packet (2,baad) on input 2 at cycle 18
+Sending packet (3,f00d) on input 3 at cycle 18
+Sending packet (4,c01d) on input 4 at cycle 18
+Routing packet (4,c01d) from input 4 to output 2 at cycle 19
+Routing packet (3,f00d) from input 3 to output 6 at cycle 19
+Routing packet (2,baad) from input 2 to output 5 at cycle 19
+Routing packet (1,beef) from input 1 to output 7 at cycle 19
+Routing packet (0,dead) from input 0 to output 0 at cycle 19
+Sending packet (5,dead) on input 0 at cycle 19
+Sending packet (6,beef) on input 1 at cycle 19
+Sending packet (7,baad) on input 2 at cycle 19
+Sending packet (8,f00d) on input 3 at cycle 19
+Sending packet (9,c01d) on input 4 at cycle 19
+Receiving packet (0,dead) on output 0 at cycle 20
+Receiving packet (4,c01d) on output 2 at cycle 20
+Receiving packet (2,baad) on output 5 at cycle 20
+Receiving packet (3,f00d) on output 6 at cycle 20
+Receiving packet (1,beef) on output 7 at cycle 20
+Routing packet (9,c01d) from input 4 to output 5 at cycle 20
+Routing packet (8,f00d) from input 3 to output 4 at cycle 20
+Routing packet (7,baad) from input 2 to output 3 at cycle 20
+Routing packet (6,beef) from input 1 to output 2 at cycle 20
+Routing packet (5,dead) from input 0 to output 1 at cycle 20
+Sending packet (a,dead) on input 0 at cycle 20
+Sending packet (b,beef) on input 1 at cycle 20
+Sending packet (c,baad) on input 2 at cycle 20
+Sending packet (d,f00d) on input 3 at cycle 20
+Sending packet (e,c01d) on input 4 at cycle 20
+Receiving packet (5,dead) on output 1 at cycle 21
+Receiving packet (6,beef) on output 2 at cycle 21
+Receiving packet (7,baad) on output 3 at cycle 21
+Receiving packet (8,f00d) on output 4 at cycle 21
+Receiving packet (9,c01d) on output 5 at cycle 21
+Routing packet (e,c01d) from input 4 to output 0 at cycle 21
+Routing packet (d,f00d) from input 3 to output 7 at cycle 21
+Routing packet (c,baad) from input 2 to output 0 at cycle 21
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_2 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_0.
+
+Routing packet (b,beef) from input 1 to output 7 at cycle 21
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Routing packet (a,dead) from input 0 to output 6 at cycle 21
+Sending packet (f,dead) on input 0 at cycle 21
+Sending packet (f,beef) on input 1 at cycle 21
+Sending packet (f,baad) on input 2 at cycle 21
+Sending packet (f,f00d) on input 3 at cycle 21
+Sending packet (f,c01d) on input 4 at cycle 21
+Receiving packet (c,baad) on output 0 at cycle 22
+Receiving packet (a,dead) on output 6 at cycle 22
+Receiving packet (b,beef) on output 7 at cycle 22
+Routing packet (f,c01d) from input 4 to output 7 at cycle 22
+Routing packet (f,f00d) from input 3 to output 7 at cycle 22
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_1 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,baad) from input 2 to output 7 at cycle 22
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_2 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_2 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,beef) from input 1 to output 7 at cycle 22
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in_2 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,dead) from input 0 to output 7 at cycle 22
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_3 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_2 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Sending packet (f,dead) on input 0 at cycle 22
+Sending packet (f,beef) on input 1 at cycle 22
+Sending packet (f,baad) on input 2 at cycle 22
+Sending packet (f,f00d) on input 3 at cycle 22
+Sending packet (f,c01d) on input 4 at cycle 22
+Receiving packet (f,dead) on output 7 at cycle 23
+Routing packet (f,c01d) from input 4 to output 7 at cycle 23
+Routing packet (f,f00d) from input 3 to output 7 at cycle 23
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_1 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,baad) from input 2 to output 7 at cycle 23
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_2 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_2 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,beef) from input 1 to output 7 at cycle 23
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in_2 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_3 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Routing packet (f,dead) from input 0 to output 7 at cycle 23
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_3 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_2 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_1 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in called conflicting methods
+  enq and enq of module instance outs_7.
+
+Turning off output 7 at cycle 23
+Sending packet (5,dead) on input 0 at cycle 26
+Routing packet (5,dead) from input 0 to output 1 at cycle 27
+Sending packet (6,beef) on input 1 at cycle 27
+Sending packet (f,dead) on input 0 at cycle 27
+Receiving packet (5,dead) on output 1 at cycle 28
+Routing packet (6,beef) from input 1 to output 2 at cycle 28
+Routing packet (f,dead) from input 0 to output 7 at cycle 28
+Sending packet (b,beef) on input 1 at cycle 28
+Sending packet (7,baad) on input 2 at cycle 28
+Receiving packet (6,beef) on output 2 at cycle 29
+Routing packet (7,baad) from input 2 to output 3 at cycle 29
+Sending packet (f,baad) on input 0 at cycle 29
+Sending packet (8,f00d) on input 3 at cycle 29
+Receiving packet (7,baad) on output 3 at cycle 30
+Routing packet (8,f00d) from input 3 to output 4 at cycle 30
+Sending packet (d,f00d) on input 0 at cycle 30
+Sending packet (9,c01d) on input 4 at cycle 30
+Receiving packet (8,f00d) on output 4 at cycle 31
+Routing packet (9,c01d) from input 4 to output 5 at cycle 31
+Turning on output 7 at cycle 31
+Receiving packet (9,c01d) on output 5 at cycle 32
+Receiving packet (f,dead) on output 7 at cycle 32
+Receiving packet (f,dead) on output 7 at cycle 33
+Routing packet (b,beef) from input 1 to output 7 at cycle 33
+Routing packet (f,baad) from input 0 to output 7 at cycle 33
+Error: "CFSwitch.bsv", line 74, column 23: (R0002)
+  Conflict-free rules RL_route_in_4 and RL_route_in_3 called conflicting
+  methods enq and enq of module instance outs_7.
+
+Receiving packet (f,baad) on output 7 at cycle 34
+Routing packet (d,f00d) from input 0 to output 7 at cycle 34
+Receiving packet (d,f00d) on output 7 at cycle 35

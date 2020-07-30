@@ -1,0 +1,21 @@
+checking package dependencies
+compiling MsgTest_ClockOfMultiClock.bsv
+code generation for sysMsgTest_ClockOfMultiClock starts
+Warning: "MsgTest_ClockOfMultiClock.bsv", line 24, column 8: (G0038)
+  Multiple contributing clocks were found in the argument to `clockOf'. Use
+  `clocksOf' to extract all of the clocks or change the argument expression.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	rg1.read rg1.write
+    Clock domain 2:
+      clk2:
+	rg2.read rg2.write
+    Clock domain 3:
+      clk3.gen_clk:
+	rg3.read rg3.write
+  During elaboration of `sysMsgTest_ClockOfMultiClock' at
+  "MsgTest_ClockOfMultiClock.bsv", line 8, column 8.
+Compilation message: "MsgTest_ClockOfMultiClock.bsv", line 25, column 15: True
+Verilog file created: sysMsgTest_ClockOfMultiClock.v
+All packages are up to date.

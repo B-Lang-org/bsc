@@ -1,0 +1,14 @@
+package DummyInRuleQual () where
+
+x :: (Bool, Bool)
+x = (True, True)
+
+sysDummyInRuleQual :: Module Empty
+sysDummyInRuleQual =
+    module
+	r :: Reg (Bit 12) <- mkRegU
+	rules
+	    when (_,a) <- x
+	      ==> r := _
+	    when (b,_) <- x, _
+	      ==> r := _

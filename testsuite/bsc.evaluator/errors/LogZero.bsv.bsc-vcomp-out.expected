@@ -1,0 +1,9 @@
+checking package dependencies
+compiling LogZero.bsv
+code generation for sysLogZero starts
+Error: "LogZero.bsv", line 5, column 16: (G0085)
+  A logarithm operator was applied to a non-positive number during
+  elaboration.
+  During elaboration of the body of rule `test' at "LogZero.bsv", line 3,
+  column 9.
+  During elaboration of `sysLogZero' at "LogZero.bsv", line 2, column 8.

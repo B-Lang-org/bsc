@@ -1,0 +1,4 @@
+compile_pass Bug263-1.bsv
+compile_pass Bug263-2.bsv
+compile_pass Bug263-3.bsv
+compile_pass Bug263-4.bsv

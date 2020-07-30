@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail EBitSel.bs mkShifter64
+compare_file EBitSel.bs.bsc-vcomp-out
+}

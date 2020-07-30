@@ -1,0 +1,13 @@
+checking package dependencies
+compiling RuleHier_NoImplCondErr.bsv
+code generation for sysRuleHier_NoImplCondErr starts
+Error: "RuleHier_NoImplCondErr.bsv", line 16, column 9: (G0005)
+  The assertion `no_implicit_conditions' failed for rule `m1_m2_r'
+  During elaboration of rule `r' at "RuleHier_NoImplCondErr.bsv", line 16,
+  column 9.
+  During elaboration of `m2' at "RuleHier_NoImplCondErr.bsv", line 8, column
+  8.
+  During elaboration of `m1' at "RuleHier_NoImplCondErr.bsv", line 4, column
+  8.
+  During elaboration of `sysRuleHier_NoImplCondErr' at
+  "RuleHier_NoImplCondErr.bsv", line 3, column 8.

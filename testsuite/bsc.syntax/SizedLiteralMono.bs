@@ -1,0 +1,26 @@
+package SizedLiteralMono where
+
+{-# verilog sysSizedLiteralMono #-}
+sysSizedLiteralMono :: Module Empty
+sysSizedLiteralMono =
+  module
+    a :: Bit 17 <- return 17'h1_1_1
+    b <- return 17'h111
+    z <- return 273
+    c :: UInt 4 <- return 4'b0__01_1_00
+    d <- return 4'b001100
+    y <- return 12
+    e :: Int 12 <- return 12'o7_7_7_7
+    f <- return 12'o7777
+    x <- return (0 - 1)
+    rules
+      when True ==>
+        action
+	  $display a " " c " " e
+	  if a == b && b == z &&
+	     c == d && d == y &&
+	     e == f && f == x   
+	    then $display "PASS"
+	    else $display "FAIL"
+	  $finish 0
+	  

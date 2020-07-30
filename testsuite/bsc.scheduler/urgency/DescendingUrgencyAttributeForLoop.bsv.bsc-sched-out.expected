@@ -1,0 +1,62 @@
+checking package dependencies
+compiling DescendingUrgencyAttributeForLoop.bsv
+code generation for sysDescendingUrgencyAttributeForLoop starts
+=== schedule:
+parallel: [esposito: [RL_test_rule_1 -> [],
+		      RL_test_rule_2 -> [RL_test_rule_1],
+		      RL_test_rule_2_1 -> [RL_test_rule_1],
+		      RL_test_rule_2_2 -> [RL_test_rule_1]]]
+order: [RL_test_rule_2, RL_test_rule_2_1, RL_test_rule_2_2, RL_test_rule_1]
+
+-----
+
+=== resources:
+[(count.read, [(count.read, 1)]),
+ (count.write, [(count.write x__h489, 1), (count.write x__h268, 1)]),
+ (count_1.read, [(count_1.read, 1)]),
+ (count_1.write, [(count_1.write x__h553, 1), (count_1.write x__h328, 1)]),
+ (count_2.read, [(count_2.read, 1)]),
+ (count_2.write, [(count_2.write x__h598, 1), (count_2.write x__h394, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysDescendingUrgencyAttributeForLoop.sched
+=== Generated schedule for sysDescendingUrgencyAttributeForLoop ===
+
+Rule schedule
+-------------
+Rule: test_rule_2
+Predicate: True
+Blocking rules: test_rule_1
+ 
+Rule: test_rule_2_1
+Predicate: True
+Blocking rules: test_rule_1
+ 
+Rule: test_rule_2_2
+Predicate: True
+Blocking rules: test_rule_1
+ 
+Rule: test_rule_1
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: test_rule_2,
+			 test_rule_2_1,
+			 test_rule_2_2,
+			 test_rule_1
+
+====================================================================
+Warning: "DescendingUrgencyAttributeForLoop.bsv", line 9, column 10: (G0021)
+  According to the generated schedule, rule `test_rule_2' can never fire.
+Warning: "DescendingUrgencyAttributeForLoop.bsv", line 9, column 10: (G0021)
+  According to the generated schedule, rule `test_rule_2_1' can never fire.
+Warning: "DescendingUrgencyAttributeForLoop.bsv", line 9, column 10: (G0021)
+  According to the generated schedule, rule `test_rule_2_2' can never fire.
+Verilog file created: sysDescendingUrgencyAttributeForLoop.v
+All packages are up to date.

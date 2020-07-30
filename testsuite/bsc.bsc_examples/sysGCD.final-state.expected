@@ -1,0 +1,6 @@
+Final state:
+top:
+  gcd_done = True
+  gcd_x = 0x000000000002a
+  gcd_y = 0x0000000000000
+  started = True

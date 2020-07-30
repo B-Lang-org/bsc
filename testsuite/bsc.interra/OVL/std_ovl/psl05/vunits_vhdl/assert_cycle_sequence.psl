@@ -1,0 +1,168 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_cycle_sequence_assert_vunit (assert_cycle_sequence_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_MOST_P is always ( 
+           {(necessary_condition = 0) and (seq_queue(1) = '1')} |-> {event_sequence(0) = '1'})
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P is always (  --Pipelined or non-pipelined application, this property is the same
+           {(necessary_condition = 1) or (necessary_condition = 2)} |->
+           {not(and_reduce((seq_queue(num_cks-1 downto 1) and event_sequence(num_cks-2 downto 0)) or (not(seq_queue(num_cks-1 downto 1))))) /= '1'}
+           abort (not(reset_n)));
+
+  -- //Properties for X/Z checking
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P is 
+           always( ((necessary_condition = 0) or (necessary_condition = 1)) and (xzcheck_enable = 1) -> not(is_x(event_sequence(num_cks-1))))
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P is 
+           always( (necessary_condition = 2) and (xzcheck_enable = 1) and ((not(or_reduce(seq_queue(num_cks-1 downto 0))) = '1') or (is_x((or_reduce(seq_queue(num_cks-1 downto 0)))))) -> not(is_x(event_sequence(num_cks-1))))
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P is
+           always( ((necessary_condition = 1) or (necessary_condition = 2)) and (xzcheck_enable = 1) and (num_cks > 1)-> not(is_x(xor_reduce(seq_queue(num_cks-1 downto 1) and event_sequence(num_cks-2 downto 0)))))
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P is
+           always( (necessary_condition = 0) and (num_cks > 2) and (xzcheck_enable = 1) -> not(is_x(xor_reduce(seq_queue(num_cks-1 downto 2) and event_sequence(num_cks-2 downto 1)))))
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P is
+           always( (necessary_condition = 0) and (xzcheck_enable = 1) and is_x(seq_queue(1)) -> not(is_x(event_sequence(0)) or (event_sequence(0) = '1')))
+           abort (not(reset_n));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P is
+           always( (necessary_condition = 0) and (xzcheck_enable = 1) and not(is_x(seq_queue(1))) -> not((seq_queue(1) = '1') and is_x(event_sequence(0))))
+           abort (not(reset_n));
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_MOST_P:
+  assert  ASSERT_SEQUENCE_TRIGGER_ON_MOST_P 
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First num_cks-1 events occured but they are not followed by the last event in sequence";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P:
+  assert ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P 
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First event occured but it is not followed by the rest of the events in sequence";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P:
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First event in the sequence contains X or Z";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P :
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P 
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First num_cks-1 events in the sequence contain X or Z";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P :
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P 
+
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First num_cks-1 events in the sequence contain X or Z";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P:
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: Last event in the sequence contains X or Z";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P :
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P 
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: Subsequent events in the sequence contain X or Z";
+
+  A_ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P :
+  assert ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P 
+  report "VIOLATION: ASSERT_CYCLE_SEQUENCE Checker Fires: First event in the sequence contains X or Z";
+}
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_cycle_sequence_assume_vunit (assert_cycle_sequence_assume)
+{
+
+  default clock is rose(clk);
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_MOST_P is always ( 
+           {(necessary_condition = 0) and (seq_queue(1) = '1')} |-> {event_sequence(0) = '1'}
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P is always (  --Pipelined or non-pipelined application, this property is the same
+           {(necessary_condition = 1) or (necessary_condition = 2)} |->
+           {not(and_reduce((seq_queue(num_cks-1 downto 1) and event_sequence(num_cks-2 downto 0)) or (not(seq_queue(num_cks-1 downto 1))))) /= '1'}
+           abort (not(reset_n)));
+
+  -- //Properties for X/Z checking
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P is 
+           always( ((necessary_condition = 0) or (necessary_condition = 1)) and (xzcheck_enable = 1) -> not(is_x(event_sequence(num_cks-1)))
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P is 
+           always( (necessary_condition = 2) and (xzcheck_enable = 1) and ((not(or_reduce(seq_queue(num_cks-1 downto 0))) = '1') or (is_x((or_reduce(seq_queue(num_cks-1 downto 0)))))) -> not(is_x(event_sequence(num_cks-1)))
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P is
+           always( ((necessary_condition = 1) or (necessary_condition = 2)) and (xzcheck_enable = 1) and (num_cks > 1)-> not(is_x(xor_reduce(seq_queue(num_cks-1 downto 1) and event_sequence(num_cks-2 downto 0))))
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P is
+           always( (necessary_condition = 0) and (num_cks > 2) and (xzcheck_enable = 1) -> not(is_x(xor_reduce(seq_queue(num_cks-1 downto 2) and event_sequence(num_cks-2 downto 1))))
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P is
+           always( (necessary_condition = 0) and (xzcheck_enable = 1) and is_x(seq_queue(1)) -> not(is_x(event_sequence(0)) or (event_sequence(0) = '1'))
+           abort (not(reset_n)));
+
+  property ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P is
+           always( (necessary_condition = 0) and (xzcheck_enable = 1) and not(is_x(seq_queue(1))) -> not((seq_queue(1) = '1') and is_x(event_sequence(0)))
+           abort (not(reset_n)));
+
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_MOST_P:
+  assume  ASSERT_SEQUENCE_TRIGGER_ON_MOST_P;
+                                                                                                                                                                 
+  M_ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P:
+  assume ASSERT_SEQUENCE_TRIGGER_ON_FIRST_P;
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P:
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC0_NC1_FIRST_EVENT_XZ_P;
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P :
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC0_NON_LAST_EVENTS_XZ_P;
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P :
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_XZ_1_XZ_P;
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P:
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC0_LAST_EVENT_1_XZ_P;
+
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P :
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC1_NC2_SUBSEQUENT_EVENTS_XZ_P;
+      
+  M_ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P :
+  assume ASSERT_SEQUENCE_TRIGGER_ON_NC2_FIRST_EVENT_XZ_P;
+}
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_cycle_sequence_cover_vunit (assert_cycle_sequence_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_sequence:
+  cover {((OVL_COVER_BASIC_ON = OVL_COVER_BASIC) or (OVL_COVER_BASIC_ON = OVL_COVER_ALL)) and (reset_n = '1') and
+         (((necessary_condition = 0) and ((and_reduce(seq_queue(num_cks-1 downto 1))) = '1')) or
+          (((necessary_condition = 1) or (necessary_condition = 2)) and (event_sequence(num_cks-1) = '1')))}
+  report "COVERAGE REPORT : ASSERT_CYCLE_SEQUENCE Checker: sequence covered";
+} 
+

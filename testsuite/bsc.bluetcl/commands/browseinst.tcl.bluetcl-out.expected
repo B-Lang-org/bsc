@@ -1,0 +1,306 @@
+Command: flags set -verilog
+-verilog
+---------
+Command: module load mkT
+mkIfcWithVec
+mkI
+mkM
+mkT
+---------
+    mkT            	 --  	 
+        r1             	 -- mkM Reg#(Bool)	r1 
+            ptr            	 -- RegN Reg#(Bool)	r1.ptr 
+            r1             	 -- RegN Reg#(Bool)	r1.r1 
+            r2             	 -- RegN Reg#(Bool)	r1.r2 
+            rHello         	 -- Rule 	r1.RL_rHello 
+            rWorld         	 -- Rule 	r1.RL_rWorld 
+        r2             	 -- mkM Reg#(Bool)	r2 
+            ptr            	 -- RegN Reg#(Bool)	r2.ptr 
+            r1             	 -- RegN Reg#(Bool)	r2.r1 
+            r2             	 -- RegN Reg#(Bool)	r2.r2 
+            rHello         	 -- Rule 	r2.RL_rHello 
+            rWorld         	 -- Rule 	r2.RL_rWorld 
+        mi             	 -- mkI Test::InoutIFC	mi 
+        mb             	 -- VFoo Test::Foo#(Bit#(4))	mb 
+        iv             	 -- mkIfcWithVec Test::IfcWithVec	iv 
+Command: browseinst list 0
+1 mkT synth
+---------
+Command: browseinst detail 0
+X(Node) = ROOT
+---------
+Command: browseinst list 1
+2 {r1  Reg#(Bool)} synth
+3 {r2  Reg#(Bool)} synth
+4 {mi  InoutIFC} synth
+5 {mb  Foo#(Bit#(4))} prim
+6 {iv  IfcWithVec} synth
+---------
+Command: browseinst detail 1
+X(BSVModule)  = mkT
+X(BSVPath)    = 
+X(DEBUG)      = BTop
+X(LocalPath)  = 
+X(Module)     = 
+X(Name)       = mkT
+X(Node)       = Synthesized
+X(SynthPath)  = 
+X(UniqueName) = 
+---------
+Command: browseinst list 2
+7 {ptr  Reg#(Bool)} prim
+8 {r1  Reg#(Bool)} prim
+9 {r2  Reg#(Bool)} prim
+10 rHello rule
+11 rWorld rule
+---------
+Command: browseinst detail 2
+X(BSVModule)   = mkM
+X(BSVPath)     = r1
+X(DEBUG)       = BMod r1 Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 89 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = mkM
+X(Name)        = r1
+X(Node)        = Synthesized
+X(SynthPath)   = r1
+X(UniqueName)  = r1
+X(position)    = Test.bsv 89 15
+---------
+Command: browseinst list 7
+---------
+Command: browseinst detail 7
+X(BSVModule)   = mkM
+X(BSVPath)     = r1 ptr
+X(DEBUG)       = BLeaf ptr RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = ptr
+X(Node)        = Primitive
+X(SynthPath)   = r1 ptr
+X(UniqueName)  = ptr
+X(position)    = Test.bsv 103 15
+---------
+Command: browseinst list 8
+---------
+Command: browseinst detail 8
+X(BSVModule)   = mkM
+X(BSVPath)     = r1 r1
+X(DEBUG)       = BLeaf r1 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = r1
+X(Node)        = Primitive
+X(SynthPath)   = r1 r1
+X(UniqueName)  = r1
+X(position)    = Test.bsv 104 15
+---------
+Command: browseinst list 9
+---------
+Command: browseinst detail 9
+X(BSVModule)   = mkM
+X(BSVPath)     = r1 r2
+X(DEBUG)       = BLeaf r2 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = r2
+X(Node)        = Primitive
+X(SynthPath)   = r1 r2
+X(UniqueName)  = r2
+X(position)    = Test.bsv 105 15
+---------
+Command: browseinst list 10
+---------
+Command: browseinst detail 10
+X(BSVModule) = mkM
+X(BSVPath)   = r1 rHello
+X(DEBUG)     = BRule rHello (RL_rHello)
+X(LocalPath) = rHello
+X(Name)      = rHello
+X(Node)      = Rule
+X(RuleName)  = RL_rHello
+X(SynthPath) = r1
+X(position)  = Test.bsv 109 9
+---------
+Command: browseinst list 11
+---------
+Command: browseinst detail 11
+X(BSVModule) = mkM
+X(BSVPath)   = r1 rWorld
+X(DEBUG)     = BRule rWorld (RL_rWorld)
+X(LocalPath) = rWorld
+X(Name)      = rWorld
+X(Node)      = Rule
+X(RuleName)  = RL_rWorld
+X(SynthPath) = r1
+X(position)  = Test.bsv 113 9
+---------
+Command: browseinst list 3
+12 {ptr  Reg#(Bool)} prim
+13 {r1  Reg#(Bool)} prim
+14 {r2  Reg#(Bool)} prim
+15 rHello rule
+16 rWorld rule
+---------
+Command: browseinst detail 3
+X(BSVModule)   = mkM
+X(BSVPath)     = r2
+X(DEBUG)       = BMod r2 Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 89 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = mkM
+X(Name)        = r2
+X(Node)        = Synthesized
+X(SynthPath)   = r2
+X(UniqueName)  = r2
+X(position)    = Test.bsv 90 15
+---------
+Command: browseinst list 12
+---------
+Command: browseinst detail 12
+X(BSVModule)   = mkM
+X(BSVPath)     = r2 ptr
+X(DEBUG)       = BLeaf ptr RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = ptr
+X(Node)        = Primitive
+X(SynthPath)   = r2 ptr
+X(UniqueName)  = ptr
+X(position)    = Test.bsv 103 15
+---------
+Command: browseinst list 13
+---------
+Command: browseinst detail 13
+X(BSVModule)   = mkM
+X(BSVPath)     = r2 r1
+X(DEBUG)       = BLeaf r1 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = r1
+X(Node)        = Primitive
+X(SynthPath)   = r2 r1
+X(UniqueName)  = r1
+X(position)    = Test.bsv 104 15
+---------
+Command: browseinst list 14
+---------
+Command: browseinst detail 14
+X(BSVModule)   = mkM
+X(BSVPath)     = r2 r2
+X(DEBUG)       = BLeaf r2 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Test.bsv 103 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = r2
+X(Node)        = Primitive
+X(SynthPath)   = r2 r2
+X(UniqueName)  = r2
+X(position)    = Test.bsv 105 15
+---------
+Command: browseinst list 15
+---------
+Command: browseinst detail 15
+X(BSVModule) = mkM
+X(BSVPath)   = r2 rHello
+X(DEBUG)     = BRule rHello (RL_rHello)
+X(LocalPath) = rHello
+X(Name)      = rHello
+X(Node)      = Rule
+X(RuleName)  = RL_rHello
+X(SynthPath) = r2
+X(position)  = Test.bsv 109 9
+---------
+Command: browseinst list 16
+---------
+Command: browseinst detail 16
+X(BSVModule) = mkM
+X(BSVPath)   = r2 rWorld
+X(DEBUG)     = BRule rWorld (RL_rWorld)
+X(LocalPath) = rWorld
+X(Name)      = rWorld
+X(Node)      = Rule
+X(RuleName)  = RL_rWorld
+X(SynthPath) = r2
+X(position)  = Test.bsv 113 9
+---------
+Command: browseinst list 4
+---------
+Command: browseinst detail 4
+X(BSVModule)   = mkI
+X(BSVPath)     = mi
+X(DEBUG)       = BMod mi Just (Test::InoutIFC)
+X(IfcPosition) = Test.bsv 91 4
+X(Interface)   = Test::InoutIFC
+X(LocalPath)   = 
+X(Module)      = mkI
+X(Name)        = mi
+X(Node)        = Synthesized
+X(SynthPath)   = mi
+X(UniqueName)  = mi
+X(position)    = Test.bsv 91 13
+---------
+Command: browseinst list 5
+---------
+Command: browseinst detail 5
+X(BSVModule)   = mkT
+X(BSVPath)     = mb
+X(DEBUG)       = BLeaf mb VFoo Just ((Test::Foo#(Bit#(4))))
+X(IfcPosition) = Test.bsv 92 4
+X(Interface)   = Test::Foo#(Bit#(4))
+X(LocalPath)   = 
+X(Module)      = VFoo
+X(Name)        = mb
+X(Node)        = Primitive
+X(SynthPath)   = mb
+X(UniqueName)  = mb
+X(position)    = Test.bsv 92 18
+---------
+Command: browseinst list 6
+---------
+Command: browseinst detail 6
+X(BSVModule)   = mkIfcWithVec
+X(BSVPath)     = iv
+X(DEBUG)       = BMod iv Just (Test::IfcWithVec)
+X(IfcPosition) = Test.bsv 93 4
+X(Interface)   = Test::IfcWithVec
+X(LocalPath)   = 
+X(Module)      = mkIfcWithVec
+X(Name)        = iv
+X(Node)        = Synthesized
+X(SynthPath)   = iv
+X(UniqueName)  = iv
+X(position)    = Test.bsv 93 15
+---------
+Command: browseinst debug
+0 ROOT
+1 mkT
+2 {r1  Reg#(Bool)}
+3 {r2  Reg#(Bool)}
+4 {mi  InoutIFC}
+5 {mb  Foo#(Bit#(4))}
+6 {iv  IfcWithVec}
+7 {ptr  Reg#(Bool)}
+8 {r1  Reg#(Bool)}
+9 {r2  Reg#(Bool)}
+10 rHello
+11 rWorld
+12 {ptr  Reg#(Bool)}
+13 {r1  Reg#(Bool)}
+14 {r2  Reg#(Bool)}
+15 rHello
+16 rWorld
+---------

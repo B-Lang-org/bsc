@@ -1,0 +1,5 @@
+compile_fail FindFields.bs
+compare_file FindFields.bs.bsc-out
+
+compile_fail TupleChk1.bs
+compare_file TupleChk1.bs.bsc-out

@@ -1,0 +1,37 @@
+----------------------------------------------------
+-- FileName : TestSyn.bs
+-- Author   : Interra
+-- BugID    : 231
+-- CommandLine : bsc -verilog -g mkStack TestSyn.bs
+-- Status : OPEN
+----------------------------------------------------
+
+package TestSyn () where
+
+interface Stack =
+    push :: (Action, Action, Action)
+
+mkStack :: Module Stack
+mkStack =
+    module
+     r1 :: Reg (Maybe Bool)
+     r1 <- mkReg Invalid
+
+     r2 :: Reg (Maybe Bool)
+     r2 <- mkReg Invalid
+
+     r3 :: Reg (Maybe Bool)
+     r3 <- mkReg Invalid
+     
+     
+
+     interface
+         push = 
+                let a1 = action 
+                           r1 := Valid False
+                    a2 = action
+                           r2 := Valid True
+                    a3 = action
+                           r3 := Valid False
+                in
+                (a1,a2,a3)

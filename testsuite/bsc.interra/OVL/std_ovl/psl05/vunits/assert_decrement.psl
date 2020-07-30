@@ -1,0 +1,60 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_decrement_assert_vunit (assert_decrement_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_DECREMENT_P = always (
+           (value > 0) && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+           (test_expr < prev(test_expr) ?
+           (prev(test_expr) - test_expr) == value :
+           (prev(test_expr) + ({width{1'b1}} - test_expr) + 1'b1 == value))); 
+  
+  //Property for X/Z checking
+
+  property ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+      
+  A_ASSERT_DECREMENT_P:
+  assert ASSERT_DECREMENT_P
+  report "VIOLATION: ASSERT_DECREMENT Checker Fires: Test expression is decreased by a value other than specified";
+
+  A_ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_DECREMENT Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_decrement_assume_vunit (assert_decrement_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_DECREMENT_P = always (
+            (value > 0) && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+            (test_expr < prev(test_expr) ? 
+            (prev(test_expr) - test_expr) == value :
+            (prev(test_expr) + ({width{1'b1}} - test_expr) + 1'b1 == value)));                                                                                                                                        
+  //Property for X/Z checking
+
+  property ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+      
+  M_ASSERT_DECREMENT_P:
+  assume ASSERT_DECREMENT_P;
+
+  M_ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_DECREMENT_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_decrement_cover_vunit (assert_decrement_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_BASIC_ON && prev(reset_n) && reset_n && !stable(test_expr)}
+  report "COVERAGE REPORT : ASSERT_DECREMENT Checker: test_expr_change covered";
+  
+}
+ 

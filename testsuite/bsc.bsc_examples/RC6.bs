@@ -1,0 +1,267 @@
+-------------------------------------------------------------------------------
+--
+-- The RC6 Encryption algorithm
+--
+-------------------------------------------------------------------------------
+
+package RC6 (sysRC6,
+             IO, RequestType, WordSize, OperationType, ResultType, TextType
+            ) where
+import RegFile
+
+sysRC6 :: Module (IO RequestType ResultType)
+sysRC6 = mkRC6
+
+{-
+        Like RC5, RC6 is a fully parameterized family of encryption
+algorithms.  A version of RC6 is more accurately specified as RC6-w/r/b
+where the word size is "w" bits,  encryption consists of a nonnegative
+number of rounds "r," and "b" denotes the length of the encryption key in
+bytes. Since the AES submission is targetted at w=32, and r=20, we shall
+use RC6 as shorthand to refers to such versions.  When any other value of
+"w" or "r" is intended in the text, the parameter values will be specified
+as RC6-w/r.  Of particular relevance to the AES effort will be the versions
+of RC6 with 16-, 21-, and 32-byte keys.
+
+        For all variants, RC6-w/r/b operates on units of four w-bit words
+using the following six basic operations.  The base-two logarithm of "w"
+will be denoted by "lg w."
+
+a + b           integer  addition modulo 2 *w
+
+a - b           integer subtraction modulo 2 *w
+
+a <EOR> b       bitwise exclusive-or of w-bit words
+
+a x b           integer multiplication modulo 2 *w
+
+a <<< b         rotate the w-bit word a to the left by the amount given by
+the least significant lg w bits of b
+
+a >>> b         rotate the w-bit word a to the right by the amount given by
+the least significant lg w bit of b
+
+        Note that in the descriptions of RC6 the term "round" is somewhat
+analogous to the usual DES-like idea of a round: half of the data is
+updated by the other half; and the two are then swapped.  In RC5, the term
+"half-round" was used to describe this style of action, and an RC5 round
+was deemed to consist of two half-rounds.  This seems to have become a
+potential cause of confusion, and so RC6 reverts to using the term "round"
+in a more established way.
+
+-}
+
+-----------
+-- TYPES --
+-----------
+
+type WordSize = 32;    -- word size in bits
+
+type RoundSize = 5;    -- number of bits to represent the number of rounds
+type Rounds = 20;      -- non-negative number of rounds of encryption
+
+
+data OperationType = Decode | Encode
+		   deriving (Eq, Bits)
+
+struct RequestType =
+    op :: OperationType
+    a :: UInt WordSize
+    b :: UInt WordSize
+    c :: UInt WordSize
+    d :: UInt WordSize
+  deriving (Bits)
+    
+struct TextType =
+    a :: UInt WordSize
+    b :: UInt WordSize
+    c :: UInt WordSize
+    d :: UInt WordSize
+  deriving (Bits)
+
+type ResultType = TextType
+
+data StepType = Ready | Round (Bit RoundSize) | Final | Done
+	      deriving (Eq, Bits)
+
+
+---------------
+-- FUNCTIONS --
+---------------
+
+logW :: (Log WordSize k) => Integer
+logW = valueOf k
+
+{-
+-- These general rotate functions, which use toNat to extract the
+-- right number of Bits for performing the extraction, do not currently
+-- compile.
+
+toNat :: Bit n -> Nat
+toNat bs = if (valueOf n > 32)
+	   then bs[31:0]
+	   else bs[fromInteger (valueOf n - 1):0]
+
+rotateLeft :: UInt n -> UInt n -> UInt n
+rotateLeft (UInt a) (UInt b) =
+    UInt ((a << toNat b) | (a >> (fromInteger (valueOf n) - toNat b)))
+
+rotateRight :: UInt n -> UInt n -> UInt n
+rotateRight (UInt a) (UInt b) =
+    UInt ((a >> toNat b) | (a << (fromInteger (valueOf n) - toNat b)))
+-}
+
+rotateLeft :: UInt 32 -> UInt 32 -> UInt 32
+rotateLeft a b =
+    (a << pack b) | (a >> pack (32 - b))
+
+rotateRight :: UInt 32 -> UInt 32 -> UInt 32
+rotateRight a b =
+    (a >> pack b) | (a << pack (32 - b))
+
+
+----------------
+-- INTERFACES --
+----------------
+
+interface IO i o =
+    input :: i -> Action
+    output :: Maybe o
+
+mkRC6 :: Module (IO RequestType ResultType)
+mkRC6 =
+    module
+        op :: Reg OperationType   -- True for Enc, False for Dec
+	op <- mkRegU
+
+        a :: Reg (UInt WordSize)
+	a <- mkRegU
+        b :: Reg (UInt WordSize)
+	b <- mkRegU
+        c :: Reg (UInt WordSize)
+	c <- mkRegU
+        d :: Reg (UInt WordSize)
+	d <- mkRegU
+
+        -- don't ask how these values got here, that's for version 2.0
+	keyArr :: RegFile (Bit RoundSize) (UInt WordSize)
+	keyArr <- mkRegFile minBound maxBound
+
+	step :: Reg StepType
+	step <- mkReg Done
+
+        addRules $ mkRC6Rules op a b c d keyArr step
+
+        interface
+	    input i = action
+			op := i.op
+	            	a := i.a
+	           	b := i.b
+	            	c := i.c
+	            	d := i.d
+	            	step := Ready
+	    output = if (step == Done)
+		     then Valid (TextType { a = a;
+		                           b = b;
+				           c = c;
+				           d = d; })
+		     else Invalid
+
+
+------------
+-- RULES ---
+------------
+
+mkRC6Rules :: Reg OperationType -> Reg (UInt WordSize) ->
+	      Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+	      Reg (UInt WordSize) -> RegFile (Bit RoundSize) (UInt WordSize) ->
+	      Reg StepType -> Rules
+mkRC6Rules op a b c d keyArr step =
+    mkRC6EncRules op a b c d keyArr step <+>
+    mkRC6DecRules op a b c d keyArr step
+
+
+------------------
+-- Encode Rules --
+------------------
+
+mkRC6EncRules :: Reg OperationType -> Reg (UInt WordSize) ->
+		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+		 Reg (UInt WordSize) ->
+		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
+mkRC6EncRules op a b c d keyArr step = 
+    let
+	isEnc :: Bool
+	isEnc = (op == Encode)
+
+	t = (b * ((b << 1) + 1)) `rotateLeft` (fromInteger logW)
+	u = (d * ((d << 1) + 1)) `rotateLeft` (fromInteger logW)
+
+	lastRound :: Bit RoundSize
+	lastRound = fromInteger (valueOf Rounds)
+    in
+	rules
+	  when isEnc, step == Ready
+	    ==> action
+		  b := b + keyArr.sub 0
+	          d := d + keyArr.sub 1
+		  step := Round 1
+
+	  when isEnc, Round r <- step
+	    ==> action
+		  a := b
+	          b := ((c ^ u) `rotateLeft` t) + keyArr.sub ((r << 1) + 1)
+		  c := d
+		  d := ((a ^ t) `rotateLeft` u) + keyArr.sub (r << 1)
+		  step := if r < lastRound
+			    then Round (r + 1)
+			    else Final
+
+	  when isEnc, step == Final
+	    ==> action
+		  a := a + keyArr.sub ((lastRound << 1) + 2)
+	          c := c + keyArr.sub ((lastRound << 1) + 3)
+		  step := Done
+
+
+------------------
+-- Decode Rules --
+------------------
+
+mkRC6DecRules :: Reg OperationType -> Reg (UInt WordSize) ->
+		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+		 Reg (UInt WordSize) ->
+		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
+mkRC6DecRules op a b c d keyArr step = 
+    let
+	isDec :: Bool
+	isDec = (op == Decode)
+
+	t = (a * ((a << 1) + 1)) `rotateLeft` (fromInteger logW)
+	u = (c * ((c << 1) + 1)) `rotateLeft` (fromInteger logW)
+
+	lastRound :: Bit RoundSize
+	lastRound = fromInteger (valueOf Rounds)
+    in
+	rules
+	  when isDec, step == Ready
+	    ==> action
+		  a := a - keyArr.sub ((lastRound << 1) + 2)
+	          c := c - keyArr.sub ((lastRound << 1) + 3)
+		  step := Round lastRound
+
+	  when isDec, Round r <- step
+	    ==> action
+		  a := ((d - keyArr.sub (r << 1)) `rotateRight` u) ^ t
+	          b := a
+	          c := ((b - keyArr.sub ((r << 1) + 1)) `rotateRight` t) ^ u
+		  d := c
+		  step := if r > 1
+			   then Round (r - 1)
+			   else Final
+
+	  when isDec, step == Final
+	    ==> action
+		  b := b - keyArr.sub 0
+	          d := d - keyArr.sub 1
+		  step := Done

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ModuleCollectClock.bsv
+code generation for mkTestWrapper starts
+Compilation message: "ModuleCollectClock.bsv", line 22, column 22: 5
+Verilog file created: mkTestWrapper.v
+All packages are up to date.

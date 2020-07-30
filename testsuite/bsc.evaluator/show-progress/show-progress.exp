@@ -1,0 +1,41 @@
+
+# Test the -show-elab-progress flag
+
+proc test_elab { fname { modname "" } { options "" } } {
+    global vtest
+
+    compile_verilog_pass $fname $modname "-show-elab-progress $options"
+    if { $vtest == 1 } {
+	set outfile [make_bsc_vcomp_output_name $fname]
+	sed $outfile $outfile.filtered {} {s/\\\[.*\\\]/\\\[TIME\\\]/}
+	compare_file $outfile.filtered $outfile.expected
+    }
+}
+
+# ----------
+# Basic test
+
+# Test with hiding
+#
+copy Test1.bsv Test1-hide.bsv
+test_elab Test1-hide.bsv sysTest1
+erase Test1-hide.bsv
+
+# Test without hiding
+#
+copy Test1.bsv Test1-show.bsv
+test_elab Test1-show.bsv sysTest1 {-tcl-show-hidden}
+erase Test1-show.bsv
+
+# ----------
+# Test for-loops and anonymous instantiations
+
+test_elab StaticAssert.bsv sysStaticAssert {-check-assert}
+
+# ----------
+# Test primBuildModule
+
+test_elab BuildModule.bsv sysBuildModule
+
+# ----------
+

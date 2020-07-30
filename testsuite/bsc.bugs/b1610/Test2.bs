@@ -1,0 +1,16 @@
+package Test2 where
+
+interface RegPrimPairBoolMaybeBitSizeOfBit32_ =
+    _write :: Bit 34 -> ActionValue_ 0
+
+fromRegPrimPairBoolMaybeBitSizeOfBit32_
+   :: (Bits (Bool, Maybe (Bit (SizeOf (Bit 32)))) 34) =>
+      RegPrimPairBoolMaybeBitSizeOfBit32_ ->
+        Reg (Bool, Maybe (Bit (SizeOf (Bit 32))))
+fromRegPrimPairBoolMaybeBitSizeOfBit32_ _t = 
+    interface Reg {
+      _write _x1000000 = 
+	  fromActionValue_ (_t._write (pack _x1000000));
+      _read = _
+    }
+      

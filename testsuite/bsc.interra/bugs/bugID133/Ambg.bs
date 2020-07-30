@@ -1,0 +1,63 @@
+----------------------------------------------------
+-- FileName : Ambg.bs
+-- Author   : Interra
+-- BugID    : 133
+-- CommandLine : bsc Ambg.bs
+-- Status : Fixed for BSC 3.74 
+----------------------------------------------------
+package Ambg () where
+
+data MyType1 a = Integer | Bool
+               deriving (Eq,Bits)
+
+data MyType2 b = Bool | Integer
+               deriving (Eq,Bits,Bounded)
+
+data Maybe c   = Invalid | Valid c
+               deriving (Eq,Bits)
+
+interface Ambg =
+     start :: (MyType2 Integer) -> (MyType2 Integer) -> Action
+     end   :: (MyType2 (Maybe Integer))
+
+mkAmbg :: Module Ambg
+mkAmbg =
+      module
+
+          u :: Reg (MyType1 Bool)
+          u <- mkRegU
+
+          v :: Reg (MyType1 Bool)
+          v <- mkRegU
+
+          w :: Reg (MyType2 Integer)
+          w <- mkRegU
+
+          z :: Reg (MyType2 Integer)
+          z <- mkRegU
+
+          x :: Reg (MyType2 Bool)
+          x <- mkRegU
+
+          y :: Reg (MyType2 Bool)
+          y <- mkRegU
+
+
+          rules
+           "One":
+             when (w == z)
+              ==> action
+                     x := y
+
+           "Two":
+             when (w /= z)
+              ==> action
+                     y := x
+
+
+          interface
+             start iw iz = action
+                               w := iw
+                               z := iz
+                           when True   
+             end = Maybe w  when True

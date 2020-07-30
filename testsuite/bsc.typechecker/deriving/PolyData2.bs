@@ -1,0 +1,6 @@
+package PolyData2(Id(..)) where
+
+data Id = MyId (a -> a) Integer
+
+
+

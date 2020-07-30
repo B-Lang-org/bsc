@@ -1,0 +1,6 @@
+test_c_only_bsv MethodArg_ActionValue bug1658.out.expected
+test_c_only_bsv MethodArg_Value       bug1658.out.expected
+
+test_c_only_bsv ModulePort  bug1658.out.expected
+test_c_only_bsv ModuleParam bug1658.out.expected
+

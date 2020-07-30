@@ -1,0 +1,20 @@
+# Test that the error message is complete, with no internal error
+
+set source Bug752.bsv
+compile_verilog_fail_error $source G0030 1
+set output [make_bsc_vcomp_output_name $source]
+# Rather than compare against an expected, we just look for the last
+# part of the error message:
+if {$vtest == 1} {
+find_n_strings $output {RL_b, RL_c} 1
+}
+
+# This example has three interconnected cycles
+set source Bug752-2.bsv
+compile_verilog_fail $source
+set output [make_bsc_vcomp_output_name $source]
+# Rather than compare against an expected, we just look for the last
+# part of the error message:
+if {$vtest == 1} {
+find_n_strings $output {RL_e, RL_f, RL_g, RL_h} 1
+}

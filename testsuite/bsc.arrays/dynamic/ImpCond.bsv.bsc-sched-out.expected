@@ -1,0 +1,46 @@
+checking package dependencies
+compiling ImpCond.bsv
+code generation for sysImpCond starts
+=== schedule:
+parallel: [esposito: [RL_r -> []]]
+order: [RL_r]
+
+-----
+
+=== resources:
+[(fs_0.enq, [(if idx_EQ_0___d7 then fs_0.enq 8'd0, 1)]),
+ (fs_0.i_notFull, [(fs_0.i_notFull, 1)]),
+ (fs_1.enq, [(if idx_EQ_1___d8 then fs_1.enq 8'd0, 1)]),
+ (fs_1.i_notFull, [(fs_1.i_notFull, 1)]),
+ (fs_2.enq, [(if idx_EQ_2___d9 then fs_2.enq 8'd0, 1)]),
+ (fs_2.i_notFull, [(fs_2.i_notFull, 1)]),
+ (fs_3.enq, [(if idx_EQ_3___d10 then fs_3.enq 8'd0, 1)]),
+ (fs_3.i_notFull, [(fs_3.i_notFull, 1)]),
+ (idx.read, [(idx.read, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysImpCond.sched
+=== Generated schedule for sysImpCond ===
+
+Rule schedule
+-------------
+Rule: r
+Predicate: case idx of
+	   2'd0 -> fs_0.i_notFull
+	   2'd1 -> fs_1.i_notFull
+	   2'd2 -> fs_2.i_notFull
+	   2'd3 -> fs_3.i_notFull
+	   _ -> 1'd1
+Blocking rules: (none)
+ 
+Logical execution order: r
+
+==========================================
+Verilog file created: sysImpCond.v
+All packages are up to date.

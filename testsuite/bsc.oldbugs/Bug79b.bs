@@ -1,0 +1,7 @@
+package Bug79b(B(..)) where
+
+import Bug79a 
+
+data B = A (A) | B
+  deriving (Eq, Bits)
+

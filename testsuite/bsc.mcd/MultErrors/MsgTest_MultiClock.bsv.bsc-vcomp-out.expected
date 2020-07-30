@@ -1,0 +1,19 @@
+checking package dependencies
+compiling MsgTest_MultiClock.bsv
+code generation for sysMsgTest_MultiClock starts
+Error: "MsgTest_MultiClock.bsv", line 16, column 9: (G0007)
+  Reference across clock domain in rule `r'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	rg1.read rg1.write
+    Clock domain 2:
+      clk2:
+	rg2.read rg2.write
+    Clock domain 3:
+      clk3.gen_clk:
+	rg3.read rg3.write
+  During elaboration of rule `r' at "MsgTest_MultiClock.bsv", line 16, column
+  9.
+  During elaboration of `sysMsgTest_MultiClock' at "MsgTest_MultiClock.bsv",
+  line 8, column 8.

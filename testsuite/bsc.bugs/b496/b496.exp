@@ -1,0 +1,1 @@
+compile_fail_error_warnings Bug496_1.bsv T0066 1 { { P0102 1} }

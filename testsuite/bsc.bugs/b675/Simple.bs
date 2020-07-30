@@ -1,0 +1,15 @@
+package Simple where {
+
+import ListN;
+	    
+fn :: Bit n;
+fn =
+  let { x :: ListN n Bool;
+        x = replicate False;
+        y :: Bit m;
+        y = pack x;
+      }
+  in  y;
+
+}
+

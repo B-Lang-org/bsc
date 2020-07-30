@@ -1,0 +1,10 @@
+compile_fail EUnify.bs
+find_n_error EUnify.bs.bsc-out T0020 1
+
+compile_fail EUnify1.bs
+#find_n_error EUnify1.bs.bsc-out T0020 1
+# This mismatch is now reported specially
+find_n_error EUnify1.bs.bsc-out T0084 1
+
+compile_fail EUnify2.bs
+find_n_error EUnify2.bs.bsc-out T0131 2

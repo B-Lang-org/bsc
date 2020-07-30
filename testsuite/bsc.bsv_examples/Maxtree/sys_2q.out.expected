@@ -1,0 +1,1235 @@
+                  70 -- rule run
+The input: 0000000001
+          0: 01
+          1: 00
+          2: 00
+          3: 00
+          4: 00
+          5: 00
+          6: 00
+          7: 00
+
+
+                  80 -- rule run
+The input: 8000de0007
+          0: 07
+          1: 00
+          2: 00
+          3: 1c
+          4: 0d
+          5: 00
+          6: 00
+          7: 10
+
+
+                  90 -- rule read-- 0, 01
+                  90 -- rule run
+The input: c000b10004
+          0: 04
+          1: 00
+          2: 00
+          3: 02
+          4: 0b
+          5: 00
+          6: 00
+          7: 18
+
+
+                 100 -- rule read-- 3, 1c
+                 100 -- rule run
+The input: 6000588002
+          0: 02
+          1: 00
+          2: 00
+          3: 11
+          4: 05
+          5: 00
+          6: 00
+          7: 0c
+
+
+                 110 -- rule read-- 7, 18
+                 110 -- rule run
+The input: 30002c4001
+          0: 01
+          1: 00
+          2: 10
+          3: 18
+          4: 02
+          5: 00
+          6: 00
+          7: 06
+
+
+                 120 -- rule read-- 3, 11
+                 120 -- rule run
+The input: 9800c82007
+          0: 07
+          1: 00
+          2: 08
+          3: 10
+          4: 0c
+          5: 00
+          6: 00
+          7: 13
+
+
+                 130 -- rule read-- 3, 18
+                 130 -- rule run
+The input: cc00ba1004
+          0: 04
+          1: 00
+          2: 04
+          3: 14
+          4: 0b
+          5: 00
+          6: 10
+          7: 19
+
+
+                 140 -- rule read-- 7, 13
+                 140 -- rule run
+The input: 66005d0802
+          0: 02
+          1: 00
+          2: 02
+          3: 1a
+          4: 05
+          5: 00
+          6: 18
+          7: 0c
+
+
+                 150 -- rule read-- 7, 19
+                 150 -- rule run
+The input: 33002e8401
+          0: 01
+          1: 00
+          2: 01
+          3: 1d
+          4: 02
+          5: 00
+          6: 0c
+          7: 06
+
+
+                 160 -- rule read-- 3, 1a
+                 160 -- rule run
+The input: 9980c94207
+          0: 07
+          1: 10
+          2: 10
+          3: 12
+          4: 0c
+          5: 00
+          6: 06
+          7: 13
+
+
+                 170 -- rule read-- 3, 1d
+                 170 -- rule run
+The input: ccc0baa104
+          0: 04
+          1: 08
+          2: 08
+          3: 15
+          4: 0b
+          5: 00
+          6: 13
+          7: 19
+
+
+                 180 -- rule read-- 7, 13
+                 180 -- rule run
+The input: 66605d5082
+          0: 02
+          1: 04
+          2: 14
+          3: 1a
+          4: 05
+          5: 10
+          6: 19
+          7: 0c
+
+
+                 190 -- rule read-- 7, 19
+                 190 -- rule run
+The input: 33302ea841
+          0: 01
+          1: 02
+          2: 0a
+          3: 1d
+          4: 02
+          5: 18
+          6: 0c
+          7: 06
+
+
+                 200 -- rule read-- 3, 1a
+                 200 -- rule run
+The input: 9998c95427
+          0: 07
+          1: 01
+          2: 15
+          3: 12
+          4: 0c
+          5: 0c
+          6: 06
+          7: 13
+
+
+                 210 -- rule read-- 3, 1d
+                 210 -- rule run
+The input: ccccbaaa14
+          0: 14
+          1: 10
+          2: 0a
+          3: 15
+          4: 0b
+          5: 06
+          6: 13
+          7: 19
+
+
+                 220 -- rule read-- 2, 15
+                 220 -- rule run
+The input: 66665d550a
+          0: 0a
+          1: 08
+          2: 15
+          3: 1a
+          4: 05
+          5: 13
+          6: 19
+          7: 0c
+
+
+                 230 -- rule read-- 7, 19
+                 230 -- rule run
+The input: 33332eaa85
+          0: 05
+          1: 14
+          2: 0a
+          3: 1d
+          4: 12
+          5: 19
+          6: 0c
+          7: 06
+
+
+                 240 -- rule read-- 3, 1a
+                 240 -- rule run
+The input: 9999495545
+          0: 05
+          1: 0a
+          2: 15
+          3: 12
+          4: 14
+          5: 0c
+          6: 06
+          7: 13
+
+
+                 250 -- rule read-- 3, 1d
+                 250 -- rule run
+The input: cccc7aaaa5
+          0: 05
+          1: 15
+          2: 0a
+          3: 15
+          4: 07
+          5: 06
+          6: 13
+          7: 19
+
+
+                 260 -- rule read-- 2, 15
+                 260 -- rule run
+The input: e666e35555
+          0: 15
+          1: 0a
+          2: 15
+          3: 06
+          4: 0e
+          5: 13
+          6: 19
+          7: 1c
+
+
+                 270 -- rule read-- 7, 19
+                 270 -- rule run
+The input: f333afaaad
+          0: 0d
+          1: 15
+          2: 0a
+          3: 1f
+          4: 1a
+          5: 19
+          6: 0c
+          7: 1e
+
+
+                 280 -- rule read-- 7, 1c
+                 280 -- rule run
+The input: f99909d551
+          0: 11
+          1: 0a
+          2: 15
+          3: 13
+          4: 10
+          5: 0c
+          6: 06
+          7: 1f
+
+
+                 290 -- rule read-- 3, 1f
+                 290 -- rule run
+The input: fccc5aeaaf
+          0: 0f
+          1: 15
+          2: 1a
+          3: 15
+          4: 05
+          5: 06
+          6: 13
+          7: 1f
+
+
+                 300 -- rule read-- 7, 1f
+                 300 -- rule run
+The input: fe66f37550
+          0: 10
+          1: 0a
+          2: 1d
+          3: 06
+          4: 0f
+          5: 13
+          6: 19
+          7: 1f
+
+
+                 310 -- rule read-- 7, 1f
+                 310 -- rule run
+The input: 7f3379baa8
+          0: 08
+          1: 15
+          2: 0e
+          3: 13
+          4: 17
+          5: 19
+          6: 1c
+          7: 0f
+
+
+                 320 -- rule read-- 7, 1f
+                 320 -- rule run
+The input: 3f99bcdd54
+          0: 14
+          1: 0a
+          2: 17
+          3: 19
+          4: 1b
+          5: 0c
+          6: 1e
+          7: 07
+
+
+                 330 -- rule read-- 6, 1c
+                 330 -- rule run
+The input: 1fccde6eaa
+          0: 0a
+          1: 15
+          2: 1b
+          3: 1c
+          4: 0d
+          5: 06
+          6: 1f
+          7: 03
+
+
+                 340 -- rule read-- 6, 1e
+                 340 -- rule run
+The input: 0fe66f3755
+          0: 15
+          1: 1a
+          2: 0d
+          3: 1e
+          4: 06
+          5: 13
+          6: 1f
+          7: 01
+
+
+                 350 -- rule read-- 6, 1f
+                 350 -- rule run
+The input: 87f3e99bad
+          0: 0d
+          1: 1d
+          2: 06
+          3: 13
+          4: 1e
+          5: 19
+          6: 1f
+          7: 10
+
+
+                 360 -- rule read-- 6, 1f
+                 360 -- rule run
+The input: c3f92acdd1
+          0: 11
+          1: 0e
+          2: 13
+          3: 15
+          4: 12
+          5: 1c
+          6: 0f
+          7: 18
+
+
+                 370 -- rule read-- 6, 1f
+                 370 -- rule run
+The input: e1fc4b66ef
+          0: 0f
+          1: 17
+          2: 19
+          3: 16
+          4: 04
+          5: 1e
+          6: 07
+          7: 1c
+
+
+                 380 -- rule read-- 5, 1c
+                 380 -- rule run
+The input: f0fefbb370
+          0: 10
+          1: 1b
+          2: 0c
+          3: 17
+          4: 0f
+          5: 1f
+          6: 03
+          7: 1e
+
+
+                 390 -- rule read-- 5, 1e
+                 390 -- rule run
+The input: 787f7dd9b8
+          0: 18
+          1: 0d
+          2: 16
+          3: 1b
+          4: 17
+          5: 1f
+          6: 01
+          7: 0f
+
+
+                 400 -- rule read-- 5, 1f
+                 400 -- rule run
+The input: 3c3fbeecdc
+          0: 1c
+          1: 06
+          2: 1b
+          3: 1d
+          4: 1b
+          5: 1f
+          6: 10
+          7: 07
+
+
+                 410 -- rule read-- 5, 1f
+                 410 -- rule run
+The input: 1e1fdf766e
+          0: 0e
+          1: 13
+          2: 1d
+          3: 1e
+          4: 1d
+          5: 0f
+          6: 18
+          7: 03
+
+
+                 420 -- rule read-- 5, 1f
+                 420 -- rule run
+The input: 0f0fefbb37
+          0: 17
+          1: 19
+          2: 0e
+          3: 1f
+          4: 1e
+          5: 07
+          6: 1c
+          7: 01
+
+
+                 430 -- rule read-- 3, 1e
+                 430 -- rule run
+The input: 878729dd9c
+          0: 1c
+          1: 0c
+          2: 17
+          3: 13
+          4: 12
+          5: 03
+          6: 1e
+          7: 10
+
+
+                 440 -- rule read-- 3, 1f
+                 440 -- rule run
+The input: 43c394eece
+          0: 0e
+          1: 16
+          2: 1b
+          3: 09
+          4: 19
+          5: 01
+          6: 0f
+          7: 08
+
+
+                 450 -- rule read-- 6, 1e
+                 450 -- rule run
+The input: 21e1ca7767
+          0: 07
+          1: 1b
+          2: 1d
+          3: 14
+          4: 1c
+          5: 10
+          6: 07
+          7: 04
+
+
+                 460 -- rule read-- 2, 1b
+                 460 -- rule run
+The input: 90f03b3bb4
+          0: 14
+          1: 1d
+          2: 0e
+          3: 16
+          4: 03
+          5: 18
+          6: 03
+          7: 12
+
+
+                 470 -- rule read-- 2, 1d
+                 470 -- rule run
+The input: 48781d9dda
+          0: 1a
+          1: 0e
+          2: 07
+          3: 1b
+          4: 01
+          5: 1c
+          6: 01
+          7: 09
+
+
+                 480 -- rule read-- 1, 1d
+                 480 -- rule run
+The input: 243c0eceed
+          0: 0d
+          1: 17
+          2: 13
+          3: 1d
+          4: 00
+          5: 1e
+          6: 10
+          7: 04
+
+
+                 490 -- rule read-- 5, 1c
+                 490 -- rule run
+The input: 921ed96771
+          0: 11
+          1: 1b
+          2: 19
+          3: 12
+          4: 0d
+          5: 0f
+          6: 08
+          7: 12
+
+
+                 500 -- rule read-- 5, 1e
+                 500 -- rule run
+The input: c90fb2b3bf
+          0: 1f
+          1: 1d
+          2: 0c
+          3: 05
+          4: 1b
+          5: 07
+          6: 04
+          7: 19
+
+
+                 510 -- rule read-- 1, 1b
+                 510 -- rule run
+The input: e4870759d8
+          0: 18
+          1: 0e
+          2: 16
+          3: 0e
+          4: 10
+          5: 03
+          6: 12
+          7: 1c
+
+
+                 520 -- rule read-- 0, 1f
+                 520 -- rule run
+The input: 724383acec
+          0: 0c
+          1: 07
+          2: 0b
+          3: 07
+          4: 18
+          5: 01
+          6: 09
+          7: 0e
+
+
+                 530 -- rule read-- 7, 1c
+                 530 -- rule run
+The input: 3921c1d676
+          0: 16
+          1: 13
+          2: 15
+          3: 03
+          4: 1c
+          5: 10
+          6: 04
+          7: 07
+
+
+                 540 -- rule read-- 4, 18
+                 540 -- rule run
+The input: 1c90e0eb3b
+          0: 1b
+          1: 19
+          2: 1a
+          3: 01
+          4: 0e
+          5: 08
+          6: 12
+          7: 03
+
+
+                 550 -- rule read-- 4, 1c
+                 550 -- rule run
+The input: 8e48ae759a
+          0: 1a
+          1: 0c
+          2: 1d
+          3: 1c
+          4: 0a
+          5: 04
+          6: 19
+          7: 11
+
+
+                 560 -- rule read-- 0, 1b
+                 560 -- rule run
+The input: 4724573acd
+          0: 0d
+          1: 16
+          2: 0e
+          3: 0e
+          4: 05
+          5: 12
+          6: 1c
+          7: 08
+
+
+                 570 -- rule read-- 2, 1d
+                 570 -- rule run
+The input: a392f59d61
+          0: 01
+          1: 0b
+          2: 07
+          3: 0b
+          4: 0f
+          5: 09
+          6: 0e
+          7: 14
+
+
+                 580 -- rule read-- 6, 1c
+                 580 -- rule run
+The input: d1c9a4ceb7
+          0: 17
+          1: 15
+          2: 13
+          3: 09
+          4: 1a
+          5: 04
+          6: 07
+          7: 1a
+
+
+                 590 -- rule read-- 7, 14
+                 590 -- rule run
+The input: e8e40c675c
+          0: 1c
+          1: 1a
+          2: 19
+          3: 18
+          4: 00
+          5: 12
+          6: 03
+          7: 1d
+
+
+                 600 -- rule read-- 7, 1a
+                 600 -- rule run
+The input: 74720633ae
+          0: 0e
+          1: 1d
+          2: 0c
+          3: 0c
+          4: 00
+          5: 19
+          6: 11
+          7: 0e
+
+
+                 610 -- rule read-- 7, 1d
+                 610 -- rule run
+The input: 3a390319d7
+          0: 17
+          1: 0e
+          2: 06
+          3: 06
+          4: 10
+          5: 1c
+          6: 08
+          7: 07
+
+
+                 620 -- rule read-- 1, 1d
+                 620 -- rule run
+The input: 9d1c5f8cec
+          0: 0c
+          1: 07
+          2: 03
+          3: 1f
+          4: 05
+          5: 0e
+          6: 14
+          7: 13
+
+
+                 630 -- rule read-- 5, 1c
+                 630 -- rule run
+The input: 4e8e2fc676
+          0: 16
+          1: 13
+          2: 11
+          3: 1f
+          4: 02
+          5: 07
+          6: 1a
+          7: 09
+
+
+                 640 -- rule read-- 3, 1f
+                 640 -- rule run
+The input: 274717e33b
+          0: 1b
+          1: 19
+          2: 18
+          3: 0f
+          4: 11
+          5: 03
+          6: 1d
+          7: 04
+
+
+                 650 -- rule read-- 3, 1f
+                 650 -- rule run
+The input: 93a355f19a
+          0: 1a
+          1: 0c
+          2: 1c
+          3: 0b
+          4: 15
+          5: 11
+          6: 0e
+          7: 12
+
+
+                 660 -- rule read-- 6, 1d
+                 660 -- rule run
+The input: 49d1aaf8cd
+          0: 0d
+          1: 06
+          2: 1e
+          3: 15
+          4: 1a
+          5: 08
+          6: 07
+          7: 09
+
+
+                 670 -- rule read-- 2, 1c
+                 670 -- rule run
+The input: a4e80b7c61
+          0: 01
+          1: 03
+          2: 1f
+          3: 16
+          4: 00
+          5: 14
+          6: 13
+          7: 14
+
+
+                 680 -- rule read-- 2, 1e
+                 680 -- rule run
+The input: d274dbbe37
+          0: 17
+          1: 11
+          2: 0f
+          3: 17
+          4: 0d
+          5: 1a
+          6: 09
+          7: 1a
+
+
+                 690 -- rule read-- 2, 1f
+                 690 -- rule run
+The input: e93ab3df1c
+          0: 1c
+          1: 18
+          2: 17
+          3: 07
+          4: 0b
+          5: 1d
+          6: 04
+          7: 1d
+
+
+                 700 -- rule read-- 7, 1a
+                 700 -- rule run
+The input: 749d59ef8e
+          0: 0e
+          1: 1c
+          2: 1b
+          3: 13
+          4: 15
+          5: 0e
+          6: 12
+          7: 0e
+
+
+                 710 -- rule read-- 7, 1d
+                 710 -- rule run
+The input: 3a4eacf7c7
+          0: 07
+          1: 1e
+          2: 1d
+          3: 19
+          4: 0a
+          5: 07
+          6: 09
+          7: 07
+
+
+                 720 -- rule read-- 1, 1c
+                 720 -- rule run
+The input: 9d27887be4
+          0: 04
+          1: 1f
+          2: 1e
+          3: 10
+          4: 18
+          5: 13
+          6: 14
+          7: 13
+
+
+                 730 -- rule read-- 1, 1e
+                 730 -- rule run
+The input: 4e93c43df2
+          0: 12
+          1: 0f
+          2: 0f
+          3: 08
+          4: 1c
+          5: 09
+          6: 1a
+          7: 09
+
+
+                 740 -- rule read-- 1, 1f
+                 740 -- rule run
+The input: 2749e21ef9
+          0: 19
+          1: 17
+          2: 07
+          3: 04
+          4: 1e
+          5: 04
+          6: 1d
+          7: 04
+
+
+                 750 -- rule read-- 4, 1c
+                 750 -- rule run
+The input: 93a42f0f7b
+          0: 1b
+          1: 1b
+          2: 03
+          3: 1e
+          4: 02
+          5: 12
+          6: 0e
+          7: 12
+
+
+                 760 -- rule read-- 4, 1e
+                 760 -- rule run
+The input: c9d2c987ba
+          0: 1a
+          1: 1d
+          2: 01
+          3: 13
+          4: 0c
+          5: 09
+          6: 07
+          7: 19
+
+
+                 770 -- rule read-- 3, 1e
+                 770 -- rule run
+The input: 64e964c3dd
+          0: 1d
+          1: 1e
+          2: 10
+          3: 09
+          4: 16
+          5: 14
+          6: 13
+          7: 0c
+
+
+                 780 -- rule read-- 1, 1d
+                 780 -- rule run
+The input: b2746c61e9
+          0: 09
+          1: 0f
+          2: 18
+          3: 18
+          4: 06
+          5: 1a
+          6: 09
+          7: 16
+
+
+                 790 -- rule read-- 1, 1e
+                 790 -- rule run
+The input: d93ae830f3
+          0: 13
+          1: 07
+          2: 0c
+          3: 10
+          4: 0e
+          5: 1d
+          6: 04
+          7: 1b
+
+
+                 800 -- rule read-- 5, 1a
+                 800 -- rule run
+The input: ec9daa187e
+          0: 1e
+          1: 03
+          2: 06
+          3: 14
+          4: 1a
+          5: 0e
+          6: 12
+          7: 1d
+
+
+                 810 -- rule read-- 5, 1d
+                 810 -- rule run
+The input: 764ed50c3f
+          0: 1f
+          1: 01
+          2: 03
+          3: 0a
+          4: 0d
+          5: 07
+          6: 19
+          7: 0e
+
+
+                 820 -- rule read-- 0, 1e
+                 820 -- rule run
+The input: bb27b48618
+          0: 18
+          1: 10
+          2: 01
+          3: 09
+          4: 1b
+          5: 13
+          6: 0c
+          7: 17
+
+
+                 830 -- rule read-- 0, 1f
+                 830 -- rule run
+The input: 5d93da430c
+          0: 0c
+          1: 18
+          2: 10
+          3: 14
+          4: 1d
+          5: 09
+          6: 16
+          7: 0b
+
+
+                 840 -- rule read-- 4, 1b
+                 840 -- rule run
+The input: 2ec9ed2186
+          0: 06
+          1: 0c
+          2: 08
+          3: 1a
+          4: 1e
+          5: 04
+          6: 1b
+          7: 05
+
+
+                 850 -- rule read-- 4, 1d
+                 850 -- rule run
+The input: 1764f690c3
+          0: 03
+          1: 06
+          2: 04
+          3: 0d
+          4: 0f
+          5: 12
+          6: 1d
+          7: 02
+
+
+                 860 -- rule read-- 4, 1e
+                 860 -- rule run
+The input: 8bb2a54866
+          0: 06
+          1: 03
+          2: 12
+          3: 0a
+          4: 0a
+          5: 19
+          6: 0e
+          7: 11
+
+
+                 870 -- rule read-- 6, 1d
+                 870 -- rule run
+The input: 45d952a433
+          0: 13
+          1: 01
+          2: 09
+          3: 05
+          4: 15
+          5: 0c
+          6: 17
+          7: 08
+
+
+                 880 -- rule read-- 5, 19
+                 880 -- rule run
+The input: a2ec77521e
+          0: 1e
+          1: 10
+          2: 14
+          3: 0e
+          4: 07
+          5: 16
+          6: 0b
+          7: 14
+
+
+                 890 -- rule read-- 6, 17
+                 890 -- rule run
+The input: 51763ba90f
+          0: 0f
+          1: 08
+          2: 0a
+          3: 17
+          4: 03
+          5: 1b
+          6: 05
+          7: 0a
+
+
+                 900 -- rule read-- 0, 1e
+                 900 -- rule run
+The input: a8bbc3d480
+          0: 00
+          1: 04
+          2: 15
+          3: 07
+          4: 1c
+          5: 1d
+          6: 02
+          7: 15
+
+
+                 910 -- rule read-- 5, 1b
+                 910 -- rule run
+The input: 545de1ea40
+          0: 00
+          1: 12
+          2: 1a
+          3: 03
+          4: 1e
+          5: 0e
+          6: 11
+          7: 0a
+
+
+                 920 -- rule read-- 5, 1d
+                 920 -- rule run
+The input: 2a2ef0f520
+          0: 00
+          1: 09
+          2: 1d
+          3: 01
+          4: 0f
+          5: 17
+          6: 08
+          7: 05
+
+
+                 930 -- rule read-- 4, 1e
+                 930 -- rule run
+The input: 1517787a90
+          0: 10
+          1: 14
+          2: 1e
+          3: 10
+          4: 17
+          5: 0b
+          6: 14
+          7: 02
+
+
+                 940 -- rule read-- 2, 1d
+                 940 -- rule run
+The input: 0a8bbc3d48
+          0: 08
+          1: 0a
+          2: 0f
+          3: 18
+          4: 1b
+          5: 05
+          6: 0a
+          7: 01
+
+
+                 950 -- rule read-- 2, 1e
+                 950 -- rule run
+The input: 0545de1ea4
+          0: 04
+          1: 15
+          2: 07
+          3: 1c
+          4: 1d
+          5: 02
+          6: 15
+          7: 00
+
+
+                 960 -- rule read-- 4, 1b
+                 960 -- rule run
+The input: 02a2ef0f52
+          0: 12
+          1: 1a
+          2: 03
+          3: 1e
+          4: 0e
+          5: 11
+          6: 0a
+          7: 00
+
+
+                 970 -- rule read-- 4, 1d
+                 970 -- rule run
+The input: 01517787a9
+          0: 09
+          1: 1d
+          2: 01
+          3: 0f
+          4: 17
+          5: 08
+          6: 05
+          7: 00
+
+
+                 980 -- rule read-- 3, 1e
+                 980 -- rule run
+The input: 80a865c3d3
+          0: 13
+          1: 1e
+          2: 10
+          3: 0b
+          4: 06
+          5: 14
+          6: 02
+          7: 10
+
+
+                 990 -- rule read-- 1, 1d
+                 990 -- rule run
+The input: c054ece1ee
+          0: 0e
+          1: 0f
+          2: 18
+          3: 19
+          4: 0e
+          5: 0a
+          6: 01
+          7: 18
+
+
+                1000 -- rule read-- 1, 1e
+                1000 -- rule run
+The input: 602a7670f7
+          0: 17
+          1: 07
+          2: 1c
+          3: 0c
+          4: 07
+          5: 15
+          6: 00
+          7: 0c
+
+
+                1010 -- rule read-- 3, 19
+                1010 -- rule run
+The input: b015e5387c
+          0: 1c
+          1: 03
+          2: 0e
+          3: 0a
+          4: 1e
+          5: 0a
+          6: 00
+          7: 16
+
+
+                1020 -- rule read-- 2, 1c
+                1020 -- end test fired

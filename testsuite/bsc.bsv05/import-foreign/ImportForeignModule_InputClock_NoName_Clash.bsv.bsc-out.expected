@@ -1,0 +1,89 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputClock_NoName_Clash;
+interface Ifc;
+    method Clock _clk__4();
+    method Clock _clk__6();
+endinterface: Ifc
+
+module mkMod(Ifc);
+  let _bv4 <- exposeCurrentClock;
+  let _bv3 <- exposeCurrentClock;
+  let _bv2 <- exposeCurrentClock;
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentClock;
+  Ifc _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__4(CLKC);
+		     clock _clk__6(CLKD);
+		     clock _clk__2(CLKA, {-inhigh-});
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__3(CLKB, {-inhigh-});
+		     clock _clk__5(CLK5, {-inhigh-});
+		     clock _clk__7(CLK7, {-inhigh-});
+			 ((ClockArg _clk__2, _bv4),
+			  (ClockArg _clk__1, _bv3),
+			  (ClockArg _clk__3, _bv2),
+			  (ClockArg _clk__5, _bv1),
+			  (ClockArg _clk__7, _bv0))
+			 {
+			   clock _clk__4;
+			   clock _clk__6;
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _clk__4() ;   return (_m__._clk__4);
+  endmethod: _clk__4
+  method _clk__6() ;   return (_m__._clk__6);
+  endmethod: _clk__6
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_Clash
+
+-----
+
+compiling ImportForeignModule_InputClock_NoName_Clash.bsv
+=== parsed:
+package ImportForeignModule_InputClock_NoName_Clash;
+interface Ifc;
+    method Clock _clk__4();
+    method Clock _clk__6();
+endinterface: Ifc
+
+module mkMod(Ifc);
+  let _bv4 <- exposeCurrentClock;
+  let _bv3 <- exposeCurrentClock;
+  let _bv2 <- exposeCurrentClock;
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentClock;
+  Ifc _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__4(CLKC);
+		     clock _clk__6(CLKD);
+		     clock _clk__2(CLKA, {-inhigh-});
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__3(CLKB, {-inhigh-});
+		     clock _clk__5(CLK5, {-inhigh-});
+		     clock _clk__7(CLK7, {-inhigh-});
+			 ((ClockArg _clk__2, _bv4),
+			  (ClockArg _clk__1, _bv3),
+			  (ClockArg _clk__3, _bv2),
+			  (ClockArg _clk__5, _bv1),
+			  (ClockArg _clk__7, _bv0))
+			 {
+			   clock _clk__4;
+			   clock _clk__6;
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _clk__4() ;   return (_m__._clk__4);
+  endmethod: _clk__4
+  method _clk__6() ;   return (_m__._clk__6);
+  endmethod: _clk__6
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_Clash
+
+-----
+
+All packages are up to date.

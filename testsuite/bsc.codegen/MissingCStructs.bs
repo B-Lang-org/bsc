@@ -1,0 +1,30 @@
+{-
+
+(see also bug #100)
+
+compiling this to C generates the following gcc errors, as of 2003-11-20:
+
+$ bsc -c -g sysMissingCStructs MissingCStructs.bs
+sysMissingCStructs.c: In function `Bm_':
+sysMissingCStructs.c:106: error: structure has no member named `Bm__1'
+sysMissingCStructs.c: At top level:
+sysMissingCStructs.c:118: error: structure has no member named `E_m_'
+sysMissingCStructs.c:118: error: initializer element is not constant
+sysMissingCStructs.c:118: error: (near initialization for `fschedPtrs[3]')
+
+-}
+
+package MissingCStructs (sysMissingCStructs, Ifc) where
+
+interface Ifc a =
+    m :: a -> Action
+
+sysMissingCStructs :: Module (Ifc Bool)
+sysMissingCStructs =
+  module
+    r :: Reg Bool <- mkRegU
+
+    rules "bogus": when True ==> r := r
+
+    interface
+	m a = action r := a

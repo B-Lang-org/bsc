@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ModByZero.bsv
+code generation for sysModByZero starts
+Error: "ModByZero.bsv", line 4, column 16: (G0059)
+  Division by zero occurred during elaboration.
+  During elaboration of the body of rule `test' at "ModByZero.bsv", line 3,
+  column 9.
+  During elaboration of `sysModByZero' at "ModByZero.bsv", line 2, column 8.

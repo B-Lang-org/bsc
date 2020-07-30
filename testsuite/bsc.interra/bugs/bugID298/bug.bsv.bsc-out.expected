@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "bug.bsv", line 9, column 9: (P0005)
+  Unexpected SV 3.0 keyword `return'; expected `{' or identifier starting with
+  lowercase

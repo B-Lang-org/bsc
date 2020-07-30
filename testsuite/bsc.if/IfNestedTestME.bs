@@ -1,0 +1,24 @@
+-- ME version of if nested test to show the compiler works when actions are not
+-- liftable
+package IfNestedTestME(sysIfNestedTestME) where
+
+import IfNestedME
+
+sysIfNestedTestME :: Module Empty
+sysIfNestedTestME = 
+ module 
+
+  counter :: Reg (UInt 4) <- mkReg 0
+  
+  ifn :: IfNestedME <- sysIfNestedME
+  
+  addRules $
+    rules 
+      "Finish": when (((zeroExtend(counter)) :: (UInt 5) + 1) == 10) ==> action { $finish 0 }
+    <+
+    rules  
+      "Display": when True ==> $display "%0d" (pack(ifn.get_d))
+      "Inc": when True ==> counter := counter + 1
+      "Flip C": when True ==> ifn.flip_c 
+      "Flip B": when ((counter & 0b0001) /= 0) ==> ifn.flip_b
+      "Flip A": when (((counter & 0b0001) /= 0) && ((counter & 0b0010) /= 0)) ==> ifn.flip_a

@@ -1,0 +1,267 @@
+# Needed to initialize $showrules when checking locally
+bsc_initialize
+
+if { ! [file exists "$showrules"] } {
+    note "showrules is NOT available"
+} else {
+
+# Execute the GCD test
+
+if {$ctest == 1} {
+    compile_object_pass TbGCD.bsv mkTbGCD "-keep-fires"
+    link_objects_pass {mkTbGCD} mkTbGCD "-keep-fires"
+    sim_output mkTbGCD "-V gcd_bsim.vcd"
+    showrules mkTbGCD gcd_bsim.vcd gcd_bsim_rules.vcd
+    vcdcheck_pass gcd_bsim_rules.vcd {-c "FIRED_RULE_main.top.gcd.CLK toggles @125000" \
+	  		              -c "BLOCKED_RULE_main.top.gcd.CLK exists" \
+                                      -c "main.top.gcd.the_x equals 9 @280000"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass TbGCD.bsv mkTbGCD "-elab -keep-fires"
+    link_verilog_pass {mkTbGCD.v mkGCD.v} mkTbGCD "-keep-fires"
+    sim_verilog_vcd mkTbGCD
+    move dump.vcd gcd_vlog.vcd
+    showrules mkTbGCD gcd_vlog.vcd gcd_vlog_rules.vcd
+    vcdcheck_pass gcd_vlog_rules.vcd {-c "FIRED_RULE_main.top.gcd.CLK toggles @125000" \
+	  		              -c "BLOCKED_RULE_main.top.gcd.CLK exists" \
+                                      -c "main.top.gcd.the_x equals 9 @280000"}
+}
+
+
+# Execute the RWire test
+
+if {$ctest == 1} {
+    compile_object_pass RWireTest.bsv mkRWireTest "-keep-fires"
+    link_objects_pass {mkRWireTest} mkRWireTest "-keep-fires"
+    sim_output mkRWireTest "-V rwire_bsim.vcd"
+    showrules mkRWireTest rwire_bsim.vcd rwire_bsim_rules.vcd
+    vcdcheck_pass rwire_bsim_rules.vcd {-c "main.top.WILL_FIRE_RL_send becomes 1 @70000" \
+					-c "main.top.WILL_FIRE_RL_send becomes 0 @73333" \
+					-c "main.top.rw becomes 1 @73333" \
+					-c "main.top.rw becomes x @80000" \
+ 	                                -c "main.top.count2 becomes 1 @80000"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass RWireTest.bsv mkRWireTest "-elab -keep-fires"
+    link_verilog_pass {mkRWireTest.v} mkRWireTest "-keep-fires"
+    sim_verilog_vcd mkRWireTest
+    move dump.vcd rwire_vlog.vcd
+    showrules mkRWireTest rwire_vlog.vcd rwire_vlog_rules.vcd
+    # The RWire itself does not show up in the Verilog waves (due to inlining)
+    vcdcheck_pass rwire_vlog_rules.vcd {-c "main.top.WILL_FIRE_RL_send becomes 1 @70000" \
+					-c "main.top.WILL_FIRE_RL_send becomes 0 @73333" \
+ 	                                -c "main.top.count2 becomes 1 @80000"}
+}
+
+# Execute the blocked rule test
+
+if {$ctest == 1} {
+    compile_object_pass Blocking.bsv mkBlockingTest "-keep-fires"
+    link_objects_pass {mkBlockingTest} mkBlockingTest "-keep-fires"
+    sim_output mkBlockingTest "-V blocking_bsim.vcd"
+    showrules mkBlockingTest blocking_bsim.vcd blocking_bsim_rules.vcd
+    vcdcheck_pass blocking_bsim_rules.vcd {-c "BLOCKED_RULE_main.top.CLK becomes x @40000" \
+                                           -c "BLOCKED_RULE_main.top.CLK remains x @41666" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @43333" \
+                                           -c "BLOCKED_RULE_main.top.CLK becomes x @45000" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @46666" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @48333" \
+                                           -c "BLOCKED_RULE_main.top.CLK becomes x @50000" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @40000" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @41666" \
+                                           -c "FIRED_RULE_main.top.CLK becomes x @43333" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @45000" \
+                                           -c "FIRED_RULE_main.top.CLK becomes x @46666" \
+                                           -c "FIRED_RULE_main.top.CLK remains x @48333" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @50000"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass Blocking.bsv mkBlockingTest "-elab -keep-fires"
+    link_verilog_pass {mkBlockingTest.v} mkBlockingTest "-keep-fires"
+    sim_verilog_vcd mkBlockingTest
+    move dump.vcd blocking_vlog.vcd
+    showrules mkBlockingTest blocking_vlog.vcd blocking_vlog_rules.vcd
+    vcdcheck_pass blocking_vlog_rules.vcd {-c "BLOCKED_RULE_main.top.CLK becomes x @40000" \
+                                           -c "BLOCKED_RULE_main.top.CLK remains x @41666" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @43333" \
+                                           -c "BLOCKED_RULE_main.top.CLK becomes x @45000" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @46666" \
+                                           -c "BLOCKED_RULE_main.top.CLK toggles @48333" \
+                                           -c "BLOCKED_RULE_main.top.CLK becomes x @50000" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @40000" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @41666" \
+                                           -c "FIRED_RULE_main.top.CLK becomes x @43333" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @45000" \
+                                           -c "FIRED_RULE_main.top.CLK becomes x @46666" \
+                                           -c "FIRED_RULE_main.top.CLK remains x @48333" \
+                                           -c "FIRED_RULE_main.top.CLK toggles @50000"}
+}
+
+# Execute the multiple writer test
+
+if {$ctest == 1} {
+    compile_object_pass MultWriteTest.bsv mkMultWriteTest "-keep-fires"
+    link_objects_pass {mkMultWriteTest} mkMultWriteTest "-keep-fires"
+    sim_output mkMultWriteTest "-V mult_bsim.vcd"
+    showrules mkMultWriteTest mult_bsim.vcd mult_bsim_rules.vcd
+    vcdcheck_pass mult_bsim_rules.vcd {-c "main.top.count  becomes 9 @90000" \
+ 	 			       -c "main.top.count2 stable @90000" \
+ 	 			       -c "main.top.WILL_FIRE_RL_bump becomes 1 @90000" \
+ 	 			       -c "main.top.WILL_FIRE_RL_bump becomes 0 @93333" \
+ 	 			       -c "main.top.WILL_FIRE_RL_restart becomes 1 @93333" \
+ 	 			       -c "main.top.WILL_FIRE_RL_restart becomes 0 @96666" \
+				       -c "main.top.count2 becomes 1 @96666"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass MultWriteTest.bsv mkMultWriteTest "-elab -keep-fires"
+    link_verilog_pass {mkMultWriteTest.v} mkMultWriteTest "-keep-fires"
+    sim_verilog_vcd mkMultWriteTest
+    move dump.vcd mult_vlog.vcd
+    showrules mkMultWriteTest mult_vlog.vcd mult_vlog_rules.vcd
+    vcdcheck_pass mult_vlog_rules.vcd {-c "main.top.count  becomes 9 @90000" \
+ 	 			       -c "main.top.count2 stable @90000" \
+ 	 			       -c "main.top.WILL_FIRE_RL_bump becomes 1 @90000" \
+ 	 			       -c "main.top.WILL_FIRE_RL_bump becomes 0 @93333" \
+ 	 			       -c "main.top.WILL_FIRE_RL_restart becomes 1 @93333" \
+ 	 			       -c "main.top.WILL_FIRE_RL_restart becomes 0 @96666" \
+				       -c "main.top.count2 becomes 1 @96666"}
+}
+
+
+# Execute the Conflict-Free test
+
+if {$ctest == 1} {
+    compile_object_pass CFTest.bsv mkCFTest "-keep-fires"
+    link_objects_pass {mkCFTest} mkCFTest "-keep-fires"
+    sim_output mkCFTest "-V cf_bsim.vcd"
+    showrules mkCFTest cf_bsim.vcd cf_bsim_rules.vcd
+    vcdcheck_pass cf_bsim_rules.vcd {-c "main.top.toggle equals 1 @23333" \
+	  		             -c "main.top.count  toggles  @23333" \
+                                     -c "main.top.count2 stable   @23333" \
+                                     -c "main.top.toggle equals 1 @26666" \
+	  		             -c "main.top.count  stable   @26666" \
+ 	 			     -c "main.top.count2 toggles  @26666" \
+                                     -c "main.top.toggle equals 0 @33333" \
+	  		             -c "main.top.count  stable   @33333" \
+ 	 			     -c "main.top.count2 toggles  @33333" \
+                                     -c "main.top.toggle equals 0 @36666" \
+	  		             -c "main.top.count  toggles  @36666" \
+ 	 			     -c "main.top.count2 stable   @36666"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass CFTest.bsv mkCFTest "-elab -keep-fires"
+    link_verilog_pass {mkCFTest.v} mkCFTest "-keep-fires"
+    sim_verilog_vcd mkCFTest
+    move dump.vcd cf_vlog.vcd
+    showrules mkCFTest cf_vlog.vcd cf_vlog_rules.vcd
+    vcdcheck_pass cf_vlog_rules.vcd {-c "main.top.toggle equals 1 @23333" \
+	  		             -c "main.top.count  toggles  @23333" \
+                                     -c "main.top.count2 stable   @23333" \
+                                     -c "main.top.toggle equals 1 @26666" \
+	  		             -c "main.top.count  stable   @26666" \
+ 	 			     -c "main.top.count2 toggles  @26666" \
+                                     -c "main.top.toggle equals 0 @33333" \
+	  		             -c "main.top.count  stable   @33333" \
+ 	 			     -c "main.top.count2 toggles  @33333" \
+                                     -c "main.top.toggle equals 0 @36666" \
+	  		             -c "main.top.count  toggles  @36666" \
+ 	 			     -c "main.top.count2 stable   @36666"}
+}
+
+
+# Execute the MCD Test
+
+# if {$ctest == 1} {
+#     compile_object_pass MCDTest.bsv mkMCDTest "-keep-fires"
+#     link_objects_pass {mkMCDTest} mkMCDTest "-keep-fires"
+#     sim_output mkMCDTest "-V mcd_bsim.vcd"
+#     showrules mkMCDTest mcd_bsim.vcd mcd_bsim_rules.vcd
+#     vcdcheck_pass mcd_bsim_rules.vcd {-c "FIRED_RULE_main.top.down1.CLK exists" \
+#                                       -c "BLOCKED_RULE_main.top.down1.CLK exists" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT exists" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT exists" \
+#                                       -c "FIRED_RULE_main.top.down1.CLK toggles @80000" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT toggles @88000" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT becomes x @88000" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT becomes x @96500" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT toggles @96500" \
+#                                       -c "main.top.up1 becomes 31 @75000" \
+#                                       -c "main.top.count becomes 2 @80000" \
+#                                       -c "main.top.up1 becomes 62 @90000" \
+#                                       -c "main.top.count2.dD_OUT becomes 2 @122000" \
+#                                       -c "main.top.WILL_FIRE_RL_shift2 becomes 1 @105000" \
+#                                       -c "main.top.CAN_FIRE_RL_shift2b becomes 0 @105000" \
+#                                       -c "main.top.WILL_FIRE_RL_shift2b remains 0 @105000" \
+#                                       -c "main.top.up2.get toggles @105000" \
+#                                       -c "main.top.down2 toggles @113500"}
+# }
+
+# if {$vtest == 1} {
+#     # showrules requires .ba files
+#     compile_verilog_pass MCDTest.bsv mkMCDTest "-elab -keep-fires"
+#     link_verilog_pass {mkMCDTest.v} mkMCDTest "-keep-fires"
+#     sim_verilog_vcd mkMCDTest
+#     move dump.vcd mcd_vlog.vcd
+#     showrules mkMCDTest mcd_vlog.vcd mcd_vlog_rules.vcd
+#     vcdcheck_pass mcd_vlog_rules.vcd {-c "FIRED_RULE_main.top.down1.CLK exists" \
+#                                       -c "BLOCKED_RULE_main.top.down1.CLK exists" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT exists" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT exists" \
+#                                       -c "FIRED_RULE_main.top.down1.CLK toggles @80000" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT toggles @88000" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT becomes x @88000" \
+#                                       -c "FIRED_RULE_main.top.clk2.CLK_OUT becomes x @96500" \
+#                                       -c "BLOCKED_RULE_main.top.clk2.CLK_OUT toggles @96500" \
+#                                       -c "main.top.up1 becomes 31 @75000" \
+#                                       -c "main.top.count becomes 2 @80000" \
+#                                       -c "main.top.up1 becomes 62 @90000" \
+#                                       -c "main.top.count2.dD_OUT becomes 2 @122000" \
+#                                       -c "main.top.WILL_FIRE_RL_shift2 becomes 1 @105000" \
+#                                       -c "main.top.CAN_FIRE_RL_shift2b becomes 0 @105000" \
+#                                       -c "main.top.WILL_FIRE_RL_shift2b remains 0 @105000" \
+#                                       -c "main.top.up2.get toggles @105000" \
+#                                       -c "main.top.down2 toggles @113500"}
+# }
+
+
+# Execute the FIFO Test
+
+if {$ctest == 1} {
+    compile_object_pass FIFOTest.bsv mkFIFOTest "-keep-fires"
+    link_objects_pass {mkFIFOTest} mkFIFOTest "-keep-fires"
+    sim_output mkFIFOTest "-V fifo_bsim.vcd"
+    showrules mkFIFOTest fifo_bsim.vcd fifo_bsim_rules.vcd
+    vcdcheck_pass fifo_bsim_rules.vcd {-c "main.top.WILL_FIRE_RL_merge becomes 1 @100000" \
+                                       -c "main.top.WILL_FIRE_RL_merge becomes 0 @102500" \
+                                       -c "main.top.WILL_FIRE_RL_sink becomes 1 @102500" \
+                                       -c "main.top.WILL_FIRE_RL_sink becomes 0 @105000" \
+                                       -c "main.top.out.D_OUT toggles @105000" \
+				       -c "main.top.in2.D_OUT toggles @107500"}
+}
+
+if {$vtest == 1} {
+    # showrules requires .ba files
+    compile_verilog_pass FIFOTest.bsv mkFIFOTest "-elab -keep-fires"
+    link_verilog_pass {mkFIFOTest.v} mkFIFOTest "-keep-fires"
+    sim_verilog_vcd mkFIFOTest
+    move dump.vcd fifo_vlog.vcd
+    showrules mkFIFOTest fifo_vlog.vcd fifo_vlog_rules.vcd
+    vcdcheck_pass fifo_vlog_rules.vcd {-c "main.top.WILL_FIRE_RL_merge becomes 1 @100000" \
+                                       -c "main.top.WILL_FIRE_RL_merge becomes 0 @102500" \
+                                       -c "main.top.WILL_FIRE_RL_sink becomes 1 @102500" \
+                                       -c "main.top.WILL_FIRE_RL_sink becomes 0 @105000" \
+                                       -c "main.top.out.D_OUT toggles @105000" \
+				       -c "main.top.in2.D_OUT toggles @107500"}
+}
+
+}

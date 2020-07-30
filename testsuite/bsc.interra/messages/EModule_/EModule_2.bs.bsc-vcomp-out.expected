@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EModule_2.bs
+code generation for myReg starts
+Error: "EModule_2.bs", line 23, column 7: (G0025)
+  Trying to generate a module which is undefined because of an incomplete
+  pattern match.

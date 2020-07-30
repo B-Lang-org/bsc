@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EUnboundField.bs
+Error: "EUnboundField.bs", line 24, column 24: (T0138)
+  The expression does not have a field `fst' because it is not a struct or
+  interface. Found type:
+    EUnboundField.My_pair

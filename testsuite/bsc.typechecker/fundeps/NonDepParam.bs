@@ -1,0 +1,25 @@
+package NonDepParam() where
+
+-- This tests that fundep propagation is not mistakenly unifying type
+-- parameters which are not in the "a -> b" list.
+
+class Foo a b c | a -> b where
+    m :: a -> b -> (a,c)
+
+instance Foo Bool Bool Bool where
+    m _ _ = (True, True)
+
+instance Foo Bool Bool (Bit 2) where
+    m _ _ = (True, 0)
+
+mkTest :: Module Empty
+mkTest =
+    module
+	x :: Reg Bool <- mkRegU
+	y :: Reg Bool <- mkRegU
+	z :: Reg (Bit 2) <- mkRegU
+
+	rules
+	    when True
+	      ==> z := (m x y).snd
+

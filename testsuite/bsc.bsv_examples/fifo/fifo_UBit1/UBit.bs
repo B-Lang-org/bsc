@@ -1,0 +1,259 @@
+package UBit (
+	      UBit,
+	      mkUBitReg,
+	      integerToUBit, -- in place of Literal instance
+	      uBitToInteger, -- the other way!!
+	      uBitSelect, uBitUpdate, -- in place of PrimSelectable
+	      uBitConcat -- other functions like this can be defined
+	      ) where
+
+import ListReg
+import Vector
+import List
+
+-- The UBit type
+data UBit = UBit (List (Bit 1))
+
+
+integerToUBit :: Integer -> Integer -> UBit
+integerToUBit sz i = UBit (errIntegerToBitList "integerToUBit" sz i)
+
+
+mkUBitReg :: (IsModule m c) => Integer -> Integer -> m (Reg UBit)
+mkUBitReg sz init_val =
+  module
+    let init_list = errIntegerToBitList "mkUBitReg" sz init_val
+
+    reg :: Reg (List (Bit 1))
+    reg <- mkListReg init_list
+
+    interface
+
+      _read  = bitListToUBit reg._read
+
+      _write (UBit bs) = reg._write bs
+
+
+-- Instances:
+
+{-
+-- is this bad?  To have it work for any k?
+instance Bits UBit k
+  where
+    pack x = uBitToBit x
+    unpack x = bitToUBit x
+-}
+
+-- XXX What if the lists are of different size?
+instance Eq UBit
+  where
+   (==) (UBit xs) (UBit ys) = (xs == ys)
+   (/=) (UBit xs) (UBit ys) = (xs /= ys)
+
+compareUBit :: (Bit 1 -> Bit 1 -> Bool) -> Bool -> UBit -> UBit -> Bool
+compareUBit op chkEqual (UBit bs1) (UBit bs2) =
+    let f :: List (Bit 1) -> List (Bit 1) -> Bool
+	f Nil Nil = chkEqual
+	f (Cons x xs) (Cons y ys) = (x `op` y) || ((x == y) && (f xs ys))
+    in  f bs1 bs2
+
+instance Ord UBit
+  where
+   (<)  x y = compareUBit (<) False x y
+   (<=) x y = compareUBit (<) True  x y
+   (>)  x y = compareUBit (>) False x y
+   (>=) x y = compareUBit (>) True  x y
+
+zipWithErr :: String -> (Bit 1 -> Bit 1 -> Bit 1) -> UBit -> UBit -> UBit
+zipWithErr name f (UBit xs) (UBit ys) =
+    if ((length xs) == (length ys))
+    then UBit (List.zipWith f xs ys)
+    else -- either zeroExtend one or give an error
+	 error ("bitwise UBit operation " +++ name +++
+		" failed because the bit sizes are not equal: " +++
+		integerToString (length xs) +++ " /= " +++
+		integerToString (length ys))
+
+instance Bitwise UBit
+  where
+    (&) x y = zipWithErr "&" (&) x y
+    (|) x y = zipWithErr "|" (|) x y
+    (^) x y = zipWithErr "^" (^) x y
+    (~^) x y = zipWithErr "~^" (~^) x y
+    (^~) x y = zipWithErr "^~" (^~) x y
+    invert (UBit xs) = UBit (List.map invert xs)
+    (<<) x y = error "UBit: << not yet implemented"
+    (>>) x y = error "UBit: >> not yet implemented"
+
+-- We have the option here of extending when necessary...
+addUBit :: String -> (Bit 2 -> Bit 2 -> Bit 2) -> UBit -> UBit -> UBit
+addUBit name op (UBit xs) (UBit ys) =
+    let
+	addBit :: Bit 1 -> Bit 1 -> Bit 1 -> (Bit 1, Bit 1)
+	addBit x y c =
+	  let twobitsum :: Bit 2
+	      twobitsum = ((zeroExtend x) `op` (zeroExtend y))
+	                   `op` (zeroExtend c)
+	  in  split twobitsum
+
+	f (x,y) (rs,carrybit) =
+	  let (c,b) = addBit x y carrybit
+	  in  (Cons b rs, c)
+    in
+	if ((length xs) /= (length ys))
+	then error ("UBit operation " +++ name +++
+		    " failed because the bit sizes are not equal: " +++
+		    integerToString (length xs) +++ " /= " +++
+		    integerToString (length ys))
+	else UBit (List.foldr f (Nil,0) (List.zip xs ys)).fst
+
+instance Arith UBit
+  where
+    (+) x y = addUBit "+" (+) x y
+    (-) x y = addUBit "-" (-) x y
+    negate x@(UBit xs) = let zero = List.map (const 0) (upto 0 (length xs - 1))
+			 in  addUBit "-" (-) (UBit zero) x
+    (*) x y = error "UBit: * not yet implemented"
+
+uBitSelect :: List a -> UBit -> a
+uBitSelect l (UBit k) =
+    let f p res = if (k == p.snd) then p.fst else res
+	zeroBits = List.map (const 0) k
+    in  List.foldr f _ (numListBits l zeroBits)
+
+uBitUpdate :: List a -> UBit -> a -> List a
+uBitUpdate l (UBit k) x =
+    let f p = if (k == p.snd) then x else p.fst
+	zeroBits = List.map (const 0) k
+    in  List.map f (numListBits l zeroBits)
+
+numListBits :: List a -> List (Bit 1) -> List (a, List (Bit 1))
+numListBits Nil bs = Nil
+numListBits (Cons x xs) bs = Cons (x, bs) (numListBits xs (incrListBits bs))
+
+incrListBits :: List (Bit 1) -> List (Bit 1)
+incrListBits bs =
+    let
+	addBit :: Bit 1 -> Bit 1 -> (Bit 1, Bit 1)
+	addBit b c =
+	  let twobitsum :: Bit 2
+	      twobitsum = (zeroExtend b) + (zeroExtend c)
+	  in  split twobitsum
+
+	f x (rs,carrybit) =
+	  let (c,b) = addBit x carrybit
+	  in  (Cons b rs, c)
+    in
+	(List.foldr f (Nil,1) bs).fst
+
+{-
+-- This is not possible becase of fundeps on PrimSelectable:
+-- List already has an instance, so we can't define another
+instance PrimSelectable (List a) UBit a
+  where
+    primSelectFn = uBitSelect
+    primUpdateFn = uBitUpdate
+-}
+
+{-
+-- we can't define a Literal class in this version of UBit;
+-- use integerToUBit
+-- If size info about literals were not thrown away (such as
+-- the 12 in 12'b0, which applied to a SizedLiteral class,
+-- then we could define an instance of SizedLiteral for UBit.
+instance Literal UBit
+  where
+    fromInteger x = integerToUBit ??? x
+
+-- similarly for bounded;
+-- we would have to use a bounded function with a size parameter,
+-- or a representation of UBit which allowed a tagged disjoint
+-- which was minBound and one which was maxBound
+instance Bounded UBit
+  where
+    minBound = ???
+    maxBound = ???
+-}
+
+instance Literal UBit
+  where
+    fromInteger x = error "fromInteger not defined for UBit"
+
+-- Can define other functions like this:
+uBitConcat :: UBit -> UBit -> UBit
+uBitConcat (UBit xs) (UBit ys) = UBit (List.append xs ys)
+
+-- Can also include:
+-- * split?
+-- * BitExtend class
+-- * PrimSelectable class
+-- etc
+
+
+-- try using "pack" instead of this
+uBitToBit :: UBit -> Bit n
+uBitToBit (UBit xs) =
+    let ubsize = length xs
+	vecsize = valueOf n
+    in  if (ubsize /= vecsize)
+	then error ("uBitToBit: cannot cast UBit of size " +++
+	            integerToString ubsize +++
+	            " into a Bit vector of size " +++
+	            integerToString vecsize)
+	else pack (toVector xs)
+
+
+-- try using "unpack" instead of this
+bitToUBit :: Bit n -> UBit
+bitToUBit bs =
+    let bsN :: Vector n (Bit 1)
+	bsN = unpack bs
+    in  UBit (toList bsN)
+
+
+-- Assumes that the size and the value are non-negative
+integerToBitList :: Integer -> Integer -> Maybe (List (Bit 1))
+integerToBitList sz val =
+  let
+      f :: Integer -> Integer -> List (Bit 1) -> Maybe (List (Bit 1))
+      f sz val accum =
+	  if (sz == 0)
+	  then if (val > 0) then Invalid else Valid accum
+	  else let b = val `mod` 2
+		   r = val `div` 2
+	       in  f (sz - 1) r (Cons (fromInteger b) accum)
+  in  f sz val Nil
+
+
+errIntegerToBitList :: String -> Integer -> Integer -> List (Bit 1)
+errIntegerToBitList fname sz val =
+  let prefx = if (fname == "") then fname else fname +++ ": "
+  in  if (sz < 0)
+      then error (prefx +++
+		  "UBit must have non-negative size: given size " +++
+		  integerToString sz)
+      else if (val < 0)
+      then error (prefx +++
+		  "UBit must have non-negative value: given value " +++
+		  integerToString val)
+      else case (integerToBitList sz val) of
+	       Invalid -> error (prefx +++ "initial value " +++
+			         integerToString val +++
+			         " too large for vector of " +++
+			        integerToString sz +++ " bits")
+	       Valid res -> res
+
+
+uBitToInteger :: UBit -> Integer
+uBitToInteger (UBit xs) =
+    let
+	f :: (Bit 1) -> (Integer, Integer) -> (Integer, Integer)
+	f bit (tot,fac) = let bi = if (bit == 1) then 1 else 0
+			  in  (tot + (bi * fac), fac * 2)
+    in
+	(List.foldr f (0,1) xs).fst
+
+bitListToUBit :: List (Bit 1) -> UBit
+bitListToUBit bs = UBit bs
+
+

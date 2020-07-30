@@ -1,0 +1,11 @@
+package Bug200(sysBug200) where
+
+sysBug200 :: Module Empty
+sysBug200 = 
+  module
+   r :: Reg (Int 32) <- mkReg 0
+   a :: Reg Bool <- mkRegU
+   b :: Reg Bool <- mkRegU
+   rules
+    when True ==>
+      if a then r := 7 else if b then r:=8 else noAction

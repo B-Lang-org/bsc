@@ -1,0 +1,7 @@
+# bug 381 is not fixed, but an unknown-size error masks it
+compile_fail_error Converter.bs T0035
+
+# Converter.bsv is the transliterated Converter.bs
+# which fails with an appropriate error
+compile_fail_error Converter2.bsv T0118
+

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling Exps.bsv
+code generation for sysExps starts
+Compilation message: "Exps.bsv", line 11, column 18: e = 2.718281828459045
+Compilation message: "Exps.bsv", line 12, column 25: pow(2,7) = 128.0
+Compilation message: "Exps.bsv", line 13, column 25: pow(3,2) = 9.0
+Compilation message: "Exps.bsv", line 14, column 26: pow(10,2) = 100.0
+Verilog file created: sysExps.v
+All packages are up to date.

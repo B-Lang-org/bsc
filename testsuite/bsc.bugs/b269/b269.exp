@@ -1,0 +1,2 @@
+compile_fail_error Bug269.bsv P0070
+compare_file Bug269.bsv.bsc-out

@@ -1,0 +1,39 @@
+package DefUnused where
+
+x :: Integer
+x = let y = 17
+    in 23
+
+-- The binding made by the qualified is unused.
+qualUnused :: (Bits a sa) => Module (Wire a)
+qualUnused = module
+  rw <- mkRWire
+  interface Reg
+    _write = rw.wset
+    _read = validValue rw.wget
+      when Valid v <- rw.wget
+
+-- We can avoid the warning with an underscore prefix.
+qualNotUnused :: (Bits a sa) => Module (Wire a)
+qualNotUnused = module
+  rw <- mkRWire
+  interface Reg
+    _write = rw.wset
+    _read = validValue rw.wget
+      when Valid _v <- rw.wget
+
+ruleNameUsed :: Module Empty
+ruleNameUsed = module
+  r :: Reg (UInt 4) <- mkReg 0
+  let name = "test"
+  rules
+    name: when True ==> r := r + 1
+    "exit": when (r == 15) ==> $finish 0
+
+ruleNameUnused :: Module Empty
+ruleNameUnused = module
+  r :: Reg (UInt 4) <- mkReg 0
+  let name = "test"
+  rules
+    "test": when True ==> r := r + 1
+    "exit": when (r == 15) ==> $finish 0

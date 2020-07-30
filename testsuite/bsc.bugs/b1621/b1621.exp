@@ -1,0 +1,6 @@
+compile_verilog_pass Bug1621.bsv
+if { $vtest == 1 } {
+find_n_strings module_summer.v {assign summer = summer_a + 32'd86 ;} 1
+find_n_strings module_summer2.v {assign summer2 = summer2_a + 32'd86 ;} 1
+}
+

@@ -1,0 +1,17 @@
+package FFMuxTest(sysFFMuxTest) where
+
+import TestROM
+
+sysFFMuxTest :: Module Empty
+sysFFMuxTest =
+  module
+    testrom :: TestROM <- sysTestROM
+    counter :: Reg (Bit 16) <- mkReg 0
+    
+    rules
+      when True ==> counter := counter + 1
+      when (counter == 5) ==> displayHex (testrom.read(counter))
+      when (counter == 7) ==> displayHex (testrom.read(counter - 3))
+      when (counter == 10) ==> displayHex (testrom.read(counter + 1))
+      when (counter == 12) ==> $finish 0
+    

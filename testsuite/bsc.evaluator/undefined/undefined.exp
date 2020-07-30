@@ -1,0 +1,69 @@
+test_c_veri_bsv PrimUndefined
+
+test_c_veri_bsv UndefinedString
+
+compile_verilog_fail_error UndefinedStringErr.bsv S0015
+compile_object_fail_error UndefinedStringLength.bsv G0080
+
+if {$ctest == 1} {
+  compile_object_fail_error AbstractDeriveType.bsv S0015
+  compare_file AbstractDeriveType.bsv.bsc-ccomp-out
+  compile_object_fail_error AbstractDerivePosition.bsv S0015
+  compare_file AbstractDerivePosition.bsv.bsc-ccomp-out
+}
+
+# vector of 512 registers written to dynamically
+test_c_veri_bsv RegSelect
+
+# vector of 512 registers initialized with for loop
+test_c_veri_bsv RegSelect2
+
+# see that the names are as expected
+compare_verilog sysRegSelect2.v
+
+# vector of 256 FIFOs enqueued to dynamically
+test_c_veri_bsv FIFOSelect
+
+# undefined values generated across package boundaries
+test_c_veri_bsv PackageTest
+if { [do_internal_checks] } {
+    dumpbi HiddenType.bo
+    compare_file [make_dumpbi_output_name HiddenType.bo]
+}
+
+# test initializing undefined 3d structures
+test_c_veri_bsv Vector3D
+test_c_veri_bsv ListN3D
+
+# initialize 3d vector of registers starting as undefined
+# and then dynamically read and write it
+# test that the register enables are correct (no != in them)
+# test that the dynamic reads turn into case statements 
+# though they are less clean than they should be - see bu 1297
+
+test_c_veri_bsv VectorReg3D
+compare_verilog sysVectorReg3D.v
+
+test_c_veri_bsv ListNReg3D
+compare_verilog sysListNReg3D.v
+
+test_c_veri_bsv ListReg3D
+compare_verilog sysListReg3D.v
+
+test_c_veri_bsv ArrayReg3D
+compare_verilog sysArrayReg3D.v
+
+# make sure undefined integers propagate correctly
+compile_verilog_pass UndefinedInteger.bsv
+
+# undefined tagged unions and structs behaving correctly
+test_c_veri_bsv TaggedUnionDynamicAction
+test_c_veri_bsv NewtypeAction
+
+# Test that modules cannot be created from "?"
+compile_verilog_fail_error UndetModule.bsv G0011
+
+# Test that rules cannot be created from "?" (Bug 1421)
+compile_verilog_fail_error UndetRules.bsv G0109
+compile_verilog_fail_error UndetRules2.bsv G0109
+

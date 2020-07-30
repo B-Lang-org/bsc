@@ -1,0 +1,33 @@
+package NonDeferredInnerContext_NoInstance (MyStruct(..), MyUnion(..)) where
+
+struct MyStruct =
+    f1 :: Bool
+    f2 :: Bool
+
+data MyUnion = T1 Bool | T2 MyStruct
+
+fn :: (Eq MyStruct) => MyUnion -> MyUnion -> Bool
+fn _a _b =
+   let
+       -- XXX This compiles fine, because it defers the instance resolution:
+       -- fn2 :: (Eq MyStruct) => MyUnion -> MyUnion -> Bool
+       -- XXX This doesn't, because the instance is missing:
+       fn2 :: MyUnion -> MyUnion -> Bool
+       fn2 _x _y =
+          case _x of
+             T1 _x1 when T1 _y2 <- _y ->  (==) _x1 _y2
+             T2 _x1 when T2 _y2 <- _y ->  (==) _x1 _y2
+             _ ->  False
+   in  fn2 _a _b
+
+-- Also check that it works without an explicit context
+fn3 :: (Eq MyStruct) => MyUnion -> MyUnion -> Bool
+fn3 _a _b =
+   let
+       fn4 _x _y =
+          case _x of
+             T1 _x1 when T1 _y2 <- _y ->  (==) _x1 _y2
+             T2 _x1 when T2 _y2 <- _y ->  (==) _x1 _y2
+             _ ->  False
+   in  fn4 _a _b
+

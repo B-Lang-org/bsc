@@ -1,0 +1,3 @@
+package NoType where
+
+x = 5

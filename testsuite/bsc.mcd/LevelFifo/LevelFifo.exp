@@ -1,0 +1,57 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+# -----
+
+# iverilog 0.9 fails on some tests
+set iverilog09_bug {}
+if { $verilog_compiler == "iverilog" &&
+     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] &&
+     $majmin < 10
+ } {
+    # add 'iverilog' to the list of simulators to exempt
+    set iverilog09_bug $verilog_compiler
+}
+
+# -----
+
+# Test for an elaboration-time error if the depth is not a power of 2
+compile_object_fail_error  SyncFIFOCountTest.bsv S0015 1 "" "-D FIFO_DEPTH=130"
+
+test_veri_only_bsv GFIFOLevelTest
+test_c_only_bsv GFIFOLevelTest sysGFIFOLevelTest.c.out.expected
+
+test_veri_only_bsv GFIFOCountTest
+test_c_only_bsv GFIFOCountTest sysGFIFOCountTest.c.out.expected
+
+test_veri_only_bsv SyncFIFOCountTest {} $iverilog09_bug
+test_c_only_bsv SyncFIFOCountTest sysSyncFIFOCountTest.c.out.expected
+
+test_veri_only_bsv LevelFIFOTest1
+test_c_only_bsv LevelFIFOTest1 sysLevelFIFOTest1.c.out.expected
+
+test_veri_only_bsv SyncLevelFIFOTest {} $iverilog09_bug
+test_c_only_bsv SyncLevelFIFOTest sysSyncLevelFIFOTest.c.out.expected
+
+
+##
+
+test_c_veri_bsv LevelFIFOTest2
+test_c_veri_bsv FIFOCountTest
+
+if { $ctest == 1 } {
+compile_object_fail_error LessThanLow.bsv S0015
+compare_file LessThanLow.bsv.bsc-ccomp-out
+
+compile_object_fail_error LessThanHigh.bsv S0015
+compare_file LessThanHigh.bsv.bsc-ccomp-out
+
+compile_object_fail_error GreaterThanLow.bsv S0015
+compare_file GreaterThanLow.bsv.bsc-ccomp-out
+
+compile_object_fail_error GreaterThanHigh.bsv S0015
+compare_file GreaterThanHigh.bsv.bsc-ccomp-out
+}
+

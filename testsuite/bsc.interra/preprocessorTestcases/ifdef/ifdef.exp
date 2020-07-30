@@ -1,0 +1,17 @@
+compile_fail Ifdef_endifWithoutPreceedingIfdef.bsv
+compare_file Ifdef_endifWithoutPreceedingIfdef.bsv.bsc-out
+
+compile_fail Ifdef_ExpInIfdef.bsv
+compare_file Ifdef_ExpInIfdef.bsv.bsc-out
+
+compile_pass IFdef_InsideMethod.bsv
+compare_file IFdef_InsideMethod.bsv.bsc-out
+
+compile_pass Ifdef_InsideModule.bsv
+compare_file Ifdef_InsideModule.bsv.bsc-out
+
+compile_pass Ifdef_InsideRule.bsv
+compare_file Ifdef_InsideRule.bsv.bsc-out
+
+compile_pass Ifdef_PackageLevel.bsv
+compare_file Ifdef_PackageLevel.bsv.bsc-out

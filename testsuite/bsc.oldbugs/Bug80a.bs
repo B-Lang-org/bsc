@@ -1,0 +1,7 @@
+package Bug80a(ClassifyResult(..)) where 
+
+data ProblemType = A | B
+  deriving (Eq, Bits)
+
+data ClassifyResult = Drop | MicroProc ProblemType
+  deriving (Eq, Bits)

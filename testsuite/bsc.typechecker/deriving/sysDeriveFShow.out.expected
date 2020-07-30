@@ -1,0 +1,52 @@
+Isomorphic tagged union
+tagged IsoU 'h11
+tagged IsoUP 'h002a
+tagged IsoUFP         -2
+
+Isomorphic struct
+IsoS { isoS:     17 }
+IsoSP { isoSP:     42 }
+IsoSFP { isoSFP:          -2 }
+
+Basic enum
+Enum0
+Enum1
+Enum2
+
+Basic tagged union
+tagged BasicU0 True
+tagged BasicU1 'h16
+tagged BasicU2 43981
+tagged BasicU3      -43981
+tagged BasicUP0 True
+tagged BasicUP1 'h16
+tagged BasicUP2 43981
+tagged BasicUP3      -43981
+tagged BasicUP4 Enum2
+
+Basic struct
+BasicS { basicS0: True, basicS1: 'h16, basicS2: 43981, basicS3:      -43981 }
+BasicSP { basicSP0: True, basicSP1: 'h16, basicSP2: 43981, basicSP3:      -43981, basicSP4: Enum2 }
+
+Nested tagged union
+tagged NestedU0 Enum0
+tagged NestedU1 tagged BasicU0 True
+tagged NestedU2 BasicS { basicS0: True, basicS1: 'h16, basicS2: 43981, basicS3:      -43981 }
+tagged NestedUP0 Enum1
+tagged NestedUP1 tagged BasicUP1 'h16
+tagged NestedUP2 BasicSP { basicSP0: True, basicSP1: 'h16, basicSP2: 43981, basicSP3:      -43981, basicSP4: Enum2 }
+
+Nested struct
+NestedS { nestedS0: Enum0, nestedS1: tagged BasicU0 True, nestedS2: BasicS { basicS0: True, basicS1: 'h16, basicS2: 43981, basicS3:      -43981 } }
+NestedSP { nestedSP0: Enum1, nestedSP1: tagged BasicUP1 'h16, nestedSP2: BasicSP { basicSP0: True, basicSP1: 'h16, basicSP2: 43981, basicSP3:      -43981, basicSP4: Enum2 } }
+
+Partially-void union
+tagged SomeVoidU0 
+tagged SomeVoidU1 False
+
+Fully-void union
+AllVoidU0
+AllVoidU1
+
+Empty struct
+EmptyS { }

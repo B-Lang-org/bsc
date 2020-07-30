@@ -1,0 +1,723 @@
+$date
+	Thu Mar  9 16:30:42 2006
+$end
+$version
+	Bluespec VCD _dumper $Revision: 1.11 $
+$end
+$timescale
+	1us/1ns
+$end
+$scope module main.top $end
+$var reg 1 ! CLK $end
+$var reg 1 " WILL_FIRE_RL_sig7_state $end
+$var reg 1 # WILL_FIRE_RL_sig6_state $end
+$var reg 1 $ WILL_FIRE_RL_sig5_state $end
+$var reg 1 % WILL_FIRE_RL_sig4_state $end
+$var reg 1 & WILL_FIRE_RL_sig3_state $end
+$var reg 1 ' WILL_FIRE_RL_sig2_state $end
+$var reg 1 ( WILL_FIRE_RL_sig1_state $end
+$var reg 1 ) WILL_FIRE_RL_first $end
+$var reg 1 * CAN_FIRE_RL_sig7_state $end
+$var reg 1 + CAN_FIRE_RL_sig6_state $end
+$var reg 1 , CAN_FIRE_RL_sig5_state $end
+$var reg 1 - CAN_FIRE_RL_sig4_state $end
+$var reg 1 . CAN_FIRE_RL_sig3_state $end
+$var reg 1 / CAN_FIRE_RL_sig2_state $end
+$var reg 1 0 CAN_FIRE_RL_sig1_state $end
+$var reg 1 1 CAN_FIRE_RL_first $end
+$var reg 8 2 count_sig7_state__read__h285 [7:0] $end
+$var reg 8 3 x__h323 [7:0] $end
+$var reg 8 4 count_sig6_state__read__h440 [7:0] $end
+$var reg 8 5 x__h477 [7:0] $end
+$var reg 8 6 count_sig5_state__read__h591 [7:0] $end
+$var reg 8 7 x__h627 [7:0] $end
+$var reg 8 8 count_sig4_state__read__h741 [7:0] $end
+$var reg 8 9 x__h778 [7:0] $end
+$var reg 8 : count_sig3_state__read__h892 [7:0] $end
+$var reg 8 ; x__h928 [7:0] $end
+$var reg 8 < count_sig2_state__read__h1042 [7:0] $end
+$var reg 8 = x__h1078 [7:0] $end
+$var reg 2 > hwy_sig__h235 [1:0] $end
+$var reg 5 ? state__h201 [4:0] $end
+$var reg 2 @ frm_sig__h399 [1:0] $end
+$var reg 5 A _x1000001__h1143 [4:0] $end
+$var reg 5 B _x1000002__h543 [4:0] $end
+$var reg 1 C hwy_sig_EQ_2___d6 $end
+$var reg 1 D frm_sig_6_EQ_0___d17 $end
+$var reg 1 E frm_sig_6_EQ_1___d29 $end
+$var reg 1 F frm_sig_6_EQ_2___d40 $end
+$var reg 1 G hwy_sig_EQ_0___d51 $end
+$var reg 1 H hwy_sig_EQ_1___d62 $end
+$var reg 1 I NOT_hwy_sig_EQ_2_AND_count_sig7_state_EQ_0___d10 $end
+$var reg 1 J NOT_frm_sig_6_EQ_0_7_2_AND_count_sig6_state_8__ETC___d23 $end
+$var reg 1 K NOT_hwy_sig_EQ_2_AND_NOT_count_sig7_state_EQ_0_3___d14 $end
+$var reg 1 L NOT_frm_sig_6_EQ_0_7_2_AND_NOT_count_sig6_stat_ETC___d27 $end
+$var reg 1 M NOT_frm_sig_6_EQ_1_9_4_AND_count_sig5_state_0__ETC___d35 $end
+$var reg 1 N NOT_frm_sig_6_EQ_1_9_4_AND_NOT_count_sig5_stat_ETC___d38 $end
+$var reg 1 O NOT_frm_sig_6_EQ_2_0_5_AND_count_sig4_state_1__ETC___d46 $end
+$var reg 1 P NOT_frm_sig_6_EQ_2_0_5_AND_NOT_count_sig4_stat_ETC___d49 $end
+$var reg 1 Q NOT_hwy_sig_EQ_0_1_6_AND_count_sig3_state_2_UL_ETC___d57 $end
+$var reg 1 R NOT_hwy_sig_EQ_0_1_6_AND_NOT_count_sig3_state__ETC___d60 $end
+$var reg 1 S NOT_hwy_sig_EQ_1_2_7_AND_count_sig2_state_3_UL_ETC___d68 $end
+$var reg 1 T frm_sig_6_EQ_0_7_OR_count_sig6_state_8_ULT_3_9___d20 $end
+$var reg 1 U NOT_hwy_sig_EQ_1_2_7_AND_NOT_count_sig2_state__ETC___d71 $end
+$var reg 1 V frm_sig_6_EQ_1_9_OR_count_sig5_state_0_ULT_6_1___d32 $end
+$var reg 1 W frm_sig_6_EQ_2_0_OR_count_sig4_state_1_EQ_0_2___d43 $end
+$var reg 1 X hwy_sig_EQ_0_1_OR_count_sig3_state_2_ULT_3_3___d54 $end
+$var reg 1 Y hwy_sig_EQ_1_2_OR_count_sig2_state_3_ULT_6_4___d65 $end
+$var reg 5 Z IF_frm_sig_6_EQ_0_7_THEN_8_ELSE_7___d21 [4:0] $end
+$var reg 5 [ IF_frm_sig_6_EQ_1_9_THEN_7_ELSE_6___d33 [4:0] $end
+$var reg 5 \ IF_frm_sig_6_EQ_2_0_THEN_6_ELSE_5___d44 [4:0] $end
+$var reg 5 ] IF_hwy_sig_EQ_0_1_THEN_5_ELSE_4___d55 [4:0] $end
+$var reg 5 ^ IF_hwy_sig_EQ_1_2_THEN_4_ELSE_3___d66 [4:0] $end
+$var reg 2 _ top_hwy_light____d74 [1:0] $end
+$var reg 2 ` top_farm_light____d75 [1:0] $end
+$scope module top $end
+$var reg 1 j WILL_FIRE_tlc $end
+$var reg 1 k EN_tlc $end
+$var reg 5 l timer__read__h157 [4:0] $end
+$var reg 5 m x__h257 [4:0] $end
+$var reg 2 n x_farm_light__h61 [1:0] $end
+$var reg 2 o x_hwy_light__h62 [1:0] $end
+$var reg 2 p t_timer_state__h94 [1:0] $end
+$var reg 1 q NOT_t_timer_state_EQ_1_1_8_AND_NOT_t_timer_sta_ETC___d29 $end
+$var reg 1 r NOT_t_hwy_state_EQ_0_8_5_OR_NOT_t_frm_state_EQ_ETC___d38 $end
+$var reg 1 s NOT_t_hwy_state_EQ_2_5_2_OR_NOT_tlc_car_presen_ETC___d34 $end
+$var reg 1 t NOT_t_frm_state_EQ_0_6_OR_NOT_t_hwy_state_EQ_1_ETC___d31 $end
+$var reg 1 u NOT_t_frm_state_EQ_2_2_OR_tlc_car_present_AND__ETC___d25 $end
+$var reg 1 v t_timer_state_EQ_1_1_OR_t_timer_state_EQ_2___d12 $end
+$var reg 1 w t_frm_state_EQ_1_9_AND_t_timer_state_EQ_1_1_OR_ETC___d20 $end
+$var reg 1 x t_hwy_state_EQ_0_8_AND_t_frm_state_EQ_1_9_AND__ETC___d21 $end
+$var reg 1 y t_hwy_state_EQ_2_5_AND_tlc_car_present_AND_t_t_ETC___d17 $end
+$var reg 1 z t_hwy_state_EQ_1_0_AND_t_timer_state_EQ_1_1_OR_ETC___d13 $end
+$var reg 1 { t_frm_state_EQ_0_AND_t_hwy_state_EQ_1_0_AND_t__ETC___d14 $end
+$var reg 1 | t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_t__ETC___d7 $end
+$var reg 1 } t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_t__ETC___d51 $end
+$var reg 1 ~ t_hwy_state_EQ_2_5_AND_tlc_car_present_AND_t_t_ETC___d80 $end
+$var reg 1 "! t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_t__ETC___d48 $end
+$var reg 1 "" t_frm_state_EQ_2_AND_t_timer_state_EQ_2_2_OR_N_ETC___d75 $end
+$var reg 1 "# t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_t__ETC___d69 $end
+$var reg 2 "$ IF_t_frm_state_EQ_2_THEN_1_ELSE_IF_t_frm_state_ETC___d77 [1:0] $end
+$var reg 2 "% IF_t_hwy_state_EQ_2_5_THEN_1_ELSE_IF_t_hwy_sta_ETC___d82 [1:0] $end
+$var reg 2 "& IF_t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_ETC___d71 [1:0] $end
+$var reg 5 "' IF_t_frm_state_EQ_2_AND_NOT_tlc_car_present_OR_ETC___d54 [4:0] $end
+$var reg 1 ") RDY_tlc $end
+$var reg 1 "* farm_light $end
+$var reg 1 "+ RDY_farm_light $end
+$var reg 1 ", hwy_light $end
+$var reg 1 "- RDY_hwy_light $end
+$upscope $end
+$var reg 8 "B count_sig2_state [7:0] $end
+$var reg 1 "C count_sig2_state$EN $end
+$var reg 8 "E count_sig3_state [7:0] $end
+$var reg 1 "F count_sig3_state$EN $end
+$var reg 8 "H count_sig4_state [7:0] $end
+$var reg 1 "I count_sig4_state$EN $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+1!
+0"
+0#
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+0-
+0.
+0/
+00
+01
+b0 2
+b0 3
+b0 4
+b0 5
+b0 6
+b0 7
+b0 8
+b0 9
+b0 :
+b0 ;
+b0 <
+b0 =
+b0 >
+b0 ?
+b0 @
+b0 A
+b0 B
+0C
+0D
+0E
+0F
+0G
+0H
+0I
+0J
+0K
+0L
+0M
+0N
+0O
+0P
+0Q
+0R
+0S
+0T
+0U
+0V
+0W
+0X
+0Y
+b0 Z
+b0 [
+b0 \
+b0 ]
+b0 ^
+b0 _
+b0 `
+0j
+0k
+b0 l
+b0 m
+b0 n
+b0 o
+b0 p
+0q
+0r
+0s
+0t
+0u
+0v
+0w
+0x
+0y
+0z
+0{
+0|
+0}
+0~
+0"!
+0""
+0"#
+b0 "$
+b0 "%
+b0 "&
+b0 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+b0 "B
+0"C
+b0 "E
+0"F
+b0 "H
+0"I
+$end
+#1
+1)
+11
+b101 A
+b10 B
+1j
+1k
+b10 o
+1r
+1s
+1t
+1u
+1"!
+b1 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#5
+0!
+#10
+1!
+1(
+0)
+10
+01
+b10 ?
+b1 l
+b10 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#15
+0!
+#20
+1!
+1'
+0(
+1/
+00
+b1 =
+b10 >
+b11 ?
+1S
+1Y
+b11 ^
+b10 _
+b10 l
+1"#
+b1 "&
+b11 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+1"C
+#25
+0!
+#30
+1!
+b1 "B
+b1 <
+b10 =
+b11 l
+b1 p
+0"#
+b100 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#35
+0!
+#40
+1!
+b10 "B
+b10 <
+b11 =
+b100 l
+b101 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#45
+0!
+#50
+1!
+b11 "B
+b11 <
+b100 =
+b101 l
+1"#
+b10 "&
+b110 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#55
+0!
+#60
+1!
+b100 "B
+b100 <
+b101 =
+b10 p
+1y
+1}
+1~
+b1 "%
+b0 "&
+b0 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#65
+0!
+#70
+1!
+b101 "B
+b101 <
+b110 =
+b1 _
+b0 l
+b1 o
+b0 p
+1q
+0y
+0}
+0~
+0"#
+b1 "'
+1")
+b0 "*
+1"+
+b1 ",
+1"-
+#75
+0!
+#80
+1!
+b110 "B
+b1 >
+1H
+0S
+b100 ^
+b1 l
+b10 "'
+1")
+b0 "*
+1"+
+b1 ",
+1"-
+0"C
+#85
+0!
+#90
+1!
+1&
+0'
+1.
+0/
+b1 ;
+b100 ?
+1Q
+1X
+b100 ]
+b10 l
+1"#
+b1 "&
+b11 "'
+1")
+b0 "*
+1"+
+b1 ",
+1"-
+1"F
+#95
+0!
+#100
+1!
+b1 "E
+b1 :
+b10 ;
+b1 p
+1v
+1z
+1{
+1}
+1~
+1""
+b10 "$
+b0 "%
+b0 "&
+b0 "'
+1")
+b0 "*
+1"+
+b1 ",
+1"-
+#105
+0!
+#110
+1!
+b10 "E
+b10 :
+b11 ;
+b0 _
+b0 l
+b10 n
+b0 o
+b0 p
+0z
+0{
+0}
+0~
+0""
+0"#
+b1 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#115
+0!
+#120
+1!
+b11 "E
+b0 >
+1G
+0Q
+b101 ]
+b1 l
+b10 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+0"F
+#125
+0!
+#130
+1!
+1%
+0&
+1-
+0.
+b101 ?
+b10 @
+1F
+1W
+b110 \
+b10 l
+1"#
+b1 "&
+b11 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#135
+0!
+#140
+1!
+1$
+0%
+1,
+0-
+b1 7
+b110 ?
+1M
+1V
+b110 [
+b10 `
+b11 l
+b1 p
+0"#
+b100 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#145
+0!
+#150
+1!
+b1 6
+b10 7
+b100 l
+b101 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#155
+0!
+#160
+1!
+b10 6
+b11 7
+b101 l
+1"#
+b10 "&
+b110 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#165
+0!
+#170
+1!
+b11 6
+b100 7
+b10 p
+1|
+1}
+1""
+b1 "$
+b0 "&
+b0 "'
+1")
+b10 "*
+1"+
+b0 ",
+1"-
+#175
+0!
+#180
+1!
+b100 6
+b101 7
+b1 `
+b0 l
+b1 n
+b0 p
+0v
+0|
+0}
+0""
+0"#
+b1 "'
+1")
+b1 "*
+1"+
+b0 ",
+1"-
+#185
+0!
+#190
+1!
+b1 @
+1E
+0M
+b111 [
+b1 l
+b10 "'
+1")
+b1 "*
+1"+
+b0 ",
+1"-
+#195
+0!
+#200
+1!
+1#
+0$
+1+
+0,
+b1 5
+b111 ?
+1J
+1T
+b111 Z
+b10 l
+1"#
+b1 "&
+b11 "'
+1")
+b1 "*
+1"+
+b0 ",
+1"-
+#205
+0!
+#210
+1!
+b1 4
+b10 5
+b1 p
+1v
+1w
+1x
+1}
+1~
+1""
+b0 "$
+b10 "%
+b0 "&
+b0 "'
+1")
+b1 "*
+1"+
+b0 ",
+1"-
+#215
+0!
+#220
+1!
+b10 4
+b11 5
+b0 `
+b0 l
+b0 n
+b10 o
+b0 p
+0w
+0x
+0}
+0~
+0""
+0"#
+b1 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#225
+0!
+#230
+1!
+b0 @
+1D
+0J
+b1000 Z
+b1 l
+b10 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#235
+0!
+#240
+1!
+1"
+0#
+1*
+0+
+b1 3
+b1000 ?
+1I
+b10 _
+b10 l
+1"#
+b1 "&
+b11 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#245
+0!
+#250
+1!
+b10 >
+1C
+0j
+0k
+b11 l
+b1 p
+0"#
+b100 "'
+1")
+b0 "*
+1"+
+b10 ",
+1"-
+#265
+0!

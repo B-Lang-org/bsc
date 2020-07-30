@@ -1,0 +1,202 @@
+Count: 0
+Count: 0
+Count: 0
+Enqueueing          0 : 01
+Count: 1
+Enqueueing          0 : 02
+Count: 2
+Enqueueing          0 : 03
+Count: 3
+Enqueueing          0 : 04
+Count: 4
+Enqueueing          0 : 05
+Count: 5
+Enqueueing          0 : 06
+Warning: SizedFIFO: main.top.dut_0.error_checks -- Enqueuing to a full fifo
+Count: 6
+Dequeueing          0 : 01
+Count: 5
+Dequeueing          0 : 02
+Count: 4
+Dequeueing          0 : 03
+Count: 3
+Dequeueing          0 : 04
+Count: 2
+Dequeueing          0 : 05
+Count: 1
+Dequeueing          0 : 05
+Warning: SizedFIFO: main.top.dut_0.error_checks -- Dequeuing from empty fifo
+Count: 0
+Count: 0
+Enqueueing          1 : 01
+Count: 1
+Enqueueing          1 : 02
+Count: 2
+Enqueueing          1 : 03
+Count: 3
+Enqueueing          1 : 04
+Count: 4
+Enqueueing          1 : 05
+Count: 5
+Enqueueing          1 : 06
+Warning: SizedFIFO: main.top.dut_1.error_checks -- Enqueuing to a full fifo
+Count: 6
+Dequeueing          1 : 01
+Count: 5
+Dequeueing          1 : 02
+Count: 4
+Dequeueing          1 : 03
+Count: 3
+Dequeueing          1 : 04
+Count: 2
+Dequeueing          1 : 05
+Count: 1
+Dequeueing          1 : 05
+Warning: SizedFIFO: main.top.dut_1.error_checks -- Dequeuing from empty fifo
+Count: 0
+Count: 0
+Enqueueing          2 : 01
+Count: 1
+Enqueueing          2 : 02
+Count: 2
+Enqueueing          2 : 03
+Count: 3
+Enqueueing          2 : 04
+Count: 4
+Enqueueing          2 : 05
+Count: 5
+Enqueueing          2 : 06
+Warning: SizedFIFO: main.top.dut_2.error_checks -- Enqueuing to a full fifo
+Count: 6
+Dequeueing          2 : 01
+Count: 5
+Dequeueing          2 : 02
+Count: 4
+Dequeueing          2 : 03
+Count: 3
+Dequeueing          2 : 04
+Count: 2
+Dequeueing          2 : 05
+Count: 1
+Count: 1
+Count: 0
+Enqueueing          3 : 01
+Count: 1
+Enqueueing          3 : 02
+Count: 2
+Enqueueing          3 : 03
+Count: 3
+Enqueueing          3 : 04
+Count: 4
+Enqueueing          3 : 05
+Count: 5
+Enqueueing          3 : 06
+Warning: SizedFIFO: main.top.dut_3.error_checks -- Enqueuing to a full fifo
+Count: 6
+Dequeueing          3 : 01
+Count: 5
+Dequeueing          3 : 02
+Count: 4
+Dequeueing          3 : 03
+Count: 3
+Dequeueing          3 : 04
+Count: 2
+Dequeueing          3 : 05
+Count: 1
+Count: 1
+Count: 0
+Enqueueing          4 : 01
+Count: 1
+Enqueueing          4 : 02
+Count: 2
+Enqueueing          4 : 03
+Count: 3
+Enqueueing          4 : 04
+Count: 4
+Enqueueing          4 : 05
+Count: 5
+Count: 5
+Dequeueing          4 : 01
+Count: 4
+Dequeueing          4 : 02
+Count: 3
+Dequeueing          4 : 03
+Count: 2
+Dequeueing          4 : 04
+Count: 1
+Dequeueing          4 : 05
+Count: 0
+Dequeueing          4 : 05
+Warning: SizedFIFO: main.top.dut_4.error_checks -- Dequeuing from empty fifo
+Count: 7
+Count: 0
+Enqueueing          5 : 01
+Count: 1
+Enqueueing          5 : 02
+Count: 2
+Enqueueing          5 : 03
+Count: 3
+Enqueueing          5 : 04
+Count: 4
+Enqueueing          5 : 05
+Count: 5
+Count: 5
+Dequeueing          5 : 01
+Count: 4
+Dequeueing          5 : 02
+Count: 3
+Dequeueing          5 : 03
+Count: 2
+Dequeueing          5 : 04
+Count: 1
+Dequeueing          5 : 05
+Count: 0
+Dequeueing          5 : 05
+Warning: SizedFIFO: main.top.dut_5.error_checks -- Dequeuing from empty fifo
+Count: 7
+Count: 0
+Enqueueing          6 : 01
+Count: 1
+Enqueueing          6 : 02
+Count: 2
+Enqueueing          6 : 03
+Count: 3
+Enqueueing          6 : 04
+Count: 4
+Enqueueing          6 : 05
+Count: 5
+Count: 5
+Dequeueing          6 : 01
+Count: 4
+Dequeueing          6 : 02
+Count: 3
+Dequeueing          6 : 03
+Count: 2
+Dequeueing          6 : 04
+Count: 1
+Dequeueing          6 : 05
+Count: 0
+Count: 0
+Count: 0
+Enqueueing          7 : 01
+Count: 1
+Enqueueing          7 : 02
+Count: 2
+Enqueueing          7 : 03
+Count: 3
+Enqueueing          7 : 04
+Count: 4
+Enqueueing          7 : 05
+Count: 5
+Count: 5
+Dequeueing          7 : 01
+Count: 4
+Dequeueing          7 : 02
+Count: 3
+Dequeueing          7 : 03
+Count: 2
+Dequeueing          7 : 04
+Count: 1
+Dequeueing          7 : 05
+Count: 0
+Count: 0

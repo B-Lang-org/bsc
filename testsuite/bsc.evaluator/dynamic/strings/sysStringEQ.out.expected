@@ -1,0 +1,69 @@
+Test 0000
+z equals x
+o: BRRSS
+
+Test 0001
+z equals x
+o: AAARRSS
+
+Test 0010
+z does not equal x
+o: BCCCCRRSS
+
+Test 0011
+z does not equal x
+o is AAACCCCRRSS
+o: AAACCCCRRSS
+
+Test 0100
+z equals x
+y and r are empty
+o: BSS
+
+Test 0101
+z equals x
+y and r are empty
+o: AAASS
+
+Test 0110
+z does not equal x
+o: BCCCCSS
+
+Test 0111
+z does not equal x
+o: AAACCCCSS
+
+Test 1000
+z equals x
+o: BRRSSSSS
+
+Test 1001
+z equals x
+o: AAARRSSSSS
+
+Test 1010
+z does not equal x
+o: BCCCCRRSSSSS
+
+Test 1011
+z does not equal x
+o: AAACCCCRRSSSSS
+
+Test 1100
+z equals x
+y and r are empty
+o: BSSSSS
+
+Test 1101
+z equals x
+y and r are empty
+o: AAASSSSS
+
+Test 1110
+z does not equal x
+o: BCCCCSSSSS
+
+Test 1111
+z does not equal x
+o: AAACCCCSSSSS
+

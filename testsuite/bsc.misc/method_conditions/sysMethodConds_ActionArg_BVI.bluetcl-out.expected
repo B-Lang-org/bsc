@@ -1,0 +1,2 @@
+COND_RL_r_s_am1_1 {positions {MethodConds_ActionArg_BVI.bsv 12 12}} {rule RL_r} {instance s} {method am1}
+COND_RL_r_s_am1_2 {positions {MethodConds_ActionArg_BVI.bsv 14 12}} {rule RL_r} {instance s} {method am1}

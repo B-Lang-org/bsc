@@ -1,0 +1,75 @@
+# test scheduling and resource allocation
+# (other tests are in subdirectories)
+if {$vtest == 1} {
+
+compile_verilog_schedule_pass Ring.bs sysRing
+compare_file_filter_ids Ring.bs.bsc-sched-out
+
+compile_verilog_schedule_pass AccessorConflicts.bs sysAccessorConflicts
+compare_file_filter_ids AccessorConflicts.bs.bsc-sched-out
+
+compile_verilog_schedule_pass AccessorPredicates.bs sysAccessorPredicates
+compare_file_filter_ids AccessorPredicates.bs.bsc-sched-out
+
+compile_verilog_schedule_pass IgnoreRdy.bs sysIgnoreRdy
+compare_file_filter_ids IgnoreRdy.bs.bsc-sched-out
+
+compile_verilog_schedule_pass InterfaceOrderingParallel.bs sysInterfaceOrderingParallel
+compare_file_filter_ids InterfaceOrderingParallel.bs.bsc-sched-out
+
+compile_verilog_schedule_pass InterfaceOrderingSequential.bs sysInterfaceOrderingSequential
+compare_file_filter_ids InterfaceOrderingSequential.bs.bsc-sched-out
+
+compile_verilog_schedule_pass InterfaceOrderingResource.bs sysInterfaceOrderingResource
+compare_file_filter_ids InterfaceOrderingResource.bs.bsc-sched-out
+
+compile_verilog_schedule_pass PredicateConflicts.bs sysPredicateConflicts
+compare_file_filter_ids PredicateConflicts.bs.bsc-sched-out
+
+compile_verilog_schedule_pass RuleAssertionsEspositoOK.bs sysRuleAssertionsEspositoOK
+compare_file_filter_ids RuleAssertionsEspositoOK.bs.bsc-sched-out
+
+compile_verilog_schedule_fail RuleAssertionsEspositoFail.bs sysRuleAssertionsEspositoFail
+compare_file_filter_ids RuleAssertionsEspositoFail.bs.bsc-sched-out
+
+compile_verilog_schedule_pass ThreeRulesEsposito.bs sysThreeRulesEsposito 
+compare_file_filter_ids ThreeRulesEsposito.bs.bsc-sched-out
+
+compile_verilog_schedule_pass BlockerEsposito.bs sysBlockerEsposito
+compare_file_filter_ids BlockerEsposito.bs.bsc-sched-out
+
+compile_verilog_schedule_pass BlockersEsposito.bs sysBlockersEsposito
+compare_file_filter_ids BlockersEsposito.bs.bsc-sched-out
+
+compile_verilog_schedule_pass TooManyBlockersEsposito.bs sysTooManyBlockersEsposito
+compare_file_filter_ids TooManyBlockersEsposito.bs.bsc-sched-out
+
+# transitivity of SC methods
+compile_verilog_schedule_pass CFandSCmethods.bs sysCFandSCmethods
+
+#Handling of ME method calls in a single rule
+compile_verilog_schedule_pass ExclusiveEnq.bs sysExclusiveEnq
+
+# A value method blocking a rule
+compile_verilog_schedule_pass RuleMethodConflict.bsv sysRuleMethodConflict
+compare_file_filter_ids RuleMethodConflict.bsv.bsc-sched-out
+
+# Scheduling of sub-rule conflicts with -split-if
+compile_verilog_schedule_pass SplitIf.bsv sysSplitIf "-split-if"
+compare_file_filter_ids SplitIf.bsv.bsc-sched-out
+
+# Scheduling of sub-rule conflicts with -split-if
+# (The method cannot be split because an argument is used in the condition.
+# BSC used to split anyway and would error; now it is not split.)
+compile_verilog_schedule_pass SplitIf2.bsv sysSplitIf2 "-split-if"
+compare_file_filter_ids SplitIf2.bsv.bsc-sched-out
+
+# Scheduling of method conflicts with if-splitting
+compile_verilog_schedule_pass SplitIfMeth.bsv 
+compare_file_filter_ids SplitIfMeth.bsv.bsc-sched-out
+
+}
+
+# Introduction of synthesis boundary can affect conflict scheduling
+test_c_veri_bsv_multi_options_separately Boundary sysBoundary {mkBoundary_Sub}
+

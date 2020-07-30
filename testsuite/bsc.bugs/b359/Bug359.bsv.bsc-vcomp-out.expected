@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Bug359.bsv
+code generation for mkTestbench starts
+Error: "Bug359.bsv", line 15, column 12: (S0015)
+  Bluespec evaluation-time error: 1
+  During elaboration of `error' at "Bug359.bsv", line 15, column 6.
+  During elaboration of `mkTestbench' at "Bug359.bsv", line 8, column 8.

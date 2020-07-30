@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadStringLit.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EBadStringLit error of the bluespec
+-- compiler
+--
+-----------------------------------------------------------------------
+
+
+
+
+package EBadStringLit () where
+
+
+x :: String
+x = "Hi\DEL"
+
+

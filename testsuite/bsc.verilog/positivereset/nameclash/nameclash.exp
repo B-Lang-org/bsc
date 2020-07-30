@@ -1,0 +1,17 @@
+# Check for name clashes in 
+if { $vtest == 1 } {
+compile_verilog_fail Clash1.bsv "" {-reset-prefix 1foo}
+find_n_emsg Clash1.bsv.bsc-vcomp-out Error P0185 1
+
+compile_verilog_fail Clash2.bsv "" {-reset-prefix foo}
+find_n_emsg Clash2.bsv.bsc-vcomp-out Error G0107 1
+}
+
+test_c_veri_bsv_modules_options Test3 "" {-reset-prefix RST_P} "" "" "" {-reset-prefix RST_P}
+if { $vtest == 1 } {
+# Look for RST_P signal in verilog
+find_n_strings sysTest3.v "input  RST_P" 1
+}
+
+test_c_veri_bsv_modules_options Test4 "" {-reset-prefix RST_P} "" "" "" {-reset-prefix RESET_P -D BSV_POSITIVE_RESET }
+

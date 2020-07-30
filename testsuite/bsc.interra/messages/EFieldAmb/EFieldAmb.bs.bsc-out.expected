@@ -1,0 +1,8 @@
+checking package dependencies
+compiling EFieldAmb.bs
+Error: "EFieldAmb.bs", line 20, column 13: (T0018)
+  The field `fst' is a member of multiple structs or interfaces, and there was
+  not enough type information to decide which one is being referred to.
+  Consider adding more explicit types, to help the compiler choose. The
+  following structs/interfaces have a field named `fst':
+    Prelude.PrimPair, EFieldAmb.My_pair1

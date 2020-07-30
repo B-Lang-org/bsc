@@ -1,0 +1,31 @@
+=== Generated schedule for mkBypassFIFO_Bit32 ===
+
+Method schedule
+---------------
+Method: enq
+Ready signal: ! rv.port0__read[32]
+Sequenced before (restricted): deq, first, clear
+Conflicts: enq
+ 
+Method: deq
+Ready signal: rv.port1__read[32]
+Sequenced before (restricted): clear
+Sequenced after: first
+Sequenced after (restricted): enq
+Conflicts: deq
+ 
+Method: first
+Ready signal: rv.port1__read[32]
+Conflict-free: first
+Sequenced before: deq
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq
+ 
+Method: clear
+Ready signal: True
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, deq, first
+ 
+Logical execution order: enq, first, deq, clear
+
+==================================================

@@ -1,0 +1,18 @@
+Cycle 1: Test start: mkIfThenElse
+Cycle 3: Out [0]: expected (10), actual (10)
+Cycle 4: Out [1]: expected (11), actual (11)
+Cycle 5: Out [2]: expected (12), actual (12)
+Cycle 6: Out [3]: expected (103), actual (103)
+Cycle 7: Out [4]: expected (14), actual (14)
+Cycle 8: Out [5]: expected (15), actual (15)
+Cycle 9: Out [6]: expected (16), actual (16)
+Cycle 10: Out [7]: expected (107), actual (107)
+Cycle 11: Out [8]: expected (18), actual (18)
+Cycle 12: Out [9]: expected (19), actual (19)
+Cycle 13: Out [10]: expected (20), actual (20)
+Cycle 14: Out [11]: expected (111), actual (111)
+Cycle 15: Out [12]: expected (22), actual (22)
+Cycle 16: Out [13]: expected (23), actual (23)
+Cycle 17: Out [14]: expected (24), actual (24)
+Cycle 18: Out [15]: expected (115), actual (115)
+Cycle 18: Test ok: mkIfThenElse: all 16 outputs ok

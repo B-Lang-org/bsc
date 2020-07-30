@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TypeAliasParamConflictingUses.bs
+Error: "TypeAliasParamConflictingUses.bs", line 5, column 25: (T0027)
+  The numeric type `b' was found where a value type was expected.

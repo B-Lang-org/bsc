@@ -1,0 +1,21 @@
+package ThreeRulesEsposito(sysThreeRulesEsposito) where
+
+-- Test boolean optimization in Verilog direct scheduler generation.
+-- Expect `P_setT = C_setT', `P_setF = C_setF && !C_setT',
+-- and `P_flip = C_flip && !C_setT && !C_setF' in the Verilog output.
+
+sysThreeRulesEsposito :: Module Empty
+sysThreeRulesEsposito =
+    module
+	a :: Reg Bool
+	a <- mkReg True
+        addRules $ setT a <+ setF a <+ flip a
+
+setT :: Reg Bool -> Rules
+setT a = rules "setT": when True ==> a := True
+
+setF :: Reg Bool -> Rules
+setF a = rules "setF": when True ==> a := True
+
+flip :: Reg Bool -> Rules
+flip a = rules "flip": when True ==> a := not a

@@ -1,0 +1,4 @@
+package Fake_WFilePackageNameMismatch_Sub(foo) where
+
+foo :: Integer
+foo = 1

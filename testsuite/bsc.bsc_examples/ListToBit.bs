@@ -1,0 +1,56 @@
+package ListToBit ( listToBit, sysListToBit, I, Decode ) where
+
+import List
+
+interface Decode n m =
+    decode :: Bit n -> Bit m
+
+----
+
+listToBit :: (Add k 1 n) => List (Bit 1) -> Bit n
+listToBit (Cons b Nil) = zeroExtend b
+listToBit (Cons b bs) = zeroExtend b | (listToBit bs << 1)
+
+lDecoder :: (Log m n, Add k 1 m) => Bit n -> Bit m
+lDecoder x =
+    let	mkBit :: Integer -> Bit 1
+	mkBit i = pack (x == fromInteger i)
+
+	bs :: List (Bit 1)
+	bs = map mkBit (upto 0 (valueOf m - 1))
+    in  listToBit bs
+
+mkLDecode :: (Log m n, Add k 1 m) => Module (Decode n m)
+mkLDecode =
+    module
+        interface
+	    decode x = lDecoder x
+
+----
+
+iDecoder :: Integer -> Bit n -> Bit m
+iDecoder 0 x = 1
+iDecoder n x = if fromInteger n == x then 1 << fromInteger n else iDecoder (n-1) x
+
+mkIDecode :: (Log m n, Add k 1 m) => Module (Decode n m)
+mkIDecode =
+    module
+        interface
+	    decode x = iDecoder (valueOf m - 1) x
+
+----
+
+interface I =
+    d1 :: Decode 3 8
+    d2 :: Decode 3 8
+
+sysListToBit :: Module I
+sysListToBit =
+    module
+	dl :: Decode 3 8
+	dl <- mkLDecode
+	di :: Decode 3 8
+	di <- mkIDecode
+        interface
+	    d1 = dl
+	    d2 = di

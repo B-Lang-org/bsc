@@ -1,0 +1,5 @@
+compile_fail_error Bug391_1.bsv T0011
+compile_pass Bug391_2.bsv
+compile_fail_error Bug391_3.bsv T0011
+compile_verilog_fail_error Bug391_4.bsv G0027
+compile_verilog_fail_error Bug391_5.bsv G0027

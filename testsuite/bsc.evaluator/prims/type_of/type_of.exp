@@ -1,0 +1,19 @@
+# we're just looking for compilation messages
+proc test_file_message {file} {
+    global ctest
+
+    if { $ctest == 1 } {
+	compile_object_pass $file
+	compare_file $file.bsc-ccomp-out
+    }
+}
+
+test_file_message PrintTypeClassic.bs
+test_file_message PrintType.bsv
+test_file_message PrintType2.bsv
+test_file_message PrintType3.bsv
+test_file_message PrintType4.bsv
+compile_fail_error PrintType5.bsv T0035
+test_file_message PrintType6.bsv
+
+test_c_veri_bsv IsIfcType

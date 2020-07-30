@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Ifc_Inout_Case.bsv
+code generation for sysIfc_Inout_Case starts
+Error: "Ifc_Inout_Case.bsv", line 14, column 4: (G0094)
+  The expression for a inout could not be evaluated. Inouts must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface inout `io_out' at "Ifc_Inout_Case.bsv",
+  line 6, column 8.
+  During elaboration of `sysIfc_Inout_Case' at "Ifc_Inout_Case.bsv", line 6,
+  column 8.

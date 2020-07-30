@@ -1,0 +1,16 @@
+package TimescaleTest where
+
+{-# verilog mkTimescaleTest #-}
+mkTimescaleTest :: Module Empty
+mkTimescaleTest =
+  module
+    cycle :: Reg (UInt 8) <- mkReg 0
+
+    rules
+      "Test": when True ==>
+                action
+	          cycle := cycle + 1
+	          $display "Cycle %2d Time %t" cycle $time
+		  if cycle == 23
+		   then $finish 0
+	           else noAction

@@ -1,0 +1,10 @@
+checking package dependencies
+compiling DefaultValue_NoInstance.bsv
+Error: "DefaultValue_NoInstance.bsv", line 8, column 5: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    DefaultValue#(DefaultValue_NoInstance::MyT)
+  The proviso was implied by expressions at the following positions:
+    "DefaultValue_NoInstance.bsv", line 8, column 9
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Literal#(DefaultValue_NoInstance::MyT)

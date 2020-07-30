@@ -1,0 +1,12 @@
+checking package dependencies
+compiling ContextReductionExplFunction.bsv
+Error: "ContextReductionExplFunction.bsv", line 8, column 15: (T0020)
+  Type error at:
+    p[0]
+
+  Expected type:
+    Bool
+
+  Inferred type:
+    Bit#(1)
+

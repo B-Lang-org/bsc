@@ -1,0 +1,28 @@
+FIFO Arbiter Questions
+----------------------
+
+1. Compile and run Block1 with its testbench (Tb1). What output do you see? 
+Is it what you expected? Why or why not? What is the connection between
+the warning message the compiler prints and the output you observe?
+
+2. Study the output RTL for Block1. Point to the lines that ensure that
+no data is read from a FIFO that is empty and that no data is 
+enqueued onto a FIFO that is full.
+
+3. Compile and run Block2 and Block2b with their testbenches (Tb2 and Tb2b).  
+Describe the two arbitration schemes and how they are different. Give an 
+example of an input sequence on which the two arbitration schemes will give 
+qualitatively different results.
+
+4. Compile and run Block3 with its testbench (Tb3). Describe its arbitration 
+scheme and give an example of an input sequence where Block3 and Block2b will 
+differ in their output.
+
+Note: Please look at the included Makefile if you have questions about how to
+compile and run the blocks and the testbenches. If you decide to use a Verilog
+simulator, please remember you will need to provide your own top-level driver
+file that will instantiate, reset and clock the testbench (which will 
+instantiate and stimulate the arbiter block you are working with). 
+We recommend that you use a driver like the one in 
+BLUESPECDIR/lib/Verilog/main.v, which has been provided as an example.
+

@@ -1,0 +1,22 @@
+checking package dependencies
+compiling ResourceTwoRules.bs
+code generation for sysResourceTwoRules starts
+Warning: "ResourceTwoRules.bs", line 36, column 0: (G0003)
+  Arbitrating in module `sysResourceTwoRules' between rules `RL_Contender' and
+  `RL_Contender_1'.
+Warning: "ResourceTwoRules.bs", line 42, column 8: (G0002)
+  `a.sub' needs more than 5 ports for the following uses:
+      `a.sub 8'd0' at "ResourceTwoRules.bs", line 42, column 8
+      `a.sub 8'd1' at "ResourceTwoRules.bs", line 42, column 8
+      `a.sub 8'd2' at "ResourceTwoRules.bs", line 42, column 8
+      `a.sub 8'd3' at "ResourceTwoRules.bs", line 42, column 8
+      `a.sub 8'd4' at "ResourceTwoRules.bs", line 42, column 8
+      `a.sub 8'd5' at "ResourceTwoRules.bs", line 42, column 8
+Warning: "ResourceTwoRules.bs", line 36, column 0: (G0010)
+  Rule "Contender" was treated as more urgent than "Contender_1". Conflicts:
+    "Contender" cannot fire before "Contender_1": resource limit on a.sub
+    "Contender_1" cannot fire before "Contender": resource limit on a.sub
+Warning: "ResourceTwoRules.bs", line 40, column 27: (G0021)
+  According to the generated schedule, rule `Contender_1' can never fire.
+Verilog file created: sysResourceTwoRules.v
+All packages are up to date.

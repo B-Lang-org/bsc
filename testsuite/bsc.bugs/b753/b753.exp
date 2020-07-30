@@ -1,0 +1,6 @@
+# Test that there is no internalError during type checking
+# (for the BSV example and for the Classic translation, in case the BSV
+# parser changes)
+compile_pass Bug753.bsv
+compile_pass Bug753_Classic.bs
+

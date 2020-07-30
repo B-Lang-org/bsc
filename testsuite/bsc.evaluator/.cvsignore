@@ -1,0 +1,8 @@
+*.bi
+*.bo
+*.v
+*.c
+*.h
+*.bsc-vcomp-out
+*.diff-out
+*.bsc-out

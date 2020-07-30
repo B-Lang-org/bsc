@@ -1,0 +1,45 @@
+=== Generated schedule for mkBypassFIFOF_Bit32 ===
+
+Method schedule
+---------------
+Method: enq
+Ready signal: ! rv.port0__read[32]
+Sequenced before (restricted): deq, first, notEmpty, clear
+Sequenced after: notFull
+Conflicts: enq
+ 
+Method: deq
+Ready signal: rv.port1__read[32]
+Sequenced before (restricted): clear
+Sequenced after: first, notEmpty
+Sequenced after (restricted): enq, notFull
+Conflicts: deq
+ 
+Method: first
+Ready signal: rv.port1__read[32]
+Conflict-free: first, notEmpty
+Sequenced before: deq
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, notFull
+ 
+Method: notFull
+Ready signal: True
+Conflict-free: notFull
+Sequenced before: enq
+Sequenced before (restricted): deq, first, notEmpty, clear
+ 
+Method: notEmpty
+Ready signal: True
+Conflict-free: first, notEmpty
+Sequenced before: deq
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, notFull
+ 
+Method: clear
+Ready signal: True
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, deq, first, notFull, notEmpty
+ 
+Logical execution order: notFull, enq, first, notEmpty, deq, clear
+
+===================================================

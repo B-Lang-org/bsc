@@ -1,0 +1,65 @@
+Input=          0, Parity = 0, Expected = 0
+Input=          1, Parity = 1, Expected = 1
+Input=          2, Parity = 1, Expected = 1
+dut.parity 0b0000 --> 0x0
+Input=          3, Parity = 0, Expected = 0
+dut.parity 0b1000 --> 0x1
+Input=          4, Parity = 1, Expected = 1
+main.top.counter = 0x00000005
+main.top.passes = 0x00000005
+main.top.fails = 0x00000000
+dut.parity 0b0100 --> 0x1
+Input=          5, Parity = 0, Expected = 0
+bsv_c_drvfile: 12: timestamp (20 = 20) preceeds current time (60)
+bsv_c_drvfile: 12: skipping timestamp: #@20
+dut.parity 0b1100 --> 0x0
+Input=          6, Parity = 0, Expected = 0
+Reg (Bit(32) 32) counter
+ read
+ write
+  -> (Bit(32) 32) (Action PrimUnit(0)) _write
+  Bit(32) 32 _read
+
+Reg (Bit(32) 32) passes
+ read
+ write
+  -> (Bit(32) 32) (Action PrimUnit(0)) _write
+  Bit(32) 32 _read
+
+Reg (Bit(32) 32) fails
+ read
+ write
+  -> (Bit(32) 32) (Action PrimUnit(0)) _write
+  Bit(32) 32 _read
+
+Design.Design_IFC dut
+ parity
+ RDY_parity
+  -> (Bit(8) 8) (Bit(1) 1) parity
+
+dut.parity 0b0010 --> 0x1
+Input=          7, Parity = 1, Expected = 1
+Input=          8, Parity = 1, Expected = 1
+dut.parity 0b1010 --> 0x0
+Input=          9, Parity = 0, Expected = 0
+dut.parity 0b0110 --> 0x0
+Input=         10, Parity = 0, Expected = 0
+Input=         11, Parity = 1, Expected = 1
+dut.parity 0b1110 --> 0x1
+Input=         12, Parity = 0, Expected = 0
+Input=         13, Parity = 1, Expected = 1
+dut.parity 0b0001 --> 0x1
+Input=         14, Parity = 1, Expected = 1
+dut.parity 0b1001 --> 0x0
+Input=         15, Parity = 0, Expected = 0
+dut.parity 0b0101 --> 0x0
+Input=         16, Parity = 1, Expected = 1
+dut.parity 0b1101 --> 0x1
+Input=         17, Parity = 0, Expected = 0
+dut.parity 0b0011 --> 0x0
+Input=         18, Parity = 0, Expected = 0
+dut.parity 0b1011 --> 0x1
+Input=         19, Parity = 1, Expected = 1
+dut.parity 0b0111 --> 0x1
+Input=         20, Parity = 0, Expected = 0
+$finish at unknown location at 210

@@ -1,0 +1,12 @@
+checking package dependencies
+compiling ContextReductionMethod.bsv
+Error: "ContextReductionMethod.bsv", line 12, column 15: (T0020)
+  Type error at:
+    p[0]
+
+  Expected type:
+    Bool
+
+  Inferred type:
+    Bit#(1)
+

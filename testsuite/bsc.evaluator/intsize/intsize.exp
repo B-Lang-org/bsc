@@ -1,0 +1,9 @@
+##  Add tests here
+
+compile_verilog_pass intok.bsv
+
+
+## these should not compile since literal is out of range 
+compile_verilog_fail_error intbad1.bsv T0051
+
+compile_verilog_fail_error intbad2.bsv T0051

@@ -1,0 +1,2 @@
+compile_verilog_fail_error WrongLoc_InterfaceWithArg.bsv P0159
+

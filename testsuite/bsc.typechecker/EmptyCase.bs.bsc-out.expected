@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EmptyCase.bs
+Error: "EmptyCase.bs", line 7, column 12: (P0075)
+  Case statement with no clauses

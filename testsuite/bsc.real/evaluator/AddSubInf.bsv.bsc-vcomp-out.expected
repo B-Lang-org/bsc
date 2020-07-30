@@ -1,0 +1,9 @@
+checking package dependencies
+compiling AddSubInf.bsv
+code generation for sysAddSubInf starts
+Compilation message: "AddSubInf.bsv", line 16, column 28: +INF + +INF = Infinity
+Compilation message: "AddSubInf.bsv", line 17, column 28: -INF + -INF = -Infinity
+Compilation message: "AddSubInf.bsv", line 18, column 28: +INF - -INF = Infinity
+Compilation message: "AddSubInf.bsv", line 19, column 28: -INF - +INF = -Infinity
+Verilog file created: sysAddSubInf.v
+All packages are up to date.

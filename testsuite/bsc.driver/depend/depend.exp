@@ -1,0 +1,187 @@
+# -----
+# test that dependency checking errors if a found file's package name
+# doesn't match (because dependency recompile works by relying on the
+# file name)
+
+compile_fail WFilePackageNameMismatch_Top.bs
+compare_file WFilePackageNameMismatch_Top.bs.bsc-out
+
+# -----
+# Test that genwrap doesn't require imports by the user
+# (it uses qualified names, which are available from .bo imports)
+
+compile_verilog_pass GenWrapQualifiedNames.bsv
+
+# -----
+# Test that Verilog preprocessor include files are checked and BSV files
+# are recompiled if any included file has changed
+
+if { $vtest == 1 } {
+
+set outfile [make_bsc_vcomp_output_name VerilogInclude.bsv]
+
+copy defines1 defines
+compile_verilog_pass VerilogInclude.bsv
+compare_file $outfile "$outfile.expected.1"
+
+# make sure time passes for the change to be noticed
+exec sleep 1
+copy defines2 defines
+compile_verilog_pass VerilogInclude.bsv
+compare_file $outfile "$outfile.expected.2"
+
+# XXX Could test including of a file which includes another file
+
+}
+
+# -----
+# Test that .ba files are checked when the -elab flag is used with the
+# Verilog backend and BSV files are recompiled if any .ba file has changed
+# (Bug 1818)
+
+if { $vtest == 1 } {
+
+set outfile [make_bsc_vcomp_output_name VerilogElab.bsv]
+
+compile_verilog_pass VerilogElab.bsv {} {-elab}
+compare_file $outfile
+
+# make sure time passes for the change to be noticed
+exec sleep 1
+erase sysVerilogElab.ba
+
+compile_verilog_pass VerilogElab.bsv {} {-elab}
+compare_file $outfile
+
+}
+
+# -----
+# Test that generated files associated with noinline functions are
+# included in the set of files which are checked to force recompilation
+
+if { $vtest == 1 } {
+
+# First, compile without generating
+compile_pass NoInline.bsv
+exec sleep 1
+
+# Second, compile for Verilog, using -u
+compile_verilog_pass NoInline.bsv {} {-u}
+
+# Test that the file was recompiled
+find_n_strings [make_bsc_vcomp_output_name NoInline.bsv] \
+    {code generation for module_myAnd starts} 1
+}
+
+# -----
+# Test that generated files associated with import-BDPI are included
+# in the set of files which are checked to force recompilation
+
+if { $vtest == 1 } {
+
+# Compile, generating .h and .c
+compile_verilog_pass BDPI.bsv
+
+# Remove the .c
+erase {vpi_wrapper_my_C_or.c}
+exec sleep 1
+
+# Try recompile
+compile_verilog_pass BDPI.bsv {} {-u}
+# Test that the file was generated
+find_n_strings [make_bsc_vcomp_output_name BDPI.bsv] \
+    {VPI wrapper files created: vpi_wrapper_my_C_or} 1
+
+# Remove the .h
+erase {vpi_wrapper_my_C_or.h}
+exec sleep 1
+
+# Try recompile
+compile_verilog_pass BDPI.bsv {} {-u}
+# Test that the file was generated
+find_n_strings [make_bsc_vcomp_output_name BDPI.bsv] \
+    {VPI wrapper files created: vpi_wrapper_my_C_or} 1
+
+}
+
+# -----
+# Test that when looking for the associated .bo for a .bsv file,
+# files in -bdir are considered before files in the same dir
+
+mkdir bdir
+
+# make dummy .bsv and .bo
+touch BdirVsSame_BdirNew.bsv
+compile_pass BdirVsSame_BdirNew.bsv
+copy BdirVsSame_BdirNew.bo bdir/BdirVsSame_BdirNew.bo
+
+touch BdirVsSame_BdirOld.bsv
+compile_pass BdirVsSame_BdirOld.bsv {-bdir bdir}
+copy bdir/BdirVsSame_BdirOld.bo BdirVsSame_BdirOld.bo
+
+# make the existing .bo be stale by touching the source
+touch BdirVsSame_BdirNew.bsv
+touch BdirVsSame_BdirOld.bsv
+exec sleep 1
+
+# make newer .bo
+touch bdir/BdirVsSame_BdirNew.bo
+touch BdirVsSame_BdirOld.bo
+
+# test that recompilation is not forced for BdirVsSame_BdirNew
+compile_pass BdirVsSame_BdirNew.bsv {-u -bdir bdir}
+find_n_strings [make_bsc_output_name BdirVsSame_BdirNew.bsv] \
+    {compiling BdirVsSame_BdirNew.bsv} 0
+
+# test that recompilation is forced for BdirVsSame_BdirOld
+compile_pass BdirVsSame_BdirOld.bsv {-u -bdir bdir}
+find_n_strings [make_bsc_output_name BdirVsSame_BdirOld.bsv] \
+    {compiling BdirVsSame_BdirOld.bsv} 1
+
+# -----
+# Bug 1595: Multiple copies of src files found in the path
+
+mkdir libdir1
+mkdir libdir2
+
+copy DupPkg.bsv libdir1/
+copy DupPkg.bsv libdir2/
+
+# Try to compile the top with all three source files in the path
+compile_pass DupTop.bsv {-p +:libdir1:libdir2}
+
+# Check that we get a warning (S0089)
+compare_file DupTop.bsv.bsc-out
+
+# -----
+# Bug 1650: Test when an errant object file exists for a source file
+
+proc make_lib { dir } {
+    global subdir
+
+    mkdir $dir
+    copy DupObj.bsv $dir
+
+    # perform the following operations from inside the dir
+    set prev_subdir $subdir
+    set subdir [file join $subdir $dir]
+
+    compile_pass DupObj.bsv
+    erase DupObj.bsv
+
+    # Now back to the current directory
+    set subdir $prev_subdir
+}
+
+# Make the .bo files
+make_lib libdir3
+make_lib libdir4
+
+# Try to compile the top with one source and two objects in the path
+compile_pass DupObjTop.bsv {-p +:libdir3:libdir4}
+
+# Check that we get a warning
+# Note: The warning occurs at the import step, not the depend step
+compare_file DupObjTop.bsv.bsc-out
+
+# -----

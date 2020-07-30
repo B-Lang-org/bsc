@@ -1,0 +1,75 @@
+checking package dependencies
+compiling Method.bsv
+code generation for sysMethod starts
+=== ATS:
+APackage sysMethod
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+rg :: ABSTRACT:  PreludeBSV._PreludeBSV.VRWire109 = RWire
+						    (VModInfo
+						     RWire
+						     clock clk();
+						     reset rst() clocked_by(clk);
+						     [param width;, clockarg clk;, resetarg rst;]
+						     [method wset((WVAL, [])) enable ((WSET,
+										       [])) clocked_by (clk) reset_by (rst);,
+						      method (WHAS, [])whas clocked_by (clk) reset_by (rst);,
+						      method (WGET, [])wget clocked_by (clk) reset_by (rst);]
+						     SchedInfo
+						     [[wget, whas] CF [wget, whas], wset SBR [wget, whas], wset C wset]
+						     []
+						     []
+						     []
+						     [(WSET, WHAS), (WVAL, WGET)])
+						    [32'd8, clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }]
+						    []
+						    meth types=[([Bit 8], Just (Bit 1), Nothing),
+								([], Nothing, Just (Bit 1)),
+								([], Nothing, Just (Bit 8))]
+						    port types=WGET -> Prelude.Bit 8
+							       WHAS -> Prelude.Bool
+							       WVAL -> Prelude.Bit 8
+-- AP local definitions
+rg_whas_CONCAT_IF_rg_whas_THEN_rg_wget_ELSE_DO_ETC___d4 :: Bit 9;
+rg_whas_CONCAT_IF_rg_whas_THEN_rg_wget_ELSE_DO_ETC___d4  = rg_whas____d1 ++
+							   IF_rg_whas_THEN_rg_wget_ELSE_DONTCARE___d3;
+-- IdProp rg_whas_CONCAT_IF_rg_whas_THEN_rg_wget_ELSE_DO_ETC___d4[IdP_from_rhs]
+IF_rg_whas_THEN_rg_wget_ELSE_DONTCARE___d3 :: Bit 8;
+IF_rg_whas_THEN_rg_wget_ELSE_DONTCARE___d3  = _if_ rg_whas____d1 rg_wget____d2 (_ :: Bit 8);
+-- IdProp IF_rg_whas_THEN_rg_wget_ELSE_DONTCARE___d3[IdP_from_rhs]
+rg_whas____d1 :: Bit 1;
+rg_whas____d1  = rg.whas;
+-- IdProp rg_whas____d1[IdP_from_rhs]
+rg_wget____d2 :: Bit 8;
+rg_wget____d2  = rg.wget;
+-- IdProp rg_wget____d2[IdP_from_rhs]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { Prelude.$display rg_whas_CONCAT_IF_rg_whas_THEN_rg_wget_ELSE_DO_ETC___d4;
+	Prelude.$display rg_whas_CONCAT_IF_rg_whas_THEN_rg_wget_ELSE_DO_ETC___d4; }
+[]
+clock domain = Just (0), resets = [0]
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysMethod.v
+All packages are up to date.

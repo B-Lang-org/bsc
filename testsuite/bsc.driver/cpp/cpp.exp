@@ -1,0 +1,27 @@
+# -----
+
+#make sure spaces, single and double quotes get quoted correctly.
+test_c_veri_bsv_modules_options Cpreprocess {} {-cpp -Xcpp -DKEN123 -Xcpp -DMESSAGE=\"don\'t\ pa\\\"nic\"}
+
+#suggest the cpp flag
+compile_fail_error Cpreprocess1.bsv P0210
+
+#multiple error messages, and it should not get confused about which
+#file we are in and what line we are on.
+compile_fail Cpreprocess_line.bsv -cpp
+# macOS preprocessor prepends './' to included file names
+if { [which_os] == "Darwin" } {
+    sed Cpreprocess_line.bsv.bsc-out \
+	Cpreprocess_line.bsv.bsc-out.filtered \
+	{} {-e {s/".\/more.bsv"/"more.bsv"/g}}
+    move Cpreprocess_line.bsv.bsc-out.filtered \
+	Cpreprocess_line.bsv.bsc-out
+}
+compare_file Cpreprocess_line.bsv.bsc-out
+
+#this will fail if -cpp is turned on; so the flag occasionally does
+#harm on OK code.
+test_c_veri_bsv Cpreprocess_unusual_format
+
+# -----
+

@@ -1,0 +1,277 @@
+checking package dependencies
+compiling ./Interfaces.bsv
+compiling ./X86_Datatypes.bsv
+compiling ./BaseTypes.bsv
+compiling IBuffer2.bsv
+code generation for mkIBuffer starts
+=== schedule:
+parallel: [esposito: [handleIBufferRequest -> [],
+		      flushAddress -> [],
+		      handleCacheResponse -> [],
+		      flush -> [],
+		      RL_cacheAddrQueue_caq_doResult -> [],
+		      cacheRequest -> [],
+		      RL_cacheAddrQueue_caq_doUpdate_enq -> [],
+		      RL_cacheAddrQueue_caq_doUpdate_deq -> [],
+		      RL_responseQueue_rq_doUpdate_deq -> [],
+		      RL_responseQueue_rq_doResult -> [],
+		      iBufferResponse -> [],
+		      RL_responseQueue_rq_doUpdate_enq -> []]]
+order: [handleIBufferRequest,
+	handleCacheResponse,
+	RL_cacheAddrQueue_caq_doResult,
+	cacheRequest,
+	RL_cacheAddrQueue_caq_doUpdate_enq,
+	RL_cacheAddrQueue_caq_doUpdate_deq,
+	RL_responseQueue_rq_doResult,
+	iBufferResponse,
+	RL_responseQueue_rq_doUpdate_enq,
+	RL_responseQueue_rq_doUpdate_deq,
+	flushAddress,
+	flush]
+
+-----
+
+=== resources:
+[(cacheAddrQueue_caq_deqw.whas, [(cacheAddrQueue_caq_deqw.whas, 1)]),
+ (cacheAddrQueue_caq_deqw.wset, [(cacheAddrQueue_caq_deqw.wset, 1)]),
+ (cacheAddrQueue_caq_enqw.wget, [(cacheAddrQueue_caq_enqw.wget, 1)]),
+ (cacheAddrQueue_caq_enqw.whas, [(cacheAddrQueue_caq_enqw.whas, 1)]),
+ (cacheAddrQueue_caq_enqw.wset, [(cacheAddrQueue_caq_enqw.wset handleIBufferRequest_data, 1)]),
+ (cacheAddrQueue_caq_result.wget, [(cacheAddrQueue_caq_result.wget, 1)]),
+ (cacheAddrQueue_caq_result.whas, [(cacheAddrQueue_caq_result.whas, 1)]),
+ (cacheAddrQueue_caq_result.wset,
+  [(if cacheAddrQueue_caq_the_fifof_i_notEmpty_OR_cac_ETC___d74 then
+      cacheAddrQueue_caq_result.wset IF_cacheAddrQueue_caq_the_fifof_i_notEmpty_THE_ETC___d6,
+    1)]),
+ (cacheAddrQueue_caq_the_fifof.clear, [(cacheAddrQueue_caq_the_fifof.clear, 1)]),
+ (cacheAddrQueue_caq_the_fifof.deq,
+  [(if cacheAddrQueue_caq_deqw_whas_AND_cacheAddrQueu_ETC___d11 then cacheAddrQueue_caq_the_fifof.deq,
+    1)]),
+ (cacheAddrQueue_caq_the_fifof.enq,
+  [(if cacheAddrQueue_caq_enqw_whas_AND_cacheAddrQueu_ETC___d10 then
+      cacheAddrQueue_caq_the_fifof.enq x__h372,
+    1)]),
+ (cacheAddrQueue_caq_the_fifof.first, [(cacheAddrQueue_caq_the_fifof.first, 1)]),
+ (cacheAddrQueue_caq_the_fifof.i_notEmpty, [(cacheAddrQueue_caq_the_fifof.i_notEmpty, 1)]),
+ (cacheAddrQueue_caq_the_fifof.i_notFull, [(cacheAddrQueue_caq_the_fifof.i_notFull, 1)]),
+ (responseQueue_rq_deqw.whas, [(responseQueue_rq_deqw.whas, 1)]),
+ (responseQueue_rq_deqw.wset, [(responseQueue_rq_deqw.wset, 1)]),
+ (responseQueue_rq_enqw.wget, [(responseQueue_rq_enqw.wget, 1)]),
+ (responseQueue_rq_enqw.whas, [(responseQueue_rq_enqw.whas, 1)]),
+ (responseQueue_rq_enqw.wset,
+  [(responseQueue_rq_enqw.wset handleCacheResponse_data_BIT_32_3_CONCAT_IF_ha_ETC___d50, 1)]),
+ (responseQueue_rq_result.wget, [(responseQueue_rq_result.wget, 1)]),
+ (responseQueue_rq_result.whas, [(responseQueue_rq_result.whas, 1)]),
+ (responseQueue_rq_result.wset,
+  [(if responseQueue_rq_the_fifof_i_notEmpty__2_OR_re_ETC___d73 then
+      responseQueue_rq_result.wset IF_responseQueue_rq_the_fifof_i_notEmpty__2_TH_ETC___d25,
+    1)]),
+ (responseQueue_rq_the_fifof.clear, [(responseQueue_rq_the_fifof.clear, 1)]),
+ (responseQueue_rq_the_fifof.deq,
+  [(if responseQueue_rq_deqw_whas__6_AND_responseQueu_ETC___d30 then responseQueue_rq_the_fifof.deq,
+    1)]),
+ (responseQueue_rq_the_fifof.enq,
+  [(if responseQueue_rq_enqw_whas__3_AND_responseQueu_ETC___d29 then
+      responseQueue_rq_the_fifof.enq responseQueue_rq_enqw_wget__0_BIT_64_1_CONCAT__ETC___d65,
+    1)]),
+ (responseQueue_rq_the_fifof.first, [(responseQueue_rq_the_fifof.first, 1)]),
+ (responseQueue_rq_the_fifof.i_notEmpty, [(responseQueue_rq_the_fifof.i_notEmpty, 1)]),
+ (responseQueue_rq_the_fifof.i_notFull, [(responseQueue_rq_the_fifof.i_notFull, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_cacheRequest CF [RDY_cacheRequest,
+		      RDY_flush,
+		      RDY_handleCacheResponse,
+		      cacheRequest,
+		      flush,
+		      flushAddress,
+		      handleCacheResponse,
+		      handleIBufferRequest,
+		      iBufferResponse],
+ RDY_flush CF [RDY_flush,
+	       cacheRequest,
+	       flush,
+	       flushAddress,
+	       handleCacheResponse,
+	       handleIBufferRequest,
+	       iBufferResponse],
+ RDY_flushAddress CF [RDY_cacheRequest,
+		      RDY_flush,
+		      RDY_flushAddress,
+		      RDY_handleCacheResponse,
+		      cacheRequest,
+		      flush,
+		      flushAddress,
+		      handleCacheResponse,
+		      handleIBufferRequest,
+		      iBufferResponse],
+ RDY_handleCacheResponse CF [RDY_flush,
+			     RDY_handleCacheResponse,
+			     cacheRequest,
+			     flush,
+			     flushAddress,
+			     handleCacheResponse,
+			     handleIBufferRequest,
+			     iBufferResponse],
+ RDY_handleIBufferRequest CF [RDY_cacheRequest,
+			      RDY_flush,
+			      RDY_flushAddress,
+			      RDY_handleCacheResponse,
+			      RDY_handleIBufferRequest,
+			      RDY_iBufferResponse,
+			      cacheRequest,
+			      flush,
+			      flushAddress,
+			      handleCacheResponse,
+			      handleIBufferRequest,
+			      iBufferResponse],
+ RDY_iBufferResponse CF [RDY_cacheRequest,
+			 RDY_flush,
+			 RDY_flushAddress,
+			 RDY_handleCacheResponse,
+			 RDY_iBufferResponse,
+			 cacheRequest,
+			 flush,
+			 flushAddress,
+			 handleCacheResponse,
+			 handleIBufferRequest,
+			 iBufferResponse],
+ cacheRequest CF handleCacheResponse,
+ handleIBufferRequest CF [handleCacheResponse, iBufferResponse],
+ iBufferResponse CF cacheRequest,
+ [cacheRequest, flushAddress, iBufferResponse] SBR [flush, flushAddress],
+ flush SBR flush,
+ handleCacheResponse SBR [flush, flushAddress, iBufferResponse],
+ handleIBufferRequest SBR [cacheRequest, flush, flushAddress],
+ cacheRequest C cacheRequest,
+ handleCacheResponse C handleCacheResponse,
+ handleIBufferRequest C handleIBufferRequest,
+ iBufferResponse C iBufferResponse]
+[((handleIBufferRequest, flushAddress), [RL_cacheAddrQueue_caq_doUpdate_enq]),
+ ((handleIBufferRequest, cacheRequest), [RL_cacheAddrQueue_caq_doResult]),
+ ((handleIBufferRequest, flush), [RL_cacheAddrQueue_caq_doUpdate_enq]),
+ ((iBufferResponse, flushAddress), [RL_responseQueue_rq_doUpdate_deq]),
+ ((iBufferResponse, flush), [RL_responseQueue_rq_doUpdate_deq]),
+ ((cacheRequest, flushAddress), [RL_cacheAddrQueue_caq_doUpdate_deq]),
+ ((cacheRequest, flush), [RL_cacheAddrQueue_caq_doUpdate_deq]),
+ ((handleCacheResponse, iBufferResponse), [RL_responseQueue_rq_doResult]),
+ ((handleCacheResponse, flushAddress), [RL_responseQueue_rq_doUpdate_enq]),
+ ((handleCacheResponse, flush), [RL_responseQueue_rq_doUpdate_enq])]
+[(iBufferResponse, [(Left RL_responseQueue_rq_doResult)]),
+ (cacheRequest, [(Left RL_cacheAddrQueue_caq_doResult)]),
+ (flush,
+  [(Left RL_cacheAddrQueue_caq_doResult),
+   (Left RL_cacheAddrQueue_caq_doUpdate_enq),
+   (Left RL_cacheAddrQueue_caq_doUpdate_deq),
+   (Left RL_responseQueue_rq_doResult),
+   (Left RL_responseQueue_rq_doUpdate_enq),
+   (Left RL_responseQueue_rq_doUpdate_deq)]),
+ (flushAddress,
+  [(Left RL_cacheAddrQueue_caq_doResult),
+   (Left RL_cacheAddrQueue_caq_doUpdate_enq),
+   (Left RL_cacheAddrQueue_caq_doUpdate_deq),
+   (Left RL_responseQueue_rq_doResult),
+   (Left RL_responseQueue_rq_doUpdate_enq),
+   (Left RL_responseQueue_rq_doUpdate_deq)])]
+[]
+
+-----
+
+Schedule dump file created: mkIBuffer.sched
+=== Generated schedule for mkIBuffer ===
+
+Method schedule
+---------------
+Method: handleIBufferRequest
+Ready signal: cacheAddrQueue_caq_the_fifof.i_notFull
+Conflict-free: iBufferResponse, handleCacheResponse
+Sequenced before (restricted): flushAddress, cacheRequest, flush
+Conflicts: handleIBufferRequest
+ 
+Method: iBufferResponse
+Ready signal: (responseQueue_rq_the_fifof.i_notEmpty ||
+	       responseQueue_rq_enqw.whas) &&
+	      responseQueue_rq_result.whas
+Conflict-free: handleIBufferRequest, cacheRequest
+Sequenced before (restricted): flushAddress, flush
+Sequenced after (restricted): handleCacheResponse
+Conflicts: iBufferResponse
+ 
+Method: flushAddress
+Ready signal: True
+Sequenced before (restricted): flushAddress, flush
+Sequenced after (restricted): handleIBufferRequest,
+			      iBufferResponse,
+			      cacheRequest,
+			      handleCacheResponse
+ 
+Method: cacheRequest
+Ready signal: (cacheAddrQueue_caq_the_fifof.i_notEmpty ||
+	       cacheAddrQueue_caq_enqw.whas) &&
+	      cacheAddrQueue_caq_result.whas
+Conflict-free: iBufferResponse, handleCacheResponse
+Sequenced before (restricted): flushAddress, flush
+Sequenced after (restricted): handleIBufferRequest
+Conflicts: cacheRequest
+ 
+Method: handleCacheResponse
+Ready signal: responseQueue_rq_the_fifof.i_notFull
+Conflict-free: handleIBufferRequest, cacheRequest
+Sequenced before (restricted): iBufferResponse, flushAddress, flush
+Conflicts: handleCacheResponse
+ 
+Method: flush
+Ready signal: True
+Sequenced before (restricted): flush
+Sequenced after (restricted): handleIBufferRequest,
+			      iBufferResponse,
+			      flushAddress,
+			      cacheRequest,
+			      handleCacheResponse
+ 
+Rule schedule
+-------------
+Rule: cacheAddrQueue_caq_doResult
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cacheAddrQueue_caq_doUpdate_enq
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: cacheAddrQueue_caq_doUpdate_deq
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: responseQueue_rq_doResult
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: responseQueue_rq_doUpdate_enq
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: responseQueue_rq_doUpdate_deq
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: handleIBufferRequest,
+			 handleCacheResponse,
+			 cacheAddrQueue_caq_doResult,
+			 cacheRequest,
+			 cacheAddrQueue_caq_doUpdate_enq,
+			 cacheAddrQueue_caq_doUpdate_deq,
+			 responseQueue_rq_doResult,
+			 iBufferResponse,
+			 responseQueue_rq_doUpdate_enq,
+			 responseQueue_rq_doUpdate_deq,
+			 flushAddress,
+			 flush
+
+=========================================
+Verilog file created: mkIBuffer.v
+All packages are up to date.

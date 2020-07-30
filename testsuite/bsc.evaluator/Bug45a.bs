@@ -1,0 +1,15 @@
+package Bug45a (sysBug45a, Test(..)) where
+
+import FIFO 
+
+interface Test = 
+  condEnq :: Bool -> Action
+
+{-# verilog sysBug45a #-}
+sysBug45a :: Module (Test)
+sysBug45a = 
+  module 
+    f :: FIFO (Bool) <- mkSizedFIFO 4
+    interface
+      condEnq x = if x then f.enq (True) else noAction
+

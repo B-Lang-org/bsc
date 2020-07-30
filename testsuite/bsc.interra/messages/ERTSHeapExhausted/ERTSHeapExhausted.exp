@@ -1,0 +1,10 @@
+#compile_verilog_pass ERTSHeapExhausted1.bs mkERTSHeapExhausted1 "+RTS -M10M -RTS"
+
+if {$vtest == 1} {
+compile_verilog_fail  ERTSHeapExhausted1.bs mkERTSHeapExhausted1 "+RTS -H1M -M1M -RTS"
+find_n_strings ERTSHeapExhausted1.bs.bsc-vcomp-out "Heap exhausted" 1
+}
+
+## The test harness cannot seem to override RTS flags
+
+# compare_file ERTSHeapExhausted1.bs.bsc-vcomp-out

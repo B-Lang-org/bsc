@@ -1,0 +1,18 @@
+Warning: file 'bram.txt' for memory 'dut1_memory' has a gap at addresses 8 to 255.
+reading[0x02] = fd
+reading[0x00] = ff
+dualread[0x01] = fe
+reading[0x01] = fe
+dualread[0x03] = fc
+reading[0x03] = fc
+dualread[0x00] = cd
+dualread[0x02] = fd
+dualread[0xFF] = 54
+dut1read[1] = 91
+dut1read[3] = 93
+dut1read[5] = 95
+dut1read[5] = dd
+dut1read[0] = 90
+dut1read[2] = 92
+dut1read[4] = 94
+dut1read[4] = ee

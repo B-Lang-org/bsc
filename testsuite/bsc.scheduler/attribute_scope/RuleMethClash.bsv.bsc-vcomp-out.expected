@@ -1,0 +1,9 @@
+checking package dependencies
+compiling RuleMethClash.bsv
+code generation for sysRuleMethClash starts
+Warning: "RuleMethClash.bsv", line 6, column 8: (G0010)
+  Rule "incr" was treated as more urgent than "incr". Conflicts:
+    "incr" cannot fire before "incr": calls to rg.write vs. rg.read
+    "incr" cannot fire before "incr": calls to rg.write vs. rg.read
+Verilog file created: sysRuleMethClash.v
+All packages are up to date.

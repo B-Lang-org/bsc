@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ENotField1.bs
+Error: "ENotField1.bs", line 51, column 12: (T0016)
+  Field `result' is not in the type `ENotField1.ENotField1' which was derived
+  for this expression.

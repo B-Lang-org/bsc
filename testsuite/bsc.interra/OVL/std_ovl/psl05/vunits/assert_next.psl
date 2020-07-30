@@ -1,0 +1,106 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_next_assert_vunit (assert_next_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NEXT_START_WITHOUT_TEST_P = always (
+           ({(num_cks > 0) && start_event} |-> //overlapping assertions allowed 
+           {[*num_cks]; test_expr})
+           abort(!reset_n));
+  
+  property ASSERT_NEXT_TEST_WITHOUT_START_P = never 
+           {(num_cks > 0) && check_missing_start && reset_n && !start_event; reset_n[*(num_cks > 1 ? num_cks - 1 : 0)]; reset_n && test_expr};
+
+  property ASSERT_NEXT_NO_OVERLAP_P = always ( 
+           (num_cks > 0) && start_event && !check_overlapping -> no_overlapping);
+
+  //Properties for X/Z checking
+
+  property ASSERT_NEXT_XZ_ON_START_EVENT_P =
+           always( xzcheck_enable -> !isunknown(start_event)
+                   abort(!reset_n) );
+
+  property ASSERT_NEXT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && (check_missing_start || prev(start_event,num_cks)) -> !isunknown(test_expr)
+                   abort(!reset_n) );
+
+
+  A_ASSERT_NEXT_START_WITHOUT_TEST_P:
+  assert ASSERT_NEXT_START_WITHOUT_TEST_P 
+  report "VIOLATION: ASSERT_NEXT Checker Fires: Test expression is not asserted after elapse of num_cks cycles from start event";
+
+  A_ASSERT_NEXT_TEST_WITHOUT_START_P:
+  assert ASSERT_NEXT_TEST_WITHOUT_START_P 
+  report "VIOLATION: ASSERT_NEXT Checker Fires: Test expresson is asserted  without a corresponding start_event";
+
+  A_ASSERT_NEXT_NO_OVERLAP_P:
+  assert ASSERT_NEXT_NO_OVERLAP_P 
+  report "VIOLATION: ASSERT_NEXT Checker Fires : Illegal overlapping condition of start event is detected";
+
+  A_ASSERT_NEXT_XZ_ON_START_EVENT_P:
+  assert ASSERT_NEXT_XZ_ON_START_EVENT_P
+  report "VIOLATION: ASSERT_NEXT Checker Fires: start_event contains X or Z";
+
+  A_ASSERT_NEXT_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_NEXT_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_NEXT Checker Fires: test_expr contains X or Z";
+}
+
+vunit assert_next_assume_vunit (assert_next_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NEXT_START_WITHOUT_TEST_P = always (
+           ({(num_cks > 0) && start_event} |-> //overallping assertions allowed
+           {[*num_cks]; test_expr})
+           abort(!reset_n));
+                                                                                                                                       
+  property ASSERT_NEXT_TEST_WITHOUT_START_P = never 
+           {(num_cks > 0) && check_missing_start && reset_n && !start_event; reset_n[*(num_cks > 1 ? num_cks - 1 : 0)]; reset_n && test_expr};
+                                                                                                                                       
+  property ASSERT_NEXT_NO_OVERLAP_P = always (
+           (num_cks > 0) && start_event && !check_overlapping -> no_overlapping); 
+                                                                                                                                       
+  //Properties for X/Z checking
+
+  property ASSERT_NEXT_XZ_ON_START_EVENT_P =
+           always( xzcheck_enable -> !isunknown(start_event)
+                   abort(!reset_n) );
+
+  property ASSERT_NEXT_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && (check_missing_start || prev(start_event,num_cks)) -> !isunknown(test_expr)
+                   abort(!reset_n) );
+
+  M_ASSERT_NEXT_START_WITHOUT_TEST_P:
+  assume ASSERT_NEXT_START_WITHOUT_TEST_P;
+                                                                                                                                       
+  M_ASSERT_NEXT_TEST_WITHOUT_START_P:
+  assume ASSERT_NEXT_TEST_WITHOUT_START_P;
+                                                                                                                                       
+  M_ASSERT_NEXT_NO_OVERLAP_P:
+  assume ASSERT_NEXT_NO_OVERLAP_P;
+
+  M_ASSERT_NEXT_XZ_ON_START_EVENT_P:
+  assume ASSERT_NEXT_XZ_ON_START_EVENT_P;
+
+  M_ASSERT_NEXT_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_NEXT_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_next_cover_vunit (assert_next_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_start_event:
+  cover {OVL_COVER_BASIC_ON && reset_n && start_event}
+  report "COVERAGE REPORT : ASSERT_NEXT Checker: start_event covered";
+                                                                                                                                     
+  cover_overlapping_start_events:
+  cover {OVL_COVER_CORNER_ON && reset_n && start_event && !no_overlapping}
+  report "COVERAGE REPORT : ASSERT_NEXT Checker: overlapping_start_events covered";
+
+} 
+

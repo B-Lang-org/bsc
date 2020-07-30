@@ -1,0 +1,43 @@
+checking package dependencies
+compiling Bug675_ModuleCollect_Classic.bs
+Warning: "Bug675_ModuleCollect_Classic.bs", line 68, column 24: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 65, column 21
+Warning: "Bug675_ModuleCollect_Classic.bs", line 73, column 43: (P0102)
+  Declaration of `i'' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 63, column 21
+Warning: "Bug675_ModuleCollect_Classic.bs", line 75, column 43: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 68, column 24
+Warning: "Bug675_ModuleCollect_Classic.bs", line 83, column 21: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 65, column 21
+Warning: "Bug675_ModuleCollect_Classic.bs", line 83, column 21: (P0223)
+  Definition of `i' is not used.
+Warning: "Bug675_ModuleCollect_Classic.bs", line 104, column 29: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 101, column 26
+Warning: "Bug675_ModuleCollect_Classic.bs", line 106, column 48: (P0102)
+  Declaration of `i'' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 99, column 26
+Warning: "Bug675_ModuleCollect_Classic.bs", line 108, column 48: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 104, column 29
+Warning: "Bug675_ModuleCollect_Classic.bs", line 115, column 20: (P0102)
+  Declaration of `theResult'' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 62, column 6
+Warning: "Bug675_ModuleCollect_Classic.bs", line 116, column 26: (P0102)
+  Declaration of `i' shadows previous declaration at
+  "Bug675_ModuleCollect_Classic.bs", line 101, column 26
+Warning: "Bug675_ModuleCollect_Classic.bs", line 116, column 26: (P0223)
+  Definition of `i' is not used.
+Error: "Bug675_ModuleCollect_Classic.bs", line 87, column 12: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Bug675_ModuleCollect_Classic.AssertionWires m
+  The following contexts are needed:
+    Prelude.Bits (ListN.ListN n Prelude.Bool) m
+      Introduced at the following locations:
+	"Bug675_ModuleCollect_Classic.bs", line 95, column 28
+      The context could also be deduced from the following information:
+	type `n' and type `m' are equal

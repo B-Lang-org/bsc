@@ -1,0 +1,12 @@
+package LetPortArg(mkPort) where
+
+{-# verilog mkPort #-}
+mkPort :: Bit 16 -> Module Empty
+mkPort = let x = exp 2 8
+         in \y ->
+              module
+                rules
+                  when True ==>
+                    $display "x: %0d" x
+                    $display "x+y: %0d" (fromInteger(x)+y)
+                    $finish 0

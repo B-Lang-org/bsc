@@ -1,0 +1,4 @@
+checking package dependencies
+compiling OneArgMissingOne.bs
+Error: "OneArgMissingOne.bs", line 3, column 5: (T0025)
+  The type `Bit' is applied to too few arguments.

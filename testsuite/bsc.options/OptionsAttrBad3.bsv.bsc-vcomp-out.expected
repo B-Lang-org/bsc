@@ -1,0 +1,4 @@
+checking package dependencies
+compiling OptionsAttrBad3.bsv
+Error: "OptionsAttrBad3.bsv", line 2, column 8: (S0008)
+  Unrecognized flag: arg

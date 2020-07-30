@@ -1,0 +1,49 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ECannotDerive1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an Illegal Deriving error (ECannotDerive)
+
+-- Error Message : bsc ECannotDerive1.bs
+-- bsc: Compilation errors:
+-- "ECannotDerive1.bs", line 19, column 31, Illegal deriving: Literal
+-----------------------------------------------------------------------
+package ECannotDerive1 (ECannotDerive1(..), mkECannotDerive1) where 
+
+-- import Int
+
+data MyType1 = Integer | Bool
+             deriving (Eq,Bits,Literal)
+
+interface ECannotDerive1 =
+        start :: MyType1 -> MyType1 -> Action
+        end   :: MyType1 
+
+mkECannotDerive1 :: Module ECannotDerive1
+mkECannotDerive1 =
+     module
+
+        x :: Reg (MyType1) 
+        x <- mkRegU
+
+        y :: Reg (MyType1) 
+        y <- mkReg 0
+
+        rules
+          "Swap":
+            when x /= y
+              ==> action
+                      x := y
+                      y := x
+
+
+        interface
+            start ix iy = action
+                              x := ix
+                              y := iy
+                          when True
+            end = x when True
+

@@ -1,0 +1,312 @@
+ 
+ initial
+    cnt <= $random(seed);
+ 
+ wire [128:0] sum;
+ wire [127:0] sum_127;
+ wire [126:0] sum_126;
+ wire [96:0] sum_96;
+ wire [95:0] sum_95;
+ wire [94:0] sum_94;
+ wire [64:0] sum_64;
+ wire [63:0] sum_63;
+ wire [62:0] sum_62;
+ wire [32:0] sum_32;
+ wire [31:0] sum_31;
+ wire [30:0] sum_30;
+ wire [1:0] sum_1;
+ wire sum_0;
+ 
+ 
+ wire [128:0] diff;
+ wire [127:0] diff_127;
+ wire [126:0] diff_126;
+ wire [96:0] diff_96;
+ wire [95:0] diff_95;
+ wire [94:0] diff_94;
+ wire [64:0] diff_64;
+ wire [63:0] diff_63;
+ wire [62:0] diff_62;
+ wire [32:0] diff_32;
+ wire [31:0] diff_31;
+ wire [30:0] diff_30;
+ wire [1:0] diff_1;
+ wire diff_0;
+
+ wire [128:0] mult;
+ wire [127:0] mult_127;
+ wire [126:0] mult_126;
+ wire [96:0] mult_96;
+ wire [95:0] mult_95;
+ wire [94:0] mult_94;
+ wire [64:0] mult_64;
+ wire [63:0] mult_63;
+ wire [62:0] mult_62;
+ wire [32:0] mult_32;
+ wire [31:0] mult_31;
+ wire [30:0] mult_30;
+ wire [1:0] mult_1;
+ wire mult_0;
+ 
+ wire lt,
+ gt,
+ leq,
+ geq,
+ eq,
+ lt_127,
+ lt_126,
+ lt_96,
+ lt_95,
+ lt_94,
+ lt_64,
+ lt_63,
+ lt_62,
+ lt_32,
+ lt_31,
+ lt_30,
+ lt_1,
+ lt_0,
+ gt_127,
+ gt_126,
+ gt_96,
+ gt_95,
+ gt_94,
+ gt_64,
+ gt_63,
+ gt_62,
+ gt_32,
+ gt_31,
+ gt_30,
+ gt_1,
+ gt_0,
+ leq_127,
+ leq_126,
+ leq_96,
+ leq_95,
+ leq_94,
+ leq_64,
+ leq_63,
+ leq_62,
+ leq_32,
+ leq_31,
+ leq_30,
+ leq_1,
+ leq_0,
+ geq_127,
+ geq_126,
+ geq_96,
+ geq_95,
+ geq_94,
+ geq_64,
+ geq_63,
+ geq_62,
+ geq_32,
+ geq_31,
+ geq_30,
+ geq_1,
+ geq_0,
+ eq_127,
+ eq_126,
+ eq_96,
+ eq_95,
+ eq_94,
+ eq_64,
+ eq_63,
+ eq_62,
+ eq_32,
+ eq_31,
+ eq_30,
+ eq_1,
+ eq_0;
+
+ assign lt = (a<b);
+ assign lt_127 = (a[127:0]<b[127:0]);
+ assign lt_126 = (a[126:0]<b[126:0]);
+ assign lt_96 = (a[96:0]<b[96:0]);
+ assign lt_95 = (a[95:0]<b[95:0]);
+ assign lt_94 = (a[94:0]<b[94:0]);
+ assign lt_64 = (a[64:0]<b[64:0]);
+ assign lt_63 = (a[63:0]<b[63:0]);
+ assign lt_62 = (a[62:0]<b[62:0]);
+ assign lt_32 = (a[32:0]<b[32:0]);
+ assign lt_31 = (a[31:0]<b[31:0]);
+ assign lt_30 = (a[30:0]<b[30:0]);
+ assign lt_1 = (a[1:0]<b[1:0]);
+ assign lt_0 = (a[0]<b[0]);
+ assign gt = (a>b);
+ assign gt_127 = (a[127:0]>b[127:0]);
+ assign gt_126 = (a[126:0]>b[126:0]);
+ assign gt_96 = (a[96:0]>b[96:0]);
+ assign gt_95 = (a[95:0]>b[95:0]);
+ assign gt_94 = (a[94:0]>b[94:0]);
+ assign gt_64 = (a[64:0]>b[64:0]);
+ assign gt_63 = (a[63:0]>b[63:0]);
+ assign gt_62 = (a[62:0]>b[62:0]);
+ assign gt_32 = (a[32:0]>b[32:0]);
+ assign gt_31 = (a[31:0]>b[31:0]);
+ assign gt_30 = (a[30:0]>b[30:0]);
+ assign gt_1 = (a[1:0]>b[1:0]);
+ assign gt_0 = (a[0]>b[0]);
+ assign leq = (a<=b);
+ assign leq_127 = (a[127:0]<=b[127:0]);
+ assign leq_126 = (a[126:0]<=b[126:0]);
+ assign leq_96 = (a[96:0]<=b[96:0]);
+ assign leq_95 = (a[95:0]<=b[95:0]);
+ assign leq_94 = (a[94:0]<=b[94:0]);
+ assign leq_64 = (a[64:0]<=b[64:0]);
+ assign leq_63 = (a[63:0]<=b[63:0]);
+ assign leq_62 = (a[62:0]<=b[62:0]);
+ assign leq_32 = (a[32:0]<=b[32:0]);
+ assign leq_31 = (a[31:0]<=b[31:0]);
+ assign leq_30 = (a[30:0]<=b[30:0]);
+ assign leq_1 = (a[1:0]<=b[1:0]);
+ assign leq_0 = (a[0]<=b[0]);
+ assign geq = (a>=b);
+ assign geq_127 = (a[127:0]>=b[127:0]);
+ assign geq_126 = (a[126:0]>=b[126:0]);
+ assign geq_96 = (a[96:0]>=b[96:0]);
+ assign geq_95 = (a[95:0]>=b[95:0]);
+ assign geq_94 = (a[94:0]>=b[94:0]);
+ assign geq_64 = (a[64:0]>=b[64:0]);
+ assign geq_63 = (a[63:0]>=b[63:0]);
+ assign geq_62 = (a[62:0]>=b[62:0]);
+ assign geq_32 = (a[32:0]>=b[32:0]);
+ assign geq_31 = (a[31:0]>=b[31:0]);
+ assign geq_30 = (a[30:0]>=b[30:0]);
+ assign geq_1 = (a[1:0]>=b[1:0]);
+ assign geq_0 = (a[0]>=b[0]);
+ assign eq = (a==b);
+ assign eq_127 = (a[127:0]==b[127:0]);
+ assign eq_126 = (a[126:0]==b[126:0]);
+ assign eq_96 = (a[96:0]==b[96:0]);
+ assign eq_95 = (a[95:0]==b[95:0]);
+ assign eq_94 = (a[94:0]==b[94:0]);
+ assign eq_64 = (a[64:0]==b[64:0]);
+ assign eq_63 = (a[63:0]==b[63:0]);
+ assign eq_62 = (a[62:0]==b[62:0]);
+ assign eq_32 = (a[32:0]==b[32:0]);
+ assign eq_31 = (a[31:0]==b[31:0]);
+ assign eq_30 = (a[30:0]==b[30:0]);
+ assign eq_1 = (a[1:0]==b[1:0]);
+ assign eq_0 = (a[0]==b[0]);
+ assign sum = (a+b);
+ assign sum_127 = (a[127:0]+b[127:0]);
+ assign sum_126 = (a[126:0]+b[126:0]);
+ assign sum_96 = (a[96:0]+b[96:0]);
+ assign sum_95 = (a[95:0]+b[95:0]);
+ assign sum_94 = (a[94:0]+b[94:0]);
+ assign sum_64 = (a[64:0]+b[64:0]);
+ assign sum_63 = (a[63:0]+b[63:0]);
+ assign sum_62 = (a[62:0]+b[62:0]);
+ assign sum_32 = (a[32:0]+b[32:0]);
+ assign sum_31 = (a[31:0]+b[31:0]);
+ assign sum_30 = (a[30:0]+b[30:0]);
+ assign sum_1 = (a[1:0]+b[1:0]);
+ assign sum_0 = (a[0]+b[0]);
+ assign diff = (a-b);
+ assign diff_127 = (a[127:0]-b[127:0]);
+ assign diff_126 = (a[126:0]-b[126:0]);
+ assign diff_96 = (a[96:0]-b[96:0]);
+ assign diff_95 = (a[95:0]-b[95:0]);
+ assign diff_94 = (a[94:0]-b[94:0]);
+ assign diff_64 = (a[64:0]-b[64:0]);
+ assign diff_63 = (a[63:0]-b[63:0]);
+ assign diff_62 = (a[62:0]-b[62:0]);
+ assign diff_32 = (a[32:0]-b[32:0]);
+ assign diff_31 = (a[31:0]-b[31:0]);
+ assign diff_30 = (a[30:0]-b[30:0]);
+ assign diff_1 = (a[1:0]-b[1:0]);
+ assign diff_0 = (a[0]-b[0]);
+ assign mult = (a*b);
+ assign mult_127 = (a[127:0]*b[127:0]);
+ assign mult_126 = (a[126:0]*b[126:0]);
+ assign mult_96 = (a[96:0]*b[96:0]);
+ assign mult_95 = (a[95:0]*b[95:0]);
+ assign mult_94 = (a[94:0]*b[94:0]);
+ assign mult_64 = (a[64:0]*b[64:0]);
+ assign mult_63 = (a[63:0]*b[63:0]);
+ assign mult_62 = (a[62:0]*b[62:0]);
+ assign mult_32 = (a[32:0]*b[32:0]);
+ assign mult_31 = (a[31:0]*b[31:0]);
+ assign mult_30 = (a[30:0]*b[30:0]);
+ assign mult_1 = (a[1:0]*b[1:0]);
+ assign mult_0 = (a[0]*b[0]);
+ 
+
+ always @(posedge CLK)
+ begin
+   if(vectors>=12) $finish;
+   a <= {cnt[0],$random,$random,$random,$random};
+   b <= {cnt[1],$random,$random,$random,$random};
+   cnt <= cnt + 1;
+   vectors <= vectors + 1;
+   $write("129\'b%b 129\'b%b 129\'b%b 129\'b%b 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b", a,b,sum,diff,mult, sum_127, sum_126, sum_96, sum_95, sum_94,sum_64, sum_63, sum_62, sum_32, sum_31, sum_30,sum_1, sum_0, diff_127, diff_126, diff_96, diff_95, diff_94, diff_64, diff_63, diff_62, diff_32, diff_31, diff_30, diff_1, diff_0);
+   $write(" 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b 70\'b%b\n", mult_127, mult_126, mult_96, mult_95, mult_94, mult_64, mult_63, mult_62, mult_32, mult_31, mult_30, mult_1, mult_0, {lt, gt, leq, geq, eq, lt_127, lt_126, lt_96, lt_95, lt_94, lt_64, lt_63, lt_62,
+ lt_32,
+ lt_31,
+ lt_30,
+ lt_1,
+ lt_0,
+ gt_127,
+ gt_126,
+ gt_96,
+ gt_95,
+ gt_94,
+ gt_64,
+ gt_63,
+ gt_62,
+ gt_32,
+ gt_31,
+ gt_30,
+ gt_1,
+ gt_0,
+ leq_127,
+ leq_126,
+ leq_96,
+ leq_95,
+ leq_94,
+ leq_64,
+ leq_63,
+ leq_62,
+ leq_32,
+ leq_31,
+ leq_30,
+ leq_1,
+ leq_0,
+ geq_127,
+ geq_126,
+ geq_96,
+ geq_95,
+ geq_94,
+ geq_64,
+ geq_63,
+ geq_62,
+ geq_32,
+ geq_31,
+ geq_30,
+ geq_1,
+ geq_0,
+ eq_127,
+ eq_126,
+ eq_96,
+ eq_95,
+ eq_94,
+ eq_64,
+ eq_63,
+ eq_62,
+ eq_32,
+ eq_31,
+ eq_30,
+ eq_1,
+ eq_0});
+ end
+
+ endmodule
+	 
+   
+ 
+ 
+ 
+
+ 
+ 

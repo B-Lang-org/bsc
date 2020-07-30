@@ -1,0 +1,56 @@
+
+# tests for Bluespec Verilog 0.5 syntax
+# parse - prettyprint - parse loop
+
+proc bsc_compile_prettyprint_parse { source { options "" } } {
+    if [bsc_compile $source "$options -dparsed=${source}-pretty-out.bsv"] then {
+        return [bsc_compile  "$source-pretty-out.bsv" $options]
+    } else {
+        return 0
+    }
+}
+
+proc compile_ppp_pass { source {options ""} } {
+    incr_stat "compile_ppp_pass" 
+    if [bsc_compile_prettyprint_parse $source $options] {
+        pass "`$source' compiles, pretty-prints, and compiles again"
+    } else {
+        fail "`$source' should compile, pretty-print, and compile again"
+    }
+}
+
+proc compile_ppp_pass_bug { source {bug ""} {options ""}} {
+    global target_triplet
+    setup_xfail $target_triplet $bug
+    compile_ppp_pass $source $options
+}
+
+# empty template
+compile_ppp_pass Empty.bsv
+
+# a module with an empty rule
+compile_ppp_pass EmptyRule.bsv
+
+# a module with an empty method
+compile_ppp_pass EmptyMethod.bsv
+
+# non-action method bodies should use "return" or assignment to method name
+compile_ppp_pass MethodReturn.bsv
+
+# methods should be identified as methods in modules
+compile_ppp_pass MethodCalledMethodI.bsv
+
+# methods should be identified as methods in modules
+compile_ppp_pass MethodCalledMethodII.bsv
+
+# typedef struct syntax
+compile_ppp_pass TypedefStruct.bsv
+
+# parametrized typedef struct syntax
+compile_ppp_pass TypedefStructPolymorphic.bsv
+
+# the library package PopCount
+compile_ppp_pass PopCount0.bsv
+
+# Map (function arguments)
+compile_ppp_pass Map.bsv

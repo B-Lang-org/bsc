@@ -1,0 +1,38 @@
+APackage sysUseMod2
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+the_e_the_r :: ABSTRACT:  Prelude.VReg = RegN
+					 (VModInfo
+					  RegN
+					  clock _clk__1(CLK, {-unused-});
+					  reset _rst__1(RST) clocked_by(_clk__1);
+					  [clockarg _clk__1;, resetarg _rst__1;, param width;, param init;]
+					  [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (_rst__1);,
+					   method write((D_IN, [reg])) enable ((EN,
+										[])) clocked_by (_clk__1) reset_by (_rst__1);]
+					  SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+					  [])
+					 [clock { osc:  CLK gate:  1'd1 }, reset { wire:  RST_N }, 32'd32, 32'd0]
+					 []
+					 meth types=[([], Nothing, Just (Bit 32)), ([Bit 32], Just (Bit 1), Nothing)]
+					 port types=D_IN -> Prelude.Bit 32
+						    Q_OUT -> Prelude.Bit 32
+-- AP rules
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]

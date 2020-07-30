@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Define_IN_TERNARY_STMT.bsv
+Warning: Unknown position: (S0001)
+  File name `Define_IN_TERNARY_STMT.bsv' does not match package name `Design'
+All packages are up to date.

@@ -1,0 +1,5 @@
+# make sure that we fail with the right map/mapM error 
+# where we used to internalError
+compile_fail_error Bug1263.bsv T0107
+# make sure this complains about the partially applied type synonym
+compile_fail_error Bug1263_2.bsv T0025

@@ -1,0 +1,52 @@
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+top.valid --> 0x0
+top.req --> 0x1
+top.start --> 0x0
+top.done --> 0x0
+
+Starting with New Request
+
+
+top.req --> 0x0
+top.start --> 0x1
+top.done --> 0x0
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+top.done --> 0x1
+top.valid --> 0x0
+top.start --> 0x0
+top.req --> 0x0
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+top.valid --> 0x0
+top.req --> 0x1
+top.start --> 0x0
+top.done --> 0x0
+
+Starting with New Request
+
+
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+HandshakeProtocol :Step3: start =0 (expected = 0), valid = 0 (expected = 0) 
+
+
+Starting with New Request
+
+
+top.req --> 0x0
+top.start --> 0x1
+top.done --> 0x0
+HandshakeProtocol :Step1: start =1 (expected = 1'b1), valid = 1 (expected = 1'b1) 
+
+top.done --> 0x1
+top.valid --> 0x0
+top.start --> 0x0
+top.req --> 0x0

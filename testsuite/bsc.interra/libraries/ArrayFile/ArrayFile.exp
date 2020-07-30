@@ -1,0 +1,6 @@
+test_c_veri_worker MkArrayFile mkTestbench_MkArrayFile {} "bsv" 1 1 "mkTestbench_MkArrayFile.v.out.expected" "" ""
+
+test_c_veri_worker MkArrayFullFile mkTestbench_MkArrayFullFile {} "bsv" 1 1 "mkTestbench_MkArrayFullFile.v.out.expected" "" ""
+
+test_c_veri_worker MkArrayWCFFile mkTestbench_MkArrayWCFFile {mkDesign_MkArrayWCFFile} "bsv" 1 1 "mkTestbench_MkArrayWCFFile.v.out.expected" "" ""
+

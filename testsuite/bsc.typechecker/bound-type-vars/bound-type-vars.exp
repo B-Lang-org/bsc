@@ -1,0 +1,24 @@
+
+# --------------------
+# Tests for bug 715
+
+# XXX these are duplicated in ../kind/bound-vars/
+compile_fail_error KindMismatchExplExpl.bs T0027
+compile_fail_error KindMismatchExplHas.bs T0027
+
+# --------------------
+# Test that bound vars are not considered fixed even when implied by
+# functional dependencies
+
+compile_fail_error ImpliedByFundeps.bsv T0030
+
+# --------------------
+# Test for Bug 1498:
+# Tyvars bound at this level should not be substituted
+
+compile_fail_error BoundVarSubstitution.bsv T0030 2
+# check that the old error did not appear
+find_n_error [make_bsc_output_name BoundVarSubstitution.bsv] T0029 0
+
+# --------------------
+

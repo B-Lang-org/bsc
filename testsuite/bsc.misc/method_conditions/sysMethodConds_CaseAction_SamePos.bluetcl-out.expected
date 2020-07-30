@@ -1,0 +1,4 @@
+COND_RL_r1_rg0_write_1 {positions {MethodConds_CaseAction_SamePos.bsv 20 12}} {rule RL_r1} {instance rg0} {method write}
+COND_RL_r1_rg1_write_2 {positions {MethodConds_CaseAction_SamePos.bsv 20 12}} {rule RL_r1} {instance rg1} {method write}
+COND_RL_r1_rg2_write_3 {positions {MethodConds_CaseAction_SamePos.bsv 20 12}} {rule RL_r1} {instance rg2} {method write}
+COND_RL_r1_rg3_write_4 {positions {MethodConds_CaseAction_SamePos.bsv 20 12}} {rule RL_r1} {instance rg3} {method write}

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnboundCon1.bs
+Error: "EUnboundCon1.bs", line 31, column 32: (T0003)
+  Unbound constructor `MyStruct'

@@ -1,0 +1,52 @@
+package Two(sysTwo, ITwo, AType, BType, moduleTwo) where
+
+type AType = Bit 5
+type BType = Bit 10
+
+sysTwo :: Module Empty
+sysTwo = mkFoo
+
+interface ITwo =
+    setA :: AType -> Action
+    setB :: BType -> Action
+    getA :: AType
+    getB :: BType
+    sometimesSetA :: AType -> Action
+
+struct Two =
+	a :: Reg AType
+	b :: Reg BType
+
+mkTwo :: Module Two
+mkTwo = do
+    a :: Reg AType
+    a <- mkReg 0
+    b :: Reg BType
+    b <- mkReg 0
+    return (Two { a = a; b = b })
+
+moduleTwo :: Module ITwo
+moduleTwo = module
+              t :: Two
+	      t <- mkTwo
+	      addRules $ ruleA t <+> ruleB t
+	      interface
+	        getA = t.a._read
+	        getB = t.b._read
+	        setA x = t.a := x
+	        setB x = t.b := x
+	        sometimesSetA x = if t.a._read == x then action {} else t.a := x
+
+mkFoo :: Module Empty
+mkFoo = 
+    module
+	t :: Two
+	t <- mkTwo
+        addRules $ ruleA t <+> ruleB t
+
+ruleA :: Two -> Rules
+ruleA t = rules
+	   "A": when True ==> action { t.a := 5; }
+ruleB :: Two -> Rules
+ruleB t = rules
+	   "B": when True ==> action { t.b := 14; }

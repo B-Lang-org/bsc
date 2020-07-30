@@ -1,0 +1,9 @@
+2: sinking 0
+3: sinking 1
+4: sinking 4
+5: sinking 9
+6: sinking 16
+7: sinking 25
+8: sinking 36
+9: sinking 49
+Cycle 9: Test ok: mkTestSynchPipe: all 8 outputs ok

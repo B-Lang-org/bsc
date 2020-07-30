@@ -1,0 +1,6 @@
+package TestExcludeOK where
+
+import Exclude
+
+d :: Integer
+d = b + c

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling LiteralEqOrd.bsv
+code generation for sysLiteralEqOrd starts
+Compilation message: "LiteralEqOrd.bsv", line 13, column 11: w == y
+Compilation message: "LiteralEqOrd.bsv", line 20, column 11: w > x
+Compilation message: "LiteralEqOrd.bsv", line 23, column 11: w <= z
+Compilation message: "LiteralEqOrd.bsv", line 30, column 11: w > v
+Verilog file created: sysLiteralEqOrd.v
+All packages are up to date.

@@ -1,0 +1,390 @@
+# Test what names are in scope for scheduling attributes
+
+if { $vtest == 1 } {
+
+# -------------------------
+# Basic test that rules defined later in a module can refer to rules at the
+# same level
+
+# In a top module (not hierarchy prefix)
+compile_verilog_pass RuleNameAcrossTopModule.bsv
+compare_file RuleNameAcrossTopModule.bsv.bsc-vcomp-out
+
+# In a submodule (has hierarchy prefix)
+compile_verilog_pass RuleNameAcrossSubModule1.bsv
+compare_file RuleNameAcrossSubModule1.bsv.bsc-vcomp-out
+
+# In a sub-submodule (has multiple hierarchy prefix)
+# and test when there is a further submodule instantiation between the rules
+# (to confirm that the scope is still OK after popping back from a submod)
+compile_verilog_pass RuleNameAcrossSubModule2.bsv
+compare_file RuleNameAcrossSubModule2.bsv.bsc-vcomp-out
+
+# -------------------------
+# What happens when a rule and method have the same name
+
+# The user can declare a module with a method and a rule with the same name.
+# An urgency warning about the two is confusing, because it calls them both
+# by the same name.  Otherwise, things are fine, probably because the rule
+# is actually called "RL_<name>" under the covers, so it doesn't clash.
+#
+compile_verilog_pass RuleMethClash.bsv
+compare_file RuleMethClash.bsv.bsc-vcomp-out
+
+# -------------------------
+# What happens when a rule has non-alpha/num/underscore characters in name
+
+# Classic spaces are replaced with underscore, but the Classic parser
+# does not support scheduling attributes, so we don't need to test that
+# attributes are kept in sync with name changes
+#
+compile_verilog_pass RuleNameWithSpace.bs
+# Confirm that messages use the non-space name
+compare_file RuleNameWithSpace.bs.bsc-vcomp-out
+
+# BSV allows non-alpha/num/underscore characters, which are filtered out.
+# For now, attributes must refer to the cleaned-up name.
+
+# -----
+# Non-alpha/num/underscore in the hierarchy
+# (which becomes a prefix for the final rule name)
+
+# Test that using the original name in an attribute doesn't work
+# XXX Note that the parser requires the attribute string to be escaped,
+# XXX and since it's in a string, the slash is a double-slash!
+compile_verilog_fail_error RuleHierarchyNonAlphanum1.bsv G0054
+# Check for the expected name in the message
+compare_file RuleHierarchyNonAlphanum1.bsv.bsc-vcomp-out
+
+# Test that using the filtered name in an attributes works
+compile_verilog_pass RuleHierarchyNonAlphanum2.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleHierarchyNonAlphanum2.bsv.bsc-vcomp-out
+
+# -----
+# Non-alpha/num/underscore in the rule name (the base of the final rule name)
+
+# Test that using the original name in an attribute works
+# XXX Note that the parser requires the attribute string to be escaped,
+# XXX and since it's in a string, the slash is a double-slash!
+compile_verilog_pass RuleNameNonAlphanum1.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameNonAlphanum1.bsv.bsc-vcomp-out
+
+# Test that using the filtered name in an attribute doesn't work
+compile_verilog_fail_error RuleNameNonAlphanum2.bsv G0054
+# Check for the expected name in the message
+compare_file RuleNameNonAlphanum2.bsv.bsc-vcomp-out
+
+# Test that clashes are handled by adding a unique suffix
+compile_verilog_pass RuleNameNonAlphanumClash1.bsv
+# Confirm that the messages refer to the uniquified name
+compare_file RuleNameNonAlphanumClash1.bsv.bsc-vcomp-out
+
+# Test that, when a non-alphanum name clashes with an alphanum name,
+# an attribute referring to the non-alphanum name works.
+compile_verilog_pass RuleNameNonAlphanumClash2.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameNonAlphanumClash2.bsv.bsc-vcomp-out
+
+# Test that, when a non-alphanum name clashes with an alphanum name,
+# an attribute referring to the alphanum name works.
+compile_verilog_pass RuleNameNonAlphanumClash3.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameNonAlphanumClash3.bsv.bsc-vcomp-out
+
+# Test how uniquification of name-clash after clean-up happens
+# XXX Right now, there's a final uniquification step, that can lead to a
+# XXX suffix on a suffix, as shown in this test.
+compile_verilog_pass RuleNameNonAlphanumClashLoop.bsv
+# Note that there are names with suffix "_1_1" (an expected failure)
+compare_file RuleNameNonAlphanumClashLoop.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# References inside explicit rules..endrules block are allowed from any rule
+#
+# XXX ...
+
+# References inside implicit rules..endrules block (adjacent rules in a module)
+# are allowed from any rule
+#
+# XXX ...
+
+# -------------------------
+
+# References between nested rules should be allowed (Bug 1688)
+#
+compile_verilog_pass_bug RuleNameInNested1.bsv {} 1688
+# Check the output in case it changes but the test still fails to compile
+compare_file RuleNameInNested1.bsv.bsc-vcomp-out
+
+# References in nested rules to outside rules is allowed
+# (the reference should not pick up the nested prefix)
+#
+compile_verilog_pass_bug RuleNameInNested2.bsv {} 1688
+# Check the output in case it changes but the test still fails to compile
+compare_file RuleNameInNested2.bsv.bsc-vcomp-out
+
+# Test name clash between an outside rule and a nested rule
+# (can we warn in that case, and use the nested rule?)
+#
+# XXX ...
+
+# -------------------------
+
+# Test explicit use of "addRules"
+#
+
+# No instance name
+# XXX For now, allow the user visibility into the caller's scope
+compile_verilog_pass RuleNameInAddRules1.bsv
+compare_file RuleNameInAddRules1.bsv.bsc-vcomp-out
+
+# With an instance name, the user is explicitly creating a new context
+compile_verilog_fail_error RuleNameInAddRules2.bsv G0054
+compare_file RuleNameInAddRules2.bsv.bsc-vcomp-out
+
+# Test name clash, where an attribute in the addrule refers to a local
+# name that (when prefixed) clashes with a parent rule
+compile_verilog_pass RuleNameInAddRulesClash.bsv
+# The G0010 warning indicates that the attribute applied to the proper rule
+# (because the conflict shown is due to rg1, not rg2)
+compare_file RuleNameInAddRulesClash.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# An attribute on a rule in a function can refer to other rules not visible
+# syntactically, but which will have been added to the module at the point
+# where this rule is added to a module
+#
+compile_verilog_pass RuleNameInFunction.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameInFunction.bsv.bsc-vcomp-out
+
+# -----
+
+# An attribute on a rule in a submodule can't refer to a parent rule
+# directly, because the submodule's names are adjusted to have the instance
+# name as a prefix.  The result is a slightly confusing message referring
+# to "<inst>_<rulename>" when the user only wrote "<rulename>".
+#
+# Note that the error only occurs during code-gen, it can't be statically
+# checked.
+#
+compile_verilog_fail_error RuleNameInSubmod.bsv G0054
+
+# There are two possible exceptions to this:
+
+# One is when the instance has no name, so there is no prefix.
+# We now prevent this accidental reference.
+#
+compile_verilog_fail RuleNameInSubmodNoPrefix.bsv
+compare_file RuleNameInSubmodNoPrefix.bsv.bsc-vcomp-out
+
+# The second exception is when the parent module has other rules with the
+# same prefix; in that case, the submodule rule can (unintentionally) refer
+# to those.
+# We now prevent this accidental reference.
+#
+compile_verilog_fail RuleNameInSubmodClash.bsv
+compare_file RuleNameInSubmodClash.bsv.bsc-vcomp-out
+
+# -----
+
+# Same tests as above, but for modules created with "primBuildModule"
+
+# Module created with "primBuildModule"  can't refer to rules in the parent
+# (the instantiation prefix would cause problems anyway)
+#
+compile_verilog_fail_error RuleNameInBuildMod.bsv G0054
+
+# Test that even if there's a rule with the same prefix, attributes
+# in a module created with "primBuildModule" don't accidentally refer
+# to rules in the parent.
+#
+compile_verilog_fail RuleNameInBuildModClash.bsv
+compare_file RuleNameInBuildModClash.bsv.bsc-vcomp-out
+
+# -----
+
+# A related issue is that rules in a submodule should be able to refer to
+# previous rules added in the submodule, even if those rules were renamed
+# because they conflict with rules by the same name that were already
+# added before entering the current module (and thus are out of scope for
+# referring to by name).
+
+# Version where the clash is because of no inst name
+#
+# XXX We currently ban the accidental reference, but it ought to compile
+# XXX and the attribute should refer to the local rule
+# XXX (if you want the local rule, you have to append the uniquifier)
+#
+compile_verilog_pass_bug RuleNameInSubmodClash2.bsv
+compare_file RuleNameInSubmodClash2.bsv.bsc-vcomp-out
+
+# Version where the clash is in spite of the inst name
+#
+# XXX We currently ban the accidental reference, but it ought to compile
+# XXX and the attribute should refer to the local rule
+# XXX (if you want the local rule, you have to append the uniquifier)
+#
+compile_verilog_pass_bug RuleNameInSubmodClash3.bsv
+compare_file RuleNameInSubmodClash3.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# An attribute on a rule in a module can refer to rules that were
+# added by submodule instantiations
+#
+compile_verilog_pass RuleNameInParent.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameInParent.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# A module can be defined inside the module block where it is to be used.
+# Attributes on rules in a module definition may then may appear to have
+# parent rules in syntactic scope, but the scope for attributes is still
+# according to the elaboration order.
+
+# Mentioning a rule in the parent from before the module definition
+#
+compile_verilog_fail_error RuleNameInModule1.bsv G0054
+
+# Mentioning a rule in the parent from after the module definition
+# but before instantiation
+# (Note that there is still the chance of clash as in RuleNameInSubmodClash)
+#
+compile_verilog_fail_error RuleNameInModule2.bsv G0054
+
+# Mentioning a rule in the module definition after the definition
+# (but before the instantiation, in this case)
+#
+compile_verilog_fail_error RuleNameInModule3.bsv G0054
+
+# -------------------------
+
+# Mentioning a rule name across rJoin
+
+# The other rule is immediately joined with this one
+# (This currently passes)
+# XXX Should this be allowed?
+#
+compile_verilog_pass RuleNameInRJoin1.bsv
+# Note that the attribute had effect because there was no warning G0010
+compare_file RuleNameInRJoin1.bsv.bsc-vcomp-out
+
+# The other rule is joined only after other joins
+# (This currently fails)
+#
+compile_verilog_fail_error RuleNameInRJoin2.bsv G0054
+
+# -------------------------
+
+# The user should not receive multiple warnings for an invalid name
+#
+compile_verilog_fail_error RuleNameError.bsv G0054 1
+
+# There should also not be multiple warnings when using rJoin
+#
+compile_verilog_fail_error RuleNameErrorJoin.bsv G0054 1
+
+# -------------------------
+
+# Test that any clashes with the parent are not visible to the
+# current scope.
+# For now, the user has visibility into whether the parent has
+# previously defined a rule name, because rules in the current
+# scope will be renamed with suffix "_1" and have to be referred
+# to that way in attributes.
+
+# XXX Like with RuleNameInSubModuleClash2 and 3:
+# XXX We currently ban the accidental reference, but it ought to compile
+# XXX and the attribute should refer to the local rule
+# XXX (if you want the local rule, you have to append the uniquifier)
+#
+compile_verilog_pass_bug RuleNameInParentClash.bsv
+compare_file RuleNameInParentClash.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# Another form of clash is when rule names are uniquified, such as
+# in a loop.  Or multiple name-less instantiations of a submodule
+# with a rule.
+#
+
+# XXX ...
+
+# -----
+
+# The user might think that attributes inside a for-loop refer to any
+# rule block in that for-loop, but it currently doesn't.
+
+# This behaves as the user expects because all the rules are in one block
+#
+compile_verilog_pass RuleNameInForLoop1.bsv
+# The existence of 4 warnings about r4 never firing shows that r4 was
+# properly referenced
+# XXX though technically it's not testing that the proper r2 is the blocker
+compare_file RuleNameInForLoop1.bsv.bsc-vcomp-out
+
+# When the rules are in separate blocks in the for loop, there are two
+# possible behaviors:
+
+# An attribute in the first block will be an error because the second rule
+# is not available in the first iteration.
+#
+compile_verilog_fail_error RuleNameInForLoop2.bsv G0054
+
+# An attribute in the second block will compile, but it will refer to the
+# wrong rule (always the one from the first iteration).
+#
+compile_verilog_pass RuleNameInForLoop3.bsv
+# The existence of G0010 warnings shows that the attributes did not apply
+# correctly.
+compare_file RuleNameInForLoop3.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# Test whether method names are in scope
+# (Bug 749)
+
+# Top level methods in the top module are supported
+compile_verilog_pass TopMethodNameTopModule1.bsv
+# No warnings means the attribute worked
+compare_file TopMethodNameTopModule1.bsv.bsc-vcomp-out
+
+# Top level methods in subinterfaces
+compile_verilog_pass TopMethodNameTopModule2.bsv
+compare_file TopMethodNameTopModule2.bsv.bsc-vcomp-out
+
+# Inline methods are not yet supported,
+# so detect these and warn that they are being ignored
+# (no error in the scheduler means that the names are being ignored)
+compile_verilog_pass_warning InlinedMethodName.bsv G0123 2
+# Check the names in the messages
+compare_file InlinedMethodName.bsv.bsc-vcomp-out
+
+# Top level methods are not in scope for submodules
+# (this tests methods in subinterfaces too)
+compile_verilog_fail_error TopMethodNameSubModule.bsv G0054 2
+# Check for the expected names (the submodule prefix is not added)
+compare_file TopMethodNameSubModule.bsv.bsc-vcomp-out
+
+# Test when inlined methods and top-level methods have the same name
+# (reference in the submodule still fails)
+compile_verilog_pass_warning TopMethodNameSubModuleClash.bsv G0123 2
+compare_file TopMethodNameSubModuleClash.bsv.bsc-vcomp-out
+
+# -------------------------
+
+# Test that an attribute referring to a method which is split
+# is updated to refer to all of the generated rules
+compile_verilog_pass SplitTopMethodName.bsv
+# No warnings means the attribute worked
+compare_file SplitTopMethodName.bsv.bsc-vcomp-out
+
+# -------------------------
+
+}

@@ -1,0 +1,1 @@
+compile_verilog_pass Bug1591.bsv sysBug1591 {-opt-undetermined-vals}

@@ -1,0 +1,1 @@
+test_veri_only_bsv_modules_options TbGCD "" -remove-dollar mkTbGCD.out.expected

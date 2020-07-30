@@ -1,0 +1,8 @@
+
+compile_object_pass Design.bsv mkDesign
+
+link_objects_fail mkDesign mkDesign
+
+compile_verilog_pass Design.bsv mkDesign
+
+compare_verilog mkDesign.v

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EPartialTypeApp1.bs
+Error: "EPartialTypeApp1.bs", line 21, column 5: (T0013)
+  Partially applied type synonym `EPartialTypeApp1.Foo'

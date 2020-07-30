@@ -1,0 +1,18 @@
+package DataAction2(sysDataAction2) where
+
+data DataAction2 = DataAction2 Integer Action
+
+{-# verilog sysDataAction2 #-}
+sysDataAction2 :: Module Empty
+sysDataAction2 = 
+  module
+    b :: Reg Bool <- mkReg(False)
+    let da1 :: DataAction2 = DataAction2 1 ($display "da1")
+        da  :: DataAction2 = if b then da1 else _
+    rules 
+      "test": when DataAction2 i a <- da ==>
+          action 
+             a
+             $display "%0d" i
+             b := not b         
+             if (b) then $finish(0) else noAction

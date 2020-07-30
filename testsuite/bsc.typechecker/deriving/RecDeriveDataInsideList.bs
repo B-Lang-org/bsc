@@ -1,0 +1,4 @@
+package RecDeriveDataInsideList () where
+
+data Foo = F (List Foo) deriving (Eq)
+

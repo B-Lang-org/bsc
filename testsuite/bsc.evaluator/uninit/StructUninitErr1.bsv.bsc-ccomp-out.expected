@@ -1,0 +1,10 @@
+checking package dependencies
+compiling StructUninitErr1.bsv
+code generation for mkStructUninitErr1 starts
+Error: "StructUninitErr1.bsv", line 5, column 23: (G0028)
+  `foo.img' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr1.bsv",
+  line 7, column 9.
+  During elaboration of `mkStructUninitErr1' at "StructUninitErr1.bsv", line
+  4, column 8.

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintType3.bsv
+code generation for sysPrintType3 starts
+Compilation message: Maybe#(void)
+Elaborated module file created: sysPrintType3.ba
+All packages are up to date.

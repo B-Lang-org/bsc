@@ -1,0 +1,112 @@
+-- #############################################################################
+-- #
+-- #############################################################################
+
+package ZBus(ZBit,
+	    mkZBus
+	   ) where
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+import List
+import Environment
+import ZBusUtil
+import ZBusBuffer
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkZBus :: (Eq t, Literal t, Bits t st, Bitwise t) => (List (ZBusIFC t)) -> Module (Empty)
+mkZBus ifc_list =
+    module
+
+	bus :: ZBusInternalIFC t
+	bus <- mkZBusInternal ifc_list
+	let fromBusValid = (bStateToValid (resolveBusBState ifc_list))
+	converter :: ConvertFromZ t
+	converter <- mkConvertFromZ 
+	let fromBusValue =
+		if (fromBusValid) then (converter.convert bus.zout) else 0
+	rules 
+	     "Update IFCs":
+		when True ==> 
+		     action
+		       updateFromBus ifc_list bus.zout fromBusValid
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+updateFromBus :: List (ZBusIFC t) -> ZBit t -> Bool -> Action
+updateFromBus ifc_list zout isvalid =
+    if ((length ifc_list) > 0) then
+       action
+          updateZBusIFCFromBus (head ifc_list) zout isvalid
+	  updateFromBus (tail ifc_list) zout isvalid
+    else
+       action { }
+
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+updateZBusIFCFromBus :: ZBusIFC t -> ZBit t -> Bool -> Action
+updateZBusIFCFromBus ifc zout isvalid =
+    action
+      let jj = ifc
+      jj.fromBusSample zout isvalid
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+bStateToValid :: BState -> Bool
+bStateToValid bstate = (bstate == Driven)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+interface ZBusInternalIFC t =
+   zout :: ZBit t
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+mkZBusInternal :: (Eq t, Literal t, Bits t st) => (List (ZBusIFC t)) -> Module (ZBusInternalIFC t)
+mkZBusInternal ifc_list =
+    if ((length ifc_list) == 2) then
+      module
+       i1 :: ResolveZ t
+       i1 <- mkResolveZ
+       let zout_final = (i1.resolve 
+			 (zBusIFCGetToBusValue (head ifc_list)) 
+			 (zBusIFCGetToBusValue (head (tail ifc_list))))
+       interface 
+          zout = zout_final
+    else
+       module
+	   i1 :: ResolveZ t
+	   i1 <- mkResolveZ
+           i2 :: ZBusInternalIFC t
+           i2 <- mkZBusInternal (tail ifc_list)
+	   interface 
+            zout = (i1.resolve 
+		    (zBusIFCGetToBusValue (head ifc_list)) 
+		    i2.zout)
+
+-- #############################################################################
+-- #
+-- #############################################################################
+
+zBusIFCGetToBusValue :: ZBusIFC t -> (ZBit t)
+zBusIFCGetToBusValue ifc = ifc.toBusValue
+
+-- #############################################################################
+-- #
+-- #############################################################################

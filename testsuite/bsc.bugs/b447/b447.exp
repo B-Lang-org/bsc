@@ -1,0 +1,3 @@
+compile_fail_error Bug447_1.bsv P0039
+compile_fail_error Bug447_2.bsv P0104
+compile_fail_error Bug447_3.bsv T0066

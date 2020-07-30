@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ENotStructId.bs
+Error: "ENotStructId.bs", line 23, column 4: (T0014)
+  Identifier is not a struct name `ENotStructId.Null'

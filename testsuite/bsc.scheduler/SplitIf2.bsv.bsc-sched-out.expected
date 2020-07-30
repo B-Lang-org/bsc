@@ -1,0 +1,112 @@
+checking package dependencies
+compiling SplitIf2.bsv
+code generation for mkSplitIf2_Test starts
+Warning: "SplitIf2.bsv", line 6, column 8: (G0020)
+  System functions (e.g., $display) called by interface methods execute in an
+  unpredictable order during Verilog simulations.
+      Top-level interface method `xfer' calls a system function (e.g.,
+      $display) at the following positions:
+	  "SplitIf2.bsv", line 25, column 7
+	  "SplitIf2.bsv", line 30, column 7
+Warning: "SplitIf2.bsv", line 6, column 8: (G0010)
+  Rule "toggle1" was treated as more urgent than "xfer". Conflicts:
+    "toggle1" cannot fire before "xfer": calls to r1.write vs. r1.read
+    "xfer" cannot fire before "toggle1": calls to r1.write vs. r1.read
+=== schedule:
+parallel: [esposito: [RL_toggle1 -> [], RL_toggle2 -> [], xfer -> [RL_toggle2, RL_toggle1]]]
+order: [RL_toggle1, RL_toggle2, xfer]
+
+-----
+
+=== resources:
+[(r1.read, [(r1.read, 1)]),
+ (r1.write, [(if xfer_sel then r1.write r2__h256, 1), (r1.write NOT_r1___d2, 1)]),
+ (r2.read, [(r2.read, 1)]),
+ (r2.write, [(if NOT_xfer_sel___d5 then r2.write r1__h225, 1), (r2.write NOT_r2___d4, 1)]),
+ (w.whas, [(w.whas, 1)]),
+ (w.wset, [(w.wset r2__h256, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_xfer CF [RDY_xfer, xfer], xfer C xfer]
+[]
+[(xfer, [(Left RL_toggle1), (Left RL_toggle2)])]
+[]
+
+-----
+
+Schedule dump file created: mkSplitIf2_Test.sched
+=== Generated schedule for mkSplitIf2_Test ===
+
+Method schedule
+---------------
+Method: xfer
+Ready signal: w.whas && (! 1'd1) && (! 1'd1)
+Conflicts: xfer
+ 
+Rule schedule
+-------------
+Rule: toggle1
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: toggle2
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: toggle1, toggle2, xfer
+
+===============================================
+Warning: "SplitIf2.bsv", line 6, column 8: (G0022)
+  According to the generated schedule, method `xfer' is never ready.
+Verilog file created: mkSplitIf2_Test.v
+code generation for sysSplitIf2 starts
+=== schedule:
+parallel: [esposito: [RL_toggleDir -> [], RL_r -> [], RL_incr -> [], RL_done -> []]]
+order: [RL_r, RL_toggleDir, RL_done, RL_incr]
+
+-----
+
+=== resources:
+[(count.read, [(count.read, 1)]),
+ (count.write, [(count.write count_PLUS_1___d5, 1)]),
+ (dir.read, [(dir.read, 1)]),
+ (dir.write, [(dir.write NOT_dir___d2, 1)]),
+ (test.RDY_xfer, [(test.RDY_xfer, 1)]),
+ (test.xfer, [(test.xfer dir__h208, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysSplitIf2.sched
+=== Generated schedule for sysSplitIf2 ===
+
+Rule schedule
+-------------
+Rule: toggleDir
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: r
+Predicate: test.RDY_xfer
+Blocking rules: (none)
+ 
+Rule: incr
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: done
+Predicate: count == 4'd15
+Blocking rules: (none)
+ 
+Logical execution order: r, toggleDir, done, incr
+
+===========================================
+Verilog file created: sysSplitIf2.v
+All packages are up to date.

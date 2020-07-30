@@ -1,0 +1,57 @@
+checking package dependencies
+compiling BypassReg.bsv
+code generation for sysBypassReg starts
+=== schedule:
+parallel: [esposito: [_write -> [], _read -> [], RL_the_r_propagate -> []]]
+order: [_write, _read, RL_the_r_propagate]
+
+-----
+
+=== resources:
+[(the_r_the_r.read, [(the_r_the_r.read, 1)]),
+ (the_r_the_r.write, [(the_r_the_r.write the_r_the_rw_wget____d2, 1)]),
+ (the_r_the_rw.wget, [(the_r_the_rw.wget, 1)]),
+ (the_r_the_rw.whas, [(the_r_the_rw.whas, 1)]),
+ (the_r_the_rw.wset, [(the_r_the_rw.wset _write_1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY__read CF [RDY__read, _read, _write],
+ RDY__write CF [RDY__read, RDY__write, _read, _write],
+ _read CF _read,
+ _write SBR _read,
+ _write C _write]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: sysBypassReg.sched
+=== Generated schedule for sysBypassReg ===
+
+Method schedule
+---------------
+Method: _write
+Ready signal: True
+Sequenced before (restricted): _read
+Conflicts: _write
+ 
+Method: _read
+Ready signal: True
+Conflict-free: _read
+Sequenced after (restricted): _write
+ 
+Rule schedule
+-------------
+Rule: the_r_propagate
+Predicate: the_r_the_rw.whas
+Blocking rules: (none)
+ 
+Logical execution order: _write, _read, the_r_propagate
+
+============================================
+Verilog file created: sysBypassReg.v
+All packages are up to date.

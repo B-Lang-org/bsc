@@ -1,0 +1,10 @@
+package StringKindSpecificToPoly where
+
+data (Foo :: $ -> *) s = Foo
+
+a :: Foo "a"
+a = Foo
+
+b :: Foo a
+b = a
+

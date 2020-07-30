@@ -1,0 +1,53 @@
+package Case(sysCase) where
+import ActionSeq
+import Vector
+import Loop
+
+case1 :: Bit 3 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8
+case1 x d r1 r2 r3 r4 r5 r6 r7 =
+	case x of
+	1 -> r1
+	2 -> r2
+	3 -> r3
+	4 -> r4
+	5 -> r5
+	6 -> r6
+	7 -> r7
+	_ -> d
+case2 :: Bit 10 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8 -> Bit 8
+case2 x d r1 r2 r3 r4 r5 r6 r7 =
+	case x of
+	101 -> r1
+	202 -> r2
+	303 -> r3
+	404 -> r4
+	505 -> r5
+	606 -> r6
+	707 -> r7
+	_ -> d
+
+as :: Action -> ActionList 1
+as a = a :> nil
+
+{-# verilog sysCase #-}
+sysCase :: Module Empty
+sysCase =
+    module
+	x1 :: Reg (Bit 8) <- mkReg 1
+	x2 :: Reg (Bit 8) <- mkReg 2
+	x3 :: Reg (Bit 8) <- mkReg 3
+	x4 :: Reg (Bit 8) <- mkReg 4
+	x5 :: Reg (Bit 8) <- mkReg 5
+	x6 :: Reg (Bit 8) <- mkReg 6
+	x7 :: Reg (Bit 8) <- mkReg 7
+	x8 :: Reg (Bit 8) <- mkReg 8
+	b3 :: Reg (Bit 3) <- mkRegU
+	b10 :: Reg (Bit 10) <- mkRegU
+	test1 :: ActionSeq <- for b3 0 7 $ as $ displayHex (( case1 b3 x1 x2 x3 x4 x5 x6 x7 x8) :: Bit 8)
+	test2 :: ActionSeq <- for b10 0 1023 $ as $ displayHex (( case2 b10 x1 x2 x3 x4 x5 x6 x7 x8) :: Bit 8)
+	prologue :: ActionSeq <- actionSeq $ displayHex (0 :: Bit 8) :> nil
+	epilogue :: ActionSeq <- actionSeq $ (do {t <- $time; $display "%t" t;}) :> $finish 0 :> nil
+	test :: ActionSeq <- seqOfActionSeq $ prologue :> test1 :> test2 :> epilogue :> nil
+        rules
+	    when True
+	     ==> test.start

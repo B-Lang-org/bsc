@@ -1,0 +1,69 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_one_cold_assert_vunit (assert_one_cold_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_ONE_COLD_XZ_P is always (
+          (reset_n = '1') and (xzcheck_enable = 1) -> not(isunknown(test_expr))); 
+
+  property ASSERT_ONE_COLD_P is always (
+          ( (reset_n = '1') and (not(isunknown(test_expr))) ) -> 
+          ( (onehot(not(test_expr))) or ( (inactive < 2) and (test_expr = ( width-1 downto 0 => inactive_val)) ) ) ); -- 2 is same as `OVL_ONE_COLD
+
+  A_ASSERT_ONE_COLD_XZ_P:
+  assert ASSERT_ONE_COLD_XZ_P
+  report "VIOLATION: ASSERT_ONE_COLD Checker Fires : test_expr contains X or Z";
+
+  A_ASSERT_ONE_COLD_P:
+  assert ASSERT_ONE_COLD_P
+  report "VIOLATION: ASSERT_ONE_COLD Checker Fires : Test expression contains more or less than 1 deasserted bits";
+
+}
+
+vunit assert_one_cold_assume_vunit (assert_one_cold_assume)
+{
+  default clock is rose(clk);
+
+  property ASSERT_ONE_COLD_XZ_P is always (
+          ( (reset_n = '1') and (xzcheck_enable = 1) ) -> not(isunknown(test_expr)));
+
+  property ASSERT_ONE_COLD_P is always (
+          ( (reset_n = '1') and (not(isunknown(test_expr))) ) ->
+          ( (onehot(not(test_expr))) or ( (inactive < 2) and (test_expr = ( width-1 downto 0 => inactive_val)) ) ) ); -- 2 is same as `OVL_ONE_COLD
+ 
+  M_ASSERT_ONE_COLD_XZ_P:
+  assume ASSERT_ONE_COLD_XZ_P;
+  
+  M_ASSERT_ONE_COLD_P:
+  assume ASSERT_ONE_COLD_P;
+
+}
+
+vunit assert_one_cold_cover_vunit (assert_one_cold_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_test_expr_change:
+  cover {(OVL_COVER_SANITY_ON = OVL_COVER_SANITY or OVL_COVER_SANITY_ON = OVL_COVER_ALL) and (prev(reset_n) = '1') 
+	 and (reset_n = '1') and (test_expr /= prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_ONE_COLD Checker: test_expr_change covered";
+
+  cover_test_expr_all_zeros:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and (reset_n = '1') 
+	and (inactive = 0) and rose(test_expr = (width-1 downto 0 => inactive_val))} -- 0 for inactive is same as `OVL_ALL_ZEROS
+  report "COVERAGE REPORT : ASSERT_ONE_COLD Checker: test_expr_all_zeros covered";
+
+  cover_test_expr_all_ones:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and (reset_n = '1') 
+	and (inactive = 1) and rose(test_expr = (width-1 downto 0 => inactive_val))} -- 1 for inactive is same as `OVL_ALL_ONES
+  report "COVERAGE REPORT : ASSERT_ONE_COLD Checker: test_expr_all_ones covered";
+
+  cover_all_one_colds_checked:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and (reset_n = '1') 
+	 and rose(one_colds_checked = (width-1 downto 0 => '0'))}
+  report "COVERAGE REPORT: ASSERT_ONE_COLD Checker: all_one_colds_checked covered";
+ 
+}
+

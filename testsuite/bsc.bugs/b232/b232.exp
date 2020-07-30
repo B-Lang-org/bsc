@@ -1,0 +1,5 @@
+if {$vtest == 1} {
+  compile_verilog_pass Design.bs mkDesign "-remove-unused-modules"
+  # The verilog should not mention the removed state "nextState" (or its ports)
+  find_n_strings mkDesign.v nextState 0
+}

@@ -1,0 +1,12 @@
+checking package dependencies
+compiling StringKindPhantomMismatch.bs
+Error: "StringKindPhantomMismatch.bs", line 9, column 4: (T0020)
+  Type error at:
+    a
+
+  Expected type:
+    StringKindPhantomMismatch.Foo "b"
+
+  Inferred type:
+    StringKindPhantomMismatch.Foo "a"
+

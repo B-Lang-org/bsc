@@ -1,0 +1,20 @@
+data MOD_sysMethodReturn_ATaskValue = MOD_sysMethodReturn_ATaskValue { };
+
+ctor_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue;
+ctor_sysMethodReturn_ATaskValue =
+    MOD_sysMethodReturn_ATaskValue { };
+
+dim_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue -> MOD_sysMethodReturn_ATaskValue -> Bool;
+dim_sysMethodReturn_ATaskValue =
+    (\ (mod1 :: MOD_sysMethodReturn_ATaskValue) ->
+     (\ (mod2 :: MOD_sysMethodReturn_ATaskValue) -> True));
+
+meth_m_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue -> (Bool, MOD_sysMethodReturn_ATaskValue, Bit #64);
+meth_m_sysMethodReturn_ATaskValue =
+    (\ (state0 :: MOD_sysMethodReturn_ATaskValue) ->
+     let { (def_m__avValue1 :: Bit #64) = (primAny :: Bit #64) }
+     in mktuple True state0 def_m__avValue1);
+
+meth_RDY_m_sysMethodReturn_ATaskValue :: MOD_sysMethodReturn_ATaskValue -> Bool;
+meth_RDY_m_sysMethodReturn_ATaskValue =
+    (\ (state0 :: MOD_sysMethodReturn_ATaskValue) -> True);

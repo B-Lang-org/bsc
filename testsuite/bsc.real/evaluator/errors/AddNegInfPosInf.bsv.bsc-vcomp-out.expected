@@ -1,0 +1,10 @@
+checking package dependencies
+compiling AddNegInfPosInf.bsv
+code generation for sysAddNegInfPosInf starts
+Error: "AddNegInfPosInf.bsv", line 8, column 22: (G0113)
+  An addition or subtraction operator attempted to combine positive and
+  negative infinity during elaboration.
+  During elaboration of the body of rule `r' at "AddNegInfPosInf.bsv", line
+  10, column 10.
+  During elaboration of `sysAddNegInfPosInf' at "AddNegInfPosInf.bsv", line 4,
+  column 8.

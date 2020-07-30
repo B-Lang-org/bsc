@@ -1,0 +1,7 @@
+package NotMethod() where
+
+import Displayable
+
+-- write is not a method of Displayable
+instance Displayable String where
+  write a = $display a

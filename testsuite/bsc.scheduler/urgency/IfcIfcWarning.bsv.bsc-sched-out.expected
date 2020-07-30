@@ -1,0 +1,44 @@
+checking package dependencies
+compiling IfcIfcWarning.bsv
+code generation for sysIfcIfcWarning starts
+=== schedule:
+parallel: [esposito: [bar -> [], baz -> []]]
+order: [bar, baz]
+
+-----
+
+=== resources:
+[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h69, 1), (the_r.write x__h85, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_bar CF [RDY_bar, RDY_baz, bar, baz],
+ RDY_baz CF [RDY_baz, bar, baz],
+ bar C [bar, baz],
+ baz C baz]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: sysIfcIfcWarning.sched
+=== Generated schedule for sysIfcIfcWarning ===
+
+Method schedule
+---------------
+Method: bar
+Ready signal: True
+Conflicts: bar, baz
+ 
+Method: baz
+Ready signal: True
+Conflicts: bar, baz
+ 
+Logical execution order: bar, baz
+
+================================================
+Verilog file created: sysIfcIfcWarning.v
+All packages are up to date.

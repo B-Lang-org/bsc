@@ -1,0 +1,5 @@
+package Expr_Where () where
+
+x :: Bool
+x = _ where v = True
+

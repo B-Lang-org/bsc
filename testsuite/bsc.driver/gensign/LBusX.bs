@@ -1,0 +1,27 @@
+package LBusX (
+  LbAddr, mkLbLeaf
+	     ) where
+
+type LBSModule sa sd = Module (LBSItem sa sd)
+
+interface LBSReg sa sd =
+    lbsAddr :: LbAddr sa             -- address of the register
+    lbsSet  :: Bit sd -> Action      -- set method
+    lbsGet  :: ActionValue (Bit sd)  -- get method
+
+interface IntFlag sd =
+    flag :: Bit 1
+
+data LBSItem sa sd = Rg (LBSReg sa sd) | Flg (IntFlag sd)
+
+data LbAddr sa = LbAddr (Bit sa)
+    deriving (Literal, Eq, Bits)
+
+-- LOCAL BUS NODES
+  
+mkLbLeaf :: LBSModule sa sd -> Module (Empty)
+mkLbLeaf lm =
+  module
+    let x :: (i, LBSItem sa sd) =_ 
+    interface 
+      (_)

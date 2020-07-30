@@ -1,0 +1,11 @@
+Original List:
+ 0
+ 1
+ 2
+ 0
+ 1
+Drops Tail Segment with elements < 2. New List:
+ 0
+ 1
+ 2
+Simulation Passes

@@ -1,0 +1,33 @@
+
+package IfcUpd where
+
+import DefaultValue
+
+interface Test =
+  a :: UInt 16
+  b :: Bool
+ deriving (FShow)
+
+instance DefaultValue Test where
+  defaultValue =
+    interface Test
+      a = 17
+      b = False
+
+foo :: Test
+foo =
+  let base = _
+  in base { a = 42; b = True; }
+
+bar :: Test
+bar =
+  let base = defaultValue
+  in base { b = True; }
+
+sysIfcUpd :: Module Empty
+sysIfcUpd = module
+  rules
+    when True ==> do
+      $display (fshow foo)
+      $display (fshow bar)
+      $finish

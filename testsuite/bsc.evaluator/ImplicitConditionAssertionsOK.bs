@@ -1,0 +1,13 @@
+package ImplicitConditionAssertionsOK(sysImplicitConditionAssertionsOK) where
+
+-- Register update has no implicit conditions.
+-- Expect the assertion to hold.
+
+sysImplicitConditionAssertionsOK :: Module Empty
+sysImplicitConditionAssertionsOK =
+  module
+    r :: Reg Bool
+    r <- mkRegU
+    rules
+        {-# ASSERT no implicit conditions #-}
+        "bogus": when True ==> r := not r

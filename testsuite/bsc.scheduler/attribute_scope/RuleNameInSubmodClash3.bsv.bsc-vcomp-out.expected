@@ -1,0 +1,9 @@
+checking package dependencies
+compiling RuleNameInSubmodClash3.bsv
+code generation for sysRuleNameInSubmodClash3 starts
+Error: "RuleNameInSubmodClash3.bsv", line 11, column 36: (G0054)
+  Rule `r' was referenced in a rule attribute before it was defined.
+  During elaboration of `s' at "RuleNameInSubmodClash3.bsv", line 32, column
+  10.
+  During elaboration of `sysRuleNameInSubmodClash3' at
+  "RuleNameInSubmodClash3.bsv", line 20, column 8.

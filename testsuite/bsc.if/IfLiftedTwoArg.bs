@@ -1,0 +1,16 @@
+package IfLiftingTwoArg(sysIfLiftingTwoArg) where
+
+-- Lifting of if-branches: `b.set False' and `b.set True' on two sides
+-- of the `if' should be lifted out to `b.set (nosplitIf a False True)'
+
+import RegFile 
+
+sysIfLiftingTwoArg :: Module Empty
+sysIfLiftingTwoArg =
+  module
+    a :: Reg Bool
+    a <- mkRegU
+    b :: RegFile (Bit 5) (Int 32) <- mkRegFileFull
+    rules
+        when True ==> b.upd (if a then 9 else 12) (if a then 17 else 19)
+

@@ -1,0 +1,5 @@
+compile_fail EBadModuleInterface.bs
+compare_file EBadModuleInterface.bs.bsc-out
+
+compile_fail EBadModuleInterface1.bs
+compare_file EBadModuleInterface1.bs.bsc-out

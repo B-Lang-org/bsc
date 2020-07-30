@@ -1,0 +1,66 @@
+package Bug675_PrimUpdateRangeFn where
+
+data (ListNN :: # -> * -> *) n a = NN (List a) deriving (Eq)
+
+instance (Bits a sa, Mul n sa nsa) => Bits (ListNN n a) nsa
+  where
+    pack (NN bs) = flatN 0 (map1 pack bs)
+    unpack bs = NN (map1 unpack (grabN 0 (valueOf n * valueOf sa) bs))
+
+flatN :: Integer -> List (Bit k) -> Bit m
+flatN n Nil = 0
+flatN n (Cons b bs) = b[(valueOf k - 1) : 0] << (n * valueOf k) | flatN (n+1) bs
+
+grabN :: Integer -> Integer -> Bit m -> List (Bit k)
+grabN i n bs =
+    if i >= n then
+	Nil
+    else
+	letseq i' = i + valueOf k
+	       x = bs[(i'-1) : i]
+	in  Cons x (grabN i' n bs)
+
+map :: (a -> b) -> ListNN n a -> ListNN n b
+map f (NN xs) = NN (map1 f xs)
+
+map1 :: (a -> b) -> List a -> List b
+map1 f Nil = Nil
+map1 f (Cons x xs) = Cons (f x) (map1 f xs)
+
+primUpdateRangeFn :: Bit vec_size_t -> Nat -> Nat -> Bit splice_size_t
+                  -> Bit vec_size_t
+primUpdateRangeFn original_bits high low spliced_bits =
+    let
+	downto :: Nat -> Nat -> List Nat
+        downto n m = if (n<m) then Nil else (Cons n (downto (n-1) m))
+
+        append :: List a -> List a -> List a
+        append Nil ys = ys
+        append (Cons x xs) ys = Cons x (append xs ys)
+
+        replicate :: Nat -> some_t -> List some_t
+        replicate n c = map1 (const c) (downto n 1)
+
+        zipWith3 :: (a -> b -> c -> d) -> List a -> List b -> List c -> List d
+        zipWith3 f (Cons x xs) (Cons y ys) (Cons z zs) =
+            Cons (f x y z) (zipWith3 f xs ys zs)
+        zipWith3 f _ _ _ = Nil
+
+        to_list :: ListNN num_t val_t -> List val_t
+        to_list (NN list) = list
+        to_list_n :: List val_t -> ListNN len_t val_t
+        to_list_n list = NN list
+
+        err = error "primUpdateRangeFn"
+
+        vec_size = fromInteger (valueOf vec_size_t)
+
+        spliced_vector :: ListNN splice_size_t (Bit 1) = unpack spliced_bits
+
+	spliced_list :: List (Bit 1)
+        spliced_list =
+            append (replicate ((vec_size - 1) - high) err)
+                   (to_list spliced_vector)
+
+    in
+	pack (to_list_n spliced_list) 

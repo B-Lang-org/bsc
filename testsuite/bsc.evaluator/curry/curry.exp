@@ -1,0 +1,22 @@
+compile_object_pass IfCurry.bsv
+
+compile_object_pass MessageCurry.bsv
+if { $ctest == 1 } {
+compare_file MessageCurry.bsv.bsc-ccomp-out
+}
+
+compile_object_pass WarningCurry.bsv
+if { $ctest == 1 } {
+compare_file WarningCurry.bsv.bsc-ccomp-out
+}
+
+compile_object_fail_error ErrorCurry.bsv S0015
+
+compile_verilog_pass WhenCurry.bsv
+compare_verilog mkWhenCurry.v
+
+compile_object_pass ArrayCurry.bsv
+compile_object_pass SeqCurry.bsv
+
+compile_verilog_pass IBMBug.bsv
+compile_verilog_pass SeqBug.bsv

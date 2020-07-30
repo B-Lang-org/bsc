@@ -1,0 +1,84 @@
+# Test that an empty module compiles, links, and sims
+# (and doesn't, say, segfault due to unused clocks being filtered out)
+# Test only Bluesim and give a number of cycles to run
+test_c_veri_bsv_multi_options EmptyModule sysEmptyModule {} {} {} {} {} 1 0 {} {-c {sim step 17; puts [sim time]; puts [sim clock]}}
+
+# Test RegFileLoad support for wide values
+test_c_veri_bsv WideRF
+
+# Test wide data operations in scheduling
+test_c_veri_bsv WideSched
+
+# Test support for a child module with two input clocks in the same domain
+# but different gates
+test_c_veri_bsv SameFamily
+
+# Test that we generate correct code for the wide method port in this testcase
+if {$ctest == 1} {
+compile_object_pass WideMethod.bsv mkTb
+link_objects_pass mkTb.ba mkTb
+}
+
+# Test parsing of memory file with CRs (ala Windows)
+test_c_veri_bsv WindowsRF
+
+# Regress a code generation bug
+test_c_veri_bsv MulTest
+
+# Regress a code generation bug
+test_c_veri_bsv SignedWideLiteral
+
+# Regress a primitive op implementation bug
+test_c_veri_bsv ArithShift
+
+# Make sure that we catch the use of a module argument or parameter at
+# the top-level.
+if {$ctest == 1} {
+compile_object_pass ModuleArg.bsv sysModuleArg
+link_objects_fail_error sysModuleArg.ba sysModuleArg G0099
+
+compile_object_pass ModuleParam.bsv sysModuleParam
+link_objects_fail_error sysModuleParam.ba sysModuleParam G0099
+}
+
+# Test sparse RegFileLoad support for very large RegFiles
+test_c_only_bsv SparseRF
+
+# Test that we correctly handle a renamed default clock
+test_c_only_bsv ClkTest
+
+# Test that we generate correct code for a module with
+# multiple identically named defs in different instances,
+# only some of which are inlined into the schedule function.
+if {$ctest == 1} {
+compile_object_pass GenerateTest3.bsv mkGenerateTest3
+link_objects_pass mkGenerateTest3.ba mkGenerateTest3
+}
+
+# Test that we generate correct code for renaming a
+# wide method port.
+if {$ctest == 1} {
+compile_object_pass Bug.bsv mkBug
+link_objects_pass mkBug.ba mkBug
+}
+
+# Test that wide module argument ports get initialized (Bug #1611)
+test_c_veri_bsv WideModArgPortTest
+# Test that there were no warnings during C++ compilation
+if {$ctest == 1} {
+compare_file [make_bsc_ccomp_output_name sysWideModArgPortTest]
+}
+
+# Test a bug in always-enabled ActionValue method codegen
+if {$ctest == 1} {
+compile_object_pass AlwaysEnabledAV.bsv
+link_objects_pass {} sysAlwaysEnabledAV
+}
+
+# Test a bug in ActionValue method codegen when the return value is
+# guarded by a reset (is an alternate fix for the previous test case, too)
+if {$ctest == 1} {
+compile_object_pass AVMethBDPIWithReset.bsv
+copy c_func.c.keep c_func.c
+link_objects_pass {} sysAVMethBDPIWithReset {c_func.c}
+}

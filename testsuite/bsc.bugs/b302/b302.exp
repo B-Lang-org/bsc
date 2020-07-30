@@ -1,0 +1,6 @@
+
+## check that parenthesis are not added when not needed. 
+#  Specifically the add operations
+
+compile_verilog_pass Design.bsv
+compare_verilog mkDesign.v

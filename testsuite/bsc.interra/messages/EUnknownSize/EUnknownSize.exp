@@ -1,0 +1,5 @@
+compile_fail_error EUnknownSize.bs T0035
+compare_file EUnknownSize.bs.bsc-out
+
+compile_fail_error EUnknownSize2.bs T0035
+compare_file EUnknownSize2.bs.bsc-out

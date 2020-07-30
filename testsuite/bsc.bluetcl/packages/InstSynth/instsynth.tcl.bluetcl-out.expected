@@ -1,0 +1,20 @@
+Welcome to Blueshell
+Version: 2008.06.C; Date: 2008-06-19; Revision 14332
+
+Typeclass MakeInst_mkFIFO, with member mkFIFO_Synth has been defined in: FIFO.include.bsv
+replace modules "mkFIFO"  with "mkFIFO_Synth"
+and add proviso to containing polymorphic modules:  "MakeInst_mkFIFO #( FIFO::FIFO#(a))"
+
+
+Typeclass MakeInst_mkSizedFIFO, with member mkSizedFIFO_Synth has been defined in: FIFO.include.bsv
+replace modules "mkSizedFIFO"  with "mkSizedFIFO_Synth"
+and add proviso to containing polymorphic modules:  "MakeInst_mkSizedFIFO #( FIFO::FIFO#(a))"
+
+Instance (FIFO#(int)) for Typeclass MakeInst_mkFIFO, has been added to: FIFO.include.bsv
+
+Typeclass MakeInst_mkFIFOCount, with member mkFIFOCount_Synth has been defined in: FIFOLevel.include.bsv
+replace modules "mkFIFOCount"  with "mkFIFOCount_Synth"
+and add proviso to containing polymorphic modules:  "MakeInst_mkFIFOCount #( FIFOLevel::FIFOCountIfc#(a_type, fifoDepth))"
+
+Instance (FIFOCountIfc#(int, 10)) for Typeclass MakeInst_mkFIFOCount, has been added to: FIFOLevel.include.bsv
+Instance (FIFOCountIfc#( int, 11)) for Typeclass MakeInst_mkFIFOCount, has been added to: FIFOLevel.include.bsv

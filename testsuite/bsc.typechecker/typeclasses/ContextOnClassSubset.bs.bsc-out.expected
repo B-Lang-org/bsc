@@ -1,0 +1,26 @@
+checking package dependencies
+compiling ContextOnClassSubset.bs
+=== internal:
+IPackage ContextOnClassSubset
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+ContextOnClassSubset.ContextOnClassSubset.Foo~Prelude.Bit~32~Prelude.Bit~16~Prelude.Bit~8 ::
+  ContextOnClassSubset.Foo (Prelude.Bit 32) (Prelude.Bit 16) (Prelude.Bit 8)
+ContextOnClassSubset.ContextOnClassSubset.Foo~Prelude.Bit~32~Prelude.Bit~16~Prelude.Bit~8 =
+  let _bar :: Prelude.Bit 32 -> Prelude.Bit 16 -> Prelude.Bit 8
+      _bar = PrimBuildUndefined ·(Prelude.Bit 32 -> Prelude.Bit 16 -> Prelude.Bit 8) _ 1
+  in  ContextOnClassSubset.Foo
+	·(Prelude.Bit 32)
+	·(Prelude.Bit 16)
+	·(Prelude.Bit 8)
+	_bar
+	(Prelude.Prelude.Literal~Prelude.Bit~n= ·16)
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

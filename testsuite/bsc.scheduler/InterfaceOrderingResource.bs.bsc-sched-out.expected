@@ -1,0 +1,43 @@
+checking package dependencies
+compiling InterfaceOrderingResource.bs
+code generation for sysInterfaceOrderingResource starts
+Warning: "InterfaceOrderingResource.bs", line 10, column 0: (G0010)
+  Rule "act" was treated as more urgent than "write". Conflicts:
+    "act" cannot fire before "write": calls to r.write vs. r.read
+    "write" cannot fire before "act": calls to r.write vs. r.read
+=== schedule:
+parallel: [esposito: [act -> [], RL_write -> [act]]]
+order: [act, RL_write]
+
+-----
+
+=== resources:
+[(r.read, [(r.read, 1)]), (r.write, [(r.write r__h135, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_act CF [RDY_act, act], act C act] [] [] []
+
+-----
+
+Schedule dump file created: sysInterfaceOrderingResource.sched
+=== Generated schedule for sysInterfaceOrderingResource ===
+
+Method schedule
+---------------
+Method: act
+Ready signal: True
+Conflicts: act
+ 
+Rule schedule
+-------------
+Rule: write
+Predicate: True
+Blocking rules: act
+ 
+Logical execution order: act, write
+
+============================================================
+Verilog file created: sysInterfaceOrderingResource.v
+All packages are up to date.

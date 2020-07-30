@@ -1,0 +1,75 @@
+data MOD_sysMergeIf =
+    MOD_sysMergeIf
+	{ inst_a__sysMergeIf :: MOD_RegN #17
+	, inst_b__sysMergeIf :: MOD_RegN #17
+	, inst_c__sysMergeIf :: MOD_RegN #17
+	, inst_s1__sysMergeIf :: MOD_RegN #1
+	, inst_s2__sysMergeIf :: MOD_RegN #1
+	, inst_s3__sysMergeIf :: MOD_RegN #1
+	, inst_f1__sysMergeIf :: MOD_FIFO2 #17
+	, inst_f2__sysMergeIf :: MOD_FIFO2 #17
+	, inst_f3__sysMergeIf :: MOD_FIFO2 #17
+	};
+
+ctor_sysMergeIf :: MOD_sysMergeIf;
+ctor_sysMergeIf =
+    MOD_sysMergeIf
+	{ inst_a__sysMergeIf = ctor_RegN (17 :: Bit #32) (0 :: Bit #17)
+	, inst_b__sysMergeIf = ctor_RegN (17 :: Bit #32) (5 :: Bit #17)
+	, inst_c__sysMergeIf = ctor_RegN (17 :: Bit #32) (5 :: Bit #17)
+	, inst_s1__sysMergeIf = ctor_RegN (1 :: Bit #32) (0 :: Bit #1)
+	, inst_s2__sysMergeIf = ctor_RegN (1 :: Bit #32) (0 :: Bit #1)
+	, inst_s3__sysMergeIf = ctor_RegN (1 :: Bit #32) (0 :: Bit #1)
+	, inst_f1__sysMergeIf = ctor_FIFO2 (17 :: Bit #32) (1 :: Bit #32)
+	, inst_f2__sysMergeIf = ctor_FIFO2 (17 :: Bit #32) (1 :: Bit #32)
+	, inst_f3__sysMergeIf = ctor_FIFO2 (17 :: Bit #32) (1 :: Bit #32)
+	};
+
+dim_sysMergeIf :: MOD_sysMergeIf -> MOD_sysMergeIf -> Bool;
+dim_sysMergeIf =
+    (\ (mod1 :: MOD_sysMergeIf) ->
+     (\ (mod2 :: MOD_sysMergeIf) ->
+      (dim_RegN (inst_a__sysMergeIf mod1) (inst_a__sysMergeIf mod2))
+      && (dim_RegN (inst_b__sysMergeIf mod1) (inst_b__sysMergeIf mod2))
+      && (dim_RegN (inst_c__sysMergeIf mod1) (inst_c__sysMergeIf mod2))
+      && (dim_RegN (inst_s1__sysMergeIf mod1) (inst_s1__sysMergeIf mod2))
+      && (dim_RegN (inst_s2__sysMergeIf mod1) (inst_s2__sysMergeIf mod2))
+      && (dim_RegN (inst_s3__sysMergeIf mod1) (inst_s3__sysMergeIf mod2))
+      && (dim_FIFO2 (inst_f1__sysMergeIf mod1) (inst_f1__sysMergeIf mod2))
+      && (dim_FIFO2 (inst_f2__sysMergeIf mod1) (inst_f2__sysMergeIf mod2))
+      && (dim_FIFO2 (inst_f3__sysMergeIf mod1) (inst_f3__sysMergeIf mod2))));
+
+rule_RL_r1_sysMergeIf :: MOD_sysMergeIf -> (Bool, MOD_sysMergeIf, ());
+rule_RL_r1_sysMergeIf =
+    (\ (state0 :: MOD_sysMergeIf) ->
+     let { (def_s1__h521 :: Bit #1) = meth_read_RegN (inst_s1__sysMergeIf state0)
+	 ; (def_f3_i_notFull____d1 :: Bit #1) = meth_i_notFull_FIFO2 (inst_f3__sysMergeIf state0)
+	 ; (def_f2_i_notFull____d2 :: Bit #1) = meth_i_notFull_FIFO2 (inst_f2__sysMergeIf state0)
+	 ; (def_f1_i_notFull____d3 :: Bit #1) = meth_i_notFull_FIFO2 (inst_f1__sysMergeIf state0)
+	 ; (def_f2_i_notFull_AND_f1_i_notFull___d4 :: Bool) =
+	       (bitToBool def_f2_i_notFull____d2) && (bitToBool def_f1_i_notFull____d3)
+	 ; (def_f3_i_notFull_AND_f2_i_notFull_AND_f1_i_notFull___d5 :: Bool) =
+	       (bitToBool def_f3_i_notFull____d1) && def_f2_i_notFull_AND_f1_i_notFull___d4
+	 ; (act1 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (5 :: Bit #17) (inst_a__sysMergeIf state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysMergeIf) = state0 { inst_a__sysMergeIf = snd3 act1 }
+	 ; (act2 :: (Bool, MOD_FIFO2 #17, ())) = meth_enq_FIFO2 (13 :: Bit #17) (inst_f2__sysMergeIf state1)
+	 ; (guard2 :: Bool) = guard1 && (fst3 act2)
+	 ; (state2 :: MOD_sysMergeIf) = state1 { inst_f2__sysMergeIf = snd3 act2 }
+	 ; (act3 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (6 :: Bit #17) (inst_b__sysMergeIf state2)
+	 ; (guard3 :: Bool) = guard2 && (fst3 act3)
+	 ; (state3 :: MOD_sysMergeIf) = state2 { inst_b__sysMergeIf = snd3 act3 }
+	 ; (act4 :: (Bool, MOD_RegN #17, ())) = meth_write_RegN (7 :: Bit #17) (inst_c__sysMergeIf state0)
+	 ; (guard4 :: Bool) = fst3 act4
+	 ; (state4 :: MOD_sysMergeIf) = state0 { inst_c__sysMergeIf = snd3 act4 }
+	 ; (guard5 :: Bool) = if (bitToBool def_s1__h521) then guard3 else guard4
+	 ; (state5 :: MOD_sysMergeIf) = if (bitToBool def_s1__h521) then state3 else state4
+	 ; (act6 :: (Bool, MOD_FIFO2 #17, ())) = meth_enq_FIFO2 (22 :: Bit #17) (inst_f3__sysMergeIf state5)
+	 ; (guard6 :: Bool) = guard5 && (fst3 act6)
+	 ; (state6 :: MOD_sysMergeIf) = state5 { inst_f3__sysMergeIf = snd3 act6 }
+	 ; (act7 :: (Bool, MOD_FIFO2 #17, ())) = meth_enq_FIFO2 (12 :: Bit #17) (inst_f1__sysMergeIf state6)
+	 ; (guard7 :: Bool) = if (not (bitToBool def_s1__h521)) then guard6 && (fst3 act7) else guard6
+	 ; (state7 :: MOD_sysMergeIf) =
+	       if (not (bitToBool def_s1__h521)) then state6 { inst_f1__sysMergeIf = snd3 act7 } else state6
+	 }
+     in mktuple (def_f3_i_notFull_AND_f2_i_notFull_AND_f1_i_notFull___d5 && guard7) state7 ());

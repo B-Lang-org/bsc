@@ -1,0 +1,22 @@
+checking package dependencies
+compiling DummyInDeflValue.bs
+=== internal:
+IPackage DummyInDeflValue
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInDeflValue.dummyInDeflValue :: Prelude.Bit 12
+DummyInDeflValue.dummyInDeflValue =
+  let f :: \/(_tctyvar1004 :: *) . \/(_tctyvar1005 :: *) . _tctyvar1004 -> _tctyvar1005
+      f =
+	/\ (_tctyvar1004 :: *) .
+	/\ (_tctyvar1005 :: *) . \ (_a1000 :: _tctyvar1004) . PrimBuildUndefined ·_tctyvar1005 _ 1
+  in  f ·Prelude.Bool ·(Prelude.Bit 12) (Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

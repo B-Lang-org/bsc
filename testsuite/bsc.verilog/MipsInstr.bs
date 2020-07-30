@@ -1,0 +1,140 @@
+package MipsInstr(
+	UInt32, UInt26, UInt16, UInt5,
+	CPUReg(..), Instruction(..), Op(..), Funct(..), REGIMM(..),
+	isImmInstr, isSpecialInstr, isREGIMMInstr, isCOPInstr, isJumpInstr
+	) where
+
+-------
+-- Bit fields found in instructions
+
+type UInt32 = Bit 32
+type UInt26 = Bit 26
+type UInt16 = Bit 16
+type UInt5  = Bit  5
+
+-------
+-- Registers
+data CPUReg
+	= Reg0  | Reg1  | Reg2  | Reg3  | Reg4  | Reg5  | Reg6  | Reg7
+	| Reg8  | Reg9  | Reg10 | Reg11 | Reg12 | Reg13 | Reg14 | Reg15
+	| Reg16 | Reg17 | Reg18 | Reg19 | Reg20 | Reg21 | Reg22 | Reg23
+	| Reg24 | Reg25 | Reg26 | Reg27 | Reg28 | Reg29 | Reg30 | Reg31
+	deriving (Bits, Eq, Bounded)
+
+-------
+-- The actual instructions
+data Instruction
+	= Immediate { op :: Op; rs :: CPUReg; rt :: CPUReg; imm :: UInt16; }
+	| Register  { rs :: CPUReg; rt :: CPUReg; rd :: CPUReg; sa :: UInt5; funct :: Funct; }
+	| RegImm    { rs :: CPUReg; op :: REGIMM; imm :: UInt16; }
+	| Jump      { op :: Op; target :: UInt26; }
+
+
+data Op 
+	= SPECIAL | REGIMM | J | JAL | BEQ | BNE | BLEZ | BGTZ
+	| ADDI | ADDIU | SLTI | SLTIU | ANDI | ORI | XORI | LUI
+	| COP0 | COP1 | COP2 | OP19 | BEQL | BNEL | BLEZL | BGTZL
+	| DADDIe | DADDIUe | LDLe | LDRe | OP28 | OP29 | OP30 | OP31
+	| LB | LH | LWL | LW | LBU | LHU | LWR | LWUe
+	| SB | SH | SWL | SW | SDLe | SDRe | SWR | CACHEd
+	| LL | LWC1 | LWC2 | OP51 | LLDe | LDC1 | LDC2 | LDe
+	| SC | SWC1 | SWC2 | OP59 | SCDe | SDC1 | SDC2 | SDe
+	deriving (Eq, Bits)
+
+
+data Funct
+	= SLL | F1 | SRL | SRA | SLLV | F5 | SRLV | SRAV
+	| JR | JALR | F10 | F11 | SYSCALL | BREAK | F14 | SYNC
+	| MFHI | MTHI | MFLO | MTLO | DSLLVe | F15 | DSRLVe | DSRAVe
+	| MULT | MULTU | DIV | DIVU | DMULTe | DMULTUe | DDIVe | DDIVUe
+	| ADD | ADDU | SUB | SUBU | AND | OR | XOR | NOR
+	| F40 | F41 | SLT | SLTU | DADDe | DADDUe | DSUBe | DSUBUe
+	| TGE | TGEU | TLT | TLTU | TEQ | F53 | TNE | F55
+	| DSLLe | F57 | DSRLe | DSRAe | DSLL32e | F61 | DSRL32e | DSRA32e
+        deriving (Eq, Bits)
+
+
+data REGIMM
+	= BLTZ | BGEZ | BLTZL | BGEZL | R4 | R5 | R6 | R7
+	| TGEI | TGEIU | TLTI | TLTIU | TEQI | R13 | TNEI | R15
+	| BLTZAL | BGEZAL | BLTZALL | BGEZALL | R20 | R21 | R22 | R23
+	| R24 | R25 | R26 | R27 | R28 | R29 | R30 | R31
+	deriving (Eq, Bits)
+
+{-
+data COPrs = MF | DMFe | CF | C3 | MT | DMTe | CT | C7
+	   | BC | C9 | C10 | C11 | C12 | C13 | C14 | C15
+	   deriving (Eq, Bits)
+
+data COPrt = BCF | BCT | BCFL | BCTL
+	   deriving (Eq, Bits)
+
+data CP0 = P0 | TLBR | TLBWI | P3 | P4 | P5 | TLBWR | P7
+	 | TLBP | P9 | P10 | P11 | P12 | P13 | P14 | P15
+	 | ...
+-}
+
+
+
+isImmInstr :: Bit (SizeOf Instruction) -> Bool
+isImmInstr bs = not (isSpecialInstr bs || isREGIMMInstr bs
+			|| isCOPInstr bs || isJumpInstr bs )
+
+isSpecialInstr :: Bit (SizeOf Instruction) -> Bool
+isSpecialInstr bs = bs[31:26] == (0::Bit 6)
+
+isREGIMMInstr :: Bit (SizeOf Instruction) -> Bool
+isREGIMMInstr bs = bs[31:26] == (1::Bit 6)
+
+isCOPInstr :: Bit (SizeOf Instruction) -> Bool
+isCOPInstr bs = bs[31:28] == (0b0100::Bit 4)
+
+isJumpInstr :: Bit (SizeOf Instruction) -> Bool
+isJumpInstr bs = isJumpOp (unpack bs[31:26])
+
+isJumpOp :: Op -> Bool
+isJumpOp J = True
+isJumpOp JAL = True
+isJumpOp _ = False
+
+
+-- Instruction decode
+
+instance Bits Instruction 32 where
+	-- The pack isn't really needed since we only decode, but it's
+	-- included for completeness.
+        pack (Immediate { op; rs; rt; imm }) =
+	    (pack op) ++ (pack rs) ++ (pack rt) ++ (pack imm);
+	pack (Register { rs; rt; rd; sa; funct }) =
+	    (pack SPECIAL) ++ (pack rs) ++ (pack rt) ++ (pack rd) ++
+	    (pack sa) ++ (pack funct)
+        pack (RegImm { rs; op; imm }) =
+	    (pack REGIMM) ++ (pack rs) ++ (pack op) ++ (pack imm)
+	pack (Jump { op; target }) = (pack op) ++ (pack target)
+
+        unpack bs
+            when isImmInstr bs = Immediate {
+                op = unpack bs[31:26];
+                rs = unpack bs[25:21];
+                rt = unpack bs[20:16];
+                imm = unpack bs[15:0];
+                }
+        unpack bs 
+            when isSpecialInstr bs = Register {
+                rs = unpack bs[25:21];
+                rt = unpack bs[20:16];
+                rd = unpack bs[15:11];
+                sa = unpack bs[10:6];
+		funct = unpack bs[5:0];
+                }
+        unpack bs 
+            when isREGIMMInstr bs = RegImm {
+                rs = unpack bs[25:21];
+                op = unpack bs[20:16];
+                imm = unpack bs[15:0];
+                }
+	unpack bs
+	    when isJumpInstr bs = Jump {
+	        op = unpack bs[31:26];
+	        target = unpack bs[25:0];
+		}

@@ -1,0 +1,5 @@
+if {$vtest == 1} {
+    compile_verilog_pass Case.bsv mkCase 
+    # The enable for the reg_a should be 1
+    find_n_strings mkCase.v "abc\$EN = 1'b1" 1
+}

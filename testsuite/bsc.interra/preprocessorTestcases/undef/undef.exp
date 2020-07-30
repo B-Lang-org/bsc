@@ -1,0 +1,20 @@
+compile_pass Undef_InsideMethod.bsv
+compare_file Undef_InsideMethod.bsv.bsc-out
+
+compile_pass Undef_InsideModule.bsv
+compare_file  Undef_InsideModule.bsv.bsc-out
+
+
+compile_pass Undef_InsideRule.bsv
+compare_file Undef_InsideRule.bsv.bsc-out
+
+
+compile_pass Undef_MacroUndef.bsv
+compare_file Undef_MacroUndef.bsv.bsc-out
+
+
+compile_fail Undef_NoMacroName.bsv
+compare_file Undef_NoMacroName.bsv.bsc-out
+
+compile_pass Undef_PackageLevel.bsv
+compare_file Undef_PackageLevel.bsv.bsc-out

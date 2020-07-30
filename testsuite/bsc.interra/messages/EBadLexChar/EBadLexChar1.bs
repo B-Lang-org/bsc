@@ -1,0 +1,49 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadLexChar1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Bad character in input" error (EBadLexChar)
+
+-- Error Message :bsc EBadLexChar1.bs 
+-- bsc: Compilation errors:
+-- "EBadLexChar1.bs", line 26, column 8, Bad character in input: '\''
+-----------------------------------------------------------------------
+package EBadLexChar1 (GCD(..), mkGCD) where
+
+import Int
+
+interface EBadLexChar1 =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+
+mkEBadLexChar1 :: Module GCD
+mkEBadLexChar1 =
+    module
+        ' :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0

@@ -1,0 +1,147 @@
+if {$vtest == 1} {
+
+# ----------
+
+# Test the inhigh property
+compile_verilog_pass InHigh.bsv {} {-dIOproperties}
+compare_file InHigh.bsv.bsc-vcomp-out
+# Comparing the file tests for more than just this:
+#find_n_strings_bug {InHigh.bsv.bsc-vcomp-out} \
+#                   {EN_start                       I     1 inhigh} 1
+#find_n_warning {InHigh.bsv.bsc-vcomp-out} G0015 3
+
+# ----------
+
+# Test input port props on a module argument
+
+# no use
+compile_verilog_pass InputArg_Unused.bsv {} {-dIOproperties}
+compare_file InputArg_Unused.bsv.bsc-vcomp-out
+
+# registered in one use
+compile_verilog_pass InputArg_OneReg.bsv {} {-dIOproperties}
+compare_file InputArg_OneReg.bsv.bsc-vcomp-out
+
+# registered in two uses
+compile_verilog_pass InputArg_TwoReg.bsv {} {-dIOproperties}
+compare_file InputArg_TwoReg.bsv.bsc-vcomp-out
+
+# registered in one use but not registered in another
+compile_verilog_pass InputArg_OneRegOneLogicReg.bsv {} {-dIOproperties}
+compare_file InputArg_OneRegOneLogicReg.bsv.bsc-vcomp-out
+
+# register in one use and unused in another (submod)
+# (this also tests for "unused" in the enable and data of the submod)
+compile_verilog_pass InputArg_OneRegOneUnused.bsv {} {-dIOproperties}
+compare_file InputArg_OneRegOneUnused.bsv.bsc-vcomp-out
+
+# concat with other values into a register
+compile_verilog_pass InputArg_ConcatReg.bsv {} {-dIOproperties}
+compare_file InputArg_ConcatReg.bsv.bsc-vcomp-out
+
+# extracted parts are registered (unused parts are ok)
+compile_verilog_pass InputArg_ExtractRegAndUnused.bsv {} {-dIOproperties}
+compare_file InputArg_ExtractRegAndUnused.bsv.bsc-vcomp-out
+
+# ----------
+
+# Test input port props on a method argument
+
+# unused method arg and method enable are tested above
+# (in InputArg_OneRegOneUnused)
+
+# registered in one use
+compile_verilog_pass MethodArg_OneReg.bsv {} {-dIOproperties}
+compare_file MethodArg_OneReg.bsv.bsc-vcomp-out
+
+# XXX fill in more cases, like for module argument
+
+# ----------
+
+# Test input clock gate props
+
+# unused
+# XXX
+
+# only used in a method RDY
+compile_verilog_pass InputGate_OnlyInMethodReady.bsv {} {-dIOproperties}
+compare_file InputGate_OnlyInMethodReady.bsv.bsc-vcomp-out
+
+# used by a submodule
+# XXX
+
+# used by an output clock?
+# XXX
+
+# ----------
+
+# Test output clock and reset
+
+compile_verilog_pass OutputClockAndReset.bsv {} {-dIOproperties}
+compare_file OutputClockAndReset.bsv.bsc-vcomp-out
+
+# ----------
+
+# Test output value port properties
+
+# const
+compile_verilog_pass MethodValue_Const.bsv {} {-dIOproperties}
+compare_file MethodValue_Const.bsv.bsc-vcomp-out
+
+# from register
+compile_verilog_pass MethodValue_OneReg.bsv {} {-dIOproperties}
+compare_file MethodValue_OneReg.bsv.bsc-vcomp-out
+
+# from logic (should have no prop)
+compile_verilog_pass MethodValue_Logic.bsv {} {-dIOproperties}
+compare_file MethodValue_Logic.bsv.bsc-vcomp-out
+
+# from extract of reg
+compile_verilog_pass MethodValue_ExtractReg.bsv {} {-dIOproperties}
+compare_file MethodValue_ExtractReg.bsv.bsc-vcomp-out
+
+# from concat of multiple regs
+compile_verilog_pass MethodValue_ConcatTwoReg.bsv {} {-dIOproperties}
+compare_file MethodValue_ConcatTwoReg.bsv.bsc-vcomp-out
+
+# from concat of reg and logic (should have no prop)
+compile_verilog_pass MethodValue_ConcatRegAndLogic.bsv {} {-dIOproperties}
+compare_file MethodValue_ConcatRegAndLogic.bsv.bsc-vcomp-out
+
+# from concat of reg and const (no prop?)
+compile_verilog_pass MethodValue_ConcatRegAndConst.bsv {} {-dIOproperties}
+compare_file MethodValue_ConcatRegAndConst.bsv.bsc-vcomp-out
+
+# ----------
+
+# Test argument and interface inout
+
+compile_verilog_pass InoutProps_ArgToIfc.bsv {} {-dIOproperties}
+compare_file InoutProps_ArgToIfc.bsv.bsc-vcomp-out
+
+compile_verilog_pass InoutProps_BVIArg.bsv {} {-dIOproperties}
+compare_file InoutProps_BVIArg.bsv.bsc-vcomp-out
+
+compile_verilog_pass InoutProps_BVIIfc.bsv {} {-dIOproperties}
+compare_file InoutProps_BVIIfc.bsv.bsc-vcomp-out
+
+compile_verilog_pass InoutProps_UnusedArg.bsv {} {-dIOproperties}
+compare_file InoutProps_UnusedArg.bsv.bsc-vcomp-out
+
+# Undefined inouts don't compile
+compile_verilog_fail_error InoutProps_UnusedIfc.bsv G0049
+
+# For this example, BSC will report that the inout is used, because
+# even though we've annotated a path through the module to an unused
+# ifc_inout, BSC doesn't know whether the port is otherwise used
+# inside the module, and thus can't conclude that it is unused.
+compile_verilog_pass InoutProps_UnusedArgBVI.bsv {} {-dIOproperties}
+compare_file InoutProps_UnusedArgBVI.bsv.bsc-vcomp-out
+
+# We can't instantiate an BVI without providing an argument,
+# so we don't have InoutProps_UnusedIfcBVI.
+
+# ----------
+
+}
+

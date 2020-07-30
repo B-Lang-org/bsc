@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EUnboundField1.bs
+Error: "EUnboundField1.bs", line 55, column 48: (T0138)
+  The expression does not have a field `First.a' because it is not a struct or
+  interface. Found type:
+    EUnboundField1.Keep

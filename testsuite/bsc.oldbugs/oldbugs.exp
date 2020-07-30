@@ -1,0 +1,51 @@
+# test cases to isolate older bsc bugs
+
+test_c_veri Bug122
+
+compile_verilog_pass Bug1120.bs sysBug1120
+compile_object_pass Bug1120.bs sysBug1120
+
+
+#correct aggressive or non-aggressive bubbling of implicit conditions
+compile_verilog_pass Bug1137.bs sysBug1137 "-no-aggressive-conditions -resource-off"
+#need to clear the .bo file or it will think it has already compiled to verilog
+erase Bug1137.bo
+compile_verilog_fail Bug1137.bs sysBug1137 "-aggressive-conditions -resource-off"
+
+
+
+#not interesting simulation output
+compile_verilog_pass Bug73.bs sysBug73
+compile_object_pass Bug73.bs sysBug73
+compile_verilog_pass Bug101.bs sysBug101
+compile_object_pass Bug101.bs sysBug101
+compile_verilog_pass Bug212.bs sysBug212
+compile_object_pass Bug212.bs sysBug212
+compile_verilog_pass Bug175.bs sysBug175
+compile_object_pass Bug175.bs sysBug175
+compile_verilog_pass Bug79.bs sysBug79
+compile_object_pass Bug79.bs sysBug79
+
+#superseded by explicit test case for Bug 262
+#.bo file evil workaround
+#erase Bug79.bo
+#compile_verilog_pass_bug Bug79.bs sysBug79 "-opt-undetermined-vals" 262
+#compile_object_pass_bug  Bug79.bs sysBug79 "-opt-undetermined-vals" 262
+
+#how to determine if there is a mux?
+compile_verilog_pass Bug185.bs sysBug185
+
+#demonstrating initialization
+compile_verilog_pass Bug1083.bs sysBug1083
+
+compile_verilog_pass Bug1109.bs sysBug1109
+
+compile_pass Bug85.bs
+compile_pass Bug38.bs
+
+compile_fail Bug105.bs
+compare_file Bug105.bs.bsc-out
+
+compile_pass Bug41.bs
+
+compile_verilog_pass Bug200.bs sysBug200 "-no-split-if"

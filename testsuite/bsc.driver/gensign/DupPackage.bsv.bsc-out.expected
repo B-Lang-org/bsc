@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DupPackage.bsv
+Error: "DupPackage.bsv", line 4, column 8: (T0122)
+  Duplicate export `Vector'

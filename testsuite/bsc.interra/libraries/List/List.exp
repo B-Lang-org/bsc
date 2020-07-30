@@ -1,0 +1,129 @@
+test_c_veri_bsv_multi All mkTestbench_All {} "mkTestbench_All.out.expected" 
+
+if {$ctest == 1} {
+compile_object_fail And.bsv mkTestbench_And
+compare_file And.bsv.bsc-ccomp-out
+}
+#link_objects_pass {"mkTestbench_And"} mkTestbench_And
+#sim_final_state mkTestbench_And 10010
+#compare_file "mkTestbench_And.final-state"
+
+test_c_veri_bsv_multi Any mkTestbench_Any {} "mkTestbench_Any.out.expected" 
+
+test_c_veri_bsv_multi Append mkTestbench_Append {} "mkTestbench_Append.out.expected" 
+
+test_c_veri_bsv_multi Concat mkTestbench_Concat {} "mkTestbench_Concat.out.expected" 
+
+test_c_veri_bsv_multi Drop mkTestbench_Drop {} "mkTestbench_Drop.out.expected" 
+
+test_c_veri_bsv_multi DropWhile mkTestbench_DropWhile {} "mkTestbench_DropWhile.out.expected" 
+
+test_c_veri_bsv_multi DropWhileRev mkTestbench_DropWhileRev {} "mkTestbench_DropWhileRev.out.expected" 
+
+test_c_veri_bsv_multi Elem mkTestbench_Elem {} "mkTestbench_Elem.out.expected" 
+
+test_c_veri_bsv_multi Equality mkTestbench_Equality {} "mkTestbench_Equality.out.expected" 
+
+test_c_veri_bsv_multi Filter mkTestbench_Filter {} "mkTestbench_Filter.out.expected" 
+
+test_c_veri_bsv_multi Fold mkTestbench_Fold {} "mkTestbench_Fold.out.expected" 
+
+test_c_veri_bsv_multi Foldl mkTestbench_Foldl {} "mkTestbench_Foldl.out.expected" 
+
+test_c_veri_bsv_multi Foldl1 mkTestbench_Foldl1 {} "mkTestbench_Foldl1.out.expected" 
+
+test_c_veri_bsv_multi Foldn mkTestbench_Foldn {} "mkTestbench_Foldn.out.expected" 
+
+test_c_veri_bsv_multi Foldr mkTestbench_Foldr {} "mkTestbench_Foldr.out.expected" 
+
+test_c_veri_bsv_multi Foldr1 mkTestbench_Foldr1 {} "mkTestbench_Foldr1.out.expected" 
+
+test_c_veri_bsv_multi Head mkTestbench_Head {} "mkTestbench_Head.out.expected" 
+
+test_c_veri_bsv_multi Init mkTestbench_Init {} "mkTestbench_Init.out.expected" 
+
+test_c_veri_bsv_multi JoinActions mkTestbench_JoinActions {} "mkTestbench_JoinActions.out.expected" 
+
+test_c_veri_bsv_multi JoinRules mkTestbench_JoinRules {} "mkTestbench_JoinRules.out.expected" 
+
+test_c_veri_bsv_multi Last mkTestbench_Last {} "mkTestbench_Last.out.expected" 
+
+test_c_veri_bsv_multi Length mkTestbench_Length {} "mkTestbench_Length.out.expected" 
+
+test_c_veri_bsv_multi Map mkTestbench_Map {} "mkTestbench_Map.out.expected" 
+
+test_c_veri_bsv_multi MapAccumL mkTestbench_MapAccumL {} "mkTestbench_MapAccumL.out.expected" 
+
+test_c_veri_bsv_multi MapAccumR mkTestbench_MapAccumR {} "mkTestbench_MapAccumR.out.expected" 
+
+test_c_veri_bsv_multi MapPairs mkTestbench_MapPairs {} "mkTestbench_MapPairs.out.expected" 
+
+test_c_veri_bsv_multi Mapn mkTestbench_Mapn {} "mkTestbench_Mapn.out.expected" 
+
+if {$ctest == 1} {
+compile_object_fail Null.bsv mkTestbench_Null
+compare_file Null.bsv.bsc-ccomp-out
+}
+#link_objects_pass {"mkTestbench_Null"} mkTestbench_Null
+#sim_final_state mkTestbench_Null 10010
+#compare_file "mkTestbench_Null.final-state"
+
+compile_verilog_pass OneHotSelect.bsv mkTestbench_OneHotSelect
+
+if {$ctest == 1} {
+compile_object_fail Or.bsv mkTestbench_Or
+compare_file Or.bsv.bsc-ccomp-out
+}
+#link_objects_pass {"mkTestbench_Or"} mkTestbench_Or
+#sim_final_state mkTestbench_Or 10010
+#compare_file "mkTestbench_Or.final-state"
+
+test_c_veri_bsv_multi PrimSelectability mkTestbench_PrimSelectability {} "mkTestbench_PrimSelectability.out.expected" 
+
+test_c_veri_bsv_multi Replicate mkTestbench_Replicate {} "mkTestbench_Replicate.out.expected" 
+
+test_c_veri_bsv_multi Reverse mkTestbench_Reverse {} "mkTestbench_Reverse.out.expected" 
+
+test_c_veri_bsv_multi Rotate mkTestbench_Rotate {} "mkTestbench_Rotate.out.expected" 
+
+test_c_veri_bsv_multi RotateR mkTestbench_RotateR {} "mkTestbench_RotateR.out.expected" 
+
+test_c_veri_bsv_multi Scanl mkTestbench_Scanl {} "mkTestbench_Scanl.out.expected" 
+
+test_c_veri_bsv_multi Scanr mkTestbench_Scanr {} "mkTestbench_Scanr.out.expected" 
+
+test_c_veri_bsv_multi Select mkTestbench_Select {} "mkTestbench_Select.out.expected" 
+
+test_c_veri_bsv_multi Sscanl mkTestbench_Sscanl {} "mkTestbench_Sscanl.out.expected" 
+
+test_c_veri_bsv_multi Sscanr mkTestbench_Sscanr {} "mkTestbench_Sscanr.out.expected" 
+
+test_c_veri_bsv_multi Tail mkTestbench_Tail {} "mkTestbench_Tail.out.expected" 
+
+test_c_veri_bsv_multi Take mkTestbench_Take {} "mkTestbench_Take.out.expected" 
+
+test_c_veri_bsv_multi TakeWhile mkTestbench_TakeWhile {} "mkTestbench_TakeWhile.out.expected" 
+
+test_c_veri_bsv_multi TakeWhileRev mkTestbench_TakeWhileRev {} "mkTestbench_TakeWhileRev.out.expected" 
+
+test_c_veri_bsv_multi Transpose mkTestbench_Transpose {} "mkTestbench_Transpose.out.expected" 
+
+test_c_veri_bsv_multi Unzip mkTestbench_Unzip {} "mkTestbench_Unzip.out.expected" 
+
+test_c_veri_bsv_multi Update mkTestbench_Update {} "mkTestbench_Update.out.expected" 
+
+test_c_veri_bsv_multi Upto mkTestbench_Upto {} "mkTestbench_Upto.out.expected" 
+
+test_c_veri_bsv_multi Zip1 mkTestbench_Zip1 {} "mkTestbench_Zip1.out.expected" 
+
+test_c_veri_bsv_multi Zip2 mkTestbench_Zip2 {} "mkTestbench_Zip2.out.expected" 
+
+test_c_veri_bsv_multi Zip3 mkTestbench_Zip3 {} "mkTestbench_Zip3.out.expected" 
+
+test_c_veri_bsv_multi Zip4 mkTestbench_Zip4 {} "mkTestbench_Zip4.out.expected" 
+
+test_c_veri_bsv_multi ZipWith mkTestbench_ZipWith {} "mkTestbench_ZipWith.out.expected" 
+
+test_c_veri_bsv_multi ZipWith3 mkTestbench_ZipWith3 {} "mkTestbench_ZipWith3.out.expected" 
+
+test_c_veri_bsv_multi ZipWith4 mkTestbench_ZipWith4 {} "mkTestbench_ZipWith4.out.expected" 

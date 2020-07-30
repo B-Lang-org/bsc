@@ -1,0 +1,14 @@
+checking package dependencies
+compiling RuleHier_ClockCrossRuleErr.bsv
+code generation for sysRuleHier_ClockCrossRuleErr starts
+Error: "RuleHier_ClockCrossRuleErr.bsv", line 18, column 9: (G0005)
+  The assertion `clock_crossing_rule' failed for rule `m1_m2_r'
+  because it has an implicit condition
+  During elaboration of rule `r' at "RuleHier_ClockCrossRuleErr.bsv", line 18,
+  column 9.
+  During elaboration of `m2' at "RuleHier_ClockCrossRuleErr.bsv", line 9,
+  column 8.
+  During elaboration of `m1' at "RuleHier_ClockCrossRuleErr.bsv", line 5,
+  column 8.
+  During elaboration of `sysRuleHier_ClockCrossRuleErr' at
+  "RuleHier_ClockCrossRuleErr.bsv", line 4, column 8.

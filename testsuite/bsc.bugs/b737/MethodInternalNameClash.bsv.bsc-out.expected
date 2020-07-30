@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "MethodInternalNameClash.bsv", line 8, column 16: (T0011)
+  Declaration of `getVal' conflicts with previous declaration at
+  "MethodInternalNameClash.bsv", line 7, column 20

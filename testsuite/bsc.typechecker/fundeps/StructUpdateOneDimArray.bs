@@ -1,0 +1,23 @@
+-- test of fundeps in expression being updated by field
+-- (tiExpr for struct update)
+
+package StructUpdateOneDimArray () where
+
+import List
+
+struct Bar =
+    field1 :: Bool
+    field2 :: Bool
+
+struct Foo =
+    field1 :: Bool
+    field2 :: Bool
+
+test :: Module Empty
+test =
+ module
+
+  let inbounds = map (const (Foo { field1 = False })) (upto 1 3)
+
+  let updateCounts n = (primSelectFn (getStringPosition "") inbounds n) { field1 = True }
+

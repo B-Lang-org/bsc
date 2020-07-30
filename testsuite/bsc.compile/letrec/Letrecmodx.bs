@@ -1,0 +1,21 @@
+package Letrecmodx(sysLetrecmodx) where
+
+import List
+
+-- sometimes function arguments are OK, sometimes not.
+-- It's generally unpredictable, due to whether rewriting
+-- into point-free form occurs.
+seven :: Integer
+seven = let evens :: Integer -> List Integer
+            evens x = cons x (map ((+) 1) odds)
+            odds  :: List Integer = map ((+) 1) (evens 0)
+        in odds !! 3
+
+sysLetrecmodx :: Module Empty
+sysLetrecmodx =
+  module
+    rules
+      when True ==>
+         action
+            $display seven
+            $finish 0

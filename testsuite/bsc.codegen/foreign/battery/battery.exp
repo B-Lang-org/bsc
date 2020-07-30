@@ -1,0 +1,90 @@
+# Tests for imported C functions
+
+# ---------------
+# If a simulator has bugs that prevent it from simulating the VPI output,
+# add that simulator name to the 'veribug' argument of the test procedure.
+# This will ignore diffs in the output and/or failure to link, but will
+# still test that the BSC compile step still succeeds in generating Verilog.
+# (If we just turned off the test for Verilog, then we wouldn't get that.)
+# The 'veribug' argument to test procedures is either a number (indicating
+# a bug in BSC, regardless of simulator) or a list of verilog simulators
+# to exempt.
+
+# iverilog has some bugs in VPI
+set iverilog_bug {}
+if { $verilog_compiler == "iverilog" &&
+     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] } {
+    # add 'iverilog' to the list of simulators to exempt
+    set iverilog_bug $verilog_compiler
+}
+
+copy common.h.keep common.h
+copy common.c.keep common.c
+
+# -----
+# Basic tests for value functions
+
+copy values.c.keep values.c
+set value_abins { string_compare.ba and32.ba and128.ba andN.ba const_narrow.ba const_wide.ba }
+test_c_veri_bsv_multi_options TestValues mkTestValues "$value_abins common.c values.c" {} {} {} $iverilog_bug 1 1 {} {+Hi}
+
+# -----
+# Basic tests for action functions
+
+copy actions.c.keep actions.c
+set action_abins { action_function.ba tick.ba }
+test_c_veri_bsv_multi_options TestActions mkTestActions "$action_abins andN.ba const_wide.ba const_narrow.ba common.c actions.c values.c" {} {} {} $iverilog_bug 1 1 {} {+Hi}
+
+# -----
+# Basic tests for actionvalue functions
+
+copy actionvalues.c.keep actionvalues.c
+set actionvalue_abins { av_narrow.ba av_wide.ba av_poly.ba srandom.ba random_narrow.ba random_wide.ba }
+test_c_veri_bsv_multi_options TestActionValues mkTestActionValues "$actionvalue_abins const_narrow.ba const_wide.ba common.c actionvalues.c values.c" {} {} {} $iverilog_bug 1 1 {} {+Hi}
+
+# Test the case where the values are unused
+test_c_veri_bsv_multi_options TestActionValuesUnusedValue mkTestActionValuesUnusedValue "av_narrow.ba av_wide.ba av_poly.ba const_narrow.ba const_wide.ba common.c actionvalues.c values.c" {} {} {} $iverilog_bug 1 1
+
+# -----
+# Tests for functions in methods (of synthesized module)
+#
+# This test is expected to fail in Verilog, since the order of task calls in
+# different modules is undefined.
+
+test_c_veri_bsv_multi_options TestMethods mkTestMethodsTB "mkTestMethodsDUT av_narrow.ba av_wide.ba av_poly.ba $action_abins const_narrow.ba const_wide.ba and32.ba and128.ba andN.ba common.c actionvalues.c actions.c values.c" {} {} {} $verilog_compiler 1 1 {} {+Hi}
+
+# -----
+# Tests for uses in multiple rules, including in rule conditions and
+# in conditional actions inside a rule
+
+test_c_veri_bsv_multi_options TestMultipleRules mkTestMultipleRules "av_narrow.ba av_wide.ba av_poly.ba const_narrow.ba const_wide.ba and32.ba and128.ba andN.ba common.c actionvalues.c values.c" {} {} {} $iverilog_bug 1 1 {} {+Hi}
+
+# -----
+# Test for functions lifted to rule conditions via -agressive-conditions
+
+test_c_veri_bsv_multi_options TestAggressiveConditions mkTestAggressiveConditions "av_narrow.ba av_wide.ba av_poly.ba const_narrow.ba const_wide.ba and32.ba and128.ba andN.ba common.c actionvalues.c values.c" "-aggressive-conditions -dATS=mkTestAggressiveConditions-ats.txt" {} {} $iverilog_bug 1 1
+
+# look to see that the condition for rule "r1" is just AND of the notFull
+# signals, and not a more complicated expression involving the TASK signals
+if { $ctest || $vtest } {
+find_regexp mkTestAggressiveConditions-ats.txt {
+rule RL_r1 "r1":
+ when f_r1_n1_i_notFull_AND_f_r1_n2_i_notFull_AND_f__ETC___d[0-9]+}
+}
+
+# -----
+# Test that foreign functions are not allowed for instantiation parameters
+
+compile_object_fail_error TestInstParam.bsv G0053
+
+# -----
+# Test that multiple imports of the same link name leads to an error
+
+# Test multiple imports declared in the same file
+compile_fail_error MultipleImports.bsv T0091
+
+# Test imports from separate files used in the same design?
+# (Can only be caught at link-time when given all the .ba files)
+# ...
+
+# -----

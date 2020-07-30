@@ -1,0 +1,4 @@
+checking package dependencies
+compiling MethodSelfReference.bsv
+Error: "MethodSelfReference.bsv", line 8, column 14: (T0004)
+  Unbound variable `getVal'

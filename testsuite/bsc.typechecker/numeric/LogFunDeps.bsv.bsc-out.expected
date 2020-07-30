@@ -1,0 +1,10 @@
+checking package dependencies
+compiling LogFunDeps.bsv
+Error: "LogFunDeps.bsv", line 9, column 18: (T0079)
+  The following type variables:
+    a
+  are not uniquely determined by the following provisos:
+    Log#(a, b)
+  and do not appear in the base type:
+    Bit#(b)
+  Rewrite the provisos so that there are no ambiguous variables.

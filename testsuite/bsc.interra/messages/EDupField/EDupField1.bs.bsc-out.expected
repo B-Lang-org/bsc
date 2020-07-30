@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EDupField1.bs
+Error: "EDupField1.bs", line 21, column 4: (P0073)
+  Duplicate definition of method `start' in interface `EDupField1'

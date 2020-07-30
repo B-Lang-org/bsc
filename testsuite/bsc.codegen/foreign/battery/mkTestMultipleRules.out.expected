@@ -1,0 +1,64 @@
+Rule r1
+ and32 = 00000011
+ and128 = 00000011000000110000001100000011
+ andN = 0000001100000011
+Rule r2
+ and32 = 00000011
+ and128 = 00000011000000110000001100000011
+ andN = 0000001100000011
+Rule r3
+av_narrow
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    popcount = 8
+ rn1 = 00000008
+ and32 1 = 00000011
+av_wide
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~w = ffffffee ffffffee ffffffee ffffffee
+ rw1 = ffffffeeffffffeeffffffeeffffffee
+ and128 2 = 00000000000000000000000000000011
+av_poly
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~p = ffffffee ffffffee
+ rp1 = ffffffeeffffffee
+ andN 1 = 0000001100000011
+Rule r4
+av_narrow
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    popcount = 8
+ rn1 = 00000008
+ and32 1 = 00000011
+ and32 2 = 00000000
+av_wide
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~w = ffffffee ffffffee ffffffee ffffffee
+ rw1 = ffffffeeffffffeeffffffeeffffffee
+ and128 1 = 00000011000000110000001100000011
+ and128 2 = 00000000000000000000000000000011
+av_poly
+    n = 00000040
+    w = 00000011 00000011 00000011 00000011
+    p = 00000011 00000011
+    s = Hi mom!
+    ~p = ffffffee ffffffee
+ rp1 = ffffffeeffffffee
+ andN 1 = 0000001100000011
+ andN 2 = 0000000000000011
+ res_n = 00000008
+ res_w = ffffffeeffffffeeffffffeeffffffee
+ res_p = ffffffeeffffffee

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Constants.bsv
+code generation for sysConstants starts
+Compilation message: "Constants.bsv", line 11, column 19: pi = 3.141592653589793
+Verilog file created: sysConstants.v
+All packages are up to date.

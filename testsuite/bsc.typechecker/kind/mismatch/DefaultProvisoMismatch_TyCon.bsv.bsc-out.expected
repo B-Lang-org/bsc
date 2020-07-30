@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DefaultProvisoMismatch_TyCon.bsv
+Error: "DefaultProvisoMismatch_TyCon.bsv", line 9, column 17: (T0027)
+  The numeric type `TLog#(35)' was found where a value type was expected.

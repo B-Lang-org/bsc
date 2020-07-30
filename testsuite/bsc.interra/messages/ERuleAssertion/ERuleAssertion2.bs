@@ -1,0 +1,72 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ERuleAssertion2.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ERuleAssertion error of the bluespec
+-- compiler ({Assertion failed for {Rule})
+--
+-- Error generated when verilog code for mkGCDTest is requested
+-----------------------------------------------------------------------
+
+
+
+package ERuleAssertion2 ( ) where
+
+-- import Int
+
+mkGCDTest :: Module Empty
+mkGCDTest =
+    module
+	gcd :: GCD <- mkGCD
+
+	count1 :: Reg (Int 32) <- mkReg 0
+	count2 :: Reg (Int 32) <- mkReg 0
+
+	res :: Reg (Int 32) <- mkReg 0
+
+	rules
+          {-# ASSERT no implicit conditions #-}
+          "Send Input":
+	    when True ==> action
+		              gcd.start count1 count2
+		              count1 := count1 + 3
+		              count2 := count2 + 2
+       	  "Get result":
+	    when True ==> res := gcd.result
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkGCD :: Module GCD
+mkGCD =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0
+
+

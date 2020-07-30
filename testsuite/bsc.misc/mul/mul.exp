@@ -1,0 +1,14 @@
+test_c_veri_bsv SignedMul
+test_c_veri_bsv Complex2
+
+test_c_veri_bsv Test
+if { $vtest == 1 } {
+# There should be only one multiply in the Verilog
+find_n_strings sysTest.v "*" 1
+}
+
+if { $vtest == 1 } {
+compile_verilog_pass FP.bsv
+# There should be only one multiply in the Verilog
+find_n_strings module_testMult15.v "*" 1
+}

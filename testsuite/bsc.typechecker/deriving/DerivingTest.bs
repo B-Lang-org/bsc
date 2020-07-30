@@ -1,0 +1,21 @@
+package DerivingTest(Test1(..), minTest, maxTest, Test2(..), Test3(..), Test4(..)) where
+
+-- tests for correct creation of derived instances
+
+data Test1 = A (Bit 16) (Bit 32) | B (Bit 16) (Bit 32) 
+  deriving (Eq, Bits, Bounded)
+
+minTest :: Test1
+minTest = minBound
+
+maxTest :: Test1
+maxTest = maxBound
+
+data Test2 = One | Two | Three
+  deriving (Eq, Bits, Bounded)
+
+data Test3 = Q (Bit 16) (Bit 32) | R | S
+  deriving (Eq, Bits, Bounded)
+
+data Test4 = Alpha | Beta | Gamma (Bit 16)
+  deriving (Eq, Bits, Bounded)

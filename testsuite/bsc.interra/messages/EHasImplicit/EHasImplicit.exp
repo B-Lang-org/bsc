@@ -1,0 +1,11 @@
+
+# Removed because it uses the old clock support
+#compile_verilog_fail EHasImplicit1.bs mkEHasImplicit1
+#if {$vtest == 1} {
+#compare_file EHasImplicit1.bs.bsc-vcomp-out
+#}
+
+compile_verilog_fail EHasImplicit2.bs mkTop
+if {$vtest == 1} {
+compare_file EHasImplicit2.bs.bsc-vcomp-out
+}

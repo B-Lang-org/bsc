@@ -1,0 +1,2 @@
+Bool x = True | True;
+

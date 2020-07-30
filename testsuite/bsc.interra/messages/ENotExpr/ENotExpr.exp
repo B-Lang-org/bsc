@@ -1,0 +1,2 @@
+compile_fail ENotExpr.bs
+compare_file ENotExpr.bs.bsc-out

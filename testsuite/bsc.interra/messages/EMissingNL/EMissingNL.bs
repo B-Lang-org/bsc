@@ -1,0 +1,18 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EMissingNL.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EMissingNL error of the bluespec
+-- compiler (Missing Newline after -- comment)
+--
+-----------------------------------------------------------------------
+
+
+
+
+package EMissingNL () where
+
+--

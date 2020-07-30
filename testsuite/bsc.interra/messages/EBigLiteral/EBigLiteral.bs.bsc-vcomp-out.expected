@@ -1,0 +1,7 @@
+checking package dependencies
+compiling EBigLiteral.bs
+code generation for mkGCD starts
+Error: "EBigLiteral.bs", line 31, column 19: (T0051)
+  Literal 5 is not a valid UInt#(2).
+  During elaboration of `y' at "EBigLiteral.bs", line 30, column 8.
+  During elaboration of `mkGCD' at "EBigLiteral.bs", line 24, column 0.

@@ -1,0 +1,9 @@
+    sysTestClash   	 --  	 
+        inf            	 -- FIFO2 FIFO::FIFO#(UInt#(14))	inf 
+        outf           	 -- FIFO2 FIFO::FIFO#(UInt#(14))	outf 
+        cs             	 --  Tuple2#(ClientServer::Client#(UInt#(14), UInt#(14)), ClientServer::Server#(UInt#(14), UInt#(14)))	 
+            f              	 -- FIFO1 FIFO::FIFO#(UInt#(14))	cs_f 
+            f_1            	 -- FIFO1 FIFO::FIFO#(UInt#(14))	cs_f_1 
+        c1             	 --  Empty	 
+            ClientServerRequest	 -- Rule 	RL_c1_ClientServerRequest 
+            ClientServerResponse	 -- Rule 	RL_c1_ClientServerResponse 

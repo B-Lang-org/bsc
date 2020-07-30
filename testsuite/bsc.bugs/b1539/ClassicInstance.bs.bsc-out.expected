@@ -1,0 +1,16 @@
+checking package dependencies
+compiling ClassicInstance.bs
+Error: "ClassicInstance.bs", line 9, column 26: (T0032)
+  This expression requires the following context which could not be resolved:
+    Prelude.Eq ClassicInstance.MyUnion
+  The context was implied by expressions at the following positions:
+    "Prelude.bs", line 359, column 20
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    Prelude.Eq ClassicInstance.MyStruct
+Error: "ClassicInstance.bs", line 16, column 5: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Eq ClassicInstance.MyStruct
+  The context was implied by expressions at the following positions:
+    "ClassicInstance.bs", line 19, column 39

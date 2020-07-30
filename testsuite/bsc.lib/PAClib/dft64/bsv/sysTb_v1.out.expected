@@ -1,0 +1,7 @@
+Opened input and output files: Test.dat Test_out_v1.dat.out
+Sending data set      0 at                   30
+Sending data set      1 at                10270
+received response    0 at time               10310
+End of File reached in scanning Fixedpoint
+Invalid data found
+received response    1 at time               20550

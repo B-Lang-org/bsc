@@ -1,0 +1,9 @@
+set rule
+incr rule 0
+set rule
+incr rule 1
+set rule
+incr rule 2
+set rule
+incr rule 3
+successful compile and link

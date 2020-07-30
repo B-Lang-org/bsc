@@ -1,0 +1,39 @@
+# version 0
+copy TopLevel0.bsv TopLevel.bsv
+copy Ball0.bsv Ball.bsv
+copy Island0.bsv Island.bsv
+compile_verilog_pass TopLevel.bsv mkTopLevel "+RTS -K10M -RTS"
+link_verilog_no_main_pass {pong.v mkTopLevel.v kbscan.v reset.v} sysPong
+copy TopLevel.bsv.bsc-vcomp-out TopLevel0.bsv.bsc-vcomp-out 
+copy sysPong.bsc-vcomp-out sysPong0.bsc-vcomp-out 
+erase mkTopLevel.v
+erase sysPong
+
+# version 1
+copy TopLevel1.bsv TopLevel.bsv
+copy Ball1.bsv Ball.bsv
+copy Island1.bsv Island.bsv
+compile_verilog_pass TopLevel.bsv mkTopLevel "+RTS -K10M -RTS"
+link_verilog_no_main_pass {pong.v mkTopLevel.v kbscan.v reset.v} sysPong
+copy TopLevel.bsv.bsc-vcomp-out TopLevel1.bsv.bsc-vcomp-out 
+copy sysPong.bsc-vcomp-out sysPong1.bsc-vcomp-out 
+erase mkTopLevel.v
+erase sysPong
+
+# version 2
+copy TopLevel2.bsv TopLevel.bsv
+copy Ball2.bsv Ball.bsv
+copy Island2.bsv Island.bsv
+compile_verilog_pass TopLevel.bsv mkTopLevel "+RTS -K10M -RTS"
+link_verilog_no_main_pass {pong.v mkTopLevel.v kbscan.v reset.v} sysPong
+copy TopLevel.bsv.bsc-vcomp-out TopLevel2.bsv.bsc-vcomp-out 
+copy sysPong.bsc-vcomp-out sysPong2.bsc-vcomp-out 
+# testsuite clean should handle this
+# erase mkTopLevel.v
+# erase sysPong
+
+# reset
+erase TopLevel.bsv
+erase Ball.bsv
+erase Island.bsv
+

@@ -1,0 +1,36 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+`include "std_ovl_defines.h"
+
+`module assert_zero_one_hot (clk, reset_n, test_expr);
+
+  parameter severity_level = `OVL_SEVERITY_DEFAULT;
+  parameter width          = 32;
+  parameter property_type  = `OVL_PROPERTY_DEFAULT;
+  parameter msg            = `OVL_MSG_DEFAULT;
+  parameter coverage_level = `OVL_COVER_DEFAULT;
+
+  input             clk, reset_n;
+  input [width-1:0] test_expr;
+
+  // Parameters that should not be edited
+  parameter assert_name = "ASSERT_ZERO_ONE_HOT";
+
+  `include "std_ovl_cover.h"
+  `include "std_ovl_task.h"
+  `include "std_ovl_init.h"
+
+`ifdef OVL_VERILOG
+  `include "./vlog95/assert_zero_one_hot_logic.v"
+`endif
+
+`ifdef OVL_SVA
+  `include "./sva05/assert_zero_one_hot_logic.sv"
+`endif
+
+`ifdef OVL_PSL
+  `include "./psl05/assert_zero_one_hot_psl_logic.v"
+`else
+  `endmodule // assert_zero_one_hot
+`endif

@@ -1,0 +1,8 @@
+test_veri_only_bsv BRAMTest sysBRAMTest.v.out.expected
+test_c_only_bsv BRAMTest sysBRAMTest.c.out.expected
+
+test_veri_only_bsv BRAM1Test sysBRAM1Test.v.out.expected
+test_c_only_bsv BRAM1Test sysBRAM1Test.c.out.expected
+
+test_veri_only_bsv BRAMPipelined sysBRAMPipelined.v.out.expected
+test_c_only_bsv BRAMPipelined sysBRAMPipelined.c.out.expected

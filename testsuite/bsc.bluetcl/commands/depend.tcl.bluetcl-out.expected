@@ -1,0 +1,57 @@
+Command: depend make Test.bsv
+Test.bo {Test.bsv {$(BLUESPECDIR)/Libraries/Vector.bo} {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+---------
+Command: depend make MissingFile.bsv
+Caught error:  Error: Unknown position: (S0030)
+  Could not read the file `MissingFile.bsv':
+    does not exist
+
+---------
+Command: depend make Dep1.bsv
+Warning: "./IncDep2.bsv", line 2, column 8: (S0000)
+  Cannot find package `Foo'
+Dep1.bo {Dep1.bsv ./Test.bo {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo} ./IncDep2.bsv ./IncDep1.bsv}
+./Test.bo {./Test.bsv {$(BLUESPECDIR)/Libraries/Vector.bo} {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+---------
+Command: depend make Dep1.bsv
+Dep1.bo {Dep1.bsv ./Test.bo subdir/Foo.bo {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo} ./IncDep2.bsv ./IncDep1.bsv}
+./Test.bo {./Test.bsv {$(BLUESPECDIR)/Libraries/Vector.bo} {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+subdir/Foo.bo {subdir/Foo.bs {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+---------
+Command: flags set -bdir BOUTDIR
+-bdir
+BOUTDIR
+---------
+Command: depend make Dep1.bsv
+BOUTDIR/Dep1.bo {Dep1.bsv BOUTDIR/Test.bo BOUTDIR/Foo.bo {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo} ./IncDep2.bsv ./IncDep1.bsv}
+BOUTDIR/Test.bo {./Test.bsv {$(BLUESPECDIR)/Libraries/Vector.bo} {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+BOUTDIR/Foo.bo {subdir/Foo.bs {$(BLUESPECDIR)/Libraries/Prelude.bo} {$(BLUESPECDIR)/Libraries/PreludeBSV.bo}}
+---------
+Command: depend recomp MissingFile.bsv
+Caught error:  Error: Unknown position: (S0030)
+  Could not read the file `MissingFile.bsv':
+    does not exist
+
+---------
+Command: depend recomp Test.bsv
+---------
+Command: depend recomp Dep1.bsv
+subdir/Foo.bs
+Dep1.bsv
+---------
+Command: depend file MissingFile.bsv
+Caught error:  Error: Unknown position: (S0030)
+  Could not read the file `MissingFile.bsv':
+    does not exist
+
+---------
+Command: depend file Test.bsv
+Test.bsv
+---------
+Command: depend file Dep1.bsv
+./IncDep1.bsv
+./IncDep2.bsv
+Dep1.bsv
+./Test.bsv
+subdir/Foo.bs
+---------

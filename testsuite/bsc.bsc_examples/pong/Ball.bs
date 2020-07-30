@@ -1,0 +1,159 @@
+package Ball (mkBall, Ball(..)) where
+
+import ActionSeq
+import Global
+import Paddle
+import Border
+import Shape
+import Color
+
+interface Ball =
+    shape :: Shape
+
+    center :: YCoord
+    dir :: Bool
+
+    tick :: Action
+
+col :: Color
+col = cYellow
+
+ballWidthC :: XSize
+ballWidthC = fromInteger ballWidth
+
+ballHeightC :: YSize
+ballHeightC = fromInteger ballHeight
+
+-- bounce top   bottom up/down      => up/down
+-- bounce right left   right/left   => right/left
+-- The result is the new direction
+bounce :: Bool -> Bool -> Bool -> Bool
+bounce False False False = False   -- no hit, going down
+bounce False False True  = True    -- no hit, going up
+
+bounce False True  False = False   -- bottom hit, going down (touching a corner)
+bounce False True  True  = False   -- bottom hit, going up   (bouncing on a wall)
+
+bounce True  False False = True    -- top hit, going down    (bouncing on a wall)
+bounce True  False True  = True    -- top hit, going up      (touching a corner)
+
+bounce True  True  False = False   -- both hit, going down   (touching a wall)
+bounce True  True  True  = True    -- both hit, going up     (touching a wall)
+
+
+mkBall:: (Add x 2 n) => Bit n -> Paddle -> Paddle -> Action -> Action -> Module Ball
+mkBall rand paddleL paddleR lAct rAct =
+  module
+
+    centerR :: Reg YCoord <- mkRegU
+
+    ball_x :: Reg XCoord <- mkReg (fromInteger (hSize `div` 2))
+    ball_y :: Reg YCoord <- mkReg (fromInteger (vSize `div` 2))
+
+    ball_x_r :: Reg XCoord <- mkRegU
+    ball_y_b :: Reg YCoord <- mkRegU
+
+    ball_vx :: Reg XCoord <- mkReg 7
+    ball_vy :: Reg YCoord <- mkReg 1
+--    ball_vy2 :: Reg YCoord <- mkRegU
+--    ball_vy3 :: Reg YCoord <- mkRegU
+    -- The following uses only one register, but more muxes and logic
+    let ball_vy2 = asReg ball_vy
+	ball_vy3 = asReg ball_vy
+
+    ballRect :: Shape <- mkRectangle ball_x ballWidthC ball_y ballHeightC col
+
+    change_y :: Reg YCoord <- mkReg 0
+
+    ball_dx :: Reg Bool <- mkRegU  -- True == Right
+    ball_dy :: Reg Bool <- mkRegU  -- True == Up  (Note, up is increasing y coordinates)
+
+    -- random velocity change
+    let r2 :: Bit 2
+	r2 = Prelude.truncate rand
+	randV = case r2 of
+		0b00 -> 1
+		0b01 -> negate 1
+		_    -> 0
+
+    -- steps in updating the ball
+    let step1 =
+	  action
+	    -- Change direction if needed
+	    ball_vx  := if posX ball_vx == ball_dx then ball_vx else negate ball_vx
+	    ball_vy2 := if posY ball_vy == ball_dy then ball_vy else negate ball_vy
+
+        step2 =
+	  action
+	    -- Update speed
+	    ball_vy3 := ball_vy2 + shiftY change_y 3 + if change_y /= 0 then randV else 0
+
+        step3 =
+	  action
+	    -- Limit speed
+	    ball_vy := limitY ball_vy3
+
+        step4 =
+	  action
+	    -- Move ball
+	    ball_x := ball_x + ball_vx
+	    ball_y := ball_y + ball_vy
+
+        step5 =
+	  action
+	    -- Update right and bottom coord
+	    ball_x_r := ball_x + ballWidthC
+	    ball_y_b := ball_y + ballHeightC
+
+    -- break updating into several steps to meet timing
+    updateBalls :: ActionSeq <- actionSeq (step1 |> step2 |> step3 |> step4 |> step5)
+
+    interface
+	shape = ballRect
+
+	center = centerR
+
+	dir = ball_dx
+
+	tick =
+	  action
+	    let (a00,a01,a10,a11,apos) = paddleL.inside ball_x ball_x_r ball_y ball_y_b ballHeightC
+		(b00,b01,b10,b11,bpos) = paddleR.inside ball_x ball_x_r ball_y ball_y_b ballHeightC
+
+		-- New direction for Y
+		diry = bounce (b00 || b10) (b01 || b11) $
+		       bounce (a00 || a10) (a01 || a11) $
+		       (ball_y <= fromInteger (yMax - ballHeight) &&  -- down if to large
+		       ((ball_y < fromInteger yMin) ||                  -- up if to small
+			posY ball_vy))
+
+
+		-- New direction for X
+	        -- Need to know which wall for counting points
+		-- Need to know where on the paddle for changing vy
+
+                hitWallR = ball_x > fromInteger (xMax - ballWidth)
+                hitWallL = ball_x < fromInteger xMin
+
+		dirx = bounce (a00 || a01) (a10 || a11) $
+		       bounce (b00 || b01) (b10 || b11) $
+		       ( not hitWallR && ( hitWallL || posX ball_vx) )
+
+	    change_y :=      if (a00 || a01) /= (a10 || a11) then apos
+		        else if (b00 || b01) /= (b10 || b11) then bpos
+		        else 0
+
+	    if hitWallR then rAct else noAction
+	    if hitWallL then lAct else noAction
+
+	    ball_dx := dirx
+	    ball_dy := diry
+
+	    updateBalls.start
+
+    rules
+
+       "MoveBall":
+	when True ==>
+	  action
+	    centerR := ball_y + fromInteger (ballHeight `div` 2)

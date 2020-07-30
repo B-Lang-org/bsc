@@ -1,0 +1,16 @@
+checking package dependencies
+compiling Bug782_AddUp.bsv
+Error: "Bug782_AddUp.bsv", line 5, column 19: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Bit#(32) f(Vector::Vector#(n, Bug782_AddUp::Byte) x1,
+    UInt#(TLog#(n)) x2)
+  The following provisos are needed:
+    Add#(1, a__,
+    TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(TDiv#(n,
+    2), 2), 2), 2), 2), 2), 2), 2), 2), 2), 2), 2), 2), 2))
+      Introduced at the following locations:
+	"Bug782_AddUp.bsv", line 31, column 12
+	"Bug782_AddUp.bsv", line 44, column 11
+  The type variables are from the following positions:
+    "a__" at "Bug782_AddUp.bsv", line 44, column 11

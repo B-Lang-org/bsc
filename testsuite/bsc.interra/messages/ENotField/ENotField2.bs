@@ -1,0 +1,49 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotField2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an (ENotField) error
+
+-- Error Message : bsc ENotField2.bs
+-- bsc: Compilation errors:
+-- "ENotField2.bs", line 42, column 55, Field "b" is not in "ENotField2.MyStruct"
+-----------------------------------------------------------------------
+
+package ENotField2 (ENotField2(..)) where
+
+-- import Int
+
+
+struct MyStruct =        { give :: Int 32; judge :: Bool; }
+                deriving (Eq, Bits)
+
+
+interface ENotField2 =
+            start :: Int 32 -> Bool -> Action
+            end   :: Bool
+
+mkENotField2 :: Module ENotField2
+mkENotField2 = 
+           module
+
+                u1 :: Reg (MyStruct) 
+                u1 <- mkRegU 
+
+                u2 :: Reg (MyStruct) 
+                u2 <- mkRegU 
+
+                rules
+                   "One":
+                      when True 
+                          ==> action
+                                 u2 := u1 { give = 1 ; b = True }
+
+
+                interface
+                    start ix iy = action
+                                    x := ix 
+                                    y := iy 
+                    end = y when x == 0

@@ -1,0 +1,19 @@
+# ---------------
+# Test that ctxreduce tries "last-resort" numeric instance rules
+# (Bug 1643)
+
+compile_pass SatisfyFV.bsv
+
+# XXX Test that variables introduced by ctxreduce are given nice names
+# XXX when reported in EWeakContext errors
+
+# ---------------
+# Test that new variables introduced for pseudo-constructors like SizeOf
+# are not left in the body of typed expressions, as a result of appearing
+# in the substitution (such as due to use of Alias/NumAlias).
+# (Bug 1843)
+
+compile_pass AliasSizeOf.bsv
+compile_pass AliasSizeOf_Instance.bsv
+
+# ---------------

@@ -1,0 +1,21 @@
+package TmpsIfcArgsDefs ( TS_item(..),
+	                  print_ts_item,
+			  PortID
+			) where
+
+type PortID = Bit 5
+
+data TS_item = TS_DATA
+             | TS_DATA_C
+             | TS_EOP     PortID
+             | TS_EOTS
+             deriving (Bits)
+
+print_ts_item  :: TS_item -> Action
+print_ts_item x =
+  case x of
+        TS_DATA   -> $display "TS_DATA";
+        TS_DATA_C -> $display "TS_DATA_C";
+        TS_EOP p  -> $display "TS_EOP{p=%0h}" x ;
+        TS_EOTS   -> $display "TS_EOTS";
+

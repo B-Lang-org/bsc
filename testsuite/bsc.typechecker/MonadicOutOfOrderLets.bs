@@ -1,0 +1,10 @@
+package MonadicOutOfOrderLets() where
+
+-- bindings in different lets should be evaluated in order
+-- if not, bsv->bsc has trouble with detecting unbound structure variables
+
+sysMonadicOutOfOrderLets :: Module Empty
+sysMonadicOutOfOrderLets =
+    module
+       let x = y
+       let y = 5

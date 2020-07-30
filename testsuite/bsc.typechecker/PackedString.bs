@@ -1,0 +1,6 @@
+package PackedString() where 
+
+-- this should not typecheck
+-- because strings cannot be packed
+foo :: Action
+foo = $display("foo", True)

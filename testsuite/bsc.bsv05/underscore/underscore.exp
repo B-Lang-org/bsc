@@ -1,0 +1,81 @@
+# Test the parsing of underscore as an identifier
+
+# ---------------
+
+# Test that "_" is no longer treated specially in pattern matching
+# XXX It can be bound to, but one can't yet refer to it.
+
+# XXX Match statements
+
+# XXX Case matches patterns
+
+# XXX matches pattern (in if)
+# XXX matches pattern (in rule)
+
+# ---------------
+
+compile_pass TopDef_Var_Type.bsv
+# Test that it's really binding to that name
+compile_fail_error TopDef_Var_Type_Bad.bsv T0020
+
+# Defs must have a type, so this is rejected anyway
+compile_fail_error TopDef_Var_NoType.bsv P0127
+
+compile_pass TopDef_Func_Type.bsv
+# Test that it's really binding to that name
+compile_fail_error TopDef_Func_Type_Bad.bsv T0084
+
+compile_pass TopDef_FuncArg.bsv
+# Test that it's really binding to that name
+compile_fail_error TopDef_FuncArg_Bad.bsv T0020
+
+# Test that "_" can defined as a local variable/function
+# (and test that references to the var/func work)
+# XXX LocalDef_Var_Type.bsv
+# XXX LocalDef_Var_NoType.bsv
+# XXX LocalDef_Func_Type.bsv
+# XXX LocalDef_FuncArg.bsv
+
+compile_pass ModDef_PortArg.bsv
+# Test that it's really binding to that name
+compile_fail_error ModDef_PortArg_Bad.bsv T0020
+
+compile_verilog_pass IfcDecl_MethArg.bsv
+
+compile_verilog_pass IfcDef_MethArg.bsv
+# Test that it's really binding to that name
+compile_fail_error IfcDef_MethArg_Bad.bsv T0020
+
+# ---------------
+
+# Test as an identifier in various parts of import-BVI
+
+# XXX method, method arg, subinterface, output clock/reset/inout
+# XXX in clocked_by clauses, etc
+
+# ---------------
+
+# Internal error in GenWrap when a method on the boundary uses "_"
+
+compile_verilog_pass MethArg_Synth.bsv
+
+# ---------------
+
+# Also test "?" which used to be accepted as an argument name
+# and was represented as a variable named "_" (no longer supported)
+
+# (See comments in "pFunctionArg", "pFunctionArgOptType", and "pPortlikeArg"
+# where "?" used to be accepted in place of an identifier.)
+
+compile_fail_error TopDef_FuncArg_Qmark.bsv P0005
+
+# XXX compile_fail_error LocalDef_FuncArg_Qmark.bsv P0005
+
+compile_fail_error ModDef_PortArg_Qmark.bsv P0005
+
+compile_fail_error IfcDecl_MethArg_Qmark.bsv P0005
+
+compile_fail_error IfcDef_MethArg_Qmark.bsv P0005
+
+# ---------------
+

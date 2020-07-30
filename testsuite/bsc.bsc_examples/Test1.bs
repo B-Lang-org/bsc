@@ -1,0 +1,42 @@
+package Test1( sysTest1 ) where
+import FIFOF
+
+type Data = Bit 16
+
+sysTest1 :: Module Empty
+sysTest1 = mkPipe
+
+mkPipe :: Module Empty
+mkPipe =
+  module
+    i   :: Reg Data
+    i   <- mkReg 0
+    inp :: FIFOF Data
+    inp <- mkFIFOF
+    out :: FIFOF Data
+    out <- mkFIFOF
+    acc :: Reg Data
+    acc <- mkRegU
+    rules
+      when inp.notFull
+       ==> action
+		inp.enq i
+		i := i + 1
+
+      when inp.notEmpty && out.notFull
+       ==> (action {
+	  out.enq oval;
+	  inp.deq;
+	  })
+	  where ival :: Data
+	        ival = inp.first
+	        oval :: Data
+	        oval = ival + ival
+
+      when out.notEmpty
+       ==> (action {
+	  out.deq;
+	  acc := acc + val;
+	  })
+	  where val :: Data
+	        val = out.first

@@ -1,0 +1,18 @@
+package Bug578_simple () where
+
+normalize_and_truncate :: (Add s n sx) => Bit sx -> Bit s
+normalize_and_truncate din = 
+  if _ == 0 then
+    let theResult' =
+           let sfdout' :: Bit s
+               sfdout' =  0
+           in  sfdout'
+    in  let sfdout :: Bit x         -- remove this line and it compiles
+	    sfdout =  theResult'
+        in  sfdout
+  else
+    let theResult' = 
+           let sfdout' :: Bit s
+               sfdout' =  truncate din
+           in  sfdout'
+    in  theResult'

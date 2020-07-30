@@ -1,0 +1,9 @@
+Warning: "UnreadableTop.bsv", line 1, column 8: (S0088)
+  Found but could not read the file `libdir1/DupPkg.bo':
+    permission denied
+Warning: "UnreadableTop.bsv", line 1, column 8: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./DupPkg.bo
+  Ignoring:
+    libdir1/DupPkg.bo
+    libdir2/DupPkg.bo

@@ -1,0 +1,2 @@
+compile_fail EUntermComm1.bs
+compare_file EUntermComm1.bs.bsc-out

@@ -1,0 +1,22 @@
+compile_verilog_fail_error ArgMethod2ReturnValue2.bsv G0032
+compile_verilog_fail_error ArgMethod2ReturnValue3.bsv G0032
+compile_verilog_fail_error ArgMethod2ReturnValue.bsv G0032
+compile_verilog_fail_error Argument2Rdy2.bsv G0033
+compile_verilog_fail_error Argument2Rdy.bsv G0033 2
+compile_verilog_fail_error Argument2ReturnValue2.bsv G0032
+compile_verilog_fail_error Argument2ReturnValue3.bsv G0032
+compile_verilog_fail_error Argument2ReturnValue.bsv G0032
+compile_verilog_fail_error Combo_Loop.bsv G0035 2
+compile_verilog_fail_error En2Rdy2.bsv G0030
+compile_verilog_fail_error En2Rdy4.bsv G0033 2
+compile_verilog_fail_error En2Rdy.bsv G0033
+compile_verilog_fail_error En2ReturnValue2.bsv G0033
+compile_verilog_fail_error En2ReturnValue.bsv G0033
+compile_verilog_fail_error EnableSignal2ReturnValue.bsv G0033
+compile_verilog_fail_error MuxLogic.bsv G0034
+compile_verilog_fail_error MuxLogic.bsv G0035
+compile_verilog_fail_error Parameter2Rdy.bsv G0033
+compile_verilog_fail_error Parameter2ReturnValue.bsv G0032
+compile_verilog_fail_error RWireReadB4Write.bsv G0033
+compile_verilog_fail_error WillFire2CanFire.bsv G0033
+

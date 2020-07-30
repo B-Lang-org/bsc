@@ -1,0 +1,16 @@
+checking package dependencies
+compiling EContextReductionVar2.bs
+Error: "EContextReductionVar2.bs", line 31, column 0: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits EContextReductionVar2.MyType1 a__
+  The context was implied by expressions at the following positions:
+    "EContextReductionVar2.bs", line 40, column 25
+    "EContextReductionVar2.bs", line 37, column 25
+Error: "EContextReductionVar2.bs", line 31, column 0: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits EContextReductionVar2.MyType2 b__
+  The context was implied by expressions at the following positions:
+    "EContextReductionVar2.bs", line 46, column 25
+    "EContextReductionVar2.bs", line 43, column 25

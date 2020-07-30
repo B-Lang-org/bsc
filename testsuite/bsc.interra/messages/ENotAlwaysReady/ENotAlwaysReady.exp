@@ -1,0 +1,2 @@
+compile_verilog_fail_error ENotAlwaysReady.bs G0006 2 mkGCD
+compile_verilog_pass_warning ENotAlwaysReady.bs G0006 2 mkGCD "-unsafe-always-ready"

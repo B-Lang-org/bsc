@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EBadExport2.bs
+Error: "EBadExport2.bs", line 14, column 53: (T0009)
+  Exported identifier `xyz' is not defined

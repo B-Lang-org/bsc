@@ -1,0 +1,5 @@
+package EWeakContext2() where
+
+foo :: a
+foo = 0
+

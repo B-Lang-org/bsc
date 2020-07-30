@@ -1,0 +1,13 @@
+M0 Cycle count: 10000
+M0 Blocked count: 1205
+M0 Req count: 2315
+M0 Pass count: 6480
+M0 Delay count 0 = 0
+M0 Delay count 1 = 0
+M0 Delay count 2 = 1140
+M0 Delay count 3 = 1175
+M0 Delay count 4 = 0
+M0 Delay count 5 = 0
+M0 Delay count 6 = 0
+M0 Delay count 7 = 0
+M0 Average Delay = 5805 / 2315

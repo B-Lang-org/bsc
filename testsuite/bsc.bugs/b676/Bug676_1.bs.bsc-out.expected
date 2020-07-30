@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Bug676_1.bs
+Error: "Bug676_1.bs", line 3, column 5: (T0106)
+  There are circular references among the following type synonyms: Foo and Bar

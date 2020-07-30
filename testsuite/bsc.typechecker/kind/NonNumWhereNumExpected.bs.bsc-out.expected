@@ -1,0 +1,4 @@
+checking package dependencies
+compiling NonNumWhereNumExpected.bs
+Error: "NonNumWhereNumExpected.bs", line 3, column 9: (T0026)
+  The value type `Bool' was found where a numeric type was expected.

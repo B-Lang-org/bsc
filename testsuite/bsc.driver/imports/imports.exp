@@ -1,0 +1,109 @@
+# Test behavior during the imports stage of BSC
+
+# -----
+# See bsc.bugs/b417/ for a test of circular imports among source files
+
+# -----
+# Bug 1786: circular imports (or name clash) involving a non-source package
+
+# Construct the library .bo files in a subdir
+mkdir libdir
+copy CircPkg-lib.bsv libdir/CircPkg.bsv
+copy CircTop-lib.bsv libdir/CircTop.bsv
+
+# perform the following operations from inside "libdir"
+set prev_subdir $subdir
+set subdir [file join $subdir libdir]
+
+compile_pass CircTop.bsv
+erase CircTop.bsv
+erase CircPkg.bsv
+
+# Now back to the current directory
+set subdir $prev_subdir
+
+# Now try compiling a package with the same name
+copy CircPkg-local.bsv CircPkg.bsv
+compile_fail_error CircPkg.bsv S0082 1 {-p libdir:+}
+compare_file CircPkg.bsv.bsc-out
+
+# For debugging purposes, have the Makefile remove these
+#erase CircPkg.bsv
+#nukedir libdir
+
+# -----
+# Bug 1595: Multiple copies of .bo file found in the path
+
+proc make_lib { dir } {
+    global subdir
+
+    mkdir $dir
+    copy DupPkg.bsv $dir
+
+    # perform the following operations from inside the dir
+    set prev_subdir $subdir
+    set subdir [file join $subdir $dir]
+
+    compile_pass DupPkg.bsv
+    erase DupPkg.bsv
+
+    # Now back to the current directory
+    set subdir $prev_subdir
+}
+
+# Make two copies of the package
+make_lib libdir1
+make_lib libdir2
+
+# Make a third copy of the package in the current directory
+compile_pass DupPkg.bsv
+
+# Now try to compile the top with all three in the path
+# (The third argument is to turn off the "depend" check,
+# which we test elsewhere; so we can test importing here.)
+compile_pass DupTop.bsv {-p +:libdir1:libdir2} 1
+
+# Check that we get a warning (S0089)
+# (this also confirms that "depend" was not used)
+compare_file DupTop.bsv.bsc-out
+
+# -----
+# Bug 1010: Warn if a file exists in the path but is unreadable
+
+# Make the libs unreadable
+chmod {u-r} libdir1/DupPkg.bo
+chmod {u-r} libdir2/DupPkg.bo
+
+# Test when it appears both before and after the first readable occurrence
+# (The third argument is to turn off the "depend" check,
+# which we test elsewhere; so we can test importing here.)
+compile_pass UnreadableTop.bsv {-p libdir1:+:libdir2} 1
+
+# Check that we get warnings (S0088, S0089)
+# and that all duplicates are mentioned
+# (this also confirms that "depend" was not used)
+compare_file UnreadableTop.bsv.bsc-out
+
+# -----
+# Bug 1595: Error if a bo file does not contain the expected package
+
+# Compile the wrong package
+compile_pass WrongPkg.bsv
+
+# Move the .bo file to a different name
+move WrongPkg.bo RightPkg.bo
+
+# The top level should fail
+compile_fail WrongTop.bsv
+
+# Check that we get the error (S0090)
+compare_file WrongTop.bsv.bsc-out
+
+# -----
+# Google issue #69150331: Support package import with hiding
+
+compile_pass TestExcludeOK.bs
+compile_fail TestExcludeBad.bs
+compare_file TestExcludeBad.bs.bsc-out
+
+# -----

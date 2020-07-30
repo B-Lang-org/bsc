@@ -1,0 +1,9 @@
+checking package dependencies
+compiling LogBaseNegative.bsv
+code generation for sysLogBaseNegative starts
+Error: "LogBaseNegative.bsv", line 3, column 14: (G0110)
+  A logarithm operator was applied to a non-positive base during elaboration.
+  During elaboration of the body of rule `r' at "LogBaseNegative.bsv", line 5,
+  column 10.
+  During elaboration of `sysLogBaseNegative' at "LogBaseNegative.bsv", line 2,
+  column 8.

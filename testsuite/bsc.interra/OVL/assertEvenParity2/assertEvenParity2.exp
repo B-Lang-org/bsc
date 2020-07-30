@@ -1,0 +1,4 @@
+set here [file join [absolute $srcdir] $subdir]
+source $here/../common.tcl
+
+test_ovl  assertEvenParity2  assert_even_parity.vlib

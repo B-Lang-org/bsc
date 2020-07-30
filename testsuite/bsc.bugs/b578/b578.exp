@@ -1,0 +1,7 @@
+# Test that there is no internalError during type checking
+compile_pass Bug578.bs
+
+# This used to trigger an internalError, instead of a normal type error
+compile_fail_error Bug578_simple.bs T0131
+
+compare_file Bug578_simple.bs.bsc-out

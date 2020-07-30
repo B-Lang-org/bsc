@@ -1,0 +1,8 @@
+compile_verilog_pass ClockListNIfc.bsv
+compare_verilog mkClockListNPassThrough.v
+
+compile_verilog_pass ClockVectorIfcGate.bsv
+compare_verilog mkClockVectorPassThrough.v
+
+compile_verilog_pass SizeZero.bsv
+

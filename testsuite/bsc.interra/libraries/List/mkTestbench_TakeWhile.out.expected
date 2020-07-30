@@ -1,0 +1,10 @@
+Original List:
+ 0
+ 1
+ 2
+ 0
+ 1
+Returns Initial Segment with elements < 2. New List:
+ 0
+ 1
+Simulation Passes

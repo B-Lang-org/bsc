@@ -1,0 +1,109 @@
+package TL3 (sysTL, TL) where {
+
+  -- Simple model of a traffic light
+
+  -- Version 3: Add pedestrian request button.  When pressed,
+  --     wait for next transition out of Red
+  --     goto GreenPed      for pedGreenDelay  secs
+  --     goto AmberPed      for pedAmberDelay  secs
+  --     goto AllRed        for allRedDelay    secs
+  --     goto next green    (i.e., don't break the cycle)
+
+  interface TL = { ped_button_push :: Action;
+                 };
+
+  data TLstates = AllRed
+                | GreenNS  | AmberNS
+                | GreenE   | AmberE
+                | GreenW   | AmberW
+                | GreenPed | AmberPed
+                deriving (Eq, Bits);
+
+  type Time32 = UInt 5;
+
+  sysTL :: Module TL;
+  sysTL =
+      module {
+          state :: Reg TLstates;
+          state <- mkReg AllRed;
+
+          next_green :: Reg TLstates;
+          next_green <- mkReg GreenNS;
+
+          secs :: Reg Time32;
+          secs <- mkReg 0;
+
+          ped_button_pushed :: Reg Bool;
+          ped_button_pushed <- mkReg False;
+
+          let {
+              allRedDelay :: Time32;
+              allRedDelay = 2;
+
+              amberDelay :: Time32;
+              amberDelay = 4;
+
+              ns_green_delay :: Time32;
+              ns_green_delay = 20;
+
+              ew_green_delay :: Time32;
+              ew_green_delay = 10;
+
+              pedGreenDelay :: Time32;
+              pedGreenDelay = 10;
+
+              pedAmberDelay :: Time32;
+              pedAmberDelay = 6;
+          };
+      interface {
+          ped_button_push   = ped_button_pushed  := True;
+      };
+      addRules $
+        rules {
+          "wait": when True ==> secs := secs + 1
+        }
+
+        +>
+
+        rules {
+          "fromAllRed":
+            when (state == AllRed) && ((secs + 1) >= allRedDelay)
+              ==> action { state           := if not ped_button_pushed then  next_green
+                                       else                           GreenPed;
+                    secs            := 0;
+                    ped_button_pushed := False };
+
+          "fromGreenPed":
+            when (state == GreenPed) && ((secs + 1) >= pedGreenDelay)
+              ==> action { state := AmberPed; secs := 0; };
+
+          "fromAmberPed":
+            when (state == AmberPed) && ((secs + 1) >= pedAmberDelay)
+              ==> action { state := AllRed; secs := 0; };
+
+          "fromGreenNS":
+            when (state == GreenNS) && ((secs + 1) >= ns_green_delay)
+              ==> action { state := AmberNS; secs := 0; };
+
+          "fromAmberNS":
+            when (state == AmberNS) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenE; };
+
+          "fromGreenE":
+            when (state == GreenE) && ((secs + 1) >= ew_green_delay)
+              ==> action { state := AmberE; secs := 0; };
+
+          "fromAmberE":
+            when (state == AmberE) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenW; };
+
+          "fromGreenW":
+            when (state == GreenW) && ((secs + 1) >= ew_green_delay)
+              ==> action { state := AmberW; secs := 0; };
+
+          "fromAmberW":
+            when (state == AmberW) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenNS; };
+        }
+      }
+}

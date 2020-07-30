@@ -1,0 +1,66 @@
+compile_verilog_fail_error AlwaysEnabledNotOK.bsv G0006 1
+test_c_veri_bsv_modules_options AlwaysEnabledNotOK mkTest "-unsafe-always-ready"
+if { $vtest == 1 } {
+find_n_emsg AlwaysEnabledNotOK.bsv.bsc-vcomp-out Warning G0006 1
+}
+
+compile_verilog_fail_error AlwaysReadyNotOK.bsv G0006 1
+test_c_veri_bsv_modules_options AlwaysReadyNotOK mkTestReady "-unsafe-always-ready"
+
+# the gating cases probably should work if we fix the treatment of gating
+test_c_veri_bsv_modules_options AlwaysEnabledGated1 mkTestGated1 "-unsafe-always-ready"
+
+test_c_veri_bsv_modules_options AlwaysEnabledGated2 mkTestGated2 "-unsafe-always-ready"
+
+compile_verilog_pass TestEnableFail.bsv
+if { $vtest == 1 } {
+find_n_emsg TestEnableFail.bsv.bsc-vcomp-out Warning G0015 2
+}
+compile_object_pass TestEnableFail.bsv
+link_objects_pass {sysTestEnableFail.ba mkSub.ba} sysTestEnableFail
+if { $ctest == 1 } {
+find_n_emsg TestEnableFail.bsv.bsc-ccomp-out Warning G0015 2
+}
+
+compile_verilog_pass Test_RdyEn_Path.bsv "" "-unsafe-always-ready"
+if { $vtest == 1 } {
+find_n_strings sysTest_RdyEn_Path.v {//   EN_m1 -> m3} 1
+}
+
+compile_verilog_pass Test_Path_AlwaysEn.bsv
+if { $vtest == 1 } {
+string_does_not_occur sysTest_Path_AlwaysEn.v {EN__write}
+}
+
+# should probably work if we fix clock gating
+compile_verilog_pass Test_AlwaysReady.bsv "" "-unsafe-always-ready"
+if { $vtest == 1 } {
+string_does_not_occur sysTest_AlwaysReady.v {RDY__write}
+string_occurs sysTest_AlwaysReady.v {assign rg$EN = EN__write ;}
+}
+
+# should probably work if we fix clock gating
+compile_verilog_pass Test_AlwaysEnabled.bsv "" "-unsafe-always-ready"
+if { $vtest == 1 } {
+string_does_not_occur mkSub.v {RDY__write}
+string_occurs mkSub.v {assign rg$EN = CLK_GATE ;}
+}
+
+compile_verilog_pass ExportedGate.bsv
+if { $vtest == 1 } {
+string_occurs sysExportedGate.v {assign RDY__write = g$CLK_GATE_OUT ;}
+}
+
+# ===============
+# Test that GenWrap interface conversion functions (such as "mkFrom_")
+# don't reference ready signals which don't exist
+
+compile_verilog_pass AlwaysReady_OnInterface_Subinterface.bsv
+compile_verilog_pass AlwaysReady_OnInterface_Top.bsv
+compile_verilog_pass AlwaysReady_OnMethod.bsv
+compile_verilog_pass AlwaysReady_OnModule_FullInterface.bsv
+compile_verilog_pass AlwaysReady_OnModule_OneMethod.bsv
+compile_verilog_pass AlwaysReady_OnSubinterface.bsv
+
+# ===============
+

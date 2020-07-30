@@ -1,0 +1,44 @@
+=== Generated schedule for mkPipelineFIFOF_Bit32 ===
+
+Method schedule
+---------------
+Method: enq
+Ready signal: ! rv.port1__read[32]
+Sequenced before (restricted): clear
+Sequenced after: notFull
+Sequenced after (restricted): deq, first, notEmpty
+Conflicts: enq
+ 
+Method: deq
+Ready signal: rv.port0__read[32]
+Sequenced before (restricted): enq, notFull, clear
+Sequenced after: first, notEmpty
+Conflicts: deq
+ 
+Method: first
+Ready signal: rv.port0__read[32]
+Conflict-free: first, notEmpty
+Sequenced before: deq
+Sequenced before (restricted): enq, notFull, clear
+ 
+Method: notFull
+Ready signal: True
+Conflict-free: notFull
+Sequenced before: enq
+Sequenced before (restricted): clear
+Sequenced after (restricted): deq, first, notEmpty
+ 
+Method: notEmpty
+Ready signal: True
+Conflict-free: first, notEmpty
+Sequenced before: deq
+Sequenced before (restricted): enq, notFull, clear
+ 
+Method: clear
+Ready signal: True
+Sequenced before (restricted): clear
+Sequenced after (restricted): enq, deq, first, notFull, notEmpty
+ 
+Logical execution order: first, notEmpty, deq, notFull, enq, clear
+
+=====================================================

@@ -1,0 +1,8 @@
+checking package dependencies
+compiling EClockMux1.bsv
+code generation for sysEClockMux1 starts
+Error: "EClockMux1.bsv", line 6, column 15: (G0067)
+  The expression for a clock could not be evaluated. Clocks must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of `the_x' at "EClockMux1.bsv", line 9, column 3.
+  During elaboration of `sysEClockMux1' at "EClockMux1.bsv", line 2, column 8.

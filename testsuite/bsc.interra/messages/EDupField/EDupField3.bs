@@ -1,0 +1,49 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EDupField3.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "field defined more than once" error (EDupField)
+
+-- Error Message : bsc EDupField3.bs
+-- bsc: Compilation errors:
+-- "EDupField3.bs", line 42, column 44, Field "give" defined more than once
+-----------------------------------------------------------------------
+
+package EDupField3 (EDupField3(..)) where
+
+-- import Int
+
+
+struct MyStruct =        { give :: Int 32; judge :: Bool; }
+                deriving (Eq, Bits)
+
+
+interface EDupField3 =
+            start :: Int 32 -> Bool -> Action
+            end   :: Bool
+
+mkEDupField3 :: Module EDupField3
+mkEDupField3 = 
+           module
+
+                u1 :: Reg (MyStruct) 
+                u1 <- mkRegU 
+
+                u2 :: Reg (MyStruct) 
+                u2 <- mkRegU 
+
+                rules
+                   "One":
+                      when True 
+                          ==> action
+                                 u2 := u1 { give = 1 ; give = 4 ; judge = True }
+
+
+                interface
+                    start ix iy = action
+                                    x := ix 
+                                    y := iy 
+                    end = y when x == 0

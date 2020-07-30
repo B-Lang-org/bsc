@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ProvisoProvisoMismatch_TopLevel.bsv
+Error: "ProvisoProvisoMismatch_TopLevel.bsv", line 2, column 37: (T0026)
+  The value type `szt' was found where a numeric type was expected.

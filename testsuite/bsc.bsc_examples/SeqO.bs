@@ -1,0 +1,73 @@
+package SeqO(mkSeq, MyList, Go(..)) where
+
+data (MyList :: * -> # -> *) a n = MyNil | MyCons a (MyList a n)
+
+flex :: MyList a n -> MyList a m
+flex MyNil = MyNil
+flex (MyCons x xs) = MyCons x (flex xs)
+
+append :: (Add k n m) => MyList a k -> MyList a n -> MyList a m
+append MyNil ys = flex ys
+append (MyCons x xs) ys = MyCons x (append xs ys)
+
+-----
+
+class C a b c | a b -> c where
+    (>>>) :: a -> b -> c
+
+instance C Action Action (MyList Action 2) where
+    (>>>) x y = MyCons x (MyCons y MyNil)
+
+instance (Add 1 n m) => C Action (MyList Action n) (MyList Action m) where
+    (>>>) x xs = MyCons x (flex xs)
+
+instance (Add n 1 m) => C (MyList Action n) Action (MyList Action m) where
+    (>>>) xs x = append xs (MyCons x MyNil)
+
+instance (Add k n m) => C (MyList Action k) (MyList Action n) (MyList Action m) where
+    (>>>) xs ys = append xs ys
+
+-----
+
+interface Go =
+    start :: Action
+
+type RegB k = Reg (Bit k)
+
+mkSeq :: (Add n 1 m, Log m k) => MyList Action n -> Module Go
+mkSeq as = 
+    module
+	var :: RegB k
+	var <- mkReg 0
+        addRules $ mkRules var 1 as
+        interface
+	    start = var := 1 when var == 0
+
+mkRules :: RegB k -> Integer -> MyList Action n -> Rules
+mkRules var i (MyCons a MyNil) =
+    rules 
+	when var == fromInteger i
+	 ==> action { var := 0; a }
+mkRules var i (MyCons a as) =
+    rules 
+	when var == fromInteger i
+	 ==> action { var := fromInteger (i+1); a }
+  <+>
+    mkRules var (i+1) as
+
+sysSeqO :: Module Go
+sysSeqO =
+    module
+	x1 :: Reg (Bit 10)
+	x1 <- mkReg 0
+	x2 :: Reg (Bit 12)
+	x2 <- mkReg 0
+	seq :: Go
+	seq <- mkSeq (
+		action { x1 := 88 } >>>
+		action { x2 := 77 } >>>
+		action { x1 := 99 } >>>
+		action { x2 := 66 }
+		)
+        interface
+	    start = seq.start

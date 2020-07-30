@@ -1,0 +1,14 @@
+WRITING : Cycle Number:   0, Writing Data:   2
+READING Cycle Number =   4, Value read =   2
+WRITING : Cycle Number:   6, Writing Data:   3
+READING Cycle Number =  10, Value read =   3
+WRITING : Cycle Number:  12, Writing Data:   4
+READING Cycle Number =  16, Value read =   4
+WRITING : Cycle Number:  18, Writing Data:   5
+READING Cycle Number =  22, Value read =   5
+WRITING : Cycle Number:  24, Writing Data:   6
+READING Cycle Number =  28, Value read =   6
+WRITING : Cycle Number:  30, Writing Data:   7
+READING Cycle Number =  34, Value read =   7
+WRITING : Cycle Number:  36, Writing Data:   8
+Simulation Fails

@@ -1,0 +1,26 @@
+package ContextTooWeakRemoveImplied () where
+
+-- Test that we don't report unreduced context errors for contexts
+-- which are implied by previously reported unreduced contexts.
+
+import Vector
+
+class (Literal b) => Select a b c where
+  sel :: a -> b -> c
+
+instance Select (Vector n a) Integer a where
+  sel xs i = xs!!i
+
+interface TestIFC t =
+  res :: t -> Bool
+
+mkFoo :: Module (TestIFC a)
+mkFoo =
+  module
+    let x :: Vector 2 Bool
+        x = map (const True) genList
+	y :: a -> Bool
+	y v = sel x v
+    interface
+      res = y
+

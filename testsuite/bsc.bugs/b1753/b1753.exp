@@ -1,0 +1,58 @@
+
+# ---------------
+# Original bug
+
+# Test that this example does not trigger an ITForAll internal error
+compile_verilog_pass Bug1753.bsv
+
+# ---------------
+# Scope tests
+
+# The internal error uncovered the fact that IConv was inlining expressions
+# for pattern variable bindings into places where the scope for the
+# expression was wrong (references to variables were getting the wrong values).
+# Test that pattern variable bindings are handled correctly:
+
+if { $vtest == 1 } {
+
+# Pattern binding is in an expression
+compile_verilog_pass ShadowInExpr.bsv
+# Now check that the generated Verilog used the right scope
+# (Before, it would appear as "+2")
+find_n_strings sysShadowInExpr.v \
+    {assign lastdata$D_IN = { ending[5], ending[4:0] + 5'd1 } ;} 1
+
+# Pattern binding is in a rule
+compile_verilog_pass ShadowInRule.bsv
+find_n_strings sysShadowInRule.v \
+    {assign lastdata$D_IN = { 1'd1, ending[4:0] + 5'd1 } ;} 1
+
+# Pattern binding is in a method
+# XXX The BSC source has two possibilities, letseq and let
+# XXX Can we test both?
+compile_verilog_pass ShadowInMethod.bsv
+find_n_strings sysShadowInMethod.v \
+    {assign lastdata$D_IN = { 1'd1, ending[4:0] + 5'd1 } ;} 1
+
+# XXX Can we check that Classic clauses are handled properly?
+# XXX That is, patterns in function clauses
+
+# Pattern binding in a guard
+# (This did not have a bug, but go ahead and test it,
+# so that we don't introduce new bugs)
+compile_verilog_pass ShadowInPattern.bsv
+
+}
+
+# ---------------
+
+# Also test that clashes between method names and pattern variables
+# do not lead to an internal error in ISyntaxCheck
+#
+# This was fixed when Bug 737 was fixed (methods can't refer to themselves).
+# Bug 619 is that the parser should detect this clash and error.
+#
+compile_verilog_pass MethodNameShadow.bsv
+
+# ---------------
+

@@ -1,0 +1,7 @@
+package PoisonedDef(sysPoisonedDef) where
+
+primitive primPoisonedDef :: Name__ -> a
+
+{-# verilog sysPoisonedDef #-}
+sysPoisonedDef :: Module Empty
+sysPoisonedDef = primPoisonedDef (Prelude.primGetName test)

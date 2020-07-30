@@ -1,0 +1,4 @@
+package DanglingDecimal where
+
+x :: Integer
+x = 0.

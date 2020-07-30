@@ -1,0 +1,6 @@
+checking package dependencies
+compiling CircPkg.bsv
+Error: "CircPkg.bsv", line 4, column 8: (S0082)
+  Circular package importing: The package `CircPkg' imports `CircTop', which
+  was pre-compiled with an import of `CircPkg'. Perhaps there is a name
+  conflict between a source package and a pre-compiled library package.

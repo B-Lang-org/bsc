@@ -1,0 +1,9 @@
+compile_pass Bug235-1.bsv
+compile_fail Bug235-2.bsv 
+compare_file Bug235-2.bsv.bsc-out
+compile_pass Bug235-3.bsv
+compile_pass Bug235-4.bsv
+compile_fail Bug235-5.bsv
+compare_file Bug235-5.bsv.bsc-out
+compile_fail Bug235-6.bsv
+compare_file Bug235-6.bsv.bsc-out

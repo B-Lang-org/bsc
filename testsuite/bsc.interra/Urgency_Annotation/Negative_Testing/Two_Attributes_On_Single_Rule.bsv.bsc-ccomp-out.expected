@@ -1,0 +1,5 @@
+checking package dependencies
+Error: "Two_Attributes_On_Single_Rule.bsv", line 17, column 5: (P0005)
+  Unexpected ???; expected statement
+Error: "Two_Attributes_On_Single_Rule.bsv", line 17, column 5: (P0005)
+  Unexpected `(*'; expected statement

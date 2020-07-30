@@ -1,0 +1,20 @@
+checking package dependencies
+compiling DummyInDefOp.bs
+Warning: "DummyInDefOp.bs", line 4, column 4: (P0223)
+  Definition of `x' is not used.
+=== internal:
+IPackage DummyInDefOp
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInDefOp.+ :: Prelude.Bool -> Prelude.Bool -> Prelude.Bit 12
+DummyInDefOp.+ =
+  \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

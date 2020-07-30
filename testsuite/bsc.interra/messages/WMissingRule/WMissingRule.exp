@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass WMissingRule1.bs mkWMissingRule1 "-show-rule-rel Five Six"
+compare_file WMissingRule1.bs.bsc-vcomp-out
+}

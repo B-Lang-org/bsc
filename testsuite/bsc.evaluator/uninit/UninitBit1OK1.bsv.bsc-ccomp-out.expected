@@ -1,0 +1,10 @@
+checking package dependencies
+compiling UninitBit1OK1.bsv
+code generation for sysUninitBit1OK1 starts
+Error: "UninitBit1OK1.bsv", line 3, column 12: (G0028)
+  `x' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `r' at "UninitBit1OK1.bsv", line 5,
+  column 9.
+  During elaboration of `sysUninitBit1OK1' at "UninitBit1OK1.bsv", line 2,
+  column 8.

@@ -1,0 +1,49 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadLexChar2.bs
+
+-- Author : Amit Grover            <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Bad character in input" error (EBadLexChar)
+
+-- Error Message :bsc EBadLexChar2.bs
+-- bsc: Compilation errors:
+-- "EBadLexChar2.bs", line 26, column 8, Bad character in input: '\DEL'
+-----------------------------------------------------------------------
+package EBadLexChar2 (EBadLexChar2(..), mkEBadLexChar2) where
+
+import Int
+
+interface EBadLexChar2 =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+
+mkEBadLexChar2 :: Module EBadLexChar2
+mkEBadLexChar2 =
+    module
+         :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0

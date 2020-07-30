@@ -1,0 +1,951 @@
+Command: flags set -verilog
+-verilog
+---------
+Command: module load mkExample
+mkExample
+---------
+    mkExample      	 --  	 
+        zow            	 -- RWire Reg#(Bool)	zow 
+        mkZow          	 --  Empty	 
+            zow2           	 -- RegN Reg#(Bool)	Zow_inst_mkZow_zow2 
+        xx             	 --  Vector::Vector#(3, Reg#(Bit#(5)))	 
+            _element_0     	 -- RegUN Reg#(Bit#(5))	xx_0 
+            _element_1     	 -- RegUN Reg#(Bit#(5))	xx_1 
+            _element_2     	 -- RegUN Reg#(Bit#(5))	xx_2 
+        ww             	 --  Vector::Vector#(3, Reg#(Bit#(5)))	 
+            _element_0     	 -- RWire Reg#(Bit#(5))	ww_0 
+            _element_1     	 -- RWire Reg#(Bit#(5))	ww_1 
+            _element_2     	 -- RWire Reg#(Bit#(5))	ww_2 
+        Loop           	 --  Integer	 
+            z_0            	 -- RegN Reg#(Bool)	z_0 
+            z_1            	 -- RegN Reg#(Bool)	z_1 
+            z_2            	 -- RegN Reg#(Bool)	z_2 
+        Loop           	 --  Integer	 
+            Body_0         	 --  void	 
+                x              	 -- RegN Reg#(Bool)	x_0 
+                Loop           	 --  Integer	 
+                    Body_0         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_0_0 
+                        update         	 -- Rule 	RL_update 
+                    Body_1         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_0_1 
+                        update         	 -- Rule 	RL_update_1 
+                    Body_2         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_0_2 
+                        update         	 -- Rule 	RL_update_2 
+            Body_1         	 --  void	 
+                x              	 -- RegN Reg#(Bool)	x_1 
+                Loop           	 --  Integer	 
+                    Body_0         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_1_0 
+                        update         	 -- Rule 	RL_update_3 
+                    Body_1         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_1_1 
+                        update         	 -- Rule 	RL_update_4 
+                    Body_2         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_1_2 
+                        update         	 -- Rule 	RL_update_5 
+            Body_2         	 --  void	 
+                x              	 -- RegN Reg#(Bool)	x_2 
+                Loop           	 --  Integer	 
+                    Body_0         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_2_0 
+                        update         	 -- Rule 	RL_update_6 
+                    Body_1         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_2_1 
+                        update         	 -- Rule 	RL_update_7 
+                    Body_2         	 --  void	 
+                        y              	 -- RegN Reg#(Bool)	y_2_2 
+                        update         	 -- Rule 	RL_update_8 
+Command: browseinst list 0
+1 mkExample synth
+---------
+Command: browseinst detail 0
+X(Node) = ROOT
+---------
+Command: browseinst list 1
+2 {zow  Reg#(Bool)} prim
+3 mkZow {}
+4 xx {}
+5 ww {}
+6 Loop {}
+7 Loop {}
+---------
+Command: browseinst detail 1
+X(BSVModule)  = mkExample
+X(BSVPath)    = 
+X(DEBUG)      = BTop
+X(LocalPath)  = 
+X(Module)     = 
+X(Name)       = mkExample
+X(Node)       = Synthesized
+X(SynthPath)  = 
+X(UniqueName) = 
+---------
+Command: browseinst list 2
+---------
+Command: browseinst detail 2
+X(BSVModule)   = mkExample
+X(BSVPath)     = zow
+X(DEBUG)       = BLeaf zow RWire Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RWire
+X(Name)        = zow
+X(Node)        = Primitive
+X(SynthPath)   = zow
+X(UniqueName)  = zow
+X(position)    = Example.bsv 9 15
+---------
+Command: browseinst list 3
+8 {zow2  Reg#(Bool)} prim
+---------
+Command: browseinst detail 3
+X(BSVModule)   = mkExample
+X(BSVPath)     = mkZow
+X(DEBUG)       = BINode mkZow Just (Empty)
+X(IfcPosition) = Example.bsv 7 19
+X(Interface)   = Empty
+X(LocalPath)   = mkZow
+X(Name)        = mkZow
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 11 4
+---------
+Command: browseinst list 8
+---------
+Command: browseinst detail 8
+X(BSVModule)   = mkExample
+X(BSVPath)     = mkZow zow2
+X(DEBUG)       = BLeaf zow2 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = zow2
+X(Node)        = Primitive
+X(SynthPath)   = Zow_inst_mkZow_zow2
+X(UniqueName)  = Zow_inst_mkZow_zow2
+X(position)    = Zow.bsv 6 15
+---------
+Command: browseinst list 4
+9 {_element_0  Reg#(Bit#(5))} prim
+10 {_element_1  Reg#(Bit#(5))} prim
+11 {_element_2  Reg#(Bit#(5))} prim
+---------
+Command: browseinst detail 4
+X(BSVModule)   = mkExample
+X(BSVPath)     = xx
+X(DEBUG)       = BINode xx Just ((Vector::Vector#(3, Reg#(Bit#(5)))))
+X(IfcPosition) = Example.bsv 13 4
+X(Interface)   = Vector::Vector#(3, Reg#(Bit#(5)))
+X(LocalPath)   = xx
+X(Name)        = xx
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 13 29
+---------
+Command: browseinst list 9
+---------
+Command: browseinst detail 9
+X(BSVModule)   = mkExample
+X(BSVPath)     = xx _element_0
+X(DEBUG)       = BLeaf _element_0 RegUN Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RegUN
+X(Name)        = _element_0
+X(Node)        = Primitive
+X(SynthPath)   = xx_0
+X(UniqueName)  = xx_0
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 10
+---------
+Command: browseinst detail 10
+X(BSVModule)   = mkExample
+X(BSVPath)     = xx _element_1
+X(DEBUG)       = BLeaf _element_1 RegUN Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RegUN
+X(Name)        = _element_1
+X(Node)        = Primitive
+X(SynthPath)   = xx_1
+X(UniqueName)  = xx_1
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 11
+---------
+Command: browseinst detail 11
+X(BSVModule)   = mkExample
+X(BSVPath)     = xx _element_2
+X(DEBUG)       = BLeaf _element_2 RegUN Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RegUN
+X(Name)        = _element_2
+X(Node)        = Primitive
+X(SynthPath)   = xx_2
+X(UniqueName)  = xx_2
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 5
+12 {_element_0  Reg#(Bit#(5))} prim
+13 {_element_1  Reg#(Bit#(5))} prim
+14 {_element_2  Reg#(Bit#(5))} prim
+---------
+Command: browseinst detail 5
+X(BSVModule)   = mkExample
+X(BSVPath)     = ww
+X(DEBUG)       = BINode ww Just ((Vector::Vector#(3, Reg#(Bit#(5)))))
+X(IfcPosition) = Example.bsv 13 4
+X(Interface)   = Vector::Vector#(3, Reg#(Bit#(5)))
+X(LocalPath)   = ww
+X(Name)        = ww
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 15 29
+---------
+Command: browseinst list 12
+---------
+Command: browseinst detail 12
+X(BSVModule)   = mkExample
+X(BSVPath)     = ww _element_0
+X(DEBUG)       = BLeaf _element_0 RWire Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RWire
+X(Name)        = _element_0
+X(Node)        = Primitive
+X(SynthPath)   = ww_0
+X(UniqueName)  = ww_0
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 13
+---------
+Command: browseinst detail 13
+X(BSVModule)   = mkExample
+X(BSVPath)     = ww _element_1
+X(DEBUG)       = BLeaf _element_1 RWire Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RWire
+X(Name)        = _element_1
+X(Node)        = Primitive
+X(SynthPath)   = ww_1
+X(UniqueName)  = ww_1
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 14
+---------
+Command: browseinst detail 14
+X(BSVModule)   = mkExample
+X(BSVPath)     = ww _element_2
+X(DEBUG)       = BLeaf _element_2 RWire Just ((Reg#(Bit#(5))))
+X(IfcPosition) = Example.bsv 13 14
+X(Interface)   = Reg#(Bit#(5))
+X(LocalPath)   = 
+X(Module)      = RWire
+X(Name)        = _element_2
+X(Node)        = Primitive
+X(SynthPath)   = ww_2
+X(UniqueName)  = ww_2
+X(position)    = %/Libraries/List.bs 727 4 {Library List}
+---------
+Command: browseinst list 6
+15 {z_0  Reg#(Bool)} prim
+16 {z_1  Reg#(Bool)} prim
+17 {z_2  Reg#(Bool)} prim
+---------
+Command: browseinst detail 6
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop
+X(DEBUG)       = BINode Loop Just (Integer)
+X(IfcPosition) = Example.bsv 17 9
+X(Interface)   = Integer
+X(LocalPath)   = Loop
+X(Name)        = Loop
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 17 4
+---------
+Command: browseinst list 15
+---------
+Command: browseinst detail 15
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop z_0
+X(DEBUG)       = BLeaf z_0 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = z_0
+X(Node)        = Primitive
+X(SynthPath)   = z_0
+X(UniqueName)  = z_0
+X(position)    = Example.bsv 18 18
+---------
+Command: browseinst list 16
+---------
+Command: browseinst detail 16
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop z_1
+X(DEBUG)       = BLeaf z_1 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = z_1
+X(Node)        = Primitive
+X(SynthPath)   = z_1
+X(UniqueName)  = z_1
+X(position)    = Example.bsv 18 18
+---------
+Command: browseinst list 17
+---------
+Command: browseinst detail 17
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop z_2
+X(DEBUG)       = BLeaf z_2 RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = z_2
+X(Node)        = Primitive
+X(SynthPath)   = z_2
+X(UniqueName)  = z_2
+X(position)    = Example.bsv 18 18
+---------
+Command: browseinst list 7
+18 Body_0 {}
+19 Body_1 {}
+20 Body_2 {}
+---------
+Command: browseinst detail 7
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop
+X(DEBUG)       = BINode Loop Just (Integer)
+X(IfcPosition) = Example.bsv 17 9
+X(Interface)   = Integer
+X(LocalPath)   = Loop
+X(Name)        = Loop
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 20 4
+---------
+Command: browseinst list 18
+21 {x  Reg#(Bool)} prim
+22 Loop {}
+---------
+Command: browseinst detail 18
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0
+X(DEBUG)       = BINode Body_0 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_0
+X(Name)        = Body_0
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 21 7
+---------
+Command: browseinst list 21
+---------
+Command: browseinst detail 21
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 x
+X(DEBUG)       = BLeaf x RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = x
+X(Node)        = Primitive
+X(SynthPath)   = x_0
+X(UniqueName)  = x_0
+X(position)    = Example.bsv 23 21
+---------
+Command: browseinst list 22
+23 Body_0 {}
+24 Body_1 {}
+25 Body_2 {}
+---------
+Command: browseinst detail 22
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop
+X(DEBUG)       = BINode Loop Just (Integer)
+X(IfcPosition) = Example.bsv 17 9
+X(Interface)   = Integer
+X(LocalPath)   = Loop Body_0 Loop
+X(Name)        = Loop
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 25 10
+---------
+Command: browseinst list 23
+26 {y  Reg#(Bool)} prim
+27 update rule
+---------
+Command: browseinst detail 23
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_0
+X(DEBUG)       = BINode Body_0 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_0 Loop Body_0
+X(Name)        = Body_0
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 26
+---------
+Command: browseinst detail 26
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_0 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_0_0
+X(UniqueName)  = y_0_0
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 27
+---------
+Command: browseinst detail 27
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_0 Loop Body_0 update
+X(DEBUG)     = BRule update (RL_update)
+X(LocalPath) = Loop Body_0 Loop Body_0 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 24
+28 {y  Reg#(Bool)} prim
+29 update rule
+---------
+Command: browseinst detail 24
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_1
+X(DEBUG)       = BINode Body_1 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_0 Loop Body_1
+X(Name)        = Body_1
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 28
+---------
+Command: browseinst detail 28
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_1 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_0_1
+X(UniqueName)  = y_0_1
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 29
+---------
+Command: browseinst detail 29
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_0 Loop Body_1 update
+X(DEBUG)     = BRule update (RL_update_1)
+X(LocalPath) = Loop Body_0 Loop Body_1 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_1
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 25
+30 {y  Reg#(Bool)} prim
+31 update rule
+---------
+Command: browseinst detail 25
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_2
+X(DEBUG)       = BINode Body_2 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_0 Loop Body_2
+X(Name)        = Body_2
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 30
+---------
+Command: browseinst detail 30
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_0 Loop Body_2 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_0_2
+X(UniqueName)  = y_0_2
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 31
+---------
+Command: browseinst detail 31
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_0 Loop Body_2 update
+X(DEBUG)     = BRule update (RL_update_2)
+X(LocalPath) = Loop Body_0 Loop Body_2 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_2
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 19
+32 {x  Reg#(Bool)} prim
+33 Loop {}
+---------
+Command: browseinst detail 19
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1
+X(DEBUG)       = BINode Body_1 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_1
+X(Name)        = Body_1
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 21 7
+---------
+Command: browseinst list 32
+---------
+Command: browseinst detail 32
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 x
+X(DEBUG)       = BLeaf x RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = x
+X(Node)        = Primitive
+X(SynthPath)   = x_1
+X(UniqueName)  = x_1
+X(position)    = Example.bsv 23 21
+---------
+Command: browseinst list 33
+34 Body_0 {}
+35 Body_1 {}
+36 Body_2 {}
+---------
+Command: browseinst detail 33
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop
+X(DEBUG)       = BINode Loop Just (Integer)
+X(IfcPosition) = Example.bsv 17 9
+X(Interface)   = Integer
+X(LocalPath)   = Loop Body_1 Loop
+X(Name)        = Loop
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 25 10
+---------
+Command: browseinst list 34
+37 {y  Reg#(Bool)} prim
+38 update rule
+---------
+Command: browseinst detail 34
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_0
+X(DEBUG)       = BINode Body_0 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_1 Loop Body_0
+X(Name)        = Body_0
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 37
+---------
+Command: browseinst detail 37
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_0 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_1_0
+X(UniqueName)  = y_1_0
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 38
+---------
+Command: browseinst detail 38
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_1 Loop Body_0 update
+X(DEBUG)     = BRule update (RL_update_3)
+X(LocalPath) = Loop Body_1 Loop Body_0 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_3
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 35
+39 {y  Reg#(Bool)} prim
+40 update rule
+---------
+Command: browseinst detail 35
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_1
+X(DEBUG)       = BINode Body_1 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_1 Loop Body_1
+X(Name)        = Body_1
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 39
+---------
+Command: browseinst detail 39
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_1 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_1_1
+X(UniqueName)  = y_1_1
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 40
+---------
+Command: browseinst detail 40
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_1 Loop Body_1 update
+X(DEBUG)     = BRule update (RL_update_4)
+X(LocalPath) = Loop Body_1 Loop Body_1 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_4
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 36
+41 {y  Reg#(Bool)} prim
+42 update rule
+---------
+Command: browseinst detail 36
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_2
+X(DEBUG)       = BINode Body_2 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_1 Loop Body_2
+X(Name)        = Body_2
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 41
+---------
+Command: browseinst detail 41
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_1 Loop Body_2 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_1_2
+X(UniqueName)  = y_1_2
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 42
+---------
+Command: browseinst detail 42
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_1 Loop Body_2 update
+X(DEBUG)     = BRule update (RL_update_5)
+X(LocalPath) = Loop Body_1 Loop Body_2 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_5
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 20
+43 {x  Reg#(Bool)} prim
+44 Loop {}
+---------
+Command: browseinst detail 20
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2
+X(DEBUG)       = BINode Body_2 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_2
+X(Name)        = Body_2
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 21 7
+---------
+Command: browseinst list 43
+---------
+Command: browseinst detail 43
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 x
+X(DEBUG)       = BLeaf x RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = x
+X(Node)        = Primitive
+X(SynthPath)   = x_2
+X(UniqueName)  = x_2
+X(position)    = Example.bsv 23 21
+---------
+Command: browseinst list 44
+45 Body_0 {}
+46 Body_1 {}
+47 Body_2 {}
+---------
+Command: browseinst detail 44
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop
+X(DEBUG)       = BINode Loop Just (Integer)
+X(IfcPosition) = Example.bsv 17 9
+X(Interface)   = Integer
+X(LocalPath)   = Loop Body_2 Loop
+X(Name)        = Loop
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 25 10
+---------
+Command: browseinst list 45
+48 {y  Reg#(Bool)} prim
+49 update rule
+---------
+Command: browseinst detail 45
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_0
+X(DEBUG)       = BINode Body_0 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_2 Loop Body_0
+X(Name)        = Body_0
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 48
+---------
+Command: browseinst detail 48
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_0 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_2_0
+X(UniqueName)  = y_2_0
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 49
+---------
+Command: browseinst detail 49
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_2 Loop Body_0 update
+X(DEBUG)     = BRule update (RL_update_6)
+X(LocalPath) = Loop Body_2 Loop Body_0 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_6
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 46
+50 {y  Reg#(Bool)} prim
+51 update rule
+---------
+Command: browseinst detail 46
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_1
+X(DEBUG)       = BINode Body_1 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_2 Loop Body_1
+X(Name)        = Body_1
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 50
+---------
+Command: browseinst detail 50
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_1 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_2_1
+X(UniqueName)  = y_2_1
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 51
+---------
+Command: browseinst detail 51
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_2 Loop Body_1 update
+X(DEBUG)     = BRule update (RL_update_7)
+X(LocalPath) = Loop Body_2 Loop Body_1 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_7
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst list 47
+52 {y  Reg#(Bool)} prim
+53 update rule
+---------
+Command: browseinst detail 47
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_2
+X(DEBUG)       = BINode Body_2 Just (void)
+X(IfcPosition) = Example.bsv 17 4
+X(Interface)   = void
+X(LocalPath)   = Loop Body_2 Loop Body_2
+X(Name)        = Body_2
+X(Node)        = Instance
+X(SynthPath)   = 
+X(position)    = Example.bsv 26 13
+---------
+Command: browseinst list 52
+---------
+Command: browseinst detail 52
+X(BSVModule)   = mkExample
+X(BSVPath)     = Loop Body_2 Loop Body_2 y
+X(DEBUG)       = BLeaf y RegN Just ((Reg#(Bool)))
+X(IfcPosition) = Example.bsv 9 4
+X(Interface)   = Reg#(Bool)
+X(LocalPath)   = 
+X(Module)      = RegN
+X(Name)        = y
+X(Node)        = Primitive
+X(SynthPath)   = y_2_2
+X(UniqueName)  = y_2_2
+X(position)    = Example.bsv 28 27
+---------
+Command: browseinst list 53
+---------
+Command: browseinst detail 53
+X(BSVModule) = mkExample
+X(BSVPath)   = Loop Body_2 Loop Body_2 update
+X(DEBUG)     = BRule update (RL_update_8)
+X(LocalPath) = Loop Body_2 Loop Body_2 update
+X(Name)      = update
+X(Node)      = Rule
+X(RuleName)  = RL_update_8
+X(SynthPath) = 
+X(position)  = Example.bsv 30 21
+---------
+Command: browseinst debug
+0 ROOT
+1 mkExample
+2 {zow  Reg#(Bool)}
+3 mkZow
+4 xx
+5 ww
+6 Loop
+7 Loop
+8 {zow2  Reg#(Bool)}
+9 {_element_0  Reg#(Bit#(5))}
+10 {_element_1  Reg#(Bit#(5))}
+11 {_element_2  Reg#(Bit#(5))}
+12 {_element_0  Reg#(Bit#(5))}
+13 {_element_1  Reg#(Bit#(5))}
+14 {_element_2  Reg#(Bit#(5))}
+15 {z_0  Reg#(Bool)}
+16 {z_1  Reg#(Bool)}
+17 {z_2  Reg#(Bool)}
+18 Body_0
+19 Body_1
+20 Body_2
+21 {x  Reg#(Bool)}
+22 Loop
+23 Body_0
+24 Body_1
+25 Body_2
+26 {y  Reg#(Bool)}
+27 update
+28 {y  Reg#(Bool)}
+29 update
+30 {y  Reg#(Bool)}
+31 update
+32 {x  Reg#(Bool)}
+33 Loop
+34 Body_0
+35 Body_1
+36 Body_2
+37 {y  Reg#(Bool)}
+38 update
+39 {y  Reg#(Bool)}
+40 update
+41 {y  Reg#(Bool)}
+42 update
+43 {x  Reg#(Bool)}
+44 Loop
+45 Body_0
+46 Body_1
+47 Body_2
+48 {y  Reg#(Bool)}
+49 update
+50 {y  Reg#(Bool)}
+51 update
+52 {y  Reg#(Bool)}
+53 update
+---------

@@ -1,0 +1,39 @@
+# Tests for path analysis
+if {$vtest == 1} {
+
+# --------------------------------------------------
+# Test that there are dependency edges from method enable signals
+# to the WILL_FIRE_(s) of the method.
+
+compile_verilog_pass MethodEnableToWillFire.bsv
+find_regexp mkMethodEnableToWillFire.v {
+// Combinational paths from inputs to outputs:
+//   EN_inp -> result
+}
+
+# --------------------------------------------------
+# Test that there can be dependency edges from a method enable signal
+# to the mux for a submodule method call's argument (leading to the
+# submodule method call's result and back to the top method's result).
+# This is bug 1377.
+
+compile_verilog_pass MethodEnableToArgMux.bsv
+find_regexp sysMethodEnableToArgMux.v {
+// Combinational paths from inputs to outputs:
+//   \(m_i\, EN_m\) -> m
+}
+
+# --------------------------------------------------
+# Test that paths through module arguments are detected
+
+compile_verilog_fail_error PortPath.bsv G0032
+
+# --------------------------------------------------
+# When methods are allowed to be less urgent than rules,
+# we will need tests here that check that the "&& !CF_rl"
+# is added in to the RDY signal and not directly to the WF
+
+#...
+
+# --------------------------------------------------
+}

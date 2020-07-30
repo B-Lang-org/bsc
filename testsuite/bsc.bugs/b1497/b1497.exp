@@ -1,0 +1,30 @@
+
+# Joe's first example
+if { $contribtest } {
+    set old_option ""
+    if { [info exists ::env(BSC_OPTIONS)] } {
+	set old_option $::env(BSC_OPTIONS)
+    }
+
+    set libdir "$contrib_inst/lib/Libraries"
+    set amba2dir "$libdir/AMBA_TLM2"
+
+    append ::env(BSC_OPTIONS) " -p $libdir/Bus:$amba2dir/TLM:$amba2dir/AHB:$amba2dir/Axi:+"
+
+    compile_pass Mpmc_TLM.bsv
+
+    set ::env(BSC_OPTIONS) $old_option
+}
+
+# Jacob's example
+compile_pass State.bsv
+
+# Joe's later example (Bug 1629)
+compile_pass Cache_Controller.bsv
+
+# Todd's example, originally tagged as Bug 1573 by Ravi
+compile_pass ToddBogusBits.bsv
+
+# Test the Joe example from Bug 1518
+compile_pass BuffIndex.bsv
+

@@ -1,0 +1,73 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WCycleDrop1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "rules conflict resolution" warning (WCycleDrop)
+
+-- Error Message : bsc -verilog -g mkWCycleDrop1 WCycleDrop1.bs
+-- bsc: Compilation warnings:
+-- "WCycleDrop1.bs", line 30, column 0, The scheduling phase created a conflict between the following rules:
+--     (One__1,Two__2)
+-- to break the following cycle:
+--     [One__1,Two__2,Three__3,Four__4,One__1]
+-- "WCycleDrop1.bs", line 30, column 0, The scheduling phase created a conflict between the following rules:
+--     (One__1,Two__2)
+-- to break the following cycle:
+--     [One__1,Two__2,Three__3,Four__4,One__1,start_]
+-----------------------------------------------------------------------
+
+package WCycleDrop1 (WCycleDrop1(..), mkWCycleDrop1) where
+
+-- import Int
+
+interface WCycleDrop1 =
+         start  :: Int 32 -> Int 32 -> Int 32 -> Int 32 -> Action
+         result :: Bool
+
+mkWCycleDrop1 :: Module WCycleDrop1
+mkWCycleDrop1 =
+            module
+
+                    w :: Reg (Int 32)
+                    w <- mkRegU
+
+                    x :: Reg (Int 32)
+                    x <- mkRegU
+
+                    y :: Reg (Int 32)
+                    y <- mkRegU
+
+                    z :: Reg (Int 32)
+                    z <- mkRegU
+
+                    res :: Reg (Bool)
+                    res <- mkReg True
+
+                    rules 
+                      "One" :
+                               when True
+                                      ==> action
+                                                w := x
+                      "Two" :
+                               when True
+                                      ==> action
+                                                x := y
+                      "Three" :
+                               when True
+                                      ==> action
+                                                y := z
+                      "Four" :
+                               when True
+                                      ==> action
+                                                z := w
+                    interface 
+                            start iw ix iy iz = action
+                                                      w := iw
+                                                      x := ix
+                                                      y := iy 
+                                                      z := iz
+                          
+                            result = res

@@ -1,0 +1,45 @@
+# Tests for Bug 737
+# -------------------------
+
+# Test that a method can't refer to itself
+compile_fail_error MethodSelfReference.bsv T0004
+compare_file [make_bsc_output_name MethodSelfReference.bsv]
+
+# Test that a method can't refer to another method
+compile_fail_error MethodToMethodReference.bsv T0004
+compare_file [make_bsc_output_name MethodToMethodReference.bsv]
+
+# Test that the parser detects nameclash (and rejects it) if a
+# variable by the same name as a method is declared inside the method
+compile_fail_error MethodInternalNameClash.bsv T0011
+compare_file [make_bsc_output_name MethodInternalNameClash.bsv]
+
+# Test that the parser detects nameclash (and rejects it) if a
+# method has the same name as a variable declared previously.
+compile_fail_error MethodExternalNameClash.bsv T0011
+compare_file [make_bsc_output_name MethodExternalNameClash.bsv]
+
+# -------------------------
+
+# Bug 619 is about the parser not detecting nameclash in patterns
+# See ../b1753/MethodNameShadow.bsv for an example.
+
+# -------------------------
+
+# Examples from Bug 1417: Name shadowing is not detected for subinterfaces
+# and methods accidentally refer to themselves this way.
+
+# Name clash in this example is detected
+compile_fail_error ActionMethodRegClash.bsv T0011
+# But name clash in this example is not detected
+# (At least with Bug 737 fixed, it doesn't refer to the method.)
+compile_verilog_pass ActionMethodRegClash_SubIfc.bsv
+
+# Name clash in this example is detected
+compile_fail_error ValueMethodInItsCondition.bsv T0011
+# But name clash in this example is not detected
+# (At least with Bug 737 fixed, it doesn't refer to the method.)
+compile_verilog_pass ValueMethodInItsCondition_SubIfc.bsv
+
+# -------------------------
+

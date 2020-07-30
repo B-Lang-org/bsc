@@ -1,0 +1,78 @@
+
+# procedure to test Verilog simulation with different RTL gen flags
+# (assumes that the the only module is the top)
+proc test_veri { top } {
+    # test without inlining
+    test_veri_only_bsv_modules_options \
+	"$top" {} {-no-inline-reg} "sys$top.v.out.expected"
+    copy "$top.bi" "$top.bi.no-inline-reg"
+    copy "$top.bo" "$top.bo.no-inline-reg"
+    copy "$top.bsv.bsc-vcomp-out" "$top.bsv.bsc-vcomp-out.no-inline-reg"
+    copy "sys$top.bsc-vcomp-out" "sys$top.bsc-vcomp-out.no-inline-reg"
+    copy "sys$top.v" "sys$top.v.no-inline-reg"
+    copy "sys$top.vexe" "sys$top.vexe.no-inline-reg"
+    copy "sys$top.v.out" "sys$top.v.out.no-inline-reg"
+    copy "sys$top.v.out.diff-out" "sys$top.v.out.diff-out.no-inline-reg"
+    erase "$top.bi"
+    erase "$top.bo"
+
+    # test with inlining
+    test_veri_only_bsv_modules_options \
+	"$top" {} {-inline-reg} "sys$top.v.out.expected"
+    copy "$top.bi" "$top.bi.inline-reg"
+    copy "$top.bo" "$top.bo.inline-reg"
+    copy "$top.bsv.bsc-vcomp-out" "$top.bsv.bsc-vcomp-out.inline-reg"
+    copy "sys$top.bsc-vcomp-out" "sys$top.bsc-vcomp-out.inline-reg"
+    copy "sys$top.v" "sys$top.v.inline-reg"
+    copy "sys$top.vexe" "sys$top.vexe.inline-reg"
+    copy "sys$top.v.out" "sys$top.v.out.inline-reg"
+    copy "sys$top.v.out.diff-out" "sys$top.v.out.diff-out.inline-reg"
+    erase "$top.bi"
+    erase "$top.bo"
+}
+
+# ----------
+
+## a test of the basic clock division
+test_veri ClockDiv
+
+## a test of a crossing register using optimized crossing flop
+test_veri ClockDiv2
+
+## a test for a crossing using fifos
+test_veri ClockDivFifo
+
+## tests for Clock Inversion
+test_veri ClockInv
+test_veri GatedClockInv
+
+# test for Reset Inversion
+test_veri ResetInv
+
+## a test for a crossing using fifos
+test_veri_only_bsv ClockDivFifo2 "sysClockDivFifo2.v.out.expected"
+
+
+## a negative test for a special sync fifo of size 1
+compile_verilog_fail_error ClockDivFifo1.bsv S0015
+
+
+## a test for a showing offset on the mkClockDividerOffset
+test_veri_only_bsv ClockDivOffset  sysClockDivOffset.v.out.expected
+
+
+## a test for mkGatedClockDivider
+test_veri_only_bsv GatedClockDiv "sysGatedClockDiv.v.out.expected"
+
+## Test the clock dividers in Bluesim
+test_c_only_bsv ClockInv
+test_c_only_bsv GatedClockInv
+test_c_only_bsv ClockDiv "sysClockDiv.c.out.expected"
+test_c_only_bsv ClockDiv2 "sysClockDiv2.c.out.expected"
+test_c_only_bsv ClockDivOffset
+test_c_only_bsv ClockDivFifo "sysClockDivFifo.c.out.expected"
+test_c_only_bsv ClockDivFifo2 "sysClockDivFifo2.c.out.expected"
+test_c_only_bsv GatedClockDiv "sysGatedClockDiv.c.out.expected"
+
+# ----------
+

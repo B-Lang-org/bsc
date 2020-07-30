@@ -1,0 +1,14 @@
+checking package dependencies
+compiling Bug1720-1.bsv
+Error: "Bug1720-1.bsv", line 119, column 8: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Add#(3, TSub#(0, TMul#(8, TDiv#(TSub#(1, 8), 8))), a__)
+  The proviso was implied by expressions at the following positions:
+    "Bug1720-1.bsv", line 126, column 59
+Error: "Bug1720-1.bsv", line 119, column 8: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Add#(5, a__, b__)
+  The proviso was implied by expressions at the following positions:
+    "Bug1720-1.bsv", line 126, column 59

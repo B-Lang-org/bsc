@@ -1,0 +1,10 @@
+if {$vtest == 1} {
+compile_verilog_fail EModule_.bs mkTest
+compare_file EModule_.bs.bsc-vcomp-out
+
+compile_verilog_fail EModule_2.bs myReg
+compare_file_bug EModule_2.bs.bsc-vcomp-out {} 1278
+# Catch if the message changed, but still doesn't match
+find_n_error EModule_2.bs.bsc-vcomp-out G0011 1
+
+}

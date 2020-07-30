@@ -1,0 +1,21 @@
+if {$ctest == 1} {
+compile_object_pass MkCClientServer.bsv mkTestbench_MkCClientServer
+link_objects_pass {"mkTestbench_MkCClientServer"} mkTestbench_MkCClientServer
+sim_output mkTestbench_MkCClientServer
+compare_file "mkTestbench_MkCClientServer.out"
+
+compile_object_pass MkCGetCPut.bsv mkTestbench_MkCGetCPut
+link_objects_pass {"mkTestbench_MkCGetCPut"} mkTestbench_MkCGetCPut
+sim_output mkTestbench_MkCGetCPut
+compare_file "mkTestbench_MkCGetCPut.out"
+
+compile_object_pass MkCGetPut.bsv mkTestbench_MkCGetPut
+link_objects_pass {"mkTestbench_MkCGetPut"} mkTestbench_MkCGetPut
+sim_output mkTestbench_MkCGetPut
+compare_file "mkTestbench_MkCGetPut.out"
+
+compile_object_pass MkCGetCPut_extra_buffer.bsv mkTestbench_Mk_extrabuffer
+link_objects_pass {"mkTestbench_Mk_extrabuffer"} mkTestbench_Mk_extrabuffer
+sim_output mkTestbench_Mk_extrabuffer
+compare_file "mkTestbench_Mk_extrabuffer.out"
+}

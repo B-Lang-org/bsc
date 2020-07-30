@@ -1,0 +1,64 @@
+# -----
+
+# This is a testcase for bug 38, which was fixed
+compile_pass LiteralInTuple.bs
+
+# -----
+
+compile_pass BinaryLiterals.bs
+compile_pass BinaryLiteral.bsv
+
+# -----
+
+# This tests defaulting of the Literal class
+compile_pass DefaultingLiteral.bs
+
+compile_pass DefaultingRealLiteral.bs
+
+compile_pass DefaultingSizedLiteral.bsv
+
+# -----
+
+# Sized literals should be checked that the value fits in the size
+
+# Check a couple places where the BSV parser creates literals
+compile_fail_error SizedLiteral_TooLarge.bsv T0132
+compile_fail_error SizedLiteral_TooLarge_CaseMatches.bsv T0132
+compile_fail_error SizedLiteral_TooLarge_Case.bsv T0132
+
+# Check a value which is too big on the negative side
+compile_fail_error SizedLiteral_TooLargeNeg.bsv T0132
+
+# Test that non-sized literals are caught (but only at elaboration time)
+compile_verilog_fail_error Literal_TooLarge.bsv T0051
+
+# Test that we don't error about values which are in range by testing
+# the max and min bounds
+compile_pass SizedLiteral_Bounds.bsv
+
+# Test that negative value which are in range are OK
+compile_verilog_pass SizedLiteral_Neg.bsv
+if { $vtest == 1 } {
+find_n_strings sysSizedLiteral_Neg.v {11'h7FF} 1
+}
+# And also for non-sized literals
+compile_verilog_pass Literal_Neg.bsv
+if { $vtest == 1 } {
+find_n_strings sysLiteral_Neg.v {11'h7FF} 1
+}
+
+# Test that the size can be zero
+compile_pass SizedLiteral_ZeroSize.bsv
+# But that a value other than 0 is out of bounds
+compile_fail_error SizedLiteral_ZeroSize_TooLarge.bsv T0132
+# And that the size really is 0
+compile_fail_error SizedLiteral_ZeroSize_TypeMismatch.bsv T0060
+
+# -----
+
+# Test that leading minus signs are part of the literal before applying
+# fromInteger or fromReal or fromSizedInteger
+compile_pass LeadingMinus.bsv
+
+# -----
+

@@ -1,0 +1,116 @@
+
+# tests for Bluespec syntax
+
+# empty template
+compile_pass Empty.bs
+
+# tests the .get and .set of registers
+compile_pass Fib.bs
+
+# tests contexts in templates
+compile_pass Context.bs
+
+# tests the naming of nested when clauses
+compile_pass NamingNestedWhens.bs
+
+# tests the pattern binding scope inside nested when clauses
+compile_pass ScopeInNestedWhens.bs
+
+# tests whether two different types can use the same constructor names
+compile_pass DuplicateConstructors.bs
+
+# tests if rule assertions are parsed correctly
+compile_pass RuleAssertions.bs
+
+# tests if bogus rule assertions are errors
+compile_fail BogusAssertions.bs
+compare_file BogusAssertions.bs.bsc-out
+
+# tests creating interfaces outside of modules
+compile_pass InterfaceCognito.bs
+
+# tests creating incognito interfaces outside of modules
+compile_fail InterfaceIncognito.bs
+compare_file InterfaceIncognito.bs.bsc-out
+
+# tests an indirect import bug (#172)
+compile_pass Import0.bs
+compile_pass Import1.bs
+compile_pass Import2.bs
+
+# tests user defined infix operators
+compile_pass Infix.bs
+if { [do_internal_checks] } {
+    dumpbi Infix.bo
+    compare_file [make_dumpbi_output_name Infix.bo]
+}
+
+# tests precedence of · with respect to constructors
+compile_pass ConstructorDot.bs
+
+# tests := sugar for registers
+compile_pass RegisterSugar.bs
+
+# tests deep struct pattern-match in action-values
+compile_pass_bug StructDeepPattern.bs 1080
+
+# tests that identifiers can start with $
+compile_pass TaskIdentifiers.bs
+
+# need literal support for $display
+compile_pass ParseDisplay.bs
+compile_pass ParseDisplay.bsv
+
+compile_pass StringLit.bs 
+
+# Support for parameter, no_default_clock, and no_default_reset pragmas
+# (fixes Google issue #78233370)
+test_c_veri_bs_modules Pragmas {}
+
+# Top-level defs must have signatures
+# (fixes Google issue #73087150)
+compile_fail_error NoSign.bs T0141
+
+# Support Haskell's DoAndIfThenElse layout
+# (fixes Google #78238284)
+compile_pass DoAndIfThenElse.bs
+
+# More flexible rules for module and action layout
+# (fixes Google issue #78254411)
+compile_fail_error EmptyActionBreaks.bs P0005
+compile_fail_error EmptyModuleBreaks.bs P0005
+compile_pass FlexibleModuleLayout.bs
+compile_pass RestrictiveModuleLayout.bs
+
+# Fix position after numeric literals with prefixes
+# (fixes Google issue #77395569)
+compile_fail LexPos.bs
+find_n_strings LexPos.bs.bsc-out {Error: "LexPos.bs", line 4, column 12: (T0020)} 1
+find_n_strings LexPos.bs.bsc-out {Error: "LexPos.bs", line 7, column 16: (T0020)} 1
+
+# Allow _ in numeric literals
+# (fixes Google issue #67326190)
+test_c_veri_bs_modules LiteralTest {}
+
+# Support sized literals with Verilog-style syntax
+# (fixes Google issue #67372462)
+compile_pass SizedLiteral.bs
+compile_fail_error SizedLiteralAmbig.bs T0033
+test_c_veri_bs_modules SizedLiteralMono {}
+test_c_veri_bs_modules SizedLiteralTest {}
+
+# Warn about unused and shadowed defs
+# (fixes Google issue #67757083)
+compile_pass DefUnused.bs
+compare_file [make_bsc_output_name DefUnused.bs]
+compile_pass DefShadow.bs
+compare_file [make_bsc_output_name DefShadow.bs]
+
+# Proper treatment of data constructor arguments
+# (Google issue #71027315)
+compile_fail BadCase.bs
+compare_file [make_bsc_output_name BadCase.bs]
+compile_fail NamedStructBad.bs
+compare_file [make_bsc_output_name NamedStructBad.bs]
+compile_fail NiceType.bs
+compare_file [make_bsc_output_name NiceType.bs]

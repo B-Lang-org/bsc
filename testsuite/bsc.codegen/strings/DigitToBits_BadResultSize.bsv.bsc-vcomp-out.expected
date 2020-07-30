@@ -1,0 +1,9 @@
+checking package dependencies
+compiling DigitToBits_BadResultSize.bsv
+code generation for sysDigitToBits_BadResultSize starts
+Error: "Prelude.bs", line 1271, column 14: (T0051)
+  Literal 2 is not a valid Bit#(1).
+  During elaboration of the body of rule `r' at
+  "DigitToBits_BadResultSize.bsv", line 3, column 9.
+  During elaboration of `sysDigitToBits_BadResultSize' at
+  "DigitToBits_BadResultSize.bsv", line 2, column 8.

@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "EUntermComm1.bs", line 59, column 0: (P0003)
+  Unterminated block comment, started at line 51, column 0

@@ -1,0 +1,72 @@
+package ResourceOneRuleMultiportAction() where
+
+
+-- Two calls to a multiported action method in the same rule with the
+-- same arguments (which can be parallel composed, in one rule) should
+-- not be CSE'd.  Nor should they be composed sequentially (thus leaving
+-- only the "last" call).  There should be uses of two ports in one rule.
+-- This is not observed due to bug #42.
+
+sysResourceOneRuleMultiportAction :: Module Empty
+sysResourceOneRuleMultiportAction =
+    module
+        arr :: RegFile (Bit 8) (Bit 8) <- mkRegFile minBound maxBound
+        rules
+            when True
+             ==> action { arr.upd 1 2; arr.upd 1 3 }
+
+            when True
+             ==> action { arr.upd 1 3; arr.upd 1 3 }
+
+--
+-- an array with multiported write (upd) which is CF
+--
+
+interface RegFile i a =
+    upd :: i -> a -> Action
+    sub :: i -> a
+
+interface VRegFile ni na =
+    upd :: Bit ni -> Bit na -> PrimAction
+    sub :: Bit ni -> Bit na
+
+vMkRegFile :: Integer -> Integer -> Module (VRegFile i a)
+vMkRegFile lo hi =
+    module verilog "RegFile" (("addr_width", valueOf i), 
+                              ("data_width", valueOf a),
+                              ("lo", lo), ("hi", hi)) "CLK" {
+        upd[2] = "ADDR_IN" "D_IN" "WE";
+        sub[5] = "ADDR" "D_OUT";
+    } [ sub < upd,
+	upd <> upd ] -- needed to make write ports usable in same rule
+
+mkRegFile :: (IsModule m c, Bits i si, Bits a sa) => i -> i -> m (RegFile i a)
+mkRegFile l h = liftModule $
+  if valueOf sa == 0 then
+    module
+      interface
+        upd i x = action { }
+        sub i = unpack 0
+  else if valueOf si == 0 then
+    module
+      _a :: Reg a
+      _a <- mkRegU
+      interface
+        upd i x = _a := x
+        sub i = _a
+  else
+    module
+      let lo = primBitToInteger (pack l)
+          hi = primBitToInteger (pack h)
+          lo' = if hi<lo then error ("bad indices for mkRegFile: ["
+                                       +++ integerToString lo +++ ":"
+                                       +++ integerToString hi +++ "]")
+                           else lo
+      _a :: VRegFile si sa
+      _a <- vMkRegFile lo' hi
+      interface
+        upd i x = fromPrimAction (_a.upd (pack i) (pack x))
+        sub i = unpack (_a.sub (pack i))
+
+primitive primBitToInteger :: Bit n -> Integer
+

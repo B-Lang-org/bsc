@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ECannotDerive1.bs
+Error: "ECannotDerive1.bs", line 19, column 31: (T0000)
+  Illegal deriving: Literal

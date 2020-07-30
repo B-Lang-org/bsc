@@ -1,0 +1,7 @@
+compile_object_pass Bug1489.bsv
+link_objects_pass sysBug1489.ba sysBug1489
+sim_output sysBug1489
+if { $ctest == 1 } {
+find_n_strings sysBug1489.out file11.hex 1
+find_n_strings sysBug1489.out file100.hex 1
+}

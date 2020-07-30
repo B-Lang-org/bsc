@@ -1,0 +1,46 @@
+Cycle Number:   0, Writing Data: 5555 address 0000 
+Cycle Number:   1, Writing Data: 556e address 0014 
+Cycle Number:   2, Writing Data: 5587 address 0028 
+Cycle Number:   3, Writing Data: 55a0 address 003c 
+Cycle Number:   4, Writing Data: 55b9 address 0050 
+Cycle Number:   5, Writing Data: 55d2 address 0064 
+Cycle Number:   6, Writing Data: 55eb address 0078 
+Cycle Number:   7, Writing Data: 5604 address 008c 
+Cycle Number:   8, Writing Data: 561d address 00a0 
+Cycle Number:   9, Writing Data: 5636 address 00b4 
+Cycle Number:  10, Writing Data: 564f address 00c8 
+Cycle Number:  11, Writing Data: 5668 address 00dc 
+Cycle Number:  12, Writing Data: 5681 address 00f0 
+Cycle Number:  13, Writing Data: 569a address 0104 
+Cycle Number:  14, Writing Data: 56b3 address 0118 
+Cycle Number:  15, Writing Data: 56cc address 012c 
+Cycle Number:  17, Reading Data: 5555 
+Cycle Number:  18, Reading Data: 556e 
+Cycle Number:  19, Reading Data: 5587 
+Cycle Number:  20, Reading Data: 55a0 
+Cycle Number:  21, Reading Data: 55b9 
+Cycle Number:  22, Reading Data: 55d2 
+Cycle Number:  23, Reading Data: 55eb 
+Cycle Number:  24, Reading Data: 5604 
+Cycle Number:  25, Reading Data: 561d 
+Cycle Number:  26, Reading Data: 5636 
+Cycle Number:  27, Reading Data: 564f 
+Cycle Number:  28, Reading Data: 5668 
+Cycle Number:  29, Reading Data: 5681 
+Cycle Number:  30, Reading Data: 569a 
+Cycle Number:  31, Reading Data: 56b3 
+Cycle Number:  32, Reading Data: 56cc 
+Simulation Passes
+Final state:
+top:
+  counter = 0x22
+  fail = False
+  in_address = 0x0140
+  in_data_in = 0x56e5
+  in_tag = False
+  out_address = 0x0140
+  out_data_in = 0x56e5
+  request = True
+  the_tx_fifo = EMPTY
+  the_tx_ram_the_data_in = 0x56cc
+  the_tx_ram_the_mem = <RegFile with 65536 entries>

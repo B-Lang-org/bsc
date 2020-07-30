@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnboundCon.bs
+Error: "EUnboundCon.bs", line 22, column 4: (T0003)
+  Unbound constructor `Constructor3'

@@ -1,0 +1,23 @@
+Pulled Value:170
+Pulled Value:  0
+Pulled Value:  1
+Pulled Value:  2
+Pulled Value:  3
+Pulled Value:  4
+Pulled Value:  5
+Pulled Value:  6
+Pulled Value:  7
+Pulled Value:  8
+Pulled Value:  9
+Pulled Value: 10
+Pulled Value: 11
+Pulled Value: 12
+Pulled Value: 13
+Simulation Passes
+Final state:
+top:
+  the_counter = 0x10
+  the_counter_buffered = 0x0f
+  the_dut_the_des_r = 0x0f
+  the_dut_the_src_the_counter = 0x10
+  the_fail = False

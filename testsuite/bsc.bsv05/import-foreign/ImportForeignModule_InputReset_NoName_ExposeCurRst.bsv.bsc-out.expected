@@ -1,0 +1,43 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputReset_NoName_ExposeCurRst;
+module mkMod(Empty);
+  let _bv1 <- exposeCurrentReset;
+  let _bv0 <- exposeCurrentReset;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     reset _rst__1(RST1) clocked_by(no_clock);
+		     reset _rst__2(RST2) clocked_by(no_clock);
+			 ((ResetArg _rst__1, _bv1), (ResetArg _rst__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_NoName_ExposeCurRst
+
+-----
+
+compiling ImportForeignModule_InputReset_NoName_ExposeCurRst.bsv
+=== parsed:
+package ImportForeignModule_InputReset_NoName_ExposeCurRst;
+module mkMod(Empty);
+  let _bv1 <- exposeCurrentReset;
+  let _bv0 <- exposeCurrentReset;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     reset _rst__1(RST1) clocked_by(no_clock);
+		     reset _rst__2(RST2) clocked_by(no_clock);
+			 ((ResetArg _rst__1, _bv1), (ResetArg _rst__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_NoName_ExposeCurRst
+
+-----
+
+All packages are up to date.

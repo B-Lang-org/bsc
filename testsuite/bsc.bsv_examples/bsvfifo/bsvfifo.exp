@@ -1,0 +1,15 @@
+compile_pass BSVFIFO.bsv
+test_c_veri_bsv SizedFIFOTest
+erase SizedFIFOTest.bo
+erase sysSizedFIFOTest
+erase sysSizedFIFOTest.out
+erase sysSizedFIFOTest.v
+
+if {$vtest == 1} {
+  compile_verilog_pass SizedFIFOTest.bsv "" "-inline-rwire"
+  link_verilog_pass sysSizedFIFOTest.v sysSizedFIFOTest
+  sim_verilog sysSizedFIFOTest
+
+  copy sysSizedFIFOTest.out sysSizedFIFOTest.v.inline-rwire.out
+  compare_file sysSizedFIFOTest.v.inline-rwire.out sysSizedFIFOTest.out.expected
+}

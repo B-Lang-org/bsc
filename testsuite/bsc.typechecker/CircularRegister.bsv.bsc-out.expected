@@ -1,0 +1,4 @@
+checking package dependencies
+compiling CircularRegister.bsv
+Error: "CircularRegister.bsv", line 3, column 10: (T0004)
+  Unbound variable `r'

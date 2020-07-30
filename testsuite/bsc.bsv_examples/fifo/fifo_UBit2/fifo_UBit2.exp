@@ -1,0 +1,15 @@
+if {$ctest == 1} {
+compile_object_pass SFIFOTest.bsv mkSFIFOTest
+link_objects_pass {mkSFIFOTest} mkSFIFOTest
+sim_output mkSFIFOTest
+copy mkSFIFOTest.out mkSFIFOTest.c.out
+compare_file mkSFIFOTest.c.out mkSFIFOTest.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass SFIFOTest.bsv mkSFIFOTest
+link_verilog_pass {mkSFIFOTest.v} mkSFIFOTest
+sim_verilog mkSFIFOTest
+copy mkSFIFOTest.out mkSFIFOTest.v.out
+compare_file mkSFIFOTest.v.out mkSFIFOTest.out.expected
+}

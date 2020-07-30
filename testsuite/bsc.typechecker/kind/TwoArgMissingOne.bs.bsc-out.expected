@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TwoArgMissingOne.bs
+Error: "TwoArgMissingOne.bs", line 5, column 5: (T0025)
+  The type `Foo' is applied to too few arguments.

@@ -1,0 +1,69 @@
+#
+# Tests on type classes
+#
+
+
+# --------------------------------------------------
+# Test that instances of class contexts get the right values
+
+compile_pass ContextOnClassSubset.bs "-dinternal"
+compare_file ContextOnClassSubset.bs.bsc-out
+
+# --------------------------------------------------
+# Test that methods with contexts don't result in ICE (bug #606)
+
+compile_pass TypeClassMethodWithContext.bs
+
+# Test that struct fields with contexts don't propagate that context
+# to the struct expression (part of bug #606, and applies to instances
+# because they are transformed into struct expressions).
+
+compile_pass StructWithContext.bs
+
+# --------------------------------------------------
+# Test that type variables in instantiations of contexts are given
+# correct position (the expr which introduced the proviso, not the
+# declaration of the type variables in the decl of the proviso).
+
+compile_fail_error InstanceVariablePositions.bsv T0035
+compare_file [make_bsc_output_name InstanceVariablePositions.bsv]
+
+# --------------------------------------------------
+# Test that defaulting consults the explicit predicates
+
+compile_pass DefaultWithExplicitPred.bsv
+
+# --------------------------------------------------
+# Test that defaulting does not substitute for bound variables (Bug 1516)
+
+compile_fail_error DefaultBoundVars.bsv T0033
+
+# --------------------------------------------------
+# Test for issue that was discovered in Bug 1539:
+# Context reduction errors don't take all the explicit preds from the stack,
+# only the ones needed by the use (so pass it in).  Also, that typechecking
+# implicit preds doesn't get preds from the stack.
+
+compile_fail NonDeferredInnerContext_NoInstance.bs
+compare_file [make_bsc_output_name NonDeferredInnerContext_NoInstance.bs]
+
+# --------------------------------------------------
+# Test for an internal error when ctxreduce mis-inferred the kind of a class,
+# when the class has a type argument whose kind is a function of numeric types
+
+# The simple version that we'd like to write
+compile_verilog_pass ClassKind1.bsv
+
+# Without an explicit kind, the instance is providing the kind info.
+# Test with conflicting instance kinds
+compile_fail_error ClassKind1b.bsv T0021
+
+# An attempt to help BSC discover the kind by adding a dummy member
+compile_verilog_pass ClassKind2.bsv
+# And test if the order matters
+compile_verilog_pass ClassKind2b.bsv
+
+# An attempt to provide the kind via the Classic syntax
+compile_verilog_pass ClassKind3.bsv
+
+# --------------------------------------------------

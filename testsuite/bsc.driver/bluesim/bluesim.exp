@@ -1,0 +1,42 @@
+if {$ctest != 0} {
+
+# first, remove the build directories and remake them
+nukedir bd
+nukedir sd
+mkdir bd
+mkdir sd
+
+# next, do a full build and check that all files got recompiled
+compile_object_pass Top.bsv {} {-bdir bd -p +:bd}
+exec sleep 2
+link_objects_pass {bd/mkTop.ba} mkTop {-p bd -simdir sd}
+move mkTop.bsc-ccomp-out full_build.out
+compare_file full_build.out
+sim_output mkTop {}
+move mkTop.out full_sim.out
+compare_file full_sim.out sim.out.expected
+
+# then, touch one source file and recompile
+touch Sub1.bsv
+
+# recompile and check that only the correct files got recompiled
+compile_object_pass Top.bsv {} {-bdir bd -p +:bd}
+exec sleep 2
+link_objects_pass {bd/mkTop.ba} mkTop {-p bd -simdir sd}
+move mkTop.bsc-ccomp-out partial_build.out
+compare_file partial_build.out
+sim_output mkTop {}
+move mkTop.out partial_sim.out
+compare_file partial_sim.out sim.out.expected
+
+# then recompile without changing anything
+compile_object_pass Top.bsv {} {-bdir bd -p +:bd}
+exec sleep 2
+link_objects_pass {bd/mkTop.ba} mkTop {-p bd -simdir sd}
+move mkTop.bsc-ccomp-out reused_build.out
+compare_file reused_build.out
+sim_output mkTop {}
+move mkTop.out reused_sim.out
+compare_file reused_sim.out sim.out.expected
+
+}

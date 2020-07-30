@@ -1,0 +1,121 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_fifo_index_assert_vunit (assert_fifo_index_assert)
+{
+  default clock = (posedge clk); 
+
+  property ASSERT_FIFO_INDEX_OVERFLOW_P = always (
+           reset_n && (push != 0) && !((simultaneous_push_pop == 0) && ((push != 0) && (pop != 0))) ->
+           cnt + push - pop <= depth);
+           //when simultaneous push pop is not allowed, if it happens then property is not evaluated
+
+  property ASSERT_FIFO_INDEX_UNDERFLOW_P = always (
+           reset_n && (pop != 0) && !((simultaneous_push_pop == 0) && ((push != 0) && (pop != 0))) ->
+           cnt + push >= pop); 
+           //when simultaneous push pop is not allowed, if it happens then property is not evaluated
+  
+  property ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P = always (
+           reset_n && (simultaneous_push_pop == 0) ->
+           !((push != 0) && (pop != 0)));
+           //when simultaneous push pop is allowed, this property is not evaluated
+ 
+  //Properties for X/Z checking
+
+  property ASSERT_FIFO_INDEX_XZ_ON_PUSH_P =
+           always( xzcheck_enable -> !isunknown(push) abort(!reset_n) );
+
+  property ASSERT_FIFO_INDEX_XZ_ON_POP_P =
+           always( xzcheck_enable -> !isunknown(pop) abort(!reset_n) );
+
+  A_ASSERT_FIFO_INDEX_OVERFLOW_P:
+  assert ASSERT_FIFO_INDEX_OVERFLOW_P
+  report "VIOLATION: ASSERT_FIFO_INDEX Checker Fires : Fifo overflow detected";
+
+  A_ASSERT_FIFO_INDEX_UNDERFLOW_P:
+  assert ASSERT_FIFO_INDEX_UNDERFLOW_P
+  report "VIOLATION: ASSERT_FIFO_INDEX Checker Fires : Fifo underflow detected";
+
+  A_ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P:
+  assert ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P
+  report "VIOLATION: ASSERT_FIFO_INDEX Checker Fires : Illegal simultaneous push pop detected";
+
+  A_ASSERT_FIFO_INDEX_XZ_ON_PUSH_P:
+  assert ASSERT_FIFO_INDEX_XZ_ON_PUSH_P
+  report "VIOLATION: ASSERT_FIFO_INDEX Checker Fires: push contains X or Z";
+
+  A_ASSERT_FIFO_INDEX_XZ_ON_POP_P:
+  assert ASSERT_FIFO_INDEX_XZ_ON_POP_P
+  report "VIOLATION: ASSERT_FIFO_INDEX Checker Fires: pop contains X or Z";
+}
+
+vunit assert_fifo_index_assume_vunit (assert_fifo_index_assume)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_FIFO_INDEX_OVERFLOW_P = always (
+           reset_n && (push != 0) && !((simultaneous_push_pop == 0) && ((push != 0) && (pop != 0))) ->
+           cnt + push - pop <= depth);
+           //when simultaneous push pop is not allowed, if it happens then property is not evaluated
+                                                                                                                                             
+  property ASSERT_FIFO_INDEX_UNDERFLOW_P = always (
+           reset_n && (pop != 0) && !((simultaneous_push_pop == 0) && ((push != 0) && (pop != 0))) ->
+           cnt + push >= pop);
+           //when simultaneous push pop is not allowed, if it happens then property is not evaluated
+                                                                                                                                             
+  property ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P = always (
+           reset_n && (simultaneous_push_pop == 0) ->
+           !((push != 0) && (pop != 0)));
+           //when simultaneous push pop is allowed, this property is not evaluated
+
+
+  //Properties for X/Z checking
+
+  property ASSERT_FIFO_INDEX_XZ_ON_PUSH_P =
+           always( xzcheck_enable -> !isunknown(push) abort(!reset_n) );
+
+  property ASSERT_FIFO_INDEX_XZ_ON_POP_P =
+           always( xzcheck_enable -> !isunknown(pop) abort(!reset_n) );
+
+  M_ASSERT_FIFO_INDEX_OVERFLOW_P:
+  assume ASSERT_FIFO_INDEX_OVERFLOW_P;
+                                                                                                                             
+  M_ASSERT_FIFO_INDEX_UNDERFLOW_P:
+  assume ASSERT_FIFO_INDEX_UNDERFLOW_P;
+                                                                                                                             
+  M_ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P:
+  assume ASSERT_FIFO_INDEX_ILLEGAL_PUSH_POP_P;
+
+  M_ASSERT_FIFO_INDEX_XZ_ON_PUSH_P:
+  assume ASSERT_FIFO_INDEX_XZ_ON_PUSH_P;
+
+  M_ASSERT_FIFO_INDEX_XZ_ON_POP_P:
+  assume ASSERT_FIFO_INDEX_XZ_ON_POP_P;
+}
+
+vunit assert_fifo_index_cover_vunit (assert_fifo_index_cover)
+{ 
+  default clock = (posedge clk);
+ 
+  cover_fifo_push:
+  cover {OVL_COVER_BASIC_ON && reset_n && (push != 0)}
+  report "COVERAGE REPORT: ASSERT_FIFO_INDEX Checker: Fifo_push_covered";
+ 
+  cover_fifo_pop:
+  cover {OVL_COVER_BASIC_ON && reset_n && (pop != 0)}
+  report "COVER: ASSERT_FIFO_INDEX Checker report: Fifo pop covered";
+
+  cover_fifo_simultaneous_push_pop:
+  cover {OVL_COVER_CORNER_ON && reset_n && (push != 0) && (pop != 0)}
+  report "COVER: ASSERT_FIFO_INDEX Checker report: Fifo simultaneous push pop covered";
+ 
+  cover_fifo_full:
+  cover {OVL_COVER_CORNER_ON && reset_n && (cnt != depth);reset_n && (cnt == depth)}
+  report "COVER: ASSERT_FIFO_INDEX Checker report: Fifo full covered";
+
+  cover_fifo_empty:
+  cover {OVL_COVER_CORNER_ON && reset_n && (cnt != 0);reset_n && (cnt == 0)}
+  report "COVER: ASSERT_FIFO_INDEX Checker report: Fifo empty covered";
+
+}
+ 

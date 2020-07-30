@@ -1,0 +1,8 @@
+compile_fail EDupField1.bs
+compare_file EDupField1.bs.bsc-out
+
+compile_fail EDupField2.bs
+compare_file EDupField2.bs.bsc-out
+
+compile_fail EDupField3.bs
+compare_file EDupField3.bs.bsc-out

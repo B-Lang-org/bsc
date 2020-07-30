@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ArrayDecl_WrongSize.bsv
+code generation for sysArrayDecl_WrongSize starts
+Error: "ArrayDecl_WrongSize.bsv", line 5, column 17: (S0015)
+  Bluespec evaluation-time error: Array was declared as length 3 but was
+  initialized to length 4.
+  During elaboration of `r0' at "ArrayDecl_WrongSize.bsv", line 7, column 14.
+  During elaboration of `sysArrayDecl_WrongSize' at "ArrayDecl_WrongSize.bsv",
+  line 3, column 8.

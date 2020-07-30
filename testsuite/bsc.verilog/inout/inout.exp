@@ -1,0 +1,186 @@
+bsc_initialize
+
+global bsc_options
+set old_bsc_options $::env(BSC_OPTIONS)
+set ::env(BSC_OPTIONS) "-no-inline-inout-connect $old_bsc_options"
+
+proc test_inout_simulation {} {
+
+# erase all .bo files to force recompilation
+erase_many "*.bo"
+
+# Send various values in either directions in a simple Inout circuit
+test_veri_only_bsv_modules_options SimpleConnect1 {Sender Receiver} "-D value=42" out42.expected
+
+#erase to force recompile with different options
+erase SimpleConnect1.bo
+erase sysSimpleConnect1.v
+test_veri_only_bsv_modules_options SimpleConnect1 {Sender Receiver} "-D value=3737" out3737.expected
+test_veri_only_bsv_modules_options SimpleConnect2 {Sender Receiver} "-D value=42" out42.expected
+
+# Two more sophisticated modules (one with a Register,
+# the other with an Enable port) connected by an inout.
+test_veri_only_bsv_modules RegEnConnect {RegisteredSender EnabledReceiver}  out0-9.expected
+# Test both directions
+test_veri_only_bsv_modules RegEnConnect2 {RegisteredSender EnabledReceiver} out0-9.expected
+
+# Thread an inout through many modules.  Test that this threading
+# itself is possible (and synthesizeable), and that the evaluator does
+# not drop on the floor an aggregation of interfaces with an inout
+# stored in an array, or vector.
+test_veri_only_bsv ManyLineConnectArray out0-9.expected
+test_veri_only_bsv ManyLineConnect1 out0-9.expected
+test_veri_only_bsv ManyLineConnect2 out0-9.expected
+# hand-written version, that does not involve a vector or array.
+test_veri_only_bsv LineConnect out0-9.expected
+
+# Test that wrapping a BVI module does not break things
+test_veri_only_bsv_modules_options Connect_wrapped {Sender Receiver} "-D value=3737" out3737.expected
+test_veri_only_bsv_modules_options Connect_wrapped2 {Sender Receiver} "-D value=3737" out3737.expected
+
+# Inouts may be passed around a higher-order function with a closure
+test_veri_only_bsv_modules HigherFunction {RegisteredSender EnabledReceiver}
+
+# Inouts may be arguments and return values to functions
+test_veri_only_bsv_modules FunctionInout {RegisteredSender EnabledReceiver}
+
+# ========
+# Inouts and Conditionals
+
+# Evaluate a conditional EXPRESSION to decide whether to connect
+# the "center" inout to "left" or "right"
+# Also tests that inouts may be used as module arguments.
+test_veri_only_bsv Cond_expr sysCond.out.expected
+
+# conditional STATEMENT
+test_veri_only_bsv_modules Cond {RegisteredSender EnabledReceiver}
+
+# A big, important testcase testing many things:
+#   * That a module may both read and write to the same inout.
+#   * That more than two modules (namely, three) may be connected on an inout "bus"
+#     and (so long as the bus arbitration is OK).
+#   * That wrapping a BVI module does not break things.
+test_veri_only_bsv TbBoth
+
+test_veri_only_bsv_modules InoutUsed {InoutToVal}
+}
+
+# Inout simulation tests with -no-inline-inout-connect
+test_inout_simulation
+
+set ::env(BSC_OPTIONS) $old_bsc_options
+
+set output_files [glob_pattern "*.v.out"]
+
+foreach o $output_files {
+  move $o $o.no-inline-inout
+}
+
+set diff_files [glob_pattern "*.diff-out"]
+
+foreach d $diff_files {
+  move $d $d.no-inline-inout
+}
+
+# Inout simulation tests with -inline-inout-connect (default)
+test_inout_simulation
+
+# Inout error tests
+
+# Synthesis boundary should prevent the evaluation of a conditional
+# to decide which way to connect an inout.
+compile_verilog_fail_error Cond_synthesize.bsv G0070
+
+# Trying to decide how to connect an inout depending on a value
+# only available at run-time (i.e., in a register) should fail.
+compile_verilog_fail_error CondRegInstantiate.bsv G0070
+
+
+# Inouts of non-Bits data types are forbidden, because they ultimately
+# must map to verilog wires.
+compile_verilog_fail_error InoutNonbitifiable.bsv T0043
+
+# ==========
+# Check that Bluesim gives an error on designs with Inout
+
+# This gives an error about the Inout Ifc
+compile_object_fail_error ArgToIfc.bsv G0097
+# And about the Inout modarg
+if { $ctest == 1 } {
+    find_n_error [make_bsc_ccomp_output_name ArgToIfc.bsv] G0098 1
+}
+
+# ==========
+# Test Clock checking
+
+compile_verilog_fail_error CheckClocks_ConnectTwoModArg_DiffClock.bsv G0102
+compile_verilog_fail_error CheckClocks_ModArgToBVI_DiffClock.bsv G0102
+compile_verilog_fail_error CheckClocks_BVIIfcToBVIArg_DiffClock.bsv G0102
+compile_verilog_fail_error CheckClocks_ConnectBVIIfcToBVIIfc_DiffClock.bsv G0102
+compile_verilog_fail_error CheckClocks_ArgToIfc_DiffClock.bsv G0102
+
+# XXX Check that noClock is considered a different clock (both directions)
+
+# XXX Check that SameClock is OK?
+
+# ==========
+# Test Reset checking
+
+compile_verilog_pass_warning CheckResets_ConnectTwoModArg_DiffReset.bsv G0103
+compile_verilog_pass_warning CheckResets_ArgToIfc_DiffReset.bsv G0103 2
+
+# XXX More scenarios?
+
+# XXX Check that noReset is considered a different clock (both directions)
+
+# XXX Check that SameReset is OK?
+
+# ==========
+# Test that size-zero Inouts are accepted and don't appear as ports
+
+compile_verilog_pass SizeZero.bsv
+if { $vtest == 1 } {
+    string_does_not_occur [make_bsc_vcomp_output_name SizeZero.bsv] {inout}
+}
+
+# test that inout-inlined Verilog looks as we expect
+compile_verilog_pass RedoInoutConnect.bsv
+compare_verilog mkRedoInoutConnect.v
+
+compile_verilog_pass ImpArgConnect.bsv
+compare_verilog mkImpArgConnect.v
+compare_verilog mkArgImpConnect.v
+
+compile_verilog_pass ImpImpConnect.bsv
+compare_verilog mkImpImpConnect1.v
+compare_verilog mkImpImpConnect2.v
+
+compile_verilog_pass InoutBus.bsv
+compare_verilog mkInoutBus1.v
+compare_verilog mkInoutBus2.v
+
+compile_verilog_pass TwoInoutBuses.bsv
+compare_verilog mkTwoInoutBuses.v
+
+compile_verilog_pass FourInoutBuses.bsv
+compare_verilog mkFourInoutBuses.v
+
+# ==========
+# Test that we fixed the bug that modarg inout and ifc inouts were
+# generating duplicate declarations, by looking for only one inout
+# declaration in sysArgToIfc
+
+if { $vtest == 1 } {
+    string_occurs sysArgToIfc.v {inout  [31 : 0]}
+}
+
+# ==========
+
+# Test that polymorphic Inout is supported in import-BVI
+compile_pass PolymorphicImportBVI.bsv
+
+# ==========
+
+# XXX Test APaths
+
+# XXX Test IOProps

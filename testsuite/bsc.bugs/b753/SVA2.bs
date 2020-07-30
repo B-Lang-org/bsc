@@ -1,0 +1,512 @@
+package SVA2 where
+
+import List
+
+orM :: Maybe Bool -> Maybe Bool -> Maybe Bool
+orM Nothing Nothing = Nothing
+orM Nothing y = y
+orM x Nothing = x
+orM (Just x) (Just y) = Just (x || y)
+
+andM :: Maybe Bool -> Maybe Bool -> Maybe Bool
+andM (Just x) (Just y) = Just (x && y)
+andM x y = Nothing
+
+notM :: Maybe Bool -> Maybe Bool
+notM Nothing = Nothing
+notM (Just x) = Just (not x)
+
+orLeft :: Maybe Bool -> Maybe Bool -> Maybe Bool
+orLeft x y = case x of
+  Nothing -> y
+  Just b1 -> case y of
+    Nothing -> Just b1
+    Just b2 -> Just (b1 || b2)
+
+andLeft :: Maybe Bool -> Maybe Bool -> Maybe Bool
+andLeft x y = case x of
+  Nothing -> y
+  Just b1 -> case y of
+    Nothing -> Just b1
+    Just b2 -> Just (b1 && b2)
+    		  
+interface Sequence =
+    running :: Bool
+    advance :: ActionValue (Maybe Bool)
+    					
+mkSeqVoid :: (IsModule m c) => m Sequence
+mkSeqVoid = 
+  module
+    interface
+      running = False
+      advance = return (Just False)
+
+mkSeqTrue :: (IsModule m c) => m Sequence
+mkSeqTrue =
+  module
+    interface
+      running = False
+      advance = return (Just True)
+
+mkSeqExpr :: (IsModule m c) => Bool -> m Sequence
+mkSeqExpr dynbool =
+  module
+    interface
+      running = False
+      advance = do
+        return (Just dynbool)
+
+mkSeqAsgn :: (IsModule m c) => Action -> m Sequence
+mkSeqAsgn dynaction =
+  module
+    interface
+      advance =
+       do
+         dynaction
+	 return (Just True)
+      running = False
+     
+mkSeqConcat :: (IsModule m c) => Sequence -> Sequence -> m Sequence
+mkSeqConcat s1 s2 =
+  module
+    start <- mkReg False
+    interface
+      running = s1.running || s2.running || start
+      advance =
+        do
+          (s, res) <- if s1.running || (not s1.running && not s2.running) && not start
+	    then do
+	      r <- s1.advance
+	      let b = case r of
+	             Nothing -> False
+		     Just z -> z
+	      return (b, Nothing)
+	    else do
+	      r2 <- s2.advance
+	      return (False, r2)
+	  start := s
+	  return res
+
+mkSeqFuse :: (IsModule m c) => Sequence -> Sequence -> m Sequence
+mkSeqFuse s1 s2 =
+  module
+    interface
+      running = s1.running || s2.running
+      advance =
+        do
+          start <- if s1.running || (not s1.running && not s2.running)
+	    then do
+	      r <- s1.advance
+	      let b = case r of
+	              Nothing -> False
+		      Just z -> z
+	      return b
+	    else return False
+	  res <- if s2.running || start
+	    then do
+	      r <- s2.advance
+	      return r
+	    else return Nothing
+	  return res	  
+
+interface SequenceList =
+  anyRunning :: Bool
+  startNew :: ActionValue (Maybe Bool)
+  advanceRunning :: ActionValue (List (Maybe Bool))
+  	  
+mkSequenceList :: (IsModule m c) => List Sequence -> m SequenceList
+mkSequenceList ss =
+  module
+    let
+      doRunning :: Sequence -> Bool
+      doRunning x = x.running
+      doAdvance :: Sequence -> ActionValue (Maybe Bool)
+      doAdvance x =
+        if x.running
+	  then x.advance
+	  else return Nothing
+      getFree :: List Sequence -> ActionValue (Maybe Bool)
+      getFree Nil = return Nothing
+      getFree (Cons x xs) = if not x.running then x.advance else getFree xs
+    interface
+      anyRunning = or (map doRunning ss)
+      startNew = getFree ss
+      advanceRunning =
+         mapM doAdvance ss
+    
+mkSeqConcatMany :: (IsModule m c) => Sequence -> List Sequence -> m Sequence
+mkSeqConcatMany s1 s2 =
+  module
+    start <- mkReg False
+    s2s <- mkSequenceList s2
+    interface
+      running = s1.running || s2s.anyRunning
+      advance =
+        do
+          s <- if s1.running || (not s2s.anyRunning)
+	    then do
+	      r1 <- s1.advance
+	      return $ case r1 of
+	        Nothing -> False
+		Just b -> b
+	    else return False
+	  r <- if start
+	    then s2s.startNew
+	    else return Nothing
+	  start := s
+	  rs <- s2s.advanceRunning
+	  return (foldl orLeft r rs) 
+
+mkSeqFuseMany :: (IsModule m c) => Sequence -> List Sequence -> m Sequence
+mkSeqFuseMany s1 s2 =
+  module
+    s2s <- mkSequenceList s2
+    interface
+      running = s1.running || s2s.anyRunning
+      advance =
+        do
+          start <- if s1.running || (not s2s.anyRunning)
+	    then do
+	      r1 <- s1.advance
+	      return $ case r1 of
+	        Nothing -> False
+		Just b -> b
+	    else return False
+	  r <- if start
+	    then s2s.startNew
+	    else return Nothing
+	  rs <- s2s.advanceRunning
+	  return (foldl orLeft r rs)  
+
+mkSeqOr :: (IsModule m c) => Sequence -> Sequence -> m Sequence
+mkSeqOr s1 s2 =
+  module
+    interface
+      running = s1.running || s2.running
+      advance = 
+       do
+	 res_l <- if (not s1.running && not s2.running) || s1.running
+	   then s1.advance
+	   else return Nothing
+	 res_r <- if (not s1.running && not s2.running) || s2.running
+	   then s2.advance
+	   else return Nothing
+	 return (orM res_l res_r)
+
+mkSeqIntersect :: (IsModule m c) => Sequence -> Sequence -> m Sequence
+mkSeqIntersect s1 s2 =
+  module
+    interface
+      running = s1.running && s2.running
+      advance = 
+       do
+         r1 <- s1.advance
+	 r2 <- s2.advance
+	 return (andM r1 r2)
+	 
+mkSeqFirstMatch :: (IsModule m c) => Sequence -> m Sequence
+mkSeqFirstMatch seq =
+  module
+    run <- mkReg False
+    interface
+      running = run
+      advance =
+       do
+        r <- seq.advance
+	let b = case r of
+	      Nothing -> True
+	      Just z -> not z
+	run := seq.running && b
+	return r
+
+mkSeqNull :: (IsModule m c) => Sequence -> m Sequence
+mkSeqNull s =
+  module
+    interface
+      running = False
+      advance = return (Just True)
+
+mkSeqUnbound :: (IsModule m c) => Sequence -> m Sequence
+mkSeqUnbound seq =
+  module
+    run <- mkReg False
+    interface
+      running = run
+      advance =
+       do
+         run := True
+         r <- seq.advance
+	 return r
+
+				  
+interface Property =
+    running :: Bool
+    advance :: ActionValue (Maybe Bool)
+
+        
+mkPropSeq :: (IsModule m c) => Sequence -> m Property
+mkPropSeq seq =
+  module 
+    interface
+      running = seq.running
+      advance =
+       do
+         r <- seq.advance
+	 return r
+ 
+mkPropNot :: (IsModule m c) => Property -> m Property
+mkPropNot prop =
+  module 
+    interface
+      running = prop.running
+      advance =
+       do
+         r <- prop.advance
+	 return (notM r)
+
+mkPropOr :: (IsModule m c) => Property -> Property -> m Property
+mkPropOr p1 p2 =
+  module
+    run_1 <- mkReg False
+    run_2 <- mkReg False
+    interface
+      running = run_1 || run_2
+      advance =
+       do
+	 res_l <- if (not run_1 && not run_2) || run_1
+	   then -- p1 is running, or we're starting over
+	     p1.advance
+	   else return Nothing
+	 res_r <- if (not run_1 && not run_2) || run_2
+	   then -- p2 is running, or we're starting over
+	     p2.advance
+	   else return Nothing
+	 let res = orM res_l res_r
+	 run_1 := p1.running && not (isJust res_l)
+	 run_2 := p2.running && not (isJust res_r)
+	 return res
+	 
+mkPropAnd :: (IsModule m c) => Property -> Property -> m Property
+mkPropAnd p1 p2 =
+  module
+    run_1 <- mkReg False
+    run_2 <- mkReg False
+    interface
+      running = run_1 && run_2
+      advance = 
+       do
+         r1 <- p1.advance
+         run_1 := p1.running
+	 r2 <- p2.advance
+	 run_2 := p2.running
+	 return (andM r1 r2)
+
+interface PropertyList =
+  anyRunning :: Bool
+  startNew :: ActionValue (Maybe Bool)
+  advanceRunning :: ActionValue (List (Maybe Bool))
+  	  
+mkPropertyList :: (IsModule m c) => List Property -> m PropertyList
+mkPropertyList ps =
+  module
+    let
+      doRunning :: Property -> Bool
+      doRunning x = x.running
+      doAdvance :: Property -> ActionValue (Maybe Bool)
+      doAdvance x =
+        if x.running
+	  then x.advance
+	  else return Nothing
+      getFree :: List Property -> ActionValue (Maybe Bool)
+      getFree Nil = return Nothing
+      getFree (Cons x xs) = if not x.running then x.advance else getFree xs
+    interface
+      anyRunning = or (map doRunning ps)
+      startNew =
+        getFree ps
+      advanceRunning =
+         mapM doAdvance ps
+	 
+mkPropImplies :: (IsModule m c) => List Sequence -> List Property -> m Property
+mkPropImplies s p =
+  module
+    let
+    ss <- mkSequenceList s
+    ps <- mkPropertyList p
+    interface
+      running = ss.anyRunning
+      advance =
+       do
+         starts <- ss.advanceRunning
+	 sNew <- ss.startNew
+	 let start = case foldl orLeft sNew starts of
+	      Nothing -> False
+	      Just b -> b
+	 rNew <- if start
+	   then ps.startNew
+	   else return Nothing
+	 rs <- ps.advanceRunning
+	 return (foldl orLeft rNew rs)
+
+interface Assertion =
+    advance :: ActionValue Bool --False if assertion FAILS
+    					
+mkAssert :: (IsModule m c) => Property -> Action -> Action -> m Assertion
+mkAssert p pass fail =
+  module
+   interface
+     advance =
+      do
+	r <- p.advance
+	res <- case r of
+	  Nothing -> return True
+	  Just b -> if b
+            then do
+	      pass
+	      return True
+	    else do
+	      fail
+	      return False
+	return res
+    					
+mkAssertAlways :: (IsModule m c) => List Property -> Action -> Action -> m Assertion
+mkAssertAlways p pass fail =
+  module
+   let
+      doAction x = case x of
+        Nothing -> noAction
+	Just b -> if b then pass else fail
+      getRes x y = case x of
+        Nothing -> y
+   ps <- mkPropertyList p
+   interface
+     advance =
+      do
+        rNew <- ps.startNew
+	rs <- ps.advanceRunning
+	mapM doAction (rNew :> rs)
+	return $ case foldl andLeft rNew rs of
+	  Nothing -> True
+	  Just b -> b
+
+         
+mkTest :: Module (Empty)
+mkTest =
+    module
+      x :: Reg (Int 3) <- mkReg 1
+      y :: Reg (Int 3) <- mkReg 0
+      a :: Reg Bool <- mkReg True
+      b :: Reg Bool <- mkReg True
+      c :: Reg Bool <- mkReg True
+      localvar :: Reg (Int 32) <- mkReg 0
+      res1 :: Reg Bool <- mkReg True
+      res2 :: Reg Bool <- mkReg True
+      let isOdd :: (Bitwise a, Eq a, Arith a) => a -> Bool
+          isOdd p =  if (p & 1) == 1 then True else False
+          alwaysTrue :: a -> Bool
+          alwaysTrue p =  True
+	  isEven :: (Bitwise a, Eq a, Arith a) => a -> Bool
+          isEven p =  not (isOdd p)
+          actFail :: Action
+          actFail =  action { $display "FAIL"; $finish; }
+          actPass :: Action
+          actPass =  action { $display "PASS"; $finish; }
+          asgnLocal :: Int 32 -> Action
+          asgnLocal pm =  action { localvar := pm }
+	  
+          assertion_0_24_gen :: Module Property 
+          assertion_0_24_gen = 
+            module
+              assertion_0_1 <-  mkSeqExpr (x /= y)
+              assertion_0_2 <-  mkSeqTrue
+              assertion_0_3 <-  mkSeqNull assertion_0_2
+
+              assertion_0_4 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_40 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_41 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_42 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_43 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_44 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_45 <-  mkSeqConcat assertion_0_2 assertion_0_2
+              assertion_0_46 <-  mkSeqConcat assertion_0_2 assertion_0_2
+	      assertion_0_47 <-  mkSeqConcat assertion_0_2 assertion_0_2
+	      
+	      assertion_0_5 <-  mkSeqConcat assertion_0_2 assertion_0_41
+              assertion_0_50 <-  mkSeqConcat assertion_0_2 assertion_0_4 
+              assertion_0_51 <-  mkSeqConcat assertion_0_2 assertion_0_42
+              assertion_0_52 <-  mkSeqConcat assertion_0_2 assertion_0_43
+              assertion_0_53 <-  mkSeqConcat assertion_0_2 assertion_0_44
+              assertion_0_54 <-  mkSeqConcat assertion_0_2 assertion_0_45
+              assertion_0_55 <-  mkSeqConcat assertion_0_2 assertion_0_46
+              assertion_0_56 <-  mkSeqConcat assertion_0_2 assertion_0_47
+
+              assertion_0_6 <-  mkSeqConcat assertion_0_2 assertion_0_52
+              assertion_0_60 <-  mkSeqConcat assertion_0_2 assertion_0_5 
+              assertion_0_61 <-  mkSeqConcat assertion_0_2 assertion_0_53 
+              assertion_0_62 <-  mkSeqConcat assertion_0_2 assertion_0_54 
+              assertion_0_63 <-  mkSeqConcat assertion_0_2 assertion_0_55 
+              assertion_0_64 <-  mkSeqConcat assertion_0_2 assertion_0_56
+
+              assertion_0_7 <-  mkSeqConcat assertion_0_2 assertion_0_61
+              assertion_0_70 <- mkSeqConcat assertion_0_2 assertion_0_6 
+              assertion_0_71 <- mkSeqConcat assertion_0_2 assertion_0_62 
+              assertion_0_72 <- mkSeqConcat assertion_0_2 assertion_0_63 
+              assertion_0_73 <- mkSeqConcat assertion_0_2 assertion_0_64
+
+              assertion_0_8 <-  mkSeqConcat assertion_0_2 assertion_0_71
+              assertion_0_80 <-  mkSeqConcat assertion_0_2 assertion_0_7
+              assertion_0_81 <-  mkSeqConcat assertion_0_2 assertion_0_72
+              assertion_0_82 <-  mkSeqConcat assertion_0_2 assertion_0_73
+
+              assertion_0_9 <-  mkSeqConcat assertion_0_2 assertion_0_81
+              assertion_0_90 <-  mkSeqConcat assertion_0_2 assertion_0_8
+              assertion_0_91 <-  mkSeqConcat assertion_0_2 assertion_0_82
+
+              assertion_0_10 <-  mkSeqConcat assertion_0_2 assertion_0_91
+              assertion_0_100 <-  mkSeqConcat assertion_0_2 assertion_0_9
+              assertion_0_11 <-  mkSeqConcat assertion_0_2 assertion_0_10
+              assertion_0_12 <-  mkSeqOr assertion_0_100 assertion_0_11 
+              assertion_0_13 <-  mkSeqOr assertion_0_90 assertion_0_12 
+              assertion_0_14 <-  mkSeqOr assertion_0_80 assertion_0_13 
+              assertion_0_15 <-  mkSeqOr assertion_0_70 assertion_0_14
+              assertion_0_16 <-  mkSeqOr assertion_0_60 assertion_0_15 
+              assertion_0_17 <-  mkSeqOr assertion_0_50 assertion_0_16 
+              assertion_0_18 <-  mkSeqOr assertion_0_40 assertion_0_17 
+              assertion_0_19 <-  mkSeqOr assertion_0_2 assertion_0_18 
+              assertion_0_20 <-  mkSeqOr assertion_0_3 assertion_0_19
+              assertion_0_21 <-  mkSeqExpr (x /= 3)
+              assertion_0_22 <-  mkSeqConcat assertion_0_20 assertion_0_21
+              assertion_0_23 <-  mkSeqConcat assertion_0_1 assertion_0_22
+              mkPropSeq assertion_0_23
+          assertion_0_0_gen :: Module Sequence 
+          assertion_0_0_gen =
+	    module
+              mkSeqExpr (x < 0)
+          assertion_0_1_gen :: Module Property 
+          assertion_0_1_gen =
+	    module
+              assertion_0_0 <- mkSeqExpr (x /= 0) 
+              assertion_0_1 <- mkSeqTrue
+              assertion_0_2 <- mkSeqConcat assertion_0_1 assertion_0_0
+	      mkPropSeq assertion_0_2
+	       
+      assertion_0_0_lst <- replicateM 1 assertion_0_0_gen 
+      assertion_0_1_lst <- replicateM 2 assertion_0_1_gen   
+      --assertion_0_24_lst <- replicateM 6 assertion_0_24_gen      
+      assertion_0_25 <- mkPropImplies assertion_0_0_lst assertion_0_1_lst          
+   
+      assertion_0 :: Assertion <- mkAssert
+                                  assertion_0_25
+                                  ($display "PASSED!")
+                                  $finish --($display "FAILED!")
+      interface
+      rules
+        when True ==>
+         action
+          x := x + 1
+          y := y + 1
+          a := b
+          b := c
+          c := a
+          r1 :: Bool <- assertion_0.advance
+          res1 := r1

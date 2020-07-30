@@ -1,0 +1,4 @@
+checking package dependencies
+compiling InterfaceDupFields.bsv
+Error: "InterfaceDupFields.bsv", line 5, column 19: (P0073)
+  Duplicate definition of method `setInput' in interface `Test'

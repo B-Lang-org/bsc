@@ -1,0 +1,7 @@
+package DuplInstanceImported() where
+
+-- this duplicates a Prelude instance
+instance Bits (Int n) n where
+  pack   i = 0
+  unpack b = fromInteger 0
+

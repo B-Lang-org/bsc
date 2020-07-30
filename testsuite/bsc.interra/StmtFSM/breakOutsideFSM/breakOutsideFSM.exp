@@ -1,0 +1,2 @@
+compile_fail_error breakOutsideFSM.bsv "P0163" 1 "-verilog"                                        
+

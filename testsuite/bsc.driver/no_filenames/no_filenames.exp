@@ -1,0 +1,39 @@
+if {$ctest != 0} {
+
+# first, remove the build directories and remake them
+nukedir bd
+nukedir sd
+mkdir bd
+mkdir sd
+
+# next, do a full build using a syntax in which the .ba files
+# are not explicitly named
+compile_object_pass Top.bsv {} {-bdir bd}
+link_objects_pass {} mkTop {-bdir bd -simdir sd}
+move mkTop.bsc-ccomp-out bsim_build.out
+compare_file bsim_build.out
+sim_output mkTop {}
+move mkTop.out bsim_sim.out
+compare_file bsim_sim.out
+
+}
+
+if {$vtest != 0} {
+
+# first, remove the build directories and remake them
+nukedir bd
+nukedir vd
+mkdir bd
+mkdir vd
+
+# next, do a full build using a syntax in which the .v files
+# are not explicitly named
+compile_verilog_pass Top.bsv {} {-vdir vd}
+link_verilog_pass {} mkTop {-vsearch +:vlib -vdir vd}
+move mkTop.bsc-vcomp-out vlog_build.out
+compare_file vlog_build.out
+sim_verilog mkTop {}
+move mkTop.out vlog_sim.out
+compare_file vlog_sim.out
+
+}

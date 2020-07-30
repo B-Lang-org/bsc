@@ -1,0 +1,54 @@
+checking package dependencies
+compiling MethodUrg.bsv
+code generation for mkTestUrg starts
+Warning: "MethodUrg.bsv", line 9, column 8: (G0036)
+  Rule "highx" will appear to fire before "lowx" when both fire in the same
+  clock cycle, affecting:
+    calls to i_holder.write vs. i_holder.write
+Warning: "MethodUrg.bsv", line 9, column 8: (G0117)
+  Rule `lowx' shadows the effects of `highx' when they execute in the same
+  clock cycle. Affected method calls:
+    i_holder.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== schedule:
+parallel: [esposito: [highx -> [], lowx -> []]]
+order: [highx, lowx]
+
+-----
+
+=== resources:
+[(i_holder.write, [(i_holder.write highx_din, 1), (i_holder.write lowx_din, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_highx CF [RDY_highx, RDY_lowx, highx, lowx],
+ RDY_lowx CF [RDY_lowx, highx, lowx],
+ highx SBR [highx, lowx],
+ lowx SBR lowx]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: mkTestUrg.sched
+=== Generated schedule for mkTestUrg ===
+
+Method schedule
+---------------
+Method: highx
+Ready signal: True
+Sequenced before (restricted): highx, lowx
+ 
+Method: lowx
+Ready signal: True
+Sequenced before (restricted): lowx
+Sequenced after (restricted): highx
+ 
+Logical execution order: highx, lowx
+
+=========================================
+Verilog file created: mkTestUrg.v
+All packages are up to date.

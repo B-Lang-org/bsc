@@ -1,0 +1,6 @@
+package DataDefParamConflictingUses () where
+
+data (Foo :: * -> *) a = Bar a
+
+data Baz b = Gluprh (Bit b) (Foo b)
+

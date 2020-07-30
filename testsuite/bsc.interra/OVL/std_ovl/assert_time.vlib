@@ -1,0 +1,51 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+`include "std_ovl_defines.h"
+
+`module assert_time (clk, reset_n, start_event, test_expr);
+
+  parameter severity_level      = `OVL_SEVERITY_DEFAULT;
+  parameter num_cks             = 1;
+  parameter action_on_new_start = `OVL_ACTION_ON_NEW_START_DEFAULT;
+  parameter property_type       = `OVL_PROPERTY_DEFAULT;
+  parameter msg                 = `OVL_MSG_DEFAULT;
+  parameter coverage_level      = `OVL_COVER_DEFAULT;
+
+  input clk, reset_n;
+  input start_event;
+  input test_expr;
+
+  // Parameters that should not be edited
+  parameter assert_name = "ASSERT_TIME";
+
+  `include "std_ovl_cover.h"
+  `include "std_ovl_task.h"
+  `include "std_ovl_init.h"
+
+`ifdef OVL_SYNTHESIS
+`else
+  // Sanity Checks
+  initial begin
+    if (~((action_on_new_start == `OVL_IGNORE_NEW_START)   ||
+          (action_on_new_start == `OVL_RESET_ON_NEW_START) ||
+          (action_on_new_start == `OVL_ERROR_ON_NEW_START)))
+    begin
+      ovl_error_t(`OVL_FIRE_2STATE,"Illegal value set for parameter action_on_new_start");
+    end
+  end
+`endif
+
+`ifdef OVL_VERILOG
+  `include "./vlog95/assert_time_logic.v"
+`endif
+
+`ifdef OVL_SVA
+  `include "./sva05/assert_time_logic.sv"
+`endif
+
+`ifdef OVL_PSL
+  `include "./psl05/assert_time_psl_logic.v"
+`else
+  `endmodule // assert_time
+`endif

@@ -1,0 +1,89 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputReset_NoName_Clash;
+interface Ifc;
+    method Reset _rst__4();
+    method Reset _rst__6();
+endinterface: Ifc
+
+module mkMod(Ifc);
+  let _bv4 <- exposeCurrentReset;
+  let _bv3 <- exposeCurrentReset;
+  let _bv2 <- exposeCurrentReset;
+  let _bv1 <- exposeCurrentReset;
+  let _bv0 <- exposeCurrentReset;
+  Ifc _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     reset _rst__4(RSTC) clocked_by(no_clock);
+		     reset _rst__6(RSTD) clocked_by(no_clock);
+		     reset _rst__2(RSTA) clocked_by(no_clock);
+		     reset _rst__1(RST1) clocked_by(no_clock);
+		     reset _rst__3(RSTB) clocked_by(no_clock);
+		     reset _rst__5(RST5) clocked_by(no_clock);
+		     reset _rst__7(RST7) clocked_by(no_clock);
+			 ((ResetArg _rst__2, _bv4),
+			  (ResetArg _rst__1, _bv3),
+			  (ResetArg _rst__3, _bv2),
+			  (ResetArg _rst__5, _bv1),
+			  (ResetArg _rst__7, _bv0))
+			 {
+			   reset _rst__4;
+			   reset _rst__6;
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _rst__4() ;   return (_m__._rst__4);
+  endmethod: _rst__4
+  method _rst__6() ;   return (_m__._rst__6);
+  endmethod: _rst__6
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_NoName_Clash
+
+-----
+
+compiling ImportForeignModule_InputReset_NoName_Clash.bsv
+=== parsed:
+package ImportForeignModule_InputReset_NoName_Clash;
+interface Ifc;
+    method Reset _rst__4();
+    method Reset _rst__6();
+endinterface: Ifc
+
+module mkMod(Ifc);
+  let _bv4 <- exposeCurrentReset;
+  let _bv3 <- exposeCurrentReset;
+  let _bv2 <- exposeCurrentReset;
+  let _bv1 <- exposeCurrentReset;
+  let _bv0 <- exposeCurrentReset;
+  Ifc _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     reset _rst__4(RSTC) clocked_by(no_clock);
+		     reset _rst__6(RSTD) clocked_by(no_clock);
+		     reset _rst__2(RSTA) clocked_by(no_clock);
+		     reset _rst__1(RST1) clocked_by(no_clock);
+		     reset _rst__3(RSTB) clocked_by(no_clock);
+		     reset _rst__5(RST5) clocked_by(no_clock);
+		     reset _rst__7(RST7) clocked_by(no_clock);
+			 ((ResetArg _rst__2, _bv4),
+			  (ResetArg _rst__1, _bv3),
+			  (ResetArg _rst__3, _bv2),
+			  (ResetArg _rst__5, _bv1),
+			  (ResetArg _rst__7, _bv0))
+			 {
+			   reset _rst__4;
+			   reset _rst__6;
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _rst__4() ;   return (_m__._rst__4);
+  endmethod: _rst__4
+  method _rst__6() ;   return (_m__._rst__6);
+  endmethod: _rst__6
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_NoName_Clash
+
+-----
+
+All packages are up to date.

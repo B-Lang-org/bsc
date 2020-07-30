@@ -1,0 +1,5 @@
+checking package dependencies
+compiling WMissingField1.bs
+Warning: "WMissingField1.bs", line 20, column 11: (T0054)
+  Field not defined: `result'
+All packages are up to date.

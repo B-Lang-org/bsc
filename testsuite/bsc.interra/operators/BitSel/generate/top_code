@@ -1,0 +1,6 @@
+module gen_bits (CLK,RST_N);
+
+ input CLK, RST_N; 
+ reg [127:0] a;
+ reg [11:0] vectors;
+ initial vectors = 0;

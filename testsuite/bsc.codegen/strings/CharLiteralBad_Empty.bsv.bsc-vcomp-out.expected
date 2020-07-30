@@ -1,0 +1,10 @@
+checking package dependencies
+compiling CharLiteralBad_Empty.bsv
+code generation for sysCharLiteralBad_Empty starts
+Error: "CharLiteralBad_Empty.bsv", line 4, column 16: (G0125)
+  Cannot convert string to character because the length != 1:
+    ""
+  During elaboration of the body of rule `r' at "CharLiteralBad_Empty.bsv",
+  line 3, column 9.
+  During elaboration of `sysCharLiteralBad_Empty' at
+  "CharLiteralBad_Empty.bsv", line 2, column 8.

@@ -1,0 +1,12 @@
+package TaskIdentifiers() where
+
+-- check that $ is a valid identifier start
+$sometask :: a
+$sometask = _
+
+-- make sure this doesn't interfere with $ in operators
+false :: Bool
+false = not $ True
+
+($$$$$) :: Bool -> Bool -> Bool
+x $$$$$ y = y $$$$$ x

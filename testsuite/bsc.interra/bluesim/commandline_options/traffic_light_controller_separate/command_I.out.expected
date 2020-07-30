@@ -1,0 +1,28 @@
+Compiled on Tue Nov 29 17:54:11 IST 2005
+Compiled by Bluespec Compiler, version 3.8.61 (build 7730, 2005-11-22)
+Car present on Farm Road 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+hwy_light turns Yellow 
+Waiting for hwy_light to turn Red 
+Waiting for hwy_light to turn Red 
+Waiting for hwy_light to turn Red 
+hwy_light turns Red 
+farm_light turns Green 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+farm_light turns Yellow 
+Waiting for farm_light to turn Red 
+Waiting for farm_light to turn Red 
+Waiting for farm_light to turn Red 
+farm_light turns Red 
+Waiting for hwy_light to turn Green 
+hwy_light turns Green 
+Simulation Passes 

@@ -1,0 +1,16 @@
+if { $vtest == 1 } {
+
+# ---------------
+# Test that a don't-care to a primitive is OK
+
+compile_verilog_pass DontCareRealPrim.bsv
+
+# ---------------
+# Test that the don't-care in dynamic selection of a static array is OK
+
+test_veri_only_bsv DontCareDynSelectStaticArrayReal
+
+# ---------------
+
+}
+

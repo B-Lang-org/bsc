@@ -1,0 +1,20 @@
+package Letrecbit(sysLetrecbit) where
+
+import List
+
+-- testing if type variables survive letrec mangling
+seven :: Bit n
+seven = let evens :: List (Bit n)
+            evens = cons 0 (map ((+) 1) odds)
+            odds  :: List (Bit n) = map ((+) 1) evens
+        in odds !! 3
+
+sysLetrecbit :: Module Empty
+sysLetrecbit =
+  module
+    rules
+      when True ==>
+         let {mseven :: Bit 2 = seven} in
+         action
+            $display mseven
+            $finish 0

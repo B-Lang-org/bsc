@@ -1,0 +1,58 @@
+# Tests for FIFO library packages
+
+# -------------------------
+# FIFO package
+
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv MoreFIFOTest sysMoreFIFOTest.v.out.expected
+test_c_only_bsv MoreFIFOTest
+
+test_c_veri_bsv SizedFIFOTest
+
+# loopy sized fifo tests
+test_c_veri_bsv LSizedFIFOTest
+test_c_veri_bsv LFIFO2Test
+
+# Bluesim error messages are slightly different, so adjust the expected output
+
+test_veri_only_bsv FIFOErrors
+
+awk sysFIFOErrors.out.expected sysFIFOErrors.c.out.expected {{/Warning: / {split($0,fields,":"); gsub("main\\.","",fields[3]); gsub("\\.error_checks","",fields[3]); printf("%s:%s\n", fields[1], fields[3]);}}}
+test_c_only_bsv FIFOErrors sysFIFOErrors.c.out.expected
+
+compile_verilog_fail_error ZeroDepthFIFO.bsv S0015
+if { $vtest == 1 } {
+    find_n_strings ZeroDepthFIFO.bsv.bsc-vcomp-out "depth 0" 1
+}
+
+compile_verilog_fail_error NegativeDepthFIFO.bsv S0015
+if { $vtest == 1 } {
+    find_n_strings NegativeDepthFIFO.bsv.bsc-vcomp-out "negative depth" 1
+}
+
+# -------------------------
+# SpecialFIFOs package
+
+# Behavior test for mkBypassSizedFIFO(2)
+test_c_veri_bsv_multi TbBypassFIFO mkTbBypassFIFO mkBypassFIFO_int
+
+# Test the scheduling relationships for Bypass FIFOs
+compile_verilog_schedule_pass TestBypassFIFO.bsv
+if { $vtest == 1 } {
+compare_file mkBypassFIFOF_Bit32.sched
+compare_file mkBypassFIFO_Bit32.sched
+}
+
+# Test the scheduling relationships for Pipeline FIFOs
+compile_verilog_schedule_pass TestPipelineFIFO.bsv
+if { $vtest == 1 } {
+compare_file mkPipelineFIFOF_Bit32.sched
+compare_file mkPipelineFIFO_Bit32.sched
+}
+
+# -------------------------
+

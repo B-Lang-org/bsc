@@ -1,0 +1,17 @@
+A partial implementation of the SHA1 cryptographic hash algorithm, one
+cycle per SHA1 iteration.
+
+This is a PARTIAL implementation, computing only one 512-bit SHA1
+block only, so is suitable for hashing only very short messages.  It
+does not do multi-block chaining as is required by the specification.
+
+Note that SHA1 is now a broken hash algorithm, and should not be used
+for new applications (in favor of SHA 224/256/384/512, and the
+upcoming SHA-3 standard).
+
+
+
+I think it can still be improved by (1) marking the multiple cycle
+rules mutually exclusive, and (2) allowing the next block to be
+enqueued immediately after the first completes, instead of a one cycle
+rest while in Invalid state.

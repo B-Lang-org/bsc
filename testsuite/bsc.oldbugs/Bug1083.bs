@@ -1,0 +1,8 @@
+package Bug1083(sysBug1083) where
+
+sysBug1083 :: Module Empty
+sysBug1083 = 
+  module 
+    a :: Reg Bool <- mkReg True
+    rules 
+      when True ==> a := not a

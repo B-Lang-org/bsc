@@ -1,0 +1,19 @@
+package IfMultiActionTest(sysIfMultiActionTest) where
+
+import IfMultiAction
+import ActionSeq
+
+sysIfMultiActionTest :: Module Empty
+sysIfMultiActionTest = 
+ module
+  started :: Reg (Bool) <- mkReg False
+  ifma :: MultiAction <- sysMultiAction
+
+  testseq :: ActionSeq
+  testseq <- actionSeq ((ifma.print)|>(ifma.f True True)|>(ifma.print)|>(ifma.reset)|>
+                                      (ifma.f True False)|>(ifma.print)|>(ifma.reset)|>
+                                      (ifma.f False True)|>(ifma.print)|>(ifma.reset)|>
+                                      (ifma.f False False)|>(ifma.print)|>(ifma.reset))
+  rules
+    when testseq.done ==> if started then (ifma.finish) else action {testseq.start; started := True}
+           

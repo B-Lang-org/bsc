@@ -1,0 +1,48 @@
+test_c_veri_bsv_multi_options  PopCountNaive mkTestbench_PopCountNaive {} "" "mkTestbench_PopCountNaive.v.out.expected"
+
+test_c_veri_bsv_multi_options  PopCountTable mkTestbench_PopCountTable {} "" "mkTestbench_PopCountTable.v.out.expected" 
+
+test_c_veri_bsv_multi_options PopCountTableTree mkTestbench_PopCountTableTree {} "" "mkTestbench_PopCountTableTree.v.out.expected"
+
+test_c_veri_bsv_multi_options  PopCountTableWallace mkTestbench_PopCountTableWallace {} "" "mkTestbench_PopCountTableWallace.v.out.expected"
+
+test_c_veri_bsv_multi_options PopCountTree mkTestbench_PopCountTree {} ""  "mkTestbench_PopCountTree.v.out.expected"
+
+test_c_veri_bsv_multi_options PopCountWallace mkTestbench_PopCountWallace {} ""  "mkTestbench_PopCountWallace.v.out.expected"
+
+# ----
+
+# Test for AOpt regression
+# The if-then-else structure should be converted into a giant case
+# (even if aexpand isn't inlining enough)
+if { $vtest == 1 } {
+find_regexp mkTestbench_PopCountTable.v {      8'd3,
+      8'd5,
+      8'd6,
+      8'd9,
+      8'd10,
+      8'd12,
+      8'd17,
+      8'd18,
+      8'd20,
+      8'd24,
+      8'd33,
+      8'd34,
+      8'd36,
+      8'd40,
+      8'd48,
+      8'd65,
+      8'd66,
+      8'd68,
+      8'd72,
+      8'd80,
+      8'd96,
+      8'd129,
+      8'd130,
+      8'd132,
+      8'd136,
+      8'd144,
+      8'd160,
+      8'd192:}
+}
+

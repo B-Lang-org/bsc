@@ -1,0 +1,37 @@
+package IgnoreRdy(sysIgnoreRdy, Foo) where
+
+import FIFO
+
+-- Ready signals <rule>_rdy are funny animals that are not reported <> in VSchedInfo
+-- but should be treated as if they were <> with everything.
+-- Expect `glurph_ <> bar_' in the interface and parallel `bar_' and `do_glurph__1'
+
+sysIgnoreRdy :: Module Foo
+sysIgnoreRdy = mkFoo
+
+interface Bar =
+  bar    :: Bit 1 -> Action
+  glurph :: Action
+
+{-# verilog mkBar #-}
+mkBar :: Module Bar
+mkBar =
+  module
+    f :: FIFO (Bit 1)
+    f <- mkFIFO
+    interface
+      bar x  = f.enq x
+      glurph = f.deq
+    
+interface Foo =
+  foo :: Bit 1 -> Action
+
+mkFoo :: Module Foo
+mkFoo = 
+  module
+    b :: Bar
+    b <- mkBar
+    interface
+      foo x = b.bar x
+    rules
+      "do_glurph": when True ==> b.glurph

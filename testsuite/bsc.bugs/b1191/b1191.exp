@@ -1,0 +1,4 @@
+compile_verilog_pass Doom.bsv
+compile_verilog_pass Test.bsv
+compile_verilog_pass Test2.bsv
+compile_verilog_pass Test3.bsv

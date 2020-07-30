@@ -1,0 +1,9 @@
+if {$vtest == 1} {
+compile_verilog_pass ModuleBind.bs sysFoo
+compile_verilog_fail Bug359.bsv mkTestbench 
+compare_file Bug359.bsv.bsc-vcomp-out
+compile_verilog_fail Bug359_2.bs sysBug359_2 
+
+#skip the comparison because it is too fragile as the Prelude is edited
+#compare_file Bug359_2.bs.bsc-vcomp-out
+}

@@ -1,0 +1,11 @@
+checking package dependencies
+compiling NoDerive2.bs
+Error: "NoDerive2.bs", line 6, column 0: (T0032)
+  This expression requires the following context which could not be resolved:
+    Prelude.Bits NoDerive2.Test a__
+  The context was implied by expressions at the following positions:
+    "NoDerive2.bs", line 9, column 22
+  An instance for this context exists, but it depends on the following
+  contexts for which there are no instances:
+    Prelude.Bits Prelude.Integer b__,
+    Prelude.Add b__ 1 a__

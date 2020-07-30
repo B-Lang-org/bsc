@@ -1,0 +1,14 @@
+test_veri_only_bsv_modules SimpleRealImport DisplayReal
+test_veri_only_bsv_modules TwoLevelReal {DisplayReal mkRealPassThrough}
+# test that a real parameter is defaulted correctly
+if { $vtest == 1 } {
+string_occurs mkRealPassThrough.v {r = 0.0;}
+}
+
+# require parameter keyword on real module arguments
+compile_verilog_fail_error RealParamErr1.bsv G0120
+# import "BVI" with real port fails with proviso error
+# error message is poor, but this shouldn't compile regardless
+compile_verilog_fail RealParamErr2.bsv
+
+test_c_veri_bsv_modules TwoLevelReal2 {bsvDisplayReal mkRealPassThrough2}

@@ -1,0 +1,56 @@
+checking package dependencies
+compiling GCD_t1.bs
+code generation for sysGCD starts
+=== schedule:
+parallel: [esposito: [RL_init -> [], RL_gcd_flip -> [], RL_gcd_stop -> [], RL_gcd_sub -> []]]
+order: [RL_init, RL_gcd_flip, RL_gcd_stop, RL_gcd_sub]
+
+-----
+
+=== resources:
+[(gcd_done.read, [(gcd_done.read, 1)]),
+ (gcd_done.write, [(gcd_done.write 1'd0, 1), (gcd_done.write 1'd1, 1)]),
+ (gcd_x.read, [(gcd_x.read, 1)]),
+ (gcd_x.write, [(gcd_x.write b__h187, 1), (gcd_x.write 64'd105198692842362, 1)]),
+ (gcd_y.read, [(gcd_y.read, 1)]),
+ (gcd_y.write,
+  [(gcd_y.write b__h186, 1),
+   (gcd_y.write gcd_y_MINUS_gcd_x___d18, 1),
+   (gcd_y.write 64'd445628814024366, 1)]),
+ (started.read, [(started.read, 1)]),
+ (started.write, [(started.write 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysGCD.sched
+=== Generated schedule for sysGCD ===
+
+Rule schedule
+-------------
+Rule: gcd_flip
+Predicate: (! gcd_done) &&
+	   (! (gcd_x < gcd_y)) && (! (gcd_y == 64'd0)) && (! (gcd_y == gcd_x))
+Blocking rules: (none)
+ 
+Rule: gcd_stop
+Predicate: (! gcd_done) && (gcd_y == 64'd0)
+Blocking rules: (none)
+ 
+Rule: gcd_sub
+Predicate: (! gcd_done) && (gcd_x <= gcd_y) && (! (gcd_y == 64'd0))
+Blocking rules: (none)
+ 
+Rule: init
+Predicate: gcd_done && (! started)
+Blocking rules: (none)
+ 
+Logical execution order: init, gcd_flip, gcd_stop, gcd_sub
+
+======================================
+Verilog file created: sysGCD.v
+All packages are up to date.

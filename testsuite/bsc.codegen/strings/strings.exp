@@ -1,0 +1,66 @@
+
+# Tests for String and Char primitives
+
+if { $vtest == 1 } {
+
+# -------------------------
+# Test the StringLiteral instance for Char
+
+# Single character is OK
+compile_verilog_pass CharLiteralOK.bsv
+find_regexp sysCharLiteralOK.v {\$display\(\"w\"\)}
+
+# Too few characters in the string is a compile-time error
+compile_verilog_fail CharLiteralBad_Empty.bsv
+# Check the message
+compare_file CharLiteralBad_Empty.bsv.bsc-vcomp-out
+
+# Too many characters in the string is a compile-time error
+compile_verilog_fail CharLiteralBad_Multiple.bsv
+# Check the message (and that non-dsiplayable characters are escaped)
+compare_file CharLiteralBad_Multiple.bsv.bsc-vcomp-out
+
+# -------------------------
+# Tests for Prelude functions
+
+# Test non-error behavior
+test_veri_only_bsv StringCharFunctions
+
+# Test error conditions
+
+# head of empty string
+compile_verilog_fail StringHead_Empty.bsv
+compare_file StringHead_Empty.bsv.bsc-vcomp-out
+
+# tail of empty string
+compile_verilog_fail StringTail_Empty.bsv
+compare_file StringTail_Empty.bsv.bsc-vcomp-out
+
+# []-select out of bounds
+compile_verilog_fail StringSelect_OutOfRange.bsv
+compare_file StringSelect_OutOfRange.bsv.bsc-vcomp-out
+
+# []-update out of bounds
+compile_verilog_fail StringUpdate_OutOfRange.bsv
+compare_file StringUpdate_OutOfRange.bsv.bsc-vcomp-out
+
+# integerToChar argument too low
+compile_verilog_fail IntegerToChar_OutOfRange_Low.bsv
+compare_file IntegerToChar_OutOfRange_Low.bsv.bsc-vcomp-out
+
+# integerToChar argument too high
+compile_verilog_fail IntegerToChar_OutOfRange_High.bsv
+compare_file IntegerToChar_OutOfRange_High.bsv.bsc-vcomp-out
+
+# digitToInteger not a digit
+compile_verilog_fail DigitToInteger_Bad.bsv
+compare_file DigitToInteger_Bad.bsv.bsc-vcomp-out
+
+# digitToBits result size is too small
+compile_verilog_fail DigitToBits_BadResultSize.bsv
+compare_file_filter_prelude DigitToBits_BadResultSize.bsv.bsc-vcomp-out
+
+# -------------------------
+
+}
+

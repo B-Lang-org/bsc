@@ -1,0 +1,48 @@
+
+test_c_veri_bsv Fptest
+
+test_c_veri_bsv FromReal_10_10
+if { $vtest == 1 } {
+find_n_warning  FromReal_10_10.bsv.bsc-vcomp-out S0015 2
+}
+
+test_c_veri_bsv FromReal_5_5
+if { $vtest == 1 } {
+find_n_warning  FromReal_5_5.bsv.bsc-vcomp-out S0015 5
+}
+
+test_c_veri_bsv FromReal_1_5
+if { $vtest == 1 } {
+find_n_warning  FromReal_1_5.bsv.bsc-vcomp-out S0015 8
+}
+
+test_c_veri_bsv FromReal_5_1
+if { $vtest == 1 } {
+find_n_warning  FromReal_5_1.bsv.bsc-vcomp-out S0015 5
+}
+
+test_c_veri_bsv FromReal_6_6
+if { $vtest == 1 } {
+find_n_warning  FromReal_6_6.bsv.bsc-vcomp-out S0015 4
+}
+
+test_c_veri_bsv FromReal_1_500
+if { $vtest == 1 } {
+find_n_warning  FromReal_1_500.bsv.bsc-vcomp-out S0015 8
+}
+
+test_c_veri_bsv FromReal_500_1
+if { $vtest == 1 } {
+find_n_warning  FromReal_500_1.bsv.bsc-vcomp-out S0015 0
+}
+
+test_c_veri_bsv Round
+test_c_veri_bsv SaturateArith
+
+test_c_veri_bsv ExtendedPrecision
+
+# This test attempts to prevent Bluesim from dividing by zero
+# (avoiding Bug 1342), by guarding the StmtFSM rule with a check for zero,
+# rather than embedding the check in the rule body's logic.
+test_c_veri_bsv Quots
+

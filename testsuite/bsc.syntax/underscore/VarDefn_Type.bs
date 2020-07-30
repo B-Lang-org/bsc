@@ -1,0 +1,5 @@
+package VarDefn_Type () where
+
+_ :: Bool
+_ = True
+

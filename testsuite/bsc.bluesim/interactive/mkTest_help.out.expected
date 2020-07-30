@@ -1,0 +1,65 @@
+Available commands:
+  bpackage       Manipulate and query BSV packages
+  browseinst     Utility function for viewing instance hierarchy
+  browsemodule   Utility function for viewing module hierarchy
+  browsepackage  Utility function for viewing package contents
+  browsetype     Utility function for viewing types
+  defs           Show the definitions in a package
+  depend         Show the file and package dependencies for a given file.
+  flags          Set or show a flag value
+  help           Get help on available commands
+  module         Load and query information on a module
+  parse          Parse a string and show its internal representation
+  rule           Query rules and rule relationships in a module
+  schedule       Query a module schedule
+  showArg        Describes the arguments of the command
+  sim            Control Bluesim simulation
+  submodule      Query submodules
+  type           Display information about a type
+  version        Returns version information for Bluespec software
+
+Use 'help <command>' to get help on a specific command.
+Command: sim - Control Bluesim simulation
+
+Usage: sim ...subcommands...
+
+Subcommands: 
+  arg <arg>+                    Set a simulation plus-arg
+  cd [<path>]                   Change location in hierarchy
+  clock [<name>]                Show or select current clock domain
+  config [interactive]          Show or change simulator configuration
+  describe <handle>+            Describe the object to which a symbol handle refers
+  get <handle>+                 Get simulation value
+  getrange <handle> <addr1> ... Get simulation values from a range
+  load <model> <top>            Load a bluesim model object
+  lookup <pattern> [<root>]     Lookup symbol handles
+  ls <pattern>*                 List symbols
+  nextedge                      Advance simulation to the next clock edge in any domain
+  pwd                           Print current location in hierarchy
+  run [async]                   Run simulation to completion
+  runto <time> [async]          Run simulation to a given time
+  step [<cycles>] [async]       Advance simulation a given number of cycles
+  stop                          Stop a running simulation
+  sync                          Wait for simulator execution to complete
+  time                          Display current simulation time
+  timescale <timescale>         Specify simulation timescale
+  unload                        Unload the current bluesim model
+  up [<N>]                      Move up the module hierarchy
+  vcd [on | off | <file>]       Control dumping waveforms to a VCD file
+  version                       Show Bluesim model version information
+Command: sim step - Advance simulation a given number of cycles
+
+Usage: sim step [<cycles>] [async]
+Command: help - Get help on available commands
+
+Usage: help [<command> | list]
+
+Help with no arguments will list all available help topics.
+Optionally, an argument can be provided to get help on a specific topic.
+Also, 'help list' will return a string listing the names of all commands.
+
+Examples:
+  help
+  help module
+  help {flags show}
+  help list

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ContextReductionPrimIndexWrongSize.bsv
+Error: "ContextReductionPrimIndexWrongSize.bsv", line 8, column 33: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    PrimIndex#(Bit#(5), 32)

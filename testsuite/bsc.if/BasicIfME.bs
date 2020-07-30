@@ -1,0 +1,25 @@
+-- test merging of ME actions when they are explicitly not liftable
+package BasicIfME(sysBasicIfME) where
+
+sysBasicIfME :: Module Empty
+sysBasicIfME = 
+    module
+	a :: Reg Bool <- mkReg True
+	b :: Reg Bool <- mkReg False
+	c :: Reg Bool <- mkReg False
+
+        addRules $
+	  let 
+              print :: Bit 3 -> Action
+              print x = $display "%0h" x
+          in rules
+               when True ==> action 
+                               if a then print 0 else noAction
+                               if a then b := True else noAction
+                               if a then a := False else noAction
+                               if (not a) && b then print 1 else noAction 
+                               if (not a) && b then b := False else noAction
+                               if (not a) && b then c := True else noAction
+                               if (not a) && (not b) && c then print 2 else noAction
+                               if (not a) && (not b) && c then c:= False else noAction
+                               if (not a) && (not b) && (not c) then $finish 0 else noAction

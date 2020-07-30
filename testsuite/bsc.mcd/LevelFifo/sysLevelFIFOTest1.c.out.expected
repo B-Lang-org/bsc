@@ -1,0 +1,1927 @@
+                  30:  enquing areg = 0 
+                  50:  enquing areg = 1 
+                  60:  enquing areg = 2 
+                  70:  enquing areg = 3 
+                  80:  enquing areg = 4 
+                 100:  enquing areg = 5 
+                 140:  enquing areg = 6 
+                 150:  enquing areg = 7 
+                 160:  enquing areg = 8 
+                 190:  enquing areg = 9 
+                 200:  enquing areg = 10 
+                 210:  enquing areg = 11 
+                 220:  enquing areg = 12 
+                 230:  enquing areg = 13 
+                 250:  enquing areg = 14 
+                 260:  enquing areg = 15 
+                 280:  enquing areg = 16 
+                 290:  enquing areg = 17 
+                 300:  enquing areg = 18 
+                 320:  enquing areg = 19 
+                 350:  enquing areg = 20 
+                 360:  enquing areg = 21 
+                 370:  enquing areg = 22 
+                 380:  enquing areg = 23 
+                 390:  enquing areg = 24 
+                 400:  enquing areg = 25 
+                 460:  enquing areg = 26 
+                 490:  enquing areg = 27 
+                 510:  enquing areg = 28 
+                 540:  enquing areg = 29 
+                 550:  enquing areg = 30 
+                 560:  enquing areg = 31 
+                 600:  enquing areg = 32 
+                 610:  enquing areg = 33 
+                 640:  enquing areg = 34 
+                 690:  enquing areg = 35 
+                 700:  enquing areg = 36 
+                 720:  enquing areg = 37 
+                 730:  enquing areg = 38 
+                 750:  enquing areg = 39 
+                 770:  enquing areg = 40 
+                 790:  enquing areg = 41 
+                 800:  enquing areg = 42 
+                 810:  enquing areg = 43 
+                 820:  enquing areg = 44 
+                 840:  enquing areg = 45 
+                 850:  enquing areg = 46 
+                 860:  enquing areg = 47 
+                 870:  enquing areg = 48 
+                 880:  enquing areg = 49 
+                 900:  enquing areg = 50 
+                 910:  enquing areg = 51 
+                 940:  enquing areg = 52 
+                 960:  enquing areg = 53 
+                1000:  enquing areg = 54 
+                1040:  enquing areg = 55 
+                1050:  enquing areg = 56 
+                1070:  enquing areg = 57 
+                1080:  enquing areg = 58 
+                1110:  enquing areg = 59 
+                1140:  enquing areg = 60 
+                1160:  enquing areg = 61 
+                1170:  enquing areg = 62 
+                1180:  enquing areg = 63 
+                1190:  enquing areg = 64 
+                1200:  enquing areg = 65 
+                1220:  enquing areg = 66 
+                1230:  enquing areg = 67 
+                1240:  enquing areg = 68 
+                1250:  enquing areg = 69 
+                1290:  enquing areg = 70 
+                1310:  enquing areg = 71 
+                1340:  enquing areg = 72 
+                1350:  enquing areg = 73 
+                1360:  enquing areg = 74 
+                1380:  enquing areg = 75 
+                1390:  enquing areg = 76 
+                1400:  enquing areg = 77 
+                1440:  enquing areg = 78 
+                1460:  enquing areg = 79 
+                1480:  enquing areg = 80 
+                1510:  enquing areg = 81 
+                1520:  enquing areg = 82 
+                1540:  enquing areg = 83 
+                1560:  enquing areg = 84 
+                1580:  enquing areg = 85 
+                1620:  enquing areg = 86 
+                1630:  enquing areg = 87 
+                1660:  enquing areg = 88 
+                1680:  enquing areg = 89 
+                1690:  enquing areg = 90 
+                1710:  enquing areg = 91 
+                1740:  enquing areg = 92 
+                1770:  enquing areg = 93 
+                1780:  enquing areg = 94 
+                1790:  enquing areg = 95 
+                1820:  enquing areg = 96 
+                1830:  enquing areg = 97 
+                1840:  enquing areg = 98 
+                1850:  enquing areg = 99 
+                1890:  enquing areg = 100 
+                1910:  enquing areg = 101 
+                1920:  enquing areg = 102 
+                1960:  enquing areg = 103 
+                1970:  enquing areg = 104 
+                1990:  enquing areg = 105 
+                2010:  enquing areg = 106 
+                2030:  enquing areg = 107 
+                2070:  enquing areg = 108 
+                2090:  enquing areg = 109 
+                2100:  enquing areg = 110 
+                2110:  enquing areg = 111 
+                2130:  enquing areg = 112 
+                2150:  enquing areg = 113 
+                2190:  enquing areg = 114 
+                2200:  enquing areg = 115 
+                2210:  enquing areg = 116 
+                2230:  enquing areg = 117 
+                2250:  enquing areg = 118 
+                2260:  enquing areg = 119 
+                2280:  enquing areg = 120 
+                2290: fifo almost full
+                2300:  dequing data: 0
+                2310:  dequing data: 1
+                2310:  enquing areg = 121 
+                2320:  dequing data: 2
+                2330:  dequing data: 3
+                2340:  dequing data: 4
+                2340:  enquing areg = 122 
+                2350:  dequing data: 5
+                2350:  enquing areg = 123 
+                2360:  dequing data: 6
+                2360:  enquing areg = 124 
+                2370:  dequing data: 7
+                2370:  enquing areg = 125 
+                2380:  dequing data: 8
+                2390:  dequing data: 9
+                2400:  dequing data: 10
+                2410:  dequing data: 11
+                2420:  dequing data: 12
+                2430:  dequing data: 13
+                2440:  dequing data: 14
+                2440:  enquing areg = 126 
+                2450:  dequing data: 15
+                2460:  dequing data: 16
+                2460:  enquing areg = 127 
+                2470:  dequing data: 17
+                2480:  dequing data: 18
+                2480:  enquing areg = 128 
+                2490:  dequing data: 19
+                2500:  dequing data: 20
+                2510:  dequing data: 21
+                2510:  enquing areg = 129 
+                2520:  dequing data: 22
+                2520:  enquing areg = 130 
+                2530:  dequing data: 23
+                2530:  enquing areg = 131 
+                2540:  dequing data: 24
+                2550:  dequing data: 25
+                2560:  dequing data: 26
+                2570:  dequing data: 27
+                2570:  enquing areg = 132 
+                2580:  dequing data: 28
+                2580:  enquing areg = 133 
+                2590:  dequing data: 29
+                2590:  enquing areg = 134 
+                2600:  dequing data: 30
+                2600:  enquing areg = 135 
+                2610:  dequing data: 31
+                2620:  dequing data: 32
+                2630:  dequing data: 33
+                2640:  dequing data: 34
+                2650:  dequing data: 35
+                2650:  enquing areg = 136 
+                2660:  dequing data: 36
+                2670:  dequing data: 37
+                2680:  dequing data: 38
+                2690:  dequing data: 39
+                2690:  enquing areg = 137 
+                2700:  dequing data: 40
+                2700:  enquing areg = 138 
+                2710:  dequing data: 41
+                2710:  enquing areg = 139 
+                2720:  dequing data: 42
+                2730:  dequing data: 43
+                2730:  enquing areg = 140 
+                2740:  dequing data: 44
+                2740:  enquing areg = 141 
+                2750:  dequing data: 45
+                2750:  enquing areg = 142 
+                2760:  dequing data: 46
+                2770:  dequing data: 47
+                2780:  dequing data: 48
+                2790:  dequing data: 49
+                2790:  enquing areg = 143 
+                2800:  dequing data: 50
+                2800:  enquing areg = 144 
+                2810:  dequing data: 51
+                2820:  dequing data: 52
+                2830:  dequing data: 53
+                2830:  enquing areg = 145 
+                2840:  dequing data: 54
+                2840:  enquing areg = 146 
+                2850:  dequing data: 55
+                2850:  enquing areg = 147 
+                2860:  dequing data: 56
+                2860:  enquing areg = 148 
+                2870:  dequing data: 57
+                2870:  enquing areg = 149 
+                2880:  dequing data: 58
+                2880:  enquing areg = 150 
+                2890:  dequing data: 59
+                2900:  dequing data: 60
+                2910:  dequing data: 61
+                2910:  enquing areg = 151 
+                2920:  dequing data: 62
+                2920:  enquing areg = 152 
+                2930:  dequing data: 63
+                2940:  dequing data: 64
+                2950:  dequing data: 65
+                2960:  dequing data: 66
+                2970:  dequing data: 67
+                2970:  enquing areg = 153 
+                2980:  dequing data: 68
+                2990:  dequing data: 69
+                3000:  dequing data: 70
+                3010:  dequing data: 71
+                3010:  enquing areg = 154 
+                3020:  dequing data: 72
+                3030:  dequing data: 73
+                3040:  dequing data: 74
+                3050:  dequing data: 75
+                3060:  dequing data: 76
+                3060:  enquing areg = 155 
+                3070:  dequing data: 77
+                3070:  enquing areg = 156 
+                3080:  dequing data: 78
+                3090:  dequing data: 79
+                3100:  dequing data: 80
+                3100:  enquing areg = 157 
+                3110:  dequing data: 81
+                3110:  enquing areg = 158 
+                3120:  dequing data: 82
+                3130:  dequing data: 83
+                3130:  enquing areg = 159 
+                3140:  dequing data: 84
+                3140:  enquing areg = 160 
+                3150:  dequing data: 85
+                3160:  dequing data: 86
+                3160:  enquing areg = 161 
+                3170:  dequing data: 87
+                3180:  dequing data: 88
+                3190:  dequing data: 89
+                3200:  dequing data: 90
+                3210:  dequing data: 91
+                3210:  enquing areg = 162 
+                3220:  dequing data: 92
+                3220:  enquing areg = 163 
+                3230:  dequing data: 93
+                3240:  dequing data: 94
+                3250:  dequing data: 95
+                3250:  enquing areg = 164 
+                3260:  dequing data: 96
+                3270:  dequing data: 97
+                3270:  enquing areg = 165 
+                3280:  dequing data: 98
+                3280:  enquing areg = 166 
+                3290:  dequing data: 99
+                3300:  dequing data: 100
+                3310:  dequing data: 101
+                3310:  enquing areg = 167 
+                3320:  dequing data: 102
+                3330:  dequing data: 103
+                3340:  dequing data: 104
+                3340:  enquing areg = 168 
+                3350:  dequing data: 105
+                3360:  dequing data: 106
+                3370:  dequing data: 107
+                3380:  dequing data: 108
+                3380:  enquing areg = 169 
+                3390:  dequing data: 109
+                3390:  enquing areg = 170 
+                3400:  dequing data: 110
+                3400:  enquing areg = 171 
+                3410:  dequing data: 111
+                3410:  enquing areg = 172 
+                3420:  dequing data: 112
+                3430:  dequing data: 113
+                3440:  dequing data: 114
+                3440:  enquing areg = 173 
+                3450:  dequing data: 115
+                3450:  enquing areg = 174 
+                3460:  dequing data: 116
+                3470:  dequing data: 117
+                3470:  enquing areg = 175 
+                3480:  dequing data: 118
+                3480:  enquing areg = 176 
+                3490:  dequing data: 119
+                3500:  dequing data: 120
+                3510:  dequing data: 121
+                3510:  enquing areg = 177 
+                3520:  dequing data: 122
+                3520:  enquing areg = 178 
+                3530:  dequing data: 123
+                3540:  dequing data: 124
+                3540:  enquing areg = 179 
+                3550:  dequing data: 125
+                3560:  dequing data: 126
+                3560:  enquing areg = 180 
+                3570:  dequing data: 127
+                3570:  enquing areg = 181 
+                3580:  dequing data: 128
+                3580:  enquing areg = 182 
+                3590:  dequing data: 129
+                3590:  enquing areg = 183 
+                3600:  dequing data: 130
+                3600:  enquing areg = 184 
+                3610:  dequing data: 131
+                3620:  dequing data: 132
+                3620:  enquing areg = 185 
+                3630:  dequing data: 133
+                3630:  enquing areg = 186 
+                3640:  dequing data: 134
+                3640:  enquing areg = 187 
+                3650:  dequing data: 135
+                3650:  enquing areg = 188 
+                3660:  dequing data: 136
+                3670:  dequing data: 137
+                3680:  dequing data: 138
+                3680:  enquing areg = 189 
+                3690:  dequing data: 139
+                3690:  enquing areg = 190 
+                3700:  dequing data: 140
+                3700:  enquing areg = 191 
+                3710:  dequing data: 141
+                3720:  dequing data: 142
+                3720:  enquing areg = 192 
+                3730:  dequing data: 143
+                3730:  enquing areg = 193 
+                3740:  dequing data: 144
+                3740:  enquing areg = 194 
+                3750:  dequing data: 145
+                3760:  dequing data: 146
+                3760:  enquing areg = 195 
+                3770:  dequing data: 147
+                3780:  dequing data: 148
+                3780:  enquing areg = 196 
+                3790:  dequing data: 149
+                3790:  enquing areg = 197 
+                3800:  dequing data: 150
+                3810:  dequing data: 151
+                3820:  dequing data: 152
+                3820:  enquing areg = 198 
+                3830:  dequing data: 153
+                3830:  enquing areg = 199 
+                3840:  dequing data: 154
+                3840:  enquing areg = 200 
+                3850:  dequing data: 155
+                3850:  enquing areg = 201 
+                3860:  dequing data: 156
+                3860:  enquing areg = 202 
+                3870:  dequing data: 157
+                3870:  enquing areg = 203 
+                3880:  dequing data: 158
+                3890:  dequing data: 159
+                3900:  dequing data: 160
+                3900:  enquing areg = 204 
+                3910:  dequing data: 161
+                3910:  enquing areg = 205 
+                3920:  dequing data: 162
+                3920:  enquing areg = 206 
+                3930:  dequing data: 163
+                3940:  dequing data: 164
+                3940:  enquing areg = 207 
+                3950:  dequing data: 165
+                3950:  enquing areg = 208 
+                3960:  dequing data: 166
+                3970:  dequing data: 167
+                3970:  enquing areg = 209 
+                3980:  dequing data: 168
+                3990:  dequing data: 169
+                3990:  enquing areg = 210 
+                4000:  dequing data: 170
+                4000:  enquing areg = 211 
+                4010:  dequing data: 171
+                4020:  dequing data: 172
+                4030:  dequing data: 173
+                4040:  dequing data: 174
+                4040:  enquing areg = 212 
+                4050:  dequing data: 175
+                4050:  enquing areg = 213 
+                4060:  dequing data: 176
+                4070:  dequing data: 177
+                4070:  enquing areg = 214 
+                4080:  dequing data: 178
+                4090:  dequing data: 179
+                4100:  dequing data: 180
+                4100:  enquing areg = 215 
+                4110:  dequing data: 181
+                4110:  enquing areg = 216 
+                4120:  dequing data: 182
+                4130:  dequing data: 183
+                4130:  enquing areg = 217 
+                4140:  dequing data: 184
+                4140:  enquing areg = 218 
+                4150:  dequing data: 185
+                4150:  enquing areg = 219 
+                4160:  dequing data: 186
+                4170:  dequing data: 187
+                4180:  dequing data: 188
+                4190:  dequing data: 189
+                4190:  enquing areg = 220 
+                4200:  dequing data: 190
+                4210:  dequing data: 191
+                4220:  dequing data: 192
+                4220:  enquing areg = 221 
+                4230:  dequing data: 193
+                4230:  enquing areg = 222 
+                4240:  dequing data: 194
+                4250:  dequing data: 195
+                4260:  dequing data: 196
+                4270:  dequing data: 197
+                4280:  dequing data: 198
+                4280:  enquing areg = 223 
+                4290:  dequing data: 199
+                4290:  enquing areg = 224 
+                4300:  dequing data: 200
+                4310:  dequing data: 201
+                4310:  enquing areg = 225 
+                4320:  dequing data: 202
+                4320:  enquing areg = 226 
+                4330:  dequing data: 203
+                4340:  dequing data: 204
+                4340:  enquing areg = 227 
+                4350:  dequing data: 205
+                4360:  dequing data: 206
+                4370:  dequing data: 207
+                4380:  dequing data: 208
+                4380:  enquing areg = 228 
+                4390:  dequing data: 209
+                4400:  dequing data: 210
+                4400:  enquing areg = 229 
+                4410:  dequing data: 211
+                4410:  enquing areg = 230 
+                4420:  dequing data: 212
+                4420:  enquing areg = 231 
+                4430:  dequing data: 213
+                4430:  enquing areg = 232 
+                4440:  dequing data: 214
+                4440:  enquing areg = 233 
+                4450:  dequing data: 215
+                4460:  dequing data: 216
+                4460:  enquing areg = 234 
+                4470:  dequing data: 217
+                4470:  enquing areg = 235 
+                4480:  dequing data: 218
+                4480:  enquing areg = 236 
+                4490:  dequing data: 219
+                4490:  enquing areg = 237 
+                4500:  dequing data: 220
+                4500:  enquing areg = 238 
+                4510:  dequing data: 221
+                4510:  enquing areg = 239 
+                4520:  dequing data: 222
+                4520:  enquing areg = 240 
+                4530:  dequing data: 223
+                4530:  enquing areg = 241 
+                4540:  dequing data: 224
+                4550:  dequing data: 225
+                4550:  enquing areg = 242 
+                4560:  dequing data: 226
+                4560:  enquing areg = 243 
+                4570:  dequing data: 227
+                4570:  enquing areg = 244 
+                4580:  dequing data: 228
+                4590:  dequing data: 229
+                4590:  enquing areg = 245 
+                4600:  dequing data: 230
+                4600:  enquing areg = 246 
+                4610:  dequing data: 231
+                4620:  dequing data: 232
+                4630:  dequing data: 233
+                4640:  dequing data: 234
+                4650:  dequing data: 235
+                4660:  dequing data: 236
+                4660:  enquing areg = 247 
+                4670:  dequing data: 237
+                4670:  enquing areg = 248 
+                4680:  dequing data: 238
+                4690:  dequing data: 239
+                4690:  enquing areg = 249 
+                4700:  dequing data: 240
+                4700:  enquing areg = 250 
+                4710:  dequing data: 241
+                4710:  enquing areg = 251 
+                4720:  dequing data: 242
+                4730: fifo almost empty
+                4730:  dequing data: 243
+                4730:  enquing areg = 252 
+                4750:  enquing areg = 253 
+                4760:  enquing areg = 254 
+                4770:  enquing areg = 255 
+                4780:  enquing areg = 256 
+                4800:  enquing areg = 257 
+                4820:  enquing areg = 258 
+                4830:  enquing areg = 259 
+                4840:  enquing areg = 260 
+                4860:  enquing areg = 261 
+                4870:  enquing areg = 262 
+                4900:  enquing areg = 263 
+                4920:  enquing areg = 264 
+                4960:  enquing areg = 265 
+                4970:  enquing areg = 266 
+                4990:  enquing areg = 267 
+                5020:  enquing areg = 268 
+                5030:  enquing areg = 269 
+                5070:  enquing areg = 270 
+                5090:  enquing areg = 271 
+                5100:  enquing areg = 272 
+                5110:  enquing areg = 273 
+                5130:  enquing areg = 274 
+                5150:  enquing areg = 275 
+                5170:  enquing areg = 276 
+                5180:  enquing areg = 277 
+                5200:  enquing areg = 278 
+                5210:  enquing areg = 279 
+                5240:  enquing areg = 280 
+                5260:  enquing areg = 281 
+                5280:  enquing areg = 282 
+                5290:  enquing areg = 283 
+                5300:  enquing areg = 284 
+                5330:  enquing areg = 285 
+                5370:  enquing areg = 286 
+                5380:  enquing areg = 287 
+                5390:  enquing areg = 288 
+                5400:  enquing areg = 289 
+                5460:  enquing areg = 290 
+                5480:  enquing areg = 291 
+                5500:  enquing areg = 292 
+                5520:  enquing areg = 293 
+                5530:  enquing areg = 294 
+                5570:  enquing areg = 295 
+                5580:  enquing areg = 296 
+                5590:  enquing areg = 297 
+                5620:  enquing areg = 298 
+                5630:  enquing areg = 299 
+                5640:  enquing areg = 300 
+                5660:  enquing areg = 301 
+                5680:  enquing areg = 302 
+                5690:  enquing areg = 303 
+                5700:  enquing areg = 304 
+                5710:  enquing areg = 305 
+                5740:  enquing areg = 306 
+                5770:  enquing areg = 307 
+                5780:  enquing areg = 308 
+                5790:  enquing areg = 309 
+                5800:  enquing areg = 310 
+                5860:  enquing areg = 311 
+                5870:  enquing areg = 312 
+                5880:  enquing areg = 313 
+                5900:  enquing areg = 314 
+                5930:  enquing areg = 315 
+                5940:  enquing areg = 316 
+                5950:  enquing areg = 317 
+                5960:  enquing areg = 318 
+                5980:  enquing areg = 319 
+                6020:  enquing areg = 320 
+                6050:  enquing areg = 321 
+                6060:  enquing areg = 322 
+                6120:  enquing areg = 323 
+                6150:  enquing areg = 324 
+                6200:  enquing areg = 325 
+                6210:  enquing areg = 326 
+                6240:  enquing areg = 327 
+                6250:  enquing areg = 328 
+                6290:  enquing areg = 329 
+                6300:  enquing areg = 330 
+                6330:  enquing areg = 331 
+                6340:  enquing areg = 332 
+                6360:  enquing areg = 333 
+                6400:  enquing areg = 334 
+                6420:  enquing areg = 335 
+                6430:  enquing areg = 336 
+                6440:  enquing areg = 337 
+                6460:  enquing areg = 338 
+                6490:  enquing areg = 339 
+                6500:  enquing areg = 340 
+                6520:  enquing areg = 341 
+                6530:  enquing areg = 342 
+                6550:  enquing areg = 343 
+                6580:  enquing areg = 344 
+                6590:  enquing areg = 345 
+                6600:  enquing areg = 346 
+                6620:  enquing areg = 347 
+                6650:  enquing areg = 348 
+                6660:  enquing areg = 349 
+                6680:  enquing areg = 350 
+                6710:  enquing areg = 351 
+                6750:  enquing areg = 352 
+                6770:  enquing areg = 353 
+                6790:  enquing areg = 354 
+                6820:  enquing areg = 355 
+                6840:  enquing areg = 356 
+                6850:  enquing areg = 357 
+                6860:  enquing areg = 358 
+                6900:  enquing areg = 359 
+                6920:  enquing areg = 360 
+                6940:  enquing areg = 361 
+                6950:  enquing areg = 362 
+                6960:  enquing areg = 363 
+                6970:  enquing areg = 364 
+                6980: fifo almost full
+                6980:  enquing areg = 365 
+                6990:  dequing data: 244
+                6990:  enquing areg = 366 
+                7000:  dequing data: 245
+                7010:  dequing data: 246
+                7020:  dequing data: 247
+                7020:  enquing areg = 367 
+                7030:  dequing data: 248
+                7030:  enquing areg = 368 
+                7040:  dequing data: 249
+                7050:  dequing data: 250
+                7060:  dequing data: 251
+                7070:  dequing data: 252
+                7070:  enquing areg = 369 
+                7080:  dequing data: 253
+                7090:  dequing data: 254
+                7090:  enquing areg = 370 
+                7100:  dequing data: 255
+                7110:  dequing data: 256
+                7120:  dequing data: 257
+                7120:  enquing areg = 371 
+                7130:  dequing data: 258
+                7130:  enquing areg = 372 
+                7140:  dequing data: 259
+                7140:  enquing areg = 373 
+                7150:  dequing data: 260
+                7150:  enquing areg = 374 
+                7160:  dequing data: 261
+                7170:  dequing data: 262
+                7170:  enquing areg = 375 
+                7180:  dequing data: 263
+                7180:  enquing areg = 376 
+                7190:  dequing data: 264
+                7190:  enquing areg = 377 
+                7200:  dequing data: 265
+                7200:  enquing areg = 378 
+                7210:  dequing data: 266
+                7220:  dequing data: 267
+                7220:  enquing areg = 379 
+                7230:  dequing data: 268
+                7230:  enquing areg = 380 
+                7240:  dequing data: 269
+                7250:  dequing data: 270
+                7260:  dequing data: 271
+                7260:  enquing areg = 381 
+                7270:  dequing data: 272
+                7270:  enquing areg = 382 
+                7280:  dequing data: 273
+                7280:  enquing areg = 383 
+                7290:  dequing data: 274
+                7290:  enquing areg = 384 
+                7300:  dequing data: 275
+                7300:  enquing areg = 385 
+                7310:  dequing data: 276
+                7320:  dequing data: 277
+                7320:  enquing areg = 386 
+                7330:  dequing data: 278
+                7330:  enquing areg = 387 
+                7340:  dequing data: 279
+                7340:  enquing areg = 388 
+                7350:  dequing data: 280
+                7360:  dequing data: 281
+                7360:  enquing areg = 389 
+                7370:  dequing data: 282
+                7380:  dequing data: 283
+                7380:  enquing areg = 390 
+                7390:  dequing data: 284
+                7390:  enquing areg = 391 
+                7400:  dequing data: 285
+                7400:  enquing areg = 392 
+                7410:  dequing data: 286
+                7410:  enquing areg = 393 
+                7420:  dequing data: 287
+                7420:  enquing areg = 394 
+                7430:  dequing data: 288
+                7440:  dequing data: 289
+                7450:  dequing data: 290
+                7450:  enquing areg = 395 
+                7460:  dequing data: 291
+                7470:  dequing data: 292
+                7480:  dequing data: 293
+                7490:  dequing data: 294
+                7490:  enquing areg = 396 
+                7500:  dequing data: 295
+                7510:  dequing data: 296
+                7510:  enquing areg = 397 
+                7520:  dequing data: 297
+                7530:  dequing data: 298
+                7530:  enquing areg = 398 
+                7540:  dequing data: 299
+                7540:  enquing areg = 399 
+                7550:  dequing data: 300
+                7560:  dequing data: 301
+                7570:  dequing data: 302
+                7580:  dequing data: 303
+                7590:  dequing data: 304
+                7590:  enquing areg = 400 
+                7600:  dequing data: 305
+                7610:  dequing data: 306
+                7620:  dequing data: 307
+                7620:  enquing areg = 401 
+                7630:  dequing data: 308
+                7640:  dequing data: 309
+                7650:  dequing data: 310
+                7660:  dequing data: 311
+                7670:  dequing data: 312
+                7680:  dequing data: 313
+                7690:  dequing data: 314
+                7690:  enquing areg = 402 
+                7700:  dequing data: 315
+                7700:  enquing areg = 403 
+                7710:  dequing data: 316
+                7710:  enquing areg = 404 
+                7720:  dequing data: 317
+                7730:  dequing data: 318
+                7740:  dequing data: 319
+                7750:  dequing data: 320
+                7760:  dequing data: 321
+                7760:  enquing areg = 405 
+                7770:  dequing data: 322
+                7780:  dequing data: 323
+                7790:  dequing data: 324
+                7790:  enquing areg = 406 
+                7800:  dequing data: 325
+                7810:  dequing data: 326
+                7820:  dequing data: 327
+                7820:  enquing areg = 407 
+                7830:  dequing data: 328
+                7840:  dequing data: 329
+                7850:  dequing data: 330
+                7860:  dequing data: 331
+                7860:  enquing areg = 408 
+                7870:  dequing data: 332
+                7880:  dequing data: 333
+                7880:  enquing areg = 409 
+                7890:  dequing data: 334
+                7890:  enquing areg = 410 
+                7900:  dequing data: 335
+                7900:  enquing areg = 411 
+                7910:  dequing data: 336
+                7910:  enquing areg = 412 
+                7920:  dequing data: 337
+                7920:  enquing areg = 413 
+                7930:  dequing data: 338
+                7930:  enquing areg = 414 
+                7940:  dequing data: 339
+                7940:  enquing areg = 415 
+                7950:  dequing data: 340
+                7960:  dequing data: 341
+                7960:  enquing areg = 416 
+                7970:  dequing data: 342
+                7980:  dequing data: 343
+                7980:  enquing areg = 417 
+                7990:  dequing data: 344
+                8000:  dequing data: 345
+                8000:  enquing areg = 418 
+                8010:  dequing data: 346
+                8020:  dequing data: 347
+                8030:  dequing data: 348
+                8040:  dequing data: 349
+                8040:  enquing areg = 419 
+                8050:  dequing data: 350
+                8060:  dequing data: 351
+                8070:  dequing data: 352
+                8080:  dequing data: 353
+                8080:  enquing areg = 420 
+                8090:  dequing data: 354
+                8100:  dequing data: 355
+                8110:  dequing data: 356
+                8110:  enquing areg = 421 
+                8120:  dequing data: 357
+                8120:  enquing areg = 422 
+                8130:  dequing data: 358
+                8140:  dequing data: 359
+                8140:  enquing areg = 423 
+                8150:  dequing data: 360
+                8150:  enquing areg = 424 
+                8160:  dequing data: 361
+                8160:  enquing areg = 425 
+                8170:  dequing data: 362
+                8170:  enquing areg = 426 
+                8180:  dequing data: 363
+                8190:  dequing data: 364
+                8190:  enquing areg = 427 
+                8200:  dequing data: 365
+                8200:  enquing areg = 428 
+                8210:  dequing data: 366
+                8220:  dequing data: 367
+                8220:  enquing areg = 429 
+                8230:  dequing data: 368
+                8230:  enquing areg = 430 
+                8240:  dequing data: 369
+                8240:  enquing areg = 431 
+                8250:  dequing data: 370
+                8250:  enquing areg = 432 
+                8260:  dequing data: 371
+                8270:  dequing data: 372
+                8280:  dequing data: 373
+                8280:  enquing areg = 433 
+                8290:  dequing data: 374
+                8290:  enquing areg = 434 
+                8300:  dequing data: 375
+                8300:  enquing areg = 435 
+                8310:  dequing data: 376
+                8310:  enquing areg = 436 
+                8320:  dequing data: 377
+                8320:  enquing areg = 437 
+                8330:  dequing data: 378
+                8340:  dequing data: 379
+                8340:  enquing areg = 438 
+                8350:  dequing data: 380
+                8350:  enquing areg = 439 
+                8360:  dequing data: 381
+                8360:  enquing areg = 440 
+                8370:  dequing data: 382
+                8370:  enquing areg = 441 
+                8380:  dequing data: 383
+                8380:  enquing areg = 442 
+                8390:  dequing data: 384
+                8400:  dequing data: 385
+                8410:  dequing data: 386
+                8410:  enquing areg = 443 
+                8420:  dequing data: 387
+                8420:  enquing areg = 444 
+                8430:  dequing data: 388
+                8440:  dequing data: 389
+                8440:  enquing areg = 445 
+                8450:  dequing data: 390
+                8460:  dequing data: 391
+                8460:  enquing areg = 446 
+                8470:  dequing data: 392
+                8470:  enquing areg = 447 
+                8480:  dequing data: 393
+                8490:  dequing data: 394
+                8490:  enquing areg = 448 
+                8500:  dequing data: 395
+                8510:  dequing data: 396
+                8510:  enquing areg = 449 
+                8520:  dequing data: 397
+                8520:  enquing areg = 450 
+                8530:  dequing data: 398
+                8540:  dequing data: 399
+                8550:  dequing data: 400
+                8550:  enquing areg = 451 
+                8560:  dequing data: 401
+                8560:  enquing areg = 452 
+                8570:  dequing data: 402
+                8570:  enquing areg = 453 
+                8580:  dequing data: 403
+                8580:  enquing areg = 454 
+                8590:  dequing data: 404
+                8600:  dequing data: 405
+                8610:  dequing data: 406
+                8620:  dequing data: 407
+                8630:  dequing data: 408
+                8640:  dequing data: 409
+                8650:  dequing data: 410
+                8650:  enquing areg = 455 
+                8660:  dequing data: 411
+                8670:  dequing data: 412
+                8680:  dequing data: 413
+                8690:  dequing data: 414
+                8700:  dequing data: 415
+                8700:  enquing areg = 456 
+                8710:  dequing data: 416
+                8710:  enquing areg = 457 
+                8720:  dequing data: 417
+                8730:  dequing data: 418
+                8730:  enquing areg = 458 
+                8740:  dequing data: 419
+                8750:  dequing data: 420
+                8760:  dequing data: 421
+                8770:  dequing data: 422
+                8780:  dequing data: 423
+                8780:  enquing areg = 459 
+                8790:  dequing data: 424
+                8800:  dequing data: 425
+                8800:  enquing areg = 460 
+                8810:  dequing data: 426
+                8820:  dequing data: 427
+                8820:  enquing areg = 461 
+                8830:  dequing data: 428
+                8840:  dequing data: 429
+                8840:  enquing areg = 462 
+                8850:  dequing data: 430
+                8860:  dequing data: 431
+                8870:  dequing data: 432
+                8870:  enquing areg = 463 
+                8880:  dequing data: 433
+                8890:  dequing data: 434
+                8890:  enquing areg = 464 
+                8900:  dequing data: 435
+                8900:  enquing areg = 465 
+                8910:  dequing data: 436
+                8910:  enquing areg = 466 
+                8920:  dequing data: 437
+                8920:  enquing areg = 467 
+                8930:  dequing data: 438
+                8940:  dequing data: 439
+                8950:  dequing data: 440
+                8960:  dequing data: 441
+                8970:  dequing data: 442
+                8970:  enquing areg = 468 
+                8980:  dequing data: 443
+                8980:  enquing areg = 469 
+                8990:  dequing data: 444
+                8990:  enquing areg = 470 
+                9000:  dequing data: 445
+                9000:  enquing areg = 471 
+                9010:  dequing data: 446
+                9020:  dequing data: 447
+                9020:  enquing areg = 472 
+                9030:  dequing data: 448
+                9030:  enquing areg = 473 
+                9040:  dequing data: 449
+                9050:  dequing data: 450
+                9060:  dequing data: 451
+                9070:  dequing data: 452
+                9080:  dequing data: 453
+                9090:  dequing data: 454
+                9100:  dequing data: 455
+                9110:  dequing data: 456
+                9120:  dequing data: 457
+                9130:  dequing data: 458
+                9130:  enquing areg = 474 
+                9140:  dequing data: 459
+                9140:  enquing areg = 475 
+                9150:  dequing data: 460
+                9160:  dequing data: 461
+                9160:  enquing areg = 476 
+                9170:  dequing data: 462
+                9170:  enquing areg = 477 
+                9180:  dequing data: 463
+                9180:  enquing areg = 478 
+                9190:  dequing data: 464
+                9200:  dequing data: 465
+                9210:  dequing data: 466
+                9220:  dequing data: 467
+                9220:  enquing areg = 479 
+                9230:  dequing data: 468
+                9230:  enquing areg = 480 
+                9240:  dequing data: 469
+                9240:  enquing areg = 481 
+                9250:  dequing data: 470
+                9260:  dequing data: 471
+                9270:  dequing data: 472
+                9280: fifo almost empty
+                9280:  dequing data: 473
+                9280:  enquing areg = 482 
+                9310:  enquing areg = 483 
+                9320:  enquing areg = 484 
+                9330:  enquing areg = 485 
+                9340:  enquing areg = 486 
+                9360:  enquing areg = 487 
+                9380:  enquing areg = 488 
+                9390:  enquing areg = 489 
+                9410:  enquing areg = 490 
+                9420:  enquing areg = 491 
+                9450:  enquing areg = 492 
+                9460:  enquing areg = 493 
+                9470:  enquing areg = 494 
+                9480:  enquing areg = 495 
+                9490:  enquing areg = 496 
+                9510:  enquing areg = 497 
+                9520:  enquing areg = 498 
+                9560:  enquing areg = 499 
+                9590:  enquing areg = 500 
+                9610:  enquing areg = 501 
+                9640:  enquing areg = 502 
+                9650:  enquing areg = 503 
+                9670:  enquing areg = 504 
+                9750:  enquing areg = 505 
+                9780:  enquing areg = 506 
+                9800:  enquing areg = 507 
+                9820:  enquing areg = 508 
+                9830:  enquing areg = 509 
+                9840:  enquing areg = 510 
+                9850:  enquing areg = 511 
+                9870:  enquing areg = 512 
+                9910:  enquing areg = 513 
+                9920:  enquing areg = 514 
+                9930:  enquing areg = 515 
+                9940:  enquing areg = 516 
+               10000:  enquing areg = 517 
+               10010:  enquing areg = 518 
+               10020:  enquing areg = 519 
+               10030:  enquing areg = 520 
+               10050:  enquing areg = 521 
+               10070:  enquing areg = 522 
+               10080:  enquing areg = 523 
+               10110:  enquing areg = 524 
+               10120:  enquing areg = 525 
+               10150:  enquing areg = 526 
+               10170:  enquing areg = 527 
+               10210:  enquing areg = 528 
+               10220:  enquing areg = 529 
+               10240:  enquing areg = 530 
+               10250:  enquing areg = 531 
+               10290:  enquing areg = 532 
+               10300:  enquing areg = 533 
+               10340:  enquing areg = 534 
+               10350:  enquing areg = 535 
+               10360:  enquing areg = 536 
+               10370:  enquing areg = 537 
+               10380:  enquing areg = 538 
+               10390:  enquing areg = 539 
+               10430:  enquing areg = 540 
+               10440:  enquing areg = 541 
+               10460:  enquing areg = 542 
+               10470:  enquing areg = 543 
+               10490:  enquing areg = 544 
+               10510:  enquing areg = 545 
+               10520:  enquing areg = 546 
+               10560:  enquing areg = 547 
+               10570:  enquing areg = 548 
+               10580:  enquing areg = 549 
+               10590:  enquing areg = 550 
+               10600:  enquing areg = 551 
+               10610:  enquing areg = 552 
+               10660:  enquing areg = 553 
+               10670:  enquing areg = 554 
+               10700:  enquing areg = 555 
+               10710:  enquing areg = 556 
+               10720:  enquing areg = 557 
+               10730:  enquing areg = 558 
+               10740:  enquing areg = 559 
+               10770:  enquing areg = 560 
+               10780:  enquing areg = 561 
+               10810:  enquing areg = 562 
+               10830:  enquing areg = 563 
+               10840:  enquing areg = 564 
+               10850:  enquing areg = 565 
+               10870:  enquing areg = 566 
+               10880:  enquing areg = 567 
+               10890:  enquing areg = 568 
+               10970:  enquing areg = 569 
+               11010:  enquing areg = 570 
+               11020:  enquing areg = 571 
+               11040:  enquing areg = 572 
+               11090:  enquing areg = 573 
+               11110:  enquing areg = 574 
+               11120:  enquing areg = 575 
+               11140:  enquing areg = 576 
+               11150:  enquing areg = 577 
+               11190:  enquing areg = 578 
+               11210:  enquing areg = 579 
+               11220:  enquing areg = 580 
+               11230:  enquing areg = 581 
+               11240:  enquing areg = 582 
+               11250:  enquing areg = 583 
+               11260:  enquing areg = 584 
+               11350:  enquing areg = 585 
+               11390:  enquing areg = 586 
+               11440:  enquing areg = 587 
+               11460:  enquing areg = 588 
+               11470:  enquing areg = 589 
+               11480:  enquing areg = 590 
+               11490:  enquing areg = 591 
+               11530:  enquing areg = 592 
+               11540:  enquing areg = 593 
+               11570:  enquing areg = 594 
+               11580: fifo almost full
+               11580:  enquing areg = 595 
+               11590:  dequing data: 474
+               11600:  dequing data: 475
+               11600:  enquing areg = 596 
+               11610:  dequing data: 476
+               11610:  enquing areg = 597 
+               11620:  dequing data: 477
+               11620:  enquing areg = 598 
+               11630:  dequing data: 478
+               11640:  dequing data: 479
+               11640:  enquing areg = 599 
+               11650:  dequing data: 480
+               11650:  enquing areg = 600 
+               11660:  dequing data: 481
+               11670:  dequing data: 482
+               11670:  enquing areg = 601 
+               11680:  dequing data: 483
+               11680:  enquing areg = 602 
+               11690:  dequing data: 484
+               11690:  enquing areg = 603 
+               11700:  dequing data: 485
+               11710:  dequing data: 486
+               11720:  dequing data: 487
+               11730:  dequing data: 488
+               11740:  dequing data: 489
+               11750:  dequing data: 490
+               11760:  dequing data: 491
+               11760:  enquing areg = 604 
+               11770:  dequing data: 492
+               11770:  enquing areg = 605 
+               11780:  dequing data: 493
+               11790:  dequing data: 494
+               11800:  dequing data: 495
+               11810:  dequing data: 496
+               11820:  dequing data: 497
+               11820:  enquing areg = 606 
+               11830:  dequing data: 498
+               11830:  enquing areg = 607 
+               11840:  dequing data: 499
+               11850:  dequing data: 500
+               11850:  enquing areg = 608 
+               11860:  dequing data: 501
+               11860:  enquing areg = 609 
+               11870:  dequing data: 502
+               11880:  dequing data: 503
+               11880:  enquing areg = 610 
+               11890:  dequing data: 504
+               11890:  enquing areg = 611 
+               11900:  dequing data: 505
+               11910:  dequing data: 506
+               11910:  enquing areg = 612 
+               11920:  dequing data: 507
+               11930:  dequing data: 508
+               11930:  enquing areg = 613 
+               11940:  dequing data: 509
+               11950:  dequing data: 510
+               11950:  enquing areg = 614 
+               11960:  dequing data: 511
+               11970:  dequing data: 512
+               11970:  enquing areg = 615 
+               11980:  dequing data: 513
+               11980:  enquing areg = 616 
+               11990:  dequing data: 514
+               12000:  dequing data: 515
+               12000:  enquing areg = 617 
+               12010:  dequing data: 516
+               12020:  dequing data: 517
+               12020:  enquing areg = 618 
+               12030:  dequing data: 518
+               12040:  dequing data: 519
+               12050:  dequing data: 520
+               12050:  enquing areg = 619 
+               12060:  dequing data: 521
+               12070:  dequing data: 522
+               12070:  enquing areg = 620 
+               12080:  dequing data: 523
+               12080:  enquing areg = 621 
+               12090:  dequing data: 524
+               12100:  dequing data: 525
+               12100:  enquing areg = 622 
+               12110:  dequing data: 526
+               12120:  dequing data: 527
+               12130:  dequing data: 528
+               12130:  enquing areg = 623 
+               12140:  dequing data: 529
+               12140:  enquing areg = 624 
+               12150:  dequing data: 530
+               12160:  dequing data: 531
+               12160:  enquing areg = 625 
+               12170:  dequing data: 532
+               12170:  enquing areg = 626 
+               12180:  dequing data: 533
+               12180:  enquing areg = 627 
+               12190:  dequing data: 534
+               12190:  enquing areg = 628 
+               12200:  dequing data: 535
+               12210:  dequing data: 536
+               12220:  dequing data: 537
+               12230:  dequing data: 538
+               12240:  dequing data: 539
+               12250:  dequing data: 540
+               12260:  dequing data: 541
+               12260:  enquing areg = 629 
+               12270:  dequing data: 542
+               12280:  dequing data: 543
+               12280:  enquing areg = 630 
+               12290:  dequing data: 544
+               12300:  dequing data: 545
+               12310:  dequing data: 546
+               12320:  dequing data: 547
+               12320:  enquing areg = 631 
+               12330:  dequing data: 548
+               12340:  dequing data: 549
+               12350:  dequing data: 550
+               12360:  dequing data: 551
+               12370:  dequing data: 552
+               12370:  enquing areg = 632 
+               12380:  dequing data: 553
+               12390:  dequing data: 554
+               12390:  enquing areg = 633 
+               12400:  dequing data: 555
+               12400:  enquing areg = 634 
+               12410:  dequing data: 556
+               12410:  enquing areg = 635 
+               12420:  dequing data: 557
+               12430:  dequing data: 558
+               12440:  dequing data: 559
+               12440:  enquing areg = 636 
+               12450:  dequing data: 560
+               12450:  enquing areg = 637 
+               12460:  dequing data: 561
+               12470:  dequing data: 562
+               12480:  dequing data: 563
+               12490:  dequing data: 564
+               12490:  enquing areg = 638 
+               12500:  dequing data: 565
+               12500:  enquing areg = 639 
+               12510:  dequing data: 566
+               12510:  enquing areg = 640 
+               12520:  dequing data: 567
+               12530:  dequing data: 568
+               12530:  enquing areg = 641 
+               12540:  dequing data: 569
+               12550:  dequing data: 570
+               12550:  enquing areg = 642 
+               12560:  dequing data: 571
+               12560:  enquing areg = 643 
+               12570:  dequing data: 572
+               12580:  dequing data: 573
+               12580:  enquing areg = 644 
+               12590:  dequing data: 574
+               12590:  enquing areg = 645 
+               12600:  dequing data: 575
+               12600:  enquing areg = 646 
+               12610:  dequing data: 576
+               12620:  dequing data: 577
+               12630:  dequing data: 578
+               12640:  dequing data: 579
+               12640:  enquing areg = 647 
+               12650:  dequing data: 580
+               12660:  dequing data: 581
+               12670:  dequing data: 582
+               12680:  dequing data: 583
+               12690:  dequing data: 584
+               12700:  dequing data: 585
+               12710:  dequing data: 586
+               12710:  enquing areg = 648 
+               12720:  dequing data: 587
+               12720:  enquing areg = 649 
+               12730:  dequing data: 588
+               12730:  enquing areg = 650 
+               12740:  dequing data: 589
+               12740:  enquing areg = 651 
+               12750:  dequing data: 590
+               12750:  enquing areg = 652 
+               12760:  dequing data: 591
+               12770:  dequing data: 592
+               12770:  enquing areg = 653 
+               12780:  dequing data: 593
+               12790:  dequing data: 594
+               12800:  dequing data: 595
+               12800:  enquing areg = 654 
+               12810:  dequing data: 596
+               12820:  dequing data: 597
+               12830:  dequing data: 598
+               12830:  enquing areg = 655 
+               12840:  dequing data: 599
+               12850:  dequing data: 600
+               12860:  dequing data: 601
+               12860:  enquing areg = 656 
+               12870:  dequing data: 602
+               12870:  enquing areg = 657 
+               12880:  dequing data: 603
+               12880:  enquing areg = 658 
+               12890:  dequing data: 604
+               12890:  enquing areg = 659 
+               12900:  dequing data: 605
+               12900:  enquing areg = 660 
+               12910:  dequing data: 606
+               12920:  dequing data: 607
+               12920:  enquing areg = 661 
+               12930:  dequing data: 608
+               12930:  enquing areg = 662 
+               12940:  dequing data: 609
+               12950:  dequing data: 610
+               12950:  enquing areg = 663 
+               12960:  dequing data: 611
+               12970:  dequing data: 612
+               12980:  dequing data: 613
+               12990:  dequing data: 614
+               12990:  enquing areg = 664 
+               13000:  dequing data: 615
+               13000:  enquing areg = 665 
+               13010:  dequing data: 616
+               13010:  enquing areg = 666 
+               13020:  dequing data: 617
+               13020:  enquing areg = 667 
+               13030:  dequing data: 618
+               13030:  enquing areg = 668 
+               13040:  dequing data: 619
+               13050:  dequing data: 620
+               13060:  dequing data: 621
+               13060:  enquing areg = 669 
+               13070:  dequing data: 622
+               13070:  enquing areg = 670 
+               13080:  dequing data: 623
+               13080:  enquing areg = 671 
+               13090:  dequing data: 624
+               13090:  enquing areg = 672 
+               13100:  dequing data: 625
+               13110:  dequing data: 626
+               13120:  dequing data: 627
+               13130:  dequing data: 628
+               13130:  enquing areg = 673 
+               13140:  dequing data: 629
+               13140:  enquing areg = 674 
+               13150:  dequing data: 630
+               13160:  dequing data: 631
+               13160:  enquing areg = 675 
+               13170:  dequing data: 632
+               13180:  dequing data: 633
+               13180:  enquing areg = 676 
+               13190:  dequing data: 634
+               13190:  enquing areg = 677 
+               13200:  dequing data: 635
+               13200:  enquing areg = 678 
+               13210:  dequing data: 636
+               13210:  enquing areg = 679 
+               13220:  dequing data: 637
+               13220:  enquing areg = 680 
+               13230:  dequing data: 638
+               13240:  dequing data: 639
+               13250:  dequing data: 640
+               13250:  enquing areg = 681 
+               13260:  dequing data: 641
+               13260:  enquing areg = 682 
+               13270:  dequing data: 642
+               13280:  dequing data: 643
+               13290:  dequing data: 644
+               13300:  dequing data: 645
+               13310:  dequing data: 646
+               13310:  enquing areg = 683 
+               13320:  dequing data: 647
+               13320:  enquing areg = 684 
+               13330:  dequing data: 648
+               13330:  enquing areg = 685 
+               13340:  dequing data: 649
+               13340:  enquing areg = 686 
+               13350:  dequing data: 650
+               13350:  enquing areg = 687 
+               13360:  dequing data: 651
+               13370:  dequing data: 652
+               13380:  dequing data: 653
+               13380:  enquing areg = 688 
+               13390:  dequing data: 654
+               13390:  enquing areg = 689 
+               13400:  dequing data: 655
+               13410:  dequing data: 656
+               13410:  enquing areg = 690 
+               13420:  dequing data: 657
+               13430:  dequing data: 658
+               13440:  dequing data: 659
+               13450:  dequing data: 660
+               13460:  dequing data: 661
+               13460:  enquing areg = 691 
+               13470:  dequing data: 662
+               13470:  enquing areg = 692 
+               13480:  dequing data: 663
+               13490:  dequing data: 664
+               13490:  enquing areg = 693 
+               13500:  dequing data: 665
+               13510:  dequing data: 666
+               13510:  enquing areg = 694 
+               13520:  dequing data: 667
+               13530:  dequing data: 668
+               13530:  enquing areg = 695 
+               13540:  dequing data: 669
+               13540:  enquing areg = 696 
+               13550:  dequing data: 670
+               13560:  dequing data: 671
+               13560:  enquing areg = 697 
+               13570:  dequing data: 672
+               13580:  dequing data: 673
+               13590:  dequing data: 674
+               13600:  dequing data: 675
+               13610:  dequing data: 676
+               13610:  enquing areg = 698 
+               13620:  dequing data: 677
+               13620:  enquing areg = 699 
+               13630:  dequing data: 678
+               13640:  dequing data: 679
+               13650:  dequing data: 680
+               13660:  dequing data: 681
+               13660:  enquing areg = 700 
+               13670:  dequing data: 682
+               13680:  dequing data: 683
+               13680:  enquing areg = 701 
+               13690:  dequing data: 684
+               13700:  dequing data: 685
+               13710:  dequing data: 686
+               13720:  dequing data: 687
+               13720:  enquing areg = 702 
+               13730:  dequing data: 688
+               13730:  enquing areg = 703 
+               13740:  dequing data: 689
+               13740:  enquing areg = 704 
+               13750:  dequing data: 690
+               13760:  dequing data: 691
+               13770:  dequing data: 692
+               13770:  enquing areg = 705 
+               13780:  dequing data: 693
+               13790:  dequing data: 694
+               13800:  dequing data: 695
+               13800:  enquing areg = 706 
+               13810:  dequing data: 696
+               13820:  dequing data: 697
+               13820:  enquing areg = 707 
+               13830:  dequing data: 698
+               13830:  enquing areg = 708 
+               13840:  dequing data: 699
+               13850: fifo almost empty
+               13850:  dequing data: 700
+               13850:  enquing areg = 709 
+               13860:  enquing areg = 710 
+               13910:  enquing areg = 711 
+               13940:  enquing areg = 712 
+               13960:  enquing areg = 713 
+               13970:  enquing areg = 714 
+               14000:  enquing areg = 715 
+               14020:  enquing areg = 716 
+               14030:  enquing areg = 717 
+               14040:  enquing areg = 718 
+               14050:  enquing areg = 719 
+               14090:  enquing areg = 720 
+               14110:  enquing areg = 721 
+               14180:  enquing areg = 722 
+               14190:  enquing areg = 723 
+               14210:  enquing areg = 724 
+               14220:  enquing areg = 725 
+               14240:  enquing areg = 726 
+               14270:  enquing areg = 727 
+               14300:  enquing areg = 728 
+               14330:  enquing areg = 729 
+               14340:  enquing areg = 730 
+               14350:  enquing areg = 731 
+               14370:  enquing areg = 732 
+               14380:  enquing areg = 733 
+               14410:  enquing areg = 734 
+               14420:  enquing areg = 735 
+               14430:  enquing areg = 736 
+               14460:  enquing areg = 737 
+               14470:  enquing areg = 738 
+               14490:  enquing areg = 739 
+               14510:  enquing areg = 740 
+               14540:  enquing areg = 741 
+               14580:  enquing areg = 742 
+               14600:  enquing areg = 743 
+               14610:  enquing areg = 744 
+               14640:  enquing areg = 745 
+               14690:  enquing areg = 746 
+               14700:  enquing areg = 747 
+               14710:  enquing areg = 748 
+               14740:  enquing areg = 749 
+               14750:  enquing areg = 750 
+               14760:  enquing areg = 751 
+               14770:  enquing areg = 752 
+               14790:  enquing areg = 753 
+               14800:  enquing areg = 754 
+               14820:  enquing areg = 755 
+               14830:  enquing areg = 756 
+               14880:  enquing areg = 757 
+               14920:  enquing areg = 758 
+               14940:  enquing areg = 759 
+               14980:  enquing areg = 760 
+               15000:  enquing areg = 761 
+               15010:  enquing areg = 762 
+               15020:  enquing areg = 763 
+               15030:  enquing areg = 764 
+               15040:  enquing areg = 765 
+               15050:  enquing areg = 766 
+               15060:  enquing areg = 767 
+               15070:  enquing areg = 768 
+               15090:  enquing areg = 769 
+               15100:  enquing areg = 770 
+               15120:  enquing areg = 771 
+               15130:  enquing areg = 772 
+               15140:  enquing areg = 773 
+               15150:  enquing areg = 774 
+               15160:  enquing areg = 775 
+               15190:  enquing areg = 776 
+               15210:  enquing areg = 777 
+               15250:  enquing areg = 778 
+               15270:  enquing areg = 779 
+               15300:  enquing areg = 780 
+               15310:  enquing areg = 781 
+               15320:  enquing areg = 782 
+               15350:  enquing areg = 783 
+               15360:  enquing areg = 784 
+               15370:  enquing areg = 785 
+               15420:  enquing areg = 786 
+               15430:  enquing areg = 787 
+               15440:  enquing areg = 788 
+               15460:  enquing areg = 789 
+               15470:  enquing areg = 790 
+               15480:  enquing areg = 791 
+               15490:  enquing areg = 792 
+               15520:  enquing areg = 793 
+               15550:  enquing areg = 794 
+               15590:  enquing areg = 795 
+               15610:  enquing areg = 796 
+               15640:  enquing areg = 797 
+               15650:  enquing areg = 798 
+               15690:  enquing areg = 799 
+               15700:  enquing areg = 800 
+               15730:  enquing areg = 801 
+               15740:  enquing areg = 802 
+               15750:  enquing areg = 803 
+               15770:  enquing areg = 804 
+               15800:  enquing areg = 805 
+               15810:  enquing areg = 806 
+               15840:  enquing areg = 807 
+               15860:  enquing areg = 808 
+               15870:  enquing areg = 809 
+               15880:  enquing areg = 810 
+               15900:  enquing areg = 811 
+               15910:  enquing areg = 812 
+               15940:  enquing areg = 813 
+               15950:  enquing areg = 814 
+               15960:  enquing areg = 815 
+               15970:  enquing areg = 816 
+               15990:  enquing areg = 817 
+               16000:  enquing areg = 818 
+               16050:  enquing areg = 819 
+               16060:  enquing areg = 820 
+               16090:  enquing areg = 821 
+               16100: fifo almost full
+               16110:  dequing data: 701
+               16110:  enquing areg = 822 
+               16120:  dequing data: 702
+               16130:  dequing data: 703
+               16140:  dequing data: 704
+               16150:  dequing data: 705
+               16150:  enquing areg = 823 
+               16160:  dequing data: 706
+               16170:  dequing data: 707
+               16170:  enquing areg = 824 
+               16180:  dequing data: 708
+               16180:  enquing areg = 825 
+               16190:  dequing data: 709
+               16190:  enquing areg = 826 
+               16200:  dequing data: 710
+               16200:  enquing areg = 827 
+               16210:  dequing data: 711
+               16210:  enquing areg = 828 
+               16220:  dequing data: 712
+               16230:  dequing data: 713
+               16230:  enquing areg = 829 
+               16240:  dequing data: 714
+               16250:  dequing data: 715
+               16250:  enquing areg = 830 
+               16260:  dequing data: 716
+               16270:  dequing data: 717
+               16280:  dequing data: 718
+               16290:  dequing data: 719
+               16300:  dequing data: 720
+               16300:  enquing areg = 831 
+               16310:  dequing data: 721
+               16310:  enquing areg = 832 
+               16320:  dequing data: 722
+               16320:  enquing areg = 833 
+               16330:  dequing data: 723
+               16330:  enquing areg = 834 
+               16340:  dequing data: 724
+               16340:  enquing areg = 835 
+               16350:  dequing data: 725
+               16360:  dequing data: 726
+               16370:  dequing data: 727
+               16370:  enquing areg = 836 
+               16380:  dequing data: 728
+               16380:  enquing areg = 837 
+               16390:  dequing data: 729
+               16390:  enquing areg = 838 
+               16400:  dequing data: 730
+               16410:  dequing data: 731
+               16410:  enquing areg = 839 
+               16420:  dequing data: 732
+               16430:  dequing data: 733
+               16440:  dequing data: 734
+               16450:  dequing data: 735
+               16460:  dequing data: 736
+               16470:  dequing data: 737
+               16470:  enquing areg = 840 
+               16480:  dequing data: 738
+               16480:  enquing areg = 841 
+               16490:  dequing data: 739
+               16500:  dequing data: 740
+               16500:  enquing areg = 842 
+               16510:  dequing data: 741
+               16510:  enquing areg = 843 
+               16520:  dequing data: 742
+               16530:  dequing data: 743
+               16540:  dequing data: 744
+               16550:  dequing data: 745
+               16560:  dequing data: 746
+               16560:  enquing areg = 844 
+               16570:  dequing data: 747
+               16570:  enquing areg = 845 
+               16580:  dequing data: 748
+               16580:  enquing areg = 846 
+               16590:  dequing data: 749
+               16600:  dequing data: 750
+               16610:  dequing data: 751
+               16620:  dequing data: 752
+               16620:  enquing areg = 847 
+               16630:  dequing data: 753
+               16640:  dequing data: 754
+               16650:  dequing data: 755
+               16650:  enquing areg = 848 
+               16660:  dequing data: 756
+               16660:  enquing areg = 849 
+               16670:  dequing data: 757
+               16670:  enquing areg = 850 
+               16680:  dequing data: 758
+               16690:  dequing data: 759
+               16700:  dequing data: 760
+               16710:  dequing data: 761
+               16710:  enquing areg = 851 
+               16720:  dequing data: 762
+               16730:  dequing data: 763
+               16740:  dequing data: 764
+               16750:  dequing data: 765
+               16760:  dequing data: 766
+               16760:  enquing areg = 852 
+               16770:  dequing data: 767
+               16780:  dequing data: 768
+               16790:  dequing data: 769
+               16790:  enquing areg = 853 
+               16800:  dequing data: 770
+               16810:  dequing data: 771
+               16810:  enquing areg = 854 
+               16820:  dequing data: 772
+               16830:  dequing data: 773
+               16840:  dequing data: 774
+               16850:  dequing data: 775
+               16860:  dequing data: 776
+               16860:  enquing areg = 855 
+               16870:  dequing data: 777
+               16870:  enquing areg = 856 
+               16880:  dequing data: 778
+               16880:  enquing areg = 857 
+               16890:  dequing data: 779
+               16900:  dequing data: 780
+               16910:  dequing data: 781
+               16920:  dequing data: 782
+               16930:  dequing data: 783
+               16930:  enquing areg = 858 
+               16940:  dequing data: 784
+               16950:  dequing data: 785
+               16960:  dequing data: 786
+               16960:  enquing areg = 859 
+               16970:  dequing data: 787
+               16970:  enquing areg = 860 
+               16980:  dequing data: 788
+               16990:  dequing data: 789
+               17000:  dequing data: 790
+               17000:  enquing areg = 861 
+               17010:  dequing data: 791
+               17010:  enquing areg = 862 
+               17020:  dequing data: 792
+               17020:  enquing areg = 863 
+               17030:  dequing data: 793
+               17030:  enquing areg = 864 
+               17040:  dequing data: 794
+               17040:  enquing areg = 865 
+               17050:  dequing data: 795
+               17050:  enquing areg = 866 
+               17060:  dequing data: 796
+               17060:  enquing areg = 867 
+               17070:  dequing data: 797
+               17070:  enquing areg = 868 
+               17080:  dequing data: 798
+               17080:  enquing areg = 869 
+               17090:  dequing data: 799
+               17100:  dequing data: 800
+               17100:  enquing areg = 870 
+               17110:  dequing data: 801
+               17120:  dequing data: 802
+               17120:  enquing areg = 871 
+               17130:  dequing data: 803
+               17130:  enquing areg = 872 
+               17140:  dequing data: 804
+               17140:  enquing areg = 873 
+               17150:  dequing data: 805
+               17150:  enquing areg = 874 
+               17160:  dequing data: 806
+               17160:  enquing areg = 875 
+               17170:  dequing data: 807
+               17180:  dequing data: 808
+               17190:  dequing data: 809
+               17190:  enquing areg = 876 
+               17200:  dequing data: 810
+               17210:  dequing data: 811
+               17210:  enquing areg = 877 
+               17220:  dequing data: 812
+               17230:  dequing data: 813
+               17240:  dequing data: 814
+               17240:  enquing areg = 878 
+               17250:  dequing data: 815
+               17260:  dequing data: 816
+               17260:  enquing areg = 879 
+               17270:  dequing data: 817
+               17270:  enquing areg = 880 
+               17280:  dequing data: 818
+               17290:  dequing data: 819
+               17300:  dequing data: 820
+               17310:  dequing data: 821
+               17320:  dequing data: 822
+               17330:  dequing data: 823
+               17340:  dequing data: 824
+               17350:  dequing data: 825
+               17350:  enquing areg = 881 
+               17360:  dequing data: 826
+               17370:  dequing data: 827
+               17380:  dequing data: 828
+               17380:  enquing areg = 882 
+               17390:  dequing data: 829
+               17400:  dequing data: 830
+               17400:  enquing areg = 883 
+               17410:  dequing data: 831
+               17410:  enquing areg = 884 
+               17420:  dequing data: 832
+               17430:  dequing data: 833
+               17440:  dequing data: 834
+               17440:  enquing areg = 885 
+               17450:  dequing data: 835
+               17450:  enquing areg = 886 
+               17460:  dequing data: 836
+               17470:  dequing data: 837
+               17480:  dequing data: 838
+               17480:  enquing areg = 887 
+               17490:  dequing data: 839
+               17490:  enquing areg = 888 
+               17500:  dequing data: 840
+               17510:  dequing data: 841
+               17510:  enquing areg = 889 
+               17520:  dequing data: 842
+               17520:  enquing areg = 890 
+               17530:  dequing data: 843
+               17540:  dequing data: 844
+               17550:  dequing data: 845
+               17550:  enquing areg = 891 
+               17560:  dequing data: 846
+               17570:  dequing data: 847
+               17570:  enquing areg = 892 
+               17580:  dequing data: 848
+               17580:  enquing areg = 893 
+               17590:  dequing data: 849
+               17590:  enquing areg = 894 
+               17600:  dequing data: 850
+               17610:  dequing data: 851
+               17610:  enquing areg = 895 
+               17620:  dequing data: 852
+               17630:  dequing data: 853
+               17640:  dequing data: 854
+               17640:  enquing areg = 896 
+               17650:  dequing data: 855
+               17650:  enquing areg = 897 
+               17660:  dequing data: 856
+               17670:  dequing data: 857
+               17670:  enquing areg = 898 
+               17680:  dequing data: 858
+               17690:  dequing data: 859
+               17700:  dequing data: 860
+               17710:  dequing data: 861
+               17710:  enquing areg = 899 
+               17720:  dequing data: 862
+               17720:  enquing areg = 900 
+               17730:  dequing data: 863
+               17740:  dequing data: 864
+               17740:  enquing areg = 901 
+               17750:  dequing data: 865
+               17760:  dequing data: 866
+               17770:  dequing data: 867
+               17770:  enquing areg = 902 
+               17780:  dequing data: 868
+               17790:  dequing data: 869
+               17800:  dequing data: 870
+               17810:  dequing data: 871
+               17810:  enquing areg = 903 
+               17820:  dequing data: 872
+               17820:  enquing areg = 904 
+               17830:  dequing data: 873
+               17840:  dequing data: 874
+               17850:  dequing data: 875
+               17850:  enquing areg = 905 
+               17860:  dequing data: 876
+               17860:  enquing areg = 906 
+               17870:  dequing data: 877
+               17870:  enquing areg = 907 
+               17880:  dequing data: 878
+               17880:  enquing areg = 908 
+               17890:  dequing data: 879
+               17900:  dequing data: 880
+               17910:  dequing data: 881
+               17920:  dequing data: 882
+               17920:  enquing areg = 909 
+               17930:  dequing data: 883
+               17940:  dequing data: 884
+               17940:  enquing areg = 910 
+               17950:  dequing data: 885
+               17950:  enquing areg = 911 
+               17960:  dequing data: 886
+               17960:  enquing areg = 912 
+               17970:  dequing data: 887
+               17980:  dequing data: 888
+               17980:  enquing areg = 913 
+               17990:  dequing data: 889
+               18000:  dequing data: 890
+               18010:  dequing data: 891
+               18010:  enquing areg = 914 
+               18020:  dequing data: 892
+               18020:  enquing areg = 915 
+               18030:  dequing data: 893
+               18030:  enquing areg = 916 
+               18040:  dequing data: 894
+               18040:  enquing areg = 917 
+               18050:  dequing data: 895
+               18060:  dequing data: 896
+               18060:  enquing areg = 918 
+               18070:  dequing data: 897
+               18080:  dequing data: 898
+               18080:  enquing areg = 919 
+               18090:  dequing data: 899
+               18100:  dequing data: 900
+               18110:  dequing data: 901
+               18110:  enquing areg = 920 
+               18120:  dequing data: 902
+               18120:  enquing areg = 921 
+               18130:  dequing data: 903
+               18140:  dequing data: 904
+               18140:  enquing areg = 922 
+               18150:  dequing data: 905
+               18150:  enquing areg = 923 
+               18160:  dequing data: 906
+               18170:  dequing data: 907
+               18180:  dequing data: 908
+               18190:  dequing data: 909
+               18200:  dequing data: 910
+               18210:  dequing data: 911
+               18220:  dequing data: 912
+               18220:  enquing areg = 924 
+               18230:  dequing data: 913
+               18240:  dequing data: 914
+               18250:  dequing data: 915
+               18250:  enquing areg = 925 
+               18260:  dequing data: 916
+               18270: fifo almost empty
+               18270:  dequing data: 917
+               18270:  enquing areg = 926 
+               18290:  enquing areg = 927 
+               18300:  enquing areg = 928 
+               18320:  enquing areg = 929 
+               18330:  enquing areg = 930 
+               18350:  enquing areg = 931 
+               18360:  enquing areg = 932 
+               18390:  enquing areg = 933 
+               18400:  enquing areg = 934 
+               18410:  enquing areg = 935 
+               18430:  enquing areg = 936 
+               18450:  enquing areg = 937 
+               18460:  enquing areg = 938 
+               18470:  enquing areg = 939 
+               18490:  enquing areg = 940 
+               18510:  enquing areg = 941 
+               18520:  enquing areg = 942 
+               18530:  enquing areg = 943 
+               18540:  enquing areg = 944 
+               18550:  enquing areg = 945 
+               18600:  enquing areg = 946 
+               18610:  enquing areg = 947 
+               18630:  enquing areg = 948 
+               18640:  enquing areg = 949 
+               18650:  enquing areg = 950 
+               18660:  enquing areg = 951 
+               18670:  enquing areg = 952 
+               18700:  enquing areg = 953 
+               18730:  enquing areg = 954 
+               18770:  enquing areg = 955 
+               18780:  enquing areg = 956 
+               18800:  enquing areg = 957 
+               18820:  enquing areg = 958 
+               18830:  enquing areg = 959 
+               18840:  enquing areg = 960 
+               18850:  enquing areg = 961 
+               18860:  enquing areg = 962 
+               18870:  enquing areg = 963 
+               18880:  enquing areg = 964 
+               18900:  enquing areg = 965 
+               18930:  enquing areg = 966 
+               18940:  enquing areg = 967 
+               18960:  enquing areg = 968 
+               18970:  enquing areg = 969 
+               18980:  enquing areg = 970 
+               19000:  enquing areg = 971 
+               19010:  enquing areg = 972 
+               19020:  enquing areg = 973 
+               19040:  enquing areg = 974 
+               19060:  enquing areg = 975 
+               19080:  enquing areg = 976 
+               19090:  enquing areg = 977 
+               19110:  enquing areg = 978 
+               19130:  enquing areg = 979 
+               19140:  enquing areg = 980 
+               19150:  enquing areg = 981 
+               19170:  enquing areg = 982 
+               19180:  enquing areg = 983 
+               19210:  enquing areg = 984 
+               19250:  enquing areg = 985 
+               19260:  enquing areg = 986 
+               19330:  enquing areg = 987 
+               19340:  enquing areg = 988 
+               19350:  enquing areg = 989 
+               19370:  enquing areg = 990 
+               19410:  enquing areg = 991 
+               19430:  enquing areg = 992 
+               19440:  enquing areg = 993 
+               19450:  enquing areg = 994 
+               19460:  enquing areg = 995 
+               19480:  enquing areg = 996 
+               19490:  enquing areg = 997 
+               19500:  enquing areg = 998 
+               19530:  enquing areg = 999 
+               19540:  enquing areg = 1000 

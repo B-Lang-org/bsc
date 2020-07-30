@@ -1,0 +1,26 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReduction.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EContextReduction error of the bluespec
+-- compiler (ContextReduction failed because there are no instances of the form {instance})
+--
+-----------------------------------------------------------------------
+
+
+
+package EContextReduction (GCD(..), mkGCD) where
+
+-- import Int
+
+interface Constant =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkConstant :: Module Constant
+mkConstant = 5
+
+

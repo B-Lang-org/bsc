@@ -1,0 +1,4 @@
+package Bug79a(A(..)) where
+
+data A = Invalid | AnA
+  deriving (Eq, Bits)

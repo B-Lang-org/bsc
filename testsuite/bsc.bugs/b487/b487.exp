@@ -1,0 +1,1 @@
+compile_verilog_pass SimpleClient.bsv "" "+RTS -K200k -RTS" 

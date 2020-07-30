@@ -1,0 +1,52 @@
+# --------------------------------------------------
+# Tests for foreign module imports (BVI)
+
+# ----------
+# Tests for polymorphic type signatures
+
+# a
+compile_verilog_fail_error BVI_IfcVar.bsv T0118
+
+# a#(Bit#(8))
+compile_verilog_fail_error BVI_IfcVarAp.bsv T0118
+
+# Reg#(a)
+# XXX This should fail because there is no proviso on "a"
+compile_verilog_pass BVI_IfcRegApVar.bsv
+# Show that it synthesizes
+compile_verilog_pass BVI_IfcRegApVar_UseOK.bsv
+# Show that provisos are being added implicitly
+compile_verilog_fail BVI_IfcRegApVar_UseBad.bsv
+
+# Ifc (with polymorphic method return)
+compile_verilog_fail_error BVI_IfcPolyMethVal.bsv T0118
+compile_verilog_fail_error BVI_IfcPolyMethVal2.bsv T0118
+
+# Ifc (with polymorphic method argument)
+compile_verilog_fail_error BVI_IfcPolyMethArg.bsv T0118
+compile_verilog_fail_error BVI_IfcPolyMethArg2.bsv T0118
+
+# Ifc (with parameterized method return, called concretely)
+compile_verilog_pass BVI_IfcParamMethVal_Concrete.bsv
+# and when the type has an argument
+compile_verilog_pass BVI_IfcParamApMethVal_Concrete.bsv
+
+# Ifc (with parameterized method return, called polymorphically)
+compile_verilog_pass BVI_IfcParamMethVal_Poly.bsv
+compile_verilog_pass BVI_IfcParamMethVal_Poly2.bsv
+# and when the type has an argument
+compile_verilog_pass BVI_IfcParamApMethVal_Poly.bsv
+
+# Ifc (with parameterized method argument, called concretely)
+compile_verilog_pass BVI_IfcParamMethArg_Concrete.bsv
+# and when the type has an argument
+compile_verilog_pass BVI_IfcParamApMethArg_Concrete.bsv
+
+# Ifc (with parameterized method argument, called polymorphically)
+compile_verilog_pass BVI_IfcParamMethArg_Poly.bsv
+compile_verilog_pass BVI_IfcParamMethArg_Poly2.bsv
+# and when the type has an argument
+compile_verilog_pass BVI_IfcParamApMethArg_Poly.bsv
+
+# ----------
+

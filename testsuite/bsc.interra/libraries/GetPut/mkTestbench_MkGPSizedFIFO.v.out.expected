@@ -1,0 +1,70 @@
+Counter =  16 Value read = 0f
+Counter =  17 Value read = 10
+Counter =  18 Value read = 11
+Counter =  19 Value read = 12
+Counter =  20 Value read = 13
+Counter =  21 Value read = 14
+Counter =  22 Value read = 15
+Counter =  23 Value read = 16
+Counter =  24 Value read = 17
+Counter =  25 Value read = 18
+Counter =  26 Value read = 19
+Counter =  27 Value read = 1a
+Counter =  28 Value read = 1b
+Counter =  29 Value read = 1c
+Counter =  30 Value read = 1d
+Counter =  31 Value read = 1e
+Counter =  65 Value read = 00
+Counter =  66 Value read = 01
+Counter =  67 Value read = 02
+Counter =  68 Value read = 03
+Counter =  69 Value read = 04
+Counter =  70 Value read = 05
+Counter =  71 Value read = 06
+Counter =  72 Value read = 07
+Counter =  73 Value read = 08
+Counter =  74 Value read = 09
+Counter =  75 Value read = 0a
+Counter =  76 Value read = 0b
+Counter =  77 Value read = 0c
+Counter =  78 Value read = 0d
+Counter =  79 Value read = 0e
+Counter =  80 Value read = 0f
+Value Written = 51
+Value Written = 52
+Value Written = 53
+Value Written = 54
+Value Written = 55
+Value Written = 56
+Value Written = 57
+Value Written = 58
+Value Written = 59
+Value Written = 5a
+Value Written = 5b
+Value Written = 5c
+Value Written = 5d
+Value Written = 5e
+Value Written = 5f
+Value Written = 60
+Counter = 111 Value read = 51
+Counter = 112 Value read = 52
+Counter = 113 Value read = 53
+Counter = 114 Value read = 54
+Counter = 115 Value read = 55
+Counter = 116 Value read = 56
+Counter = 117 Value read = 57
+Counter = 118 Value read = 58
+Counter = 119 Value read = 59
+Counter = 120 Value read = 5a
+Counter = 121 Value read = 5b
+Counter = 122 Value read = 5c
+Counter = 123 Value read = 5d
+Counter = 124 Value read = 5e
+Counter = 125 Value read = 5f
+Counter = 126 Value read = 60
+Counter = 133 Value read = 00
+Counter = 134 Value read = 01
+Counter = 135 Value read = 02
+Counter = 136 Value read = 03
+Counter = 137 Value read = 04
+Simulation Passes

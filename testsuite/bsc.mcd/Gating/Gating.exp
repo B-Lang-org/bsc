@@ -1,0 +1,91 @@
+# Use this to turn on flags, for debug
+#set flags {-keep-fires}
+set flags {}
+
+# ==========
+# Design which gates the current clock twice
+
+# -----
+# This is a one-module version of the design.
+
+test_c_veri_bsv_modules_options_separately GatedClock_OneMod {} $flags
+
+# -----
+# This is a two-module version, which puts one gating in the top
+# module and one gating in the submodule.  The expected output is
+# the same as for the one-module design.
+
+test_c_veri_bsv_modules_options_separately GatedClock_TwoModOneSyn \
+    {} $flags \
+    sysGatedClock_OneMod.out.expected
+
+# -----
+# The two-module version but with a synthesis boundary.
+# The expected output is the same as for the one-module design.
+
+test_c_veri_bsv_modules_options_separately GatedClock_TwoModTwoSyn \
+    {mkGatedClock_TwoModTwoSyn_Sub} $flags \
+    sysGatedClock_OneMod.out.expected
+
+# ==========
+# This design makes a gate from a register using that gate.
+# Because of the register in the GatedClock primitive, this is OK,
+# but the gate never turns on.
+# (This test was originally written when the prim had no register,
+# and we were testing that BSC catches the cycle.)
+
+test_c_veri_bsv GatedClockCycle
+
+# ==========
+# This design makes two identical clocks.
+# They should still be treated as different domains.
+
+# Nothing really interesting to test here by sim.
+# Maybe consider dumping the derived MCD info to see that it is as expected.
+#SameAbsClockParams.bsv
+
+# ==========
+# Test when clock gates appear in method and rule conditions, through
+# multiple synthesis boundaries
+# (Bug 1677)
+# These use the same form as GatedClock_*, so the expected output is the same.
+
+# ----
+# When the gate comes from primitives
+
+# The primitive is a submodule (the gated clock is a submod output)
+test_c_veri_bsv_modules_options_separately \
+    SubMethod  {} $flags sysGatedClock_OneMod.out.expected
+test_c_veri_bsv_modules_options_separately \
+    SubRule    {} $flags sysGatedClock_OneMod.out.expected
+
+# The primitive is in another part of the hierarchy
+# (the gated clock is a module input)
+test_c_veri_bsv_modules_options_separately \
+    MethodTb   {} $flags sysGatedClock_OneMod.out.expected
+test_c_veri_bsv_modules_options_separately \
+    RuleTb     {} $flags sysGatedClock_OneMod.out.expected
+
+# Test that multiple layers of hierarchy are correctly referenced
+test_c_veri_bsv_modules_options_separately \
+    MethodTb2  {} $flags sysGatedClock_OneMod.out.expected
+
+# ----
+# When the gate is constant
+
+test_c_veri_bsv_separately MethodTrue
+test_c_veri_bsv_separately MethodFalse
+
+# ----
+# When the gate comes from outside the BSV design
+
+# The Verilog "main.v" does not connect the default gate port,
+# so only test Bluesim
+test_c_only_bsv DefaultClockMethod
+
+# The Verilog "main.v" does not connect the input clock osc and gate ports,
+# so only test Bluesim
+test_c_only_bsv InputClockMethod
+
+# ==========
+

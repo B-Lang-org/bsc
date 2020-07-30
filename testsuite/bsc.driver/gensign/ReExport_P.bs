@@ -1,0 +1,9 @@
+package ReExport_P (v, T, T2) where
+
+data T = T (Bit 32) deriving (Literal, Arith)
+
+type T2 = Bit 32
+
+v :: Bit 32
+v = 17
+

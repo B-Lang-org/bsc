@@ -1,0 +1,19 @@
+(10) starting
+(20) input   is 0
+(110) result  is 0
+(120) starting
+(130) input   is 1
+(220) result  is 1
+(230) starting
+(240) input   is 2
+(330) result  is 256
+(340) starting
+(350) input   is 3
+(440) result  is 6561
+(450) starting
+(460) input   is 4
+(550) result  is 65536
+(560) starting
+(570) input   is 5
+(660) result  is 390625
+(670) starting

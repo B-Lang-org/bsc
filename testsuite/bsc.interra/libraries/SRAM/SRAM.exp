@@ -1,0 +1,6 @@
+test_c_veri_worker MkWrapSRAM mkTestbench_MkWrapSRAM {} "bsv" 1 0 "mkTestbench_MkWrapSRAM.v.out.expected" "" ""
+test_c_veri_worker MkWrapSRAM mkTestbench_MkWrapSRAM {RRSPSRAM_65536_16_bussed} "bsv" 0 1 "mkTestbench_MkWrapSRAM.v.out.expected" "" ""
+
+test_c_veri_worker MkWrapSTRAM mkTestbench_MkWrapSTRAM {} "bsv" 1 0 "mkTestbench_MkWrapSTRAM.v.out.expected" "" ""
+test_c_veri_worker MkWrapSTRAM mkTestbench_MkWrapSTRAM {RRSPSRAM_65536_16_bussed} "bsv" 0 1 "mkTestbench_MkWrapSTRAM.v.out.expected" "" ""
+

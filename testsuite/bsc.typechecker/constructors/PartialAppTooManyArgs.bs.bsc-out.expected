@@ -1,0 +1,11 @@
+checking package dependencies
+compiling PartialAppTooManyArgs.bs
+Error: "PartialAppTooManyArgs.bs", line 6, column 13: (T0144)
+  Wrong number of arguments in the partial application of the following
+  constructor:
+    PartialAppTooManyArgs::Foo
+  The constructor expects 3 arguments and was used with 2 arguments, leaving 1
+  unfilled, however a function with 2 arguments was expected.
+  The expected type is:
+    Prelude.UInt 16 -> Prelude.Bool -> PartialAppTooManyArgs.Foo
+

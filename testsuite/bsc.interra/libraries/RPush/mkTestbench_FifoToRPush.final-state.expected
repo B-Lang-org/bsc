@@ -1,0 +1,41 @@
+Cycle Number =   0, Pushing in value =   0
+Cycle Number =   1, Popped Out Value =   0
+Cycle Number =   1, Pushing in value =   1
+Cycle Number =   2, Popped Out Value =   1
+Cycle Number =   2, Pushing in value =   2
+Cycle Number =   3, Popped Out Value =   2
+Cycle Number =   3, Pushing in value =   3
+Cycle Number =   4, Popped Out Value =   3
+Cycle Number =   4, Pushing in value =   4
+Cycle Number =   5, Clearing Buffer
+Cycle Number =   6, Pushing in value =   6
+Cycle Number =   7, Popped Out Value =   6
+Cycle Number =   7, Pushing in value =   7
+Cycle Number =   8, Pushing in value =   8
+Cycle Number =   9, Popped Out Value =   7
+Cycle Number =   9, Pushing in value =   9
+Cycle Number =  10, Popped Out Value =   8
+Cycle Number =  10, Clearing Buffer
+Cycle Number =  11, Pushing in value =  11
+Cycle Number =  12, Popped Out Value =  11
+Cycle Number =  12, Pushing in value =  12
+Cycle Number =  13, Popped Out Value =  12
+Cycle Number =  13, Pushing in value =  13
+Cycle Number =  14, Popped Out Value =  13
+Cycle Number =  14, Pushing in value =  14
+Cycle Number =  15, Popped Out Value =  14
+Cycle Number =  15, Clearing Buffer
+Cycle Number =  16, Pushing in value =  16
+Cycle Number =  17, Popped Out Value =  16
+Cycle Number =  17, Pushing in value =  17
+Cycle Number =  18, Popped Out Value =  17
+Cycle Number =  18, Pushing in value =  18
+Cycle Number =  19, Popped Out Value =  18
+Cycle Number =  19, Pushing in value =  19
+Cycle Number =  20, Popped Out Value =  19
+Simulation Passes
+Final state:
+top:
+  the_counter = 0x1a
+  the_dut_the_fifo1 = EMPTY
+  the_fail = False

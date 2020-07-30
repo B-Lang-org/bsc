@@ -1,0 +1,23 @@
+if { $ctest == 1 } {
+compile_object_pass Testbench.bsv mkTestbench
+link_objects_pass {mkTestbench} mkTestbench
+#sim_output mkTestbench "-u"
+#copy "mkTestbench.out" "command_u.out"
+#compare_file command_u.out
+#sim_output mkTestbench "-T 1ms/10us -V dump.vcd"
+#copy "dump.vcd" "dump_T_1.out"
+#compare_vcd_file dump_T_1.out
+#sim_output mkTestbench "-T 100ms/1ms -V dump.vcd"
+#copy "dump.vcd" "dump_T_2.out"
+#compare_vcd_file dump_T_2.out
+sim_output mkTestbench "-V dump.vcd"
+copy "dump.vcd" "dump_V.out"
+#compare_vcd_file dump_V.out
+sim_output mkTestbench "-V dump.vcd -m 5"
+copy "dump.vcd" "dump_V_m.out"
+#compare_vcd_file dump_V_m.out
+#sim_output mkTestbench "-M"
+#copy "mkTestbench.out" "command_M.out"
+#compare_vcd_file command_M.out
+}
+

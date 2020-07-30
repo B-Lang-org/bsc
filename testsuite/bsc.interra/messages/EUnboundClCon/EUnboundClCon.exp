@@ -1,0 +1,2 @@
+compile_fail EUnboundClCon.bs
+compare_file EUnboundClCon.bs.bsc-out

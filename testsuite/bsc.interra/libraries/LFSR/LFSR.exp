@@ -1,0 +1,12 @@
+test_c_veri_worker MkFeedLFSR mkTestbench_MkFeedLFSR {} "bsv" 1 1 "mkTestbench_MkFeedLFSR.v.out.expected" "" ""
+
+test_c_veri_worker MkLFSR_16 mkTestbench_MkLFSR_16 {} "bsv" 1 1 "mkTestbench_MkLFSR_16.v.out.expected" "" ""
+
+test_c_veri_worker MkLFSR_32 mkTestbench_MkLFSR_32 {} "bsv" 1 1 "mkTestbench_MkLFSR_32.v.out.expected" "" ""
+
+test_c_veri_worker MkLFSR_4 mkTestbench_MkLFSR_4 {} "bsv" 1 1 "mkTestbench_MkLFSR_4.v.out.expected" "" ""
+
+test_c_veri_worker MkLFSR_8 mkTestbench_MkLFSR_8 {} "bsv" 1 1 "mkTestbench_MkLFSR_8.v.out.expected" "" ""
+
+test_c_veri_worker MkPolyLFSR mkTestbench_MkPolyLFSR {} "bsv" 1 1 "mkTestbench_MkPolyLFSR.v.out.expected" "" ""
+

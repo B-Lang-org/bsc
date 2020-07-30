@@ -1,0 +1,61 @@
+checking package dependencies
+compiling MethodRead.bsv
+code generation for sysMethodRead starts
+=== ATS:
+APackage sysMethodRead
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+rg :: ABSTRACT:  Prelude.VReg = RegUN
+				(VModInfo
+				 RegUN
+				 clock _clk__1(CLK, {-unused-});
+				 [clockarg _clk__1;, param width;]
+				 [method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				  method write((D_IN, [reg])) enable ((EN,
+								       [])) clocked_by (_clk__1) reset_by (no_reset);]
+				 SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				 [])
+				[clock { osc:  CLK gate:  1'd1 }, 32'd8]
+				[]
+				meth types=[([], Nothing, Just (Bit 8)), ([Bit 8], Just (Bit 1), Nothing)]
+				port types=D_IN -> Prelude.Bit 8
+					   Q_OUT -> Prelude.Bit 8
+-- AP local definitions
+rg_PLUS_8___d2 :: Bit 8;
+rg_PLUS_8___d2  = x__h140 + 8'd8;
+-- IdProp rg_PLUS_8___d2[IdP_from_rhs]
+rg_MINUS_1___d3 :: Bit 8;
+rg_MINUS_1___d3  = x__h140 - 8'd1;
+-- IdProp rg_MINUS_1___d3[IdP_from_rhs]
+x__h140 :: Bit 8;
+x__h140  = rg.read;
+-- IdProp x__h140[IdP_keep]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { Prelude.$display rg_PLUS_8___d2; Prelude.$display rg_MINUS_1___d3; }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysMethodRead.v
+All packages are up to date.

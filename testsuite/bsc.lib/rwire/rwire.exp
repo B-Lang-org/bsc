@@ -1,0 +1,103 @@
+ # Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv BigBypassWire sysBigBypassWire.v.out.expected
+test_c_only_bsv BigBypassWire
+
+test_veri_only_bsv_modules ValidValue {mkSquare} sysValidValue.v.out.expected
+test_c_only_bsv_modules ValidValue {mkSquare}
+
+# ----------
+
+test_c_veri TestRWire
+
+# ----------
+# check that Nothing is detected correctly
+test_c_veri_bsv RWireNothing
+
+# ----------
+
+test_c_veri_bsv Wire
+
+test_c_veri_bsv PulseTest
+
+test_c_veri_bsv PulseWireSBR
+test_c_veri_bsv PulseWireC
+
+
+test_c_veri_bsv_modules MethodPulse {mkMethodPulse}
+
+# ----------
+
+# These originally tested that earliness and urgency were independent
+# orders, but now that we have "sequential scheduling" the tests fail
+# with a cycle.
+
+# Test that sequence-schedule reports an error if the user insists on
+# the wrong urgency
+compile_verilog_fail_error RWireUrgency1.bsv G0041 1 sysRWireUrgency1
+compile_verilog_fail_error RWireUrgency2.bsv G0041 1 sysRWireUrgency2
+
+# If the user doesn't specify an urgency, the compiler picks an arbitrary
+# urgency.  Test thet the compiler doesn't pick the direction that would
+# complete a cycle (when the other direction would not be an error).
+compile_verilog_pass RWireUrgency1b.bsv sysRWireUrgency1b
+
+# ----------
+
+test_c_veri_bsv_modules RWireBoundary {sysPokeTest}  
+
+# ----------
+
+compile_verilog_schedule_pass BypassReg.bsv "" "-inline-rwire"
+if {$vtest == 1} {
+    compare_file_filter_ids BypassReg.bsv.bsc-sched-out
+    compare_verilog sysBypassReg.v
+}
+
+# ----------
+
+compile_verilog_schedule_pass ConfigReg2.bsv "" "-inline-rwire"
+if {$vtest == 1} {
+    compare_file_filter_ids ConfigReg2.bsv.bsc-sched-out
+    compare_verilog sysConfigReg.v
+}
+
+# ----------
+
+test_c_veri_bsv_modules TestBypassWire {mkTestBypassWire} 
+
+compile_verilog_pass_warning TestENBypassWire.bsv G0015
+
+if {$vtest == 1} {
+    copy mkTestENBypassWire.v mkTestENBypassWire.v1.v
+    compare_verilog mkTestENBypassWire.v1.v
+}
+
+erase TestENBypassWire.bo
+
+compile_verilog_pass_warning TestENBypassWire.bsv G0015 1 "" "-no-inline-rwire"
+
+if {$vtest == 1} {
+    copy mkTestENBypassWire.v mkTestENBypassWire.v2.v
+    compare_verilog mkTestENBypassWire.v2.v
+}
+
+compile_verilog_pass_warning TestENBypassWire2.bsv G0015 0
+
+if {$vtest == 1} {
+    copy mkTestENBypassWire2.v mkTestENBypassWire2.v1.v
+    compare_verilog mkTestENBypassWire2.v1.v
+}
+
+
+erase TestENBypassWire2.bo
+
+compile_verilog_pass_warning TestENBypassWire2.bsv G0015 0 "" "-no-inline-rwire"
+
+if {$vtest == 1} {
+  copy mkTestENBypassWire2.v mkTestENBypassWire2.v.no-inline-rwire.v
+  compare_verilog mkTestENBypassWire2.v.no-inline-rwire.v
+}

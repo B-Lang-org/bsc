@@ -1,0 +1,11 @@
+checking package dependencies
+compiling En2Rdy5.bsv
+code generation for mkEn2Rdy5 starts
+=== pathsPostSched:
+Combinational paths from inputs to outputs:
+  EN_start -> RDY_result
+
+-----
+
+Verilog file created: mkEn2Rdy5.v
+All packages are up to date.

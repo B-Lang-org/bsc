@@ -1,0 +1,7 @@
+package ExportAllExportBad() where
+
+foo :: Bool
+foo = True
+
+bar :: Bool
+bar = False

@@ -1,0 +1,2 @@
+test_veri_only_bsv_multi Testbench mkTestbench {mkTop mkDesign} "mkTestbench.v.out.expected"
+test_c_only_bsv_multi Testbench mkTestbench {mkTop mkDesign} "mkTestbench.c.out.expected"

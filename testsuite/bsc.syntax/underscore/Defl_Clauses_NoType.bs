@@ -1,0 +1,7 @@
+package Defl_Clauses_NoType () where
+
+x :: Bool
+x = let _ 0 = True
+        _ v = False
+    in  True
+

@@ -1,0 +1,8 @@
+test_c_veri_worker MkFifof mkTestbench_MkFifof {mkDesign_MkFifof} "bsv" 1 1 "mkTestbench_MkFifof.v.out.expected" "" ""
+
+test_c_veri_worker MkFifof1 mkTestbench_MkFifof1 {mkDesign_MkFifof1} "bsv" 1 1 "mkTestbench_MkFifof1.v.out.expected" "" ""
+
+test_c_veri_worker MkLFifof mkTestbench_MkLFifof {mkDesign_MkLFifof} "bsv" 1 1 "mkTestbench_MkLFifof.v.out.expected" "" ""
+
+test_c_veri_worker MkSizedFifof mkTestbench_MkSizedFifof {mkDesign_MkSizedFifof} "bsv" 1 1 "mkTestbench_MkSizedFifof.v.out.expected" "" ""
+

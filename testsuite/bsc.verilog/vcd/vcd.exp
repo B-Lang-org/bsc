@@ -1,0 +1,8 @@
+compile_verilog_pass DumpOnOff.bsv
+link_verilog_pass sysDumpOnOff.v sysDumpOnOff
+sim_verilog sysDumpOnOff
+
+# need to add vcd validation at this point
+
+#should be part of main vcd test, but Icarus does not support $dumpflush
+compile_verilog_pass DumpFlushTest.bsv

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling LBusX.bs
+Warning: "LBusX.bs", line 23, column 9: (P0223)
+  Definition of `lm' is not used.
+Warning: "LBusX.bs", line 25, column 8: (P0223)
+  Definition of `x' is not used.
+Error: "LBusX.bs", line 5, column 5: (T0010)
+  Missing export for type `LBSModule'
+  used in the definition of `mkLbLeaf' at "LBusX.bs", line 22, column 0

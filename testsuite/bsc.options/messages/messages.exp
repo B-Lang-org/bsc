@@ -1,0 +1,172 @@
+
+# ----------
+
+# Test that multiple calls to -suppress-warnings are combined
+# and test that NONE clears the current list
+#
+m4_process "-DBLUESPECDIR=$bsdir" flag-test.out.expected flag-test.out.expected.post-m4
+test_basic_options \
+    {-print-flags \
+     -suppress-warnings G0001:G0002 -suppress-warnings NONE \
+     -suppress-warnings T1234:T0001 \
+	 -suppress-warnings T0002:T0003:T0001} \
+    flag-test.out flag-test.out.expected.post-m4
+
+# Test that warnings mentioned before or after ALL are irrelevant
+#
+m4_process "-DBLUESPECDIR=$bsdir" flag-test2.out.expected flag-test2.out.expected.post-m4
+test_basic_options \
+    {-print-flags \
+     -suppress-warnings G0001:G0002 -suppress-warnings ALL \
+     -suppress-warnings T1234:T0001 \
+	 -suppress-warnings T0002:T0003:T0001} \
+    flag-test2.out flag-test2.out.expected.post-m4
+
+# Test that invalid strings are rejected
+# (Must be a letter followed by four digits)
+test_basic_options {-suppress-warnings G000} \
+    flag-test3.out flag-test3.out.expected
+
+# ----------
+
+# First, test that the four warnings are reported with the default flags
+compile_verilog_pass Warnings.bsv
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name Warnings.bsv]
+}
+
+# And that only one error is reached, with the default flags
+compile_verilog_fail Errors.bsv
+# Expect to only see G0066
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name Errors.bsv]
+}
+
+# ----------
+
+# Test that warnings are suppressed (but only the requested warnings)
+
+copy Warnings.bsv SuppressTest1.bsv
+compile_verilog_pass SuppressTest1.bsv {} {-suppress-warnings G0010:G0020}
+# Expect to find G0036 and G0117, but not G0010 and G0020
+# Also expect to find a warning about 2 suppressed warnings (S0080)
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name SuppressTest1.bsv]
+}
+
+# Same as above, but test that lowercase is allowed and works
+copy Warnings.bsv SuppressTest1Lower.bsv
+compile_verilog_pass SuppressTest1Lower.bsv {} {-suppress-warnings g0010:g0020}
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name SuppressTest1Lower.bsv]
+}
+
+# Test that the user can silence the warning about suppressed warnings
+copy Warnings.bsv SuppressTest2.bsv
+compile_verilog_pass SuppressTest2.bsv {} {-suppress-warnings G0010:G0020:S0080}
+# Expect to find G0036 and G0117, but not G0010 and G0020
+# And don't expect to find a warning about suppressed warnings (S0080)
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name SuppressTest2.bsv]
+}
+
+# Test that ALL will suppress all warnings
+copy Warnings.bsv SuppressTest3.bsv
+compile_verilog_pass SuppressTest3.bsv {} {-suppress-warnings ALL}
+# Expect to find no warning messages
+# XXX How can we suppress all warnings while still getting a warning
+# XXX about the four suppressed warnings (S0080) ?
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name SuppressTest3.bsv]
+}
+
+# Test that the promotion list is irrelevant if the warning is suppressed
+copy Warnings.bsv SuppressTest4.bsv
+compile_verilog_pass SuppressTest4.bsv {} \
+    {-suppress-warnings G0010:G0020:S0080 -promote-warnings G0020:S0080}
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name SuppressTest4.bsv]
+}
+
+# ----------
+
+# Test that some warnings can be promoted
+
+copy Warnings.bsv PromoteTest1.bsv
+compile_verilog_fail PromoteTest1.bsv {} {-promote-warnings G0010}
+# Expect the first warning as usual and then expect exit on the
+# second (promoted) warning -- testing that BSC does exit
+# (and the remaining warnings are not reached).
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name PromoteTest1.bsv]
+}
+
+copy Warnings.bsv PromoteTest2.bsv
+compile_verilog_fail PromoteTest2.bsv {} {-promote-warnings G0036}
+# Expect to find G0036 as an error and the rest as warnings
+# (This tests what happens when G0036 and G0117 are issued at the
+# same time, but only one is promoted.)
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name PromoteTest2.bsv]
+}
+
+# Test that a warning which is promoted and demoted is reported
+# as a warning
+copy Warnings.bsv PromoteTest3.bsv
+compile_verilog_pass PromoteTest3.bsv {} \
+    {-promote-warnings G0036 -demote-errors ALL}
+# Expect all four as warnings
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name PromoteTest3.bsv]
+}
+
+# Similar as above, but use ALL to promote and specific tags to demote
+copy Warnings.bsv PromoteTest4.bsv
+compile_verilog_pass PromoteTest4.bsv {} \
+    {-promote-warnings ALL -demote-errors G0036:G0020:G0010:G0117}
+# Expect all four as warnings
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name PromoteTest4.bsv]
+}
+
+# ----------
+
+# Test that some errors can be demoted
+
+copy Errors.bsv DemoteTest1.bsv
+compile_verilog_fail DemoteTest1.bsv {} {-demote-errors G0066}
+# Expect to see G0066 as a warning and G0027 as an error
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name DemoteTest1.bsv]
+}
+
+# Test when the user requests to demote a non-demotable error
+copy Errors.bsv DemoteTest2.bsv
+compile_verilog_fail DemoteTest2.bsv {} {-demote-errors G0066:G0027}
+# Expect to see warning S0094
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name DemoteTest2.bsv]
+}
+
+# Test that a demoted error can be suppressed entirely
+copy Errors.bsv DemoteTest3.bsv
+compile_verilog_fail DemoteTest3.bsv {} \
+    {-demote-errors G0066 -suppress-warnings G0066}
+# Expect to not see G0066 at all
+# XXX This has two suppression warnings, because of the poison pill mechanism
+# XXX (see "ex_comp" in bsc.hs)
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name DemoteTest3.bsv]
+}
+
+# Test that the promotion list is irrelevant to demoted errors
+copy Errors.bsv DemoteTest4.bsv
+compile_verilog_fail DemoteTest4.bsv {} \
+    {-demote-errors G0066 -promote-warnings G0066}
+# Expect to still see G0066 as a warning
+if { $vtest == 1 } {
+compare_file [make_bsc_vcomp_output_name DemoteTest4.bsv]
+}
+
+# ----------
+

@@ -1,0 +1,19 @@
+package Module2(Module2(..), unMod2) where
+
+data Module2 i = Mod2 (Module i)
+
+unMod2 :: Module2 i -> Module i
+unMod2 (Mod2 x) = x
+
+instance Monad Module2 
+  where
+    return x = Mod2 (return x) 
+    bind (Mod2 x) f = 
+      let f' x = unMod2 (f x) 
+      in Mod2 (bind x f')
+
+instance IsModule Module2 Id
+  where
+    liftModule m = Mod2 m
+    liftModuleOp f m = Mod2 (f (unMod2 m))
+ 

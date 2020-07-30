@@ -1,0 +1,8 @@
+
+test_c_veri_bsv_modules TB1m2s {defaultSlave mkSlave1 mkSlave2 bus_1m_2s mkMaster}
+
+### DISABLED - because the C & Verilog simulations differ by transposed line
+### this is expected, since other simulators may give different behaviors 
+### as well. 
+### We need to add the instrumentation to the bus models!
+###test_c_veri_bsv_modules TB2m2s {defaultSlave mkSlave1 mkSlave2 bus_2m_2s mkMaster_500_1 mkMaster_500_6}

@@ -1,0 +1,31 @@
+checking package dependencies
+compiling Bug782_TLM2BRAM.bsv
+Error: "Bug782_TLM2BRAM.bsv", line 24, column 8: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function _m__#(Bug782_TLM2BRAM::TLMRecvIFC#(reqt, respt))
+    f(Bug782_TLM2BRAM::BRAMServer#(Bit#(anx), Bit#(dn)) x1)
+  With the following provisos:
+    Bug782_TLM2BRAM::TLMResponseTC#(respt, id_size, addr_size, data_size,
+    uint_size, cstm_type)
+    Bug782_TLM2BRAM::TLMRequestTC#(reqt, id_size, addr_size, data_size,
+    uint_size, cstm_type)
+    Add#(TDiv#(dn, 8), xn, byte_size)
+    Add#(dn, id, data_size)
+    Add#(an, ia, addr_size)
+    Add#(anx, iax, addr_size)
+    Add#(anx, TLog#(byte_size), an)
+    Div#(data_size, 8, byte_size)
+    DefaultValue#(cstm_type)
+    Bits#(respt, sr)
+    IsModule#(_m__, _c__)
+  The following additional provisos are needed:
+    Add#(TDiv#(dn, 8), a__, TDiv#(data_size, 8))
+      Introduced at the following locations:
+	"Bug782_TLM2BRAM.bsv", line 41, column 14
+    Add#(TAdd#(anx, TLog#(TDiv#(data_size, 8))), b__, addr_size)
+      Introduced at the following locations:
+	"Bug782_TLM2BRAM.bsv", line 41, column 14
+  The type variables are from the following positions:
+    "a__" at "Bug782_TLM2BRAM.bsv", line 41, column 14
+    "b__" at "Bug782_TLM2BRAM.bsv", line 41, column 14

@@ -1,0 +1,10 @@
+// These comments should not be lost
+
+ `line(HERE///FuncMacro_Simple.bsv,4,1,0)
+module sysTest();
+
+ `line(HERE///FuncMacro_Simple.bsv,3,13,1) endmodule
+ `line(HERE///FuncMacro_Simple.bsv,7,14,2)
+
+// more comments here
+

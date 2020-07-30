@@ -1,0 +1,31 @@
+package Bug987(sysBug987) where
+import Vector
+import ActionSeq
+
+interface I =
+    go :: Action
+
+sysBug987 :: Module I
+sysBug987 =
+    module
+	aa :: Reg Bool <- mkReg False
+	bb :: Reg Bool <- mkReg False
+	cc :: Reg Bool <- mkReg True
+	dd :: Reg Bool <- mkReg True
+	rs :: Vector 8 (Reg (Bit 16)) <- mapM (const (mkReg 0)) genList
+	a :: Reg (Bit 16) <- mkReg 0
+	b :: Reg (Bit 16) <- mkReg 0
+	c :: Reg (Bit 16) <- mkReg 0
+	d :: Reg (Bit 16) <- mkReg 0
+	setup :: ActionSeq <- actionSeq (map (\ r -> action { r := 1; d := b + 1 }) rs)
+	interface
+	    go = setup.start
+	rules
+	  "A":
+	    when aa ==> action { a := b + c }
+	  "B":
+	    when bb ==> action { b := a + d }
+	  "C":
+	    when cc ==> action { c := a + 1 }
+	  "D":
+	    when dd ==> action { d := b + 1 }

@@ -1,0 +1,30 @@
+*
+{b__h268 signal} {CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {count {module with value}} {level1 module} {mid1 module} {mid2 module} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
+-------
+mid?.CAN_FIRE_*
+{mid1.CAN_FIRE_RL_incr signal} {mid1.CAN_FIRE_RL_sub1_flip signal} {mid1.CAN_FIRE_RL_wrap signal} {mid2.CAN_FIRE_RL_incr signal} {mid2.CAN_FIRE_RL_sub1_flip signal} {mid2.CAN_FIRE_RL_wrap signal}
+-------
+RL_[a-f]*
+{RL_done rule}
+-------
+RL_[di]*
+{RL_done rule} {RL_incr rule}
+-------
+*[id]*
+{CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {mid1 module} {mid2 module} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
+-------
+mid[0-9].*
+{mid1.b__h235 signal} {mid1.CAN_FIRE_RL_incr signal} {mid1.CAN_FIRE_RL_sub1_flip signal} {mid1.CAN_FIRE_RL_wrap signal} {mid1.count {module with value}} {mid1.limit signal} {mid1.RL_incr rule} {mid1.RL_sub1_flip rule} {mid1.RL_wrap rule} {mid1.sub1_x {module with value}} {mid1.WILL_FIRE_RL_incr signal} {mid1.WILL_FIRE_RL_sub1_flip signal} {mid1.WILL_FIRE_RL_wrap signal} {mid2.b__h235 signal} {mid2.CAN_FIRE_RL_incr signal} {mid2.CAN_FIRE_RL_sub1_flip signal} {mid2.CAN_FIRE_RL_wrap signal} {mid2.count {module with value}} {mid2.limit signal} {mid2.RL_incr rule} {mid2.RL_sub1_flip rule} {mid2.RL_wrap rule} {mid2.sub1_x {module with value}} {mid2.WILL_FIRE_RL_incr signal} {mid2.WILL_FIRE_RL_sub1_flip signal} {mid2.WILL_FIRE_RL_wrap signal}
+-------
+*1
+{level1 module} {mid1 module}
+-------
+m*[12].RL_*
+{mid1.RL_incr rule} {mid1.RL_sub1_flip rule} {mid1.RL_wrap rule} {mid2.RL_incr rule} {mid2.RL_sub1_flip rule} {mid2.RL_wrap rule}
+-------
+?[!ie]*
+{b__h268 signal} {CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {count {module with value}} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
+-------
+*FIRE_RL_?[]a-zA-Z]*[-npw-z]*
+{CAN_FIRE_RL_done signal} {WILL_FIRE_RL_done signal}
+-------

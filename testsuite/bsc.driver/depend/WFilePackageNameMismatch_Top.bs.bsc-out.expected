@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "./WFilePackageNameMismatch_Sub.bs", line 1, column 8: (S0001)
+  File name `WFilePackageNameMismatch_Sub' does not match package name
+  `Fake_WFilePackageNameMismatch_Sub'

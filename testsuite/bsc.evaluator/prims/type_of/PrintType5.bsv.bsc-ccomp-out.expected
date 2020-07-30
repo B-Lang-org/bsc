@@ -1,0 +1,9 @@
+checking package dependencies
+compiling PrintType5.bsv
+Warning: "PrintType5.bsv", line 6, column 29: (T0035)
+  Bit vector of unknown size introduced near this location.
+  Assuming a size of 0. This behavior may be removed in a future release.
+code generation for sysPrintType5 starts
+Compilation message: Bit#(5)
+Elaborated module file created: sysPrintType5.ba
+All packages are up to date.

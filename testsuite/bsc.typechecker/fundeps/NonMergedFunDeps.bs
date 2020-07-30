@@ -1,0 +1,19 @@
+package NonMergedFunDeps() where
+
+--
+-- This test case comes from bug 409
+--
+-- It used to fail unless the definition of Foo is changed to:
+-- class Foo a b c | a -> b c where
+--
+
+class Foo a b c | a -> b, a -> c where
+    fooFn :: a -> b -> c
+
+instance Foo (Bit n) Nat (Bit 1)
+  where
+    fooFn bs i = bs[i:i]
+
+countBits :: (Add m 1 n) => Integer -> Bit n -> Nat
+countBits l bs = 0 ++ (fooFn bs (fromInteger l))
+

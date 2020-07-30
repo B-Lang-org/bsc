@@ -1,0 +1,4 @@
+checking package dependencies
+compiling StructDupFields.bsv
+Error: "StructDupFields.bsv", line 3, column 14: (P0073)
+  Duplicate definition of member `red' in structure `RgbColor'

@@ -1,0 +1,11 @@
+checking package dependencies
+compiling NoInline_ResNotInBits.bsv
+code generation for module_fnNoInline_ResNotInBits starts
+Error: "NoInline_ResNotInBits.bsv", line 4, column 12: (T0043)
+  Cannot synthesize `module_fnNoInline_ResNotInBits': The interface method
+  `fnNoInline_ResNotInBits' uses type `NoInline_ResNotInBits::L' which is not
+  in the Bits class.
+  During elaboration of the interface method `fnNoInline_ResNotInBits' at
+  "NoInline_ResNotInBits.bsv", line 4, column 12.
+  During elaboration of `module_fnNoInline_ResNotInBits' at
+  "NoInline_ResNotInBits.bsv", line 4, column 12.

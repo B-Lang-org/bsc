@@ -1,0 +1,85 @@
+package Test(FIFO(..), mkFIFO1, mkFIFO2, sysTest) where
+
+sysTest :: Module Empty
+sysTest = mkPipe
+
+interface FIFO a =
+  enq   :: a -> Action
+  deq   :: Prelude.Action
+  first :: a
+  full  :: Bool
+  empty :: Bool
+
+mkFIFO1 :: (Bits a k) => Module (FIFO a)
+mkFIFO1 =
+  module
+    v :: Reg a
+    v <- mkRegU
+    f :: Reg Bool
+    f <- mkReg False
+    interface
+      enq x  = action { f := True; v := x; }
+      deq    = action { f := False }
+      first  = v
+      full   = f
+      empty  = not f
+
+mkFIFO2 :: (Bits a k) => Module (FIFO a)
+mkFIFO2 =
+  module
+    v1 :: Reg a
+    v1 <- mkRegU
+    v2 :: Reg a
+    v2 <- mkRegU
+    f1 :: Reg Bool
+    f1 <- mkReg False
+    f2 :: Reg Bool
+    f2 <- mkReg False
+    rules
+      when f1 && not f2
+       ==> action { f1 := False; f2 := True; v2 := v1; }
+    interface
+      enq x  = action { f1 := True; v1 := x; }
+      deq    = action { f2 := False }
+      first  = v2
+      full   = f2
+      empty  = not f1
+
+------------------
+
+type Data = Bit 16
+
+mkPipe :: Module Empty
+mkPipe =
+  module
+    i   :: Reg Data
+    i   <- mkReg 0
+    inp :: FIFO Data
+    inp <- mkFIFO1
+    out :: FIFO Data
+    out <- mkFIFO1
+    acc :: Reg Data
+    acc <- mkRegU
+    rules
+      when not inp.full
+       ==> action
+		inp.enq i
+		i := i + 1
+
+      when not inp.empty && not out.full
+       ==> (action {
+	  out.enq oval;
+	  inp.deq;
+	  })
+	  where ival :: Data
+	        ival = inp.first
+	        oval :: Data
+	        oval = ival + ival
+
+      when not out.empty
+       ==> (action {
+	  out.deq;
+	  acc := acc + val;
+	  })
+	  where val :: Data
+	        val = out.first

@@ -1,0 +1,63 @@
+This is a simple example of multiple-clock domain support in BSV.
+
+It contains the following files:
+
+  Top.bsv          - Driver (creates the clocks and resets)
+  RandTop5.bsv     - Top-level of the device
+  RandGen.bsv      - Random number generator (see comments in the file)
+  RandUser1.bsv    - Consumer of random numbers (steady consumption)
+  RandUser2.bsv    - Consumer of random numbers (burst consumption)
+  RandGlobal.bsv   - Global definitions (interface declarations)
+
+
+The device in the example has three components: a source of random
+numbers and two consumers of those numbers.
+
+The source has a Get interface which provides random numbers on
+demand.  This source is then wrapped in a splitter, which provides two
+Get interfaces, which can be connected separately to the two
+consumers.  The wrapper contains two FIFOs, which are kept full by
+taking numbers from the source, and the output of these FIFOs become
+the Get interfaces.
+
+The consumer modules both consume on average one number every three
+clock cycles.  However module 1 consumes at a regular rate of exactly
+one number every third cycle, while module 2 consumes nothing for 20
+cycles and then consumes a number every cycle for 10 cycles and repeats.
+
+The demonstration of the multiple-clock domain features of BSV is
+mostly in the driver module, in this example.  The driver uses
+modules from the Clocks library to create three absolute clocks.
+It then constructs gated versions of these clocks, so that the driver
+can have control over the gate.  Finally, it constructs three resets,
+which are synchronized with these clocks.  The gated clocks and the
+resets are connected to the RandTop device.  The driver then proceeds
+to stimulate the clock gates and resets of the device at specific
+cycles, before terminating the simulation.
+
+Other clock features of BSV can be seen in the RandTop module,
+where the "clock_by" and "reset_by" keywords are used to connect
+input clocks and resets to submodules.  The random number generator
+uses the default clock and reset of the device, but the consumers
+are in separate domains.  In order to communicate data from the
+generator's domain to the consumer domains, the "mkConverter" module
+is used to synchronize data.  This module is not documented, so
+this is not a good example of how a user would write the synchronization,
+but suffice it to say that the module uses the documentation
+"mkSyncFIFOToCC" and "mkSyncFIFOFromCC" modules to synchronize data
+(these are FIFOs where the input and output sides are in different
+domains).  Finally, one can observe the "gate_all_clocks"
+attribute on the RandTop module, which is used in synthesis to specify
+that the input clocks should have two ports (oscillator and gate)
+in the generated Verilog.
+
+In summary, this is a simple example of using clock and reset
+generation in a testbench to drive a device with course-grain clocking
+(entire submodules of the system are in single domains, communicating
+via synchronizing FIFOs).
+
+To get a feel for these features, you can tweak the driver module to
+alter the clocks and resets of the device.  You can also try replacing
+the "mkConverter" modules with documented synchronizers from the
+Clocks library (such as "mkSyncFIFOToCC").
+

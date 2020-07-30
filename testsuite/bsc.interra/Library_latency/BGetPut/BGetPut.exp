@@ -1,0 +1,15 @@
+if {$ctest == 1} {
+compile_object_pass MkBClientServer.bsv mkTestbench_MkBClientServer
+link_objects_pass {"mkTestbench_MkBClientServer"} mkTestbench_MkBClientServer
+# sim_final_state mkTestbench_MkBClientServer 10010
+# compare_file "mkTestbench_MkBClientServer.final-state"
+sim_output mkTestbench_MkBClientServer {-m 10010}
+compare_file "mkTestbench_MkBClientServer.out"
+
+compile_object_pass MkBGetPut.bsv mkTestbench_MkBGetPut
+link_objects_pass {"mkTestbench_MkBGetPut"} mkTestbench_MkBGetPut
+# sim_final_state mkTestbench_MkBGetPut 10010
+# compare_file "mkTestbench_MkBGetPut.final-state"
+sim_output mkTestbench_MkBGetPut {-m 10010}
+compare_file "mkTestbench_MkBGetPut.out"
+}

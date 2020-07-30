@@ -1,0 +1,6 @@
+package DummyInDeflQual () where
+
+dummyInDeflQual :: Bit 12
+dummyInDeflQual =
+    let f x when (_,_) <- (True,True), (_::(Bit 2)) == 0b11 = 0
+    in  f True

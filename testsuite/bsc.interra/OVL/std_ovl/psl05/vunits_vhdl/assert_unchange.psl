@@ -1,0 +1,131 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_unchange_assert_vunit (assert_unchange_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_UNCHANGE_P is always (
+           ({(num_cks > 0) and (ignore_new_start = '1' or error_on_new_start = '1') and
+            start_event = '1' and window = '0'} |=> --start_event is level sensitive in this checker
+           {(test_expr = prev(test_expr))[*num_cks]})
+           abort(not(reset_n)));
+  
+  property ASSERT_UNCHANGE_RESET_ON_START_P is always (
+           {(num_cks > 0) and reset_on_new_start = '1' and start_event = '1'} |=>
+            {(test_expr = prev(test_expr))[*]; not(window)})
+            abort(not(reset_n));
+
+  property ASSERT_UNCHANGE_ERR_ON_START_P is always (
+           reset_n = '1' and error_on_new_start = '1' and window = '1' -> not(start_event));  
+
+  -- Properties for X/Z checking
+
+  property ASSERT_UNCHANGE_XZ_ON_START_P is
+           always( xzcheck_enable = 1 and window = '0' -> not(is_x(start_event)))
+                   abort(not(reset_n)) ;
+
+  property ASSERT_UNCHANGE_XZ_ON_NEW_START_P is
+           always( (ignore_new_start = '0' and window = '1' and xzcheck_enable = 1) -> not(is_x(start_event)))
+                   abort(not(reset_n)) ;
+
+  property ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P is
+           always( (window = '1' or start_event = '1' ) and xzcheck_enable = 1 -> not(isunknown(test_expr)))
+                   abort(not(reset_n)) ;
+
+  A_ASSERT_UNCHANGE_P:
+  assert ASSERT_UNCHANGE_P
+  report "VIOLATION: ASSERT_UNCHANGE Checker Fires: Test expression changed value within num_cks from the start event asserted";
+
+  A_ASSERT_UNCHANGE_RESET_ON_START_P:
+  assert ASSERT_UNCHANGE_RESET_ON_START_P
+  report "VIOLATION: ASSERT_UNCHANGE Checker Fires: Test expression changed value within num_cks from the start event asserted";
+
+  A_ASSERT_UNCHANGE_ERR_ON_START_P:
+  assert ASSERT_UNCHANGE_ERR_ON_START_P 
+  report "VIOLATION: ASSERT_UNCHANGE Checker Fires : Illegal start event which has reoccured before completion of current window";
+
+  A_ASSERT_UNCHANGE_XZ_ON_START_P:
+  assert ASSERT_UNCHANGE_XZ_ON_START_P
+  report "VIOLATION: ASSERT_UNCHANGE X/Z Check Fires: start_event contains X or Z";
+
+  A_ASSERT_UNCHANGE_XZ_ON_NEW_START_P:
+  assert ASSERT_UNCHANGE_XZ_ON_NEW_START_P
+  report "VIOLATION: ASSERT_UNCHANGE X/Z Check Fires: start_event contains X or Z";
+
+  A_ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_UNCHANGE X/Z Check Fires: test_expr contains X or Z";
+}
+
+vunit assert_unchange_assume_vunit (assert_unchange_assume)
+{
+  default clock is rose(clk);
+  
+  property ASSERT_UNCHANGE_P is always (
+           ({(num_cks > 0) and (ignore_new_start = '1' or error_on_new_start = '1') and
+            start_event = '1' and window = '0'} |=>
+           {(test_expr = prev(test_expr))[*num_cks]})
+           abort(not(reset_n)));
+
+  property ASSERT_UNCHANGE_RESET_ON_START_P is always (
+           {(num_cks > 0) and reset_on_new_start = '1' and start_event = '1'} |=>
+            {(test_expr = prev(test_expr))[*]; not(window)})
+            abort(not(reset_n));
+ 
+  property ASSERT_UNCHANGE_ERR_ON_START_P is always ( 
+           reset_n = '1' and error_on_new_start = '1' and window = '1' -> not(start_event));
+
+  -- Properties for X/Z checking
+
+  property ASSERT_UNCHANGE_XZ_ON_START_P is
+           always( xzcheck_enable = 1 and (window = '0') -> not(is_x(start_event)))
+                   abort(not(reset_n)) ;
+
+  property ASSERT_UNCHANGE_XZ_ON_NEW_START_P is
+           always( ((ignore_new_start = '0') and window = '1' and xzcheck_enable = 1) -> not(is_x(start_event)))
+                   abort(not(reset_n)) ;
+
+  property ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P is
+           always( (window = '1' or start_event = '1' ) and xzcheck_enable = 1 -> not(isunknown(test_expr)))
+                   abort(not(reset_n)) ;
+
+  M_ASSERT_UNCHANGE_P:
+  assume ASSERT_UNCHANGE_P;
+                                                                                                                                                       
+  M_ASSERT_UNCHANGE_RESET_ON_START_P:
+  assume ASSERT_UNCHANGE_RESET_ON_START_P;
+                                                                                                                                                       
+  M_ASSERT_UNCHANGE_ERR_ON_START_P:
+  assume ASSERT_UNCHANGE_ERR_ON_START_P;
+                                                                                                                 
+
+  M_ASSERT_UNCHANGE_XZ_ON_START_P:
+  assume ASSERT_UNCHANGE_XZ_ON_START_P;
+
+  M_ASSERT_UNCHANGE_XZ_ON_NEW_START_P:
+  assume ASSERT_UNCHANGE_XZ_ON_NEW_START_P;
+
+  M_ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_UNCHANGE_XZ_ON_TEST_EXPR_P;
+}
+
+vunit assert_unchange_cover_vunit (assert_unchange_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_window_open:
+  cover {(OVL_COVER_BASIC_ON = OVL_COVER_BASIC or OVL_COVER_BASIC_ON = OVL_COVER_ALL) and reset_n = '1' and start_event = '1' and window = '0'}
+  report "COVERAGE REPORT : ASSERT_UNCHANGE Checker: window_open covered";
+  
+  cover_window_close:
+  cover {(OVL_COVER_BASIC_ON = OVL_COVER_BASIC or OVL_COVER_BASIC_ON = OVL_COVER_ALL) and reset_n = '1' and window = '1' and 
+	 (window_close = '1' and ((reset_on_new_start = '0') or (start_event = '0')))}
+  report "COVERAGE REPORT : ASSERT_UNCHANGE Checker: window_close covered";
+                                                                                                                                     
+  cover_window_resets:
+  cover {(OVL_COVER_CORNER_ON = OVL_COVER_CORNER or OVL_COVER_CORNER_ON = OVL_COVER_ALL) and reset_n = '1' 
+	 and reset_on_new_start = '1' and start_event = '1' and window = '1'}
+  report "COVERAGE REPORT : ASSERT_UNCHANGE Checker: window_resets covered";
+}
+

@@ -1,0 +1,4 @@
+compile_pass Test.bsv
+
+compile_pass Test2.bsv
+

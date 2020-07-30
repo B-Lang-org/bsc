@@ -1,0 +1,73 @@
+The examples in this directory implement dynamic bit shifters.
+
+Example1 contains seven functions f0, f1, ..., f7, which implement
+shifters for specific lengths 0, 1, ... 7.  These are used to implement
+a function f, which computes all the shift possibilities and selects
+the appropriate one based on a 3-bit input.
+
+Example2 implements the function f using only f1, f2, and f4, by
+taking advantage of the fact that shifting can be decomposed into
+cascaded shifting based on the separate binary digits.
+
+Example3 generalizes Example2 to allow shifting of any n-bit vector by
+any m-bit shift amoung.  It does this by defining a function called
+step which is the logic for each cascaded step.  The function takes
+the shift amount, the value to be shifted (from the previous stage)
+and an integer indicating which stage this is, and it outputs the
+shifted value.  The example implements f_3bit, which reproduced the
+fixed 3-bit shifter from Example2.  It then implements a generalized
+function f.  The file includes a second version of these functions,
+using a step function which takes a pair as input and returns a pair
+as output.  The second version is more easily developed into a
+pipelined shifter in Example4.  The step function defined on pairs
+is also needed for the List versions, developed in Example6.
+
+Example4 uses the techniques from Example3 but implements a pipelined
+shifter rather than a function.  The stages of the pipeline are
+separated by FIFOs.  The step function is used unchanged from
+Example3.  A module (or function which returns a module) called
+mkLsStep is written, so instantiate each stage of the pipeline.  The
+example contains a module mkLs3, which demonstrates the fixed 3-bit
+shifter written in pipeline form using mkLsStep.  The example contains
+a module mkLs, which is generalized to any n-bit vector and m-bit
+shift amount, by instantiating m stages.  A module mkLsV2 is included
+which shows that the code from mkLsStep can be inlined into the module,
+as an alterantive way to write the code.
+
+Example5 implements a rigidly-pipelined shifter.  The buffers between
+the stages are registers, and all stages shift at once.  There is no
+back-pressure; unlike the FIFO pipelines in Example4 which have an
+asynchronous handshake for receiving the result of shifting, the result
+in the rigid pipeline must be accepted m+1 cycles later or it is lost.
+The function step is used unchanged.  An interface SShifter is defined
+for the synchronous push and pull of data.  A module mkLs3 is included,
+showing how the 3-bit shift can be written explicitly.  The module mkLs
+generalizes to n-bit vector and m-bit shift amount.  The module mkLsV2
+is (as in Example4) an inlined version of the code.  All three of these
+modules do not include a mechanism for knowing which data are bogus
+(corresponding to cycles when the client didn't provide any input).
+A fourth module is included, mkLsV3, which is the same as mkLsV2
+except that the buffers include a presence bit which indicates whether
+the data is valid.  A new interface SMShifter is defined to allow the
+client to push a Maybe value -- Nothing when not inserting new data,
+and Just when sending a request.  The output, then, is also a Maybe
+indicating when valid data is present.
+
+Example6 is a list-based version of Example3 (replacing for-loops with
+list functions).
+
+Example7 is a list-based version of Example4.
+
+Example8 is a list-based version of Example5.
+
+----------------------------------------------------------------------------
+							   
+For the lab, give the students the files for example 1 and 2 (the .bsv
+and the testbench) and the Q files for examples 3 - 8.  For example,
+Example3Q.bsv and Tb3Q.bsv.  These have omitted code to be filled in
+by the students.
+
+After the student have finished the lab, give them the non-Q files for
+examples 3 - 8.  These are the solutions.  They also include more
+examples (than in the Q files), and thus completely develop the shifter
+possibilities from beginning to end.

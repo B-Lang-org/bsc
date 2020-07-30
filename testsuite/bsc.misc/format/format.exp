@@ -1,0 +1,43 @@
+# Tests for $format
+
+# -------------------------
+
+test_c_veri_bsv Format1
+test_c_veri_bsv Format2
+
+# These tests use $swrite which is is not supported by iverilog
+if { [string match $verilog_compiler "iverilog"] } then {
+  # Skip Verilog simulation due to iverilog bugs
+  test_c_only_bsv Format3
+  test_c_only_bsv Format4 sysFormat4.c.out.expected
+  test_c_only_bsv Format5 sysFormat5.c.out.expected
+} else {
+  test_c_veri_bsv Format3
+  # uses $time so 2 different expected files needed
+  test_c_only_bsv Format4  sysFormat4.c.out.expected
+  test_veri_only_bsv Format4 sysFormat4.v.out.expected
+
+  # uses $time so 2 different expected files needed
+  test_c_only_bsv Format5  sysFormat5.c.out.expected
+  test_veri_only_bsv Format5 sysFormat5.v.out.expected
+
+}
+
+# -------------------------
+
+test_c_veri_bsv Bug1572
+
+# -------------------------
+
+# Bug 1554
+compile_fail_error ActionValue.bsv T0031
+compare_file [make_bsc_output_name ActionValue.bsv]
+
+# -------------------------
+
+# Bug 1701
+compile_verilog_pass DontCareFmt.bsv
+compile_verilog_pass EmptyFormat.bsv
+
+# -------------------------
+

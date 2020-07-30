@@ -1,0 +1,34 @@
+# Tests on primitive type constructors (SizeOf, Id, etc)
+
+# ---------------
+# Test that SizeOf introduced through unification is expanded away during
+# typecheck of explicitly-type let-bindings (Bug #1607)
+
+compile_pass ExpSizeOf.bsv
+
+# ---------------
+# Test that ctxreduce expands SizeOf etc in instances that rely on
+# other instances that were just expanded (Bug #1622)
+
+compile_pass ExpSizeOf_Instances.bsv
+
+# ---------------
+# Test that ctxreduce expands SizeOf in the base type of instances,
+# not just in the provisos.
+
+compile_pass ExpSizeOf_InstancesBase.bsv
+
+# Test that SizeOf is expanded even when it's buried in a type synonym
+compile_pass_bug ExpSizeOf_InstancesBaseSyn.bsv 1729
+
+# ---------------
+# Test that SizeOf introduced through the type of a field in a struct value
+# is expanded away during typecheck of the field (Bug #1720, part 2)
+
+compile_verilog_pass ExpSizeOf_Field.bsv
+
+# Test that SizeOf is detected even when it's buried in type synonyms
+compile_verilog_pass_bug ExpSizeOf_FieldSyn.bsv {} 1720
+
+# ---------------
+

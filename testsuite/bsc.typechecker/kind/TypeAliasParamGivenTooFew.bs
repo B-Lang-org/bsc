@@ -1,0 +1,4 @@
+package TypeAliasParamGivenTooFew () where
+
+type (Foo :: * -> *) a b = Tuple2 a b
+

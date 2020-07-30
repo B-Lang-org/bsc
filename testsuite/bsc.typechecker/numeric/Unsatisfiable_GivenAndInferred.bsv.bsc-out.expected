@@ -1,0 +1,14 @@
+checking package dependencies
+compiling Unsatisfiable_GivenAndInferred.bsv
+Error: "Unsatisfiable_GivenAndInferred.bsv", line 5, column 15: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Bool f(Bit#(n) x1)
+  With the following proviso:
+    Add#(n, k, 1)
+  The following additional provisos are needed:
+    Add#(2, a__, n)
+      Introduced at the following locations:
+	"Unsatisfiable_GivenAndInferred.bsv", line 6, column 11
+  The type variables are from the following positions:
+    "a__" at "Unsatisfiable_GivenAndInferred.bsv", line 6, column 11

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling UnionOneArgGivenNone_Pattern.bsv
+Error: "UnionOneArgGivenNone_Pattern.bsv", line 6, column 14: (T0142)
+  Pattern for constructor `Foo' of type UnionOneArgGivenNone_Pattern::Bar
+  requires 1 arguments, found 0.

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EModule_.bs
+code generation for mkTest starts
+Error: "EModule_.bs", line 25, column 11: (G0011)
+  Trying to generate a module from a don't-care value
+  During elaboration of `mkTest' at "EModule_.bs", line 23, column 0.

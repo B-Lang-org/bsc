@@ -1,0 +1,14 @@
+# ===============
+# Tests for bug 345
+# Methods allowed to be more urgent than rules
+
+compile_verilog_pass GetUrgency.bsv
+compile_verilog_pass PutUrgency.bsv
+
+# ===============
+# Test that urgency-choice warnings are not suppressed for methods
+
+compile_verilog_pass_warning WarnMethodUrgency.bsv G0010
+
+# ===============
+

@@ -1,0 +1,32 @@
+checking package dependencies
+compiling Parallel.bsv
+Error: "Parallel.bsv", line 5, column 14: (T0020)
+  Type error at:
+    a
+
+  Expected type:
+    Bit#(16)
+
+  Inferred type:
+    Action
+
+Error: "Parallel.bsv", line 7, column 14: (T0020)
+  Type error at:
+    b
+
+  Expected type:
+    Bit#(32)
+
+  Inferred type:
+    Bit#(16)
+
+Error: "Parallel.bsv", line 13, column 12: (T0020)
+  Type error at:
+    c
+
+  Expected type:
+    Action
+
+  Inferred type:
+    Bit#(32)
+

@@ -1,0 +1,56 @@
+package InterfaceTaskCalls(sysInterfaceTaskCalls, sysBar, Bar(..)) where
+
+interface Bar = 
+   poke :: Action
+   peek :: Action
+   prod :: Action
+  
+sysBar :: Module Bar
+sysBar = 
+  module
+    -- add registers with reset to avoid the displays during reset
+    poke_reg :: Reg(Bool) <- mkReg(False)
+    peek_reg :: Reg(Bool) <- mkReg(False)
+    prod_reg :: Reg(Bool) <- mkReg(False)
+
+    interface 
+      poke = action
+		$display "Bar::poke"
+		poke_reg := True
+      peek = action
+		$display "Bar::peek"
+		peek_reg := True
+      prod = action
+		$display "Bar::prod"
+		prod_reg := True
+
+
+sysInterfaceTaskCalls :: Module Empty
+sysInterfaceTaskCalls = 
+  module
+
+    bar :: Bar <- sysBar
+    r :: Reg(Bit 4) <- mkReg 1
+    s :: Reg(Bit 4) <- mkReg 2
+    done :: Reg (Bool) <- mkReg False
+
+    rules
+       "exit": when done ==> $finish 0
+
+       "poke": when not done ==>
+         action 
+           r := 5
+           bar.poke
+
+       "peek": when not done ==>
+         action
+           $display "r: %0d" r
+           bar.peek               
+           s := 7
+
+       "prod": when not done ==>        
+         action
+           $display "s: %0d" s
+           bar.prod
+
+       "done": when not done ==> done := True

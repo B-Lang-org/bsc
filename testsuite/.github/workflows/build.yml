@@ -1,0 +1,170 @@
+name: CI
+
+# Trigger the workflow on push or pull request
+on: [ push, pull_request ]
+
+jobs:
+  build-check:
+    name: "Check: code lint"
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check CONFDIR
+        run: |
+          .github/workflows/check_confdir.py
+          .github/workflows/check_symlinks.py
+
+  build-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-16.04, ubuntu-18.04 ]
+    name: "Build ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_ubuntu.sh"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
+
+      # Restore the cache of a SystemC build if it exists and the
+      # build script hasn't changed.
+      - name: Cache SystemC build
+        id: systemc-cache
+        uses: actions/cache@v2
+        env:
+          cache-name: systemc-build
+        with:
+          path: ~/systemc
+          key: ${{ matrix.os }}-build-${{ env.cache-name }}-${{ hashFiles('.github/workflows/build_systemc.sh') }}
+
+      # If there's no cached build, download the source tarball,
+      # do the build (and the cache action will save it for us at
+      # the end of a successful workflow)
+      - name: Build SystemC
+        if: steps.systemc-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: ".github/workflows/build_systemc.sh"
+      - name: Download bsc
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ".github/workflows/get_latest_bsc.sh ${{ matrix.os }} "
+
+      # Finally, after all this setup, run the testsuite!
+      - name: Run testsuite
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=/usr/lib/ccache:$PATH
+
+          if [ `lsb_release -rs` == 16.04]; then
+              export LINKER=gold
+          else
+              export LINKER=lld
+          fi
+          export LDFLAGS="-Wl,-fuse-ld=$LINKER"
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations), and gold as the C++
+          # linked for a moderate build-time speedup over ld.bfd.
+          export CXXFLAGS="-fuse-ld=gold -O0"
+          make \
+               TEST_SYSTEMC_INC=$HOME/systemc/include \
+               TEST_SYSTEMC_LIB=$HOME/systemc/lib
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-logs
+          path: |
+            bsc.log
+            bsc.sum
+            **/*.bsc-out
+            **/*.bsc-ccomp-out
+            **/*.bsc-vcomp-out
+            **/*.bsc-sched-out
+            **/*.diff-out
+
+  build-macOS:
+    strategy:
+      matrix:
+        os: [ macos-10.15 ]
+    name: "Build ${{ matrix.os }}"
+    runs-on: ${{ matrix. os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_macos.sh"
+      - name: Download bsc
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ".github/workflows/get_latest_bsc.sh 'macos-10.13+' "
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
+
+      - name: Run testsuite
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations).
+          export CXXFLAGS="-O0"
+          make TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
+               TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-logs
+          path: |
+            bsc.log
+            bsc.sum
+            **/*.bsc-out
+            **/*.bsc-ccomp-out
+            **/*.bsc-vcomp-out
+            **/*.bsc-sched-out
+            **/*.diff-out

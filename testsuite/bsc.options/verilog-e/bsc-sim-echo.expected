@@ -1,0 +1,2 @@
+link sysHello.vexe sysHello -y . -y BLUESPECDIR/Libraries -y BLUESPECDIR/Verilog BLUESPECDIR/Verilog/main.v sysHello.v
+Verilog binary file created: sysHello.vexe

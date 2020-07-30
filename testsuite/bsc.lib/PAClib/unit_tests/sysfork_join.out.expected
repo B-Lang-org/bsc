@@ -1,0 +1,12 @@
+Cycle 1: Test start: mkFork mkJoin
+Cycle 2: Out [0]: expected (13, 27), actual (13, 27)
+Cycle 3: Out [1]: expected (15, 30), actual (15, 30)
+Cycle 4: Out [2]: expected (17, 33), actual (17, 33)
+Cycle 5: Out [3]: expected (19, 36), actual (19, 36)
+Cycle 6: Out [4]: expected (21, 39), actual (21, 39)
+Cycle 7: Out [5]: expected (23, 42), actual (23, 42)
+Cycle 8: Out [6]: expected (25, 45), actual (25, 45)
+Cycle 9: Out [7]: expected (27, 48), actual (27, 48)
+Cycle 10: Out [8]: expected (29, 51), actual (29, 51)
+Cycle 11: Out [9]: expected (31, 54), actual (31, 54)
+Cycle 11: Test ok: mkFork mkJoin: all 10 outputs ok

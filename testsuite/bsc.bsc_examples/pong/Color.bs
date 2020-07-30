@@ -1,0 +1,56 @@
+package Color(
+	Color, Val, cNone, cRed, cGreen, cBlue, cYellow, cPurple, cMagenta, cWhite,
+        (<|>), (<^>), mkRGB, getRed, getGreen, getBlue) where
+
+type Val = Bit 2
+
+struct Color =
+    r :: Val
+    g :: Val
+    b :: Val
+  deriving (Eq, Bits)
+
+mkRGB :: Val -> Val -> Val -> Color
+mkRGB rr gg bb = Color { r=rr; g=gg; b=bb }
+
+cNone :: Color
+cNone = mkRGB 0 0 0
+
+cRed :: Color
+cRed = mkRGB 3 0 0
+
+cGreen :: Color
+cGreen = mkRGB 0 3 0
+
+cBlue :: Color
+cBlue = mkRGB 0 0 3
+
+cYellow :: Color
+cYellow = mkRGB 3 3 0
+
+cPurple :: Color
+cPurple = mkRGB 3 0 3
+
+cMagenta :: Color
+cMagenta = mkRGB 0 3 3
+
+cWhite :: Color
+cWhite = mkRGB 3 3 3
+
+(<|>) :: Color -> Color -> Color
+(<|>) = colOp (|)
+
+(<^>) :: Color -> Color -> Color
+(<^>) = colOp (^)
+
+colOp :: (Val -> Val -> Val) -> Color -> Color -> Color
+colOp op c c' = Color { r = c.r `op` c'.r; g = c.g `op` c'.g; b = c.b `op` c'.b }
+
+getRed :: Color -> Val
+getRed c = c.r
+
+getGreen :: Color -> Val
+getGreen c = c.g
+
+getBlue :: Color -> Val
+getBlue c = c.b

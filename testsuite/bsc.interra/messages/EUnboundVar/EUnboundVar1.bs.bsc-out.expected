@@ -1,0 +1,14 @@
+checking package dependencies
+compiling EUnboundVar1.bs
+Error: "EUnboundVar1.bs", line 31, column 12: (T0004)
+  Unbound variable `clk'
+Error: "EUnboundVar1.bs", line 31, column 12: (T0020)
+  Type error at:
+    _tctemp1039
+
+  Expected type:
+    a__ b__
+
+  Inferred type:
+    Prelude.Bit 1
+

@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ./DupObj.bsv
+compiling DupObjTop.bsv
+Warning: "DupObjTop.bsv", line 1, column 8: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./DupObj.bo
+  Ignoring:
+    libdir3/DupObj.bo
+    libdir4/DupObj.bo
+All packages are up to date.

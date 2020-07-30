@@ -1,0 +1,6 @@
+package StructDefn_Field_WithDefault () where
+
+struct S =
+  _ :: Bool
+  _ = True
+

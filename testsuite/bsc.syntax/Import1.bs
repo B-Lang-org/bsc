@@ -1,0 +1,3 @@
+package Import1 (I) where
+import Import0
+interface I = m :: S

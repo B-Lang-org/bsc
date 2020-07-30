@@ -1,0 +1,5 @@
+set flags {-keep-fires -relax-method-earliness}
+
+set modules {mkDMA mkSink mkSource mkSlaveTx mkSlaveRx mkSRAM64k defaultSlave}
+
+test_c_veri_bsv_multi_options  DMA_Envir sysDMA $modules $flags "" "" "" 0 1

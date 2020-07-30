@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ClassDefParamGivenNonNumUsedNum.bs
+Error: "ClassDefParamGivenNonNumUsedNum.bs", line 4, column 15: (T0026)
+  The value type `a' was found where a numeric type was expected.

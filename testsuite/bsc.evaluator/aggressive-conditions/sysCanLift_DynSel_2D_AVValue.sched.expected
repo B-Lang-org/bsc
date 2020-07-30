@@ -1,0 +1,29 @@
+=== Generated schedule for sysCanLift_DynSel_2D_AVValue ===
+
+Rule schedule
+-------------
+Rule: r1
+Predicate: f1.i_notFull && f2.i_notFull
+Blocking rules: (none)
+ 
+Rule: r2
+Predicate: (PrimArrayDynSelect (PrimBuildArray (PrimArrayDynSelect (PrimBuildArray gs_0_0_rg
+										   gs_0_1_rg
+										   gs_0_2_rg)
+								   idx4)
+					       (PrimArrayDynSelect (PrimBuildArray gs_1_0_rg
+										   gs_1_1_rg
+										   gs_1_2.get)
+								   idx4)
+					       (PrimArrayDynSelect (PrimBuildArray gs_2_0_rg
+										   gs_2_1_rg
+										   gs_2_2_rg)
+								   idx4))
+			       idx3)
+	   ? f3.i_notFull
+	   : f4.i_notFull
+Blocking rules: (none)
+ 
+Logical execution order: r1, r2
+
+============================================================

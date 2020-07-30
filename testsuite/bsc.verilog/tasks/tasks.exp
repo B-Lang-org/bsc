@@ -1,0 +1,154 @@
+# $display of zero-bit value
+test_c_veri_bsv ZeroDisplay
+# test for unsigned zero-bit
+# (test Verilog separately so that we can check that -remove-dollar behaves)
+test_c_only_bsv ZeroUnsignedDisplay
+test_veri_only_bsv_modules_options ZeroUnsignedDisplay "" "-remove-dollar"
+
+test_c_veri FFReadTest
+
+#same as FFReadTest but local use of $display
+
+test_c_veri FFReadTest2
+
+test_c_veri_bs_modules FFMuxTest {sysTestROM}
+
+#basic $display and finish testing
+test_c_veri SimpleTaskTest
+
+test_c_veri LineDisplay
+
+#stop and finish compilation tests
+
+compile_object_pass StopFinish.bs sysStopFinish
+link_objects_pass "sysStopFinish" sysStopFinish
+compile_object_pass StopFinishV.bsv sysStopFinishV
+link_objects_pass "sysStopFinishV" sysStopFinishV
+
+compile_verilog_pass StopFinish.bs sysStopFinish
+link_verilog_pass sysStopFinish.v sysStopFinish
+
+compile_verilog_pass StopFinishV.bsv sysStopFinishV
+link_verilog_pass sysStopFinishV.v sysStopFinishV
+
+test_c_veri_bsv FourDisplay
+
+test_c_veri_bsv MoreDisplay
+
+# This fails with iverilog 10.2, but fixed in 10.3
+# See https://github.com/steveicarus/iverilog/issues/198
+#
+if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "10.2" } {
+    verbose -log "Disabling test for iverilog 10.2"
+    test_c_only_bsv EvenMoreDisplay
+} else {
+    test_c_veri_bsv EvenMoreDisplay
+}
+
+test_c_veri_bsv WideDisplay
+
+test_c_veri_bsv StringDisplay {} {} "iverilog"
+
+# For now, only test $swrite in Bluesim
+test_c_only_bsv StringFormat
+test_c_only_bsv StringFormat2
+test_c_only_bsv StringFormat3
+test_c_only_bsv DynamicFormat
+test_c_only_bsv DynamicFormat2
+
+# Verilog uses a top-level wrapper module which shows up in %m.
+# Remove that name before checking the Bluesim output.  Also, since
+# the $displays are in different modules, the order is unpredictable,
+# so do some sorting to make the output comparable.
+if { $vtest == 1 } {
+compile_verilog_pass ModuleDisplay.bsv sysModuleDisplay
+link_verilog_pass {sysModuleDisplay.v mkPipeStage.v} sysModuleDisplay
+sim_verilog sysModuleDisplay
+move sysModuleDisplay.out sysModuleDisplay.v.out
+sort sysModuleDisplay.v.out sysModuleDisplay.sorted.v.out {-k 1,1n -k 2}
+awk sysModuleDisplay.sorted.v.out sysModuleDisplay.trimmed.v.out {{{ gsub("main\\.", "", $0); for (i=2; i<=NF; i=i+1) printf "%s ", $i; print ""; }}}
+compare_verilog sysModuleDisplay.trimmed.v.out sysModuleDisplay.out.expected
+}
+if { $ctest == 1 } {
+compile_object_pass ModuleDisplay.bsv sysModuleDisplay
+link_objects_pass {sysModuleDisplay mkPipeStage} sysModuleDisplay
+sim_output sysModuleDisplay
+move sysModuleDisplay.out sysModuleDisplay.c.out
+sort sysModuleDisplay.c.out sysModuleDisplay.sorted.c.out {-k 1,1n -k 2}
+awk sysModuleDisplay.sorted.c.out sysModuleDisplay.trimmed.c.out {{{ for (i=2; i<=NF; i=i+1) printf "%s ", $i; print ""; }}}
+compare_file sysModuleDisplay.trimmed.c.out sysModuleDisplay.out.expected
+}
+
+# check exit behavior (Bug 1 - c backend)
+test_c_veri ExitTest
+
+test_c_veri_bsv NegativeDisplay
+
+test_c_veri_bsv NegativeDisplay2
+
+#test display of an ActionValue
+test_c_veri_bsv GetDisplay
+
+#test parsing of tasks with no arguments
+compile_pass EmptyTasks.bsv
+compile_pass EmptyTasksWorkaround.bsv
+
+# ---
+
+# test that intermediate logic from a system function result to
+# the input of another system task is properly handled
+# (the assigns are inlined into the always block)
+# two expected files because $stime differs between Bluesim and Verilog
+test_c_only_bsv LogicBetweenTasks sysLogicBetweenTasks.c.out.expected
+test_veri_only_bsv LogicBetweenTasks sysLogicBetweenTasks.v.out.expected
+
+# ---
+
+# test that repeated use of the same ActionValue (particularly an
+# ActionValue with no argument) doesn't result is failure to update
+# the logic from other uses
+
+# test uses of $time in two different rules
+test_c_veri_bsv_separately RepeatedTask_TwoRules
+
+# test uses of $time in the same rule
+test_c_veri_bsv_separately RepeatedTask_OneRule
+
+# test uses of $fgetc in the same rule
+test_c_veri_bsv RepeatedTask_OneRule2
+
+# test uses of $fgetc in the same rule that are registered separately
+test_c_veri_bsv RepeatedTask_OneRule3
+
+# ---
+
+# make sure the SystemVerilog assertion tasks compile in both flows
+compile_verilog_pass AssertTasks.bsv
+compile_object_pass  AssertTasks.bsv
+link_objects_pass sysAssertTasks.ba sysAssertTasks
+
+# make sure $error / $fatal work as expected
+test_c_veri_bsv ErrorTest
+
+# Test use of a polymorphic task in a polymorphic function
+# (There was a bug in AConv that was forgetting to apply the type arguments,
+# and was therefore triggering an internal error.)
+
+compile_verilog_pass PolymorphicTaskInPolymorphicFunc.bsv
+
+# Test $swriteAV with 64-bit destinations
+test_c_veri_bsv SWrite64 sysSWrite64.out.expected
+
+# ---
+
+# Google issue #73293173: translate_off pragma around foreign function defs
+
+compile_verilog_pass ForeignGroupTest.bs
+if { $vtest == 1 } {
+    find_n_regexp mkForeignGroupTest.v {
+  // declarations used by system tasks
+  // synopsys translate_off
+  } 1
+}
+
+# ---

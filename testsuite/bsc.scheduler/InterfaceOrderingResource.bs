@@ -1,0 +1,18 @@
+package InterfaceOrderingResource(sysInterfaceOrderingResource, Act) where
+
+-- Interface rules are scheduled to fire `before' other rules.
+-- Because `act' and `write' conflict, they must not be coscheduled,
+-- and `act' must fire rather than `write'.
+
+interface Act =
+    act :: Action
+
+sysInterfaceOrderingResource :: Module Act
+sysInterfaceOrderingResource =
+    module
+	r :: Reg Bool
+	r <- mkReg _
+        interface
+            act = r := r || False
+        rules
+            "write": when True ==> r := r && True

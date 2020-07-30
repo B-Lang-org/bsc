@@ -1,0 +1,14 @@
+package Bug1099(sysBug1099) where
+
+import GetPut
+import LFSR
+
+{-# verilog sysBug1099 #-}
+sysBug1099 :: Module (Get (UInt 64, UInt 6))
+sysBug1099 =
+    module lfsr6 :: LFSR (Bit 6) <- mkFeedLFSR 0x20
+           lfsr64 :: LFSR (Bit 64) <- mkFeedLFSR 0xdeadbeefbadf00d
+           interface
+             get = do lfsr6.next
+                      lfsr64.next
+                      return (unpack lfsr64.value, unpack lfsr6.value)

@@ -1,0 +1,14 @@
+CTX_sysAVMethod_UnusedValue : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# inst_s : CTX_mkAVMethod_UnusedValue_Sub!STATE #] ;
+  
+  ctor : STATE = (# inst_s := CTX_mkAVMethod_UnusedValue_Sub!ctor #) ;
+  
+  rule_RL_r (state0 : STATE) : [ BOOLEAN, STATE ] =
+    LET act1 : [ CTX_mkAVMethod_UnusedValue_Sub!STATE, Bit{32}!T ] =
+	  CTX_mkAVMethod_UnusedValue_Sub!meth_m(state0.inst_s)
+    IN LET state1 : STATE = state0 WITH .inst_s := act1.1
+    IN ( TRUE, state1 ) ;
+  
+END

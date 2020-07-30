@@ -1,0 +1,6 @@
+package DataDefParamGivenNumUsedNonNum () where
+
+data (Foo :: * -> *) a = Bar a
+
+data (Baz :: # -> *) b = Glurph (Foo b)
+

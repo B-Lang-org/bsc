@@ -1,0 +1,163 @@
+package Wallace(wallaceAdd, wallaceAddBags) where
+
+import Tabulate
+
+--@ \subsection{Wallace}
+--@ 
+--@ \index{Wallace@\te{Wallace} (package)|textbf}
+
+--@ A Wallace tree adder is useful when many numbers need to
+--@ be added at the same time.
+--@ It works by adding 3 bits of weight
+--@ $n$ producing 2 bits, one of weight $n$ and one of weight $n+1$.
+--@ By repeating this step a number of times the addition of $k$ bits
+--@ of weight $n$ has been reduced to adding $2k/3$ bits (of different
+--@ weights).  By repeating this over and over we finally reach a point
+--@ when there is only one bit left at each weight, and this is the final
+--@ result.
+--@ 
+
+
+import List
+import ListN
+
+type Bit1 = Bit 1
+type BitBag = List Bit1
+
+--@ The \te{wallaceAddBags} function takes a list of bags of bits and computes
+--@ the sum of all the bits.  Each bag is represented as a \te{List}.  The bits in the
+--@ first bag as weight $2^0$, in the second bag $2^1$, etc.
+--@ The initial number of input lists should equal the number of bits in the result.
+--@ \begin{verbatim}
+--@ function Bit#(n) wallaceAddBags();
+--@ \end{verbatim}
+wallaceAddBags :: ListN n (List (Bit 1)) -> Bit n
+wallaceAddBags = pack · map head0 · while (any ((<) 1 · length)) wallaceStep
+
+--@ The \te{wallaceAdd} function takes a list of $m$ bit numbers and adds them
+--@ forming an $n$ bit result.
+--@ \begin{verbatim}
+--@ function Bit#(n) wallaceAdd()
+--@   provisos (Add#(m, k, n));
+--@ \end{verbatim}
+wallaceAdd :: (Add m k n) => List (Bit m) -> Bit n
+wallaceAdd = wallaceAddBags · padWith Nil · transposeLN · List.map unpack
+
+wallaceStep :: ListN n BitBag -> ListN n BitBag
+wallaceStep = combine · map (step Nil Nil)
+
+combine :: ListN n (BitBag, BitBag) -> ListN n BitBag
+combine xys = zipWith List.append (map (.snd) xys) (init (Nil :> map (.fst) xys))
+
+step :: BitBag -> BitBag -> BitBag -> (BitBag, BitBag)
+step ms ls Nil = (ms, ls)
+step ms ls (Cons x Nil) = (ms, Cons x ls)
+step ms ls (Cons x (Cons y Nil)) = let { (m, l) = halfAdd x y } in (Cons m ms, Cons l ls)
+step ms ls (Cons x (Cons y (Cons z bs))) = let { (m, l) = fullAdd x y z } in step (Cons m ms) (Cons l ls) bs
+
+head0 :: BitBag -> Bit1
+head0 Nil = 0
+head0 (Cons b _) = b
+
+padWith :: (Add m k n) => a -> ListN m a -> ListN n a
+padWith p xs = xs `append` map (const p) genList
+
+padToKBits :: List (Bit 1) -> ListN k (Bit 1)
+padToKBits xs =
+  toListN (List.append xs (List.map (const 0) (List.upto 1 ((valueOf k) - (length xs)))))
+
+----------------
+
+--
+-- There are many possible ways to implement adders.
+-- Some result in much faster logic than others.
+--
+
+--- Full adder
+{-
+-- Reference implementation
+-- This is rather slow, probably because DC doesn't optimize away the 0 inputs
+-- to the adders.
+fullAdd :: Bit1 -> Bit1 -> Bit1 -> (Bit1, Bit1)
+fullAdd a b c = split ((0++a) + (0++b) + (0++c))
+-}
+
+-- A do-it-yourself adder works well.
+fullAdd :: Bit1 -> Bit1 -> Bit1 -> (Bit1, Bit1)
+fullAdd a b c = (a&b | b&c | c&a, a^b^c)
+
+{-
+-- Full adder written in Verilog.
+-- The Verilog code `assign s = a+b+c' seems to give good results.
+fullAdd a b c = split (fullAddF a b c)
+foreign fullAddF :: Bit1 -> Bit1 -> Bit1 -> Bit 2
+-}
+
+{-
+-- Tabulating the adder just slows it down.
+fullAdd a b c = tabulate fullAddT (a, b, c)
+{-# noinline fullAdd #-}
+fullAddT :: (Bit1, Bit1, Bit1) -> (Bit1, Bit1)
+fullAddT (a, b, c) = split ((0++a) + (0++b) + (0++c))
+-}
+------------------
+
+--- Half adder
+-- By having a separate half adder you can generate good circuits
+-- even when using `foreign'.
+{-
+-- reference implementation
+halfAdd :: Bit1 -> Bit1 -> (Bit1, Bit1)
+halfAdd a b = split ((0++a) + (0++b))
+-}
+
+halfAdd :: Bit1 -> Bit1 -> (Bit1, Bit1)
+halfAdd a b = (a&b, a^b)
+
+{-
+halfAdd :: Bit1 -> Bit1 -> (Bit1, Bit1)
+halfAdd a b = split (halfAddF a b)
+foreign halfAddF :: Bit1 -> Bit1 -> Bit 2
+-}
+
+{-
+-- This works well for adders that bsc understand (+ or &^).
+halfAdd :: Bit1 -> Bit1 -> (Bit1, Bit1)
+halfAdd a b = fullAdd a b 0
+-}
+
+------------------
+
+
+{-
+-- A simple test program for the Wallace adder.
+-- (cpp dies on larger test data :-( )
+wallaceTest :: Module Empty
+wallaceTest =
+    module
+	r :: Reg (Bit 12) <- mkReg 0
+	done :: Reg Bool <- mkReg False
+	bad :: Reg (Bit 12) <- mkReg 0
+	let x :: Bit 4
+	    x = r[ 3: 0]
+	    y :: Bit 4
+	    y = r[ 7: 4]
+	    z :: Bit 4
+	    z = r[11: 8]
+	    r' = r+1
+	    sum :: Bit 6
+	    sum = (0++x) + (0++y) + (0++z)
+    interface
+	{ }
+    rules
+	when not done
+	 ==> {	r := r'; 
+		done := r' == 0;
+		if wallaceAdd (Cons x (Cons y (Cons z Nil))) /= sum then
+		    { bad := bad+1; 
+		     -- $display "test failed 0x%02x 0x%02x 0x%02x\n" (arg x) (arg y) (arg z)
+		    }
+		else
+		    { }
+	      }
+-}

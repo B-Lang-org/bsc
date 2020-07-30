@@ -1,0 +1,37 @@
+test_c_veri ExpectedOneSetter sysOneSetter.out.expected
+test_c_veri OneSetter
+test_c_veri ExpectedMuxTest sysMuxTest.out.expected
+test_c_veri MuxTest
+test_c_veri_bsv_multi UseCondMux sysUseCondMux mkMyRegFile
+test_c_veri_bsv RegFileVector
+
+compile_object_pass InputMangle.bs sysInputMangle
+compile_verilog_pass InputMangle.bs sysInputMangle
+
+# Test that muxing of arguments from a call in an ActionValue method
+# uses the WILL_FIRE as the mux selector and not the RDY signal
+# (as is used with pure value methods)
+compile_verilog_pass ActionValueMux.bsv
+if { $vtest == 1 } {
+    # check that the key is an if-then branching on one of the EN signals;
+    # the bug was that it wasn't if-then at all, because instead of EN_g it
+    # was RDY_g which was True and thus the if-then was optimized away,
+    # leaving only the True branch.
+    find_regexp mkAVMuxTop.v {assign s\$get_key \= EN_. \? }
+}
+
+# ----------
+
+# Test that a PriMux doesn't collapse common values if the rules which
+# uses them are at different points in the priority.
+
+set fname {sysPriMux_SharedValue.astate}
+compile_verilog_pass PriMux_SharedValue.bsv {} "-dastate=$fname"
+if { $vtest == 1 } {
+    find_regexp $fname {
+r\$write_1  \= primux \(WILL_FIRE_RL_rA, MUX_r\$write_1__VAL_1\)
+		    \(WILL_FIRE_RL_rB, MUX_r\$write_1__VAL_2\)
+		    \(WILL_FIRE_RL_rC, MUX_r\$write_1__VAL_3\)}
+}
+
+# ----------

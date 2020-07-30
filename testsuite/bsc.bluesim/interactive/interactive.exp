@@ -1,0 +1,119 @@
+if {$ctest == 1} {
+    compile_object_pass tiny.bsv mkTest
+    link_objects_pass {mkTest} mkTest
+
+    sim_output mkTest "-f step.cmd"
+    copy mkTest.out mkTest_step.out
+    compare_file mkTest_step.out mkTest_step.out.expected
+
+    sim_output mkTest "-f step2.cmd"
+    copy mkTest.out mkTest_step2.out
+    compare_file mkTest_step2.out mkTest_step2.out.expected
+
+    sim_output mkTest "-f sync.cmd"
+    copy mkTest.out mkTest_sync.out
+    compare_file mkTest_sync.out mkTest_sync.out.expected
+
+    sim_output_status mkTest 7 "-f exit.cmd"
+    copy mkTest.out mkTest_exit.out
+    compare_file mkTest_exit.out mkTest_exit.out.expected
+
+    sim_output mkTest "-f help.cmd"
+    copy mkTest.out mkTest_help.out
+    compare_file mkTest_help.out mkTest_help.out.expected
+
+    sim_output_status mkTest 1 "-f error.cmd"
+    copy mkTest.out mkTest_error.out
+    compare_file mkTest_error.out mkTest_error.out.expected
+
+    compile_object_pass MCDTest.bsv mkMCDTest
+    link_objects_pass {mkMCDTest} mkMCDTest
+
+    sim_output mkMCDTest "-f clock.cmd"
+    copy mkMCDTest.out mkMCDTest_clock.out
+    compare_file mkMCDTest_clock.out mkMCDTest_clock.out.expected
+
+    compile_object_pass APeriodicTest.bsv sysAPeriodicTest
+    link_objects_pass {sysAPeriodicTest} sysAPeriodicTest
+
+    sim_output sysAPeriodicTest "-f aperiodic.cmd"
+    copy sysAPeriodicTest.out sysAPeriodicTest_aperiodic.out
+    compare_file sysAPeriodicTest_aperiodic.out sysAPeriodicTest_aperiodic.out.expected
+
+    sim_output sysAPeriodicTest "-f debug4.cmd"
+    copy sysAPeriodicTest.out sysAPeriodicTest_debug5.out
+    compare_file sysAPeriodicTest_debug5.out sysAPeriodicTest_debug5.out.expected
+
+    compile_object_pass Long.bsv mkLong
+    link_objects_pass {mkLong} mkLong
+
+    sim_output mkLong "-f async.cmd"
+    copy mkLong.out mkLong_async.out
+    compare_file mkLong_async.out mkLong_async.out.expected
+
+    compile_object_pass hier.bsv mkTop 
+    link_objects_pass {mkTop mkMid mkLevel1} mkTop {"-keep-fires"}
+
+    sim_output mkTop "-f hier.cmd"
+    copy mkTop.out mkTop_hier.out
+    compare_file_filter_ids mkTop_hier.out mkTop_hier.out.expected
+
+    sim_output mkTop "-f glob.cmd"
+    copy mkTop.out mkTop_glob.out
+    compare_file_filter_ids mkTop_glob.out mkTop_glob.out.expected
+
+    sim_output_status mkTop 1 "-f error2.cmd"
+    copy mkTop.out mkTop_error2.out
+    compare_file mkTop_error2.out mkTop_error2.out.expected
+
+    compile_object_pass prims.bsv mkPrims
+    link_objects_pass {mkPrims} mkPrims
+
+    sim_output mkPrims "-f prims.cmd"
+    copy mkPrims.out mkPrims_prims.out
+    compare_file mkPrims_prims.out mkPrims_prims.out.expected
+
+    compile_object_pass TbGCD.bsv mkTbGCD
+    link_objects_pass {mkTbGCD mkGCD} mkTbGCD "-keep-fires"
+
+    sim_output mkTbGCD "-f gcd.cmd"
+    copy mkTbGCD.out mkTbGCD_gcd.out
+    compare_file mkTbGCD_gcd.out mkTbGCD_gcd.out.expected
+
+    sim_output mkTbGCD "-f debug.cmd"
+    copy mkTbGCD.out mkTbGCD_debug.out
+    compare_file mkTbGCD_debug.out mkTbGCD_debug.out.expected
+
+    sim_output mkTbGCD "-f debug2.cmd"
+    copy mkTbGCD.out mkTbGCD_debug2.out
+    compare_file mkTbGCD_debug2.out mkTbGCD_debug2.out.expected
+
+    sim_output mkTbGCD "-f debug3.cmd"
+    copy mkTbGCD.out mkTbGCD_debug3.out
+    compare_file mkTbGCD_debug3.out mkTbGCD_debug3.out.expected
+
+    sim_output mkTbGCD "-f debug4.cmd"
+    copy mkTbGCD.out mkTbGCD_debug4.out
+    compare_file mkTbGCD_debug4.out mkTbGCD_debug4.out.expected
+
+    sim_output mkTbGCD "-f debug5.cmd"
+    copy mkTbGCD.out mkTbGCD_debug5.out
+    compare_file mkTbGCD_debug5.out mkTbGCD_debug5.out.expected
+}
+
+# Google issue #69130914: timescale command
+if {$ctest == 1} {
+
+    compile_object_pass TimescaleTest.bs mkTimescaleTest
+    link_objects_pass {} mkTimescaleTest
+
+    # factor is 1, 10, 100; units is s, ms, us, ns, ps, and fs
+
+    sim_output mkTimescaleTest {-f timescale.cmd}
+    copy mkTimescaleTest.out mkTimescaleTest_1.out
+    compare_file mkTimescaleTest_1.out mkTimescaleTest_1.out.expected
+
+    sim_output mkTimescaleTest {-f timescale2.cmd}
+    copy mkTimescaleTest.out mkTimescaleTest_2.out
+    compare_file mkTimescaleTest_2.out mkTimescaleTest_2.out.expected
+}

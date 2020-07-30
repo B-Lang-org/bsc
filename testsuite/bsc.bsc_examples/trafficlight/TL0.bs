@@ -1,0 +1,54 @@
+package TL0 (sysTL, TL) where {
+
+  -- Simple model of a traffic light
+  -- (modeled after the light at the intersection of Rte 16 and Broadway
+  --  on the border between Arlington and Somerville)
+
+  -- Version 0: just model the normal cycle of states
+
+  interface TL = { };
+
+  data TLstates = GreenNS | AmberNS | RedAfterNS    -- North-South
+                | GreenE  | AmberE  | RedAfterE     -- Eastbound
+                | GreenW  | AmberW  | RedAfterW     -- Westbound
+                deriving (Eq, Bits);
+
+  sysTL :: Module TL;
+  sysTL =
+      module {
+          state :: Reg TLstates;
+          state <- mkReg RedAfterW;
+      interface {
+          -- Empty interface
+      };
+      addRules $
+        rules {
+          "fromGreenNS":
+            when (state == GreenNS)    ==> state := AmberNS;
+
+          "fromAmberNS":
+            when (state == AmberNS)    ==> state := RedAfterNS;
+
+          "fromRedAfterNS":
+            when (state == RedAfterNS) ==> state := GreenE;
+
+          "fromGreenE":
+            when (state == GreenE)     ==> state := AmberE;
+
+          "fromAmberE":
+            when (state == AmberE)     ==> state := RedAfterE;
+
+          "fromRedAfterE":
+            when (state == RedAfterE)  ==> state := GreenW;
+
+          "fromGreenW":
+            when (state == GreenW)     ==> state := AmberW;
+
+          "fromAmberW":
+            when (state == AmberW)     ==> state := RedAfterW;
+
+          "fromRedAfterW":
+            when (state == RedAfterW)  ==> state := GreenNS;
+        }
+    }
+}

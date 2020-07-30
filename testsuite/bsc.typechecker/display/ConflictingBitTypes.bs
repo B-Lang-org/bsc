@@ -1,0 +1,5 @@
+package ConflictingBitTypes() where
+
+-- this should give a type error
+foo :: Action
+foo = $display (unpack (0 :: (Bit 5))) (unpack ((pack (unpack (0 :: Bit 5))) :: (Bit 7)))

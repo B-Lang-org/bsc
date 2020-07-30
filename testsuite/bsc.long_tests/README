@@ -1,0 +1,4 @@
+This directory contains tests which take a long time to run.
+
+They will be run as part of a "make fullcheck" but will only be run as
+part of "make check" if they have been specifically enabled.

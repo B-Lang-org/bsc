@@ -1,0 +1,55 @@
+
+# test Verilog (and C) code generation modules
+
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only Simple sysSimple.v.out.expected
+test_c_only Simple
+#test_syn Simple
+
+test_veri_only SimpleFF sysSimpleFF.v.out.expected
+test_c_only SimpleFF
+#test_syn SimpleFF # does not work because no FFI support for the synthesize
+                   # optional pass
+
+test_veri_only Case sysCase.v.out.expected
+test_c_only Case
+#test_syn Case
+
+test_veri_only Misc sysMisc.v.out.expected
+test_c_only Misc
+#test_syn Misc
+
+# Bluesim also generates warnings that Verilog can't
+test_veri_only Mips sysMips.v.out.expected
+test_c_only Mips
+#test_syn Mips 
+
+test_veri_only Oper sysOper.v.out.expected
+test_c_only Oper
+#test_syn Oper
+
+test_c_veri Lib
+#test_syn Lib 
+
+test_c_veri ExpectedExclusiveActions
+test_c_veri ExclusiveActions sysExpectedExclusiveActions.out.expected
+
+compile_verilog_pass InitialBlocks.bsv sysInitialBlocks
+# compare file to make sure the BSV_NO_INITIAL_BLOCKS is in the right place;
+# this seems significantly better than grepping (since order is important)
+compare_verilog sysInitialBlocks.v
+
+# -----
+
+# Test that underscore at the end of names is not a problem
+compile_verilog_pass Underscore.bsv
+if { $vtest == 1 } {
+find_n_strings sysUnderscore.v {mkUnderscore_ s} 1
+}
+
+# -----
+

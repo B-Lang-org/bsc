@@ -1,0 +1,21 @@
+package Bug186 (sysBug186) where
+
+interface Foo =
+  foo :: Bit 32 -> Action
+
+sysBug186 :: Module Foo
+sysBug186 = 
+  module
+    r1 :: Reg (Bit 32)
+    r1 <- mkRegU
+
+    r2 :: Reg (Bit 32)
+    r2 <- mkRegU
+
+    interface
+      foo x = action { r1 := r1 + x; r2 := r2 + x }
+    rules
+      "decrement_r1":
+        when True ==>  r1 := r1 - 1 
+      "decrement_r2":
+        when True ==>  r2 := r2 - 1 

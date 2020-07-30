@@ -1,0 +1,4 @@
+checking package dependencies
+compiling StructDefParamGivenNumUsedNonNum.bs
+Error: "StructDefParamGivenNumUsedNonNum.bs", line 6, column 18: (T0027)
+  The numeric type `b' was found where a value type was expected.

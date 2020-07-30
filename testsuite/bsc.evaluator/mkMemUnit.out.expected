@@ -1,0 +1,18 @@
+creating top object
+unhandledLQueue: new fifo width 106 depth 4 @0x8060278
+finishedInstr: new fifo width 39 depth 4 @0x8060378
+State:
+main.top.nextTag = 0x00000000
+main.top.unhandledLQueue =  EMPTY
+main.top.unhandledSQueue_0 = Nothing
+main.top.unhandledSQueue_1 = Nothing
+main.top.unhandledSQueue_2 = Nothing
+main.top.unhandledSQueue_3 = Nothing
+main.top.finishedInstr =  EMPTY
+main.top.mkMemUnit__m_putMEMOp__rdy = 1
+main.top.mkMemUnit__m_updateMEMResult_avValue_fst__rdy = 1
+main.top.mkMemUnit__m_updateMEMResult_avValue_snd__rdy = 1
+main.top.mkMemUnit__m_updateMEMResult_avAction__rdy = 1
+main.top.mkMemUnit__m_commitStore__rdy = 1
+main.top.mkMemUnit__m_invalidateStore__rdy = 1
+Enabled rules:

@@ -1,0 +1,40 @@
+package OverlapWithSyn(sysOverlapWithSyn) where
+
+class Displayable a where
+   display :: a -> Action
+
+instance (Bits a sa) => Displayable a 
+   where
+     display a = $display "Bits %h" a
+
+type AnyBits n = Bit n
+
+type Bit8 = Bit 8
+
+instance Displayable (AnyBits n)
+   where 
+     display a = $display "AnyBits %h" a 
+
+instance Displayable (Bit8) 
+   where
+     display a = $display "Bit8 %h" a
+
+{-# verilog sysOverlapWithSyn #-}
+sysOverlapWithSyn :: Module Empty
+sysOverlapWithSyn = 
+  module
+    rules  
+      "test":
+         when True  ==>
+           let x :: Bit 8
+               x = 5
+               y :: Bit 16
+               y = 16
+               z :: Int 32
+               z = 32
+           in
+             action 
+                display x
+                display y
+                display z
+                $finish 0

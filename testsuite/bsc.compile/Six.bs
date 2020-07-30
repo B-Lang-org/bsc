@@ -1,0 +1,10 @@
+package Six(six, myFive) where
+
+import Five
+
+six :: Integer
+six = five False + 1
+
+myFive :: Bool -> Integer
+myFive = five
+

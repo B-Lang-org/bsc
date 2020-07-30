@@ -1,0 +1,69 @@
+checking package dependencies
+compiling Ex5.bsv
+code generation for mkEx5 starts
+Warning: "Ex5.bsv", line 8, column 8: (G0009)
+  The scheduling phase created a conflict between the following rules:
+      `a' and `b'
+  to break the following cycle:
+      `a' -> `b' -> `c' -> `a'
+=== schedule:
+parallel: [esposito: [a -> [], b -> [], c -> []]]
+order: [b, c, a]
+
+-----
+
+=== resources:
+[(r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write r2__h192, 1)]),
+ (r2.read, [(r2.read, 1)]),
+ (r2.write, [(r2.write r3__h214, 1)]),
+ (r3.read, [(r3.read, 1)]),
+ (r3.write, [(r3.write r1__h234, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_a CF [RDY_a, RDY_b, RDY_c, a, b, c],
+ RDY_b CF [RDY_b, RDY_c, a, b, c],
+ RDY_c CF [RDY_c, a, b, c],
+ b SB c,
+ c SB a,
+ a SBR a,
+ b SBR b,
+ c SBR c,
+ a C b]
+[]
+[]
+[]
+
+-----
+
+Schedule dump file created: mkEx5.sched
+=== Generated schedule for mkEx5 ===
+
+Method schedule
+---------------
+Method: a
+Ready signal: True
+Sequenced before (restricted): a
+Sequenced after: c
+Conflicts: b
+ 
+Method: b
+Ready signal: True
+Sequenced before: c
+Sequenced before (restricted): b
+Conflicts: a
+ 
+Method: c
+Ready signal: True
+Sequenced before: a
+Sequenced before (restricted): c
+Sequenced after: b
+ 
+Logical execution order: b, c, a
+
+=====================================
+Verilog file created: mkEx5.v
+All packages are up to date.

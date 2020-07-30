@@ -1,0 +1,4 @@
+package TypeAliasParamGivenTooMany_FromNone () where
+
+type (Foo :: * -> *) = Bit 8
+

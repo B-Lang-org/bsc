@@ -1,0 +1,39 @@
+package IfNestedME(sysIfNestedME, IfNestedME(..)) where
+
+interface IfNestedME =
+  flip_a :: Action
+  flip_b :: Action
+  flip_c :: Action
+  get_d  :: (UInt 3)
+
+sysIfNestedME :: Module (IfNestedME)
+sysIfNestedME = 
+  module
+    a :: Reg Bool
+    a <- mkReg False
+    b :: Reg Bool
+    b <- mkReg False
+    c :: Reg Bool
+    c <- mkReg False
+    d :: Reg (UInt 3)
+    d <- mkReg 0
+
+    interface 
+	flip_a = a :=  not a
+	flip_b = b :=  not b
+	flip_c = c :=  not c
+        get_d = d   
+    rules
+        
+        "Nested": when True ==> 
+                    action
+                      if a && b && c then d:=7 else noAction
+                      if a && b && (not c) then d := 6 else noAction
+                      if a && (not b) && c then d := 5 else noAction
+                      if a && (not b) && (not c) then d := 4 else noAction
+                      if (not a) && b && c then d := 3 else noAction
+                      if (not a) && b && (not c) then d := 2 else noAction
+                      if (not a) && (not b) && c then d := 1 else noAction
+                      if (not a) && (not b) && (not c) then d := 0 else noAction
+			
+		

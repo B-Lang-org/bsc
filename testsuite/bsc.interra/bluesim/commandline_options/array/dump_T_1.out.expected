@@ -1,0 +1,456 @@
+$date
+	Thu Mar  9 16:23:53 2006
+$end
+$version
+	Bluespec VCD _dumper $Revision: 1.11 $
+$end
+$timescale
+	1ms/10us
+$end
+$scope module main.top $end
+$var reg 1 ! CLK $end
+$var reg 1 " WILL_FIRE_RL_finish_off $end
+$var reg 1 # WILL_FIRE_RL_simultaneous_reads $end
+$var reg 1 $ WILL_FIRE_RL_check_updated_value $end
+$var reg 1 % WILL_FIRE_RL_simultaneous_sub_update $end
+$var reg 1 & WILL_FIRE_RL_display_updated_values_again $end
+$var reg 1 ' WILL_FIRE_RL_display_updated_values $end
+$var reg 1 ( WILL_FIRE_RL_update_values $end
+$var reg 1 ) WILL_FIRE_RL_init_values $end
+$var reg 1 * WILL_FIRE_RL_always_fire $end
+$var reg 1 + CAN_FIRE_RL_finish_off $end
+$var reg 1 , CAN_FIRE_RL_simultaneous_reads $end
+$var reg 1 - CAN_FIRE_RL_check_updated_value $end
+$var reg 1 . CAN_FIRE_RL_simultaneous_sub_update $end
+$var reg 1 / CAN_FIRE_RL_display_updated_values_again $end
+$var reg 1 0 CAN_FIRE_RL_display_updated_values $end
+$var reg 1 1 CAN_FIRE_RL_update_values $end
+$var reg 1 2 CAN_FIRE_RL_init_values $end
+$var reg 1 3 CAN_FIRE_RL_always_fire $end
+$var reg 8 4 x__h195 [7:0] $end
+$var reg 8 5 x__h159 [7:0] $end
+$var reg 8 6 x__h124 [7:0] $end
+$var reg 8 7 x__h135 [7:0] $end
+$var reg 8 8 x__h146 [7:0] $end
+$var reg 8 9 x__h163 [7:0] $end
+$var reg 32 : the_counter__h287 [31:0] $end
+$var reg 3 ; the_counter_BITS_2_TO_0___h255 [2:0] $end
+$var reg 8 < x__h259 [7:0] $end
+$var reg 32 = x__h328 [31:0] $end
+$var reg 8 > x__h310 [7:0] $end
+$var reg 1 ? the_faile__h82 $end
+$var reg 1 @ NOT_the_faile___d4 $end
+$var reg 1 A NOT_the_dut_sub_1_6_EQ_22_7___d28 $end
+$var reg 1 B NOT_the_dut_sub_1_6_EQ_9_0___d31 $end
+$var reg 1 C NOT_the_dut_sub_the_counter_BITS_2_TO_0_6_7_EQ_ETC___d41 $end
+$var reg 1 D NOT_the_dut_sub_the_counter_BITS_2_TO_0_6_7_EQ_ETC___d48 $end
+$var reg 1 E NOT_the_counter_ULT_16_2_3_AND_the_counter_ULT_ETC___d44 $end
+$var reg 1 F NOT_the_counter_ULT_24_2_3_AND_the_counter_ULT_ETC___d35 $end
+$var reg 1 G NOT_the_counter_ULT_8_9_0_AND_the_counter_ULT__ETC___d51 $end
+$var reg 1 H NOT_the_dut_sub_2_EQ_10_1_2_OR_NOT_the_dut_sub_ETC___d24 $end
+$scope module the_dut $end
+$upscope $end
+$var reg 32 S the_counter [31:0] $end
+$var reg 1 T the_counter$EN $end
+$var reg 1 V the_faile $end
+$var reg 1 W the_faile$EN $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+1!
+0"
+0#
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+0-
+0.
+0/
+00
+01
+02
+03
+b0 4
+b0 5
+b0 6
+b0 7
+b0 8
+b0 9
+b0 :
+b0 ;
+b0 <
+b0 =
+b0 >
+0?
+0@
+0A
+0B
+0C
+0D
+0E
+0F
+0G
+0H
+b0 S
+0T
+0V
+0W
+$end
+#1
+1)
+1*
+12
+13
+b10101010 <
+b1 =
+1T
+#5
+0!
+#10
+1!
+b1 S
+b1 :
+b1 ;
+b10 =
+#15
+0!
+#20
+1!
+b10 S
+b10 :
+b10 ;
+b11 =
+#25
+0!
+#30
+1!
+b11 S
+b11 :
+b11 ;
+b100 =
+#35
+0!
+#40
+1!
+b100 S
+b100 :
+b100 ;
+b101 =
+#45
+0!
+#50
+1!
+b101 S
+b101 :
+b101 ;
+b110 =
+#55
+0!
+#60
+1!
+b110 S
+b110 :
+b110 ;
+b111 =
+#65
+0!
+#70
+1!
+b111 S
+b111 :
+b111 ;
+b1000 =
+#75
+0!
+#80
+1!
+b1000 S
+1(
+0)
+11
+02
+b1000 :
+b0 ;
+b1001 =
+b1000 >
+1G
+#85
+0!
+#90
+1!
+b1001 S
+b1001 :
+b1 ;
+b1010 =
+b1001 >
+#95
+0!
+#100
+1!
+b1010 S
+b1010 :
+b10 ;
+b1011 =
+b1010 >
+#105
+0!
+#110
+1!
+b1011 S
+b1011 :
+b11 ;
+b1100 =
+b1011 >
+#115
+0!
+#120
+1!
+b1100 S
+b1100 :
+b100 ;
+b1101 =
+b1100 >
+#125
+0!
+#130
+1!
+b1101 S
+b1101 :
+b101 ;
+b1110 =
+b1101 >
+#135
+0!
+#140
+1!
+b1110 S
+b1110 :
+b110 ;
+b1111 =
+b1110 >
+#145
+0!
+#150
+1!
+b1111 S
+b1111 :
+b111 ;
+b10000 =
+b1111 >
+#155
+0!
+#160
+1!
+b10000 S
+1'
+0(
+10
+01
+b10000 :
+b0 ;
+b1000 <
+b10001 =
+1E
+0G
+#165
+0!
+#170
+1!
+b10001 S
+b10001 :
+b1 ;
+b1001 <
+b10010 =
+#175
+0!
+#180
+1!
+b10010 S
+b10010 :
+b10 ;
+b1010 <
+b10011 =
+#185
+0!
+#190
+1!
+b10011 S
+b10011 :
+b11 ;
+b1011 <
+b10100 =
+#195
+0!
+#200
+1!
+b10100 S
+b10100 :
+b100 ;
+b1100 <
+b10101 =
+#205
+0!
+#210
+1!
+b10101 S
+b10101 :
+b101 ;
+b1101 <
+b10110 =
+#215
+0!
+#220
+1!
+b10110 S
+b10110 :
+b110 ;
+b1110 <
+b10111 =
+#225
+0!
+#230
+1!
+b10111 S
+b10111 :
+b111 ;
+b1111 <
+b11000 =
+#235
+0!
+#240
+1!
+b11000 S
+1&
+0'
+1/
+00
+b11000 :
+b0 ;
+b1000 <
+b11001 =
+0E
+1F
+#245
+0!
+#250
+1!
+b11001 S
+b11001 :
+b1 ;
+b1001 <
+b11010 =
+#255
+0!
+#260
+1!
+b11010 S
+b11010 :
+b10 ;
+b1010 <
+b11011 =
+#265
+0!
+#270
+1!
+b11011 S
+b11011 :
+b11 ;
+b1011 <
+b11100 =
+#275
+0!
+#280
+1!
+b11100 S
+b11100 :
+b100 ;
+b1100 <
+b11101 =
+#285
+0!
+#290
+1!
+b11101 S
+b11101 :
+b101 ;
+b1101 <
+b11110 =
+#295
+0!
+#300
+1!
+b11110 S
+b11110 :
+b110 ;
+b1110 <
+b11111 =
+#305
+0!
+#310
+1!
+b11111 S
+b11111 :
+b111 ;
+b1111 <
+b100000 =
+#315
+0!
+#320
+1!
+b100000 S
+1%
+0&
+1.
+0/
+b1001 4
+b100000 :
+b100001 =
+0F
+#325
+0!
+#330
+1!
+b100001 S
+1$
+0%
+1-
+0.
+b10110 4
+b100001 :
+b100010 =
+#335
+0!
+#340
+1!
+b100010 S
+1#
+0$
+1,
+0-
+b1010 5
+b1011 6
+b1100 7
+b1101 8
+b1110 9
+b100010 :
+b100011 =
+#345
+0!
+#350
+1!
+b100011 S
+1"
+0#
+1+
+0,
+b100011 :
+1@
+#365
+0!

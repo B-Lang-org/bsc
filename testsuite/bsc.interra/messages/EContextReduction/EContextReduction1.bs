@@ -1,0 +1,70 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReduction1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Context reduction failed" error (EContextReduction)
+
+-- Error Message : bsc EContextReduction1.bs
+-- bsc: Compilation errors:
+-- "EContextReduction1.bs", line 30, column 0, Context reduction failed, because there are no instances of the form: (Prelude.Ord (EContextReduction1.MyType2 Prelude.Integer))
+-----------------------------------------------------------------------
+
+package EContextReduction1 (EContextReduction1(..)) where 
+
+data MyType1 a = Integer | Bool
+             deriving (Eq)
+
+data MyType2 b = Bool | Integer
+             deriving ()
+
+data MyType3 c  = MyType1 | MyType2
+             deriving (Eq,Bits)
+
+interface EContextReduction1 =
+     start :: (MyType3 (MyType2 Integer)) -> (MyType3 (MyType2 Integer)) -> Action
+     end   :: (MyType3 (MyType2 Integer))
+
+mkEContextReduction1 :: Module EContextReduction1
+mkEContextReduction1 =
+      module
+
+          u :: Reg (MyType1 Bool)
+          u <- mkRegU
+
+          v :: Reg (MyType1 Bool)
+          v <- mkRegU
+
+          w :: Reg (MyType2 Integer)
+          w <- mkRegU
+
+          z :: Reg (MyType2 Integer)
+          z <- mkRegU
+
+          x :: Reg (MyType3 (MyType2 Integer))
+          x <- mkRegU
+
+          y :: Reg (MyType3 (MyType2 Integer))
+          y <- mkRegU
+
+          rules
+           "One":
+             when (w < z)
+              ==> action
+                     x := y
+
+           "Two":
+             when (w > z)
+              ==> action
+                     y := x
+
+
+          interface
+             start ix iy = action
+                               x := ix
+                               y := iy
+                           when True
+             end = x when True
+

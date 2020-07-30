@@ -1,0 +1,10 @@
+Value read = 0f
+Value read = 1e
+Value Written = 0d
+Value read = 0d
+Simulation Passes
+Final state:
+top:
+  counter = 0x16
+  fail = False
+  the_datafifo_f = EMPTY

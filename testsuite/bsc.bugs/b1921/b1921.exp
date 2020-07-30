@@ -1,0 +1,36 @@
+
+# ---------------
+# Check type parameters for duplicates
+
+compile_fail_bug DuplicateTypeParam_Alias.bsv 1921
+
+compile_fail_bug DuplicateTypeParam_Class.bsv 1921
+
+compile_fail DuplicateTypeParam_Interface.bsv
+# The above test shouldn't fail with an internal error though
+find_regexp_fail_bug [make_bsc_output_name DuplicateTypeParam_Interface.bsv] {Internal.*Error} 1921
+
+compile_fail_bug DuplicateTypeParam_Union.bsv 1921
+
+# -----
+# Classic versions
+
+compile_fail DuplicateTypeParam_Interface_Classic.bs
+# The above test shouldn't fail with an internal error though
+find_regexp_fail_bug [make_bsc_output_name DuplicateTypeParam_Interface_Classic.bs] {Internal.*Error} 1921
+
+# XXX ... more Classic versions here ...
+
+# ---------------
+# For comparison, see how BSC deals with duplicate value parameter names
+
+compile_fail_error DuplicateValParam_Function.bsv        P0085
+compile_fail_error DuplicateValParam_Function_Classic.bs T0011
+
+# ---------------
+# For comparison, see how BSC deals with duplicate member names
+
+compile_fail_error DuplicateMember_Interface.bsv        P0073
+compile_fail_error DuplicateMember_Interface_Classic.bs P0073
+
+# ---------------

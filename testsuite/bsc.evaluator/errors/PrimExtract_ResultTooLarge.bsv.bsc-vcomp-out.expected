@@ -1,0 +1,10 @@
+checking package dependencies
+compiling PrimExtract_ResultTooLarge.bsv
+code generation for sysPrimExtract_ResultTooLarge starts
+Error: "PrimExtract_ResultTooLarge.bsv", line 9, column 18: (S0015)
+  Bluespec evaluation-time error: Bit range [20:10] selects 11 bits but only 8
+  bits are expected from the result
+  During elaboration of the body of rule `r' at
+  "PrimExtract_ResultTooLarge.bsv", line 6, column 9.
+  During elaboration of `sysPrimExtract_ResultTooLarge' at
+  "PrimExtract_ResultTooLarge.bsv", line 2, column 8.

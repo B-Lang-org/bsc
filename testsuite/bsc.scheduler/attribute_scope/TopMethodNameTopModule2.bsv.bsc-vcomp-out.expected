@@ -1,0 +1,9 @@
+checking package dependencies
+compiling TopMethodNameTopModule2.bsv
+code generation for sysTopMethodNameTopModule1 starts
+Warning: "TopMethodNameTopModule2.bsv", line 14, column 8: (G0010)
+  Rule "mymethod1" was treated as more urgent than "r". Conflicts:
+    "mymethod1" cannot fire before "r": calls to rg1.write vs. rg1.read
+    "r" cannot fire before "mymethod1": calls to rg1.write vs. rg1.read
+Verilog file created: sysTopMethodNameTopModule1.v
+All packages are up to date.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EBadModuleInterface.bs
+Error: "EBadModuleInterface.bs", line 27, column 4: (T0048)
+  Multiple interfaces

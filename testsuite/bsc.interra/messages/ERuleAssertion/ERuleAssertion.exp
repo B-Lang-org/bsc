@@ -1,0 +1,7 @@
+if {$vtest == 1} {
+compile_verilog_fail ERuleAssertion.bs mkGCD
+compare_file ERuleAssertion.bs.bsc-vcomp-out
+
+compile_verilog_fail ERuleAssertion2.bs mkGCDTest
+compare_file ERuleAssertion2.bs.bsc-vcomp-out
+}

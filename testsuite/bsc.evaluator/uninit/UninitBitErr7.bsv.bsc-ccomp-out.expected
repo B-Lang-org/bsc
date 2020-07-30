@@ -1,0 +1,17 @@
+checking package dependencies
+compiling UninitBitErr7.bsv
+code generation for sysUninitBitOK3 starts
+Error: "UninitBitErr7.bsv", line 3, column 11: (G0028)
+  `x[4]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "UninitBitErr7.bsv", line
+  8, column 8.
+  During elaboration of `sysUninitBitOK3' at "UninitBitErr7.bsv", line 2,
+  column 8.
+Error: "UninitBitErr7.bsv", line 3, column 11: (G0028)
+  `x[0]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "UninitBitErr7.bsv", line
+  8, column 8.
+  During elaboration of `sysUninitBitOK3' at "UninitBitErr7.bsv", line 2,
+  column 8.

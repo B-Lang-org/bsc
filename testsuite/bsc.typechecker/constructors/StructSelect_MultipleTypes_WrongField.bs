@@ -1,0 +1,23 @@
+package StructSelect_MultipleTypes_WrongField () where
+
+import List
+
+struct Bar =
+    field1 :: Bool
+    field2 :: Bool
+  deriving (Bits)
+
+struct Foo =
+    field1 :: Bool
+    field2 :: Bool
+  deriving (Bits)
+
+test :: Module Empty
+test =
+ module
+
+  inbounds :: List (Reg Foo)
+  inbounds <- mapM (const mkRegU) (upto 1 3)
+
+  let updateCounts n = (inbounds!!n).field1
+

@@ -1,0 +1,23 @@
+package Switch(Switch(..), RawSwitch(..), mkSwitch) where
+
+import ConfigReg
+
+interface Switch =
+    value :: Bool
+
+interface RawSwitch =
+    input :: Bool -> Action
+
+mkSwitch :: Module (RawSwitch, Switch)
+mkSwitch = 
+  do
+    state :: Reg Bool <- mkConfigRegU
+
+    return $
+	(interface RawSwitch
+	    input x = state := x
+	,interface Switch
+	    value = not state	-- switches are active low
+	)
+
+

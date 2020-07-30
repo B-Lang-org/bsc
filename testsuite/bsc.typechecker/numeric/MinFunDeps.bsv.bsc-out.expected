@@ -1,0 +1,18 @@
+checking package dependencies
+compiling MinFunDeps.bsv
+Error: "MinFunDeps.bsv", line 9, column 18: (T0079)
+  The following type variables:
+    b
+  are not uniquely determined by the following provisos:
+    Min#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(a) x1)
+  Rewrite the provisos so that there are no ambiguous variables.
+Error: "MinFunDeps.bsv", line 14, column 18: (T0079)
+  The following type variables:
+    a
+  are not uniquely determined by the following provisos:
+    Min#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(b) x1)
+  Rewrite the provisos so that there are no ambiguous variables.

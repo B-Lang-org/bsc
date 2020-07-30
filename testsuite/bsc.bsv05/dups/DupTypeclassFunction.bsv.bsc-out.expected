@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DupTypeclassFunction.bsv
+Error: "DupTypeclassFunction.bsv", line 3, column 22: (P0073)
+  Duplicate definition of function `foo' in typeclass `Foo'

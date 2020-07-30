@@ -1,0 +1,83 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_transition_assert_vunit (assert_transition_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_TRANSITION_P = always (
+           {reset_n && (test_expr == start_state)} |=>
+               { (test_expr == prev(start_state) ) ||
+                 (test_expr == prev(next_state) ) } );
+  
+  //Properties for X/Z checking
+
+  property ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && reset_n -> !isunknown(test_expr));
+
+  property ASSERT_TRANSITION_XZ_ON_START_STATE_P =
+           always( xzcheck_enable && reset_n -> !isunknown(start_state));
+
+  property ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P =
+           always( (xzcheck_enable && reset_n && (test_expr == start_state)) -> !isunknown(next_state));
+
+
+  A_ASSERT_TRANSITION_P:
+  assert ASSERT_TRANSITION_P
+  report "VIOLATION: ASSERT_TRANSITION Checker Fires: Test expression transitioned from value start_state to a value other than next_state";
+
+  A_ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_TRANSITION Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_TRANSITION_XZ_ON_START_STATE_P:
+  assert ASSERT_TRANSITION_XZ_ON_START_STATE_P
+  report "VIOLATION: ASSERT_TRANSITION Checker Fires: start_state contains X or Z";
+
+  A_ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P:
+  assert ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P
+  report "VIOLATION: ASSERT_TRANSITION Checker Fires: next_state contains X or Z";
+}
+
+vunit assert_transition_assume_vunit (assert_transition_assume)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_TRANSITION_P = always (
+           {reset_n && (test_expr == start_state)} |=>
+               { (test_expr == prev(start_state) ) ||          
+                 (test_expr == prev(next_state) ) } ); 
+
+  //Properties for X/Z checking
+
+  property ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable && reset_n -> !isunknown(test_expr));
+
+  property ASSERT_TRANSITION_XZ_ON_START_STATE_P =
+           always( xzcheck_enable && reset_n -> !isunknown(start_state));
+
+  property ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P =
+           always( (xzcheck_enable && reset_n && (test_expr == start_state)) -> !isunknown(next_state));
+
+  M_ASSERT_TRANSITION_P:
+  assume ASSERT_TRANSITION_P;
+
+  M_ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_TRANSITION_XZ_ON_TEST_EXPR_P;
+
+  M_ASSERT_TRANSITION_XZ_ON_START_STATE_P:
+  assume ASSERT_TRANSITION_XZ_ON_START_STATE_P;
+
+  M_ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P:
+  assume ASSERT_TRANSITION_XZ_ON_NEXT_STATE_P;
+}
+
+vunit assert_transition_cover_vunit (assert_transition_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_start_state:
+  cover {OVL_COVER_BASIC_ON && reset_n && test_expr == start_state}
+  report "COVERAGE REPORT : ASSERT_TRANSITION Checker: start_state covered";
+}
+ 

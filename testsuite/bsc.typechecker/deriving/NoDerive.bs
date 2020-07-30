@@ -1,0 +1,9 @@
+package NoDerive(sysNoDerive) where
+
+data Test = A Integer | B Bool
+  deriving(Eq,Bits)
+
+sysNoDerive :: Module Empty
+sysNoDerive = 
+  module
+    r :: Reg(Test) <- mkRegU

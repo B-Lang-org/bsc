@@ -1,0 +1,3 @@
+test.csh assertAlways2/assertAlways2.exp.copy
+copy "../std_ovl_defines.h" "std_ovl_defines.h"
+erase "std_ovl_defines.h"

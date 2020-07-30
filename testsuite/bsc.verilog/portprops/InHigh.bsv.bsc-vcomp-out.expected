@@ -1,0 +1,66 @@
+checking package dependencies
+compiling InHigh.bsv
+code generation for mkSub starts
+=== IOproperties:
+Name                         I/O  size props
+result                         O     1 reg
+CLK                            I     1 clock
+RST_N                          I     1 unused
+
+
+-----
+
+Verilog file created: mkSub.v
+code generation for mkTop starts
+Warning: "InHigh.bsv", line 26, column 11: (G0015)
+  Instance `s' requires the following method to be always enabled, but the
+  condition for executing the method could not be proven to be always True:
+    start
+  The behavior of the design will likely be incorrect if the method is not
+  enabled on every clock cycle.
+=== IOproperties:
+Name                         I/O  size props
+RDY_start                      O     1 const
+result                         O     1 reg
+RDY_result                     O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+EN_start                       I     1 inhigh
+
+
+-----
+
+Verilog file created: mkTop.v
+code generation for mkTest1 starts
+Warning: "InHigh.bsv", line 41, column 11: (G0015)
+  Instance `t' requires the following method to be always enabled, but the
+  condition for executing the method could not be proven to be always True:
+    start
+  The behavior of the design will likely be incorrect if the method is not
+  enabled on every clock cycle.
+=== IOproperties:
+Name                         I/O  size props
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: mkTest1.v
+code generation for mkTest2 starts
+Warning: "InHigh.bsv", line 51, column 11: (G0015)
+  Instance `t' requires the following method to be always enabled, but the
+  condition for executing the method could not be proven to be always True:
+    start
+  The behavior of the design will likely be incorrect if the method is not
+  enabled on every clock cycle.
+=== IOproperties:
+Name                         I/O  size props
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: mkTest2.v
+All packages are up to date.

@@ -1,0 +1,8 @@
+checking package dependencies
+compiling EWeakContext.bs
+Error: "EWeakContext.bs", line 33, column 0: (T0030)
+  Context too weak:
+  Prelude.Module (EWeakContext.Adder a)
+  needs [Prelude.Add 1 a (Prelude.TAdd a 1)]
+  given type:
+  Prelude.Module (EWeakContext.Adder b)

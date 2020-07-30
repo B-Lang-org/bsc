@@ -1,0 +1,14 @@
+Cycle Number =  0, Value written = 55, Full=0, Empty =1
+Cycle Number = 21, Value read = 55, Full =1, Empty =0
+Cycle Number = 41, Value Written = 60, Full =0, Empty =1
+Cycle Number = 60, Clearing FIFO
+Cycle Number = 62, Value Written = aa, Full =0, Empty =1
+Cycle Number = 81, Value read = aa, Full =1, Empty =0
+Simulation Passes
+Final state:
+top:
+  counter = 0x65
+  datafifo:
+    datafifo = EMPTY
+  fail = False
+  sizeoflist = 0x00

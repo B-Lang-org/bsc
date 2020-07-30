@@ -1,0 +1,308 @@
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          0 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          0 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          0 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          0 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          0 : 05
+LessThan: 0
+GreaterThan: 1
+Enqueueing          0 : 06
+Warning: top.dut_0 -- Enqueuing to a full fifo
+LessThan: 0
+GreaterThan: 1
+Dequeueing          0 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          0 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          0 : 03
+LessThan: 0
+GreaterThan: 1
+Dequeueing          0 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          0 : 05
+LessThan: 1
+GreaterThan: 0
+Dequeueing          0 : 01
+Warning: top.dut_0 -- Dequeuing from empty fifo
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          1 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          1 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          1 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          1 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          1 : 05
+LessThan: 0
+GreaterThan: 1
+Enqueueing          1 : 06
+Warning: top.dut_1 -- Enqueuing to a full fifo
+LessThan: 0
+GreaterThan: 1
+Dequeueing          1 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          1 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          1 : 03
+LessThan: 0
+GreaterThan: 1
+Dequeueing          1 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          1 : 05
+LessThan: 1
+GreaterThan: 0
+Dequeueing          1 : 01
+Warning: top.dut_1 -- Dequeuing from empty fifo
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          2 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          2 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          2 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          2 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          2 : 05
+LessThan: 0
+GreaterThan: 1
+Enqueueing          2 : 06
+Warning: top.dut_2 -- Enqueuing to a full fifo
+LessThan: 0
+GreaterThan: 1
+Dequeueing          2 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          2 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          2 : 03
+LessThan: 0
+GreaterThan: 1
+Dequeueing          2 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          2 : 05
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          3 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          3 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          3 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          3 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          3 : 05
+LessThan: 0
+GreaterThan: 1
+Enqueueing          3 : 06
+Warning: top.dut_3 -- Enqueuing to a full fifo
+LessThan: 0
+GreaterThan: 1
+Dequeueing          3 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          3 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          3 : 03
+LessThan: 0
+GreaterThan: 1
+Dequeueing          3 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          3 : 05
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          4 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          4 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          4 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          4 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          4 : 05
+LessThan: 0
+GreaterThan: 1
+LessThan: 0
+GreaterThan: 1
+Dequeueing          4 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          4 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          4 : 03
+LessThan: 1
+GreaterThan: 0
+Dequeueing          4 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          4 : 05
+LessThan: 1
+GreaterThan: 0
+Dequeueing          4 : 01
+Warning: top.dut_4 -- Dequeuing from empty fifo
+LessThan: 0
+GreaterThan: 1
+LessThan: 1
+GreaterThan: 0
+Enqueueing          5 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          5 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          5 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          5 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          5 : 05
+LessThan: 0
+GreaterThan: 1
+LessThan: 0
+GreaterThan: 1
+Dequeueing          5 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          5 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          5 : 03
+LessThan: 1
+GreaterThan: 0
+Dequeueing          5 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          5 : 05
+LessThan: 1
+GreaterThan: 0
+Dequeueing          5 : 01
+Warning: top.dut_5 -- Dequeuing from empty fifo
+LessThan: 0
+GreaterThan: 1
+LessThan: 1
+GreaterThan: 0
+Enqueueing          6 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          6 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          6 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          6 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          6 : 05
+LessThan: 0
+GreaterThan: 1
+LessThan: 0
+GreaterThan: 1
+Dequeueing          6 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          6 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          6 : 03
+LessThan: 1
+GreaterThan: 0
+Dequeueing          6 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          6 : 05
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0
+Enqueueing          7 : 01
+LessThan: 1
+GreaterThan: 0
+Enqueueing          7 : 02
+LessThan: 1
+GreaterThan: 0
+Enqueueing          7 : 03
+LessThan: 0
+GreaterThan: 1
+Enqueueing          7 : 04
+LessThan: 0
+GreaterThan: 1
+Enqueueing          7 : 05
+LessThan: 0
+GreaterThan: 1
+LessThan: 0
+GreaterThan: 1
+Dequeueing          7 : 01
+LessThan: 0
+GreaterThan: 1
+Dequeueing          7 : 02
+LessThan: 0
+GreaterThan: 1
+Dequeueing          7 : 03
+LessThan: 1
+GreaterThan: 0
+Dequeueing          7 : 04
+LessThan: 1
+GreaterThan: 0
+Dequeueing          7 : 05
+LessThan: 1
+GreaterThan: 0
+LessThan: 1
+GreaterThan: 0

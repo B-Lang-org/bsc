@@ -1,0 +1,5 @@
+package NoArgPlusOne () where
+
+x :: Bool Bool
+x = _
+

@@ -1,0 +1,31 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundTyVar1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a Syntax error (EUnboundTyVar)
+
+-- Error Message : bsc EUnboundTyVar1.bs
+-- bsc: Compilation errors:
+-- "EUnboundTyVar1.bs", line 30, column 39, Unbound type variable: "z"
+-----------------------------------------------------------------------
+package EUnboundTyVar1 (EUnboundTyVar1(..)) where
+
+-- import Int
+
+struct MyStruct z = a::(Int 32)
+                    b::(Int 32)
+                    c::(Int 32) 
+
+interface EUnboundTyVar1 =
+                         start :: Int 32
+                         end   :: Int 32
+
+mkEUnboundTyVar1 :: Module EUnboundTyVar1
+mkEUnboundTyVar1 =
+              module
+
+                    w :: Reg (MyStruct z)
+                    w <- mkRegU 

@@ -1,0 +1,6 @@
+if {$vtest == 1} {
+    compile_verilog_fail EStringNF.bs mkGCD
+##    compare_file EStringNF.bs.bsc-vcomp-out
+    find_n_error EStringNF.bs.bsc-vcomp-out G0012 1 
+##     compile_fail_error_warnings EStringNF.bs G0012 
+}

@@ -1,0 +1,7 @@
+checking package dependencies
+compiling DemoteTest3.bsv
+code generation for sysErrors starts
+Warning: Unknown position: (S0080)
+  1 warnings were suppressed.
+Error: Unknown position: (G0027)
+  The generated net id "m_x" conflicts with an instance of the same name.

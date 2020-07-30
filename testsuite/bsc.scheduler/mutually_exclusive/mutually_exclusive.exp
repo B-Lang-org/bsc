@@ -1,0 +1,56 @@
+# -----
+# Tests for the "mutually_exclusive" scheduling pragma
+
+# -----
+# Test when BSC can prove that the assertion is True
+
+if { $vtest == 1 } {
+compile_verilog_pass MutuallyExclusiveOK.bsv
+# XXX BSC shouldn't be generating logic to test this
+find_n_strings_bug mkMutuallyExclusiveOK.v "Error" 0 1847
+}
+
+# -----
+# Test when BSC can prove that the assertion is False
+
+#compile_verilog_fail_error MutuallyExclusiveNotOK.bsv G0061
+compile_verilog_fail_bug MutuallyExclusiveNotOK.bsv {} 1847
+
+# -----
+# Test when BSC cannot prove the assertion True or False at compile-time
+# (because the conditions are not exclusive, but some state values may not
+# trigger both rules, so it's possible for the rules to be exclusive in
+# execution, which is beyond the scope of BSC's checks)
+
+# Test that an execution-time error is given if the two rules
+# can fire in the same clock cycle
+test_c_veri_bsv MutuallyExclusiveCheck
+
+# Test that if the execution never triggers both rules in the same
+# clock cycle, that no error is given
+test_c_veri_bsv MutuallyExclusiveCheckOK
+
+# -----
+# Test for when Bluesim can't check for execution-time errors
+# because Bluesim invalidated the WF of the later rule (Bug 1327)
+
+test_c_veri_bsv MutuallyExclusiveBug1327 "" 1327
+
+# -----
+# Tests for interaction of mutually_exclusive and execution_order
+
+# execution order should not trump deduced exclusiveness
+# if it did, you'd get an urgency warning here
+compile_verilog_pass_no_warning MEExecOrder1.bsv
+
+# both rules should execute and you should get the 
+# mutually exclusive error in simulation
+test_c_veri_bsv MEExecOrder2
+
+# -----
+# test how trivial attributes are handled
+
+compile_verilog_pass_warning MESingleton.bsv G0010
+
+# -----
+

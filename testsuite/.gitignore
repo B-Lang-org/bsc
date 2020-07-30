@@ -1,0 +1,75 @@
+# Makefile
+all_tests.mk
+
+# Testsuite
+bsc.sum
+bsc.log.*
+testrun.sum
+groups.list
+testrun.html
+
+# BSC objects
+*.bo
+*.ba
+
+# C/C++ objects
+*.o
+*.so
+
+# Generated code for imported C
+imported_BDPI_functions.h
+vpi_*.c
+vpi_*.h
+
+# Generated Verilog with standard names
+mk*.v
+sys*.v
+module_*.v
+
+# Generated Bluesim with standard names
+mk*.h
+sys*.h
+mk*.cxx
+sys*.cxx
+model_mk*.h
+model_sys*.h
+model_mk*.cxx
+model_sys*.cxx
+schedule.h
+schedule.cxx
+module_*.h
+module_*.cxx
+
+# Simulation executables
+*.cexe
+*.vexe
+*.syscexe
+
+# Captured or processed output
+*.out
+*-out
+*.filtered
+*.sorted
+*.post-m4
+*.sched
+*.log
+
+# BSC stage dumps
+*.atsexpand
+*.expandif
+*.dump
+
+# Versions of output files generated with specific flags
+*.no-inline-inout
+*.no-inline-reg
+*.inline-reg
+
+# VCD dumps
+*.vcd
+
+# ModelSim/Questa output
+transcript
+work_*
+
+# Editor backup files
+*~

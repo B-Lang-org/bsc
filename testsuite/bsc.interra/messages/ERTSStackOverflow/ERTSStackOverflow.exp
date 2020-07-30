@@ -1,0 +1,4 @@
+compile_verilog_fail ERTSStackOverflow1.bs mkERTSStackOverflow1 {+RTS -K1M -RTS}
+if { $vtest == 1 } {
+find_n_strings ERTSStackOverflow1.bs.bsc-vcomp-out "Stack space overflow" 1
+}

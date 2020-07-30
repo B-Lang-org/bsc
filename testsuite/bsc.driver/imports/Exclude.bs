@@ -1,0 +1,10 @@
+package Exclude hiding (a) where
+
+a :: Integer
+a = 5
+
+b :: Integer
+b = 7
+
+c :: Integer
+c = a * b

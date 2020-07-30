@@ -1,0 +1,16 @@
+Sum of Numbers 0 to 9 =  45
+Simulation Passes
+Final state:
+top:
+  the_counter = 0x0b
+  the_dut_the_my_list_rs = 0x09
+  the_dut_the_my_list_rs_1 = 0x08
+  the_dut_the_my_list_rs_2 = 0x07
+  the_dut_the_my_list_rs_3 = 0x06
+  the_dut_the_my_list_rs_4 = 0x05
+  the_dut_the_my_list_rs_5 = 0x04
+  the_dut_the_my_list_rs_6 = 0x03
+  the_dut_the_my_list_rs_7 = 0x02
+  the_dut_the_my_list_rs_8 = 0x01
+  the_dut_the_my_list_rs_9 = 0x00
+  the_test_counter = 0x2d

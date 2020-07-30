@@ -1,0 +1,34 @@
+package NamingNestedWhens ( sysNamingNestedWhens ) where
+
+sysNamingNestedWhens :: Module Empty
+sysNamingNestedWhens =
+    module
+	a :: Reg Bool
+	a <- mkReg True
+	b :: Reg Bool
+	b <- mkReg False
+        rules
+    
+          "tag1":
+	    when a 
+	     rules {
+    
+	       "tag2":
+	         when b
+	           ==> a := not a;
+    
+	       "tag3":
+	         when not b
+	           ==> b := not b;
+            };
+    
+            when not a 
+	     rules {
+    
+	       "tag4":
+                 when b
+                   ==> b := not a;
+    
+                 when not b
+                   ==> a := b;
+	    }

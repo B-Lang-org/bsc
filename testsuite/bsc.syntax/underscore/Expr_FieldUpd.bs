@@ -1,0 +1,8 @@
+package Expr_FieldUpd () where
+
+struct S =
+  f :: Bool
+
+x :: S
+x = _ { f = True }
+

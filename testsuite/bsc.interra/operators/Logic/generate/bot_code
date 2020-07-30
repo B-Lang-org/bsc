@@ -1,0 +1,266 @@
+ initial
+ cnt<=$random(seed);
+
+ wire [128:0] Or;
+ wire [127:0] Or_127;
+ wire [126:0] Or_126;
+ wire [96:0] Or_96;
+ wire [95:0] Or_95;
+ wire [94:0] Or_94;
+ wire [64:0] Or_64;
+ wire [63:0] Or_63;
+ wire [62:0] Or_62;
+ wire [32:0] Or_32;
+ wire [31:0] Or_31;
+ wire [30:0] Or_30;
+ wire [1:0] Or_1;
+ wire Or_0;
+  
+  
+ wire [128:0] Nor;
+ wire [127:0] Nor_127;
+ wire [126:0] Nor_126;
+ wire [96:0] Nor_96;
+ wire [95:0] Nor_95;
+ wire [94:0] Nor_94;
+ wire [64:0] Nor_64;
+ wire [63:0] Nor_63;
+ wire [62:0] Nor_62;
+ wire [32:0] Nor_32;
+ wire [31:0] Nor_31;
+ wire [30:0] Nor_30;
+ wire [1:0] Nor_1;
+ wire Nor_0;
+  
+ 
+ wire [128:0] And;
+ wire [127:0] And_127;
+ wire [126:0] And_126;
+ wire [96:0] And_96;
+ wire [95:0] And_95;
+ wire [94:0] And_94;
+ wire [64:0] And_64;
+ wire [63:0] And_63;
+ wire [62:0] And_62;
+ wire [32:0] And_32;
+ wire [31:0] And_31;
+ wire [30:0] And_30;
+ wire [1:0] And_1;
+ wire And_0;
+ 
+
+ wire [128:0] Inv;
+ wire [127:0] Inv_127;
+ wire [126:0] Inv_126;
+ wire [96:0] Inv_96;
+ wire [95:0] Inv_95;
+ wire [94:0] Inv_94;
+ wire [64:0] Inv_64;
+ wire [63:0] Inv_63;
+ wire [62:0] Inv_62;
+ wire [32:0] Inv_32;
+ wire [31:0] Inv_31;
+ wire [30:0] Inv_30;
+ wire [1:0] Inv_1;
+ wire Inv_0;
+
+
+ wire [128:0] Xor;
+ wire [127:0] Xor_127;
+ wire [126:0] Xor_126;
+ wire [96:0] Xor_96;
+ wire [95:0] Xor_95;
+ wire [94:0] Xor_94;
+ wire [64:0] Xor_64;
+ wire [63:0] Xor_63;
+ wire [62:0] Xor_62;
+ wire [32:0] Xor_32;
+ wire [31:0] Xor_31;
+ wire [30:0] Xor_30;
+ wire [1:0] Xor_1;
+ wire Xor_0;
+
+
+ wire [128:0] Xnor;
+ wire [127:0] Xnor_127;
+ wire [126:0] Xnor_126;
+ wire [96:0] Xnor_96;
+ wire [95:0] Xnor_95;
+ wire [94:0] Xnor_94;
+ wire [64:0] Xnor_64;
+ wire [63:0] Xnor_63;
+ wire [62:0] Xnor_62;
+ wire [32:0] Xnor_32;
+ wire [31:0] Xnor_31;
+ wire [30:0] Xnor_30;
+ wire [1:0] Xnor_1;
+ wire Xnor_0;
+
+
+
+ assign  Or = (a|b);
+ assign  Or_127 = (a[127:0]|b[127:0]);
+ assign  Or_126 = (a[126:0]|b[126:0]);
+ assign  Or_96 = (a[96:0]|b[96:0]);
+ assign  Or_95 = (a[95:0]|b[95:0]);
+ assign  Or_94 = (a[94:0]|b[94:0]);
+ assign  Or_64 = (a[64:0]|b[64:0]);
+ assign  Or_63 = (a[63:0]|b[63:0]);
+ assign  Or_62 = (a[62:0]|b[62:0]);
+ assign  Or_32 = (a[32:0]|b[32:0]);
+ assign  Or_31 = (a[31:0]|b[31:0]);
+ assign  Or_30 = (a[30:0]|b[30:0]);
+ assign  Or_1 = (a[1:0]|b[1:0]);
+ assign  Or_0 = (a[0]|b[0]);
+  
+
+ assign  And = (a&b);
+ assign  And_127 = (a[127:0]&b[127:0]);
+ assign  And_126 = (a[126:0]&b[126:0]);
+ assign  And_96 = (a[96:0]&b[96:0]);
+ assign  And_95 = (a[95:0]&b[95:0]);
+ assign  And_94 = (a[94:0]&b[94:0]);
+ assign  And_64 = (a[64:0]&b[64:0]);
+ assign  And_63 = (a[63:0]&b[63:0]);
+ assign  And_62 = (a[62:0]&b[62:0]);
+ assign  And_32 = (a[32:0]&b[32:0]);
+ assign  And_31 = (a[31:0]&b[31:0]);
+ assign  And_30 = (a[30:0]&b[30:0]);
+ assign  And_1 = (a[1:0]&b[1:0]);
+ assign  And_0 = (a[0]&b[0]);
+ 
+
+ assign  Inv = ~a;
+ assign  Inv_127 = ~a[127:0];
+ assign  Inv_126 = ~a[126:0];
+ assign  Inv_96 = ~a[96:0];
+ assign  Inv_95 = ~a[95:0];
+ assign  Inv_94 = ~a[94:0];
+ assign  Inv_64 = ~a[64:0];
+ assign  Inv_63 = ~a[63:0];
+ assign  Inv_62 = ~a[62:0];
+ assign  Inv_32 = ~a[32:0];
+ assign  Inv_31 = ~a[31:0];
+ assign  Inv_30 = ~a[30:0];
+ assign  Inv_1 = ~a[1:0];
+ assign  Inv_0 = ~a[0];
+ 
+
+ assign  Xor = (a^b);
+ assign  Xor_127 = (a[127:0]^b[127:0]);
+ assign  Xor_126 = (a[126:0]^b[126:0]);
+ assign  Xor_96 = (a[96:0]^b[96:0]);
+ assign  Xor_95 = (a[95:0]^b[95:0]);
+ assign  Xor_94 = (a[94:0]^b[94:0]);
+ assign  Xor_64 = (a[64:0]^b[64:0]);
+ assign  Xor_63 = (a[63:0]^b[63:0]);
+ assign  Xor_62 = (a[62:0]^b[62:0]);
+ assign  Xor_32 = (a[32:0]^b[32:0]);
+ assign  Xor_31 = (a[31:0]^b[31:0]);
+ assign  Xor_30 = (a[30:0]^b[30:0]);
+ assign  Xor_1 = (a[1:0]^b[1:0]);
+ assign  Xor_0 = (a[0]^b[0]);
+ 
+
+ assign  Xnor = ~(a^b);
+ assign  Xnor_127 = ~(a[127:0]^b[127:0]);
+ assign  Xnor_126 = ~(a[126:0]^b[126:0]);
+ assign  Xnor_96 = ~(a[96:0]^b[96:0]);
+ assign  Xnor_95 = ~(a[95:0]^b[95:0]);
+ assign  Xnor_94 = ~(a[94:0]^b[94:0]);
+ assign  Xnor_64 = ~(a[64:0]^b[64:0]);
+ assign  Xnor_63 = ~(a[63:0]^b[63:0]);
+ assign  Xnor_62 = ~(a[62:0]^b[62:0]);
+ assign  Xnor_32 = ~(a[32:0]^b[32:0]);
+ assign  Xnor_31 = ~(a[31:0]^b[31:0]);
+ assign  Xnor_30 = ~(a[30:0]^b[30:0]);
+ assign  Xnor_1 = ~(a[1:0]^b[1:0]);
+ assign  Xnor_0 = ~(a[0]^b[0]);
+
+
+ always @(posedge CLK)
+ begin
+     if(vectors==12) $finish;
+     a <= {cnt[0],$random,$random,$random,$random};
+     b <= {cnt[1],$random,$random,$random,$random};
+     cnt <= cnt + 1;
+	 vectors <= vectors + 1;
+	 $write("129\'b%b 129\'b%b 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b",a,b,Or,
+Or_127,
+Or_126,
+Or_96,
+Or_95,
+Or_94,
+Or_64,
+Or_63,
+Or_62,
+Or_32,
+Or_31,
+Or_30,
+Or_1,
+Or_0,
+And,
+And_127,
+And_126,
+And_96,
+And_95,
+And_94,
+And_64,
+And_63,
+And_62,
+And_32,
+And_31,
+And_30,
+And_1,
+And_0);
+	
+	 $write(" 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b",Inv,
+Inv_127,
+Inv_126,
+Inv_96,
+Inv_95,
+Inv_94,
+Inv_64,
+Inv_63,
+Inv_62,
+Inv_32,
+Inv_31,
+Inv_30,
+Inv_1,
+Inv_0);
+
+	 $write(" 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b 129\'b%b 128\'b%b 127\'b%b 97\'b%b 96\'b%b 95\'b%b 65\'b%b 64\'b%b 63\'b%b 33\'b%b 32\'b%b 31\'b%b 2\'b%b 1\'b%b\n",Xor,
+Xor_127,
+Xor_126,
+Xor_96,
+Xor_95,
+Xor_94,
+Xor_64,
+Xor_63,
+Xor_62,
+Xor_32,
+Xor_31,
+Xor_30,
+Xor_1,
+Xor_0,
+Xnor,
+Xnor_127,
+Xnor_126,
+Xnor_96,
+Xnor_95,
+Xnor_94,
+Xnor_64,
+Xnor_63,
+Xnor_62,
+Xnor_32,
+Xnor_31,
+Xnor_30,
+Xnor_1,
+Xnor_0);
+
+	 
+	 
+ end
+
+ endmodule
+

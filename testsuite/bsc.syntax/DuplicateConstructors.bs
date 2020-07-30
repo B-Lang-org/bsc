@@ -1,0 +1,22 @@
+package DuplicateConstructors ( mkDuplicateConstructors ) where
+
+type IPAddress = Bit 32
+type SRIValue = Bit 32
+
+data BufferEntry1 = Done SRIValue
+		  | Working IPAddress SRIValue
+		  deriving (Bits)
+
+data BufferEntry2 = Done SRIValue
+		  | Working
+		  deriving (Bits)
+
+mkDuplicateConstructors :: Module Empty
+mkDuplicateConstructors =
+    module
+	r :: Reg BufferEntry1
+	r <- mkRegU
+
+        rules
+	    when (Done x) <- r
+	      ==> r := Working _ _

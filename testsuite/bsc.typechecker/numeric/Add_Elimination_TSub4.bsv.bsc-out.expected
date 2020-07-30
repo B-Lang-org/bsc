@@ -1,0 +1,17 @@
+checking package dependencies
+compiling Add_Elimination_TSub4.bsv
+Error: "Add_Elimination_TSub4.bsv", line 1, column 15: (T0065)
+  The provisos for this expression are too general.
+  Given type:
+    function Bool f(Bit#(x) x1, Bit#(y) x2, Bit#(z) x3)
+  With the following provisos:
+    Add#(z, _2, x)
+  The following additional proviso is needed:
+    Add#(a__, TSub#(TAdd#(2, TAdd#(TAdd#(x, y), 2)), z), TAdd#(2,
+    TAdd#(TAdd#(x, z), 2)))
+  This proviso was introduced by an extend or truncate operation, which
+  requires that the extended size be larger.
+  The extend or truncate occurs in or at the following locations:
+    "Add_Elimination_TSub4.bsv", line 10, column 10
+  The proviso could also be deduced from the following information:
+    Add#(z, z, TAdd#(y, a__))

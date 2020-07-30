@@ -1,0 +1,5 @@
+Value Written =  15 time =                   10 counter =   0
+Value Written =  16 time =                   20 counter =   1
+Value read =  15 time =                   30 counter =   2
+Value read =  16 time =                   40 counter =   3
+Simulation Passes

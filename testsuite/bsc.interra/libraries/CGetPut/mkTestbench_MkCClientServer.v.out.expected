@@ -1,0 +1,29 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number =   2, Value read =   0
+Cycle Number:   4, Writing Data:   1
+Cycle Number =   6, Value read =   1
+Cycle Number:   8, Writing Data:   2
+Cycle Number =  16, Value read =   2
+Cycle Number:  18, Writing Data:   3
+Cycle Number =  20, Value read =   3
+Cycle Number:  61, Writing Data:   4
+Cycle Number =  63, Value read =   4
+Cycle Number:  65, Writing Data:   5
+Cycle Number =  67, Value read =   5
+Cycle Number:  69, Writing Data:   6
+Cycle Number =  71, Value read =   6
+Cycle Number:  73, Writing Data:   7
+Cycle Number =  75, Value read =   7
+Cycle Number:  77, Writing Data:   8
+Cycle Number =  79, Value read =   8
+Cycle Number:  81, Writing Data:   9
+Cycle Number =  83, Value read =   9
+Cycle Number:  85, Writing Data:  10
+Cycle Number =  87, Value read =  10
+Cycle Number:  89, Writing Data:  11
+Cycle Number =  91, Value read =  11
+Cycle Number:  93, Writing Data:  12
+Cycle Number =  95, Value read =  12
+Cycle Number:  97, Writing Data:  13
+Cycle Number =  99, Value read =  13
+Simulation Passes

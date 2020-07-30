@@ -1,0 +1,21 @@
+# test generation of names for vectors
+global vtest
+
+if { $vtest == 1 } {
+  compile_verilog_pass one.bsv
+  string_does_not_occur mkTest.v unnamed
+  string_occurs mkTest.v elements
+  string_occurs mkTest.v elements_5
+
+  compile_verilog_pass two.bsv
+  string_does_not_occur mkTest.v unnamed
+  string_occurs mkTest.v elements
+  string_occurs mkTest.v elements_5
+  string_occurs mkTest.v vals
+
+  compile_verilog_pass nested.bsv
+  string_does_not_occur mkTest.v unnamed
+  string_occurs mkTest.v elements
+  string_occurs mkTest.v elements_5_2
+}
+

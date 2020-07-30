@@ -1,0 +1,41 @@
+# Tests for type checking foreign module import
+
+compile_fail_error ForeignModMethodTooManyPorts.bsv T0057
+# There are two ways to trigger this error
+compile_fail_error ForeignModMethodTooFewPorts.bsv P0151
+compile_fail_error ForeignModMethodTooFewPorts2.bsv T0058
+
+compile_fail_error_bug ForeignModMethodBadArg.bsv T0055 772
+compile_fail_error_bug ForeignModMethodBadRes.bsv T0056 662
+
+compile_pass ForeignModMethodNoArgReadResOK.bsv
+compile_pass ForeignModMethodBitArgBitResOK.bsv
+compile_pass ForeignModMethodBitArgActionResOK.bsv
+
+compile_fail_error ForeignModMissingValuePort.bsv T0075
+compile_fail_error ForeignModMissingEnablePort.bsv T0076
+compile_fail_error ForeignModUnexpectedValuePort.bsv T0077 2
+compile_fail_error ForeignModUnexpectedEnablePort.bsv T0078 2
+
+compile_fail_error ForeignModNotClockType.bsv T0100
+compile_fail_error ForeignModNotResetType.bsv T0101
+compile_fail_error ForeignModClockHasArgs.bsv T0102
+compile_fail_error ForeignModResetHasArgs.bsv T0103
+
+compile_fail_error ForeignModNotField.bsv T0104
+compile_fail_error ForeignModMissingField.bsv T0105
+
+compile_fail_error ForeignModBadResetClock.bsv P0134
+
+# Test the reporting of an incorrect subinterface field
+# XXX it is reported as "s_m" not "s.m"
+compile_fail_error ForeignModNotSubField.bsv T0104
+
+# GenWrap uses the same func to check args as results, and thus a Clock
+# appears as an OK arg, but is caught in typecheck.
+# XXX should just use separate functions for checking args and results
+compile_fail_error ForeignModClockArg.bsv T0055
+
+# Test that a polymorphic sub-ifc compiles
+compile_pass ForeignModPolySubIfc.bsv
+

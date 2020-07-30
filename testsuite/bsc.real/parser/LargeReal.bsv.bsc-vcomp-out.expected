@@ -1,0 +1,9 @@
+checking package dependencies
+compiling LargeReal.bsv
+code generation for sysLargeReal starts
+Compilation message: "LargeReal.bsv", line 15, column 20: inf = Infinity
+Compilation message: "LargeReal.bsv", line 16, column 21: zero = 0.0
+Compilation message: "LargeReal.bsv", line 17, column 21: inf2 = Infinity
+Compilation message: "LargeReal.bsv", line 18, column 22: zero2 = 0.0
+Verilog file created: sysLargeReal.v
+All packages are up to date.

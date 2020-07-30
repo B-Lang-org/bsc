@@ -1,0 +1,10 @@
+b is False
+l[1]: 4
+List is equal
+l2[2] = 17
+l2 is not equal
+b is True
+l[1]: 1
+List is equal
+l2[2] = 17
+l2 is not equal

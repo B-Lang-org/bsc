@@ -1,0 +1,74 @@
+checking package dependencies
+compiling AVArgUse_SBR.bsv
+code generation for mkAVArgUse_SBR starts
+=== schedule:
+parallel: [esposito: [m -> []]]
+order: [m]
+
+-----
+
+=== resources:
+[(rg.write, [(rg.write m_a_EQ_m_b___d1, 1)]), (rg2.read, [(rg2.read, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_m CF [RDY_m, m], m SBR m] [] [] []
+
+-----
+
+Schedule dump file created: mkAVArgUse_SBR.sched
+=== Generated schedule for mkAVArgUse_SBR ===
+
+Method schedule
+---------------
+Method: m
+Ready signal: True
+Sequenced before (restricted): m
+ 
+Logical execution order: m
+
+==============================================
+Verilog file created: mkAVArgUse_SBR.v
+code generation for sysAVArgUse_SBR starts
+Warning: "AVArgUse_SBR.bsv", line 22, column 8: (G0117)
+  Rule `rA' shadows the effects of `rB' when they execute in the same clock
+  cycle. Affected method calls:
+    dut.m
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+=== schedule:
+parallel: [esposito: [RL_rA -> [], RL_rB -> []]]
+order: [RL_rB, RL_rA]
+
+-----
+
+=== resources:
+[(dut.m, [(dut.m b__h178 32'd1, 1), (dut.m 32'd5 b__h178, 1)]),
+ (r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write r1_PLUS_1___d4, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysAVArgUse_SBR.sched
+=== Generated schedule for sysAVArgUse_SBR ===
+
+Rule schedule
+-------------
+Rule: rA
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: rB
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: rB, rA
+
+===============================================
+Verilog file created: sysAVArgUse_SBR.v
+All packages are up to date.

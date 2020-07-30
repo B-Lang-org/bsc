@@ -1,0 +1,43 @@
+checking package dependencies
+compiling IfcRuleWarning.bsv
+code generation for sysIfcRuleWarning starts
+Warning: "IfcRuleWarning.bsv", line 6, column 8: (G0010)
+  Rule "bar" was treated as more urgent than "baz". Conflicts:
+    "bar" cannot fire before "baz": calls to the_r.write vs. the_r.read
+    "baz" cannot fire before "bar": calls to the_r.write vs. the_r.read
+=== schedule:
+parallel: [esposito: [bar -> [], RL_baz -> [bar]]]
+order: [bar, RL_baz]
+
+-----
+
+=== resources:
+[(the_r.read, [(the_r.read, 1)]), (the_r.write, [(the_r.write x__h97, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_bar CF [RDY_bar, bar], bar C bar] [] [] []
+
+-----
+
+Schedule dump file created: sysIfcRuleWarning.sched
+=== Generated schedule for sysIfcRuleWarning ===
+
+Method schedule
+---------------
+Method: bar
+Ready signal: True
+Conflicts: bar
+ 
+Rule schedule
+-------------
+Rule: baz
+Predicate: True
+Blocking rules: bar
+ 
+Logical execution order: bar, baz
+
+=================================================
+Verilog file created: sysIfcRuleWarning.v
+All packages are up to date.

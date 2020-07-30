@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail EBigLiteral.bs mkGCD
+compare_file EBigLiteral.bs.bsc-vcomp-out
+}

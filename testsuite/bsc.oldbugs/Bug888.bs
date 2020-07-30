@@ -1,0 +1,29 @@
+package Bug888(sysBug888) where
+
+data Test = Test0 | Test1  deriving (Bits)
+
+sysBug888 :: Module Empty
+sysBug888 =
+    module
+        test :: Reg Test <- mkReg Test0
+        r :: Reg (Bool) <- mkReg False
+
+        rules
+          when Test0 <- test ==>
+             action {
+                  $write "Here!!\n";
+                  test:=Test1;
+                }
+
+          when Test1 <- test ==>
+             action {
+                  $write "There!!\n";
+                  test:=Test0;
+                }
+
+          when True ==>
+             action {
+                  r := True;
+                  $write "Tick... __";
+                  $write "__...\n";
+                }

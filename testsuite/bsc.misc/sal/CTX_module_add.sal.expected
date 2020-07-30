@@ -1,0 +1,6 @@
+CTX_module_add : CONTEXT =
+BEGIN
+  
+  fn (arg_add_x, arg_add_y : Bit{51}!T) : Bit{51}!T = Prim1{51}!primAdd(arg_add_x, arg_add_y) ;
+  
+END

@@ -1,0 +1,6 @@
+compile_verilog_pass Test.bsv
+if { $vtest == 1 } {
+string_does_not_occur sysTest.v {%}
+string_occurs sysTest.v {assign m$D_IN = { 4'd0, r[3:0] } ;}
+string_occurs sysTest.v {assign r$D_IN = r >> 4 ;}
+}

@@ -1,0 +1,10 @@
+checking package dependencies
+compiling IntUninit.bsv
+code generation for mkListNIntUninitErr starts
+Error: "IntUninit.bsv", line 7, column 23: (G0028)
+  `x[1]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "IntUninit.bsv", line 10,
+  column 9.
+  During elaboration of `mkListNIntUninitErr' at "IntUninit.bsv", line 6,
+  column 8.

@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EUnboundVar.bs
+Warning: "EUnboundVar.bs", line 45, column 21: (P0223)
+  Definition of `iy' is not used.
+Error: "EUnboundVar.bs", line 47, column 35: (T0004)
+  Unbound variable `iz'

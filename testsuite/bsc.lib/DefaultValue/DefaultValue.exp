@@ -1,0 +1,9 @@
+
+test_c_veri_bsv DefaultValueTest
+
+# Test the error message when a type does not have an instance
+# (specifically, test that the catch-all instance doesn't lead
+# to a confusing error about no Literal instance)
+#
+compile_fail DefaultValue_NoInstance.bsv
+compare_file DefaultValue_NoInstance.bsv.bsc-out

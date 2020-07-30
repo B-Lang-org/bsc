@@ -1,0 +1,61 @@
+package Design (mkDesign,Design_IFC(..)) where
+
+
+data FsmStates = ST_READ | ST_WRITE | ST_DELAY
+                 deriving (Eq,Bits)
+
+interface Design_IFC = 
+--here the order is slowRam and then action
+   start ::  Bit 1 -> Action  {-# arg_names = [slowRam] #-}
+   read  ::  Bit 1
+   write ::  Bit 1
+
+{-# properties mkDesign = {
+       alwaysReady ,
+--       alwaysEnabled,
+verilog,
+       CLK = clk,
+       RSTN = reset
+--       name start._1   = slowRam ,
+--       name read       = read,
+--       name write      = write
+} #-}
+
+
+mkDesign :: Module Design_IFC
+mkDesign =
+    module
+       currentState      :: Reg FsmStates  <- mkRegU -- ST_READ
+       nextState         :: Reg FsmStates  <- mkRegU
+       read_reg          :: Reg (Bit 1)    <- mkRegU -- 0b1
+       write_reg         :: Reg (Bit 1)    <- mkRegU -- 0b0
+       slowRam_reg       :: Reg (Bit 1)    <- mkRegU
+        
+       interface
+          start slowRam = action
+                            slowRam_reg := slowRam
+          read  = read_reg
+          write = write_reg
+       
+       rules
+           "READ":       
+            when (currentState == ST_READ )
+           
+             ==> action { read_reg := 1; write_reg := 0;currentState := ST_WRITE;}
+
+           "WRITE":
+
+            when (currentState  ==  ST_WRITE)
+             ==> if(slowRam_reg == 1) 
+                 then action {  read_reg := 0; write_reg := 1 ; currentState :=
+ST_DELAY;}
+                 else action {  read_reg := 0; write_reg := 1 ; currentState :=
+ST_READ;}
+
+           "DELAY":
+
+            when (currentState == ST_DELAY)
+             ==> action { read_reg := 0; write_reg := 0 ;  currentState := ST_READ;} 
+
+           --when (currentState == _)
+             -- ==> action { read_reg := 0 ; write_reg  := 0; currentState := ST_READ;}

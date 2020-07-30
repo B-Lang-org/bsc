@@ -1,0 +1,275 @@
+#
+# Tests for relaxed restrictions on method earliness and urgency
+# (relative to rules)
+#
+# Relaxed method urgency is always on. Relaxed method earliness
+# is on by default, but can be disabled with a flag.
+#
+# See bugs 345 & 825
+#
+
+# Also other scheduling quirks/bugs (see below)
+
+# ---------------
+
+# The flags used in the following tests.
+# (1) -relax-method-earliness (even though it's the default)
+set rs_flags {-relax-method-earliness}
+
+# Three methods which are SB, but the first and third are CF
+# (they become SB when all three are used); no change with -relax-method-earliness
+compile_verilog_schedule_pass Ex1.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids Ex1.bsv.bsc-sched-out
+}
+
+# A rule in between which should make the methods SBR
+compile_verilog_schedule_pass Ex2.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids Ex2.bsv.bsc-sched-out
+}
+
+# Three methods, with a rule in between two pairs;
+# The end pairs should be CF because they are not directly sequenced
+# by rules (this is like "a CF c" in Ex1)
+compile_verilog_schedule_pass Ex3.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids Ex3.bsv.bsc-sched-out
+}
+
+# Try five rules between two methods
+compile_verilog_schedule_pass Ex4.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids Ex4.bsv.bsc-sched-out
+}
+
+# Three methods in a cycle, which is broken; should be no change
+# with -relax-method-earliness, and method annotations should take the drop
+# into account
+compile_verilog_schedule_pass Ex5.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids Ex5.bsv.bsc-sched-out
+}
+
+# Test that value methods are properly handled.  (The previous tests are
+# all for interactions between two action methods.)
+# This test should find that "a SBR b" and thus rule "poke" before "yell"
+compile_verilog_schedule_pass ValueMethodEx1.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids ValueMethodEx1.bsv.bsc-sched-out
+}
+
+# Test that two value methods can become SBR in relation to each other.
+compile_verilog_schedule_pass ValueMethodEx2.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids ValueMethodEx2.bsv.bsc-sched-out
+}
+
+# Test that two methods are changed to SBR from CF not only based on
+# the SC graph, but the combined earliness and urgency graph.
+compile_verilog_schedule_pass SeqEx1.bsv "" $rs_flags
+if {$vtest == 1 } {
+compare_file_filter_ids SeqEx1.bsv.bsc-sched-out
+}
+
+# ---------------
+
+# These tests check that urgency edges for methods-vs-rules are only
+# added when the method and rule actually conflict.
+
+# Test urgency handling for loopy FIFO
+compile_verilog_schedule_pass PutUrgency.bsv
+if {$vtest == 1 } {
+compare_file_filter_ids PutUrgency.bsv.bsc-sched-out
+}
+
+# Test urgency handling for bypass FIFO
+compile_verilog_schedule_pass GetUrgency.bsv
+if {$vtest == 1 } {
+compare_file_filter_ids GetUrgency.bsv.bsc-sched-out
+}
+
+# Test urgency handling for UT Austin testcase (see bug 345)
+compile_verilog_schedule_pass IBuffer2.bsv
+if {$vtest == 1 } {
+compare_file_filter_ids IBuffer2.bsv.bsc-sched-out
+}
+
+# Test that PutUrgency2 does compile despite the conflict
+compile_verilog_schedule_pass PutUrgency2.bsv
+if {$vtest == 1 } {
+compare_file_filter_ids PutUrgency2.bsv.bsc-sched-out
+}
+
+# ---------------
+
+# Tests for bug 1345:
+# The scheduling relationship between two methods needs to account for
+# the fact that the parent rule may conditionally execute the method
+# (depending on logic in the body of the method).  That means that
+# scheduling of the method depends on execution of the rule -- so the
+# method's relationship needs to be computed starting from the Sched node
+# and not just the Exec node.
+
+if { $ctest == 1 } {
+compile_object_pass MethodSched_Action.bsv {} {-dvschedinfo}
+find_regexp [make_bsc_ccomp_output_name MethodSched_Action.bsv] \
+    {\[m1\, m2\] SBR m2}
+# confirm that merging the schedules doesn't fail
+link_objects_pass {sysMethodSched_Action mkMethodSched_Action_Sub} \
+    sysMethodSched_Action
+
+compile_object_pass MethodSched_Value.bsv {} {-dvschedinfo}
+find_regexp [make_bsc_ccomp_output_name MethodSched_Value.bsv] \
+    {incr SBR get}
+# confirm that merging the schedules doesn't fail
+link_objects_pass {sysMethodSched_Value mkMethodSched_Value_Sub} \
+    sysMethodSched_Value
+}
+
+# ---------------
+
+# Tests for bug 1363:
+# If there is a path other than via the direct edge, then this causes
+# problems when merging schedules, because the two nodes collapse into
+# the exec node of the calling rule.  For now, we error on this condition,
+# rather than try to record it and only error when the parent module uses
+# the method conditionally inside a rule (with a condition that cannot
+# be lifted).
+
+compile_verilog_fail_error MethodSchedToExec.bsv G0095
+compile_verilog_fail_error MethodSchedToExec_SecondMethod.bsv G0095
+# XXX do more checking of the contents of the error message?
+
+# ---------------
+
+# Tests for bug 1362:
+# If a rule calls two methods with a rule that executes between them,
+# Verilog's separate schedulers are OK, but Bluesim's merging of the
+# schedules fails.
+
+# Test that compilation for the Bluesim backend fails
+compile_object_fail_error RuleBetweenMethods.bsv G0096
+# Test that compilation for Verilog succeeds, with a warning
+# (and generate .ba files)
+compile_verilog_pass_warning RuleBetweenMethods.bsv G0096 1 "" {-elab}
+# Test that the .ba files were tainted to be Verilog only
+# We could look for "Elaborated Verilog module file created: mkTest.ba"
+# but to be more robust:
+if {$vtest == 1} {
+link_objects_fail_error \
+    {sysRuleBetweenMethods.ba mkRuleBetweenMethods_Sub.ba} \
+    sysRuleBetweenMethods S0042
+link_verilog_pass \
+    {sysRuleBetweenMethods.ba mkRuleBetweenMethods_Sub.ba} \
+    sysRuleBetweenMethods
+}
+
+# Test that we detect the issue through multiple levels of hierarchy
+# (bug #1410)
+compile_object_fail_error RuleBetweenMethods_TwoLevels.bsv G0096
+compile_object_fail_error RuleBetweenMethods_TwoLevels2.bsv G0096
+
+# ---------------
+
+# Tests for bug 1401
+# Same as for 1362 but, instead of inside one rule, it's between two rules.
+# Verilog's separate schedulers are OK, but Bluesim's merging of the
+# schedules fails.
+
+# -----
+# Test that compilation for the Bluesim backend fails
+
+if { $ctest == 1 } {
+# Test for rules which are disjoint
+compile_object_fail_error RuleBetweenMethods_TwoRulesDisjoint.bsv G0100
+# because the message includes a lot of info, compare against expected
+# output to make sure the info remains correct
+compare_file \
+  [make_bsc_ccomp_output_name RuleBetweenMethods_TwoRulesDisjoint.bsv]
+
+# Test for rules which conflict
+compile_object_fail_error RuleBetweenMethods_TwoRulesConflict.bsv G0100
+compare_file \
+  [make_bsc_ccomp_output_name RuleBetweenMethods_TwoRulesConflict.bsv]
+
+# Test for rules where the method calls go in both directions
+compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirsDisjoint.bsv G0101
+compare_file \
+  [make_bsc_ccomp_output_name RuleBetweenMethods_TwoRulesBothDirsDisjoint.bsv]
+}
+
+# -----
+
+# Test that compilation for Verilog succeeds, with a warning
+# (and generate .ba files)
+
+compile_verilog_pass_warning RuleBetweenMethods_TwoRulesDisjoint.bsv G0100 1 "" {-elab}
+compile_verilog_pass_warning RuleBetweenMethods_TwoRulesConflict.bsv G0100 1 "" {-elab}
+compile_verilog_pass_warning RuleBetweenMethods_TwoRulesBothDirsDisjoint.bsv G0101 1 "" {-elab}
+
+# Test that the .ba files were tainted to be Verilog only
+# We could look for "Elaborated Verilog module file created: mkTest.ba"
+# but to be more robust:
+if {$vtest == 1} {
+link_objects_fail_error \
+    {sysRuleBetweenMethods_TwoRulesDisjoint.ba \
+     mkRuleBetweenMethods_TwoRulesDisjoint_Sub.ba} \
+    sysRuleBetweenMethods_TwoRulesDisjoint S0042
+link_verilog_pass \
+    {sysRuleBetweenMethods_TwoRulesDisjoint.ba \
+     mkRuleBetweenMethods_TwoRulesDisjoint_Sub.ba} \
+    sysRuleBetweenMethods_TwoRulesDisjoint
+}
+
+# XXX we only test one and assume the other two work
+
+# -----
+# Test that we detect the issue through multiple levels of hierarchy
+# (bug #1410)
+compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirs_TwoLevels.bsv G0101
+compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirs_TwoLevels2.bsv G0101
+
+# -----
+# Test that we detect uses between two methods which the user has declared
+# as mutually exclusive (with an attribute) but which don't share a common
+# method (just share common state, but different methods on that state)
+# (bug #1441)
+
+compile_object_fail_error RuleBetweenMethods_MEAttrNoCommonMethod.bsv G0100
+
+# -----
+# Test that the "conflict_free" attribute is also taken into account
+# (also bug #1441)
+
+compile_object_fail_error RuleBetweenMethods_CFAttrNoCommonMethod.bsv G0100
+
+# -----
+# Test that arbitrary edges are chosen in the order which goes with
+# rule-between-method calls of ME/CF rules, not against (resulting in a
+# combsched error)
+
+# check to make sure that the arbitrary ordering edges for CF and ME
+# assertion checking do not introduce new combsched errors
+compile_object_pass MECombSched.bsv
+link_objects_pass sysMECombSched.ba sysMECombSched
+
+# Also check for rules which are determined ME by BSC (not given by the user).
+# If such rules call submodule methods with rules between them, we need to
+# bias the flattening in that direction, so that foreign function edges
+# don't get picked in the wrong direction
+# XXX note that this test only works is arb edges are picked in the
+# XXX expected direction -- need a way to confirm that
+compile_object_pass RuleBetweenMethods_MEWithFFEdges.bsv
+link_objects_pass sysRuleBetweenMethods_MEWithFFEdges.ba \
+    sysRuleBetweenMethods_MEWithFFEdges
+
+# -----
+# Test that dynamic scheduling is detected when two or more edges
+# (added due to rule which call methods with rules in between)
+# complete a cycle.  Before were were just testing for when one edge
+# would create a cycle.
+
+compile_object_fail_error RuleBetweenMethods_Loop_TwoME.bsv G0116
+
+# ---------------

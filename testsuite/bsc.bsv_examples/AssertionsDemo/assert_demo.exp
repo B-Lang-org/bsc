@@ -1,0 +1,31 @@
+make_pass test_data {-f Makefile.data}
+
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv_modules AssertionWiresTest {mkTestWires} sysAssertionWiresTest.v.out.expected
+test_c_only_bsv_modules AssertionWiresTest {mkTestWires}
+
+if {$vtest == 1} {
+  compile_verilog_fail AssertionWiresTest2.bsv "" "-check-assert"
+  compare_file AssertionWiresTest2.bsv.bsc-vcomp-out
+}
+
+# Bluesim warns when the memory file does not initialize all words,
+# but some simulators (iverilog) do not.  So for NC we remove the
+# warnings from the output, and we test Bluesim separately.
+
+test_veri_only_bsv_modules_options Tester {mkFPAdd} "-relax-method-earliness" sysTester.v.out.expected
+test_c_only_bsv_modules_options Tester {mkFPAdd} "-relax-method-earliness"
+
+test_veri_only_bsv_modules_options TesterBug {mkFPAddBug} "-relax-method-earliness" sysTesterBug.v.out.expected
+test_c_only_bsv_modules_options TesterBug {mkFPAddBug} "-relax-method-earliness"
+
+test_veri_only_bsv_modules_options TesterWires {mkFPAdd mkFPAddAssertWires} "-relax-method-earliness" sysTesterWires.v.out.expected
+test_c_only_bsv_modules_options TesterWires {mkFPAdd mkFPAddAssertWires} "-relax-method-earliness"
+
+test_veri_only_bsv_modules_options TesterWiresBug {mkFPAddBug mkFPAddAssertWiresBug} "-relax-method-earliness" sysTesterWiresBug.v.out.expected
+test_c_only_bsv_modules_options TesterWiresBug {mkFPAddBug mkFPAddAssertWiresBug} "-relax-method-earliness"
+

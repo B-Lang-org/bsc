@@ -1,0 +1,30 @@
+Enq 0 to FIFO 0
+Enq 1 to FIFO 1
+Enq 0 to FIFO 7
+Incrementing i to 1
+Enq 1 to FIFO 1
+Enq 2 to FIFO 2
+Enq 2 to FIFO 0
+Incrementing i to 2
+Enq 2 to FIFO 2
+Enq 3 to FIFO 3
+Incrementing i to 3
+Enq 3 to FIFO 3
+Enq 4 to FIFO 4
+Incrementing i to 4
+Enq 4 to FIFO 4
+Enq 5 to FIFO 5
+Incrementing i to 5
+Enq 5 to FIFO 5
+Enq 6 to FIFO 6
+Incrementing i to 6
+Enq 6 to FIFO 6
+Enq 7 to FIFO 7
+fs[0]: 0
+fs[1]: 1
+fs[2]: 2
+fs[3]: 3
+fs[4]: 4
+fs[5]: 5
+fs[6]: 6
+fs[7]: 0

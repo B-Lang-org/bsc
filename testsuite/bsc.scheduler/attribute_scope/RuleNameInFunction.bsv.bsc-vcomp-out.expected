@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameInFunction.bsv
+code generation for sysRuleNameInFunction starts
+Warning: "RuleNameInFunction.bsv", line 14, column 9: (G0021)
+  According to the generated schedule, rule `r' can never fire.
+Verilog file created: sysRuleNameInFunction.v
+All packages are up to date.

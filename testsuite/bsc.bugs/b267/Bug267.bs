@@ -1,0 +1,7 @@
+package Bug267 where
+
+status :: Bool -> Action
+status a =
+  action let f :: Action
+             f = action { f }
+         f

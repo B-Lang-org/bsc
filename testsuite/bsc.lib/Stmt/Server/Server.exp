@@ -1,0 +1,12 @@
+# Test that the "<-" syntax can be used to make calls to an FSM server
+test_c_veri_bsv_multi ServerTest sysServerTest ""
+
+# Test that the LHS of "<-" can be an array update
+# XXX due the structure of "callServer", it's actually a selection
+test_c_veri_bsv_multi ServerTestUpdate sysServerTestUpdate ""
+
+# Test that using "<-" with something other than "callServer" gives a
+# user-friendly error
+compile_fail_error SequenceBind_Fail.bsv P0220
+compile_fail_error SequenceUpdateBind_Fail.bsv P0220
+

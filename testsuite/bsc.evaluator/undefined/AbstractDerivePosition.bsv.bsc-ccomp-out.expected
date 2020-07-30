@@ -1,0 +1,9 @@
+checking package dependencies
+compiling AbstractDerivePosition.bsv
+code generation for mkAbstractDerivePosition starts
+Error: "AbstractDerivePosition.bsv", line 3, column 14: (S0015)
+  Bluespec evaluation-time error: Attempt to use undetermined Position__
+  During elaboration of `primError' at "AbstractDerivePosition.bsv", line 3,
+  column 4.
+  During elaboration of `mkAbstractDerivePosition' at
+  "AbstractDerivePosition.bsv", line 2, column 8.

@@ -1,0 +1,11 @@
+package ContextOnClassSubset (Foo(..)) where
+
+-- Test that instances of class contexts get the right values
+
+-- Instances of Foo should properly map the type b to the context
+class (Literal b) => Foo a b c where
+  bar :: a -> b -> c
+
+instance Foo (Bit 32) (Bit 16) (Bit 8) where
+  bar = _
+

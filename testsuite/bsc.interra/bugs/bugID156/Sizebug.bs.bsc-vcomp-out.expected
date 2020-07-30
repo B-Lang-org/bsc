@@ -1,0 +1,8 @@
+checking package dependencies
+compiling Sizebug.bs
+code generation for top starts
+Error: "Sizebug.bs", line 21, column 40: (T0051)
+  Literal 8 is not a valid Bit#(3).
+  During elaboration of the interface method `start' at "Sizebug.bs", line 36,
+  column 0.
+  During elaboration of `top' at "Sizebug.bs", line 36, column 0.

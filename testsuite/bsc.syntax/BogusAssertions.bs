@@ -1,0 +1,12 @@
+package BogusAssertions(sysBogusAssertions) where
+
+-- Expect the parsing to fail because of the bogus assertion
+
+sysBogusAssertions :: Module Empty
+sysBogusAssertions =
+    module
+	a :: Reg Bool
+	a <- mkReg True
+        rules
+          {-# ASSERT something bogus #-}
+          "flip": when True ==> a := not a

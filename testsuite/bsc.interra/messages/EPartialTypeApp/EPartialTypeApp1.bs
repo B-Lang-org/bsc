@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EPartialTypeApp1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Code provided by Jacob Schwartz
+
+-- Description: This testcase triggers a " Partially applied type synonym" error (EPartialTypeApp)
+
+-- Error Message : bsc EPartialTypeApp1.bs
+-- bsc: Compilation errors:
+-- "EPartialTypeApp1.bs", line 21, column 5, Partially applied type synonym "EPartialTypeApp1.Foo"
+-----------------------------------------------------------------------
+
+package EPartialTypeApp1 (EPartialTypeApp1(..)) where
+
+type Foo a b = (a -> b)
+
+x :: Foo Bool
+x = _

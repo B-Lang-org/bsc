@@ -1,0 +1,120 @@
+set rules_regex {^ *".*":$}
+
+#must end with "dump" so that make clean will clean it
+set dump_suffix "splitIf.dump"
+
+proc count_rules_after_splitIf { name number { mod "sysx" } { opt "" } } {
+   global vtest
+   global dump_suffix
+   global rules_regex
+   set dumpfile "$name.$dump_suffix"
+   compile_verilog_pass $name $mod "$opt -dsplitIf=$dumpfile"
+   if { $vtest == 1 } {
+      find_n_regexp $dumpfile $rules_regex $number
+   }
+}
+
+# pound the syntax errors like crazy
+compile_fail_error NoUpdatedVariablesMonadicBind.bsv P0189
+compile_fail_error NoUpdatedVariablesNosplit.bsv P0189
+string_occurs NoUpdatedVariablesNosplit.bsv.bsc-out {The nosplit attribute}
+string_occurs NoUpdatedVariablesNosplit.bsv.bsc-out {Updated variables: x}
+compile_fail_error NoUpdatedVariablesSplit.bsv P0189
+string_occurs NoUpdatedVariablesSplit.bsv.bsc-out {The split attribute}
+string_occurs NoUpdatedVariablesSplit.bsv.bsc-out {Updated variables: y}
+compile_pass SplitActionValue.bsv
+compile_fail_error SplitReturn.bsv P0191
+compile_fail_error SplitNonAction.bsv P0192
+
+# should work - bug 1391
+compile_pass_bug_error bad-actionvalue.bsv P0017 1391
+# works if in actionvalue context more explicitly
+compile_pass good-actionvalue.bsv
+# the action analogue works (and should)
+compile_pass bad-action.bsv
+
+compile_fail_error bad-decl.bsv P0192
+compile_fail_error bad-equals.bsv P0189
+compile_fail_error bad-function.bsv P0192
+compile_fail_error bad-function2.bsv P0192
+compile_fail_error bad-function3.bsv P0190
+compile_fail_error bad-import.bsv P0192
+compile_fail_error bad-inst.bsv P0192
+compile_fail_error bad-interface.bsv P0192
+compile_fail_error bad-method.bsv P0192
+compile_fail_error bad-module.bsv P0192
+compile_fail_error bad-monadic-bind.bsv P0189
+compile_fail_error bad-pateq.bsv P0190
+compile_fail_error bad-rule.bsv P0192
+compile_fail_error bad-typdef.bsv P0192
+compile_fail_error bad-update-bind.bsv P0189
+compile_fail_error bad-update.bsv P0189
+
+# XXX bad error message
+compile_verilog_fail_no_internal_error badAttribute.bsv
+
+compile_fail_error boundvariable.bsv P0190
+compile_fail_error nonaction.bsv P0192
+compile_fail_error splitconflict.bsv P0186
+compile_fail_error splitzerobad.bsv P0187
+# done pounding syntax errors
+
+# this syntax should parse (used to fail)
+compile_pass ok-action.bsv
+
+compile_verilog_pass manyVariations.bs mymodule -dsplitIf=manyVariations.bs.$dump_suffix
+if { $vtest == 1 } {
+find_n_regexp manyVariations.bs.$dump_suffix $rules_regex 60
+perl canonicalize.pl manyVariations.bs.$dump_suffix  manyVariations.bs.canon.dump
+compare_file manyVariations.bs.canon.dump
+}
+
+count_rules_after_splitIf Nosplit.bsv 1
+count_rules_after_splitIf Plain.bsv 1
+count_rules_after_splitIf Split.bsv 2
+count_rules_after_splitIf boundvariableok.bsv 2
+compile_verilog_pass methodactionsplitin1.bsv usesGo -dsplitIf=methodactionsplitin1.bsv.$dump_suffix
+if { $vtest == 1 } {
+find_n_regexp methodactionsplitin1.bsv.$dump_suffix $rules_regex 2
+}
+count_rules_after_splitIf methodactionsplitin2.bsv 2
+count_rules_after_splitIf methodactionsplitout.bsv 3
+count_rules_after_splitIf methodactionvalue.bsv 4
+compile_verilog_pass methodactionvalue2.bsv usesGo -dsplitIf=methodactionvalue2.bsv.$dump_suffix
+if { $vtest == 1 } {
+find_n_regexp methodactionvalue2.bsv.$dump_suffix $rules_regex 4
+}
+count_rules_after_splitIf methodactionvalueout1.bsv 4
+count_rules_after_splitIf nosplit-split.bsv 2
+count_rules_after_splitIf plain-assign-hack.bsv 2
+count_rules_after_splitIf plain-assign.bsv 2
+count_rules_after_splitIf split-nosplit.bsv 2
+count_rules_after_splitIf splitdeep.bsv 3
+count_rules_after_splitIf splitdeepaction.bsv 8
+count_rules_after_splitIf splitnoconflict.bsv 2
+count_rules_after_splitIf splitnoconflict1.bsv 2
+
+count_rules_after_splitIf good-case.bsv 3
+count_rules_after_splitIf case.bsv 3
+count_rules_after_splitIf good-actions.bsv 1
+count_rules_after_splitIf good-for.bsv 32
+count_rules_after_splitIf good-while.bsv 32
+count_rules_after_splitIf good-naked-expr.bsv 2
+count_rules_after_splitIf reg-update.bsv 64
+
+compile_verilog_pass_no_warning SplitFalse.bsv
+compile_verilog_pass_no_warning SplitEmpty.bsv
+
+count_rules_after_splitIf ArrayShortIndex.bsv 4 {}
+count_rules_after_splitIf ArrayExactIndex.bsv 4 {}
+# 5 elems and 1 out-of-bounds
+count_rules_after_splitIf ArrayLongIndex.bsv 7 {}
+
+# Test that splitting is not performed when the condition cannot
+# be lifted, because it contains a method argument or AV value
+# (Bug 1855)
+count_rules_after_splitIf Cond_AV_Split.bsv 1 {sysCond_AV_Split}
+count_rules_after_splitIf Cond_AV_NoSplit.bsv 3 {sysCond_AV_NoSplit} {-split-if}
+count_rules_after_splitIf Cond_MethodArg_Split.bsv 1 {sysCond_MethodArg_Split}
+count_rules_after_splitIf Cond_MethodArg_NoSplit.bsv 3 {sysCond_MethodArg_NoSplit} {-split-if}
+

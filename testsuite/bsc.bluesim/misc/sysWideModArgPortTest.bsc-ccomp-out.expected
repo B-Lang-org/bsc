@@ -1,0 +1,5 @@
+Bluesim object created: sysWideModArgPortTest.{h,o}
+Bluesim object created: mkWideModArgPortTest_Sub.{h,o}
+Bluesim object created: model_sysWideModArgPortTest.{h,o}
+Simulation shared library created: sysWideModArgPortTest.cexe.so
+Simulation executable created: sysWideModArgPortTest.cexe

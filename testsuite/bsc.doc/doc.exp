@@ -1,0 +1,33 @@
+#
+# These are tests associated with Bluespec documentation.
+# For example, tests which check that the documentation is up-to-date
+# with the compiler.
+#
+
+# ==========
+# User Guide
+
+# -----
+
+# A section of the user guide describes the Verilog to Bluespec name
+# mapping and it contains a GCD example, giving both the BSV source
+# and the output Verilog.  This test checks that the source is still
+# syntactically correct and that the Verilog still matches what is
+# generated.
+#
+# NOTE: If this test fails, update the UG to match the compiler changes!
+#
+compile_verilog_pass UserGuide_GCD.bsv
+compare_verilog mkGCD.v UserGuide_mkGCD.v.expected
+
+# It also describes the generated code for mkReg, mkRegU, and mkRegA
+#
+compile_verilog_pass UserGuide_RegInsts.bsv
+compare_verilog sysUserGuide_RegInsts.v
+
+# -----
+
+# XXX Add a check here that the UG contains doc for the public flags
+
+# ==========
+

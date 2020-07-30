@@ -1,0 +1,6 @@
+Error: "EWeakContext2.bs", line 3, column 0: (T0030)
+  Context too weak:
+  a
+  needs [Prelude.Literal a]
+  given type:
+  b

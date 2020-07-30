@@ -1,0 +1,39 @@
+This directory contains BSV source for several different implementations
+of a Wallace adder (as well as an associated testbench). ClientServer 
+interfaces are used to isolate the Wallace implementations from their
+testbench (including the different latencies of the combinational and
+stateful adders).
+
+You can compile the adders (and associated testbenches) by running:
+bsc -u -c WallaceTest.bsv (for object files) 
+or 
+bsc -u -verilog WallaceTest.bsv (for Verilog RTL)
+
+This will produce testCombServer[.o or .v] and sysCombServer[.o or .v] 
+(for the combinational adder) and testStatefulServer[1/2/3][.o or .v]
+and sysStatefulServer[1/2/3][.o or .v] for the stateful Wallace adders.
+
+You can use link any of the object files to a simulation binary by 
+doing the following (combinational Wallace used as an example):
+bsc -e testCombServer -o testCombServer testCombServer.o sysCombServer.o
+
+This links the testCombServer.o and sysCombServer.o object files to 
+a simulation binary named testCombServer that you can run.
+
+See the style guide (section 7) for notes on using the generated RTL
+with other EDA tools. You will need to provide a top-level driver that
+instantiates, resets and clocks the testbench module. See 
+$BLUESPECDIR/Verilog/main.v for an example of this (replace TOP with the
+name of your top-level module - i.e. testCombServer).
+
+Files
+-----
+CombWallace.bsv 	source for a purely combinational Wallace adder
+StatefulWallace.bsv 	source for three stateful wallace adders
+WallaceLib.bsv 		common library routines used by both styles of adder
+WallaceServer.bsv	type aliases for the Wallace ClientServer interfaces
+WallaceTest.bsv		source for Wallace adder testbench
+wallace435.out.expected	expected testbench output for a (4,3,5) adder
+
+
+

@@ -1,0 +1,42 @@
+checking package dependencies
+compiling Test.bsv
+code generation for mkFoo starts
+=== schedule:
+parallel: [esposito: [RL_zero -> [], RL_grter_four -> [], RL_non_zero -> []]]
+order: [RL_zero, RL_grter_four, RL_non_zero]
+
+-----
+
+=== resources:
+[(the_x.read, [(the_x.read, 1)]),
+ (the_x.write, [(the_x.write the_x_MINUS_1___d6, 1), (the_x.write the_x_PLUS_1___d3, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: mkFoo.sched
+=== Generated schedule for mkFoo ===
+
+Rule schedule
+-------------
+Rule: zero
+Predicate: the_x == 32'd0
+Blocking rules: (none)
+ 
+Rule: grter_four
+Predicate: ! (the_x .<= 32'd4)
+Blocking rules: (none)
+ 
+Rule: non_zero
+Predicate: (! (the_x .<= 32'd0)) && ((the_x - 32'd1) .< 32'd3)
+Blocking rules: (none)
+ 
+Logical execution order: zero, grter_four, non_zero
+
+=====================================
+Verilog file created: mkFoo.v
+All packages are up to date.

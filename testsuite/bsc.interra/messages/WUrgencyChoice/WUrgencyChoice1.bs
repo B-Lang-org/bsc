@@ -1,0 +1,74 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WUrgencyChoice1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "rules urgency decision" warning (WUrgencyChoice)
+
+-- Error Message : bsc -verilog -g mkWUrgencyChoice1 WUrgencyChoice1.bs
+-- bsc: Compilation warnings:
+-- "WUrgencyChoice1.bs", line 24, column 0, The scheduling phase was forced to make a decision about the urgency of two rules in the absence of guidance from the user.  Rule "start_" was treated more urgent than rule "One__1".
+-- "WUrgencyChoice1.bs", line 24, column 0, The scheduling phase was forced to make a decision about the urgency of two rules in the absence of guidance from the user.  Rule "start_" was treated more urgent than rule "Two__2".
+-----------------------------------------------------------------------
+
+package WUrgencyChoice1 (WUrgencyChoice1(..), mkWUrgencyChoice1) where
+
+-- import Int
+
+interface WUrgencyChoice1 =
+         start  :: Int 32 -> Int 32 -> Int 32 -> Int 32 -> Action
+         result :: Bool
+
+mkWUrgencyChoice1 :: Module WUrgencyChoice1
+mkWUrgencyChoice1 =
+            module
+
+                    w :: Reg (Int 32)
+                    w <- mkReg 0
+
+                    x :: Reg (Int 32)
+                    x <- mkRegU
+
+                    y :: Reg (Int 32)
+                    y <- mkRegU
+
+                    z :: Reg (Int 32)
+                    z <- mkReg 0
+
+                    res :: Reg (Bool)
+                    res <- mkReg True
+
+
+                    rules 
+                      "One" :
+                               when True
+                                      ==> action
+                                                x := y
+
+                      "Two" :
+                               when True
+                                      ==> action
+                                                y := x
+
+                      "Three" :
+                               when True
+                                      ==> action
+                                                w := z
+
+                      "Four" :
+                               when True
+                                      ==> action
+                                                z := w
+
+
+
+                    interface 
+                            start iw ix iy iz = action
+                                                      w := iw
+                                                      x := ix
+                                                      y := iy 
+                                                      z := iz
+                          
+                            result = res

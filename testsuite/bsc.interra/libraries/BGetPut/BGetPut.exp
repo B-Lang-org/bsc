@@ -1,0 +1,4 @@
+test_c_veri_worker MkBClientServer mkTestbench_MkBClientServer {} "bsv" 1 1 "mkTestbench_MkBClientServer.v.out.expected" "" ""
+
+test_c_veri_worker MkBGetPut mkTestbench_MkBGetPut {} "bsv" 1 1 "mkTestbench_MkBGetPut.v.out.expected" "" ""
+

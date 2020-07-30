@@ -1,0 +1,16 @@
+checking package dependencies
+compiling OutputClockAndReset.bsv
+code generation for sysOutputClockAndReset starts
+=== IOproperties:
+Name                         I/O  size props
+CLK_clk_out                    O     1 clock
+CLK_GATE_clk_out               O     1 clock gate
+RST_N_rst_out                  O     1 reset
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysOutputClockAndReset.v
+All packages are up to date.

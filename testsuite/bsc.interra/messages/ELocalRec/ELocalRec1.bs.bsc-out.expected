@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ELocalRec1.bs
+Warning: "ELocalRec1.bs", line 51, column 32: (P0102)
+  Declaration of `x' shadows previous declaration at "ELocalRec1.bs", line 36,
+  column 8
+Warning: "ELocalRec1.bs", line 51, column 34: (P0102)
+  Declaration of `y' shadows previous declaration at "ELocalRec1.bs", line 39,
+  column 8
+Error: "ELocalRec1.bs", line 51, column 32: (T0037)
+  Local recursion without signature not allowed: `x' and `y'

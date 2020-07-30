@@ -1,0 +1,181 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_handshake_assert_vunit (assert_handshake_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P = always (
+           {(min_ack_cycle > 0) && rose(req)} |-> {(!(rose(ack)))[*min_ack_cycle]}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P = always (
+           {(max_ack_cycle > 0) && rose(req) && (!rose(ack))} |-> {(!ack)[*0:max_ack_cycle]; (rose(ack) || (rose(req) && (req_drop == 1)))}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P = always (
+           {rose(ack) && (max_ack_length > 0)} |-> {ack; ack[*0:max_ack_length]; !ack}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_REQ_DROP_P = always (
+           ({(req_drop > 0) && rose(req)} |=> {req[*]; req && ack})
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_MULTIPLE_REQ_P = never
+           {reset_n && rose(req); reset_n && !rose(ack); (!ack)[*]; reset_n && rose(req)};
+
+  property ASSERT_HANDSHAKE_REQ_DEASSERT_P = always (
+           {(deassert_count > 0) && rose(req)} |-> {[*0:deassert_count]; !req}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P = always (
+           ( rose(ack) -> (first_req || req) )
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P = always (
+           ( {fell(ack)} |-> {{[*];rose(req);[*]} && {!ack[*];ack}} )
+           abort(!reset_n)); 
+
+  //Properties for X/Z checking
+
+  property ASSERT_HANDSHAKE_REQ_XZ_P =
+           always( xzcheck_enable -> !isunknown(req) 
+                   abort(!reset_n) );
+
+  property ASSERT_HANDSHAKE_ACK_XZ_P =
+           always( xzcheck_enable -> !isunknown(ack) 
+                   abort(!reset_n) );
+
+
+  A_ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P:
+  assert ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Acknowledge asserted before elapse of specified minimum min_ack_cycle cycles from request";
+
+  A_ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P:
+  assert ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Acknowledge is not asserted within specified maximum max_ack_cycle cycles from request";
+
+  A_ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P:
+  assert ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Duration of continuous asserted state of acknowledge violates specified maximum ack_max_length cycles";
+
+
+  A_ASSERT_HANDSHAKE_REQ_DROP_P:
+  assert ASSERT_HANDSHAKE_REQ_DROP_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Request is deasserted before acknowledgement arrives";
+
+  A_ASSERT_HANDSHAKE_MULTIPLE_REQ_P:
+  assert ASSERT_HANDSHAKE_MULTIPLE_REQ_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : New request arrives before previous request is acknowledged";
+
+  A_ASSERT_HANDSHAKE_REQ_DEASSERT_P:
+  assert ASSERT_HANDSHAKE_REQ_DEASSERT_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Duration of continuous asserted state of request violates specified deassert_count cycles";
+
+  A_ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P:
+  assert ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P 
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Acknowledge arrives without a pending request";
+
+  A_ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P:
+  assert ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P 
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires : Acknowledge arrives without a pending request";
+
+  A_ASSERT_HANDSHAKE_REQ_XZ_P:
+  assert ASSERT_HANDSHAKE_REQ_XZ_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires: req contains X or Z";
+  
+  A_ASSERT_HANDSHAKE_ACK_XZ_P:
+  assert ASSERT_HANDSHAKE_ACK_XZ_P
+  report "VIOLATION: ASSERT_HANDSHAKE Checker Fires: ack contains X or Z";
+}
+
+
+vunit assert_handshake_assume_vunit (assert_handshake_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P = always (
+           {(min_ack_cycle > 0) && rose(req)} |-> {(!(rose(ack)))[*min_ack_cycle]}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P = always (
+           {(max_ack_cycle > 0) && rose(req) && (!rose(ack))} |-> {(!ack)[*0:max_ack_cycle]; (rose(ack) || (rose(req) && (req_drop == 1)))}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P = always (
+           {rose(ack) && (max_ack_length > 0)} |-> {ack; ack[*0:max_ack_length]; !ack}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_REQ_DROP_P = always (
+           ({(req_drop > 0) && rose(req)} |=> {req[*]; req && ack})
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_MULTIPLE_REQ_P = never
+           {reset_n && rose(req); reset_n && !rose(ack); (!ack)[*]; reset_n && rose(req)};
+
+  property ASSERT_HANDSHAKE_REQ_DEASSERT_P = always (
+           {(deassert_count > 0) && rose(req)} |-> {[*0:deassert_count]; !req}
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P = always (
+           rose(ack) -> (first_req || req)
+           abort(!reset_n));
+
+  property ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P = always (
+           {fell(ack)} |-> {{[*];rose(req);[*]} && {!ack[*];ack}}
+           abort(!reset_n));
+
+  //Properties for X/Z checking
+
+  property ASSERT_HANDSHAKE_REQ_XZ_P =
+           always( xzcheck_enable -> !isunknown(req) 
+                   abort(!reset_n) );
+
+  property ASSERT_HANDSHAKE_ACK_XZ_P =
+           always( xzcheck_enable -> !isunknown(ack) 
+                   abort(!reset_n) );
+
+  M_ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P:
+  assume ASSERT_HANDSHAKE_ACK_MIN_CYCLE_P;
+
+  M_ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P:
+  assume ASSERT_HANDSHAKE_ACK_MAX_CYCLE_P;
+
+  M_ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P:
+  assume ASSERT_HANDSHAKE_ACK_MAX_LENGTH_P;
+
+  M_ASSERT_HANDSHAKE_REQ_DROP_P:
+  assume ASSERT_HANDSHAKE_REQ_DROP_P;
+
+  M_ASSERT_HANDSHAKE_MULTIPLE_REQ_P:
+  assume ASSERT_HANDSHAKE_MULTIPLE_REQ_P;
+
+  M_ASSERT_HANDSHAKE_REQ_DEASSERT_P:
+  assume ASSERT_HANDSHAKE_REQ_DEASSERT_P;
+
+  M_ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P:
+  assume ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_FIRST_REQ_P;
+
+  M_ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P:
+  assume ASSERT_HANDSHAKE_ACK_WITHOUT_REQ_SUBSEQUENT_REQ_P;
+ 
+  M_ASSERT_HANDSHAKE_REQ_XZ_P:
+  assume ASSERT_HANDSHAKE_REQ_XZ_P;
+  
+  M_ASSERT_HANDSHAKE_ACK_XZ_P:
+  assume ASSERT_HANDSHAKE_ACK_XZ_P;
+}
+
+vunit assert_handshake_cover_vunit (assert_handshake_cover)
+{
+  default clock = (posedge clk);
+           
+  cover_req_asserted:
+  cover {OVL_COVER_BASIC_ON && reset_n && rose(req)}
+  report "COVERAGE REPORT: ASSERT_HANDSHAKE Checker: req_asserted covered";
+
+  cover_ack_asserted:
+  cover {OVL_COVER_BASIC_ON && reset_n && rose(ack)}
+  report "COVERAGE REPORT: ASSERT_HANDSHAKE Checker: ack_asserted covered";
+}
+

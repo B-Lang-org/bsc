@@ -1,0 +1,10 @@
+checking package dependencies
+compiling IsEOFAfterClose.bsv
+code generation for sysIsEOFAfterClose starts
+Error: "Prelude.bs", line 3836, column 36: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `res' at "Prelude.bs", line 3836, column 29.
+  During elaboration of `b' at "IsEOFAfterClose.bsv", line 13, column 4.
+  During elaboration of `sysIsEOFAfterClose' at "IsEOFAfterClose.bsv", line 2,
+  column 8.

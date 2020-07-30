@@ -1,0 +1,7 @@
+
+# This tests tat port names are as expected.
+compile_verilog_pass Test.bsv tb
+
+compare_verilog tb.v
+compare_verilog mkAddSub.v
+

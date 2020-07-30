@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_pass ResourceTwoRules.bs sysResourceTwoRules "-resource-simple" 
+compare_file ResourceTwoRules.bs.bsc-vcomp-out
+}

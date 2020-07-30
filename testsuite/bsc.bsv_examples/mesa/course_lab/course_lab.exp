@@ -1,0 +1,102 @@
+# rename because tcl scoping is sucky
+proc mesa_cleanup {} {
+
+  # evil subdirectory jumping around
+  global srcdir
+  global subdir
+
+  set here [absolute $srcdir]
+  
+  erase sysTestMesa.c.out 
+  erase sysTestMesa.c.vcd
+  erase sysTestMesa.v.out
+  erase sysTestMesa.v.vcd
+
+  cd [file join $here $subdir]
+  set files [glob -nocomplain *.bi *.bo *.ba *.o *.v]
+  cd $here 
+
+  foreach file $files {
+    erase $file
+  }
+  
+}  
+
+proc mesa_test_veri_and_sanitize_warnings {expected} {
+#this code extracted from test_c_veri_worker_int
+  global vtest
+  if { $vtest == 1 } {
+    compile_verilog_pass TestMesa.bsv sysTestMesa
+    link_verilog_pass {sysTestMesa.v mkMesa_Vff.v mkMesa_Dm.v mkMesa_Mif.v mkMesaLpm.v mkMesa.v} sysTestMesa
+    sim_verilog sysTestMesa
+    move sysTestMesa.out sysTestMesa.v.out
+    # *.out gets cleaned by make clean
+    move sysTestMesa.out.bak sysTestMesa.v.bak.out
+    erase sysTestMesa.out
+    erase dump.vcd
+    check_verilog_output sysTestMesa.v.out $expected ""
+    sim_verilog sysTestMesa "+bscvcd"
+    move dump.vcd sysTestMesa.v.vcd
+    # Insert future VCD comparison here when implemented
+  }
+}
+
+proc mesa_save_outputs {extension} {
+    copy sysTestMesa.c.out sysTestMesa.$extension.c.out
+    copy sysTestMesa.c.vcd sysTestMesa.$extension.c.vcd
+    copy sysTestMesa.v.out sysTestMesa.$extension.v.out
+    copy sysTestMesa.v.bak.out sysTestMesa.$extension.v.bak.out
+    copy sysTestMesa.v.vcd sysTestMesa.$extension.v.vcd
+}
+
+copy MesaTx.bsv Mesa.bsv
+
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+# Bluesim warns when the memory file does not initialize all words,
+# but some simulators (iverilog) do not.  So for NC we remove the
+# warnings from the output, and we test Bluesim separately.
+#test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.tx.v.expected
+
+mesa_test_veri_and_sanitize_warnings mesa.tx.v.expected
+test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.tx.expected
+
+mesa_save_outputs tx
+
+
+copy MesaStatic.bsv Mesa.bsv
+
+mesa_cleanup
+
+#test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.static.v.expected
+mesa_test_veri_and_sanitize_warnings mesa.static.v.expected
+test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.static.expected
+
+mesa_save_outputs static
+
+copy MesaFlex.bsv Mesa.bsv
+
+mesa_cleanup
+
+#test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.flex.v.expected
+mesa_test_veri_and_sanitize_warnings mesa.flex.v.expected
+test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.flex.expected
+
+mesa_save_outputs flex
+
+copy MesaCirc.bsv Mesa.bsv
+
+mesa_cleanup
+
+#test_veri_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.circ.v.expected 
+mesa_test_veri_and_sanitize_warnings mesa.circ.v.expected 
+test_c_only_bsv_modules TestMesa {mkMesa_Vff mkMesa_Dm mkMesa_Mif mkMesaLpm mkMesa} mesa.circ.expected 
+
+mesa_save_outputs circ
+
+compile_pass MesaCircLpmQ.bsv
+compile_pass MesaFlexLpmQ.bsv
+

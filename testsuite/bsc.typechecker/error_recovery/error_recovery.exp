@@ -1,0 +1,20 @@
+compile_fail_error Actions.bsv T0080 2
+compile_fail_error ExplicitActions.bsv T0080 2
+compile_fail_error ExplicitBool.bsv T0031 2
+compile_fail_error ExplicitRules.bsv T0080 2
+
+# Rules1 is an XFAIL
+compile_fail_error Rules1.bsv T0080 1
+
+compile_fail_error Rules2.bsv T0020 2
+
+compile_fail_error TwoRules.bsv T0080 2
+compile_fail_error TwoActions.bsv T0080 2
+compile_fail_error Life.bsv T0080 11
+
+compile_pass TrimSkip.bs "-dinternal -trace-skip-trim"
+compare_file TrimSkip.bs.bsc-out
+
+compile_verilog_fail_error DefErrorRecovery.bsv T0080 1 "" "-continue-after-errors"
+compare_verilog sysDefErrorRecovery.v
+

@@ -1,0 +1,34 @@
+adding element 0 at cycle 0
+adding element 1 at cycle 1
+adding element 2 at cycle 2
+adding element 3 at cycle 3
+adding element 4 at cycle 4
+removing element 0 at cycle 21
+enq_count: 5
+removing element 1 at cycle 22
+enq_count: 5
+adding element 5 at cycle 22
+removing element 2 at cycle 23
+enq_count: 6
+adding element 6 at cycle 23
+removing element 3 at cycle 24
+enq_count: 7
+adding element 7 at cycle 24
+removing element 4 at cycle 25
+enq_count: 8
+adding element 8 at cycle 25
+removing element 5 at cycle 26
+enq_count: 9
+adding element 9 at cycle 26
+removing element 6 at cycle 27
+enq_count: 10
+adding element 10 at cycle 27
+removing element 7 at cycle 28
+enq_count: 11
+adding element 11 at cycle 28
+removing element 8 at cycle 29
+enq_count: 12
+adding element 12 at cycle 29
+removing element 9 at cycle 30
+enq_count: 13
+adding element 13 at cycle 30

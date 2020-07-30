@@ -1,0 +1,46 @@
+                   5 data enqued 0
+                  15 data enqued 1
+Warning: FIFO1: main.top.fifo.error_checks -- Enqueuing to a full fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Enqueuing to a full fifo
+                  25 DEQ and ENQ, 2  out data = 1, Valid is 1, Empty:1
+                  35 DEQ and ENQ, 3  out data = 2, Valid is 1, Empty:1
+                  45 DEQ and ENQ, 4  out data = 3, Valid is 1, Empty:1
+                  55 DEQ and ENQ, 5  out data = 4, Valid is 1, Empty:1
+                  65 DEQ and ENQ, 6  out data = 5, Valid is 1, Empty:1
+                  75 DEQ and ENQ, 7  out data = 6, Valid is 1, Empty:1
+                  85 DEQ and ENQ, 8  out data = 7, Valid is 1, Empty:1
+                  95 out data = 8, Valid is 1, Empty:1
+                 105 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 115 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 125 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 135 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 145 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 155 out data = 8, Valid is 1, Empty:0
+Warning: FIFO1: main.top.fifo.error_checks -- Dequeuing from empty fifo
+Warning: FIFO10: main.top.zfifo.error_checks -- Dequeuing from empty fifo
+                 165 data enqued 16
+                 175 DEQ and ENQ, 17  out data = 16, Valid is 1, Empty:1
+                 185 DEQ and ENQ, 18  out data = 17, Valid is 1, Empty:1
+                 195 DEQ and ENQ, 19  out data = 18, Valid is 1, Empty:1
+                 205 DEQ and ENQ, 20  out data = 19, Valid is 1, Empty:1
+                 215 DEQ and ENQ, 21  out data = 20, Valid is 1, Empty:1
+                 225 DEQ and ENQ, 22  out data = 21, Valid is 1, Empty:1
+                 235 DEQ and ENQ, 23  out data = 22, Valid is 1, Empty:1
+                 245 DEQ and ENQ, 24  out data = 23, Valid is 1, Empty:1
+                 255 DEQ and ENQ, 25  out data = 24, Valid is 1, Empty:1
+                 265 DEQ and ENQ, 26  out data = 25, Valid is 1, Empty:1
+                 275 DEQ and ENQ, 27  out data = 26, Valid is 1, Empty:1
+                 285 DEQ and ENQ, 28  out data = 27, Valid is 1, Empty:1
+                 295 DEQ and ENQ, 29  out data = 28, Valid is 1, Empty:1
+                 305 DEQ and ENQ, 30  out data = 29, Valid is 1, Empty:1
+                 315 DEQ and ENQ, 31  out data = 30, Valid is 1, Empty:1

@@ -1,0 +1,38 @@
+                   5    Result = 2863311530
+                   5    x =     1, y =     0
+                  15    Result =          0
+                  15    x =     2, y =     1
+                  35    Result =          2
+                  35    x =     3, y =     2
+                  65    Result =          6
+                  65    x =     4, y =     3
+                  95    Result =         12
+                  95    x =     5, y =     4
+                 135    Result =         20
+                 135    x =     6, y =     5
+                 175    Result =         30
+                 175    x =     7, y =     6
+                 215    Result =         42
+                 215    x =     8, y =     7
+                 255    Result =         56
+                 255    x =     9, y =     8
+                 305    Result =         72
+                 305    x =    10, y =     9
+                 355    Result =         90
+                 355    x =    11, y =    10
+                 405    Result =        110
+                 405    x =    12, y =    11
+                 455    Result =        132
+                 455    x =    13, y =    12
+                 505    Result =        156
+                 505    x =    14, y =    13
+                 555    Result =        182
+                 555    x =    15, y =    14
+                 605    Result =        210
+                 605    x =    16, y =    15
+                 655    Result =        240
+                 655    x =    17, y =    16
+                 715    Result =        272
+                 715    x =    18, y =    17
+                 775    Result =        306
+                 775    x =    19, y =    18

@@ -1,0 +1,2 @@
+## compile_verilog_pass Design.bsv "mkSbox1"
+## compare_file Design.bsv.bsc-vcomp-out

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EBadExport1.bs
+Error: "EBadExport1.bs", line 15, column 53: (T0122)
+  Duplicate export `mkEBadExport1'

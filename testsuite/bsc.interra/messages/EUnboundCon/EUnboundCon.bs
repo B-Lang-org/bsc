@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundCon.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EUnboundCon error of the bluespec
+-- compiler (Unbound Constructor)
+--
+-----------------------------------------------------------------------
+
+
+
+package EUnboundCon () where
+
+data My_type a = Constructor1 | Constructor2 a
+
+
+
+x :: My_type a
+x = Constructor3  -- Constructor3 not bounded

@@ -1,0 +1,19 @@
+package AccessorConflicts(sysAccessorConflicts, I) where
+
+-- Accessor g should be scheduled correctly with respect to s.
+-- I.e., method no-conflict info should be [g_ <> g_, g_ < s_, s_ << s_].
+
+interface I =
+	s :: Action
+	g :: Bool
+
+sysAccessorConflicts :: Module I
+sysAccessorConflicts =
+    module
+	r :: Reg Bool
+	r <- mkRegU
+	b :: Reg Bool
+	b <- mkRegU
+        interface
+	    s = if b then r := True else action { }
+	    g = r

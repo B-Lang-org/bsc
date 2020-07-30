@@ -1,0 +1,213 @@
+
+# Test the SAL dump
+
+set opts {-ddumpSAL=CTX_%m.sal}
+
+# This uses the same input files for testing the Lambda Calculus dump
+#
+set saldir [file join [absolute $srcdir] $subdir]
+set lcdir [file join $saldir ../lambda_calculus]
+
+# -----
+
+# copy the files here
+# so that compilation output is guaranteed to be put in this dir
+
+set lcfiles [glob $lcdir/*bsv]
+foreach lcfile $lcfiles {
+    copy $lcfile .
+}
+
+# -----
+
+# Test value components in method return expressions
+
+if { $vtest == 1 } {
+compile_verilog_pass MethodReturn_AMethValue.bsv {} $opts
+compare_file_filter_ids CTX_sysMethodReturn_AMethValue.sal
+
+compile_verilog_pass MethodReturn_ATaskValue.bsv {} $opts
+compare_file_filter_ids CTX_sysMethodReturn_ATaskValue.sal
+}
+
+# -----
+
+# Test split methods
+
+if { $vtest == 1 } {
+compile_verilog_pass Method_Split.bsv {} $opts
+compare_file_filter_ids CTX_sysMethod_Split.sal
+}
+
+# -----
+
+# Test methods, system tasks, and noinline functions
+
+if { $vtest == 1 } {
+# This will also compile Methods.bsv and NoInline.bsv
+compile_verilog_pass Tb.bsv {} $opts
+compare_file_filter_ids CTX_sysMethods.sal
+compare_file_filter_ids CTX_module_add.sal
+compare_file_filter_ids CTX_sysTb.sal
+}
+
+# -----
+
+# Test that the return type of AV methods is correctly handled
+# when the value is unused (and does not get assigned to a def)
+if { $vtest == 1 } {
+compile_verilog_pass AVMethod_UnusedValue.bsv {} $opts
+compare_file_filter_ids CTX_sysAVMethod_UnusedValue.sal
+}
+
+# -----
+
+# Test for optimization
+if { $vtest == 1 } {
+compile_verilog_pass Structs.bsv {} $opts
+compare_file_filter_ids CTX_sysStructs.sal
+}
+
+# -----
+
+# Test for lifting if condition in action
+if { $vtest == 1 } {
+
+compile_verilog_pass MergeIf.bsv {} $opts
+compare_file_filter_ids CTX_sysMergeIf.sal
+
+# XXX Nothing merges here yet, because the defs are not inlined
+compile_verilog_pass MergeIf2.bsv {} $opts
+compare_file_filter_ids CTX_sysMergeIf2.sal
+
+# XXX Nothing merges here yet, because the defs are not inlined
+compile_verilog_pass MergeIf3.bsv {} $opts
+compare_file_filter_ids CTX_sysMergeIf3.sal
+
+}
+
+# -----
+
+# Test Real types
+
+if { $vtest == 1 } {
+compile_verilog_pass RealInstArg.bsv {} $opts
+compare_file_filter_ids CTX_sysRealInstArg.sal
+compare_file_filter_ids CTX_mkRealInstArg_Sub.sal
+}
+
+# XXX Test other places where Real might appear
+
+# -----
+
+# Test String types
+
+if { $vtest == 1 } {
+compile_verilog_pass StringInstArg.bsv {} $opts
+compare_file_filter_ids CTX_sysStringInstArg.sal
+compare_file_filter_ids CTX_mkStringInstArg_Sub.sal
+}
+
+# XXX Test other places where String might appear
+
+# -----
+
+# Test when a design uses dynamic instantiation arguments
+
+if { $vtest == 1 } {
+compile_verilog_pass DynamicInstArg.bsv {} $opts
+compare_file_filter_ids DynamicInstArg.bsv.bsc-vcomp-out
+compare_file_filter_ids CTX_sysDynamicInstArg.sal
+}
+
+# -----
+
+# Test PrimCase and PrimArrayDynSelect
+
+if { $vtest == 1 } {
+# PrimCase occurs because of aggressive conditions
+compile_verilog_pass DynArrSelWithImplCond.bsv {} \
+    "$opts -aggressive-conditions"
+compare_file_filter_ids CTX_sysDynArrSelWithImplCond.sal
+}
+
+# -----
+
+# Test that polymorphic primitive modules have their size arguments lifted
+# to type parameters
+
+if { $vtest == 1 } {
+compile_verilog_pass PrimMods.bsv {} $opts
+# BRAM modules are wrappers that have a lot of extra state and rules,
+# so just look for the module instantiations that we care about
+find_regexp CTX_sysPrimMods.sal \
+    {\[\# inst_rg0 \: CTX_RegN\{1\}\!STATE
+     \, inst_rg1 \: CTX_RegUN\{5\}\!STATE
+     \, inst_rg2 \: CTX_RegA\{8\}\!STATE
+     \, inst_crg0 \: CTX_CRegN5\{1\}\!STATE
+     \, inst_crg1 \: CTX_CRegUN5\{5\}\!STATE
+     \, inst_crg2 \: CTX_CRegA5\{8\}\!STATE
+     \, inst_rw0 \: CTX_RWire\{17\}\!STATE
+     \, inst_rw1 \: CTX_RWire0\!STATE
+     \, inst_f0 \: CTX_FIFO2\{1\}\!STATE
+     \, inst_f1 \: CTX_FIFO1\{32\}\!STATE
+     \, inst_f2 \: CTX_SizedFIFO\{3\}\!STATE
+     \, inst_f3 \: CTX_FIFOL1\{4\}\!STATE
+     \, inst_f4 \: CTX_FIFO20\!STATE
+     \, inst_f5 \: CTX_FIFO10\!STATE
+     \, inst_f6 \: CTX_SizedFIFO0\!STATE
+     \, inst_f7 \: CTX_FIFOL10\!STATE
+     \, inst_rf0 \: CTX_RegFile\{7,12\}\!STATE
+     \, inst_rf1 \: CTX_RegFileLoad\{4,9\}\!STATE
+     \, inst_br0_memory \: CTX_BRAM1\{3,5\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br1_memory \: CTX_BRAM1Load\{4,6\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br2_memory \: CTX_BRAM1BE\{5,16,2\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br3_memory \: CTX_BRAM1BELoad\{6,32,4\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br4_memory \: CTX_BRAM2\{3,5\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br5_memory \: CTX_BRAM2Load\{4,6\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br6_memory \: CTX_BRAM2BE\{5,16,2\}\!STATE
+}
+find_regexp CTX_sysPrimMods.sal \
+    {, inst_br7_memory \: CTX_BRAM2BELoad\{6,32,4\}\!STATE
+}
+}
+
+# -----
+
+# Test that PrimConcat on more than two arguments is converted to nested
+# calls to the binary primitive in the LC
+
+if { $vtest == 1 } {
+compile_verilog_pass MultiArityConcat.bsv {} $opts
+compare_file_filter_ids CTX_sysMultiArityConcat.sal
+}
+
+# Test that PrimExtract has an explicit type for its return type
+
+if { $vtest == 1 } {
+compile_verilog_pass Extract.bsv {} $opts
+compare_file_filter_ids CTX_sysExtract.sal
+}
+
+# -----
+
+# delete the copied files
+
+foreach lcfile $lcfiles {
+    erase [file tail $lcfile]
+}
+
+# -----
+

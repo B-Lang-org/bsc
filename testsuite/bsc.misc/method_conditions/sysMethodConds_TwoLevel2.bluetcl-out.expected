@@ -1,0 +1,2 @@
+COND_RL_r_s_u_am1_1 {positions {MethodConds_TwoLevel2.bsv 22 9} {MethodConds_TwoLevel2.bsv 12 12}} {rule RL_r} {instance s_u} {method am1}
+COND_RL_r_s_u_am1_2 {positions {MethodConds_TwoLevel2.bsv 22 9} {MethodConds_TwoLevel2.bsv 14 12}} {rule RL_r} {instance s_u} {method am1}

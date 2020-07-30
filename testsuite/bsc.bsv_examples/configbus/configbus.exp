@@ -1,0 +1,5 @@
+if {$vtest == 1} { 
+  compile_verilog_pass CBusExample1.bsv
+  find_n_strings mkCounterSynth.v unnamed 0
+  find_n_strings mkCBusExample.v unnamed 0
+}

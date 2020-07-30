@@ -1,0 +1,17 @@
+checking package dependencies
+compiling MultiUninitErr1.bsv
+code generation for mkMultiUninitErr1 starts
+Error: "MultiUninitErr1.bsv", line 5, column 25: (G0028)
+  `x[3]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "MultiUninitErr1.bsv", line
+  10, column 9.
+  During elaboration of `mkMultiUninitErr1' at "MultiUninitErr1.bsv", line 4,
+  column 8.
+Error: "MultiUninitErr1.bsv", line 5, column 25: (G0028)
+  `x[1]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "MultiUninitErr1.bsv", line
+  10, column 9.
+  During elaboration of `mkMultiUninitErr1' at "MultiUninitErr1.bsv", line 4,
+  column 8.

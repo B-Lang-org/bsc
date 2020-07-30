@@ -1,0 +1,38 @@
+                  10    Result = 2863311530
+                  10    x =     1, y =     0
+                  20    Result =          0
+                  20    x =     2, y =     1
+                  40    Result =          2
+                  40    x =     3, y =     2
+                  70    Result =          6
+                  70    x =     4, y =     3
+                 100    Result =         12
+                 100    x =     5, y =     4
+                 140    Result =         20
+                 140    x =     6, y =     5
+                 180    Result =         30
+                 180    x =     7, y =     6
+                 220    Result =         42
+                 220    x =     8, y =     7
+                 260    Result =         56
+                 260    x =     9, y =     8
+                 310    Result =         72
+                 310    x =    10, y =     9
+                 360    Result =         90
+                 360    x =    11, y =    10
+                 410    Result =        110
+                 410    x =    12, y =    11
+                 460    Result =        132
+                 460    x =    13, y =    12
+                 510    Result =        156
+                 510    x =    14, y =    13
+                 560    Result =        182
+                 560    x =    15, y =    14
+                 610    Result =        210
+                 610    x =    16, y =    15
+                 660    Result =        240
+                 660    x =    17, y =    16
+                 720    Result =        272
+                 720    x =    18, y =    17
+                 780    Result =        306
+                 780    x =    19, y =    18

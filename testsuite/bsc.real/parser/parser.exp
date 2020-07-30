@@ -1,0 +1,38 @@
+if { $vtest == 1 } {
+
+# ---------------
+
+# Test that BSC parses 1.00002 correctly (and not as 1.2)
+
+compile_verilog_pass FractionalLeadingZeros.bsv
+compare_file [make_bsc_vcomp_output_name FractionalLeadingZeros.bsv]
+
+# ---------------
+
+# Test that large exponents don't take forever to parse
+# (because BSC is trying to make an infinite precision Ratio from 10^^exp)
+
+# This also tests that "_" is allowed in the exponent
+
+compile_verilog_pass LargeReal.bsv
+compare_file [make_bsc_vcomp_output_name LargeReal.bsv]
+
+# ---------------
+
+# Test that Classic can parse floats
+# XXX could add some tests for error conditions,
+# XXX like "E" with no digits following, sign with no digits, decimal point
+# XXX with no digits
+
+compile_verilog_pass Classic.bs
+compare_file [make_bsc_vcomp_output_name Classic.bs]
+
+# ---------------
+
+# XXX Could do the same negative testing for BSV parsing of real literals
+# XXX like "E" with no digits following, sign with no digits, decimal point
+# XXX with no digits
+
+# ---------------
+
+}

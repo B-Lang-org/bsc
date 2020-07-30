@@ -1,0 +1,191 @@
+checking package dependencies
+compiling Design.bsv
+code generation for mkDesign starts
+Instantiation tree
+    { [Loc _theResult__ False (Just (Prelude.Integer))
+          { [Loc _theResult___0 True (Just (()))
+	        { [Loc the_x_0 False (Just (Prelude.Empty))
+		      { [Loc the_g False (Just ((Prelude.Reg (Prelude.Bit 8))))
+			    { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+			          { StateVar the_x_the_g } ] } ]
+			[Loc _theResult__ False (Just (Prelude.Integer))
+			    { [Loc _theResult___0 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_0 False (Just (()))
+					      { Rule RL_the_x_bax } ] } ]
+				    [Loc the_z_0 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_the_z } ] } ]
+				    [Loc xyz_0 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_xyz_baz } ] } ] } ]
+			      [Loc _theResult___1 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_1 False (Just (()))
+					      { Rule RL_the_x_bax_1 } ] } ]
+				    [Loc the_z_1 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_the_z_1 } ] } ]
+				    [Loc xyz_1 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_xyz_1_baz } ] } ] } ]
+			      [Loc _theResult___2 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_2 False (Just (()))
+					      { Rule RL_the_x_bax_2 } ] } ]
+				    [Loc the_z_2 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_the_z_2 } ] } ]
+				    [Loc xyz_2 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_xyz_2_baz } ] } ] } ]
+			      [Loc _theResult___3 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_3 False (Just (()))
+					      { Rule RL_the_x_bax_3 } ] } ]
+				    [Loc the_z_3 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_the_z_3 } ] } ]
+				    [Loc xyz_3 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_xyz_3_baz } ] } ] } ] } ] } ] } ]
+	    [Loc _theResult___1 True (Just (()))
+	        { [Loc the_x_1 False (Just (Prelude.Empty))
+		      { [Loc the_g False (Just ((Prelude.Reg (Prelude.Bit 8))))
+			    { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+			          { StateVar the_x_1_the_g } ] } ]
+			[Loc _theResult__ False (Just (Prelude.Integer))
+			    { [Loc _theResult___0 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_0 False (Just (()))
+					      { Rule RL_the_x_1_bax } ] } ]
+				    [Loc the_z_0 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_1_the_z } ] } ]
+				    [Loc xyz_0 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_1_xyz_baz } ] } ] } ]
+			      [Loc _theResult___1 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_1 False (Just (()))
+					      { Rule RL_the_x_1_bax_1 } ] } ]
+				    [Loc the_z_1 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_1_the_z_1 } ] } ]
+				    [Loc xyz_1 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_1_xyz_1_baz } ] } ] } ]
+			      [Loc _theResult___2 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_2 False (Just (()))
+					      { Rule RL_the_x_1_bax_2 } ] } ]
+				    [Loc the_z_2 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_1_the_z_2 } ] } ]
+				    [Loc xyz_2 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_1_xyz_2_baz } ] } ] } ]
+			      [Loc _theResult___3 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_3 False (Just (()))
+					      { Rule RL_the_x_1_bax_3 } ] } ]
+				    [Loc the_z_3 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_1_the_z_3 } ] } ]
+				    [Loc xyz_3 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_1_xyz_3_baz } ] } ] } ] } ] } ] } ]
+	    [Loc _theResult___2 True (Just (()))
+	        { [Loc the_x_2 False (Just (Prelude.Empty))
+		      { [Loc the_g False (Just ((Prelude.Reg (Prelude.Bit 8))))
+			    { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+			          { StateVar the_x_2_the_g } ] } ]
+			[Loc _theResult__ False (Just (Prelude.Integer))
+			    { [Loc _theResult___0 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_0 False (Just (()))
+					      { Rule RL_the_x_2_bax } ] } ]
+				    [Loc the_z_0 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_2_the_z } ] } ]
+				    [Loc xyz_0 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_2_xyz_baz } ] } ] } ]
+			      [Loc _theResult___1 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_1 False (Just (()))
+					      { Rule RL_the_x_2_bax_1 } ] } ]
+				    [Loc the_z_1 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_2_the_z_1 } ] } ]
+				    [Loc xyz_1 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_2_xyz_1_baz } ] } ] } ]
+			      [Loc _theResult___2 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_2 False (Just (()))
+					      { Rule RL_the_x_2_bax_2 } ] } ]
+				    [Loc the_z_2 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_2_the_z_2 } ] } ]
+				    [Loc xyz_2 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_2_xyz_2_baz } ] } ] } ]
+			      [Loc _theResult___3 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_3 False (Just (()))
+					      { Rule RL_the_x_2_bax_3 } ] } ]
+				    [Loc the_z_3 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_2_the_z_3 } ] } ]
+				    [Loc xyz_3 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_2_xyz_3_baz } ] } ] } ] } ] } ] } ]
+	    [Loc _theResult___3 True (Just (()))
+	        { [Loc the_x_3 False (Just (Prelude.Empty))
+		      { [Loc the_g False (Just ((Prelude.Reg (Prelude.Bit 8))))
+			    { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+			          { StateVar the_x_3_the_g } ] } ]
+			[Loc _theResult__ False (Just (Prelude.Integer))
+			    { [Loc _theResult___0 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_0 False (Just (()))
+					      { Rule RL_the_x_3_bax } ] } ]
+				    [Loc the_z_0 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_3_the_z } ] } ]
+				    [Loc xyz_0 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_3_xyz_baz } ] } ] } ]
+			      [Loc _theResult___1 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_1 False (Just (()))
+					      { Rule RL_the_x_3_bax_1 } ] } ]
+				    [Loc the_z_1 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_3_the_z_1 } ] } ]
+				    [Loc xyz_1 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_3_xyz_1_baz } ] } ] } ]
+			      [Loc _theResult___2 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_2 False (Just (()))
+					      { Rule RL_the_x_3_bax_2 } ] } ]
+				    [Loc the_z_2 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_3_the_z_2 } ] } ]
+				    [Loc xyz_2 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_3_xyz_2_baz } ] } ] } ]
+			      [Loc _theResult___3 True (Just (()))
+			          { [Loc _add_rules True (Just (Prelude.Empty))
+				        { [Loc bax_3 False (Just (()))
+					      { Rule RL_the_x_3_bax_3 } ] } ]
+				    [Loc the_z_3 False (Just ((Prelude.Reg (Prelude.Bit 8))))
+				        { [Loc (H) _r False (Just ((¶Prelude®¶.¶VReg®¶ 8)))
+					      { StateVar the_x_3_the_z_3 } ] } ]
+				    [Loc xyz_3 False (Just (Prelude.Empty))
+				        { [Loc baz False (Just (()))
+					      { Rule RL_the_x_3_xyz_3_baz } ] } ] } ] } ] } ] } ] } ] }
+Elaborated module file created: mkDesign.ba
+All packages are up to date.

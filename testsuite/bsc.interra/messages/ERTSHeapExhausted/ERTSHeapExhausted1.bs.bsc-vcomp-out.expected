@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ERTSHeapExhausted1.bs
+Heap exhausted;
+Current maximum heap size is 999424 bytes;
+use `+RTS -M<size>' to increase it.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EUnboundTyCon1.bs
+Error: "EUnboundTyCon1.bs", line 21, column 17: (T0007)
+  Unbound type constructor `Int1'

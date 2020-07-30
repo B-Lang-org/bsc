@@ -1,0 +1,5 @@
+compile_verilog_fail_error Keyword.bsv G0105
+compile_verilog_fail_error InvalidName.bsv G0106
+compile_verilog_fail_error Empty.bsv P0157
+compile_verilog_fail_error Space.bsv P0157
+

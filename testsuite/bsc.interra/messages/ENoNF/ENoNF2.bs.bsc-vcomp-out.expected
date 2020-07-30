@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ENoNF2.bs
+code generation for mkENoNF2 starts
+Error: "Prelude.bs", line 1511, column 13: (G0013)
+  Compile time expression did not evaluate:
+  Type: Prelude.String
+  PrimBitToString (.Prelude.get ·666 pqr_1)
+

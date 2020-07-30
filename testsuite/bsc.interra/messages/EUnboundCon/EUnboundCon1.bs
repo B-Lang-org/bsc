@@ -1,0 +1,31 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundCon1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an unbound constructor error (EUnboundCon)
+
+-- Error Message : bsc EUnboundCon1.bs
+-- bsc: Compilation errors:
+-- "EUnboundCon1.bs", line 31, column 32, Unbound constructor: "MyStruct"
+-----------------------------------------------------------------------
+package EUnboundCon1 (EUnboundCon1(..)) where
+
+-- import Int
+
+struct MyStruct z = a::(Int 32)
+                    b::(Int 32)
+                    c::(Int 32) 
+
+interface EUnboundCon1 =
+                         start :: Int 32
+                         end   :: Int 32
+
+mkEUnboundCon1 :: Module EUnboundCon1
+mkEUnboundCon1 =
+              module
+
+--                    z :: Reg (MyStruct)
+                    z <- mkReg (MyStruct)

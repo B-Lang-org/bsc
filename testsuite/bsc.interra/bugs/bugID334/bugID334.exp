@@ -1,0 +1,5 @@
+compile_fail Design_seq.bsv
+compare_file Design_seq.bsv.bsc-out
+
+compile_fail Design_case.bsv
+compare_file Design_case.bsv.bsc-out

@@ -1,0 +1,15 @@
+target    = 
+targetb   = 
+targeto   = 
+targeth   = 
+targetfmt = 
+target    =   3
+targetb   = 00000011
+targeto   = 003
+targeth   = 03
+targetfmt = count is   2 with %d.
+target    =   7
+targetb   = 00000111
+targeto   = 007
+targeth   = 07
+targetfmt = count is   6 with %d.

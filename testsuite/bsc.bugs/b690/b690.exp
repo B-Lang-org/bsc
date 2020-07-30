@@ -1,0 +1,38 @@
+if { $vtest == 1 } {
+
+compile_verilog_pass AlwaysReadyOnMethods.bsv mkARTest
+string_does_not_occur mkARTest.v RDY_do_foo
+string_does_not_occur mkARTest.v RDY_the_reg__write
+string_occurs mkARTest.v RDY_the_reg__read
+string_occurs mkARTest.v EN_do_foo
+string_occurs mkARTest.v EN_the_reg__write
+
+
+# Theoretically this should ensure that there are no warnings
+compile_verilog_pass AlwaysEnabledOnMethods.bsv mkAETest
+string_does_not_occur mkAEFoo.v EN_the_reg__write
+string_does_not_occur mkAEFoo.v RDY_the_reg__write
+string_occurs mkAEFoo.v RDY_the_reg__read
+string_occurs mkAEFoo.v RDY_do_foo
+string_occurs mkAEFoo.v EN_do_foo
+string_does_not_occur mkAETest.v EN_the_reg__write
+string_does_not_occur mkAETest.v RDY_the_reg__write
+string_occurs mkAETest.v RDY_the_reg__read
+string_occurs mkAETest.v RDY_do_foo
+string_occurs mkAETest.v EN_do_foo
+
+
+compile_verilog_pass DifferentPragmasSameInterface.bsv mkDiffTest
+string_does_not_occur mkDiffAE.v EN_the_reg__write
+string_does_not_occur mkDiffAE.v RDY_the_reg__write
+string_occurs mkDiffAE.v RDY_the_reg__read
+string_occurs mkDiffAE.v RDY_do_foo
+string_occurs mkDiffAE.v EN_do_foo
+string_does_not_occur mkDiffAR.v RDY_do_foo
+string_does_not_occur mkDiffAR.v RDY_the_reg__write
+string_occurs mkDiffAR.v RDY_the_reg__read
+string_occurs mkDiffAR.v EN_do_foo
+string_occurs mkDiffAR.v EN_the_reg__write
+
+}
+

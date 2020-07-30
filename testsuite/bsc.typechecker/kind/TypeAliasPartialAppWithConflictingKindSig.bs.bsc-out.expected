@@ -1,0 +1,12 @@
+checking package dependencies
+compiling TypeAliasPartialAppWithConflictingKindSig.bs
+Error: "TypeAliasPartialAppWithConflictingKindSig.bs", line 3, column 23: (T0021)
+  Kind error at:
+    Bit
+
+  Expected kind:
+    * -> *
+
+  Inferred kind:
+    # -> *
+

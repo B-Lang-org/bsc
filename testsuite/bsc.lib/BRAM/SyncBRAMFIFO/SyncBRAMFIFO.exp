@@ -1,0 +1,8 @@
+test_veri_only_bsv SyncBRAMFIFOToTest sysSyncBRAMFIFOToTest.v.out.expected
+test_c_only_bsv SyncBRAMFIFOToTest sysSyncBRAMFIFOToTest.c.out.expected
+
+test_veri_only_bsv SyncBRAMFIFOFromTest sysSyncBRAMFIFOFromTest.v.out.expected
+test_c_only_bsv SyncBRAMFIFOFromTest sysSyncBRAMFIFOFromTest.c.out.expected
+
+test_veri_only_bsv SyncBRAMFIFOTest sysSyncBRAMFIFOTest.v.out.expected
+test_c_only_bsv SyncBRAMFIFOTest sysSyncBRAMFIFOTest.c.out.expected

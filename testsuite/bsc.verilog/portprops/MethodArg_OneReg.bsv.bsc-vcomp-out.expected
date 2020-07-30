@@ -1,0 +1,16 @@
+checking package dependencies
+compiling MethodArg_OneReg.bsv
+code generation for sysMethodArg_OneReg starts
+=== IOproperties:
+Name                         I/O  size props
+RDY_m                          O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+m_b                            I    16 reg
+EN_m                           I     1
+
+
+-----
+
+Verilog file created: sysMethodArg_OneReg.v
+All packages are up to date.

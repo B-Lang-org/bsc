@@ -1,0 +1,13 @@
+package InitExp (sysInitExp) where
+
+sysInitExp :: Module Empty
+sysInitExp =
+  module
+   r :: Reg (Bit 8) <- mkReg (3 + 5)
+   done :: Reg (Bool) <- mkReg False
+   rules
+     when not done ==> 
+       action
+         $display "%0d" r
+         done := True
+     when done ==> $finish 0

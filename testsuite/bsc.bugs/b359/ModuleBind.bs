@@ -1,0 +1,6 @@
+package ModuleBind() where
+
+sysFoo :: Module Empty
+sysFoo = module
+           x <- return 5
+           r :: Reg (Bit 5) <- mkReg x

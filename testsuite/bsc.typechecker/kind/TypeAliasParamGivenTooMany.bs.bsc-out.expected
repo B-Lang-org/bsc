@@ -1,0 +1,12 @@
+checking package dependencies
+compiling TypeAliasParamGivenTooMany.bs
+Error: "TypeAliasParamGivenTooMany.bs", line 3, column 30: (T0021)
+  Kind error at:
+    Bit a
+
+  Expected kind:
+    # -> *
+
+  Inferred kind:
+    *
+

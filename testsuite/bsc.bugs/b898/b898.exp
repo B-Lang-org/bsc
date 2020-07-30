@@ -1,0 +1,10 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+test_veri_only_bsv_modules Bug898 {mkBug898} sysBug898.v.out.expected
+test_c_only_bsv_modules Bug898 {mkBug898} 
+
+test_veri_only_bsv_modules Bug898_2 {mkBug898_2} sysBug898_2.v.out.expected
+test_c_only_bsv_modules Bug898_2 {mkBug898_2} 

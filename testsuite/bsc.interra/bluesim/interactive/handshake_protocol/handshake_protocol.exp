@@ -1,0 +1,8 @@
+if { $ctest == 1 } {
+compile_object_pass Design.bsv mkDesign
+compile_object_pass Testbench.bsv mkTestbench
+link_objects_pass {mkTestbench mkDesign} mkTestbench
+#sim_output mkTestbench "-d bsv_c_drvfile"
+#compare_file mkTestbench.out
+}
+

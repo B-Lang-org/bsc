@@ -1,0 +1,11 @@
+package NonConflictingBitTypes() where
+
+-- this should typecheck
+foo1 :: Action
+foo1 = let x = 5 
+       in $display (x :: Bit 5) (x :: Bit 7)
+
+-- this should typecheck
+foo2 :: Action
+foo2 = let x = 5
+       in $display (unpack (x :: Bit 5)) (unpack (x :: Bit 7))

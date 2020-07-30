@@ -1,0 +1,86 @@
+package TL2 (sysTL, TL) where {
+
+  -- Simple model of a traffic light
+
+  -- Version 2: add a specific time delay for each state
+
+  -- We'll use an integer register to count time (seconds)
+
+  interface TL = { };
+
+  data TLstates = AllRed
+                | GreenNS  | AmberNS
+                | GreenE   | AmberE
+                | GreenW   | AmberW
+                deriving (Eq, Bits);
+
+  -- Assume the clock ticks every second
+  -- Assume that no delay is greater than 32 seconds (5-bits)
+  type Time32 = UInt 5;
+
+  sysTL :: Module TL;
+  sysTL =
+      module {
+          state :: Reg TLstates;
+          state <- mkReg AllRed;
+
+          next_green :: Reg TLstates;
+          next_green <- mkReg GreenNS;
+
+          secs :: Reg Time32;
+          secs <- mkReg 0;
+
+          let {
+              allRedDelay :: Time32;
+              allRedDelay = 2;
+
+              amberDelay :: Time32;
+              amberDelay = 4;
+
+              ns_green_delay :: Time32;
+              ns_green_delay = 20;
+
+              ew_green_delay :: Time32;
+              ew_green_delay = 10;
+          };
+      interface {
+          -- Empty interface
+      };
+      addRules $
+        rules {
+          "wait": when True ==> secs := secs + 1
+        }
+
+        +>
+
+        rules {
+  	"fromAllRed":
+            when (state == AllRed) && ((secs + 1) >= allRedDelay)
+              ==> action { state := next_green; secs := 0; } ;
+
+          "fromGreenNS":
+            when (state == GreenNS) && ((secs + 1) >= ns_green_delay)
+              ==> action { state := AmberNS; secs := 0; };
+
+          "fromAmberNS":
+            when (state == AmberNS) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenE; };
+
+          "fromGreenE":
+            when (state == GreenE) && ((secs + 1) >= ew_green_delay)
+              ==> action { state := AmberE; secs := 0; };
+
+          "fromAmberE":
+            when (state == AmberE) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenW; };
+
+          "fromGreenW":
+            when (state == GreenW) && ((secs + 1) >= ew_green_delay)
+              ==> action { state := AmberW; secs := 0; };
+
+          "fromAmberW":
+            when (state == AmberW) && ((secs + 1) >= amberDelay)
+              ==> action { state := AllRed; secs := 0; next_green := GreenNS; };
+        }
+      }
+}

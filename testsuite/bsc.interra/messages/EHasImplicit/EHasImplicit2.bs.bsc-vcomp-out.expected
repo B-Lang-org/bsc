@@ -1,0 +1,10 @@
+checking package dependencies
+compiling EHasImplicit2.bs
+code generation for mkPort starts
+Verilog file created: mkPort.v
+code generation for mkTop starts
+Error: "EHasImplicit2.bs", line 16, column 10: (G0081)
+  Module arguments cannot have implicit conditions. The expression for
+  argument `x' in the instantiation of `p' has an implicit condition.
+  During elaboration of `p' at "EHasImplicit2.bs", line 16, column 10.
+  During elaboration of `mkTop' at "EHasImplicit2.bs", line 13, column 0.

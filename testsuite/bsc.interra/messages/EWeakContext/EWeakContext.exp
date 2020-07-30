@@ -1,0 +1,6 @@
+# this passes now that we are cleverer about joining Add contexts
+# though it doesn't figure out a == 1
+compile_pass EWeakContext.bs
+
+compile_fail_error EWeakContext2.bs T0030
+

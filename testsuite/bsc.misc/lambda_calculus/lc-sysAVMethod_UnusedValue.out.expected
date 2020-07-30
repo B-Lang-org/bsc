@@ -1,0 +1,25 @@
+data MOD_sysAVMethod_UnusedValue =
+    MOD_sysAVMethod_UnusedValue
+	{ inst_s__sysAVMethod_UnusedValue :: MOD_mkAVMethod_UnusedValue_Sub };
+
+ctor_sysAVMethod_UnusedValue :: MOD_sysAVMethod_UnusedValue;
+ctor_sysAVMethod_UnusedValue =
+    MOD_sysAVMethod_UnusedValue { inst_s__sysAVMethod_UnusedValue = ctor_mkAVMethod_UnusedValue_Sub };
+
+dim_sysAVMethod_UnusedValue :: MOD_sysAVMethod_UnusedValue -> MOD_sysAVMethod_UnusedValue -> Bool;
+dim_sysAVMethod_UnusedValue =
+    (\ (mod1 :: MOD_sysAVMethod_UnusedValue) ->
+     (\ (mod2 :: MOD_sysAVMethod_UnusedValue) ->
+      dim_mkAVMethod_UnusedValue_Sub
+	  (inst_s__sysAVMethod_UnusedValue mod1)
+	  (inst_s__sysAVMethod_UnusedValue mod2)));
+
+rule_RL_r_sysAVMethod_UnusedValue :: MOD_sysAVMethod_UnusedValue -> (Bool, MOD_sysAVMethod_UnusedValue, ());
+rule_RL_r_sysAVMethod_UnusedValue =
+    (\ (state0 :: MOD_sysAVMethod_UnusedValue) ->
+     let { (act1 :: (Bool, MOD_mkAVMethod_UnusedValue_Sub, Bit #32)) =
+	       meth_m_mkAVMethod_UnusedValue_Sub (inst_s__sysAVMethod_UnusedValue state0)
+	 ; (guard1 :: Bool) = fst3 act1
+	 ; (state1 :: MOD_sysAVMethod_UnusedValue) = state0 { inst_s__sysAVMethod_UnusedValue = snd3 act1 }
+	 }
+     in mktuple guard1 state1 ());

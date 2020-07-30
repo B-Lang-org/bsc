@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ContextReductionRemoveImpliedCloseFD.bsv
+Error: "ContextReductionRemoveImpliedCloseFD.bsv", line 7, column 8: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    Bits#(ContextReductionRemoveImpliedCloseFD::Node#(UInt#(3)), a__)
+  The proviso was implied by expressions at the following positions:
+    "ContextReductionRemoveImpliedCloseFD.bsv", line 8, column 33
+  An instance for this proviso exists, but it depends on the following proviso
+  for which there is no instance:
+    Add#(3, TSub#(5, 8), a__)

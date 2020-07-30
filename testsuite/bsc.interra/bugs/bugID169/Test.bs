@@ -1,0 +1,18 @@
+----------------------------------------------------
+-- FileName : Test.bs
+-- Author   : Interra
+-- BugID    : 169
+-- CommandLine : bsc Test.bs
+-- Status : Fixed for BSC 3.74
+----------------------------------------------------
+
+package Test (Test(..)) where 
+
+data MyType1 a = Integer | Bool
+             deriving ()
+
+data MyType2 b = Bool | Integer
+             deriving ()
+
+data MyType3 c = MyType1 a | MyType2 b
+               deriving (Eq,Bits,Bounded)

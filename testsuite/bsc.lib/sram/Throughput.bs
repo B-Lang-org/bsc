@@ -1,0 +1,76 @@
+package Throughput(throughput) where
+
+-- Test throughput of RAM memory
+
+import GetPut
+import ClientServer
+import SyncSRAM
+import SPSRAM
+import SRAM
+import RAM
+
+type Addr = Bit 7
+type Data = Bit 16
+
+size :: Data
+size = 128
+
+{-# verilog throughput #-}
+
+throughput :: Module Empty
+throughput = 
+  do
+    ram :: RAM Addr Data <- mkWrapSRAM (mkSPSRAM 128)
+
+    rtime :: Reg (Bit 32) <- mkReg 0
+    wtime :: Reg (Bit 32) <- mkReg 0
+    ltime :: Reg (Bit 32) <- mkReg 0
+
+    cycles :: Reg Data <- mkReg size
+    rcycles :: Reg Data <- mkReg size
+
+    write :: Reg Bool <- mkReg True
+    read  :: Reg Bool <- mkReg True
+         
+
+    addRules $
+      rules
+	when cycles /= 0, write ==> do
+	  ram.request.put (Write ((unpack $ truncate $ pack cycles),cycles))
+	  cycles := cycles - 1
+
+	when cycles == 0, read, write ==> 
+	 action
+	  write := False
+	  cycles := size
+	  $display "Done %0d writes in %0d cycles" size wtime
+
+	when cycles /= 0, read, not write ==> do
+	  ram.request.put (Read        (unpack $ truncate $ pack cycles))
+	  cycles := cycles - 1
+
+	when True ==> do
+	  x :: Data <- ram.response.get
+	  rcycles := rcycles - 1
+	  return ()
+
+
+	when cycles == 0, read, not write ==> 
+	 action
+	  read := False
+	  cycles := size
+	  $display "Done %0d read requests in %0d cycles" size rtime
+
+	when write, read ==> do
+	  wtime := wtime + 1
+
+	when not write, read ==> do
+	  rtime := rtime + 1
+
+	when rcycles /= 0 ==> do
+	  ltime := ltime + 1
+
+	when not write, not read, rcycles == 0 ==>
+	 action
+	  $display "Last word arrived after %0d cycles" ltime
+	  $finish 0

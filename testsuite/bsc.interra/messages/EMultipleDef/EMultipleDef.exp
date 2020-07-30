@@ -1,0 +1,5 @@
+compile_fail EMultipleDef.bs
+compare_file EMultipleDef.bs.bsc-out
+
+compile_fail EMultipleDef1.bs
+compare_file EMultipleDef1.bs.bsc-out

@@ -1,0 +1,21 @@
+Clock Cycle Number =   0, Value Got = 170, Expected Value = 240
+Clock Cycle Number =   1, Value Got = 168, Expected Value = 248
+Clock Cycle Number =   2, Value Got =   0, Expected Value =   0
+Clock Cycle Number =   3, Value Got =   8, Expected Value =   8
+Clock Cycle Number =   4, Value Got =  16, Expected Value =  16
+Clock Cycle Number =   5, Value Got =  24, Expected Value =  24
+Clock Cycle Number =   6, Value Got =  32, Expected Value =  32
+Clock Cycle Number =   7, Value Got =  40, Expected Value =  40
+Clock Cycle Number =   8, Value Got =  48, Expected Value =  48
+Clock Cycle Number =   9, Value Got =  56, Expected Value =  56
+Clock Cycle Number =  10, Value Got =  64, Expected Value =  64
+Clock Cycle Number =  11, Value Got =  72, Expected Value =  72
+Clock Cycle Number =  12, Value Got =  80, Expected Value =  80
+Clock Cycle Number =  13, Value Got =  88, Expected Value =  88
+Clock Cycle Number =  14, Value Got =  96, Expected Value =  96
+Clock Cycle Number =  15, Value Got = 104, Expected Value = 104
+Clock Cycle Number =  16, Value Got = 112, Expected Value = 112
+Clock Cycle Number =  17, Value Got = 120, Expected Value = 120
+Clock Cycle Number =  18, Value Got = 128, Expected Value = 128
+Clock Cycle Number =  19, Value Got = 136, Expected Value = 136
+Simulation Passes

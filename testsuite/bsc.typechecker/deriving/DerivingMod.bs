@@ -1,0 +1,32 @@
+package DerivingMod(sysDerivingMod) where
+
+import DerivingTest
+
+sysDerivingMod :: Module Empty
+sysDerivingMod = 
+  module
+    r1 :: Reg(Test1) <- mkReg minTest
+    r2 :: Reg(Test1) <- mkReg maxTest
+
+    r3 :: Reg(Test2) <- mkReg minBound
+    r4 :: Reg(Test2) <- mkReg maxBound
+
+    r5 :: Reg(Test3) <- mkReg minBound
+    r6 :: Reg(Test3) <- mkReg maxBound
+
+    r7 :: Reg(Test4) <- mkReg minBound
+    r8 :: Reg(Test4) <- mkReg maxBound
+
+    rules 
+      when True ==> 
+        action
+           if(r1 == minBound && 
+              r2 == maxBound && 
+              r3 == minBound && 
+              r4 == maxBound &&
+              r5 == minBound &&
+              r6 == maxBound &&
+              r7 == minBound &&
+              r8 == maxBound) then $display "Pass" else $display "Fail"
+           $finish 0
+        

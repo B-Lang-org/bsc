@@ -1,0 +1,6 @@
+package DeprecatedLibrary where
+
+{-# properties myFunc = { deprecate = "Replaced by myFunc2." } #-}
+myFunc :: Bool -> Bool
+myFunc = not
+

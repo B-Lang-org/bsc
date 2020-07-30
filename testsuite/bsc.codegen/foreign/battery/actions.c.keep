@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include "common.h"
+
+void action_function (unsigned int n, unsigned int w[4],
+                      unsigned int *p, char *s)
+{
+  printf("action_function\n");
+  display_four(n,w,p,s);
+}
+
+void tick()
+{
+  printf("Tick!\n");
+}
+

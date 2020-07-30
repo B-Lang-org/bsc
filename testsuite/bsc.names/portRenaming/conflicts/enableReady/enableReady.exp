@@ -1,0 +1,7 @@
+compile_fail_error Test01.bsv "G0055" 1 "-verilog"
+compile_fail_error Test02.bsv "G0055" 1 "-verilog"
+compile_fail_error Test03.bsv "G0055" 1 "-verilog"
+compile_fail_error Test04.bsv "G0055" 1 "-verilog"
+compile_fail_error Test05.bsv "G0055" 1 "-verilog"
+compile_fail_error Test06.bsv "G0055" 1 "-verilog"
+find_n_emsg Test06.bsv.bsc-out "Error" G0055 1

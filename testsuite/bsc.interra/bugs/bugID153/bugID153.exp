@@ -1,0 +1,2 @@
+compile_fail BsTop.bs
+compare_file BsTop.bs.bsc-out

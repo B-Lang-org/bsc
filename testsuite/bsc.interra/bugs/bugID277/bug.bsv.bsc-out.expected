@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "bug.bsv", line 28, column 33: (P0005)
+  Unexpected identifier `$$brake'; expected argument name

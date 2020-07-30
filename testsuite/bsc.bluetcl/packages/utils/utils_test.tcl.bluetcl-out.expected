@@ -1,0 +1,272 @@
+Command: utils::map_ puts {abcd edgr {with space} {with$dollar}}
+abcd
+edgr
+with space
+with$dollar
+---------
+Command: utils::map_ {puts stderr} {abcd edgr {with space} {with$dollar}}
+abcd
+edgr
+with space
+with$dollar
+---------
+Command: utils::map {globalspace abcd} {abcd edgr {with space} {with$dollar}}
+GS: abcd abcd
+GS: abcd edgr
+GS: abcd with space
+GS: abcd with$dollar
+
+
+
+
+---------
+Command: utils::map {globalspace edgr} {abcd edgr {with space} {with$dollar}}
+GS: edgr abcd
+GS: edgr edgr
+GS: edgr with space
+GS: edgr with$dollar
+
+
+
+
+---------
+Command: utils::map {globalspace with space} {abcd edgr {with space} {with$dollar}}
+Caught error:  wrong # args: should be "globalspace x y"
+wrong # args: should be "globalspace x y"
+    while executing
+"globalspace with space abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {globalspace with space} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {globalspace with space} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::map {globalspace {with space}} {abcd edgr {with space} {with$dollar}}
+GS: with space abcd
+GS: with space edgr
+GS: with space with space
+GS: with space with$dollar
+
+
+
+
+---------
+Command: utils::map {globalspace with$dollar} {abcd edgr {with space} {with$dollar}}
+Caught error:  can't read "dollar": no such variable
+can't read "dollar": no such variable
+    while executing
+"globalspace with$dollar abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {globalspace with$dollar} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {globalspace with$dollar} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::map {globalspace {with$dollar}} {abcd edgr {with space} {with$dollar}}
+GS: with$dollar abcd
+GS: with$dollar edgr
+GS: with$dollar with space
+GS: with$dollar with$dollar
+
+
+
+
+---------
+-----------   testing with 2 args
+Command: utils::map {two abcd edgr} {abcd edgr {with space} {with$dollar}}
+abcd edgr abcd
+abcd edgr edgr
+abcd edgr with space
+abcd edgr with$dollar
+abcd./.edgr./.abcd
+abcd./.edgr./.edgr
+abcd./.edgr./.with space
+abcd./.edgr./.with$dollar
+---------
+Command: utils::map {two {abcd} {edgr}} {abcd edgr {with space} {with$dollar}}
+abcd edgr abcd
+abcd edgr edgr
+abcd edgr with space
+abcd edgr with$dollar
+abcd./.edgr./.abcd
+abcd./.edgr./.edgr
+abcd./.edgr./.with space
+abcd./.edgr./.with$dollar
+---------
+-----------   testing with space
+Command: utils::map {two with space edgr} {abcd edgr {with space} {with$dollar}}
+Caught error:  wrong # args: should be "two a b c"
+wrong # args: should be "two a b c"
+    while executing
+"two with space edgr abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {two with space edgr} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {two with space edgr} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::map {two {with space} edgr} {abcd edgr {with space} {with$dollar}}
+with space edgr abcd
+with space edgr edgr
+with space edgr with space
+with space edgr with$dollar
+with space./.edgr./.abcd
+with space./.edgr./.edgr
+with space./.edgr./.with space
+with space./.edgr./.with$dollar
+---------
+-----------   testing with dollar
+Command: utils::map {two with$dollar edgr} {abcd edgr {with space} {with$dollar}}
+Caught error:  can't read "dollar": no such variable
+can't read "dollar": no such variable
+    while executing
+"two with$dollar edgr abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {two with$dollar edgr} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {two with$dollar edgr} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::map {two {with$dollar} edgr} {abcd edgr {with space} {with$dollar}}
+with$dollar edgr abcd
+with$dollar edgr edgr
+with$dollar edgr with space
+with$dollar edgr with$dollar
+with$dollar./.edgr./.abcd
+with$dollar./.edgr./.edgr
+with$dollar./.edgr./.with space
+with$dollar./.edgr./.with$dollar
+---------
+Command: utils::map {procargs abcd} {abcd edgr {with space} {with$dollar}}
+abcd__abcd
+abcd__edgr
+abcd__with space
+abcd__with$dollar
+---------
+Command: utils::map {procargs abcd edgr with$dollar} {abcd edgr {with space} {with$dollar}}
+Caught error:  can't read "dollar": no such variable
+can't read "dollar": no such variable
+    while executing
+"procargs abcd edgr with$dollar abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {procargs abcd edgr with$dollar} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {procargs abcd edgr with$dollar} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::map {procargs abcd edgr {with$dollar}} {abcd edgr {with space} {with$dollar}}
+abcd__edgr__with$dollar__abcd
+abcd__edgr__with$dollar__edgr
+abcd__edgr__with$dollar__with space
+abcd__edgr__with$dollar__with$dollar
+---------
+Command: utils::map {procargs abcd edgr with space} {abcd edgr {with space} {with$dollar}}
+abcd__edgr__with__space__abcd
+abcd__edgr__with__space__edgr
+abcd__edgr__with__space__with space
+abcd__edgr__with__space__with$dollar
+---------
+Command: utils::map {procargs abcd edgr {with space}} {abcd edgr {with space} {with$dollar}}
+abcd__edgr__with space__abcd
+abcd__edgr__with space__edgr
+abcd__edgr__with space__with space
+abcd__edgr__with space__with$dollar
+---------
+Command: utils::map {two zz yy} {a b c d}
+Caught error:  invalid command name "two"
+invalid command name "two"
+    while executing
+"two zz yy a"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $f [list $a]"
+    (procedure "utils::map" line 4)
+    invoked from within
+"utils::map {two zz yy} {a b c d}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::map {two zz yy} {a b c d}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::filter {string match abcd} {abcd edgr {with space} {with$dollar}}
+abcd
+---------
+Command: utils::filter {string match edgr} {abcd edgr {with space} {with$dollar}}
+edgr
+---------
+Command: utils::filter {string match with space} {abcd edgr {with space} {with$dollar}}
+Caught error:  bad option "with": must be -nocase
+bad option "with": must be -nocase
+    while executing
+"string match with space abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $pred [list $a]"
+    (procedure "utils::filter" line 4)
+    invoked from within
+"utils::filter {string match with space} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::filter {string match with space} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::filter {string match with$dollar} {abcd edgr {with space} {with$dollar}}
+Caught error:  can't read "dollar": no such variable
+can't read "dollar": no such variable
+    while executing
+"string match with$dollar abcd"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 $pred [list $a]"
+    (procedure "utils::filter" line 4)
+    invoked from within
+"utils::filter {string match with$dollar} {abcd edgr {with space} {with$dollar}}"
+    ("uplevel" body line 1)
+    invoked from within
+"uplevel 1 {utils::filter {string match with$dollar} {abcd edgr {with space} {with$dollar}}}"
+    invoked from within
+"catch [list uplevel 1 $args] err"
+---------
+Command: utils::filter {string match {with space}} {abcd edgr {with space} {with$dollar}}
+with space
+---------
+Command: utils::filter {string match {with$dollar}} {abcd edgr {with space} {with$dollar}}
+with$dollar
+---------
+Command: utils::filter {string match *d*} {abcd edgr {with space} {with$dollar}}
+abcd
+edgr
+with$dollar
+---------

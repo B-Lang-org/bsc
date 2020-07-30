@@ -1,0 +1,61 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnknownSize.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EUnknownSize error of the bluespec
+-- compiler (Bit Vector of unknown size introduced near this location)
+--
+-----------------------------------------------------------------------
+
+
+
+package EUnknownSize (Shifter, mkShifter64) where
+
+-- import UInt
+import Push
+import GetPut
+import ClientServer
+
+type Shifter n =
+    Server (UInt n {-value-}, UInt (TLog n) {-shift amt-}) (UInt n {-result-})
+
+{-# verilog mkShifter64 #-}
+mkShifter64 :: Module (Shifter 64)
+mkShifter64 =
+    module (getResult, putResult) :: (Get (UInt 64), Put (UInt 64)) <- mkGPFIFO
+           shifter :: Push (UInt 64, UInt 6)
+                   <- (passed shift1 »
+                       passed shift1 »
+                       qbuffer »
+                       passed shift1 »
+                       passed shift1 »
+                       qbuffer »
+                       passed shift1 »
+                       passed shift1 »
+                       passed strip »
+                       pass · tee (putResult.put) »
+                       sink)
+           interface
+             request = interface Put { put (val,by) = shifter.push (val,by) }
+             response = getResult
+
+-- one shift stage
+shift1 :: (Add 1 m' m) => (UInt n, UInt m) -> (UInt n, UInt m')
+shift1 (val, by) = let i = fromInteger (valueOf m')
+                       shift = (pack by)[i:0] == 1
+                       val' = if shift then val << (1 << i) else val
+                       by' = truncate by
+                   in  (val', by')
+
+-- signature ensures that no stages are missing
+strip :: (UInt n, UInt 0) -> UInt n
+strip (x,_) = x
+
+
+
+
+
+

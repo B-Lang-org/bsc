@@ -1,0 +1,12 @@
+checking package dependencies
+compiling Bug675_ModuleCollect.bsv
+Error: "Bug675_ModuleCollect.bsv", line 120, column 23: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    Bug675_ModuleCollect::AssertionWires#(m)
+  The following provisos are needed:
+    Bits#(ListN::ListN#(n, Bool), m)
+      Introduced at the following locations:
+	"Bug675_ModuleCollect.bsv", line 129, column 19
+      The proviso could also be deduced from the following information:
+	type `n' and type `m' are equal

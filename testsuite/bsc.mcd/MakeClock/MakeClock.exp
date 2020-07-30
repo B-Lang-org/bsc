@@ -1,0 +1,7 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+
+test_c_veri_bsv_modules_options MakeClockTest "" -keep-fires

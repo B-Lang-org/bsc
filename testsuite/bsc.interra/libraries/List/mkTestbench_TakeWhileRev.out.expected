@@ -1,0 +1,10 @@
+Original List:
+ 0
+ 1
+ 2
+ 1
+ 1
+Returns Tail Segment with elements < 2. New List:
+ 1
+ 1
+Simulation Passes

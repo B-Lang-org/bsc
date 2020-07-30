@@ -1,0 +1,6 @@
+package EBigLit2(sysEBigLit2) where
+
+sysEBigLit2 :: Module Empty
+sysEBigLit2 =
+  module
+    r :: Reg (Bit 4) <- mkReg (19 - 2)

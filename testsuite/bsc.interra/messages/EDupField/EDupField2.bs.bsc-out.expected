@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EDupField2.bs
+Error: "EDupField2.bs", line 20, column 21: (T0017)
+  Field `fst' defined more than once

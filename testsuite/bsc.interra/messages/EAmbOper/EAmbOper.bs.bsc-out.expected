@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EAmbOper.bs
+Error: "EAmbOper.bs", line 22, column 14: (P0074)
+  Ambiguous operator combination with == and ==.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling MethodToMethodReference.bsv
+Error: "MethodToMethodReference.bsv", line 12, column 14: (T0004)
+  Unbound variable `getVal'

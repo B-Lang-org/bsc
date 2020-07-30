@@ -1,0 +1,440 @@
+#
+# Tests for "doc" comments which pass through to generated Verilog
+#
+
+# ----------
+# Test various types of comments on a synthesized module
+
+compile_verilog_pass CommentOnModule.bsv
+if {$vtest == 1} {
+    # check for the exact comments in the proper location
+    find_regexp mkCommentOnModule.v {
+// No combinational paths from inputs to outputs
+//
+//
+// foo
+// bar
+// quux
+// glurph bloop
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY}
+}
+
+# ----------
+# Test comment on a module which is not synthesized, but inlined
+# into a larger design
+
+#compile_verilog_pass CommentOnInlinedModule.bsv
+#if {$vtest == 1} {
+#  ...
+#}
+
+# ----------
+# Test comments on a rule
+
+# Test what happens in the CANFIRE/WILLFIRE not preserved
+# (Currently, we put the comment at the top-level, and don't force keep)
+# Also tests that multiple doc (whether in same list or two lists) come out
+# in the same order, and that '\n' in the string results in two comment lines.
+compile_verilog_pass CommentOnRule.bsv
+if {$vtest == 1} {
+    move mkCommentOnRule.v mkCommentOnRule-nokeep.v
+    # top-level comment
+    find_regexp mkCommentOnRule-nokeep.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined rule \`RL_do_something\'\:
+//   This rule is important
+//   Foo
+//   Bar
+//   Baz
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+
+    # XXX confirm that the rule's signals are not kept?
+}
+
+# Test what happens in the CANFIRE/WILLFIRE is preserved
+touch CommentOnRule.bsv
+compile_verilog_pass CommentOnRule.bsv "" "-keep-fires"
+if {$vtest == 1} {
+    move mkCommentOnRule.v mkCommentOnRule-keep.v
+    # comment on the rule
+    find_regexp mkCommentOnRule-keep.v "
+  // rule RL_do_something
+  //   This rule is important
+  //   Foo
+  //   Bar
+  //   Baz
+  assign (CAN|WILL)_FIRE_RL_do_something"
+
+    # no top-level comment
+    find_regexp mkCommentOnRule-keep.v "
+// No combinational paths from inputs to outputs
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+
+    # no comment on the other rule
+    find_regexp mkCommentOnRule-keep.v "
+  // rule RL_do_another_thing
+  assign (CAN|WILL)_FIRE_RL_do_another_thing"
+}
+
+# Test if the rule is defined in a function
+compile_verilog_pass CommentOnRuleInFunc.bsv "" ""
+if {$vtest == 1} {
+    # top-level comment
+    find_regexp mkCommentOnRuleInFunc.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined rule \`RL_do_something\'\:
+//   This rule is important
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# Test if the rule is defined in a for-loop
+compile_verilog_pass CommentOnRuleInForLoop.bsv
+if {$vtest == 1} {
+    # top-level comments (merged!)
+    find_regexp mkCommentOnRuleInForLoop.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined rules \`RL_do_something\', \`RL_do_something_1\',
+// \`RL_do_something_2\':
+//   This rule is important
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# Test that multiple different bubbled comments are not merged
+compile_verilog_pass CommentOnMultipleRule.bsv
+if {$vtest == 1} {
+    # top-level comment
+    find_regexp mkCommentOnMultipleRule.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined rule \`RL_do_another_thing\'\:
+//   This rule is also important
+//
+// Comments on the inlined rule \`RL_do_something\'\:
+//   This rule is important
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# Test comments on rule nests
+compile_verilog_pass CommentOnRuleNest.bsv "" "-keep-fires"
+if {$vtest == 1} {
+    find_regexp mkCommentOnRuleNest.v "
+  // rule RL_will_do_something
+  //   This rule is important
+  assign (CAN|WILL)_FIRE_RL_will_do_something"
+
+    find_regexp mkCommentOnRuleNest.v "
+  // rule RL_will_do_another_thing
+  //   This rule is important
+  //   This is another thing
+  assign (CAN|WILL)_FIRE_RL_will_do_another_thing"
+}
+
+# Test comments on "rules..endrules" expression
+compile_verilog_pass CommentOnRulesInFunc.bsv "" "-keep-fires"
+if {$vtest == 1} {
+    find_regexp mkCommentOnRulesInFunc.v "
+  // rule RL_do_something
+  //   This rule is important
+  assign (CAN|WILL)_FIRE_RL_do_something"
+
+    find_regexp mkCommentOnRulesInFunc.v "
+  // rule RL_do_another_thing
+  //   This rule is important
+  //   This is another thing
+  assign (CAN|WILL)_FIRE_RL_do_another_thing"
+}
+
+# Allow comments on "addRules" for the multiple rules being added?
+
+# ----------
+# Test comments on a method
+
+# Test action method on a synthesis boundary
+
+# Test value method on a synthesis boundary
+
+# Test actionvalue method on a synthesis boundary
+
+# Test method not on a synthesis boundary
+# (should all rules which call it get the comment?)
+# (should the top module have a comment that the comment is for
+# method X subsumed into rules W,Y,Z,etc?)
+
+# ----------
+# Test comments on a submodule instance
+
+# On a normal module, separately synthesized, using long notation
+# Also tests that multiple doc (whether in same list or two lists) come out
+# in the same order, and that '\n' in the string results in two comment lines.
+compile_verilog_pass CommentOnSubmod.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmod.v {
+  // submodule the_f1
+  // This is a FIFO
+  // Foo
+  // Bar
+  // Baz
+  (FIFO|wire)}
+}
+
+# On a normal module, separately synthesized, using shorthand notation
+compile_verilog_pass CommentOnSubmodShorthand.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodShorthand.v {
+  // submodule f2
+  // This is also a FIFO
+  (FIFO|wire)}
+}
+
+# On a normal module, separately synthesized, using shorthand notation
+# with separate declaration and binding
+compile_verilog_pass CommentOnSubmodShorthandSeparate.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodShorthandSeparate.v {
+  // submodule f1
+  // This is a FIFO
+  (FIFO|wire)}
+}
+
+# Test syntax on "let x" long and short form?
+compile_verilog_pass CommentOnSubmodLet.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodLet.v {
+  // submodule f2
+  // This is a FIFO too
+  (FIFO|wire)}
+
+    find_regexp mkCommentOnSubmodLet.v {
+  // submodule the_f1
+  // This is a FIFO
+  (FIFO|wire)}
+}
+
+# Test syntax where decl type is "module"?
+# (presumably this will not arise, because it'd be a module returning a module)
+
+# Test syntax where decl type is a variable?
+# (also presumably not common as module inst'n usually knows the type)
+
+# Test for multiple binds in one decl
+compile_verilog_pass CommentOnSubmodMultiBind.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodMultiBind.v {
+  // register r1
+  // This is a register
+  reg r1}
+
+    find_regexp mkCommentOnSubmodMultiBind.v {
+  // register r2
+  // This is a register
+  reg r2}
+}
+
+# Test for multiple variables of which some are binds
+compile_verilog_fail_error CommentOnSubmodMultiBindFail.bsv P0027
+
+# No test needed for binding to arr[], because parser doesn't support that
+
+# Test if the bind occurs in an action/actionvalue
+# (we only allow "doc" in a module..endmodule context)
+compile_verilog_fail_error CommentOnBindInAction.bsv P0027
+
+# Test if the instantiation occurs in a module..endmodule expression
+compile_verilog_pass CommentOnSubmodInFunc.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodInFunc.v {
+  // register r1_r
+  // This is a register
+  reg r1_r}
+}
+
+# Test if the instantiation occurs in a for-loop
+compile_verilog_pass CommentOnInlinedSubmodInForLoop.bsv
+if {$vtest == 1} {
+    # top-level comments (merged!)
+    find_regexp mkCommentOnInlinedSubmodInForLoop.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined modules \`the_sub_0\', \`the_sub_1\', \`the_sub_2\':
+//   This is the submodule
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# On a submodule of a submodule (checking for multiple depth of names)
+compile_verilog_pass CommentOnSubsubmod.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubsubmod.v {
+  // submodule the_s_the_f1
+  // This is a FIFO
+  (FIFO|wire)}
+}
+
+# On a normal module, not separately synthesized
+compile_verilog_pass CommentOnInlinedSubmod.bsv
+if {$vtest == 1} {
+    # need quotes not {} to get "\" escaping to work
+    find_regexp mkCommentOnInlinedSubmod.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined module \`the_sub\'\:
+//   This is the submodule
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# On a register (inlined in the Verilog)
+compile_verilog_pass CommentOnSubmodReg.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnSubmodReg.v {
+  // register the_r
+  // This is a register
+  reg the_r}
+}
+
+# On an rwire (inlined in the Verilog) whose wire signals are preserved
+compile_verilog_pass CommentOnSubmodRWire.bsv
+if {$vtest == 1} {
+    # need quotes not {} to get "\" escaping to work
+    find_regexp mkCommentOnSubmodRWire.v "
+// No combinational paths from inputs to outputs
+//
+//
+// Comments on the inlined module \`the_rw\'\:
+//   This is an rwire
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY"
+}
+
+# On an rwire (inlined in the Verilog) whose wire signals are not preserved
+# (Note, the comment is not placed in the rwires section -- yet? --
+# so this is no different than above.)
+
+# On a probe
+compile_verilog_pass CommentOnSubmodProbe.bsv
+if {$vtest == 1} {
+    # need quotes not {} to get "\" escaping to work
+    find_regexp mkCommentOnSubmodProbe.v "
+  // probes
+  //
+  // Comments for probe \`the_r\'\:
+  //   This is a probe
+  //
+  wire the_r\\\$PROBE, the_r\\\$PROBE_VALID\;"
+}
+
+# On non-Module modules, like localbus (see statename tests for examples)
+compile_verilog_pass CommentOnNonModuleSubmod.bsv
+if {$vtest == 1} {
+    find_regexp mkCommentOnNonModuleSubmod.v "
+// Comments on the inlined module \`i_test_the_dut_i_b\'\:
+//   This is a BoolReg
+//
+// Comments on the inlined module \`i_test\'\:
+//   This is the test
+"
+}
+
+# ---------
+
+# Test for arrays of registers and instantiations with the same name
+
+if {$vtest == 1} {
+
+# An array which is instantiated in a for-loop should have the doc on
+# each instance
+compile_verilog_pass CommentOnSubmodArrayInForLoop.bsv
+find_n_strings mkCommentOnSubmodArrayInForLoop.v "This is also a FIFO" 4
+
+# Using replicate only puts the comment on the first instance
+# (the rest have be uniquified and no long associate to the old name)
+# XXX investigate if this is a bug
+compile_verilog_pass CommentOnSubmodReplicate.bsv
+find_n_strings mkCommentOnSubmodReplicate.v "This is a register" 1
+
+# The same thing happens if you use a for-loop to instantiate the same
+# name multiple times
+# XXX should be fixed
+compile_verilog_pass CommentOnSubmodDuplicatedInForLoop.bsv
+find_n_strings mkCommentOnSubmodDuplicatedInForLoop.v "This is also a FIFO" 4
+
+}
+
+# ---------
+
+# Google commenting testcase
+compile_verilog_pass AttrDemo.bsv
+if { $vtest == 1 } {
+find_n_strings mkAttrDemo.v "breadcrumb" 8
+}
+
+# ----------
+
+# Test that duplicate strings don't get removed
+
+# On a synthesized module
+#
+compile_verilog_pass DuplicateCommentOnModule.bsv
+if {$vtest == 1} {
+    find_regexp sysDuplicateCommentOnModule.v {
+// No combinational paths from inputs to outputs
+//
+//
+// This appears twice
+// This is unique
+// This appears twice
+// This is also unique
+//
+//
+
+`ifdef BSV_ASSIGNMENT_DELAY}
+}
+
+# On a submodule
+#
+compile_verilog_pass DuplicateCommentOnSubmod.bsv
+if {$vtest == 1} {
+    find_regexp sysDuplicateCommentOnSubmod.v {
+  // submodule f1
+  // This appears twice
+  // This is unique
+  // This appears twice
+  // This is also unique
+  (FIFO|wire)}
+}
+
+# ----------
+

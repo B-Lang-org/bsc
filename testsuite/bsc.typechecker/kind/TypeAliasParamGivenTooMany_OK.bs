@@ -1,0 +1,4 @@
+package TypeAliasParamGivenTooMany_OK () where
+
+type (Foo :: # -> *) = Bit
+

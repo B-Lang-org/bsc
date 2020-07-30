@@ -1,0 +1,10 @@
+b is False
+arr[1]
+          4
+arr2[2]
+          7
+b is True
+arr[1]
+          1
+arr2[2]
+          7

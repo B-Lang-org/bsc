@@ -1,0 +1,1987 @@
+                   0:  fifo full
+                   0:  fifo empty
+                  19:  fifo empty
+                  28:  fifo empty
+                  37:  fifo empty
+                  46:  fifo empty
+                  55:  fifo empty
+                  64:  fifo empty
+                  73:  fifo empty
+                  82:  fifo empty
+                  91:  fifo empty
+                 100:  fifo empty
+                 109:  fifo empty
+                 118:  fifo empty
+                 127:  fifo empty
+                 136:  fifo empty
+                 145:  fifo empty
+                 154:  fifo empty
+                 163:  fifo empty
+                 172:  fifo empty
+                 181:  fifo empty
+                 190:  fifo empty
+                 199:  fifo empty
+                 208:  fifo empty
+                 217:  fifo empty
+                 226:  fifo empty
+                 235:  fifo empty
+                 244:  fifo empty
+                 253:  fifo empty
+                 262:  fifo empty
+                 271:  fifo empty
+                 280:  fifo empty
+                 289:  fifo empty
+                 298:  fifo empty
+                 307:  fifo empty
+                 316:  fifo empty
+                 325:  fifo empty
+                 334:  fifo empty
+                 343:  fifo empty
+                 352:  fifo empty
+                 361:  fifo empty
+                 370:  fifo empty
+                 379:  fifo empty
+                 388:  fifo empty
+                 397:  fifo empty
+                 406:  fifo empty
+                 415:  fifo empty
+                 424:  fifo empty
+                 433:  fifo empty
+                 442:  fifo empty
+                 451:  fifo empty
+                 460:  fifo empty
+                 465:  fifo full
+                 469:  fifo empty
+                 478:  fifo empty
+                 487:  fifo empty
+                 496:  fifo empty
+                 505:  fifo empty
+                 514:  fifo empty
+                 523:  fifo empty
+                 532:  fifo empty
+                 541:  fifo empty
+                 550:  fifo empty
+                 559:  fifo empty
+                 565:  fifo full
+                 568:  fifo empty
+                 577:  fifo empty
+                 586:  fifo empty
+                 595:  fifo empty
+                 604:  fifo empty
+                 613:  fifo empty
+                 622:  fifo empty
+                 631:  fifo empty
+                 640:  fifo empty
+                 649:  fifo empty
+                 658:  fifo empty
+                 665:  fifo full
+                 667:  fifo empty
+                 676:  fifo empty
+                 685:  fifo empty
+                 694:  fifo empty
+                 703:  fifo empty
+                 712:  fifo empty
+                 721:  fifo empty
+                 730:  fifo empty
+                 739:  fifo empty
+                 748:  fifo empty
+                 757:  fifo empty
+                 766:  fifo empty
+                 775:  fifo empty
+                 784:  fifo empty
+                 793:  fifo empty
+                 802:  fifo empty
+                 811:  fifo empty
+                 820:  fifo empty
+                 829:  fifo empty
+                 838:  fifo empty
+                 847:  fifo empty
+                 856:  fifo empty
+                 865:  fifo empty
+                 874:  fifo empty
+                 883:  fifo empty
+                 892:  fifo empty
+                 901:  fifo empty
+                 910:  fifo empty
+                 919:  fifo empty
+                 928:  fifo empty
+                 937:  fifo empty
+                 946:  fifo empty
+                 955:  fifo empty
+                 964:  fifo empty
+                 965:  enquing areg = 0 
+                 973:  fifo empty
+                 982:  fifo empty
+                 991:  fifo empty
+                1000:  fifo empty
+                1009:  fifo empty
+                1018:  fifo empty
+                1027:  fifo empty
+                1036:  fifo empty
+                1165:  enquing areg = 1 
+                1265:  enquing areg = 2 
+                1365:  enquing areg = 3 
+                1465:  enquing areg = 4 
+                1665:  enquing areg = 5 
+                2065:  enquing areg = 6 
+                2165:  enquing areg = 7 
+                2265:  enquing areg = 8 
+                2565:  enquing areg = 9 
+                2665:  enquing areg = 10 
+                2765:  enquing areg = 11 
+                2865:  enquing areg = 12 
+                2965:  enquing areg = 13 
+                3165:  enquing areg = 14 
+                3265:  enquing areg = 15 
+                3465:  enquing areg = 16 
+                3565:  enquing areg = 17 
+                3665:  enquing areg = 18 
+                3865:  enquing areg = 19 
+                4165:  enquing areg = 20 
+                4265:  enquing areg = 21 
+                4365:  enquing areg = 22 
+                4465:  enquing areg = 23 
+                4565:  enquing areg = 24 
+                4665:  enquing areg = 25 
+                5265:  enquing areg = 26 
+                5565:  enquing areg = 27 
+                5765:  enquing areg = 28 
+                6065:  enquing areg = 29 
+                6165:  enquing areg = 30 
+                6265:  enquing areg = 31 
+                6665:  enquing areg = 32 
+                6765:  enquing areg = 33 
+                7065:  enquing areg = 34 
+                7565 clearing
+                7642:  fifo empty
+                7651:  fifo empty
+                7660:  fifo empty
+                7665:  fifo full
+                7669:  fifo empty
+                7678:  fifo empty
+                7687:  fifo empty
+                7696:  fifo empty
+                7705:  fifo empty
+                7714:  fifo empty
+                7723:  fifo empty
+                7732:  fifo empty
+                7741:  fifo empty
+                7750:  fifo empty
+                7759:  fifo empty
+                7765:  fifo full
+                7768:  fifo empty
+                7777:  fifo empty
+                7786:  fifo empty
+                7795:  fifo empty
+                7804:  fifo empty
+                7813:  fifo empty
+                7822:  fifo empty
+                7831:  fifo empty
+                7840:  fifo empty
+                7849:  fifo empty
+                7858:  fifo empty
+                7865:  fifo full
+                7865 clearing
+                7867:  fifo empty
+                7876:  fifo empty
+                7885:  fifo empty
+                7894:  fifo empty
+                7903:  fifo empty
+                7912:  fifo empty
+                7921:  fifo empty
+                7930:  fifo empty
+                7939:  fifo empty
+                7948:  fifo empty
+                7957:  fifo empty
+                7965:  fifo full
+                7966:  fifo empty
+                7975:  fifo empty
+                7984:  fifo empty
+                7993:  fifo empty
+                8002:  fifo empty
+                8011:  fifo empty
+                8020:  fifo empty
+                8029:  fifo empty
+                8038:  fifo empty
+                8047:  fifo empty
+                8056:  fifo empty
+                8065:  fifo full
+                8065:  fifo empty
+                8074:  fifo empty
+                8083:  fifo empty
+                8092:  fifo empty
+                8101:  fifo empty
+                8110:  fifo empty
+                8119:  fifo empty
+                8128:  fifo empty
+                8137:  fifo empty
+                8146:  fifo empty
+                8155:  fifo empty
+                8164:  fifo empty
+                8165:  fifo full
+                8173:  fifo empty
+                8182:  fifo empty
+                8191:  fifo empty
+                8200:  fifo empty
+                8209:  fifo empty
+                8218:  fifo empty
+                8227:  fifo empty
+                8236:  fifo empty
+                8245:  fifo empty
+                8254:  fifo empty
+                8263:  fifo empty
+                8272:  fifo empty
+                8281:  fifo empty
+                8290:  fifo empty
+                8299:  fifo empty
+                8308:  fifo empty
+                8317:  fifo empty
+                8326:  fifo empty
+                8335:  fifo empty
+                8344:  fifo empty
+                8353:  fifo empty
+                8362:  fifo empty
+                8365:  enquing areg = 35 
+                8371:  fifo empty
+                8380:  fifo empty
+                8389:  fifo empty
+                8398:  fifo empty
+                8407:  fifo empty
+                8416:  fifo empty
+                8425:  fifo empty
+                8434:  fifo empty
+                8465:  enquing areg = 36 
+                8665:  enquing areg = 37 
+                8865:  enquing areg = 38 
+                9065:  enquing areg = 39 
+                9165:  enquing areg = 40 
+                9265:  enquing areg = 41 
+                9365:  enquing areg = 42 
+                9565:  enquing areg = 43 
+                9665:  enquing areg = 44 
+                9765:  enquing areg = 45 
+                9865:  enquing areg = 46 
+                9965:  enquing areg = 47 
+               10165:  enquing areg = 48 
+               10265:  enquing areg = 49 
+               10565:  enquing areg = 50 
+               10765:  enquing areg = 51 
+               11165:  enquing areg = 52 
+               11565:  enquing areg = 53 
+               11665:  enquing areg = 54 
+               11865:  enquing areg = 55 
+               11965:  enquing areg = 56 
+               12265:  enquing areg = 57 
+               12565:  enquing areg = 58 
+               12765:  enquing areg = 59 
+               12865:  enquing areg = 60 
+               12965:  enquing areg = 61 
+               13065:  enquing areg = 62 
+               13165:  enquing areg = 63 
+               13365:  enquing areg = 64 
+               13465:  enquing areg = 65 
+               13565:  enquing areg = 66 
+               13665:  enquing areg = 67 
+               14065:  enquing areg = 68 
+               14265:  enquing areg = 69 
+               14565:  enquing areg = 70 
+               14665:  enquing areg = 71 
+               14765:  enquing areg = 72 
+               14965:  enquing areg = 73 
+               15065:  enquing areg = 74 
+               15165:  enquing areg = 75 
+               15565:  enquing areg = 76 
+               15765:  enquing areg = 77 
+               15965:  enquing areg = 78 
+               16265:  enquing areg = 79 
+               16365:  enquing areg = 80 
+               16565:  enquing areg = 81 
+               16765:  enquing areg = 82 
+               16965:  enquing areg = 83 
+               17365:  enquing areg = 84 
+               17465:  enquing areg = 85 
+               17765:  enquing areg = 86 
+               17965:  enquing areg = 87 
+               18065:  enquing areg = 88 
+               18265:  enquing areg = 89 
+               18565:  enquing areg = 90 
+               18865:  enquing areg = 91 
+               18965:  enquing areg = 92 
+               19065:  enquing areg = 93 
+               19365:  enquing areg = 94 
+               19465:  enquing areg = 95 
+               19565:  enquing areg = 96 
+               19665:  enquing areg = 97 
+               20065:  enquing areg = 98 
+               20265:  enquing areg = 99 
+               20365:  enquing areg = 100 
+               20765:  enquing areg = 101 
+               20865:  enquing areg = 102 
+               21065:  enquing areg = 103 
+               21265:  enquing areg = 104 
+               21465:  enquing areg = 105 
+               21865:  enquing areg = 106 
+               22065:  enquing areg = 107 
+               22165:  enquing areg = 108 
+               22265:  enquing areg = 109 
+               22465:  enquing areg = 110 
+               22665:  enquing areg = 111 
+               23065:  enquing areg = 112 
+               23165:  enquing areg = 113 
+               23265:  enquing areg = 114 
+               23465:  enquing areg = 115 
+               23665:  enquing areg = 116 
+               23765:  enquing areg = 117 
+               23965:  enquing areg = 118 
+               24265:  enquing areg = 119 
+               24565:  enquing areg = 120 
+               24665:  enquing areg = 121 
+               24765:  enquing areg = 122 
+               24865:  enquing areg = 123 
+               25565:  enquing areg = 124 
+               25765:  enquing areg = 125 
+               25965:  enquing areg = 126 
+               26265:  enquing areg = 127 
+               26365:  enquing areg = 128 
+               26465:  enquing areg = 129 
+               26865:  enquing areg = 130 
+               26965:  enquing areg = 131 
+               27065:  enquing areg = 132 
+               27165:  enquing areg = 133 
+               27665:  enquing areg = 134 
+               28065:  enquing areg = 135 
+               28165:  enquing areg = 136 
+               28265:  enquing areg = 137 
+               28465:  enquing areg = 138 
+               28565:  enquing areg = 139 
+               28665:  enquing areg = 140 
+               29065:  enquing areg = 141 
+               29165:  enquing areg = 142 
+               29465:  enquing areg = 143 
+               29565:  enquing areg = 144 
+               29665:  enquing areg = 145 
+               29765:  enquing areg = 146 
+               29865:  enquing areg = 147 
+               29965:  enquing areg = 148 
+               30265:  enquing areg = 149 
+               30365:  enquing areg = 150 
+               30865:  enquing areg = 151 
+               31265:  enquing areg = 152 
+               31765:  enquing areg = 153 
+               31865:  enquing areg = 154 
+               32165:  enquing areg = 155 
+               32265:  enquing areg = 156 
+               32338:  destination fifo almost full
+               32347:  dequing data: 35
+               32356:  dequing data: 36
+               32365:  source fifo almost full
+               32365:  dequing data: 37
+               32374:  dequing data: 38
+               32383:  dequing data: 39
+               32392:  dequing data: 40
+               32401:  dequing data: 41
+               32410:  dequing data: 42
+               32419:  dequing data: 43
+               32428:  dequing data: 44
+               32437:  dequing data: 45
+               32446:  dequing data: 46
+               32455:  dequing data: 47
+               32464:  dequing data: 48
+               32465:  enquing areg = 157 
+               32473:  dequing data: 49
+               32482:  dequing data: 50
+               32491:  dequing data: 51
+               32500:  dequing data: 52
+               32509:  dequing data: 53
+               32518:  dequing data: 54
+               32527:  dequing data: 55
+               32536:  dequing data: 56
+               32545:  dequing data: 57
+               32554:  dequing data: 58
+               32563:  dequing data: 59
+               32565:  enquing areg = 158 
+               32572:  dequing data: 60
+               32581:  dequing data: 61
+               32590:  dequing data: 62
+               32599:  dequing data: 63
+               32608:  dequing data: 64
+               32617:  dequing data: 65
+               32626:  dequing data: 66
+               32635:  dequing data: 67
+               32644:  dequing data: 68
+               32653:  dequing data: 69
+               32662:  dequing data: 70
+               32671:  dequing data: 71
+               32680:  dequing data: 72
+               32689:  dequing data: 73
+               32698:  dequing data: 74
+               32707:  dequing data: 75
+               32716:  dequing data: 76
+               32725:  dequing data: 77
+               32734:  dequing data: 78
+               32743:  dequing data: 79
+               32752:  dequing data: 80
+               32761:  dequing data: 81
+               32765:  source fifo almost empty
+               32765:  enquing areg = 159 
+               32770:  dequing data: 82
+               32779:  dequing data: 83
+               32788:  dequing data: 84
+               32797:  dequing data: 85
+               32806:  dequing data: 86
+               32815:  dequing data: 87
+               32824:  dequing data: 88
+               32833:  dequing data: 89
+               32842:  dequing data: 90
+               32851:  dequing data: 91
+               32860:  dequing data: 92
+               32869:  dequing data: 93
+               32878:  dequing data: 94
+               32887:  dequing data: 95
+               32896:  dequing data: 96
+               32905:  dequing data: 97
+               32914:  dequing data: 98
+               32923:  dequing data: 99
+               32932:  dequing data: 100
+               32941:  dequing data: 101
+               32950:  dequing data: 102
+               32959:  dequing data: 103
+               32968:  dequing data: 104
+               32977:  dequing data: 105
+               32986:  dequing data: 106
+               32995:  dequing data: 107
+               33004:  dequing data: 108
+               33013:  dequing data: 109
+               33022:  dequing data: 110
+               33031:  dequing data: 111
+               33040:  dequing data: 112
+               33049:  dequing data: 113
+               33058:  dequing data: 114
+               33067:  dequing data: 115
+               33076:  dequing data: 116
+               33085:  dequing data: 117
+               33094:  dequing data: 118
+               33103:  dequing data: 119
+               33112:  dequing data: 120
+               33121:  dequing data: 121
+               33130:  dequing data: 122
+               33139:  dequing data: 123
+               33148:  dequing data: 124
+               33157:  dequing data: 125
+               33166:  dequing data: 126
+               33175:  dequing data: 127
+               33184:  dequing data: 128
+               33193:  dequing data: 129
+               33202:  dequing data: 130
+               33211:  dequing data: 131
+               33220:  dequing data: 132
+               33229:  dequing data: 133
+               33238:  dequing data: 134
+               33247:  dequing data: 135
+               33256:  dequing data: 136
+               33265:  enquing areg = 160 
+               33265:  dequing data: 137
+               33274:  dequing data: 138
+               33283:  dequing data: 139
+               33292:  dequing data: 140
+               33301:  dequing data: 141
+               33310:  dequing data: 142
+               33319:  dequing data: 143
+               33328:  dequing data: 144
+               33337:  dequing data: 145
+               33346:  dequing data: 146
+               33355:  dequing data: 147
+               33364:  dequing data: 148
+               33365:  enquing areg = 161 
+               33373:  dequing data: 149
+               33382:   destination clk fifo almost empty
+               33382:  dequing data: 150
+               33665:  enquing areg = 162 
+               33865:  enquing areg = 163 
+               33965:  enquing areg = 164 
+               34265:  enquing areg = 165 
+               34565:  enquing areg = 166 
+               34965:  enquing areg = 167 
+               35065:  enquing areg = 168 
+               35165:  enquing areg = 169 
+               35265:  enquing areg = 170 
+               35565:  enquing areg = 171 
+               35665:  enquing areg = 172 
+               35865:  enquing areg = 173 
+               35965:  enquing areg = 174 
+               36265:  enquing areg = 175 
+               36365:  enquing areg = 176 
+               36565:  enquing areg = 177 
+               36765:  enquing areg = 178 
+               36865:  enquing areg = 179 
+               36965:  enquing areg = 180 
+               37065:  enquing areg = 181 
+               37165:  enquing areg = 182 
+               37365:  enquing areg = 183 
+               37465:  enquing areg = 184 
+               37565:  enquing areg = 185 
+               37665:  enquing areg = 186 
+               37965:  enquing areg = 187 
+               38065:  enquing areg = 188 
+               38165:  enquing areg = 189 
+               38365:  enquing areg = 190 
+               38465:  enquing areg = 191 
+               38565:  enquing areg = 192 
+               38765:  enquing areg = 193 
+               38965:  enquing areg = 194 
+               39065:  enquing areg = 195 
+               39365:  enquing areg = 196 
+               39465:  enquing areg = 197 
+               39565:  enquing areg = 198 
+               39665:  enquing areg = 199 
+               39765:  enquing areg = 200 
+               39865:  enquing areg = 201 
+               40165:  enquing areg = 202 
+               40265:  enquing areg = 203 
+               40365:  enquing areg = 204 
+               40565:  enquing areg = 205 
+               40665:  enquing areg = 206 
+               40865:  enquing areg = 207 
+               41065:  enquing areg = 208 
+               41165:  enquing areg = 209 
+               41565:  enquing areg = 210 
+               41665:  enquing areg = 211 
+               41865:  enquing areg = 212 
+               42165:  enquing areg = 213 
+               42265:  enquing areg = 214 
+               42465:  enquing areg = 215 
+               42565:  enquing areg = 216 
+               42665:  enquing areg = 217 
+               43065:  enquing areg = 218 
+               43365:  enquing areg = 219 
+               43465:  enquing areg = 220 
+               43965:  enquing areg = 221 
+               44065:  enquing areg = 222 
+               44265:  enquing areg = 223 
+               44365:  enquing areg = 224 
+               44565:  enquing areg = 225 
+               44965:  enquing areg = 226 
+               45165:  enquing areg = 227 
+               45265:  enquing areg = 228 
+               45365:  enquing areg = 229 
+               45465:  enquing areg = 230 
+               45565:  enquing areg = 231 
+               45765:  enquing areg = 232 
+               45865:  enquing areg = 233 
+               45965:  enquing areg = 234 
+               46065:  enquing areg = 235 
+               46165:  enquing areg = 236 
+               46265:  enquing areg = 237 
+               46365:  enquing areg = 238 
+               46465:  enquing areg = 239 
+               46665:  enquing areg = 240 
+               46765:  enquing areg = 241 
+               46865:  enquing areg = 242 
+               47065:  enquing areg = 243 
+               47165:  enquing areg = 244 
+               47765:  enquing areg = 245 
+               47865:  enquing areg = 246 
+               48065:  enquing areg = 247 
+               48165:  enquing areg = 248 
+               48265:  enquing areg = 249 
+               48465:  enquing areg = 250 
+               48665:  enquing areg = 251 
+               48765:  enquing areg = 252 
+               48865:  enquing areg = 253 
+               48965:  enquing areg = 254 
+               49165:  enquing areg = 255 
+               49365:  enquing areg = 256 
+               49465:  enquing areg = 257 
+               49565:  enquing areg = 258 
+               49765:  enquing areg = 259 
+               49865:  enquing areg = 260 
+               50165:  enquing areg = 261 
+               50365:  enquing areg = 262 
+               50765:  enquing areg = 263 
+               50865:  enquing areg = 264 
+               51065:  enquing areg = 265 
+               51365:  enquing areg = 266 
+               51465:  enquing areg = 267 
+               51865:  enquing areg = 268 
+               52065:  enquing areg = 269 
+               52165:  enquing areg = 270 
+               52265:  enquing areg = 271 
+               52465:  enquing areg = 272 
+               52543:  destination fifo almost full
+               52552:  dequing data: 151
+               52561:  dequing data: 152
+               52565:  source fifo almost full
+               52570:  dequing data: 153
+               52579:  dequing data: 154
+               52588:  dequing data: 155
+               52597:  dequing data: 156
+               52606:  dequing data: 157
+               52615:  dequing data: 158
+               52624:  dequing data: 159
+               52633:  dequing data: 160
+               52642:  dequing data: 161
+               52651:  dequing data: 162
+               52660:  dequing data: 163
+               52665:  enquing areg = 273 
+               52669:  dequing data: 164
+               52678:  dequing data: 165
+               52687:  dequing data: 166
+               52696:  dequing data: 167
+               52705:  dequing data: 168
+               52714:  dequing data: 169
+               52723:  dequing data: 170
+               52732:  dequing data: 171
+               52741:  dequing data: 172
+               52750:  dequing data: 173
+               52759:  dequing data: 174
+               52768:  dequing data: 175
+               52777:  dequing data: 176
+               52786:  dequing data: 177
+               52795:  dequing data: 178
+               52804:  dequing data: 179
+               52813:  dequing data: 180
+               52822:  dequing data: 181
+               52831:  dequing data: 182
+               52840:  dequing data: 183
+               52849:  dequing data: 184
+               52858:  dequing data: 185
+               52865:  enquing areg = 274 
+               52867:  dequing data: 186
+               52876:  dequing data: 187
+               52885:  dequing data: 188
+               52894:  dequing data: 189
+               52903:  dequing data: 190
+               52912:  dequing data: 191
+               52921:  dequing data: 192
+               52930:  dequing data: 193
+               52939:  dequing data: 194
+               52948:  dequing data: 195
+               52957:  dequing data: 196
+               52965:  source fifo almost empty
+               52965:  enquing areg = 275 
+               52966:  dequing data: 197
+               52975:  dequing data: 198
+               52984:  dequing data: 199
+               52993:  dequing data: 200
+               53002:  dequing data: 201
+               53011:  dequing data: 202
+               53020:  dequing data: 203
+               53029:  dequing data: 204
+               53038:  dequing data: 205
+               53047:  dequing data: 206
+               53056:  dequing data: 207
+               53065:  dequing data: 208
+               53074:  dequing data: 209
+               53083:  dequing data: 210
+               53092:  dequing data: 211
+               53101:  dequing data: 212
+               53110:  dequing data: 213
+               53119:  dequing data: 214
+               53128:  dequing data: 215
+               53137:  dequing data: 216
+               53146:  dequing data: 217
+               53155:  dequing data: 218
+               53164:  dequing data: 219
+               53165:  enquing areg = 276 
+               53173:  dequing data: 220
+               53182:  dequing data: 221
+               53191:  dequing data: 222
+               53200:  dequing data: 223
+               53209:  dequing data: 224
+               53218:  dequing data: 225
+               53227:  dequing data: 226
+               53236:  dequing data: 227
+               53245:  dequing data: 228
+               53254:  dequing data: 229
+               53263:  dequing data: 230
+               53265:  enquing areg = 277 
+               53272:  dequing data: 231
+               53281:  dequing data: 232
+               53290:  dequing data: 233
+               53299:  dequing data: 234
+               53308:  dequing data: 235
+               53317:  dequing data: 236
+               53326:  dequing data: 237
+               53335:  dequing data: 238
+               53344:  dequing data: 239
+               53353:  dequing data: 240
+               53362:  dequing data: 241
+               53371:  dequing data: 242
+               53380:  dequing data: 243
+               53389:  dequing data: 244
+               53398:  dequing data: 245
+               53407:  dequing data: 246
+               53416:  dequing data: 247
+               53425:  dequing data: 248
+               53434:  dequing data: 249
+               53443:  dequing data: 250
+               53452:  dequing data: 251
+               53461:  dequing data: 252
+               53470:  dequing data: 253
+               53479:  dequing data: 254
+               53488:  dequing data: 255
+               53497:  dequing data: 256
+               53506:  dequing data: 257
+               53515:  dequing data: 258
+               53524:  dequing data: 259
+               53533:  dequing data: 260
+               53542:  dequing data: 261
+               53551:  dequing data: 262
+               53560:  dequing data: 263
+               53565:  enquing areg = 278 
+               53569:  dequing data: 264
+               53578:  dequing data: 265
+               53587:  dequing data: 266
+               53596:   destination clk fifo almost empty
+               53596:  dequing data: 267
+               53765:  enquing areg = 279 
+               53965:  enquing areg = 280 
+               54065:  enquing areg = 281 
+               54165:  enquing areg = 282 
+               54465:  enquing areg = 283 
+               54865:  enquing areg = 284 
+               54965:  enquing areg = 285 
+               55065:  enquing areg = 286 
+               55165:  enquing areg = 287 
+               55765:  enquing areg = 288 
+               55965:  enquing areg = 289 
+               56165:  enquing areg = 290 
+               56365:  enquing areg = 291 
+               56465:  enquing areg = 292 
+               56865:  enquing areg = 293 
+               56965:  enquing areg = 294 
+               57065:  enquing areg = 295 
+               57365:  enquing areg = 296 
+               57465:  enquing areg = 297 
+               57565:  enquing areg = 298 
+               57765:  enquing areg = 299 
+               57965:  enquing areg = 300 
+               58065:  enquing areg = 301 
+               58165:  enquing areg = 302 
+               58265:  enquing areg = 303 
+               58565:  enquing areg = 304 
+               58865:  enquing areg = 305 
+               58965:  enquing areg = 306 
+               59065:  enquing areg = 307 
+               59165:  enquing areg = 308 
+               59765:  enquing areg = 309 
+               59865:  enquing areg = 310 
+               59965:  enquing areg = 311 
+               60165:  enquing areg = 312 
+               60465:  enquing areg = 313 
+               60565:  enquing areg = 314 
+               60665:  enquing areg = 315 
+               60765:  enquing areg = 316 
+               60965:  enquing areg = 317 
+               61365:  enquing areg = 318 
+               61665:  enquing areg = 319 
+               61765:  enquing areg = 320 
+               62365:  enquing areg = 321 
+               62665:  enquing areg = 322 
+               63165:  enquing areg = 323 
+               63265:  enquing areg = 324 
+               63565:  enquing areg = 325 
+               63665:  enquing areg = 326 
+               64065:  enquing areg = 327 
+               64165:  enquing areg = 328 
+               64465:  enquing areg = 329 
+               64565:  enquing areg = 330 
+               64765:  enquing areg = 331 
+               65165:  enquing areg = 332 
+               65365:  enquing areg = 333 
+               65465:  enquing areg = 334 
+               65565:  enquing areg = 335 
+               65765:  enquing areg = 336 
+               66065:  enquing areg = 337 
+               66165:  enquing areg = 338 
+               66365:  enquing areg = 339 
+               66465:  enquing areg = 340 
+               66665:  enquing areg = 341 
+               66965:  enquing areg = 342 
+               67065:  enquing areg = 343 
+               67165:  enquing areg = 344 
+               67365:  enquing areg = 345 
+               67665:  enquing areg = 346 
+               67765:  enquing areg = 347 
+               67965:  enquing areg = 348 
+               68265:  enquing areg = 349 
+               68665:  enquing areg = 350 
+               68865:  enquing areg = 351 
+               69065 clearing
+               69139:  fifo empty
+               69148:  fifo empty
+               69157:  fifo empty
+               69165:  fifo full
+               69166:  fifo empty
+               69175:  fifo empty
+               69184:  fifo empty
+               69193:  fifo empty
+               69202:  fifo empty
+               69211:  fifo empty
+               69220:  fifo empty
+               69229:  fifo empty
+               69238:  fifo empty
+               69247:  fifo empty
+               69256:  fifo empty
+               69265:  fifo full
+               69265:  fifo empty
+               69274:  fifo empty
+               69283:  fifo empty
+               69292:  fifo empty
+               69301:  fifo empty
+               69310:  fifo empty
+               69319:  fifo empty
+               69328:  fifo empty
+               69337:  fifo empty
+               69346:  fifo empty
+               69355:  fifo empty
+               69364:  fifo empty
+               69365:  fifo full
+               69373:  fifo empty
+               69382:  fifo empty
+               69391:  fifo empty
+               69400:  fifo empty
+               69409:  fifo empty
+               69418:  fifo empty
+               69427:  fifo empty
+               69436:  fifo empty
+               69445:  fifo empty
+               69454:  fifo empty
+               69463:  fifo empty
+               69472:  fifo empty
+               69481:  fifo empty
+               69490:  fifo empty
+               69499:  fifo empty
+               69508:  fifo empty
+               69517:  fifo empty
+               69526:  fifo empty
+               69535:  fifo empty
+               69544:  fifo empty
+               69553:  fifo empty
+               69562:  fifo empty
+               69571:  fifo empty
+               69580:  fifo empty
+               69589:  fifo empty
+               69598:  fifo empty
+               69607:  fifo empty
+               69616:  fifo empty
+               69625:  fifo empty
+               69634:  fifo empty
+               69643:  fifo empty
+               69652:  fifo empty
+               69661:  fifo empty
+               69665:  enquing areg = 352 
+               69670:  fifo empty
+               69679:  fifo empty
+               69688:  fifo empty
+               69697:  fifo empty
+               69706:  fifo empty
+               69715:  fifo empty
+               69724:  fifo empty
+               69733:  fifo empty
+               69865:  enquing areg = 353 
+               69965:  enquing areg = 354 
+               70065:  enquing areg = 355 
+               70465:  enquing areg = 356 
+               70665:  enquing areg = 357 
+               70865:  enquing areg = 358 
+               70965:  enquing areg = 359 
+               71065:  enquing areg = 360 
+               71165:  enquing areg = 361 
+               71265:  enquing areg = 362 
+               71365:  enquing areg = 363 
+               71665:  enquing areg = 364 
+               71765:  enquing areg = 365 
+               72165:  enquing areg = 366 
+               72365:  enquing areg = 367 
+               72665:  enquing areg = 368 
+               72765:  enquing areg = 369 
+               72865:  enquing areg = 370 
+               72965:  enquing areg = 371 
+               73165:  enquing areg = 372 
+               73265:  enquing areg = 373 
+               73365:  enquing areg = 374 
+               73465:  enquing areg = 375 
+               73665:  enquing areg = 376 
+               73765:  enquing areg = 377 
+               74065:  enquing areg = 378 
+               74165:  enquing areg = 379 
+               74265:  enquing areg = 380 
+               74365:  enquing areg = 381 
+               74465:  enquing areg = 382 
+               74665:  enquing areg = 383 
+               74765:  enquing areg = 384 
+               74865:  enquing areg = 385 
+               75065:  enquing areg = 386 
+               75265:  enquing areg = 387 
+               75365:  enquing areg = 388 
+               75465:  enquing areg = 389 
+               75565:  enquing areg = 390 
+               75665:  enquing areg = 391 
+               75965:  enquing areg = 392 
+               76365:  enquing areg = 393 
+               76565:  enquing areg = 394 
+               76765:  enquing areg = 395 
+               76865:  enquing areg = 396 
+               77365:  enquing areg = 397 
+               77665:  enquing areg = 398 
+               78365:  enquing areg = 399 
+               78465:  enquing areg = 400 
+               78565:  enquing areg = 401 
+               79065:  enquing areg = 402 
+               79365:  enquing areg = 403 
+               79665:  enquing areg = 404 
+               80065:  enquing areg = 405 
+               80265:  enquing areg = 406 
+               80365:  enquing areg = 407 
+               80465:  enquing areg = 408 
+               80565:  enquing areg = 409 
+               80665:  enquing areg = 410 
+               80765:  enquing areg = 411 
+               80865:  enquing areg = 412 
+               81065:  enquing areg = 413 
+               81265:  enquing areg = 414 
+               81465:  enquing areg = 415 
+               81865:  enquing areg = 416 
+               82265:  enquing areg = 417 
+               82565:  enquing areg = 418 
+               82665:  enquing areg = 419 
+               82865:  enquing areg = 420 
+               82965:  enquing areg = 421 
+               83065:  enquing areg = 422 
+               83165:  enquing areg = 423 
+               83365:  enquing areg = 424 
+               83465:  enquing areg = 425 
+               83665:  enquing areg = 426 
+               83765:  enquing areg = 427 
+               83865:  enquing areg = 428 
+               83965:  enquing areg = 429 
+               84265:  enquing areg = 430 
+               84365:  enquing areg = 431 
+               84465:  enquing areg = 432 
+               84565:  enquing areg = 433 
+               84665:  enquing areg = 434 
+               84865:  enquing areg = 435 
+               84965:  enquing areg = 436 
+               85065:  enquing areg = 437 
+               85165:  enquing areg = 438 
+               85265:  enquing areg = 439 
+               85565:  enquing areg = 440 
+               85665:  enquing areg = 441 
+               85865:  enquing areg = 442 
+               86065:  enquing areg = 443 
+               86165:  enquing areg = 444 
+               86365:  enquing areg = 445 
+               86565:  enquing areg = 446 
+               86665:  enquing areg = 447 
+               86965:  enquing areg = 448 
+               87065:  enquing areg = 449 
+               87165:  enquing areg = 450 
+               87265:  enquing areg = 451 
+               87965:  enquing areg = 452 
+               88465:  enquing areg = 453 
+               88565:  enquing areg = 454 
+               88765:  enquing areg = 455 
+               89265:  enquing areg = 456 
+               89465:  enquing areg = 457 
+               89665:  enquing areg = 458 
+               89865:  enquing areg = 459 
+               90165:  enquing areg = 460 
+               90365:  enquing areg = 461 
+               90465 clearing
+               90541:  fifo empty
+               90550:  fifo empty
+               90559:  fifo empty
+               90565:  fifo full
+               90568:  fifo empty
+               90577:  fifo empty
+               90586:  fifo empty
+               90595:  fifo empty
+               90604:  fifo empty
+               90613:  fifo empty
+               90622:  fifo empty
+               90631:  fifo empty
+               90640:  fifo empty
+               90649:  fifo empty
+               90658:  fifo empty
+               90665:  fifo full
+               90667:  fifo empty
+               90676:  fifo empty
+               90685:  fifo empty
+               90694:  fifo empty
+               90703:  fifo empty
+               90712:  fifo empty
+               90721:  fifo empty
+               90730:  fifo empty
+               90739:  fifo empty
+               90748:  fifo empty
+               90757:  fifo empty
+               90765:  fifo full
+               90766:  fifo empty
+               90775:  fifo empty
+               90784:  fifo empty
+               90793:  fifo empty
+               90802:  fifo empty
+               90811:  fifo empty
+               90820:  fifo empty
+               90829:  fifo empty
+               90838:  fifo empty
+               90847:  fifo empty
+               90856:  fifo empty
+               90865:  enquing areg = 462 
+               90865:  fifo empty
+               90874:  fifo empty
+               90883:  fifo empty
+               90892:  fifo empty
+               90901:  fifo empty
+               90910:  fifo empty
+               90919:  fifo empty
+               90928:  fifo empty
+               90937:  fifo empty
+               90965:  enquing areg = 463 
+               91465:  enquing areg = 464 
+               91565:  enquing areg = 465 
+               91665:  enquing areg = 466 
+               91765:  enquing areg = 467 
+               91965:  enquing areg = 468 
+               92065:  enquing areg = 469 
+               93065:  enquing areg = 470 
+               93165:  enquing areg = 471 
+               93365:  enquing areg = 472 
+               93465:  enquing areg = 473 
+               93565:  enquing areg = 474 
+               93965:  enquing areg = 475 
+               94065:  enquing areg = 476 
+               94165:  enquing areg = 477 
+               94565:  enquing areg = 478 
+               94865:  enquing areg = 479 
+               94965:  enquing areg = 480 
+               95065:  enquing areg = 481 
+               95165:  enquing areg = 482 
+               95365:  enquing areg = 483 
+               95565:  enquing areg = 484 
+               95665:  enquing areg = 485 
+               95865:  enquing areg = 486 
+               95965:  enquing areg = 487 
+               96265:  enquing areg = 488 
+               96365:  enquing areg = 489 
+               96465:  enquing areg = 490 
+               96565:  enquing areg = 491 
+               96665:  enquing areg = 492 
+               96865:  enquing areg = 493 
+               96965:  enquing areg = 494 
+               97365:  enquing areg = 495 
+               97665:  enquing areg = 496 
+               97865:  enquing areg = 497 
+               98165:  enquing areg = 498 
+               98265:  enquing areg = 499 
+               98465:  enquing areg = 500 
+               99265:  enquing areg = 501 
+               99565:  enquing areg = 502 
+               99765:  enquing areg = 503 
+               99965:  enquing areg = 504 
+              100065:  enquing areg = 505 
+              100165:  enquing areg = 506 
+              100265:  enquing areg = 507 
+              100465:  enquing areg = 508 
+              100865:  enquing areg = 509 
+              100965:  enquing areg = 510 
+              101065:  enquing areg = 511 
+              101165:  enquing areg = 512 
+              101765:  enquing areg = 513 
+              101865:  enquing areg = 514 
+              101965:  enquing areg = 515 
+              102065:  enquing areg = 516 
+              102265:  enquing areg = 517 
+              102465:  enquing areg = 518 
+              102565:  enquing areg = 519 
+              102865:  enquing areg = 520 
+              102965:  enquing areg = 521 
+              103265:  enquing areg = 522 
+              103465:  enquing areg = 523 
+              103865:  enquing areg = 524 
+              103965:  enquing areg = 525 
+              104165:  enquing areg = 526 
+              104265:  enquing areg = 527 
+              104665:  enquing areg = 528 
+              104765:  enquing areg = 529 
+              105165:  enquing areg = 530 
+              105265:  enquing areg = 531 
+              105365:  enquing areg = 532 
+              105465:  enquing areg = 533 
+              105565:  enquing areg = 534 
+              105665:  enquing areg = 535 
+              106065:  enquing areg = 536 
+              106165:  enquing areg = 537 
+              106365:  enquing areg = 538 
+              106465:  enquing areg = 539 
+              106665:  enquing areg = 540 
+              106865:  enquing areg = 541 
+              106965:  enquing areg = 542 
+              107365:  enquing areg = 543 
+              107465:  enquing areg = 544 
+              107565:  enquing areg = 545 
+              107665:  enquing areg = 546 
+              107765:  enquing areg = 547 
+              107865:  enquing areg = 548 
+              108365:  enquing areg = 549 
+              108465:  enquing areg = 550 
+              108765:  enquing areg = 551 
+              108865:  enquing areg = 552 
+              108965:  enquing areg = 553 
+              109065:  enquing areg = 554 
+              109165:  enquing areg = 555 
+              109465:  enquing areg = 556 
+              109565:  enquing areg = 557 
+              109865:  enquing areg = 558 
+              110065:  enquing areg = 559 
+              110165:  enquing areg = 560 
+              110265:  enquing areg = 561 
+              110465:  enquing areg = 562 
+              110565:  enquing areg = 563 
+              110665:  enquing areg = 564 
+              111465:  enquing areg = 565 
+              111865:  enquing areg = 566 
+              111965:  enquing areg = 567 
+              112165:  enquing areg = 568 
+              112665:  enquing areg = 569 
+              112865:  enquing areg = 570 
+              112965:  enquing areg = 571 
+              113165:  enquing areg = 572 
+              113265:  enquing areg = 573 
+              113665:  enquing areg = 574 
+              113865 clearing
+              113941:  fifo empty
+              113950:  fifo empty
+              113959:  fifo empty
+              113965:  fifo full
+              113968:  fifo empty
+              113977:  fifo empty
+              113986:  fifo empty
+              113995:  fifo empty
+              114004:  fifo empty
+              114013:  fifo empty
+              114022:  fifo empty
+              114031:  fifo empty
+              114040:  fifo empty
+              114049:  fifo empty
+              114058:  fifo empty
+              114065:  fifo full
+              114067:  fifo empty
+              114076:  fifo empty
+              114085:  fifo empty
+              114094:  fifo empty
+              114103:  fifo empty
+              114112:  fifo empty
+              114121:  fifo empty
+              114130:  fifo empty
+              114139:  fifo empty
+              114148:  fifo empty
+              114157:  fifo empty
+              114165:  fifo full
+              114166:  fifo empty
+              114175:  fifo empty
+              114184:  fifo empty
+              114193:  fifo empty
+              114202:  fifo empty
+              114211:  fifo empty
+              114220:  fifo empty
+              114229:  fifo empty
+              114238:  fifo empty
+              114247:  fifo empty
+              114256:  fifo empty
+              114265:  enquing areg = 575 
+              114265:  fifo empty
+              114274:  fifo empty
+              114283:  fifo empty
+              114292:  fifo empty
+              114301:  fifo empty
+              114310:  fifo empty
+              114319:  fifo empty
+              114328:  fifo empty
+              114337:  fifo empty
+              114365:  enquing areg = 576 
+              114465:  enquing areg = 577 
+              114565:  enquing areg = 578 
+              114665:  enquing areg = 579 
+              115565:  enquing areg = 580 
+              115965:  enquing areg = 581 
+              116465:  enquing areg = 582 
+              116665:  enquing areg = 583 
+              116765:  enquing areg = 584 
+              116865:  enquing areg = 585 
+              116965:  enquing areg = 586 
+              117365:  enquing areg = 587 
+              117465:  enquing areg = 588 
+              117765:  enquing areg = 589 
+              117865:  enquing areg = 590 
+              118065:  enquing areg = 591 
+              118165:  enquing areg = 592 
+              118265:  enquing areg = 593 
+              118465:  enquing areg = 594 
+              118565:  enquing areg = 595 
+              118765:  enquing areg = 596 
+              118865:  enquing areg = 597 
+              118965:  enquing areg = 598 
+              119665:  enquing areg = 599 
+              119765:  enquing areg = 600 
+              120265:  enquing areg = 601 
+              120365:  enquing areg = 602 
+              120565:  enquing areg = 603 
+              120665:  enquing areg = 604 
+              120865:  enquing areg = 605 
+              120965:  enquing areg = 606 
+              121165:  enquing areg = 607 
+              121365:  enquing areg = 608 
+              121565:  enquing areg = 609 
+              121765:  enquing areg = 610 
+              121865:  enquing areg = 611 
+              122065:  enquing areg = 612 
+              122265:  enquing areg = 613 
+              122565:  enquing areg = 614 
+              122765:  enquing areg = 615 
+              122865:  enquing areg = 616 
+              123065:  enquing areg = 617 
+              123365:  enquing areg = 618 
+              123465:  enquing areg = 619 
+              123665:  enquing areg = 620 
+              123765:  enquing areg = 621 
+              123865:  enquing areg = 622 
+              123965:  enquing areg = 623 
+              124665:  enquing areg = 624 
+              124865:  enquing areg = 625 
+              125265:  enquing areg = 626 
+              125765:  enquing areg = 627 
+              125965:  enquing areg = 628 
+              126065:  enquing areg = 629 
+              126165:  enquing areg = 630 
+              126465:  enquing areg = 631 
+              126565:  enquing areg = 632 
+              126965:  enquing areg = 633 
+              127065:  enquing areg = 634 
+              127165:  enquing areg = 635 
+              127365:  enquing areg = 636 
+              127565:  enquing areg = 637 
+              127665:  enquing areg = 638 
+              127865:  enquing areg = 639 
+              127965:  enquing areg = 640 
+              128065:  enquing areg = 641 
+              128465:  enquing areg = 642 
+              129165:  enquing areg = 643 
+              129265:  enquing areg = 644 
+              129365:  enquing areg = 645 
+              129465:  enquing areg = 646 
+              129565:  enquing areg = 647 
+              129765:  enquing areg = 648 
+              130065:  enquing areg = 649 
+              130365:  enquing areg = 650 
+              130665:  enquing areg = 651 
+              130765:  enquing areg = 652 
+              130865:  enquing areg = 653 
+              130965:  enquing areg = 654 
+              131065:  enquing areg = 655 
+              131265:  enquing areg = 656 
+              131365:  enquing areg = 657 
+              131565:  enquing areg = 658 
+              131965:  enquing areg = 659 
+              132065:  enquing areg = 660 
+              132165:  enquing areg = 661 
+              132265:  enquing areg = 662 
+              132365:  enquing areg = 663 
+              132665 clearing
+              132742:  fifo empty
+              132751:  fifo empty
+              132760:  fifo empty
+              132765:  fifo full
+              132769:  fifo empty
+              132778:  fifo empty
+              132787:  fifo empty
+              132796:  fifo empty
+              132805:  fifo empty
+              132814:  fifo empty
+              132823:  fifo empty
+              132832:  fifo empty
+              132841:  fifo empty
+              132850:  fifo empty
+              132859:  fifo empty
+              132865:  fifo full
+              132868:  fifo empty
+              132877:  fifo empty
+              132886:  fifo empty
+              132895:  fifo empty
+              132904:  fifo empty
+              132913:  fifo empty
+              132922:  fifo empty
+              132931:  fifo empty
+              132940:  fifo empty
+              132949:  fifo empty
+              132958:  fifo empty
+              132965:  fifo full
+              132967:  fifo empty
+              132976:  fifo empty
+              132985:  fifo empty
+              132994:  fifo empty
+              133003:  fifo empty
+              133012:  fifo empty
+              133021:  fifo empty
+              133030:  fifo empty
+              133039:  fifo empty
+              133048:  fifo empty
+              133057:  fifo empty
+              133065:  enquing areg = 664 
+              133066:  fifo empty
+              133075:  fifo empty
+              133084:  fifo empty
+              133093:  fifo empty
+              133102:  fifo empty
+              133111:  fifo empty
+              133120:  fifo empty
+              133129:  fifo empty
+              133165:  enquing areg = 665 
+              133265:  enquing areg = 666 
+              133665:  enquing areg = 667 
+              133765:  enquing areg = 668 
+              133965:  enquing areg = 669 
+              134165:  enquing areg = 670 
+              134265:  enquing areg = 671 
+              134365:  enquing areg = 672 
+              134465:  enquing areg = 673 
+              134565:  enquing areg = 674 
+              134865:  enquing areg = 675 
+              134965:  enquing areg = 676 
+              135465:  enquing areg = 677 
+              135565:  enquing areg = 678 
+              135665:  enquing areg = 679 
+              135765:  enquing areg = 680 
+              135865:  enquing areg = 681 
+              136165:  enquing areg = 682 
+              136265:  enquing areg = 683 
+              136465:  enquing areg = 684 
+              136965:  enquing areg = 685 
+              137065:  enquing areg = 686 
+              137265:  enquing areg = 687 
+              137465:  enquing areg = 688 
+              137665:  enquing areg = 689 
+              137765:  enquing areg = 690 
+              137965:  enquing areg = 691 
+              138465:  enquing areg = 692 
+              138565:  enquing areg = 693 
+              138965:  enquing areg = 694 
+              139165:  enquing areg = 695 
+              139565:  enquing areg = 696 
+              139665:  enquing areg = 697 
+              139765:  enquing areg = 698 
+              140065:  enquing areg = 699 
+              140365:  enquing areg = 700 
+              140565:  enquing areg = 701 
+              140665:  enquing areg = 702 
+              140865:  enquing areg = 703 
+              140965:  enquing areg = 704 
+              141465:  enquing areg = 705 
+              141765:  enquing areg = 706 
+              141965:  enquing areg = 707 
+              142065:  enquing areg = 708 
+              142365:  enquing areg = 709 
+              142565:  enquing areg = 710 
+              142665:  enquing areg = 711 
+              142765:  enquing areg = 712 
+              142865:  enquing areg = 713 
+              143265:  enquing areg = 714 
+              143465:  enquing areg = 715 
+              144165:  enquing areg = 716 
+              144265:  enquing areg = 717 
+              144465:  enquing areg = 718 
+              144565:  enquing areg = 719 
+              144765:  enquing areg = 720 
+              145065:  enquing areg = 721 
+              145365:  enquing areg = 722 
+              145665:  enquing areg = 723 
+              145765:  enquing areg = 724 
+              145865:  enquing areg = 725 
+              146065:  enquing areg = 726 
+              146165:  enquing areg = 727 
+              146465:  enquing areg = 728 
+              146565:  enquing areg = 729 
+              146665:  enquing areg = 730 
+              146965:  enquing areg = 731 
+              147065:  enquing areg = 732 
+              147265:  enquing areg = 733 
+              147465:  enquing areg = 734 
+              147765:  enquing areg = 735 
+              148165:  enquing areg = 736 
+              148365:  enquing areg = 737 
+              148465:  enquing areg = 738 
+              148765:  enquing areg = 739 
+              149265:  enquing areg = 740 
+              149365:  enquing areg = 741 
+              149465:  enquing areg = 742 
+              149765:  enquing areg = 743 
+              149865:  enquing areg = 744 
+              149965:  enquing areg = 745 
+              150065:  enquing areg = 746 
+              150265:  enquing areg = 747 
+              150365:  enquing areg = 748 
+              150565:  enquing areg = 749 
+              150665:  enquing areg = 750 
+              151165:  enquing areg = 751 
+              151565:  enquing areg = 752 
+              151765:  enquing areg = 753 
+              152165:  enquing areg = 754 
+              152365:  enquing areg = 755 
+              152465:  enquing areg = 756 
+              152565:  enquing areg = 757 
+              152665:  enquing areg = 758 
+              152765:  enquing areg = 759 
+              152865:  enquing areg = 760 
+              152965:  enquing areg = 761 
+              153065:  enquing areg = 762 
+              153265:  enquing areg = 763 
+              153365:  enquing areg = 764 
+              153565:  enquing areg = 765 
+              153665:  enquing areg = 766 
+              153765:  enquing areg = 767 
+              153865:  enquing areg = 768 
+              153965:  enquing areg = 769 
+              154265:  enquing areg = 770 
+              154465:  enquing areg = 771 
+              154865:  enquing areg = 772 
+              155065:  enquing areg = 773 
+              155365:  enquing areg = 774 
+              155465:  enquing areg = 775 
+              155565:  enquing areg = 776 
+              155865:  enquing areg = 777 
+              155965:  enquing areg = 778 
+              156065:  enquing areg = 779 
+              156565:  enquing areg = 780 
+              156665:  enquing areg = 781 
+              156765:  enquing areg = 782 
+              156965:  enquing areg = 783 
+              157065:  enquing areg = 784 
+              157165:  enquing areg = 785 
+              157240:  destination fifo almost full
+              157249:  dequing data: 664
+              157258:  dequing data: 665
+              157265:  source fifo almost full
+              157265:  enquing areg = 786 
+              157267:  dequing data: 666
+              157276:  dequing data: 667
+              157285:  dequing data: 668
+              157294:  dequing data: 669
+              157303:  dequing data: 670
+              157312:  dequing data: 671
+              157321:  dequing data: 672
+              157330:  dequing data: 673
+              157339:  dequing data: 674
+              157348:  dequing data: 675
+              157357:  dequing data: 676
+              157366:  dequing data: 677
+              157375:  dequing data: 678
+              157384:  dequing data: 679
+              157393:  dequing data: 680
+              157402:  dequing data: 681
+              157411:  dequing data: 682
+              157420:  dequing data: 683
+              157429:  dequing data: 684
+              157438:  dequing data: 685
+              157447:  dequing data: 686
+              157456:  dequing data: 687
+              157465:  dequing data: 688
+              157474:  dequing data: 689
+              157483:  dequing data: 690
+              157492:  dequing data: 691
+              157501:  dequing data: 692
+              157510:  dequing data: 693
+              157519:  dequing data: 694
+              157528:  dequing data: 695
+              157537:  dequing data: 696
+              157546:  dequing data: 697
+              157555:  dequing data: 698
+              157564:  dequing data: 699
+              157565:  enquing areg = 787 
+              157573:  dequing data: 700
+              157582:  dequing data: 701
+              157591:  dequing data: 702
+              157600:  dequing data: 703
+              157609:  dequing data: 704
+              157618:  dequing data: 705
+              157627:  dequing data: 706
+              157636:  dequing data: 707
+              157645:  dequing data: 708
+              157654:  dequing data: 709
+              157663:  dequing data: 710
+              157665:  source fifo almost empty
+              157672:  dequing data: 711
+              157681:  dequing data: 712
+              157690:  dequing data: 713
+              157699:  dequing data: 714
+              157708:  dequing data: 715
+              157717:  dequing data: 716
+              157726:  dequing data: 717
+              157735:  dequing data: 718
+              157744:  dequing data: 719
+              157753:  dequing data: 720
+              157762:  dequing data: 721
+              157771:  dequing data: 722
+              157780:  dequing data: 723
+              157789:  dequing data: 724
+              157798:  dequing data: 725
+              157807:  dequing data: 726
+              157816:  dequing data: 727
+              157825:  dequing data: 728
+              157834:  dequing data: 729
+              157843:  dequing data: 730
+              157852:  dequing data: 731
+              157861:  dequing data: 732
+              157865:  enquing areg = 788 
+              157870:  dequing data: 733
+              157879:  dequing data: 734
+              157888:  dequing data: 735
+              157897:  dequing data: 736
+              157906:  dequing data: 737
+              157915:  dequing data: 738
+              157924:  dequing data: 739
+              157933:  dequing data: 740
+              157942:  dequing data: 741
+              157951:  dequing data: 742
+              157960:  dequing data: 743
+              157969:  dequing data: 744
+              157978:  dequing data: 745
+              157987:  dequing data: 746
+              157996:  dequing data: 747
+              158005:  dequing data: 748
+              158014:  dequing data: 749
+              158023:  dequing data: 750
+              158032:  dequing data: 751
+              158041:  dequing data: 752
+              158050:  dequing data: 753
+              158059:  dequing data: 754
+              158068:  dequing data: 755
+              158077:  dequing data: 756
+              158086:  dequing data: 757
+              158095:  dequing data: 758
+              158104:  dequing data: 759
+              158113:  dequing data: 760
+              158122:  dequing data: 761
+              158131:  dequing data: 762
+              158140:  dequing data: 763
+              158149:  dequing data: 764
+              158158:  dequing data: 765
+              158167:  dequing data: 766
+              158176:  dequing data: 767
+              158185:  dequing data: 768
+              158194:  dequing data: 769
+              158203:  dequing data: 770
+              158212:  dequing data: 771
+              158221:  dequing data: 772
+              158230:  dequing data: 773
+              158239:  dequing data: 774
+              158248:  dequing data: 775
+              158257:  dequing data: 776
+              158265:  enquing areg = 789 
+              158266:  dequing data: 777
+              158275:   destination clk fifo almost empty
+              158275:  dequing data: 778
+              158465:  enquing areg = 790 
+              158765:  enquing areg = 791 
+              158865:  enquing areg = 792 
+              159265:  enquing areg = 793 
+              159365:  enquing areg = 794 
+              159665:  enquing areg = 795 
+              159765:  enquing areg = 796 
+              159865:  enquing areg = 797 
+              160065:  enquing areg = 798 
+              160365:  enquing areg = 799 
+              160465:  enquing areg = 800 
+              160765:  enquing areg = 801 
+              160965:  enquing areg = 802 
+              161065:  enquing areg = 803 
+              161165:  enquing areg = 804 
+              161365:  enquing areg = 805 
+              161465:  enquing areg = 806 
+              161765:  enquing areg = 807 
+              161865:  enquing areg = 808 
+              161965:  enquing areg = 809 
+              162065:  enquing areg = 810 
+              162265:  enquing areg = 811 
+              162365:  enquing areg = 812 
+              162865:  enquing areg = 813 
+              162965:  enquing areg = 814 
+              163265:  enquing areg = 815 
+              163465:  enquing areg = 816 
+              163865:  enquing areg = 817 
+              164065:  enquing areg = 818 
+              164165:  enquing areg = 819 
+              164265:  enquing areg = 820 
+              164365:  enquing areg = 821 
+              164465:  enquing areg = 822 
+              164665:  enquing areg = 823 
+              164865:  enquing areg = 824 
+              165365:  enquing areg = 825 
+              165465:  enquing areg = 826 
+              165565:  enquing areg = 827 
+              165665:  enquing areg = 828 
+              165765:  enquing areg = 829 
+              166065:  enquing areg = 830 
+              166165:  enquing areg = 831 
+              166265:  enquing areg = 832 
+              166465:  enquing areg = 833 
+              167065:  enquing areg = 834 
+              167165:  enquing areg = 835 
+              167365:  enquing areg = 836 
+              167465:  enquing areg = 837 
+              167965:  enquing areg = 838 
+              168065:  enquing areg = 839 
+              168165:  enquing areg = 840 
+              168565:  enquing areg = 841 
+              168865:  enquing areg = 842 
+              168965:  enquing areg = 843 
+              169065:  enquing areg = 844 
+              169465:  enquing areg = 845 
+              169965:  enquing areg = 846 
+              170265:  enquing areg = 847 
+              170465:  enquing areg = 848 
+              170965:  enquing areg = 849 
+              171065:  enquing areg = 850 
+              171165:  enquing areg = 851 
+              171665:  enquing areg = 852 
+              171965:  enquing areg = 853 
+              172065:  enquing areg = 854 
+              172365:  enquing areg = 855 
+              172465:  enquing areg = 856 
+              172565:  enquing areg = 857 
+              172665:  enquing areg = 858 
+              172765:  enquing areg = 859 
+              172865:  enquing areg = 860 
+              172965:  enquing areg = 861 
+              173065:  enquing areg = 862 
+              173165:  enquing areg = 863 
+              173365:  enquing areg = 864 
+              173565:  enquing areg = 865 
+              173665:  enquing areg = 866 
+              173765:  enquing areg = 867 
+              173865:  enquing areg = 868 
+              173965:  enquing areg = 869 
+              174265:  enquing areg = 870 
+              174465:  enquing areg = 871 
+              174765:  enquing areg = 872 
+              174965:  enquing areg = 873 
+              175065:  enquing areg = 874 
+              175865:  enquing areg = 875 
+              176165:  enquing areg = 876 
+              176365:  enquing areg = 877 
+              176465:  enquing areg = 878 
+              176765:  enquing areg = 879 
+              176865:  enquing areg = 880 
+              177165:  enquing areg = 881 
+              177265:  enquing areg = 882 
+              177465:  enquing areg = 883 
+              177565:  enquing areg = 884 
+              177865:  enquing areg = 885 
+              178065:  enquing areg = 886 
+              178165:  enquing areg = 887 
+              178265:  enquing areg = 888 
+              178465:  enquing areg = 889 
+              178765:  enquing areg = 890 
+              178865:  enquing areg = 891 
+              179065:  enquing areg = 892 
+              179465:  enquing areg = 893 
+              179565:  enquing areg = 894 
+              179765:  enquing areg = 895 
+              180065:  enquing areg = 896 
+              180465:  enquing areg = 897 
+              180565:  enquing areg = 898 
+              180865:  enquing areg = 899 
+              180965:  enquing areg = 900 
+              181045:  destination fifo almost full
+              181054:  dequing data: 779
+              181063:  dequing data: 780
+              181065:  source fifo almost full
+              181065:  enquing areg = 901 
+              181072:  dequing data: 781
+              181081:  dequing data: 782
+              181090:  dequing data: 783
+              181099:  dequing data: 784
+              181108:  dequing data: 785
+              181117:  dequing data: 786
+              181126:  dequing data: 787
+              181135:  dequing data: 788
+              181144:  dequing data: 789
+              181153:  dequing data: 790
+              181162:  dequing data: 791
+              181165:  enquing areg = 902 
+              181171:  dequing data: 792
+              181180:  dequing data: 793
+              181189:  dequing data: 794
+              181198:  dequing data: 795
+              181207:  dequing data: 796
+              181216:  dequing data: 797
+              181225:  dequing data: 798
+              181234:  dequing data: 799
+              181243:  dequing data: 800
+              181252:  dequing data: 801
+              181261:  dequing data: 802
+              181270:  dequing data: 803
+              181279:  dequing data: 804
+              181288:  dequing data: 805
+              181297:  dequing data: 806
+              181306:  dequing data: 807
+              181315:  dequing data: 808
+              181324:  dequing data: 809
+              181333:  dequing data: 810
+              181342:  dequing data: 811
+              181351:  dequing data: 812
+              181360:  dequing data: 813
+              181369:  dequing data: 814
+              181378:  dequing data: 815
+              181387:  dequing data: 816
+              181396:  dequing data: 817
+              181405:  dequing data: 818
+              181414:  dequing data: 819
+              181423:  dequing data: 820
+              181432:  dequing data: 821
+              181441:  dequing data: 822
+              181450:  dequing data: 823
+              181459:  dequing data: 824
+              181465:  source fifo almost empty
+              181468:  dequing data: 825
+              181477:  dequing data: 826
+              181486:  dequing data: 827
+              181495:  dequing data: 828
+              181504:  dequing data: 829
+              181513:  dequing data: 830
+              181522:  dequing data: 831
+              181531:  dequing data: 832
+              181540:  dequing data: 833
+              181549:  dequing data: 834
+              181558:  dequing data: 835
+              181565:  enquing areg = 903 
+              181567:  dequing data: 836
+              181576:  dequing data: 837
+              181585:  dequing data: 838
+              181594:  dequing data: 839
+              181603:  dequing data: 840
+              181612:  dequing data: 841
+              181621:  dequing data: 842
+              181630:  dequing data: 843
+              181639:  dequing data: 844
+              181648:  dequing data: 845
+              181657:  dequing data: 846
+              181666:  dequing data: 847
+              181675:  dequing data: 848
+              181684:  dequing data: 849
+              181693:  dequing data: 850
+              181702:  dequing data: 851
+              181711:  dequing data: 852
+              181720:  dequing data: 853
+              181729:  dequing data: 854
+              181738:  dequing data: 855
+              181747:  dequing data: 856
+              181756:  dequing data: 857
+              181765:  enquing areg = 904 
+              181765:  dequing data: 858
+              181774:  dequing data: 859
+              181783:  dequing data: 860
+              181792:  dequing data: 861
+              181801:  dequing data: 862
+              181810:  dequing data: 863
+              181819:  dequing data: 864
+              181828:  dequing data: 865
+              181837:  dequing data: 866
+              181846:  dequing data: 867
+              181855:  dequing data: 868
+              181864:  dequing data: 869
+              181865:  enquing areg = 905 
+              181873:  dequing data: 870
+              181882:  dequing data: 871
+              181891:  dequing data: 872
+              181900:  dequing data: 873
+              181909:  dequing data: 874
+              181918:  dequing data: 875
+              181927:  dequing data: 876
+              181936:  dequing data: 877
+              181945:  dequing data: 878
+              181954:  dequing data: 879
+              181963:  dequing data: 880
+              181965:  enquing areg = 906 
+              181972:  dequing data: 881
+              181981:  dequing data: 882
+              181990:  dequing data: 883
+              181999:  dequing data: 884
+              182008:  dequing data: 885
+              182017:  dequing data: 886
+              182026:  dequing data: 887
+              182035:  dequing data: 888
+              182044:  dequing data: 889
+              182053:  dequing data: 890
+              182062:  dequing data: 891
+              182071:  dequing data: 892
+              182080:  dequing data: 893
+              182089:  dequing data: 894
+              182098:  dequing data: 895
+              182107:   destination clk fifo almost empty
+              182107:  dequing data: 896
+              182165 clearing
+              182242:  fifo empty
+              182251:  fifo empty
+              182260:  fifo empty
+              182265:  fifo full
+              182269:  fifo empty
+              182278:  fifo empty
+              182287:  fifo empty
+              182296:  fifo empty
+              182305:  fifo empty
+              182314:  fifo empty
+              182323:  fifo empty
+              182332:  fifo empty
+              182341:  fifo empty
+              182350:  fifo empty
+              182359:  fifo empty
+              182365:  fifo full
+              182368:  fifo empty
+              182377:  fifo empty
+              182386:  fifo empty
+              182395:  fifo empty
+              182404:  fifo empty
+              182413:  fifo empty
+              182422:  fifo empty
+              182431:  fifo empty
+              182440:  fifo empty
+              182449:  fifo empty
+              182458:  fifo empty
+              182465:  fifo full
+              182467:  fifo empty
+              182476:  fifo empty
+              182485:  fifo empty
+              182494:  fifo empty
+              182503:  fifo empty
+              182512:  fifo empty
+              182521:  fifo empty
+              182530:  fifo empty
+              182539:  fifo empty
+              182548:  fifo empty
+              182557:  fifo empty
+              182566:  fifo empty
+              182575:  fifo empty
+              182584:  fifo empty
+              182593:  fifo empty
+              182602:  fifo empty
+              182611:  fifo empty
+              182620:  fifo empty
+              182629:  fifo empty
+              182638:  fifo empty
+              182647:  fifo empty
+              182656:  fifo empty
+              182665:  fifo empty
+              182674:  fifo empty
+              182683:  fifo empty
+              182692:  fifo empty
+              182701:  fifo empty
+              182710:  fifo empty
+              182719:  fifo empty
+              182728:  fifo empty
+              182737:  fifo empty
+              182746:  fifo empty
+              182755:  fifo empty
+              182764:  fifo empty
+              182765:  enquing areg = 907 
+              182773:  fifo empty
+              182782:  fifo empty
+              182791:  fifo empty
+              182800:  fifo empty
+              182809:  fifo empty
+              182818:  fifo empty
+              182827:  fifo empty
+              182836:  fifo empty
+              182865:  enquing areg = 908 
+              182965:  enquing areg = 909 
+              183065:  enquing areg = 910 
+              183265:  enquing areg = 911 
+              183465:  enquing areg = 912 
+              183765:  enquing areg = 913 
+              183865:  enquing areg = 914 
+              184065:  enquing areg = 915 
+              184165:  enquing areg = 916 
+              184865:  enquing areg = 917 
+              185165:  enquing areg = 918 
+              185365:  enquing areg = 919 
+              185565:  enquing areg = 920 
+              185665:  enquing areg = 921 
+              185865:  enquing areg = 922 
+              185965:  enquing areg = 923 
+              186165:  enquing areg = 924 
+              186265:  enquing areg = 925 
+              186565:  enquing areg = 926 
+              186665:  enquing areg = 927 
+              186765:  enquing areg = 928 
+              186965:  enquing areg = 929 
+              187165:  enquing areg = 930 
+              187265:  enquing areg = 931 
+              187365:  enquing areg = 932 
+              187565:  enquing areg = 933 
+              187765:  enquing areg = 934 
+              187865:  enquing areg = 935 
+              187965:  enquing areg = 936 
+              188065:  enquing areg = 937 
+              188165:  enquing areg = 938 
+              188665:  enquing areg = 939 
+              188765:  enquing areg = 940 
+              188965:  enquing areg = 941 
+              189065:  enquing areg = 942 
+              189165:  enquing areg = 943 
+              189265:  enquing areg = 944 
+              189365:  enquing areg = 945 
+              189665:  enquing areg = 946 
+              189965:  enquing areg = 947 
+              190365:  enquing areg = 948 
+              190465:  enquing areg = 949 
+              190665:  enquing areg = 950 
+              190865:  enquing areg = 951 
+              190965:  enquing areg = 952 
+              191065:  enquing areg = 953 
+              191165:  enquing areg = 954 
+              191265:  enquing areg = 955 
+              191365:  enquing areg = 956 
+              191465:  enquing areg = 957 
+              191665:  enquing areg = 958 
+              191965:  enquing areg = 959 
+              192065:  enquing areg = 960 
+              192265:  enquing areg = 961 
+              192365:  enquing areg = 962 
+              192465:  enquing areg = 963 
+              192665:  enquing areg = 964 
+              192765:  enquing areg = 965 
+              192865:  enquing areg = 966 
+              193065:  enquing areg = 967 
+              193265:  enquing areg = 968 
+              193465:  enquing areg = 969 
+              193565:  enquing areg = 970 
+              193765:  enquing areg = 971 
+              193965:  enquing areg = 972 
+              194065:  enquing areg = 973 
+              194165:  enquing areg = 974 
+              194365:  enquing areg = 975 
+              194465:  enquing areg = 976 
+              194765:  enquing areg = 977 
+              195165:  enquing areg = 978 
+              195265:  enquing areg = 979 
+              195965:  enquing areg = 980 
+              196065:  enquing areg = 981 
+              196165:  enquing areg = 982 
+              196365:  enquing areg = 983 
+              196765:  enquing areg = 984 
+              196965:  enquing areg = 985 
+              197065:  enquing areg = 986 
+              197165:  enquing areg = 987 
+              197265:  enquing areg = 988 
+              197465:  enquing areg = 989 
+              197565:  enquing areg = 990 
+              197665:  enquing areg = 991 
+              197965:  enquing areg = 992 
+              198065:  enquing areg = 993 
+              198465:  enquing areg = 994 
+              198865:  enquing areg = 995 
+              198965:  enquing areg = 996 
+              199165:  enquing areg = 997 
+              199565:  enquing areg = 998 
+              199765:  enquing areg = 999 
+              199865:  enquing areg = 1000 

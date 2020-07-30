@@ -1,0 +1,104 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_delta_assert_vunit (assert_delta_assert)
+{
+
+  default clock is rose (clk); 
+
+   
+     property ASSERT_DELTA_P is always (
+     ((prev(reset_n) = '1') AND (reset_n = '1') AND (test_expr /= prev(test_expr))) ->
+     (((to_integer((('0' & prev(test_expr)) - ('0' & test_expr)) and ('0'& (width-1 downto 0=>'1'))) >= min) and 
+     (to_integer((('0'& prev(test_expr))-('0' & test_expr)) and ('0'&(width-1 downto 0=>'1')))<= max) ) or
+     ((to_integer((('0'& test_expr)-('0' & prev(test_expr))) and ('0'&(width-1 downto 0=>'1')))>= min)and
+     (to_integer((('0'& test_expr)-('0' &prev( test_expr))) and ('0'&(width-1 downto 0 =>'1')))<= max) ) ))
+      abort(not(reset_n))  @(rising_edge(clk));   
+
+  --Property for X/Z checking
+
+  property ASSERT_DELTA_XZ_ON_TEST_EXPR_P is
+           always( (xzcheck_enable = 1 )-> not(is_x(test_expr))) abort(not(reset_n))  @(rising_edge(clk));
+
+  A_ASSERT_DELTA_P:
+  assert ASSERT_DELTA_P 
+  report "VIOLATION: ASSERT_DELTA Checker Fires: Test expression changed by a delta value not in the range specified by min and max";
+
+  A_ASSERT_DELTA_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_DELTA_XZ_ON_TEST_EXPR_P 
+ report "VIOLATION: ASSERT_DELTA Checker Fires: test_expr contains X or Z";
+
+}
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_delta_assume_vunit (assert_delta_assume)
+{
+  default clock is rose (clk); 
+
+property ASSERT_DELTA_P is always (
+       ((prev(reset_n) = '1') AND (reset_n = '1') AND (test_expr /= prev(test_expr))) ->
+       (((to_integer((('0' & prev(test_expr)) - ('0' & test_expr)) and ('0'& (width-1 downto 0=>'1'))) >= min) and
+       (to_integer((('0'& prev(test_expr))-('0' & test_expr)) and ('0'&(width-1 downto 0=>'1')))<= max) ) or
+      ((to_integer((('0'& test_expr)-('0' & prev(test_expr))) and ('0'&(width-1 downto 0=>'1')))>= min)and
+       (to_integer((('0'& test_expr)-('0' &prev( test_expr))) and ('0'&(width-1 downto 0 =>'1')))<= max) ) ))
+        abort(not(reset_n))  @(rising_edge(clk));
+ 
+  --Property for X/Z checking
+
+  property ASSERT_DELTA_XZ_ON_TEST_EXPR_P is
+           always( (xzcheck_enable = 1 )-> not(is_x(test_expr))) abort(not(reset_n))  @(rising_edge(clk));
+
+  M_ASSERT_DELTA_P:
+  assume ASSERT_DELTA_P ;
+
+  M_ASSERT_DELTA_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_DELTA_XZ_ON_TEST_EXPR_P ;
+
+}
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+use ieee.std_logic_unsigned.all; 
+
+vunit assert_delta_cover_vunit (assert_delta_cover)
+{ 
+  default clock is rose(clk);
+ 
+  cover_test_expr_change:
+  cover {((OVL_COVER_BASIC_ON = OVL_COVER_BASIC) or (OVL_COVER_BASIC_ON = OVL_COVER_ALL)) AND (prev(reset_n) = '1') AND (reset_n = '1') AND (test_expr /= prev(test_expr)) } @(rising_edge(clk))
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_change covered";
+
+  cover_test_expr_delta_at_min:
+  cover {
+        ((OVL_COVER_CORNER_ON = OVL_COVER_CORNER) or (OVL_COVER_CORNER_ON = OVL_COVER_ALL)) AND (prev(reset_n) = '1') AND (reset_n = '1') AND (test_expr /= prev(test_expr)) AND
+        ((to_integer((('0' & prev(test_expr)) - ('0' & test_expr)) and ('0'& (width-1 downto 0=>'1'))) = min) OR
+        (to_integer((('0'& test_expr)-('0' & prev(test_expr))) and ('0'&(width-1 downto 0=>'1')))= min)) 
+        } @(rising_edge(clk))
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_delta_at_min covered";
+  
+  cover_test_expr_delta_at_max:
+  cover {
+        ((OVL_COVER_CORNER_ON = OVL_COVER_CORNER) or (OVL_COVER_CORNER_ON = OVL_COVER_ALL)) AND (prev(reset_n) = '1') AND (reset_n = '1') AND (test_expr /= prev(test_expr)) AND
+        ((to_integer((('0' & prev(test_expr)) - ('0' & test_expr)) and ('0'& (width-1 downto 0=>'1'))) = max) OR
+        (to_integer((('0'& test_expr)-('0' & prev(test_expr))) and ('0'&(width-1 downto 0=>'1')))= max)) 
+        } @(rising_edge(clk))
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_delta_at_max covered";
+}
+ 

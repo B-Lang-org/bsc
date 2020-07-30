@@ -1,0 +1,8 @@
+checking package dependencies
+compiling NiceType.bs
+Error: "NiceType.bs", line 5, column 10: (T0142)
+  Pattern for constructor `Cons' of type Prelude.List a__ requires 2
+  arguments, found 1.
+Error: "NiceType.bs", line 9, column 10: (T0142)
+  Pattern for constructor `Cons' of type Prelude.List a__ requires 2
+  arguments, found 1.

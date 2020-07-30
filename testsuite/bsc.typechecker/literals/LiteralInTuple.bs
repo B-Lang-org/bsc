@@ -1,0 +1,10 @@
+package LiteralInTuple ( ) where
+
+sysLiteralInTuple :: Module Empty
+sysLiteralInTuple =
+    module
+
+	let (x,y) = case True of
+			True  -> (False, 1)
+			False -> (True, 2)
+

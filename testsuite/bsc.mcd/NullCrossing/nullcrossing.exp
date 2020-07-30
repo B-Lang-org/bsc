@@ -1,0 +1,65 @@
+
+test_c_veri_bsv NullCrossingReg
+test_c_veri_bsv NullCrossingRegU sysNullCrossingReg.out.expected
+test_c_veri_bsv NullCrossingRegA sysNullCrossingReg.out.expected
+
+# test again without inlining to confirm that the Verilog modules work
+erase NullCrossingReg.bi
+erase NullCrossingRegU.bi
+erase NullCrossingRegA.bi
+set opt {-no-inline-reg}
+test_veri_only_bsv_modules_options NullCrossingReg  {} $opt
+test_veri_only_bsv_modules_options NullCrossingRegU {} $opt \
+    sysNullCrossingReg.out.expected
+test_veri_only_bsv_modules_options NullCrossingRegA {} $opt \
+    sysNullCrossingReg.out.expected
+
+# test the NullSync primitive
+test_c_veri_bsv NullSyncTest
+test_c_veri_bsv NullSyncTest2
+
+# test that we correctly check the can_schedule_first and
+# clock_crossing_rule pragmas
+compile_verilog_fail_error CanScheduleFirstError.bsv G0005
+compile_verilog_fail_error CanScheduleFirstError2.bsv G0005
+compile_verilog_fail_error CanScheduleFirstError3.bsv G0005
+compile_verilog_fail_error ClockCrossingRuleError1.bsv G0005
+compile_verilog_fail_error ClockCrossingRuleError2.bsv G0005 2
+
+# test that we detect cascaded NullSyncs
+compile_verilog_fail_error CascadedNullSyncError.bsv G0005
+compile_verilog_fail_error CascadedNullSyncError2.bsv G0005
+compile_verilog_fail_error CascadedNullSyncError3.bsv G0005
+
+compile_object_fail_error BadDomainError.bsv G0007 2
+
+# check for import bits of the output without
+# being coupled to a potentially changing library position
+# from the second error message
+if {$ctest == 1} {
+    set out [make_bsc_ccomp_output_name BadDomainError.bsv]
+    # in both error messages
+    find_n_strings $out regA.read 2
+    find_n_strings $out regB.read 2
+
+    find_n_strings $out nullCrossingWire 1
+
+    # compiling "file" and the actual error message
+    find_n_strings $out BadDomainError.bsv 6
+}
+
+
+compile_object_fail_error UnclockedSyncError.bsv G0007 1
+
+# check for import bits of the output without
+# being coupled to a potentially changing library position
+# from the second error message
+if {$ctest == 1} {
+    set out [make_bsc_ccomp_output_name UnclockedSyncError.bsv]
+ 
+    find_n_strings $out unclocked 1
+    find_n_strings $out nullCrossingWire 1
+
+    # compiling "file" and the actual error message
+    find_n_strings $out UnclockedSyncError.bsv 4
+}

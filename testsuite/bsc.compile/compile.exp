@@ -1,0 +1,23 @@
+#tests related to first-level compilation
+
+compile_pass TupleExpand.bs
+compile_pass MyProg.bs
+compile_pass MyProg2.bs
+
+# test top-level recursion in bsv
+compile_pass TopRec.bsv
+
+# test .bo file linking
+copy FiveA.bs Five.bs
+compile_pass Five.bs
+compile_pass Six.bs
+
+# Make sure modification time differs from old File.bo
+after 1500
+copy FiveB.bs Five.bs
+
+compile_pass Five.bs
+compile_fail_error Test.bs S0027 1 "" 1
+
+
+

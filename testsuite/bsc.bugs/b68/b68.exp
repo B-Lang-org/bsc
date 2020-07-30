@@ -1,0 +1,2 @@
+# asserting that bug 68 is a wontfix (don't use "split" & "let" together)
+compile_fail_error Bug68.bs T0033

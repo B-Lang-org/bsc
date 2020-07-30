@@ -1,0 +1,9 @@
+package EQ3 where
+
+{-# verilog mkEQ3 #-}
+mkEQ3 :: (IsModule m c) => m (ReadOnly (Bool, Bool))
+mkEQ3 =
+  module
+    x :: Reg (Bit 16) <- mkRegU
+    interface
+      _read = (17 === x, 23 !== x)

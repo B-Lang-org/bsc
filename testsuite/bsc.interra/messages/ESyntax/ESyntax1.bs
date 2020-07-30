@@ -1,0 +1,57 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec  
+
+-- File: ESyntax1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com> 
+
+-- Description: This testcase triggers a Syntax error (ESyntax)
+
+-- Error Message : bsc ESyntax1.bs
+-- bsc: Compilation errors:
+-- "ESyntax1.bs", line 50, Syntax error: found token "package", expected ";", "; from layout", or "<EOF>"
+-----------------------------------------------------------------------
+package ESyntax1 (ESyntax1(..), mkESyntax1) where
+
+import Int
+
+interface ESyntax1 =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkESyntax1 :: Module ESyntax1
+mkESyntax1 =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0
+
+package EXTRA () where
+
+import Int
+
+interface EXTRA =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+

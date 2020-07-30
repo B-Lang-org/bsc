@@ -1,0 +1,14 @@
+package ResourceOneRuleSC(sysResourceOneRuleSC) where
+
+-- The two assignments to r in the rule conflict, as there is only one
+-- write port for the register (even though the writes would be fine
+-- in two because of SC).  Expect a resource error.
+
+sysResourceOneRuleSC :: Module Empty
+sysResourceOneRuleSC =
+    module
+     r :: Reg Bool
+     r <- mkRegU
+     rules
+         when True
+          ==> action { r := True; r := False }

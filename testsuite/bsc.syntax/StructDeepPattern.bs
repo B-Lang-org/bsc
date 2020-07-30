@@ -1,0 +1,18 @@
+package StructDeepPattern(sysStructDeepPattern) where
+
+-- test for bug #1080
+
+import GetPut
+
+struct MyStruct =
+    foo :: Bool
+    bar :: Bool
+  deriving (Bits)
+
+sysStructDeepPattern :: Module Empty
+sysStructDeepPattern =
+    module
+	(g,p) :: (Get MyStruct, Put MyStruct) <- mkGPFIFO
+	rules
+	  when True ==> action (MyStruct { foo = True; bar = False }) <- g.get
+	                       r.put (MyStruct { foo = False; bar = True })

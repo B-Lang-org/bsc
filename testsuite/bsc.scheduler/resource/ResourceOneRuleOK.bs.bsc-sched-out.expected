@@ -1,0 +1,34 @@
+checking package dependencies
+compiling ResourceOneRuleOK.bs
+code generation for sysResourceOneRuleOK starts
+=== schedule:
+parallel: [esposito: [RL_Good -> []]]
+order: [RL_Good]
+
+-----
+
+=== resources:
+[(a.sub, [(a.sub 8'd0, 5), (a.sub 8'd1, 4), (a.sub 8'd2, 3), (a.sub 8'd3, 2), (a.sub 8'd4, 1)]),
+ (r.write, [(r.write x__h283, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysResourceOneRuleOK.sched
+=== Generated schedule for sysResourceOneRuleOK ===
+
+Rule schedule
+-------------
+Rule: Good
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: Good
+
+====================================================
+Verilog file created: sysResourceOneRuleOK.v
+All packages are up to date.

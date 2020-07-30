@@ -1,0 +1,6 @@
+if {$vtest == 1} {
+  compile_verilog_pass loop.bsv
+  link_verilog_pass loop.v loop
+}
+
+test_c_veri_bsv_modules Bug791 mkTuple

@@ -1,0 +1,35 @@
+if {$vtest == 1} {
+# Tests for scheduling analysis of ActionValue methods
+
+# --------------------------------------------------
+# Tests for Bug 1862: When the return value uses an argument,
+# the method needs to be C with itself
+
+compile_verilog_schedule_pass AVArgUse_C.bsv
+# Test for the expected warnings and schedule annotations for the submodule
+compare_file_filter_ids [make_bsc_sched_output_name AVArgUse_C.bsv]
+
+compile_verilog_schedule_pass AVArgUse_SBR.bsv
+# Test for the expected warnings and schedule annotations for the submodule
+compare_file_filter_ids [make_bsc_sched_output_name AVArgUse_SBR.bsv]
+
+# --------------------------------------------------
+# Test how an actionvalue method with arguments is handled
+# depending on the scheduling annotation with itself
+
+# (m CF m) should result in a port conflict
+#
+compile_verilog_fail TestAVMethCF.bsv
+# Test for the expected error
+compare_file [make_bsc_vcomp_output_name TestAVMethCF.bsv]
+
+# (m SBR m) can compose, and the arguments are muxed to select
+# the input of the last caller in the sequence (as with reg write)
+#
+compile_verilog_pass TestAVMethSBR.bsv
+# Test for the expected warnings
+compare_file [make_bsc_vcomp_output_name TestAVMethSBR.bsv]
+
+# --------------------------------------------------
+
+}

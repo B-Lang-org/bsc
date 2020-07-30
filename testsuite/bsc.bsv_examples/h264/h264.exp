@@ -1,0 +1,6 @@
+# is backend-agnostic, so make .ba if possible
+# (so noinlined function .ba files get generated correctly)
+compile_verilog_pass mkTH.bsv "" "-elab +RTS -M1500M -A32m -RTS"
+link_verilog_pass "*.v" mkTH
+compile_object_pass mkTH.bsv
+link_objects_pass mkTH.ba mkTH

@@ -1,0 +1,12 @@
+checking package dependencies
+compiling AssertionWiresTest2.bsv
+code generation for mkTestWires starts
+Error: "AssertionWires.bsv", line 128, column 52: (S0015)
+  Bluespec evaluation-time error: Static assertion failed: Repeated index: 0
+  During elaboration of `staticAssert' at "AssertionWires.bsv", line 127,
+  column 9.
+  During elaboration of `Loop' at "AssertionWires.bsv", line 123, column 4.
+  During elaboration of `i_test' at "AssertionWiresTest2.bsv", line 26, column
+  3.
+  During elaboration of `mkTestWires' at "AssertionWiresTest2.bsv", line 24,
+  column 17.

@@ -1,0 +1,5 @@
+compile_fail ELocalRec.bs
+compare_file ELocalRec.bs.bsc-out
+
+compile_fail ELocalRec1.bs
+compare_file ELocalRec1.bs.bsc-out

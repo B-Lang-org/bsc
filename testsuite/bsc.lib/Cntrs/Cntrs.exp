@@ -1,0 +1,12 @@
+
+test_c_veri_bsv CntrTest
+
+compile_verilog_schedule_pass  CntrSched.bsv
+compare_verilog sysCntrSched.v
+compare_file sysCntrSched.sched
+
+test_c_veri_bsv UCntrTest
+test_c_veri_bsv Cntrs0
+
+
+compile_verilog_fail CntrsLimits.bsv

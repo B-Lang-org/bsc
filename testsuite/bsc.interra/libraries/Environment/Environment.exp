@@ -1,0 +1,9 @@
+test_c_veri_worker Env2 mkTestbench_Env2 {} "bsv" 0 1 "mkTestbench_Env2.v.out.expected" "" ""
+test_c_veri_worker Env2 mkTestbench_Env2 {} "bsv" 1 0 "mkTestbench_Env2.c.out.expected" "" ""
+
+compile_verilog_pass Env3.bsv mkTestbench_Env3 
+
+compile_object_pass Env4.bsv mkTestbench_Env4 -check-assert
+link_objects_pass {"mkTestbench_Env4"} mkTestbench_Env4
+
+test_c_veri_worker Env mkTestbench_Env {} "bsv" 1 1 "mkTestbench_Env.v.out.expected" "" ""

@@ -1,0 +1,12 @@
+if {$vtest == 1} {
+
+compile_verilog_schedule_pass Bug1619A.bsv
+compare_file Bug1619A.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass Bug1619B.bsv
+compare_file Bug1619B.bsv.bsc-sched-out
+
+compile_verilog_schedule_pass Bug1619C.bsv
+compare_file Bug1619C.bsv.bsc-sched-out
+
+}

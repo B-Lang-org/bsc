@@ -1,0 +1,18 @@
+test_c_veri_bsv BitExtractInRange
+compile_verilog_fail_error BitExtractOutOfRangeHigh.bsv S0015
+compile_verilog_fail_error BitExtractOutOfRangeLow.bsv  T0130
+compile_verilog_fail_error BitExtractOutOfRangeBoth.bsv T0130
+compile_verilog_fail_error BitExtractNegative.bsv       T0129
+compile_verilog_fail_error BitExtractZero.bsv           T0129
+
+test_c_veri_bsv BitUpdateInRange
+compile_verilog_fail_error BitUpdateOutOfRangeHigh.bsv S0015
+compile_verilog_fail_error BitUpdateOutOfRangeLow.bsv  T0130
+compile_verilog_fail_error BitUpdateOutOfRangeBoth.bsv T0130
+compile_verilog_fail_error BitUpdateNegative.bsv       T0129
+compile_verilog_fail_error BitUpdateZero.bsv           T0129
+
+# Some bit vectors are represented with arrays, and ar handled differently,
+# so check those situations
+compile_verilog_fail_error BitArrayUpdateOutOfRangeHigh.bsv S0015
+

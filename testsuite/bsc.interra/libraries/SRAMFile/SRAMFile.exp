@@ -1,0 +1,2 @@
+test_c_veri_worker MkSRAMFile mkTestbench_MkSRAMFile {} "bsv" 1 1 "mkTestbench_MkSRAMFile.v.out.expected" "" ""
+

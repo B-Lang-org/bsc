@@ -1,0 +1,12 @@
+checking package dependencies
+compiling Bug359_2.bs
+code generation for sysBug359_2 starts
+Error: "Prelude.bs", line 733, column 12: (G0013)
+  Compile time expression did not evaluate:
+  Type: Prelude.Module Prelude.Integer
+  PrimIf
+  ·(Prelude.Module Prelude.Integer)
+  sysBug359_2__A_0
+  (PrimModuleReturn ·Prelude.Integer 5)
+  (PrimModuleReturn ·Prelude.Integer 7)
+

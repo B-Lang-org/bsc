@@ -1,0 +1,137 @@
+
+# test partial evaluation
+
+# test that implicit assertions are not triggered when they shouldn't be
+compile_verilog_pass ImplicitConditionAssertionsOK.bs sysImplicitConditionAssertionsOK
+
+# test that implicit assertions are triggered when they should be
+if {$vtest == 1} {
+compile_verilog_fail ImplicitConditionAssertionsFail.bs sysImplicitConditionAssertionsFail
+compare_file ImplicitConditionAssertionsFail.bs.bsc-vcomp-out
+}
+
+# test that implicit conditions on nested rules report the evaluated string
+# name (and not a heap reference)
+# also check that the position of the string is now the most nested rule name
+if {$vtest == 1} {
+compile_verilog_fail_error ImplicitConditionAssertionRuleNest.bsv G0005
+string_occurs ImplicitConditionAssertionRuleNest.bsv.bsc-vcomp-out {this_does_something}
+string_occurs ImplicitConditionAssertionRuleNest.bsv.bsc-vcomp-out {"ImplicitConditionAssertionRuleNest.bsv", line 10, column 12}
+}
+
+if {$ctest == 1} {
+compile_object_fail_error ImplicitConditionAssertionFailTwoRules.bsv G0005 2
+string_occurs ImplicitConditionAssertionFailTwoRules.bsv.bsc-ccomp-out {do_enq}
+string_occurs ImplicitConditionAssertionFailTwoRules.bsv.bsc-ccomp-out {do_deq}
+}
+
+if {$vtest == 1} {
+#test that big literals break with reasonable error messages
+compile_verilog_fail_error EBigLit.bs T0051 1 sysEBigLit
+compare_file EBigLit.bs.bsc-vcomp-out
+
+compile_verilog_fail_error EBigLit2.bs T0051 1 sysEBigLit2
+compare_file EBigLit2.bs.bsc-vcomp-out
+
+compile_verilog_fail_error EBigLit3.bs T0051 1 sysEBigLit3
+compare_file EBigLit3.bs.bsc-vcomp-out
+
+#interface argument error message
+compile_verilog_fail_error GCD.bs G0008 1 mkGCD
+compare_file GCD.bs.bsc-vcomp-out
+}
+compile_verilog_pass IfLifting.bs sysIfLifting
+
+if {$vtest == 1} {
+# test that (x + c1 == c2) transforms to (x == c3)
+bsc_compile_verilog ITransformConstantAcrossEquals.bs sysITransformConstantAcrossEquals "-dATSexpand=%m.atsexpand -KILLATSexpand"
+compare_file sysITransformConstantAcrossEquals.atsexpand
+}
+
+compile_pass StructComponentDef.bs
+compile_pass StructComponentUse.bs
+compile_pass StructComponentTop.bs
+compile_pass StructComponentSuperTop.bs
+
+# nesting of ifs inside nosplitIf
+compile_verilog_pass IfInNosplitIfBenign.bs sysIfInNosplitIfBenign
+compile_verilog_pass IfInNosplitIfEvil.bs sysIfInNosplitIfEvil -dsplitIf=IfInNosplitIfEvil.bs.dump
+if { $vtest == 1 } {
+find_n_regexp IfInNosplitIfEvil.bs.dump {^ *".*":$} 4
+}
+
+# fromInteger should fail if an integer is too large for the destination
+compile_verilog_fail FromIntegerTooLarge.bs sysFromIntegerTooLarge
+
+# test that let-bound reassignments don't get fixpointed (bug 166)
+compile_verilog_pass Bug166.bsv mkBug166
+
+# test that pattern-bound reassignments don't get fixpointed (bug 168)
+# fixed by disabling the simplify pass by default
+compile_verilog_pass Bug168.bs mkBug168
+# should there be a compare_verilog or run at this point?
+
+if {$ctest == 1} {
+# test that interface parameters are not bubbled to ready signals (Bug 45)
+compile_object_pass Bug45aTest.bs sysBug45aTest "-no-aggressive-conditions"
+link_objects_pass "sysBug45aTest sysBug45a" sysBug45aTest
+# sim_output sysBug45aTest "-ss"
+# compare_file sysBug45aTest.out
+sim_output sysBug45aTest
+#clear and test with the other flag
+erase Bug45a.bo
+erase Bug45aTest.bo
+erase sysBug45aTest.o
+erase sysBug45a.o
+erase sysBug45aTest
+compile_object_pass Bug45aTest.bs sysBug45aTest "-aggressive-conditions"
+link_objects_pass "sysBug45aTest sysBug45a" sysBug45aTest
+# sim_output sysBug45aTest "-ss"
+# compare_file sysBug45aTest.out
+sim_output sysBug45aTest
+}
+
+if {$vtest == 1} {
+#test that we are doing well on our boolean optimizations after lifting (Bug 28)
+compile_verilog_pass IfLiftingPredOpt.bs mkTest "-dATSexpand=mkTest.atsexpand -opt-bool"
+compare_file mkTest.atsexpand
+erase IfLiftingPredOpt.bo
+erase mkTest.v
+
+#try the expandif case (slightly suboptimal boolean logic here: Bug 103)
+compile_verilog_pass IfLiftingPredOpt.bs mkTest "-split-if -dATSexpand=mkTest.atsexpand.expandif -opt-bool"
+# This is bad! Because the file will get out of sync in other ways
+#compare_file_bug mkTest.atsexpand.expandif mkTest.atsexpand.expandif.expected 103
+# Use this instead:
+find_n_strings mkTest.atsexpand.expandif {when ((ptr.read == 1) && pred.read) || ((ptr.read == 0) && pred.read)} 0
+erase IfLiftingPredOpt.bo
+erase mkTest.v
+
+#see if we still look good in the -no-lift -split-if case
+compile_verilog_pass IfLiftingPredOpt.bs mkTest "-split-if -no-lift -dATSexpand=mkTest.atsexpand.nolift.expandif -opt-bool"
+compare_file mkTest.atsexpand.nolift.expandif
+erase IfLiftingPredOpt.bo
+erase mkTest.v
+}
+
+if {$vtest == 1} {
+compile_verilog_pass ShiftMult.bs sysShiftMult "-dATS=sysShiftMult.ats"
+# when using -dATS (and not -dATSexpand) unique Ids must be accounted for
+compare_file_filter_ids sysShiftMult.ats
+}
+
+# test mux-joining optimization for if
+# if cnd a b ++ if cnd c d -> if cnd (a++c) (b++d)
+if {$vtest == 1} {
+compile_verilog_pass ITransformConcatIf.bsv sysITransformConcatIf
+# compare verilog because there are no generated names in it
+compare_verilog sysITransformConcatIf.v
+}
+
+test_c_veri NormalMult
+test_c_veri FullMult
+
+# double-check static selection of integers
+test_c_veri_bsv StaticInteger
+
+test_c_veri_bsv StaticIndex

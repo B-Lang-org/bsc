@@ -1,0 +1,7 @@
+package AsyncROM (AsyncROM(..)) where
+
+interface (AsyncROM :: # -> * -> * -> *) lat adr dta =
+  read :: adr -> Action
+  result :: dta
+  ack :: Action
+

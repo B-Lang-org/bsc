@@ -1,0 +1,47 @@
+checking package dependencies
+compiling IntrospectInfinite.bsv
+code generation for sysIntrospectInfinite starts
+Compilation message: "IntrospectInfinite.bsv", line 23, column 20: INF = Infinity
+Compilation message: "IntrospectInfinite.bsv", line 27, column 40: INF bits = (+, 4503599627370496, 972)
+Compilation message: "IntrospectInfinite.bsv", line 28, column 21: -INF = -Infinity
+Compilation message: "IntrospectInfinite.bsv", line 32, column 40: -INF bits = (-, -4503599627370496, 972)
+Compilation message: "IntrospectInfinite.bsv", line 36, column 36: INF parts = (179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137216, 0.0)
+Compilation message: "IntrospectInfinite.bsv", line 39, column 36: -INF parts = (-179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137216, 0.0)
+Compilation message: "IntrospectInfinite.bsv", line 41, column 9: INF digits = 
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    7
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    9
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    7
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    9
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    4
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    8
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    2
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 43, column 29: INF exponent = 309
+Compilation message: "IntrospectInfinite.bsv", line 44, column 9: -INF digits = 
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    7
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    9
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    7
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    9
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    4
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    8
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    2
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    3
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    1
+Compilation message: "IntrospectInfinite.bsv", line 20, column 39:    6
+Compilation message: "IntrospectInfinite.bsv", line 46, column 30: -INF exponent = 309
+Verilog file created: sysIntrospectInfinite.v
+All packages are up to date.

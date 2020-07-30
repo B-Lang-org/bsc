@@ -1,0 +1,4 @@
+package Bug437(foo) where
+
+foo :: Integer
+foo = True

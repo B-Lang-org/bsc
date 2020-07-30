@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TypeAliasParamGivenNumUsedNonNum.bs
+Error: "TypeAliasParamGivenNumUsedNonNum.bs", line 5, column 29: (T0027)
+  The numeric type `b' was found where a value type was expected.

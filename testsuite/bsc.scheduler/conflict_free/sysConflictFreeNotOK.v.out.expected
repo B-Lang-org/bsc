@@ -1,0 +1,43 @@
+rs[0]: 0 rs[1]: 0 rs[2]: 0 rs[3]: 0 rs[4]: 0 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_0.
+
+Incrementing i to 1
+rs[0]: 2 rs[1]: 0 rs[2]: 0 rs[3]: 0 rs[4]: 0 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_1.
+
+Incrementing i to 2
+rs[0]: 4 rs[1]: 2 rs[2]: 0 rs[3]: 0 rs[4]: 0 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_2.
+
+Incrementing i to 3
+rs[0]: 4 rs[1]: 4 rs[2]: 2 rs[3]: 0 rs[4]: 0 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_3.
+
+Incrementing i to 4
+rs[0]: 4 rs[1]: 4 rs[2]: 4 rs[3]: 2 rs[4]: 0 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_4.
+
+Incrementing i to 5
+rs[0]: 4 rs[1]: 4 rs[2]: 4 rs[3]: 4 rs[4]: 2 rs[5]: 0 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_5.
+
+Incrementing i to 6
+rs[0]: 4 rs[1]: 4 rs[2]: 4 rs[3]: 4 rs[4]: 4 rs[5]: 2 rs[6]: 0 rs[7]: 0 
+Error: "ConflictFreeNotOK.bsv", line 15, column 8: (R0002)
+  Conflict-free rules RL_r2 and RL_r1 called conflicting methods read and
+  write of module instance rs_6.
+
+Incrementing i to 7
+rs[0]: 4 rs[1]: 4 rs[2]: 4 rs[3]: 4 rs[4]: 4 rs[5]: 4 rs[6]: 2 rs[7]: 0 

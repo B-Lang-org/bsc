@@ -1,0 +1,4 @@
+checking package dependencies
+compiling NumWhereNonNumExpected.bs
+Error: "NumWhereNonNumExpected.bs", line 5, column 9: (T0027)
+  The numeric type `1' was found where a value type was expected.

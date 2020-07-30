@@ -1,0 +1,9 @@
+package Bug80(sysBug80) where
+
+import Bug80a
+
+sysBug80 :: Module Empty
+sysBug80 = 
+  module
+   r :: Reg (ClassifyResult) <- mkReg Drop
+   

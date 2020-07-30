@@ -1,0 +1,16 @@
+package AbstractMaybe(MyMaybe, myJust, myNothing, isMyJust) where
+
+data MyMaybe a = MyNothing | MyJust a
+  deriving(Eq,Bits)
+
+myJust :: a -> MyMaybe a
+myJust x = MyJust x
+
+myNothing :: MyMaybe a
+myNothing = MyNothing
+
+isMyJust :: MyMaybe a -> Bool
+isMyJust MyNothing = False
+isMyJust _ = True
+
+

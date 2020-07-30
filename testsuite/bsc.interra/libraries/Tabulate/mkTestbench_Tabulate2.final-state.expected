@@ -1,0 +1,69 @@
+A=0, B=0, Product= 0, Tabulated Product =  0
+A=1, B=0, Product= 0, Tabulated Product =  0
+A=2, B=0, Product= 0, Tabulated Product =  0
+A=3, B=0, Product= 0, Tabulated Product =  0
+A=4, B=0, Product= 0, Tabulated Product =  0
+A=5, B=0, Product= 0, Tabulated Product =  0
+A=6, B=0, Product= 0, Tabulated Product =  0
+A=7, B=0, Product= 0, Tabulated Product =  0
+A=0, B=1, Product= 0, Tabulated Product =  0
+A=1, B=1, Product= 1, Tabulated Product =  1
+A=2, B=1, Product= 2, Tabulated Product =  2
+A=3, B=1, Product= 3, Tabulated Product =  3
+A=4, B=1, Product= 4, Tabulated Product =  4
+A=5, B=1, Product= 5, Tabulated Product =  5
+A=6, B=1, Product= 6, Tabulated Product =  6
+A=7, B=1, Product= 7, Tabulated Product =  7
+A=0, B=2, Product= 0, Tabulated Product =  0
+A=1, B=2, Product= 2, Tabulated Product =  2
+A=2, B=2, Product= 4, Tabulated Product =  4
+A=3, B=2, Product= 6, Tabulated Product =  6
+A=4, B=2, Product= 8, Tabulated Product =  8
+A=5, B=2, Product=10, Tabulated Product = 10
+A=6, B=2, Product=12, Tabulated Product = 12
+A=7, B=2, Product=14, Tabulated Product = 14
+A=0, B=3, Product= 0, Tabulated Product =  0
+A=1, B=3, Product= 3, Tabulated Product =  3
+A=2, B=3, Product= 6, Tabulated Product =  6
+A=3, B=3, Product= 9, Tabulated Product =  9
+A=4, B=3, Product=12, Tabulated Product = 12
+A=5, B=3, Product=15, Tabulated Product = 15
+A=6, B=3, Product=18, Tabulated Product = 18
+A=7, B=3, Product=21, Tabulated Product = 21
+A=0, B=4, Product= 0, Tabulated Product =  0
+A=1, B=4, Product= 4, Tabulated Product =  4
+A=2, B=4, Product= 8, Tabulated Product =  8
+A=3, B=4, Product=12, Tabulated Product = 12
+A=4, B=4, Product=16, Tabulated Product = 16
+A=5, B=4, Product=20, Tabulated Product = 20
+A=6, B=4, Product=24, Tabulated Product = 24
+A=7, B=4, Product=28, Tabulated Product = 28
+A=0, B=5, Product= 0, Tabulated Product =  0
+A=1, B=5, Product= 5, Tabulated Product =  5
+A=2, B=5, Product=10, Tabulated Product = 10
+A=3, B=5, Product=15, Tabulated Product = 15
+A=4, B=5, Product=20, Tabulated Product = 20
+A=5, B=5, Product=25, Tabulated Product = 25
+A=6, B=5, Product=30, Tabulated Product = 30
+A=7, B=5, Product=35, Tabulated Product = 35
+A=0, B=6, Product= 0, Tabulated Product =  0
+A=1, B=6, Product= 6, Tabulated Product =  6
+A=2, B=6, Product=12, Tabulated Product = 12
+A=3, B=6, Product=18, Tabulated Product = 18
+A=4, B=6, Product=24, Tabulated Product = 24
+A=5, B=6, Product=30, Tabulated Product = 30
+A=6, B=6, Product=36, Tabulated Product = 36
+A=7, B=6, Product=42, Tabulated Product = 42
+A=0, B=7, Product= 0, Tabulated Product =  0
+A=1, B=7, Product= 7, Tabulated Product =  7
+A=2, B=7, Product=14, Tabulated Product = 14
+A=3, B=7, Product=21, Tabulated Product = 21
+A=4, B=7, Product=28, Tabulated Product = 28
+A=5, B=7, Product=35, Tabulated Product = 35
+A=6, B=7, Product=42, Tabulated Product = 42
+A=7, B=7, Product=49, Tabulated Product = 49
+Simulation Passes
+Final state:
+top:
+  the_counter = 0x41
+  the_fail = False

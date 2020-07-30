@@ -1,0 +1,24 @@
+package NoInline(sysNoInline) where
+
+{-# noinline testAdd #-}
+testAdd :: (Bit 5) -> (Bit 5) -> (Bit 5)
+testAdd a b = a + b
+
+{-# verilog sysNoInline #-}
+sysNoInline :: Module Empty
+sysNoInline = 
+  module
+    r :: Reg (Bit 5) <- mkReg 0
+    set :: Reg (Bool) <- mkReg False
+
+    rules 
+      when True ==> 
+       action
+         r := testAdd r 7
+         set := True
+
+      when set ==>
+        action
+          if (r == 7) then $display "Pass" else $display "Fail"
+          $finish 0
+         

@@ -1,0 +1,2013 @@
+MAC Address is: 00.01.00.00.00.01
+Starting TxRxPntArray init sequence (15)
+Starting SWEM init sequence.
+Starting DUT init sequence.
+(   25) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (   35)
+(instance main.top):   Attempt #0: 
+TX i =     8, val = 00008800
+SWEM init sequence complete.
+TX i =     7, val = 00007800
+TX i =     6, val = 00006800
+TX i =     5, val = 00005800
+TX i =     4, val = 00004800
+TX i =     3, val = 00003800
+TX i =     2, val = 00002800
+TX i =     1, val = 00001800
+RX i =     8, val = 00000800
+RX i =     7, val = 0000f800
+RX i =     6, val = 0000e800
+RX i =     5, val = 0000d800
+RX i =     4, val = 0000c800
+RX i =     3, val = 0000b800
+RX i =     2, val = 0000a800
+RX i =     1, val = 00009800
+TxRxPntArray init sequence complete (2545)
+Turn on receive mode.
+Turn on transmit mode.
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (13310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+DUT init sequence completed.
+Into SWEM bd_addr = 400, tx_pnt = 8800 (14045)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     1
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 408, tx_pnt = 7800 (14265)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 410, tx_pnt = 6800 (14625)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 418, tx_pnt = 5800 (14825)
+[FRAME opcode: IGNORE
+           id:    3
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+Into SWEM bd_addr = 420, tx_pnt = 4800 (15265)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 428, tx_pnt = 3800 (15465)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+Into SWEM bd_addr = 430, tx_pnt = 2800 (15745)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 438, tx_pnt = 1800 (15945)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(18810) Finished, no collision
+(19125) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 007cc000007c
+          dst: 007cc000007c
+       format: UNTAGGED
+         size:    11
+         data: 007cc000007cc000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (19135)
+(instance main.top):   Attempt #0: 
+(19635) Interrupt!
+Doing interrupt READ
+(20015) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(20025)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (23110)
+Should be d: d ... (23210)
+(27675) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 400, tx_pnt = 8800 (27825)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        184        416 (28010).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     1
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (28205).
+------------------------------------------------
+(28215)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     1
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (29210).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 007cc000007c
+          dst: 007cc000007c
+       format: UNTAGGED
+         size:    11
+         data: 007cc000007cc000 ....
+]
+(36910) Finished, no collision
+(37225) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (37235)
+(instance main.top):   Attempt #0: 
+(37835) Interrupt!
+Doing interrupt READ
+(38275) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 007cc000007c
+          dst: 007cc000007c
+       format: UNTAGGED
+         size:    11
+         data: 007cc000007cc000 ....
+]
+------------------------------------------------
+(38285)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 007cc000007c
+          dst: 007cc000007c
+       format: UNTAGGED
+         size:    11
+         data: 007cc000007cc000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (41210)
+Should be d: d ... (41310)
+(44795) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 408, tx_pnt = 7800 (45055)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (45110).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (45305).
+------------------------------------------------
+(45315)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (47310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(47910) Collision!
+(48010) Collision!
+(48110) Collision!
+(48210) Collision!
+(48310) Collision!
+(48410) Collision!
+(48510) Collision!
+(48610) Collision!
+(48710) Collision!
+(48810) Collision!
+(48910) Collision!
+(49010) Collision!
+(49110) Collision!
+(49210) Collision!
+(49310) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (49310)
+Should be d: d ... (49410)
+(49410) Collision!
+(49510) Collision!
+(49610) Collision!
+(49710) Collision!
+(49810) Collision!
+(49910) Collision!
+(50010) Collision!
+(50110) Collision!
+(instance main.top): Attempting to transmit frame from mac to phy ... (50215)
+(instance main.top):   Attempt #1: 
+(instance main.top): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (50410).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (54610)
+Should be d: d ... (54710)
+(58195) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (58510).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (58705).
+------------------------------------------------
+(58715)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 410, tx_pnt = 6800 (59095)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (62710)
+Should be d: d ... (62810)
+(75475) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 418, tx_pnt = 5800 (75735)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        512         88 (75810).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    3
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(MAC): Received frame transmitted (76005).
+------------------------------------------------
+(76015)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    3
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (80010)
+Should be d: d ... (80110)
+(83595) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (83910).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (84105).
+------------------------------------------------
+(84115)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 420, tx_pnt = 4800 (84175)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (88110)
+Should be d: d ... (88210)
+(94075) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 428, tx_pnt = 3800 (94335)
+[FRAME opcode: IGNORE
+           id:   13
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    26
+         data: 01631f5555593955 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        240        360 (94410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(MAC): Received frame transmitted (94605).
+------------------------------------------------
+(94615)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (98610)
+Should be d: d ... (98710)
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (101910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(102195) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 430, tx_pnt = 2800 (102455)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (102510).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (102705).
+------------------------------------------------
+(102715)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(108210) Finished, no collision
+(108525) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    4
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (108535)
+(instance main.top):   Attempt #0: 
+(109035) Interrupt!
+Doing interrupt READ
+(109415) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(109425)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (112510)
+Should be d: d ... (112610)
+(116075) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 438, tx_pnt = 1800 (116335)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (116410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (116605).
+------------------------------------------------
+(116615)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (118610).
+[FRAME opcode: IGNORE
+           id:    4
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(119210) Collision!
+(119310) Collision!
+(119410) Collision!
+(119510) Collision!
+(119610) Collision!
+(119710) Collision!
+(119810) Collision!
+(119910) Collision!
+(120010) Collision!
+(120110) Collision!
+(120210) Collision!
+(120310) Collision!
+(120410) Collision!
+(120510) Collision!
+(120610) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (120610)
+Should be d: d ... (120710)
+(120710) Collision!
+(120810) Collision!
+(120910) Collision!
+(121010) Collision!
+(121110) Collision!
+(121210) Collision!
+(121310) Collision!
+(121410) Collision!
+(instance main.top): Attempting to transmit frame from mac to phy ... (121515)
+(instance main.top):   Attempt #1: 
+(instance main.top): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (121710).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (150710)
+Should be d: d ... (150810)
+(154875) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 400, tx_pnt = 8800 (155025)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        168        432 (155210).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(MAC): Received frame transmitted (155405).
+------------------------------------------------
+(155415)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (159410)
+Should be d: d ... (159510)
+(163995) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 408, tx_pnt = 7800 (164255)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        184        416 (164310).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(MAC): Received frame transmitted (164505).
+------------------------------------------------
+(164515)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (168510)
+Should be d: d ... (168610)
+(172075) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 410, tx_pnt = 6800 (172335)
+[FRAME opcode: IGNORE
+           id:   18
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    31
+         data: 006e63eaaa95272a ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (172410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (172605).
+------------------------------------------------
+(172615)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (173210).
+[FRAME opcode: IGNORE
+           id:    4
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(187910) Finished, no collision
+(188225) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (188235)
+(instance main.top):   Attempt #0: 
+(188555) Interrupt!
+Doing interrupt READ
+(189155) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    4
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+------------------------------------------------
+(189165)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    4
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (192210)
+Should be d: d ... (192310)
+(195795) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 418, tx_pnt = 5800 (196055)
+[FRAME opcode: IGNORE
+           id:   19
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     7
+         data: 0037b1f5551d1300 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (196110).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (196305).
+------------------------------------------------
+(196315)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (198310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(198910) Collision!
+(199010) Collision!
+(199110) Collision!
+(199210) Collision!
+(199310) Collision!
+(199410) Collision!
+(199510) Collision!
+(199610) Collision!
+(199710) Collision!
+(199810) Collision!
+(199910) Collision!
+(200010) Collision!
+(200110) Collision!
+(200210) Collision!
+(200310) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (200310)
+Should be d: d ... (200410)
+(200410) Collision!
+(200510) Collision!
+(200610) Collision!
+(200710) Collision!
+(200810) Collision!
+(200910) Collision!
+(201010) Collision!
+(201110) Collision!
+(instance main.top): Attempting to transmit frame from mac to phy ... (201215)
+(instance main.top):   Attempt #1: 
+(instance main.top): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (201410).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (217610)
+Should be d: d ... (217710)
+(221195) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (221510).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (221705).
+------------------------------------------------
+(221715)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 420, tx_pnt = 4800 (221815)
+[FRAME opcode: IGNORE
+           id:   20
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    11
+         data: 004cd8faaad909ca ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (225710)
+Should be d: d ... (225810)
+(235275) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 428, tx_pnt = 3800 (235535)
+[FRAME opcode: IGNORE
+           id:   21
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    30
+         data: 0026ec7d553b84e5 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        384        216 (235610).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   13
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    26
+         data: 01631f5555593955 ....
+]
+(MAC): Received frame transmitted (235805).
+------------------------------------------------
+(235815)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   13
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    26
+         data: 01631f5555593955 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (239810)
+Should be d: d ... (239910)
+(243395) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 430, tx_pnt = 2800 (243655)
+[FRAME opcode: IGNORE
+           id:   22
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    15
+         data: 0013f63eaaca4272 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (243710).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (243905).
+------------------------------------------------
+(243915)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (247910)
+Should be d: d ... (248010)
+(251475) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 438, tx_pnt = 1800 (251735)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (251810).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (252005).
+------------------------------------------------
+(252015)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (252910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(258410) Finished, no collision
+(258725) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (258735)
+(instance main.top):   Attempt #0: 
+(259235) Interrupt!
+Doing interrupt READ
+(259615) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(259625)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (262710)
+Should be d: d ... (262810)
+(266275) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 400, tx_pnt = 8800 (266425)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    40
+         data: 002fbd8faae5109c ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (266610).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (266805).
+------------------------------------------------
+(266815)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (268810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(269410) Collision!
+(269510) Collision!
+(269610) Collision!
+(269710) Collision!
+(269810) Collision!
+(269910) Collision!
+(270010) Collision!
+(270110) Collision!
+(270210) Collision!
+(270310) Collision!
+(270410) Collision!
+(270510) Collision!
+(270610) Collision!
+(270710) Collision!
+(270810) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (270810)
+Should be d: d ... (270910)
+(270910) Collision!
+(271010) Collision!
+(271110) Collision!
+(271210) Collision!
+(271310) Collision!
+(271410) Collision!
+(271510) Collision!
+(271610) Collision!
+(instance main.top): Attempting to transmit frame from mac to phy ... (271715)
+(instance main.top):   Attempt #1: 
+(instance main.top): Backing off for 0 slot times (max 2) ... (         0 cycles)
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (271910).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (281810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(289710) Finished, no collision
+(290025) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (290035)
+(instance main.top):   Attempt #0: 
+(290555) Interrupt!
+Doing interrupt READ
+(290995) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+------------------------------------------------
+(291005)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (300110).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (300910)
+Should be d: d ... (301010)
+(304475) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (304810).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (305005).
+------------------------------------------------
+(305015)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 408, tx_pnt = 7800 (305255)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(310510) Finished, no collision
+(310825) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (310835)
+(instance main.top):   Attempt #0: 
+(311355) Interrupt!
+Doing interrupt READ
+(311735) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(311745)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (314810)
+Should be d: d ... (314910)
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (320910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(325395) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        424        176 (325710).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   18
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    31
+         data: 006e63eaaa95272a ....
+]
+(MAC): Received frame transmitted (325905).
+------------------------------------------------
+(325915)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   18
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    31
+         data: 006e63eaaa95272a ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 410, tx_pnt = 6800 (325975)
+[FRAME opcode: IGNORE
+           id:   26
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    20
+         data: 0040dec7d525084e ....
+]
+(331410) Finished, no collision
+(331725) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (331735)
+(instance main.top):   Attempt #0: 
+(332235) Interrupt!
+Doing interrupt READ
+(332615) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(332625)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (335710)
+Should be d: d ... (335810)
+(341475) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (341810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        232        368 (341810).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   19
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     7
+         data: 0037b1f5551d1300 ....
+]
+(MAC): Received frame transmitted (342005).
+------------------------------------------------
+(342015)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   19
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     7
+         data: 0037b1f5551d1300 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 418, tx_pnt = 5800 (342135)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(348110) Finished, no collision
+(348425) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (348435)
+(instance main.top):   Attempt #0: 
+(349035) Interrupt!
+Doing interrupt READ
+(349435) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+------------------------------------------------
+(349445)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (352410)
+Should be d: d ... (352510)
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (358510).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(358995) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        264        336 (359310).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   20
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    11
+         data: 004cd8faaad909ca ....
+]
+(MAC): Received frame transmitted (359505).
+------------------------------------------------
+(359515)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   20
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    11
+         data: 004cd8faaad909ca ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 420, tx_pnt = 4800 (359615)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(366010) Finished, no collision
+(366325) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (366335)
+(instance main.top):   Attempt #0: 
+(367155) Interrupt!
+Doing interrupt READ
+(367555) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+------------------------------------------------
+(367565)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (370310)
+Should be d: d ... (370410)
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (376410).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(380675) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        416        184 (381010).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   21
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    30
+         data: 0026ec7d553b84e5 ....
+]
+(MAC): Received frame transmitted (381205).
+------------------------------------------------
+(381215)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   21
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    30
+         data: 0026ec7d553b84e5 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 428, tx_pnt = 3800 (381295)
+[FRAME opcode: IGNORE
+           id:   29
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     5
+         data: 4010f7b1f5000000 ....
+]
+(386710) Finished, no collision
+(387025) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (387035)
+(instance main.top):   Attempt #0: 
+(387555) Interrupt!
+Doing interrupt READ
+(387935) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(387945)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (391010)
+Should be d: d ... (391110)
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (397110).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(398395) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 430, tx_pnt = 2800 (398655)
+[FRAME opcode: IGNORE
+           id:   30
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    21
+         data: a008fbd8facd0109 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        296        304 (398710).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   22
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    15
+         data: 0013f63eaaca4272 ....
+]
+(MAC): Received frame transmitted (398905).
+------------------------------------------------
+(398915)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   22
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    15
+         data: 0013f63eaaca4272 ....
+]
+------------------------------------------------
+(404410) Finished, no collision
+(404725) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0076d7aaaadf
+          dst: 0076d7aaaadf
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (404735)
+(instance main.top):   Attempt #0: 
+(405235) Interrupt!
+Doing interrupt READ
+(405615) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(405625)       DUT RECEIVE TEST RESULT            
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (408710)
+Should be d: d ... (408810)
+(412275) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (412610).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (412805).
+------------------------------------------------
+(412815)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 438, tx_pnt = 1800 (413135)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (414810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0076d7aaaadf
+          dst: 0076d7aaaadf
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(415410) Collision!
+(415510) Collision!
+(415610) Collision!
+(415710) Collision!
+(415810) Collision!
+(415910) Collision!
+(416010) Collision!
+(416110) Collision!
+(416210) Collision!
+(416310) Collision!
+(416410) Collision!
+(416510) Collision!
+(416610) Collision!
+(416710) Collision!
+(416810) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (416810)
+Should be d: d ... (416910)
+(416910) Collision!
+(417010) Collision!
+(417110) Collision!
+(417210) Collision!
+(417310) Collision!
+(417410) Collision!
+(417510) Collision!
+(417610) Collision!
+(instance main.top): Attempting to transmit frame from mac to phy ... (417715)
+(instance main.top):   Attempt #1: 
+(instance main.top): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (417910).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (434110)
+Should be d: d ... (434210)
+(445675) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 400, tx_pnt = 8800 (445825)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        464        136 (446010).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    40
+         data: 002fbd8faae5109c ....
+]
+(MAC): Received frame transmitted (446205).
+------------------------------------------------
+(446215)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:    40
+         data: 002fbd8faae5109c ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (450210)
+Should be d: d ... (450310)
+(453795) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (454110).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (454305).
+------------------------------------------------
+(454315)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 408, tx_pnt = 7800 (454415)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (458310)
+Should be d: d ... (458410)
+(466675) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 410, tx_pnt = 6800 (466935)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        336        264 (467010).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   26
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    20
+         data: 0040dec7d525084e ....
+]
+(MAC): Received frame transmitted (467205).
+------------------------------------------------
+(467215)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   26
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    20
+         data: 0040dec7d525084e ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_tx): Transmitting frame enters phy ... (469410).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0076d7aaaadf
+          dst: 0076d7aaaadf
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(469810) Collision!
+(469910) Collision!
+(470010) Collision!
+(470110) Collision!
+(470210) Collision!
+(470310) Collision!
+(470410) Collision!
+(470510) Collision!
+(470610) Collision!
+(470710) Collision!
+(470810) Collision!
+(470910) Collision!
+(471010) Collision!
+(471110) Collision!
+(471210) Collision!
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (471210)
+Should be d: d ... (471310)
+(471310) Collision!
+(471410) Collision!
+(471510) Collision!
+(471610) Collision!
+(471710) Collision!
+(471810) Collision!
+(471910) Collision!
+(472010) Collision!
+(472110) Collision!
+(472210) Collision!
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600         32        568 (472310).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top): Attempting to transmit frame from mac to phy ... (472315)
+(instance main.top):   Attempt #2: 
+(instance main.top): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (488510)
+Should be d: d ... (488610)
+(492075) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 418, tx_pnt = 5800 (492335)
+[FRAME opcode: IGNORE
+           id:   35
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    35
+         data: 7401ff7b1f30c021 ....
+]
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (492410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (492605).
+------------------------------------------------
+(492615)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (496610)
+Should be d: d ... (496710)
+(500195) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        144        456 (500510).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (500705).
+------------------------------------------------
+(500715)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 420, tx_pnt = 4800 (500735)
+[FRAME opcode: IGNORE
+           id:   36
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:    38
+         data: ba577fbd8f98e010 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (504710)
+Should be d: d ... (504810)
+(510075) Interrupt!
+Doing interrupt READ
+(instance main.top.main_phy.mii_rx): Transmit test frame assembled ...        600        216        384 (510410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:   29
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     5
+         data: 4010f7b1f5000000 ....
+]
+(MAC): Received frame transmitted (510605).
+------------------------------------------------
+(510615)       DUT TRANSMIT TEST RESULT           
+Frame Matches expected result!
+[FRAME opcode: IGNORE
+           id:   29
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     5
+         data: 4010f7b1f5000000 ....
+]
+------------------------------------------------
+Into SWEM bd_addr = 428, tx_pnt = 3800 (510695)
+[FRAME opcode: IGNORE
+           id:   37
+          src: 000100000001
+          dst: 000100000001
+       format: TAGGED
+         size:     2
+         data: 5d7c000000000000 ....
+]
+(instance main.top.main_phy.mii_rx): Found Preamble (length =         15) ... (514610)
+Should be d: d ... (514710)
+(523195) Interrupt!
+Doing interrupt READ
+Into SWEM bd_addr = 430, tx_pnt = 2800 (523455)
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000100000001
+          dst: 000100000001
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]

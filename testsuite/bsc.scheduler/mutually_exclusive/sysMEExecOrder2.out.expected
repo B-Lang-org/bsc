@@ -1,0 +1,7 @@
+rule1
+rule2
+Error: "MEExecOrder2.bsv", line 14, column 26: (R0001)
+  Mutually exclusive rules (from the ME sets [RL_rule1] and [RL_rule2] ) fired
+  in the same clock cycle.
+
+exit

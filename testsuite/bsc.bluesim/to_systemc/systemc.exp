@@ -1,0 +1,20 @@
+if { $systemctest == 1 } {
+
+compile_object_pass Methods.bsv
+link_objects_fail_error sysMethods.ba sysMethods S0064 1 {-systemc}
+
+compile_object_pass Path.bsv
+link_objects_fail_error sysPath.ba sysPath S0063 1 {-systemc}
+
+compile_object_pass ModuleArg.bsv
+link_objects_fail_error sysModuleArg.ba sysModuleArg G0099 1 {-systemc}
+
+compile_object_pass ModuleParam.bsv
+link_objects_fail_error sysModuleParam.ba sysModuleParam G0099 1 {-systemc}
+
+compile_object_pass RuleBeforeMethod.bsv
+link_objects_fail_error sysRuleBeforeMethod.ba sysRuleBeforeMethod S0067 1 {-systemc}
+
+compile_object_pass RenamedClockClash.bsv
+link_objects_pass {} sysRenamedClockClash {-systemc}
+}

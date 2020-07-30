@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ModulePort_NoBoundaryClock.bsv
+code generation for sysModulePort_NoBoundaryClock starts
+Warning: "ModulePort_NoBoundaryClock.bsv", line 4, column 49: (G0084)
+  Input argument `x' is associated with a clock domain but no input or output
+  clock on the module boundary is in that domain, so the port is being marked
+  as clocked by `no_clock'.
+Verilog file created: sysModulePort_NoBoundaryClock.v
+All packages are up to date.

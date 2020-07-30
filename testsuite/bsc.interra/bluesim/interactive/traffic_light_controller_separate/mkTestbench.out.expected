@@ -1,0 +1,234 @@
+TLC METHOD FIRES
+TLC METHOD FIRES
+TLC METHOD FIRES
+Car present on Farm Road 
+Design.Design_IFC top
+ tlc
+ RDY_tlc
+ farm_light
+ RDY_farm_light
+ hwy_light
+ RDY_hwy_light
+  -> Bool(1) (-> (Bit(5) 5) (-> (Bit(5) 5) (Action PrimUnit(0)))) tlc
+  Design.TLstates(2) farm_light
+  Design.TLstates(2) hwy_light
+  Reg Design.TIMstates(2) t_timer_state
+   read
+   write
+    -> Design.TIMstates(2) (Action PrimUnit(0)) _write
+    Design.TIMstates(2) _read
+
+  Reg Design.TLstates(2) t_hwy_state
+   read
+   write
+    -> Design.TLstates(2) (Action PrimUnit(0)) _write
+    Design.TLstates(2) _read
+
+  Reg Design.TLstates(2) t_frm_state
+   read
+   write
+    -> Design.TLstates(2) (Action PrimUnit(0)) _write
+    Design.TLstates(2) _read
+
+  Reg (Bit(5) 5) t_timer
+   read
+   write
+    -> (Bit(5) 5) (Action PrimUnit(0)) _write
+    Bit(5) 5 _read
+
+
+Reg (Bit(8) 8) counter
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(16) 16) count_wait
+ read
+ write
+  -> (Bit(16) 16) (Action PrimUnit(0)) _write
+  Bit(16) 16 _read
+
+Reg (Bit(8) 8) count_sig2_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig3_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig4_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig5_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig6_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg (Bit(8) 8) count_sig7_state
+ read
+ write
+  -> (Bit(8) 8) (Action PrimUnit(0)) _write
+  Bit(8) 8 _read
+
+Reg Testbench.State(5) state
+ read
+ write
+  -> Testbench.State(5) (Action PrimUnit(0)) _write
+  Testbench.State(5) _read
+
+Reg Design.TLstates(2) hwy_sig
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg Design.TLstates(2) frm_sig
+ read
+ write
+  -> Design.TLstates(2) (Action PrimUnit(0)) _write
+  Design.TLstates(2) _read
+
+Reg (Bit(5) 5) long_timer_value
+ read
+ write
+  -> (Bit(5) 5) (Action PrimUnit(0)) _write
+  Bit(5) 5 _read
+
+Reg (Bit(5) 5) short_timer_value
+ read
+ write
+  -> (Bit(5) 5) (Action PrimUnit(0)) _write
+  Bit(5) 5 _read
+
+top.farm_light --> 0x0
+top.hwy_light --> 0x2
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Yellow 
+top.farm_light --> 0x0
+top.hwy_light --> 0x1
+TLC METHOD FIRES
+TLC METHOD FIRES
+hwy_light turns Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Red 
+top.farm_light --> 0x2
+top.hwy_light --> 0x0
+TLC METHOD FIRES
+TLC METHOD FIRES
+hwy_light turns Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+farm_light turns Green 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Yellow 
+top.farm_light --> 0x1
+top.hwy_light --> 0x0
+TLC METHOD FIRES
+TLC METHOD FIRES
+farm_light turns Yellow 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for farm_light to turn Red 
+main.top.top.t_timer_state = START
+main.top.top.t_hwy_state = GREEN
+main.top.top.t_frm_state = RED
+main.top.top.t_timer = 0x01
+main.top.counter = 0x00
+main.top.count_wait = 0x0000
+main.top.count_sig2_state = 0x06
+main.top.count_sig3_state = 0x03
+main.top.count_sig4_state = 0x00
+main.top.count_sig5_state = 0x05
+main.top.count_sig6_state = 0x03
+main.top.count_sig7_state = 0x00
+main.top.state = Sig6
+main.top.hwy_sig = RED
+main.top.frm_sig = RED
+main.top.long_timer_value = 0x05
+main.top.short_timer_value = 0x02
+top.farm_light --> 0x0
+top.hwy_light --> 0x2
+TLC METHOD FIRES
+TLC METHOD FIRES
+farm_light turns Red 
+TLC METHOD FIRES
+TLC METHOD FIRES
+Waiting for hwy_light to turn Green 
+TLC METHOD FIRES
+main.top.top.t_timer_state = SHORT
+main.top.top.t_hwy_state = GREEN
+main.top.top.t_frm_state = RED
+main.top.top.t_timer = 0x03
+main.top.counter = 0x00
+main.top.count_wait = 0x0000
+main.top.count_sig2_state = 0x06
+main.top.count_sig3_state = 0x03
+main.top.count_sig4_state = 0x00
+main.top.count_sig5_state = 0x05
+main.top.count_sig6_state = 0x03
+main.top.count_sig7_state = 0x01
+main.top.state = Sig7
+main.top.hwy_sig = GREEN
+main.top.frm_sig = RED
+main.top.long_timer_value = 0x05
+main.top.short_timer_value = 0x02
+TLC METHOD FIRES
+hwy_light turns Green 
+Simulation Passes 

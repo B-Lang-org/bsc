@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SelfRecursiveSyn.bsv
+Error: "SelfRecursiveSyn.bsv", line 2, column 18: (T0106)
+  There are circular references among the following type synonyms: A

@@ -1,0 +1,8 @@
+checking package dependencies
+compiling StringKindSpecificToPoly.bs
+Error: "StringKindSpecificToPoly.bs", line 8, column 0: (T0029)
+  Signature mismatch (given too general):
+  given:
+  StringKindSpecificToPoly.Foo a__
+  deduced:
+  StringKindSpecificToPoly.Foo "a"

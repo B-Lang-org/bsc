@@ -1,0 +1,2 @@
+compile_fail Ambg.bs
+compare_file Ambg.bs.bsc-out

@@ -1,0 +1,13 @@
+package FullMult(sysFullMult) where
+
+sysFullMult :: Module Empty
+sysFullMult = 
+  module 
+    r :: Reg (Bit 5) <- mkReg 31
+    -- init expression checks constant-folding of primMul
+    s :: Reg (Bit 4) <- mkReg (truncate (primMul (3 :: Bit 2) (5 :: Bit 3)))
+    rules
+      when True ==>
+        action
+          $display "%0d" (primMul r s) 
+          $finish 0

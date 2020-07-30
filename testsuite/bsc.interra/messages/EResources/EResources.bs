@@ -1,0 +1,53 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EResources.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EResources error of the bluespec
+-- compiler ({Method} needs more than {#} ports to use {Calls})
+--
+-- Generates error only if verilog code is requested for mkDifference
+-----------------------------------------------------------------------
+
+
+
+package EResources () where
+
+-- import UInt
+
+interface Subtract =
+       minus :: UInt 16 -> UInt 16 -> UInt 16
+
+               
+{-# verilog subtractor #-} 
+subtractor :: Module Subtract 
+subtractor  = module
+                  interface
+                     minus a b = a - b
+
+
+interface Difference = 
+       inputs :: UInt 16 -> UInt 16 -> Action
+       result :: UInt 16
+
+mkDifference :: Module Difference
+mkDifference = 
+         module 
+
+             x :: Reg (UInt 16) <- mkReg 0
+             y :: Reg (UInt 16) <- mkReg 0
+             z :: Reg (UInt 16) <- mkReg 0
+
+             m :: Subtract 
+             m <- subtractor 
+        
+             rules 
+                 when x < y  ==> z := m.minus y x 
+                 when y > x  ==> z := m.minus x y
+             interface
+                 inputs ix iy = action
+                                      x := ix
+                                      y := iy
+                 result = z

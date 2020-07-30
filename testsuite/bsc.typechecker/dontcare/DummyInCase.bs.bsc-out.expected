@@ -1,0 +1,21 @@
+checking package dependencies
+compiling DummyInCase.bs
+=== internal:
+IPackage DummyInCase
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInCase.dummyInCase :: Prelude.Bit 1 -> Prelude.Bool
+DummyInCase.dummyInCase =
+  \ (x :: Prelude.Bit 1) .
+  let _case :: Prelude.Bit 1 -> Prelude.Bool
+      _case = \ (_a1001 :: Prelude.Bit 1) . PrimBuildUndefined ·Prelude.Bool _ 1
+  in  _case x
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

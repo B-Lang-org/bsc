@@ -1,0 +1,7 @@
+checking package dependencies
+compiling EBigLit.bs
+code generation for sysEBigLit starts
+Error: "EBigLit.bs", line 6, column 30: (T0051)
+  Literal 17 is not a valid Bit#(4).
+  During elaboration of `r' at "EBigLit.bs", line 6, column 4.
+  During elaboration of `sysEBigLit' at "EBigLit.bs", line 3, column 0.

@@ -1,0 +1,13 @@
+package Init64Bit (sysInit64Bit) where
+
+sysInit64Bit :: Module Empty
+sysInit64Bit = 
+  module 
+    r :: Reg (Bit 64) <- mkReg 0xfedcba9876543210
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

@@ -1,0 +1,145 @@
+checking package dependencies
+compiling DUFunction1.bsv
+code generation for sysDUFunction1 starts
+=== schedule:
+parallel: [esposito: [setGo -> [],
+		      clearGo -> [],
+		      deq -> [],
+		      first -> [],
+		      RL_doit -> [],
+		      RL_doit_1 -> [RL_doit],
+		      RL_doit_2 -> [RL_doit_1, RL_doit],
+		      RL_doit_3 -> [RL_doit_2, RL_doit_1, RL_doit],
+		      RL_doit_4 -> [RL_doit_3, RL_doit_2, RL_doit_1, RL_doit],
+		      RL_doit_5 -> [RL_doit_4, RL_doit_3, RL_doit_2, RL_doit_1, RL_doit]]]
+order: [clearGo, first, deq, RL_doit, RL_doit_1, RL_doit_2, RL_doit_3, RL_doit_4, RL_doit_5, setGo]
+
+-----
+
+=== resources:
+[(cntrs_0.read, [(cntrs_0.read, 1)]),
+ (cntrs_0.write, [(cntrs_0.write cntrs_0_PLUS_1___d5, 1)]),
+ (cntrs_1.read, [(cntrs_1.read, 1)]),
+ (cntrs_1.write, [(cntrs_1.write cntrs_1_PLUS_1___d9, 1)]),
+ (cntrs_2.read, [(cntrs_2.read, 1)]),
+ (cntrs_2.write, [(cntrs_2.write cntrs_2_2_PLUS_1___d13, 1)]),
+ (cntrs_3.read, [(cntrs_3.read, 1)]),
+ (cntrs_3.write, [(cntrs_3.write cntrs_3_6_PLUS_1___d17, 1)]),
+ (cntrs_4.read, [(cntrs_4.read, 1)]),
+ (cntrs_4.write, [(cntrs_4.write cntrs_4_0_PLUS_1___d21, 1)]),
+ (cntrs_5.read, [(cntrs_5.read, 1)]),
+ (cntrs_5.write, [(cntrs_5.write cntrs_5_4_PLUS_1___d25, 1)]),
+ (gos_0.read, [(gos_0.read, 1)]),
+ (gos_0.write, [(if setGo_index_EQ_0___d26 then gos_0.write 1'd1, 1)]),
+ (gos_1.read, [(gos_1.read, 1)]),
+ (gos_1.write, [(if setGo_index_EQ_1___d27 then gos_1.write 1'd1, 1)]),
+ (gos_2.read, [(gos_2.read, 1)]),
+ (gos_2.write, [(if setGo_index_EQ_2___d28 then gos_2.write 1'd1, 1)]),
+ (gos_3.read, [(gos_3.read, 1)]),
+ (gos_3.write, [(if setGo_index_EQ_3___d29 then gos_3.write 1'd1, 1)]),
+ (gos_4.read, [(gos_4.read, 1)]),
+ (gos_4.write, [(if setGo_index_EQ_4___d30 then gos_4.write 1'd1, 1)]),
+ (gos_5.read, [(gos_5.read, 1)]),
+ (gos_5.write, [(if setGo_index_EQ_5___d31 then gos_5.write 1'd1, 1)]),
+ (outf.deq, [(outf.deq, 1)]),
+ (outf.enq,
+  [(outf.enq b__h1921, 1),
+   (outf.enq b__h2036, 1),
+   (outf.enq b__h2149, 1),
+   (outf.enq b__h2262, 1),
+   (outf.enq b__h2375, 1),
+   (outf.enq b__h2488, 1)]),
+ (outf.first, [(outf.first, 1)]),
+ (outf.i_notEmpty, [(outf.i_notEmpty, 1)]),
+ (outf.i_notFull, [(outf.i_notFull, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_clearGo CF [RDY_clearGo, RDY_deq, RDY_first, clearGo, deq, first, setGo],
+ RDY_deq CF [RDY_deq, RDY_first, clearGo, deq, first, setGo],
+ RDY_first CF [RDY_first, clearGo, deq, first, setGo],
+ RDY_setGo CF [RDY_clearGo, RDY_deq, RDY_first, RDY_setGo, clearGo, deq, first, setGo],
+ [clearGo, setGo] CF [clearGo, deq, first],
+ first CF first,
+ first SB deq,
+ setGo SBR setGo,
+ deq C deq]
+[]
+[(setGo,
+  [(Left RL_doit),
+   (Left RL_doit_1),
+   (Left RL_doit_2),
+   (Left RL_doit_3),
+   (Left RL_doit_4),
+   (Left RL_doit_5)])]
+[]
+
+-----
+
+Schedule dump file created: sysDUFunction1.sched
+=== Generated schedule for sysDUFunction1 ===
+
+Method schedule
+---------------
+Method: setGo
+Ready signal: True
+Conflict-free: clearGo, deq, first
+Sequenced before (restricted): setGo
+ 
+Method: clearGo
+Ready signal: True
+Conflict-free: setGo, clearGo, deq, first
+ 
+Method: deq
+Ready signal: outf.i_notEmpty
+Conflict-free: setGo, clearGo
+Sequenced after: first
+Conflicts: deq
+ 
+Method: first
+Ready signal: outf.i_notEmpty
+Conflict-free: setGo, clearGo, first
+Sequenced before: deq
+ 
+Rule schedule
+-------------
+Rule: doit
+Predicate: outf.i_notFull && gos_0
+Blocking rules: (none)
+ 
+Rule: doit_1
+Predicate: outf.i_notFull && gos_1
+Blocking rules: doit
+ 
+Rule: doit_2
+Predicate: outf.i_notFull && gos_2
+Blocking rules: doit_1, doit
+ 
+Rule: doit_3
+Predicate: outf.i_notFull && gos_3
+Blocking rules: doit_2, doit_1, doit
+ 
+Rule: doit_4
+Predicate: outf.i_notFull && gos_4
+Blocking rules: doit_3, doit_2, doit_1, doit
+ 
+Rule: doit_5
+Predicate: outf.i_notFull && gos_5
+Blocking rules: doit_4, doit_3, doit_2, doit_1, doit
+ 
+Logical execution order: clearGo,
+			 first,
+			 deq,
+			 doit,
+			 doit_1,
+			 doit_2,
+			 doit_3,
+			 doit_4,
+			 doit_5,
+			 setGo
+
+==============================================
+Verilog file created: sysDUFunction1.v
+All packages are up to date.

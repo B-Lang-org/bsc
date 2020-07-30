@@ -1,0 +1,12 @@
+checking package dependencies
+compiling EUnify.bs
+Error: "EUnify.bs", line 19, column 10: (T0020)
+  Type error at:
+  x
+
+  Expected type:
+  Prelude.Int 3
+
+  Inferred type:
+  Prelude.Int 2
+

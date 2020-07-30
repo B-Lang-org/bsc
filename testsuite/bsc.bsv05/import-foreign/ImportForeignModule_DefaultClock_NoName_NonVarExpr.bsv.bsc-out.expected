@@ -1,0 +1,51 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_DefaultClock_NoName_NonVarExpr;
+module mkMyReg(Reg#(Bool));
+  let _bv0 <- exposeCurrentClock;
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, {-inhigh-});
+			 ((ClockArg _clk__1, _bv0))
+			 {
+			   method QOUT _read() clocked_by (_clk__1);
+			   method _write(DIN) enable (EN) clocked_by (_clk__1);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_DefaultClock_NoName_NonVarExpr
+
+-----
+
+compiling ImportForeignModule_DefaultClock_NoName_NonVarExpr.bsv
+=== parsed:
+package ImportForeignModule_DefaultClock_NoName_NonVarExpr;
+module mkMyReg(Reg#(Bool));
+  let _bv0 <- exposeCurrentClock;
+  Reg#(Bool) _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, {-inhigh-});
+			 ((ClockArg _clk__1, _bv0))
+			 {
+			   method QOUT _read() clocked_by (_clk__1);
+			   method _write(DIN) enable (EN) clocked_by (_clk__1);
+			 }
+			 SchedInfo [_read CF _read, _read SB _write, _write SBR _write] [] [] []
+			 No combinational paths from inputs to outputs);
+  method _read() ;   return (unpack((_m__)()));
+  endmethod: _read
+  method _write(x1) ;   return (fromActionValue_((_m__._write)(pack(x1))));
+  endmethod: _write
+endmodule: mkMyReg
+
+endpackage: ImportForeignModule_DefaultClock_NoName_NonVarExpr
+
+-----
+
+All packages are up to date.

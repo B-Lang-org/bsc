@@ -1,0 +1,22 @@
+package Init16384Bit (sysInit16384Bit) where
+
+bigConst :: Bit 16384
+bigConst = 0xfedcba9876543210
+
+bigInt :: Bit 16384
+bigInt = makeBigInt 16384
+
+makeBigInt :: Bit 16384 -> Bit 16384
+makeBigInt x = if (x <= 0) then 0 else (makeBigInt (x - 64) << 64) + bigConst
+
+sysInit16384Bit :: Module Empty
+sysInit16384Bit = 
+  module 
+    r :: Reg (Bit 16384) <- mkReg bigInt
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

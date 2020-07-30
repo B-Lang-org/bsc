@@ -1,0 +1,124 @@
+  A Vector: <V False False False  >
+   A Tuple: <'h0,'h0>
+ A Request: <HEAD READ  (105) A:00 D:02>
+----------------------------------
+  A Vector: <V True False False  >
+   A Tuple: <'h0,'h1>
+ A Request: <HEAD READ  (210) A:00 D:04>
+----------------------------------
+  A Vector: <V False True False  >
+   A Tuple: <'h0,'h2>
+ A Request: <HEAD READ  (164) A:00 D:09>
+----------------------------------
+  A Vector: <V True True False  >
+   A Tuple: <'h0,'h3>
+ A Request: <HEAD READ  (72) A:00 D:13>
+----------------------------------
+  A Vector: <V False False True  >
+   A Tuple: <'h1,'h0>
+ A Request: <HEAD READ  (144) A:00 D:26>
+----------------------------------
+  A Vector: <V True False True  >
+   A Tuple: <'h1,'h1>
+ A Request: <HEAD READ  (32) A:00 D:4d>
+----------------------------------
+  A Vector: <V False True True  >
+   A Tuple: <'h1,'h2>
+ A Request: <HEAD READ  (64) A:00 D:9a>
+----------------------------------
+  A Vector: <V True True True  >
+   A Tuple: <'h1,'h3>
+ A Request: <HEAD READ  (128) A:01 D:34>
+----------------------------------
+  A Vector: <V False False False  >
+   A Tuple: <'h2,'h0>
+ A Request: <HEAD READ  (0) A:02 D:69>
+----------------------------------
+  A Vector: <V True False False  >
+   A Tuple: <'h2,'h1>
+ A Request: <HEAD READ  (0) A:04 D:d2>
+----------------------------------
+  A Vector: <V False True False  >
+   A Tuple: <'h2,'h2>
+ A Request: <HEAD READ  (0) A:09 D:a4>
+----------------------------------
+  A Vector: <V True True False  >
+   A Tuple: <'h2,'h3>
+ A Request: <HEAD READ  (0) A:13 D:48>
+----------------------------------
+  A Vector: <V False False True  >
+   A Tuple: <'h3,'h0>
+ A Request: <HEAD READ  (0) A:26 D:90>
+----------------------------------
+  A Vector: <V True False True  >
+   A Tuple: <'h3,'h1>
+ A Request: <HEAD READ  (1) A:4d D:20>
+----------------------------------
+  A Vector: <V False True True  >
+   A Tuple: <'h3,'h2>
+ A Request: <HEAD READ  (2) A:9a D:40>
+----------------------------------
+  A Vector: <V True True True  >
+   A Tuple: <'h3,'h3>
+ A Request: <HEAD WRITE (4) A:34 D:80>
+----------------------------------
+  A Vector: <V False False False  >
+   A Tuple: <'h0,'h0>
+ A Request: <HEAD UNKNOWN (9) A:69 D:00>
+----------------------------------
+  A Vector: <V True False False  >
+   A Tuple: <'h0,'h1>
+ A Request: <DATA 26>
+----------------------------------
+  A Vector: <V False True False  >
+   A Tuple: <'h0,'h2>
+ A Request: <HEAD WRITE (38) A:a4 D:00>
+----------------------------------
+  A Vector: <V True True False  >
+   A Tuple: <'h0,'h3>
+ A Request: <HEAD UNKNOWN (77) A:48 D:00>
+----------------------------------
+  A Vector: <V False False True  >
+   A Tuple: <'h1,'h0>
+ A Request: <DATA 34>
+----------------------------------
+  A Vector: <V True False True  >
+   A Tuple: <'h1,'h1>
+ A Request: <DATA 69>
+----------------------------------
+  A Vector: <V False True True  >
+   A Tuple: <'h1,'h2>
+ A Request: <HEAD UNKNOWN (105) A:40 D:02>
+----------------------------------
+  A Vector: <V True True True  >
+   A Tuple: <'h1,'h3>
+ A Request: <DATA a6>
+----------------------------------
+  A Vector: <V False False False  >
+   A Tuple: <'h2,'h0>
+ A Request: <HEAD WRITE (166) A:00 D:09>
+----------------------------------
+  A Vector: <V True False False  >
+   A Tuple: <'h2,'h1>
+ A Request: <HEAD UNKNOWN (76) A:00 D:13>
+----------------------------------
+  A Vector: <V False True False  >
+   A Tuple: <'h2,'h2>
+ A Request: <DATA 33>
+----------------------------------
+  A Vector: <V True True False  >
+   A Tuple: <'h2,'h3>
+ A Request: <HEAD READ  (51) A:00 D:4d>
+----------------------------------
+  A Vector: <V False False True  >
+   A Tuple: <'h3,'h0>
+ A Request: <HEAD READ  (102) A:00 D:9a>
+----------------------------------
+  A Vector: <V True False True  >
+   A Tuple: <'h3,'h1>
+ A Request: <HEAD READ  (205) A:01 D:34>
+----------------------------------
+  A Vector: <V False True True  >
+   A Tuple: <'h3,'h2>
+ A Request: <HEAD READ  (154) A:02 D:69>
+----------------------------------

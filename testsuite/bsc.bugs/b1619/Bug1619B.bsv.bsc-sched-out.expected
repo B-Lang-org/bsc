@@ -1,0 +1,63 @@
+checking package dependencies
+compiling Bug1619B.bsv
+code generation for sysBug1619B starts
+Warning: "Bug1619B.bsv", line 2, column 8: (G0010)
+  Rule "high_priority" was treated as more urgent than "normal". Conflicts:
+    "high_priority" cannot fire before "normal": calls to x.write vs. x.read
+    "normal" cannot fire before "high_priority": calls to x.write vs. x.read
+Warning: "Bug1619B.bsv", line 2, column 8: (G0010)
+  Rule "high_priority" was treated as more urgent than "normal_1". Conflicts:
+    "high_priority" cannot fire before "normal_1": calls to x.write vs. x.read
+    "normal_1" cannot fire before "high_priority": calls to x.write vs. x.read
+Warning: "Bug1619B.bsv", line 2, column 8: (G0010)
+  Rule "high_priority" was treated as more urgent than "normal_2". Conflicts:
+    "high_priority" cannot fire before "normal_2": calls to x.write vs. x.read
+    "normal_2" cannot fire before "high_priority": calls to x.write vs. x.read
+=== schedule:
+parallel: [esposito: [RL_high_priority -> [],
+		      RL_normal -> [RL_high_priority],
+		      RL_normal_1 -> [RL_high_priority],
+		      RL_normal_2 -> [RL_high_priority]]]
+order: [RL_high_priority, RL_normal, RL_normal_1, RL_normal_2]
+
+-----
+
+=== resources:
+[(decr1.read, [(decr1.read, 1)]),
+ (n.read, [(n.read, 1)]),
+ (x.read, [(x.read, 1)]),
+ (x.write, [(x.write x_PLUS_0_CONCAT_n___d7, 1), (x.write x_MINUS_1___d3, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysBug1619B.sched
+=== Generated schedule for sysBug1619B ===
+
+Rule schedule
+-------------
+Rule: high_priority
+Predicate: decr1
+Blocking rules: (none)
+ 
+Rule: normal
+Predicate: n == 2'd0
+Blocking rules: high_priority
+ 
+Rule: normal_1
+Predicate: n == 2'd1
+Blocking rules: high_priority
+ 
+Rule: normal_2
+Predicate: n == 2'd2
+Blocking rules: high_priority
+ 
+Logical execution order: high_priority, normal, normal_1, normal_2
+
+===========================================
+Verilog file created: sysBug1619B.v
+All packages are up to date.

@@ -1,0 +1,19 @@
+compile_fail_error EBadIfcType_context.bs T0043 1 "-verilog -g  mkFib"
+#compile_verilog_fail EBadIfcType_context.bs mkFib
+#compare_file EBadIfcType_context.bs.bsc-vcomp-out
+
+compile_fail_error EBadIfcType_field.bs T0043 1 "-verilog -g add"
+#compile_verilog_fail EBadIfcType_field.bs add 
+#compare_file EBadIfcType_field.bs.bsc-vcomp-out
+
+compile_fail_error EBadIfcType_interface.bs T0043 1 "-verilog -g mkNull"
+#compile_verilog_fail EBadIfcType_interface.bs mkNull
+#compare_file EBadIfcType_interface.bs.bsc-vcomp-out
+
+compile_fail_error EBadIfcType_module.bs T0043 1 "-verilog -g function_GCD"
+#compile_verilog_fail EBadIfcType_module.bs function_GCD
+#compare_file EBadIfcType_module.bs.bsc-vcomp-out
+
+compile_fail_error EBadIfcType_polymorphic.bs T0043 1 "-verilog -g mkFib"
+#compile_verilog_fail EBadIfcType_polymorphic.bs mkFib
+#compare_file EBadIfcType_polymorphic.bs.bsc-vcomp-out

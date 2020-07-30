@@ -1,0 +1,24 @@
+if {$ctest == 1} {
+compile_object_pass DynamicAssert.bsv mkTestbench_DynamicAssert -check-assert
+link_objects_pass {"mkTestbench_DynamicAssert"} mkTestbench_DynamicAssert
+# sim_final_state mkTestbench_DynamicAssert 10010
+# compare_file "mkTestbench_DynamicAssert.final-state"
+sim_output mkTestbench_DynamicAssert {-m 10010}
+compare_file "mkTestbench_DynamicAssert.out"
+}
+compile_verilog_pass DynamicAssert.bsv mkTestbench_DynamicAssert -check-assert
+
+if {$ctest == 1} {
+compile_object_pass ContinuousAssert.bsv mkTestbench_ContinuousAssert -check-assert
+link_objects_pass {"mkTestbench_ContinuousAssert"} mkTestbench_ContinuousAssert
+# sim_final_state mkTestbench_ContinuousAssert 10010
+# compare_file "mkTestbench_ContinuousAssert.final-state"
+sim_output mkTestbench_ContinuousAssert {-m 10010}
+compare_file "mkTestbench_ContinuousAssert.out"
+}
+compile_verilog_pass ContinuousAssert.bsv mkTestbench_ContinuousAssert -check-assert
+
+if {$ctest == 1} {
+compile_object_fail StaticAssert.bsv mkTestbench_StaticAssert -check-assert
+compare_file "StaticAssert.bsv.bsc-ccomp-out"
+}

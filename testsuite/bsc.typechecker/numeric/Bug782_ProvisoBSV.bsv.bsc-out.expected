@@ -1,0 +1,15 @@
+checking package dependencies
+compiling Bug782_ProvisoBSV.bsv
+Error: "Bug782_ProvisoBSV.bsv", line 7, column 10: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    Bits#(Bug782_ProvisoBSV::S#(a), sz)
+  With the following proviso:
+    Add#(TSub#(a, 3), 8, sz)
+  The following additional provisos are needed:
+    Add#(3, sz, TAdd#(a, a__))
+      Introduced at the following locations:
+	"Bug782_ProvisoBSV.bsv", line 16, column 40
+	"Bug782_ProvisoBSV.bsv", line 18, column 23
+  The type variables are from the following positions:
+    "a__" at "Bug782_ProvisoBSV.bsv", line 18, column 23

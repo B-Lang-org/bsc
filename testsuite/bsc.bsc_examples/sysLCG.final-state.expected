@@ -1,0 +1,5 @@
+Final state:
+top:
+  lcg_state = 0x2
+  lcg_x = 0x32d282a6
+  started = True

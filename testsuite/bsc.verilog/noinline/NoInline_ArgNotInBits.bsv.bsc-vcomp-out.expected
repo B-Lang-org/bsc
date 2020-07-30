@@ -1,0 +1,11 @@
+checking package dependencies
+compiling NoInline_ArgNotInBits.bsv
+code generation for module_fnNoInline_ArgNotInBits starts
+Error: "NoInline_ArgNotInBits.bsv", line 4, column 15: (T0043)
+  Cannot synthesize `module_fnNoInline_ArgNotInBits': The interface method
+  `fnNoInline_ArgNotInBits' uses type `NoInline_ArgNotInBits::L' which is not
+  in the Bits class.
+  During elaboration of the interface method `fnNoInline_ArgNotInBits' at
+  "NoInline_ArgNotInBits.bsv", line 4, column 15.
+  During elaboration of `module_fnNoInline_ArgNotInBits' at
+  "NoInline_ArgNotInBits.bsv", line 4, column 15.

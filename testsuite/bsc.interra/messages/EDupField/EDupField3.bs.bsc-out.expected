@@ -1,0 +1,8 @@
+checking package dependencies
+compiling EDupField3.bs
+Error: "EDupField3.bs", line 42, column 44: (T0017)
+  Field `give' defined more than once
+Error: "EDupField3.bs", line 47, column 36: (T0004)
+  Unbound variable `x'
+Error: "EDupField3.bs", line 49, column 33: (T0004)
+  Unbound variable `x'

@@ -1,0 +1,38 @@
+checking package dependencies
+compiling AccessorPredicates.bs
+code generation for sysAccessorPredicates starts
+=== schedule:
+parallel: [esposito: [s -> [], g -> []]]
+order: [s, g]
+
+-----
+
+=== resources:
+[(b.read, [(b.read, 1)]), (r.read, [(r.read, 1)]), (r.write, [(r.write 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_g CF [RDY_g, g, s], RDY_s CF [RDY_g, RDY_s, g, s], [g, s] CF g, s SBR s] [] [] []
+
+-----
+
+Schedule dump file created: sysAccessorPredicates.sched
+=== Generated schedule for sysAccessorPredicates ===
+
+Method schedule
+---------------
+Method: s
+Ready signal: b
+Conflict-free: g
+Sequenced before (restricted): s
+ 
+Method: g
+Ready signal: ! b
+Conflict-free: s, g
+ 
+Logical execution order: s, g
+
+=====================================================
+Verilog file created: sysAccessorPredicates.v
+All packages are up to date.

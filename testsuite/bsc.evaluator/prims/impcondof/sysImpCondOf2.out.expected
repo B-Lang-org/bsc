@@ -1,0 +1,8 @@
+Count: 0 b: False
+Condition: True
+Count: 1 b: True
+Condition: False
+Count: 2 b: False
+Condition: False
+Count: 2 b: True
+Condition: True

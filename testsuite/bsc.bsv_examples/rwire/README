@@ -1,0 +1,11 @@
+This directory contains two (only slightly different) versions of a
+package that provides alternatives to ordinary BSV registers. These
+alternatives are implemented (in BSV) in terms of ordinary registers
+and the RWire primitive and are described in comments in the source.  
+
+RegisterQ is a "problem set" for students learning BSV.  It has gaps,
+which the students are invited to fill in; and it must then be
+debugged.  It compiles (with warnings about undefined interface
+fields), but does not synthesize.
+
+Register has the gaps filled in, and is a working version.

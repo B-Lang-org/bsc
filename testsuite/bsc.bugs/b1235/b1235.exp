@@ -1,0 +1,5 @@
+# bug 1235 - typeclass qualification bug causing an internal compiler error
+# observed when typeclass, superclass (of typeclass) and instance 
+# were defined in 3 different files
+
+compile_pass HasSizeTest.bsv

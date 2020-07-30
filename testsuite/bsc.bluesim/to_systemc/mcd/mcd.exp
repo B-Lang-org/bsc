@@ -1,0 +1,8 @@
+if { ($ctest == 1) && ($systemctest == 1) } {
+
+compile_object_pass MCD.bsv
+create_systemc_objects_pass mkMCD.ba mkMCD
+build_systemc_executable_pass mcd tb.sc mkMCD
+run_systemc_executable mcd {} {} "-n"
+
+}

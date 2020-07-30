@@ -1,0 +1,21 @@
+package ClassicInstance (MyStruct(..), MyUnion(..)) where
+
+struct MyStruct =
+    f1 :: Bool
+    f2 :: Bool
+
+data MyUnion = T1 Bool | T2 MyStruct
+
+instance (Eq MyStruct) => Eq MyUnion where
+    -- XXX The proviso on this line is bogus, because the Eq member "=="
+    -- XXX isn't defined with any provisos
+    -- (==) :: (Eq MyStruct) => MyUnion -> MyUnion -> Bool
+    -- XXX And we expect this to fail with a context error
+    -- (==) :: MyUnion -> MyUnion -> Bool
+    -- XXX And also without an explicit type signature
+    (==) _x _y =
+      case _x of
+         T1 _x1 when T1 _y2 <- _y ->  (==) _x1 _y2
+         T2 _x1 when T2 _y2 <- _y ->  (==) _x1 _y2
+         _ ->  False
+

@@ -1,0 +1,5 @@
+compile_verilog_pass Test1.bsv
+# find_n_strings sysTest1.v {m_chunks_0\[7:0] \} ;} 1
+
+compile_verilog_pass Test2.bsv
+# find_n_strings sysTest2.v {assign m_chunks$D_IN = enq_val ;} 1

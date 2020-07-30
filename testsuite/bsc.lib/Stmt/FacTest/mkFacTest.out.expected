@@ -1,0 +1,88 @@
+starting factorial Sequence; upper = 2
+i is 2, prod is 2
+factorial sequence is done: factorial of 2 is 2
+starting factorial Sequence; upper = 3
+i is 2, prod is 2
+i is 3, prod is 6
+factorial sequence is done: factorial of 3 is 6
+starting factorial Sequence; upper = 4
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+factorial sequence is done: factorial of 4 is 24
+starting factorial Sequence; upper = 5
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+factorial sequence is done: factorial of 5 is 120
+starting factorial Sequence; upper = 6
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+factorial sequence is done: factorial of 6 is 720
+starting factorial Sequence; upper = 7
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+factorial sequence is done: factorial of 7 is 5040
+starting factorial Sequence; upper = 8
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+i is 8, prod is 40320
+factorial sequence is done: factorial of 8 is 40320
+starting factorial Sequence; upper = 9
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+i is 8, prod is 40320
+i is 9, prod is 362880
+factorial sequence is done: factorial of 9 is 362880
+starting factorial Sequence; upper = 10
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+i is 8, prod is 40320
+i is 9, prod is 362880
+i is 10, prod is 3628800
+factorial sequence is done: factorial of 10 is 3628800
+starting factorial Sequence; upper = 11
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+i is 8, prod is 40320
+i is 9, prod is 362880
+i is 10, prod is 3628800
+i is 11, prod is 39916800
+factorial sequence is done: factorial of 11 is 39916800
+starting factorial Sequence; upper = 12
+i is 2, prod is 2
+i is 3, prod is 6
+i is 4, prod is 24
+i is 5, prod is 120
+i is 6, prod is 720
+i is 7, prod is 5040
+i is 8, prod is 40320
+i is 9, prod is 362880
+i is 10, prod is 3628800
+i is 11, prod is 39916800
+i is 12, prod is 479001600
+factorial sequence is done: factorial of 12 is 479001600

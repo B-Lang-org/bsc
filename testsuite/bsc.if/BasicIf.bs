@@ -1,0 +1,23 @@
+package BasicIf(sysBasicIf) where
+
+sysBasicIf :: Module Empty
+sysBasicIf = 
+    module
+	a :: Reg Bool <- mkReg True
+	b :: Reg Bool <- mkReg False
+	c :: Reg Bool <- mkReg False
+
+        addRules $
+	  let 
+              print :: Bit 3 -> Action
+              print x = $display "%0h" x 
+          in rules
+                when True ==> if a then 
+                                  action { print 0; b:= True; a := False}
+                              else 
+                                  if b then 
+                                      action { print 1; b := False; c := True}
+                                  else 
+                                      if c then 
+                                          action { print 2; c := False}
+                                      else action {$finish 0}

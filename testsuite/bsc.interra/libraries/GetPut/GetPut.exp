@@ -1,0 +1,14 @@
+test_c_veri_worker FifoToGet mkTestbench_FifoToGet {} "bsv" 1 1 "mkTestbench_FifoToGet.v.out.expected" "" ""
+
+test_c_veri_worker FifoToPut mkTestbench_FifoToPut {} "bsv" 1 1 "mkTestbench_FifoToPut.v.out.expected" "" ""
+
+test_c_veri_worker MkGPFIFO mkTestbench_MkGPFIFO {} "bsv" 1 1 "mkTestbench_MkGPFIFO.v.out.expected" "" ""
+
+test_c_veri_worker MkGPFIFO1 mkTestbench_MkGPFIFO1 {} "bsv" 1 1 "mkTestbench_MkGPFIFO1.v.out.expected" "" ""
+
+test_c_veri_worker MkGPSizedFIFO mkTestbench_MkGPSizedFIFO {} "bsv" 1 1 "mkTestbench_MkGPSizedFIFO.v.out.expected" "" ""
+
+test_c_veri_worker MkGetPut mkTestbench_MkGetPut {} "bsv" 1 1 "mkTestbench_MkGetPut.v.out.expected" "" ""
+
+test_c_veri_worker PeekGet mkTestbench_PeekGet {} "bsv" 1 1 "mkTestbench_PeekGet.v.out.expected" "" ""
+

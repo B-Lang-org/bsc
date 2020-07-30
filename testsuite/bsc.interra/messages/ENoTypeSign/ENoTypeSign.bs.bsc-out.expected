@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ENoTypeSign.bs
+Warning: "ENoTypeSign.bs", line 59, column 23: (P0223)
+  Definition of `embedded_module' is not used.
+Error: "ENoTypeSign.bs", line 59, column 41: (T0044)
+  Missing or bad type signature for a module: module { }

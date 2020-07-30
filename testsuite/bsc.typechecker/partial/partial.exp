@@ -1,0 +1,25 @@
+# Tests for partial type information on functions/methods
+
+# ---------------
+
+# XXX This should eventually be an error
+compile_pass_warning PartialType_Wrong.bsv P0221
+
+# XXX This should eventually be an error
+compile_pass_warning PartialType_Method_Wrong_Arg.bsv P0221
+compile_pass_warning PartialType_Method_Wrong_Ret.bsv P0221
+compile_pass_warning PartialType_Method_Wrong_AVRet.bsv P0221
+
+# XXX This should eventually be an error
+compile_pass_warning PartialType_Instance_Wrong.bsv P0221
+
+# No warning when the partial type of a method is Action
+compile_pass_no_warning PartialType_Method_Action.bsv
+
+# XXX This should eventually compile, using the partial type to disambiguate
+compile_fail_error PartialType_Disambiguate.bsv T0018
+# Check that a warning is issued about the type being ignored
+compare_file PartialType_Disambiguate.bsv.bsc-out
+
+# ---------------
+

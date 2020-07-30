@@ -1,0 +1,22 @@
+package Decimal(DecCounter(..), DecDigit, mkDecCounter) where
+import Vector
+
+type DecDigit = Bit 4
+
+interface DecCounter n =
+    inc :: Action
+    getDigits :: Vector n DecDigit
+
+mkDecCounter :: Module (DecCounter n)
+mkDecCounter = do
+    digits :: Reg (Vector n DecDigit) <- mkReg (unpack 0)
+    return $
+	interface DecCounter
+	    getDigits = digits
+	    inc = digits := incr digits
+
+incr :: Vector n DecDigit -> Vector n DecDigit
+incr xs =
+    let addC ci x = if x+ci == 10 then (1, 0) else (0, x+ci)
+	(co, xs') = mapAccumL addC 1 xs
+    in  xs'

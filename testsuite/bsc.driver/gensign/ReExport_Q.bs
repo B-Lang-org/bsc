@@ -1,0 +1,10 @@
+package ReExport_Q (f, g, v, T, T2) where
+
+import ReExport_P
+
+f :: T -> T
+f x = x + 1
+
+g :: T2 -> T2
+g x = x + 2
+

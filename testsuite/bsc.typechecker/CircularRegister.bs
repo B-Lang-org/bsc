@@ -1,0 +1,8 @@
+package CircularRegister() where
+
+-- internal error on codegen for sysCircularRegister
+-- Fail: Internal compiler error: eqPtrs: circular: [[10]]
+
+{-# verilog sysCircularRegister #-}
+sysCircularRegister :: Module Empty
+sysCircularRegister = module r :: Reg Bool <- mkReg r

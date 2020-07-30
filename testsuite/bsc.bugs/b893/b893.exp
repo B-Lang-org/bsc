@@ -1,0 +1,9 @@
+if {$vtest == 1} {
+  compile_verilog_pass Bug893.bsv
+  # If this test fails, that might be good!
+  # Examine the Verilog to see if the expression for RDY_get has
+  # changed from "f1$EMPTY_N && f2$EMPTY_N" to something more like
+  # "(r ? f1$EMPTY_N : f2$EMPTY_N)"
+  find_n_strings sysBug893.v {assign RDY_get = f1$EMPTY_N && f2$EMPTY_N ;} 1
+}
+

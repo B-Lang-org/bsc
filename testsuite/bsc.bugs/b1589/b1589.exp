@@ -1,0 +1,2 @@
+compile_object_pass Test.bsv
+compile_verilog_pass Test2.bsv

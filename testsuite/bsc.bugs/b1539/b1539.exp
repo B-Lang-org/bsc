@@ -1,0 +1,6 @@
+compile_fail EqNeeded.bsv
+compare_file [make_bsc_output_name EqNeeded.bsv]
+
+compile_fail ClassicInstance.bs
+compare_file_filter_prelude [make_bsc_output_name ClassicInstance.bs]
+

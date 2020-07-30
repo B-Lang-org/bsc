@@ -1,0 +1,20 @@
+package TypeClassString where
+  
+data Foo = Foo
+data Bar = Bar
+
+class (StrFor :: * -> $ -> *) a s | a -> s where {}
+
+instance StrFor Foo "a" where {}
+instance StrFor Bar "b c" where {}
+
+strFor :: (StrFor a s) => a -> String
+strFor _ = stringOf s
+
+sysTypeClassString :: Module Empty
+sysTypeClassString = module
+  rules
+    when True ==> do
+      $display (strFor Foo)
+      $display (strFor Bar)
+      $finish

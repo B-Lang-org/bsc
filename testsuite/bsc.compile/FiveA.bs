@@ -1,0 +1,5 @@
+package Five(five) where
+
+five :: Bool -> Integer
+five x = 5
+

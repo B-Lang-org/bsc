@@ -1,0 +1,6 @@
+package EqPrecedence (eqprecede) where
+
+eqprecede :: Rules -> Rules -> Rules -> Rules
+eqprecede r1 r2 r3 = (r1 <+> r2 <+> r3 )
+
+

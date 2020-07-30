@@ -1,0 +1,24 @@
+
+# ---------------
+# Test that there is no internalError during type checking
+# (for the BSV example and for the Classic translation, in case the BSV
+# parser changes)
+# These used to output T0029, but fixes changed it to T0030
+
+compile_fail_error Bug675_ModuleCollect.bsv T0030
+compare_file Bug675_ModuleCollect.bsv.bsc-out
+
+compile_fail_error Bug675_ModuleCollect_Classic.bs T0030
+compare_file Bug675_ModuleCollect_Classic.bs.bsc-out
+
+# Simplified version of the above tests
+compile_fail_error Simple.bs T0030
+compare_file Simple.bs.bsc-out
+
+# ---------------
+# Test that there is no internalError during type checking
+
+compile_pass Bug675_PrimUpdateRangeFn.bs
+
+# ---------------
+

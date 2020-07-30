@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EBadStringLit.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EBadStringLit error of the bluespec
+-- compiler
+--
+-----------------------------------------------------------------------
+
+
+
+
+package EBadStringLit2 () where
+
+
+x :: String
+x = Is my compiler intelligent enough"
+
+

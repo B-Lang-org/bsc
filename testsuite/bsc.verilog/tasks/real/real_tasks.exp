@@ -1,0 +1,6 @@
+test_c_veri_bsv RealDisplay
+test_c_veri_bsv RealDisplay2
+
+# error outputs are simulator dependent, so only test Bluesim
+test_c_only_bsv RealDisplayErr1
+test_c_only_bsv RealDisplayErr2

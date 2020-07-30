@@ -1,0 +1,66 @@
+compile_verilog_pass AggConds.bsv mkDesign "-aggressive-conditions"
+compile_verilog_pass AggCondsRulesOff.bsv sysAggCondsRulesOff "-aggressive-conditions"
+compile_verilog_fail AggCondsRules.bsv sysAggCondsRules "-aggressive-conditions"
+if { $vtest == 1 } {
+find_n_error AggCondsRules.bsv.bsc-vcomp-out G0002 1
+}
+
+compile_verilog_pass ExpandedBug.bsv "" "+RTS -M384M -RTS"
+
+# -----
+
+# Test that conditions arising from array selection are not lifted
+compile_verilog_pass MethodCondVecSel.bsv {} {-aggressive-conditions}
+if { $vtest == 1 } {
+find_regexp sysMethodCondVecSel.v \
+    {assign RDY_m \= fs_0\$FULL_N \&\& fs_1\$FULL_N \&\& fs_2\$FULL_N \&\& fs_3\$FULL_N \;}
+}
+
+# -----
+
+# Test when the array selection returns an ActionValue (shouldn't lift)
+
+# (This also tests that Bluesim links -- there are no errant AMethValues)
+compile_object_pass CanLift_DynSel_AVValue.bsv {} {-aggressive-conditions -show-schedule}
+link_objects_pass {} sysCanLift_DynSel_AVValue
+if { $ctest == 1 } {
+# expect to see that first rule can't lift, but the second rule can't
+compare_file sysCanLift_DynSel_AVValue.sched
+}
+
+# Test with 2D array selection
+compile_object_pass CanLift_DynSel_2D_AVValue.bsv {} {-aggressive-conditions -show-schedule}
+link_objects_pass {} sysCanLift_DynSel_2D_AVValue
+if { $ctest == 1 } {
+# expect to see that first rule can't lift, but the second rule can't
+compare_file sysCanLift_DynSel_2D_AVValue.sched
+}
+
+# Test that we don't forget to check the index of selection
+compile_object_pass CanLift_DynSel_Idx_AVValue.bsv {} {-aggressive-conditions -show-schedule}
+link_objects_pass {} sysCanLift_DynSel_Idx_AVValue
+if { $ctest == 1 } {
+# expect to see that first rule can't lift, but the second rule can't
+compare_file sysCanLift_DynSel_Idx_AVValue.sched
+}
+
+# -----
+
+# Example for Bug 1647 (canLiftCond should memoize and not repeat work)
+# XXX This is not really testing the bug, because we'd need to test that
+# XXX compilation didn't run too long.  Just making sure it's recorded.
+compile_verilog_pass CanLift_DefExp.bsv {} {-aggressive-conditions -show-schedule}
+if { $vtest == 1 } {
+# The aggressive result is expected
+compare_file sysCanLift_DefExp.sched
+}
+
+# -----
+
+# Example for Bug 900
+# XXX Could check the resulting rule predicates to confirm no lifting
+
+compile_verilog_pass CantLift_AVValue_Arg.bsv
+compile_verilog_pass CantLift_AVValue_NoArg.bsv
+
+# -----

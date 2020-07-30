@@ -1,0 +1,8 @@
+CTX_sysStringInstArg : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# inst_i : CTX_mkStringInstArg_Sub!STATE #] ;
+  
+  ctor : STATE = (# inst_i := CTX_mkStringInstArg_Sub!ctor(String!mkConst) #) ;
+  
+END

@@ -1,0 +1,11 @@
+checking package dependencies
+compiling Parameter2Rdy.bsv
+code generation for mkParameter2Rdy starts
+=== pathsPostSched:
+Combinational paths from inputs to outputs:
+  param -> RDY_result
+
+-----
+
+Verilog file created: mkParameter2Rdy.v
+All packages are up to date.

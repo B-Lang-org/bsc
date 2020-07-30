@@ -1,0 +1,7 @@
+compile_verilog_pass Bug262.bs sysBug262 "-opt-undetermined-vals"
+compile_object_pass  Bug262.bs sysBug262 "-opt-undetermined-vals"
+
+compile_verilog_pass Bug262Opt.bsv sysBug262Opt "-opt-undetermined-vals"
+compare_verilog sysBug262Opt.v 
+
+

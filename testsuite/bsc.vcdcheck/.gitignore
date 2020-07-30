@@ -1,0 +1,4 @@
+# Don't ignore these files
+!gcd_bsim.vcd
+!gcd_vlog.vcd
+!long.vcd

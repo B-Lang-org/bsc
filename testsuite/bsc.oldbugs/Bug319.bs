@@ -1,0 +1,20 @@
+package Bug319(sysBug319) where
+
+import RegFile
+
+sysBug319 :: Module Empty
+sysBug319 = 
+  module 
+   ra :: Reg (Int 32)
+   ra <- mkReg 0
+   rb :: Reg (Int 32)
+   rb <- mkReg 0
+   a :: RegFile (Int 4) (Int 32)
+   a <- mkRegFileFull
+
+   rules
+     when True ==> 
+       ra := a.sub 1
+     when True ==>
+       rb := a.sub 1  
+   

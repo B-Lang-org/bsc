@@ -1,0 +1,2 @@
+# fixed by disabling the simplify pass by default
+compile_pass Bug267.bs

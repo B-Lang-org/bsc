@@ -1,0 +1,311 @@
+#
+# This file contains tests for bsc command-line options
+#
+
+set here [file join [absolute $srcdir] $subdir]
+
+###########
+#
+# Test the -help, -print-flags, and -print-flags-raw output
+#
+# (These will fail when new options are added.)
+#
+
+# XXX m4_process can't take multiple options
+m4_process "-DBLUESPECDIR=[get_default_bsdir]" \
+    bsc.help.out.expected  bsc.help.out.expected.post-m4
+
+m4_process "-DBLUESPECDIR=$bsdir" bsc.print-flags.out.expected bsc.print-flags.out.expected.post-m4
+m4_process "-DBLUESPECDIR=$bsdir" bsc.print-flags.split-if.out.expected bsc.print-flags.split-if.out.expected.post-m4
+m4_process "-DBLUESPECDIR=$bsdir" bsc.print-flags.expand-if.out.expected bsc.print-flags.expand-if.out.expected.post-m4
+m4_process "-DBLUESPECDIR=$bsdir" bsc.print-flags-raw.out.expected bsc.print-flags-raw.out.expected.post-m4
+m4_process "-DBLUESPECDIR=$bsdir"  bsc.test_bsc_option.out.expected bsc.test_bsc_option.out.expected.post-m4
+
+test_basic_options -help bsc.help.out bsc.help.out.expected.post-m4
+
+test_basic_options -print-flags bsc.print-flags.out bsc.print-flags.out.expected.post-m4
+test_basic_options -print-flags-raw bsc.print-flags-raw.out bsc.print-flags-raw.out.expected.post-m4
+
+# test -split-if and -expand-if flags (-expand-if test includes deprecation warning)
+test_basic_options "-print-flags -split-if" bsc.print-flags.split-if.out bsc.print-flags.split-if.out.expected.post-m4
+test_basic_options "-print-flags -expand-if" bsc.print-flags.expand-if.out bsc.print-flags.expand-if.out.expected.post-m4
+
+
+# Test that the expected file has not been accidentally corrupted.
+find_n_strings bsc.print-flags.out.expected BLUESPECDIR 2
+find_n_strings bsc.print-flags-raw.out.expected BLUESPECDIR 3
+
+
+###########
+#
+# Test the -split-if flag
+#
+
+proc compile_expand_if { source module } {
+    set dumpfilename "$source.expandif.atsexpand"
+    set flags "-split-if -dATSexpand=$dumpfilename -KILLATSexpand"
+
+    bsc_compile_to_object $source $module $flags
+}
+
+proc test_no_expand_if { source module } {
+    set dumpfilename "$source.noexpandif.atsexpand"
+    set flags "-no-split-if -dATSexpand=$dumpfilename -KILLATSexpand"
+
+    bsc_compile_to_object $source $module $flags
+}
+
+# test that -split-if has the same effect as using splitIf
+compile_expand_if SplitIfNested.bs sysIfTest
+compile_expand_if IfNested.bs sysIfTest
+m4_process "-DIfNested=SplitIfNested" IfNested.bs.expandif.atsexpand SplitIfNested.bs.expandif.atsexpand.expected
+compare_file SplitIfNested.bs.expandif.atsexpand
+
+# needed to force recompile with -u
+touch IfNested.bs
+
+# test that -no-split-if has the same effect as using noSplitIf
+test_no_expand_if NoSplitIfNested.bs sysIfTest
+test_no_expand_if IfNested.bs sysIfTest
+m4_process "-DIfNested=NoSplitIfNested" IfNested.bs.noexpandif.atsexpand NoSplitIfNested.bs.noexpandif.atsexpand.expected
+compare_file NoSplitIfNested.bs.noexpandif.atsexpand
+
+
+###########
+#
+# Test -bdir, -simdir, -vdir flags
+#
+# These test relative and absolute paths.  They also test that the
+# output directory is created if it doesn't exist.
+#
+
+# Test with relative paths
+
+mkdir bfiles
+compile_pass DummyModule.bsv "-bdir bfiles"
+files_exist { bfiles/DummyModule.bo }
+
+if {$vtest == 1} {
+mkdir vfiles
+compile_verilog_pass DummyModule.bsv "" "-vdir vfiles"
+find_n_strings [make_bsc_vcomp_output_name DummyModule.bsv] \
+               "Verilog file created: vfiles/mkDummyModule.v" 1
+files_exist vfiles/mkDummyModule.v
+}
+
+if {$ctest == 1} {
+touch DummyModule.bsv
+compile_object_pass DummyModule.bsv "" "-bdir bfiles"
+find_n_strings [make_bsc_ccomp_output_name DummyModule.bsv] \
+               "Elaborated module file created: bfiles/mkDummyModule.ba" 1
+files_exist { bfiles/mkDummyModule.ba }
+}
+
+if {$ctest == 1} {
+mkdir simfiles
+link_objects_pass bfiles/mkDummyModule mkDummyModule "-simdir simfiles"
+find_n_strings [make_bsc_ccomp_output_name mkDummyModule] \
+               "Bluesim object created: simfiles/mkDummyModule.{h,o}" 1
+find_n_strings [make_bsc_ccomp_output_name mkDummyModule] \
+               "Bluesim object created: simfiles/model_mkDummyModule.{h,o}" 1
+files_exist { simfiles/mkDummyModule.cxx \
+              simfiles/mkDummyModule.h \
+              simfiles/mkDummyModule.o \
+              simfiles/model_mkDummyModule.cxx \
+              simfiles/model_mkDummyModule.h \
+              simfiles/model_mkDummyModule.o }
+# It is a design choice whether linking with -e outputs to the simdir/vdir.
+# One could insist that the user use -o to direct the output somewhere else.
+# Thus, commenting out this test:
+#find_n_strings [make_bsc_ccomp_output_name mkDummyModule] \
+#               "Bluesim binary file created: simfiles/mkDummyModule.cexe" 1
+#files_exist simfiles/mkDummyModule.cexe
+}
+
+# Test the above flags with absolute paths?
+
+
+###########
+#
+# Test that preprocessor gets `include from the -p import path
+
+mkdir incfiles
+touch {incfiles/defs.incl}
+set incdir [file join [file join [absolute $srcdir] $subdir] "incfiles"]
+compile_pass IncludeTest.bsv "-p +:$incdir"
+
+
+###########
+#
+# Test that -show-qualifiers turns back on the displaying of "Prelude::"
+# for identifiers in error messages
+#
+
+compile_fail TestShowQualifiers.bsv {-show-qualifiers}
+find_n_strings [make_bsc_output_name TestShowQualifiers.bsv] \
+               {Prelude::Bit#} 2
+
+###########
+# Test that duplicates in the -p path trigger a warning, and that -bdir
+# gets added to the head and also triggers a duplicate warning
+
+# These are removed by "make clean"
+mkdir foo
+mkdir bar
+mkdir baz
+
+proc do_m4 { outfile } {
+    global bsdir
+    global here
+
+    # XXX m4_process can't take multiple options
+    m4_process "-DBLUESPECDIR=$bsdir" $outfile $outfile.post-m4-stage1
+    m4_process "-DHERE=$here" $outfile.post-m4-stage1 $outfile.post-m4
+}
+
+do_m4 bsc.path_dup_no_bdir.out.expected
+
+test_basic_options {-print-flags -p foo::foo:bar:foo:baz:baz:foo} \
+    bsc.path_dup_no_bdir.out bsc.path_dup_no_bdir.out.expected.post-m4
+
+do_m4 bsc.path_dup_bdir.out.expected
+
+test_basic_options {-print-flags -p foo::foo:bar:foo:baz:baz:foo -bdir bar} \
+    bsc.path_dup_bdir.out bsc.path_dup_bdir.out.expected.post-m4
+
+# Test when the dirs are not identical, but have the same canonical form
+
+do_m4 bsc.path_nonidentical_dup_no_bdir.out.expected
+
+test_basic_options {-print-flags -p foo:foo/:./foo:bar/../foo:./foo/../foo:baz:./baz:./baz/bar/../../foo/} \
+    bsc.path_nonidentical_dup_no_bdir.out \
+    bsc.path_nonidentical_dup_no_bdir.out.expected.post-m4
+
+
+###########
+# Test duplicates with -vsearch and -vdir
+
+# XXX ...
+
+# XXX Do we also test the way that we construct the final vPath?
+
+# Check that it's only a warning when not using the Verilog backend
+# and that there is only one message about vdir, not two
+m4_process "-DBLUESPECDIR=$bsdir" \
+    bsc.vdir_invalid_no_backend.out.expected \
+    bsc.vdir_invalid_no_backend.out.expected.post-m4
+test_basic_options {-print-flags -vdir INVALID} \
+    bsc.vdir_invalid_no_backend.out \
+    bsc.vdir_invalid_no_backend.out.expected.post-m4
+
+###########
+# Test checks for other dir flags
+
+# -simdir when then backend is Bluesim
+test_basic_options {-print-flags -sim -simdir INVALID} \
+    bsc.simdir_invalid_sim_backend.out \
+    bsc.simdir_invalid_sim_backend.out.expected
+
+# -simdir when not using the Bluesim backend
+m4_process "-DBLUESPECDIR=$bsdir" \
+    bsc.simdir_invalid_no_backend.out.expected \
+    bsc.simdir_invalid_no_backend.out.expected.post-m4
+test_basic_options {-print-flags -simdir INVALID} \
+    bsc.simdir_invalid_no_backend.out \
+    bsc.simdir_invalid_no_backend.out.expected.post-m4
+
+# -info-dir
+test_basic_options {-print-flags -info-dir INVALID} \
+    bsc.infodir_invalid.out bsc.infodir_invalid.out.expected
+
+# -fdir
+test_basic_options {-print-flags -fdir INVALID} \
+    bsc.fdir_invalid.out bsc.fdir_invalid.out.expected
+
+###########
+# Test for flag errors
+
+compile_no_source_fail_error "verilog_and_sim" {-verilog -sim} S0038
+compile_no_source_fail_error "verilog_and_systemc" {-verilog -systemc} S0038
+compile_no_source_fail_error "vsim_and_sim" {-vsim iverilog -sim} S0038
+
+compile_fail_error NoOptUndet_UnspecToX.bsv S0075 1 \
+    {-verilog -no-opt-undetermined-vals -unspecified-to X}
+compile_fail_error NoOptUndet_UnspecToZ.bsv S0075 1 \
+    {-verilog -no-opt-undetermined-vals -unspecified-to Z}
+
+
+## Test that BSC_OPTIONS are used
+set envopt $::env(BSC_OPTIONS)
+
+set ::env(BSC_OPTIONS) "-print-flags -vsearch foo -steps 12345678 $envopt"
+test_basic_options {}  bsc.test_bsc_option.out bsc.test_bsc_option.out.expected.post-m4
+
+set ::env(BSC_OPTIONS)  $envopt
+
+###########
+
+# Test the errors when using the "options" attribute
+# Use "compare_file" to check the positions and how the flag is reported
+if { $vtest == 1 } {
+    compile_verilog_fail OptionsAttrBad1.bsv
+    # don't prepend a hyphen
+    compare_file OptionsAttrBad1.bsv.bsc-vcomp-out
+
+    compile_verilog_fail OptionsAttrBad2.bsv
+    # make sure the hyphen is included
+    compare_file OptionsAttrBad2.bsv.bsc-vcomp-out
+
+    compile_verilog_fail OptionsAttrBad3.bsv
+    # It might be worth reporting that the -aggressive-conditions flag
+    # doesn't take an argument
+    compare_file OptionsAttrBad3.bsv.bsc-vcomp-out
+}
+
+###########
+# Test -q
+
+copy my_time.c.keep my_time.c
+test_c_veri_bsv_modules_options_separately GCD {} {-q} {} {} {} {-q my_time.c my_time.ba} {} {}
+
+if { $ctest == 1 } {
+    compare_file [make_bsc_ccomp_output_name GCD.bsv] empty.expected
+}
+if { $vtest == 1 } {
+    compare_file [make_bsc_vcomp_output_name GCD.bsv] empty.expected
+}
+
+if { $ctest == 1 } {
+    # filter out cc warnings
+    sed [make_bsc_ccomp_output_name sysGCD] \
+	[make_bsc_ccomp_output_name sysGCD].filtered \
+	{-e /fpermissive/d} {}
+    compare_file [make_bsc_ccomp_output_name sysGCD].filtered empty.expected
+}
+if { $vtest == 1 } {
+    # filter out cc/iverilog warnings
+    sed [make_bsc_vcomp_output_name sysGCD] \
+	[make_bsc_vcomp_output_name sysGCD].filtered \
+	{-e /fpermissive/d -e /WARNING:\ IVerilog/d -e /not\ guaranteed/d} {}
+    compare_file [make_bsc_vcomp_output_name sysGCD].filtered empty.expected
+}
+
+# test parallel
+bsc_link_objects {my_time.c} sysGCD {-q -parallel-sim-link 2}
+
+if { $ctest == 1 } {
+    # Sadly, the testsuite seems to turn on MAKEFLAGS=-w somewhere
+    # so we have to filter out the make entering/leaving messages
+    sed [make_bsc_ccomp_output_name sysGCD] \
+	[make_bsc_ccomp_output_name sysGCD].parallel.filtered \
+	{-e /fpermissive/d -e /make.*:\ Entering\ directory/d -e /make.*:\ Leaving\ directory/d} {}
+    compare_file [make_bsc_ccomp_output_name sysGCD].parallel.filtered empty.expected
+}
+
+###########
+# Test -no-show-timestamps
+
+# XXX
+
+###########
+

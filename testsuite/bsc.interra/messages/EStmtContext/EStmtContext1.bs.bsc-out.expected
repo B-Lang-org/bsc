@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EStmtContext1.bs
+Error: "/home/bluespec/products/bsc-3.8.7/lib/Prelude/Prelude.bi", line 51, column 15: (T0045)
+  Binding has context: (Prelude.Bits a 1) => Prelude.Reg Prelude.Bool

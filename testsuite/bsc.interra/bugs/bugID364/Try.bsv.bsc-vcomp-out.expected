@@ -1,0 +1,8 @@
+checking package dependencies
+compiling Try.bsv
+code generation for mkTestbench starts
+Error: "BitonicSort.bs", line 71, column 51: (S0015)
+  Bluespec evaluation-time error: sortLe: length of list not power of 2
+  During elaboration of the body of rule `fire_once' at "Try.bsv", line 35,
+  column 10.
+  During elaboration of `mkTestbench' at "Try.bsv", line 28, column 8.

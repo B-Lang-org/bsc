@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ENotStruct1.bs
+Error: "ENotStruct1.bs", line 56, column 42: (T0138)
+  The expression does not have a field `a' because it is not a struct or
+  interface. Found type:
+    ENotStruct1.Keep

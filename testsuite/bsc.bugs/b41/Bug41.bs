@@ -1,0 +1,8 @@
+package Bug41 () where
+
+data D1 = Idle
+data D2 = Idle
+
+instance Bits D1 1 where
+    pack Idle = 0
+    unpack 0 = Idle

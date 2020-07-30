@@ -1,0 +1,82 @@
+
+# Compile a file to query (generating .bi, .bo, and .ba)
+bsc_compile Test.bsv {-verilog -elab}
+bsc_compile Test2.bsv {-verilog -elab}
+bsc_compile TestSchedErr.bsv {-verilog -elab}
+bsc_compile TaggedUnionPoly.bsv
+
+set sedPosition {-e /position.*%/s/\[0-9\]/N/g}
+
+# -------------------------
+# Test Bluetcl commands
+# in the order they appear in tclCommands in bluetcl.hs
+
+# Test "showArg"
+# XXX No need to test, just for internal use?
+
+# Test "help"
+bluetcl_run_compare_pass help.tcl
+
+# Test "version"
+# XXX
+
+# Test "flags"
+# XXX
+
+# Test "bpackage"
+bluetcl_run_compare_pass bpackage.tcl
+
+# Test "defs"
+# XXX
+
+# Test "parse"
+# XXX
+
+# Test "type"
+bluetcl_run_compare_pass type.tcl "" $sedPosition
+
+# Test "module"
+bluetcl_run_compare_pass module.tcl
+
+# Test "schedule"
+bluetcl_run_compare_pass schedule.tcl
+
+# Test "schedule" in the presence of errors
+bluetcl_run_compare_pass schedule_err.tcl
+
+# Test "submodule"
+bluetcl_run_compare_pass submodule.tcl
+
+# Test "rule"
+# XXX
+
+# Test "debug"
+# XXX No need to test, just for internal use?
+
+# Test "browsepackage"
+bluetcl_run_compare_pass browsepackage.tcl "" $sedPosition
+
+# Test "browsemodule"
+bluetcl_run_compare_pass browsemodule.tcl
+
+# Test "browsetype"
+# XXX
+
+# Test "sim"
+# XXX
+
+# Test "depend"
+# (Make a directory for -bdir, which will be deleted by "make clean")
+mkdir BOUTDIR
+bluetcl_run_compare_pass depend.tcl
+
+# Test "browseinst"
+bluetcl_run_compare_pass browseinst.tcl "" $sedPosition
+bluetcl_run_compare_pass browseinst2.tcl "" $sedPosition
+
+# -------------------------
+
+# Test reporting of command syntax errors
+bluetcl_run_compare_pass syntax_errs.tcl "" { -e s/Prelude.*Library/IGNORED/}
+
+# -------------------------

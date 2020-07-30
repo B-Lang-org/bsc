@@ -1,0 +1,6 @@
+checking package dependencies
+compiling VerilogElab.bsv
+code generation for sysVerilogElab starts
+Verilog file created: sysVerilogElab.v
+Elaborated module file created: sysVerilogElab.ba
+All packages are up to date.

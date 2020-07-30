@@ -1,0 +1,15 @@
+checking package dependencies
+compiling AmbigCtx_RemoveFunDeps.bsv
+Error: "AmbigCtx_RemoveFunDeps.bsv", line 26, column 8: (T0033)
+  There is not enough explicit type information to deduce the types of all
+  expressions. Consider adding more type declarations to help resolve this
+  ambiguity.
+    An ambiguous type was introduced at "AmbigCtx_RemoveFunDeps.bsv", line 30,
+    column 17
+    This type resulted from:
+      The proviso AmbigCtx_RemoveFunDeps::C1#(a__, b__) introduced in or at
+      the following locations:
+	"AmbigCtx_RemoveFunDeps.bsv", line 30, column 13
+      The proviso AmbigCtx_RemoveFunDeps::C2#(a__) introduced in or at the
+      following locations:
+	"AmbigCtx_RemoveFunDeps.bsv", line 30, column 17

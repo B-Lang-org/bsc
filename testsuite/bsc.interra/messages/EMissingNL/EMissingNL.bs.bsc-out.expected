@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "EMissingNL.bs", line 18, column 0: (P0004)
+  Missing newline after -- comment

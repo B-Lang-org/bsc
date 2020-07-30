@@ -1,0 +1,60 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EMultipleDef1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a mu;tiply defined variable
+-- identifier error (EMultipleDef)
+
+-- Error Message : bsc EMultipleDef1.bs
+-- bsc: Compilation errors:
+-- "EMultipleDef1.bs", line 25, column 0, Multiple definition of: "mkEMultipleDef1"
+-----------------------------------------------------------------------
+
+package EMultipleDef1 (EMultipleDef1(..), mkEMultipleDef1) where
+
+-- import Int
+
+interface EMultipleDef1 =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+
+mkEMultipleDef1 :: Module EMultipleDef1
+mkEMultipleDef1 =
+    module
+
+        x :: Reg (Int 32)
+        x <- mkReg 0
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+       
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0
+
+--
+mkEMultipleDef1 :: Module EMultipleDef1
+mkEMultipleDef1 =
+    module
+        rules
+        interface
+

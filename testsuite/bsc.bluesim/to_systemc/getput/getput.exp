@@ -1,0 +1,8 @@
+if { ($ctest == 1) && ($systemctest == 1) } {
+
+compile_object_pass GetPutTest.bsv
+create_systemc_objects_pass mkGetPutTest.ba mkGetPutTest
+build_systemc_executable_pass getput {top.sc TbGetPut.sc} mkGetPutTest
+run_systemc_executable getput
+
+}

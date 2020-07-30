@@ -1,0 +1,15 @@
+checking package dependencies
+compiling Testbench.bsv
+Error: "Testbench.bsv", line 19, column 17: (T0033)
+  There is not enough explicit type information to deduce the types of all
+  expressions. Consider adding more type declarations to help resolve this
+  ambiguity.
+    An ambiguous type was introduced at "Testbench.bsv", line 21, column 16
+    This type resulted from:
+      The proviso Printf::SPrintfType#(a__) introduced in or at the following
+      locations:
+	"Testbench.bsv", line 21, column 37
+	"Testbench.bsv", line 21, column 18
+      Bits#() proviso introduced (for bit vector packing/unpacking) in or at
+      the following locations:
+	"Testbench.bsv", line 21, column 16

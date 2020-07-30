@@ -1,0 +1,9 @@
+checking package dependencies
+compiling Fib.bs
+Warning: "Fib.bs", line 25, column 7: (P0223)
+  Definition of `x' is not used.
+code generation for mkFib8 starts
+Error: "Fib.bs", line 24, column 0: (T0043)
+  Cannot synthesize `mkFib8': A parameter of the module uses the type
+  `Fib.Abc' which is not in the Bits class.
+  During elaboration of `mkFib8' at "Fib.bs", line 24, column 0.

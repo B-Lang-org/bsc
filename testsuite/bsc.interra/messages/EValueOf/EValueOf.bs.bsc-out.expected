@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EValueOf.bs
+Error: "EValueOf.bs", line 49, column 28: (T0049)
+  Cannot take valueOf `y' (symbol might not be in scope)

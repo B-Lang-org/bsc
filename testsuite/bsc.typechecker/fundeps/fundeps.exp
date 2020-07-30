@@ -1,0 +1,77 @@
+#
+# Tests for the handling of functional dependencies on multi-parameter
+# type classes.
+#
+# See the paper "Type Classes with Functional Dependencies" by Mark
+# Jones, after having read his earlier paper "Typing Haskell in
+# Haskell".
+#
+
+# --------------------------------------------------
+# These test cases resulted from Bug 271
+# They test the nesting of functional dependencies.
+
+compile_pass ThreeDimArray.bsv
+compile_pass FourDimArray.bsv
+compile_pass TenDimArray.bsv
+
+
+# --------------------------------------------------
+# These test cases resulted from Bug 316
+
+compile_pass StructSelectOneDimArray.bsv
+compile_pass StructSelectFiveDimArray.bsv
+
+compile_pass StructUpdateOneDimArray.bs
+compile_pass StructUpdateFourDimArray.bsv
+
+compile_pass ConstructorFourDimArrayUpdate.bsv
+
+# This case now passes, bug bug #316 is not necessarily closed
+compile_pass ConstructorFourDimArrayEquality.bsv
+
+# --------------------------------------------------
+# This test case resulted from Bug 355
+# Either defaulting or proper fundeps on PrimSelectable fix this
+
+compile_pass Bug355.bsv
+
+# --------------------------------------------------
+# XXX Test that fundep propagation is not mistakenly unifying type
+# XXX parameters which are not in the "a -> b" list.
+
+# This test is invalid now that we ban non-full fundeps
+compile_fail_error NonDepParam.bs T0124
+compare_file NonDepParam.bs.bsc-out
+
+# --------------------------------------------------
+# XXX Test involving "a -> b c" being specified as "a -> b, a -> c" (bug 409)
+
+# This test is invalid now that we ban non-full fundeps
+compile_fail_error NonMergedFunDeps.bs T0124
+compare_file NonMergedFunDeps.bs.bsc-out
+
+# --------------------------------------------------
+# Test for invalid fundep declarations (includes Bug 1769)
+
+# Non-full deps are checked above (T0124)
+
+# Check for the same variable on both sides of a dependency
+compile_fail_error OverlapDepParam.bsv T0135
+
+# Check for variables that are not part of the base type
+compile_fail_error ExtraDepParam.bsv T0136
+
+# Check for an empty list on either side of a dependency
+compile_fail_error EmptyDepParam.bsv T0137 2
+
+# --------------------------------------------------
+
+# testcase for checking that if we learn about one tvar
+# from two different fundeps the resulting knowledge is unified
+# (because fundeps are effectively equalities)
+compile_pass FunDepUnify.bs
+
+# double-check that when the fundeps don't line up
+# that the compilation still fails
+compile_fail_error FunDepUnify2.bs T0060

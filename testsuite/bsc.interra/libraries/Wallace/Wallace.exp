@@ -1,0 +1,4 @@
+test_c_veri_worker WallaceAdd mkTestbench_WallaceAdd {} "bsv" 1 1 "mkTestbench_WallaceAdd.v.out.expected" "" ""
+
+test_c_veri_worker WallaceAddBags mkTestbench_WallaceAddBags {} "bsv" 1 1 "mkTestbench_WallaceAddBags.v.out.expected" "" ""
+

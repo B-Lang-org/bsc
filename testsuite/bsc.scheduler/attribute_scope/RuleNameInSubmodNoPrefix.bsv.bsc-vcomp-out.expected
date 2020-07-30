@@ -1,0 +1,9 @@
+checking package dependencies
+compiling RuleNameInSubmodNoPrefix.bsv
+code generation for sysRuleNameInSubmodNoPrefix starts
+Error: "RuleNameInSubmodNoPrefix.bsv", line 2, column 36: (G0054)
+  Rule `r' was referenced in a rule attribute before it was defined.
+  During elaboration of `mkSub' at "RuleNameInSubmodNoPrefix.bsv", line 16,
+  column 4.
+  During elaboration of `sysRuleNameInSubmodNoPrefix' at
+  "RuleNameInSubmodNoPrefix.bsv", line 9, column 8.

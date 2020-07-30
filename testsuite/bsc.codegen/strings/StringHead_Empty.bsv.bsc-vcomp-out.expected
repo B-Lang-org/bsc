@@ -1,0 +1,9 @@
+checking package dependencies
+compiling StringHead_Empty.bsv
+code generation for sysStringHead_Empty starts
+Error: "StringHead_Empty.bsv", line 4, column 27: (S0015)
+  Bluespec evaluation-time error: stringHead: empty string
+  During elaboration of the body of rule `r' at "StringHead_Empty.bsv", line
+  3, column 9.
+  During elaboration of `sysStringHead_Empty' at "StringHead_Empty.bsv", line
+  2, column 8.

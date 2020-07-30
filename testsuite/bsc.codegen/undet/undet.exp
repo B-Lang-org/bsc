@@ -1,0 +1,69 @@
+
+# Test undetermined value handling
+
+# -------------------------
+# Undet submodule arguments get assigned according to the unspecified-to flag
+# when -no-opt-undetermined-vals
+
+if { $vtest == 1 } {
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to 0 -no-opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.0.v
+find_n_strings sysUndet_SubModArg.0.v \
+    {rg <= `BSV_ASSIGNMENT_DELAY 32'h0;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to 1 -no-opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.1.v
+find_n_strings sysUndet_SubModArg.1.v \
+    {rg <= `BSV_ASSIGNMENT_DELAY 32'hFFFFFFFF;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to A -no-opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.A.v
+find_n_strings sysUndet_SubModArg.A.v \
+    {rg <= `BSV_ASSIGNMENT_DELAY 32'hAAAAAAAA;} 1
+
+}
+
+# -------------------------
+# Undet submodule arguments get assigned according to the unspecified-to flag
+# when -opt-undetermined-vals
+
+if { $vtest == 1 } {
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to 0 -opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.0-opt.v
+find_n_strings sysUndet_SubModArg.0-opt.v \
+    {rg <= `BSV_ASSIGNMENT_DELAY 32'b0 /* unspecified value */ ;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to 1 -opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.1-opt.v
+find_n_strings sysUndet_SubModArg.1-opt.v \
+    {32'b11111111111111111111111111111111 /* unspecified value */ ;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to A -opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.A-opt.v
+find_n_strings sysUndet_SubModArg.A-opt.v \
+    {rg <= `BSV_ASSIGNMENT_DELAY 32'hAAAAAAAA /* unspecified value */ ;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to X -opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.X-opt.v
+find_n_strings sysUndet_SubModArg.X-opt.v \
+    {32'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx /* unspecified value */ ;} 1
+
+compile_verilog_pass Undet_SubModArg.bsv sysUndet_SubModArg \
+    {-unspecified-to Z -opt-undetermined-vals}
+move sysUndet_SubModArg.v sysUndet_SubModArg.Z-opt.v
+find_n_strings sysUndet_SubModArg.Z-opt.v \
+    {32'bzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz /* unspecified value */ ;} 1
+
+}
+
+# -------------------------
+

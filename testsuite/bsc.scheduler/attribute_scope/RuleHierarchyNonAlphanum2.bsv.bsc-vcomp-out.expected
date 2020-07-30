@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleHierarchyNonAlphanum2.bsv
+code generation for sysRuleHierarchyNonAlphanum2 starts
+Warning: "RuleHierarchyNonAlphanum2.bsv", line 14, column 9: (G0021)
+  According to the generated schedule, rule `r2' can never fire.
+Verilog file created: sysRuleHierarchyNonAlphanum2.v
+All packages are up to date.

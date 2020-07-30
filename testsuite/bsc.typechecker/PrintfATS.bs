@@ -1,0 +1,22 @@
+package PrintfATS(sysPrintfATS) where
+
+import ActionSeq
+
+-- aCheck reports "internal bad" when generating code for sysPrintfATS
+-- this comes from rules containing printf (bug #206)
+
+sysPrintfATS :: Module Empty
+sysPrintfATS =
+    module
+       x :: Reg (Bit 32)
+       x <- mkReg 0
+
+       a :: ActionSeq
+       a <- actionSeq
+               (   action { x := 299; }
+                |> action { $display "%0d" x; }
+                |> action { $display "0x%h" x; }
+                |> action { $display "%d 0x%h" x (x+1); }
+               )
+       rules
+           when (True && x == 0) ==> a.start

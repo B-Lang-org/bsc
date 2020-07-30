@@ -1,0 +1,21 @@
+package ExclusiveActions (sysExclusiveActions) where 
+
+sysExclusiveActions :: Module Empty
+sysExclusiveActions = 
+  module
+    r :: Reg (Bit 3) <- mkReg 0
+    b :: Reg (Bool)  <- mkReg False
+
+    counter :: Reg (Bit 5) <- mkReg 0
+
+    rules
+      when True ==>
+         b := not b
+      when True ==> 
+         action 
+           if b then r := 5 else noAction
+           if not b then r := 7 else noAction
+      when True ==>
+         if (counter > 10) then $finish 0 else $display "%0d" (r)
+      when True ==> counter := counter + 1
+      

@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ContextTooWeakRemoveImplied.bs
+Error: "ContextTooWeakRemoveImplied.bs", line 17, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    Prelude.Module (ContextTooWeakRemoveImplied.TestIFC a)
+  The following contexts are needed:
+    ContextTooWeakRemoveImplied.Select (Vector.Vector 2 Prelude.Bool) a
+    Prelude.Bool
+    Introduced at the following locations:
+      "ContextTooWeakRemoveImplied.bs", line 23, column 14

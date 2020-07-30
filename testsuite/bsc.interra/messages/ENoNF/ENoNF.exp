@@ -1,0 +1,13 @@
+#These old testcases are obsolete now that strings do not pack
+
+#compile_fail_error ENoNF1.bs G0013 1 "-verilog -g mkENoNF1"
+#compile_verilog_fail ENoNF1.bs mkENoNF1
+#compare_file ENoNF1.bs.bsc-vcomp-out
+
+#compile_fail_error ENoNF2.bs G0013 1 "-verilog -g mkENoNF2"
+#compile_verilog_fail ENoNF2.bs mkENoNF2 
+#compare_file ENoNF2.bs.bsc-vcomp-out
+
+# This now has its own error message and does not raise ENoNF (G0013)
+#compile_pass ENoNF3.bs
+compile_verilog_fail_error ENoNF3.bs G0070 1

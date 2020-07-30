@@ -1,0 +1,2 @@
+compile_verilog_pass Test5.bsv
+compile_verilog_pass top.bsv

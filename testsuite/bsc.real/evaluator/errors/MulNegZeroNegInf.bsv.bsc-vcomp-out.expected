@@ -1,0 +1,10 @@
+checking package dependencies
+compiling MulNegZeroNegInf.bsv
+code generation for sysMulNegZeroNegInf starts
+Error: "MulNegZeroNegInf.bsv", line 8, column 23: (G0114)
+  A multiplication operator was applied to zero and infinity during
+  elaboration.
+  During elaboration of the body of rule `r' at "MulNegZeroNegInf.bsv", line
+  10, column 10.
+  During elaboration of `sysMulNegZeroNegInf' at "MulNegZeroNegInf.bsv", line
+  4, column 8.

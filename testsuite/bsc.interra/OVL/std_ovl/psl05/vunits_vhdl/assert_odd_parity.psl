@@ -1,0 +1,54 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_odd_parity_assert_vunit (assert_odd_parity_assert)
+{
+  default clock is rose(clk);
+
+  property ASSERT_ODD_PARITY_P is always (
+	(reset_n = '1') ->  ( (xor_reduce( test_expr)) = '1') );
+
+  -- Property for X/Z checking
+
+  property ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P is always( 
+ 	   ( (xzcheck_enable = 1 ) and ( reset_n = '1') ) -> not(isunknown(test_expr)) );
+
+  A_ASSERT_ODD_PARITY_P:
+  assert ASSERT_ODD_PARITY_P
+  report "VIOLATION: ASSERT_ODD_PARITY Checker Fires : Test expression does not exhibit odd parity";
+
+  A_ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_ODD_PARITY Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_odd_parity_assume_vunit (assert_odd_parity_assume)
+{
+  default clock is rose(clk); 
+ 
+  property ASSERT_ODD_PARITY_P is always (
+           (reset_n = '1') -> ( (xor_reduce( test_expr)) = '0' ) );
+
+  -- Property for X/Z checking
+
+  property ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P is always(
+           ( (xzcheck_enable = 1) and ( reset_n = '1') ) -> not(isunknown(test_expr)) );
+
+  M_ASSERT_ODD_PARITY_P:
+  assume ASSERT_ODD_PARITY_P;
+
+  M_ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_ODD_PARITY_XZ_ON_TEST_EXPR_P;
+}
+
+vunit assert_odd_parity_cover_vunit (assert_odd_parity_cover)
+{ 
+  default clock is rose(clk);
+
+  cover_test_expr_change:
+  cover { (OVL_COVER_SANITY_ON = OVL_COVER_SANITY or OVL_COVER_SANITY_ON = OVL_COVER_ALL) and ( prev(reset_n) = '1' )
+	and ( reset_n = '1')  and (not(stable(test_expr))) }
+  report "COVERAGE REPORT : ASSERT_ODD_PARITY Checker: test_expr_change covered"; 
+}
+

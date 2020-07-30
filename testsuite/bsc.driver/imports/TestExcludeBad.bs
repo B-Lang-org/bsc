@@ -1,0 +1,6 @@
+package TestExcludeBad where
+
+import Exclude
+
+d :: Integer
+d = b + a * b

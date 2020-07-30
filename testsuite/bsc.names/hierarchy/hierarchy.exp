@@ -1,0 +1,17 @@
+compile_verilog_pass Design.bsv  "" "-trace-inst-tree"
+if { $vtest == 1 } {
+#compare_file Design.bsv.bsc-vcomp-out
+}
+compile_object_pass Design.bsv  "" "-trace-inst-tree"
+if { $ctest == 1 } {
+#compare_file Design.bsv.bsc-ccomp-out
+}
+
+compile_verilog_pass Example.bsv  "" "-trace-inst-tree"
+if { $vtest == 1 } {
+#compare_file Example.bsv.bsc-vcomp-out
+}
+compile_object_pass Example.bsv  "" "-trace-inst-tree"
+if { $ctest == 1 } {
+#compare_file Example.bsv.bsc-ccomp-out
+}

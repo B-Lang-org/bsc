@@ -1,0 +1,2 @@
+compile_verilog_pass SignedCompare_Int0.bsv
+

@@ -1,0 +1,6 @@
+package Import2 (mkM) where
+-- should have this, but if I don't, I get an internal compiler error:
+-- import Import0
+import Import1
+mkM :: I -> Module Empty
+mkM i = module {}

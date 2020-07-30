@@ -1,0 +1,389 @@
+
+# tests for Bluespec Verilog 0.5 syntax
+
+# lexical scanner errors
+compile_fail_error UnterminatedBlockComment.bsv P0003
+
+# number formats supported and not supported
+compile_pass Numbers.bsv
+compile_fail_error NumberMixed.bsv P0097
+compile_fail_error NumberRepeatedX.bsv P0097
+compile_pass NumberReal.bsv
+compile_pass NumberSpaceBeforeBase.bsv
+compile_pass NumberSpaceAfterBase.bsv
+compile_pass NumberSpacesAroundBase.bsv 
+
+#Comments
+compile_pass Comment.bsv
+
+# escaped identifiers
+compile_pass ClassicKeywords.bsv
+
+# empty template
+compile_pass Empty.bsv
+
+# empty packages
+compile_pass PackageEmpty.bsv
+compile_pass PackageEmptyNoTail.bsv
+compile_fail_error PackageEmptyWrongTail.bsv P0005
+compile_pass PackageModuleEmpty.bsv
+
+# a module with an empty rule
+compile_pass EmptyRule.bsv
+
+# empty rule condition parens
+compile_fail_error RuleEmptyConditionParens.bsv P0136
+
+# bad expression in rule parens (should be different from empty parens)
+compile_fail_error RuleBadCondition.bsv P0005
+
+# export all identifiers
+compile_pass ExportAllExport.bsv
+if { [do_internal_checks] } {
+    dumpbi ExportAllExport.bo
+    compare_file [make_dumpbi_output_name ExportAllExport.bo]
+}
+compile_pass ExportAllImport.bsv
+
+# export some identifiers; make sure not all are exported
+compile_pass ExportSomeExport.bsv
+if { [do_internal_checks] } {
+    dumpbi ExportSomeExport.bo
+    compare_file [make_dumpbi_output_name ExportSomeExport.bo]
+}
+compile_fail_error ExportSomeImport.bsv T0004
+
+# import syntax
+compile_pass ImportAll.bsv
+compile_pass ImportAllSpace.bsv
+compile_pass_bug_error ImportSome.bsv P0008 283
+
+# a module without interface name
+compile_pass EmptyModuleInterface.bsv
+
+# empty action method
+compile_pass EmptyMethod.bsv
+
+# tests basic syntax
+compile_pass GCD.bsv
+
+# tests functions with assignment-style return
+compile_pass Function.bsv
+compile_fail_error FunctionNoType.bsv P0089
+
+# function with an escaped operator-like name
+compile_pass FunctionOperator.bsv
+
+# tests functions with an endfunction: name that does not match
+# the original name
+compile_fail_error FunctionBrokenEnd.bsv P0005
+
+# tests functions with return-style return
+compile_pass FunctionReturn.bsv
+
+# tests optional function arguments
+compile_pass FunctionNoArgs.bsv
+
+# tests functions, .get and .set on registers, and provisos
+compile_pass Fib.bsv
+
+# tests polymorphic function definition
+compile_pass Id.bsv
+
+# tests top-level variable definitions
+compile_pass TopLevelVariableDef.bsv
+compile_pass TopLevelDefInit.bsv
+
+# tests bit concatenation
+compile_pass BitConcat.bsv
+compile_fail_error BitConcatBad.bsv T0020
+
+# tests ? : conditional expressions
+compile_pass ConditionalExpr.bsv
+compile_pass ConditionalExprMatchingAndAndAnd.bsv
+
+# tests top-level variable definitions
+compile_pass ModuleParameters.bsv
+# optional "parameter" keyword
+compile_pass ModuleParametersNoKeyword.bsv
+
+# Test that the keyword "parameter" is OK on non-toplevel modules
+compile_pass ModuleParametersInModule.bsv
+compile_pass ModuleParametersInTypeclass.bsv
+
+# tests optional method parameters in method definition
+compile_pass OptionalMethodTypes.bsv
+
+# tests that optional method parameters are forbidden in interface declarations
+compile_fail_error NonOptionalMethodTypes.bsv P0005
+
+# sugar for bit [N:0] type
+compile_pass BitType.bsv
+compile_fail_error BitTypeBad.bsv P0007
+# functions that take and return bit types
+compile_pass FunctionBit.bsv
+
+# sugar for int type
+compile_pass IntType.bsv
+compile_fail_error IntTypeBad.bsv T0020
+
+# tests bit-select expression sugar
+compile_pass BitSelect.bsv
+
+# tests typedef enum { ... } typename syntax
+compile_pass TypedefEnum.bsv
+
+# tests typedef struct { ... } typename syntax
+compile_pass TypedefStruct.bsv
+compile_pass TypedefStructPolymorphic.bsv
+compile_pass TypedefStructTaggedUnion.bsv
+compile_fail_error TypedefStructStruct.bsv P0005
+
+# tests typedef tagged union { ... } typename syntax
+compile_pass TypedefTaggedUnionVoid.bsv
+compile_pass TypedefTaggedUnionSimple.bsv
+compile_pass TypedefTaggedUnionStruct.bsv
+compile_pass TypedefTaggedUnionTagged.bsv
+
+# test that empty tagged unions are rejected (Bug #1535)
+compile_fail_error TypedefTaggedUnionEmpty.bsv P0005
+
+# tests parametrized substructures
+compile_pass TypedefTaggedUnionSubtypeParameter.bsv
+
+# test tagged union field selection
+compile_pass TypedefStructTaggedUnionSelect.bsv
+
+# test tagged union expressions
+compile_pass TaggedUnionExprs.bsv
+
+# test deriving clause
+compile_pass DerivingEq.bsv
+
+# test provisos syntax
+compile_pass ModuleProvisosSimple.bsv
+compile_pass ModuleProvisosTypeCon.bsv
+compile_pass_bug InterfaceProvisos.bsv 579
+
+# typeclasses and instances
+compile_pass TypeclassDefault.bsv
+compile_pass TypeclassDefaultImport.bsv
+compile_pass TypeInstance.bsv
+compile_pass TypeclassVars.bsv
+
+# qualified identifiers etc
+compile_pass QualifiedVar.bsv
+compile_pass QualifiedConstructor.bsv
+compile_pass QualifiedType.bsv
+
+# imperative syntactic sugar
+compile_pass ImperativeActionDeclBind.bsv
+compile_pass ImperativeActionDeclBindDuplicate.bsv
+compile_pass ImperativeActionDeclEq.bsv
+compile_pass ImperativeActionFunction.bsv
+compile_pass ImperativeActionFunctionCall.bsv
+compile_pass ImperativeActionMethodCall.bsv
+compile_pass ImperativeActionValueDeclBind.bsv
+compile_pass ImperativeActionValueDeclEq.bsv
+compile_pass ImperativeActionValueFunction.bsv
+compile_pass ImperativeActionValueFunctionCall.bsv
+compile_pass ImperativeActionValueMethodCall.bsv
+compile_pass ImperativeActionValueReturn.bsv
+compile_pass ImperativeActionIfBind.bsv
+compile_pass ImperativeActionIfNakedExpr.bsv
+compile_pass ImperativeActionIfRegWrite.bsv
+compile_pass ImperativeFunctionIfEq.bsv
+compile_pass ImperativeFunctionIfNoElseEq.bsv
+compile_pass_warning ImperativeFunctionIfNoElseMissingEq.bsv P0042
+compile_pass ImperativeFunctionIfReturn.bsv
+compile_pass ImperativeFunctionIfBeginEnd.bsv
+compile_pass ImperativeModuleIfInstance.bsv
+compile_pass ImperativeFunctionDeclEq.bsv
+compile_pass ImperativeFunctionDeclEqMultipleSugar.bsv
+compile_pass ImperativeFunctionFunction.bsv
+compile_pass ImperativeFunctionFunctionNoType.bsv
+compile_pass ImperativeFunctionReturn.bsv
+compile_pass ImperativeFunctionBeginEnd.bsv
+compile_fail_error ImperativeFunctionBeginEndMissingReturn.bsv P0106
+compile_pass ImperativeFunctionModule.bsv
+compile_pass ImperativeFunctionFor.bsv
+compile_fail_error ImperativeFunctionForUndeclaredVar.bsv P0039
+compile_fail_bug ImperativeFunctionForBadIncrement.bsv
+compile_fail_error ImperativeActionFunctionNameAssign.bsv P0036
+compile_fail_error ImperativeActionFunctionReturn.bsv P0044
+compile_pass ImperativeFunctionEq.bsv
+compile_pass ImperativeModuleDeclBind.bsv
+compile_pass ImperativeModuleDeclEq.bsv
+compile_pass ImperativeModuleFunction.bsv
+compile_pass ImperativeModuleFunctionCall.bsv
+compile_pass ImperativeModuleInstance.bsv
+compile_fail_error ImperativeModuleInstanceTuple.bsv P0095
+compile_pass ImperativeModuleMethod.bsv
+compile_pass ImperativeModuleMethodCondition.bsv
+compile_pass ImperativeModuleMethodCall.bsv
+compile_pass ImperativeModuleMethodEq.bsv
+compile_pass ImperativeModuleRule.bsv
+compile_pass ImperativeModuleInterfaceExpr.bsv
+compile_pass ImperativeModuleInterfaceSubinterface.bsv
+compile_pass ImperativeModuleInterfaceSubinterfaceEq.bsv
+compile_fail_error ImperativeModuleInterfaceSubinterfaceNoTag.bsv P0005
+compile_pass ImperativeModuleModule.bsv
+compile_pass ImperativeRuleDeclBind.bsv
+compile_pass ImperativeRuleDeclEq.bsv
+compile_pass ImperativeRuleFunction.bsv
+compile_pass ImperativeRuleFunctionCall.bsv
+compile_pass ImperativeRuleMethodCall.bsv
+compile_pass FirstClassRules.bsv
+compile_pass ImperativeActionDeclBindSugar.bsv
+compile_pass ImperativeActionDeclEqSugar.bsv
+compile_pass ImperativeActionValueDeclBindSugar.bsv
+compile_pass ImperativeActionValueDeclEqSugar.bsv
+compile_pass ImperativeFunctionDeclEqSugar.bsv
+compile_pass ImperativeModuleDeclBindSugar.bsv
+compile_pass ImperativeModuleDeclEqSugar.bsv
+compile_pass ImperativeRuleDeclBindSugar.bsv
+compile_pass ImperativeRuleDeclEqSugar.bsv
+compile_fail_error ImperativeActionUndeclEq.bsv P0039
+compile_fail_error ImperativeFunctionUndeclEq.bsv P0039
+compile_fail_error ImperativeActionUnassignedUse.bsv P0040
+compile_fail_error ImperativeFunctionUnassignedUse.bsv P0040
+compile_fail_error ImperativeFunctionDeclEqRecursive.bsv P0040
+compile_fail_error ImperativeActionDeclEqRecursive.bsv P0040
+compile_pass ImperativeFunctionDeclEqDuplicated.bsv
+compile_pass ImperativeFunctionDeclEqRecursiveRedefined.bsv
+compile_pass ImperativeActionDeclEqDuplicate.bsv
+compile_pass ImperativeActionDeclEqRecursiveRedefined.bsv
+compile_pass ImperativeFunctionCaseEq.bsv
+compile_pass ImperativeFunctionCaseEqDefaultNoColon.bsv
+compile_pass ImperativeFunctionCaseDefaultOnlyEq.bsv
+compile_fail_error ImperativeFunctionCaseEarlyDefaultEq.bsv P0005
+compile_pass ImperativeFunctionCaseNoDefaultEq.bsv
+compile_pass_warning ImperativeFunctionCaseIncomplete.bsv P0042 2
+compile_pass ImperativeFunctionCase.bsv
+compile_pass ImperativeFunctionCaseMatching.bsv
+compile_pass ImperativeFunctionCaseMatchingLiteral.bsv
+compile_pass ImperativeFunctionCaseMatchingEnum.bsv
+compile_pass ImperativeFunctionCaseMatchingDots.bsv
+compile_pass ImperativeFunctionCaseMatchingWildcard.bsv
+compile_pass ImperativeFunctionCaseMatchingNested.bsv
+compile_pass ImperativeActionCaseBeginEnd.bsv
+compile_pass ImperativeActionCaseAction.bsv
+compile_pass ImperativeActionCaseMatching.bsv
+compile_pass ImperativeFunctionDeclList.bsv
+compile_pass ImperativeFunctionDeclList3D.bsv
+compile_pass ImperativeFunctionEqualsNoSpaces.bsv
+compile_pass ImperativeFunctionEqualsOnlyLeftSpace.bsv
+compile_pass ImperativeFunctionEqualsOnlyRightSpace.bsv
+compile_pass ImperativeFunctionEqualsSpaces.bsv
+
+# nested blocks
+compile_pass ImperativeRuleNestedAction.bsv
+compile_pass ImperativeRuleNestedActionAtEnd.bsv
+compile_pass ImperativeFunctionBeginEndAction.bsv
+
+# pattern match expressions
+compile_pass ConditionalExprMatching.bsv
+compile_pass ImperativeRuleMatching.bsv
+compile_pass ImperativeModuleMethodConditionMatching.bsv
+compile_pass ImperativeFunctionIfMatchingEq.bsv
+
+# case and case-matches expressions
+compile_pass CaseExpr.bsv
+compile_pass CaseMatchingExpr.bsv
+
+compile_fail_error InterfaceArgs.bsv P0086
+
+# begin .. end in conditionals
+compile_pass Bug182.bsv
+
+# action .. endaction in conditionals
+compile_pass Bug213.bsv
+
+# a file including definition of variables with type-variable type (Bug 203)
+compile_pass VGACore.bsv
+
+# positive and negative literals
+compile_pass NegativeLit.bsv
+compile_pass PositiveLit.bsv
+
+# some examples
+compile_pass GCD2.bsv
+compile_pass GCD3.bsv
+compile_pass ExList.bsv
+compile_pass ExList2.bsv
+compile_pass LookupU.bsv
+compile_pass SRA.bsv
+
+# infix bitwise operators test
+if {$ctest == 1} {
+  compile_object_pass BitOps.bsv
+  link_objects_pass {sysBitOps} sysBitOps
+#  sim_final_state sysBitOps 10
+#  compare_file sysBitOps.final-state
+  sim_output sysBitOps "-m 10"
+}
+
+# warn about declared but unassigned variable
+compile_pass_warning WarnUnassigned.bsv P0103
+
+compile_fail_error ImportNothingNothing.bsv P0151
+
+# Test operator precedence
+test_veri_only_bsv OpPrecedence
+
+# Test that the parsing of imperative decls doesn't error about "let"
+# before checking that the rest of the line is proper syntax.
+compile_fail_error ImperativeVariableDecl_InvalidChar.bsv P0005
+
+# Test that the parser reads in the entire module block (including the
+# endmodule keyword) before reporting any errors about the well-formedness
+# of the statements.
+compile_fail_error ImperativeModuleBodyEnd.bsv P0005
+
+# -----
+
+# Test Tuple syntax
+
+# ImperativeModuleInstanceTuple.bsv is tested above
+
+# Test that a tuple declaration is not allowed without Eq or Bind
+compile_fail_error ImperativeTupleDecl.bsv P0095
+
+# Test that a tuple of variables can be assigned with Eq
+compile_pass ImperativeTupleEq.bsv
+# Test that the declaration is actually consulted
+compile_fail_error ImperativeTupleEq_WrongType.bsv T0080
+
+# Test that a tuple of variables can be assigned with Bind
+compile_pass ImperativeTupleBind.bsv
+# Test that the declaration is actually consulted
+compile_fail_error ImperativeTupleBind_WrongType.bsv T0020
+
+# Test what BSC does with a tuple pattern where all variables are .*
+compile_pass ImperativeTupleDeclEq_AllAny.bsv
+
+# Test that unbound variables are detected
+compile_fail_error ImperativeTupleEq_Unbound.bsv P0039
+
+# Test that typed variables are not assigned to expressions of
+# the wrong type, in the presence of let-bound variables or don't-care
+compile_fail_bug ImperativeTupleEq_SomeLet_WrongType.bsv
+compile_fail_bug ImperativeTupleEq_SomeAny_WrongType.bsv
+compile_fail_bug ImperativeTupleBind_SomeLet_WrongType.bsv
+compile_fail_bug ImperativeTupleBind_SomeAny_WrongType.bsv
+
+# Test how let-bound variables are handled when re-assigned with
+# an expression of a different type
+compile_fail_bug ImperativeTupleEq_NewLetType.bsv
+compile_fail_bug ImperativeTupleBind_NewLetType.bsv
+
+# -----
+
+# Test reassignment to let bound variables
+# (using the single identifier syntax; tuple syntax is tested above)
+
+# XXX This should not type check?
+compile_pass ImperativeVariableEq_NewLetType.bsv
+compile_pass ImperativeVariableBind_NewLetType.bsv
+
+# -----

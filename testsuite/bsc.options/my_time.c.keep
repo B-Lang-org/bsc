@@ -1,0 +1,7 @@
+#include <stdio.h>
+
+unsigned int my_time()
+{
+  return (unsigned int) 10;
+}
+

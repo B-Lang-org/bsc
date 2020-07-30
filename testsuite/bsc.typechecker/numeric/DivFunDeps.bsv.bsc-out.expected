@@ -1,0 +1,18 @@
+checking package dependencies
+compiling DivFunDeps.bsv
+Error: "DivFunDeps.bsv", line 9, column 18: (T0079)
+  The following type variables:
+    b
+  are not uniquely determined by the following provisos:
+    Div#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(a) x1)
+  Rewrite the provisos so that there are no ambiguous variables.
+Error: "DivFunDeps.bsv", line 14, column 18: (T0079)
+  The following type variables:
+    a
+  are not uniquely determined by the following provisos:
+    Div#(a, b, c)
+  and do not appear in the base type:
+    function Bit#(c) f(Bit#(b) x1)
+  Rewrite the provisos so that there are no ambiguous variables.

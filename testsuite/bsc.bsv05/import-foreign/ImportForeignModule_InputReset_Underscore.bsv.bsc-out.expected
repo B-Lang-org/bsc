@@ -1,0 +1,53 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputReset_Underscore;
+module mkMod(Empty);
+  let _bv2 <- exposeCurrentReset;
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentReset;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, CLK_GATE);
+		     reset _rst__1(RST) clocked_by(_clk__1);
+		     reset _(RST1) clocked_by(_clk__1);
+			 ((ResetArg _rst__1, _bv2),
+			  (ClockArg _clk__1, _bv1),
+			  (ResetArg _, _bv0),
+			  (Port (VName "P",[]) (Just _clk__1) (Just _), True))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_Underscore
+
+-----
+
+compiling ImportForeignModule_InputReset_Underscore.bsv
+=== parsed:
+package ImportForeignModule_InputReset_Underscore;
+module mkMod(Empty);
+  let _bv2 <- exposeCurrentReset;
+  let _bv1 <- exposeCurrentClock;
+  let _bv0 <- exposeCurrentReset;
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK, CLK_GATE);
+		     reset _rst__1(RST) clocked_by(_clk__1);
+		     reset _(RST1) clocked_by(_clk__1);
+			 ((ResetArg _rst__1, _bv2),
+			  (ClockArg _clk__1, _bv1),
+			  (ResetArg _, _bv0),
+			  (Port (VName "P",[]) (Just _clk__1) (Just _), True))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputReset_Underscore
+
+-----
+
+All packages are up to date.

@@ -1,0 +1,20 @@
+checking package dependencies
+compiling DefShadow.bs
+Warning: "DefShadow.bs", line 5, column 14: (P0102)
+  Declaration of `y' shadows previous declaration at "DefShadow.bs", line 4,
+  column 11
+Warning: "DefShadow.bs", line 6, column 17: (P0102)
+  Declaration of `y' shadows previous declaration at "DefShadow.bs", line 5,
+  column 14
+Warning: "DefShadow.bs", line 13, column 8: (P0102)
+  Declaration of `i' shadows previous declaration at "DefShadow.bs", line 16,
+  column 6
+Warning: "DefShadow.bs", line 37, column 15: (P0102)
+  Declaration of `x' shadows previous declaration at "DefShadow.bs", line 3,
+  column 0
+Warning: "DefShadow.bs", line 44, column 16: (P0102)
+  Declaration of `v' shadows previous declaration at "DefShadow.bs", line 46,
+  column 17
+Warning: "DefShadow.bs", line 46, column 17: (P0223)
+  Definition of `v' is not used.
+All packages are up to date.

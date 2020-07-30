@@ -1,0 +1,9 @@
+checking package dependencies
+compiling FlushAfterClose.bsv
+code generation for sysFlushAfterClose starts
+Error: "Prelude.bs", line 3827, column 20: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `hFlush' at "FlushAfterClose.bsv", line 10, column 4.
+  During elaboration of `sysFlushAfterClose' at "FlushAfterClose.bsv", line 2,
+  column 8.

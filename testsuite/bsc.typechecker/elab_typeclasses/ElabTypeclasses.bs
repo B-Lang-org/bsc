@@ -1,0 +1,74 @@
+package ElabTypeclasses(IfcWrap(..), ModuleInput(..), Elaborate(..)) where
+
+-- corresponds to mkTo_ and mkFrom_ in current GenWrap
+class IfcWrap a a_ | a -> a_ where
+  -- wrap interface to synthesized form
+  toIfc_   :: Module a -> Module a_
+  -- unwrap interface from synthesized form
+  fromIfc_ :: Module a_ -> Module a
+  -- wrap an interface at an inlining boundary
+  -- default method to start, but will probably want to derive
+  -- optimized implementations as we add features
+  wrapIfc  :: Module a -> Module a
+  wrapIfc = compose fromIfc_ toIfc_
+
+-- replace Sinterface testing of struct types with testing for IfcWrap instance
+-- would allow Clocks, Resets, Vectors, etc. as "true" interfaces
+-- may need overlapping instance / fundeps app note
+-- to do context-based resolution of field-based wrapping
+-- (i.e. treat List#(ifc) and List#(a) differently
+
+-- type where we can stub out their implementation (for synthesis and recursion)
+-- would grow instances (probably derived) as we add interface argument support
+class ModuleInput a where
+  -- transform module parameter to a continuation expecting a resolved value
+  toModuleInput :: (a -> Module b) -> Module (a -> Module (), Module b)
+
+resolveModuleInput :: (a -> Module ()) -> Module b -> a -> Module b
+resolveModuleInput k m a = do (k a); m
+
+primModuleBitInput :: (Bit n -> Module b) -> Module (Bit n -> Module (), Module b)
+primModuleBitInput = error "primModuleBitInput unimplemented"
+
+-- also primModuleClockInput, primModuleResetInput, primModuleInoutInput, etc.
+
+instance (Bits a sa) => ModuleInput a where
+  toModuleInput f = do let f_ a_ = f (unpack a_) 
+                       (k_, m) <- primModuleBitInput f_
+                       return (\a -> k_ (pack a), m)
+
+class Elaborate b c | b -> c where
+  toElab :: b -> Module c
+  fromElab :: Module c -> b
+
+doElabWrap :: (IfcWrap (c a) (c a_), IsModule m c) => m a -> m a_
+doElabWrap = liftModuleOp toIfc_
+
+doElabUnwrap :: (IfcWrap (c a) (c a_), IsModule m c) => m a_ -> m a
+doElabUnwrap = liftModuleOp fromIfc_
+
+-- stopgap while trying to figure out how to handle ModuleContext
+-- initial state / state propagation?
+-- anyway starting to generalize synthesizability
+class (IsModule m c) => IsSynthModule m c where
+  lowerModule :: m a -> Module (c a)
+  raiseModule  :: Module (c a) -> m a
+
+instance (IsSynthModule m c, IfcWrap (c a) (c a_)) => Elaborate (m a) (c a_) where
+   toElab   = lowerModule `compose` doElabWrap
+   fromElab = doElabUnwrap `compose` raiseModule
+
+-- elaborating a module with an input argument
+-- in other words, go to and from the continuation, putting side effects in the right place
+instance (ModuleInput a, Elaborate b c) => Elaborate (a -> b) (a -> Module (), c) where
+    toElab f = 
+      let f' a = return (f a)
+      in do (k, m_b) <- toModuleInput f'
+            c <- bind m_b toElab
+            return (k, c)
+    fromElab m_p a = 
+      let m_c :: Module c
+          m_c = do (k, c) <- m_p
+                   k a
+                   return c
+      in fromElab m_c

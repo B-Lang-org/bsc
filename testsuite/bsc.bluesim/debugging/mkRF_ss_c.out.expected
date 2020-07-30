@@ -1,0 +1,125 @@
+Initial State:
+top:
+  addr = 0x0a
+  counter = 0xa
+  data = 0xaaaaaaaaaaaaaaaaaa
+  rf = <RegFile with 32 entries>
+                   0
+State:
+top:
+  addr = 0x00
+  counter = 0x0
+  data = 0xaaaaaaaaaaaaaaaaaa
+  rf = <RegFile with 32 entries> (Wrote 0x0a: 0xaaaaaaaaaaaaaaaaaa)
+                  10
+State:
+top:
+  addr = 0x01
+  counter = 0x1
+  data = 0xaaaaaaaaaaaaaaaaa6
+  rf = <RegFile with 32 entries> (Wrote 0x00: 0xaaaaaaaaaaaaaaaaaa)
+                  20
+State:
+top:
+  addr = 0x02
+  counter = 0x2
+  data = 0xaaaaaaaaaaaaaaaa8b
+  rf = <RegFile with 32 entries> (Wrote 0x01: 0xaaaaaaaaaaaaaaaaa6)
+                  30
+State:
+top:
+  addr = 0x03
+  counter = 0x3
+  data = 0xaaaaaaaaaaaaaaa9cf
+  rf = <RegFile with 32 entries> (Wrote 0x02: 0xaaaaaaaaaaaaaaaa8b)
+                  40
+State:
+top:
+  addr = 0x04
+  counter = 0x4
+  data = 0xaaaaaaaaaaaaaaa4ac
+  rf = <RegFile with 32 entries> (Wrote 0x03: 0xaaaaaaaaaaaaaaa9cf)
+                  50
+State:
+top:
+  addr = 0x05
+  counter = 0x5
+  data = 0xaaaaaaaaaaaaaa80b8
+  rf = <RegFile with 32 entries> (Wrote 0x04: 0xaaaaaaaaaaaaaaa4ac)
+                  60
+State:
+top:
+  addr = 0x06
+  counter = 0x6
+  data = 0xaaaaaaaaaaaaa9850d
+  rf = <RegFile with 32 entries> (Wrote 0x05: 0xaaaaaaaaaaaaaa80b8)
+                  70
+State:
+top:
+  addr = 0x07
+  counter = 0x7
+  data = 0xaaaaaaaaaaaaa2a361
+  rf = <RegFile with 32 entries> (Wrote 0x06: 0xaaaaaaaaaaaaa9850d)
+                  80
+State:
+top:
+  addr = 0x08
+  counter = 0x8
+  data = 0xaaaaaaaaaaaa7277ae
+  rf = <RegFile with 32 entries> (Wrote 0x07: 0xaaaaaaaaaaaaa2a361)
+                  90
+State:
+top:
+  addr = 0x07
+  counter = 0x9
+  data = 0xffffffffffff57670a
+  rf = <RegFile with 32 entries> (Wrote 0x08: 0xaaaaaaaaaaaa7277ae)
+                 100
+State:
+top:
+  addr = 0x08
+  counter = 0xa
+  data = 0xfffffffffffb63d14d
+  rf = <RegFile with 32 entries> (Wrote 0x07: 0xffffffffffff57670a)
+                 110
+State:
+top:
+  addr = 0x09
+  counter = 0xb
+  data = 0xffffffffffdfbab923
+  rf = <RegFile with 32 entries> (Wrote 0x08: 0xfffffffffffb63d14d)
+                 120
+State:
+top:
+  addr = 0x0a
+  counter = 0xc
+  data = 0xffffffffff1e1b0ffe
+  rf = <RegFile with 32 entries> (Wrote 0x09: 0xffffffffffdfbab923)
+                 130
+State:
+top:
+  addr = 0x0b
+  counter = 0xd
+  data = 0xfffffffff9d2bd6ffc
+  rf = <RegFile with 32 entries> (Wrote 0x0a: 0xffffffffff1e1b0ffe)
+                 140
+State:
+top:
+  addr = 0x0c
+  counter = 0xe
+  data = 0xffffffffd4c32e0fef
+  rf = <RegFile with 32 entries> (Wrote 0x0b: 0xfffffffff9d2bd6ffc)
+                 150
+State:
+top:
+  addr = 0x0d
+  counter = 0xf
+  data = 0xfffffffed156426f95
+  rf = <RegFile with 32 entries> (Wrote 0x0c: 0xffffffffd4c32e0fef)
+State:
+top:
+  addr = 0x0d
+  counter = 0x0
+  data = 0xfffffffed156426f95
+  rf = <RegFile with 32 entries>
+Final counts: 17 CLK cycles

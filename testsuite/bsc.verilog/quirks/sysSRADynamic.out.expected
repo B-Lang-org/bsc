@@ -1,0 +1,33 @@
+Base:  8000 8000
+Shift by    0   ->  8000  8000
+Shift by    4   ->  f800  f800
+Shift by    8   ->  ff80  ff80
+Shift by   12   ->  fff8  fff8
+Shift by   16   ->  ffff  ffff
+Shift by   20   ->  ffff  ffff
+Shift by   24   ->  ffff  ffff
+Shift by   28   ->  ffff  ffff
+Shift by   32   ->  ffff  ffff
+Shift by   36   ->  ffff  ffff
+Base:  0000 0000
+Shift by    0   ->  0000  0000
+Shift by    4   ->  0000  0000
+Shift by    8   ->  0000  0000
+Shift by   12   ->  0000  0000
+Shift by   16   ->  0000  0000
+Shift by   20   ->  0000  0000
+Shift by   24   ->  0000  0000
+Shift by   28   ->  0000  0000
+Shift by   32   ->  0000  0000
+Shift by   36   ->  0000  0000
+Base:  7fff 7fff
+Shift by    0   ->  7fff  7fff
+Shift by    4   ->  07ff  07ff
+Shift by    8   ->  007f  007f
+Shift by   12   ->  0007  0007
+Shift by   16   ->  0000  0000
+Shift by   20   ->  0000  0000
+Shift by   24   ->  0000  0000
+Shift by   28   ->  0000  0000
+Shift by   32   ->  0000  0000
+Shift by   36   ->  0000  0000

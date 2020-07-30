@@ -1,0 +1,169 @@
+
+# -----
+
+test_veri_only_bsv ImpCondOf sysImpCondOf.v.out.expected
+test_c_only_bsv ImpCondOf
+
+test_c_veri_bsv ImpCondOf2
+
+test_c_veri_bsv AVCond
+
+test_c_veri_bsv ArrayCond
+
+test_c_veri_bsv SimpleCond
+
+test_c_veri_bsv MaybeCond
+
+test_c_veri_bsv TupleCond
+
+test_c_veri_bsv ListCond
+
+test_c_veri_bsv WireCond
+
+test_c_veri_bsv NoInlineCond
+
+# -------------------------
+
+if { $vtest == 1 } {
+compile_verilog_pass ActionForeignTaskArgs.bsv
+find_regexp sysActionForeignTaskArgs.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& f2\$EMPTY\_N\)\;}
+
+compile_verilog_pass ActionForeignFuncArgs.bsv
+find_regexp sysActionForeignFuncArgs.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& f2\$EMPTY\_N\)\;}
+}
+
+# -----
+
+if { $vtest == 1 } {
+compile_verilog_pass ActionMethodActionArgs.bsv
+find_regexp sysActionMethodActionArgs.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& f2\$EMPTY\_N\)\;}
+
+# No need for ActionMethodValueArgs, because that's tested in the
+# foreign task/function tests above
+}
+
+# -----
+
+if { $vtest == 1 } {
+
+compile_verilog_pass ActionMethodAction.bsv
+find_regexp sysActionMethodAction.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& f2\$EMPTY\_N\)\;}
+
+compile_verilog_pass ActionMethodActionValue.bsv
+find_regexp sysActionMethodActionValue.v \
+    {if \(RST_N\ != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$RDY\_pop \&\& f2\$RDY\_pop\)\;}
+
+compile_verilog_pass ActionMethodValue.bsv
+find_regexp sysActionMethodValue.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& f2\$EMPTY\_N\)\;}
+
+}
+
+# The same tests, with static array selection
+# XXX ...
+
+# The same tests, with dynamic array selection
+
+if { $vtest == 1 } {
+
+compile_verilog_pass DynArraySelectMethodAction.bsv
+find_regexp sysDynArraySelectMethodAction.v \
+    {if \(RST\_N \!\= \`BSV\_RESET\_VALUE\)
+      \$display\(\"cond \= \%d\"\,
+	       CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6\)\;}
+find_regexp sysDynArraySelectMethodAction.v \
+    {case \(idx\)
+      2\'d0\:
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	      fs\_0\$FULL\_N\;
+      2\'d1\:
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	      fs\_1\$FULL\_N\;
+      2\'d2\:
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	      fs\_2\$FULL\_N\;
+      2\'d3\:
+	  CASE\_idx\_0\_fs\_0\_i\_notFull\_1\_fs\_1\_i\_notFull\_2\_f\_ETC\_\_\_d6 \=
+	      fs\_3\$FULL\_N\;
+    endcase}
+
+# XXX DynArraySelectMethodActionValue.bsv
+# XXX DynArraySelectMethodValue.bsv
+
+# 2D array
+compile_verilog_pass DynArraySelect2DMethodAction.bsv
+find_regexp sysDynArraySelect2DMethodAction.v \
+    {if \(RST\_N \!\= \`BSV\_RESET\_VALUE\)
+      \$display\(\"cond \= \%d\"\,
+	       CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9\)\;}
+find_regexp sysDynArraySelect2DMethodAction.v \
+    {case \(idx1\)
+      1\'d0\:
+	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9 \=
+	      CASE\_idx2\_0\_fs\_0\_0FULL\_N\_1\_fs\_0\_1FULL\_N\_1\_\_q1\;
+      1\'d1\:
+	  CASE\_idx1\_0\_CASE\_idx2\_0\_fs\_0\_0\_i\_notFull\_1\_fs\_\_ETC\_\_\_d9 \=
+	      CASE\_idx2\_0\_fs\_1\_0FULL\_N\_1\_fs\_1\_1FULL\_N\_1\_\_q2\;
+    endcase}
+find_regexp sysDynArraySelect2DMethodAction.v \
+    {case \(idx2\)
+      1\'d0\: CASE\_idx2\_0\_fs\_0\_0FULL\_N\_1\_fs\_0\_1FULL\_N\_1\_\_q1 \= fs\_0\_0\$FULL\_N\;
+      1\'d1\: CASE\_idx2\_0\_fs\_0\_0FULL\_N\_1\_fs\_0\_1FULL\_N\_1\_\_q1 \= fs\_0\_1\$FULL\_N\;
+    endcase}
+find\_regexp sysDynArraySelect2DMethodAction.v \
+    {case \(idx2\)
+      1\'d0\: CASE\_idx2\_0\_fs\_1\_0FULL\_N\_1\_fs\_1\_1FULL\_N\_1\_\_q2 \= fs\_1\_0\$FULL\_N\;
+      1\'d1\: CASE\_idx2\_0\_fs\_1\_0FULL\_N\_1\_fs\_1\_1FULL\_N\_1\_\_q2 \= fs\_1\_1\$FULL\_N\;
+    endcase}
+
+# XXX DynArraySelect2DMethodActionValue.bsv
+# XXX DynArraySelect2DMethodValue.bsv
+
+}
+
+# -----
+
+if { $vtest == 1 } {
+compile_verilog_pass MethodActionValue.bsv
+find_regexp sysMethodActionValue.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$RDY\_pop\)\;}
+
+compile_verilog_pass MethodAction.bsv
+find_regexp sysMethodAction.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$FULL\_N\)\;}
+
+compile_verilog_pass MethodValue.bsv
+find_regexp sysMethodValue.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N\)\;}
+
+compile_verilog_pass ApplyMethodAction.bsv
+find_regexp sysApplyMethodAction.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$FULL\_N\)\;}
+}
+
+# -----
+
+# These need -aggressive-conditions, because the result of impCondOf
+# refers to method calls that have implicit conditions, and we don't
+# want them hindering the execution of the rule.
+
+if { $vtest == 1 } {
+compile_verilog_pass AndMethodValue.bsv {} {-aggressive-conditions}
+find_regexp sysAndMethodValue.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, f1\$EMPTY\_N \&\& \(\!f1\$D\_OUT \|\| f2\$EMPTY\_N\)\)\;}
+
+compile_verilog_pass AndStaticArraySelectMethodValue.bsv {} {-aggressive-conditions}
+find_regexp sysAndStaticArraySelectMethodValue.v \
+    {if \(RST_N != `BSV_RESET_VALUE\)[ \t\n]*\$display\(\"cond \= \%d\"\, fs_0\$EMPTY\_N \&\& \(\!fs_0\$D\_OUT \|\| fs\_1\$EMPTY\_N\)\)\;}
+}
+
+# -----
+
+# XXX Try with aggressive vs conservative conditions
+
+# -------------------------
+

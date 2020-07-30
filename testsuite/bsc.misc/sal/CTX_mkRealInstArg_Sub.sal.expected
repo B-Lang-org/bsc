@@ -1,0 +1,10 @@
+CTX_mkRealInstArg_Sub : CONTEXT =
+BEGIN
+  
+  STATE : TYPE = [# param_r : REAL #] ;
+  
+  ctor (val_r : REAL) : STATE = (# param_r := val_r #) ;
+  
+  rule_RL_doDisp (state0 : STATE) : [ BOOLEAN, STATE ] = ( TRUE, state0 ) ;
+  
+END

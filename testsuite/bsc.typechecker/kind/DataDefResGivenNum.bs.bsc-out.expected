@@ -1,0 +1,12 @@
+checking package dependencies
+compiling DataDefResGivenNum.bs
+Error: "DataDefResGivenNum.bs", line 3, column 6: (T0021)
+  Kind error at:
+    Foo
+
+  Expected kind:
+    #
+
+  Inferred kind:
+    *
+

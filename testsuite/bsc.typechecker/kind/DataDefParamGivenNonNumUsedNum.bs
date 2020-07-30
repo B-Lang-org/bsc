@@ -1,0 +1,4 @@
+package DataDefParamGivenNonNumUsedNum () where
+
+data (Foo :: * -> *) a = Bar (Bit a)
+

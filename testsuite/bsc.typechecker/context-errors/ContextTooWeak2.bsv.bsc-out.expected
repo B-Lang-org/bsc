@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ContextTooWeak2.bsv
+Error: "ContextTooWeak2.bsv", line 1, column 3: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    a
+  The following provisos are needed:
+    Literal#(a)
+    Introduced at the following locations:
+      "ContextTooWeak2.bsv", line 1, column 9

@@ -1,0 +1,27 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number:   1, Writing Data:   1
+Cycle Number =   2, Value read =   0
+Cycle Number:   2, Writing Data:   2
+Cycle Number =   3, Value read =   1
+Cycle Number:   3, Writing Data:   3
+Cycle Number =   4, Value read =   2
+Cycle Number:   4, Writing Data:   4
+Cycle Number =   5, Value read =   3
+Cycle Number:   5, Writing Data:   5
+Cycle Number =   6, Value read =   4
+Cycle Number:   6, Writing Data:   6
+Cycle Number =   7, Value read =   5
+Cycle Number:   7, Writing Data:   7
+Cycle Number =   8, Value read =   6
+Cycle Number:   8, Writing Data:   8
+Cycle Number =   9, Value read =   7
+Cycle Number:   9, Writing Data:   9
+Simulation Passes
+Final state:
+top:
+  counter = 0x0b
+  fail = False
+  in_data = 0x0b
+  out_data = 0x09
+  serf1_server_datafifo = { 0x0a }
+  serf2_f = { 0x09 }

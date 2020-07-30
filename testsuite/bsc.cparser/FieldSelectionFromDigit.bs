@@ -1,0 +1,6 @@
+package FieldSelectionFromDigit where
+
+data T = T { bar :: Bool }
+
+x :: Bool
+x = 0.bar

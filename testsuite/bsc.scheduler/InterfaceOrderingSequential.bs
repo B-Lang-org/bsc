@@ -1,0 +1,20 @@
+package InterfaceOrderingSequential(sysInterfaceOrderingSequential, Act) where
+
+-- Interface rules are NO LONGER scheduled to fire `before' other rules.
+-- `act' clobbers what `write' reads, but, with relax-schedule,
+-- `write' can fire before `act', and so can be co-scheduled.
+
+interface Act =
+    act :: Action
+
+sysInterfaceOrderingSequential :: Module Act
+sysInterfaceOrderingSequential =
+    module
+	r :: Reg Bool
+	r <- mkReg _
+	r' :: Reg Bool
+	r' <- mkReg _
+        interface
+            act = r := False
+        rules
+            "write": when True ==> r' := r

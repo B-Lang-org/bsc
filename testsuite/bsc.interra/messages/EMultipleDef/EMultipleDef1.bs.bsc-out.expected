@@ -1,0 +1,5 @@
+checking package dependencies
+compiling EMultipleDef1.bs
+Error: "EMultipleDef1.bs", line 55, column 0: (T0011)
+  Declaration of `mkEMultipleDef1' conflicts with previous declaration at
+  "EMultipleDef1.bs", line 25, column 0

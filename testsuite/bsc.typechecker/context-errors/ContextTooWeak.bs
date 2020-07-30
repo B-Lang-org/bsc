@@ -1,0 +1,6 @@
+package ContextTooWeak() where
+
+-- Expect a "Context too weak" error
+
+foo :: a
+foo = 1

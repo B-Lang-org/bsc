@@ -1,0 +1,8 @@
+# adj_stime is used to make the outputs for Verilog and Bluesim match
+
+test_c_veri_bsv_multi_options_separately Testbench_write_fast_read_slow mkTestbench_write_fast_read_slow {}
+
+test_c_veri_bsv_multi_options_separately Testbench_write_slow_read_fast mkTestbench_write_slow_read_fast {}
+
+test_c_veri_bsv_multi_options_separately Testbench_same_with_phase_diff mkTestbench_same_with_phase_diff {}
+

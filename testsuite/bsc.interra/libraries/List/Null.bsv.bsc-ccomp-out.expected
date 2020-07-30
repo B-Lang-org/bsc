@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "Null.bsv", line 12, column 11: (P0005)
+  Unexpected SV 3.1 keyword `null'; expected expression or `('

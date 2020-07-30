@@ -1,0 +1,62 @@
+package TbTopLevel ( ) where
+
+import TopLevel
+import Kbd
+import Switch
+import Global
+
+{-# verilog mkTbTopLevel #-}
+mkTbTopLevel :: Module Empty
+mkTbTopLevel =
+    module
+	pong_dut :: TopLevel <- mkTopLevel
+
+	rand_cnt1 :: Reg (Bit 2) <- mkReg 0
+	rand_cnt2 :: Reg (Bit 3) <- mkReg 0
+	rand_cnt3 :: Reg (Bit 4) <- mkReg 0
+	rand_cnt4 :: Reg (Bit 5) <- mkReg 0
+
+	kbclk_val :: Reg (Bool) <- mkReg False
+	kbdata_val :: Reg (Bool) <- mkReg False
+	sw1_val :: Reg (Bool) <- mkReg False
+	sw2_val :: Reg (Bool) <- mkReg False
+       
+	hsync_out   :: Reg (Bit 1) <- mkReg 0
+	vsync_out   :: Reg (Bit 1) <- mkReg 0
+	red_out   :: Reg (Bit 2) <- mkReg 0
+	green_out :: Reg (Bit 2) <- mkReg 0
+	blue_out  :: Reg (Bit 2) <- mkReg 0
+	aL_out   :: Reg (Bit 1) <- mkReg 0
+	aR_out   :: Reg (Bit 1) <- mkReg 0
+
+	rules
+          {-# ASSERT fire when enabled #-}
+          {-# ASSERT no implicit conditions #-}
+	  "KbdClk":
+	    when True ==> action
+                              pong_dut.rawkbd.kbclk kbclk_val 
+                              kbclk_val := not kbclk_val
+                              rand_cnt1 := rand_cnt1 + 1;
+                              rand_cnt2 := rand_cnt2 + 1;
+                              rand_cnt3 := rand_cnt3 + 1;
+                              rand_cnt4 := rand_cnt4 + 1;
+	  "Send input":
+	    when True ==> action
+		              pong_dut.rawkbd.kbdata kbdata_val
+                              pong_dut.rawsw1.input sw1_val
+                              pong_dut.rawsw2.input sw2_val
+		              kbdata_val := ( (rand_cnt1 == 0) ||
+                                              (rand_cnt2 == 6) ||
+                                              (rand_cnt3 == 9) ||
+                                              (rand_cnt4 == 2) )
+		              sw1_val := False
+		              sw2_val := False
+	  "Get result":
+	    when True ==> action
+                              hsync_out := pong_dut.hsync
+                              vsync_out := pong_dut.vsync
+                              red_out   := pong_dut.red
+                              green_out := pong_dut.green
+                              blue_out  := pong_dut.blue
+                              aL_out    := pong_dut.aL
+                              aR_out    := pong_dut.aR

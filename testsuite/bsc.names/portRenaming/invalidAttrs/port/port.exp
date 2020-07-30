@@ -1,0 +1,8 @@
+compile_verilog_fail_error Keyword.bsv G0105
+compile_verilog_fail_error InvalidName.bsv G0106
+compile_verilog_fail_error Empty.bsv P0157
+compile_verilog_fail_error Space.bsv P0157
+compile_verilog_fail_error DuplicateValue.bsv P0086
+compile_verilog_fail_error DuplicateAttr.bsv P0156
+compile_verilog_fail_error WrongLoc_Method.bsv P0155
+

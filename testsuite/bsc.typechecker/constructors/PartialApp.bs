@@ -1,0 +1,17 @@
+package PartialApp where
+
+data Foo = Foo (UInt 8) Bool
+  deriving (FShow)
+
+foo5 :: Bool -> Foo
+foo5 = Foo 5
+
+foo5T :: Foo
+foo5T = foo5 True
+
+sysPartialApp :: Module Empty
+sysPartialApp = module
+  rules
+    when True ==> do
+      $display (fshow foo5T)
+      $finish

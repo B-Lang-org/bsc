@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Ifc_Clock_If.bsv
+code generation for sysIfc_Clock_If starts
+Error: "Ifc_Clock_If.bsv", line 10, column 27: (G0067)
+  The expression for a clock could not be evaluated. Clocks must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface output clock `clk_out' at
+  "Ifc_Clock_If.bsv", line 6, column 8.
+  During elaboration of `sysIfc_Clock_If' at "Ifc_Clock_If.bsv", line 6,
+  column 8.

@@ -1,0 +1,167 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_quiescent_state_assert_vunit (assert_quiescent_state_assert)
+{
+  default clock = (posedge clk);
+
+    property ASSERT_QUIESCENT_STATE_P = 
+             always( (prev(reset_n) && (rose(sample_event) || 
+                     rose(end_of_simulation))) -> (check_value == state_expr)
+                     abort(!reset_n) );
+  
+  //Properties for X/Z checking
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_EOS_P =
+             always( xzcheck_enable -> ((!(isunknown(prev(end_of_simulation))) &&
+                                !(prev(end_of_simulation))
+                               && !(isunknown(end_of_simulation))) ||
+                              (!(isunknown(prev(end_of_simulation)))
+                                 && (prev(end_of_simulation))) ||
+                              ((isunknown(prev(end_of_simulation))) &&
+                                 !(isunknown(end_of_simulation))
+                                && !(end_of_simulation) ))
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     rose(sample_event))) -> !isunknown(state_expr)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     sample_event) && isunknown(prev(sample_event)))
+                     -> !isunknown(state_expr)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     rose(sample_event))) -> !isunknown(check_value)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     sample_event) && isunknown(prev(sample_event)))
+                     -> !isunknown(check_value)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_P =
+             always( xzcheck_enable -> ((!(isunknown(prev(sample_event))) && !(prev(sample_event))
+                                       && !(isunknown(sample_event))) ||
+                                      (!(isunknown(prev(sample_event))) && (prev(sample_event))) ||
+                                      ((isunknown(prev(sample_event))) && !(isunknown(sample_event))
+                                        && !(sample_event) ))
+                     abort(!reset_n) );
+
+
+  A_ASSERT_QUIESCENT_STATE_P:
+  assert ASSERT_QUIESCENT_STATE_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: State expression is not equal to check_value while sample event is asserted";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: state_expr contains X or Z";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: state_expr contains X or Z";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: check_value contains X or Z";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: check_value contains X or Z";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_P 
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: sample_event contains X or Z";
+
+  A_ASSERT_QUIESCENT_STATE_XZ_ON_EOS_P:
+  assert ASSERT_QUIESCENT_STATE_XZ_ON_EOS_P
+  report "VIOLATION: ASSERT_QUIESCENT_STATE Checker Fires: end_of_simulation contains X or Z";
+
+}
+
+vunit assert_quiescent_state_assume_vunit (assert_quiescent_state_assume)
+{
+  default clock = (posedge clk);
+
+    property ASSERT_QUIESCENT_STATE_P = 
+             always( (prev(reset_n) && (rose(sample_event) ||            
+                     rose(end_of_simulation))) -> (check_value == state_expr)
+                     abort(!reset_n) );  
+  //Properties for X/Z checking
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_EOS_XZ_1_XZ_P =
+             always( xzcheck_enable -> (prev(end_of_simulation) || 
+                     (!prev(end_of_simulation)) || (!end_of_simulation))
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_EOS_0_XZ_P =
+             always( xzcheck_enable && (!prev(end_of_simulation)) ->
+                     (end_of_simulation || (!end_of_simulation) )
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     rose(sample_event))) -> ((^state_expr) ^ (^state_expr) == 1'b0)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     sample_event))
+                     -> (((^state_expr) ^ (^state_expr) == 1'b0)|| 
+                     prev(sample_event) || (!prev(sample_event)) )
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     rose(sample_event))) -> ((^check_value) ^ (^check_value) == 1'b0)
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P =
+             always( (xzcheck_enable && (rose(end_of_simulation) ||
+                     sample_event)) 
+                     -> (((^check_value) ^ (^check_value) == 1'b0)|| 
+                     prev(sample_event) || (!prev(sample_event)) )
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_XZ_1_XZ_P =
+             always( xzcheck_enable -> (prev(sample_event) || (!prev(sample_event)) || (!sample_event))
+                     abort(!reset_n) );
+
+    property ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_0_XZ_P =
+             always( (xzcheck_enable && (!prev(sample_event))) -> (sample_event || (!sample_event) )
+                     abort(!reset_n) );
+
+  M_ASSERT_QUIESCENT_STATE_P:
+  assume ASSERT_QUIESCENT_STATE_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_STATE_EXPR_XZ_1_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_CHECK_VALUE_XZ_1_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_XZ_1_XZ_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_XZ_1_XZ_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_0_XZ_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_SAMPLE_EVENT_0_XZ_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_EOS_XZ_1_XZ_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_EOS_XZ_1_XZ_P;
+
+  M_ASSERT_QUIESCENT_STATE_XZ_ON_EOS_0_XZ_P:
+  assume ASSERT_QUIESCENT_STATE_XZ_ON_EOS_0_XZ_P;
+
+}
+

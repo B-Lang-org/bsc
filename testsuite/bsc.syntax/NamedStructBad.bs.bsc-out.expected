@@ -1,0 +1,5 @@
+checking package dependencies
+compiling NamedStructBad.bs
+Error: "NamedStructBad.bs", line 11, column 12: (T0142)
+  Pattern for constructor `Quux' of type NamedStructBad.Baz requires 1
+  arguments, found 2.

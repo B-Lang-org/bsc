@@ -1,0 +1,39 @@
+checking package dependencies
+compiling InterfaceOrderingSequential.bs
+code generation for sysInterfaceOrderingSequential starts
+=== schedule:
+parallel: [esposito: [act -> [], RL_write -> []]]
+order: [RL_write, act]
+
+-----
+
+=== resources:
+[(r.read, [(r.read, 1)]), (r.write, [(r.write 1'd0, 1)]), (r_1.write, [(r_1.write r__h157, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [RDY_act CF [RDY_act, act], act SBR act] [] [(act, [(Left RL_write)])] []
+
+-----
+
+Schedule dump file created: sysInterfaceOrderingSequential.sched
+=== Generated schedule for sysInterfaceOrderingSequential ===
+
+Method schedule
+---------------
+Method: act
+Ready signal: True
+Sequenced before (restricted): act
+ 
+Rule schedule
+-------------
+Rule: write
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: write, act
+
+==============================================================
+Verilog file created: sysInterfaceOrderingSequential.v
+All packages are up to date.

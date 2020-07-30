@@ -1,0 +1,8 @@
+if { ($ctest == 1) && ($systemctest == 1) } {
+
+compile_object_pass GCD.bsv
+create_systemc_objects_pass mkGCD.ba mkGCD
+build_systemc_executable_pass gcd {top.sc TbGCD.sc} mkGCD {} {-DDUT_INCLUDE=\"mkGCD_systemc.h\"}
+run_systemc_executable gcd
+
+}

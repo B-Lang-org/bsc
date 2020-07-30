@@ -1,0 +1,7 @@
+checking package dependencies
+compiling NonDepParam.bs
+Error: "NonDepParam.bs", line 6, column 6: (T0124)
+  Dependencies for typeclass `Foo' must mention all the following typeclass
+  variables (as sources or targets): a, b, c
+  The following dependencies are not full:
+    a determines b

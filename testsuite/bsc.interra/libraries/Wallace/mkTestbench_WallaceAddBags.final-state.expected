@@ -1,0 +1,10 @@
+Simulation Passes
+Final state:
+top:
+  the_dut_the_reg_list1_rs = True
+  the_dut_the_reg_list1_rs_1 = False
+  the_dut_the_reg_list2_rs = True
+  the_dut_the_reg_list2_rs_1 = True
+  the_dut_the_reg_list3_rs = False
+  the_dut_the_reg_list3_rs_1 = True
+  the_dut_the_reg_list4_rs = True

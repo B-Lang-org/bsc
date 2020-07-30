@@ -1,0 +1,54 @@
+checking package dependencies
+compiling MultClockCrossErr.bsv
+code generation for mkErrs starts
+Error: "MultClockCrossErr.bsv", line 15, column 8: (G0007)
+  Reference across clock domain in rule `err1'.
+  Method calls by clock domain:
+    Clock domain 1:
+      default_clock:
+	r0.read
+    Clock domain 2:
+      c1:
+	r1.write
+  During elaboration of rule `err1' at "MultClockCrossErr.bsv", line 15,
+  column 8.
+  During elaboration of `mkErrs' at "MultClockCrossErr.bsv", line 8, column 8.
+Error: "MultClockCrossErr.bsv", line 19, column 8: (G0007)
+  Reference across clock domain in rule `err2'.
+  Method calls by clock domain:
+    Clock domain 1:
+      c2:
+	r2.read
+    Clock domain 2:
+      c3:
+	r3.read
+  During elaboration of rule `err2' at "MultClockCrossErr.bsv", line 19,
+  column 8.
+  During elaboration of `mkErrs' at "MultClockCrossErr.bsv", line 8, column 8.
+Error: "MultClockCrossErr.bsv", line 8, column 8: (G0007)
+  Reference across clock domain in method `m1'.
+  Method calls by clock domain:
+    Clock domain 1:
+      c1:
+	r1.read
+    Clock domain 2:
+      c2:
+	r2.read
+  During elaboration of the interface method `m1' at "MultClockCrossErr.bsv",
+  line 8, column 8.
+  During elaboration of `mkErrs' at "MultClockCrossErr.bsv", line 8, column 8.
+Error: "MultClockCrossErr.bsv", line 8, column 8: (G0007)
+  Reference across clock domain in method `m2'.
+  Method calls by clock domain:
+    Clock domain 1:
+      c1:
+	r1.read
+    Clock domain 2:
+      c2:
+	r2.write
+    Clock domain 3:
+      c3:
+	r3.read
+  During elaboration of the interface method `m2' at "MultClockCrossErr.bsv",
+  line 8, column 8.
+  During elaboration of `mkErrs' at "MultClockCrossErr.bsv", line 8, column 8.

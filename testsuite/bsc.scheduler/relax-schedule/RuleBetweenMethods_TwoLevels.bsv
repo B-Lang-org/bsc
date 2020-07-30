@@ -1,0 +1,45 @@
+
+(* synthesize *)
+module sysRuleBetweenMethods_TwoLevels();
+   Reg#(Bool) p <- mkReg(False);
+   SubIfc s <- mkSub_Wrapper;
+ 
+   rule top_rule;
+      if (p)
+	 s.m1;
+      else
+	 $display("%d", s.m2);
+   endrule
+endmodule
+
+interface SubIfc;
+   method Action m1();
+   method int m2();
+endinterface
+
+
+(* synthesize *)
+module mkSub_Wrapper(SubIfc);
+   SubIfc s <- mkSub_Core;
+   return s;
+endmodule
+
+(* synthesize *)
+module mkSub_Core(SubIfc);
+   Reg#(Bool) en <- mkReg(False);
+   Reg#(int) count <- mkReg(0);
+
+   rule sub_rule (en);
+      count <= count + 1;
+   endrule
+      
+   method Action m1();
+      en <= !en;
+   endmethod
+   
+   method int m2();
+      return (count);
+   endmethod
+
+endmodule
+

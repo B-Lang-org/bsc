@@ -1,0 +1,7 @@
+usage: bluetcl -exec makedepend [flag-arguments] <glob pattern>
+where flag-arguments are any valid bsc flags
+Examples
+  bluetcl -exec makedepend -p src2:+  -o dependency.file  Root.bsv
+  bluetcl -exec makedepend -bdir objs  "Root*.bsv"
+  bluetcl -exec makedepend -no-show-timestamps Top.bsv
+  bluetcl -exec makedepend -D MYDEF=yes Top.bsv

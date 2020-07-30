@@ -1,0 +1,4 @@
+package DuplicateValParam_Function_Classic where
+
+fn :: t1 -> t2 -> t3
+fn v v = _

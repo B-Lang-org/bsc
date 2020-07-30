@@ -1,0 +1,16 @@
+// 8 x 8-bit memory contents with CR-LF (ala Windows)
+
+00
+11
+22
+
+// skip entry 3
+@4
+44
+55
+66
+77
+
+// return to entry 3
+@3
+33

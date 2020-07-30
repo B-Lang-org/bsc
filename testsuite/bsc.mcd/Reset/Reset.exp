@@ -1,0 +1,272 @@
+# ----------
+
+# Misc tests for reset handling
+
+# ----------
+
+# Test that foreign functions in methods are guarded by the reset signal
+test_c_veri_bsv_modules MethodResetGuards {mkMethodResetGuards_Sub}
+
+# ----------
+
+# Test the InitialReset primitive
+test_c_veri_bsv InitialResetTest
+
+# ----------
+
+# Test the ResetMux primitive
+# (Verilog output differs from the Bluesim output only in the time0 $display,
+# which Verilog lacks)
+test_veri_only_bsv ResetMux sysResetMux.v.out.expected
+test_c_only_bsv ResetMux
+
+# ----------
+
+# Simple test for mkReset of 0 cycles (the MakeReset0 module)
+test_c_veri_bsv_separately MakeReset0
+
+# ----------
+
+# Test the ResetEither primitive
+# (Verilog output differs from the Bluesim output only in the time0 $display,
+# which Verilog lacks)
+test_veri_only_bsv ResetEither sysResetEither.v.out.expected
+test_c_only_bsv ResetEither
+
+# ----------
+
+# Test output resets by wrapping InitialResetTest in another module,
+# which just exports the reset -- output should be the same as before
+test_c_veri_bsv_multi OutputReset sysOutputReset {mkOutputReset_Sub} sysInitialResetTest.out.expected
+
+# ----------
+
+# Test how multiple resets for a rule affect the $displays
+test_c_veri_bsv_separately MultipleResetsForRule
+
+# Test the warning message
+if { $vtest == 1 } {
+compare_file MultipleResetsForRule.bsv.bsc-vcomp-out
+}
+
+# ----------
+
+# Test messages for boundary resets of methods
+
+if { $vtest == 1 } {
+compile_verilog_pass Boundary_Method_MissingReset.bsv
+compare_file Boundary_Method_MissingReset.bsv.bsc-vcomp-out
+
+compile_verilog_pass Boundary_Method_MultipleReset.bsv
+compare_file Boundary_Method_MultipleReset.bsv.bsc-vcomp-out
+
+compile_verilog_pass Boundary_Method_MultipleReset_SomeMissing.bsv
+compare_file Boundary_Method_MultipleReset_SomeMissing.bsv.bsc-vcomp-out
+
+compile_verilog_pass Boundary_Method_MultipleReset_AllMissing.bsv
+compare_file Boundary_Method_MultipleReset_AllMissing.bsv.bsc-vcomp-out
+}
+
+# ----------
+
+# Test the handling of an exported reset which is sync'd to a clock
+# for which there is no boundary clock in the same domain
+# (User should get a warning and the clock should be "no_clock")
+compile_verilog_pass_warning \
+    OutputReset_NoBoundaryClock.bsv G0051 1 {} {-dATS}
+if {$vtest} {
+    # look for clocked by "no_clock"
+    find_regexp OutputReset_NoBoundaryClock.bsv.bsc-vcomp-out \
+	{reset rst_out\(RST_N_rst_out\) clocked_by\(no_clock\)}
+}
+
+# Test when the specific clock associated with an exported reset is
+# not in the boundary, but there exists a boundary clock in the same domain
+# (User should get no warning and the same-family clock should be chosen)
+compile_verilog_pass OutputReset_BoundaryClockInSameFamily.bsv {} {-dATS}
+if {$vtest} {
+    no_warnings OutputReset_BoundaryClockInSameFamily.bsv.bsc-vcomp-out
+    # look for clocked by "clk_out"
+    find_regexp OutputReset_BoundaryClockInSameFamily.bsv.bsc-vcomp-out \
+	{reset rst_out\(RST_N_rst_out\) clocked_by\(clk_out\)}
+}
+
+# ----------
+
+# Test that when a reset is connected to a submod arg, and the reset
+# has an associated domain and the submod has an associated domain,
+# that BSC checks that the domains are the same
+
+# Reset used with two clocks in the same family is OK
+# (clocks and reset created from an import BVI)
+compile_verilog_pass CheckResetClockPass1.bsv
+
+# Check that if the import-BVI clocks are not the same family,
+# that BSC gives an error
+# XXX the error message needs much improvement! (mod name, positions)
+compile_verilog_fail_error CheckResetClockFail1.bsv G0042
+
+# Same as the original test, but the two clocks are created by
+# using a submodule to make a new (gated) clock
+compile_verilog_pass CheckResetClockPass2.bsv
+
+# ----------
+
+# Test the deriving of the associated clock for input resets to a
+# synthesized module
+
+# Two submods with clocks in the same domain should be OK
+# (and a boundary clock in that domain should be marked in the VModInfo)
+compile_verilog_pass DeriveResetClock_SubModTwoArgsSameDomain.bsv {} {-dATS}
+if {$vtest} {
+    no_warnings DeriveResetClock_SubModTwoArgsSameDomain.bsv.bsc-vcomp-out
+    # look for clocked by either "default_clock" or "c2"
+    find_regexp DeriveResetClock_SubModTwoArgsSameDomain.bsv.bsc-vcomp-out \
+	{reset r2\(RST_N_r2\) clocked_by\((default_clock|c2)\)}
+}
+
+# If the reset is used in different domains, it is an error
+# (specific error for different domains on the same submod)
+compile_verilog_fail_error DeriveResetClock_SubModTwoArgsDiffDomain.bsv G0075
+
+# Same tests as above, but rather than two arguments on the same submodule,
+# these test consistency between arguments on two submodules
+compile_verilog_pass DeriveResetClock_TwoSubModArgsSameDomain.bsv {} {-dATS}
+if {$vtest} {
+    no_warnings DeriveResetClock_TwoSubModArgsSameDomain.bsv.bsc-vcomp-out
+    # look for clocked by "default_clock"
+    find_regexp DeriveResetClock_TwoSubModArgsSameDomain.bsv.bsc-vcomp-out \
+	{reset rst\(RST_N_rst\) clocked_by\(default_clock\)}
+}
+
+# And for the failure case
+# XXX error needs work
+compile_verilog_fail_error DeriveResetClock_TwoSubModArgsDiffDomain.bsv G0042
+
+# Test that a warning is issued if there is no boundary reset in the same
+# domain for this 
+compile_verilog_pass_warning \
+    DeriveResetClock_NoBoundaryClock.bsv G0076 1 {} {-dATS}
+if {$vtest} {
+    # look for clocked by "no_clock"
+    find_regexp DeriveResetClock_NoBoundaryClock.bsv.bsc-vcomp-out \
+	{reset rst\(RST_N_rst\) clocked_by\(no_clock\)}
+}
+
+# Test that if the specific clock is not in the boundary, but that there is
+# a boundary clock in the same domain, that it is chosen.
+compile_verilog_pass DeriveResetClock_BoundaryClockInSameFamily.bsv {} {-dATS}
+if {$vtest} {
+    no_warnings DeriveResetClock_BoundaryClockInSameFamily.bsv.bsc-vcomp-out
+    # look for clocked by "c"
+    find_regexp DeriveResetClock_BoundaryClockInSameFamily.bsv.bsc-vcomp-out \
+	{reset rst_in\(RST_N_rst_in\) clocked_by\(c\)}
+}
+
+# Test that unused input resets get "no_clock"
+compile_verilog_pass DeriveResetClock_Unused.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings DeriveResetClock_Unused.bsv.bsc-vcomp-out
+    # look for clocked by "no_clock"
+    find_regexp DeriveResetClock_Unused.bsv.bsc-vcomp-out \
+	{reset r2\(RST_N_r2\) clocked_by\(no_clock\)}
+}
+
+# Test that input resets used, but in "no_clock" contexts, get no "no_clock"
+compile_verilog_pass DeriveResetClock_SubModClockedByNoClock.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings DeriveResetClock_SubModClockedByNoClock.bsv.bsc-vcomp-out
+    # look for clocked by "no_clock"
+    find_regexp DeriveResetClock_SubModClockedByNoClock.bsv.bsc-vcomp-out \
+	{reset r2\(RST_N_r2\) clocked_by\(no_clock\)}
+}
+
+# Same as above, but test that multiple "no_clock" contexts are OK
+compile_verilog_pass DeriveResetClock_TwoSubModArgNoClock.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings DeriveResetClock_TwoSubModArgNoClock.bsv.bsc-vcomp-out
+    # look for clocked by "no_clock"
+    find_regexp DeriveResetClock_TwoSubModArgNoClock.bsv.bsc-vcomp-out \
+	{reset r2\(RST_N_r2\) clocked_by\(no_clock\)}
+}
+
+# Test that "no_clock" contexts are ok even when another context fixes the
+# clock domain (and the reset should be marked with that domain)
+compile_verilog_pass \
+    DeriveResetClock_OneSubModNoClockOneSubModWithClock.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings \
+	DeriveResetClock_OneSubModNoClockOneSubModWithClock.bsv.bsc-vcomp-out
+    # look for clocked by "default_clock"
+    find_regexp \
+	DeriveResetClock_OneSubModNoClockOneSubModWithClock.bsv.bsc-vcomp-out \
+	{reset r2\(RST_N_r2\) clocked_by\(default_clock\)}
+}
+
+# Tests for when an output reset is defined directly as an input reset.
+# When the input reset's associated clock is deduced, the output reset
+# should have the same associated domain.
+compile_verilog_pass \
+    DeriveResetClock_InputOutputResetUsedInSubmod.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings DeriveResetClock_InputOutputResetUsedInSubmod.bsv.bsc-vcomp-out
+    # look for clocked by "c2"
+    find_regexp \
+	DeriveResetClock_InputOutputResetUsedInSubmod.bsv.bsc-vcomp-out \
+	{reset rst_in\(RST_N_rst_in\) clocked_by\(c2\)}
+}
+
+# When an output reset is an input reset, but the input reset is otherwise
+# unused, what should happen to the VModInfo?  At best, it should be
+# recorded that the input and output resets have the same clock, but it
+# can be anything.  At least we ought to warn, which we do not!
+compile_verilog_pass DeriveResetClock_InputOutputResetUnused.bsv {} {-dATS}
+if {$vtest == 1} {
+    # XXX we ought to have a warning
+    no_warnings DeriveResetClock_InputOutputResetUnused.bsv.bsc-vcomp-out
+    # look for clocked by "no_clock" in both places
+    find_regexp DeriveResetClock_InputOutputResetUnused.bsv.bsc-vcomp-out \
+	{reset rst_in\(RST_N_rst_in\) clocked_by\(no_clock\)}
+    find_regexp DeriveResetClock_InputOutputResetUnused.bsv.bsc-vcomp-out \
+	{reset rst_out\(RST_N_rst_out\) clocked_by\(no_clock\)}
+}
+
+# ----------
+
+# Test the "clocked_by" attribute
+
+# Test that "no_clock" resets can be used in multiple domains
+compile_verilog_pass ClockedBy_NoClock_TwoSubModArgsDiffDomain.bsv
+
+# Test that "default_clock" is properly interpreted
+compile_verilog_pass ClockedBy_DefaultClock_RightDomain.bsv
+compile_verilog_fail_error ClockedBy_DefaultClock_WrongDomain.bsv G0042
+
+# Test that a bad name is detected
+compile_verilog_fail_error ClockedBy_BadName.bsv P0196
+
+# Test that named input clocks are properly interpreted
+compile_verilog_pass ClockedBy_NamedClock_RightDomain.bsv
+compile_verilog_fail_error ClockedBy_NamedClock_WrongDomain.bsv G0042
+
+# ----------
+
+# Test that when a module argument gets the default reset and
+# there is no default reset, that it gets no_reset
+
+compile_verilog_pass NoDefaultReset_Port.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings NoDefaultReset_Port.bsv.bsc-vcomp-out
+    find_regexp NoDefaultReset_Port.bsv.bsc-vcomp-out \
+	{port \(p, \[\]\) clocked_by \(default_clock\) reset_by \(no_reset\)}
+}
+
+compile_verilog_pass NoDefaultReset_Inout.bsv {} {-dATS}
+if {$vtest == 1} {
+    no_warnings NoDefaultReset_Inout.bsv.bsc-vcomp-out
+    find_regexp NoDefaultReset_Inout.bsv.bsc-vcomp-out \
+	{inoutarg io clocked_by \(default_clock\) reset_by \(no_reset\)}
+}
+
+# ----------
+

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Ambg.bs
+Error: "Ambg.bs", line 63, column 19: (T0003)
+  Unbound constructor `Maybe'

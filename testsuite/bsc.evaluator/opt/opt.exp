@@ -1,0 +1,50 @@
+test_c_veri_bsv ConcatOpt
+test_c_veri_bsv NegInvOpts
+
+# test for Bug 1667 (PrimAnd, PrimOr, PrimXOr applied to concats)
+test_c_veri_bsv ConcatOpt2
+if { $vtest == 1 } {
+find_n_strings sysConcatOpt2.v \
+    {assign rg$D_IN = 48'h2AAA2AAA2AAA ;} 1
+}
+
+# test that the optimization above (for Bug 1667) splits constants correctly
+test_c_veri_bsv_modules_options ConcatOpt3 {} {-unspecified-to A} \
+    sysConcatOpt3-toA.out.expected
+touch ConcatOpt3.bsv
+test_c_veri_bsv_modules_options ConcatOpt3 {} {-unspecified-to 0} \
+    sysConcatOpt3-to0.out.expected
+
+# test that x < 0 turns into a sign-bit test
+compile_verilog_pass SLTZero.bsv
+compare_verilog mkSLTZero.v
+
+# test that x <= -1 turns into a sign-bit test
+compile_verilog_pass LTEMinusOne.bsv
+compare_verilog mkLTEMinusOne.v
+
+# test bit-vector update optimizations
+compile_verilog_pass ReplaceBitOpt.bsv
+compare_verilog mkReplaceBitOpt.v
+compile_verilog_pass BigReplaceBitOpt.bsv
+compare_verilog mkBigReplaceBitOpt.v
+compile_verilog_pass BigRangeUpdate.bsv
+compare_verilog mkBigRangeUpdate.v
+
+# test XOR constant optimizations
+compile_verilog_pass BigXor.bsv
+compare_verilog mkBigXor.v
+compile_verilog_pass BigXor2.bsv
+compare_verilog mkBigXor2.v
+
+# test optimization of shifts of Bit#(1)-sized values
+compile_verilog_pass ShiftBit1.bsv
+compare_verilog mkShiftBit1.v
+
+# test PrimEQ of constant and nested if-then-else of constants
+compile_verilog_pass EnumCompareWithConstant.bsv
+if { $vtest == 1 } {
+    find_n_strings sysEnumCompareWithConstant.v \
+	{if (rg == 3'd3) $display("E3")} 1
+}
+

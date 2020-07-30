@@ -1,0 +1,3 @@
+compile_fail EUnboundTyVar1.bs
+compare_file EUnboundTyVar1.bs.bsc-out
+

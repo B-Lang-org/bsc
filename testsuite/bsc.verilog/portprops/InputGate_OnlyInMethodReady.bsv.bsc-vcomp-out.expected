@@ -1,0 +1,17 @@
+checking package dependencies
+compiling InputGate_OnlyInMethodReady.bsv
+code generation for sysInputGate_OnlyInMethodReady starts
+=== IOproperties:
+Name                         I/O  size props
+RDY_set                        O     1
+CLK                            I     1 clock
+CLK_GATE                       I     1
+RST_N                          I     1 reset
+set_b                          I     1 reg
+EN_set                         I     1
+
+
+-----
+
+Verilog file created: sysInputGate_OnlyInMethodReady.v
+All packages are up to date.

@@ -1,0 +1,72 @@
+Data Matched counter =          0 Value = 00000001
+Data Matched counter =          1 Value = 80000057
+Data Matched counter =          2 Value = c000007c
+Data Matched counter =          3 Value = 6000003e
+Data Matched counter =          4 Value = 3000001f
+Data Matched counter =          5 Value = 98000058
+Data Matched counter =          6 Value = 4c00002c
+Data Matched counter =          7 Value = 26000016
+Data Matched counter =          8 Value = 1300000b
+Data Matched counter =          9 Value = 89800052
+Data Matched counter =         10 Value = 44c00029
+Data Matched counter =         11 Value = a2600043
+Data Matched counter =         12 Value = d1300076
+Data Matched counter =         13 Value = 6898003b
+Data Matched counter =         14 Value = b44c004a
+Data Matched counter =         15 Value = 5a260025
+Data Matched counter =         16 Value = ad130045
+Data Matched counter =         17 Value = d6898075
+Data Matched counter =         18 Value = eb44c06d
+Data Matched counter =         19 Value = f5a26061
+Data Matched counter =         20 Value = fad13067
+Data Matched counter =         21 Value = fd689864
+Data Matched counter =         22 Value = 7eb44c32
+Data Matched counter =         23 Value = 3f5a2619
+Data Matched counter =         24 Value = 9fad135b
+Data Matched counter =         25 Value = cfd689fa
+Data Matched counter =         26 Value = 67eb44fd
+Data Matched counter =         27 Value = b3f5a229
+Data Matched counter =         28 Value = d9fad143
+Data Matched counter =         29 Value = ecfd68f6
+Data Matched counter =         30 Value = 767eb47b
+Data Matched counter =         31 Value = bb3f5a6a
+Data Matched counter =         33 Value = abcddcba
+Data Matched counter =         34 Value = 55e6ee5d
+Data Matched counter =         35 Value = aaf37779
+Data Matched counter =         36 Value = d579bbeb
+Data Matched counter =         37 Value = eabcdda2
+Data Matched counter =         38 Value = 755e6ed1
+Data Matched counter =         39 Value = baaf373f
+Data Matched counter =         40 Value = dd579bc8
+Data Matched counter =         41 Value = 6eabcde4
+Data Matched counter =         42 Value = 3755e6f2
+Data Matched counter =         43 Value = 1baaf379
+Data Matched counter =         44 Value = 8dd579eb
+Data Matched counter =         45 Value = c6eabca2
+Data Matched counter =         46 Value = 63755e51
+Data Matched counter =         47 Value = b1baaf7f
+Data Matched counter =         48 Value = d8dd57e8
+Data Matched counter =         49 Value = 6c6eabf4
+Data Matched counter =         50 Value = 363755fa
+Data Matched counter =         51 Value = 1b1baafd
+Data Matched counter =         52 Value = 8d8dd529
+Data Matched counter =         53 Value = c6c6eac3
+Data Matched counter =         54 Value = e3637536
+Data Matched counter =         55 Value = 71b1ba9b
+Data Matched counter =         56 Value = b8d8dd1a
+Data Matched counter =         57 Value = 5c6c6e8d
+Data Matched counter =         58 Value = ae363711
+Data Matched counter =         59 Value = d71b1bdf
+Data Matched counter =         60 Value = eb8d8db8
+Data Matched counter =         61 Value = 75c6c6dc
+Data Matched counter =         62 Value = 3ae3636e
+Data Matched counter =         63 Value = 1d71b1b7
+Data Matched counter =         64 Value = 8eb8d88c
+Simulation Passes
+Final state:
+top:
+  counter = 0x00000042
+  exp_value = 0x5d9fad35
+  exp_value1 = 0x475c6c46
+  fail = False
+  the_sr_r = 0x475c6c46

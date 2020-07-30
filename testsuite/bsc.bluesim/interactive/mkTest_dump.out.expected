@@ -1,0 +1,190 @@
+There is no data being dumped.
+                  10:     0
+                  20:     1
+                  30:     2
+                  40:     3
+                  50:     4
+                  60:     5
+                  70:     6
+                  80:     7
+                  90:     8
+                 100:     9
+Rule dumping is now on.
+State dumping is now on.
+Rule firings are being dumped.
+State values are being dumped.
+Initial State:
+top:
+  count = 0x000a
+                 110:    10
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x000b
+                 120:    11
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x000c
+                 130:    12
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x000d
+                 140:    13
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x000e
+                 150:    14
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x000f
+                 160:    15
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x0010
+                 170:    16
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x0011
+                 180:    17
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x0012
+                 190:    18
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x0013
+                 200:    19
+Selected rules:
+top:
+  incr fired
+State:
+top:
+  count = 0x0014
+State dumping is now off.
+Cycle dumping is now on.
+Cycle counts are being dumped.
+Rule firings are being dumped.
+/CLK @ 210 (cycle 22)
+                 210:    20
+Selected rules:
+top:
+  incr fired
+/CLK @ 220 (cycle 23)
+                 220:    21
+Selected rules:
+top:
+  incr fired
+/CLK @ 230 (cycle 24)
+                 230:    22
+Selected rules:
+top:
+  incr fired
+/CLK @ 240 (cycle 25)
+                 240:    23
+Selected rules:
+top:
+  incr fired
+/CLK @ 250 (cycle 26)
+                 250:    24
+Selected rules:
+top:
+  incr fired
+/CLK @ 260 (cycle 27)
+                 260:    25
+Selected rules:
+top:
+  incr fired
+/CLK @ 270 (cycle 28)
+                 270:    26
+Selected rules:
+top:
+  incr fired
+/CLK @ 280 (cycle 29)
+                 280:    27
+Selected rules:
+top:
+  incr fired
+/CLK @ 290 (cycle 30)
+                 290:    28
+Selected rules:
+top:
+  incr fired
+/CLK @ 300 (cycle 31)
+                 300:    29
+Selected rules:
+top:
+  incr fired
+All dumping is now off.
+There is no data being dumped.
+                 310:    30
+                 320:    31
+                 330:    32
+                 340:    33
+                 350:    34
+                 360:    35
+                 370:    36
+                 380:    37
+                 390:    38
+                 400:    39
+VCD waveforms are now being dumped to file 'test.vcd'.
+VCD waveforms are being dumped to file 'test.vcd'.
+                 410:    40
+                 420:    41
+                 430:    42
+                 440:    43
+                 450:    44
+                 460:    45
+                 470:    46
+                 480:    47
+                 490:    48
+                 500:    49
+VCD waveform dumping is now off.
+There is no data being dumped.
+                 510:    50
+                 520:    51
+                 530:    52
+                 540:    53
+                 550:    54
+                 560:    55
+                 570:    56
+                 580:    57
+                 590:    58
+                 600:    59
+VCD waveforms are now being dumped to file 'test.vcd'.
+VCD waveforms are being dumped to file 'test.vcd'.
+                 610:    60
+                 620:    61
+                 630:    62
+                 640:    63
+                 650:    64
+                 660:    65
+                 670:    66
+                 680:    67
+                 690:    68
+                 700:    69

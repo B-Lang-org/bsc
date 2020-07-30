@@ -1,0 +1,88 @@
+checking package dependencies
+compiling NoInline.bsv
+code generation for sysNoInline starts
+=== ATS:
+APackage sysNoInline
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-unused-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+-- AP local definitions
+fnNoInline_PLUS_8___d2 :: Bit 8;
+fnNoInline_PLUS_8___d2  = x__h46 + 8'd8;
+-- IdProp fnNoInline_PLUS_8___d2[IdP_from_rhs]
+x__h46 :: Bit 8;
+x__h46  = NoInline.fnNoInline 8'd0;
+-- IdProp x__h46[IdP_keep]
+-- AP rules
+rule RL_r "r":
+ when 1'd1
+  ==> { Prelude.$display fnNoInline_PLUS_8___d2; }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysNoInline.v
+code generation for module_fnNoInline starts
+=== ATS:
+APackage module_fnNoInline -- function
+-- APackage parameters
+[]
+-- APackage arguments
+-- APackage wire info
+clock info 
+reset info 
+arg info  []
+-- APackage clock domains
+[]
+-- APackage resets
+[]
+-- AP state elements
+-- AP local definitions
+-- AP rules
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP  apkg_interface def module_fnNoInline
+--AIDef fnNoInline
+fnNoInline_x :: Bit 8;
+fnNoInline :: Bit 8;
+fnNoInline  = fnNoInline_x + 8'd1;
+pred:  RDY_fnNoInline
+clock domain = Just (-1), resets = []
+method (fnNoInline, [])fnNoInline((fnNoInline_x, [])) clocked_by (no_clock) reset_by (no_reset);
+
+-- AP  apkg_interface def module_fnNoInline
+--AIDef RDY_fnNoInline
+RDY_fnNoInline :: Bit 1;
+RDY_fnNoInline  = 1'd1;
+-- IdProp RDY_fnNoInline[IdPReady]
+pred:  1'b1
+clock domain = Just (-1), resets = []
+method (RDY_fnNoInline, [])RDY_fnNoInline clocked_by (no_clock) reset_by (no_reset);
+
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: module_fnNoInline.v
+All packages are up to date.

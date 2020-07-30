@@ -1,0 +1,9 @@
+checking package dependencies
+compiling NegativeExp.bsv
+code generation for sysNegativeExp starts
+Error: "NegativeExp.bsv", line 4, column 18: (G0060)
+  Integer exponentiation to a negative power occurred during elaboration
+  During elaboration of the body of rule `test' at "NegativeExp.bsv", line 3,
+  column 9.
+  During elaboration of `sysNegativeExp' at "NegativeExp.bsv", line 2, column
+  8.

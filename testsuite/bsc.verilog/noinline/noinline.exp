@@ -1,0 +1,81 @@
+# ----------
+# Tests for noinline functions
+
+# -----
+
+# basic test?
+test_c_veri_bs_modules NoInline {module_testAdd}
+
+# basic test for noinline function of no arguments
+test_c_veri_bsv NoInline_NoArgs
+
+# -----
+
+# test for bug 488
+# (This also tests for the naming of noinline arguments, as mentioned
+# in bug 1395.)
+
+compile_verilog_pass MulSize.bsv
+# The naming of the arguments in the RTL is checked here
+compare_verilog module_test.v
+
+# Also test that the arguments are stored in the struct declaration,
+# so that things like the "workstation" will report the proper argument
+# names for the interface, etc
+
+if { ($vtest == 1) && [do_internal_checks] } {
+find_regexp [make_dumpbo_output_name MulSize.bo] \
+    {\{\-\# arg_names \= \[a\,\s*b\,\s*c\] \#\-\}}
+}
+
+# Test that the naming of arguments works in Classic when there are less
+# patterns than there are argument types
+test_c_veri_bs_modules \
+  NoInline_LessPatternsThanArgs module_testLessPatterns
+
+# Test in BSV for less arg names than the type, using a typedef and using
+# direct "function" syntax
+
+test_c_veri_bsv_modules \
+  NoInline_LessPatternsThanArgs_BSV_Function \
+  module_testLessPatternsBSVFunction \
+  sysNoInline_LessPatternsThanArgs.out.expected
+
+# The typedef fails because BSC doesn't expand the synonym before checking
+# to see if the result type is in Bits, so the user gets a proviso error
+# (bug 1466)
+compile_verilog_pass_bug_error \
+  NoInline_LessPatternsThanArgs_BSV_TypeDef.bsv T0031
+
+# -----
+
+# test for noinline in rule conditions
+# (was a codegen issue for Bluesim)
+test_c_veri_bsv_modules NoInlineInSched {module_inv}
+
+# -----
+
+# Test for error conditions when trying to synthesize functions
+# whose types cannot be synthesized.
+
+if { $vtest == 1 } {
+
+compile_verilog_fail_error NoInline_ArgNotInBits.bsv T0043
+# compare for good measure, since the error has a configurable string
+compare_file NoInline_ArgNotInBits.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error NoInline_ResNotInBits.bsv T0043
+# compare for good measure, since the error has a configurable string
+compare_file NoInline_ResNotInBits.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error NoInline_ResAction.bsv T0109
+
+compile_verilog_fail_error NoInline_ResActionValue.bsv T0109
+
+compile_verilog_fail NoInline_PredNotReducible.bsv T0110
+
+compile_verilog_pass NoInline_PredReducible.bsv
+
+compile_verilog_fail NoInline_Polymorphic.bsv T0111
+}
+

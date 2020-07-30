@@ -1,0 +1,21 @@
+package Bug45aTest (sysBug45aTest) where
+
+import Bug45a
+
+{-# verilog sysBug45aTest #-}
+sysBug45aTest :: Module (Empty)
+sysBug45aTest = 
+  module
+   b45 :: Test <- sysBug45a
+   counter :: Reg (Bit 4) <- mkReg 0
+
+   rules
+     when (counter < 10) ==>
+       action
+         b45.condEnq (True)
+     when (True) ==>
+       action
+         counter := counter + 1
+     when (counter == 5) ==>
+       action
+	 $finish(0)

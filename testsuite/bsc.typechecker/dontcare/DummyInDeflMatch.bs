@@ -1,0 +1,10 @@
+package DummyInDeflMatch () where
+
+x :: (Bool, Bool)
+x = (True, True)
+
+dummyInDefl :: Bit 12
+dummyInDefl =
+    let (_,a) = x
+    in _
+

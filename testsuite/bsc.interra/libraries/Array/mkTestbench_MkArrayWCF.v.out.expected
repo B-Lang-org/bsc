@@ -1,0 +1,19 @@
+Writing Value 0, at location   0
+Writing Value 1, at location   1
+Writing Value 2, at location   2
+Writing Value 3, at location   3
+Writing Value 4, at location   4
+Writing Value 5, at location   5
+Writing Value 6, at location   6
+Writing Value 7, at location   7
+Cycle Number =   8, Value Read =   0, Index Provided = 0
+Cycle Number =   9, Value Read =   0, Index Provided = 1
+Cycle Number =  10, Value Read =   0, Index Provided = 2
+Cycle Number =  11, Value Read =   1, Index Provided = 3
+Cycle Number =  12, Value Read =   2, Index Provided = 4
+Cycle Number =  13, Value Read =   3, Index Provided = 5
+Cycle Number =  14, Value Read =   4, Index Provided = 6
+Cycle Number =  15, Value Read =   5, Index Provided = 7
+Cycle Number =  16, Value Read =   6, Index Provided = 0
+Cycle Number =  17, Value Read =   7, Index Provided = 1
+Simulation Passes

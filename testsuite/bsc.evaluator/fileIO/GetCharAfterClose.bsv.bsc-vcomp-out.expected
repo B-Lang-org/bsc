@@ -1,0 +1,9 @@
+checking package dependencies
+compiling GetCharAfterClose.bsv
+code generation for sysGetCharAfterClose starts
+Error: "GetCharAfterClose.bsv", line 13, column 9: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `c' at "GetCharAfterClose.bsv", line 13, column 4.
+  During elaboration of `sysGetCharAfterClose' at "GetCharAfterClose.bsv",
+  line 2, column 8.

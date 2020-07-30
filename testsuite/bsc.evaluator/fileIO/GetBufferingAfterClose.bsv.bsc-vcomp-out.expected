@@ -1,0 +1,10 @@
+checking package dependencies
+compiling GetBufferingAfterClose.bsv
+code generation for sysGetBufferingAfterClose starts
+Error: "GetBufferingAfterClose.bsv", line 10, column 20: (S0085)
+  Failure during a file handle operation:
+    illegal operation
+  During elaboration of `m' at "GetBufferingAfterClose.bsv", line 10, column
+  15.
+  During elaboration of `sysGetBufferingAfterClose' at
+  "GetBufferingAfterClose.bsv", line 2, column 8.

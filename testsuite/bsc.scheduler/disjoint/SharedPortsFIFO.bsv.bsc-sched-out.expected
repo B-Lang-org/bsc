@@ -1,0 +1,41 @@
+checking package dependencies
+compiling SharedPortsFIFO.bsv
+code generation for sysSharedPortsFIFO starts
+=== schedule:
+parallel: [esposito: [RL_do_enq -> [], RL_do_otherwise -> []]]
+order: [RL_do_enq, RL_do_otherwise]
+
+-----
+
+=== resources:
+[(f.enq, [(f.enq 8'd0, 1)]),
+ (f.i_notFull, [(f.i_notFull, 1)]),
+ (f.notFull, [(f.notFull, 1)]),
+ (rg.read, [(rg.read, 1)]),
+ (rg.write, [(rg.write x__h234, 1), (rg.write x__h261, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysSharedPortsFIFO.sched
+=== Generated schedule for sysSharedPortsFIFO ===
+
+Rule schedule
+-------------
+Rule: do_enq
+Predicate: f.i_notFull
+Blocking rules: (none)
+ 
+Rule: do_otherwise
+Predicate: ! f.notFull
+Blocking rules: (none)
+ 
+Logical execution order: do_enq, do_otherwise
+
+==================================================
+Verilog file created: sysSharedPortsFIFO.v
+All packages are up to date.

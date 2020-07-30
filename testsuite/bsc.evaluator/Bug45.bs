@@ -1,0 +1,96 @@
+package Bug45 ( ) where
+
+import List
+import FIFO
+import FIFOF
+
+-- ===========================================================
+
+type ROBTag = Bit 6
+type IA = Bit 32
+type Value = Bit 32
+type Imm = Bit 16      -- immediate
+
+data MEMOp =  LWop | SWop | LBop | LBUop |
+	      SBop | LHop | LHUop | SHop | LWLop |
+	      LWRop | SWLop | SWRop 
+	      deriving (Eq, Bits)
+
+struct MEMInstr =
+    robTag   :: ROBTag
+    memOp    :: MEMOp
+    base     :: Value
+    offset   :: Imm
+    value    :: Value
+   deriving (Eq, Bits)
+
+struct MEMResult =
+    result     :: Value
+    error      :: Bool 
+   deriving (Eq, Bits)
+
+interface MEMUnit =
+    putMEMOp        :: MEMInstr -> Action
+    updateMEMResult :: ActionValue(ROBTag,MEMResult)
+    commitStore     :: ROBTag -> Action
+    invalidateStore :: ROBTag -> ROBTag -> Action -- second is tail
+
+-- ===========================================================
+
+mkTest :: (Module Empty)
+mkTest =
+    module
+     mem:: (MEMUnit) <- (mkMemUnit)
+
+     rules
+       "Dispatch":
+	 when True
+	   ==> mem.putMEMOp    _
+
+-- ===========================================================
+
+type LSQTag = (Bit 32)
+
+canInsert :: (List (Reg (Maybe (LSQTag,ROBTag, MEMOp, Value, IA)))) -> Bool
+canInsert l =(List.foldl (\x -> (\y -> (y._read == Invalid) || x)) False l)
+
+mkMemUnit :: Module MEMUnit
+mkMemUnit =
+  module
+    let size = 3
+
+    nextTag :: Reg (Bit 32) <- mkReg 0
+    unhandledLQueue :: (FIFO (LSQTag,ROBTag, MEMOp, Value, IA)) <- mkSizedFIFO size
+    unhandledSQueue :: (List (Reg (Maybe (LSQTag,ROBTag, MEMOp, Value, IA)))) <- (mapM (\c -> mkReg (Invalid)) (upto 0 size)) --the bool is error
+    finishedInstr   :: (FIFOF (ROBTag,MEMResult)) <- mkSizedFIFOF size
+
+    interface
+        putMEMOp i = action
+--	                let (loadp,err) = _
+                        let 
+                          (loadp,err) = case (i.memOp) of 
+                                            LWop  -> (True,_)
+                                            LBop  -> (True,_)
+                                            LBUop -> (True,_)
+                                            LHop  -> (True,_)
+                                            LHUop -> (True,_)
+                                            LWLop -> (True,_)
+                                            LWRop -> (True,_)
+                                            SWop  -> (False,((i.base + (signExtend i.offset))[1:0]) /= 0)
+                                            SBop  -> (False,False)
+                                            SHop  -> (False,((i.base + (signExtend i.offset))[0:0]) ==1)
+                                            SWLop -> (False,False)
+                                            SWRop -> (False,False) 
+                        nextTag:=nextTag+1
+                        if (loadp)
+                           then (unhandledLQueue.enq (nextTag._read, (i::MEMInstr).robTag, i.memOp, i.value, i.base + (signExtend i.offset)))
+                           else (finishedInstr.enq ((i::MEMInstr).robTag,(MEMResult {result = _; error = err})))
+				        
+        commitStore robtag = noAction
+
+        updateMEMResult = _
+
+        invalidateStore robtag getTail = noAction
+
+-- ===========================================================
+

@@ -1,0 +1,19 @@
+# -----
+
+# Bluesim expected to work
+test_c_only_bsv Bug1666
+
+# Verilog expected to fail in linking
+#test_veri_only_bsv Bug1666
+compile_verilog_pass_bug Bug1666.bsv {} 1666
+
+# -----
+
+# Bluesim expected to work
+test_c_only_bsv SignedTest
+
+# Verilog expected to fail in linking
+compile_verilog_pass_bug SignedTest.bsv {} 1666
+
+# -----
+

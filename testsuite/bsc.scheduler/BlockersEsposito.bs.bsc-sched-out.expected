@@ -1,0 +1,142 @@
+checking package dependencies
+compiling BlockersEsposito.bs
+code generation for sysBlockersEsposito starts
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim". Conflicts:
+    "Blocker" cannot fire before "Victim": calls to arrs_0.upd vs. arrs_0.upd
+    "Victim" cannot fire before "Blocker": calls to arrs_0.upd vs. arrs_0.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_1". Conflicts:
+    "Blocker" cannot fire before "Victim_1":
+      calls to arrs_1.upd vs. arrs_1.upd
+    "Victim_1" cannot fire before "Blocker":
+      calls to arrs_1.upd vs. arrs_1.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_2". Conflicts:
+    "Blocker" cannot fire before "Victim_2":
+      calls to arrs_2.upd vs. arrs_2.upd
+    "Victim_2" cannot fire before "Blocker":
+      calls to arrs_2.upd vs. arrs_2.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_3". Conflicts:
+    "Blocker" cannot fire before "Victim_3":
+      calls to arrs_3.upd vs. arrs_3.upd
+    "Victim_3" cannot fire before "Blocker":
+      calls to arrs_3.upd vs. arrs_3.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_4". Conflicts:
+    "Blocker" cannot fire before "Victim_4":
+      calls to arrs_4.upd vs. arrs_4.upd
+    "Victim_4" cannot fire before "Blocker":
+      calls to arrs_4.upd vs. arrs_4.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_5". Conflicts:
+    "Blocker" cannot fire before "Victim_5":
+      calls to arrs_5.upd vs. arrs_5.upd
+    "Victim_5" cannot fire before "Blocker":
+      calls to arrs_5.upd vs. arrs_5.upd
+Warning: "BlockersEsposito.bs", line 12, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "Victim_6". Conflicts:
+    "Blocker" cannot fire before "Victim_6":
+      calls to arrs_6.upd vs. arrs_6.upd
+    "Victim_6" cannot fire before "Blocker":
+      calls to arrs_6.upd vs. arrs_6.upd
+=== schedule:
+parallel: [esposito: [RL_Blocker -> [],
+		      RL_Victim -> [RL_Blocker],
+		      RL_Victim_1 -> [RL_Blocker],
+		      RL_Victim_2 -> [RL_Blocker],
+		      RL_Victim_3 -> [RL_Blocker],
+		      RL_Victim_4 -> [RL_Blocker],
+		      RL_Victim_5 -> [RL_Blocker],
+		      RL_Victim_6 -> [RL_Blocker]]]
+order: [RL_Blocker,
+	RL_Victim,
+	RL_Victim_1,
+	RL_Victim_2,
+	RL_Victim_3,
+	RL_Victim_4,
+	RL_Victim_5,
+	RL_Victim_6]
+
+-----
+
+=== resources:
+[(arrs_0.upd, [(arrs_0.upd 1'd1 1'd0, 1), (arrs_0.upd 1'd1 1'd1, 1)]),
+ (arrs_1.upd, [(arrs_1.upd 1'd1 1'd0, 1), (arrs_1.upd 1'd1 1'd1, 1)]),
+ (arrs_2.upd, [(arrs_2.upd 1'd1 1'd0, 1), (arrs_2.upd 1'd1 1'd1, 1)]),
+ (arrs_3.upd, [(arrs_3.upd 1'd1 1'd0, 1), (arrs_3.upd 1'd1 1'd1, 1)]),
+ (arrs_4.upd, [(arrs_4.upd 1'd1 1'd0, 1), (arrs_4.upd 1'd1 1'd1, 1)]),
+ (arrs_5.upd, [(arrs_5.upd 1'd1 1'd0, 1), (arrs_5.upd 1'd1 1'd1, 1)]),
+ (arrs_6.upd, [(arrs_6.upd 1'd1 1'd0, 1), (arrs_6.upd 1'd1 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysBlockersEsposito.sched
+=== Generated schedule for sysBlockersEsposito ===
+
+Rule schedule
+-------------
+Rule: Blocker
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: Victim
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_1
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_2
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_3
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_4
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_5
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: Victim_6
+Predicate: True
+Blocking rules: Blocker
+ 
+Logical execution order: Blocker,
+			 Victim,
+			 Victim_1,
+			 Victim_2,
+			 Victim_3,
+			 Victim_4,
+			 Victim_5,
+			 Victim_6
+
+===================================================
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_1' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_2' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_3' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_4' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_5' can never fire.
+Warning: "BlockersEsposito.bs", line 23, column 19: (G0021)
+  According to the generated schedule, rule `Victim_6' can never fire.
+Verilog file created: sysBlockersEsposito.v
+All packages are up to date.

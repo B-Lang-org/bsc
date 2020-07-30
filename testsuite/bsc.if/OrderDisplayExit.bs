@@ -1,0 +1,60 @@
+package OrderDisplayExit (ArithIO_IFC(..), sysOrderDisplayExit, NumTyp) where
+
+-- The type of numbers used for this OrderDisplayExit are unsigned 51-bit numbers
+type NumTyp = UInt 51
+
+interface ArithIO_IFC aTyp =
+    start  :: aTyp -> aTyp -> Action
+    result :: aTyp
+
+-- The following is an attribute that tells the compiler to generate
+-- separate code for sysOrderDisplayExit
+{-# verilog sysOrderDisplayExit #-}
+sysOrderDisplayExit :: Module (ArithIO_IFC NumTyp)
+sysOrderDisplayExit =
+    module
+	x :: Reg NumTyp
+	x <- mkReg 19
+
+	y :: Reg NumTyp
+	y <- mkReg 5
+
+        rules
+	  "Flip":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+                      action
+                        { $display "MSG 1of6 This one OUTSIDE the -if- statement\n";
+                          $display "MSG 2of6 This one OUTSIDE the -if- statement\n";
+                          $display "MSG 3of6 This one OUTSIDE the -if- statement\n";
+                        }
+                      if (y < 300) then
+                        action
+                          { $display "MSG 4of6 This one INSIDE the -if- statement \n";
+                            $display "MSG 5of6 This one INSIDE the -if- statement \n";
+                            $display "MSG 6of6 This one INSIDE the -if- statement \n";
+                            $finish 0;
+                          }
+                       else
+                        action
+                          { $display "FAIL Should not see this at all\n";
+                            $display "FAIL Should not see this at all\n";
+                            $finish 0;
+                          }
+         
+
+	  "Sub":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start num1 num2 = action
+	                        x := num1
+	                        y := num2
+	                  when y == 0
+	    result = x when y == 0
+
+

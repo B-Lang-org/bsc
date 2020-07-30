@@ -1,0 +1,2 @@
+compile_fail EForeignNotBit.bs
+compare_file EForeignNotBit.bs.bsc-out

@@ -1,0 +1,37 @@
+(10) starting
+(20) input   is 0
+(40) partial is 0
+(50) partial is 0
+(60) partial is 0
+(80) result  is 0
+(90) starting
+(100) input   is 1
+(120) partial is 0
+(130) partial is 1
+(140) partial is 2
+(160) result  is 3
+(170) starting
+(180) input   is 2
+(200) partial is 0
+(210) partial is 2
+(220) partial is 4
+(240) result  is 6
+(250) starting
+(260) input   is 3
+(280) partial is 0
+(290) partial is 3
+(300) partial is 6
+(320) result  is 9
+(330) starting
+(340) input   is 4
+(360) partial is 0
+(370) partial is 4
+(380) partial is 8
+(400) result  is 12
+(410) starting
+(420) input   is 5
+(440) partial is 0
+(450) partial is 5
+(460) partial is 10
+(480) result  is 15
+(490) starting

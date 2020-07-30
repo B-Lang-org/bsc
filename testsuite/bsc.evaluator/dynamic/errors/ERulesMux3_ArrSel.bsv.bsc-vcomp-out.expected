@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ERulesMux3_ArrSel.bsv
+code generation for sysERulesMux3_ArrSel starts
+Error: "ERulesMux3_ArrSel.bsv", line 26, column 4: (G0069)
+  The expression for a rule or rules could not be evaluated. Rules must be
+  determined at compile time and cannot be computed dynamically.
+  During elaboration of `sysERulesMux3_ArrSel' at "ERulesMux3_ArrSel.bsv",
+  line 2, column 8.

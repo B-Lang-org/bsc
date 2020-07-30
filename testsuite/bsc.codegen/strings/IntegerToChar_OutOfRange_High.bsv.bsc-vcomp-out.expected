@@ -1,0 +1,10 @@
+checking package dependencies
+compiling IntegerToChar_OutOfRange_High.bsv
+code generation for sysIntegerToChar_OutOfRange_High starts
+Error: "IntegerToChar_OutOfRange_High.bsv", line 4, column 30: (G0126)
+  Cannot convert the number 256 to a character because it is out of range (0 -
+  255).
+  During elaboration of the body of rule `r' at
+  "IntegerToChar_OutOfRange_High.bsv", line 3, column 9.
+  During elaboration of `sysIntegerToChar_OutOfRange_High' at
+  "IntegerToChar_OutOfRange_High.bsv", line 2, column 8.

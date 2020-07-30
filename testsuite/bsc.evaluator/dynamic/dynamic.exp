@@ -1,0 +1,14 @@
+
+# dynamic selection of integers
+test_c_veri_bsv DynamicInteger
+test_c_veri_bsv DynamicIntegerNested
+
+# dynamic operations on integers
+test_c_veri_bsv DynamicDiv
+test_c_veri_bsv DynamicNeg
+test_c_veri_bsv DynamicNeg2
+test_c_veri_bsv DynamicLT
+test_c_veri_bsv DynamicAdd
+
+# test that fromInteger fails correctly on dynamic integers
+compile_verilog_fail_error DynamicIntegerFail.bsv T0051

@@ -1,0 +1,8 @@
+checking package dependencies
+compiling RuleNameInAddRules2.bsv
+code generation for sysRuleNameInAddRules2 starts
+Error: "RuleNameInAddRules2.bsv", line 11, column 35: (G0054)
+  Rule `r1' was referenced in a rule attribute before it was defined.
+  During elaboration of `a' at "RuleNameInAddRules2.bsv", line 18, column 8.
+  During elaboration of `sysRuleNameInAddRules2' at "RuleNameInAddRules2.bsv",
+  line 2, column 8.

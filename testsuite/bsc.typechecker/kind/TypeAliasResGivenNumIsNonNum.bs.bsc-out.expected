@@ -1,0 +1,4 @@
+checking package dependencies
+compiling TypeAliasResGivenNumIsNonNum.bs
+Error: "TypeAliasResGivenNumIsNonNum.bs", line 3, column 25: (T0026)
+  The value type `Bit a' was found where a numeric type was expected.

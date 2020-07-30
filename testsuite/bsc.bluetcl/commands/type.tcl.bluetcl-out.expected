@@ -1,0 +1,292 @@
+Test Vector Array List PreludeBSV Prelude
+
+Sz
+Alias Test::Sz 9 {position {Test.bsv 7 11}}
+
+T#(a, b)
+Alias {Test::T#(type a, type b)} {Tuple2#(t2, t1)} {position {Test.bsv 9 22}}
+Alias {Test::T#(type a, type b)} {Tuple2#(Int#(32), Bit#(1))} {position {Test.bsv 9 22}}
+
+Bar
+Enum Test::Bar {members {Red Yellow Blue}} {width 2} {position {Test.bsv 11 36}}
+
+Baz#(t, n)
+Struct {Test::Baz#(type t, numeric type n)} polymorphic {members {{Bool f1 {width 1}} {Bit#(sz) f2} {{Vector::Vector#(sz, x)} v}}} {position {Test.bsv 17 18}}
+Struct {Test::Baz#(type t, numeric type n)} {members {{Bool f1 {width 1}} {Bit#(2) f2 {width 2}} {{Vector::Vector#(2, Bool)} v {width 2}}}} {width 5} {position {Test.bsv 17 18}}
+
+TopIFC#(a)
+Interface {Test::TopIFC#(type a)} polymorphic {members {{method {Bool f {ty ty} {{(* ports = ["x", "y"] *)}}}} {interface Clock clk_out {}} {interface Reset rst_out {}} {method {Bool g ty {{(* ports = ["z"] *)}}}} {interface Test::SubIFC#(ty) s {}}}} {position {Test.bsv 19 11}}
+Interface {Test::TopIFC#(type a)} {members {{method {Bool f {Bit#(8) Bit#(8)} {{(* ports = ["x", "y"] *)}}}} {interface Clock clk_out {}} {interface Reset rst_out {}} {method {Bool g Bit#(8) {{(* ports = ["z"] *)}}}} {interface Test::SubIFC#(Bit#(8)) s {}}}} {position {Test.bsv 19 11}}
+
+SubIFC#(a)
+Interface {Test::SubIFC#(type a)} polymorphic {members {{interface Reg#(ty) r {}}}} {position {Test.bsv 27 11}}
+Interface {Test::SubIFC#(type a)} {members {{interface Reg#(Bit#(8)) r {}}}} {position {Test.bsv 27 11}}
+
+IfcWithVec
+Interface Test::IfcWithVec {members {{interface {Vector::Vector#(2, Reg#(Bool))} vec1 {}} {interface {Vector::Vector#(2, Vector::Vector#(2, Reg#(Bool)))} vec2 {}} {interface {Vector::Vector#(2, Vector::Vector#(2, Vector::Vector#(2, Reg#(Bool))))} vec3 {}} {method {{Vector::Vector#(2, Bool)} data1 {} {{(* ports = [] *)}}}} {method {{Vector::Vector#(2, Vector::Vector#(2, Bool))} data2 {} {{(* ports = [] *)}}}} {method {{Vector::Vector#(2, Vector::Vector#(2, Vector::Vector#(2, Bool)))} data3 {} {{(* ports = [] *)}}}} {interface {Vector::Vector#(2, Clock)} clks1 {}} {interface {Vector::Vector#(2, Reset)} rsts1 {}} {interface {Vector::Vector#(2, Inout#(Test::Bar))} ios1 {}}}} {position {Test.bsv 65 11}}
+
+U#(a)
+TaggedUnion {Test::U#(type a)} polymorphic {members {{void F1 {width 0}} {t F2} {List#(t) F3} {{function Bool f(Bool x1)} F4}}} {position {Test.bsv 45 3}}
+TaggedUnion {Test::U#(type a)} {members {{void F1 {width 0}} {Bool F2 {width 1}} {List#(Bool) F3} {{function Bool f(Bool x1)} F4}}} {position {Test.bsv 45 3}}
+
+U2#(a)
+TaggedUnion {Test::U#(type a)} polymorphic {members {{void F1 {width 0}} {t F2} {List#(t) F3} {{function Bool f(Bool x1)} F4}}} {position {Test.bsv 45 3}}
+TaggedUnion {Test::U#(type a)} {members {{void F1 {width 0}} {Bit#(1) F2 {width 1}} {List#(Bit#(1)) F3} {{function Bool f(Bool x1)} F4}}} {position {Test.bsv 45 3}}
+
+Foo#(a)
+Interface {Test::Foo#(type a)} polymorphic {members {{method {Action wset x {{(* ports = ["x1"] *)}}}} {method {x wget {} {{(* ports = [] *)}}}} {method {Bool whas {} {{(* ports = [] *)}}}} {interface Inout#(Bool) io_out {}}}} {position {Test.bsv 53 11}}
+Interface {Test::Foo#(type a)} {members {{method {Action wset Int#(32) {{(* ports = ["x1"] *)}}}} {method {Int#(32) wget {} {{(* ports = [] *)}}}} {method {Bool whas {} {{(* ports = [] *)}}}} {interface Inout#(Bool) io_out {}}}} {position {Test.bsv 53 11}}
+
+Add#(_v100, _v101, _v102)
+Typeclass
+    Add#(numeric type _v100, numeric type _v101, numeric type _v102)
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    Add#(numeric type _v100, numeric type _v101, numeric type _v102)
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    Add#(numeric type _v100, numeric type _v101, numeric type _v102)
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+Typeclass
+    Add#(numeric type _v100, numeric type _v101, numeric type _v102)
+    dependencies
+        (_v100, _v101) determines _v102
+        (_v100, _v102) determines _v101
+        (_v101, _v102) determines _v100
+    coherent
+    members {}
+
+Arith#(a)
+Typeclass
+    Arith#(type a)
+    superclasses
+        Literal#(a)
+    members
+        {function a f(a x1, a x2)} +
+        {function a f(a x1, a x2)} -
+        {function a f(a x1)} negate
+        {function a f(a x1, a x2)} *
+        {function a f(a x1, a x2)} /
+        {function a f(a x1, a x2)} %
+        {function a f(a x1)} abs
+        {function a f(a x1)} signum
+        {function a f(a x1, a x2)} **
+        {function a f(a x1)} exp_e
+        {function a f(a x1)} log
+        {function a f(a x1, a x2)} logb
+        {function a f(a x1)} log2
+        {function a f(a x1)} log10
+    instances
+        Arith#(Bit#(n))
+        Arith#(Fmt)
+        Arith#(Int#(n))
+        Arith#(Integer)
+        Arith#(Real)
+        Arith#(String)
+        Arith#(UInt#(n))
+    position {%/Libraries/Prelude.bs 524 21 {Library Prelude}}
+
+Bits#(a, n)
+Typeclass
+    Bits#(type a, numeric type n)
+    dependencies
+        a determines n
+    coherent
+    members
+        {function Bit#(n) f(a x1)} pack
+        {function a f(Bit#(n) x1)} unpack
+    instances
+        Bits#(Bit#(k), k)
+        Bits#(Bool, 1)
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(File, 32)
+        Bits#(Int#(n), n)
+        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Ordering, 2)
+        Bits#(SaturationMode, 2)
+        Bits#(SvaParam, 33)
+        Bits#(Test::Bar, 2)
+        Bits#(Test::BarSet, 2)
+        Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
+        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(UInt#(n), n)
+        Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
+        Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
+        Bits#(void, 0)
+    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+Typeclass
+    Bits#(type a, numeric type n)
+    dependencies
+        a determines n
+    coherent
+    members
+        {function Bit#(n) f(a x1)} pack
+        {function a f(Bit#(n) x1)} unpack
+    instances
+        Bits#(Bit#(k), k)
+        Bits#(Bool, 1)
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(File, 32)
+        Bits#(Int#(n), n)
+        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Ordering, 2)
+        Bits#(SaturationMode, 2)
+        Bits#(SvaParam, 33)
+        Bits#(Test::Bar, 2)
+        Bits#(Test::BarSet, 2)
+        Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
+        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(UInt#(n), n)
+        Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
+        Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
+        Bits#(void, 0)
+    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+Typeclass
+    Bits#(type a, numeric type n)
+    dependencies
+        a determines n
+    coherent
+    members
+        {function Bit#(n) f(a x1)} pack
+        {function a f(Bit#(n) x1)} unpack
+    instances
+        Bits#(Bit#(k), k)
+        Bits#(Bool, 1)
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(File, 32)
+        Bits#(Int#(n), n)
+        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Ordering, 2)
+        Bits#(SaturationMode, 2)
+        Bits#(SvaParam, 33)
+        Bits#(Test::Bar, 2)
+        Bits#(Test::BarSet, 2)
+        Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
+        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(UInt#(n), n)
+        Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
+        Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
+        Bits#(void, 0)
+    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+Typeclass
+    Bits#(type a, numeric type n)
+    dependencies
+        a determines n
+    coherent
+    members
+        {function Bit#(n) f(a x1)} pack
+        {function a f(Bit#(n) x1)} unpack
+    instances
+        Bits#(Bit#(k), k)
+        Bits#(Bool, 1)
+        Bits#(Either#(a, b), _v100)   provisos (Add#(1, _v103, _v100), Max#(_v101, _v104, _v103), Add#(_v105, _v104, _v103), Add#(_v102, _v101, _v103), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(File, 32)
+        Bits#(Int#(n), n)
+        Bits#(Maybe#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Ordering, 2)
+        Bits#(SaturationMode, 2)
+        Bits#(SvaParam, 33)
+        Bits#(Test::Bar, 2)
+        Bits#(Test::BarSet, 2)
+        Bits#(Test::Baz#(t, _v104), _v103)   provisos (Add#(1, _v100, _v103), Add#(_v104, _v107, _v100), Bits#(t, _v101), Mul#(_v104, _v101, _v107))
+        Bits#(Test::U2#(a), _v100)   provisos (Add#(1, _v103, _v100), Bits#(a, _v103))
+        Bits#(Tuple2#(a, b), _v100)   provisos (Add#(_v101, _v104, _v100), Bits#(b, _v104), Bits#(a, _v101))
+        Bits#(UInt#(n), n)
+        Bits#(Vector::Ascii#(n), _v101)   provisos (Mul#(n, 8, _v101))
+        Bits#(Vector::Vector#(n, a), nsa)   provisos (Mul#(n, sa, nsa), Bits#(a, sa))
+        Bits#(void, 0)
+    position {%/Libraries/Prelude.bs 345 15 {Library Prelude}}
+
+Has_tpl_1#(t, a)
+Typeclass
+    Has_tpl_1#(type t, type a)
+    dependencies
+        t determines a
+    incoherent
+    members
+        {function a f(t x1)} tpl_1
+    instances
+        Has_tpl_1#(Tuple2#(a, b), a)
+        Has_tpl_1#(Tuple3#(a, b, c), a)
+        Has_tpl_1#(Tuple4#(a, b, c, d), a)
+        Has_tpl_1#(Tuple5#(a, b, c, d, e), a)
+        Has_tpl_1#(Tuple6#(a, b, c, d, e, f), a)
+        Has_tpl_1#(Tuple7#(a, b, c, d, e, f, g), a)
+        Has_tpl_1#(Tuple8#(a, b, c, d, e, f, g, h), a)
+    position {%/Libraries/Prelude.bs 3263 17 {Library Prelude}}
+
+Bitify Baz (int, n):
+UNKNOWN
+
+0
+
+
+Bitify Baz (int, 5):
+STRUCT
+Test::Baz#(t, n)
+166
+
+{f1 Bool 1 165} {f2 Bit#(5) 5 160} {v {Vector::Vector#(5, Int#(32))} 160 0}
+Bitify Baz (Bool, 42):
+STRUCT
+Test::Baz#(t, n)
+85
+
+{f1 Bool 1 84} {f2 Bit#(42) 42 42} {v {Vector::Vector#(42, Bool)} 42 0}
+Bitify Baz (BarSet, 12):
+STRUCT
+Test::Baz#(t, n)
+37
+
+{f1 Bool 1 36} {f2 Bit#(12) 12 24} {v {Vector::Vector#(12, Test::BarSet)} 24 0}
+Bitify Vector of Baz (BarSet, 12):
+STRUCT
+Vector#(5,a)
+185
+
+{{_[4]} {Test::Baz#(Test::BarSet, 12)} 37 148} {{_[3]} {Test::Baz#(Test::BarSet, 12)} 37 111} {{_[2]} {Test::Baz#(Test::BarSet, 12)} 37 74} {{_[1]} {Test::Baz#(Test::BarSet, 12)} 37 37} {{_[0]} {Test::Baz#(Test::BarSet, 12)} 37 0}
+Bitify FOO:
+UNKNOWN
+
+0
+
+
+Bitify U2:
+TAGGEDUNION
+Test::U2#(a)
+33
+Test::F1 Test::F2
+{F1 void 0 0} {F2 Int#(32) 32 0}
+Bitify Tuple:
+ALIAS
+Tuple2#(Int#(32), Int#(32))
+0
+
+
+STRUCT
+Tuple2#(a, b)
+64
+
+{tpl_1 Int#(32) 32 32} {tpl_2 Int#(32) 32 0}
+
+Test Vector TaggedUnionPoly Array List PreludeBSV Prelude
+TaggedUnion {TaggedUnionPoly::NSRK#(type n, type s, type r, numeric type k)} polymorphic {members {{{TaggedUnionPoly::Fin#(n, k)} N} {{TaggedUnionPoly::Fin#(s, k)} S} {{TaggedUnionPoly::Fin#(r, k)} R}}} {position {TaggedUnionPoly.bsv 9 3}}
+

@@ -1,0 +1,18 @@
+test_c_veri_bsv InstOrder1
+test_c_veri_bsv InstOrder2
+test_c_veri_bsv FunctionLocation1
+test_c_veri_bsv FunctionLocation2
+test_c_veri_bsv ForLoop1
+test_c_veri_bsv RuleOrder1
+test_c_veri_bsv RuleOrder2
+test_c_veri_bsv RuleOrder3
+test_c_veri_bsv RuleNameClash1
+test_c_veri_bsv RuleNameClash2
+
+# synthesis boundary means Verilog ordering differs
+test_c_only_bsv    MethodOrder1 sysMethodOrder1.c.out.expected
+test_veri_only_bsv MethodOrder1 sysMethodOrder1.v.out.expected
+test_c_only_bsv    MethodOrder2 sysMethodOrder2.c.out.expected
+test_veri_only_bsv MethodOrder2 sysMethodOrder2.v.out.expected
+test_c_only_bsv    MethodOrder3 sysMethodOrder3.c.out.expected
+test_veri_only_bsv MethodOrder3 sysMethodOrder3.v.out.expected

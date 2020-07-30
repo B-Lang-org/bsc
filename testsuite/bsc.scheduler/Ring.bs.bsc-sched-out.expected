@@ -1,0 +1,58 @@
+checking package dependencies
+compiling Ring.bs
+code generation for sysRing starts
+Warning: "Ring.bs", line 8, column 0: (G0009)
+  The scheduling phase created a conflict between the following rules:
+      `RL_r2gets1' and `RL_r1gets3'
+  to break the following cycle:
+      `RL_r2gets1' -> `RL_r1gets3' -> `RL_r3gets2' -> `RL_r2gets1'
+Warning: "Ring.bs", line 8, column 0: (G0010)
+  Rule "r2gets1" was treated as more urgent than "r1gets3". Conflicts:
+    "r2gets1" cannot fire before "r1gets3":
+      dropped cycle (RL_r2gets1 -> RL_r1gets3 -> RL_r3gets2 -> RL_r2gets1)
+    "r1gets3" cannot fire before "r2gets1": calls to r1.write vs. r1.read
+=== schedule:
+parallel: [esposito: [RL_r2gets1 -> [], RL_r3gets2 -> [], RL_r1gets3 -> [RL_r2gets1]]]
+order: [RL_r1gets3, RL_r3gets2, RL_r2gets1]
+
+-----
+
+=== resources:
+[(r1.read, [(r1.read, 1)]),
+ (r1.write, [(r1.write r3_PLUS_1___d6, 1)]),
+ (r2.read, [(r2.read, 1)]),
+ (r2.write, [(r2.write r1_PLUS_1___d2, 1)]),
+ (r3.read, [(r3.read, 1)]),
+ (r3.write, [(r3.write r2_PLUS_1___d4, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysRing.sched
+=== Generated schedule for sysRing ===
+
+Rule schedule
+-------------
+Rule: r2gets1
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: r3gets2
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: r1gets3
+Predicate: True
+Blocking rules: r2gets1
+ 
+Logical execution order: r1gets3, r3gets2, r2gets1
+
+=======================================
+Warning: "Ring.bs", line 22, column 12: (G0021)
+  According to the generated schedule, rule `r1gets3' can never fire.
+Verilog file created: sysRing.v
+All packages are up to date.

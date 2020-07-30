@@ -1,0 +1,16 @@
+package RuleNameWithSpace where
+
+{-# properties sysRuleNameWithSpace = { verilog } #-}
+
+sysRuleNameWithSpace :: Module Empty
+sysRuleNameWithSpace =
+    module
+      rg :: Reg (UInt 16) <- mkRegU
+
+      -- Classic doesn't support scheduling attributes
+      rules
+	"r1":  when True  ==> action { rg := (rg + 1); }
+	"r2 with space":  when True  ==> action { rg := (rg + 2); }
+
+      interface {}
+

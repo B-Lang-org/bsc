@@ -1,0 +1,7 @@
+package ConstructorDot(f, f') where
+
+f :: Bool -> Maybe (Bit 1)
+f = Valid · pack
+
+f' :: Bool -> Maybe (Bit 1)
+f' x = Valid (pack x)

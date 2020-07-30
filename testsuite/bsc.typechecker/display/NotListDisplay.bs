@@ -1,0 +1,6 @@
+package NotListDisplay() where
+
+import List
+
+test :: (Bits a sa) => (List a) -> Action
+test l = $display l

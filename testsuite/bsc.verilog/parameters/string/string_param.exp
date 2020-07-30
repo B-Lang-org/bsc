@@ -1,0 +1,17 @@
+test_c_veri_bsv_modules StringParam mkStringParamSub ""
+test_c_veri_bsv_modules StringParamCond mkStringParamCondSub ""
+
+# Bug 1547
+test_c_veri_bsv_modules StringConcat1 "" ""
+test_c_veri_bsv_modules StringConcat2 "" ""
+
+test_c_veri_bsv_modules TwoLevelString {bsvDisplayString mkStringPassThrough}
+
+# string argument without parameter keyword
+compile_object_fail_error StringParamErr1.bsv G0120
+
+# port of type string in import "BVI"
+# fails with bad proviso error message, but shouldn't compile regardless
+compile_object_fail StringParamErr2.bsv 
+
+

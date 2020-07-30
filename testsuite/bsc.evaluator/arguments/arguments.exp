@@ -1,0 +1,9 @@
+
+# make sure modules with ports and a CAF compile
+# breadcrumb for future CAF optimizations
+compile_verilog_pass LetPortArg.bs
+compile_verilog_pass LetPortArg.bsv
+
+# Test that port arguments with implicit conditions are caught
+compile_verilog_fail_error PortArg_ImplCond.bsv G0081
+

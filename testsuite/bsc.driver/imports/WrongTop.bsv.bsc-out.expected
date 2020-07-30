@@ -1,0 +1,5 @@
+checking package dependencies
+compiling WrongTop.bsv
+Error: Unknown position: (S0090)
+  Expected to find package `RightPkg' in the file `./RightPkg.bo', found
+  `WrongPkg'.

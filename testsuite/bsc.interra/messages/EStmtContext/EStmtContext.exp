@@ -1,0 +1,4 @@
+compile_fail_error EStmtContext1.bs T0045
+
+
+# compare_file EStmtContext1.bs.bsc-out

@@ -1,0 +1,15 @@
+package EBigLit3(sysEBigLit3) where
+
+expbase :: Integer
+expbase = 2
+
+maxVal :: (Bit n)
+-- the error is here, but the problem is reported at line 4
+-- because it is very hard to give a good location to a computed
+-- integer literal
+maxVal = fromInteger(expbase ** (valueOf n))
+
+sysEBigLit3 :: Module Empty
+sysEBigLit3 =
+  module
+    r :: Reg (Bit 4) <- mkReg maxVal

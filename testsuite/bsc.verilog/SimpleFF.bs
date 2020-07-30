@@ -1,0 +1,21 @@
+-- simple using a foreign function call to exit
+package SimpleFF(sysSimpleFF) where
+
+{-# verilog sysSimpleFF #-}
+sysSimpleFF :: Module Empty
+sysSimpleFF =
+    module
+	a :: Reg Bool <- mkReg True
+	b :: Reg Bool <- mkReg False
+	c :: Reg Bool <- mkReg False
+        rules
+	    when a
+	     ==> action { displayHex ( 0 :: Bit 8) ; b := True; a := False }
+	    when b
+	     ==> action { displayHex ( 1 :: Bit 8) ; c := True; b := False }
+	    when c
+	     ==> do t <- $time
+                    $display "%0t" t 
+                    c := False
+	    when not a && not b && not c
+	     ==> $finish 0

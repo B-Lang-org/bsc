@@ -1,0 +1,83 @@
+Magic 271485
+Revision 2008.01
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 1487 145 1221 667 163 65
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/czeck/Builds/tcl/bsc/testsuite/bsc.mcd/MakeClock/dump.vcd" "/home/czeck/Builds/tcl/bsc/testsuite/bsc.mcd/MakeClock/dump.vcd.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 3
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 0.000000 1055.000000
+cursor 630.000000
+marker 0.000000
+
+; user define markers
+; userMarker time_pos marker_name
+; visible top row signal index
+top 0
+; marker line index
+markerPos 12
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByChange
+
+
+addGroup "G1"
+activeDirFile "" "/home/czeck/Builds/tcl/bsc/testsuite/bsc.mcd/MakeClock/dump.vcd.fsdb"
+addSignal -h 15 /main/top/mc/CLK_GATE_OUT
+addSignal -h 15 -holdScope CLK_OUT
+addGroup "G2"
+addSignal -h 15 -UNSIGNED -HEX /main/top/s
+addSignal -h 15 -UNSIGNED -HEX -holdScope c
+addSignal -h 15 -UNSIGNED -HEX -holdScope cr
+addGroup "G3"
+addSignal -h 15 /main/top/mc/CLK_OUT
+addSignal -h 15 -holdScope CLK_GATE_OUT
+addGroup "G4"
+addSignal -h 15 /main/top/WILL_FIRE_RL_examine
+addSignal -h 15 -holdScope WILL_FIRE_RL_inc
+addGroup "G5"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+activeDirFile "" "/home/czeck/Builds/tcl/bsc/testsuite/bsc.mcd/MakeClock/dump.vcd.fsdb"
+
+GETSIGNALFORM_SCOPE_HIERARCHY_BEGIN
+getSignalForm close
+
+"/main"
+"/main/top"
+
+SCOPE_LIST_BEGIN
+"/main"
+"/main/top/mc"
+"/main/top/sfifo"
+"/main/top"
+SCOPE_LIST_END
+
+GETSIGNALFORM_SCOPE_HIERARCHY_END
+
+

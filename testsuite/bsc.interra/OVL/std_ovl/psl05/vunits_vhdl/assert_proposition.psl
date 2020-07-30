@@ -1,0 +1,29 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_proposition_assert_vunit (assert_proposition_assert)
+{
+
+  property ASSERT_PROPOSITION_P is 
+	   (always ( (reset_n /= '0') -> FALSE )) @(fell(test_expr));
+
+  -- Properties for X/Z checking
+
+  property ASSERT_PROPOSITION_XZ_POSEDGE_P is
+           (always ( (xzcheck_enable = 1) -> FALSE)  abort(not(reset_n)) ) @(rose(xzdetect_bit)); 
+
+  property ASSERT_PROPOSITION_XZ_NEGEDGE_P is 
+           (always ( (xzcheck_enable = 1) -> FALSE ) abort(not(reset_n)))   @(fell(xzdetect_bit));
+
+  A_ASSERT_PROPOSITION_P:
+  assert ASSERT_PROPOSITION_P
+  report "VIOLATION: ASSERT_PROPOSITION Checker Fires : Test expression is FALSE";
+
+  A_ASSERT_PROPOSITION_XZ_POSEDGE_P:
+  assert ASSERT_PROPOSITION_XZ_POSEDGE_P
+  report "VIOLATION: ASSERT_PROPOSITION Checker Fires : test_expr contains X or Z";
+
+  A_ASSERT_PROPOSITION_XZ_NEGEDGE_P:
+  assert ASSERT_PROPOSITION_XZ_NEGEDGE_P
+  report "VIOLATION: ASSERT_PROPOSITION Checker Fires : test_expr contains X or Z";
+}

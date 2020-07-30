@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ETooGeneral1.bs
+Error: "ETooGeneral1.bs", line 65, column 13: (T0029)
+  Signature mismatch (given too general):
+  given:
+  a´ -> a´ -> Prelude.Action
+  deduced:
+  ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> Prelude.Action

@@ -1,0 +1,30 @@
+This directory contains BSV source code for several different
+implementation of a max-tree module.   One that selected the maximum
+data from a list in a tree like comparison.
+
+There are three source files in this directory
+TestPush.bsv -- gives multiple examples of the use of the Push
+             library.  The Push library is useful for implementing
+             pipeline and other composable functions in BSV.
+MaxTree.bsv -- builds several examples of the max-tree modules, but
+             first defines and describes several polymorphic functions
+             which are used and can be reused for this and other
+             implementations of a max-tree implementations.
+TestMaxTree.bsv -- builds several test benches some variations of the
+             max-tree implementations.
+
+Compiling
+% TestPush
+bsc -verilog TestPush.bsv
+% will create several Verilog files -- descriptions are in source code
+
+% MaxTree
+bsc -verilog MaxTree.bsv
+% will create several Verilog files with variations of max-tree
+% implementation;  descriptions are in source code
+
+% TestMaxTree
+bsc -verilog TestMaxTree.bsv
+% will create several Verilog files which implement testbenches for
+% some of the max-tree implementations.
+

@@ -1,0 +1,23 @@
+package OneSetter(sysOneSetter) where
+
+{-# verilog sysOneSetter #-}
+sysOneSetter :: Module Empty
+sysOneSetter =
+  module
+    r :: Reg (Bit 3) <- mkReg 0
+
+    counter :: Reg (Bit 8) <- mkReg 0
+
+    rules
+      when True ==>
+         if (counter < 10) then 
+            $display "%0d" r
+         else 
+            $finish 0
+      when True ==>
+         counter := counter + 1
+      when True ==>
+         if (counter == 5) then
+            r := 5
+         else noAction
+           

@@ -1,0 +1,19 @@
+# -----
+# Tests for the "mutually_exclusive" scheduling pragma
+
+# -----
+# Basic test of the "preempts" attribute
+# This also tests that the SAT analysis for whether a rule can never fire
+# (testing that the condition is False) can handle non-trivial conditions
+
+# Compiles, but two of the three preempted rules cannot fire
+compile_verilog_pass_warning Preempts.bsv G0021 2
+
+# -----
+# test how trivial attributes are handled
+
+# The parser doesn't allow it
+compile_verilog_fail_error PreemptsSingleton.bsv P0005
+
+# -----
+

@@ -1,0 +1,3 @@
+compile_fail_error Bug120-1.bsv P0086
+compile_fail_error Bug120-2.bsv P0086
+compile_fail_error Bug120-3.bsv P0085

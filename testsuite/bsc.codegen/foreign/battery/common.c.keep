@@ -1,0 +1,87 @@
+#include <stdio.h>
+
+unsigned int do_mask (unsigned int v, unsigned int sz)
+{
+  unsigned int msk;
+  if (sz >= 32) {
+    return v;
+  } else {
+    msk = (1 << sz) - 1;
+    return (v & msk);
+  }
+}
+
+void four_copies(unsigned int* buf, unsigned int x)
+{
+  buf[0] = x;
+  buf[1] = x;
+  buf[2] = x;
+  buf[3] = x;
+}
+
+void invert_poly(unsigned int* res, unsigned int* src, unsigned int n)
+{
+  unsigned int poly_words, poly_rem;
+
+  poly_words = n / 32;
+  poly_rem = n % 32;
+  if (poly_rem > 0) {
+    res[poly_words] = do_mask( ~(src[poly_words]), poly_rem );
+  }
+  while ( poly_words > 0 ) {
+    poly_words --;
+    res[poly_words] = ~(src[poly_words]);
+  }
+}
+
+void display_hex_poly (unsigned int n, unsigned int *p)
+{
+  unsigned int poly_words, poly_rem;
+
+  // display nothing for size 0
+  if (n == 0)
+    return;
+
+  poly_words = n / 32;
+  poly_rem = n % 32;
+
+  if (poly_rem > 0) {
+    printf("%08x", do_mask(p[poly_words], poly_rem));
+  } else {
+    // to make sure there's no leading space
+    poly_words --;
+    printf("%08x", p[poly_words]);
+  }
+  while ( poly_words > 0 ) {
+    poly_words --;
+    printf(" %08x", p[poly_words]);
+  }
+}
+
+void display_four (unsigned int n, unsigned int w[4], unsigned int *p, char *s)
+{
+  printf("    n = %08x\n", n);
+  printf("    w = %08x %08x %08x %08x\n", w[3], w[2], w[1], w[0]);
+  printf("    p = ");
+  display_hex_poly(n,p);
+  printf("\n");
+  printf("    s = %s\n", s);
+}
+
+unsigned int popcount(unsigned int* data, unsigned int n)
+{
+  unsigned int ones = 0;
+  unsigned int remaining = n;
+  while (remaining > 0)
+  {
+    unsigned int x = *(data++);
+    unsigned int i;
+    for (i = 0; i < 32 && remaining > 0; ++i, --remaining)
+    {
+      if (x & (1 << i))
+        ++ones;
+    }
+  }
+
+  return ones;
+}

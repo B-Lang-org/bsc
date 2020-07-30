@@ -1,0 +1,8 @@
+indata: 00 sel: 0 out: 00
+indata: 01 sel: 0 out: 10
+indata: 10 sel: 0 out: 01
+indata: 11 sel: 0 out: 11
+indata: 00 sel: 1 out: 00
+indata: 01 sel: 1 out: 01
+indata: 10 sel: 1 out: 10
+indata: 11 sel: 1 out: 11

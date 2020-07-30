@@ -1,0 +1,14 @@
+checking package dependencies
+compiling SuppressTest4.bsv
+code generation for sysWarnings starts
+Warning: "SuppressTest4.bsv", line 15, column 8: (G0036)
+  Rule "r1" will appear to fire before "r2" when both fire in the same clock
+  cycle, affecting:
+    calls to rg1.write vs. rg1.write
+Warning: "SuppressTest4.bsv", line 15, column 8: (G0117)
+  Rule `r2' shadows the effects of `r1' when they execute in the same clock
+  cycle. Affected method calls:
+    rg1.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Verilog file created: sysWarnings.v
+All packages are up to date.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Bug676_2.bsv
+Error: "Bug676_2.bsv", line 1, column 13: (T0106)
+  There are circular references among the following type synonyms: Bar and Foo

@@ -1,0 +1,65 @@
+package Oper(sysOper) where
+import Vector
+import ActionSeq
+
+{-# verilog sysOper #-}
+sysOper :: Module Empty
+sysOper =
+    module
+	t4_4 :: ActionSeq <- testOps (0b0000 :: Bit 4) (0b0000 :: Bit 4) 0b0000 0b0000
+	t5_5 :: ActionSeq <- testOps (0b00000 :: Bit 5) (0b00000 :: Bit 5) 0b00000 0b00000
+	t5_33 :: ActionSeq <- testOps (0b00000 :: Bit 5) (0x12345678 :: Bit 33) 0b10101 0x1111fff0
+	prologue :: ActionSeq <- actionSeq $ $display "prologue %d" (111111 :: Bit 19) :> nil
+	epilogue :: ActionSeq <- actionSeq $ (do {t <- $time; $display "time %t" t;}) :> $finish 0 :> nil
+	allTests :: ActionSeq <- seqOfActionSeq $ prologue :> t4_4 :> t5_5 :> t5_33 :> epilogue :> nil
+        rules
+	    when True
+	     ==> allTests.start
+
+
+testOps :: (Add nk k n, Add x n 128) => Bit k -> Bit n -> Bit k -> Bit n -> Module ActionSeq
+testOps ax sx ay sy =
+    module
+	xy :: Reg (Bit k, Bit k) <- mkReg minBound
+	donef :: Reg Bool <- mkReg True
+	
+	let x = zeroExtend (xy.fst + ax) ^ sx
+	    y = zeroExtend (xy.snd + ay) ^ sy
+	    test (op, opstr) = $display "x %h  %s  %h = %h" x (opstr :: String) y ((x `op` y) :: Bit n)
+	    testb (op, opstr) = $display "x %h  %s  %h = %h" x(opstr :: String) y ((x `op` y) :: Bool)
+	    flex op x y = x `op` clamp ((zeroExtend y)::(Bit 128))[31:0]
+	    clamp y = if y >= fromInteger (valueOf n) then 0 else y
+	    mark n = $display "mark %d" (n :: Bit 16)
+	    next =
+		let xy' :: (Bit k, Bit k)
+		    xy' = unpack (pack xy + 1)
+		in  action { donef := xy' == minBound; xy := xy' }
+	testops :: ActionSeq <- actionSeq $
+		($display "testops x %h  y %h" (x :: Bit n) (y :: Bit n) :> nil)
+		`append` (mark 11111 :> nil) `append`
+		(map test $
+			((+), "+") :> ((-), "-") :> ((&), "&") :>
+			((|), "|") :> ((^), "^") :>
+			    -- Icarus is broken (*) :>
+			(flex (<<), "flex <<") :> (flex (>>), "flex >>") :>
+			(flex signedShiftRight, "flex srs") :>
+			{- Icarus is broken const --- negate :> -}
+			(const invert, "invert") :>
+			nil)
+		`append` (mark 22222 :> nil) `append`
+		(map testb $
+			((<), "<") :> ((<=), "<=") :> ((>), ">") :>
+			((>=), ">=") :> ((==), "==") :> ((/=), "/=") :>
+			(signedLT, "+LT") :> (signedLE, "+LE") :>
+			(signedGT, "+GT") :> (signedGE, "+GE") :>
+			nil)
+		`append` (mark 33333 :> nil) `append`
+		(next :> nil)
+
+        rules
+	    when not donef
+	     ==> testops.start
+    
+        interface
+	    start = action { donef := False; testops.start } when donef
+	    done = donef

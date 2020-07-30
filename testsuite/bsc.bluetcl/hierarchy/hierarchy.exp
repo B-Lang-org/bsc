@@ -1,0 +1,8 @@
+
+# Compile a file to query (generating .bi, .bo, and .ba)
+bsc_compile Design.bsv {-u -verilog -elab}
+bsc_compile Example.bsv {-u -verilog -elab}
+
+# Test "browseinst"
+bluetcl_run_compare_pass Design.tcl "" { -e s/Libraries.*Library/IGNORED/}
+bluetcl_run_compare_pass Example.tcl  "" { -e s/Libraries.*Library/IGNORED/}

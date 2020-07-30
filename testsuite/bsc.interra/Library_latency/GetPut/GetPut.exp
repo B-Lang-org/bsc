@@ -1,0 +1,36 @@
+if {$ctest == 1} {
+compile_object_pass MkGPFIFO.bsv mkTestbench_MkGPFIFO
+link_objects_pass {"mkTestbench_MkGPFIFO"} mkTestbench_MkGPFIFO
+# sim_final_state mkTestbench_MkGPFIFO 10010
+# compare_file "mkTestbench_MkGPFIFO.final-state"
+sim_output mkTestbench_MkGPFIFO {-m 10010}
+compare_file "mkTestbench_MkGPFIFO.out"
+
+compile_object_pass MkGPSizedFIFO.bsv mkTestbench_MkGPSizedFIFO
+link_objects_pass {"mkTestbench_MkGPSizedFIFO"} mkTestbench_MkGPSizedFIFO
+# sim_final_state mkTestbench_MkGPSizedFIFO 10010
+# compare_file "mkTestbench_MkGPSizedFIFO.final-state"
+sim_output mkTestbench_MkGPSizedFIFO {-m 10010}
+compare_file "mkTestbench_MkGPSizedFIFO.out"
+
+compile_object_pass MkGetPut.bsv mkTestbench_MkGetPut
+link_objects_pass {"mkTestbench_MkGetPut"} mkTestbench_MkGetPut
+# sim_final_state mkTestbench_MkGetPut 10010
+# compare_file "mkTestbench_MkGetPut.final-state"
+sim_output mkTestbench_MkGetPut {-m 10010}
+compare_file "mkTestbench_MkGetPut.out"
+
+compile_object_pass MkGPFIFO_alt_rw.bsv mkTestbench_MkGPFIFO_alt_rw
+link_objects_pass {"mkTestbench_MkGPFIFO_alt_rw"} mkTestbench_MkGPFIFO_alt_rw
+# sim_final_state mkTestbench_MkGPFIFO_alt_rw 10010
+# compare_file "mkTestbench_MkGPFIFO_alt_rw.final-state"
+sim_output mkTestbench_MkGPFIFO_alt_rw {-m 10010}
+compare_file "mkTestbench_MkGPFIFO_alt_rw.out"
+
+compile_object_pass MkGPFIFO_non_alt_rw.bsv mkTestbench_MkGPFIFO_non_alt_rw
+link_objects_pass {"mkTestbench_MkGPFIFO_non_alt_rw"} mkTestbench_MkGPFIFO_non_alt_rw
+# sim_final_state mkTestbench_MkGPFIFO_non_alt_rw 10010
+# compare_file "mkTestbench_MkGPFIFO_non_alt_rw.final-state"
+sim_output mkTestbench_MkGPFIFO_non_alt_rw {-m 10010}
+compare_file "mkTestbench_MkGPFIFO_non_alt_rw.out"
+}

@@ -1,0 +1,9 @@
+checking package dependencies
+compiling RuleFalse.bsv
+code generation for sysRuleFalse starts
+Warning: "RuleFalse.bsv", line 5, column 8: (G0023)
+  The condition for rule `never' is always false. Removing...
+Warning: "RuleFalse.bsv", line 9, column 8: (G0023)
+  The condition for rule `tricky' is always false. Removing...
+Verilog file created: sysRuleFalse.v
+All packages are up to date.

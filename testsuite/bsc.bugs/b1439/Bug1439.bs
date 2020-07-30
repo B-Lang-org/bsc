@@ -1,0 +1,16 @@
+package Bug1439(mkBug1439) where
+
+{-# verilog mkBug1439 #-}
+mkBug1439 :: Module Empty
+mkBug1439 = 
+  module
+    x :: Reg (Bit 12) <- mkReg 0
+    y :: Reg (Bit 12) <- mkReg 1
+    let x' = x + y 
+    interface
+    rules
+       when (x' == 1) ==>  
+         action
+           $display "x+y: %0d" x' 
+           $finish(0)
+

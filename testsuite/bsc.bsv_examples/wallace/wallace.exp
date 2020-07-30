@@ -1,0 +1,4 @@
+test_c_veri_bsv_multi WallaceTest testCombServer {sysCombServer} wallace435.out.expected
+test_c_veri_bsv_multi WallaceTest testStatefulServer1 {sysStatefulServer1} wallace435.out.expected
+test_c_veri_bsv_multi WallaceTest testStatefulServer2 {sysStatefulServer2} wallace435.out.expected
+test_c_veri_bsv_multi WallaceTest testStatefulServer3 {sysStatefulServer3} wallace435.out.expected

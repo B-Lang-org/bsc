@@ -1,0 +1,56 @@
+package DefShadow where
+
+x :: Integer
+x = letseq y = 17
+    in letseq y = y + 1
+       in letseq y = y - 1
+          in y
+
+-- Should trigger a name-shadowing warning
+-- because the group of bindings is recursive
+recShadow :: Integer -> Integer
+recShadow n =
+  let f i = i + 7
+      g j = j + 2
+      h j = j * 2
+      i = f n
+  in g i + h i
+
+-- Doesn't trigger the warning because coping works
+-- differently with a sequential binding.
+noRecNoShadow :: Integer -> Integer
+noRecNoShadow n =
+  letseq f i = i + 7
+         g j = j + 2
+         h j = j * 2
+         i = f n
+  in g i + h i
+
+-- We don't warn about Prelude.split because shadowing imports is OK
+split :: Integer -> (Integer, Integer)
+split i =
+  let j = i `div` 2
+  in (j, i - j)
+
+-- Warn because we shadow the top-level x
+topLevelShadow :: Integer -> Integer
+topLevelShadow x = x * 2
+
+qualShadow :: (Bits a sa) => Module (Wire a)
+qualShadow = module
+  rw <- mkRWire
+  interface Reg
+    _write = rw.wset
+    _read = let v = validValue rw.wget
+            in v
+      when Valid v <- rw.wget
+
+-- This code is a little silly, but the two bindings for r
+-- should not trigger a warning because the scopes don't overlap.
+bindNoShadow :: (Arith a, Literal a, Bits a sa) => Module (Reg a)
+bindNoShadow = module
+  r <- let r = mkReg 0
+       in r
+  interface Reg
+    _write v = r := v + 1
+    _read = r - 1

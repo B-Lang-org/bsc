@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EConstrAmb.bs
+Warning: "EConstrAmb.bs", line 21, column 9: (P0223)
+  Definition of `x' is not used.
+Error: "EConstrAmb.bs", line 21, column 21: (T0019)
+  Constructor `Constructor1' is not disambiguated by type `_tctyvar1004'

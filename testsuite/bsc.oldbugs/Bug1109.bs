@@ -1,0 +1,7 @@
+package Bug1109(sysBug1109) where
+
+{-# properties sysBug1109 = { verilog, CLK = foo, RSTN = bar } #-}
+sysBug1109 :: Module Empty
+sysBug1109 = module
+	       rules
+	         when True ==> $finish 0

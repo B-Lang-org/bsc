@@ -1,0 +1,16 @@
+Value Peeked = 0f
+Value Peeked = 0f
+Value read = 0f
+Value read = 10
+Value read = 20
+Value read = 21
+Value Written = 11
+Value Written = 12
+Value read = 11
+Value read = 12
+Simulation Passes
+Final state:
+top:
+  counter = 0x17
+  fail = False
+  the_datafifo_f = EMPTY

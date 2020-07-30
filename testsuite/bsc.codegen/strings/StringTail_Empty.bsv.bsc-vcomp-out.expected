@@ -1,0 +1,9 @@
+checking package dependencies
+compiling StringTail_Empty.bsv
+code generation for sysStringTail_Empty starts
+Error: "StringTail_Empty.bsv", line 4, column 27: (S0015)
+  Bluespec evaluation-time error: stringTail: empty string
+  During elaboration of the body of rule `r' at "StringTail_Empty.bsv", line
+  3, column 9.
+  During elaboration of `sysStringTail_Empty' at "StringTail_Empty.bsv", line
+  2, column 8.

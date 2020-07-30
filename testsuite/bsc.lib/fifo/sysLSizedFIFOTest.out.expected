@@ -1,0 +1,108 @@
+enq dead at cycle 1
+enq beef at cycle 2
+enq baad at cycle 3
+enq f00d at cycle 4
+enq 0000 at cycle 5
+enq dead at cycle 6
+enq beef at cycle 7
+enq baad at cycle 8
+enq f00d at cycle 9
+enq 0000 at cycle 10
+enq dead at cycle 11
+enq beef at cycle 12
+enq baad at cycle 13
+enq f00d at cycle 14
+enq 0000 at cycle 15
+enq dead at cycle 16
+enq beef at cycle 17
+enq baad at cycle 18
+enq f00d at cycle 19
+enq 0000 at cycle 20
+enq dead at cycle 21
+enq beef at cycle 22
+enq baad at cycle 23
+enq f00d at cycle 24
+enq 0000 at cycle 25
+enq dead at cycle 26
+enq beef at cycle 27
+enq baad at cycle 28
+enq f00d at cycle 29
+enq 0000 at cycle 30
+enq dead at cycle 31
+enq beef at cycle 32
+enq baad at cycle 33
+enq f00d at cycle 34
+enq 0000 at cycle 35
+enq dead at cycle 36
+enq beef at cycle 37
+enq baad at cycle 38
+enq f00d at cycle 39
+enq 0000 at cycle 40
+enq dead at cycle 41
+enq beef at cycle 42
+enq baad at cycle 43
+enq f00d at cycle 44
+enq 0000 at cycle 45
+enq dead at cycle 46
+enq beef at cycle 47
+enq baad at cycle 48
+enq f00d at cycle 49
+enq 0000 at cycle 50
+enq dead at cycle 51
+enq beef at cycle 52
+enq baad at cycle 53
+enq f00d at cycle 54
+enq 0000 at cycle 55
+enq dead at cycle 56
+enq beef at cycle 57
+enq baad at cycle 58
+enq f00d at cycle 59
+enq 0000 at cycle 60
+enq dead at cycle 61
+enq beef at cycle 62
+enq baad at cycle 63
+enq f00d at cycle 64
+enq 0000 at cycle 65
+Removing element dead at cycle 76
+enq dead at cycle 76
+Removing element beef at cycle 77
+enq beef at cycle 77
+Removing element baad at cycle 78
+enq baad at cycle 78
+Removing element f00d at cycle 79
+enq f00d at cycle 79
+Removing element 0000 at cycle 80
+enq 0000 at cycle 80
+Removing element dead at cycle 81
+enq dead at cycle 81
+Removing element beef at cycle 82
+enq beef at cycle 82
+Removing element baad at cycle 83
+enq baad at cycle 83
+Removing element f00d at cycle 84
+enq f00d at cycle 84
+Removing element 0000 at cycle 85
+enq 0000 at cycle 85
+Clearing fifo at cycle 85
+enq dead at cycle 86
+Removing element dead at cycle 87
+enq beef at cycle 87
+Removing element beef at cycle 88
+enq baad at cycle 88
+Removing element baad at cycle 89
+enq f00d at cycle 89
+Removing element f00d at cycle 90
+enq 0000 at cycle 90
+Removing element 0000 at cycle 91
+enq dead at cycle 91
+Removing element dead at cycle 92
+enq beef at cycle 92
+Removing element beef at cycle 93
+enq baad at cycle 93
+Removing element baad at cycle 94
+enq f00d at cycle 94
+Removing element f00d at cycle 95
+enq 0000 at cycle 95
+Removing element 0000 at cycle 96
+enq dead at cycle 96
+enq beef at cycle 97

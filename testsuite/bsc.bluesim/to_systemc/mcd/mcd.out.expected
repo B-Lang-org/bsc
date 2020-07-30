@@ -1,0 +1,701 @@
+16000: put: b0000000 on port B
+20000: flipped
+24000: put: b0000001 on port B
+28000: put: a0000000 on port A
+30000: flipped
+42000: put: a0000001 on port A
+50000: moving b0000000 from b
+60000: moving b0000001 from b
+72000: put: b0000002 on port B
+80000: put: b0000003 on port B
+88000: got: b0000000
+90000: flipped
+98000: put: a0000002 on port A
+99000: got: b0000001
+110000: moving a0000000 from a
+120000: moving a0000001 from a
+128000: put: b0000004 on port B
+130000: flipped
+154000: got: a0000000
+154000: put: a0000003 on port A
+160000: flipped
+165000: got: a0000001
+168000: put: a0000004 on port A
+180000: moving a0000002 from a
+190000: moving a0000003 from a
+220000: got: a0000002
+224000: put: a0000005 on port A
+230000: flipped
+231000: got: a0000003
+238000: put: a0000006 on port A
+240000: moving b0000002 from b
+260000: moving b0000003 from b
+272000: put: b0000005 on port B
+275000: got: b0000002
+288000: put: b0000006 on port B
+297000: got: b0000003
+300000: flipped
+300000: moving b0000004 from b
+320000: moving a0000004 from a
+328000: put: b0000007 on port B
+330000: flipped
+341000: got: b0000004
+363000: got: a0000004
+364000: put: a0000007 on port A
+370000: flipped
+370000: moving b0000005 from b
+390000: moving a0000005 from a
+400000: put: b0000008 on port B
+407000: got: b0000005
+429000: got: a0000005
+430000: flipped
+430000: moving a0000006 from a
+434000: put: a0000008 on port A
+440000: flipped
+450000: moving a0000007 from a
+473000: got: a0000006
+476000: put: a0000009 on port A
+484000: got: a0000007
+500000: moving a0000008 from a
+504000: put: a000000a on port A
+510000: flipped
+510000: moving a0000009 from a
+530000: flipped
+539000: got: a0000008
+546000: put: a000000b on port A
+550000: got: a0000009
+560000: moving a000000a from a
+574000: put: a000000c on port A
+580000: flipped
+580000: moving a000000b from a
+594000: got: a000000a
+616000: got: a000000b
+616000: put: a000000d on port A
+620000: moving b0000006 from b
+630000: flipped
+640000: moving a000000c from a
+644000: put: a000000e on port A
+648000: put: b0000009 on port B
+650000: flipped
+660000: got: b0000006
+680000: moving b0000007 from b
+682000: got: a000000c
+686000: put: a000000f on port A
+710000: moving b0000008 from b
+712000: put: b000000a on port B
+715000: got: b0000007
+720000: flipped
+730000: flipped
+736000: put: b000000b on port B
+740000: moving b0000009 from b
+748000: got: b0000008
+768000: put: b000000c on port B
+770000: moving b000000a from b
+781000: got: b0000009
+790000: flipped
+800000: put: b000000d on port B
+810000: moving a000000d from a
+814000: got: b000000a
+830000: flipped
+840000: moving b000000b from b
+847000: got: a000000d
+854000: put: a0000010 on port A
+860000: flipped
+870000: moving a000000e from a
+872000: put: b000000e on port B
+880000: got: b000000b
+900000: moving a000000f from a
+913000: got: a000000e
+924000: put: a0000011 on port A
+930000: flipped
+935000: got: a000000f
+940000: moving b000000c from b
+952000: put: a0000012 on port A
+960000: moving b000000d from b
+968000: put: b000000f on port B
+979000: got: b000000c
+992000: put: b0000010 on port B
+1000000: flipped
+1000000: moving b000000e from b
+1001000: got: b000000d
+1030000: flipped
+1030000: moving a0000010 from a
+1032000: put: b0000011 on port B
+1034000: got: b000000e
+1060000: moving b000000f from b
+1067000: got: a0000010
+1070000: flipped
+1078000: put: a0000013 on port A
+1088000: put: b0000012 on port B
+1090000: moving a0000011 from a
+1100000: got: b000000f
+1120000: moving a0000012 from a
+1130000: flipped
+1133000: got: a0000011
+1134000: put: a0000014 on port A
+1140000: flipped
+1155000: got: a0000012
+1160000: moving a0000013 from a
+1176000: put: a0000015 on port A
+1180000: moving a0000014 from a
+1199000: got: a0000013
+1204000: put: a0000016 on port A
+1210000: flipped
+1220000: moving b0000010 from b
+1221000: got: a0000014
+1230000: flipped
+1246000: put: a0000017 on port A
+1248000: put: b0000013 on port B
+1250000: moving a0000015 from a
+1254000: got: b0000010
+1280000: flipped
+1280000: moving a0000016 from a
+1287000: got: a0000015
+1302000: put: a0000018 on port A
+1310000: moving b0000011 from b
+1320000: got: a0000016
+1330000: flipped
+1330000: put: a0000019 on port A
+1336000: put: b0000014 on port B
+1340000: moving a0000017 from a
+1350000: flipped
+1353000: got: b0000011
+1375000: got: a0000017
+1380000: moving b0000012 from b
+1386000: put: a000001a on port A
+1400000: moving b0000013 from b
+1408000: put: b0000015 on port B
+1419000: got: b0000012
+1420000: flipped
+1430000: flipped
+1432000: put: b0000016 on port B
+1440000: moving b0000014 from b
+1441000: got: b0000013
+1470000: moving b0000015 from b
+1472000: put: b0000017 on port B
+1474000: got: b0000014
+1490000: flipped
+1496000: put: b0000018 on port B
+1500000: moving a0000018 from a
+1507000: got: b0000015
+1530000: flipped
+1530000: moving a0000019 from a
+1540000: got: a0000018
+1554000: put: a000001b on port A
+1560000: flipped
+1560000: moving b0000016 from b
+1573000: got: a0000019
+1582000: put: a000001c on port A
+1592000: put: b0000019 on port B
+1595000: got: b0000016
+1600000: moving a000001a from a
+1620000: moving a000001b from a
+1630000: flipped
+1639000: got: a000001a
+1652000: put: a000001d on port A
+1660000: moving b0000017 from b
+1661000: got: a000001b
+1666000: put: a000001e on port A
+1688000: put: b000001a on port B
+1690000: moving b0000018 from b
+1694000: got: b0000017
+1700000: flipped
+1720000: moving a000001c from a
+1720000: put: b000001b on port B
+1727000: got: b0000018
+1730000: flipped
+1750000: moving b0000019 from b
+1760000: got: a000001c
+1764000: put: a000001f on port A
+1770000: flipped
+1776000: put: b000001c on port B
+1780000: moving a000001d from a
+1793000: got: b0000019
+1815000: got: a000001d
+1820000: moving a000001e from a
+1830000: flipped
+1834000: put: a0000020 on port A
+1840000: flipped
+1840000: moving b000001a from b
+1859000: got: a000001e
+1872000: put: b000001d on port B
+1876000: put: a0000021 on port A
+1880000: moving a000001f from a
+1881000: got: b000001a
+1910000: flipped
+1910000: moving a0000020 from a
+1914000: got: a000001f
+1930000: flipped
+1932000: put: a0000022 on port A
+1940000: moving a0000021 from a
+1947000: got: a0000020
+1960000: put: a0000023 on port A
+1970000: moving a0000022 from a
+1980000: flipped
+1980000: got: a0000021
+2000000: moving b000001b from b
+2013000: got: a0000022
+2016000: put: a0000024 on port A
+2030000: flipped
+2032000: put: b000001e on port B
+2035000: got: b000001b
+2040000: moving a0000023 from a
+2044000: put: a0000025 on port A
+2050000: flipped
+2060000: moving b000001c from b
+2079000: got: a0000023
+2086000: put: a0000026 on port A
+2088000: put: b000001f on port B
+2100000: moving b000001d from b
+2101000: got: b000001c
+2120000: flipped
+2128000: put: b0000020 on port B
+2130000: flipped
+2130000: moving a0000024 from a
+2134000: got: b000001d
+2160000: moving b000001e from b
+2167000: got: a0000024
+2184000: put: a0000027 on port A
+2190000: flipped
+2190000: moving b000001f from b
+2192000: put: b0000021 on port B
+2200000: got: b000001e
+2216000: put: b0000022 on port B
+2220000: moving a0000025 from a
+2230000: flipped
+2233000: got: b000001f
+2255000: got: a0000025
+2260000: flipped
+2260000: moving b0000020 from b
+2268000: put: a0000028 on port A
+2280000: moving a0000026 from a
+2288000: put: b0000023 on port B
+2299000: got: b0000020
+2320000: moving a0000027 from a
+2321000: got: a0000026
+2324000: put: a0000029 on port A
+2330000: flipped
+2350000: moving b0000021 from b
+2354000: got: a0000027
+2366000: put: a000002a on port A
+2376000: put: b0000024 on port B
+2380000: moving b0000022 from b
+2387000: got: b0000021
+2400000: flipped
+2408000: put: b0000025 on port B
+2410000: moving a0000028 from a
+2420000: got: b0000022
+2430000: flipped
+2440000: moving b0000023 from b
+2453000: got: a0000028
+2464000: put: a000002b on port A
+2470000: flipped
+2472000: put: b0000026 on port B
+2475000: got: b0000023
+2480000: moving a0000029 from a
+2500000: moving a000002a from a
+2519000: got: a0000029
+2530000: flipped
+2534000: put: a000002c on port A
+2540000: flipped
+2540000: moving b0000024 from b
+2541000: got: a000002a
+2548000: put: a000002d on port A
+2568000: put: b0000027 on port B
+2570000: moving a000002b from a
+2574000: got: b0000024
+2600000: moving a000002c from a
+2607000: got: a000002b
+2610000: flipped
+2618000: put: a000002e on port A
+2630000: flipped
+2630000: moving b0000025 from b
+2640000: got: a000002c
+2646000: put: a000002f on port A
+2656000: put: b0000028 on port B
+2660000: moving a000002d from a
+2673000: got: b0000025
+2680000: flipped
+2695000: got: a000002d
+2700000: moving b0000026 from b
+2716000: put: a0000030 on port A
+2720000: moving b0000027 from b
+2728000: put: b0000029 on port B
+2730000: flipped
+2739000: got: b0000026
+2750000: flipped
+2752000: put: b000002a on port B
+2760000: moving b0000028 from b
+2761000: got: b0000027
+2790000: moving b0000029 from b
+2792000: put: b000002b on port B
+2794000: got: b0000028
+2816000: put: b000002c on port B
+2820000: flipped
+2820000: moving b000002a from b
+2827000: got: b0000029
+2830000: flipped
+2848000: put: b000002d on port B
+2850000: moving b000002b from b
+2860000: got: b000002a
+2880000: moving b000002c from b
+2880000: put: b000002e on port B
+2890000: flipped
+2893000: got: b000002b
+2912000: put: b000002f on port B
+2915000: got: b000002c
+2920000: moving a000002e from a
+2930000: flipped
+2940000: moving b000002d from b
+2959000: got: a000002e
+2960000: flipped
+2968000: put: a0000031 on port A
+2968000: put: b0000030 on port B
+2980000: moving a000002f from a
+2981000: got: b000002d
+3010000: moving a0000030 from a
+3014000: got: a000002f
+3024000: put: a0000032 on port A
+3030000: flipped
+3040000: moving b000002e from b
+3047000: got: a0000030
+3066000: put: a0000033 on port A
+3070000: moving b000002f from b
+3072000: put: b0000031 on port B
+3080000: got: b000002e
+3096000: put: b0000032 on port B
+3100000: flipped
+3100000: moving b0000030 from b
+3113000: got: b000002f
+3128000: put: b0000033 on port B
+3130000: flipped
+3135000: got: b0000030
+3140000: moving b0000031 from b
+3160000: moving b0000032 from b
+3168000: put: b0000034 on port B
+3170000: flipped
+3179000: got: b0000031
+3192000: put: b0000035 on port B
+3200000: moving a0000031 from a
+3201000: got: b0000032
+3230000: flipped
+3230000: moving a0000032 from a
+3234000: got: a0000031
+3240000: flipped
+3248000: put: a0000034 on port A
+3260000: moving a0000033 from a
+3267000: got: a0000032
+3276000: put: a0000035 on port A
+3290000: moving a0000034 from a
+3300000: got: a0000033
+3310000: flipped
+3318000: put: a0000036 on port A
+3320000: moving b0000033 from b
+3330000: flipped
+3333000: got: a0000034
+3346000: put: a0000037 on port A
+3352000: put: b0000036 on port B
+3355000: got: b0000033
+3360000: moving a0000035 from a
+3380000: flipped
+3380000: moving a0000036 from a
+3399000: got: a0000035
+3416000: put: a0000038 on port A
+3420000: moving b0000034 from b
+3421000: got: a0000036
+3430000: flipped
+3430000: put: a0000039 on port A
+3448000: put: b0000037 on port B
+3450000: flipped
+3450000: moving a0000037 from a
+3454000: got: b0000034
+3480000: moving b0000035 from b
+3487000: got: a0000037
+3500000: put: a000003a on port A
+3510000: moving b0000036 from b
+3512000: put: b0000038 on port B
+3520000: flipped
+3520000: got: b0000035
+3530000: flipped
+3536000: put: b0000039 on port B
+3540000: moving b0000037 from b
+3553000: got: b0000036
+3568000: put: b000003a on port B
+3575000: got: b0000037
+3580000: moving b0000038 from b
+3590000: flipped
+3600000: moving a0000038 from a
+3608000: put: b000003b on port B
+3619000: got: b0000038
+3630000: flipped
+3640000: moving b0000039 from b
+3641000: got: a0000038
+3654000: put: a000003b on port A
+3660000: flipped
+3670000: moving a0000039 from a
+3672000: put: b000003c on port B
+3674000: got: b0000039
+3700000: moving a000003a from a
+3707000: got: a0000039
+3724000: put: a000003c on port A
+3730000: flipped
+3730000: moving a000003b from a
+3740000: got: a000003a
+3752000: put: a000003d on port A
+3760000: moving b000003a from b
+3773000: got: a000003b
+3792000: put: b000003d on port B
+3794000: put: a000003e on port A
+3795000: got: b000003a
+3800000: flipped
+3800000: moving b000003b from b
+3820000: moving a000003c from a
+3830000: flipped
+3832000: put: b000003e on port B
+3839000: got: b000003b
+3860000: moving b000003c from b
+3861000: got: a000003c
+3864000: put: a000003f on port A
+3870000: flipped
+3888000: put: b000003f on port B
+3890000: moving a000003d from a
+3894000: got: b000003c
+3920000: moving a000003e from a
+3927000: got: a000003d
+3930000: flipped
+3934000: put: a0000040 on port A
+3940000: flipped
+3950000: moving a000003f from a
+3960000: got: a000003e
+3976000: put: a0000041 on port A
+3980000: moving a0000040 from a
+3993000: got: a000003f
+4004000: put: a0000042 on port A
+4010000: flipped
+4015000: got: a0000040
+4020000: moving b000003d from b
+4030000: flipped
+4040000: moving a0000041 from a
+4046000: put: a0000043 on port A
+4048000: put: b0000040 on port B
+4059000: got: b000003d
+4080000: flipped
+4080000: moving a0000042 from a
+4081000: got: a0000041
+4088000: put: a0000044 on port A
+4110000: moving b000003e from b
+4114000: got: a0000042
+4130000: flipped
+4130000: put: a0000045 on port A
+4136000: put: b0000041 on port B
+4140000: moving a0000043 from a
+4147000: got: b000003e
+4150000: flipped
+4170000: moving b000003f from b
+4180000: got: a0000043
+4186000: put: a0000046 on port A
+4200000: moving b0000040 from b
+4200000: put: b0000042 on port B
+4213000: got: b000003f
+4220000: flipped
+4230000: flipped
+4232000: put: b0000043 on port B
+4235000: got: b0000040
+4240000: moving b0000041 from b
+4260000: moving b0000042 from b
+4272000: put: b0000044 on port B
+4279000: got: b0000041
+4288000: put: b0000045 on port B
+4290000: flipped
+4300000: moving a0000044 from a
+4301000: got: b0000042
+4330000: flipped
+4330000: moving a0000045 from a
+4334000: got: a0000044
+4354000: put: a0000047 on port A
+4360000: flipped
+4360000: moving b0000043 from b
+4367000: got: a0000045
+4382000: put: a0000048 on port A
+4390000: moving a0000046 from a
+4392000: put: b0000046 on port B
+4400000: got: b0000043
+4420000: moving a0000047 from a
+4430000: flipped
+4433000: got: a0000046
+4438000: put: a0000049 on port A
+4455000: got: a0000047
+4460000: moving b0000044 from b
+4466000: put: a000004a on port A
+4480000: moving b0000045 from b
+4488000: put: b0000047 on port B
+4499000: got: b0000044
+4500000: flipped
+4512000: put: b0000048 on port B
+4520000: moving a0000048 from a
+4521000: got: b0000045
+4530000: flipped
+4550000: moving b0000046 from b
+4554000: got: a0000048
+4564000: put: a000004b on port A
+4570000: flipped
+4576000: put: b0000049 on port B
+4580000: moving a0000049 from a
+4587000: got: b0000046
+4610000: moving a000004a from a
+4620000: got: a0000049
+4630000: flipped
+4634000: put: a000004c on port A
+4640000: flipped
+4640000: moving b0000047 from b
+4653000: got: a000004a
+4662000: put: a000004d on port A
+4672000: put: b000004a on port B
+4675000: got: b0000047
+4680000: moving a000004b from a
+4700000: moving a000004c from a
+4710000: flipped
+4719000: got: a000004b
+4730000: flipped
+4732000: put: a000004e on port A
+4740000: moving a000004d from a
+4741000: got: a000004c
+4746000: put: a000004f on port A
+4770000: moving a000004e from a
+4774000: got: a000004d
+4780000: flipped
+4800000: moving b0000048 from b
+4807000: got: a000004e
+4816000: put: a0000050 on port A
+4830000: flipped
+4830000: moving b0000049 from b
+4830000: put: a0000051 on port A
+4832000: put: b000004b on port B
+4840000: got: b0000048
+4850000: flipped
+4856000: put: b000004c on port B
+4860000: moving b000004a from b
+4873000: got: b0000049
+4888000: put: b000004d on port B
+4895000: got: b000004a
+4900000: moving b000004b from b
+4920000: flipped
+4920000: moving b000004c from b
+4928000: put: b000004e on port B
+4930000: flipped
+4939000: got: b000004b
+4952000: put: b000004f on port B
+4960000: moving b000004d from b
+4961000: got: b000004c
+4990000: flipped
+4990000: moving b000004e from b
+4992000: put: b0000050 on port B
+4994000: got: b000004d
+5016000: put: b0000051 on port B
+5020000: moving a000004f from a
+5027000: got: b000004e
+5030000: flipped
+5050000: moving b000004f from b
+5060000: flipped
+5060000: got: a000004f
+5068000: put: a0000052 on port A
+5080000: moving a0000050 from a
+5080000: put: b0000052 on port B
+5093000: got: b000004f
+5115000: got: a0000050
+5120000: moving a0000051 from a
+5124000: put: a0000053 on port A
+5130000: flipped
+5140000: moving b0000050 from b
+5159000: got: a0000051
+5166000: put: a0000054 on port A
+5168000: put: b0000053 on port B
+5180000: moving b0000051 from b
+5181000: got: b0000050
+5200000: flipped
+5208000: put: b0000054 on port B
+5210000: moving a0000052 from a
+5214000: got: b0000051
+5230000: flipped
+5240000: moving b0000052 from b
+5247000: got: a0000052
+5264000: put: a0000055 on port A
+5270000: flipped
+5270000: moving b0000053 from b
+5272000: put: b0000055 on port B
+5280000: got: b0000052
+5296000: put: b0000056 on port B
+5300000: moving a0000053 from a
+5313000: got: b0000053
+5330000: flipped
+5335000: got: a0000053
+5340000: flipped
+5340000: moving b0000054 from b
+5348000: put: a0000056 on port A
+5360000: moving a0000054 from a
+5368000: put: b0000057 on port B
+5379000: got: b0000054
+5400000: moving a0000055 from a
+5401000: got: a0000054
+5404000: put: a0000057 on port A
+5410000: flipped
+5430000: flipped
+5430000: moving b0000055 from b
+5434000: got: a0000055
+5446000: put: a0000058 on port A
+5456000: put: b0000058 on port B
+5460000: moving a0000056 from a
+5467000: got: b0000055
+5480000: flipped
+5490000: moving b0000056 from b
+5500000: got: a0000056
+5516000: put: a0000059 on port A
+5520000: moving b0000057 from b
+5520000: put: b0000059 on port B
+5530000: flipped
+5533000: got: b0000056
+5550000: flipped
+5552000: put: b000005a on port B
+5555000: got: b0000057
+5560000: moving b0000058 from b
+5580000: moving b0000059 from b
+5592000: put: b000005b on port B
+5599000: got: b0000058
+5608000: put: b000005c on port B
+5620000: flipped
+5620000: moving b000005a from b
+5621000: got: b0000059
+5630000: flipped
+5648000: put: b000005d on port B
+5650000: moving b000005b from b
+5654000: got: b000005a
+5680000: moving b000005c from b
+5680000: put: b000005e on port B
+5687000: got: b000005b
+5690000: flipped
+5710000: moving a0000057 from a
+5712000: put: b000005f on port B
+5720000: got: b000005c
+5730000: flipped
+5740000: moving b000005d from b
+5753000: got: a0000057
+5754000: put: a000005a on port A
+5760000: flipped
+5768000: put: b0000060 on port B
+5775000: got: b000005d
+5780000: moving a0000058 from a
+5800000: moving a0000059 from a
+5819000: got: a0000058
+5824000: put: a000005b on port A
+5830000: flipped
+5840000: moving b000005e from b
+5841000: got: a0000059
+5852000: put: a000005c on port A
+5870000: moving b000005f from b
+5872000: put: b0000061 on port B
+5874000: got: b000005e
+5896000: put: b0000062 on port B
+5900000: flipped
+5900000: moving b0000060 from b
+5907000: got: b000005f
+5928000: put: b0000063 on port B

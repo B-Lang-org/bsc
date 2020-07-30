@@ -1,0 +1,22 @@
+package Bug68 ( ) where
+
+type Rate = Bit 18
+data BWResult = DivByZero | TooManyBits | Result Rate
+
+divide64 :: Bit 64 -> Bit 64 -> Maybe (Bit 64)
+divide64 x y = _ 
+
+bwdiv :: Bit 64 -> Bit 64 -> BWResult
+bwdiv x y =
+    let x' :: Bit 64 -- for some reason bsc needs this typesig
+	x' = zeroExtend x << 6
+	y' = zeroExtend y << 6
+    in  case (x' `divide64` y') of
+	    Invalid  -> DivByZero
+	    Valid ans -> -- case (split ans) of
+                        --     (0, res) -> Result res
+                        --     _        -> TooManyBits
+--	        let (extra, res) = (split ans) :: (Bits Rate rs, Add rs x 64) => (Bit x, Rate)
+--	        let (extra, res) = (split ans) :: (Bit x, Rate)
+	        let (extra, res) = (split ans)
+		in  if (extra /= 0) then TooManyBits else Result res

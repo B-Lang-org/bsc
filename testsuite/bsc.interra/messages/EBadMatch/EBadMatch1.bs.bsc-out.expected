@@ -1,0 +1,7 @@
+checking package dependencies
+compiling EBadMatch1.bs
+Error: "EBadMatch1.bs", line 22, column 9: (T0046)
+  Only matching of structs and tuples is supported in this context.
+  The following pattern is not supported:
+    Foo a b
+  Consider matching this pattern with a case expression instead.

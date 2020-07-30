@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EBadIfcType_field.bs
+Error: "EBadIfcType_field.bs", line 41, column 0: (T0043)
+  Bad top level type: polymorphic field: carry_sum

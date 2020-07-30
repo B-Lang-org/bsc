@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <string.h>
+#include "common.h"
+
+unsigned char string_compare (char *s1, char *s2)
+{
+  return (strcmp(s1,s2) == 0);
+}
+
+unsigned int and32 (unsigned int v1, unsigned int v2)
+{
+  return (v1 & v2);
+}
+
+void and128 (unsigned int *res, unsigned int *w1, unsigned int *w2)
+{
+  res[0] = w1[0] & w2[0];
+  res[1] = w1[1] & w2[1];
+  res[2] = w1[2] & w2[2];
+  res[3] = w1[3] & w2[3];
+}
+
+void andN (unsigned int *res,
+           unsigned int *p1, unsigned int *p2, unsigned int n)
+{
+  unsigned int poly_words, poly_rem;
+
+  poly_words = n / 32;
+  poly_rem = n % 32;
+  if (poly_rem > 0) {
+    res[poly_words] = do_mask( p1[poly_words] & p2[poly_words], poly_rem );
+  }
+  while ( poly_words > 0 ) {
+    poly_words --;
+    res[poly_words] = p1[poly_words] & p2[poly_words];
+  }
+}
+
+unsigned int const_narrow ()
+{
+  return 17;
+}
+
+void const_wide (unsigned int res[4])
+{
+  res[0] = 17;
+  res[1] = 17;
+  res[2] = 17;
+  res[3] = 17;
+}
+

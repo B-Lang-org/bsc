@@ -1,0 +1,54 @@
+checking package dependencies
+compiling BlockerEsposito.bs
+code generation for sysBlockerEsposito starts
+Warning: "BlockerEsposito.bs", line 10, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "A". Conflicts:
+    "Blocker" cannot fire before "A": calls to a.upd vs. a.upd
+    "A" cannot fire before "Blocker": calls to a.upd vs. a.upd
+Warning: "BlockerEsposito.bs", line 10, column 0: (G0010)
+  Rule "Blocker" was treated as more urgent than "B". Conflicts:
+    "Blocker" cannot fire before "B": calls to b.upd vs. b.upd
+    "B" cannot fire before "Blocker": calls to b.upd vs. b.upd
+=== schedule:
+parallel: [esposito: [RL_Blocker -> [], RL_A -> [RL_Blocker], RL_B -> [RL_Blocker]]]
+order: [RL_Blocker, RL_A, RL_B]
+
+-----
+
+=== resources:
+[(a.upd, [(a.upd 1'd1 1'd0, 1), (a.upd 1'd1 1'd1, 1)]),
+ (b.upd, [(b.upd 1'd1 1'd0, 1), (b.upd 1'd1 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysBlockerEsposito.sched
+=== Generated schedule for sysBlockerEsposito ===
+
+Rule schedule
+-------------
+Rule: Blocker
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: A
+Predicate: True
+Blocking rules: Blocker
+ 
+Rule: B
+Predicate: True
+Blocking rules: Blocker
+ 
+Logical execution order: Blocker, A, B
+
+==================================================
+Warning: "BlockerEsposito.bs", line 19, column 21: (G0021)
+  According to the generated schedule, rule `A' can never fire.
+Warning: "BlockerEsposito.bs", line 20, column 21: (G0021)
+  According to the generated schedule, rule `B' can never fire.
+Verilog file created: sysBlockerEsposito.v
+All packages are up to date.

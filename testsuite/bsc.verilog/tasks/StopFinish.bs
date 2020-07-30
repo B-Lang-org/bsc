@@ -1,0 +1,17 @@
+package StopFinish(sysStopFinish) where
+
+sysStopFinish :: Module Empty
+sysStopFinish = 
+  module
+    r :: Reg (Bit 16) <- mkReg _
+
+    rules
+       when (r == 0) ==> $finish 0
+       when (r == 1) ==> $finish 1
+       when (r == 2) ==> $finish 2
+       when (r == 3) ==> $finish
+       when (r == 4) ==> $stop 0
+       when (r == 5) ==> $stop 1
+       when (r == 6) ==> $stop 2
+       when (r == 7) ==> $stop 
+       

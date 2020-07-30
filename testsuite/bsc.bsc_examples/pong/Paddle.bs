@@ -1,0 +1,71 @@
+package Paddle (mkPaddle, Paddle(..)) where
+
+import Global
+import Counter
+import Shape
+import Color
+
+paddleWidthC :: XSize
+paddleWidthC = fromInteger paddleWidth
+paddleHeightC :: YSize
+paddleHeightC = fromInteger paddleHeight
+
+paddleLowC :: YSize
+paddleLowC = fromInteger paddleEdgeDist
+
+paddleHighC :: YSize
+paddleHighC = fromInteger (vSize - paddleHeight - paddleEdgeDist)
+
+paddleStartC :: YSize
+paddleStartC = fromInteger ((vSize - paddleHeight) `div` 2)
+
+interface Paddle =
+
+   shape :: Shape
+
+   inc_dec :: Bool -> Action
+
+   inside :: XCoord -> XCoord -> YCoord -> YCoord -> YSize -> (Bool,Bool,Bool,Bool,YSize)
+
+   center :: YCoord
+
+mkPaddle:: Integer -> Module Paddle
+mkPaddle xpos =
+  module
+
+    yposr :: Counter YCoord <- mkCounter paddleLowC paddleStartC paddleHighC
+
+    centerR :: Reg YCoord <- mkRegU
+
+    paddleRect :: Shape <- mkRectangle (fromInteger xpos) paddleWidthC yposr.get paddleHeightC cRed
+
+    yposPlusHeight :: Reg YCoord <- mkRegU
+
+    let
+      inside1 :: XCoord -> YCoord -> Bool
+      inside1 x y =
+	    x > fromInteger xpos &&
+            x < fromInteger (xpos + paddleWidth) &&
+	    y > yposr.get &&
+	    y < yposPlusHeight
+
+
+    interface
+
+	shape = paddleRect
+
+        center = centerR
+
+        inc_dec up = yposr.inc_dec up
+
+	inside x0 x1 y0 y1 dy =
+	    (inside1 x0 y0, inside1 x0 y1, inside1 x1 y0, inside1 x1 y1,
+	     y0 - yposr.get - ((paddleHeightC - dy) >> 1))
+
+    rules
+
+       "PaddlePos":
+	when True ==>
+	  action
+	    centerR := yposr.get + (paddleHeightC >> 1)
+	    yposPlusHeight := yposr.get + paddleHeightC

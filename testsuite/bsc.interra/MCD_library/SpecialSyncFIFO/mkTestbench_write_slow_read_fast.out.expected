@@ -1,0 +1,65 @@
+                1079	Pushing Data=         0
+                1347	Pushing Data=         1
+                1615	Pushing Data=         2
+                1883	Pushing Data=         3
+                2151	Pushing Data=         4
+                2419	Pushing Data=         5
+                2687	Pushing Data=         6
+                2955	Pushing Data=         7
+                3223	Pushing Data=         8
+                3491	Pushing Data=         9
+                3759	Pushing Data=        10
+                4027	Pushing Data=        11
+                4295	Pushing Data=        12
+                4563	Pushing Data=        13
+                4831	Pushing Data=        14
+                5099	Pushing Data=        15
+                5903	Popping Data
+
+                6171	Popping Data
+
+                6171	Data Match, Actual =   0
+                6439	Popping Data
+
+                6439	Data Match, Actual =   1
+                6707	Popping Data
+
+                6707	Data Match, Actual =   2
+                6975	Popping Data
+
+                6975	Data Match, Actual =   3
+                7243	Popping Data
+
+                7243	Data Match, Actual =   4
+                7511	Popping Data
+
+                7511	Data Match, Actual =   5
+                7779	Popping Data
+
+                7779	Data Match, Actual =   6
+                8047	Popping Data
+
+                8047	Data Match, Actual =   7
+                8315	Popping Data
+
+                8315	Data Match, Actual =   8
+                8583	Popping Data
+
+                8583	Data Match, Actual =   9
+                8851	Popping Data
+
+                8851	Data Match, Actual =  10
+                9119	Popping Data
+
+                9119	Data Match, Actual =  11
+                9387	Popping Data
+
+                9387	Data Match, Actual =  12
+                9655	Popping Data
+
+                9655	Data Match, Actual =  13
+                9923	Popping Data
+
+                9923	Data Match, Actual =  14
+               10191	Data Match, Actual =  15
+	Passed Fifo Test.

@@ -1,0 +1,3 @@
+
+typedef List#(A) A;
+

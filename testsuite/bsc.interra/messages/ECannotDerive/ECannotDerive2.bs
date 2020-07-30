@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ECannotDerive.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ECannotDerive error of the bluespec
+-- compiler (Illegal Deriving, for struct declarations)
+--
+-----------------------------------------------------------------------
+
+
+
+
+package ECannotDerive2 () where
+
+struct My_Set = { a :: Bit 5; b :: Maybe (Bit 17)}
+              deriving (Eq, Bits, Arith)
+
+

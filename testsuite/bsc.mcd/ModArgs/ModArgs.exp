@@ -1,0 +1,176 @@
+# ----------
+
+# Tests for clock and reset issues with module arguments
+
+# ----------
+
+# Test that the expressions given to submodule arguments are checked
+# for clock consistency (multiple clocks are rejected)
+
+compile_verilog_fail_error ModulePort_ParentUse_TwoClocks.bsv G0007
+
+# Test that multiple resets into a submodule argument triggers a warning
+
+compile_verilog_pass_warning ModulePort_ParentUse_TwoResets.bsv G0043
+
+# ----------
+
+# Test that the clock of an expression to a submodule argument must
+# match the clock associated with the port.
+
+compile_verilog_fail_error ModulePort_ParentUse_WrongClock.bsv G0082
+
+# Test that a port associated with "no_clock" cannot be connected to a
+# value with a clock.
+compile_verilog_fail_error ModulePort_ParentUse_NoClock_WrongClock.bsv G0082
+compile_verilog_pass       ModulePort_ParentUse_NoClock_RightClock.bsv
+
+# -----
+
+# Check that if the reset of an expression doesn't match the reset of
+# the port, that a warning is given.
+
+compile_verilog_pass_warning ModulePort_ParentUse_WrongReset.bsv G0083
+
+# Test that a port associated with "no_reset" triggers a warning if
+# the value has an associated reset.
+compile_verilog_pass_warning ModulePort_ParentUse_NoReset_WrongReset.bsv G0083
+compile_verilog_pass_no_warning ModulePort_ParentUse_NoReset_RightReset.bsv
+
+# ----------
+
+# Test that uses of a port in multiple clock domains is an error
+
+# (These used to be tests for deriving of the clock, but now that we
+# don't derive, they just test for the cross-clock failure of using the
+# port in various situations.)
+
+# Two rules in different domains
+compile_verilog_fail_error ModulePort_TwoClockUses_Rules.bsv G0007
+
+# A rule and a method in different domains
+compile_verilog_fail_error ModulePort_TwoClockUses_RuleMethod.bsv G0007
+
+# A rule and an instantiation argument in different domains
+compile_verilog_fail_error ModulePort_TwoClockUses_RuleInst.bsv G0082
+
+# ----------
+
+# The warning for resets is tested as part of the attribute testing, below.
+
+# ----------
+
+# Test that clocks which are dynamically selected by a module argument
+# are rejected.  (The test for whether the clock expression has wires
+# doesn't catch this -- because the evaluator doesn't yet know that the
+# port has wires -- but the later check for the structure of the expression
+# will catch that the value is dynamic ... it will be an application and
+# not a clock constructor.)
+
+compile_verilog_fail_error ModulePort_ClockMux.bsv G0067
+compile_verilog_fail_error ModulePort_ResetMux.bsv G0068
+
+# ----------
+
+# Test that using ports in expressions to static module arguments (parameters)
+# is reported as an error
+
+compile_verilog_fail_error ModulePort_ParamUse.bsv G0053
+
+# ----------
+
+# Test that "clockOf" a module argument gives the right value
+
+compile_verilog_pass ModulePort_ClockOf.bsv
+
+# Test that "resetOf" a module argument gives the right value
+
+compile_verilog_pass ModulePort_ResetOf.bsv
+
+# ----------
+
+# Test attributes for specifying the associated clock
+
+# Test that bad clock names are detected
+compile_verilog_fail_error ClockedBy_BadName.bsv P0196
+
+# Test that "no_clock" is accepted, and allows the port to be used in
+# multiple domains
+compile_verilog_pass ClockedBy_NoClock.bsv
+
+# Test that "default_clock" is allowed
+compile_verilog_pass ClockedBy_DefaultClock.bsv
+
+# Test that a failure is detected if "default_clock" is specified but
+# the port is used with another clock
+compile_verilog_fail_error ClockedBy_DefaultClock_WrongClock.bsv G0007
+
+# Test that a specific clock can be named
+compile_verilog_pass ClockedBy_RightClock.bsv
+
+# Test that a failure is detected if a specific clock is named but
+# the port is used with another clock
+compile_verilog_fail_error ClockedBy_WrongClock.bsv G0007
+
+# ----------
+
+# Test attributes for specifying the associated reset
+
+# Test that bad reset names are detected
+compile_verilog_fail_error ResetBy_BadName.bsv P0198
+
+# Test that "no_reset" is accepted, and allows the port to be used in
+# multiple domains
+compile_verilog_pass_no_warning ResetBy_NoReset.bsv
+
+# Test that "default_reset" is allowed
+compile_verilog_pass_no_warning ResetBy_DefaultReset.bsv
+
+# Test that a failure is detected if "default_reset" is specified but
+# the port is used with another clock
+compile_verilog_pass_warning ResetBy_DefaultReset_WrongReset.bsv G0043
+
+# Test that a specific reset can be named
+compile_verilog_pass_no_warning ResetBy_RightReset.bsv
+
+# Test that a warning is given if a specific reset is named but
+# the port is used in an expression with another reset
+compile_verilog_pass_warning ResetBy_WrongReset.bsv G0043
+
+# ----------
+
+# Test that import-BVI ports can have the clock specified
+
+compile_verilog_fail_error ModulePort_ParentUseBVI_WrongClock.bsv G0082
+
+compile_verilog_pass ModulePort_ParentUseBVI_RightClock.bsv
+
+# Test that only an expression with no clock can be connected to a
+# port declared with "no_clock"
+compile_verilog_fail_error ModulePort_ParentUseBVI_NoClock_WrongClock.bsv G0082
+compile_verilog_pass       ModulePort_ParentUseBVI_NoClock_RightClock.bsv
+
+# ----------
+
+# Test that import-BVI ports can have the reset specified
+
+compile_verilog_pass_warning ModulePort_ParentUseBVI_WrongReset.bsv G0083
+
+compile_verilog_pass ModulePort_ParentUseBVI_RightReset.bsv
+
+# Test that only an expression with no reset can be connected to a
+# port declared with "no_reset" without a warning
+compile_verilog_pass_warning \
+    ModulePort_ParentUseBVI_NoReset_WrongReset.bsv G0083
+compile_verilog_pass_no_warning \
+    ModulePort_ParentUseBVI_NoReset_RightReset.bsv
+
+# ----------
+
+# Test that clock mismatch involving NoClock doesn't result in an internal error
+
+compile_verilog_fail_no_internal_error ModArg_Inout_ClockMismatch_NoClock.bsv
+compile_verilog_fail_no_internal_error ModArg_Port_ClockMismatch_NoClock.bsv
+
+# ----------
+

@@ -1,0 +1,55 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "common.h"
+
+unsigned int
+av_narrow (unsigned int w[4], unsigned int *p, unsigned int n, char *s)
+{
+  unsigned int res;
+  printf("av_narrow\n");
+  display_four(n,w,p,s);
+  res = popcount(w,128);
+  printf("    popcount = %d\n", res);
+  return res;
+}
+
+void
+av_wide (unsigned int *res,
+         char *s, unsigned int n, unsigned int *p, unsigned int w[4])
+{
+  printf("av_wide\n");
+  display_four(n,w,p,s);
+  invert_poly(res, w, 128);
+  printf("    ~w = ");
+  display_hex_poly(128, res);
+  printf("\n");
+}
+
+void
+av_poly (unsigned int *res,
+         unsigned int *p, char *s, unsigned int w[4], unsigned int n)
+{
+  printf("av_poly\n");
+  display_four(n,w,p,s);
+  invert_poly(res, p, n);
+  printf("    ~p = ");
+  display_hex_poly(n, res);
+  printf("\n");
+}
+
+unsigned int random_narrow()
+{
+  unsigned int res;
+  printf("random_narrow\n");
+  res = (unsigned int)random();
+  printf("    res = %08x\n", res);
+  return res;
+}
+
+void random_wide(unsigned int res[4])
+{
+  printf("random_wide\n");
+  four_copies(res, (unsigned int)random());
+  printf("    res = %08x %08x %08x %08x\n", res[3], res[2], res[1], res[0]);
+}
+

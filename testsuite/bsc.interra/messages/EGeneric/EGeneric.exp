@@ -1,0 +1,4 @@
+if {$vtest == 1} {
+compile_verilog_fail EGeneric.bs mkTest
+compare_file EGeneric.bs.bsc-vcomp-out
+}

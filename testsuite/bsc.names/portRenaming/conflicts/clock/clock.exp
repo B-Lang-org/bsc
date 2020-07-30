@@ -1,0 +1,12 @@
+# ----------
+# Test for conflicts between clock ports and other interface ports
+
+# Test osc port
+compile_verilog_fail_error ClockEnable.bsv G0055
+compile_verilog_fail_error ClockResult.bsv G0055
+
+# Test gate port
+compile_verilog_fail_error GateEnable.bsv G0055
+
+# ----------
+

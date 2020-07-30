@@ -1,0 +1,33 @@
+test_c_veri_worker Apply mkTestbench_Apply {} "bsv" 1 1 "mkTestbench_Apply.v.out.expected" "" ""
+
+test_c_veri_worker Tee mkTestbench_Tee {} "bsv" 1 1 "mkTestbench_Tee.v.out.expected" "" ""
+
+test_c_veri_worker Pass mkTestbench_Pass {} "bsv" 1 1 "mkTestbench_Pass.v.out.expected" "" ""
+
+test_c_veri_worker Passed mkTestbench_Passed {} "bsv" 1 1 "mkTestbench_Passed.v.out.expected" "" ""
+
+test_c_veri_worker Buffer mkTestbench_Buffer {} "bsv" 1 1 "mkTestbench_Buffer.v.out.expected" "" ""
+
+test_c_veri_worker Buffered mkTestbench_Buffered {} "bsv" 1 1 "mkTestbench_Buffered.v.out.expected" "" ""
+
+if {$ctest == 1} {
+compile_object_pass Sink.bsv mkTestbench_Sink
+link_objects_pass {"mkTestbench_Sink" } mkTestbench_Sink
+sim_output mkTestbench_Sink {-m 10010}
+
+compile_object_pass Spew.bsv mkTestbench_Spew
+link_objects_pass {"mkTestbench_Spew" } mkTestbench_Spew
+sim_output mkTestbench_Spew {-m 10010}
+}
+
+test_c_veri_worker Pipe mkTestbench_Pipe {} "bsv" 1 1 "mkTestbench_Pipe.v.out.expected" "" ""
+
+## Change to compile_object_pass when the bind keyword issue is resolved
+## Uncomment the other three procedure calls upon resolution of keyword issue
+if {$ctest == 1} {
+compile_object_fail Bind.bsv mkTestbench_Bind
+compare_file Bind.bsv.bsc-ccomp-out
+}
+#link_objects_pass {"mkTestbench_Bind" } mkTestbench_Bind
+#sim_final_state mkTestbench_Bind 10010
+#compare_file "mkTestbench_Bind.final-state"

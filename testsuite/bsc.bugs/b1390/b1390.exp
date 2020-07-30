@@ -1,0 +1,14 @@
+if { $vtest == 1 } {
+
+compile_verilog_pass Test.bsv
+compare_file Test.bsv.bsc-vcomp-out
+compare_file mkTest.sched
+compare_verilog mkTest.v
+
+compile_verilog_pass Test2.bsv
+compare_file Test2.bsv.bsc-vcomp-out
+compare_verilog mkTest2.v
+compare_file mkTest2.sched
+
+}
+

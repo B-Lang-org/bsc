@@ -1,0 +1,8 @@
+checking package dependencies
+compiling NonMergedFunDeps.bs
+Error: "NonMergedFunDeps.bs", line 10, column 6: (T0124)
+  Dependencies for typeclass `Foo' must mention all the following typeclass
+  variables (as sources or targets): a, b, c
+  The following dependencies are not full:
+    a determines b
+    a determines c

@@ -1,0 +1,24 @@
+compile_object_pass DesignReg.bsv sysDesignReg
+link_objects_pass sysDesignReg sysDesignReg
+
+#this is supposed to fail when the runtime error infrastructure
+#exists someday
+sim_final_state sysDesignReg 999
+
+compile_object_pass DesignBig.bsv mkDesign
+compile_object_fail_error Design.bsv T0051 1 mkDesign
+compile_object_fail_error Design2.bsv T0051 1 mkDesign
+compile_object_fail_error Design3.bsv T0051 1 mkDesign
+compile_object_fail_error Design4.bsv T0051 1 mkDesign
+
+erase DesignBig.bo
+erase Design.bo
+erase Design2.bo
+erase Design3.bo
+erase Design4.bo
+
+compile_verilog_pass DesignBig.bsv mkDesign
+compile_verilog_fail_error Design.bsv T0051 1 mkDesign
+compile_verilog_fail_error Design2.bsv T0051 1 mkDesign
+compile_verilog_fail_error Design3.bsv T0051 1 mkDesign
+compile_verilog_fail_error Design4.bsv T0051 1 mkDesign

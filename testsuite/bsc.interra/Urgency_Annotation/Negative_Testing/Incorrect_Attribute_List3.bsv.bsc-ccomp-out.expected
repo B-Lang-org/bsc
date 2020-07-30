@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "Incorrect_Attribute_List3.bsv", line 16, column 39: (P0005)
+  Unexpected `;'; expected `.', `,', or end of string

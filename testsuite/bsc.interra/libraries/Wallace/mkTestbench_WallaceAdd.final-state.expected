@@ -1,0 +1,12 @@
+Simulation Passes
+Final state:
+top:
+  the_dut_the_reg_list_rs = 0x05
+  the_dut_the_reg_list_rs_1 = 0x1e
+  the_dut_the_reg_list_rs_2 = 0x04
+  the_dut_the_reg_list_rs_3 = 0x06
+  the_dut_the_reg_list_rs_4 = 0x09
+  the_dut_the_reg_list_rs_5 = 0x0b
+  the_dut_the_reg_list_rs_6 = 0x0c
+  the_dut_the_reg_list_rs_7 = 0x0d
+  the_dut_the_reg_list_rs_8 = 0x00

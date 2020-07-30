@@ -1,0 +1,3 @@
+COND_RL_r1_s_am1_1 {positions {MethodConds_CaseCond.bsv 24 12}} {rule RL_r1} {instance s} {method am1}
+COND_RL_r1_s_am2_2 {positions {MethodConds_CaseCond.bsv 25 12}} {rule RL_r1} {instance s} {method am2}
+{COND_RL_r1_FUNCTION_$display_3} {positions {Unknown {} {}}} {rule RL_r1} {instance FUNCTION} {method {$display}}

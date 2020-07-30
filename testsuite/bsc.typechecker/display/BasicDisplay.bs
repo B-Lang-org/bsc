@@ -1,0 +1,4 @@
+package BasicDisplay() where
+
+foo :: Action
+foo = $display (0 :: Bit 5) (7 :: Bit 7) (9 :: Bit 9)

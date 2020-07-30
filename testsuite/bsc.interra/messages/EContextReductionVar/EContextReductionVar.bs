@@ -1,0 +1,57 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReductionVar.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EContextReductionVar error of the bluespec
+-- compiler (Context Reduction failed because there are no instances of type {instance}
+-- The type variable {identifier} was introduced at position {position})
+--
+-----------------------------------------------------------------------
+
+
+
+package EContextReductionVar () where
+
+import FIFO
+import RegFile
+
+data RName = R0  | R1  | R2  | R3  | R4  | R5  | R6  | R7
+	   | R8  | R9  | R10 | R11 | R12 | R13 | R14 | R15
+	   | R16 | R17 | R18 | R19 | R20 | R21 | R22 | R23
+	   | R24 | R25 | R26 | R27 | R28 | R29 | R30 | R31
+           deriving (Eq)   
+
+type Src   = RName
+type Dest  = RName
+type Cond  = RName
+type Addr  = RName
+type Val   = RName
+
+type IAddr = Bit 32   -- instruction memory address
+type MVal  = Bit 32   -- memory value
+
+data Instr = Add   Dest Src Src
+	   | Bz    Cond Addr
+	   | Load  Dest Addr
+	   | Store Val  Addr
+
+
+-- --------------------------------------------------------
+-- Register File
+
+interface RegisterFile =
+    read  :: RName -> MVal
+    write :: RName -> MVal -> Action
+
+mkRegisterFile :: Module RegisterFile
+mkRegisterFile =
+    module
+	r131 :: RegFile RName MVal <- mkRegFile R0 R31
+        interface
+	    read  addr = if (addr == R0) then 0 else r131.sub addr
+	    write addr val = r131.upd addr val
+
+

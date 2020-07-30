@@ -1,0 +1,5 @@
+compile_fail EBadStringLit.bs
+compare_file EBadStringLit.bs.bsc-out
+
+compile_fail EBadStringLit2.bs
+compare_file EBadStringLit2.bs.bsc-out

@@ -1,0 +1,46 @@
+Car present on Farm Road 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+Waiting for hwy_light to turn Yellow 
+hwy_light turns Yellow 
+Waiting for hwy_light to turn Red 
+Waiting for hwy_light to turn Red 
+Waiting for hwy_light to turn Red 
+hwy_light turns Red 
+farm_light turns Green 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+Waiting for farm_light to turn Yellow 
+farm_light turns Yellow 
+Waiting for farm_light to turn Red 
+Waiting for farm_light to turn Red 
+Waiting for farm_light to turn Red 
+farm_light turns Red 
+Waiting for hwy_light to turn Green 
+hwy_light turns Green 
+Simulation Passes 
+Final state:
+top:
+  count_sig2_state = 0x06
+  count_sig3_state = 0x03
+  count_sig4_state = 0x00
+  count_sig5_state = 0x05
+  count_sig6_state = 0x03
+  count_sig7_state = 0x01
+  count_wait = 0x0000
+  counter = 0x00
+  frm_sig = 0x0
+  hwy_sig = 0x2
+  long_timer_value = 0x05
+  short_timer_value = 0x02
+  state = 0x08
+  top:
+    t_frm_state = 0x0
+    t_hwy_state = 0x2
+    t_timer = 0x04
+    t_timer_state = 0x1

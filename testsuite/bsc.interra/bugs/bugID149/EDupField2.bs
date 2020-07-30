@@ -1,0 +1,15 @@
+----------------------------------------------------
+-- FileName : EDupField2.bs
+-- Author   : Interra
+-- BugID    : 149
+-- CommandLine : bsc EDupField2.bs
+-- Status : Fixed for BSC 3.74 
+----------------------------------------------------
+
+package EDupField2 () where
+
+struct My_pair = {fst :: Integer; fst :: Integer; snd :: Integer}
+
+
+
+

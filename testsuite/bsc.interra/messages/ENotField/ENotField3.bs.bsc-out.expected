@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ENotField3.bs
+Error: "ENotField3.bs", line 48, column 70: (T0016)
+  Field `extra' is not in the type `ENotField3.MyStruct' which was derived for
+  this expression.

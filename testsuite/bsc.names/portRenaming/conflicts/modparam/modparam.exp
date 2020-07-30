@@ -1,0 +1,46 @@
+# ----------
+# Test for conflicts between module argument params and method ports
+
+compile_verilog_fail_error ModparamResult.bsv G0107
+compile_verilog_fail_error ModparamEnable.bsv G0107
+compile_verilog_fail_error ModparamReady.bsv G0107
+compile_verilog_fail_error ModparamPort.bsv G0107
+
+# Test that clash is detected when the modparam is renamed
+compile_verilog_fail_error ModparamPortRename.bsv G0107
+
+# ----------
+# Text for conflicts with clock osc and gate
+
+compile_verilog_fail_error ModparamClock.bsv G0107
+compile_verilog_fail_error ModparamGate.bsv G0107
+
+compile_verilog_fail_error ModparamClockPrefix.bsv G0107
+compile_verilog_fail_error ModparamGatePrefix.bsv G0107
+
+compile_verilog_pass ModparamClockPrefixOK.bsv
+compile_verilog_pass ModparamGatePrefixOK.bsv
+
+# ----------
+# Text for conflicts with reset port
+
+compile_verilog_fail_error ModparamReset.bsv G0107
+
+compile_verilog_fail_error ModparamResetPrefix.bsv G0107
+
+compile_verilog_pass ModparamResetPrefixOK.bsv
+
+# ----------
+# Text for conflicts with inout port
+
+compile_verilog_fail_error ModparamInout.bsv G0107
+
+compile_verilog_fail_error ModparamInoutPrefix.bsv G0107
+
+compile_verilog_pass ModparamInoutPrefixOK.bsv
+
+# Test that clash is detected when the modarg is renamed
+compile_verilog_fail_error ModparamInoutRename.bsv G0107
+
+# ----------
+

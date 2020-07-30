@@ -1,0 +1,13 @@
+package ImportedInfixInDefault (Foo(..)) where
+
+class (Arith a) => Foo a where
+  -- Test an operator which has no "infix" declaration
+  f :: a -> String -> String -> String
+  f _ s1 s2 = "This is a concat of strings: " +++ s1 +++ " " +++ s2
+  -- test operators with "infix" declarations
+  g :: a -> a -> a -> a -> a
+  g w x y z = w + x + y - z
+  -- test operators which turn into special CSyntax
+  h :: Reg a -> a -> Action
+  h r v = (r := v)
+

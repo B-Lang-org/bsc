@@ -1,0 +1,31 @@
+package Bug782_ProvisoClassic where
+
+struct S a = {
+    f1 :: Bit (TSub a 3);
+    f2 :: Bit 4;
+    f3 :: Bit 4
+}
+
+instance (Bits (Bit (TSub a 3)) _v101,
+	  Bits (Bit 4) _v104,
+	  Bits (Bit 4) _v107,
+	  Add _v104 _v107 _v100,
+	  Add _v101 _v100 _v103) =>
+	 Bits (S a) _v103
+  where
+    pack :: S a -> Bit _v103
+    pack _x = 
+	primConcat
+	  (pack _x.f1)
+	  (primConcat (pack _x.f2) (pack _x.f3))
+    unpack :: Bit _v103 -> S a
+    unpack _x = 
+	(\ _x0 ->
+	 (\ _x1 ->
+	  S { f1 = unpack _x0.fst;
+	      f2 = unpack _x1.fst;
+	      f3 = unpack _x1.snd;
+	      })
+	   (primSplit _x0.snd))
+	  (primSplit _x)
+

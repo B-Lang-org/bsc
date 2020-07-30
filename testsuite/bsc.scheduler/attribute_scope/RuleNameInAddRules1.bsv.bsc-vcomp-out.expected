@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameInAddRules1.bsv
+code generation for sysRuleNameInAddRules1 starts
+Warning: "RuleNameInAddRules1.bsv", line 12, column 15: (G0021)
+  According to the generated schedule, rule `r2' can never fire.
+Verilog file created: sysRuleNameInAddRules1.v
+All packages are up to date.

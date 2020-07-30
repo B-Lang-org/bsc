@@ -1,0 +1,152 @@
+package Bug753 where {
+
+import List;
+
+import SVA2;
+           
+interface Summer = {
+    inp :: Int 32 -> Action ;
+    outp :: Int 32 ;
+};
+ 
+mkSimpleSummer :: Module Summer;
+mkSimpleSummer = 
+    module {
+      pipe1 :: Reg (Int 32) <- mkReg 0;
+      pipe2 :: Reg (Int 32) <- mkReg 1;
+      pipe3 :: Reg (Int 32) <- mkReg 2;
+      pipe4 :: Reg (Int 32) <- mkReg 3;
+      let { assertion_1_8 :: (IsModule _m' _c') => _m' Property;
+            assertion_1_8 = 
+              module {
+                let { assertion_1_1 :: (IsModule _m' _c') => _m' Sequence;
+                      assertion_1_1 = 
+                        module {
+                          mkSeqExpr (pipe2 > 0);
+                          interface Sequence {
+                          }
+                        };
+                    };
+                assertion_1_2 <- replicateM 1 assertion_1_1;
+                let { assertion_1_5 :: (IsModule _m' _c') => _m' Property;
+                      assertion_1_5 = 
+                        module {
+                          assertion_1_3 <- mkSeqExpr
+                                             ((pipe1 > pipe2) || (pipe1 < 0));
+                          mkPropSeq assertion_1_3;
+                          interface Property {
+                          }
+                        };
+                    };
+                assertion_1_6 <- replicateM 1 assertion_1_5;
+                mkPropImplies assertion_1_2 assertion_1_6;
+                interface Property {
+                }
+              };
+          };
+      let { assertion_2_8 :: (IsModule _m' _c') => _m' Property;
+            assertion_2_8 = 
+              module {
+                let { assertion_2_1 :: (IsModule _m' _c') => _m' Sequence;
+                      assertion_2_1 = 
+                        module {
+                          mkSeqExpr (pipe2 < 0);
+                          interface Sequence {
+                          }
+                        };
+                    };
+                assertion_2_2 <- replicateM 1 assertion_2_1;
+                let { assertion_2_5 :: (IsModule _m' _c') => _m' Property;
+                      assertion_2_5 = 
+                        module {
+                          assertion_2_3 <- mkSeqExpr
+                                             ((pipe1 < pipe2) || (pipe1 > 0));
+                          mkPropSeq assertion_2_3;
+                          interface Property {
+                          }
+                        };
+                    };
+                assertion_2_6 <- replicateM 1 assertion_2_5;
+                mkPropImplies assertion_2_2 assertion_2_6;
+                interface Property {
+                }
+              };
+          };
+      assertion_1_9 :: List Property <- replicateM 1 assertion_1_8;
+      assertion_0 :: Assertion <- mkAssertAlways
+                                    assertion_1_9
+                                    noAction
+                                    ($display "Warning: SimpleSummer inputs should grow or switch sign");
+      addRules
+        (rules {
+           {-# ASSERT fire when enabled #-}
+           {-# ASSERT no implicit conditions #-}
+           "assertion_0_fire":  when True ==> action { foo :: Bool <- assertion_0.advance; }
+         });
+      assertion_2_9 :: List Property <- replicateM 1 assertion_2_8;
+      assertion_1 :: Assertion <- mkAssertAlways
+                                    assertion_1_9
+                                    noAction
+                                    ($display "Warning: SimpleSummer inputs should shrink or switch sign");
+      addRules
+        (rules {
+           {-# ASSERT fire when enabled #-}
+           {-# ASSERT no implicit conditions #-}
+           "assertion_1_fire":  when True ==> action { foo :: Bool <- assertion_1.advance; }
+         });
+      interface {
+        inp :: Int 32 -> Action;
+        inp x = 
+            action { let { tmp' :: Int 32;
+                           tmp' =  x; };
+                     let { tmp :: Int 32;
+                           tmp =  tmp'; };
+                     _theResult' :: Int 32
+                         <- if x < 0 then
+                                do { let { tmp' :: Int 32;
+                                           tmp' =  tmp - 4; };
+                                      let { tmp :: Int 32;
+                                           tmp =  tmp'; };
+                                     return tmp;
+                                   }
+                            else
+                                do { let { tmp' :: Int 32;
+                                           tmp' =  tmp + 4; };
+                                     let { tmp :: Int 32;
+                                           tmp =  tmp'; };
+                                     return tmp;
+                                   };
+                     let { tmp =  _theResult'; };
+                     pipe1 := tmp;
+                     pipe2 := pipe1;
+                     pipe3 := pipe2;
+                     pipe4 := pipe3;
+                   };
+        outp :: Int 32;
+        outp =  ((pipe1 + pipe2) + pipe3) + pipe4;
+      }
+    };;
+      
+mkTest :: Module Empty;
+mkTest = 
+    module {
+      sum :: Summer <- mkSimpleSummer;
+      r :: Reg (Int 5) <- mkReg 0;
+      addRules
+        (rules {
+           "gogo":  when True
+                     ==>
+                       action { r := (r + 5);
+                                sum.inp (zeroExtend r);
+                                let { res' :: Int 32;
+                                      res' =  sum.outp; };
+                                let { res :: Int 32;
+                                      res =  res'; };
+                                $display "Res: %0d" res;
+                                }
+         });
+      interface Empty {
+      }
+    };
+}
+

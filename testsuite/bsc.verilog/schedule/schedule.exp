@@ -1,0 +1,9 @@
+# tests running schedulers in C and Verilog
+
+test_c_veri_bsv EspositoPreempt
+
+# test that an always_enabled method whose EN == 0
+# is detected as an error
+
+compile_verilog_fail_error MethodNeverEnabled.bsv G0066
+

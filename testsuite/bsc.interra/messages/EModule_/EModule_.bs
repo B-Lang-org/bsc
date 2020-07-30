@@ -1,0 +1,27 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EModule_.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EModule_ error of the bluespec
+-- compiler (Trying to generate a module for _)
+--
+-- Error generated when code is requested for mkTest
+-----------------------------------------------------------------------
+
+
+package EModule_ () where
+
+-- import Int
+
+interface Test =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+mkTest :: Module Test
+mkTest =
+    module _
+
+

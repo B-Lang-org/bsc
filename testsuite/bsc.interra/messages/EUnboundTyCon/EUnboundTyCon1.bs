@@ -1,0 +1,46 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EUnboundTyCon1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers an unbound type constructor error (EUnboundTyCon)
+
+-- Error Message : bsc EUnboundTyCon1.bs
+-- bsc: Compilation errors:
+-- "EUnboundTyCon1.bs", line 21, column 17, Unbound type constructor: "Int1"
+-----------------------------------------------------------------------
+
+package EUnboundTyCon1 (EUnboundTyCon1(..)) where
+ 
+-- import Int
+
+interface EUnboundTyCon1 = 
+       dtoq   :: Int 1 -> Int 1 -> Bit 1 -> Action
+       result :: Int1
+
+mkEUnboundTyCon1 :: Module EUnboundTyCon1
+mkEUnboundTyCon1 =
+        module
+
+            d   :: Reg (Int 1)
+            d <- mkRegU
+            q   :: Reg (Int 1)
+            q <- mkRegU
+            clk ::  Bit 1
+
+            rules
+              "Assign":
+                  when clk == 1
+                   ==> action
+                    q := d 
+   
+            interface
+                dtoq ix iy iz = action
+                                 d := ix
+                                 q := iy
+                               clk := iz
+                        when clk == 1
+                    
+                result = q when clk == 1

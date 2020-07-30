@@ -1,0 +1,2 @@
+compile_verilog_pass foo.bsv
+compare_verilog mkFOO.v

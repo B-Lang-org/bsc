@@ -1,0 +1,200 @@
+# Check that dynamic computation of a static value triggers an error.
+# Compare against expected output in order to guarantee that the position
+# is as expected.
+
+# -------------------------
+# Dynamic Rule expressions
+# and dynamic module#(Rule) statements
+
+if { $vtest == 1 } {
+
+# dynamic module blocks (containing "rule..endrule")
+# (reported as EDynamicModule)
+#
+compile_verilog_fail ERulesMux1.bsv
+compare_file ERulesMux1.bsv.bsc-vcomp-out
+
+# dynamic module statement (here, "addRules")
+# (reported as EDynamicModule)
+#
+compile_verilog_fail ERulesMux2.bsv
+compare_file ERulesMux2.bsv.bsc-vcomp-out
+
+# same as above, but where "addRules" is not the last statement in the module
+# (reported as EDynamicModule)
+#
+compile_verilog_fail ERulesMux2a.bsv
+compare_file ERulesMux2a.bsv.bsc-vcomp-out
+
+# dynamic rule value (the argument to "addRules")
+# (reported as EDynamicRule)
+#
+compile_verilog_fail ERulesMux3.bsv
+compare_file ERulesMux3.bsv.bsc-vcomp-out
+
+}
+
+# -----
+# Test again with case statements
+
+# XXX For now, we just test one EDynamicMux and one EDynamicRule
+# XXX Fill in the rest?
+
+if { $vtest == 1 } {
+
+compile_verilog_fail ERulesMux2a_Case.bsv
+compare_file ERulesMux2a_Case.bsv.bsc-vcomp-out
+
+compile_verilog_fail ERulesMux3_Case.bsv
+compare_file ERulesMux3_Case.bsv.bsc-vcomp-out
+
+}
+
+# -----
+# Test again with ArraySelect
+
+# XXX For now, we just test one EDynamicMux and one EDynamicRule
+# XXX Fill in the rest?
+
+if { $vtest == 1 } {
+
+compile_verilog_fail ERulesMux2a_ArrSel.bsv
+# XXX Bug 1808: unknown position
+compare_file ERulesMux2a_ArrSel.bsv.bsc-vcomp-out
+
+compile_verilog_fail ERulesMux3_ArrSel.bsv
+# XXX Bug 1808: unknown position
+compare_file ERulesMux3_ArrSel.bsv.bsc-vcomp-out
+
+}
+
+# -------------------------
+# Dynamic module statements
+
+# XXX Consider testing other dynamic module situations where the type
+# XXX is not Rules, in case we eventually handle type Rules specially?
+
+# -------------------------
+# Dynamic submodule arguments
+
+# IExpand doesn't actually look for PrimIf, PrimCase, etc; it looks for
+# whether there are any wires (clock/reset) associated with the value.
+# Therefore, we don't need separate tests for If/Case/ArrSel.
+# (In fact, the parameter test just uses a value from a register.)
+
+if { $vtest == 1 } {
+
+# Clock
+compile_verilog_fail ModArg_Clock.bsv
+compare_file ModArg_Clock.bsv.bsc-vcomp-out
+
+# Reset
+compile_verilog_fail ModArg_Reset.bsv
+compare_file ModArg_Reset.bsv.bsc-vcomp-out
+
+# Inout
+compile_verilog_fail ModArg_Inout.bsv
+# XXX The special error for Inout arguments is not reachable because eval
+# XXX of the PrimInoutCast will occur first and report the generic error
+compare_file ModArg_Inout.bsv.bsc-vcomp-out
+
+# Parameter
+compile_verilog_fail ModArg_Param.bsv
+compare_file ModArg_Param.bsv.bsc-vcomp-out
+
+# XXX Test with anonymous instantiations
+# XXX (the position of the error message is "Unknown", which should be fixed)
+
+}
+
+# -----
+
+# XXX What if the muxing is via a parameter argument, instead of a register?
+# XXX In that case, there are no wires; we allow it?
+# XXX Verilog and Bluesim?
+
+# -------------------------
+# Dynamic interface outputs
+
+if { $vtest == 1 } {
+
+# -----
+# With If
+
+# Clock
+compile_verilog_fail Ifc_Clock_If.bsv
+compare_file Ifc_Clock_If.bsv.bsc-vcomp-out
+
+# Reset
+compile_verilog_fail Ifc_Reset_If.bsv
+compare_file Ifc_Reset_If.bsv.bsc-vcomp-out
+
+# Inout
+compile_verilog_fail Ifc_Inout_If.bsv
+compare_file Ifc_Inout_If.bsv.bsc-vcomp-out
+
+# -----
+# With Case
+
+# Clock
+compile_verilog_fail Ifc_Clock_Case.bsv
+compare_file Ifc_Clock_Case.bsv.bsc-vcomp-out
+
+# Reset
+compile_verilog_fail Ifc_Reset_Case.bsv
+compare_file Ifc_Reset_Case.bsv.bsc-vcomp-out
+
+# Inout
+compile_verilog_fail Ifc_Inout_Case.bsv
+compare_file Ifc_Inout_Case.bsv.bsc-vcomp-out
+
+# -----
+# With Array Select
+
+# Clock
+compile_verilog_fail Ifc_Clock_ArrSel.bsv
+# XXX Bug 1808: unknown position
+compare_file Ifc_Clock_ArrSel.bsv.bsc-vcomp-out
+
+# Reset
+compile_verilog_fail Ifc_Reset_ArrSel.bsv
+# XXX Bug 1808: unknown position
+compare_file Ifc_Reset_ArrSel.bsv.bsc-vcomp-out
+
+# Inout
+compile_verilog_fail Ifc_Inout_ArrSel.bsv
+# XXX Bug 1808: unknown position
+compare_file Ifc_Inout_ArrSel.bsv.bsc-vcomp-out
+
+}
+
+# -------------------------
+# Dynamic Clock in primitives
+
+# This uses the same IExpand code as the interface tests, so it's not urgent
+
+# XXX clocked_by 
+
+# XXX Test with If, Case, ArraySelect
+
+# -------------------------
+# Dynamic Reset in primitives
+
+# This uses the same IExpand code as the interface tests, so it's not urgent
+
+# XXX reset_by 
+
+# XXX Test with If, Case, ArraySelect
+
+# -------------------------
+# Dynamic Inout in primitives
+
+# This uses the same IExpand code as the interface tests, so it's not urgent
+
+# XXX primInoutUncast
+# XXX primInoutCast
+
+# XXX Test with If, Case, ArraySelect
+
+# -------------------------
+

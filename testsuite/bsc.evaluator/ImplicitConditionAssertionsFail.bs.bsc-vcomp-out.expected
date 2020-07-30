@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ImplicitConditionAssertionsFail.bs
+code generation for sysImplicitConditionAssertionsFail starts
+Error: "ImplicitConditionAssertionsFail.bs", line 15, column 8: (G0005)
+  The assertion `no_implicit_conditions' failed for rule `bogus'
+  During elaboration of rule `bogus' at "ImplicitConditionAssertionsFail.bs",
+  line 15, column 8.
+  During elaboration of `sysImplicitConditionAssertionsFail' at
+  "ImplicitConditionAssertionsFail.bs", line 8, column 0.

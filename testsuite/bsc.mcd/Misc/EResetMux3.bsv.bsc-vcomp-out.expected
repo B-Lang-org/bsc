@@ -1,0 +1,9 @@
+checking package dependencies
+compiling EResetMux3.bsv
+code generation for sysEResetMux3 starts
+Error: "EResetMux3.bsv", line 11, column 21: (G0068)
+  The expression for a reset could not be evaluated. Resets must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface output reset `rst' at "EResetMux3.bsv",
+  line 8, column 8.
+  During elaboration of `sysEResetMux3' at "EResetMux3.bsv", line 8, column 8.

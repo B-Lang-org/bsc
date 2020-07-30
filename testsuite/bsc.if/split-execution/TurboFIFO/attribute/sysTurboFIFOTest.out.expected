@@ -1,0 +1,32 @@
+Enq 0
+Deq 0
+Increment count 0
+Enq 1
+Deq 1
+Increment count 1
+Enq 2
+Deq 2
+Increment count 2
+Enq 3
+Deq 3
+Increment count 3
+Enq 4
+Deq 4
+Increment count 4
+Enq 5
+Increment count 5
+Deq 5
+Enq 6
+Increment count 6
+Deq 6
+Enq 7
+Increment count 7
+Deq 7
+Enq 8
+Increment count 8
+Deq 8
+Enq 9
+Increment count 9
+Deq 9
+Increment count 10
+Increment count 11

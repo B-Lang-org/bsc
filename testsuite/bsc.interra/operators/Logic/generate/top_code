@@ -1,0 +1,10 @@
+module gen_logical (CLK,RST_N);
+
+ input CLK, RST_N; 
+ reg [128:0] a;
+ reg [128:0] b;
+ reg [1:0] cnt;
+ reg [4:0] vectors;
+ initial cnt = 0;
+ initial vectors = 0;
+

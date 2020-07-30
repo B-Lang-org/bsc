@@ -1,0 +1,18 @@
+State:
+main.top.r = Int 0x0000000a
+main.top.s = Int 0x00000014
+State:
+main.top.r = Int 0x0000000f
+main.top.s = Int 0x00000014
+State:
+main.top.r = Int 0x0000000f
+main.top.s = Int 0x0000001b
+State:
+main.top.r = Int 0x00000014
+main.top.s = Int 0x0000001b
+coverage: 1 out of 1 rules (100%)
+Final state:
+main.top.r = Int 0x00000014
+main.top.s = Int 0x0000001b
+
+done, 4 cycles

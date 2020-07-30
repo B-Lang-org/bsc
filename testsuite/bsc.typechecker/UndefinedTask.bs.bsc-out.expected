@@ -1,0 +1,4 @@
+checking package dependencies
+compiling UndefinedTask.bs
+Error: "UndefinedTask.bs", line 4, column 6: (T0002)
+  Unsupported system task `$foobar'

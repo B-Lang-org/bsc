@@ -1,0 +1,24 @@
+Value Written =  15 time =                   10 counter =   0
+Value read =  15 time =                   20 counter =   1
+Value Written =  17 time =                   30 counter =   2
+Value read =  17 time =                   40 counter =   3
+Value Written =  19 time =                   50 counter =   4
+Value read =  19 time =                   60 counter =   5
+Value Written =  21 time =                   70 counter =   6
+Value read =  21 time =                   80 counter =   7
+Value Written =  23 time =                   90 counter =   8
+Value read =  23 time =                  100 counter =   9
+Value Written =  25 time =                  110 counter =  10
+Value read =  25 time =                  120 counter =  11
+Value Written =  27 time =                  130 counter =  12
+Value read =  27 time =                  140 counter =  13
+Value Written =  29 time =                  150 counter =  14
+Value read =  29 time =                  160 counter =  15
+Value Written =  31 time =                  170 counter =  16
+Value read =  31 time =                  180 counter =  17
+Value Written =  33 time =                  190 counter =  18
+Value read =  33 time =                  200 counter =  19
+Value Written =  35 time =                  210 counter =  20
+Value read =  35 time =                  220 counter =  21
+Value Written =  37 time =                  230 counter =  22
+Simulation Passes

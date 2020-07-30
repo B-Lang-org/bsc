@@ -1,0 +1,28 @@
+# ----------
+
+compile_pass DeprecatedLibrary.bs
+
+# Test that a use produces a message
+compile_pass_warning TestDeprecateMsg.bsv P0072
+
+# Test that no use (while imported) produces no warning
+compile_pass TestDeprecateNoMsg.bsv
+no_warnings [make_bsc_output_name TestDeprecateNoMsg.bsv]
+
+# ----------
+
+# Test that you can put the attribute on functions and modules in BSV
+
+compile_pass DeprecatedLibraryBSV.bsv
+
+# Test that you get warnings when used
+compile_pass_warning TestDeprecateBSV.bsv P0072 3
+# Test that the extra text is printed
+find_regexp [make_bsc_output_name TestDeprecateBSV.bsv] \
+    {The definition \`mkFoo\' is deprecated\. Replaced by mkNewFoo\.}
+# XXX could add a test here that leaving off the string prints no extra
+# XXX text (in the case of using "myFn"), but the parser doesn't allow
+# XXX no string ... as that is interpreted as "=1" in the SV spec
+
+# ----------
+

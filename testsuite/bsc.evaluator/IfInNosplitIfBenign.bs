@@ -1,0 +1,17 @@
+package IfInNosplitIfBenign(sysIfInNosplitIfBenign) where
+
+-- The compiler should not barf on the expression-if
+-- inside the nosplitif
+
+sysIfInNosplitIfBenign :: Module Empty
+sysIfInNosplitIfBenign =
+  module
+    r :: Reg (Bit 16) <- mkRegU
+    s :: Reg (Bit 16) <- mkRegU
+    c :: Reg Bool <- mkRegU
+    d :: Reg Bool <- mkRegU
+    rules
+        when True ==> 
+	     nosplitIf c
+	     (r := if d then 1 else 2)
+	     (s := if d then 3 else 5)

@@ -1,0 +1,210 @@
+if { $vtest == 1 } {
+
+# check default prefixes and prefix overrides
+compile_verilog_pass ClockPrefix1.bsv
+string_does_not_occur sysClockPrefix1.v {input  CLK;}
+string_occurs         sysClockPrefix1.v {input  CK;}
+string_occurs         sysClockPrefix1.v {input  RST_N;}
+string_does_not_occur sysClockPrefix1.v {input  CLK_clk2;}
+string_occurs         sysClockPrefix1.v {input  CK_clk2;}
+
+compile_verilog_pass GatePrefix1.bsv
+string_occurs         sysGatePrefix1.v {input  CLK;}
+string_does_not_occur sysGatePrefix1.v {input  CLK_GATE;}
+string_occurs         sysGatePrefix1.v {input  GATE;}
+string_occurs         sysGatePrefix1.v {input  RST_N;}
+string_occurs         sysGatePrefix1.v {input  CLK_clk2;}
+string_does_not_occur sysGatePrefix1.v {input  CLK_GATE_clk2;}
+string_occurs         sysGatePrefix1.v {input  GATE_clk2;}
+
+compile_verilog_pass ResetPrefix1.bsv
+string_occurs         sysResetPrefix1.v {input  CLK;}
+string_does_not_occur sysResetPrefix1.v {input  RST_N;}
+string_occurs         sysResetPrefix1.v {input  RESET;}
+string_occurs         sysResetPrefix1.v {input  CLK_clk2;}
+string_does_not_occur sysResetPrefix1.v {input  RST_rst2;}
+string_occurs         sysResetPrefix1.v {input  RESET_rst2;}
+
+# check use of argument-specific attributes to set single port names
+compile_verilog_pass OscAttribute.bsv
+string_does_not_occur sysOscAttribute.v {input  CLK;}
+string_occurs         sysOscAttribute.v {input  CK;}
+string_does_not_occur sysOscAttribute.v {input  CLK_GATE;}
+string_occurs         sysOscAttribute.v {input  RST_N;}
+string_does_not_occur sysOscAttribute.v {input  CLK_clk2;}
+string_does_not_occur sysOscAttribute.v {input  CK_clk2;}
+string_occurs         sysOscAttribute.v {input  BCLK;}
+
+compile_verilog_pass GateAttribute1.bsv
+string_occurs         sysGateAttribute1.v {input  CLK;}
+string_does_not_occur sysGateAttribute1.v {input  CLK_GATE;}
+string_occurs         sysGateAttribute1.v {input  RST_N;}
+string_occurs         sysGateAttribute1.v {input  CLK_clk2;}
+string_occurs         sysGateAttribute1.v {input  GATE2;}
+
+compile_verilog_pass ResetAttribute.bsv
+string_occurs         sysResetAttribute.v {input  CLK;}
+string_does_not_occur sysResetAttribute.v {input  CLK_GATE;}
+string_occurs         sysResetAttribute.v {input  RST_N;}
+string_occurs         sysResetAttribute.v {input  CLK_clk2;}
+string_does_not_occur sysResetAttribute.v {input  CLK_GATE_clk2;}
+string_does_not_occur sysResetAttribute.v {input  RST_rst2;}
+string_occurs         sysResetAttribute.v {input  RST2;}
+
+# check use of attributes for port-specific clock gating
+compile_verilog_pass GateAttribute2.bsv
+string_occurs         sysGateAttribute2.v {input  CLK;}
+string_occurs         sysGateAttribute2.v {input  CLK_GATE;}
+string_occurs         sysGateAttribute2.v {input  RST_N;}
+string_occurs         sysGateAttribute2.v {input  CLK_clk2;}
+string_does_not_occur sysGateAttribute2.v {input  CLK_GATE_clk2;}
+
+compile_verilog_pass GateAttribute3.bsv
+string_occurs         sysGateAttribute3.v {input  CLK;}
+string_occurs         sysGateAttribute3.v {input  CLK_GATE;}
+string_occurs         sysGateAttribute3.v {input  RST_N;}
+string_occurs         sysGateAttribute3.v {input  CLK_clk2;}
+string_does_not_occur sysGateAttribute3.v {input  CLK_GATE_clk2;}
+
+# check use of attributes for non-clock/reset ports
+compile_verilog_pass PortAttribute.bsv
+string_occurs         sysPortAttribute.v {input  CLK;}
+string_does_not_occur sysPortAttribute.v {input  CLK_GATE;}
+string_occurs         sysPortAttribute.v {input  RST_N;}
+string_occurs         sysPortAttribute.v {input  CLK_clk2;}
+string_does_not_occur sysPortAttribute.v {input  CLK_GATE_clk2;}
+string_does_not_occur sysPortAttribute.v {input  bin;}
+string_occurs         sysPortAttribute.v {input  BOOL_IN;}
+
+# check use of "port" attribute for an Inout argument
+compile_verilog_pass InoutPortAttribute.bsv
+string_occurs         sysInoutPortAttribute.v {input  CLK;}
+string_occurs         sysInoutPortAttribute.v {input  RST_N;}
+string_occurs         sysInoutPortAttribute.v {inout  p;}
+string_does_not_occur sysInoutPortAttribute.v {in_io}
+string_occurs         sysInoutPortAttribute.v {.p(p)}
+string_occurs         sysInoutPortAttribute.v {.out_io(p)}
+
+# check use of attributes for parameters
+compile_verilog_pass ParamAttribute.bsv
+string_occurs         sysParamAttribute.v {parameter [0 : 0] BOOL_IN = 1'b0;}
+string_does_not_occur sysParamAttribute.v {parameter [0 : 0] bin = 1'b0;}
+string_does_not_occur sysParamAttribute.v {input  bin;}
+string_does_not_occur sysParamAttribute.v {input  BOOL_IN;}
+
+# check the application of attributes to the default clock and reset
+compile_verilog_pass DefaultClock.bsv
+string_does_not_occur sysDefaultClock.v {input  CLK;}
+string_occurs         sysDefaultClock.v {input  CLOCK;}
+string_does_not_occur sysDefaultClock.v {input  CLK_GATE;}
+string_occurs         sysDefaultClock.v {input  GATE;}
+string_occurs         sysDefaultClock.v {input  RST_N;}
+
+compile_verilog_pass DefaultReset.bsv
+string_occurs         sysDefaultReset.v {input  CLK;}
+string_does_not_occur sysDefaultReset.v {input  CLK_GATE;}
+string_does_not_occur sysDefaultReset.v {input  RST_N;}
+string_occurs         sysDefaultReset.v {input  RESET;}
+
+compile_verilog_pass DefaultGate1.bsv
+string_occurs         sysDefaultGate1.v {input  CLK;}
+string_does_not_occur sysDefaultGate1.v {input  CLK_GATE;}
+string_occurs         sysDefaultGate1.v {input  RST_N;}
+string_occurs         sysDefaultGate1.v {input  CLK_clk2;}
+string_occurs         sysDefaultGate1.v {input  CLK_GATE_clk2;}
+
+compile_verilog_pass DefaultGate2.bsv
+string_occurs         sysDefaultGate2.v {input  CLK;}
+string_does_not_occur sysDefaultGate2.v {input  CLK_GATE;}
+string_occurs         sysDefaultGate2.v {input  RST_N;}
+string_occurs         sysDefaultGate2.v {input  CLK_clk2;}
+string_occurs         sysDefaultGate2.v {input  CLK_GATE_clk2;}
+
+# check the ability to remove the default clock and reset ports
+compile_verilog_pass NoDefaultClock.bsv
+string_does_not_occur sysNoDefaultClock.v {input  CLK;}
+string_occurs         sysNoDefaultClock.v {input  RST_N;}
+
+compile_verilog_pass NoDefaultReset.bsv
+string_occurs         sysNoDefaultReset.v {input  CLK;}
+string_does_not_occur sysNoDefaultReset.v {input  RST_N;}
+
+# check that we remove the default gate when we remove the oscillator
+compile_verilog_pass OrphanedGate.bsv
+string_does_not_occur sysOrphanedGate.v {input  ;}
+string_does_not_occur sysOrphanedGate.v {input  CLK;}
+string_does_not_occur sysOrphanedGate.v {input  CLK_GATE;}
+string_occurs         sysOrphanedGate.v {input  RST_N;}
+string_occurs         sysOrphanedGate.v {input  CLK_clk2;}
+string_occurs         sysOrphanedGate.v {input  CLK_GATE_clk2;}
+
+# check the use of an empty prefix
+compile_verilog_pass EmptyPrefixOK.bsv
+string_does_not_occur sysEmptyPrefixOK.v {input  ;}
+string_does_not_occur sysEmptyPrefixOK.v {input  CLK;}
+string_occurs         sysEmptyPrefixOK.v {input  CLOCK;}
+string_occurs         sysEmptyPrefixOK.v {input  RST_N;}
+string_occurs         sysEmptyPrefixOK.v {input  clk2;}
+
+# check that we issue a deprecation warning for old-style attributes
+compile_verilog_pass_warning DeprecatedWarning.bsv P0072
+
+# check that prefixes which lead to empty port names are caught
+compile_verilog_fail_error EmptyClockPrefix.bsv P0177
+compile_verilog_fail_error EmptyGatePrefix.bsv  P0177
+compile_verilog_fail_error EmptyResetPrefix.bsv P0177
+
+# check that we catch invalid arguments
+compile_verilog_fail_error BadArgName.bsv P0182
+
+# check that we catch name clashes and verilog keyword clashes
+compile_verilog_fail_error NameClash.bsv P0183
+compile_verilog_fail_error NameClash2.bsv P0183
+compile_verilog_fail_error NameClashKeyword.bsv P0184
+
+# check that we catch conflicting gate requirements
+compile_verilog_fail_error ConflictingGates.bsv P0178
+
+# check that we catch empty argument-level port-names
+compile_verilog_fail_error EmptyPortName.bsv P0063
+compile_verilog_fail_error EmptyParamName.bsv P0063
+
+# check that we warn when a prefix goes unused
+compile_verilog_pass_warning UnusedPrefix.bsv P0179
+string_does_not_occur sysUnusedPrefix.v {input  CLK;}
+string_does_not_occur sysUnusedPrefix.v {input  CK;}
+string_occurs         sysUnusedPrefix.v {input  CLKA;}
+string_occurs         sysUnusedPrefix.v {input  RST_N;}
+string_does_not_occur sysUnusedPrefix.v {input  CLK_clk2;}
+string_does_not_occur sysUnusedPrefix.v {input  CK_clk2;}
+string_does_not_occur sysUnusedPrefix.v {input  clk2;}
+string_occurs         sysUnusedPrefix.v {input  CLKB;}
+
+compile_verilog_pass_warning UnusedPrefix2.bsv P0179
+string_occurs         sysUnusedPrefix2.v {input  CLK;}
+string_does_not_occur sysUnusedPrefix2.v {input  RST_N;}
+string_does_not_occur sysUnusedPrefix2.v {input  RESET;}
+string_does_not_occur sysUnusedPrefix2.v {input  CLK_clk2;}
+string_occurs         sysUnusedPrefix2.v {input  CLKB;}
+
+# check that we catch attributes on the wrong argument types
+compile_verilog_fail_error WrongArgType.bsv  P0181
+compile_verilog_fail_error WrongArgType2.bsv P0155
+compile_verilog_fail_error WrongArgType3.bsv P0181
+compile_verilog_fail_error WrongArgType4.bsv P0155
+
+# check that we warn if gate_all_clocks is effectively overridden
+compile_verilog_pass_warning UngateAllClocks.bsv P0180
+string_occurs         sysUngateAllClocks.v {input  CLK;}
+string_does_not_occur sysUngateAllClocks.v {input  CLK_GATE;}
+string_occurs         sysUngateAllClocks.v {input  RST_N;}
+string_occurs         sysUngateAllClocks.v {input  CLK_clk2;}
+string_does_not_occur sysUngateAllClocks.v {input  CLK_GATE_clk2;}
+
+# check that unused and inhigh gate attributes actually
+# constrain gate connections
+compile_verilog_fail_error TestInhigh.bsv G0063
+compile_verilog_fail_error TestUnused.bsv G0077
+
+}
+

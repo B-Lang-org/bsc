@@ -1,0 +1,59 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EStringNF.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EStringNF error of the bluespec
+-- compiler (Not a compile time string)
+--
+-- Generates error only if the verilog code is requested for mkGCD
+-----------------------------------------------------------------------
+
+
+
+package EStringNF () where
+
+-- import Int
+
+interface GCD =
+    start  :: Int 32 -> Int 32 -> Action
+    result :: Int 32
+
+{-# verilog mkGCD #-}
+mkGCD :: Module GCD
+mkGCD =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+       
+        let string = if y/=0 then
+                        "Swap"
+                     else
+                        "Subtract"
+ 
+        rules
+           
+	  string:
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  string:
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    result = x when y == 0
+
+

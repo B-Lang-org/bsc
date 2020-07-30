@@ -1,0 +1,2 @@
+compile_fail bug.bsv
+compare_file bug.bsv.bsc-out

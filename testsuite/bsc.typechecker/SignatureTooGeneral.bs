@@ -1,0 +1,6 @@
+package SignatureTooGeneral() where
+
+-- Expect a "Signature too general" error
+
+foo :: a
+foo = 1 :: Integer

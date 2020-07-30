@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "ESyntax1.bs", line 50: (P0005)
+  Unexpected "package"; expected ";", "; from layout", or "<EOF>"

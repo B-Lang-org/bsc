@@ -1,0 +1,17 @@
+checking package dependencies
+compiling WarningCurry.bsv
+code generation for mkWarningCurry starts
+Warning: "WarningCurry.bsv", line 14, column 36: (S0015)
+  Bluespec evaluation-time warning: a
+  During elaboration of the body of rule `go' at "WarningCurry.bsv", line 16,
+  column 8.
+  During elaboration of `mkWarningCurry' at "WarningCurry.bsv", line 10,
+  column 8.
+Warning: "WarningCurry.bsv", line 14, column 54: (S0015)
+  Bluespec evaluation-time warning: b
+  During elaboration of the body of rule `go' at "WarningCurry.bsv", line 16,
+  column 8.
+  During elaboration of `mkWarningCurry' at "WarningCurry.bsv", line 10,
+  column 8.
+Elaborated module file created: mkWarningCurry.ba
+All packages are up to date.

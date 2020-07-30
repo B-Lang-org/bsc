@@ -1,0 +1,44 @@
+----------------------------------------------------
+-- FileName : Sizebug.bs
+-- Author   : Interra
+-- BugID    : 156
+-- CommandLine : bsc -verilog -g top Sizebug.bs
+-- Status : OPEN 
+----------------------------------------------------
+
+package Sizebug() where
+--a function which returns  when 1 parity is odd and
+--returns zero when the parity is even
+  
+import List
+
+
+calpriority :: (Log n m) => Bit n  -> Bit m
+calpriority x = 
+    let f :: Integer -> Bit m -> Bit m
+        f j  c = let j' = fromInteger j
+                 in if( (c == (0 :: Bit m)) && x[j':j'] == (1 :: Bit 1) )   
+                    then fromInteger (j'+ 1)
+                    else c
+    in   {-unpack-} (foldr f (0 :: Bit m) (upto 0 ((valueOf n) - 1))) 
+
+
+interface PriorityEncoderTest =
+    start     :: Bit 8 -> Bit 3
+
+{-# properties top = {
+       alwaysReady ,
+       alwaysEnabled
+--       name start._1 = in_data ,
+--       name start   =  encodedvalue
+} #-}
+
+top :: Module (PriorityEncoderTest)
+top =
+    module
+
+	interface
+            start in_data = calpriority in_data
+
+
+

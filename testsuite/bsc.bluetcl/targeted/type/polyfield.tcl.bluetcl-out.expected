@@ -1,0 +1,22 @@
+PolyField PreludeBSV Prelude
+----------
+PolyField::I1 PolyField::I2 PolyField::I3 PolyField::I4 PolyField::S1 PolyField::S2
+----------
+Interface PolyField::I1 {members {{method {Action set {a Reg#(a)} {{(* ports = ["value", "rg"] *)}}}}}} {position {PolyField.bsv 1 11}}
+----------
+Interface PolyField::I2 {members {{method {a id a {{(* ports = ["x"] *)}}}}}} {position {PolyField.bsv 5 11}}
+----------
+Interface {PolyField::I3#(type a)} polymorphic {members {{method {Action set {a b Reg#(b)} {{(* ports = ["dummy", "value", "rg"] *)}}}}}} {position {PolyField.bsv 9 11}}
+Interface {PolyField::I3#(type a)} polymorphic {members {{method {Action set {b a Reg#(a)} {{(* ports = ["dummy", "value", "rg"] *)}}}}}} {position {PolyField.bsv 9 11}}
+Interface {PolyField::I3#(type a)} polymorphic {members {{method {Action set {foobar a Reg#(a)} {{(* ports = ["dummy", "value", "rg"] *)}}}}}} {position {PolyField.bsv 9 11}}
+----------
+Interface {PolyField::I4#(type a)} polymorphic {members {{method {b id {b a} {{(* ports = ["x", "dummy"] *)}}}}}} {position {PolyField.bsv 13 11}}
+Interface {PolyField::I4#(type a)} polymorphic {members {{method {a id {a b} {{(* ports = ["x", "dummy"] *)}}}}}} {position {PolyField.bsv 13 11}}
+Interface {PolyField::I4#(type a)} polymorphic {members {{method {a id {a foobar} {{(* ports = ["x", "dummy"] *)}}}}}} {position {PolyField.bsv 13 11}}
+----------
+Struct PolyField::S1 {members {{{function a f(a x1)} id}}} {position {PolyField.bsv 20 3}}
+----------
+Struct {PolyField::S2#(type b)} polymorphic {members {{{function b f(b x1, a x2)} id}}} {position {PolyField.bsv 24 3}}
+Struct {PolyField::S2#(type b)} polymorphic {members {{{function a f(a x1, b x2)} id}}} {position {PolyField.bsv 24 3}}
+Struct {PolyField::S2#(type b)} polymorphic {members {{{function a f(a x1, foobar x2)} id}}} {position {PolyField.bsv 24 3}}
+----------

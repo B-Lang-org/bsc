@@ -1,0 +1,50 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WUrgencyChoice2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "rules urgency decision" warning (WUrgencyChoice)
+
+-- Error Message : bsc -verilog -g mkWUrgencyChoice2 WUrgencyChoice2.bs
+-- bsc: Compilation warnings:
+-- "WUrgencyChoice2.bs", line 23, column 0, The scheduling phase was forced to make a decision about the urgency of two rules in the absence of guidance from the user.  Rule "start_" was treated more urgent than rule "One__1".
+-- "WUrgencyChoice2.bs", line 23, column 0, The scheduling phase was forced to make a decision about the urgency of two rules in the absence of guidance from the user.  Rule "start_" was treated more urgent than rule "Two__2".
+-----------------------------------------------------------------------
+package WUrgencyChoice2 (WUrgencyChoice2(..)) where
+
+-- import Int
+
+interface WUrgencyChoice2 =
+                start :: Int 32 -> Int 32 -> Action
+                done  :: Int 32
+
+mkWUrgencyChoice2 :: Module WUrgencyChoice2
+mkWUrgencyChoice2 =
+       module
+
+            x :: Reg (Int 32)
+            x <- mkRegU
+
+            y :: Reg (Int 32)
+            y <- mkRegU
+
+            rules
+                 "One":
+                        when True
+                         ==> action
+                                x := y - x
+                 
+                 "Two":
+                        when True
+                           ==> action
+                                y := x - y
+
+            interface 
+
+                       start ix iy = action
+                                        x := ix
+                                        y := iy
+
+                       done = x

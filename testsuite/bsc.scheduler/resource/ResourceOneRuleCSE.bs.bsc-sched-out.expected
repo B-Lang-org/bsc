@@ -1,0 +1,24 @@
+checking package dependencies
+compiling ResourceOneRuleCSE.bs
+code generation for sysResourceOneRuleCSE starts
+Error: "ResourceOneRuleCSE.bs", line 12, column 17: (G0004)
+  Rule `RL_unnamed' uses methods that conflict in parallel:
+    r.write(...)
+  and
+    r.write(...)
+  For the complete expressions use the flag `-show-range-conflict'.
+=== schedule:
+Nothing
+
+-----
+
+Schedule dump file created: sysResourceOneRuleCSE.sched
+=== Generated schedule for sysResourceOneRuleCSE ===
+
+Rule schedule
+-------------
+Rule: unnamed
+Predicate: True
+ 
+
+=====================================================

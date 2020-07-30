@@ -1,0 +1,72 @@
+
+# C simulation of Block1
+
+if {$ctest == 1} {
+compile_object_pass Tb1.bsv
+link_objects_pass {mkTb1 mkBlock1} mkTb1
+sim_output mkTb1
+copy mkTb1.out mkTb1.c.out
+compare_file mkTb1.c.out mkTb1.out.expected
+}
+# Verilog simulation of Block1
+
+if {$vtest == 1} {
+compile_verilog_pass Tb1.bsv mkTb1
+link_verilog_pass {mkTb1.v mkBlock1.v} mkTb1
+sim_verilog mkTb1
+copy mkTb1.out mkTb1.v.out
+compare_file mkTb1.v.out mkTb1.out.expected
+}
+
+# C simulation of Block2
+
+if {$ctest == 1} {
+compile_object_pass Tb2.bsv
+link_objects_pass {mkTb2 mkBlock2} mkTb2
+sim_output mkTb2
+copy mkTb2.out mkTb2.c.out
+compare_file mkTb2.c.out mkTb2.out.expected
+}
+
+# Verilog simulation of Block2
+
+if {$vtest == 1} {
+compile_verilog_pass Tb2.bsv mkTb2
+link_verilog_pass {mkTb2.v mkBlock2.v} mkTb2
+sim_verilog mkTb2 
+copy mkTb2.out mkTb2.v.out
+compare_file mkTb2.v.out mkTb2.out.expected
+}
+
+# C simulation of Block2b
+if {$ctest == 1} {
+compile_object_pass Tb2b.bsv
+link_objects_pass {mkTb2b mkBlock2b} mkTb2b
+sim_output mkTb2b
+copy mkTb2b.out mkTb2b.c.out
+compare_file mkTb2b.c.out mkTb2b.out.expected
+}
+# Verilog simulation of Block2b
+if {$vtest == 1} {
+compile_verilog_pass Tb2b.bsv mkTb2b
+link_verilog_pass {mkTb2b.v mkBlock2b.v} mkTb2b
+sim_verilog mkTb2b
+copy mkTb2b.out mkTb2b.v.out
+compare_file mkTb2b.v.out mkTb2b.out.expected
+}
+# C simulation of Block3
+if {$ctest == 1} {
+compile_object_pass Tb3.bsv
+link_objects_pass {mkTb3 mkBlock3} mkTb3
+sim_output mkTb3
+copy mkTb3.out mkTb3.c.out
+compare_file mkTb3.c.out mkTb3.out.expected
+}
+# Verilog simulation of Block3
+if {$vtest == 1} {
+compile_verilog_pass Tb3.bsv mkTb3
+link_verilog_pass {mkTb3.v mkBlock3.v} mkTb3
+sim_verilog mkTb3
+copy mkTb3.out mkTb3.v.out
+compare_file mkTb3.v.out mkTb3.out.expected
+}

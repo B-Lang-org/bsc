@@ -1,0 +1,5 @@
+package ETooGeneral where
+
+x :: a
+x = True
+

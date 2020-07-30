@@ -1,0 +1,26 @@
+char popcount(unsigned int* data)
+{
+  /* 97 bits of data */
+  char ones = 0;
+  unsigned int remaining = 97;
+  while (remaining > 0)
+  {
+    unsigned int x = *(data++);
+    unsigned int i;
+    for (i = 0; i < 32 && remaining > 0; ++i, --remaining)
+    {
+      if (x & (1 << i))
+	++ones;
+    }
+  }
+
+  return ones;
+}
+
+void four_copies(unsigned int* buf, unsigned int x)
+{
+  buf[0] = x;
+  buf[1] = x;
+  buf[2] = x;
+  buf[3] = x;
+}

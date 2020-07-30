@@ -1,0 +1,21 @@
+package Letrec3(sysLetrec3) where
+
+import List
+
+eleven :: Integer
+eleven = let
+            evens :: List Integer
+            evens = cons 0 (map ((+) 1) treys)
+            odds  :: List Integer = map ((+) 1) evens
+            treys :: List Integer
+            treys = map ((+) 1) odds
+        in treys !! 3
+
+sysLetrec3 :: Module Empty
+sysLetrec3 =
+  module
+    rules
+      when True ==>
+         action
+            $display eleven
+            $finish 0

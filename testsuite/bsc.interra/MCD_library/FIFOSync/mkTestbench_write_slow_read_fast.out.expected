@@ -1,0 +1,65 @@
+       208	Pushing Data=         0
+       275	Pushing Data=         1
+       342	Pushing Data=         2
+       409	Pushing Data=         3
+       476	Pushing Data=         4
+       543	Pushing Data=         5
+       610	Pushing Data=         6
+       677	Pushing Data=         7
+       744	Pushing Data=         8
+       811	Pushing Data=         9
+       878	Pushing Data=        10
+       945	Pushing Data=        11
+      1012	Pushing Data=        12
+      1079	Pushing Data=        13
+      1146	Pushing Data=        14
+      1213	Pushing Data=        15
+      1260	Popping Data
+
+      1277	Popping Data
+
+      1277	Data Match, Actual =   0
+      1294	Popping Data
+
+      1294	Data Match, Actual =   1
+      1311	Popping Data
+
+      1311	Data Match, Actual =   2
+      1328	Popping Data
+
+      1328	Data Match, Actual =   3
+      1345	Popping Data
+
+      1345	Data Match, Actual =   4
+      1362	Popping Data
+
+      1362	Data Match, Actual =   5
+      1379	Popping Data
+
+      1379	Data Match, Actual =   6
+      1396	Popping Data
+
+      1396	Data Match, Actual =   7
+      1413	Popping Data
+
+      1413	Data Match, Actual =   8
+      1430	Popping Data
+
+      1430	Data Match, Actual =   9
+      1447	Popping Data
+
+      1447	Data Match, Actual =  10
+      1464	Popping Data
+
+      1464	Data Match, Actual =  11
+      1481	Popping Data
+
+      1481	Data Match, Actual =  12
+      1498	Popping Data
+
+      1498	Data Match, Actual =  13
+      1515	Popping Data
+
+      1515	Data Match, Actual =  14
+      1532	Data Match, Actual =  15
+	Passed Fifo Test.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EDupField2.bs
+Error: "EDupField2.bs", line 11, column 34: (P0073)
+  Duplicate definition of member `fst' in structure `My_pair'

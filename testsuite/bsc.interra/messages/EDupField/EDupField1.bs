@@ -1,0 +1,51 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EDupField1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "field defined more than once" error (EDupField)
+
+-- Error Message : bsc EDupField1.bs
+-- bsc: Compilation errors:
+-- "EDupField1.bs", line 47, column 12, Field "start" defined more than once
+-----------------------------------------------------------------------
+
+package EDupField1 (EDupField1(..), mkEDupField1) where
+
+-- import Int
+
+interface EDupField1 =
+    start :: Int 32 -> Int 32 -> Action
+    start :: Int 32
+
+
+mkEDupField1 :: Module EDupField1
+mkEDupField1 =
+    module
+
+        x :: Reg (Int 32)
+        x <- mkReg 0
+
+	y :: Reg (Int 32)
+	y <- mkReg 0
+       
+        rules
+	  "Swap":
+	    when x > y, y /= 0
+	      ==> action
+		      x := y
+		      y := x
+
+	  "Subtract":
+	    when x <= y, y /= 0
+	      ==> action
+		      y := y - x
+
+        interface
+	    start ix iy = action
+	                      x := ix
+	                      y := iy
+	                  when y == 0
+	    start = x when y == 0

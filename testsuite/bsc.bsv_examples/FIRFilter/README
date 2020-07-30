@@ -1,0 +1,50 @@
+This example is a synchronous, pipelined FIR Filter. The top-level module 
+is actually a means of generating FIR filter for any (arithmetic) type and 
+any number of coefficients. It generates a direct-form FIR-filter with a 
+Head, a number of Bodies in sequence, and a Tail.
+
+It uses for-loops in a way that should be readable to anyone with
+imperative programming experience. The synchronous pipeline is represented by a
+single method fir(data) which uses an ActionValue. It returns a Maybe type,
+indicating whether the return value is valid or not. The value does not become
+valid until the pipeline is filled. Changing the coefficients causes the data 
+to become invalid until the pipeline is refilled.
+
+Because the filter is implemented using a method, when the external environment
+does not call the method the pipeline stalls automatically. This is the desired
+behavior because the FIR-filter is a time-dependent datapath that does not 
+allow pipeline bubbles. One nice factor about using Bluespec was that this 
+stalling happens automatically without the need to write a control unit by 
+hand. For a continuous non-stalling pipeline we could easily switch from 
+methods to rules.
+
+The implementation has been verified versus the OpenCores.org Verilog FIR
+filter. This filter comes pregenerated for types and widths (IE 16 bit with 4
+coefficients, 8 bit with 4 coefficients, etc). Compared to their implementation
+we generate larger verilog files for small number of coefficients, but
+significantly smaller verilog for large numbers of coefficients. However, this
+is an apples-and-oranges comparison as their implementation is a parallel FIR
+Filter (as opposed to direct-form). Direct form FIR filters are easy to
+implement (and hence make good teaching examples) but are unsuitable at 
+high-number of coefficients because they are too high latency. 
+
+There is one workaround in the example. The currently released compiler does
+not support returning ActionValues from an if statement. That just means that 
+at one point there's a statement like:
+
+case(v) matches
+True: return (Just res);
+False: return Nothing;
+
+where an if statement would have been more natural.
+
+The test-bench is straightforward - it simply sets things up so you can look at
+a wave and it has been used to validate the design the OpenCores.org Verilog
+FIR Filter. 
+
+Files
+-----
+FIRMain.bsv		Defines the core FIR filter interfaces
+SyncFIR.bsv		Implementation of the modular FIR filter
+FIRTest.bsv		Simple testbench for the FIR filter
+sysFIRTest.out.expected	Expected output from the testbench

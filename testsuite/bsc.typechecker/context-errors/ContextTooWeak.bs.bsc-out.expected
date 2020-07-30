@@ -1,0 +1,10 @@
+checking package dependencies
+compiling ContextTooWeak.bs
+Error: "ContextTooWeak.bs", line 5, column 0: (T0030)
+  The contexts for this expression are too general.
+  Given type:
+    a
+  The following contexts are needed:
+    Prelude.Literal a
+      Introduced at the following locations:
+	"ContextTooWeak.bs", line 6, column 6

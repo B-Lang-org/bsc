@@ -1,0 +1,16 @@
+
+# Test that the lookup of pragmas on methods is not interfered by the
+# existence of another interface with the same name and methods
+
+if { $vtest == 1 } {
+compile_verilog_pass IfcPragmaQualLookup.bsv
+find_regexp sysIfcPragmaQualLookup.v \
+    {module sysIfcPragmaQualLookup\(CLK\,
+			      RST\_N\,
+
+			      EN\_newname\,
+			      RDY\_newname\,
+
+			      EN\_m2\,
+			      RDY\_m2\)\;}
+}

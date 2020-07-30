@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EWrongArity.bs
+Error: "EWrongArity.bs", line 25, column 13: (T0034)
+  Clause has wrong number of arguments

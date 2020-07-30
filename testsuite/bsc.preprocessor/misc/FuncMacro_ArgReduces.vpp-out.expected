@@ -1,0 +1,11 @@
+// These comments should not be lost
+
+ `line(HERE///FuncMacro_ArgReduces.bsv,4,1,0)
+ `line(HERE///FuncMacro_ArgReduces.bsv,6,1,0)
+module sysTest();
+
+ `line(HERE///FuncMacro_ArgReduces.bsv,5,13,1) `line(HERE///FuncMacro_ArgReduces.bsv,5,13,1)  `line(HERE///FuncMacro_ArgReduces.bsv,3,11,1)endmodule
+ `line(HERE///FuncMacro_ArgReduces.bsv,9,6,2)
+ `line(HERE///FuncMacro_ArgReduces.bsv,10,108,2) `line(HERE///FuncMacro_ArgReduces.bsv,9,7,2)
+
+// more here

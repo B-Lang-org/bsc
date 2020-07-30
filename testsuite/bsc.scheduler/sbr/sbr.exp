@@ -1,0 +1,17 @@
+# make sure the counter module schedules
+# with readCount SBR incCount
+compile_verilog_schedule_pass SBRCount.bsv
+if {$vtest == 1 } {
+compare_file_filter_ids SBRCount.bsv.bsc-sched-out
+}
+
+# should not fail with a parallel composability error
+compile_verilog_pass SBRValueOK.bsv
+
+# should fail with a parallel composability error
+compile_verilog_fail_error SBRValueNotOK.bsv G0004 512 
+
+# should fail with an error about rules between methods (bug 1362)
+# (use a small version so we don't spend so much testsuite time)
+compile_object_fail_error SBRValueOK_small.bsv G0096
+

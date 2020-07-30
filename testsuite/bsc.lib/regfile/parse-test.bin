@@ -1,0 +1,32 @@
+010000000000 // address: 0 //  LDC R0  
+000000000001 // address: 1 // 1
+010000010000 // address: 2 // LOOP1: LDC R1  
+000000000001 // address: 3 // 1
+010001100000 // address: 4 // LOOP2: LDD R2  
+000000111001 // address: 5 // VAR
+010010100000 // address: 6 //  LDIN R2  
+000000111010 // address: 7 // REF1
+010011110000 // address: 8 //  LDIN2 R3  
+000000111011 // address: 9 // REF2
+000001000000 // address: 10 //  JMP   
+000000001100 // address: 11 // MARK1
+000011000000 // address: 12 // MARK1: JZ   
+000000001110 // address: 13 // MARK2
+000010000000 // address: 14 // MARK2: JC   
+000000010000 // address: 15 // MARK3
+000100000000 // address: 16 // MARK3: JN   
+000000010010 // address: 17 // MARK4
+000101000000 // address: 18 // MARK4: JO   
+000000010100 // address: 19 // MARK5
+000110000000 // address: 20 // MARK5: JNC   
+000000010110 // address: 21 // MARK6
+001000000000 // address: 22 // MARK6: JNN   
+000000011000 // address: 23 // MARK7
+001001000000 // address: 24 // MARK7: JNO   
+000000011010 // address: 25 // MARK8
+111000101110 // address: 26 // MARK8: ADD R2 R3 R2
+111001101110 // address: 27 //  ADDC R2 R3 R2
+111011101110 // address: 28 //  SUBC R2 R3 R2
+101000100010 // address: 29 //  NEG R2  R2
+110000101110 // address: 30 //  AND R2 R3 R2
+110010101110 // address: 31 //  OR R2 R3 R2

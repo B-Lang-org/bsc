@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "Define_WithBlackslashQuote.bsv", line 26, column 19: (P0005)
+  Unexpected identifier `are'; expected `.', `(', `[', operator, SV 3.1a
+  keyword `matches', `&&&', `?', `,', or `)'

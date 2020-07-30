@@ -1,0 +1,2 @@
+compile_fail EPartialTypeApp1.bs
+compare_file EPartialTypeApp1.bs.bsc-out

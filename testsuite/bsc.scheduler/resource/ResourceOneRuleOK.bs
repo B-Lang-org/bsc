@@ -1,0 +1,28 @@
+package ResourceOneRuleOK(sysResourceOneRuleOK) where
+import RegFile
+import List
+
+-- We are attempting to access five elements of an array simultaneously
+-- in one rule (Arrays permit five simultaneous subs).
+-- Expect each sub to be assigned a different port.
+
+type Index = Bit 8
+type Value = Bit 8
+
+lo :: Integer
+lo = 0
+
+hi :: Integer
+hi = 4
+
+sysResourceOneRuleOK :: Module Empty
+sysResourceOneRuleOK =
+      module
+        r :: Reg Value
+	r <- mkReg _
+	a :: RegFile Index Value
+	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        rules
+            "Good":
+	      when True
+	       ==> r := (foldr (+) 0 $ map a.sub $ map fromInteger $ upto lo hi)

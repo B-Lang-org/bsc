@@ -1,0 +1,20 @@
+checking package dependencies
+compiling MsgTest_MultiReset.bsv
+code generation for sysMsgTest_MultiReset starts
+Warning: "MsgTest_MultiReset.bsv", line 19, column 9: (G0043)
+  Multiple reset signals influence rule `r'.
+  This can lead to inconsistent, non-atomic results when not all of these
+  signals are asserted.
+  Method calls by reset:
+    Reset 1 (default_reset):
+      rg1.read rg1.write
+    Reset 2 (rst2):
+      rg2.read rg2.write
+    Reset 3 (mr.new_rst):
+      rg3.read rg3.write
+  During elaboration of rule `r' at "MsgTest_MultiReset.bsv", line 19, column
+  9.
+  During elaboration of `sysMsgTest_MultiReset' at "MsgTest_MultiReset.bsv",
+  line 8, column 8.
+Verilog file created: sysMsgTest_MultiReset.v
+All packages are up to date.

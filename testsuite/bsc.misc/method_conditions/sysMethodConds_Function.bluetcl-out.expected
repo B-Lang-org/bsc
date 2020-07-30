@@ -1,0 +1,6 @@
+COND_RL_r_s_write_1 {positions {MethodConds_Function.bsv 17 12}} {rule RL_r} {instance s} {method write}
+COND_RL_r_s_write_2 {positions {MethodConds_Function.bsv 26 15}} {rule RL_r} {instance s} {method write}
+COND_RL_r_s_write_3 {positions {MethodConds_Function.bsv 11 12}} {rule RL_r} {instance s} {method write}
+COND_RL_r_s_write_4 {positions {MethodConds_Function.bsv 11 12}} {rule RL_r} {instance s} {method write}
+COND_RL_r_s_write_5 {positions {MethodConds_Function.bsv 17 12}} {rule RL_r} {instance s} {method write}
+COND_RL_r_s_write_6 {positions {MethodConds_Function.bsv 36 15}} {rule RL_r} {instance s} {method write}

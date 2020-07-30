@@ -1,0 +1,151 @@
+#
+# Tests for kind errors
+#
+
+# ----------
+
+# The following eight tests exercise kind checking messages in normal
+# type applications (as handled by KIMisc.unifyType and KIMisc.unifyFunc)
+
+# These are the basic cases.  See also the subdirectory "value" for a
+# larger battery of tests of kind checking in value declarations.
+
+compile_fail OneArgMissingOne.bs
+compare_file [make_bsc_output_name OneArgMissingOne.bs]
+
+compile_fail TwoArgMissingTwo.bs
+compare_file [make_bsc_output_name TwoArgMissingTwo.bs]
+
+compile_fail TwoArgMissingOne.bs
+compare_file [make_bsc_output_name TwoArgMissingOne.bs]
+
+compile_fail NoArgPlusOne.bs
+compare_file [make_bsc_output_name NoArgPlusOne.bs]
+
+compile_fail OneArgPlusOne.bs
+compare_file [make_bsc_output_name OneArgPlusOne.bs]
+
+compile_fail NumPlusOne.bs
+compare_file [make_bsc_output_name NumPlusOne.bs]
+
+compile_fail NonNumWhereNumExpected.bs
+compare_file [make_bsc_output_name NonNumWhereNumExpected.bs]
+
+compile_fail NumWhereNonNumExpected.bs
+compare_file [make_bsc_output_name NumWhereNonNumExpected.bs]
+
+# Bug 681
+compile_fail_error ModIfc_TooFewArgs_Local.bsv T0025
+compile_fail_error ModIfc_TooFewArgs_TopLevel.bsv T0025
+compile_fail_error ModIfc_TooManyArgs_TopLevel.bsv T0024
+
+# Bug 1336
+compile_fail_error ImportModIfc_TooFewArgs.bsv T0025
+compile_fail_error ImportModIfc_TooManyArgs.bsv T0024
+
+# ----------
+
+# The following tests exercise kind checking messages in type
+# definitions (type, data, struct, and class, as handled by
+# KIMisc.unifyDef and KIMisc.unifyDefFunc)
+
+compile_fail ClassDefFieldIsNum.bs
+compare_file [make_bsc_output_name ClassDefFieldIsNum.bs]
+
+compile_fail ClassDefParamConflictingUses.bs
+compare_file [make_bsc_output_name ClassDefParamConflictingUses.bs]
+
+compile_fail ClassDefParamGivenNonNumUsedNum.bs
+compare_file [make_bsc_output_name ClassDefParamGivenNonNumUsedNum.bs]
+
+compile_fail ClassDefParamGivenNumUsedNonNum.bs
+compare_file [make_bsc_output_name ClassDefParamGivenNumUsedNonNum.bs]
+
+compile_fail ClassDefResGivenNum.bs
+compare_file [make_bsc_output_name ClassDefResGivenNum.bs]
+
+compile_fail DataDefFieldIsNum.bs
+compare_file [make_bsc_output_name DataDefFieldIsNum.bs]
+
+compile_fail DataDefParamConflictingUses.bs
+compare_file [make_bsc_output_name DataDefParamConflictingUses.bs]
+
+compile_fail DataDefParamGivenNonNumUsedNum.bs
+compare_file [make_bsc_output_name DataDefParamGivenNonNumUsedNum.bs]
+
+compile_fail DataDefParamGivenNumUsedNonNum.bs
+compare_file [make_bsc_output_name DataDefParamGivenNumUsedNonNum.bs]
+
+# This test could be repeated for Type, Struct, Class
+compile_fail DataDefParamGivenNonNumUsedFunc.bs
+compare_file [make_bsc_output_name DataDefParamGivenNonNumUsedFunc.bs]
+
+compile_fail DataDefResGivenNum.bs
+compare_file [make_bsc_output_name DataDefResGivenNum.bs]
+
+compile_fail StructDefFieldIsNum.bs
+compare_file [make_bsc_output_name StructDefFieldIsNum.bs]
+
+compile_fail StructDefParamConflictingUses.bs
+compare_file [make_bsc_output_name StructDefParamConflictingUses.bs]
+
+compile_fail StructDefParamGivenNonNumUsedNum.bs
+compare_file [make_bsc_output_name StructDefParamGivenNonNumUsedNum.bs]
+
+compile_fail StructDefParamGivenNumUsedNonNum.bs
+compare_file [make_bsc_output_name StructDefParamGivenNumUsedNonNum.bs]
+
+compile_fail StructDefResGivenNum.bs
+compare_file [make_bsc_output_name StructDefResGivenNum.bs]
+
+compile_fail TypeAliasParamConflictingUses.bs
+compare_file [make_bsc_output_name TypeAliasParamConflictingUses.bs]
+
+compile_fail TypeAliasParamGivenNonNumUsedNum.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenNonNumUsedNum.bs]
+
+compile_fail TypeAliasParamGivenNumUsedNonNum.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenNumUsedNonNum.bs]
+
+compile_fail TypeAliasPartialAppWithConflictingKindSig.bs
+compare_file [make_bsc_output_name TypeAliasPartialAppWithConflictingKindSig.bs]
+
+compile_pass TypeAliasPartialAppWithoutKindSig.bs
+
+compile_fail TypeAliasResGivenNonNumIsNum.bs
+compare_file [make_bsc_output_name TypeAliasResGivenNonNumIsNum.bs]
+
+compile_fail TypeAliasResGivenNonNumIsNumParam.bs
+compare_file [make_bsc_output_name TypeAliasResGivenNonNumIsNumParam.bs]
+
+compile_fail TypeAliasResGivenNumIsNonNum.bs
+compare_file [make_bsc_output_name TypeAliasResGivenNumIsNonNum.bs]
+
+compile_fail TypeAliasResGivenNumIsNonNumParam.bs
+compare_file [make_bsc_output_name TypeAliasResGivenNumIsNonNumParam.bs]
+
+# Test when too few argument kinds are given
+compile_fail TypeAliasParamGivenTooFew.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenTooFew.bs]
+
+compile_fail TypeAliasParamGivenTooFew_ToNone.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenTooFew_ToNone.bs]
+
+# Test when too many argument kinds are given
+compile_fail TypeAliasParamGivenTooMany.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenTooMany.bs]
+
+compile_fail TypeAliasParamGivenTooMany_FromNone.bs
+compare_file [make_bsc_output_name TypeAliasParamGivenTooMany_FromNone.bs]
+
+# Too many can be OK, if they are the kind of the result
+compile_pass TypeAliasParamGivenTooMany_OK.bs
+
+# ----------
+
+# Bug 555
+# Test for constructor with no arguments provided with arguments
+compile_fail_error DataConstrOfNoArgsAppliedToMultipleArgs.bsv T0143
+compare_file [make_bsc_output_name DataConstrOfNoArgsAppliedToMultipleArgs.bsv]
+
+# ----------

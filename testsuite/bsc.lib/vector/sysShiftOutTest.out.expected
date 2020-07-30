@@ -1,0 +1,154 @@
+initial
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+shift 0 out from 0
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+shift 3 out from 0
+Values are [5:0]:    0, 0, 0, 5, 4, 3
+Packed values are: 000543
+shift 9 out from 0 
+Values are [5:0]:    0, 0, 0, 0, 0, 0
+Packed values are: 000000
+shift 1 out from 0
+Values are [5:0]:    0, 5, 4, 3, 2, 1
+Packed values are: 054321
+-------------------------------------------
+shift 0 out from N
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+shift 1 out from N
+Values are [5:0]:    2, 1, 0, 0, 0, 0
+Packed values are: 210000
+shift 9 out from N
+Values are [5:0]:    0, 0, 0, 0, 0, 0
+Packed values are: 000000
+shift 1 out from N
+Values are [5:0]:    4, 3, 2, 1, 0, 0
+Packed values are: 432100
+-------------------------------------------------- Shift amount =  0
+out 0:
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+out N:
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+-------------------------------------------------- Shift amount =  1
+out 0:
+Values are [5:0]:    f, 5, 4, 3, 2, 1
+Packed values are: f54321
+out N:
+Values are [5:0]:    4, 3, 2, 1, 0, f
+Packed values are: 43210f
+-------------------------------------------------- Shift amount =  2
+out 0:
+Values are [5:0]:    f, f, 5, 4, 3, 2
+Packed values are: ff5432
+out N:
+Values are [5:0]:    3, 2, 1, 0, f, f
+Packed values are: 3210ff
+-------------------------------------------------- Shift amount =  3
+out 0:
+Values are [5:0]:    f, f, f, 5, 4, 3
+Packed values are: fff543
+out N:
+Values are [5:0]:    2, 1, 0, f, f, f
+Packed values are: 210fff
+-------------------------------------------------- Shift amount =  4
+out 0:
+Values are [5:0]:    f, f, f, f, 5, 4
+Packed values are: ffff54
+out N:
+Values are [5:0]:    1, 0, f, f, f, f
+Packed values are: 10ffff
+-------------------------------------------------- Shift amount =  5
+out 0:
+Values are [5:0]:    f, f, f, f, f, 5
+Packed values are: fffff5
+out N:
+Values are [5:0]:    0, f, f, f, f, f
+Packed values are: 0fffff
+-------------------------------------------------- Shift amount =  6
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount =  7
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount =  8
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount =  9
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 10
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 11
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 12
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 13
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 14
+out 0:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+out N:
+Values are [5:0]:    f, f, f, f, f, f
+Packed values are: ffffff
+-------------------------------------------------- Shift amount = 0
+out 0:
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+out N:
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+-------------------------------------------------- Shift amount = 1
+out 0:
+Values are [5:0]:    f, 5, 4, 3, 2, 1
+Packed values are: f54321
+out N:
+Values are [5:0]:    4, 3, 2, 1, 0, f
+Packed values are: 43210f
+-------------------------------------------------- Shift amount = 2
+out 0:
+Values are [5:0]:    f, f, 5, 4, 3, 2
+Packed values are: ff5432
+out N:
+Values are [5:0]:    3, 2, 1, 0, f, f
+Packed values are: 3210ff

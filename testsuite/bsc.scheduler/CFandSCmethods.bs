@@ -1,0 +1,33 @@
+package CFandSCmethods(sysCFandSCmethods) where
+
+interface CFandSC =
+    m1 :: Action
+    m2 :: Action
+    m3 :: Action
+
+-- sysCFandSCmethods should not compile
+-- because m1 < m2, and m2 < m3,
+-- so there is no satisfactory ordering of A and B
+{-# verilog sysCFandSCmethods #-}
+sysCFandSCmethods :: Module Empty
+sysCFandSCmethods =
+    module
+        cfsc :: CFandSC <- mkCFandSC
+        rules
+            "A": when True ==> action { cfsc.m1; cfsc.m3 }
+            "B": when True ==> cfsc.m2
+
+-- m1 and m3 are <>, but m1 < m2 < m3
+{-# verilog mkCFandSC #-}
+mkCFandSC :: Module CFandSC
+mkCFandSC =
+    module
+        r1 :: Reg Bool <- mkRegU
+        r2 :: Reg Bool <- mkRegU
+        r3 :: Reg Bool <- mkRegU
+        r4 :: Reg Bool <- mkRegU
+        interface
+            m1 = r1 := r2
+            m2 = r2 := r3
+            m3 = r3 := r4
+    

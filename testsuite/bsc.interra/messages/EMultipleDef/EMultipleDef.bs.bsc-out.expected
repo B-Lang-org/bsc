@@ -1,0 +1,5 @@
+checking package dependencies
+compiling EMultipleDef.bs
+Error: "EMultipleDef.bs", line 51, column 10: (T0011)
+  Declaration of `GCD' conflicts with previous declaration at
+  "EMultipleDef.bs", line 19, column 10

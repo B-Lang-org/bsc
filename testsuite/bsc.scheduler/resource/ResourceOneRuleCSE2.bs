@@ -1,0 +1,13 @@
+package ResourceOneRuleCSE2(sysResourceOneRuleCSE2) where
+
+-- The two assignments to r in the rule conflict, as there is only one
+-- write port for the register (even though the writes would be fine
+-- in two because of SC).  Expect a resource error.
+
+sysResourceOneRuleCSE2 :: Module Empty
+sysResourceOneRuleCSE2 =
+    module
+        r :: Reg (Bit 32) <- mkRegU
+        rules
+            when True
+             ==> action { r := r + 1; r := r + 2 }

@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Zero.bsv
+code generation for sysZero starts
+Compilation message: "Zero.bsv", line 12, column 32:  0.0 = (+, 0, 0)
+Compilation message: "Zero.bsv", line 18, column 32: -0.0 = (-, 0, 0)
+Verilog file created: sysZero.v
+All packages are up to date.

@@ -1,0 +1,20 @@
+Initial value ff
+Shifting left data size           8 with index size           8: fe
+Shifting left data size           8 with index size          32: fc
+Shifting left data size           8 with index size          64: f8
+Shifting left data size           8 with index size         128: f0
+Initial value ffffffff
+Shifting left data size          32 with index size           8: fffffffe
+Shifting left data size          32 with index size          32: fffffffc
+Shifting left data size          32 with index size          64: fffffff8
+Shifting left data size          32 with index size         128: fffffff0
+Initial value ffffffffffffffff
+Shifting left data size          64 with index size           8: fffffffffffffffe
+Shifting left data size          64 with index size          32: fffffffffffffffc
+Shifting left data size          64 with index size          64: fffffffffffffff8
+Shifting left data size          64 with index size         128: fffffffffffffff0
+Initial value ffffffffffffffffffffffffffffffff
+Shifting left data size         128 with index size           8: fffffffffffffffffffffffffffffffe
+Shifting left data size         128 with index size          32: fffffffffffffffffffffffffffffffc
+Shifting left data size         128 with index size          64: fffffffffffffffffffffffffffffff8
+Shifting left data size         128 with index size         128: fffffffffffffffffffffffffffffff0

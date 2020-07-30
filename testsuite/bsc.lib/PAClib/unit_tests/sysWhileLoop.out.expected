@@ -1,0 +1,18 @@
+Cycle 1: Test start: mkWhileLoop
+Cycle 15: Out [0], x = 10, y = 5, expected 5, actual 5
+Cycle 30: Out [1], x = 7, y = 3, expected 1, actual 1
+Cycle 59: Out [2], x = 13, y = 7, expected 1, actual 1
+Cycle 78: Out [3], x = 16, y = 9, expected 1, actual 1
+Cycle 110: Out [4], x = 19, y = 11, expected 1, actual 1
+Cycle 130: Out [5], x = 22, y = 13, expected 1, actual 1
+Cycle 147: Out [6], x = 25, y = 15, expected 5, actual 5
+Cycle 183: Out [7], x = 28, y = 17, expected 1, actual 1
+Cycle 207: Out [8], x = 31, y = 19, expected 1, actual 1
+Cycle 246: Out [9], x = 34, y = 21, expected 1, actual 1
+Cycle 271: Out [10], x = 37, y = 23, expected 1, actual 1
+Cycle 292: Out [11], x = 40, y = 25, expected 5, actual 5
+Cycle 329: Out [12], x = 43, y = 27, expected 1, actual 1
+Cycle 356: Out [13], x = 46, y = 29, expected 1, actual 1
+Cycle 396: Out [14], x = 49, y = 31, expected 1, actual 1
+Cycle 424: Out [15], x = 52, y = 33, expected 1, actual 1
+Cycle 424: Test ok: mkWhileLoop: all 16 outputs ok

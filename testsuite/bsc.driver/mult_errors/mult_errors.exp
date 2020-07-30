@@ -1,0 +1,29 @@
+# ---------------
+
+compile_object_fail_error PoisonedDef.bs G0087 1 "" -continue-after-errors
+if { $ctest == 1 } {
+compare_file PoisonedDef.bs.bsc-ccomp-out
+}
+
+# ---------------
+
+if { $ctest == 1 } {
+compile_object_fail_error MultErrors1.bsv S0015 1 "" -continue-after-errors
+find_n_error MultErrors1.bsv.bsc-ccomp-out G0047 1
+find_n_error MultErrors1.bsv.bsc-ccomp-out G0087 1
+
+# This test only works if the above file was compiled and resulted
+# in a poisoned file (so group under the same "if $ctest" guard)
+compile_fail_error PoisonWarning.bsv G0088
+copy PoisonWarning.bsv.bsc-out PoisonWarning.bsv.error.bsc-out
+compile_pass_warning PoisonWarning.bsv G0088 1 -continue-after-errors 
+}
+
+# ---------------
+
+compile_object_fail_error WrappedDefErr.bsv T0016 1 "" -continue-after-errors
+if { $ctest == 1 } {
+find_n_error WrappedDefErr.bsv.bsc-ccomp-out G0087 1
+}
+
+# ---------------

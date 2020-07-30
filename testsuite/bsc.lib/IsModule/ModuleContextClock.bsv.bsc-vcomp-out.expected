@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ModuleContextClock.bsv
+code generation for mkTestWrapper2 starts
+Compilation message: "ModuleContextClock.bsv", line 23, column 13: 1
+Verilog file created: mkTestWrapper2.v
+All packages are up to date.

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling NoArgPlusOne.bs
+Error: "NoArgPlusOne.bs", line 3, column 5: (T0023)
+  The type `Bool' does not take an argument.

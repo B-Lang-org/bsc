@@ -1,0 +1,38 @@
+package UseAct(sysUseAct) where
+
+import FIFO
+
+interface Stack a =
+    push :: a -> Action
+    pop  :: ActionValue a
+
+mkStack :: (Bits a sa) => Module (Stack a)
+mkStack =
+    module
+	f :: FIFO a
+	f <- mkFIFO
+        interface
+	    push x = f.enq x
+	    pop = do
+		    f.deq
+		    return f.first
+
+type Data = Int 16
+
+sysUseAct :: Module Empty
+sysUseAct =
+    module
+	s1 :: Stack Data
+	s1 <- mkStack
+ 	s2 :: Stack Data
+	s2 <- mkStack
+ 	s3 :: Stack Data
+	s3 <- mkStack
+        rules
+	    when True
+	     ==> action
+		    v1 :: Data
+		    v1 <- s1.pop
+		    v2 :: Data
+		    v2 <- s2.pop
+		    s3.push (v1+v2)

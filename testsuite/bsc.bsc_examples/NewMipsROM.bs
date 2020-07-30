@@ -1,0 +1,67 @@
+package NewMipsROM(sysNewMipsROM) where
+import NewMipsInstr
+import NewMipsDefs
+
+sysNewMipsROM :: Module (ROM IAddress IValue)
+sysNewMipsROM =
+    module
+      interface
+	read a = case a of
+{-
+		     0 -> 0x8c010000  -- lw $1,0($0)
+		     1 -> 0x00210820  -- add $1,$1,$1
+		     2 -> 0x08000002  -- j 0x8
+		     3 -> 0x00000000  -- nop
+-}
+		     0 -> 0x241d7fe0  -- li $sp,0x7fe0
+		     1 -> 0xafbf0018  -- sw $31,24($sp)
+		     2 -> 0x2406000f  -- li $6,15  --> n=15, compute Fib(n)
+		     3 -> 0xafa60000  -- sw $6,0($sp)
+		     4 -> 0x24050004  -- li $5,4
+		     5 -> 0xaca00000  -- sw $0,0($5)
+		     6 -> 0x24040001  -- li $4,1
+		     7 -> 0xafa40004  -- sw $4,4($sp)
+		     8 -> 0x24030001  -- li $3,1
+		     9 -> 0xafa30008  -- sw $3,8($sp)
+		     10 -> 0xafa0000c -- sw $0,12($sp)
+		     11 -> 0x8fa1000c -- lw $1,12($sp)
+		     12 -> 0x8fa20000 -- lw $2,0($sp)
+		     13 -> 0x0022082a -- slt $1,$1,$2
+		     14 -> 0x10200013 -- beq $1,$0,0x88
+		     15 -> 0x00000000 -- nop
+				      -- 0x40:
+		     16 -> 0x8fae0008 -- lw $14,8($sp)
+		     17 -> 0xafae0010 -- sw $14,16($sp)
+		     18 -> 0x8fad0004 -- lw $13,4($sp)
+		     19 -> 0xafad0008 -- sw $13,8($sp)
+		     20 -> 0x8fab0004 -- lw $11,4($sp)
+		     21 -> 0x8fac0010 -- lw $12,16($sp)
+		     22 -> 0x016c5821 -- addu $11,$11,$12
+		     23 -> 0xafab0004 -- sw $11,4($sp)
+		     24 -> 0x8faa0004 -- lw $10,4($sp)
+		     25 -> 0xac0a0000 -- sw $10,0($0)
+		     26 -> 0x8fa9000c -- lw $9,12($sp)
+                     27 -> 0x25290001 -- addiu $9,$9,1
+                     28 -> 0xafa9000c -- sw $9,12($sp)
+                     29 -> 0x8fa7000c -- lw $7,12($sp)
+                     30 -> 0x8fa80000 -- lw $8,0($sp)
+                     31 -> 0x00e8382a -- slt $7,$7,$8
+                     32 -> 0x14e0ffef -- bne $7,$0,0x40
+                     33 -> 0x00000000 -- nop
+				      -- 0x88:
+                     34 -> 0x27848800 -- addiu $4,$gp,-30720
+                     35 -> 0x8fa50004 -- lw $5,4($sp)
+                     36 -> 0x00000000 -- nop
+                     37 -> 0x00000000 -- nop
+                     38 -> 0x240f0001 -- li $15,1
+                     39 -> 0x24180004 -- li $24,4
+                     40 -> 0xaf0f0000 -- sw $15,0($24)
+                     41 -> 0x8fa20004 -- lw $2,4($sp)
+                     42 -> 0x8fbf0018 -- lw $31,24($sp)
+                     43 -> 0x27bd0020 -- addiu $sp,$sp,32
+				      -- 0xb0:
+                     44 -> 0x0800002c -- j 0xb0
+                     45 -> 0x00000000 -- nop
+                     -- all other addresses
+                     _  -> 0x00000000 -- nop
+

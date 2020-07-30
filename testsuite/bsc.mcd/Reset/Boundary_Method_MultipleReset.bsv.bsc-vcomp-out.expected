@@ -1,0 +1,26 @@
+checking package dependencies
+compiling Boundary_Method_MultipleReset.bsv
+code generation for sysBoundary_Method_MultipleReset starts
+Warning: "Boundary_Method_MultipleReset.bsv", line 6, column 8: (G0043)
+  Multiple reset signals influence method `meth1'.
+  This can lead to inconsistent, non-atomic results when not all of these
+  signals are asserted.
+  Method calls by reset:
+    Reset 1 (rst1):
+      rg1.write
+    Reset 2 (rst2):
+      rg2.write
+  During elaboration of the interface method `meth1' at
+  "Boundary_Method_MultipleReset.bsv", line 6, column 8.
+  During elaboration of `sysBoundary_Method_MultipleReset' at
+  "Boundary_Method_MultipleReset.bsv", line 6, column 8.
+Warning: "Boundary_Method_MultipleReset.bsv", line 6, column 8: (G0127)
+  Reset information for method `meth1' is lost because it has multiple
+  associated resets. Instantiations will associate the method with reset
+  `rst1'.
+  During elaboration of the interface method `meth1' at
+  "Boundary_Method_MultipleReset.bsv", line 6, column 8.
+  During elaboration of `sysBoundary_Method_MultipleReset' at
+  "Boundary_Method_MultipleReset.bsv", line 6, column 8.
+Verilog file created: sysBoundary_Method_MultipleReset.v
+All packages are up to date.

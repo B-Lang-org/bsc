@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ModArg_Param.bsv
+code generation for mkSub_ModArg_Param starts
+Verilog file created: mkSub_ModArg_Param.v
+code generation for sysModArg_Param starts
+Error: "ModArg_Param.bsv", line 11, column 8: (G0053)
+  Parameter `b' of submodule `s' is instantiated with a dynamic expression.
+  Instantiation parameters must have static values.
+  During elaboration of `s' at "ModArg_Param.bsv", line 11, column 8.
+  During elaboration of `sysModArg_Param' at "ModArg_Param.bsv", line 7,
+  column 8.

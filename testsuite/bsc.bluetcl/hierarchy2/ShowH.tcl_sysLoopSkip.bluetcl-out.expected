@@ -1,0 +1,19 @@
+    sysLoopSkip    	 --  	 
+        Loop           	 --  Tuple3#(Reg#(UInt#(14)), Reg#(UInt#(14)), Integer)	 
+            Body_0         	 --  Tuple2#(Reg#(UInt#(14)), Reg#(UInt#(14)))	 
+                aaa            	 -- RegUN Reg#(UInt#(14))	aaa_0 
+                foo            	 -- Rule 	RL_foo 
+            Body_1         	 --  Tuple2#(Reg#(UInt#(14)), Reg#(UInt#(14)))	 
+                bbb            	 -- RegUN Reg#(UInt#(14))	bbb_1 
+                foo            	 -- Rule 	RL_foo_1 
+            Body_2         	 --  Tuple2#(Reg#(UInt#(14)), Reg#(UInt#(14)))	 
+                aaa            	 -- RegUN Reg#(UInt#(14))	aaa_2 
+                foo            	 -- Rule 	RL_foo_2 
+            Body_3         	 --  Tuple2#(Reg#(UInt#(14)), Reg#(UInt#(14)))	 
+                bbb            	 -- RegUN Reg#(UInt#(14))	bbb_3 
+                foo            	 -- Rule 	RL_foo_3 
+        Loop           	 --  Tuple2#(Reg#(UInt#(14)), Integer)	 
+            bbb_0          	 -- RegUN Reg#(UInt#(14))	bbb_0 
+            bbb_1          	 -- RegUN Reg#(UInt#(14))	bbb_1_1 
+            bbb_2          	 -- RegUN Reg#(UInt#(14))	bbb_2 
+            bbb_3          	 -- RegUN Reg#(UInt#(14))	bbb_3_1 

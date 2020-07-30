@@ -1,0 +1,63 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENotStruct1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "not of struct type" error (ENotStruct)
+
+-- Error Message : bsc ENotStruct1.bs
+-- bsc: Compilation errors:
+-- "ENotStruct1.bs", line 56, column 38, Not of struct type v
+-----------------------------------------------------------------------
+
+package ENotStruct1 (ENotStruct1(..)) where
+
+-- import Int
+
+data Keep       = First  { a::Int 32; b::Bool; }
+                | Second { c::Int 32; }
+                deriving (Eq, Bits)
+
+struct MyStruct =        { give :: Int 32; judge :: Bool; }
+                deriving (Eq, Bits)
+
+
+interface ENotStruct1 =
+            start :: Int 32 -> Bool -> Action
+            end   :: Bool
+
+mkENotStruct1 :: Module ENotStruct1
+mkENotStruct1 = 
+           module
+
+                x :: Reg (Int 32)
+                x <- mkReg 0 
+
+                y :: Reg (Bool)
+                y <- mkReg False
+
+                u :: Reg (MyStruct) 
+                u <- mkRegU 
+
+                v :: Reg (Keep) 
+                v <- mkRegU
+
+                w :: Reg (Keep) 
+                w <- mkRegU
+
+
+                rules
+                   "One":
+                      when True 
+                          ==> action
+--                                v := y { give = 1; judge = True }
+                                 w := v { a = 1 ; b = True }
+
+
+                interface
+                    start ix iy = action
+                                    x := ix 
+                                    y := iy 
+                    end = y when x == 0

@@ -1,0 +1,164 @@
+The files in this directory implement a 5-stage pipeline.  Each stage
+is separated by a "FIFO" called BX, where X is replaced with the initial
+of the stage preceeding the FIFO.  So the BF FIFO follows the fetch stage.
+In reality, these are single registers, with a presence bit, but they are
+wrapped in a FIFO interface.
+
+The stages are:
+
+  * Fetch stage (takes 32-bit vectors from IMEM and writes them to BF)
+  * Decode stage (takes from BF, looks up register values and writes to BD)
+  * Execute stage (takes from BD, performs ALU and branch instrs, writes to BE)
+  * Memory stage (takes from BE, reads/writes DMEM, writes to BM)
+  * Write-back stage (takes from BM, updates register file)
+
+Instructions in this ISA have arguments which are register names where
+the argument values can be found.  The decode stage looks up the value
+associated with a register and replaces the name with the found value.
+This is only legal if no instruction later in the pipeline is planning
+to write a value to the register.  If such an instruction exists, the
+decode stage either has to wait for the register file to be updated,
+or it has to bypass the value from a later stage where the value to be
+written has been calculated.
+
+
+There are three types of pipeline which are implemented in this directory:
+
+1) Stall
+   * The decode stage probes the instructions in the BD, BE, and BM FIFOs
+     and stalls if any instruction there is planning to write to a register
+     which is read by the instruction at the head of the BF.
+   * Files: FiveStageCPUStall.bsv, FindFIFO2.bsv, CPUTest.bsv
+
+2) Bypass from the buffers
+   * The decode stage stalls on instructions in the BD, and potentially
+     stalls based on instructions in the BE and BM, but can also bypass
+     values from the BE and BM if the computed value exists.
+   * Most instructions cannot be bypassed from the BD, which is why this
+     design only stalls based on that FIFO.  However, the instruction
+     LoadC (which was added for convenience) has a value which is ready
+     to be taken a early as the BD.  This design stalls until the LoadC
+     reaches the BE FIFO.  One could write a version which bypasses from
+     the BD, of course.
+   * Files: FiveStageCPUBypass.bsv, FindFIFO2.bsv, FindFIFOM2.bsv,
+            CPUTestBypass.bsv
+
+3) Bypass from the buffers and from the execute stage (pre-FIFO)
+   * The is just like #2, except that the decode stage can bypass values
+     that are being computed simultaneously by the execute stage.  The
+     previous version needed to wait until the execute stage's computation
+     was registered in the BE before being able to bypass.
+   * This also has the effect of "fixing the LoadC" problem.  A LoadC
+     at the head of the BD FIFO can be bypassed, via the execute stage
+     (which does nothing to the LoadC anyway).  In general, the decode
+     stage must not stall based on the head of the BD FIFO (since that
+     is covered by bypassing from the execute stage).  Since the BD FIFO
+     is a one-place FIFO, we can remove stalling considerations from it
+     altogether.
+   * Files: FiveStageCPUBypassPreFIFO.bsv, FindFIFOM2.bsv,
+            CPUTestBypassPreFIFO.bsv
+
+
+There are also two versions of the stalling pipeline, which differ
+based on the data types in the buffers.  The original version,
+FiveStageCPUStall, uses the same template for all the buffers.  This
+is wasteful, because an Add instruction will never appear in Add form
+after the execute stage.  By using a special template for each buffer,
+we can reduce the width of the FIFOs and also significantly reduce the
+stall/bypass logic on those FIFOs.  The file FiveStageCPUStallV2 is an
+example of how one might write special types for each buffer.  The
+data types in V2 were also created with extensibility in mind:
+
+ * It should now be easy to extend the ISA without unnecessarily
+   adding more logic/state to the stages.  This is done by creating a
+   template which almost like an a la carte order form of the stages
+   -- the template says what the instruction should do at each stage,
+   and as each stage completes, it can throw away the part of the
+   template related to that stage.
+
+ * The execute stage was also written with extensibility in mind.
+   The execute stage could have been written as an ALU stage followed
+   by a branch stage.  The execute stage has been set up in this form
+   without actually inserting a buffer.  So it should be easy to extend
+   the ISA with a "Jump If Add Is Not Zero" instruction, or any other
+   combination of an ALU operation with a branch operation.
+
+
+The instruction sets started as purely register-addressed
+instructions: Add, Jz, Load, Store.  To make writing the testbench
+easier, a LoadC instruction was added, which loads a register with a
+hardcoded value.  (Previously, values could only come in from DMEM.)
+Also, the CPU was extended with a start method, which starts the
+fetching of instructions; the ISA was extended with a Halt
+instruction, which stops fetching; and the CPU was extended with a
+done method which signals when no more instructions are in the
+pipeline.
+
+
+The testbench files for each pipeline have very details ASCII-art
+comments which show the expected movement of instructions through
+the pipeline and indicate when stalling and bypassing occur, and
+point out some of the hazards of implementing bypassing.
+
+=========================================================
+Exercises:
+
+1. FiveStageCPUQ1.bsv -> FiveStageCPUQ1sol.bsv 
+
+   Have students add the LoadPC instruction to the ISA. 
+
+2. FiveStageCPUQ2.bsv -> FiveStageCPUQ2sol.bsv
+
+   Fill in the stall/bypass functions to make the initial bypass CPU
+   examples 
+
+3.  FiveStageCPUQ3.bsv -> FiveStageCPUQ3sol.bsv
+
+   Add the ability to forward before enqueuing. 
+
+
+
+=============================================================
+Potential exercises for this lab:
+
+1) Have the students add the "start" and "done" methods and Halt
+   instruction.
+
+2) Have the students add the LoadC instruction.
+
+3) Have the students add new instructions: ShiftL, Sub, LoadPC, etc.
+   (There is already a sample program in the testbenches which uses
+   ShiftL and LoadPC, but these have not been tested.
+
+4) Have students write StallV2 from Stall.
+
+5) Have students extend StallV2 to BypassV2 and BypassPreFIFOV2 as was done
+   with the Stall.
+
+6) Have students write the Bypass or BypassPreFIFO from the Stall.
+   (This could be done by having them fill in the blanks.)
+
+7) The BypassPreFIFO version required little change to the CPU.  It
+   simply involved changing the FIFOs.  The comments at the top of
+   FiveStageCPUBypassPreFIFO indicate two other ways of changing the
+   design.  Perhaps students could be asked to write those versions.
+
+8) Have students bypass from the BD in Bypass (currently, the design
+   only stalls).
+
+9) Have students add a buffer between the ALU and branch parts of the
+   execute stage, to make a 6-stage pipeline.
+
+Methodology exercises:
+
+1) Have students run the examples and view in a waveform viewer that
+   the pipeline moves as indicated in the ASCII-art (watch the firing
+   of rules, watch the inputs and outputs to the buffers).
+
+2) Have students explore adding debug $display statements to see how
+   they can best probe stalling and the bypassing of values.
+
+3) Have students explore rule conflicts and rule urgency.  (Why did
+   the execute stage need to be broken into separate rules?  Why does
+   the deleted instruction after the branch appear to "stall"?)
+

@@ -1,0 +1,2 @@
+       OVL_ERROR : ASSERT_ZERO_ONE_HOT : VIOLATION : Test expression contains more than 1 asserted bits : severity 1 : time 30 : main.top.assertZeroOneH.ovl_error_t
+       OVL_ERROR : ASSERT_ZERO_ONE_HOT : VIOLATION : Test expression contains more than 1 asserted bits : severity 1 : time 40 : main.top.assertZeroOneH.ovl_error_t

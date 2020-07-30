@@ -1,0 +1,4 @@
+checking package dependencies
+Error: "Define_WithMacroValuewithSemiColonAtEnd.bsv", line 7, column 14: (P0005)
+  Unexpected `;'; expected `.', `(', `[', operator, SV 3.1a keyword `matches',
+  `&&&', or `)'

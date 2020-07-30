@@ -1,0 +1,13 @@
+
+compile_verilog_pass  DMAC.bsv
+compile_verilog_pass  Slave.bsv
+
+if { $vtest == 1 } {
+    link_verilog_no_main_pass \
+	{ mkDMAC.v mkSlave.v ahb_bus.v ahb_default.v ahb_ram.v ram_1024x32.v amba_tb.v} \
+	sysAmbaDmac
+
+    sim_verilog sysAmbaDmac 
+
+    compare_file_bug sysAmbaDmac.out "" "Rob_Brown"
+}

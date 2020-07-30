@@ -1,0 +1,24 @@
+package TmpsIfcArgs(sysTmpsIfcArgs) where
+
+import TmpsIfcArgsDefs
+import TmpsIfcArgsProducer
+import TmpsIfcArgsConsumer
+
+-- The consumer retrieves values from the producer; both print out the
+-- data being sent.  Expect both versions to match in each cycle.
+-- Many thanks to Jacob Schwartz for providing this test case.
+
+sysTmpsIfcArgs :: Module Empty
+sysTmpsIfcArgs =
+    module
+	producer :: TmpsIfcArgsProducer
+	producer <- mkTmpsIfcArgsProducer
+
+	wrapper :: Empty
+	wrapper <- mkWrapper producer
+
+mkWrapper :: TmpsIfcArgsProducer -> Module Empty
+mkWrapper producer =
+    module
+	consumer :: Empty
+	consumer <- mkTmpsIfcArgsConsumer producer

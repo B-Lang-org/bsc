@@ -1,0 +1,24 @@
+checking package dependencies
+compiling EContextReduction1.bs
+Error: "EContextReduction1.bs", line 30, column 0: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits (EContextReduction1.MyType1 Prelude.Bool) a__
+  The context was implied by expressions at the following positions:
+    "EContextReduction1.bs", line 38, column 15
+    "EContextReduction1.bs", line 35, column 15
+Error: "EContextReduction1.bs", line 30, column 0: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Bits (EContextReduction1.MyType2 Prelude.Integer) b__
+  The context was implied by expressions at the following positions:
+    "EContextReduction1.bs", line 44, column 15
+    "EContextReduction1.bs", line 41, column 15
+Error: "EContextReduction1.bs", line 54, column 21: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Ord (EContextReduction1.MyType2 Prelude.Integer)
+Error: "EContextReduction1.bs", line 59, column 21: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Ord (EContextReduction1.MyType2 Prelude.Integer)

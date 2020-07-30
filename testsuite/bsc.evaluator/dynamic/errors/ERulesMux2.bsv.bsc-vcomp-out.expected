@@ -1,0 +1,7 @@
+checking package dependencies
+compiling ERulesMux2.bsv
+code generation for sysERulesMux2 starts
+Error: "ERulesMux2.bsv", line 20, column 4: (G0070)
+  The expression for a module instantiation could not be evaluated. Modules
+  must be determined at compile time and cannot be computed dynamically.
+  During elaboration of `sysERulesMux2' at "ERulesMux2.bsv", line 2, column 8.

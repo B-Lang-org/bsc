@@ -1,0 +1,9 @@
+
+# ---------------
+# Bug 1538: Type analysis of struct/interface with polymorphic field
+
+bsc_compile PolyField.bsv {-verilog -elab}
+bluetcl_run_compare_pass polyfield.tcl
+
+# ---------------
+

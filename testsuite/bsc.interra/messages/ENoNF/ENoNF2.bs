@@ -1,0 +1,52 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ENoNF2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "compile time exp. did not evaluate" error (ENoNF)
+
+-- Error Message : bsc -verilog -g mkENoNF2 ENoNF2.bs
+-- bsc: Compilation errors:
+-- "Prelude.bs", line 1053, column 13, Compile time expression did not evaluate:
+-- Type: Prelude.String
+-- PrimBitToString (.Prelude.get ·666 pqr_1)
+-----------------------------------------------------------------------
+
+package ENoNF2 (ENoNF2(..), mkENoNF2) where
+
+interface ENoNF2 =
+         start  :: String -> String -> Action
+         result :: Bool
+
+mkENoNF2 :: Module ENoNF2
+mkENoNF2 =
+            module
+
+                    xyz :: Reg (String)
+                    xyz <- mkRegU
+
+                    pqr :: Reg (String)
+                    pqr <- mkRegU
+
+                    res :: Reg (Bool)
+                    res <- mkReg True
+
+                    rules 
+                      "Comp" :
+                               when True
+                                ==> action
+                                       xyz := pqr 
+                                       pqr := xyz
+--                                     if (xyz==pqr)
+--                                         then
+--                                              res := True 
+--                                         else
+--                                              res := False
+                    interface 
+                        start x y = action
+                                        xyz := x
+                                        pqr := y 
+                          
+                        result = res

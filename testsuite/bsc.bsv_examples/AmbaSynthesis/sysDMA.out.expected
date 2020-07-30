@@ -1,0 +1,16 @@
+                   5 *********** START OF TRANSFER          0 ***************
+                3945 Checksum:        4950        4950
+                3945 sub-test passed
+                3955 *********** START OF TRANSFER          1 ***************
+                9065 Checksum:       24090       24090
+                9065 sub-test passed
+                9075 *********** START OF TRANSFER          2 ***************
+               14185 Checksum:       64620       64620
+               14185 sub-test passed
+               14195 *********** START OF TRANSFER          3 ***************
+               19305 Checksum:      134940      134940
+               19305 sub-test passed
+               19315 *********** START OF TRANSFER          4 ***************
+               25705 Checksum:      244650      244650
+               25705 sub-test passed
+               25705 test passed

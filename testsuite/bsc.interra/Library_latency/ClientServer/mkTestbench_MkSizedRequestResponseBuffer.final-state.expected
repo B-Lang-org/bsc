@@ -1,0 +1,41 @@
+Cycle Number:   0, Writing Data:   0
+Cycle Number:   1, Writing Data:   1
+Cycle Number:   2, Writing Data:   2
+Cycle Number:   3, Writing Data:   3
+Cycle Number:   4, Writing Data:   4
+Cycle Number:   5, Writing Data:   5
+Cycle Number:   6, Writing Data:   6
+Cycle Number:   7, Writing Data:   7
+Cycle Number:   8, Writing Data:   8
+Cycle Number:   9, Writing Data:   9
+Cycle Number:  10, Writing Data:  10
+Cycle Number:  11, Writing Data:  11
+Cycle Number:  12, Writing Data:  12
+Cycle Number:  13, Writing Data:  13
+Cycle Number:  14, Writing Data:  14
+Cycle Number:  15, Writing Data:  15
+Cycle Number =  18, Value read =   0
+Cycle Number =  19, Value read =   1
+Cycle Number =  20, Value read =   2
+Cycle Number =  21, Value read =   3
+Cycle Number =  22, Value read =   4
+Cycle Number =  23, Value read =   5
+Cycle Number =  24, Value read =   6
+Cycle Number =  25, Value read =   7
+Cycle Number =  26, Value read =   8
+Cycle Number =  27, Value read =   9
+Cycle Number =  28, Value read =  10
+Cycle Number =  29, Value read =  11
+Cycle Number =  30, Value read =  12
+Cycle Number =  31, Value read =  13
+Cycle Number =  32, Value read =  14
+Cycle Number =  33, Value read =  15
+Simulation Passes
+Final state:
+top:
+  counter = 0x33
+  fail = False
+  in_data = 0x10
+  out_data = 0x10
+  the_tx_datafifo_f = EMPTY
+  the_tx_datafifo_f_1 = EMPTY

@@ -1,0 +1,37 @@
+
+## Tests for some error conditions during parse
+compile_fail_error Test09.bsv P0157 1 "-verilog"
+
+####  Tests for other conflicting names
+
+### Test for AR/AE attributes
+
+### Tests for basic working
+compile_verilog_pass Test01.bsv 
+link_verilog_no_main_pass {Tb01.v mkDesign_01.v} Tb
+
+compile_verilog_pass Test02.bsv 
+link_verilog_no_main_pass {Tb02.v mkDesign_02.v} Tb
+
+compile_verilog_pass Test03.bsv 
+link_verilog_no_main_pass {Tb03.v mkDesign_03.v} Tb
+
+compile_verilog_pass Test04.bsv 
+link_verilog_no_main_pass {Tb04.v mkDesign_04.v} Tb
+
+compile_verilog_pass Test05.bsv 
+link_verilog_no_main_pass {Tb05.v mkDesign_05.v} Tb
+
+compile_verilog_pass Test06.bsv 
+link_verilog_no_main_pass {Tb06.v mkDesign_06.v} Tb
+
+compile_verilog_pass Test07.bsv 
+link_verilog_no_main_pass {Tb07.v mkDesign_07.v} Tb
+
+compile_verilog_pass Test08.bsv 
+link_verilog_no_main_pass {Tb08.v mkDesign_08.v} Tb
+
+#Test for module with precompiled interface
+compile_verilog_pass IFC.bsv
+compile_verilog_pass Test10.bsv 
+link_verilog_no_main_pass {Tb10.v mkDesign_10.v} Tb

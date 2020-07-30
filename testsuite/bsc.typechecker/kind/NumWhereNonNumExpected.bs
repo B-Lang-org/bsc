@@ -1,0 +1,7 @@
+package NumWhereNonNumExpected () where
+
+data (Foo :: * -> *) a = Bar a
+
+x :: Foo 1
+x = 0
+

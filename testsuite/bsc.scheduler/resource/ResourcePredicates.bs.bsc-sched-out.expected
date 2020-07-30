@@ -1,0 +1,48 @@
+checking package dependencies
+compiling ResourcePredicates.bs
+code generation for sysResourcePredicates starts
+Warning: "ResourcePredicates.bs", line 9, column 0: (G0010)
+  Rule "A" was treated as more urgent than "B". Conflicts:
+    "A" cannot fire before "B":
+      calls to
+	a.upd vs. a.sub
+	a.upd vs. a.upd
+    "B" cannot fire before "A":
+      calls to
+	a.upd vs. a.sub
+	a.upd vs. a.upd
+=== schedule:
+parallel: [esposito: [RL_A -> [], RL_B -> [RL_A]]]
+order: [RL_A, RL_B]
+
+-----
+
+=== resources:
+[(a.sub, [(a.sub 2'd0, 2), (a.sub 2'd2, 1)]),
+ (a.upd, [(a.upd 2'd1 x__h252, 1), (a.upd 2'd3 x__h269, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysResourcePredicates.sched
+=== Generated schedule for sysResourcePredicates ===
+
+Rule schedule
+-------------
+Rule: A
+Predicate: a.sub(2'd0) == 3'd0
+Blocking rules: (none)
+ 
+Rule: B
+Predicate: a.sub(2'd2) == 3'd0
+Blocking rules: A
+ 
+Logical execution order: A, B
+
+=====================================================
+Verilog file created: sysResourcePredicates.v
+All packages are up to date.

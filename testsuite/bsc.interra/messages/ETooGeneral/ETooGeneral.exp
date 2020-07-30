@@ -1,0 +1,5 @@
+compile_fail ETooGeneral.bs
+find_n_error ETooGeneral.bs.bsc-out T0029 1
+
+compile_fail ETooGeneral1.bs
+find_n_error ETooGeneral1.bs.bsc-out T0029 1

@@ -1,0 +1,18 @@
+package Letrecmod(sysLetrecmod) where
+
+import List
+
+seven :: Integer
+seven = let evens :: List Integer
+            evens = cons 0 (map ((+) 1) odds)
+            odds  :: List Integer = map ((+) 1) evens
+        in odds !! 3
+
+sysLetrecmod :: Module Empty
+sysLetrecmod =
+  module
+    rules
+      when True ==>
+         action
+            $display seven
+            $finish 0

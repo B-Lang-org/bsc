@@ -1,0 +1,9 @@
+package Bug41(unitFIFO) where 
+
+import FIFO
+
+unitFIFO :: Module Empty
+unitFIFO = 
+  module 
+    x :: FIFO PrimUnit <- mkFIFO
+

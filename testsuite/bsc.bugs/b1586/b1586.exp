@@ -1,0 +1,4 @@
+compile_fail Bug1586.bsv
+# XXX The error message still needs to be improved
+# XXX So if this fails, it could be an improvement, not a regression
+compare_file [make_bsc_output_name Bug1586.bsv]

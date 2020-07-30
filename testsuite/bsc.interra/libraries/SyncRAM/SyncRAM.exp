@@ -1,0 +1,4 @@
+test_c_veri_worker TestSPSRAM mkTestbench_SPSRam {} "bsv" 1 0 "mkTestbench_SPSRam.v.out.expected" "" ""
+
+test_c_veri_worker TestSPSRAM mkTestbench_SPSRam {RRSPSRAM_65536_16_bussed} "bsv" 0 1 "mkTestbench_SPSRam.v.out.expected" "" ""
+

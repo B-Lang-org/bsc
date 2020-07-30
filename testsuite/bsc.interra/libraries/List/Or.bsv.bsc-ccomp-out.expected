@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "Or.bsv", line 29, column 35: (P0005)
+  Unexpected V2K keyword `or'; expected expression or `('

@@ -1,0 +1,73 @@
+checking package dependencies
+compiling Ex3.bsv
+code generation for mkEx3 starts
+=== schedule:
+parallel: [esposito: [a -> [], c -> [], e -> [], RL_b -> [], RL_d -> []]]
+order: [a, RL_b, c, RL_d, e]
+
+-----
+
+=== resources:
+[(r1.write, [(r1.write r2__h352, 1)]),
+ (r2.read, [(r2.read, 1)]),
+ (r2.write, [(r2.write r3__h296, 1)]),
+ (r3.read, [(r3.read, 1)]),
+ (r3.write, [(r3.write r4__h372, 1)]),
+ (r4.read, [(r4.read, 1)]),
+ (r4.write, [(r4.write r5__h311, 1)]),
+ (r5.read, [(r5.read, 1)]),
+ (r5.write, [(r5.write 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_a CF [RDY_a, RDY_c, RDY_e, a, c, e],
+ RDY_c CF [RDY_c, RDY_e, a, c, e],
+ RDY_e CF [RDY_e, a, c, e],
+ a CF e,
+ a SBR [a, c],
+ c SBR [c, e],
+ e SBR e]
+[((a, c), [RL_b]), ((c, e), [RL_d])]
+[(c, [(Left RL_b)]), (e, [(Left RL_d)])]
+[]
+
+-----
+
+Schedule dump file created: mkEx3.sched
+=== Generated schedule for mkEx3 ===
+
+Method schedule
+---------------
+Method: a
+Ready signal: True
+Conflict-free: e
+Sequenced before (restricted): a, c
+ 
+Method: c
+Ready signal: True
+Sequenced before (restricted): c, e
+Sequenced after (restricted): a
+ 
+Method: e
+Ready signal: True
+Conflict-free: a
+Sequenced before (restricted): e
+Sequenced after (restricted): c
+ 
+Rule schedule
+-------------
+Rule: b
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: d
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: a, b, c, d, e
+
+=====================================
+Verilog file created: mkEx3.v
+All packages are up to date.

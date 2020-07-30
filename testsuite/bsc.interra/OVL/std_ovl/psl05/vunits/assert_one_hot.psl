@@ -1,0 +1,59 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_one_hot_assert_vunit (assert_one_hot_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_ONE_HOT_XZ_P = always (
+          reset_n && xzcheck_enable ->
+          !isunknown(test_expr)); 
+
+  property ASSERT_ONE_HOT_P = always (
+           reset_n && (!isunknown(test_expr)) ->
+           onehot(test_expr));
+
+  A_ASSERT_ONE_HOT_XZ_P:
+  assert ASSERT_ONE_HOT_XZ_P
+  report "VIOLATION: ASSERT_ONE_HOT Checker Fires : test_expr contains X or Z";
+
+  A_ASSERT_ONE_HOT_P:
+  assert ASSERT_ONE_HOT_P
+  report "VIOLATION: ASSERT_ONE_HOT Checker Fires : Test expression contains more or less than 1 asserted bits";
+
+}
+
+vunit assert_one_hot_assume_vunit (assert_one_hot_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_ONE_HOT_XZ_P = always (
+          reset_n && xzcheck_enable ->
+          !isunknown(test_expr));
+  
+  property ASSERT_ONE_HOT_P = always (
+           reset_n && (!isunknown(test_expr)) ->
+           onehot(test_expr));
+  
+  M_ASSERT_ONE_HOT_XZ_P:
+  assume ASSERT_ONE_HOT_XZ_P;
+  
+  M_ASSERT_ONE_HOT_P:
+  assume ASSERT_ONE_HOT_P;
+
+}
+
+vunit assert_one_hot_cover_vunit (assert_one_hot_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_SANITY_ON && reset_n && prev(reset_n) && (test_expr != prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_ONE_HOT Checker: test_expr_change covered";
+
+  cover_all_one_hots_checked:
+  cover {OVL_COVER_CORNER_ON && reset_n && rose(one_hots_checked == {width{1'b1}})}
+  report "COVERAGE REPORT: ASSERT_ONE_HOT Checker: all_one_hots_checked covered";
+ 
+}
+

@@ -1,0 +1,7 @@
+checking package dependencies
+compiling GCD.bs
+Warning: "GCD.bs", line 8, column 6: (P0223)
+  Definition of `intrfce' is not used.
+Error: "GCD.bs", line 8, column 6: (G0008)
+  Separate code generation for module `mkGCD', which has an interface
+  argument, is not supported

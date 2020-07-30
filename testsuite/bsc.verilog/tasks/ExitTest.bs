@@ -1,0 +1,11 @@
+package ExitTest(sysExitTest) where
+
+sysExitTest :: Module Empty
+sysExitTest = 
+  module
+   rules
+     when True ==> 
+       action 
+         $display("before exit")
+         $finish 0
+         $display("after exit: should not see")

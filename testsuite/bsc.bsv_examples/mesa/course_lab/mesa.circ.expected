@@ -1,0 +1,1809 @@
+Warning: file 'addrs.handbuilt' for memory 'receiver_inst_addrs_inst' has a gap at addresses 18 to 2097151.
+Warning: file 'SRAM.handbuilt' for memory 'rom_inst' has a gap at addresses 66816 to 2097151.
+NOTICE: Packet [00000000]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 0 Tick:                   10
+NOTICE: Packet [00000001]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 1 Tick:                   20
+NOTICE: Packet [00000002]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 2 Tick:                   30
+NOTICE: Packet [00000003]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 3 Tick:                   40
+NOTICE: Packet [00000004]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 4 Tick:                   50
+NOTICE: Packet [00000005]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 5 Tick:                   60
+NOTICE: Packet [00000006]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 6 Tick:                   70
+NOTICE: Packet [00000007]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 7 Tick:                   80
+NOTICE: Packet [00000008]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 8 Tick:                   90
+NOTICE: Packet [00000009]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 9 Tick:                  100
+NOTICE: Packet [0000000a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 10 Tick:                  110
+NOTICE: Packet [0000000b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 11 Tick:                  120
+NOTICE: Packet [0000000c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 12 Tick:                  130
+NOTICE: Packet [0000000d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 13 Tick:                  140
+NOTICE: Packet [0000000e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 14 Tick:                  150
+NOTICE: Packet [0000000f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 15 Tick:                  160
+NOTICE: Packet [00000010]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 16 Tick:                  170
+NOTICE: Packet [00000011]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 17 Tick:                  180
+NOTICE: Packet [00000012]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 18 Tick:                  190
+NOTICE: Packet [00000013]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 19 Tick:                  200
+NOTICE: Packet [00000014]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 20 Tick:                  210
+NOTICE: Packet [00000015]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 21 Tick:                  220
+NOTICE: Packet [00000016]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 22 Tick:                  230
+NOTICE: Packet [00000017]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 23 Tick:                  240
+NOTICE: Packet [00000018]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 24 Tick:                  250
+NOTICE: Packet [00000019]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 25 Tick:                  260
+NOTICE: Packet [0000001a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 26 Tick:                  270
+NOTICE: Packet [0000001b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 27 Tick:                  280
+NOTICE: Packet [0000001c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 28 Tick:                  290
+NOTICE: Packet [0000001d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 29 Tick:                  300
+NOTICE: Packet [0000001e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 30 Tick:                  310
+NOTICE: Packet [0000001f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 31 Tick:                  320
+NOTICE: Packet [00000020]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 32 Tick:                  330
+NOTICE: Packet [00000021]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 33 Tick:                  340
+NOTICE: Packet [00000022]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 34 Tick:                  350
+Cycle: 35 Tick:                  360
+NOTICE: Packet [00000023]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 36 Tick:                  370
+NOTICE: Packet [00000000] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 37 Tick:                  380
+NOTICE: Packet [00000024]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 38 Tick:                  390
+NOTICE: Packet [00000001] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 39 Tick:                  400
+Cycle: 40 Tick:                  410
+NOTICE: Packet [00000025]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 41 Tick:                  420
+NOTICE: Packet [00000002] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 42 Tick:                  430
+NOTICE: Packet [00000026]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 43 Tick:                  440
+NOTICE: Packet [00000003] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 44 Tick:                  450
+Cycle: 45 Tick:                  460
+NOTICE: Packet [00000027]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 46 Tick:                  470
+NOTICE: Packet [00000004] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 47 Tick:                  480
+NOTICE: Packet [00000028]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 48 Tick:                  490
+NOTICE: Packet [00000005] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 49 Tick:                  500
+Cycle: 50 Tick:                  510
+NOTICE: Packet [00000029]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 51 Tick:                  520
+NOTICE: Packet [00000006] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 52 Tick:                  530
+NOTICE: Packet [0000002a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 53 Tick:                  540
+NOTICE: Packet [00000007] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 54 Tick:                  550
+Cycle: 55 Tick:                  560
+NOTICE: Packet [0000002b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 56 Tick:                  570
+NOTICE: Packet [00000008] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 57 Tick:                  580
+NOTICE: Packet [0000002c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 58 Tick:                  590
+NOTICE: Packet [00000009] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 59 Tick:                  600
+Cycle: 60 Tick:                  610
+NOTICE: Packet [0000002d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 61 Tick:                  620
+NOTICE: Packet [0000000a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 62 Tick:                  630
+NOTICE: Packet [0000002e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 63 Tick:                  640
+NOTICE: Packet [0000000b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 64 Tick:                  650
+Cycle: 65 Tick:                  660
+NOTICE: Packet [0000002f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 66 Tick:                  670
+NOTICE: Packet [0000000c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 67 Tick:                  680
+NOTICE: Packet [00000030]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 68 Tick:                  690
+NOTICE: Packet [0000000d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 69 Tick:                  700
+Cycle: 70 Tick:                  710
+NOTICE: Packet [00000031]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 71 Tick:                  720
+NOTICE: Packet [0000000e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 72 Tick:                  730
+NOTICE: Packet [00000032]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 73 Tick:                  740
+NOTICE: Packet [0000000f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 74 Tick:                  750
+Cycle: 75 Tick:                  760
+NOTICE: Packet [00000033]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 76 Tick:                  770
+NOTICE: Packet [00000010] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 77 Tick:                  780
+NOTICE: Packet [00000034]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 78 Tick:                  790
+NOTICE: Packet [00000011] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 79 Tick:                  800
+Cycle: 80 Tick:                  810
+NOTICE: Packet [00000035]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 81 Tick:                  820
+NOTICE: Packet [00000012] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 82 Tick:                  830
+NOTICE: Packet [00000036]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 83 Tick:                  840
+NOTICE: Packet [00000013] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 84 Tick:                  850
+Cycle: 85 Tick:                  860
+NOTICE: Packet [00000037]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 86 Tick:                  870
+NOTICE: Packet [00000014] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 87 Tick:                  880
+NOTICE: Packet [00000038]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 88 Tick:                  890
+NOTICE: Packet [00000015] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 89 Tick:                  900
+Cycle: 90 Tick:                  910
+NOTICE: Packet [00000039]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 91 Tick:                  920
+NOTICE: Packet [00000016] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 92 Tick:                  930
+NOTICE: Packet [0000003a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 93 Tick:                  940
+NOTICE: Packet [00000017] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 94 Tick:                  950
+Cycle: 95 Tick:                  960
+NOTICE: Packet [0000003b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 96 Tick:                  970
+NOTICE: Packet [00000018] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 97 Tick:                  980
+NOTICE: Packet [0000003c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 98 Tick:                  990
+NOTICE: Packet [00000019] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 99 Tick:                 1000
+Cycle: 100 Tick:                 1010
+NOTICE: Packet [0000003d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 101 Tick:                 1020
+NOTICE: Packet [0000001a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 102 Tick:                 1030
+NOTICE: Packet [0000003e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 103 Tick:                 1040
+NOTICE: Packet [0000001b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 104 Tick:                 1050
+Cycle: 105 Tick:                 1060
+NOTICE: Packet [0000003f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 106 Tick:                 1070
+NOTICE: Packet [0000001c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 107 Tick:                 1080
+NOTICE: Packet [00000040]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 108 Tick:                 1090
+NOTICE: Packet [0000001d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 109 Tick:                 1100
+Cycle: 110 Tick:                 1110
+NOTICE: Packet [00000041]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 111 Tick:                 1120
+NOTICE: Packet [0000001e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 112 Tick:                 1130
+NOTICE: Packet [00000042]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 113 Tick:                 1140
+NOTICE: Packet [0000001f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 114 Tick:                 1150
+Cycle: 115 Tick:                 1160
+NOTICE: Packet [00000043]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 116 Tick:                 1170
+NOTICE: Packet [00000020] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 117 Tick:                 1180
+NOTICE: Packet [00000044]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 118 Tick:                 1190
+NOTICE: Packet [00000021] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 119 Tick:                 1200
+Cycle: 120 Tick:                 1210
+NOTICE: Packet [00000045]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 121 Tick:                 1220
+NOTICE: Packet [00000022] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 122 Tick:                 1230
+NOTICE: Packet [00000046]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 123 Tick:                 1240
+NOTICE: Packet [00000023] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 124 Tick:                 1250
+Cycle: 125 Tick:                 1260
+NOTICE: Packet [00000047]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 126 Tick:                 1270
+NOTICE: Packet [00000024] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 127 Tick:                 1280
+NOTICE: Packet [00000048]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 128 Tick:                 1290
+NOTICE: Packet [00000025] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 129 Tick:                 1300
+Cycle: 130 Tick:                 1310
+NOTICE: Packet [00000049]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 131 Tick:                 1320
+NOTICE: Packet [00000026] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 132 Tick:                 1330
+NOTICE: Packet [0000004a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 133 Tick:                 1340
+NOTICE: Packet [00000027] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 134 Tick:                 1350
+Cycle: 135 Tick:                 1360
+NOTICE: Packet [0000004b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 136 Tick:                 1370
+NOTICE: Packet [00000028] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 137 Tick:                 1380
+NOTICE: Packet [0000004c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 138 Tick:                 1390
+NOTICE: Packet [00000029] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 139 Tick:                 1400
+Cycle: 140 Tick:                 1410
+NOTICE: Packet [0000004d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 141 Tick:                 1420
+NOTICE: Packet [0000002a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 142 Tick:                 1430
+NOTICE: Packet [0000004e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 143 Tick:                 1440
+NOTICE: Packet [0000002b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 144 Tick:                 1450
+Cycle: 145 Tick:                 1460
+NOTICE: Packet [0000004f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 146 Tick:                 1470
+NOTICE: Packet [0000002c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 147 Tick:                 1480
+NOTICE: Packet [00000050]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 148 Tick:                 1490
+NOTICE: Packet [0000002d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 149 Tick:                 1500
+Cycle: 150 Tick:                 1510
+NOTICE: Packet [00000051]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 151 Tick:                 1520
+NOTICE: Packet [0000002e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 152 Tick:                 1530
+NOTICE: Packet [00000052]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 153 Tick:                 1540
+NOTICE: Packet [0000002f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 154 Tick:                 1550
+Cycle: 155 Tick:                 1560
+NOTICE: Packet [00000053]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 156 Tick:                 1570
+NOTICE: Packet [00000030] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 157 Tick:                 1580
+NOTICE: Packet [00000054]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 158 Tick:                 1590
+NOTICE: Packet [00000031] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 159 Tick:                 1600
+Cycle: 160 Tick:                 1610
+NOTICE: Packet [00000055]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 161 Tick:                 1620
+NOTICE: Packet [00000032] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 162 Tick:                 1630
+NOTICE: Packet [00000056]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 163 Tick:                 1640
+NOTICE: Packet [00000033] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 164 Tick:                 1650
+Cycle: 165 Tick:                 1660
+NOTICE: Packet [00000057]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 166 Tick:                 1670
+NOTICE: Packet [00000034] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 167 Tick:                 1680
+NOTICE: Packet [00000058]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 168 Tick:                 1690
+NOTICE: Packet [00000035] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 169 Tick:                 1700
+Cycle: 170 Tick:                 1710
+NOTICE: Packet [00000059]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 171 Tick:                 1720
+NOTICE: Packet [00000036] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 172 Tick:                 1730
+NOTICE: Packet [0000005a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 173 Tick:                 1740
+NOTICE: Packet [00000037] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 174 Tick:                 1750
+Cycle: 175 Tick:                 1760
+NOTICE: Packet [0000005b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 176 Tick:                 1770
+NOTICE: Packet [00000038] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 177 Tick:                 1780
+NOTICE: Packet [0000005c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 178 Tick:                 1790
+NOTICE: Packet [00000039] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 179 Tick:                 1800
+Cycle: 180 Tick:                 1810
+NOTICE: Packet [0000005d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 181 Tick:                 1820
+NOTICE: Packet [0000003a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 182 Tick:                 1830
+NOTICE: Packet [0000005e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 183 Tick:                 1840
+NOTICE: Packet [0000003b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 184 Tick:                 1850
+Cycle: 185 Tick:                 1860
+NOTICE: Packet [0000005f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 186 Tick:                 1870
+NOTICE: Packet [0000003c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 187 Tick:                 1880
+NOTICE: Packet [00000060]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 188 Tick:                 1890
+NOTICE: Packet [0000003d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 189 Tick:                 1900
+Cycle: 190 Tick:                 1910
+NOTICE: Packet [00000061]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 191 Tick:                 1920
+NOTICE: Packet [0000003e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 192 Tick:                 1930
+NOTICE: Packet [00000062]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 193 Tick:                 1940
+NOTICE: Packet [0000003f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 194 Tick:                 1950
+Cycle: 195 Tick:                 1960
+NOTICE: Packet [00000063]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 196 Tick:                 1970
+NOTICE: Packet [00000040] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 197 Tick:                 1980
+NOTICE: Packet [00000064]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 198 Tick:                 1990
+NOTICE: Packet [00000041] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 199 Tick:                 2000
+Cycle: 200 Tick:                 2010
+NOTICE: Packet [00000065]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 201 Tick:                 2020
+NOTICE: Packet [00000042] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 202 Tick:                 2030
+NOTICE: Packet [00000066]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 203 Tick:                 2040
+NOTICE: Packet [00000043] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 204 Tick:                 2050
+Cycle: 205 Tick:                 2060
+NOTICE: Packet [00000067]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 206 Tick:                 2070
+NOTICE: Packet [00000044] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 207 Tick:                 2080
+NOTICE: Packet [00000068]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 208 Tick:                 2090
+NOTICE: Packet [00000045] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 209 Tick:                 2100
+Cycle: 210 Tick:                 2110
+NOTICE: Packet [00000069]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 211 Tick:                 2120
+NOTICE: Packet [00000046] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 212 Tick:                 2130
+NOTICE: Packet [0000006a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 213 Tick:                 2140
+NOTICE: Packet [00000047] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 214 Tick:                 2150
+Cycle: 215 Tick:                 2160
+NOTICE: Packet [0000006b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 216 Tick:                 2170
+NOTICE: Packet [00000048] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 217 Tick:                 2180
+NOTICE: Packet [0000006c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 218 Tick:                 2190
+NOTICE: Packet [00000049] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 219 Tick:                 2200
+Cycle: 220 Tick:                 2210
+NOTICE: Packet [0000006d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 221 Tick:                 2220
+NOTICE: Packet [0000004a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 222 Tick:                 2230
+NOTICE: Packet [0000006e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 223 Tick:                 2240
+NOTICE: Packet [0000004b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 224 Tick:                 2250
+Cycle: 225 Tick:                 2260
+NOTICE: Packet [0000006f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 226 Tick:                 2270
+NOTICE: Packet [0000004c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 227 Tick:                 2280
+NOTICE: Packet [00000070]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 228 Tick:                 2290
+NOTICE: Packet [0000004d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 229 Tick:                 2300
+Cycle: 230 Tick:                 2310
+NOTICE: Packet [00000071]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 231 Tick:                 2320
+NOTICE: Packet [0000004e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 232 Tick:                 2330
+NOTICE: Packet [00000072]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 233 Tick:                 2340
+NOTICE: Packet [0000004f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 234 Tick:                 2350
+Cycle: 235 Tick:                 2360
+NOTICE: Packet [00000073]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 236 Tick:                 2370
+NOTICE: Packet [00000050] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 237 Tick:                 2380
+NOTICE: Packet [00000074]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 238 Tick:                 2390
+NOTICE: Packet [00000051] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 239 Tick:                 2400
+Cycle: 240 Tick:                 2410
+NOTICE: Packet [00000075]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 241 Tick:                 2420
+NOTICE: Packet [00000052] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 242 Tick:                 2430
+NOTICE: Packet [00000076]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 243 Tick:                 2440
+NOTICE: Packet [00000053] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 244 Tick:                 2450
+Cycle: 245 Tick:                 2460
+NOTICE: Packet [00000077]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 246 Tick:                 2470
+NOTICE: Packet [00000054] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 247 Tick:                 2480
+NOTICE: Packet [00000078]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 248 Tick:                 2490
+NOTICE: Packet [00000055] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 249 Tick:                 2500
+Cycle: 250 Tick:                 2510
+NOTICE: Packet [00000079]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 251 Tick:                 2520
+NOTICE: Packet [00000056] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 252 Tick:                 2530
+NOTICE: Packet [0000007a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 253 Tick:                 2540
+NOTICE: Packet [00000057] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 254 Tick:                 2550
+Cycle: 255 Tick:                 2560
+NOTICE: Packet [0000007b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 256 Tick:                 2570
+NOTICE: Packet [00000058] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 257 Tick:                 2580
+NOTICE: Packet [0000007c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 258 Tick:                 2590
+NOTICE: Packet [00000059] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 259 Tick:                 2600
+Cycle: 260 Tick:                 2610
+NOTICE: Packet [0000007d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 261 Tick:                 2620
+NOTICE: Packet [0000005a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 262 Tick:                 2630
+NOTICE: Packet [0000007e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 263 Tick:                 2640
+NOTICE: Packet [0000005b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 264 Tick:                 2650
+Cycle: 265 Tick:                 2660
+NOTICE: Packet [0000007f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 266 Tick:                 2670
+NOTICE: Packet [0000005c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 267 Tick:                 2680
+NOTICE: Packet [00000080]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 268 Tick:                 2690
+NOTICE: Packet [0000005d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 269 Tick:                 2700
+Cycle: 270 Tick:                 2710
+NOTICE: Packet [00000081]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 271 Tick:                 2720
+NOTICE: Packet [0000005e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 272 Tick:                 2730
+NOTICE: Packet [00000082]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 273 Tick:                 2740
+NOTICE: Packet [0000005f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 274 Tick:                 2750
+Cycle: 275 Tick:                 2760
+NOTICE: Packet [00000083]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 276 Tick:                 2770
+NOTICE: Packet [00000060] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 277 Tick:                 2780
+NOTICE: Packet [00000084]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 278 Tick:                 2790
+NOTICE: Packet [00000061] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 279 Tick:                 2800
+Cycle: 280 Tick:                 2810
+NOTICE: Packet [00000085]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 281 Tick:                 2820
+NOTICE: Packet [00000062] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 282 Tick:                 2830
+NOTICE: Packet [00000086]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 283 Tick:                 2840
+NOTICE: Packet [00000063] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 284 Tick:                 2850
+Cycle: 285 Tick:                 2860
+NOTICE: Packet [00000087]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 286 Tick:                 2870
+NOTICE: Packet [00000064] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 287 Tick:                 2880
+NOTICE: Packet [00000088]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 288 Tick:                 2890
+NOTICE: Packet [00000065] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 289 Tick:                 2900
+Cycle: 290 Tick:                 2910
+NOTICE: Packet [00000089]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 291 Tick:                 2920
+NOTICE: Packet [00000066] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 292 Tick:                 2930
+NOTICE: Packet [0000008a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 293 Tick:                 2940
+NOTICE: Packet [00000067] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 294 Tick:                 2950
+Cycle: 295 Tick:                 2960
+NOTICE: Packet [0000008b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 296 Tick:                 2970
+NOTICE: Packet [00000068] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 297 Tick:                 2980
+NOTICE: Packet [0000008c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 298 Tick:                 2990
+NOTICE: Packet [00000069] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 299 Tick:                 3000
+Cycle: 300 Tick:                 3010
+NOTICE: Packet [0000008d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 301 Tick:                 3020
+NOTICE: Packet [0000006a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 302 Tick:                 3030
+NOTICE: Packet [0000008e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 303 Tick:                 3040
+NOTICE: Packet [0000006b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 304 Tick:                 3050
+Cycle: 305 Tick:                 3060
+NOTICE: Packet [0000008f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 306 Tick:                 3070
+NOTICE: Packet [0000006c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 307 Tick:                 3080
+NOTICE: Packet [00000090]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 308 Tick:                 3090
+NOTICE: Packet [0000006d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 309 Tick:                 3100
+Cycle: 310 Tick:                 3110
+NOTICE: Packet [00000091]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 311 Tick:                 3120
+NOTICE: Packet [0000006e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 312 Tick:                 3130
+NOTICE: Packet [00000092]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 313 Tick:                 3140
+NOTICE: Packet [0000006f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 314 Tick:                 3150
+Cycle: 315 Tick:                 3160
+NOTICE: Packet [00000093]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 316 Tick:                 3170
+NOTICE: Packet [00000070] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 317 Tick:                 3180
+NOTICE: Packet [00000094]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 318 Tick:                 3190
+NOTICE: Packet [00000071] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 319 Tick:                 3200
+Cycle: 320 Tick:                 3210
+NOTICE: Packet [00000095]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 321 Tick:                 3220
+NOTICE: Packet [00000072] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 322 Tick:                 3230
+NOTICE: Packet [00000096]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 323 Tick:                 3240
+NOTICE: Packet [00000073] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 324 Tick:                 3250
+Cycle: 325 Tick:                 3260
+NOTICE: Packet [00000097]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 326 Tick:                 3270
+NOTICE: Packet [00000074] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 327 Tick:                 3280
+NOTICE: Packet [00000098]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 328 Tick:                 3290
+NOTICE: Packet [00000075] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 329 Tick:                 3300
+Cycle: 330 Tick:                 3310
+NOTICE: Packet [00000099]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 331 Tick:                 3320
+NOTICE: Packet [00000076] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 332 Tick:                 3330
+NOTICE: Packet [0000009a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 333 Tick:                 3340
+NOTICE: Packet [00000077] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 334 Tick:                 3350
+Cycle: 335 Tick:                 3360
+NOTICE: Packet [0000009b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 336 Tick:                 3370
+NOTICE: Packet [00000078] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 337 Tick:                 3380
+NOTICE: Packet [0000009c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 338 Tick:                 3390
+NOTICE: Packet [00000079] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 339 Tick:                 3400
+Cycle: 340 Tick:                 3410
+NOTICE: Packet [0000009d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 341 Tick:                 3420
+NOTICE: Packet [0000007a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 342 Tick:                 3430
+NOTICE: Packet [0000009e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 343 Tick:                 3440
+NOTICE: Packet [0000007b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 344 Tick:                 3450
+Cycle: 345 Tick:                 3460
+NOTICE: Packet [0000009f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 346 Tick:                 3470
+NOTICE: Packet [0000007c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 347 Tick:                 3480
+NOTICE: Packet [000000a0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 348 Tick:                 3490
+NOTICE: Packet [0000007d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 349 Tick:                 3500
+Cycle: 350 Tick:                 3510
+NOTICE: Packet [000000a1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 351 Tick:                 3520
+NOTICE: Packet [0000007e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 352 Tick:                 3530
+NOTICE: Packet [000000a2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 353 Tick:                 3540
+NOTICE: Packet [0000007f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 354 Tick:                 3550
+Cycle: 355 Tick:                 3560
+NOTICE: Packet [000000a3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 356 Tick:                 3570
+NOTICE: Packet [00000080] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 357 Tick:                 3580
+NOTICE: Packet [000000a4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 358 Tick:                 3590
+NOTICE: Packet [00000081] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 359 Tick:                 3600
+Cycle: 360 Tick:                 3610
+NOTICE: Packet [000000a5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 361 Tick:                 3620
+NOTICE: Packet [00000082] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 362 Tick:                 3630
+NOTICE: Packet [000000a6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 363 Tick:                 3640
+NOTICE: Packet [00000083] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 364 Tick:                 3650
+Cycle: 365 Tick:                 3660
+NOTICE: Packet [000000a7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 366 Tick:                 3670
+NOTICE: Packet [00000084] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 367 Tick:                 3680
+NOTICE: Packet [000000a8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 368 Tick:                 3690
+NOTICE: Packet [00000085] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 369 Tick:                 3700
+Cycle: 370 Tick:                 3710
+NOTICE: Packet [000000a9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 371 Tick:                 3720
+NOTICE: Packet [00000086] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 372 Tick:                 3730
+NOTICE: Packet [000000aa]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 373 Tick:                 3740
+NOTICE: Packet [00000087] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 374 Tick:                 3750
+Cycle: 375 Tick:                 3760
+NOTICE: Packet [000000ab]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 376 Tick:                 3770
+NOTICE: Packet [00000088] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 377 Tick:                 3780
+NOTICE: Packet [000000ac]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 378 Tick:                 3790
+NOTICE: Packet [00000089] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 379 Tick:                 3800
+Cycle: 380 Tick:                 3810
+NOTICE: Packet [000000ad]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 381 Tick:                 3820
+NOTICE: Packet [0000008a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 382 Tick:                 3830
+NOTICE: Packet [000000ae]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 383 Tick:                 3840
+NOTICE: Packet [0000008b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 384 Tick:                 3850
+Cycle: 385 Tick:                 3860
+NOTICE: Packet [000000af]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 386 Tick:                 3870
+NOTICE: Packet [0000008c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 387 Tick:                 3880
+NOTICE: Packet [000000b0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 388 Tick:                 3890
+NOTICE: Packet [0000008d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 389 Tick:                 3900
+Cycle: 390 Tick:                 3910
+NOTICE: Packet [000000b1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 391 Tick:                 3920
+NOTICE: Packet [0000008e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 392 Tick:                 3930
+NOTICE: Packet [000000b2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 393 Tick:                 3940
+NOTICE: Packet [0000008f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 394 Tick:                 3950
+Cycle: 395 Tick:                 3960
+NOTICE: Packet [000000b3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 396 Tick:                 3970
+NOTICE: Packet [00000090] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 397 Tick:                 3980
+NOTICE: Packet [000000b4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 398 Tick:                 3990
+NOTICE: Packet [00000091] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 399 Tick:                 4000
+Cycle: 400 Tick:                 4010
+NOTICE: Packet [000000b5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 401 Tick:                 4020
+NOTICE: Packet [00000092] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 402 Tick:                 4030
+NOTICE: Packet [000000b6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 403 Tick:                 4040
+NOTICE: Packet [00000093] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 404 Tick:                 4050
+Cycle: 405 Tick:                 4060
+NOTICE: Packet [000000b7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 406 Tick:                 4070
+NOTICE: Packet [00000094] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 407 Tick:                 4080
+NOTICE: Packet [000000b8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 408 Tick:                 4090
+NOTICE: Packet [00000095] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 409 Tick:                 4100
+Cycle: 410 Tick:                 4110
+NOTICE: Packet [000000b9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 411 Tick:                 4120
+NOTICE: Packet [00000096] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 412 Tick:                 4130
+NOTICE: Packet [000000ba]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 413 Tick:                 4140
+NOTICE: Packet [00000097] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 414 Tick:                 4150
+Cycle: 415 Tick:                 4160
+NOTICE: Packet [000000bb]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 416 Tick:                 4170
+NOTICE: Packet [00000098] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 417 Tick:                 4180
+NOTICE: Packet [000000bc]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 418 Tick:                 4190
+NOTICE: Packet [00000099] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 419 Tick:                 4200
+Cycle: 420 Tick:                 4210
+NOTICE: Packet [000000bd]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 421 Tick:                 4220
+NOTICE: Packet [0000009a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 422 Tick:                 4230
+NOTICE: Packet [000000be]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 423 Tick:                 4240
+NOTICE: Packet [0000009b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 424 Tick:                 4250
+Cycle: 425 Tick:                 4260
+NOTICE: Packet [000000bf]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 426 Tick:                 4270
+NOTICE: Packet [0000009c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 427 Tick:                 4280
+NOTICE: Packet [000000c0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 428 Tick:                 4290
+NOTICE: Packet [0000009d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 429 Tick:                 4300
+Cycle: 430 Tick:                 4310
+NOTICE: Packet [000000c1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 431 Tick:                 4320
+NOTICE: Packet [0000009e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 432 Tick:                 4330
+NOTICE: Packet [000000c2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 433 Tick:                 4340
+NOTICE: Packet [0000009f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 434 Tick:                 4350
+Cycle: 435 Tick:                 4360
+NOTICE: Packet [000000c3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 436 Tick:                 4370
+NOTICE: Packet [000000a0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 437 Tick:                 4380
+NOTICE: Packet [000000c4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 438 Tick:                 4390
+NOTICE: Packet [000000a1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 439 Tick:                 4400
+Cycle: 440 Tick:                 4410
+NOTICE: Packet [000000c5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 441 Tick:                 4420
+NOTICE: Packet [000000a2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 442 Tick:                 4430
+NOTICE: Packet [000000c6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 443 Tick:                 4440
+NOTICE: Packet [000000a3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 444 Tick:                 4450
+Cycle: 445 Tick:                 4460
+NOTICE: Packet [000000c7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 446 Tick:                 4470
+NOTICE: Packet [000000a4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 447 Tick:                 4480
+NOTICE: Packet [000000c8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 448 Tick:                 4490
+NOTICE: Packet [000000a5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 449 Tick:                 4500
+Cycle: 450 Tick:                 4510
+NOTICE: Packet [000000c9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 451 Tick:                 4520
+NOTICE: Packet [000000a6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 452 Tick:                 4530
+NOTICE: Packet [000000ca]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 453 Tick:                 4540
+NOTICE: Packet [000000a7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 454 Tick:                 4550
+Cycle: 455 Tick:                 4560
+NOTICE: Packet [000000cb]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 456 Tick:                 4570
+NOTICE: Packet [000000a8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 457 Tick:                 4580
+NOTICE: Packet [000000cc]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 458 Tick:                 4590
+NOTICE: Packet [000000a9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 459 Tick:                 4600
+Cycle: 460 Tick:                 4610
+NOTICE: Packet [000000cd]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 461 Tick:                 4620
+NOTICE: Packet [000000aa] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 462 Tick:                 4630
+NOTICE: Packet [000000ce]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 463 Tick:                 4640
+NOTICE: Packet [000000ab] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 464 Tick:                 4650
+Cycle: 465 Tick:                 4660
+NOTICE: Packet [000000cf]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 466 Tick:                 4670
+NOTICE: Packet [000000ac] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 467 Tick:                 4680
+NOTICE: Packet [000000d0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 468 Tick:                 4690
+NOTICE: Packet [000000ad] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 469 Tick:                 4700
+Cycle: 470 Tick:                 4710
+NOTICE: Packet [000000d1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 471 Tick:                 4720
+NOTICE: Packet [000000ae] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 472 Tick:                 4730
+NOTICE: Packet [000000d2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 473 Tick:                 4740
+NOTICE: Packet [000000af] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 474 Tick:                 4750
+Cycle: 475 Tick:                 4760
+NOTICE: Packet [000000d3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 476 Tick:                 4770
+NOTICE: Packet [000000b0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 477 Tick:                 4780
+NOTICE: Packet [000000d4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 478 Tick:                 4790
+NOTICE: Packet [000000b1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 479 Tick:                 4800
+Cycle: 480 Tick:                 4810
+NOTICE: Packet [000000d5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 481 Tick:                 4820
+NOTICE: Packet [000000b2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 482 Tick:                 4830
+NOTICE: Packet [000000d6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 483 Tick:                 4840
+NOTICE: Packet [000000b3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 484 Tick:                 4850
+Cycle: 485 Tick:                 4860
+NOTICE: Packet [000000d7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 486 Tick:                 4870
+NOTICE: Packet [000000b4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 487 Tick:                 4880
+NOTICE: Packet [000000d8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 488 Tick:                 4890
+NOTICE: Packet [000000b5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 489 Tick:                 4900
+Cycle: 490 Tick:                 4910
+NOTICE: Packet [000000d9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 491 Tick:                 4920
+NOTICE: Packet [000000b6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 492 Tick:                 4930
+NOTICE: Packet [000000da]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 493 Tick:                 4940
+NOTICE: Packet [000000b7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 494 Tick:                 4950
+Cycle: 495 Tick:                 4960
+NOTICE: Packet [000000db]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 496 Tick:                 4970
+NOTICE: Packet [000000b8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 497 Tick:                 4980
+NOTICE: Packet [000000dc]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 498 Tick:                 4990
+NOTICE: Packet [000000b9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 499 Tick:                 5000
+Cycle: 500 Tick:                 5010
+NOTICE: Packet [000000dd]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 501 Tick:                 5020
+NOTICE: Packet [000000ba] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 502 Tick:                 5030
+NOTICE: Packet [000000de]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 503 Tick:                 5040
+NOTICE: Packet [000000bb] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 504 Tick:                 5050
+Cycle: 505 Tick:                 5060
+NOTICE: Packet [000000df]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 506 Tick:                 5070
+NOTICE: Packet [000000bc] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 507 Tick:                 5080
+NOTICE: Packet [000000e0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 508 Tick:                 5090
+NOTICE: Packet [000000bd] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 509 Tick:                 5100
+Cycle: 510 Tick:                 5110
+NOTICE: Packet [000000e1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 511 Tick:                 5120
+NOTICE: Packet [000000be] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 512 Tick:                 5130
+NOTICE: Packet [000000e2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 513 Tick:                 5140
+NOTICE: Packet [000000bf] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 514 Tick:                 5150
+Cycle: 515 Tick:                 5160
+NOTICE: Packet [000000e3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 516 Tick:                 5170
+NOTICE: Packet [000000c0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 517 Tick:                 5180
+NOTICE: Packet [000000e4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 518 Tick:                 5190
+NOTICE: Packet [000000c1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 519 Tick:                 5200
+Cycle: 520 Tick:                 5210
+NOTICE: Packet [000000e5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 521 Tick:                 5220
+NOTICE: Packet [000000c2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 522 Tick:                 5230
+NOTICE: Packet [000000e6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 523 Tick:                 5240
+NOTICE: Packet [000000c3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 524 Tick:                 5250
+Cycle: 525 Tick:                 5260
+NOTICE: Packet [000000e7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 526 Tick:                 5270
+NOTICE: Packet [000000c4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 527 Tick:                 5280
+NOTICE: Packet [000000e8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 528 Tick:                 5290
+NOTICE: Packet [000000c5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 529 Tick:                 5300
+Cycle: 530 Tick:                 5310
+NOTICE: Packet [000000e9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 531 Tick:                 5320
+NOTICE: Packet [000000c6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 532 Tick:                 5330
+NOTICE: Packet [000000ea]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 533 Tick:                 5340
+NOTICE: Packet [000000c7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 534 Tick:                 5350
+Cycle: 535 Tick:                 5360
+NOTICE: Packet [000000eb]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 536 Tick:                 5370
+NOTICE: Packet [000000c8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 537 Tick:                 5380
+NOTICE: Packet [000000ec]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 538 Tick:                 5390
+NOTICE: Packet [000000c9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 539 Tick:                 5400
+Cycle: 540 Tick:                 5410
+NOTICE: Packet [000000ed]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 541 Tick:                 5420
+NOTICE: Packet [000000ca] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 542 Tick:                 5430
+NOTICE: Packet [000000ee]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 543 Tick:                 5440
+NOTICE: Packet [000000cb] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 544 Tick:                 5450
+Cycle: 545 Tick:                 5460
+NOTICE: Packet [000000ef]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 546 Tick:                 5470
+NOTICE: Packet [000000cc] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 547 Tick:                 5480
+NOTICE: Packet [000000f0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 548 Tick:                 5490
+NOTICE: Packet [000000cd] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 549 Tick:                 5500
+Cycle: 550 Tick:                 5510
+NOTICE: Packet [000000f1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 551 Tick:                 5520
+NOTICE: Packet [000000ce] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 552 Tick:                 5530
+NOTICE: Packet [000000f2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 553 Tick:                 5540
+NOTICE: Packet [000000cf] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 554 Tick:                 5550
+Cycle: 555 Tick:                 5560
+NOTICE: Packet [000000f3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 556 Tick:                 5570
+NOTICE: Packet [000000d0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 557 Tick:                 5580
+NOTICE: Packet [000000f4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 558 Tick:                 5590
+NOTICE: Packet [000000d1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 559 Tick:                 5600
+Cycle: 560 Tick:                 5610
+NOTICE: Packet [000000f5]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 561 Tick:                 5620
+NOTICE: Packet [000000d2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 562 Tick:                 5630
+NOTICE: Packet [000000f6]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 563 Tick:                 5640
+NOTICE: Packet [000000d3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 564 Tick:                 5650
+Cycle: 565 Tick:                 5660
+NOTICE: Packet [000000f7]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 566 Tick:                 5670
+NOTICE: Packet [000000d4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 567 Tick:                 5680
+NOTICE: Packet [000000f8]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 568 Tick:                 5690
+NOTICE: Packet [000000d5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 569 Tick:                 5700
+Cycle: 570 Tick:                 5710
+NOTICE: Packet [000000f9]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 571 Tick:                 5720
+NOTICE: Packet [000000d6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 572 Tick:                 5730
+NOTICE: Packet [000000fa]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 573 Tick:                 5740
+NOTICE: Packet [000000d7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 574 Tick:                 5750
+Cycle: 575 Tick:                 5760
+NOTICE: Packet [000000fb]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 576 Tick:                 5770
+NOTICE: Packet [000000d8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 577 Tick:                 5780
+NOTICE: Packet [000000fc]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 578 Tick:                 5790
+NOTICE: Packet [000000d9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 579 Tick:                 5800
+Cycle: 580 Tick:                 5810
+NOTICE: Packet [000000fd]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 581 Tick:                 5820
+NOTICE: Packet [000000da] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 582 Tick:                 5830
+NOTICE: Packet [000000fe]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 583 Tick:                 5840
+NOTICE: Packet [000000db] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 584 Tick:                 5850
+Cycle: 585 Tick:                 5860
+NOTICE: Packet [000000ff]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 586 Tick:                 5870
+NOTICE: Packet [000000dc] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 587 Tick:                 5880
+NOTICE: Packet [00000100]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 588 Tick:                 5890
+NOTICE: Packet [000000dd] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 589 Tick:                 5900
+Cycle: 590 Tick:                 5910
+NOTICE: Packet [00000101]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 591 Tick:                 5920
+NOTICE: Packet [000000de] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 592 Tick:                 5930
+NOTICE: Packet [00000102]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 593 Tick:                 5940
+NOTICE: Packet [000000df] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 594 Tick:                 5950
+Cycle: 595 Tick:                 5960
+NOTICE: Packet [00000103]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 596 Tick:                 5970
+NOTICE: Packet [000000e0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 597 Tick:                 5980
+NOTICE: Packet [00000104]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 598 Tick:                 5990
+NOTICE: Packet [000000e1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 599 Tick:                 6000
+Cycle: 600 Tick:                 6010
+NOTICE: Packet [00000105]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 601 Tick:                 6020
+NOTICE: Packet [000000e2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 602 Tick:                 6030
+NOTICE: Packet [00000106]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 603 Tick:                 6040
+NOTICE: Packet [000000e3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 604 Tick:                 6050
+Cycle: 605 Tick:                 6060
+NOTICE: Packet [00000107]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 606 Tick:                 6070
+NOTICE: Packet [000000e4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 607 Tick:                 6080
+NOTICE: Packet [00000108]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 608 Tick:                 6090
+NOTICE: Packet [000000e5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 609 Tick:                 6100
+Cycle: 610 Tick:                 6110
+NOTICE: Packet [00000109]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 611 Tick:                 6120
+NOTICE: Packet [000000e6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 612 Tick:                 6130
+NOTICE: Packet [0000010a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 613 Tick:                 6140
+NOTICE: Packet [000000e7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 614 Tick:                 6150
+Cycle: 615 Tick:                 6160
+NOTICE: Packet [0000010b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 616 Tick:                 6170
+NOTICE: Packet [000000e8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 617 Tick:                 6180
+NOTICE: Packet [0000010c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 618 Tick:                 6190
+NOTICE: Packet [000000e9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 619 Tick:                 6200
+Cycle: 620 Tick:                 6210
+NOTICE: Packet [0000010d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 621 Tick:                 6220
+NOTICE: Packet [000000ea] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 622 Tick:                 6230
+NOTICE: Packet [0000010e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 623 Tick:                 6240
+NOTICE: Packet [000000eb] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 624 Tick:                 6250
+Cycle: 625 Tick:                 6260
+NOTICE: Packet [0000010f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 626 Tick:                 6270
+NOTICE: Packet [000000ec] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 627 Tick:                 6280
+NOTICE: Packet [00000110]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 628 Tick:                 6290
+NOTICE: Packet [000000ed] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 629 Tick:                 6300
+Cycle: 630 Tick:                 6310
+NOTICE: Packet [00000111]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 631 Tick:                 6320
+NOTICE: Packet [000000ee] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 632 Tick:                 6330
+NOTICE: Packet [00000112]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 633 Tick:                 6340
+NOTICE: Packet [000000ef] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 634 Tick:                 6350
+Cycle: 635 Tick:                 6360
+NOTICE: Packet [00000113]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 636 Tick:                 6370
+NOTICE: Packet [000000f0] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 637 Tick:                 6380
+NOTICE: Packet [00000114]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 638 Tick:                 6390
+NOTICE: Packet [000000f1] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 639 Tick:                 6400
+Cycle: 640 Tick:                 6410
+NOTICE: Packet [00000115]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 641 Tick:                 6420
+NOTICE: Packet [000000f2] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 642 Tick:                 6430
+NOTICE: Packet [00000116]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 643 Tick:                 6440
+NOTICE: Packet [000000f3] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 644 Tick:                 6450
+Cycle: 645 Tick:                 6460
+NOTICE: Packet [00000117]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 646 Tick:                 6470
+NOTICE: Packet [000000f4] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 647 Tick:                 6480
+NOTICE: Packet [00000118]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 648 Tick:                 6490
+NOTICE: Packet [000000f5] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 649 Tick:                 6500
+Cycle: 650 Tick:                 6510
+NOTICE: Packet [00000119]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 651 Tick:                 6520
+NOTICE: Packet [000000f6] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 652 Tick:                 6530
+NOTICE: Packet [0000011a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 653 Tick:                 6540
+NOTICE: Packet [000000f7] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 654 Tick:                 6550
+Cycle: 655 Tick:                 6560
+NOTICE: Packet [0000011b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 656 Tick:                 6570
+NOTICE: Packet [000000f8] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 657 Tick:                 6580
+NOTICE: Packet [0000011c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 658 Tick:                 6590
+NOTICE: Packet [000000f9] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 659 Tick:                 6600
+Cycle: 660 Tick:                 6610
+NOTICE: Packet [0000011d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 661 Tick:                 6620
+NOTICE: Packet [000000fa] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 662 Tick:                 6630
+NOTICE: Packet [0000011e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 663 Tick:                 6640
+NOTICE: Packet [000000fb] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 664 Tick:                 6650
+Cycle: 665 Tick:                 6660
+NOTICE: Packet [0000011f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 666 Tick:                 6670
+NOTICE: Packet [000000fc] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 667 Tick:                 6680
+NOTICE: Packet [00000120]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 668 Tick:                 6690
+NOTICE: Packet [000000fd] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 669 Tick:                 6700
+Cycle: 670 Tick:                 6710
+NOTICE: Packet [00000121]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 671 Tick:                 6720
+NOTICE: Packet [000000fe] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 672 Tick:                 6730
+NOTICE: Packet [00000122]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 673 Tick:                 6740
+NOTICE: Packet [000000ff] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 674 Tick:                 6750
+Cycle: 675 Tick:                 6760
+NOTICE: Packet [00000123]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 676 Tick:                 6770
+NOTICE: Packet [00000100] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 677 Tick:                 6780
+NOTICE: Packet [00000124]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 678 Tick:                 6790
+NOTICE: Packet [00000101] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 679 Tick:                 6800
+Cycle: 680 Tick:                 6810
+NOTICE: Packet [00000125]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 681 Tick:                 6820
+NOTICE: Packet [00000102] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 682 Tick:                 6830
+NOTICE: Packet [00000126]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 683 Tick:                 6840
+NOTICE: Packet [00000103] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 684 Tick:                 6850
+Cycle: 685 Tick:                 6860
+NOTICE: Packet [00000127]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 686 Tick:                 6870
+NOTICE: Packet [00000104] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 687 Tick:                 6880
+NOTICE: Packet [00000128]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 688 Tick:                 6890
+NOTICE: Packet [00000105] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 689 Tick:                 6900
+Cycle: 690 Tick:                 6910
+NOTICE: Packet [00000129]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 691 Tick:                 6920
+NOTICE: Packet [00000106] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 692 Tick:                 6930
+NOTICE: Packet [0000012a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 693 Tick:                 6940
+NOTICE: Packet [00000107] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 694 Tick:                 6950
+Cycle: 695 Tick:                 6960
+NOTICE: Packet [0000012b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 696 Tick:                 6970
+NOTICE: Packet [00000108] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 697 Tick:                 6980
+NOTICE: Packet [0000012c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 698 Tick:                 6990
+NOTICE: Packet [00000109] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 699 Tick:                 7000
+Cycle: 700 Tick:                 7010
+NOTICE: Packet [0000012d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 701 Tick:                 7020
+NOTICE: Packet [0000010a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 702 Tick:                 7030
+NOTICE: Packet [0000012e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 703 Tick:                 7040
+NOTICE: Packet [0000010b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 704 Tick:                 7050
+Cycle: 705 Tick:                 7060
+NOTICE: Packet [0000012f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 706 Tick:                 7070
+NOTICE: Packet [0000010c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 707 Tick:                 7080
+NOTICE: Packet [00000130]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 708 Tick:                 7090
+NOTICE: Packet [0000010d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 709 Tick:                 7100
+Cycle: 710 Tick:                 7110
+NOTICE: Packet [00000131]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 711 Tick:                 7120
+NOTICE: Packet [0000010e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 712 Tick:                 7130
+NOTICE: Packet [00000132]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 713 Tick:                 7140
+NOTICE: Packet [0000010f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 714 Tick:                 7150
+Cycle: 715 Tick:                 7160
+NOTICE: Packet [00000133]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 716 Tick:                 7170
+NOTICE: Packet [00000110] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 717 Tick:                 7180
+NOTICE: Packet [00000134]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 718 Tick:                 7190
+NOTICE: Packet [00000111] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 719 Tick:                 7200
+Cycle: 720 Tick:                 7210
+NOTICE: Packet [00000135]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 721 Tick:                 7220
+NOTICE: Packet [00000112] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 722 Tick:                 7230
+NOTICE: Packet [00000136]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 723 Tick:                 7240
+NOTICE: Packet [00000113] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 724 Tick:                 7250
+Cycle: 725 Tick:                 7260
+NOTICE: Packet [00000137]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 726 Tick:                 7270
+NOTICE: Packet [00000114] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 727 Tick:                 7280
+NOTICE: Packet [00000138]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 728 Tick:                 7290
+NOTICE: Packet [00000115] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 729 Tick:                 7300
+Cycle: 730 Tick:                 7310
+NOTICE: Packet [00000139]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 731 Tick:                 7320
+NOTICE: Packet [00000116] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 732 Tick:                 7330
+NOTICE: Packet [0000013a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 733 Tick:                 7340
+NOTICE: Packet [00000117] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 734 Tick:                 7350
+Cycle: 735 Tick:                 7360
+NOTICE: Packet [0000013b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 736 Tick:                 7370
+NOTICE: Packet [00000118] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 737 Tick:                 7380
+NOTICE: Packet [0000013c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 738 Tick:                 7390
+NOTICE: Packet [00000119] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 739 Tick:                 7400
+Cycle: 740 Tick:                 7410
+NOTICE: Packet [0000013d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 741 Tick:                 7420
+NOTICE: Packet [0000011a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 742 Tick:                 7430
+NOTICE: Packet [0000013e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 743 Tick:                 7440
+NOTICE: Packet [0000011b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 744 Tick:                 7450
+Cycle: 745 Tick:                 7460
+NOTICE: Packet [0000013f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 746 Tick:                 7470
+NOTICE: Packet [0000011c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 747 Tick:                 7480
+NOTICE: Packet [00000140]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 748 Tick:                 7490
+NOTICE: Packet [0000011d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 749 Tick:                 7500
+Cycle: 750 Tick:                 7510
+NOTICE: Packet [00000141]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 751 Tick:                 7520
+NOTICE: Packet [0000011e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 752 Tick:                 7530
+NOTICE: Packet [00000142]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 753 Tick:                 7540
+NOTICE: Packet [0000011f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 754 Tick:                 7550
+Cycle: 755 Tick:                 7560
+NOTICE: Packet [00000143]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 756 Tick:                 7570
+NOTICE: Packet [00000120] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 757 Tick:                 7580
+NOTICE: Packet [00000144]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 758 Tick:                 7590
+NOTICE: Packet [00000121] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 759 Tick:                 7600
+Cycle: 760 Tick:                 7610
+NOTICE: Packet [00000145]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 761 Tick:                 7620
+NOTICE: Packet [00000122] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 762 Tick:                 7630
+NOTICE: Packet [00000146]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 763 Tick:                 7640
+NOTICE: Packet [00000123] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 764 Tick:                 7650
+Cycle: 765 Tick:                 7660
+NOTICE: Packet [00000147]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 766 Tick:                 7670
+NOTICE: Packet [00000124] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 767 Tick:                 7680
+NOTICE: Packet [00000148]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 768 Tick:                 7690
+NOTICE: Packet [00000125] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 769 Tick:                 7700
+Cycle: 770 Tick:                 7710
+NOTICE: Packet [00000149]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 771 Tick:                 7720
+NOTICE: Packet [00000126] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 772 Tick:                 7730
+NOTICE: Packet [0000014a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 773 Tick:                 7740
+NOTICE: Packet [00000127] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 774 Tick:                 7750
+Cycle: 775 Tick:                 7760
+NOTICE: Packet [0000014b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 776 Tick:                 7770
+NOTICE: Packet [00000128] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 777 Tick:                 7780
+NOTICE: Packet [0000014c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 778 Tick:                 7790
+NOTICE: Packet [00000129] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 779 Tick:                 7800
+Cycle: 780 Tick:                 7810
+NOTICE: Packet [0000014d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 781 Tick:                 7820
+NOTICE: Packet [0000012a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 782 Tick:                 7830
+NOTICE: Packet [0000014e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 783 Tick:                 7840
+NOTICE: Packet [0000012b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 784 Tick:                 7850
+Cycle: 785 Tick:                 7860
+NOTICE: Packet [0000014f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 786 Tick:                 7870
+NOTICE: Packet [0000012c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 787 Tick:                 7880
+NOTICE: Packet [00000150]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 788 Tick:                 7890
+NOTICE: Packet [0000012d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 789 Tick:                 7900
+Cycle: 790 Tick:                 7910
+NOTICE: Packet [00000151]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 791 Tick:                 7920
+NOTICE: Packet [0000012e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 792 Tick:                 7930
+NOTICE: Packet [00000152]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 793 Tick:                 7940
+NOTICE: Packet [0000012f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 794 Tick:                 7950
+Cycle: 795 Tick:                 7960
+NOTICE: Packet [00000153]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 796 Tick:                 7970
+NOTICE: Packet [00000130] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 797 Tick:                 7980
+NOTICE: Packet [00000154]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 798 Tick:                 7990
+NOTICE: Packet [00000131] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 799 Tick:                 8000
+Cycle: 800 Tick:                 8010
+NOTICE: Packet [00000155]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 801 Tick:                 8020
+NOTICE: Packet [00000132] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 802 Tick:                 8030
+NOTICE: Packet [00000156]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 803 Tick:                 8040
+NOTICE: Packet [00000133] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 804 Tick:                 8050
+Cycle: 805 Tick:                 8060
+NOTICE: Packet [00000157]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 806 Tick:                 8070
+NOTICE: Packet [00000134] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 807 Tick:                 8080
+NOTICE: Packet [00000158]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 808 Tick:                 8090
+NOTICE: Packet [00000135] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 809 Tick:                 8100
+Cycle: 810 Tick:                 8110
+NOTICE: Packet [00000159]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 811 Tick:                 8120
+NOTICE: Packet [00000136] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 812 Tick:                 8130
+NOTICE: Packet [0000015a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 813 Tick:                 8140
+NOTICE: Packet [00000137] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 814 Tick:                 8150
+Cycle: 815 Tick:                 8160
+NOTICE: Packet [0000015b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 816 Tick:                 8170
+NOTICE: Packet [00000138] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 817 Tick:                 8180
+NOTICE: Packet [0000015c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 818 Tick:                 8190
+NOTICE: Packet [00000139] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 819 Tick:                 8200
+Cycle: 820 Tick:                 8210
+NOTICE: Packet [0000015d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 821 Tick:                 8220
+NOTICE: Packet [0000013a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 822 Tick:                 8230
+NOTICE: Packet [0000015e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 823 Tick:                 8240
+NOTICE: Packet [0000013b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 824 Tick:                 8250
+Cycle: 825 Tick:                 8260
+NOTICE: Packet [0000015f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 826 Tick:                 8270
+NOTICE: Packet [0000013c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 827 Tick:                 8280
+NOTICE: Packet [00000160]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 828 Tick:                 8290
+NOTICE: Packet [0000013d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 829 Tick:                 8300
+Cycle: 830 Tick:                 8310
+NOTICE: Packet [00000161]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 831 Tick:                 8320
+NOTICE: Packet [0000013e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 832 Tick:                 8330
+NOTICE: Packet [00000162]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 833 Tick:                 8340
+NOTICE: Packet [0000013f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 834 Tick:                 8350
+Cycle: 835 Tick:                 8360
+NOTICE: Packet [00000163]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 836 Tick:                 8370
+NOTICE: Packet [00000140] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 837 Tick:                 8380
+NOTICE: Packet [00000164]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 838 Tick:                 8390
+NOTICE: Packet [00000141] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 839 Tick:                 8400
+Cycle: 840 Tick:                 8410
+NOTICE: Packet [00000165]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 841 Tick:                 8420
+NOTICE: Packet [00000142] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 842 Tick:                 8430
+NOTICE: Packet [00000166]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 843 Tick:                 8440
+NOTICE: Packet [00000143] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 844 Tick:                 8450
+Cycle: 845 Tick:                 8460
+NOTICE: Packet [00000167]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 846 Tick:                 8470
+NOTICE: Packet [00000144] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 847 Tick:                 8480
+NOTICE: Packet [00000168]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 848 Tick:                 8490
+NOTICE: Packet [00000145] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 849 Tick:                 8500
+Cycle: 850 Tick:                 8510
+NOTICE: Packet [00000169]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 851 Tick:                 8520
+NOTICE: Packet [00000146] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 852 Tick:                 8530
+NOTICE: Packet [0000016a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 853 Tick:                 8540
+NOTICE: Packet [00000147] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 854 Tick:                 8550
+Cycle: 855 Tick:                 8560
+NOTICE: Packet [0000016b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 856 Tick:                 8570
+NOTICE: Packet [00000148] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 857 Tick:                 8580
+NOTICE: Packet [0000016c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 858 Tick:                 8590
+NOTICE: Packet [00000149] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 859 Tick:                 8600
+Cycle: 860 Tick:                 8610
+NOTICE: Packet [0000016d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 861 Tick:                 8620
+NOTICE: Packet [0000014a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 862 Tick:                 8630
+NOTICE: Packet [0000016e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 863 Tick:                 8640
+NOTICE: Packet [0000014b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 864 Tick:                 8650
+Cycle: 865 Tick:                 8660
+NOTICE: Packet [0000016f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 866 Tick:                 8670
+NOTICE: Packet [0000014c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 867 Tick:                 8680
+NOTICE: Packet [00000170]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 868 Tick:                 8690
+NOTICE: Packet [0000014d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 869 Tick:                 8700
+Cycle: 870 Tick:                 8710
+NOTICE: Packet [00000171]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 871 Tick:                 8720
+NOTICE: Packet [0000014e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 872 Tick:                 8730
+NOTICE: Packet [00000172]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 873 Tick:                 8740
+NOTICE: Packet [0000014f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 874 Tick:                 8750
+Cycle: 875 Tick:                 8760
+NOTICE: Packet [00000173]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 876 Tick:                 8770
+NOTICE: Packet [00000150] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 877 Tick:                 8780
+NOTICE: Packet [00000174]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 878 Tick:                 8790
+NOTICE: Packet [00000151] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 879 Tick:                 8800
+Cycle: 880 Tick:                 8810
+NOTICE: Packet [00000175]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 881 Tick:                 8820
+NOTICE: Packet [00000152] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 882 Tick:                 8830
+NOTICE: Packet [00000176]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 883 Tick:                 8840
+NOTICE: Packet [00000153] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 884 Tick:                 8850
+Cycle: 885 Tick:                 8860
+NOTICE: Packet [00000177]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 886 Tick:                 8870
+NOTICE: Packet [00000154] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 887 Tick:                 8880
+NOTICE: Packet [00000178]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 888 Tick:                 8890
+NOTICE: Packet [00000155] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 889 Tick:                 8900
+Cycle: 890 Tick:                 8910
+NOTICE: Packet [00000179]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 891 Tick:                 8920
+NOTICE: Packet [00000156] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 892 Tick:                 8930
+NOTICE: Packet [0000017a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 893 Tick:                 8940
+NOTICE: Packet [00000157] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 894 Tick:                 8950
+Cycle: 895 Tick:                 8960
+NOTICE: Packet [0000017b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 896 Tick:                 8970
+NOTICE: Packet [00000158] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 897 Tick:                 8980
+NOTICE: Packet [0000017c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 898 Tick:                 8990
+NOTICE: Packet [00000159] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 899 Tick:                 9000
+Cycle: 900 Tick:                 9010
+NOTICE: Packet [0000017d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 901 Tick:                 9020
+NOTICE: Packet [0000015a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 902 Tick:                 9030
+NOTICE: Packet [0000017e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 903 Tick:                 9040
+NOTICE: Packet [0000015b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 904 Tick:                 9050
+Cycle: 905 Tick:                 9060
+NOTICE: Packet [0000017f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 906 Tick:                 9070
+NOTICE: Packet [0000015c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 907 Tick:                 9080
+NOTICE: Packet [00000180]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 908 Tick:                 9090
+NOTICE: Packet [0000015d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 909 Tick:                 9100
+Cycle: 910 Tick:                 9110
+NOTICE: Packet [00000181]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 911 Tick:                 9120
+NOTICE: Packet [0000015e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 912 Tick:                 9130
+NOTICE: Packet [00000182]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 913 Tick:                 9140
+NOTICE: Packet [0000015f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 914 Tick:                 9150
+Cycle: 915 Tick:                 9160
+NOTICE: Packet [00000183]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 916 Tick:                 9170
+NOTICE: Packet [00000160] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 917 Tick:                 9180
+NOTICE: Packet [00000184]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 918 Tick:                 9190
+NOTICE: Packet [00000161] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 919 Tick:                 9200
+Cycle: 920 Tick:                 9210
+NOTICE: Packet [00000185]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 921 Tick:                 9220
+NOTICE: Packet [00000162] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 922 Tick:                 9230
+NOTICE: Packet [00000186]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 923 Tick:                 9240
+NOTICE: Packet [00000163] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 924 Tick:                 9250
+Cycle: 925 Tick:                 9260
+NOTICE: Packet [00000187]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 926 Tick:                 9270
+NOTICE: Packet [00000164] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 927 Tick:                 9280
+NOTICE: Packet [00000188]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 928 Tick:                 9290
+NOTICE: Packet [00000165] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 929 Tick:                 9300
+Cycle: 930 Tick:                 9310
+NOTICE: Packet [00000189]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 931 Tick:                 9320
+NOTICE: Packet [00000166] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 932 Tick:                 9330
+NOTICE: Packet [0000018a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 933 Tick:                 9340
+NOTICE: Packet [00000167] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 934 Tick:                 9350
+Cycle: 935 Tick:                 9360
+NOTICE: Packet [0000018b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 936 Tick:                 9370
+NOTICE: Packet [00000168] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 937 Tick:                 9380
+NOTICE: Packet [0000018c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 938 Tick:                 9390
+NOTICE: Packet [00000169] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 939 Tick:                 9400
+Cycle: 940 Tick:                 9410
+NOTICE: Packet [0000018d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 941 Tick:                 9420
+NOTICE: Packet [0000016a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 942 Tick:                 9430
+NOTICE: Packet [0000018e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 943 Tick:                 9440
+NOTICE: Packet [0000016b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 944 Tick:                 9450
+Cycle: 945 Tick:                 9460
+NOTICE: Packet [0000018f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 946 Tick:                 9470
+NOTICE: Packet [0000016c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 947 Tick:                 9480
+NOTICE: Packet [00000190]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 948 Tick:                 9490
+NOTICE: Packet [0000016d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 949 Tick:                 9500
+Cycle: 950 Tick:                 9510
+NOTICE: Packet [00000191]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 951 Tick:                 9520
+NOTICE: Packet [0000016e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 952 Tick:                 9530
+NOTICE: Packet [00000192]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 953 Tick:                 9540
+NOTICE: Packet [0000016f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 954 Tick:                 9550
+Cycle: 955 Tick:                 9560
+NOTICE: Packet [00000193]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 956 Tick:                 9570
+NOTICE: Packet [00000170] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 957 Tick:                 9580
+NOTICE: Packet [00000194]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 01000000)
+Cycle: 958 Tick:                 9590
+NOTICE: Packet [00000171] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0000) (Routing Header: 000c )
+Cycle: 959 Tick:                 9600
+Cycle: 960 Tick:                 9610
+NOTICE: Packet [00000195]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10110000)
+Cycle: 961 Tick:                 9620
+NOTICE: Packet [00000172] entering the Spi Transmitter (Packet Out) -- (Src Addr = 01000000) (Routing Header: 0006 )
+Cycle: 962 Tick:                 9630
+NOTICE: Packet [00000196]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 963 Tick:                 9640
+NOTICE: Packet [00000173] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10110000) (Routing Header: beef )
+Cycle: 964 Tick:                 9650
+Cycle: 965 Tick:                 9660
+NOTICE: Packet [00000197]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 10100000)
+Cycle: 966 Tick:                 9670
+NOTICE: Packet [00000174] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 967 Tick:                 9680
+NOTICE: Packet [00000198]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 968 Tick:                 9690
+NOTICE: Packet [00000175] entering the Spi Transmitter (Packet Out) -- (Src Addr = 10100000) (Routing Header: 0001 )
+Cycle: 969 Tick:                 9700
+Cycle: 970 Tick:                 9710
+NOTICE: Packet [00000199]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 971 Tick:                 9720
+NOTICE: Packet [00000176] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 972 Tick:                 9730
+NOTICE: Packet [0000019a]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00100000)
+Cycle: 973 Tick:                 9740
+NOTICE: Packet [00000177] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 974 Tick:                 9750
+Cycle: 975 Tick:                 9760
+NOTICE: Packet [0000019b]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00000000)
+Cycle: 976 Tick:                 9770
+NOTICE: Packet [00000178] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00100000) (Routing Header: beef )
+Cycle: 977 Tick:                 9780
+NOTICE: Packet [0000019c]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00044000)
+Cycle: 978 Tick:                 9790
+NOTICE: Packet [00000179] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00000000) (Routing Header: 0003 )
+Cycle: 979 Tick:                 9800
+Cycle: 980 Tick:                 9810
+NOTICE: Packet [0000019d]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045000)
+Cycle: 981 Tick:                 9820
+NOTICE: Packet [0000017a] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00044000) (Routing Header: 0003 )
+Cycle: 982 Tick:                 9830
+NOTICE: Packet [0000019e]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045600)
+Cycle: 983 Tick:                 9840
+NOTICE: Packet [0000017b] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045000) (Routing Header: 000d )
+Cycle: 984 Tick:                 9850
+Cycle: 985 Tick:                 9860
+NOTICE: Packet [0000019f]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00045680)
+Cycle: 986 Tick:                 9870
+NOTICE: Packet [0000017c] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045600) (Routing Header: 000d )
+Cycle: 987 Tick:                 9880
+NOTICE: Packet [000001a0]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00080000)
+Cycle: 988 Tick:                 9890
+NOTICE: Packet [0000017d] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00045680) (Routing Header: 006f )
+Cycle: 989 Tick:                 9900
+Cycle: 990 Tick:                 9910
+NOTICE: Packet [000001a1]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 991 Tick:                 9920
+NOTICE: Packet [0000017e] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00080000) (Routing Header: 0005 )
+Cycle: 992 Tick:                 9930
+NOTICE: Packet [000001a2]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fc0000)
+Cycle: 993 Tick:                 9940
+NOTICE: Packet [0000017f] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 994 Tick:                 9950
+Cycle: 995 Tick:                 9960
+NOTICE: Packet [000001a3]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0001)
+Cycle: 996 Tick:                 9970
+NOTICE: Packet [00000180] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fc0000) (Routing Header: 000b )
+Cycle: 997 Tick:                 9980
+NOTICE: Packet [000001a4]  exiting the Spi Receiver    (Packet In)  -- (Src Addr = 00fd0000)
+Cycle: 998 Tick:                 9990
+NOTICE: Packet [00000181] entering the Spi Transmitter (Packet Out) -- (Src Addr = 00fd0001) (Routing Header: beef )
+Cycle: 999 Tick:                10000

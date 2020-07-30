@@ -1,0 +1,12 @@
+checking package dependencies
+compiling ContextReductionImplFunction2.bsv
+Error: "ContextReductionImplFunction2.bsv", line 10, column 15: (T0020)
+  Type error at:
+    p[0]
+
+  Expected type:
+    Bool
+
+  Inferred type:
+    Bit#(2)
+

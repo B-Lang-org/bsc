@@ -1,0 +1,11 @@
+checking package dependencies
+compiling RuleNameInAddRulesClash.bsv
+code generation for sysRuleNameInAddRulesClash starts
+Warning: "RuleNameInAddRulesClash.bsv", line 2, column 8: (G0010)
+  Rule "a_r" was treated as more urgent than "a_r2". Conflicts:
+    "a_r" cannot fire before "a_r2": calls to rg1.write vs. rg1.read
+    "a_r2" cannot fire before "a_r": calls to rg1.write vs. rg1.read
+Warning: "RuleNameInAddRulesClash.bsv", line 17, column 15: (G0021)
+  According to the generated schedule, rule `a_r2' can never fire.
+Verilog file created: sysRuleNameInAddRulesClash.v
+All packages are up to date.

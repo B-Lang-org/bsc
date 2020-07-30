@@ -1,0 +1,5 @@
+compile_object_pass If1.bsv
+link_objects_pass sysIf1.ba sysIf1
+
+compile_verilog_pass If1.bsv {} {-elab}
+link_verilog_pass sysIf1.ba sysIf1

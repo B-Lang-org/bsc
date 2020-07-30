@@ -1,0 +1,3 @@
+Error: Command line: (S0093)
+  The flag -suppress-warnings does not accept `G000' as an argument. Valid
+  arguments are `ALL', `NONE', or a colon-separated list of message tags.

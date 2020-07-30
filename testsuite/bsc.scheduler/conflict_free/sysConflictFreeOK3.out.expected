@@ -1,0 +1,62 @@
+Incrementing i to 1
+fs[0]: 0
+fs[1]: 1
+fs[2]: 4
+fs[3]: 9
+fs[4]: 16
+fs[5]: 25
+fs[6]: 36
+fs[7]: 49
+r1 deq FIFO 1
+r2 deq FIFO 2
+Incrementing i to 2
+fs[0]: 0
+fs[1]: 4
+fs[2]: 9
+fs[3]: 9
+fs[4]: 16
+fs[5]: 25
+fs[6]: 36
+fs[7]: 49
+r1 deq FIFO 2
+r2 deq FIFO 3
+Incrementing i to 3
+fs[0]: 0
+fs[1]: 4
+fs[3]: 16
+fs[4]: 16
+fs[5]: 25
+fs[6]: 36
+fs[7]: 49
+r1 deq FIFO 3
+r2 deq FIFO 4
+Incrementing i to 4
+fs[0]: 0
+fs[1]: 4
+fs[4]: 25
+fs[5]: 25
+fs[6]: 36
+fs[7]: 49
+r1 deq FIFO 4
+r2 deq FIFO 5
+Incrementing i to 5
+fs[0]: 0
+fs[1]: 4
+fs[5]: 36
+fs[6]: 36
+fs[7]: 49
+r1 deq FIFO 5
+r2 deq FIFO 6
+Incrementing i to 6
+fs[0]: 0
+fs[1]: 4
+fs[6]: 49
+fs[7]: 49
+r1 deq FIFO 6
+r2 deq FIFO 7
+Incrementing i to 7
+fs[0]: 0
+fs[1]: 4
+fs[7]: 64
+r1 deq FIFO 7
+r2 deq FIFO 0

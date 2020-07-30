@@ -1,0 +1,62 @@
+# While this is using the Verilog backend, it is testing an elaboration
+# feature which is relevant to both backends
+
+# ----------
+
+if { $vtest == 1 } {
+
+    # If the gate is entirely unused, the portprop is "unused"
+    compile_verilog_pass PropDeduce_NoUse.bsv {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_NoUse.wrap \
+	{clock default_clock\(CLK, \{-unused-\}\);}
+
+    # If the only use is as input to a submodule whose portprop is "unused",
+    # then the portprop for this module is "unused"
+    compile_verilog_pass PropDeduce_SubmodUseUnused.bsv {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_SubmodUseUnused.wrap \
+	{clock default_clock\(CLK, \{-unused-\}\);}
+
+    # If the clock is input to a submodule whose portprop is "inhigh",
+    # then the portprop for this module is "inhigh"
+    compile_verilog_pass PropDeduce_SubmodUseInhigh.bsv {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_SubmodUseInhigh.wrap \
+	{clock default_clock\(CLK, \{-inhigh-\}\);}
+
+    # If the only use is in a method, the portprop is "unused"
+    compile_verilog_pass PropDeduce_MethodUse.bsv {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_MethodUse.wrap \
+	{clock default_clock\(CLK, \{-unused-\}\);}
+
+    # If the gate is used in a rule, the portprop is "inhigh"
+    compile_verilog_pass PropDeduce_RuleUse.bsv {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_RuleUse.wrap \
+	{clock default_clock\(CLK, \{-inhigh-\}\);}
+
+    # If a method and a rule share the same use, the portprop is still "inhigh"
+    compile_verilog_pass PropDeduce_RuleAndMethodShareUse.bsv \
+        {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_RuleAndMethodShareUse.wrap \
+	{clock default_clock\(CLK, \{-inhigh-\}\);}
+
+    # If an input clock is exported as an output clock,
+    # a missing port must be inhigh
+    compile_verilog_pass PropDeduce_InClockAsOutClock.bsv \
+        {} {-dwrappergen=%m.wrap}
+    find_regexp sysPropDeduce_InClockAsOutClock.wrap \
+	{clock c\(CLK_c, \{-inhigh-\}\);}
+
+}
+
+# ----------
+
+# Test that output clock gates which are "outhigh" do not contribute a gate
+# reference to the condition of rules/methods which use Action methods
+# clocked by that clock.
+
+if { $vtest } {
+    compile_verilog_pass OuthighGateAsCondition.bsv
+    no_warnings OuthighGateAsCondition.bsv.bsc-vcomp-out
+}
+
+# ----------
+

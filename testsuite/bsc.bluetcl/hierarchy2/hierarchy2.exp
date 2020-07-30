@@ -1,0 +1,15 @@
+
+if { $vtest } {
+
+
+    set files [glob -nocomplain [file join $::subdir "*.bsv"]]
+
+
+foreach f $files {
+    set root [file tail [file root $f]]
+    bsc_compile_verilog $root.bsv  "" {-elab}
+
+    bluetcl_run_compare_pass "ShowH.tcl sys$root"
+}
+
+}

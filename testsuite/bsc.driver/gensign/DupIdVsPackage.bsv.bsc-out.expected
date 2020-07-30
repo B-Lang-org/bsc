@@ -1,0 +1,4 @@
+checking package dependencies
+compiling DupIdVsPackage.bsv
+Error: "DupIdVsPackage.bsv", line 4, column 8: (T0123)
+  Exported identifier `replicateM' is already exported in package `Vector'

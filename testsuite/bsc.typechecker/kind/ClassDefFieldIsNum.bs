@@ -1,0 +1,5 @@
+package ClassDefFieldIsNum () where
+
+class Foo a where
+    bar :: 12
+

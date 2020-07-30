@@ -1,0 +1,27 @@
+package Overlap2(sysOverlap2) where
+
+class Displayable a where
+   display :: a -> Action
+
+instance (Displayable a) => Displayable (Maybe a)
+   where 
+     display (Valid a) = action
+                           $write "Valid "
+                           display a
+     display (Invalid) = $display "Invalid"
+
+instance (Bits a sa) => Displayable a 
+   where
+     display a = $display "Bits %h" a
+
+{-# verilog sysOverlap2 #-}
+sysOverlap2 :: Module Empty
+sysOverlap2 = 
+  module
+    x :: Reg (Maybe (Bit 17)) <- mkReg Invalid
+    rules
+      "test":
+         when True  ==>
+           action
+               display x
+               $finish 0

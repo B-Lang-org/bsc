@@ -1,0 +1,12 @@
+if {$vtest == 1} {
+  compile_verilog_pass StateNameTest.bsv sysStateNameTest "-dATSexpand=%m.atsexpand"
+  compare_file sysStateNameTest.atsexpand
+  compile_verilog_pass StateNameTest2.bsv sysStateNameTest2 "-dATSexpand=%m.atsexpand"
+  compare_file sysStateNameTest2.atsexpand
+
+  compile_verilog_pass UseMod2.bsv sysUseMod2  "-dATSexpand=%m.atsexpand"
+  compare_file sysUseMod2.atsexpand
+
+  compile_verilog_pass UseMod2Arrow.bsv sysUseMod2Arrow "-dATSexpand=%m.atsexpand"
+  compare_file sysUseMod2Arrow.atsexpand 
+}

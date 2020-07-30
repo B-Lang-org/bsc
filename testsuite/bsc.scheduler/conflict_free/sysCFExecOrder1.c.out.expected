@@ -1,0 +1,6 @@
+a
+b: 1
+Error: "CFExecOrder1.bsv", line 16, column 8: (R0002)
+  Conflict-free rules RL_b and RL_a called conflicting methods read and write
+  of module instance r.
+

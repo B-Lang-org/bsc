@@ -1,0 +1,126 @@
+/CLK @ 0 (cycle 1)
+                   0
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 7 (cycle 2)
+                   7
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 14 (cycle 3)
+                  14
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 21 (cycle 4)
+                  21
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 28 (cycle 5)
+                  28
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 35 (cycle 6)
+                  35
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 42 (cycle 7)
+                  42
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 49 (cycle 8)
+                  49
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 56 (cycle 9)
+                  56
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 63 (cycle 10)
+                  63
+Selected rules:
+top:
+  count fired
+  tick fired
+  update inhibited by more urgent rule
+  update2 fired
+/CLK @ 70 (cycle 11)
+                  70
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 77 (cycle 12)
+                  77
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 84 (cycle 13)
+                  84
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 91 (cycle 14)
+                  91
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 98 (cycle 15)
+                  98
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 105 (cycle 16)
+                 105
+Selected rules:
+top:
+  count fired
+  tick fired
+  update fired
+/CLK @ 112 (cycle 17)
+Selected rules:
+top:
+  count fired
+  done fired
+  tick fired
+Final state:
+top:
+  addr = 0x0d
+  counter = 0x0
+  data = 0xfffffffed156426f95
+  rf = <RegFile with 32 entries>
+Final counts: 17 CLK cycles

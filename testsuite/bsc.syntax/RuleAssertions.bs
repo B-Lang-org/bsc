@@ -1,0 +1,13 @@
+package RuleAssertions(sysRuleAssertions) where
+
+-- Expect assertions to parse correctly
+
+sysRuleAssertions :: Module Empty
+sysRuleAssertions =
+    module
+	a :: Reg Bool
+	a <- mkReg True
+        rules
+          {-# ASSERT fire when enabled #-}
+          {-# ASSERT no implicit conditions #-}
+          "flip": when True ==> a := not a

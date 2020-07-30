@@ -1,0 +1,101 @@
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+   1: got data: -1431655766
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+   2: got data:           0
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+   3: got data:           0
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+   8: got data:           1
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+   9: got data:           3
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  10: got data:           3
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  11: got data:           4
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+  16: got data:           4
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  17: got data:           7
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  18: got data:           7
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  19: got data:           8
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+  24: got data:           8
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  25: got data:          11
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  26: got data:          11
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  27: got data:          12
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+  32: got data:          12
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  33: got data:          15
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  34: got data:          15
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  35: got data:          16
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+  40: got data:          16
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  41: got data:          19
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  42: got data:          19
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  43: got data:          20
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+Warning: FIFO2: main.top.outf.error_checks -- Enqueuing to a full fifo
+  48: got data:          20
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  49: got data:          23
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  50: got data:          23
+Warning: FIFO2: main.top.inf.error_checks -- Dequeuing from empty fifo
+  51: got data:          24

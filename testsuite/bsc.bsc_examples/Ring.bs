@@ -1,0 +1,18 @@
+package Ring (sysRing) where
+
+sysRing :: Module Empty
+sysRing =
+    module
+        r1 :: Reg (Int 32)
+        r1 <- mkReg 0
+        r2 :: Reg (Int 32)
+	r2 <- mkReg 0
+	r3 :: Reg (Int 32)
+	r3 <- mkReg 0
+        rules
+            "r2gets1": when True
+             ==> r2 := r1 + 1
+	    "r3gets2": when True
+             ==> r3 := r2 + 1
+	    "r1gets3": when True
+	     ==> r1 := r3 + 1

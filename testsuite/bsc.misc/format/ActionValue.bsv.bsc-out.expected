@@ -1,0 +1,6 @@
+checking package dependencies
+compiling ActionValue.bsv
+Error: "ActionValue.bsv", line 7, column 30: (T0031)
+  The provisos for this expression could not be resolved because there are no
+  instances of the form:
+    Bits#(ActionValue#(Bit#(64)), a__)

@@ -1,0 +1,5 @@
+checking package dependencies
+compiling bug.bsv
+Warning: "bug.bsv", line 10, column 9: (P0103)
+  `res' declared but never assigned
+All packages are up to date.

@@ -1,0 +1,350 @@
+# a foreign module
+
+compile_verilog_pass ImportForeignModule.bsv
+compare_verilog sysImportForeignModule.v
+
+compile_verilog_pass ImportForeignModuleClkGate.bsv
+compare_verilog sysImportForeignModuleClkGate.v
+
+# checks that you get a parse error if you misspell an import statement?
+compile_fail_error ImportForeignModuleBug.bsv P0005
+
+# confirm you can't put a synthesize attribute on an import "BVI"
+compile_fail_error ImportForeignModuleGen1.bsv P0080
+
+# confirm that command-line synthesis also fails with a sensible error
+compile_verilog_fail_error ImportForeignModuleGen2.bsv S0074 1 vMkReg
+
+# test for all of the possible port wiring conflicts
+compile_fail ImportForeignModule_PortErrors.bsv
+compare_file ImportForeignModule_PortErrors.bsv.bsc-out
+
+# test for clock statements using the same name
+compile_fail_error ImportForeignModule_DupDefaultClock.bsv P0139
+compile_fail_error ImportForeignModule_DupDefaultInputClock.bsv P0152
+compile_fail_error ImportForeignModule_DupDefaultInputClock2.bsv P0152
+compile_fail_error ImportForeignModule_DupInputClock.bsv P0152
+compile_fail_error ImportForeignModule_DupOutputClock.bsv P0152
+compile_fail_error ImportForeignModule_DupInputOutputClock.bsv P0152
+
+# test for reset statements using the same name
+compile_fail_error ImportForeignModule_DupDefaultReset.bsv P0140
+compile_fail_error ImportForeignModule_DupDefaultInputReset.bsv P0173
+compile_fail_error ImportForeignModule_DupDefaultInputReset2.bsv P0173
+compile_fail_error ImportForeignModule_DupInputReset.bsv P0173
+compile_fail_error ImportForeignModule_DupOutputReset.bsv P0173
+compile_fail_error ImportForeignModule_DupInputOutputReset.bsv P0173
+
+# the same name is OK when the default statement has no input details
+compile_pass ImportForeignModule_TwoStmtDefaultClock.bsv
+compile_pass ImportForeignModule_TwoStmtDefaultReset.bsv
+
+# check that "no_clock" is implicitly declared (so the user should not
+# be allowed to declare any clock by this name, input or output)
+compile_fail_error ImportForeignModule_DeclareDefaultNoClock.bsv P0174
+compile_fail_error ImportForeignModule_DeclareInputNoClock.bsv P0174
+compile_fail_error ImportForeignModule_DeclareOutputNoClock.bsv P0174
+
+# check that "no_reset" is implicitly declared (so the user should not
+# be allowed to declare any reset by this name, input or output)
+compile_fail_error ImportForeignModule_DeclareDefaultNoReset.bsv P0175
+compile_fail_error ImportForeignModule_DeclareInputNoReset.bsv P0175
+compile_fail_error ImportForeignModule_DeclareOutputNoReset.bsv P0175
+
+# check that when clocked_by or reset_by is missing and the default
+# clock is "no_clock" or default reset is "no_reset" that the default
+# is properly handled (and not that you get the name "no_clock" or
+# "no_reset" showing up as an Id later on)
+# XXX add the testcases here
+
+# Test that "default_reset no_reset" is supported (and not just "no_reset")
+compile_pass ImportForeignModule_DefaultResetNoReset.bsv
+
+# input clock or reset with no name and no ports is not allowed
+# (because the declared clock or reset cannot be used)
+# XXX This fails but the error is S0015 (should be a parse error)
+compile_fail ImportForeignModule_EmptyInputClock.bsv
+compile_fail ImportForeignModule_EmptyInputReset.bsv
+
+# test that hierarchical names are ok for methods, output clocks, and
+# output resets (both for declaring and for referring to them in other
+# parts of import-BVI, such as "clock_by", "ancestor", "schedule", etc)
+# XXX consider making separate test cases for the separate parts?
+compile_pass ImportForeignModule_SubIfc.bsv
+
+# test that we detect and warn when an action method used no_clock
+compile_verilog_pass_warning WBVIActionMethodNoClock.bsv P0172 2
+
+# test that undeclared clocks are detected in port statements
+compile_fail_error ImportForeignModule_UndeclaredClock_Port.bsv P0134
+
+# test that undeclared resets are detected in port statements
+compile_fail_error ImportForeignModule_UndeclaredReset_Port.bsv P0137
+
+# test that ports can have an associated clock
+compile_pass ImportForeignModule_PortWithClock.bsv {-disimplify}
+find_regexp ImportForeignModule_PortWithClock.bsv.bsc-out \
+    {port \(D_IN, \[\]\) clocked_by \(aClk\) reset_by \(no_reset\);}
+
+# test that ports can have an associated clock and reset
+compile_pass ImportForeignModule_PortWithClockReset.bsv {-disimplify}
+find_regexp ImportForeignModule_PortWithClockReset.bsv.bsc-out \
+    {port \(D_IN, \[\]\) clocked_by \(aClk\) reset_by \(aRst\);}
+
+# test that ports can have port properties
+compile_pass ImportForeignModule_PortWithProp.bsv {-disimplify}
+find_regexp ImportForeignModule_PortWithProp.bsv.bsc-out \
+    {port \(D_IN, \[reg\]\) clocked_by \(no_clock\) reset_by \(no_reset\);}
+
+# test that ports can be assigned monadically
+compile_verilog_pass ImportForeignModule_PortWithBind.bsv
+if { $vtest == 1 } {
+    find_regexp ImportForeignModule_PortWithBind.bsv.bsc-vcomp-out \
+	{Instantiating mkMod with argument 17}
+    find_regexp sysImportForeignModule_PortWithBind.v \
+	{\.IN\(32\'d17\)}
+}
+
+# ----------
+
+# Test that clocked_by and reset_by clauses cannot be duplicated on
+# port statements
+
+compile_fail_error ImportForeignModule_PortDupClockedBy.bsv P0197
+compile_fail_error ImportForeignModule_PortDupResetBy.bsv P0197
+
+# Test that clocked_by, reset_by, enable, and ready clauses cannot be
+# duplicated on method statements
+
+compile_fail_error ImportForeignModule_MethodDupResetBy.bsv P0197
+compile_fail_error ImportForeignModule_MethodDupEnable.bsv P0197
+compile_fail_error ImportForeignModule_MethodDupReady.bsv P0197
+compile_fail_error ImportForeignModule_MethodDupClockedBy.bsv P0197
+
+# ----------
+
+# Test that overlapping "schedule" statements trigger an error
+# (when they disagree)
+
+compile_fail_error ImportForeignModule_DupSchedule.bsv P0201
+# Here the overlap is OK because the relationship is the same
+compile_pass ImportForeignModule_DupScheduleOK.bsv
+
+# ----------
+
+# Test that schedule statements across clock boundaries (except CF)
+# trigger an error
+compile_fail_error ImportForeignModule_ScheduleUnrelatedClocks.bsv P0153
+
+# Test that methods clocked by no_clock are not allowed in schedule
+# statements (except CF)
+compile_fail_error ImportForeignModule_ScheduleNoClock.bsv P0213
+
+# ----------
+
+# Test that duplicate field names are detected
+# (duplicate clock and reset are already tested, above, so here we just
+# test methods and ifc Inout)
+
+compile_fail_error ImportForeignModule_DupMethod.bsv P0214
+compile_fail_error ImportForeignModule_DupOutputInout.bsv P0214
+
+# ----------
+
+# Test that the parser reads in the entire module block (including the
+# endmodule keyword) before reporting any errors about the well-formedness
+# of the statements.
+
+compile_fail_error ImportForeignModule_BodyEnd.bsv P0005
+
+# ----------
+
+# Tests for input_clock without a name
+
+# (Above, ImportForeignModule_EmptyInputClock tests for no name and no ports)
+
+# If the input_clock has no name but it is assigned (with "=") to a variable,
+# then the variable name is used for the clock.
+compile_pass ImportForeignModule_InputClock_NoName_VarExpr.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputClock_NoName_VarExpr.bsv]
+
+# Test when an unnamed clock is assigned to a variable which is a reserved
+# clock name ("default_clock" or "no_clock")
+# XXX BSC should just use not it, instead of using it and giving an error
+compile_fail_error ImportForeignModule_InputClock_NoName_VarExpr_DefaultClock.bsv P0174
+compile_fail_error ImportForeignModule_InputClock_NoName_VarExpr_NoClock.bsv P0174
+
+# When the clock has no name and is not assigned to a variable,
+# check that we assign an implicit name (and test that multiple unnamed
+# clocks each get unique names)
+compile_pass ImportForeignModule_InputClock_NoName_NonVarExpr_Dup.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputClock_NoName_NonVarExpr_Dup.bsv]
+
+# Confirm that when the clock is assigned with "<-" using a variable,
+# that the variable is not used for the clock name.
+# (If both clocks had been bound to "exposeCurrentClock", then BSC would
+# report a name clash.)
+compile_pass ImportForeignModule_InputClock_NoName_ExposeCurClk.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputClock_NoName_ExposeCurClk.bsv]
+
+# Test that an unnamed clock doesn't clash with a clock named "_clk__1"
+# (BSC will skip over existing names when generating implicit names)
+# (Tests for clash with both input_clock and output_clock names)
+compile_pass ImportForeignModule_InputClock_NoName_Clash.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputClock_NoName_Clash.bsv]
+
+# Test that the user can define a clock by the name "_",
+# and that they can refer to that name in "clocked_by" clauses, etc.
+compile_pass ImportForeignModule_InputClock_Underscore.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputClock_Underscore.bsv]
+
+# Test that the user can't refer to the name given to unnamed clocks
+compile_fail ImportForeignModule_InputClock_NoName_NotInScope.bsv P0134
+
+# ----------
+
+# Tests for default_clock without a name
+
+# The default_clock statement also does not require a name.  Like input_clock,
+# it gets its name from the expression when possible, otherwise BSC uses
+# the name "_clk__" (idClk).
+
+# This is an example of having no explicit name and no implicit name;
+# the methods are still assigned to that default clock.
+compile_pass ImportForeignModule_DefaultClock_NoName_NonVarExpr.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultClock_NoName_NonVarExpr.bsv]
+
+# XXX Duplicate the above InputClock tests for DefaultClock
+# XXX _NoName_VarExpr
+# XXX _NoName_VarExpr_DefaultClock
+# XXX _NoName_VarExpr_NoClock
+# XXX _NoName_ExpCurClock
+
+# Test that there's no clash between an unnamed default_clock and an
+# unnamed input_clock
+compile_pass ImportForeignModule_DefaultClock_NoName_InputClock_NoName.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultClock_NoName_InputClock_NoName.bsv]
+
+# Test that an unnamed default clock doesn't clash with a clock named "_clk__1"
+# (BSC will skip over existing names when generating implicit names)
+# (Tests for clash with both input_clock and output_clock names)
+# XXX ...
+
+# Test that the user can define a default clock by the name "_",
+# and that they can refer to that name in "clocked_by" clauses, etc.
+compile_pass ImportForeignModule_DefaultClock_Underscore.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultClock_Underscore.bsv]
+
+# Test what name is given to the default clock if
+# there is no "default_clock" statement
+# XXX BSC picks the name "_clk__", which could clash!
+# XXX ...
+
+# ----------
+
+# Tests for input_reset without a name
+
+# (Above, ImportForeignModule_EmptyInputReset tests for no name and no ports)
+
+# If the input_reset has no name but it is assigned (with "=") to a variable,
+# then the variable name is used for the reset.
+compile_pass ImportForeignModule_InputReset_NoName_VarExpr.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_NoName_VarExpr.bsv]
+
+# Test when an unnamed reset is assigned to a variable which is a reserved
+# reset name ("default_reset" or "no_reset")
+# XXX BSC should just use not it, instead of using it and giving an error
+compile_fail_error ImportForeignModule_InputReset_NoName_VarExpr_DefaultReset.bsv P0175
+compile_fail_error ImportForeignModule_InputReset_NoName_VarExpr_NoReset.bsv P0175
+
+# When the reset has no name and is not assigned to a variable,
+# check that we assign an implicit name (and test that multiple unnamed
+# resets each get unique names)
+compile_pass ImportForeignModule_InputReset_NoName_NonVarExpr_Dup.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_NoName_NonVarExpr_Dup.bsv]
+
+# Confirm that when the reset is assigned with "<-" using a variable,
+# that the variable is not used for the reset name.
+# (If both resets had been bound to "exposeCurrentReset", then BSC would
+# report a name clash.)
+compile_pass ImportForeignModule_InputReset_NoName_ExposeCurRst.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_NoName_ExposeCurRst.bsv]
+
+# Test that an unnamed reset doesn't clash with a reset named "_rst__1"
+# (BSC will skip over existing names when generating implicit names)
+# (Tests for clash with both input_reset and output_reset names)
+compile_pass ImportForeignModule_InputReset_NoName_Clash.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_NoName_Clash.bsv]
+
+# Test that the user can define a reset by the name "_",
+# and that they can refer to that name in "reseted_by" clauses, etc.
+compile_pass ImportForeignModule_InputReset_Underscore.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_Underscore.bsv]
+
+# Test that the user can't refer to the name given to unnamed resets
+compile_fail ImportForeignModule_InputReset_NoName_NotInScope.bsv P0137
+
+# ----------
+
+# Tests for default_reset without a name
+
+# The default_reset statement also does not require a name.  Like input_reset,
+# it gets its name from the expression when possible, otherwise BSC uses
+# the name "_rst__" (idRst).
+
+# This is an example of having no explicit name and no implicit name;
+# the methods are still assigned to that default reset.
+compile_pass ImportForeignModule_DefaultReset_NoName_NonVarExpr.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultReset_NoName_NonVarExpr.bsv]
+
+# XXX Duplicate the above InputReset tests for DefaultReset
+# XXX _NoName_VarExpr
+# XXX _NoName_VarExpr_DefaultReset
+# XXX _NoName_VarExpr_NoReset
+# XXX _NoName_ExpCurReset
+
+# Test that there's no clash between an unnamed default_reset and an
+# unnamed input_reset
+compile_pass ImportForeignModule_DefaultReset_NoName_InputReset_NoName.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultReset_NoName_InputReset_NoName.bsv]
+
+# Test that an unnamed default reset doesn't clash with a reset named "_rst__1"
+# (BSC will skip over existing names when generating implicit names)
+# (Tests for clash with both input_reset and output_reset names)
+# XXX ...
+
+# Test that the user can define a default reset by the name "_",
+# and that they can refer to that name in "reseted_by" clauses, etc.
+compile_pass ImportForeignModule_DefaultReset_Underscore.bsv {-dparsed}
+compare_file [make_bsc_output_name ImportForeignModule_DefaultReset_Underscore.bsv]
+
+# Test what name is given to the default reset if
+# there is no "default_reset" statement
+# XXX BSC picks the name "_rst__", which could clash!
+# XXX ...
+
+# ----------
+
+# Tests for undeclared clock and undeclared reset errors
+
+# Test when the name for "default_clock" is undeclared
+# XXX ...
+
+# Test when the name for "default_reset" is undeclared
+# XXX ...
+
+# Test when the name for "clocked_by" of a method is undeclared
+compile_fail_error ImportForeignModule_Method_ClockedBy_UndeclaredClk.bsv P0134
+# Check that the name in the message is correct
+compare_file [make_bsc_output_name ImportForeignModule_Method_ClockedBy_UndeclaredClk.bsv]
+
+# Test when the name for "reset_by" of a method is undeclared
+# XXX ...
+
+# Test the error message when the clock for "clocked_by" of an input reset
+# is an undeclared name
+compile_fail_error ImportForeignModule_InputReset_ClockedBy_UndeclaredClk.bsv P0134
+# Check that the name in the message is correct
+compare_file [make_bsc_output_name ImportForeignModule_InputReset_ClockedBy_UndeclaredClk.bsv]
+
+# ----------

@@ -1,0 +1,2 @@
+compile_fail Testbench.bsv
+compare_file Testbench.bsv.bsc-out

@@ -1,0 +1,24 @@
+This directory contains code for a "problem set" for students learning
+Bluespec SystemVerilog. The problem set focuses on the problem of FIFO
+arbitration. In particular, each of the design blocks (Block1.bsv, 
+Block2.bsv, Block2b.bsv, Block3.bsv) contains an implementation of a 
+different FIFO arbitration scheme, for the case of two input FIFOs and
+one output FIFO.
+
+Files
+-----
+Questions.txt		Text file containing the problem set questions
+Includes.bsv		Common definitions for design blocks and testbenches
+Block1.bsv		Initial, "naive" arbiter implementation
+Block2.bsv		Simple round-robin implementation
+Block2b.bsv		Round-robin implementation that uses FIFOF
+Block3.bsv		LRU arbitration implementation
+Tb1.bsv			Testbench for Block1.bsv
+Tb2.bsv			Testbench for Block2.bsv
+Tb2b.bsv		Testbench for Block2b.bsv
+Tb3.bsv			Testbench for Block3.bsv
+mkTb1.out.expected	Expected testbench output for Block1
+mkTb2.out.expected	Expected testbench output for Block2
+mkTb2b.out.expected	Expected testbench output for Block2b
+mkTb3.out.expected	Expected testbench output for Block3
+

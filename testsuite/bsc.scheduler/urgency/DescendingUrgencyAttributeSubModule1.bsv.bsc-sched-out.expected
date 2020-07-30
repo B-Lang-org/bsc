@@ -1,0 +1,40 @@
+checking package dependencies
+compiling DescendingUrgencyAttributeSubModule1.bsv
+code generation for sysDescendingUrgencyAttributeSubModule1 starts
+=== schedule:
+parallel: [esposito: [RL_test_rule_1 -> [], RL_m_test_rule_2 -> [RL_test_rule_1]]]
+order: [RL_test_rule_1, RL_m_test_rule_2]
+
+-----
+
+=== resources:
+[(count_r.read, [(count_r.read, 1)]),
+ (count_r.write, [(count_r.write x__h152, 1), (count_r.write x__h102, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysDescendingUrgencyAttributeSubModule1.sched
+=== Generated schedule for sysDescendingUrgencyAttributeSubModule1 ===
+
+Rule schedule
+-------------
+Rule: m_test_rule_2
+Predicate: True
+Blocking rules: test_rule_1
+ 
+Rule: test_rule_1
+Predicate: True
+Blocking rules: (none)
+ 
+Logical execution order: test_rule_1, m_test_rule_2
+
+=======================================================================
+Warning: "DescendingUrgencyAttributeSubModule1.bsv", line 18, column 8: (G0021)
+  According to the generated schedule, rule `m_test_rule_2' can never fire.
+Verilog file created: sysDescendingUrgencyAttributeSubModule1.v
+All packages are up to date.

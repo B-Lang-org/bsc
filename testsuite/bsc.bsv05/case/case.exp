@@ -1,0 +1,54 @@
+# Test the parsing of case-statements
+
+# ---------------
+
+# Test that "?" is allowed in literals in case-matches
+test_c_veri_bsv CaseMatches_MixedLit
+
+# Test octal and hex mixed literals
+test_c_veri_bsv CaseMixedHex
+test_c_veri_bsv CaseMixedOct
+# Test that dec mixed literals are not parsed
+compile_fail CaseMixedDec.bsv
+
+# Test that "?" is not allowed in literals in normal case
+compile_fail_error Case_MixedLit.bsv P0199
+
+# ---------------
+
+# Test that "_" is removed
+
+# Test that X and Z are not allowed
+
+# Test that X/Z error is reported before "?" error, in non-pattern case
+
+# ---------------
+
+# Test that a literal which is too big gives a reasonable error message
+# (e.g. case of 3-bit value against a literal of 4 bits)
+
+# Test that a mixed literal which is too big gives a reasonable error
+
+# ---------------
+
+# check that ? and _ are not allowed in non-matching case
+# XXX "?" should be allowed as an expression (but wouldn't be useful)
+compile_fail_error CaseIfDummy1.bsv P0005
+# "_" is now treated as an ordinary identifier
+compile_fail_error CaseIfDummy2.bsv T0004
+
+# ---------------
+
+# Check for signed literals in case statements
+compile_pass CaseLiteralSigned.bsv
+
+# ---------------
+
+# Test for string literals is non-matching case
+compile_pass CaseStringLiteral.bsv
+
+# Test for string literals is matching case
+compile_pass CaseMatchesStringLiteral.bsv
+
+# ---------------
+

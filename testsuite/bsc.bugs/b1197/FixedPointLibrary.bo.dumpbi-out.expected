@@ -1,0 +1,14 @@
+signature FixedPointLibrary where {
+import FShow;
+	    
+import Real;
+	   
+import FixedPoint;
+		 
+import TypeClasses;
+		  
+instance FixedPointLibrary (Prelude.Add xxc (Prelude.TAdd ni nf) (Prelude.TAdd mi mf),
+			    Prelude.Add xxb nf mf,
+			    Prelude.Add xxa ni mi) =>
+			   TypeClasses.Extend (FixedPoint.FixedPoint ni nf) (FixedPoint.FixedPoint mi mf)
+}

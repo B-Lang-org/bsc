@@ -1,0 +1,52 @@
+checking package dependencies
+compiling DummyInDeflQual.bs
+Warning: "DummyInDeflQual.bs", line 5, column 10: (P0223)
+  Definition of `x' is not used.
+=== internal:
+IPackage DummyInDeflQual
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInDeflQual.dummyInDeflQual :: Prelude.Bit 12
+DummyInDeflQual.dummyInDeflQual =
+  let _tcdict1072 :: Prelude.Literal (Prelude.Bit 12)
+      _tcdict1072 = Prelude.Prelude.Literal~Prelude.Bit~n= ·12
+      -- IdProp: _tcdict1072[IdP_bad_name,IdPDict]
+  in  let f ::
+	    \/(_tctyvar1063 :: *) .
+	    \/(_tctyvar1064 :: *) . Prelude.Literal _tctyvar1063 -> _tctyvar1064 -> _tctyvar1063
+	  f =
+	    /\ (_tctyvar1063 :: *) .
+	    /\ (_tctyvar1064 :: *) .
+	    \ (_tcdict1050 :: Prelude.Literal _tctyvar1063) .
+	    let _tcdict1042 :: Prelude.Literal (Prelude.Bit 2)
+		_tcdict1042 = Prelude.Prelude.Literal~Prelude.Bit~n= ·2
+		-- IdProp: _tcdict1042[IdP_bad_name,IdPDict]
+	    in  let _tcdict1032 :: Prelude.Eq (Prelude.Bit 2)
+		    _tcdict1032 = Prelude.Prelude.Eq~Prelude.Bit~n= ·2
+		    -- IdProp: _tcdict1032[IdP_bad_name,IdPDict]
+		in  \ (x :: _tctyvar1064) .
+		    PrimIf
+		      ·_tctyvar1063
+		      (PrimOrd
+			 ·Prelude.Bool
+			 ·1
+			 (.(Prelude.==)
+			    ·(Prelude.Bit 2)
+			    _tcdict1032
+			    (PrimBuildUndefined ·(Prelude.Bit 2) _ 1)
+			    (.Prelude.fromInteger ·(Prelude.Bit 2) _tcdict1042 0b11)))
+		      (.Prelude.fromInteger ·_tctyvar1063 _tcdict1050 0)
+		      (PrimBuildUndefined ·_tctyvar1063 (PrimGetEvalPosition ·_tctyvar1064 x) 2)
+      in  f ·(Prelude.Bit 12)
+	    ·Prelude.Bool
+	    _tcdict1072
+	    (Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

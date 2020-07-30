@@ -1,0 +1,14 @@
+# Note: Bluesim executes system tasks at the posedge of clock,
+# consistent with TRS semantics.  Verilog executes them at the
+# negedge of clock, 1/2 cycle too early.  Until the Verilog
+# behavior is changed, it is being given a separate expected file.
+
+set flags {-keep-fires -relax-method-earliness}
+
+set modules {mkDMA  mkSlaveRx mkSlaveTx  defaultSlave}
+
+test_c_veri_bsv_multi_options DMA_Envir sysDMA $modules $flags sysDMA.v.out.expected "" "" 0 1
+test_c_veri_bsv_multi_options DMA_Envir sysDMA $modules $flags "" "" "" 1 0
+
+# Also test the TBbaseline modules?
+test_c_veri_bsv_multi TBbaseline sysM1_25 {}

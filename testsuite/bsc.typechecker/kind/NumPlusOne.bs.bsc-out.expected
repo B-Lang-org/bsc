@@ -1,0 +1,4 @@
+checking package dependencies
+compiling NumPlusOne.bs
+Error: "NumPlusOne.bs", line 3, column 5: (T0022)
+  Numeric types do not take arguments.

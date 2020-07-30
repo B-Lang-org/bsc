@@ -1,0 +1,7 @@
+package IVec1(IVec(..)) where
+import ListN
+
+class IVec n t | t -> n, n -> t where
+    toIVec   :: ListN n a -> t a
+    fromIVec :: t a -> ListN n a
+

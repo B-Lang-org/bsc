@@ -1,0 +1,6 @@
+checking package dependencies
+compiling IncludeSubdir.bsv
+code generation for sysIncludeSubdir starts
+Compilation message: "./subdir/defines2", line 1, column 11: subdir/defines2
+Verilog file created: sysIncludeSubdir.v
+All packages are up to date.

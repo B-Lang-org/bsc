@@ -1,0 +1,60 @@
+The LPM Lab
+===========
+
+This lab deals with a much bigger body of BSV code than you have handled
+previously.  It is a model of a simple IP router.  As you may be aware,
+Bluespec Inc. has produced several versions of this model: starting from a
+transaction model, subsequent stages of refinement lead to a cycle-accurate
+hardware version, synthesizable to an ASIC.
+
+At the heart of this design is a module for performing longest prefix match
+(LPM) of an Internet IP address.  This Lab will allow you to explore several
+different architectures for this particular part of the design.  The rest of
+the model is left at the transactional level, for simplicity and speed of
+simulation.
+
+There are four versions of MesaLPM provided for this exercise:
+
+1. MesaTxLPM: a transactional version, to show you the basic algorithm.
+2. MesaStaticLPM: a pipelined version, with rigidly allocated memory accesses.
+3. MesaFlexLPM: a linear pipeline with flexible allocation, using a server
+    replicator to provide apparently separate copies of the RAM interface for
+    each stage.
+4. MesaCircLPM: a circular pipeline, using a "completion buffer" to ensure
+    that results emerge from the module in the same order as the requests.
+
+The first two of these versions (and the whole of the rest of the design) are
+provided in complete form.  The source text of the other two contain gaps
+which you are invited to fill in.
+
+When you have got them to work, you are then invited to investigate how their
+performance is affected by varying some of the parameters.
+
+COMPILING AND RUNNING
+
+Select the version you want from the four LPM modules by uncommenting one of
+the four import statements in Mesa.bsv (initially it imports the transactional
+version).  Make sure that any stale mkMesaLPM.o (or mkMesaLPM.v, if you are
+using a Verilog simulation) is deleted.  Then compile the design and its
+testbench by
+   bsc -u -c TestMesa.bsv
+and produce an executable simulation by
+   bsc -e sysTestMesa *.o
+Then the simulation may be executed by
+   a.out
+together with any command-line parameters you wish to give it.
+
+A sample Makefile has been provided that manages the details of this. 
+You can use "make c" to produce a C simulation binary and run "make verilog" 
+to generate Verilog (that you can elaborate and run with your favorite 
+simulator). Expected output from the C simulation binaries for each of the 
+versions (once you have them working) has been provided.
+
+If you want to use a Verilog simulator you will need to provide a top-level 
+testbench to, instantiate, reset and clock the simulation. To match the 
+expected output of the C simulation (except, naturally, for any informational 
+messages from your simulator), we recommend that you follow the clock and 
+reset stimulation behavior of main.v (found in BLUESPECDIR/src/lib/Verilog).
+
+
+

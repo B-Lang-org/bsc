@@ -1,0 +1,33 @@
+compile_verilog_pass SameFamilyIn.bsv
+compile_verilog_pass SameFamilyDefault.bsv
+compile_verilog_pass AncestorsBoundary.bsv
+compile_verilog_fail_error CheckSameFamily.bsv G0037
+compile_verilog_fail_error CheckAncestors.bsv G0086
+compile_verilog_fail_error AncestorTest1.bsv G0086
+compile_verilog_fail_error AncestorTest2.bsv G0086
+compile_verilog_pass AncestorTest3.bsv
+compile_verilog_fail_error AncestorTest4.bsv G0086
+compile_verilog_fail_error AncestorTest5.bsv G0086
+compile_verilog_pass AncestorTest6.bsv
+compile_verilog_pass AncestorTest7.bsv
+compile_verilog_pass AncestorTest8.bsv
+compile_verilog_fail_error FamilyTest1.bsv G0037
+compile_verilog_pass FamilyTest2.bsv
+
+# check detection of some parse errors
+compile_verilog_fail_error SameFamilyError1.bsv P0182
+compile_verilog_fail_error AncestorsError1.bsv P0005
+compile_verilog_fail_error AncestorsError2.bsv P0063
+compile_verilog_fail_error AncestorsError3.bsv P0005
+compile_verilog_fail_error AncestorsError4.bsv P0005
+
+compile_verilog_fail_error EmptyCLKAttrib.bsv P0177
+compile_verilog_fail_error EmptyGATEAttrib.bsv P0177
+compile_verilog_fail_error EmptyRSTNAttrib.bsv P0177
+compile_verilog_fail_error CLKAttribVerilogKeyword.bsv P0184
+compile_verilog_fail_error CLKAttribWithSpace.bsv P0185
+
+compile_verilog_fail_error EUseDefaultClock.bsv G0118
+compile_verilog_fail_error EUseDefaultReset.bsv G0119
+compile_verilog_pass EUseDefaultReset_OK.bsv
+

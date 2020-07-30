@@ -1,0 +1,51 @@
+checking package dependencies
+=== parsed:
+package ImportForeignModule_InputClock_NoName_NonVarExpr_Dup;
+module launderClock#(Clock i)(Clock);
+  i
+endmodule: launderClock
+
+module mkMod(Empty);
+  let _bv1 <- launderClock(noClock);
+  let _bv0 <- launderClock(noClock);
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__2(CLK2, {-inhigh-});
+			 ((ClockArg _clk__1, _bv1), (ClockArg _clk__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_NonVarExpr_Dup
+
+-----
+
+compiling ImportForeignModule_InputClock_NoName_NonVarExpr_Dup.bsv
+=== parsed:
+package ImportForeignModule_InputClock_NoName_NonVarExpr_Dup;
+module launderClock#(Clock i)(Clock);
+  i
+endmodule: launderClock
+
+module mkMod(Empty);
+  let _bv1 <- launderClock(noClock);
+  let _bv0 <- launderClock(noClock);
+  Empty _m__;
+  _m__ <- liftModule((unexpected) module verilog "MOD";
+		     clock _clk__1(CLK1, {-inhigh-});
+		     clock _clk__2(CLK2, {-inhigh-});
+			 ((ClockArg _clk__1, _bv1), (ClockArg _clk__2, _bv0))
+			 {
+			 }
+			 SchedInfo [] [] [] []
+			 No combinational paths from inputs to outputs);
+endmodule: mkMod
+
+endpackage: ImportForeignModule_InputClock_NoName_NonVarExpr_Dup
+
+-----
+
+All packages are up to date.

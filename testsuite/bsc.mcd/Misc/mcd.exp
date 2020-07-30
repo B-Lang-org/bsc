@@ -1,0 +1,133 @@
+
+compile_verilog_pass GatedClock.bsv
+compile_verilog_pass GatedClock2.bsv
+compile_verilog_pass InputClock.bsv
+compile_verilog_pass InputPort.bsv
+compile_verilog_pass InputReset.bsv
+compile_verilog_pass OutputReset.bsv
+compile_verilog_pass OutputReset2.bsv
+
+# No deep need to sim (we're testing the elaborator) and further no need to
+# sim in both backends, but the extra testing doesn't hurt
+test_c_veri_bsv ClockOf
+test_c_veri_bsv ClocksOf
+test_c_veri_bsv ResetOf
+test_c_veri_bsv ResetsOf
+
+# don't simulate because the results would depend on the random
+# clock picked
+# don't compare the output because we don't have a "good" way of
+# dumping ISyntax yet
+compile_verilog_pass_warning ClockOfClocks.bsv G0038 2
+compile_verilog_pass_warning ResetOfResets.bsv G0044 2
+
+# Bug 1651
+compile_verilog_pass_no_warning ClockOfUnevalInterfaceOK.bsv
+# confirm that the above example didn't just work because the extraction
+# was trivial, by showing that BSC does detect when multiple clocks are used
+compile_verilog_fail_error ClockOfUnevalInterfaceBad.bsv G0007 2
+if {$vtest == 1} {
+find_n_warning [make_bsc_vcomp_output_name ClockOfUnevalInterfaceBad.bsv] \
+    G0038 2
+}
+
+# test support for mkClock
+test_c_only_bsv TestMkClock sysTestMkClock.c.out.expected
+test_veri_only_bsv TestMkClock sysTestMkClock.v.out.expected
+
+# test support for mkUngatedClock (same output as above)
+test_c_only_bsv TestMkUngatedClock sysTestMkClock.c.out.expected
+test_veri_only_bsv TestMkUngatedClock sysTestMkClock.v.out.expected
+
+# ----------
+
+# test evaluator and instantiation of LaunderClock module
+test_c_veri_bsv_modules LaunderClock {mkLaunderClock}
+
+# ----------
+
+# these errs should have better position w/o the -cross-info flag (bug 1238)
+if {$vtest == 1} {
+compile_verilog_fail_error ClockCheckRule.bsv G0007 1 "" "-cross-info"
+compare_file ClockCheckRule.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error ClockCheckRule2.bsv G0007 1 "" "-cross-info"
+compare_file ClockCheckRule2.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error ClockCheckMethod.bsv G0007 1 "" "-cross-info"
+compare_file ClockCheckMethod.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error ClockCheckCond.bsv G0007 1 "" "-cross-info"
+# even with the -cross-info flag, the positions here are not perfect
+# (we compare here against the imperfect, but we should fix it) (bug 1238)
+compare_file ClockCheckCond.bsv.bsc-vcomp-out
+
+compile_verilog_fail_error ClockCheckMethodArg.bsv G0007 1 "" "-cross-info"
+compare_file ClockCheckMethodArg.bsv.bsc-vcomp-out
+}
+
+compile_verilog_fail_error EResetClock.bsv G0042
+
+compile_verilog_pass_warning ResetCheckRule.bsv G0043
+compile_verilog_pass_warning ResetCheckMethod.bsv G0043
+compile_verilog_pass_warning OutputResetBroken.bsv G0051
+
+# test for the errmsg position by comparing against an expected output
+if {$vtest == 1} {
+compile_verilog_fail_error EClockMux1.bsv G0067
+compare_file EClockMux1.bsv.bsc-vcomp-out
+compile_verilog_fail_error EClockMux2.bsv G0071
+compare_file EClockMux2.bsv.bsc-vcomp-out
+compile_verilog_fail_error EClockMux3.bsv G0067
+compare_file EClockMux3.bsv.bsc-vcomp-out
+compile_verilog_fail_error EResetMux1.bsv G0068
+compare_file EResetMux1.bsv.bsc-vcomp-out
+compile_verilog_fail_error EResetMux2.bsv G0072
+compare_file EResetMux2.bsv.bsc-vcomp-out
+compile_verilog_fail_error EResetMux3.bsv G0068
+compare_file EResetMux3.bsv.bsc-vcomp-out
+}
+
+compile_verilog_fail_error ClockCheckPort.bsv G0007
+
+compile_verilog_fail_error EUndetClock1.bsv G0047
+compile_verilog_fail_error EUndetClock2.bsv G0047
+compile_verilog_fail_error EUndetClock3.bsv G0047
+
+compile_verilog_fail_error EUndetReset1.bsv G0048
+compile_verilog_fail_error EUndetReset2.bsv G0048
+compile_verilog_fail_error EUndetReset3.bsv G0048
+
+
+# ----------
+
+# Test time0 negedge of mkAbsoluteClock, by seeing that a clock inverter
+# produces a posedge.  Bluesim output includes display output for that
+# edge while Verilog doesn't (otherwise, the output is identical).
+test_c_only_bsv InvertAbsoluteClock
+test_veri_only_bsv InvertAbsoluteClock sysInvertAbsoluteClock.v.out.expected
+
+# ----------
+
+# We use an import "BVI" of a module that doesn't exist
+# to test the handling of transitive same_family and ancestor annotations
+# so don't try Bluesim
+test_veri_only_bsv TransitiveFamily
+test_veri_only_bsv TransitiveAncestor
+
+# ----------
+
+# Test that a method's clock and reset come from the combination of the
+# predicate and the body, not just the body (Bug #1514)
+
+if { $ctest == 1 } {
+    compile_object_pass MethodWires.bsv {} {-dexpanded}
+    # also test that we don't get a Bluesim internal error
+    link_objects_pass sysMethodWires sysMethodWires
+    # test the generated output
+    set outfile [make_bsc_ccomp_output_name MethodWires.bsv]
+    find_regexp $outfile {method \(get\, \[\]\)get clocked\_by \(default\_clock\) reset\_by \(default\_reset\)\;}
+    find_regexp $outfile {method \(RDY_get\, \[\]\)RDY\_get clocked\_by \(default\_clock\) reset\_by \(default\_reset\)\;}
+}
+
+# ----------

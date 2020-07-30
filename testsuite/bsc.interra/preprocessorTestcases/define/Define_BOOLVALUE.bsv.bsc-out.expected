@@ -1,0 +1,15 @@
+checking package dependencies
+compiling Define_BOOLVALUE.bsv
+Warning: Unknown position: (S0001)
+  File name `Define_BOOLVALUE.bsv' does not match package name `Design'
+Error: "Define_BOOLVALUE.bsv", line 12, column 5: (T0084)
+  The following function expects 2 arguments, but it was used without any
+  arguments:
+    max
+
+  The expected type is:
+    function a__ f(a__ x1, a__ x2)
+
+  But it was used with the following type:
+    Bool
+

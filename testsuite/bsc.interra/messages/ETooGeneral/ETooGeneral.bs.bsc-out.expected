@@ -1,0 +1,8 @@
+checking package dependencies
+compiling ETooGeneral.bs
+Error: "ETooGeneral.bs", line 19, column 0: (T0029)
+  Signature mismatch (given too general):
+  given:
+  (Prelude.Add 1 a´ b´, Prelude.Add a´ 1 b´) => Prelude.Int a´ -> Prelude.Int a´ -> Prelude.Int 1 -> Prelude.Int b´
+  deduced:
+  (Prelude.Add 1 1 1, Prelude.Add 1 1 1) => Prelude.Int 1 -> Prelude.Int 1 -> Prelude.Int 1 -> Prelude.Int 1

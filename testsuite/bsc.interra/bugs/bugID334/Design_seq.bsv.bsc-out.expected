@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "Design_seq.bsv", line 4, column 19: (P0005)
+  Unexpected BSV 3.8 keyword `seq'; expected method name

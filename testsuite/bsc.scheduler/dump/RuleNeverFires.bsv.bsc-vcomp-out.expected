@@ -1,0 +1,14 @@
+checking package dependencies
+compiling RuleNeverFires.bsv
+code generation for sysRuleNeverFires starts
+Warning: "RuleNeverFires.bsv", line 3, column 8: (G0010)
+  Rule "always_fires" was treated as more urgent than
+  "never_fires". Conflicts:
+    "always_fires" cannot fire before "never_fires":
+      calls to the_r.write vs. the_r.read
+    "never_fires" cannot fire before "always_fires":
+      calls to the_r.write vs. the_r.read
+Warning: "RuleNeverFires.bsv", line 11, column 8: (G0021)
+  According to the generated schedule, rule `never_fires' can never fire.
+Verilog file created: sysRuleNeverFires.v
+All packages are up to date.

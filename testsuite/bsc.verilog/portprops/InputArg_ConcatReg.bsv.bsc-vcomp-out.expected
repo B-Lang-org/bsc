@@ -1,0 +1,14 @@
+checking package dependencies
+compiling InputArg_ConcatReg.bsv
+code generation for sysInputArg_ConcatReg starts
+=== IOproperties:
+Name                         I/O  size props
+b                              I    16 reg
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysInputArg_ConcatReg.v
+All packages are up to date.

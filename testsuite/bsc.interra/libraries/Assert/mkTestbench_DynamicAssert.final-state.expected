@@ -1,0 +1,16 @@
+Value read = 0f
+Value read = 10
+Value read = 20
+Value read = 21
+Value Written = 11
+Value Written = 12
+Value read = 11
+Dynamic assertion failed: "DynamicAssert.bsv", line 21, column 28
+Failure: Fail becomes True
+Final state:
+top:
+  count1 = 0x00
+  counter = 0x16
+  datafifo = EMPTY
+  fail = True
+  sizeoflist = 0x00

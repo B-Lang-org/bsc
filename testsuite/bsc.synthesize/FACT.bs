@@ -1,0 +1,32 @@
+package FACT (sysFACT, FACT) where
+
+interface FACT = 
+   start  :: Int 32 ->Action 
+   result :: Int 32
+
+sysFACT  :: Module FACT
+
+sysFACT =
+    module
+	x :: Reg (Int 32)
+	x <- mkRegU
+
+	count :: Reg (Int 32)
+	count <- mkReg 0
+     
+        fact :: Reg (Int 32)
+        fact <- mkReg 1
+
+        rules
+
+            when count >0
+               ==> action  
+                     fact  :=  fact * count 
+                     count :=  count - 1
+
+        interface
+	    start ix   = action
+                           count := ix
+	                  when (count == 0)
+
+	    result = fact when ( count == 0)

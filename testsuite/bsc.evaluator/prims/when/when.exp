@@ -1,0 +1,14 @@
+# -----
+# Test basic operation
+
+test_c_veri_bsv When
+
+# -----
+# Tests for invalid conditions (Bug 1722)
+
+compile_verilog_fail_error WhenActionValue.bsv G0122
+
+compile_verilog_fail_error WhenMethodArg.bsv G0122
+
+# -----
+

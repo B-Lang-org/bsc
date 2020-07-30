@@ -1,0 +1,8 @@
+# first bug 1326 testcase
+compile_verilog_pass SatTest.bsv
+
+compile_verilog_pass SizeOf_UnifyWithBitsProviso.bsv
+
+compile_fail_error SizeOf_MissingBitsProviso.bsv T0030
+compare_file [make_bsc_output_name SizeOf_MissingBitsProviso.bsv]
+

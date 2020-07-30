@@ -1,0 +1,7 @@
+step_true: 0
+set_r_in_step_false: 0
+Error: "MutuallyExclusiveBug1327.bsv", line 17, column 26: (R0001)
+  Mutually exclusive rules (from the ME sets [RL_step_True] and
+  [RL_set_r_in_step_false] ) fired in the same clock cycle.
+
+set_r_in_step_false: 1

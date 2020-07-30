@@ -1,0 +1,25 @@
+if {$vtest == 1} {
+compile_verilog_fail MethodNeverReady.bsv sysMethodNeverReady "-promote-warnings ALL"
+compare_file MethodNeverReady.bsv.bsc-vcomp-out
+
+# check that dropping the rule actually works 
+compile_verilog_pass RuleNeverFires.bsv sysRuleNeverFires "-remove-starved-rules"
+erase RuleNeverFires.bi 
+erase RuleNeverFires.bo
+
+compile_verilog_pass RuleNeverFires.bsv sysRuleNeverFires
+compare_file RuleNeverFires.bsv.bsc-vcomp-out
+
+
+# warn about rules whose predicate is false
+compile_verilog_pass RuleFalse.bsv sysRuleFalse "-opt-bool"
+compare_file RuleFalse.bsv.bsc-vcomp-out 
+
+# check that we don't warn about dropped rules from splitting
+compile_verilog_pass ExpandFalse.bsv sysExpandFalse "-split-if -opt-bool"
+compare_file ExpandFalse.bsv.bsc-vcomp-out
+
+compile_verilog_pass PPrintSched.bsv  sysPPrintSched "-show-schedule"
+compare_file sysPPrintSched.sched
+
+}

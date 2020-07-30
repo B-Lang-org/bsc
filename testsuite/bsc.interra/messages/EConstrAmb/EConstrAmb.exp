@@ -1,0 +1,2 @@
+compile_fail EConstrAmb.bs
+compare_file EConstrAmb.bs.bsc-out

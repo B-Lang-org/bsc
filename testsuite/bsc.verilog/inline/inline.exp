@@ -1,0 +1,26 @@
+# test the inlining of modules in the backend
+
+# Test that inlined RWire ports are not themselves inlined just because
+# there is only one use.  (Inlining for optimization is OK.)
+if {$vtest == 1} {
+    compile_verilog_pass RWireOneUse.bsv "" -keep-inlined-boundaries
+    find_n_strings sysRWireOneUse.v {assign rw$wget = } 1
+    find_n_strings sysRWireOneUse.v {assign rw$whas = } 1
+}
+
+# Test that inlined registers with no_reset do not generate Verilog
+# which contains always blocks or if-statements on !1'd1
+# (particularly not "negedge !1'd1", which Magma does not accept)
+compile_verilog_pass NoReset.bsv
+if {$vtest == 1} {
+find_n_strings mkTestNoReset.v {1'd1} 0
+find_n_strings mkTestSubTop.v {1'd1} 0
+}
+
+# Test for bug 915: That probes are properly declared and assigned.
+compile_verilog_pass ProbeTest.bsv
+if {$vtest == 1} {
+    find_n_strings sysProbeTest.v {x$PROBE} 4
+    find_n_strings sysProbeTest.v {assign x$PROBE = } 1
+}
+

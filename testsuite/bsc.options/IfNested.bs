@@ -1,0 +1,38 @@
+package IfNested(sysIfTest) where
+
+interface IfTest =
+  flip_a :: Action
+  flip_b :: Action
+  flip_c :: Action
+
+sysIfTest :: Module (IfTest)
+sysIfTest =
+  module
+    a :: Reg Bool
+    a <- mkReg False
+    b :: Reg Bool
+    b <- mkReg False
+    c :: Reg Bool
+    c <- mkReg False
+    d :: Reg (UInt 3)
+    d <- mkReg 0
+
+    interface 
+	flip_a = a :=  not a
+	flip_b = b :=  not b
+	flip_c = c :=  not c
+   
+    rules
+        "Nested": when True ==> 
+                    if a then 
+		       if b then 
+			  if c then d := 7 else d := 6 
+		       else 
+                          if c then d := 5 else d := 4
+		    else 
+		       if b then 
+			  if c then d := 3 else d := 2
+		       else 
+			  if c then d := 1 else d := 0
+			
+		

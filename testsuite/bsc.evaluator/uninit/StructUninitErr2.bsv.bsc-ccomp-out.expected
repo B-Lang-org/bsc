@@ -1,0 +1,10 @@
+checking package dependencies
+compiling StructUninitErr2.bsv
+code generation for mkStructUninitErr2 starts
+Error: "StructUninitErr2.bsv", line 10, column 13: (G0028)
+  `foo.c' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "StructUninitErr2.bsv",
+  line 13, column 9.
+  During elaboration of `mkStructUninitErr2' at "StructUninitErr2.bsv", line
+  8, column 8.

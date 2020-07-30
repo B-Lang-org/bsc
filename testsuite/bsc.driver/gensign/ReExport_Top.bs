@@ -1,0 +1,10 @@
+package ReExport_Top () where
+
+import ReExport_Q
+
+x :: T
+x = f 1
+
+y :: Bit 32
+y = g v
+

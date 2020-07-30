@@ -1,0 +1,7 @@
+checking package dependencies
+compiling ENotAlwaysReady.bs
+code generation for mkGCD starts
+Error: "ENotAlwaysReady.bs", line 20, column 4: (G0006)
+  Method(s) not always ready: start
+Error: "ENotAlwaysReady.bs", line 21, column 4: (G0006)
+  Method(s) not always ready: result

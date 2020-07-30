@@ -1,0 +1,22 @@
+package Overlap3(sysOverlap3) where
+
+import Displayable
+
+instance (Displayable a) => Displayable (Maybe a)
+   where 
+     display (Valid a) = action
+                           $write "Valid "
+                           display a
+     display (Invalid) = $display "Invalid"
+
+{-# verilog sysOverlap3 #-}
+sysOverlap3 :: Module Empty
+sysOverlap3 = 
+  module
+    x :: Reg (Maybe (Bit 17)) <- mkReg Invalid
+    rules
+      "test":
+         when True  ==>
+           action
+               display x
+               $finish 0

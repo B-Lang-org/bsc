@@ -1,0 +1,43 @@
+package FinAnd_ExplicitBits where
+
+data (Fin :: # -> # -> *) n k = Fin (UInt k)
+  deriving(Eq) -- expect custom bit-level encodings so don't derive Bits
+
+type PackedFin n = Fin n (TLog n)
+
+-- If we know that n = 2^k, there's a unique Bits instance we want
+instance (Log n k, NumEq n (TExp (TLog n))) => Bits (Fin n k) k where
+    pack (Fin x) = pack x
+    unpack x = Fin (unpack x)
+
+data PackedFinOr t n
+  = IsPackedFin (PackedFin n)
+  | IsNotPackedFin t
+
+-- -----
+
+instance (Bits (PackedFin n) _v101,
+	  Bits t _v104,
+	  Add _v102 _v101 _v103,
+	  Add _v105 _v104 _v103,
+	  Max _v101 _v104 _v103,
+	  Add 1 _v103 _v100) =>
+	 Bits (PackedFinOr t n) _v100 where {
+    pack :: PackedFinOr t n -> Bit _v100;
+    pack (IsPackedFin _x) = 
+	primConcat
+	  (0::(Bit 1))
+	  (primConcat _ ((pack _x)::(Bit _v101)));
+    pack (IsNotPackedFin _x) = 
+	primConcat
+	  (1::(Bit 1))
+	  (primConcat _ ((pack _x)::(Bit _v104)));;
+    unpack :: Bit _v100 -> PackedFinOr t n;
+    unpack _x = 
+	(\ _y ->
+	 case _y.fst::(Bit 1) of {
+	 0 ->  IsPackedFin (unpack (primTrunc _y.snd));
+	 1 ->  IsNotPackedFin (unpack (primTrunc _y.snd))
+	 })
+	  (primSplit _x);
+}

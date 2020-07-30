@@ -1,0 +1,17 @@
+if {$vtest == 1} {
+    compile_verilog_pass D.bsv mkD
+    # No expression in the $display
+    find_regexp mkD.v "display.*4\'d1"
+
+    compile_verilog_pass OptAcrossRWireInDefs.bsv sysOptAcrossRWireInDefs
+    # No expression for x
+    string_occurs sysOptAcrossRWireInDefs.v {x$D_IN = x}
+
+    compile_verilog_pass OptAcrossRWireInForeign.bsv sysOptAcrossRWireInForeign
+    # No expression in the $display
+    string_occurs sysOptAcrossRWireInForeign.v {display(x)}
+
+    compile_verilog_pass OptAcrossRWireInInst.bsv sysOptAcrossRWireInInst
+    # No expression in the module instantiation
+    string_occurs sysOptAcrossRWireInInst.v {foo(.x(x)}
+}

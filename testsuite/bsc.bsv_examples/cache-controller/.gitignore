@@ -1,0 +1,20 @@
+# The testsuite automatically ignored generated files
+# for modules named "mk*" and "sys*" but this uses
+# names that don't follow that convention
+
+cache.cxx
+cache.h
+cache.v
+cache_controller.cxx
+cache_controller.h
+cache_controller.v
+model_random_testbench.cxx
+model_random_testbench.h
+model_testbench.cxx
+model_testbench.h
+random_testbench.cxx
+random_testbench.h
+random_testbench.v
+testbench.cxx
+testbench.h
+testbench.v

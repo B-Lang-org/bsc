@@ -1,0 +1,75 @@
+#----- $display of Char
+y
+#----- stringSplit, stringHead, stringTail
+Null
+'H', 'ello World'
+'H', 'ello World'
+#----- stringCons
+'H', 'ello World'
+#----- stringToCharList, charListToString
+'Hi!'
+'e' 'W'
+#----- []-select, []-update
+'r'
+'Mello Werld'
+#----- charToString
+'!'
+#----- charToInteger, integerToChar
+         97,          65,          48
+'B' '2'
+#----- isSpace
+1
+1
+1
+1
+1
+1
+0
+0
+0
+0
+#----- isLower, isUpper, isAlpha, isAlphaNum
+1 0
+0 1
+1 0
+0 1
+0 0
+0 0
+0 0
+0 0
+1 1
+1 1
+1 1
+1 1
+0 1
+0 1
+0 0
+0 0
+#----- isDigit, isOctDigit, isHexDigit
+1 1 1
+1 1 1
+1 1 1
+1 0 1
+0 0 1
+0 0 1
+0 0 1
+0 0 1
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+#----- toUpper, toLower
+'A' 'a'
+'A' 'a'
+'Z' 'z'
+'Z' 'z'
+'0' '0'
+' ' ' '
+#----- digitToInteger, digitToBits
+          0, 4,                    9
+#----- integerToDigit, bitsToDigit
+'0' '5' '9'
+'0' '5' '9'
+#----- instances Eq#(Char), Ord#(Char)
+0 0 1
+1 0 1

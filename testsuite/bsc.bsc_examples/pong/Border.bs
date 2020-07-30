@@ -1,0 +1,12 @@
+package Border (mkBorder) where
+import Global
+import Shape
+import Color
+
+col :: Color
+col = cBlue
+
+mkBorder:: Module Shape
+mkBorder = do
+    rect :: Shape <- mkRectangle (fromInteger xMin) (fromInteger (xMax-xMin)) (fromInteger yMin) (fromInteger (yMax-yMin)) col
+    return (modShapeVis ((<^>) col) rect)

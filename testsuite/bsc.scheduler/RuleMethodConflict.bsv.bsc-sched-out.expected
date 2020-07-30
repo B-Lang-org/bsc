@@ -1,0 +1,52 @@
+checking package dependencies
+compiling RuleMethodConflict.bsv
+code generation for sysRuleMethodConflict starts
+Warning: "RuleMethodConflict.bsv", line 38, column 8: (G0010)
+  Rule "get" was treated as more urgent than "put". Conflicts:
+    "get" cannot fire before "put":
+      calls to
+	r_wr.wget vs. r_wr.wset
+	r_wr.whas vs. r_wr.wset
+    "put" cannot fire before "get": calls to r_rg.write vs. r_rg.read
+=== schedule:
+parallel: [esposito: [get -> [], RL_put -> [get]]]
+order: [get, RL_put]
+
+-----
+
+=== resources:
+[(r_rg.read, [(r_rg.read, 1)]),
+ (r_rg.write, [(r_rg.write 1'd1, 1)]),
+ (r_wr.wget, [(r_wr.wget, 1)]),
+ (r_wr.whas, [(r_wr.whas, 1)]),
+ (r_wr.wset, [(r_wr.wset 1'd1, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [get CF get] [] [] []
+
+-----
+
+Schedule dump file created: sysRuleMethodConflict.sched
+=== Generated schedule for sysRuleMethodConflict ===
+
+Method schedule
+---------------
+Method: get
+Ready signal: True
+Conflict-free: get
+ 
+Rule schedule
+-------------
+Rule: put
+Predicate: True
+Blocking rules: get
+ 
+Logical execution order: get, put
+
+=====================================================
+Warning: "RuleMethodConflict.bsv", line 44, column 8: (G0021)
+  According to the generated schedule, rule `put' can never fire.
+Verilog file created: sysRuleMethodConflict.v
+All packages are up to date.

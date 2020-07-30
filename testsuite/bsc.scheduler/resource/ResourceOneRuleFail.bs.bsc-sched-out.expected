@@ -1,0 +1,26 @@
+checking package dependencies
+compiling ResourceOneRuleFail.bs
+code generation for sysResourceOneRuleFail starts
+Error: "ResourceOneRuleFail.bs", line 24, column 8: (G0002)
+  `a.sub' needs more than 5 ports for the following uses:
+      `a.sub 8'd0' at "ResourceOneRuleFail.bs", line 24, column 8
+      `a.sub 8'd1' at "ResourceOneRuleFail.bs", line 24, column 8
+      `a.sub 8'd2' at "ResourceOneRuleFail.bs", line 24, column 8
+      `a.sub 8'd3' at "ResourceOneRuleFail.bs", line 24, column 8
+      `a.sub 8'd4' at "ResourceOneRuleFail.bs", line 24, column 8
+      `a.sub 8'd5' at "ResourceOneRuleFail.bs", line 24, column 8
+=== schedule:
+Nothing
+
+-----
+
+Schedule dump file created: sysResourceOneRuleFail.sched
+=== Generated schedule for sysResourceOneRuleFail ===
+
+Rule schedule
+-------------
+Rule: Bogus
+Predicate: True
+ 
+
+======================================================

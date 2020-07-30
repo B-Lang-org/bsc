@@ -1,0 +1,14 @@
+checking package dependencies
+compiling DuplicateNiceName_WeakCtx_Default.bsv
+Error: "DuplicateNiceName_WeakCtx_Default.bsv", line 10, column 18: (T0030)
+  The provisos for this expression are too general.
+  Given type:
+    function Bit#(z) f(Bit#(a__) x1, Bit#(x) x2)
+  With the following proviso:
+    Add#(x, b__, z)
+  The following additional provisos are needed:
+    Add#(c__, 1, x)
+      Introduced at the following locations:
+	"DuplicateNiceName_WeakCtx_Default.bsv", line 13, column 19
+  The type variables are from the following positions:
+    "c__" at "DuplicateNiceName_WeakCtx_Default.bsv", line 13, column 19

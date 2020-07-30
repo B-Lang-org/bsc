@@ -1,0 +1,226 @@
+checking package dependencies
+compiling DUFunction6.bsv
+code generation for sysDUFunction6 starts
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "x4" was treated as more urgent than "x2". Conflicts:
+    "x4" cannot fire before "x2": calls to outf2.deq vs. outf2.deq
+    "x2" cannot fire before "x4": calls to outf2.deq vs. outf2.deq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "x1" was treated as more urgent than "x3_1". Conflicts:
+    "x1" cannot fire before "x3_1": calls to outf2.deq vs. outf2.deq
+    "x3_1" cannot fire before "x1": calls to outf2.deq vs. outf2.deq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "doit" was treated as more urgent than "doit_1". Conflicts:
+    "doit" cannot fire before "doit_1": calls to outf.enq vs. outf.enq
+    "doit_1" cannot fire before "doit": calls to outf.enq vs. outf.enq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "doit_1" was treated as more urgent than "doit_2". Conflicts:
+    "doit_1" cannot fire before "doit_2": calls to outf.enq vs. outf.enq
+    "doit_2" cannot fire before "doit_1": calls to outf.enq vs. outf.enq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "doit_2" was treated as more urgent than "doit_3". Conflicts:
+    "doit_2" cannot fire before "doit_3": calls to outf.enq vs. outf.enq
+    "doit_3" cannot fire before "doit_2": calls to outf.enq vs. outf.enq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "doit_3" was treated as more urgent than "doit_4". Conflicts:
+    "doit_3" cannot fire before "doit_4": calls to outf.enq vs. outf.enq
+    "doit_4" cannot fire before "doit_3": calls to outf.enq vs. outf.enq
+Warning: "DUFunction6.bsv", line 19, column 8: (G0010)
+  Rule "doit_4" was treated as more urgent than "doit_5". Conflicts:
+    "doit_4" cannot fire before "doit_5": calls to outf.enq vs. outf.enq
+    "doit_5" cannot fire before "doit_4": calls to outf.enq vs. outf.enq
+=== schedule:
+parallel: [esposito: [setGo -> [],
+		      clearGo -> [],
+		      deq -> [],
+		      first -> [],
+		      RL_x3 -> [],
+		      RL_x4 -> [RL_x3],
+		      RL_x2 -> [RL_x4, RL_x3],
+		      RL_x1 -> [RL_x2, RL_x4, RL_x3],
+		      RL_x3_1 -> [RL_x1, RL_x2, RL_x4, RL_x3],
+		      RL_doit -> [RL_x3_1, RL_x1, RL_x2],
+		      RL_doit_1 -> [RL_doit, RL_x3_1, RL_x1, RL_x2],
+		      RL_doit_2 -> [RL_doit_1, RL_doit, RL_x3_1, RL_x1, RL_x2],
+		      RL_doit_3 -> [RL_doit_2, RL_doit_1, RL_doit, RL_x3_1, RL_x1, RL_x2],
+		      RL_doit_4 -> [RL_doit_3, RL_doit_2, RL_doit_1, RL_doit, RL_x3_1, RL_x1, RL_x2],
+		      RL_doit_5 -> [RL_doit_4, RL_doit_3, RL_doit_2, RL_doit_1, RL_doit, RL_x3_1, RL_x1, RL_x2]]]
+order: [clearGo,
+	first,
+	deq,
+	RL_x3,
+	RL_x4,
+	RL_x1,
+	RL_x2,
+	RL_x3_1,
+	RL_doit,
+	RL_doit_1,
+	RL_doit_2,
+	RL_doit_3,
+	RL_doit_4,
+	RL_doit_5,
+	setGo]
+
+-----
+
+=== resources:
+[(cntrs_0.read, [(cntrs_0.read, 1)]),
+ (cntrs_0.write, [(cntrs_0.write cntrs_0_2_PLUS_1___d13, 1)]),
+ (cntrs_1.read, [(cntrs_1.read, 1)]),
+ (cntrs_1.write, [(cntrs_1.write cntrs_1_5_PLUS_1___d16, 1)]),
+ (cntrs_2.read, [(cntrs_2.read, 1)]),
+ (cntrs_2.write, [(cntrs_2.write cntrs_2_8_PLUS_1___d19, 1)]),
+ (cntrs_3.read, [(cntrs_3.read, 1)]),
+ (cntrs_3.write, [(cntrs_3.write cntrs_3_1_PLUS_1___d22, 1)]),
+ (cntrs_4.read, [(cntrs_4.read, 1)]),
+ (cntrs_4.write, [(cntrs_4.write cntrs_4_5_PLUS_1___d26, 1)]),
+ (cntrs_5.read, [(cntrs_5.read, 1)]),
+ (cntrs_5.write, [(cntrs_5.write cntrs_5_9_PLUS_1___d30, 1)]),
+ (gos_0.read, [(gos_0.read, 1)]),
+ (gos_0.write, [(if setGo_index_EQ_0___d31 then gos_0.write 1'd1, 1)]),
+ (gos_1.read, [(gos_1.read, 1)]),
+ (gos_1.write, [(if setGo_index_EQ_1___d32 then gos_1.write 1'd1, 1)]),
+ (gos_2.read, [(gos_2.read, 1)]),
+ (gos_2.write, [(if setGo_index_EQ_2___d33 then gos_2.write 1'd1, 1)]),
+ (gos_3.read, [(gos_3.read, 1)]),
+ (gos_3.write, [(if setGo_index_EQ_3___d34 then gos_3.write 1'd1, 1)]),
+ (gos_4.read, [(gos_4.read, 1)]),
+ (gos_4.write, [(if setGo_index_EQ_4___d35 then gos_4.write 1'd1, 1)]),
+ (gos_5.read, [(gos_5.read, 1)]),
+ (gos_5.write, [(if setGo_index_EQ_5___d36 then gos_5.write 1'd1, 1)]),
+ (outf.deq, [(outf.deq, 1)]),
+ (outf.enq,
+  [(outf.enq b__h2083, 1),
+   (outf.enq b__h2194, 1),
+   (outf.enq b__h2303, 1),
+   (outf.enq b__h2412, 1),
+   (outf.enq b__h2525, 1),
+   (outf.enq b__h2638, 1)]),
+ (outf.first, [(outf.first, 1)]),
+ (outf.i_notEmpty, [(outf.i_notEmpty, 1)]),
+ (outf.i_notFull, [(outf.i_notFull, 1)]),
+ (outf2.deq, [(outf2.deq, 1)]),
+ (outf2.i_notEmpty, [(outf2.i_notEmpty, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo
+[RDY_clearGo CF [RDY_clearGo, RDY_deq, RDY_first, clearGo, deq, first, setGo],
+ RDY_deq CF [RDY_deq, RDY_first, clearGo, deq, first, setGo],
+ RDY_first CF [RDY_first, clearGo, deq, first, setGo],
+ RDY_setGo CF [RDY_clearGo, RDY_deq, RDY_first, RDY_setGo, clearGo, deq, first, setGo],
+ [clearGo, setGo] CF [clearGo, deq, first],
+ first CF first,
+ first SB deq,
+ setGo SBR setGo,
+ deq C deq]
+[]
+[(setGo,
+  [(Left RL_x3),
+   (Left RL_x4),
+   (Left RL_x1),
+   (Left RL_x2),
+   (Left RL_x3_1),
+   (Left RL_doit),
+   (Left RL_doit_1),
+   (Left RL_doit_2),
+   (Left RL_doit_3),
+   (Left RL_doit_4),
+   (Left RL_doit_5)])]
+[]
+
+-----
+
+Schedule dump file created: sysDUFunction6.sched
+=== Generated schedule for sysDUFunction6 ===
+
+Method schedule
+---------------
+Method: setGo
+Ready signal: True
+Conflict-free: clearGo, deq, first
+Sequenced before (restricted): setGo
+ 
+Method: clearGo
+Ready signal: True
+Conflict-free: setGo, clearGo, deq, first
+ 
+Method: deq
+Ready signal: outf.i_notEmpty
+Conflict-free: setGo, clearGo
+Sequenced after: first
+Conflicts: deq
+ 
+Method: first
+Ready signal: outf.i_notEmpty
+Conflict-free: setGo, clearGo, first
+Sequenced before: deq
+ 
+Rule schedule
+-------------
+Rule: x3
+Predicate: outf2.i_notEmpty && gos_0
+Blocking rules: (none)
+ 
+Rule: x4
+Predicate: outf2.i_notEmpty && gos_3
+Blocking rules: x3
+ 
+Rule: x1
+Predicate: outf2.i_notEmpty && gos_1
+Blocking rules: x2, x4, x3
+ 
+Rule: x2
+Predicate: outf2.i_notEmpty && gos_2
+Blocking rules: x4, x3
+ 
+Rule: x3_1
+Predicate: outf2.i_notEmpty && gos_2
+Blocking rules: x1, x2, x4, x3
+ 
+Rule: doit
+Predicate: outf.i_notFull && gos_0
+Blocking rules: x3_1, x1, x2
+ 
+Rule: doit_1
+Predicate: outf.i_notFull && gos_1
+Blocking rules: doit, x3_1, x1, x2
+ 
+Rule: doit_2
+Predicate: outf.i_notFull && gos_2
+Blocking rules: doit_1, doit, x3_1, x1, x2
+ 
+Rule: doit_3
+Predicate: outf.i_notFull && gos_3
+Blocking rules: doit_2, doit_1, doit, x3_1, x1, x2
+ 
+Rule: doit_4
+Predicate: outf.i_notFull && gos_4
+Blocking rules: doit_3, doit_2, doit_1, doit, x3_1, x1, x2
+ 
+Rule: doit_5
+Predicate: outf.i_notFull && gos_5
+Blocking rules: doit_4, doit_3, doit_2, doit_1, doit, x3_1, x1, x2
+ 
+Logical execution order: clearGo,
+			 first,
+			 deq,
+			 x3,
+			 x4,
+			 x1,
+			 x2,
+			 x3_1,
+			 doit,
+			 doit_1,
+			 doit_2,
+			 doit_3,
+			 doit_4,
+			 doit_5,
+			 setGo
+
+==============================================
+Warning: "DUFunction6.bsv", line 51, column 22: (G0021)
+  According to the generated schedule, rule `x3_1' can never fire.
+Verilog file created: sysDUFunction6.v
+All packages are up to date.

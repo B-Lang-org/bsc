@@ -1,0 +1,4 @@
+checking package dependencies
+compiling EKindArg.bs
+Error: "EKindArg.bs", line 21, column 19: (T0028)
+  Wrong number of arguments to class: Add

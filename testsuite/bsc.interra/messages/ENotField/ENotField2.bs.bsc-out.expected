@@ -1,0 +1,9 @@
+checking package dependencies
+compiling ENotField2.bs
+Error: "ENotField2.bs", line 42, column 55: (T0016)
+  Field `b' is not in the type `ENotField2.MyStruct' which was derived for
+  this expression.
+Error: "ENotField2.bs", line 47, column 36: (T0004)
+  Unbound variable `x'
+Error: "ENotField2.bs", line 49, column 33: (T0004)
+  Unbound variable `x'

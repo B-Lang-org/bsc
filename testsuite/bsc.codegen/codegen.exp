@@ -1,0 +1,53 @@
+
+################################
+# test code generation modules #
+################################
+
+#compile_object_pass ConstructorArgumentOrder.bs sysConstructorArgumentOrder
+#link_objects_pass {sysConstructorArgumentOrder \
+#                   constructorArgumentOrderBaby.o \
+#		   constructorArgumentOrderChild.o} \
+#		   sysConstructorArgumentOrder
+#sim_final_state sysConstructorArgumentOrder 3
+#compare_file sysConstructorArgumentOrder.final-state
+
+compile_pass TmpsIfcArgsDefs.bs
+compile_object_pass TmpsIfcArgsProducer.bs mkTmpsIfcArgsProducer
+#compile_object_pass TmpsIfcArgsConsumer.bs mkTmpsIfcArgsConsumer
+#compile_object_pass TmpsIfcArgs.bs sysTmpsIfcArgs
+#link_objects_pass { mkTmpsIfcArgsProducer \
+#		    mkTmpsIfcArgsConsumer.o \
+#	            sysTmpsIfcArgs.o } \
+#                  sysTmpsIfcArgs
+#sim_final_state sysTmpsIfcArgs 64
+#compare_file sysTmpsIfcArgs.final-state
+
+compile_pass MissingCStructs.bs
+compile_object_pass MissingCStructs.bs sysMissingCStructs
+
+################################################################
+# Test that PrimConcat of 3 items in ASyntax is supported:
+
+compile_verilog_pass PrimConcatThree.bsv mkPrimConcatThree
+
+
+################################################################
+# Test handling PrimPriMux on Non-Simple then Simple conditions
+
+if {$ctest == 1} {
+compile_object_pass PrimPriMuxNSS.bsv mkPrimPriMuxNSS
+link_objects_pass {mkPrimPriMuxNSS} mkPrimPriMuxNSS
+sim_output mkPrimPriMuxNSS
+copy mkPrimPriMuxNSS.out mkPrimPriMuxNSS.c.out
+compare_file mkPrimPriMuxNSS.c.out mkPrimPriMuxNSS.out.expected
+}
+
+if {$vtest == 1} {
+compile_verilog_pass PrimPriMuxNSS.bsv mkPrimPriMuxNSS
+link_verilog_pass {mkPrimPriMuxNSS.v} mkPrimPriMuxNSS
+sim_verilog mkPrimPriMuxNSS 
+copy mkPrimPriMuxNSS.out mkPrimPriMuxNSS.v.out
+compare_file mkPrimPriMuxNSS.v.out mkPrimPriMuxNSS.out.expected
+}
+################################################################
+

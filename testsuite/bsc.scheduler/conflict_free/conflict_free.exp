@@ -1,0 +1,21 @@
+test_c_veri_bsv ConflictFreeOK
+test_c_veri_bsv ConflictFreeOK2
+test_c_veri_bsv_modules_options ConflictFreeOK3 "" "-aggressive-conditions"
+test_c_only_bsv ConflictFreeNotOK sysConflictFreeNotOK.c.out.expected
+test_veri_only_bsv ConflictFreeNotOK sysConflictFreeNotOK.v.out.expected
+
+test_c_veri_bsv ConflictFreeResource
+compile_verilog_fail_error ConflictFreeNotResource.bsv G0002
+
+# conflict_free and execution_order in conflict
+test_c_only_bsv CFExecOrder1 sysCFExecOrder1.c.out.expected
+test_veri_only_bsv CFExecOrder1 sysCFExecOrder1.v.out.expected
+
+test_c_veri_bsv CFExecOrder2
+test_c_veri_bsv CFExecOrder3
+
+test_c_only_bsv CFSwitch sysCFSwitch.c.out.expected
+test_veri_only_bsv CFSwitch sysCFSwitch.v.out.expected
+
+# test how trivial attributes are handled
+compile_verilog_pass_warning CFSingleton.bsv G0010

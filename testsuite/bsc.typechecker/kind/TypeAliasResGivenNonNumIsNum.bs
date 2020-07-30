@@ -1,0 +1,4 @@
+package TypeAliasResGivenNonNumIsNum () where
+
+type (Foo :: *) = 12
+

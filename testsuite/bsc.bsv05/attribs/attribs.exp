@@ -1,0 +1,26 @@
+# Test the parsing of attributes
+
+# ---------------
+
+# Places where attributes are not allowed
+
+compile_fail_error AttribsBVI.bsv P0202
+compile_fail_error AttribsCase.bsv P0203
+compile_fail_error AttribsNestedAction.bsv P0016
+compile_fail_error AttribsActionNakedExpr.bsv P0027
+
+# Is there a legitimate example of this? (that won't error in typecheck)
+compile_fail_error AttribsIfcNaked.bsv P0027
+
+# Ifc attributes should probably be allowed for these
+compile_fail_error AttribsSubIfcEq.bsv P0027
+compile_fail_error AttribsSubIfcSemi.bsv P0027
+
+# XXX Test others
+
+# ---------------
+
+# XXX Test for unrecognized attributes (in places that accept attributes) ?
+
+# ---------------
+

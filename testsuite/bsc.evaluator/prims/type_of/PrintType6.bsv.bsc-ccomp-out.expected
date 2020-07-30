@@ -1,0 +1,6 @@
+checking package dependencies
+compiling PrintType6.bsv
+code generation for sysPrintType6 starts
+Compilation message: function List#(void) f(function void x1(void x1), List#(void) x2)
+Elaborated module file created: sysPrintType6.ba
+All packages are up to date.

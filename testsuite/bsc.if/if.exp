@@ -1,0 +1,38 @@
+# test if handling (with lifting, etc.)
+
+proc test_lifted { sysmod src1 src2 } {  
+   bsc_compile_verilog $src1 $sysmod "-dATSexpand=$src1.atsexpand -KILLATSexpand"
+   bsc_compile_verilog $src2 $sysmod "-dATSexpand=$src2.atsexpand -KILLATSexpand"
+   compare_file $src1.atsexpand $src2.atsexpand
+}
+
+test_c_veri BasicIf
+test_c_veri BasicIfME sysBasicIf.out.expected
+
+if {$vtest == 1} {
+  test_lifted sysIfLifting IfLifting.bs IfLifted.bs
+  test_lifted sysIfLifting IfLifting2.bs IfLifted2.bs
+  test_lifted sysIfLifting IfLifting3.bs IfLifted3.bs
+  # test 4 is for actionvalues
+  bsc_compile_verilog ActionValueModule.bs mkAVMod
+  test_lifted sysIfLifting IfLifting4.bs IfLifted4.bs
+  test_lifted sysIfLiftingTwoArg IfLiftingTwoArg.bs IfLiftedTwoArg.bs
+}
+
+test_c_veri IfNestedTest
+test_c_veri IfNestedTestME sysIfNestedTest.out.expected
+test_c_veri IfMultiActionTest
+test_c_veri OrderDisplayExit
+
+if {$ctest == 1} {
+compile_object_pass NoNosplitDeep.bs sysNoNosplitDeep
+link_objects_pass sysNoNosplitDeep sysNoNosplitDeep
+sim_output sysNoNosplitDeep "-c -C -s -S -m 4"
+# compare_file sysNoNosplitDeep.out
+# temporarily disabled until coverage works again
+}
+
+compile_verilog_pass_bug IfReadBug.bs sysIfReadBug 37
+
+# make sure lifting does not disturb the order of foreign function calls
+test_c_veri_bsv LiftOrder

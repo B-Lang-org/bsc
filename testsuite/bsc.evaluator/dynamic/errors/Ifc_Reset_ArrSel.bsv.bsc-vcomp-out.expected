@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Ifc_Reset_ArrSel.bsv
+code generation for sysIfc_Reset_ArrSel starts
+Error: "Ifc_Reset_ArrSel.bsv", line 10, column 4: (G0068)
+  The expression for a reset could not be evaluated. Resets must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface output reset `rst_out' at
+  "Ifc_Reset_ArrSel.bsv", line 6, column 8.
+  During elaboration of `sysIfc_Reset_ArrSel' at "Ifc_Reset_ArrSel.bsv", line
+  6, column 8.

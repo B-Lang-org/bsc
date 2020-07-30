@@ -1,0 +1,4 @@
+test_c_veri_bsv Basic sysBasic.expected
+test_c_veri_bsv TrafficREG sysTrafficREG.expected
+test_c_veri_bsv TrafficBRAM sysTrafficBRAM.expected
+

@@ -1,0 +1,40 @@
+package TmpsIfcArgsProducer(TmpsIfcArgsProducer(..), mkTmpsIfcArgsProducer) where
+
+import TmpsIfcArgsDefs
+
+interface TmpsIfcArgsProducer =
+    get_item :: TS_item
+    get_done :: Action
+
+{-# verilog mkTmpsIfcArgsProducer #-}
+mkTmpsIfcArgsProducer :: Module TmpsIfcArgsProducer
+mkTmpsIfcArgsProducer =
+    module
+	port :: Reg (Maybe PortID)
+	port <- mkReg (Valid 0)
+
+        let
+            print_get_info  :: TS_item -> Action
+            print_get_info  x =
+		action
+		    $display "Producer: sent item "
+                    print_ts_item  x
+                    $display
+
+            get_fn :: PortID -> TS_item
+            get_fn  p = TS_EOP p
+
+            get_done_fn :: PortID -> Action
+            get_done_fn  p =
+                let
+                    item     = TS_EOP p
+		    new_port = p + 1
+                in action
+                      print_get_info  item
+		      port := Valid new_port
+
+        interface
+	    get_item   = get_fn  p
+	                 when  (Valid p) <- port
+	    get_done   = get_done_fn  p
+	                 when  (Valid p) <- port

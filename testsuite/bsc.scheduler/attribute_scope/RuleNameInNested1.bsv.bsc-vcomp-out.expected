@@ -1,0 +1,11 @@
+checking package dependencies
+compiling RuleNameInNested1.bsv
+code generation for sysRuleNameInNested1 starts
+Error: "RuleNameInNested1.bsv", line 9, column 22: (G0054)
+  Rule `branch1' was referenced in a rule attribute before it was defined.
+  During elaboration of `sysRuleNameInNested1' at "RuleNameInNested1.bsv",
+  line 2, column 8.
+Error: "RuleNameInNested1.bsv", line 9, column 31: (G0054)
+  Rule `branch2' was referenced in a rule attribute before it was defined.
+  During elaboration of `sysRuleNameInNested1' at "RuleNameInNested1.bsv",
+  line 2, column 8.

@@ -1,0 +1,13 @@
+checking package dependencies
+compiling BVI_Port_RealLiteral.bsv
+Error: "BVI_Port_RealLiteral.bsv", line 2, column 11: (T0033)
+  There is not enough explicit type information to deduce the types of all
+  expressions. Consider adding more type declarations to help resolve this
+  ambiguity.
+    An ambiguous type was introduced at "BVI_Port_RealLiteral.bsv", line 3,
+    column 16
+    This type resulted from:
+      Assignment to an imported module port in or at the following locations:
+	"BVI_Port_RealLiteral.bsv", line 3, column 16
+      Real numeric constant in or at the following locations:
+	"BVI_Port_RealLiteral.bsv", line 3, column 16

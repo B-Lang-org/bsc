@@ -1,0 +1,1 @@
+test_c_veri_bsv_multi fifoTest fifoTest {} "fifoTest.out.expected"

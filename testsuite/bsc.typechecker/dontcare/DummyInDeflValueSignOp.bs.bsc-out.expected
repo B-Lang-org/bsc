@@ -1,0 +1,24 @@
+checking package dependencies
+compiling DummyInDeflValueSignOp.bs
+Warning: "DummyInDeflValueSignOp.bs", line 5, column 12: (P0223)
+  Definition of `x' is not used.
+=== internal:
+IPackage DummyInDeflValueSignOp
+  --linked packages
+
+  --pragmas 
+
+  --idefs 
+DummyInDeflValueSignOp.y :: Prelude.Bit 12
+DummyInDeflValueSignOp.y =
+  let + :: Prelude.Bool -> Prelude.Bool -> Prelude.Bit 12
+      + = \ (_a1000 :: Prelude.Bool) . \ (x :: Prelude.Bool) . PrimBuildUndefined ·(Prelude.Bit 12) _ 1
+  in  (+)
+	(Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+	(Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+next def..........................................................
+
+
+-----
+
+All packages are up to date.

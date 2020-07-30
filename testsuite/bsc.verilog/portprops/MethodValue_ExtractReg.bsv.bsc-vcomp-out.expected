@@ -1,0 +1,15 @@
+checking package dependencies
+compiling MethodValue_ExtractReg.bsv
+code generation for sysMethodValue_ExtractReg starts
+=== IOproperties:
+Name                         I/O  size props
+m                              O    16 reg
+RDY_m                          O     1 const
+CLK                            I     1 clock
+RST_N                          I     1 reset
+
+
+-----
+
+Verilog file created: sysMethodValue_ExtractReg.v
+All packages are up to date.

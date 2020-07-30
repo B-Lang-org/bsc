@@ -1,0 +1,21 @@
+checking package dependencies
+Warning: "DupInclude.bsv", line 1, column 1: (S0088)
+  Found but could not read the file `libdir1/DupInclude.defines':
+    permission denied
+Warning: "DupInclude.bsv", line 1, column 1: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./DupInclude.defines
+  Ignoring:
+    libdir1/DupInclude.defines
+    libdir2/DupInclude.defines
+compiling DupInclude.bsv
+Warning: "DupInclude.bsv", line 1, column 1: (S0088)
+  Found but could not read the file `libdir1/DupInclude.defines':
+    permission denied
+Warning: "DupInclude.bsv", line 1, column 1: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./DupInclude.defines
+  Ignoring:
+    libdir1/DupInclude.defines
+    libdir2/DupInclude.defines
+All packages are up to date.

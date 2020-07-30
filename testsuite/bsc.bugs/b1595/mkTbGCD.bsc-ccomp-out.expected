@@ -1,0 +1,14 @@
+Warning: Unknown position: (S0088)
+  Found but could not read the file `libdir1/mkGCD.ba':
+    permission denied
+Warning: Unknown position: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./mkGCD.ba
+  Ignoring:
+    libdir1/mkGCD.ba
+    libdir2/mkGCD.ba
+Bluesim object created: mkTbGCD.{h,o}
+Bluesim object created: mkGCD.{h,o}
+Bluesim object created: model_mkTbGCD.{h,o}
+Simulation shared library created: mkTbGCD.cexe.so
+Simulation executable created: mkTbGCD.cexe

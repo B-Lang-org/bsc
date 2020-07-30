@@ -1,0 +1,7 @@
+Simulation Passes
+Final state:
+top:
+  count1 = 0x6
+  counter = 0x00000015
+  data_reg = 0x20
+  fail = False

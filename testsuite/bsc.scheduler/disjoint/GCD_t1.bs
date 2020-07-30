@@ -1,0 +1,63 @@
+package GCD_t1 (ArithIO(..), sysGCD) where
+
+type Int64 = UInt 64
+
+sysGCD :: Module Empty
+sysGCD =
+  module
+    gcd :: ArithIO Int64
+    gcd <- mkGCD
+    started :: Reg Bool
+    started <- mkReg False
+    rules
+      "init":
+	when not started
+	 ==> action { gcd.input 105198692842362 445628814024366; started := True }	-- the answer is, of course, 42
+--	 ==> action { gcd.input 10 5; started := True }	-- the answer is, of course, 5
+    interface
+	{ }
+
+interface ArithIO a =
+    input :: a -> a -> Action
+    output :: Maybe a
+
+mkGCD :: Module (ArithIO Int64)
+mkGCD =
+  module
+    x :: Reg Int64
+    x <- mkRegU
+
+    y :: Reg Int64
+    y <- mkRegU
+
+    done :: Reg Bool
+    done <- mkReg True
+
+    rules
+      "flip":
+        -- the top is equivalent to the bottom, but the top does not work with the
+        -- current bdd engine, since the rules are not minimized in the same canoncial way --
+--	when (not done) ,  (x > y) , (y /= 0)
+	when not ( (done)  ||  (x < y) || (y == 0) || (y==x) )
+
+	  ==> action
+		x := y
+	        y := x
+
+      "stop":
+	when (not done) && ( y == 0)
+	  ==> done := True
+
+      "sub":
+	when not done, x <= y, y /= 0
+	  ==> y := y - x
+
+    interface
+	input a b = action
+			done := False
+		        x := a
+			y := b
+	   when done
+	output = if done
+		 then Valid x
+		 else Invalid

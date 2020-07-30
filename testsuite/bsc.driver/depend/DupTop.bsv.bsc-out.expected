@@ -1,0 +1,10 @@
+checking package dependencies
+Warning: Unknown position: (S0089)
+  Multiple copies of a file were found in the path. Using:
+    ./DupPkg.bsv
+  Ignoring:
+    libdir1/DupPkg.bsv
+    libdir2/DupPkg.bsv
+compiling ./DupPkg.bsv
+compiling DupTop.bsv
+All packages are up to date.

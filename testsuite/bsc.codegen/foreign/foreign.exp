@@ -1,0 +1,108 @@
+# ---------------
+# Test importing of foreign functions
+
+# ---------------
+# If a simulator has bugs that prevent it from simulating the VPI output,
+# add that simulator name to the 'veribug' argument of the test procedure.
+# This will ignore diffs in the output and/or failure to link, but will
+# still test that the BSC compile step still succeeds in generating Verilog.
+# (If we just turned off the test for Verilog, then we wouldn't get that.)
+# The 'veribug' argument to test procedures is either a number (indicating
+# a bug in BSC, regardless of simulator) or a list of verilog simulators
+# to exempt.
+
+# iverilog has some bugs in VPI
+set iverilog_bug {}
+if { $verilog_compiler == "iverilog" &&
+     [regexp {^\d+\.\d+} $verilog_compiler_version majmin] } {
+    # add 'iverilog' to the list of simulators to exempt
+    set iverilog_bug $verilog_compiler
+}
+
+# ---------------
+# Value functions
+
+copy logic.c.keep logic.c
+test_c_veri_bsv_multi BDPIBit8 mkBDPIBit8 { my_and.ba my_C_or.ba logic.c }
+test_c_veri_bsv_multi BDPINonBit_Bool mkBDPINonBit_Bool { my_and.ba my_xor.ba logic.c }
+
+# Non-bitifiable types should have a clean error
+# Test for arg and result
+compile_fail_error BDPINonBit_Integer.bsv T0088
+compile_fail_error BDPINonBit_ParamNotBitifiable.bsv T0088
+compile_fail_error BDPINonBitRes_Integer.bsv T0089
+
+# ---------------
+# Functions with String type
+
+copy convert.c.keep convert.c
+make_pass "-f convert.mk" convert.o
+set convertmods { my_stoi.ba convert.o }
+test_c_veri_bsv_multi BDPIStringArg mkBDPIStringArg $convertmods
+test_c_veri_bsv_multi BDPIDynamicStringArg mkBDPIDynamicStringArg $convertmods
+
+# string results are not supported
+compile_fail_error BDPIStringResult.bsv T0087
+compile_fail_error BDPIActionValueStringResult.bsv T0087
+
+# ---------------
+# Action and ActionValue functions
+
+copy actions.c.keep actions.c
+set actionmods { my_display.ba actions.c }
+set actionvaluemods1 { my_time.ba actions.c }
+set actionvaluemods2 { my_wide_time.ba actions.c }
+set actionvaluemods3 { poly_action.ba actions.c }
+test_c_veri_bsv_multi BDPIAction mkBDPIAction $actionmods
+test_c_veri_bsv_multi BDPIPrimAction mkBDPIPrimAction $actionmods
+test_c_veri_bsv_multi BDPIActionValue mkBDPIActionValue $actionvaluemods1
+test_c_veri_bsv_multi BDPIActionValueIgnoreReturn mkBDPIActionValueIgnoreReturn $actionvaluemods1
+test_c_veri_bsv_multi BDPIActionValueIgnoreWideReturn mkBDPIActionValueIgnoreWideReturn $actionvaluemods2 {} {} $iverilog_bug
+test_c_veri_bsv_multi BDPIActionValueIgnorePolyReturn mkBDPIActionValueIgnorePolyReturn $actionvaluemods3
+# Fails due to evaluator bug
+test_c_veri_bsv_multi BDPIActionValue_ mkBDPIActionValue_ $actionvaluemods1
+
+# ---------------
+# Functions with wide data
+
+copy wide.c.keep wide.c
+test_c_veri_bsv_multi BDPIBit97 mkBDPIBit97 { popcount.ba wide.c }
+test_c_veri_bsv_multi BDPIWideResult mkBDPIWideResult { four_copies.ba wide.c }
+
+# ---------------
+# Functions with polymorphic data
+
+copy poly.c.keep poly.c
+test_c_veri_bsv_multi BDPIBitN mkBDPIBitN { poly_add.ba poly.c }
+
+# ---------------
+# ActionValue outputs through logic to system tasks
+# (tests that the intermediate assigns are inlined in Verilog codegen)
+
+test_c_veri_bsv_multi BDPIActionValueWithLogic mkBDPIActionValueWithLogic $actionvaluemods1
+
+# ---------------
+# Passing a struct from BSV to C
+
+copy struct.c.keep struct.c
+test_c_veri_bsv_multi BDPIPassingStruct mkBDPIPassingStruct {modify_struct.ba struct.c}
+
+# ---------------
+# Test that link names can start with a capital letter
+
+test_c_veri_bsv_multi BDPI_CapitalLinkName mkBDPI_CapitalLinkName \
+    { MyAnd.ba my_C_or.ba logic.c }
+
+# ---------------
+# Test for an ActionValue return by a pointer to a method output port
+
+copy xbuf.c.keep xbuf.c
+test_c_veri_bsv_multi Bug mkBug {xbuf.ba xbuf.c}
+
+# ---------------
+# Test for handling of arguments between 33 and 64 bits
+
+copy incr64.c.keep incr64.c
+test_c_veri_bsv_multi BDPIArg64 mkBDPIArg64 {func64.ba incr64.c}
+
+# ---------------

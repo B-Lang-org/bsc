@@ -1,0 +1,5 @@
+if {$vtest == 1} {
+    compile_verilog_pass Four.bsv mkFour 
+    # The enable for the reg_a should be 1
+    find_n_strings mkFour.v "state\$EN = 1'b1" 1
+}

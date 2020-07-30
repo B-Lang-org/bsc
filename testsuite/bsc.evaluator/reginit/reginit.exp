@@ -1,0 +1,22 @@
+# we should really add most of theses test to smoke tests rather than
+# regular tests since they are slow and (not very) informative
+
+test_c_veri InitExp
+test_c_veri InitUndet
+test_c_veri Init64Bit
+test_c_veri Init128Bit
+test_c_veri Init1024Bit
+test_c_veri Init2048Bit
+# above this size some Verilog tools reject the source
+test_c_only Init16384Bit
+compile_verilog_pass Init16384Bit.bs sysInit16384Bit
+test_c_only Init65536Bit
+compile_verilog_pass Init65536Bit.bs sysInit65536Bit
+
+# two separate tests because instantiation is different for C and Verilog
+compile_verilog_fail RegInitReg.bs sysRegInitReg
+compile_object_fail  RegInitReg.bs sysRegInitReg
+
+# This shouldn't fail because mkReg _ is a fairly common metaphor
+#compile_verilog_fail InitUndet.bs sysInitUndet
+#compile_object_fail InitUndet.bs sysInitUndet

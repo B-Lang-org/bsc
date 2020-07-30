@@ -1,0 +1,41 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_never_assert_vunit (assert_never_assert)
+{
+  default clock = (posedge clk);
+  
+  property ASSERT_NEVER_XZ_P = always (
+           reset_n && xzcheck_enable -> !isunknown(test_expr)); 
+
+  property ASSERT_NEVER_P = always (
+           reset_n && (xzcheck_enable ? 1'b1 : (!isunknown(test_expr))) -> !test_expr);
+
+  A_ASSERT_NEVER_XZ_P:
+  assert ASSERT_NEVER_XZ_P
+  report "VIOLATION: ASSERT_NEVER Checker Fires : test_expr contains X or Z";
+
+  A_ASSERT_NEVER_P:
+  assert ASSERT_NEVER_P
+  report "VIOLATION: ASSERT_NEVER Checker Fires : Test expression is not FALSE";
+
+}
+
+vunit assert_never_assume_vunit (assert_never_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NEVER_XZ_P = always (
+           reset_n && xzcheck_enable -> !isunknown(test_expr));
+
+  property ASSERT_NEVER_P = always (
+           reset_n && (xzcheck_enable ? 1'b1 : (!isunknown(test_expr))) -> !test_expr);
+  
+  M_ASSERT_NEVER_XZ_P:
+  assume ASSERT_NEVER_XZ_P;
+  
+  M_ASSERT_NEVER_P:
+  assume ASSERT_NEVER_P;
+
+}
+

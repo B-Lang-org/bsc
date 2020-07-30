@@ -1,0 +1,697 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>Operators</title>
+</head>
+<body>
+<div style="text-align: center;"><big><big><span
+ style="font-weight: bold;">Operators in Bluespec SV<br>
+<small><small><small>Date: 07/15/2005</small></small></small><br>
+</span></big></big></div>
+<br>
+<div style="text-align: center;"><span style="font-weight: bold;">Table
+I : &nbsp;Operators for Bit-Vectors<br>
+</span><br>
+</div>
+<table cellpadding="2" cellspacing="2" border="1"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">S.No.<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Operator<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Description<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Inputs<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Outputs<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Testcases Done<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Comments<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>1<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>+<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: plus<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>2<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>-<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: minus<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)&nbsp;</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>3<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>~</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: Bitwise Invert</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>4<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&amp;</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: AND Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>5<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>~&amp;</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: NAND Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>6<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>|</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: OR Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>7<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>~|</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: NOR Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>8<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>^</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: XOR Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>9<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>~^ &nbsp; OR &nbsp;^~</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Unary: XNOR Reduction</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>bit<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>10<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&lt;&lt;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Unary:
+Left Shift<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>11<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&gt;&gt;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Unary:
+Right Shift<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>12<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>+<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Add</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>13<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>-<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Subtract<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>14<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>*<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Multiply<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(m)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n+m)<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>15<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>/<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Divide<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small> </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>16<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>%<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Modulus<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small>not implemented</small> </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>17<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&lt;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Less than<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>18<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&gt;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Greater than<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>19<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&lt;=<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Less than or Equal to<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>20<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&gt;=<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Greater than&nbsp;or Equal to</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>21<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>==<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Equal to<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>22<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>!=<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>NOT Equal to</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) , Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>23<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&amp;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bitwise AND<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>24<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>^<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bitwise XOR</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>25<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>~^ &nbsp; OR &nbsp;^~<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bitwise Equivalence</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>26<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>|<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bitwise OR</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n) ,&nbsp;Bit#(n)</small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small>Bit#(n)<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="middle"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="left"
+ valign="top"><small><br>
+      </small></td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+<br>
+<div style="text-align: center;"><span style="font-weight: bold;">Table
+II: Operators for Booleans<br>
+</span><br>
+</div>
+<table cellpadding="2" cellspacing="2" border="1"
+ style="text-align: left; width: 100%;">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">S.No.<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Operator<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Description<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Inputs<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Outputs<br>
+      </td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Testcases Done</td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle">Comments</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>1<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>!<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Unary:
+NOT<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>2<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>==<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Equal
+to<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool ,
+Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>3<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>!=<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>NOT
+Equal to<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool ,
+Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>4<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>&amp;&amp;<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>AND<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool ,
+Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>5<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;" align="center"
+ valign="middle"><small>||<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>OR<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool ,
+Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small>Bool</small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold;"><small><br>
+      </small></td>
+    </tr>
+  </tbody>
+</table>
+<br>
+</body>
+</html>

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling FindFields.bs
+Error: "FindFields.bs", line 13, column 4: (P0073)
+  Duplicate definition of method `start' in interface `FindFields'

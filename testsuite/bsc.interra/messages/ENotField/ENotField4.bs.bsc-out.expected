@@ -1,0 +1,5 @@
+checking package dependencies
+compiling ENotField4.bs
+Error: "ENotField4.bs", line 20, column 29: (T0016)
+  Field `thr' is not in the type `ENotField4.My_pair' which was derived for
+  this expression.

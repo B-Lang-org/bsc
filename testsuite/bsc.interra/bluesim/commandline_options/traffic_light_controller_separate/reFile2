@@ -1,0 +1,17 @@
+!main.top.top.t_timer_state
+!main.top.top.t_hwy_state
+!main.top.top.t_frm_state
+!main.top.top.t_timer
+!main.top.counter
+!main.top.count_wait
+main.top.count_sig2_state
+main.top.count_sig3_state
+main.top.count_sig4_state
+!main.top.count_sig5_state
+!main.top.count_sig6_state
+!main.top.count_sig7_state
+!main.top.state
+!main.top.hwy_sig
+!main.top.frm_sig
+!main.top.long_timer_value
+!main.top.short_timer_value

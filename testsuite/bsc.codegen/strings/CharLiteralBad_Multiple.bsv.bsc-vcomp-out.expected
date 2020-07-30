@@ -1,0 +1,10 @@
+checking package dependencies
+compiling CharLiteralBad_Multiple.bsv
+code generation for sysCharLiteralBad_Multiple starts
+Error: "CharLiteralBad_Multiple.bsv", line 4, column 16: (G0125)
+  Cannot convert string to character because the length != 1:
+    "wx\t\n\f\v\r\160"
+  During elaboration of the body of rule `r' at "CharLiteralBad_Multiple.bsv",
+  line 3, column 9.
+  During elaboration of `sysCharLiteralBad_Multiple' at
+  "CharLiteralBad_Multiple.bsv", line 2, column 8.

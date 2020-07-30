@@ -1,0 +1,32 @@
+package Letrect(sysLetrect) where
+
+import List
+
+-- Testing whether the handling of the qualified type
+-- is OK (def_qtype in IConv).  It is not.
+
+-- This will fail EMutualRecursionComplicatedClause
+-- because of the dictionaries that get passed to "evens"
+-- and "odds" as arguments.
+-- This is a poor error message.
+
+-- For now, this bug is left unfixed because it is a feature
+-- we do not implement.
+
+eleven :: (Integer, Bit 16)
+eleven = let
+            evens :: (Arith a) => List a
+            evens = cons 0 (map ((+) 1) odds)
+            odds :: (Arith a) => List a
+            odds  = map ((+) 1) evens
+        in (odds !! 3, evens !! 4)
+
+sysLetrect :: Module Empty
+sysLetrect =
+  module
+    rules
+      when True ==>
+         action
+            $display (tpl_1 eleven)
+	    $display (tpl_2 eleven)
+            $finish 0

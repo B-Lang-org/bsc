@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Test.bs
+Error: "Test.bs", line 17, column 25: (T0008)
+  Unbound type variable `a'

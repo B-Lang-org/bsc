@@ -1,0 +1,21 @@
+# -----
+
+# Bug 1501:
+# Test that when a field (or constructor) is added to the symbol table
+# and it already exists in the table but with a different visibility
+# value, that we do not insert the field (or constructor) twice (and
+# that the visible info is the one that we leave in the table)
+
+compile_pass FieldDup.bsv
+
+compile_pass ConDup.bsv
+
+compile_pass TypeclassDup.bsv
+
+# Test that we properly pick between typeclass duplicates where one is
+# fully exported and one is abstractly exported, when the typeclass has
+# a superclass
+compile_pass TypeclassDupSuperAbstract.bsv
+
+# -----
+

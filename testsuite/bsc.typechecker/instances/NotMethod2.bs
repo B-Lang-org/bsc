@@ -1,0 +1,14 @@
+package NotMethod2() where
+
+-- test that we get the error if the field *does* exist, jut not for the
+-- class for which we are defining an instance
+
+import Displayable
+
+-- make sure a class exists with a field named "write"
+class Foo a where
+  write :: a -> Action
+
+-- write is not a method of Displayable
+instance Displayable String where
+  write a = $display a

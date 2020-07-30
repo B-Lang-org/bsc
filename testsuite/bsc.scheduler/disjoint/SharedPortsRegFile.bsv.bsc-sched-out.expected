@@ -1,0 +1,45 @@
+checking package dependencies
+compiling SharedPortsRegFile.bsv
+code generation for sysSharedPortsRegFile starts
+Warning: "SharedPortsRegFile.bsv", line 4, column 8: (G0010)
+  Rule "do1" was treated as more urgent than "do2". Conflicts:
+    "do1" cannot fire before "do2": calls to rg.write vs. rg.read
+    "do2" cannot fire before "do1": calls to rg.write vs. rg.read
+=== schedule:
+parallel: [esposito: [RL_do1 -> [], RL_do2 -> [RL_do1]]]
+order: [RL_do1, RL_do2]
+
+-----
+
+=== resources:
+[(idx1.read, [(idx1.read, 1)]),
+ (idx2.read, [(idx2.read, 1)]),
+ (rf.sub, [(rf.sub i__h411, 2), (rf.sub i__h443, 1)]),
+ (rg.read, [(rg.read, 1)]),
+ (rg.write, [(rg.write x__h418, 1), (rg.write x__h449, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: sysSharedPortsRegFile.sched
+=== Generated schedule for sysSharedPortsRegFile ===
+
+Rule schedule
+-------------
+Rule: do1
+Predicate: rf.sub(idx1)
+Blocking rules: (none)
+ 
+Rule: do2
+Predicate: ! rf.sub(idx2)
+Blocking rules: do1
+ 
+Logical execution order: do1, do2
+
+=====================================================
+Verilog file created: sysSharedPortsRegFile.v
+All packages are up to date.

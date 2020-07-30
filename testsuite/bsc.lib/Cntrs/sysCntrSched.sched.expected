@@ -1,0 +1,37 @@
+=== Generated schedule for sysCntrSched ===
+
+Method schedule
+---------------
+Method: incr
+Ready signal: True
+Conflict-free: decr
+Sequenced before: _write
+Sequenced after: update, _read
+Conflicts: incr
+ 
+Method: decr
+Ready signal: True
+Conflict-free: incr
+Sequenced before: _write
+Sequenced after: update, _read
+Conflicts: decr
+ 
+Method: update
+Ready signal: True
+Sequenced before: incr, decr, _write
+Sequenced after: _read
+Conflicts: update
+ 
+Method: _write
+Ready signal: True
+Sequenced before (restricted): _write
+Sequenced after: incr, decr, update, _read
+ 
+Method: _read
+Ready signal: True
+Conflict-free: _read
+Sequenced before: incr, decr, update, _write
+ 
+Logical execution order: _read, update, incr, decr, _write
+
+============================================

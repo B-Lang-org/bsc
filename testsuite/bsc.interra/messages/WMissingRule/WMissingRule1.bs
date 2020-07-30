@@ -1,0 +1,81 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: WMissingRule1.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a Syntax error (WMissingRule)
+
+-- Error Message : bsc -show-rule-rel Five Six -verilog -g mkWMissingRule1 WMissingRule1.bs
+-- bsc: Compilation warnings:
+-- Unknown position, Rule not found: "Five"
+-- Unknown position, Rule not found: "Six"
+-----------------------------------------------------------------------
+
+package WMissingRule1 (WMissingRule1(..), mkWMissingRule1) where
+
+-- import Int
+
+interface WMissingRule1 =
+         start  :: Int 32 -> Int 32 -> Int 32 -> Int 32 -> Action
+         result :: Bool
+
+mkWMissingRule1 :: Module WMissingRule1
+mkWMissingRule1 =
+            module
+
+                    w :: Reg (Int 32)
+                    w <- mkReg 0
+
+                    x :: Reg (Int 32)
+                    x <- mkReg 0
+
+                    y :: Reg (Int 32)
+                    y <- mkReg 0
+
+                    z :: Reg (Int 32)
+                    z <- mkReg 0
+
+                    res :: Reg (Bool)
+                    res <- mkReg True
+
+
+                    rules 
+                      "One" :
+                               when True
+                                      ==> action
+                                                w := x
+                                                y := x
+                                                z := x
+
+                      "Two" :
+                               when True
+                                      ==> action
+                                                x := y
+                                                z := y
+                                                w := y
+                      "Three" :
+                               when True
+                                      ==> action
+                                                x := z
+                                                y := z
+                                                w := z
+
+                      "Four" :
+                               when True
+                                      ==> action
+                                                x := w
+                                                y := w
+                                                z := w
+
+
+
+                    interface 
+                            start iw ix iy iz = action
+                                                      w := iw
+                                                      x := ix
+                                                      y := iy 
+                                                      z := iz
+                          
+                            result = res

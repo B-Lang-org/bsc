@@ -1,0 +1,10 @@
+checking package dependencies
+compiling MultiArrayDecl_Expr_WrongSize.bsv
+code generation for sysMultiArrayDecl_Expr_WrongSubSize starts
+Error: "MultiArrayDecl_Expr_WrongSize.bsv", line 8, column 20: (S0015)
+  Bluespec evaluation-time error: Array was declared as length 3 but was
+  initialized to length 4.
+  During elaboration of `r0' at "MultiArrayDecl_Expr_WrongSize.bsv", line 10,
+  column 14.
+  During elaboration of `sysMultiArrayDecl_Expr_WrongSubSize' at
+  "MultiArrayDecl_Expr_WrongSize.bsv", line 3, column 8.

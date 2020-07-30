@@ -1,0 +1,102 @@
+compile_pass Define_BITVECTOR.bsv
+compare_file Define_BITVECTOR.bsv.bsc-out
+
+compile_fail Define_BOOLVALUE.bsv
+compare_file Define_BOOLVALUE.bsv.bsc-out
+
+compile_pass Define_CaseSen.bsv
+compare_file Define_CaseSen.bsv.bsc-out
+
+compile_fail Define_diffMacroNames.bsv
+compare_file Define_diffMacroNames.bsv.bsc-out
+
+compile_pass Define_HavingMacroValueBool.bsv
+compare_file Define_HavingMacroValueBool.bsv.bsc-out
+
+compile_pass Define_IN_BITVECTOR_DECL.bsv
+compare_file Define_IN_BITVECTOR_DECL.bsv.bsc-out
+
+compile_pass Define_IN_FOR.bsv
+compare_file Define_IN_FOR.bsv.bsc-out
+
+compile_pass Define_IN_IF_STMT.bsv
+compare_file Define_IN_IF_STMT.bsv.bsc-out
+
+compile_pass Define_InsideFunction.bsv
+compare_file Define_InsideFunction.bsv.bsc-out
+
+compile_pass Define_InsideMethod.bsv
+compare_file Define_InsideMethod.bsv.bsc-out
+
+compile_pass Define_InsideModule.bsv
+compare_file Define_InsideModule.bsv.bsc-out
+
+compile_pass Define_InsideRule.bsv
+compare_file Define_InsideRule.bsv.bsc-out
+
+compile_pass Define_IN_TERNARY_STMT.bsv
+compare_file  Define_IN_TERNARY_STMT.bsv.bsc-out
+
+compile_pass Define_IN_WHILE.bsv
+compare_file Define_IN_WHILE.bsv.bsc-out
+
+compile_pass Define_MACROTAKESPARAM.bsv
+compare_file Define_MACROTAKESPARAM.bsv.bsc-out
+
+compile_pass Define_MACROVALTAKESCOMMENT.bsv
+compare_file Define_MACROVALTAKESCOMMENT.bsv.bsc-out
+
+compile_pass Define_MacroValueHavingBlockComment.bsv
+compare_file Define_MacroValueHavingBlockComment.bsv.bsc-out
+
+compile_pass Define_MacroValueHavingISingleLineComment.bsv
+compare_file Define_MacroValueHavingISingleLineComment.bsv.bsc-out
+
+compile_pass Define_MORETHANONELINE.bsv
+compare_file Define_MORETHANONELINE.bsv.bsc-out
+
+compile_pass Define_PackageLevel.bsv
+compare_file Define_PackageLevel.bsv.bsc-out
+
+compile_fail Define_RecursiveDefine.bsv 
+compare_file Define_RecursiveDefine.bsv.bsc-out  
+
+compile_pass Define_redefiningMacroValue.bsv
+compare_file Define_redefiningMacroValue.bsv.bsc-out
+
+compile_pass Define_USINDINTERFACEKEYWORD.bsv
+compare_file Define_USINDINTERFACEKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINDMETHODKEYWORD.bsv
+compare_file Define_USINDMETHODKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINGBITKEYWORD.bsv
+compare_file Define_USINGBITKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINGFUNCTIONKEYWORD.bsv
+compare_file Define_USINGFUNCTIONKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINGMODULEKEYWORD.bsv
+compare_file Define_USINGMODULEKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINGOTHERDEFINE.bsv
+compare_file Define_USINGOTHERDEFINE.bsv.bsc-out
+
+compile_pass Define_USINGPACKAGEKEYWORD.bsv
+compare_file Define_USINGPACKAGEKEYWORD.bsv.bsc-out
+
+compile_pass Define_USINGRULEKEYWORD.bsv
+compare_file Define_USINGRULEKEYWORD.bsv.bsc-out
+
+compile_fail Define_WithBlackslashQuote.bsv
+compare_file Define_WithBlackslashQuote.bsv.bsc-out 
+
+compile_fail Define_WithMacroValuewithSemiColonAtEnd.bsv
+compare_file Define_WithMacroValuewithSemiColonAtEnd.bsv.bsc-out
+
+compile_pass Define_WithSingleQuotesInMacroValue.bsv
+compare_file Define_WithSingleQuotesInMacroValue.bsv.bsc-out
+
+
+
+

@@ -1,0 +1,20 @@
+
+set packages [list \
+                  ForFold_1 \
+                  ForFold_2 \
+                  fork_join \
+                  ForLoop \
+                  IfThenElse \
+                  Map \
+                  Map_with_funnel_indexed \
+                  Reorder \
+                  SynchPipe \
+                  WhileFold_1 \
+                  WhileFold_2 \
+                  WhileLoop \
+                  ]
+
+
+foreach pack $packages {
+    test_c_veri_bsv_modules_options $pack {} {-aggressive-conditions}
+}

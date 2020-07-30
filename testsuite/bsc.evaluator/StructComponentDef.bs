@@ -1,0 +1,4 @@
+package StructComponentDef(SomeStruct(..)) where
+
+data SomeStruct = Cons1 | Cons2 (Bit 16) (Bit 16)
+	             deriving (Eq, Bits)

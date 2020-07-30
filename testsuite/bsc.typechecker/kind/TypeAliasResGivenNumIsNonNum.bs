@@ -1,0 +1,4 @@
+package TypeAliasResGivenNumIsNonNum () where
+
+type (Foo :: # -> #) a = Bit a
+

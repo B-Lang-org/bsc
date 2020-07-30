@@ -1,0 +1,28 @@
+package ResourceTwoRules(sysResourceTwoRules) where
+
+import RegFile
+import List
+
+-- We are attempting to access six elements of an array simultaneously,
+-- but Arrays only permit five simultaneous subs.
+-- Expect a priority encoder between two rules (resource constraints).
+
+type Index = Bit 8
+type Value = Bit 8
+
+lo :: Integer
+lo = 0
+
+hi :: Integer
+hi = 5
+
+sysResourceTwoRules :: Module Empty
+sysResourceTwoRules =
+      module
+	let mkRule a n = rules
+			  "Contender": when True
+			  	      ==> $display (a.sub n)
+	a :: RegFile Index Value
+	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        addRules $ foldr1 (<+>) $ map (mkRule a) $ map fromInteger $ upto lo hi 
+

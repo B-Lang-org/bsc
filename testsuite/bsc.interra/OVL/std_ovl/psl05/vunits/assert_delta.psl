@@ -1,0 +1,73 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_delta_assert_vunit (assert_delta_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_DELTA_P = always (
+           prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+           ((((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) >= min) &&
+           ((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) <= max)) ||
+           (((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) >= min) &&
+           ((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) <= max)))); 
+  
+  //Property for X/Z checking
+
+  property ASSERT_DELTA_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  A_ASSERT_DELTA_P:
+  assert ASSERT_DELTA_P
+  report "VIOLATION: ASSERT_DELTA Checker Fires: Test expression changed by a delta value not in the range specified by min and max";
+
+  A_ASSERT_DELTA_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_DELTA_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_DELTA Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_delta_assume_vunit (assert_delta_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_DELTA_P = always (
+           prev(reset_n) && reset_n && (test_expr != prev(test_expr)) ->
+           ((((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) >= min) &&
+           ((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) <= max)) ||
+           (((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) >= min) &&
+           ((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) <= max))));                                                                                                                                        
+  //Property for X/Z checking
+
+  property ASSERT_DELTA_XZ_ON_TEST_EXPR_P =
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  M_ASSERT_DELTA_P:
+  assume ASSERT_DELTA_P;
+
+  M_ASSERT_DELTA_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_DELTA_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_delta_cover_vunit (assert_delta_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_change:
+  cover {OVL_COVER_BASIC_ON && prev(reset_n) && reset_n && (test_expr != prev(test_expr))}
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_change covered";
+
+  cover_test_expr_delta_at_min:
+  cover {OVL_COVER_CORNER_ON && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) &&
+         (((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) == min) ||
+         ((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) == min))}
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_delta_at_min covered";
+  
+  cover_test_expr_delta_at_max:
+  cover {OVL_COVER_CORNER_ON && prev(reset_n) && reset_n && (test_expr != prev(test_expr)) && 
+         (((({1'b0,prev(test_expr)} - {1'b0,test_expr}) & ({1'b0,{width{1'b1}}})) == max) ||
+         ((({1'b0,test_expr} - {1'b0,prev(test_expr)}) & ({1'b0,{width{1'b1}}})) == max))}
+  report "COVERAGE REPORT : ASSERT_DELTA Checker: test_expr_delta_at_max covered";
+}
+ 

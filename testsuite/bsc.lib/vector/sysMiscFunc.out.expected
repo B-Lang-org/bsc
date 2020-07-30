@@ -1,0 +1,59 @@
+initial
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+read & writeVreg
+Values are [5:0]:    f, e, d, c, b, a
+Packed values are: fedcba
+read & writeVreg head
+Values are [5:0]:    5, 4, 3, 2, 1, 0
+Packed values are: 543210
+reverseBits: 010101000011001000010000 000010000100110000101010
+0000001 msb = 0 parity = 1, rev = 1000000, Ones = 1, MSB zeros = 6, LSB zeros = 0
+0000011 msb = 0 parity = 0, rev = 1100000, Ones = 2, MSB zeros = 5, LSB zeros = 0
+0000010 msb = 0 parity = 1, rev = 0100000, Ones = 1, MSB zeros = 5, LSB zeros = 1
+1000001 msb = 1 parity = 0, rev = 1000001, Ones = 2, MSB zeros = 0, LSB zeros = 0
+1000010 msb = 1 parity = 0, rev = 0100001, Ones = 2, MSB zeros = 0, LSB zeros = 1
+1000011 msb = 1 parity = 1, rev = 1100001, Ones = 3, MSB zeros = 0, LSB zeros = 0
+1000011 msb = 1 parity = 1, rev = 1100001, Ones = 3, MSB zeros = 0, LSB zeros = 0
+1010000 msb = 1 parity = 0, rev = 0000101, Ones = 2, MSB zeros = 0, LSB zeros = 4
+0000101 msb = 0 parity = 0, rev = 1010000, Ones = 2, MSB zeros = 4, LSB zeros = 0
+11111111 msb = 1 parity = 0, rev = 11111111, Ones =  8, MSB zeros =  0, LSB zeros =  0
+00000000 msb = 0 parity = 0, rev = 00000000, Ones =  0, MSB zeros =  8, LSB zeros =  8
+10101010 msb = 1 parity = 0, rev = 01010101, Ones =  4, MSB zeros =  0, LSB zeros =  1
+01010101 msb = 0 parity = 0, rev = 10101010, Ones =  4, MSB zeros =  1, LSB zeros =  0
+10000001 msb = 1 parity = 0, rev = 10000001, Ones =  2, MSB zeros =  0, LSB zeros =  0
+10000001,  truncateLSB = 100000 
+10000001,  truncateLSB = 10000 
+10000001,  truncateLSB = 1000 
+10000001,  truncateLSB = 100 
+10000001,  truncateLSB = 10 
+10000001,  truncateLSB = 1 
+10000001,  truncateLSB = 0 
+0010011,  truncateLSB = 001001 
+0010011,  truncateLSB = 00100 
+0010011,  truncateLSB = 0010 
+0010011,  truncateLSB = 001 
+0010011,  truncateLSB = 00 
+0010011,  truncateLSB = 0 
+0010011,  truncateLSB = 0 
+1100100,  truncateLSB = 110010 
+1100100,  truncateLSB = 11001 
+1100100,  truncateLSB = 1100 
+1100100,  truncateLSB = 110 
+1100100,  truncateLSB = 11 
+1100100,  truncateLSB = 1 
+1100100,  truncateLSB = 0 
+110001111,  truncateLSB = 110001 
+110001111,  truncateLSB = 11000 
+110001111,  truncateLSB = 1100 
+110001111,  truncateLSB = 110 
+110001111,  truncateLSB = 11 
+110001111,  truncateLSB = 1 
+110001111,  truncateLSB = 0 
+10111100,  truncateLSB = 101111 
+10111100,  truncateLSB = 10111 
+10111100,  truncateLSB = 1011 
+10111100,  truncateLSB = 101 
+10111100,  truncateLSB = 10 
+10111100,  truncateLSB = 1 
+10111100,  truncateLSB = 0 

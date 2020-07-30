@@ -1,0 +1,46 @@
+checking package dependencies
+compiling MutEx.bsv
+code generation for mkMutEx starts
+=== schedule:
+parallel: [esposito: [RL_r1 -> [], RL_r2 -> [], RL_done -> []]]
+order: [RL_r1, RL_r2, RL_done]
+
+-----
+
+=== resources:
+[(flag_0.read, [(flag_0.read, 1)]),
+ (flag_0.write, [(flag_0.write 1'd0, 1)]),
+ (flag_1.read, [(flag_1.read, 1)]),
+ (flag_1.write, [(flag_1.write 1'd0, 1)]),
+ (x.read, [(x.read, 1)]),
+ (x.write, [(x.write NOT_x___d3, 1)])]
+
+-----
+
+=== vschedinfo:
+SchedInfo [] [] [] []
+
+-----
+
+Schedule dump file created: mkMutEx.sched
+=== Generated schedule for mkMutEx ===
+
+Rule schedule
+-------------
+Rule: r1
+Predicate: flag_0
+Blocking rules: (none)
+ 
+Rule: r2
+Predicate: flag_1 && (! flag_0)
+Blocking rules: (none)
+ 
+Rule: done
+Predicate: {flag_1, flag_0} == 2'd0
+Blocking rules: (none)
+ 
+Logical execution order: r1, r2, done
+
+=======================================
+Verilog file created: mkMutEx.v
+All packages are up to date.

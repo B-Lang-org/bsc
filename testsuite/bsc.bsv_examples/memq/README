@@ -1,0 +1,92 @@
+This directory contains two versions of a simple priority queue
+package (the second one pipelined), together with a definition using
+one of those to define a queue approximating your structure, and a
+rudimentary testbench.  These versions place entries in the queue
+according to just one simple priority ordering.
+
+The two versions both satisfy the testbench: the output from each is 
+identical, as follows:
+--------
+VCD info: dumpfile dump.vcd opened for output.
+          1: In:  (   7, 0,    0)
+          2: In:  (   3, 1,    1)
+          3: Out: (   7, 0,    0)
+          3: In:  (   8, 0,    2)
+          4: In:  (   2, 0,    3)
+          4: Out: (   7, 0,    0)
+          6: In:  (   6, 1,    4)
+          7: In:  (   6, 1,    5)
+          8: Out: (   6, 1,    4)
+          9: In:  (   2, 0,    6)
+         11: Out: (   6, 1,    5)
+         12: Out: (   3, 1,    1)
+         13: Out: (   2, 0,    3)
+         14: Out: (   2, 0,    6)
+         15: In:  (   2, 0,    7)
+         16: Out: (   2, 0,    7)
+         18: In:  (   6, 1,   99)
+--------
+
+The files in the tarball are as follows:
+
+QType.bsv  -  the definition of the interface for priority queues.
+PriQ1.bsv  - the non-pipelined version of a priority queue module
+PriQ2.bsv  - the pipelined version
+DQueueConfig.bsv  - configuration parameters for the particular application
+DQueue.bsv  - the definition of the particular queue entry type, and a 
+  queue module for it
+DQueueTb.bsv  - a simple testbench
+mkQueue-nonpipe-opt.v  - the optimized RTL version of the non-pipelined queue
+  for this application (output from the tool)
+mkQueue-pipe-opt.v  - the optimized RTL version of the pipelined queue.
+mkQueue-nonpipe-debug.v, mkQueue-pipe-debug.v  - the same, in less 
+  optimized versions, easier for debugging and reading
+
+All the .bsv source files are commented in detail.  Note, though, that 
+the texts of PriQ1 and PriQ2 are very similar; I have removed all the 
+common commentary from PriQ2, and the only comments remaining are about 
+the differences between the two versions.  I will admit that when I 
+produced PriQ1 I had it in mind that the design would eventually be 
+pipelined, so I structured it to make that change easy.
+
+To help you look at the Verilog output, let's glance at 
+mkQueue-pipe-debug.v (note that as output by the tool, any of the four 
+versions would be called simply mkQueue.v).  The initial comment first 
+gives the conflict information for the various methods: deq is 
+conflict-free with enq and first, and enq is conflict-free with first: 
+that is, they may safely be fired simultaneously.  The other three 
+methods are "sequenced before" clear: that is, if they are fired in the 
+same cycle, the expected effect must be the same as if the other methods 
+fired before the clear -- so the final state of the queue will be 
+empty.  The tool will enforce this if the module is called from bsv 
+code; of course, if the module is called from Verilog the designer must 
+observe it.
+
+The comment next lists the various I/O ports.  Note that each method has 
+a RDY (ready) signal -- in the case of clear, which is always ready, it 
+is a constant 1.  And each method which does something (that is, all 
+except first) has an EN (enable) signal, to cause the action to take 
+place.  It is a basic protocol that no method may be used unless it has 
+asserted its RDY signal -- again, the tool will enforce this for bsv 
+callers.
+
+After the wire definitions come the instantiations of internal 
+sub-modules.  In this case they are all Verilog primitives (registers 
+and RWires), but in general might instead be instantiations of 
+separately synthesized BSV modules.  The various appearances of 
+101'h0AAAA... etc. are the "Invalid" value -- we use the "AAA" pattern 
+(10101010... in binary) as our "don't care" value, as it is easily 
+recognisable in waves. 
+
+Then comes the wiring up.  Note that each rule in the source has a 
+"CAN_FIRE" and a "WILL_FIRE" signal associated with it.  The CAN_FIRE 
+indicates that the rule's conditions for firing are satisfied.  In this 
+design, the WILL_FIRE is always equal to the corresponding CAN_FIRE; but 
+sometimes the scheduling logic will inhibit a rule when there is a 
+resource conflict with a more urgent rule.  When debugging it is useful 
+to preserve all these signals, as they are helpful in determining why 
+something hasn't happened when you thought it should; but in the other 
+version they are often optimised away.  The other notable difference in 
+the optimised versions is that the RWire primitives are inlined -- since 
+they consist only of wires, doing this is particularly useful as it 
+allows further optimisation to happen.

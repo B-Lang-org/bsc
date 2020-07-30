@@ -1,0 +1,16 @@
+# create the test data 
+make_pass test_data {-f Makefile.data}
+
+test_c_veri_bsv_modules TesterA   mkFPAdd
+
+test_c_veri_bsv_modules TesterM   mkFPMult
+
+test_c_veri_bsv_modules TesterA64 mkFPAdd64
+
+test_c_veri_bsv_modules TesterM64 mkFPMult64
+
+test_c_veri_bsv_modules TesterMac mkFPMac
+
+test_c_veri_bsv_modules TesterMac64 mkFPMac64
+ 
+# make_ignore cleandata

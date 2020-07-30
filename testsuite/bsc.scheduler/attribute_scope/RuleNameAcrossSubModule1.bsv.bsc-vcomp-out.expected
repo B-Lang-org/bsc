@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleNameAcrossSubModule1.bsv
+code generation for sysRuleNameAcrossSubModule1 starts
+Warning: "RuleNameAcrossSubModule1.bsv", line 18, column 9: (G0021)
+  According to the generated schedule, rule `s_r2' can never fire.
+Verilog file created: sysRuleNameAcrossSubModule1.v
+All packages are up to date.

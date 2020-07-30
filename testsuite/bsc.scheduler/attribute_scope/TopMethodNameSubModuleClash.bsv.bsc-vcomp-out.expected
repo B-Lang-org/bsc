@@ -1,0 +1,29 @@
+checking package dependencies
+compiling TopMethodNameSubModuleClash.bsv
+code generation for sysTopMethodNameSubModuleClash starts
+Warning: "TopMethodNameSubModuleClash.bsv", line 32, column 29: (G0123)
+  Ignoring reference to method `sub_mymethod2'. Scheduling attributes on
+  inlined methods are not yet supported.
+  During elaboration of `m' at "TopMethodNameSubModuleClash.bsv", line 15,
+  column 8.
+  During elaboration of `sysTopMethodNameSubModuleClash' at
+  "TopMethodNameSubModuleClash.bsv", line 14, column 8.
+Warning: "TopMethodNameSubModuleClash.bsv", line 33, column 29: (G0123)
+  Ignoring reference to method `mymethod1'. Scheduling attributes on inlined
+  methods are not yet supported.
+  During elaboration of `m' at "TopMethodNameSubModuleClash.bsv", line 15,
+  column 8.
+  During elaboration of `sysTopMethodNameSubModuleClash' at
+  "TopMethodNameSubModuleClash.bsv", line 14, column 8.
+Warning: "TopMethodNameSubModuleClash.bsv", line 14, column 8: (G0010)
+  Rule "mymethod1" was treated as more urgent than "m_r". Conflicts:
+    "mymethod1" cannot fire before "m_r": calls to m_rg1.write vs. m_rg1.read
+    "m_r" cannot fire before "mymethod1": calls to m_rg1.write vs. m_rg1.read
+Warning: "TopMethodNameSubModuleClash.bsv", line 14, column 8: (G0010)
+  Rule "sub_mymethod2" was treated as more urgent than "m_r". Conflicts:
+    "sub_mymethod2" cannot fire before "m_r":
+      calls to m_rg2.write vs. m_rg2.read
+    "m_r" cannot fire before "sub_mymethod2":
+      calls to m_rg2.write vs. m_rg2.read
+Verilog file created: sysTopMethodNameSubModuleClash.v
+All packages are up to date.

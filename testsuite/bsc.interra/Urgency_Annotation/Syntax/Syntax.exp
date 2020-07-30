@@ -1,0 +1,28 @@
+if {$ctest == 1} {
+compile_object_pass Dot_Notation_Rule_Name.bsv mkDot_Notation_Rule_Name
+no_warnings Dot_Notation_Rule_Name.bsv.bsc-ccomp-out
+
+compile_object_pass Elaborated_Rule_Name.bsv mkElaborated_Rule_Name
+no_warnings Elaborated_Rule_Name.bsv.bsc-ccomp-out
+
+#compile_object_pass Five_Hundred_Rules.bsv mkFive_Hundred_Rules
+
+compile_object_pass Hierarchy4_Dot_Notation_Rule_Name.bsv mkHierarchy4_Dot_Notation_Rule_Name
+no_warnings Hierarchy4_Dot_Notation_Rule_Name.bsv.bsc-ccomp-out
+
+compile_object_pass Hierarchy4_Elaborated_Rule_Name.bsv mkHierarchy4_Elaborated_Rule_Name
+no_warnings Hierarchy4_Elaborated_Rule_Name.bsv.bsc-ccomp-out
+
+compile_object_pass Nested_Rules.bsv mkNested_Rules
+no_warnings Nested_Rules.bsv.bsc-ccomp-out
+
+compile_object_pass Rules_Block.bsv mkRules_Block
+no_warnings Rules_Block.bsv.bsc-ccomp-out
+
+compile_object_pass_bug Same_Rule_Name.bsv mkSame_Rule_Name 644
+# When the above bug is fixed, add this check:
+#no_warnings Same_Rule_Name.bsv.bsc-ccomp-out
+
+compile_object_pass Two_Conflicting_Rules.bsv mkTwo_Conflicting_Rules
+no_warnings Two_Conflicting_Rules.bsv.bsc-ccomp-out
+}

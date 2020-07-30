@@ -1,0 +1,13 @@
+data MOD_sysStringInstArg =
+    MOD_sysStringInstArg
+	{ inst_i__sysStringInstArg :: MOD_mkStringInstArg_Sub };
+
+ctor_sysStringInstArg :: MOD_sysStringInstArg;
+ctor_sysStringInstArg =
+    MOD_sysStringInstArg { inst_i__sysStringInstArg = ctor_mkStringInstArg_Sub "Hello" };
+
+dim_sysStringInstArg :: MOD_sysStringInstArg -> MOD_sysStringInstArg -> Bool;
+dim_sysStringInstArg =
+    (\ (mod1 :: MOD_sysStringInstArg) ->
+     (\ (mod2 :: MOD_sysStringInstArg) ->
+      dim_mkStringInstArg_Sub (inst_i__sysStringInstArg mod1) (inst_i__sysStringInstArg mod2)));

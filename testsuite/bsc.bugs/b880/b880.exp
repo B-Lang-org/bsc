@@ -1,0 +1,2 @@
+compile_fail_error FieldSelectError.bsv T0138
+compare_file FieldSelectError.bsv.bsc-out

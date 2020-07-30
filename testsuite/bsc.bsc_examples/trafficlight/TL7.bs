@@ -1,0 +1,175 @@
+package TL7 (sysTL, TL) where {
+
+  -- Simple model of a traffic light
+
+  -- Version 7: Add interface outputs for the lamps
+
+  interface TL = { ped_button_push :: Action;
+                   set_car_state_N :: Bool -> Action;
+                   set_car_state_S :: Bool -> Action;
+                   set_car_state_E :: Bool -> Action;
+                   set_car_state_W :: Bool -> Action;
+
+                   lampRedNS       :: Bool;
+                   lampAmberNS     :: Bool;
+                   lampGreenNS     :: Bool;
+
+                   lampRedE        :: Bool;
+                   lampAmberE      :: Bool;
+                   lampGreenE      :: Bool;
+
+                   lampRedW        :: Bool;
+                   lampAmberW      :: Bool;
+                   lampGreenW      :: Bool;
+
+                   lampRedPed      :: Bool;
+                   lampAmberPed    :: Bool;
+                   lampGreenPed    :: Bool;
+                 };
+
+  data TLstates = AllRed
+                | GreenNS  | AmberNS
+                | GreenE   | AmberE
+                | GreenW   | AmberW
+                | GreenPed | AmberPed
+                deriving (Eq, Bits);
+
+  type Time32 = UInt 5;
+
+  sysTL :: Module TL;
+  sysTL =
+      module {
+          state :: Reg TLstates;
+          state <- mkReg AllRed;
+
+          next_green :: Reg TLstates;
+          next_green <- mkReg GreenNS;
+
+          secs :: Reg Time32;
+          secs <- mkReg 0;
+
+          ped_button_pushed :: Reg Bool;
+          ped_button_pushed <- mkReg False;
+
+          car_present_NS :: Reg Bool;
+          car_present_NS <- mkReg True;
+
+          car_present_E :: Reg Bool;
+          car_present_E <- mkReg True;
+
+          car_present_W :: Reg Bool;
+          car_present_W <- mkReg True;
+
+          let {
+              allRedDelay :: Time32;
+              allRedDelay = 2;
+
+              amberDelay :: Time32;
+              amberDelay = 4;
+
+              ns_green_delay :: Time32;
+              ns_green_delay = 20;
+
+              ew_green_delay :: Time32;
+              ew_green_delay = 10;
+
+              pedGreenDelay :: Time32;
+              pedGreenDelay = 10;
+
+              pedAmberDelay :: Time32;
+              pedAmberDelay = 6;
+
+              next_state :: TLstates -> Action;
+              next_state  ns = action { state := ns; secs := 0; };
+
+              green_seq  :: TLstates -> TLstates;
+              green_seq  GreenNS = GreenE;
+              green_seq  GreenE  = GreenW;
+              green_seq  GreenW  = GreenNS;
+
+              car_present  :: TLstates -> Bool;
+              car_present  GreenNS = car_present_NS;
+              car_present  GreenE  = car_present_E;
+              car_present  GreenW  = car_present_W;
+          };
+      interface {
+          ped_button_push   = ped_button_pushed  := True;
+          set_car_state_N b = car_present_NS     := b;
+          set_car_state_S b = car_present_NS     := b;
+          set_car_state_E b = car_present_E      := b;
+          set_car_state_W b = car_present_W      := b;
+
+          lampRedNS    = not ((state == GreenNS) || (state == AmberNS));
+          lampAmberNS  = state == AmberNS;
+          lampGreenNS  = state == GreenNS;
+
+          lampRedE     = not ((state == GreenE) || (state == AmberE));
+          lampAmberE   = state == AmberE;
+          lampGreenE   = state == GreenE;
+
+          lampRedW     = not ((state == GreenW) || (state == AmberW));
+          lampAmberW   = state == AmberW;
+          lampGreenW   = state == GreenW;
+
+          lampRedPed   = not ((state == GreenPed) || (state == AmberPed));
+          lampAmberPed = state == AmberPed;
+          lampGreenPed = state == GreenPed;
+      };
+      addRules $
+        rules {
+          "wait": when True ==> secs := secs + 1
+        }
+
+        +>
+
+        rules {
+          "fromAllRed":
+            when (state == AllRed) && ((secs + 1) >= allRedDelay)
+              ==> if ped_button_pushed then
+                      action { ped_button_pushed := False; next_state (GreenPed); }
+                  else if car_present (next_green) then
+                      next_state (next_green)
+                  else if car_present (green_seq next_green) then
+                      next_state (green_seq next_green)
+                  else if car_present (green_seq (green_seq next_green)) then
+                      next_state (green_seq (green_seq next_green))
+                  else
+                      next_state (AllRed);
+
+          "fromGreenPed":
+            when (state == GreenPed) && ((secs + 1) >= pedGreenDelay)
+            ==>  next_state (AmberPed);
+
+          "fromAmberPed":
+            when (state == AmberPed) && ((secs + 1) >= pedAmberDelay)
+            ==>  next_state (AllRed);
+
+          "fromGreenNS":
+            when (state == GreenNS) &&
+                 (((secs + 1) >= ns_green_delay) || not car_present_NS)
+            ==>  next_state (AmberNS);
+
+          "fromAmberNS":
+            when (state == AmberNS) && ((secs + 1) >= amberDelay)
+            ==>  action { next_state (AllRed); next_green := GreenE; };
+
+          "fromGreenE":
+            when (state == GreenE) &&
+                 (((secs + 1) >= ew_green_delay) || not car_present_E)
+            ==>  next_state (AmberE);
+
+          "fromAmberE":
+            when (state == AmberE) && ((secs + 1) >= amberDelay)
+            ==>  action { next_state (AllRed); next_green := GreenW; };
+
+          "fromGreenW":
+            when (state == GreenW) &&
+                 (((secs + 1) >= ew_green_delay) || not car_present_W)
+            ==>  next_state (AmberW);
+
+          "fromAmberW":
+            when (state == AmberW) && ((secs + 1) >= amberDelay)
+            ==>  action { next_state (AllRed); next_green := GreenNS; };
+        }
+      }
+}

@@ -1,0 +1,14 @@
+package ActionValueModule(AVIFC(..), mkAVMod) where
+
+interface AVIFC =
+   f :: Bool -> ActionValue (Bit 16)
+
+{-# verilog mkAVMod #-}
+mkAVMod :: Module AVIFC
+mkAVMod =
+   module
+     r :: Reg (Bit 16) <- mkReg 0
+
+     interface
+        f x = do if (x) then r := r + 1 else noAction
+	         return r

@@ -1,0 +1,23 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: ETooGeneral.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the ETooGeneral error of the bluespec
+-- compiler (Signature Mismatch, given too general)
+--
+-----------------------------------------------------------------------
+
+
+
+package ETooGeneral() where
+
+-- import Int
+
+sum :: (Add 1 a b, Add a 1 b) => Int a -> Int a -> Int 1 -> Int b
+sum x y z = x + y + z;
+
+
+

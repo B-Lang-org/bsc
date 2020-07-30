@@ -1,0 +1,630 @@
+MAC Address is: 00.01.00.00.00.01
+MAC Address is: 00.01.00.00.00.01
+Starting TxRxPntArray init sequence (15)
+Starting SWEM init sequence.
+Starting DUT init sequence.
+Starting TxRxPntArray init sequence (15)
+Starting SWEM init sequence.
+Starting DUT init sequence.
+(   25) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(   25) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (   35)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (   35)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+TX i =     8, val = 00008800
+TX i =     8, val = 00008800
+SWEM init sequence complete.
+SWEM init sequence complete.
+TX i =     7, val = 00007800
+TX i =     7, val = 00007800
+TX i =     6, val = 00006800
+TX i =     6, val = 00006800
+TX i =     5, val = 00005800
+TX i =     5, val = 00005800
+TX i =     4, val = 00004800
+TX i =     4, val = 00004800
+TX i =     3, val = 00003800
+TX i =     3, val = 00003800
+TX i =     2, val = 00002800
+TX i =     2, val = 00002800
+TX i =     1, val = 00001800
+TX i =     1, val = 00001800
+RX i =     8, val = 00000800
+RX i =     8, val = 00000800
+RX i =     7, val = 0000f800
+RX i =     7, val = 0000f800
+RX i =     6, val = 0000e800
+RX i =     6, val = 0000e800
+RX i =     5, val = 0000d800
+RX i =     5, val = 0000d800
+RX i =     4, val = 0000c800
+RX i =     4, val = 0000c800
+RX i =     3, val = 0000b800
+RX i =     3, val = 0000b800
+RX i =     2, val = 0000a800
+RX i =     2, val = 0000a800
+RX i =     1, val = 00009800
+RX i =     1, val = 00009800
+TxRxPntArray init sequence complete (2545)
+TxRxPntArray init sequence complete (2545)
+Turn on receive mode.
+Turn on transmit mode.
+Turn on receive mode.
+Turn on transmit mode.
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (13310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (13310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+DUT init sequence completed.
+DUT init sequence completed.
+(18810) Finished, no collision
+(18810) Finished, no collision
+(19125) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(19125) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (19135)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (19135)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(19635) Interrupt!
+(19635) Interrupt!
+Doing interrupt READ
+Doing interrupt READ
+(19995) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(19995) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(20015) (Port 0) serializing
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(20015) (Port 1) serializing
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(20045) (Port 0) withdrawing address 0
+(20565) Port (0) .... Frame Assembled !!!!!!!!!!!!!!!!!.
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 400, tx_pnt = 8800 (20585)
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(20595) (Port 0) depositing address 0
+(20615) (Port 0) withdrawing address 1
+(21135) Port (0) .... Frame Assembled !!!!!!!!!!!!!!!!!.
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+Into SWEM bd_addr = 408, tx_pnt = 7800 (21155)
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(21165) (Port 0) depositing address 1
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Found Preamble (length =         15) ... (23210)
+Should be d: d ... (23310)
+(26775) Interrupt!
+Doing interrupt READ
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Transmit test frame assembled ...        600        144        456 (27110).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (27305).
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (29210).
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (29210).
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(29910) Collision!
+(30010) Collision!
+(30110) Collision!
+(30210) Collision!
+(30310) Collision!
+(30410) Collision!
+(30510) Collision!
+(30610) Collision!
+(30710) Collision!
+(30810) Collision!
+(30910) Collision!
+(31010) Collision!
+(31110) Collision!
+(31210) Collision!
+(31310) Collision!
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Found Preamble (length =         15) ... (31310)
+Should be d: d ... (31410)
+(31410) Collision!
+(31510) Collision!
+(31610) Collision!
+(31710) Collision!
+(31810) Collision!
+(31910) Collision!
+(32010) Collision!
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (32115)
+(instance main.top.slice0_dut_wrapped):   Attempt #1: 
+(instance main.top.slice0_dut_wrapped): Backing off for 1 slot times (max 2) ... (      5120 cycles)
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Transmit test frame assembled ...        600         32        568 (32410).
+Error: CRC value is not correct!!!, discarding
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 999999990000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(43910) Finished, no collision
+(44225) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (44235)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(44535) Interrupt!
+Doing interrupt READ
+(45115) Receive test frame assembled,
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(45135) (Port 1) serializing
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(45165) (Port 1) withdrawing address 1
+(46895) Port (1) .... Frame Assembled !!!!!!!!!!!!!!!!!.
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+Into SWEM bd_addr = 400, tx_pnt = 8800 (46915)
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(46925) (Port 1) depositing address 1
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Found Preamble (length =         15) ... (48610)
+Should be d: d ... (48710)
+(instance main.top.slice1_dut_wrapped.phy.mii_rx): Found Preamble (length =         15) ... (50310)
+Should be d: d ... (50410)
+(52175) Interrupt!
+Doing interrupt READ
+(instance main.top.slice0_dut_wrapped.phy.mii_rx): Transmit test frame assembled ...        600        144        456 (52510).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    0
+          src: aaabaaaaaaaa
+          dst: aaabaaaaaaaa
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(MAC): Received frame transmitted (52705).
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (54310).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(63075) Interrupt!
+Doing interrupt READ
+(instance main.top.slice1_dut_wrapped.phy.mii_rx): Transmit test frame assembled ...        600        512         88 (63410).
+Notice: CRC value is correct!!!
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(MAC): Received frame transmitted (63605).
+(69110) Finished, no collision
+(69425) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (69435)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (79510).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (83810).
+[FRAME opcode: IGNORE
+           id:    2
+          src: 550255555555
+          dst: 550255555555
+       format: TAGGED
+         size:    42
+         data: aab6aaaaaab5aaaa ....
+]
+(87410) Finished, no collision
+(87725) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (87735)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (97810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(98510) Finished, no collision
+(98825) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (98835)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(103310) Finished, no collision
+(103625) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (103635)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (108910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (113710).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(114410) Finished, no collision
+(114725) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (114735)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(119210) Finished, no collision
+(119525) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (119535)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (124810).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 1517d5555529
+          dst: 1517d5555529
+       format: UNTAGGED
+         size:    12
+         data: 2afaeaaaaad12aaa ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (129610).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(132710) Finished, no collision
+(133025) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (133035)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(135710) Finished, no collision
+(136025) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (136035)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (143110).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 0adceaaaaac3
+          dst: 0adceaaaaac3
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (146110).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(148610) Finished, no collision
+(148925) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (148935)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(152610) Finished, no collision
+(152925) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (152935)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (159010).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (163010).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 00865eaaaa8d
+          dst: 00865eaaaa8d
+       format: CONTROL
+         size:     0
+         data: 0000000000000000 ....
+]
+(164510) Finished, no collision
+(164825) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (164835)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(168510) Finished, no collision
+(168825) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(instance main.top.slice1_dut_wrapped): Attempting to transmit frame from mac to phy ... (168835)
+(instance main.top.slice1_dut_wrapped):   Attempt #0: 
+(instance main.top.slice0_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (174910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 02b77aaaaa9b
+          dst: 02b77aaaaa9b
+       format: UNTAGGED
+         size:     3
+         data: 0ae9fa0000000000 ....
+]
+(instance main.top.slice1_dut_wrapped.phy.mii_tx): Transmitting frame enters phy ... (178910).
+[FRAME opcode: IGNORE
+           id:    0
+          src: 000000000000
+          dst: 000000000000
+       format: UNTAGGED
+         size:     0
+         data: 0000000000000000 ....
+]
+(181010) Finished, no collision
+(181325) Frame received in MAC.
+[FRAME opcode: IGNORE
+           id:    0
+          src: 010cbd55551a
+          dst: 010cbd55551a
+       format: UNTAGGED
+         size:     5
+         data: 05237d5555000000 ....
+]
+(instance main.top.slice0_dut_wrapped): Attempting to transmit frame from mac to phy ... (181335)
+(instance main.top.slice0_dut_wrapped):   Attempt #0: 
+(184410) Finished, no collision
+(184725) Frame received in MAC.

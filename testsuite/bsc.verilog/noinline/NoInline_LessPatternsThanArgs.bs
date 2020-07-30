@@ -1,0 +1,24 @@
+package NoInline_LessPatternsThanArgs(sysNoInline_LessPatternsThanArgs) where
+
+{-# noinline testLessPatterns #-}
+testLessPatterns :: (Bit 5) -> (Bit 5) -> (Bit 5)
+testLessPatterns = const (const 2)
+
+{-# verilog sysNoInline_LessPatternsThanArgs #-}
+sysNoInline_LessPatternsThanArgs :: Module Empty
+sysNoInline_LessPatternsThanArgs = 
+  module
+    r :: Reg (Bit 5) <- mkReg 0
+    set :: Reg (Bool) <- mkReg False
+
+    rules 
+      when True ==> 
+       action
+         r := testLessPatterns r 7
+         set := True
+
+      when set ==>
+        action
+          if (r == 2) then $display "Pass" else $display "Fail"
+          $finish 0
+         

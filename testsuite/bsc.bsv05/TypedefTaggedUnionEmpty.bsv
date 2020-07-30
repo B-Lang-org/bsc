@@ -1,0 +1,3 @@
+typedef union tagged {
+} TaggedUnionEmpty;
+

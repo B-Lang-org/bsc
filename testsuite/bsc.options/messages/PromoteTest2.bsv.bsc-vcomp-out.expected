@@ -1,0 +1,21 @@
+checking package dependencies
+compiling PromoteTest2.bsv
+code generation for sysWarnings starts
+Warning: "PromoteTest2.bsv", line 15, column 8: (G0020)
+  System functions (e.g., $display) called by interface methods execute in an
+  unpredictable order during Verilog simulations.
+      Top-level interface method `m2' calls a system function (e.g., $display)
+      at "PromoteTest2.bsv", line 38, column 7
+Warning: "PromoteTest2.bsv", line 15, column 8: (G0010)
+  Rule "m1" was treated as more urgent than "r3". Conflicts:
+    "m1" cannot fire before "r3": calls to rg3.write vs. rg3.read
+    "r3" cannot fire before "m1": calls to rg2.write vs. rg2.read
+Warning: "PromoteTest2.bsv", line 15, column 8: (G0117)
+  Rule `r2' shadows the effects of `r1' when they execute in the same clock
+  cycle. Affected method calls:
+    rg1.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Error: "PromoteTest2.bsv", line 15, column 8: (G0036)
+  Rule "r1" will appear to fire before "r2" when both fire in the same clock
+  cycle, affecting:
+    calls to rg1.write vs. rg1.write

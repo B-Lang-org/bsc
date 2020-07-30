@@ -1,0 +1,69 @@
+if { $vtest == 1 } {
+
+# ---------------
+# Real number operations
+
+# Division by zero
+compile_verilog_fail_error DivZero.bsv G0059
+compare_file DivZero.bsv.bsc-vcomp-out
+
+# Mod operator doesn't exist, so no test
+
+# Log base zero
+compile_verilog_fail_error LogBaseZero.bsv G0110
+compare_file LogBaseZero.bsv.bsc-vcomp-out
+
+# Log with a negative base
+compile_verilog_fail_error LogBaseNegative.bsv G0110
+compare_file LogBaseNegative.bsv.bsc-vcomp-out
+
+# Log base 1 of 1
+compile_verilog_fail_error LogBaseOneOne.bsv G0111
+compare_file LogBaseOneOne.bsv.bsc-vcomp-out
+
+# Sqrt of zero
+compile_verilog_fail_error SqrtNegative.bsv G0112
+compare_file SqrtNegative.bsv.bsc-vcomp-out
+
+# Add +INF and -INF
+compile_verilog_fail_error AddPosInfNegInf.bsv G0113
+compare_file AddPosInfNegInf.bsv.bsc-vcomp-out
+
+# Add -INF and +INF
+compile_verilog_fail_error AddNegInfPosInf.bsv G0113
+compare_file AddNegInfPosInf.bsv.bsc-vcomp-out
+
+# Sub +INF from itself
+compile_verilog_fail_error SubPosInf.bsv G0113
+compare_file SubPosInf.bsv.bsc-vcomp-out
+
+# Sub -INF from itself
+compile_verilog_fail_error SubNegInf.bsv G0113
+compare_file SubNegInf.bsv.bsc-vcomp-out
+
+# Mul +0 by +INF
+compile_verilog_fail_error MulPosZeroPosInf.bsv G0114
+compare_file MulPosZeroPosInf.bsv.bsc-vcomp-out
+
+# Mul -0 by +INF
+compile_verilog_fail_error MulNegZeroPosInf.bsv G0114
+compare_file MulNegZeroPosInf.bsv.bsc-vcomp-out
+
+# Mul +0 by -INF
+compile_verilog_fail_error MulPosZeroNegInf.bsv G0114
+compare_file MulPosZeroNegInf.bsv.bsc-vcomp-out
+
+# Mul -0 by -INF
+compile_verilog_fail_error MulNegZeroNegInf.bsv G0114
+compare_file MulNegZeroNegInf.bsv.bsc-vcomp-out
+
+# Creating NaN from bits
+compile_verilog_fail_error BitsToNaN1.bsv G0115
+compare_file BitsToNaN1.bsv.bsc-vcomp-out
+# and with sign bit set to 1
+compile_verilog_fail_error BitsToNaN2.bsv G0115
+compare_file BitsToNaN2.bsv.bsc-vcomp-out
+
+# ---------------
+
+}

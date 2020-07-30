@@ -1,0 +1,13 @@
+package TypeCheck_Pass_SuperClass(C(..)) where
+
+class (Literal a, Ord a) => C a where
+  f :: a -> Bool
+  g :: a -> Bool
+  g x = x < 17
+  h :: a -> Bool
+
+
+instance C Integer where
+  f x = x > 17
+  h x = x > 2
+

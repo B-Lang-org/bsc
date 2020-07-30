@@ -1,0 +1,2 @@
+compile_fail ESyntax1.bs
+compare_file ESyntax1.bs.bsc-out

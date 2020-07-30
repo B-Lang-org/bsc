@@ -1,0 +1,16 @@
+Extracting from size           8 to size           8: ff
+Extracting from size           8 to size          32: 000000ff
+Extracting from size           8 to size          64: 00000000000000ff
+Extracting from size           8 to size         128: 000000000000000000000000000000ff
+Extracting from size          32 to size           8: ff
+Extracting from size          32 to size          32: ffffffff
+Extracting from size          32 to size          64: 00000000ffffffff
+Extracting from size          32 to size         128: 000000000000000000000000ffffffff
+Extracting from size          64 to size           8: ff
+Extracting from size          64 to size          32: ffffffff
+Extracting from size          64 to size          64: ffffffffffffffff
+Extracting from size          64 to size         128: 0000000000000000ffffffffffffffff
+Extracting from size         128 to size           8: ff
+Extracting from size         128 to size          32: ffffffff
+Extracting from size         128 to size          64: ffffffffffffffff
+Extracting from size         128 to size         128: ffffffffffffffffffffffffffffffff

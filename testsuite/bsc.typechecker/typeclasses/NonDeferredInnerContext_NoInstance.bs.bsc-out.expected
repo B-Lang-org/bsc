@@ -1,0 +1,8 @@
+checking package dependencies
+compiling NonDeferredInnerContext_NoInstance.bs
+Error: "NonDeferredInnerContext_NoInstance.bs", line 15, column 7: (T0031)
+  The contexts for this expression could not be resolved because there are no
+  instances of the form:
+    Prelude.Eq NonDeferredInnerContext_NoInstance.MyStruct
+  The context was implied by expressions at the following positions:
+    "NonDeferredInnerContext_NoInstance.bs", line 19, column 43

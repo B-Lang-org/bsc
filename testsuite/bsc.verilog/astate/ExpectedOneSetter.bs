@@ -1,0 +1,21 @@
+package ExpectedOneSetter(sysExpectedOneSetter) where
+
+{-# verilog sysExpectedOneSetter #-}
+sysExpectedOneSetter :: Module Empty
+sysExpectedOneSetter =
+  module
+    r :: Reg (Bit 3) <- mkReg 0
+    counter :: Reg (Bit 8) <- mkReg 0
+
+    rules
+      when True ==>
+         if (counter < 10) then 
+            $display "%0d" r
+         else 
+            $finish 0
+      when True ==>
+         counter := counter + 1
+      when (counter == 5) ==>
+         r := 5
+      
+           

@@ -1,0 +1,35 @@
+package Bug1120(sysBug1120, Test) where 
+
+import RegFile
+
+interface Test = 
+  lookup :: ((Bit 3), (Bit 3)) -> ((Bit 8), (Bit 8))
+  ready :: Bool 
+
+data State = 
+  Initializing | Ready
+  deriving (Eq, Bits)
+
+sysBug1120 :: Module Test
+sysBug1120 =  
+  module
+-- array goes from 0 to 4 to test all 5 array ports
+    arr :: (RegFile (Bit 3) (Bit 8)) <- mkRegFile 0 4
+    counter ::  Reg (Bit 3) <- mkReg 0
+    state :: Reg (State) <- mkReg Initializing 
+
+    interface 
+      lookup (a1, a2) = ((arr.sub a1), (arr.sub a2)) when ((state == Ready))
+      ready = (state == Ready)
+    rules
+        when (counter == 0) ==> action { counter := counter + 1;
+                                         arr.upd 0 0 }
+        when (counter == 1) ==> action { counter := counter + 1;
+                                         arr.upd 1 1 }
+        when (counter == 2) ==> action { counter := counter + 1;
+                                     arr.upd 2 2 }
+        when (counter == 3) ==> action { counter := counter + 1;
+                                         arr.upd 3 3 }
+        when (counter == 4) ==> action { counter := counter + 1;
+                                         arr.upd 4 4 }     
+        when (counter == 5) ==> action { state := Ready }

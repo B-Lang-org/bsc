@@ -1,0 +1,6 @@
+checking package dependencies
+compiling DupVar.bsv
+Error: "DupVar.bsv", line 3, column 8: (T0122)
+  Duplicate export `x'
+Error: "DupVar.bsv", line 4, column 8: (T0122)
+  Duplicate export `x'

@@ -1,0 +1,4 @@
+checking package dependencies
+compiling ProvisoBaseMismatch_TopLevel.bsv
+Error: "ProvisoBaseMismatch_TopLevel.bsv", line 1, column 44: (T0027)
+  The numeric type `t' was found where a value type was expected.

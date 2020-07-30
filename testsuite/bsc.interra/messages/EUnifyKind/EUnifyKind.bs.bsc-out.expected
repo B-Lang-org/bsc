@@ -1,0 +1,6 @@
+checking package dependencies
+compiling EUnifyKind.bs
+Error: "EUnifyKind.bs", line 23, column 20: (T0023)
+  The type `Absval' does not take an argument.
+Error: "EUnifyKind.bs", line 33, column 18: (T0023)
+  The type `Absval' does not take an argument.

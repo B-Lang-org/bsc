@@ -1,0 +1,186 @@
+package Kbd(Kbd(..), RawKbd(..), ScanCode(..), mkKbd) where
+import GetPut
+import ConfigReg
+
+data ScanCode = ScanCode (Bit 8)
+    deriving (Bits, Eq, Literal)
+
+type Kbd = Get ScanCode
+
+interface RawKbd =
+    kbclk  :: Bool -> Action
+    kbdata :: Bool -> Action
+    key  :: Bit 8
+
+--parameter SM_1 = 0;
+--parameter SM_2 = 1;   
+--parameter S_W = 10; // shift register width (DO NOT CHANGE)
+--parameter BYTE_ERROR = 8'd0;  // error-code to flag parity-error
+--parameter KBCNT = 11; // 11 clocks
+
+mkKbd :: Module (RawKbd, Kbd)
+mkKbd =
+  module
+    
+        -- reg'd versions of inputs, for synchronization to local master clock (clk)
+        r_kbclk    :: Reg (Bool) <- mkConfigReg False -- reg'd (synchronized) kbclk
+        r_kbdata   :: Reg (Bool) <- mkConfigReg False -- reg'd (synchronized) kbdata
+        r_kbclk_1d :: Reg (Bool) <- mkConfigReg False -- 1 clk delayed version of r_kbclk
+        kbclk_stb  :: Reg (Bool) <- mkConfigReg False -- pulse on negedge of r_kbclk
+
+        fsm_ps          :: Reg (Bit 1) <- mkConfigReg 0 --SM_1=0
+        fsm_lock_kbclkn :: Reg (Bit 1) <- mkConfigReg 0
+
+        -- Component (1) : input-scanner
+        s_reg        :: Reg (Bit 10) <- mkConfigReg 0 -- input (kbdata) shift register
+        s_reg_err    :: Reg (Bool) <- mkConfigReg False -- final parity result on s_reg (1=error)
+        s_reg_parity :: Reg (Bit 1) <- mkConfigReg 0 -- s_reg's running parity
+        kbclk_ctr    :: Reg (Bit 4) <- mkConfigReg 0 
+        kbclk_ctr_eqcnt :: Reg (Bool) <- mkConfigReg False
+        debug_reg_obyteload :: Reg (Bool) <- mkConfigReg False
+        debug_reg_kbclkctrreset :: Reg (Bool) <- mkConfigReg False
+
+        --Component (2) : output buffer logic
+        -- byte data register (last received scancode)
+        o_byte :: Reg (Bit 8) <- mkConfigReg 0 
+        -- byte-status, (1=contain valid data, 0=empty)
+        o_byte_rdy :: Reg (Bool) <- mkConfigReg False 
+        -- o_byte parity error status (1=error, 0=ok)
+        o_byte_err :: Reg (Bool) <- mkConfigReg False  
+
+        let kbclk_ctr_reset = kbclk_ctr_eqcnt -- glitchless (reg'd signal)
+        let kbclk_ctr_eqcnt_ns = ((kbclk_ctr == 10) && (kbclk_stb)) -- next-state	
+
+        let fsm_ns = fsm_ps
+        let fsm_lock_kbclkn_ns = 1 -- 1=don't lock kbclk, 0=lock kbclk
+
+        let o_byte_load =  (fsm_ps==1) && (not o_byte_rdy) 
+        let o_kbclk_en = fsm_lock_kbclkn -- 1=enable input, 0=disable input
+
+        let fsm_ns =
+             --0 -> -- SM_1 -- READ SCANCODE
+             if (fsm_ps == 0) then      
+                 if ( kbclk_ctr_reset ) then -- kbclk_ctr_reset also clears the latch -> 0
+                   1
+                  else
+                   fsm_ps
+              else --1 -> -- SM_2 -- BYTE (scancode) ready for output-buffer (o_byte)
+                 if ( o_byte_load ) then -- wait for previous scancode to leave o_byte
+                   0
+                  else
+                   fsm_ps
+        let fsm_lock_kbclkn_ns =
+             --0 -> -- SM_1 -- READ SCANCODE
+             if (fsm_ps == 0) then      
+                 if ( kbclk_ctr_reset ) then -- kbclk_ctr_reset also clears the latch -> 0
+                   0
+                  else
+                   1
+              else --1 -> -- SM_2 -- BYTE (scancode) ready for output-buffer (o_byte)
+                 if ( o_byte_load ) then -- wait for previous scancode to leave o_byte
+                   1
+                  else
+                   1
+
+
+	rules
+          {-# ASSERT fire when enabled #-}
+          {-# ASSERT no implicit conditions #-}
+	  "RegIns":
+	    when True ==> action
+                              debug_reg_obyteload := o_byte_load
+                              debug_reg_kbclkctrreset := kbclk_ctr_reset
+                              -- kbclk_stb - negedge of r_kbclk
+                              kbclk_stb  := (not r_kbclk) && (r_kbclk_1d)
+                              r_kbclk_1d := r_kbclk
+                              --r_kbclk    := i_kbclk
+                              --r_kbdata   := i_kbdata
+                              fsm_ps     := fsm_ns
+                              fsm_lock_kbclkn := fsm_lock_kbclkn_ns
+                              if ( kbclk_stb ) then
+                                --shift data in from MSB, shift right
+                                s_reg := (pack r_kbdata) ++ s_reg[9:1]
+                               else
+                                noAction 
+                              kbclk_ctr_eqcnt := kbclk_ctr_eqcnt_ns
+                              if ( kbclk_ctr_reset ) then
+                                action
+                                  kbclk_ctr := 0
+                                  s_reg_parity := 0
+                                  s_reg_err := (s_reg_parity == 1)
+                               else if ( kbclk_stb ) then
+                                      action
+                                       kbclk_ctr := kbclk_ctr + 1
+                                       s_reg_parity := s_reg_parity ^ (pack r_kbdata)
+                                     else
+                                       noAction
+                              if ( o_byte_load ) then  -- transfer data from s_reg?
+                               action 
+                                 o_byte := if s_reg_err then 0 else s_reg[7:0] 
+                                 o_byte_rdy := True  -- raise rdy line, got new data!
+                                 o_byte_err := s_reg_err -- load parity status: 1=error, 0=no error
+                               else 
+                                 if ( o_byte_err ) then 
+                                  action  
+                                    o_byte_rdy := False
+                                    o_byte_err := False
+                                  else
+                                    noAction 
+
+        return $ 
+         (interface RawKbd    
+            kbclk i_kbclk =
+                          r_kbclk    := i_kbclk
+            kbdata i_kbdata =
+                          r_kbdata   := i_kbdata
+            key = o_byte               
+          ,
+          interface Get
+	    get = do
+                     o_byte_rdy := False --lower rdy line, output buffer is now empty
+--                     o_byte_err := False -- clear error-flag on ack
+		     return (ScanCode o_byte)
+--		when o_byte_rdy
+		when o_byte_rdy && (not o_byte_err)
+	  )
+
+
+-- This is the old version of mkKbd that uses the Verilog kbscan block
+mkKbdVerilog_kbscan :: Module (RawKbd, Kbd)
+mkKbdVerilog_kbscan = do
+    vkbd :: VKbd <- mkVKbd
+    addRules $
+	rules
+	 when vkbd.err == 1
+	  ==> fromPrimAction vkbd.ack
+    return $
+	(interface RawKbd
+	    kbclk x = if x then fromPrimAction vkbd.clk else noAction
+	    kbdata x = if x then fromPrimAction vkbd.dta else noAction
+	    key = vkbd.key
+	,interface Get
+	    get = do
+		    fromPrimAction vkbd.ack
+		    return (ScanCode vkbd.key)
+		when vkbd.rdy == 1 && vkbd.err == 0
+	)
+
+interface VKbd =
+    key :: Bit 8
+    rdy :: Bit 1
+    err :: Bit 1
+    ack :: PrimAction
+    clk :: PrimAction
+    dta :: PrimAction
+
+
+mkVKbd :: Module VKbd
+mkVKbd =
+    module verilog "kbscan" "clk" "rstn" {
+        key = "o_byte"{reg};
+        rdy = "o_byte_rdy"{reg};
+        err = "o_byte_err"{reg};
+        ack = "i_byte_ack";
+	clk = "i_kbclk"{reg};
+	dta = "i_kbdata"{reg};
+    } [ [key,rdy,err,ack,clk,dta] <> [key,rdy,err,ack,clk,dta] ]

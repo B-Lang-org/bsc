@@ -1,0 +1,15 @@
+if { $vtest == 1 } {
+
+compile_verilog_pass ModuleCollectClock.bsv
+compare_file ModuleCollectClock.bsv.bsc-vcomp-out
+find_n_strings mkTestWrapper.v "posedge CLK_c" 1
+
+compile_verilog_pass ModuleContextClock.bsv
+compare_file ModuleContextClock.bsv.bsc-vcomp-out
+find_n_strings mkTestWrapper2.v "posedge CLK_c" 1
+
+compile_verilog_pass FIFOContextTest.bsv
+compare_file FIFOContextTest.bsv.bsc-vcomp-out
+compare_verilog mkFIFOContextTest.v
+
+}

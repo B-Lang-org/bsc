@@ -1,0 +1,16 @@
+package ResourcePredicates(sysResourcePredicates) where
+
+-- We access two seemingly independent array elements in two rules.
+-- But by definition we allow only `sub < upd,' so `A' and `B' can't
+-- fire together.  Also we need separate sub ports for a[0] and a[2].
+-- Expect prienc for `A' and `B,' with `a[0]' and `a[2]' on different ports.
+import RegFile
+
+sysResourcePredicates :: Module Empty
+sysResourcePredicates =
+      module
+        a :: RegFile (Bit 2) (Bit 3)
+        a <- mkRegFileFull
+        rules
+            "A": when a.sub 0 == 0 ==> a.upd 1 (a.sub 0)
+	    "B": when a.sub 2 == 0 ==> a.upd 3 (a.sub 2)

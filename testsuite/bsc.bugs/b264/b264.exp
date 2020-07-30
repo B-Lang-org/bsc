@@ -1,0 +1,16 @@
+
+# This tests the port names for the Verilog.    Changes should be carefully documented.
+compile_verilog_pass Design.bsv
+
+compare_verilog mkDesign.v
+compare_verilog mkDesign_in.v
+compare_verilog foo.v
+
+compile_verilog_pass Top.bsv
+
+compare_verilog top.v
+compare_verilog top2.v
+
+link_verilog_pass {mkDesign_in.v top.v} top
+link_verilog_pass {mkDesign.v top2.v} top2
+link_verilog_pass {foo.v top3.v} top3

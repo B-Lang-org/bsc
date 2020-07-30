@@ -1,0 +1,2 @@
+module mkEmptyModuleInterface();
+endmodule: mkEmptyModuleInterface

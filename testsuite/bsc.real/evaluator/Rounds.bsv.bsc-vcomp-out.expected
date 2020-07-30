@@ -1,0 +1,29 @@
+checking package dependencies
+compiling Rounds.bsv
+code generation for sysRounds starts
+Compilation message: "Rounds.bsv", line 47, column 26: round 1.1 = 1
+Compilation message: "Rounds.bsv", line 48, column 26: ceil  1.1 = 2
+Compilation message: "Rounds.bsv", line 49, column 26: floor 1.1 = 1
+Compilation message: "Rounds.bsv", line 50, column 26: trunc 1.1 = 1
+Compilation message: "Rounds.bsv", line 52, column 26: round 1.5 = 2
+Compilation message: "Rounds.bsv", line 53, column 26: ceil  1.5 = 2
+Compilation message: "Rounds.bsv", line 54, column 26: floor 1.5 = 1
+Compilation message: "Rounds.bsv", line 55, column 26: trunc 1.5 = 1
+Compilation message: "Rounds.bsv", line 57, column 26: round 1.7 = 2
+Compilation message: "Rounds.bsv", line 58, column 26: ceil  1.7 = 2
+Compilation message: "Rounds.bsv", line 59, column 26: floor 1.7 = 1
+Compilation message: "Rounds.bsv", line 60, column 26: trunc 1.7 = 1
+Compilation message: "Rounds.bsv", line 62, column 27: round -1.1 = -1
+Compilation message: "Rounds.bsv", line 63, column 27: ceil  -1.1 = -1
+Compilation message: "Rounds.bsv", line 64, column 27: floor -1.1 = -2
+Compilation message: "Rounds.bsv", line 65, column 27: trunc -1.1 = -1
+Compilation message: "Rounds.bsv", line 67, column 27: round -1.5 = -2
+Compilation message: "Rounds.bsv", line 68, column 27: ceil  -1.5 = -1
+Compilation message: "Rounds.bsv", line 69, column 27: floor -1.5 = -2
+Compilation message: "Rounds.bsv", line 70, column 27: trunc -1.5 = -1
+Compilation message: "Rounds.bsv", line 72, column 27: round -1.7 = -2
+Compilation message: "Rounds.bsv", line 73, column 27: ceil  -1.7 = -1
+Compilation message: "Rounds.bsv", line 74, column 27: floor -1.7 = -2
+Compilation message: "Rounds.bsv", line 75, column 27: trunc -1.7 = -1
+Verilog file created: sysRounds.v
+All packages are up to date.

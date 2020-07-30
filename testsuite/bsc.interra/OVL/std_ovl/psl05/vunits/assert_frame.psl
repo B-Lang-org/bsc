@@ -1,0 +1,199 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_frame_assert_vunit (assert_frame_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_FRAME_MIN0_MAX0_P = always (
+           ({(max_cks == 0) && (min_cks == 0) && !start_event; start_event} |-> {test_expr})
+           abort(!reset_n));
+  
+  property ASSERT_FRAME_ERR_ON_START_P = never 
+           (error_on_new_start && reset_n && rose(start_event) && win);
+
+  property ASSERT_FRAME_MIN_CHECK_P = always (
+           ({(min_cks > 0) && (ignore_new_start || error_on_new_start) &&
+            rose(start_event) && !win} |->
+           {!test_expr[*min_cks]})
+           abort(!reset_n));
+
+  property ASSERT_FRAME_MAX_CHECK_P = always (
+           ({(max_cks > 0) && (ignore_new_start || error_on_new_start) && rose(start_event) && !win} |-> 
+           {!test_expr[*0:max_cks];test_expr})
+           abort (!reset_n));
+
+  property ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P = always (
+           ({(min_cks > 0) && reset_on_new_start && rose(start_event)} |->
+            {!test_expr[*(min_cks > 1 ? min_cks-1 : 1)];(!test_expr || rose(start_event))}) 
+           abort(!reset_n));
+ 
+  property ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P = always (
+           ({(max_cks > 0) && reset_on_new_start && rose(start_event) && !test_expr} |=>
+           {!test_expr[*0:(max_cks > 1 ? max_cks-1 : 1)];(test_expr || rose(start_event))})
+           abort(!reset_n));
+  
+  //Properties for X/Z checking
+
+  property ASSERT_FRAME_XZ_ON_START_P =
+           always( (!win) && xzcheck_enable -> !isunknown(start_event)
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_ON_NEW_START_P =
+           always( ((max_cks > 0) || (min_cks > 0)) && (!ignore_new_start) && win && xzcheck_enable -> !isunknown(start_event)
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_ON_TEST_EXPR_P =
+           always( (max_cks > 0) && ((rose(start_event)&&(!win))||(win)) && xzcheck_enable -> !isunknown(test_expr) 
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_MIN_XZ_CHECK_P =
+           always( {(min_cks > 0) && (max_cks == 0) && rose(start_event) && (!win) && xzcheck_enable} |-> {!isunknown(test_expr)[*(min_cks)]}
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_MIN0_MAX0_P =
+           always( (max_cks == 0) && (min_cks == 0) && rose(start_event)  && xzcheck_enable -> !isunknown(test_expr)
+                   abort (!reset_n) );
+
+  A_ASSERT_FRAME_MIN0_MAX0_P:
+  assert  ASSERT_FRAME_MIN0_MAX0_P 
+  report "VIOLATION: ASSERT_FRAME Checker Fires: Test expression is not TRUE while start event is asserted when both parameters min_cks and max_cks are set to 0";
+
+  A_ASSERT_FRAME_ERR_ON_START_P:
+  assert ASSERT_FRAME_ERR_ON_START_P 
+  report "VIOLATION: ASSERT_FRAME Checker Fires : Illegal start event which has reoccured before completion of current window";
+
+  A_ASSERT_FRAME_MIN_CHECK_P:
+  assert ASSERT_FRAME_MIN_CHECK_P 
+  report "VIOLATION: ASSERT_FRAME Checker Fires: Test expression is TRUE before elapse of specified minimum min_cks cycles from start event";
+
+  A_ASSERT_FRAME_MAX_CHECK_P:
+  assert ASSERT_FRAME_MAX_CHECK_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: Test expression is not TRUE within specified maximum max_cks cycles from start event";
+
+  A_ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P:
+  assert ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P 
+  report "VIOLATION: ASSERT_FRAME Checker Fires: Test expression is TRUE before elapse of specified minimum min_cks cycles from start event";
+
+  A_ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P:
+  assert ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: Test expression is not TRUE within specified maximum max_cks cycles from start event";
+
+  A_ASSERT_FRAME_XZ_ON_START_P:
+  assert ASSERT_FRAME_XZ_ON_START_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: start_event contains X or Z";
+
+  A_ASSERT_FRAME_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_FRAME_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_FRAME_XZ_ON_NEW_START_P:
+  assert ASSERT_FRAME_XZ_ON_NEW_START_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: start_event contains X or Z";
+        
+  A_ASSERT_FRAME_MIN_XZ_CHECK_P:
+  assert ASSERT_FRAME_MIN_XZ_CHECK_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: test_expr contains X or Z";
+
+  A_ASSERT_FRAME_XZ_MIN0_MAX0_P:
+  assert ASSERT_FRAME_XZ_MIN0_MAX0_P
+  report "VIOLATION: ASSERT_FRAME Checker Fires: test_expr contains X or Z";
+}
+
+vunit assert_frame_assume_vunit (assert_frame_assume)
+{
+  default clock = (posedge clk);
+                                                                                                                 
+  property ASSERT_FRAME_MIN0_MAX0_P = always (
+           ({(max_cks == 0) && (min_cks == 0) && !start_event; start_event} |-> {test_expr})
+           abort(!reset_n));
+
+  property ASSERT_FRAME_ERR_ON_START_P = never
+           (error_on_new_start && reset_n && rose(start_event) && win);
+
+  property ASSERT_FRAME_MIN_CHECK_P = always (
+           ({(min_cks > 0) && (ignore_new_start || error_on_new_start) &&
+            rose(start_event) && !win} |->
+           {!test_expr[*min_cks]})
+           abort(!reset_n));
+                                                                                                                                      
+  property ASSERT_FRAME_MAX_CHECK_P = always (
+           ({(max_cks > 0) && (ignore_new_start || error_on_new_start) && rose(start_event) && !win} |->
+           {!test_expr[*0:max_cks];test_expr})
+           abort (!reset_n));
+  
+  property ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P = always (
+           ({(min_cks > 0) && reset_on_new_start && rose(start_event)} |->
+            {!test_expr[*(min_cks > 1 ? min_cks-1 : 1)];(!test_expr || rose(start_event))})
+           abort(!reset_n));                                                                                                                                    
+
+  property ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P = always (
+           ({(max_cks > 0) && reset_on_new_start && rose(start_event) && !test_expr} |=>
+           {!test_expr[*0:(max_cks > 0 ? max_cks-1 : 1)];(test_expr || rose(start_event))})
+           abort(!reset_n));
+                                                                                                               
+  //Properties for X/Z checking
+
+  property ASSERT_FRAME_XZ_ON_START_P =
+           always( (!win) && xzcheck_enable -> !isunknown(start_event)
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_ON_NEW_START_P =
+           always( ((max_cks > 0) || (min_cks > 0)) && (!ignore_new_start) && win && xzcheck_enable -> !isunknown(start_event)
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_ON_TEST_EXPR_P =
+           always( (max_cks > 0) && ((rose(start_event)&&(!win))||(win)) && xzcheck_enable -> !isunknown(test_expr)
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_MIN_XZ_CHECK_P =
+           always( {(min_cks > 0) && (max_cks == 0) && rose(start_event) && (!win) && xzcheck_enable} |-> {!isunknown(test_expr)[*min_cks]}
+                   abort (!reset_n) );
+
+  property ASSERT_FRAME_XZ_MIN0_MAX0_P =
+           always( (max_cks == 0) && (min_cks == 0) && rose(start_event)  && xzcheck_enable -> !isunknown(test_expr)
+                   abort (!reset_n) );
+
+  M_ASSERT_FRAME_MIN0_MAX0_P:
+  assume  ASSERT_FRAME_MIN0_MAX0_P; 
+ 
+  M_ASSERT_FRAME_ERR_ON_START_P:
+  assume ASSERT_FRAME_ERR_ON_START_P;
+                                                                                                                 
+  M_ASSERT_FRAME_MIN_CHECK_P:
+  assume ASSERT_FRAME_MIN_CHECK_P;
+                                                                                                                 
+  M_ASSERT_FRAME_MAX_CHECK_P:
+  assume ASSERT_FRAME_MAX_CHECK_P;
+                                                                                                                 
+  M_ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P:
+  assume ASSERT_FRAME_RESET_ON_START_MIN_CHECK_P;
+                                                                                                                 
+  M_ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P:
+  assume ASSERT_FRAME_RESET_ON_START_MAX_CHECK_P;
+
+  M_ASSERT_FRAME_XZ_ON_START_P:
+  assume ASSERT_FRAME_XZ_ON_START_P;
+
+  M_ASSERT_FRAME_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_FRAME_XZ_ON_TEST_EXPR_P;
+
+  M_ASSERT_FRAME_XZ_ON_NEW_START_P:
+  assume ASSERT_FRAME_XZ_ON_NEW_START_P;
+
+  M_ASSERT_FRAME_MIN_XZ_CHECK_P:
+  assume ASSERT_FRAME_MIN_XZ_CHECK_P;
+
+  M_ASSERT_FRAME_XZ_MIN0_MAX0_P:
+  assume ASSERT_FRAME_XZ_MIN0_MAX0_P;
+}
+
+vunit assert_frame_cover_vunit (assert_frame_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_frame_start:
+  cover {OVL_COVER_BASIC_ON && reset_n && rose(start_event)}
+  report "COVERAGE REPORT : ASSERT_FRAME Checker: start_event covered";
+}
+ 

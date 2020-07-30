@@ -1,0 +1,51 @@
+
+# ----------
+# Test that BSC does not yet support vendor-specific includes (with <>)
+
+compile_fail_bug IncludeVendor.bsv
+
+# ----------
+# Test Verilog-2001 includes (with "")
+
+if { $vtest == 1 } {
+
+# Test that relative paths are accepted
+compile_verilog_pass IncludeSubdir.bsv
+compare_file [make_bsc_vcomp_output_name IncludeSubdir.bsv]
+
+# Test that absolute paths are accepted
+set curdir [file join [absolute $srcdir] $subdir]
+m4_process "-DCURDIR=$curdir" IncludeAbsolute.bsv.pre-m4 IncludeAbsolute.bsv
+compile_verilog_pass IncludeAbsolute.bsv
+set outname [make_bsc_vcomp_output_name IncludeAbsolute.bsv]
+m4_process "-DCURDIR=$curdir" "$outname.expected.pre-m4" "$outname.expected"
+compare_file "$outname"
+
+# Test that no path is accepted
+compile_verilog_pass IncludeNoPath.bsv
+compare_file [make_bsc_vcomp_output_name IncludeNoPath.bsv]
+
+}
+
+# ----------
+# Test when multiple copies of an included file are found
+# (Bug 1595, Bug 1010)
+
+# Create directories with copies
+mkdir libdir1
+mkdir libdir2
+copy DupInclude.defines libdir1
+copy DupInclude.defines libdir2
+
+# Make one unreadable
+chmod {u-r} libdir1/DupInclude.defines
+
+# Try compiling with three copies in the path
+compile_pass DupInclude.bsv {-p libdir1:+:libdir2}
+
+# Check that we get warnings (S0088, S0089)
+# XXX The depend stage also runs cpp, so we get twice the messages
+compare_file DupInclude.bsv.bsc-out
+
+# ----------
+

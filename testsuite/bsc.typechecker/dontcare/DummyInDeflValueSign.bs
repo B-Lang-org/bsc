@@ -1,0 +1,8 @@
+package DummyInDeflValueSign () where
+
+dummyInDeflValueSign :: Bit 12
+dummyInDeflValueSign =
+    let f :: Bool -> Bit 12
+	f _ = _
+    in  f True
+

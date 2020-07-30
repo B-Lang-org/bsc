@@ -1,0 +1,6 @@
+
+This directory contains transaction-level models of a bus protocol,
+using specific AMBA adapters.  These adapters provide simple
+intrfaces, which are not abma protocol specific, thus allowing the
+same models to connect with different bus implementations or models.
+

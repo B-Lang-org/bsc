@@ -1,0 +1,51 @@
+if { $ctest == 1 } {
+compile_object_pass Design.bsv mkDesign
+compile_object_pass Testbench.bsv mkTestbench
+link_objects_pass {mkTestbench mkDesign} mkTestbench
+#sim_output mkTestbench "-s"
+#copy "mkTestbench.out" "command_s.out"
+#compare_file command_s.out
+#sim_output mkTestbench "-ss"
+#copy "mkTestbench.out" "command_ss.out"
+#compare_file command_ss.out
+sim_output mkTestbench "-V"
+copy "dump.vcd" "dump.out"
+#compare_vcd_file dump.out
+#sim_output mkTestbench "-s -R!"
+#copy "mkTestbench.out" "command_s_R.out"
+#compare_file command_s_R.out
+#sim_output mkTestbench "-S -R !main.top.counter"
+#copy "mkTestbench.out" "command_S_R_re1.out"
+#compare_file command_S_R_re1.out
+#sim_output mkTestbench "-S -R !main.top.counter -R !main.top.state"
+#copy "mkTestbench.out" "command_S_R_re2.out"
+#compare_file command_S_R_re2.out
+#sim_output mkTestbench "-S -R !main.top.counter -R !main.top.state -R !main.top.fails -R !main.top.passes -R !main.top.top.t_ack1 -R !main.top.top.t_counter"
+#copy "mkTestbench.out" "command_S_R_re3.out"
+#compare_file command_S_R_re3.out
+#sim_output mkTestbench "-S -R main.top.counter"
+#copy "mkTestbench.out" "command_S_R.out"
+#compare_file command_S_R.out
+#sim_output mkTestbench "-d bsv_c_drvfile"
+#copy "mkTestbench.out" "command_d.out"
+#compare_file command_d.out
+#sim_output mkTestbench "-w 100 -V dump.vcd"
+#copy "dump.vcd" "dump_w_1.out"
+#compare_vcd_file dump_w_1.out
+#sim_output mkTestbench "-w 40 -V dump.vcd"
+#copy "dump.vcd" "dump_w_2.out"
+#compare_vcd_file dump_w_2.out
+#sim_output mkTestbench "-r"
+#cpy "mkTestbench.out" "command_r.out"
+#compare_file command_r.out
+#sim_output mkTestbench "-r -m 5"
+#copy "mkTestbench.out" "command_r_m.out"
+#compare_file command_r_m.out
+#sim_output mkTestbench "-C"
+#copy "mkTestbench.out" "command_C.out"
+#compare_file command_C.out
+#sim_output mkTestbench "-C -C"
+#copy "mkTestbench.out" "command_CC.out"
+#compare_file command_CC.out
+}
+

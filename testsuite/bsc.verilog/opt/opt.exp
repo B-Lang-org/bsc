@@ -1,0 +1,90 @@
+# Tests for AOpt and AExpand
+
+# ---------------
+
+# Test that aopt is able to simplify "P && !P" when the two "P" are uses
+# from different methods.  (This is accomplished by running aRenameIO
+# before aOpt.)
+compile_verilog_pass AOptTwoMethodsUsingSamePort.bsv
+if { $vtest == 1 } {
+    find_n_strings mkAOptTwoMethodsUsingSamePort.v \
+	{assign RDY_produce = 1'b1 ;} 1
+    find_n_strings mkAOptTwoMethodsUsingSamePort.v \
+	{assign RDY_consume = 1'b1 ;} 1
+}
+
+# ---------------
+
+# Test that even just two levels of nested if-expr become a case-expr
+compile_verilog_pass SmallCase.bsv
+if { $vtest == 1 } {
+    find_regexp sysSmallCase.v {
+    case \(rg\)
+      32'd0: rg\$D_IN = 32'd1;
+      32'd1: rg\$D_IN = 32'd2;
+      default: rg\$D_IN = 32'd3;
+    endcase}
+}
+
+# ---------------
+
+# Test that extract, not, and invert are only considered simple exprs
+# (for inlining) when they are applied to simple exprs (Bug 1372)
+
+compile_verilog_pass InlineNot.bsv
+if { $vtest == 1 } {
+    # this expression should not be duplicated
+    find_n_strings sysInlineNot.v { next >= limit } 1
+}
+
+compile_verilog_pass InlineInv.bsv
+if { $vtest == 1 } {
+    # this expression should not be duplicated
+    find_n_strings sysInlineInv.v { ~(next + limit) } 1
+}
+
+compile_verilog_pass InlineExtract.bsv
+if { $vtest == 1 } {
+    # this expression should not be duplicated
+    find_n_strings sysInlineExtract.v {next + limit} 1
+}
+
+# ---------------
+
+# Tests for optimization of submodule instantiation parameters
+
+# This example used to fail, because previous stages didn't optimize the
+# primSelect applications across if-exprs where the condition was don't-care.
+# When ADropUndet finally picked a value, aOpt was not optimizing the
+# expression, so AVeriQuirks would internal error because it saw primSelect
+# in a parameter expression (which we can't represent in Verilog).
+#
+compile_verilog_pass InstParam_DontCareSelect.bsv
+
+# The above example didn't fail if the bit-update operations were reversed.
+# The resulting expression was still unsimplified in AOpt, but it was not a
+# problem for AVeriQuirks.  It was ultimately optimized in the PPrint of
+# the Verilog structure (!) which optimizes if-expressions with constant
+# conditions.  So "if ? then x else y" will get optimized to just "y" in
+# the Verilog stage.
+
+# The following example shows that AOpt does in fact optimize inst parameters,
+# in "aOptFinalPass", which simplifies concats on constant expressions.
+# So the expression "{0, ?, 0}" will get optimized in AOpt.
+# 
+compile_verilog_pass InstParam_DontCareConcat.bsv
+if { $vtest == 1 } {
+    find_n_strings sysInstParam_DontCareConcat.v {8'b00010100} 1
+}
+
+# Constant propagation wasn't happening for PrimArrayDynSelect
+# which could accidentally be created when the index couldn't be
+# reduced because it contains a don't-care.  See Bug 1850.
+#
+compile_verilog_pass InstParam_DontCareDynSelect.bsv
+if { $vtest == 1 } {
+    find_n_strings sysInstParam_DontCareDynSelect.v {.SOURCE_INITIAL_VALUE(" 000")} 1
+}
+
+# ---------------
+

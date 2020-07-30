@@ -1,0 +1,5 @@
+package Test() where
+
+f :: Bool
+f = (1.0 > 0)
+

@@ -1,0 +1,19 @@
+checking package dependencies
+compiling Bits.bsv
+code generation for sysBits starts
+Compilation message: "Bits.bsv", line 76, column 24: w = 2.0 = 2.0
+Compilation message: "Bits.bsv", line 80, column 32: w bits = (0, 0, 1024)
+Compilation message: "Bits.bsv", line 84, column 33: -w bits = (1, 0, 1024)
+Compilation message: "Bits.bsv", line 88, column 33: w2 bits = (0, 0, 1034)
+Compilation message: "Bits.bsv", line 92, column 33: w3 bits = (0, 1125899906842624, 1024)
+Compilation message: "Bits.bsv", line 93, column 36: w3 mantissa should be 1125899906842624
+Compilation message: "Bits.bsv", line 95, column 19: r1 = 2.0
+Compilation message: "Bits.bsv", line 96, column 19: r2 = -3.0
+Compilation message: "Bits.bsv", line 97, column 19: r3 = Infinity
+Compilation message: "Bits.bsv", line 98, column 19: r4 = -Infinity
+Compilation message: "Bits.bsv", line 99, column 19: r5 = 0.0
+Compilation message: "Bits.bsv", line 100, column 19: r6 = -0.0
+Compilation message: "Bits.bsv", line 101, column 19: r7 = 8.344026969402005e-309
+Compilation message: "Bits.bsv", line 102, column 19: r8 = -4.172013484701003e-309
+Verilog file created: sysBits.v
+All packages are up to date.

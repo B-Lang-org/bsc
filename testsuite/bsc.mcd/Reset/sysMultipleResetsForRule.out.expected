@@ -1,0 +1,14 @@
+rule r1
+rule r1: (        30)           2           0
+rule r1
+rule r1: (        40)           3           2
+rule r1
+rule r1: (        50)           4           4
+rule r1
+rule r1: (        60)           5           6
+rule r1
+rule r1: (        70)           6           8
+rule r1
+rule r1: (        80)           7          10
+rule r1
+rule r1: (        90)           8          12

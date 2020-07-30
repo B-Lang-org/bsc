@@ -1,0 +1,16 @@
+package ForeignGroupTest where
+
+{-# verilog mkForeignGroupTest #-}
+mkForeignGroupTest :: (IsModule m c) => m Empty
+mkForeignGroupTest =
+  module
+    r :: Reg (Int 16) <- mkReg 0
+    rules
+     "test": when True ==>
+       action
+         r := r + 1
+         $display "r is %0d at %0t" r $time
+         x <- $stime
+         if x > 1000 then $finish 0 else noAction
+
+    

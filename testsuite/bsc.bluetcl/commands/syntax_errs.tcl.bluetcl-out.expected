@@ -1,0 +1,44 @@
+----------
+invalid command name "nosuchcmd"
+----------
+Error: Command is invalid.  At "Test" expected:
+...subcommands...
+
+----------
+Test Vector Array List PreludeBSV Prelude
+----------
+Error: Command is incomplete.  It is expected to continue with:
+(full <arg> | constr <arg> | bitify <arg>)
+
+----------
+Error: Command is invalid.  At "Baz" expected:
+(full <arg> | constr <arg> | bitify <arg>)
+
+----------
+Baz#(t, n)
+----------
+Error: Command is invalid.  At "const Baz" expected:
+(full <arg> | constr <arg> | bitify <arg>)
+
+----------
+Struct {Test::Baz#(type t, numeric type n)} polymorphic {members {{Bool f1 {width 1}} {Bit#(n) f2} {{Vector::Vector#(n, t)} v}}} {position {Test.bsv 17 18}}
+----------
+Error: Unexpected additional arguments: "Bool".
+----------
+Error: "Commandline", line 1, column 7: (P0005)
+  Unexpected identifier `Bool'; expected type parameters or end of input
+
+----------
+TaggedUnion {Maybe#(type a)} {members {{void Invalid {width 0}} {Bool Valid {width 1}}}} {width 2} {position {%/Libraries/Prelude.bs 1348 5 {Library Prelude}}}
+----------
+Error: Command is invalid.  At "ful Maybe#(Bool)" expected:
+(full <arg> | constr <arg> | bitify <arg>)
+
+----------
+Error: Command is incomplete.  It is expected to continue with:
+<flag>+
+
+----------
+Error: Command is invalid.  At "zero" expected:
+<key>
+

@@ -1,0 +1,5 @@
+package VarDefn_Clauses_NoType () where
+
+_ 0 = True
+_ v = False
+

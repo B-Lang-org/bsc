@@ -1,0 +1,10 @@
+checking package dependencies
+compiling UninitBitErr2.bsv
+code generation for sysUninitBitErr2 starts
+Error: "UninitBitErr2.bsv", line 3, column 12: (G0028)
+  `x[0]' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at "UninitBitErr2.bsv", line
+  8, column 9.
+  During elaboration of `sysUninitBitErr2' at "UninitBitErr2.bsv", line 2,
+  column 8.

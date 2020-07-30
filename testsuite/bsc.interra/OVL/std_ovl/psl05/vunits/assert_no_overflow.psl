@@ -1,0 +1,63 @@
+// Accellera Standard V2.8.1 Open Verification Library (OVL).
+// Accellera Copyright (c) 2005-2014. All rights reserved.
+
+vunit assert_no_overflow_assert_vunit (assert_no_overflow_assert)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NO_OVERFLOW_P = always (
+            ({test_expr == max} |=> 
+            {(test_expr > min) && (test_expr <= max)}) 
+            abort(!reset_n));
+ 
+  //Property for X/Z checking
+
+  property ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P = 
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  A_ASSERT_NO_OVERFLOW_P:
+  assert ASSERT_NO_OVERFLOW_P
+  report "VIOLATION: ASSERT_NO_OVERFLOW Checker Fires: Test expression changed value from allowed maximum value max to a value in the range max+1 to min";
+
+  A_ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P:
+  assert ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P
+  report "VIOLATION: ASSERT_NO_OVERFLOW Checker Fires: test_expr contains X or Z";
+
+}
+
+vunit assert_no_overflow_assume_vunit (assert_no_overflow_assume)
+{
+  default clock = (posedge clk);
+
+  property ASSERT_NO_OVERFLOW_P = always (
+            ({test_expr == max} |=>
+            {(test_expr > min) && (test_expr <= max)})
+            abort(!reset_n));
+
+  //Property for X/Z checking
+
+  property ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P = 
+           always( xzcheck_enable -> !isunknown(test_expr) abort(!reset_n) );
+
+  M_ASSERT_NO_OVERFLOW_P:
+  assume ASSERT_NO_OVERFLOW_P;
+
+  M_ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P:
+  assume ASSERT_NO_OVERFLOW_XZ_ON_TEST_EXPR_P;
+
+}
+
+vunit assert_no_overflow_cover_vunit (assert_no_overflow_cover)
+{ 
+  default clock = (posedge clk);
+
+  cover_test_expr_at_min:
+  cover {OVL_COVER_CORNER_ON && reset_n && !stable(test_expr) && (test_expr == min)}
+  report "COVERAGE REPORT : ASSERT_NO_OVERFLOW Checker: test_expr_at_min covered";
+
+  cover_test_expr_at_max:
+  cover {OVL_COVER_BASIC_ON && reset_n && !stable(test_expr) && (test_expr == max)}
+  report "COVERAGE REPORT : ASSERT_NO_OVERFLOW Checker: test_expr_at_max covered";
+                                                                                                                                     
+}
+ 

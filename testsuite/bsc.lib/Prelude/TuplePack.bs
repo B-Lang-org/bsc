@@ -1,0 +1,19 @@
+package TuplePack where
+
+-- Confirm that tuple packing uses the same a ++ b order
+-- as the explicit instance
+{-# verilog sysTuplePack #-}
+sysTuplePack :: Module Empty
+sysTuplePack = module
+  let a :: UInt 5
+      a = 5'ha
+      b :: UInt 7
+      b = 7'hb
+      pass = pack (a,b) == pack a ++ pack b
+  rules
+    "pass": when pass ==> do
+      $display "TEST PASSED"
+      $finish 0
+    "fail": when not pass ==> action
+      $display "TEST FAILED"
+      $finish 0

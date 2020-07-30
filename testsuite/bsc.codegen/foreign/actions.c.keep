@@ -1,0 +1,38 @@
+#include <stdio.h>
+
+void my_display(unsigned char x)
+{
+  printf("%d\n",x);
+}
+
+unsigned int my_time(unsigned char x)
+{
+  printf("my_time(%d)\n",x);
+  return (unsigned int) 10;
+}
+
+void my_wide_time(unsigned int* ret)
+{
+  unsigned long long now = 10llu;
+  printf("my_wide_time()\n");
+  ret[0] = (unsigned int) (now & 0xFFFFFFFF);
+  ret[1] = (unsigned int) ((now >> 32) & 0xFFFFFFFF);
+  ret[2] = 0;
+  ret[3] = 0;
+}
+
+void poly_action(unsigned int* ret, unsigned int* arg, unsigned int n)
+{
+  printf("poly_action: ret %s NULL\n", (ret == NULL) ? "is": "is not");
+  if (ret)
+  {
+    while (n != 0)
+    {
+      *(ret++) = *(arg++);
+      if (n <= (8*sizeof(unsigned int)))
+	n = 0;
+      else
+	n -= (8*sizeof(unsigned int));
+    }
+  }
+}

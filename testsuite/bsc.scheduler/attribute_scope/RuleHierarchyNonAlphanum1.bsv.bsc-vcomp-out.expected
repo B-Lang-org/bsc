@@ -1,0 +1,7 @@
+checking package dependencies
+compiling RuleHierarchyNonAlphanum1.bsv
+code generation for sysRuleHierarchyNonAlphanum1 starts
+Error: "RuleHierarchyNonAlphanum1.bsv", line 13, column 29: (G0054)
+  Rule `s@_r1' was referenced in a rule attribute before it was defined.
+  During elaboration of `sysRuleHierarchyNonAlphanum1' at
+  "RuleHierarchyNonAlphanum1.bsv", line 8, column 8.

@@ -1,0 +1,37 @@
+checking package dependencies
+compiling WUrgencyChoice1.bs
+code generation for mkWUrgencyChoice1 starts
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0010)
+  Rule "One" was treated as more urgent than "Two". Conflicts:
+    "One" cannot fire before "Two": calls to x.write vs. x.read
+    "Two" cannot fire before "One": calls to y.write vs. y.read
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0010)
+  Rule "Three" was treated as more urgent than "Four". Conflicts:
+    "Three" cannot fire before "Four": calls to w.write vs. w.read
+    "Four" cannot fire before "Three": calls to z.write vs. z.read
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0117)
+  Rule `start' shadows the effects of `Four' when they execute in the same
+  clock cycle. Affected method calls:
+    z.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0117)
+  Rule `start' shadows the effects of `Three' when they execute in the same
+  clock cycle. Affected method calls:
+    w.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0117)
+  Rule `start' shadows the effects of `Two' when they execute in the same
+  clock cycle. Affected method calls:
+    y.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice1.bs", line 24, column 0: (G0117)
+  Rule `start' shadows the effects of `One' when they execute in the same
+  clock cycle. Affected method calls:
+    x.write
+  To silence this warning, use the `-no-warn-action-shadowing' flag.
+Warning: "WUrgencyChoice1.bs", line 50, column 22: (G0021)
+  According to the generated schedule, rule `Two' can never fire.
+Warning: "WUrgencyChoice1.bs", line 60, column 22: (G0021)
+  According to the generated schedule, rule `Four' can never fire.
+Verilog file created: mkWUrgencyChoice1.v
+All packages are up to date.

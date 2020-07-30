@@ -1,0 +1,4 @@
+package TypeAliasParamGivenNonNumUsedNum () where
+
+type (Foo :: * -> *) a = Bit a
+

@@ -1,0 +1,51 @@
+-- Accellera Standard V2.8.1 Open Verification Library (OVL).
+-- Accellera Copyright (c) 2005-2014. All rights reserved.
+
+library ieee;
+use ieee.std_logic_1164.all;
+use work.std_ovl.all;
+use work.std_ovl_procs.all;
+
+vunit assert_never_unknown_assert_vunit (assert_never_unknown_assert)
+{
+  default clock is rose (clk); 
+  
+  property ASSERT_NEVER_UNKNOWN_P is always (
+           (xzcheck_enable =1) AND (qualifier = '1') -> 
+           NOT(is_x(test_expr))) abort (not(reset_n)) ; 
+
+  A_ASSERT_NEVER_UNKNOWN_P:
+  assert ASSERT_NEVER_UNKNOWN_P
+  report "VIOLATION: ASSERT_NEVER_UNKNOWN Checker Fires : test_expr contains X or Z";
+
+}
+
+vunit assert_never_unknown_assume_vunit (assert_never_unknown_assume)
+{
+  default clock is rose (clk); 
+
+  property ASSERT_NEVER_UNKNOWN_P is always (
+           (xzcheck_enable =1) AND (qualifier = '1') -> 
+           NOT(is_x(test_expr))) abort (not(reset_n)) ; 
+                                                                                                                                                 
+  M_ASSERT_NEVER_UNKNOWN_P:
+  assume ASSERT_NEVER_UNKNOWN_P;
+                                                                                                                             
+}
+
+vunit assert_never_unknown_cover_vunit (assert_never_unknown_cover)
+{
+
+  default clock is rose(clk);
+ 
+  cover_qualifier:
+  cover {((OVL_COVER_BASIC_ON = OVL_COVER_BASIC) or (OVL_COVER_BASIC_ON = OVL_COVER_ALL)) AND (reset_n = '1') AND (qualifier = '1')}
+  report "COVERAGE REPORT: ASSERT_NEVER_UNKNOWN Checker: qualifier covered";
+ 
+  cover_test_expr_change:
+  cover {((OVL_COVER_SANITY_ON = OVL_COVER_SANITY) or (OVL_COVER_SANITY_ON = OVL_COVER_ALL)) AND 
+         ((prev(reset_n) = '1') AND (reset_n = '1') AND (qualifier = '1') AND ( test_expr /= prev(test_expr)))}
+  report "COVERAGE REPORT : ASSERT_NEVER_UNKNOWN Checker: test_expr_change covered";
+
+}
+

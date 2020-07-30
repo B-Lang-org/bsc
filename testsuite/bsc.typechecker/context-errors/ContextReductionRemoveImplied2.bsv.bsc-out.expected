@@ -1,0 +1,11 @@
+checking package dependencies
+compiling ContextReductionRemoveImplied2.bsv
+Error: "ContextReductionRemoveImplied2.bsv", line 3, column 8: (T0032)
+  This expression requires the following proviso which could not be resolved:
+    Bits#(Vector::Vector#(8, Integer), a__)
+  The proviso was implied by expressions at the following positions:
+    "ContextReductionRemoveImplied2.bsv", line 4, column 35
+  An instance for this proviso exists, but it depends on the following
+  provisos for which there are no instances:
+    Bits#(Integer, b__),
+    Mul#(8, b__, a__)

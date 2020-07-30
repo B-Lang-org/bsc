@@ -1,0 +1,7 @@
+test_c_veri_bsv TestSwitch
+
+sim_output sysTestSwitch {-c {sim run; puts [sim clock]}}
+if { $ctest == 1 } {
+compare_file sysTestSwitch.out slow.expected
+}
+

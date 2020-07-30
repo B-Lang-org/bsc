@@ -1,0 +1,4 @@
+package TypeAliasPartialAppWithoutKindSig () where
+
+type Foo = Bit
+

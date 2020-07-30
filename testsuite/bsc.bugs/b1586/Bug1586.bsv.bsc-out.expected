@@ -1,0 +1,5 @@
+checking package dependencies
+compiling Bug1586.bsv
+Error: "Bug1586.bsv", line 6, column 35: (T0107)
+  The type `ReadOnly' is not a module. Perhaps you have used the wrong
+  function in a module instantiation, such as `map' vs `mapM'.

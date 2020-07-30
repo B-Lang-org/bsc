@@ -1,0 +1,6 @@
+# Test that "case (arr[0])" doesn't result in proviso errors
+compile_pass Test.bsv
+
+# Test that concatenation of selections also works
+compile_pass Design.bsv
+

@@ -1,0 +1,58 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EContextReduction2.bs
+
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
+
+-- Description: This testcase triggers a "Context reduction failed" error (EContextReduction)
+
+-- Error Message : bsc EContextReduction2.bs
+-- bsc: Compilation errors:
+-- "EContextReduction2.bs", line 30, column 0, Context reduction failed, because there are no instances of the form: (Prelude.Eq EContextReduction2.MyType1)
+-----------------------------------------------------------------------
+
+package EContextReduction2 (EContextReduction2(..)) where
+
+data MyType1 = Integer | Bool
+             deriving (Bits) 
+
+data MyType2 = Integer | Bool
+             deriving (Bits) 
+
+data MyType3 = MyType1 | MyType2
+             deriving (Eq,Bits) 
+
+interface EContextReduction2 =
+             start :: MyType3 -> MyType3 -> Action
+             end   :: MyType3
+
+mkEContextReduction2 :: Module EContextReduction2
+mkEContextReduction2 =
+              module
+
+
+                    u :: Reg (MyType1)   
+                    u <- mkRegU
+
+                    v :: Reg (MyType1)   
+                    v <- mkRegU
+
+                    x :: Reg (MyType3)   
+                    x <- mkRegU
+
+                    y :: Reg (MyType3)   
+                    y <- mkRegU
+ 
+                    rules
+                      "One":
+                             when u == v
+                               ==>
+                                  y := x
+
+
+                    interface 
+                        start ix iy = action
+                                        x := ix
+                                        y := iy
+                        end = y when True

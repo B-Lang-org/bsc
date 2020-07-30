@@ -1,0 +1,5 @@
+package StringLit() where
+
+foo :: String
+foo = "foo\n"
+

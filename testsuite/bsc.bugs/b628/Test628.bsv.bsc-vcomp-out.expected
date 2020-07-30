@@ -1,0 +1,12 @@
+checking package dependencies
+compiling Test628.bsv
+code generation for mkTest starts
+Error: "Test628.bsv", line 8, column 9: (S0015)
+  Bluespec evaluation-time error: index 4 out-of-range (bit extraction - high
+  index)
+  During elaboration of the body of rule `shift' at "Test628.bsv", line 20,
+  column 9.
+  During elaboration of `stage' at "Test628.bsv", line 43, column 7.
+  During elaboration of `Loop' at "Test628.bsv", line 41, column 4.
+  During elaboration of `the_ls' at "Test628.bsv", line 58, column 4.
+  During elaboration of `mkTest' at "Test628.bsv", line 55, column 8.

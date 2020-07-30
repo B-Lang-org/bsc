@@ -1,0 +1,4 @@
+package TypeAliasPartialAppWithConflictingKindSig () where
+
+type (Foo :: * -> *) = Bit
+

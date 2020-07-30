@@ -1,0 +1,435 @@
+
+# Test the -keep-method-conds feature,
+# which involves the evaluator (to record the positions), the ISynax
+# and Syntax stages (to preserve the COND signals and not mix them into the
+# actual signals for the design), and bluetcl (to read out the position info)
+
+# -----
+
+# Options to use when compiling to Verilog
+# Turn on the feature and dump the .ba files needed by bluetcl
+#
+set opts {-keep-method-conds -elab}
+
+# Procedure for dumping the method-pred positions and comparing with expected
+proc check_positions { modname } {
+    set cmd "-exec dump_poss.tcl $modname"
+    # this will have ".bluetcl-out" appended to it
+    set outfile $modname
+    bluetcl_exec_compare_pass $cmd $outfile
+}
+
+# -----
+
+# Test primitive RegN
+# (Classic imports are slightly different than synthesized modules / BSV imports)
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_RegWrite.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_RegWrite.v \
+    {wire COND\_RL\_r\_rg\_write\_1\, COND\_RL\_r\_rg\_write\_2\;}
+find_regexp sysMethodConds_RegWrite.v \
+    {assign COND\_RL\_r\_rg\_write\_1 \= c1 \;}
+find_regexp sysMethodConds_RegWrite.v \
+    {assign COND\_RL\_r\_rg\_write\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_RegWrite.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_RegWrite
+
+}
+
+# -----
+
+# Test synthesized submodules
+
+if { $vtest == 1 } {
+
+# Test that methods of no arguments are not CSE'd, losing the position
+# of all but one call
+#
+compile_verilog_pass MethodConds_ActionNoArg.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_ActionNoArg.v \
+    {wire COND\_RL\_r\_s\_am2\_1\, COND\_RL\_r\_s\_am2\_2\;}
+find_regexp sysMethodConds_ActionNoArg.v \
+    {assign COND\_RL\_r\_s\_am2\_1 \= c1 \;}
+find_regexp sysMethodConds_ActionNoArg.v \
+    {assign COND\_RL\_r\_s\_am2\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_ActionNoArg.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_ActionNoArg
+
+# Test method with an argument, with different provided arguments
+#
+compile_verilog_pass MethodConds_ActionArg.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_ActionArg.v \
+    {wire COND\_RL\_r\_s\_am1\_1\, COND\_RL\_r\_s\_am1\_2\;}
+find_regexp sysMethodConds_ActionArg.v \
+    {assign COND\_RL\_r\_s\_am1\_1 \= c1 \;}
+find_regexp sysMethodConds_ActionArg.v \
+    {assign COND\_RL\_r\_s\_am1\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_ActionArg.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_ActionArg
+
+}
+
+# -----
+
+# Test import-BVI
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_ActionArg_BVI.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_ActionArg_BVI.v \
+    {wire COND\_RL\_r\_s\_am1\_1\, COND\_RL\_r\_s\_am1\_2\;}
+find_regexp sysMethodConds_ActionArg_BVI.v \
+    {assign COND\_RL\_r\_s\_am1\_1 \= c1 \;}
+find_regexp sysMethodConds_ActionArg_BVI.v \
+    {assign COND\_RL\_r\_s\_am1\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_ActionArg_BVI.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_ActionArg_BVI
+
+}
+
+# -----
+
+# Test that AV task values are properly handled in method conditions
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_TaskCond.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_TaskCond.v \
+    {wire COND\_RL\_r\_FUNCTION\_\$display\_3\, COND\_RL\_r\_s\_am1\_1\, COND\_RL\_r\_s\_am2\_2\;}
+find_regexp sysMethodConds_TaskCond.v \
+    {assign COND\_RL\_r\_FUNCTION\_\$display\_3 \= TASK\_getCond\_\_\_d4 \;}
+find_regexp sysMethodConds_TaskCond.v \
+    {assign COND\_RL\_r\_s\_am1\_1 \= TASK\_getCond\_\_\_d4 \;}
+find_regexp sysMethodConds_TaskCond.v \
+    {assign COND\_RL\_r\_s\_am2\_2 \= TASK\_getCond\_\_\_d4 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_TaskCond.v {COND_RL_} 4
+# Check that bluetcl reports the appropriate positions
+# XXX The position of the $display is "Unknown"
+check_positions sysMethodConds_TaskCond
+
+}
+
+# -----
+
+# Test that case statements are properly handled in method conditions
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_CaseCond.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_CaseCond.v \
+    {reg COND\_RL\_r1\_FUNCTION\_\$display\_3\,
+      COND\_RL\_r1\_s\_am1\_1\,
+      COND\_RL\_r1\_s\_am2\_2\,}
+find_regexp sysMethodConds_CaseCond.v \
+    {case \(idx\)
+      2\'d0\: COND\_RL\_r1\_s\_am1\_1 \= c0\;
+      2\'d1\: COND\_RL\_r1\_s\_am1\_1 \= c1\;
+      2\'d2\: COND\_RL\_r1\_s\_am1\_1 \= c2\;
+      2\'d3\: COND\_RL\_r1\_s\_am1\_1 \= c3\;
+    endcase}
+find_regexp sysMethodConds_CaseCond.v \
+    {case \(idx\)
+      2\'d0\: COND\_RL\_r1\_s\_am2\_2 \= c0\;
+      2\'d1\: COND\_RL\_r1\_s\_am2\_2 \= c1\;
+      2\'d2\: COND\_RL\_r1\_s\_am2\_2 \= c2\;
+      2\'d3\: COND\_RL\_r1\_s\_am2\_2 \= c3\;
+    endcase}
+find_regexp sysMethodConds_CaseCond.v \
+    {case \(idx\)
+      2\'d0\: COND\_RL\_r1\_FUNCTION\_\$display\_3 \= c0\;
+      2\'d1\: COND\_RL\_r1\_FUNCTION\_\$display\_3 \= c1\;
+      2\'d2\: COND\_RL\_r1\_FUNCTION\_\$display\_3 \= c2\;
+      2\'d3\: COND\_RL\_r1\_FUNCTION\_\$display\_3 \= c3\;
+    endcase}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_CaseCond.v {COND_RL_} 15
+# Check that bluetcl reports the appropriate positions
+# XXX The position of the $display is "Unknown"
+check_positions sysMethodConds_CaseCond
+
+# This example CSE's the COND condition into the signals for the design
+# (case-stmt reconstruction is doing CSE that needs to be aware of non-CSE props)
+#
+compile_verilog_pass MethodConds_VecSelCond.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_VecSelCond.v \
+    {reg CASE\_idx\_0\_cs\_0\_1\_cs\_1\_2\_cs\_2\_3\_DONTCARE\_DONTCARE\_\_q1\,
+      COND\_RL\_r\_s\_am1\_1\;}
+# XXX This code could be shared with with "CASE_...__q1" rather than inlined
+# XXX (what happens is that it's inlined, but VeriQuirks lifts it back up,
+# XXX so maybe VeriQuirks needs to do a better job of CSE in the lifted exprs)
+find_regexp sysMethodConds_VecSelCond.v \
+    {case \(idx\)
+      2\'d0\: COND\_RL\_r\_s\_am1\_1 \= cs\_0\;
+      2\'d1\: COND\_RL\_r\_s\_am1\_1 \= cs\_1\;
+      2\'d2\: COND\_RL\_r\_s\_am1\_1 \= cs\_2\;
+      2\'d3\: COND\_RL\_r\_s\_am1\_1 \= 1\'b0 \/\* unspecified value \*\/ \;
+    endcase}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_VecSelCond.v {COND_RL_} 5
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_VecSelCond
+
+}
+
+# -----
+
+# Test when the actions are the arms of case statement or vector selection
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_CaseAction.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_CaseAction.v \
+    {wire COND\_RL\_r1\_rg0\_write\_1\,
+       COND\_RL\_r1\_rg1\_write\_2\,
+       COND\_RL\_r1\_rg2\_write\_3\,
+       COND\_RL\_r1\_rg3\_write\_4\;}
+find_regexp sysMethodConds_CaseAction.v \
+    {assign COND\_RL\_r1\_rg0\_write\_1 \= idx \=\= 2\'d0 \;}
+find_regexp sysMethodConds_CaseAction.v \
+    {assign COND\_RL\_r1\_rg1\_write\_2 \= idx \=\= 2\'d1 \;}
+find_regexp sysMethodConds_CaseAction.v \
+    {assign COND\_RL\_r1\_rg2\_write\_3 \= idx \=\= 2\'d2 \;}
+find_regexp sysMethodConds_CaseAction.v \
+    {assign COND\_RL\_r1\_rg3\_write\_4 \= idx \=\= 2\'d3 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_CaseAction.v {COND_RL_} 8
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_CaseAction
+
+compile_verilog_pass MethodConds_CaseAction_SamePos.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_CaseAction_SamePos.v \
+    {wire COND\_RL\_r1\_rg0\_write\_1\,
+       COND\_RL\_r1\_rg1\_write\_2\,
+       COND\_RL\_r1\_rg2\_write\_3\,
+       COND\_RL\_r1\_rg3\_write\_4\;}
+find_regexp sysMethodConds_CaseAction_SamePos.v \
+    {assign COND\_RL\_r1\_rg0\_write\_1 \= idx \=\= 2\'d0 \;}
+find_regexp sysMethodConds_CaseAction_SamePos.v \
+    {assign COND\_RL\_r1\_rg1\_write\_2 \= idx \=\= 2\'d1 \;}
+find_regexp sysMethodConds_CaseAction_SamePos.v \
+    {assign COND\_RL\_r1\_rg2\_write\_3 \= idx \=\= 2\'d2 \;}
+find_regexp sysMethodConds_CaseAction_SamePos.v \
+    {assign COND\_RL\_r1\_rg3\_write\_4 \= idx \!\= 2\'d0 \&\& idx \!\= 2\'d1 \&\& idx \!\= 2\'d2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_CaseAction_SamePos.v {COND_RL_} 8
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_CaseAction_SamePos
+
+compile_verilog_pass MethodConds_VecSelAction.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_VecSelAction.v \
+    {wire COND\_RL\_r1\_rg0\_write\_1\,
+       COND\_RL\_r1\_rg1\_write\_2\,
+       COND\_RL\_r1\_rg2\_write\_3\,
+       COND\_RL\_r1\_rg3\_write\_4\;}
+find_regexp sysMethodConds_VecSelAction.v \
+    {assign COND\_RL\_r1\_rg0\_write\_1 \= idx \=\= 2\'d0 \;}
+find_regexp sysMethodConds_VecSelAction.v \
+    {assign COND\_RL\_r1\_rg1\_write\_2 \= idx \=\= 2\'d1 \;}
+find_regexp sysMethodConds_VecSelAction.v \
+    {assign COND\_RL\_r1\_rg2\_write\_3 \= idx \=\= 2\'d2 \;}
+find_regexp sysMethodConds_VecSelAction.v \
+    {assign COND\_RL\_r1\_rg3\_write\_4 \= idx \=\= 2\'d3 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_VecSelAction.v {COND_RL_} 8
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_VecSelAction
+
+compile_verilog_pass MethodConds_VecSelAction_SamePos.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_VecSelAction_SamePos.v \
+    {wire COND\_RL\_r1\_rgs\_0\_write\_1\,
+       COND\_RL\_r1\_rgs\_1\_write\_2\,
+       COND\_RL\_r1\_rgs\_2\_write\_3\,
+       COND\_RL\_r1\_rgs\_3\_write\_4\;}
+find_regexp sysMethodConds_VecSelAction_SamePos.v \
+    {assign COND\_RL\_r1\_rgs\_0\_write\_1 \= idx \=\= 2\'d0 \;}
+find_regexp sysMethodConds_VecSelAction_SamePos.v \
+    {assign COND\_RL\_r1\_rgs\_1\_write\_2 \= idx \=\= 2\'d1 \;}
+find_regexp sysMethodConds_VecSelAction_SamePos.v \
+    {assign COND\_RL\_r1\_rgs\_2\_write\_3 \= idx \=\= 2\'d2 \;}
+find_regexp sysMethodConds_VecSelAction_SamePos.v \
+    {assign COND\_RL\_r1\_rgs\_3\_write\_4 \= idx \=\= 2\'d3 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_VecSelAction_SamePos.v {COND_RL_} 8
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_VecSelAction_SamePos
+
+}
+
+# -----
+
+# Test that multiplicity is properly handled in method conditions
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_MultiplicityCond.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_MultiplicityCond.v \
+    {wire COND\_RL\_r1\_FUNCTION\_\$display\_3\,
+       COND\_RL\_r1\_s\_am1\_1,
+       COND\_RL\_r1\_s\_am2\_2,
+       COND\_RL\_r2\_idx2\_write\_1;}
+find_regexp sysMethodConds_MultiplicityCond.v \
+    {assign COND\_RL\_r1\_FUNCTION\_\$display\_3 \= rf\$D\_OUT\_2 \;}
+find_regexp sysMethodConds_MultiplicityCond.v \
+    {assign COND\_RL\_r1\_s\_am1\_1 \= rf\$D\_OUT\_2 \;}
+find_regexp sysMethodConds_MultiplicityCond.v \
+    {assign COND\_RL\_r1\_s\_am2\_2 \= rf\$D\_OUT\_2 \;}
+find_regexp sysMethodConds_MultiplicityCond.v \
+    {assign COND\_RL\_r2\_idx2\_write\_1 \= rf\$D\_OUT\_1 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_MultiplicityCond.v {COND_RL_} 8
+# Check that bluetcl reports the appropriate positions
+# XXX The position of the $display is "Unknown"
+check_positions sysMethodConds_MultiplicityCond
+
+}
+
+# -----
+
+# Test for multiple positions
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_TwoLevel.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_TwoLevel.v \
+    {wire COND\_RL\_r\_s\_rg\_write\_1, COND\_RL\_r\_s\_rg\_write\_2\;}
+find_regexp sysMethodConds_TwoLevel.v \
+    {assign COND\_RL\_r\_s\_rg\_write\_1 \= c1 \;}
+find_regexp sysMethodConds_TwoLevel.v \
+    {assign COND\_RL\_r\_s\_rg\_write\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_TwoLevel.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_TwoLevel
+
+compile_verilog_pass MethodConds_TwoLevel2.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_TwoLevel2.v \
+    {wire COND\_RL\_r\_s\_u\_am1\_1, COND\_RL\_r\_s\_u\_am1\_2\;}
+find_regexp sysMethodConds_TwoLevel2.v \
+    {assign COND\_RL\_r\_s\_u\_am1\_1 \= c1 \;}
+find_regexp sysMethodConds_TwoLevel2.v \
+    {assign COND\_RL\_r\_s\_u\_am1\_2 \= \!c1 \&\& c2 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_TwoLevel2.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_TwoLevel2
+
+}
+
+# -----
+
+# Test for rule dropping
+
+if { $vtest == 1 } {
+
+compile_verilog_pass_warning \
+    MethodConds_DroppedRule_FalseCond.bsv G0023 1 {} "$opts -remove-false-rules"
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_DroppedRule_FalseCond.v \
+    {wire COND\_RL\_r2\_s2\_am1\_1, COND\_RL\_r2\_s2\_am1\_2\;}
+find_regexp sysMethodConds_DroppedRule_FalseCond.v \
+    {assign COND\_RL\_r2\_s2\_am1\_1 \= c1 \;}
+find_regexp sysMethodConds_DroppedRule_FalseCond.v \
+    {assign COND\_RL\_r2\_s2\_am1\_2 \= \!c1 \&\& c2 \;}
+# Check that there are no other COND signals declared (for the dropped rule)
+# and that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_DroppedRule_FalseCond.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_DroppedRule_FalseCond
+
+compile_verilog_pass_warning \
+    MethodConds_DroppedRule_Blocked.bsv G0021 1 {} "$opts -remove-starved-rules"
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_DroppedRule_Blocked.v \
+    {wire COND\_RL\_r2\_s2\_am1\_1, COND\_RL\_r2\_s2\_am1\_2\;}
+find_regexp sysMethodConds_DroppedRule_Blocked.v \
+    {assign COND\_RL\_r2\_s2\_am1\_1 \= c1 \;}
+find_regexp sysMethodConds_DroppedRule_Blocked.v \
+    {assign COND\_RL\_r2\_s2\_am1\_2 \= \!c1 \&\& c2 \;}
+# Check that there are no other COND signals declared (for the dropped rule)
+# and that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_DroppedRule_Blocked.v {COND_RL_} 3
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_DroppedRule_Blocked
+
+}
+
+# -----
+
+# Test when method calls are inside functions
+
+# This tests when the same function is called multiply in the same rule.
+# Because we're not tracking positions of function calls, there won't
+# be separate positions, but we generate separate COND signals for each
+# branch of the if-statement.
+
+if { $vtest == 1 } {
+
+compile_verilog_pass MethodConds_Function.bsv {} $opts
+# Check that the conditions are in the Verilog
+find_regexp sysMethodConds_Function.v \
+    {wire COND\_RL\_r\_s\_write\_1\,
+       COND\_RL\_r\_s\_write\_2\,
+       COND\_RL\_r\_s\_write\_3\,
+       COND\_RL\_r\_s\_write\_4\,
+       COND\_RL\_r\_s\_write\_5\,
+       COND\_RL\_r\_s\_write\_6\;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_1 \= c1 \&\& c2 \;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_2 \= c1 \&\& \!c2 \&\& c3 \;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_3 \= c1 \&\& \!c2 \&\& \!c3 \;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_4 \= \!c1 \&\& c2 \;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_5 \= \!c1 \&\& \!c2 \&\& c3 \;}
+find_regexp sysMethodConds_Function.v \
+    {assign COND\_RL\_r\_s\_write\_6 \= \!c1 \&\& \!c2 \&\& \!c3 \;}
+# And that the COND signals are not mingled with the actual design
+find_n_strings sysMethodConds_Function.v {COND_RL_} 12
+# Check that bluetcl reports the appropriate positions
+check_positions sysMethodConds_Function
+
+}
+
+# -----
+
+# Test for rule splitting
+
+# XXX ...
+
+# XXX And test when some split rules are dropped
+
+# -----
+
+# Test that method calls with no conditions do not generate COND signals
+
+# XXX ...
+
+# -----
+

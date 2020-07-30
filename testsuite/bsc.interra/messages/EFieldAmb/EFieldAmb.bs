@@ -1,0 +1,20 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EFieldAmb.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EFieldAmb error of the bluespec
+-- compiler (Field {Identifier} is not disambiguated by type {Type})
+--
+-----------------------------------------------------------------------
+
+
+
+package EFieldAmb () where
+
+struct My_pair1 = {fst :: Integer; snd :: Integer}
+
+first :: a -> Integer
+first x = (x.fst) 

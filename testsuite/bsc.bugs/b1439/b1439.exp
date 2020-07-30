@@ -1,0 +1,5 @@
+compile_object_pass Bug1439.bs mkBug1439
+link_objects_pass mkBug1439.ba mkBug1439
+
+compile_object_pass Bug1439.bsv mkBug1439
+link_objects_pass mkBug1439.ba mkBug1439

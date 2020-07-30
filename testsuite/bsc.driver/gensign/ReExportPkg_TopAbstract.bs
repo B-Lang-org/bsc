@@ -1,0 +1,8 @@
+package ReExportPkg_TopAbstract (x) where
+
+import ReExportPkg_Q
+
+-- Use of hidden constructors should fail
+x :: T
+x = T 1
+

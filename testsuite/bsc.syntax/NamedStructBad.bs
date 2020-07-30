@@ -1,0 +1,13 @@
+package NamedStructBad where
+
+data Baz = Quux { foo :: Bool; bar :: String }
+         | FooBar Bool String
+
+testFooOK :: Baz -> Bool
+testFooOK (Quux q) = q.foo
+testFooOK (FooBar foo _) = foo
+
+testBarBad :: Baz -> String
+testBarBad (Quux _ bar) = bar
+testBarBad (FooBar fb) = fb._2
+

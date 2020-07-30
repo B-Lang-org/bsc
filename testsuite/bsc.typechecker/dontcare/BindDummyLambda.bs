@@ -1,0 +1,5 @@
+package BindDummyLambda () where
+
+x :: Bool -> Int 32
+x = \_ -> _
+

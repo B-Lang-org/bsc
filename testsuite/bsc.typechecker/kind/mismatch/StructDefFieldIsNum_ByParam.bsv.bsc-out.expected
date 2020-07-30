@@ -1,0 +1,4 @@
+checking package dependencies
+compiling StructDefFieldIsNum_ByParam.bsv
+Error: "StructDefFieldIsNum_ByParam.bsv", line 7, column 4: (T0027)
+  The numeric type `a' was found where a value type was expected.

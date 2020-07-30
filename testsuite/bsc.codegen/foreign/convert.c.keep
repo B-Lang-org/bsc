@@ -1,0 +1,7 @@
+#include <stdlib.h>
+
+unsigned int my_stoi(char* str)
+{
+  return (unsigned int) strtoul(str,NULL,0);
+}
+

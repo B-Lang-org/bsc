@@ -1,0 +1,21 @@
+-----------------------------------------------------------------------
+-- Project: Bluespec
+
+-- File: EDupField.bs
+
+-- Author : Amit Grover      <amit@noida.interrasystems.com>
+
+-- Description: This testcase triggers the EDupField error of the bluespec
+-- compiler (Field {Identifier} defined more than once)
+--
+-----------------------------------------------------------------------
+
+
+
+package EDupField2 () where
+
+struct My_pair = {fst :: Integer; snd :: Integer}
+
+firstpair :: My_pair
+firstpair = My_pair {fst =5; fst = 10; snd = 10}
+

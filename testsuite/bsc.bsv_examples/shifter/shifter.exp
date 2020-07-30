@@ -1,0 +1,180 @@
+#############################
+# Example 1
+
+# Verilog tests
+
+if {$vtest == 1} {
+compile_verilog_pass Tb1.bsv mkTb1
+link_verilog_pass {mkTb1.v} mkTb1
+sim_verilog mkTb1
+copy mkTb1.out mkTb1.v.out
+compare_file mkTb1.v.out mkTb1.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb1.bsv mkTb1
+link_objects_pass {mkTb1} mkTb1
+sim_output mkTb1
+copy mkTb1.out mkTb1.c.out
+compare_file mkTb1.c.out mkTb1.out.expected
+}
+
+#############################
+# Example 2
+
+# Verilog tests
+
+if {$vtest == 1} {
+compile_verilog_pass Tb2.bsv mkTb2
+link_verilog_pass {mkTb2.v} mkTb2
+sim_verilog mkTb2
+copy mkTb2.out mkTb2.v.out
+compare_file mkTb2.v.out mkTb2.out.expected
+}
+
+# C tests
+if {$ctest == 1} {
+compile_object_pass Tb2.bsv mkTb2
+link_objects_pass {mkTb2} mkTb2
+sim_output mkTb2
+copy mkTb2.out mkTb2.c.out
+compare_file mkTb2.c.out mkTb2.out.expected
+}
+
+#############################
+# Example 3
+
+# Verilog tests
+if {$vtest == 1} {
+compile_verilog_pass Tb3.bsv mkTb3
+link_verilog_pass {mkTb3.v} mkTb3
+sim_verilog mkTb3
+copy mkTb3.out mkTb3.v.out
+compare_file mkTb3.v.out mkTb3.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb3.bsv mkTb3
+link_objects_pass {mkTb3} mkTb3
+sim_output mkTb3
+copy mkTb3.out mkTb3.c.out
+compare_file mkTb3.c.out mkTb3.out.expected
+}
+
+#############################
+# Example 4
+
+# Verilog tests
+if {$vtest == 1} {
+compile_verilog_pass Tb4.bsv mkTb4
+link_verilog_pass {mkTb4.v} mkTb4
+sim_verilog mkTb4
+copy mkTb4.out mkTb4.v.out
+compare_file mkTb4.v.out mkTb4.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb4.bsv mkTb4
+link_objects_pass {mkTb4} mkTb4
+sim_output mkTb4
+copy mkTb4.out mkTb4.c.out
+compare_file mkTb4.c.out mkTb4.out.expected
+}
+
+#############################
+# Example 5
+
+# Verilog tests
+if {$vtest == 1} {
+compile_verilog_pass Tb5.bsv mkTb5
+link_verilog_pass {mkTb5.v} mkTb5
+sim_verilog mkTb5
+copy mkTb5.out mkTb5.v.out
+compare_file mkTb5.v.out mkTb5.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb5.bsv mkTb5
+link_objects_pass {mkTb5} mkTb5
+sim_output mkTb5
+copy mkTb5.out mkTb5.c.out
+compare_file mkTb5.c.out mkTb5.out.expected
+}
+
+#############################
+# Example 6
+
+# Verilog tests
+if {$vtest == 1} {
+compile_verilog_pass Tb6.bsv mkTb6
+link_verilog_pass {mkTb6.v} mkTb6
+sim_verilog mkTb6
+copy mkTb6.out mkTb6.v.out
+compare_file mkTb6.v.out mkTb6.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb6.bsv mkTb6
+link_objects_pass {mkTb6} mkTb6
+sim_output mkTb6
+copy mkTb6.out mkTb6.c.out
+compare_file mkTb6.c.out mkTb6.out.expected
+}
+#############################
+# Example 7
+
+# Verilog tests
+
+if {$vtest == 1} {
+compile_verilog_pass Tb7.bsv mkTb7
+link_verilog_pass {mkTb7.v} mkTb7
+sim_verilog mkTb7
+copy mkTb7.out mkTb7.v.out
+compare_file mkTb7.v.out mkTb7.out.expected
+}
+# C tests
+
+if {$ctest == 1} {
+compile_object_pass Tb7.bsv mkTb7
+link_objects_pass {mkTb7} mkTb7
+sim_output mkTb7
+copy mkTb7.out mkTb7.c.out
+compare_file mkTb7.c.out mkTb7.out.expected
+}
+
+#############################
+# Example 8
+
+# Verilog tests
+if {$vtest == 1} {
+compile_verilog_pass Tb8.bsv mkTb8
+link_verilog_pass {mkTb8.v} mkTb8
+sim_verilog mkTb8
+copy mkTb8.out mkTb8.v.out
+compare_file mkTb8.v.out mkTb8.out.expected
+}
+
+# C tests
+if {$ctest == 1} {
+compile_object_pass Tb8.bsv mkTb8
+link_objects_pass {mkTb8} mkTb8
+sim_output mkTb8
+copy mkTb8.out mkTb8.c.out
+compare_file mkTb8.c.out mkTb8.out.expected
+}
+
+#############################
+# Check that the lab files compile
+
+compile_pass Tb3Q.bsv
+compile_pass Tb4Q.bsv
+compile_pass Tb5Q.bsv
+compile_pass Tb6Q.bsv
+compile_pass Tb7Q.bsv
+compile_pass Tb8Q.bsv
+

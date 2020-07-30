@@ -1,0 +1,7 @@
+make_pass all
+set path [exec find ./ -name "gen_bits.v"]
+set seed [lindex [exec grep "seed" $path] 3]
+verbose -log "Random seed = $seed"
+note "Random seed = $seed"
+copy "./generate/Vectors.bsv" "./Vectors.bsv"
+test_c_veri_bsv_multi_options Testbench mkTestbench {mkDut} "" "bitsel.out.expected"  

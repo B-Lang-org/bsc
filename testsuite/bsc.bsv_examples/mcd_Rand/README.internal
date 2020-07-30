@@ -1,0 +1,44 @@
+This directory contains some examples of using MCD features in BSV.
+It includes variants of a single design: A random number generator is
+adding numbers to a FIFO and the numbers in that FIFO are sent to two
+FIFOs of submodules as room allows and the two submodules dequeue the
+numbers in different patterns (one is bursty and one takes at regular
+intervals?).
+
+The status of most of the variants is unknown as only one is tested:
+
+  Top.bsv
+  RandTop5
+  RandGen
+  RandUser1
+  RandUser2
+  RandGlobal
+
+The C versions use CGetPut instead of GetPut:
+
+  RandTopC.bsv
+  RandGenC.bsv
+  RandUser1C.bsv
+  RandUser2C.bsv
+  RandGlobalC.bsv
+
+The different numbered variants likely set up different clocks or gates.
+Here are the ones for which Top exists:
+
+  TopA.bsv
+  RandTop3A
+
+  TopB.bsv
+  RandTop3B  -- unfortunately, this file doesn't exist
+
+  TopC.bsv
+  RandTop3C.bsv
+
+The following RandTop files can presumably be substituted into the Tops:
+
+  RandTop.bsv
+  RandTop2.bsv
+  RandTop3.bsv
+  RandTop4.bsv
+  RandTop6.bsv
+

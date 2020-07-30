@@ -1,0 +1,22 @@
+package Init65536Bit (sysInit65536Bit) where
+
+bigConst :: Bit 65536
+bigConst = 0xfedcba9876543210
+
+bigInt :: Bit 65536
+bigInt = makeBigInt 65536
+
+makeBigInt :: Bit 65536 -> Bit 65536
+makeBigInt x = if (x <= 0) then 0 else (makeBigInt (x - 64) << 64) + bigConst
+
+sysInit65536Bit :: Module Empty
+sysInit65536Bit = 
+  module 
+    r :: Reg (Bit 65536) <- mkReg bigInt
+    done :: Reg (Bool) <- mkReg False
+    rules
+      when not done ==> 
+        action
+         displayHex(r)
+         done := True
+      when done ==> $finish 0

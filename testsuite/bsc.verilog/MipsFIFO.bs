@@ -1,0 +1,49 @@
+package MipsFIFO (
+	FIFO(..),
+	mkFIFO,
+	FoldFIFO(..),
+	mkFoldFIFO
+	) where
+import Environment
+
+interface FIFO a =
+    enq      :: a -> Action
+    deq      :: Action
+    first    :: a
+    clear    :: Action
+
+mkFIFO :: (IsModule m c, Bits a as) => m (FIFO a)
+mkFIFO =
+  module
+    v :: Reg a
+    v <- mkRegU
+    f :: Reg Bool
+    f <- mkReg False
+    interface
+      enq x    = action { f := True; v := x }	when not f
+      deq      = action { f := False }		when f
+      first    = v				when f
+      clear    = action { f := False }
+
+interface FoldFIFO a =
+  enq   :: a -> Action
+  deq   :: Action
+  first :: a
+  clear :: Action
+  foldr :: (a -> b -> b) -> b -> b
+
+mkFoldFIFO :: (IsModule m c, Bits a k) => m (FoldFIFO a)
+mkFoldFIFO =
+  module
+    v :: Reg a
+    v <- mkRegU
+    f :: Reg Bool
+    f <- mkReg False
+    interface
+      enq x  = action { f := True; v := x }	when not f
+      deq    = action { f := False }		when f
+      first  = v				when f
+      clear  = action { f := False }
+      foldr g z = if f
+		  then g v z
+		  else z

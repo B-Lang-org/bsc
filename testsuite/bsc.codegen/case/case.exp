@@ -1,0 +1,239 @@
+# ------------------------------------------------------------
+# Test case-statements in generated Verilog and Bluesim
+
+# ---------------
+# Test inference of a case-statement with another if-else statement
+
+# The Verilog backend used to miss the outer if-else due to imlining
+# and the fact that case-inference only happens on the defs (and not
+# on any code inlined into the foreign actions)
+
+test_c_veri_bsv IfElseCase_Func
+test_c_veri_bsv IfElseCase_Inline
+
+# Check that complete case statements are generated in Verilog
+if { $vtest == 1 } {
+    find_regexp sysIfElseCase_Func.v {
+    case \(r_idx\)
+      2\'d0\: CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \= 8\'d0\;
+      2\'d1\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[15\:8\]\;
+      2\'d2\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[23\:16\]\;
+      2\'d3\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[31\:24\]\;
+    endcase}
+
+    find_regexp sysIfElseCase_Inline.v {
+    case \(r_idx\)
+      2\'d0\: CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \= 8\'d0\;
+      2\'d1\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[15\:8\]\;
+      2\'d2\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[23\:16\]\;
+      2\'d3\:
+	  CASE_r_idx_0_0_1_r_vec_BITS_15_TO_8_2_r_vec_BI_ETC__q[0-9]+ \=
+	      r_vec\[31\:24\]\;
+    endcase}
+}
+
+# Check that complete switch statements are generated in Bluesim
+# (The fact that this compiles already signals that duplicate case arms
+# are being properly reduced.)
+if { $ctest == 1 } {
+    find_regexp sysIfElseCase_Func.cxx {
+  switch \(DEF_idx__h[0-9]+\) \{
+  case \(tUInt8\)0u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_0_THEN_r_ETC___d[0-9]+ \= \(tUInt8\)0u\;
+    break\;
+  case \(tUInt8\)1u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_0_THEN_r_ETC___d[0-9]+ \= DEF_r_vec_BITS_15_TO_8___h[0-9]+\;
+    break\;
+  case \(tUInt8\)2u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_0_THEN_r_ETC___d[0-9]+ \= DEF_r_vec_BITS_23_TO_16___h[0-9]+\;
+    break\;
+  default\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_0_THEN_r_ETC___d[0-9]+ \= DEF_r_vec_BITS_31_TO_24___h[0-9]+\;
+  \}}
+
+    find_regexp sysIfElseCase_Inline.cxx {
+  switch \(DEF_x__h[0-9]+\) \{
+  case \(tUInt8\)0u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_1_THEN_r_ETC___d[0-9]+ \= \(tUInt8\)0u\;
+    break\;
+  case \(tUInt8\)1u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_1_THEN_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+    break\;
+  case \(tUInt8\)2u\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_1_THEN_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+    break\;
+  default\:
+    DEF_IF_r_idx_EQ_0_THEN_0_ELSE_IF_r_idx_EQ_1_THEN_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+  \}}
+}
+
+# ---------------
+# Test that no-op case-expressions are reduced
+
+# The size of the result matches the size of the index
+test_c_veri_bsv NoOp_SameSize
+
+# The size of the result is larger than the index
+test_c_veri_bsv NoOp_LargerRes
+
+# ----
+# Test that no case statements appear in the output
+
+# XXX These currently fail
+
+# Verilog
+find_n_strings_bug sysNoOp_SameSize.v {case} 0
+find_n_strings_bug sysNoOp_LargerRes.v {case} 0
+
+# Bluesim
+find_n_strings_bug sysNoOp_SameSize.cxx {switch} 0
+find_n_strings_bug sysNoOp_LargerRes.cxx {switch} 0
+
+# ---------------
+# Test that multiple case arms with the same value are combined in the output
+
+test_c_veri_bsv DupResult
+
+# Verilog
+# (The default is removed, because the case is complete)
+if { $vtest == 1 } {
+    find_regexp sysDupResult.v {
+    case \(r_idx\)
+      3\'d0\, 3\'d2\, 3\'d6\:
+	  CASE_r_idx_0_r_vec_BITS_7_TO_0_1_r_vec_BITS_15_ETC__q[0-9]+ \= r_vec\[7\:0\]\;
+      3\'d1\:
+	  CASE_r_idx_0_r_vec_BITS_7_TO_0_1_r_vec_BITS_15_ETC__q[0-9]+ \=
+	      r_vec\[15\:8\]\;
+      3\'d3\, 3\'d4\:
+	  CASE_r_idx_0_r_vec_BITS_7_TO_0_1_r_vec_BITS_15_ETC__q[0-9]+ \=
+	      r_vec\[23\:16\]\;
+      3\'d5\, 3\'d7\:
+	  CASE_r_idx_0_r_vec_BITS_7_TO_0_1_r_vec_BITS_15_ETC__q[0-9]+ \=
+	      r_vec\[31\:24\]\;
+    endcase}
+}
+
+# Bluesim
+# (The arm for index 5 has been merged with the default.)
+if { $ctest == 1 } {
+    find_regexp sysDupResult.cxx {
+  switch \(DEF_x__h[0-9]+\) \{
+  case \(tUInt8\)0u\:
+  case \(tUInt8\)2u\:
+  case \(tUInt8\)6u\:
+    DEF_IF_r_idx_EQ_0_THEN_r_vec_BITS_7_TO_0_ELSE_IF_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+    break\;
+  case \(tUInt8\)1u\:
+    DEF_IF_r_idx_EQ_0_THEN_r_vec_BITS_7_TO_0_ELSE_IF_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+    break\;
+  case \(tUInt8\)3u\:
+  case \(tUInt8\)4u\:
+    DEF_IF_r_idx_EQ_0_THEN_r_vec_BITS_7_TO_0_ELSE_IF_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+    break\;
+  default\:
+    DEF_IF_r_idx_EQ_0_THEN_r_vec_BITS_7_TO_0_ELSE_IF_r_ETC___d[0-9]+ \= DEF_tmp__h[0-9]+\;
+  \}}
+}
+
+# ---------------
+
+# String values are only preserved for foreign tasks (like $display) and
+# as parameters to submodules; in both cases, the expressions are inlined
+# and Verilog does not support case-statements in those locations, so there
+# is not much to test here.
+
+# XXX add a check of the evaluator/backend output
+
+compile_verilog_pass CaseString.bsv
+compile_verilog_pass ArrSelString.bsv
+
+# The same is true for Real values, but even worse: the only way such values
+# are preserved in backend are to be displayed as a String or as Bits, both
+# of which remove the actual Real values, so we're not testing case/select
+# of Real.
+
+# XXX add a check of the evaluator/backend output
+
+compile_verilog_pass CaseReal.bsv
+compile_verilog_pass ArrSelReal.bsv
+
+# ---------------
+
+# Test that combinations of Case/If/ArraySelect are merged into one
+# case expression in the output
+
+compile_verilog_pass CaseIf.bsv
+if { $vtest == 1 } {
+    find_regexp sysCaseIf.v {
+    case \(rg\)
+      3\'d0\: rg2\$D\_IN \= 8\'d17\;
+      3\'d1\: rg2\$D\_IN \= 8\'d42\;
+      3\'d2\: rg2\$D\_IN \= 8\'d2\;
+      3\'d4\: rg2\$D\_IN \= 8\'d22\;
+      default\: rg2\$D\_IN \= 8\'d5\;
+    endcase}
+}
+
+compile_verilog_pass CaseCase.bsv
+if { $vtest == 1 } {
+    find_regexp sysCaseCase.v {
+    case \(rg\)
+      3\'d0\: rg2\$D\_IN \= 8\'d17\;
+      3\'d1\: rg2\$D\_IN \= 8\'d42\;
+      3\'d2\: rg2\$D\_IN \= 8\'d2\;
+      3\'d3\: rg2\$D\_IN \= 8\'d22\;
+      3\'d4\: rg2\$D\_IN \= 8\'d23\;
+      default\: rg2\$D\_IN \= 8\'d5\;
+    endcase}
+}
+
+compile_verilog_pass CaseArrSel.bsv
+if { $vtest == 1 } {
+    find_regexp sysCaseArrSel.v {
+    case \(rg\)
+      3\'d0\: rg2\$D\_IN \= 8\'d17\;
+      3\'d1\: rg2\$D\_IN \= 8\'d42\;
+      3\'d2\: rg2\$D\_IN \= 8\'d2\;
+      3\'d3\: rg2\$D\_IN \= 8\'d22\;
+      3\'d4\: rg2\$D\_IN \= 8\'d23\;
+      3\'d5\, 3\'d6\, 3\'d7\: rg2\$D\_IN \= 8\'d5\;
+    endcase}
+}
+
+compile_verilog_pass IfCase.bsv
+if { $vtest == 1 } {
+    find_regexp sysIfCase.v {
+    case \(rg\)
+      3\'d0\: rg2\$D\_IN \= 8\'d17\;
+      3\'d1\: rg2\$D\_IN \= 8\'d42\;
+      3\'d2\: rg2\$D\_IN \= 8\'d2\;
+      3\'d4\: rg2\$D\_IN \= 8\'d22\;
+      default\: rg2\$D\_IN \= 8\'d5\;
+    endcase}
+}
+
+compile_verilog_pass IfArrSel.bsv
+if { $vtest == 1 } {
+    find_regexp sysIfArrSel.v {
+    case \(rg\)
+      3\'d0\: rg2\$D\_IN \= 8\'d17\;
+      3\'d1\: rg2\$D\_IN \= 8\'d42\;
+      3\'d2\: rg2\$D\_IN \= 8\'d2\;
+      3\'d3\: rg2\$D\_IN \= 8\'d22\;
+      3\'d4\: rg2\$D\_IN \= 8\'d23\;
+      3\'d5\, 3\'d6\, 3\'d7\: rg2\$D\_IN \= 8\'d5\;
+    endcase}
+}
+
+# ------------------------------------------------------------
+

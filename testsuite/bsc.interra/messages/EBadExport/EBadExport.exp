@@ -1,0 +1,5 @@
+compile_fail EBadExport1.bs
+compare_file EBadExport1.bs.bsc-out
+
+compile_fail EBadExport2.bs
+compare_file EBadExport2.bs.bsc-out

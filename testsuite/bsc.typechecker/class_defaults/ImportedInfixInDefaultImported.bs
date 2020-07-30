@@ -1,0 +1,34 @@
+package ImportedInfixInDefaultImported () where
+
+import ImportedInfixInDefault
+
+instance Foo (Int 8) where {}
+
+x0 :: Int 8
+x0 = 5
+
+x1 :: Int 8
+x1 = g 2 3 4 5
+
+s1 :: String
+s1 = f x0 "Hi" "Mom"
+
+{-# verilog sysImportedInfixInDefaultImported #-}
+sysImportedInfixInDefaultImported :: Module Empty
+sysImportedInfixInDefaultImported =
+  module
+    done :: Reg Bool <- mkReg(False)
+    rg :: Reg (Int 8) <- mkReg(0)
+    rules
+      "r1":
+        when (not done)
+          ==> action
+                h rg x0
+                $display "x1 = %d" x1
+                $display s1
+                done := True;
+      "r2":
+        when (done)
+          ==> action
+                $display "rg = %d" rg
+                $finish(0)

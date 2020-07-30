@@ -1,0 +1,114 @@
+package Bug578 where {
+
+type IEEE754_32 = Bit 32;
+			
+type IEEE754_64 = Bit 64;
+			
+type FP_Sign = Bool;
+		   
+type FP_RS = Bit 2;
+		  
+struct FP_I ee ss = {
+    sign :: FP_Sign;
+    exp :: Bit ee;
+    sfd :: Bit ss;
+    rs :: FP_RS
+} deriving (Bits);
+		 
+findmsb :: (Add s 1 sk, Log sk k) => Bit s -> Bit k;
+findmsb din = 
+  let vectorSize' =  primValueOf din;
+  in
+   let vectorSize =  vectorSize';
+   in
+    let res' :: Bit k;
+        res' =  0;
+    in
+     let res :: Bit k;
+         res =  res';
+     in
+      let theResult' = 
+            let i' :: Integer;
+                i' =  0;
+            in
+             let i :: Integer;
+                 i =  i';
+             in
+              let theResult' = 
+                    let f' :: (Bit k, Integer) -> (Bit k, Integer);
+                        f' (res, i) = 
+                          if i < vectorSize then
+                            let theResult' = 
+                                  let idx' :: Nat;
+                                      idx' =  fromInteger i;
+                                  in
+                                   let idx :: Nat;
+                                       idx =  idx';
+                                   in
+                                    let theResult' = 
+                                          if (primSelectFn _ din idx) ==
+                                               unpack (0b1::(Bit 1)) then
+                                            let res' :: Bit k;
+                                                res' = fromInteger (i + 1);
+                                            in  let res :: Bit k;
+                                                    res =  res';
+                                                in  res
+                                          else
+                                            let res' :: Bit k;
+                                                res' =  res;
+                                            in  let res :: Bit k;
+                                                    res =  res';
+                                                in  res
+                                    in  let res =  theResult'
+                                        in  res
+                            in  let res =  theResult'
+                                in  let i' :: Integer;
+                                        i' =  i + 1;
+                                    in  let i :: Integer;
+                                            i =  i';
+                                        in  f' (res , i)
+                          else
+                            (res , i);
+                    in  f' (res , i)
+              in  let (res, i) =  theResult'
+                  in  res
+      in  let res =  theResult'
+          in  res;
+                                
+normalize_and_truncate :: (Add s n sx) => Bit e -> FP_I e sx -> FP_I e s;
+normalize_and_truncate binaryPointPosition din = 
+  let expout' :: Bit e;
+      expout' =  din.exp;
+  in  let expout :: Bit e;
+          expout =  expout';
+      in  let rsout' :: FP_RS;
+              rsout' =  0;
+          in  let rsout :: FP_RS;
+                  rsout =  rsout';
+              in  let msba' =  findmsb din.sfd;
+                  in  let msba =  msba';
+                      in  let theResult' = 
+                                if msba == 0 then
+                                  let theResult' = 
+                                        let sfdout' :: Bit s;
+                                            sfdout' =  0;
+                                        in  let sfdout :: Bit s;
+                                                sfdout =  sfdout';
+                                            in  sfdout
+                                  in  let sfdout =  theResult'
+                                      in  sfdout
+                                else
+                                  let theResult' = 
+                                        let sfdout' :: (Bit s, Bit n);
+                                            sfdout' =  split din.sfd;
+                                        in  let (sfdout, rest) =  sfdout'
+                                            in  sfdout
+                                  in  let sfdout =  theResult'
+                                      in  sfdout
+                          in  let sfdout =  theResult'
+                              in  FP_I { sign = din.sign;
+                                         exp = expout;
+                                         sfd = sfdout;
+                                         rs = rsout; };
+}
+

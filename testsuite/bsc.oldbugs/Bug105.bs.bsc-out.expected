@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Bug105.bs
+Error: "Bug105.bs", line 9, column 9: (T0007)
+  Unbound type constructor `Vector'

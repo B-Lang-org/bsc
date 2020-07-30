@@ -1,0 +1,33 @@
+Initial Value: Index = 0, Data = 170
+Initial Value: Index = 1, Data = 170
+Initial Value: Index = 2, Data = 170
+Initial Value: Index = 3, Data = 170
+Initial Value: Index = 4, Data = 170
+Initial Value: Index = 5, Data = 170
+Initial Value: Index = 6, Data = 170
+Initial Value: Index = 7, Data = 170
+Updated Value: Index = 0, Data =   8
+Updated Value: Index = 1, Data =   9
+Updated Value: Index = 2, Data =  10
+Updated Value: Index = 3, Data =  11
+Updated Value: Index = 4, Data =  12
+Updated Value: Index = 5, Data =  13
+Updated Value: Index = 6, Data =  14
+Updated Value: Index = 7, Data =  15
+Updated Value: Index = 0, Data =   8
+Updated Value: Index = 1, Data =   9
+Updated Value: Index = 2, Data =  10
+Updated Value: Index = 3, Data =  11
+Updated Value: Index = 4, Data =  12
+Updated Value: Index = 5, Data =  13
+Updated Value: Index = 6, Data =  14
+Updated Value: Index = 7, Data =  15
+Updating Second Value: Old Data =   9
+New Second Value : Data =  22
+Second Val= 10
+Third Val= 11
+Fourth Val= 12
+Fifth Val= 13
+Sixth Val= 14
+Simulation Passes
+3612 bytes allocated in 22 allocations

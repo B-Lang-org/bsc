@@ -1,0 +1,104 @@
+=== Generated schedule for sysPPrintSched ===
+
+Rule schedule
+-------------
+Rule: noSim
+Predicate: True
+Blocking rules: (none)
+ 
+Rule: r1
+Predicate: i1 .< (i2 + 8'd1)
+Blocking rules: (none)
+ 
+Rule: r1a
+Predicate: (i1 + i2 + i3) == 8'd0
+Blocking rules: (none)
+ 
+Rule: r1b
+Predicate: (i1 + i2 + i3) == 8'd0
+Blocking rules: (none)
+ 
+Rule: r1c
+Predicate: (i1 + i2 + i3) == 8'd0
+Blocking rules: (none)
+ 
+Rule: r1d
+Predicate: (i1 + (i2 - i3)) == 8'd0
+Blocking rules: (none)
+ 
+Rule: r2
+Predicate: b11[4:0] == 5'd0
+Blocking rules: (none)
+ 
+Rule: r3
+Predicate: ! (PPrintSched.test1(i2, i3) == PPrintSched.test1(i2, i1))
+Blocking rules: (none)
+ 
+Rule: r4
+Predicate: {b11[4], b11[3], b11[10], b11[7:6]} == 5'h1C
+Blocking rules: (none)
+ 
+Rule: r5
+Predicate: (i2 - i1)[3:0] == 4'h8
+Blocking rules: (none)
+ 
+Rule: r6
+Predicate: (b3 == 3'h0)
+	   ? i1 == i2
+	   : ((b3 == 3'h1)
+	      ? (! (i1 == i2)) && (i2 == i3)
+	      : ((b3 == 3'h2)
+		 ? i1 == i2
+		 : ((b3 == 3'h3)
+		    ? i3 == i2
+		    : ((i1 .< 8'd7)
+		       ? i2 == i1
+		       : ((i1 + i2) == i3)))))
+Blocking rules: (none)
+ 
+Rule: r6a
+Predicate: xpw.whas &&
+	   ((b3 == 3'h0)
+	    ? i1 == i2
+	    : ((b3 == 3'h1)
+	       ? (! (i1 == i2)) && (i2 == i3)
+	       : ((b3 == 3'h2)
+		  ? i1 == i2
+		  : ((b3 == 3'h3)
+		     ? i3 == i2
+		     : ((i1 .< 8'd7)
+			? i2 == i1
+			: ((i1 + i2) == i3))))))
+Blocking rules: (none)
+ 
+Rule: r7
+Predicate: b11[0] ||
+	   ((b11[10:9] == 2'b11) &&
+	    ((b3 == 3'h0)
+	     ? i1 == i2
+	     : ((b3 == 3'h1)
+		? (! (i1 == i2)) && (i2 == i3)
+		: ((b3 == 3'h2)
+		   ? i1 == i2
+		   : ((b3 == 3'h3)
+		      ? i3 == i2
+		      : ((i1 .< 8'd7)
+			 ? i2 == i1
+			 : ((i1 + i2) == i3)))))))
+Blocking rules: (none)
+ 
+Logical execution order: noSim,
+			 r1,
+			 r1a,
+			 r1b,
+			 r1c,
+			 r1d,
+			 r2,
+			 r3,
+			 r4,
+			 r5,
+			 r6,
+			 r6a,
+			 r7
+
+==============================================

@@ -1,0 +1,8 @@
+
+compile_object_pass Bug1894.bsv
+link_objects_pass {} mkTop
+
+if { $ctest == 1 } {
+    find_regexp mkTop.cxx {2047u \& \(\(\(\(\(tUInt32\)\(\(tUInt8\)0u\)\) << 3u\) \| \(\(\(tUInt32\)\(DEF_cond__h[0-9]+\)\) << 2u\)\) \| \(tUInt32\)\(DEF_cond__h[0-9]+ \? DEF_AVMeth_s_m : \(tUInt8\)2u\)\);}
+}
+

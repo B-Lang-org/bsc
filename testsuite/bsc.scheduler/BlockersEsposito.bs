@@ -1,0 +1,23 @@
+package BlockersEsposito(sysBlockersEsposito) where
+
+-- `Victim' rules are independent and could fire simultaneously
+-- were it not for rule `Blocker.'
+-- The direct scheduler allows the victims to fire whenever Blocker
+-- is not enabled.
+import RegFile
+import Vector
+
+type N = 7
+
+sysBlockersEsposito :: Module Empty
+sysBlockersEsposito =
+    module
+        arrs :: Vector N (RegFile Bool Bool)
+	arrs <- mapM (\_ -> mkRegFileFull) genList
+        addRules $ blocker arrs <+> joinRules (map victim arrs)
+
+blocker :: Vector N (RegFile Bool Bool) -> Rules
+blocker arrs = rules "Blocker": when True ==> joinActions $ map (\a -> a.upd True True) arrs
+
+victim :: RegFile Bool Bool -> Rules
+victim arr = rules "Victim": when True ==> arr.upd True False

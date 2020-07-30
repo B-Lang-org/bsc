@@ -1,0 +1,1 @@
+compile_fail_error continueOutsideLoop.bsv "S0015" 1 "-verilog"

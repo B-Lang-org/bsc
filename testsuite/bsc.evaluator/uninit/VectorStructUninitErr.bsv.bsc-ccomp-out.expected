@@ -1,0 +1,17 @@
+checking package dependencies
+compiling VectorStructUninitErr.bsv
+code generation for mkVectorStructUninitErr starts
+Error: "VectorStructUninitErr.bsv", line 6, column 34: (G0028)
+  `fs[1].i' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at
+  "VectorStructUninitErr.bsv", line 9, column 9.
+  During elaboration of `mkVectorStructUninitErr' at
+  "VectorStructUninitErr.bsv", line 5, column 8.
+Error: "VectorStructUninitErr.bsv", line 6, column 34: (G0028)
+  `fs[1].f' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `test' at
+  "VectorStructUninitErr.bsv", line 9, column 9.
+  During elaboration of `mkVectorStructUninitErr' at
+  "VectorStructUninitErr.bsv", line 5, column 8.

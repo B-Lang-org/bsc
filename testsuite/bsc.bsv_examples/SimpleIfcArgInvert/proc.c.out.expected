@@ -1,0 +1,5 @@
+RAM read at address 00000000 at time 10
+RAM read at address 00000001 at time 30
+RAM read at address 00000011 at time 50
+Loaded data 00000000 from RAM at time 60
+Processor halted at time 70

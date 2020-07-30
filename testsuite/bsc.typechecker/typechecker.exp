@@ -1,0 +1,48 @@
+
+# tests for Bluespec syntax
+
+compile_fail SignatureTooGeneral.bs
+compare_file SignatureTooGeneral.bs.bsc-out
+
+compile_object_pass PrintfATS.bs sysPrintfATS
+
+# out-of-order bindings in a single let in a monad
+compile_pass MonadicOutOfOrderLet.bs
+
+# out-of-order bindings among multiple lets in a monad
+compile_fail_error MonadicOutOfOrderLets.bs T0004
+
+#undefined system tasks
+compile_fail UndefinedTask.bs
+compare_file UndefinedTask.bs.bsc-out
+
+compile_fail EmptyCase.bs
+compare_file EmptyCase.bs.bsc-out
+
+compile_fail Parallel.bsv
+#compare_file Parallel.bsv.bsc-out
+
+compile_pass_bug NoType.bs 295
+
+compile_pass PolyTMul.bs
+
+compile_pass SumList.bsv
+
+# test cases for bug 6 (fixed)
+compile_fail_error CircularRegister.bs T0004
+compare_file CircularRegister.bs.bsc-out
+
+compile_fail_error CircularRegister.bsv T0004
+compare_file CircularRegister.bsv.bsc-out
+
+# Test of polymorphically bound lambdas (new CLam rule)
+compile_pass PolyLam.bs
+
+compile_fail PackedString.bs
+
+# Fix a bug where substitution info was being lost
+# (Google issue #78254014)
+compile_pass FinAnd.bs
+compile_pass FinAnd_ExplicitBits.bs
+# XXX why does this fail?
+compile_fail_error FinAndBSV_ExplicitBits.bsv T0035 2

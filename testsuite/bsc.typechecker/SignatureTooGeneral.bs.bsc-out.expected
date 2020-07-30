@@ -1,0 +1,8 @@
+checking package dependencies
+compiling SignatureTooGeneral.bs
+Error: "SignatureTooGeneral.bs", line 5, column 0: (T0029)
+  Signature mismatch (given too general):
+  given:
+  a__
+  deduced:
+  Prelude.Integer

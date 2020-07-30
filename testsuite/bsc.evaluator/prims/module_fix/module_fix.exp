@@ -1,0 +1,17 @@
+test_c_veri_bsv IncDecFix
+test_c_veri_bsv IncDecFixMC
+test_c_veri_bsv IncDecFixContext
+
+# check that the appropriate integers were collected
+if { $vtest == 1 } {
+find_n_strings IncDecFixMC.bsv.bsc-vcomp-out "Compilation message" 3
+find_n_strings IncDecFixMC.bsv.bsc-vcomp-out ": 3" 1
+find_n_strings IncDecFixMC.bsv.bsc-vcomp-out ": 5" 1
+find_n_strings IncDecFixMC.bsv.bsc-vcomp-out ": 7" 1
+
+find_n_strings IncDecFixContext.bsv.bsc-vcomp-out "Compilation message" 1
+find_n_strings IncDecFixContext.bsv.bsc-vcomp-out ": 6" 1
+}
+
+# bad position is slightly annoying
+compile_verilog_fail_error ModLoop.bsv G0104

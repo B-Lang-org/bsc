@@ -1,0 +1,101 @@
+sim pwd
+.
+-------
+sim ls
+{b__h268 signal} {CAN_FIRE_RL_done signal} {CAN_FIRE_RL_incr signal} {count {module with value}} {level1 module} {mid1 module} {mid2 module} {RL_done rule} {RL_incr rule} {WILL_FIRE_RL_done signal} {WILL_FIRE_RL_incr signal}
+-------
+sim ls mid?.CAN_FIRE_*
+{mid1.CAN_FIRE_RL_incr signal} {mid1.CAN_FIRE_RL_sub1_flip signal} {mid1.CAN_FIRE_RL_wrap signal} {mid2.CAN_FIRE_RL_incr signal} {mid2.CAN_FIRE_RL_sub1_flip signal} {mid2.CAN_FIRE_RL_wrap signal}
+-------
+sim cd mid2
+-------
+sim pwd
+.mid2
+-------
+sim ls RL_*
+{RL_incr rule} {RL_sub1_flip rule} {RL_wrap rule}
+-------
+sim ls CAN_FIRE_* WILL_FIRE_*
+{CAN_FIRE_RL_incr signal} {CAN_FIRE_RL_sub1_flip signal} {CAN_FIRE_RL_wrap signal} {WILL_FIRE_RL_incr signal} {WILL_FIRE_RL_sub1_flip signal} {WILL_FIRE_RL_wrap signal}
+-------
+sim describe <WILL_FIRES>
+{WILL_FIRE_RL_incr signal} {WILL_FIRE_RL_sub1_flip signal} {WILL_FIRE_RL_wrap signal}
+-------
+sim cd
+-------
+sim pwd
+.
+-------
+1'h0
+1'h1
+1'h0
+4'h0
+4'h0
+                  10:     0
+top.level1.level2: 0
+top.mid1: 0
+top.mid2: 0
+                  20:     1
+top.level1.level2: 1
+top.mid1: 1
+top.mid2: 1
+                  30:     2
+top.level1.level2: 0
+top.mid1: 0
+top.mid2: 0
+                  40:     3
+top.level1.level2: 1
+top.mid1: 1
+top.mid2: 1
+                  50:     4
+top.level1.level2: 0
+top.mid1: 0
+top.mid2: 0
+                  60:     5
+wrap in top.level1.level2
+top.level1.level2: 1
+top.mid1: 1
+top.mid2: 1
+1'h1
+1'h1
+1'h0
+4'h6
+                  70:     6
+top.level1.level2: 0
+top.mid1: 0
+top.mid2: 0
+1'h1
+1'h1
+1'h0
+4'h7
+sim cd level1.level2.count
+-------
+sim pwd
+.level1.level2.count
+-------
+                  80:     7
+top.level1.level2: 1
+top.mid1: 1
+wrap in top.mid2
+top.mid2: 1
+1'h0 1'h1 1'h1 4'h0 4'h2
+sim up 2
+-------
+sim pwd
+.level1
+-------
+sim cd .
+-------
+sim pwd
+.
+-------
+sim cd .level1.level2
+-------
+sim pwd
+.level1.level2
+-------
+sim up
+-------
+sim pwd
+.level1
+-------

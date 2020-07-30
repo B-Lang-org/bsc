@@ -1,0 +1,9 @@
+checking package dependencies
+compiling EClockMux3.bsv
+code generation for sysEClockMux3 starts
+Error: "EClockMux3.bsv", line 11, column 21: (G0067)
+  The expression for a clock could not be evaluated. Clocks must be determined
+  at compile time and cannot be computed dynamically.
+  During elaboration of the interface output clock `clk' at "EClockMux3.bsv",
+  line 8, column 8.
+  During elaboration of `sysEClockMux3' at "EClockMux3.bsv", line 8, column 8.

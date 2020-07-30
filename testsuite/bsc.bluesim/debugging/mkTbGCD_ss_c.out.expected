@@ -1,0 +1,3881 @@
+Initial State:
+top:
+  the_count1 = 0x2aaaaaaaaaaaa
+  the_count2 = 0x2aaaaaaaaaaaa
+  the_gcd:
+    the_x = 0x2aaaaaaaaaaaa
+    the_y = 0x2aaaaaaaaaaaa
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000013
+  the_count2 = 0x0000000000005
+  the_gcd:
+    the_x = 0x2aaaaaaaaaaaa
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000000
+result =  750599937895082
+gcd.start(19,5)
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000013
+    the_y = 0x0000000000005
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000013
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x000000000000e
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000009
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000004
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000005
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000001
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x2aaaaaaaaaaaa
+State:
+top:
+  the_count1 = 0x0000000000016
+  the_count2 = 0x0000000000007
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x2aaaaaaaaaaaa
+result =                1
+gcd.start(22,7)
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000016
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000016
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000019
+  the_count2 = 0x0000000000009
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(25,9)
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000019
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000019
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001c
+  the_count2 = 0x000000000000b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(28,11)
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x000000000001c
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x000000000001c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000001f
+  the_count2 = 0x000000000000d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(31,13)
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x000000000001f
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x000000000001f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x0000000000012
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000022
+  the_count2 = 0x000000000000f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(34,15)
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000022
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000022
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000025
+  the_count2 = 0x0000000000011
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(37,17)
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000025
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000025
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000014
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000028
+  the_count2 = 0x0000000000013
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(40,19)
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000028
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000013
+    the_y = 0x0000000000028
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000013
+    the_y = 0x0000000000015
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000013
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002b
+  the_count2 = 0x0000000000015
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(43,21)
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x000000000002b
+    the_y = 0x0000000000015
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000015
+    the_y = 0x000000000002b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000015
+    the_y = 0x0000000000016
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000015
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000015
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000014
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000012
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000002e
+  the_count2 = 0x0000000000017
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(46,23)
+State:
+top:
+  the_count1 = 0x0000000000031
+  the_count2 = 0x0000000000019
+  the_gcd:
+    the_x = 0x000000000002e
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000031
+  the_count2 = 0x0000000000019
+  the_gcd:
+    the_x = 0x0000000000017
+    the_y = 0x000000000002e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000031
+  the_count2 = 0x0000000000019
+  the_gcd:
+    the_x = 0x0000000000017
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000031
+  the_count2 = 0x0000000000019
+  the_gcd:
+    the_x = 0x0000000000017
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =               23
+gcd.start(49,25)
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000031
+    the_y = 0x0000000000019
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000019
+    the_y = 0x0000000000031
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000019
+    the_y = 0x0000000000018
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000018
+    the_y = 0x0000000000019
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000018
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000018
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000016
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000015
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000014
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000012
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000c
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000017
+State:
+top:
+  the_count1 = 0x0000000000034
+  the_count2 = 0x000000000001b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000017
+result =                1
+gcd.start(52,27)
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000034
+    the_y = 0x000000000001b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x000000000001b
+    the_y = 0x0000000000034
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x000000000001b
+    the_y = 0x0000000000019
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000019
+    the_y = 0x000000000001b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000019
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000019
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000015
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000037
+  the_count2 = 0x000000000001d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(55,29)
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000037
+    the_y = 0x000000000001d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x000000000001d
+    the_y = 0x0000000000037
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x000000000001d
+    the_y = 0x000000000001a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x000000000001a
+    the_y = 0x000000000001d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x000000000001a
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000001a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000014
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003a
+  the_count2 = 0x000000000001f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(58,31)
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x000000000003a
+    the_y = 0x000000000001f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x000000000001f
+    the_y = 0x000000000003a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x000000000001f
+    the_y = 0x000000000001b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x000000000001b
+    the_y = 0x000000000001f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x000000000001b
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x000000000001b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000013
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000003d
+  the_count2 = 0x0000000000021
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(61,33)
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x000000000003d
+    the_y = 0x0000000000021
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000021
+    the_y = 0x000000000003d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000021
+    the_y = 0x000000000001c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x000000000001c
+    the_y = 0x0000000000021
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x000000000001c
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x000000000001c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000012
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000040
+  the_count2 = 0x0000000000023
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(64,35)
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000040
+    the_y = 0x0000000000023
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000023
+    the_y = 0x0000000000040
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000023
+    the_y = 0x000000000001d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x000000000001d
+    the_y = 0x0000000000023
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x000000000001d
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x000000000001d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000043
+  the_count2 = 0x0000000000025
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(67,37)
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000043
+    the_y = 0x0000000000025
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000025
+    the_y = 0x0000000000043
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000025
+    the_y = 0x000000000001e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x000000000001e
+    the_y = 0x0000000000025
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x000000000001e
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x000000000001e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000046
+  the_count2 = 0x0000000000027
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(70,39)
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000046
+    the_y = 0x0000000000027
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000027
+    the_y = 0x0000000000046
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000027
+    the_y = 0x000000000001f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x000000000001f
+    the_y = 0x0000000000027
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x000000000001f
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x000000000001f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000049
+  the_count2 = 0x0000000000029
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(73,41)
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000049
+    the_y = 0x0000000000029
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000029
+    the_y = 0x0000000000049
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000029
+    the_y = 0x0000000000020
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000020
+    the_y = 0x0000000000029
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000020
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000020
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004c
+  the_count2 = 0x000000000002b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(76,43)
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000004c
+    the_y = 0x000000000002b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000002b
+    the_y = 0x000000000004c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000002b
+    the_y = 0x0000000000021
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000021
+    the_y = 0x000000000002b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000021
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x0000000000021
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000004f
+  the_count2 = 0x000000000002d
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(79,45)
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000004f
+    the_y = 0x000000000002d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000002d
+    the_y = 0x000000000004f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000002d
+    the_y = 0x0000000000022
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000022
+    the_y = 0x000000000002d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000022
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000022
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x000000000000c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000052
+  the_count2 = 0x000000000002f
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(82,47)
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000052
+    the_y = 0x000000000002f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000002f
+    the_y = 0x0000000000052
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000002f
+    the_y = 0x0000000000023
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000023
+    the_y = 0x000000000002f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000023
+    the_y = 0x000000000000c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000000c
+    the_y = 0x0000000000023
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000000c
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000000c
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x000000000000c
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x000000000000b
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000055
+  the_count2 = 0x0000000000031
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(85,49)
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000055
+    the_y = 0x0000000000031
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000031
+    the_y = 0x0000000000055
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000031
+    the_y = 0x0000000000024
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000024
+    the_y = 0x0000000000031
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000024
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x0000000000024
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x000000000000d
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x000000000000d
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x000000000000a
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x000000000000a
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000003
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000058
+  the_count2 = 0x0000000000033
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(88,51)
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000058
+    the_y = 0x0000000000033
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000033
+    the_y = 0x0000000000058
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000033
+    the_y = 0x0000000000025
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000025
+    the_y = 0x0000000000033
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000025
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x000000000000e
+    the_y = 0x0000000000025
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x000000000000e
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x000000000000e
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x000000000000e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000009
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000004
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005b
+  the_count2 = 0x0000000000035
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(91,53)
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x000000000005b
+    the_y = 0x0000000000035
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000035
+    the_y = 0x000000000005b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000035
+    the_y = 0x0000000000026
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000026
+    the_y = 0x0000000000035
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000026
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000026
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x000000000000f
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x000000000000f
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000008
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000008
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x000000000005e
+  the_count2 = 0x0000000000037
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(94,55)
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x000000000005e
+    the_y = 0x0000000000037
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000037
+    the_y = 0x000000000005e
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000037
+    the_y = 0x0000000000027
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000027
+    the_y = 0x0000000000037
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000027
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000010
+    the_y = 0x0000000000027
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000010
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000010
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000010
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000009
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000007
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000007
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000002
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000061
+  the_count2 = 0x0000000000039
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(97,57)
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000061
+    the_y = 0x0000000000039
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000039
+    the_y = 0x0000000000061
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000039
+    the_y = 0x0000000000028
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000028
+    the_y = 0x0000000000039
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000028
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000028
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000017
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000011
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000011
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x000000000000b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000006
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000006
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000005
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000005
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000004
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000003
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000002
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000001
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000064
+  the_count2 = 0x000000000003b
+  the_gcd:
+    the_x = 0x0000000000001
+    the_y = 0x0000000000000
+  the_tbresult = 0x0000000000001
+result =                1
+gcd.start(100,59)
+State:
+top:
+  the_count1 = 0x0000000000067
+  the_count2 = 0x000000000003d
+  the_gcd:
+    the_x = 0x0000000000064
+    the_y = 0x000000000003b
+  the_tbresult = 0x0000000000001
+State:
+top:
+  the_count1 = 0x0000000000067
+  the_count2 = 0x000000000003d
+  the_gcd:
+    the_x = 0x000000000003b
+    the_y = 0x0000000000064
+  the_tbresult = 0x0000000000001
+Final counts: 477 CLK cycles

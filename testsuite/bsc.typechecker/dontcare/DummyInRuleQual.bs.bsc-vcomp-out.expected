@@ -1,0 +1,61 @@
+checking package dependencies
+compiling DummyInRuleQual.bs
+Warning: "DummyInRuleQual.bs", line 11, column 20: (P0223)
+  Definition of `a' is not used.
+Warning: "DummyInRuleQual.bs", line 13, column 18: (P0223)
+  Definition of `b' is not used.
+code generation for sysDummyInRuleQual starts
+=== ATS:
+APackage sysDummyInRuleQual
+-- APackage parameters
+[]
+-- APackage arguments
+clock { osc = CLK }
+reset { RST_N }
+-- APackage wire info
+clock info  clock default_clock(CLK, {-inhigh-});
+reset info  reset default_reset(RST_N) clocked_by(default_clock);
+arg info  [clockarg default_clock;, resetarg default_reset;]
+-- APackage clock domains
+[(0, [{ osc:  CLK gate:  1'd1 }])]
+-- APackage resets
+[(0, { wire:  RST_N })]
+-- AP state elements
+r :: ABSTRACT:  Prelude.VReg = RegUN
+			       (VModInfo
+				RegUN
+				clock _clk__1(CLK, {-unused-});
+				[clockarg _clk__1;, param width;]
+				[method (Q_OUT, [reg])read clocked_by (_clk__1) reset_by (no_reset);,
+				 method write((D_IN, [reg])) enable ((EN,
+								      [])) clocked_by (_clk__1) reset_by (no_reset);]
+				SchedInfo [read CF read, read SB write, write SBR write] [] [] []
+				[])
+			       [clock { osc:  CLK gate:  1'd1 }, 32'd12]
+			       []
+			       meth types=[([], Nothing, Just (Bit 12)), ([Bit 12], Just (Bit 1), Nothing)]
+			       port types=D_IN -> Prelude.Bit 12
+					  Q_OUT -> Prelude.Bit 12
+-- AP local definitions
+-- AP rules
+rule RL_unnamed "":
+ when 1'd1
+  ==> { r.write (_ :: Bit 12); }
+[]
+clock domain = Just (0), resets = []
+rule RL_unnamed_1 "":
+ when (_ :: Bit 1)
+  ==> { r.write (_ :: Bit 12); }
+[]
+clock domain = Just (0), resets = []
+-- AP scheduling pragmas
+[]
+-- AP interface
+-- AP instance comments
+-- AP remaining proof obligations
+[]
+
+-----
+
+Verilog file created: sysDummyInRuleQual.v
+All packages are up to date.

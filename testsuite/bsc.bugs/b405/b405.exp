@@ -1,0 +1,10 @@
+# test the evaluator in both directions
+# use different backends because the noinlined function is named the same
+compile_object_pass Bug405_1.bsv
+compile_verilog_pass Bug405_2.bsv
+
+# Check for bug 1361
+if {$vtest == 1} {
+    compare_verilog module_cmsb.v
+}
+
