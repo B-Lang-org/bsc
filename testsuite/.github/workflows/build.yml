@@ -97,7 +97,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: test-logs
+          name: test-logs-${{ matrix.os }}
           path: |
             bsc.log
             bsc.sum
@@ -160,7 +160,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: test-logs
+          name: test-logs-${{ matrix.os }}
           path: |
             bsc.log
             bsc.sum
