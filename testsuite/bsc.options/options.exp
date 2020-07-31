@@ -284,10 +284,15 @@ if { $ctest == 1 } {
 }
 if { $vtest == 1 } {
     # filter out cc/iverilog warnings
-    sed [make_bsc_vcomp_output_name sysGCD] \
-	[make_bsc_vcomp_output_name sysGCD].filtered \
-	{-e /fpermissive/d -e /WARNING:\ IVerilog/d -e /not\ guaranteed/d} {}
-    compare_file [make_bsc_vcomp_output_name sysGCD].filtered empty.expected
+    set rawfile [make_bsc_vcomp_output_name sysGCD]
+    set filtfile "$rawfile.filtered"
+    set ere {-e /fpermissive/d -e /WARNING:\ IVerilog/d -e /not\ guaranteed/d}
+    # iverilog 10.1 has spurious warnings
+    if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "10.1" } {
+        append ere { -e {/inherits dimensions from var/d}}
+    }
+    sed $rawfile $filtfile $ere {}
+    compare_file $filtfile empty.expected
 }
 
 # test parallel
