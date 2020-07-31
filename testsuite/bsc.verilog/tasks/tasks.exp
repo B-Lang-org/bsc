@@ -35,18 +35,20 @@ test_c_veri_bsv FourDisplay
 
 test_c_veri_bsv MoreDisplay
 
-# This fails with iverilog 10.2, but fixed in 10.3
+# This fails with iverilog 10.1 and 10.2, but fixed in 10.3
 # See https://github.com/steveicarus/iverilog/issues/198
 #
-if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "10.2" } {
-    verbose -log "Disabling test for iverilog 10.2"
-    test_c_only_bsv EvenMoreDisplay
-} else {
-    test_c_veri_bsv EvenMoreDisplay
+set iverilog_bug {}
+if { $verilog_compiler == "iverilog" &&
+     ($verilog_compiler_version == "10.1" || $verilog_compiler_version == "10.2") } {
+    # add 'iverilog' to the list of simulators to exempt
+    set iverilog_bug $verilog_compiler
 }
+test_c_veri_bsv EvenMoreDisplay {} {} $iverilog_bug
 
 test_c_veri_bsv WideDisplay
 
+# This fails with iverilog
 test_c_veri_bsv StringDisplay {} {} "iverilog"
 
 # For now, only test $swrite in Bluesim
