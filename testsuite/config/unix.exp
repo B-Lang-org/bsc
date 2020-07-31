@@ -1271,6 +1271,7 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
         set systemc_libs "-lsystemc"
         set bluesim_libs "-lbskernel -lbsprim"
         set thread_libs "-lpthread"
+        set rpath "-Wl,-rpath,$systemc_lib"
 
         # The list of object files for the bsim modules
         set objs []
@@ -1295,7 +1296,7 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
             lappend objs model_${mod}.o
         }
 
-        set cmd "$cxx -fpermissive $options $systemc_paths $bluesim_paths -o $scexe $objs -x c++ $sysc_srcs $systemc_libs $bluesim_libs $thread_libs >& $output"
+        set cmd "$cxx -fpermissive $options $systemc_paths $bluesim_paths -o $scexe $objs -x c++ $sysc_srcs $systemc_libs $bluesim_libs $thread_libs $rpath >& $output"
         verbose "Executing : $cmd" 4
         set status [exec_with_log "build_systemc_executable" $cmd 2]
         cd $here
