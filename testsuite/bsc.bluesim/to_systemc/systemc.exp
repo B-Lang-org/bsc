@@ -16,5 +16,5 @@ compile_object_pass RuleBeforeMethod.bsv
 link_objects_fail_error sysRuleBeforeMethod.ba sysRuleBeforeMethod S0067 1 {-systemc}
 
 compile_object_pass RenamedClockClash.bsv
-link_objects_pass {} sysRenamedClockClash {-systemc}
+link_objects_pass {} sysRenamedClockClash "-systemc -Xc++ -I$systemc_inc"
 }
