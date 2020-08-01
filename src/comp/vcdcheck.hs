@@ -26,7 +26,6 @@ import Text.Regex
 import Numeric(readDec, readHex, readSigned)
 
 -- import Debug.Trace
--- import Util(traceM)
 
 -- Version string (matches main BSC version numbering)
 versionString :: String

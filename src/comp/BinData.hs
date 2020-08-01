@@ -1,9 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-{-# LANGUAGE OverlappingInstances #-}
-#endif
 {-# LANGUAGE ScopedTypeVariables, BangPatterns #-}
 {-# OPTIONS_GHC -Werror -fwarn-incomplete-patterns #-}
 module BinData ( Byte
@@ -56,9 +53,6 @@ import Util(Hash, hashInit, nextHash, showHash)
 
 import Data.Char(chr, ord)
 import Data.List(sort, intercalate)
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative(Applicative(..))
-#endif
 import Control.Monad(replicateM, liftM, ap)
 import Data.Array.IArray()
 import Data.Array.Unboxed
@@ -69,7 +63,6 @@ import qualified Data.Set as S
 import Numeric(showHex)
 
 import Debug.Trace
--- import Util(traceM)
 
 type Byte = Char
 
@@ -561,11 +554,7 @@ instance Bin Word32 where
 -- nil element is represented by 0.  This is not as
 -- space-efficient as a length + bytes representation, but
 -- it has better laziness properties.
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-    {-# OVERLAPPABLE #-}
-#endif
-    (Bin a) => Bin [a] where
+instance {-# OVERLAPPABLE #-} (Bin a) => Bin [a] where
   writeBytes []     = putI 0
   writeBytes (x:xs) = do { putI 1; toBin x; toBin xs }
   readBytes = do i <- getI
@@ -577,11 +566,7 @@ instance
                    n -> internalError $ "BinData.Bin([a]).readBytes: " ++ show n
 
 -- For array types, we use a length + values representation
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-    {-# OVERLAPPABLE #-}
-#endif
-    (IArray arr a, Ix i, Num i, Integral i, Bin a) => Bin (arr i a) where
+instance {-# OVERLAPPABLE #-} (IArray arr a, Ix i, Num i, Integral i, Bin a) => Bin (arr i a) where
   writeBytes x = let (lo,hi) = bounds x
                  in if (lo /= 0)
                     then internalError $ "BinData.Bin(Array).writeBytes: not 0-indexed"
@@ -591,11 +576,7 @@ instance
                  xs <- replicateM (fromInteger len) fromBin
                  return $ listArray (0,fromInteger (len-1)) xs
 
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-    {-# OVERLAPPING #-}
-#endif
-    (Bin a, Bin b) => Bin (a,b) where
+instance {-# OVERLAPPING #-} (Bin a, Bin b) => Bin (a,b) where
   writeBytes (x,y) = do { toBin x; toBin y }
   readBytes = do x <- fromBin
                  y <- fromBin
@@ -616,11 +597,7 @@ instance (Bin a, Bin b, Bin c, Bin d) => Bin (a,b,c,d) where
                  z <- fromBin
                  return (w,x,y,z)
 
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-    {-# OVERLAPPABLE #-}
-#endif
-    (Bin a) => Bin (Maybe a) where
+instance {-# OVERLAPPABLE #-} (Bin a) => Bin (Maybe a) where
   writeBytes Nothing  = putI 0
   writeBytes (Just x) = do { putI 1; toBin x }
   readBytes = do i <- getI

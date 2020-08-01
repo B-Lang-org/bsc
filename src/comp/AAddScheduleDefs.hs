@@ -24,7 +24,7 @@ import Data.List(intersect)
 import Data.Maybe(isJust, fromJust, fromMaybe, maybeToList, mapMaybe)
 
 -- import Trace
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 
 -- -------------------------------------------------------------------
 -- This file contains all of the logic for creating defs describing

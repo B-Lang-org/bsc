@@ -49,7 +49,7 @@ import Util(headOrErr)
 
 -------
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 doVarTrace, doSubstTrace, dontTrim :: Bool

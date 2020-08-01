@@ -39,7 +39,7 @@ import FileNameUtil(mkSchedName, getRelativeFilePath)
 import FileIOUtil(putStrHandles, openFileCatch)
 
 -- import Trace
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 
 str_none :: String
 str_none = "(none)"

@@ -24,7 +24,8 @@ import PFPrint(pfpString)
 import Id(Id)
 import Position(prPosition,getPosition)
 
-import Util({- traces, -} traceM, allPairs)
+import Util({- traces, -} allPairs)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 import PPrint
 

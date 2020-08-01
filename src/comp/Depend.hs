@@ -4,17 +4,11 @@ module Depend(chkDeps, parseSrc, chkParse, doCPP, genDepend, genFileDepend) wher
 import Data.Maybe(isJust)
 import Data.List(nub)
 import Control.Monad(when)
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 703)
 import System.Process(system)
-#else
-import System.Cmd(system)
-#endif
 import System.Exit(ExitCode(..))
 import System.Directory(getModificationTime)
 import System.Time -- XXX: in old-time package
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__>=705)
 import Data.Time.Clock.POSIX(utcTimeToPOSIXSeconds)
-#endif
 import qualified Control.Exception as CE
 import qualified Data.Map as DM
 
@@ -44,7 +38,7 @@ import GenFuncWrap(makeGenFuncId)
 import IOUtil(getEnvDef, progArgs)
 import TopUtils
 --import Trace
---import Util(traceM)
+--import Debug.Trace(traceM)
 
 outlaw_sv_kws_as_classic_ids :: Bool
 outlaw_sv_kws_as_classic_ids = "-outlaw-sv-kws-as-classic-ids" `elem` progArgs
@@ -70,17 +64,11 @@ data PkgInfo = PkgInfo {
         }
     deriving (Show)
 
--- In GHC 7.6, the return type of getModificationTime changed
 getModificationTime' :: FilePath -> IO ClockTime
 getModificationTime' file =
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__>=705)
   do utcTime <- getModificationTime file
      let s = (floor . utcTimeToPOSIXSeconds) utcTime
      return (TOD s 0)
-#else
-  getModificationTime file
-#endif
-
 
 -- returns a list of Bluespec source files which need recompiling.
 -- (This used to also return a list of all generated files which would

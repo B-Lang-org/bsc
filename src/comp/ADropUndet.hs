@@ -1,12 +1,7 @@
 {-# LANGUAGE CPP #-}
 module ADropUndet(aDropUndet) where
 
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 708)
 import qualified Data.Map.Lazy as M
-#else
-import qualified Data.Map as M
-#endif
-
 import Error(ErrMsg(..), ErrorHandle, bsErrorUnsafe, internalError)
 import PPrint
 import Position
@@ -124,4 +119,3 @@ hasNoActionValue avm (ASClock {}) = True
 hasNoActionValue avm (ASReset {}) = True
 hasNoActionValue avm (ASInout {}) = True
 hasNoActionValue avm (AMGate {}) = True
-

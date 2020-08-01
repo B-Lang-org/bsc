@@ -16,7 +16,7 @@ import CType
 import Type
 import Pred
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 traceTest :: Bool
@@ -406,4 +406,3 @@ classId :: Class -> Id
 classId = typeclassId . name
 
 -- -------------------------
-

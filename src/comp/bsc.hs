@@ -5,11 +5,7 @@ module Main_bsc(main, hmain) where
 import Prelude
 import System.Environment(getArgs, getProgName)
 import System.Process(runInteractiveProcess, waitForProcess)
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 703)
 import System.Process(system)
-#else
-import System.Cmd(system)
-#endif
 import System.Exit(ExitCode(ExitFailure, ExitSuccess))
 import System.IO(hFlush, stdout, hPutStr, stderr, hGetContents, hClose, hSetBuffering, BufferMode(LineBuffering))
 import System.IO(hSetEncoding, latin1)
@@ -166,7 +162,6 @@ import ISplitIf(iSplitIf)
 import VFileName
 
 --import Debug.Trace
---import Util(traceM)
 
 main :: IO ()
 main = do

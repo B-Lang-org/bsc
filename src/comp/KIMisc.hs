@@ -7,16 +7,14 @@ module KIMisc(
 
 import Data.List(union)
 import Data.Maybe(fromMaybe)
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative(Applicative(..))
-#endif
 import Control.Monad(when, ap, liftM)
 import CVPrint
 import PFPrint
 import Error(internalError, EMsg, ErrMsg(..))
 import CType(baseKVar, isKVar)
 import Id(Id, getIdString)
-import Util(traceM, tracep)
+import Debug.Trace(traceM)
+import Util(tracep)
 import IOUtil(progArgs)
 import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS

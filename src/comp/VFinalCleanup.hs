@@ -12,7 +12,8 @@ import ASyntaxUtil
 import BackendNamingConventions(createVerilogNameMapForAVInst)
 
 --import Trace
--- import Util(traces,traceM)
+-- import Util(traces)
+-- import Debug.Trace(traceM)
 
 
 -- ==============================

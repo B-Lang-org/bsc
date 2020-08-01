@@ -53,7 +53,6 @@ import qualified Data.ByteString.Lazy.Char8 as C
 import Text.Regex
 
 -- import Debug.Trace
--- import Util(traceM)
 
 -- Version string (matches main BSC version numbering)
 versionString :: String

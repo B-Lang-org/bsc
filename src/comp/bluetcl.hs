@@ -93,7 +93,7 @@ import GlobPattern
 import BluesimLoader
 import Depend(genDepend,genFileDepend,chkDeps)
 import InstNodes(InstNode(..), InstTree, isHidden, isHiddenKP, isHiddenAll, nodeChildren, comparein)
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 -- import Trace
 
 -------------------------------------

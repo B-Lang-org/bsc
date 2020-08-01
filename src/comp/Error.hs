@@ -71,9 +71,6 @@ import qualified Data.Set as S
 import System.IO(Handle, hClose, hPutStr, stderr)
 import System.Exit(exitWith, ExitCode(..))
 import ErrorTCompat
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Monad.Error(Error(..))
-#endif
 import Control.Monad(when)
 import qualified Control.Exception as CE
 import Data.IORef
@@ -415,28 +412,6 @@ exitOK ref = do
   exitWith ExitSuccess
 
 -- -------------------------
-
--- Earlier versions of GHC use 'transformers' 0.3.0, where
--- some MonadError instances require an Error instance
--- (specifically Either and ErrorT)
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-
-strError :: String -> EMsg
-strError s = (noPosition, EGeneric s)
-
-noError :: EMsg
-noError = strError "Unknown Error"
-
--- error instances so that we can derive MonadError
-instance Error EMsg where
-  noMsg    = noError
-  strMsg   = strError
-
-instance Error EMsgs where
-  noMsg    = EMsgs [noMsg]
-  strMsg s = EMsgs [strMsg s]
-
-#endif
 
 -- We can't use [EMsg] with ErrorT because it leads to overlapping
 -- instance problems. Instead, we will wrap it with a newtype.

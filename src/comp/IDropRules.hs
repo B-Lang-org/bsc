@@ -2,11 +2,7 @@
 module IDropRules (iDropRules) where
 
 import qualified Data.Set as S
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 708)
 import qualified Data.Map.Lazy as M
-#else
-import qualified Data.Map as M
-#endif
 import Data.List(partition, find)
 import Control.Monad(when)
 

@@ -97,12 +97,7 @@ apSubstToSubst :: Subst -> Subst -> Subst
 apSubstToSubst ss1@(S s1 _) ss2 = finished_2
           where
           finished_2 :: Subst
--- foldWithKey was deprecated, but foldrWithKey wasn't added until in 6.12.3
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ > 700)
           finished_2 = Map.foldrWithKey fast_apply ss2 s1
-#else
-          finished_2 = Map.foldWithKey fast_apply ss2 s1
-#endif
           fast_apply ::  TyVar -> Type -> Subst -> Subst
           fast_apply v t a@(S ss vv) =
               case (Map.lookup v vv) of

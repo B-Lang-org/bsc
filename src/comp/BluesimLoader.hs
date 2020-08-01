@@ -38,7 +38,6 @@ import Foreign.Marshal
 import Numeric(showHex)
 
 -- import Debug.Trace
--- import Util(traceM)
 
 -- Some Haskell versions of Bluesim kernel types and constants
 

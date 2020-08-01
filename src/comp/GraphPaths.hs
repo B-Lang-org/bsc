@@ -19,7 +19,7 @@ import qualified Data.Set as S
 import Data.Word
 import Data.Bits
 
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 
 -- |A packed bit matrix
 data BitMatrix =

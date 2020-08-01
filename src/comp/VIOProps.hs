@@ -20,7 +20,8 @@ import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateIdUsingFStringMap)
 
 -- import Trace
--- import Util(traces,traceM)
+-- import Util(traces)
+-- import Debug.Trace(traceM)
 
 
 -- The VIO properties are best described as the comments which are printed
@@ -402,4 +403,3 @@ size (ATAbstract a _) | a == idPrimAction = 1
 size (ATAbstract a [n]) | a == idInout_ = n
 size (ATString _ ) = 0
 size t = internalError ("getIOProps.size: " ++ show t)
-

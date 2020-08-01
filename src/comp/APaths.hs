@@ -125,7 +125,8 @@ import qualified Data.Set as S
 
 import GraphWrapper
 
-import Util(traceM, itos, snd3, concatUnzip, concatUnzip3)
+import Util(itos, snd3, concatUnzip, concatUnzip3)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 -- ====================================

@@ -45,9 +45,8 @@ import Intervals
 import BoolExp
 import BoolOpt
 
--- import Util(traceM)
 -- import Util(trace_answer)
--- import Debug.Trace(trace)
+-- import Debug.Trace(trace, TraceM)
 -- import Util(traces)
 
 -----------------------------------------------------------------------------

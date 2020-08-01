@@ -14,7 +14,7 @@ import BinData
 import FileIOUtil(writeBinaryFileCatch)
 import PFPrint
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 -- import Debug.Trace
 

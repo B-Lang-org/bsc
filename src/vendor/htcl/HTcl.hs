@@ -95,12 +95,6 @@ module HTcl
     )
 where
 
--- hack around base-3 and base-4 incompatibility
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 609)
-#define NEW_EXCEPTION_API
-#endif
-
-
 import Prelude
 
 import Data.Word
@@ -115,24 +109,12 @@ import Foreign.C.String
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 
--- because of the -Wall -Werror options, the imports have to
--- be exactly correct, and the recommended location of
--- unsafeForeignPtrToPtr has moved over time
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 import Foreign.ForeignPtr
 import Foreign.ForeignPtr.Unsafe(unsafeForeignPtrToPtr)
-#elif (__GLASGOW_HASKELL__ >= 702)
-import Foreign.ForeignPtr hiding (unsafeForeignPtrToPtr)
-import Foreign.ForeignPtr.Unsafe(unsafeForeignPtrToPtr)
-#else
-import Foreign.ForeignPtr
-#endif
 
 import Control.Monad(foldM, mplus, msum, when)
 import System.IO.Error
-#ifdef NEW_EXCEPTION_API
 import System.Exit(ExitCode(..))
-#endif
 import Data.List(intersperse, nub, isPrefixOf)
 
 import qualified Control.Exception as CE
@@ -287,11 +269,7 @@ instance TclObjCvt Double where
     toTclObj d = tcl_NewDoubleObj (castD d) >>= wrapPtrForExport
 
 -- instance for String
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPING #-}
-#endif
-  TclObjCvt String where
+instance {-# OVERLAPPING #-} TclObjCvt String where
     -- XXX ?? toTclObj "" = withCStringLen "{}" (\(cs,l) -> tcl_NewStringObj cs l) >>= wrapPtrForExport
     toTclObj s = do
       withCStringLen s (\(cs,l) -> tcl_NewStringObj cs (castI l)) >>= wrapPtrForExport
@@ -308,11 +286,7 @@ instance TclObjCvt PTclObj where
     toTclObj i  = wrapPtrForExport i
 
 -- instance for List
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPABLE #-}
-#endif
-  TclObjCvt a =>  TclObjCvt [a] where
+instance {-# OVERLAPPABLE #-} TclObjCvt a =>  TclObjCvt [a] where
     toTclObj os = do
       let len = length os
       fpobjs <- mapM toTclObj os
@@ -449,8 +423,6 @@ htclRegisterCommand interp cmdname grmr hcmd = do
 ------------------------------------------------------------------------------
 -- Exception catching functions
 
-#ifdef NEW_EXCEPTION_API
-
 htclErrorCatcher :: TclInterp -> CE.SomeException -> IO Int
 htclErrorCatcher interp e =
     do let errString = msum [ handleIOException e, handleErrorCall e, handleExit e]
@@ -472,25 +444,6 @@ htclErrorCatcher interp e =
         handleExit ex =
             do exitcode <- (CE.fromException ex)::(Maybe ExitCode)
                return $ "Error: exception caught. See stderr for more details; code is: " ++ (show exitcode)
-
-#else
-
-htclErrorCatcher :: TclInterp -> CE.Exception -> IO Int
-htclErrorCatcher interp (CE.IOException e)
-    | isUserError e = tclSetAndAddErrorInfo interp ("Error: " ++ ioeGetErrorString e)
-    | otherwise = tclSetAndAddErrorInfo interp (ioeGetErrorString e)
-
-htclErrorCatcher interp (CE.ErrorCall s)
-    | "Error" `isPrefixOf` s = tclSetAndAddErrorInfo interp s
-    | "error" `isPrefixOf` s = tclSetAndAddErrorInfo interp s
-    | otherwise = tclSetAndAddErrorInfo interp ("Error: exception caught: " ++ s)
-htclErrorCatcher interp (CE.ExitException icode) = do
-  tclSetAndAddErrorInfo interp ("Error: exception caught. See stderr for more details; code is: " ++ show icode)
-
-htclErrorCatcher interp e = do
-  tclSetAndAddErrorInfo interp ("Error: exception caught: " ++ show e)
-
-#endif
 
 tclSetAndAddErrorInfo :: TclInterp -> String -> IO (Int)
 tclSetAndAddErrorInfo interp s | s == "" = do
@@ -882,11 +835,7 @@ instance HTclObjCvt Int where
 instance HTclObjCvt Integer where
     toHTObj i = TStr $ show i
 
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPING #-}
-#endif
-  HTclObjCvt String where
+instance {-# OVERLAPPING #-} HTclObjCvt String where
     toHTObj s = TStr s
 
 instance HTclObjCvt Double where
@@ -905,11 +854,7 @@ instance (HTclObjCvt a, HTclObjCvt b, HTclObjCvt c) => HTclObjCvt (a,b,c) where
 instance (HTclObjCvt a , HTclObjCvt b, HTclObjCvt c, HTclObjCvt d) => HTclObjCvt (a,b,c,d) where
     toHTObj (x,y,z,w) = TLst [toHTObj x, toHTObj y, toHTObj z, toHTObj w]
 
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPABLE #-}
-#endif
-  (HTclObjCvt a) => HTclObjCvt [a] where
+instance {-# OVERLAPPABLE #-} (HTclObjCvt a) => HTclObjCvt [a] where
     toHTObj ls = TLst $ map toHTObj ls
 
 

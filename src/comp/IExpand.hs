@@ -33,7 +33,7 @@ import qualified Data.Array as Array
 import qualified Data.IntMap as IM
 import qualified Data.Map as M
 import qualified Data.Set as S
--- import Debug.Trace
+import Debug.Trace(traceM)
 
 import FileIOUtil(openFileCatch, hCloseCatch, hFlushCatch, hGetBufferingCatch,
                   hSetBufferingCatch, hPutStrCatch, hGetLineCatch,
