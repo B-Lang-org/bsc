@@ -17,7 +17,7 @@ jobs:
   build-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04 ]
+        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
       fail-fast: false
     name: "Build ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -40,8 +40,10 @@ jobs:
 
       # Restore the cache of a SystemC build if it exists and the
       # build script hasn't changed.
+      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
       - name: Cache SystemC build
         id: systemc-cache
+        if: matrix.os != 'ubuntu-20.04'
         uses: actions/cache@v2
         env:
           cache-name: systemc-build
@@ -52,8 +54,9 @@ jobs:
       # If there's no cached build, download the source tarball,
       # do the build (and the cache action will save it for us at
       # the end of a successful workflow)
+      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
       - name: Build SystemC
-        if: steps.systemc-cache.outputs.cache-hit != 'true'
+        if: matrix.os != 'ubuntu-20.04' && steps.systemc-cache.outputs.cache-hit != 'true'
         shell: bash
         run: ".github/workflows/build_systemc.sh"
       - name: Download bsc
@@ -71,10 +74,11 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=/usr/lib/ccache:$PATH
 
-          if [ `lsb_release -rs` == 16.04 ]; then
-              export LINKER=gold
-          else
+          REL=$(lsb_release -rs | tr -d .)
+          if [ $REL -ge 1804 ]; then
               export LINKER=lld
+          else
+              export LINKER=gold
           fi
           export LDFLAGS="-Wl,-fuse-ld=$LINKER"
 
@@ -85,10 +89,14 @@ jobs:
           # Use -O0 for significantly faster C++ compiles (which more
           # than make up for slower simulations), and gold as the C++
           # linked for a moderate build-time speedup over ld.bfd.
-          export CXXFLAGS="-fuse-ld=gold -O0"
-          make \
-               TEST_SYSTEMC_INC=$HOME/systemc/include \
-               TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
+          export CXXFLAGS="-O0"
+
+          if [ $REL -lt 1910 ]; then
+              export TEST_SYSTEMC_INC=$HOME/systemc/include
+              export TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
+          fi
+
+          make
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
