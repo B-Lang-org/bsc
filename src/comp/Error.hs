@@ -20,16 +20,13 @@ module Error(
              EMsgs(..),  -- a list of EMsg, to avoid overlapping instances
              bsWarningsAndErrors,
              bsError, bsErrorNoExit,
-             bsErrorDemotable,
              bsWarning,
              bsMessage,
              -- version when not in the IO monad
              bsErrorUnsafe,
              -- versions that display a context following the message
              MsgContext, emptyContext,
-             bsWarningsAndErrorsWithContext,
              bsErrorWithContext, bsErrorWithContextNoExit,
-             bsErrorDemotableWithContext,
              bsWarningWithContext,
 
              -- exit after multiple (delayed) errors
@@ -297,13 +294,6 @@ bsErrorWithContext ref ctx es = do
   -- we know that the above call will always error;
   -- this line is to reflect that in the return type
   internalError ("bsErrorWithContext")
-
-bsErrorDemotable :: ErrorHandle -> [EMsg] -> IO ()
-bsErrorDemotable ref ds = bsWarningsAndErrors ref [] ds []
-
-bsErrorDemotableWithContext :: ErrorHandle -> MsgContext -> [EMsg] -> IO ()
-bsErrorDemotableWithContext ref ctx ds =
-    bsWarningsAndErrorsWithContext ref ctx [] ds []
 
 bsWarning :: ErrorHandle -> [EMsg] -> IO ()
 bsWarning ref ws = bsWarningsAndErrors ref ws [] []
