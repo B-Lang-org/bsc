@@ -71,20 +71,15 @@ smoke_test: smoke_test_verilog smoke_test_bluesim
 smoke_test_verilog: clean
 	@echo ""
 	@echo "Checking Verilog generation"
-	@sleep 2
 	$(BSC) -verilog $(SMOKENAME).bsv
-	@sleep 2
 	@echo ""
 	@echo "Checking Verilog simulation"
-	@sleep 2
 	$(BSC) $(VSIM) -e mk$(SMOKENAME) -o mk$(SMOKENAME).vexe mk$(SMOKENAME).v
-	@sleep 2
-	./mk$(SMOKENAME).vexe  > smoke_test_verilog.out 
+	./mk$(SMOKENAME).vexe  > smoke_test_verilog.out
 	@echo ""
 	@echo "Comparing result of Bluespec Simulation" 
 	@echo "Some simulator specific difference expected"	
-	@sleep 2
-	-diff mk$(SMOKENAME).out.expected smoke_test_verilog.out 
+	-diff mk$(SMOKENAME).out.expected smoke_test_verilog.out
 	@echo ""
 	@echo "Bluespec installation looks OK"
 
@@ -92,19 +87,13 @@ smoke_test_verilog: clean
 smoke_test_bluesim: clean
 	@echo ""
 	@echo "Checking bsc compiles"
-	@sleep 2
 	$(BSC) -sim $(SMOKENAME).bsv
-	@sleep 2
 	@echo ""
 	@echo "Checking compile for Bluespec simulator"	
-	@sleep 2
 	$(BSC) -sim -o mk$(SMOKENAME).bexe -e mk$(SMOKENAME) mk$(SMOKENAME).ba
-	@sleep 2
-	./mk$(SMOKENAME).bexe > smoke_test_bluesim.out 
+	./mk$(SMOKENAME).bexe > smoke_test_bluesim.out
 	@echo ""
 	@echo "Comparing result of Bluespec Simulation" 
-	@sleep 2
-	diff mk$(SMOKENAME).out.expected smoke_test_bluesim.out 
+	diff mk$(SMOKENAME).out.expected smoke_test_bluesim.out
 	@echo ""
 	@echo "Bluespec's Bluesim looks OK"
-
