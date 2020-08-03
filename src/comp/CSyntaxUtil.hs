@@ -17,6 +17,14 @@ tMkTuple pos (t:ts) = tMkPair pos t (tMkTuple pos ts)
 tMkPair :: Position -> Type -> Type -> Type
 tMkPair pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idPrimPair)) t1) t2
 
+tMkEitherChain :: Position -> [CType] -> Type
+tMkEitherChain pos [] = cTCon (setIdPosition pos idUninhab)
+tMkEitherChain pos [t] = t
+tMkEitherChain pos (t:ts) = tMkEither pos t (tMkEitherChain pos ts)
+
+tMkEither :: Position -> Type -> Type -> Type
+tMkEither pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idEither)) t1) t2
+
 -- differs from tMkPair because the kind and other typeinfo is correct
 mkPairType :: CType -> CType -> CType
 mkPairType ft1 ft2 = TAp (TAp tPrimPair ft1) ft2
@@ -30,6 +38,20 @@ pMkTuple :: Position -> [CPat] -> CPat
 pMkTuple pos [] = CPstruct (setIdPosition pos idPrimUnit) []
 pMkTuple pos [p] = p
 pMkTuple pos (p:ps) = CPCon (setIdPosition pos idComma) [p, pMkTuple pos ps]
+
+mkEitherChain :: Position -> Int -> Int -> CExpr -> CExpr
+mkEitherChain pos 0 1 e = e
+mkEitherChain pos 0 _ e = CCon idLeft [e]
+mkEitherChain pos i n e
+  | i < n = CCon idRight [mkEitherChain pos (i - 1) (n - 1) e]
+  | otherwise = error $ "Index " ++ show i ++ " out of range for Either chain of size " ++ show n
+
+pMkEitherChain :: Position -> Int -> Int -> CPat -> CPat
+pMkEitherChain pos 0 1 e = e
+pMkEitherChain pos 0 _ e = CPCon idLeft [e]
+pMkEitherChain pos i n e
+  | i < n = CPCon idRight [pMkEitherChain pos (i - 1) (n - 1) e]
+  | otherwise = error $ "Index " ++ show i ++ " out of range for Either chain of size " ++ show n
 
 mkMaybe :: (Maybe CExpr) -> CExpr
 mkMaybe Nothing = CCon idInvalid []

@@ -125,6 +125,7 @@ package Prelude(
         Reg(..), mkReg, mkRegU, mkRegA, asReg, readReg, writeReg, asIfc,
 	Maybe(..), unJust, isJust, isValid, validValue, fromMaybe,
 	Either(..), isLeft, isRight, either,
+        Uninhab,
 	Empty(..),
 	add, div, mod, quot, rem, exp,
 	bind_, fmap,
@@ -1770,6 +1771,11 @@ isRight (Right _) = True
 either :: (a -> c) -> (b -> c) -> (Either a b -> c)
 either fn _ (Left x)  = fn x
 either _ fn (Right x) = fn x
+
+-- XXX we should have a type with no constructors for completeness
+-- PrimPair is to PrimUnit as Either is to ?
+-- Just using PrimUnit here for now.
+type Uninhab = PrimUnit
 
 -- ----------------------------------------------------------------
 
