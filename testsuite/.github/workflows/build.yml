@@ -71,7 +71,7 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=/usr/lib/ccache:$PATH
 
-          if [ `lsb_release -rs` == 16.04]; then
+          if [ `lsb_release -rs` == 16.04 ]; then
               export LINKER=gold
           else
               export LINKER=lld
@@ -86,6 +86,9 @@ jobs:
                TEST_SYSTEMC_INC=$HOME/systemc/include \
                TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
 
+          ./archive_logs.sh
+
+
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
         env:
@@ -95,17 +98,10 @@ jobs:
       # Save test logs on failure so we can diagnose
       - name: Archive test logs
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v1
         with:
-          name: test-logs-${{ matrix.os }}
-          path: |
-            bsc.log
-            bsc.sum
-            **/*.bsc-out
-            **/*.bsc-ccomp-out
-            **/*.bsc-vcomp-out
-            **/*.bsc-sched-out
-            **/*.diff-out
+          name: logs-${{ matrix.os }}
+          path: logs.tar.gz
 
   build-macOS:
     strategy:
@@ -149,6 +145,8 @@ jobs:
           make TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
                TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib
 
+          ./archive_logs.sh
+
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
         env:
@@ -161,11 +159,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test-logs-${{ matrix.os }}
-          path: |
-            bsc.log
-            bsc.sum
-            **/*.bsc-out
-            **/*.bsc-ccomp-out
-            **/*.bsc-vcomp-out
-            **/*.bsc-sched-out
-            **/*.diff-out
+          path: logs.tar.gz
