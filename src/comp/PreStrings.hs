@@ -331,9 +331,9 @@ fsFIFOFirst        = mkFString "first"
 fsGeneric          = mkFString "Generic"
 fsConc             = mkFString "Conc"
 fsMetaData         = mkFString "MetaData"
-fsMetaCons         = mkFString "MetaCons"
+fsMetaConsNamed    = mkFString "MetaConsNamed"
+fsMetaConsAnon     = mkFString "MetaConsAnon"
 fsMetaField        = mkFString "MetaField"
-fsMetaFieldAnon    = mkFString "MetaFieldAnon"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"

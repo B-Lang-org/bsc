@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 module Deriving(derive) where
 
 import Data.List(nub, intercalate)
@@ -24,7 +23,7 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              idConc, idMetaData, idMetaCons, idMetaField, idMetaFieldAnon,
+              idConc, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes
               idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
@@ -755,37 +754,63 @@ doDGeneric dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) t
         rep = cTApplys (cTCon idMetaData)
           [cTStr (getIdBase i) dpos,
            cTStr (mkFString pkg) dpos,
+           cTNum (toInteger $ length ocs) dpos,
            tMkEitherChain dpos
-            [cTApplys (cTCon idMetaCons)
-             [cTStr (getIdBase cn) dpos, cTNum i dpos,
-              tMkTuple dpos
-              [cTApplys (cTCon idMetaFieldAnon)
-               [cTNum j dpos, TAp (cTCon idConc) fty]
-              | (j, CQType _ fty) <- zip [0..] ftys]]
-            | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys}) <- zip [0..] ocs]]
+            [case mfns of
+               Nothing -> cTApplys (cTCon idMetaConsAnon)
+                 [cTStr (getIdBase cn) dpos,
+                  cTNum i dpos,
+                  cTNum (toInteger $ length ftys) dpos,
+                  tMkTuple dpos
+                   [cTApplys (cTCon idMetaField)
+                    [cTStr (mkFString $ "_" ++ show j) dpos,
+                     cTNum j dpos,
+                     TAp (cTCon idConc) fty]
+                   | (j, CQType _ fty) <- zip [0..] ftys]]
+               Just fns -> cTApplys (cTCon idMetaConsNamed)
+                 [cTStr (getIdBase cn) dpos,
+                  cTNum i dpos,
+                  cTNum (toInteger $ length ftys) dpos,
+                  tMkTuple dpos
+                   [cTApplys (cTCon idMetaField)
+                    [cTStr (getIdBase fn) dpos,
+                     cTNum j dpos,
+                     TAp (cTCon idConc) fty]
+                   | (j, fn, CQType _ fty) <- zip3 [0..] fns ftys]]
+            | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
+              zip [0..] ocs]]
         from = CLValue idFrom
           [CClause
-           [CPCon cn [CPVar $ mkId dpos $ mkFString $ "a" ++ show j
-                     | j <- [0..length ftys - 1]]] [] $
-           CCon idMetaData $
+           [let pats =
+                  [CPVar $ mkId dpos $ mkFString $ "a" ++ show j
+                  | j <- [0..length ftys - 1]]
+            in case mfns of
+               Nothing -> CPCon cn pats
+               Just fns -> CPstruct cn $ zip fns pats] [] $
+           CCon idMetaData
             [mkEitherChain dpos i (length ocs) $
-             CCon idMetaCons
+             CCon (if isJust mfns then idMetaConsNamed else idMetaConsAnon)
               [mkTuple dpos
-               [CCon idMetaFieldAnon
+               [CCon idMetaField
                 [CCon idConc [CVar $ mkId dpos $ mkFString $ "a" ++ show j]]
                | j <- [0..length ftys - 1]]]]
-          | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys}) <- zip [0..] ocs] []
+          | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
+            zip [0..] ocs] []
         to = CLValue idTo
           [CClause
            [CPCon idMetaData
             [pMkEitherChain dpos i (length ocs) $
-             CPCon idMetaCons
+             CPCon (if isJust mfns then idMetaConsNamed else idMetaConsAnon)
               [pMkTuple dpos
-               [CPCon idMetaFieldAnon
+               [CPCon idMetaField
                 [CPCon idConc [CPVar $ mkId dpos $ mkFString $ "a" ++ show j]]
                | j <- [0..length ftys - 1]]]]] [] $
-            CCon cn [CVar $ mkId dpos $ mkFString $ "a" ++ show j | j <- [0..length ftys - 1]]
-          | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys}) <- zip [0..] ocs] []
+            let args = [CVar $ mkId dpos $ mkFString $ "a" ++ show j | j <- [0..length ftys - 1]]
+            in case mfns of
+              Nothing -> CCon cn args
+              Just fns -> CStruct cn $ zip fns args
+          | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
+            zip [0..] ocs] []
 
 -- | Derive the PrimMakeUndefined instance for a data (sum type), and
 -- return the instance definition.
@@ -921,23 +946,30 @@ doSGeneric dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) r
         rep = cTApplys (cTCon idMetaData)
           [cTStr (getIdBase i) dpos,
            cTStr (mkFString pkg) dpos,
-           tMkTuple dpos
-            [cTApplys (cTCon idMetaField)
-              [cTStr (getIdBase fn) dpos, cTNum i dpos, TAp (cTCon idConc) fty]
-            | (i, CField {cf_name=fn, cf_type=CQType _ fty}) <- zip [0..] fs]]
+           cTNum 1 dpos,
+           cTApplys (cTCon idMetaConsNamed)
+            [cTStr (getIdBase i) dpos,
+             cTNum 0 dpos,
+             cTNum (toInteger $ length fs) dpos,
+             tMkTuple dpos
+              [cTApplys (cTCon idMetaField)
+               [cTStr (getIdBase fn) dpos, cTNum i dpos, TAp (cTCon idConc) fty]
+              | (i, CField {cf_name=fn, cf_type=CQType _ fty}) <- zip [0..] fs]]]
         from = CLValue idFrom
           [CClause [CPstruct i [(cf_name f, CPVar $ cf_name f) | f <- fs]] [] $
-           CCon idMetaData $
-           [mkTuple dpos
-            [CCon idMetaField
-             [CCon idConc [CVar $ cf_name f]] | f <- fs]]] []
+           CCon idMetaData
+            [CCon idMetaConsNamed
+             [mkTuple dpos
+              [CCon idMetaField
+               [CCon idConc [CVar $ cf_name f]] | f <- fs]]]] []
         to = CLValue idTo
           [CClause
            [CPCon idMetaData
+            [CPCon idMetaConsNamed
              [pMkTuple dpos
               [CPCon idMetaField
-               [CPCon idConc [CPVar $ cf_name f]] | f <- fs]]] [] $
-          CStruct i [(cf_name f, CVar $ cf_name f) | f <- fs]] []
+               [CPCon idConc [CPVar $ cf_name f]] | f <- fs]]]] [] $
+           CStruct i [(cf_name f, CVar $ cf_name f) | f <- fs]] []
 
 -- | Derive the PrimMakeUndefined instance for a struct (product type), and
 -- return the instance definition.

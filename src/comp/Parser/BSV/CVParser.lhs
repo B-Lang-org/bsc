@@ -748,6 +748,7 @@ XXX allow constants other than decimal
 >                    summands =
 >                        (COriginalSummand { cos_names = [tag_name],
 >                                            cos_arg_types = [],
+>                                            cos_field_names = Nothing,
 >                                            cos_tag_encoding = orig_enc },
 >                         CInternalSummand { cis_names = [tag_name],
 >                                            cis_arg_type =
@@ -947,7 +948,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                       (Maybe Id {- constructor ID prefix -}
 >                        -> [(Id, PartialKind)] {- type parameters collected thus far -}
 >                        -> [CTypeclass] {- derivations collected thus far -}
->                        -> ((Id, CType, [CQType]), [CDefn]))
+>                        -> ((Id, CType, [Id], [CQType]), [CDefn]))
 > pTypedefStructType isTopLevel =
 >     do pKeyword SV_KW_struct
 >        mkFields <- pInBraces pTypedefStructFields
@@ -963,13 +964,14 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                    idk = mkIdK fullName kinds
 >                    (fields, defns) =
 >                        unzip (mkFields (Just fullName) allParams derivs)
+>                    fieldNames = map cf_name fields
 >                    fieldTypes = map cf_type fields
 >                    structType = case prefix of
 >                                 Nothing -> SStruct   -- standalone struct
 >                                 Just i -> SDataCon i True -- sub-struct
 >                    constr = cTApplys (cTCon fullName) (map cTVar params)
 >                    defn = Cstruct True structType idk params fields derivs
->                in  ((name, constr, fieldTypes), defn : concat defns)
+>                in  ((name, constr, fieldNames, fieldTypes), defn : concat defns)
 >        return mkStruct
 
 struct field: sub-struct, tagged union, void, or regular type
@@ -985,11 +987,12 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 > pTypedefTaggedUnionField =
 >         do mkSubStruct <- pTypedefStructType False
 >            let mkField prefix enc params derivs =
->                    let ((name, typeConstr, fieldTypes), defns) =
+>                    let ((name, typeConstr, fieldNames, fieldTypes), defns) =
 >                            mkSubStruct prefix params derivs
 >                        original_summands =
 >                            COriginalSummand { cos_names = [name],
 >                                               cos_arg_types = fieldTypes,
+>                                               cos_field_names = Just fieldNames,
 >                                               cos_tag_encoding = Nothing }
 >                        internal_summands =
 >                            CInternalSummand { cis_names = [name],
@@ -1004,6 +1007,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                        original_summands =
 >                            COriginalSummand { cos_names = [name],
 >                                               cos_arg_types = fieldTypes,
+>                                               cos_field_names = Nothing,
 >                                               cos_tag_encoding = Nothing }
 >                        internal_summands =
 >                            CInternalSummand { cis_names = [name],
@@ -1018,6 +1022,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                    let original_summands =
 >                            COriginalSummand { cos_names = [name],
 >                                               cos_arg_types = [],
+>                                               cos_field_names = Nothing,
 >                                               cos_tag_encoding = Nothing }
 >                        internal_summands =
 >                            CInternalSummand { cis_names = [name],
@@ -1032,6 +1037,7 @@ if prefix is provided, sub-union and sub-struct constructors start with it
 >                    let original_summands =
 >                            COriginalSummand { cos_names = [name],
 >                                               cos_arg_types = [CQType [] typ],
+>                                               cos_field_names = Nothing,
 >                                               cos_tag_encoding = Nothing }
 >                        internal_summands =
 >                            CInternalSummand { cis_names = [name],

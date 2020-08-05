@@ -484,11 +484,13 @@ pDataB b = l L_data ..+ pTyConIdK +.+ many pTyVarId +.+ eql b +.+ sepBy1 pSumman
                 getTs (constr_names, Left ts) =
                     COriginalSummand { cos_names = constr_names,
                                        cos_tag_encoding = Nothing,
-                                       cos_arg_types = ts }
+                                       cos_arg_types = ts,
+                                       cos_field_names = Nothing }
                 getTs (constr_names, Right its) =
                     COriginalSummand { cos_names = constr_names,
                                        cos_tag_encoding = Nothing,
-                                       cos_arg_types = map snd its }
+                                       cos_arg_types = map snd its,
+                                       cos_field_names = Just $ map fst its }
                 isLeft (Left _) = True
                 isLeft (Right _) = False
 
