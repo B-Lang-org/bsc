@@ -506,8 +506,11 @@ reducePredsAggressive' dvs es bs1 s1 vps1 = do
     vps2' <- concatMapM (expTConPred . expandSynVPred) vps2
     reducePredsAggressive' dvs es (bs1 ++ bs2) s2 vps2'
    else do
-    -- XXX apSub?
-    return (vps2, map mkDefl (bs1 ++ bs2), s2)
+    -- satMany is inside a loop, so it doesn't consistently apply
+    -- its accumulated substitution to the reduced predicates.
+    -- Apply the substitution here to clean that up before returning
+    -- to the external caller.
+    return (apSub s2 vps2, map mkDefl (bs1 ++ bs2), s2)
 
 -- note that the subst we return is safe to commit to as long as the
 -- instance match isn't incoherent (or if we are ok committing to an
