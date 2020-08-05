@@ -73,30 +73,30 @@ static void wait_for_sim_stop(tSimStateHdl simHdl)
 
 // list of sims that have registered their interest in the signal
 // (use a list, so that iterators are still valid after an erase)
-static std::list<tSimStateHdl> control_c_watchers;
+static std::list<tSimStateHdl> abort_watchers;
 
-static void control_c_handler(int /* unused */)
+static void abort_handler(int /* unused */)
 {
   std::list<tSimStateHdl>::iterator it;
-  for (it = control_c_watchers.begin(); it != control_c_watchers.end(); it++)
+  for (it = abort_watchers.begin(); it != abort_watchers.end(); it++)
     bk_abort_now(*it);
 }
 
-static void add_control_c_watcher(tSimStateHdl simHdl)
+static void add_abort_watcher(tSimStateHdl simHdl)
 {
-  control_c_watchers.push_back(simHdl);
+  abort_watchers.push_back(simHdl);
 }
 
-static void remove_control_c_watcher(tSimStateHdl simHdl)
+static void remove_abort_watcher(tSimStateHdl simHdl)
 {
   std::list<tSimStateHdl>::iterator it;
   // list iterators are valid after an erase, except for the erased iterator;
   // therefore, a for-loop is OK, but do the increment before erasing
-  for (it = control_c_watchers.begin(); it != control_c_watchers.end(); ) {
+  for (it = abort_watchers.begin(); it != abort_watchers.end(); ) {
     if ((*it) == simHdl) {
       std::list<tSimStateHdl>::iterator next_it = it;
       next_it++;
-      control_c_watchers.erase(it);
+      abort_watchers.erase(it);
       it = next_it;
     } else {
       it++;
@@ -116,15 +116,18 @@ static void* sim_thread(void* ptr)
   if ((simHdl == NULL) || (simHdl->queue == NULL))
     return NULL;
 
-  /* install a signal handler for Ctrl-C */
-  struct sigaction sigint;
-  sigint.sa_flags = 0;
-  sigint.sa_handler = control_c_handler;
-  sigemptyset(&sigint.sa_mask);
-  sigaction(SIGINT, &sigint, NULL);
+  /* install signal handlers to shut down simulation */
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sa.sa_handler = abort_handler;
+  sigemptyset(&sa.sa_mask);
+  /* SIGINT (user types Ctrl-C) */
+  sigaction(SIGINT, &sa, NULL);
+  /* SIGPIPE (usually stdout piped to a program that exits, eg /usr/bin/head) */
+  sigaction(SIGPIPE, &sa, NULL);
 
-  /* add this sim to the watch list for Ctrl-C */
-  add_control_c_watcher(simHdl);
+  /* add this sim to the signal watch list */
+  add_abort_watcher(simHdl);
 
   while (!simHdl->sim_shutting_down)
   {
@@ -140,8 +143,8 @@ static void* sim_thread(void* ptr)
       simHdl->queue->execute(simHdl);
   }
 
-  /* remove this sim from the watch list for Ctrl-C */
-  remove_control_c_watcher(simHdl);
+  /* remove this sim from the signal watch list */
+  remove_abort_watcher(simHdl);
 
   pthread_exit(NULL);
 }
@@ -1603,7 +1606,7 @@ tSInt32 bk_exit_status(tSimStateHdl simHdl)
   return simHdl->exit_status;
 }
 
-/* Abort simulation (from outside, Ctrl-C, etc.) */
+/* Abort simulation (from outside, Ctrl-C, SIGPIPE, etc.) */
 void bk_abort_now(tSimStateHdl simHdl)
 {
   if (bk_is_running(simHdl))
