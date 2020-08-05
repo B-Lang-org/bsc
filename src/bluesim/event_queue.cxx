@@ -1,5 +1,4 @@
 #include <vector>
-#include <algorithm>
 #include <cstdio>
 
 #include "event_queue.h"
