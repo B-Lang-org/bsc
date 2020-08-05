@@ -400,7 +400,6 @@ ctxRedCQType' isInstHead cqt = do
     (ps, _, s) <- reducePredsAggressive (Just dvs) [] vqs
 
     let t' = apSub s t
-        ps' = apSub s ps
 
     -- don't bind any generated type variables introduced by the type-checker
     -- (to avoid possible variable capture in typecheck)
@@ -412,7 +411,7 @@ ctxRedCQType' isInstHead cqt = do
     -- should only appear in ps and t' (any the trimmed part of s)
     let s' = mkSubst [(bad_var, TVar safe_var) | (bad_var, safe_id) <- zip bad_vars safe_tyvar_ids,
                                                  let safe_var = tVarKind safe_id (kind bad_var) ]
-    let ps'' = apSub s' ps'
+    let ps' = apSub s' ps
     let t'' = apSub s' t'
     -- because of NumAlias and pseudo-constructors like SizeOf that expand into
     -- new types, some vars from s' could appear in the RHS of s,
@@ -420,9 +419,9 @@ ctxRedCQType' isInstHead cqt = do
     let s_final = trimSubst trim_point (apSubstToSubst s' s)
 
     -- push the set of tyvars bound at this level (with their inferred kinds)
-    let bvs = (tv (ps'',t'')) \\ prev_bound_tvs
+    let bvs = (tv (ps',t'')) \\ prev_bound_tvs
     addBoundTVs bvs
-    let cqt' = CQType (map (predToCPred . toPred) ps'') t''
+    let cqt' = CQType (map (predToCPred . toPred) ps') t''
 
     when doTraceCtxReduce $ do
        traceM ("ctxRedCQType\n")
@@ -430,8 +429,7 @@ ctxRedCQType' isInstHead cqt = do
        traceM ("ps: " ++ ppReadable ps)
        traceM ("s: " ++ ppReadable s)
        traceM ("t' :" ++ ppReadable t')
-       traceM ("ps' :" ++ ppReadable ps')
-       -- t'' and ps'' are in cqt'
+       -- t'' and ps' are in cqt'
        traceM ("s_final: " ++ ppReadable s_final)
        traceM ("cqt': " ++ ppReadable cqt')
 
