@@ -1,16 +1,13 @@
 #include <list>
 #include <algorithm>
 #include <cstring>
-#include <ctime>
 #include <cstdio>
 
 #include <pthread.h>
 #include <signal.h>
-#include <errno.h>
 
 #include "mem_alloc.h"
 #include "kernel.h"
-#include "bs_reset.h"
 #include "bs_module.h"
 #include "plusargs.h"
 #include "version.h"

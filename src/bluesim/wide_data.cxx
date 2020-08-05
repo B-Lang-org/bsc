@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <cstring>
-#include <algorithm>
 #include <csignal>
 
 #include "bs_wide_data.h"

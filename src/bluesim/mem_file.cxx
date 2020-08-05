@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "bluesim_kernel_api.h"
 #include "bs_wide_data.h"
 #include "bs_mem_defines.h"
 #include "bs_mem_file.h"

@@ -4,11 +4,8 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cstdio>
-#include <cstring>
-#include <sys/types.h>
 #include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include "portability.h"
 
