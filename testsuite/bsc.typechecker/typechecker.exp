@@ -46,3 +46,7 @@ compile_pass FinAnd.bs
 compile_pass FinAnd_ExplicitBits.bs
 # XXX why does this fail?
 compile_fail_error FinAndBSV_ExplicitBits.bsv T0035 2
+
+# Fix a bug where lost substitution info resuts in "assert failed: IAp"
+compile_pass FailIAp.bs
+compile_pass FailIAp2.bs

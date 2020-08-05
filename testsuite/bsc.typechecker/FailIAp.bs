@@ -1,0 +1,15 @@
+package FailIAp where
+
+import BuildVector
+import Vector
+
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+
+instance Functor (Vector n) where
+  fmap = Vector.map
+
+shuffle :: Vector 4 (Bit 64) -> Vector 4 (Bit 64)
+shuffle vs =
+    let reordered = fmap ((!!) vs) $ vec 1 2 3 0
+    in  reordered

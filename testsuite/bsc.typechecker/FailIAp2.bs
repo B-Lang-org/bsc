@@ -1,0 +1,22 @@
+-- The FailIAp testcase has a odd interaction with typeclass defaulting
+-- where the unsolved type variables are "accidentally" reduced to Integer
+-- via defaulting.
+-- The same issue comes up when defaulting doesn't apply, as below.
+package FailIAp2 where
+
+import BuildVector
+import Vector
+
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+
+instance Functor (Vector n) where
+  fmap = Vector.map
+
+mySel :: Vector n a -> UInt (TLog n) -> a
+mySel = select
+
+shuffle :: Vector 4 (Bit 64) -> Vector 4 (Bit 64)
+shuffle vs =
+    let reordered = fmap (mySel vs) $ vec 1 2 3 0
+    in  reordered
