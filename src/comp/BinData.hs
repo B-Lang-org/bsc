@@ -1302,6 +1302,7 @@ instance Bin TyCon where
              0 -> do i <- fromBin; mk <- fromBin; s <- fromBin;
                      return (TyCon i mk s)
              1 -> do i <- fromBin; pos <- fromBin; return (TyNum i pos)
+             2 -> do s <- fromBin; pos <- fromBin; return (TyStr s pos)
              n -> internalError $ "BinData.Bin(TyCon).readBytes: " ++ show n
 
 instance Bin TISort where
