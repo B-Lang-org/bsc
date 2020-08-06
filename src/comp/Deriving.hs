@@ -779,7 +779,7 @@ doDGeneric dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) t
                    | (j, fn, CQType _ fty) <- zip3 [0..] fns ftys]]
             | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
               zip [0..] ocs]]
-        from = CLValue idFrom
+        from = CLValue idFromNQ
           [CClause
            [let pats =
                   [CPVar $ mkId dpos $ mkFString $ "a" ++ show j
@@ -796,7 +796,7 @@ doDGeneric dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) t
                | j <- [0..length ftys - 1]]]]
           | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
-        to = CLValue idTo
+        to = CLValue idToNQ
           [CClause
            [CPCon idMetaData
             [pMkEitherChain dpos i (length ocs) $
@@ -955,14 +955,14 @@ doSGeneric dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) r
               [cTApplys (cTCon idMetaField)
                [cTStr (getIdBase fn) dpos, cTNum i dpos, TAp (cTCon idConc) fty]
               | (i, CField {cf_name=fn, cf_type=CQType _ fty}) <- zip [0..] fs]]]
-        from = CLValue idFrom
+        from = CLValue idFromNQ
           [CClause [CPstruct i [(cf_name f, CPVar $ cf_name f) | f <- fs]] [] $
            CCon idMetaData
             [CCon idMetaConsNamed
              [mkTuple dpos
               [CCon idMetaField
                [CCon idConc [CVar $ cf_name f]] | f <- fs]]]] []
-        to = CLValue idTo
+        to = CLValue idToNQ
           [CClause
            [CPCon idMetaData
             [CPCon idMetaConsNamed
@@ -1137,6 +1137,10 @@ idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 --idPrimUninitializedNQ = unQualId idPrimUninitialized
 idPrimDeepSeqCondNQ :: Id
 idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
+idFromNQ :: Id
+idFromNQ = unQualId idFrom
+idToNQ :: Id
+idToNQ = unQualId idTo
 
 ----
 
