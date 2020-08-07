@@ -186,6 +186,7 @@ GHCFLAGS = \
 	$(PACKAGES) \
 	$(GHCINCLUDES) \
 	$(GHCTMP) \
+	$(GHCUSERFLAGS) \
 
 # GHC will recompile a module if certain flags (such as -I) have changed.
 # To avoid recompiling the shared modules each time we compile a tool,
