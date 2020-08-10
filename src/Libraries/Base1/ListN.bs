@@ -15,6 +15,7 @@ package ListN(
         ) where
 
 import List
+import Vector
 
 infixr  8 :>
 
@@ -1035,3 +1036,8 @@ mapPairs f g (L xs) = L (List.mapPairs f g xs)
 --X    end
 --X \end{libverbatim}
 --X \end{itemize}
+
+-- The generic representation of a ListN is a vector of generic representations
+instance Generic (ListN n a) (MetaData "ListN" "ListN" 1 (Vector n (Conc a))) where
+  from = MetaData `compose` (Vector.map Conc) `compose` toVector `compose` toList
+  to (MetaData v) = toListN $ Vector.toList $ Vector.map (\ Conc x -> x) v
