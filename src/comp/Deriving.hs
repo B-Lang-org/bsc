@@ -100,7 +100,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         then [Left (getPosition data_decl,
                     EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
         else Right [data_decl] :
-               map (doDataDer xs qual_name ty_vars orig_sums int_sums) derivs'
+               map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -113,7 +113,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         then [Left (getPosition struct_decl,
                     EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
         else Right [struct_decl] :
-               map (doStructDer xs qual_name ty_vars fields) derivs'
+               map (doStructDer packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -201,30 +201,30 @@ isRecursiveStruct i fs =
 --  cs  =  internal summands of the data type
 --         (an id and one type -- the list became a struct)
 --  di  =  the class to be derived
-doDataDer :: [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
+doDataDer :: Id -> [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
              CTypeclass -> Either EMsg [CDefn]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
-  Right [doDGeneric (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
+doDataDer packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
+  Right [doDGeneric packageid (getPosition di) i vs ocs cs]
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doDUndefined i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
   Right [doDUninitialized i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
-doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
+doDataDer _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -246,34 +246,34 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
-doDataDer xs i vs ocs cs (CTypeclass di) =
+doDataDer _ xs i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
 -- FShow) for a given struct (prod type), and return the instance definitions.
-doStructDer :: [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
+doStructDer :: Id -> [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
             -> Either EMsg [CDefn]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idEq =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idEq =
   Right [doSEq (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idBits =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idBounded =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doSDefaultValue (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idGeneric =
-  Right [doSGeneric (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idFShow =
+doStructDer packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
+  Right [doSGeneric packageid (getPosition di) i vs cs]
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idUndefined =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doSUndefined i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idClsUninitialized =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idClsUninitialized =
   Right [doSUninitialized i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
+doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doSDeepSeqCond i vs cs]
 -- If the struct is isomorphic to another type (that is, it as only one
 -- field, of that other type), then inherit the instance from that type.
-doStructDer xs i vs [field] di
+doStructDer _ xs i vs [field] di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -290,10 +290,10 @@ doStructDer xs i vs [field] di
                 tv = cTVarKind v kind
         con e = CStruct i [(cf_name field, e)]
         coCon e = CSelectTT i e (cf_name field)
-doStructDer _ i vs cs (CTypeclass di) | isTCId i =
+doStructDer _ _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
   Right []
-doStructDer _ i vs cs (CTypeclass di) =
+doStructDer _ _ i vs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 
@@ -747,13 +747,12 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
 
-doDGeneric :: Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
-doDGeneric dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+doDGeneric :: Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
+doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
   where ty  = cTApplys (cTCon i) vs
-        (pkg, _) = break (== '.') $ getPositionFile dpos
         rep = cTApplys (cTCon idMetaData)
           [cTStr (getIdBase i) dpos,
-           cTStr (mkFString pkg) dpos,
+           cTStr (getIdBase packageid) dpos,
            cTNum (toInteger $ length ocs) dpos,
            tMkEitherChain dpos
             [case mfns of
@@ -939,13 +938,12 @@ doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue)
         str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
-doSGeneric :: Position -> Id -> [Type] -> CFields -> CDefn
-doSGeneric dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+doSGeneric :: Id -> Position -> Id -> [Type] -> CFields -> CDefn
+doSGeneric packageid dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
   where ty  = cTApplys (cTCon i) vs
-        (pkg, _) = break (== '.') $ getPositionFile dpos
         rep = cTApplys (cTCon idMetaData)
           [cTStr (getIdBase i) dpos,
-           cTStr (mkFString pkg) dpos,
+           cTStr (getIdBase packageid) dpos,
            cTNum 1 dpos,
            cTApplys (cTCon idMetaConsNamed)
             [cTStr (getIdBase i) dpos,
