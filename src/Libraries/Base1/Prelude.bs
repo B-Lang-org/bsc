@@ -1213,7 +1213,7 @@ replaceBit pos w i b =
 --@ typedef enum {False, True} Bool deriving (Eq, Bits, Bounded);
 --@ \end{libverbatim}
 data Bool = False | True
-        deriving (Eq, Bits, Bounded, FShow, DefaultValue)
+        deriving (Eq, Bits, Bounded, FShow, DefaultValue, Generic)
 
 isStaticBool :: Bool -> Bool
 isStaticBool = compose areStaticBits pack
@@ -1485,6 +1485,7 @@ isJust (Just _) = True
 
 -- abstract
 data Int n = Int (Bit n)
+  deriving (Generic)
 
 instance Bits (Int n) n where
     pack (Int x) = pack x
@@ -1633,6 +1634,7 @@ instance PrimShiftIndex (Int n) n where {}
 
 -- abstract
 data UInt n = UInt (Bit n)
+  deriving (Generic)
 
 instance Bits (UInt n) n where
     pack (UInt x) = pack x
