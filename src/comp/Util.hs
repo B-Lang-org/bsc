@@ -42,8 +42,6 @@ traceChars cs x = unsafePerformIO (hPutStr stderr cs >> hFlush stderr >> return 
 -- =====
 -- Common trace functions used in other modules
 
--- note that trace, traces sometimes does not work correctly
--- when compiled with -O2 (e.g., in tiExpl''')
 traces :: String -> a -> a
 traces s x = if s==s then trace s x else internalError "Util.traces"
 
