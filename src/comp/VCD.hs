@@ -29,10 +29,6 @@ import Data.Time
 import Data.List(unfoldr, isPrefixOf, mapAccumL)
 import Data.Bits
 import qualified Data.ByteString.Lazy.Char8 as C
--- GHC 7.10 uses 'time' >= 1.5.0, which now provides the locale functions
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import System.Locale
-#endif
 import Numeric(showGFloat)
 
 -- import Debug.Trace
@@ -217,11 +213,7 @@ comment_p ws = Comment (C.unpack (C.unwords ws))
 -- create a Date command
 date_p :: [C.ByteString] -> VCDCmd
 date_p ws = let s = C.unpack (C.unwords ws)
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-                parseFn = parseTime
-#else
                 parseFn l f s = parseTimeM True l f s
-#endif
             in Date s (parseFn defaultTimeLocale rfc822DateFormat s)
 
 -- create a Version command

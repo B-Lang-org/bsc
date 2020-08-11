@@ -51,7 +51,8 @@ import Pragma(defPropsHasNoCSE)
 import Data.Maybe(fromMaybe)
 import Util(anySame)
 
-import Util(traceM, tracep {- , traces -})
+import Util(tracep {- , traces -})
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 -- import Trace
 

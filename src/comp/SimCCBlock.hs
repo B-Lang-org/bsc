@@ -73,7 +73,7 @@ import Data.Char(toLower)
 import qualified Data.Map as Map
 
 -- import Trace
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 
 type SBId  = Int
 type SBMap = M.Map SBId SimCCBlock

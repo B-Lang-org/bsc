@@ -140,18 +140,11 @@ module Yices (
 
 import YicesFFI
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 import Foreign
-#else
-import Foreign hiding (unsafePerformIO)
-#endif
 import Foreign.C.Types
 import Foreign.C.String
 import qualified Foreign.Concurrent as F
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative((<$>))
-#endif
 import Control.Monad(when)
 import qualified Control.Exception as CE
 import MVarStrict
@@ -162,16 +155,9 @@ import System.IO.Unsafe(unsafePerformIO)
 
 import ErrorUtil
 
-
--- bitSize has been deprecated
 word32_size, word64_size :: Int
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 word32_size = finiteBitSize (0 :: Word32)
 word64_size = finiteBitSize (0 :: Word64)
-#else
-word32_size = bitSize (0 :: Word32)
-word64_size = bitSize (0 :: Word64)
-#endif
 
 ------------------------------------------------------------------------
 -- Types

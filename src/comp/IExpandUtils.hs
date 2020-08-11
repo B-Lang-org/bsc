@@ -69,7 +69,7 @@ import Data.List
 import Data.Maybe
 import Data.Char(isAlphaNum)
 import System.Time -- XXX: from old-time package
--- import Debug.Trace
+import Debug.Trace(traceM)
 import qualified Data.Array as Array
 import qualified Data.Map as M
 import qualified Data.Set as S

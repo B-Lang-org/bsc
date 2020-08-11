@@ -2,9 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 module ErrorMonad(ErrorMonad(..), convErrorMonadToIO) where
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative(Applicative(..))
-#endif
 import ErrorTCompat
 import Control.Monad(ap)
 #if !defined(__GLASGOW_HASKELL__) || ((__GLASGOW_HASKELL__ >= 800) && (__GLASGOW_HASKELL__ < 808))

@@ -18,7 +18,7 @@ import Type
 import Pred
 import Util(itos)
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 traceTest :: Bool
@@ -507,4 +507,3 @@ mkNEq y1 y2 = do
   liftIO $ S.mkNot ctx yeq
 
 -- -------------------------
-

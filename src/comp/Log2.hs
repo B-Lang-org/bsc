@@ -11,23 +11,12 @@ import Data.Bits
 eqInt, neqInt :: Int# -> Int# -> Bool
 {-# INLINE eqInt #-}
 {-# INLINE neqInt #-}
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 eqInt a b = isTrue# (a ==# b)
 neqInt a b = isTrue# (a /=# b)
-#else
-eqInt a b = (a ==# b)
-neqInt a b = (a /=# b)
-#endif
 
 -- |Number of bits in an Int (or Int#) on this machine
 wordSize :: Int
-wordSize =
--- bitSize has been deprecated
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
-    finiteBitSize (0 :: Int)
-#else
-    bitSize (0 :: Int)
-#endif
+wordSize = finiteBitSize (0 :: Int)
 
 -- |Compute the logarithm base 2, rounded up, for Integral types.
 -- One interpretation of this log2 function is that it tells you
@@ -45,14 +34,10 @@ log2 x = case (toInteger x) of
                           in toEnum (top_one + (if any_other_ones then 1 else 0))
            -- for values which exceed the word size, we use the
            -- log2large function to examine the values in the array.
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-           (J# sz arr) -> log2large (sz -# 1#) arr
-#else
            (Jp# bn@(BN# arr)) -> let sz = sizeofBigNat# bn
                                  in  log2large (sz -# 1#) arr
            (Jn# bn@(BN# arr)) -> let sz = sizeofBigNat# bn
                                  in  log2large (sz -# 1#) arr
-#endif
 
 -- |Utility function to find the index of the most significant
 -- non-zero bit in a single-word Int and also report if any

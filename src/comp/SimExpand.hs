@@ -43,11 +43,6 @@ import ListUtil (mapFst, mapSnd)
 import SCC (tsort)
 
 import Util (headOrErr, map_insertManyWith, allPairs)
--- traceM was added to Debug.Trace
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 707)
-import Util(traceM)
-#endif
-
 import GraphUtil(extractOneCycle_map, reverseMap)
 
 -- ===============

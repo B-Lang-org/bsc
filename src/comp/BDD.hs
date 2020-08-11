@@ -5,9 +5,6 @@ module BDD(
         bddRestrict, bddAllSat,
         bddIsTrue, bddIsFalse, bddIsIf) where
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative(Applicative(..))
-#endif
 import Control.Monad(liftM, ap)
 
 import Data.List(sort)

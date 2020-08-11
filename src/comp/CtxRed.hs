@@ -19,7 +19,7 @@ import MakeSymTab(convCQTypeWithAssumps)
 import VModInfo(VArgInfo(..))
 import Util(concatMapM)
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 doTraceCtxReduce :: Bool

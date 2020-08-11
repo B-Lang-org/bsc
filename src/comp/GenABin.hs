@@ -26,7 +26,7 @@ import FileIOUtil(writeBinaryFileCatch)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 -- import Trace
 
 -- .ba file tag -- change this whenever the .ba format changes
@@ -507,19 +507,11 @@ instance Bin ResourceFlag where
                      n -> internalError $ "GenABin.Bin(ResourceFlag).readBytes: " ++ show n
 
 -- (don't keep dump flags)
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPING #-}
-#endif
-  Bin [(DumpFlag, Maybe FilePath)] where
+instance {-# OVERLAPPING #-} Bin [(DumpFlag, Maybe FilePath)] where
     writeBytes _ = return ()
     readBytes    = return []
 
-instance
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 710)
-  {-# OVERLAPPING #-}
-#endif
-  Bin (Maybe (DumpFlag, Maybe String)) where
+instance {-# OVERLAPPING #-} Bin (Maybe (DumpFlag, Maybe String)) where
     writeBytes _ = return ()
     readBytes    = return Nothing
 

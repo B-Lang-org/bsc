@@ -30,7 +30,7 @@ import Util(itos, map_insertMany, makePairs)
 import TopUtils(withElapsed)
 import AExpr2Util(getMethodOutputPort)
 
-import Util(traceM)
+import Debug.Trace(traceM)
 import IOUtil(progArgs)
 
 traceTest :: Bool

@@ -21,7 +21,7 @@ import Control.Exception(bracketOnError)
 import Data.List(delete,find,isPrefixOf)
 import qualified Data.Map as M
 
--- import Util(traceM)
+-- import Debug.Trace(traceM)
 
 getModTime :: FilePath -> IO (Maybe EpochTime)
 getModTime f =

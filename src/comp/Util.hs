@@ -42,17 +42,11 @@ traceChars cs x = unsafePerformIO (hPutStr stderr cs >> hFlush stderr >> return 
 -- =====
 -- Common trace functions used in other modules
 
--- note that trace, traces, traceM sometimes do not work correctly
--- when compiled with -O2 (e.g., in tiExpl''')
 traces :: String -> a -> a
 traces s x = if s==s then trace s x else internalError "Util.traces"
 
 tracep :: Bool -> String -> p -> p
 tracep p s x = if p then traces s x else x
-
-traceM :: (Monad m) => String -> m ()
-traceM s = do msg <- return s
-              trace msg $ return ()
 
 -- lets you peek at the answer to a computation
 -- e.g. "trace_answer (\x -> "answer is " ++ (show x)) (2+2)
@@ -66,13 +60,6 @@ trace_answer format x =
 
 dbgLevel :: Int
 dbgLevel = -1
-
-dbgTrace :: Int -> String -> p -> p
-dbgTrace level s a = if (dbgLevel >= level) then (trace s a) else a
-
-dbgTraceM :: Monad m => Int -> String -> m ()
-dbgTraceM level s = if (dbgLevel >= level) then (traceM s) else return ()
-
 
 -- =====
 -- Internal compiler assertions

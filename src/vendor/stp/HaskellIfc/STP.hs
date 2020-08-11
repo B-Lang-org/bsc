@@ -98,10 +98,6 @@ import Foreign.C.String
 import Foreign.C.Types
 import qualified Foreign.Concurrent as F
 
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ < 710)
-import Control.Applicative ((<$>))
-#endif
-
 --import Control.Concurrent.MVar.Strict
 import MVarStrict
 
@@ -110,13 +106,8 @@ import System.Posix.Env(getEnvDefault)
 --import Util(traceM)
 
 
--- bitSize has been deprecated
 cullong_size :: Int
-#if !defined(__GLASGOW_HASKELL__) || (__GLASGOW_HASKELL__ >= 707)
 cullong_size = finiteBitSize (0 :: CULLong)
-#else
-cullong_size = bitSize (0 :: CULLong)
-#endif
 
 ------------------------------------------------------------------------
 -- Types

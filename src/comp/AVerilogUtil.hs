@@ -64,7 +64,7 @@ import GraphUtil(reverseMap, extractOneCycle_map)
 import SCC(tsort)
 
 --import Trace
---import Util(traces,traceM)
+--import Util(traces)
 
 
 -- Define a structure which controls Verilog conversions

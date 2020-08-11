@@ -22,7 +22,7 @@ import Data.Maybe
 import ErrorTCompat
 import Control.Monad.State
 import System.IO.Unsafe
--- import Debug.Trace
+import Debug.Trace(traceM)
 import qualified Data.Map as M
 import qualified Data.Set as S
 

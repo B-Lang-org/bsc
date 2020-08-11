@@ -48,6 +48,7 @@ import SymTab
 import MakeSymTab(convCQType)
 import PreStrings(sAcute)
 import IOUtil(progArgs)
+import Debug.Trace(traceM)
 
 -------
 
