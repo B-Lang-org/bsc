@@ -16,7 +16,7 @@ import SCC
 import Util(tracep)
 import IOUtil(progArgs)
 import Flags(Flags, simplifyCSyntax)
---import Trace
+--import Debug.Trace
 
 --import Util(traces)
 

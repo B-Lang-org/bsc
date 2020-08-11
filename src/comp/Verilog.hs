@@ -60,7 +60,7 @@ import FStringCompat
 import Data.Char(isDigit, isAlpha)
 import qualified Data.Generics as Generic
 
---import Trace
+--import Debug.Trace
 
 
 -- string to start synthesis attributes with

@@ -8,7 +8,7 @@ import Id
 import ISyntax
 import ISyntaxXRef(updateIExprPosition)
 import ISyntaxUtil(iDefsMap)
---import Trace
+--import Debug.Trace
 
 
 -- ===============

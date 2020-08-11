@@ -8,7 +8,7 @@ module PFPrint(PPrint(..), module Pretty, PDetail(..),
         pfparen, ppDoc
         ) where
 import Classic
--- import Trace
+-- import Debug.Trace
 import PPrint
 import PVPrint
 import Pretty -- already exported by PPrint, but needed in order to export again

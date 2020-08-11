@@ -42,8 +42,7 @@ import Data.Traversable(forM)
 --import Util(sortGroup)
 --import PreStrings(fsUnderscore)
 
---import Trace
--- import Debug.Trace(traceM)
+--import Debug.Trace
 
 
 -- =====

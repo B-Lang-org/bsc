@@ -27,7 +27,7 @@ import CType
 import CVPrint(pvPreds, pvParameterTypes)
 import CSyntaxTypes
 
---import Trace
+--import Debug.Trace
 --import Util(traces)
 
 

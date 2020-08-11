@@ -13,13 +13,11 @@ import PFPrint
 import Error(internalError, EMsg, ErrMsg(..))
 import CType(baseKVar, isKVar)
 import Id(Id, getIdString)
-import Debug.Trace(traceM)
+import Debug.Trace
 import Util(tracep)
 import IOUtil(progArgs)
 import qualified Data.IntMap as IM
 import qualified Data.IntSet as IS
-
--- import Debug.Trace
 
 infixr 4 @@
 

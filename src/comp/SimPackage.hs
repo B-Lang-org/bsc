@@ -52,7 +52,7 @@ import Data.List(groupBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
 
--- import Trace
+-- import Debug.Trace
 
 -- This is a map from AId to the ADef which defines the value for that AId
 type DefMap = M.Map AId ADef

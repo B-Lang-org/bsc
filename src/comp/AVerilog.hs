@@ -15,7 +15,6 @@ import Data.List(nub,
 import Data.Char
 import Data.Maybe
 import System.IO.Unsafe
---import Debug.Trace
 import qualified Data.Set as S
 import qualified Data.Map as M
 
@@ -38,7 +37,7 @@ import BackendNamingConventions(isRegInst, isClockCrossingRegInst, isInoutConnec
 import ForeignFunctions(ForeignFuncMap)
 import qualified GraphWrapper as G
 
---import Debug.Trace(traceM)
+--import Debug.Trace
 --import Util(traces)
 
 

@@ -72,8 +72,7 @@ import Control.Monad.State(State, gets, modify, when)
 import Data.Char(toLower)
 import qualified Data.Map as Map
 
--- import Trace
--- import Debug.Trace(traceM)
+-- import Debug.Trace
 
 type SBId  = Int
 type SBMap = M.Map SBId SimCCBlock

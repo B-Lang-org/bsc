@@ -16,7 +16,7 @@ import CSyntaxUtil(mkPairType)
 import Id
 import PreStrings(fsDollar)
 import PreIds(idPrimFst, idPrimSnd, idPrimPair)
--- import Trace
+-- import Debug.Trace
 
 
 docycles :: ErrorHandle -> [CDefl] -> [[Id]] -> [CDefl]

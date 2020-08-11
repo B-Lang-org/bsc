@@ -22,7 +22,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import ErrorUtil(internalError)
 
--- import Trace
+-- import Debug.Trace
 
 
 infixr 4 @@

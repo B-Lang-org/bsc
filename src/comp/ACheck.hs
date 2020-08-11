@@ -12,7 +12,7 @@ import Data.Maybe(isNothing)
 import qualified Data.Set as S
 import Data.List(foldl', genericLength)
 import PreIds(idInout_)
-import Trace
+import Debug.Trace
 
 -- type check the the state elements, definitions, rules and interface
 aMCheck :: APackage -> Bool

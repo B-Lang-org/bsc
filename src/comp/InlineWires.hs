@@ -11,7 +11,7 @@ import BackendNamingConventions
 import Error(internalError, EMsg, WMsg)
 import Flags(Flags, removeCross)
 
--- import Trace
+-- import Debug.Trace
 
 --
 -- The following contents of the ASPackage are changed:

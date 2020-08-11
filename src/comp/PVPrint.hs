@@ -9,7 +9,7 @@ import Prelude hiding ((<>))
 #endif
 
 import PPrint
-import Trace
+import Debug.Trace
 import Util(itos)
 import Pretty -- already exported by PPrint, but needed in order to export again
 

@@ -34,7 +34,7 @@ import Pragma
 
 import ErrorUtil(internalError)
 
---import Trace
+--import Debug.Trace
 
 type IdMap a = M.Map Id a
 

@@ -34,7 +34,7 @@ import Version(bluespec, bscVersionStr)
 import Error(ErrorHandle, exitOK)
 
 import Eval
---import Trace
+--import Debug.Trace
 
 dfltBluespecDir, dfltVSim, dfltMACRODEF :: String
 dfltBluespecDir = "/usr/local/lib/" ++ bluespec

@@ -32,7 +32,7 @@ import Version(versionname)
 import BuildVersion(buildVersion)
 import Util(concatMapM)
 
--- import Trace
+-- import Debug.Trace
 
 -- Create many .cxx and .h files from the entire list of SimCCBlocks
 -- and SimCCScheds.  The blocks are grouped by module, the schedules

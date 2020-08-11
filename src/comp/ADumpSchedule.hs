@@ -38,8 +38,7 @@ import PFPrint
 import FileNameUtil(mkSchedName, getRelativeFilePath)
 import FileIOUtil(putStrHandles, openFileCatch)
 
--- import Trace
--- import Debug.Trace(traceM)
+-- import Debug.Trace
 
 str_none :: String
 str_none = "(none)"

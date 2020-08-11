@@ -8,7 +8,7 @@ import Error(internalError, ErrMsg(..), ErrorHandle)
 import ErrorMonad(ErrorMonad(..), convErrorMonadToIO)
 import PreIds(idAssign)
 
--- import Trace
+-- import Debug.Trace
 
 -- XXX insert fixity in identifiers
 

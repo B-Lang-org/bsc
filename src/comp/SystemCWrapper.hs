@@ -25,7 +25,6 @@ import Data.List(intersperse, partition)
 import qualified Data.Map as M
 
 --import Debug.Trace
---import Debug.Trace(traceM)
 
 checkSystemCIfc :: ErrorHandle -> Flags -> SimSystem -> IO ()
 checkSystemCIfc errh flags sim_system = do
