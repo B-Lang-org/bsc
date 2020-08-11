@@ -112,6 +112,16 @@ jobs:
         run: |
           ccache --zero-stats --max-size 250M
           export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+
+          # Hack: Remove incompatible TCL header that something has installed
+          # in /usr/local/include in the GitHub CI image. This dir is at the
+          # start of the compiler's default search path, and overrides the
+          # system tcl.h, and causes a linker failure (because of a macro that
+          # renames Tcl_Main to Tcl_MainEx). We want to build against the
+          # system TCL so we don't introduce any extra deps for the bluetcl
+          # binary.
+          rm -f /usr/local/include/tcl.h
+
           make -j3 GHCJOBS=2 GHCRTSFLAGS='+RTS -M4500M -A128m -RTS' MACOSX_DEPLOYMENT_TARGET=10.13
           tar czf inst.tar.gz inst
       - name: CCache stats
