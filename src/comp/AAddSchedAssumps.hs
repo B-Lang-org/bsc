@@ -33,16 +33,16 @@ import Position(noPosition)
 import Util(unzipWith, ordPairBy)
 import ListUtil(mapSnd)
 
--- method name mapped to condition of usage
+-- | Method name mapped to condition of usage
 type MethodCondMap = M.Map AMethodId AExpr
 
--- state elements to the map of method condition usage
+-- | State elements to the map of method condition usage
 type OMCondMap = M.Map AId (MethodCondMap)
 
--- rules to the objects whose methods they use (with conditions)
+-- | Rules to the objects whose methods they use (with conditions)
 type RuleMethodMap = M.Map ARuleId (OMCondMap)
 
--- we only need the method conflict info
+-- | We only need the method conflict info
 type OSchedMap = M.Map AId VMethodConflictInfo
 
 buildOMCondMap :: MethodUsesList -> OMCondMap
@@ -159,7 +159,7 @@ mkCFAssump ruleMethodMap instSchedMap r1 r2 = concat $ M.elems overlapMap
                                            -- XXX ucTrue is conservative, but we don't use the UseCond anyway
                                            let useinfo = (r1, MethodId obj uqWGet, UUExpr c2 ucTrue)]
 
--- rule to the methods it uses (with conditions)
+-- | Rule to the methods it uses (with conditions)
 type RuleMethCondMap = M.Map ARuleId [(MethodId, AExpr)]
 
 aAddCFConditionWires :: ErrorHandle -> SymTab -> M.Map AId HExpr -> Flags ->
@@ -208,8 +208,8 @@ buildMethCondList :: MethodUsesList -> [(MethodId, AExpr)]
 buildMethCondList uses = M.toList (M.fromListWith aOr uses')
   where uses'   = mapSnd buildUseConditions uses
 
--- we need a function that will take an id and make us the RWire instance we want
--- it's a little more complicated than you might expect
+-- | We need a function that will take an id and make us the RWire instance we want.
+-- It's a little more complicated than you might expect
 getRWireInstFn :: ErrorHandle -> Flags -> SymTab ->
                   M.Map AId HExpr -> IO (Id -> AVInst)
 getRWireInstFn errh flags r alldefs = do
@@ -230,7 +230,7 @@ getRWireInstFn errh flags r alldefs = do
           in return (\i -> rwire_inst' { avi_vname = i })
         is -> internalError ("getRWireBlob: " ++ ppReadable is)
 
--- a clock that never ticks but is always ready
+-- | A clock that never ticks but is always ready
 nullClock :: AExpr
 nullClock = ASClock aTClock (AClock aFalse aTrue)
 
@@ -244,7 +244,7 @@ buildWireInsts ruleMethCondMap mkWireInst r = map (mkWireInst r) methIds
                     Nothing -> internalError ("AAddSchedAssumps.buildWireInsts missing rule: " ++
                                              ppReadable r ++ ppReadable ruleMethCondMap)
 
--- add wire-setting actions and return new RAT entries
+-- | Add wire-setting actions and return new RAT entries
 addCFCondWires :: S.Set ARuleId -> RuleMethCondMap -> ARule -> (ARule, [(ARuleId, MethodId, UniqueUse)])
 addCFCondWires cfRules ruleMethCondMap r | rid `S.member` cfRules =
   case (M.lookup rid ruleMethCondMap) of

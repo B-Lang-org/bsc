@@ -437,110 +437,108 @@ type MsgContext = Doc
 type EMsg = (Position, ErrMsg)
 type WMsg = EMsg
 
-data ErrMsg
-
+data ErrMsg =
         -- Lexer/parser error messages
-
-        = EBadCharLit
+          EBadCharLit
         | EBadStringLit
         | EBadLexChar Char
-        | ECPPDirective -- cpp directive found when not expected
+        | ECPPDirective                 -- ^ CPP directive found when not expected
         | EUntermComm Position
         | EMissingNL
-        | EBadLineDirective             -- bad `line directive
-        | EBadSymbol String             -- bad operator/symbol
-        | EBadStringEscapeChar Char     -- bad character follows \ in string
-        | EStringNewline                -- newline in string
-        | EStringEOF                    -- end of file inside string
-        | ESyntax !String ![String]        -- found token, expected tokens
-        | EUnsupportedBitVector         -- bit vectors [N:0] only
-        | EUnsupportedNumReal String    -- real numbers not supported
-        | EUnsupportedNumUndetermined String -- number with x's and z's
-        | EUnsupportedPatAll1 String    -- '1 not supported as pattern
-        | EMixedLitInNonPatCase String  -- ? not allowed in non-pattern case
-        | EUnsupportedImport !String !String -- package, identifier: only "foo::*" supported for imports
-        | EMissingProvisoArgs !String    -- missing proviso arguments for typeclass...
+        | EBadLineDirective             -- ^ bad `line directive
+        | EBadSymbol String             -- ^ bad operator/symbol
+        | EBadStringEscapeChar Char     -- ^ bad character follows \ in string
+        | EStringNewline                -- ^ newline in string
+        | EStringEOF                    -- ^ end of file inside string
+        | ESyntax !String ![String]     -- ^ found token, expected tokens
+        | EUnsupportedBitVector         -- ^ bit vectors [N:0] only
+        | EUnsupportedNumReal String    -- ^ real numbers not supported
+        | EUnsupportedNumUndetermined String -- ^ number with x's and z's
+        | EUnsupportedPatAll1 String    -- ^ '1 not supported as pattern
+        | EMixedLitInNonPatCase String  -- ^ ? not allowed in non-pattern case
+        | EUnsupportedImport !String !String -- ^ package, identifier: only "foo::*" supported for imports
+        | EMissingProvisoArgs !String   -- ^ missing proviso arguments for typeclass...
 
-        | EAttribsTypedef -- attributes not allowed for typedef
-        | EAttribsTypeclass -- attributes not allowed for typeclass
-        | EAttribsInstance -- attributes not allowed for instance
-        | EAttribsVarDef -- attributes not allowed for variable definition
-        | EAttribsIfcDecl -- attributes not allowed for interface declaration
-        | EAttribsBeginEnd -- attributes not allowed for begin .. end
-        | EAttribsAction -- attributes not allowed for begin .. end
-        | EAttribsActionValue -- attributes not allowed for begin .. end
-        | EAttribsReturn -- attributes not allowed for "return"
-        | EAttribsIf -- attributes not allowed for if-statement
-        | EAttribsFor -- attributes not allowed for for-statement
-        | EAttribsWhile -- attributes not allowed for while-statement
-        | EAttribsRepeat -- attributes not allowed for repeat-statement
-        | EAttribsBreak -- attributes not allowed for break-statement
+        | EAttribsTypedef   -- ^ attributes not allowed for typedef
+        | EAttribsTypeclass -- ^ attributes not allowed for typeclass
+        | EAttribsInstance  -- ^ attributes not allowed for instance
+        | EAttribsVarDef    -- ^ attributes not allowed for variable definition
+        | EAttribsIfcDecl   -- ^ attributes not allowed for interface declaration
+        | EAttribsBeginEnd  -- ^ attributes not allowed for begin .. end
+        | EAttribsAction    -- ^ attributes not allowed for begin .. end
+        | EAttribsActionValue -- ^ attributes not allowed for begin .. end
+        | EAttribsReturn    -- ^ attributes not allowed for "return"
+        | EAttribsIf        -- ^ attributes not allowed for if-statement
+        | EAttribsFor       -- ^ attributes not allowed for for-statement
+        | EAttribsWhile     -- ^ attributes not allowed for while-statement
+        | EAttribsRepeat    -- ^ attributes not allowed for repeat-statement
+        | EAttribsBreak     -- ^ attributes not allowed for break-statement
         | EAttribsExpr !String
-        | EInvalidMethod -- not a method
-        | EAttribsMethod -- attributes not allowed for method
-        | EAttribsLocalFunction -- attributes not allowed for local function
-        | EAttribsImport -- attributes not allowed for import
-        | EAttribsExport -- attributes not allowed for export
-        | EAttribsForeignModule -- attributes not allowed for foreign modules
-        | EAttribsForeignFunction -- attributes not allowed for foreign funcs
-        | EAttribsTaskCall -- attributes not allowed for task calls
-        | EAttribsSeq -- attributes not allowed for sequence
-        | EAttribsThisDecl -- attributes not allowed for this kind of declaration
-        | EAttribsBVI -- attributes not allowed for BVI statements
-        | EAttribsCase -- attributes not allowed for case statements
-        | EAttribsSequence -- attributes not allowed for sequence block
-        | EAttribsProperty -- attributes not allowed for sequence block
-        | EAttribsAssert -- attributes not allowed for assert statement
-        | EAttribsExpect -- attributes not allowed for expect statement
-        | EAttribsAssume -- attributes not allowed for assume statement
-        | EAttribsCover -- attributes not allowed for cover statement
+        | EInvalidMethod -- ^ not a method
+        | EAttribsMethod -- ^ attributes not allowed for method
+        | EAttribsLocalFunction -- ^ attributes not allowed for local function
+        | EAttribsImport -- ^ attributes not allowed for import
+        | EAttribsExport -- ^ attributes not allowed for export
+        | EAttribsForeignModule -- ^ attributes not allowed for foreign modules
+        | EAttribsForeignFunction -- ^ attributes not allowed for foreign funcs
+        | EAttribsTaskCall -- ^ attributes not allowed for task calls
+        | EAttribsSeq -- ^ attributes not allowed for sequence
+        | EAttribsThisDecl -- ^ attributes not allowed for this kind of declaration
+        | EAttribsBVI -- ^ attributes not allowed for BVI statements
+        | EAttribsCase -- ^ attributes not allowed for case statements
+        | EAttribsSequence -- ^ attributes not allowed for sequence block
+        | EAttribsProperty -- ^ attributes not allowed for sequence block
+        | EAttribsAssert -- ^ attributes not allowed for assert statement
+        | EAttribsExpect -- ^ attributes not allowed for expect statement
+        | EAttribsAssume -- ^ attributes not allowed for assume statement
+        | EAttribsCover -- ^ attributes not allowed for cover statement
 
-        -- "Attr <s1> is not supported for <s2>. Allowable one are: <ss>"
+        -- | "Attr <s1> is not supported for <s2>. Allowable one are: <ss>"
         | EBadAttributeName !String !String ![String]
-        -- "For attr <s1>, the arg is invalid; expected <s2>"
+        -- | "For attr <s1>, the arg is invalid; expected <s2>"
         | EBadAttributeValue !String !String
-        | EMultipleAttribute !String -- "Multiple <s> attributre are not support here"
+        | EMultipleAttribute !String -- ^ "Multiple <s> attributre are not support here"
         | EMultipleAssertionLabels
 
         -- XXX Is this not a form of EBadAttributeValue ?
-        | EBadPortRenameAttributeString !String !String -- "invalid string for attribute"
+        | EBadPortRenameAttributeString !String !String -- ^ "invalid string for attribute"
         -- XXX How is this different from EMultipleAttribute?
-        | EDuplicatePortRenameAttribute !String !String -- "duplicate attr S1 found in method S2"
+        | EDuplicatePortRenameAttribute !String !String -- ^ "duplicate attr S1 found in method S2"
         -- This is about port-renaming attributes not taking an argument
         -- XXX This is bogus!  There *is* an arg; it's boolean.
         | EAttributeArgNotAllowed !String
         | EEmptyPrefixNoPortName String
         | WPerhapsBadMethodName String
         | EConflictingGateAttr String
-        | WUnusedPrefix String String  -- kind of prefix and prefix string
+        | WUnusedPrefix String String  -- ^ kind of prefix and prefix string
         | WGateAllClocksIgnored
-        | EAttributeOnWrongArgType String String String -- attr, arg and reason
-        | EAttributeNoSuchArg String String  -- attr, bogus arg name
-        | EPortsSameName [(String,Position,String)] -- port name, position, arg
-        | EPortKeywordClash String      -- port name
-        | EPortNotValidIdent String     -- port name
+        | EAttributeOnWrongArgType String String String -- ^ attr, arg and reason
+        | EAttributeNoSuchArg String String  -- ^ attr, bogus arg name
+        | EPortsSameName [(String,Position,String)] -- ^ port name, position, arg
+        | EPortKeywordClash String      -- ^ port name
+        | EPortNotValidIdent String     -- ^ port name
 
-        | EClockedByBadName String [String] -- bad name, available names
-        | EResetByBadName String [String] -- bad name, available names
+        | EClockedByBadName String [String] -- ^ bad name, available names
+        | EResetByBadName String [String] -- ^ bad name, available names
 
+        -- | method s1 generates port s3 conflicting with method s2 at pos
         | EPortNamesClashFromMethod !String !String !String !Position
-          -- method s1 generates port s3 conflicting with method s2 at pos
         | EPortKeywordClashFromMethod String String
         | EPortNotValidIdentFromMethod String String
 
         | EPortNamesClashArgAndIfc String String String Position
 
-        | EExternalVarAssign !String -- assignment to external var ... forbidden
-        | ENonTerminalFunctionAssign !String !(Maybe String) -- assignment to function ... must be last statement in block; perhaps you forgot ...?
-        | ENonTerminalReturn !(Maybe String)  -- return must be at end of block; perhaps you forgot ...?
-        | ENonTerminalRules !(Maybe String)   -- rules be at end of block; perhaps you forgot ...?
-        | ENonTerminalMethodsOrSubinterfaces !(Maybe String) -- methods must be at end of block; perhaps you forgot ...?
-        | ENonTerminalNakedExpr !(Maybe String) -- unassigned expression must be at end of block; perhaps you forgot ...?
-        | ENonTerminalAction !(Maybe String) -- unassigned action must be at end of block; perhaps you forgot ...?
-        | ENonTerminalActionValue !(Maybe String) -- unassigned actionvalue must be at end of block; perhaps you forgot ...?
-        | EForbiddenFunctionAssign !String !String -- function assign forbidden in this context
-        | EBadStructUpdate !String -- bad structure update -- XXX what does that mean???
-        | EDuplicateDecl !String -- duplicate declaration of ...
+        | EExternalVarAssign !String -- ^ assignment to external var ... forbidden
+        | ENonTerminalFunctionAssign !String !(Maybe String) -- ^ assignment to function ... must be last statement in block; perhaps you forgot ...?
+        | ENonTerminalReturn !(Maybe String)  -- ^ return must be at end of block; perhaps you forgot ...?
+        | ENonTerminalRules !(Maybe String)   -- ^ rules be at end of block; perhaps you forgot ...?
+        | ENonTerminalMethodsOrSubinterfaces !(Maybe String) -- ^ methods must be at end of block; perhaps you forgot ...?
+        | ENonTerminalNakedExpr !(Maybe String) -- ^ unassigned expression must be at end of block; perhaps you forgot ...?
+        | ENonTerminalAction !(Maybe String) -- ^ unassigned action must be at end of block; perhaps you forgot ...?
+        | ENonTerminalActionValue !(Maybe String) -- ^ unassigned actionvalue must be at end of block; perhaps you forgot ...?
+        | EForbiddenFunctionAssign !String !String -- ^ function assign forbidden in this context
+        | EBadStructUpdate !String -- ^ bad structure update -- XXX what does that mean???
+        | EDuplicateDecl !String -- ^ duplicate declaration of ...
         | EDuplicateFunctionArg !String {- fct -} !String {- arg -} Position {- previous decl -} -- function ___ has duplicate argument ___ (previously used at ___)
         | EDuplicateMethodArg !String {- meth -} !String {- arg -} Position {- previous decl -} -- method ___ has duplicate argument ___ (previously used at ___)
         | EAssignBeforeDecl !String -- assign of ... before declaration
@@ -583,10 +581,10 @@ data ErrMsg
         | EForbiddenDeriving
         | EForbiddenDeclaration !String
         | EForbiddenStatement
-        | EEmptyRulePredicate !String -- rule _ has () predicate; skip ()
+        | EEmptyRulePredicate !String -- ^ rule _ has () predicate; skip ()
         | EBadAssignEq !String
         | EBadAssignBind !String
-        | EBadAssignRegWrite !String !(Maybe String) -- <= bad in this context, perhaps you forgot ...
+        | EBadAssignRegWrite !String !(Maybe String) -- ^ <= bad in this context, perhaps you forgot ...
         | EBadAssignSubscript !String
         | EBadAssignField !String
         | EBadLValue
@@ -597,29 +595,27 @@ data ErrMsg
         | EBadMethodConflictOp
         | EBadMethodConflictOpList
         | WNoSchedulingAnnotation [String] String [String]
-        | ENestedModulePragma -- pragmas not allowed in nested modules
-        | ETerminalAction -- action ends a block that requires a return value
-        | EExprBlockWithoutValue -- expression block missing return value
-        | EActionValueWithoutValue -- action value block without body
-        | ESequenceIfPattern -- pattern in if-condition in a sequence
+        | ENestedModulePragma -- ^ pragmas not allowed in nested modules
+        | ETerminalAction -- ^ action ends a block that requires a return value
+        | EExprBlockWithoutValue -- ^ expression block missing return value
+        | EActionValueWithoutValue -- ^ action value block without body
+        | ESequenceIfPattern -- ^ pattern in if-condition in a sequence
         | ESequenceBind
-        | WShadowDecl String Position -- var name, previous declaration pos
-        | WNeverAssigned String -- variable was declared but not assigned
-        | WDeprecated String String String -- what, it's name, optional text
-        | EObsolete String String String -- what, it's name, optional text
-        | MRestrictions String String  -- please refer to the section on ____ in the Bluespec User Guide for restrictions on using ___
-        | WExperimental String  -- support for ___ is experimental
-        -- duplicate member in (struct, interface, union or typeclass) of
-        -- (field, constructor, method or class method)
-        -- first string is the duplicate name
-        -- second string is the the kind of thing it is field, method, ...
-        -- third string is what it is in - struct, interface, ...
-        -- fourth string is the name of the container (i.e. structure name, interface name, etc.)
-        | EDupMem String String String String
+        | WShadowDecl String Position -- ^ var name, previous declaration pos
+        | WNeverAssigned String -- ^ variable was declared but not assigned
+        | WDeprecated String String String -- ^ what, it's name, optional text
+        | EObsolete String String String -- ^ what, it's name, optional text
+        | MRestrictions String String  -- ^ please refer to the section on ____ in the Bluespec User Guide for restrictions on using ___
+        | WExperimental String  -- ^ support for ___ is experimental
+        | EDupMem -- ^ duplicate member in (struct, interface, union or typeclass)
+            String -- ^ duplicate name
+            String -- ^ kind of thing it is field, method, ...
+            String -- ^ what it is in - struct, interface, ...
+            String -- ^ name of the container (i.e. structure name, interface name, etc.)
         | EOverlappingTagEncoding
-          String {- type -}
-          Integer {- value being encoded to -}
-          [(Position, String)] {- names of conflicting tags -}
+            String -- ^ type
+            Integer -- ^ value being encoded to
+            [(Position, String)] -- ^ names of conflicting tags
         | EAmbOper String String
         | EEmptyCase
         | ECaseNoMatch
@@ -676,7 +672,10 @@ data ErrMsg
         | ESVPInvalidDefIdKeyword String
         | ESVPRepeatedParamLabel String
         | ESVPUndefinedId String
-        | ESVPWrongNumParams String Int Int  -- name, expected, found
+        | ESVPWrongNumParams
+            String -- ^ name
+            Int -- ^ expected
+            Int -- ^ found
         | ESVPUnmatchedEndIf
         | ESVPNoImportDelimiter
         | ESVPNoClosingParen String
@@ -703,11 +702,12 @@ data ErrMsg
         | EUnboundExport String Bool
         | EDuplicateExport String Bool
         | EDuplicateDefInPackageExport String String
-          -- ETypeNotExported:
-          --   type - missing export,
-          --   [(id, pos)] -- definition of id at pos uses type
-        | ETypeNotExported String [(String, Position)]
-        | EMultipleDecl String Position -- var name, previous decl position
+        | ETypeNotExported
+            String -- ^ missing export
+            [(String, Position)] -- ^ id defined at pos uses type
+        | EMultipleDecl
+            String -- ^ var name
+            Position -- ^ previous decl position
 
         | EForeignNotBit String
         | EPartialTypeApp String
@@ -790,10 +790,8 @@ data ErrMsg
         | ELocalRec [String]
         | ENotAnInterface
         | ENotModule String
-          -- reported in old ISyntax, not SV
         | EPolyField
         | ENotKNum String
-          -- reported in old ISyntax, not SV
         | EBadGenArg String
         | EBadIfcType String String
         | EBadForeignIfcType String
@@ -814,12 +812,21 @@ data ErrMsg
 
         | WMissingField String
 
-        | EForeignModBadArgType String String String  -- type mod mod_position
-        | EForeignModBadResType String String String  -- type mod mod_position
-        | EForeignModTooManyPorts String  -- method_name
-        | EForeignModTooFewPorts String   -- method_name
+        | EForeignModBadArgType
+            String -- ^ type
+            String -- ^ mod
+            String -- ^ mod_position
+        | EForeignModBadResType
+            String -- ^ type
+            String -- ^ mod
+            String -- ^ mod_position
+        | EForeignModTooManyPorts
+            String -- ^ method_name
+        | EForeignModTooFewPorts
+            String -- ^ method_name
         | EForeignModEmptyBody
-        | EForeignModOutputOrEnable String -- method_name
+        | EForeignModOutputOrEnable
+            String -- ^ method_name
         | EForeignModMissingValuePort String String String
         | EForeignModMissingEnablePort String String String
         | EForeignModUnexpectedValuePort String String String
@@ -835,8 +842,11 @@ data ErrMsg
         | EForeignModSynth String
 
         | EForeignFuncStringRes
-        | EForeignFuncBadArgType [(String,Bool)] -- types and which are poly
-        | EForeignFuncBadResType String Bool -- type and whether it is poly
+        | EForeignFuncBadArgType
+            [(String,Bool)] -- ^ types and which are poly
+        | EForeignFuncBadResType
+            String -- ^ type
+            Bool   -- ^ is type poly
         | EForeignFuncDuplicates String [(String,Position)]
 
         | ENoInlineAction String
@@ -879,8 +889,10 @@ data ErrMsg
               [(String, String, [String])]
         | EDynamicExecOrderTwoRulesLoop [String] [Doc]
 
-        -- rule id, assertion, reason
-        | ERuleAssertion String String (Maybe Doc)
+        | ERuleAssertion
+            String -- ^ rule id
+            String -- ^ assertion
+            (Maybe Doc) -- ^ reason
         | ENotAlwaysReady String
 
         | EClockDomain String String [[(String, [(String, Position)])]]
@@ -998,25 +1010,42 @@ data ErrMsg
 
         | ENetInstConflict String
 
-        | EUninitialized String -- declared but not initialized (BSV only)
+        | EUninitialized String -- ^ declared but not initialized (BSV only)
 
         | EUnknownRuleId String
         | EUnknownRuleIdAttribute String
         | WInlinedMethodIdAttribute String
 
-        | EUrgencyCycle [String] [Doc] [String]
-              -- cycle, explanation of edges, other rules in the SCC
-        | EPreSchedCycle Doc  -- description of the cycle
-        | ESelfUrgency String Doc -- the ruleId, description of the path
-        | EPathMethodArgToRdy String String Doc -- method, arg, descr of path
-        | EPathMethodEnToRdy String Doc -- method, description of path
+        | EUrgencyCycle
+            [String] -- ^ cycle
+            [Doc]    -- ^ explanation of edges
+            [String] -- ^ other rules in the SCC
+        | EPreSchedCycle
+            Doc -- ^ description of the cycle
+        | ESelfUrgency
+            String -- ^ ruleId
+            Doc --  ^ description of the path
+        | EPathMethodArgToRdy
+            String -- ^ method
+            String -- ^ arg
+            Doc -- ^ descr of path
+        | EPathMethodEnToRdy
+            String -- ^ method
+            Doc -- ^ description of path
 
-        | EReflexiveUserUrgency String Position Position  -- id, pos1, pos2
+        | EReflexiveUserUrgency
+            String -- ^ id
+            Position -- ^ pos1
+            Position --  ^ pos2
 
-        | ECombinedSchedCycle [String] [Doc] [String]
-              -- cycle, explanation of edges, other rules in the SCC
-        | EMethodSchedToExec String [String] [Doc]
-              -- method, cycle, explanation of edges
+        | ECombinedSchedCycle
+            [String] -- ^ cycle
+            [Doc] -- ^ explanation of edges
+            [String] -- ^ other rules in the SCC
+        | EMethodSchedToExec
+            String -- ^ method
+            [String] -- ^ cycle
+            [Doc] -- ^ explanation of edges
 
         | EInvalidWhen
 
@@ -1140,16 +1169,16 @@ data ErrMsg
 
         | EVerilogFilterError String String Int
         -- This should be obsoleted
-        | EGeneric String -- make your own error message
-        -- Tagged "generate" error
+        | EGeneric String -- ^ make your own error message
+        -- | Tagged "generate" error
         | EGenerate Integer String
-        -- use of a definition that didn't compile
+        -- | use of a definition that didn't compile
         | EPoisonedDef !Doc
-        -- a .bo file contains a poison-pill
+        -- | a .bo file contains a poison-pill
         | WPoisonedDefFile String
-        -- warnings were suppressed
+        -- | warnings were suppressed
         | WSuppressedWarnings Integer
-        -- request to demote an error could not be obeyed
+        -- | request to demote an error could not be obeyed
         | WNonDemotableErrors [String]
 
         | EPortNameErrorOnImport String String
@@ -1165,19 +1194,20 @@ data ErrMsg
 instance PPrint ErrMsg where
     pPrint _ _ e = text (show e)
 
--- Errors are in one of five categories:
--- * Parse errors (literally, the first pass of compilation,
---   so in BSV some type checking will be encorporated here)
--- * Errors in the type checking and static elaboration
--- * File handling problems, flags errors, other system errors
--- * Errors in the back-end (including scheduling)
--- * Errors detected during simulation (runtime)
-data ErrMsgTag = Parse    Integer
-               | Type     Integer
-               | System   Integer
-               | Generate Integer
-               | Runtime  Integer
-               deriving (Eq, Show)
+-- | Errors are in one of five categories:
+data ErrMsgTag =
+    -- | Parse errors (literally, the first pass of compilation,
+    --   so in BSV some type checking will be encorporated here)
+      Parse    Integer
+    -- | Errors in the type checking and static elaboration
+    | Type     Integer
+    -- | File handling problems, flags errors, other system errors
+    | System   Integer
+    -- | Errors in the back-end (including scheduling)
+    | Generate Integer
+    -- | Errors detected during simulation (runtime)
+    | Runtime  Integer
+    deriving (Eq, Show)
 
 errMsgTagWidth :: Integer
 errMsgTagWidth = 4
@@ -2856,19 +2886,21 @@ getErrorText (EConPatArgs c mt expected actual) =
   (Type 142, empty, s2par ("Pattern for constructor " ++ ishow c ++ (maybe " " (" of type " ++) mt) ++
                            " requires " ++ show expected ++ " arguments," ++ " found " ++ show actual ++ "."))
 
--- XXX Errors about consturctor argument mismatches should contain the type of
+-- XXX Errors about constructor argument mismatches should contain the type of
 -- the constructor, but this is overly hard to actually compute.
 getErrorText (EConMismatchNumArgs e {-t-} n1 n2) =
     (Type 143, empty,
      s2par "Too many arguments in the use of the following constructor:" $$
      nest 2 (text e) $$
      s2par ("The constructor expects " ++ show n1 ++
-            " arguments but was used with " ++ show n2 ++ " arguments.") {-$$
+            " arguments but was used with " ++ show n2 ++ " arguments.") {-
+     $$
      if n1 > 0
      then
        s2par "Constructor has type:" $$
        nest 2 (text t)
-     else text ""-})
+     else text "" -}
+     )
 
 getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
     (Type 144, empty,
@@ -2882,8 +2914,8 @@ getErrorText (EPartialConMismatchNumArgs e t1 {-t2-} n1 n2 n3) =
             then  "with " ++ show n3 ++ " arguments was expected."
             else "was not expected.") $$
      s2par "The expected type is:" $$
-     nest 2 (text t1){- $$
-     if n1 > 0
+     nest 2 (text t1){-
+     $$ if n1 > 0
      then
        s2par "Constructor has type:" $$
        nest 2 (text t2)
