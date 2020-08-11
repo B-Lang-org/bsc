@@ -521,8 +521,8 @@ data ErrMsg =
         | EClockedByBadName String [String] -- ^ bad name, available names
         | EResetByBadName String [String] -- ^ bad name, available names
 
+        -- | method s1 generates port s3 conflicting with method s2 at pos
         | EPortNamesClashFromMethod !String !String !String !Position
-          -- | method s1 generates port s3 conflicting with method s2 at pos
         | EPortKeywordClashFromMethod String String
         | EPortNotValidIdentFromMethod String String
 
@@ -702,10 +702,9 @@ data ErrMsg =
         | EUnboundExport String Bool
         | EDuplicateExport String Bool
         | EDuplicateDefInPackageExport String String
-          -- ETypeNotExported:
-          --   type - missing export,
-          --   [(id, pos)] -- definition of id at pos uses type
-        | ETypeNotExported String [(String, Position)]
+        | ETypeNotExported
+          String -- ^ missing export
+          [(String, Position)] -- ^ id defined at pos uses type
         | EMultipleDecl
           String -- ^ var name
           Position -- ^ previous decl position
@@ -791,9 +790,9 @@ data ErrMsg =
         | ELocalRec [String]
         | ENotAnInterface
         | ENotModule String
-        | EPolyField -- ^ reported in old ISyntax, not SV
+        | EPolyField
         | ENotKNum String
-        | EBadGenArg String -- ^ reported in old ISyntax, not SV
+        | EBadGenArg String
         | EBadIfcType String String
         | EBadForeignIfcType String
         | ENoTypeSign String
@@ -821,9 +820,8 @@ data ErrMsg =
             String -- ^ type
             String -- ^ mod
             String -- ^ mod_position
-
         | EForeignModTooManyPorts
-            String  -- ^ method_name
+            String -- ^ method_name
         | EForeignModTooFewPorts
             String -- ^ method_name
         | EForeignModEmptyBody
@@ -1044,8 +1042,10 @@ data ErrMsg =
             [String] -- ^ cycle
             [Doc] -- ^ explanation of edges
             [String] -- ^ other rules in the SCC
-        | EMethodSchedToExec String [String] [Doc]
-              -- method, cycle, explanation of edges
+        | EMethodSchedToExec
+            String -- ^ method
+            [String] -- ^ cycle
+            [Doc] -- ^ explanation of edges
 
         | EInvalidWhen
 
