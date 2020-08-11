@@ -673,9 +673,9 @@ data ErrMsg =
         | ESVPRepeatedParamLabel String
         | ESVPUndefinedId String
         | ESVPWrongNumParams
-          String -- ^ name
-          Int -- ^ expected
-          Int -- ^ found
+            String -- ^ name
+            Int -- ^ expected
+            Int -- ^ found
         | ESVPUnmatchedEndIf
         | ESVPNoImportDelimiter
         | ESVPNoClosingParen String
@@ -703,11 +703,11 @@ data ErrMsg =
         | EDuplicateExport String Bool
         | EDuplicateDefInPackageExport String String
         | ETypeNotExported
-          String -- ^ missing export
-          [(String, Position)] -- ^ id defined at pos uses type
+            String -- ^ missing export
+            [(String, Position)] -- ^ id defined at pos uses type
         | EMultipleDecl
-          String -- ^ var name
-          Position -- ^ previous decl position
+            String -- ^ var name
+            Position -- ^ previous decl position
 
         | EForeignNotBit String
         | EPartialTypeApp String
@@ -1017,11 +1017,11 @@ data ErrMsg =
         | WInlinedMethodIdAttribute String
 
         | EUrgencyCycle
-              [String] -- ^ cycle
-              [Doc]    -- ^ explanation of edges
-              [String] -- ^ other rules in the SCC
+            [String] -- ^ cycle
+            [Doc]    -- ^ explanation of edges
+            [String] -- ^ other rules in the SCC
         | EPreSchedCycle
-            Doc  -- ^ description of the cycle
+            Doc -- ^ description of the cycle
         | ESelfUrgency
             String -- ^ ruleId
             Doc --  ^ description of the path
@@ -1034,7 +1034,7 @@ data ErrMsg =
             Doc -- ^ description of path
 
         | EReflexiveUserUrgency
-            String  -- ^ id
+            String -- ^ id
             Position -- ^ pos1
             Position --  ^ pos2
 
