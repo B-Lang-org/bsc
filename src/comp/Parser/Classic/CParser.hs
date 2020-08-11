@@ -30,7 +30,7 @@ import Lex
 import BinParse
 import Pragma
 
--- import Trace
+-- import Debug.Trace
 
 -- XXX
 import IOUtil(progArgs)

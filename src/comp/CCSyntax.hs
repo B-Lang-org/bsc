@@ -87,7 +87,7 @@ import Util
 import Numeric(showInt)
 import Eval(Hyper(..))
 
--- import Trace
+-- import Debug.Trace
 
 {- Notes on using the CCSyntax combinator library:
 

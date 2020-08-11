@@ -15,7 +15,7 @@ import Data.List(genericLength)
 
 import Control.Monad(unless)
 
---import Trace
+--import Debug.Trace
 
 genVPIWrappers :: ErrorHandle ->
                   Flags -> String -> [String] -> [ForeignFunction] ->

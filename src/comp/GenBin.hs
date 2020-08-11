@@ -14,9 +14,8 @@ import BinData
 import FileIOUtil(writeBinaryFileCatch)
 import PFPrint
 
-import Debug.Trace(traceM)
+import Debug.Trace
 import IOUtil(progArgs)
--- import Debug.Trace
 
 doTrace :: Bool
 doTrace = elem "-trace-genbin" progArgs

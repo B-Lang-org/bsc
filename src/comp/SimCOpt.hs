@@ -20,8 +20,7 @@ import qualified Data.Set as S
 
 import PPrint
 
--- import Trace
--- import Debug.Trace(traceM)
+-- import Debug.Trace
 
 simCOpt :: Flags -> InstModMap ->
            ([SimCCBlock], [SimCCSched], [SimCCClockGroup], SimCCGateInfo) ->

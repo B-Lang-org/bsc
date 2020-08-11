@@ -13,8 +13,7 @@ import Control.Monad(when)
 import Control.Monad.Trans(MonadIO, liftIO)
 import Data.List(sortBy, groupBy)
 
--- import Trace
--- import Debug.Trace(traceM)
+-- import Debug.Trace
 
 -- A proof attempt to can yield one of 3 results
 data ProofResult = Proven | Disproven | Inconclusive

@@ -19,7 +19,7 @@ import Wires
 import VModInfo(vFields, VFieldInfo(..), lookupOutputClockWires)
 import CType(TISort(..), StructSubType(..))
 
---import Trace
+--import Debug.Trace
 
 infixr 8 `itFun`
 

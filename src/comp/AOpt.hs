@@ -52,9 +52,8 @@ import Data.Maybe(fromMaybe)
 import Util(anySame)
 
 import Util(tracep {- , traces -})
-import Debug.Trace(traceM)
+import Debug.Trace
 import IOUtil(progArgs)
--- import Trace
 
 import SAT(SATState, initSATState, checkBiImplication, isConstExpr)
 

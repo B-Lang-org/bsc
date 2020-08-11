@@ -18,7 +18,7 @@ import Control.Monad(msum)
 import Util(makePairs, flattenPairs)
 import ListUtil(mapSnd)
 import Data.List(genericLength)
--- import Trace(trace)
+-- import Debug.Trace(trace)
 
 -- --------------------------
 

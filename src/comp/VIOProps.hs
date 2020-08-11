@@ -19,9 +19,8 @@ import ASyntaxUtil( AVars(..) )
 import BackendNamingConventions(createVerilogNameMapForAVInst,
                                 xLateIdUsingFStringMap)
 
--- import Trace
+-- import Debug.Trace
 -- import Util(traces)
--- import Debug.Trace(traceM)
 
 
 -- The VIO properties are best described as the comments which are printed

@@ -5,7 +5,7 @@ import Data.List(union, sort, nub, (\\))
 import ErrorUtil
 import BoolExp(BoolExp(..))
 
--- import Trace
+-- import Debug.Trace
 
 
 getVars :: (Eq a) => BoolExp a -> [a]

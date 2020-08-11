@@ -93,8 +93,7 @@ import GlobPattern
 import BluesimLoader
 import Depend(genDepend,genFileDepend,chkDeps)
 import InstNodes(InstNode(..), InstTree, isHidden, isHiddenKP, isHiddenAll, nodeChildren, comparein)
--- import Debug.Trace(traceM)
--- import Trace
+-- import Debug.Trace
 
 -------------------------------------
 foreign export ccall "blueshell_Init_Foreign" blueshell_Init :: TclInterp -> IO Int

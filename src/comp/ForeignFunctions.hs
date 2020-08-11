@@ -53,7 +53,7 @@ import ListMap as LM
 
 import qualified Data.Map as M
 
--- import Trace
+-- import Debug.Trace
 -- import Util(traces)
 
 -- Represent the width information needed for foreign types

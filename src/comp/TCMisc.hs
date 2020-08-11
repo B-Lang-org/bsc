@@ -48,11 +48,9 @@ import SymTab
 import MakeSymTab(convCQType)
 import PreStrings(sAcute)
 import IOUtil(progArgs)
-import Debug.Trace(traceM)
+import Debug.Trace
 
 -------
-
--- import Trace
 
 doRTrace :: Bool
 doRTrace = elem "-trace-type" progArgs

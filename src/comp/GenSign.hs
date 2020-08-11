@@ -28,7 +28,7 @@ import Position(Position(..))
 import TypeCheck(qualifyClassDefaults)
 
 --import Util(traces)
---import Trace
+--import Debug.Trace
 
 
 -- ---------------

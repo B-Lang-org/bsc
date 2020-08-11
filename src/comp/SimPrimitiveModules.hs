@@ -25,7 +25,7 @@ import Error(internalError, ErrMsg(..), ErrorHandle, bsError)
 
 import Control.Monad(when)
 
--- import Trace
+-- import Debug.Trace
 
 -- Function which maps module arguments to a module type name
 -- and new module arguments.

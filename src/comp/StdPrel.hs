@@ -30,7 +30,7 @@ import Subst(Types(..))
 import Unify(mgu)
 
 --import PPrint
---import Trace
+--import Debug.Trace
 
 -- -------------------------
 

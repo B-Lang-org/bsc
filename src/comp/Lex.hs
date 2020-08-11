@@ -15,7 +15,7 @@ import FStringCompat
 import PreStrings(fsEmpty)
 import SystemVerilogKeywords
 
--- import Trace
+-- import Debug.Trace
 
 -- data structure for lexical errors
 -- so raw error messages are not in LexItem

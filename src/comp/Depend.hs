@@ -37,8 +37,7 @@ import CSyntax
 import GenFuncWrap(makeGenFuncId)
 import IOUtil(getEnvDef, progArgs)
 import TopUtils
---import Trace
---import Debug.Trace(traceM)
+--import Debug.Trace
 
 outlaw_sv_kws_as_classic_ids :: Bool
 outlaw_sv_kws_as_classic_ids = "-outlaw-sv-kws-as-classic-ids" `elem` progArgs

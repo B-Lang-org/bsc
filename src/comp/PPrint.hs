@@ -13,7 +13,7 @@ import Prelude hiding ((<>))
 
 import Pretty
 import Util(itos)
-import Trace
+import Debug.Trace
 import qualified Data.Map as M
 import qualified Data.Set as S
 

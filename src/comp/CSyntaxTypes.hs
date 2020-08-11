@@ -9,7 +9,7 @@ import ErrorUtil(internalError)
 import Subst
 import CSyntax
 
---import Trace
+--import Debug.Trace
 
 
 instance Types CDefn where

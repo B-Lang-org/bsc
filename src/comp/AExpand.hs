@@ -19,7 +19,7 @@ import ASyntaxUtil
 import VModInfo
 import AConv(isLocalAId)
 --import Util(traces)
---import Trace
+--import Debug.Trace
 
 -- ==============================
 -- Static inputs to the expand function

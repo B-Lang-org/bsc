@@ -12,7 +12,7 @@ import ISyntaxUtil
 --import BDD
 import Prim
 
---import Trace
+--import Debug.Trace
 
 
 -- A BExpr records information when is know to be true.

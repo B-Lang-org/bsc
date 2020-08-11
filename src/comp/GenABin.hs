@@ -26,8 +26,7 @@ import FileIOUtil(writeBinaryFileCatch)
 import qualified Data.Set as S
 import qualified Data.Map as M
 
--- import Debug.Trace(traceM)
--- import Trace
+-- import Debug.Trace
 
 -- .ba file tag -- change this whenever the .ba format changes
 -- See also GenBin.header

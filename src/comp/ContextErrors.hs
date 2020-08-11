@@ -27,8 +27,7 @@ import CSyntax
 import Util(separate, concatMapM, quote, headOrErr, toMaybe, boolCompress)
 import CType(typeclassId, isTNum, getTNum)
 
---import Debug.Trace(traceM)
---import Trace(trace)
+--import Debug.Trace
 
 
 -- ========================================================================

@@ -23,8 +23,7 @@ import qualified Data.Map as M
 import Data.List(intersect)
 import Data.Maybe(isJust, fromJust, fromMaybe, maybeToList, mapMaybe)
 
--- import Trace
--- import Debug.Trace(traceM)
+-- import Debug.Trace
 
 -- -------------------------------------------------------------------
 -- This file contains all of the logic for creating defs describing
