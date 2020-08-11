@@ -78,6 +78,10 @@ jobs:
           fi
           export LDFLAGS="-Wl,-fuse-ld=$LINKER"
 
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./archive_logs.sh EXIT
+
           # Use -O0 for significantly faster C++ compiles (which more
           # than make up for slower simulations), and gold as the C++
           # linked for a moderate build-time speedup over ld.bfd.
@@ -85,9 +89,6 @@ jobs:
           make \
                TEST_SYSTEMC_INC=$HOME/systemc/include \
                TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
-
-          ./archive_logs.sh
-
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
@@ -139,13 +140,15 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
 
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./archive_logs.sh EXIT
+
           # Use -O0 for significantly faster C++ compiles (which more
           # than make up for slower simulations).
           export CXXFLAGS="-O0"
           make TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
                TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib
-
-          ./archive_logs.sh
 
       # Show ccache stats so we can see what the hit-rate is like.
       - name: CCache stats
