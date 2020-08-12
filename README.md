@@ -45,21 +45,26 @@ standard library, and TCL scripting support ("bluetcl").
 > **NOTE**: The current release is minimal, and more code will
 > be made available in the future, including:
 >
-> - Test suite
 > - Documentation (User Guide)
 > - Graphical development environment
 >
 > The repository is still evolving. We welcome your feedback, issue reports,
 > and pull requests.
 
-A separate repository, [bsc-contrib](https://github.com/B-Lang-org/bsc-contrib),
+A separate repository, [bsc-contrib],
 exists for sharing libraries and utilities that don't (or don't yet) belong in
 the core tools.
+
+Tests and testing infrastructure are provided in a separate
+[bsc-testsuite] repository.
 
 [Bluespec Inc]: https://bluespec.com
 [Flute]: https://github.com/bluespec/Flute
 [Piccolo]: https://github.com/bluespec/Piccolo
 [Shakti]: https://shakti.org.in
+
+[bsc-contrib]: https://github.com/B-Lang-org/bsc-contrib
+[bsc-testsuite]: https://github.com/B-Lang-org/bsc-testsuite
 
 ---
 
@@ -200,6 +205,8 @@ An unoptimized, debug, or profiling build can be done using one of:
     $ make BSC_BUILD=NOOPT
     $ make BSC_BUILD=DEBUG
     $ make BSC_BUILD=PROF
+
+For more extensive testing, see the [bsc-testsuite] repository.
 
 #### Choosing a Verilog simulator
 
