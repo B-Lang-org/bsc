@@ -484,7 +484,9 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                                ]
         parts = wordsBy (=='.') versionname
         (year, month, annotation) =
-          if ((length parts == 2) || (length parts == 3)) &&
+          if not (showVersion flags) then
+                  (mkUInt32 0, mkUInt32 0, mkNULL)
+          else if ((length parts == 2) || (length parts == 3)) &&
              (all isDigit (parts!!0)) &&
              (all isDigit (parts!!1))
           then let y = mkUInt32 (read (parts!!0))
@@ -495,7 +497,8 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
                    m = mkUInt32 0
                    a = if (versionname == "") then mkNULL else mkStr versionname
                in  (y, m, a)
-        build = mkStr buildVersion
+        bv = if showVersion flags then buildVersion else ""
+        build = if bv == "" then mkNULL else mkStr bv
         gv_def =
           define get_version
                  (block [ stmt (cDeref (var "year"))       `assign` year
@@ -507,7 +510,9 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         get_creation_time = function (userType "time_t")
                                      (mkScopedVar "get_creation_time")
                                      []
-        (TimeInfo _ clock_time@(TOD t _)) = creation_time
+        (TimeInfo _ clock_time@(TOD t _)) = if (timeStamps flags)
+                                            then creation_time
+                                            else TimeInfo 0 (TOD 0 0)
         time_str = calendarTimeToString (toUTCTime clock_time)
         gct_def = define get_creation_time
                          (comment time_str (ret (Just (mkUInt64 t))))

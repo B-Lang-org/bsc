@@ -1796,7 +1796,9 @@ cxxLink errh flags toplevel names creation_time = do
     -- Write a script to execute bluesim.tcl with the .so file argument
     let bluesim_cmd = "$BLUESPECDIR/tcllib/bluespec/bluesim.tcl"
         (TimeInfo _ (TOD t _)) = creation_time
-        time_str = (show t)
+        time_flags = if (timeStamps flags)
+                     then [ "--creation_time", show t]
+                     else []
     writeFileCatch errh outFile $
                    unlines [ "#!/bin/sh"
                            , ""
@@ -1809,7 +1811,7 @@ cxxLink errh flags toplevel names creation_time = do
                            , "    " ++ (unwords ["exec", bluesim_cmd, "$0.so", toplevel, "--script_name", "`basename $0`", "-h"])
                            , "  fi"
                            , "done"
-                           , unwords ["exec", bluesim_cmd, "$0.so", toplevel, "--script_name", "`basename $0`", "--creation_time", time_str, "\"$@\""]
+                           , unwords $ ["exec", bluesim_cmd, "$0.so", toplevel, "--script_name", "`basename $0`"] ++ time_flags ++ ["\"$@\""]
                            ]
     stat <- getFileStatus outFile
     let mode = fileMode stat
