@@ -1,0 +1,30 @@
+# Tests for the SquareRoot package
+
+# These tests can't use 'test_c_veri_bsv' because that attempts to
+# reuse the Verilog backend's .ba files for Bluesim, and that can't
+# be done for these tests, since they use the ConstrainedRandom
+# package, which has different implementations for the two backends.
+
+proc do_test { name } {
+    test_c_only_bsv     $name  sys$name.c.out.expected
+    test_veri_only_bsv  $name  sys$name.v.out.expected
+}
+
+# -----
+# mkSquareRooter;
+
+do_test Test_mkSquareRooter
+
+# -----
+# mkFixedPointSquareRooter;
+
+do_test Test_mkFixedPointSquareRooter
+
+# -----
+# mkNonPipelinedSquareRooter;
+
+# TODO
+
+# -----
+
+
