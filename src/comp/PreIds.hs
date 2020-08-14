@@ -207,11 +207,12 @@ idPrimChr, idLiftM, idPrimError :: Id
 idPrimChr = prelude_id_no fsPrimChr
 idLiftM = prelude_id_no fsLiftM
 idPrimError = prelude_id_no fsPrimError
-idGeneric, idFrom, idTo, idConc, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField :: Id
+idGeneric, idFrom, idTo, idConc, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField :: Id
 idGeneric = prelude_id_no fsGeneric
 idFrom = prelude_id_no fsFrom
 idTo = prelude_id_no fsTo
 idConc = prelude_id_no fsConc
+idMeta = prelude_id_no fsMeta
 idMetaData = prelude_id_no fsMetaData
 idMetaConsNamed = prelude_id_no fsMetaConsNamed
 idMetaConsAnon = prelude_id_no fsMetaConsAnon

@@ -1347,6 +1347,6 @@ instance (DefaultValue t) => DefaultValue (Vector n t)
     defaultValue = replicate defaultValue
 
 -- The generic representation of a vector is a vector of generic representations
-instance Generic (Vector n a) (MetaData "Vector" "Vector" 1 (Vector n (Conc a))) where
-  from = MetaData `compose` map Conc
-  to (MetaData v) = map (\ Conc x -> x) v
+instance Generic (Vector n a) (Meta (MetaData "Vector" "Vector" 1) (Vector n (Conc a))) where
+  from = Meta `compose` map Conc
+  to (Meta v) = map (\ Conc x -> x) v

@@ -252,7 +252,8 @@ package Prelude(
 	hGetLine, hGetChar,
 
         -- Generics
-        Generic(..), Conc(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
+        Generic(..), Conc(..),
+        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
 	) where
 
 infixr  0 $
@@ -4094,7 +4095,8 @@ class Generic a r | a -> r where
 
 data Conc a = Conc a
 
-data (MetaData :: $ -> $ -> # -> * -> *) name pkg ncons r = MetaData r
-data (MetaConsNamed :: $ -> # -> # -> * -> *) name idx nfields r = MetaConsNamed r
-data (MetaConsAnon :: $ -> # -> # -> * -> *) name idx nfields r = MetaConsAnon r
-data (MetaField :: $ -> # -> * -> *) name idx r = MetaField r
+data Meta m r = Meta r
+data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
+data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
+data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
+data (MetaField :: $ -> # -> *) name idx = MetaField

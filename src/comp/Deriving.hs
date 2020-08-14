@@ -23,7 +23,7 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              idConc, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
+              idConc, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes
               idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
@@ -750,30 +750,33 @@ doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors
 doDGeneric :: Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
   where ty  = cTApplys (cTCon i) vs
-        rep = cTApplys (cTCon idMetaData)
-          [cTStr (getIdBase i) dpos,
-           cTStr (getIdBase packageid) dpos,
-           cTNum (toInteger $ length ocs) dpos,
+        rep = cTApplys (cTCon idMeta)
+          [cTApplys (cTCon idMetaData)
+           [cTStr (getIdBase i) dpos,
+            cTStr (getIdBase packageid) dpos,
+            cTNum (toInteger $ length ocs) dpos],
            tMkEitherChain dpos
             [case mfns of
-               Nothing -> cTApplys (cTCon idMetaConsAnon)
-                 [cTStr (getIdBase cn) dpos,
-                  cTNum i dpos,
-                  cTNum (toInteger $ length ftys) dpos,
+               Nothing -> cTApplys (cTCon idMeta)
+                 [cTApplys (cTCon idMetaConsAnon)
+                  [cTStr (getIdBase cn) dpos,
+                   cTNum i dpos,
+                   cTNum (toInteger $ length ftys) dpos],
                   tMkTuple dpos
-                   [cTApplys (cTCon idMetaField)
-                    [cTStr (mkFString $ "_" ++ show j) dpos,
-                     cTNum j dpos,
+                   [cTApplys (cTCon idMeta)
+                    [cTApplys (cTCon idMetaField)
+                     [cTStr (mkFString $ "_" ++ show j) dpos, cTNum j dpos],
                      TAp (cTCon idConc) fty]
                    | (j, CQType _ fty) <- zip [0..] ftys]]
-               Just fns -> cTApplys (cTCon idMetaConsNamed)
-                 [cTStr (getIdBase cn) dpos,
-                  cTNum i dpos,
-                  cTNum (toInteger $ length ftys) dpos,
+               Just fns -> cTApplys (cTCon idMeta)
+                 [cTApplys (cTCon idMetaConsNamed)
+                  [cTStr (getIdBase cn) dpos,
+                   cTNum i dpos,
+                   cTNum (toInteger $ length ftys) dpos],
                   tMkTuple dpos
-                   [cTApplys (cTCon idMetaField)
-                    [cTStr (getIdBase fn) dpos,
-                     cTNum j dpos,
+                   [cTApplys (cTCon idMeta)
+                    [cTApplys (cTCon idMetaField)
+                     [cTStr (getIdBase fn) dpos, cTNum j dpos],
                      TAp (cTCon idConc) fty]
                    | (j, fn, CQType _ fty) <- zip3 [0..] fns ftys]]
             | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
@@ -786,22 +789,22 @@ doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon id
             in case mfns of
                Nothing -> CPCon cn pats
                Just fns -> CPstruct cn $ zip fns pats] [] $
-           CCon idMetaData
+           CCon idMeta
             [mkEitherChain dpos i (length ocs) $
-             CCon (if isJust mfns then idMetaConsNamed else idMetaConsAnon)
+             CCon idMeta
               [mkTuple dpos
-               [CCon idMetaField
+               [CCon idMeta
                 [CCon idConc [CVar $ mkId dpos $ mkFString $ "a" ++ show j]]
                | j <- [0..length ftys - 1]]]]
           | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
         to = CLValue idToNQ
           [CClause
-           [CPCon idMetaData
+           [CPCon idMeta
             [pMkEitherChain dpos i (length ocs) $
-             CPCon (if isJust mfns then idMetaConsNamed else idMetaConsAnon)
+             CPCon idMeta
               [pMkTuple dpos
-               [CPCon idMetaField
+               [CPCon idMeta
                 [CPCon idConc [CPVar $ mkId dpos $ mkFString $ "a" ++ show j]]
                | j <- [0..length ftys - 1]]]]] [] $
             let args = [CVar $ mkId dpos $ mkFString $ "a" ++ show j | j <- [0..length ftys - 1]]
@@ -941,32 +944,36 @@ doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue)
 doSGeneric :: Id -> Position -> Id -> [Type] -> CFields -> CDefn
 doSGeneric packageid dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
   where ty  = cTApplys (cTCon i) vs
-        rep = cTApplys (cTCon idMetaData)
-          [cTStr (getIdBase i) dpos,
-           cTStr (getIdBase packageid) dpos,
-           cTNum 1 dpos,
-           cTApplys (cTCon idMetaConsNamed)
-            [cTStr (getIdBase i) dpos,
-             cTNum 0 dpos,
-             cTNum (toInteger $ length fs) dpos,
+        rep = cTApplys (cTCon idMeta)
+          [cTApplys (cTCon idMetaData)
+           [cTStr (getIdBase i) dpos,
+            cTStr (getIdBase packageid) dpos,
+            cTNum 1 dpos],
+           cTApplys (cTCon idMeta)
+            [cTApplys (cTCon idMetaConsNamed)
+             [cTStr (getIdBase i) dpos,
+              cTNum 0 dpos,
+              cTNum (toInteger $ length fs) dpos],
              tMkTuple dpos
-              [cTApplys (cTCon idMetaField)
-               [cTStr (getIdBase fn) dpos, cTNum i dpos, TAp (cTCon idConc) fty]
+              [cTApplys (cTCon idMeta)
+               [cTApplys (cTCon idMetaField)
+                [cTStr (getIdBase fn) dpos, cTNum i dpos],
+                 TAp (cTCon idConc) fty]
               | (i, CField {cf_name=fn, cf_type=CQType _ fty}) <- zip [0..] fs]]]
         from = CLValue idFromNQ
           [CClause [CPstruct i [(cf_name f, CPVar $ cf_name f) | f <- fs]] [] $
-           CCon idMetaData
-            [CCon idMetaConsNamed
-             [mkTuple dpos
-              [CCon idMetaField
-               [CCon idConc [CVar $ cf_name f]] | f <- fs]]]] []
+           CCon idMeta
+            [CCon idMeta
+              [mkTuple dpos
+                [CCon idMeta
+                  [CCon idConc [CVar $ cf_name f]] | f <- fs]]]] []
         to = CLValue idToNQ
           [CClause
-           [CPCon idMetaData
-            [CPCon idMetaConsNamed
-             [pMkTuple dpos
-              [CPCon idMetaField
-               [CPCon idConc [CPVar $ cf_name f]] | f <- fs]]]] [] $
+            [CPCon idMeta
+              [CPCon idMeta
+                [pMkTuple dpos
+                  [CPCon idMeta
+                    [CPCon idConc [CPVar $ cf_name f]] | f <- fs]]]] [] $
            CStruct i [(cf_name f, CVar $ cf_name f) | f <- fs]] []
 
 -- | Derive the PrimMakeUndefined instance for a struct (product type), and
