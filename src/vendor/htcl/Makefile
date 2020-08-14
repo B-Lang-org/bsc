@@ -6,11 +6,11 @@ GHC ?= ghc
 	$(GHC) $(GHCFLAGS) -c $<
 
 libhtcl.a: haskell.o
-	ar -r $@ $(filter %.o, $+)
+	$(AR) -r $@ $(filter %.o, $+)
 
 .PHONY: install
 install: libhtcl.a
 
 .PHONY: clean full_clean
 clean full_clean:
-	rm -rf *.o *.a TAGS
+	$(RM) -rf *.o *.a TAGS
