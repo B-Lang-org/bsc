@@ -161,7 +161,7 @@ GHC += -optl -headerpad_max_install_names
 endif
 
 # flags for the haskell compiler RTS
-GHCRTSFLAGS ?= +RTS -M3G -A128m -RTS
+GHCRTSFLAGS ?= +RTS -M4G -A128m -RTS
 
 # flags for the haskell compile
 GHCINCLUDES =  \
