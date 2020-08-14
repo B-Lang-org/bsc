@@ -38,6 +38,7 @@ data Flags = Flags {
         cpp :: Bool,
         defines :: [String],
         demoteErrors :: MsgListFlag,
+        derivePackLast :: Bool,
         disableAssertions :: Bool,
         passThroughAssertions :: Bool,
         doICheck :: Bool,

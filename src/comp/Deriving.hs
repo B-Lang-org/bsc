@@ -4,7 +4,7 @@ module Deriving(derive) where
 import Data.List(nub, intercalate)
 import Util(log2, checkEither, unions, toMaybe, headOrErr, lastOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
-import Flags(Flags)
+import Flags(Flags, derivePackLast)
 import Position
 import Id
 import PreIds(
@@ -98,7 +98,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         then [Left (getPosition data_decl,
                     EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
         else Right [data_decl] :
-               map (doDataDer xs qual_name ty_vars orig_sums int_sums) derivs'
+               map (doDataDer flags xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -199,28 +199,28 @@ isRecursiveStruct i fs =
 --  cs  =  internal summands of the data type
 --         (an id and one type -- the list became a struct)
 --  di  =  the class to be derived
-doDataDer :: [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
-             CTypeclass -> Either EMsg [CDefn]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
+doDataDer :: Flags -> [(Id, CDefn)] -> Id -> [Type] -> COSummands ->
+             CSummands -> CTypeclass -> Either EMsg [CDefn]
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
-  doDBits (getPosition di) i vs ocs cs
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
+doDataDer flags xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
+  doDBits flags (getPosition di) i vs ocs cs
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doDUndefined i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
   Right [doDUninitialized i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
-doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
+doDataDer _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -242,7 +242,7 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
-doDataDer xs i vs ocs cs (CTypeclass di) =
+doDataDer _ xs i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
@@ -432,12 +432,12 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
 -- Data tags aren't dense (i.e. don't cover all possible bit encodings) unless
 -- there are 2^n constructors, and additionally enum tags may be sparse if
 -- the user specifies gaps in the tags.
-doDBits :: Position -> Id -> [Type] -> COSummands -> CSummands ->
+doDBits :: Flags -> Position -> Id -> [Type] -> COSummands -> CSummands ->
            Either EMsg [CDefn]
-doDBits dpos type_name type_vars original_tags tags
+doDBits _ dpos type_name type_vars original_tags tags
     | not (null (duplicate_tag_encoding_errors type_name tags)) =
         Left (head (duplicate_tag_encoding_errors type_name tags))
-doDBits dpos enum_name type_vars original_tags tags
+doDBits _ dpos enum_name type_vars original_tags tags
     | isEnum original_tags =
     -- simple case where the fields are just tags, so the number of bits
     -- required to represent the data type is known statically, so
@@ -483,7 +483,7 @@ doDBits dpos enum_name type_vars original_tags tags
         [Cinstance
          (CQType [] (cTApplys (cTCon idBits) [unpacked_ctype, num_bits_ctype]))
          [CLValueSign pack_function [], CLValueSign unpack_function []]]
-doDBits dpos type_name type_vars original_tags tags =
+doDBits flags dpos type_name type_vars original_tags tags =
     -- default case where fields contain data in addition to tags: provisos
     -- are required to compute the final bit size
     let -- decl_position: where the original type was declared
@@ -561,11 +561,26 @@ doDBits dpos type_name type_vars original_tags tags =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
-            | otherwise = zipWith mkPk tags field_bit_sizes
+            | otherwise = zipWith mkPk tags field_bit_sizes ++ [packLast | derivePackLast flags]
         mkPk tag field_sz =
             CClause [CPCon1 type_name (getCISName tag) (CPVar id_x)] []
                         (cVApply idPrimConcat
                          [litSz (cis_tag_encoding tag), pkBody field_sz])
+
+        -- Construct a custom fallthrough case to help (pack . unpack)
+        -- optimize to the identity. Explicitly using anyExpr instead of relying
+        -- on the UNoMatch case inserted by IConv means that this undetermined value
+        -- will not optimize away during static elaboration, preserving structure
+        -- that ITransform can rebuild into an identity.
+        -- The explicit tag ++ payload concatenation is not strictly necessary,
+        -- but should help make the reconstruction more robust now that
+        -- improveIf in IExpand can merge matching bit concatenations.
+        packLast = CClause [CPAny decl_position] []
+                           (cVApply idPrimConcat
+                                    [ hasSz (anyExprAt decl_position) num_tag_bits_ctype
+                                    , anyExprAt decl_position
+                                    ])
+
         pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
                                           hasSz (cVApply idPack [vx]) sz ]
         litSz k = hasSz (CLit $ num_to_cliteral_at decl_position k)
