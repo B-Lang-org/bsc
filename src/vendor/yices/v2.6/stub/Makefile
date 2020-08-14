@@ -13,7 +13,9 @@ CCFLAGS	=  -c -Wall -fPIC
 USERCCFLAGS ?=
 
 LIBNAME = libyices
-VER = 2
+MAJOR = 2
+MINOR = 6
+VER = $(MAJOR).$(MINOR)
 SUBVER = stub
 
 SRC = yices.c
