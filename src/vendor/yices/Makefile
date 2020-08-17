@@ -3,7 +3,7 @@ include $(TOP)/platform.mk
 
 PREFIX?=$(TOP)/inst
 
-.PHONY: all clean full_clean intall
+.PHONY: all clean full_clean install
 
 VER_MAJ = 2
 VER_MIN = 6
