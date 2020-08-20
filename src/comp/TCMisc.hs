@@ -20,7 +20,6 @@ import qualified Data.Set as S
 import System.IO.Unsafe(unsafePerformIO)
 
 import ListMap(lookupWithDefault)
-import ListUtil(mapSnd)
 import Util
 import PFPrint
 import Position
@@ -41,7 +40,6 @@ import PreIds
 import StdPrel(isPreClass)
 import CSyntax(CDefl(..), CExpr(..), CPat(..), CQual(..),
                CLiteral(..), cTApply, cVApply, anyTExpr)
-import CFreeVars
 import Literal
 import IntLit
 import SymTab
@@ -136,7 +134,6 @@ satisfy' dvs es ps = do
        -- satTraceM ("satisfy (join)' = " ++ ppString (ps0, bs0, s0))
        (vp, binds, s) <- sMany dvs es [] bs0 s0 ps0
        -- satTraceM ("satisfy (result)' = " ++ ppString (vp,binds,s))
-       checkBinds es vp binds
        return (vp, binds, s)
   where
         -- sMany
@@ -193,32 +190,6 @@ satisfy' dvs es ps = do
                     else do
                         let (changed_rs, unchanged_rs) = split_rs s' rs
                         sMany (dvsSub s' dvs) (apSub s' es) (new_ps ++ unchanged_rs) (bs' ++ bs) (s' @@ s) (apSub s' (changed_rs ++ ps))
-
-checkBinds :: [EPred] -> [VPred] -> [Bind] -> TI ()
-checkBinds eps vps bs = do
-  let given_dicts    = [ i | EPred (CVar i) _ <- eps ]
-  let deferred_dicts = [ i | VPred i _ <- vps ]
-  let base_dicts_set = S.fromList (given_dicts ++ deferred_dicts)
-
-  let bind_use_pairs = [ (i, uses) | (i, _, e) <- bs,
-                                     let vs = fvSetToFreeVars (deleteV i (getFVE e)),
-                                     let uses = filter isDictId vs ]
-
-  -- this recursion is ok because sat recursive drops any cyclic bindings
-  -- (but may create a recursive binding that uses itself, which is why we
-  -- use deleteV when creating the pairs)
-  let ok_bind_map = M.fromList $ mapSnd (all ok_dict) bind_use_pairs
-      ok_dict i   = i `S.member` base_dicts_set ||
-                    M.lookup i ok_bind_map == Just True
-
-  s <- getSubst
-  let bad_binds = [ (i, apSub s t, e) | b@(i, t, e) <- bs, not (ok_dict i) ]
-
-  -- internalError because ctxReduce should have resolved any recursion
-  -- via the top-level. Anything remaining is a presumed type-checking bug
-  when (not $ null bad_binds) $
-    internalError ("recursive dict binds: " ++
-                   ppReadable (bs, eps, vps, s))
 
 expTConPred :: VPred -> TI [VPred]
 expTConPred (VPred e (PredWithPositions (IsIn c ts) pos)) = do
@@ -348,7 +319,7 @@ sat dvs ps p =
            (VPred vp (PredWithPositions (IsIn cl _) poss)) | isPreClass cl ->
                    return ([p], [], nullSubst)
            _ -> satTrace ("sat recursive: " ++ ppReadable (p, bs, s)) $
-                return ([], [], s)
+                return ([], bs, s)
       _ -> do
        let this_point :: TSSatElement
            this_point = (mkTSSatElement dvs ps p)
