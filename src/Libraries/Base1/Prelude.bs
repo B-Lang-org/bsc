@@ -4094,9 +4094,15 @@ class Generic a r | a -> r where
   to :: r -> a
 
 data Conc a = Conc a
+  deriving (FShow)
 
 data Meta m r = Meta r
+  deriving (FShow)
 data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
+  deriving (FShow)
 data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
+  deriving (FShow)
 data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
+  deriving (FShow)
 data (MetaField :: $ -> # -> *) name idx = MetaField
+  deriving (FShow)
