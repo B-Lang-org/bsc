@@ -1249,6 +1249,7 @@ proc bsc_create_systemc_objects { objects toplevel { options "" } } {
 # C++ compile incorporating SystemC libs
 # returns true iff compile succeeded
 proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods "" } { options "" } } {
+    global env
     global systemctest
     global bsdir
     global srcdir
@@ -1265,7 +1266,11 @@ proc build_systemc_executable { exe sysc_srcs bsim_top_mods { bsim_other_mods ""
         set output [make_cxx_comp_output_name $exe]
         set scexe [make_syscexe_name $exe]
 
-        set cxx "g++"
+        if [info exists env(CXX)] then {
+            set cxx $env(CXX)
+        } else {
+            set cxx "g++"
+        }
         set systemc_paths "-I$systemc_inc -L$systemc_lib"
         set bluesim_paths "-I$bsdir/Bluesim -L$bsdir/Bluesim"
         set systemc_libs "-lsystemc"
