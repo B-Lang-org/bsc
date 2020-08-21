@@ -1,6 +1,6 @@
 # Generators for the test data
 
-CC = gcc 
+CC ?= gcc 
 
 TESTDATA = testa.dat testm.dat testmac.dat \
 	   testa64.dat testm64.dat testmac64.dat 
