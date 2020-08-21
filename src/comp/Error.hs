@@ -685,7 +685,6 @@ data ErrMsg =
 
         | ECannotDerive String
         | EDeriveCtx String
-        | EDeriveRecursive [String] String
         | ETypeSynRecursive [String]
         | EDuplicateInstance String Position
         | EBadInstanceOverlap String String Position
@@ -2496,15 +2495,8 @@ getErrorText (EForeignFuncBadResType badtype isPoly) =
                  else empty
      in  hdr $$ nest 2 (text badtype))
 
-getErrorText (EDeriveRecursive classes ty) =
-    (Type 90, empty,
-     s2par ("Cannot derive instances for the recursive type " ++ ty ++
-            " because the requested " ++
-             cls_msg ++ " not permit recursive instances."))
-  where cls_msg = case classes of
-                   [cls]   -> " typeclass " ++ cls ++ " does "
-                   (_ : _) -> " typeclasses (" ++ (intercalate ", " classes) ++ ") do "
-                   [] -> internalError "EDeriveRecursive no classes"
+-- Removed Type 90, EDeriveRecursive since recursive deriving of Bits
+-- now causes an error at the type checking phase.
 
 getErrorText (EForeignFuncDuplicates link_name src_ids) =
     (Type 91, empty,
