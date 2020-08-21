@@ -94,13 +94,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
         derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
-        -- XXX ignore derivs' to sneak in recursive data decls
-        bad_rec_derivs = filter forbidsRecursiveInstance derivs
-    in  if (not (null bad_rec_derivs)) && (isRecursiveData unqual_name orig_sums)
-        then [Left (getPosition data_decl,
-                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-        else Right [data_decl] :
-               map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
+    in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -108,12 +102,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
-        bad_rec_derivs = filter forbidsRecursiveInstance derivs'
-    in  if (not (null bad_rec_derivs)) && (isRecursiveStruct unqual_name fields)
-        then [Left (getPosition struct_decl,
-                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-        else Right [struct_decl] :
-               map (doStructDer packageid xs qual_name ty_vars fields) derivs'
+    in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -169,26 +158,6 @@ doPrimTypeDeepSeqCond i vs = Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) 
         def_ty = CQType [] (ty `fn` ty_forallb)
         dseqcond = CLValueSign (CDef idPrimDeepSeqCondNQ def_ty [CClause [] [] body]) []
         body = CVar idPrimSeqCond
-
--- recursive deriving of Bits causes an error in the typechecking phase
--- of the compiler
--- Because this is identically False, (it used to be True), the code that depends
--- on it may be safely removed at some point.
-forbidsRecursiveInstance :: CTypeclass -> Bool
-forbidsRecursiveInstance i = False
-
-isRecursiveData :: Id -> COSummands -> Bool
-isRecursiveData i ocs =
-    let allCQTyCons (CQType _ ty) = allTConNames ty
-        types = unions (map (cos_arg_types) ocs)
-        cons = unions (map allCQTyCons types)
-    in  i `elem` cons
-
-isRecursiveStruct :: Id -> CFields -> Bool
-isRecursiveStruct i fs =
-    let allCQTyCons (CQType _ ty) = allTConNames ty
-        cons = unions (map (allCQTyCons . cf_type) fs)
-    in  i `elem` cons
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq
 -- or FShow) for a given data (sum type), and return the instance definitions.
