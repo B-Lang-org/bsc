@@ -296,9 +296,6 @@ sat dvs ps p =
     case lookfor_result of
       Just (bs, (s, [])) ->
          -- tie the recursive knot!
-         -- Unfortunately this causes local mutually recursive
-         -- bindings of dictionaries (EUnsupportedMutualRecursion in IConv),
-         -- so for the simply recursive case, it is cleaned up with cleanUpBinds
          -- traces ("recursive knot: " ++ (ppString p) ++ " = " ++ (ppString lookfor_result))$
          case p of
            (VPred vp (PredWithPositions (IsIn cl tys) poss))
