@@ -29,7 +29,7 @@ endif
 OSTYPE = $(shell $(TOP)/platform.sh ostype)
 export OSTYPE
 
-ifneq ($(OSTYPE), $(findstring $(OSTYPE), Linux Darwin))
+ifneq ($(OSTYPE), $(findstring $(OSTYPE), Linux Darwin Freebsd))
 $(error OSTYPE environment not recognized: $(OSTYPE))
 endif
 
@@ -56,3 +56,26 @@ export CFLAGS
 export CXXFLAGS
 
 ## --------------------
+## Set up the TCL shell and include paths
+
+ifneq ($(WANT_TCL),)
+
+TCLSH = $(shell $(TOP)/platform.sh tclsh)
+ifeq ($(TCLSH), )
+$(error Unable to find tclsh)
+endif
+$(info Using tclsh: $(TCLSH))
+
+TCL_INC_FLAGS = $(shell $(TOP)/platform.sh tclinc 2> /dev/null || echo fail)
+ifeq ($(TCL_INC_FLAGS), fail)
+$(error Unable to find tcl include directory)
+endif
+$(info Using tcl include flags: $(TCL_INC_FLAGS))
+
+TCL_LIB_FLAGS = $(shell $(TOP)/platform.sh tcllibs 2> /dev/null || echo fail)
+ifeq ($(TCL_LIB_FLAGS), fail)
+$(error Unable to find tcl library flags)
+endif
+$(info Using tcl library flags: $(TCL_LIB_FLAGS))
+
+endif
