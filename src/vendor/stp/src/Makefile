@@ -8,14 +8,18 @@ INCLUDE_DIR=$(STPDIR)/include
 HEADERS=c_interface/*.h
 
 # BSD cp does not have the -d flag
+ifneq ($(OSTYPE), Linux)
+CP = cp -Rf
+else
+CP = cp -df
+endif
+
 ifeq ($(OSTYPE), Darwin)
 LIBRARIES=lib/libstp.dylib
 SNAME = libstp.dylib
-CP = cp -Rf
 else
 LIBRARIES=lib/libstp.so.1 lib/libstp.so
 SNAME = libstp.so.1
-CP = cp -df
 endif
 
 .PHONY: all

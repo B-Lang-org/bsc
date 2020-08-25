@@ -37,8 +37,8 @@ HEADERS = bluesim_kernel_api.h \
           bs_model.h
 
 # These ld export maps get copies to the inst/lib/Bluesim area
-LINKFILES = bs_linux_export_map.txt \
-            bs_darwin_export_map.txt
+LINKFILES = bs_elf_export_map.txt \
+            bs_mach-o_export_map.txt
 
 # -------------------------
 

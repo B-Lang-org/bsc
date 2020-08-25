@@ -1780,17 +1780,17 @@ cxxLink errh flags toplevel names creation_time = do
         -- show is used for quoting
         libdirflags = (map (("-L"++) . show) (cLibPath flags))
         userlibs = map (("-l"++) . show) (cLibs flags)
-        exportmap = let kernel = map toLower (osToString getOSType)
+        exportmap = let kernel = map toLower (binFmtToString getBinFmtType)
                     in  show $ (bluespecDir flags) ++ "/Bluesim/" ++
                                "bs_" ++ kernel ++ "_export_map.txt"
         -- this flag doesn't seem to work, so we use a separate call to "strip"
         stripflags = [] -- if (cDebug flags) then [] else ["-Wl,-x"]
         switches =
-          case getOSType of
-            Linux -> ["-shared", "-fPIC", "-Wl,-Bsymbolic"] ++ libdirflags ++
+          case getBinFmtType of
+            ELF -> ["-shared", "-fPIC", "-Wl,-Bsymbolic"] ++ libdirflags ++
                      ["-Wl,--version-script=" ++ exportmap] ++ stripflags ++
                      ["-o", soFile]
-            Darwin -> ["-dynamiclib", "-fPIC"] ++ libdirflags ++
+            MachO -> ["-dynamiclib", "-fPIC"] ++ libdirflags ++
                       ["-exported_symbols_list", exportmap] ++ stripflags ++
                       ["-o", soFile]
         -- show is used for quoting
@@ -1828,9 +1828,9 @@ cxxLink errh flags toplevel names creation_time = do
 -- strip unwanted symbols from a .so file
 cleanseSharedLib :: ErrorHandle -> Flags -> String -> IO ()
 cleanseSharedLib errh flags soFile = do
-    let switches = case getOSType of
-                      Linux  -> ["-x"]
-                      Darwin -> ["-u", "-x"]
+    let switches = case getBinFmtType of
+                      ELF   -> ["-x"]
+                      MachO  -> ["-u", "-x"]
         cmd = unwords $ ["strip"] ++ switches ++ [soFile]
     when (verbose flags) $ putStrLnF ("exec: " ++ cmd)
     rc <- system cmd
