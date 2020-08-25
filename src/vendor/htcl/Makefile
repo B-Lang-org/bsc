@@ -1,8 +1,8 @@
-# Have Makefile avoid Homebrew's install of tcl on Mac
-ifneq ($(OSTYPE), Darwin)
-TCL_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
-endif
-GHCFLAGS += -Wall $(TCL_INC_FLAGS)
+TOP = ../../..
+WANT_TCL=yes
+include $(TOP)/platform.mk
+
+GHCFLAGS += -Wall ${TCL_INC_FLAGS}
 GHC ?= ghc
 
 # We use GHC to compile this, so it has the proper RTS includes

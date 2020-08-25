@@ -4,6 +4,8 @@ TOP:=$(PWD)/../..
 PREFIX?=$(TOP)/inst
 INSTALLDIR = $(PREFIX)/lib/tcllib/bluespec
 
+TCLSH = $(shell $(TOP)/platform.sh tclsh)
+
 FILES = \
 	tclIndex \
 	pkgIndex.tcl \
@@ -26,10 +28,8 @@ EXEFILES = \
 .PHONY: all
 all: tclIndex
 
-# pkg_mkIndex.tcl is produced here
-.PHONY: tclIndex
 tclIndex: *.tcl
-	./tclIndex.sh "$(TCLFILES)" "$(PACKAGES)"
+	${TCLSH} ./tclIndex.tcl "$(TCLFILES)" "$(PACKAGES)"
 
 .PHONY: install
 install: tclIndex
