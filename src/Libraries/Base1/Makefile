@@ -11,7 +11,11 @@ SRCS = $(wildcard *.bs) $(wildcard *.bsv)
 OBJS = $(addprefix $(BUILDDIR)/,$(addsuffix .bo,$(basename $(SRCS))))
 
 .PHONY: build
-build: $(BUILDDIR) $(OBJS)
+build: $(OBJS)
+
+# Make sure to build the directory before trying to build the objects
+# but don't force recompile based on the timestamp of the directory
+$(OBJS): | $(BUILDDIR)
 
 $(BUILDDIR):
 	mkdir -p $@
