@@ -150,7 +150,12 @@ endinstance
 
 //@ \index{epsilon@\te{epsilon} (fixed-point function)|textbf}
 //@ # 1
-function FixedPoint#(i,f) epsilon () ;
+function FixedPoint#(i,f) epsilon ()
+   provisos(
+	    Min#(i,1,1),
+	    Min#(TAdd#(i,f),2,2)
+	    );
+
       Int#(b)  eps = 'b01  ;
       return _fromInternal (eps);
 endfunction
@@ -164,6 +169,7 @@ instance Arith#( FixedPoint#(i,f) )
    provisos( Add#(i,f,b)
             ,Add#(TAdd#(i,i), TAdd#(f,f), TAdd#(b,b))
 	    ,Min#(i,1,1)
+	    ,Min#(TAdd#(i, f), 2, 2)
             );
 
    // Addition does not change the binary point
@@ -436,6 +442,7 @@ function FixedPoint#(ri,rf) fxptTruncateSat (SaturationMode smode, FixedPoint#(a
              ,Add#(rf,_f,af)
 	     ,Min#(ai,1,1)
 	     ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
 
    FixedPoint#(ri,rf) res = fxptTruncate(din);
@@ -473,6 +480,7 @@ function FixedPoint#(ri,rf) fxptTruncateRound (RoundMode rmode, FixedPoint#(ai,a
              ,Add#(rf,fdrop,af)
              ,Min#(ai,1,1)
              ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
    return fxptTruncateRoundSat(rmode, Sat_Wrap, din);
 endfunction
@@ -483,6 +491,7 @@ function FixedPoint#(ri,rf) fxptTruncateRoundSat (RoundMode rmode, SaturationMod
              ,Add#(rf,fdrop,af)
              ,Min#(ai,1,1)
              ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
    Bit#(n) msbMask = (~('b0)) >> 1; // 'b011111...
 
