@@ -717,8 +717,3 @@ idTuple5 = prelude_id_no fsTuple5
 idTuple6 = prelude_id_no fsTuple6
 idTuple7 = prelude_id_no fsTuple7
 idTuple8 = prelude_id_no fsTuple8
-
--- | Typeclassses that are automatically derived for all types (unless the
--- user manually defines instances).
-requiredClasses :: [Id]
-requiredClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]

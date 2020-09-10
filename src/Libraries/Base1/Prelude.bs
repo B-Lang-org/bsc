@@ -1214,7 +1214,7 @@ replaceBit pos w i b =
 --@ typedef enum {False, True} Bool deriving (Eq, Bits, Bounded);
 --@ \end{libverbatim}
 data Bool = False | True
-        deriving (Eq, Bits, Bounded, FShow, DefaultValue, Generic)
+        deriving (Eq, Bits, Bounded, FShow, DefaultValue)
 
 isStaticBool :: Bool -> Bool
 isStaticBool = compose areStaticBits pack
@@ -1486,7 +1486,6 @@ isJust (Just _) = True
 
 -- abstract
 data Int n = Int (Bit n)
-  deriving (Generic)
 
 instance Bits (Int n) n where
     pack (Int x) = pack x
@@ -1635,7 +1634,6 @@ instance PrimShiftIndex (Int n) n where {}
 
 -- abstract
 data UInt n = UInt (Bit n)
-  deriving (Generic)
 
 instance Bits (UInt n) n where
     pack (UInt x) = pack x
@@ -3681,7 +3679,7 @@ class coherent PrimMakeUninitialized a where
    primMakeUninitialized :: Position__ -> String -> a
 
 -- BSV only, touching an uninitialized value is an error
--- calls primMakeUnitialized via evaluation-time code-generation
+-- calls primMakeUninitialized via evaluation-time code-generation
 -- to field-blast struct, vectors, etc. appropriately
 -- (even polymorphic) without requiring crazy contexts
 primitive primUninitialized :: Position__ -> String -> a

@@ -16,7 +16,6 @@ import PreIds(
               idPrimFst, idPrimSnd,
               -- internal classes to auto-derive
               idUndefined, idClsUninitialized, idClsDeepSeqCond,
-              requiredClasses,
               -- internal class members
               idPrimUninitialized, idPrimMakeUninitialized, idPrimRawUninitialized,
               idPrimSeqCond, idPrimDeepSeqCond,
@@ -93,7 +92,8 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
+        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
+        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
@@ -101,7 +101,14 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
+        tvset = S.fromList (concatMap tv ty_vars)
+        higher_rank = not $ all (`S.isSubsetOf` tvset) [S.fromList $ tv fty
+                                                       | CField {cf_type = fty} <- fields]
+        requiredClasses =
+          if higher_rank
+          then [idUndefined, idClsDeepSeqCond, idClsUninitialized]
+          else [idGeneric, idUndefined, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
+        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
@@ -115,7 +122,8 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addRequiredDerivs flags r qual_name ty_vars []
+        requiredClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
+        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
@@ -1154,27 +1162,29 @@ addRequiredDeriv flags r i tvs clsId derivs
     | Right True <- fst (runTI flags False r check) = derivs
   where check = do
           let Just (TypeInfo _ kind _ sort) =
-                  {- trace ("check undef: " ++ ppReadable i) $ -}
+                  -- trace ("check undef: " ++ show clsId) $
                   findType r i
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)
-          vp <- mkVPredFromPred [] (IsIn cls [t])
+          -- Look for an instance where the first parameter is the specified type
+          -- and any remaining parameters are filled in with variables
+          vp <- mkVPredFromPred [] (IsIn cls $ t : (map TVar $ tail $ csig cls))
           -- if there is an existing undefined instance, the predicate will reduce
           mreduce <- reducePred [] Nothing vp
-          -- trace (show i ++ ": " ++ ppReadable mreduce) $
-          -- trace ("ps' :" ++ ppReadable ps') $
+          -- trace (show clsId ++ ": " ++ ppReadable mreduce) $
           return (isJust mreduce)
 
 addRequiredDeriv flags r i tvs clsId derivs =
-  -- trace ("auto-derive: " ++ ppReadable (cls, i))
+  -- trace ("auto-derive: " ++ ppReadable (clsId, i))
   (CTypeclass clsId) : derivs
 
 -- All types are automatically given instances for the typeclasses in
 -- requiredClasses if an explicit instance isn't provided by the user.
 -- Implement this by adding the classes to the derive list for each type.
-addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
+addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [Id] -> [CTypeclass]
                   -> [CTypeclass]
-addRequiredDerivs flags r i tvs derivs =
+addRequiredDerivs flags r i tvs requiredClasses derivs =
+  -- trace ("requiredClasses for " ++ show i ++ ": " ++ ppReadable requiredClasses) $
   foldr (f . setPos) derivs requiredClasses
    where pos    = getIdPosition i
          setPos clsId = setIdPosition pos (unQualId clsId)

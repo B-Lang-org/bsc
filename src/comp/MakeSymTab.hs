@@ -2,7 +2,6 @@
 {-# LANGUAGE PatternGuards #-}
 module MakeSymTab(
                   mkSymTab,
-                  requiredClasses,
                   cConvInst,
                   convCQType, convCQTypeWithAssumps,
                   convCType,
@@ -720,9 +719,6 @@ getK iks ik =
         _ -> internalError ("getK " ++ ppReadable iks ++ show ik)
 
 getQInsts :: Id -> [[Bool]] -> QInsts -> (QInsts, [EMsg])
-getQInsts ci bss qts
-    | ci `elem` requiredClasses =
-        ([ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ], [])
 getQInsts ci bss qts = (cls_qts', errs)
   where cls_qts  = [ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ]
         cls_qt_g = [ (qi, lt_qis) | qi <- cls_qts,
