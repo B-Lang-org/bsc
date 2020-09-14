@@ -43,16 +43,22 @@ test_c_veri_bsv OverlapCtxReduce
 #
 compile_pass_no_warning SelfRecursiveInstance.bsv
 
-# Mutually exclusive instances are detected
-#
-compile_fail MutuallyRecursiveInstances.bsv
-# XXX but are reported with an internal error
-find_n_strings [make_bsc_output_name MutuallyRecursiveInstances.bsv] \
-    {Internal Bluespec Compiler Error} 1
-
 # Test that BSC requires the user to add a proviso on self recursive instances
 # where instance overlap prevents resolution of the use.  (Bug 1882)
 compile_fail_error SelfRecursiveInstance_NoProviso.bsv T0030
+
+# ----------
+
+# Mutually recursive instances are supported
+
+# Test the behavior with a self-check in the compiler output
+compile_verilog_pass MutuallyRecursiveInstances.bsv
+compare_file [make_bsc_vcomp_output_name MutuallyRecursiveInstances.bsv]
+
+# Test that an accidental infinite loop is detected with unfolding
+# warnings and an eventual  stack overflow
+compile_verilog_fail MutuallyRecursiveInstances_Loop.bsv
+compare_file [make_bsc_vcomp_output_name MutuallyRecursiveInstances_Loop.bsv]
 
 # ----------
 

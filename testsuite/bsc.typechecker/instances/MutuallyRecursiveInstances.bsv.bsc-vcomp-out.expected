@@ -1,0 +1,7 @@
+checking package dependencies
+compiling MutuallyRecursiveInstances.bsv
+code generation for sysMutuallyRecursiveInstances starts
+Compilation message: "MutuallyRecursiveInstances.bsv", line 39, column 18: is_odd(17) PASS
+Compilation message: "MutuallyRecursiveInstances.bsv", line 45, column 18: is_odd(42) PASS
+Verilog file created: sysMutuallyRecursiveInstances.v
+All packages are up to date.
