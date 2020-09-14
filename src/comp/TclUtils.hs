@@ -190,9 +190,10 @@ instance TclObjCvt TISort where
                             tfs <- toTclObj t
                             toTclObj $ TLst [TStr "alias", TCL tfs]
 
-    toTclObj (TIdata is _)  = do
+    toTclObj (TIdata is enum)  = do
                             tfs <- mapM toTclObj is
-                            toTclObj $ TLst [TStr "enum", TLst (map TCL tfs)]
+                            let name = if enum then "enum" else "union"
+                            toTclObj $ TLst [TStr name, TLst (map TCL tfs)]
 
     toTclObj (TIstruct SStruct fs) = do
                             tfs <- mapM toTclObj fs
