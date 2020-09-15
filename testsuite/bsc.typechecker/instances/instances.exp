@@ -55,10 +55,15 @@ compile_fail_error SelfRecursiveInstance_NoProviso.bsv T0030
 compile_verilog_pass MutuallyRecursiveInstances.bsv
 compare_file [make_bsc_vcomp_output_name MutuallyRecursiveInstances.bsv]
 
-# Test that an accidental infinite loop is detected with unfolding
-# warnings and an eventual  stack overflow
+# Test that an accidental infinite loop is detected with unfolding-steps
+# warnings and an eventual stack overflow
 compile_verilog_fail MutuallyRecursiveInstances_Loop.bsv
-compare_file [make_bsc_vcomp_output_name MutuallyRecursiveInstances_Loop.bsv]
+# Comparing the output is not portable (differences in GHC and environment
+# can change how many unfolding-steps warnings appear before the stack
+# overflow) so just look for the overflow message in the output
+find_n_strings \
+    [make_bsc_vcomp_output_name MutuallyRecursiveInstances_Loop.bsv] \
+    {Stack space overflow} 1
 
 # ----------
 
