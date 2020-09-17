@@ -92,7 +92,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
+        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -107,7 +107,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         requiredClasses =
           if higher_rank
           then [idUndefined, idClsDeepSeqCond, idClsUninitialized]
-          else [idGeneric, idUndefined, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
+          else [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
@@ -194,8 +194,6 @@ doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doDUndefined i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
-  Right [doDUninitialized i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
@@ -823,39 +821,6 @@ doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [u
   where ty    = cTApplys (cTCon i) vs
         aty   = tPosition `fn` tInteger `fn` ty
         undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
-
--- | Derive the PrimMakeUninitialized instance for a data (sum type), and
--- return the instance definition.
--- BSV is a sequential syntax where a variable can be declared (uninitialized)
--- and then assigned a value by later sequential statements. This is implemented
--- in the BSV parser by nested let-expressions: the outer let-expression assigns
--- the variable to a 'uninitialized' primitive value, and then later assignment
--- statements become nested let-expressions that shadow that definition with a
--- new definition that replaces the value. If the 'uninitialized' primitive is
--- ever evaluated, that indicates that the program is reading the variable's
--- value without ever assigning a value, so BSC gives a warning/error.
--- The polymorphic function 'primMakeRawUninitialized' is that primitive.
--- However, instead of using this primitive directly, we define the typeclass
--- `PrimMakeUninitialized` with the member function `primMakeUninitialized`
--- and we use that function instead.
--- This is because we want to support BSV programs that declare a variable
--- for a complex type and then subsequently assign individual fields/arguments
--- of the type. This could be implemented by constructing the new value
--- every time, but we can save work by constructing the 'uninitialized' value
--- as a structure with uninitialized leaves. We use `primMakeUninitialized` to
--- construct that structure.
--- The derived instance for types with multiple constructors just returns
--- `primMakeRawUninitialized` because we don't know any more about the
--- structure. When the type has a single constructor, we can build that
--- structure, with uninitialized arguments (via calls to the typeclass member,
--- not the primitive, in case the sub-types themselves have structure).
--- XXX Why isn't there an arm for single-constructor types, as with 'doDUndefined'?
-doDUninitialized :: Id -> [Type] -> COSummands -> CSummands -> CDefn
--- the single-summand case is not already derived for data declarations with no internal type
--- e.g. ActionWorld, so include it below
-doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
-  where ty = cTApplys (cTCon i) vs
-        uninit = CLValueSign (rawUninitDef ty) []
 
 -- | Derive the PrimDeepSeqCond typeclass for data (sum) types.
 -- For each constructor, fully evaluate the data structure. Do this by,

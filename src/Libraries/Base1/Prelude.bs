@@ -200,7 +200,7 @@ package Prelude(
         primMakeRawUndefined,
 
         -- uninitialized values (BSV only)
-        PrimMakeUninitialized(..),
+        PrimMakeUninitialized(..), PrimMakeUninitialized'(..), PrimMakeUninitialized''(..),
         primMakeRawUninitialized,
         primUninitialized,
 
@@ -3675,6 +3675,29 @@ countZerosMSB = compose countZerosLSB  reverseBits
 
 -- make (field-blasted) uninitialized value,
 -- so it can be constructed piece-by-piece
+-- BSV is a sequential syntax where a variable can be declared (uninitialized)
+-- and then assigned a value by later sequential statements. This is implemented
+-- in the BSV parser by nested let-expressions: the outer let-expression assigns
+-- the variable to a 'uninitialized' primitive value, and then later assignment
+-- statements become nested let-expressions that shadow that definition with a
+-- new definition that replaces the value. If the 'uninitialized' primitive is
+-- ever evaluated, that indicates that the program is reading the variable's
+-- value without ever assigning a value, so BSC gives a warning/error.
+-- The polymorphic function 'primMakeRawUninitialized' is that primitive.
+-- However, instead of using this primitive directly, we define the typeclass
+-- `PrimMakeUninitialized` with the member function `primMakeUninitialized`
+-- and we use that function instead.
+-- This is because we want to support BSV programs that declare a variable
+-- for a complex type and then subsequently assign individual fields/arguments
+-- of the type. This could be implemented by constructing the new value
+-- every time, but we can save work by constructing the 'uninitialized' value
+-- as a structure with uninitialized leaves. We use `primMakeUninitialized` to
+-- construct that structure.
+-- The instance for types with multiple constructors just returns
+-- `primMakeRawUninitialized` because we don't know any more about the
+-- structure. When the type has a single constructor, we can build that
+-- structure, with uninitialized arguments (via calls to the typeclass member,
+-- not the primitive, in case the sub-types themselves have structure).
 class coherent PrimMakeUninitialized a where
    primMakeUninitialized :: Position__ -> String -> a
 
@@ -3690,6 +3713,39 @@ primitive primMakeRawUninitialized :: Position__ -> String -> a
 -- can't derive this because -> is magic, not defined
 instance PrimMakeUninitialized (a -> b) where
    primMakeUninitialized = primMakeRawUninitialized
+
+-- Default generic instance covers data and structs that don't have higher-rank fields
+instance (Generic a r, PrimMakeUninitialized' a r) => PrimMakeUninitialized a where
+  primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: r) pos f
+
+class PrimMakeUninitialized' a r where
+  primMakeUninitialized' :: r -> Position__ -> String -> a
+
+instance (Generic a r, PrimMakeUninitialized'' r) =>
+         PrimMakeUninitialized' a (Meta (MetaData n p 1) r) where
+  primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' pos f
+
+instance PrimMakeUninitialized' a r where
+  primMakeUninitialized' _ = primMakeRawUninitialized
+
+class PrimMakeUninitialized'' r where
+  primMakeUninitialized'' :: Position__ -> String -> r
+
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
+  primMakeUninitialized'' pos f = Conc $ primMakeUninitialized pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaField n i) a) where
+  primMakeUninitialized'' pos f = Meta $ primMakeUninitialized'' pos $ f + "." + stringOf n
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta m a) where
+  primMakeUninitialized'' pos f = Meta $ primMakeUninitialized'' pos f
+
+instance (PrimMakeUninitialized'' a, PrimMakeUninitialized'' b) =>
+         PrimMakeUninitialized'' (a, b) where
+  primMakeUninitialized'' pos f = (primMakeUninitialized'' pos f, primMakeUninitialized'' pos f)
+
+instance PrimMakeUninitialized'' () where
+  primMakeUninitialized'' _ _ = ()
 
 -- make an undefined value with a position and kind
 class coherent PrimMakeUndefined a where
