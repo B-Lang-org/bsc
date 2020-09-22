@@ -1,0 +1,9 @@
+
+# Tests for higher-rank struct fields
+
+test_veri_only HigherRank
+test_veri_only Undefined
+test_veri_only DeepSeqCond
+
+# Use of an ininitialized value results in an expected error
+compile_verilog_fail_error Uninitialized.bs G0028 1 sysUninitialized

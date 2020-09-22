@@ -1,0 +1,24 @@
+package HigherRank where
+
+struct Foo =
+  x :: (Literal a) => a
+
+f :: Foo
+f = Foo {x = 42}
+
+struct Repeat =
+  repeat :: (a -> a) -> a -> a
+
+repeat3 :: Repeat
+repeat3 = Repeat {repeat = \ fn x -> fn (fn (fn x))}
+
+bar :: Repeat -> (Int 8, Bool)
+bar r = (r.repeat (\ i -> i + 1) 0, r.repeat not False)
+
+sysHigherRank :: Module Empty
+sysHigherRank = module
+  rules
+    when True ==> do
+      $display (fshow f.x)
+      $display (fshow (bar repeat3))
+      $finish

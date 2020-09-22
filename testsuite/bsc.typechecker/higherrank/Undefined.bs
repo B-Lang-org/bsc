@@ -1,0 +1,14 @@
+package Undefined where
+
+struct Foo =
+  x :: (Literal a) => a
+
+f :: Foo
+f = primMakeUndefined noPosition 0
+
+sysUndefined :: Module Empty
+sysUndefined = module
+  rules
+    when True ==> do
+      $display (fshow f.x)
+      $finish

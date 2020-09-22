@@ -1,0 +1,50 @@
+package DeepSeqCond where
+
+import FoldFIFO
+
+interface Foo =
+  x :: (UInt 8)
+  y :: (Literal a) => a
+
+-- Implicit condition should be surfaced
+f1 :: Foo
+f1 = Foo {x = _when_ True 42; y = 114}
+
+f2 :: Foo
+f2 = Foo {x = _when_ False 42; y = 114}
+
+-- Implicit condition should *not* be surfaced, due to the Literal context
+f3 :: Foo
+f3 = Foo {x = 42; y = _when_ True 114}
+
+f4 :: Foo
+f4 = Foo {x = 42; y = _when_ False 114}
+
+-- mkFoldFIFO but with an implict condition on the foldr method
+mkMyFoldFIFO :: (IsModule m c, Bits a k) => m (FoldFIFO a)
+mkMyFoldFIFO =
+  module
+    v :: Reg a
+    v <- mkRegU
+    f :: Reg Bool
+    f <- mkReg False
+    interface
+      enq x  = action { f := True; v := x }	when not f
+      deq    = action { f := False }		when f
+      first  = v				when f
+      clear  = action { f := False }
+      foldr  = _when_ False (\ g z -> if f then g v z else z)
+
+sysDeepSeqCond :: Module Empty
+sysDeepSeqCond = module
+  ff :: FoldFIFO (UInt 8)
+  ff <- mkMyFoldFIFO
+
+  rules
+    when True ==> do
+      $display (fshow (impCondOf f1))
+      $display (fshow (impCondOf f2))
+      $display (fshow (impCondOf f3))
+      $display (fshow (impCondOf f4))
+      $display (fshow (impCondOf (ff.foldr (+) 0)))
+      $finish
