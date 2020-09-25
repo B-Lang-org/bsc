@@ -3718,11 +3718,12 @@ instance PrimMakeUninitialized (a -> b) where
 instance (Generic a r, PrimMakeUninitialized' a r) => PrimMakeUninitialized a where
   primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: r) pos f
 
+-- Extra intermediate helper type class allows coherent dispatch on number of constructors
 class PrimMakeUninitialized' a r where
   primMakeUninitialized' :: r -> Position__ -> String -> a
 
 instance (Generic a r, PrimMakeUninitialized'' r) =>
-         PrimMakeUninitialized' a (Meta (MetaData n p 1) r) where
+         PrimMakeUninitialized' a (Meta (MetaData n p 1) r') where
   primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' pos f
 
 instance PrimMakeUninitialized' a r where
@@ -3839,11 +3840,12 @@ instance PrimMakeUndefined (Array a) where
 instance (Generic a r, PrimMakeUndefined' a r) => PrimMakeUndefined a where
   primMakeUndefined pos i = primMakeUndefined' ((error "proxy") :: r) pos i
 
+-- Extra intermediate helper type class allows coherent dispatch on number of constructors
 class PrimMakeUndefined' a r where
   primMakeUndefined' :: r -> Position__ -> Integer -> a
 
 instance (Generic a r, PrimMakeUndefined'' r) =>
-         PrimMakeUndefined' a (Meta (MetaData n p 1) r) where
+         PrimMakeUndefined' a (Meta (MetaData n p 1) r') where
   primMakeUndefined' _ pos i = to $ primMakeUndefined'' pos i
 
 instance PrimMakeUndefined' a r where
@@ -3854,9 +3856,6 @@ class PrimMakeUndefined'' r where
 
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
-
-instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta (MetaField n i) a) where
-  primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
 
 instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta m a) where
   primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
