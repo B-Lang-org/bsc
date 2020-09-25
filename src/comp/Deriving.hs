@@ -92,7 +92,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
+        requiredClasses = [idGeneric, idClsDeepSeqCond] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -104,11 +104,17 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         tvset = S.fromList (concatMap tv ty_vars)
         higher_rank = not $ all (`S.isSubsetOf` tvset) [S.fromList $ tv fty
                                                        | CField {cf_type = fty} <- fields]
-        requiredClasses =
+        condRequiredClasses =
           if higher_rank
+          then []
+          else [idGeneric, idClsDeepSeqCond] -- [idGeneric]
+        uncondRequiredClasses =
+          if higher_rank
+          -- There is no easy way of checking here whether a non-default instance
+          -- exists for these, so just add them unconditionally.
           then [idUndefined, idClsDeepSeqCond, idClsUninitialized]
-          else [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
-        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+          else []
+        derivs' = addRequiredDerivs flags r qual_name ty_vars condRequiredClasses derivs ++ map CTypeclass uncondRequiredClasses
     in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
@@ -192,8 +198,6 @@ doDataDer packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
   Right [doDGeneric packageid (getPosition di) i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
-  Right [doDUndefined i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
@@ -789,39 +793,6 @@ doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon id
           | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
 
--- | Derive the PrimMakeUndefined instance for a data (sum type), and
--- return the instance definition.
--- See the comment on 'doDUninitialized` about how BSV's sequential
--- syntax is implemented as nested let-expressions, and how we can optimize
--- the work in each re-assignment by constructing data structures once at
--- the start. As with the 'uninitialized' primitive value, we do the same thing
--- here for the 'undefined' primitive value: when an undefined value is created
--- (either explicitly or implicitly) we could call the primitive 'undefined'
--- function; instead, we call a typeclass member function, whose instances are
--- defined to return a structure with undefined values at the leaves.
--- The polymorphic function 'primMakeRawUndefined' is the primitive, and
--- `PrimMakeUndefined' is the typeclass, with 'primMakeUndefined' as its
--- member function.
--- The derived instance for types with multiple constructors just returns
--- `primMakeRawUndefined` because we don't know any more about the
--- structure. When the type has a single constructor, we can build that
--- structure, with undefined arguments (via calls to the typeclass member,
--- not the primitive, in case the sub-types themselves have structure).
-doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
--- the single-summand case is not already derived for data declarations with no internal type
--- e.g. ActionWorld
-doDUndefined i vs ocs [cs] = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
-  where ctx   = [ CPred (CTypeclass idUndefined) [getRes (cis_arg_type cs)] ]
-        ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tInteger `fn` ty
-        body  = CCon1 i (getCISName cs) (CApply (CVar idMakeUndefinedNQ) [CVar id_x, CVar id_y])
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
-
-doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
-  where ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tInteger `fn` ty
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
-
 -- | Derive the PrimDeepSeqCond typeclass for data (sum) types.
 -- For each constructor, fully evaluate the data structure. Do this by,
 -- for each constructor arg, calling primDeepSeqCond (if the type arguments
@@ -920,7 +891,7 @@ doSGeneric packageid dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGene
 
 -- | Derive the PrimMakeUndefined instance for a struct (product type), and
 -- return the instance definition.
--- See the comment on 'doDUndefined` for an explanation.
+-- See the comment on 'PrimMakeUndefined` in the Prelude for an explanation.
 -- The derived instance for structs is like for data types with a single
 -- constructor: a struct value is returned with undefined values in its
 -- fields. The undefined value of a field is created by calling the typeclass
@@ -961,7 +932,7 @@ doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [unde
 
 -- | Derive the PrimMakeUninitialized instance for a struct (product type), and
 -- return the instance definition.
--- See the comment on `doDUninitialized` for an explanation.
+-- See the comment on `PrimMakeUninitialized` in the Prelude for an explanation.
 -- The derived instance for structs is like for data types with a single
 -- constructor: a struct value is returned with uninitialized values in its
 -- fields. The uninitialized value of a field is created by calling the
