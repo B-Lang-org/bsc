@@ -37,7 +37,7 @@ module FIFO1(CLK,
              );
 
    parameter width = 1;
-   parameter guarded = 1;
+   parameter guarded = 1'b1;
    input                  CLK;
    input                  RST;
    input [width - 1 : 0]  D_IN;

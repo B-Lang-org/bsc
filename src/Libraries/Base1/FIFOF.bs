@@ -87,7 +87,7 @@ fifof_ToGFifof ugenq ugdeq f =
 mkFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
 mkFIFOF = do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkFIFOF_ 1
+    _f :: FIFOF_ a <- mkFIFOF_ True
     return (fifof_ToFifof _f)
 
 --@ Make a FIFO of depth 1.
@@ -101,7 +101,7 @@ mkFIFOF = do
 mkFIFOF1 :: (IsModule m c, Bits a as) => m (FIFOF a)
 mkFIFOF1 =  do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkFIFOF1_ 1
+    _f :: FIFOF_ a <- mkFIFOF1_ True
     return (fifof_ToFifof _f)
 
 --@ Make a FIFO of the given depth
@@ -116,7 +116,7 @@ mkSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
 mkSizedFIFOF 0 = error "mkSizedFifo called with depth 0!"
 mkSizedFIFOF n =  do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+    _f :: FIFOF_ a <- mkSizedFIFOF_ n True
     return (fifof_ToFifof _f)
 
 --@ Make a ``loopy'' FIFO of the default depth (currently 1).
@@ -171,7 +171,7 @@ mkLSizedFIFOF n =  do
 mkGFIFOF :: (IsModule m c, Bits a as) => Bool -> Bool -> m (FIFOF a)
 mkGFIFOF ugenq ugdeq = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkFIFOF_ 1
+  _f :: FIFOF_ a <- mkFIFOF_ True
   return (fifof_ToGFifof  ugenq ugdeq _f)
 
 --@ \index{mkUGFIFOF1@\te{mkUGFIFOF1} (module)|textbf}
@@ -181,7 +181,7 @@ mkGFIFOF ugenq ugdeq = do
 --@ \end{libverbatim}
 mkGFIFOF1 :: (IsModule m c, Bits a as) =>  Bool -> Bool ->  m (FIFOF a)
 mkGFIFOF1  ugenq ugdeq = do
-  _f :: FIFOF_ a <- mkFIFOF1_ 1
+  _f :: FIFOF_ a <- mkFIFOF1_ True
   return (fifof_ToGFifof  ugenq ugdeq _f)
 
 --@ \index{mkUGSizedFIFOF@\te{mkUGSizdeFIFOF} (module)|textbf}
@@ -192,7 +192,7 @@ mkGFIFOF1  ugenq ugdeq = do
 mkGSizedFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> Integer -> m (FIFOF a)
 mkGSizedFIFOF  ugenq ugdeq n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+  _f :: FIFOF_ a <- mkSizedFIFOF_ n True
   return (fifof_ToGFifof  ugenq ugdeq _f)
 
 --@ \index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)|textbf}
@@ -227,7 +227,7 @@ mkGLSizedFIFOF ugenq ugdeq n =  do
 mkUGFIFOF :: (IsModule m c, Bits a as) => m (FIFOF a)
 mkUGFIFOF = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkFIFOF_ 0
+  _f :: FIFOF_ a <- mkFIFOF_ False
   return (fifof_ToUGFifof _f)
 
 --@ \index{mkUGFIFOF1@\te{mkUGFIFOF1} (module)|textbf}
@@ -238,7 +238,7 @@ mkUGFIFOF = do
 mkUGFIFOF1 :: (IsModule m c, Bits a as) => m (FIFOF a)
 mkUGFIFOF1 = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkFIFOF1_ 0
+  _f :: FIFOF_ a <- mkFIFOF1_ False
   return (fifof_ToUGFifof _f)
 
 --@ \index{mkUGSizedFIFOF@\te{mkUGSizdeFIFOF} (module)|textbf}
@@ -249,7 +249,7 @@ mkUGFIFOF1 = do
 mkUGSizedFIFOF :: (IsModule m c, Bits a as) => Integer -> m (FIFOF a)
 mkUGSizedFIFOF n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkSizedFIFOF_ n 0
+  _f :: FIFOF_ a <- mkSizedFIFOF_ n False
   return (fifof_ToUGFifof _f)
 
 --@ \index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)|textbf}
@@ -278,19 +278,19 @@ mkUGLSizedFIFOF n =  do
 mkDepthParamFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
 mkDepthParamFIFOF n =  do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n True
     return (fifof_ToFifof _f)
 
 mkUGDepthParamFIFOF :: (IsModule m c, Bits a as) => UInt 32 -> m (FIFOF a)
 mkUGDepthParamFIFOF n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 0
+  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n False
   return (fifof_ToUGFifof _f)
 
 mkGDepthParamFIFOF :: (IsModule m c, Bits a as) =>  Bool -> Bool -> UInt 32 -> m (FIFOF a)
 mkGDepthParamFIFOF  ugenq ugdeq n = do
   {-# hide #-}
-  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+  _f :: FIFOF_ a <- mkDepthParamFIFOF_ n True
   return (fifof_ToGFifof  ugenq ugdeq _f)
 
 
