@@ -42,7 +42,7 @@ import ListUtil (mapFst, mapSnd)
 
 import SCC (tsort)
 
-import Util (headOrErr, map_insertManyWith, allPairs)
+import Util (headOrErr, map_insertManyWith, allPairs, stableOrdNub)
 import GraphUtil(extractOneCycle_map, reverseMap)
 
 -- ===============
@@ -1952,7 +1952,7 @@ rUses m (UseInfo _ pred_reads body_reads body_writes) =
         (pred_read_uses, body_action_uses `union` body_read_uses)
 
 mergeUses :: [[(AId, AId)]] -> [(AId, AId)]
-mergeUses = foldr union []
+mergeUses = stableOrdNub . concat
 
 -- Returns the method uses in an action.
 -- A use is a method Id on a particular instance (instId, methId)
