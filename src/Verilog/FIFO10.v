@@ -30,7 +30,7 @@ module FIFO10(CLK,
               CLR
               );
 
-   parameter guarded = 1;
+   parameter guarded = 1'b1;
 
    input                  CLK;
    input                  RST;

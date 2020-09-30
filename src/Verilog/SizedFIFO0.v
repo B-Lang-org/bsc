@@ -23,7 +23,7 @@
 module SizedFIFO0(CLK, RST, ENQ, FULL_N, DEQ, EMPTY_N, CLR);
    parameter p1depth = 2;
    parameter p2cntr_width = 2; // log2(p1depth+1)
-   parameter guarded = 1;
+   parameter guarded = 1'b1;
 
    localparam truedepth = (p1depth >= 2) ? p1depth : 2;
 

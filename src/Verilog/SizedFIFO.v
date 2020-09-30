@@ -37,7 +37,7 @@ module SizedFIFO(CLK, RST, D_IN, ENQ, FULL_N, D_OUT, DEQ, EMPTY_N, CLR);
    parameter               p2depth = 3;
    parameter               p3cntr_width = 1; // log(p2depth-1)
    // The -1 is allowed since this model has a fast output register
-   parameter               guarded = 1;
+   parameter               guarded = 1'b1;
    localparam              p2depth2 = (p2depth >= 2) ? (p2depth -2) : 0 ;
 
    input                   CLK;

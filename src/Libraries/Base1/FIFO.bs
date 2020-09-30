@@ -52,7 +52,7 @@ fifofToFifo f =
 mkFIFO :: (IsModule m c, Bits a sa) => m (FIFO a)
 mkFIFO = do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkFIFOF_ 1
+    _f :: FIFOF_ a <- mkFIFOF_ True
     return (fifof_ToFifo _f)
 
 --@ \lineup
@@ -64,7 +64,7 @@ mkFIFO = do
 mkFIFO1 :: (IsModule m c, Bits a sa) => m (FIFO a)
 mkFIFO1 = do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkFIFOF1_ 1
+    _f :: FIFOF_ a <- mkFIFOF1_ True
     return (fifof_ToFifo _f)
 
 --@ \lineup
@@ -76,13 +76,13 @@ mkFIFO1 = do
 mkSizedFIFO :: (IsModule m c, Bits a sa) => Integer -> m (FIFO a)
 mkSizedFIFO n = do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkSizedFIFOF_ n 1
+    _f :: FIFOF_ a <- mkSizedFIFOF_ n True
     return (fifof_ToFifo _f)
 
 mkDepthParamFIFO :: (IsModule m c, Bits a sa) => UInt 32 -> m (FIFO a)
 mkDepthParamFIFO n = do
     {-# hide #-}
-    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n 1
+    _f :: FIFOF_ a <- mkDepthParamFIFOF_ n True
     return (fifof_ToFifo _f)
 
 

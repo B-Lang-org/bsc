@@ -57,7 +57,7 @@ endinterface: VFIFOF0_
 
 // Depth 1, width > 0
 import "BVI" FIFO1 =
-  module vMk1FIFOF#(Integer g) (FIFOF_#(a))
+  module vMk1FIFOF#(Bool g) (FIFOF_#(a))
   provisos (Bits#(a,sa));
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter width = valueOf(sa);
@@ -85,7 +85,7 @@ import "BVI" FIFO1 =
 
 // Depth 1, width == 0
 import "BVI" FIFO10 =
-  module vMk1FIFOF0#(Integer g) (VFIFOF0_) ;
+  module vMk1FIFOF0#(Bool g) (VFIFOF0_) ;
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter guarded = g;
     method enq() enable(ENQ);
@@ -108,7 +108,7 @@ import "BVI" FIFO10 =
   endmodule: vMk1FIFOF0
 
 // Depth 1
-module mkFIFOF1_#(Integer g)(FIFOF_#(a))
+module mkFIFOF1_#(Bool g)(FIFOF_#(a))
   provisos (Bits#(a, sa)) ;
   FIFOF_#(a) ifc ;
   if (valueOf(sa) == 0)
@@ -140,7 +140,7 @@ endmodule: mkFIFOF1_
 
 // Depth 2, width > 0.
 import "BVI" FIFO2 =
-  module vMk2FIFOF#(Integer g) (FIFOF_#(a))
+  module vMk2FIFOF#(Bool g) (FIFOF_#(a))
   provisos (Bits#(a,sa));
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter width = valueOf(sa);
@@ -168,7 +168,7 @@ import "BVI" FIFO2 =
 
 // Depth 2, width == 0.
 import "BVI" FIFO20 =
-  module vMk2FIFOF0#(Integer g) (VFIFOF0_) ;
+  module vMk2FIFOF0#(Bool g) (VFIFOF0_) ;
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter guarded = g;
     method enq() enable(ENQ);
@@ -190,7 +190,7 @@ import "BVI" FIFO20 =
   endmodule: vMk2FIFOF0
 
 // Depth 2
-module mkFIFOF2_#(Integer g)(FIFOF_#(a))
+module mkFIFOF2_#(Bool g)(FIFOF_#(a))
    provisos (Bits#(a, sa)) ;
    FIFOF_#(a) ifc ;
    if (valueOf(sa) == 0)
@@ -221,7 +221,7 @@ module mkFIFOF2_#(Integer g)(FIFOF_#(a))
 endmodule: mkFIFOF2_
 
 // default depth is 2
-module mkFIFOF_#(Integer g)(FIFOF_#(a))
+module mkFIFOF_#(Bool g)(FIFOF_#(a))
   provisos (Bits#(a, sa)) ;
   FIFOF_#(a) ifc() ;
   mkFIFOF2_#(g) __(ifc) ;
@@ -233,7 +233,7 @@ endmodule: mkFIFOF_
 // log2 (n-1) is allowed since the Verilog model has a registered output
 // which is not considered in the head/tail pointers size.
 import "BVI" SizedFIFO =
-  module vMkSizedNFIFOF#(Integer depth, Integer g) (FIFOF_#(a))
+  module vMkSizedNFIFOF#(Integer depth, Bool g) (FIFOF_#(a))
   provisos (Bits#(a,sa));
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter p1width = valueOf(sa);
@@ -263,7 +263,7 @@ import "BVI" SizedFIFO =
 
 // Depth n, width == 0
 import "BVI" SizedFIFO0 =
-  module vMkSizedNFIFOF0#(Integer depth, Integer g)(VFIFOF0_) ;
+  module vMkSizedNFIFOF0#(Integer depth, Bool g)(VFIFOF0_) ;
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter p1depth = depth;
     parameter p2cntr_width = log2(depth+1);
@@ -288,7 +288,7 @@ import "BVI" SizedFIFO0 =
   endmodule: vMkSizedNFIFOF0
 
 // Depth n
-module mkSizedNFIFOF_#(Integer depth, Integer g) (FIFOF_#(a))
+module mkSizedNFIFOF_#(Integer depth, Bool g) (FIFOF_#(a))
    provisos (Bits#(a, sa));
    FIFOF_#(a) ifc ;
    if (valueOf(sa) == 0)
@@ -318,7 +318,7 @@ module mkSizedNFIFOF_#(Integer depth, Integer g) (FIFOF_#(a))
    return (ifc) ;
 endmodule: mkSizedNFIFOF_
 
-function m#(FIFOF_#(a)) mkSizedFIFOF_(Integer depth, Integer g)
+function m#(FIFOF_#(a)) mkSizedFIFOF_(Integer depth, Bool g)
   provisos (IsModule#(m,c), Bits#(a, sa)) ;
    case (depth)
       0 : return (error("sized fifo created with depth 0!")) ;
@@ -343,7 +343,7 @@ function UInt#(6) getCounterWidth(UInt#(32) depth);
 endfunction
 
 import "BVI" SizedFIFO =
-  module mkDepthParamFIFOF_#(UInt#(32) depth, Integer g) (FIFOF_#(a))
+  module mkDepthParamFIFOF_#(UInt#(32) depth, Bool g) (FIFOF_#(a))
   provisos (Bits#(a,sa));
     default_clock clk(CLK, (*unused*)CLK_GATE);
     parameter p1width = (valueOf(sa) == 0) ? 1 : valueOf(sa);

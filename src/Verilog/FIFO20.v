@@ -29,7 +29,7 @@ module FIFO20(CLK,
               EMPTY_N,
               CLR
               );
-   parameter guarded = 1;
+   parameter guarded = 1'b1;
 
    input  RST;
    input  CLK;
