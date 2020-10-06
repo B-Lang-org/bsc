@@ -92,7 +92,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric, idClsDeepSeqCond] -- [idGeneric]
+        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -107,7 +107,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         condRequiredClasses =
           if higher_rank
           then []
-          else [idGeneric, idClsDeepSeqCond] -- [idGeneric]
+          else [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
         uncondRequiredClasses =
           if higher_rank
           -- There is no easy way of checking here whether a non-default instance
@@ -198,6 +198,8 @@ doDataDer packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
   Right [doDGeneric packageid (getPosition di) i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
+  Right [doDUndefined i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
@@ -725,6 +727,21 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         body  = CCon1 i (getCISName cs) (CVar id_defaultValue)
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
+
+doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
+-- the single-summand case is not already derived for data declarations with no internal type
+-- e.g. ActionWorld
+doDUndefined i vs ocs [cs] = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
+  where ctx   = [ CPred (CTypeclass idUndefined) [getRes (cis_arg_type cs)] ]
+        ty    = cTApplys (cTCon i) vs
+        aty   = tPosition `fn` tInteger `fn` ty
+        body  = CCon1 i (getCISName cs) (CApply (CVar idMakeUndefinedNQ) [CVar id_x, CVar id_y])
+        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
+
+doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
+  where ty    = cTApplys (cTCon i) vs
+        aty   = tPosition `fn` tInteger `fn` ty
+        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
 
 doDGeneric :: Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
