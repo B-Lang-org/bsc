@@ -129,7 +129,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
         requiredClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
-        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses []
+        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses [] -- map CTypeclass requiredClasses --
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]

@@ -803,6 +803,29 @@ class coherent PrimDeepSeqCond a where
 
 instance PrimDeepSeqCond (a -> b) where
   primDeepSeqCond f b = primSeqCond f b
+{-
+instance (Generic a r, PrimDeepSeqCond' r) => PrimDeepSeqCond a where
+  primDeepSeqCond x = primDeepSeqCond' (from x)
+
+class PrimDeepSeqCond' r where
+  primDeepSeqCond' :: r -> b -> b
+
+instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Meta m r) where
+  primDeepSeqCond' (Meta x) = primDeepSeqCond' x
+
+instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (Either r1 r2) where
+  primDeepSeqCond' (Left x) = primDeepSeqCond' x
+  primDeepSeqCond' (Right x) = primDeepSeqCond' x
+
+instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (r1, r2) where
+  primDeepSeqCond' (x, y) z = primDeepSeqCond' x $ primDeepSeqCond' y z
+
+instance PrimDeepSeqCond' () where
+  primDeepSeqCond' () = id
+
+instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
+  primDeepSeqCond' (Conc x) = primDeepSeqCond x
+-}
 
 --@ \begin{libverbatim}
 --@ instance Monad #(ActionValue);
@@ -2920,15 +2943,6 @@ primitive primModuleReturn :: a -> Module a
 struct PrimUnit = { }
 	deriving (Eq, Bits, Bounded, DefaultValue)
 
-instance PrimMakeUndefined PrimUnit where
-  primMakeUndefined _ _ = ()
-
-instance Generic PrimUnit
-           (Meta (MetaData "PrimUnit" "Prelude" 1)
-	     (Meta (MetaConsNamed "PrimUnit" 0 0) ())) where
-    from _ =  Meta (Meta ())
-    to _ =  ()
-
 --- Integer
 
 primitive primIntegerAdd :: Integer -> Integer -> Integer
@@ -3733,29 +3747,36 @@ class PrimMakeUninitialized' a r where
 
 instance (Generic a r, PrimMakeUninitialized'' r) =>
          PrimMakeUninitialized' a (Meta (MetaData n p 1) r') where
-  primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' pos f
+  primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' False pos f
 
 instance PrimMakeUninitialized' a r where
   primMakeUninitialized' _ = primMakeRawUninitialized
 
 class PrimMakeUninitialized'' r where
-  primMakeUninitialized'' :: Position__ -> String -> r
+  primMakeUninitialized'' :: Bool -> Position__ -> String -> r
 
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
-  primMakeUninitialized'' pos f = Conc $ primMakeUninitialized pos f
+  primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
+  primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaConsNamed n i nf) a) where
+  primMakeUninitialized'' _ pos f = Meta $ primMakeUninitialized'' True pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaConsAnon n i nf) a) where
+  primMakeUninitialized'' _ pos f = Meta $ primMakeUninitialized'' False pos f
 
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaField n i) a) where
-  primMakeUninitialized'' pos f = Meta $ primMakeUninitialized'' pos $ f + "." + stringOf n
-
-instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta m a) where
-  primMakeUninitialized'' pos f = Meta $ primMakeUninitialized'' pos f
+  primMakeUninitialized'' True pos f = Meta $ primMakeUninitialized'' True pos $ f + "." + stringOf n
+  primMakeUninitialized'' False pos f = Meta $ primMakeUninitialized'' False pos f
 
 instance (PrimMakeUninitialized'' a, PrimMakeUninitialized'' b) =>
          PrimMakeUninitialized'' (a, b) where
-  primMakeUninitialized'' pos f = (primMakeUninitialized'' pos f, primMakeUninitialized'' pos f)
+  primMakeUninitialized'' named pos f = (primMakeUninitialized'' named pos f, primMakeUninitialized'' named pos f)
 
 instance PrimMakeUninitialized'' () where
-  primMakeUninitialized'' _ _ = ()
+  primMakeUninitialized'' _ _ _ = ()
 
 
 -- make an undefined value with a position and kind

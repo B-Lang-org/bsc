@@ -4775,6 +4775,7 @@ isIntLit _ = False
 
 evalCExpr :: String -> CExpr -> CType -> [Arg] -> G PExpr
 evalCExpr tag ce ct as = do
+  --traceM("evalCExpr " ++ tag ++ "; ce: " ++ show ce ++ "; ct: " ++ show ct ++ "; as: " ++ show as)
   flags <- getFlags
   r <- getSymTab
   let err_tag = "evalCExpr " ++ tag
@@ -4789,6 +4790,8 @@ evalCExpr tag ce ct as = do
       errh <- getErrHandle
       flags <- getFlags
       let ie = iConvExpr errh flags r env ce'
+      --traceM(err_tag ++ "; ce': " ++ ppReadable ce')
+      --traceM(err_tag ++ "; ie: " ++ ppReadable ie)
       evalAp tag ie as
 
 doBuildUndefined :: IType -> Position -> Integer -> [Arg] -> G PExpr
