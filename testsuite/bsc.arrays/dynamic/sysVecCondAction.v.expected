@@ -54,15 +54,15 @@ module sysVecCondAction(CLK,
   reg CASE_idx_0_rgs_0_1_rgs_1_2_rgs_2_3_DONTCARE_DO_ETC__q1;
 
   // submodule f
-  FIFO2 #(.width(32'd8), .guarded(32'd1)) f(.RST(RST_N),
-					    .CLK(CLK),
-					    .D_IN(f$D_IN),
-					    .ENQ(f$ENQ),
-					    .DEQ(f$DEQ),
-					    .CLR(f$CLR),
-					    .D_OUT(),
-					    .FULL_N(f$FULL_N),
-					    .EMPTY_N());
+  FIFO2 #(.width(32'd8), .guarded(1'd1)) f(.RST(RST_N),
+					   .CLK(CLK),
+					   .D_IN(f$D_IN),
+					   .ENQ(f$ENQ),
+					   .DEQ(f$DEQ),
+					   .CLR(f$CLR),
+					   .D_OUT(),
+					   .FULL_N(f$FULL_N),
+					   .EMPTY_N());
 
   // register idx
   assign idx$D_IN = 2'h0 ;

@@ -50,37 +50,37 @@ module sysActionVec(CLK,
   reg WILL_FIRE_RL_r;
 
   // submodule fs_0
-  FIFO2 #(.width(32'd8), .guarded(32'd1)) fs_0(.RST(RST_N),
-					       .CLK(CLK),
-					       .D_IN(fs_0$D_IN),
-					       .ENQ(fs_0$ENQ),
-					       .DEQ(fs_0$DEQ),
-					       .CLR(fs_0$CLR),
-					       .D_OUT(),
-					       .FULL_N(fs_0$FULL_N),
-					       .EMPTY_N());
+  FIFO2 #(.width(32'd8), .guarded(1'd1)) fs_0(.RST(RST_N),
+					      .CLK(CLK),
+					      .D_IN(fs_0$D_IN),
+					      .ENQ(fs_0$ENQ),
+					      .DEQ(fs_0$DEQ),
+					      .CLR(fs_0$CLR),
+					      .D_OUT(),
+					      .FULL_N(fs_0$FULL_N),
+					      .EMPTY_N());
 
   // submodule fs_1
-  FIFO2 #(.width(32'd8), .guarded(32'd1)) fs_1(.RST(RST_N),
-					       .CLK(CLK),
-					       .D_IN(fs_1$D_IN),
-					       .ENQ(fs_1$ENQ),
-					       .DEQ(fs_1$DEQ),
-					       .CLR(fs_1$CLR),
-					       .D_OUT(),
-					       .FULL_N(fs_1$FULL_N),
-					       .EMPTY_N());
+  FIFO2 #(.width(32'd8), .guarded(1'd1)) fs_1(.RST(RST_N),
+					      .CLK(CLK),
+					      .D_IN(fs_1$D_IN),
+					      .ENQ(fs_1$ENQ),
+					      .DEQ(fs_1$DEQ),
+					      .CLR(fs_1$CLR),
+					      .D_OUT(),
+					      .FULL_N(fs_1$FULL_N),
+					      .EMPTY_N());
 
   // submodule fs_2
-  FIFO2 #(.width(32'd8), .guarded(32'd1)) fs_2(.RST(RST_N),
-					       .CLK(CLK),
-					       .D_IN(fs_2$D_IN),
-					       .ENQ(fs_2$ENQ),
-					       .DEQ(fs_2$DEQ),
-					       .CLR(fs_2$CLR),
-					       .D_OUT(),
-					       .FULL_N(fs_2$FULL_N),
-					       .EMPTY_N());
+  FIFO2 #(.width(32'd8), .guarded(1'd1)) fs_2(.RST(RST_N),
+					      .CLK(CLK),
+					      .D_IN(fs_2$D_IN),
+					      .ENQ(fs_2$ENQ),
+					      .DEQ(fs_2$DEQ),
+					      .CLR(fs_2$CLR),
+					      .D_OUT(),
+					      .FULL_N(fs_2$FULL_N),
+					      .EMPTY_N());
 
   // rule RL_r
   always@(idx or fs_0$FULL_N or fs_1$FULL_N or fs_2$FULL_N)

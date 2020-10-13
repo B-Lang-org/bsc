@@ -54,82 +54,82 @@ module mkFIFOContextTest(CLK,
   wire t2_q3_q$CLR, t2_q3_q$DEQ, t2_q3_q$ENQ;
 
   // submodule t1_q1_q
-  FIFO1 #(.width(32'd32), .guarded(32'd1)) t1_q1_q(.RST(RST_N),
-						   .CLK(CLK),
-						   .D_IN(t1_q1_q$D_IN),
-						   .ENQ(t1_q1_q$ENQ),
-						   .DEQ(t1_q1_q$DEQ),
-						   .CLR(t1_q1_q$CLR),
-						   .D_OUT(),
-						   .FULL_N(),
-						   .EMPTY_N());
+  FIFO1 #(.width(32'd32), .guarded(1'd1)) t1_q1_q(.RST(RST_N),
+						  .CLK(CLK),
+						  .D_IN(t1_q1_q$D_IN),
+						  .ENQ(t1_q1_q$ENQ),
+						  .DEQ(t1_q1_q$DEQ),
+						  .CLR(t1_q1_q$CLR),
+						  .D_OUT(),
+						  .FULL_N(),
+						  .EMPTY_N());
 
   // submodule t1_q2_q
-  FIFO2 #(.width(32'd32), .guarded(32'd1)) t1_q2_q(.RST(RST_N),
-						   .CLK(CLK),
-						   .D_IN(t1_q2_q$D_IN),
-						   .ENQ(t1_q2_q$ENQ),
-						   .DEQ(t1_q2_q$DEQ),
-						   .CLR(t1_q2_q$CLR),
-						   .D_OUT(),
-						   .FULL_N(),
-						   .EMPTY_N());
+  FIFO2 #(.width(32'd32), .guarded(1'd1)) t1_q2_q(.RST(RST_N),
+						  .CLK(CLK),
+						  .D_IN(t1_q2_q$D_IN),
+						  .ENQ(t1_q2_q$ENQ),
+						  .DEQ(t1_q2_q$DEQ),
+						  .CLR(t1_q2_q$CLR),
+						  .D_OUT(),
+						  .FULL_N(),
+						  .EMPTY_N());
 
   // submodule t1_q3_q
   SizedFIFO #(.p1width(32'd32),
 	      .p2depth(32'd3),
 	      .p3cntr_width(32'd1),
-	      .guarded(32'd1)) t1_q3_q(.RST(RST_N),
-				       .CLK(CLK),
-				       .D_IN(t1_q3_q$D_IN),
-				       .ENQ(t1_q3_q$ENQ),
-				       .DEQ(t1_q3_q$DEQ),
-				       .CLR(t1_q3_q$CLR),
-				       .D_OUT(),
-				       .FULL_N(),
-				       .EMPTY_N());
+	      .guarded(1'd1)) t1_q3_q(.RST(RST_N),
+				      .CLK(CLK),
+				      .D_IN(t1_q3_q$D_IN),
+				      .ENQ(t1_q3_q$ENQ),
+				      .DEQ(t1_q3_q$DEQ),
+				      .CLR(t1_q3_q$CLR),
+				      .D_OUT(),
+				      .FULL_N(),
+				      .EMPTY_N());
 
   // submodule t2_q1_q
   SizedFIFO #(.p1width(32'd32),
 	      .p2depth(32'd4),
 	      .p3cntr_width(32'd2),
-	      .guarded(32'd1)) t2_q1_q(.RST(RST_N),
-				       .CLK(CLK),
-				       .D_IN(t2_q1_q$D_IN),
-				       .ENQ(t2_q1_q$ENQ),
-				       .DEQ(t2_q1_q$DEQ),
-				       .CLR(t2_q1_q$CLR),
-				       .D_OUT(),
-				       .FULL_N(),
-				       .EMPTY_N());
+	      .guarded(1'd1)) t2_q1_q(.RST(RST_N),
+				      .CLK(CLK),
+				      .D_IN(t2_q1_q$D_IN),
+				      .ENQ(t2_q1_q$ENQ),
+				      .DEQ(t2_q1_q$DEQ),
+				      .CLR(t2_q1_q$CLR),
+				      .D_OUT(),
+				      .FULL_N(),
+				      .EMPTY_N());
 
   // submodule t2_q2_q
   SizedFIFO #(.p1width(32'd32),
 	      .p2depth(32'd5),
 	      .p3cntr_width(32'd2),
-	      .guarded(32'd1)) t2_q2_q(.RST(RST_N),
-				       .CLK(CLK),
-				       .D_IN(t2_q2_q$D_IN),
-				       .ENQ(t2_q2_q$ENQ),
-				       .DEQ(t2_q2_q$DEQ),
-				       .CLR(t2_q2_q$CLR),
-				       .D_OUT(),
-				       .FULL_N(),
-				       .EMPTY_N());
+	      .guarded(1'd1)) t2_q2_q(.RST(RST_N),
+				      .CLK(CLK),
+				      .D_IN(t2_q2_q$D_IN),
+				      .ENQ(t2_q2_q$ENQ),
+				      .DEQ(t2_q2_q$DEQ),
+				      .CLR(t2_q2_q$CLR),
+				      .D_OUT(),
+				      .FULL_N(),
+				      .EMPTY_N());
 
   // submodule t2_q3_q
   SizedFIFO #(.p1width(32'd32),
 	      .p2depth(32'd6),
 	      .p3cntr_width(32'd3),
-	      .guarded(32'd1)) t2_q3_q(.RST(RST_N),
-				       .CLK(CLK),
-				       .D_IN(t2_q3_q$D_IN),
-				       .ENQ(t2_q3_q$ENQ),
-				       .DEQ(t2_q3_q$DEQ),
-				       .CLR(t2_q3_q$CLR),
-				       .D_OUT(),
-				       .FULL_N(),
-				       .EMPTY_N());
+	      .guarded(1'd1)) t2_q3_q(.RST(RST_N),
+				      .CLK(CLK),
+				      .D_IN(t2_q3_q$D_IN),
+				      .ENQ(t2_q3_q$ENQ),
+				      .DEQ(t2_q3_q$DEQ),
+				      .CLR(t2_q3_q$CLR),
+				      .D_OUT(),
+				      .FULL_N(),
+				      .EMPTY_N());
 
   // submodule t1_q1_q
   assign t1_q1_q$D_IN = 32'h0 ;

@@ -47,15 +47,15 @@ module mkCTest(CLK,
   wire WILL_FIRE_RL_zag, WILL_FIRE_RL_zig, WILL_FIRE_RL_zug;
 
   // submodule the_z
-  FIFO2 #(.width(32'd4), .guarded(32'd1)) the_z(.RST(RST_N),
-						.CLK(CLK),
-						.D_IN(the_z$D_IN),
-						.ENQ(the_z$ENQ),
-						.DEQ(the_z$DEQ),
-						.CLR(the_z$CLR),
-						.D_OUT(),
-						.FULL_N(the_z$FULL_N),
-						.EMPTY_N());
+  FIFO2 #(.width(32'd4), .guarded(1'd1)) the_z(.RST(RST_N),
+					       .CLK(CLK),
+					       .D_IN(the_z$D_IN),
+					       .ENQ(the_z$ENQ),
+					       .DEQ(the_z$DEQ),
+					       .CLR(the_z$CLR),
+					       .D_OUT(),
+					       .FULL_N(the_z$FULL_N),
+					       .EMPTY_N());
 
   // rule RL_zag
   assign WILL_FIRE_RL_zag = the_z$FULL_N && the_cnd[1] ;
