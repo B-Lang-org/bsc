@@ -1,5 +1,13 @@
-# name spaces for bluetcl commands and for this command
-# facility for calling procedures on exit
+# bluetcl initialization
+#
+# * Add the Bluetcl tcllib to the tcl search path
+# * Source the user's $tcl_rcFileName (as set up by bluetcl)
+# * Add a facility for calling procedures on exit
+# * Set up name spaces for bluetcl commands
+#
+
+lappend auto_path $env(BLUESPECDIR)/tcllib/bluespec
+
 
 namespace eval ::Bluetcl {
     variable w32or64 [expr 8*$::tcl_platform(pointerSize)]
