@@ -814,6 +814,32 @@ proc exec_with_log_and_return { tag cmdline retvalname {verbosity 1} } {
     return $status
 }
 
+# Run an executable and test the exit status
+proc exit_status { cmd expected_status logfile } {
+    global srcdir
+    global subdir
+    global lasterr
+
+    set here [absolute $srcdir]
+    cd [file join $here $subdir]
+
+    timestamp_enter
+    verbose -log "Executing (via exit_status): $cmd >& $logfile" 2
+    set t [time_cmd "exit_status"]
+    set status [catch "exec $t $cmd >& $logfile" lasterr ]
+    timestamp_exit
+    cd $here
+
+    # process the result
+    set status [get_exec_status $status]
+
+    if { [string equal $status $expected_status] } {
+        pass "Exit status"
+    } else {
+        fail  "Exit Status: $cmd ==> $status != $expected_status"
+    }
+    return [string equal $status $expected_status]
+}
 
 #
 # m4 functions
