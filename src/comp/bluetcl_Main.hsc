@@ -86,25 +86,20 @@ main(int argc, char **argv)
  *----------------------------------------------------------------------
  */
 
-// Set up the libraries for the blueshell
-char initScript2[] = "\
-  lappend auto_path $env(BLUESPECDIR)/tcllib/bluespec ; \
-" ;
-
-// Startoff the execution -- separate from user source.
+// Source the Bluetcl init script
 char startBS[] = "source $env(BLUESPECDIR)/tcllib/bluespec/bluespec.tcl ;";
-
 
 char userStartFile[] = "~/.bluetclrc";
 
 
 /* Bluespec Shell initialization
   0. The tcl interpreter is already started.
-  1. set up the path and tcl_library for tcl before loading standard tcl files
-  2. load the standard tcl libraries (under Tcl_Init)
-  3. Start the Haskell engine for bluespec
+  1. No setup of path or tcl_library needed before loading standard tcl files
+  2. Load the standard tcl libraries (under Tcl_Init)
+  3. Load the Bluetcl package (Bluespec_Init, also names the user rc file to load)
   4. Source the startBS script from the library
-  5. Set the user's file to source.  (Done later)
+     (will add the Bluespec tcllib to the tcl search path and
+      will source the user's rc file)
  */
 
 int
@@ -119,21 +114,24 @@ bluetcl_AppInit(interp)
     exit(-1);
   }
 
-  TclSetPreInitScript( initScript2 );
-
+  // Run the tcl init scripts
+  // This will, among other things, initialize auto_path with TCLLIBPATH
+  // from the user's environment, but only if auto_path has not yet been
+  // assigned
+  //
   if (Tcl_Init(interp) != TCL_OK) {
     fprintf(stderr,"Unable to start tcl -- %s\n", Tcl_GetStringResult(interp));
     exit (-1);
   }
 
-  // Bluespec startup
+  // Initialize the Bluespec package
   if (Bluespec_Init (interp) != TCL_OK) {
     fprintf(stderr,"Unable to initialize Bluespec extensions -- %s\n", Tcl_GetStringResult(interp));
     exit (-1);
   }
   Tcl_StaticPackage( interp, "Bluetcl", Bluespec_Init, Bluespec_Init);
 
-  // Bluespec library file
+  // Finish the Bluespec initialization
   if (Tcl_Eval(interp, startBS) != TCL_OK) {
     fprintf(stderr,"Trouble starting bluetcl -- %s\n", Tcl_GetStringResult(interp));
     exit(-1);
