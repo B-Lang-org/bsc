@@ -4377,24 +4377,29 @@ improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
   let chrArgType = iGetType chr_thn
   (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
   return (IAps chr ts1 [e'], True)
-improveIf f t cnd thn@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_thn])
-                  els@(ICon _ (ICUndet { iuKind = u })) = do
-  when doTraceIf $ traceM ("improveIf PrimChr/Undet triggered " ++ show (cnd,thn,els))
-  let chrArgType = iGetType chr_thn
-  -- XXX or should we complain if a generated _ has an implicit condition?
-  pe_chr_els <- doBuildUndefined chrArgType (getIExprPosition els) (undefKindToInteger u) []
-  chr_els <- toHeapWHNFInferName "improve-if" (pExprToHExpr pe_chr_els)
-  (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
-  return (IAps chr ts1 [e'], True)
-improveIf f t cnd thn@(ICon _ (ICUndet { iuKind = u }))
-                  els@(IAps chr@(ICon _ (ICPrim _ PrimChr)) ts1 [chr_els]) = do
-  when doTraceIf $ traceM ("improveIf Undet/PrimChr triggered " ++ show (cnd,thn,els))
-  let chrArgType = iGetType chr_els
-  -- XXX or should we complain if a generated _ has an implicit condition?
-  pe_chr_thn <- doBuildUndefined chrArgType (getIExprPosition thn) (undefKindToInteger u) []
-  chr_thn <- toHeapWHNFInferName "improve-if" (pExprToHExpr pe_chr_thn)
-  (e', _) <- improveIf f chrArgType cnd chr_thn chr_els
-  return (IAps chr ts1 [e'], True)
+-- Do not "optimize" constructors against undefined values because this can remove
+-- the conditions required to optimize chains of ifs like these:
+-- if (x == 0) 0 else if (x == 1) 1 else ... back to just x
+-- These chains are commonly produced by derived Bits instances.
+-- This covers ICCon and PrimChr because constructors of no arguments are turned into PrimChr.
+improveIf f t cnd thn els
+  | isUndet thn && blockUndet els || isUndet els && blockUndet thn = do
+      when doTraceIf $ traceM("improveIf ICCon/ICUndet blocked: " ++ ppReadable (cnd, thn, els))
+      return (mkAp f [T t, E cnd, E thn, E els], True)
+  where isCon (IAps (ICon _ (ICCon {})) _ _)         = True
+        isCon (IAps (ICon _ (ICPrim _ PrimChr)) _ _) = True
+        isCon _                                      = False
+        isUndet (ICon _ (ICUndet {})) = True
+        isUndet _                     = False
+        -- Exception: Allow undet simplification for two-constructor / Boolean-like types
+        -- because they cannot have the != chains that are problematic for other types.
+	-- This is a workaround for a small boolean optimization regression in
+	-- bsc.evaluator/prims/impcondof with this change.
+        isBoolLike (IAps (ICon _ (ICCon { numCon = numCon })) _ _)  = numCon == 2
+        -- A one-bit PrimChr result is also Boolean-like
+        isBoolLike (IAps (ICon _ (ICPrim _ PrimChr)) (ITNum n : _) _) = n == 1
+        isBoolLike _ = False
+        blockUndet e = isCon e && not (isBoolLike e)
 
 improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_thn, res_thn])
                   els@(IAps     (ICon _ (ICPrim _ PrimSetSelPosition)) ts2 [pos_els, res_els])
