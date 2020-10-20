@@ -918,11 +918,8 @@ doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [unde
                                                                             then idMakeUndef
                                                                             else idBuildUndef,
                                                              let do_undef = CVar undef_id ]
-        str'  = -- prevent infinite instance loop for structure of no fields
-                -- (created by IConv insertion of buildUndefined for empty structures)
-                if (null fs) then (CApply (CVar idRawUndef) [CVar id_x, CVar id_y]) else str
         undef = --trace ("ctx: " ++ ppReadable ctx) $
-                CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str']) []
+                CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str]) []
 
 -- | Derive the PrimMakeUninitialized instance for a struct (product type), and
 -- return the instance definition.

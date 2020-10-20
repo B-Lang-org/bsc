@@ -20,6 +20,7 @@ import Error(internalError, ErrorHandle)
 import Flags(Flags)
 import Position
 import CSyntax
+import CSyntaxTypes
 import CFreeVars(getFVDl)
 import Id
 import PreStrings(fsTilde)
@@ -437,8 +438,14 @@ iConvE errh flags r env pvs (CConT ti c es) =
         let (t, (m, n)) = lookupConType flags ti c r
         in  iAps (ICon c (ICCon t m n)) [] (map (iConvE errh flags r env pvs) es)
 -- Ccase
-iConvE errh flags r env pvs (CStructT ct []) =
-  buildUndef flags r env (getPosition ct) UDontCare (iConvT flags r ct)
+iConvE errh flags r env pvs (CStructT ct []) = con
+  where con = iAPs ict itvs
+        ict = ICon ti (ICTuple tupty [])
+        tupty = foldr (\tv t -> ITForAll (tv_name tv) (iConvK $ tv_kind tv) t) it tvs
+        it = iConvT flags r ct
+        tvs = tv ct
+        itvs = map (iConvT flags r. TVar) tvs
+        ti = fst $ splitITApCon it
 iConvE errh flags r env pvs eee@(CStructT ct fs@((f,_):_)) =
  --trace (ppReadable (eee, map fst fs)) $
  --trace (ppReadable (map (\ (f,_) -> lookupSelType flags ti f r) fs)) $

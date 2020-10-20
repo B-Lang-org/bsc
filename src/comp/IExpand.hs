@@ -968,8 +968,7 @@ iExpandIface modId clkRst (P pi e@(IAps c@(ICon _ (ICTuple { fieldIds = fs0 })) 
 
         return $ concat (clock_xs ++ reset_xs ++ method_xs)
 
--- XXX is this a good idea?
-iExpandIface _ _ (P pi (ICon _ (ICUndet { }))) | pi == pTrue =
+iExpandIface _ _ (P pi (ICon _ (ICTuple { fieldIds = [] }))) | pi == pTrue =
     do -- need to make sure the map is made!
        makeDomainToBoundaryIdsMap
        return []
