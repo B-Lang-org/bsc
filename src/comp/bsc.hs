@@ -467,9 +467,9 @@ compilePackage
     --------------------------------------------
     start flags DFinternal
     imod <- iConvPackage errh flags symt mod'
-    iPCheck flags symt imod "internal"
     t <- dump errh flags t DFinternal dumpnames imod
     when (showISyntax flags) (putStrLnF (show imod))
+    iPCheck flags symt imod "internal"
     stats flags DFinternal imod
 
     -- Read binary interface files
