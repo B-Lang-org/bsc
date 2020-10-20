@@ -46,7 +46,6 @@ standard library, and TCL scripting support ("bluetcl").
 > be made available in the future, including:
 >
 > - Documentation (User Guide)
-> - Graphical development environment
 >
 > The repository is still evolving. We welcome your feedback, issue reports,
 > and pull requests.
@@ -58,6 +57,11 @@ the core tools.
 Tests and testing infrastructure are provided in a separate
 [bsc-testsuite] repository.
 
+A graphical environment for using BSC is available in a separate [bdw]
+repository. BDW (the BSC Development Workstation) provides a number of
+tools, including the ability to view simulation waveforms as
+source-level values.
+
 [Bluespec Inc]: https://bluespec.com
 [Flute]: https://github.com/bluespec/Flute
 [Piccolo]: https://github.com/bluespec/Piccolo
@@ -65,6 +69,7 @@ Tests and testing infrastructure are provided in a separate
 
 [bsc-contrib]: https://github.com/B-Lang-org/bsc-contrib
 [bsc-testsuite]: https://github.com/B-Lang-org/bsc-testsuite
+[bdw]: https://github.com/B-Lang-org/bdw
 
 ---
 
