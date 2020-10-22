@@ -22,7 +22,7 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              idConc, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
+              idConc, idConcPrim, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes
               idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
@@ -92,7 +92,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
+        requiredClasses = [idGeneric, idClsDeepSeqCond] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -128,7 +128,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        requiredClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
+        requiredClasses = [idGeneric, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
         derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses [] -- map CTypeclass requiredClasses --
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
@@ -136,12 +136,21 @@ doDer flags r packageid xs d = [Right [d]]
 
 doPrimTypeDer :: Id -> [Type] -> CTypeclass -> Either EMsg [CDefn]
 doPrimTypeDer i vs (CTypeclass di)
+    | qualEq di idGeneric          = Right [doPrimTypeGeneric i vs]
     | qualEq di idUndefined        = Right [doPrimTypeUndefined i vs]
     | qualEq di idClsUninitialized = Right [doPrimTypeUninitialized i vs]
     | qualEq di idClsDeepSeqCond   = Right [doPrimTypeDeepSeqCond i vs]
     | otherwise =  internalError ("attempt to derive " ++ ppReadable di
                         ++ " for primitive type: " ++
                         (ppReadable (cTApplys (cTCon i) vs)))
+
+doPrimTypeGeneric :: Id -> [CType] -> CDefn
+doPrimTypeGeneric i vs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+  where ty  = cTApplys (cTCon i) vs
+        rep = TAp (cTCon idConcPrim) ty
+        from = CLValue idFromNQ [CClause [] [] $ CCon idConcPrim []] []
+        var = mkId noPosition $ mkFString $ "a"
+        to = CLValue idToNQ [CClause [CPCon idConcPrim $ [CPVar var]] [] $ CVar var] []
 
 rawUninitDef :: Type -> CDef
 rawUninitDef ty = CDef idMakeUninitializedNQ (CQType [] aty) [CClause [] [] (CVar idPrimRawUninitialized)]
