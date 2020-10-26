@@ -14,8 +14,8 @@ DummyInDeflMatch.x =
   Prelude.PrimPair
     感relude.Bool
     感relude.Bool
-    (Prelude.True (PrimBuildUndefined 感relude.PrimUnit _ 1))
-    (Prelude.True (PrimBuildUndefined 感relude.PrimUnit _ 1))
+    (Prelude.True Prelude.PrimUnit)
+    (Prelude.True Prelude.PrimUnit)
 next def..........................................................
 DummyInDeflMatch.dummyInDefl :: Prelude.Bit 12
 DummyInDeflMatch.dummyInDefl =

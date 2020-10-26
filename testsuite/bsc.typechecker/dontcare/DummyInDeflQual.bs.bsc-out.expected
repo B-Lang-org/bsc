@@ -40,10 +40,7 @@ DummyInDeflQual.dummyInDeflQual =
 			    (.Prelude.fromInteger ·(Prelude.Bit 2) _tcdict1042 0b11)))
 		      (.Prelude.fromInteger ·_tctyvar1063 _tcdict1050 0)
 		      (PrimBuildUndefined ·_tctyvar1063 (PrimGetEvalPosition ·_tctyvar1064 x) 2)
-      in  f ·(Prelude.Bit 12)
-	    ·Prelude.Bool
-	    _tcdict1072
-	    (Prelude.True (PrimBuildUndefined ·Prelude.PrimUnit _ 1))
+      in  f ·(Prelude.Bit 12) ·Prelude.Bool _tcdict1072 (Prelude.True Prelude.PrimUnit)
 next def..........................................................
 
 
