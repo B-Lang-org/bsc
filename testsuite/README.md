@@ -111,7 +111,7 @@ separately with `install-showrules` and `install-utils`).
 
 #### showrules
 
-The test has tests for the `showrules` tool in `bsc.showrules`.
+The test suite has tests for the `showrules` tool in `bsc.showrules`.
 These tests are disabled if `showrules` is not found in the
 `TEST_RELEASE` `bin` directory.
 
@@ -123,7 +123,7 @@ tools, if they exist in the `TEST_RELEASE` `bin` directory:
 tool, which is not being used by the test suite, but could be
 usefully added.
 
-After each compilation that generates a `.bo` files, the suite
+After each compilation that generates a `.bo` file, the suite
 can perform a sanity check by running `dumpbo` on the file
 and checking for an error exit code.  There are also a small
 number of tests that explicitly run `dumpbo` as part of their
