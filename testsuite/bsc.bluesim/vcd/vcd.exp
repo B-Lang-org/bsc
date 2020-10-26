@@ -32,6 +32,6 @@ if {$ctest == 1} {
                                       -c "main.top.counter.SETF becomes 0 @610" }
 }
 
-test_c_veri_bsv_multi VCDTest1 sysVCDTest1 {mkMid mkSub}
+test_c_veri_bsv VCDTest1
 
-test_c_veri_bsv_multi VCDTest2 sysVCDTest2 {mkMid mkSub}
+test_c_veri_bsv VCDTest2

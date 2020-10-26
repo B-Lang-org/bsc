@@ -1,8 +1,8 @@
 (* synthesize *)
 module sysVCDTest1 ();
    Reg#(UInt#(8)) counter <- mkReg(0);
-   Mixer mid1 <- mkMid;
-   Mixer mid2 <- mkMid;
+   Mixer mid1 <- mkVCDTest1_Mid;
+   Mixer mid2 <- mkVCDTest1_Mid;
 
    rule count;
      counter <= counter + 1;
@@ -46,10 +46,10 @@ interface Mixer;
 endinterface: Mixer
 
 (* synthesize *)
-module mkMid (Mixer);
+module mkVCDTest1_Mid (Mixer);
 
-  Mixer sub1 <- mkSub;
-  Mixer sub2 <- mkSub;
+  Mixer sub1 <- mkVCDTest1_Sub;
+  Mixer sub2 <- mkVCDTest1_Sub;
 
   method Bit#(32) out();
     return sub1.out() ^ sub2.out();
@@ -62,10 +62,10 @@ module mkMid (Mixer);
   endaction
   endmethod: in
 
-endmodule: mkMid
+endmodule
 
 (* synthesize *)
-module mkSub (Mixer);
+module mkVCDTest1_Sub (Mixer);
 
   Reg#(Bit#(32)) x <- mkReg(0);
   Reg#(Bit#(32)) y <- mkReg(0);
@@ -86,6 +86,4 @@ module mkSub (Mixer);
   endaction
   endmethod: in
 
-endmodule: mkSub
-
-
+endmodule
