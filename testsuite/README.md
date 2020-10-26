@@ -49,7 +49,7 @@ command:
 
 When SystemC is not available, these tests can be disabled by assigning
 `SYSTEMCTEST=0` in the environment or on the command line when running
-the `make` commands shown below.  Debian 10 (buster) and later have
+the `make` commands shown below.
 
 ---
 
