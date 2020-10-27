@@ -3758,11 +3758,6 @@ class PrimMakeUninitialized'' r where
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
   primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
 
-{-
-instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPrim a) where
-  primMakeUninitialized'' _ pos f = ConcPrim $ primMakeRawUninitialized pos f
--}
-
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
   primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
 
@@ -3884,6 +3879,10 @@ instance (Generic a r, PrimMakeUndefined'' r) =>
          PrimMakeUndefined' a (Meta (MetaData n p 1) r') where
   primMakeUndefined' _ pos i = to $ primMakeUndefined'' pos i
 
+instance (PrimMakeUndefined a) => PrimMakeUndefined' a (ConcPrim a) where
+  primMakeUndefined' (ConcPrim x) pos _ = primError pos $
+    "Attempt to use undetermined " +++ (printType (typeOf x))
+
 instance PrimMakeUndefined' a r where
   primMakeUndefined' _ = primMakeRawUndefined
 
@@ -3892,10 +3891,6 @@ class PrimMakeUndefined'' r where
 
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
-
-instance (PrimMakeUndefined a) => PrimMakeUndefined'' (ConcPrim a) where
-  primMakeUndefined'' pos _ = primError pos $
-    "Attempt to use undetermined " +++ (printType (typeOf (_ :: a)))
 
 instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta m a) where
   primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
