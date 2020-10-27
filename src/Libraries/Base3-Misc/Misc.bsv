@@ -5,6 +5,7 @@ import BRAM::*;
 import BRAMFIFO::*;
 import BuildVector::*;
 import BUtils::*;
+import BypassReg::*;
 import Cntrs::*;
 import DefaultValue ::*;
 import Gray::*;
