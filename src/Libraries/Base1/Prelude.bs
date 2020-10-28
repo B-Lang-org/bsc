@@ -66,7 +66,7 @@ package Prelude(
 
 	primFix,
         primSeq,
-	PrimDeepSeqCond(..),
+	PrimDeepSeqCond(..), PrimDeepSeqCond'(..),
 	primSeqCond,
 
 	noAction, (:<-),
@@ -803,7 +803,7 @@ class coherent PrimDeepSeqCond a where
 
 instance PrimDeepSeqCond (a -> b) where
   primDeepSeqCond f b = primSeqCond f b
-{-
+
 instance (Generic a r, PrimDeepSeqCond' r) => PrimDeepSeqCond a where
   primDeepSeqCond x = primDeepSeqCond' (from x)
 
@@ -825,7 +825,10 @@ instance PrimDeepSeqCond' () where
 
 instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
   primDeepSeqCond' (Conc x) = primDeepSeqCond x
--}
+
+instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (ConcPrim a) where
+  primDeepSeqCond' (ConcPrim x) = primSeqCond x
+
 
 --@ \begin{libverbatim}
 --@ instance Monad #(ActionValue);

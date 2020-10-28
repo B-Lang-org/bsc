@@ -92,7 +92,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric, idClsDeepSeqCond] -- [idGeneric]
+        requiredClasses = [idGeneric] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -107,7 +107,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         condRequiredClasses =
           if higher_rank
           then []
-          else [idGeneric, idUndefined, idClsDeepSeqCond] -- [idGeneric]
+          else [idGeneric] -- [idGeneric]
         uncondRequiredClasses =
           if higher_rank
           -- There is no easy way of checking here whether a non-default instance
@@ -128,7 +128,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        requiredClasses = [idGeneric, idClsDeepSeqCond, idClsUninitialized] -- [idGeneric]
+        requiredClasses = [idGeneric] -- [idGeneric]
         derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses [] -- map CTypeclass requiredClasses --
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
