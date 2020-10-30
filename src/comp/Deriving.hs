@@ -1,6 +1,6 @@
 module Deriving(derive) where
 
-import Data.List(nub, intercalate)
+import Data.List(nub, intercalate, transpose)
 import Util(log2, checkEither, toMaybe, headOrErr, lastOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
@@ -102,8 +102,22 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         tvset = S.fromList (concatMap tv ty_vars)
-        higher_rank = not $ all (`S.isSubsetOf` tvset) [S.fromList $ tv fty
-                                                       | CField {cf_type = fty} <- fields]
+        field_tvset = S.unions [
+          -- The set of free type vars in a field are the free type vars in its type,
+          -- minus the ones that are totally determined by the functional dependenices
+          -- in the field's contexts.
+          S.fromList (tv fty) `S.difference`
+            S.unions [case findSClass r c of
+                        Just (Class {funDeps=fds}) ->
+                          -- For now, just treat as fully determined those types that
+                          -- are determined in every possible fun dep.
+                          S.unions $ map (S.fromList . tv . snd) $
+                          filter fst $ zip (map and $ transpose fds) tas
+                        Nothing -> internalError ("doDer didn't find class " ++ ppReadable c)
+                     | CPred c tas <- ps]
+          | CField {cf_type = CQType ps fty} <- fields]
+        higher_rank = not $ field_tvset `S.isSubsetOf` tvset
+          
         condRequiredClasses =
           if higher_rank
           then []
