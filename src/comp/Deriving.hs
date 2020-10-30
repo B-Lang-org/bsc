@@ -895,8 +895,9 @@ doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue)
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
 doSGeneric :: Id -> Position -> Id -> [Type] -> CFields -> CDefn
-doSGeneric packageid dpos i vs fs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
-  where ty  = cTApplys (cTCon i) vs
+doSGeneric packageid dpos i vs fs = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+  where preds = concat [ps | CField {cf_type=CQType ps _} <- fs]
+        ty  = cTApplys (cTCon i) vs
         rep = cTApplys (cTCon idMeta)
           [cTApplys (cTCon idMetaData)
            [cTStr (getIdBase i) dpos,
