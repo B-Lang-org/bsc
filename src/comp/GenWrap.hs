@@ -348,15 +348,10 @@ genWrapE generating ppmap cpack@(CPackage packageId exps imps fixs ds includes) 
 
        let fixedDefs = map fixDef defsWithVector
 
-       instanceDefs <- concatMapM mkInstances trs
-       -- XXX we don't update the symbol table with the new instances
-       -- XXX we rely on the symbol table being rebuilt
-
        let finalDefs = reverse fixedDefs ++
                        ifcdefns ++
                        newModule_s ++
-                       ifcConversionDefs ++
-                       instanceDefs
+                       ifcConversionDefs
 
        gens <- mapM (genWrapInfo newFlatIfcs) moduledefs
 
@@ -1255,87 +1250,6 @@ genFrom pps ty var =
                               else return (CApply eUnpack [ec], [r])
               let ctxs = nub (res_ctxs ++ as)
               return (f, vs, e, qs, ctxs)
-
-
--- --------------------
--- genWrapE toplevel: mkInstances
-
--- Deriving of PrimDeepSeqCond for Ifc_ can be large and thus take unnecessary
--- time in type checking.  So we can make our own instance which uses the
--- "fromIfc_" function and calls the class method for the original interface.
-
-mkInstances :: IfcTRec -> GWMonad [CDefn]
-mkInstances trec = do
-  seqInstance <- mkDeepSeqCond trec
-  return [seqInstance]
-
-mkDeepSeqCond :: IfcTRec -> GWMonad CDefn
-mkDeepSeqCond (IfcTRec { rec_id = flat_id, rec_type = orig_ty }) = do
-  bits_ctxs <- mkCtxs orig_ty
-  let seq_ctx = CPred (CTypeclass idClsDeepSeqCond) [orig_ty]
-      ctxs = (seq_ctx : bits_ctxs)
-      flat_ty = cTCon flat_id
-      cqt = CQType ctxs (TAp (cTCon idClsDeepSeqCond) flat_ty)
-      -- the id_ty ("a -> a") needs use Ids not used in the bits_ctxs
-      id_ty = let t = cTVar (head tmpVarIds)
-              in  t `fn` t
-      def_ty = flat_ty `fn` id_ty
-      defn = Cinstance cqt [CLValueSign def []]
-      def = CDef (unQualId idPrimDeepSeqCond) (CQType [] def_ty)
-                [CClause [CPVar id_x, CPVar id_y] [] body]
-      body = cVApply idPrimDeepSeqCond
-                 [ cVApply (from_Id flat_id) [CVar id_x],
-                   CVar id_y ]
-  return defn
-
--- XXX this duplicates work done elsewhere; just do one traversal and
--- XXX reuse it in genIfcField / mkTo / mkFrom / mkFromBind
-mkCtxs :: CType -> GWMonad [CPred]
-mkCtxs ty =
- do
-   cint <- chkInterface ty
-   case cint of
-     Nothing -> internalError ("genFrom: " ++ pfpReadable ty)
-     Just (_, _, fts) -> do
-       css <- mapM meth fts
-       let bits_types = unions css
-           ctxs = [ CPred (CTypeclass idBits) [t, cTVarNum v]
-                        | (t, v) <- zip bits_types tmpTyVarIds ]
-       return ctxs
- where
-   meth :: FInf -> GWMonad [CType]
-   meth (FInf _ as r _) =
-    do
-      mi <- chkInterface r
-      case (mi, as) of
-        (Just (_, _, fts), []) -> do
-          ctxss <- mapM meth fts
-          return (unions ctxss)
-        _ -> do
-          isVec <- isVectorInterfaces r
-          case (isVec, as) of
-            (Just (n, tVec, isListN), []) ->
-               meth (FInf (mkNumId 0) [] tVec [])
-            _ -> do
-              isPA <- isPrimAction r
-              isClock <- isClockType r
-              isReset <- isResetType r
-              isInout <- isInoutType r
-              isAV <- isActionValue r
-              res_ctxs <-
-                  case isInout of
-                    Just iot -> return [iot]
-                    _ -> if (isPA || isClock || isReset)
-                          then return []
-                          else
-                           if isAV
-                              then do
-                                retType <- getAVType "genFrom" r
-                                return [retType]
-                              else return [r]
-              let ctxs = nub (res_ctxs ++ as)
-              return (ctxs)
-
 
 -- --------------------
 -- genWrapE toplevel: mkNewModDef
