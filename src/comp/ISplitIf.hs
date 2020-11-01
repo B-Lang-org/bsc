@@ -345,13 +345,13 @@ make_branch_cond (BranchCaseDefault e_idx es_arms sz_idx) =
 
 iExpandIfRule :: forall itype . Flags.Flags -> IRule itype ->
                  (SPIdSplitMap, [IRule itype])
-iExpandIfRule flags r@
-    (IRule { irule_name = i
-           , irule_description = description
-           , irule_pred = predicate
-           , irule_body = action
-           , irule_original = orig
-           })
+iExpandIfRule flags
+    r@(IRule { irule_name = i
+             , irule_description = description
+             , irule_pred = predicate
+             , irule_body = action
+             , irule_original = orig
+             })
   = let
         paths :: [Path_through_actions itype]
         paths = run (push (Flags.expandIf flags) action)

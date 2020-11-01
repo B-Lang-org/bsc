@@ -3,7 +3,14 @@
 -- types that is efficient even for very large integers.
 module Log2(log2,log10) where
 
+-- GHC 9.0 has an entirely new ghc-bignum package.
+-- See https://iohk.io/en/blog/posts/2020/07/28/improving-haskells-big-numbers-support/
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 900)
+import GHC.Num.Integer (Integer(IS, IP, IN))
+import GHC.Num.BigNat
+#else
 import GHC.Integer.GMP.Internals
+#endif
 import GHC.Exts
 import Data.Bits
 
@@ -30,14 +37,28 @@ log2 x = case (toInteger x) of
            -- bit.  if all other bits are zero, then this is
            -- the value of the base 2 log, otherwise we must
            -- add one to the value to get the base 2 log.
-           (S# n)      -> let !(top_one,any_other_ones) = analyze (I# n)
-                          in toEnum (top_one + (if any_other_ones then 1 else 0))
+           -- 'small' integer that fits in a single word
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 900)
+           IS n  -> let !(top_one,any_other_ones) = analyze (I# n)
+                    in toEnum (top_one + (if any_other_ones then 1 else 0))
+#else
+           S# n  -> let !(top_one,any_other_ones) = analyze (I# n)
+                    in toEnum (top_one + (if any_other_ones then 1 else 0))
+#endif
            -- for values which exceed the word size, we use the
            -- log2large function to examine the values in the array.
-           (Jp# bn@(BN# arr)) -> let sz = sizeofBigNat# bn
-                                 in  log2large (sz -# 1#) arr
-           (Jn# bn@(BN# arr)) -> let sz = sizeofBigNat# bn
-                                 in  log2large (sz -# 1#) arr
+           -- positive and negative multiword integers respectively
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 900)
+           IP bn -> let sz = bigNatSize# bn
+                    in  log2large (sz -# 1#) bn
+           IN bn -> let sz = bigNatSize# bn
+                    in  log2large (sz -# 1#) bn
+#else
+           Jp# bn@(BN# arr) -> let sz = sizeofBigNat# bn
+                               in  log2large (sz -# 1#) arr
+           Jn# bn@(BN# arr) -> let sz = sizeofBigNat# bn
+                               in  log2large (sz -# 1#) arr
+#endif
 
 -- |Utility function to find the index of the most significant
 -- non-zero bit in a single-word Int and also report if any
