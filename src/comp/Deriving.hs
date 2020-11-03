@@ -60,6 +60,9 @@ import qualified Data.Set as S
 
 -- import Debug.Trace
 
+requiredClasses :: [Id]
+requiredClasses = [idGeneric] -- [idGeneric]
+
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
 derive :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
@@ -92,7 +95,6 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        requiredClasses = [idGeneric] -- [idGeneric]
         derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
@@ -117,11 +119,11 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
                      | CPred c tas <- ps]
           | CField {cf_type = CQType ps fty} <- fields]
         higher_rank = not $ field_tvset `S.isSubsetOf` tvset
-          
+
         condRequiredClasses =
           if higher_rank
           then []
-          else [idGeneric] -- [idGeneric]
+          else requiredClasses
         uncondRequiredClasses =
           if higher_rank
           -- There is no easy way of checking here whether a non-default instance
@@ -142,7 +144,6 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        requiredClasses = [idGeneric] -- [idGeneric]
         derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses [] -- map CTypeclass requiredClasses --
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
@@ -223,6 +224,8 @@ doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doDUndefined i vs ocs cs]
+doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
+  Right [doDUninitialized i vs ocs cs]
 doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
@@ -765,6 +768,11 @@ doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [u
   where ty    = cTApplys (cTCon i) vs
         aty   = tPosition `fn` tInteger `fn` ty
         undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
+
+doDUninitialized :: Id -> [CType] -> COSummands -> CSummands -> CDefn
+doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
+  where ty = cTApplys (cTCon i) vs
+        uninit = CLValueSign (rawUninitDef ty) []
 
 doDGeneric :: Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
 doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
