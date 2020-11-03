@@ -4393,8 +4393,8 @@ improveIf f t cnd thn els
         isUndet _                     = False
         -- Exception: Allow undet simplification for two-constructor / Boolean-like types
         -- because they cannot have the != chains that are problematic for other types.
-	-- This is a workaround for a small boolean optimization regression in
-	-- bsc.evaluator/prims/impcondof with this change.
+        -- This is a workaround for a small boolean optimization regression in
+        -- bsc.evaluator/prims/impcondof with this change.
         isBoolLike (IAps (ICon _ (ICCon { numCon = numCon })) _ _)  = numCon == 2
         -- A one-bit PrimChr result is also Boolean-like
         isBoolLike (IAps (ICon _ (ICPrim _ PrimChr)) (ITNum n : _) _) = n == 1
