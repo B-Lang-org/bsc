@@ -8,13 +8,13 @@ compare_verilog altReg4.v
 # Optimizing tag tests without injecting chains of != comparisons.
 compare_verilog alt1Test.v
 compare_verilog alt1aTest.v
-compare_verilog_bug alt2Test.v
-compare_verilog_bug alt3Test.v
+compare_verilog alt2Test.v
+compare_verilog alt3Test.v
 compare_verilog alt4Test.v
-compare_verilog_bug alt5Test.v
-compare_verilog_bug alt6Test.v
+compare_verilog alt5Test.v
+compare_verilog alt6Test.v
 
-compare_verilog_bug c0Test.v
-compare_verilog_bug c1Test.v
+compare_verilog c0Test.v
+compare_verilog c1Test.v
 
-compare_verilog_bug origTest.v
+compare_verilog origTest.v
