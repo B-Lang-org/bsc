@@ -76,16 +76,6 @@ instance (Bits a sa, Mul n sa nsa) => Bits (ListN n a) nsa
     pack (L bs) = flatN 0 (List.map pack bs)
     unpack bs = L (List.map unpack (grabN 0 (valueOf n * valueOf sa) bs))
 
-instance (PrimMakeUndefined a) => PrimMakeUndefined (ListN n a)
-  where
-    primMakeUndefined pos kind = replicate (primMakeUndefined pos kind)
-
-instance (PrimMakeUninitialized a) => PrimMakeUninitialized (ListN n a)
-  where
-    primMakeUninitialized pos name =
-      let f i = primMakeUninitialized pos (name + "[" + integerToString(i) + "]")
-      in genWith f
-
 --X
 --X ListNs can be compared for equality if the elements can.
 --X \begin{libverbatim}

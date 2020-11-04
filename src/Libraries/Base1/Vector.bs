@@ -88,10 +88,6 @@ instance (FShow a) => FShow (Vector n a)
             elements = Vector.foldr insertSpace (fshow "") fmts
         in  $format "<V " elements " >"
 
-instance (PrimMakeUndefined a) => PrimMakeUndefined (Vector n a)
-  where
-    primMakeUndefined pos kind = replicate (primMakeUndefined pos kind)
-
 -- This is used to construct an array with uninitialized elements
 -- and still mark the array as uninitialized until the user updates
 -- it with real values (since the update to insert the uninit elems
@@ -103,6 +99,7 @@ primitive primMarkArrayUninitialized
 markVectorUninitialized :: Position__ -> String -> Vector n a -> Vector n a
 markVectorUninitialized pos name (V v) = V (primMarkArrayUninitialized pos name v)
 
+-- Can't use the generic instance here, since we need to mark the vector itself as uninitialized
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized (Vector n a)
   where
     primMakeUninitialized pos name =
@@ -1351,6 +1348,14 @@ instance Generic (Vector n a) (Meta (MetaData "Vector" "Vector" 1) (Vector n (Co
   from = Meta `compose` map Conc
   to (Meta v) = map (\ Conc x -> x) v
 
--- Generic implementation of PrimDeepSeqCond for vector types
+-- Generic implementations of primitive type classes for types with vector generic representations
+instance (PrimMakeUndefined'' r) => PrimMakeUndefined'' (Vector n r) where
+  primMakeUndefined'' pos kind = replicate (primMakeUndefined'' pos kind)
+
+instance (PrimMakeUninitialized'' r) => PrimMakeUninitialized'' (Vector n r) where
+  primMakeUninitialized'' _ pos name =
+    let f i = primMakeUninitialized'' _ pos (name + "[" + integerToString(i) + "]")
+    in genWith f
+
 instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Vector n r) where
   primDeepSeqCond' = flip $ foldr primDeepSeqCond'
