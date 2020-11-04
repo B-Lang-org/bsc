@@ -60,8 +60,14 @@ import qualified Data.Set as S
 
 -- import Debug.Trace
 
+-- Things we always derive on types that don't contain higher-rank fields
 requiredClasses :: [Id]
-requiredClasses = [idGeneric] -- [idGeneric]
+requiredClasses = [idGeneric]
+
+-- Things that have a default generic implementation
+-- (we need to derive them when there isn't a Generic instance available)
+genericClasses :: [Id]
+genericClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
 
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
@@ -95,7 +101,19 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+        tvset = S.fromList (concatMap tv ty_vars)
+        sums_tvset = S.unions [
+          S.unions $ map (ty_tvset r) ts
+          | COriginalSummand {cos_arg_types = ts} <- orig_sums]
+        higher_rank = not $ sums_tvset `S.isSubsetOf` tvset
+        condRequiredClasses = if higher_rank then [] else requiredClasses
+        uncondRequiredClasses =
+          if higher_rank
+          -- There is no easy way of checking here whether a non-default instance
+          -- exists for these, so just add them unconditionally.
+          then genericClasses
+          else []
+        derivs' = addRequiredDerivs flags r qual_name ty_vars condRequiredClasses derivs ++ map CTypeclass uncondRequiredClasses
     in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
@@ -104,31 +122,14 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
         tvset = S.fromList (concatMap tv ty_vars)
-        field_tvset = S.unions [
-          -- The set of free type vars in a field are the free type vars in its type,
-          -- minus the ones that are totally determined by the functional dependenices
-          -- in the field's contexts.
-          S.fromList (tv fty) `S.difference`
-            S.unions [case findSClass r c of
-                        Just (Class {funDeps=fds}) ->
-                          -- For now, just treat as fully determined those types that
-                          -- are determined in every possible fun dep.
-                          S.unions $ map (S.fromList . tv . snd) $
-                          filter fst $ zip (map and $ transpose fds) tas
-                        Nothing -> internalError ("doDer didn't find class " ++ ppReadable c)
-                     | CPred c tas <- ps]
-          | CField {cf_type = CQType ps fty} <- fields]
+        field_tvset = S.unions [ty_tvset r f | CField {cf_type = f} <- fields]
         higher_rank = not $ field_tvset `S.isSubsetOf` tvset
-
-        condRequiredClasses =
-          if higher_rank
-          then []
-          else requiredClasses
+        condRequiredClasses = if higher_rank then [] else requiredClasses
         uncondRequiredClasses =
           if higher_rank
           -- There is no easy way of checking here whether a non-default instance
           -- exists for these, so just add them unconditionally.
-          then [idUndefined, idClsDeepSeqCond, idClsUninitialized]
+          then genericClasses
           else []
         derivs' = addRequiredDerivs flags r qual_name ty_vars condRequiredClasses derivs ++ map CTypeclass uncondRequiredClasses
     in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
@@ -144,7 +145,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses [] -- map CTypeclass requiredClasses --
+        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
@@ -1139,6 +1140,21 @@ duplicate_tag_encoding_error type_name tag rest_tags
               [(getPosition next_tag, pfpString (getCISName next_tag))
                | next_tag <- rest_tags,
                  cis_tag_encoding next_tag == cis_tag_encoding tag]
+
+ty_tvset :: SymTab -> CQType -> S.Set TyVar
+ty_tvset r (CQType ps fty) =
+  -- The set of free type vars in a field are the free type vars in its type,
+  -- minus the ones that are totally determined by the functional dependenices
+  -- in the field's contexts.
+  S.fromList (tv fty) `S.difference`
+    S.unions [case findSClass r c of
+                 Just (Class {funDeps=fds}) ->
+                   -- For now, just treat as fully determined those types that
+                   -- are determined in every possible fun dep.
+                   S.unions $ map (S.fromList . tv . snd) $
+                   filter fst $ zip (map and $ transpose fds) tas
+                 Nothing -> internalError ("ty_tvset didn't find class " ++ ppReadable c)
+             | CPred c tas <- ps]
 
 addRequiredDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
