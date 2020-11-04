@@ -1350,3 +1350,7 @@ instance (DefaultValue t) => DefaultValue (Vector n t)
 instance Generic (Vector n a) (Meta (MetaData "Vector" "Vector" 1) (Vector n (Conc a))) where
   from = Meta `compose` map Conc
   to (Meta v) = map (\ Conc x -> x) v
+
+-- Generic implementation of PrimDeepSeqCond for vector types
+instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Vector n r) where
+  primDeepSeqCond' = flip $ foldr primDeepSeqCond'
