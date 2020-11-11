@@ -253,7 +253,7 @@ package Prelude(
 
         -- Generics
         Generic(..), Conc(..), ConcPrim(..),
-        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
+        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..), MetaPoly(..)
 	) where
 
 infixr  0 $
@@ -3892,6 +3892,9 @@ instance PrimMakeUndefined' a r where
 class PrimMakeUndefined'' r where
   primMakeUndefined'' :: Position__ -> Integer -> r
 
+instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Meta (MetaPoly t) (Conc a)) where
+  primMakeUndefined'' pos i = Meta $ Conc $ primBuildUndefined pos i
+
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
 
@@ -4247,4 +4250,6 @@ data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
 data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
   deriving (FShow)
 data (MetaField :: $ -> # -> *) name idx = MetaField
+  deriving (FShow)
+data (MetaPoly :: $ -> *) tyName = MetaPoly
   deriving (FShow)

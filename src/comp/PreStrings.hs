@@ -336,6 +336,8 @@ fsMetaData         = mkFString "MetaData"
 fsMetaConsNamed    = mkFString "MetaConsNamed"
 fsMetaConsAnon     = mkFString "MetaConsAnon"
 fsMetaField        = mkFString "MetaField"
+fsMetaPoly         = mkFString "MetaPoly"
+fs_val             = mkFString "val"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"

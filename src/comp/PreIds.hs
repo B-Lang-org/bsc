@@ -207,17 +207,21 @@ idPrimChr, idLiftM, idPrimError :: Id
 idPrimChr = prelude_id_no fsPrimChr
 idLiftM = prelude_id_no fsLiftM
 idPrimError = prelude_id_no fsPrimError
-idGeneric, idFrom, idTo, idConc, idConcPrim, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField :: Id
+idGeneric, idFrom, idTo, idConc, idConcPrim, idMeta :: Id
 idGeneric = prelude_id_no fsGeneric
 idFrom = prelude_id_no fsFrom
 idTo = prelude_id_no fsTo
 idConc = prelude_id_no fsConc
 idConcPrim = prelude_id_no fsConcPrim
 idMeta = prelude_id_no fsMeta
+idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField, idMetaPoly :: Id
 idMetaData = prelude_id_no fsMetaData
 idMetaConsNamed = prelude_id_no fsMetaConsNamed
 idMetaConsAnon = prelude_id_no fsMetaConsAnon
 idMetaField = prelude_id_no fsMetaField
+idMetaPoly = prelude_id_no fsMetaPoly
+id_val :: Id
+id_val = mk_no fs_val
 
 -- | Used by GenWrap for "polymorphic" modules
 idLiftModule :: Id

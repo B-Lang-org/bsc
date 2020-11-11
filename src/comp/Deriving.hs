@@ -9,7 +9,7 @@ import Id
 import PreIds(
               -- identifiers
               tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y,
-              id_forallb,
+              id_forallb, id_val,
               -- internal type constructors
               idId, idPrimPair, idArrow, idFmt,
               -- internal type fields
@@ -22,7 +22,8 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              idConc, idConcPrim, idMeta, idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
+              idConc, idConcPrim, idMeta,
+              idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField, idMetaPoly,
               -- classes
               idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
@@ -121,18 +122,8 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        tvset = S.fromList (concatMap tv ty_vars)
-        field_tvset = S.unions [ty_tvset r f | CField {cf_type = f} <- fields]
-        higher_rank = not $ field_tvset `S.isSubsetOf` tvset
-        condRequiredClasses = if higher_rank then [] else requiredClasses
-        uncondRequiredClasses =
-          if higher_rank
-          -- There is no easy way of checking here whether a non-default instance
-          -- exists for these, so just add them unconditionally.
-          then genericClasses
-          else []
-        derivs' = addRequiredDerivs flags r qual_name ty_vars condRequiredClasses derivs ++ map CTypeclass uncondRequiredClasses
-    in Right [struct_decl] : map (doStructDer packageid xs qual_name ty_vars fields) derivs'
+        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -259,29 +250,29 @@ doDataDer _ xs i vs ocs cs (CTypeclass di) =
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
 -- FShow) for a given struct (prod type), and return the instance definitions.
-doStructDer :: Id -> [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
+doStructDer :: SymTab -> Id -> [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
             -> Either EMsg [CDefn]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idEq =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idEq =
   Right [doSEq (getPosition di) i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idBits =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doSDefaultValue (getPosition di) i vs cs]
-doStructDer packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
-  Right [doSGeneric packageid (getPosition di) i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idFShow =
+doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
+  doSGeneric r packageid (getPosition di) i vs cs
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idUndefined =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doSUndefined i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idClsUninitialized =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idClsUninitialized =
   Right [doSUninitialized i vs cs]
-doStructDer _ _ i vs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doSDeepSeqCond i vs cs]
 -- If the struct is isomorphic to another type (that is, it as only one
 -- field, of that other type), then inherit the instance from that type.
-doStructDer _ xs i vs [field] di
+doStructDer _ _ xs i vs [field] di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -298,10 +289,10 @@ doStructDer _ xs i vs [field] di
                 tv = cTVarKind v kind
         con e = CStruct i [(cf_name field, e)]
         coCon e = CSelectTT i e (cf_name field)
-doStructDer _ _ i vs cs (CTypeclass di) | isTCId i =
+doStructDer _ _ _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
   Right []
-doStructDer _ _ i vs cs (CTypeclass di) =
+doStructDer _ _ _ i vs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 
@@ -903,10 +894,21 @@ doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue)
         str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
-doSGeneric :: Id -> Position -> Id -> [Type] -> CFields -> CDefn
-doSGeneric packageid dpos i vs fs = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
-  where preds = concat [ps | CField {cf_type=CQType ps _} <- fs]
-        ty  = cTApplys (cTCon i) vs
+doSGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> CFields -> Either EMsg [CDefn]
+doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Right [inst]]
+  where ty = cTApplys (cTCon i) vs
+        tvset = S.fromList (tv ty)
+
+        fieldHigherRank :: CQType -> Bool
+        fieldHigherRank fty = not $ ty_tvset r fty `S.isSubsetOf` tvset
+
+        fieldWrapName :: Id -> Id
+        fieldWrapName fn = mkId dpos $ concatFString [getIdBase i, mkFString "_", getIdBase fn]
+
+        preds = concat [ps | CField {cf_type=fty@(CQType ps _)} <- fs, not $ fieldHigherRank fty]
+        
+        wrapDcls = concat [mkGenericRepWrap r packageid dpos (fieldWrapName fn) vs fty
+                          | CField {cf_name=fn, cf_type=fty} <- fs, fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
           [cTApplys (cTCon idMetaData)
            [cTStr (getIdBase i) dpos,
@@ -920,24 +922,57 @@ doSGeneric packageid dpos i vs fs = Cinstance (CQType preds (TAp (TAp (cTCon idG
              tMkTuple dpos
               [cTApplys (cTCon idMeta)
                [cTApplys (cTCon idMetaField)
-                [cTStr (getIdBase fn) dpos, cTNum i dpos],
-                 TAp (cTCon idConc) fty]
-              | (i, CField {cf_name=fn, cf_type=CQType _ fty}) <- zip [0..] fs]]]
+                [cTStr (getIdBase fn) dpos, cTNum k dpos],
+                 (if fieldHigherRank fty
+                  then cTApplys (cTCon idMeta)
+                   [cTApplys (cTCon idMetaPoly) [cTStr (mkFString $ ppReadable ty) dpos],
+                    TAp (cTCon idConc) $ cTApplys (cTCon $ fieldWrapName fn) vs]
+                  else TAp (cTCon idConc) ty)]
+              | (k, CField {cf_name=fn, cf_type=fty@(CQType _ ty)}) <- zip [0..] fs]]]
         from = CLValue idFromNQ
-          [CClause [CPstruct i [(cf_name f, CPVar $ cf_name f) | f <- fs]] [] $
+          [CClause [CPVar id_x] [] $
            CCon idMeta
             [CCon idMeta
               [mkTuple dpos
                 [CCon idMeta
-                  [CCon idConc [CVar $ cf_name f]] | f <- fs]]]] []
+                  [if fieldHigherRank fty
+                   then CCon idMeta
+                    [CCon idConc
+                      [CStruct (fieldWrapName fn) [(id_val, CSelect (CVar id_x) fn)]]]
+                   else CCon idConc [CSelect (CVar id_x) fn]]
+                | CField {cf_name=fn, cf_type=fty} <- fs]]]] []
         to = CLValue idToNQ
           [CClause
             [CPCon idMeta
               [CPCon idMeta
                 [pMkTuple dpos
                   [CPCon idMeta
-                    [CPCon idConc [CPVar $ cf_name f]] | f <- fs]]]] [] $
-           CStruct i [(cf_name f, CVar $ cf_name f) | f <- fs]] []
+                    [if fieldHigherRank fty
+                     then CPCon idMeta [CPCon idConc [CPVar fn]]
+                     else CPCon idConc [CPVar fn]]
+                  | CField {cf_name=fn, cf_type=fty} <- fs]]]] [] $
+           CStruct i [(fn, if fieldHigherRank fty then CSelect (CVar fn) id_val else CVar fn)
+                     | CField {cf_name=fn, cf_type=fty} <- fs]] []
+        inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+
+-- Things to derive on generic rep higher-rank wrapper structs
+repWrapRequiredClasses :: [Id]
+repWrapRequiredClasses = []
+
+mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
+mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
+  Right [Cstruct True SStruct (IdK i) vs fields []] :
+  -- Call doStructDer directly rather than generating a struct with derivs,
+  -- since we are already passed the deriving stage.
+  map (doStructDer r packageid [] i ty_vars fields) (map CTypeclass repWrapRequiredClasses)
+  where vs = map (getTyVarId . head . tv) ty_vars
+        fields =
+          [CField {cf_name = id_val,
+                   cf_pragmas = Nothing,
+                   cf_type = fty,
+                   cf_default = [],
+                   cf_orig_type = Nothing}]
+
 
 -- | Derive the PrimMakeUndefined instance for a struct (product type), and
 -- return the instance definition.
