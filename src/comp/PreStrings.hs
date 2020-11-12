@@ -331,12 +331,12 @@ fsFIFOFirst        = mkFString "first"
 fsGeneric          = mkFString "Generic"
 fsConc             = mkFString "Conc"
 fsConcPrim         = mkFString "ConcPrim"
+fsConcPoly         = mkFString "ConcPoly"
 fsMeta             = mkFString "Meta"
 fsMetaData         = mkFString "MetaData"
 fsMetaConsNamed    = mkFString "MetaConsNamed"
 fsMetaConsAnon     = mkFString "MetaConsAnon"
 fsMetaField        = mkFString "MetaField"
-fsMetaPoly         = mkFString "MetaPoly"
 fs_val             = mkFString "val"
 
 -- XXX low ASCII only, please...

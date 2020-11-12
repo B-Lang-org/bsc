@@ -252,8 +252,8 @@ package Prelude(
 	hGetLine, hGetChar,
 
         -- Generics
-        Generic(..), Conc(..), ConcPrim(..),
-        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..), MetaPoly(..)
+        Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
+        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
 	) where
 
 infixr  0 $
@@ -3761,6 +3761,9 @@ class PrimMakeUninitialized'' r where
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
   primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
 
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPoly a) where
+  primMakeUninitialized'' _ pos f = ConcPoly $ primUninitialized pos f
+
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
   primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
 
@@ -3892,11 +3895,11 @@ instance PrimMakeUndefined' a r where
 class PrimMakeUndefined'' r where
   primMakeUndefined'' :: Position__ -> Integer -> r
 
-instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Meta (MetaPoly t) (Conc a)) where
-  primMakeUndefined'' pos i = Meta $ Conc $ primBuildUndefined pos i
-
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
+
+instance (PrimMakeUndefined a) => PrimMakeUndefined'' (ConcPoly a) where
+  primMakeUndefined'' pos i = ConcPoly $ primBuildUndefined pos i
 
 instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta m a) where
   primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
@@ -4240,6 +4243,8 @@ data Conc a = Conc a
   deriving (FShow)
 data ConcPrim a = ConcPrim a
   deriving (FShow)
+data ConcPoly a = ConcPoly a
+  deriving (FShow)
 
 data Meta m r = Meta r
   deriving (FShow)
@@ -4250,6 +4255,4 @@ data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
 data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
   deriving (FShow)
 data (MetaField :: $ -> # -> *) name idx = MetaField
-  deriving (FShow)
-data (MetaPoly :: $ -> *) tyName = MetaPoly
   deriving (FShow)

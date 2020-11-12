@@ -22,8 +22,8 @@ import PreIds(
               idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              idConc, idConcPrim, idMeta,
-              idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField, idMetaPoly,
+              idConc, idConcPrim, idConcPoly, idMeta,
+              idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes
               idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
               -- class members
@@ -61,14 +61,9 @@ import qualified Data.Set as S
 
 -- import Debug.Trace
 
--- Things we always derive on types that don't contain higher-rank fields
+-- Classes that we always derive implicitly
 requiredClasses :: [Id]
 requiredClasses = [idGeneric]
-
--- Things that have a default generic implementation
--- (we need to derive them when there isn't a Generic instance available)
-genericClasses :: [Id]
-genericClasses = [idUndefined, idClsDeepSeqCond, idClsUninitialized]
 
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
@@ -102,20 +97,8 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        tvset = S.fromList (concatMap tv ty_vars)
-        sums_tvset = S.unions [
-          S.unions $ map (ty_tvset r) ts
-          | COriginalSummand {cos_arg_types = ts} <- orig_sums]
-        higher_rank = not $ sums_tvset `S.isSubsetOf` tvset
-        condRequiredClasses = if higher_rank then [] else requiredClasses
-        uncondRequiredClasses =
-          if higher_rank
-          -- There is no easy way of checking here whether a non-default instance
-          -- exists for these, so just add them unconditionally.
-          then genericClasses
-          else []
-        derivs' = addRequiredDerivs flags r qual_name ty_vars condRequiredClasses derivs ++ map CTypeclass uncondRequiredClasses
-    in Right [data_decl] : map (doDataDer packageid xs qual_name ty_vars orig_sums int_sums) derivs'
+        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
@@ -200,30 +183,30 @@ doPrimTypeDeepSeqCond i vs = Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) 
 --  cs  =  internal summands of the data type
 --         (an id and one type -- the list became a struct)
 --  di  =  the class to be derived
-doDataDer :: Id -> [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
+doDataDer :: SymTab -> Id -> [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
              CTypeclass -> Either EMsg [CDefn]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
-doDataDer packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
-  Right [doDGeneric packageid (getPosition di) i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
+doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
+  doDGeneric r packageid (getPosition di) i vs ocs cs
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
   Right [doDUndefined i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
   Right [doDUninitialized i vs ocs cs]
-doDataDer _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
   Right [doDDeepSeqCond i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
-doDataDer _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
+doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -245,7 +228,7 @@ doDataDer _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
-doDataDer _ xs i vs ocs cs (CTypeclass di) =
+doDataDer _ _ xs i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
@@ -766,9 +749,28 @@ doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitializ
   where ty = cTApplys (cTCon i) vs
         uninit = CLValueSign (rawUninitDef ty) []
 
-doDGeneric :: Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> CDefn
-doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+doDGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> Either EMsg [CDefn]
+doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [Right [inst]]
   where ty  = cTApplys (cTCon i) vs
+        tvset = S.fromList (tv ty)
+
+        fieldHigherRank :: CQType -> Bool
+        fieldHigherRank fty = not $ ty_tvset r fty `S.isSubsetOf` tvset
+
+        fieldWrapName :: Id -> Id -> Id
+        fieldWrapName cn fn = mkId dpos $ concatFString [
+          getIdBase i, mkFString "_", getIdBase cn, mkFString "_", getIdBase fn]
+
+        preds = concat [ps | COriginalSummand {cos_arg_types=ftys} <- ocs,
+                        fty@(CQType ps _) <- ftys, not $ fieldHigherRank fty]
+
+        wrapDcls = concat [mkGenericRepWrap r packageid dpos (fieldWrapName cn fn) vs fty
+                          | COriginalSummand {cos_names=cn:_, cos_arg_types=ftys,
+                                              cos_field_names=mfns} <- ocs,
+                            (fn, fty@(CQType ps _)) <-
+                              zip (fromMaybe [mk_homeless_id $ "_" ++ show (i :: Int)
+                                             | i <- [1..]] mfns) ftys,
+                            fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
           [cTApplys (cTCon idMetaData)
            [cTStr (getIdBase i) dpos,
@@ -784,9 +786,12 @@ doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon id
                   tMkTuple dpos
                    [cTApplys (cTCon idMeta)
                     [cTApplys (cTCon idMetaField)
-                     [cTStr (mkFString $ "_" ++ show j) dpos, cTNum j dpos],
-                     TAp (cTCon idConc) fty]
-                   | (j, CQType _ fty) <- zip [0..] ftys]]
+                     [cTStr (mkFString $ "_" ++ show (j + 1)) dpos, cTNum j dpos],
+                     (if fieldHigherRank fty
+                      then TAp (cTCon idConcPoly) $
+                       cTApplys (cTCon $ fieldWrapName cn $ mk_homeless_id $ "_" ++ show (j + 1)) vs
+                      else TAp (cTCon idConc) ty)]
+                   | (j, fty@(CQType _ ty)) <- zip [0..] ftys]]
                Just fns -> cTApplys (cTCon idMeta)
                  [cTApplys (cTCon idMetaConsNamed)
                   [cTStr (getIdBase cn) dpos,
@@ -796,26 +801,29 @@ doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon id
                    [cTApplys (cTCon idMeta)
                     [cTApplys (cTCon idMetaField)
                      [cTStr (getIdBase fn) dpos, cTNum j dpos],
-                     TAp (cTCon idConc) fty]
-                   | (j, fn, CQType _ fty) <- zip3 [0..] fns ftys]]
+                     (if fieldHigherRank fty
+                      then TAp (cTCon idConcPoly) $ cTApplys (cTCon $ fieldWrapName cn fn) vs
+                      else TAp (cTCon idConc) ty)]
+                   | (j, fn, fty@(CQType _ ty)) <- zip3 [0..] fns ftys]]
             | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
               zip [0..] ocs]]
         from = CLValue idFromNQ
-          [CClause
-           [let pats =
-                  [CPVar $ mkId dpos $ mkFString $ "a" ++ show j
-                  | j <- [0..length ftys - 1]]
-            in case mfns of
-               Nothing -> CPCon cn pats
-               Just fns -> CPstruct cn $ zip fns pats] [] $
+          [CClause [CPCon1 i cn (CPVar id_x)] [] $
            CCon idMeta
-            [mkEitherChain dpos i (length ocs) $
+            [mkEitherChain dpos k (length ocs) $
              CCon idMeta
               [mkTuple dpos
                [CCon idMeta
-                [CCon idConc [CVar $ mkId dpos $ mkFString $ "a" ++ show j]]
-               | j <- [0..length ftys - 1]]]]
-          | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
+                [if fieldHigherRank fty
+                 then CCon idConcPoly
+                  [CStruct (fieldWrapName cn fn) [(id_val, CSelect (CVar id_x) fn)]]
+                 else CCon idConc [if isJust mfns || length ftys > 1
+                                   then CSelect (CVar id_x) fn
+                                   else CVar id_x]]
+               | (fn, fty) <- zip (fromMaybe [mk_homeless_id $ "_" ++ show (i :: Int)
+                                             | i <- [1..]] mfns) ftys]
+              ]]
+          | (k, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
         to = CLValue idToNQ
           [CClause
@@ -824,14 +832,20 @@ doDGeneric packageid dpos i vs ocs cs = Cinstance (CQType [] (TAp (TAp (cTCon id
              CPCon idMeta
               [pMkTuple dpos
                [CPCon idMeta
-                [CPCon idConc [CPVar $ mkId dpos $ mkFString $ "a" ++ show j]]
-               | j <- [0..length ftys - 1]]]]] [] $
-            let args = [CVar $ mkId dpos $ mkFString $ "a" ++ show j | j <- [0..length ftys - 1]]
+                [CPCon (if fieldHigherRank fty then idConcPoly else idConc)
+                 [CPVar $ mkId dpos $ mkFString $ "a" ++ show (j :: Int)]]
+               | (j, fty) <- zip [1..] ftys]]]] [] $
+            let args = [
+                  if fieldHigherRank fty
+                  then CSelect (CVar $ mkId dpos $ mkFString $ "a" ++ show j) id_val
+                  else CVar $ mkId dpos $ mkFString $ "a" ++ show (j :: Int)
+                  | (j, fty) <- zip [1..] ftys]
             in case mfns of
               Nothing -> CCon cn args
               Just fns -> CStruct cn $ zip fns args
           | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
+        inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
 
 -- | Derive the PrimDeepSeqCond typeclass for data (sum) types.
 -- For each constructor, fully evaluate the data structure. Do this by,
@@ -924,9 +938,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                [cTApplys (cTCon idMetaField)
                 [cTStr (getIdBase fn) dpos, cTNum k dpos],
                  (if fieldHigherRank fty
-                  then cTApplys (cTCon idMeta)
-                   [cTApplys (cTCon idMetaPoly) [cTStr (mkFString $ ppReadable ty) dpos],
-                    TAp (cTCon idConc) $ cTApplys (cTCon $ fieldWrapName fn) vs]
+                  then TAp (cTCon idConcPoly) $ cTApplys (cTCon $ fieldWrapName fn) vs
                   else TAp (cTCon idConc) ty)]
               | (k, CField {cf_name=fn, cf_type=fty@(CQType _ ty)}) <- zip [0..] fs]]]
         from = CLValue idFromNQ
@@ -936,9 +948,8 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
               [mkTuple dpos
                 [CCon idMeta
                   [if fieldHigherRank fty
-                   then CCon idMeta
-                    [CCon idConc
-                      [CStruct (fieldWrapName fn) [(id_val, CSelect (CVar id_x) fn)]]]
+                   then CCon idConcPoly
+                    [CStruct (fieldWrapName fn) [(id_val, CSelect (CVar id_x) fn)]]
                    else CCon idConc [CSelect (CVar id_x) fn]]
                 | CField {cf_name=fn, cf_type=fty} <- fs]]]] []
         to = CLValue idToNQ
@@ -947,9 +958,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
               [CPCon idMeta
                 [pMkTuple dpos
                   [CPCon idMeta
-                    [if fieldHigherRank fty
-                     then CPCon idMeta [CPCon idConc [CPVar fn]]
-                     else CPCon idConc [CPVar fn]]
+                    [CPCon (if fieldHigherRank fty then idConcPoly else idConc) [CPVar fn]]
                   | CField {cf_name=fn, cf_type=fty} <- fs]]]] [] $
            CStruct i [(fn, if fieldHigherRank fty then CSelect (CVar fn) id_val else CVar fn)
                      | CField {cf_name=fn, cf_type=fty} <- fs]] []
