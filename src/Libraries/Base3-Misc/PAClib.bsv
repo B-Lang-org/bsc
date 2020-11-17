@@ -3,10 +3,8 @@ package PAClib;
 import FIFO              :: *;
 import FIFOF             :: *;
 import SpecialFIFOs      :: *;
-import BRAMFIFO          :: *;
 import GetPut            :: *;
 import ClientServer      :: *;
-import Connectable       :: *;
 import Vector            :: *;
 import CompletionBuffer  :: *;
 
@@ -326,7 +324,7 @@ module mkAVFn_to_Pipe
                 (PipeOut #(tb))
  provisos (Bits #(ta, wd_ta),
 	   Bits #(tb, wd_tb));
-		
+
    FIFOF #(tb) fifof <- mkPipelineFIFOF;
 
    rule rl_do_avfn;

@@ -1,7 +1,5 @@
 package SVA;
 import List::*;
-import Clocks::*;
-import PopCount::*;
 
 //========
 /*

@@ -8,9 +8,7 @@ import ConfigReg::*;
 import GetPut::*;
 import ClientServer::*;
 import Connectable::*;
-import FIFO::*;
 import RAM::*;
-import SpecialFIFOs::*;
 import HList::*;
 
 // The LBus package provides a way to create registers that are accessible

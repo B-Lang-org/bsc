@@ -2,8 +2,6 @@ package CGetPut(CGet, CPut, CGetS, CPutS,
          CGetPut, GetCPut, mkCGetPut, mkGetCPut, mkCGetCPut, CClientServer, ClientCServer,
          CClient, CServer, CClientS(..), CServerS(..), mkCClientServer, mkClientCServer) where
 import FIFOF
-import Counter
---import RegCF
 import ConfigReg
 import Connectable
 import GetPut

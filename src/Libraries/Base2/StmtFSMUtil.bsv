@@ -4,12 +4,6 @@ package StmtFSMUtil;
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-import List::*;
-
-////////////////////////////////////////////////////////////////////////////////
-///
-////////////////////////////////////////////////////////////////////////////////
-
 interface MEState;
    method Action set (Integer value);
    method Action set_delayed (Integer value);
@@ -179,7 +173,7 @@ module mkMEStateInternal (MEStateInternal#(a))
       else if (set_value)
 	 value_reg <= current_value;
    endrule
-			
+
    method Action set (Integer value);
       current_wire_0 <= fromInteger(value);
       set_wire_0 <= True;

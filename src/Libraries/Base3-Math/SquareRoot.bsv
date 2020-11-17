@@ -9,7 +9,6 @@ import FixedPoint ::*;
 import GetPut ::*;
 import Real ::*;
 import StmtFSM ::*;
-import Vector ::*;
 
 export mkSquareRooter;
 export mkFixedPointSquareRooter;

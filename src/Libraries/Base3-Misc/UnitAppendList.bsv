@@ -1,8 +1,5 @@
 package UnitAppendList;
 
-import List::*;
-import DefaultValue::*;
-
 typedef union tagged {
     void NoItems;
     a One;
