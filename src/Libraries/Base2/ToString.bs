@@ -1,6 +1,5 @@
 package ToString where
 
-import List
 import Array
 import Vector
 
@@ -91,5 +90,3 @@ listToStringM (Cons x rest) =
    do y <- toStringM x
       z <- listToStringM rest
       return (y +++ " " +++ z)
-
-

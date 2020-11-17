@@ -1,7 +1,6 @@
 import ClientServer::*;
 import Clocks::*;
 import Connectable::*;
-import DefaultValue::*;
 import FIFO::*;
 import FIFOF::*;
 import GetPut::*;

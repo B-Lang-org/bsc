@@ -6,7 +6,6 @@ import FIFO ::*;
 import FIFOF ::*;
 import GetPut ::*;
 import StmtFSM ::*;
-import Vector ::*;
 
 export mkDivider;
 export mkSignedDivider;

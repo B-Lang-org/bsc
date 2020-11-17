@@ -14,13 +14,9 @@ package FloatingPoint;
 import Real              ::*;
 import Vector            ::*;
 import BUtils            ::*;
-import DefaultValue      ::*;
-import FShow             ::*;
 import GetPut            ::*;
 import ClientServer      ::*;
 import FIFO              ::*;
-import Divide            ::*;
-import SquareRoot        ::*;
 import FixedPoint        ::*;
 
 ////////////////////////////////////////////////////////////////////////////////

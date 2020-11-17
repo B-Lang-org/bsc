@@ -10,17 +10,13 @@ package Memory;
 /// Imports
 ////////////////////////////////////////////////////////////////////////////////
 import ClientServer      ::*;
-import DefaultValue      ::*;
 import TieOff            ::*;
 import DummyDriver       ::*;
 import Vector            ::*;
 import GetPut            ::*;
 import RegFile           ::*;
 import Connectable       ::*;
-import Clocks            ::*;
 import FIFO              ::*;
-import FIFOF             ::*;
-import FShow             ::*;
 
 Bool trace = False;
 

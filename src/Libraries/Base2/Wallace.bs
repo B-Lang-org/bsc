@@ -1,7 +1,5 @@
 package Wallace(wallaceAdd, wallaceAddBags) where
 
-import Tabulate
-
 --@ \subsubsection{Wallace}
 --@
 --@ \index{Wallace@\te{Wallace} (package)|textbf}

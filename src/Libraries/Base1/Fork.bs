@@ -1,7 +1,6 @@
 package Fork(fork, forkL, forkLN) where
 
 import Vector
-import List
 
 --@ \subsubsection{Fork}
 --@

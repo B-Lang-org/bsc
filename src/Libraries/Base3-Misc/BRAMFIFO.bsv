@@ -10,8 +10,6 @@
 /// Imports
 ////////////////////////////////////////////////////////////////////////////////
 import Clocks            ::*;
-import GetPut            ::*;
-import ClientServer      ::*;
 import FIFO              ::*;
 import FIFOF             ::*;
 import BRAMCore          ::*;

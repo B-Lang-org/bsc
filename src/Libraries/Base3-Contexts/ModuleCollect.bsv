@@ -7,7 +7,6 @@ export getCollection;
 export IWithCollection(..);
 export exposeCollection;
 */
-import List::*;
 import ModuleContext::*;
 import UnitAppendList::*;
 import HList::*;
