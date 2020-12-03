@@ -964,16 +964,14 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                      | CField {cf_name=fn, cf_type=fty} <- fs]] []
         inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
 
--- Things to derive on generic rep higher-rank wrapper structs
-repWrapRequiredClasses :: [Id]
-repWrapRequiredClasses = [idUndefined]
-
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
-  Right [Cstruct True SStruct (IdK i) vs fields []] :
-  -- Call doStructDer directly rather than generating a struct with derivs,
-  -- since we are already passed the deriving stage.
-  map (doStructDer r packageid [] i ty_vars fields) (map CTypeclass repWrapRequiredClasses)
+  [Right [Cstruct True SStruct (IdK i) vs fields []],
+   -- Need to generate an instance of PrimMakeUndefined for the wrapper, for use by ConcPoly instance
+   Right [Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
+           [CLValue idMakeUndefinedNQ
+             [CClause [CPVar id_x, CPVar id_y] []
+               (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
   where vs = map (getTyVarId . head . tv) ty_vars
         fields =
           [CField {cf_name = id_val,
