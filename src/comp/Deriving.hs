@@ -920,7 +920,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
         fieldWrapName fn = mkId dpos $ concatFString [getIdBase i, mkFString "_", getIdBase fn]
 
         preds = concat [ps | CField {cf_type=fty@(CQType ps _)} <- fs, not $ fieldHigherRank fty]
-        
+
         wrapDcls = concat [mkGenericRepWrap r packageid dpos (fieldWrapName fn) vs fty
                           | CField {cf_name=fn, cf_type=fty} <- fs, fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
@@ -966,7 +966,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
 
 -- Things to derive on generic rep higher-rank wrapper structs
 repWrapRequiredClasses :: [Id]
-repWrapRequiredClasses = []
+repWrapRequiredClasses = [idUndefined]
 
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =

@@ -829,6 +829,8 @@ instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
 instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
+instance PrimDeepSeqCond' (ConcPoly a) where
+  primDeepSeqCond' _ = id
 
 --@ \begin{libverbatim}
 --@ instance Monad #(ActionValue);
@@ -3740,7 +3742,7 @@ primitive primMakeRawUninitialized :: Position__ -> String -> a
 instance PrimMakeUninitialized (a -> b) where
    primMakeUninitialized = primMakeRawUninitialized
 
--- Default generic instance covers data and structs that don't have higher-rank fields
+-- Default generic instance covers data and structs
 instance (Generic a r, PrimMakeUninitialized' a r) => PrimMakeUninitialized a where
   primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: r) pos f
 
@@ -3761,8 +3763,8 @@ class PrimMakeUninitialized'' r where
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
   primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
 
-instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPoly a) where
-  primMakeUninitialized'' _ pos f = ConcPoly $ primUninitialized pos f
+instance PrimMakeUninitialized'' (ConcPoly a) where
+  primMakeUninitialized'' _ pos f = ConcPoly $ primMakeRawUninitialized pos f
 
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
   primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
@@ -3873,7 +3875,7 @@ instance PrimMakeUndefined Rules where
 instance PrimMakeUndefined (Array a) where
    primMakeUndefined = primMakeRawUndefined
 
--- Default generic instance covers data and structs that don't have higher-rank fields
+-- Default generic instance covers data and structs
 instance (Generic a r, PrimMakeUndefined' a r) => PrimMakeUndefined a where
   primMakeUndefined pos i = primMakeUndefined' ((error "proxy") :: r) pos i
 
@@ -3899,7 +3901,7 @@ instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
 
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (ConcPoly a) where
-  primMakeUndefined'' pos i = ConcPoly $ primBuildUndefined pos i
+  primMakeUndefined'' pos i = ConcPoly $ primMakeUndefined pos i
 
 instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta m a) where
   primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
