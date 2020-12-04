@@ -1,6 +1,6 @@
 module Deriving(derive) where
 
-import Data.List(nub, intercalate, transpose)
+import Data.List(nub, intercalate)
 import Util(log2, checkEither, toMaybe, headOrErr, lastOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
@@ -755,7 +755,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
         tvset = S.fromList (tv ty)
 
         fieldHigherRank :: CQType -> Bool
-        fieldHigherRank fty = not $ ty_tvset r fty `S.isSubsetOf` tvset
+        fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
         fieldWrapName :: Id -> Id -> Id
         fieldWrapName cn fn = mkId dpos $ concatFString [
@@ -914,7 +914,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
         tvset = S.fromList (tv ty)
 
         fieldHigherRank :: CQType -> Bool
-        fieldHigherRank fty = not $ ty_tvset r fty `S.isSubsetOf` tvset
+        fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
         fieldWrapName :: Id -> Id
         fieldWrapName fn = mkId dpos $ concatFString [getIdBase i, mkFString "_", getIdBase fn]
@@ -1182,21 +1182,6 @@ duplicate_tag_encoding_error type_name tag rest_tags
               [(getPosition next_tag, pfpString (getCISName next_tag))
                | next_tag <- rest_tags,
                  cis_tag_encoding next_tag == cis_tag_encoding tag]
-
-ty_tvset :: SymTab -> CQType -> S.Set TyVar
-ty_tvset r (CQType ps fty) =
-  -- The set of free type vars in a field are the free type vars in its type,
-  -- minus the ones that are totally determined by the functional dependenices
-  -- in the field's contexts.
-  S.fromList (tv fty) `S.difference`
-    S.unions [case findSClass r c of
-                 Just (Class {funDeps=fds}) ->
-                   -- For now, just treat as fully determined those types that
-                   -- are determined in every possible fun dep.
-                   S.unions $ map (S.fromList . tv . snd) $
-                   filter fst $ zip (map and $ transpose fds) tas
-                 Nothing -> internalError ("ty_tvset didn't find class " ++ ppReadable c)
-             | CPred c tas <- ps]
 
 addRequiredDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
