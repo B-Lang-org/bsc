@@ -1,0 +1,74 @@
+package CShow where
+
+import ListN
+import Vector
+
+{-
+ - Classic (Haskell)-syntax version of FShow, using generics.
+ -}
+
+class CShow a where
+  cshow :: a -> Fmt
+  cshowP :: a -> Fmt
+  cshowP = cshow
+
+instance CShow (UInt a) where
+  cshow = fshow
+
+instance CShow Bool where
+  cshow = fshow
+
+instance (Generic a r, CShow' r) => CShow a where
+  cshow x = cshow' $ from x
+  cshowP x = cshowP' $ from x
+
+class incoherent CShow' a where
+  cshow' :: a -> Fmt
+  cshowP' :: a -> Fmt
+  cshowP' = cshow'
+
+instance (CShow a) => CShow' (Conc a) where
+  cshow' (Conc x) = cshow x
+  cshowP' (Conc x) = cshowP x
+
+instance (CShow' a) => CShow' (Meta m a) where
+  cshow' (Meta x) = cshow' x
+  cshowP' (Meta x) = cshowP' x
+
+instance (CShow' a, CShow' b) => CShow' (Either a b) where
+  cshow' (Left x) = cshow' x
+  cshow' (Right x) = cshow' x
+  cshowP' (Left x) = cshowP' x
+  cshowP' (Right x) = cshowP' x
+
+instance (CShowSummand a) => CShow' (Meta (MetaConsNamed name idx nfields) a) where
+  cshow' (Meta x) = $format (stringOf name) " {" (cshowSummandNamed x) "}"
+  cshowP' x = $format "(" (cshow' x) ")"
+
+instance (CShowSummand a) => CShow' (Meta (MetaConsAnon name idx nfields) a) where
+  cshow' (Meta x) = $format (stringOf name) (cshowSummandAnon x)
+  cshowP' x = if (valueOf nfields) > 0 then $format "(" (cshow' x) ")" else cshow' x
+
+class CShowSummand a where
+  cshowSummandNamed :: a -> Fmt
+  cshowSummandAnon  :: a -> Fmt
+
+instance (CShowSummand a, CShowSummand b) => CShowSummand (a, b) where
+  cshowSummandNamed (x, y) = $format (cshowSummandNamed x) (cshowSummandNamed y)
+  cshowSummandAnon  (x, y) = $format (cshowSummandAnon x) (cshowSummandAnon y)
+
+instance CShowSummand () where
+  cshowSummandNamed () = $format ""
+  cshowSummandAnon  () = $format ""
+
+instance (CShow' a) => CShowSummand (Meta (MetaField name idx) a) where
+  cshowSummandNamed (Meta x) = $format (if valueOf idx > 0 then "; " else "") (stringOf name) "=" (cshow' x)
+  cshowSummandAnon  (Meta x) = $format " " (cshowP' x)
+
+instance (CShow' a) => CShow' (Vector n a) where
+  cshow' v =
+    let contents =
+          if valueOf n > 0
+          then List.foldr1 (\ a b -> $format a ", " b) $ List.map cshow' $ Vector.toList v
+          else $format ""
+    in $format "[" contents "]"

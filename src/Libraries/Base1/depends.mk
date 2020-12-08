@@ -5,6 +5,7 @@
 $(BUILDDIR)/ActionSeq.bo:	ActionSeq.bs $(BUILDDIR)/List.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Array.bo:	Array.bsv $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Assert.bo:	Assert.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/CShow.bo:	CShow.bs $(BUILDDIR)/ListN.bo $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Clocks.bo:	Clocks.bsv $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/ConfigReg.bo:	ConfigReg.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Connectable.bo:	Connectable.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/ListN.bo $(BUILDDIR)/Inout.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
@@ -18,7 +19,7 @@ $(BUILDDIR)/FIFOLevel.bo:	FIFOLevel.bsv $(BUILDDIR)/FIFOF_.bo $(BUILDDIR)/GetPut
 $(BUILDDIR)/FShow.bo:	FShow.bsv $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/FoldFIFO.bo:	FoldFIFO.bs $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/FoldFIFOF.bo:	FoldFIFOF.bs $(BUILDDIR)/FIFOF.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
-$(BUILDDIR)/Fork.bo:	Fork.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/List.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
+$(BUILDDIR)/Fork.bo:	Fork.bs $(BUILDDIR)/Vector.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/GetPut.bo:	GetPut.bs $(BUILDDIR)/FIFO.bo $(BUILDDIR)/FIFOF.bo $(BUILDDIR)/Connectable.bo $(BUILDDIR)/Clocks.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/Inout.bo:	Inout.bsv $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
 $(BUILDDIR)/LevelFIFO.bo:	LevelFIFO.bsv $(BUILDDIR)/FIFOLevel.bo $(BUILDDIR)/Prelude.bo $(BUILDDIR)/PreludeBSV.bo
