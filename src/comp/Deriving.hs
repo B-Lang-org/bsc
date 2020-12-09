@@ -561,6 +561,11 @@ doDBits dpos type_name type_vars original_tags tags =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
+            -- Because our Boolean optimizations are good, the special last clause
+            -- adds overhead without any benefit for the two-constructor case.
+            -- This lines up with our special treatment if "boolean-like" constructors
+            -- in improveIf in IExpand.
+            | num_tags == 2 = zipWith mkPk tags field_bit_sizes
             | otherwise = zipWith mkPk tags field_bit_sizes ++ [packLast]
         mkPk tag field_sz =
             CClause [CPCon1 type_name (getCISName tag) (CPVar id_x)] []
