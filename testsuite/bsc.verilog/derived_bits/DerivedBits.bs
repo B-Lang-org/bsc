@@ -49,9 +49,9 @@ data Alt1 = A0
           | D1
   deriving(Bits)
 
-{-# verilog altReg1 #-}
-altReg1 :: Module (Reg Alt1)
-altReg1 =
+{-# verilog alt1Reg #-}
+alt1Reg :: Module (Reg Alt1)
+alt1Reg =
   module
     r <- mkRegU
     return r
@@ -87,9 +87,9 @@ data Alt1a = A0
            | C1
   deriving(Bits)
 
-{-# verilog altReg1a #-}
-altReg1a :: Module (Reg Alt1a)
-altReg1a =
+{-# verilog alt1aReg #-}
+alt1aReg :: Module (Reg Alt1a)
+alt1aReg =
   module
     r <- mkRegU
     return r
@@ -121,9 +121,9 @@ data Alt2
     | D
     deriving (Bits)
 
-{-# verilog altReg2 #-}
-altReg2 :: Module (Reg Alt2)
-altReg2 =
+{-# verilog alt2Reg #-}
+alt2Reg :: Module (Reg Alt2)
+alt2Reg =
   module
     r <- mkRegU
     return r
@@ -155,9 +155,9 @@ data Alt3
     deriving (Bits)
 
 
-{-# verilog altReg3 #-}
-altReg3 :: Module (Reg Alt3)
-altReg3 =
+{-# verilog alt3Reg #-}
+alt3Reg :: Module (Reg Alt3)
+alt3Reg =
   module
     r <- mkRegU
     return r
@@ -187,9 +187,9 @@ data Tag4 = A | B | C | D
 data Alt4 = Alt4 (Tag4, Bit 1)
   deriving(Bits)
 
-{-# verilog altReg4 #-}
-altReg4 :: Module (Reg Alt4)
-altReg4 =
+{-# verilog alt4Reg #-}
+alt4Reg :: Module (Reg Alt4)
+alt4Reg =
   module
     r <- mkRegU
     return r
@@ -220,9 +220,9 @@ data Alt5
     | D
     deriving (Bits)
 
-{-# verilog altReg5 #-}
-altReg5 :: Module (Reg Alt5)
-altReg5 =
+{-# verilog alt5Reg #-}
+alt5Reg :: Module (Reg Alt5)
+alt5Reg =
   module
     r <- mkRegU
     return r
@@ -252,9 +252,9 @@ data Alt6
     | C (Bit 1)
     deriving (Bits)
 
-{-# verilog altReg6 #-}
-altReg6 :: Module (Reg Alt6)
-altReg6 =
+{-# verilog alt6Reg #-}
+alt6Reg :: Module (Reg Alt6)
+alt6Reg =
   module
     r <- mkRegU
     return r

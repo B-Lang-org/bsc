@@ -1,9 +1,9 @@
 compile_verilog_pass DerivedBits.bs "" "-opt-undetermined-vals"
 
 # Testing that pack . unpack optimizes to the identity using registers.
-compare_verilog altReg1.v
-compare_verilog altReg1a.v
-compare_verilog altReg4.v
+compare_verilog alt1Reg.v
+compare_verilog alt1aReg.v
+compare_verilog alt4Reg.v
 
 # Optimizing tag tests without injecting chains of != comparisons.
 compare_verilog alt1Test.v

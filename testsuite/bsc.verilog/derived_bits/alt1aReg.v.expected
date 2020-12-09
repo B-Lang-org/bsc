@@ -29,7 +29,7 @@
   `define BSV_RESET_EDGE negedge
 `endif
 
-module altReg1a(CLK,
+module alt1aReg(CLK,
 		RST_N,
 
 		_write_1,
@@ -86,5 +86,5 @@ module altReg1a(CLK,
   end
   `endif // BSV_NO_INITIAL_BLOCKS
   // synopsys translate_on
-endmodule  // altReg1a
+endmodule  // alt1aReg
 
