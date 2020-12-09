@@ -597,7 +597,7 @@ doDBits dpos type_name type_vars original_tags tags =
             -- if there's only one, unpack the contents
             | num_tags == 1 = [CClause [CPVar id_x] [] (CCon1 type_name (getCISName (headOrErr "doDBits" tags))
                                                   (cVApply idUnpack [vx]))]
-             | otherwise = [CClause [CPVar id_x] []
+            | otherwise = [CClause [CPVar id_x] []
                             (monoDef id_y (cVApply idPrimSplit [vx]) $
                              Ccase dpos
                                    (hasSz (CSelectTT idPrimPair vy idPrimFst)
