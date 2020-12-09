@@ -1,6 +1,13 @@
 -- Tests to explore the compiler's output for derived Bits instances.
 package DerivedBits where
 
+{-# verilog maybeReg #-}
+maybeReg :: Module (Reg (Maybe (Bit 17)))
+maybeReg =
+  module
+    r <- mkRegU
+    return r
+
 interface TestTags =
   isA :: Bool
   isB :: Bool
@@ -16,6 +23,13 @@ data Orig = A (Bit 1)
 {-# verilog origReg #-}
 origReg :: Module (Reg Orig)
 origReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeOrigReg #-}
+maybeOrigReg :: Module (Reg (Maybe Orig))
+maybeOrigReg =
   module
     r <- mkRegU
     return r
@@ -52,6 +66,13 @@ data Alt1 = A0
 {-# verilog alt1Reg #-}
 alt1Reg :: Module (Reg Alt1)
 alt1Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeAlt1Reg #-}
+maybeAlt1Reg :: Module (Reg (Maybe Alt1))
+maybeAlt1Reg =
   module
     r <- mkRegU
     return r
@@ -94,6 +115,13 @@ alt1aReg =
     r <- mkRegU
     return r
 
+{-# verilog maybeAlt1aReg #-}
+maybeAlt1aReg :: Module (Reg (Maybe Alt1a))
+maybeAlt1aReg =
+  module
+    r <- mkRegU
+    return r
+
 {-# verilog alt1aTest #-}
 alt1aTest :: Module TestTags
 alt1aTest =
@@ -124,6 +152,13 @@ data Alt2
 {-# verilog alt2Reg #-}
 alt2Reg :: Module (Reg Alt2)
 alt2Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeAlt2Reg #-}
+maybeAlt2Reg :: Module (Reg (Maybe Alt2))
+maybeAlt2Reg =
   module
     r <- mkRegU
     return r
@@ -162,6 +197,13 @@ alt3Reg =
     r <- mkRegU
     return r
 
+{-# verilog maybeAlt3Reg #-}
+maybeAlt3Reg :: Module (Reg (Maybe Alt3))
+maybeAlt3Reg =
+  module
+    r <- mkRegU
+    return r
+
 {-# verilog alt3Test #-}
 alt3Test :: Module TestTags
 alt3Test =
@@ -190,6 +232,13 @@ data Alt4 = Alt4 (Tag4, Bit 1)
 {-# verilog alt4Reg #-}
 alt4Reg :: Module (Reg Alt4)
 alt4Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeAlt4Reg #-}
+maybeAlt4Reg :: Module (Reg (Maybe Alt4))
+maybeAlt4Reg =
   module
     r <- mkRegU
     return r
@@ -227,6 +276,13 @@ alt5Reg =
     r <- mkRegU
     return r
 
+{-# verilog maybeAlt5Reg #-}
+maybeAlt5Reg :: Module (Reg (Maybe Alt5))
+maybeAlt5Reg =
+  module
+    r <- mkRegU
+    return r
+
 {-# verilog alt5Test #-}
 alt5Test :: Module TestTags
 alt5Test =
@@ -255,6 +311,13 @@ data Alt6
 {-# verilog alt6Reg #-}
 alt6Reg :: Module (Reg Alt6)
 alt6Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeAlt6Reg #-}
+maybeAlt6Reg :: Module (Reg (Maybe Alt6))
+maybeAlt6Reg =
   module
     r <- mkRegU
     return r
@@ -298,9 +361,23 @@ c0Reg =
     r <- mkRegU
     return r
 
+{-# verilog maybeC0Reg #-}
+maybeC0Reg :: Module (Reg (Maybe C0))
+maybeC0Reg =
+  module
+    r <- mkRegU
+    return r
+
 {-# verilog c1Reg #-}
 c1Reg :: Module (Reg C1)
 c1Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog maybeC1Reg #-}
+maybeC1Reg :: Module (Reg (Maybe C1))
+maybeC1Reg =
   module
     r <- mkRegU
     return r

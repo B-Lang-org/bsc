@@ -5,6 +5,12 @@ compare_verilog alt1Reg.v
 compare_verilog alt1aReg.v
 compare_verilog alt4Reg.v
 
+# Testing that pack . unpack optimization works for Maybes.
+compare_verilog maybeReg.v
+compare_verilog maybeAlt1Reg.v
+compare_verilog maybeAlt1aReg.v
+compare_verilog maybeAlt4Reg.v
+
 # Optimizing tag tests without injecting chains of != comparisons.
 compare_verilog alt1Test.v
 compare_verilog alt1aTest.v
