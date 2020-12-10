@@ -988,13 +988,13 @@ iTrAp ctx p@(ICon _ (ICPrim _ PrimConcat)) ts@[s1@(ITNum i1), s2@(ITNum i2), s3@
 
     -- (if c thn _) ++ e --> thn ++ e
     [IAps (ICon _ (ICPrim _ PrimIf)) _ [_, thn, els], e]
-      | isUndet thn -> iTrAp2 ctx p ts [els, e]
-      | isUndet els -> iTrAp2 ctx p ts [thn, e]
+      | isUndet thn && noRefs els -> iTrAp2 ctx p ts [els, e]
+      | isUndet els && noRefs thn -> iTrAp2 ctx p ts [thn, e]
 
     -- e ++ (if c thn _) --> e ++ thn
     [e, IAps (ICon _ (ICPrim _ PrimIf)) _ [_, thn, els]]
-      | isUndet thn -> iTrAp2 ctx p ts [e, els]
-      | isUndet els -> iTrAp2 ctx p ts [e, thn]
+      | isUndet thn && noRefs els -> iTrAp2 ctx p ts [e, els]
+      | isUndet els && noRefs thn -> iTrAp2 ctx p ts [e, thn]
 
     _ -> iTrApTail ctx p ts as
 
@@ -1344,6 +1344,12 @@ mkZero t = iMkLit (aitBit t) 0
 isUndet :: IExpr a -> Bool
 isUndet (ICon _ (ICUndet { imVal = Nothing })) = True
 isUndet _ = False
+
+-- Guard optimizations that are not valid in the presence of implicit conditions.
+noRefs :: IExpr a -> Bool
+noRefs (IRefT {})    = False
+noRefs (IAps f _ es) = all noRefs (f:es)
+noRefs _             = True
 
 isIfElseOfIConInt :: IExpr a -> Bool
 isIfElseOfIConInt (IAps (ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) =
