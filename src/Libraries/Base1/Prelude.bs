@@ -804,6 +804,11 @@ class coherent PrimDeepSeqCond a where
 instance PrimDeepSeqCond (a -> b) where
   primDeepSeqCond f b = primSeqCond f b
 
+-- Generic implementation of the PrimDeepSeqCond typeclass.
+-- For each constructor, fully evaluate the data structure. Do this by,
+-- for each constructor arg, calling primDeepSeqCond (if the type arguments
+-- are known), or primSeqCond (if they are not known) in which case the
+-- correct function is called at elaboation time.
 instance (Generic a r, PrimDeepSeqCond' r) => PrimDeepSeqCond a where
   primDeepSeqCond x = primDeepSeqCond' (from x)
 
@@ -829,6 +834,7 @@ instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
 instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
+-- Implicit conditions on polymorphic fields are ignored
 instance PrimDeepSeqCond' (ConcPoly a) where
   primDeepSeqCond' _ = id
 
@@ -3726,6 +3732,15 @@ countZerosMSB = compose countZerosLSB  reverseBits
 -- structure. When the type has a single constructor, we can build that
 -- structure, with uninitialized arguments (via calls to the typeclass member,
 -- not the primitive, in case the sub-types themselves have structure).
+-- The derived instance for structs is like for data types with a single
+-- constructor: a struct value is returned with uninitialized values in its
+-- fields. The uninitialized value of a field is created by calling the
+-- typeclass member, not the primitive, in case the field's type also has
+-- structure. The exception is when a field is polymorphic (has free type
+-- variables); in that case, the type of the uninitialized value won't be
+-- known until elaboration time, so we use `primUninitialized` to delay the
+-- decision until then. In the elaborator, `primUninitialized` becomes a
+-- simple call to `primMakeUninitialized`, of the appropriate type.
 class coherent PrimMakeUninitialized a where
    primMakeUninitialized :: Position__ -> String -> a
 
@@ -3804,6 +3819,22 @@ instance PrimMakeUninitialized'' () where
 -- structure. When the type has a single constructor, we can build that
 -- structure, with undefined arguments (via calls to the typeclass member,
 -- not the primitive, in case the sub-types themselves have structure).
+-- The derived instance for structs is like for data types with a single
+-- constructor: a struct value is returned with undefined values in its
+-- fields. The undefined value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
+-- The exception is when a field is polymorphic (has free type variables);
+-- in that case, the type of the undefined value won't be known until
+-- elaboration time, so we use `primBuildUndefined` to delay the decision
+-- until then. In the elaborator, `primBuildUndefined` becomes a simple
+-- call to `primMakeUndefined', of the appropriate type.
+-- Another exception is that structs with no fields have a derived instance
+-- that just returns `primMakeRawUndefined`. This is to avoid infinite
+-- recursion, because IConv uses `primBuildUndefined` to build values
+-- for empty structs (because IConv normalizes all constructors to take
+-- a single argument of a tuple, and presumably it's easier to use a
+-- don't-care value than to construct an empty tuple? and no one
+-- revisited this decision when `PrimMakeUndefined` was introduced?).
 class coherent PrimMakeUndefined a where
    primMakeUndefined :: Position__ -> Integer -> a
 
