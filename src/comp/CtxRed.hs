@@ -5,7 +5,7 @@ import Control.Monad(when)
 import PFPrint
 import Id
 import PreIds(tmpTyVarIds)
-import Error(internalError, EMsg, ErrorHandle, bsError)
+import Error(internalError, EMsg, ErrorHandle, bsWarning, bsError, ErrMsg(WExperimental))
 import Flags(Flags)
 import CSyntax
 import Type
@@ -26,18 +26,21 @@ doTraceCtxReduce :: Bool
 doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
 cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
-cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) =
+cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) = do
     -- ctxreduce should not match incoherent instances
     -- this will preserve contexts to be handled in typechecking
-    case fst (runTI flags False s (mapM ctxRed ds)) of
-    -- XXX This assumes no warnings in the Left case!  If we want to handle errors and
-    -- warnings better, return an ErrorMonad.
-    Left msgs -> bsError errh msgs
-    Right ds' -> return (CPackage mi exps imps fixs ds' includes)
+    let (res, wmsgs) = runTI flags False s (mapM ctxRed ds)
+    case wmsgs of
+      [] -> return ()
+      _ -> bsWarning errh wmsgs
+    case res of
+      Left emsgs -> bsError errh emsgs
+      Right ds' -> return (CPackage mi exps imps fixs ds' includes)
 
 cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =
-    -- see comment in cCtxReduceIO
+    -- XXX This assumes no warnings in the Left case!  If we want to handle errors and
+    -- warnings better, return an ErrorMonad.
     case fst (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
     Right t   -> Right t
@@ -363,6 +366,13 @@ ctxRedCQType = ctxRedCQType' False
 
 ctxRedCQType' :: Bool -> CQType -> TI (Subst, CQType)
 ctxRedCQType' isInstHead cqt = do
+
+    -- raise an experimental warning about uses of generics
+    let CQType cqs _ = cqt
+    case [p | p@(CPred {cpred_tc = CTypeclass i}) <- cqs,
+          unq_eqs i "Generic"] of
+      p : _ -> twarn (getPosition p, WExperimental "generics")
+      [] -> return ()
 
     -- find out what variables were bound prior to here
     prev_bound_tvs <- getBoundTVs
