@@ -291,6 +291,10 @@ if { $vtest == 1 } {
     if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "10.1" } {
         append ere { -e {/inherits dimensions from var/d}}
     }
+    # Silence deprication warning in iverilog 11.0 for now
+    if { $verilog_compiler == "iverilog" && $verilog_compiler_version == "11.0" } {
+        append ere { -e {/SFT files are deprecated/d}}
+    }
     sed $rawfile $filtfile $ere {}
     compare_file $filtfile empty.expected
 }
