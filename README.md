@@ -73,6 +73,29 @@ source-level values.
 
 ---
 
+## Community
+
+To receive announcements about BSC and related projects, subscribe to
+[b-lang-announce@groups.io](https://groups.io/g/b-lang-announce).
+
+For questions and discussion about BSC source, subscribe to the
+developers' mailing list [bsc-dev@groups.io](https://groups.io/g/bsc-dev).
+
+For any questions or discussion about Bluespec HDLs, using BSC, or
+related projects, subscribe to [b-lang-discuss@groups.io](https://groups.io/g/b-lang-discuss).
+
+IRC users might try joining the `#bluespec` channel on [FreeNode](https://freenode.net).
+
+There's also a [bluespec](https://stackoverflow.com/questions/tagged/bluespec)
+tag on StackOverflow.
+
+And we've enabled the [Discussions](https://github.com/B-Lang-org/bsc/discussions)
+tab in this GitHub repo.
+This is a new feature to support discussion within the project itself.
+Feel free to give it a try and see if it can be useful to our community.
+
+---
+
 ## Compiling BSC from source
 
 Binaries for the Bluespec toolchain are currently unavailable, so you must
