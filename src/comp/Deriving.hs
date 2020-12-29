@@ -698,7 +698,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                           | COriginalSummand {cos_names=cn:_, cos_arg_types=ftys,
                                               cos_field_names=mfns} <- ocs,
                             (fn, fty@(CQType ps _)) <-
-                              zip (fromMaybe [mk_homeless_id $ "_" ++ show (i :: Int)
+                              zip (fromMaybe [mk_dangling_id ("_" ++ show (i :: Int)) dpos
                                              | i <- [1..]] mfns) ftys,
                             fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
@@ -719,7 +719,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                      [cTStr (mkFString $ "_" ++ show (j + 1)) dpos, cTNum j dpos],
                      (if fieldHigherRank fty
                       then TAp (cTCon idConcPoly) $
-                       cTApplys (cTCon $ fieldWrapName cn $ mk_homeless_id $ "_" ++ show (j + 1)) vs
+                       cTApplys (cTCon $ fieldWrapName cn $ mk_dangling_id ("_" ++ show (j + 1)) dpos) vs
                       else TAp (cTCon idConc) ty)]
                    | (j, fty@(CQType _ ty)) <- zip [0..] ftys]]
                Just fns -> cTApplys (cTCon idMeta)
@@ -750,7 +750,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                  else CCon idConc [if isJust mfns || length ftys > 1
                                    then CSelect (CVar id_x) fn
                                    else CVar id_x]]
-               | (fn, fty) <- zip (fromMaybe [mk_homeless_id $ "_" ++ show (i :: Int)
+               | (fn, fty) <- zip (fromMaybe [mk_dangling_id ("_" ++ show (i :: Int)) dpos
                                              | i <- [1..]] mfns) ftys]
               ]]
           | (k, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
@@ -856,11 +856,14 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                      | CField {cf_name=fn, cf_type=fty} <- fs]] []
         inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
 
--- Build a wrapper struct for generic representation of a polymorphic field
+-- Build a wrapper struct for generic representation of a polymorphic field.
+-- Otherwise it isn't possible to handle such fields genericly, as the
+-- representation type would contain free polymorphic type variables.
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
   [Right [Cstruct True SStruct (IdK i) vs fields []],
-   -- Need to generate an instance of PrimMakeUndefined for the wrapper, for use by ConcPoly instance
+   -- Need to generate an instance of PrimMakeUndefined for the wrapper,
+   -- for use by the PrimMakeUndefined'' instance for ConcPoly
    Right [Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
            [CLValue idMakeUndefinedNQ
              [CClause [CPVar id_x, CPVar id_y] []

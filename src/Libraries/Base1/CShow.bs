@@ -24,6 +24,8 @@ instance (Generic a r, CShow' r) => CShow a where
   cshow x = cshow' $ from x
   cshowP x = cshowP' $ from x
 
+-- This class must be incoherent due to the more specific instances for
+-- (Meta (MetaConsNamed ...)) and (Meta (MetaConsAnon ...))
 class incoherent CShow' a where
   cshow' :: a -> Fmt
   cshowP' :: a -> Fmt

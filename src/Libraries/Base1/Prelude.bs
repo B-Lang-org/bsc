@@ -3732,7 +3732,7 @@ countZerosMSB = compose countZerosLSB  reverseBits
 -- structure. When the type has a single constructor, we can build that
 -- structure, with uninitialized arguments (via calls to the typeclass member,
 -- not the primitive, in case the sub-types themselves have structure).
--- The derived instance for structs is like for data types with a single
+-- The derived instance for structs is like the instnace for data types with a single
 -- constructor: a struct value is returned with uninitialized values in its
 -- fields. The uninitialized value of a field is created by calling the
 -- typeclass member, not the primitive, in case the field's type also has
@@ -4272,20 +4272,44 @@ class Generic a r | a -> r where
   from :: a -> r
   to :: r -> a
 
+-- Represents a regular field type in a Generic instance for a data/struct type.
 data Conc a = Conc a
   deriving (FShow)
+
+-- Represents a primitive type in a Generic instance for a primitive, this is
+-- seperate from Conc to avoid infinite recursion through an instance for Conc
+-- on the ' type class that defaults back to the non-generic one.
 data ConcPrim a = ConcPrim a
   deriving (FShow)
+
+-- Represents a higher-rank (polymorphic) field type in a Generic instance for
+-- a data/struct type.  Here a is a generated wrapper struct for the field type
+-- rather than the field type itself, since the latter is impossible to specify in
+-- a type class instance (for Generic.)
 data ConcPoly a = ConcPoly a
   deriving (FShow)
 
+-- Tags a representation type r with a metadata type m
 data Meta m r = Meta r
   deriving (FShow)
+
+-- Indicates that a representation is for a struct/data type with a name, package
+-- and number of constructors
 data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
   deriving (FShow)
+
+-- Indicates that a representation is for a constructor with named fields,
+-- with a name, index in the data's constructors, and number of fields
 data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
   deriving (FShow)
+
+-- Indicates that a representation is for a constructor with anonymous fields,
+-- with a name, index in the data's constructors, and number of fields
 data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
   deriving (FShow)
+
+-- Indicates that a representation is for a field, with a field name (either the
+-- given name for a named field or the generated field name for an anonymous
+-- field) and index in the constructor's fields
 data (MetaField :: $ -> # -> *) name idx = MetaField
   deriving (FShow)
