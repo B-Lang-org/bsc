@@ -14,7 +14,8 @@ INSTALL?=install -c
 RM = rm -f
 
 PREFIX?=$(TOP)/inst
-INSTALLDIR=$(PREFIX)/lib/$(INSTALL_NAME)
+LIBDIR?=$(PREFIX)/lib
+INSTALLDIR=$(LIBDIR)/$(INSTALL_NAME)
 
 .PHONY: all
 all: test

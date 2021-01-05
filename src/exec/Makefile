@@ -4,7 +4,8 @@ TOP:=$(PWD)/../..
 INSTALL?= install
 
 PREFIX?=$(TOP)/inst
-INSTALLDIR=$(PREFIX)/lib/exec
+LIBDIR?=$(PREFIX)/lib
+INSTALLDIR=$(LIBDIR)/exec
 
 .PHONY: install
 install:
