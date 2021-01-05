@@ -966,7 +966,8 @@ addRequiredDeriv flags r i tvs clsId derivs
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)
           -- Look for an instance where the first parameter is the specified type
-          -- and any remaining parameters are filled in with variables
+          -- and any remaining parameters are filled in with variables.
+          -- This is needed for Generic.
           vp <- mkVPredFromPred [] (IsIn cls $ t : (map TVar $ tail $ csig cls))
           -- if there is an existing undefined instance, the predicate will reduce
           mreduce <- reducePred [] Nothing vp
