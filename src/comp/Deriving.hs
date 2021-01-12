@@ -14,9 +14,9 @@ import PreIds(
               -- internal type fields
               idPrimFst, idPrimSnd,
               -- internal classes
-              idUndefined,
+              idClsUninitialized, idUndefined,
               -- internal class members
-              idMakeUndef, idBuildUndef,
+              idPrimMakeUninitialized, idPrimUninitialized, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
@@ -862,9 +862,13 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
   [Right [Cstruct True SStruct (IdK i) vs fields []],
-   -- Need to generate an instance of PrimMakeUndefined for the wrapper,
-   -- for use by the PrimMakeUndefined'' instance for ConcPoly
-   Right [Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
+   -- Need to generate instances of PrimMakeUninitialized and PrimMakeUndefined for the wrapper,
+   -- since the ConcPoly instances call to these through the evaluator primatives
+   Right [Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
+           [CLValue idMakeUninitializedNQ
+             [CClause [CPVar id_x, CPVar id_y] []
+               (CStruct i [(id_val, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
+          Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
            [CLValue idMakeUndefinedNQ
              [CClause [CPVar id_x, CPVar id_y] []
                (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
@@ -916,6 +920,8 @@ idMinBoundNQ :: Position -> Id
 idMinBoundNQ pos = setIdPosition pos (unQualId idMinBound)
 id_defaultValueNQ :: Id
 id_defaultValueNQ = unQualId id_defaultValue
+idMakeUninitializedNQ :: Id
+idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
 idFromNQ :: Id

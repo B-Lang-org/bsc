@@ -3770,16 +3770,20 @@ instance PrimMakeUninitialized' a r where
 class PrimMakeUninitialized'' r where
   primMakeUninitialized'' :: Bool -> Position__ -> String -> r
 
+-- The uninitialized value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
   primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
 
--- When a field is polymorphic (has free type variables),
--- the generated wrapper type used in the generic representation doesn't have
--- and instance of `PrimMakeUninitialized`, so we instead must use
--- `primMakeRawUninitialized`.
---
-instance PrimMakeUninitialized'' (ConcPoly a) where
-  primMakeUninitialized'' _ pos f = ConcPoly $ primMakeRawUninitialized pos f
+-- The exception to the above is when a field is polymorphic (has free type variables);
+-- in that case, the type of the uninitialized value won't be known until
+-- elaboration time.  The representation type here is a generated wrapper struct
+-- with a polymorphic field. This has a PrimMakeUninitialized instance that uses
+-- `primUninitialized` to delay the decision until elaboration time.
+-- In the elaborator, `primUninitialized` becomes a simple
+-- call to `primMakeUninitialized', of the appropriate type.
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPoly a) where
+  primMakeUninitialized'' _ pos f = ConcPoly $ primMakeUninitialized pos f
 
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
   primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
@@ -3803,6 +3807,7 @@ instance PrimMakeUninitialized'' () where
 
 
 -- make an undefined value with a position and kind
+--
 -- See the comment on 'PrimMakeUninitialized` about how BSV's sequential
 -- syntax is implemented as nested let-expressions, and how we can optimize
 -- the work in each re-assignment by constructing data structures once at
@@ -3814,21 +3819,6 @@ instance PrimMakeUninitialized'' () where
 -- The polymorphic function 'primMakeRawUndefined' is the primitive, and
 -- `PrimMakeUndefined' is the typeclass, with 'primMakeUndefined' as its
 -- member function.
-
-The undefined value of a field is created by calling the typeclass
--- member, not the primitive, in case the field's type also has structure.
--- The exception is when a field is polymorphic (has free type variables);
--- in that case, the type of the undefined value won't be known until
--- elaboration time, so we use `primBuildUndefined` to delay the decision
--- until then. In the elaborator, `primBuildUndefined` becomes a simple
--- call to `primMakeUndefined', of the appropriate type.
--- Another exception is that structs with no fields have a derived instance
--- that just returns `primMakeRawUndefined`. This is to avoid infinite
--- recursion, because IConv uses `primBuildUndefined` to build values
--- for empty structs (because IConv normalizes all constructors to take
--- a single argument of a tuple, and presumably it's easier to use a
--- don't-care value than to construct an empty tuple? and no one
--- revisited this decision when `PrimMakeUndefined` was introduced?).
 --
 class coherent PrimMakeUndefined a where
    primMakeUndefined :: Position__ -> Integer -> a
@@ -3925,16 +3915,24 @@ instance (PrimMakeUndefined a) => PrimMakeUndefined' a (ConcPrim a) where
 -- The instance for types with multiple constructors just returns
 -- `primMakeRawUndefined` because we don't know any more about the
 -- structure.
---
 instance PrimMakeUndefined' a r where
   primMakeUndefined' _ = primMakeRawUndefined
 
 class PrimMakeUndefined'' r where
   primMakeUndefined'' :: Position__ -> Integer -> r
 
+-- The undefined value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
   primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
 
+-- The exception to the above is when a field is polymorphic (has free type variables);
+-- in that case, the type of the undefined value won't be known until
+-- elaboration time.  The representation type here is a generated wrapper struct
+-- with a polymorphic field. This has a PrimMakeUndefined instance that uses
+-- `primBuildUndefined` to delay the decision until elaboration time.
+-- In the elaborator, `primBuildUndefined` becomes a simple
+-- call to `primMakeUndefined', of the appropriate type.
 instance (PrimMakeUndefined a) => PrimMakeUndefined'' (ConcPoly a) where
   primMakeUndefined'' pos i = ConcPoly $ primMakeUndefined pos i
 
