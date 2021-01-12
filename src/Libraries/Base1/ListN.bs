@@ -1029,5 +1029,5 @@ mapPairs f g (L xs) = L (List.mapPairs f g xs)
 
 -- The generic representation of a ListN is a vector of generic representations
 instance Generic (ListN n a) (Meta (MetaData "ListN" "ListN" 1) (Vector n (Conc a))) where
-  from = Meta `compose` (Vector.map Conc) `compose` toVector `compose` toList
+  from l = Meta $ (Vector.map Conc) $ toVector $ toList l
   to (Meta v) = toListN $ Vector.toList $ Vector.map (\ Conc x -> x) v

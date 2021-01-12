@@ -1347,7 +1347,7 @@ instance (DefaultValue t) => DefaultValue (Vector n t)
 
 -- The generic representation of a vector is a vector of generic representations
 instance Generic (Vector n a) (Meta (MetaData "Vector" "Vector" 1) (Vector n (Conc a))) where
-  from = Meta `compose` map Conc
+  from v = Meta $ map Conc v
   to (Meta v) = map (\ Conc x -> x) v
 
 -- Generic implementations of primitive type classes for types with vector generic representations
