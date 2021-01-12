@@ -18,7 +18,7 @@ tMkPair :: Position -> Type -> Type -> Type
 tMkPair pos t1 t2 = TAp (TAp (cTCon (setIdPosition pos idPrimPair)) t1) t2
 
 tMkEitherChain :: Position -> [CType] -> Type
-tMkEitherChain pos [] = cTCon (setIdPosition pos idUninhab)
+tMkEitherChain pos [] = error "Either with no options"
 tMkEitherChain pos [t] = t
 tMkEitherChain pos (t:ts) = tMkEither pos t (tMkEitherChain pos ts)
 

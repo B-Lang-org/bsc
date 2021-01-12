@@ -391,7 +391,6 @@ fsValid            = mkFString "Valid"
 fsEither           = mkFString "Either"
 fsLeft             = mkFString "Left"
 fsRight            = mkFString "Right"
-fsUninhab          = mkFString "Uninhab"
 -- | Names used for tuple fields internally?
 fsTuples = map mkFString ["_"++ itos i | i <- [1..25::Int]]
 -- | Names exposed to the BSV user

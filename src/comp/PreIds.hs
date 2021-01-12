@@ -117,11 +117,10 @@ idInvalid = prelude_id_no fsInvalid
 idValid = prelude_id_no fsValid
 idEmpty = prelude_id_no fsEmptyIfc
 idFile = prelude_id_no fsFile
-idEither, idLeft, idRight, idUninhab :: Id
+idEither, idLeft, idRight :: Id
 idEither = prelude_id_no fsEither
 idLeft = prelude_id_no fsLeft
 idRight = prelude_id_no fsRight
-idUninhab = prelude_id_no fsUninhab
 
 idActionValue :: Id
 idActionValue = prelude_id_no fsActionValue
