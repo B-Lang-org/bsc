@@ -53,6 +53,11 @@ instance (CShowSummand a) => CShow' (Meta (MetaConsAnon name idx nfields) a) whe
   cshow' (Meta x) = $format (stringOf name) (cshowSummandAnon x)
   cshowP' x = if (valueOf nfields) > 0 then $format "(" (cshow' x) ")" else cshow' x
 
+-- Defines the classic-syntax show operation for the representation type of a
+-- single summand's constructor.
+-- We only know whether a constructor is named or anonymous at the top of the
+-- constructor's representation type, so we propagate that information by calling
+-- the appropriate function of this type class.
 class CShowSummand a where
   cshowSummandNamed :: a -> Fmt
   cshowSummandAnon  :: a -> Fmt
