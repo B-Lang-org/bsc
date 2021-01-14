@@ -4270,6 +4270,29 @@ instance (Literal t) => DefaultValue t where
 
 ------------------
 
+-- Support for datatype-generic functions
+--
+-- Inspired by GHC Generics:
+-- https://hackage.haskell.org/package/base-4.14.0.0/docs/GHC-Generics.html
+--
+-- By providing a facility (the 'Generic' typeclass below) for converting
+-- values of a datatype 'a' into a generic representation `r`, built from
+-- a limited set of type constructors, we allow users to overload functions
+-- for any representable type by writing only a few instances (for the
+-- limited set of constructors) along with a wrapper that maps between 'a'
+-- and 'r'.  A clear example of this can be found in the CShow library,
+-- where CShow is the wrapper and CShow' has instances for the type
+-- constructors.  The typeclasses PrimDeepSeqCond, PrimMakeUninitialized,
+-- and PrimMakeUndefined (with their associated prime'd typeclasses) are
+-- also examples, in this file.
+--
+-- BSC automatically derives an instance of 'Generic' for all types that
+-- don't have an explicit instance.  For libraries that export a type
+-- abstractly (without exporting its internals), an explicit instance is
+-- needed, to avoid exposing the internal implementation; see the 'Vector'
+-- library for an example of this.
+
+-- Representable types of kind *
 class Generic a r | a -> r where
   from :: a -> r
   to :: r -> a
