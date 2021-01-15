@@ -4297,7 +4297,16 @@ class Generic a r | a -> r where
   from :: a -> r
   to :: r -> a
 
--- Represents a regular field type in a Generic instance for a data/struct type.
+-- Sum types (e.g. data/unions) are represented by the type Either.
+
+-- Product types (e.g. structs/data constructors) are represented by types PrimPair/PrimUnit.
+
+-- Fixed-size collection types (e.g. Vector and ListN) are represented by the type Vector.
+
+-- Regular, non-representation types may only appear within a generic representation
+-- type when wrapped in one of the following "Conc" type constructors:
+
+-- Represents a regular element type in a Generic instance.
 data Conc a = Conc a
   deriving (FShow)
 
@@ -4307,19 +4316,21 @@ data Conc a = Conc a
 data ConcPrim a = ConcPrim a
   deriving (FShow)
 
--- Represents a higher-rank (polymorphic) field type in a Generic instance for
--- a data/struct type.  Here a is a generated wrapper struct for the field type
+-- Represents a higher-rank (polymorphic) field type in a derived Generic instance
+-- for a data/struct type.  Here 'a' is a generated wrapper struct for the field type
 -- rather than the field type itself, since the latter is impossible to specify in
 -- a type class instance (for Generic.)
 data ConcPoly a = ConcPoly a
   deriving (FShow)
 
--- Tags a representation type r with a metadata type m
+-- Tags a representation type 'r' with a metadata type 'm'
 data Meta m r = Meta r
   deriving (FShow)
 
--- Indicates that a representation is for a struct/data type with a name, package
--- and number of constructors
+-- The 'm' type in `Meta m r` must be one of the following types:
+
+-- Indicates that a representation is for a type (e.g. struct/data) with a name,
+-- package and number of constructors
 data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
   deriving (FShow)
 
