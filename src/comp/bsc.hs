@@ -377,11 +377,18 @@ compilePackage
     t <- dump errh flags t DFopparse dumpnames mop
 
     -- Generate a global symbol table
-    -- This is the second out of 3 times
-    -- note that mkSymTab requires that imports be topologically sorted
-    start flags DFsympostopparse
+    --
+    -- Later stages will introduce new symbols that will need to be added
+    -- to the symbol table.  Rather than worry about properly inserting
+    -- the new symbols, we just build the symbol table fresh each time.
+    -- So this is the first of several times that the table is built.
+    -- We can't delay the building of the table until after all symbols
+    -- are known, because these next stages need a table of the current
+    -- symbols.
+    --
+    start flags DFsyminitial
     symt00 <- mkSymTab errh mop
-    t <- dump errh flags t DFsympostopparse dumpnames symt00
+    t <- dump errh flags t DFsyminitial dumpnames symt00
 
     -- whether we are doing code generation for modules
     let generating = backend flags /= Nothing
@@ -410,6 +417,7 @@ compilePackage
     mder <- derive errh flags symt1 mfawrp
     t <- dump errh flags t DFderiving dumpnames mder
 
+    -- Rebuild the symbol table because Deriving added new instances
     start flags DFsympostderiving
     symt11 <- mkSymTab errh mder
     t <- dump errh flags t DFsympostderiving dumpnames symt11
@@ -419,10 +427,8 @@ compilePackage
     mctx <- cCtxReduceIO errh flags symt11 mder
     t <- dump errh flags t DFctxreduce dumpnames mctx
 
-    -- Generate new global symbol table
-    -- Third time's the charm!
-    -- XXX could reuse part of the old!
-    -- note that mkSymTab requires that imports be topologically sorted
+    -- Rebuild the symbol table because CtxReduce has possibly changed
+    -- the types of top-level definitions
     start flags DFsympostctxreduce
     symt <- mkSymTab errh mctx
     t <- dump errh flags t DFsympostctxreduce dumpnames symt

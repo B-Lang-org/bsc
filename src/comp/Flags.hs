@@ -195,7 +195,7 @@ data DumpFlag
         | DFparsed
         | DFimports
         | DFopparse
-        | DFsympostopparse
+        | DFsyminitial
         | DFsympostgenwrap
         | DFsympostderiving
         | DFsympostctxreduce
