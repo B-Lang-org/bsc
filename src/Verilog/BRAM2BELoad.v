@@ -42,6 +42,9 @@ module BRAM2BELoad(CLKA,
    input [DATA_WIDTH-1:0]         DIB;
    output [DATA_WIDTH-1:0]        DOB;
 
+`ifdef VIVADO
+   (* RAM_STYLE = "BLOCK" *)
+`endif
    reg [DATA_WIDTH-1:0]           RAM[0:MEMSIZE-1] /* synthesis syn_ramstyle="no_rw_check" */ ;
    reg [DATA_WIDTH-1:0]           DOA_R;
    reg [DATA_WIDTH-1:0]           DOA_R2;

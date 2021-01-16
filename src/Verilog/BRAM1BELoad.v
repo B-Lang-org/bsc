@@ -29,6 +29,9 @@ module BRAM1BELoad(CLK,
    input [DATA_WIDTH-1:0]         DI;
    output [DATA_WIDTH-1:0]        DO;
 
+`ifdef VIVADO
+   (* RAM_STYLE = "BLOCK" *)
+`endif
    reg [DATA_WIDTH-1:0]           RAM[0:MEMSIZE-1];
    reg [DATA_WIDTH-1:0]           DO_R;
    reg [DATA_WIDTH-1:0]           DO_R2;

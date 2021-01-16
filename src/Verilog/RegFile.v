@@ -45,6 +45,9 @@ module RegFile(CLK,
    input [addr_width - 1 : 0]  ADDR_5;
    output [data_width - 1 : 0] D_OUT_5;
 
+`ifdef VIVADO
+   (* RAM_STYLE = "DISTRIBUTED" *)
+`endif
    reg [data_width - 1 : 0]    arr[lo:hi];
 
 
