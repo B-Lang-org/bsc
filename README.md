@@ -107,6 +107,10 @@ The core of BSC is written in Haskell, with some libraries in C/C++.
 
 ### Install the Haskell compiler (GHC)
 
+Note: *If you prefer to build the Bluespec toolchain with the Haskell
+Stack project tool then skip down to the Additional Requirements
+section*
+
 You will need the standard Haskell compiler `ghc` which is available for Linux,
 macOS and Windows, along with some additional Haskell libraries. These are
 available as standard packages in most Linux distributions. For example, on
@@ -162,6 +166,7 @@ Beyond that, any version up to 8.10.1 (the latest at the time of writing) will
 work, since the source code has been written with extensive preprocessor macros
 to support every minor release since.
 
+
 ### Additional requirements
 
 For building and using the Bluespec Tcl shell (`bluetcl`),
@@ -213,6 +218,9 @@ the submodules later with a separate command:
 
 ### Build and test the toolchain
 
+Note: *The stack build tool can be used to avoid installing ghc
+system wide, see the next section for more details.*
+
 At the root of the repository:
 
     $ make all
@@ -235,6 +243,18 @@ An unoptimized, debug, or profiling build can be done using one of:
     $ make BSC_BUILD=PROF
 
 For more extensive testing, see the [bsc-testsuite] repository.
+
+### Installing with the Haskell Stack project management tool
+
+If you do not yet have the stack tool, then follow these instructions
+to install it.
+
+https://docs.haskellstack.org/en/stabcle/README/
+
+Once stack is installed, build and install the Bluespec toolchain:
+
+    $ make stack-install
+
 
 #### Choosing a Verilog simulator
 
