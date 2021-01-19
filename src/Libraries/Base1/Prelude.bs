@@ -830,7 +830,7 @@ instance PrimDeepSeqCond' () where
 instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
   primDeepSeqCond' (Conc x) = primDeepSeqCond x
 
-instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (ConcPrim a) where
+instance PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
 -- Implicit conditions on polymorphic fields are ignored
