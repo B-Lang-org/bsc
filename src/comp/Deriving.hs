@@ -863,7 +863,7 @@ mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Eithe
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
   [Right [Cstruct True SStruct (IdK i) vs fields []],
    -- Need to generate instances of PrimMakeUninitialized and PrimMakeUndefined for the wrapper,
-   -- since the ConcPoly instances call to these through the evaluator primatives
+   -- since the ConcPoly instances call to these through the evaluator primitives
    Right [Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
            [CLValue idMakeUninitializedNQ
              [CClause [CPVar id_x, CPVar id_y] []
