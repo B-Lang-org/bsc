@@ -51,6 +51,7 @@ import SymTab
 import TIMonad
 import TCMisc
 import FStringCompat
+import GenWrapUtils(addInternalProp)
 
 import qualified Data.Set as S
 
@@ -861,7 +862,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
 -- representation type would contain free polymorphic type variables.
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
-  [Right [Cstruct True SStruct (IdK i) vs fields []],
+  [Right [Cstruct True SStruct (IdK (addInternalProp i)) vs fields []],
    -- Need to generate instances of PrimMakeUninitialized and PrimMakeUndefined for the wrapper,
    -- since the ConcPoly instances call to these through the evaluator primitives
    Right [Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
