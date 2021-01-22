@@ -1,0 +1,21 @@
+package UndetComp(sysUndetComp) where
+
+{-# verilog sysUndetComp #-}
+sysUndetComp :: Module Empty
+sysUndetComp = module
+
+  r :: Reg (UInt 8) <- mkRegU
+
+  let y :: Int 13
+      y = if (r == 0) then 17
+          else if (r == 1) then _
+          else if (r == 2) then 23
+          else if (r == 3) then _
+          else if (r == 4) then 41
+          else if (r == 5) then 63
+          else _
+
+  rules
+     "seventeen": when y == 17 ==> $display "seventeen"
+     "twenty-three": when y == 23 ==> $display "twenty-three"
+     "forty-one": when y == 41 ==> $display "forty-one"

@@ -11,3 +11,19 @@ if { $vtest == 1 } {
     find_regexp sysUndetIf.v {assign d\$D\_IN \= p2 \? d \: i \;}
 }
 
+# Tests if-else-tree of constants simplification.
+if { $vtest == 1 } {
+    compile_verilog_pass UndetComp.bs
+    # Make sure 13-bit y values are optimized away.
+    string_does_not_occur sysUndetComp.v "13'd"
+
+    # Undefined values before the end currently trigger unnecessary != tests
+    # We should test:
+    # string_does_not_occur sysUndetComp.v "!="
+
+    # but until this is fixed check that the expected number are present:    
+    find_n_strings sysUndetComp.v  "!=" 2
+
+    # Note: This is 2, rather than the 3 not-equal comparisons that are actually
+    # in the file because of a bug with find_n_strings: https://github.com/B-Lang-org/bsc-testsuite/issues/21
+}
