@@ -4422,9 +4422,9 @@ improveIf f t cnd thn@(IAps ssp@(ICon _ (ICPrim _ PrimSetSelPosition)) ts1 [pos_
 -- mildly duplicates some work in doIf (isUndet thn)
 -- but the overlapping work for els has been moved here
 improveIf f t cnd thn els | ICon _ (ICUndet { iuKind = u }) <- thn,
-                            u == UNoMatch || u == UNotUsed || isSimpleType t = return (els, True)
+                            u == UNotUsed || isSimpleType t = return (els, True)
 improveIf f t cnd thn els | ICon _ (ICUndet { iuKind = u }) <- els,
-                            u == UNoMatch || u == UNotUsed || isSimpleType t = return (thn, True)
+                            u == UNotUsed || isSimpleType t = return (thn, True)
 improveIf f t cnd thn els = do
   when doTrans $ traceM ("improveIf: iTransform fallthrough: " ++ ppReadable (cnd, thn, els))
   errh <- getErrHandle
