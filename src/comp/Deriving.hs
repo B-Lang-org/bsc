@@ -689,7 +689,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
         fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
         fieldWrapName :: Id -> Id -> Id
-        fieldWrapName cn fn = mkId dpos $ concatFString [
+        fieldWrapName cn fn = addInternalProp $ mkId dpos $ concatFString [
           getIdBase i, mkFString "_", getIdBase cn, mkFString "_", getIdBase fn]
 
         preds = concat [ps | COriginalSummand {cos_arg_types=ftys} <- ocs,
@@ -810,7 +810,8 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
         fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
         fieldWrapName :: Id -> Id
-        fieldWrapName fn = mkId dpos $ concatFString [getIdBase i, mkFString "_", getIdBase fn]
+        fieldWrapName fn = addInternalProp $ mkId dpos $ concatFString [
+          getIdBase i, mkFString "_", getIdBase fn]
 
         preds = concat [ps | CField {cf_type=fty@(CQType ps _)} <- fs, not $ fieldHigherRank fty]
 
@@ -862,7 +863,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
 -- representation type would contain free polymorphic type variables.
 mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
 mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
-  [Right [Cstruct True SStruct (IdK (addInternalProp i)) vs fields []],
+  [Right [Cstruct True SStruct (IdK i) vs fields []],
    -- Need to generate instances of PrimMakeUninitialized and PrimMakeUndefined for the wrapper,
    -- since the ConcPoly instances call to these through the evaluator primitives
    Right [Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
