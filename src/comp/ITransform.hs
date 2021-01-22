@@ -877,7 +877,8 @@ iTrAp ctx e0@(ICon _ (ICPrim _ PrimEQ)) [ITNum 1] [e, ICon _ (ICInt { iVal = Int
         | i == 1    = (e, True)
         | otherwise = internalError ("conApN ==")
 
--- if b1 then c1 else if b2 then c2 else ... cn == c
+-- (if b1 then c1 else if b2 then c2 else ... cn) == c -->
+-- if b1 then (c1 == c) else if b2 then (c2 == c) ... (cn == c)
 -- (other direction is handled by the flip rule below)
 -- also can be applied to any op which has a 1-bit result
 -- (and possibly are heuristics for when it's worth applying to other ops)
@@ -1341,7 +1342,7 @@ isIfElseOfIConInt (IAps (ICon _ (ICPrim _ PrimIf)) [t] [cnd, thn, els]) =
         isIfElseOfIConInt' thn && isIfElseOfIConInt' els
     isIfElseOfIConInt' (ICon _ (ICValue { iValDef = e })) =
         isIfElseOfIConInt' e
-    isIfElseOfIConInt' e = isIConInt e
+    isIfElseOfIConInt' e = isIConInt e || isUndet e
 isIfElseOfIConInt (ICon _ (ICValue { iValDef = e })) = isIfElseOfIConInt e
 isIfElseOfIConInt _ = False
 
