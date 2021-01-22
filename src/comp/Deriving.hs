@@ -547,15 +547,18 @@ doDBits dpos type_name type_vars original_tags tags =
                 [CClause [CPCon1 type_name
                           (getCISName (headOrErr "doDBits" tags)) (CPVar id_x)] []
                  (cVApply idPack [vx])]
-            | otherwise = zipWith mkPk tags field_bit_sizes
-        mkPk tag field_sz =
-            CClause [CPCon1 type_name (getCISName tag) (CPVar id_x)] []
-                        (cVApply idPrimConcat
-                         [litSz (cis_tag_encoding tag), pkBody field_sz])
+            | otherwise = [CClause [CPVar id_x] [] (cVApply idPrimConcat [tag_expr, body_expr])]
+
+        tag_expr = hasSz (cVApply idPrimOrd [vx]) num_tag_bits_ctype
+        body_expr = Ccase decl_position vx $ zipWith mkArm tags field_bit_sizes
+
+        mkArm tag field_sz = CCaseArm { cca_pattern = CPCon1 type_name (getCISName tag) (CPVar id_x)
+                                      , cca_filters = []
+                                      , cca_consequent = pkBody field_sz
+                                      }
+
         pkBody sz = cVApply idPrimConcat [anyExprAt decl_position,
                                           hasSz (cVApply idPack [vx]) sz ]
-        litSz k = hasSz (CLit $ num_to_cliteral_at decl_position k)
-                  num_tag_bits_ctype
 
         unpack_function = CDef (idUnpackNQ dpos) unpack_type unpack_clauses
         unpack_type = CQType [] (packed_ctype `fn` unpacked_ctype)
