@@ -42,3 +42,14 @@ compare_verilog c0Test.v
 compare_verilog c1Test.v
 
 compare_verilog origTest.v
+
+# Test that pack . unpack optimizes away for enums (including non-contiguous)
+compile_verilog_pass DerivedEnums.bsv
+
+compare_verilog type1Reg.v
+compare_verilog type2Reg.v
+compare_verilog type3Reg.v
+
+compare_verilog type1Test.v
+compare_verilog type2Test.v
+compare_verilog type3Test.v
