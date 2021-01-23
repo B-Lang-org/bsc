@@ -655,7 +655,7 @@ lookupConType :: Flags -> Id -> Id -> SymTab -> (IType, (Integer, Integer))
 lookupConType flags ti c r =
         case findCon r c of
         Just xs -> let convs = [(iConvSc flags r sc, (m, n))
-                                | ConInfo ti' _ (_ :>: sc) m n <- xs,
+                                | ConInfo ti' _ (_ :>: sc) m n _ _ <- xs,
                                 qualEq ti ti']
                    in  case convs of
                        [x] -> x

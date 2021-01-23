@@ -460,13 +460,13 @@ findCons ct i = do
     -- traceM ("findCons: " ++ show (ct,i))
     r <- getSymTab
     case findConVis r i of
-     Just [ConInfo ti _ a _ _] -> return (updAssumpPos i a, ti)
+     Just [ConInfo ti _ a _ _ _ _] -> return (updAssumpPos i a, ti)
      Just cs -> do
         s <- getSubst
         let ct' = apSub s ct
         case leftCon (expandSyn ct') of
          Nothing -> errorAtId (EConstrAmb (pfpString ct')) i
-         Just di -> case [ a | ConInfo i' _ a _ _ <- cs, qualEq di i'] of
+         Just di -> case [ a | ConInfo i' _ a _ _ _ _ <- cs, qualEq di i'] of
                    [a] -> return (updAssumpPos i a, di)
                    []  -> errorAtId EUnboundCon i
                    _   -> internalError "findCons ambig"
