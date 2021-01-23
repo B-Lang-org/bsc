@@ -35,7 +35,7 @@ import PreIds(
               -- functions
               idPrintType,
               idPrimError,
-              idPrimUnit, idPrimUnitAt,
+              idPrimUnitAt,
               idFalse, idTrue, idNot, idAnd,
               idPrimOrd, idPrimChr,
               idPrimSplit, idPrimConcat, idPrimTrunc,
@@ -339,7 +339,10 @@ doDEq dpos i vs ocs cs = Cinstance (CQType ctx (TAp (cTCon idEq) ty)) [eq, ne]
                        [CCaseArm { cca_pattern = CPAny noPosition,
                                    cca_filters = [],
                                    cca_consequent = eFalse }])
-        sz = cTNum (log2 (length ocs)) tpos
+        -- max tag: the highest tag encoding
+        max_tag | null cs = 0
+                | otherwise = foldr1 max $ map cis_tag_encoding cs
+        sz = cTNum (log2 $ max_tag + 1) tpos
         gen :: COriginalSummand -> CCaseArm
         gen cos =
             CCaseArm { cca_pattern = CPCon1 i cn (CPVar id_x1),
@@ -447,7 +450,6 @@ doDBits dpos enum_name type_vars original_tags tags
         -- highest tag encoding
         max_tag | null tags = 0
                 | otherwise = foldr1 max [cis_tag_encoding tag | tag <- tags]
-        is_contiguous = contiguousTags tags
         -- # of bits required to represent the tag (i.e., the enum type)
         num_bits_ctype = cTNum (log2 (max_tag + 1)) (getPosition enum_name)
         -- packed_ctype: Bit n (n bits required to represent the enum)
@@ -455,29 +457,12 @@ doDBits dpos enum_name type_vars original_tags tags
         pack_function =
             CDef (idPackNQ dpos) (CQType [] (unpacked_ctype `fn` packed_ctype))
             pack_body
-        -- pack optimized for [0, 1, ..] (better hardware)
-        pack_body | is_contiguous = [CClause [] [] (cVar idPrimOrd)]
-                  | otherwise = [mk_pack_clause tag | tag <- tags]
-        mk_pack_clause tag = -- clause for a specific tag
-            let unpacked_pattern =
-                    [CPCon1 enum_name (getCISName tag)
-                     (CPstruct (idPrimUnitAt (getPosition tag)) [])]
-                packed_expr =
-                    hasSz (CLit (num_to_cliteral_at (getPosition tag)
-                                 (cis_tag_encoding tag))) num_bits_ctype
-            in  CClause unpacked_pattern [] packed_expr
+        pack_body = [CClause [] [] (cVar idPrimOrd)]
         unpack_function =
             CDef (idUnpackNQ dpos) (CQType [] (packed_ctype `fn` unpacked_ctype))
                  unpack_body
         -- unpack optimized for [0, 1, ..] (better hardware)
-        unpack_body | is_contiguous = [CClause [] [] (cVar idPrimChr)]
-                    | otherwise = [mk_unpack_clause tag | tag <- tags]
-        mk_unpack_clause tag = -- clause for a specific tag
-            let packed_pattern = [CPLit (num_to_cliteral_at (getPosition tag)
-                                         (cis_tag_encoding tag))]
-                unpacked_expr =
-                    CCon1 enum_name (getCISName tag) (CStruct idPrimUnit [])
-            in  CClause packed_pattern [] unpacked_expr
+        unpack_body = [CClause [] [] (cVar idPrimChr)]
     in  -- instance Bits unpacked_ctype num_bits_ctype where ...
         Right $
         [Cinstance

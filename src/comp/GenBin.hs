@@ -23,7 +23,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = "bsc-20180813-1"
+header = "bsc-20210123-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -569,6 +569,16 @@ instance Bin (IExpr a) where
                      n -> internalError $ "GenBin.Bin(IExpr).readBytes: " ++ show n
 
 -- ----------
+-- Bin ConTagInfo
+
+instance Bin ConTagInfo where
+  writeBytes (ConTagInfo conNo numCon conTag tagSize) =
+    do toBin conNo; toBin numCon; toBin conTag; toBin tagSize
+  readBytes = do
+    conNo <- fromBin; numCon <- fromBin; conTag <- fromBin; tagSize <- fromBin
+    return $ ConTagInfo conNo numCon conTag tagSize
+
+-- ----------
 -- Bin IConInfo
 
 instance Bin (IConInfo a) where
@@ -578,9 +588,9 @@ instance Bin (IConInfo a) where
         do putI 2; toBin t; toBin n; toBin isC; toBin ps
     writeBytes (ICForeign { fcallNo = (Just _) }) =
         internalError "GenBin.Bin(IConInfo).writeBytes: ICForeign with cookie"
-    writeBytes (ICCon t i j)    = do putI 3; toBin t; toBin i; toBin j
-    writeBytes (ICIs t i j)     = do putI 4; toBin t; toBin i; toBin j
-    writeBytes (ICOut t i j)    = do putI 5; toBin t; toBin i; toBin j
+    writeBytes (ICCon t cti)    = do putI 3; toBin t; toBin cti
+    writeBytes (ICIs t cti)     = do putI 4; toBin t; toBin cti
+    writeBytes (ICOut t cti)    = do putI 5; toBin t; toBin cti
     writeBytes (ICTuple t is)   = do putI 6; toBin t; toBin is
     writeBytes (ICSel t i j)    = do putI 7; toBin t; toBin i; toBin j
     writeBytes (ICVerilog t ui v tss) =
@@ -632,9 +642,9 @@ instance Bin (IConInfo a) where
                               isC <- fromBin
                               ps <- fromBin
                               return (ICForeign t n isC ps Nothing)
-                     3  -> do i <- fromBin; j <- fromBin; return (ICCon t i j)
-                     4  -> do i <- fromBin; j <- fromBin; return (ICIs t i j)
-                     5  -> do i <- fromBin; j <- fromBin; return (ICOut t i j)
+                     3  -> do cti <- fromBin; return (ICCon t cti)
+                     4  -> do cti <- fromBin; return (ICIs t cti)
+                     5  -> do cti <- fromBin; return (ICOut t cti)
                      6  -> do is <- fromBin; return (ICTuple t is)
                      7  -> do i <- fromBin; j <- fromBin; return (ICSel t i j)
                      8  -> do ui <- fromBin

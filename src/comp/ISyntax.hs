@@ -6,6 +6,7 @@ module ISyntax(
         IKind(..),
         IType(..),
         IExpr(..),
+        ConTagInfo(..),
         IConInfo(..),
         IRules(..),
         IRule(..),
@@ -754,6 +755,16 @@ data PTerm a = PAtom (IExpr a)
              | PSel (IExpr a) Integer [Pred a]
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
+-- Collects constructor and tag metadata for ICCon, ICIs and ICOut
+--  e.g., data T = A T1 | B T2
+--  A expr -> ConTagInfo { conNo = 0, numCon = 2, conTag = 0, tagSize = 1 }
+data ConTagInfo = ConTagInfo { conNo :: Integer,  -- position of constructor
+                               numCon :: Integer, -- number of constructors
+                               conTag :: Integer, -- tag value when packed
+                               tagSize :: Integer -- bits required to represent tag
+                             }
+  deriving (Show, Generic.Data, Generic.Typeable)
+
 -- ==============================
 -- IConInfo
 
@@ -777,19 +788,15 @@ data IConInfo a =
                       foports :: Maybe ([(String, Integer)], [(String, Integer)]),
                       fcallNo :: Maybe Integer }
           -- constructor
-          --   conNo identifies which constructor is used, numCon how many constructors total
-          --  e.g., data T = A T1 | B T2
-          --  A expr -> ICCon { conNo = 0, numCon = 2 }
-        | ICCon { iConType :: IType, conNo :: Integer, numCon :: Integer }
+        | ICCon { iConType :: IType, conTagInfo :: ConTagInfo }
           -- function that tests whether its argument is the right kind of a constructor
-          --   conNo identifies which constructor is used, numCon how many constructors total
           --  eventually cancels out and turns into ICInt 0 (false) or 1 (true)
-        | ICIs { iConType :: IType, conNo :: Integer, numCon :: Integer }
+        | ICIs { iConType :: IType, conTagInfo :: ConTagInfo }
           -- function that projects the data associated with a particular constructor
           -- only used after doing appropriate ICIs, otherwise turns into _,
           --   which is "convenient for some transformations" (_s can be "optimized later")
           -- (used to bind variables in pattern matching)
-        | ICOut { iConType :: IType, conNo :: Integer, numCon :: Integer }
+        | ICOut { iConType :: IType, conTagInfo :: ConTagInfo  }
           -- tuple constructor
           -- fieldIds names fields of struct that turned into this tuple
         | ICTuple { iConType :: IType, fieldIds :: [Id] }
@@ -1250,8 +1257,8 @@ instance PPrint (IExpr a) where
     pPrint d p (ICon i (ICUndet t _ (Just v))) = text "_[" <> pPrint d maxPrec v <> text "]"
     pPrint d@PDReadable p (ICon i (ICDef _ _)) = ppId d i <> text "="
     pPrint d@PDReadable p (ICon i (ICVerilog { vInfo = vi })) = pparen True $ text "verilog" <+> pPrint d 0 vi
-    pPrint d@PDReadable p (ICon i (ICIs _ _ _)) = ppId d i <> text "?"
-    pPrint d@PDReadable p (ICon i (ICOut _ _ _)) = text "out" <> ppId d i
+    pPrint d@PDReadable p (ICon i (ICIs _ _)) = ppId d i <> text "?"
+    pPrint d@PDReadable p (ICon i (ICOut _ _)) = text "out" <> ppId d i
     pPrint d@PDReadable p (ICon i (ICSel _ _ _)) = text "." <> ppId d i
     pPrint d@PDReadable _ (ICon i (ICPrim _ p)) = text (show p)
     pPrint d@PDReadable _ (ICon i (ICIFace _ _ is)) = ppId d i <> text"{" <> sep (map (pPrint d 10) is) <> text "}"
@@ -1301,14 +1308,17 @@ instance Hyper (IExpr a) where
     hyper (ICon i ic) y = hyper2 i ic y
     hyper (IRefT t p _) y = hyper t y
 
+instance Hyper ConTagInfo where
+    hyper (ConTagInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
+
 instance Hyper (IConInfo a) where
 --    hyper (ICDef x1 x2) y = hyper2 x1 x2 y
     hyper ic@(ICDef x1 x2) y = y                        -- XXX a hack to avoid circular defs
     hyper (ICPrim x1 x2) y = hyper2 x1 x2 y
     hyper (ICForeign x1 x2 x3 x4 x5) y = hyper5 x1 x2 x3 x4 x5 y
-    hyper (ICCon x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICIs x1 x2 x3) y = hyper3 x1 x2 x3 y
-    hyper (ICOut x1 x2 x3) y = hyper3 x1 x2 x3 y
+    hyper (ICCon x1 x2) y = hyper2 x1 x2 y
+    hyper (ICIs x1 x2) y = hyper2 x1 x2 y
+    hyper (ICOut x1 x2) y = hyper2 x1 x2 y
     hyper (ICTuple x1 x2) y = hyper2 x1 x2 y
     hyper (ICSel x1 x2 x3) y = hyper3 x1 x2 x3 y
     hyper (ICVerilog x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
@@ -1527,9 +1537,9 @@ showTypelessCI :: IConInfo a -> String
 showTypelessCI (ICDef {iConType = t, iConDef = e}) = "(ICDef)"
 showTypelessCI (ICPrim {iConType = t, primOp = p}) = "(ICPrim _ " ++ (show p) ++ ")"
 showTypelessCI (ICForeign {iConType = t, fName = n, isC = b, foports = f}) = "(ICForeign _ " ++ n ++ " " ++ show b ++ " " ++ (show f) ++ ")"
-showTypelessCI (ICCon {iConType = t, conNo = i, numCon = j}) = "(ICCon _ " ++ (show i) ++ " " ++ (show j) ++ ")"
-showTypelessCI (ICIs {iConType = t, conNo = i, numCon = j}) = "(ICIs _ " ++ (show i) ++ " " ++ (show j) ++ ")"
-showTypelessCI (ICOut {iConType = t, conNo = i, numCon = j}) = "(ICOut _ " ++ (show i) ++ " " ++ (show j) ++ ")"
+showTypelessCI (ICCon {iConType = t, conTagInfo = cti}) = "(ICCon _ " ++ (show cti) ++ ")"
+showTypelessCI (ICIs {iConType = t, conTagInfo = cti}) = "(ICIs _ " ++ (show cti) ++ ")"
+showTypelessCI (ICOut {iConType = t, conTagInfo = cti}) = "(ICOut _ " ++ (show cti) ++ ")"
 showTypelessCI (ICTuple {iConType = t, fieldIds = fs}) = "(ICTuple _ " ++ (show fs) ++ ")"
 showTypelessCI (ICSel {iConType = t, selNo = i, numSel = j}) = "(ICSel _ " ++ (show i) ++ " " ++ (show j) ++ ")"
 showTypelessCI (ICVerilog {iConType = t, isUserImport = ui, vInfo = v, vMethTs = vts}) = "(ICVerilog _ " ++ {--(show v)--} "<vmodinfo>" ++ " [_])"

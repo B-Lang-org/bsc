@@ -36,7 +36,7 @@ updateITypePosition pos t@(ITStr _) = t
 
 updateIExprPosition2 :: Position -> IExpr a -> IExpr a
 updateIExprPosition2 pos (ILam i t e) = (ILam (setIdPosition pos i) t (updateIExprPosition pos e))
-updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICCon _ _ _)) ts [e0]) =
+updateIExprPosition2 pos iexpr@(IAps e@(ICon i (ICCon _ _)) ts [e0]) =
     if (not (isUsefulPosition (getIdPosition i)))
     then updateIExprPosition pos iexpr
     else iexpr
