@@ -2147,7 +2147,7 @@ evalBufferMode e = do
                          Just e_data -> do sz <- evalInt e_data
                                            return (Just sz)
                 return $ BlockBuffering msz
-        _ -> internalError("evalBufferMode: ICCon: " ++ show cti)
+        _ -> internalError("evalBufferMode: ICCon: " ++ ppReadable cti)
     _ -> nfError "evalBufferMode" e'
 
 evalMaybe :: HExpr -> G (Maybe HExpr)
@@ -2163,7 +2163,7 @@ evalMaybe e = do
       case (conNo cti) of
         0 -> return Nothing
         1 -> return (Just e_data)
-        _ -> internalError("evalMaybe: ICCon: " ++ show cti)
+        _ -> internalError("evalMaybe: ICCon: " ++ ppReadable cti)
     _ -> nfError "evalMaybe" e'
 
 evalInt :: HExpr -> G Int
