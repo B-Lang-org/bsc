@@ -482,6 +482,11 @@ getCons mi s data_decl@(Cdata { cd_internal_summands = summands }) = concat (zip
         getInfos summand m = map f_aux cns
           where cns = cis_names summand
                 -- make one for each constructor name
+                cti = ConTagInfo { conNo = m,
+                                   numCon = n,
+                                   conTag = cis_tag_encoding summand,
+                                   tagSize = tagSize
+                                 }
                 f_aux cn = (assump_id, info)
                   where assump_id = qual mi cn
                         cqt = CQType [] (cis_arg_type summand `fn` rt)
@@ -489,10 +494,7 @@ getCons mi s data_decl@(Cdata { cd_internal_summands = summands }) = concat (zip
                         info = ConInfo { ci_id = qual mi i,
                                          ci_visible = cd_visible data_decl,
                                          ci_assump = assump_id :>: sc,
-                                         ci_conNum = m,
-                                         ci_totalNum = n,
-                                         ci_conTag = cis_tag_encoding summand,
-                                         ci_tagSize = tagSize
+                                         ci_taginfo = cti
                                        }
 getCons _ _ _ = []
 

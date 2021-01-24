@@ -654,12 +654,7 @@ iTypeFieldTypeArity r ti c =
 lookupConType :: Flags -> Id -> Id -> SymTab -> (IType, ConTagInfo)
 lookupConType flags ti c r =
         case findCon r c of
-        Just xs -> let convs = [(iConvSc flags r sc,
-                                 ConTagInfo { conNo = ci_conNum ci,
-                                              numCon = ci_totalNum ci,
-                                              conTag = ci_conTag ci,
-                                              tagSize = ci_tagSize ci
-                                              })
+        Just xs -> let convs = [(iConvSc flags r sc, ci_taginfo ci)
                                 | ci@ConInfo { ci_assump = (_ :>: sc) } <- xs,
                                 qualEq ti (ci_id ci)]
                    in  case convs of

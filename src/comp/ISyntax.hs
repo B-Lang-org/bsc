@@ -97,6 +97,7 @@ import PreIds(idSizeOf, idId, idBind, idReturn, idPack, idUnpack, idMonad, idLif
 import Backend
 import Prim(PrimOp(..))
 import NumType
+import ConTagInfo
 import VModInfo(VModInfo, vArgs, vName, VName(..), {- VeriPortProp(..), -}
                 VArgInfo(..), VFieldInfo(..), isParam, VWireInfo)
 import Pragma(Pragma, PProp, RulePragma, ISchedulePragma,
@@ -755,16 +756,6 @@ data PTerm a = PAtom (IExpr a)
              | PSel (IExpr a) Integer [Pred a]
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
--- Collects constructor and tag metadata for ICCon, ICIs and ICOut
---  e.g., data T = A T1 | B T2
---  A expr -> ConTagInfo { conNo = 0, numCon = 2, conTag = 0, tagSize = 1 }
-data ConTagInfo = ConTagInfo { conNo :: Integer,  -- position of constructor
-                               numCon :: Integer, -- number of constructors
-                               conTag :: Integer, -- tag value when packed
-                               tagSize :: Integer -- bits required to represent tag
-                             }
-  deriving (Show, Generic.Data, Generic.Typeable)
-
 -- ==============================
 -- IConInfo
 
@@ -1307,9 +1298,6 @@ instance Hyper (IExpr a) where
     hyper (ILAM i k e) y = hyper3 i k e y
     hyper (ICon i ic) y = hyper2 i ic y
     hyper (IRefT t p _) y = hyper t y
-
-instance Hyper ConTagInfo where
-    hyper (ConTagInfo x1 x2 x3 x4) y = hyper4 x1 x2 x3 x4 y
 
 instance Hyper (IConInfo a) where
 --    hyper (ICDef x1 x2) y = hyper2 x1 x2 y

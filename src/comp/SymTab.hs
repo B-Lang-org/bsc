@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module SymTab(
-              SymTab(..), VarInfo(..), ConInfo(..), TypeInfo(..),
+              SymTab(..), VarInfo(..), TypeInfo(..),
+              ConInfo(..), ConTagInfo(..),
               FieldInfo(..), VarKind(..),
               getAllTypes,
               emptySymtab,
@@ -31,6 +32,7 @@ import CType
 import Type(isClock, isReset, isInout)
 import CSyntax(CClause)
 import Pragma
+import ConTagInfo
 
 import ErrorUtil(internalError)
 
@@ -65,12 +67,7 @@ data ConInfo
         = ConInfo { ci_id :: Id,
                     ci_visible :: Bool,
                     ci_assump :: Assump,    -- type
-                    ci_conNum :: Integer,   -- constructor number
-                    ci_totalNum :: Integer, -- total number of constructors
-                    ci_conTag :: Integer,   -- constructor tag, defaults to conNum,
-                                            -- but can be overriden
-                    ci_tagSize :: Integer   -- bits required to represent the tag
-                                            -- log2 (maximum tag + 1)
+                    ci_taginfo :: ConTagInfo -- constructor number and tag metadata
                   }
         deriving (Show, Eq)
 
@@ -92,7 +89,7 @@ instance Hyper ConInfo where
     hyper x y = seq x y
 
 instance PPrint ConInfo where
-    pPrint d p (ConInfo i vis a x y z w) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 x <+> pPrint d 1 y <+> pPrint d 1 z <+> pPrint d 1 w
+    pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
         where pVis False = text " (invisible)"
               pVis True = text " (visible)"
 
