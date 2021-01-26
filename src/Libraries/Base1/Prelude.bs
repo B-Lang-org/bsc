@@ -3761,10 +3761,7 @@ instance (Generic a r, PrimMakeUninitialized'' r) =>
 
 -- This instance for types with multiple constructors just returns
 -- `primMakeRawUninitialized` because we don't know any more about the
--- structure.  The uninitialized value of a field is created by calling the
--- typeclass member, not the primitive, in case the field's type also has
 -- structure.
---
 instance PrimMakeUninitialized' a r where
   primMakeUninitialized' _ = primMakeRawUninitialized
 
