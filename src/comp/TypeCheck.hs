@@ -140,7 +140,7 @@ qualifyClassDefaults errh symt ds =
     let
         mkCQual c =
             case (findCon symt c) of
-              Just [ConInfo _ _ (qc :>: _)  _ _] -> (c, qc)
+              Just [ConInfo { ci_assump = (qc :>: _) }] -> (c, qc)
               Just ds ->
                   let msg = "The signature file generation for typeclass " ++
                             "defaults cannot disambiguate the constructor " ++

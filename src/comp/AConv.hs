@@ -571,8 +571,8 @@ aExpr e@(IAps (ICon m (ICSel { })) _ [(ICon i (ICClock { iClock = c }))]) | m ==
 aExpr e@(IAps (ICon m (ICSel { })) _ [(ICon i (ICClock { iClock = c }))]) | m == idClockOsc = do
         ac <- aClock c
         return (aclock_osc ac)
-aExpr (IAps (ICon _ (ICCon { iConType = ITAp _ t, conNo = n })) _ _) | t == itBit1 =
-        return $ aSBool (n /= 0)
+aExpr (IAps (ICon _ (ICCon { iConType = ITAp _ t, conTagInfo = cti })) _ _) | t == itBit1 =
+        return $ aSBool (conNo cti /= 0)
 aExpr e@(IAps (ICon i (ICForeign { fName = name, isC = isC, foports = Nothing})) ts es) = do
         es' <- mapM aSExpr es
         -- XXX should this ever happen?

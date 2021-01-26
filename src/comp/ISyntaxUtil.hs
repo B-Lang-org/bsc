@@ -296,8 +296,9 @@ iMkBufferMode LineBuffering =
   IAps icPrimChr [mkNumConT 2, itBufferMode] [iMkLitSize 2 1]
 iMkBufferMode (BlockBuffering msz) =
   let ic_ty = (itMaybe itInteger) `itFun` itBufferMode
+      cti = ConTagInfo { conNo = 2, numCon = 3, conTag = 2, tagSize = 2 }
       ic = ICon idBlockBuffering
-             (ICCon { iConType = ic_ty, conNo = 2, numCon = 3 })
+             (ICCon { iConType = ic_ty, conTagInfo = cti })
       e = case msz of
              Nothing -> iMkInvalid itInteger
              Just sz -> iMkValid itInteger (iMkLit itInteger (toInteger sz))
@@ -310,7 +311,8 @@ iMkValid :: IType -> IExpr a -> IExpr a
 iMkValid t e =
   let a:_ = tmpVarIds
       ic_ty = ITForAll a IKStar $ (ITVar a) `itFun` (itMaybe (ITVar a))
-      ic = ICon idValid (ICCon { iConType = ic_ty, conNo = 1, numCon = 2 })
+      cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
+      ic = ICon idValid (ICCon { iConType = ic_ty, conTagInfo = cti })
   in  IAps ic [t] [e]
 
 iMkNil :: IType -> IExpr a
@@ -321,8 +323,9 @@ iMkCons t e_hd e_tl =
   let a:_ = tmpVarIds
       ic_ty = ITForAll a IKStar $
               (ITVar a) `itFun` (itList (ITVar a)) `itFun` (itList (ITVar a))
+      cti = ConTagInfo { conNo = 1, numCon = 2, conTag = 1, tagSize = 1 }
       ic = ICon (idCons noPosition)
-                (ICCon { iConType = ic_ty, conNo = 1, numCon = 2 })
+                (ICCon { iConType = ic_ty, conTagInfo = cti })
       -- multiple arguments become a single struct argument
       e = iMkPairAt noPosition t (itList t) e_hd e_tl
   in  IAps ic [t] [e]

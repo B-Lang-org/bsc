@@ -202,12 +202,12 @@ iConvPs' flags r env cond bs n ((v, _, CPConTs ti i ots [pat]) : ps) =
         --trace (ppReadable (out, outty, conty)) $
         iConvPs' flags r env (cond . isTest) bs n ((out, argType ty, pat) : ps)
   where ts = map (iConvT flags r) ots
-        (conty, (m, nn)) = lookupConType flags ti i r
+        (conty, cti) = lookupConType flags ti i r
         outty = underForAll conty (length ts) (\ (ITAp (ITAp arr a) r) -> ITAp (ITAp arr r) a)
         isty  = underForAll conty (length ts) (\ (ITAp (ITAp arr a) r) -> ITAp (ITAp arr r) itBit1)
-        out = IAps (ICon i (ICOut outty m nn)) ts [v]
-        is  = IAps (ICon i (ICIs  isty  m nn)) ts [v]
-        isTest = if nn == 1 then id else (is `ieAnd`)
+        out = IAps (ICon i (ICOut outty cti)) ts [v]
+        is  = IAps (ICon i (ICIs  isty  cti)) ts [v]
+        isTest = if numCon cti == 1 then id else (is `ieAnd`)
         ty = iInst conty ts
 iConvPs' flags r env cond bs n ((v, _, CPConTs _ _ _ _) : ps) =
     internalError "iConvPs' CPConTs"
@@ -435,8 +435,8 @@ iConvE errh flags r env pvs (CApply (CTApply (CVar i) ts) (e:es)) | isField =
                         ICon _ (ICSel t _ _) -> (True, countForall t)
                         _ -> (False, 0)
 iConvE errh flags r env pvs (CConT ti c es) =
-        let (t, (m, n)) = lookupConType flags ti c r
-        in  iAps (ICon c (ICCon t m n)) [] (map (iConvE errh flags r env pvs) es)
+        let (t, cti) = lookupConType flags ti c r
+        in  iAps (ICon c (ICCon t cti)) [] (map (iConvE errh flags r env pvs) es)
 -- Ccase
 iConvE errh flags r env pvs (CStructT ct []) = con
   where con = iAPs ict itvs
@@ -651,15 +651,15 @@ iTypeFieldTypeArity r ti c =
         Nothing -> internalError ("iTypeFieldTypeArity: " ++ ppString c)
 -}
 
-lookupConType :: Flags -> Id -> Id -> SymTab -> (IType, (Integer, Integer))
+lookupConType :: Flags -> Id -> Id -> SymTab -> (IType, ConTagInfo)
 lookupConType flags ti c r =
         case findCon r c of
-        Just xs -> let convs = [(iConvSc flags r sc, (m, n))
-                                | ConInfo ti' _ (_ :>: sc) m n <- xs,
-                                qualEq ti ti']
+        Just xs -> let convs = [(iConvSc flags r sc, ci_taginfo ci)
+                                | ci@ConInfo { ci_assump = (_ :>: sc) } <- xs,
+                                qualEq ti (ci_id ci)]
                    in  case convs of
                        [x] -> x
-                       _  -> internalError ("IConv.lookupConvType: convs: " ++
+                       _  -> internalError ("IConv.lookupConType: convs: " ++
                                             show convs)
         Nothing -> internalError ("lookupConType: " ++ ppString c)
 

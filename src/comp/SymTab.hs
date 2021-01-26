@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module SymTab(
-              SymTab(..), VarInfo(..), ConInfo(..), TypeInfo(..),
+              SymTab(..), VarInfo(..), TypeInfo(..),
+              ConInfo(..), ConTagInfo(..),
               FieldInfo(..), VarKind(..),
               getAllTypes,
               emptySymtab,
@@ -31,6 +32,7 @@ import CType
 import Type(isClock, isReset, isInout)
 import CSyntax(CClause)
 import Pragma
+import ConTagInfo
 
 import ErrorUtil(internalError)
 
@@ -65,8 +67,7 @@ data ConInfo
         = ConInfo { ci_id :: Id,
                     ci_visible :: Bool,
                     ci_assump :: Assump,    -- type
-                    ci_conNum :: Integer,   -- constructor number
-                    ci_totalNum :: Integer  -- total number of constructors
+                    ci_taginfo :: ConTagInfo -- constructor number and tag metadata
                   }
         deriving (Show, Eq)
 
@@ -88,7 +89,7 @@ instance Hyper ConInfo where
     hyper x y = seq x y
 
 instance PPrint ConInfo where
-    pPrint d p (ConInfo i vis a x y) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 x <+> pPrint d 1 y
+    pPrint d p (ConInfo i vis a cti) = pparen (p>0) $ text "ConInfo" <+> pPrint d 1 i <> pVis vis <+> pPrint d 1 a <+> pPrint d 1 cti
         where pVis False = text " (invisible)"
               pVis True = text " (visible)"
 
@@ -307,7 +308,7 @@ findCon :: SymTab -> Id -> Maybe [ConInfo]
 findCon (S _ c _ _ _) i = M.lookup i c
 
 findConVis :: SymTab -> Id -> Maybe [ConInfo]
-findConVis s i = fmap (\ cis -> filter (\ (ConInfo _ vis _ _ _) -> vis) cis) (findCon s i)
+findConVis s i = fmap (filter ci_visible) (findCon s i)
 
 findType :: SymTab -> Id -> Maybe TypeInfo
 findType (S _ _ t _ _) i = M.lookup i t

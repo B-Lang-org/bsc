@@ -250,8 +250,8 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
                                   ppReadable as)
         else
           let conInfos = map (getConInfo symtab qi) constructors
-              getConType (ConInfo _ _ (i :>: (Forall ks (ps :=> t))) _ _) = t
-              getConName (ConInfo _ _ (i :>: _) _ _) = i
+              getConType (ConInfo { ci_assump = (i :>: (Forall ks (ps :=> t))) }) = t
+              getConName (ConInfo { ci_assump = (i :>: _) }) = i
           in
               -- figure out if it's enum or tagged union
               if (is_enum)
@@ -316,7 +316,7 @@ getConInfo symtab ty con =
       Nothing -> internalError ("findConInfo: not found: " ++ ppReadable con)
       Just [ci] -> ci
       Just cis ->
-          case [ ci | ci@(ConInfo i _ _ _ _) <- cis, qualEq ty i ] of
+          case [ ci | ci@(ConInfo { ci_id = i }) <- cis, qualEq ty i ] of
               [ci] -> ci
               []   -> internalError ("findConInfo: not found: " ++
                                      ppReadable con)
