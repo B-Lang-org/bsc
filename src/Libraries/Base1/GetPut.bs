@@ -113,7 +113,7 @@ interface GetS a =
 --@    endmethod
 --@ \end{libverbatim}
 interface Put a =
-    put :: a -> Action {-# prefixs="", result = "UNUSED", arg_names = [put] #-}
+    put :: a -> Action {-# prefix="", result = "UNUSED", arg_names = [put] #-}
 
 interface PutS a =
     offer :: a -> Action

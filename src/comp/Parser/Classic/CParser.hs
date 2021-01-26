@@ -343,14 +343,16 @@ pIfcPrags  = l L_lpragma ..+  pIfcPragmas `sepBy` cm +.. l L_rpragma `into`
                   (\a -> succeed $  (concat a))
                   ||! succeed []
 
+prefix :: CParser ()
+prefix = literal (mkFString "prefixs") ||| literal (mkFString "prefix")
 
 pIfcPragmas :: CParser [IfcPragma]
 pIfcPragmas =
     -- arg_name = [id,id]
     literal (mkFString "arg_names") ..+ eq ..+ lb ..+  pFieldId `sepBy` cm +.. rb `into`
                 (\a -> succeed $  [(PIArgNames a)])
-    -- prefixes = [ (id,"str"), ...]
-    ||!  literal (mkFString "prefixs") ..+ eq ..+ varString
+    -- prefix = "str"
+    ||!  prefix ..+ eq ..+ varString
              `into` (\x  -> succeed $  [(PIPrefixStr x)])
     -- readys = = [ (id,"str"), ...]
     ||!  literal (mkFString "ready" )  ..+ eq ..+ varString
