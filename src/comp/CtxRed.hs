@@ -30,9 +30,7 @@ cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) = do
     -- ctxreduce should not match incoherent instances
     -- this will preserve contexts to be handled in typechecking
     let (res, wmsgs) = runTI flags False s (mapM ctxRed ds)
-    case wmsgs of
-      [] -> return ()
-      _ -> bsWarning errh wmsgs
+    when (not (null wmsgs)) $ bsWarning errh wmsgs
     case res of
       Left emsgs -> bsError errh emsgs
       Right ds' -> return (CPackage mi exps imps fixs ds' includes)
