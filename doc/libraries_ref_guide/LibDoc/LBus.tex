@@ -1,0 +1,294 @@
+\subsubsection{LBus}
+\index{LBus@\te{LBus} (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import LBus :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{LBus} package provides facilities for handling control and
+status registers in a design, and bringing them out to an interface
+suitable for connection to a processor bus.  The \te{LBus} package
+uses the \te{ModuleCollect} package (section
+\ref{package-modulecollect}) to allow the local bus connections to be
+collected together in a way which does not clutter up the main
+design. The \te{CBus} package (section \ref{lib-cbus}) provides a
+simplified configuration bus capability while the \te{LBus} package provides
+a more powerful, full-featured configuration bus capability. 
+
+
+{\bf Types and typeclasses}
+
+
+The type \te{LbAddr} is the address used to get and set registers
+from the local bus.  (This type is exported abstractly.)
+\index{LbAddr@\te{LbAddr} (type)}
+\begin{libverbatim}
+ typedef union tagged {
+     Bit#(size_address) LbAddr;
+ } LbAddr #(type size_address) deriving (Literal, Eq, Bits);
+\end{libverbatim}
+
+The \te{LBSReg} type  is only needed when creating new kinds
+of local bus registers. The \te{LBSReg} interface is what the local bus uses to access
+a register.
+\index{LBSReg@\te{LBSReg} (interface)}
+\begin{libverbatim}
+ interface LBSReg #(type size_address, type size_data);
+     method LbAddr#(size_address)            lbsAddr();
+     method Action                 lbsSet( Bit#(size_data) x1);
+     method ActionValue#(Bit#(size_data)) lbsGet();
+ endinterface: LBSReg
+\end{libverbatim}
+Note that the \te{lbsGet} method allows an action to
+be performed when the local bus reads the value.  This allows
+implementing, e.g., clear-on-read registers.
+
+The type \te{LBSItem} defines the type of item to be collected by
+\te{ModuleCollect}. 
+
+\begin{libverbatim}
+typedef union tagged {
+    LBSReg#(size_address, size_data) Rg;
+    IntFlag#(size_data) Flg;
+} LBSItem #(type size_address, type size_data);
+\end{libverbatim}
+
+The type \te{LbSModule} defines the type of module which is collecting
+\te{LBSItem}s.  An ordinary type, one not collecting anything other
+than state elements and rules, has the type \te{Module}.  This is the
+default for all
+modules where a module type is not specified. Since \te{LbSItem}s are
+being collected, a  module type, \te{LbSModule} is
+defined.  When the  module  type is not \te{Module} the type must
+be specified in square brackets, immediately after the \te{module}
+keyword, in the module definition or instantiation.
+
+The local bus registers are collected automatically by
+\te{ModuleCollect}.  An \te{LbSModule\#(size\_address,size\_data,i)}
+corresponds  to a
+\te{Module\#(i)} except that it also keeps a set of registers.
+The address is $size\_address$ bits wide and data items are $size\_data$
+bits wide.
+
+\begin{libverbatim}
+ typedef ModuleCollect#(LBSItem#(size_address, size_data), i) 
+         LbSModule#(type size_address, type size_data, type i);
+\end{libverbatim}
+
+The \te{LbSModule} is used to collect individual registers.
+Once the registers have been collected into an \te{ILbLeaf}
+interface these interfaces can be collected together.
+\begin{libverbatim}
+ typedef ModuleCollect#(ILbLeaf#(size_address, size_data), i)
+         LbAModule#(type size_address, type size_data, type i);
+\end{libverbatim}
+
+
+
+{\bf Interfaces and Methods} 
+
+The external interface of a local bus is as follows.
+It is through this interface that register accesses normally happen.
+\begin{libverbatim}
+ interface ILBus #(type size_address, type size_data);
+     method Action req(Bool valid, LbRWop op, Bit#(size_address) addr, 
+                       Bit#(size_data) dat);
+     method Bit#(size_data) rdDat();
+     method Bit#(1) ack();
+     method Bit#(1) inrpt();
+ endinterface: ILBus
+\end{libverbatim}
+
+
+
+\begin{libverbatim}
+ interface ILbLeaf#(type size_address, type size_data);
+\end{libverbatim}
+\begin{libverbatim}
+ interface ILbNode#(type size_address, type size_data);
+\end{libverbatim}
+\begin{libverbatim}
+ instance Connectable#(ILbLeaf#(size_address, size_data), ILbNode#(size_address, size_data));
+\end{libverbatim}
+
+
+
+
+
+{\bf Modules}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{}& \\
+\cline{2-2}
+&\begin{libverbatim}
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\index{mkLbRegRW@\te{mkLbRegRW} (module)}
+The \te{mkLbRegRW} module creates a register that looks like
+a normal register in the module that creates it, but it is also
+accessible from the local bus at the given address.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbRegRW}&Creates a register accessible from the local bus at the
+given address.\\
+\cline{2-2}
+&\begin{libverbatim}
+ module [LbSModule#(size_address, size_data)] 
+    mkLbRegRW#( LbAddr#(size_address) aw, Integer an, r_type x)
+               ( Reg#(r_type))
+    provisos (Bits#(r_type, sr), Add#(k, sr, size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkLbRegRO@\te{mkLbRegRO} (module)}
+The \te{mkLbRegRO} module creates a register that looks like
+a normal register in the module that creates it, but it is also
+accessible from the local bus at the given address.
+From the local bus the register is read-only; attempts to write it
+have no effect.
+The created register has to have a bit width smaller than or equal to the
+local bus width.  If it is smaller it will padded with zeroes on the left.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbRegRO}&Creates a read-only register that is accessible from
+the local bus. \\
+\cline{2-2}
+&\begin{libverbatim}
+ module [LbSModule#(size_address, size_data)]
+                  mkLbRegRO#(LbAddr#(size_address) aw, Integer an, r x)
+                 (Reg#(r))
+    provisos (Bits#(r, sr), Add#(k, sr, size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Functions}
+\begin{libverbatim}
+ interface Accum #(type n);
+     method Action add(Bit#(n) x1);
+     method Bit#(n) value();
+ endinterface: Accum
+\end{libverbatim}
+\index{mkLbAccum@\te{mkLbAccum} (function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbAccum}& \\
+\cline{2-2}
+&\begin{libverbatim}
+ module [LbSModule#(size_address, size_data)] mkLbAccum#(LbAddr#(size_address) aw, Integer an, Bit#(k) x)(Accum#(k))
+    provisos (Add#(k, i, size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{mkLbOffset@\te{mkLbOffset} (function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbOffset}&Used to adda n offset to all local bus register
+addresses in an \te{LbSModule}. \\
+\cline{2-2}
+&\begin{libverbatim}
+ module [LbSModule#(size_address,size_data)]
+         mkLbOffset#(LbAddr#(size_address) a, 
+                     LbSModule#(size_address, size_data, i) m)(i);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{mkLbLeaf@\te{mkLbLeaf} (function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbLeaf}&Extracts the local bus interface and the normal interface
+from a \te{LbSModule} with a set of registers.\\
+\cline{2-2}
+&\begin{libverbatim}
+ module [Module] mkLbLeaf#(LbSModule#(size_address, size_data, i) lm)
+                          (IWithLBus#(ILbLeaf#(size_address, size_data), i));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+The \te{mkLbBranch} module makes a \te{LbAModule} out of the result from
+\te{mkLbLeaf}.
+\index{mkLbBranch@\te{mkLbBranch} (function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbBranch}&Makes a \te{LbAModule} out of the results from \te{mkLbLeaf}.\\
+\cline{2-2}
+&\begin{libverbatim}
+ module [LbAModule#(size_address,size_data)] 
+        mkLbBranch#(Module#(IWithLBus#(
+                    ILbLeaf#(size_address, size_data), i)) m)(i);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+%\index{lbaCollect@\te{lbaCollect} (function)}
+
+\index{mkLbTop@\te{mkLbTop} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.65 in}|}
+\hline
+&\\
+\te{mkLbTop}& The \te{mkLbTop} module combines local bus register clusters.
+It introduces a one cycle latency on both request and response.\\
+\cline{2-2}
+&\begin{libverbatim}
+ module [Module] mkLbTop#(Module#(Fan#(ILBus#(size_address, size_data), 
+                Vector#(n, ILbNode#(size_address, size_data)))) mkFanout,
+                LbAModule#(size_address, size_data, i) lm) 
+                (IWithLBus#(ILBus#(size_address, size_data), i));
+ 
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+

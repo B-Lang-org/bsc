@@ -1,0 +1,184 @@
+\subsubsection{Cntrs}
+\label{sec-Cntrs}
+
+
+{\bf Package}
+\index{Cntrs (package)}
+
+\begin{verbatim}
+import Cntrs :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The Cntrs package provides  interfaces and modules to implement
+ typed and  untyped up/down counters.  
+
+The \te{Count} interface and associated \te{mkCount} module provides
+an 
+up/down counter which allows atomic simultaneous increment and
+decrement operations.  The scheduled order of operations in a single cycle is:
+\begin{verbatim}
+ read SB update SB (incr,decr) SB write
+\end{verbatim}
+
+If there are simultaneous \te{update}, \te{incr}, and \te{decr}
+operations, the final result will be:
+\begin{verbatim}
+update_val + incr_val - decr_val
+\end{verbatim}
+A \te{write} sets the new value to \te{write\_val} regardless of the
+other methods called in the  cycle.
+
+The \te{UCount} interface and associated \te{mkUCount} module provide
+an untyped version of an up/down counter; that is the counter width
+can be determined at elaboration time rather than type check time.
+The value of the counter is represented by an \te{UInt\#(n)} where the
+width of the counter is determined by the \te{maxValue} ($0 \leq
+maxValue <  2^{32}$) argument.  There are no methods to access the
+counter value directly; you can only access the value through the
+comparison operations.
+
+{\bf Interfaces and Methods}
+
+The Cntrs package provides two interfaces; \te{Count} which is a typed
+interface and \te{UCount} which is an untyped interface.  
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1 in}|p{3 in}|}
+\hline
+\multicolumn{3}{|c|}{Count Interface Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{incr}  & Action &Increments the counter by \te{incr\_val}\\
+\hline
+\te{decr} & Action& Decrements the counter by \te{decr\_val} \\
+\hline
+\te{update} & Action& Sets the value to \te{update\_val}.  Final value
+will include increment and decrement values. \\
+\hline
+\te{\_write} &Action & Sets the final value to \te{write\_val}
+regardless of other operations in the cycle. \\
+\hline
+\te{\_read} & \te{t} &Returns the value of the counter. \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{libverbatim}
+interface Count#(type t);
+   method Action incr    (t incr_val);
+   method Action decr    (t decr_val);
+   method Action update  (t update_val);
+   method Action _write  (t write_val);
+   method t      _read;
+endinterface
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1 in}|p{3 in}|}
+\hline
+\multicolumn{3}{|c|}{UCount Interface Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{incr}  & Action &Increments the counter by \te{incr\_val}\\
+\hline
+\te{decr} & Action& Decrements the counter by \te{decr\_val} \\
+\hline
+\te{update} & Action& Sets the value to \te{update\_val}.  Final value
+will include increment and decrement values. \\
+\hline
+\te{\_write} &Action & Sets the final value to \te{write\_val} 
+regardless of other operations in the cycle. \\
+\hline
+\te{isEqual} & \te{Bool} &Returns true if \te{val} is equal to  the
+ value of the counter. \\
+\hline
+\te{isLessThan} & \te{Bool} &Returns true if \te{val} is less than the
+ value of the counter. \\
+\hline
+\te{isGreaterThan} & \te{Bool} &Returns true if \te{val} is greater than the
+ value of the counter. \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface UCount;
+   method Action update (Integer update_val);
+   method Action _write (Integer write_val);
+   method Action incr   (Integer incr_val);
+   method Action decr   (Integer decr_val);
+   method Bool isEqual  (Integer val);
+   method Bool isLessThan    (Integer val);
+   method Bool isGreaterThan (Integer val);
+endinterface
+
+\end{libverbatim}
+
+
+
+
+{\bf Modules}
+
+\index{mkCounter@\te{mkCounter} (module)}
+\index[function]{Counter!mkCounter}
+
+
+
+\begin{tabular}{|p{1.4 in}|p{4.6 in}|}
+\hline
+& \\
+\te{mkCounter} &Instantiates a Counter where read precedes update
+precedes an increment or decrement precedes a write. The \te{ModArith}
+provisos limits its use to module 2 arithmetic types: \te{UInt}, \te{Int},
+and \te{Bit}.   Widths of size 0 are supported.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkCount #(t resetVal) (Count#(t))
+   provisos ( Arith#(t)
+             ,ModArith#(t)
+             ,Bits#(t,st));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.4 in}|p{4.6 in}|}
+\hline
+& \\
+\te{mkUCount} &Instantiates a counter which can count from 0 to
+\te{maxVal} inclusive.  \te{maxVal} must be known at compile time.
+The \te{initValue} and \te{maxValue} must be Integers.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUCount#(Integer initValue, Integer maxValue) (UCount);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Verilog Modules}
+
+\te{mkCounter} and \te{mkUCount}  corresponds to the following {\V}
+module, which are found in the BSC {\V} library,
+\te{\$BLUESPECDIR/Verilog/}.
+
+\begin{center}
+\begin{tabular} {|p{1.8in}|p{1.5in}|p{1in}|}
+\hline
+&&\\
+BSV Module Name & Verilog Module Name&Defined in File \\
+&&\\
+\hline
+\hline
+\te{mkCounter} & vCount & Counter.v \\
+\te{mkUCount} && \\
+\hline
+\end{tabular}
+\end{center}

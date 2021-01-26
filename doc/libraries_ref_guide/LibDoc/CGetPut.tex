@@ -1,0 +1,178 @@
+\subsubsection{CGetPut}
+\index{CGetPut@\te{CGetPut} (package)|textbf}
+
+{\bf Package}
+
+\begin{verbatim}
+import CGetPut :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The interfaces \te{CGet} and \te{CPut} are similar to
+\te{Get} and \te{Put}, but the interconnection of them
+(via \te{Connectable}) is implemented with a credit-based
+FIFO.  This means that the \te{CGet} and \te{CPut} interfaces
+have completely registered input and outputs, and furthermore
+that additional register buffers can be introduced in the connection path
+without any ill effect (except an increase in latency, of course).
+
+
+
+In the absence of additional register buffers, the round-trip time for
+communication between the two interfaces is 4 clock cycles.  Call this
+number  $r$.  The first argument to the type, $n$, specifies that
+transfers  will occur for a fraction $n/r$ of clock
+cycles (note that the used cycles will not necessarily be evenly
+spaced).   $n$ also specifies the depth of the buffer used in the
+receiving  interface (the transmitter side
+always has only a single buffer).  So (in the absence of additional
+buffers)  use $n=4$ to allow full-bandwidth transmission, at the cost
+of  sufficient registers for quadruple
+buffering at one end; use $n=1$ for minimal use of registers, at the
+cost  of reducing the bandwidth to one quarter; use intermediate
+values  to select the optimal trade-off if
+appropriate. 
+
+
+{\bf Interfaces and methods}
+
+The interface types are abstract to avoid any improper use of
+the credit signaling protocol.  
+
+\begin{tabular}{|p{1.2in}|p{.8in}|p{2in}|p{1.3in}|}
+ \hline
+\multicolumn{4}{|c|}{Interfaces}\\
+\hline
+Interface Name   & Parameter name & Parameter Description & Restrictions \\
+\hline
+\hline
+\te{CGet} & \it{n} & depth of the buffer used in the receiving
+interface&must be a numeric type\\
+\cline{2-4}
+& \it{element\_type} & type of the element & must be in
+                          \te{Bits} class\\
+& &being retrieved by the \te{CGet} &\\
+\hline
+\te{CPut} & \it{n} & depth of the buffer used in the receiving
+interface&must be a numeric type\\
+\cline{2-4}
+ & \it{element\_type} & type of the element & must be in
+\te{Bits} class\\
+& &being added by the \te{CPut} &\\
+\hline
+\end{tabular}
+
+\begin{itemize}
+\item{\te{CGet}}
+\begin{libverbatim}
+interface CGet#(numeric type n, type element_type);
+      ...Abstract...
+\end{libverbatim}
+
+\item{\te{CPut}}
+\begin{libverbatim}
+interface CPut#(numeric type n, type element_type);
+      ...Abstract...
+\end{libverbatim}
+
+\item{Connectables}
+
+The \te{CGet} and \te{CPut} interfaces are connectable.
+\begin{libverbatim}
+instance Connectable#(CGet#(n, element_type), CPut#(n, element_type));
+\end{libverbatim}
+
+\begin{libverbatim}
+instance Connectable#(CPut#(n, element_type), CGet#(n, element_type));
+\end{libverbatim}
+
+\item{CClient and CServer}
+
+The same idea may be extended  to clients and servers.
+
+\begin{libverbatim}
+interface CClient#(type n, type req_type, type resp_type);
+interface CServer#(type n, type req_type, type resp_type);
+\end{libverbatim}
+
+\end{itemize}
+{\bf Modules}
+\index{mkCGetPut@\te{mkCGetPut} (function)}
+\index{mkGetCPut@\te{mkGetCPut} (function)}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkCGetPut} &Create an n depth FIFO with a \te{CGet} interface on
+the dequeue side and a \te{Put} interface on the enqueue side.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCGetPut(Tuple2#(CGet#(n, element_type), 
+                         Put#(element_type)))
+  provisos (Bits#(element_type)); 
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkGetCPut}&Create an n depth FIFO with a \te{Get} interface on the
+dequeue side and a \te{CPut} interface on the enqueue side.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGetCPut(Tuple2#(Get#(element_type), 
+                         CPut#(n, element_type)))
+  provisos (Bits#(element_type));
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+\index{mkClientCServer@\te{mkClientCServer} (function)}
+\index{mkCClientServer@\te{mkCClientServer} (function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkClientCServer}& Create a \te{CServer} with a \te{mkCGetPut} and a
+\te{mkGetCPut}.  Provides a \te{CServer} interface and a regular \te{Client} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkClientCServer(
+               Tuple2#(Client#(req_type, resp_type),
+                       CServer#(n, req_type, resp_type)))
+  provisos (Bits#(req_type), 
+            Bits#(resp_type));
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkCClientServer}& Create a \te{CClient} with a \te{mkCGetPut} and a
+\te{mkGetCPut}.  Provides a \te{CClient} interface and a regular \te{Server}
+interface. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCClientServer(
+                Tuple2#(CClient#(n, req_type, resp_type), 
+                        Server#(req_type, resp_type)))
+  provisos (Bits#(req_type), 
+            Bits#(resp_type)); 
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+

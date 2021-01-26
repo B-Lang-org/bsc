@@ -1,0 +1,32 @@
+\subsubsection{Divide}
+\label{sec-Divide}
+\index{Divide (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import Divide :: * ;
+\end{verbatim}
+
+{\bf Description}
+ 
+This package provides a parameterized non-restoring divider with
+\te{n+3} cycle latency and 1 divide per cycle throughput.
+
+{\bf Modules}
+
+\index{mkDivider@\te{mkDivider} (module)}
+\index[function]{Divide!mkDivider}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+&\\
+\te{mkDivider}& Implements a nonrestoring divider.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkDivider(Server#(Tuple2#(UInt#(m),UInt#(n)),
+                         Tuple2#(UInt#(n),UInt#(n)))); 
+ \end{libverbatim}
+\\
+\hline
+\end{tabular}

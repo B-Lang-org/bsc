@@ -1,0 +1,242 @@
+\subsubsection{MIMO}
+
+\index{MIMO@\te{MIMO} (package)}
+
+\label{MIMO}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import MIMO :: *
+\end{verbatim}
+
+
+
+{\bf Description} 
+
+This package defines a Multiple-In Multiple-Out (MIMO), an enhanced
+FIFO that allows the designer to specify the number  of objects enqueued and
+dequeued in one cycle.  There are different implementations of the
+MIMO available for synthesis: BRAM, Register, and Vector.
+
+
+{\bf Types and type classes}
+\index{MIMOConfiguration@\te{MIMOConfiguration} (type)}
+\index{LUInt@\te{LUInt} (type)}
+
+The \te{LUInt} type is a \te{UInt} defined as the log of the \te{n}.
+
+\begin{libverbatim}
+typedef UInt#(TLog#(TAdd#(n, 1)))     LUInt#(numeric type n);
+\end{libverbatim}
+
+The \te{MimoConfiguration} type defines whether the \te{MIMO} is
+guarded or unguarded, and whether it is based on a BRAM.  There is an
+instance in the \te{DefaultValue} type class.  The default \te{MIMO}
+is guarded and not based on a BRAM.
+
+
+\begin{libverbatim}
+typedef struct {
+   Bool         unguarded;
+   Bool         bram_based;
+} MIMOConfiguration deriving (Eq);
+\end{libverbatim}
+
+
+
+\begin{libverbatim}
+instance DefaultValue#(MIMOConfiguration);
+   defaultValue = MIMOConfiguration {
+      unguarded:  False,
+      bram_based: False
+      };
+endinstance
+\end{libverbatim}
+
+
+
+{\bf Interfaces and methods}
+\index{MIMO@\te{MIMO} (interface)}
+
+ The \te{MIMO} interface 
+ is polymorphic and takes 4 parameters: \te{max\_in}, \te{max\_out},
+ \te{size}, and \te{t}.
+
+
+\begin{center}
+\begin{tabular}{|p{.8in}|p{4.5 in}|}
+\hline
+\multicolumn{2}{|c|}{MIMO Interace Parameters}\\
+\hline
+Name&Description\\
+\hline
+\hline
+\te{max\_in}&Maximum number of objects enqueued in one cycle.  Must be
+numeric.\\
+\hline
+\te{max\_out}&Maximum number of objects dequeued in one cycle.  Must be
+numeric.\\
+\hline
+\te{size} & Total size of internal storage.  Must be
+numeric.\\
+\hline
+\te{t} & Data type of the stored objects\\
+\hline
+\end{tabular}
+\end{center}
+
+The \te{MIMO} interface provides the following methods: \te{enq},
+ \te{first}, \te{deq}, \te{enqReady}, \te{enqReadyN}, \te{deqReady},
+ \te{deqReadyN}, \te{count}, and \te{clear}. 
+
+\begin{center}
+%\begin{tabular}{|p{.6in}|p{1.1 in}|p{3.6 in}|}
+\begin{tabular}{|p{.7in}|p{1.4in}|p{2 in}|p{1.8in}|}
+\hline
+\multicolumn{4}{|c|}{MIMO methods}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{1}{|c|}{Argument}\\
+\hline
+Name & Type & Description& \\
+\hline
+\hline 
+\te{enq}&Action& adds an entry to the
+\te{MIMO}&\te{LUInt\#(max\_in)}\\
+&&&\te{Vector\#(max\_in, t) data)}  \\
+\hline
+\te{first}&\te{Vector\#(max\_out, t)}&Returns a Vector containing
+\te{max\_out} items of type \te{t}. &\\
+\hline
+\te{deq}&Action&Removes the first \te{count} entries&\te{LUint\#(max\_out)}\\
+&&&\te{count}\\
+\hline
+\te{enqReady}& Bool& Returns a True value if there is space to enqueue
+an entry&\\
+\hline
+\te{enqReadyN}&Bool&Returns a True value if there is space to enqueue
+\te{count} entries&\te{LUint\#(max\_in)}\\
+\hline
+\te{deqReady}& Bool& Returns a True value if there is an element to dequeue
+&\\
+\hline
+\te{enqReadyN}&Bool&Returns a True value if there is are \te{count} elements to dequeue
+&\\
+\hline
+\te{count}&\te{LUint\#(size)}&Returns the log of the number of elements in the
+\te{MIMO}&\\
+\hline
+\te{clear}&Action&Clears the \te{MIMO} &\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+interface MIMO#(numeric type max_in, numeric type max_out, numeric type size, type t);
+   method    Action               enq(LUInt#(max_in) count, Vector#(max_in, t) data);
+   method    Vector#(max_out, t)  first;
+   method    Action               deq(LUInt#(max_out) count);
+   method    Bool                 enqReady;
+   method    Bool                 enqReadyN(LUInt#(max_in) count);
+   method    Bool                 deqReady;
+   method    Bool                 deqReadyN(LUInt#(max_out) count);
+   method    LUInt#(size)         count;
+   method    Action               clear;
+endinterface
+\end{verbatim}
+
+
+
+{\bf Modules}
+
+The package provides  modules to synthesize different implementations
+of the MIMO: the basic MIMO (\te{mkMIMO}), BRAM-based (\te{mkMIMOBRAM}), register-based
+(\te{mkMIMOReg}), and a Vector of registers (\te{mkMIMOV}).
+
+All implementations must meet the
+following provisos: 
+\begin{itemize}
+
+\item The object must have bit representation
+\item The object must have at least 2 elements of storage.
+\item   The
+maximum number of objects enqueued (\te{max\_in}) must be less than or equal
+to the total bits of storage (\te{size})
+\item  The
+maximum number of objects dequeued (\te{max\_out}) must be less than or equal
+to the total bits of storage (\te{size})
+\end{itemize}
+
+\index{mkMIMO@\te{mkMIMO} (module)}
+\index[function]{MIMO!mkMIMO}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{mkMIMO}& The basic implementation of MIMO.  Object must be at
+least 1 bit in size.\\
+\cline{2-2} 
+& \begin{libverbatim}
+module mkMIMO#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t)); 
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkMIMOBRAM@\te{mkMIMOBRAM} (module)}
+\index[function]{MIMO!mkMIMOBRAM}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{mkMIMOBRAM}&  Implementation of BRAM-based MIMO.  Object must be
+at least 1 byte in size.\\
+\cline{2-2} 
+& \begin{libverbatim}
+module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkMIMOReg@\te{mkMIMOReg} (module)}
+\index[function]{MIMO!mkMIMOReg}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{mkMIMOReg}& Implementation of register-based MIMO. \\
+\cline{2-2} 
+& \begin{libverbatim}
+module mkMIMOReg#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkMIMOV@\te{mkMIMOV} (module)}
+\index[function]{MIMO!mkMIMOV}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{mkMIMOV}&Implementation of Vector-based MIMO.  The ojbect must
+have a default value defined.  \\
+\cline{2-2} 
+& \begin{libverbatim}
+module mkMIMOV(MIMO#(max_in, max_out, size, t));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}

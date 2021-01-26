@@ -1,0 +1,436 @@
+\subsubsection{SpecialFIFOs}
+ 
+\index{SpeciaFIFOs@\te{SpecialFIFOs} (package)}
+
+\label{sec-SpecialFIFOs}
+
+{\bf Package}
+
+\begin{verbatim}
+import SpecialFIFOs :: * ;
+\end{verbatim}
+
+
+
+
+
+
+
+{\bf Description}
+
+The SpecialFIFOs package contains various FIFOs provided as BSV source
+code, allowing users to easily modify them to their own
+specifications.  Included in the  SpecialFIFOs package are pipeline
+and bypass FIFOs.   The pipeline
+FIFOs are equivalent to the \te{mkLFIFO} (Section
+\ref{sec-fifo-mod}); they allow simultaneous enqueue and dequeue
+operations in the same clock cycle when {\em full}.  The bypass FIFOs allow
+simultaneous enqueue and dequeue in the same clock cycle when {\em
+empty}. FIFOF versions, with explicit full and empty signals, are
+provided for both pipeline and bypass FIFOs.  The package also
+includes the \te{DFIFOF}, a FIFOF with unguarded dequeue and first
+methods (thus they have no implicit conditions).
+
+\begin{center}
+\begin{tabular}{|p {1.3 in}|p{.8 in}|p {3.2 in}|}
+\hline
+\multicolumn{3}{|c|}{FIFOs in Special FIFOs package}\\
+\hline
+\hline
+Module name& Interface&Description \\
+\hline
+\te{mkPipelineFIFO}&\te{FIFO}&1 element pipeline FIFO;  can \te{enq}
+and \te{deq} simultaneously when full.\\
+\hline
+\te{mkPipelineFIFOF}&\te{FIFOF}&1 element pipeline FIFO with explicit full and empty signals. \\
+\hline
+\te{mkBypassFIFO}&\te{FIFO}&1 element bypass FIFO;  can  \te{enq} and
+\te{deq} simultaneously when empty.\\
+\hline
+\te{mkBypassFIFOF}&\te{FIFOF}&1 element bypass FIFO with explicit full and empty signals.\\
+\hline
+\te{mkSizedBypassFIFOF} &\te{FIFOF}&Bypass FIFO of given depth, with
+explicit full and empty signals.\\
+\hline
+\te{mkBypassFIFOLevel}&\te{FIFOLevelIfc}&Same as a \te{FIFOLevel}
+(Section \ref{FIFOLevel}), but can \te{enq} and \te{deq} when empty.\\
+\hline
+\te{mkDFIFOF}&\te{FIFOF}&A FIFOF with unguarded \te{deq} and
+\te{first} methods where the \te{first} method returns specified
+default value when the FIFO is empty.\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{2 in}|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Allowed Simultaneous enq and deq}\\
+\multicolumn{4}{|c|}{by FIFO type}\\
+\hline
+&\multicolumn{3}{|c|}{FIFO Condition}\\
+\cline{2-4}
+FIFO type&empty&not empty&full\\
+&&not full &\\
+\hline
+\hline
+\te{mkPipelineFIFO}&&NA&$\surd$\\
+\te{mkPipelineFIFOF}&&&\\
+\hline
+\te{mkBypassFIFO}&$\surd$&NA&\\
+\te{mkBypassFIFOF}&&&\\
+\hline
+\te{mkSizedBypassFIFOF}&$\surd$&$\surd$&\\
+\hline
+\te{mkBypassFIFOLevel}&$\surd$&$\surd$&\\
+\hline
+\te{mkDFIFOF}&$\surd$&$\surd$&$\surd$\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Interfaces and methods} 
+
+The modules defined in the \te{SpecialFIFOs} package provide the
+\te{FIFO}, \te{FIFOF}, and 
+\te{FIFOLevelIfc} interfaces, as shown in the table above.  These
+interfaces are described in Section \ref{sec-FIFO} (FIFO package)
+and Section \ref{FIFOLevel} (FIFOLevel package). 
+
+
+
+{\bf Modules}
+\index{mkPipelineFIFO@\te{mkPipelineFIFO} (module)}
+\index[function]{SpecialFIFOs!mkPipelineFIFO}
+
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+  &            \\
+Module Name  &  BSV Module Declaration   \\
+\hline
+\multicolumn{2}{|l|}{1-element pipeline FIFO; can \te{enq} and
+  \te{deq} simultaneously when full.}\\
+\hline
+\begin{libverbatim}mkPipelineFIFO 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkPipelineFIFO (FIFO#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkPipelineFIFOF@\te{mkPipelineFIFOF} (module)}
+\index[function]{SpecialFIFOs!mkPipelineFIFOF}
+
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{1-element pipeline FIFOF; can \te{enq} and
+  \te{deq} simultaneously when full.}\\
+\multicolumn{2}{|l|}{Has explicit full and empty signals.}\\
+\hline
+\begin{libverbatim}mkPipelineFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkPipelineFIFOF (FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index[function]{SpecialFIFOs!mkBypassFIFO}
+\index[function]{SpecialFIFOs!mkBypassFIFOF}
+\index{mkBypassFIFO@\te{mkBypassFIFO} (module)}
+\index{mkBypassFIFOF@\te{mkBypassFIFOF} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{1-element bypass FIFO; can \te{enq} and \te{deq}
+simultaneously when empty.}\\
+\hline
+\begin{libverbatim}mkBypassFIFO 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkBypassFIFO (FIFO#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{1-element bypass FIFOF;  can \te{enq} and \te{deq}
+simultaneously when empty.}\\
+\multicolumn{2}{|l|}{Has explicit full and empty signals.}\\
+\hline
+\begin{libverbatim}mkBypassFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkBypassFIFOF (FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{mkSizedBypassFIFOF@\te{mkSizedBypassFIFOF} (module)}
+\index[function]{SpecialFIFOs!mkSizedBypassFIFOF}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{Bypass FIFOF of given depth \te{fifoDepth} with 
+explicit full and empty signals.}\\ 
+\hline
+\begin{libverbatim}mkSizedBypassFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkSizedBypassFIFOF#(Integer fifoDepth)
+                          (FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{mkBypassFIFOLevel@\te{mkBypassFIFOLevel} (module)}
+\index[function]{SpecialFIFOs!mkBypassFIFOLevel}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{Bypass FIFOLevel of given depth \te{fifoDepth}}\\
+\hline
+\begin{libverbatim}mkBypassFIFOLevel 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkBypassFIFOLevel(FIFOLevelIfc#(element_type, 
+                                       fifoDepth))
+   provisos( Bits#(element_type, width_any), 
+   Log#(TAdd#(fifoDepth,1), cntSize));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkDFIFOF@\te{mkDFIFOF} (module)}
+\index[function]{SpecialFIFOs!mkDFIFOF}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{A FIFOF with unguarded \te{deq} and \te{first}
+methods (thus they have no implicit conditions).}\\
+\multicolumn{2}{|l|}{The \te{first} method
+returns a specified default value when the FIFO is empty}\\
+\hline
+\begin{libverbatim}mkDFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkDFIFOF#(element_type default_value) 
+                (FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+% {\bf Scheduling Annotations}
+
+% Scheduling constraints describe how methods interact within the schedule.
+%   For example, a \te{clear} to a given
+% FIFO must be sequenced after (\te{SA}) an \te{enq} to the same
+%   FIFO.  That is, when both \te{enq} and \te{clear} execute in the same
+%   cycle, the resulting FIFO state is empty.  For correct rule behavior
+%   the rule executing \te{enq} must be scheduled before the rule
+%   calling \te{clear}.  
+
+% The  table below lists the scheduling annotations for the FIFO modules
+% \te{mkFIFO}, \te{mkSizedFIFO}, and \te{mkFIFO1}.
+
+% \begin{center}
+% %\begin{tabular}{|p{.75 in}|p{.75 in}|p{.75 in}|p{.75 in}|p{.75 in}|}
+% \begin{tabular}{|p{.75 in}|c|c|c|c|}
+% \hline
+% \multicolumn{5}{|c|}{Scheduling Annotations}\\
+% \multicolumn{5}{|c|}{mkFIFO, mkSizedFIFO, mkFIFO1}\\
+% \hline
+% &enq&first&deq&clear\\
+% \hline
+% \hline
+% enq&C &CF&CF&SB\\
+% \hline
+% first&CF&CF&SB&SB\\
+% \hline
+% deq&CF&SA&C&SB\\
+% \hline
+% clear&SA&SA&SA&SBR\\
+% \hline
+% \hline
+% \end{tabular}
+% \end{center}
+
+% The  table below lists the scheduling annotations for the pipeline
+% FIFO module, \te{mkLFIFO}.  The pipeline FIFO has a few more
+% restrictions since there is a combinational path between the \te{deq}
+% side and the \te{enq} side, thus restricting \te{deq} calls before \te{enq}.
+
+% \begin{center}
+% \begin{tabular}{|p{.75 in}|c|c|c|c|}
+% \hline
+% \multicolumn{5}{|c|}{Scheduling Annotations}\\
+% \multicolumn{5}{|c|}{mkLFIFO}\\
+% \hline
+% &enq&first&deq&clear\\
+% \hline
+% \hline
+%  enq&C &SA&SAR&SB\\
+% \hline
+%  first&SB&CF&SB&SB\\
+% \hline
+%  deq&SBR&SA&C&SB\\
+% \hline
+%  clear&SA&SA&SA&SBR\\
+% \hline
+% \hline
+% \end{tabular}
+% \end{center}
+
+% The \te{FIFOF} modules add the \te{notFull} and \te{notEmpty}
+% methods. These methods have SB annotations with the Action methods
+% that change FIFO state.  These SB annotations model  the atomic
+% behavior of a  FIFO, that
+% is when \te{enq}, \te{deq}, or \te{clear} are called the state of
+% \te{notFull} and \te{notEmpty} are changed.  This is no different than
+% the annotations on \te{mkReg} (which is \te{read} SB \te{write}),
+% where actions are atomic and the execution module is one rule fires at
+% a time.  This does differ from a pure hardware module of a FIFO or
+% register where the state does not change until the clock edge.
+
+% \begin{center}
+% \begin{tabular}{|p{.75 in}|c|c|c|c|c|c|}
+% \hline
+% \multicolumn{7}{|c|}{Scheduling Annotations}\\
+% \multicolumn{7}{|c|}{mkFIFOF, mkSizedFIFOF, mkFIFOF1}\\
+% \hline
+% &enq&notFull&first&deq&notEmpty&clear\\
+% \hline
+% \hline
+%  enq&C &SA&CF&CF&SA&SB\\
+% \hline
+%  notFull&SB&CF&CF&SB&CF&SB\\
+% \hline
+%  first&CF&CF&CF&SB&CF&SB\\
+% \hline
+%  deq&CF&SA&SA&C&SA&SB\\
+% \hline
+%  notEmpty&SB&CF&CF&SB&CF&SB\\
+% \hline
+%  clear&SA&SA&SA&SA&SA&SBR\\
+% \hline
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+% {\bf Verilog Modules}
+
+% \te{FIFO} and \te{FIFOF} modules correspond to the following {\V}
+% modules, which are found in the BSC {\V} library, \te{\$BLUESPECDIR/Verilog/}.
+
+% \begin{center}
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% &&& \\
+% BSV Module Name &\multicolumn{2}{|c|}{ Verilog Module Names}&Comments  \\
+% &&& \\
+% \hline
+% \hline
+% \begin{libverbatim}mkFIFO
+% mkFIFOF
+% mkUGFIFOF
+% mkGFIFOF\end{libverbatim}
+% & \te{FIFO2.v}&   \te{FIFO20.v}&\\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkFIFO1
+% mkFIFOF1
+% mkUGFIFOF1
+% mkGFIFOF1\end{libverbatim} 
+% & \te{FIFO1.v} & \te{FIFO10.v}&\\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkSizedFIFO
+% mkSizedFIFOF
+% mkUGSizedFIFOF
+% mkGSizedFIFOF
+% \end{libverbatim} 
+% &\begin{libverbatim}SizedFIFO.v
+% FIFO1.v
+% FIFO2.v
+% \end{libverbatim}
+%  & \begin{libverbatim}SizedFIFO0.v
+% FIFO10.v
+% FIFO20.v
+% \end{libverbatim}
+% &If the depth of the FIFO = 1,
+% then \te{FIFO1.v} and \te{FIFO10.v} are used, if the depth = 2, then
+% \te{FIFO2.v} and \te{FIFO20.v} are used. \\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}
+% mkDepthParamFIFOF
+% mkUGDepthParamFIFOF
+% mkGDepthParamFIFOF\end{libverbatim} 
+% & \te{SizedFIFO.v} & \te{SizedFIFO0.v}& \\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkLFIFO
+% mkLFIFOF
+% mkUGLFIFOF
+% mkGLFIFOF\end{libverbatim}
+%  & \te{FIFOL1.v} &  \te{FIFOL10.v}& \\
+% \hline
+% \hline
+% \end{tabular}
+% \end{center}
+ 
+
+% % Text inserted here to explain anything the user might need to know
+% % about how the Verilog relates to the BSV they wrote.
+

@@ -1,0 +1,243 @@
+\subsubsection{ZBus}
+\index{ZBus@\te{ZBus} (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import ZBus :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+BSV provides the \te{ZBus} library to allow users to implement and use
+tri-state buses. Since BSV does not support high-impedance or
+undefined values internally, the library encapsulates the tri-state
+bus implementation in a module that can only be accessed through
+predefined interfaces which do not allow direct access to internal
+signals (which could potentially have high-impedance or undefined
+values).
+
+The Verilog implementation of the tri-state module includes a number
+of primitive submodules that are implemented using Verilog tri-state
+wires. The BSV representation of the bus, however, only models the
+values of the bus at the associated interfaces and thus the need to
+represent high-impedance or undefined values in BSV is avoided.
+
+A ZBus consists of a series of clients hanging off of a bus.  The
+combination of the client and the bus is provided by the
+\te{ZBusDualIFC} interface which consists of 2 subinterfaces, the client
+and the bus.  The client subinterface is provided by the
+\te{ZBusClientIFC} interface.    The bus subinterface is provided by the
+\te{ZBusBusIFC} interface.  The user never needs to manipulate the bus
+side, this is all done internally.  The user builds the bus out of
+\te{ZBusDualIFC}s and then drives values onto the bus and reads values
+from the bus using the \te{ZBusClientIFC}.
+
+
+{\bf Interfaces and Methods}
+
+There are three interfaces are defined in this package;
+\te{ZBusDualIFC}, \te{ZBusClientIFC}, and \te{ZBusBusIFC}.
+
+The
+\te{ZBusDualIFC} interface provides two subinterfaces; a
+\te{ZBusBusIFC} and a \te{ZBusClientIFC}.
+For a given bus, one \te{ZBusDualIFC} interface is associated with
+each bus client.
+
+
+\index{ZBusDualIFC@\te{ZBusDualIFC} (interface)}
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{1.4 in}|p{3.0 in}|}
+\hline
+\multicolumn{3}{|c|}{ZBusDualIFC}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{busIFC}  & \te{ZBusBusIFC\#()} &The subinterface providing the
+bus side of the ZBus. \\
+\hline
+\te{clientIFC}&\te{ZBusClientIFC\#(t)}&The subinterface providing the
+client side to the ZBus. \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface ZBusDualIFC #(type value_type) ;
+   interface ZBusBusIFC#(value_type)    busIFC;
+   interface ZBusClientIFC#(value_type) clientIFC;
+endinterface
+\end{libverbatim}
+
+
+The \te{ZBusClientIFC} allows a BSV module to connect to the tri-state
+bus.   The \te{drive} method is used to drive a value onto the bus.  The \te{get()} and \te{fromBusValid()} methods  allow
+each  bus client to access the 
+current value on the bus. If the bus is in an invalid state (i.e. has
+a high-impedance value or an undefined value because it is being
+driven by more than one client simultaneously), then the
+\te{get()} method will return \te{0} and the
+\te{fromBusValid()} method will return \te{False}.  In all other
+cases, the \te{fromBusValid()} method will return \te{True} and the
+\te{get()} method will return the current value of the bus.
+
+
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{.7 in}|p{1.5 in}|p{.4in}|p{1.5 in}|}
+\hline
+\multicolumn{5}{|c|}{ZBusClientIFC}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{drive}  & Action &Drives a current value on to the bus
+&\te{value}&The value being put on the bus, datatype of \te{value\_type}.\\
+\hline
+\te{get}&\te{value\_type}&Returns the current value on
+the bus.&&\\
+\hline
+\te{fromBusValid}&\te{Bool}&Returns \te{False}
+if the bus has a high-impedance value or is undefined.&&\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{ZBusClientIFC@\te{ZBusClientIFC} (interface)}
+\begin{libverbatim}
+interface ZBusClientIFC #(type value_type) ;
+   method Action      drive(value_type value);
+   method value_type  get();
+   method Bool        fromBusValid();
+endinterface
+\end{libverbatim}
+
+The \te{ZBusBusIFC} interface
+connects to the bus structure itself using tri-state values.  This
+interface is never accessed directly by the user.
+
+\index{ZBusBusIFC@\te{ZBusBusIFC} (interface)}
+
+% \begin{center}
+% \begin{tabular}{|p{.9 in}|p{.4 in}|p{1.7 in}|p{.4in}|p{1.7 in}|}
+% \hline
+% \multicolumn{5}{|c|}{ZBusBusIFC}\\
+% \hline
+% \multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+% \hline
+% Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+% \hline
+% \hline 
+% \te{fromBusSample}  & Action &Reads a current value from the bus
+% &\te{value}&The value being read on the bus, datatype of \te{t}.\\
+% \cline{4-5}
+% &&&\te{isValid}&If \te{False}, a high-impedance value is driven onto the bus.\\
+% \hline
+% \te{toBusValue}&\te{ZBit\#(t)}& Drives  a  current value on to
+% the bus.&&\\
+% \hline
+% \te{fromBusCtl}&\te{Bool}&Indicates whether the current value is a
+% high-impedance value.  &&\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+\begin{libverbatim}
+interface ZBusBusIFC #(type value_type) ;
+   method Action      fromBusSample(ZBit#(value_type) value, Bool isValid);
+   method ZBit#(t)    toBusValue();
+   method Bool        toBusCtl();
+endinterface
+\end{libverbatim}
+
+ 
+
+{\bf Modules and Functions}
+
+The library  provides a module constructor function,
+\te{mkZBusBuffer}, which allows the user to create a module which
+provides the \te{ZBusDualIFC} interface.  This module provides
+  the functionality of a tri-state buffer.  
+
+\index{mkZBusBuffer@\te{mkZBusBuffer} (function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkZBusBuffer}  & Creates a module which provides the
+\te{ZBusDualIFC} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkZBusBuffer (ZBusDualIFC #(value_type)) 
+   provisos (Eq#(value_type), Bits#(value_type, size_value));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+The \te{mkZBus} module
+constructor function takes a list of \te{ZBusBusIFC}
+interfaces as arguments and creates a module which ties them all
+together  in a bus.
+
+\index{mkZBus@\te{mkZBus} (function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkZBus}  & Ties a list of \te{ZBusBusIFC} interfaces
+together in a bus.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkZBus#(List#(ZBusBusIFC#(value_type)) ifc_list)(Empty)
+   provisos (Eq#(value_type), Bits#(value_type, size_value));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+{\bf Examples - ZBus}
+
+Creating a tri-state buffer for a 32 bit signal.  The interface is  named \te{buffer\_0}.
+\begin{libverbatim}
+   ZBusDualIFC#(Bit#(32)) buffer_0(); 
+   mkZBusBuffer inst_buffer_0(buffer_0);
+\end{libverbatim}
+
+Drive a value of \te{12} onto the associated bus.
+\begin{libverbatim}
+   buffer_0.clientIFC.drive(12);
+\end{libverbatim}
+
+
+The following code fragment demonstrates the use of the module \te{mkZBus}.
+\begin{libverbatim}
+   ZBusDualIFC#(Bit#(32)) buffer_0();
+   mkZBusBuffer inst_buffer_0(buffer_0);
+
+   ZBusDualIFC#(Bit#(32)) buffer_1();
+   mkZBusBuffer inst_buffer_1(buffer_1);
+
+   ZBusDualIFC#(Bit#(32)) buffer_2();
+   mkZBusBuffer inst_buffer_2(buffer_2);
+
+   List#(ZBusIFC#(Bit#(32))) ifc_list;
+
+   bus_ifc_list = cons(buffer_0.busIFC,
+                        cons(buffer_1.busIFC,
+                             cons(buffer_2.busIFC,
+                                       nil)));
+
+   Empty bus_ifc();
+   mkZBus#(bus_ifc_list) inst_bus(bus_ifc);
+\end{libverbatim}

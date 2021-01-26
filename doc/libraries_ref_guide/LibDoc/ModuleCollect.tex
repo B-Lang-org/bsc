@@ -1,0 +1,330 @@
+\subsubsection{ModuleCollect}
+
+{\bf Package}
+\index{ModuleCollect@\te{ModuleCollect} (package)}
+\label{package-modulecollect}
+
+\begin{verbatim}
+import ModuleCollect :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{ModuleCollect} package provides the capability of adding
+additional items, such as configuration bus connections, 
+to a design in such a way that it does not change the 
+structure of the design.  This section provides a brief overview of
+the package.  
+For a more detailed description of its usage, see the \te{CBus}
+package (\ref{lib-cbus}), which utilizes  \te{ModuleCollect}.
+There is also  a detailed  example and  more complete discussion of the \te{CBus}
+package in the configbus tutorial in the BSV/tutorials directory.
+
+
+An ordinary {\BS} module, when instantiated, adds its own state
+elements and rules to
+the growing accumulation of state elements and rules defined in the
+design.  In some designs, for example a configuration bus, additional
+items, such as the logic for the
+ bus address decoding  must be accumulated as well. While there is a
+need to add these items, it is also desirable to keep these
+additional design details separate from the main design, keeping the
+natural structure of the design intact.  
+
+The \te{ModuleCollect} mechanism allows the designer to \emph{hide} the details of the
+additional interfaces.    A module which is going to be synthesized must contain
+only rules and state elements, as the compiler does not know how to
+handle the additional items.  Therefore, the collection must be
+brought into the open, or exposed, before the module can be
+synthesized.  The \te{ModuleCollect} package 
+provides the mechanisms to allow these additional
+items to be collected, processed and exposed.
+
+% An ordinary module, when
+% instantiated, adds its own items to the growing accumation of 
+% state  elements, and rules, which are processed by later stages of
+% the compiler.  The
+% \te{ModuleCollect} package allows other items to be accumulated too.  But
+% this extra \emph{collection} must be exposed and processed at a higher
+% level: in particular, any module which is to be synthesized must not
+% be collecting any extra stuff, as the compiler would not know how to
+% handle it.  The \te{ModuleCollect} package provides functions to
+% create, process and expose collections.
+
+{\bf Types and Type Classes}
+
+The \te{ModuleCollect} type is a variation  on the \te{Module} type
+that allows additional items, other than states and rules,  to be collected
+while  elaborating the module structure.    A module defining the
+accumulation of a special collection will have the type of
+\te{ModuleCollect}  which is defined as a type of \te{ModuleContext}
+(Section \ref{sec-ModuleContext}):  
+\index{ModuleCollect@\te{ModuleCollect} (type)}
+
+\begin{verbatim}
+typedef ModuleContext#(HList1#(UAList#(a))) ModuleCollect#(type a_type);
+\end{verbatim}
+
+
+% \BBS
+%  struct ModuleCollect#(a\_type, ifc) 
+%        {\rm{\emph{$\cdots$ abstract $\cdots$}}}
+% \EBS
+
+where \te{a\_type}  defines the type of 
+the items being collected.   The collection is kept as an
+\te{HList},  therefore each item in the  collection does not  have the
+same type.  % The 
+% collection is  associated with \te{ifc}, the device module interface.
+
+Your new type of module is a \te{ModuleCollect} defined to collect a
+specific type.  It is often convenient to give a name to your new type
+of module using the \te{typedef} keyword.
+
+For example:
+\begin{libverbatim}
+     typedef ModuleCollect#(element_type, ifc_device)
+             MyModuleType#(type ifc_device)
+\end{libverbatim}
+
+specifies a type named \te{MyModuleType}.
+
+An ordinary module, one defined with the keyword \te{module} without
+a type in square brackets immediately after it, can be of any module
+type.  It is polymorphic, and when  instantiated  takes the
+type of the surrounding module context.   Only modules of type
+\te{Module} can be synthesized, so the  \te{*synthesize*}
+attribute forces the type to be \te{Module}.  This is equivalent to
+writing:
+\begin{libverbatim}
+    module [Module]...
+\end{libverbatim}
+Normally, all the modules instantiated inside a synthesized module take
+the type \te{Module}.
+
+A module which is accumulating a collection must have the appropriate
+type, specified in square brackets immedately after the keyword, as
+shown in the following example:
+\begin{libverbatim}
+    module [AssertModule] mkAssertionReg...
+\end{libverbatim}
+The complete example is found later in this section.
+This implies that any module instantiating \te{mkAssertionReg} is no
+longer polymorphic, its type is constrained by the inner module, so it
+will have to be explicitly given the \te{AssertModule} type too. Note,
+however, that you can continue to instantiate other modules not
+concerned with the collection (for example, \te{mkReg}, \te{mkFIFO},
+etc.) alongside \te{mkAssertReg} just as before.  But now they will
+take the type \te{AssertModule} from the context instead of the type
+\te{Module}.  
+
+Since only modules of type \te{Module} can be synthesized, before this
+group of \te{AssertModule} instantiations can be 
+synthesized, you must use  \te{exposeCollection} to  contain
+the collection in a top-level module of type \te{Module}. 
+
+
+% An ordinary module, one not
+% collecting anything other than rules and state
+% elements has the type \te{Module}.  When no type is explicitly given,
+% the compiler fixes it to \te{Module} when the module is synthesized.
+% But for a module accumulating a
+% collection, the type must be explicitly given, and it is supplied in
+% square brackets immediately after the keyword \te{module}.  Because in
+% our example above, 
+% the new type alias only takes one argument, the interface, we can use
+% it here without arguments:
+
+% \begin{libverbatim}
+%     module [MyModuleType] mkSubDesign#(x,y) (IfcType) ;
+% \end{libverbatim}
+
+% Since only modules of type \te{Module} can be synthesized 
+%  the collection  be  exposed before synthesis, by applying the
+%  function \te{exposeCollection}.  The module type of
+% the function \te{exposeCollection} is \te{Module}, so once the
+% collection has  been exposed 
+%  the design is ready for synthesis. 
+
+
+
+{\bf Interfaces}
+
+The \texttt{IWithCollection} interface couples the normal module
+interface (the \texttt{device} interface) with the collection of
+collected items (the \texttt{collection} interface).  This is the
+interface provided by the \te{exposeCollection} function.  It separates
+the collection list and the device  module interface, to allow the module to be synthesized.
+
+\begin{verbatim}
+   interface IWithCollection #(type a, type i);
+       method i device();
+       method List#(a) collection();
+   endinterface: IWithCollection
+\end{verbatim}
+
+OLD:
+\begin{verbatim}
+   interface IWithCollection #(type collection_type, type item_type);
+      interface item_type device();
+      interface List#(collection_type) collection();
+   endinterface: IWithCollection
+\end{verbatim}
+
+
+{\bf Modules and Functions}
+
+% There are three functions defined within the \te{ModuleCollect}
+% package; \te{addToCollection}, \te{exposeCollection}, and
+% \te{mapCollection}.
+
+In the course of
+evaluating a module body during its instantiation, an item
+may be added to the current collection by using the function
+\texttt{addToCollection}. \index{addToCollection@\te{addToCollection} (\te{ModuleCollect} function)}
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+&  \\
+\te{addToCollection}&Adds an item to the collection.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function ModuleCollect#(a_type, ifc) 
+         addToCollection(a_type item); 
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+Once a set of items has been collected, those items must be
+exposed  before synthesis.  The \texttt{exposeCollection} module
+constructor is used to bring the collection out into the open. 
+The \texttt{exposeCollection} module  takes as an argument a
+\texttt{ModuleCollect} module (\texttt{m}) with interface \texttt{ifc},
+and provides an \texttt{IWithCollection} interface.  
+\index{exposeCollection@\te{exposeCollection} (\te{ModuleCollect} function)}
+
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+&  \\
+\te{exposeCollection}&Expose the collection to allow the module to be synthesized.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+module exposeCollection#(ModuleCollect#(a_type, ifc) m)
+                        (IWithCollection#(a_type, ifc));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+Finally, the \texttt{ModuleCollect} package provides a function, 
+\texttt{mapCollection}, to apply a function to each item in the
+current collection.
+\index{mapCollection@\te{mapCollection} (\te{ModuleCollect} function)}
+
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+&  \\
+\te{mapCollection}&Apply a function to each item added to the collection within
+the second argument.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function ModuleCollect#(a_type, ifc) 
+   mapCollection(function a_type x1(a_type x1), 
+                 ModuleCollect#(a_type, ifc) x2); 
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Example - Assertion Wires}
+\begin{libverbatim}
+// This example shows excerpts of a design which places various
+// test conditions (Boolean expressions) at random places in a design,
+// and lights an LED (setting an external wire to 1), if the condition
+// is ever satisfied.
+
+import ModuleCollect::*;
+import List::*;
+import Vector::*;
+import Assert::*;
+
+// The desired interface at the top level is:
+interface AssertionWires#(type n);
+   method Bit#(n) wires;
+   method Action clear;
+endinterface
+
+// The "wires" method tells which conditions have been set, and the
+// "clear" method resets them all to 0.  
+// The items in our extra collection will be interfaces of the
+// following type:
+
+interface AssertionWire;
+   method Integer index;   //Indicates which wire is to be set if
+   method Bool fail;       // fail method ever returns true.
+   method Action clear;
+endinterface
+
+// We next define the "AssertModule" type.  This is to behave like an
+// ordinary module providing an interface of type "i", except that it
+// also can collect items of type "AssertionWire":
+
+typedef ModuleCollect#(AssertionWire, i) AssertModule#(type i);
+
+typedef Tuple2#(AssertionWires#(n), i) AssertIfc#(type i, type n);
+
+...
+
+// The next definition shows how items are added to the collection.
+// This is the module which will be instantiated at various places in
+// the design, to test various conditions.  It takes one static
+// parameter, "ix", to specify which wire is to carry this condition,
+// and one dynamic parameter (one varying at run-time) "c", giving the
+// value of the condition itself.  
+
+interface AssertionReg;
+   method Action set;
+   method Action clear;
+endinterface
+
+module [AssertModule] mkAssertionReg#(Integer ix)(AssertionReg);
+
+   Reg#(Bool) cond <- mkReg(False);
+
+   // an item is defined and added to the collection
+   let item = (interface AssertionWire;
+                 method index;
+                    return (ix);
+                 endmethod
+                 method fail;
+                    return(cond);
+                 endmethod
+                 method Action clear;
+                     cond <= False;
+                 endmethod
+               endinterface);
+   addToCollection(item);
+   ...
+endmodule
+                     
+// the collection must be exposed before synthesis       
+module [Module] exposeAssertionWires#(AssertModule#(i) mkI)(AssertIfc#(i, n));
+   
+   IWithCollection#(AssertionWire, i) ecs <- exposeCollection(mkI);
+   
+   ...(c_ifc is created from the list ecs.collection)
+
+   // deliver the array of values in the registers
+   let dut_ifc = ecs.device;
+    
+   // return the values in the collection, and the ifc of the device
+   return(tuple2(c_ifc, dut_ifc));
+endmodule
+\end{libverbatim}

@@ -1,0 +1,423 @@
+\subsubsection{AlignedFIFOs}
+ 
+\index{AlignedFIFOs@\te{AlignedFIFOs} (package)}
+
+\label{sec-AlignedFIFOs}
+
+{\bf Package}
+
+\begin{verbatim}
+import AlignedFIFOs :: * ;
+\end{verbatim}
+
+
+
+
+
+{\bf Description}
+
+The AlignedFIFOs package contains a parameterized FIFO module
+intended for creating synchronizing FIFOs between clock domains
+with aligned edges for both types of clock domain crossings:
+\begin{itemize}
+\item slow-to-fast crossing - every edge in the source domain implies
+the existence of a simultaneous edge in the destination domain 
+\item fast-to-slow crossing - every edge in the destination domain
+implies the existence of a simultaneous edge in the source domain
+\end{itemize}
+
+The FIFO is parameterized on the type of store used to hold the
+FIFO data, which is itself parameterized on the index type, value
+type, and read latency.  Modules to construct stores based on a
+single register, a vector of registers and a BRAM are provided, and
+the user can supply their own store implementation as well.
+
+The FIFO allows the user to control whether or not outputs are held
+stable during the full slow clock cycle or allowed to transition
+mid-cycle.  Holding the outputs stable is the safest option but it
+ slightly increases the minimum latency through the FIFO.
+
+A primary design goal of this FIFO is to provide an efficient
+and flexible family of synchronizing FIFOs between aligned clock
+ domains which are written in BSV and are fully compatible with
+ Bluesim.  These FIFOs (particularly ones using vectors of registers)
+ may not be the best choice for ASIC synthesis due to the muxing
+ to select the head value in the \te{first} method.
+
+
+
+{\bf Interfaces and methods} 
+
+
+
+\paragraph{Store Interface}
+The \te{AlignedFIFO} is parameterized on the type of store used to hold the FIFO
+data. The three types of
+stores provided in the \te{AlignedFIFO} package (single-element,
+vector-of-registers, and BRAM) all return a \te{Store} interface.
+
+The \te{Store} interface has a \te{prefetch} method which is used by
+some modules (the \te{mkBRAMStore} in this package).   If a prefetch
+is used, the \te{read} 
+method returns the value at the previously fetched index; the
+value of \te{idx} should be ignored.   If a prefetch is not
+used, the \te{read} method index value determines the returned
+value. 
+
+% \begin{center}
+% \begin{tabular}{|p{.4 in}|p{1.5 in}|p{.4in}| p{2 in}|}
+% \hline
+% \multicolumn{4}{|c|}{Type parameters used in Interfaces}\\
+% \hline
+% Name&Description&Valid Values&\\
+% \hline
+% \te{i}& data type of index&&\\
+% \hline
+% \te{a} &data type of values in FIFO&&\\
+% \hline
+% \te{n}& Read latency & 0& prefetch is not used   \\
+% \cline{3-4}
+% && 1&  prefetch is used\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.1in}|p{.4in}|p{3.5 in}|}
+\hline
+\multicolumn{3}{|c|}{Store Interface Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{write}&Action&Writes the value at index \te{idx}.\\
+\hline
+\te{prefetch}&Action&Initiates a prefetch of the value at index \te{idx}. \\
+\hline
+\te{read}&\te{a}&Returns the value of type \te{a}.  If prefetch is not
+used,  returns the value at index \te{idx}.  When prefetch is used,
+returns the value at the previously fetched index; the value of \te{idx} should be ignored.\\ 
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+interface Store#(type i, type a, numeric type n);
+   method Action write(i idx, a value);
+   method Action prefetch(i idx);
+   method a read(i idx);
+endinterface: Store
+\end{verbatim}
+
+
+\paragraph{AlignedFIFO Interface}
+
+The \te{AlignedFIFO} interface provides methods for both source (enqueue) and
+destination (dequeue) clock domains.  
+
+\begin{center}
+\begin{tabular}{|p{1.1in}|p{.4in}|p{3.5 in}|}
+\hline
+\multicolumn{3}{|c|}{AlignedFIFO Interface Methods}\\
+\hline
+\hline
+Name&Type&Description\\
+\hline
+\hline
+\te{enq}&Action&Adds an entry to the FIFO from the source clock domain.\\
+\hline
+\te{first}&\te{a}&Returns the first entry from the FIFO in the
+destination clock domain.\\
+\hline
+\te{deq}&Action&Removes the first entry from the FIFO in the
+destination clock domain.\\
+\hline
+\te{dNotFull}&Bool&Returns \te{True} if the FIFO appears not full from
+the destination  clock domain.\\
+\hline
+\te{dNotEmpty}&Bool&Returns \te{True} if the FIFO appears not empty from
+the destination  clock domain.\\
+\hline
+\te{sNotFull}&Bool&Returns \te{True} if the FIFO appears not full from
+the source  clock domain.\\
+\hline
+\te{sNotEmpty}&Bool&Returns \te{True} if the FIFO appears not empty from
+the source  clock domain.\\
+\hline
+\te{dClear}&Action&Clears the FIFO from the destination side.\\
+\hline
+\te{sClear}&Action&Clears the FIFO from the source side.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+interface AlignedFIFO#(type a);
+   method Action enq(a x);
+   method a first();
+   method Action deq();
+   method Bool dNotFull();
+   method Bool dNotEmpty();
+   method Bool sNotFull();
+   method Bool sNotEmpty();
+   method Action dClear();
+   method Action sClear();
+endinterface: AlignedFIFO
+\end{verbatim}
+
+
+
+
+{\bf Modules}
+
+ The
+\te{AlignedFIFO} module  is  parameterized on the type of store used to hold
+the FIFO data.  The \te{AlignedFIFOs} package contains modules to
+construct stores based on a single register (\te{mkRegStore}), a
+vector of registers (\te{mkRegVectorStore}), and a BRAM (\te{mkBRAMStore}). 
+Users can supply their own store implementation as well.
+
+\index{mkRegStore@\te{mkRegStore} (module)}
+\index[function]{AlignedFIFOs!mkRegStore}
+
+The \te{mkRegStore} instantiates a  single-element store.  The module returns
+a \te{Store} interface and does not use a prefetch.
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+  &            \\
+Module Name  &  BSV Module Declaration   \\
+\hline
+\multicolumn{2}{|l|}{Implementation of a single-element store }\\
+\hline
+\begin{libverbatim}mkRegStore
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkRegStore(Clock sClock, Clock dClock, 
+                  Store#(UInt#(0),a,0) ifc)
+   provisos(Bits#(a,a_sz) ); \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkRegVectorStore@\te{mkRegVectorStore} (module)}
+\index[function]{AlignedFIFOs!mkRegVectorStore}
+
+The \te{mkRegVectorStore} module instantiates a vector-of-registers
+store.  The module returns a \te{Store} interface and does not use a
+prefetch.
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{Implementation of a vector-of-registers store}\\
+\hline
+\begin{libverbatim}mkRegVectorStore
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkRegVectorStore(Clock sClock, Clock dClock, 
+                        Store#(UInt#(w),a,0) ifc)
+   provisos( Bits#(a,a_sz) ); \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkBRAMStore2W1R@\te{mkBRAMStore2W1R} (module)}
+\index[function]{AlignedFIFOs!mkBRAMStore2W1R}
+
+The \te{mkBRAMStore2W1R} module returns a \te{Store} interface and uses a
+prefetch.  This model assumes the read clock is a 2x divided version
+of the write clock.
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{A BRAM-based store where the
+read clock is a 2x divided version of the write clock.}\\
+\hline
+\begin{libverbatim}mkBRAMStore2W1R
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkBRAMStore2W1R(Clock sClock, Reset sReset, 
+                       Clock dClock, Reset dReset, 
+                       Store#(i,a,1) ifc)
+   provisos( Bits#(a,a_sz), Bits#(i,w), Eq#(i) );\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkBRAMStore1W2R@\te{mkBRAMStore1W2R} (module)}
+\index[function]{AlignedFIFOs!mkBRAMStore1W2R}
+
+The \te{mkBRAMStore1W2R} module returns a \te{Store} interface and uses a
+prefetch.  This model assumes the write clock is a 2x divided version
+of the read clock.
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{A BRAM-based store where the
+write clock is a 2x divided version of read clock.}\\
+\hline
+\begin{libverbatim}mkBRAMStore1W2R
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkBRAMStore1W2R(Clock sClock, Reset sReset, 
+                       Clock dClock, Reset dReset, 
+                       Store#(i,a,1) ifc)
+   provisos( Bits#(a,a_sz), Bits#(i,w), Eq#(i) );\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkAlignedFIFO@\te{mkAlignedFIFO} (module)}
+\index[function]{AlignedFIFOs!mkAlignedFIFO}
+
+The \te{mkAlignedFIFO} module makes a synchronizing FIFO for aligned
+clocks, based on the given backing store (determined by the type of
+store instantiated).  The store is assumed to have $2^{w}$ slots
+addressed from 0 to $2^{w}-1$.  The store will be written in the
+source clock domain and read in the destination clock domain.
+
+The \te{enq} and \te{deq} methods will only be callable when the
+\te{allow\_enq} and \te{allow\_deq} inputs are high.  For a
+slow-to-fast crossing use:
+\begin{libverbatim}
+allow_enq = constant True
+allow_deq = pre-edge signal
+\end{libverbatim}
+
+For a fast-to-slow crossing, use:
+\begin{libverbatim}
+allow_enq = pre-edge signal
+allow_deq = constant True
+\end{libverbatim}
+
+The pre-edge signal is \te{True} when the slow clock will rise in the
+next clock cycle.   The
+\te{ClockNextRdy}  from the \te{ClockDividerIfc} (Section
+\ref{sec-clockdivider}) can be used as the pre-edge signal.
+
+These settings ensure that the outputs in the slow clock domain are
+stable for the entire cycle.  Setting both inputs to constant True
+reduces the minimum latency through the FIFO, but allows outputs in
+the slow domain to transition mid-cycle.  This is less safe and can
+interact badly with the \te{\$displays} in a Verilog simulation.
+
+
+It is not advisable to call both \te{dClear} and \te{sClear} simultaneously.
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.1 in}|}
+ \hline
+\multicolumn{2}{|l|}{Implementation of an aligned FIFO}\\
+\hline
+\begin{libverbatim}mkAlignedFIFO
+\end{libverbatim} 
+& \begin{libverbatim}
+(* no_default_clock, no_default_reset *)
+module mkAlignedFIFO( Clock sClock
+		    , Reset sReset
+		    , Clock dClock
+		    , Reset dReset
+		    , Store#(i,a,n) store
+		    , Bool allow_enq
+		    , Bool allow_deq
+		    , AlignedFIFO#(a) ifc
+		    )
+   provisos( Bits#(a,sz_a), Bits#(i,w), 
+             Eq#(i), Arith#(i) );\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+% {\bf Verilog Modules}
+
+% \te{FIFO} and \te{FIFOF} modules correspond to the following {\V}
+% modules, which are found in the BSC {\V} library, \te{\$BLUESPECDIR/Verilog/}.
+
+% \begin{center}
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% &&& \\
+% BSV Module Name &\multicolumn{2}{|c|}{ Verilog Module Names}&Comments  \\
+% &&& \\
+% \hline
+% \hline
+% \begin{libverbatim}mkFIFO
+% mkFIFOF
+% mkUGFIFOF
+% mkGFIFOF\end{libverbatim}
+% & \te{FIFO2.v}&   \te{FIFO20.v}&\\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkFIFO1
+% mkFIFOF1
+% mkUGFIFOF1
+% mkGFIFOF1\end{libverbatim} 
+% & \te{FIFO1.v} & \te{FIFO10.v}&\\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkSizedFIFO
+% mkSizedFIFOF
+% mkUGSizedFIFOF
+% mkGSizedFIFOF
+% \end{libverbatim} 
+% &\begin{libverbatim}SizedFIFO.v
+% FIFO1.v
+% FIFO2.v
+% \end{libverbatim}
+%  & \begin{libverbatim}SizedFIFO0.v
+% FIFO10.v
+% FIFO20.v
+% \end{libverbatim}
+% &If the depth of the FIFO = 1,
+% then \te{FIFO1.v} and \te{FIFO10.v} are used, if the depth = 2, then
+% \te{FIFO2.v} and \te{FIFO20.v} are used. \\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}
+% mkDepthParamFIFOF
+% mkUGDepthParamFIFOF
+% mkGDepthParamFIFOF\end{libverbatim} 
+% & \te{SizedFIFO.v} & \te{SizedFIFO0.v}& \\
+% \hline
+% \end{tabular}
+
+% \begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+% \hline
+% \begin{libverbatim}mkLFIFO
+% mkLFIFOF
+% mkUGLFIFOF
+% mkGLFIFOF\end{libverbatim}
+%  & \te{FIFOL1.v} &  \te{FIFOL10.v}& \\
+% \hline
+% \hline
+% \end{tabular}
+% \end{center}
+ 
+
+% % Text inserted here to explain anything the user might need to know
+% % about how the Verilog relates to the BSV they wrote.
+

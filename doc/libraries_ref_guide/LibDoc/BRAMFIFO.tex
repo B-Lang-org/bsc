@@ -1,0 +1,133 @@
+\subsubsection{BRAMFIFO}
+\label{sec-BRAMFIFO}
+%\index{Xilinx!BRAMFIFO (package)}
+
+{\bf Package}
+\index{BRAMFIFO (package)}
+
+\begin{verbatim}
+import BRAMFIFO :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The \te{BRAMFIFO} package provides FIFO interfaces and are built
+around a BRAM memory. The BRAM is provided in the \te{BRAMCore} 
+package described in Section \ref{sec-BRAMCore}.  
+
+
+{\bf Interfaces}
+
+The \te{BRAMFIFO} package provides \te{FIFOF}, \te{FIFO}, and
+\te{SyncFIFOIfc} interfaces, as defined in the \te{FIFOF}, \te{FIFO},
+(both in Section \ref{sec-FIFOifc}) 
+and \te{Clocks} (Section \ref{syncfifoifc}) packages.
+
+
+{\bf Modules}
+
+
+\index{mkSizedBRAMFIFOF@\te{mkSizedBRAMFIFOF} (module)}
+\index[function]{BRAMFIFO!mkSizedBRAMFIFOF}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSizedBRAMFIFOF} &Provides a \te{FIFOF} interface of a given depth, \te{n}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSizedBRAMFIFOF#(Integer n) (FIFOF#(element_type))
+   provisos (Bits(element_type, width_any), 
+             Add#(1,z,width_any));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSizedBRAMFIFO@\te{mkSizedBRAMFIFO} (module)}
+\index[function]{BRAMFIFO!mkSizedBRAMFIFO}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSizedBRAMFIFO} &Provides a \te{FIFO} interface of a given
+depth, \te{n}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSizedBRAMFIFO#(Integer n)(FIFO#(element_type))
+   provisos(Bits#(t, width_element),
+            Add#(1, z, width_element) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMFIFO@\te{mkSyncBRAMFIFO} (module)}
+\index[function]{BRAMFIFO!mkSyncBRAMFIFO}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMFIFO}  &Provides a \te{SyncFIFOIfc} interface to send
+data across clock domains.  The \te{enq} method is in the source
+\te{sClkIn} domain, while the \te{deq} and \te{first} methods are in
+the destination \te{dClkIn} domain.  The input and output clocks,
+along with the input and output resets, are explicitly provided.  The
+default clock and reset are ignored.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMFIFO#(Integer depth, 
+                       Clock sClkIn, Reset sRstIn, 
+                       Clock dClkIn, Reset dRstIn)
+                       (SyncFIFOIfc#(element_type))
+   provisos(Bits#(element_type, width_element),
+            Add#(1, z, width_element));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMFIFOToCC@\te{mkSyncBRAMFIFOToCC} (module)}
+\index[function]{BRAMFIFO!mkSyncBRAMFIFOToCC}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMFIFOToCC} &Provides a \te{SyncFIFOIfc} interface to send
+data from a second clock domain into the current clock domain.  The
+output clock and reset are the current clock and reset. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMFIFOToCC#(Integer depth, 
+                           Clock sClkIn, Reset sRstIn)
+                           (SyncFIFOIfc#(element_type))
+   provisos(Bits#(element_type, width_element),
+            Add#(1, z, width_element));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMFIFOFromCC@\te{mkSyncBRAMFIFOFromCC} (module)}
+\index[function]{BRAMFIFO!mkSyncBRAMFIFOFromCC}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMFIFOFromCC} &Provides a  \te{SyncFIFOIfc} interface to send
+data from the current clock domain into a second clock domain.  The
+input clock and reset are the current clock and reset.  \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMFIFOFromCC#(Integer depth, 
+                             Clock dClkIn, Reset dRstIn)
+                             (SyncFIFOIfc#(element_type))
+   provisos(Bits#(element_type, width_element),
+            Add#(1, z, width_element));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}

@@ -1,0 +1,206 @@
+\subsubsection{LFSR}
+
+\index{LFSR@\te{LFSR} (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import LFSR :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+
+The \te{LFSR} package implements Linear Feedback Shift Registers (LFSRs).
+LFSRs can be used to obtain reasonable pseudo-random numbers for many
+purposes (though not good enough for cryptography).
+The \te{seed} method  must be called first, to prime the
+algorithm.   Then values may be read using the \te{value} method, and
+the algorithm stepped on to the  next value by the \te{next} method. 
+When a LFSR is created the start value, or seed,  is 1.
+
+{\bf Interfaces and Methods}
+
+The \te{LFSR} package provides an interface, \te{LFSR}, which contains
+three methods; \te{seed}, \te{value}, and \te{next}.  To prime the
+LFSR the \te{seed} method is called with  the parameter \te{seed\_value}, of datatype \te{a\_type}.    The
+value is read with the \te{value} method.   The \te{next} method
+is used to shift the register on to the next value.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.5in}|p{2.2 in}|p{.7in}|p{1.1 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{LFSR} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{seed}&\te{Action}&Sets the  value of the shift
+register.&\te{a\_type}&datatype of the seed value\\
+&&&\te{seed\_value}&the initial value\\
+\hline
+\te{value}&\te{a\_type}&returns the value of the shift register&&\\
+\hline
+\te{next}&\te{Action}&signals the shift register to shift to the next value.&&\\
+\hline
+\end{tabular}
+\end{center}
+ 
+
+\begin{libverbatim}
+interface LFSR #(type a_type);
+    method Action seed(a_type seed_value);
+    method a_type value();
+    method Action next();
+endinterface: LFSR
+\end{libverbatim}
+
+{\bf Modules}
+\index{mkFeedLFSR@\te{mkFeedLFSR}(module)}
+
+The module \te{mkFeedLFSR} creates a LFSR where the polynomial is
+specified by the mask used for feedback.  
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+&\\
+\te{mkFeedLFSR}&Creates a LFSR where the polynomial is specified
+by the mask (\emph{feed}) used for feedback.  \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkFeedLFSR#( Bit#(n) feed )( LFSR#(Bit#(n)) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+For example, the polynominal $x^7+x^3+x^2+x+1$ is defined by the
+expression 
+\verb|mkFeedLFSR#(8'b1000_1111)| 
+
+
+Using the module \te{mkFeedLFSR}, the following maximal length LFSR's
+are defined in this package. 
+ 
+\begin{center}
+%\begin{tabular}{|p{1 in}|p{4 in}|}
+\begin{tabular}{|p{1in}|p{1in}|p{3.5 in}|}
+\hline
+Module Name&feed&Module Definition\\
+\hline
+\hline
+&&\\
+\te{mkLFSR\_4}&4'h9&\verb'module mkLFSR_4 (LFSR#(Bit#(4)));'\\
+&$x^3 + 1$&\\
+\hline
+&&\\
+\te{mkLFSR\_8}&8'h8E &\verb'module mkLFSR_8 (LFSR#(Bit#(8)))';\\
+\hline
+&&\\
+\te{mkLFSR\_16}&16'h8016&\verb'module mkLFSR_16 (LFSR#(Bit#(16)));'\\
+\hline
+&&\\
+\te{mkLFSR\_32}&32'h80000057&\verb'module mkLFSR_32 (LFSR#(Bit#(32)));'\\
+\hline
+\end{tabular}
+\end{center}
+
+ For example, 
+\begin{libverbatim}
+mkLFSR_4   =  mkFeedLFSR( 4'h9 );
+\end{libverbatim}
+The module \te{mkLFSR\_4} instantiates the interface
+\te{LFSR} with the value \te{Bit\#(4)} to produce a 4 bit shift
+register.
+The module uses the polynomial defined by the mask 4'h9
+($x^3 + 1$)  and the module
+\te{mkFeedLFSR}.  
+% \begin{libverbatim}
+% module mkLFSR_4 (LFSR#(Bit#(4)));
+% \end{libverbatim}
+
+
+
+% Some maximal length LFSRs.
+% Many more can be found at \te{http://www-2.cs.cmu.edu/ {\TILDE}koopman/lfsr/}
+% \begin{libverbatim}  
+% module mkLFSR_8 (LFSR#(Bit#(8)));
+% mkLFSR_8   =  mkFeedLFSR( 8'h8E );
+  
+% module mkLFSR_16 (LFSR#(Bit#(16)));
+% mkLFSR_16  =  mkFeedLFSR( 16'h8016 );
+  
+% module mkLFSR_32 (LFSR#(Bit#(32)));
+% mkLFSR_32  =  mkFeedLFSR( 32'h80000057 );
+% \end{libverbatim}
+
+
+The \te{mkRCounter} function creates a counter with a LFSR interface.
+This is useful during debugging when a non-random sequence is desired.
+This function can be used in place of the other mkLFSR module
+constructors, without changing any method calls or behavior.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+&\\
+\te{mkRCounter}&Creates a counter with a LFSR interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRCounter#( Bit#(n) seed ) ( LFSR#(Bit#(n)) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example - Random Number Generator}
+
+\begin{verbatim}
+import GetPut::*;
+import FIFO::*;
+import LFSR::*;
+
+//  We want 6-bit random numbers, so we will use the 16-bit version of
+//  LFSR and take the most significant six bits.
+
+//  The interface for the random number generator is parameterized on bit
+//  length.  It is a "get" interface, defined in the GetPut package.
+
+typedef Get#(Bit#(n)) RandI#(type n);
+
+module mkRn_6(RandI#(6));
+  // First we instantiate the LFSR module
+  LFSR#(Bit#(16)) lfsr <- mkLFSR_16 ;
+
+  // Next comes a FIFO for storing the results until needed
+  FIFO#(Bit#(6)) fi <-  mkFIFO ;
+
+  // A boolean flag for ensuring that we first seed the LFSR module
+  Reg#(Bool) starting <- mkReg(True) ;
+
+  // This rule fires first, and sends a suitable seed to the module.
+  rule start (starting);
+      starting <= False;
+      lfsr.seed('h11);
+  endrule: start
+
+  // After that, the following rule runs as often as it can, retrieving
+  // results from the LFSR module and enqueing them on the FIFO.
+  rule run (!starting);
+      fi.enq(lfsr.value[10:5]);
+      lfsr.next;
+  endrule: run
+
+  // The interface for mkRn_6 is a Get interface.  We can produce this from a
+  // FIFO using the fifoToGet function.  We therefore don't need to define any
+  // new methods explicitly in this module: we can simply return the produced
+  // Get interface as the "result" of this module instantiation.
+  return fifoToGet(fi);
+endmodule
+\end{verbatim}
+

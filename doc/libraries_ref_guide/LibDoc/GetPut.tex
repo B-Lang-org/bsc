@@ -1,0 +1,604 @@
+The packages in this section provide useful components, primarily
+interfaces, to connect hardware elements in a design.  
+
+The basic interfaces, \te{Get}
+and \te{Put} are defined in the package \te{GetPut}. The
+typeclass \te{Connectable} indicates that two related types can be
+connected together.  The
+package  \te{ClientServer} provides interfaces using \te{Get} and
+\te{Put}    for
+modules that have a request-response type of interface.  The package
+\te{CGetPut} defines a type of the \te{Get} and \te{Put} interfaces
+that is implemented with a credit based FIFO.
+
+
+\subsubsection{GetPut}
+\index{GetPut@\te{GetPut} (package)}
+\index{Get@\te{Get} (interface)}
+\index{Put@\te{Put} (interface)}
+\label{sec-GetPut}
+
+{\bf Package}
+
+\begin{verbatim}
+import GetPut :: *;
+\end{verbatim}
+
+
+{\bf Description}
+
+A common paradigm between two blocks is the  get/put mechanism:  one
+side {\em gets} or retrieves an item from an interface and the other
+side {\em puts} or gives an item to an interface.  These types of
+interfaces are used in {\em Transaction Level Modeling} or TLM for
+short.  This pattern is so common in system design that BSV provides
+the \te{GetPut} library package for this purpose.
+
+The \te{GetPut} package provides basic interfaces to implement the TLM
+paradigm, along with interface transformer functions and modules to
+transform to/from FIFO implementations.  The \te{ClientServer} package
+in Section \ref{lib-clientserver} defines more complex interfaces
+based on the \te{Get} and \te{Put} interfaces to support
+request-response interfaces.  The \te{GetPut} package must be imported
+when using the \te{ClientServer} package.
+
+% \te{Get} and \te{Put} are  simple interfaces, consisting of one
+% method each, \te{get} and \te{put}, respectively.  This package
+% provides the interfaces \te{Get}, \te{Put}, and \te{GetPut}.  This
+%  package also  provides modules which provide the \te{GetPut}
+% interface as a \te{FIFO} implementation, but these interfaces can be used
+% in many additional hardware implementations. 
+
+{\bf Typeclasses}
+
+The \te{GetPut} package defines two typeclasses: \te{ToGet} and
+\te{ToPut}.   \label{toget}
+The types with instances defined in these typeclasses 
+provide the functions \te{toGet} and \te{toPut}, used to create 
+associated \te{Get} and \te{Put} interfaces from these other types.
+
+
+\te{ToGet} defines the class to which the function \te{toGet} can be
+applied to create an associated \te{Get} interface.
+
+\index{toGet@\te{toGet} (function)}
+\index[function]{GetPut!toGet}
+\index[typeclass]{ToGet}
+\index[typeclass]{ToPut}
+
+\begin{verbatim}
+typeclass ToGet#(a, b);
+   function Get#(b) toGet(a ax);
+endtypeclass
+\end{verbatim}
+
+\te{ToPut} defines the class to which the function \te{toPut} can be
+applied to create an associated \te{Put} interface.
+\index{toPut@\te{toPut} (function)}
+\index[function]{GetPut!toPut}
+
+
+\begin{verbatim}
+typeclass ToPut#(a, b);
+   function Put#(b) toPut(a ax);
+endtypeclass
+\end{verbatim}
+
+Instances of \te{ToGet} and \te{ToPut} are defined for the following
+interfaces:
+
+%\begin{tabular}{|p{1.8 in}|p{.3 in}|p{.3in}|p{3in}|}
+\begin{tabular}{|p{1.8 in}|c|c|p{3in}|}
+\hline
+\multicolumn{4}{|c|}{Defined Instances for \te{ToGet} and \te{ToPut}}\\
+\hline
+Type (Interface)&toGet&toPut&Comments\\
+\hline
+\hline
+\te{a}&\checkmark&&\te{toGet} returns value \te{a}\\
+\te{ActionValue\#(a)}&\checkmark&&\te{toGet} performs the Action and
+returns the value\\
+\te{function Action fn(a)}&&\checkmark& \te{toPut} calls \te{Action} function
+\te{fn} with argument \te{a}\\
+\hline
+\te{Get\#(a)}&\checkmark&&identity function: returns \te{Get\#(a)}\\
+\te{Put\#(a)}&&\checkmark&identity function: returns \te{Put\#(a)}\\
+\hline
+\te{Reg\#(a)}&\checkmark&\checkmark&\te{toGet} returns \te{\_read},
+\te{toPut} calls \te{\_write}\\
+\te{RWire\#(a)}&\checkmark&\checkmark&\te{toGet} returns \te{wget},
+\te{toPut} calls \te{wset}\\
+\te{ReadOnly\#(a)}&\checkmark&&\te{toGet} returns \te{\_read}\\
+\hline
+%\end{tabular}
+
+% The FIFO instances of \te{ToGet} call \te{deq} and
+% return \te{first}.  The  FIFO instances of \te{ToPut} call  \te{enq}.
+
+%\begin{tabular}{|p{1.8 in}|p{.3 in}|p{.3in}|p{3in}|}
+%\hline
+% \multicolumn{4}{|c|}{Defined FIFO Instances for \te{ToGet} and \te{ToPut}}\\
+% \hline
+% FIFO Interface&toGet&toPut&Comments\\
+% \hline
+% \hline
+\te{FIFO\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\te{FIFOF\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\te{SyncFIFOIfc\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\te{FIFOLevelIfc\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\te{SyncFIFOLevelIfc\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq}  returns \te{first},
+\te{toPut} calls \te{enq} \\
+\te{FIFOCountIfc\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\te{SyncFIFOCountIfc\#(a)}&\checkmark&\checkmark&\te{toGet} calls \te{deq} returns \te{first},
+\te{toPut} calls \te{enq}\\
+\hline
+\end{tabular}
+
+
+% \begin{verbatim}
+%     Reg
+%     RWire
+%     FIFO
+%     FIFOF
+%     SyncFIFOIfc
+%     FIFOLevelIfc
+%     SyncFIFOLevelIfc
+%     FIFOCountIfc
+%     SyncFIFOCountIfc
+%     ReadOnly
+% \end{verbatim}
+
+% An instance of \te{ToGet} is  defined for the \te{ReadOnly} interface.
+
+
+Example - Using \te{toPut} 
+
+\begin{libverbatim}
+module mkTop (Put#(UInt#(64)));
+   Reg#(UInt#(64)) inValue <- mkReg(0);
+   Reg#(Bool) startit <- mkReg(True);
+   ...
+   StimIfc     stim_gen <- mkStimulusGen;
+
+   rule startTb (startit && inValue!=0);
+      // Get the value
+      let val = inValue;
+      stim_gen.start(val);
+      startit <= False;
+   endrule
+   ...   
+   return (toPut(asReg(inValue)));
+endmodule: mkTop
+\end{libverbatim}
+
+
+{\bf Interfaces and methods}
+
+The \te{Get}
+interface defines the \te{get} method, similar to a \te{dequeue},
+which retrieves an item from an interface and removes it at the same time.  The
+\te{Put} interface defines the \te{put} method, similar to an
+\te{enqueue},  which 
+gives an item to an interface.  Also provided is the \te{GetS}
+interface, which defines separate methods for the dequeue (\te{deq})
+and retreiving the item (\te{first}) from the interface.  
+
+You can design your own \te{Get} and \te{Put} interfaces with  implicit
+conditions on the \te{get}/\te{put} to 
+ensure that the \te{get}/\te{put} is not performed when the module is not
+ready.  This would ensure that a rule containing \te{get} method would not fire
+if the element associated with it is empty and that a rule
+containing \te{put} method would not fire if the element is full.
+
+
+
+
+% \begin{tabular}{|p{1.2in}|p{.8in}|p{2in}|p{1.3in}|}
+%  \hline
+% \multicolumn{4}{|c|}{Interfaces}\\
+% \hline
+% Interface Name   & Parameter name & Parameter Description & Restrictions \\
+% \hline
+% \hline
+% \te{Get} & \it{element\_type} & type of the element & must be in
+%                           \te{Bits} class\\
+% & &being retrieved by the \te{Get} &\\
+% \hline
+% \te{Put} & \it{element\_type} & type of the element & must be in
+% \te{Bits} class\\
+% & &being added by the \te{Put} &\\
+% \hline
+% \te{GetS} & \it{element\_type} & type of the element & must be in
+%                           \te{Bits} class\\
+% & &being retrieved by the \te{Get} &\\
+% \hline
+% \te{PutS} & \it{element\_type} & type of the element & must be in
+% \te{Bits} class\\
+% & &being added by the \te{Put} &\\
+% \hline
+% \te{GetPut}&\it{element\_type}& type of the element & must be in 
+% \te{Bits} class\\
+% & & being retrieved and added & \\
+% \hline
+% \end{tabular}
+
+
+The following interfaces are defined in the \te{GetPut} package.  They
+each take a  single parameter, \te{element\_type} which must be in the
+\te{Bits} typeclass.
+\begin{center}
+\begin{tabular}{|p{.5 in}|p{3.2 in}|p{.75in}|p{1in}|}
+ \hline
+\multicolumn{4}{|c|}{Interfaces defined in GetPut}\\
+\hline
+Interface Name   & Description&Methods&Type\\
+\hline
+\hline
+\te{Get} & Retrieves item from an interface&\te{get}&\te{ActionValue}\\
+\hline
+\te{Put} & Adds an item to an interface&\te{put}&\te{Action}\\
+\hline
+\te{GetS} &Retrieves an item from an interface with 2 methods,
+& \te{first}&
+\te{Value}\\
+&separating the return of the value from the dequeue&\te{deq}&\te{Action}\\
+\hline
+\te{GetPut}&Combination of  a \te{Get} and a \te{Put} in a \te{Tuple2}
+&\te{get}&\te{ActionValue}\\
+& &\te{put}&\te{Action}\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Get}
+
+The \te{Get} interface is where you retrieve (get) data from an
+object.  The \te{Get} interface is provides a single ActionValue
+method, \te{get}, which 
+retrieves an item of data from an interface and removes it from the
+object.  A \te{get} is similar to a \te{dequeue}, but it can
+be associated with any interface. A
+\te{Get} interface is more abstract than a \te{FIFO} interface; it does not describe the underlying hardware. 
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7 in}|p{1.5 in}|p{.4in}|p{1.4 in}|}
+\hline
+\multicolumn{5}{|c|}{Get}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{get}  & ActionValue & returns an item from an interface and removes it from the object & &  \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface Get#(type element_type);
+    method ActionValue#(element_type) get();
+endinterface: Get
+\end{libverbatim}
+Example - adding your own \te{Get} interface:
+\begin{libverbatim}
+module mkMyFifoUpstream (Get#(int));
+...
+   method ActionValue#(int) get();
+       f.deq;
+       return f.first;
+   endmethod
+\end{libverbatim}
+
+{\bf Put}
+
+The \te{Put} interface is where you can give (put) data to an object.  The
+\te{Put} interface provides a single Action method, \te{put}, which gives an
+item to an interface.  A \te{put} is similar to an \te{enqueue}, but it
+can be associated with any interface.  A \te{Put} interface is more
+abstract than a \te{FIFO} interface; it does not describe the
+underlying hardware.
+
+
+\begin{center}
+\begin{tabular}{|p{.4 in}|p{.4 in}|p{1.7 in}|p{.4in}|p{2 in}|}
+\hline
+\multicolumn{5}{|c|}{Put}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{put} & Action & gives an item to an interface  &x1 &data to be
+added to the object must be of type \te{element\_type}\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface Put#(type element_type);
+    method Action put(element_type x1);
+endinterface: Put
+\end{libverbatim}
+
+Example - adding your own \te{Put} interface:
+\begin{libverbatim}
+module mkMyFifoDownstream (Put#(int));
+...
+   method Action put(int x);
+       F.enq(x);
+   endmethod
+\end{libverbatim}
+
+{\bf GetS}
+
+The \te{GetS} interface is like a \te{Get} interface, but separates
+the \te{get} method into  two
+methods: a \te{first} and a \te{deq}.
+
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7 in}|p{1.5 in}|p{.4in}|p{1.4 in}|}
+\hline
+\multicolumn{5}{|c|}{GetS}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{first}  & Value & returns an item from the interface  & &  \\
+\hline
+\te{deq}&Action& Removes the item from the interface && \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface GetS#(type element_type);
+    method element_type first();
+    method Action deq();
+endinterface: GetS
+\end{libverbatim}
+
+% {\bf PutS}
+
+% The \te{PutS} interface is like the \te{Put} interface, but has two
+% methods: an Action putting the value  and a Boolean indicating the value
+% was accepted.
+
+
+
+{\bf GetPut}
+
+The library also defines an interface \te{GetPut} which associates
+\te{Get} and \te{Put} interfaces into a \te{Tuple2}.
+\begin{libverbatim}
+typedef Tuple2#(Get#(element_type), Put#(element_type)) GetPut#(type element_type);
+\end{libverbatim}
+
+{\bf Type classes}
+
+The class \te{Connectable} (Section \ref{lib-connectable}) is meant to indicate that
+two related types can be connected in some way.  It does not specify the nature
+of the connection. 
+
+A \te{Get} and \te{Put} is an example of connectable items.  One
+object will \te{put}
+an element into the interface and the other object will \te{get} the
+element from the interface.
+
+\begin{libverbatim}
+instance Connectable#(Get#(element_type), Put#(element_type));
+\end{libverbatim}
+
+
+{\bf Modules}
+
+There are three modules provided by the \te{GetPut} package which
+provide the \te{GetPut} interface with a type of \te{FIFO}.  These
+FIFOs use \te{Get} and \te{Put} interfaces instead of the usual 
+\te{enq} interfaces.  To use
+any of  these modules the
+\te{FIFO} package must  be imported.  You can also write your own
+modules providing a \te{GetPut} interface for other hardware structures.
+\index{mkGPFIFO@\te{mkGPFIFO} (\te{GetPut} module)}
+\index[function]{GetPut!mkGPFIFO}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkGPFIFO}  & Creates a FIFO of depth 2 with a \te{GetPut} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGPFIFO (GetPut#(element_type)) 
+  provisos (Bits#(element_type, width_elem));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkGPFIFO1@\te{mkGPFIFO1} (\te{GetPut} module)}
+\index[function]{GetPut!mkGPFIFO1}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkGPFIFO1} & Creates a FIFO of depth 1 with a \te{GetPut} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGPFIFO1 (GetPut#(element_type)) 
+  provisos (Bits#(element_type, width_elem));
+ \end{libverbatim} 
+\\ 
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{mkGPSizedFIFO@\te{mkGPSizedFIFO} (\te{GetPut} module)}
+\index[function]{GetPut!mkGPSizedFIFO}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkGPSizedFIFO} &Creates a FIFO of depth n with a \te{GetPut} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGPSizedFIFO# (Integer n) (GetPut#(element_type)) 
+  provisos (Bits#(element_type, width_elem));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Functions}
+
+There are three functions defined in the \te{GetPut} package that 
+change a \te{FIFO} interface to a \te{Get}, \te{GetS} or 
+\te{Put} interface.  Given a FIFO we can use the function
+\te{fifoToGet} to obtain a \te{Get} interface, which is a combination of
+ \te{deq} and \te{first}.  Given a FIFO we can use the function
+ \te{fifoToPut} to obtain a \te{Put} interface using \te{enq}.   The
+ functions  \te{toGet} and \te{toPut} (\ref{toget}) are recommended
+ instead of the \te{fifoToGet} and \te{fifoToPut} functions.  The
+ function \te{fifoToGetS} returns the \te{GetS} methods as fifo methods.
+
+% The package defines an additional function, \te{peekGet}, which returns the first item without removing it
+%  from the object.  There are scheduling concerns when using
+%  \te{peekGet}; because of the implicit condition,  it will only fire if there is data available.
+
+
+\index{fifoToGet@\te{fifoToGet} (GetPut function)}
+\index[function]{GetPut!fifoToGet}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fifoToGet}&  Returns a \te{Get} interface. It is recommended that
+you use the function \te{toGet}  (\ref{toget}) instead of this function.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Get#(element_type) fifoToGet(FIFO#(element_type) f);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\index{fifoToGet@\te{fifoToGet} (GetPut function)}
+\index[function]{GetPut!fifoToGet}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fifoToGetS}&  Returns a \te{GetS} interface. \\
+\cline{2-2}
+&\begin{libverbatim}
+function GetS#(element_type) fifoToGet(FIFO#(element_type) f);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{fifoToPut@\te{fifoToPut} (GetPut function)}
+\index[function]{GetPut!fifoToPut}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fifoToPut} & Returns a \te{Put} interface. It is recommended that
+you use the function \te{toPut}  (\ref{toget}) instead of this function.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Put#(element_type) fifoToPut(FIFO#(element_type) f);\end{libverbatim}
+\\
+\hline 
+\end{tabular}
+\end{center}
+
+% \index{peekGet@\te{peekGet} (GetPut function)}
+% \index[function]{GetPut!peekGet}
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4.5 in}|}
+%  \hline
+% &\\
+% \te{peekGet} &Returns first item without removing it from the object.  Will not fire if data is not available.\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function element_type peekGet(Get#(element_type) g;) \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+{\bf Example of creating a FIFO with a \te{GetPut} interface}
+     \begin{libverbatim}
+     import GetPut::*;
+     import FIFO::*;
+    
+     ...
+     module mkMyModule (MyInterface);
+        GetPut#(StatusInfo) aFifoOfStatusInfoStructures <- mkGPFIFO;
+     ...
+     endmodule: mkMyModule
+     \end{libverbatim}
+
+{\bf Example of a protocol monitor}
+
+This is an example of how you might write a protocol monitor that
+watches bus traffic between a bus and a bus target device
+
+\begin{libverbatim}
+     import GetPut::*;
+     import FIFO::*;
+
+     // Watch bus traffic beteween a bus and a bus target
+     interface ProtocolMonitorIfc;
+        // These subinterfaces are defined inside the module
+        interface Put#(Bus_to_Target_Request)  bus_to_targ_req_ifc;
+        interface Put#(Target_to_Bus_Response) targ_to_bus_resp_ifc;
+     endinterface
+     ...
+     module mkProtocolMonitor (ProtocolMonitorIfc);
+        // Input FIFOs that have Put interfaces added a few lines down
+        FIFO#(Bus_to_Target_Request) bus_to_targ_reqs <- mkFIFO;
+        FIFO#(Target_To_Bus_Response) targ_to_bus_resps <- mkFIFO;
+     ...
+        // Define the subinterfaces: attach Put interfaces to the FIFOs, and
+        //   then make those the module interfaces
+        interface bus_to_targ_req_ifc = fifoToPut (bus_to_targ_reqs);
+        interface targ_to_bus_resp_ifc = fifoToPut (targ_to_bus_resps);
+     end module: mkProtocolMonitor
+
+     // Top-level module: connect mkProtocolMonitor to the system:
+     module mkSys (Empty);
+        ProtocolMonitorIfc pmon <- mkProtocolInterface;
+     ...
+        rule pass_bus_req_to_interface;
+            let x <- bus.bus_ifc.get;     // definition not shown
+            pmon.but_to_targ_ifc.put (x);
+        endrule
+     ...
+     endmodule: mkSys
+\end{libverbatim}
+
+
+
+

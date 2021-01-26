@@ -1,0 +1,140 @@
+\subsubsection{Memory}
+\label{sec-Memory}
+
+
+{\bf Package}
+\index{Memory (package)}
+
+\begin{verbatim}
+import Memory :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{Memory} package provides the memory structures
+\te{MemoryRequest} and \te{MemoryResponse} which can be used to define
+a Client/Server memory structure.
+
+{\bf Types and type classes}
+
+A \te{MemoryRequest} is a polymorphic structure of a request
+containing a \te{write} bit, a byte enable (byteen), the \te{address} and
+the \te{data} for a memory request:
+
+\begin{libverbatim}
+typedef struct {
+   Bool    write;
+   Bit#(TDiv#(d,8)) byteen;
+   Bit#(a) address;
+   Bit#(d) data;
+} MemoryRequest#(numeric type a, numeric type d) deriving (Bits, Eq);
+\end{libverbatim}
+
+The \te{MemoryResponse} contains the data:
+
+\begin{libverbatim}
+typedef struct {
+   Bit#(d)          data;
+} MemoryResponse#(numeric type d) deriving (Bits, Eq);
+\end{libverbatim}
+
+
+{\bf Interfaces and Methods}
+
+The interfaces \te{MemoryServer} and \te{MemoryClient} are defined
+from the \te{Server} and \te{Client} interfaces defined in
+\te{ClientServer} package (Section
+\ref{lib-clientserver}) using the
+\te{MemoryRequest} and \te{MemoryResponse} types.
+
+The \te{MemoryServer} accepts requests and generates responses, the \te{MemoryClient}
+accepts responces and generates requests.
+There are no assumptions about how many (if any) responses
+a request  generates.  
+
+\begin{libverbatim}
+typedef Server#(MemoryRequest#(a,d), MemoryResponse#(d))  
+                MemoryServer#(numeric type a, numeric type d);
+\end{libverbatim}
+
+
+\begin{libverbatim}
+typedef Client#(MemoryRequest#(a,d), MemoryResponse#(d))  
+                MemoryClient#(numeric type a, numeric type d);
+\end{libverbatim}
+
+Default value instances are defined for both \te{MemoryRequest} and
+\te{MemoryResponse}:
+
+\begin{libverbatim}
+instance DefaultValue#(MemoryRequest#(a,d));
+   defaultValue = MemoryRequest {
+      write:    False,
+      byteen:   '1,
+      address:  0,
+      data:     0
+      };
+endinstance
+
+instance DefaultValue#(MemoryResponse#(d));
+   defaultValue = MemoryResponse {
+      data:     0
+      };
+endinstance
+\end{libverbatim}
+
+An instance of the \te{TieOff} class (Section \ref{lib-tieoff}) is defined for \te{MemoryClient}:
+
+\begin{libverbatim}
+instance TieOff#(MemoryClient#(a, d));
+\end{libverbatim}
+
+% An instance of the \te{DummyDriver} typeclass, which provides a dummy
+% stub for supplying an interface, is provided:
+% \begin{libverbatim}
+% instance DummyDriver#(MemoryClient#(a, d));
+% \end{libverbatim}
+
+
+
+{\bf Functions}
+
+% \index{maskdata@\te{maskdata} (module)}
+% \index[function]{Memory!maskdata}
+
+% \begin{tabular}{|p{1.3 in}|p{4.7 in}|}
+% \hline
+% & \\
+% \te{maskdata} &\\
+% \cline{2-2}
+% & \begin{libverbatim}
+% function Bit#(8) maskdata(Bit#(8) origdata
+%                         , Bit#(8) newdata 
+%                         , Bit#(1) mask);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+
+
+\index{updateDataWithMask@\te{updateDataWithMask} (module)}
+\index[function]{Memory!updateDataWithMask}
+
+\begin{tabular}{|p{1.3 in}|p{4.7 in}|}
+\hline
+& \\
+\te{updateDataWithMask} &Replaces the original data with new data.  The 
+data must be divisible an 8-bit multiple of the mask.  The mask
+indicates which bits to replace.\\
+\cline{2-2}
+& \begin{libverbatim}
+function Bit#(d) updateDataWithMask(Bit#(d) origdata 
+                                  , Bit#(d) newdata
+                                  , Bit#(d8) mask);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+

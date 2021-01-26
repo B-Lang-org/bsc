@@ -1,0 +1,170 @@
+\subsubsection{Gray}
+\label{sec-Gray}
+\index{Gray (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import Gray :: * ;
+\end{verbatim}
+
+
+
+{\bf Description}
+
+The \te{Gray} package defines a datatype, \te{Gray} and functions for
+working with the Gray type.  This type  is used by  the
+\te{GrayCounter} package.
+
+
+{\bf Types and type classes}
+
+The datatype \te{Gray} is  a representation for Gray code values.  The
+basic representation is the \te{Gray} structure, which is polymorphic
+on the size of the value.
+\begin{verbatim}
+     typedef struct {
+                     Bit#(n) code;
+                    } Gray#(numeric type n) deriving (Bits, Eq);
+\end{verbatim}
+
+
+The \te{Gray} type belongs to the \te{Literal} and \te{Bounded} type
+classes.   Each type class definition
+ includes  functions which are then also
+defined for the data type.  The Prelude library definitions (Section
+\ref{lib-prelude}) describes which functions are defined for each type class.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes used by \te{Gray}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}\\
+&&&&&&&wise&Reduction&Extend\\
+\hline
+\te{Gray}&$\surd$&$\surd$ &$\surd$& &&$\surd$ & &&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\paragraph{Literal}
+The \te{Gray} type is a member of the \te{Literal} class, which
+defines an encoding from the compile-time \te{Integer} type to
+\te{Gray} type with the {\tt fromInteger} and \te{grayEncode}
+functions.   The \te{fromInteger} converts the value to a bit pattern,
+and then calls \te{grayEncode}.
+
+\begin{libverbatim}
+instance Literal #( Gray#(n) )
+   provisos(Add#(1, msb, n));
+\end{libverbatim}
+
+
+\paragraph{Bounded}
+The \te{Gray} type is a member of the \te{Bounded} class, which
+provides the functions \te{minBound} and \te{maxBound} to define
+ the minimum and maximum Gray code values. 
+\begin{itemize}
+\item  minimum: \te{'b0}
+\item maximum: \te{'b10...0}
+\end{itemize}
+
+\begin{libverbatim}
+instance Bounded # ( Gray#(n) )
+   provisos(Add#(1, msb, n));
+\end{libverbatim}
+
+
+{\bf Functions}
+
+\index{grayEncode@\te{grayEncode} (function)}
+\index[function]{Gray!grayEncode}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{grayEncode} &This function takes a binary value of type
+\te{Bit\#(n)} and returns a  \te{Gray} type with the Gray code value.\\
+\cline{2-2}
+& \begin{libverbatim}
+function Gray#(n) grayEncode(Bit#(n) value) 
+          provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index{grayDecode@\te{grayDecode} (function)}
+\index[function]{Gray!grayDecode}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{grayDecode} &This function takes a Gray code value of size 
+\te{n} and returns the binary value. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Bit#(n) grayDecode(Gray#(n) value) 
+          provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{grayIncrDecr@\te{grayIncrDecr} (function)}
+\index[function]{Gray!grayIncrDecr}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{grayIncrDecr} &This functions takes a Gray code value and a
+Boolean, \te{decrement}.  If \te{decrement} is True, the value
+returned is one less than the input value.  If \te{decrement} is
+False, the value returned is one greater. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Gray#(n) grayIncrDecr(Bool decrement, 
+                               Gray#(n) value) 
+          provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{grayIncr@\te{grayIncr} (function)}
+\index[function]{Gray!grayIncr}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{grayIncr} &Takes a Gray code value and returns a Gray code value incremented
+by 1.\\
+\cline{2-2}
+& \begin{libverbatim}
+function Gray#(n) grayIncr(Gray#(n) value) 
+          provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{grayDecr@\te{grayDecr} (function)}
+\index[function]{Gray!grayDecr}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{grayDecr} &Takes a Gray code value a returns a Gray code value
+decremented by 1. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Gray#(n) grayDecr(Gray#(n) value) 
+          provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}

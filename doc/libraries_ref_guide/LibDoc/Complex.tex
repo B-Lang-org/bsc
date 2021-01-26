@@ -1,0 +1,270 @@
+\subsubsection{Complex}
+\index{Complex@\te{Complex} (package)}
+
+
+{\bf Package}
+
+\begin{verbatim}
+import Complex :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The \te{Complex} package provides a representation for complex
+numbers plus functions to operate on variables of this type.  The basic
+representation is the \te{Complex}
+structure, which is polymorphic on the type of data it holds.  For
+example, one can have complex numbers of type \te{Int} or of type
+\te{FixedPoint}.   A \te{Complex} number is represented in two
+part, the real part (rel) and the imaginary part (img).
+These fields are accessible though standard structure addressing,
+i.e., {\tt foo.rel and foo.img} where {\tt foo} is of type \te{Complex}.
+
+\begin{libverbatim}
+typedef struct {
+        any_t  rel ;
+        any_t  img ;
+        } Complex#(type any_t) 
+deriving ( Bits, Eq ) ;
+\end{libverbatim}
+
+
+{\bf Types and type classes}
+
+The \te{Complex}  type belongs to the 
+ \te{Arith},  \te{Literal},  \te{SaturatingArith}, and \te{FShow} type classes. Each type class definition
+ includes  functions which are then also
+defined for the data type.  The Prelude library definitions (Section
+\ref{lib-prelude}) describes which functions are defined for each type class.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{11}{|c|}{Type Classes used by \te{Complex}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}&\te{FShow}\\
+&&&&&&&wise&Reduction&Extend&\\
+\hline
+\te{Complex}&$\surd$ &$\surd$ &$\surd$&$\surd$ && && &&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+\paragraph{Arith}
+The type \te{Complex} belongs to the  \te{Arith} type class, hence the
+common infix operators (+, -, *, and /) are defined and can be used to
+manipulate variables of type \te{Complex}.  The remaining arithmetic
+operators  are not defined for the \te{Complex} type.  Note however, that some
+functions generate more hardware than may be expected.   The
+complex multiplication (*) produces four multipliers in a
+combinational function; some other modules could 
+accomplish the same function with less hardware but with greater
+latency.  The complex division operator (/)  produces 6 multipliers, and a
+divider and  may not always be synthesizable with downstream tools.
+
+
+
+\begin{libverbatim}
+instance Arith#( Complex#(any_type) ) 
+      provisos( Arith#(any_type) ) ;
+\end{libverbatim}
+
+\paragraph{Literal}
+The \te{Complex} type is a member of the \te{Literal} class, which
+defines a conversion from the compile-time \te{Integer} type to
+\te{Complex} type with the {\tt fromInteger} function.  This
+function converts the Integer to the real part, and sets the
+imaginary part to 0.
+
+\begin{libverbatim}
+instance Literal#( Complex#(any_type) )
+   provisos( Literal#(any_type) );
+\end{libverbatim}
+
+\paragraph{SaturatingArith}
+
+The \te{SaturatingArith} class provides the functions \te{satPlus}, 
+\te{satMinus}, \te{boundedPlus}, and \te{boundedMinus}.  These  are
+modified plus and minus functions which 
+saturate to values defined by the \te{SaturationMode} when the
+operations would otherwise overflow or wrap-around.   The type of the
+complex value (\te{any\_type)} must be in the \te{SaturatingArith} class.
+
+\begin{libverbatim}
+instance SaturatingArith#(Complex#(any_type))
+   provisos (SaturatingArith#(any_type));
+\end{libverbatim}
+
+\paragraph{FShow}
+An instance of \te{FShow} is available provided \te{any\_type} is a
+member of \te{FShow} as well.
+
+\begin{libverbatim}
+instance FShow#(Complex#(any_type))
+   provisos (FShow#(any_type));
+   function Fmt fshow (Complex#(any_type) x);
+      return $format("<C ", fshow(x.rel), ",", fshow(x.img), ">");
+   endfunction
+endinstance
+\end{libverbatim}
+
+
+% \begin{center}
+% \begin{tabular}{|p{.5 in}|p{4.8 in}|}
+%  \hline
+% \multicolumn{2}{|c|}{Complex Arithmetic  Functions}\\
+% \hline
+% +&\begin{libverbatim}
+% function \+ (Complex#(any_type) in1, Complex#(any_type) in2 );
+% \end{libverbatim}
+% \\
+% \hline
+% -&\begin{libverbatim}   
+% function \- (Complex#(any_type) in1, Complex#(any_type) in2 );
+% \end{libverbatim}
+% \\
+% \hline                            
+% *&\begin{libverbatim}
+% function \* (Complex#(any_type) in1, Complex#(any_type) in2 );
+% \end{libverbatim}
+% \\ \hline
+% negate&\begin{libverbatim}
+% function negate ( Complex#(any_type) in1 );
+% \end{libverbatim}
+% \\ \hline
+% \end{tabular}
+% \end{center}
+
+{\bf Functions}
+
+\index{cmplx@\te{cmplx} (complex function)}
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{4.8 in}|}
+ \hline
+&\\
+\te{cmplx}&A simple constructor function is provided to set the fields.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim} 
+function Complex#(a_type) cmplx( a_type realA, a_type imagA ) ;
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+ \index{cmplxMap@\te{cmplxMap} (complex function)}
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{4.8in}|}
+ \hline
+&\\
+\te{cmplxMap}&Applies a function to each part of the
+ complex structure.  This is useful for operations such as {\tt
+ extend}, {\tt truncate}, etc.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Complex#(b_type) cmplxMap( 
+                          function b_type mapFunc( a_type x),
+                          Complex#(a_type) cin ) ;   
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{cmplxSwap@\te{cmplxSwap} (complex function)}
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{4.8 in}|}
+ \hline
+&\\
+\te{cmplxSwap}&Exchanges the real and imaginary
+parts.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Complex#(a_type) cmplxSwap( Complex#(a_type) cin ) ;
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{cmplxWrite@\te{cmplxWrite} (complex function)}
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{4.8 in}|}
+ \hline   
+&\\
+\te{cmplxWrite}&Displays 
+a complex number given a prefix string, an infix string, a
+postscript string, and an Action function which writes each part.
+\te{cmplxWrite} is of type Action and can only be invoked in Action
+contexts such as Rules and Actions methods.   \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Action cmplxWrite(String pre, 
+                           String infix, 
+                           String post, 
+                           function Action writeaFunc( a_type x ),
+                           Complex#(a_type) cin );
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+% \begin{center}
+% \begin{tabular}{|p{.7 in}|p{4.8 in}|}
+%  \hline
+% &\\
+% \te{writeInt}&Writes data in a decimal format\\
+% &\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function Action writeInt( Int#(n) ain ) ;
+% \end{libverbatim}
+% \\ \hline
+% \end{tabular}
+% \end{center}
+
+
+% \begin{center}
+% \begin{tabular}{|p{.9 in}|p{4.6 in}|}
+%  \hline
+% &\\
+% \te{printComplex}&Prints complex numbers.\\
+% &\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function Action printComplex(String msg, Complex#(any_type) cin)
+%    provisos( Bits#(any_type, pa ));
+% \end{libverbatim}
+% \\ \hline
+% \end{tabular}
+% \end{center}
+
+
+{\bf Examples - Complex Numbers}
+
+\begin{libverbatim}
+   // The following utility function is provided for writing data
+   // in decimal format. An example of its use is show below.
+
+   function Action writeInt( Int#(n) ain ) ;
+      $write( "%0d", ain ) ;
+   endfunction
+   
+   // Set the fields of the complex number using the constructor function cmplx
+   Complex#(Int#(6)) complex_value = cmplx(-2,7) ;   
+
+   // Display complex_value  as ( -2 + 7i ).
+   // Note that writeInt is passed as an argument to the cmplxWrite function.
+   cmplxWrite( "( ", " + ", "i)", writeInt, complex_value );
+
+   // Swap the real and imaginary parts.
+   swap_value = cmplxSwap( complex_value ) ;
+
+   // Display the swapped values. This will display ( -7 + 2i).
+   cmplxWrite( "( ", " + ", "i)", writeInt, swap_value );
+\end{libverbatim} 
+

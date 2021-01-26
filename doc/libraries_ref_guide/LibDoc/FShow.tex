@@ -1,0 +1,372 @@
+\subsubsection{FShow}
+\index{FShow@\te{FShow} (package)} 
+\label{package-fshow}
+
+{\bf Package}
+
+\begin{verbatim}
+import FShow :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The \te{FShow} package defines the typeclass \te{FShow}.  \te{FShow}
+includes a single member function, \te{fshow}.  When applied to an
+object which is an instance of \te{FShow}, the \te{fshow} function
+returns an object of type \te{Fmt} (Section \ref{prelude-fmt}).
+Instances of the \te{FShow} class are often automatically derived
+using the \te{deriving} statement.
+
+
+{\bf Typeclasses}
+\index{FShow@\te{FShow} (data type)}
+\index[typeclass]{FShow}
+
+\te{FShow} defines the class of types to which the function \te{fshow}
+can be applied to create an associated \te{Fmt} representation.
+
+\begin{verbatim}
+typeclass FShow#(type t);
+   function Fmt fshow(t value);
+endtypeclass
+\end{verbatim}
+
+
+The package defines instances of \te{FShow} for many commonly used
+datatypes.  Users can create their own \te{FShow} instances for other types
+(or redefine the instances included in the \te{FShow} package). 
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\multicolumn{2}{|c|}{\te{FShow} Instances}\\
+\hline
+\hline
+\te{String}&Returns a \te{Fmt} object showing the value of the string.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(String);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Bool}&Returns a \te{Fmt} object showing \te{True} or \te{False}.\\
+\cline{2-2}
+&\begin{libverbatim}  
+instance FShow#(Bool);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Maybe\#(a)}&Returns a \te{Fmt} object showing \te{Valid} and the value, or
+just \te{Invalid}.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Maybe#(a))
+   provisos(FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Int\#(n)}&Returns a \te{Fmt} object showing \te{n} in a decimal format.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Int#(n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Bit\#(n)}&Returns a \te{Fmt} object showing \te{n} in a hexadecimal format.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Bit#(n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\begin{libverbatim}
+FIFOF_#(a)
+FIFOF#(a)
+\end{libverbatim}
+&Returns a \te{Fmt} object showing the first element and Empty/Full state of the FIFO.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(FIFOF_#(a))
+   provisos(FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Vector\#(n, a)}&Returns a \te{Fmt} object showing \te{<V elem1 elem2 ...>}, where the elemn are the
+elements of the vector.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Vector#(n, a))
+   provisos(FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{List\#(a)}&Returns a \te{Fmt} object showing \te{<List elem1 elem2 ...>}, where the elemn are the
+elements of the list.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(List#(a))
+   provisos(FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{FixedPoint\#(i,f)}&Returns a \te{Fmt} object showing \te{FP int.frac} where \te{int} is the
+integer part and \te{frac} is the fractional part of the fixed point number.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(FixedPoint#(i,f));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Complex\#(a)}&Returns a \te{Fmt} object showing <\te{C x.rel,
+x.img}> where \te{x.rel} is the real and \te{x.img} is the imaginary
+part of  \te{x}.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Complex#(a))
+   provisos (FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5in}|}
+\hline
+\te{Tuple2\#(a,b)}&Returns a \te{Fmt} object showing \te{Tuple2(a, b)}.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance FShow#(Tuple2#(a, b))
+   provisos(FShow#(a), FShow#(b));
+   function Fmt fshow (Tuple2#(a, b) value);
+      return $format("Tuple2(", fshow(tpl_1(value)), ",", 
+                                fshow(tpl_2(value)),")");
+\end{libverbatim}
+\\
+\cline{2-2}
+\hline
+\end{tabular}
+\begin{tabular}{|p{2 in}|p{3.6 in}|}
+\hline
+\te{Tuple3\#(a,b,c)}&Returns a \te{Fmt} object showing
+\te{Tuple3(a,b,c)}.\\
+\hline
+\te{Tuple4\#(a,b,c,d)}&Returns a \te{Fmt} object showing \te{Tuple4(a,b,c,d)}.\\
+\hline
+\te{Tuple5\#(a,b,c,d,e)}&Returns a \te{Fmt} object
+showing \te{Tuple5(a,b,c,d,e)}.\\
+\hline
+\te{Tuple6\#(a,b,c,d,e,f)}&Returns a \te{Fmt} object
+showing \te{Tuple6(a,b,c,d,e,f)}.\\
+\hline
+\te{Tuple7\#(a,b,c,d,e,f,g)}&Returns a \te{Fmt} object
+showing \te{Tuple7(a,b,c,d,e,f,g)}.\\
+\hline
+\te{Tuple8\#(a,b,c,d,e,f,g,h)}&Returns a \te{Fmt} object
+showing \te{Tuple8(a,b,c,d,e,f,g,h)}.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+{\bf Functions}
+\index{fshow@\te{fshow} (function)} 
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+\te{fshow}&Returns a \te{Fmt} representation when applied to a value\\
+\cline{2-2}
+&\begin{libverbatim}
+   function Fmt fshow(t value);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+\te{concatWith}&Concantenates a \te{String} (\te{x}) with two other arguments \te{a}
+and \te{b}, both of type \te{Fmt}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Fmt concatWith(String x, Fmt a, Fmt b);
+   return (a + $format(x) + b);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Modules}
+\index{dgProbe@\te{dbgProbe} (module)} 
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+\te{dbgProbe}&This module is used like a Probe except that the sampled value (to be viewed in waves) is the ascii representation of \te{fshow(value)}. \\
+\cline{2-2}
+&\begin{libverbatim}
+module dbgProbe (Probe#(a))
+   provisos(FShow#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example }
+\begin{verbatim}
+package FShowExample;
+
+import Probe::*;
+import FShow::*;
+import Vector::*;
+
+/// Define some types ....
+
+typedef Vector#(3,Bool) VOB;
+typedef Tuple2#(Bit#(2), Bit#(2)) TUP;
+
+typedef enum {READ, WRITE, UNKNOWN}  OpCommand   deriving(Bounded, Bits, Eq);
+
+typedef struct {OpCommand command;
+		Bit#(8)   addr;
+		Bit#(8)   data;
+		Bit#(8)   length;
+		Bool      lock;
+		} Header deriving (Eq, Bits, Bounded);
+
+typedef union tagged {Header  Descriptor;
+		      Bit#(8) Data;
+		      } Request deriving(Eq, Bits, Bounded);
+
+/// Define FShow instances for the ones that aren't already in FShow.bsv
+
+instance FShow#(OpCommand);
+   function Fmt fshow (OpCommand label);
+      case (label)
+	 READ:    return fshow("READ ");
+	 WRITE:   return fshow("WRITE");
+	 UNKNOWN: return fshow("UNKNOWN");
+      endcase
+   endfunction
+endinstance
+
+instance FShow#(Header);
+   function Fmt fshow (Header value);
+      return ($format("<HEAD ")
+	      +
+	      fshow(value.command)
+	      +
+	      $format(" (%0d)", value.length)
+	      +
+	      $format(" A:%h",  value.addr)
+	      +
+	      $format(" D:%h>", value.data));
+   endfunction
+endinstance
+
+instance FShow#(Request);
+   function Fmt fshow (Request request);
+      case (request) matches
+	 tagged Descriptor .a:
+	    return fshow(a);
+	 tagged Data .a:
+	    return $format("<DATA %h>", a);
+      endcase
+   endfunction
+endinstance
+
+(* synthesize *)
+module mkFShowExample (Empty);
+   
+   Reg#(Bit#(32)) value <- mkReg(1234);
+   Reg#(Bit#(16)) count <- mkReg(0);
+   
+   // Probes to send "fshow" strings to waves
+   Probe#(VOB)     vob_probe <- dbgProbe;
+   Probe#(TUP)     tup_probe <- dbgProbe;
+   Probe#(Request) req_probe <- dbgProbe;
+   
+   rule every;
+      // generate some values
+      VOB v_of_bools  = unpack(truncate(count));
+      TUP a_tuple     = unpack(truncate(count));
+      Request request = unpack(truncate(value));
+      
+      // send signals to waves.
+      vob_probe <= v_of_bools;
+      tup_probe <= a_tuple;
+      req_probe <= request;
+      
+      // show use with $display
+      $display("  A Vector: ", fshow(v_of_bools));
+      $display("   A Tuple: ", fshow(a_tuple));
+      $display(" A Request: ", fshow(request));
+      $display("----------------------------------");
+      
+      // update values
+      value <= (value << 1) | {0, (value[31] ^ value[21] ^ value[1] ^ value[01])};
+      count <= count + 1;
+      if (count == 30) $finish;
+   endrule
+   
+endmodule
+\end{verbatim}
+

@@ -1,0 +1,752 @@
+\subsubsection{FixedPoint}
+\index{FixedPoint@\te{FixedPoint} (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import FixedPoint :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The \te{FixedPoint} library package defines a type for
+representing fixed-point numbers and corresponding functions to
+operate and manipulate variables of this type. 
+
+
+   
+A fixed-point number represents signed  numbers which
+have a fixed number of binary digits (bits) before and after the binary
+point. The type constructor for a fixed-point number takes two 
+numeric types as argument; the first (isize) defines the number of bits
+to the left of the binary point (the integer part), while the
+second (fsize) 
+defines the number of bits to the right of the binary point, (the
+fractional part).
+
+
+ The following data structure defines this type, while some
+utility functions provide the reading of the integer and
+fractional parts.
+
+\begin{libverbatim}
+typedef struct {
+                Bit#(isize) i;
+                Bit#(fsize) f;
+                }
+FixedPoint#(numeric type isize, numeric type fsize )
+    deriving( Eq ) ;
+\end{libverbatim}
+
+
+{\bf Types and type classes}
+ 
+ 
+The \te{FixedPoint}  type belongs to the following type classes;
+\te{Bits}, \te{Eq},   \te{Literal},
+\te{RealLiteral}, \te{Arith}, \te{Ord}, \te{Bounded},
+ \te{Bitwise},  \te{SaturatingArith}, and \te{FShow}.
+Each type class definition includes functions which are then also
+defined for the data type.  The Prelude library definitions (Section
+\ref{lib-prelude}) describes which functions are defined for each type class.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{12}{|c|}{Type Classes used by \te{FixedPoint}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Real}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}&\te{Format}\\
+&&&&\te{Literal}&&&&\te{wise}&\te{Reduce}&\te{Extend}&\\
+\hline
+\te{FixedPoint}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&&&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\paragraph{Bits}
+
+The type \te{FixedPoint} belongs to the \te{Bits} type class, which
+allows conversion from type \te{Bits} to type \te{FixedPoint}.
+
+\begin{libverbatim}
+instance Bits#( FixedPoint#(isize, fsize), bsize ) 
+   provisos ( Add#(isize, fsize, bsize) );
+\end{libverbatim}
+
+
+\paragraph{Literal}
+
+The type \te{FixedPoint} belongs to the \te{Literal} type class,
+which allows conversion from (compile-time) type \te{Integer} to type
+\te{FixedPoint}.  Note that only the integer part is assigned.
+
+\begin{libverbatim}
+instance Literal#( FixedPoint#(isize, fsize) ) 
+   provisos( Add#(isize, fsize, bsize) );
+\end{libverbatim}
+
+
+
+\paragraph{RealLiteral}
+
+The type \te{FixedPoint} belongs to the \te{RealLiteral} type class,
+which allows conversion from type \te{Real} to type \te{FixedPoint}.
+
+
+\begin{libverbatim}
+instance RealLiteral#( FixedPoint# (isize, fsize) ) 
+\end{libverbatim}
+
+Example:
+\begin{libverbatim}
+    FixedPoint#(4,10) mypi = 3.1415926;  //Implied fromReal
+    FixedPoint#(2,14) cx = fromReal(cos(pi/4));
+\end{libverbatim}
+
+
+\paragraph{Arith}
+
+The type \te{FixedPoint} belongs to the \te{Arith} type class,
+hence the common infix operators (+, -, *, and \te{/}) are defined and
+can be used to 
+manipulate variables of type \te{FixedPoint}. The arithmetic operator
+ \te{\%}  is not defined.
+
+\begin{libverbatim}
+instance Arith#( FixedPoint#(isize, fsize) )
+   provisos( Add#(isize, fsize, bsize) ) ;
+\end{libverbatim}
+
+For multiplication (*) and quotient (\te{/}) , the operation is
+calculated in  full precision 
+and the result is then rounded and saturated to the resulting size.
+Both operators use the rounding 
+function \te{fxptTruncateRoundSat}, with mode \te{Rnd\_Zero}, \te{Sat\_Bound}.
+
+
+
+\paragraph{Ord}
+
+In addition to equality and inequality comparisons,
+\te{FixedPoint} variables can be compared by the relational
+operators provided by the \te{Ord} type class. i.e., <, >, <=, and
+>=. 
+
+\begin{libverbatim}
+instance Ord#( FixedPoint#(isize, fsize) ) 
+   provisos( Add#(isize, fsize, bsize) ) ;    
+\end{libverbatim}
+
+
+\paragraph{Bounded}
+
+The type \te{FixedPoint} belongs to the \te{Bounded} type class.
+The range of values, $v$, representable with a signed
+fixed-point number of type \te{FixedPoint\#(isize, fsize)} is
+$+(2^{isize -1} - 2^{-fsize}) \leq v \leq -2^{isize - 1}$.
+ The function {\tt epsilon} returns the smallest representable quantum
+by a specific type, $2^{-fsize}$.
+For example, a variable $v$ of type \te{FixedPoint\#(2,3)} type can
+represent numbers from 1.875 ($1\frac{7}{8}$) to $-2.0$ in
+intervals of $\frac{1}{8} = 0.125$, i.e. epsilon is
+$0.125$.  The type
+\te{FixedPoint\#(5,0)} is equivalent to \te{Int\#(5)}.
+
+\begin{libverbatim}
+instance Bounded#( FixedPoint#(isize, fsize) ) 
+   provisos( Add#(isize, fsize, bsize) ) ;  
+\end{libverbatim}
+
+\index{epsilon@\te{epsilon} (FixedPoint function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{epsilon}&Returns the value of \te{epsilon} which is the smallest representable quantum
+by a specific type, $2^{-fsize}$.\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(isize, fsize) epsilon () ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\paragraph{Bitwise}
+
+Left and right shifts are provided for \te{FixedPoint} variables
+as part of the \te{Bitwise} type class.  Note that the shift right
+({\verb^>>^}) function does an arithmetic shift, thus preserving the sign
+of the operand. Note that a right shift of 1 is equivalent to a
+division by 2, except when the operand is equal to $- {\tt
+epsilon}$.  The functions \te{msb} and \te{lsb} are also provided.   The other 
+methods of \te{Bitwise} type class are not provided since they
+have no operational meaning on \te{FixedPoint} variables; the use of
+these generates an error message.
+
+\begin{libverbatim}
+instance Bitwise#( FixedPoint#(isize, fsize) )
+   provisos( Add#(isize, fsize, bsize) );
+\end{libverbatim}
+
+\paragraph{SaturatingArith}
+
+The \te{SaturatingArith} class provides the functions \te{satPlus}, 
+\te{satMinus}, \te{boundedPlus}, and \te{boundedMinus}.  These  are
+modified plus and minus functions which 
+saturate to values defined by the \te{SaturationMode} when the
+operations would otherwise overflow or wrap-around.
+
+\begin{libverbatim}
+instance SaturatingArith#(FixedPoint#(isize, fsize));
+\end{libverbatim}
+
+\paragraph{FShow}
+The \te{FShow} class provides the function \te{fshow} which can be
+applied to a  type to create an associated \te{Fmt} representation.
+
+\begin{libverbatim}
+instance FShow#(FixedPoint#(i,f));
+   function Fmt fshow (FixedPoint#(i,f) value);
+      Int#(i) i_part = fxptGetInt(value);
+      UInt#(f) f_part = fxptGetFrac(value);
+      return $format("<FP %b.%b>", i_part, f_part);
+   endfunction
+endinstance
+\end{libverbatim}
+
+{\bf Functions}
+
+\index{fxptGetInt@\te{fxptGetInt} (FixedPoint function)}
+Utility functions are provided to extract the integer and
+fractional parts.
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{fxptGetInt}&Extracts the integer part of the \te{FixedPoint}
+number.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Int#(isize) fxptGetInt ( FixedPoint#(isize, fsize) x );
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{fxptGetFrac@\te{fxptGetFrac} (FixedPoint function)}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{fxptGetFrac}&Extracts the fractional part of the \te{FixedPoint}
+number.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function UInt#(fsize) fxptGetFrac ( FixedPoint#(isize, fsize) x );
+\end{libverbatim}   
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{fromInt@\te{fromInt} (FixedPoint function)}
+\index{fromUInt@\te{fromUInt} (FixedPoint function)}
+To convert run-time \te{Int} and \te{UInt} values to type
+\te{FixedPoint}, the following conversion functions are
+provided. Both of these functions invoke the necessary extension
+of the source operand.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fromInt}&Converts run-time \te{Int} values to type
+\te{FixedPoint}.\\
+& \\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ir,fr) fromInt( Int#(ia) inta )
+   provisos ( Add#(ia, xxA, ir ) );       // ir >= ia
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fromUInt}&Converts  run-time \te{UInt} values to type
+\te{FixedPoint}.\\
+& \\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ir,fr) fromUInt( UInt#(ia) uinta )
+   provisos ( Add#(ia,  1, ia1),          // ia1 = ia + 1 
+              Add#(ia1,xxB, ir ) );       // ir >= ia1
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+Non-integer compile time constants may be specified by a rational
+number which is a ratio of two integers.  For example, one-third
+may be specified by {\tt fromRational(1,3)}.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fromRational}&Specify a \te{FixedPoint} with a rational number
+which is the ratio of two integers.\\
+& \\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(isize, fsize) fromRational( 
+                Integer numerator, Integer denominator) 
+   provisos ( Add#(isize, fsize, bsize ) ) ;        
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+At times,  full precision Arithmetic functions may be required, where
+the operands are not the same type (sizes), as  is required for the
+infix \te{Arith} operators.  These functions do not overflow on the result.
+
+
+\index{fxptAdd@\te{fxptAdd} (FixedPoint function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptAdd}&Function for full precision addition.  The operands do
+not have to be of the same type (size) and there is no overflow on the result.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf)  fxptAdd( FixedPoint#(ai,af) a,
+                                      FixedPoint#(bi,bf) b  )
+   provisos (Max#(ai,bi,rim)     // ri = 1 + max(ai, bi)
+             ,Add#(1,rim, ri)
+             ,Max#(af,bf,rf));   // rf = max (af, bf)
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{fxptSub@\te{fxptSub} (FixedPoint function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptSub}&Function for full precision subtraction where the
+operands do not have to be of the same type (size) and there is no
+overflow on the result.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf)  fxptSub( FixedPoint#(ai,af) a,
+                                     FixedPoint#(bi,bf) b  )
+   provisos (Max#(ai,bi,rim)     // ri = 1 + max(ai, bi)
+             ,Add#(1,rim, ri)
+             ,Max#(af,bf,rf));   // rf = max (af, bf)
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+\index{fxptMult@\te{fxptMult} (FixedPoint function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptMult}&Function for full precision multiplication, where the
+result is the sum of the field sizes of the operands.  The operands do
+not have to be of the same type (size).\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf)  fxptMult( FixedPoint#(ai,af) x,
+                                       FixedPoint#(bi,bf) y  )
+   provisos ( Add#(ai,bi,ri)   // ri = ai + bi
+             ,Add#(af,bf,rf)   // rf = af + bf
+             ,Add#(ai,af,ab)
+             ,Add#(bi,bf,bb)
+             ,Add#(ab,bb,rb)
+             ,Add#(ri,rf,rb) ) ;
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{fxptQuot@\te{fxptQuot} (FixedPoint function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptQuot}&Function for full precision division where the operands
+do not have to be of the same type (size).\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf)  fxptQuot (FixedPoint#(ai,af) a,
+                                       FixedPoint#(bi,bf) b  )
+   provisos (Add#(ai1,bf,ri)      // ri = ai + bf + 1
+             ,Add#(ai,1,ai1)
+             ,Add#(af,_xf,rf));   // rf >= af
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+\index{fxptTruncate@\te{fxptTruncate} (FixedPoint function)}
+{\tt fxptTruncate} is a general truncate function which converts
+variables to 
+\te{FixedPoint\#(ai,af)} to type \te{FixedPoint\#(ri,rf)}, where
+$ai \geq ri$ and $af \geq rf$.  This function truncates bits as
+appropriate from the most significant integer bits and the least
+significant fractional bits.  
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptTruncate}&Truncates bits as appropriate from the most
+significant integer bits and the least significant fractional bits.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf) fxptTruncate( 
+             FixedPoint#(ai,af) a )
+   provisos( Add#(xxA,ri,ai),    // ai >= ri
+             Add#(xxB,rf,af));   // af >= rf
+\end{libverbatim}   
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+Two saturating fixed-point truncation functions are provided:
+\te{fxptTruncateSat} and \te{fxptTruncateRoundSat}. 
+They both use the \te{SaturationMode}, defined in Section
+\ref{sec-saturatingarith},  to determine the final result.
+
+\begin{verbatim}
+typedef enum { Sat_Wrap         
+              ,Sat_Bound      
+              ,Sat_Zero     
+              ,Sat_Symmetric 
+   } SaturationMode deriving (Bits, Eq);
+\end{verbatim}
+
+\index{fxptTruncateSat@\te{fxptTruncateSat} (FixedPoint function)}
+\index[function]{FixedPoint!fxptTruncateSat}
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptTruncateSat}&  A saturating fixed point truncation.  If the
+value cannot be represented in its truncated form, an alternate value,
+ \te{minBound}
+or \te{maxBound}, is selected based on \te{smode}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf) fxptTruncateSat (
+             SaturationMode smode, FixedPoint#(ai,af) din)
+   provisos (Add#(ri,idrop,ai)
+             ,Add#(rf,_f,af) );
+\end{libverbatim}   
+\\ \hline
+\end{tabular}
+\end{center}
+
+The function \te{fxptTruncateRoundSat} rounds the saturated value, as
+determined by the value of \te{rmode} of type \te{RoundMode}.  The
+rounding only applies to the truncation of the  fractional component
+of the fixed-point 
+number, though it may cause a wrap or overflow to the integer
+component which requires saturation.
+
+
+\index{fxptTruncateRoundSat@\te{fxptTruncateRoundSat} (FixedPoint function)}
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptTruncateRoundSat}& A saturating fixed point truncate function
+which rounds the 
+truncated fractional component as determined by the value of
+\te{rmode} (RoundMode).  If the final value cannot be
+represented in its truncated form, the \te{minBound} or \te{maxBound}
+value is returned.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf) fxptTruncateRoundSat 
+             (RoundMode rmode, SaturationMode smode, 
+              FixedPoint#(ai,af) din)
+   provisos (Add#(ri,idrop,ai)
+             ,Add#(rf,fdrop,af) );
+\end{libverbatim}   
+\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+typedef enum {
+              Rnd_Plus_Inf       
+              ,Rnd_Zero          
+              ,Rnd_Minus_Inf     
+              ,Rnd_Inf           
+              ,Rnd_Conv          
+              ,Rnd_Truncate      
+              ,Rnd_Truncate_Zero 
+          } RoundMode deriving (Bits, Eq);
+\end{verbatim}
+
+
+  These
+modes are equivalent to the SystemC values shown in the table below.
+The rounding mode determines how the value is rounded when the
+truncated value is equidistant between two representable values.
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{1.2 in}|p{1.5 in}|p{1.8 in}|}
+\hline
+\multicolumn{4}{|c|}{Rounding Modes}\\
+\hline
+RoundMode & SystemC &Description&Action when truncated value\\
+&Equivalent&&equidistant between values\\
+\hline\hline
+\te{Rnd\_Plus\_Inf}&SC\_RND&Round to plus infinity&Always increment\\
+\hline
+\te{Rnd\_Zero}&SC\_RND\_ZERO&Round to zero&Move towards reduced
+magnitude (decrement positive value, increment negative value)\\
+\hline
+\te{Rnd\_Minus\_Inf}&SC\_RND\_MIN\_INF&Round to minus infinity& Always
+decrement\\
+\hline
+\te{Rnd\_Inf}&SC\_RND\_INF&Round to infinity&Always increase
+magnitude\\
+\hline
+\te{Rnd\_Conv}&SC\_RND\_CONV&Round to convergence&Alternate increment
+and decrement based on even and odd values\\
+\hline
+\te{Rnd\_Truncate}&SC\_TRN&Truncate, no rounding&\\
+\hline
+\te{Rnd\_Truncate\_Zero}&SC\_TRN\_ZERO&Truncate to zero&Move towards
+reduced magnitude\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+ Consider what happens when you apply the function
+\te{fxptTruncateRoundSat} to a  fixed-point number.  The
+ least significant fractional bits are dropped.  If the dropped bits
+ are non-zero, the remaining fractional component rounds towards the
+ nearest representable value.   If the remaining component is
+ exactly equidistant between two representable values, the rounding
+ mode (rmode) determines whether the value rounds up or down.
+
+The following table displays the rounding value added to the LSB of
+the remaining fractional component.  When the value is equidistant
+(1/2), the algorithm may be dependent on whether the value of the
+variable is positive or negative.
+
+
+\begin{center}
+\begin{tabular}{|p{1.8 in}|p{.5in}|p{.5 in}|p{.5in}|p{.5in}|}
+\hline
+\multicolumn{5}{|c|}{Rounding Value added to LSB of Remaining Fractional Component}\\
+\hline
+RoundMode& \multicolumn{4}{|c|}{Value of Truncated Bits}\\
+\cline{2-5}
+&< 1/2 & \multicolumn{2}{|c|}{1/2} & > 1/2\\
+\cline{2-5}
+&&Pos&Neg&\\
+\hline\hline
+\te{Rnd\_Plus\_Inf}& 0& 1& 1& 1\\
+\hline
+\te{Rnd\_Zero}& 0& 0& 1&  1\\
+\hline
+\te{Rnd\_Minus\_Inf}& 0& 0& 0&  1\\
+\hline
+\te{Rnd\_Inf}& 0& 1& 0&  1\\
+\hline
+\te{Rnd\_Conv}&&&&\\
+Remaining LSB = 0& 0&  0&  0&  1\\
+Remaining LSB = 1& 0&  1&  1&  1\\
+\hline
+\end{tabular}
+\end{center}
+
+The final two modes are truncates and are  handled  differently.  The
+\te{Rnd\_Truncate} mode simply drops the extra bits without changing
+the remaining number.  The \te{Rnd\_Truncate\_Zero} mode decreases the
+magnitude of the variable, moving the value closer to 0.  If 
+ the number is positive, the function simply drops the extra bits, if
+ negative, 1 is added.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{.6in}|p{.6 in}|p{2in}|}
+\hline
+RoundMode& \multicolumn{2}{|c|}{Sign of  Argument}&Description\\
+\cline{2-3}
+&Positive&Negative&\\
+\hline
+\hline
+\te{Rnd\_Truncate}& 0& 0&Truncate extra bits, no rounding\\
+\hline
+\te{Rnd\_Truncate\_Zero}& 0& 1& Add 1 to negative number if
+truncated bits are non-zero\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+Example: Truncated values by Round type, where argument is 
+\te{FixedPoint\#(2,3)} type and
+result is a \te{FixedPoint\#(2,1)} type.  In this example, we're
+rounding to the nearest 1/2, as determined by RoundMode.  
+
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|}
+% \begin{tabular}{|p{.4in}|p{.4in}|p{.5in}|p{.4in}|p{.6 in}|p{.3in}|p{.4in}|p{.4in}|p{.7in}|}
+\hline
+\multicolumn{9}{|c|}{Result by RoundMode when SaturationMode =
+Sat\_Wrap}\\
+\hline
+\multicolumn{2}{|c|}{Argument}&\multicolumn{7}{|c|}{RoundMode} \\
+\hline
+Binary&Decimal&\te{Plus\_Inf}&\te{Zero}&\te{Minus\_Inf}&\te{Inf}&\te{Conv}&\te{Trunc}&\te{Trunc\_Zero}\\
+\hline
+10.001&-1.875&-2.0&-2.0&-2.0&-2.0&-2.0&-2.0&-1.5\\
+10.110&-1.250&-1.0&-1.0&-1.5&-1.5&-1.0&-1.5&-1.0\\
+11.101&-0.375&-0.5&-0.5&-0.5&-0.5&-0.5&-0.5&0.0\\
+00.011&0.375&0.5&0.5&0.5&0.5&0.5&0.0&0.0\\
+01.001&1.250&1.5&1.0&1.0&1.5&1.0&1.0&1.0\\
+01.111&1.875&-2.0&-2.0&-2.0&-2.0&-2.0&1.5&1.5\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index{fxptSignExtend@\te{fxptSignExtend} (FixedPoint function)}
+\index{fxptZeroExtend@\te{fxptZeroExtend} (FixedPoint function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptSignExtend}&A general sign extend function which
+converts variables of type
+\te{FixedPoint\#(ai,af)} to type \te{FixedPoint\#(ri,rf)}, where
+$ai \leq ri$ and $af \leq rf$.  The integer part is sign extended,
+while additional 0 bits are added to least significant end of the
+fractional part.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf) fxptSignExtend( 
+             FixedPoint#(ai,af) a )
+   provisos( Add#(xxA,ai,ri),      // ri >= ai
+             Add#(fdiff,af,rf));   // rf >= af
+\end{libverbatim}   
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptZeroExtend}&A general zero extend function.\\
+& \\
+\cline{2-2}
+&\begin{libverbatim}
+function FixedPoint#(ri,rf) fxptZeroExtend( 
+             FixedPoint#(ai,af) a )
+   provisos( Add#(xxA,ai,ri),    // ri >= ai
+             Add#(xxB,af,rf));   // rf >= af
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index{fxptWrite@\te{fxptWrite} (FixedPoint function)}
+Displaying \te{FixedPoint} values in a simple bit notation would
+result in a difficult to read pattern.  The following write
+utility function is provided to ease in their display.  Note
+that the use of this function adds many multipliers and adders
+into the design which are only used for generating the 
+output and not the actual circuit.  
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{fxptWrite}&Displays a  \te{FixedPoint} value in a decimal format, where {\tt
+fwidth} give the number of digits to the right of the decimal
+point. {\tt fwidth} must be in the inclusive range of 0 to 10. The
+displayed result is truncated without rounding.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Action fxptWrite( Integer fwidth,
+                           FixedPoint#(isize, fsize) a ) 
+   provisos( Add#(i, f, b),
+             Add#(33,f,ff)); // 33 extra bits for computations.
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+Examples - Fixed Point Numbers
+
+\begin{libverbatim}
+   // The following code writes "x is 0.5156250"
+   FixedPoint#(1,6) x = half + epsilon ;
+   $write( "x is " ) ; fxptWrite( 7, x ) ; $display("" ) ;
+\end{libverbatim}
+
+A \te{Real} value can automatically be converted to a \te{FixedPoint}
+value:
+\begin{libverbatim}
+   FixedPoint#(3,10) foo = 2e-3;
+
+   FixedPoint#(2,3) x = 1.625 ;
+\end{libverbatim}

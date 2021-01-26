@@ -1,0 +1,90 @@
+\subsubsection{DReg}
+\index{DReg@\te{DReg} (package,interface)}
+\index{mkDReg@\te{mkDReg} (module)}
+\index{mkDRegA@\te{mkDRegA} (module)}
+\index{mkDRegU@\te{mkDRegU} (module)}
+\label{ref-dreg}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import DReg :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+
+The \te{DReg} package allows a designer to create registers which
+store a written value for only a single clock cycle. The value written
+to a DReg is available to read one cycle after the write.  If more
+than one cycle has passed since the register has been written however,
+the value provided by the register is instead a default value (that is
+specified during module instantiation). These registers are useful
+when wanting to send pulse values that are only asserted for a single
+clock cycle.  The DReg is the register equivalent of a DWire
+\ref{lib-dwire}.
+
+{\bf Modules}
+
+The \te{DReg} package provides three modules; \te{mkDReg} creates a
+register with a given reset/default value and synchronous reset logic,
+\te{mkDRegU} creates a register without any reset (but which still takes 
+a default value as an argument), and \te{mkDRegA} creates a register
+with a given reset/default value and asynchronous reset logic.
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkDReg}&Make a register with a given reset/default value.  Reset logic is synchronous\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkDReg#(a_type dflt_rst_val)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkDRegU}&Make a register without any reset but with a specified default; initial simulation value is alternating 01 bits.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkDRegU#(a_type dflt_val)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkDRegA}&Make a register with a given reset/default value.  Reset logic is asynchronous.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkDRegA#(a_type, dflt_rst_val)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkDReg, mkDRegU, mkDRegA}\\
+\hline
+&{read}&{write}\\
+\hline
+\hline
+{read}&CF&SB\\
+\hline
+{write}&SA& SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}

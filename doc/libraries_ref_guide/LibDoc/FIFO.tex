@@ -1,0 +1,948 @@
+\subsubsection{FIFO Overview}
+ 
+
+The BSC library contains multiple FIFO packages.
+
+
+\begin{center}
+\begin{tabular}{|l|p{3.5in}|c|l|}
+\hline
+&&&\\
+Package Name&Description&BSV Source&Section\\
+&&provided&\\
+\hline
+FIFO&Defines the FIFO interface and module constructors.   FIFOs provided have
+ implicit full and empty signals.  Includes pipeline FIFO (\te{mkLFIFO}).& &\ref{sec-FIFO}\\
+\hline
+FIFOF&Defines the FIFOF interface and module constructors.   FIFOs
+provided have explicit full and empty signals.  Includes pipeline
+FIFOF (\te{mkLFIFOF}).&&\ref{sec-FIFO}\\
+\hline
+FIFOLevel&Enhanced FIFO interfaces and modules which include methods
+to indicate the level or current number of items stored in the FIFO.
+Single and dual clock versions are provided.&&\ref{FIFOLevel}\\
+\hline
+BRAMFIFO&FIFOs which utilize the Xilinx Block RAMs.&$\surd$&\ref{sec-BRAMFIFO}\\
+\hline
+SpecialFIFOs&Additional pipeline and bypass FIFOs&$\surd$&\ref{sec-SpecialFIFOs}\\
+\hline
+AlignedFIFOs&Parameterized FIFO module for creating synchronizing
+FIFOs between clock domains with aligned edges.&$\surd$&\ref{sec-AlignedFIFOs}\\
+\hline
+Gearbox&FIFOs which change the frequency and data width of data
+across clock domains with aligned edges.  The overall data rate stays the samme.&$\surd$&\ref{Gearbox}\\
+\hline
+Clocks&Generalized FIFOs to synchronize data being sent across clock
+domains&&\ref{syncfifoifc}\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+% There are three FIFO packages, \te{FIFO}, \te{FIFOF}, and
+% \te{FIFOLevel}. The following table shows when to use each FIFO,
+% and which methods are in implemented in each FIFO.  All FIFOs
+% include the methods \te{enq}, \te{deq}, \te{first}, \te{clear}.
+% These are referred to as the common methods in the table.
+
+% \begin{center}
+% \begin{tabular} {|l|l|l|}
+% \hline
+% & &  \\
+% Package Name & Description &  Methods \\
+% \hline 
+% \hline
+% All FIFO  & common methods in all FIFOs  &\te{enq} \\
+% packages & &  \te{deq}\\
+% & &  \te{first}\\
+% & &  \te{clear} \\
+% \hline
+% FIFO & Implicit full and empty signals & common methods\\
+% \hline
+% FIFOF & Explicit full and empty signals &  common methods\\
+% & &  \te{notFull} \\
+% & &  \te{notEmpty} \\
+% \hline
+% FIFOLevel & Indicates the level or current number & 
+% common methods\\
+% & of items stored in the FIFO &  \te{notFull}\\
+% & &  \te{notEmpty} \\
+% & &  \te{isLessThan} \\
+% & &  \te{isGreaterThan} \\
+% %& &  \te{maxDepth} \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+% {\bf Common Methods}
+
+% The following four methods are provided in all  FIFO packages.
+
+% \begin{center}
+% \begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1.9 in}|}
+% \hline
+% \multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+% \hline
+% Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+% \hline
+% \hline 
+% \te{enq}  & Action & adds an entry to the \te{FIFO}& x1 & variable
+% to be added to the \te{FIFO}\\
+% & & & & must be of type \it{element\_type} \\
+% \hline
+% \te{deq} & Action & removes first entry from the \te{FIFO}  & &  \\
+% \hline
+% \te{first}  & \it{element\_type} & returns first entry  & & the
+% entry returned is of \\ 
+% & & & &\it{element\_type} \\
+% \hline
+% \te{clear}  & Action & clears all entries from the \te{FIFO} & &\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+\subsubsection{FIFO and FIFOF packages}
+
+\label{sec-FIFO}
+
+{\bf Packages}
+\index{FIFO@\te{FIFO} (package)}
+\index{FIFOF@\te{FIFOF} (package)}
+
+
+\begin{verbatim}
+import FIFO :: * ;
+import FIFOF :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The FIFO package defines the  \te{FIFO} interface and four module
+constructors.  The \te{FIFO} package is for FIFOs with implicit
+full and empty signals.  
+
+The  \te{FIFOF} package defines FIFOs with explicit full and empty signals. 
+The standard version of \te{FIFOF} has FIFOs with the enq, 
+deq and first methods guarded by the appropriate (notFull or notEmpty)
+implicit conditions for safety and improved scheduling. 
+Unguarded (UG) versions of \te{FIFOF} are available for the rare cases
+when implicit conditions are not desired. 
+Guarded (G) versions of \te{FIFOF} are
+available which allow more control over implicit conditions.  With the
+guarded versions the user can specify whether the enqueue or dequeue
+side is guarded.
+
+{\bf Type classes}
+
+
+\paragraph{FShow}
+
+The \te{FIFOF} type belongs to the \te{FShow} type class.  A
+\te{FIFOF} can be turned into a \te{Fmt} type.  The \te{Fmt} value
+returned depends on the values of the \te{notEmpty} and \te{notFull} 
+methods.
+
+\begin{tabular}{|p{1in}|p{1in}|p{1in}|p{1in}|}
+\hline
+\multicolumn{4}{|c|}{FShow values for FIFOF}\\
+\hline
+\hline
+notEmpty & notFull& Fmt Object & Example\\
+\hline
+True&True&\te{<first>}&3\\
+True&False&\te{<first> FULL}&2 FULL\\
+False&True & \te{EMPTY}& \te{EMPTY}\\
+False&False & \te{EMPTY} & \te{EMPTY}\\
+\hline
+\multicolumn{4}{|l|}{\te{Note: <first>} is the  value of the first
+entry with the  fshow function applied }\\
+\hline
+\end{tabular}
+
+
+{\bf Interfaces and methods} 
+\label{sec-FIFOifc}
+
+% \begin{tabular}{|l|l|l|l|}
+%  \hline
+%                           &                                     &
+% &               \\
+% Interface Name   & Parameter name & Parameter Description & Restrictions \\
+% \hline
+% \hline
+% \te{FIFO} & \it{element\_type} & type of the elements &must be in
+% \te{Bits} class \\
+% & &stored in the \te{FIFO} &\\
+% \hline
+% \te{FIFOF} & \it{element\_type} & type of the elements &must be in
+% \te{Bits} class \\
+% & &stored in the \te{FIFO} &\\
+% \hline
+% \end{tabular}
+
+The four common methods, \te{enq}, \te{deq}, \te{first} and \te{clear}
+are provided by both the \te{FIFO} and \te{FIFOF} interfaces.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1.9 in}|}
+\hline
+\multicolumn{5}{|c|}{FIFO methods}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{enq}  & Action & adds an entry to the \te{FIFO}& x1 & variable
+to be added to the \te{FIFO}\\
+& & & & must be of type \it{element\_type} \\
+\hline
+\te{deq} & Action & removes first entry from the \te{FIFO}  & &  \\
+\hline
+\te{first}  & \it{element\_type} & returns first entry  & & the
+entry returned is of \it{element\_type} \\
+\hline
+\te{clear}  & Action & clears all entries from the \te{FIFO} & &\\
+\hline
+\end{tabular}
+\end{center}
+\begin{libverbatim}
+interface FIFO #(type element_type);
+    method Action enq(element_type x1);
+    method Action deq();
+    method element_type first();
+    method Action clear();
+endinterface: FIFO
+\end{libverbatim}
+
+\te{FIFOF} provides two additional methods, \te{notFull} and
+\te{notEmpty}.
+ 
+\begin{center}
+\begin{tabular}{|p{.75in}|p{.75in}|p{3.5 in}|}
+\hline
+\multicolumn{3}{|c|}{Additional FIFOF Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\te{notFull} & Bool & returns a True value if there is space, you can
+enqueue an entry into the FIFO  \\
+\hline
+\te{notEmpty} & Bool &returns a True value if there are elements the
+FIFO, you can dequeue from the FIFO   \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+interface FIFOF #(type element_type);
+    method Action enq(element_type x1);
+    method Action deq();
+    method element_type first();
+    method Bool notFull();
+    method Bool notEmpty();
+    method Action clear();
+endinterface: FIFOF
+\end{verbatim}
+
+The \te{FIFO} and \te{FIFOF} interfaces belong to the \te{ToGet} and
+\te{ToPut} typeclasses.  You can use the \te{toGet} and \te{toPut}
+functions to convert \te{FIFO} and \te{FIFOF} interfaces to \te{Get}
+and \te{Put} interfaces (Section \ref{sec-GetPut}). 
+
+
+
+
+{\bf Modules}
+\index{mkFIFO@\te{mkFIFO} (module)}
+\label{sec-fifo-mod}
+
+The \te{FIFO} and \te{FIFOF} interface types are provided by the
+module  constructors: \te{mkFIFO}, \te{mkFIFO1}, \te{mkSizedFIFO},
+\te{mkDepthParamFIFO}, and \te{mkLFIFO}.
+Each \te{FIFO} is safe with implicit conditions; they do not allow
+an \te{enq} when the \te{FIFO} is full or  a
+\te{deq} or  \te{first}
+when the \te{FIFO} is empty.  
+
+Most FIFOs  do not allow  simultaneous enqueue and
+dequeue operations when the FIFO is full or empty.  The exceptions are pipeline
+ and bypass FIFOs.  A  pipeline FIFO (provided as \te{mkLFIFO} in this
+ package),  allows 
+simultaneous enqueue and dequeue operations when full.  A bypass FIFO
+allows simultaneous enqueue and  dequeue operations  when empty. Additional pipeline and bypass FIFOs are provided in the \te{SpecialFIFOs} package (Section
+ \ref{sec-SpecialFIFOs}).    The FIFOs in the \te{SpecialFIFOs}
+ package are provided as both compiled code and BSV source code,
+so they are customizable.
+
+\begin{center}
+\begin{tabular}{|p{2 in}|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Allowed Simultaneous enq and deq }\\
+\multicolumn{4}{|c|}{by FIFO type}\\
+%\multicolumn{4}{|c|}{}\\
+\hline
+&\multicolumn{3}{|c|}{FIFO Condition}\\
+\cline{2-4}
+FIFO type&empty&not empty&full\\
+&&not full &\\
+\hline
+\hline
+\te{mkFIFO}&&$\surd$&\\
+\te{mkFIFOF}&&&\\
+\hline
+\te{mkFIFO1}&&NA&\\
+\te{mkFIFOF1}&&&\\
+\hline
+\te{mkLFIFO}&&$\surd$&$\surd$\\
+\te{mkLFIFOF}&&&\\
+\hline
+\te{mkLFIFO1}&&NA&$\surd$\\
+\te{mkLFIFOF1}&&&\\
+\hline
+\multicolumn{4}{|c|}{Modules provided in SpecialFIFOs package \ref{sec-SpecialFIFOs}} \\
+\hline
+\te{mkPipelineFIFO}&&NA&$\surd$\\
+\te{mkPipelineFIFOF}&&&\\
+\hline
+\te{mkBypassFIFO}&$\surd$&NA&\\
+\te{mkBypassFIFOF}&&&\\
+\hline
+\te{mkSizedBypassFIFOF}&$\surd$&$\surd$&\\
+\hline
+\te{mkBypassFIFOLevel}&$\surd$&$\surd$&\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+For creating a \te{FIFOF}  interface (providing explicit \te{notFull} and
+\te{notEmpty} methods) use the \te{"F"} version of the
+module, for example use \te{mkFIFOF} instead of \te{mkFIFO}.
+
+
+
+
+\index[function]{FIFOF!mkFIFOF}
+\index[function]{FIFO!mkFIFO}
+\index{mkFIFOF@\te{mkFIFOF} (module)}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+ \hline
+  &            \\
+Module Name  &  BSV Module Declaration   \\
+&\emph{For all modules, \te{width\_any} may be 0}  \\
+\hline
+\multicolumn{2}{|l|}{\te{FIFO} or \te{FIFOF} of depth 2.}\\
+\hline
+\begin{libverbatim}mkFIFO 
+mkFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}module mkFIFO#(FIFO#(element_type)) 
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index[function]{FIFO!mkFIFO1}
+\index[function]{FIFOF!mkFIFOF1}
+
+\index{mkFIFOF1@\te{mkFIFOF1} (module)}
+\index{mkFIFO1@\te{mkFIFO1} (module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{FIFO} or \te{FIFOF} of depth 1}\\
+\hline
+\begin{libverbatim}mkFIFO1
+mkFIFOF1
+\end{libverbatim}
+& \begin{libverbatim}
+module mkFIFO1#(FIFO#(element_type))
+   provisos (Bits#(element_type, width_any)); \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+
+\index[function]{FIFO!mkSizedFIFO}
+\index[function]{FIFOF!mkSizedFIFOF}
+\index{mkSizedFIFOF@\te{mkSizedFIFOF} (module)}
+\index{mkSizedFIFO@\te{mkSizedFIFO} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{FIFO} or \te{FIFOF} of given depth n}\\
+\hline
+\begin{libverbatim}mkSizedFIFO
+mkSizedFIFOF
+\end{libverbatim}
+& \begin{libverbatim}
+module mkSizedFIFO#(Integer n)(FIFO#(element_type))  
+   provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\
+\hline 
+\end{tabular}
+\end{center}
+
+
+% The \te{FIFOF} package also provides sized FIFOs where the depth
+% \te{n} is of type \te{UInt\#(32)} and is a Verilog parameter or
+% computed from compile-time constants and Verilog parameters.  Buarded
+% and unguarded versions of the depth parameter FIFOs are provided.
+
+\index[function]{FIFO!mkDepthParamFIFO}
+\index[function]{FIFOF!mkDepthParamFIFOF}
+\index{mkDepthParamFIFOF@\te{mkDepthParamFIFOF} (module)}
+\index{mkDepthParamFIFO@\te{mkDepthParamFIFO} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.3 in}|p{4.2 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{FIFO} or \te{FIFOF} of given depth n where n
+is a Verilog parameter or computed from }\\
+\multicolumn{2}{|l|}{compile-time constants and Verilog
+parameters.}\\
+\hline
+\begin{libverbatim}mkDepthParamFIFO
+mkDepthParamFIFOF
+\end{libverbatim}
+& \begin{libverbatim}
+module mkDepthParamFIFO#(UInt#(32) n)(FIFO#(element_type))  
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\  
+&    \\
+\hline 
+\end{tabular}
+\end{center}
+
+
+
+
+
+Unguarded (UG) versions of \te{FIFOF} are available for the rare cases
+when implicit conditions are not desired.  When using an unguarded
+FIFO, the implicit conditions for correct FIFO 
+operations are NOT considered  during rule and method processing,
+making it 
+possible to enqueue when full and to dequeue when empty. 
+These modules  provide the \te{FIFOF}
+interface. 
+
+
+\index[function]{FIFOF!mkUGFIFOF}
+\index{mkUGFIFOF@\te{mkUGFIFOF} (module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+ \hline
+\multicolumn{2}{|l|}{Unguarded FIFOF of depth 2}\\
+\hline
+\te{mkUGFIFOF}
+& \begin{libverbatim}module mkUGFIFOF#(FIFOF#(element_type)) 
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index[function]{FIFOF!mkUGFIFO1}
+\index{mkUGFIFOF1@\te{mkUGFIFOF1} (module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{Unguarded \te{FIFOF} of depth 1}\\
+\hline
+\te{mkUGFIFOF1}
+& \begin{libverbatim}
+module mkUGFIFO1#(FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any)); \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index[function]{FIFOF!mkUGSizedFIFOF}
+\index{mkUGSizedFIFOF@\te{mkUGSizedFIFOF} (module)}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{Unguarded \te{FIFOF} of given depth n}\\
+\hline
+\te{mkUGSizedFIFOF}
+& \begin{libverbatim}
+module mkUGSizedFIFOF#(Integer n)(FIFOF#(element_type))  
+   provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\
+\hline 
+\end{tabular}
+\end{center}
+
+\index[function]{FIFOF!mkUGDepthParamFIFOF}
+\index{mkUGDepthParamFIFOF@\te{mkUGDepthParamFIFOF} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.3 in}|p{4.2 in}|}
+\hline
+\multicolumn{2}{|l|}{Unguarded \te{FIFO} of given depth n where n is a Verilog
+parameter or computed from }\\
+\multicolumn{2}{|l|}{compile-time constants and Verilog
+parameters.}\\
+\hline
+\te{mkUGDepthParamFIFOF}
+& \begin{libverbatim}
+module mkUGDepthParamFIFOF#(UInt#(32) n)
+                          (FIFOF#(element_type))  
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\  
+&    \\
+\hline 
+\end{tabular}
+\end{center}
+
+
+
+The  guarded (G) versions of each of the
+\te{FIFOF}s allow you to specify which implicit condition you want
+to guard.  These modules takes two  Boolean
+parameters; \te{ugenq} and \te{ugdeq}.  Setting either parameter
+\te{TRUE} indicates the relevant methods (\te{enq} for \te{ugenq},
+\te{first} and \te{deq} for
+\te{ugdeq}) are unguarded.  If both are \te{TRUE} the
+\te{FIFOF} behaves the same as an unguarded \te{FIFOF}.  If both are
+\te{FALSE} the behavior is the same as a regular \te{FIFOF}.  
+
+
+
+\index[function]{FIFOF!mkGFIFOF}
+\index{mkGFIFOF@\te{mkGFIFOF} (module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.6 in}|}
+ \hline
+\multicolumn{2}{|l|}{Guarded \te{FIFOF} of depth 2.}\\
+\hline
+\begin{libverbatim}mkGFIFOF 
+\end{libverbatim} 
+& \begin{libverbatim}
+module mkGFIFOF#(Bool ugenq, Bool ugdeq)(FIFOF#(element_type)) 
+   provisos (Bits#(element_type, width_any));
+ \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index[function]{FIFOF!mkGFIFOF1}
+\index{mkGFIFOF1@\te{mkGFIFOF1} (module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.6 in}|}
+\hline
+\multicolumn{2}{|l|}{Guarded \te{FIFOF} of depth 1}  \\
+\hline
+\begin{libverbatim}mkGFIFOF1
+\end{libverbatim}
+& \begin{libverbatim}
+module mkGFIFOF1#(Bool ugenq, Bool ugdeq)(FIFOF#(element_type))
+   provisos (Bits#(element_type, width_any)); \end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index[function]{FIFOF!mkGSizedFIFOF}
+\index{mkGSizedFIFOF@\te{mkGSizedFIFOF} (module)}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.6 in}|}
+\hline
+\multicolumn{2}{|l|}{Guarded \te{FIFOF} of given depth n }\\
+\hline
+\begin{libverbatim}mkGSizedFIFOF
+\end{libverbatim}
+& \begin{libverbatim}
+module mkGSizedFIFOF#(Bool ugenq, Bool ugdeq, Integer n)
+                    (FIFOF#(element_type))  
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+  \\
+   &  \\
+\hline 
+\end{tabular}
+\end{center}
+
+
+\index[function]{FIFOF!mkGDepthParamFIFOF}
+\index{mkGDepthParamFIFOF@\te{mkGDepthParamFIFOF} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.3 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{Guarded \te{FIFOF} of given depth n where n is a Verilog
+parameter or computed from }\\
+\multicolumn{2}{|l|}{compile-time constants and Verilog
+parameters.}\\
+\hline
+\begin{libverbatim}mkGDepthParamFIFOF
+\end{libverbatim}
+& \begin{libverbatim}
+module mkGDepthParamFIFOF#(Bool ugenq, Bool ugdeq, UInt#(32) n)
+           (FIFOF#(element_type))  
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+  \\
+   &  \\
+\hline 
+\end{tabular}
+\end{center}
+
+
+The \te{LFIFO}s (pipeline FIFOs)  allow \te{enq} and \te{deq} in the same clock cycle
+when the FIFO is full.  Additional BSV versions of the pipeline FIFO and also
+bypass FIFOs (allowing simultaneous \te{enq} and \te{deq} when the
+FIFO is empty) are provided in the \te{SpecialFIFOs} package (Section
+\ref{sec-SpecialFIFOs}).  Both unguarded and guarded versions of the
+\te{LFIFO} are provided in the \te{FIFOF} package.
+
+
+\index[function]{FIFO!mkLFIFO}
+\index[function]{FIFOF!mkLFIFOF}
+\index[function]{FIFOF!mkUGLFIFOF}
+\index{mkLFIFOF@\te{mkLFIFOF} (module)}
+\index{mkUGLFIFOF@\te{mkUGLFIFOF} (module)}
+\index{mkLFIFO@\te{mkLFIFO} (module)}
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{4.6 in}|}
+\hline
+\multicolumn{2}{|l|}{Pipeline \te{FIFO} of depth 1.  \te{deq} and  \te{enq} can
+be simultaneously applied in the same clock}\\
+\multicolumn{2}{|l|}{cycle when the \te{FIFO} is full.}\\
+\hline
+\begin{libverbatim}mkLFIFO
+mkLFIFOF
+mkUGLFIFOF\end{libverbatim}
+& \begin{libverbatim}
+module mkLFIFO#(FIFO#(element_type)) 
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\
+&    \\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkGLFIFOF@\te{mkGLFIFOF} (module)}
+\index[function]{FIFOF!mkGLFIFOF}
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{4.6 in}|}
+\hline
+\multicolumn{2}{|l|}{Guarded pipeline \te{FIFOF} of depth 1.  \te{deq}
+and  \te{enq} can be simultaneously applied in the same }\\
+\multicolumn{2}{|l|}{clock cycle when the \te{FIFOF} is full.}\\
+\hline
+\begin{libverbatim}mkGLFIFOF
+\end{libverbatim}
+& \begin{libverbatim}
+module mkGLFIFOF#(Bool ugenq, Bool ugdeq)(FIFOF#(element_type)) 
+  provisos (Bits#(element_type, width_any)); \end{libverbatim}
+ \\
+   & \\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Functions}
+
+
+\index{fifofToFifo@\te{fifofToFifo} (function)}
+\index[function]{FIFO!fifofToFifo}
+The FIFO package provides a function \te{fifofToFifo} to convert an
+interface of type \te{FIFOF} to an interface of type \te{FIFO}.
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{Converts a FIFOF interface to a FIFO interface.}\\
+\hline
+\begin{libverbatim}fifofToFifo
+\end{libverbatim}
+& \begin{libverbatim}
+function FIFO#(a) fifofToFifo (FIFOF#(a) f);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Example using the FIFO package}
+
+This example creates 2 input FIFOs and moves data from the input FIFOs
+to the output FIFOs.
+
+\begin{libverbatim}
+   import FIFO::*;
+
+   typedef Bit#(24) DataT;
+
+   // define a single interface into our example block
+   interface BlockIFC;
+      method Action push1 (DataT a);
+      method Action push2 (DataT a);
+      method ActionValue#(DataT) get();
+   endinterface 
+   
+   module mkBlock1( BlockIFC  );
+      Integer fifo_depth = 16;
+
+      // create the first inbound FIFO instance 
+      FIFO#(DataT) inbound1 <- mkSizedFIFO(fifo_depth);
+
+      // create the second inbound FIFO instance 
+      FIFO#(DataT) inbound2 <- mkSizedFIFO(fifo_depth);
+    
+      // create the outbound instance
+      FIFO#(DataT) outbound <- mkSizedFIFO(fifo_depth);
+ 
+      // rule for enqueue of outbound from inbound1
+      // implicit conditions ensure correct behavior
+      rule enq1 (True);
+         DataT in_data = inbound1.first;
+         DataT out_data = in_data;
+         outbound.enq(out_data); 
+         inbound1.deq; 
+      endrule: enq1
+    
+      // rule for enqueue of outbound from inbound2
+      // implicit conditions ensure correct behavior
+      rule enq2 (True);
+         DataT in_data = inbound2.first;
+         DataT out_data = in_data;
+         outbound.enq(out_data); 
+         inbound2.deq; 
+      endrule: enq2
+
+      //Add an entry  to the inbound1 FIFO
+      method Action push1 (DataT a); 
+            inbound1.enq(a);
+      endmethod
+
+      //Add an entry  to the inbound2 FIFO
+      method Action push2 (DataT a); 
+            inbound2.enq(a);
+      endmethod
+ 
+      //Remove first value from outbound and return it
+      method ActionValue#(DataT) get(); 
+            outbound.deq();
+            return outbound.first();
+      endmethod
+   endmodule
+\end{libverbatim}
+
+{\bf Scheduling Annotations}
+
+Scheduling constraints describe how methods interact within the schedule.
+  For example, a \te{clear} to a given
+FIFO must be sequenced after (\te{SA}) an \te{enq} to the same
+  FIFO.  That is, when both \te{enq} and \te{clear} execute in the same
+  cycle, the resulting FIFO state is empty.  For correct rule behavior
+  the rule executing \te{enq} must be scheduled before the rule
+  calling \te{clear}.  
+
+The  table below lists the scheduling annotations for the FIFO modules
+\te{mkFIFO}, \te{mkSizedFIFO}, and \te{mkFIFO1}.
+
+\begin{center}
+%\begin{tabular}{|p{.75 in}|p{.75 in}|p{.75 in}|p{.75 in}|p{.75 in}|}
+\begin{tabular}{|p{.75 in}|c|c|c|c|}
+\hline
+\multicolumn{5}{|c|}{Scheduling Annotations}\\
+\multicolumn{5}{|c|}{mkFIFO, mkSizedFIFO, mkFIFO1}\\
+\hline
+&enq&first&deq&clear\\
+\hline
+\hline
+enq&C &CF&CF&SB\\
+\hline
+first&CF&CF&SB&SB\\
+\hline
+deq&CF&SA&C&SB\\
+\hline
+clear&SA&SA&SA&SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+The  table below lists the scheduling annotations for the pipeline
+FIFO module, \te{mkLFIFO}.  The pipeline FIFO has a few more
+restrictions since there is a combinational path between the \te{deq}
+side and the \te{enq} side, thus restricting \te{deq} calls before \te{enq}.
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|c|c|}
+\hline
+\multicolumn{5}{|c|}{Scheduling Annotations}\\
+\multicolumn{5}{|c|}{mkLFIFO}\\
+\hline
+&enq&first&deq&clear\\
+\hline
+\hline
+ enq&C &SA&SAR&SB\\
+\hline
+ first&SB&CF&SB&SB\\
+\hline
+ deq&SBR&SA&C&SB\\
+\hline
+ clear&SA&SA&SA&SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+The \te{FIFOF} modules add the \te{notFull} and \te{notEmpty}
+methods. These methods have SB annotations with the Action methods
+that change FIFO state.  These SB annotations model  the atomic
+behavior of a  FIFO, that
+is when \te{enq}, \te{deq}, or \te{clear} are called the state of
+\te{notFull} and \te{notEmpty} are changed.  This is no different than
+the annotations on \te{mkReg} (which is \te{read} SB \te{write}),
+where actions are atomic and the execution module is one rule fires at
+a time.  This does differ from a pure hardware module of a FIFO or
+register where the state does not change until the clock edge.
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|c|c|c|c|}
+\hline
+\multicolumn{7}{|c|}{Scheduling Annotations}\\
+\multicolumn{7}{|c|}{mkFIFOF, mkSizedFIFOF, mkFIFOF1}\\
+\hline
+&enq&notFull&first&deq&notEmpty&clear\\
+\hline
+\hline
+ enq&C &SA&CF&CF&SA&SB\\
+\hline
+ notFull&SB&CF&CF&SB&CF&SB\\
+\hline
+ first&CF&CF&CF&SB&CF&SB\\
+\hline
+ deq&CF&SA&SA&C&SA&SB\\
+\hline
+ notEmpty&SB&CF&CF&SB&CF&SB\\
+\hline
+ clear&SA&SA&SA&SA&SA&SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Verilog Modules}
+
+\te{FIFO} and \te{FIFOF} modules correspond to the following {\V}
+modules, which are found in the BSC {\V} library, \te{\$BLUESPECDIR/Verilog/}.
+
+\begin{center}
+\begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+\hline
+&&& \\
+BSV Module Name &\multicolumn{2}{|c|}{ Verilog Module Names}&Comments  \\
+&&& \\
+\hline
+\hline
+\begin{libverbatim}mkFIFO
+mkFIFOF
+mkUGFIFOF
+mkGFIFOF\end{libverbatim}
+& \te{FIFO2.v}&   \te{FIFO20.v}&\\
+\hline
+\end{tabular}
+
+\begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+\hline
+\begin{libverbatim}mkFIFO1
+mkFIFOF1
+mkUGFIFOF1
+mkGFIFOF1\end{libverbatim} 
+& \te{FIFO1.v} & \te{FIFO10.v}&\\
+\hline
+\end{tabular}
+
+\begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+\hline
+\begin{libverbatim}mkSizedFIFO
+mkSizedFIFOF
+mkUGSizedFIFOF
+mkGSizedFIFOF
+\end{libverbatim} 
+&\begin{libverbatim}SizedFIFO.v
+FIFO1.v
+FIFO2.v
+\end{libverbatim}
+ & \begin{libverbatim}SizedFIFO0.v
+FIFO10.v
+FIFO20.v
+\end{libverbatim}
+&If the depth of the FIFO = 1,
+then \te{FIFO1.v} and \te{FIFO10.v} are used, if the depth = 2, then
+\te{FIFO2.v} and \te{FIFO20.v} are used. \\
+\hline
+\end{tabular}
+
+\begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+\hline
+\begin{libverbatim}
+mkDepthParamFIFOF
+mkUGDepthParamFIFOF
+mkGDepthParamFIFOF\end{libverbatim} 
+& \te{SizedFIFO.v} & \te{SizedFIFO0.v}& \\
+\hline
+\end{tabular}
+
+\begin{tabular} {|p{1.5in}|p{1in}p{1 in}|p{1.8 in}|}
+\hline
+\begin{libverbatim}mkLFIFO
+mkLFIFOF
+mkUGLFIFOF
+mkGLFIFOF\end{libverbatim}
+ & \te{FIFOL1.v} &  \te{FIFOL10.v}& \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+ 
+
+% Text inserted here to explain anything the user might need to know
+% about how the Verilog relates to the BSV they wrote.
+

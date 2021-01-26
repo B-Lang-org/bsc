@@ -1,0 +1,80 @@
+\subsubsection{Enum}
+
+\index{Enum@\te{Enum} (package)}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import Enum :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The functions in this package can be used to enumerate values
+by using their bit representation.
+
+{\bf Functions}
+
+
+\index{enumAll@\te{enumAll} (\te{Enum} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{enumAll}&Enumerate all values of a bounded type.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+List#(a) enumAll
+  provisos (Bits#(a, sa), Bounded#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{enumFromTo@\te{enumFromTo} (\te{Enum} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{enumFromTo}&Enumerate all values (inclusively) between a lower and
+upper bound.  This is done by applying \te{unpack} to
+all the bit values between the bounds.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function List#(a) enumFromTo(a lo, a hi)
+  provisos (Bits#(a, sa));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+{\bf Examples using enumAll and enumFromTo}
+
+\begin{verbatim}
+import Enum :: *;
+import List :: *;
+
+//Define an enumerated data type called Datastates
+typedef enum  {first, second, third, fourth, fifth} Datastates 
+    deriving (Eq,Bits, Bounded);
+
+module mkExample ();
+    List #(Datastates) list1 = enumAll;
+    //list1 = {first, second, third, fourth, fifth} 
+    
+    List #(Datastates) list2 = enumFromTo (first, fifth);
+    //list2 = {first, second, third, fourth, fifth}
+
+    List #(Datastates} list2a = enumFromTo (second, fourth);
+    //list2a = {second, third, fourth}
+
+    List #(Datastates} list 2b = enumFromTo (fifth, second);
+    //list2b = {}
+endmodule : mkExample
+
+
+\end{verbatim}
+

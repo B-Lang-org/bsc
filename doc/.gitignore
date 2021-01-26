@@ -1,0 +1,15 @@
+# Ignore generated files for documentation
+#
+# Generated index files beyond the standard 'idx' and 'ind'
+# should be named '?dx' and '?nd' (using a new unique letter)
+#
+*.aux
+*.bbl
+*.blg
+*.?dx
+*.?nd
+*.ilg
+*.log
+*.out
+*.pdf
+*.toc

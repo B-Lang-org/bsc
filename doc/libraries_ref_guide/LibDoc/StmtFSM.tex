@@ -1,0 +1,792 @@
+\subsubsection{StmtFSM}
+\index{Stmts@\te{StmtFSM} (package)}
+\index{start@\te{start}}
+\index{reset@\te{clear}}
+
+\label{lib-stmtfsm}
+
+{\bf Package}
+
+\begin{verbatim}
+import StmtFSM :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{StmtFSM} package provides a procedural  way of
+defining finite state machines (FSMs) which are automatically synthesized.
+
+First, one uses the \texttt{Stmt}
+sublanguage to compose the actions of an FSM using
+sequential, parallel, conditional and looping structures.  This
+sublanguage is within the \nterm{expression} syntactic category, i.e.,
+a term in the sublanguage is an expression whose value is of type {\tt
+Stmt}. This value can be bound to identifiers, passed as arguments and
+results of functions, held in static data structures, etc., like any
+other value.  Finally, the FSM can be instantiated into hardware,
+multiple times if desired, by passing the \texttt{Stmt} value to the
+module constructor \texttt{mkFSM}.  The resulting module interface has
+type \texttt{FSM}, which has methods to start the FSM and to wait until
+it completes.
+
+
+
+{\bf The \texttt{Stmt} sublanguage}
+
+\label{sec-stmtsublang}
+
+The state machine is automatically constructed from the procedural
+description given in the \te{Stmt} definition.  Appropriate state
+counters are created  and rules are generated internally, 
+corresponding to the transition logic of the state machine.  The use of rules
+for the intermediate state machine generation
+ensures that resource conflicts are identified and resolved, and
+that implicit conditions are properly checked before the execution
+of any action.
+
+The names of generated rules (which may appear in conflict warnings) have
+suffixes of the form ``\verb|l<nn>c<nn>|'', where the \verb|<nn>| are line
+or column numbers, referring to the statement which gave rise to the rule.
+
+
+A term in the \texttt{Stmt} sublanguage is an expression, introduced at
+the outermost level by the keywords \term{seq} or \term{par}.  Note
+that within the sublanguage, \texttt{if}, \texttt{while} and \texttt{for}
+statements are interpreted as statements in the sublanguage and not as
+ordinary statements, except when enclosed within 
+\texttt{action/endaction} keywords.  
+ 
+\gram{exprPrimary}{ \nterm{seqFsmStmt} {\alt} \nterm{parFsmStmt} }
+
+\gram{fsmStmt}{ \nterm{exprFsmStmt} } \\
+\gramalt      { \nterm{seqFsmStmt} } \\
+\gramalt      { \nterm{parFsmStmt} } \\
+\gramalt      { \nterm{ifFsmStmt} }  \\
+\gramalt      { \nterm{whileFsmStmt} } \\
+\gramalt      { \nterm{repeatFsmStmt} } \\
+\gramalt      { \nterm{forFsmStmt} } \\
+\gramalt      { \nterm{returnFsmStmt} }
+
+\gram{exprFsmStmt}{ \nterm{regWrite} \term{;} } \\
+\gramalt            { \nterm{expression} \term{;} }
+
+\gram{seqFsmStmt}{ \term{seq} \nterm{fsmStmt} \many{ \nterm{fsmStmt} } \term{endseq} }
+
+\gram{parFsmStmt}{ \term{par} \nterm{fsmStmt} \many{ \nterm{fsmStmt} } \term{endpar} }
+
+\gram{ifFsmStmt}{ \term{if} \nterm{expression} \nterm{fsmStmt} } \\
+\grammore       { \opt{ \term{else} \nterm{fsmStmt} } }
+
+\gram{whileFsmStmt}{ \term{while} \term{(} \nterm{expression} \term{)} } \\
+\grammore          { \hmm \nterm{loopBodyFsmStmt} }
+
+\gram{forFsmStmt}{ \term{for} \term{(}
+                                 \nterm{fsmStmt} \term{;}
+                                 \nterm{expression} \term{;}
+                                 \nterm{fsmStmt} \term{)} } \\
+\grammore        { \hmm \nterm{loopBodyFsmStmt} }
+
+\gram{returnFsmStmt}{ \term{return} \term{;} }
+
+\gram{repeatFsmStmt}{ \term{repeat} \term{(} \nterm{expression} \term{)} } \\
+\grammore          { \hmm \nterm{loopBodyFsmStmt} }
+
+\gram{loopBodyFsmStmt}{ \nterm{fsmStmt} } \\
+\gramalt              { \term{break} \term{;} }    \\
+\gramalt              { \term{continue} \term{;} }
+
+The simplest kind of statement is an \nterm{exprFsmStmt}, which can be a
+register assignment or, more generally, any
+expression of type \texttt{Action} (including action method calls
+% (Section \ref{sec-method-calls})
+ and \texttt{action}-{\tt endaction} blocks 
+%(Section \ref{sec-actions}))
+ or of type \texttt{Stmt}.   Statements of type
+\texttt{Action} execute within exactly one clock cycle, but of course the
+scheduling semantics may
+affect exactly which clock cycle it executes in.  For example, if the actions
+in a statement interfere with actions in some other rule, the statement may be
+delayed by the schedule until there is no interference.  In all the
+descriptions of statements below, the descriptions of time taken by a
+construct are minimum times; they could take longer because of scheduling
+semantics.
+
+Statements can be composed into sequential, parallel, conditional and
+loop forms.  In the sequential form (\term{seq}-\term{endseq}), the
+contained statements are executed one after the other. The
+\term{seq} block terminates when its last contained statement
+terminates, and the total time (number of clocks) is equal to the sum
+of the individual statement times.
+
+In the parallel form (\term{par}-\term{endpar}), the contained statements
+(``threads'') are all executed in parallel.  Statements in each thread may or
+may not be executed simultaneously with statements in other threads, depending
+on scheduling conflicts; if they cannot be executed simultaneously they will
+be interleaved, in accordance with normal scheduling.  The entire {\term{par}}
+block terminates when the last of its contained threads terminates, and the
+minimum total time (number of clocks) is equal to the maximum of the
+individual thread times.
+
+In the conditional form (\texttt{\term{if} ($b$) $s_1$ else $s_2$}), the
+boolean expression $b$ is first evaluated.  If true, $s_1$ is
+executed, otherwise $s_2$ (if present) is executed.  The total time
+taken is $t$ cycles, if the chosen branch takes $t$ cycles.
+
+\index{loop statements!temporal, in FSMs}
+In the \texttt{\term{while} ($b$) $s$} loop form, the boolean
+expression $b$ is first evaluated.  If true, $s$ is executed, and the
+loop is repeated.  Each time the condition evaluates true , the loop
+body is executed, so the total time is $n \times t$ cycles, where $n$
+is the number of times the loop is executed (possibly zero) and $t$ is
+the time for the loop body statement.
+
+The \texttt{\term{for} ($s_1$;$b$;$s_2$) $s_B$} loop form is equivalent
+to:
+\begin{tabbing}
+\hm \texttt{$s_1$; while ($b$) seq $s_B$; $s_2$ endseq}
+\end{tabbing}
+i.e., the initializer $s_1$ is executed first.  Then, the condition
+$b$ is executed and, if true, the loop body $s_B$ is executed followed
+by the ``increment'' statement $s_2$.  The $b$, $s_B$, $s_2$ sequence
+is repeated as long as $b$ evaluates true.
+
+Similarly, the \texttt{\term{repeat} ($n$) $s_B$} loop form is equivalent
+to:
+\begin{tabbing}
+\hm \texttt{while ($repeat\_count < n$) seq $s_B$; $repeat\_count <= repeat\_count + 1$ endseq}
+\end{tabbing}
+where the value of $repeat\_count$ is initialized to $0$.  During
+execution, the condition ($repeat\_count < n$) is executed and, if true, the loop body
+$s_B$ is executed followed by the ``increment'' statement $repeat\_count <= repeat\_count + 1$.
+The sequence is repeated as long as $repeat\_count < n$ evaluates true.
+
+In all the loop forms, the loop body statements can contain the
+keywords \texttt{continue} or \texttt{break}, with the usual semantics,
+i.e., \texttt{continue} immediately jumps to the start of the next
+iteration, whereas \texttt{break} jumps out of the loop to the loop
+sequel.
+
+It is important to note that this use of loops, within a \texttt{Stmt}
+context, expresses time-based (temporal) behavior. %  Section
+% {\ref{sec-loop-stmts}} describes the use of loops to express static
+% structure, i.e., loops that are unrolled during static elaboration.
+
+
+% {\bf Instantiating \texttt{Stmt} values into \texttt{FSM}s}
+
+% An \texttt{Stmt} value can be instantiated into a module that presents
+% an interface of type \texttt{FSM}:
+% \begin{verbatim}
+%  interface FSM;
+%      method Action start();
+%      method Bool   done();
+%      method Action waitTillDone();
+%  endinterface
+% \end{verbatim}
+
+% Instantiation is performed by passing an \texttt{Stmt} value into the
+% following module constructor.
+% \begin{verbatim}
+%  module mkFSM#(Stmt s) (FSM);
+% \end{verbatim}
+
+% Once instantiated, the FSM can be started by calling the \texttt{start} method.
+% One can wait for the FSM to stop running by waiting explicitly on the boolean
+% value returned by the \texttt{done} method.  Alternatively, one can use the {\tt
+% waitTillDone} method in any action context (including from within another
+% FSM), which (because of an implicit condition) cannot execute until this FSM
+% is done.
+
+
+%--------------------------------------------------------
+{\bf Interfaces and Methods}
+
+Two interfaces are defined with this package, \te{FSM} and \te{Once}.
+The \te{FSM} interface defines a basic state machine interface while the \te{Once}
+interface encapsulates the notion of an action that should only be
+performed once.  A \te{Stmt} value can be instatiated into a module
+that presents an interface of type \te{FSM}.
+
+There is a one clock cycle delay after the \te{start} method is
+asserted before the FSM starts.  This insulates the \te{start} method
+from many of the FSM schedule constraints that change depending on what
+computation is included in each specific FSM. 
+Therefore, it is possible that the StmtFSM is enabled  when the
+\te{start} method  is called, but not on the next cycle when the FSM
+actually starts.  In this case, the FSM will stall until the
+conditions allow it to continue.
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|c|}{Interfaces}\\
+\hline
+Name& Description\\
+\hline
+\hline
+\te{FSM}& The state machine interface \\
+\hline
+\te{Once}&Used when an action should only be performed once\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\item{\te{FSM} Interface}
+
+The \te{FSM} interface provides four methods; \te{start}, \te{waitTillDone}, 
+\te{done} and \te{abort}.  Once instantiated, the FSM can be started
+by calling the 
+\texttt{start} method.  
+One can wait for the FSM to stop running by waiting explicitly on the boolean
+value returned by the \texttt{done} method.  The \te{done} method is
+\te{True} before the FSM has run the first time.   Alternatively, one can
+use the  \te{waitTillDone} method in any action context (including
+from within  another FSM), which (because of an implicit condition)
+cannot  execute until this FSM is done.  The user must not use
+\te{waitTillDone} until after the FSM has been started because the FSM
+comes out of a reset as \te{done}.  The \te{abort} method immediately exits the
+execution of the FSM.
+
+\begin{verbatim}
+interface FSM;
+    method Action start();
+    method Action waitTillDone();
+    method Bool   done();
+    method Action abort();
+endinterface: FSM
+\end{verbatim}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{.7in}|p{3.4 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{FSM} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{start}&\te{Action}&Begins state machine execution.  This can only
+be called when the state machine is not executing.\\
+\hline
+\te{waitTillDone}&\te{Action}&Does not do any action, but is only
+ready when the state machine is done.\\
+\hline
+\te{done}&\te{Bool}&Asserted when the state machine is done and is ready to
+rerun.  State machine comes out of reset as done.\\
+\hline
+\te{abort}&\te{Action}&Exits execution of the state machine.\\
+\hline
+\end{tabular}
+\end{center}
+
+\item{\te{Once} Interface} 
+
+The \te{Once} interface  encapsulates the notion of an
+action that should only be performed once.  The \te{start} method
+performs the action that has been encapuslated in the \te{Once}
+module. After \te{start} has been called \te{start} cannot be called again
+(an implicit condition will enforce this).  If the
+\te{clear} method is called, the \te{start} method can be called once again.
+
+
+\begin{verbatim}
+interface Once;
+    method Action start();
+    method Action clear();
+    method Bool   done() ;
+endinterface: Once
+\end{verbatim}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{.7in}|p{3.4 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{Once} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{start}&\te{Action}&Performs the action that has been encapsulated
+in the \te{Once} module, but once \te{start} has been called it cannot
+be called again (an implicit condition will enforce this).\\
+\hline
+\te{clear}&\te{Action}&If the \te{clear} method is called, the
+\te{start} method can be called once again.\\ 
+\hline
+\te{done}&\te{Bool}&Asserted when the state machine is done and is ready to
+rerun.\\
+\hline
+\end{tabular}
+\end{center}
+
+\end{itemize}
+
+
+
+
+{\bf Modules}
+
+Instantiation is performed by passing a \te{Stmt} value into the
+module constructor \te{mkFSM}.  The state machine is automatically
+constructed from the procedural decription given in the definition
+described by state machine of type
+\te{Stmt} named \te{seq\_stmt}.
+During construction, one or more registers of appropriate widths are created to
+track state execution.  Upon \te{start} action, the registers are
+loaded and subsequent state changes then decrement the registers.
+
+\begin{verbatim}
+    module mkFSM#( Stmt seq_stmt ) ( FSM );
+\end{verbatim}
+
+The \te{mkFSMWithPred} module is like \te{mkFSM} above, except that
+the module constructor takes an additional boolean argument (the
+predicate). The predicate condition is added to the condition of each
+rule generated to create the FSM.  This capability is useful when
+using the FSM in conjuction with other rules and/or FSMs.  It allows
+the designer to explicitly specify to the compiler the conditions
+under which the FSM will run. This can be used to eliminate spurious
+rule conflict warnings (between rules in the FSM and other rules in
+the design).
+
+\begin{verbatim}
+    module mkFSMWithPred#( Stmt seq_stmt, Bool pred ) ( FSM );
+\end{verbatim}
+
+The \te{mkAutoFSM} module is also like \te{mkFSM} above, except the
+state machine runs automatically immediately after reset and a
+\te{\$finish(0)} is called upon completion.  This is useful for test
+benches. Thus, it has no interface, that is, it has an empty
+interface.
+
+\begin{verbatim}
+    module mkAutoFSM#( seq_stmt ) ();
+\end{verbatim}
+The \te{mkOnce} function is used to create a \te{Once} interface where
+the action argument has been encapsulated and will be performed when
+\te{start} is called.
+\begin{verbatim}
+    module mkOnce#( Action a ) ( Once );
+\end{verbatim}
+The implementation for \te{Once} is a 1 bit state machine (with a
+state register named \te{onceReady}) allowing the
+action argument to  occur only one time.  The ready bit is initially \te{True}
+and then cleared when the action is performed. It might not be performed
+right away, because of implicit conditions or scheduling conflicts.  
+
+\index{mkOnce@\te{mkOnce}}
+\index{mkFSM@\te{mkFSM}}
+\index{mkFSMWithPred@\te{mkFSMWithPred}}
+\index{mkAutoFSM@\te{mkAutoFSM}}
+\index[function]{StmtFSM!mkOnce}
+\index[function]{StmtFSM!mkFSM}
+\index[function]{StmtFSM!mkFSMwithPred}
+\index[function]{StmtFSM!mkAutoFSM}
+
+\begin{center}
+\begin{tabular}{|p{0.9 in}|p{2.7 in}|p{2.2 in}|}
+ \hline
+& & \\
+Name   &  BSV Module Declaration  & Description \\
+\hline
+\hline
+\te{mkFSM}&\begin{verbatim}
+module mkFSM#(Stmt seq_stmt)(FSM);
+\end{verbatim}
+&Instantiate a \te{Stmt} value into a module that presents an
+interface of type \te{FSM}.\\
+\hline
+\te{mkFSMWithPred}&\begin{verbatim}
+module mkFSMWithPred#(Stmt seq_stmt, 
+                      Bool pred)(FSM);
+\end{verbatim}
+&Like \texttt{mkFSM}, except that the module constructor takes an
+additional predicate condition as an argument. The predicate condition
+is added to the condition of each rule generated to create the FSM. \\
+\hline
+\te{mkAutoFSM}&\begin{verbatim}
+module mkAutoFSM#(Stmt seq_stmt)();
+\end{verbatim}
+&Like \texttt{mkFSM}, except that state machine simulation is
+automatically started and a \texttt{\$finish(0)}) is called upon
+completion.\\
+\hline
+\te{mkOnce}&\begin{verbatim}
+module mkOnce#( Action a )( Once );
+\end{verbatim}
+&Used to create a \te{Once} interface
+where the action argument has been encapsulated and will be
+performed when \te{start} is called. \\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Functions}
+
+\index{await@\te{await} (\te{StmtFSM} function)}
+\index{delay@\te{delay} (\te{StmtFSM} function)}
+\index[function]{StmtFSM!await}
+\index[function]{StmtFSM!delay}
+
+There are two functions, \te{await} and \te{delay}, provided by the
+ \te{StmtFSM} package. 
+
+The  \te{await} function is used to create an action which can only
+execute when the condition is \te{True}.  The action does not do
+anything.  \te{await} is useful to block the execution of an action
+until a condition becomes \te{True}.
+
+The \te{delay} function is used to execute \te{noAction} for a specified number of
+cycles.  The function is provided the value of the delay and returns a
+\te{Stmt}.
+
+\begin{center}
+\begin{tabular}{|p{.5 in}|p{2.7 in}|p{2.3 in}|}
+ \hline
+& & \\
+Name   &  Function Declaration  & Description \\
+\hline
+\hline
+\te{await}& 
+\begin{verbatim}
+function Action await( Bool cond ) ;
+\end{verbatim}
+&Creates an Action which does nothing, but can only execute when the
+condition is \te{True}. \\
+\hline
+\te{delay}&
+\begin{verbatim}
+function Stmt delay( a_type value ) ;
+\end{verbatim}
+&Creates a \te{Stmt} which executes \te{noAction} for \te{value} number of
+cycles.   \te{a\_type} must be in the Arith class and Bits class and
+< 32 bits.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Example - Initializing a single-ported SRAM.}  
+
+Since the SRAM has only a
+single port, we can write to only one location in each clock.  Hence,
+we need to express a temporal sequence of writes for all the locations
+to be initialized.
+\begin{verbatim}
+
+    Reg#(int) i  <-  mkRegU;     // instantiate register with interface i
+    Reg#(int) j  <-  mkRegU;     // instantiate register with interface j
+
+    // Define fsm behavior
+    Stmt s = seq
+                 for (i <= 0; i < M; i <= i + 1)
+                     for (j <= 0; j < N; j <= j + 1)
+                         sram.write (i, j, i+j);
+             endseq;
+
+    FSM fsm();          // instantiate FSM interface
+    mkFSM#(s) (fsm);    // create fsm with interface fsm and behavior s
+
+    ...
+
+    rule initSRAM (start_reset);
+        fsm.start;      // Start the fsm
+    endrule
+\end{verbatim}
+When the \texttt{start\_reset} signal is true, the rule kicks off the
+SRAM initialization.  Other rules can wait on \texttt{fsm.done}, if
+necessary, for the SRAM initialization to be completed.
+
+In this example, the \texttt{seq}-\texttt{endseq} brackets are used to enter
+the \texttt{Stmt} sublanguage, and then \texttt{for} represents \texttt{Stmt}
+sequencing (instead of its usual role of static generation).  Since
+\texttt{seq}-\texttt{endseq} contains only one statement (the loop nest),
+\texttt{par}-\texttt{endpar} brackets would have worked just as well.
+
+{\bf Example -  Defining and instantiating a state machine.}
+\begin{verbatim}
+import StmtFSM :: *;
+import FIFO    :: *;
+
+module testSizedFIFO();
+
+  // Instantiation of DUT
+  FIFO#(Bit#(16))  dut <- mkSizedFIFO(5);
+
+  // Instantiation of reg's i and j
+  Reg#(Bit#(4))       i  <- mkRegA(0);
+  Reg#(Bit#(4))       j  <- mkRegA(0);  
+
+  // Action description with stmt notation
+  Stmt driversMonitors =
+   (seq
+     // Clear the fifo
+     dut.clear;
+
+     // Two sequential blocks running in parallel 
+     par
+       // Enque 2 times the Fifo Depth
+        for(i <= 1; i <= 10; i <= i + 1)
+        seq
+          dut.enq({0,i});
+          $display(" Enque %d", i);
+        endseq
+
+       // Wait until the fifo is full and then deque
+       seq
+         while (i < 5)
+         seq
+           noAction;        
+         endseq
+         while (i <= 10)
+         action
+           dut.deq;
+           $display("Value read %d", dut.first);
+         endaction
+       endseq
+       
+     endpar
+   
+     $finish(0);
+   endseq);
+
+   // stmt instantiation
+   FSM  test  <- mkFSM(driversMonitors);
+
+   // A register to control the start rule
+   Reg#(Bool) going <- mkReg(False);
+
+   // This rule kicks off the test FSM, which then runs to completion.
+   rule start (!going);
+      going <= True;
+      test.start;
+   endrule
+endmodule
+\end{verbatim}
+
+
+
+
+{\bf Example - Defining and instantiating a state machine to control
+speed changes}
+
+\begin{libverbatim}
+import StmtFSM::*;
+import Common::*;
+
+interface SC_FSM_ifc;
+   method Speed xcvrspeed;
+   method Bool  devices_ready;
+   method Bool  out_of_reset;
+endinterface
+
+module mkSpeedChangeFSM(Speed new_speed, SC_FSM_ifc ifc);
+   Speed initial_speed = FS;
+   
+   Reg#(Bool) outofReset_reg <- mkReg(False);
+   Reg#(Bool) devices_ready_reg <- mkReg(False);
+   Reg#(Speed) device_xcvr_speed_reg <- mkReg(initial_speed);
+   
+   // the following lines define the FSM using the Stmt sublanguage
+   // the state machine is of type Stmt, with the name speed_change_stmt
+   Stmt speed_change_stmt =
+   (seq
+       action outofReset_reg <= False; devices_ready_reg <= False; endaction
+       noAction; noAction;  // same as: delay(2);
+       
+       device_xcvr_speed_reg <= new_speed;
+       noAction; noAction;  // same as: delay(2);
+       
+       outofReset_reg <= True;
+       if (device_xcvr_speed_reg==HS)
+          seq noAction; noAction; endseq
+          // or seq delay(2); endseq
+       else
+          seq noAction; noAction; noAction; noAction; noAction; noAction; endseq          
+         // or seq delay(6); endseq
+       devices_ready_reg <= True;
+    endseq);
+   // end of the state machine definition
+
+   // the statemachine is instantiated using mkFSM
+   FSM speed_change_fsm <- mkFSM(speed_change_stmt);
+   
+   // the rule change_speed starts the state machine
+   // the rule checks that previous actions of the state machine have completed
+   rule change_speed ((device_xcvr_speed_reg != new_speed || !outofReset_reg) &&
+		      speed_change_fsm.done);
+      speed_change_fsm.start;
+   endrule
+
+   method xcvrspeed = device_xcvr_speed_reg;
+   method devices_ready = devices_ready_reg;
+   method out_of_reset = outofReset_reg;
+endmodule
+\end{libverbatim}
+
+{\bf Example - Defining a state machine and using the \te{await} function} 
+
+\begin{libverbatim}
+
+   // This statement defines this brick's desired behavior as a state machine:
+   // the subcomponents are to be executed one after the other:   
+   Stmt brickAprog =
+     seq
+        // Since the following loop will be executed over many clock
+        // cycles, its control variable must be kept in a register:
+        for (i <= 0; i < 0-1; i <= i+1)
+           // This sequence requests a RAM read, changing the state;
+           // then it receives the response and resets the state.
+           seq
+              action
+                 // This action can only occur if the state is Idle
+                 // the await function will not let the statements
+                 // execute until the condition is met
+                 await(ramState==Idle);         
+                 ramState <= DesignReading;
+                 ram.request.put(tagged Read i);
+              endaction
+              action
+                 let rs <- ram.response.get();
+                 ramState <= Idle;
+                 obufin.put(truncate(rs));
+              endaction
+           endseq
+        // Wait a little while:
+        for (i <= 0; i < 200; i <= i+1)
+           action
+           endaction
+        // Set an interrupt:
+        action
+           inrpt.set;
+        endaction
+     endseq
+     );
+   // end of the state machine definition
+
+   FSM brickAfsm  <-  mkFSM#(brickAprog);  //instantiate the state machine
+
+   // A register to remember whether the FSM has been started:
+   Reg#(Bool) notStarted();
+   mkReg#(True) the_notStarted(notStarted);
+   
+   // The rule which starts the FSM, provided it hasn't been started
+   // previously and the brick is enabled:
+   rule start_Afsm (notStarted && enabled);
+      brickAfsm.start;                //start the state machine
+      notStarted <= False;
+   endrule
+\end{libverbatim}
+
+
+{\bf Creating FSM Server Modules}
+
+\index{mkFSMServer@\te{mkFSMServer}}
+\index[function]{StmtFSM!mkFSMServer}
+\index[function]{StmtFSM!callServer}
+\label{sec-stmtFSMservers}
+
+Instantiation of an FSM server module is performed in a manner
+analogous to that of a standard FSM module constructor (such
+as \te{mkFSM}). Whereas \te{mkFSM} takes a \te{Stmt} value as an
+argument, howver, \te{mkFSMServer} takes a function as an
+argument. More specifically, the argument to \te{mkFSMServer} is a
+function which takes an argument of type \te{a} and returns a value
+of type \te{RStmt\#(b)}.
+
+\begin{verbatim}
+    module mkFSMServer#(function RStmt#(b) seq_func (a input)) ( FSMServer#(a, b) );
+\end{verbatim}
+
+The \te{RStmt} type is a polymorphic generalization of the \te{Stmt}
+type. A sequence of type \te{RStmt\#(a)} allows valued \te{return}
+statements (where the return value is of type \te{a}). Note that
+the \te{Stmt} type is equivalent to \te{RStmt\#(Bit\#(0))}.
+
+\begin{verbatim}
+typedef RStmt#(Bit#(0)) Stmt;
+\end{verbatim}
+
+The \te{mkFSMServer} module constructor provides an
+interface of type \te{FSMServer\#(a, b)}.
+
+\begin{verbatim}
+interface FSMServer#(type a, type b);
+    interface Server#(a, b) server;
+    method Action abort();
+endinterface
+\end{verbatim}
+
+The \te{FSMServer} interface has one subinterface of
+type \te{Server\#(a, b)} (from the \te{ClientServer} package) as well
+as an \te{Action} method called \te{abort}; The \te{abort} method
+allows the FSM inside the \te{FSMServer} module to be halted if the
+client FSM is halted.  
+
+An \te{FSMServer} module is accessed using the \te{callServer}
+function from within an FSM statement block. \te{callServer} takes two arguments.  The first is the
+interface of the \te{FSMServer} module. The second is the input value
+being passed to the module.
+
+\begin{verbatim}
+result <- callServer(serv_ifc, value);
+\end{verbatim}
+
+Note the special left arrow notation that is used to pass the server
+result to a register (or more generally to any state element with
+a \te{Reg} interface). A simple example follows showing the definition
+and use of a \te{mkFSMServer} module.
+
+{\bf Example - Defining and instantiating an FSM Server Module}
+
+\begin{libverbatim}
+
+   // State elements to provide inputs and store results
+   Reg#(Bit#(8))  count   <- mkReg(0);  
+   Reg#(Bit#(16)) partial <- mkReg(0);
+   Reg#(Bit#(16)) result  <- mkReg(0);
+   
+   // A function which creates a server sequence to scale a Bit#(8)
+   // input value by and integer scale factor. The scaling is accomplished
+   // by a sequence of adds.
+   function RStmt#(Bit#(16)) scaleSeq (Integer scale, Bit#(8) value);
+      seq
+         partial <= 0;
+         repeat (fromInteger(scale))
+            action
+               partial <= partial + {0,value};
+            endaction
+         return partial;
+      endseq;
+   endfunction
+
+   // Instantiate a server module to scale the input value by 3
+   FSMServer#(Bit#(8), Bit#(16)) scale3_serv  <- mkFSMServer(scaleSeq(3));
+
+   // A test sequence to apply the server   
+   let test_seq =  seq
+                      result <- callServer(scale3_serv, count);
+                      count <= count + 1;
+                   endseq;
+   
+   let test_fsm <- mkFSM(test_seq);
+
+   // A rule to start test_fsm
+   rule start;
+      test_fsm.start;
+   endrule
+   // finish after 6 input values
+   rule done (count == 6);
+      $finish;
+   endrule
+\end{libverbatim}

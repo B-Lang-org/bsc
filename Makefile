@@ -23,6 +23,10 @@ rem_build:
 install:
 	$(MAKE)  -C src  PREFIX=$(PREFIX)  install
 
+.PHONY: install-doc
+install-doc:
+	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
+
 # In the future, this will be much more expansive, and run the actual test
 # suite once it's open sourced.
 #
@@ -37,8 +41,10 @@ check:
 
 clean: rem_inst rem_build
 	-$(MAKE)  -C src  clean
+	-$(MAKE)  -C doc  clean
 
 full_clean: rem_inst rem_build
 	-$(MAKE)  -C src  full_clean
+	-$(MAKE)  -C doc  full_clean
 
 # -------------------------

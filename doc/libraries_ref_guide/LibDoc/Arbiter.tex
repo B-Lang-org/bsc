@@ -1,0 +1,130 @@
+\subsubsection{Arbiter}
+\label{sec-Arbiter}
+
+{\bf Package}
+\index{Arbiter (package)}
+\begin{verbatim}
+import Arbiter :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The Arbiter package includes interfaces and modules to implement two
+different arbiters: a fair arbiter with changing priorities (round
+robin) and a sticky arbiter, also round robin, but which gives the current owner priority.
+
+
+{\bf Interfaces and Methods}
+
+The Arbiter package includes three interfaces: a arbiter client
+interface, an arbiter request interface and an arbiter interface which
+is a vector of client interfaces.
+
+\paragraph{\bf ArbiterClient\_IFC} The \te{ArbiterClient\_IFC}
+interface has two
+methods: an Action method to make the  request and a Boolean value method
+to indicate the request was granted. The lock method is unused in this 
+implementation.
+
+\begin{verbatim}
+interface ArbiterClient_IFC;
+   method Action request();
+   method Action lock();
+   method Bool grant();
+endinterface
+\end{verbatim}
+
+\paragraph{ArbiterRequest\_IFC} The \te{ArbiterRequest\_IFC}
+   interface has
+   two methods: an Action method to grant the request and a Boolean
+   value method to indicate there is a request. The lock method is
+   unused in this implementation.
+
+\begin{verbatim}
+interface ArbiterRequest_IFC;
+   method Bool request();
+   method Bool lock();
+   method Action grant();
+endinterface
+\end{verbatim}
+
+The \te{ArbiterClient\_IFC} interface and the \te{ArbiterRequest\_IFC}
+interface are connectable.
+
+\begin{verbatim}
+instance Connectable#(ArbiterClient_IFC,  ArbiterRequest_IFC);
+\end{verbatim}
+
+\paragraph{Arbiter\_IFC} The \te{Arbiter\_IFC} has a subinterface
+   which is a vector
+   of \te{ArbiterClient\_IFC} interfaces.  The number of items in the
+   vector equals the number of clients.
+\begin{verbatim}
+interface Arbiter_IFC#(type count);
+   interface Vector#(count, ArbiterClient_IFC) clients;
+endinterface
+\end{verbatim}
+
+
+{\bf Modules}
+
+The \te{mkArbiter} module is a fair arbiter with changing priorities
+(round robin).   The \te{mkStickyArbiter} gives the current owner
+priority - they can hold priority as long as they keep requesting it.
+  The  modules all provide a \te{Arbiter\_IFC} interface.  
+
+
+\index{mkArbiter@\te{mkArbiter} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{5 in}|}
+\hline 
+&\\
+\te{mkArbiter}&This module is a fair arbiter with changing priorities
+(round robin). If \te{fixed} is \te{True}, the current client holds
+the priority, if \te{fixed} is \te{False}, it moves to the next
+client. \te{mkArbiter} provides a \te{Arbiter\_IFC} interface.  Initial priority is given to client 0.  \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}module mkArbiter#(Bool fixed) (Arbiter_IFC#(count));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkStickyArbiter@\te{mkStickyArbiter} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{5 in}|}
+\hline 
+&\\
+\te{mkStickyArbiter}&As long as the client currently with the grant
+continues to assert \te{request}, it can hold the grant.  It provides a \te{Arbiter\_IFC} interface.    \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkStickyArbiter (Arbiter_IFC#(count));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+% \index{mkHoldArbiter@\te{mkHoldArbiter} (module)}
+
+% \begin{center}
+% \begin{tabular}{|p{1.2 in}|p{5 in}|}
+% \hline 
+% &\\
+% \te{mkHoldArbiter}&   \\
+% &\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% module mkHoldArbiter (Arbiter_IFC#(count));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}

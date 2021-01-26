@@ -1,0 +1,160 @@
+\subsubsection{Randomizable}
+\label{sec-Randomizable}
+
+
+{\bf Package}
+\index{Randomizable (package)}
+
+\begin{verbatim}
+import Randomizable :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The Randomizable package includes interfaces and modules to generate
+random values of a given data type.
+
+
+{\bf Typeclasses}
+\index[typeclass]{Randomizable}
+
+The \te{Randomizable} package includes the \te{Randomizable} typeclass.
+
+\begin{verbatim}
+typeclass Randomizable#(type t);
+   module mkRandomizer (Randomize#(t));
+endtypeclass
+\end{verbatim}
+
+{\bf Interfaces and Methods}
+
+\index{Randomize@\te{Randomize} (interface)}
+\begin{center}
+\begin{tabular}{|p{.7in}|p{.9in}|p{3.4 in}|}
+\hline
+\multicolumn{3}{|c|}{Randomize Interface}\\
+\hline
+Name & Type & Description \\
+\hline
+\hline 
+\te{cntrl}&\te{Interface}& Control interface provided by the module.       \\
+\hline
+\te{next}&\te{ActionValue}&Returns the next value of type \te{a}.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+interface Randomize#(type a);
+   interface Control cntrl;
+   method ActionValue#(a) next();
+endinterface
+\end{verbatim}
+
+\index{Control@\te{Control} (interface)}
+\begin{center}
+\begin{tabular}{|p{.7in}|p{.9in}|p{3.4 in}|}
+\hline
+\multicolumn{3}{|c|}{Control Interface}\\
+\hline
+Name & Type & Description \\
+\hline
+\hline 
+\te{init}&\te{Control}&Action method to initialize the randomizer.       \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+interface Control ;
+   method Action init();
+endinterface
+\end{verbatim}
+
+{\bf Modules}
+
+The \te{Randomizable} package includes two modules which return random
+values of type \te{a}. The difference between the two modules is how
+the min and max values are determined. The module \te{mkGenericRandomizer} uses
+the min and max values of the type, while the module
+\te{mkConstrainedRandomizer} uses arguments to set the min and max
+values.  The type \te{a} must be in the \te{Bounded} class for both modules.
+
+\index{mkGenericRandomizer@\te{mkGenericRandomizer} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.6 in}|p{4.6 in}|}
+\hline 
+&\\
+\te{mkGenericRandomizer}&This module provides a \te{Randomize}
+interface, which will return the next random value when the \te{next}
+method is invoked.   The \te{min} and \te{max} values are the values
+defined by the type \te{a} which  must be in the \te{Bounded} class.  \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGenericRandomizer (Randomize#(a))
+   provisos (Bits#(a, sa), Bounded#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkConstrainedRandomizer@\te{mkConstrainedRandomizer} (module)}
+
+\begin{center}
+\begin{tabular}{|p{1.6 in}|p{4.6 in}|}
+\hline 
+&\\
+\te{mkConstrainedRandomizer}& This module provides a \te{Randomize}
+interface, which will give the next random value when the \te{next}
+method is invoked.  When instantiated, the \te{min} and \te{max}
+values are provided as arguments.  Type \te{a} must be in the
+\te{Bounded} class.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkConstrainedRandomizer#(a min, a max) (Randomize#(a))
+   provisos (Bits#(a, sa), Bounded#(a));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example}
+
+The \te{mkTLMRandomizer} module, shown below,  uses the Randomize
+package to generate random 
+values for TLM packets.  The \te{mkConstrainedRandomizer} module is
+for fields with  specific allowed values or ranges, while the
+\te{mkGenericRandomizer} module is  for field where all values of the type
+are allowed.
+
+\begin{verbatim}
+module mkTLMRandomizer#(Maybe#(TLMCommand) m_command) (Randomize#(TLMRequest#(`TLM_TYPES)))
+   provisos(Bits#(RequestDescriptor#(`TLM_TYPES), s0),
+	    Bounded#(RequestDescriptor#(`TLM_TYPES)),
+	    Bits#(RequestData#(`TLM_TYPES), s1),
+	    Bounded#(RequestData#(`TLM_TYPES))
+	    );
+      
+   ...
+   // Use mkGeneric Randomizer - entire range valid
+   Randomize#(RequestDescriptor#(`TLM_TYPES)) descriptor_gen <- mkGenericRandomizer;
+   Randomize#(Bit#(2))                        log_wrap_gen   <- mkGenericRandomizer;
+   Randomize#(RequestData#(`TLM_TYPES))       data_gen       <- mkGenericRandomizer;
+
+   // Use mkConstrainedRandomizer to Avoid UNKNOWN
+   Randomize#(TLMCommand) command_gen <- mkConstrainedRandomizer(READ, WRITE);
+   Randomize#(TLMBurstMode) burst_mode_gen <- mkConstrainedRandomizer(INCREMENT, WRAP); 
+
+   // Use mkConstrainedRandomizer to set legal sizes between 1 and 16
+   Randomize#(TLMUInt#(`TLM_TYPES)) burst_length_gen <- mkConstrainedRandomizer(1,16);    
+   ...      
+\end{verbatim}

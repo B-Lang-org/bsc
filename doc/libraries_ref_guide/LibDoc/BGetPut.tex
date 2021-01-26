@@ -1,0 +1,232 @@
+\subsubsection{BGetPut}
+\index{BGetPut@\te{BGetPut} (package)|textbf}
+
+{\bf Package Name}
+
+import BGetPut :: * ;
+
+{\bf Description}
+
+The \te{BGetPut} package should be used when
+the two ends have different clocks.  In all other circumstances, the
+\te{CGetPut} package will probably be preferable since the
+BGetPut protocol is very slow. 
+
+The interfaces \te{BGet} and \te{BPut} are similar to
+\te{Get} and \te{Put}, but the interconnection of them
+(via \te{Connectable} or in {\veri}) is implemented with a simple protocol
+that allows all inputs and outputs to be directly connected.   
+All wires go to registers and have no {\blue} handshaking.
+The protocol makes no assumptions about setup time and hold time for the
+registers at each end;  so these interfaces may be used when the two ends
+have different clocks. 
+
+The protocol consists of the sender putting the value to be sent on the
+\te{pvalue} output, and then toggling the \te{ppresent} wire.
+The receiver acknowledges the receipt by toggling the \te{gcredit} wire.
+Both \te{ppresent} and \te{gcredit} start out low.
+
+{\bf Interfaces and methods}
+
+\begin{tabular}{|p{1.2in}|p{.8in}|p{2in}|p{1.3in}|}
+ \hline
+\multicolumn{4}{|c|}{Interfaces}\\
+\hline
+Interface Name   & Parameter name & Parameter Description & Restrictions \\
+\hline
+\hline
+\te{BGet} & \it{element\_type} & type of the element & must be in
+                          \te{Bits} class\\
+& &being retrieved by the \te{BGet} &\\
+\hline
+\te{BPut} & \it{element\_type} & type of the element & must be in
+\te{Bits} class\\
+& &being added by the \te{BPut} &\\
+\hline
+\te{BGetPut}&\it{element\_type}&type of the element&must be in the
+\te{Bits} class\\
+\hline
+\te{GetBPut}&\it{element\_type}&type of the element&must be in the
+\te{Bits} class\\
+\hline
+\end{tabular}
+
+
+
+\begin{itemize}
+
+\item{\te{BGet}}
+
+\begin{center}
+\begin{tabular}{|p{.7in}|p{.8 in}|p{1.5 in}|p{.4in}|p{1.4 in}|}
+\hline
+\multicolumn{5}{|c|}{BGet}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{gvalue}&\it{element\_type}&returns an item from the interface&&\\
+\hline
+\te{gpresent}&\te{Bool}&toggles when new data is available && \\
+\hline
+\te{gcredit}&Action&toggles when ready for new data&x1&\te{Bool}\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{libverbatim}
+interface BGet #(type element_type);
+    method element_type gvalue();
+    method Bool gpresent();
+    method Action gcredit(Bool x1);
+endinterface: BGet
+\end{libverbatim}
+
+\item{\te{BPut}}
+
+\begin{center}
+\begin{tabular}{|p{.7in}|p{.8 in}|p{1.5 in}|p{.4in}|p{1.4 in}|}
+\hline
+\multicolumn{5}{|c|}{BPut}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Argument}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{pvalue}&Action&new data&&\\
+\hline
+\te{ppresent}&\te{Bool}&toggles when new data is available && \\
+\hline
+\te{pcredit}&Action&toggles when ready for new data&x1&\te{Bool}\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface BPut #(type element_type);
+    method Action pvalue();
+    method Bool ppresent();
+    method Action pcredit(Bool x1);
+endinterface: BPut
+\end{libverbatim}
+
+\item{\te{BGetPut}}
+\begin{libverbatim}
+typedef Tuple2 #(BGet#(element_type), Put#(element_type)) BGetPut #(type element_type);
+\end{libverbatim}
+
+\item{\te{GetBPut}}
+\begin{libverbatim}
+typedef Tuple2 #(Get#(element_type), BPut#(element_type)) GetBPut #(type element_type);
+\end{libverbatim}
+
+\item{Connectables}
+
+The \te{BGet} and \te{BPut} interface are connectable.
+\begin{libverbatim}
+instance Connectable #(BGet#(sa), BPut#(sa));
+\end{libverbatim}
+\lineup
+\begin{libverbatim}
+instance Connectable #(BPut#(sa), BGet#(sa));
+\end{libverbatim}
+
+\item{\te{BClient} and \te{BServer}}
+
+\begin{libverbatim}
+interface BClient #(type req_type, type resp_type);
+interface BServer #(type req_type, type resp_type);
+
+typedef Tuple2 #(BClient#(req_type, resp_type),Server#(req_type, resp_type)) 
+                 BClientServer #(type req_type, type resp_type);
+typedef Tuple2 #(Client#(req_type, resp_type), BServer#(req_type, resp_type)) 
+                 ClientBServer #(type req_type, type resp_type);
+\end{libverbatim}
+A \te{BClient} can be connected to a \te{BServer}
+and vice versa.
+\begin{libverbatim}
+instance Connectable #(BClientS#(req_type, resp_type), BServerS#(req_type, resp_type));
+instance Connectable #(BServerS#(req_type, resp_type), BClientS#(req_type, resp_type));
+\end{libverbatim}
+
+
+\end{itemize}
+
+{\bf Modules}
+\index{mkBGetPut@\te{mkBGetPut} (function)|textbf}
+\index{mkGetBPut@\te{mkGetBPut} (function)|textbf}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkBGetPut} & Create one end of the buffer.  Access to it is via a \te{Put} interface.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBGetPut(Tuple2 #(BGet#(sa), Put#(a)))
+  provisos (Bits#(a, sa));
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+& \\
+\te{mkGetBPut}&Create the other end of the buffer.  Access to it is via a \te{Get}
+interface. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkGetBPut(Tuple2 #(Get#(a), BPut#(sa)))
+  provisos (Bits#(a, sa));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{mkClientBServer@\te{mkClientBServer} (function)|textbf}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkClientBServer}&\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkClientBServer(Tuple2 #(Client#(req_type, resp_type), 
+                                BServer#(req_type, resp_type)))
+  provisos (Bits#(req_type), Bits#(resp_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkBClientServer@\te{mkBClientServer} (function)|textbf}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{mkBClientServer}&\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkBClientServer(Tuple2 #(BClientS#(req_type, resp_type), 
+                                Server#(req_type, resp_type)))
+  provisos (Bits#(req_type), Bits#(resp_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+

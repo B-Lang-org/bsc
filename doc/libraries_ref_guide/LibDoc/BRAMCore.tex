@@ -1,0 +1,477 @@
+\subsubsection{BRAMCore}
+\index{BRAMCore (package}
+%\index{Xilinx!BRAMCore (package)}
+\label{sec-BRAMCore}
+
+
+{\bf Package}
+
+\begin{verbatim}
+import BRAMCore :: * ;
+\end{verbatim}
+
+
+
+{\bf Description}
+
+The \te{BRAMCore} package, along with the \te{BRAM} package (Section
+\ref{sec-BRAM}) provides types, interfaces, and modules to support
+FPGA BlockRAMS.  Specific tools may determine whether modules are
+mapped to  appropriate BRAM cells during synthesis.
+
+Most designs should use the  the \te{BRAM} package instead of
+\te{BRAMCore}, as the \te{BRAM} package provides implicit conditions
+provided by  FIFO wrappers.
+The \te{BRAMCore} package should be used only if you want the
+low-level core BRAM modules without  implicit conditions.
+
+The \te{BRAMCore}  package contains the low-level wrappers to the BRAM
+Verilog and Bluesim modules.  Components are provided for   single and
+dual port,  byte-enabled,  loadable, and dual clock versions.
+
+
+
+{\bf Interfaces and Methods}
+
+\index{BRAM\_PORT@\te{BRAM\_PORT} (interface type)}
+%\index{BRAM@\te{BRAM} (interface type)}
+\index{BRAM\_DUAL\_PORT@\te{BRAM\_DUAL\_PORT} (interface type)}
+
+The \te{BRAMCore} package defines four  variations of a BRAM 
+interface to support  single
+and dual port BRAMs, as well as byte-enabled BRAMs.
+
+The \te{BRAM\_PORT} interface declares two methods; an Action method
+\te{put}, and a value method \te{read}.
+
+The \te{BRAM\_DUAL\_PORT} interface is defined as two \te{BRAM\_PORT}
+subinterfaces, one for each port.
+
+\begin{tabular}{|p{.4in}|p{.5 in}|p{1.2 in}|p{.5in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{BRAM\_PORT Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{put}&\te{Action}&Read or write values in the 
+BRAM.&\te{write}& Write enable for the port; if \te{True} the action
+is write, if \te{False}, the action is  read.\\
+\cline{4-5}
+&&&\te{address}&Index of the element, with a datatype of \te{addr}. \\
+\cline{4-5}
+&&&\te{datain}& Value to be written, with a datatype of \te{data}. This value is ignored if the action is read.\\
+\hline
+\te{read}&\it{data}&Returns a value of  type \te{data}.  & &\\
+\hline
+\end{tabular}
+
+\begin{verbatim}
+interface BRAM_PORT#(type addr, type data);
+   method Action put(Bool write, addr address, data datain);
+   method data   read();
+endinterface: BRAM_PORT
+\end{verbatim}
+
+\begin{verbatim}
+interface BRAM_DUAL_PORT#(type addr, type data);
+   interface BRAM_PORT#(addr, data) a;
+   interface BRAM_PORT#(addr, data) b;
+endinterface
+\end{verbatim}
+
+{\bf Byte-enabled Interfaces}
+
+The \te{BRAM\_PORT\_BE} and
+\te{BRAM\_DUAL\_PORT\_BE} interfaces are the byte-enabled  versions of the
+BRAM interfaces. 
+In this version, the  argument \te{writen} is of type
+\te{Bit\#(n)}, where  \te{n} is  the number of byte-enables.  Your
+synthesis tools and targeted technology determine the restriction of
+data size and byte enable size.  If $n = 0$, the action is a read.  
+
+The \te{BRAM\_DUAL\_PORT\_BE} interface is defined as two \te{BRAM\_PORT\_BE}
+subinterfaces, one for each port.
+
+
+\begin{tabular}{|p{.4in}|p{.5 in}|p{1.2 in}|p{.5in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{BRAM\_PORT\_BE Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{put}&\te{Action}&Read or write  values in the
+BRAM.  &\te{writeen}& Byte-enable for the port; if \te{n} != 0 write the
+specified bytes,  if \te{n} = 0 read.  \\
+\cline{4-5}
+&&&\te{address}&Index of the elements to be read or written, with a datatype of \te{addr}. \\
+\cline{4-5}
+&&&\te{datain}& Value to be written, with a datatype of \te{data}.
+This value is ignored if the action is read.\\
+\hline
+\te{read}&\it{data}&Returns a value of  type \te{data}.&&\\
+\hline
+\end{tabular}
+
+
+
+\begin{verbatim}
+(* always_ready *)
+interface BRAM_PORT_BE#(type addr, type data, numeric type n);
+   method Action put(Bit#(n) writeen, addr address, data datain);
+   method data   read();
+endinterface: BRAM_PORT_BE
+\end{verbatim}
+
+\begin{verbatim}
+interface BRAM_DUAL_PORT_BE#(type addr, type data, numeric type n);
+   interface BRAM_PORT_BE#(addr, data, n) a;
+   interface BRAM_PORT_BE#(addr, data, n) b;
+endinterface
+\end{verbatim}
+
+
+{\bf Modules}
+
+The \te{BRAMCore} package provides 1 and 2 port BRAM core modules, in both
+write-enabled and byte-enabled versions.  Note that there are no
+implicit conditions on the methods of these modules; if these are
+required consider using the modules in the \te{BRAM} package (Section
+\ref{sec-BRAM}).  
+
+
+The \te{BRAMCore} package requires the caller to
+ ensure the correct cycle to capture the read data, as
+ determined by  the \te{hasOutputRegister} flag.  If \te{hasOutputRegister} 
+is \te{True}, both the read address and the read data are registered;
+if \te{False}, only the read address is registered.
+
+\begin{itemize}
+\item If the output is registered (\te{hasOutputRegister} is \te{True}), the latency is 2; the read data is
+available 2 cycles after the request. 
+\item If the output is not registered (\te{hasOutputRegister} is \te{False}), the latency is 1; the read data
+is available 1 cycle after the request.
+\end{itemize}
+
+The other argument  required is  \te{memSize},  an \te{Integer} 
+specifying the memory size in number of words of type \te{data}.  
+
+
+ The loadable BRAM modules require two additional arguments:
+\begin{itemize}
+\item \te{file} is a \te{String} containing the name of the load file.
+\item \te{binary} is a \te{Bool} indicating whether 
+ the data type of the load file is binary (\te{True}) or
+hex (\te{False}).
+\end{itemize}
+
+
+\index{mkBRAMCore1@\te{mkBRAMCore1} (module)}
+\index[function]{BRAM!mkBRAMCore1}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore1} &Single port BRAM \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore1#(Integer memSize,
+               Bool hasOutputRegister) 
+               (BRAM_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{mkBRAMCore1BE@\te{mkBRAMCore1BE} (module)}
+\index[function]{BRAM!mkBRAMCore1BE}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore1BE} &Byte-enabled, single port BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore1BE#(Integer memSize,
+                  Bool hasOutputRegister ) 
+                 (BRAM_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz), 
+            Mul#(chunk_sz, n, data_sz));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+% The \te{file} provides the initial contents of the BRAM.  If
+% \te{binary} is \te{True} it is a binary file, if \te{False} it is a
+% hex file.
+
+\index{mkBRAMCore1Load@\te{mkBRAMCore1Load} (module)}
+\index[function]{BRAM!mkBRAMCore1Load}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore1Load} &Loadable, single port BRAM where the initial
+contents are in \te{file}.  The parameter \te{binary} indicates whether the
+contents of \te{file} are  binary (\te{True}) or hex (\te{False}). \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore1Load#(Integer memSize, 
+                        Bool hasOutputRegister,
+                        String file, Bool binary )
+                       (BRAM_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkBRAMCore1BELoad@\te{mkBRAMCore1BELoad} (module)}
+\index[function]{BRAM!mkBRAMCore1BELoad}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore1BELoad} &Loadable, single port, byte-enabled BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore1BELoad#(Integer memSize,
+                          Bool hasOutputRegister,
+                          String file, Bool binary) 
+                         (BRAM_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz),
+            Mul#(chunk_sz, n, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index{mkBRAMCore2@\te{mkBRAMCore2} (module)}
+\index[function]{BRAM!mkBRAMCore2}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore2} &Dual port, single clock BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore2#(Integer memSize,
+                    Bool hasOutputRegister ) 
+                   (BRAM_DUAL_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{mkBRAMCore2BE@\te{mkBRAMCore2BE} (module)}
+\index[function]{BRAM!mkBRAMCore2BE}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore2BE} &Byte-enabled, dual port BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore2BE#(Integer memSize,
+                      Bool hasOutputRegister
+                     ) (BRAM_DUAL_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz),
+            Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz),
+            Mul#(chunk_sz, n, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{mkSyncBRAMCore2@\te{mkSyncBRAMCore2} (module)}
+\index[function]{BRAM!mkSyncBRAMCore2}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMCore2} &Dual port, dual clock BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMCore2#(Integer memSize,
+                    Bool hasOutputRegister,
+                    Clock clkA, Reset rstNA,
+                    Clock clkB, Reset rstNB )
+                    (BRAM_DUAL_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz),Bits#(data, data_sz));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMCore2BE@\te{mkSyncBRAMCore2BE} (module)}
+\index[function]{BRAM!mkSyncBRAMCore2BE}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMCore2BE} &Dual port, dual clock byte-enabled BRAM. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMCore2BE#(Integer memSize,
+                          Bool hasOutputRegister,
+                          Clock clkA, Reset rstNA,
+                          Clock clkB, Reset rstNB)
+                       (BRAM_DUAL_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz),
+            Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz),
+            Mul#(chunk_sz, n, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkBRAMCore2Load@\te{mkBRAMCore2Load} (module)}
+\index[function]{BRAM!mkBRAMCore2Load}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore2Load} &Dual port, single clock,  BRAM where the initial contents are
+in \te{file}.  The parameter \te{binary} indicates whether the
+contents of \te{file} are  binary (\te{True}) or hex (\te{False}).  \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore2Load#(Integer memSize,
+                        Bool hasOutputRegister,
+                        String file, Bool binary)
+                       (BRAM_DUAL_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz),Bits#(data, data_sz));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{mkBRAMCore2BELoad@\te{mkBRAMCore2BELoad} (module)}
+\index[function]{BRAM!mkBRAMCore2BELoad}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkBRAMCore2BELoad} &Dual port, single clock, byte-enabled  BRAM where the initial contents are
+in \te{file}.  The parameter \te{binary} indicates whether the
+contents of \te{file} are  binary (\te{True}) or hex (\te{False}).  \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBRAMCore2BELoad#(Integer memSize,
+                          Bool hasOutputRegister,
+                          String file, Bool binary )
+                    (BRAM_DUAL_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz),
+            Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz),
+            Mul#(chunk_sz, n, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMCore2Load@\te{mkSyncBRAMCore2Load} (module)}
+\index[function]{BRAM!mkSyncBRAMCore2Load}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMCore2Load} & Dual port, dual clock BRAM with initial
+contents in \te{file}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMCore2Load#(Integer memSize,
+                        Bool hasOutputRegister,
+                        Clock clkA, Reset rstNA,
+                        Clock clkB, Reset rstNB,
+                        String file, Bool binary)
+                        (BRAM_DUAL_PORT#(addr, data))
+   provisos(Bits#(addr, addr_sz), Bits#(data, data_sz));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{mkSyncBRAMCore2BELoad@\te{mkSyncBRAMCore2BELoad} (module)}
+\index[function]{BRAM!mkSyncBRAMCore2BELoad}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkSyncBRAMCore2BELoad} & Dual port, dual clock, byte-enabledBRAM
+with initial contents in \te{file}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkSyncBRAMCore2BELoad#(Integer memSize,
+                              Bool hasOutputRegister,
+                              Clock clkA, Reset rstNA,
+                              Clock clkB, Reset rstNB,
+                              String file, Bool binary)
+                       (BRAM_DUAL_PORT_BE#(addr, data, n))
+   provisos(Bits#(addr, addr_sz),
+            Bits#(data, data_sz),
+            Div#(data_sz, n, chunk_sz),
+            Mul#(chunk_sz, n, data_sz) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+
+{\bf Verilog Modules}
+
+\te{BRAM} modules correspond to the following {\V}
+modules, which are found in the Bluespec {\V} library, \te{\$BLUESPECDIR/Verilog/}.
+
+\begin{center}
+\begin{tabular} {|p{2.5 in}|p{2.5 in}|}
+\hline
+&\\
+BSV Module Name & Verilog Module Names \\
+&\\
+\hline
+\hline
+\te{mkBRAMCore1}&\te{BRAM1.v}  \\
+\hline
+\te{mkBRAMCore1Load}&\te{BRAM1Load.v}\\
+\hline
+\te{mkBRAMCore1BE}&\te{BRAM1BE.v} \\
+\hline
+\te{mkBRAMCore1BELoad}&\te{BRAM1BELoad.v}  \\
+\hline
+\te{mkBRAMCore2}&\te{BRAM2.v}  \\
+\te{mkSyncBRAMCore2}& \\
+\hline
+\te{mkBRAMCore2BE}&\te{BRAM2BE.v}\\
+\te{mkSyncBRAMCore2BE}&\\
+\hline
+\te{mkBRAMCore2Load}&\te{BRAM2Load.v}  \\
+\te{mkSyncBRAMCore2Load}& \\
+\hline
+\te{mkBRAMCore2BELoad}&\te{BRAM2BELoad.v}\\
+\te{mkSyncBRAMCore2BELoad}&\\
+\hline
+
+\end{tabular}
+\end{center}

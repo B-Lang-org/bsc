@@ -1,0 +1,110 @@
+\subsubsection{OInt}
+
+\index{OInt@\te{OInt} (type)}
+\index{OInt@\te{OInt} (package)}
+
+
+{\bf Package}
+
+\begin{verbatim}
+import OInt :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+
+The {\mbox{\te{OInt\#(n)}}} type is an abstract type that can store
+a number in the range \qbs{0..n-1}.
+The representation of a \te{OInt\#(n)} takes up $n$ bits, where
+exactly one bit is a set to one, and the others are zero, i.e., it is
+a \emph{one-hot} decoded version of the number.
+The reason to use a \te{OInt} number is that the \te{select}
+operation is more efficient than for a binary-encoded  number;
+the code generated for select takes advantage of the fact that
+only one of the bits may be set at a time.
+
+
+{\bf Types and type classes}
+
+Definition of \te{OInt}
+
+\begin{libverbatim}
+typedef ...  OInt #(numeric type n) ... ;
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes used by \te{OInt}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}\\
+&&&&&&&\te{wise}&\te{Reduction}&\te{Extend}\\
+\hline
+\te{OInt}&$\surd$  &$\surd$&$\surd$& & &$\surd$ &&&\\
+\hline
+\end{tabular}
+\end{center}
+
+% \te{Oint} belongs to the following type classes:
+% \begin{libverbatim}
+% instance Literal #(OInt#(n));
+% instance Eq #(OInt#(n));
+% instance Bounded #(OInt#(n));
+% \end{libverbatim}
+ 
+{\bf Functions}
+
+A binary-encoded number can be converted to an \te{OInt}.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p {4 in}|}
+\hline
+\te{toOInt}&Converts from a bit-vector in unsigned binary format  to an \te{OInt}. An 
+out-of-range   number gives an unspecified result.\\
+\cline{2-2}
+&\begin{libverbatim}
+function OInt#(n) toOInt(Bit#(k) k)
+  provisos( Log#(n,k)) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+An \te{OInt} can be converted to a binary-encoded number.
+\begin{center}
+\begin{tabular}{|p{1 in}|p {4 in}|}
+\hline
+\te{fromOInt}&Converts an \te{OInt} to a bit-vector in unsigned binary
+format.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(k) fromOInt(OInt#(n) o)
+  provisos( Log#(n,k)) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+An \te{OInt} can be used to select an element from a
+Vector in an efficient way.
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p {4 in}|}
+\hline
+\te{select}&The Vector \te{select} function, where the type of the
+index is an \te{OInt}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function a_type select(Vector#(vsize, a_type) vecta, 
+                       OInt#(vsize) index)
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}

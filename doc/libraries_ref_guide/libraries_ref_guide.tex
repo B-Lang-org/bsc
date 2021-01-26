@@ -1,0 +1,550 @@
+\documentclass{article}
+
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{makeidx}
+\usepackage{latexsym}
+\usepackage{verbatim}
+\usepackage{moreverb}
+\usepackage{index}
+\usepackage{dingbat}
+\usepackage{fancyhdr}
+
+\usepackage{ifpdf}
+
+% \newif\ifpdf
+% \ifx\pdfoutput\undefined
+% \else
+%   \ifx\pdfoutput\relax
+%   \else
+%     \ifcase\pdfoutput
+%     \else
+%       \pdftrue
+%     \fi
+%   \fi
+% \fi
+\ifpdf
+  \usepackage[pdftex,colorlinks=true,bookmarksopen, pdfstartview=FitH,
+              linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+  \usepackage[pdftex]{graphicx}
+  \pdfcompresslevel=9
+\else
+  \usepackage[dvips]{graphicx}
+\fi
+
+\usepackage{ae}
+\usepackage{aecompl}
+
+% ----------------------------------------------------------------
+% HORIZONTAL MARGINS
+% Left margin, odd pages: 1.25 inch (0.25 + 1)
+\setlength{\oddsidemargin}{0.25in}
+% Left margin, even pages: 1.25 inch (0 + 1)
+\setlength{\evensidemargin}{0.25in}
+% Text width 6 inch (so other margin is 1.25 inch).
+\setlength{\textwidth}{6in}
+% ----------------
+% VERTICAL MARGINS
+% Top margin 0.5 inch (-0.5 + 1)
+\setlength{\topmargin}{-0.5in}
+% Head height 0.25 inch (where page headers go)
+\setlength{\headheight}{0.25in}
+% Head separation 0.25 inch (between header and top line of text)
+\setlength{\headsep}{0.25in}
+% Text height 9 inch (so bottom margin 1 in)
+\setlength{\textheight}{9in}
+% ----------------
+% PARAGRAPH INDENTATION
+\setlength{\parindent}{0in}
+% SPACE BETWEEN PARAGRAPHS
+\setlength{\parskip}{\medskipamount}
+% ----------------
+% STRUTS
+% HORIZONTAL STRUT.  One argument (width).
+\newcommand{\hstrut}[1]{\hspace*{#1}}
+% VERTICAL STRUT. Two arguments (offset from baseline, height).
+\newcommand{\vstrut}[2]{\rule[#1]{0in}{#2}}
+% ----------------
+% HORIZONTAL LINE ACROSS PAGE:
+\newcommand{\hdivider}{\noindent\mbox{}\hrulefill\mbox{}} 
+% ----------------
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+\newcommand{\hm}{\hspace*{1em}}
+\newcommand{\hmm}{\hspace*{2em}}
+\newcommand{\hmmm}{\hspace*{3em}}
+\newcommand{\hmmmm}{\hspace*{4em}}
+% ----------------
+% ``TIGHTLIST'' ENVIRONMENT (no para space betwee items, small indent)
+\newenvironment{tightlist}%
+{\begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1.5em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+}
+}%
+{\end{list}
+}
+
+%----------------
+% Added to get special characters in index
+\newcommand{\Caret}{\char94}
+\newcommand{\Tilde}{\char126}
+
+
+% ----------------
+% Language names
+
+\newcommand{\BS}{Bluespec}
+\newcommand{\BSV}{BSV}
+\newcommand{\blue}{Bluespec SystemVerilog}
+
+\newcommand{\V}{Verilog}
+\newcommand{\veri}{Verilog}
+
+% ----------------------------------------------------------------
+% CODE DISPLAYS.
+% Bluespec code displays are enclosed between \BBS and \EBS
+% Most characters are taken verbatim, in typewriter font,
+% Except:
+%  Commands are still available (beginning with \)
+%    but use ` and ' instead of { and }
+%  Math mode is still available (beginning with $)
+%    but use ~ and ! for ^ and _
+
+\outer\def\BBS{%
+  \begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+  }\item[]
+%  \catcode`\{=12
+%  \catcode`\}=12
+  \catcode`\&=12
+  \catcode`\#=12
+  \catcode`\%=12
+  \catcode`\~=12
+%  \catcode`\_=12
+  \catcode`\^=12
+%  \catcode`\~=7
+%  \catcode`\!=7      % superscript
+%  \catcode`\'=2
+%  \catcode`\`=1
+  \obeyspaces
+  \obeylines \tt}
+
+\outer\def\EBS{%
+  \end{list}
+  }
+
+{\obeyspaces\gdef {\ }}
+
+% ----------------------------------------------------------------
+% The following hack is from Mark Tuttle
+\newcommand{\ttsymbol}[1]{%
+  % print character at position #1 in the tt font family in current font size
+  \begingroup\fontfamily{cmtt}\selectfont\symbol{#1}\endgroup
+}
+% ----------------
+% HASH (tt font hash), can be used inside \fbox environment
+\newcommand{\HASH}{\ttsymbol{35}}
+% ----------------
+% BSL (tt font backslash), can be used inside \fbox environment
+\newcommand{\BSL}{\ttsymbol{92}}
+% ----------------
+% HAT (tt font hat), can be used inside \fbox environment
+\newcommand{\HAT}{\ttsymbol{94}}
+% ----------------
+% UNDERSCORE of standard char width (normal tt font \_ is narrower)
+\newcommand{\US}{\ttsymbol{95}}
+% ----------------
+% TILDE (tt font tilde), can be used inside \fbox environment
+\newcommand{\TILDE}{\ttsymbol{126}}
+% ----------------
+% LBRACE (tt font left brace), can be used inside \fbox environment
+\newcommand{\LBRACE}{\ttsymbol{123}}
+% ----------------
+% RBRACE (tt font right brace), can be used inside \fbox environment
+\newcommand{\RBRACE}{\ttsymbol{125}}
+% ----------------------------------------------------------------
+
+% Library environment.  Used by generated code.
+\newenvironment{libverbatim}
+  {\vspace*{-1.0em}
+   \verbatim}
+  {\endverbatim
+  }
+
+\newenvironment{smcenterboxverbatim}
+  {\center
+   \small
+   \boxedverbatim}
+  {\endboxedverbatim
+  {\endcenter} }
+
+\newenvironment{centerboxverbatim}
+  {\center
+   \boxedverbatim}
+  {\endboxedverbatim
+  {\endcenter }}
+
+
+% ----------------------------------------------------------------
+
+\newcommand\lineup{\vspace*{-0.6em}}
+
+\newcommand\com[1]{}
+\newcommand{\te}[1]{\texttt{#1}}
+\newcommand{\nterm}[1]{\emph{#1}}
+\newcommand{\term}[1]{\texttt{#1}}
+\newcommand{\many}[1]{\{ #1 \}}
+\newcommand{\opt}[1]{[ #1 ]}
+\newcommand{\alt}{{$\mid$}}
+\newcommand{\gram}[2]{    \hm\makebox[10em][l]{\it #1}\makebox[1.5em][l]{::=}    #2}
+\newcommand{\grammore}[1]{\hm\makebox[10em][l]{      }\makebox[1.5em][l]{}       #1}
+\newcommand{\gramalt}[1]{ \hm\makebox[10em][l]{      }\makebox[1.5em][l]{\alt}   #1}
+
+\newcommand{\tbd}[1]{{\sf TBD: #1}}
+\newcommand{\note}[1]{\vspace*{2mm}{\sf {\large \bf Note\\} #1}\vspace{2mm}}
+
+\newcommand{\begindescrlist}[1]{
+\begin{list}{\arabic{enumi}}{
+                \settowidth{\labelwidth}{#1}
+                \setlength{\leftmargin}{\labelwidth} % {#1}
+                \addtolength{\leftmargin}{\labelsep}
+                \setlength{\parsep}{0ex}
+                \setlength{\itemsep}{0ex}
+                \usecounter{enumi}
+        }
+}
+\newcommand{\litem}[1]{\item[#1\hfill]}
+
+% ``Quoted'' inline bluespec
+\newcommand{\qbs}[1]{``\mbox{\te{#1}}''}
+
+\newcommand{\obsolete}[1]{}
+
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+% HERE BEGINS THE DOCUMENT
+
+\makeindex
+\newindex{function}{fdx}{fnd}{Function and Module by Package}
+\newindex{typeclass}{tdx}{tnd}{Typeclasses}
+
+\input{version.tex}
+
+%\ifpdf
+%\hypersetup{
+%pdfauthor = {B-Lang},
+%pdftitle = {BSC Libraries Reference Guide},
+%pdfsubject = {Bluespec},
+%pdfkeywords = {Bluespec},
+%pdfcreator = {Bluespec}}
+%\else
+%\fi
+
+\begin{document}
+
+\title{
+\resizebox{2in}{!}{\includegraphics[width=\textwidth]{../common/B-Lang}}\\
+\vspace{0.3in}
+Bluespec Compiler (BSC) \\
+Libraries \\
+Reference Guide \\
+\vspace*{1in}
+\mbox{}
+}
+
+\maketitle
+
+% ----------------
+
+\pagestyle{fancy}
+
+\lhead[Reference Guide]{BSC Libraries}
+\rhead[BSC Libraries]{Reference Guide}
+
+%\lfoot[\thepage]{}
+\cfoot{\thepage}
+%\rfoot[]{\thepage}
+
+% ----------------
+
+\newpage
+
+{\large\bf Trademarks and copyrights}
+
+Verilog is a trademark of IEEE (the Institute of Electrical and
+Electronics Engineers).  The Verilog standard is copyrighted, owned
+and maintained by IEEE.
+
+VHDL is a trademark of IEEE (the Institute of Electrical and
+Electronics Engineers).  The VHDL standard is copyrighted, owned and
+maintained by IEEE.
+
+SystemVerilog is a trademark of IEEE.  The SystemVerilog standard is
+owned and maintained by IEEE.
+
+SystemC is a trademark of IEEE.  The SystemC standard is owned and
+maintained by IEEE.
+
+Bluespec is a trademark of Bluespec, Inc.
+
+% ------------------------------------------------------------
+
+\newpage
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Table of Contents}
+
+\tableofcontents
+
+\newpage
+
+% ------------------------------------------------------------
+
+
+\section{Introduction}
+
+TBD
+
+% ------------------------------------------------------------
+
+\clearpage
+
+\section{The Standard Prelude package}
+
+\label{sec-prelude}
+\label{lib-prelude}
+
+\index{Standard Prelude}
+This section describes the type classes, data types, interfaces and
+functions  provided by the \te{Prelude} package.
+The standard \te{Prelude} package is automatically included in all BSV
+packages.   You do not  need to take any special
+action to use any of the features defined in the \te{Prelude} package.
+
+% TBD: Mention \te{PreludeBSV} package
+
+Section {\ref{sec-additional-libs}} describes BSC's collection
+of standard libraries.  To use any of these libraries in a
+design you must explicitly import the library package.
+
+\input{LibDoc/Prelude}
+
+% ------------------------------------------------------------
+
+\clearpage
+
+\section{Standard Libraries}
+\label{sec-additional-libs}
+
+Section {\ref{sec-prelude}} defined the standard Prelude package,
+which is automatically imported into every package.  This section
+describes {\BSV}'s collection of standard libraries.
+To use any of these libraries in a package you must
+explicitly import the library package using an \texttt{import}
+clause.
+
+% ----------------
+
+\subsection{Storage Structures}
+
+\input{LibDoc/RegFile}
+
+\input{LibDoc/ConfigReg}
+
+\input{LibDoc/DReg}
+
+\input{LibDoc/RevertingVirtualReg}
+
+\input{LibDoc/BRAM}
+\input{LibDoc/BRAMCore}
+
+% ----------------
+
+\subsection{FIFOs}
+
+\input{LibDoc/FIFO}
+
+\input{LibDoc/LevelFIFO}
+
+\input{LibDoc/BRAMFIFO}
+\input{LibDoc/SpecialFIFOs}
+\input{LibDoc/AlignedFIFOs}
+\input{LibDoc/Gearbox}
+
+\input{LibDoc/MIMO}
+
+% ---------------
+
+% Declares its own \subsection
+\input{LibDoc/Vector}
+
+% ----------------
+
+% Declares its own \subsection
+\input{LibDoc/List}
+
+% ----------------
+
+\subsection{Math}
+
+\input{LibDoc/Real}
+
+\input{LibDoc/OInt}
+
+\input{LibDoc/Complex}
+
+\input{LibDoc/FixedPoint}
+
+\input{LibDoc/NumberTypes}
+
+% \input{LibDoc/Divide}
+
+% \input{LibDoc/SquareRoot}
+
+% \input{LibDoc/FloatingPoint}
+
+% ----------------
+
+\subsection{FSM}
+
+\input{LibDoc/StmtFSM}
+
+% ----------------
+
+\subsection{Connectivity}
+
+% This file contains intro text for the subsection
+% and therefore must come first
+% TBD: move that text here?
+\input{LibDoc/GetPut}
+
+\input{LibDoc/Connectable}
+
+\input{LibDoc/ClientServer}
+
+\input{LibDoc/Memory}
+
+\input{LibDoc/CGetPut}
+
+\input{LibDoc/CommitIfc}
+
+% ----------------
+
+\subsection{Utilities}
+
+\input{LibDoc/LFSR}
+
+\input{LibDoc/Randomizable}
+
+\input{LibDoc/Arbiter}
+
+%\input{LibDoc/Counter}
+
+\input{LibDoc/Cntrs}
+
+\input{LibDoc/GrayCounter}
+
+\input{LibDoc/Gray}
+
+\input{LibDoc/CompletionBuffer}
+
+\input{LibDoc/UniqueWrappers}
+
+% This is now in Prelude, but not documented above?
+%\input{LibDoc/FShow}
+
+\input{LibDoc/DefaultValue}
+
+\input{LibDoc/TieOff}
+
+\input{LibDoc/Assert}
+
+\input{LibDoc/Probe}
+
+\input{LibDoc/Reserved}
+
+\input{LibDoc/TriState}
+
+\input{LibDoc/ZBus}
+
+\input{LibDoc/CRC}
+
+\input{LibDoc/OVLAssertions}
+
+\input{LibDoc/Printf}
+
+\input{LibDoc/BuildVector}
+
+% \input{LibDoc/PCIE}
+
+% \input{LibDoc/Video}
+
+% \input{LibDoc/I2C}
+
+% ----------------
+
+\subsection{Multiple Clock Domains and Clock Generators}
+
+\input{LibDoc/Clocks}
+
+% ----------------
+
+\subsection{Special Collections}
+
+\input{LibDoc/ModuleContext}
+
+\input{LibDoc/ModuleCollect}
+
+\input{LibDoc/CBus}
+
+\input{LibDoc/HList}
+
+\input{LibDoc/UnitAppendList}
+
+% ------------------------------------------------------------
+
+% The one reference (in LibDoc/Prelude.tex) is given instead
+% as a footnote, rather than far removed in a References
+% section at the end.
+
+%\clearpage
+%\bibliography{libraries_ref_guide}
+%\bibliographystyle{alpha}
+%\addcontentsline{toc}{section}{References}
+
+% ------------------------------------------------------------
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Index}
+\printindex
+
+% ------------------------------------------------------------
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Function and Module by Package}
+\printindex[function]
+
+% ------------------------------------------------------------
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Typeclasses}
+\printindex[typeclass]
+
+% ------------------------------------------------------------
+
+\end{document}

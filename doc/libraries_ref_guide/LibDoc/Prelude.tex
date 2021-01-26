@@ -1,0 +1,6911 @@
+\subsection{Type classes}
+\index{type classes}
+
+A type class   groups  related functions and operators and allows for
+  instances across the various datatypes which are members of the typeclass.
+ Hence the function
+  names within a type class are \emph{overloaded} across the various
+  type class members.  
+
+A  {\tt typeclass} declaration creates a type class.  An {\tt instance}
+  declaration defines a datatype as belonging to a type class.  A
+  datatype may belong to zero or many type classes.
+
+\com{typeclasses}
+The Prelude package declares the following type
+classes:
+
+\begin{center}
+\begin{tabular}{|p{1in}|p{4 in}|}
+\hline
+\multicolumn{2}{|c|}{Prelude Type Classes}\\
+\hline
+\te{Bits}&Types that can be converted to bit vectors and back.\\
+\hline
+\te{Eq}&Types on which equality is defined.\\
+\hline
+\te{Literal}&Types  which can be created from integer literals.\\
+\hline
+\te{RealLiteral}&Types  which can be created from real literals.\\
+\hline
+\te{Arith}&Types on which arithmetic operations are defined.\\
+\hline
+\te{Ord}&Types on which comparison operations are defined.\\
+\hline
+\te{Bounded}&Types with a finite range.\\
+\hline
+\te{Bitwise}&Types on which bitwise operations are defined.\\
+\hline
+\te{BitReduction}&Types on which bitwise operations on a single
+operand to produce a single bit result are defined.\\
+\hline
+\te{BitExtend}&Types on which  extend operations are defined.\\
+\hline
+\te{SaturatingArith}&Types with functions to  describe how overflow
+and underflow should be handled.\\
+\hline
+\te{Alias} & Types which can be used interchangeably.\\
+\hline
+\te{NumAlias} & Types which give a new name to a numeric type.\\
+\hline
+\te{FShow} & Types which can convert a value to a \te{Fmt}
+representation for use with \te{\$display} system tasks.\\
+\hline
+\te{StringLiteral} &Types which can be created around strings.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\com{Bits}
+\subsubsection{Bits}
+
+\te{Bits} defines the class of types that can be converted to bit
+vectors  and back.  Membership in this class is required for a data
+type to be stored in a state, such as  a Register or a FIFO, or to be used
+at a synthesized module boundary.   Often instance of this
+class can be automatically derived using the \te{deriving} statement.
+
+\index{Bits@\te{Bits} (type class)}
+\index{pack@\texttt{pack} (\texttt{Bits} type class overloaded function)}
+\index{unpack@\texttt{unpack} (\texttt{Bits} type class overloaded function)}
+\index[function]{Prelude!pack}
+\index[function]{Prelude!unpack}
+\index[typeclass]{Bits}
+
+\begin{libverbatim}
+   typeclass Bits #(type a, numeric type n);
+       function Bit#(n) pack(a x);
+       function a unpack(Bit#(n) x);
+   endtypeclass
+\end{libverbatim}
+Note: the numeric keyword is not required
+
+The functions {\tt pack} and {\tt unpack} are provided to convert
+elements to {\tt Bit\#()} and to convert {\tt Bit\#()} elements to another datatype.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bits} Functions}\\
+\hline
+\hline
+\te{pack}&Converts element {\tt a} of datatype {\tt data\_t} to a
+element of datatype {\tt Bit\#()} of {\tt size\_a}. \\
+\cline{2-2}
+&\\
+& \te{function Bit\#(size\_a) pack(data\_t a);}\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{unpack}&Converts an element {\tt a} of datatype {\tt Bit\#()} and {\tt
+size\_a} into an element with of  element type {\tt data\_t}.\\
+\cline{2-2}
+&\\
+& \te{function data\_t unpack(Bit\#(size\_a) a);}\\
+&\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Reg#(int) cycle <- mkReg (0);
+   ..
+   rule r;
+     ...
+      if (pack(cycle)[0] == 0) a = a + 1;
+      else                     a = a + 2;
+      if (pack(cycle)[1:0] == 3) a = a + 3;  
+
+    Int#(10) src_step    = unpack(config6[9:0]);
+    Bool     src_rdy_en  = unpack(config6[16]);
+\end{verbatim}
+
+\com{Eq}
+\subsubsection{Eq}
+
+\te{Eq} defines the class of types whose values can be compared for equality.
+Instances of the \te{Eq} class are often automatically derived   using
+the  \te{deriving} statement.
+
+\index{Eq@\te{Eq} (type class)}
+\index{==@{\te{==}} (\te{Eq} class method)}
+\index{/=@{\te{/=}} (\te{Eq} class method)}
+\index[function]{Prelude!==}
+\index[function]{Prelude!"!=}
+\index[typeclass]{Eq}
+
+\begin{libverbatim}
+   typeclass Eq #(type data_t);
+       function Bool \== (data_t x, data_t y);
+       function Bool \/= (data_t x, data_t y);
+   endtypeclass
+\end{libverbatim}
+
+The equality functions {\tt ==} and {\tt !=} are Boolean functions
+which return a value of {\tt True} if the equality condition is met.
+  When defining an instance of an
+\te{Eq} typeclass, the \verb'\==' and \verb'\/=' notations must be
+used.  If using or referring to the functions, the standard {\V} operators {\tt
+==} and {\tt !=} may be used.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Eq} Functions}\\
+\hline
+\hline
+\te{==}& Returns {\tt True} if {\tt x} is equal to {\tt y}.\\
+\cline{2-2}
+&\begin{libverbatim}function Bool \== (data_t x, data_t y,);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{/=}& Returns {\tt True} if {\tt x} is not equal to {\tt y}.\\
+\cline{2-2}
+&\\
+&\begin{libverbatim}function Bool \/= (data_t x, data_t y,);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+  return (pack(i) & 3) == 0;
+ 
+  if (a != maxInt)
+\end{verbatim}
+
+
+\com{Literal}
+\subsubsection{Literal}
+\label{literal}
+
+\te{Literal} defines the class of types which can be created from
+integer literals.
+\index{Literal@\te{Literal} (type class)}
+\index{fromInteger@\te{fromInteger} (\te{Literal} class method)}
+\index[function]{Prelude!fromInteger}
+\index[typeclass]{Literal}
+
+\begin{libverbatim}
+   typeclass Literal #(type data_t);
+       function data_t fromInteger(Integer x);
+       function Bool   inLiteralRange(data_t target, Integer x);
+   endtypeclass
+\end{libverbatim}
+
+The {\tt fromInteger} function converts an {\tt Integer} into an
+element of  datatype {\tt data\_t}.  Whenever you write an integer
+literal in \BSV (such as ``0'' or ``1''), there is an implied \te{fromInteger}
+applied to it, which turns the literal into the type you are using it
+as (such as \te{Int}, \te{UInt}, \te{Bit}, etc.).  By defining an
+instance of \te{Literal} for your own datatypes, you can create values
+from literals just as for these predefined types.
+
+The typeclass also provides a function \texttt{inLiteralRange} that takes 
+an argument of the target type and an \texttt{Integer} and returns a 
+\texttt{Bool} that indicates whether the \texttt{Integer} argument is in 
+the legal range of the target type. For example, assuming \texttt{x} has type 
+\texttt{Bit\#(4)}, \texttt{inLiteralRange(x, 15)} would return \texttt{True}, 
+but \texttt{inLiteralRange(x,22)} would return \texttt{False}.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Literal} Functions}\\
+\hline
+\hline
+\te{fromInteger}&Converts an element {\tt x} of datatype {\tt Integer} into an
+element of  data type \te{data\_t}\\
+\cline{2-2}
+&\begin{libverbatim} function data_t fromInteger(Integer x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\hline
+\te{inLiteralRange}&Tests whether an element {\tt x} of datatype {\tt Integer} is in
+the legal range of data type \te{data\_t}\\
+\cline{2-2}
+&\begin{libverbatim} function Bool inLiteralRange(data_t target, Integer x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   function foo (Vector#(n,int) xs) provisos (Log#(n,k));
+       Integer maxindex = valueof(n) - 1;
+       Int#(k) index;
+       index = fromInteger(maxindex);
+       ...
+   endfunction
+
+   function Bool inLiteralRange(RegAddress a, Integer i);
+      return(i >= 0 && i < 83);
+   endfunction
+\end{verbatim}
+
+
+\com{RealLiteral}
+\subsubsection{RealLiteral}
+\label{prelude-realliteral}
+
+\te{RealLiteral} defines the class of types which can be created from
+real literals.
+\index{RealLiteral@\te{RealLiteral} (type class)}
+\index{fromReal@\te{fromReal} (\te{RealLiteral} class method)}
+\index[function]{Prelude!fromReal}
+\index[typeclass]{RealLiteral}
+
+\begin{libverbatim}
+   typeclass RealLiteral #(type data_t);
+       function data_t fromReal(Real x);
+   endtypeclass
+\end{libverbatim}
+
+The {\tt fromReal} function converts a {\tt Real} into an
+element of  datatype {\tt data\_t}.  Whenever you write a real
+literal in \BSV  (such as ``3.14''), there is an implied \te{fromReal}
+applied to it, which turns the real into the specified type.
+  By defining an
+instance of \te{RealLiteral} for a datatype, you can create values
+from reals for any type.
+
+% The typeclass also provides a function \texttt{inLiteralRange} that takes 
+% an argument of the target type and an \texttt{Integer} and returns a 
+% \texttt{Bool} that indicates whether the \texttt{Integer} argument is in 
+% the legal range of the target type. For example, assuming \texttt{x} has type 
+% \texttt{Bit\#(4)}, \texttt{inLiteralRange(x, 15)} would return \texttt{True}, 
+% but \texttt{inLiteralRange(x,22)} would return \texttt{False}.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{RealLiteral} Functions}\\
+\hline
+\hline
+\te{fromReal}&Converts an element {\tt x} of datatype {\tt Real} into an
+element of  data type \te{data\_t}\\
+\cline{2-2}
+&\begin{libverbatim} function data_t fromReal(Real x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \hline
+% \te{inLiteralRange}&Tests whether an element {\tt x} of datatype {\tt Integer} is in
+% the legal range of data type \te{data\_t}\\
+% \cline{2-2}
+% &\begin{libverbatim} function Bool inLiteralRange(data_t target, Integer x);
+% \end{libverbatim}
+% \\ \hline
+% \end{tabular}
+% \end{center}
+
+
+{\bf Examples}
+\begin{verbatim}
+   FixedPoint#(is, fs) f = fromReal(n);  //n is a Real number
+\end{verbatim}
+
+
+\subsubsection{SizedLiteral}
+\label{sizedliteral}
+
+\te{SizedLiteral} defines the class of types which can be created from
+integer literals with a specified size.
+\index{SizedLiteral@\te{SizedLiteral} (type class)}
+\index{fromSizedInteger@\te{fromSizedInteger} (\te{SizedLiteral} class method)}
+\index[function]{Prelude!fromSizedInteger}
+\index[typeclass]{SizedLiteral}
+
+\begin{libverbatim}
+   typeclass SizedLiteral #(type data_t, type size_t)
+     dependencies (data_t determines size_t);
+       function data_t fromSizedInteger(Bit#(size_t);
+   endtypeclass
+\end{libverbatim}
+
+The {\tt fromSizedInteger} function converts a literal of type 
+\te{Bit\#(size\_t)} into an
+element of  datatype {\tt data\_t}.  Whenever you write a sized
+literal like \te{1'b0}, there is an implied \te{fromSizedInteger}
+which turns the literal into the type you are using it as, with the
+defined size.  Instances  are  defined for the types \te{Bit}, \te{UInt}, and \te{Int}.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{3.8in}|}
+\hline
+\multicolumn{2}{|c|}{\te{SizedLiteral} Functions}\\
+\hline
+\hline
+\te{fromSizedInteger}&Converts an element of \te{Bit\#(size\_t)} into an 
+element of  data type \te{data\_t}\\
+\cline{2-2}
+&\begin{libverbatim} function data_t fromSizedInteger(Bit#(size_t));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\com{Arith}
+\subsubsection{Arith}
+
+\te{Arith} defines the class of types on which arithmetic operations are defined.
+\index{Arith@\te{Arith} (type class)}
+\index{+@{\te{+}} (\te{Arith} class method)}
+\index{-@{\te{-}} (\te{Arith} class method)}
+\index{negate@\te{negate} (\te{Arith} class method)}
+\index{*@{\te{*}} (\te{Arith} class  method)}
+\index{\%@{\te{\%}}(\te{Arith} class mod method)}
+\index{/@{\te{/}}  (\te{Arith} class div method)}
+\index{abs@{\te{abs}} (\te{Arith} class  method)}
+\index{signum@{\te{signum}} (\te{Arith} class  method)}
+\index{**@{\te{**}} (\te{Arith} class  method)}
+\index{exp\_e@{\te{exp\_e}} (\te{Arith} class  method)}
+\index{log@{\te{log}} (\te{Arith} class  method)}
+\index{logb@{\te{logb}} (\te{Arith} class  method)}
+\index{log2@{\te{log2}} (\te{Arith} class  method)}
+\index{log10@{\te{log10}} (\te{Arith} class  method)}
+\index[function]{Prelude!+}
+\index[function]{Prelude!-}
+\index[function]{Prelude!negate}
+\index[function]{Prelude!*}
+\index[function]{Prelude!\%}
+\index[function]{Prelude!/}
+\index[function]{Prelude!abs}
+\index[function]{Prelude!signum}
+\index[function]{Prelude!**}
+\index[function]{Prelude!exp}
+\index[function]{Prelude!log}
+\index[function]{Prelude!logb}
+\index[function]{Prelude!log2}
+\index[function]{Prelude!log10}
+\index[typeclass]{Arith}
+
+\begin{libverbatim}
+   typeclass Arith #(type data_t)
+     provisos (Literal#(data_t));
+       function data_t \+ (data_t x, data_t y);
+       function data_t \- (data_t x, data_t y);
+       function data_t negate (data_t x);
+       function data_t \* (data_t x, data_t y);
+       function data_t \/ (data_t x, data_t y);
+       function data_t \% (data_t x, data_t y);
+       function data_t abs (data_t x);
+       function data_t signum (data_t x);
+       function data_t \** (data_t x, data_t y);
+       function data_t exp_e (data_t x);
+       function data_t log (data_t x);
+       function data_t logb (data_t b, data_t x);
+       function data_t log2 (data_t x); 
+       function data_t log10 (data_t x);      
+   endtypeclass
+\end{libverbatim}
+The {\tt Arith} functions provide arithmetic operations.  
+For the arithmetic symbols, when defining an instance of the
+\te{Arith} typeclass, the escaped operator names must be used as
+shown in the tables below.  The \te{negate} name may be used instead
+of the operator for negation.   If using or referring to these
+functions, the standard (non-escaped) {\V}
+operators can be used.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Arith} Functions}\\
+\hline
+\hline
+\te{+}&Element {\tt x} is added to element {\tt y}. \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \+ (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{-}&Element {\tt y} is subtracted from  element {\tt x}. \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \- (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{negate}&Change the sign of the number.  When using the function the {\V}
+negate operator, {\tt -}, may be used.\\
+{\tt -}& \\
+\cline{2-2}
+&\begin{libverbatim}function data_t negate (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{*}&Element {\tt x} is multiplied by  {\tt y}. \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \* (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{/}&Element {\tt x} is divided  by  {\tt y}. The definition depends
+on the type - many types truncate the remainder . Note: may not be
+synthesizable with downstream tools.  \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \/ (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{\%}&Returns the remainder of $x/y$.  Obeys the identity
+$((x/y)*y) + (x\%y) = x$.\\
+\cline{2-2}
+&\begin{libverbatim}function data_t \% (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+Note: Division by 0 is undefined. Both $x/0$ and $x\%0$ will generate 
+errors at compile-time and run-time for most instances.  
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{abs}&Returns the absolute value of \te{x}.\\
+\cline{2-2}
+&\begin{libverbatim}function data_t abs (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{signum}&Returns a unit value with the same sign as \te{x}, such that
+\te{abs(x)*signum(x) = x}.  \te{signum(12)} returns \te{1} and
+\te{signum(-12)} returns \te{-1}.   \\
+\cline{2-2}
+&\begin{libverbatim}function data_t signum (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{**}&The element \te{x} is raised to the \te{y} power (\te{x**y} = $x^y$).\\
+\cline{2-2}
+&\begin{libverbatim}function data_t \** (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{log2}&Returns the base \te{2} logarithm of \te{x} ($\log{_2} x$).\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t log2(data_t x) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{exp\_e}&\te{e} is raised to the power of \te{x} ($e^x$).   \\
+\cline{2-2}
+&\begin{libverbatim}function data_t exp_e (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{log}&Returns the base \te{e} logarithm of \te{x} ($\log{_e} x$).\\
+\cline{2-2}
+&\begin{libverbatim}function data_t log (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{logb}&Returns the base \te{b} logarithm of \te{x} ($\log{_b} x$).\\
+\cline{2-2}
+&\begin{libverbatim}function data_t logb (data_t b, data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{log10}&Returns the base 10 logarithm of x ($\log{_{10}} x$).\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t log10(data_t x) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{verbatim}
+    real u = log(1);
+    real x = 128.0;
+    real y = log2(x);
+    real z = 100.0;
+    real v = log10(z);
+    real w = logb(3,9.0);
+    real a = -x;
+    real b = abs(x);
+\end{verbatim}
+
+
+\com{Ord}
+\subsubsection{Ord}
+\label{sec-ord}
+
+\te{Ord} defines the class of types for which an \emph{order} is
+defined,  allowing comparison operations.  A complete  definition of an
+instance of  \te{Ord} requires defining  either \te{<=}
+or \te{compare}. 
+
+
+\index{Ord@\te{Ord} (type class)}
+\index{<@{\te{<}} (\te{Ord} class method)}
+\index{<=@{\te{<=}} (\te{Ord} class method)}
+\index{>@{\te{>}} (\te{Ord} class method)}
+\index{>=@{\te{>=}} (\te{Ord} class method)}
+\index[function]{Prelude!<}
+\index[function]{Prelude!>}
+\index[function]{Prelude!<=}
+\index[function]{Prelude!>=}
+\index[typeclass]{Ord}
+\index[function]{Prelude!compare}
+\index[function]{Prelude!min}
+\index[function]{Prelude!max}
+\index{compare@\te{compare} (\te{Ord} class method)}
+\index{min@\te{min} (\te{Ord} class method)}
+\index{max@\te{max} (\te{Ord} class method)}
+
+
+\begin{libverbatim}
+   typeclass Ord #(type data_t);
+       function Bool \<  (data_t x, data_t y);
+       function Bool \<= (data_t x, data_t y);
+       function Bool \>  (data_t x, data_t y);
+       function Bool \>= (data_t x, data_t y);
+       function Ordering compare(data_t x, data_t y); 
+       function data_t min(data_t x, data_t y);
+       function data_t max(data_t x, data_t y);
+   endtypeclass
+\end{libverbatim}
+
+
+The functions \te{<}, \te{<=}, \te{>}, and \te{>=} are Boolean functions which return a
+value of {\tt True} if the comparison condition is met.  
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Ord} Functions}\\
+\hline
+\hline
+\te{<}&Returns {\tt True} if {\tt x} is less than {\tt y}.\\
+\cline{2-2}
+&\begin{libverbatim}function Bool \<  (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{<=}&Returns {\tt True} if {\tt x} is less than or equal to {\tt y}.\\
+\cline{2-2}
+&\begin{libverbatim}function Bool \<=  (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{>}&Returns {\tt True} if {\tt x} is greater than {\tt y}.\\
+\cline{2-2}
+&\begin{libverbatim}function Bool \>  (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{>=}&Returns {\tt True} if {\tt x} is greater than or equal to {\tt y}.\\
+\cline{2-2}
+&\begin{libverbatim}function Bool \>=  (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+The function \te{compare} returns a value of the \te{Ordering}
+(Section \ref{sec-ordering}) data type (\te{LT}, \te{GT}, or \te{EQ}). 
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{compare}&Returns the \te{Ordering}  value describing the
+relationship of  \te{x} to \te{y}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Ordering compare (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+The functions \te{min} and \te{max} return a value of datatype
+\te{data\_t} which is either the minimum or maximum of the two values,
+depending on the function. 
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{min}&Returns the minimum of the  values \te{x} and \te{y}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t min (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{max}&Returns the maximum of the values \te{x} and \te{y}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t max (data_t x, data_t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   rule r1 (x <= y);
+   
+   rule r2 (x > y);
+
+   function Ordering onKey(Record r1, Record r2);
+      return compare(r1.key,r2.key);
+   endfunction
+   ...
+      List#(Record) sorted_rs = sortBy(onKey,rs);
+      List#(List#(Record)) grouped_rs = groupBy(equiv,sorted_rs);
+
+   let read_count = min(reads_remaining, 16);
+\end{verbatim}
+
+\com{Bounded}
+\subsubsection{Bounded}
+
+\te{Bounded} defines the class of types with a finite range and
+provides functions to define the range.
+\index{Bounded@\te{Bounded} (type class)}
+\index{minBound@\te{minBound} (\te{Bounded} class method)}
+\index{maxBound@\te{maxBound} (\te{Bounded} class method)}
+\index[function]{Prelude!minBound}
+\index[function]{Prelude!maxBound}
+\index[typeclass]{Bounded}
+
+\begin{libverbatim}
+   typeclass Bounded #(type data_t);
+       data_t minBound;
+       data_t maxBound;
+   endtypeclass
+\end{libverbatim}
+The {\tt Bounded} functions {\tt minBound} and {\tt maxBound} define
+the minimum and maximum values for the type {\tt data\_t}.  
+Instances of the \te{Bounded} class are often automatically derived
+using the \te{deriving} statement.
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bounded} Functions}\\
+\hline
+\hline
+\te{minBound}&The minimum value the type {\tt data\_t} can have.\\
+\cline{2-2}
+&\begin{libverbatim}data_t minBound;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{maxBound}&The maximum value the type {\tt data\_t} can have.\\
+\cline{2-2}
+&\begin{libverbatim}data_t maxBound;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   module mkGenericRandomizer (Randomize#(a))
+      provisos (Bits#(a, sa), Bounded#(a));
+
+   typedef struct {
+       Bit#(2) red;
+       Bit#(1) blue;
+   } RgbColor deriving (Eq, Bits, Bounded);
+\end{verbatim}
+
+
+\com{Bitwise}
+\subsubsection{Bitwise}
+
+\te{Bitwise} defines the class of types on which bitwise operations
+    are defined.
+
+\index{Bitwise@\te{Bitwise} (type class)}
+\index{\&@\te{\&} (\te{Bitwise} class method)}
+\index{$\mid$ (\te{Bitwise} class method)}
+%\index{^@\te{\^} (\te{Bitwise} class method)}
+%\index{~^@{\te{~\^}} (\te{Bitwise} class method)}
+%\index{~@\te{~} (\te{Bitwise} class method)}
+%\index{^~@{\te{\^~}} (\te{Bitwise} class method)}
+\index{{\Caret}@\te{\Caret} (\te{Bitwise} class method)}
+\index{{\Tilde}{\Caret} (\te{Bitwise} class method)}
+\index{{\Caret}{\Tilde} (\te{Bitwise} class method)}
+\index{{\Tilde} (\te{Bitwise} class method)}
+\index{invert@\te{invert} (\te{Bitwise} class method)}
+
+\index[function]{Prelude!\&}
+\index[function]{Prelude!$\mid$}
+\index[function]{Prelude!{\Caret}}
+\index[function]{Prelude!{\Tilde}}
+\index[function]{Prelude!{\Caret}{\Tilde}}
+\index[function]{Prelude!{\Tilde}{\Caret}}
+\index[function]{Prelude!invert}
+\index[typeclass]{Bitwise}
+
+\begin{libverbatim}
+   typeclass Bitwise #(type data_t);
+       function data_t \& (data_t x1, data_t x2);
+       function data_t \| (data_t x1, data_t x2);
+       function data_t \^ (data_t x1, data_t x2);
+       function data_t \~^ (data_t x1, data_t x2);
+       function data_t \^~ (data_t x1, data_t x2);
+       function data_t invert (data_t x1);
+       function data_t \<< (data_t x1, x2);
+       function data_t \>> (data_t x1, x2);
+       function Bit#(1) msb (data_t x);
+       function Bit#(1) lsb (data_t x);
+   endtypeclass
+\end{libverbatim}
+
+The {\tt Bitwise} functions compare two operands bit by bit to
+    calculate a result.  That is, the  bit in the first operand is compared
+    to its equivalent bit in the second operand to calculate a single
+    bit for
+    the result.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bitwise} Functions}\\
+\hline
+\hline
+\verb'&'&Performs an {\em and} operation on  each bit in {\tt x1} and
+    {\tt x2} to calculate the result.  \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \& (data_t x1, data_t x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb'|' &Performs an {\em or} operation on  each bit in {\tt x1} and
+    {\tt x2} to calculate the result.  \\
+\cline{2-2}
+&\begin{libverbatim} function data_t \| (data_t x1, data_t x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb'^' &Performs an {\em exclusive or} operation on  each bit in {\tt x1} and
+    {\tt x2} to calculate the result.  \\
+\cline{2-2}
+&\begin{libverbatim}function data_t \^ (data_t x1, data_t x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb'~^' &Performs an {\em exclusive nor} operation on  each bit in {\tt x1} and
+    {\tt x2} to calculate the result. \\
+\verb'^~'&\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t \~^ (data_t x1, data_t x2);
+function data_t \^~ (data_t x1, data_t x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb|~| &Performs a {\em unary negation} operation on each bit in
+{\tt x1}.  When using this function, the corresponding {\V} operator, \verb|~|, may be used.\\
+{\tt invert}& \\
+\cline{2-2}
+&\begin{libverbatim}function data_t invert (data_t x1);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{$<<$ (\te{Bitwise} class method)}
+\index{$>>$@\te{$>>$}  (\te{Bitwise} class method)}
+\index[function]{Prelude!$<<$}
+\index[function]{Prelude!$>>$}
+
+The \verb|<<| and \verb|>>| operators perform left and right shift
+operations.  Whether the shift is an arithmetic shift (\te{Int}) or a
+logical shift (\te{Bit}, \te{UInt}) is dependent on how the type is defined. 
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb|<<|  &Performs a {\em left shift} operation of {\tt x1} by the number
+of bit positions given by {\tt x2}.  \te{x2} must be of an
+acceptable index type 
+(\te{Integer}, \te{Bit\#(n)}, \te{Int\#(n)} or \te{UInt\#(n)}).\\
+\cline{2-2}
+&\begin{libverbatim}function data_t \<< (data_t x1, x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\verb|>>|  &Performs a {\em right shift} operation of {\tt x1} by the number
+of bit positions given by {\tt x2}.  \te{x2} must be of an
+acceptable index type 
+(\te{Integer}, \te{Bit\#(n)}, \te{Int\#(n)} or \te{UInt\#(n)}).\\
+\cline{2-2}
+&\begin{libverbatim}function data_t \>> (data_t x1, x2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+The functions \te{msb} and \te{lsb} operate on a single argument.
+
+\index{msb@\te{msb} (\te{Bitwise} class method)}
+\index[function]{Prelude!msb}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{msb} &Returns the value of the  most significant bit of \te{x}. Returns 0 if
+width of data\_t is 0.\\
+\cline{2-2}
+&\begin{libverbatim}function Bit#(1) msb (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{lsb@\te{lsb} (\te{Bitwise} class method)}
+\index[function]{Prelude!lsb}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{lsb} &Returns the value of the least significant bit of \te{x}. Returns 0 if
+width of data\_t is 0.\\
+\cline{2-2}
+&\begin{libverbatim}function Bit#(1) lsb (data_t x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{verbatim}
+   function Value computeOp(AOp aop, Value v1, Value v2) ;
+       case (aop) matches
+           Aand : return v1 & v2;
+           Anor : return invert(v1 | v2);
+           Aor : return v1 | v2;
+           Axor : return v1 ^ v2;
+           Asll : return v1 << vToNat(v2);
+           Asrl : return v1 >> vToNat(v2);
+       endcase
+   endfunction: computeOp
+
+   Bit#(3) msb = read_counter [5:3];
+   Bit#(3) lsb = read_counter [2:0];
+   read_counter <= (msb == 3'b111) ? {msb+1,lsb+1} : {msb+1,lsb};
+\end{verbatim}
+
+\com{BitReduction}
+
+\subsubsection{BitReduction}
+
+\te{BitReduction} defines the class of types on which the {\V} bit
+reduction operations are defined.  
+    
+
+\index{BitReduction@\te{BitReduction} (type class)}
+\index{reduceAnd@\te{reduceAnd} (\te{BitReduction} class method)}
+\index{reduceOr@\te{reduceOr} (\te{BitReduction} class method)}
+\index{reduceXor@\te{reduceXor} (\te{BitReduction} class method)}
+\index{reduceNand@\te{reduceNand} (\te{BitReduction} class method)}
+\index{reduceNor@\te{reduceNor} (\te{BitReduction} class method)}
+\index{reduceXnor@\te{reduceXnor} (\te{BitReduction} class method)}
+\index{\&@\te{\&} (\te{BitReduction} class method)}
+\index{$\mid$ (\te{BitReduction} class method)}
+%\index{^@\te{\^} (\te{BitReduction} class method)}
+\index{{\Caret}@\te{\Caret} (\te{BitReduction} class method)}
+%\index{^&@\te{\^\&} (\te{BitReduction} class method)}
+\index{{\Caret}\&@\te{\Caret\&} (\te{BitReduction} class method)}
+%\index{~^@\te{~\^} (\te{BitReduction} class method)}
+\index{{\Tilde\Caret}@\te{\Tilde\Caret} (\te{BitReduction} class method)}
+%\index{~|@\te{~|} (\te{BitReduction} class method)}
+\index{{\Tilde}$\mid$@\te{\Tilde$\mid$} (\te{BitReduction} class method)}
+%\index{^~@\te{\^~} (\te{BitReduction} class method)}
+\index{{\Caret\Tilde}@\te{\Caret\Tilde} (\te{BitReduction} class method)}
+\index[function]{Prelude!\&}
+\index[function]{Prelude!$\mid$}
+\index[function]{Prelude!{\Caret}}
+\index[function]{Prelude!{\Tilde}}
+\index[function]{Prelude!{\Caret}{\Tilde}}
+\index[function]{Prelude!{\Tilde}{\Caret}}
+\index[function]{Prelude!{\Tilde}{$\mid$}}
+\index[function]{Prelude!reduceAnd}
+\index[function]{Prelude!reduceOr}
+\index[function]{Prelude!reduceXor}
+\index[function]{Prelude!reduceNand}
+\index[function]{Prelude!reduceNor}
+\index[function]{Prelude!reduceXNor}
+\index[typeclass]{BitReduction}
+
+
+\begin{libverbatim}
+   typeclass BitReduction #(type x, numeric type n)
+       function x#(1) reduceAnd (x#(n) d);
+       function x#(1) reduceOr (x#(n) d);
+       function x#(1) reduceXor (x#(n) d);
+       function x#(1) reduceNand (x#(n) d);
+       function x#(1) reduceNor (x#(n) d);
+       function x#(1) reduceXnor (x#(n) d);
+   endtypeclass
+\end{libverbatim}
+Note: the numeric keyword is not required
+
+The {\tt BitReduction} functions take a sized type and reduce it to
+one element.  The most common example is to operate on  a \te{Bit\#()}
+to produce a single bit result.  The first step of the operation applies the operator
+    between the first bit of the operand and the second bit of the
+    operand to produce a result.  The function then applies the operator between the
+    result and the next bit of the operand, until the final bit is processed.
+
+Typically the bit reduction operators will be accessed through their
+{\V} operators.  When defining a new instance of the \te{BitReduction} type class the
+{\BSV} names must be used. The table below lists both values.  For
+example,  the
+{\BSV} bit reduction \emph{and} operator is \te{reduceAnd} and the
+corresponding {\V} operator is \te{\&}.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{BitReduction} Functions}\\
+\hline
+\hline
+\te{reduceAnd}&Performs an {\em and} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result.  \\
+\verb'&'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceAnd (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{reduceOr}&Performs an {\em or} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result. \\
+\verb'|'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceOr (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{reduceXor}&Performs an {\em xor} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result.  \\
+\verb'^'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceXor (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{reduceNand}&Performs an {\em nand} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result.  \\
+\verb'^&'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceNand (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{reduceNor}&Performs an {\em nor} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result. \\
+\verb'~|'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceNor (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{reduceXnor}&Performs an {\em xnor} bit reduction operation between the elements
+    of  {\tt d}  to calculate the result. \\
+\verb'~^'&\\
+\verb'^~'&\\
+\cline{2-2}
+&\begin{libverbatim}function x#(1) reduceXnor (x#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\com{BitExtend}
+\subsubsection{BitExtend}
+\index{BitExtend@\te{BitExtend} (type class)}
+\index{extend@\te{extend} (\te{BitExtend} class method)}
+\index{zeroExtend@\te{zeroExtend} (\te{BitExtend} class method)}
+\index{signExtend@\te{signExtend} (\te{BitExtend} class method)}
+\index{truncate@\te{truncate} (\te{BitExtend} class method)}
+\index[function]{Prelude!extend}
+\index[function]{Prelude!zeroExtend}
+\index[function]{Prelude!signExtend}
+\index[function]{Prelude!truncate}
+\index[typeclass]{BitExtend}
+
+\te{BitExtend} defines types on which bit extension operations are
+    defined.  
+\begin{verbatim}
+   typeclass BitExtend #(numeric type m, numeric type n, type x);  // n > m
+       function x#(n) extend (x#(m) d);
+       function x#(n) zeroExtend (x#(m) d);  
+       function x#(n) signExtend (x#(m) d);
+       function x#(m) truncate (x#(n) d);
+   endtypeclass
+\end{verbatim}
+
+The \te{BitExtend} operations take as input  of one size and changes
+    it to an input of another size, as described in the tables below.
+    It is recommended that \te{extend} be used in place of
+    \te{zeroExtend} or \te{signExtend}, as it will automatically
+    perform the correct operation based on the data type of the argument.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{BitExtend} Functions}\\
+\hline
+\hline
+\te{extend}&Performs either a zeroExtend or a signExtend as
+appropriate, depending on the data type of the argument (zeroExtend
+for an unsigned argument, signExtend for a signed argument).\\
+\cline{2-2}
+&\begin{libverbatim}
+function x#(n) extend (x#(m) d)
+   provisos (Add#(k, m, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{zeroExtend}& Use of \te{extend} instead is recommended. Adds extra zero bits to the MSB of argument {\tt d} of size {\tt
+    m} to make the datatype size {\tt n}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function x#(n) zeroExtend (x#(m) d)
+   provisos (Add#(k, m, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{signExtend}& Use of \te{extend} instead is recommended. Adds extra sign bits to
+the MSB of argument  {\tt d} of size {\tt m} 
+to make the datatype size {\tt n} by  replicating the sign bit.\\
+\cline{2-2}
+&\begin{libverbatim}
+function x#(n) signExtend (x#(m) d)
+   provisos (Add#(k, m, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{truncate}&Removes bits from the MSB of argument {\tt d} of size
+{\tt n} to make the datatype size {\tt m}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function x#(m) truncate (x#(n) d)
+   provisos (Add#(k, n, m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   UInt#(TAdd#(1,TLog#(n))) zz = extend(xx) + extend(yy);
+   Bit#(n) v1 = zeroExtend(v);
+   Int#(4) i_index = signExtend(i) + 4;
+   Bit#(32) upp = truncate(din);
+   r <= zeroExtend(c + truncate(r))
+\end{verbatim}
+
+\subsubsection{SaturatingArith}
+\label{sec-saturatingarith}
+
+\index{SaturatingArith@\te{SaturatingArith} (type class)}
+\index{satPlus@\te{satPlus} (\te{SaturatingArith} class method)}
+\index[function]{Prelude!satPlus}
+\index{satMinus@\te{satMinus} (\te{SaturatingArith} class method)}
+\index[function]{Prelude!satMinus}
+\index[typeclass]{SaturatingArith}
+
+
+The \te{SaturatingArith} typeclass  contains modified addition and
+subtraction functions which saturate to the values defined by  maxBound or
+minBound when the operation  would otherwise overflow or wrap-around.
+
+
+There are 4 types of saturation modes which determine how an overflow
+or underflow should be handled, as defined by the
+\te{SaturationMode} type.  
+
+\begin{center}
+\begin{tabular}{|p{1in}|p{4.5 in}|}
+\hline
+\multicolumn{2}{|c|}{Saturation Modes}\\
+\hline
+Enum Value & Description\\
+\hline\hline
+\te{Sat\_Wrap}&Ignore overflow and underflow, just wrap around\\
+\hline
+\te{Sat\_Bound}&On overflow or underflow result becomes maxBound or minBound\\
+\hline
+\te{Sat\_Zero}&On overflow or underflow result becomes 0\\
+\hline
+\te{Sat\_Symmetric}&On overflow or underflow result becomes maxBound or
+(minBound+1)\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+typedef enum { Sat_Wrap         
+              ,Sat_Bound      
+              ,Sat_Zero     
+              ,Sat_Symmetric 
+   } SaturationMode deriving (Bits, Eq);
+\end{verbatim}
+
+
+\begin{verbatim}
+   typeclass SaturatingArith#( type t);
+      function t satPlus (SaturationMode mode, t x, t y);
+      function t satMinus (SaturationMode mode, t x, t y);
+      function t boundedPlus  (t x, t y) = satPlus (Sat_Bound, x, y);
+      function t boundedMinus (t x, t y) = satMinus(Sat_Bound, x, y);
+   endtypeclass
+\end{verbatim}
+
+Instances of the \te{SaturatingArith} class  are defined for \te{Int},
+\te{UInt}, \te{Complex}, and \te{FixedPoint}.
+
+
+
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.8in}|}
+\hline
+\te{satPlus}&Modified plus function which saturates  when
+the operation would otherwise overflow or wrap-around.  The saturation
+value (\te{maxBound}, wrap, or 0) is determined by the value of
+\te{mode}, the \te{SaturationMode}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function t satPlus (SaturationMode mode, t x, t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.8in}|}
+\hline
+\te{satMinus}&Modified minus function which saturates when
+the operation would otherwise overflow or wrap-around.    The saturation
+value (\te{minBound}, wrap, \te{minBound +1}, or 0) is determined by
+the value of 
+\te{mode}, the \te{SaturationMode}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function t satMinus (SaturationMode mode, t x, t y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.8in}|}
+\hline
+\te{boundedPlus}&Modified plus function which saturates to \te{maxBound}  when
+the operation would otherwise overflow or wrap-around.  The function
+is the same as \te{satPlus} where the \te{SaturationMode} is \te{Sat\_Bound}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function t boundedPlus (t x, t y) = satPlus (Sat_Bound, x, y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.8in}|}
+\hline
+\te{boundedMinus}&Modified minus function which saturates to
+\te{minBound} when
+the operation would otherwise overflow or wrap-around.  The function
+is the same as \te{satMinus} where the \te{SaturationMode} is \te{Sat\_Bound}. \\
+\cline{2-2}
+&\begin{libverbatim}
+function t boundedMinus (t x, t y) = satMinus(Sat_Bound, x, y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Reg#(SaturationMode) smode <- mkReg(Sat_Wrap);
+
+   rule okdata (isOk);
+      tstCount <= boundedPlus (tstCount, 1);
+   endrule
+
+
+\end{verbatim}
+
+\subsubsection{Alias and NumAlias}
+\label{sec-alias}
+\index{Alias}
+\index{NumAlias}
+\index[typeclass]{NumAlias}
+\index[typeclass]{Alias}
+
+\te{Alias} specifies that two types can be used interchangeably,
+providing a way to introduce local names for types within a module.
+They are used in Provisos.
+
+\begin{verbatim}
+typeclass Alias#(type a, type b)
+   dependencies (a determines b,
+                 b determines a);
+endtypeclass
+\end{verbatim}
+
+\te{NumAlias} is used to give a new name to a numeric type.
+
+\begin{verbatim}
+typeclass NumAlias#(numeric type a, numeric type b)
+   dependencies (a determines b,
+                 b determines a);
+endtypeclass
+\end{verbatim}
+
+{\bf Examples}
+\begin{verbatim}
+   Alias#(fp, FixedPoint#(i,f));
+   NumAlias#(TLog#(a,b), logab);
+\end{verbatim}
+%===================================================
+
+\subsubsection{FShow}
+\index{FShow@\te{FShow} (type class)}
+\index[typeclass]{FShow}
+\index[function]{Prelude!fshow}
+
+The \te{FShow} typeclass defines the types to which the function
+\te{fshow} can be applied.  The function converts a  value to an associated \te{Fmt}
+representation for use with  the \te{\$display} family of system
+tasks.  Instances of the \te{FShow} class can often be automatically
+derived using the \te{deriving} statement.
+
+\begin{verbatim}
+typeclass FShow#(type t);
+   function Fmt fshow(t value);
+endtypeclass
+\end{verbatim}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.8in}|}
+\hline
+\multicolumn{2}{|c|}{FShow function}\\
+\hline
+\hline
+\te{fshow}&Returns a \te{Fmt} representation when applied to a value\\
+\cline{2-2}
+&\begin{libverbatim}
+   function Fmt fshow(t value);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+ Instances of \te{FShow} for \te{Prelude} data types are defined in the \te{Prelude}
+package.    Instances  for non-Prelude types are documented in the
+ type package.     If an instance of \te{FShow} is not already
+defined for a type you can create your own instance.  You can also 
+ redefine existing instances as required for your design.
+
+
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{1.4in}|p{1.8in}|p{1.2in}|}
+\hline
+\multicolumn{4}{|c|}{\te{FShow} Instances}\\
+\hline
+Type&Fmt Object&Description&Example\\
+\hline
+\hline
+\te{String}, \te{Char}&value  &  value of the string&Hello\\
+\hline
+\te{Bool}& \te{True} & Bool values&True\\
+&\te{False}&&False\\
+\hline
+\te{Int\#(n)}& \te{n} & n in decimal format&\multicolumn{1}{|r|}{\te{-17}}\\
+\hline
+\te{UInt\#(n)}&\te{n} & n in decimal format&\multicolumn{1}{|r|}{\te{42}}\\
+\hline
+\te{Bit\#(n)}&\te{'hn}& n in hex, prepended with \te{'h}&\te{'h43F2}\\
+\hline
+\te{Maybe\#(a)}&\te{tagged Valid value}&FShow applied to value&\te{tagged Valid 42} \\
+&\te{tagged Invalid}&&\te{tagged Invalid}\\
+\hline
+\te{Tuple2\#(a,b)}&\te{< a, b>}&FShow applied to each value& < 0, 1> \\
+\te{Tuple3\#(a,b,c)}&\te{< a, b, c>}&& < 0, 1, 2> \\
+\te{Tuple4\#(a,b,c,d)}&\te{< a, b, c, d>}&& < 0, 1, 2, 3> \\
+...&&&\\
+\multicolumn{2}{|l|}{\te{Tuple8\#(a,b,c,d,e,f,g,h)}}&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \multicolumn{2}{|c|}{\te{FShow} Instances}\\
+% \hline
+% \hline
+% \te{String}&Returns a \te{Fmt} object showing the value of the string.\\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(String);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{Bool}&Returns a \te{Fmt} object showing \te{True} or \te{False}.\\
+% \cline{2-2}
+% &\begin{libverbatim}  
+% instance FShow#(Bool);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{Maybe\#(a)}&Returns a \te{Fmt} object showing \te{tagged Valid <valid>} or
+%  \te{tagged Invalid}. The \te{Maybe} type is a derived tagged union.\\
+% % \cline{2-2}
+% % &\begin{libverbatim} 
+% % instance FShow#(Maybe#(a))
+% %    provisos(FShow#(a));
+% % \end{libverbatim}
+% % \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{Int\#(n)}&Returns a \te{Fmt} object showing \te{n} in a decimal format.\\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(Int#(n));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{UInt\#(n)}&Returns a \te{Fmt} object showing \te{n} in a decimal format.\\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(UInt#(n));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{Bit\#(n)}&Returns a \te{Fmt} object showing \te{'hn} in a
+% hexadecimal format. The \te{'h} is prepended to the value of \te{n}. \\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(Bit#(n));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{FixedPoint\#(i,f)}&Returns a \te{Fmt} object showing \te{FP int.frac} where \te{int} is the
+% integer part and \te{frac} is the fractional part of the fixed point number.\\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(FixedPoint#(i,f));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+% \begin{center}
+% \begin{tabular}{|p{1.1 in}|p{4.5in}|}
+% \hline
+% \te{Complex\#(a)}&Returns a \te{Fmt} object showing <\te{C x.rel,
+% x.img}> where \te{x.rel} is the real and \te{x.img} is the imaginary
+% part of  \te{x}.\\
+% \cline{2-2}
+% &\begin{libverbatim} 
+% instance FShow#(Complex#(a))
+%    provisos (FShow#(a));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+{\bf Example }
+\begin{verbatim}
+typedef enum {READ, WRITE, UNKNOWN}  OpCommand   deriving(Bounded,Bits, Eq, FShow);
+
+typedef struct {OpCommand command;
+		Bit#(8)   addr;
+		Bit#(8)   data;
+		Bit#(8)   length;
+		Bool      lock;
+		} Header deriving (Eq, Bits, Bounded);
+
+typedef union tagged {Header  Descriptor;
+		      Bit#(8) Data;
+		      } Request deriving(Eq, Bits, Bounded);
+
+// Define FShow instances where definition is different
+// than the derived values
+
+instance FShow#(Header);
+   function Fmt fshow (Header value);
+      return ($format("<HEAD ")
+	      +
+	      fshow(value.command)
+	      +
+	      $format(" (%0d)", value.length)
+	      +
+	      $format(" A:%h",  value.addr)
+	      +
+	      $format(" D:%h>", value.data));
+   endfunction
+endinstance
+
+instance FShow#(Request);
+   function Fmt fshow (Request request);
+      case (request) matches
+         tagged Descriptor .a:
+            return fshow(a);
+         tagged Data .a:
+            return $format("<DATA %h>", a);
+      endcase
+   endfunction
+endinstance
+\end{verbatim}
+
+%===================================================
+
+\subsubsection{StringLiteral}
+\index{StringLiteral@\te{StringLiteral} (type class)}
+\index[typeclass]{StringLiteral}
+\index[function]{Prelude!fromString}
+
+ \te{StringLiteral} defines the class of types which can be created
+ from strings. 
+
+\begin{libverbatim}
+   typeclass StringLiteral #(type data_t);
+       function data_t fromString(String x);
+   endtypeclass
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{StringLiteral} Functions}\\
+\hline
+\hline
+\te{fromString}&Converts an element {\tt x} of datatype {\tt String} into an
+element of  data type \te{data\_t}\\
+\cline{2-2}
+&\begin{libverbatim} function data_t fromString(String x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+%===================================================
+
+% \subsubsection{Monad}
+% \index{Monad@\te{Monad} (type class)}
+% \index{bind@\te{bind} (\te{Monad} class method)}
+% \index{return@\te{return} (\te{Monad} class method)}
+
+% The \te{Monad} typeclass is an abstraction which allows different
+% composition strategies and is useful for combining computations into more
+% complex computations.  The definition and use of monads in BSV is the
+% standard definition as used in other programming languages.  It is
+% mostly only needed inside libraries and not something that users will
+% be working with directly, so beyond  modules and actions, this is an
+% advanced topic that isn't commonly used.
+
+% The \te{Monad} instance for \te{Module} and \te{Action} are how
+% statements in those blocks are composed, which is why you can use
+% \te{replicateM} and \te{mapM} in those blocks.
+
+
+
+
+% \begin{verbatim}
+% typeclass Monad #(type m);
+%   function m#(b) \bind(m#(a) fn1, function m#(b) fn2(a x));
+%   function m#(a) \return(a x);
+% endtypeclass
+% \end{verbatim}
+
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \multicolumn{2}{|c|}{\te{Monad} Functions}\\
+% \hline
+% \hline
+% \te{bind}&  Combines two computations, passing the return
+%   value from the first as the argument to the second. \\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function m#(b) bind(m#(a) fn1, function m#(b) fn2(a x));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \te{return}& Creates a computation that returns the given value. \\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function m#(a) return(a x);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+% \te{MonadFix} 
+
+
+
+% The class of monads that admit recursion.
+% \index{MonadFix@\te{MonadFix} (type class)}
+% \index{mfix@\te{mfix} (\te{MonadFix} class method)}
+% \begin{libverbatim}
+% typeclass MonadFix #(type m)
+% \end{libverbatim}
+% The \te{MonadFix} type class belongs to the \te{Monad} type class.
+% \begin{libverbatim}
+% instance Monad#(MonadFix (m))
+% \end{libverbatim}
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \multicolumn{2}{|c|}{\te{MonadFix} Functions}\\
+% \hline
+% \hline
+% \te{mfix}&  \\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function m#(a) mfix(function m#(a) x1(a x1));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+%================================================================
+
+\subsection{Data Types}
+\label{prelude-datatypes}
+
+
+Every variable and every expression in {\BSV}  has a \emph{type}.
+Prelude defines the data types which are always available.
+An \te{instance} declaration defines a  data type as belonging to  a 
+type class. 
+Each data type may belong to one or more type classes; all functions, modules,
+and  operators declared for the type class are then 
+defined for the data type.   A data type does not have to belong to any
+ type classes.
+
+Data type identifiers must always begin with a capital letter.  There
+are three exceptions; \te{bit}, \te{int}, and \te{real},  which are
+predefined for backwards compatibility.
+
+  % The following table summarizes which type classes each
+% data type in Prelude belongs to.
+
+% \begin{center}
+% \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+% \hline
+% \multicolumn{10}{|c|}{}\\
+% \multicolumn{10}{|c|}{Type Classes  by Data Types}\\
+% \hline
+% \hline
+% &\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+% &&&&&&&&Reduction&Extend\\
+% \hline
+% \te{Bit}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+% \hline
+% \te{UInt}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+% \hline
+% \te{Int}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+% \hline
+% \te{Integer}&&$\surd$&$\surd$&$\surd$&$\surd$&&&&\\
+% \hline
+% \te{Bool}&$\surd$&$\surd$&&&&&&&\\
+% \hline
+% \te{String}&&$\surd$&$\surd$&$\surd$&&&&&\\
+% \hline
+% \te{Fmt}&&&$\surd$&$\surd$&&&&&\\
+% \hline
+% \te{Maybe}&$\surd$&$\surd$&&&&&&&\\
+% \hline
+% \te{Action}&&&&&&&&&\\
+% \hline
+% \te{Rules}&&&&&&&&&\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\com{Bit}
+\subsubsection{Bit}
+\index{Bit@\te{Bit} (type)}
+\label{sec-bit}
+
+To define a value of type Bit:
+\begin{libverbatim}
+   Bit#(type n);
+\end{libverbatim}
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Bit}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Bit}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{bit@\te{bit} (type)}
+% \index{Nat@\te{Nat} (type)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bit} type aliases}\\
+\hline
+\hline
+\te{bit}&The data type \te{bit} is defined as a single bit.
+This  is a special case of \te{Bit}.\\
+\cline{2-2}
+&\begin{libverbatim}
+typedef Bit#(1) bit;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   Bit#(32) a;  // like 'reg [31:] a'
+   Bit#(1)  b;  // like 'reg a'
+   bit      c;  // same as Bit#(1) c
+\end{verbatim}
+
+\index{bitconcat@\te{bitconcat} (\te{Bit} concatenation operator)}
+\index{split@\te{split} (\te{Bit} function)}
+\index{\{\}@\te{\{\}} (\te{Bit} concatenation operator)}
+\index[function]{Prelude!split}
+
+The {\tt Bit} data type provides functions  to concatenate and split bit-vectors.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bit} Functions}\\
+\hline
+\hline
+\verb'{x,y}'&Concatenate two bit vectors, {\tt x} of size {\tt n} and {\tt
+y} of size {\tt m}  returning a
+bit vector of size {\tt k}.  The {\V} operator \verb'{ }' is used.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(k) bitconcat(Bit#(n) x, Bit#(m) y)
+  provisos (Add#(n, m, k));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{split}&Split a bit vector into two bit vectors (higher-order
+bits (n), lower-order bits (m)).\\
+\cline{2-2}
+&\begin{libverbatim}
+function Tuple2 #(Bit#(n), Bit#(m)) split(Bit#(k) x)
+  provisos (Add#(n, m, k));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+{\bf Examples}
+\begin{verbatim}
+   module mkBitConcatSelect ();
+        Bit#(3) a = 3'b010;         //a = 010
+        Bit#(7) b = 7'h5e;          //b = 1011110
+
+        Bit#(10) abconcat = {a,b};  //  = 0101011110
+        Bit#(4)  bselect  = b[6:3]; //  = 1011
+   endmodule
+
+   function Tuple2#(Bit#(m), Bit#(n)) split (Bit#(mn) xy)
+       provisos (Add#(m,n,mn));
+\end{verbatim}
+
+
+% \index{zeroExtend@\te{zeroExtend} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bit#(m) zeroExtend(Bit#(n) x)
+%   provisos (Add#(k, n, m));
+% \end{libverbatim}
+
+
+% \index{signExtend@\te{signExtend} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bit#(m) signExtend(Bit#(n) x)
+%   provisos (Add#(k, n, m));
+% \end{libverbatim}
+
+% Truncate by discarding higher-order bits.
+% \index{truncate@\te{truncate} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bit#(m) truncate(Bit#(n) x)
+%   provisos (Add#(k, m, n));
+% \end{libverbatim}
+
+% Comparisons and shifts, interpreting as signed values.
+% \index{signedLT@\te{signedLT} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bool signedLT(Bit#(n) x, Bit#(n) y);
+% \end{libverbatim}
+
+
+% \index{signedLE@\te{signedLE} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bool signedLE(Bit#(n) x, Bit#(n) y);
+% \end{libverbatim}
+
+% \index{signedGT@\te{signedGT} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bool signedGT(Bit#(n) x, Bit#(n) y);
+% \end{libverbatim}
+
+% \index{signedGE@\te{signedGE} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bool signedGE(Bit#(n) x, Bit#(n) y);
+% \end{libverbatim}
+
+% \index{signedShiftRight@\te{signedShiftRight} (\te{Bit} function)}
+% \begin{libverbatim}
+% function Bit#(n) signedShiftRight(Bit#(n) x,Nat  c);
+% \end{libverbatim}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \subsubsection{Empty}
+% %@
+% *****Check reference guide main text for this info *******
+
+% An interface with no methods.
+% \index{Empty@\te{Empty} (interface type)}
+% \begin{libverbatim}
+% interface Empty;
+% endinterface: Empty
+% \end{libverbatim}
+% interface Empty = { }
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\com{UInt}
+\subsubsection{UInt}
+\label{sec-uint}
+
+The \te{UInt} type is an unsigned fixed width
+representation  of an integer value.   
+
+\index{UInt@\texttt{UInt} (type)}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{UInt}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{UInt}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   UInt#(8)  a = 'h80;
+   UInt#(12) b = zeroExtend(a); // b => 'h080
+   UInt#(8)  c = truncate(b);   // c => 'h80
+\end{verbatim}
+
+% \te{UInt} belongs to the following typeclasses:
+% \begin{libverbatim}
+% instance Bits #(UInt#(k), k);
+% instance Eq #(UInt#(n));
+% instance Literal #(UInt#(n));
+% instance Ord #(UInt#(n));
+% instance Bounded #(UInt#(n));
+% instance Bitwise #(UInt#(n));
+% instance Bit\te{Reduction} #(UInt#(n));
+% instance BitExtend #(UInt#(n));
+% instance Arith #(UInt#(n));
+% \end{libverbatim}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+
+\com{Int}
+\subsubsection{Int}
+\label{sec-int}
+
+The \te{Int} type is a signed fixed width representation of
+an integer value.   
+
+\index{Int@\texttt{Int} (type)}
+\index{int@\texttt{int} (type)}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Int}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Int}&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   Int#(8)  a = 'h80;
+   Int#(12) b = signExtend(a);   // b => 'hF80
+   Int#(8)  c = truncate(d);     // c => 'h80
+\end{verbatim}
+
+% \te{Int} belongs to the following typeclasses:
+% \begin{libverbatim}
+% instance Bits #(Int#(k), k);
+% instance Eq #(Int#(n));
+% instance Literal #(Int#(n));
+% instance Ord #(Int#(n));
+% instance Bounded #(Int#(n));
+% instance Bitwise #(Int#(n));
+% instance BitReduction #(Int#(n));
+% instance BitExtend #(Int#(n));
+% instance Arith #(Int#(n));
+% \end{libverbatim}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Int} type aliases}\\
+\hline
+\hline
+\te{int}&The data type \te{int} is defined as a 32-bit signed integer.
+This  is a special case of \te{Int}.\\
+\cline{2-2}
+&\begin{libverbatim}
+typedef Int#(32) int;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\com{Integer}
+\subsubsection{Integer}
+\label{sec-integer}
+
+The \te{Integer} type is a data type used for integer values and
+functions.  Because
+\te{Integer} is not part of the \te{Bits} typeclass, the
+\te{Integer} type is used for static elaboration only; all values must be
+resolved at compile time.
+
+\index{Integer@\texttt{Integer} (type)}
+\index{div@{\te{div}} (\te{Integer} function)}
+\index{mod@{\te{mod}} (\te{Integer} function)}
+%\index{exp@{\te{exp}} (\te{Integer} function)}
+%\index{log2@{\te{log2}} (\te{Integer} function)}
+\index{quot@{\te{quot}} (\te{Integer} function)}
+\index{rem@{\te{rem}} (\te{Integer} function)}
+\index[function]{Prelude!div}
+\index[function]{Prelude!mod}
+%\index[function]{Prelude!exp}
+%\index[function]{Prelude!log2}
+\index[function]{Prelude!quot}
+\index[function]{Prelude!rem}
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Integer}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Integer}&&$\surd$&$\surd$&$\surd$&$\surd$&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+% \begin{libverbatim}
+% instance Literal #(Integer);
+% instance Eq #(Integer);
+% instance Ord #(Integer);
+% instance Arith #(Integer);
+% \end{libverbatim}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Integer} Functions}\\
+\hline
+\hline
+\te{div}&Element \te{x} is divided by element \te{y} and the result is
+rounded toward negative infinity. Division by 0 is undefined.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer div(Integer x, Integer y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{mod}& Element \te{x} is divided by element \te{y} using the
+\te{div} function  and the
+remainder is returned as an \te{Integer} value. \te{div} and \te{mod}
+satisfy the identity $(div(x,y) * y) + mod(x,y) == x$. Division by 0 is undefined.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer mod(Integer x, Integer y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{quot}& Element \te{x} is divided by element \te{y} and the result
+ is truncated (rounded towards 0). Division by 0 is undefined.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer quot(Integer x, Integer y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{rem}& Element \te{x} is divided by element \te{y} using the
+\te{quot} function and the
+remainder is returned as an \te{Integer} value.  \te{quot} and
+\te{rem} satisfy the identity $(quot(x,y) * y) + rem(x,y) == x$.  Division by 0 is undefined.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer rem(Integer x, Integer y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{fromInteger@\te{fromInteger} (\te{Literal} class method)}
+\index[function]{Prelude!fromInteger}
+
+The \te{fromInteger} function, defined in Section \ref{literal}, can be
+used to convert an {\tt Integer} into any type in the \te{Literal} typeclass.
+
+{\bf Examples}
+
+\begin{verbatim}
+   Int#(32) arr2[16];
+   for (Integer i=0; i<16; i=i+1)
+      arr2[i] = fromInteger(i);
+
+   Integer foo = 10;
+   foo = foo + 1;
+   foo = foo * 5;
+   Bit#(16) var1 = fromInteger( foo );
+\end{verbatim}
+
+
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \te{exp}& The element \emph{base} is raised to the \emph{pwr} power
+% and the exponential value is returned as type \te{Integer}, \emph{exp}.\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function Integer exp(Integer base, Integer pwr);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4in}|}
+% \hline
+% \te{log2}&Takes  the base 2 logarithm of the Integer \te{x} and
+% returns the closest higher Integer value, if the result itself is not
+% an Integer.\\
+% \cline{2-2}
+% &\begin{libverbatim}
+% function Integer log2(Integer x) ;
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\com{Bool}
+\subsubsection{Bool}
+\label{sec-bool}
+
+\index{Bool@\te{Bool} (type)}
+\index{True@\te{True} (\te{Bool} constant)}
+\index{False@\te{False} (\te{Bool} constant)}
+\index{not@\te{not} (\te{Bool} function)}
+\index{!@\te{!} (\te{Bool} function)}
+\index{||@\te{||} (\te{Bool} operator)}
+\index{&&@\te{\&\&} (\te{Bool} operator)}
+\index[function]{Prelude!not}
+
+
+The {\tt Bool} type is defined to have two values, {\tt True} and {\tt
+False}.
+\begin{libverbatim}
+typedef enum {False, True} Bool;
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Bool}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Bool}&$\surd$&$\surd$&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+% \te{Bool} is part of the following type classes:
+% \begin{libverbatim}
+% instance Bits #(Bool x);
+% instance Eq #(Bool x);
+% instance Bounded #(Bool x);
+% \end{libverbatim}
+
+%typedef enum {False, True} Bool deriving (Eq, Bits, Bounded);
+
+The {\tt Bool} functions return either a value of {\tt True} or {\tt False}.
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Bool} Functions}\\
+\hline
+\hline
+\te{not}&Returns True if x is false, returns False if x is true.\\
+\te{!}&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool not (Bool x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{\&\&}&Returns True if x \emph{and} y are true, else it returns False.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool \&& (Bool x, Bool y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{||} & Returns True if x \emph{or} y is true, else it returns False.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool \|| (Bool x, Bool y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   Bool  a             // A variable named a with a type of Bool
+   Reg#(Bool) done     // A register named done with a type of Bool
+   Vector#(5, Bool)    // A vector of 5 Boolean values
+
+   Bool  a = 0;     // ERROR!  You cannot do this
+   Bool  a = True;  // correct
+   if (a)           // correct
+     ....
+   if (a == 0)      // ERROR!
+     ....
+
+   Bool b1 = True;
+   Bool b2 = True;
+   Bool b3 = b1 && b2;
+\end{verbatim}
+
+
+%========================================
+\com{Real}
+\subsubsection{Real}
+\index{Real@\te{Real} (type)}
+\index{real@\te{real} (type)}
+\label{sec-real}
+
+The \te{Real} type is a data type used for real values and
+functions. 
+
+ Real numbers are of the form:
+ 
+\gram{Real}{
+\nterm{decNum}{\opt{\term{.}\nterm{decDigitsUnderscore}}} \nterm{exp}
+\opt{\nterm{sign}} \nterm{decDigitsUnderscore}}\\
+\gramalt{\nterm{decNum}\term{.}\nterm{decDigitsUnderscore}}
+
+\gram{sign}{\term{+} {\alt} \term{-}}
+
+\gram{exp}{\term{e} {\alt} \term{E}}
+
+\gram{decNum} {\nterm{decDigits} \opt{\nterm{decDigitsUnderscore}}}
+
+\gram{decDigits}{\many{\texttt{0}...\texttt{9}}} \\
+\gram{decDigitsUnderscore} {\many{\texttt{0}...\texttt{9}, \te{\_}}}\\
+
+
+
+
+If there is a decimal point,  there must be  digits following 
+the decimal point.  An exponent can start with  either an \te{E} or
+an \te{e}, followed by an optional 
+sign (\te{+} or \te{-}), followed by digits.  There cannot be an
+exponent or a sign without any digits.  Any of the numeric components
+may include an underscore, but an underscore cannot be the first digit
+of the real number.
+
+Unlike integer numbers, real numbers are of limited precision.  They are
+represented as IEEE floating point numbers of 64 bit length, as defined by
+the IEEE standard.
+ 
+Because the type \te{Real} is not part of the \te{Bits} typeclass, the
+\te{Real} type is used for static elaboration only; all values must be
+resolved at compile time.
+
+There are many functions defined for \te{Real} types, provided in the \te{Real}
+package (Section \ref{package-Real}).  To use these functions, the
+\te{Real} package must be imported.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{11}{|c|}{Type Classes for \te{Real}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Real}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&\te{Literal}&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Real}&&$\surd$&$\surd$&$\surd$&$\surd$&$\surd$&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Real} type aliases}\\
+\hline
+\hline
+\te{real}&The SystemVerilog name \te{real} is an alias for \te{Real}\\
+\cline{2-2}
+&\begin{libverbatim}
+typedef Real real;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+There are two system tasks defined for the \te{Real} data type, used
+to convert between \te{Real} and IEEE standard 64-bit vector
+representation (\te{Bit\#(64))}.
+\index{\$realtobits@\te{\$realtobits} (\te{Real} system function)}
+\index{\$bitstoreal@\te{\$bitstoreal} (\te{Real} system function)}
+\index[function]{Prelude!\$bitstoreal}
+\index[function]{Prelude!\$realtobits}
+\
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Real} system tasks}\\
+\hline
+\hline
+\te{\$realtobits}&Converts from a \te{Real} to the IEEE 64-bit vector representation. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(64) $realtobits (Real x) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{\$bitstoreal}& Converts from a 64-bit vector representation to a \te{Real}. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Real $bitstoreal (Bit#(64) x) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{verbatim}
+   Bit#(1) sign1 = 0;
+   Bit#(52) mantissa1 = 0;
+   Bit#(11) exp1 = 1024;
+   Real r1 = $bitstoreal({sign1, exp1, mantissa1});  //r1 = 2.0
+
+   Real x = pi;
+   let m = realToString(x));   // m = 3.141592653589793
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \subsubsection{Either}
+% \index{Either@\te{Either} (type)}
+% %@
+% Used for values that are either of type {\te a} or of type {\te b}.
+% \begin{libverbatim}
+% typedef tagged union {
+%     a Left;
+%     b Right;
+% } Either #(type a, type b) deriving (Eq, Bits);
+% \end{libverbatim}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\com{String}
+\subsubsection{String}
+
+\label{prelude-string}
+\index{String@\te{String} (type)}
+\index{strConcat@\te{strConcat} (\te{String} concatenation operator)}
+\index{+@\te{+} (\te{String} concatenation operator)}
+\index[function]{Prelude!strConcat}
+\index[function]{Prelude!+}
+\index[function]{Prelude!stringSplit}
+\index[function]{Prelude!stringLength}
+\index[function]{Prelude!quote}
+\index[function]{Prelude!doubleQuote}
+\index[function]{Prelude!stringHead}
+\index[function]{Prelude!stringTail}
+\index[function]{Prelude!stringCons}
+\index[function]{Prelude!stringToCharList}
+\index[function]{Prelude!sharListToString}
+
+
+Strings are mostly used in system tasks (such as \te{\$display}).
+The \te{String} type belongs to the \te{Eq} type class;
+ strings
+can be tested  for equality and inequality using the \te{==} and
+\te{!=} operators.  The \te{String} type is also part of the
+\te{Arith} class, but only the addition (\te{+}) operator is defined.
+All other \te{Arith} operators will produce an error message. 
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{String}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{String}&\te{FShow}\\
+&&&&&&&&\te{Literal}&\\
+\hline
+\te{String}&&$\surd$&&$\surd$&&&&$\surd$&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+
+% \begin{libverbatim}
+% instance Eq #(String);
+% \end{libverbatim}
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\multicolumn{2}{|c|}{\te{String} Functions}\\
+\hline
+\hline
+\te{strConcat}&Concatenates two strings (same as the + operator) \\
+\te{+}&\\
+\cline{2-2}
+&\begin{libverbatim}
+function String strConcat(String s1, String s2);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{stringLength}& Returns the number of characters in a string \\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer stringLength (String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.0 in}|p{4.4in}|}
+\hline
+\te{stringSplit}& If the string is empty, returns \te{Invalid}; otherwise
+it returns \te{Valid} with the \te{Tuple} containing the first
+character as the head and the rest of the string as the tail. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Maybe#(Tuple#2(Char, String)) stringSplit(String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{stringHead}& Extracts the first character of a string; reports an error if
+the string is empty. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Char stringHead(String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{stringTail}& Extracts all the characters of a string after the
+first; reports an error if
+the string is  empty. \\
+\cline{2-2}
+&\begin{libverbatim}
+function String stringTail(String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{stringCons}& Adds a character to the front of a string.  This
+function is the complement of \te{stringSplit}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function String stringCons(Char c, String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{stringToCharList}& Converts a \te{String} to a \te{List} of characters \\
+\cline{2-2}
+&\begin{libverbatim}
+function List#(Char) stringToCharList (String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{charListToString}& Converts a \te{List} of characters to a \te{String}\\
+\cline{2-2}
+&\begin{libverbatim}
+function String charListToString (List#(Char) cs);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{quote}&Add single quotes around a string: \te{`str'} \\
+\cline{2-2}
+&\begin{libverbatim}
+function String quote (String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.2in}|}
+\hline
+\te{doubleQuote}&Add double quotes around a string: \te{"str"} \\
+\cline{2-2}
+&\begin{libverbatim}
+function String doubleQuote (String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+{\bf Examples}
+
+\begin{verbatim}
+   String s1 = "This is a test";
+   $display("first string = ", s1);
+      
+   // we can use + to concatenate
+   String s2 = s1 + " of concatenation";
+   $display("Second string = ", s2);
+\end{verbatim}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Char}
+\label{prelude-char}
+\index{Char@\te{Char} (type)}
+\index[function]{Prelude!charToString}
+\index[function]{Prelude!charToInteger}
+\index[function]{Prelude!integerToChar}
+\index[function]{Prelude!isSpace}
+\index[function]{Prelude!isLower}
+\index[function]{Prelude!isUpper}
+\index[function]{Prelude!isAlpha}
+\index[function]{Prelude!isAlphaNum}
+\index[function]{Prelude!isDigit}
+\index[function]{Prelude!isOctDigit}
+\index[function]{Prelude!isHexDigit}
+\index[function]{Prelude!toUpper}
+\index[function]{Prelude!toLower}
+\index[function]{Prelude!digitToInteger}
+\index[function]{Prelude!digitToBits}
+\index[function]{Prelude!integerToDigit}
+\index[function]{Prelude!bitsToDigit}
+\index[function]{Prelude!hexDigitToInteger}
+\index[function]{Prelude!hexDigitToBits}
+\index[function]{Prelude!integerToHexDigit}
+\index[function]{Prelude!bitsToHexDigit}
+
+The \te{Char} data type is used mostly in system tasks (such as
+\te{\$display}).  The \te{Char} type provides the ability to traverse
+the characters of a string.  The \te{Char} type belongs to the \te{Eq} type
+class; chars can be tested for equality and inequality using the
+\te{==} and \te{!=} operators.  
+
+The \te{Char} type belongs to the \te{Ord} type class.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Char}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{String}&\te{FShow}\\
+&&&&&&&&\te{Literal}&\\
+\hline
+\te{Char}&&$\surd$&&&$\surd$&&&$\surd$&$\surd$\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Char} Functions}\\
+\hline
+\hline
+\te{charToString}& Convert a single character to a string\\
+\cline{2-2}
+&\begin{libverbatim}
+function String charToString (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{charToInteger}&Convert a character to its ASCII numeric value \\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer charToInteger (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{integerToChar}&Convert an ASCII value to its character equivalent,
+returns an error if the number is out of range\\
+\cline{2-2}
+&\begin{libverbatim}
+function Char integerToChar (Integer n);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isSpace}&Determine if a character is whitespace (space, tab
+\verb+\t+, vertical tab \verb+\v+, newline \verb+\n+, carriage return
+\verb+\r+, linefeed \verb+\f+) \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isSpace (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isLower}&Determine if a character is a lowercase ASCII character
+(\te{a} - \te{z}) \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isLower (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isUpper}&Determine if a character is an uppercase ASCII character
+(\te{A} - \te{Z})\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isUpper (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isAlpha}& Determine if a character is an ASCII letter, either
+upper or lowercase\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isAlpha (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isDigit}& Determine if a character is an ASCII decimal digit (\te{0}
+- \te{9})\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isDigit (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isAlphaNum}&Determine if a character is an ASCII letter or
+decminal digit \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isAlphaNum (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isOctDigit}&Determine if a character is an ASCII octal digit (\te{0}
+- \te{7})\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isOctDigit (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{isHexDigit}&Determine if a character is an ASCII hexadecimal digit (\te{0}
+- \te{9}, \te{a} - \te{f}, or \te{A} - \te{F})\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isHexDigit (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{toUpper}& Convert an ASCII lowercase letter to uppercase;
+other characters are unchanged\\
+\cline{2-2}
+&\begin{libverbatim}
+function Char toUpper (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{toLower}& Convert an ASCII uppercase letter to lowercase;
+other characters are unchanged\\
+\cline{2-2}
+&\begin{libverbatim}
+function Char toLower (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{digitToInteger}& Convert an ASCII decimal digit to its numeric
+value (\te{0} to 0, unlike \te{charToInteger} which would return the ASCII
+code 48); returns an error  if the character is not a digit.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer digitToInteger (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{digitToBits}&  Convert an ASCII decimal digit to its numeric
+value; returns an error  if the character is not a digit. Same as
+\te{digitToInteger}, but returns the value as a bit vector; 
+the vector can be any size, but the user will get an error if the
+ size is too small to represent the value \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(n) digitToBits (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{integerToDigit}&Convert a decimal digit value (0 to 9) to the ASCII character for that
+digit; returns an error if the value is out of range. This function is
+the complement of \te{digitToInteger} \\
+\cline{2-2}
+&\begin{libverbatim}
+function Char integerToDigit (Integer d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{bitsToDigit}& Convert a Bit type digit value to the ASCII
+character for that digit; returns an error if the value is out of
+range.  This is the same as \te{integerToDigit} but for values that
+are Bit types\\
+\cline{2-2}
+&\begin{libverbatim}
+function Char bitsToDigit (Bit#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{hexDigitToInteger}& Convert an ASCII decimal digit to its numeric,
+including hex characters \te{a} - \te{f} and \te{A} - \te{F}\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer hexDigitToInteger (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{hexDigitToBits}&  Convert an ASCII decimal digit to its numeric,
+including hex characters \te{a} - \te{f} and \te{A} - \te{F} returning
+the value as a bit vector.  The vector can be any size, but an error
+will be returned if the size is too small to represent the value.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(n) hexDigitToBits (Char c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{integerToHexDigit}& Convert a hexadecimal digit value (0 to 15) to the ASCII character for that
+digit; returns an  error if the value is out of range. This function is the complement of
+\te{hexDigitToInteger}.  The function returns lowercase for the
+letters \te{a} to \te{f};  apply the function \te{toUpper} to get uppercase.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Char integerToHexDigit (Integer d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4in}|}
+\hline
+\te{bitsToHexDigit}& Convert a Bit type hexadecimal digit value to the
+ASCII character for that digit, returns an error if the value is out
+of range. The function returns lowercase for the
+letters \te{a} to \te{f};  apply the function \te{toUpper} to get uppercase.\\
+
+\cline{2-2}
+&\begin{libverbatim}
+function Char bitsToHexDigit (Bit#(n) d);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\com{Fmt}
+\subsubsection{Fmt}
+
+\index{Fmt@\te{Fmt} (type)}
+\label{prelude-fmt}
+
+The \te{Fmt} primitive type provides a representation of arguments to the
+\te{\$display} family of system tasks that
+can be  manipulated in BSV
+code. \te{Fmt} representations of data objects can be written
+hierarchically and applied to polymorphic types. 
+
+Objects of type \te{Fmt} can be
+supplied directly as arguments to system tasks in the \te{\$display}
+family.  An object of type \te{Fmt} is returned by the \te{\$format}
+system task.  
+
+ The \te{Fmt} type is
+part of the \te{Arith} class, but only the addition (\te{+}) operator
+is defined.   All other \te{Arith} operators will produce an error message. 
+
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Fmt}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Fmt}&&&$\surd$&$\surd$&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+\begin{verbatim}
+   Reg#(Bit#(8)) count <- mkReg(0);
+   Fmt f = $format("(%0d)", count + 1);
+   $display(" XYZ ", f, " ", $format("(%0d) ", count));
+      
+   \\value displayed:  XYZ (6) (5)
+\end{verbatim}
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Void}
+\label{sec-void}
+\index{Void@\te{Void} (type)}
+
+The \te{Void} type is a type which has one literal \te{?} used for
+constructing concrete values of the type \te{void}
+.
+The \te{Void} type is part of the \te{Bits} and \te{Literal} typeclasses.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Void}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Void}&$\surd$&&$\surd$&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   typedef union tagged {
+       void    Invalid;
+       data_t  Valid;
+   } Maybe #(type data_t) deriving (Eq, Bits);
+
+   typedef union tagged {
+        void     InvalidFile ;
+        Bit#(31) MCD;
+        Bit#(31) FD;
+   } File;
+\end{verbatim}
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Maybe}
+\subsubsection{Maybe}
+\label{sec-maybe}
+\index{Maybe@\te{Maybe} (type)}
+\index{Invalid@\te{Invalid} (type constructor)}
+\index{Valid@\te{Valid} (type constructor)}
+\index{fromMaybe@\te{fromMaybe} (\te{Maybe} function)}
+\index{isValid@\te{isValid} (\te{Maybe} function)}
+\index[function]{Prelude!fromMaybe}
+\index[function]{Prelude!isValid}
+
+The \te{Maybe} type is used for tagging values as either
+\emph{Valid} or \emph{Invalid}.   If the value is \emph{Valid}, the value
+contains a datatype \te{data\_t}.
+
+\begin{libverbatim}
+   typedef union tagged {
+       void    Invalid;
+       data_t  Valid;
+   } Maybe #(type data_t) deriving (Eq, Bits);
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Maybe}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Maybe}&$\surd$&$\surd$&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+The \te{Maybe} data type provides functions to check if the value is
+\emph{Valid} and to extract the valid value.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Maybe} Functions}\\
+\hline
+\hline
+\te{fromMaybe}&Extracts the \te{Valid} value out of a \te{Maybe}
+argument.  If the tag is \te{Invalid} the default value, \te{defaultval},
+is returned.\\
+\cline{2-2}
+&\begin{libverbatim}
+function data_t fromMaybe( data_t defaultval,  
+                           Maybe#(data_t) val ) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{isValid}& Returns a value of \te{True} if the \te{Maybe} argument is \te{Valid}.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isValid( Maybe#(data_t) val ) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+   RWire#(int) rw_incr <- mkRWire();  //  increment method is being invoked
+   RWire#(int) rw_decr <- mkRWire();  //  decrement method is being invoked
+
+   rule doit;
+      Maybe#(int) mbi = rw_incr.wget();
+      Maybe#(int) mbd = rw_decr.wget();
+      int   di        = fromMaybe (?, mbi);
+      int   dd        = fromMaybe (?, mbd);
+      if      ((! isValid (mbi)) && (! isValid (mbd)))
+         noAction;
+      else if (   isValid (mbi)  && (! isValid (mbd)))
+         value2 <= value2 + di;
+      else if ((! isValid (mbi)) &&    isValid (mbd))
+         value2 <= value2 - dd;
+      else // (   isValid (mbi)  &&    isValid (mbd))
+         value2 <= value2 + di - dd;
+   endrule
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Tuples}
+\subsubsection{Tuples}
+\index{tuples!type definition}
+\label{sec-tuples}
+
+
+Tuples are predefined structures which group a small number of values
+together.  
+The following pseudo code explains the structure of the 
+tuples.  You cannot define your own tuples, but must use the seven predefined
+tuples,  \te{Tuple2} through 
+\te{Tuple8}.  As shown, \te{Tuple2} groups two items together, \te{Tuple3}
+groups three items together, up through \te{Tuple8} which groups eight
+items together.     
+
+\begin{libverbatim}
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+   } Tuple2 #(type a, type b) deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+  } Tuple3 #(type a, type b, type c) deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+     d tpl_4;
+  } Tuple4 #(type a, type b, type c, type d) deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+     d tpl_4;
+     e tpl_5;
+  } Tuple5 #(type a, type b, type c, type d, type e) 
+    deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+     d tpl_4;
+     e tpl_5;
+     f tpl_6;
+  } Tuple6 #(type a, type b, type c, type d, type e, type f) 
+    deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+     d tpl_4;
+     e tpl_5;
+     f tpl_6;
+     g tpl_7;
+  } Tuple7 #(type a, type b, type c, type d, type e, type f, type g) 
+    deriving (Bits, Eq, Bounded);
+
+ typedef struct{ 
+     a tpl_1;
+     b tpl_2;
+     c tpl_3; 
+     d tpl_4;
+     e tpl_5;
+     f tpl_6;
+     g tpl_7;
+     h tpl_8;
+  } Tuple8 #(type a, type b, type c, type d, type e, type f, type g, type h) 
+    deriving (Bits, Eq, Bounded);
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Tuples}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{TupleN}&$\surd$&$\surd$&&&$\surd$&$\surd$&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+Tuples cannot be manipulated like normal structures; you cannot create
+values of and select fields from tuples as you would a normal structure.
+Values of these types can be created only by applying a predefined family of
+constructor functions.
+\index{tuples!expressions}
+
+\begin{center}
+\begin{tabular}{|p{2.6 in}|p{2.7 in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Tuple} Constructor Functions}\\
+\hline
+\hline
+\te{tuple2 (e1, e2)}& Creates a variable of type Tuple2 with component values e1
+and e2.\\
+\hline
+\te{tuple3 (e1, e2, e3)}& Creates a variable of type Tuple3 with
+values e1, e2, and e3.\\
+\hline
+\te{tuple4 (e1, e2, e3, e4)}& Creates a variable of type Tuple4 with component 
+values e1, e2, e3, and e4.\\
+\hline
+\te{tuple5 (e1, e2, e3, e4, e5)}& Creates a variable of type Tuple5
+with component values e1, e2, e3, e4, and e5.\\
+\hline
+\te{tuple6 (e1, e2, e3, e4, e5, e6)}& Creates a variable of type
+Tuple6 with component values e1, e2, e3, e4, e5, and e6.\\
+\hline
+\te{tuple7 (e1, e2, e3, e4, e5, e6, e7)}& Creates a variable of type
+Tuple7 with component values e1, e2, e3, e4, e5, e6, and e7.\\
+\hline
+\te{tuple8 (e1, e2, e3, e4, e5, e6, e7, e8)}& Creates a variable of type
+Tuple8 with component values e1, e2, e3, e4, e5, e6, e7, and e8.\\
+\hline
+\end{tabular}
+\end{center}
+
+Fields of these types can be extracted only by applying a predefined family of
+selector functions.
+\index{tuples!selecting components}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Tuple} Extract Functions}\\
+\hline
+\hline
+\te{tpl\_1 (x)}&Extracts the first field of x from a Tuple2 to Tuple8.\\
+\hline
+\te{tpl\_2 (x)}&Extracts the second field of x from a Tuple2 to Tuple8.\\
+\hline
+\te{tpl\_3 (x)}&Extracts the third field of x from a Tuple3 to Tuple8.\\
+\hline
+\te{tpl\_4 (x)}&Extracts the fourth field of x from a Tuple4 to Tuple8.\\
+\hline
+\te{tpl\_5 (x)}&Extracts the fifth field of x from a Tuple5 to Tuple8.\\
+\hline
+\te{tpl\_6 (x)}&Extracts the sixth field of x from a Tuple6, Tuple7 or Tuple8.\\
+\hline
+\te{tpl\_7 (x)}&Extracts the seventh field of x from a  Tuple7 or Tuple8.\\
+\hline
+\te{tpl\_8 (x)}&Extracts the seventh field of x from a Tuple8.\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Tuple2#( Bool, int ) foo = tuple2( True, 25 );
+   Bool field1 = tpl_1( foo ); // this is value 1 in the list
+   int  field2 = tpl_2( foo ); // this is value 2 in the list
+   foo = tuple2( !field1, field2 );
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Array}
+\subsubsection{Array}
+\index{array!named type}
+\index{Array@\te{Array} (type)}
+\label{sec-array}
+
+Array variables are generally declared anonymously, using the bracket
+syntax.  However,
+the type of such variables can be expressed with the type constructor
+\te{Array}, when an explicit type is needed.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Array}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Array}&&$\surd$&&&&&&&\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+For example, the following declarations using bracket syntax:
+\begin{verbatim}
+   Bool arr[3];
+
+   function Bool fn(Bool bits[]);
+\end{verbatim}
+are equivalent to the following declarations using the explicit type constructor:
+\begin{verbatim}
+   Array#(Bool) arr;
+
+   function Bool fn(Array#(Bool) bits);
+\end{verbatim}
+Note that, unlike \te{Vector}, the size of an array is not part of its type.
+In the first declaration, a size is given for the array \te{arr}.  However,
+since \te{arr} is not assigned to a value, the size is unused here.  If the
+array were assigned, the size would be used like a type declaration, to
+check that the assigned value has the declared size.  Since it is not part
+of the type, this check would occur during elaboration, and not during
+type checking.
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Ordering}
+\subsubsection{Ordering}
+\label{sec-ordering}
+\index{Ordering@\te{Ordering} (type)}
+
+
+The \te{Ordering} type is used as the return type for the result of
+generic comparators, including the \te{compare} function defined in
+the \te{Ord} (Section \ref{sec-ord}) type class.  The valid  values
+of \te{Ordering} are: \te{LT}, \te{GT}, and \te{EQ}. 
+
+
+\begin{libverbatim}
+   typedef enum {
+       LT,
+       EQ,
+       GT
+   } Ordering deriving (Eq, Bits, Bounded);
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Ordering}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Ordering}&$\surd$&$\surd$&&&&$\surd$&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+function Ordering onKey(Record r1, Record r2);
+   return compare(r1.key,r2.key);
+endfunction
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{File}
+\index{File (type)}
+
+\te{File} is a defined type in BSV which is defined as:
+\begin{libverbatim}
+    typedef union tagged {
+        void     InvalidFile ;
+        Bit#(31) MCD;
+        Bit#(31) FD;
+    } File;
+\end{libverbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{File}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{File}&$\surd$&$\surd$&&&&&$\surd$&&\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+\hmm Note: \te{Bitwise} operations are  valid only for subtype \te{MCD}.
+
+The \te{File} type is used by the system tasks for file I/O.
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Clock}
+\subsubsection{Clock}
+
+\index{Clock@\te{Clock} (type)}
+\label{sec-clock}
+
+\te{Clock}  is an abstract  type of two components: a single \te{Bit}
+oscillator and a \te{Bool} gate.
+
+\begin{libverbatim}
+     typedef ... Clock ; 
+\end{libverbatim}
+
+\te{Clock} is in the \te{Eq} type class, meaning two values can be
+compared for equality.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Clock}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Clock}&&$\surd$&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Clock clk <- exposeCurrentClock;
+
+   module mkTopLevel( Clock readClk, Reset readRst, Top ifc );
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Reset}
+\subsubsection{Reset}
+\index{Reset@\te{Reset} (type)}
+\label{sec-reset}
+
+\te{Reset} is an abstract type.
+\index{Reset@\te{Reset} (type)}
+
+\begin{libverbatim}
+     typedef ... Reset ; 
+\end{libverbatim}
+
+\te{Reset} is in the \te{Eq} type class, meaning two fields can be
+compared for equality.
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Reset}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Reset}&&$\surd$&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{verbatim}
+   Reset rst <- exposeCurrentReset;
+   
+   module mkMod (Reset r2, (* reset_by="no_reset" *) Bool b,
+                   ModIfc ifc);  
+
+   interface ResetGenIfc;
+     interface Reset gen_rst;
+   endinterface
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Inout}
+\subsubsection{Inout}
+\index{Inout@\te{Inout} (type)}
+\label{sec-inout}
+
+An \te{Inout} type is a first class type that is used to pass Verilog
+inouts through a BSV module.  It takes an argument which is the type
+of the underlying signal:
+
+\begin{verbatim}
+   Inout#(type t)
+\end{verbatim}
+
+For example, the type of an \te{Inout} signal which communicates boolean
+values would be:
+\begin{verbatim}
+   Inout#(Bool)
+\end{verbatim}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Inout}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Inout}&&&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+An \te{Inout} type is a valid subinterface type (like \te{Clock} and
+\te{Reset}).  A value of an \te{Inout} type is \te{clocked\_by} and
+\te{reset\_by} a particular clock and reset. 
+
+
+
+\te{Inout}s are connectable via the \te{Connectable} typeclass. The
+  use of \te{mkConnection} instantiates a Verilog module
+  \te{InoutConnect}.  The connected inouts must be on the same clock
+and  the same reset.  The clock and reset of the
+inouts may be different than the clock and reset of the parent
+module of the \te{mkConnection}. 
+\begin{libverbatim}
+  instance Connectable#(Inout#(a, x1), Inout#(a, x2))
+     provisos (Bit#(a,sa));
+\end{libverbatim}
+
+ A module with an \te{Inout} subinterface cannot leave that interface
+ undefined since there is no way to create or examine inout values in 
+BSV.  For example, you cannot even write:
+\begin{verbatim}
+  Inout#(int) i = ? ;    // not valid in BSV
+\end{verbatim}
+
+The
+\te{Inout} type exists only so that RTL inout signals can be connected
+ in BSV; the ultimate users of the signal will be outside the
+BSV code.   An imported Verilog module might have an inout
+port that your BSV design doesn't use, but which needs to be exposed
+at the top level.  In this case, the submodule will introduce an
+inout signal that the BSV cannot read or write, but merely
+provides in its interfaces until it is exposed at the top level.  Or,
+ a design  may contain two imported Verilog modules that
+ have  inout ports that expect to be connected.  You can
+ import these  two modules, declaring that they each have a
+port of type \te{Inout\#(t)} and connect them together.  The compiler
+will check that both ports are of the same type \te{t} and that they are
+in the same clock domain with  the same reset.  Beyond that, BSV does
+not concern itself with the values of the inout signals.
+
+{\bf Examples}
+
+Instantiating a submodule with an inout and exposing
+it at the next level:
+\begin{verbatim}
+   interface SubIfc;
+      ...
+      interface Inout#(Bool) b;
+   endinterface
+
+   interface TopIfc;
+      ...
+      interface Inout#(Bool) bus;
+   endinterface
+
+   module mkTop (TopIfc);
+      SubIfc sub <- mkSub;
+      ...
+      interface bus = sub.b;
+   endmodule
+\end{verbatim}
+
+Connecting two submodules, using \te{SubIfc} defined above:
+\begin{verbatim}
+   module mkTop(...);
+      ...
+      SubIfc sub1 <- mkSub;
+      SubIfc sub2 <- mkSub;
+      mkConnection (sub1.b, sub2.b);
+      ...
+   endmodule
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Action}
+\com{ActionValue}
+\subsubsection{Action/ActionValue}
+
+\index{Action@\te{Action} (type)}
+\index{ActionValue@\te{ActionValue} (type)}
+\label{sec-action}
+
+
+Any expression that is intended to act on the state of the circuit (at circuit
+execution time) is called an {\emph{action}} and has type
+\te{Action} or \te{ActionValue\#(a)}.
+  The type parameter \te{a} represents the type of the
+returned value. 
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Action/ActionValue}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Action}&&&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+The types \te{Action} and \te{ActionValue} are special
+keywords, and therefore cannot be redefined. %  Section
+% \ref{sec-action} describes \te{Action} and \te{ActionValue} expressions
+% in more detail.
+  
+\BBS
+    typedef {\rm{\emph{$\cdots$ abstract $\cdots$}}} struct ActionValue#(type a);
+\EBS
+
+
+\index{noAction@\te{noAction} (empty action)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{ActionValue} type aliases}\\
+\hline
+\hline
+\te{Action}&The \te{Action} type is a special case of the more general type
+\te{ActionValue} where nothing is returned.  That is, the returns
+type is  \te{(void)}.\\
+\cline{2-2}
+&\begin{libverbatim}
+typedef ActionValue#(void) Action;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Action} Functions}\\
+\hline
+\hline
+\te{noAction}&An empty \te{Action}, this is an \te{Action} that does nothing.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Action noAction();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   method Action grab(Bit#(8) value);
+      last_value <= value;
+   endmethod
+ 
+   interface IntStack;
+      method Action             push (int x);
+      method ActionValue#(int)  pop();
+   endinterface: IntStack
+
+   seq
+     noAction;
+   endseq
+\end{verbatim}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\com{Rules}
+\subsubsection{Rules}
+\label{sec-rules}
+
+A rule  expression has type \te{Rules} and consists of a collection of
+individual rule constructs.  Rules are first class objects, hence variables of
+type \te{Rules} may be created and manipulated. \te{Rules} values must
+eventually be added to a module in order to appear in synthesized hardware.
+
+\index{rules@\te{Rules} (type)}
+\index{addRules@\te{addRules} (\te{Rules} function)}
+\index[function]{Prelude!addRules}
+\index{rJoin@\te{rJoin} (\te{Rules} operator)}
+\index{rJoinConflictFree@\te{rJoinConflictFree} (\te{Rules} operator)}
+\index{rJoinDescendingUrgency@\te{rJoinDescendingUrgency} (\te{Rules} operator)}
+\index{rJoinExecutionOrder@\te{rJoinExecutionOrder} (\te{Rules} operator)}
+\index{rJoinMutuallyExclusive@\te{rJoinMutuallyExclusive} (\te{Rules} operator)}
+\index{rJoinPreempts@\te{rJoinPreempts} (\te{Rules} operator)}
+\index{emptyRules@\te{emptyRules} (\te{Rules} variable)}
+\index[function]{Prelude!addRules}
+\index[function]{Prelude!rJoin}
+\index[function]{Prelude!rJoinConflictFree}
+\index[function]{Prelude!rJoinDescendingUrgency}
+\index[function]{Prelude!rJoinExecutionOrder}
+\index[function]{Prelude!rJoinMutuallyExclusive}
+\index[function]{Prelude!rJoinPreempts}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes for \te{Rules}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bitwise}&\te{Bit}&\te{Bit}\\
+&&&&&&&&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Rules}&&&&&&&&&\\
+\hline
+\end{tabular}
+\end{center}
+
+The \te{Rules} data type provides functions to create, manipulate, and
+combine values of the type \te{Rules}.
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\multicolumn{2}{|c|}{\te{Rules} Functions}\\
+\hline
+\hline
+\te{emptyRules}& An empty rules variable.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules emptyRules();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{addRules}&Takes rules \te{r} and adds them into a module.  
+This function may only be called from within
+a module. The return type \te{Empty} indicates that the instantiation does not return
+anything.\\
+\cline{2-2}
+&\begin{libverbatim}
+module addRules#(Rules r) (Empty);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{rJoin}&Symmetric union of two sets of rules. A symmetric union
+means that neither set is implied to have any relation to the other:
+not more urgent, not execute before, etc.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoin(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4in}|}
+\hline
+\te{rJoinPreempts}&Union of two sets of rules, with rules on the left getting
+scheduling precedence and blocking the rules on the right.% (see Section \ref{preempts}).  
+That is, if a rule in set {\tt x} fires, then all rules in set {\tt y} are 
+prevented from firing.  This is the same as specifying \te{descending\_urgency} 
+plus a forced conflict.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoinPreempts(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{.6 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{rJoinDescendingUrgency}}\\
+\hline
+&Union of two sets of rule, with rules in the left having higher
+urgency.% (see Section \ref{urgency-annotation}). 
+That is, if some 
+rules compete for resources, then scheduling will select rules in 
+set {\tt x} set before set {\tt y}.  If the rules do not conflict, 
+no conflict is added; the rules can fire together.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoinDescendingUrgency(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{.6 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{rJoinMutuallyExclusive}}\\
+\hline
+&Union of two sets of rule, with rules in the all rules 
+in the left set annotated as mutually exclusive with all 
+rules in the right set.% (see Section \ref{mutually-exclusive}). 
+No relationship between the rules in the left set or between 
+the rules in the right set is assumed. This annotation 
+is used in scheduling and checked during simulation. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoinMutuallyExclusive(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{.6 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{rJoinExecutionOrder}}\\
+\hline
+&Union of two sets of rule, with the rules in the left set 
+executing before the rules in the right set.% (see Section 
+%\ref{execution-order}). 
+No relationship between the rules 
+in the left set or between the rules in the right set 
+is assumed. If any pair of rules cannot execute in the 
+specified order in the same clock cycle, that pair
+of rules will conflict. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoinExecutionOrder(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{.6 in}|p{4.4 in}|}
+\hline
+\multicolumn{2}{|l|}{\te{rJoinConflictFree}}\\
+\hline
+&Union of two sets of rule, with the rules in the left set 
+annotated as conflict-free with the rules in the right set.
+% (see Section \ref{conflict-free-annotation}).
+This assumption is used
+during scheduling and checked during simulation. No relationship 
+between the rules in the left set or between the rules in 
+the right set is assumed.  \\
+\cline{2-2}
+&\begin{libverbatim}
+function Rules rJoinConflictFree(Rules x, Rules y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+(This is an excerpt from a complete example in the BSV Reference Guide.)
+\begin{verbatim}
+   function Rules incReg(Reg#(CounterType) a);
+     return( rules
+       rule addOne;
+          a <= a + 1;
+       endrule
+     endrules);
+   endfunction
+
+      // Add incReg rule to increment the counter
+      addRules(incReg(asReg(counter)));
+\end{verbatim}
+
+
+
+
+% ================================================================
+% \subsubsection{Module}
+
+% Every variable and every expression in {\BSV} has a \emph{type}.  A
+% module  expression has type \te{Module}.
+
+% \index{Module@\te{Module} (type)}
+
+% The \te{Module} type  belongs to the \te{Monad} typeclass.
+% \begin{libverbatim}
+% instance Monad #(Module);
+% \end{libverbatim}
+
+
+
+
+%================================================================
+\subsection{Operations on Numeric Types}
+
+\subsubsection{Size Relationship/Provisos}
+
+\index{provisos}
+\index{Add@\te{Add} (type provisos)}
+\index{Max@\te{Max} (type provisos)}
+\index{Min@\te{Min} (type provisos)}
+\index{Log@\te{Log} (type provisos)}
+\index{Mul@\te{Mul} (type provisos)}
+\index{Div@\te{Div} (type provisos)}
+
+
+
+These classes are  used in provisos to express
+constraints between the sizes of types.  
+
+\begin{center}
+\begin{tabular}{|p {.5 in}|p{1.5 in}| p{3.0 in}|}
+\hline
+ Class& Proviso& Description\\
+\hline
+\hline
+\te{Add}&\verb'Add#(n1,n2,n3)'&Assert $n1 + n2 = n3$\\
+\hline
+\te{Mul}&\verb'Mul#(n1,n2,n3)'&Assert $n1 * n2 = n3$\\
+\hline
+\te{Div}&\verb'Div#(n1,n2,n3)'&Assert ceiling $n1 / n2 = n3$\\
+\hline
+\te{Max}&\verb'Max#(n1,n2,n3)'&Assert $\max(n1,n2) = n3$\\
+\hline
+\te{Min}&\verb'Min#(n1,n2,n3)'&Assert $\min(n1,n2) = n3$\\
+\hline
+\te{Log}&\verb'Log#(n1,n2)'&Assert ceiling ${\log_{2}(n1)}=n2$.  \\
+\hline
+\end{tabular}
+\end{center}
+
+Examples of Provisos using size relationships:
+\begin{verbatim}
+     instance Bits #( Vector#(vsize, element_type), tsize)
+        provisos (Bits#(element_type, sizea), 
+                  Mul#(vsize, sizea, tsize));       // vsize * sizea = tsize
+
+     function Vector#(vsize1, element_type)
+          cons (element_type elem, Vector#(vsize, element_type) vect)
+       provisos (Add#(1, vsize, vsize1));           // 1 + vsize = vsize1
+
+     function Vector#(mvsize,element_type)
+           concat(Vector#(m,Vector#(n,element_type)) xss)
+       provisos (Mul#(m,n,mvsize));                 // m * n = mvsize
+\end{verbatim}
+
+
+\subsubsection{Size Relationship Type Functions}
+
+\index{TAdd@\te{TAdd} (type functions)}
+\index{TSub@\te{TSub} (type functions)}
+\index{TLog@\te{TLog} (type functions)}
+\index{TExp@\te{TExp} (type functions)}
+\index{TMul@\te{TMul} (type functions)}
+\index{TDiv@\te{TDiv} (type functions)}
+\index{TMax@\te{TMax} (type functions)}
+\index{TMin@\te{TMin} (type functions)}
+\index[function]{Prelude!TAdd}
+\index[function]{Prelude!TSub}
+\index[function]{Prelude!TLog}
+\index[function]{Prelude!TExp}
+\index[function]{Prelude!TMul}
+\index[function]{Prelude!TMax}
+\index[function]{Prelude!TMin}
+\index[function]{Prelude!TDiv}
+
+These type functions are used when ``defining'' size relationships between data
+types, where the defined value need not (or cannot) be named in a proviso.  They may be used in datatype definition statements when the
+size of the datatype may be calculated from other parameters.
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1.5 in}| p{2.0 in}|}
+\hline
+Type Function& Size Relationship& Description\\
+\hline
+\hline
+\te{TAdd}&\verb'TAdd#(n1,n2)'&Calculate $n1 + n2$\\
+\hline
+\te{TSub}&\verb'TSub#(n1,n2)'&Calculate $n1 - n2$\\
+\hline
+\te{TMul}&\verb'TMul#(n1,n2)'&Calculate $n1 * n2$\\
+\hline
+\te{TDiv}&\verb'TDiv#(n1,n2)'&Calculate ceiling $n1 / n2 $\\
+\hline
+\te{TLog}&\verb'TLog#(n1)'&Calculate ceiling ${\log_{2}(n1)}$ \\
+\hline
+\te{TExp}&\verb'TExp#(n1)'&Calculate $2^{n1}$\\
+\hline
+\te{TMax}&\verb'TMax#(n1,n2)'&Calculate $max(n1,n2)$\\
+\hline
+\te{TMin}&\verb'TMin#(n1,n2)'&Calculate $min(n1,n2)$\\
+\hline
+\end{tabular}
+\end{center}
+
+
+Examples using other arithmetic functions:
+\begin{verbatim}
+   Int#(TAdd#(5,n));                        // defines a signed integer n+5 bits wide
+                                            // n must be in scope somewhere
+   
+   typedef TAdd#(vsize, 8) Bigsize#(numeric type vsize);
+                                            // defines a new type Bigsize which
+                                            // is 8 bits wider than vsize
+   
+   typedef Bit#(TLog#(n)) CBToken#(numeric type n); 
+                                            // defines a new parameterized type, 
+                                            // CBToken, which is log(n) bits wide.
+
+   typedef 8 Wordsize;                      // Blocksize is based on Wordsize      
+   typedef TAdd#(Wordsize, 1) Blocksize;
+\end{verbatim}
+
+
+% ================================================================
+\subsubsection{valueOf and SizeOf pseudo-functions}
+\index{valueof@\texttt{valueof} (pseudo-function of size types)}
+\index{valueOf@\texttt{valueOf} (pseudo-function of size types)}
+\index{SizeOf@\texttt{SizeOf} (pseudo-function on types)}
+\index[function]{Prelude!valueOf}
+\index[function]{Prelude!SizeOf}
+
+Prelude provides these pseudo-functions to convert between 
+types and numeric values.  The pseudo-function \te{valueof} (or
+\te{valueOf}) is used to convert a numeric type into the corresponding
+Integer  value.
+The pseudo-function \te{SizeOf} is used to convert a type {t} into
+the numeric type representing its bit size.  
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.6 in}|}
+\hline
+& \\
+\te{valueof}&Converts a numeric type into its Integer value.\\
+\te{valueOf}&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer valueOf (t) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{libverbatim}
+   module mkFoo (Foo#(n));
+     UInt#(n) x;
+     Integer y = valueOf(n);
+   endmodule
+\end{libverbatim}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.6 in}|}
+\hline
+& \\
+\te{SizeOf} & Converts a type into a numeric type representing its
+bit size.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function t SizeOf#(any_type)
+   provisos (Bits#(any_type, sa)) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{libverbatim}
+   any_type x = structIn;
+   Bit#(SizeOf#(any_type)) = pack(structIn);
+\end{libverbatim}
+
+
+% ================================================================
+\subsection{Registers and Wires}
+\label{prelude-register}
+
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{.5in}|p{4 in}|}
+\hline
+\multicolumn{3}{|c|}{Register and Wire Interfaces and Modules}\\
+\hline
+Name & Section & Description \\
+\hline
+\hline
+\te{Reg} & \ref{lib-registers} & Register interface \\
+\hline
+\te{CReg} & \ref{lib-creg} & Implementation of a register with an array
+of \te{Reg} interfaces that sequence concurrently \\
+\hline
+\te{RWire} & \ref{lib-rwire} & Similar to the \te{Reg} interface with output wrapped
+in a \te{Maybe} type to indicate validity \\
+\hline
+\te{Wire} & \ref{lib-wire} & Interchangeable with a \te{Reg} interface,
+validity of the data is implicit \\
+\hline
+\te{BypassWire} & \ref{lib-bypasswire} & Implementation of the \te{Wire}
+interface where the \te{\_write method} is \te{always\_enabled} \\
+\hline
+\te{DWire} &\ref{lib-dwire} & Implementation of the \te{Wire} interface where
+the \te{\_read} method is \te{always\_ready} by providing a default value \\
+\hline
+\te{PulseWire} & \ref{lib-pulsewire} & Similar to the \te{RWire} interface without any data \\
+\hline
+\te{ReadOnly} & \ref{readonly} & Interface which provides a value \\
+\hline
+\te{WriteOnly} & \ref{writeonly} & Interface which writes a value \\
+\hline
+\end{tabular}
+\end{center}
+
+%-----------------------------------------
+
+\subsubsection{Reg}
+\index{Reg@\te{Reg} (type)}
+\index{\_write@\te{\_write} (\te{Reg} interface method)}
+\index{\_read@\te{\_read} (\te{Reg} interface method)}
+\index{mkReg@\te{mkReg} (module)}
+\index{mkRegU@\te{mkRegU} (module)}
+\index{mkRegA@\te{mkRegA} (module)}
+\index{asReg@\te{asReg} (\te{Reg} function)}
+\label{lib-registers}
+\index[function]{Prelude!mkReg}
+\index[function]{Prelude!mkRegU}
+\index[function]{Prelude!mkRegA}
+\index[function]{Prelude!asReg}
+\index[function]{Prelude!readReg}
+\index{readReg@\te{readReg} (\te{Reg} function)}
+\index{writeReg@\te{writeReg} (\te{Reg} function)}
+\index[function]{Prelude!writeReg}
+
+The most elementary module available in {\BSV} is the register, which
+has a  \te{Reg} interface.  Registers are polymorphic, i.e., in
+principle they can hold a value of any type but, of course, ultimately
+registers store bits.  Thus, the provisos on register modules indicate that
+the type of the value stored in the register must be in the \te{Bits}
+type class, i.e., the operations \te{pack} and \te{unpack} are defined
+on the type to convert into bits and back.
+
+Note that all Bluespec registers are considered
+atomic units, which means that even if one bit is updated
+(written), then all the bits are considered updated. This
+prevents multiple rules from updating register fields in an
+inconsistent manner.
+
+When scheduling register modules, reads occur before writes.  That is,
+any rule which reads from a register
+must be scheduled earlier than any other rule which writes to the
+register. The value read from the register is the value written in the
+previous clock cycle.
+
+{\bf Interfaces and Methods}
+
+The \te{Reg} interface contains two methods, \te{\_write} and \te{\_read}.
+
+\begin{libverbatim}
+   interface Reg #(type a_type);
+       method Action _write(a_type x1);
+       method a_type _read();
+   endinterface: Reg
+\end{libverbatim}
+
+The \te{\_write} and \te{\_read} methods are rarely used.  Instead, for
+writes, one uses the
+non-blocking assignment notation and, for reads, one just mentions the
+register interface in an expression.  % Both these notations are described
+% in more detail in the BSV Reference Guide.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{Reg} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{\_write}&\te{Action}&writes a value \te{x1} &\te{x1}&data
+to be written \\
+\hline
+\te{\_read}&\te{a\_type}&returns the value of the register&&\\
+\hline
+
+\end{tabular}
+\end{center}
+
+{\bf Modules}
+
+Prelude provides three modules to create a register: \te{mkReg} creates a
+register with a given reset value, \te{mkRegU} creates a register
+without any reset, and  \te{mkRegA} creates a register with a given
+reset value and with asynchronous reset logic.  
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkReg} &Make a register with a given reset value.  Reset logic is
+synchronous. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkReg#(parameter a_type resetval)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkRegU}&Make a register without any reset; initial simulation
+value is alternating 01 bits.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegU(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkRegA}&Make a register with a given reset value.  Reset logic is
+asynchronous.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegA#(parameter a_type resetval)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\ \hline
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Scheduling}
+
+When scheduling register modules, reads occur before writes.  That is,
+any rule which reads from a register
+must be scheduled earlier than any other rule which writes to the
+register.  The value read from the register is the value written in the
+previous clock cycle.
+Multiple rules can write to a register in a given clock cycle, with the
+effect that a later rule overwrites the value written by earlier rules.
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkReg, mkRegU, mkRegA}\\
+\hline
+&{read}&{write}\\
+\hline
+\hline
+{read}&CF&SB\\
+\hline
+{write}&SA& SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Functions}
+
+Three functions are provided for using registers: \te{asReg} returns the register
+interface instead of the value of the register; \te{readReg} reads the
+value of a register, useful when managing vectors or lists of
+registers; and \te{writeReg} to write a value into a register, also
+useful when managing vectors or lists of registers.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{asReg}&Treat a register as a register, i.e., suppress the normal behavior
+where the interface name implicitly represents the value that the
+register contains (the \te{\_read} value).  This
+function returns
+the register interface, not the value of the register.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Reg#(a_type) asReg(Reg#(a_type) regIfc);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{readReg}&Read the value out of a register. Useful for giving  as
+the  argument to higher-order vector and list functions.\\
+\cline{2-2}
+&\begin{libverbatim}
+function a_type readReg(Reg#(a_type) regIfc);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+\te{writeReg}&Write a value into a register.  Useful for giving  as
+the argument to higher-order vector and list functions.\\  
+\cline{2-2}
+&\begin{libverbatim}
+function Action writeReg(Reg#(a_atype) regIfc, a_type din);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Reg#(ta) res <- mkReg(0);
+
+   // create board[x][y]
+   Reg#(ta) pipe[depth];
+   for (Integer i=0; i<depth; i=i+1) begin
+      Reg#(ta) c();
+      mkReg#(0) xinst(c);
+      pipe[i] = asReg(c);
+   end
+
+   function a readReg(Reg#(a) r);
+      return(r);
+   endfunction
+\end{verbatim}
+
+
+%-----------------------------------------
+
+\subsubsection{CReg}
+\index{mkCReg@\te{mkCReg} (module)}
+\index{mkCRegU@\te{mkCRegU} (module)}
+\index{mkCRegA@\te{mkCRegA} (module)}
+\label{lib-creg}
+\index[function]{Prelude!mkCReg}
+\index[function]{Prelude!mkCRegU}
+\index[function]{Prelude!mkCRegA}
+
+The basic register modules described in \ref{lib-registers} have scheduling
+annotations that do not allow two rules to read and write a register
+concurrently (that is, sequentially in the same clock cycle).  Implementing
+this concurrency requires bypassing, so that a value written by one rule is
+visible to the next rule that wants to read the register.  This can create
+long paths, and so explicit input from the designer is preferred.  Therefore,
+the basic registers do not support this bypassing.  If a designer wants
+concurrent register access between rules, they must explicitly request
+and manage this, by instantiating one of the \te{CReg} family of modules.
+
+These concurrent registers are also known as EHRs (Ephemeral History Registers)
+in work by Arvind and Rosenband\footnote{Daniel~L. Rosenband.
+\newblock {The Ephemeral History Register: Flexible Scheduling for Rule-Based Designs}.
+\newblock In {\em Proc. MEMOCODE'04}, June 2004.}.
+
+{\bf Modules}
+
+Prelude provides three modules to create a concurrent register: \te{mkCReg}
+creates a concurrent register with a given reset value, \te{mkCRegU} creates
+a concurrent register without any reset, and  \te{mkCRegA} creates a
+concurrent register with a given reset value and with asynchronous reset logic.  
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkCReg} & Make a concurrent register with a given number of ports
+and with a given reset value.  Reset logic is synchronous. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCReg#(parameter Integer n,
+               parameter a_type resetval)
+             (Reg#(a_type) ifc[])
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkCRegU} & Make a concurrent register with a given number of ports
+and without any reset. Initial simulation value is alternating 01 bits. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRegU#(parameter Integer n) (Reg#(a_type) ifc[])
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+\te{mkCRegA} & Make a concurrent register with a given number of ports
+and with a given reset value. Reset logic is asynchronous. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRegA#(parameter Integer n,
+                parameter a_type resetval) 
+              (Reg#(a_type) ifc[])
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\ \hline
+\hline
+\end{tabular}
+\end{center}
+
+As indicated by the bracket notation in the interface type, these
+modules provide an array of \te{Reg} interfaces, whose methods can be
+called concurrently in separate actions.  The modules take a size
+parameter \te{n}, that indicates the size of the array to return.  The
+minimum size is $0$.  An implementation may specify a maximum size (5,
+in the current implementation).
+
+{\bf Scheduling}
+
+When a concurrent register is instantiated, it returns an array of \te{Reg}
+interfaces.  The scheduling relationships for \te{\_read} and \te{\_write} in
+one \te{Reg} interface are the same as for the basic register modules in
+\ref{lib-registers}.  The methods of lower-numbered interfaces sequence
+before the methods of higher-numbered interfaces.
+
+The designer manages the concurrency of the register accesses by choosing
+which interfaces to assign to which rules.
+
+\begin{center}
+\begin{tabular}{|p{.75 in}||c|c||c|c||}
+\hline
+\multicolumn{5}{|c|}{Scheduling Annotations}\\
+\multicolumn{5}{|c|}{mkCReg, mkCRegU, mkCRegA}\\
+\multicolumn{5}{|c|}{for $j < k$}\\
+\hline
+& {read$_j$} & {write$_j$} & {read$_k$} & {write$_k$} \\
+\hline
+\hline
+{read$_j$} & CF & SB & SBR & SBR \\
+\hline
+{write$_j$} & SA & SBR & SBR & SBR \\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+The \te{Reg} interfaces execute in sequence starting with element $0$ of the
+array up through element $n-1$.  That is, the \te{\_read} method of the first
+interface will return the value stored in the register from the previous
+clock cycle; if the \te{\_write} method of the first interface is called,
+the \te{\_read} method of the second interface will return the written value,
+otherwise it returns the registered value.  And so on, with each \te{\_read}
+method returning the last value written to any of the lower-numbered
+interfaces, or the register value if none of the lower-numbered \te{\_write}
+methods were called.  The value registered at the end of clock cycle is the
+value written by the highest-numbered write method that was called.
+
+{\bf Examples}
+
+In the following example, the two rules can be scheduled concurrently in
+the same clock cycle, which would not have been possible if the register
+\te{byteCount} had been instantiated as a basic \te{mkReg} register.
+Further, if both rules execute in a given clock cycle, the value read in
+rule \te{doRecv} is the updated value that was written in rule \te{doSend}.
+
+\begin{verbatim}
+   Reg#(Bool) byteCount[2] <- mkCReg(2, True);
+
+   rule doSend (canSend);
+      ...
+      byteCount[0] <= byteCount[0] + len;
+   endrule
+
+   rule doRecv (canRecv);
+      ...
+      byteCount[1] <= byteCount[1] - len;
+   endrule
+\end{verbatim}
+
+\index{array!named type!example}
+\index{Array@\te{Array} (type)!example}
+In the above example, \te{mkCReg} returns an array of \te{Reg} interfaces.
+This type is expressed implicitly using the bracket syntax.
+The type can also be explicitly expressed with the name \te{Array}, when
+necessary. (See Section \ref{sec-array} for more information on the \te{Array}
+type.)  One place where this can be necessary is when the array type is a
+component of a larger type.  A common example of this would be when
+instatiating a \te{Vector} of \te{mkCReg} modules:
+
+\begin{verbatim}
+   Vector#(N, Array#(Reg#(T))) regs <- replicateM(mkCReg(3,0));
+\end{verbatim}
+
+The above instantiation can also be achieved using multidimensional arrays.
+Instead of a vector of arrays, one can use an array of arrays:
+
+\begin{verbatim}
+   Integer n = valueOf(N);
+   Reg#(T) regs[n][3];
+   for (Integer i=0; i<n; i=i+1)
+      regs[i] <- mkCReg(3,0);
+\end{verbatim}
+
+
+%-----------------------------------------
+
+\subsubsection{RWire}
+
+\index{RWire@\te{RWire}}
+\index{wset@\te{wset} (\te{RWire} interface method)}
+\index{wget@\te{wget} (\te{RWire} interface method)}
+
+\label{lib-rwire}
+
+An \te{RWire} is a primitive stateless module whose purpose is to allow     
+data transfer between methods and rules without    
+the cycle latency of a register.  That is, a \te{RWire} may be written
+in a cycle and that value can be read out in the same cycle; values
+are not stored across clock cycles. 
+
+When scheduling wire modules, since the value is read in the same
+cycle in which it is written, writes must occur before reads.  That is, any
+rule which writes to a wire  must be scheduled earlier than any other
+rule which reads from the 
+wire.  This is the reverse of how registers are scheduled.
+
+
+{\bf Interfaces and Methods}
+                                                                        
+The \te{RWire} interface is conceptually similar to a register's interface,  
+but the output value is wrapped in a \te{Maybe} type.  The \te{wset}
+method places a value on the wire and sets the valid signal.  The read-like method, 
+\te{wget},  returns the value and a valid signal in a 
+\te{Maybe} type. The output is   
+only \te{Valid} if a write has a occurred in the same clock     
+cycle, otherwise the output is \te{Invalid}.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{2.0 in}|p{.5in}|p{1 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{RWire} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{wset}&\te{Action}&writes a value and sets the valid signal&\te{datain}&data
+to be sent on the wire \\
+\hline
+\te{wget}&\te{Maybe}&returns the value and the valid signal&&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\begin{verbatim}
+   interface RWire#(type element_type) ;
+      method Action wset(element_type datain) ;
+      method Maybe#(element_type) wget() ;
+   endinterface: RWire
+\end{verbatim}
+
+{\bf Modules}
+
+\index{mkRWireSBR@\te{mkRWireSBR} (\te{RWire} module)}
+\index[function]{Prelude!mkRWireSBR}
+
+The \te{mkRWireSBR},  \te{mkRWire}, and \te{mkUnSafeRWire} modules are provided to create an
+RWire.  %The \te{mkRWireSBR} is  recommended.
+The difference between the  \te{RWire} modules is the scheduling
+annotations.  In  \te{mkRWireSBR} the \te{wset} is SBR with itself,
+allowing multiple \te{wset}s in the same clock cycle (though not, of
+course, in the same rule).
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkRWireSBR}&Creates an \te{RWire}. Output is only valid if a write
+has occurred in the same clock cycle.  This is the recommended module
+to use to create an \te{RWire}. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRWireSBR(RWire#(element_type))
+   provisos (Bits#(element_type, element_width)) ;\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkRWire@\te{mkRWire} (\te{RWire} module)}
+\index[function]{Prelude!mkRWire}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkRWire}&Creates an \te{RWire}. Output is only valid if a write
+has occurred in the same clock cycle.   The write (\te{wset}) must be
+sequenced before the read (\te{wget}) and they must be in different rules.   \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRWire(RWire#(element_type))
+   provisos (Bits#(element_type, element_width)) ;\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mkUnsafeRWire@\te{mkUnsafeRWire} (\te{RWire} module)}
+\index[function]{Prelude!mkUnsafeRWire}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkUnsafeRWire}&Creates an \te{RWire}. Output is only valid if a write
+has occurred in the same clock cycle.  The write (\te{wset}) must be
+sequenced before the read (\te{wget}) but they can  be in the same rule.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkUnsafeRWire(RWire#(element_type))
+   provisos (Bits#(element_type, element_width)) ;\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Scheduling}
+
+When scheduling wire modules, since the value is read in the same
+cycle in which it is written, writes must occur before reads.  That is, any
+rule which writes to a wire  must be scheduled earlier than any other
+rule which reads from the 
+wire.  This is the reverse of how registers are scheduled.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkRWire}\\
+\hline
+&wget&wset\\
+\hline
+\hline
+wget&CF&SAR\\
+\hline
+wset&SBR&C\\
+\hline
+\hline
+\end{tabular}
+\hm
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkRWireSBR}\\
+\hline
+&wget&wset\\
+\hline
+\hline
+wget&CF&SAR\\
+\hline
+wset&SBR&SBR\\
+\hline
+\hline
+\end{tabular}
+\hm
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkUnsafeRWire}\\
+\hline
+&wget&wset\\
+\hline
+\hline
+wget&CF&SA\\
+\hline
+wset&SB&C\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   RWire#(int) rw_incr <- mkRWire();  
+
+   rule doit;
+      Maybe#(int) mbi = rw_incr.wget();
+      int   di        = fromMaybe (?, mbi);
+      if      ((! isValid (mbi))
+         noAction;
+      else // (   isValid (mbi))
+         value2 <= value2 + di ;
+   endrule
+
+   rule doitdifferently;
+      case (rw_incr.wget()) matches
+        { tagged Invalid  } : noAction;
+        { tagged Valid .di} : value <= value + di;
+      endcase
+   endrule
+
+   method Action increment (int di);
+      rw_incr.wset (di);
+   endmethod
+\end{verbatim}
+
+
+\subsubsection{Wire}
+\label{lib-wire}
+
+\index{Wire@\te{Wire} (interface)}
+The \te{Wire} interface and module are similar to \te{RWire}, but the valid
+bit is hidden from the user and the validity of the read is considered
+an implicit condition.  The \te{Wire} interface works like
+the \te{Reg} interface, so mentioning the name of the wire gets (reads) its
+contents whenever they're valid, and using \te{<=} writes the
+wire.  \te{Wire} is an \te{RWire} that is designed to be
+interchangeable with \te{Reg}.   You can replace a \te{Reg} with a
+\te{Wire} without changing the syntax.
+
+
+{\bf Interfaces and Methods}
+
+\begin{verbatim}
+   typedef Reg#(element_type) Wire#(type element_type);
+\end{verbatim}
+
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{Wire} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{\_write}&\te{Action}&writes a value \te{x1} &\te{x1}&data
+to be written \\
+\hline
+\te{\_read}&\te{a\_type}&returns the value of the wire&&\\
+\hline
+
+\end{tabular}
+\end{center}
+
+
+{\bf Modules}
+
+The \te{mkWire} and \te{mkUnsafeWire} modules are provided to create a
+\te{Wire}.  The only difference between the two modules are the
+scheduling annotations.  The \te{mkWire} version requires that the the
+write and the read be in different rules.
+
+\index{mkWire@\te{mkWire} (module)}
+\index[function]{Prelude!mkWire}
+\index{mkUnsafeWire@\te{mkUnsafeWire} (module)}
+\index[function]{Prelude!mkUnsafeWire}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkWire}&Creates a \te{Wire}. Validity of the output is
+automatically checked as an implicit condition of the read method.
+The write and the read methods must be in different rules.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkWire(Wire#(element_type)) 
+   provisos (Bits#(element_type, element_width));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkUnsafeWire}&Creates a \te{Wire}. Validity of the output is
+automatically checked as an implicit condition of the read method.
+The write and the read methods can be in the same rule.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUnsafeWire(Wire#(element_type)) 
+   provisos (Bits#(element_type, element_width));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkWire}\\
+\hline
+&{\_read}&{\_write}\\
+\hline
+\hline
+{\_read}&CF&SAR\\
+\hline
+{\_write}&SBR& C\\
+\hline
+\hline
+\end{tabular}
+\hmm\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkUnsafeWire}\\
+\hline
+&{\_read}&{\_write}\\
+\hline
+\hline
+{\_read}&CF&SA\\
+\hline
+{\_write}&SB& C\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+module mkCounter_v2 (Counter);
+   Reg#(int) value2 <- mkReg(0);  
+   Wire#(int) w_incr <- mkWire(); 
+
+   rule r_incr;
+      value2 <= value2 + w_incr;
+   endrule
+
+   method int read();
+      return value2;
+   endmethod
+
+   method Action increment (int di);
+      w_incr <= di;
+   endmethod
+endmodule
+\end{verbatim}
+
+
+\subsubsection{BypassWire}
+\index{BypassWire@\te{BypassWire} (interface)}
+\index{mkBypassWire@\te{mkBypassWire} (module)}
+\index[function]{Prelude!mkBypassWire}
+\label{lib-bypasswire}
+
+BypassWire is an implementation of the Wire interface where
+the \te{\_write} method is an \te{always\_enabled} method. The compiler 
+will issue a warning if the method does not appear to be called
+every clock cycle. The advantage of this tradeoff is that 
+the \te{\_read} method of this interface does not carry any implicit
+condition (so it can satisfy a \te{no\_implicit\_conditions} assertion
+or an \te{always\_ready} method). %  See the BSV Reference Guide for
+% more discussion on the \te{always\_ready}, \te{always\_enabled}, and
+% \te{no\_implicit\_conditions} attributes.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkBypassWire}&Creates a \te{BypassWire}. The write method is always\_enabled.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkBypassWire(Wire#(element_type)) 
+   provisos (Bits#(element_type, element_width));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkBypassWire}\\
+\hline
+&{\_read}&{\_write}\\
+\hline
+\hline
+{\_read}&CF&SAR\\
+\hline
+{\_write}&SBR& C\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{verbatim}
+module mkCounter_v2 (Counter);
+   Reg#(int) value2 <- mkReg(0);  
+   Wire#(int) w_incr <- mkBypassWire();  
+
+   rule r_incr;
+      value2 <= value2 + w_incr;
+   endrule
+
+   method int read();
+      return value2;
+   endmethod
+
+   method Action increment (int di);
+      w_incr <= di;
+   endmethod
+endmodule
+\end{verbatim}
+
+
+\subsubsection{DWire}
+\index{DWire@\te{DWire} (interface)}
+\index{mkDWire@\te{mkDWire} (module)}
+\index[function]{Prelude!mkDWire}
+\index{mkUnsafeDWire@\te{mkUnsafeDWire} (module)}
+\index[function]{Prelude!mkUnsafeDWire}
+\label{lib-dwire}
+
+
+DWire is an implementation of the Wire interface where the \te{\_read}
+method is an \te{always\_ready} method and thus has no implicit
+conditions. Unlike the BypassWire however, the \te{\_write method}
+need not be always enabled. On cycles when a DWire is written to, the
+\te{\_read} method returns that value.  On cycles when no value is
+written, the \te{\_read} method instead returns a default value that
+is specified as an argument during instantiation.
+
+There are two modules to create a \te{DWire}; the only difference
+being the scheduling annotations.  A write is always scheduled before
+a read, however the \te{mkDWire} module requires
+that the write and  read be in different rules.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.4 in}|}
+\hline
+\te{mkDWire}&Creates a \te{DWire}. The read method is always\_ready.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkDWire#(a_type defaultval)(Wire#(element_type)) 
+   provisos (Bits#(element_type, element_width));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.4 in}|}
+\hline
+\te{mkUnsafeDWire}&Creates a \te{DWire}. The read method is always\_ready.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUnsafeDWire#(a_type defaultval)(Wire#(element_type)) 
+   provisos (Bits#(element_type, element_width));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkDWire}\\
+\hline
+&{\_read}&{\_write}\\
+\hline
+\hline
+{\_read}&CF&SAR\\
+\hline
+{\_write}&SBR& C\\
+\hline
+\hline
+\end{tabular}
+\hmm\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkUnsafeDWire}\\
+\hline
+&{\_read}&{\_write}\\
+\hline
+\hline
+{\_read}&CF&SA\\
+\hline
+{\_write}&SB& C\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+module mkCounter_v2 (Counter);
+   Reg#(int) value2 <- mkReg(0); 
+   Wire#(int) w_incr <- mkDWire (0); 
+
+   rule r_incr;
+      value2 <= value2 + w_incr;
+   endrule
+
+   method int read();
+      return value2;
+   endmethod
+
+   method Action increment (int di);
+      w_incr <= di;
+   endmethod
+endmodule
+\end{verbatim}
+
+\subsubsection{PulseWire}
+
+\index{PulseWire@\te{PulseWire} (interface)}
+\index{mkPulseWire@\te{mkPulseWire} (module)}
+\index{send@\te{send} (\te{PulseWire} interface method)}
+\index{\_read@\te{\_read} (\te{PulseWire} interface method)}
+\index{mkPulseWireOR@\te{mkPulseWireOR} (module)}
+\index[function]{Prelude!mkPulseWire}
+\index[function]{Prelude!mkPulseWireOR}
+
+\index{mkUnsafePulseWire@\te{mkUnsafePulseWire} (module)}
+\index{mkUnsafePulseWireOR@\te{mkUnsafePulseWireOR} (module)}
+\index[function]{Prelude!mkUnsafePulseWire}
+\index[function]{Prelude!mkUnsafePulseWireOR}
+
+
+
+\label{lib-pulsewire}
+
+
+{\bf Interfaces and Methods}
+
+The \te{PulseWire} interface is an \te{RWire} without any data.  It is useful
+within rules and action methods to signal other methods or rules in
+the same clock cycle.  Note that because the read method is called
+\te{\_read}, the register shorthand can be used to get its value without
+mentioning the method \te{\_read} (it is implicitly added).
+
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{2 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{PulseWire} Interface}\\
+\hline
+Name & Type & Description  \\
+\hline
+\hline 
+\te{send}&Action&sends a signal down the wire \\
+\hline
+\te{\_read}&Bool&returns the valid signal\\
+\hline
+
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+   interface PulseWire;
+     method Action send();
+     method Bool _read();
+   endinterface
+\end{verbatim}
+
+
+{\bf Modules}
+
+Four modules are provided to create a \te{PulseWire}, the only
+difference being the scheduling annotations.  
+In the \te{OR} versions 
+the \te{send} method does not conflict with itself.  Calling the
+\te{send} method for a \te{mkPulseWire} from 2 rules causes 
+the two rules to conflict while in the \te{mkPulseWireOR} there is no
+conflict.  In other words, the \te{mkPulseWireOR} acts a logical
+"OR". 
+The \te{Unsafe}
+versions allow the \te{send} and \te{\_read} methods to be in the same rule.
+
+
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4 in}|}
+\hline
+\te{mkPulseWire}& The writing to this type of wire is used in rules
+and action methods to send a single bit to signal other
+methods or rules in the same clock cycle.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkPulseWire(PulseWire);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4 in}|}
+\hline
+\te{mkPulseWireOR}&Returns a \te{PulseWire} which acts like a logical
+"Or".  The \te{send} method of the same wire can be used in two
+different rules without conflict.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkPulseWireOR(PulseWire);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4 in}|}
+\hline
+\te{mkUnsafePulseWire}& The writing to this type of wire is used in rules
+and action methods to send a single bit to signal other
+methods or rules in the same clock cycle.  The \te{send} and
+\te{\_read} methods can be in the same rule.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUnsafePulseWire(PulseWire);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4 in}|}
+\hline
+\te{mkUnsafePulseWireOR}&Returns a \te{PulseWire} which acts like a logical
+"Or".  The \te{send} method of the same wire can be used in two
+different rules without conflict.  The \te{send} and \te{\_read}
+methods can be in the same rule.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUnsafePulseWireOR(PulseWire);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkPulseWire}\\
+\hline
+&{\_read}&{send}\\
+\hline
+\hline
+{\_read}&CF&SAR\\
+\hline
+{send}&SBR& C\\
+\hline
+\hline
+\end{tabular}
+\hmm\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkUnsafePulseWire}\\
+\hline
+&{\_read}&{send}\\
+\hline
+\hline
+{\_read}&CF&SA\\
+\hline
+{send}&SB& C\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkPulseWireOR}\\
+\hline
+&{\_read}&{send}\\
+\hline
+\hline
+{\_read}&CF&SAR\\
+\hline
+{send}&SBR&SBR\\
+\hline
+\hline
+\end{tabular}
+\hmm\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkUnsafePulseWireOR}\\
+\hline
+&{\_read}&{send}\\
+\hline
+\hline
+{\_read}&CF&SA\\
+\hline
+{send}&SB&SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Counter Example - Using \te{Reg} and \te{PulseWire} }
+\begin{verbatim}
+interface Counter#(type size_t);
+    method Bit#(size_t) read();
+    method Action load(Bit#(size_t) newval);
+    method Action increment();
+    method Action decrement();
+endinterface
+
+module mkCounter(Counter#(size_t));
+    Reg#(Bit#(size_t)) value <- mkReg(0);          // define a Reg
+
+    PulseWire increment_called <- mkPulseWire();   // define the PulseWires used 
+    PulseWire decrement_called <- mkPulseWire();   // to signal other methods or rules
+
+    // whether rules fire is based on values of PulseWires
+    rule do_increment(increment_called && !decrement_called);
+        value <= value + 1;
+    endrule
+
+    rule do_decrement(!increment_called && decrement_called);
+        value <= value - 1;
+    endrule
+
+    method Bit#(size_t) read();                 // read the register
+        return value;
+    endmethod
+
+    method Action load(Bit#(size_t) newval);    // load the register
+        value <= newval;                        // with a new value
+    endmethod
+
+    method Action increment();                  // sends the signal on the
+        increment_called.send();                // PulseWire increment_called
+    endmethod
+
+    method Action decrement();                  /  sends the signal on the
+        decrement_called.send();                // PulseWire decrement_called  
+    endmethod
+endmodule
+\end{verbatim}
+
+\subsubsection{ReadOnly}
+\index{ReadOnly@\te{ReadOnly} (interface)}
+\label{readonly}
+
+\te{ReadOnly} is an interface which provides a value. The \te{\_read}
+        shorthand can be used to read the value.
+
+{\bf Interfaces and Methods}
+\begin{center}
+\begin{tabular}{|p{.75in}|p{1 in}|p{2 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{ReadOnly} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{\_read}&\te{a\_type}&Reads the data\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+     interface ReadOnly #( type a_type ) ;
+        method a_type _read() ;
+     endinterface
+\end{libverbatim}
+
+
+{\bf Functions}
+
+\index[function]{Prelude!regToReadOnly}
+\index{regToReadOnly@\te{regToReadOnly} (function)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.6 in}|}
+\hline
+\te{regToReadOnly}&Converts a \te{Reg} interface into a \te{ReadOnly}
+interface.  Useful for giving  as
+the  argument to higher-order vector and list functions.\\
+\cline{2-2}
+&\begin{libverbatim}
+function ReadOnly#(a_type) regToReadOnly(Reg#(a_type) regIfc);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index[function]{Prelude!pulseWireToReadOnly}
+\index{pulseWireToReadOnly@\te{pulseWireToReadOnly} (function)}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+\te{pulseWireToReadOnly}&Converts a \te{PulseWire} interface into a
+\te{ReadOnly} interface. \\
+\cline{2-2}
+&\begin{libverbatim}
+function ReadOnly#(Bool) pulseWireToReadOnly(PulseWire ifc);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index[function]{Prelude!readReadOnly}
+\index{readReadOnly@\te{readReadOnly} (function)}
+
+\begin{center}
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+\te{readReadOnly}&Takes a \te{ReadOnly} interface and returns a
+value.  \\
+\cline{2-2}
+&\begin{libverbatim}
+function a_type readReadOnly(ReadOnly#(a_type) r);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   interface AHBSlaveIFC;
+      interface AHBSlave              bus;
+      interface Put#(AHBResponse)     response;
+      interface ReadOnly#(AHBRequest) request;
+   endinterface
+   ...
+      interface ReadOnly request;
+         method AHBRequest _read;
+            let ctrl = AhbCtrl {command:  write_wire,
+                                size:     size_wire,
+                                burst:    burst_wire,
+                                transfer: transfer_wire,
+                                prot:     prot_wire,
+                                addr:     addr_wire} ;
+            let value = AHBRequest {ctrl: ctrl, data: wdata_wire};
+            return value;
+         endmethod
+      endinterface
+\end{verbatim}
+
+%=============================================================
+
+\subsubsection{WriteOnly}
+\index{WriteOnly@\te{WriteOnly} (interface)}
+\label{writeonly}
+
+\te{WriteOnly} is an interface which writes a value. The \te{\_write}
+        shorthand is used to write the value.
+
+{\bf Interfaces and Methods}
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.2 in}|p{.4in}|p{1.4 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{WriteOnly} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{\_write}&Action&Writes the data&\te{x}&Value to be written, of
+datatype \te{a\_type}.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface WriteOnly #( type a_type ) ;
+   method Action _write (a_type x) ;
+endinterface
+\end{libverbatim}
+
+{\bf Examples}
+
+\begin{verbatim}
+interface WriteOnly#(type a);
+   method Action _write(a v);
+endinterface
+
+// module with an always-enabled port to tie to a default value
+   import "BVI" AlwaysWrite = 
+      module mkAlwaysWrite(WriteOnly#(a)) provisos(Bits#(a,sa));
+        no_reset;
+        parameter width = valueof(sa);
+        method _write(D_IN) enable((*inhigh*)EN);
+        schedule _write C _write;
+   endmodule
+
+   module mkDefaultValue1();
+      WriteOnly#(UInt#(7)) d1 <- mkAlwaysWrite(clocked_by primMakeDisabledClock);
+      rule handle_d1;
+          d1 <= 5;
+      endrule
+   endmodule
+\end{verbatim}
+
+%=============================================================
+
+\subsection{Miscellaneous Functions }
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4 in}|}
+% \hline
+% \te{}& \\
+% \cline{2-2}
+% & 
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+\subsubsection{Compile-time Messages}
+
+\index{error@\te{error} (forced error)}
+\index[function]{Prelude!error}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{error}&Generate a compile-time error message, {\tt s},  and halt compilation. \\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type error(String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{warning@\te{warning} (forced warning)}
+\index[function]{Prelude!warning}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{warning}&When applied to a value {\tt v} of type {\tt a}, generate a compile-time
+warning message, {\tt s}, and continue compilation, returning {\tt v}. \\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type warning(String s, a_type v);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index{message@\te{message} (compilation message)}
+\index[function]{Prelude!message}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{message}&When applied to a value {\tt v} of type {\tt a}, generate a compile-time
+informative message, {\tt s}, and continue compilation, returning {\tt v}. \\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type message(String s, a_type v);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{errorM@\te{errorM} (forced error)}
+\index[function]{Prelude!errorM}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{errorM}&Generate a compile-time error message, {\tt s},  and halt
+compilation in a monad. \\
+\cline{2-2}
+& \begin{libverbatim}
+function m#(void) errorM(String s)
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{warningM@\te{warningM} (forced warning)}
+\index[function]{Prelude!warningM}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{warningM}&Generate a compilation warning in a monad. \\
+\cline{2-2}
+& \begin{libverbatim}
+function m#(void) warningM(String s)
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{messageM@\te{messageM} (compilation message)}
+\index[function]{Prelude!messageM}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{messageM}&Generate a compilation message in a monad.\\
+\cline{2-2}
+& \begin{libverbatim}
+function m#(void) messageM(String s)
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+% \index{messageM@\te{messageM} (compilation message)}
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4 in}|}
+% \hline
+% \te{messageM}&Generate a compilation message in a monad. \\
+% \cline{2-2}
+% & \begin{libverbatim}
+% function m#(void) messageM(String s)
+%   provisos (Monad#(m));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+
+
+
+\subsubsection{Arithmetic Functions}
+
+\index{max@\te{max} (function)}
+\index[function]{Prelude!max}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{max}&Returns the maximum of two values, x and y. \\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type max(a_type x, a_type y)
+  provisos (Ord#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{min@\te{min} (function)}
+\index[function]{Prelude!min}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{min}& Returns the minimum of two values, x and y.\\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type min(a_type x, a_type y)
+  provisos (Ord#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{abs@\te{abs} (function)}
+\index[function]{Prelude!abs}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{abs}&Returns the absolute value of x. \\
+\cline{2-2}
+&\begin{libverbatim}
+function a_type abs(a_type x)
+  provisos (Arith#(a_type), Ord#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{signedMul@\te{signedMul} (function)}
+\index[function]{Prelude!signedMul}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{signedMul}&Performs full precision multiplication on  two Int\#(n)
+operands of different sizes. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Int#(m) signedMul(Int#(n) x, Int#(k) y)
+  provisos (Add#(n,k,m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{unsignedMul@\te{unsignedMul} (function)}
+\index[function]{Prelude!unsignedMul}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{unsignedMul}&Performs full precision multiplication on  two
+unsigned UInt\#(n) operands of different sizes. \\
+\cline{2-2}
+&\begin{libverbatim}
+function UInt#(m) unsignedMul(UInt#(n) x, UInt#(k) y)
+  provisos (Add#(n,k,m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{signedQuot@\te{signedQuot} (function)}
+\index[function]{Prelude!signedQuot}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{signedQuot}&Performs full precision division on  two Int\#(n)
+operands of different sizes. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Int#(m) signedQuot(Int#(n) x, Int#(k) y) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{unsignedQuot@\te{unsignedQuot} (function)}
+\index[function]{Prelude!unsignedQuot}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{unsignedQuot}&Performs full precision division on  two unsigned UInt\#(n)
+operands of different sizes. \\
+\cline{2-2}
+&\begin{libverbatim}
+function UInt#(m) unsignedQuot(UInt#(n) x, UInt#(k) y) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsubsection{Operations on Functions}
+
+
+ Higher order functions are functions which take functions as
+arguments and/or return functions as results.  These are often useful with
+list and vector functions. 
+
+
+\index{compose@\te{compose} (function)}
+\index[function]{Prelude!compose}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{compose}&Creates a new function, {\tt c}, made up of
+functions, {\tt f} and {\tt g}. That is,  \verb'c(a) = f(g(a))' \\
+\cline{2-2}
+& \begin{libverbatim}
+function (function c_type (a_type x0)) 
+     compose(function c_type f(b_type x1), 
+             function b_type g(a_type x2));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{composeM@\te{composeM} (function)}
+\index[function]{Prelude!composeM}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{composeM}&Creates a new monadic function, \te{m\#(c)}, made up of
+functions, {\tt f} and {\tt g}.  That is, \verb'c(a) = f(g(a))' \\
+\cline{2-2}
+& \begin{libverbatim}
+function (function m#(c_type) (a_type x0)) 
+      composeM(function m#(c_type) f(b_type x1), 
+               function m#(b_type) g(a_type x2))
+   provisos # (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{id@\te{id} (function)}
+\index[function]{Prelude!id}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{id}&Identity function, returns {\tt x} when given {\tt x}.  This
+function is useful when the argument requires a function which
+doesn't do anything.\\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type id(a_type x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{constFn@\te{constFn} (function)}
+\index[function]{Prelude!constFn}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{constFn}&Constant function, returns {\tt x}. \\
+\cline{2-2}
+&\begin{libverbatim}
+function a_type constFn(a_type x, b_type y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{flip@\te{flip} (function)}
+\index[function]{Prelude!flip}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{flip}&Flips the arguments {\tt x} and {\tt y}, returning a new function. \\
+\cline{2-2}
+& \begin{libverbatim}
+function (function c_type new (b_type y, a_type x))
+     flip (function c_type old (a_type x, b_type y));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{curry@\te{curry} (function)}
+\index[function]{Prelude!curry}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{curry}&This function converts a function on a pair (Tuple2) of
+arguments into a function which takes the arguments separately.  The
+phrase \verb|t0 f(t1 x, t2 y)| is the function returned by \te{curry}\\
+\cline{2-2}
+& \begin{libverbatim}
+function (function t0 f(t1 x, t2 y)) 
+     curry (function t0 g(Tuple2#(t1, t2) x));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{uncurry@\te{uncurry} (function)}
+\index[function]{Prelude!curry}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{uncurry}&This function does the reverse of \te{curry}; it converts
+a function of two arguments into a function which takes a single
+argument, a pair (Tuple2).
+\\
+\cline{2-2}
+& \begin{libverbatim}
+function (function t0 g(Tuple2#(t1, t2) x))
+     uncurry (function t0 f(t1 x, t2 y));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Examples}
+
+\begin{libverbatim}
+ //using constFn to set the initial values of the registers in a list
+   List#(Reg#(Resource)) items <- mapM( constFn(mkReg(initRes)),upto(1,numAdd) );
+ 
+   return(pack(map(compose(head0,toList),state)));
+
+   xs <- mapM(constFn(mkReg(False)),genList);
+\end{libverbatim}
+
+
+\subsubsection{Bit Functions}
+
+The following functions operate on Bit\#(n) variables.
+
+% \index{msb@\te{msb} (function)}
+% \index[function]{Prelude!msb}
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4 in}|}
+% \hline
+% \te{msb}&Returns the most significant bit of \te{x} \\
+% \cline{2-2}
+% & \begin{libverbatim}
+% function Bit#(1) msb(Bit#(n) x) 
+%    provisos(Add#(1,k,n));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+% replaced by typeclass Bitwise msb function
+
+\index{parity@\te{parity} (function)}
+\index[function]{Prelude!parity}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{parity}&Returns the parity of the bit argument \te{v}.  Example: parity( 5'b1) = 1,
+parity( 5'b3) = 0; \\
+\cline{2-2}
+& \begin{libverbatim}
+function Bit#(1) parity(Bit#(n) v); 
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{reverseBits@\te{reverseBits} (function)}
+\index[function]{Prelude!reverseBits}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{reverseBits}&Reverses the order of the bits in the argument \te{x}. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Bit#(n) reverseBits(Bit#(n) x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{countOnes@\te{countOnes} (function)}
+\index[function]{Prelude!countOnes}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{countOnes}&Returns the count of the number of 1's in the bit
+vector \te{bin}. \\
+\cline{2-2}
+& \begin{libverbatim}
+function UInt#(lgn1) countOnes ( Bit#(n) bin )
+  provisos (Add#(1, n, n1), Log#(n1, lgn1), 
+            Add#(1, xx, lgn1) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{countZerosMSB@\te{countZerosMSB} (function)}
+\index[function]{Prelude!countZerosMSB}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{countZerosMSB}&For the bit vector \te{bin}, count the number of 0s until
+the first 1, starting from the most significant bit (MSB). \\
+\cline{2-2}
+& \begin{libverbatim}
+function UInt#(lgn1) countZerosMSB ( Bit#(n) bin )
+  provisos (Add#(1, n, n1), Log#(n1, lgn1) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{countZerosLSB@\te{countZerosLSB} (function)}
+\index[function]{Prelude!countZerosLSB}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{countZerosLSB}&For the bit vector \te{bin}, count the number of 0s until
+the first 1, starting from the least significant bit (LSB). \\
+\cline{2-2}
+& \begin{libverbatim}
+function UInt#(lgn1) countZerosLSB ( Bit#(n) bin )
+  provisos (Add#(1, n, n1), Log#(n1, lgn1) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{truncateLSB@\te{truncateLSB} (function)}
+\index[function]{Prelude!truncateLSB}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{truncateLSB}&Truncates a \te{Bit\#(m)} to a \te{Bit\#(n)}  by
+dropping bits starting with the LSB.  \\
+\cline{2-2}
+& \begin{libverbatim}
+function Bit#(n) truncateLSB(Bit#(m) x)
+   provisos(Add#(n,k,m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+\begin{verbatim}
+   Bit#(6) f6 = truncateLSB(f);
+  
+   let cmem=countZerosLSB(cfg.memoryAllocate);
+
+   let n = countOnes(neighbors);
+\end{verbatim}
+
+\subsubsection{Integer Functions}
+
+The following functions can only be used
+for static elaboration.
+
+\index{gcd@\te{gcd} (function)}
+\index[function]{Prelude!gcd}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{gcd}&Calculate the greatest common divisor of two Integers. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Integer gcd(Integer a, Integer b);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{lcm@\te{lcm} (function)}
+\index[function]{Prelude!lcm}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{lcm}&Calculate the least common multiple of two Integers. \\
+\cline{2-2}
+& \begin{libverbatim}
+function Integer lcm(Integer a, Integer b);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsubsection{Control Flow Function}
+
+\index{while@\te{while} (function)}
+\index[function]{Prelude!while}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{while}&Repeat a function while a predicate holds. \\
+\cline{2-2}
+& \begin{libverbatim}
+function a_type while(function Bool pred(a_type x1), 
+            function a_type f(a_type x1), a_type x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{when@\te{when} (function)}
+\index[function]{Prelude!when}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{when}&Adds an implicit condition onto an expression.\\
+\cline{2-2}
+& \begin{libverbatim}
+function a when(Bool condition, a arg); 
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example - adding the implicit condition readCount==0 to the
+action}
+
+\begin{verbatim}
+   function Action startReadSequence (BAddr startAddr,
+                                      UInt#(6) count);
+      return  when ((readCount == 0), // implicit condition of the action
+      (action
+          readAddr    <= startAddr ;
+          readCount   <= count ;
+       endaction));
+   endfunction
+
+   rule readSeq;         // readCount==0 is an implicit condition
+       startReadSequence (addr, count);
+   endrule
+\end{verbatim}
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4 in}|}
+% \hline
+% \te{asTypeOf}&Forces the type of the first argument, x,  to be the
+% same as the second argument, y. 
+% \index{asTypeOf@\te{asTypeOf} (Prelude function)} \\
+% \cline{2-2}
+% & \begin{libverbatim}
+% function a_type asTypeOf(a_type x, a_type y);
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+% \index{liftM@\te{liftM} (Prelude function)}
+
+% \begin{center}
+% \begin{tabular}{|p{1 in}|p{4 in}|}
+% \hline
+% \te{liftM}&Any function can be lifted into a monadic version. \\
+% \cline{2-2}
+% & \begin{libverbatim}
+% function m#(b) liftM(function b func(a_type x1), 
+%                                      m#(a_type) x)
+%   provisos (Monad#(m));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+
+\subsection{Environment Values}
+
+%\index{Environment@\te{Environment} (package)}
+The \te{Environment} section of the Prelude contains some value definitions that remain
+static within a compilation, but may vary between compilations.
+
+
+Test whether the compiler is generating C.
+
+\index{genC@\te{genC}}
+\index[function]{Prelude!genC}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{genC}&Returns \te{True} if the compiler is generating C.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool genC();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{genVerilog@\te{genVerilog}}
+\index[function]{Prelude!genVerilog}
+
+Test whether the  compiler is generating {\veri}.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{genVerilog}&Returns \te{True} if the compiler is generating Verilog.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool genVerilog();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+\begin{verbatim}
+ if (genVerilog)
+	 return (t + fromInteger(adj));
+\end{verbatim}
+
+The following two variables provide access to the names of the package
+being compiled and the module being synthesized as strings.
+
+\index{genPackageName@\te{genPackageName}}
+\index[function]{Prelude!genPackageName}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{genPackageName}&Returns a \te{String} containing the name of the
+package being compiled. \\
+\cline{2-2}
+&\begin{libverbatim}
+function String genPackageName;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{genModuleName@\te{genModuleName}}
+\index[function]{Prelude!genModuleName}
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{genModuleName}&Returns a \te{String} containing the name of the
+module  being synthesized. \\
+\cline{2-2}
+&\begin{libverbatim}
+function String genModuleName;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\index{compilerVersion@\te{compilerVersion}}
+\index[function]{Prelude!compilerVersion}
+Return the version of the compiler.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{compilerVersion}&Returns a \te{String} containing the compiler
+version.  This is the same string used with the \te{-v} flag.\\
+\cline{2-2}
+&\begin{libverbatim}
+String compilerVersion;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+\hmm Example:
+\begin{libverbatim}
+      The statement:
+           $display("compiler version = %s", compilerVersion);
+      produces this output:
+           compiler version = version 3.8.56 (build 7084, 2005-07-22)
+\end{libverbatim}
+
+\index{buildVersion@\te{buildVersion}}
+\index[function]{Prelude!buildVersion}
+Return the build number of the version of the compiler.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{buildVersion}&Returns a \te{Bit\#(32)} containing the build number
+portion of the compiler version. \\
+\cline{2-2}
+&\begin{libverbatim}
+Bit#(32) buildVersion;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\hmm Example:
+\begin{libverbatim}
+      The statement:
+           $display("The build version of the compiler is %d", buildVersion);
+      produces this output:
+           "The build version of the compiler is 12345"
+\end{libverbatim}
+
+\index{date@\te{date}}
+\index[function]{Prelude!date}
+Get the current date and time.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{date}&Returns a \te{String} containing the date. \\
+\cline{2-2}
+&\begin{libverbatim}
+String date;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\hmm Example:
+\begin{libverbatim}
+      The statement: 
+           $display("date = %s", date); 
+      produces this output:
+           "date = Mon Feb 6 08:39:59 EST 2006"
+\end{libverbatim}
+
+
+\index{epochTime@\te{epochTime}}
+\index[function]{Prelude!epochTime}
+Returns the number of seconds from the epoch (1970-01-01 00:00:00) to now.
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\te{epochTime}&Returns a \te{Bit\#(32)} containing the number of
+seconds since the epoch, which is defined as 1970-01-01 00:00:00. \\
+\cline{2-2}
+&\begin{libverbatim}
+Bit#(32) epochTime;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\hmm Example:
+\begin{libverbatim}
+      The statement: 
+           $display("Current epoch is %d", epochTime); 
+      produces this output:
+           "Current epoch is 1235481642"
+\end{libverbatim}
+
+
+\subsection{Compile-time IO}
+
+These functions control file IO  during elaboration.
+The functions are expressed as modules and can only be used as
+statements inside a \te{module...endmodule} block.
+
+The type \te{Handle} is a primitive type for a file handle.  The value
+is returned when you open a file and is used to specify the file by
+the other functions.
+
+The flag \te{-fdir}, described in the {\em User Guide},  can be used to specify where relative file paths
+should be based from.
+
+\index{openFile@\te{openFile}}
+\index[function]{Prelude!openFile}
+
+The type \te{IOMode} is an enumerated type with three values:
+\te{ReadMode}, \te{WriteMode}, and \te{AppendMode}:
+
+\begin{verbatim}
+    typedef enum { ReadMode, WriteMode, AppendMode } IOMode;
+\end{verbatim}
+
+
+When opening a file you specify the mode (\te{IOMode}) and the
+filename.    Opening  a file in write mode  creates a new
+file; in append mode it adds to an existing file.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{openFile}& Opens a file and returns the  type
+\te{Handle}.   \\
+\cline{2-2}
+&\begin{libverbatim}
+module openFile #(String filename, IOMode mode) (Handle);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{hClose@\te{hClose}}
+\index[function]{Prelude!hClose}
+
+The function \te{hClose} explicitly closes the file with the specified
+handle. The compiler will close any handles that are still open at
+the end of elaboration, or upon exiting with an error, but you
+shouldn't rely on this.  Buffered files will be flushed when the file
+is closed.
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hClose}& Closes the file with the specified handle.  \\
+\cline{2-2}
+&\begin{libverbatim}
+module hClose #(Handle hdl) ();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+The following functions provide query functions for handles.
+
+
+\index{hIsEOF@\te{hIsEOF}}
+\index[function]{Prelude!hIsEOF}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hIsEOF}& Returns a Bool indicating if the end of file has been
+reached for the specified handle.  \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool hIsEOF (Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hIsOpen@\te{hIsOpen}}
+\index[function]{Prelude!hIsOpen}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hIsOpen}&  Returns true if the  the handle
+\te{hdl} is open.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool hIsOpen (Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hIsClosed@\te{hIsClosed}}
+\index[function]{Prelude!hIsClosed}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hIsClosed}& Returns true if the handle
+\te{hdl} is closed.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool hIsClosed (Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{hIsReadable@\te{hIsReadable}}
+\index[function]{Prelude!hIsReadable}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hIsReadable}& Returns true if the  handle has been opened in
+Readable mode and can be read from.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool hIsReadable (Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hIsWriteable@\te{hIsWriteable}}
+\index[function]{Prelude!hIsWriteable}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hIsWriteable}& Returns true if handle has been opened in Writeable
+mode and can be written to.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool hIsWriteable (Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+  The default buffering of files is determined by your
+ system.  If the system is buffering, you may not see any output until
+ the handle is flushed or closed.  You can override this by setting the
+ buffering policy of the handle, so that writes are not buffered, or
+ are line buffered.  The file handle functions \te{hFlush},
+ \te{hGetBuffering}, and \te{hSetBuffering} allow you to 
+ control buffering.
+
+At the end of elaboration, or upon exiting with an error, the compiler
+closes any file handles that were not otherwised closed.  Any
+buffered files will be flushed at this point.
+
+\index{BufferMode@\te{BufferMode} (type)}
+
+The data type \te{BufferMode} indicates the type of buffering.
+\begin{verbatim}
+   typedef union tagged {
+      void NoBuffering;
+      void LineBuffering;
+      Maybe#(Integer) BlockBuffering;
+   } BufferMode;
+\end{verbatim}
+
+
+\index{hFlush@\te{hFlush}}
+\index[function]{Prelude!hFlush}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hFlush}& Explicitly flushes the buffer with the specified handle. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Action hFlush(Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hGetBuffering@\te{hGetBuffering}}
+\index[function]{Prelude!hGetBuffering}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hGetBuffering}& Returns the buffering policy of the file with the specified handle. \\
+\cline{2-2}
+&\begin{libverbatim}
+function ActionValue#(BufferMode) hGetBuffering(Handle hdl);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hSetBuffering@\te{hSetBuffering}}
+\index[function]{Prelude!hSetBuffering}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.3 in}|}
+\hline
+\te{hSetBuffering}& Sets the  buffering mode for the file with the
+specified handle if the file system
+supports it.\\
+\cline{2-2}
+&\begin{libverbatim}
+function Action hSetBuffering(Handle hdl, BufferMode mode);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+The functions \te{hPutStr} and \te{hPutStrLn} write strings to a
+file.  The function \te{hPutStrLn} adds a newline to the end of the string.
+
+\index{hPutStr@\te{hPutStr}}
+\index[function]{Prelude!hPutStr}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.2 in}|}
+\hline
+\te{hPutStr}&Writes the string to the file with the specified handle.\\
+\cline{2-2}
+&\begin{libverbatim}
+module hPutStr #(Handle hdl, String str) ();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hPutStrLn@\te{hPutStrLn}}
+\index[function]{Prelude!hPutStrLn}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.2 in}|}
+\hline
+\te{hPutStrLn}&Writes the string to the file with the specified handle
+and appends a newline to the end of the string.\\
+\cline{2-2}
+&\begin{libverbatim}
+module hPutStr #(Handle hdl, String str) ();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hPutChar@\te{hPutChar}}
+\index[function]{Prelude!hPutChar}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.2 in}|}
+\hline
+\te{hPutChar}&Writes the character to the file with the specified handle.\\
+\cline{2-2}
+&\begin{libverbatim}
+module hPutChar #(Handle hdl, Char c) ();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{hGetChar@\te{hGetChar}}
+\index[function]{Prelude!hGetChar}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.2 in}|}
+\hline
+\te{hGetChar}&Reads the character from the file with the specified handle.\\
+\cline{2-2}
+&\begin{libverbatim}
+module hGetChar #(Handle hdl) (Char);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{hGetLine@\te{hGetLine}}
+\index[function]{Prelude!hGetLine}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.2 in}|}
+\hline
+\te{hGetLine}&Reads a line from the file with the specified handle.\\
+\cline{2-2}
+&\begin{libverbatim}
+module hGetLine #(Handle hdl) (String);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\hmm Example: Creates  a file named \te{sysBasicWrite.log} containing
+the line \te{"Hello World"}.
+
+\begin{verbatim}
+      String fname = "sysBasicWrite.log";
+
+      module sysBasicWrite ();
+         Handle hdl <- openFile(fname, WriteMode);
+         hPutStr(hdl, "Hello");
+         hClose(hdl);
+         mkSub;
+      endmodule
+
+      module mkSub ();
+         Handle hdl <- openFile(fname, AppendMode);
+         hPutStrLn(hdl, " World");
+         hClose(hdl);
+      endmodule
+\end{verbatim}

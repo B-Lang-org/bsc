@@ -1,0 +1,264 @@
+\subsubsection{Register File}
+\index{RegFile@\te{RegFile} (interface type)}
+\index{upd@\te{upd} (\te{RegFile} interface method)}
+\index{sub@\te{sub} (\te{RegFile} interface method)}
+\index{mkRegFile@\te{mkRegFile} (\te{RegFile} module)}
+\index{mkRegFileFull@\te{mkRegFileFull} (\te{RegFile} module)}
+\label{lib-regfile}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import RegFile :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+This package provides  5-read-port 1-write-port register array modules.  
+
+Note: In a design that uses RegFiles, some of the read ports may remain
+unused. This may generate a warning in various downstream tool.
+Downstream  tools should be instructed to optimize away the unused ports. 
+
+
+{\bf Interfaces and Methods}
+
+The \te{RegFile} package defines one interface, \te{RegFile}.  The
+\te{RegFile} interface provides two methods, \te{upd} and \te{sub}.
+The \te{upd} method is an \te{Action} method used to modify (or
+update) the  value
+of an element in the register file.  The \te{sub} method (from
+"sub"script) is a
+\te{Value} method which reads and returns the value of an element in
+the register file.  The value returned is of a datatype \te{data\_t}.
+
+\begin{tabular}{|l|l|l|l|}
+ \hline
+                          &                                     &
+&               \\
+Interface Name   & Parameter name & Parameter Description & Restrictions \\
+\hline
+\hline
+\te{RegFile}&\it{index\_type}&datatype of the index &must be in the \te{Bits} class\\
+\cline{2-4}
+&\it{data\_t}&datatype of the element values &must be in the \te{Bits} class\\
+\hline
+\end{tabular}
+
+\begin{verbatim}
+interface RegFile #(type index_t, type data_t);
+    method Action upd(index_t addr, data_t d);
+    method data_t sub(index_t addr);
+endinterface: RegFile
+\end{verbatim}
+
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1.9 in}|}
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{upd}&\te{Action}&Change or update an element within the register
+file.&\te{addr}&index of the element to be changed, with a datatype of \te{index\_t} \\
+\cline{4-5}
+&&&\te{d}&new value to be stored, with a datatype of \te{data\_t}\\
+\hline
+\hline
+\te{sub}&\it{data\_t}&Read an element from the register
+file and return it.  &\te{addr}& index  of the element, with a
+datatype of \te{index\_t}\\
+\hline
+\end{tabular}
+
+{\bf Modules}
+
+The \te{RegFile} package provides three modules: \te{mkRegFile}
+creates a RegFile with registers allocated from the \te{lo\_index} to
+the \te{hi\_index}; \te{mkRegFileFull} creates a RegFile from the
+minimum index to the maximum index; and \te{mkRegFileWCF} creates a RegFile from \te{lo\_index} to
+\te{hi\_index} for which the reads and the write are scheduled
+conflict-free.  There is a second set of these modules, the
+\te{RegFileLoad} variants, which take  as an argument a file
+containing the initial contents of the array.
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+& \\
+\te{mkRegFile} 
+&Create a RegFile with registers allocated from \te{lo\_index} to
+\te{hi\_index}. \te{lo\_index} and \te{hi\_index} are of the
+\te{index\_t} datatype and the elements are of the \te{data\_t} datatype.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkRegFile#( index_t lo_index, index_t hi_index )
+                 ( RegFile#(index_t, data_t) )
+  provisos (Bits#(index_t, size_index),
+            Bits#(data_t,  size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkRegFileFull}&Create a RegFile from min to max index where the
+index is of a datatype \te{index\_t} and the elements are of datatype
+\te{data\_t}.  The min and max are specified by the \te{Bounded}
+typeclass instance (0 to N-1 for N-bit numbers).\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegFileFull#( RegFile#(index_t, data_t) )
+  provisos (Bits#(index_t, size_index),
+            Bits#(data_t, size_data)
+            Bounded#(index_t) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+& \\
+\te{mkRegFileWCF}&Create a RegFile from  \te{lo\_index} to \te{hi\_index} for which the reads
+and the write are scheduled conflict-free.  For the implications of
+this scheduling, see
+the documentation for \te{ConfigReg} (Section \ref{ref-configreg}).\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegFileWCF#( index_t lo_index, index_t hi_index )
+                    ( RegFile#(index_t, data_t) )
+  provisos (Bits#(index_t, size_index), 
+            Bits#(data_t,  size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{RegFileLoad@\te{RegFileLoad} (package)}
+\index{mkRegFileLoad@\te{mkRegFileLoad} (\te{RegFileLoad} function)}
+\index{mkRegFileFullFile@\te{mkRegFileFullFile} (\te{RegFileLoad} function)}
+The \te{RegFileLoad} variants provide the same functionality as
+\te{RegFile}, but each constructor function takes an additional
+file name argument.  The file contains the initial contents of the
+array using the {\veri} hex memory file syntax, which allows 
+white spaces (including  new lines, tabs, underscores, and
+form-feeds),  comments,
+binary and  hexadecimal numbers.   Length and base format must not be
+specified for the numbers.   
+
+The generated Verilog for  file load variants contains \te{\$readmemb} and
+\te{\$readmemh} constructs.    These statements,
+as well as  initial blocks generally, are considered
+ simulation-only constructs because they are not supported
+consistently across synthesis tools.  Therefore,  in the generated
+ Verilog the  initial
+blocks are protected with a \te{translate\_off} directive.   When
+ using a synthesis tool  
+which supports these constructs you can remove the directives to allow the
+tool to processes the \te{\$readmemh} and  \te{\$readmemb} tasks during synthesis.
+
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+& \\
+\te{mkRegFileLoad} 
+&Create a RegFile using the file  to provide the initial
+contents of the array.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegFileLoad#
+           ( String file, index_t lo_index, index_t hi_index)
+           ( RegFile#(index_t, data_t) )
+  provisos (Bits#(index_t, size_index),
+            Bits#(data_t, size_data));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkRegFileFullLoad}&Create a RegFile from min to max index using the
+file to provide the initial contents of the array. The min and max are specified by the \te{Bounded}
+typeclass instance (0 to N-1 for N-bit numbers).\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegFileFullLoad#( String file)
+                         ( RegFile#(index_t, data_t))
+  provisos (Bits#(index_t, size_index), 
+            Bits#(data_t, size_data),
+            Bounded#(index_t) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+& \\
+\te{mkRegFileWCFLoad}&Create a RegFile from  \te{lo\_index} to \te{hi\_index} for which the reads
+and the write are scheduled conflict-free (see Section
+\ref{ref-configreg}), using the file to provide the initial contents
+of the array.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRegFileWCFLoad#
+           ( String file, index_t lo_index, index_t hi_index)
+           ( RegFile#(index_t, data_t) )
+  provisos (Bits#(index_t, size_index), 
+            Bits#(data_t, size_data));
+\end{libverbatim}
+
+\\
+\hline
+\end{tabular}
+
+
+{\bf Examples}
+
+Use \te{mkRegFileLoad} to create Register files and then read the values.
+
+\begin{verbatim}
+   Reg#(Cntr) count <- mkReg(0);
+
+   // Create Register files to use as inputs in a testbench
+   RegFile#(Cntr, Fp64) vecA  <- mkRegFileLoad("vec.a.txt", 0, 9);
+   RegFile#(Cntr, Fp64) vecB  <- mkRegFileLoad("vec.b.txt", 0, 9);
+   
+   //read the values from the Register files
+   rule drivein (count < 10);
+         Fp64 a = vecA.sub(count);
+         Fp64 b = vecB.sub(count);
+         uut.start(a, b);
+         count <= count + 1;
+   endrule
+\end{verbatim}
+
+
+{\bf Verilog Modules}
+
+\te{RegFile} modules correspond to the following {\V}
+modules, which are found in the BSC {\V} library, \te{\$BLUESPECDIR/Verilog/}.
+
+\begin{center}
+\begin{tabular} {|p{1.8in}|p{1.5in}|p{1in}|}
+\hline
+&&\\
+BSV Module Name & Verilog Module Name&Defined in File \\
+&&\\
+\hline
+\hline
+\te{mkRegFile} &RegFile&RegFile.v  \\
+\te{mkRegFileFull} & & \\
+\te{mkRegFileWCF} & & \\
+\hline
+\te{mkRegFileLoad} &RegFileLoad&RegFileLoad.v \\
+\te{mkRegFileFullLoad} & & \\
+\te{mkRegFileWCFLoad} & & \\
+\hline
+\end{tabular}
+\end{center}

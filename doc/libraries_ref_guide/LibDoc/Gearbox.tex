@@ -1,0 +1,171 @@
+\subsubsection{Gearbox}
+
+\index{Gearbox@\te{Gearbox} (package)}
+
+\label{Gearbox}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import Gearbox :: *
+\end{verbatim}
+
+
+
+{\bf Description} 
+
+This package defines  FIFO-like converters that convert N-wide data to
+and from 1-wide data at N-times the frequency. These converters
+change the frequency and the data width, while the overall
+data rate stays the same.  The data width on the fast side is always
+1, while the data width on the slow side is N.  The converters are intended to
+be used between clock 
+domains with aligned edges for both types of clock domain crossings
+(fast to slow and slow to fast). For example:
+\begin{tabbing}
+300 MHz at 8-bits  \hm \= converted to\hm \=  100 MHz at 24-bits \hm \=(fast
+to slow)\\ 
+100 MHz at 24-bits\>   converted to\>     300 MHz at 8-bits \>(slow to
+fast)\\
+\end{tabbing}
+In both of these examples, the data type \te{a} is \te{Bit\#(8)} and 
+N=3.
+
+
+These modules are written in pure BSV using a style that utilzies only
+\te{mkNullCrossingReg} to cross registered values between clock
+domains.  Restricting the form of clock crossings is important to
+ensure that the module preserves atomic semantics and also that it is
+compatible with both Verilog and Bluesim backends.
+
+
+{\bf Interfaces and methods}
+\index{Gearbox@\te{Gearbox} (interface)}
+
+The \te{Gearbox} interface provides the following methods: \te{enq},
+\te{deq}, \te{first}, \te{notFull} and \te{notEmpty}. 
+
+
+
+\begin{center}
+\begin{tabular}{|p{.6in}|p{1.1 in}|p{3.6 in}|}
+\hline
+\multicolumn{3}{|c|}{Gearbox Interface}\\
+\hline
+Method Name & Type & Description\\
+\hline
+\hline 
+\te{enq}&Action&Adds an entry to the converter of type \te{Vector\#(in,
+a)}, where \te{a} is the datatype.  If the 
+input is the fast domain then \te{in} = 1,  if the input is the slow
+domain, \te{in} = N.\\
+\hline
+\te{deq}&Action&Removes the first entry from the converter.\\
+\hline
+\te{first}&\te{Vector\#(out, a)}&Returns the first entry from the
+converter. If the output domain is the fast side, \te{out} = 1, if the
+output domain is the slow side, \te{out} = N.\\
+\hline
+\te{notFull}&Bool&Returns a True value if there is space to enqueue an
+entry into the FIFO.\\
+\hline
+\te{notEmpty}&Bool&Returns a True value if there is are elements in
+the FIFO and you can dequeue from the FIFO.\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\begin{verbatim}
+interface Gearbox#(numeric type in, numeric type out, type a);
+   method    Action          enq(Vector#(in, a) din);
+   method    Action          deq();
+   method    Vector#(out, a) first();
+   method    Bool            notFull();
+   method    Bool            notEmpty();
+endinterface
+\end{verbatim}
+
+
+
+{\bf Modules}
+
+The package provides two modules: \te{mkNto1Gearbox} for slow to fast
+domain crossings, and  \te{mk1toNGearbox} to for
+fast to slow domain crossings.  These are intended for use between
+clock domains with aligned edges for both types of clock domain crossings.
+
+{\bf Note:} for both modules the resets in the source and destination
+domains (\te{sReset} and \te{dReset}) should be asserted together,
+otherwise only half the unit will be in reset.
+
+\index{mkNto1Gearbox@\te{mkNto1Gearbox} (module)}
+\index[function]{Gearbox!mkNto1Gearbox}
+
+
+With the \te{mkNto1Gearbox} module,  2xN elements of data storage are
+provided,  grouped into 2 blocks of N elements each. Each block is
+writable in the source (slow) domain and readable in the destination
+(fast) domain. 
+
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{4.4 in}|}
+ \hline
+&         \\
+\te{mkNto1Gearbox}&Moves data from a slow domain to a fast domain,
+changing the data width from a larger width to a smaller width.  The
+data rate stays the same.  The width of the output is 1, the width of
+the input is N.
+ \\
+\cline{2-2} 
+& \begin{libverbatim}
+module mkNto1Gearbox(Clock sClock, Reset sReset,
+                     Clock dClock, Reset dReset,
+                     Gearbox#(in, out, a) ifc)
+   provisos(Bits#(a, a_sz), Add#(out, 0, 1), 
+            Add#(out, z, in) );
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{mk1toNGearbox@\te{mk1toNGearbox} (module)}
+\index[function]{Gearbox!mk1toNGearbox}
+
+
+
+With the \te{mk1toNGearbox} module, 2xN elements of data storage are
+provided, grouped into 2 blocks of N elements each.
+Each block is writable in the source (fast) domain
+and readable in the destination (slow) domain.
+
+\begin{center}
+\begin{tabular}{|p{.9 in}|p{4.4 in}|}
+ \hline
+&         \\
+\te{mk1toNGearbox} &  Moves data from a fast
+domain to a slow  domain,
+changing the data width from a smaller width to a larger width.  The
+data rate stays the same.  The width of the input is 1, the width of
+the output is N.
+\\
+\cline{2-2} 
+& \begin{libverbatim}
+module mk1toNGearbox(Clock sClock, Reset sReset,
+                     Clock dClock, Reset dReset,
+                     Gearbox#(in, out, a) ifc)
+   provisos(Bits#(a, a_sz), Add#(in, 0, 1),
+            Add#(in, z, out), Mul#(2, out, elements),
+            Add#(1, w, elements), Add#(out, x, elements) );
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
