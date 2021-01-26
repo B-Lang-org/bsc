@@ -1,0 +1,96 @@
+\subsubsection{Assert}
+\index{Assert@\te{Assert} (package)}
+
+{\bf Package}
+\begin{verbatim}
+import Assert :: *;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{Assert} package contains definitions to test assertions
+in the code.  The \te{check-assert}  flag must be set during
+compilation.  By default the flag is set to \te{False} and 
+assertions are ignored.   The flag, when set,  instructs the compiler to
+abort compilation if an assertion fails.  
+
+
+{\bf Functions}
+
+\index{staticAssert@\te{staticAssert}}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&  \\
+\te{staticAssert}&Compile time assertion.  Can be used anywhere a compile-time statement is valid.  \\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+module staticAssert(Bool b, String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index{dynamicAssert@\te{dynamicAssert}}
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&  \\
+\te{dynamicAssert}&Run time assertion.  Can be used anywhere an Action is valid, and is
+tested whenever it is executed.  \\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function Action dynamicAssert(Bool b, String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{continuousAssert@\te{continuousAssert}}
+
+\begin{tabular}{|p{1.2 in}|p{4.4 in}|}
+\hline
+&  \\
+\te{continuousAssert}&Continuous run-time assertion (expected to be True on each clock).
+Can be used anywhere a module instantiation is valid.  \\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function Action continuousAssert(Bool b, String s);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Examples using Assertions:}
+
+\begin{verbatim}
+import Assert:: *;
+module mkAssert_Example ();
+  // A static assert is checked at compile-time
+  // This code checks that the indices are within range 
+  for (Integer i=0; i<length(cs); i=i+1)
+      begin 
+        Integer new_index = (cs[i]).index;
+        staticAssert(new_index < valueOf(n), 
+            strConcat("Assertion index out of range: ", integerToString(new_index)));
+      end 
+
+  rule always_fire (True);
+       counter <= counter + 1;
+  endrule
+  // A continuous assert is checked on each clock cycle
+  continuousAssert (!fail, "Failure: Fail becomes True");
+
+  // A dynamic assert is checked each time the rule is executed
+  rule test_assertion (True);
+     dynamicAssert (!fail, "Failure: Fail becomes True");
+  endrule
+endmodule: mkAssert_Example
+\end{verbatim}
+
+
+

@@ -1,0 +1,115 @@
+\subsubsection{Connectable}
+\index{Connectable@\te{Connectable} (package)}
+\label{lib-connectable}
+
+{\bf Package }
+
+
+\begin{verbatim}
+import Connectable :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{Connectable} package contains the definitions for the class
+\te{Connectable} and  instances of \te{Connectables}. 
+
+
+{\bf Types and Type-Classes}
+
+The class \te{Connectable} is meant to indicate that
+two related types can be connected in some way.  It does not specify the nature
+of the connection.  The \te{Connectables} type class defines the module
+\te{mkConnection}, which is used to connect the pairs.
+
+\index{Connectable@\te{Connectable} (class)}
+\index[typeclass]{Connectable}
+\begin{libverbatim}
+typeclass Connectable#(type a, type b);
+    module mkConnection#(a x1, b x2)(Empty);
+endtypeclass
+\end{libverbatim}
+
+{\bf Instances}
+\paragraph {Get and Put} One instance of the typeclass of
+\te{Connectable}  is \te{Get} and \te{Put}.  One
+object will \te{put}
+an element into an interface and the other object will \te{get} the
+element from the interface.
+
+\begin{libverbatim}
+instance Connectable#(Get#(a), Put#(a));
+\end{libverbatim}
+
+\paragraph{Tuples} If we have {\tt Tuple2} of connectable items
+then the  pair is also
+connectable, simply by connecting the individual items.
+\begin{libverbatim}
+instance Connectable#(Tuple2#(a, c), Tuple2#(b, d))
+  provisos (Connectable#(a, b), Connectable#(c, d));
+\end{libverbatim}
+
+The proviso shows that the first component of one tuple connects to
+the first component of the other tuple, likewise, the second
+components connect as well.  In the above statement,
+\te{a} connects to \te{b} and \te{c} connects to \te{d}.  This is used
+by \te{ClientServer} (Section \ref{lib-clientserver}) to connect the
+\te{Get} of the \te{Client} to the \te{Put} of the \te{Server} and
+visa-versa.
+
+This is extensible to all Tuples (\te{Tuple3}, \te{Tuple4}, etc.).  As
+long as the items are connectable, the Tuples are connectable.
+
+
+\paragraph{Vector}
+Two \te{Vector}s are connectable if their elements are connectable.
+\begin{libverbatim}
+instance Connectable#(Vector#(n, a), Vector#(n, b))
+  provisos (Connectable#(a, b));
+\end{libverbatim}
+
+
+\paragraph{ListN}
+Two \te{ListN}s are connectable if their elements are connectable.
+\begin{libverbatim}
+instance Connectable#(ListN#(n, a), ListN#(n, b))
+  provisos (Connectable#(a, b));
+\end{libverbatim}
+
+
+\paragraph{Action, ActionValue}
+An \te{ActionValue} method
+(or function) which produces a value can be connected  to an
+\te{Action} method (or function) which takes that value as an argument.
+
+\begin{libverbatim}
+instance Connectable#(ActionValue#(a), function Action f(a x));
+
+instance Connectable#(function Action f(a x), ActionValue#(a));
+\end{libverbatim}
+
+A  \te{Value} method (or value) can be connected  to an \te{Action}
+method (or function) which takes that value as an argument.
+
+\begin{libverbatim}
+instance Connectable#(a, function Action f(a x));
+
+instance Connectable#(function Action f(a x), a); 
+\end{libverbatim}
+
+
+
+
+
+\paragraph{Inout} \te{Inout}s are connectable via the \te{Connectable} typeclass. The
+  use of \te{mkConnection} instantiates a Verilog module \te{InoutConnect}.  The \te{Inout}s must be on the same clock
+and  the same reset.  The clock and reset of the
+\te{Inout}s may be different than the clock and reset of the parent
+module of the \te{mkConnection}. 
+\begin{libverbatim}
+instance Connectable#(Inout#(a, x1), Inout#(a, x2))
+   provisos (Bit#(a,sa));
+\end{libverbatim}
+
+
+

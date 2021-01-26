@@ -1,0 +1,129 @@
+\subsubsection{Printf}
+\label{sec-Printf}
+
+
+{\bf Package}
+\index{Printf (package)}
+
+\begin{verbatim}
+import  Printf:: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{Printf} package provides the \te{sprintf} function to allow
+users to construct strings using typical C printf patterns.  The
+function supports a full range of C-style format options. 
+
+The \te{sprintf} function  uses two advanced features, type classes
+and partial function application, to implement a variable
+number of arguments.  That is why the type signature of the function
+includes a proviso for \te{SPrintfType}, also defined in this package.  
+
+{\bf  Type classes}
+
+The \te{Printf} package includes the \te{SPrintf} and \te{PrintfArg}
+typeclasses.  The proviso  \te{SPrintf} specifies that the function
+can take a variable number of arguments, and further  the types of those arguments can be displayed.  This last requirement is captured
+by the \te{PrintfArg} typeclass, which is the class of types that can be
+displayed.
+
+\begin{libverbatim}
+typeclass SPrintfType#(type t);
+  function t spr(String fmt, List#(UPrintf) args);
+endtypeclass
+\end{libverbatim}
+
+The \te{PrintfArg} 
+typeclass defines a separate conversion for each type in the
+class. 
+
+\begin{libverbatim}
+typeclass PrintfArg#(type t);
+   function UPrintf toUPrintf(t arg);
+endtypeclass
+\end{libverbatim}
+
+
+
+{\bf Functions}
+
+\index{sprintf@\te{sprintf} (function)}
+\index[function]{Printf!sprintf}
+
+\begin{tabular}{|p{1.4 in}|p{4.6 in}|}
+\hline
+& \\
+\te{sprintf} &Constructs a string given a C-style format string and
+any input values for that format.\\
+\cline{2-2}
+& \begin{libverbatim}
+function r sprintf(String fmt) provisos (SPrintfType#(r));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+The \te{sprintf} function constructs a string from  a format string
+followed by a variable number of arguments.  Examples:
+
+\begin{libverbatim}
+String s1 = sprintf("Hello");
+
+Bit#(8) x = 0;
+String s2 = sprintf("x = %d", x);
+
+Real r = 1.2;
+String s3 = sprintf("x = %d, r = %g", x, r);
+\end{libverbatim}
+
+The behavior of \te{sprintf} depends on the types of the arguments.
+If the type of an argument is unclear, you may be required to give
+specific types to those arguments.
+
+
+
+ For instance, an integer literal
+can represent many types, so you need to specify which one you are
+using:
+
+\begin{libverbatim}
+String s4 = sprintf("%d, %d", 1, 2); // ambiguous
+
+// Example of two ways to specify the type
+UInt#(8) n = 1;
+String s4 = sprintf("%d, %d", n, Bit#(4)'(2));
+\end{libverbatim}
+
+When calling \te{sprintf} on a value whose type is not known, as in a
+polymorphic function, you may be required to add a proviso to the
+function for the type variable.
+
+ The  \te{PrintfArg} proviso on polymorphic
+functions is required  when the type of the argument is not known.
+The type class instances 
+define the conversion functions for each printable type.
+
+
+\begin{libverbatim}
+function Action disp(t x);
+   action
+      String s = sprintf("x=%d", x);
+      $display(s);
+   endaction
+endfunction
+\end{libverbatim}
+
+will generate  an error message. By adding the proviso, the function compiles correctly:
+\begin{libverbatim}
+function Action disp(t x)
+   provisos( PrintfArg#(t) );
+   action
+      String s = sprintf("x=%d", x);
+      $display(s);
+   endaction
+endfunction
+\end{libverbatim}
+
+

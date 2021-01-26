@@ -1,0 +1,223 @@
+\subsubsection{CompletionBuffer}
+\index{CompletionBuffer@\te{CompletionBuffer} (package)}
+\label{lib-completionbuffer}
+
+{\bf Package}
+
+
+\begin{verbatim}
+import CompletionBuffer :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+A \te{CompletionBuffer} is like a FIFO except that the order of the
+elements in the buffer is independent of the order in which  the elements
+are  entered.  Each element obtains a token, which
+reserves a slot in the buffer.  Once the element is ready to be
+entered into the buffer, the token is used to place the element in the
+correct position. 
+When removing elements from the buffer, the elements
+are delivered in the order specified by the tokens, not in the order
+that the  elements were written.  
+
+Completion Buffers are useful when
+multiple tasks are running, which may complete at different times, in
+any order.  By using a completion buffer, the order in which the elements
+are placed in the buffer can be controlled, independent of the order
+in which the data becomes available.
+
+{\bf Interface and Methods}
+\index{CompletionBuffer@\te{CompletionBuffer} (interface)}
+
+The CompletionBuffer interface provides three subinterfaces.  The \te{reserve}
+interface, a \te{Get},  allows the caller to reserve a slot in the
+buffer by returning  a token holding the identity of the slot.  When
+data is  ready
+to be placed in the buffer, 
+it is added to the buffer using the \te{complete} interface of type
+\te{Put}. This interface
+takes a pair of values as its argument - the token identifying its slot,
+and the data itself.  Finally, using the \te{drain} interface, of type
+\te{Get}, data may be retrieved from the buffer
+ in the order in which the
+tokens were originally allocated.  Thus the results of quick tasks might
+have to wait in the buffer while a lengthy task ahead of them completes.
+
+The type of the elements
+to be stored is \te{element\_type}.  The type of the required size of
+the buffer is a numeric type  \te{n}, which  is also the type argument for
+ the type for the tokens issued, \te{CBToken}.  This allows the type-checking 
+phase of the synthesis to ensure that the tokens are the appropriate size
+for the buffer, and that all the buffer's internal registers are of the
+correct sizes as well.
+
+
+\begin{center}  
+\begin{tabular}{|p{.6 in}|p{.5in}|p{4.4 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{CompletionBuffer} Interface}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+&&\\
+\te{reserve}&\te{Get}&Used to reserve a slot in the buffer. Returns a
+token, \te{CBToken \#(n)}, identifying the slot in the buffer.\\
+\hline
+&&\\
+\te{complete}&\te{Put}&Enters the element into the buffer. Takes as
+arguments the slot in the buffer, \te{CBToken\#(n)}, and the element to
+be  stored in the buffer.\\
+\hline
+&&\\
+\te{drain}&\te{Get}&Removes an element from the buffer.  The
+ elements are returned in the order the tokens were allocated.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{libverbatim}
+interface CompletionBuffer #(numeric type n, type element_type);
+    interface Get#(CBToken#(n))                         reserve;
+    interface Put#(Tuple2 #(CBToken#(n), element_type)) complete;
+    interface Get#(element_type)                        drain;
+endinterface: CompletionBuffer
+\end{libverbatim}
+
+{\bf Datatypes}
+
+The \te{CBToken} type is abstract to avoid misuse.
+\begin{libverbatim}
+typedef union tagged { ... } CBToken #(numeric type n) ...;
+\end{libverbatim}
+
+{\bf Modules}
+
+\index{mkCompletionBuffer@\te{mkCompletionBuffer} (module)}
+
+The \te{mkCompletionBuffer} module is used to instantiate a completion
+buffer.  It takes no size arguments, as all that information is already
+contained in the type of the interface it produces.
+
+\begin{center}
+\begin{tabular}{|p{1.25 in}|p{4.4 in}|}
+\hline
+&\\
+\te{mkCompletionBuffer}& Creates a completion buffer.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCompletionBuffer(CompletionBuffer#(n, element_type))
+  provisos (Bits#(element_type, sizea))
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+{\bf Example- Using a Completion Buffer in a server farm of multipliers}
+
+A server farm is a set of identical servers, which can each perform the same
+task, together with a controller.  The controller allocates incoming tasks to
+any server which happens to be available (free), and sends results back to its
+caller.  
+
+The time needed to complete each task depends on the
+value of the multiplier argument; there is therefore no guarantee that results
+will become available in the order the tasks were started.  It is required,
+however, that the controller return results to its caller in the order the
+tasks were received.  The controller accordingly must instantiate a special
+mechanism for this purpose.  The appropriate mechanism is a Completion Buffer.
+
+\begin{verbatim}
+import List::*;
+import FIFO::*;
+import GetPut::*;
+import CompletionBuffer::*;
+
+typedef Bit#(16) Tin;
+typedef Bit#(32) Tout;
+
+// Multiplier interface
+interface Mult_IFC;
+    method Action  start (Tin m1, Tin m2);
+    method ActionValue#(Tout)    result();
+endinterface
+
+typedef Tuple2#(Tin,Tin) Args;
+typedef 8 BuffSize;
+typedef CBToken#(BuffSize) Token;
+
+// This is a farm of multipliers, mkM. The module
+// definition for the multipliers mkM is not provided here.  
+// The interface definition, Mult_IFC, is provided.
+module mkFarm#( module#(Mult_IFC) mkM ) ( Mult_IFC );
+
+   // make the buffer twice the size of the farm
+   Integer n = div(valueof(BuffSize),2); 
+                                     
+   // Declare the array of servers and instantiate them:
+   Mult_IFC mults[n];
+   for (Integer i=0; i<n; i=i+1)
+      begin
+         Mult_IFC s <- mkM;
+         mults[i] = s;
+      end
+
+   FIFO#(Args) infifo <- mkFIFO;
+ 
+   // instantiate the Completion Buffer, cbuff, storing values of type Tout
+   // buffer size is Buffsize, data type of values is Tout
+   CompletionBuffer#(BuffSize,Tout) cbuff <- mkCompletionBuffer;
+
+   // an array of flags telling which servers are available:
+   Reg#(Bool) free[n];
+   // an array of tokens for the jobs in progress on the servers:
+   Reg#(Token) tokens[n];
+   // this loop instantiates n free registers and n token registers
+   // as well as the rules to move data into and out of the server farm
+   for (Integer i=0; i<n; i=i+1)
+      begin
+         // Instantiate the elements of the two arrays:
+         Reg#(Bool) f <- mkReg(True);
+         free[i] = f;
+         Reg#(Token) t <- mkRegU;
+         tokens[i] = t;
+
+         Mult_IFC s = mults[i];
+
+         // The rules for sending tasks to this particular server, and for
+         // dealing with returned results:
+         rule start_server (f); // start only if flag says it's free
+            // Get a token
+            CBToken#(BuffSize) new_t <- cbuff.reserve.get;
+                       
+            Args a = infifo.first;
+            Tin a1 = tpl_1(a);
+            Tin a2 = tpl_2(a);
+            infifo.deq;
+
+            f <= False;
+            t <= new_t;
+            s.start(a1,a2);
+         endrule
+
+         rule end_server (!f);
+            Tout x <- s.result;
+            // Put the result x into the buffer, at the slot t
+            cbuff.complete.put(tuple2(t,x));
+            f <= True;
+         endrule
+      end
+
+   method Action start (m1, m2);
+      infifo.enq(tuple2(m1,m2));      
+   endmethod
+   
+   // Remove the element from the buffer, returning the result
+   // The elements will be returned in the order that the tokens were obtained.
+   method result = cbuff.drain.get;
+endmodule
+\end{verbatim}

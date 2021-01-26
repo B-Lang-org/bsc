@@ -1,0 +1,301 @@
+\subsubsection{HList}
+
+\label{sec-HList}
+\index{HList (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import HList :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{HList} package defines a datatype \te{HList} which 
+stores a list of data of different types.   
+The  package also provides typeclasses and functions to perform
+various list  operations on the \te{HList} type.
+
+The primitive data structures for an \te{HList} are \te{HNil}  and the
+polymorphic \te{HCons}.  The various functions are provided by
+typeclasses, one for each function.   
+
+The package defines  a typeclass
+\te{Gettable} for finding (\te{getIt}) and replacing (\te{putIt}) items in
+an \te{HList}.  This requires that all the items in the \te{HList} are
+different types.  If two types are the same, they must be
+disambiguated by encapsulating at least one of them (but preferably
+each of them) in a new struct type.  The functions of the
+\te{Gettable} typeclass require that the \te{HList} be flat (no nested
+\te{HLists}) and well-formed (terminating in \te{HNil}).  That is, the
+target of a recursive search must be either the complete \te{hHead} or
+found within the \te{hTail}.  
+
+{\bf Types and type classes}
+
+
+The \te{HList} packages defines a typeclass \te{HList}:
+
+\begin{verbatim}
+typeclass HList#(type l); 
+\end{verbatim} 
+
+
+The \te{HNil} datatype defines a nil instance, the empty set.  An
+\te{HList} is usually terminated by a \te{HNil}.
+
+\begin{verbatim}
+typedef struct {} HNil deriving (Eq);
+\end{verbatim}
+
+The \te{HCons} datatype is a structure with two members, a head of
+datatype \te{e} and a tail of datatype \te{l}.  
+
+\begin{verbatim}
+typedef struct {
+   e hd;
+   l tl;
+   } HCons#(type e, type l) deriving (Eq);
+\end{verbatim}
+
+
+{\bf Functions}
+
+The various functions for heterogenous lists are provided by
+typeclasses, one for each functions.  
+
+
+\index{HHead@\te{HHead} (typeclass)}
+\index[function]{HList!HHead}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{HHead} & Returns the first element of the list.\\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass HHead#(type l, type h)
+   dependencies (l determines h);
+   function h hHead(l x);
+endtypeclass
+
+instance  HHead#(HCons#(e, l), e);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{HTail@\te{HTail} (typeclass)}
+\index[function]{HList!HTail}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{HTail} & Returns the tail element from the list.  \\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass HTail#(type l, type lt)
+   dependencies (l determines lt);
+   function lt hTail(l xs);
+endtypeclass
+
+instance HTail#(HCons#(e, l), l);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{HLength@\te{HLength} (typeclass)}
+\index[function]{HList!HLength}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{HLength} &Returns a numeric value with the length of the list.
+For a \te{HNil}, will return 0.  \\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass HLength#(type l, numeric type n);
+endtypeclass
+
+instance HLength#(HNil, 0); 
+
+instance HLength#(HCons#(e, l), nPlus1)
+   provisos (HLength#(l, n), Add#(n,1,nPlus1));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+\index{HAppend@\te{HAppend} (typeclass)}
+\index[function]{HList!HAppend}
+
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{HAppend} & Appends two lists, returning the combined list.  The
+elements do not have to be of the same data type.  The combined list
+will be of type \te{l2}, and will contain all the elements of \te{xs}
+followed in order by all the elements of \te{ys}.\\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass HAppend#(type l, type l1, type l2)
+   dependencies ((l, l1) determines l2);
+   function l2 hAppend(l xs, l1 ys);
+
+instance HAppend#(HNil, l, l);
+
+instance HAppend#(HCons#(e, l), l1, HCons#(e, l2))
+   provisos (HList#(l), HAppend#(l, l1, l2));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{HSplit@\te{HSplit} (typeclass)}
+\index[function]{HList!hSplit}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{HSplit} & The \te{hSplit} function takes an \te{HList} of type
+\te{l} and returns a \te{Tuple2} of two \te{HLists}.  This function is
+the inverse of \te{hAppend}.\\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass HSplit#(type l, type l1, type l2);
+   function Tuple2#(l1,l2) hSplit(l xs);
+endtypeclass
+
+instance HSplit#(HNil, HNil, HNil);
+
+instance HSplit#(l, HNil, l);
+
+instance HSplit#(HCons#(hd,tl), HCons#(hd,l3), l2)
+   provisos (HSplit#(tl,l3,l2));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index{Gettable@\te{Gettable} (typeclass)}
+\index[function]{HList!Gettable}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{Gettable} &This typeclass is for finding (\te{getIt}) and
+replacing (\te{putIt}) a particular element in an \te{HList}. All items
+in the \te{HList} must be of different types.  If two types are the
+same, they should be disambiguated by encapsulating at least one of
+them (and preferably both of them) in a new struct type.\\
+\cline{2-2}
+&\begin{libverbatim}
+typeclass Gettable#(type c1, type c2);
+   function c2 getIt(c1 x);
+   function c1 putIt(c1 x, c2 y);
+endtypeclass
+
+instance Gettable#(HCons#(t1, t2), t1);
+
+instance Gettable#(HCons#(t1, t2), t3)
+   provisos (Gettable#(t2, t3));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Small Lists}
+
+The \te{HList} packcage provides type definitions for small lists, ranging
+from 1 element to 8 elements, along with constructor functions to
+build the lists.
+
+{\bf HList1}
+\begin{verbatim}
+typedef HCons#(t, HNil)                                      
+        HList1#(type t);
+
+function HList1#(t1) hList1(t1 x1) = hCons(x1, hNil);  
+\end{verbatim}
+
+{\bf HList2}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HNil))                         
+        HList2#(type t1, type t2);
+
+function HList2#(t1, t2) hList2(t1 x1, t2 x2) = hCons(x1, hCons(x2, hNil));  
+\end{verbatim}
+
+{\bf HList3}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HNil)))             
+        HList3#(type t1, type t2, type t3);
+
+function HList3#(t1, t2, t3) hList3(t1 x1, t2 x2, t3 x3) 
+      = hCons(x1, hCons(x2, hCons(x3, hNil)));
+\end{verbatim}
+
+{\bf HList4}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HCons#(t4, HNil)))) 
+        HList4#(type t1, type t2, type t3, type t4);
+
+function HList4#(t1, t2, t3, t4) hList4(t1 x1, t2 x2, t3 x3, t4 x4)
+      = hCons(x1, hCons(x2, hCons(x3, hCons(x4, hNil))));
+
+\end{verbatim}
+
+{\bf HList5}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HCons#(t4, HCons#(t5, HNil)))))
+        HList5#(type t1, type t2, type t3, type t4, type t5);
+
+function HList5#(t1, t2, t3, t4, t5) hList5(t1 x1, t2 x2, t3 x3, t4 x4, t5 x5)
+      = hCons(x1, hCons(x2, hCons(x3, hCons(x4, hCons(x5, hNil)))));
+\end{verbatim}
+
+{\bf HList6}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HCons#(t4, HCons#(t5, HCons#(t6, HNil))))))
+        HList6#(type t1, type t2, type t3, type t4, type t5, type t6);
+
+function HList6#(t1, t2, t3, t4, t5, t6) 
+   hList6(t1 x1, t2 x2, t3 x3, t4 x4, t5 x5, t6 x6)
+      = hCons(x1, hCons(x2, hCons(x3, hCons(x4, hCons(x5, hCons(x6, hNil))))));
+\end{verbatim}
+
+{\bf HList7}
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HCons#(t4, HCons#(t5,
+               HCons#(t6, HCons#(t7, HNil)))))))
+        HList7#(type t1, type t2, type t3, type t4, type t5, type t6, type t7);
+
+function HList7#(t1, t2, t3, t4, t5, t6, t7)
+   hList7(t1 x1, t2 x2, t3 x3, t4 x4, t5 x5, t6 x6, t7 x7)
+      = hCons(x1, hCons(x2, hCons(x3, hCons(x4, hCons(x5, hCons(x6, hCons(x7, hNil)))))));
+\end{verbatim}
+
+{\bf HList8}
+
+\begin{verbatim}
+typedef HCons#(t1, HCons#(t2, HCons#(t3, HCons#(t4, HCons#(t5, 
+               HCons#(t6, HCons#(t7, HCons#(t8, HNil))))))))
+        HList8#(type t1, type t2, type t3, type t4, type t5, type t6, type t7, type t8);
+
+function HList8#(t1, t2, t3, t4, t5, t6, t7, t8)
+   hList8(t1 x1, t2 x2, t3 x3, t4 x4, t5 x5, t6 x6, t7 x7, t8 x8)
+      = hCons(x1, hCons(x2, hCons(x3, hCons(x4, hCons(x5, hCons(x6, 
+              hCons(x7, hCons(x8, hNil))))))));
+\end{verbatim}
+
+

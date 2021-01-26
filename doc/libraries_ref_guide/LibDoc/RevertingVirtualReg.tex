@@ -1,0 +1,89 @@
+\subsubsection{RevertingVirtualReg}
+\index{RevertingVirtualReg@\te{RevertingVirtualReg} (package)}
+\index{mkRevertingVirtualReg@\te{mkRevertingVirtualReg} (module)}
+\label{ref-vreg}
+
+{\bf Package}
+
+\begin{verbatim}
+import RevertingVirtualReg :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{RevertingVirtualReg} package allows a designer to force a
+schedule when scheduling attributes cannot be used.  Since scheduling
+attributes cannot be put on methods, this allows a designer  to control
+the schedule between two methods, or between a method and a rule by
+adding a virtual register between the two.
+The module \te{RevertingVirtualReg} creates a virtual register; no
+actual state  elements are generated.
+
+{\bf Modules}
+
+The \te{RevertingVirtualReg} package provides the module
+\te{mkRevertingVirtualReg}.  The properties of the module are:
+\begin{itemize}
+\item it schedules exactly like an ordinary register;
+\item it reverts to its reset value at the end of each clock cycle.
+\end{itemize}
+These imply that all allowed reads will return the reset value (since
+they precede any writes in the cycle); thus the module neither needs nor
+instantiates any actual state element.
+
+\begin{tabular}{|p{1.5 in}|p{4.1 in}|}
+\hline
+&\\
+\te{mkRevertingVirtualReg}&Creates a virtual register reverting to the
+reset value at the end of each clock cycle.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkRevertingVirtualReg#(a_type rst)(Reg#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{center}
+\begin{tabular}{|p{.75 in}|c|c|}
+\hline
+\multicolumn{3}{|c|}{Scheduling Annotations}\\
+\multicolumn{3}{|c|}{mkRevertingVirtualReg}\\
+\hline
+&{read}&{write}\\
+\hline
+\hline
+{read}&CF&SB\\
+\hline
+{write}&SA& SBR\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+{\bf Example}
+Use \te{mkRevertingVirtualReg} to create the
+execution order of  the\_rule followed by the\_method
+
+\begin{verbatim}
+Reg#(Bool) virtualReg <- mkRevertingVirtualReg(True);
+
+rule the_rule (virtualReg);  // reads virtualReg
+   ...
+endrule
+
+method Action the_method;
+   virtualReg <= False;      // writes virtualReg
+   ...
+endmethod
+\end{verbatim}
+
+In a given cycle, reads always precede writes for a register.
+Therefore the reading of \te{virtualReg} by \te{the\_rule}
+will precede the writing of \te{virtualReg} in \te{the\_method}.  
+The execution order will be \te{the\_rule} followed by \te{the\_method}.

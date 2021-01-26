@@ -1,0 +1,110 @@
+\subsubsection{GrayCounter}
+\label{sec-GrayCounter}
+%\index{Xilinx!GrayCounter (package)}
+
+{\bf Package}
+\index{GrayCounter (package)}
+
+\begin{verbatim}
+import GrayCounter :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The GrayCounter package provides an interface and a  module to
+implement a gray-coded counter with  methods for both
+binary and Gray code.   This package is designed for use in the
+\te{BRAMFIFO} module, Section \ref{sec-BRAMFIFO}.  Since BRAMs have
+registered address inputs, the binary  outputs  are not registered.
+The counter has two domains, source and destination.  Binary and Gray
+code values are written in the source domain. Both types of values can
+be read from  the source and the destination domains.
+
+{\bf Types}
+
+The GrayCounter package uses the type \te{Gray}, defined in the
+Gray package, Section \ref{sec-Gray}.  The Gray package is
+imported by the GrayCounter package.
+
+{\bf Interfaces and Methods}
+
+The GrayCounter package includes one interface, \te{GrayCounter}.
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1 in}|p{3 in}|}
+\hline
+\multicolumn{3}{|c|}{GrayCounter Interface Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{incr}  & Action &Increments the counter by 1\\
+\hline
+\te{decr} & Action &Decrements the counter by 1 \\
+\hline
+\te{sWriteBin}&Action&Writes a binary value into the counter in the
+source domain.  \\
+\hline
+\te{sReadBin}  & \te{Bit\#(n)} &Returns a binary value from the
+source domain of the counter. The output is not registered   \\
+\hline
+\te{sWriteGray}&Action&Writes a Gray code value into  the counter in
+the source domain.  \\
+\hline
+\te{sReadGray}  & \te{Gray\#(n)} & Returns the Gray code value from
+the source domain of the counter.  The output is registered.   \\
+\hline
+\te{dReadBin}  & \te{Bit\#(n)} & Returns the binary value from the
+destination domain of the counter.  The output is not registered.   \\
+\hline
+\te{dReadGray}&\te{Gray\#(n)} &Returns the Gray code value from the
+destination domain of the counter.  The output is registered.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\begin{verbatim}
+interface GrayCounter#(numeric type n);
+   method    Action      incr;
+   method    Action      decr;
+   method    Action      sWriteBin(Bit#(n) value);
+   method    Bit#(n)     sReadBin;
+   method    Action      sWriteGray(Gray#(n) value);
+   method    Gray#(n)    sReadGray;
+   method    Bit#(n)   	 dReadBin;
+   method    Gray#(n)  	 dReadGray;
+endinterface: GrayCounter
+\end{verbatim}
+
+
+
+{\bf Modules}
+
+The module \te{mkGrayCounter} instantiates a Gray code counter with
+methods for both binary and Gray code.
+
+\index{mkGrayCounter@\te{mkGrayCounter} (module)}
+\index[function]{GrayCounter!mkGrayCounter}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkGrayCounter} &Instantiates a Gray counter with an initial value
+\te{initval}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkGrayCounter#(Gray#(n) initval, 
+                      Clock dClk, Reset dRstN)
+                     (GrayCounter#(n))
+         provisos(Add#(1, msb, n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+

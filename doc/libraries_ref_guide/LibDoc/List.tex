@@ -1,0 +1,1664 @@
+\subsection{Aggregation: Lists}
+
+\label{lib-list}
+
+\index{List@\te{List} (type)}
+
+{\bf Package}
+
+\begin{verbatim}
+import List :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+
+The {\te{List}}  package defines a data type and functions which create and operate
+on this data type. Lists are similar
+to Vectors, but are used when the number of items on the list may vary
+at compile-time or need not be strictly enforced by the type system.
+All elements of a list must be  of the same type.
+ The list type is defined as a tagged union as follows.
+
+\index{Nil@\te{Nil} (\te{List} constructor)}
+\index{Cons@\te{Cons} (\te{List} constructor)}
+
+
+\begin{libverbatim}
+typedef union tagged {
+    void Nil;
+    struct {
+        a         head;
+        List #(a) tail;
+    } Cons;
+} List #(type a);
+\end{libverbatim}
+
+A list is tagged \te{Nil} if it has no elements, otherwise it is
+tagged \te{Cons}.  \te{Cons} is a structure of a single element and
+the rest of the list.
+
+Lists are most often used during static elaboration (compile-time) to manipulate
+collections of objects.  Since \te{List\#(element\_type)} is not in the
+\te{Bits} typeclass, lists cannot be stored in registers or other
+dynamic elements.  However, one can have a list of registers or
+variables corresponding to hardware functions.
+
+{\bf Data classes}
+
+\paragraph{FShow}
+
+The \te{FShow} class provides the function \te{fshow} which can be
+applied to a \te{List} and returns an associated  \te{Fmt} object showing:
+
+\begin{verbatim}
+<List elem1 elem2 ...>
+\end{verbatim}
+where the \te{elemn} are the elements of the list with \te{fshow}
+applied to each element value.
+
+
+
+\subsubsection{Creating and Generating Lists}
+
+\index{cons@\te{cons} (\te{List} function)}
+\index[function]{List!cons}
+
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{cons}&Adds an element to a list. The new element will be at the
+0th position.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}function List#(element_type)
+     cons (element_type x, List#(element_type) xs);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{upto@\te{upto} (\te{List} function)}
+\index[function]{List!upto}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{upto}&Create a list of Integers counting up over a range of
+numbers, from m to n.  If m > n, an empty list (\te{Nil}) will be returned.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}List#(Integer) upto(Integer m, Integer n);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{replicate@\te{replicate} (\te{List} function)}
+\index[function]{List!replicate}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{replicate}&Generate a list of n elements by replicating the given
+argument, \te{elem}.\\
+&  \\
+\cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      replicate(Integer n, element_type elem);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!append}
+\index{append@\te{append} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{append}&Append two lists, returning the combined list. The
+elements of both lists must be the same datatype, \te{element\_type}.
+The combined list will contain all the elements of \te{xs} followed in
+order by all the elements of \te{ys}.\\
+&  \\\cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      append(List#(element_type) xs, List#(element_type) ys);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!concat}
+\index{concat@\te{concat} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\
+\te{concat}&Append (\emph{con}catenate) many lists, that is a list of lists, into one list.\\
+&  \\ \cline{2-2}
+&\begin{libverbatim}
+function List# (element_type)
+      concat (List#(List#(element_type)) xss);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+{\bf Examples - Creating and Generating Lists}
+
+Create a new list, \te{my\_list}, of elements of datatytpe
+\te{Int\#(32)} which are undefined
+\begin{libverbatim}
+     List #(Int#(32)) my_list;
+\end{libverbatim}
+
+Create a list, \te{my\_list},  of five 1's
+\begin{libverbatim}
+     List #(Int #(32)) my_list = replicate (5,32'd1);
+
+     //my_list = {1,1,1,1,1}
+\end{libverbatim}
+
+
+Create a new list using the \te{upto} function
+\begin{libverbatim}
+     List #(Integer) my_list2 = upto (1, 5);
+
+     //my_list2 = {1,2,3,4,5}
+\end{libverbatim}
+
+\subsubsection{Extracting Elements and Sub-Lists}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{[i]}& The square-bracket notation is available to extract an
+element from a list or update an element within it.  Extracts or updates
+the ith element, where the first element is [0]. Index i must be of an
+acceptable index type
+(e.g. \te{Integer}, \te{Bit\#(n)}, \te{Int\#(n)} or \te{UInt\#(n)}). The square-bracket
+notation for lists can also be used with register writes.\\
+% (as described in section \ref{sec-registers-and-brackets}).\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+anyList[i];
+anyList[i] = newValue;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!select}
+\index{select@\te{select} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\
+\te{select}&The select function is another form of the subscript
+notation ([i]), mainly provided for backwards-compatibility. The
+select function is also useful as an argument to higher-order
+functions. The subscript notation is generally recommended because
+it will report a more useful position for any selection errors. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type
+      select(List#(element_type) alist, idx_type index);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!update}
+\index{update@\te{update} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\
+\te{update}&Update an element in a list returning a new list with
+one element changed/updated. This function does not change the given
+list. This is another form of the subscript notation (see above), mainly
+provided for backwards compatibility. The update function may also
+be useful as an argument to a higher-order function. The subscript
+notation is generally recommended because it will report a more
+useful position for any update errors. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      update(List#(element_type) alist,
+                   idx_type index,
+                   element_type newElem);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!oneHotSelect}
+\index{oneHotSelect@\te{oneHotSelect} (\te{List} function)}
+\begin{tabular}{|p{.9 in}|p{4.7 in}|}
+\hline
+& \\
+\te{oneHotSelect}&Select a list element with a Boolean list.  The
+Boolean list should have exactly one element that is \te{True},
+otherwise the result is undefined.  The returned element is the one in
+the corresponding position to the \te{True} element in the Boolean list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type
+      oneHotSelect (List#(Bool) bool_list,
+                    List#(element_type) alist);
+   \end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index[function]{List!head}
+\index{head@\te{head} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{head}&Extract the first element of a list. The input list
+must have at least 1 element, or an error will be returned. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type head (List#(element_type) listIn);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!last}
+\index{last@\te{last} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{last}&Extract the last element of a list. The input list must
+have at least 1 element, or an error will be returned.  \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type last (List#(element_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!tail}
+\index{tail@\te{tail} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{tail}&Remove the head element of a list leaving the remaining
+elements in
+a smaller list.  The input list must have at least 1 element, or an
+error will be returned.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) tail (List#(element_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!init}
+\index{init@\te{init} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{init}&Remove the last element of a list the remaining
+elements in a smaller list.  The input list must have at least one
+element, or an error will be returned.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) init (List#(element_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!take}
+\index{take@\te{take} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{take}&Take a number of elements from a list starting from
+index 0.  The number to take is specified by the argument \te{n}.  If
+the argument is greater than the number of elements on the list, the
+function stops taking at the end of the list and returns the
+entire input list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      take (Integer n, List#(element_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!drop}
+\index{drop@\te{drop} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{drop}&Drop a number of elements from a list starting from
+index 0.  The number to drop is specified by the argument \te{n}.  If
+the argument is greater than the number of elements on the list, the
+entire input list is dropped, returning an empty list. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      drop (Integer n, List#(element_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!filter}
+\index{filter@\te{select} (\te{filter} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\
+\te{filter}&Create a new list from a given list where the new list
+has only the
+elements which satisfy the predicate function.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      filter (function Bool pred(element_type),
+              List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!find}
+\index{find@\te{find} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{find} &Return the first element that satisfies the predicate
+or \te{Nothing} if there is none.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Maybe#(element_type)
+      find (function Bool pred(element_type),
+            List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!lookup}
+\index{lookup@\te{lookup} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{lookup}&Returns the value in an association list or
+\te{Nothing} if there is no matching value.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Maybe#(b_type)
+      lookup (a_type key, List#(Tuple2#(a_type, b_type)) alist)
+   provisos(Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!takeWhile}
+\index{takeWhile@\te{takeWhile} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{takeWhile}&Returns the first set of elements of a list which
+satisfy the predicate function.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      takeWhile (function Bool pred(element_type x),
+                 List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!takeWhileRev}
+\index{takeWhileRev@\te{takeWhileRev} (\te{List} function)}
+\begin{tabular}{|p{.9 in}|p{4.7 in}|}
+\hline
+& \\ \te{takeWhileRev}&Returns the last set of elements on a list
+which satisfy the predicate function.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      takeWhileRev (function Bool pred(element_type x),
+                    List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!dropWhile}
+\index{dropWhile@\te{dropWhile} (\te{List} function)}
+\begin{tabular}{|p{.9 in}|p{4.7 in}|}
+\hline
+& \\ \te{dropWhile}&Removes the first set of elements on a list which
+satisfy the predicate function, returning  a list with the remaining elements.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      dropWhile (function Bool pred(element_type x),
+                 List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!dropWhileRev}
+\index{dropWhileRev@\te{dropWhileRev} (\te{List} function)}
+\begin{tabular}{|p{.9 in}|p{4.7 in}|}
+\hline
+& \\ \te{dropWhileRev}&Removes the last set of elements on a list which
+satisfy the predicate function, returning  a list with the remaining elements.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+      dropWhileRev (function Bool pred(element_type x),
+                    List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+{\bf Examples - Extracting Elements and Sub-Lists}
+
+Extract the element from a list, \te{my\_list}, at the position of \te{index}.
+\begin{libverbatim}
+     //my_list = {1,2,3,4,5}, index = 3
+
+     newvalue = select (my_list, index);
+
+     //newvalue = 4
+\end{libverbatim}
+
+Extract the zeroth element of the list \te{my\_list}.
+\begin{libverbatim}
+     //my_list = {1,2,3,4,5}
+
+     newvalue = head(my_list);
+
+     //newvalue = 1
+\end{libverbatim}
+
+Create a list, \te{my\_list2},  of size 4 by removing the head (zeroth)
+element of the list \te{my\_list1}.
+\begin{libverbatim}
+     //my_list1 is a list with 5 elements, {0,1,2,3,4}
+
+     List #(Int #(32)) my_list2 = tail (my_list1);
+     List #(Int #(32)) my_list3 = tail(tail(tail(tail(tail(my_list1);
+
+     //my_list2 = {1,2,3,4}
+     //my_list3 = Nil
+\end{libverbatim}
+
+Create a 2 element list, \te{my\_list2},  by taking the first two
+elements of the list \te{my\_list1}.
+\begin{libverbatim}
+     //my_list1 is list with 5 elements, {0,1,2,3,4}
+     List #(Int #(4)) my_list2 = take (2,my_list1);
+
+     //my_list2 = {0,1}
+\end{libverbatim}
+
+The number of elements specified to take in \te{take} can be greater than the
+number of  elements  on the list, in which
+case the entire input list will be returned.
+\begin{libverbatim}
+     //my_list1 is list with 5 elements, {0,1,2,3,4}
+     List #(Int #(4)) my_list2 = take (7,my_list1);
+
+     //my_list2 = {0,1,2,3,4}
+\end{libverbatim}
+
+Select an element based on a boolean list.
+\begin{libverbatim}
+     //my_list1 is a list of unsigned integers, {1,2,3,4,5}
+     //my_list2 is a list of Booleans, only one value in my_list2 can be True.
+     //my_list2 = {False, False, True, False,False, False, False}.
+
+     result = oneHotSelect (my_list2, my_list1));
+
+     //result = 3
+\end{libverbatim}
+
+Create a list by removing the initial segment of a list that meets a predicate.
+\begin{libverbatim}
+     //the predicate function is a < 2
+
+     function Bool lessthan2 (Int #(4) a);
+         return (a < 2);
+     endfunction
+
+     //my_list1 = {0,1,2,0,1,7,8}
+
+      List #(Int #(4)) my_result = (dropWhile(lessthan2, my_list1));
+
+     //my_result = {2,0,1,7,8}
+\end{libverbatim}
+
+% -------------------------------------------------------------------
+
+\subsubsection{List to List Functions}
+
+\index[function]{List!rotate}
+\index{rotate@\te{rotate} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{rotate} & Move the first element to the last and shift each
+element to the next higher index.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) rotate (List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!rotateR}
+\index{rotateR@\te{rotateR} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{rotateR} & Move last element to the beginning and shift each
+element to the next lower index. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) rotateR (List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!reverse}
+\index{reverse@\te{reverse} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{reverse} & Reverse element order\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) reverse(List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!transpose}
+\index{transpose@\te{transpose} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{transpose} &Matrix transposition of a list of lists.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(List#(element_type))
+         transpose ( List#(List#(element_type)) matrix );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!sort}
+\index{sort@\te{sort} (\te{List} function)}
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+&\\ \te{sort} &Uses the ordering defined for the \te{element\_type} data
+type to return a list in ascending order.  The type \te{element\_type}
+must be in the \te{Ord} type class.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type) sort(List#(element_type) alist)
+   provisos(Ord#(element_type)) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index[function]{List!sortBy}
+\index{sortBy@\te{sortBy} (\te{List} function)}
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+&\\ \te{sortBy} &Generalizes the \te{sort}
+ function to use an arbitrary ordering function defined by the
+ comparison function \te{comparef} in place of the \te{Ord} instance
+ for  \te{element\_type}. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(element_type)
+   sortBy(function Ordering comparef(element_type x, element_type y),
+          List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!group}
+\index{group@\te{group} (\te{List} function)}
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+&\\
+\te{group}&Returns a list of the contiguous
+subsequences of equal elements (according to the \te{Eq} instance for
+\te{element\_type}) found in its input list.  Every element in the input list
+will appear in exactly one sublist of the result. Every sublist will
+be a non-empty list of equal elements.  For any list, \te{x},
+\te{concat(group(x)) == x}. \\
+&\\ \cline{2-2}
+&\begin{libverbatim}
+function List#(List#(element_type)) group (List#(element_type) alist)
+   provisos(Eq#(element_type)) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!groupBy}
+\index{groupBy@\te{groupBy} (\te{List} function)}
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+&\\ \te{groupBy} &Generalizes the \te{group}
+function to use an arbitrary equivalence relation defined by the
+comparison function \te{eqf} in place of the Eq instance for
+\te{element\_type}.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(List#(element_type))
+   groupBy(function Bool eqf(element_type x, element_type y),
+           List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+% \begin{tabular}{|p{.5 in}|p{5.1 in}|}
+% \hline
+% &\\ \te{groupBy} &Uses the user-defined membership function, \te{membf},
+%  to return a list of lists, grouped by membership  criteria.  \\
+% & \\ \cline{2-2}
+% &\begin{libverbatim}
+% function List#(List#(element_type))
+%    groupBy(function element_type membf(element_type x, element_type y),
+%    List#(element_type) alist ));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+
+{\bf Examples - List to List Functions}
+
+Create a list by moving the last element to the first, then shifting
+each element to the right.
+
+\begin{libverbatim}
+     //my_list1 is a List of elements with values {1,2,3,4,5}
+
+     my_list2 = rotateR (my_list1);
+
+     //my_list2 is a List of elements with values {5,1,2,3,4}
+\end{libverbatim}
+
+Create a list which is the reverse of the input List
+\begin{libverbatim}
+     //my_list1 is a List of elements {1,2,3,4,5}
+
+     my_list2 = reverse (my_list1);
+
+     //my_list2 is a List of elements {5,4,3,2,1}
+\end{libverbatim}
+
+Use transpose to create a new list
+\begin{libverbatim}
+     //my_list1 has the values:
+     //{{0,1,2,3,4},{5,6,7,8,9},{10,11,12,13,14}}
+
+     my_list2 = transpose(my_list1);
+
+     //my_list2 has the values:
+     //{{0,5,10},{1,6,11},{2,7,12},{3,8,13},{4,9,14}}
+\end{libverbatim}
+
+Use sort to create a new list
+\begin{libverbatim}
+     //my_list1 has the values: {3,2,5,4,1}
+
+     my_list2 = sort(my_list1);
+
+     //my_list2 has the values: {1,2,3,4,5}
+\end{libverbatim}
+
+Use group to create a list of lists
+\begin{libverbatim}
+     //my_list1 is a list of elements {Mississippi}
+
+     my_list2 = group(my_list1);
+
+     //my_list2 is a list of lists:
+     {{M},{i},{ss},{i},{ss},{i},{pp},{i}}
+\end{libverbatim}
+
+
+%----------------------------------------------------------------------
+
+
+\subsubsection{Tests on Lists}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \begin{libverbatim}
+==
+!=
+\end{libverbatim}
+&Lists can be compared for equality if the elements in the
+list can be compared.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+instance Eq #( List#(element_type) )
+   provisos( Eq#( element_type ) ) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!elem}
+\index{elem@\te{elem} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{elem} &Check if a value is an element in a list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Bool elem (element_type x, List#(element_type) alist )
+  proviso (Eq#(element_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index[function]{List!length}
+\index{length@\te{length} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{length} &Determine the length of a list.  Can be done at
+elaboration time only.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Integer length (List#(element_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!all}
+\index[function]{List!any}
+\index{all@\te{all} (\te{List} function)}
+\index{any@\te{any} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{any}&Test if a predicate holds for any element of a list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Bool any(function Bool pred(element_type x1),
+                  List#(element_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{all}&Test if a predicate holds for all elements of a list.\\
+&\\ \cline{2-2}
+&\begin{libverbatim}
+function Bool all(function Bool pred(element_type x1),
+                  List#(element_type) alist );
+\end{libverbatim}
+\\
+\hline
+\hline
+\end{tabular}
+
+\index[function]{List!or}
+\index{or@\te{or} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\
+\te{or}&Combine all elements in a Boolean list with a logical or.
+Returns True if any elements in the list are True.\\
+&  \\ \cline{2-2}
+&\begin{libverbatim}function Bool or (List# (Bool) bool_list);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!and}
+\index{and@\te{and} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&  \\\te{and}&Combine all elements in a Boolean list with a logical
+and.  Returns True if all elements in the list are true.\\
+&  \\\cline{2-2}
+&\begin{libverbatim}function Bool and (List# (Bool) bool_list);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+{\bf Examples - Tests on Lists}
+
+Test that all elements of the list \te{my\_list1} are positive integers
+\begin{libverbatim}
+     function Bool isPositive (Int #(32) a);
+          return (a > 0)
+     endfunction
+
+     // function isPositive checks that "a" is a  positive integer
+     // if my_list1 has n elements, n instances of the predicate
+     // function isPositive will be generated.
+
+     if (all(isPositive, my_list1))
+        $display ("List contains all negative values");
+\end{libverbatim}
+
+Test if any elements in the list are positive integers.
+\begin{libverbatim}
+     // function isPositive checks that "a" is a  positive integer
+     // if my_list1 has n elements, n instances of the predicate
+     // function isPositive will be generated.
+
+     if (any(pos, my_list1))
+        $display ("List contains some negative values");
+\end{libverbatim}
+
+Check if the integer 5 is in \te{my\_list}
+\begin{libverbatim}
+     // if my_list contains n elements, elem will generate n copies
+     // of the eqt Test
+     if (elem(5,my_list))
+        $display ("List contains the integer 5");
+\end{libverbatim}
+
+
+%------------------------------------------------------------------
+
+\subsubsection{Combining Lists with Zip Functions}
+
+The family of \te{zip} functions takes two or more lists and
+combines them into one list of \te{Tuples}.   Several
+variations are provided for different resulting \te{Tuple}s.  All
+variants can handle input lists of different sizes.  The resulting
+lists will be the size of the smallest list.
+%Tuples are described in Section \ref{sec-tuple-type}.
+
+
+\index[function]{List!zip}
+\index{zip@\te{zip} (\te{List} function)}
+
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{zip}&Combine two lists into a list of Tuples.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(Tuple2 #(a_type, b_type))
+         zip( List#(a_type) lista,
+              List#(b_type) listb);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!zip3}
+\index{zip3@\te{zip3} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{zip3}&Combine 3 lists into a list of Tuple3.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(Tuple3 #(a_type, b_type, c_type))
+         zip3( List#(a_type) lista,
+               List#(b_type) listb,
+               List#(c_type) listc);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!zip4}
+\index{zip4@\te{zip4} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{zip4}&Combine 4 lists into a list of Tuple4.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(Tuple4 #(a_type, b_type, c_type, d_type))
+         zip4( List#(a_type) lista,
+               List#(b_type) listb,
+               List#(c_type) listc,
+               List#(d_type) listd);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!unzip}
+\index{unzip@\te{unzip} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{unzip}&Separate a list of pairs (i.e. a \te{Tuple2\#(a,b))} into a pair of two lists.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Tuple2#(List#(a_type), List#(b_type))
+         unzip(List#(Tuple2 #(a_type, b_type)) listab);\end{libverbatim}
+\\
+\hline
+\hline
+\end{tabular}
+
+{\bf Examples - Combining Lists with Zip}
+
+Combine two lists into a list of Tuples
+\begin{libverbatim}
+     //my_list1 is a list of elements {0,1,2,3,4,5,6,7}
+     //my_list2 is a list of elements {True,False,True,True,False}
+
+     my_list3 = zip(my_list1, my_list2);
+
+     //my_list3 is a list of Tuples {(0,True),(1,False),(2,True),(3,True),(4,False)}
+\end{libverbatim}
+
+Separate a list of pairs into a Tuple of two lists
+\begin{libverbatim}
+     //my_list is a list of pairs {(0,5),(1,6),(2,7),(3,8),(4,9)}
+
+     Tuple2#(List#(Int#(5)),List#(Int#(5))) my_list2 = unzip(my_list);
+
+     //my_list2 is ({0,1,2,3,4},{5,6,7,8,9})
+\end{libverbatim}
+
+% ----------------------------------------------------------------
+
+\subsubsection{Mapping Functions over Lists}
+
+A function can be applied to all elements of a list, using
+high-order functions such as {\tt map}.  These functions take as
+an argument a function, which is applied to the elements
+of the list.
+
+\index[function]{List!map}
+\index{map@\te{map} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{map}&Map a function over a list, returning a new list of results.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(b_type) map (function b_type func(a_type),
+                            List#(a_type) alist);\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Example - Mapping Functions over Lists}
+
+Consider the following code example which applies
+the {\tt extend} function to each element of \te{alist} creating
+a new list, \te{resultlist}.
+\begin{libverbatim}
+      List#(Bit#(5))   alist;
+      List#(Bit#(10))  resultlist;
+      ...
+      resultlist = map( extend, alist ) ;
+\end{libverbatim}
+This is equivalent to saying:
+\begin{libverbatim}
+      for (Integer i=0; i<13; i=i+1)
+          resultlist[i] = extend(alist[i]);
+\end{libverbatim}
+Map a negate function over a list
+\begin{libverbatim}
+     //my_list1 is a list of 5 elements {0,1,2,3,4}
+     //negate is a function which makes each element negative
+
+     List #(Int #(32)) my_list2 = map (negate, my_list1);
+
+     //my_list2 is a list of 5 elements {0,-1,-2,-3,-4}
+\end{libverbatim}
+
+%--------------------------------------------------------------
+
+\subsubsection{ZipWith Functions}
+
+The zipWith functions combine two or more lists with a function and
+generate a new list.  These functions combine features of map and
+zip functions.
+\index{zipWith@\te{zipWith} (\te{List} function)}
+\index[function]{List!zipWith}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{zipWith}&Combine two lists with a function.  The lists do not
+have to have the same number of elements.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(c_type)
+      zipWith (function c_type func(a_type x, b_type y),
+               List#(a_type) listx,
+               List#(b_type) listy );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!zipWith3}
+\index{zipWith3@\te{zipWith3} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{zipWith3}&Combine three lists with a function.  The lists do
+not have to have the same number of elements.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(d_type)
+      zipWith3(function d_type func(a_type x, b_type y, c_type z),
+               List#(a_type) listx,
+               List#(b_type) listy,
+               List#(c_type) listz );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!zipWith4}
+\index{zipWith4@\te{zipWith4} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{zipWith4}&Combine four lists with a function. The lists do
+not have to have the same number of elements.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(e_type) zipWith4
+      (function e_type func(a_type x, b_type y, c_type z, d_type w),
+       List#(a_type) listx,
+       List#(b_type) listy,
+       List#(c_type) listz
+       List#(d_type) listw );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+{\bf Examples - ZipWith}
+
+Create a list by applying a function over the elements of 3 lists.
+\begin{libverbatim}
+     //the function add3 adds 3 values
+     function Int#(8) add3 (Int #(8) a,Int #(8) b,Int #(8) c);
+         Int#(8) d = a + b +c ;
+         return(d);
+     endfunction
+
+     //Create the list my_list4 by adding the ith element of each of
+     //3 lists (my_list1, my_list2, my_list3) to generate the ith
+     //element of my_list4.
+
+     //my_list1 = {0,1,2,3,4}
+     //my_list2 = {5,6,7,8,9}
+     //my_list3 = {10,11,12,13,14}
+
+     List #(Int #(8)) my_list4 = zipWith3(add3, my_list1, my_list2, my_list3);
+
+     //my_list4 = {15,18,21,24,27}
+
+     // This is equivalent to saying:
+        for (Integer i=0; i<5; i=i+1)
+           my_list4[i] = my_list1[i] + my_list2[i] + my_list3[i];
+\end{libverbatim}
+
+%-------------------------------------------------------------
+
+\subsubsection{Fold Functions}
+
+The \te{fold} family of functions reduces a list to a single result by applying a
+function over all its elements.
+That is, given a
+list of {\tt element\_type}, $L_0, L_1, L_2, ..., L_{n-1}$, a seed of
+type {\tt b\_type}, and a function {\tt func}, the reduction for
+\te{foldr} is given by
+\[ func( L_0, func(L_{1},  ... , func ( L_{n-2} , func( L_{n-1}, seed) ))) ; \]
+Note that \te{foldr} start processing from the
+highest index position to the lowest, while {\te foldl} starts
+from the lowest index (zero), i.e.,
+\[ func( ... ( func( func(seed, L_0), L_1), ... )  L_{n-1} ) \]
+
+\index[function]{List!foldr}
+\index{foldr@\te{foldr} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{foldr}&Reduce a list by applying a function over all its
+elements.  Start processing from  the highest index to the lowest.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function b_type foldr(b_type function func(a_type x, b_type y),
+                      b_type seed,
+                      List#(a_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!foldl}
+\index{foldl@\te{foldl} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{foldl}&Reduce a list by applying a function over all its
+elements.  Start processing from  the lowest index (zero).\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function b_type foldl (b_type function func(b_type y, a_type x),
+                       b_type seed,
+                       List#(a_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+The functions \te{foldr1} and \te{foldl1} use the first element as the
+seed.  This means they  only work on lists of at least one element.
+Since the result type will be the same as the element type, there is
+no \te{b\_type} as there is in the \te{foldr} and \te{foldl}
+functions.
+
+\index[function]{List!foldr1}
+\index{foldr1@\te{foldr1} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{foldr1}&\te{foldr} function for a non-zero sized list. Uses
+element $L_{n-1}$ as the seed.
+List must have at least 1 element.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type foldr1
+      (element_type function func(element_type x, element_type y),
+       List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!foldl1}
+\index{foldl1@\te{foldl1} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{foldl1}&\te{foldl} function for a non-zero sized list.  Uses
+element $L_0$ as the seed.
+List must have at least 1 element.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type foldl1
+      (element_type function func(element_type y, element_type x),
+       List#(element_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+The \te{fold} function also operates over a non-empty list, but
+processing is accomplished in a binary tree-like structure.  Hence the
+depth or delay through the resulting function will be $O(log_2( lsize
+) $ rather than $O( lsize ) $.
+
+\index[function]{List!fold}
+\index{fold@\te{fold} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{fold}&  Reduce a list by applying a function over all its
+elements, using a binary tree-like structure.  The function returns
+the same type as the arguments. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function element_type fold
+      (element_type function func(element_type y, element_type x),
+       List#(element_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!joinActions}
+\index{joinActions@\te{joinActions} (\te{List} function)}
+\begin{tabular}{|p{.8 in}|p{4.8 in}|}
+\hline
+&\\ \te{joinActions}&Join a number of actions together.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Action joinActions (List#(Action) list_actions);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!joinRules}
+\index{joinRules@\te{joinRules} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{joinRules} &Join a number of rules together.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Rules joinRules (List#(Rules) list_rules);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\index[function]{List!mapPairs}
+\index{mapPairs@\te{mapPairs} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{mapPairs} &Map a function over a list consuming two elements at a time.
+Any straggling element is processed by the second function.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(b_type)
+         mapPairs (
+            function b_type func1(a_type x, a_type y),
+            function b_type func2(a_type x),
+            List#(a_type) alist );
+\end{libverbatim}
+\\
+\hline
+\hline
+\end{tabular}
+
+
+
+{\bf Example - Folds}
+\begin{libverbatim}
+     // my_list1 is a list of five integers {1,2,3,4,5}
+     // \+ is a function which returns the sum of the elements
+
+     my_sum =  foldr (\+ , 0, my_list1));
+
+     // my_sum = 15
+\end{libverbatim}
+
+Use fold to find the element with the maximum value
+\begin{libverbatim}
+     // my_list1 is a list of five integers  {2,45,5,8,32}
+
+     my_max = fold (max, my_list1);
+
+     // my_max = 45
+\end{libverbatim}
+
+Create a new list using \te{mapPairs}.  The function \te{sum} is applied
+to each pair of elements (the first and second, the third and fourth,
+etc.).  If there is an uneven number of elements, the function \te{pass} is
+applied to the remaining element.
+\begin{libverbatim}
+     //sum is defined as c = a+b
+     function Int#(4) sum (Int #(4) a,Int #(4) b);
+          Int#(4) c = a + b;
+            return(c);
+     endfunction
+
+     //pass is defined as a
+     function Int#(4) pass (Int #(4) a);
+            return(a);
+     endfunction
+
+     //my_list1 has the elements {0,1,2,3,4}
+
+     my_list2 = mapPairs(sum,pass,my_list1);
+
+     //my_list2 has the elements {1,5,4}
+     //my_list2[0] = 0 + 1
+     //my_list2[1] = 2 + 3
+     //my_list2[3] = 4
+\end{libverbatim}
+
+%-----------------------------------------------------------------
+
+\subsubsection{Scan Functions}
+
+The \te{scan} family of functions applies a function over a list,
+creating a new List result.  The \te{scan} function is similar to
+\te{fold},  but the intermediate results are saved and returned in a
+list, instead of returning just the last result.
+The result of a \te{scan} function is a list.
+That is, given a
+list of {\tt element\_type}, $L_0, L_1, ..., L_{n-1}$, an initial
+value {\tt initb}  of
+type {\tt b\_type}, and a function {\tt func}, application of the
+{\tt scanr} functions creates a new list $W$, where
+\begin{eqnarray*}
+W_n     & = & init ; \\
+W_{n-1} & = & func( L_{n-1}, W_n ) ; \\
+W_{n-2} & = & func( L_{n-2}, W_{n-1} ) ; \\
+...     &   & \\
+W_1     & = & func( L_{1}, W_{2} ) ; \\
+W_0     & = & func( L_0, W_1 ) ; \\
+\end{eqnarray*}
+\index{scanr@\te{scanr} (\te{List} function)}
+\index[function]{List!scanr}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{scanr}&Apply a function over a list, creating a new list
+result. Processes elements from the
+highest index position
+to the lowest, and fills the resulting list in the same
+way.  The result list is one element longer than the input list.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(b_type)
+         scanr(function b_type func(a_type x1, b_type x2),
+               b_type initb,
+               List#(a_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!sscanr}
+\index{sscanr@\te{sscanr} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{sscanr}&Apply a function over a list, creating a new list
+result.  The elements are processed from the highest index position to
+the lowest. Drops the $W_n$ element from the
+result.  Input and output lists are the same size. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(b_type)
+         sscanr(function b_type func(a_type x1, b_type x2),
+                b_type initb,
+                List#(a_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+The {\tt scanl} function creates the resulting list in a
+similar way as {\tt scanr} except that the processing happens
+from the zeroth element up to the nth element.
+\begin{eqnarray*}
+W_0 & = & init ; \\
+W_1 & = &  func( W_0, L_0 ) ; \\
+W_2 & = &  func( W_1, L_1 ) ; \\
+... &   &  \\
+W_{n-1} & = & func( W_{n-2}, L_{n-2} ) ; \\
+W_n     & = & func( W_{n-1}, L_{n-1} ) ; \\
+\end{eqnarray*}
+The {\tt sscanl} function drops the first result, $init$, shifting
+the result index by one.
+
+\index[function]{List!scanl}
+\index{scanl@\te{scanl} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{scanl}&Apply a function over a list, creating a new list
+result. Processes elements from  the zeroth element up to the
+nth element.  The result list is 1 element longer than the input list. \\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(a_type)
+         scanl(function a_type func(a_type x1, b_type x2),
+               a_type inita,
+               List#(b_type) alist);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!sscanl}
+\index{sscanl@\te{sscanl} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+& \\ \te{sscanl}&Apply a function over a list, creating a new list
+result. Processes elements from  the zeroth element up to the
+nth element. Drop the first result, $init$, shifting the result index
+by one.  The length of the input and output lists are the same.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function List#(a_type)
+         sscanl(function a_type func(a_type x1, b_type x2),
+                a_type inita,
+                List#(b) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!mapAccumL}
+\index{mapAccumL@\te{mapAccumL} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{mapAccumL}&Map a function, but pass an accumulator from head to tail.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Tuple2 #(a_type, List#(c_type))
+         mapAccumL (function Tuple2 #(a_type, c_type)
+                    func(a_type x, b_type y),a_type x0,
+                    List#(b_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!mapAccumR}
+\index{mapAccumR@\te{mapAccumR} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{mapAccumR}&Map a function, but pass an accumulator from tail to head.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function Tuple2 #(a_type, List#(c_type))
+         mapAccumR(function Tuple2 #(a_type, c_type)
+                   func(a_type x, b_type y),a_type x0,
+                   List#(b_type) alist );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+{\bf Examples - Scan}
+
+Create a list of factorials
+\begin{libverbatim}
+     //the function my_mult multiplies element a by element b
+     function Bit #(16) my_mult (Bit #(16) b, Bit #(8) a);
+        return (extend (a) * b);
+     endfunction
+
+     // Create a list of factorials by multiplying each input list element
+     // by the previous product (the output list element), to generate
+     // the next product.  The seed is a Bit#(16) with a value of 1.
+     // The elements are processed from the zeroth element up to the nth element.
+     //my_list1 = {1,2,3,4,5,6,7}
+
+     List #(Bit #(16)) my_list2 = scanl (my_mult, 16'd1, my_list1);
+
+     //my_list2 = {1,1,2,6,24,120,720,5040}
+\end{libverbatim}
+
+
+%-----------------------------------------------------------------
+
+
+%-------------------------------------------------------------------
+
+\subsubsection{Monadic Operations}
+
+Within Bluespec, there are some functions which can only be
+invoked in certain contexts.  Two common examples are:
+\te{ActionValue}, and module instantiation.  ActionValues can only be
+invoked within an \te{Action} context, such as a rule block or an Action
+method, and can be considered as two parts - the action and the value.
+ Module instantiation can similarly be considered, modules can
+only be instantiated in the module context, while the two parts
+are the module instantiation (the action performed) and the interface (the
+result returned).  These situations are considered \emph{monadic}.
+
+
+When a monadic function is to be applied over a list using
+ map-like functions such
+as {\tt map, zipWith}, or {\tt replicate}, the monadic versions
+of these functions must be used.  Moreover, the context requirements of the
+applied function must hold. % The common application  for these functions
+% is in the generation (or instantiation) of lists of hardware
+% components.
+
+\index[function]{List!mapM}
+\index{mapM@\te{mapM} (\te{Monad} function on {\te{List}})}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{mapM}&Takes a monadic function and a list, and
+applies the function to all list elements returning the list of
+corresponding results.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function m#(List#(b_type))
+         mapM ( function m#(b_type) func(a_type x),
+                 List#(a_type) alist )
+   provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index[function]{List!mapM\US}
+\index{mapM\US@\te{mapM\US} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{mapM\_}&Takes a monadic function and a list, applies the
+function to all list elements, and throws away the resulting list leaving the action in its context.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function m#(void)
+         mapM_( function m#(b_type) func(a_type x),
+                List#(a_type) alist )
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index[function]{List!zipWithM}
+\index{zipWithM@\te{zipWithM} (\te{List} function)}
+
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{zipWithM} &Take a monadic function (which takes two arguments) and two lists;
+the function applied to the corresponding element from
+each list would return an action and result.
+Perform all those actions and return the list of corresponding results.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function m#(List#(c_type))
+         zipWithM( function m#(c_type) func(a_type x, b_type y),
+                   List#(a_type) alist,
+                   List#(b_type) blist )
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+% \index{zipWithM\US@\te{zipWithM\US} (\te{List} function)}
+
+% \begin{tabular}{|p{.7 in}|p{4.9 in}|}
+% \hline
+% &\\ \te{zipWithM\_} &Take a monadic function (which takes two
+% arguments) and two lists; the function is applied to the corresponding
+% element from each list.  This is the same as \te{zipWithM} but the
+% resulting list is thrown away leaving the action in  its context.\\
+% & \\ \cline{2-2}
+% &\begin{libverbatim}
+% function m#(void)
+%          zipWithM_(function m#(c_type) func(a_type x, b_type y),
+%                    List#(a_type) alist,
+%                    List#(b_type) blist )
+%   provisos (Monad#(m));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+\index[function]{List!zipWith3M}
+\index{zipWith3M@\te{zipWith3M} (\te{List} function)}
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{zipWith3M} & Same as \te{zipWithM} but combines three lists
+with a function. The function is applied to the corresponding element from
+each list and returns an action and the list of corresponding results.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function m#(List#(d_type))
+     zipWith3M( function m#(d_type)
+                func(a_type x, b_type y, c_type z),
+                List#(a_type) alist ,
+                List#(b_type) blist,
+                List#(c_type) clist )
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+% \index{genWithM@\te{genWithM} (\te{List} function)}
+
+% \begin{tabular}{|p{.7 in}|p{4.9 in}|}
+% \hline
+% &\\ \te{genWithM} & Generate a list of elements  by applying the
+% given monadic function to 0 through N-1.\\
+% & \\ \cline{2-2}
+% &\begin{libverbatim}
+% function m#(List#(element_type))
+%          genWithM(function m#(element_type) func(Integer x))
+%   provisos (Monad#(m));
+% \end{libverbatim}
+% \\
+% \hline
+% \end{tabular}
+
+\index[function]{List!replicateM}
+\index{replicateM@\te{replicateM} (\te{List} function)}
+
+\begin{tabular}{|p{.7 in}|p{4.9 in}|}
+\hline
+&\\ \te{replicateM} & Generate a list of elements  by using
+the given monadic value repeatedly.\\
+& \\ \cline{2-2}
+&\begin{libverbatim}
+function m#(List#(element_type))
+         replicateM( Integer n, m#(element_type) c)
+  provisos (Monad#(m));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+%--------------------------------------------------------------

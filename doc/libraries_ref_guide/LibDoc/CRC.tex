@@ -1,0 +1,212 @@
+\subsubsection{CRC}
+
+\index{CRC@\te{CRC} (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import CRC :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+CRC's are  designed to protect against common types of
+errors on communication channels.  
+The \te{CRC} package defines modules to calculate a check value for
+each 8-bit block of data, which can then be verified to determine if
+ data was transmitted and/or received correctly.   There are many commonly used and
+standardized  CRC algorithms. 
+The \te{CRC} package provides both a generalized CRC module as well as
+module implementations for the CRC-CCITT, CRC-16-ANSI, and
+CRC-32 (IEEE 802.3) standards. The size of the CRC polynomial
+ is polymorphic and  the data
+ size is a byte (\te{Bit\#(8)}),  which is relevant for many
+ applications.  The generalized module uses five 
+arguments to define the CRC algorithm: the CRC polynomial,   the initial
+CRC value, a fixed bit pattern to Xor with the remainder, a boolean indicating whether to reverse the data
+bit order and a boolean indicating whether to reverse the result bit
+order.  By specifying these 
+arguments, you can implement many CRC algorithms.  This package 
+provides modules for three specific algorithms by defining the
+arguments for those algorithms.
+
+
+{\bf Interfaces and Methods}
+
+The CRC modules provide the \te{CRC} interface.  The \te{add} method
+is used to calculate the check value on the \te{data} argument.  In
+this package, the argument is always a \te{Bit\#(8)}.  
+ 
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{1.5in}|p{1.2 in}|p{.9in}|p{1 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{CRC} Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{add}&\te{Action}&Update the CRC  &\te{Bit\#(8) data}&8-bit data block\\
+\hline
+\te{clear}&\te{Action} &\multicolumn{3}{|l|}{Reset to the initial value}\\
+\hline
+\te{result}&\te{Bit\#(n)}&\multicolumn{3}{|l|}{Returns the current value of the check value}\\
+\hline
+\te{complete}&\te{ActionValue(Bit\#(n))}&\multicolumn{3}{|l|}{Return the result and reset}\\
+\hline
+\end{tabular}
+\end{center}
+ 
+
+\begin{libverbatim}
+interface CRC#(numeric type n);
+   method    Action   add(Bit#(8) data);
+   method    Action   clear();
+   method    Bit#(n)  result();
+   method    ActionValue#(Bit#(n)) complete();
+endinterface
+\end{libverbatim}
+
+{\bf Modules}
+
+
+\index{mkCRC@\te{mkCRC}(module)}
+
+The implementation of the generalized CRC module takes the following
+five arguments:
+\begin{itemize}
+\item \te{Bit\#(n)} polynomial:  the crc operation polynomial,  for example
+$x^{16} + x^{12} + x^{5}+ 1$ is written as $`h1021$
+
+\item \te{Bit\#(n)} initval: the initial CRC value
+
+\item \te{Bit\#(n)} finalXor: the result is xor'd with this value if
+desired
+\item \te{Bool} reflectData: if True, reverse the data bit order
+
+\item \te{Bool} reflectRemainder: if True, reverse the result bit order
+\end{itemize}
+
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+&\\
+\te{mkCRC}&The generalized CRC module. The provisos enforce the
+requirement that polynomial and initial value  must be at least 8 bits. \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRC#(  Bit#(n) polynomial      
+	      , Bit#(n) initval         
+	      , Bit#(n) finalXor       
+	      , Bool    reflectData    
+	      , Bool    reflectRemainder 
+	      )(CRC#(n))
+   provisos(  Add#(8, n8, n) );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\multicolumn{6}{|c|}{CRC Arguments for Common Standards}\\
+\hline
+Name&polynomial&initval&finalXor&reflectData&reflectRemainder\\
+\hline
+\hline
+CRC-CCITT&\te{'h1021}&\te{'hFFFF }&
+\te{'h0000}&\te{False}&\te{False}\\
+\hline
+ CRC-16-ANSI&\te{'h8005}&\te{'h0000 }&\te{'h0000}&\te{True}&\te{True}\\
+\hline
+CRC-32 (IEEE 802.3)&
+\te{'h04C11DB7}&\te{'hFFFFFFFF}&\te{'hFFFFFFFF}&\te{True}&\te{True}\\
+\hline
+
+\end{tabular}
+\end{center}
+
+
+\index{mkCRC\_CCITT@\te{mkCRC\_CCIT}(module)}
+
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+&\\
+\te{mkCRC\_CCIT}& Implements the 16-bit CRC-CCITT standard.   \\
+&($x^{16} + x^{15} + x^{2} + 1$).   \\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRC_CCITT(CRC#(16));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\index{mkCRC16@\te{mkCRC16}(module)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+&\\
+\te{mkCRC16}& Implementation of the  16-bit CRC-16-ANSI standard. \\
+& ($x^{16} + x^{15} + x^{2} + 1$).\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRC16(CRC#(16));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{mkCRC32@\te{mkCRC32}(module)}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+&\\
+\te{mkCRC32}& Implementation of the 32-bit CRC-32 (IEEE 802.3)
+standard. \\
+&($x^{32} + x^{26} + x^{23} + x^{22} + x^{16} + x^{12} + x^{11} + x^{10} + x^{8} + x^{7} + x^{5} + x^{4} + x^{2} + x^{1} + 1$)\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkCRC32(CRC#(32));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{reflect@\te{reflect}(CRC function)}
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+&\\
+\te{reflect}&The \te{reflect} function reverses the data bits if the
+value of \te{reflectData} is \te{True}. \\
+\cline{2-2}
+&\begin{libverbatim}
+function Bit#(a) reflect(Bool doIt, Bit#(a) data);
+   return (doIt) ? reverseBits(data) : data;
+endfunction
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+

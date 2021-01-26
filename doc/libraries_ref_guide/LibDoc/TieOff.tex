@@ -1,0 +1,48 @@
+\subsubsection{TieOff}
+\index[typeclass]{TieOff}
+\label{lib-tieoff}
+
+{\bf Package}
+\index{TieOff (package)}
+
+
+\begin{verbatim}
+import TieOff :: * ;
+\end{verbatim}
+
+
+
+{\bf Description}
+
+This package provides a typeclass \te{TieOff\#(t)} which may be
+userful to provide default
+enable methods of some interface \te{t}, some of which must be
+\te{always\_enabled} or require some action.
+
+
+{\bf Typeclasses}
+
+\begin{verbatim}
+typeclass TieOff #(type t);
+  module mkTieOff#(t ifc) (Empty);
+endtypeclass
+\end{verbatim}
+
+
+{\bf Example: Defining a \te{TieOff} for a \te{Get} interface}
+
+This is a  sink module which pulls data from the \te{Get}
+interface and displays the data.
+
+\begin{verbatim}
+instance TieOff #(Get #(t) )
+  provisos (Bits#(t,st),
+            FShow#(t) );
+  module mkTieOff ( Get#(t) ifc, Empty inf);
+     rule getSink (True);
+        t val <- ifc.get;
+        $display( "Get tieoff %m", fshow(val) );
+     endrule
+  endmodule
+endinstance
+\end{verbatim}

@@ -1,0 +1,114 @@
+\subsubsection{Reserved}
+
+\index{Reserved@\te{Reserved} (type)}
+\index{ReservedOne@\te{ReservedOne} (type)}
+\index{ReservedZero@\te{ReservedZero} (type)}
+\index{Reserved (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import Reserved :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The {\te{Reserved}} package
+ defines three  abstract data types which only have the
+purpose of taking up space.  They are useful when defining a \te{struct}
+where you need to enforce a certain layout and want to use the type
+checker to enforce that the value is not accidently used. One can
+enforce a layout unsafely with \te{Bit\#(n)}, but \te{Reserved\#(n)}
+gives safety.
+A value of type \te{Reserved\#(n)} takes up exactly \te{n} bits.
+\BBS
+ typedef {\rm{\emph{$\cdots$ abstract $\cdots$}}} Reserved#(type n);
+\EBS
+
+{\bf Types and Type classes}
+
+There are three types defined in the \te{Reserved} package:
+\te{Reserved},   \te{ReservedZero}, and \te{ReservedOne}.  The \te{Reserved} type is an
+abstract data type which takes up exactly \te{n} bits and always
+returns an unspecified value. The \te{ReservedZero} and \te{ReservedOne} data types
+are equivalent to 
+the \te{Reserved}  type except that \te{ReservedZero} always returns \te{'0} and
+\te{ReservedOne} always returns  \te{'1}.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes used by \te{Reserved}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}\\
+&&&&&&&\te{wise}&\te{Reduction}&\te{Extend}\\
+\hline
+\te{Reserved}&$\surd$  &$\surd$&& &$\surd$ &$\surd$ &&&\\
+\hline
+\te{ReservedZero}&$\surd$  &$\surd$&& &$\surd$ &$\surd$ &&&\\
+\hline
+\te{ReservedOne}&$\surd$  &$\surd$&& &$\surd$ &$\surd$ &&&\\
+\hline
+\end{tabular}
+\end{center}
+
+% \te{Reserved} belongs to the following type classes:
+% \begin{libverbatim}
+% instance Bits #(Reserved#(n), n);
+% instance Eq #(Reserved#(n));
+% instance Ord #(Reserved#(n));
+% instance Bounded #(Reserved#(n));
+% \end{libverbatim}
+
+
+\begin{itemize}
+\item{\te{Bits}}
+The only purpose of these types  is to allow the value to exist in
+hardware (at port boundaries and in states).  The user should have no
+reason to use \te{pack/unpack} directly.
+
+
+\begin{trivlist}
+\item Converting \te{Reserved} to or from \te{Bits} returns a don't care (\te{?}).
+\item Converting \te{ReservedZero} to or from \te{Bits} returns a \te{'0}. 
+\item Converting \te{ReservedOne} to or from \te{Bits} returns a \te{'1}.
+\end{trivlist}
+
+\item{\te{Eq} and \te{Ord}}
+
+Any two \te{Reserved}, \te{ReservedZero}, or \te{ReservedOne}  values are considered to be equal.
+
+	
+\item{\te{Bounded}}
+
+The upper and lower bound return  don't care (\te{?}), \te{'1} or
+\te{'0} values depending on the type.
+
+
+\end{itemize}
+
+{\bf Example: Structure with a 8 bits reserved.}
+
+
+\begin{verbatim}
+typedef struct {                      
+   Bit#(8)               header;      // Frame.header
+   Vector#(2, Bit#(8))   payload;     // Frame.payload
+   Reserved#(8)          dummy;       // Can't access 8 bits reserved
+   Bit#(8)               trailer;     // Frame.trailer
+} Frame;                              
+\end{verbatim}
+
+
+%\begin{tabular}{|p {.7in}|p {.7 in}|p {.7 in}|p {.7 in}|p {.7 in}|}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+header&payload0&payload1&dummy&trailer\\
+\hline
+8&8&8&8&8\\
+\hline
+\end{tabular} 
+
+

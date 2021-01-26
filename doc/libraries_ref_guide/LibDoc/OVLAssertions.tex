@@ -1,0 +1,1469 @@
+\subsubsection{OVLAssertions}
+
+\index{OVLAssertions (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import OVLAssertions :: * ;
+\end{verbatim}
+
+
+
+{\bf Description}
+
+The OVLAssertions package provides the {\BSV} interfaces and wrapper
+modules necessary to allow {\BSV} designs to include assertion
+checkers from the Open Verification Library (OVL).  The OVL includes a
+set of assertion checkers that verify specific properties of a design.
+For more details on the complete OVL, refer to the Accellera Standard
+OVL Library Reference Manual (\te{http://www.accellera.org}).
+
+
+
+{\bf Interfaces and Methods}
+
+
+The following interfaces are defined for use with the assertion
+modules.  Each interface has one or more \te{Action} methods.  Each
+method takes a single argument which is either a \te{Bool} or
+polymorphic.   
+
+% \begin{center}
+% \begin{tabular}{|p{1.8 in}|p{3.6 in}|}
+% \hline
+% Interface&Description\\
+% \hline
+% \te{AssertTest\_IFC}&Used for assertions that check a test
+% expression on every clock cycle.\\
+% \hline
+% \te{AssertSampleTest\_IFC}&Used for assertions that check a test
+% expression on every clock cycle only when sample is asserted.\\
+% \hline
+% \te{AssertStartTest\_IFC}& Used for assersions that check a test expression only subsequent to a start\_event.\\
+% \hline
+% \te{AssertStartStopTest\_IFC}& Used to check a test expression between
+% a start\_event and an end\_event.\\
+% \hline
+% \te{AssertTransitionTest\_IFC}&Used to check a test expression that
+% has a specified start state and next state, i.e. a
+% transition.\\
+% \hline
+% \te{AssertQuiescentTest\_IFC}&Used to check that a test expression
+% equals a check expression when a state is
+% asserted.\\
+% \hline
+% \te{AssertFIFOTest\_IFC}&Used with a FIFO structures.\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+\paragraph{AssertTest\_IFC}
+%\index{OVL Assertions!AssertTest\_IFC@\te{AssertTest\_IFC} (interface)}
+\index{AssertTest\_IFC@\te{AssertTest\_IFC} (interface)}
+
+Used for assertions that check a test expression on every clock cycle.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{test}&\te{Action}&\te{test\_value}&\te{a\_type}&Expression to be checked.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertTest_IFC #(type a_type);
+   method Action test(a_type test_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertSampleTest\_IFC}
+\index{AssertSampleTest\_IFC@\te{AssertSampleTest\_IFC} (interface)}
+%\index{OVL Assertions!AssertSampleTest\_IFC@\te{AssertSampleTest\_IFC} (interface)}
+
+Used for assertions that check a test expression on every clock cycle
+only if the sample, indicated by the boolean value \te{sample\_test}
+is asserted.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertSampleTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{sample}&\te{Action}&\te{sample\_test}&\te{Bool}&Assertion
+only checked if \te{sample\_test} is asserted.\\
+\hline
+\te{test}&\te{Action}&\te{test\_value}&\te{a\_type}&Expression to be checked.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertSampleTest_IFC #(type a_type);
+   method Action sample(Bool sample_test);
+   method Action test(a_type test_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertStartTest\_IFC}
+\index{AssertStartTest\_IFC@\te{AssertStartTest\_IFC} (interface)}
+%\index{OVL Assertions!AssertStartTest\_IFC@\te{AssertStartTest\_IFC} (interface)}
+
+Used for assertions that check a test expression only subsequent to a
+start\_event, specified by the Boolean value \te{start\_test}.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertStartTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{start}&\te{Action}&\te{start\_test}&\te{Bool}&Assertion
+only checked after start is asserted.\\
+\hline
+\te{test}&\te{Action}&\te{test\_value}&\te{a\_type}&Expression to be checked.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertStartTest_IFC #(type a_type);
+   method Action start(Bool start_test);
+   method Action test(a_type test_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertStartStopTest\_IFC}
+\index{AssertStartStopTest\_IFC@\te{AssertStartStopTest\_IFC}
+(interface)}
+%\index{OVL Assertions!AssertStartStopTest\_IFC@\te{AssertStartStopTest\_IFC} (interface)}
+
+Used to check a test expression between a start\_event and a
+stop\_event.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertStartStopTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{start}&\te{Action}&\te{start\_test}&\te{Bool}&Assertion
+only checked after start is asserted.\\
+\hline
+\te{stop}&\te{Action}&\te{stop\_test}&\te{Bool}&Assertion
+only checked until the stop is asserted.\\
+\hline
+\te{test}&\te{Action}&\te{test\_value}&\te{a\_type}&Expression to be checked.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertStartStopTest_IFC #(type a_type);
+   method Action start(Bool start_test);
+   method Action stop(Bool stop_test);
+   method Action test(a_type test_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertTransitionTest\_IFC}
+\index{AssertTransitionTest\_IFC@\te{AssertTransitionTest\_IFC} (interface)}
+%\index{OVL Assertions!AssertTransitionTest\_IFC@\te{AssertTransitionTest\_IFC}
+%(interface)}
+
+Used to check a test expression that
+has a specified start state and next state, i.e. a
+transition.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertTransitionTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{test}&\te{Action}&\te{test\_value}&\te{a\_type}&Expression that
+should transition to the \te{next\_value}.\\
+\hline
+\te{start}&\te{Action}&\te{start\_test}&\te{a\_type}&Expression that
+indicates the start state for the assertion check.  If the value of
+\te{start\_test} equals the value of \te{test\_value}, the check is performed.\\
+\hline
+\te{next}&\te{Action}&\te{next\_value}&\te{a\_type}&Expression that
+indicates  the only valid next state for the assertion check.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertTransitionTest_IFC #(type a_type);
+   method Action test(a_type test_value);
+   method Action start(a_type start_value);
+   method Action next(a_type next_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertQuiescentTest\_IFC}
+\index{AssertQuiescentTest\_IFC@\te{AssertQuiescentTest\_IFC} (interface)}
+%\index{OVL Assertions!AssertQuiescentTest\_IFC@\te{AssertQuiescentTest\_IFC} (interface)}
+
+Used to check that a test expression is equivalent to the specified expression
+when the sample state is asserted.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertQuiescentTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{sample}&\te{Action}&\te{sampe\_test}&\te{Bool}&Expression which
+initiates  the
+quiescent assertion check when it transistions to true.\\
+\hline
+\te{state}&\te{Action}&\te{state\_value}&\te{a\_type}&Expression that
+should have the same value as \te{check\_value}\\
+\hline
+\te{check}&\te{Action}&\te{check\_value}&\te{a\_type}&Expression
+\te{state\_value} is compared to.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertQuiescentTest_IFC #(type a_type);
+   method Action sample(Bool sample_test);
+   method Action state(a_type state_value);
+   method Action check(a_type check_value);
+endinterface
+\end{libverbatim}
+
+\paragraph{AssertFifoTest\_IFC}
+\index{AssertFifoTest\_IFC@\te{AssertFifoTest\_IFC} (interface)}
+%\index{OVL Assertions!AssertFifoTest\_IFC@\te{AssertFifoTest\_IFC} (interface)}
+
+Used with assertions checking  a FIFO structure.
+\begin{center}
+\begin{tabular}{|p{.6in}|p{.5 in}|p{.8 in}|p{.7 in}|p{2.5 in}|}
+\hline
+\multicolumn{5}{|c|}{\te{AssertFifoTest\_IFC}}\\
+ \hline
+\multicolumn{2}{|c|}{Method}&\multicolumn{3}{|c|}{Argument}\\
+\hline
+Name&Type&Name&Type&Description\\
+\hline
+\hline
+\te{push}&\te{Action}&\te{push\_value}&\te{a\_type}&Expression which
+indicates the number of push operations that will occur during the
+current cycle.\\
+\hline
+\te{pop}&\te{Action}&\te{pop\_value}&\te{a\_type}&Expression which
+indicates the number of pop operations that will occur during the
+current cycle.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface AssertFifoTest_IFC #(type a_type, type b_type);
+   method Action push(a_type push_value);
+   method Action pop(b_type pop_value);
+endinterface
+\end{libverbatim}
+
+{\bf Datatypes}
+
+The parameters
+\te{severity\_level}, \te{property\_type}, \te{msg}, and
+\te{coverage\_level} are common to all assertion checkers.  
+
+\begin{center}
+\begin{tabular}{|p {2.0 in}|p{2.5 in}|}
+\hline
+\multicolumn{2}{|c|}{Common Parameters for all Assertion Checkers}\\
+\hline
+Parameter&Valid Values\\
+&* indicates default value\\
+\hline
+\hline
+\te{severity\_level}&\te{OVL\_FATAL}\\
+&*\te{OVL\_ERROR}\\
+&\te{OVL\_WARNING}\\
+&\te{OVL\_Info}\\
+\hline
+\te{property\_type}&*\te{OVL\_ASSERT}\\
+&\te{OVL\_ASSUME}\\
+&\te{OVL\_IGNORE}\\
+\hline
+\te{msg}&*\te{VIOLATION}\\
+\hline
+\te{coverage\_level}&\te{OVL\_COVER\_NONE}\\
+&*\te{OVL\_COVER\_ALL}\\
+&\te{OVL\_COVER\_SANITY}\\
+&\te{OVL\_COVER\_BASIC}\\
+&\te{OVL\_COVER\_CORNER}\\
+&\te{OVL\_COVER\_STATISTIC}\\
+\hline
+\end{tabular}
+\end{center}
+
+Each assertion checker may also use some subset of the following parameters.
+
+\begin{center}
+\begin{tabular}{|p {2.0 in}|p{2.5 in}|}
+\hline
+\multicolumn{2}{|c|}{Other Parameters for Assertion Checkers}\\
+\hline
+Parameter&Valid Values\\
+\hline
+\hline
+\te{action\_on\_new\_start}&\te{OVL\_IGNORE\_NEW\_START}\\
+&\te{OVL\_RESET\_ON\_NEW\_START}\\
+&\te{OVL\_ERROR\_ON\_NEW\_START}\\
+\hline
+\te{edge\_type}&\te{OVL\_NOEDGE}\\
+&\te{OVL\_POSEDGE}\\
+&\te{OVL\_NEGEDGE}\\
+&\te{OVL\_ANYEDGE}\\
+\hline
+\te{necessary\_condition}&\te{OVL\_TRIGGER\_ON\_MOST\_PIPE}\\
+&\te{OVL\_TRIGGER\_ON\_FIRST\_PIPE}\\
+&\te{OVL\_TRIGGER\_ON\_FIRST\_NOPIPE}\\
+\hline
+\te{inactive}&\te{OVL\_ALL\_ZEROS}\\
+&\te{OVL\_ALL\_ONES}\\
+&\te{OVL\_ONE\_COLD}\\
+\hline
+\end{tabular}
+\end{center}
+\begin{center}
+\begin{tabular}{|p {2.0 in}|p{2.5 in}|}
+\hline
+\multicolumn{2}{|c|}{Other Parameters for Assertion Checkers}\\
+\hline
+Parameter&Valid Values\\
+\hline
+\hline
+\te{num\_cks}&\te{Int\#(32)}\\
+\hline
+\te{min\_cks}&\te{Int\#(32)}\\
+\hline
+\te{max\_cks}&\te{Int\#(32)}\\
+\hline
+\te{min\_ack\_cycle}&\te{Int\#(32)}\\
+\hline
+\te{max\_ack\_cycle}&\te{Int\#(32)}\\
+\hline
+\te{max\_ack\_length}&\te{Int\#(32)}\\
+\hline
+\te{req\_drop}&\te{Int\#(32)}\\
+\hline
+\te{deassert\_count}&\te{Int\#(32)}\\
+\hline
+\te{depth}&\te{Int\#(32)}\\
+\hline
+\te{value}&\te{a\_type}\\
+\hline
+\te{min}&\te{a\_type}\\
+\hline
+\te{max}&\te{a\_type}\\
+\hline
+\te{check\_overlapping}&\te{Bool}\\
+\hline
+\te{check\_missing\_start}&\te{Bool}\\
+\hline
+\te{simultaneous\_push\_pop}&\te{Bool}\\
+\hline	
+\end{tabular}
+\end{center}
+
+{\bf Setting Assertion Parameters}
+
+Each assertion checker module has a set of associated parameter values
+that can be customized for each module instantiation. The values for
+these parameters are passed to each checker module in the form of a
+single struct argument of type \te{OVLDefaults\#(a)}  A typical use scenario
+is illustrated below: 
+
+\begin{verbatim}
+let defaults = mkOVLDefaults;
+
+defaults.min_clks = 2;
+defaults.max_clks = 3;
+
+AssertTest_IFC#(Bool) assertWid <- bsv_assert_width(defaults);
+\end{verbatim}
+
+The defaults struct (created by \te{mkOVLDefaults}) includes one field for
+each possible parameter. Initially each field includes the associated
+default value. By editing fields of the struct,  individual parameter
+values can be modified as needed to be non-default values.  The
+modified \te{defaults} struct is then  provided as a module argument during
+instantiation. 
+
+
+% {\bf Parameters}
+
+% Every assertion checker has a defined set of parameters, each of which
+% must have a value.   Use the module  \te{mkOVLDefaults}
+% to set default values for all the parameters.  Then set individual
+% parameters (\te{default.}{\em field name}) as needed to the non-default values.
+% \begin{libverbatim}
+%    \\ set the defaults
+%    let defaults = mkOVLDefaults;
+   
+%    \\ set the specific parameters to non-default values
+%    defaults.min_cks = 2; //min_cks : 2
+%    defaults.max_cks = 3; //max_cks : 3
+% \end{libverbatim}
+
+
+{\bf Modules}
+
+Each module in this package corresponds to an assertion checker from the Open
+Verification Library (OVL).  The {\BSV} name for each module is the same as the OVL name
+with \te{bsv\_} appended to the beginning of the  name.
+
+
+%===============================================
+\index{bsv\_assert\_always@\te{bsv\_assert\_always} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_always}
+%\index{OVL Assertions!bsv\_assert\_always@\te{bsv\_assert\_always} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_always}\\
+\hline
+Description&Concurrent assertion that the value of the
+expression is always \te{True}.\\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_always#(OVLDefaults#(Bool) defaults) 
+               (AssertTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+%===============================================
+\index{bsv\_assert\_always\_on\_edge@\te{bsv\_assert\_always\_on\_edge}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_always\_on\_edge}
+%\index{OVL Assertions!bsv\_assert\_always\_on\_edge@\te{bsv\_assert\_always\_on\_edge} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_always\_on\_edge}\\
+\hline
+Description&Checks that the test expression
+evaluates \te{True} whenever the sample method is asserted. \\
+\hline
+Interface Used&\te{AssertSampleTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{edge\_type} (default value = \te{OVL\_NOEDGE})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_always_on_edge#(OVLDefaults#(Bool) 
+               defaults)(AssertSampleTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%===============================================
+\index{bsv\_assert\_change@\te{bsv\_assert\_change} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_change}
+%\index{OVL Assertions!bsv\_assert\_change@\te{bsv\_assert\_change} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_change}\\
+\hline
+Description&Checks that once the start method is
+asserted, the expression will change value within \te{num\_cks} cycles. \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{action\_on\_new\_start} (default value = \te{OVL\_IGNORE\_NEW\_START})\\
+&\te{num\_cks} (default value = 1) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_change#(OVLDefaults#(a_type) defaults) 
+               (AssertStartTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%===============================================
+%===============================================
+\index{bsv\_assert\_cycle\_sequence@\te{bsv\_assert\_cycle\_sequence} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_cycle\_sequence}
+%\index{OVL Assertions!bsv\_assert\_cycle\_sequence@\te{bsv\_assert\_cycle\_sequence} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_cycle\_sequence}\\
+\hline
+Description&Ensures that if a specified necessary condition occurs,it is followed by a
+specified sequence of events. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{necessary\_condition} (default value = \te{OVL\_TRIGGER\_ON\_MOST\_PIPE})\\
+%% &\te{num\_cks} (default value = 2)\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_cycle_sequence#(OVLDefaults#(a_type) 
+               defaults)(AssertTest_IFC#(a_type))  
+     provisos (Bits#(a_type, sizea), 
+               Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+\index{bsv\_assert\_decrement@\te{bsv\_assert\_decrement} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_decrement}
+%\index{OVL Assertions!bsv\_assert\_decrement@\te{bsv\_assert\_decrement} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_decrement}\\
+\hline
+Description&Ensures that the expression decrements only by the value
+specifiedR. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{value} (default value = 1)\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_decrement#(OVLDefaults#(a_type) defaults)
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), Literal#(a_type), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%==============================================
+\index{bsv\_assert\_delta@\te{bsv\_assert\_delta} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_delta}
+%\index{OVL Assertions!bsv\_assert\_delta@\te{bsv\_assert\_delta} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_delta}\\
+\hline
+Description& Ensures that the expression always changes by a value
+within the range specified by \te{min} and \te{max}. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{min} (default value = 1)\\
+&\te{max} (default value = 1)\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_delta#(OVLDefaults#(a_type) defaults)
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), Literal#(a_type), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%===============================================
+\index{bsv\_assert\_even\_parity@\te{bsv\_assert\_even\_parity} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_even\_parity}
+%\index{OVL Assertions!bsv\_assert\_even\_parity@\te{bsv\_assert\_even\_parity} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_even\_parity}\\
+\hline
+Description&Ensures that value of a specified expression has even
+parity, that is an even number of bits in the expression
+are active high.\\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_even_parity#(OVLDefaults#(a_type) 
+               defaults) (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+%===============================================
+\index{bsv\_assert\_fifo\_index@\te{bsv\_assert\_fifo\_index}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_fifo\_index}
+%\index{OVL Assertions!bsv\_assert\_fifo\_index@\te{bsv\_assert\_fifo\_index} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_fifo\_index}\\
+\hline
+Description&Ensures that a FIFO-type structure never overflows or underflows. 
+ This checker can be configured to support multiple pushes 
+        (FIFO writes) and pops (FIFO reads) during the same clock cycle.  \\
+\hline
+Interface Used&\te{AssertFifoTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{depth} (default value = 1) \\
+&\te{simultaneous\_push\_pop} (default value = \te{True})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_fifo_index#(OVLDefaults#(Bit#(0)) 
+            defaults)(AssertFifoTest_IFC#(a_type, b_type))
+    provisos (Bits#(a_type, sizea), Bits#(b_type, sizeb));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+   
+%===============================================
+\index{bsv\_assert\_frame@\te{bsv\_assert\_frame} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_frame}
+%\index{OVL Assertions!bsv\_assert\_frame@\te{bsv\_assert\_frame} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_frame}\\
+\hline
+Description&Checks that once the start method is asserted, the test 
+ expression evaluates true not before \te{min\_cks} clock cycles 
+  and not after \te{max\_cks} clock cycles.   \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{action\_on\_new\_start} (default value = \te{OVL\_IGNORE\_NEW\_START})\\
+&\te{min\_cks} (default value = 1) \\
+&\te{max\_cks} (default value = 1) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_frame#(OVLDefaults#(Bool) defaults) 
+               (AssertStartTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%===============================================
+\index{bsv\_assert\_handshake@\te{bsv\_assert\_handshake} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_handshake}
+%\index{OVL Assertions!bsv\_assert\_handshake@\te{bsv\_assert\_handshake} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_handshake}\\
+\hline
+Description&Ensures that the specified request and acknowledge signals
+follow a specified handshake protocol.\\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{action\_on\_new\_start}  (default value = \te{OVL\_IGNORE\_NEW\_START})\\
+&\te{min\_ack\_cycle}  (default value = 1)\\
+&\te{max\_ack\_cycle}  (default value = 1)\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_handshake#(OVLDefaults#(Bool) defaults) 
+               (AssertStartTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%===============================================
+\index{bsv\_assert\_implication@\te{bsv\_assert\_implication}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_implication}
+%\index{OVL Assertions!bsv\_assert\_implication@\te{bsv\_assert\_implication} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_implication}\\
+\hline
+Description&Ensures that a specified consequent expression is
+\te{True} if the specified antecedent expression is \te{True}. \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_implication#(OVLDefaults#(Bool) defaults) 
+               (AssertStartTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+ 
+
+%===============================================
+\index{bsv\_assert\_increment@\te{bsv\_assert\_increment} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_increment}
+%\index{OVL Assertions!bsv\_assert\_increment@\te{bsv\_assert\_increment} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_increment}\\
+\hline
+Description&ensure that the test expression always increases by the
+value of specified by \te{value}. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{value} (default value = 1)\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_increment#(OVLDefaults#(a_type) defaults) 
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), Literal#(a_type), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+
+   
+%===============================================
+\index{bsv\_assert\_never@\te{bsv\_assert\_never} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_never}
+%\index{OVL Assertions!bsv\_assert\_never@\te{bsv\_assert\_never} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_never}\\
+\hline
+Description&Ensures that the value of a specified expression is never \te{True}. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_never#(OVLDefaults#(Bool) defaults) 
+               (AssertTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+%===============================================
+\index{bsv\_assert\_never\_unknown@\te{bsv\_assert\_never\_unknown}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_never\_unknown}
+%\index{OVL Assertions!bsv\_assert\_never\_unknown@\te{bsv\_assert\_never\_unknown} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_never\_unknown}\\
+\hline
+Description&Ensures that the value of a specified expression contains only 
+ 0 and 1 bits when a qualifying expression is \te{True}. \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_never_unknown#(OVLDefaults#(a_type) 
+               defaults)(AssertStartTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+%===============================================
+\index{bsv\_assert\_never\_unknown\_async@\te{bsv\_assert\_never\_unknown\_async}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_never\_unknown\_async}
+%\index{OVL Assertions!bsv\_assert\_never\_unknown\_async@\te{bsv\_assert\_never\_unknown\_async} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_never\_unknown\_async}\\
+\hline
+Description&Ensures that the value of a specified expression always contains
+                              only 0 and 1 bits \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_never_unknown_async#(OVLDefaults#(a_type) 
+               defaults)(AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), Literal#(a_type),  
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+%===============================================
+\index{bsv\_assert\_next@\te{bsv\_assert\_next} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_next}
+%\index{OVL Assertions!bsv\_assert\_next@\te{bsv\_assert\_next} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_next}\\
+\hline
+Description&Ensures that the value of the specified expression
+is true a specified number of cycles after a start event.  \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{num\_cks}  (default value = 1) \\
+&\te{check\_overlapping} (default value = \te{True}) \\
+&\te{check\_missing\_start} (default value = \te{False}) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_next#(OVLDefaults#(Bool) defaults)
+               (AssertStartTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+
+\index{bsv\_assert\_no\_overflow@\te{bsv\_assert\_no\_overflow} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_no\_overflow}
+%\index{OVL Assertions!bsv\_assert\_no\_overflow@\te{bsv\_assert\_no\_overflow} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_no\_overflow}\\
+\hline
+Description&Ensures that the value of the specified expression does
+not overflow. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{min} (default value = \te{minBound})\\
+&\te{max} (default value = \te{maxBound})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_no_overflow#(OVLDefaults#(a_type) 
+               defaults) (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+%===============================================
+\index{bsv\_assert\_no\_transition@\te{bsv\_assert\_no\_transition}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_no\_transition}
+%\index{OVL Assertions!bsv\_assert\_no\_transition@\te{bsv\_assert\_no\_transition} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_no\_transition}\\
+\hline
+Description&Ensures that the value of a specified expression does not                 transition from a start state to the specified next state. \\
+\hline
+Interface Used&\te{AssertTransitionTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_no_transition#(OVLDefaults#(a_type) 
+             defaults) (AssertTransitionTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+
+%===============================================
+\index{bsv\_assert\_no\_underflow@\te{bsv\_assert\_no\_underflow}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_no\_underflow}
+%\index{OVL Assertions!bsv\_assert\_no\_underflow@\te{bsv\_assert\_no\_underflow} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_no\_underflow}\\
+\hline
+Description&Ensures that the value of the specified expression does
+not underflow. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{min} (default value = \te{minBound})\\
+&\te{max} (default value = \te{maxBound})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_no_underflow#(OVLDefaults#(a_type) 
+               defaults)(AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+\index{bsv\_assert\_odd\_parity@\te{bsv\_assert\_odd\_parity}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_odd\_parity}
+%\index{OVL Assertions!bsv\_assert\_odd\_parity@\te{bsv\_assert\_odd\_parity} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_odd\_parity}\\
+\hline
+Description&Ensures that the specified expression had odd parity; that
+an odd number of bits in the expression are active high.
+\\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_odd_parity#(OVLDefaults#(a_type) 
+               defaults)(AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+%=================================================
+
+
+%===============================================
+\index{bsv\_assert\_one\_cold@\te{bsv\_assert\_one\_cold} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_one\_cold}
+%\index{OVL Assertions!bsv\_assert\_one\_cold@\te{bsv\_assert\_one\_cold} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_one\_cold}\\
+\hline
+Description&Ensures that exactly one bit of a variable is active low. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{inactive} (default value = \te{OLV\_ONE\_COLD})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_one_cold#(OVLDefaults#(a_type) defaults) 
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type))
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+   
+%===============================================
+\index{bsv\_assert\_one\_hot@\te{bsv\_assert\_one\_hot} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_one\_hot}
+%\index{OVL Assertions!bsv\_assert\_one\_hot@\te{bsv\_assert\_one\_hot} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_one\_hot}\\
+\hline
+Description&Ensures that exactly one bit of a variable is active high. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_one_hot#(OVLDefaults#(a_type) defaults) 
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+%===============================================
+\index{bsv\_assert\_proposition@\te{bsv\_assert\_proposition}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_proposition}
+%\index{OVL Assertions!bsv\_assert\_proposition@\te{bsv\_assert\_proposition} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_proposition}\\
+\hline
+Description&Ensures that the test expression is always combinationally
+\te{True}.  Like \te{assert\_always} except that the test expression
+                         is not sampled by the clock.\\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_proposition#(OVLDefaults#(Bool) defaults) 
+               (AssertTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+%=================================================
+\index{bsv\_assert\_quiescent\_state@\te{bsv\_assert\_quiescent\_state}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_quiescent\_state}
+%\index{OVL Assertions!bsv\_assert\_quiescent\_state@\te{bsv\_assert\_quiescent\_state} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_quiescent\_state}\\
+\hline
+Description& Ensures that the value of a specified state expression equals a 
+ corresponding check value if a specified sample event has 
+  transitioned to TRUE. \\
+\hline
+Interface Used&\te{AssertQuiescentTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_quiescent_state#(OVLDefaults#(a_type) 
+               defaults)(AssertQuiescentTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+%===============================================
+\index{bsv\_assert\_range@\te{bsv\_assert\_range} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_range}
+%\index{OVL Assertions!bsv\_assert\_range@\te{bsv\_assert\_range} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_range}\\
+\hline
+Description&Ensure that an  expression is always within a specified range. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{min} (default value = \te{minBound})\\
+&\te{max} (default value = \te{maxBound})\\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_range#(OVLDefaults#(a_type) defaults)
+               (AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+
+%===============================================
+\index{bsv\_assert\_time@\te{bsv\_assert\_time} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_time}
+%\index{OVL Assertions!bsv\_assert\_time@\te{bsv\_assert\_time} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_time}\\
+\hline
+Description&Ensures that the expression remains \te{True} for a
+specified number of clock cycles after a start event. \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{action\_on\_new\_start} (default value = \te{OVL\_IGNORE\_NEW\_START}) \\
+&\te{num\_cks} (default value = 1) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_time#(OVLDefaults#(Bool) defaults)
+               (AssertStartTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+%===============================================
+\index{bsv\_assert\_transition@\te{bsv\_assert\_transition} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_transition}
+%\index{OVL Assertions!bsv\_assert\_transition@\te{bsv\_assert\_transition} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_transition}\\
+\hline
+Description&Ensures that the value of a specified expression
+transitions properly froma start state to the specified next state. \\
+\hline
+Interface Used&\te{AssertTransitionTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_transition#(OVLDefaults#(a_type) 
+               defaults)(AssertTransitionTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+   
+%===============================================
+\index{bsv\_assert\_unchange@\te{bsv\_assert\_unchange} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_unchange}
+%\index{OVL Assertions!bsv\_assert\_unchange@\te{bsv\_assert\_unchange} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_unchange}\\
+\hline
+Description&Ensures that the value of the specified expression does
+not change during a specified number of clock cycles after a start
+event initiates checking. \\
+\hline
+Interface Used&\te{AssertStartTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{action\_on\_new\_start} (default value = \te{OVL\_IGNORE\_NEW\_START}) \\
+&\te{num\_cks} (default value = 1) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_unchange#(OVLDefaults#(a_type) defaults)
+               (AssertStartTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+   
+%===============================================
+\index{bsv\_assert\_width@\te{bsv\_assert\_width} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_width}
+%\index{OVL Assertions!bsv\_assert\_width@\te{bsv\_assert\_width} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_width}\\
+\hline
+Description&Ensures that when the test expression goes high it stays
+high for at least \te{min} and at most \te{max} clock cycles. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+&\te{min\_cks} (default value = 1) \\
+&\te{max\_cks} (default value = 1) \\
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_width#(OVLDefaults#(Bool) defaults)
+               (AssertTest_IFC#(Bool));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+   
+%===============================================
+\index{bsv\_assert\_win\_change@\te{bsv\_assert\_win\_change}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_win\_change}
+%\index{OVL Assertions!bsv\_assert\_win\_change@\te{bsv\_assert\_win\_change} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_win\_change}\\
+\hline
+Description& Ensures that the value of a specified expression changes
+in a specified window between a start event and a stop event.\\
+\hline
+Interface Used&\te{AssertStartStopTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_win_change#(OVLDefaults#(a_type) 
+               defaults)(AssertStartStopTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+   
+%===============================================
+\index{bsv\_assert\_win\_unchange@\te{bsv\_assert\_win\_unchange}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_win\_unchange}
+%\index{OVL Assertions!bsv\_assert\_win\_unchange@\te{bsv\_assert\_win\_unchange} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_win\_unchange}\\
+\hline
+Description&Ensures that the value of a specified expression does not change
+in a specified window between a start event and a stop event. \\
+\hline
+Interface Used&\te{AssertStartStopTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_win_unchange#(OVLDefaults#(a_type) 
+               defaults)(AssertStartStopTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+   
+%===============================================
+\index{bsv\_assert\_window@\te{bsv\_assert\_window} (module)}
+\index[function]{OVLAssertions!bsv\_assert\_window}
+%\index{OVL Assertions!bsv\_assert\_window@\te{bsv\_assert\_window} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_window}\\
+\hline
+Description& Ensures that the value of a specified event is \te{True}
+between a specified window between a start event and a stop event. \\
+\hline
+Interface Used&\te{AssertStartStopTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+module bsv_assert_window#(OVLDefaults#(Bool) defaults) 
+               (AssertStartStopTest_IFC#(Bool));
+   
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+%===============================================
+\index{bsv\_assert\_zero\_one\_hot@\te{bsv\_assert\_zero\_one\_hot}
+(module)}
+\index[function]{OVLAssertions!bsv\_assert\_zero\_one\_hot}
+%\index{OVL Assertions!bsv\_assert\_zero\_one\_hot@\te{bsv\_assert\_zero\_one\_hot} (module)}
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4.3 in}|}
+\hline
+Module&\te{bsv\_assert\_zero\_one\_hot}\\
+\hline
+Description&ensure that exactly one bit of a variable is active high or zero. \\
+\hline
+Interface Used&\te{AssertTest\_IFC}\\
+\hline
+Parameters&common assertion parameters\\
+
+\hline
+Module Declaration&\begin{libverbatim}
+ module bsv_assert_zero_one_hot#(OVLDefaults#(a_type) 
+                defaults)(AssertTest_IFC#(a_type))
+    provisos (Bits#(a_type, sizea), 
+              Bounded#(a_type), Eq#(a_type));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+%=================================================
+
+{\bf Example using bsv\_assert\_increment}
+
+This example checks that a test expression is always incremented by a
+value of 3. The assertion passes for the first 10 increments and then
+starts  failing when the increment amount is changed from 3 to 1. 
+\begin{libverbatim}
+import OVLAssertions::*;     // import the OVL Assertions package
+
+module assertIncrement (Empty);
+
+   Reg#(Bit#(8)) count <- mkReg(0);
+   Reg#(Bit#(8)) test_expr <- mkReg(0);
+
+
+   // set the default values
+   let defaults = mkOVLDefaults;     
+
+   // override the default increment value and set = 3    
+   defaults.value = 3;               
+
+   // instantiate an instance of the module bsv_assert_increment using 
+   // the name assert_mod and the interface AssertTest_IFC
+   AssertTest_IFC#(Bit#(8)) assert_mod <- bsv_assert_increment(defaults);
+   
+   rule every (True);              // Every clock cycle 
+      assert_mod.test(test_expr);  // the assertion is checked   
+   endrule
+   
+   rule increment (True);
+      count <= count + 1;
+      if (count < 10)                 // for 10 cycles 
+          test_expr <= test_expr + 3; // increment the expected amount 
+      else if (count < 15)
+          test_expr <= test_expr + 1; // then start incrementing by 1
+      else 
+          $finish;
+   endrule
+endmodule
+\end{libverbatim}
+
+{\bf Using The Library}
+
+In order to use the OVLAssertions package, a user must first download
+the source OVL library from Accellera
+(\te{http://www.accellera.org}). In addition, that library must be
+made available when building a simulation executable from the BSV
+generated Verilog.
+
+If the bsc compiler is being used to generate the Verilog simulation
+executable, the \textbf{\texttt{BSC\_VSIM\_FLAGS}} environment
+variable can be used to set the required simulator flags that enable
+use of the OVL library.
+
+For instance, if the \texttt{iverilog} simulator is being used and the
+OVL library is located in the directory \texttt{shared/std\_ovl}, the
+\textbf{\texttt{BSC\_VSIM\_FLAGS}} environment variable can be set to
+\texttt{\"-I shared/std\_ovl -Y .vlib -y shared/std\_ovl -DOVL\_VERILOG=1 -DOVL\_ASSERT\_ON=1\"}. These flags:
+
+\begin{itemize}
+\item
+Add \texttt{shared/std\_ovl} to the Verilog and include search paths.
+\item
+Set \texttt{.vlib} as a possible file suffix.
+\item
+Set flags used in the OVL source code.
+\end{itemize}
+
+The exact flags to be used will differ based on what OVL behavior is
+desired and which Verilog simulator is being used.
+
+
+

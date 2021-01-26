@@ -1,0 +1,133 @@
+\subsubsection{Counter}
+\label{sec-Counter}
+
+
+{\bf Package}
+\index{Counter (package)}
+
+\begin{verbatim}
+import Counter :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+The Counter package provides an interface and  modules to
+implement a counter.   Both  safe and unsafe versions are provided;
+the safe counter ensures that reads occur before writes, while the unsafe counter
+allows reads and writes to occur in either order during rule execution
+(similar to a ConfigReg Section \ref{ref-configreg}).
+
+Both types of counters allow increments and decrements to occur in the same
+clock cycle.  There are two types of increment methods: \te{incr}
+which increments the counter by a provided value, and \te{up} which
+increments the counter by 1.  Likewise, there are two decrement
+methods: \te{decr} and \te{down}.  You can only use one type of
+increment or decrement method in a rule; you cannot execute  \te{incr} and
+ \te{up}  methods in the same clock cycle or
+ \te{decr} and \te{down} methods in the same clock cycle.  
+
+% This package is provided as both a  compiled
+% library package and as BSV source code to facilitate customization.
+% The source code file can be found in the
+% \te{\$BLUESPECDIR/BSVSource/Misc} directory. To customize a package,
+% copy the file into a local directory and then  include the
+% local directory in the path when compiling.  This is done by
+% specifying the path with   the \te{-p} option  as
+% described in the BSV Users Guide. 
+
+
+
+
+{\bf Interfaces and Methods}
+
+The Counter package provides one interface, \te{Counter}.
+
+\begin{center}
+\begin{tabular}{|p {1 in}|p{1 in}|p{3 in}|}
+\hline
+\multicolumn{3}{|c|}{Counter Interface Methods}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{incr}  & Action &Increments the counter by \te{inc\_value}\\
+\hline
+\te{decr} & Action &Decrements the counter by \te{dec\_value} \\
+\hline
+\te{up}&Action&Increments the counter by 1 \\
+\hline
+\te{down}  &Action &Decrements the counter by 1 \\
+\hline
+\te{value}&\te{Bit\#(n)}&Returns the value of the counter \\
+\hline
+\te{setC}  & Action & Sets the value of the counter to:\\
+&&\verb$set_value + inc_value - dec_value$\\
+\hline
+\te{setF}  & Action & Sets the value of the counter to \te{force\_value} \\
+\hline
+\te{clear}&Action &Clears the counter, setting the value to 0\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+\begin{verbatim}
+interface Counter#(numeric type n);
+   method    Action      incr(Bit#(n) inc_value);
+   method    Action      decr(Bit#(n) dec_value);
+   method    Action      up;
+   method    Action      down;
+   method    Bit#(n)     value;
+   method    Action      setC(Bit#(n) set_value);
+   method    Action      setF(Bit#(n) force_value);
+   method    Action      clear;
+endinterface: Counter
+\end{verbatim}
+
+
+
+{\bf Modules}
+
+The Counter package contains two modules: \te{mkCounter} and
+\te{MkUnsafeCouter}.  With both types of counters you can 
+increment and decrement in the same clock cycle. 
+
+\index{mkCounter@\te{mkCounter} (module)}
+\index[function]{Counter!mkCounter}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkCounter} &Instantiates a Counter where reads must precede writes
+during rule execution.  \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkCounter(Bit#(n) resetval) (Counter#(n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{mkUnsafeCounter@\te{mkUnsafeCounter} (module)}
+\index[function]{Counter!mkUnsafeCounter}
+
+\begin{tabular}{|p{1.4 in}|p{4.2 in}|}
+\hline
+& \\
+\te{mkUnsafeCounter} &Instantiates a counter which allows reads and
+writes to occur in either order 
+during rule execution.  The \te{mkUnsafeCounter} module is similar to
+a ConfigReg in that the value can be read at any time.\\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUnsafeCounter(Bit#(n) resetval) (Counter#(n));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+

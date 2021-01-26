@@ -1,0 +1,220 @@
+\subsubsection{ClientServer}
+\index{ClientServer@\te{ClientServer} (package)}
+\label{lib-clientserver}
+
+{\bf Package}
+
+\begin{verbatim}
+import ClientServer :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{ClientServer} package provides two interfaces, \te{Client} and
+\te{Server} which can be used to define modules which have a
+request-response type of interface.   The \te{GetPut} package must
+ be imported when using this package because the \te{Get} and
+\te{Put}  interface types are used. 
+
+\index{Client@\te{Client} (interface)}
+
+
+{\bf Interfaces and methods}
+
+The interfaces \te{Client} and \te{Server} can be used for
+modules that have a request-response type of interface
+(e.g. a RAM).
+The server accepts requests and generates responses, the client
+accepts responces and generates requests.
+There are no assumptions about how many (if any) responses
+a request  generates
+
+\begin{tabular}{|l|l|l|l|}
+ \hline
+\multicolumn{4}{|c|}{Interfaces}\\
+\hline
+Interface Name   & Parameter name & Parameter Description & Restrictions \\
+\hline
+\hline
+\te{Client}&\it{req\_type}&type of the client request &must be in the
+Bits class\\
+\cline{2-4}
+&\it{resp\_type}&type of the client response &must be in the
+Bits class\\
+\hline
+\te{Server}&\it{req\_type}&type of the server request &must be in the
+Bits class\\
+\cline{2-4}
+&\it{resp\_type}&type of the server response &must be in the
+Bits class\\
+\hline
+\end{tabular}
+
+{\tt Client}
+
+The \te{Client} interface provides two subinterfaces, \te{request}
+and \te{response}. From a \te{Client}, one
+\te{gets} a request and \te{puts} a response.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{1.2 in}|p{2.9 in}|}
+\hline
+\multicolumn{3}{|c|}{Client SubInterface}\\
+\hline
+Name & Type & Description \\
+\hline
+\hline 
+\te{request}  &\te{Get\#(req\_type)}  &the interface through which the
+outside world retrieves (gets) a request\\
+\hline
+\te{response}  &\te{Put\#(resp\_type)}  &the interface through which the
+outside world returns (puts) a response\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{libverbatim}
+interface Client#(type req_type, type resp_type);
+    interface Get#(req_type)  request;
+    interface Put#(resp_type) response;
+endinterface: Client
+\end{libverbatim}
+
+{\tt Server}
+
+The \te{Server} interface provides two subinterfaces, \te{request}
+and \te{response}. From a \te{Server}, one \te{puts} a request and
+\te{gets} a response.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{1.2 in}|p{2.9 in}|}
+\hline
+\multicolumn{3}{|c|}{Server SubInterface}\\
+\hline
+Name & Type & Description \\
+\hline
+\hline 
+\te{request}  &\te{Put\#(req\_type)}  &the interface through which the
+outside world returns (puts) a request\\
+\hline
+\te{response}  &\te{Get\#(resp\_type)}  &the interface through which the
+outside world retrieves (gets) a response\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\index{Server@\te{Server} (interface)}
+\begin{libverbatim}
+interface Server#(type req_type, type resp_type);
+    interface Put#(req_type)  request;
+    interface Get#(resp_type) response;
+endinterface: Server
+\end{libverbatim}
+
+{\tt ClientServer}
+
+A \te{Client} can be connected to a \te{Server}
+and vice versa. The \te{request} (which is a \te{Get} interface) of
+the client  will connect to \te{response} (which is a \te{Put}
+interface) of the \te{Server}.  By making the \te{ClientServer} tuple
+an instance of the \te{Connectable} typeclass, you can connect the
+\te{Get} of the client to the \te{Put} of the server, and the \te{Put}
+of the client to the \te{Get} of the server.
+
+\begin{libverbatim}
+instance Connectable#(Client#(req_type, resp_type), Server#(req_type, resp_type));
+instance Connectable#(Server#(req_type, resp_type), Client#(req_type, resp_type));
+\end{libverbatim}
+
+This \te{Tuple2} can be redefined to be called \te{ClientServer}
+
+\begin{libverbatim}
+typedef Tuple2#(Client#(req_type, resp_type), Server#(req_type,resp_type)) 
+                ClientServer#(type req_type, type resp_type);
+\end{libverbatim}
+
+
+
+{\bf Example Connecting a bus to a target}
+
+\begin{libverbatim}
+
+interface Bus_Ifc;
+   interface Server#(RQ, RS) to_initor ;
+   interface Client#(RQ, RS) to_targ;
+endinterface
+
+typedef Server#(RQ, RS) Target_Ifc;
+typedef Client#(RQ, RS) Initiator_Ifc;
+
+module mkSys (Empty);
+   // Instantiate subsystems
+   Bus_Ifc             bus       <- mkBus;
+   Target_Ifc          targ      <- mkTarget;
+   Initiator_Ifc       initor    <- mkInitiator;
+
+   // Connect bus and targ (to_targ is a Client ifc, targ is a Server ifc)
+   Empty x <- mkConnection (bus.to_targ, targ);
+   
+   // Connect bus and initiator (to_initor is a Server ifc, initor is a Client ifc)
+   mkConnection (bus.to_initor, initor);
+   // Since mkConnection returns an interface of type Empty, it does
+   // not need to be specified (but may be as above)
+...
+endmodule: mkSys
+\end{libverbatim}
+
+{\bf Functions}
+
+The \te{ClientServer} package includes  functions which return a
+\te{Client} interface or a \te{Server} interface from  separate
+request and response interfaces taken as arguments.  The 
+argument interfaces must be able to be converted to \te{Get} and
+\te{Put} interfaces, as indicated by the \te{ToGet} and \te{ToPut}
+provisos.  
+
+
+
+\index{toGPClient@\te{toGPClient} (function)}
+\index[function]{ClientServer!toGPClient}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{toGPClient}&Function that returns  a \te{Client} interface from
+two arguments (request and response interfaces).   The arguments must
+be able to be  converted to \te{Get} and \te{Put} interfaces.\\
+\cline{2-2} 
+& \begin{libverbatim}
+function Client#(req_type, resp_type)
+  toGPClient(req_ifc_type req_ifc, resp_ifc_type resp_ifc)
+provisos (ToGet#(req_ifc_type, req_type), ToPut#(resp_ifc_type, resp_type));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\index{toGPServer@\te{toGPServer} (function)}
+\index[function]{ClientSefiforver!toGPServer}
+
+\begin{center}
+\begin{tabular}{|p{.7 in}|p{5.4 in}|}
+ \hline
+&         \\
+\te{toGPServer}&Function that returns  a \te{Server} interface from
+two arguments (request and response interfaces).   The arguments must
+be able to be  converted to \te{Get} and \te{Put} interfaces.\\
+\cline{2-2} 
+& \begin{libverbatim}
+function Server#(req_type, resp_type)
+  toGPServer(req_ifc_type req_ifc, resp_ifc_type resp_ifc)
+provisos (ToPut#(req_ifc_type, req_type), ToGet#(resp_ifc_type,resp_type));
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+\end{center}
+

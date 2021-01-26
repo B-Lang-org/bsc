@@ -1,0 +1,92 @@
+\subsubsection{Probe}
+\index{Probe@\te{Probe} (package)} 
+
+
+{\bf Package}
+
+\begin{verbatim}
+import Probe :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+A \te{Probe} is a primitive used to ensure that a signal of interest
+is  not optimized
+away by the compiler and that it is given a known name.  In terms of
+BSV syntax, the \te{Probe} primitive it used just like a register
+except that only a write method exists.  Since reads are not
+possible, the use of a \te{Probe} has  no effect on scheduling.  
+In the generated Verilog, the associated signal will be named just
+like the port of any Verilog module, in this case
+\te{<instance\_name>\$PROBE}.  No actual \te{Probe} instance will be
+created however.  The only side effects of a BSV \te{Probe}
+instantiation relate to the naming and retention of the associated
+signal in the generated Verilog.
+
+
+{\bf Interfaces}
+
+\begin{libverbatim}
+interface Probe #(type a_type);
+    method Action _write(a_type x1);
+endinterface: Probe
+\end{libverbatim}
+
+{\bf Modules}
+
+The module \te{mkProbe} is used to instantiate a \te{Probe}.
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4 in}|}
+\hline
+\te{mkProbe}&Instantiates a \te{Probe}\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkProbe(Probe#(a_type))
+  provisos (Bits#(a_type, sizea));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example - Creating and writing to registers and probes}
+\begin{libverbatim}
+import FIFO::*;
+import ClientServer::*;
+import GetPut::*;
+import Probe::*;
+
+typedef Bit#(32) LuRequest;
+typedef Bit#(32) LuResponse;
+
+module mkMesaHwLpm(ILpm);
+   // Create registers for requestB32 and responseB32 
+   Reg#(LuRequest) requestB32 <- mkRegU(); 
+   Reg#(LuResponse) responseB32 <- mkRegU();
+   
+   // Create a probe responseB32_probe
+   Probe#(LuResponse) responseB32_probe <- mkProbe();
+   ....    
+   // Define the interfaces:
+   ....     
+      interface Get  response;
+         method get() ;
+            actionvalue
+               let resp <- completionBuffer.drain.get();
+               // record response for debugging purposes:
+               let {r,t} = resp;
+               responseB32 <= r;        // a write to a register                
+               responseB32_probe <= r;  // a write to a probe
+      
+               // count responses in status register
+               return(resp);
+            endactionvalue
+         endmethod: get
+      endinterface: response
+    .....
+endmodule
+\end{libverbatim}
+
+

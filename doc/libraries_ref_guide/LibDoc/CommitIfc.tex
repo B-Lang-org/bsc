@@ -1,0 +1,336 @@
+\subsubsection{CommitIfc}
+
+
+{\bf Package}
+\index{CommitIfc (package)}
+
+\begin{verbatim}
+import CommitIfc :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+  
+The \te{CommitIfc} package defines a Commit/Accept protocol and
+interfaces to 
+implement a combinational connection between two modules without
+adding  an AND gate in the
+connection.  The protocols implemented by  FIFO and Get/Put connections
+add an AND gate 
+between the modules being connected.   This
+combinational loop in the connection of the interfaces can cause
+complications in  FPGA applications and in partitioning for FPGAs.
+Additionally, some synthesis tools require a 
+connection level without any gates. By using the \te{CommitIfc}
+protocol the AND gate is moved out of the
+connection and  into the connecting modules. 
+
+The \te{CommitIfc} package defines two interfaces, \te{SendCommit} and
+\te{RecvCommit}, which  model the opposit ends of a FIFO.  The
+protocol does not apply an execution order between the
+\te{dataout} and \te{ack} or \te{datain} and \te{accept} methods.
+That is, one can signal \te{accept} before the data arrives.
+
+{\bf Interfaces}
+
+The \te{CommitIfc} package defines two interfaces:  \te{SendCommit}
+and \te{RecvCommit}. 
+
+The \te{SendCommit} interface declares two methods: a value method
+\te{dataout} and an Action method \te{ack}.  No execution order is
+applied between the \te{dataout} and the \te{ack}; one can signal that
+the data is accepted before the data rrives.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.5in}|p{4.5 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{SendCommit} Interface}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{dataout} &{a\_type}&The data being sent.  There is an implicit
+RDY indicating the data is valid.\\
+\hline
+\te{ack}&Action&Signal that data has been accepted.\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{verbatim}
+interface SendCommit#(type a_type);
+   method a_type dataout;
+   (*always_ready*)
+   method Action ack;
+endinterface
+\end{verbatim}
+
+The \te{RecvCommit} interface declares two methods: an Action method
+with the data, 
+\te{datain},  and a value method \te{accept}, returning a Bool indicating if the
+interface can accept data  (comparable to a \te{notFull}).
+
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.5in}|p{4.5 in}|}
+\hline
+\multicolumn{3}{|c|}{\te{RecvCommit} Interface}\\
+\hline
+Name & Type & Description\\
+\hline
+\hline 
+\te{datain}&Action&Receives, or enqueues, the value \te{din}, of type
+\te{a\_type}. \\
+\hline
+\te{accept}&Bool& A boolean indicating if the interface can accept
+data, comparable to a \te{notFull}.\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+interface RecvCommit#(type a_type);
+   (*always_ready*)
+   method Action datain (a_type din);
+   (*always_ready*)
+   method Bool accept ;
+endinterface
+\end{verbatim}
+
+
+{\bf Connectble Instances}
+
+The \te{CommitIfc} package defines instances of the \te{Connectable}
+type class for the \te{SendCommit} and \te{RecvCommit} interfaces,
+defining how the types can be connected.  The \te{Connectable} type
+class defines a \te{mkConnection} module for  each set of  pairs.
+
+
+
+\begin{verbatim}
+instance Connectable#(SendCommit#(a_type), RecvCommit#(a_type));
+
+instance Connectable#(RecvCommit#(a_type), SendCommit#(a_type));
+\end{verbatim}
+
+\paragraph{FIFOF}
+The \te{SendCommit} and \te{RecvCommit} interfaces can be connected to
+\te{FIFOF} interfaces.
+
+\begin{verbatim}
+instance Connectable#(SendCommit#(a_type), FIFOF#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(FIFOF#(a_type), SendCommit#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(RecvCommit#(a_type), FIFOF#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(FIFOF#(a_type), RecvCommit#(a_type))
+   provisos (Bits#(a_type, size_a));
+\end{verbatim}
+
+\paragraph{SyncFIFOIfc}
+The \te{SendCommit} and \te{RecvCommit} interfaces can be connected to
+\te{SyncFIFOIfc} interfaces.
+\begin{verbatim}
+instance Connectable#(SendCommit#(a_type), SyncFIFOIfc#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(SyncFIFOIfc#(a_type), SendCommit#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(RecvCommit#(a_type), SyncFIFOIfc#(a_type))
+   provisos (Bits#(a_type, size_a));
+
+instance Connectable#(SyncFIFOIfc#(a_type), RecvCommit#(a_type))
+   provisos (Bits#(a_type, size_a));
+\end{verbatim}
+
+
+
+
+
+{\bf Typeclasses}
+
+The \te{CommitIfc} package defines typeclasses for converting to these
+interfaces from other interface types.  These must use a module since
+rules and wires are required.
+
+\begin{verbatim}
+typeclass ToSendCommit#(type a_type , type b_type)
+   dependencies (a_type determines b_type);
+   module mkSendCommit#(a_type x) (SendCommit#(b_type));
+endtypeclass
+\end{verbatim}
+
+\begin{verbatim}
+typeclass ToRecvCommit#(type  a_type , type b_type)
+   dependencies  (a_type determines b_type);
+   module mkRecvCommit#(a_type x) (RecvCommit#(b_type));
+endtypeclass
+\end{verbatim}
+
+{\bf Instances}
+
+Instances for the \te{ToSendCommit} and \te{ToRecvCommit} type classes
+are defined to convert to convert from \te{FIFO}, \te{FIFOF},
+\te{SyncFIFOIfc}, \te{Get} and \te{Put}  interfaces.
+
+\paragraph{FIFO}
+\begin{verbatim}
+instance ToSendCommit#(FIFO#(a), a);
+\end{verbatim}
+Note:  \te{ToRecvCommit\#(FIFO\#(a\_type), a\_type)} is not possible,
+because it would need to have a \te{notFull} signal.
+
+\paragraph{FIFOF}
+   The \te{FIFOF} instances assume that the fifo has proper implicit conditions.
+\begin{verbatim}
+instance ToSendCommit#(FIFOF#(a_type), a_type);
+   module mkSendCommit #(FIFOF#(a) f) (SendCommit#(a));
+
+instance ToRecvCommit#(FIFOF#(a_type), a_type)
+   provisos(Bits#(a,sa));
+   module mkRecvCommit #(FIFOF#(a) f) (RecvCommit#(a));
+\end{verbatim}
+
+\paragraph{SyncFIFOIfc}
+
+   The \te{SyncFIFOIfc} instances assume that the fifo has proper
+   implicit conditions. 
+
+\begin{verbatim}
+instance ToSendCommit#(SyncFIFOIfc#(a_type), a_type);
+   module mkSendCommit #(SyncFIFOIfc#(a) f) (SendCommit#(a));
+
+instance ToRecvCommit#(SyncFIFOIfc#(a_type), a_type)
+   provisos(Bits#(a,sa));
+   module mkRecvCommit #(SyncFIFOIfc#(a) f) (RecvCommit#(a));
+\end{verbatim}
+
+\paragraph{Get and Put}
+
+These convert from \te{Get} and \te{Put} interfaces but introduce
+additional latency:
+\begin{verbatim}
+instance ToSendCommit#(Get#(a_type), a_type)
+   provisos ( Bits#(a,sa));
+   module mkSendCommit #(Get#(a_type) g) (SendCommit#(a_type));
+
+instance ToRecvCommit#(Put#(a_type), a_type)
+   provisos(Bits#(a,sa));
+   module mkRecvCommit #(Put#(a_type) p) (RecvCommit#(a_type));
+\end{verbatim}
+
+These add FIFOs, but maintain loopless behavior:
+\begin{verbatim}
+instance Connectable#(SendCommit#(a_type), Put#(a_type))
+   provisos (ToRecvCommit#(Put#(a_type), a_type));
+
+instance Connectable#(Put#(a_type), SendCommit#(a_type))
+   provisos (ToRecvCommit#(Put#(a_type), a_type));
+
+instance Connectable#(RecvCommit#(a_type), Get#(a_type))
+   provisos (ToSendCommit#(Get#(a_type), a_type));
+
+instance Connectable#(Get#(a_type), RecvCommit#(a_type))
+   provisos (ToSendCommit#(Get#(a_type), a_type));
+\end{verbatim}
+
+
+{\bf Client/Server Variations}
+
+The \te{SendCommit} and \te{RecvCommit} interfaces can be combined
+into \te{ClientCommit} and \te{ServerCommit} type interfaces, similar
+to the \te{Client} and \te{Server} interfaces described in
+Section \ref{lib-clientserver}.
+
+A  \te{Client}
+provides two subinterfaces, a \te{Get} and a \te{Put}
+The \te{ClientCommit} interface combines a \te{SendCommit} request
+with a \te{RecvCommit} response.
+
+\begin{verbatim}
+interface ClientCommit#(type req, type resp);
+   interface SendCommit#(req) request;
+   interface RecvCommit#(resp) response;
+endinterface
+\end{verbatim}
+
+The \te{mkClientfromClientCommit} module takes a \te{ClientCommit}
+interface and provides a \te{Client} interface:
+
+\begin{center}
+\begin{tabular}{|p{1.7 in}|p{4.3 in}|}
+\hline
+\te{mkClientFromClientCommit}&Provides a \te{Client} interface from a
+\te{ClientCommit} interface.\\
+\cline{2-2}
+&\begin{libverbatim}
+module mkClientFromClientCommit#(ClientCommit#(req, resp) c) 
+                                (Client#(req,resp))
+   provisos ( Bits#(resp,_x), Bits#(req,_y));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+A \te{Server} interface provides a \te{Put} request with a \te{Get}
+response.  The \te{ServerCommit} interface combines a \te{RecvCommit}
+request with a \te{SendCommit} response.
+
+\begin{verbatim}
+interface ServerCommit#(type req, type resp);
+   interface RecvCommit#(req) request;
+   interface SendCommit#(resp) response;
+endinterface
+\end{verbatim}
+
+
+\te{ClientCommit} and \te{ServerCommit} interfaces are connectable to
+each other.
+
+\begin{verbatim}
+instance Connectable#(ClientCommit#(req,resp), ServerCommit#(req,resp));
+
+instance Connectable#( ServerCommit#(req,resp), ClientCommit#(req,resp));
+\end{verbatim}
+
+\te{ClientCommit} and \te{ServerCommit} interfaces are connectable to
+   \te{Clients} and \te{Servers}.
+
+
+\begin{verbatim}
+instance Connectable #(ClientCommit#(req,resp), Server#(req,resp))
+   provisos ( Bits#(resp,_x), Bits#(req,_y));
+
+instance Connectable #(Server#(req,resp), ClientCommit#(req,resp))
+   provisos ( Bits#(resp,_x), Bits#(req,_y));
+
+instance Connectable #(ServerCommit#(req,resp), Client#(req,resp))
+   provisos ( Bits#(resp,_x), Bits#(req,_y));
+
+instance Connectable #( Client#(req,resp), ServerCommit#(req,resp))
+   provisos ( Bits#(resp,_x), Bits#(req,_y));
+\end{verbatim}
+
+
+The \te{SendCommit} and \te{RecvCommit} can be defined as instances of
+\te{ToGet} and \te{ToPut}.  These functions introduce a combinational
+loop between the Commit interface methods.
+
+\begin{verbatim}
+instance ToGet#(SendCommit#(a_type, a_type);
+
+instance ToPut#(RecvCommit#(a_type, a_type);
+\end{verbatim}
+
+

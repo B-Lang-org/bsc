@@ -1,0 +1,298 @@
+\subsubsection{UniqueWrappers}
+\index{Wrapper@\te{Wrapper} (interface type)}
+%\index{func@\te{func} (\te{UniqueWrapper} interface method)}
+\index{mkUniqueWrapper@\te{mkUniqueWrappers} (\te{UniqueWrappers} module)}
+
+{\bf Package}
+
+\begin{verbatim}
+import UniqueWrappers :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{UniqueWrappers} package takes a piece of combinational logic which is to be
+shared and puts it into its own protective shell or  \emph{wrapper} to
+prevent  its
+duplication.   This is used in instances where a separately synthesized
+ module is not possible.   It
+ allows the designer to use a piece of logic at several places in a
+ design without duplicating it at each site.  
+
+There are times where it is desired to use a piece of logic at several places in a design,
+but it is too bulky or otherwise expensive to duplicate at each site.
+Often the right thing to do is to make the piece of logic into a
+separately synthesized module -- then, if this module is instantiated only
+once, it will not be duplicated, and the tool will automatically generate the
+scheduling and multiplexing logic to share it among the sites which use its
+methods.  Sometimes, however, this is not convenient.  One reason might be
+that the logic is to be incorporated into a submodule of the design which is
+itself polymorphic -- this will probably cause difficulties in observing the
+constraints necessary for a module which is to be separately synthesized.  And
+if a module is \emph{not} separately synthesized, the tool will inline its logic
+freely wherever it is used, and thus duplication will not be prevented as
+desired. 
+
+This package covers the case where the logic to be shared is
+combinational and cannot be put into a separately synthesized module.
+It may be thought of as surrounding this combinational function with a
+protective shell, a \emph{unique wrapper}, which will prevent its duplication.  The
+module \te{mkUniqueWrapper} takes a one-argument function as a parameter; both the
+argument type \te{a} and the result type \te{b} must be representable
+as bits,  that is,
+they must both be in the \te{Bits} typeclass.  
+
+{\bf Interfaces}
+
+
+% \begin{center}
+% \begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1 in}|}
+% \hline
+% \multicolumn{5}{|c|}{\te{Wrapper} Interface}\\
+% \hline
+% \multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+% \hline
+% Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+% \hline
+% \hline 
+% \te{func}&\te{ActionValue}&\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+The \te{UniqueWrappers} package provides an interface, \te{Wrapper}, with one
+actionvalue method, \te{func}, which takes an argument of type \te{a} and
+produces  a
+method of type \te{ActionValue\#(b)}.  If the module is instantiated only once,
+the logic implementing its parameter will be instantiated just once; the
+module's method may, however, be used freely at several places.
+
+Although the function supplied as the parameter is purely combinational and does
+not change state, the method is of type \te{ActionValue}.  This is
+because  actionvalue methods have \te{enable} signals and these
+signals are needed to organize the scheduling and multiplexing
+between the calling sites.
+
+Variants of the interface \te{Wrapper}  are also provided for handling
+ functions of two or three arguments; the interfaces have one and two
+extra parameters respectively.  In each case the result type is the final
+parameter, following however many argument type parameters are required.
+
+
+% It might be wondered why the method is an actionvalue: after all, actionvalues
+% usually involve side-effects, and the logic of the parameter function is
+% purely combinational.  But claiming, and then releasing, a unique resource is
+% a form of side-effect, albeit a temporary one.  Another way of looking at it
+% is to observe that actionvalue methods have \te{ENABLE} signals; and such a signal
+% is needed by the tool for organizing the scheduling and multiplexing between
+% the calling sites.
+
+% \begin{center}
+% \begin{tabular}{|p{1.2 in}|p{4 in}|}
+% \hline
+% \multicolumn{2}{|c|}{Wrapper Interfaces}\\
+% \hline
+% Name& Description\\
+% \hline
+% \hline
+% \te{Wrapper}&Takes a single argument type parameter and provides an
+% interface with a single \te{ActionValue} method. \\
+% \hline
+% \te{Wrapper2}&Takes two parameters as arguments and provides an
+% interface  with a single \te{ActionValue} method with a single parameter.\\
+% \hline
+% \te{Wrapper3}& Takes  three parameters as arguments and provides an
+% interface  with a single \te{ActionValue} method with a single parameter.\\
+% \hline
+% \end{tabular}
+% \end{center}
+
+
+\begin{tabular}{|p{.6 in}|p{5.0 in}|}
+\hline
+\multicolumn{2}{|c|}{Wrapper Interfaces}\\
+\hline
+&\\
+\te{Wrapper}& This interface has one
+actionvalue method, \te{func}, which takes an argument of type \te{a\_type}
+and produces an actionvalue of type \te{ActionValue\#(b\_type)}. \\
+\cline{2-2}
+&\begin{libverbatim}
+interface Wrapper#(type a_type, type b_type);
+  method ActionValue#(b_type) func (a_type x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{.6 in}|p{5 in}|}
+\hline
+&\\
+\te{Wrapper2}& Similar to the \te{Wrapper} interface,
+but it takes two arguments.  \\
+\cline{2-2}
+& \begin{libverbatim}
+interface Wrapper2#(type a1_type, type a2_type, type b_type);
+  method ActionValue#(b_type) func (a1_type x, a2_type y);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\begin{tabular}{|p{.6 in}|p{5 in}|}
+\hline
+&\\
+\te{Wrapper3}&  Similar to the \te{Wrapper} interface,
+but it takes three arguments. \\
+\cline{2-2}
+&\begin{libverbatim}
+interface Wrapper3#(type a1_type, type a2_type, type a3_type, 
+                    type b_type);
+  method ActionValue#(b_type) func (a1_type x, a2_type y, a3_type z);
+\end{libverbatim} 
+\\
+\hline
+\end{tabular}
+
+
+{\bf Modules}
+
+The interfaces \te{Wrapper},
+\te{Wrapper2}, and \te{Wrapper3} are provided by the modules
+\te{mkUniqueWrapper}, \te{mkUniqueWrapper2}, and
+\te{mkUniqueWrapper3}.  These modules vary only in the number of
+aguments in  the parameter function.
+
+If a function has more than three arguments, it can always be
+rewritten or wrapped as one which takes the arguments as a single tuple; thus
+the one-argument version \te{mkUniqueWrapper} can be used with this function. 
+
+
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+\multicolumn{2}{|l|}{}\\
+\multicolumn{2}{|l|}{\te{mkUniqueWrapper} }\\
+\hline
+&\\
+& Takes a function, \te{func}, with a single parameter \te{x} and provides
+the  interface \te{Wrapper}. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUniqueWrapper#(function b_type func(a_type x))
+                       (Wrapper#(a_type, b_type))
+   provisos (Bits#(a_type, sizea), Bits#(b_type, sizeb));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+\begin{tabular}{|p{.5 in}|p{5.1 in}|}
+\hline
+\multicolumn{2}{|l|}{}\\
+\multicolumn{2}{|l|}{\te{mkUniqueWrapper2} }\\
+\hline
+&\\
+&  Takes a function, \te{func}, with a two parameters,  \te{x} and \te{y}, and provides
+the  interface \te{Wrapper2}. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUniqueWrapper2#(function b_type func(a1_type x, a2_type y))
+                        (Wrapper2#(a1_type, a2_type, b_type))
+   provisos (Bits#(a1_type, sizea1), Bits#(a2_type, sizea2), 
+             Bits#(b_type, sizeb));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\begin{tabular}{|p{.5in}|p{5.1in}|}
+\hline
+\multicolumn{2}{|l|}{}\\
+\multicolumn{2}{|l|}{\te{mkUniqueWrapper3}}\\
+\hline
+&\\
+&Takes a function, \te{func}, with a three parameters,  \te{x}, \te{y}, and
+\te{z}, and provides the  interface \te{Wrapper3}. \\
+\cline{2-2}
+& \begin{libverbatim}
+module mkUniqueWrapper3#(function b_type 
+                           func(a1_type x, a2_type y, a3_type z))
+                        (Wrapper3#(a1_type, a2_type, a3_type, b_type))
+   provisos (Bits#(a1_type, sizea1), Bits#(a2_type, sizea2), 
+             Bits#(a3_type, sizea3), Bits#(b_type, sizeb));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf Example: Complex Multiplication}
+\begin{verbatim}
+// This module defines a single hardware multiplier, which is then
+// used by multiple method calls to implement complex number
+// multiplication (a + bi)(c + di)
+
+typedef Int#(18) CFP;
+
+module mkComplexMult1Fifo( ArithOpGP2#(CFP) ) ;
+  FIFO#(ComplexP#(CFP))  infifo1 <- mkFIFO;
+  FIFO#(ComplexP#(CFP))  infifo2 <- mkFIFO;
+  let arg1 = infifo1.first ;
+  let arg2 = infifo2.first ;
+
+  FIFO#(ComplexP#(CFP))  outfifo <- mkFIFO;
+
+  Reg#(CFP)  rr <- mkReg(0) ;
+  Reg#(CFP)  ii <- mkReg(0) ;
+  Reg#(CFP)  ri <- mkReg(0) ;
+  Reg#(CFP)  ir <- mkReg(0) ;
+
+  // Declare and instantiate an interface that takes 2 arguments, multiplies them
+  // and returns the result.  It is a Wrapper2 because there are 2 arguments.
+  Wrapper2#(CFP,CFP, CFP) smult <- mkUniqueWrapper2( \* ) ;
+
+  // Define a sequence of actions
+  // Since smult is a UnqiueWrapper the method called is smult.func 
+  Stmt multSeq =
+  seq
+     action
+        let mr <- smult.func( arg1.rel,  arg2.rel ) ;
+        rr <= mr ;
+     endaction
+     action
+        let mr <- smult.func( arg1.img, arg2.img ) ;
+        ii <= mr ;
+     endaction
+     action
+        // Do the first add in this step
+        let mr <- smult.func( arg1.img,  arg2.rel ) ;
+        ir <= mr ;
+        rr <= rr - ii ;
+     endaction
+     action
+        let mr <- smult.func( arg1.rel, arg2.img );
+        ri <= mr ;
+        // We are done with the inputs so deq the in fifos
+        infifo1.deq ;
+        infifo2.deq ;
+     endaction
+     action
+        let ii2 = ri + ir ;
+        let res = Complex{ rel: rr , img: ii2 } ;
+        outfifo.enq( res ) ;
+     endaction
+  endseq;
+
+  // Now convert the sequence into a FSM ;
+  //  Bluespec can assign the state variables, and pick up implict
+  //  conditions of the actions
+  FSM multfsm <- mkFSM(multSeq);
+  rule startFSM;
+     multfsm.start;
+  endrule
+endmodule 
+\end{verbatim}

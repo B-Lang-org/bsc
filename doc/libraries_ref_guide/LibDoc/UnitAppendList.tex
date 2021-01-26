@@ -1,0 +1,116 @@
+\subsubsection{UnitAppendList}
+
+\label{sec-UnitAppendList}
+\index{UnitAppendList (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import UnitAppendList :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+
+This provides a representation of lists for which append(x,y) is O(1), rather
+than O(length(x)) as in the normal representation; the downside is that there
+is no longer a unique representation for a given list.  These lists are useful
+for situations in which the list is constructed by recursively amalgamating
+lists from sub-computations, and then subsequently processed.
+Functions for \te{map} and \te{mapM} are provided for processing
+sublists during construction. 
+For final processing it is almost always preferable first to flatten the list
+(by a function also provided) into the conventional representation, thus
+eliminating empty subtrees.
+
+
+{\bf Types and type classes}
+
+The \te{UnitAppendList} package defines the structure \te{UAList}:
+
+\begin{verbatim}
+typedef union tagged {
+    void NoItems;
+    a One;
+    Tuple2#(UAList#(a),UAList#(a)) Append;
+} UAList#(type a);
+\end{verbatim} 
+
+\te{UAList} is a member of the \te{DefaultValue} typeclass, which
+    defines a default value for user defined structures.  The default
+    value for \te{UAList} is defined as:
+
+\begin{verbatim}
+instance DefaultValue#(UAList#(a));
+   defaultValue = NoItems;
+endinstance
+\end{verbatim}
+
+{\bf Functions}
+
+\index{flatten0@\te{flatten0} (function)}
+\index[function]{UnitAppendList!flatten0}
+
+\begin{tabular}{|p{.75 in}|p{5 in}|}
+\hline
+& \\
+\te{flatten0} &Given a \te{UAList\#(a)} and a \te{List\#(a)}, returns
+a conventional list of type \te{List}.\\
+\cline{2-2}
+& \begin{libverbatim}
+function List#(a) flatten0(UAList#(a) c, List#(a) xs);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{flatten@\te{flatten} (function)}
+\index[function]{UnitAppendList!flatten}
+
+\begin{tabular}{|p{.75 in}|p{5 in}|}
+\hline
+\te{flatten} & Converts a list of type \te{UAList} into a conventional
+list of type \te{List}.\\
+\cline{2-2}
+& \begin{libverbatim}
+function List#(a) flatten(UAList#(a) c) = flatten0(c, Nil);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{uaMap@\te{uaMap} (function)}
+\index[function]{UnitAppendList!uaMap}
+
+\begin{tabular}{|p{.75 in}|p{5 in}|}
+\hline
+& \\
+\te{uaMap} &Maps a function of a list of type \te{UAList}, returning a
+\te{UAList}.\\
+\cline{2-2}
+& \begin{libverbatim}
+function UAList#(b) uaMap(function b f(a x), UAList#(a) c);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{uaMapM@\te{uaMapM} (function)}
+\index[function]{UnitAppendList!uaMapM}
+
+
+\begin{tabular}{|p{.75 in}|p{5 in}|}
+\hline
+& \\
+\te{uaMapM} & Maps a monadic function of a list of type \te{UAList}, returning a
+\te{UAList}.\\
+\cline{2-2}
+& \begin{libverbatim}
+module uaMapM#(function module#(b) f(a x), UAList#(a) c)(UAList#(b));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}

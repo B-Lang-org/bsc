@@ -1,0 +1,410 @@
+\subsubsection{ModuleContext}
+
+\label{sec-ModuleContext}
+\index{ModuleContext (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import ModuleContext :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+An ordinary Bluespec module, when instantiated, adds  state
+elements and rules to the growing accumulation of elements and rules
+already in the design. 
+In some designs,  items other than state 
+elements and rules must be
+accumulated as well. While there is a need to add these items, it is
+also desirable to keep these additional design details separate from
+the main design, keeping the natural structure of the design intact.
+
+The \te{ModuleContext} package provides the capability of 
+accumulating items and maintaining the compile-time state of
+additional items, in such a way that it doesn't change the structure
+of the original design.
+
+The \te{ModuleContext} mechanism allows the designer to {\em hide} the
+details of the additional interfaces.   Before the module can be
+synthesized, it must be converted (or {\em exposed}) into a module containing
+ only rules and state elements, as the
+compiler does not know how to handle the other items.   The
+\te{ModuleContext} package provides the mechanisms to allow additional
+items to be collected, processed, and exposed.
+
+
+
+{\bf Types and Type Classes}
+
+The default BSV module type is \te{Module}, but you can define other
+BSV module types as well.  The \te{ModuleContext} type is a variation
+on the \te{Module} type that allows additional items, other than
+states and rules, to be collected while elaborating the module
+structure.   
+
+
+The \te{ModuleContext} package defines the typeclass \te{Context},
+which includes functions \te{getContext} and \te{putContext}.   A
+\te{Context} typeclass has two type parameters: a module type
+(\te{mc1}) and  the context (\te{c2}). 
+
+
+\begin{verbatim}
+   typeclass Context#(type mc1, type c2);
+      module [mc1] getContext(c2) provisos (IsModule#(mc1, a));
+      module [mc1] putContext#(c2 s)(Empty) provisos (IsModule#(mc1, a));
+   endtypeclass
+\end{verbatim}
+
+A regular module type (\te{Module}) will have a context of \te{void}:
+\begin{verbatim}
+   instance Context#(Module, void);
+\end{verbatim}
+
+A module type of \te{ModuleContext} will return the context of the module:
+\begin{verbatim}
+   instance Context#(ModuleContext#(st1), st1);
+\end{verbatim}
+
+An instance is defined where the context type \te{st1} of the
+\te{ModuleContext} and the context type \te{st2} are different, but \te{Gettable} (as defined in
+\te{Hlist} Section \ref{sec-HList}):
+
+\begin{verbatim}
+   instance Context#(ModuleContext#(st1), st2)
+      provisos (Gettable#(st1, st2));
+\end{verbatim}
+
+
+The modules \te{applyToContext} and \te{applyToContextM} are used to
+apply a function over a  context.  The \te{applyToContextM} modules is
+used for monadic functions.  
+
+\index{applyToContext@\te{applyToContext} (module)}
+\index[function]{ModuleContext!applyToContext}
+
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{applyToContext} &Applies a function over a context.\\
+\cline{2-2}
+& \begin{libverbatim}
+module [mc1] applyToContext#(function c2 f(c2 c))(Empty)
+   provisos (IsModule#(mc1, a), Context#(mc1, c2));
+\end{libverbatim}
+
+\\
+\hline
+\end{tabular}
+
+\index{applyToContextM@\te{applyToContextM} (module)}
+\index[function]{ModuleContext!applyToContextM}
+
+\begin{tabular}{|p{1.1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{applyToContextM} &Applies a monadic function over a context.\\
+\cline{2-2}
+& \begin{libverbatim}
+module [mc1] applyToContextM#(function module#(c2) m(c2 c))
+                             (Empty)
+   provisos (IsModule#(mc1, a), Context#(mc1, c2));
+\end{libverbatim}
+
+\\
+\hline
+\end{tabular}
+
+
+{\bf ClockContext}
+
+The structure \te{ClockContext} is defined to be comprised of two
+clocks: \te{clk1} and \te{clk2} and two resets: \te{rst1} and
+\te{rst2}.
+
+\begin{verbatim}
+   typedef struct {
+                   Clock clk1;
+                   Clock clk2;
+                   Reset rst1;
+                   Reset rst2;
+                  } ClockContext;
+\end{verbatim}
+
+An \te{initClockContext} is defined with the values of both clocks set to
+\te{noClock} and both resets set to \te{noReset}:
+
+\begin{verbatim}
+   ClockContext initClockContext = ClockContext {
+      clk1: noClock, clk2: noClock, rst1: noReset, rst2: noReset };
+\end{verbatim}
+
+{\bf Expose}
+
+The \te{Expose} typeclass converts a context to an interface for a
+synthesis boundary, converting it to a module type of \te{Module}.
+The \te{Expose} typeclass provides the modules \te{unburyContext} and
+\te{unburyContextWithClocks}. 
+
+
+\begin{verbatim}
+   typeclass Expose#(type c, type ifc)
+      dependencies (c determines ifc);
+\end{verbatim}
+
+ An \te{HList} of contexts is
+convertible if its elements are, and results in a \te{Tuple} of subinterfaces.
+
+\begin{verbatim}
+   instance Expose#(HList1#(ct1), ifc1)
+      provisos (Expose#(ct1,ifc1));
+\end{verbatim}
+
+\begin{verbatim}
+   instance Expose#(HCons#(c1,c2), Tuple2#(ifc1,ifc2))
+      provisos (Expose#(c1,ifc1), Expose#(c2,ifc2));
+  
+   instance Expose#(ClockContext, Empty);
+\end{verbatim}
+
+\index{unburyContext@\te{unburyContext} (module)}
+\index[function]{ModuleContext!unburyContext}
+
+The \te{unburyContext} module is for use at the top level of a module
+to be separately synthesized.  It takes as an argument a module which
+is to be instantiated in a particular context, and an initial state
+for that context.  The module is instantiated, and the final context
+converted into an extra interface, returned in pair with the
+intantiated module's own interface.
+
+\begin{tabular}{|p{1.2 in}|p{4.6 in}|}
+\hline
+& \\
+\te{unburyContext} &Converts a context to an interface for a synthesis
+boundary.  An \te{HList} of contexts is convertible if its elements
+are, and results in a tuple of subinterfaces.  \\
+\cline{2-2}
+& \begin{libverbatim}
+module unburyContext#(c x)(ifc);
+
+module unburyContext#(HList1#(ct1) c1)(ifc1);
+
+module unburyContext#(HCons#(c1,c2) c12)(Tuple2#(ifc1,ifc2));
+
+module unburyContext#(ClockContext x)();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{unburyContextWithClocks@\te{unburyContextWithClocks} (module)}
+\index[function]{ModuleContext!unburyContextWithClocks}
+
+The \te{unburyContextWithClocks} takes a \te{ClockContext} along with
+the \te{Context}  it is specifically handling
+
+% The \te{unburyWithClocks}  module is a top-level module for use within
+% a separately synthesized module. It takes two clocks and two resets as
+% extra arguments, and embeds them in the \te{ClockContext} before
+% supplying the \te{CompleteContext} to the argument module. 
+
+\begin{tabular}{|p{1.6 in}|p{4.2 in}|}
+\hline
+&\\
+\te{unburyContextWithClocks}& Converts a context to an interface for a
+synthesis boundary and takes a ClockContext as a second argument.\\
+\cline{2-2}
+& \begin{libverbatim}
+module unburyContextWithClocks#(c x, ClockContext cc)
+                               (ifc);
+
+module unburyContextWithClocks#(HList1#(ct1) c1, 
+                                ClockContext cc)(ifc1);
+
+module unburyContextWithClocks#(HCons#(c1,c2) c12, 
+                                ClockContext cc)
+                                (Tuple2#(ifc1,ifc2));
+
+module unburyContextWithClocks#(ClockContext x, 
+                                ClockContext cc)();
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+{\bf Hide}
+
+The \te{Hide} typeclass provides the module \te{reburyContext}, which
+takes an interface as an argument (and provides an Empty interface).
+It is intended to be run in a context which can absorb the information
+from the interface.  As with \te{Expose}, a \te{Tuple} of interfaces
+can be hidden if each element can be hidden.
+
+\index{reburyContext@\te{reburyContext} (module)}
+\index[function]{ModuleContext!reburyContext}
+
+
+\begin{tabular}{|p{1.2 in}|p{4.6 in}|}
+\hline
+& \\
+\te{reburyContext} &Connects the provided interface with the
+surrounding context. \\
+\cline{2-2}
+& \begin{libverbatim}
+   module [mc] reburyContext#(ifc i)(Empty);
+
+   module [mc] reburyContext#(Empty i)(Empty);
+
+   module [mc] reburyContext#(Tuple2#(ifc1,ifc2) i12)(Empty);
+  
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+{\bf ContextRun}
+
+The \te{ContextRun} and \te{ContextsRun} typeclasses provides modules to run modules in
+contexts.   The module \te{runWithContext}  runs a module with an
+entirely new context.  % The modules 
+% \te{runWithOneMoreContext} and \te{runWithMoreContexts} adds items
+% onto a context.  In both cases, the module takes as an argument the
+% initial state of the new part of the context, and the final version
+% of the new part of the context is returned as the result of the run,
+% and the old part of the context continues to accumulate.
+
+\begin{verbatim}
+typeclass ContextRun#(type m, type c1, type ctx2)
+   dependencies ((m, c1) determines ctx2);
+\end{verbatim}
+
+
+\begin{verbatim}
+typeclass ContextsRun#(type m, type c1, type ctx2)
+   dependencies ((m, c1) determines ctx2);
+\end{verbatim}
+
+
+\index{runWithContext@\te{runWithContext} (function)}
+\index[function]{ModuleContext!runWithContext}
+
+\begin{tabular}{|p{1.2 in}|p{4.6 in}|}
+\hline
+& \\
+\te{runWithContext} &Runs a module with an entirely new context.\\
+\cline{2-2}
+& \begin{libverbatim}
+module [m] runWithContext #(c1 initState, 
+                            ModuleContext#(ctx2, ifcType) mkI)
+                           (Tuple2#(c1, ifcType));
+
+module [ModuleContext#(ctx)] runWithContext#(c1 initState,
+			     ModuleContext#(HCons#(c1, ctx), ifcType) mkI)
+                            (Tuple2#(c1, ifcType));
+
+module [Module] runWithContext#(c1 initState, 
+                                ModuleContext#(c1,ifcType) mkI)
+                               (Tuple2#(c1, ifcType));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{runWithContexts@\te{runWithContexts} (function)}
+\index[function]{ModuleContext!runWithContext}
+
+\begin{tabular}{|p{1.2 in}|p{4.6 in}|}
+\hline
+& \\
+\te{runWithContexts} &Runs a module with an entirely new context.\\
+\cline{2-2}
+& \begin{libverbatim}
+module [m] runWithContexts#(c1 initState, 
+                            ModuleContext#(ctx2, ifcType) mkI)
+                           (Tuple2#(c1, ifcType));
+
+module [ModuleContext#(ctx)] runWithContexts#(c1 initState,
+			     ModuleContext#(ctx2, ifcType) mkI)
+                            (Tuple2#(c1, ifcType));
+
+module [Module] runWithContexts#(c1 initState, 
+                                 ModuleContext#(c1, ifcType) mkI)
+                                (Tuple2#(c1, ifcType));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+
+
+{\bf Contexts.defines}
+
+BSC provides macros in the  \te{Context.defines} file to
+handle the treatment of the module contexts at synthesis boundaries.
+
+\begin{enumerate}
+\item The designer defines a leaf or intermediate node module, with
+module type \te{[ErrorReporter]} or \te{[ErrorReporterA]}, appending a
+\te{0} to its name (e.g. \te{mkM0}).  Elsewhere in the package the
+appropriate macro is chosen from the macros \te{SynthBoundary} and
+\te{SynthBoundaryWithClocks}. 
+
+\item The macro defines a synthesizable version of the module,
+\te{mkMV}, which provides the original interface together with an
+error-reporting subinterface.  It also defines a module with the
+original name \te{mkM} to be used for instantiating the original
+module.  It uses the Context mechanism to re-bury the error-reporting
+plumbing and returns the original interface of the original \te{mkM)} module
+\end{enumerate}
+
+These macros assume that the complete module context (such as an
+\te{HList} of individual contexts) is named \te{CompleteContext} and
+that its initial value may be obtained from either
+ \te{mkInitialCompleteContext} or \te{mkInitialCompleteContextWithClocks}.
+
+
+{\bf Example Without Clocks}
+
+\begin{verbatim}
+SynthBoundary(mkM,IM)
+\end{verbatim}
+
+Becomes
+\begin{verbatim}
+(*synthesize*)
+module [Module] mkMV(Tuple2#(CompleteContextIfc,IM));
+   let init <- mkInitialCompleteContext;
+   let _ifc <- unbury(init, mkM0);
+   return _ifc;
+endmodule
+
+module [ModuleContext#(CompleteContext)] mkM(IM);
+   let _ifc <- rebury(mkMV);
+   return _ifc;
+endmodule
+\end{verbatim}
+{\bf Example With Clocks}
+\begin{verbatim}
+SynthBoundaryWithClocks(mkM,IM)
+\end{verbatim}
+Becomes
+
+\begin{verbatim}
+(*synthesize*)
+module [Module] mkMV#(Clock c1,Reset r1,Clock c2,Reset r2)(Tuple2#(CompleteContextIfc,IM));
+   let init <- mkInitialCompleteContextWithClocks(c1, r1, c2, r2);
+   let _ifc <- unburyWithClocks(initialCompleteContext, c1, r1, c2, r2, mkM0);
+   return _ifc;
+endmodule
+
+module [ModuleContext#(CompleteContext)] mkM(IM);
+   let _ifc <- reburyWithClocks(mkMV);
+   return _ifc;
+endmodule
+\end{verbatim}

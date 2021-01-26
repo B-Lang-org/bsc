@@ -1,0 +1,179 @@
+\subsubsection{DefaultValue}
+
+
+{\bf Package}
+\index{DefaultValue (package)}
+
+\begin{verbatim}
+import DefaultValue :: * ;
+\end{verbatim}
+
+
+
+
+{\bf Description}
+
+This package defines a type class of \te{DefaultValue} and   instances
+of the type class for many commonly
+used datatypes.  Users can create their own default value instances
+for other types.  This type class is particularly useful for defining default values for
+user-defined structures.  
+
+
+{\bf Typeclasses}
+
+\index[typeclass]{DefaultValue}
+
+\begin{verbatim}
+typeclass DefaultValue #( type t );
+    t defaultValue ;
+endtypeclass
+\end{verbatim}
+
+The following instances are defined in the \te{DefaultValue} package.
+You can define your own instances for user-defined structures and other types.
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\multicolumn{2}{|c|}{\te{DefaultValue} Instances}\\
+\hline
+\hline
+\te{Literal\#(t)}&Any type \te{t} in the \te{Literal} class can have a default
+value which is defined here as 0.  The types in the \te{Literal} class
+include \te{Bit\#(n)}, \te{Int\#(n)}, \te{UInt\#(n)}, 
+\te{Real}, \te{Integer}, \te{FixedPoint}, and \te{Complex}.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance DefaultValue # (t) 
+   provisos (Literal#(t));
+   defaultValue = fromInteger (0);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\te{Bool}& The default value for a \te{Bool} is defined as \te{False}.\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance DefaultValue #( Bool );
+   defaultValue = False ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\te{void}&The default value for a void is defined as \te{?}.\\
+\cline{2-2}  
+&\begin{libverbatim} 
+instance DefaultValue #(void);
+   defaultValue = ?;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\te{Maybe}& The default value for a \te{Maybe} is defined as \te{tagged Invalid}.
+\\
+\cline{2-2}
+&\begin{libverbatim} 
+instance DefaultValue #( Maybe#(t) );
+   defaultValue = tagged Invalid ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+The default value for a \te{Tuple} is composed of the default values
+of each member type.  Instances are defined for \te{Tuple2} through \te{Tuple8}.
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\te{Tuple2\#(a,b)} &The default value of a \te{Tuple2} is the default
+value of element \te{a} and the default value of element \te{b}.  \\
+\cline{2-2}
+&\begin{libverbatim} 
+instance DefaultValue #( Tuple2#(a,b) )
+   provisos (DefaultValue#(a)
+             ,DefaultValue#(b) );
+   defaultValue = tuple2 (defaultValue, defaultValue );
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|p{1.5 in}|p{4.5 in}|}
+\hline
+\te{Vector}& The default value for a Vector replicates the element's
+default value type for each element. \\
+\cline{2-2}
+&\begin{libverbatim} 
+instance DefaultValue #( Vector#(n,t) )
+   provisos (DefaultValue#(t));
+   defaultValue = replicate (defaultValue) ;
+\end{libverbatim}
+\\
+\hline
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Examples}
+
+Example 1: Specifying the initial or reset values for a structure.
+\begin{verbatim}
+   Reg#(Int#(17))               rint  <- mkReg#(defaultValue); // initial value 0
+   Reg#(Tuple2#(Bool,UInt#(5))) tbui  <- mkReg#(defaultValue); // value is(False,0)
+   Reg#(Vector#(n,Bool)         vbool <- mkReg#(defaultValue); // initial value all False
+\end{verbatim}
+
+Example 2: Using default values to replace the unsafe use of unpack. 
+\begin{verbatim}
+import DefaultValue :: *;
+
+typedef struct {
+  UInt#(4) size;
+  UInt#(3) depth ;
+  } MyStruct
+deriving (Bits, Eq);
+
+instance DefaultValue #( MyStruct );
+  defaultValue = MyStruct { size : 0,
+                           depth : 1 };
+endinstance
+\end{verbatim}
+then you can use:
+\begin{verbatim}
+   Reg#(MyStruct)               mstr  <- mkReg(defaultValue);  
+\end{verbatim}
+instead of:
+\begin{verbatim}
+   Reg#(MyStruct)               mybad <- mkReg(unpack(0)); // Bad use of unpack
+\end{verbatim}
+
+Example 3: Module instantiation which requires a large
+structure as an argument.
+\begin{verbatim}
+ ModParam modParams = defaultValue ;    // generate default value
+ modParams.field1 = 5 ;                 // override some default values
+ modParams.field2 = 1.4 ;     
+ ModIfc <- mkMod (modArgs) ;            // construct the module
+\end{verbatim}
+

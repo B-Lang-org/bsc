@@ -1,0 +1,134 @@
+\subsubsection{BuildVector}
+\label{sec-BuildVector}
+
+
+{\bf Package}
+\index{BuildVector (package)}
+
+\begin{verbatim}
+import BuildVector :: * ;
+\end{verbatim}
+
+{\bf Description}
+
+The \te{BuildVector} package provides the \te{BuildVector} type class
+to implement a vector  construction function which can take
+any number of arguments (>0).
+
+In pseudo code, we can show this as:
+\begin{libverbatim}
+   function Vector#(n, a) vec(a v1, a v2, ..., a vn);
+\end{libverbatim}
+
+Examples:
+
+\begin{libverbatim}
+   Vector#(3, Bool) v1 = vec(True, False, True);
+   Vector#(4, Integer) v2 = vec(2, 17, 22, 42);
+\end{libverbatim}
+
+
+% In addition to type classes, this package uses partial application of
+% functions,  an advanced feature of
+% BSV. For example, if we have a function:
+% \begin{libverbatim}
+%    function ResultType f (ArgType1 a1, ArgType2 a2);
+%        ...
+%    endfunction
+% \end{libverbatim}
+% we can say
+% \begin{libverbatim}
+%    let f2 = f(x);
+% \end{libverbatim}
+% provided \te{x} is of type \te{ArgType1}.  \te{f2} will be of type:
+% \begin{libverbatim}
+%    function ResultType f (ArgType2 a2);
+% \end{libverbatim}
+
+% That is to say, we can supply the arguments to the original function
+% \te{f} a few at a time, in the right order; the result of doing so is
+% another function expecting the remaining arguments.    The
+%  remaining arguments, if 
+%  there are more than one, can also be supplied a few at a time.  In the trade,
+%  functions like these are known as {\em curried functions}, after the
+%  late logician Haskell B. Curry (after whom the language Haskell is
+%  also named).
+
+%  This implies, incidentally, that a function call \te{f(x,y)} can equally well be
+%  written in BSV as \te{(f(x))(y)}; or, since association is to the left,
+%  \te{f(x)(y)}.
+
+% The type \te{a} is the type of the vector elements.  The function provided by the
+% typeclass definition, \te{buildVec\_}, takes the vector constructed so far, and
+% all the remaining elements.  But it is defined in curried form, taking just
+% one of the remaining elements, and returning a function expecting the
+%  others.  The type \te{r} is the type of the resulting function (or the type of
+% the final vector, when all the elements have been absorbed).  The type
+% \te{n} is
+%  the number of elements processed so far.
+
+%  with 3 arguments, there would be three instance matches used for:
+% \begin{itemize}
+% \item  with \te{r} equal to \te{Vector\#(3,a)}
+% \item  with \te{r}  equal to \te{function Vector\#(3,a) f(a x)}
+% \item  with  \te{r} equal to \te{function (function Vector\#(3,a) f1(a x)) f2(a x)}
+% \end{itemize}
+
+
+
+% {\bf Types and type classes}
+
+% The type class definition for \te{BuildVector}:
+
+% \begin{libverbatim}
+% typeclass BuildVector#(type a, type r, numeric type n)
+%    dependencies (r determines (a,n));
+%    function r buildVec_(Vector#(n,a) v, a x);
+% endtypeclass
+% \end{libverbatim}
+
+% The base case is building a vector from the final argumnet.  The vector
+% is built up by \te{cons}ing successive elements onto the front,
+% requiring  a
+% final reverse.
+
+% \begin{libverbatim}
+% instance BuildVector#(a,Vector#(m,a),n) provisos(Add#(n,1,m));
+%    function Vector#(m,a) buildVec_(Vector#(n,a) v, a x);
+%       return reverse(cons(x,v));
+%    endfunction
+% endinstance
+% \end{libverbatim}
+
+% The recursive case builds a vector from non-final arguments.  This
+% case uses partial application; it defines the function expecting all
+% the remaining arguments by applying \te{buildVec\_} to the newly
+% constructed {\em vector so far}.  The result of that is a function
+% expecting \te{buildVec\_}'s second argument, and iteratively,
+% any remaining arguments.
+
+% \begin{libverbatim}
+% instance BuildVector#(a,function r f(a y),n) provisos(BuildVector#(a,r,m), Add#(n,1,m));
+%    function function r f(a y) buildVec_(Vector#(n,a) v, a x);
+%       return buildVec_(cons(x,v));
+%    endfunction
+% endinstance
+
+% \end{libverbatim}
+
+{\bf Functions}
+
+
+\begin{tabular}{|p{1 in}|p{4.8 in}|}
+\hline
+\te{vec}& A function for creating a Vector of size \te{n} from \te{n}
+arguments.  The variable number of arguments is implemented via the
+\te{BuildVector} typeclass, which is a proviso of this function.\\
+\cline{2-2}
+& \begin{libverbatim}
+function r vec(a x) provisos(BuildVector#(a,r,0));
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+

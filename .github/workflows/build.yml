@@ -154,3 +154,48 @@ jobs:
         with:
           name: macos-10.13+ build
           path: inst.tar.gz
+
+  build-doc-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_doc_ubuntu.sh"
+      - name: Build
+        run: |
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz
+
+  build-doc-macOS:
+    strategy:
+      matrix:
+        os: [ macos-10.15 ]
+    name: "Build doc: ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_doc_macos.sh"
+      - name: Build
+        run: |
+          # Brew install of mactex doesn't update the path until a new shell is opened
+          export PATH=/Library/TeX/texbin/:$PATH
+
+          make -j3 install-doc
+          tar czf inst.tar.gz inst
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }} build doc
+          path: inst.tar.gz

@@ -1,0 +1,263 @@
+\subsubsection{RWire, Wire, and PulseWire}
+
+{\bf Package}
+
+\te{RWire}, \te{Wire}, and \te{PulseWire}  are part of the standard
+Prelude package.   Prelude is imported implicitly into every {\BSV} package;
+it does not need an explicit \te{import} statement.
+
+{\bf Description}
+
+An \te{RWire} is a primitive stateless module whose purpose is to allow     
+data transfer between methods and rules without    
+the cycle latency of a register.  That is, a \te{RWire} may be written
+in a cycle and that value can be read out in the same cycle; values
+are not stored across clock cycles.
+                                                                        
+{\bf Interfaces and Modules}
+
+
+\begin{center}
+\begin{tabular}{|p{1.2 in}|p{4 in}|}
+\hline
+\multicolumn{2}{|c|}{Interfaces}\\
+\hline
+Name& Description\\
+\hline
+\hline
+\te{RWire} & Similar to a register with output wrapped in a \te{Maybe}
+type to indicate validity\\
+\hline
+\te{Wire} & Interchangeable with a \te{Reg} interface, validity of the data is implicit\\
+\hline
+\te{PulseWire}& \te{RWire} without any data\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\begin{itemize}
+\item{\bf RWire Interface}
+
+\index{RWire@\te{RWire} (interface)|textbf}
+\index{mkRWire@\te{mkRWire} (module)|textbf}
+
+The \te{RWire} interface is conceptually similar to a register's interface,  
+but the output value is wrapped in a \te{Maybe} type.  The \te{wset}
+method places a value on the wire and sets the valid signal.  The read-like method, 
+\te{wget},  returns the value and a valid signal in a 
+\te{Maybe} type. The output is   
+only \te{Valid} if a write has a occurred in the same clock     
+cycle, otherwise the output is \te{Invalid}.
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{1.5 in}|p{.4in}|p{1 in}|}
+\hline
+\multicolumn{5}{|c|}{RWire Interface}\\
+\hline
+\multicolumn{3}{|c|}{Method}&\multicolumn{2}{|c|}{Arguments}\\
+\hline
+Name & Type & Description& Name &\multicolumn{1}{|c|}{Description} \\
+\hline
+\hline 
+\te{wset}&\te{Action}&writes a value and sets the valid signal&\te{datain}&data
+to be sent on the wire \\
+\hline
+\te{wget}&\te{Maybe}&returns the value and the valid signal&&\\
+\hline
+
+\end{tabular}
+\end{center}
+
+          
+
+
+\begin{verbatim}
+interface RWire#(type element_type) ;
+   method Action wset(element_type datain) ;
+   method Maybe#(element_type) wget() ;
+endinterface: RWire
+\end{verbatim}
+
+
+\item{\bf Wire Interface} 
+
+\index{Wire@\te{Wire} (interface)|textbf}
+\index{mkWire@\te{mkWire} (module)|textbf}
+The \te{Wire} interface and module are simular to \te{RWire}, but the valid
+bit is hidden from the user and the validity of the read is considered
+an implicit condition.  The \te{Wire} interface works like
+the \te{Reg} interface, so mentioning the name of the wire gets (reads) its
+contents whenever they're valid, and using \texttt{<=} writes the
+wire.  \te{Wire} is an \te{RWire} that is designed to be
+interchangeable with \te{Reg}.   You can replace a \te{Reg} with an
+\te{Wire} without changing the syntax.
+
+
+\begin{verbatim}
+typedef Reg#(element_type) Wire#(type element_type);
+\end{verbatim}
+
+
+\item{\bf PulseWire Interface}
+
+\index{PulseWire@\te{PulseWire} (interface)|textbf}
+\index{mkPulseWire@\te{mkPulseWire} (module)|textbf}
+The \te{PulseWire} interface is an \te{RWire} without any data.  It is useful
+within rules and action methods to signal other methods or rules in
+the same clock cycle.  Note that because the method is called
+\te{\_read}, the register shorthand can be used to get its value without
+mentioning the method \te{\_read} (it is implicitly added).
+
+
+\begin{center}
+\begin{tabular}{|p{.5in}|p{.7in}|p{2 in}|}
+\hline
+\multicolumn{3}{|c|}{PulseWire Interface - Methods}\\
+\hline
+Name & Type & Description  \\
+\hline
+\hline 
+\te{send}&Action&sends a signal down the wire \\
+\hline
+\te{\_read}&Bool&returns the valid signal\\
+\hline
+
+\end{tabular}
+\end{center}
+
+
+\begin{verbatim}
+interface PulseWire;
+  method Action send();
+  method Bool _read();
+endinterface
+\end{verbatim}
+
+\end{itemize}
+
+{\bf Modules}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{3.1 in}|p{1.6 in}|}
+ \hline
+\multicolumn{3}{|c|}{Modules}\\
+\hline
+& & \\
+Name   &  BSV Module Declaration  & Description \\
+&\emph{\te{element\_width} may be 0} & \\
+\hline
+\hline
+\te{mkRWire} & \begin{libverbatim}module mkRWire (RWire#(element_type))
+   provisos 
+     (Bits #(element_type, element_width)) ;\end{libverbatim}
+&Output is only valid if a write has occurred in the same clock cycle
+          \\
+\hline
+\te{mkWire} &\begin{libverbatim}module mkWire(Wire#(element_type)) 
+   provisos 
+     (Bits#(element_type, element_width));\end{libverbatim}
+&Validity of the output is automatically checked as an implicit
+condition of the read method \\
+\hline
+\te{mkPulseWire} & \begin{libverbatim}module mkPulseWire(PulseWire);\end{libverbatim}
+ &Used within rules and action methods to signal other methods or
+ rules in the same clock cycle.  No data is sent.\\
+\hline
+\end{tabular}
+\end{center}
+
+{\bf Example - Sharing information between methods}
+\begin{verbatim}
+  import RWire::*;
+
+  interface Counter#(type count_t);
+      method count_t read();
+      method Action load(count_t newval);
+      method Action increment( count_t value );
+
+  endinterface
+
+  module mkCounter(Counter#(count_t))
+     provisos(Arith#(count_t), Bits#(count_t, count_t_sz));
+     Reg#(count_t) value <- mkReg(0);
+
+     RWire#(count_t) incr_value <- mkRWire ;
+   
+     rule do_increment( incr_value.wget matches tagged Valid  .incr_cnt ) ;
+        value <= value + incr_cnt ;
+     endrule
+   
+     ...
+   
+     //set the increment value on a wire so its value can be read
+     //by the decrement rule in the same cycle
+     method Action increment( count_t ivalue );
+        incr_value.wset( ivalue ) ;
+     endmethod
+      
+  endmodule
+\end{verbatim}
+{\bf Example - Moving information from rules to methods}
+\begin{verbatim}
+  import RWire::*;
+
+  module mkVending(Vending);
+
+    // count of money in the vending machine
+    Reg#(UInt#(7)) count <-  mkReg(0);
+
+    // state bit that controls dispensing money back
+    Reg#(Bool) money_back <- mkReg(False) ;
+
+    // wire to control dispense money output
+    PulseWire dispense_money <- mkPulseWire;
+
+    // wire to control gum dispenser output
+    PulseWire gum_control <- mkPulseWire;
+
+    // rule that controls dispensing of money
+    rule do_dispense_money(money_back);
+       let new_count = count - 10;
+       count <= new_count;
+       //indicate method to dispense money using the PulseWire
+       dispense_money.send();
+       if(new_count == 0)
+         money_back <= False;
+    endrule
+
+    // rule that controls dispensing of gum
+    rule do_dispense_gum(!money_back && count >= 50);
+       count <= count - 50;
+       //indicate method to dispense money using the Pulsewire
+       gum_control.send();
+    endrule
+
+    // Input-handling methods
+    method Action ten_cent_in() if(!money_back);
+       count <= count + 10;
+    endmethod
+
+    method Action fifty_cent_in() if(!money_back);
+       count <= count + 50;
+    endmethod     
+
+    method Action money_back_button() if(!money_back);
+       money_back <= True;
+    endmethod
+
+    // connect wires for money output
+    // read from PulseWire
+    method Bool dispense_ten_cents;
+        return dispense_money;
+    endmethod
+
+    // connect wires for gum output
+    // read from PulseWire
+    method Bool dispense_gum;
+        return gum_control;
+    endmethod
+  
+  endmodule
+\end{verbatim}
+

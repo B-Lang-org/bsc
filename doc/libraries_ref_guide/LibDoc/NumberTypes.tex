@@ -1,0 +1,232 @@
+\subsubsection{NumberTypes}
+\label{sec-NumberTypes}
+\index{NumberTypes (package)}
+
+{\bf Package}
+
+\begin{verbatim}
+import NumberTypes :: * ;
+\end{verbatim}
+
+
+
+{\bf Description}
+
+The \te{NumberTypes} package defines two new number types for use as
+ index types:  \te{BuffIndex} and \te{WrapNumber}. 
+
+A \te{BuffIndex\#(sz, ln)} is an unsigned integer which wraps around,
+where \te{sz} is the number of bits in its representation and \te{ln} is
+the size of the buffer it is to index.  Often \te{sz} will be
+\te{TLog\#(ln)}.  
+\te{BuffIndex} is   intended to be used as the
+index type for buffers of arbitrary size.  The values of
+\te{BuffIndex} are not ordered; you  
+cannot determine which of two values is ahead of the other because of the
+wrap-around.
+
+A \te{WrapNumber\#(sz)} is an  unsigned integer which wraps around,
+where \te{sz} is the number of bits in its representation.  The range
+is the entire value space (i.e.$2^{sz}$), but should  be used in
+situations where at any time all valid values are in at most half of
+that space.   The ordering of values can be defined
+taking wrap-around into account, so that the nearer distance apart is
+used to determine which value is ahead of the other.  
+
+
+{\bf Types and type classes}
+
+
+A  \te{BuffIndex} has two numeric type parameters: the size in
+bits of the representation (\te{sz}), and the length of the buffer it
+is to index (\te{ln}).
+
+\begin{verbatim}
+typedef struct { UInt#(sz) bix; } BuffIndex#(numeric type sz, numeric type ln)
+   deriving (Bits, Eq);
+\end{verbatim}
+
+
+A \te{WrapNumber\#(sz)} has a single numeric type parameter, \te{sz}, which
+is the size in bits of the representation.
+
+\begin{verbatim}
+typedef struct { UInt#(sz) wn; } WrapNumber#(numeric type sz)
+      deriving (Bits, Eq, Arith, Literal, Bounded);
+
+\end{verbatim}
+
+Both types belong to the \te{Bits}, \te{Eq}, \te{Arith}, and \te{Literal} typeclasses.
+ The \te{WrapNumber} type also belongs to the \te{Ord} typeclass. Each type class definition
+ includes  functions which are then also
+defined for the data type.  The Prelude library definitions (Section
+\ref{lib-prelude}) describes which functions are defined for each type class.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{10}{|c|}{Type Classes used by \te{BuffIndex} and \te{WrapNumber}}\\
+\hline
+\hline
+&\te{Bits}&\te{Eq}&\te{Literal}&\te{Arith}&\te{Ord}&\te{Bounded}&\te{Bit}&\te{Bit}&\te{Bit}\\
+&&&&&&&wise&Reduction&Extend\\
+\hline
+\te{WrapNumber}&$\surd$&$\surd$ &$\surd$&$\surd$ &$\surd$ &$\surd$  & &&\\
+\hline
+\te{BuffIndex}&$\surd$&$\surd$ &$\surd$&$\surd$ && & &&\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+
+\paragraph{Literal}
+
+Both \te{BuffIndex} and \te{WrapNumber} belong to the \te{Literal}
+typeclass, which allows conversion from (compile-time) type
+\te{Integer} to these types.  
+
+For the \te{BuffIndex} type, the \te{fromInteger} and
+\te{inLiteralRange} functions are defined as:
+
+\begin{libverbatim}
+instance Literal#(BuffIndex#(sz,ln));
+   function fromInteger(i) = BuffIndex {bix: fromInteger(i) };
+   function inLiteralRange(x,i) = (i>=0 && i < valueof(ln));
+endinstance
+\end{libverbatim}
+
+
+\paragraph{Arith}
+
+The type class \te{Arith} defines the common infix operators.
+Addition and subtraction are 
+the only meaningful arithmetic operations for \te{WrapNumber} and
+\te{BuffIndex}. 
+
+% \begin{libverbatim}
+% instance Arith#(BuffIndex#(sz,ln))
+%    provisos(Add#(1, sz, sz1), Log#(ln,log), Add#(log,_,sz));
+% \end{libverbatim}
+
+\paragraph{Ord}
+ 
+\te{WrapNumber} belongs to the \te{Ord} typeclass, so values of
+   \te{WrapNumber} can be compared by the relational operators
+   <, >, <=, and >=.
+Since the ordering of \te{WrapNumber} types takes into account wrap-around,
+ the nearer distance apart is used to determine which value is ahead
+of the other.
+
+% \begin{libverbatim}
+% instance Ord#(WrapNumber#(sz));
+% \end{libverbatim}
+
+
+
+{\bf Functions}
+
+Utility functions to convert a \te{BuffIndex} to a \te{UInt} and for
+adding and subtracting \te{BuffIndex} and \te{UInt} values are provided.
+
+
+\index{unwrapBI@\te{unwrapBI} (function)}
+\index[function]{NumberTypes!unwrapBI}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{unwrapBI} &Converts a \te{BuffIndex} to a \te{UInt}\\
+\cline{2-2}
+& \begin{libverbatim}
+function UInt#(sz) unwrapBI(BuffIndex#(sz,ln) x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{addBIUInt@\te{addBIUInt} (function)}
+\index[function]{NumberTypes!addBIUInt}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{addBIUInt} &Adds a \te{UInt} to a \te{BuffIndex}, returning  a \te{BuffIndex}\\
+\cline{2-2}
+& \begin{libverbatim}
+function BuffIndex#(sz,ln) addBIUInt(BuffIndex#(sz,ln) bin, 
+                                     UInt#(sz) i);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+
+\index{sbtrctBIUInt@\te{sbtrctBIUInt} (function)}
+\index[function]{NumberTypes!sbtrctBIUInt}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{sbtrctBIUInt} &Subtracts a \te{UInt} from a \te{BuffIndex},
+returning a \te{BuffIndex}\\
+\cline{2-2}
+& \begin{libverbatim}
+function BuffIndex#(sz,ln) sbtrctBIUInt(BuffIndex#(sz,ln) bin, 
+                                        UInt#(sz) i);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+Utility functions to convert between a \te{WrapNumber} and a
+\te{UInt}, and a function to add a \te{UInt} to a \te{WrapNumber} are
+provided. 
+
+
+\index{wrap@\te{wrap} (function)}
+\index[function]{NumberTypes!wrap}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{wrap} &Converts a \te{UInt} to a \te{WrapNumber}\\
+\cline{2-2}
+& \begin{libverbatim}
+function WrapNumber#(sz) wrap(UInt#(sz) x) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{unwrap@\te{unwrap} (function)}
+\index[function]{NumberTypes!unwrap}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{unwrap} &Converts a \te{WrapNumber} to a \te{UInt}\\
+\cline{2-2}
+& \begin{libverbatim}
+function UInt#(sz) unwrap (WrapNumber#(sz) x);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+
+\index{addUInt@\te{addUInt} (function)}
+\index[function]{NumberTypes!addUInt}
+
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+\hline
+& \\
+\te{addUInt} &Adds a \te{UInt} to a \te{WrapNumber}, returning a \te{WrapNumber}\\
+\cline{2-2}
+& \begin{libverbatim}
+function WrapNumber#(sz) addUInt(WrapNumber#(sz) wn, 
+                                 UInt#(sz) i) ;
+\end{libverbatim}
+\\
+\hline
+\end{tabular}

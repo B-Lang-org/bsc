@@ -1,0 +1,456 @@
+\subsubsection{Real}
+\index{Real@\te{Real} (package)}
+\label{package-Real}
+
+{\bf Package}
+
+\begin{verbatim}
+import Real :: * ;
+\end{verbatim}
+
+
+{\bf Description}
+
+The \te{Real} library package defines functions to operate on and
+manipulate real numbers.  Real numbers are numbers with a fractional
+component.  They are also of limited precision.  The \te{Real} data
+type is described in section \ref{sec-real}.
+ 
+
+{\bf Constants}
+
+\index{pi@\te{pi} (Real constant)}
+\index{$\pi$ (Real constant)}
+
+The constant \te{pi} ($\pi$) is defined.
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{pi}&The value of the constant pi ($\pi$).\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+ Real pi;
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Trigonometric Functions}
+
+
+
+ 
+The following  trigonometric functions are provided: \te{sin},
+\te{cos}, \te{tan}, \te{sinh}, \te{cosh}, \te{tanh}, \te{asin},
+\te{acos}, \te{atan}, \te{asinh}, \te{acosh}, \te{atanh}, and \te{atan2}.
+
+
+\index{sin@\te{sin} (Real function)}
+\index[function]{Real!sin}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{sin}&Returns the sine of \te{x}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real sin (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{cos@\te{cos} (Real function)}
+\index[function]{Real!cos}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{cos}&Returns the cosine of \te{x}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real cos (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{tan@\te{tan} (Real function)}
+\index[function]{Real!tan}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{tan}&Returns the tangent of \te{x}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real tan (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+\index{sinh@\te{sinh} (Real function)}
+\index[function]{Real!sinh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{sinh}&Returns the hyperbolic sine of \te{x}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real sinh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{cosh@\te{cosh} (Real function)}
+\index[function]{Real!cosh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{cosh}&Returns the hyperbolic cosine of \te{x}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real cosh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{tanh@\te{tanh} (Real function)}
+\index[function]{Real!tanh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{tanh}&Returns the hyperbolic tangent of \te{x}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real tanh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{asinh@\te{asinh} (Real function)}
+\index[function]{Real!asinh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{asinh}&Returns the  inverse hyperbolic  sine of \te{x}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real asinh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{acosh@\te{acosh} (Real function)}
+\index[function]{Real!acosh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{acosh}&Returns the inverse hyperbolic cosine of \te{x}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real acosh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{atanh@\te{atanh} (Real function)}
+\index[function]{Real!atanh}
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{atanh}&Returns the inverse hyperbolic  tangent of \te{x}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real atanh (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{atan2@\te{atan2} (Real function)}
+\index[function]{Real!atan2}
+
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{atan2}&Returns  \te{atan($x/y$)}.  \te{atan2(1,x)} is equivalent to
+\te{atan(x)}, but provides more precision when required by the division of
+\te{x/y}. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real atan2 (Real y, Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+{\bf Arithmetic Functions}
+
+\index{pow@\te{pow} (Real function)}
+\index[function]{Real!pow}
+
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{pow}& The element x is raised to the y power.  An alias for
+\te{**}. \te{pow(x,y)} = \te{x**y} = $x^y$. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real pow (Real x, Real y);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+\index{sqrt@\te{sqrt} (Real function)}
+\index[function]{Real!sqrt}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{sqrt}& Returns the square root of \te{x}.  Returns an error if \te{x} is negative.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Real sqrt (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+
+
+{\bf Conversion Functions}
+
+The following four functions are used to convert a \te{Real} to an \te{Integer}.
+
+\index{trunc@\te{trunc} (Real function)}
+\index[function]{Real!trunc}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{trunc}& Converts a \te{Real} to an \te{Integer} by removing  the fractional
+part of \te{x}, which  can be positive or negative.  \te{trunc(1.1) = 1}, \te{trunc(-1.1)= -1}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer trunc (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{round@\te{round} (Real function)}
+\index[function]{Real!round}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{round}& Converts a \te{Real} to an \te{Integer} by rounding to the nearest
+whole number.  \te{.5} rounds up in magnitude. \te{round(1.5) = 2},
+\te{round(-1.5)= -2}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer round (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{ceil@\te{ceil} (Real function)}
+\index[function]{Real!ceil}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{ceil}& Converts a \te{Real} to an \te{Integer} by rounding to the higher
+number, regardless of sign.  \te{ceil(1.1) = 2}, \te{ceil(-1.1) = -1}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer ceil (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{floor@\te{floor} (Real function)}
+\index[function]{Real!floor}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{floor}&Converts a \te{Real} to an \te{Integer} by rounding to the lower
+number, regardless of sign.  \te{floor(1.1) = 1}, \te{floor(-1.1) = -2}.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Integer floor (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+There are also two system functions \te{\$realtobits} and
+\te{\$bitstoreal}, defined in the Prelude (section \ref{sec-real})
+which provide conversion to and from IEEE 64-bit vectors (\te{Bit\#(64)}).
+
+{\bf Introspection Functions}
+
+\index{isInfinite@\te{isInfinite} (Real function)}
+\index[function]{Real!isInfinite}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{isInfinite}& Returns  \te{True} if the value of \te{x} is
+infinite, \te{False} if \te{x} is finite.\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isInfinite (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{isNegativeZero@\te{isNegativeZero} (Real function)}
+\index[function]{Real!isNegativeZero}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5 in}|}
+ \hline
+&\\
+\te{isNegativeZero}& Returns  \te{True} if the value of \te{x} is negative zero. \\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Bool isNegativeZero (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{splitReal@\te{splitReal} (Real function)}
+\index[function]{Real!splitReal}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{splitReal}&   Returns a Tuple containing the whole ($n$) and
+fractional ($f$)  parts of \te{x} such that $n+f = x$. Both values have
+the same sign as \te{x}.  The absolute 
+value of the fractional part is guaranteed to be in the range [0,1).\\
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Tuple2#(Integer, Real) splitReal (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{decodeReal@\te{decodeReal} (Real function)}
+\index[function]{Real!decodeReal}
+
+\begin{center}
+\begin{tabular}{|p{.8 in}|p{4.7 in}|}
+ \hline
+&\\
+\te{decodeReal}&   Returns a Tuple3 containing the sign, the fraction,
+and the exponent of a real number. 
+The second part (the first Integer) represents the fractional part as
+a signed Integer value.  This can be converted to an \te{Int\#(54)} (52
+bits, plus hidden bit, plus the sign bit).  The last value is a signed Integer
+representing the exponent, which can be be converted to an \te{Int\#(11)} .
+The real number is represented exactly as ($fractional \times
+2^{exp}$).   The \te{Bool} represents the sign and
+is \te{True} for 
+positive and positive zero,  \te{False} for negative and negative
+zero. Since the second value is a signed value, the \te{Bool} is
+redundant except for zero values.\\ 
+
+&\\
+\cline{2-2}
+&\begin{libverbatim}
+function Tuple3#(Bool, Integer, Integer) decodeReal (Real x);
+\end{libverbatim}
+\\ \hline
+\end{tabular}
+\end{center}
+
+\index{realToDigits@\te{realToDigits} (Real function)}
+\index[function]{Real!realToDigits}
+
+\begin{center}
+\begin{tabular}{|p{1 in}|p{4.5in}|}
+\hline
+\te{realToDigits}&Deconstructs a real number into its digits.  The
+function takes a base and a real number and returns a list of digits
+and an exponent (ignoring the sign). In particular, if $x \geq 0$, and
+\te{realToDigits(base,x)} returned a list of digits \te{d1, d2, ..., dn} and
+an exponent \te{e}, then:
+\begin{itemize}
+\item \te{n} $\geq$ \te{1}
+\item \te{abs(x) = 0.d1d2...dn * (base$^e$)}
+\item \te{0} $\leq$ \te{di} $\leq$ \te{base-1}  
+\end{itemize}\\
+\cline{2-2}
+&\begin{libverbatim}
+function Tuple2#(List#(Integer), Integer) 
+         realToDigits (Integer base, Real r);
+\end{libverbatim}
+\\
+\hline
+\end{tabular}
+\end{center}
+
+
+
