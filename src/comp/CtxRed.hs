@@ -27,8 +27,8 @@ doTraceCtxReduce = "-trace-ctxreduce" `elem` progArgs
 
 cCtxReduceIO :: ErrorHandle -> Flags -> SymTab -> CPackage -> IO CPackage
 cCtxReduceIO errh flags s (CPackage mi exps imps fixs ds includes) = do
-    -- ctxreduce should not match incoherent instances
-    -- this will preserve contexts to be handled in typechecking
+    -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
+    -- We want to preserve those contexts to be handled in typecheck (XXX why?)
     let (res, wmsgs) = runTI flags False s (mapM ctxRed ds)
     when (not (null wmsgs)) $ bsWarning errh wmsgs
     case res of
@@ -39,6 +39,8 @@ cCtxReduceDef :: Flags -> SymTab -> CDefn -> Either [EMsg] CDefn
 cCtxReduceDef flags s def =
     -- XXX This assumes no warnings in the Left case!  If we want to handle errors and
     -- warnings better, return an ErrorMonad.
+    -- The False argument to 'runTI' indicates that incoherent instances should not be matched at this time
+    -- We want to preserve those contexts to be handled in typecheck (XXX why?)
     case fst (runTI flags False s (ctxRed def)) of
     Left msgs -> Left msgs
     Right t   -> Right t
