@@ -3,31 +3,31 @@ compile_verilog_pass DerivedBits.bs "" "-opt-undetermined-vals"
 # Testing that pack . unpack optimizes to the identity using registers.
 compare_verilog alt1Reg.v
 compare_verilog alt1aReg.v
-compare_verilog_bug alt2Reg.v
-compare_verilog_bug alt3Reg.v
+compare_verilog alt2Reg.v
+compare_verilog alt3Reg.v
 compare_verilog alt4Reg.v
-compare_verilog_bug alt5Reg.v
-compare_verilog_bug alt6Reg.v
+compare_verilog alt5Reg.v
+compare_verilog alt6Reg.v
 
 compare_verilog_bug c0Reg.v
-compare_verilog_bug c1Reg.v
+compare_verilog c1Reg.v
 
-compare_verilog_bug origReg.v
+compare_verilog origReg.v
 
 # Testing that pack . unpack optimization works for Maybes.
 compare_verilog maybeReg.v
 compare_verilog maybeAlt1Reg.v
 compare_verilog maybeAlt1aReg.v
-compare_verilog_bug maybeAlt2Reg.v
-compare_verilog_bug maybeAlt3Reg.v
+compare_verilog maybeAlt2Reg.v
+compare_verilog maybeAlt3Reg.v
 compare_verilog maybeAlt4Reg.v
-compare_verilog_bug maybeAlt5Reg.v
-compare_verilog_bug maybeAlt6Reg.v
+compare_verilog maybeAlt5Reg.v
+compare_verilog maybeAlt6Reg.v
 
 compare_verilog_bug maybeC0Reg.v
-compare_verilog_bug maybeC1Reg.v
+compare_verilog maybeC1Reg.v
 
-compare_verilog_bug maybeOrigReg.v
+compare_verilog maybeOrigReg.v
 
 # Optimizing tag tests without injecting chains of != comparisons.
 compare_verilog alt1Test.v

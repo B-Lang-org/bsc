@@ -9,7 +9,7 @@ order: [_write, _read, RL_the_r_propagate]
 
 === resources:
 [(the_r_the_r.read, [(the_r_the_r.read, 1)]),
- (the_r_the_r.write, [(the_r_the_r.write the_r_the_rw_wget____d2, 1)]),
+ (the_r_the_r.write, [(the_r_the_r.write x__h131, 1)]),
  (the_r_the_rw.wget, [(the_r_the_rw.wget, 1)]),
  (the_r_the_rw.whas, [(the_r_the_rw.whas, 1)]),
  (the_r_the_rw.wset, [(the_r_the_rw.wset _write_1, 1)])]
