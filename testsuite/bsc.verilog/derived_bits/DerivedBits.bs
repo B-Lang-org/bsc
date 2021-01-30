@@ -8,6 +8,20 @@ maybeReg =
     r <- mkRegU
     return r
 
+{-# verilog leftBigReg #-}
+leftBigReg :: Module (Reg (Either (UInt 12) (Int 6)))
+leftBigReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog rightBigReg #-}
+rightBigReg :: Module (Reg (Either Bool (Bit 17)))
+rightBigReg =
+  module
+    r <- mkRegU
+    return r
+
 interface TestTags =
   isA :: Bool
   isB :: Bool

@@ -29,6 +29,10 @@ compare_verilog maybeC1Reg.v
 
 compare_verilog maybeOrigReg.v
 
+# Test that the derived Bits instance for Either optimizes properly.
+compare_verilog leftBigReg.v
+compare_verilog rightBigReg.v
+
 # Optimizing tag tests without injecting chains of != comparisons.
 compare_verilog alt1Test.v
 compare_verilog alt1aTest.v
