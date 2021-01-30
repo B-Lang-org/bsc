@@ -56,7 +56,7 @@ data LexItem =
         | L_if | L_import | L_in
         | L_infix | L_infixl | L_infixr
         | L_interface | L_instance
-        | L_let | L_letseq | L_package | L_of | L_prefix
+        | L_let | L_letseq | L_package | L_of
         | L_primitive | L_qualified | L_rules | L_signature | L_struct
         | L_then | L_module | L_type | L_valueOf | L_stringOf | L_verilog | L_synthesize | L_when | L_where
         | L_coherent | L_incoherent
@@ -112,7 +112,6 @@ prLexItem L_let = "let"
 prLexItem L_letseq = "letseq"
 prLexItem L_package = "package"
 prLexItem L_of = "of"
-prLexItem L_prefix = "prefix"
 prLexItem L_primitive = "primitive"
 prLexItem L_qualified = "qualified"
 prLexItem L_rules = "rules"
@@ -347,7 +346,6 @@ lx lf f l c (x:cs) | isAlpha x || x == '_' = spanId [] (c+1) cs
                 "package"        ->
                     Token (mkPositionFull f l (c-1) (lf_is_stdlib lf)) L_package :
                     lx lf f l cn cs'
-                "prefix"        -> lxr L_prefix
                 "primitive"        -> lxr L_primitive
                 "qualified"        -> lxr L_qualified
                 "rules"                -> lxr L_rules
