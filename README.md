@@ -42,13 +42,8 @@ The Bluespec compiler `bsc` emits standard Verilog for maximum compatibility
 with any synthesis toolchain and comes with an included simulator ("bluesim"),
 standard library, and TCL scripting support ("bluetcl").
 
-> **NOTE**: The current release is minimal, and more code will
-> be made available in the future, including:
->
-> - Documentation (User Guide)
->
-> The repository is still evolving. We welcome your feedback, issue reports,
-> and pull requests.
+The repository is still evolving. We welcome your feedback, issue reports,
+and pull requests.
 
 A separate repository, [bsc-contrib],
 exists for sharing libraries and utilities that don't (or don't yet) belong in
@@ -198,6 +193,17 @@ The `check` target runs a test using an external Verilog simulator, which is
 
 [Icarus Verilog]: http://iverilog.icarus.com
 
+The `install-doc` target builds PDF documentation from LaTeX source files
+that rely on a few standard style files.  The following Debian/Unbuntu
+packages install sufficient tools to build the documentation:
+
+    $ apt-get install \
+        texlive-latex-base \
+        texlive-latex-recommended \
+        texlive-latex-extra \
+        texlive-font-utils \
+        texlive-fonts-extra
+
 ### Clone the repository
 
 Clone this repository by running:
@@ -215,7 +221,7 @@ the submodules later with a separate command:
 
 At the root of the repository:
 
-    $ make all
+    $ make install
     $ make check
 
 This will create a directory called `inst` containing an installation of the
@@ -248,6 +254,16 @@ use it.
 
 [Verilator]: https://www.veripool.org/wiki/verilator
 
+### Build documentation
+
+To build and install the PDF documentation, you can add the following:
+
+    $ make install-doc
+
+This will install into the same `inst` or `PREFIX` directory.
+The installed documents include the BSC User Guide and the BSC Libraries
+Reference Guide.
+
 ---
 
 ## Using the Bluespec compiler
@@ -275,8 +291,9 @@ following command:
     $ bsc -help-hidden
 
 More details on using BSC, Bluesim, and Bluetcl can be found in the User Guide
-(forthcoming). Training and tutorials can be found in the [BSVlang
-repository](https://github.com/BSVLang/Main).
+(built in this repository).
+Training and tutorials can be found in the
+[BSVlang repository](https://github.com/BSVLang/Main).
 
 ---
 
