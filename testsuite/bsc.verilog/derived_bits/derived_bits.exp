@@ -1,59 +1,60 @@
-compile_verilog_pass DerivedBits.bs "" "-opt-undetermined-vals"
 
-# Testing that pack . unpack optimizes to the identity using registers.
-compare_verilog alt1Reg.v
-compare_verilog alt1aReg.v
-compare_verilog alt2Reg.v
-compare_verilog alt3Reg.v
-compare_verilog alt4Reg.v
-compare_verilog alt5Reg.v
-compare_verilog alt6Reg.v
-
-compare_verilog_bug c0Reg.v
-compare_verilog c1Reg.v
-
-compare_verilog origReg.v
-
-# Testing that pack . unpack optimization works for Maybes.
-compare_verilog maybeReg.v
-compare_verilog maybeAlt1Reg.v
-compare_verilog maybeAlt1aReg.v
-compare_verilog maybeAlt2Reg.v
-compare_verilog maybeAlt3Reg.v
-compare_verilog maybeAlt4Reg.v
-compare_verilog maybeAlt5Reg.v
-compare_verilog maybeAlt6Reg.v
-
-compare_verilog_bug maybeC0Reg.v
-compare_verilog maybeC1Reg.v
-
-compare_verilog maybeOrigReg.v
-
+# -----
 # Test that the derived Bits instance for Either optimizes properly.
-compare_verilog leftBigReg.v
-compare_verilog rightBigReg.v
 
-# Optimizing tag tests without injecting chains of != comparisons.
-compare_verilog alt1Test.v
-compare_verilog alt1aTest.v
-compare_verilog alt2Test.v
-compare_verilog alt3Test.v
-compare_verilog alt4Test.v
-compare_verilog alt5Test.v
-compare_verilog alt6Test.v
+compile_verilog_pass LeftBig.bs "" "-opt-undetermined-vals"
+compare_verilog mkLeftBigReg.v
 
-compare_verilog c0Test.v
-compare_verilog c1Test.v
+compile_verilog_pass RightBig.bs "" "-opt-undetermined-vals"
+compare_verilog mkRightBigReg.v
 
-compare_verilog origTest.v
+# -----
+
+compile_verilog_pass Maybe.bs "" "-opt-undetermined-vals"
+compare_verilog mkMaybeReg.v
+
+# -----
+
+# Reg   = Testing that pack . unpack optimizes to the identity using registers.
+# Maybe = Testing that pack . unpack optimization works for Maybes.
+# Test  = Optimizing tag tests without injecting chains of != comparisons.
+
+proc do_tests { name } {
+    compile_verilog_pass ${name}.bs "" "-opt-undetermined-vals"
+    compare_verilog mk${name}Reg.v
+    compare_verilog mkMaybe${name}Reg.v
+    compare_verilog mk${name}Test.v
+}
+
+do_tests Orig
+do_tests Alt1
+do_tests Alt1a
+do_tests Alt2
+do_tests Alt3
+do_tests Alt4
+do_tests Alt5
+do_tests Alt6
+
+# The C0 tests don't pass yet, so can't use 'do_tests'
+#do_tests C0
+compile_verilog_pass C0.bs "" "-opt-undetermined-vals"
+compare_verilog_bug mkC0Reg.v
+compare_verilog_bug mkMaybeC0Reg.v
+compare_verilog mkC0Test.v
+
+do_tests C1
+
+# -----
 
 # Test that pack . unpack optimizes away for enums (including non-contiguous)
-compile_verilog_pass DerivedEnums.bsv
+compile_verilog_pass Enums.bsv
 
-compare_verilog type1Reg.v
-compare_verilog type2Reg.v
-compare_verilog type3Reg.v
+compare_verilog mkEnumType1Reg.v
+compare_verilog mkEnumType2Reg.v
+compare_verilog mkEnumType3Reg.v
 
-compare_verilog type1Test.v
-compare_verilog type2Test.v
-compare_verilog type3Test.v
+compare_verilog mkEnumType1Test.v
+compare_verilog mkEnumType2Test.v
+compare_verilog mkEnumType3Test.v
+
+# -----

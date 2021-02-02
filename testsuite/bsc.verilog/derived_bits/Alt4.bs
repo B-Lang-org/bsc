@@ -1,0 +1,47 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package Alt4 where
+
+data Tag4 = A | B | C | D
+   deriving(Bits)
+
+data Alt4 = Alt4 (Tag4, Bit 1)
+  deriving(Bits)
+
+interface TestTags =
+  isA :: Bool
+  isB :: Bool
+  isC :: Bool
+  isD :: Bool
+
+{-# verilog mkAlt4Reg #-}
+mkAlt4Reg :: Module (Reg Alt4)
+mkAlt4Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeAlt4Reg #-}
+mkMaybeAlt4Reg :: Module (Reg (Maybe Alt4))
+mkMaybeAlt4Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkAlt4Test #-}
+mkAlt4Test :: Module TestTags
+mkAlt4Test =
+  module
+   r :: Reg Alt4 <- mkRegU
+   interface TestTags
+     isA = case r of
+            Alt4 (A, _) -> True
+            _           -> False
+     isB = case r of
+            Alt4 (B, _) -> True
+            _           -> False
+     isC = case r of
+            Alt4 (C, _) -> True
+            _           -> False
+     isD = case r of
+            Alt4 (D, _) -> True
+            _           -> False

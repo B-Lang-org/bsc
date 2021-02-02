@@ -1,0 +1,48 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package Alt3 where
+
+data Alt3
+    = A (Bit 1)
+    | B
+    | C (Bit 1)
+    | D (Bit 1)
+    deriving (Bits)
+
+interface TestTags =
+  isA :: Bool
+  isB :: Bool
+  isC :: Bool
+  isD :: Bool
+
+{-# verilog mkAlt3Reg #-}
+mkAlt3Reg :: Module (Reg Alt3)
+mkAlt3Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeAlt3Reg #-}
+mkMaybeAlt3Reg :: Module (Reg (Maybe Alt3))
+mkMaybeAlt3Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkAlt3Test #-}
+mkAlt3Test :: Module TestTags
+mkAlt3Test =
+  module
+   r :: Reg Alt3 <- mkRegU
+   interface TestTags
+     isA = case r of
+            A _ -> True
+            _   -> False
+     isB = case r of
+            B   -> True
+            _   -> False
+     isC = case r of
+            C _ -> True
+            _   -> False
+     isD = case r of
+            D _ -> True
+            _   -> False

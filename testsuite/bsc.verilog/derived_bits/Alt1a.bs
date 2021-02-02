@@ -1,0 +1,48 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package Alt1a where
+
+data Alt1a = A0
+           | A1
+           | B0
+           | B1
+           | C0
+           | C1
+  deriving(Bits)
+
+interface TestTags =
+  isA :: Bool
+  isB :: Bool
+  isC :: Bool
+
+{-# verilog mkAlt1aReg #-}
+mkAlt1aReg :: Module (Reg Alt1a)
+mkAlt1aReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeAlt1aReg #-}
+mkMaybeAlt1aReg :: Module (Reg (Maybe Alt1a))
+mkMaybeAlt1aReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkAlt1aTest #-}
+mkAlt1aTest :: Module TestTags
+mkAlt1aTest =
+  module
+   r :: Reg Alt1a <- mkRegU
+   interface TestTags
+     isA = case r of
+            A0  -> True
+            A1  -> True
+            _   -> False
+     isB = case r of
+            B0  -> True
+            B1  -> True
+            _   -> False
+     isC = case r of
+            C0  -> True
+            C1  -> True
+            _   -> False

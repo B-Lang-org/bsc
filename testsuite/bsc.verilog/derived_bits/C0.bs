@@ -1,0 +1,73 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package C0 where
+
+data C0 = E | F Orig | G C1
+  deriving(Bits, Eq)
+
+data C1 = H (UInt 2) (UInt 1) | I | J
+  deriving(Bits, Eq)
+
+data Orig = A (Bit 1)
+          | B (Bit 1)
+          | C (Bit 1)
+          | D (Bit 1)
+          deriving(Bits, Eq)
+
+interface TestTags =
+  isA :: Bool
+  isB :: Bool
+  isC :: Bool
+  isD :: Bool
+  isE :: Bool
+  isF :: Bool
+  isG :: Bool
+  isH :: Bool
+  isI :: Bool
+  isJ :: Bool
+
+{-# verilog mkC0Reg #-}
+mkC0Reg :: Module (Reg C0)
+mkC0Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeC0Reg #-}
+mkMaybeC0Reg :: Module (Reg (Maybe C0))
+mkMaybeC0Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkC0Test #-}
+mkC0Test :: Module TestTags
+mkC0Test =
+  module
+    r :: Reg C0 <- mkRegU
+    interface
+      isA = case r of
+              F (A _) -> True
+              _       -> False
+      isB = case r of
+              F (B _) -> True
+              _       -> False
+      isC = case r of
+              F (C _) -> True
+              _       -> False
+      isD = case r of
+              F (D _) -> True
+              _       -> False
+      isE = r == E
+      isF = case r of
+              F _ -> True
+              _   -> False
+      isG = case r of
+              G _ -> True
+              _   -> False
+      isH = case r of
+             G (H _ _) -> True
+             _     -> False
+      isI = r == (G I)
+      isJ = case r of
+              (G J) -> True
+              _     -> False

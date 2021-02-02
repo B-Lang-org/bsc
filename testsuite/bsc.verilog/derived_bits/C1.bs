@@ -1,0 +1,38 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package C1 where
+
+data C1 = H (UInt 2) (UInt 1) | I | J
+  deriving(Bits, Eq)
+
+interface TestTags =
+  isH :: Bool
+  isI :: Bool
+  isJ :: Bool
+
+{-# verilog mkC1Reg #-}
+mkC1Reg :: Module (Reg C1)
+mkC1Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeC1Reg #-}
+mkMaybeC1Reg :: Module (Reg (Maybe C1))
+mkMaybeC1Reg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkC1Test #-}
+mkC1Test :: Module TestTags
+mkC1Test =
+  module
+    r :: Reg C1 <- mkRegU
+    interface
+      isH = case r of
+             H _ _ -> True
+             _     -> False
+      isI = r == I
+      isJ = case r of
+              J -> True
+              _ -> False

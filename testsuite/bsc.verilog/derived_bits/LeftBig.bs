@@ -1,0 +1,9 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package LeftBig where
+
+{-# verilog mkLeftBigReg #-}
+mkLeftBigReg :: Module (Reg (Either (UInt 12) (Int 6)))
+mkLeftBigReg =
+  module
+    r <- mkRegU
+    return r

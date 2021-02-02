@@ -1,0 +1,9 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package RightBig where
+
+{-# verilog mkRightBigReg #-}
+mkRightBigReg :: Module (Reg (Either Bool (Bit 17)))
+mkRightBigReg =
+  module
+    r <- mkRegU
+    return r

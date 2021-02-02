@@ -1,0 +1,9 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package Maybe where
+
+{-# verilog mkMaybeReg #-}
+mkMaybeReg :: Module (Reg (Maybe (Bit 17)))
+mkMaybeReg =
+  module
+    r <- mkRegU
+    return r

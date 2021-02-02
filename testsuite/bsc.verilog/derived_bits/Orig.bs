@@ -1,0 +1,47 @@
+-- Tests to explore the compiler's output for derived Bits instances.
+package Orig where
+
+data Orig = A (Bit 1)
+          | B (Bit 1)
+          | C (Bit 1)
+          | D (Bit 1)
+          deriving(Bits, Eq)
+
+interface TestTags =
+  isA :: Bool
+  isB :: Bool
+  isC :: Bool
+  isD :: Bool
+
+{-# verilog mkOrigReg #-}
+mkOrigReg :: Module (Reg Orig)
+mkOrigReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkMaybeOrigReg #-}
+mkMaybeOrigReg :: Module (Reg (Maybe Orig))
+mkMaybeOrigReg =
+  module
+    r <- mkRegU
+    return r
+
+{-# verilog mkOrigTest #-}
+mkOrigTest :: Module TestTags
+mkOrigTest =
+  module
+   r :: Reg Orig <- mkRegU
+   interface TestTags
+     isA = case r of
+            A _ -> True
+            _   -> False
+     isB = case r of
+            B _ -> True
+            _   -> False
+     isC = case r of
+            C _ -> True
+            _   -> False
+     isD = case r of
+            D _ -> True
+            _   -> False
