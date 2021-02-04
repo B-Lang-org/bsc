@@ -34,14 +34,7 @@ do_tests Alt3
 do_tests Alt4
 do_tests Alt5
 do_tests Alt6
-
-# The C0 tests don't pass yet, so can't use 'do_tests'
-#do_tests C0
-compile_verilog_pass C0.bs "" "-opt-undetermined-vals"
-compare_verilog_bug mkC0Reg.v
-compare_verilog_bug mkMaybeC0Reg.v
-compare_verilog mkC0Test.v
-
+do_tests C0
 do_tests C1
 
 # -----
