@@ -5,7 +5,7 @@ test_c_veri Undet3
 # Tests for bug 1376
 if { $vtest == 1 } {
     compile_verilog_pass MaybeMux.bsv
-    find_regexp sysMaybeMux.v {b \? data\[31\:0\] \: incoming\[31\:0\]}
+    find_regexp sysMaybeMux.v {assign data\$D\_IN \= b \? data \: incoming \;}
 
     compile_verilog_pass UndetIf.bsv
     find_regexp sysUndetIf.v {assign d\$D\_IN \= p2 \? d \: i \;}
