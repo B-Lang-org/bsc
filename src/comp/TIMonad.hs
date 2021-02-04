@@ -468,9 +468,16 @@ findCons ct i = do
          Nothing -> errorAtId (EConstrAmb (pfpString ct')) i
          Just di -> case [ a | ConInfo {ci_id = i', ci_assump = a} <- cs, qualEq di i'] of
                    [a] -> return (updAssumpPos i a, di)
-                   []  -> errorAtId EUnboundCon i
+                   []  -> errSuggest r i
                    _   -> internalError "findCons ambig"
-     Nothing -> errorAtId EUnboundCon i
+     Nothing -> errSuggest r i
+  where
+    errSuggest :: SymTab -> Id -> TI (Assump, Id)
+    errSuggest r i =
+      case findType r i of
+        Just (TypeInfo _ KNum _ _) -> err (getIdPosition i, EUnboundCon (pfpString i) (Just "valueOf"))
+        Just (TypeInfo _ KStr _ _) -> err (getIdPosition i, EUnboundCon (pfpString i) (Just "stringOf"))
+        _ -> err (getIdPosition i, EUnboundCon (pfpString i) Nothing)
 
 findTyCon :: Id -> TI TyCon
 findTyCon i = do

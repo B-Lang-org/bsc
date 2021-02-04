@@ -691,7 +691,7 @@ data ErrMsg =
         | EBadInstanceOverlap String String Position
 
         | EUndefinedTask String
-        | EUnboundCon String
+        | EUnboundCon String (Maybe String)
         | EUnboundVar String
         | EUnboundField String
         | EUnboundClCon String
@@ -1880,8 +1880,13 @@ getErrorText (EDeriveCtx s) =
 
 getErrorText (EUndefinedTask c) =
     (Type 2, empty, s2par ("Unsupported system task " ++ ishow c))
-getErrorText (EUnboundCon c) =
-    (Type 3, empty, s2par ("Unbound constructor " ++ ishow c))
+getErrorText (EUnboundCon c maybeSuggest) =
+    (Type 3, empty,
+     let intro_msg = "Unbound constructor " ++ ishow c
+         msg = case maybeSuggest of
+           Nothing -> intro_msg
+           Just fname -> intro_msg ++ ".  Perhaps " ++ quote fname ++ " is missing?"
+     in s2par msg)
 getErrorText (EUnboundVar c) =
     (Type 4, empty, s2par ("Unbound variable " ++ ishow c))
 getErrorText (EUnboundField c) =
