@@ -1,5 +1,8 @@
 Warning: RegFile 'top.ram_arr' -- Read address is out of bounds: 0x2aaaaaaa
+Warning: RegFile 'top.cpu_rf' -- Read address is out of bounds: 0x00
+Warning: RegFile 'top.cpu_rf' -- Read address is out of bounds: 0x00
 Warning: RegFile 'top.ram_arr' -- Read address is out of bounds: 0x2aaa8caa
 Warning: RegFile 'top.ram_arr' -- Read address is out of bounds: 0x2aaa8caa
+Warning: RegFile 'top.cpu_rf' -- Read address is out of bounds: 0x00
 0x0000063d
                 5730
