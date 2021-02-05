@@ -31,7 +31,7 @@ import Pred hiding (name)
 import qualified Pred(name)
 import Scheme
 import Assump
-import CType(cTNum, tyConArgs, getArrows, cTVarNum, isIfc, getRes, typeclassId)
+import CType(cTNum, cTStr, tyConArgs, getArrows, cTVarNum, isIfc, getRes, typeclassId)
 import VModInfo(VSchedInfo, VPathInfo(..), VeriPortProp(..), VArgInfo(..),
                 VFieldInfo(..), VName(..), VWireInfo(..), VPort)
 -- GenWrap defines its own versions that expand synonyms and use qualEq
@@ -1270,16 +1270,23 @@ mkInstances trec = do
   return [genericInstance]
 
 mkGeneric :: IfcTRec -> GWMonad CDefn
-mkGeneric (IfcTRec { rec_id = flat_id, rec_type = orig_ty }) = do
+mkGeneric (IfcTRec { rec_id = flat_id, rec_type = orig_ty, rec_rootid = orig_id }) = do
   ctxs <- mkCtxs orig_ty
-  let flat_ty = cTCon flat_id
-      cqt = CQType ctxs (cTApplys (cTCon idGeneric) [flat_ty, TAp (cTCon idConc) orig_ty])
+  let pos = getPosition orig_id
+      flat_ty = cTCon flat_id
+      cqt = CQType ctxs $ cTApplys (cTCon idGeneric)
+            [flat_ty, cTApplys (cTCon idMeta)
+              [cTApplys (cTCon idMetaData)
+               [cTStr (getIdBase orig_id) pos,
+                cTStr (mkFString "") pos,  -- XXX not sure where to get the package name
+                cTNum 1 pos],
+               TAp (cTCon idConc) orig_ty]]
       defn = Cinstance cqt
         [CLValue (unQualId idFrom)
           [CClause [CPVar id_x] [] $
-            CCon idConc [cVApply (from_Id flat_id) [CVar id_x]]] [],
+            CCon idMeta [CCon idConc [cVApply (from_Id flat_id) [CVar id_x]]]] [],
          CLValue (unQualId idTo)
-          [CClause [CPCon idConc [CPVar id_x]] [] $
+          [CClause [CPCon idMeta [CPCon idConc [CPVar id_x]]] [] $
             cVApply (to_Id flat_id) [CVar id_x]] []]
   return defn
 
