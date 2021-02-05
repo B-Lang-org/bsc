@@ -820,6 +820,7 @@ instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Meta m r) where
 instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (Either r1 r2) where
   primDeepSeqCond' (Left x) = primDeepSeqCond' x
   primDeepSeqCond' (Right x) = primDeepSeqCond' x
+  primDeepSeqCond' _          = id
 
 instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (r1, r2) where
   primDeepSeqCond' (x, y) z = primDeepSeqCond' x $ primDeepSeqCond' y z
