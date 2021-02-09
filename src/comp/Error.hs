@@ -2496,7 +2496,7 @@ getErrorText (EForeignFuncBadResType badtype isPoly) =
      in  hdr $$ nest 2 (text badtype))
 
 -- Removed Type 90, EDeriveRecursive since recursive deriving of Bits
--- now causes an error at the type checking phase.
+-- now causes an ERecursiveBits error at the type checking phase.
 
 getErrorText (EForeignFuncDuplicates link_name src_ids) =
     (Type 91, empty,
