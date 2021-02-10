@@ -1,0 +1,54 @@
+package Decoder where
+
+-- IMaybe creates separate ports for the valid bit and payload of a Maybe
+-- at synthesis boundaries.
+-- It deliberately does *not* derive Bits so that it isn't unexpectedly
+-- packed or unpacked at synthesis boundaries.
+interface IMaybe a =
+    iValid :: Bool
+    iValue :: a
+  deriving(Eq)
+
+iMaybe :: Maybe a -> IMaybe a
+iMaybe ma = IMaybe { iValid = isValid ma; iValue = validValue ma }
+
+data Command
+  = DoBar (Bit 2) (Maybe Bool)
+  | DoBaz (UInt 5) (Int 7)
+ deriving(Eq, Bits)
+
+interface BarCtrl =
+  bar_1 :: Bit 2
+  bar_2 :: IMaybe Bool
+
+interface BazCtrl =
+  baz_1 :: UInt 5
+  baz_2 :: Int 7
+
+interface CtrlOut =
+  bar :: IMaybe BarCtrl
+  baz :: IMaybe BazCtrl
+
+interface Decoder =
+  cmdIn   :: Command -> Action {-# always_enabled #-}
+  ctrlOut :: CtrlOut
+
+{-# verilog mkDecoder { noReady } #-}
+mkDecoder :: Module Decoder
+mkDecoder = module
+  cmdWire <- mkBypassWire
+  interface
+    cmdIn   = cmdWire._write
+    ctrlOut = case cmdWire of
+                DoBar bar_1 bar_2 ->
+                  interface CtrlOut
+                    bar = iMaybe $ Valid $ interface BarCtrl
+                                             bar_1 = bar_1
+                                             bar_2 = iMaybe bar_2
+                    baz = iMaybe Invalid
+                DoBaz baz_1 baz_2 ->
+                  interface CtrlOut
+                    bar = iMaybe Invalid
+                    baz = iMaybe $ Valid $ interface BazCtrl
+                                              baz_1 = baz_1
+                                              baz_2 = baz_2

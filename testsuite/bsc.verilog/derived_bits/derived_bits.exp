@@ -52,11 +52,11 @@ compare_verilog mkEnumType3Test.v
 
 # -----
 
-compile_verilog_pass Foo.bs "" "-opt-undetermined-vals -unspecified-to x"
+compile_verilog_pass Decoder.bs "" "-opt-undetermined-vals -unspecified-to x"
 
-# If mkFoo.v does not simplify correctly, conditionals and/or Xs
+# If mkDecoder.v does not simplify correctly, conditionals and/or Xs
 # may appear in the generated output.
-string_does_not_occur mkFoo.v "xxxx"
-string_does_not_occur mkFoo.v "unspecified value"
-string_does_not_occur mkFoo.v "\?"
-string_does_not_occur mkFoo.v "case"
+string_does_not_occur mkDecoder.v "xxxx"
+string_does_not_occur mkDecoder.v "unspecified value"
+string_does_not_occur mkDecoder.v "\?"
+string_does_not_occur mkDecoder.v "case"
