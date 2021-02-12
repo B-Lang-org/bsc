@@ -14,9 +14,11 @@ import PreIds(
               -- internal type fields
               idPrimFst, idPrimSnd,
               -- internal classes
-              idClsUninitialized, idUndefined,
+              idClsUninitialized, idUndefined, idClsDeepSeqCond,
               -- internal class members
-              idPrimMakeUninitialized, idPrimUninitialized, idMakeUndef, idBuildUndef,
+              idPrimMakeUninitialized, idPrimUninitialized,
+              idMakeUndef, idBuildUndef,
+              idPrimDeepSeqCond,
               -- type constructors
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
@@ -687,14 +689,10 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
         fieldHigherRank :: CQType -> Bool
         fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
-        fieldWrapName :: Id -> Id -> Id
-        fieldWrapName cn fn = mkId dpos $ concatFString [
-          getIdBase i, mkFString "_", getIdBase cn, mkFString "_", getIdBase fn]
-
         preds = concat [ps | COriginalSummand {cos_arg_types=ftys} <- ocs,
                         fty@(CQType ps _) <- ftys, not $ fieldHigherRank fty]
 
-        wrapDcls = concat [mkGenericRepWrap r packageid dpos (fieldWrapName cn fn) vs fty
+        wrapDcls = concat [mkGenericRepWrap r dpos i (Just cn) fn vs fty
                           | COriginalSummand {cos_names=cn:_, cos_arg_types=ftys,
                                               cos_field_names=mfns} <- ocs,
                             (fn, fty@(CQType ps _)) <-
@@ -711,7 +709,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                Nothing -> cTApplys (cTCon idMeta)
                  [cTApplys (cTCon idMetaConsAnon)
                   [cTStr (getIdBase cn) dpos,
-                   cTNum i dpos,
+                   cTNum fi dpos,
                    cTNum (toInteger $ length ftys) dpos],
                   tMkTuple dpos
                    [cTApplys (cTCon idMeta)
@@ -719,23 +717,25 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                      [cTStr (mkFString $ "_" ++ show (j + 1)) dpos, cTNum j dpos],
                      (if fieldHigherRank fty
                       then TAp (cTCon idConcPoly) $
-                       cTApplys (cTCon $ fieldWrapName cn $ mk_dangling_id ("_" ++ show (j + 1)) dpos) vs
+                       cTApplys (cTCon $ genericRepWrapName dpos i (Just cn) $
+                                 mk_dangling_id ("_" ++ show (j + 1)) dpos) vs
                       else TAp (cTCon idConc) ty)]
                    | (j, fty@(CQType _ ty)) <- zip [0..] ftys]]
                Just fns -> cTApplys (cTCon idMeta)
                  [cTApplys (cTCon idMetaConsNamed)
                   [cTStr (getIdBase cn) dpos,
-                   cTNum i dpos,
+                   cTNum fi dpos,
                    cTNum (toInteger $ length ftys) dpos],
                   tMkTuple dpos
                    [cTApplys (cTCon idMeta)
                     [cTApplys (cTCon idMetaField)
                      [cTStr (getIdBase fn) dpos, cTNum j dpos],
                      (if fieldHigherRank fty
-                      then TAp (cTCon idConcPoly) $ cTApplys (cTCon $ fieldWrapName cn fn) vs
+                      then TAp (cTCon idConcPoly) $
+                       cTApplys (cTCon $ genericRepWrapName dpos i (Just cn) fn) vs
                       else TAp (cTCon idConc) ty)]
                    | (j, fn, fty@(CQType _ ty)) <- zip3 [0..] fns ftys]]
-            | (i, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
+            | (fi, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
               zip [0..] ocs]]
         from = CLValue idFromNQ
           [CClause [CPCon1 i cn (CPVar id_x)] [] $
@@ -746,12 +746,12 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                [CCon idMeta
                 [if fieldHigherRank fty
                  then CCon idConcPoly
-                  [CStruct (fieldWrapName cn fn) [(id_val, CSelect (CVar id_x) fn)]]
+                  [CStruct (genericRepWrapName dpos i (Just cn) fn) [(id_val, CSelect (CVar id_x) fn)]]
                  else CCon idConc [if isJust mfns || length ftys > 1
                                    then CSelect (CVar id_x) fn
                                    else CVar id_x]]
-               | (fn, fty) <- zip (fromMaybe [mk_dangling_id ("_" ++ show (i :: Int)) dpos
-                                             | i <- [1..]] mfns) ftys]
+               | (fn, fty) <- zip (fromMaybe [mk_dangling_id ("_" ++ show (fi :: Int)) dpos
+                                             | fi <- [1..]] mfns) ftys]
               ]]
           | (k, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
@@ -808,13 +808,9 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
         fieldHigherRank :: CQType -> Bool
         fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
-        fieldWrapName :: Id -> Id
-        fieldWrapName fn = mkId dpos $ concatFString [
-          getIdBase i, mkFString "_", getIdBase fn]
-
         preds = concat [ps | CField {cf_type=fty@(CQType ps _)} <- fs, not $ fieldHigherRank fty]
 
-        wrapDcls = concat [mkGenericRepWrap r packageid dpos (fieldWrapName fn) vs fty
+        wrapDcls = concat [mkGenericRepWrap r dpos i Nothing fn vs fty
                           | CField {cf_name=fn, cf_type=fty} <- fs, fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
           [cTApplys (cTCon idMetaData)
@@ -831,7 +827,8 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                [cTApplys (cTCon idMetaField)
                 [cTStr (getIdBase fn) dpos, cTNum k dpos],
                  (if fieldHigherRank fty
-                  then TAp (cTCon idConcPoly) $ cTApplys (cTCon $ fieldWrapName fn) vs
+                  then TAp (cTCon idConcPoly) $
+                   cTApplys (cTCon $ genericRepWrapName dpos i Nothing fn) vs
                   else TAp (cTCon idConc) ty)]
               | (k, CField {cf_name=fn, cf_type=fty@(CQType _ ty)}) <- zip [0..] fs]]]
         from = CLValue idFromNQ
@@ -842,7 +839,8 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                 [CCon idMeta
                   [if fieldHigherRank fty
                    then CCon idConcPoly
-                    [CStruct (fieldWrapName fn) [(id_val, CSelect (CVar id_x) fn)]]
+                    [CStruct (genericRepWrapName dpos i Nothing fn) [
+                        (id_val, CSelect (CVar id_x) fn)]]
                    else CCon idConc [CSelect (CVar id_x) fn]]
                 | CField {cf_name=fn, cf_type=fty} <- fs]]]] []
         to = CLValue idToNQ
@@ -860,26 +858,50 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
 -- Build a wrapper struct for generic representation of a polymorphic field.
 -- Otherwise it isn't possible to handle such fields genericly, as the
 -- representation type would contain free polymorphic type variables.
-mkGenericRepWrap :: SymTab -> Id -> Position -> Id -> [Type] -> CQType -> [Either EMsg [CDefn]]
-mkGenericRepWrap r packageid pos i ty_vars fty@(CQType _ ty) =
-  [Right [Cstruct True SStruct (IdK $ addIdProp i IdPInternal) vs fields []],
-   -- Need to generate instances of PrimMakeUninitialized and PrimMakeUndefined for the wrapper,
-   -- since the ConcPoly instances call to these through the evaluator primitives
-   Right [Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
-           [CLValue idMakeUninitializedNQ
-             [CClause [CPVar id_x, CPVar id_y] []
-               (CStruct i [(id_val, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
-          Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
-           [CLValue idMakeUndefinedNQ
-             [CClause [CPVar id_x, CPVar id_y] []
-               (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
-  where vs = map (getTyVarId . head . tv) ty_vars
+-- Arguments:
+--   r == the symbol table
+--   pos == the position of the struct / data declaration
+--   tid == the name of the struct / data type containing the wrapped field
+--   mcid == the name of the constructor containing the wrapped field, if it is part of a data type
+--   fid == the name of the wrapped field
+--   ty_vars == the non-polymorphic type variables in the wrapped type
+--   fty == the type of the wrapped field
+mkGenericRepWrap :: SymTab -> Position -> Id -> Maybe Id -> Id -> [Type] -> CQType ->
+                    [Either EMsg [CDefn]]
+mkGenericRepWrap r pos tid mcid fid ty_vars fty =
+  [Right [Cstruct True (SPolyWrap tid mcid fid) (IdK $ addIdProp i IdPInternal) vs fields []],
+   -- Need to generate instances of PrimMakeUninitialized, PrimMakeUndefined and PrimDeepSeqCond
+   -- for the wrapper, since the ConcPoly instances call to these through the evaluator primitives
+   Right [
+      Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
+        [CLValue idMakeUninitializedNQ
+          [CClause [CPVar id_x, CPVar id_y] []
+            (CStruct i [(id_val, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
+      Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
+        [CLValue idMakeUndefinedNQ
+          [CClause [CPVar id_x, CPVar id_y] []
+            (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []],
+      Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) (cTApplys (cTCon i) ty_vars)))
+        [CLValue idPrimDeepSeqCondNQ
+          [CClause [CPVar id_x] []
+            (CApply (CVar idPrimDeepSeqCond) [CSelect (CVar id_x) id_val])] []]]]
+  where i = genericRepWrapName pos tid mcid fid
+        vs = map (getTyVarId . head . tv) ty_vars
         fields =
           [CField {cf_name = id_val,
                    cf_pragmas = Nothing,
                    cf_type = fty,
                    cf_default = [],
                    cf_orig_type = Nothing}]
+
+-- Get the name of the generated wrapper struct
+genericRepWrapName :: Position -> Id -> Maybe Id -> Id -> Id
+genericRepWrapName pos tid mcid fid = mkId pos $ concatFString $
+  [getIdBase tid, mkFString "_"] ++
+  (case mcid of
+     Just cid -> [getIdBase cid, mkFString "_"]
+     Nothing -> []) ++
+  [getIdBase fid]
 
 -- -------------------------
 
@@ -925,6 +947,8 @@ idMakeUninitializedNQ :: Id
 idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
+idPrimDeepSeqCondNQ :: Id
+idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
 idFromNQ :: Id
 idFromNQ = unQualId idFrom
 idToNQ :: Id

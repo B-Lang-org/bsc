@@ -834,9 +834,8 @@ instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
 instance PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
--- Implicit conditions on polymorphic fields are ignored
 instance PrimDeepSeqCond' (ConcPoly a) where
-  primDeepSeqCond' (ConcPoly x) = warning ("ignoring conditions inside of polymorphic " +++ printType (typeOf x)) id
+  primDeepSeqCond' (ConcPoly x) = primSeqCond x
 
 
 --@ \begin{libverbatim}

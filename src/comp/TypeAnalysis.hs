@@ -278,6 +278,15 @@ analyzeType' flags symtab unqual_ty primpair_is_interface = doRight analyze (kin
                       t = qualToType qt'
                   in (i, qt', w t)
         in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
+    -- polymorpic field wrapper
+    analyzeNonNumTCon t qi k vs as isC (TIstruct (SPolyWrap _ _ _) fields) =
+        let fieldInfos = map (getFieldInfo symtab qi) fields
+            mkPair (FieldInfo _ _ _ (i :>: (Forall ks qt)) _ _ _) =
+                  let as' = addGenVars as ks
+                      qt' = apType (expandSynN flags symtab . rmStructArg) (inst as' qt)
+                      t = qualToType qt'
+                  in (i, qt', w t)
+        in  Right $ Struct qi k vs isC (map mkPair fieldInfos) (w t)
     -- type class
     analyzeNonNumTCon t qi k vs as isC (TIstruct SClass fields) =
         let

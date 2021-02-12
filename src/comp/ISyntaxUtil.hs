@@ -1023,6 +1023,11 @@ isIfcType t = case (getITypeSort t) of
                 Just (TIstruct (SInterface _) _) -> True
                 _ -> False
 
+isPolyWrapType :: IType -> Bool
+isPolyWrapType t = case (getITypeSort t) of
+                Just (TIstruct (SPolyWrap _ _ _) _) -> True
+                _ -> False
+
 isAbstractType :: IType -> Bool
 isAbstractType t = getITypeSort t == Just TIabstract
 
