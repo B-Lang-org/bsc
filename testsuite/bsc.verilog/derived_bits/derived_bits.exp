@@ -52,6 +52,12 @@ compare_verilog mkEnumType3Test.v
 
 # -----
 
+# This module has one input: a union type, whose constructors take two
+# arguments.  This input is decoded into separate output ports for each
+# of the argument values along with a valid bit indicating when that
+# union tag is present (and the associated values are valid).
+# The generated expressions for the value ports should reduce to just wires.
+
 compile_verilog_pass Decoder.bs "" "-opt-undetermined-vals -unspecified-to x"
 
 # If mkDecoder.v does not simplify correctly, conditionals and/or Xs
