@@ -219,8 +219,8 @@ idMetaData = prelude_id_no fsMetaData
 idMetaConsNamed = prelude_id_no fsMetaConsNamed
 idMetaConsAnon = prelude_id_no fsMetaConsAnon
 idMetaField = prelude_id_no fsMetaField
-id_val :: Id
-id_val = mk_no fs_val
+idPolyWrapField :: Id
+idPolyWrapField = mk_no fsPolyWrapField
 
 -- | Used by GenWrap for "polymorphic" modules
 idLiftModule :: Id

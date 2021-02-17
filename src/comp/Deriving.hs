@@ -8,7 +8,7 @@ import Position
 import Id
 import PreIds(
               -- identifiers
-              tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y, id_val,
+              tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y, idPolyWrapField,
               -- internal type constructors
               idId, idPrimPair, idArrow, idFmt,
               -- internal type fields
@@ -745,7 +745,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                [CCon idMeta
                 [if fieldHigherRank fty
                  then CCon idConcPoly
-                  [CStruct (genericRepWrapName dpos i (Just cn) fn) [(id_val, CSelect (CVar id_x) fn)]]
+                  [CStruct (genericRepWrapName dpos i (Just cn) fn) [(idPolyWrapField, CSelect (CVar id_x) fn)]]
                  else CCon idConc [if isJust mfns || length ftys > 1
                                    then CSelect (CVar id_x) fn
                                    else CVar id_x]]
@@ -766,7 +766,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                | (j, fty) <- zip [1..] ftys]]]] [] $
             let args = [
                   if fieldHigherRank fty
-                  then CSelect (CVar $ mkId dpos $ mkFString $ "a" ++ show j) id_val
+                  then CSelect (CVar $ mkId dpos $ mkFString $ "a" ++ show j) idPolyWrapField
                   else CVar $ mkId dpos $ mkFString $ "a" ++ show (j :: Int)
                   | (j, fty) <- zip [1..] ftys]
             in case mfns of
@@ -839,7 +839,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                   [if fieldHigherRank fty
                    then CCon idConcPoly
                     [CStruct (genericRepWrapName dpos i Nothing fn) [
-                        (id_val, CSelect (CVar id_x) fn)]]
+                        (idPolyWrapField, CSelect (CVar id_x) fn)]]
                    else CCon idConc [CSelect (CVar id_x) fn]]
                 | CField {cf_name=fn, cf_type=fty} <- fs]]]] []
         to = CLValue idToNQ
@@ -850,7 +850,7 @@ doSGeneric r packageid dpos i vs fs = fmap concat $ sequence $ wrapDcls ++ [Righ
                   [CPCon idMeta
                     [CPCon (if fieldHigherRank fty then idConcPoly else idConc) [CPVar fn]]
                   | CField {cf_name=fn, cf_type=fty} <- fs]]]] [] $
-           CStruct i [(fn, if fieldHigherRank fty then CSelect (CVar fn) id_val else CVar fn)
+           CStruct i [(fn, if fieldHigherRank fty then CSelect (CVar fn) idPolyWrapField else CVar fn)
                      | CField {cf_name=fn, cf_type=fty} <- fs]] []
         inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
 
@@ -875,15 +875,15 @@ mkGenericRepWrap r pos tid mcid fid ty_vars fty =
       Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
         [CLValue idMakeUninitializedNQ
           [CClause [CPVar id_x, CPVar id_y] []
-            (CStruct i [(id_val, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
+            (CStruct i [(idPolyWrapField, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
       Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
         [CLValue idMakeUndefinedNQ
           [CClause [CPVar id_x, CPVar id_y] []
-            (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
+            (CStruct i [(idPolyWrapField, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
   where i = genericRepWrapName pos tid mcid fid
         vs = map (getTyVarId . head . tv) ty_vars
         fields =
-          [CField {cf_name = id_val,
+          [CField {cf_name = idPolyWrapField,
                    cf_pragmas = Nothing,
                    cf_type = fty,
                    cf_default = [],
