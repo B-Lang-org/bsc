@@ -14,11 +14,10 @@ import PreIds(
               -- internal type fields
               idPrimFst, idPrimSnd,
               -- internal classes
-              idClsUninitialized, idUndefined, idClsDeepSeqCond,
+              idClsUninitialized, idUndefined,
               -- internal class members
               idPrimMakeUninitialized, idPrimUninitialized,
               idMakeUndef, idBuildUndef,
-              idPrimDeepSeqCond,
               -- type constructors
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
@@ -880,11 +879,7 @@ mkGenericRepWrap r pos tid mcid fid ty_vars fty =
       Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
         [CLValue idMakeUndefinedNQ
           [CClause [CPVar id_x, CPVar id_y] []
-            (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []],
-      Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) (cTApplys (cTCon i) ty_vars)))
-        [CLValue idPrimDeepSeqCondNQ
-          [CClause [CPVar id_x] []
-            (CApply (CVar idPrimDeepSeqCond) [CSelect (CVar id_x) id_val])] []]]]
+            (CStruct i [(id_val, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
   where i = genericRepWrapName pos tid mcid fid
         vs = map (getTyVarId . head . tv) ty_vars
         fields =
@@ -947,8 +942,6 @@ idMakeUninitializedNQ :: Id
 idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
-idPrimDeepSeqCondNQ :: Id
-idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
 idFromNQ :: Id
 idFromNQ = unQualId idFrom
 idToNQ :: Id
