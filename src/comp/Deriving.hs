@@ -40,7 +40,6 @@ import PreIds(
               idPrimOrd, idPrimChr,
               idPrimSplit, idPrimConcat, idPrimTrunc,
               idFormat,
-              idIdentityAt,
               )
 import CSyntax
 import CSyntaxUtil
@@ -842,7 +841,7 @@ doDDeepSeqCond i vs ocs cs = Cinstance instance_cqt $
                     -- there are no contexts (see def of CInternalSummand)
                     -- so we don't need to check for them
                     else idPrimSeqCond
-        seq_clauses = map seqSummand cs ++ [CClause [CPVar id_x] [] (CVar $ idIdentityAt noPosition)]
+        seq_clauses = map seqSummand cs
         seq_def = CDef idPrimDeepSeqCondNQ fn_cqt seq_clauses
 
 
