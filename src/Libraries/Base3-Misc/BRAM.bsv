@@ -542,7 +542,7 @@ module mkBRAMAdapter #(
    endrule
    rule overRun (readReady matches tagged Valid .d &&&
                  ! outData.notFull );
-      $display( "ERROR: %m: mkBRAMSeverAdapter overrun" );
+      $display( "ERROR: %m: mkBRAMServerAdapter overrun" );
    endrule
 
    interface Server server ;
