@@ -497,7 +497,7 @@ module mkBRAMAdapter #(
    end
    else if (cfg.latency != 1) begin
       // Only latency 1 and 2 are supported
-      errorM ("mkBRAMServerAdapter:  an unsupported latency has been specified:" +
+      errorM ("mkBRAMAdapter:  an unsupported latency has been specified:" +
               fromInteger(cfg.latency) +
               ".  Only BRAM Servers with latency 1 or 2 are supported." );
    end
@@ -542,7 +542,7 @@ module mkBRAMAdapter #(
    endrule
    rule overRun (readReady matches tagged Valid .d &&&
                  ! outData.notFull );
-      $display( "ERROR: %m: mkBRAMSeverAdapter overrun" );
+      $display( "ERROR: %m: mkBRAMAdapter overrun" );
    endrule
 
    interface Server server ;
