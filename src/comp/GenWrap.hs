@@ -1278,7 +1278,7 @@ mkGeneric (IfcTRec { rec_id = flat_id, rec_type = orig_ty, rec_rootid = orig_id 
             [flat_ty, cTApplys (cTCon idMeta)
               [cTApplys (cTCon idMetaData)
                [cTStr (getIdBase orig_id) pos,
-                cTStr (mkFString "") pos,  -- XXX not sure where to get the package name
+                cTStr (getIdQual orig_id) pos,
                 cTNum 1 pos],
                TAp (cTCon idConc) orig_ty]]
       defn = Cinstance cqt
