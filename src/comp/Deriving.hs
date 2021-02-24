@@ -13,17 +13,16 @@ import PreIds(
               idId, idPrimPair, idArrow, idFmt,
               -- internal type fields
               idPrimFst, idPrimSnd,
-              -- internal classes
-              idClsUninitialized, idUndefined,
-              -- internal class members
-              idPrimMakeUninitialized, idPrimUninitialized,
-              idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
               idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
-              -- classes
-              idEq, idBits, idFShow, idBounded, idDefaultValue, idGeneric,
+              -- classes that the compiler can derie
+              idEq, idBits, idFShow, idBounded, idDefaultValue,
+              -- classes that are auto-derived
+              idGeneric,
+              -- internal classes defined in terms of Generic but still occasionally auto-derived
+              idClsUninitialized, idUndefined,
               -- class members
               idPack, idUnpack,
               idEqual, idNotEqual,
@@ -31,6 +30,9 @@ import PreIds(
               idMaxBound, idMinBound,
               id_defaultValue,
               idFrom, idTo,
+              -- internal class members
+              idPrimMakeUninitialized, idPrimUninitialized,
+              idMakeUndef, idBuildUndef,
               -- functions
               idPrimUnitAt,
               idFalse, idTrue, idNot, idAnd,
