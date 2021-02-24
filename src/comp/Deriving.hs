@@ -60,8 +60,8 @@ import qualified Data.Set as S
 -- import Debug.Trace
 
 -- Classes that we always derive implicitly
-requiredClasses :: [Id]
-requiredClasses = [idGeneric]
+autoderivedClasses :: [Id]
+autoderivedClasses = [idGeneric]
 
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
@@ -95,7 +95,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+        derivs' = addAutoDerivs flags r qual_name ty_vars autoderivedClasses derivs
     in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
@@ -103,7 +103,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        derivs' = addRequiredDerivs flags r qual_name ty_vars requiredClasses derivs
+        derivs' = addAutoDerivs flags r qual_name ty_vars autoderivedClasses derivs
     in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
@@ -117,7 +117,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addRequiredDerivs flags r qual_name ty_vars requiredClasses []
+        derivs = addAutoDerivs flags r qual_name ty_vars autoderivedClasses []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
@@ -980,9 +980,9 @@ duplicate_tag_encoding_error type_name tag rest_tags
                | next_tag <- rest_tags,
                  cis_tag_encoding next_tag == cis_tag_encoding tag]
 
-addRequiredDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
+addAutoDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
-addRequiredDeriv flags r i tvs clsId derivs
+addAutoDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
     | Right True <- fst (runTI flags False r check) = derivs
   where check = do
@@ -1000,21 +1000,21 @@ addRequiredDeriv flags r i tvs clsId derivs
           -- trace (show clsId ++ ": " ++ ppReadable mreduce) $
           return (isJust mreduce)
 
-addRequiredDeriv flags r i tvs clsId derivs =
+addAutoDeriv flags r i tvs clsId derivs =
   -- trace ("auto-derive: " ++ ppReadable (clsId, i))
   (CTypeclass clsId) : derivs
 
 -- All types are automatically given instances for the typeclasses in
--- requiredClasses if an explicit instance isn't provided by the user.
+-- autoderivedClasses if an explicit instance isn't provided by the user.
 -- Implement this by adding the classes to the derive list for each type.
-addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [Id] -> [CTypeclass]
+addAutoDerivs :: Flags -> SymTab -> Id -> [CType] -> [Id] -> [CTypeclass]
                   -> [CTypeclass]
-addRequiredDerivs flags r i tvs requiredClasses derivs =
-  -- trace ("requiredClasses for " ++ show i ++ ": " ++ ppReadable requiredClasses) $
-  foldr (f . setPos) derivs requiredClasses
+addAutoDerivs flags r i tvs autoderivedClasses derivs =
+  -- trace ("autoderivedClasses for " ++ show i ++ ": " ++ ppReadable autoderivedClasses) $
+  foldr (f . setPos) derivs autoderivedClasses
    where pos    = getIdPosition i
          setPos clsId = setIdPosition pos (unQualId clsId)
-         f = addRequiredDeriv flags r i tvs
+         f = addAutoDeriv flags r i tvs
 
 
 -- -------------------------
