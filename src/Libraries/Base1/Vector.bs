@@ -99,9 +99,10 @@ primitive primMarkArrayUninitialized
 markVectorUninitialized :: Position__ -> String -> Vector n a -> Vector n a
 markVectorUninitialized pos name (V v) = V (primMarkArrayUninitialized pos name v)
 
--- We can't use the generic instance here because we're taking advantage of our
--- static knowledge about the vector's size to mark the individual elements as
--- uninitialized rather than the whole vector as an opaque value.
+-- We can't use the generic instance here because in addition to its elements
+-- being uninitialized, we want to mark the entire vector as uninitialized by
+-- calling markVectorUninitialized that calls primMarkArrayUninitialized
+-- on the underlying array.
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized (Vector n a)
   where
     primMakeUninitialized pos name =
