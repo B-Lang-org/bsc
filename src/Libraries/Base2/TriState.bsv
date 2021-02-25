@@ -37,8 +37,8 @@ import "BVI" TriState =
 module vMkTriState#(Bool oe, t i)(TriState#(t))
    provisos(Bits#(t, st));
 
-   default_clock clk();
-   default_reset rst();
+   default_clock no_clock;
+   default_reset no_reset;
 
    parameter     width = valueof(st);
 
