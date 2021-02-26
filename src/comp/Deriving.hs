@@ -95,7 +95,7 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addAutoDerivs flags r qual_name ty_vars autoderivedClasses derivs
+        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
     in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
@@ -103,7 +103,7 @@ doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        derivs' = addAutoDerivs flags r qual_name ty_vars autoderivedClasses derivs
+        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
     in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
@@ -117,7 +117,7 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addAutoDerivs flags r qual_name ty_vars autoderivedClasses []
+        derivs = addAutoDerivs flags r qual_name ty_vars []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
@@ -1007,9 +1007,9 @@ addAutoDeriv flags r i tvs clsId derivs =
 -- All types are automatically given instances for the typeclasses in
 -- autoderivedClasses if an explicit instance isn't provided by the user.
 -- Implement this by adding the classes to the derive list for each type.
-addAutoDerivs :: Flags -> SymTab -> Id -> [CType] -> [Id] -> [CTypeclass]
+addAutoDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
                   -> [CTypeclass]
-addAutoDerivs flags r i tvs autoderivedClasses derivs =
+addAutoDerivs flags r i tvs derivs =
   -- trace ("autoderivedClasses for " ++ show i ++ ": " ++ ppReadable autoderivedClasses) $
   foldr (f . setPos) derivs autoderivedClasses
    where pos    = getIdPosition i
