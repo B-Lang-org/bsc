@@ -59,7 +59,9 @@ import qualified Data.Set as S
 
 -- import Debug.Trace
 
--- Classes that we always derive implicitly
+-- Classes that we always derive implicitly.
+-- Note that these are assumed to have a single parameter, or if multiple,
+-- the first is the one for which the instance is defined.
 autoderivedClasses :: [Id]
 autoderivedClasses = [idGeneric]
 
@@ -140,6 +142,8 @@ doPrimTypeGeneric i vs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) re
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq
 -- or FShow) for a given data (sum type), and return the instance definitions.
 -- my guesses at the arguments:
+--  r   =  the current symbol table
+--  packageid = id name of the package
 --  xs  =  available bindings
 --  i   =  qualified id of the data type
 --  vs  =  argument type variables of the data type
@@ -150,18 +154,18 @@ doPrimTypeGeneric i vs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) re
 --  di  =  the class to be derived
 doDataDer :: SymTab -> Id -> [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
              CTypeclass -> Either EMsg [CDefn]
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idFShow =
+  Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
   doDGeneric r packageid (getPosition di) i vs ocs cs
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
-  Right [doDFShow (getPosition di) i vs ocs cs]
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
@@ -187,7 +191,7 @@ doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] 
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
-doDataDer _ _ xs i vs ocs cs (CTypeclass di) =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
@@ -202,10 +206,10 @@ doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
 doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doSDefaultValue (getPosition di) i vs cs]
-doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
-  doSGeneric r packageid (getPosition di) i vs cs
 doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
+doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
+  doSGeneric r packageid (getPosition di) i vs cs
 -- If the struct is isomorphic to another type (that is, it as only one
 -- field, of that other type), then inherit the instance from that type.
 doStructDer _ _ xs i vs [field] di
