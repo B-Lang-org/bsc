@@ -43,14 +43,14 @@ rg :: ABSTRACT:  PreludeBSV._PreludeBSV.VRWire109 = RWire
 							       WVAL -> Prelude.Bit 8
 -- AP local definitions
 rg_whas_CONCAT_rg_wget___d3 :: Bit 9;
-rg_whas_CONCAT_rg_wget___d3  = rg_whas____d1 ++ rg_wget____d2;
+rg_whas_CONCAT_rg_wget___d3  = rg_whas____d1 ++ x_wget__h65;
 -- IdProp rg_whas_CONCAT_rg_wget___d3[IdP_from_rhs]
 rg_whas____d1 :: Bit 1;
 rg_whas____d1  = rg.whas;
 -- IdProp rg_whas____d1[IdP_from_rhs]
-rg_wget____d2 :: Bit 8;
-rg_wget____d2  = rg.wget;
--- IdProp rg_wget____d2[IdP_from_rhs]
+x_wget__h65 :: Bit 8;
+x_wget__h65  = rg.wget;
+-- IdProp x_wget__h65[IdP_keep]
 -- AP rules
 rule RL_r "r":
  when 1'd1

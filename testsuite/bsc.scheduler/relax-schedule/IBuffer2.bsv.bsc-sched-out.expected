@@ -42,15 +42,15 @@ order: [handleIBufferRequest,
  (cacheAddrQueue_caq_result.whas, [(cacheAddrQueue_caq_result.whas, 1)]),
  (cacheAddrQueue_caq_result.wset,
   [(if cacheAddrQueue_caq_the_fifof_i_notEmpty_OR_cac_ETC___d3 then
-      cacheAddrQueue_caq_result.wset IF_cacheAddrQueue_caq_the_fifof_i_notEmpty_THE_ETC___d6,
+      cacheAddrQueue_caq_result.wset IF_cacheAddrQueue_caq_the_fifof_i_notEmpty_THE_ETC___d7,
     1)]),
  (cacheAddrQueue_caq_the_fifof.clear, [(cacheAddrQueue_caq_the_fifof.clear, 1)]),
  (cacheAddrQueue_caq_the_fifof.deq,
-  [(if cacheAddrQueue_caq_deqw_whas_AND_cacheAddrQueu_ETC___d11 then cacheAddrQueue_caq_the_fifof.deq,
+  [(if cacheAddrQueue_caq_deqw_whas_AND_cacheAddrQueu_ETC___d12 then cacheAddrQueue_caq_the_fifof.deq,
     1)]),
  (cacheAddrQueue_caq_the_fifof.enq,
-  [(if cacheAddrQueue_caq_enqw_whas_AND_cacheAddrQueu_ETC___d10 then
-      cacheAddrQueue_caq_the_fifof.enq x__h377,
+  [(if cacheAddrQueue_caq_enqw_whas_AND_cacheAddrQueu_ETC___d11 then
+      cacheAddrQueue_caq_the_fifof.enq x__h315,
     1)]),
  (cacheAddrQueue_caq_the_fifof.first, [(cacheAddrQueue_caq_the_fifof.first, 1)]),
  (cacheAddrQueue_caq_the_fifof.i_notEmpty, [(cacheAddrQueue_caq_the_fifof.i_notEmpty, 1)]),
@@ -60,20 +60,20 @@ order: [handleIBufferRequest,
  (responseQueue_rq_enqw.wget, [(responseQueue_rq_enqw.wget, 1)]),
  (responseQueue_rq_enqw.whas, [(responseQueue_rq_enqw.whas, 1)]),
  (responseQueue_rq_enqw.wset,
-  [(responseQueue_rq_enqw.wset handleCacheResponse_data_BITS_32_TO_0_7_CONCAT_ETC___d29, 1)]),
+  [(responseQueue_rq_enqw.wset handleCacheResponse_data_BITS_32_TO_0_8_CONCAT_ETC___d30, 1)]),
  (responseQueue_rq_result.wget, [(responseQueue_rq_result.wget, 1)]),
  (responseQueue_rq_result.whas, [(responseQueue_rq_result.whas, 1)]),
  (responseQueue_rq_result.wset,
-  [(if responseQueue_rq_the_fifof_i_notEmpty__2_OR_re_ETC___d14 then
-      responseQueue_rq_result.wset IF_responseQueue_rq_the_fifof_i_notEmpty__2_TH_ETC___d17,
+  [(if responseQueue_rq_the_fifof_i_notEmpty__3_OR_re_ETC___d15 then
+      responseQueue_rq_result.wset IF_responseQueue_rq_the_fifof_i_notEmpty__3_TH_ETC___d18,
     1)]),
  (responseQueue_rq_the_fifof.clear, [(responseQueue_rq_the_fifof.clear, 1)]),
  (responseQueue_rq_the_fifof.deq,
-  [(if responseQueue_rq_deqw_whas__8_AND_responseQueu_ETC___d22 then responseQueue_rq_the_fifof.deq,
+  [(if responseQueue_rq_deqw_whas__9_AND_responseQueu_ETC___d23 then responseQueue_rq_the_fifof.deq,
     1)]),
  (responseQueue_rq_the_fifof.enq,
-  [(if responseQueue_rq_enqw_whas__3_AND_responseQueu_ETC___d21 then
-      responseQueue_rq_the_fifof.enq responseQueue_rq_enqw_wget____d16,
+  [(if responseQueue_rq_enqw_whas__4_AND_responseQueu_ETC___d22 then
+      responseQueue_rq_the_fifof.enq responseQueue_rq_enqw_wget____d17,
     1)]),
  (responseQueue_rq_the_fifof.first, [(responseQueue_rq_the_fifof.first, 1)]),
  (responseQueue_rq_the_fifof.i_notEmpty, [(responseQueue_rq_the_fifof.i_notEmpty, 1)]),
@@ -193,9 +193,9 @@ Sequenced before (restricted): flushAddress, cacheRequest, flush
 Conflicts: handleIBufferRequest
  
 Method: iBufferResponse
-Ready signal: responseQueue_rq_result.whas &&
-	      (responseQueue_rq_the_fifof.i_notEmpty ||
-	       responseQueue_rq_enqw.whas)
+Ready signal: (responseQueue_rq_the_fifof.i_notEmpty ||
+	       responseQueue_rq_enqw.whas) &&
+	      responseQueue_rq_result.whas
 Conflict-free: handleIBufferRequest, cacheRequest
 Sequenced before (restricted): flushAddress, flush
 Sequenced after (restricted): handleCacheResponse
@@ -210,9 +210,9 @@ Sequenced after (restricted): handleIBufferRequest,
 			      handleCacheResponse
  
 Method: cacheRequest
-Ready signal: cacheAddrQueue_caq_result.whas &&
-	      (cacheAddrQueue_caq_the_fifof.i_notEmpty ||
-	       cacheAddrQueue_caq_enqw.whas)
+Ready signal: (cacheAddrQueue_caq_the_fifof.i_notEmpty ||
+	       cacheAddrQueue_caq_enqw.whas) &&
+	      cacheAddrQueue_caq_result.whas
 Conflict-free: iBufferResponse, handleCacheResponse
 Sequenced before (restricted): flushAddress, flush
 Sequenced after (restricted): handleIBufferRequest

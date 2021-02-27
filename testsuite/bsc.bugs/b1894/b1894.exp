@@ -3,6 +3,20 @@ compile_object_pass Bug1894.bsv
 link_objects_pass {} mkTop
 
 if { $ctest == 1 } {
-    find_regexp mkTop.cxx {2047u \& \(\(\(\(\(tUInt32\)\(\(tUInt8\)0u\)\) << 3u\) \| \(\(\(tUInt32\)\(DEF_cond__h[0-9]+\)\) << 2u\)\) \| \(tUInt32\)\(DEF_AVMeth_s_m\)\);}
+    # XXX The current behavior is broken!
+    # Instead of DEF_AVMeth_s_m, the generated code should have:
+    #   (DEF_cond__h### ? DEF_AVMeth_s_m : (tUInt8)2u)
+    # This is because the value part of the ActionValue method is only
+    # assigned when the condition is true:
+    #   if (DEF_cond__h###)
+    #     DEF_AVMeth_s_m = INST_s.METH_m();
+    #
+    # BSC should not optimize expressions of the form "if c e _" to
+    # just "_" when "e" contains an AV value (except on the Verilog
+    # backend, and only then if the user has specified that it's OK
+    # for the Verilog and Bluesim backends to diverge).
+    #
+    find_regexp mkTop.cxx {2047u \& \(\(\(\(\(tUInt32\)\(\(tUInt8\)0u\)\) << 3u\) \| \(\(\(tUInt32\)\(DEF_cond__h[0-9]+\)\) << 2u\)\) \| \(tUInt32\)\(DEF_v__h172\)\);}
+    find_regexp mkTop.cxx {DEF_v__h172 = DEF_AVMeth_s_m;}
 }
 

@@ -25,14 +25,14 @@ order: [RL_enq,
  (bypass_fifo_result.wget, [(bypass_fifo_result.wget, 1)]),
  (bypass_fifo_result.whas, [(bypass_fifo_result.whas, 1)]),
  (bypass_fifo_result.wset,
-  [(if bypass_fifo_the_fifof_i_notEmpty_OR_bypass_fif_ETC___d3 then
+  [(if bypass_fifo_the_fifof_i_notEmpty_OR_bypass_fif_ETC___d20 then
       bypass_fifo_result.wset IF_bypass_fifo_the_fifof_i_notEmpty_THEN_bypas_ETC___d6,
     1)]),
  (bypass_fifo_the_fifof.deq,
   [(if bypass_fifo_deqw_whas_AND_bypass_fifo_the_fifo_ETC___d11 then bypass_fifo_the_fifof.deq, 1)]),
  (bypass_fifo_the_fifof.enq,
   [(if bypass_fifo_enqw_whas_AND_bypass_fifo_the_fifo_ETC___d10 then
-      bypass_fifo_the_fifof.enq x__h372,
+      bypass_fifo_the_fifof.enq x__h367,
     1)]),
  (bypass_fifo_the_fifof.first, [(bypass_fifo_the_fifof.first, 1)]),
  (bypass_fifo_the_fifof.i_notEmpty, [(bypass_fifo_the_fifof.i_notEmpty, 1)]),
@@ -55,8 +55,8 @@ Schedule dump file created: mkGetTest.sched
 Method schedule
 ---------------
 Method: get
-Ready signal: bypass_fifo_result.whas &&
-	      (bypass_fifo_the_fifof.i_notEmpty || bypass_fifo_enqw.whas)
+Ready signal: (bypass_fifo_the_fifof.i_notEmpty || bypass_fifo_enqw.whas) &&
+	      bypass_fifo_result.whas
 Conflicts: get
  
 Rule schedule
