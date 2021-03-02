@@ -835,7 +835,7 @@ instance PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
 instance PrimDeepSeqCond' (ConcPoly a) where
-  primDeepSeqCond' (ConcPoly x) = primSeqCond x
+  primDeepSeqCond' _ = id
 
 
 --@ \begin{libverbatim}
