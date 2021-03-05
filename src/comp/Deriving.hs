@@ -17,7 +17,7 @@ import PreIds(
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
               idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
-              -- classes that the compiler can derie
+              -- classes that the compiler can derive
               idEq, idBits, idFShow, idBounded, idDefaultValue,
               -- classes that are auto-derived
               idGeneric,
