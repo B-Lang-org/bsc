@@ -833,6 +833,15 @@ instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
 instance PrimDeepSeqCond' (ConcPrim a) where
   primDeepSeqCond' (ConcPrim x) = primSeqCond x
 
+-- We have choosen (for now) to not lift any conditions from higher-rank fields.
+-- Note that some further lifting may be possible by calling primSeqCond
+-- (instead of id) and adjusting the primitive's implementation in IExpand
+-- to recognize when called on a SPolyWrap type and to recurse into the field's
+-- value in that case; but that this doesn't seem useful -- the expression will
+-- contain a lambda, and whether some conditions can be lifted depends on whether
+-- some parts of the expression occur outside of the lambda (which is up to the
+-- vagaries of the compiler) and on whether some type lambdas can be discharged
+-- by defaulting (to Integer or PrimUnit, for example).
 instance PrimDeepSeqCond' (ConcPoly a) where
   primDeepSeqCond' _ = id
 
