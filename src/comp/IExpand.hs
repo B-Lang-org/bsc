@@ -3174,8 +3174,8 @@ conAp' _ (ICPrim _ PrimSeq) _ (T _ : T _ : E e1 : E e2 : as) = do
 
 -- implicit-condition strictness
 conAp' _ (ICPrim _ PrimSeqCond) _ as0@(T t1 : T _ : E e1 : E e2 : as) = do
-   when (not (isAbstractType t1 || isPolyWrapType t1)) $
-     internalError ("PrimSeqCond not abstract or poly field wrapper: " ++ ppReadable as0)
+   when (not (isAbstractType t1)) $
+     internalError ("PrimSeqCond not abstract: " ++ ppReadable as0)
    -- unheap to make sure we get the full implicit condition
    -- forcing bit-arrays is a nice side effect
    (_, P p e) <- evalUH e1
