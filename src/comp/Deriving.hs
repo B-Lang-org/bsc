@@ -944,10 +944,10 @@ idMinBoundNQ :: Position -> Id
 idMinBoundNQ pos = setIdPosition pos (unQualId idMinBound)
 id_defaultValueNQ :: Id
 id_defaultValueNQ = unQualId id_defaultValue
-idMakeUninitializedNQ :: Id
-idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
+idMakeUninitializedNQ :: Id
+idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
 idFromNQ :: Id
 idFromNQ = unQualId idFrom
 idToNQ :: Id
