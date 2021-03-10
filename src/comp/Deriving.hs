@@ -165,7 +165,7 @@ doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
 doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
 doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
-  doDGeneric r packageid (getPosition di) i vs ocs cs
+  doDGeneric r packageid (getPosition di) i vs ocs
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
@@ -686,8 +686,8 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
 
-doDGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> COSummands -> CSummands -> Either EMsg [CDefn]
-doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [Right [inst]]
+doDGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> COSummands -> Either EMsg [CDefn]
+doDGeneric r packageid dpos i vs ocs = fmap concat $ sequence $ wrapDcls ++ [Right [inst]]
   where ty  = cTApplys (cTCon i) vs
         tvset = S.fromList (tv ty)
 
