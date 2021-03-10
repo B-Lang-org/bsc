@@ -717,6 +717,16 @@ doSGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> CFields -> Either EMsg
 doSGeneric r packageid dpos i vs fs = mkGenericInstance r packageid dpos i vs False
   [(i, Just [fn | CField {cf_name=fn} <- fs], [fty | CField {cf_type=fty} <- fs])]
 
+-- Build an instance of Generic for a struct / data declaration,
+-- along with any needed poly field wrapper structs and instances
+-- Arguments:
+--   r == the symbol table
+--   packageid == the name of the package
+--   dpos == the position of the struct / data declaration
+--   i == the name of the struct / data type
+--   vs == the type parameters to which the type is applied
+--   isData == is the type a data declaration (vs. struct)
+--   summands == a list of tuples (constructor name, field names if constructor has named fields, field types)
 mkGenericInstance :: SymTab -> Id -> Position -> Id -> [Type] -> Bool -> [(Id, Maybe [Id], [CQType])] ->
                      Either EMsg [CDefn]
 mkGenericInstance r packageid dpos i vs isData summands =
