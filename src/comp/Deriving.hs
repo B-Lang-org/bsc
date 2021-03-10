@@ -697,12 +697,14 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
         preds = concat [ps | COriginalSummand {cos_arg_types=ftys} <- ocs,
                         fty@(CQType ps _) <- ftys, not $ fieldHigherRank fty]
 
+        fieldNames (Just fns) dpos = fns
+        fieldNames Nothing dpos = [mk_dangling_id ("_" ++ show (fi :: Int)) dpos
+                                  | fi <- [1..]]  -- Infinite stream, but OK since this is always zipped with a list of field types
+
         wrapDcls = concat [mkGenericRepWrap r dpos i (Just cn) fn vs fty
                           | COriginalSummand {cos_names=cn:_, cos_arg_types=ftys,
                                               cos_field_names=mfns} <- ocs,
-                            (fn, fty@(CQType ps _)) <-
-                              zip (fromMaybe [mk_dangling_id ("_" ++ show (i :: Int)) dpos
-                                             | i <- [1..]] mfns) ftys,
+                            (fn, fty@(CQType ps _)) <- zip (fieldNames mfns dpos) ftys,
                             fieldHigherRank fty]
         rep = cTApplys (cTCon idMeta)
           [cTApplys (cTCon idMetaData)
@@ -710,36 +712,22 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
             cTStr (getIdBase packageid) dpos,
             cTNum (toInteger $ length ocs) dpos],
            tMkEitherChain dpos
-            [case mfns of
-               Nothing -> cTApplys (cTCon idMeta)
-                 [cTApplys (cTCon idMetaConsAnon)
-                  [cTStr (getIdBase cn) dpos,
-                   cTNum fi dpos,
-                   cTNum (toInteger $ length ftys) dpos],
-                  tMkTuple dpos
-                   [cTApplys (cTCon idMeta)
-                    [cTApplys (cTCon idMetaField)
-                     [cTStr (mkFString $ "_" ++ show (j + 1)) dpos, cTNum j dpos],
-                     (if fieldHigherRank fty
-                      then TAp (cTCon idConcPoly) $
-                       cTApplys (cTCon $ genericRepWrapName dpos i (Just cn) $
-                                 mk_dangling_id ("_" ++ show (j + 1)) dpos) vs
-                      else TAp (cTCon idConc) ty)]
-                   | (j, fty@(CQType _ ty)) <- zip [0..] ftys]]
-               Just fns -> cTApplys (cTCon idMeta)
-                 [cTApplys (cTCon idMetaConsNamed)
-                  [cTStr (getIdBase cn) dpos,
-                   cTNum fi dpos,
-                   cTNum (toInteger $ length ftys) dpos],
-                  tMkTuple dpos
-                   [cTApplys (cTCon idMeta)
-                    [cTApplys (cTCon idMetaField)
-                     [cTStr (getIdBase fn) dpos, cTNum j dpos],
-                     (if fieldHigherRank fty
-                      then TAp (cTCon idConcPoly) $
-                       cTApplys (cTCon $ genericRepWrapName dpos i (Just cn) fn) vs
-                      else TAp (cTCon idConc) ty)]
-                   | (j, fn, fty@(CQType _ ty)) <- zip3 [0..] fns ftys]]
+            [cTApplys (cTCon idMeta)
+              [cTApplys (cTCon $ case mfns of
+                            Just _ -> idMetaConsNamed
+                            Nothing -> idMetaConsAnon)
+                [cTStr (getIdBase cn) dpos,
+                  cTNum fi dpos,
+                  cTNum (toInteger $ length ftys) dpos],
+                tMkTuple dpos
+                [cTApplys (cTCon idMeta)
+                  [cTApplys (cTCon idMetaField)
+                    [cTStr (getIdBase fn) dpos, cTNum j dpos],
+                    (if fieldHigherRank fty
+                     then TAp (cTCon idConcPoly) $
+                      cTApplys (cTCon $ genericRepWrapName dpos i (Just cn) fn) vs
+                     else TAp (cTCon idConc) ty)]
+                | (j, fn, fty@(CQType _ ty)) <- zip3 [0..] (fieldNames mfns dpos) ftys]]
             | (fi, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
               zip [0..] ocs]]
         from = CLValue idFromNQ
@@ -755,9 +743,7 @@ doDGeneric r packageid dpos i vs ocs cs = fmap concat $ sequence $ wrapDcls ++ [
                  else CCon idConc [if isJust mfns || length ftys > 1
                                    then CSelect (CVar id_x) fn
                                    else CVar id_x]]
-               | (fn, fty) <- zip (fromMaybe [mk_dangling_id ("_" ++ show (fi :: Int)) dpos
-                                             | fi <- [1..]] mfns) ftys]
-              ]]
+               | (fn, fty) <- zip (fieldNames mfns dpos) ftys]]]
           | (k, COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns}) <-
             zip [0..] ocs] []
         to = CLValue idToNQ
