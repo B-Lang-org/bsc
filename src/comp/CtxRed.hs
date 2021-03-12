@@ -4,7 +4,7 @@ import Data.List(partition, (\\))
 import Control.Monad(when)
 import PFPrint
 import Id
-import PreIds(tmpTyVarIds)
+import PreIds(tmpTyVarIds, idGeneric)
 import Error(internalError, EMsg, ErrorHandle, bsWarning, bsError, ErrMsg(WExperimental))
 import Flags(Flags)
 import CSyntax
@@ -370,7 +370,7 @@ ctxRedCQType' isInstHead cqt = do
     -- raise an experimental warning about uses of generics
     let CQType cqs _ = cqt
     case [p | p@(CPred {cpred_tc = CTypeclass i}) <- cqs,
-          unq_eqs i "Generic"] of
+          qualEq i idGeneric] of
       p : _ -> twarn (getPosition p, WExperimental "generics")
       [] -> return ()
 
