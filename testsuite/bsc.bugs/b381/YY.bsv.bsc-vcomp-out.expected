@@ -1,0 +1,10 @@
+checking package dependencies
+compiling YY.bsv
+code generation for mkYY starts
+Internal Bluespec Compiler Error:
+Please report this failure to your Bluespec technical contact.
+If you do not know your contact, you may email support@bluespec.com.
+The following internal error message should be included in your
+correspondence along with any other relevant details:
+Bluespec Compiler (build 5c1b4dc)
+aTypeConv|ITForAll _v101[IdP_bad_name] IKNum (ITAp (ITAp (ITCon Prelude::-> (IKFun IKStar (IKFun IKStar IKStar)) TIabstract) (ITAp (ITCon Prelude::Bit (IKFun IKNum IKStar) TIabstract) (ITNum 8))) (ITAp (ITCon Prelude::Bit (IKFun IKNum IKStar) TIabstract) (ITVar _v101[IdP_bad_name])))

@@ -1,0 +1,125 @@
+package CustomBits where
+
+import Vector
+import BuildVector
+
+class MyBits a n | a -> n where
+  mypack   :: a -> Bit n
+  myunpack :: Bit n -> a
+
+instance MyBits (Bit n) n where
+  mypack = id
+  myunpack = id
+
+instance (Generic a r, MyBits' r n) => MyBits a n where
+  mypack   x  = mypack' $ from x
+  myunpack bs = to $ myunpack' bs
+
+class incoherent MyBits' r n | r -> n where
+  mypack'   :: r -> Bit n
+  myunpack' :: Bit n -> r
+
+instance (Log ncons ntag, ConBits 0 r ndata, Add ntag ndata n) =>
+         MyBits' (Meta (MetaData name pkg ncons) r) n where
+  mypack' (Meta x) =
+    let (tagNum, dat) = packCon x
+        tag = pack ((fromInteger tagNum) :: UInt ntag)
+    in tag ++ dat
+  myunpack' bs =
+    let (tag, dat) = split bs
+    in Meta $ unpackCon (unpack (tag :: Bit ntag)) dat
+
+class ConBits i r n | r -> i n where
+  packCon   :: r -> (Integer, Bit n)
+  unpackCon :: UInt m -> Bit n -> r
+
+instance (ConBits i1 a1 n1, ConBits i2 a2 n2, Max n1 n2 n, Add p1 n1 n, Add p2 n2 n) =>
+         ConBits i1 (Either a1 a2) n where
+  packCon (Left x) =
+    let (tag, bs) = packCon x
+    in (tag, extend bs)
+  packCon (Right x) =
+    let (tag, bs) = packCon x
+    in (tag, extend bs)
+  unpackCon i bs when i == fromInteger (valueOf i1) =
+    Left  $ unpackCon i (truncate bs)
+  unpackCon i bs = Right $ unpackCon i (truncate bs)
+
+instance (MyBits' r n) => ConBits idx (Meta (MetaConsNamed name idx nfields) r) n where
+  packCon (Meta x) = (valueOf idx, mypack' x)
+  unpackCon _ bs = Meta $ myunpack' bs
+
+instance (MyBits' r n) => ConBits idx (Meta (MetaConsAnon name idx nfields) r) n where
+  packCon (Meta x) = (valueOf idx, mypack' x)
+  unpackCon _ bs = Meta $ myunpack' bs
+
+instance (MyBits' r1 n1, MyBits' r2 n2, Add n1 n2 n) => MyBits' (r1, r2) n where
+  mypack' (x, y) = mypack' x ++ mypack' y
+  myunpack' bs = let (bs1, bs2) = split bs
+                 in (myunpack' bs1, myunpack' bs2)
+
+instance  MyBits' () 0 where
+  mypack' () = 0'b0
+  myunpack' _ = ()
+
+instance (MyBits' a m, Bits (Vector n (Bit m)) l) =>
+         MyBits' (Meta (MetaData name pkg 1) (Vector n a)) l where
+  mypack' (Meta v) = pack $ map mypack' v
+  myunpack' = Meta `compose` map myunpack' `compose` unpack
+
+instance (MyBits' r n) => MyBits' (Meta m r) n where
+  mypack' (Meta x) = mypack' x
+  myunpack' bs = Meta $ myunpack' bs
+
+instance (MyBits a n) => MyBits' (Conc a) n where
+  mypack' (Conc x) = mypack x
+  myunpack' bs = Conc $ myunpack bs
+
+mkMyReg :: (IsModule m c, MyBits a n) => a -> m (Reg a)
+mkMyReg v = liftModule $
+  if valueOf n == 0 then
+    module
+      interface
+	_read = myunpack 0
+	_write _ = return ()
+  else
+    module
+      _r :: Reg (Bit n)
+      _r <- mkReg (mypack v)
+      interface
+	_read = myunpack _r
+	_write x = _r._write (mypack x)
+
+
+data Foo = A (UInt 8)
+         | B (UInt 16) Bool Bar
+         | C
+  deriving (FShow)
+
+struct Bar =
+  x :: (UInt 8)
+  y :: (UInt 8)
+ deriving (FShow)
+
+
+foo :: Vector 3 Foo
+foo = vec (A 5) (B 1223 True (Bar {x=42; y=54})) C
+
+fooPack :: Bit 105
+fooPack = mypack foo
+
+fooUnpack :: Vector 3 Foo
+fooUnpack = myunpack fooPack
+
+
+sysCustomBits :: Module Empty
+sysCustomBits = module
+  r <- mkMyReg foo
+
+  rules
+    when True ==> do
+      $display (fshow foo)
+      $display (fshow fooPack)
+      $display (fshow fooUnpack)
+      $display (fshow r)
+      $finish

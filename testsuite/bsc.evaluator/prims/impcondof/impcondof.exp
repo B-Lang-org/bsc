@@ -22,6 +22,10 @@ test_c_veri_bsv WireCond
 
 test_c_veri_bsv NoInlineCond
 
+test_c_veri_bsv PolyFieldCond
+
+test_c_veri_bsv PolyFunctionFieldCond
+
 # -------------------------
 
 if { $vtest == 1 } {

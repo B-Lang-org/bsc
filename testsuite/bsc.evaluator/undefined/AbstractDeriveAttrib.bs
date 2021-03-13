@@ -1,0 +1,14 @@
+package AbstractDeriveAttrib where
+
+a :: Attributes__
+a = _
+
+m :: Module Empty
+m = module
+  interface
+
+{-# verilog sysAbstractDeriveAttrib #-}
+sysAbstractDeriveAttrib :: Module Empty
+sysAbstractDeriveAttrib = module
+  setStateAttrib a m
+  interface

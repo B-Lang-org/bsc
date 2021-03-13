@@ -1,0 +1,14 @@
+package UninitializedStruct where
+
+struct Foo =
+  x :: (Literal a) => PrimPair a a
+
+f :: Foo
+f = primUninitialized noPosition "f"
+
+sysUninitializedStruct :: Module Empty
+sysUninitializedStruct = module
+  rules
+    when True ==> do
+      $display (fshow f.x.fst)
+      $finish

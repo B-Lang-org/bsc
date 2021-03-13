@@ -1,0 +1,64 @@
+package GenericNegativeTests where
+
+-- Represents "evidence" for type equality between a and b,
+-- can only be constructed by refl ("reflexive") when a and b are equal.
+-- This could move to a library, I suppose?
+data TypeEq a b = Refl__
+refl :: TypeEq a a
+refl = Refl__
+
+
+data Foo = A (UInt 8) Bool
+         | B (UInt 16)
+         | C
+
+-- Wrong generic representation
+fooRepr :: (Generic Foo r) => TypeEq r
+  (Meta (MetaData "Foo" "GenericTests" 4)
+   (Either
+    (Meta (MetaConsAnon "A" 0 3)
+     (Meta (MetaField "_1" 0) (Conc (UInt 8)),
+      Meta (MetaField "_2" 1) (Conc Bool)))
+    (Either
+     (Meta (MetaConsAnon "B" 1 1)
+      (Meta (MetaField "_1" 0) (Conc (UInt 16))))
+     (Meta (MetaConsAnon "C" 2 0) ()))))
+fooRepr = refl
+
+
+-- A simple generic transformation to increment all UInts by 1
+class Trans a where
+  trans :: a -> a
+
+instance Trans (UInt n) where
+  trans x = x + 1
+
+instance (Generic a r, Trans' r) => Trans a where
+  trans = to `compose` trans' `compose` from
+
+class Trans' r where
+  trans' :: r -> r
+
+instance (Trans' r1, Trans' r2) => Trans' (r1, r2) where
+  trans' (x, y) = (trans' x, trans' y)
+
+instance Trans' () where
+  trans' () = ()
+
+instance (Trans' r1, Trans' r2) => Trans' (Either r1 r2) where
+  trans' (Left x) = Left $ trans' x
+  trans' (Right x) = Right $ trans' x
+
+instance (Trans' r) => Trans' (Meta m r) where
+  trans' (Meta x) = Meta $ trans' x
+
+instance (Trans a) => Trans' (Conc a) where
+  trans' (Conc x) = Conc $ trans x
+
+struct Bar =
+  x :: (Literal a) => a -- Higher rank
+
+-- Generic instance doesn't satisfy struct with higher-rank field
+barRes :: Bar
+barRes = trans (Bar {x=42})
+

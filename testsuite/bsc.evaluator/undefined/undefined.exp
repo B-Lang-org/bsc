@@ -10,6 +10,8 @@ if {$ctest == 1} {
   compare_file AbstractDeriveType.bsv.bsc-ccomp-out
   compile_object_fail_error AbstractDerivePosition.bsv S0015
   compare_file AbstractDerivePosition.bsv.bsc-ccomp-out
+  compile_object_fail_error AbstractDeriveAttrib.bs S0015
+  compare_file  AbstractDeriveAttrib.bs.bsc-ccomp-out
 }
 
 # vector of 512 registers written to dynamically
@@ -66,4 +68,3 @@ compile_verilog_fail_error UndetModule.bsv G0011
 # Test that rules cannot be created from "?" (Bug 1421)
 compile_verilog_fail_error UndetRules.bsv G0109
 compile_verilog_fail_error UndetRules2.bsv G0109
-

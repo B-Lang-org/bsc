@@ -1,0 +1,10 @@
+checking package dependencies
+compiling Uninitialized.bs
+code generation for sysUninitialized starts
+Error: Unknown position: (G0028)
+  `f.x' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `' at "Uninitialized.bs", line 12,
+  column 9.
+  During elaboration of `sysUninitialized' at "Uninitialized.bs", line 9,
+  column 0.

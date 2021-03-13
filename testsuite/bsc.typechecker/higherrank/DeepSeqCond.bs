@@ -2,23 +2,36 @@ package DeepSeqCond where
 
 import FoldFIFO
 
+class L a where
+  val :: a
+
+instance L (UInt n) where
+  val = 114
+
+instance L (Int n) where
+  val = 221
+
 interface Foo =
   x :: (UInt 8)
-  y :: (Literal a) => a
+  y :: (L a) => a
 
 -- Implicit condition should be surfaced
 f1 :: Foo
-f1 = Foo {x = _when_ True 42; y = 114}
+f1 = Foo {x = _when_ True 42; y = val}
 
 f2 :: Foo
-f2 = Foo {x = _when_ False 42; y = 114}
+f2 = Foo {x = _when_ False 42; y = val}
 
--- Implicit condition should *not* be surfaced, due to the Literal context
+-- Implicit condition should *not* be surfaced, due to the polymorphism
 f3 :: Foo
-f3 = Foo {x = 42; y = _when_ True 114}
+f3 = Foo {x = 42; y = _when_ True val}
 
 f4 :: Foo
-f4 = Foo {x = 42; y = _when_ False 114}
+f4 = Foo {x = 42; y = _when_ False val}
+
+-- Test calling primDeepSeqCond directly
+f12 :: Foo
+f12 = primDeepSeqCond f1 f2
 
 -- mkFoldFIFO but with an implict condition on the foldr method
 mkMyFoldFIFO :: (IsModule m c, Bits a k) => m (FoldFIFO a)
@@ -47,4 +60,5 @@ sysDeepSeqCond = module
       $display (fshow (impCondOf f3))
       $display (fshow (impCondOf f4))
       $display (fshow (impCondOf (ff.foldr (+) 0)))
+      $display (fshow (impCondOf f12))
       $finish

@@ -1,0 +1,42 @@
+checking package dependencies
+compiling GenericNegativeTests.bs
+Warning: "GenericNegativeTests.bs", line 16, column 12: (S0028)
+  Support for generics in this release is not complete or has not been tested
+Warning: "GenericNegativeTests.bs", line 36, column 10: (S0028)
+  Support for generics in this release is not complete or has not been tested
+Error: "GenericNegativeTests.bs", line 26, column 10: (T0020)
+  Type error at:
+    refl
+
+  Expected type:
+    GenericNegativeTests.TypeEq
+(Prelude.Meta (Prelude.MetaData "Foo" "GenericNegativeTests" 3)
+ (Prelude.Either
+  (Prelude.Meta (Prelude.MetaConsAnon "A" 0 2)
+   (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 8)),
+    Prelude.Meta (Prelude.MetaField "_2" 1) (Prelude.Conc Prelude.Bool)))
+  (Prelude.Either
+   (Prelude.Meta (Prelude.MetaConsAnon "B" 1 1)
+    (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 16))))
+   (Prelude.Meta (Prelude.MetaConsAnon "C" 2 0) ()))))
+(Prelude.Meta (Prelude.MetaData "Foo" "GenericTests" 4)
+ (Prelude.Either
+  (Prelude.Meta (Prelude.MetaConsAnon "A" 0 3)
+   (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 8)),
+    Prelude.Meta (Prelude.MetaField "_2" 1) (Prelude.Conc Prelude.Bool)))
+  (Prelude.Either
+   (Prelude.Meta (Prelude.MetaConsAnon "B" 1 1)
+    (Prelude.Meta (Prelude.MetaField "_1" 0) (Prelude.Conc (Prelude.UInt 16))))
+   (Prelude.Meta (Prelude.MetaConsAnon "C" 2 0) ()))))
+
+  Inferred type:
+    GenericNegativeTests.TypeEq a__ a__
+
+Error: "GenericNegativeTests.bs", line 62, column 0: (T0032)
+  This expression requires the following context which could not be resolved:
+    GenericNegativeTests.Trans GenericNegativeTests.Bar
+  The context was implied by expressions at the following positions:
+    "GenericNegativeTests.bs", line 63, column 9
+  An instance for this context exists, but it depends on the following context
+  for which there is no instance:
+    GenericNegativeTests.Trans' (Prelude.ConcPoly GenericNegativeTests.Bar_x)

@@ -1,4 +1,4 @@
 (* synthesize *)
 module mkAbstractDerivePosition();
-   primError(?,"should not see");
+   primError(?, "this is an error message");
 endmodule

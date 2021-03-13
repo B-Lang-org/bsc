@@ -1,0 +1,193 @@
+package GenericTests where
+
+import ListN
+import Vector
+import BuildVector
+
+import GenericTestsBSV
+
+-- Represents "evidence" for type equality between a and b,
+-- can only be constructed by refl ("reflexive") when a and b are equal.
+-- This could move to a library, I suppose?
+data TypeEq a b = Refl__
+refl :: TypeEq a a
+refl = Refl__
+
+
+data Foo = A (UInt 8) Bool Bar
+         | B (UInt 16)
+         | C
+         | D {a :: (UInt 8); b :: Foo}
+  deriving (Eq, FShow)
+
+struct Bar =
+  foo :: Foo
+  x :: (UInt 8)
+ deriving (Eq, FShow)
+
+data Baz a = Baz a a
+  deriving (Eq, FShow)
+
+struct Qux =
+  x :: a -> a -- Higher rank
+  y :: Int 8
+
+instance Eq Qux where
+  (==) q1 q2 = (q1.x 42) == (q2.x 42) && q1.y == q2.y
+
+instance FShow Qux where
+  fshow q = $format "Qux " q.y
+
+data Kax = K1 (UInt 8) (a -> a) -- Higher rank
+         | K2 (UInt 8)
+
+instance Eq Kax where
+   -- XXX Can't match on higher-rank field due to https://github.com/B-Lang-org/bsc/issues/277
+  (==) (K1 x1 _) (K1 x2 _) = x1 == x2 -- && (y1 42) == (y2 42)
+  (==) (K2 x) (K2 y) = x == y
+  (==) _ _ = False
+
+instance FShow Kax where
+  fshow (K1 x _) = $format "K1 " x
+  fshow (K2 x) = $format "K2 " x
+
+-- Test generic representations
+fooRepr :: (Generic Foo r) => TypeEq r
+  (Meta (MetaData "Foo" "GenericTests" 4)
+   (Either
+    (Meta (MetaConsAnon "A" 0 3)
+     (Meta (MetaField "_1" 0) (Conc (UInt 8)),
+      Meta (MetaField "_2" 1) (Conc Bool),
+      Meta (MetaField "_3" 2) (Conc Bar)))
+    (Either
+     (Meta (MetaConsAnon "B" 1 1)
+      (Meta (MetaField "_1" 0) (Conc (UInt 16))))
+     (Either (Meta (MetaConsAnon "C" 2 0) ())
+      (Meta (MetaConsNamed "D" 3 2)
+       (Meta (MetaField "a" 0) (Conc (UInt 8)),
+        Meta (MetaField "b" 1) (Conc Foo)))))))
+fooRepr = refl
+
+barRepr :: (Generic Bar r) => TypeEq r
+  (Meta (MetaData "Bar" "GenericTests" 1)
+   (Meta (MetaConsNamed "Bar" 0 2)
+    (Meta (MetaField "foo" 0) (Conc Foo),
+     Meta (MetaField "x" 1) (Conc (UInt 8)))))
+barRepr = refl
+
+bazRepr :: (Generic (Baz a) r) => TypeEq r
+  (Meta (MetaData "Baz" "GenericTests" 1)
+   (Meta (MetaConsAnon "Baz" 0 2)
+    (Meta (MetaField "_1" 0) (Conc a),
+     Meta (MetaField "_2" 1) (Conc a))))
+bazRepr = refl
+
+bazFooRepr :: (Generic (Baz Foo) r) => TypeEq r
+  (Meta (MetaData "Baz" "GenericTests" 1)
+   (Meta (MetaConsAnon "Baz" 0 2)
+    (Meta (MetaField "_1" 0) (Conc Foo),
+     Meta (MetaField "_2" 1) (Conc Foo))))
+bazFooRepr = refl
+
+fooBSVRepr :: (Generic FooBSV r) => TypeEq r
+  (Meta (MetaData "FooBSV" "GenericTestsBSV" 3)
+   (Either
+    (Meta (MetaConsNamed "C1" 0 3)
+     (Meta (MetaField "x" 0) (Conc (UInt 8)),
+      Meta (MetaField "y" 1) (Conc Bool),
+      Meta (MetaField "z" 2) (Conc (Int 32))))
+    (Either
+     (Meta (MetaConsAnon "C2" 1 1)
+      (Meta (MetaField "_1" 0) (Conc (UInt 16))))
+     (Meta (MetaConsAnon "C3" 2 0) ()))))
+fooBSVRepr = refl
+
+{- Can't actually test this, due to the presence of a generated struct Qux_x
+quxFooRepr :: (Generic Qux r) => TypeEq r
+  (Meta (MetaData "Qux" "GenericTests" 1)
+   (Meta (MetaConsNamed "Qux" 0 2)
+    (Meta (MetaField "x" 0) (ConcPoly Qux_x),
+     Meta (MetaField "y" 1) (Conc (Int 8)))))
+quxFooRepr = refl
+-}
+
+bit8Repr :: (Generic (Bit 8) r) => TypeEq r (ConcPrim (Bit 8))
+bit8Repr = refl
+
+barVec3Repr :: (Generic (Vector 3 Bar) r) => TypeEq r
+  (Meta (MetaData "Vector" "Vector" 1) (Vector 3 (Conc Bar)))
+barVec3Repr = refl
+
+barListN3Repr :: (Generic (ListN 3 Bar) r) => TypeEq r
+  (Meta (MetaData "ListN" "ListN" 1) (Vector 3 (Conc Bar)))
+barListN3Repr = refl
+
+-- A simple generic transformation to increment all UInts by 1
+class Trans a where
+  trans :: a -> a
+
+instance Trans (UInt n) where
+  trans x = x + 1
+
+instance (Generic a r, Trans' r) => Trans a where
+  trans = to `compose` trans' `compose` from
+
+class Trans' r where
+  trans' :: r -> r
+
+instance (Trans' r1, Trans' r2) => Trans' (r1, r2) where
+  trans' (x, y) = (trans' x, trans' y)
+
+instance Trans' () where
+  trans' () = ()
+
+instance (Trans' r1, Trans' r2) => Trans' (Either r1 r2) where
+  trans' (Left x) = Left $ trans' x
+  trans' (Right x) = Right $ trans' x
+
+instance (Trans' r) => Trans' (Meta m r) where
+  trans' (Meta x) = Meta $ trans' x
+
+instance (Trans a) => Trans' (Conc a) where
+  trans' (Conc x) = Conc $ trans x
+
+-- Test to/from
+actTestGeneric :: (Generic a r, FShow a, FShow r, Eq a) => a -> Action
+actTestGeneric x = do
+  $display "Representation for " (fshow x)
+  $display (fshow (from x))
+  let res :: a = to (from x)
+  if res == x
+    then $display "from matches"
+    else $display "from mismatch: " (fshow res)
+
+-- Alternate test for types where rep doesn't have FShow
+actTestGenericNoShow :: (Generic a r, Eq a) => a -> Action
+actTestGenericNoShow x = do
+  let res :: a = to (from x)
+  if res == x
+    then $display "from matches"
+    else $display "from mismatch"
+
+sysGenericTests :: Module Empty
+sysGenericTests = module
+  rules
+    when True ==> do
+      actTestGeneric (42 :: UInt 8)
+      actTestGeneric (Bar {x=42; foo=C})
+      actTestGeneric (A 12 True (Bar {foo=D {a=34; b=C}; x=42}))
+      actTestGeneric (Baz C (A 12 True (Bar {foo=D {a=34; b=C}; x=42})))
+      actTestGenericNoShow (Qux {x=id; y=7})
+      actTestGenericNoShow (K1 42 id)
+      actTestGeneric (C1 {x=5; y=False; z=3223434})
+      actTestGeneric (C2 42)
+      actTestGeneric C3
+      actTestGeneric ((vec (Bar {x=42; foo=C}) (Bar {x=3; foo=B 2323})) :: Vector 2 Bar)
+      actTestGenericNoShow ((Bar {x=42; foo=C}) :> (Bar {x=3; foo=B 2323}) :> ListN.nil) -- XXX ListN doesn't have FShow
+
+      let b = (Baz C (A 12 True (Bar {foo=D {a=34; b=C}; x=42})))
+      let bres = trans b
+      if bres == (Baz C (A 13 True (Bar {foo=D {a=35; b=C}; x=43})))
+        then $display "trans matches"
+        else $display "trans mismatch: " (fshow bres)
+      $finish

@@ -1,0 +1,10 @@
+checking package dependencies
+compiling UninitializedStruct.bs
+code generation for sysUninitializedStruct starts
+Error: Unknown position: (G0028)
+  `f.x.fst' uses uninitialized value (the position shown is the object's
+  declaration). If this error is unexpected, please consult KPNS #32.
+  During elaboration of the body of rule `' at "UninitializedStruct.bs", line
+  12, column 9.
+  During elaboration of `sysUninitializedStruct' at "UninitializedStruct.bs",
+  line 9, column 0.

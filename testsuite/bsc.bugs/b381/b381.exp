@@ -1,5 +1,10 @@
-# bug 381 is not fixed, but an unknown-size error masks it
-compile_fail_error Converter.bs T0035
+# https://github.com/B-Lang-org/bsc/issues/282 is not fixed, we should raise an error here
+compile_fail_bug Converter.bs "bsc#282"
+
+# We now get an internal error when Converter is synthesized in another module
+compile_verilog_fail YY.bsv
+# Filter the compiler version info that appears in the output
+compare_file_filtered YY.bsv.bsc-vcomp-out {} "/Bluespec Compiler.*/d"
 
 # Converter.bsv is the transliterated Converter.bs
 # which fails with an appropriate error

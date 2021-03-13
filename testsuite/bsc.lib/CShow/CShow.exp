@@ -1,0 +1,3 @@
+
+# tests for classic-syntax show library
+test_c_veri TestCShow

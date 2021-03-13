@@ -1,0 +1,8 @@
+checking package dependencies
+compiling AbstractDeriveAttrib.bs
+code generation for sysAbstractDeriveAttrib starts
+Error: "AbstractDeriveAttrib.bs", line 4, column 4: (S0015)
+  Bluespec evaluation-time error: Attempt to use undetermined
+  Prelude.Attributes__
+  During elaboration of `sysAbstractDeriveAttrib' at
+  "AbstractDeriveAttrib.bs", line 11, column 0.
