@@ -129,6 +129,10 @@ data StructSubType
                    , sdatacon_named_fields :: Bool
                    }
         | SInterface [IfcPragma]
+        | SPolyWrap { spolywrap_id :: Id         -- ^ name of the type with the wrapped field
+                    , spolywrap_ctor :: Maybe Id -- ^ name of the data constructor
+                    , spolywrap_field :: Id      -- ^ name of the wrapped field
+                    }
         deriving (Eq, Ord, Show, Generic.Data, Generic.Typeable)
 
 type CType = Type

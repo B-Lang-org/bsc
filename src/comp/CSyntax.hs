@@ -520,6 +520,7 @@ type COSummands = [COriginalSummand]
 data COriginalSummand =
     COriginalSummand { cos_names :: [Id],
                        cos_arg_types :: [CQType],
+                       cos_field_names :: Maybe [Id],
                        cos_tag_encoding :: Maybe Integer }
     deriving (Eq, Ord, Show)
 

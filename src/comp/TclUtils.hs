@@ -211,6 +211,10 @@ instance TclObjCvt TISort where
                             tfs <- mapM toTclObj fs
                             toTclObj $ TLst [TStr "interface", TLst (map TCL tfs)]
 
+    toTclObj (TIstruct (SPolyWrap _ _ _) fs) = do
+                            tfs <- mapM toTclObj fs
+                            toTclObj $ TLst [TStr "PolyWrap", TLst (map TCL tfs)]
+
     toTclObj TIabstract = toTclObj "Abstract"
 
 

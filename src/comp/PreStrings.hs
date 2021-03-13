@@ -328,6 +328,16 @@ fsFIFO_notEmpty    = mkFString "i_notEmpty"
 fsFIFOEnq          = mkFString "enq"
 fsFIFODeq          = mkFString "deq"
 fsFIFOFirst        = mkFString "first"
+fsGeneric          = mkFString "Generic"
+fsConc             = mkFString "Conc"
+fsConcPrim         = mkFString "ConcPrim"
+fsConcPoly         = mkFString "ConcPoly"
+fsMeta             = mkFString "Meta"
+fsMetaData         = mkFString "MetaData"
+fsMetaConsNamed    = mkFString "MetaConsNamed"
+fsMetaConsAnon     = mkFString "MetaConsAnon"
+fsMetaField        = mkFString "MetaField"
+fsPolyWrapField    = mkFString "val"
 
 -- XXX low ASCII only, please...
 sAcute             = "__"
@@ -378,6 +388,9 @@ fsSprime           = mkFString "_s__"
 fsMaybe            = mkFString "Maybe"
 fsInvalid          = mkFString "Invalid"
 fsValid            = mkFString "Valid"
+fsEither           = mkFString "Either"
+fsLeft             = mkFString "Left"
+fsRight            = mkFString "Right"
 -- | Names used for tuple fields internally?
 fsTuples = map mkFString ["_"++ itos i | i <- [1..25::Int]]
 -- | Names exposed to the BSV user

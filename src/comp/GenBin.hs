@@ -181,12 +181,12 @@ instance Bin CInternalSummand where
 -- Bin COriginalSummand
 
 instance Bin COriginalSummand where
-    writeBytes (COriginalSummand is ts mn) =
+    writeBytes (COriginalSummand is ts fns mn) =
         section "COriginalSummand" $
-        do toBin is; toBin ts; toBin mn
+        do toBin is; toBin ts; toBin fns; toBin mn
     readBytes = do when doTrace $ traceM("read COriginalSummand")
-                   is <- fromBin; ts <- fromBin; mn <- fromBin
-                   return (COriginalSummand is ts mn)
+                   is <- fromBin; ts <- fromBin; fns <- fromBin; mn <- fromBin
+                   return (COriginalSummand is ts fns mn)
 
 -- ----------
 -- Bin CField

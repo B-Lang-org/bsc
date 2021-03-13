@@ -66,7 +66,7 @@ package Prelude(
 
 	primFix,
         primSeq,
-	PrimDeepSeqCond(..),
+	PrimDeepSeqCond(..), PrimDeepSeqCond'(..),
 	primSeqCond,
 
 	noAction, (:<-),
@@ -194,12 +194,12 @@ package Prelude(
         constantWithAllBitsSet, constantWithAllBitsUnset,
 
         -- undefined values
-        PrimMakeUndefined(..),
+        PrimMakeUndefined(..), PrimMakeUndefined'(..), PrimMakeUndefined''(..),
         primBuildUndefined,
         primMakeRawUndefined,
 
         -- uninitialized values (BSV only)
-        PrimMakeUninitialized(..),
+        PrimMakeUninitialized(..), PrimMakeUninitialized'(..), PrimMakeUninitialized''(..),
         primMakeRawUninitialized,
         primUninitialized,
 
@@ -248,7 +248,11 @@ package Prelude(
 	BufferMode(..),
 	hSetBuffering, hGetBuffering, hFlush,
 	hPutStr, hPutStrLn, hPutChar,
-	hGetLine, hGetChar
+	hGetLine, hGetChar,
+
+        -- Generics
+        Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
+        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
 	) where
 
 infixr  0 $
@@ -798,6 +802,49 @@ class coherent PrimDeepSeqCond a where
 
 instance PrimDeepSeqCond (a -> b) where
   primDeepSeqCond f b = primSeqCond f b
+
+-- Generic implementation of the PrimDeepSeqCond typeclass.
+-- For each constructor, fully evaluate the data structure. Do this by,
+-- for each constructor arg, calling primDeepSeqCond (if the type arguments
+-- are known), or primSeqCond (if they are not known) in which case the
+-- correct function is called at elaboation time.
+instance (Generic a r, PrimDeepSeqCond' r) => PrimDeepSeqCond a where
+  primDeepSeqCond x = primDeepSeqCond' (from x)
+
+class PrimDeepSeqCond' r where
+  primDeepSeqCond' :: r -> b -> b
+
+instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Meta m r) where
+  primDeepSeqCond' (Meta x) = primDeepSeqCond' x
+
+instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (Either r1 r2) where
+  primDeepSeqCond' (Left x) = primDeepSeqCond' x
+  primDeepSeqCond' (Right x) = primDeepSeqCond' x
+
+instance (PrimDeepSeqCond' r1, PrimDeepSeqCond' r2) => PrimDeepSeqCond' (r1, r2) where
+  primDeepSeqCond' (x, y) z = primDeepSeqCond' x $ primDeepSeqCond' y z
+
+instance PrimDeepSeqCond' () where
+  primDeepSeqCond' () = id
+
+instance (PrimDeepSeqCond a) => PrimDeepSeqCond' (Conc a) where
+  primDeepSeqCond' (Conc x) = primDeepSeqCond x
+
+instance PrimDeepSeqCond' (ConcPrim a) where
+  primDeepSeqCond' (ConcPrim x) = primSeqCond x
+
+-- We have choosen (for now) to not lift any conditions from higher-rank fields.
+-- Note that some further lifting may be possible by calling primSeqCond
+-- (instead of id) and adjusting the primitive's implementation in IExpand
+-- to recognize when called on a SPolyWrap type and to recurse into the field's
+-- value in that case; but that this doesn't seem useful -- the expression will
+-- contain a lambda, and whether some conditions can be lifted depends on whether
+-- some parts of the expression occur outside of the lambda (which is up to the
+-- vagaries of the compiler) and on whether some type lambdas can be discharged
+-- by defaulting (to Integer or PrimUnit, for example).
+instance PrimDeepSeqCond' (ConcPoly a) where
+  primDeepSeqCond' _ = id
+
 
 --@ \begin{libverbatim}
 --@ instance Monad #(ActionValue);
@@ -3665,11 +3712,31 @@ countZerosMSB = compose countZerosLSB  reverseBits
 
 -- make (field-blasted) uninitialized value,
 -- so it can be constructed piece-by-piece
+--
+-- BSV is a sequential syntax where a variable can be declared (uninitialized)
+-- and then assigned a value by later sequential statements. This is implemented
+-- in the BSV parser by nested let-expressions: the outer let-expression assigns
+-- the variable to a 'uninitialized' primitive value, and then later assignment
+-- statements become nested let-expressions that shadow that definition with a
+-- new definition that replaces the value. If the 'uninitialized' primitive is
+-- ever evaluated, that indicates that the program is reading the variable's
+-- value without ever assigning a value, so BSC gives a warning/error.
+-- The polymorphic function 'primMakeRawUninitialized' is that primitive.
+-- However, instead of using this primitive directly, we define the typeclass
+-- `PrimMakeUninitialized` with the member function `primMakeUninitialized`
+-- and we use that function instead.
+-- This is because we want to support BSV programs that declare a variable
+-- for a complex type and then subsequently assign individual fields/arguments
+-- of the type. This could be implemented by constructing the new value
+-- every time, but we can save work by constructing the 'uninitialized' value
+-- as a structure with uninitialized leaves. We use `primMakeUninitialized` to
+-- construct that structure.
+--
 class coherent PrimMakeUninitialized a where
    primMakeUninitialized :: Position__ -> String -> a
 
 -- BSV only, touching an uninitialized value is an error
--- calls primMakeUnitialized via evaluation-time code-generation
+-- calls primMakeUninitialized via evaluation-time code-generation
 -- to field-blast struct, vectors, etc. appropriately
 -- (even polymorphic) without requiring crazy contexts
 primitive primUninitialized :: Position__ -> String -> a
@@ -3681,7 +3748,84 @@ primitive primMakeRawUninitialized :: Position__ -> String -> a
 instance PrimMakeUninitialized (a -> b) where
    primMakeUninitialized = primMakeRawUninitialized
 
+-- Default generic instance covers data and structs
+instance (Generic a r, PrimMakeUninitialized' a r) => PrimMakeUninitialized a where
+  primMakeUninitialized pos f = primMakeUninitialized' ((error "proxy") :: r) pos f
+
+-- Extra intermediate helper type class allows coherent dispatch on number of constructors
+class PrimMakeUninitialized' a r where
+  primMakeUninitialized' :: r -> Position__ -> String -> a
+
+-- When the type has a single constructor, we can build that
+-- structure, with uninitialized arguments (via calls to the typeclass member,
+-- not the primitive, in case the sub-types themselves have structure).
+-- The derived instance for structs is like the instance for data types with a single
+-- constructor: a struct value is returned with uninitialized values in its
+-- fields.
+--
+instance (Generic a r, PrimMakeUninitialized'' r) =>
+         PrimMakeUninitialized' a (Meta (MetaData n p 1) r') where
+  primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' False pos f
+
+-- This instance for types with multiple constructors just returns
+-- `primMakeRawUninitialized` because we don't know any more about the
+-- structure.
+instance PrimMakeUninitialized' a r where
+  primMakeUninitialized' _ = primMakeRawUninitialized
+
+class PrimMakeUninitialized'' r where
+  primMakeUninitialized'' :: Bool -> Position__ -> String -> r
+
+-- The uninitialized value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
+  primMakeUninitialized'' _ pos f = Conc $ primMakeUninitialized pos f
+
+-- The exception to the above is when a field is polymorphic (has free type variables);
+-- in that case, the type of the uninitialized value won't be known until
+-- elaboration time.  The representation type here is a generated wrapper struct
+-- with a polymorphic field. This has a PrimMakeUninitialized instance that uses
+-- `primUninitialized` to delay the decision until elaboration time.
+-- In the elaborator, `primUninitialized` becomes a simple
+-- call to `primMakeUninitialized', of the appropriate type.
+instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPoly a) where
+  primMakeUninitialized'' _ pos f = ConcPoly $ primMakeUninitialized pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
+  primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaConsNamed n i nf) a) where
+  primMakeUninitialized'' _ pos f = Meta $ primMakeUninitialized'' True pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaConsAnon n i nf) a) where
+  primMakeUninitialized'' _ pos f = Meta $ primMakeUninitialized'' False pos f
+
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaField n i) a) where
+  primMakeUninitialized'' True pos f = Meta $ primMakeUninitialized'' True pos $ f + "." + stringOf n
+  primMakeUninitialized'' False pos f = Meta $ primMakeUninitialized'' False pos f
+
+instance (PrimMakeUninitialized'' a, PrimMakeUninitialized'' b) =>
+         PrimMakeUninitialized'' (a, b) where
+  primMakeUninitialized'' named pos f = (primMakeUninitialized'' named pos f, primMakeUninitialized'' named pos f)
+
+instance PrimMakeUninitialized'' () where
+  primMakeUninitialized'' _ _ _ = ()
+
+
 -- make an undefined value with a position and kind
+--
+-- See the comment on 'PrimMakeUninitialized` about how BSV's sequential
+-- syntax is implemented as nested let-expressions, and how we can optimize
+-- the work in each re-assignment by constructing data structures once at
+-- the start. As with the 'uninitialized' primitive value, we do the same thing
+-- here for the 'undefined' primitive value: when an undefined value is created
+-- (either explicitly or implicitly) we could call the primitive 'undefined'
+-- function; instead, we call a typeclass member function, whose instances are
+-- defined to return a structure with undefined values at the leaves.
+-- The polymorphic function 'primMakeRawUndefined' is the primitive, and
+-- `PrimMakeUndefined' is the typeclass, with 'primMakeUndefined' as its
+-- member function.
+--
 class coherent PrimMakeUndefined a where
    primMakeUndefined :: Position__ -> Integer -> a
 
@@ -3752,6 +3896,61 @@ instance PrimMakeUndefined Rules where
 
 instance PrimMakeUndefined (Array a) where
    primMakeUndefined = primMakeRawUndefined
+
+-- Default generic instance covers data and structs
+instance (Generic a r, PrimMakeUndefined' a r) => PrimMakeUndefined a where
+  primMakeUndefined pos i = primMakeUndefined' ((error "proxy") :: r) pos i
+
+-- Extra intermediate helper type class allows coherent dispatch on number of constructors
+class PrimMakeUndefined' a r where
+  primMakeUndefined' :: r -> Position__ -> Integer -> a
+
+-- Single constructor case, make undefined values for all the fields.
+-- The derived instance for structs is like for data types with a single
+-- constructor: a struct value is returned with undefined values in its
+-- fields.
+instance (Generic a r, PrimMakeUndefined'' r) =>
+         PrimMakeUndefined' a (Meta (MetaData n p 1) r') where
+  primMakeUndefined' _ pos i = to $ primMakeUndefined'' pos i
+
+-- Primitive case, make a type-specific error value
+instance (PrimMakeUndefined a) => PrimMakeUndefined' a (ConcPrim a) where
+  primMakeUndefined' (ConcPrim x) pos _ = primError pos $
+    "Attempt to use undetermined " +++ (printType (typeOf x))
+
+-- The instance for types with multiple constructors just returns
+-- `primMakeRawUndefined` because we don't know any more about the
+-- structure.
+instance PrimMakeUndefined' a r where
+  primMakeUndefined' _ = primMakeRawUndefined
+
+class PrimMakeUndefined'' r where
+  primMakeUndefined'' :: Position__ -> Integer -> r
+
+-- The undefined value of a field is created by calling the typeclass
+-- member, not the primitive, in case the field's type also has structure.
+instance (PrimMakeUndefined a) => PrimMakeUndefined'' (Conc a) where
+  primMakeUndefined'' pos i = Conc $ primMakeUndefined pos i
+
+-- The exception to the above is when a field is polymorphic (has free type variables);
+-- in that case, the type of the undefined value won't be known until
+-- elaboration time.  The representation type here is a generated wrapper struct
+-- with a polymorphic field. This has a PrimMakeUndefined instance that uses
+-- `primBuildUndefined` to delay the decision until elaboration time.
+-- In the elaborator, `primBuildUndefined` becomes a simple
+-- call to `primMakeUndefined', of the appropriate type.
+instance (PrimMakeUndefined a) => PrimMakeUndefined'' (ConcPoly a) where
+  primMakeUndefined'' pos i = ConcPoly $ primMakeUndefined pos i
+
+instance (PrimMakeUndefined'' a) => PrimMakeUndefined'' (Meta m a) where
+  primMakeUndefined'' pos i = Meta $ primMakeUndefined'' pos i
+
+instance (PrimMakeUndefined'' a, PrimMakeUndefined'' b) =>
+         PrimMakeUndefined'' (a, b) where
+  primMakeUndefined'' pos i = (primMakeUndefined'' pos i, primMakeUndefined'' pos i)
+
+instance PrimMakeUndefined'' () where
+  primMakeUndefined'' _ _ = ()
 
 ------------------
 
@@ -4073,3 +4272,86 @@ class coherent DefaultValue a where
 -- as well as FixedPoint, Complex
 instance (Literal t) => DefaultValue t where
    defaultValue = fromInteger 0
+
+
+------------------
+
+-- Support for datatype-generic functions
+--
+-- Inspired by GHC Generics:
+-- https://hackage.haskell.org/package/base-4.14.0.0/docs/GHC-Generics.html
+--
+-- By providing a facility (the 'Generic' typeclass below) for converting
+-- values of a datatype 'a' into a generic representation `r`, built from
+-- a limited set of type constructors, we allow users to overload functions
+-- for any representable type by writing only a few instances (for the
+-- limited set of constructors) along with a wrapper that maps between 'a'
+-- and 'r'.  A clear example of this can be found in the CShow library,
+-- where CShow is the wrapper and CShow' has instances for the type
+-- constructors.  The typeclasses PrimDeepSeqCond, PrimMakeUninitialized,
+-- and PrimMakeUndefined (with their associated prime'd typeclasses) are
+-- also examples, in this file.
+--
+-- BSC automatically derives an instance of 'Generic' for all types that
+-- don't have an explicit instance.  For libraries that export a type
+-- abstractly (without exporting its internals), an explicit instance is
+-- needed, to avoid exposing the internal implementation; see the 'Vector'
+-- library for an example of this.
+
+-- Representable types of kind *
+class Generic a r | a -> r where
+  from :: a -> r
+  to :: r -> a
+
+-- Sum types (e.g. data/unions) are represented by the type Either.
+
+-- Product types (e.g. structs/data constructors) are represented by types PrimPair/PrimUnit.
+
+-- Fixed-size collection types (e.g. Vector and ListN) are represented by the type Vector.
+
+-- Regular, non-representation types may only appear within a generic representation
+-- type when wrapped in one of the following "Conc" type constructors:
+
+-- Represents a regular element type in a Generic instance.
+data Conc a = Conc a
+  deriving (FShow)
+
+-- Represents a primitive type in a Generic instance for a primitive, this is
+-- seperate from Conc to avoid infinite recursion through an instance for Conc
+-- on the ' type class that defaults back to the non-generic one.
+data ConcPrim a = ConcPrim a
+  deriving (FShow)
+
+-- Represents a higher-rank (polymorphic) field type in a derived Generic instance
+-- for a data/struct type.  Here 'a' is a generated wrapper struct for the field type
+-- rather than the field type itself, since the latter is impossible to specify in
+-- a type class instance (for Generic.)
+data ConcPoly a = ConcPoly a
+  deriving (FShow)
+
+-- Tags a representation type 'r' with a metadata type 'm'
+data Meta m r = Meta r
+  deriving (FShow)
+
+-- The 'm' type in `Meta m r` must be one of the following types:
+
+-- Indicates that a representation is for a type (e.g. struct/data) with a name,
+-- package and number of constructors
+data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
+  deriving (FShow)
+
+-- Indicates that a representation is for a constructor with named fields,
+-- with a name, index in the data's constructors, and number of fields
+data (MetaConsNamed :: $ -> # -> # -> *) name idx nfields = MetaConsNamed
+  deriving (FShow)
+
+-- Indicates that a representation is for a constructor with anonymous fields,
+-- with a name, index in the data's constructors, and number of fields
+data (MetaConsAnon :: $ -> # -> # -> *) name idx nfields = MetaConsAnon
+  deriving (FShow)
+
+-- Indicates that a representation is for a field, with a field name (either the
+-- given name for a named field or the generated field name for an anonymous
+-- field) and index in the constructor's fields
+data (MetaField :: $ -> # -> *) name idx = MetaField
+  deriving (FShow)

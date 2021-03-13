@@ -88,10 +88,6 @@ instance (FShow a) => FShow (Vector n a)
             elements = Vector.foldr insertSpace (fshow "") fmts
         in  $format "<V " elements " >"
 
-instance (PrimMakeUndefined a) => PrimMakeUndefined (Vector n a)
-  where
-    primMakeUndefined pos kind = replicate (primMakeUndefined pos kind)
-
 -- This is used to construct an array with uninitialized elements
 -- and still mark the array as uninitialized until the user updates
 -- it with real values (since the update to insert the uninit elems
@@ -103,6 +99,10 @@ primitive primMarkArrayUninitialized
 markVectorUninitialized :: Position__ -> String -> Vector n a -> Vector n a
 markVectorUninitialized pos name (V v) = V (primMarkArrayUninitialized pos name v)
 
+-- We can't use the generic instance here because in addition to its elements
+-- being uninitialized, we want to mark the entire vector as uninitialized by
+-- calling markVectorUninitialized that calls primMarkArrayUninitialized
+-- on the underlying array.
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized (Vector n a)
   where
     primMakeUninitialized pos name =
@@ -1345,3 +1345,20 @@ instance FShow (Ascii n)
 instance (DefaultValue t) => DefaultValue (Vector n t)
   where
     defaultValue = replicate defaultValue
+
+-- The generic representation of a vector is a vector of generic representations
+instance Generic (Vector n a) (Meta (MetaData "Vector" "Vector" 1) (Vector n (Conc a))) where
+  from v = Meta $ map Conc v
+  to (Meta v) = map (\ Conc x -> x) v
+
+-- Generic implementations of primitive type classes for types with vector generic representations
+instance (PrimMakeUndefined'' r) => PrimMakeUndefined'' (Vector n r) where
+  primMakeUndefined'' pos kind = replicate (primMakeUndefined'' pos kind)
+
+instance (PrimMakeUninitialized'' r) => PrimMakeUninitialized'' (Vector n r) where
+  primMakeUninitialized'' _ pos name =
+    let f i = primMakeUninitialized'' _ pos (name + "[" + integerToString(i) + "]")
+    in genWith f
+
+instance (PrimDeepSeqCond' r) => PrimDeepSeqCond' (Vector n r) where
+  primDeepSeqCond' = flip $ foldr primDeepSeqCond'

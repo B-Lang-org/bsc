@@ -261,7 +261,7 @@ emptyPredEnv :: PredEnv
 emptyPredEnv = PredEnv 0 M.empty S.empty
 
 convType :: Env -> IType -> (Env, Type)
-convType _ (ITForAll i k t) = internalError "convType: ITForAll"
+convType _ (ITForAll i k t) = internalError ("convType: ITForAll " ++ ppReadable (i, k, t))
 convType e (ITAp t1 t2) =
     let (e', t1') = convType e t1
         (e'', t2') = convType e' t2

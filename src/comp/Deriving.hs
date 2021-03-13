@@ -1,40 +1,39 @@
-{-# LANGUAGE PatternGuards #-}
 module Deriving(derive) where
 
-import Data.List(nub, intercalate)
-import Util(log2, checkEither, unions, toMaybe, headOrErr, lastOrErr)
+import Data.List(intercalate)
+import Util(log2, checkEither, headOrErr, lastOrErr)
 import Error(internalError, EMsg, ErrMsg(..), ErrorHandle, bsError)
 import Flags(Flags)
 import Position
 import Id
 import PreIds(
               -- identifiers
-              tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y,
-              id_forallb,
+              tmpTyVarIds, tmpVarXIds, tmpVarYIds, id_x, id_y, idPolyWrapField,
               -- internal type constructors
               idId, idPrimPair, idArrow, idFmt,
               -- internal type fields
               idPrimFst, idPrimSnd,
-              -- internal classes to auto-derive
-              idUndefined, idClsUninitialized, idClsDeepSeqCond,
-              requiredClasses,
-              -- internal class members
-              idPrimUninitialized, idPrimMakeUninitialized, idPrimRawUninitialized,
-              idPrimSeqCond, idPrimDeepSeqCond,
-              idRawUndef, idMakeUndef, idBuildUndef,
               -- type constructors
               idBit, idAdd, idMax,
-              -- classes
+              idConc, idConcPrim, idConcPoly, idMeta,
+              idMetaData, idMetaConsNamed, idMetaConsAnon, idMetaField,
+              -- classes that the compiler can derive
               idEq, idBits, idFShow, idBounded, idDefaultValue,
+              -- classes that are auto-derived
+              idGeneric,
+              -- internal classes defined in terms of Generic but still occasionally auto-derived
+              idClsUninitialized, idUndefined,
               -- class members
               idPack, idUnpack,
-              idPreludePlus, idEqual, idNotEqual,
+              idEqual, idNotEqual,
               idfshow,
               idMaxBound, idMinBound,
               id_defaultValue,
+              idFrom, idTo,
+              -- internal class members
+              idPrimMakeUninitialized, idPrimUninitialized,
+              idMakeUndef, idBuildUndef,
               -- functions
-              idPrintType,
-              idPrimError,
               idPrimUnitAt,
               idFalse, idTrue, idNot, idAnd,
               idPrimOrd, idPrimChr,
@@ -44,7 +43,7 @@ import PreIds(
 import CSyntax
 import CSyntaxUtil
 import CSyntaxTypes
-import Type(fn, tBool, tBit, tPosition, tInteger, tString)
+import Type(fn, tBool, tBit)
 -- never make a type without a kind in Deriving
 -- kind inference has already happened, so don't waste work
 import CType hiding (cTVar, cTCon)
@@ -54,10 +53,17 @@ import PFPrint
 import SymTab
 import TIMonad
 import TCMisc
+import FStringCompat
 
 import qualified Data.Set as S
 
 -- import Debug.Trace
+
+-- Classes that we always derive implicitly.
+-- Note that these are assumed to have a single parameter, or if multiple,
+-- the first is the one for which the instance is defined.
+autoderivedClasses :: [Id]
+autoderivedClasses = [idGeneric]
 
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.
@@ -91,27 +97,16 @@ doDer flags r packageid xs data_decl@(Cdata {}) =
         orig_sums = cd_original_summands data_decl
         int_sums = cd_internal_summands data_decl
         derivs = cd_derivings data_decl
-        derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
-        -- XXX ignore derivs' to sneak in recursive data decls
-        bad_rec_derivs = filter forbidsRecursiveInstance derivs
-    in  if (not (null bad_rec_derivs)) && (isRecursiveData unqual_name orig_sums)
-        then [Left (getPosition data_decl,
-                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-        else Right [data_decl] :
-               map (doDataDer xs qual_name ty_vars orig_sums int_sums) derivs'
+        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
+    in Right [data_decl] : map (doDataDer r packageid xs qual_name ty_vars orig_sums int_sums) derivs'
 doDer flags r packageid xs struct_decl@(Cstruct _ s i ty_var_names fields derivs) =
     let unqual_name = iKName i
         qual_name = qualId packageid unqual_name
         Just (TypeInfo _ kind _ _) = findType r qual_name
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind ty_var_names ty_var_kinds
-        derivs' = addRequiredDerivs flags r qual_name ty_vars derivs
-        bad_rec_derivs = filter forbidsRecursiveInstance derivs'
-    in  if (not (null bad_rec_derivs)) && (isRecursiveStruct unqual_name fields)
-        then [Left (getPosition struct_decl,
-                    EDeriveRecursive (map (getIdString . typeclassId) bad_rec_derivs) (getIdString unqual_name))]
-        else Right [struct_decl] :
-               map (doStructDer xs qual_name ty_vars fields) derivs'
+        derivs' = addAutoDerivs flags r qual_name ty_vars derivs
+    in Right [struct_decl] : map (doStructDer r packageid xs qual_name ty_vars fields) derivs'
 doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
     -- "special" typeclasses only need to be derived for ordinary types
     | res_kind /= KStar = [Right [prim_decl]]
@@ -124,73 +119,31 @@ doDer flags r packageid xs prim_decl@(CprimType (IdKind i kind))
         res_kind = getResKind kind
         ty_var_kinds = getArgKinds kind
         ty_vars = zipWith cTVarKind tmpTyVarIds ty_var_kinds
-        derivs = addRequiredDerivs flags r qual_name ty_vars []
+        derivs = addAutoDerivs flags r qual_name ty_vars []
 doDer flags r packageid xs (CprimType idk) =
     internalError ("CprimType no kind: " ++ ppReadable idk)
 doDer flags r packageid xs d = [Right [d]]
 
 doPrimTypeDer :: Id -> [Type] -> CTypeclass -> Either EMsg [CDefn]
 doPrimTypeDer i vs (CTypeclass di)
-    | qualEq di idUndefined        = Right [doPrimTypeUndefined i vs]
-    | qualEq di idClsUninitialized = Right [doPrimTypeUninitialized i vs]
-    | qualEq di idClsDeepSeqCond   = Right [doPrimTypeDeepSeqCond i vs]
+    | qualEq di idGeneric          = Right [doPrimTypeGeneric i vs]
     | otherwise =  internalError ("attempt to derive " ++ ppReadable di
                         ++ " for primitive type: " ++
                         (ppReadable (cTApplys (cTCon i) vs)))
 
-rawUninitDef :: Type -> CDef
-rawUninitDef ty = CDef idMakeUninitializedNQ (CQType [] aty) [CClause [] [] (CVar idPrimRawUninitialized)]
-  where aty = tPosition `fn` tString `fn` ty
-
-doPrimTypeUninitialized :: Id -> [CType] -> CDefn
-doPrimTypeUninitialized i vs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
-  where ty = cTApplys (cTCon i) vs
-        uninit = CLValueSign (rawUninitDef ty) []
-
-ty_forallb :: Type
-ty_forallb = t `fn` t
-  where t = cTVar id_forallb
-
-doPrimTypeUndefined :: Id -> [CType] -> CDefn
-doPrimTypeUndefined i vs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
+doPrimTypeGeneric :: Id -> [CType] -> CDefn
+doPrimTypeGeneric i vs = Cinstance (CQType [] (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
   where ty  = cTApplys (cTCon i) vs
-        aty = tPosition `fn` tInteger `fn` ty
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
-        body = cVApply idPrimError [CVar id_x, str_expr]
-        str_expr = cVApply idPreludePlus [error_str, type_str]
-        error_str = stringLiteralAt noPosition "Attempt to use undetermined "
-        type_str = cVApply idPrintType [typeLiteral ty]
-
-doPrimTypeDeepSeqCond :: Id -> [CType] -> CDefn
-doPrimTypeDeepSeqCond i vs = Cinstance (CQType [] (TAp (cTCon idClsDeepSeqCond) ty)) [dseqcond]
-  where ty  = cTApplys (cTCon i) vs
-        def_ty = CQType [] (ty `fn` ty_forallb)
-        dseqcond = CLValueSign (CDef idPrimDeepSeqCondNQ def_ty [CClause [] [] body]) []
-        body = CVar idPrimSeqCond
-
--- recursive deriving of Bits causes an error in the typechecking phase
--- of the compiler
--- Because this is identically False, (it used to be True), the code that depends
--- on it may be safely removed at some point.
-forbidsRecursiveInstance :: CTypeclass -> Bool
-forbidsRecursiveInstance i = False
-
-isRecursiveData :: Id -> COSummands -> Bool
-isRecursiveData i ocs =
-    let allCQTyCons (CQType _ ty) = allTConNames ty
-        types = unions (map (cos_arg_types) ocs)
-        cons = unions (map allCQTyCons types)
-    in  i `elem` cons
-
-isRecursiveStruct :: Id -> CFields -> Bool
-isRecursiveStruct i fs =
-    let allCQTyCons (CQType _ ty) = allTConNames ty
-        cons = unions (map (allCQTyCons . cf_type) fs)
-    in  i `elem` cons
+        rep = TAp (cTCon idConcPrim) ty
+        from = CLValue idFromNQ [CClause [] [] $ CCon idConcPrim []] []
+        var = mkId noPosition $ mkFString $ "a"
+        to = CLValue idToNQ [CClause [CPCon idConcPrim $ [CPVar var]] [] $ CVar var] []
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq
 -- or FShow) for a given data (sum type), and return the instance definitions.
 -- my guesses at the arguments:
+--  r   =  the current symbol table
+--  packageid = id name of the package
 --  xs  =  available bindings
 --  i   =  qualified id of the data type
 --  vs  =  argument type variables of the data type
@@ -199,28 +152,24 @@ isRecursiveStruct i fs =
 --  cs  =  internal summands of the data type
 --         (an id and one type -- the list became a struct)
 --  di  =  the class to be derived
-doDataDer :: [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
+doDataDer :: SymTab -> Id -> [(Id, CDefn)] -> Id -> [Type] -> COSummands -> CSummands ->
              CTypeclass -> Either EMsg [CDefn]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idEq =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idEq =
   Right [doDEq (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBits =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBits =
   doDBits (getPosition di) i vs ocs cs
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idBounded =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idBounded =
   Right [doDBounded (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doDDefaultValue (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idFShow =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) | qualEq di idFShow =
   Right [doDFShow (getPosition di) i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idUndefined =
-  Right [doDUndefined i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsUninitialized =
-  Right [doDUninitialized i vs ocs cs]
-doDataDer xs i vs ocs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
-  Right [doDDeepSeqCond i vs ocs cs]
+doDataDer r packageid xs i vs ocs cs (CTypeclass di) | qualEq di idGeneric =
+  doDGeneric r packageid (getPosition di) i vs ocs
 -- If the deriving class is successfully looked up and if it isomorphic to
 -- another type, that is it has only one disjunct taking only one argument,
 -- then inherit the instance from that type.
-doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
+doDataDer _ _ xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -242,32 +191,28 @@ doDataDer xs i vs [cos@(COriginalSummand { cos_arg_types = [CQType _ ty]})] cs d
                         [CCaseArm { cca_pattern = CPCon cn [CPVar id_y],
                                     cca_filters = [],
                                     cca_consequent = CVar id_y }]
-doDataDer xs i vs ocs cs (CTypeclass di) =
+doDataDer _ _ _ i vs ocs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 -- | Derive an instance of a typeclass that the compiler knows about (eg Eq or
 -- FShow) for a given struct (prod type), and return the instance definitions.
-doStructDer :: [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
+doStructDer :: SymTab -> Id -> [(Id, CDefn)] -> Id -> [Type] -> CFields -> CTypeclass
             -> Either EMsg [CDefn]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idEq =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idEq =
   Right [doSEq (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idBits =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBits =
   Right [doSBits (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idBounded =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idBounded =
   Right [doSBounded (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idDefaultValue =
   Right [doSDefaultValue (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idFShow =
+doStructDer _ _ _ i vs cs (CTypeclass di) | qualEq di idFShow =
   Right [doSFShow (getPosition di) i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idUndefined =
-  Right [doSUndefined i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idClsUninitialized =
-  Right [doSUninitialized i vs cs]
-doStructDer _ i vs cs (CTypeclass di) | qualEq di idClsDeepSeqCond =
-  Right [doSDeepSeqCond i vs cs]
+doStructDer r packageid _ i vs cs (CTypeclass di) | qualEq di idGeneric =
+  doSGeneric r packageid (getPosition di) i vs cs
 -- If the struct is isomorphic to another type (that is, it as only one
 -- field, of that other type), then inherit the instance from that type.
-doStructDer xs i vs [field] di
+doStructDer _ _ xs i vs [field] di
     | fieldSet `S.isSubsetOf` tvset,
       Just (Cclass _ _ _ [v] _ fs) <- lookup (typeclassId di) xs = Right [inst]
   where tvset  = S.fromList (concatMap tv vs)
@@ -284,10 +229,10 @@ doStructDer xs i vs [field] di
                 tv = cTVarKind v kind
         con e = CStruct i [(cf_name field, e)]
         coCon e = CSelectTT i e (cf_name field)
-doStructDer _ i vs cs (CTypeclass di) | isTCId i =
+doStructDer _ _ _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
   Right []
-doStructDer _ i vs cs (CTypeclass di) =
+doStructDer _ _ _ i vs cs (CTypeclass di) =
   Left (getPosition di, ECannotDerive (pfpString di))
 
 
@@ -741,109 +686,9 @@ doDDefaultValue dpos i vs ocs (cs : _) = Cinstance (CQType ctx (TAp (cTCon idDef
         def   = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] body]) []
 doDDefaultValue dpos i vs ocs [] = internalError ("Data type has no constructors: " ++ ppReadable (dpos, i, vs))
 
--- | Derive the PrimMakeUndefined instance for a data (sum type), and
--- return the instance definition.
--- See the comment on 'doDUninitialized` about how BSV's sequential
--- syntax is implemented as nested let-expressions, and how we can optimize
--- the work in each re-assignment by constructing data structures once at
--- the start. As with the 'uninitialized' primitive value, we do the same thing
--- here for the 'undefined' primitive value: when an undefined value is created
--- (either explicitly or implicitly) we could call the primitive 'undefined'
--- function; instead, we call a typeclass member function, whose instances are
--- defined to return a structure with undefined values at the leaves.
--- The polymorphic function 'primMakeRawUndefined' is the primitive, and
--- `PrimMakeUndefined' is the typeclass, with 'primMakeUndefined' as its
--- member function.
--- The derived instance for types with multiple constructors just returns
--- `primMakeRawUndefined` because we don't know any more about the
--- structure. When the type has a single constructor, we can build that
--- structure, with undefined arguments (via calls to the typeclass member,
--- not the primitive, in case the sub-types themselves have structure).
-doDUndefined :: Id -> [Type] -> COSummands -> CSummands -> CDefn
--- the single-summand case is not already derived for data declarations with no internal type
--- e.g. ActionWorld
-doDUndefined i vs ocs [cs] = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
-  where ctx   = [ CPred (CTypeclass idUndefined) [getRes (cis_arg_type cs)] ]
-        ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tInteger `fn` ty
-        body  = CCon1 i (getCISName cs) (CApply (CVar idMakeUndefinedNQ) [CVar id_x, CVar id_y])
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
-
-doDUndefined i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idUndefined) ty)) [undef]
-  where ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tInteger `fn` ty
-        undef = CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [] [] (CVar idRawUndef)]) []
-
--- | Derive the PrimMakeUninitialized instance for a data (sum type), and
--- return the instance definition.
--- BSV is a sequential syntax where a variable can be declared (uninitialized)
--- and then assigned a value by later sequential statements. This is implemented
--- in the BSV parser by nested let-expressions: the outer let-expression assigns
--- the variable to a 'uninitialized' primitive value, and then later assignment
--- statements become nested let-expressions that shadow that definition with a
--- new definition that replaces the value. If the 'uninitialized' primitive is
--- ever evaluated, that indicates that the program is reading the variable's
--- value without ever assigning a value, so BSC gives a warning/error.
--- The polymorphic function 'primMakeRawUninitialized' is that primitive.
--- However, instead of using this primitive directly, we define the typeclass
--- `PrimMakeUninitialized` with the member function `primMakeUninitialized`
--- and we use that function instead.
--- This is because we want to support BSV programs that declare a variable
--- for a complex type and then subsequently assign individual fields/arguments
--- of the type. This could be implemented by constructing the new value
--- every time, but we can save work by constructing the 'uninitialized' value
--- as a structure with uninitialized leaves. We use `primMakeUninitialized` to
--- construct that structure.
--- The derived instance for types with multiple constructors just returns
--- `primMakeRawUninitialized` because we don't know any more about the
--- structure. When the type has a single constructor, we can build that
--- structure, with uninitialized arguments (via calls to the typeclass member,
--- not the primitive, in case the sub-types themselves have structure).
--- XXX Why isn't there an arm for single-constructor types, as with 'doDUndefined'?
-doDUninitialized :: Id -> [Type] -> COSummands -> CSummands -> CDefn
--- the single-summand case is not already derived for data declarations with no internal type
--- e.g. ActionWorld, so include it below
-doDUninitialized i vs ocs cs = Cinstance (CQType [] (TAp (cTCon idClsUninitialized) ty)) [uninit]
-  where ty = cTApplys (cTCon i) vs
-        uninit = CLValueSign (rawUninitDef ty) []
-
--- | Derive the PrimDeepSeqCond typeclass for data (sum) types.
--- For each constructor, fully evaluate the data structure. Do this by,
--- for each constructor arg, calling primDeepSeqCond (if the type arguments
--- are known), or primSeqCond (if they are not known) in which case the
--- correct function is called at elaboation time.
--- we put it here for consistency even though it is more related to
--- doDBits and/or dSDeepSeqCond
--- we need to do the freeset `isSubsetOf` tvset check here because
--- we need to decide whether to call primSeqCond or primDeepSeqCond
--- we're on thin ice deriving here - GHC does not support deriving for
--- GADTs not expressible in Haskell 98
-doDDeepSeqCond :: Id -> [Type] -> COSummands -> CSummands -> CDefn
-doDDeepSeqCond i vs ocs cs = Cinstance instance_cqt $
-                                [CLValueSign seq_def []]
-  where ty = cTApplys (cTCon i) vs
-        fn_ty = ty `fn` ty_forallb
-        mkCtx t = CPred (CTypeclass idClsDeepSeqCond) [t]
-        -- ctx only required if we use PrimDeepSeqCond
-        mty t = toMaybe ((S.fromList (tv t)) `S.isSubsetOf` tvset) t
-        ctxss = [ maybeToList mctx ++ ps | oc <- ocs,
-                                           CQType ps t <- cos_arg_types oc,
-                                           let mctx = fmap mkCtx (mty t) ]
-        ctxs = concat ctxss
-        fn_cqt = CQType [] fn_ty
-        instance_cqt = CQType ctxs (TAp (cTCon idClsDeepSeqCond) ty)
-        tvset = S.fromList (concatMap tv vs)
-        seqSummand cis = CClause [CPCon1 i (getCISName cis) (CPVar id_x)] [] (cVApply f [CVar id_x])
-          where freeset = S.fromList (tv (cis_arg_type cis))
-                f = if freeset `S.isSubsetOf` tvset
-                    then idPrimDeepSeqCond
-                    -- there are unresolved type arguments, so treat it like a function
-                    -- there are no contexts (see def of CInternalSummand)
-                    -- so we don't need to check for them
-                    else idPrimSeqCond
-        seq_clauses = map seqSummand cs
-        seq_def = CDef idPrimDeepSeqCondNQ fn_cqt seq_clauses
-
+doDGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> COSummands -> Either EMsg [CDefn]
+doDGeneric r packageid dpos i vs ocs = mkGenericInstance r packageid dpos i vs True
+  [(cn, mfns, ftys) | COriginalSummand {cos_names=cn:_, cos_arg_types=ftys, cos_field_names=mfns} <- ocs]
 
 -- -------------------------
 
@@ -868,123 +713,147 @@ doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue)
         str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
--- | Derive the PrimMakeUndefined instance for a struct (product type), and
--- return the instance definition.
--- See the comment on 'doDUndefined` for an explanation.
--- The derived instance for structs is like for data types with a single
--- constructor: a struct value is returned with undefined values in its
--- fields. The undefined value of a field is created by calling the typeclass
--- member, not the primitive, in case the field's type also has structure.
--- The exception is when a field is polymorphic (has free type variables);
--- in that case, the type of the undefined value won't be known until
--- elaboration time, so we use `primBuildUndefined` to delay the decision
--- until then. In the elaborator, `primBuildUndefined` becomes a simple
--- call to `primMakeUndefined', of the appropriate type.
--- Another exception is that structs with no fields have a derived instance
--- that just returns `primMakeRawUndefined`. This is to avoid infinite
--- recursion, because IConv uses `primBuildUndefined` to build values
--- for empty structs (because IConv normalizes all constructors to take
--- a single argument of a tuple, and presumably it's easier to use a
--- don't-care value than to construct an empty tuple? and no one
--- revisited this decision when `PrimMakeUndefined` was introduced?).
-doSUndefined :: Id -> [Type] -> CFields -> CDefn
-doSUndefined i vs fs = Cinstance (CQType ctx (TAp (cTCon idUndefined) ty)) [undef]
-  where tvset  = S.fromList (concatMap tv vs)
-        ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tInteger `fn` ty
-        ctx   =  nub [ CPred (CTypeclass idUndefined) [getRes t] | CField {cf_type = CQType _ t} <- fs,
-                                                      let freeset = S.fromList (tv t),
-                                                      -- trace (ppReadable (S.toList tvset)) $
-                                                      -- trace (ppReadable (S.toList freeset)) $
-                                                      -- trace (show (freeset `S.isSubsetOf` tvset)) $
-                                                      freeset `S.isSubsetOf` tvset ]
-        str   = CStruct i [ (cf_name f,
-                            (CApply do_undef [CVar id_x, CVar id_y])) | f <- fs,
-                                                             let t = cf_type f,
-                                                             let freeset = S.fromList (tv t),
-                                                             let undef_id = if freeset `S.isSubsetOf` tvset
-                                                                            then idMakeUndef
-                                                                            else idBuildUndef,
-                                                             let do_undef = CVar undef_id ]
-        undef = --trace ("ctx: " ++ ppReadable ctx) $
-                CLValueSign (CDef idMakeUndefinedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str]) []
+doSGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> CFields -> Either EMsg [CDefn]
+doSGeneric r packageid dpos i vs fs = mkGenericInstance r packageid dpos i vs False
+  [(i, Just [fn | CField {cf_name=fn} <- fs], [fty | CField {cf_type=fty} <- fs])]
 
--- | Derive the PrimMakeUninitialized instance for a struct (product type), and
--- return the instance definition.
--- See the comment on `doDUninitialized` for an explanation.
--- The derived instance for structs is like for data types with a single
--- constructor: a struct value is returned with uninitialized values in its
--- fields. The uninitialized value of a field is created by calling the
--- typeclass member, not the primitive, in case the field's type also has
--- structure. The exception is when a field is polymorphic (has free type
--- variables); in that case, the type of the uninitialized value won't be
--- known until elaboration time, so we use `primUninitialized` to delay the
--- decision until then. In the elaborator, `primUninitialized` becomes a
--- simple call to `primMakeUninitialized`, of the appropriate type.
-doSUninitialized:: Id -> [Type] -> CFields -> CDefn
-doSUninitialized i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsUninitialized) ty)) [uninit]
-  where tvset  = S.fromList (concatMap tv vs)
-        ty    = cTApplys (cTCon i) vs
-        aty   = tPosition `fn` tString `fn` ty
-        ctx   =  nub [ CPred (CTypeclass idClsUninitialized) [t] | CField {cf_type = CQType _ t} <- fs,
-                                                      let freeset = S.fromList (tv t),
-                                                      -- trace (ppReadable (S.toList tvset)) $
-                                                      -- trace (ppReadable (S.toList freeset)) $
-                                                      -- trace (show (freeset `S.isSubsetOf` tvset)) $
-                                                      freeset `S.isSubsetOf` tvset ]
-        str   = CStruct i [ (cf_name f, body) | f <- fs,
-                            let t = cf_type f,
-                            let suffix = "." ++ (getIdBaseString (cf_name f)),
-                            let pos = getPosition i,
-                            let name' = cVApply idPreludePlus [CVar id_y, stringLiteralAt pos suffix],
-                            let freeset = S.fromList (tv t),
-                            let uninit_id = if freeset `S.isSubsetOf` tvset
-                                            then idPrimMakeUninitialized
-                                            else idPrimUninitialized,
-                            let do_uninit = CVar uninit_id,
-                            let body = (CApply do_uninit [CVar id_x, name']) ]
-        uninit = --trace ("ctx: " ++ ppReadable ctx) $
-                CLValueSign (CDef idMakeUninitializedNQ (CQType [] aty) [CClause [CPVar id_x, CPVar id_y] [] str]) []
+-- Build an instance of Generic for a struct / data declaration,
+-- along with any needed poly field wrapper structs and instances
+-- Arguments:
+--   r == the symbol table
+--   packageid == the name of the package
+--   dpos == the position of the struct / data declaration
+--   i == the name of the struct / data type
+--   vs == the type parameters to which the type is applied
+--   isData == is the type a data declaration (vs. struct)
+--   summands == a list of tuples (constructor name, field names if constructor has named fields, field types)
+mkGenericInstance :: SymTab -> Id -> Position -> Id -> [Type] -> Bool -> [(Id, Maybe [Id], [CQType])] ->
+                     Either EMsg [CDefn]
+mkGenericInstance r packageid dpos i vs isData summands =
+  fmap concat $ sequence $ wrapDcls ++ [Right [inst]]
+  where ty  = cTApplys (cTCon i) vs
+        tvset = S.fromList (tv ty)
 
--- | Derive the PrimDeepSeqCond typeclass for struct (product) types.
--- Fully evaluate the struct by, for each field, calling primDeepSeqCond
--- (if the type arguments are known), or primSeqCond (if they are not known)
--- in which case the correct function is called at elaboation time.
-doSDeepSeqCond :: Id -> [Type] -> CFields -> CDefn
-doSDeepSeqCond i vs fs = Cinstance (CQType ctx (TAp (cTCon idClsDeepSeqCond) ty)) [dseqcond]
-  where tvset  = S.fromList (concatMap tv vs)
-        {-
-        -- XXX this seems to be bogus
-        -- grab field contexts that mention any of the struct's type vars
-        -- also must be in result of field
-        -- XXX - why is this necessary? (ask Lennart?)
-        fieldCtxs f = filter grabCtx ps
-           where CQType ps t = cf_type f
-                 tvResSet = S.fromList (tv (getRes t))
-                 tvInSet s p = any (flip S.member s) (tv p)
-                 grabCtx p = tvInSet tvset p && tvInSet tvResSet p
-        extraCtxs = concatMap fieldCtxs fs
-        -}
-        ty     = cTApplys (cTCon i) vs
-        def_ty = ty `fn` ty_forallb
-        ctx = nub $ [ CPred (CTypeclass idClsDeepSeqCond) [t] | CField {cf_type = CQType _ t} <- fs,
-                                                                let freeset = S.fromList (tv t),
-                                                                freeset `S.isSubsetOf` tvset ] {- ++ extraCtxs -}
-        body = foldr (\(f,val) e -> cVApply f [val, e]) (CVar id_y) blobs
-        blobs = [(seqcond_id, field_val)
-                     | f <- fs,
-                       let cqt@(CQType ps _) = cf_type f,
-                       -- drop application if there are contexts
-                       -- since we don't seem to handle them correctly
-                       null ps,
-                       let freeset = S.fromList (tv cqt),
-                       let seqcond_id = if freeset `S.isSubsetOf` tvset
-                                        then idPrimDeepSeqCond
-                                        else idPrimSeqCond,
-                       let field_val = CSelectTT i (CVar id_x) (cf_name f)
-                ]
-        dseqcond = CLValueSign (CDef idPrimDeepSeqCondNQ (CQType [] def_ty) [CClause [CPVar id_x, CPVar id_y] [] body]) []
+        fieldHigherRank :: CQType -> Bool
+        fieldHigherRank fty = not $ S.fromList (tv fty) `S.isSubsetOf` tvset
 
+        preds = concat [ps | (_, _, ftys) <- summands, fty@(CQType ps _) <- ftys,
+                        not $ fieldHigherRank fty]
+
+        fieldNames (Just fns) dpos = fns
+        fieldNames Nothing dpos = [mk_dangling_id ("_" ++ show (k :: Int)) dpos
+                                  | k <- [1..]]  -- Infinite stream, but OK since this is always zipped with a list of field types
+
+        wrapDcls = concat [mkGenericRepWrap r dpos i isData cn fn vs fty
+                          | (cn, mfns, ftys) <- summands,
+                            (fn, fty@(CQType ps _)) <- zip (fieldNames mfns dpos) ftys,
+                            fieldHigherRank fty]
+        rep = cTApplys (cTCon idMeta)
+          [cTApplys (cTCon idMetaData)
+           [cTStr (getIdBase i) dpos,
+            cTStr (getIdBase packageid) dpos,
+            cTNum (toInteger $ length summands) dpos],
+           tMkEitherChain dpos
+            [cTApplys (cTCon idMeta)
+              [cTApplys (cTCon $ case mfns of
+                            Just _ -> idMetaConsNamed
+                            Nothing -> idMetaConsAnon)
+                [cTStr (getIdBase cn) dpos,
+                  cTNum k dpos,
+                  cTNum (toInteger $ length ftys) dpos],
+                tMkTuple dpos
+                [cTApplys (cTCon idMeta)
+                  [cTApplys (cTCon idMetaField)
+                    [cTStr (getIdBase fn) dpos, cTNum j dpos],
+                    (if fieldHigherRank fty
+                     then TAp (cTCon idConcPoly) $
+                      cTApplys (cTCon $ genericRepWrapName dpos i isData cn fn) vs
+                     else TAp (cTCon idConc) ty)]
+                | (j, fn, fty@(CQType _ ty)) <- zip3 [0..] (fieldNames mfns dpos) ftys]]
+            | (k, (cn, mfns, ftys)) <- zip [0..] summands]]
+        from = CLValue idFromNQ
+          [CClause [if isData
+                    then CPCon1 i cn (CPVar id_x)
+                    else CPVar id_x] [] $
+           CCon idMeta
+            [mkEitherChain dpos k (length summands) $
+             CCon idMeta
+              [mkTuple dpos
+               [CCon idMeta
+                [if fieldHigherRank fty
+                 then CCon idConcPoly
+                  [CStruct (genericRepWrapName dpos i isData cn fn)
+                    [(idPolyWrapField, CSelect (CVar id_x) fn)]]
+                 else CCon idConc [if isJust mfns || length ftys > 1
+                                   then CSelect (CVar id_x) fn
+                                   else CVar id_x]]
+               | (fn, fty) <- zip (fieldNames mfns dpos) ftys]]]
+          | (k, (cn, mfns, ftys)) <- zip [0..] summands] []
+        to = CLValue idToNQ
+          [CClause
+           [CPCon idMeta
+            [pMkEitherChain dpos k (length summands) $
+             CPCon idMeta
+              [pMkTuple dpos
+               [CPCon idMeta
+                [CPCon (if fieldHigherRank fty then idConcPoly else idConc)
+                 [CPVar $ mkId dpos $ mkFString $ "a" ++ show (j :: Int)]]
+               | (j, fty) <- zip [1..] ftys]]]] [] $
+            let args = [
+                  if fieldHigherRank fty
+                  then CSelect (CVar $ mkId dpos $ mkFString $ "a" ++ show j) idPolyWrapField
+                  else CVar $ mkId dpos $ mkFString $ "a" ++ show (j :: Int)
+                  | (j, fty) <- zip [1..] ftys]
+            in case mfns of
+              Nothing -> CCon cn args
+              Just fns -> CStruct cn $ zip fns args
+          | (k, (cn, mfns, ftys)) <- zip [0..] summands] []
+        inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
+
+-- Build a wrapper struct for generic representation of a polymorphic field.
+-- Otherwise it isn't possible to handle such fields genericly, as the
+-- representation type would contain free polymorphic type variables.
+-- Arguments:
+--   r == the symbol table
+--   pos == the position of the struct / data declaration
+--   tid == the name of the struct / data type containing the wrapped field
+--   isData == is the type a data declaration (vs. struct)
+--   cid == the name of the constructor containing the wrapped field
+--   fid == the name of the wrapped field
+--   ty_vars == the non-polymorphic type variables in the wrapped type
+--   fty == the type of the wrapped field
+mkGenericRepWrap :: SymTab -> Position -> Id -> Bool -> Id -> Id -> [Type] -> CQType ->
+                    [Either EMsg [CDefn]]
+mkGenericRepWrap r pos tid isData cid fid ty_vars fty =
+  [Right [Cstruct True
+          (SPolyWrap tid (if isData then Just cid else Nothing) fid)
+          (IdK $ addIdProp i IdPInternal) vs fields []],
+   -- Need to generate instances of PrimMakeUninitialized, PrimMakeUndefined and PrimDeepSeqCond
+   -- for the wrapper, since the ConcPoly instances call to these through the evaluator primitives
+   Right [
+      Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
+        [CLValue idMakeUninitializedNQ
+          [CClause [CPVar id_x, CPVar id_y] []
+            (CStruct i [(idPolyWrapField, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
+      Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
+        [CLValue idMakeUndefinedNQ
+          [CClause [CPVar id_x, CPVar id_y] []
+            (CStruct i [(idPolyWrapField, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
+  where i = genericRepWrapName pos tid isData cid fid
+        vs = map (getTyVarId . head . tv) ty_vars
+        fields =
+          [CField {cf_name = idPolyWrapField,
+                   cf_pragmas = Nothing,
+                   cf_type = fty,
+                   cf_default = [],
+                   cf_orig_type = Nothing}]
+
+-- Get the name of the generated wrapper struct
+genericRepWrapName :: Position -> Id -> Bool -> Id -> Id -> Id
+genericRepWrapName pos tid isData cid fid = mkId pos $ concatFString $
+  [getIdBase tid, mkFString "_"] ++
+  (if isData then [getIdBase cid, mkFString "_"] else []) ++
+  [getIdBase fid]
 
 -- -------------------------
 
@@ -1028,12 +897,12 @@ id_defaultValueNQ :: Id
 id_defaultValueNQ = unQualId id_defaultValue
 idMakeUndefinedNQ :: Id
 idMakeUndefinedNQ = unQualId idMakeUndef
---idBuildUndefinedNQ = unQualId idBuildUndef
 idMakeUninitializedNQ :: Id
 idMakeUninitializedNQ = unQualId idPrimMakeUninitialized
---idPrimUninitializedNQ = unQualId idPrimUninitialized
-idPrimDeepSeqCondNQ :: Id
-idPrimDeepSeqCondNQ = unQualId idPrimDeepSeqCond
+idFromNQ :: Id
+idFromNQ = unQualId idFrom
+idToNQ :: Id
+idToNQ = unQualId idTo
 
 ----
 
@@ -1066,38 +935,41 @@ duplicate_tag_encoding_error type_name tag rest_tags
                | next_tag <- rest_tags,
                  cis_tag_encoding next_tag == cis_tag_encoding tag]
 
-addRequiredDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
+addAutoDeriv :: Flags -> SymTab -> Id -> [CType] -> Id -> [CTypeclass]
                  -> [CTypeclass]
-addRequiredDeriv flags r i tvs clsId derivs
+addAutoDeriv flags r i tvs clsId derivs
                          -- incoherent matches are resolved *after* reducePred
     | Right True <- fst (runTI flags False r check) = derivs
   where check = do
           let Just (TypeInfo _ kind _ sort) =
-                  {- trace ("check undef: " ++ ppReadable i) $ -}
+                  -- trace ("check undef: " ++ show clsId) $
                   findType r i
           let t = cTApplys (TCon (TyCon i (Just kind) sort)) tvs
           cls <- findCls (CTypeclass clsId)
-          vp <- mkVPredFromPred [] (IsIn cls [t])
+          -- Look for an instance where the first parameter is the specified type
+          -- and any remaining parameters are filled in with variables.
+          -- This is needed for Generic.
+          vp <- mkVPredFromPred [] (IsIn cls $ t : (map TVar $ tail $ csig cls))
           -- if there is an existing undefined instance, the predicate will reduce
           mreduce <- reducePred [] Nothing vp
-          -- trace (show i ++ ": " ++ ppReadable mreduce) $
-          -- trace ("ps' :" ++ ppReadable ps') $
+          -- trace (show clsId ++ ": " ++ ppReadable mreduce) $
           return (isJust mreduce)
 
-addRequiredDeriv flags r i tvs clsId derivs =
-  -- trace ("auto-derive: " ++ ppReadable (cls, i))
+addAutoDeriv flags r i tvs clsId derivs =
+  -- trace ("auto-derive: " ++ ppReadable (clsId, i))
   (CTypeclass clsId) : derivs
 
 -- All types are automatically given instances for the typeclasses in
--- requiredClasses if an explicit instance isn't provided by the user.
+-- autoderivedClasses if an explicit instance isn't provided by the user.
 -- Implement this by adding the classes to the derive list for each type.
-addRequiredDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
+addAutoDerivs :: Flags -> SymTab -> Id -> [CType] -> [CTypeclass]
                   -> [CTypeclass]
-addRequiredDerivs flags r i tvs derivs =
-  foldr (f . setPos) derivs requiredClasses
+addAutoDerivs flags r i tvs derivs =
+  -- trace ("autoderivedClasses for " ++ show i ++ ": " ++ ppReadable autoderivedClasses) $
+  foldr (f . setPos) derivs autoderivedClasses
    where pos    = getIdPosition i
          setPos clsId = setIdPosition pos (unQualId clsId)
-         f = addRequiredDeriv flags r i tvs
+         f = addAutoDeriv flags r i tvs
 
 
 -- -------------------------

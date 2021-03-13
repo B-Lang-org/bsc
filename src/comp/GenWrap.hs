@@ -31,7 +31,7 @@ import Pred hiding (name)
 import qualified Pred(name)
 import Scheme
 import Assump
-import CType(cTNum, tyConArgs, getArrows, cTVarNum, isIfc, getRes, typeclassId)
+import CType(cTNum, cTStr, tyConArgs, getArrows, cTVarNum, isIfc, getRes, typeclassId)
 import VModInfo(VSchedInfo, VPathInfo(..), VeriPortProp(..), VArgInfo(..),
                 VFieldInfo(..), VName(..), VWireInfo(..), VPort)
 -- GenWrap defines its own versions that expand synonyms and use qualEq
@@ -1260,32 +1260,34 @@ genFrom pps ty var =
 -- --------------------
 -- genWrapE toplevel: mkInstances
 
--- Deriving of PrimDeepSeqCond for Ifc_ can be large and thus take unnecessary
--- time in type checking.  So we can make our own instance which uses the
+-- The Generic representation of a wrapper type is the type being wrapped -
+-- here we derive a Generic instance which uses the
 -- "fromIfc_" function and calls the class method for the original interface.
 
 mkInstances :: IfcTRec -> GWMonad [CDefn]
 mkInstances trec = do
-  seqInstance <- mkDeepSeqCond trec
-  return [seqInstance]
+  genericInstance <- mkGeneric trec
+  return [genericInstance]
 
-mkDeepSeqCond :: IfcTRec -> GWMonad CDefn
-mkDeepSeqCond (IfcTRec { rec_id = flat_id, rec_type = orig_ty }) = do
-  bits_ctxs <- mkCtxs orig_ty
-  let seq_ctx = CPred (CTypeclass idClsDeepSeqCond) [orig_ty]
-      ctxs = (seq_ctx : bits_ctxs)
+mkGeneric :: IfcTRec -> GWMonad CDefn
+mkGeneric (IfcTRec { rec_id = flat_id, rec_type = orig_ty, rec_rootid = orig_id }) = do
+  ctxs <- mkCtxs orig_ty
+  let pos = getPosition orig_id
       flat_ty = cTCon flat_id
-      cqt = CQType ctxs (TAp (cTCon idClsDeepSeqCond) flat_ty)
-      -- the id_ty ("a -> a") needs use Ids not used in the bits_ctxs
-      id_ty = let t = cTVar (head tmpVarIds)
-              in  t `fn` t
-      def_ty = flat_ty `fn` id_ty
-      defn = Cinstance cqt [CLValueSign def []]
-      def = CDef (unQualId idPrimDeepSeqCond) (CQType [] def_ty)
-                [CClause [CPVar id_x, CPVar id_y] [] body]
-      body = cVApply idPrimDeepSeqCond
-                 [ cVApply (from_Id flat_id) [CVar id_x],
-                   CVar id_y ]
+      cqt = CQType ctxs $ cTApplys (cTCon idGeneric)
+            [flat_ty, cTApplys (cTCon idMeta)
+              [cTApplys (cTCon idMetaData)
+               [cTStr (getIdBase orig_id) pos,
+                cTStr (getIdQual orig_id) pos,
+                cTNum 1 pos],
+               TAp (cTCon idConc) orig_ty]]
+      defn = Cinstance cqt
+        [CLValue (unQualId idFrom)
+          [CClause [CPVar id_x] [] $
+            CCon idMeta [CCon idConc [cVApply (from_Id flat_id) [CVar id_x]]]] [],
+         CLValue (unQualId idTo)
+          [CClause [CPCon idMeta [CPCon idConc [CPVar id_x]]] [] $
+            cVApply (to_Id flat_id) [CVar id_x]] []]
   return defn
 
 -- XXX this duplicates work done elsewhere; just do one traversal and
