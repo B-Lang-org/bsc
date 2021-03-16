@@ -1,6 +1,7 @@
-The files in this repository are copyright as indicated below (except
-when indicated otherwise in the file itself) and are licensed as
-indicated below, with the following exceptions:
+Most files in this repository are copyright Bluespec Inc and licensed
+under the BSD-3-Clause license, as indicated at the end of this file.
+Individual files or directories may specify their own copyright and
+license.  The following are known to have other authors and licenses:
 
 * STP - Constraint solver
   * The files in src/vendor/stp/src/ are adapted from a snapshot of STP
@@ -66,6 +67,36 @@ indicated below, with the following exceptions:
   * BSV snippets
     * Files in util/emacs/bsv-snippets/ include code from other sources
     * See comments in the source files themselves
+
+* testsuite/bsc.bluetcl/hierarchy2/EHRReg.bsv
+  * Ephemeral History Register library
+  * Copyright (c) 2007 Alfred Man Cheuk Ng, mcn02@mit.edu
+  * MIT license
+
+* testsuite/bsc.bsv_examples/MacTestBench/{eth_*,timescale}.v
+  * Ethernet MAC, http://www.opencores.org/projects/ethmac/
+  * Variously copyright 2001, 2002
+    * Igor Mohor (igorM@opencores.org)
+    * Novan Hartadi (novan@vlsi.itb.ac.id)
+    * Mahmud Galela (mgalela@vlsi.itb.ac.id)
+    * Bill Dittenhofer (billditt@aol.com)
+  * LGPL-2.1-or-later
+
+* testsuite/bsc.bsv_examples/h264/*.bsv
+  * H.264 Decoder
+  * Copyright (c) 2006-2007 Massachusetts Institute of Technology
+  * MIT license
+
+* testsuite/bsc.interra/OVL/std_ovl/
+  * Accellera Standard V2.8.1 Open Verification Library (OVL),
+    https://www.accellera.org/downloads/standards/ovl
+  * Copyright (c) 2015 Accellera Systems Initiative Inc. All rights reserved.
+  * Apache-2.0 license
+
+* testsuite/bsc.bsv_examples/pong/kbscan.v
+  * Simple PS/2-port byte scancode reader
+  * liaor@iname.com - http://members.tripod.com/~liaor (05/01/2001)
+  * GPL-2.0-or-later
 
 ---------------------------------------------------------------------------
 

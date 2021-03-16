@@ -239,11 +239,3 @@ The default value is `iverilog`.
 
 TBD
 
----
-
-## License
-
-This test suite and most tests are provided by [Bluespec Inc] and
-available under the BSD-3-Clause license.  Some test directories
-contain files with copyrights to other authors, some under other
-open source licenses.  See [`COPYING`](COPYING) for copyright and license details.

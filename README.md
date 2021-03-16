@@ -299,6 +299,8 @@ Training and tutorials can be found in the
 
 ## License
 
-The Bluespec toolchain is available under the BSD license. The source code also
-includes several other components under various license agreements (all of it
-open/copyleft software). See `COPYING` for copyright and license details.
+The Bluespec toolchain is provided by [Bluespec Inc] and
+available under the BSD-3-Clause license.
+The source code also includes several other components under
+various license agreements (all of it open/copyleft software).
+See [`COPYING`](COPYING) for copyright and license details.
