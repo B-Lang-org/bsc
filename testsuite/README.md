@@ -10,7 +10,7 @@ This is a test suite for the compiler, simulator, and tools for the
 **Bluespec Hardware Description Language** as found in the [bsc repository].
 Some testing is also available for libraries in the [bsc-contrib repository].
 
-[bsc repository]: https://github.com/B-Lang-org/bsc
+[bsc repository]: ../README.md
 [bsc-contrib repository]: https://github.com/B-Lang-org/bsc-contrib
 [Bluespec Inc]: https://bluespec.com
 [DejaGnu]: https://www.gnu.org/software/dejagnu/
@@ -53,20 +53,10 @@ the `make` commands shown below.
 
 ---
 
-## Getting the test suite
-
-Clone this repository by running:
-
-    $ git clone https://github.com/B-Lang-org/bsc-testsuite
-
-Running tests in individual directories uses `git` to find the top
-directory of the testsuite, so it is best to leave the test suite as a
-git repository.  If the suite is exported or archived outside of a git
-repository, some features may not work.
-
----
-
 ## Running the test suite
+
+All of the following commands are executed from the `testsuite`
+subdirectory of the `bsc` repository.
 
 ### Specifying the BSC installation to test
 
@@ -76,15 +66,15 @@ There are many ways to run tests in the suite, but the simplest is:
 
 This will run the suite on the BSC installation pointed to by `TEST_RELEASE`.
 
-Actually, an even simpler command is possible.  If you place a `bsc`
-repository as a sibling directory to the test suite repository, and it
-has an `inst` subdirectory, the Makefile can detect that and
+Actually, an even simpler command is possible.  If an `inst` subdirectory
+exists in the `bsc` repository containing this testsuite (that is, `../inst`),
+the Makefile can detect that and
 implicitly assign `TEST_RELEASE` if you have omitted it:
 
     $ make check
 
-If you omit `TEST_RELEASE` and there is no sibling `bsc` with an `inst`
-subdirectory, the Makefile will report an error.
+If you omit `TEST_RELEASE` and there is no `inst` subdirectory of the
+parent `bsc` repo, the Makefile will report an error.
 
 ### Contrib tests
 
@@ -96,11 +86,17 @@ installed and that will enable these tests:
 
 As with `TEST_RELEASE`, you can omit this assignment and the Makefile
 will implicitly assign `TEST_CONTRIB` if either the BSC repository
-that you are testing or the test suite repository that you are running
-from has a sibling directory named `bsc-contrib` with an `inst`
+that you are testing or the BSC repository that you are running the
+test suite from has a sibling directory named `bsc-contrib` with an `inst`
 subdirectory.  If you omit `TEST_CONTRIB` and there is no sibling
 `bsc-contrib` with an `inst` subdirectory, the Makefile will disable
 these tests.
+
+If a `bsc-contrib` directory exists in one of the default relative
+locations, but you do not want to test it, you can disable these tests
+by explicitly assigning an empty value:
+
+    $ make TEST_CONTRIB= check
 
 ### Extra tools
 

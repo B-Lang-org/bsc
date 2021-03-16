@@ -17,7 +17,7 @@ export LC_ALL
 SUBDIRS ?= $(dir $(wildcard */Makefile))
 
 # For testing a release, setup a group of variables
-TEST_RELEASE ?= $(CONFDIR)/../bsc/inst
+TEST_RELEASE ?= $(CONFDIR)/../inst
 
 # This enables tests that use bsc-contrib libraries
 # (the value should be an "inst" directory)

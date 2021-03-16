@@ -49,9 +49,6 @@ A separate repository, [bsc-contrib],
 exists for sharing libraries and utilities that don't (or don't yet) belong in
 the core tools.
 
-Tests and testing infrastructure are provided in a separate
-[bsc-testsuite] repository.
-
 A graphical environment for using BSC is available in a separate [bdw]
 repository. BDW (the BSC Development Workstation) provides a number of
 tools, including the ability to view simulation waveforms as
@@ -63,7 +60,6 @@ source-level values.
 [Shakti]: https://shakti.org.in
 
 [bsc-contrib]: https://github.com/B-Lang-org/bsc-contrib
-[bsc-testsuite]: https://github.com/B-Lang-org/bsc-testsuite
 [bdw]: https://github.com/B-Lang-org/bdw
 
 ---
@@ -240,7 +236,8 @@ An unoptimized, debug, or profiling build can be done using one of:
     $ make BSC_BUILD=DEBUG
     $ make BSC_BUILD=PROF
 
-For more extensive testing, see the [bsc-testsuite] repository.
+For more extensive testing, see the [testsuite README](testsuite/README.md)
+in the `testsuite` subdirectory.
 
 #### Choosing a Verilog simulator
 
