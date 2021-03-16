@@ -70,7 +70,7 @@ mkRegisterArrayFull init_val = mkRegisterArray minBound maxBound init_val
 
 --
 -- a module which can be compiled
--- 
+--
 
 sysRegisterArray :: Module (RegFile (Bit 5) (Bit 8))
 sysRegisterArray = mkRegisterArray 0 3 Invalid

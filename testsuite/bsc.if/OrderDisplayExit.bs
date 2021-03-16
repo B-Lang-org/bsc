@@ -43,7 +43,7 @@ sysOrderDisplayExit =
                             $display "FAIL Should not see this at all\n";
                             $finish 0;
                           }
-         
+
 
 	  "Sub":
 	    when x <= y, y /= 0

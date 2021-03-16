@@ -1,6 +1,6 @@
 function Action fn (t x) provisos( Bits#(t,n) );
     Bit#(SizeOf#(t)) n = pack(x);
-    $display(" n = %d", n); 
+    $display(" n = %d", n);
 endfunction
 
 (* synthesize *)

@@ -10,12 +10,12 @@ module mkFacTest ();
 
    Reg#(Int32) upper <- mkReg( 1 )  ;
    Reg#(Int32) i     <- mkRegU ;
-   Reg#(Int32) prod  <- mkRegU ;   
-   
+   Reg#(Int32) prod  <- mkRegU ;
+
    Stmt factorialSequence =
    seq
       action                    // One action take 1 clock step
-         prod <= 1 ;         
+         prod <= 1 ;
          $display( "starting factorial Sequence; upper = %0d", upper ) ;
       endaction
       for ( i <= 2;  upper >= i ; i <= i + 1 )
@@ -25,7 +25,7 @@ module mkFacTest ();
          endseq
       $display( "factorial sequence is done: factorial of %0d is %0d", upper, prod ) ;
    endseq ;
-   
+
    FSM mfac <- mkFSM( factorialSequence );
 
    rule doFactorial ( upper < factLimit ) ;
@@ -36,7 +36,7 @@ module mkFacTest ();
    rule finisher ( (upper >= factLimit) && mfac.done ) ;
       $finish(0) ;
    endrule
-   
+
 endmodule
 
 
@@ -45,13 +45,13 @@ endmodule
 module mkLockTest() ;
 
    Reg#(Int32) cntr  <- mkReg(0) ;
-   
+
    Stmt parallelAction =
    seq
       $display( "starting parallel actions" ) ;
       par
       seq
-         action            
+         action
             $display( "got the lock on a first path" ) ;
             $display( "counter is %0d", cntr ) ;
             cntr <= cntr + 10;
@@ -76,8 +76,8 @@ module mkLockTest() ;
             $display( "releasing  the lock on a second path" ) ;
             $display( "counter is %0d", cntr ) ;
          endaction
-      endseq 
-      endpar 
+      endseq
+      endpar
       $display( "finished parallel actions" ) ;
    endseq ;
 
@@ -94,7 +94,7 @@ module mkLockTest() ;
 endmodule
 
 
-// --@ 
+// --@
 // --@ Parallel execution and locks:
 // --@ {\small
 // --@ \begin{verbatim}

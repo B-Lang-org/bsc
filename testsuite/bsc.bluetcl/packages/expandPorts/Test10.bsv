@@ -21,7 +21,7 @@ module mkTest10( Test10 );
       inA <= s.a;
       inB <= s.b;
    endmethod
-   
+
    method int    sum();
       return inA + inB;
    endmethod

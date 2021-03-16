@@ -7,7 +7,7 @@ import FIFOF::*;
 (* synthesize *)
 module sysSizedBRAMFIFOTest();
    FIFOF#(Bit#(8)) dut <- mkSizedBRAMFIFOF(5);
-   
+
    Stmt test =
    seq
       dut.enq(0);
@@ -91,6 +91,6 @@ module sysSizedBRAMFIFOTest();
       endaction
       delay(10);
    endseq;
-   
+
    mkAutoFSM(test);
 endmodule

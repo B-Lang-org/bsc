@@ -2,7 +2,7 @@ interface Bug446_1_IFC;
 
 method Action set_in (Bit#(1) a);
 
-method Bit#(1) out; 
+method Bit#(1) out;
 
 endinterface: Bug446_1_IFC
 

@@ -32,12 +32,12 @@ module mkTestbench_Scanr();
       display_list(my_list1);
       $display("Scanned List (Factorial):");
       display_list(my_list3);
-      if (reverse (my_list2) != my_list3) 
+      if (reverse (my_list2) != my_list3)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Scanr
 endpackage : Scanr

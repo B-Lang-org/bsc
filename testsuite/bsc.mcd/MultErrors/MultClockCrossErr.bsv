@@ -15,7 +15,7 @@ module mkErrs#(Clock c1, Clock c2, Clock c3)(Test);
   rule err1(r0);
     r1 <= True;
   endrule
- 
+
   rule err2(r2);
     if(r3) $display("clock-domain crossing");
   endrule

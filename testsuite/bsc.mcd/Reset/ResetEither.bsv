@@ -25,13 +25,13 @@ module sysResetEither ();
    MakeResetIfc rifc2 <- mkReset(0, False, clk);
    Reset rst1 = rifc1.new_rst;
    Reset rst2 = rifc2.new_rst;
-   
+
    // combine the resets
    Reset rst <- mkResetEither(rst1, rst2);
 
    // state which is reset by the muxed reset
    Reg#(Bit#(32)) val <- mkReg(0, reset_by rst);
-   
+
    Reg#(Bit#(32)) fsm_state <- mkReg(0);
 
    rule incr_val;
@@ -48,9 +48,9 @@ module sysResetEither ();
       // If we trigger a reset of rst1, the value should go to 0
       if (fsm_state == 5)
 	 rifc1.assertReset();
-      
+
       // Wait for the value to update
-      
+
       // If we trigger a reset of rst2, the value should go to 0
       if (fsm_state == 8)
 	 rifc2.assertReset();

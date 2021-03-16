@@ -49,12 +49,12 @@ module mkTestbench_MapPairs();
       display_list (my_list1);
       $display("mapPaired Vector:");
       display_list (my_list3);
-      if (my_list3 != my_list2) 
+      if (my_list3 != my_list2)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_MapPairs
 endpackage : MapPairs

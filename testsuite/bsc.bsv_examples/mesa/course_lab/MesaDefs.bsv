@@ -20,7 +20,7 @@ typedef Bit#(32) LuResponse;
 
 typedef Bit#(5) LuTag;
 
-// IPv4 Packet structure and types (greatly simplified for this model): 
+// IPv4 Packet structure and types (greatly simplified for this model):
 typedef Bit#(32) IPAddr;
 typedef Bit#(16) PktByteSize;
 typedef Bit#(16) IPLength;
@@ -31,7 +31,7 @@ typedef struct {
     Bit#(32)  marker;
 } IPPacket deriving(Eq, Bits);
 
-// A general IP packet (the extra generality commented out for this model): 
+// A general IP packet (the extra generality commented out for this model):
 typedef union tagged {
     IPPacket IPv4;
     // IPv6Packet IPv6; ?

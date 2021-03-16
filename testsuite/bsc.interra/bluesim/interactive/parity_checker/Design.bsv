@@ -6,7 +6,7 @@ function Bit #(1) calparity (Bit#(n) theInput);
       Bit #(1) temp;
       if (theInput[fromInteger (j):fromInteger (j)] == 0)
         temp = c ^ 1'b0;
-      else 
+      else
         temp = c ^ 1'b1;
       f = temp;
    endfunction: f

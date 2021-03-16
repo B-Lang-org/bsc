@@ -16,12 +16,12 @@ module mkTestbench_GenWithM();
 
    rule fire_once (True);
       ListN #(5,Integer) my_list2 <- genWithM(f);
-      if (my_list1 != my_list2) 
+      if (my_list1 != my_list2)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_GenWithM
 endpackage : GenWithM

@@ -20,7 +20,7 @@ mkScopeInNestedWhens =
 	         when True
 	           ==> r := zeroExtend a
 	    }
-    
+
 	    when s <- r
 	     rules {
 	         when True

@@ -23,11 +23,11 @@ module mkRS (MYRegFile);
 	endrule
 
     method sub1 (addr);
-        return (select(rs,addr)._read);            
+        return (select(rs,addr)._read);
     endmethod
 
     method sub2 (addr);
-        return (select(rs,addr)._read);            
+        return (select(rs,addr)._read);
     endmethod
 
     method Action upd (addr, dat);
@@ -35,7 +35,7 @@ module mkRS (MYRegFile);
         (select(rs,addr)) <= dat;
        end
     endmethod
-    
+
     method Action clear (cl);
 	  clear_reg.wset(cl);
     endmethod

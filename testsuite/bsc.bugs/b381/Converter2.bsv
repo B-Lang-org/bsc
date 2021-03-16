@@ -7,7 +7,7 @@ interface VConverter#(numeric type ni);
 endinterface
 
 
-import "BVI" Mod = 
+import "BVI" Mod =
   module vMkConverter(VConverter#(ni));
      method OUT m(IN);
   endmodule
@@ -16,7 +16,7 @@ import "BVI" Mod =
 module mkConverter(Converter#(i)) provisos(Bits#(i, si));
 
   VConverter#(si) _a <- vMkConverter;
-   
+
   method convert(i);
      return(unpack(_a.convert(pack(i))));
   endmethod

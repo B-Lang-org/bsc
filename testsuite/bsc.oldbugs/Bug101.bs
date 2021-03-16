@@ -1,6 +1,6 @@
 package Bug101(mkSyncRAM, sysBug101, SyncRAM) where
 
-import FIFO 
+import FIFO
 
 struct Cntl i a =
     addr  :: i
@@ -17,7 +17,7 @@ mkSyncRAM =
     module
         f :: FIFO (Cntl i a)
         f <- mkFIFO
-        
+
         interface
           read i = noAction
           write i a = noAction

@@ -37,7 +37,7 @@ function Action printv ( Vector#(n,BE) v ) ;
    return
    action
    Integer i = 0 ;
-   for ( i = 0 ; i < valueof(n); i = i + 1 ) 
+   for ( i = 0 ; i < valueof(n); i = i + 1 )
       begin
          $write( "V[%0d]=", i ) ;
          printBE( v[i] ) ;
@@ -49,20 +49,20 @@ endfunction
 
 (* synthesize *)
 module sysFindElem ();
-   
-      
+
+
    Reg#(int) cnt <- mkReg(0) ;
-   
+
    // findElem :: (Add xx1 1 n, Log n lgn, Eq a) => a -> Vector n a -> Maybe (UInt lgn)
    // findElem elem v = findIndex ( (==) elem ) v
-   
+
    Reg#( Vector#(8,BE) )  t1 <- mkReg( replicate(x0) ) ;
-   
+
    rule c ;
       cnt <= cnt + 1 ;
       if( cnt > 100 ) $finish(0) ;
    endrule
-   
+
    rule x0 ( cnt == 0 || cnt == 10 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -73,7 +73,7 @@ module sysFindElem ();
       t[5] = x5 ;
       t[6] = x6 ;
       t[7] = x7 ;
-      
+
       t1 <= t ;
    endrule
 
@@ -91,9 +91,9 @@ module sysFindElem ();
          begin
             $display ( "did not find x2" ) ;
          end
-      t1 <= t ;      
+      t1 <= t ;
    endrule
-   
+
    rule x2 ( cnt >= 3 && cnt < 5 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -108,9 +108,9 @@ module sysFindElem ();
          begin
             $display ( "did not find x3" ) ;
          end
-      t1 <= t ;      
+      t1 <= t ;
    endrule
-   
+
    rule x3 ( cnt >= 5 && cnt < 7 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -125,17 +125,17 @@ module sysFindElem ();
          begin
             $display ( "did not find xNull" ) ;
          end
-      t1 <= t ;      
+      t1 <= t ;
    endrule
 
    Reg#(Bit#(16))  br <- mkReg( 'hd673 ) ;
-   
+
    rule countleading ( cnt > 80 ) ;
       UInt#(5) lz = countLeadingZeros( br ) ;
       UInt#(5) ones = countOnes( br );
       $display( "for: %b  lz = %0d     1's = %0d", br, lz, ones ) ;
       br <= (br << 4) ^ ( br >> 5 ) ;
    endrule
-   
-   
+
+
 endmodule

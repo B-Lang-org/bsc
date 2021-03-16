@@ -18,7 +18,7 @@ mkCounter lower start upper  =
 
     value_reg :: Reg a <- mkReg start
 
-    interface 
+    interface
 
       get = value_reg
 
@@ -26,8 +26,8 @@ mkCounter lower start upper  =
 	value_reg := a
 
       inc_dec up =
-	value_reg := if up && value_reg /= upper then 
-			value_reg + 1 
+	value_reg := if up && value_reg /= upper then
+			value_reg + 1
                      else if not up && value_reg /= lower then
                         value_reg - 1
                      else

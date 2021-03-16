@@ -8,7 +8,7 @@ interface Design_IFC;
  method UInt#(16) recvd();
 endinterface : Design_IFC
 
-(* 
+(*
    CLK = "clk_1",
    RST_N = "rst_1",
    synthesize
@@ -36,7 +36,7 @@ module mkDesign#(Clock src_clk, Reset src_rst) (Design_IFC);
     sync.send();
     sentPulse.send();
   endrule
-  
+
   rule send_counter (sentPulse);
     num_sent <= num_sent + 1;
     $display("Sent pulse at %t", $time);
@@ -46,7 +46,7 @@ module mkDesign#(Clock src_clk, Reset src_rst) (Design_IFC);
     num_recvd <= num_recvd + 1;
     $display("Received pulse at %t", $time);
   endrule
-    
+
   method Action stop();
     run <= False;
   endmethod

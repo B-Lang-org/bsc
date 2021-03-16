@@ -7,7 +7,7 @@
 
 -- Description: This testcase triggers the EAmbOper error of the bluespec
 -- compiler (Ambiguous Operator Combination with op1, and op2)
--- 
+--
 -- Op1 and Op2 are "==" operators below
 -----------------------------------------------------------------------
 
@@ -19,4 +19,4 @@ package EAmbOper () where
 -- import Int
 
 func :: Int 4 -> Int 4 -> Int 4 -> Bool
-func a b c = a==b==c 
+func a b c = a==b==c

@@ -19,7 +19,7 @@ module sysCaseTest();
       2 : pa = u2;
       default : pa = u3;
    endcase
-   
+
    Bool pb;
    case (idx)
       0 : pb = !u0;

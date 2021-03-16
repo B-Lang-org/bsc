@@ -7,7 +7,7 @@ Integer period_fast_clk = 7;
 (* synthesize *)
 module sysSyncFIFOTest();
 
-   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);   
+   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);
 
    Reset rst2 <- mkInitialReset(3, clocked_by fast_clk);
 

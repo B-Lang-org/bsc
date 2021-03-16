@@ -5,7 +5,7 @@ module sysRuleBetweenMethods_TwoRulesBothDirsDisjoint();
 
    SubIfc s1 <- mkRuleBetweenMethods_TwoRulesBothDirsDisjoint_Sub;
    SubIfc s2 <- mkRuleBetweenMethods_TwoRulesBothDirsDisjoint_Sub;
- 
+
    rule top_rule_A (p);
       s1.m1(s2.m2);
    endrule
@@ -28,11 +28,11 @@ module mkRuleBetweenMethods_TwoRulesBothDirsDisjoint_Sub(SubIfc);
    rule sub_rule (en < 100);
       count <= count + 1;
    endrule
-      
+
    method Action m1(int x);
       en <= x;
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod

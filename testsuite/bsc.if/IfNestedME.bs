@@ -7,7 +7,7 @@ interface IfNestedME =
   get_d  :: (UInt 3)
 
 sysIfNestedME :: Module (IfNestedME)
-sysIfNestedME = 
+sysIfNestedME =
   module
     a :: Reg Bool
     a <- mkReg False
@@ -18,14 +18,14 @@ sysIfNestedME =
     d :: Reg (UInt 3)
     d <- mkReg 0
 
-    interface 
+    interface
 	flip_a = a :=  not a
 	flip_b = b :=  not b
 	flip_c = c :=  not c
-        get_d = d   
+        get_d = d
     rules
-        
-        "Nested": when True ==> 
+
+        "Nested": when True ==>
                     action
                       if a && b && c then d:=7 else noAction
                       if a && b && (not c) then d := 6 else noAction
@@ -35,5 +35,5 @@ sysIfNestedME =
                       if (not a) && b && (not c) then d := 2 else noAction
                       if (not a) && (not b) && c then d := 1 else noAction
                       if (not a) && (not b) && (not c) then d := 0 else noAction
-			
-		
+
+

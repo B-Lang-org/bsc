@@ -34,20 +34,20 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
    Reg#(Bit#(32)) delayn <- mkReg(0) ;
 
    Reg#(Bit#(32)) weightedDelayR <- mkReg(0) ;
-   
+
    // An LFSR for random addresses
    //   LFSR #(Bit#(16)) random <- mkRCounter( 0 ) ; // for debug
    LFSR #(Bit#(16)) random <-  mkLFSR_16 ; // for pseudo random numbers
-   
+
    // a register for the request data, use unguarded fifo to allow idle requests!
    FIFOF#(BusRequest) requestData <- mkUGFIFOF1 ;
 
    // A fifo to track the request times
    FIFOF#(Bit#(28)) reqTrackFifo <- mkUGFIFOF ;
 
-   // A fifo to hold delay times for later processing processing 
+   // A fifo to hold delay times for later processing processing
    FIFO#(Bit#(4)) delayF <- mkFIFO ;
-   
+
       // Rule to start the simulation and turn on vcd dumps
    rule init ( counter == 0 ) ;
       //$dumpvars() ;
@@ -89,8 +89,8 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
       delayF.deq ;
       delayn <= delayn + 1 ;
    endrule
-   
-        
+
+
    // rule to count, report data and end the simulations
    rule count ( counter > 0 ) ;
       counter <= counter + 1;
@@ -118,31 +118,31 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
    rule fin ( counter == report + 1 ) ;
       $finish(0) ;
    endrule
-   
+
    // rule to generate new request data
    rule newdata ((truncate(random.value) < cutoff ) && (requestData.notFull)) ;
       random.next;
       reqCount <= reqCount + 1;
       reqTrackFifo.enq( counter ) ;
-     
+
       Bit#(4) high = truncate( random.value ) ;       // grab a 4 bit random number
       let reqaddr = {high, counter };
       requestData.enq( BusRequest {addr:reqaddr, data:1, read_write:Read } ) ;
 
    endrule
 
-   // Count number of time the 
+   // Count number of time the
    rule blocked ((truncate(random.value) < cutoff ) && (! requestData.notFull));
       blockedCount <= blockedCount + 1 ;
       // $display( "%s blocked at %0d", id, counter ) ;
    endrule
-   
+
    // advance random number if no request.
    rule noRequest (truncate(random.value) >= cutoff ) ;
       random.next ;
       passCount <= passCount + 1 ;
    endrule
-   
+
    // Let the master know that a grant was received
    RWire#(Bool)  r_granted <- mkRWire ;
 
@@ -157,7 +157,7 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
       return requestData.notEmpty;
    endmethod
 
-   // See if bus access has been granted 
+   // See if bus access has been granted
    method  Action m_bus_grant( bus_grant ) ;
       r_granted.wset( bus_grant ) ;
    endmethod
@@ -165,11 +165,11 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
    // method when bus has a response to this master.
    interface Put m_response ;
       method Action put( response ) ;
-         // Queue the response 
+         // Queue the response
          if ( ! idleSent )
             begin
                // if ( ! reqTrackFifo.notEmpty ) $display( "Unexpected !!!" ) ;
-               
+
                // $display( "response %s: counter: %0d  stat: %h, data: %h", id,
                // counter, response.status, response.data ) ;
 
@@ -205,15 +205,15 @@ module mkMasterP#(Bit#(28) report, Bit#(16) seed, Bit#(8) cutoff, String id)  ( 
                idleSent <= True ;
             end
 
-         return reqData ; 
+         return reqData ;
       endmethod
    endinterface
-   
+
 endmodule
 
 
 
-// ///////////////////////////////////////////////////////////////////////////      
+// ///////////////////////////////////////////////////////////////////////////
 // (* synthesize *)
 // module mkMaster_500_1 (Master ) ;
 //    Master localM <- mkMasterP(500,1, 64, "A" ) ;

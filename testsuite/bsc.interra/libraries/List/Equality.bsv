@@ -14,8 +14,8 @@ module mkTestbench_Equality();
       else
         $display ("Simulation Fails");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Equality
 
 endpackage : Equality

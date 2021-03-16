@@ -69,7 +69,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
 
    // This function provides an Action to set the external RAM's parameter
    // registers for the next request, based on a request received from the
-   // design: 
+   // design:
    function setupCycle(x);
       action
 	 case (x) matches
@@ -106,20 +106,20 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
       setupCycle(ififo.first);
       ififo.deq;
    endaction;
-   
+
    interface ExtSDRAM fst;
       method rd() ;   return (doRD);
       endmethod: rd
-		    
+
       method wr() ;   return (doWR);
       endmethod: wr
-		    
+
       method addr() ;   return (zeroExtend(oAddr));
       endmethod: addr
-		    
+
       method dIn() ;   return (zeroExtend(oData));
       endmethod: dIn
-		    
+
       method dOut(x);
          action
 	    case (x) matches
@@ -138,7 +138,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
          endaction
       endmethod: dOut
    endinterface: fst
-   
+
    interface Server snd;
       interface Put request;
          method put(req) if (ififo.notFull) ;
@@ -148,7 +148,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
             endaction
          endmethod: put
       endinterface
-      
+
       interface Get response;
          method get() if (ofifo.notEmpty) ;
 	    actionvalue

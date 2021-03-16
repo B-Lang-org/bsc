@@ -39,7 +39,7 @@ mkELocalRec1 =
 	y :: Reg (Int 32)
 	y <- mkReg 0
 
-        z :: Reg (Mystruct) 
+        z :: Reg (Mystruct)
         z <- mkReg (Mystruct{xx = 0 ; yy = 0;})
 
 
@@ -47,7 +47,7 @@ mkELocalRec1 =
 	  "Swap":
 	    when x > y, y /= 0
 	      ==> action
-                            let 
+                            let
                                (x,y) = (z._read.xx,z._read.yy)
 		                       x := y
                        		       y := x

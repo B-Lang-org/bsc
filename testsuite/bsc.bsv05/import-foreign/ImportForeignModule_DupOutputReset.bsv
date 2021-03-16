@@ -9,7 +9,7 @@ module mkMyReg ( OutRst ) ;
 
    default_clock no_clock ;
    no_reset ;
-   
+
    output_reset out_reset (RSTN_OUT1) ;
    output_reset out_reset (RSTN_OUT2) ;
 endmodule

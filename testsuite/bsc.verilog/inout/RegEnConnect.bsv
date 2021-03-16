@@ -12,13 +12,13 @@ module sysRegEnConnect(Empty);
       count <= count + 1;
       send.set(count);
    endrule
-   
+
    rule disp (count>0);
       recv.display_it;
    endrule
-   
+
    rule stop (count==10);
       $finish(0);
    endrule
-      
+
 endmodule

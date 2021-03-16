@@ -34,8 +34,8 @@ endinterface
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-module mkSWEmulator#(TbEnvConfigs parent, 
-		     WBRamIFC ram, 
+module mkSWEmulator#(TbEnvConfigs parent,
+		     WBRamIFC ram,
 		     TxRxPntArrayRamIFC txrx_pnt_map,
 		     Scoreboard scoreboard) (SWEmulatorIFC);
 
@@ -64,7 +64,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
    Reg#(Bool) interrupt <- mkReg(False);
    Reg#(Bool) received <- mkReg(False);
    Reg#(Bool) transmitted <- mkReg(False);
-   
+
    Randomize#(WBoneOp) wboneop_gen <- mkRandomizer;
 
    Reg#(Bit#(32)) next_rxbd <- mkReg(?);
@@ -74,7 +74,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 
    Reg#(Bit#(32)) count_rx  <- mkReg(0);
 
-   Stmt init_seq =  
+   Stmt init_seq =
    seq
       action
 	 $display("Starting SWEM init sequence.");
@@ -93,7 +93,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
       endaction
    endseq;
 
-   
+
    Stmt tx_driver_seq =
    seq
       while (!initialized) noAction;
@@ -103,7 +103,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 	       let frame = frame_in_fifo.first();
 	       let bd_addr = avail_txbd.first();
 	       let size = getFrameByteSize(frame);
-	       
+
 	       Bit#(32) tx_pnt = txrx_pnt_map.read(bd_addr);
 
 	       tx_reg <= frame;
@@ -131,10 +131,10 @@ module mkSWEmulator#(TbEnvConfigs parent,
 	    action
 	       let frame = frame_in_fifo.first();
 	       frame_in_fifo.deq();
-	       
+
 	       let bd_addr = txbd;
 	       let wrap = 0;
-	       
+
 	       if (avail_txbd.first == 32'hFFFF_FFFF)
 		  begin
 		     avail_txbd.deq;
@@ -143,7 +143,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 		  end
 
 	       Bit#(32) data;
-	       
+
                data[31:16] = getFrameByteSize(frame);
                data[15: 0] = 16'hD400;
 	       data[13] = wrap;
@@ -161,7 +161,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 	       if (value.status != ACK) $display("Error Non-ACK detected.");
 	    endaction
 	 endseq
-      
+
    endseq;
 
    Stmt int_server_seq =
@@ -194,7 +194,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 
 	       let value = wboneop.data.data;
 //	       $display("Interrupt value %h", value);
-	       
+
 	       received <= (value[2] == 'b1) || (value[3] == 'b1);
 	       transmitted <= (value[0] == 'b1) || (value[1] == 'b1);
 
@@ -228,7 +228,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
 			let length = value[31:16];
 
 			receive_size <= length;
-			
+
 			if (value[15] == 1) $display("Empty !!!!");
 			Bit#(32) rx_pnt = txrx_pnt_map.read(next_rxbd);
 //			$display("RxBd addr: %h, length: %d, value %h, rx_pnt: %h", next_rxbd, length, value, rx_pnt);
@@ -336,7 +336,7 @@ module mkSWEmulator#(TbEnvConfigs parent,
       interface Get tx = fifoToGet(frame_out_fifo);
       interface Put rx = fifoToPut(frame_in_fifo);
    endinterface
-   
+
    interface WBoneOpTxRxIFC wb_channel;
       interface Get tx;
 	 method ActionValue#(WBoneOp) get if (!wbone_waiting);

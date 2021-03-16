@@ -2,13 +2,13 @@ package Tee;
 
 import Pull :: *;
 
-       
 
-       
+
+
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;
@@ -30,13 +30,13 @@ endmodule : mkDesign_Tee
 module mkTestbench_Tee ();
     Pull #(Bit #(8)) dut();
     mkDesign_Tee the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
 
     rule always_fire (True);
         counter <= counter + 1;
@@ -47,7 +47,7 @@ module mkTestbench_Tee ();
     endrule
 
     rule endsim (counter == 15);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

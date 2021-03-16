@@ -7,8 +7,8 @@ import ClientServer :: *;
 import GetPut :: *;
 import Connectable :: *;
 
-typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n); 
-typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n); 
+typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n);
+typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n);
 
 module mkMyserver(Myserver#(8)) ;
    FIFO#(Bit#(8)) server_datafifo <- mkSizedFIFO(16) ;
@@ -49,12 +49,12 @@ module mkTestbench_SplitServer ();
        in_data <= in_data + 1;
        $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
      endrule
-   
+
      rule read_value2 (counter < 30);
        Bit #(8) val <- head(my_server_list).response.get;
        out_data <= out_data + 1;
 	   $display("Cycle Number = %d, Value read = %d",counter, val);
-       if (out_data != val) 
+       if (out_data != val)
 	     begin
 	       $display("Mismatch Exp = %d Actual= %d",out_data, val);
            fail <= True;
@@ -66,12 +66,12 @@ module mkTestbench_SplitServer ();
        in_data <= in_data + 1;
        $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
      endrule
-   
+
      rule read_value3 ((counter > 30) && (counter < 60));
        Bit #(8) val1 <- last(my_server_list).response.get;
        out_data <= out_data + 1;
 	   $display("Cycle Number = %d, Value read = %d",counter, val1);
-       if (out_data != val1) 
+       if (out_data != val1)
 	     begin
 	       $display("Mismatch Exp = %d Actual= %d",out_data, val1);
            fail <= True;
@@ -85,8 +85,8 @@ module mkTestbench_SplitServer ();
 	    $display("Simulation Passes");
 	  $finish(2'b00);
     endrule
-   
-   
+
+
 endmodule : mkTestbench_SplitServer
 
 endpackage : SplitServer

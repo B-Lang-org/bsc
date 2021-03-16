@@ -16,7 +16,7 @@ module sysMultTest();
    rule aa ((11 * ua * ub) == 17);
       uc <= uc + 1;
    endrule
-   
+
    let ub11 = ub + (ub << 1) + (ub << 3);
    rule ab (ub11 * ua != 17 );
       uc <= uc + 2;

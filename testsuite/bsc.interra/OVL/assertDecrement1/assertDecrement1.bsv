@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -25,7 +25,7 @@ let defaults = mkOVLDefaults;
 defaults.value = 2; //decrement value : 2
 
 AssertTest_IFC#(Bit#(3)) assertDec <- bsv_assert_decrement(defaults);
-   
+
 rule test(True);
     assertDec.test(test_expr); // test_expr : test_expr
 endrule

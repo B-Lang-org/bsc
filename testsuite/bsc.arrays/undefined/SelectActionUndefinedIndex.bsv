@@ -6,5 +6,5 @@ module sysSelectActionUndefinedIndex();
   rule test;
     arr[?];
   endrule
- 
+
 endmodule

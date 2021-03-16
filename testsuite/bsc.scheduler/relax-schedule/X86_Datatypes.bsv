@@ -15,7 +15,7 @@ typedef Bit#(10)  TimeBase;
 typedef Bit#(8)   FPMask;
 typedef Bit#(4)   Immediate;
 typedef Bit#(10)  SPRegAddress;
-typedef Bit#(4)   SegmentAddress; 
+typedef Bit#(4)   SegmentAddress;
 typedef Bit#(5)   Mask;
 typedef Bit#(6)   MaskX;
 typedef Bit#(5)   NumBytes;
@@ -55,7 +55,7 @@ typedef enum
 /*                                            */
 /**********************************************/
 
-typedef union tagged 
+typedef union tagged
 {
   ArithOptions 		FUU_arith;
   LogicOptions  	FUU_logic;
@@ -70,7 +70,7 @@ typedef union tagged
   RotateOptions 	FUU_rotate_left;
   ShiftLeftOptions	FUU_shift_left;
   ShiftRightOptions	FUU_shift_right;
-} 
+}
   FUU_Op deriving(Eq,Bits);
 
 /*************** Arith Subtypes ***************/
@@ -80,7 +80,7 @@ typedef union tagged
 /*                                            */
 /**********************************************/
 
-typedef enum 
+typedef enum
 {
   AAdd,
   ANeg,
@@ -88,7 +88,7 @@ typedef enum
 }
  ArithOp deriving (Bits,Eq);
 
-typedef struct 
+typedef struct
 {
   ArithOp op;
   Bool swapargs;
@@ -108,7 +108,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef enum 
+typedef enum
 {
   LOG_and,
   LOG_or,
@@ -119,7 +119,7 @@ typedef enum
 }
  LogicOp deriving (Bits,Eq);
 
-typedef struct 
+typedef struct
 {
   LogicOp op;
   Bool complement;
@@ -140,7 +140,7 @@ typedef struct
   Bool logical;
   Bool sixtyfour;
 }
-  CompareOptions deriving (Eq,Bits); 
+  CompareOptions deriving (Eq,Bits);
 
 /************** CondReg Subtypes ****************/
 /*                                              */
@@ -186,7 +186,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool unsign;
@@ -202,7 +202,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef enum 
+typedef enum
 {
   EByte,
   EHalfword,
@@ -210,36 +210,36 @@ typedef enum
 }
   ExtendType deriving (Eq,Bits);
 
-typedef struct 
+typedef struct
 {
   ExtendType ext;
   Bool rc;
 }
   ExtendOptions deriving (Eq,Bits);
-  
+
 /***************** FloatingPoint ****************/
 /*                                              */
 /* Groups covered: f                            */
 /* Estimated Bits: 28                           */
 /*                                              */
 /************************************************/
-  
-typedef struct 
+
+typedef struct
 {
   Bool sixtyfour;
   Bool ordered;
 }
   FCondOptions deriving (Eq,Bits);
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool round;
   Bool ordered;
 }
   FConvOptions deriving (Eq,Bits);
-  
-typedef union tagged 
+
+typedef union tagged
 {
   void F_abs;
   Bool F_add;	//Single (fadds) if true
@@ -272,7 +272,7 @@ typedef union tagged
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool unsign;
@@ -289,9 +289,9 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
-  MaskX       mb; // These should be six bit for alignment. 
+  MaskX       mb; // These should be six bit for alignment.
   MaskX       me;
   Bool        rc;
   Bool        partialReplace; // Set when the operation may not completely overwrite old value
@@ -306,13 +306,13 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool rc;
 }
   ShiftLeftOptions deriving (Eq,Bits);
-  
+
 /***************** ShiftRight *******************/
 /*                                              */
 /* Groups covered: sr                           */
@@ -320,7 +320,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool algebraic;
   Bool doubleword;
@@ -338,7 +338,7 @@ typedef struct
 //NOTE: The move group is the least general of
 //      the decoded instruction groups.
 
-typedef union tagged 
+typedef union tagged
 {
   void M_crf;
   void M_crfs;
@@ -349,7 +349,7 @@ typedef union tagged
   void M_fspr;
   void M_fsr;
   void M_fsrin;
-  void M_ftb;	
+  void M_ftb;
   void M_tcrf;
   void M_tfsb0;
   void M_tfsb1;
@@ -361,7 +361,7 @@ typedef union tagged
   void M_tsrin;
 }
   MoveOptions deriving (Eq,Bits);
-  
+
 
 /******************* Load/Store *****************/
 /*                                              */
@@ -369,17 +369,17 @@ typedef union tagged
 /* Estimated Bits: 30                           */
 /*                                              */
 /************************************************/
-  
+
 typedef Either#(RegAddress, SignExtend) LSSource;
 
 typedef enum
 {
   LSLoad,
   LSStore
-} 
+}
   LSOp deriving(Eq,Bits);
 
-typedef enum 
+typedef enum
 {
   LS_byte,
   LS_doubleword,
@@ -391,11 +391,11 @@ typedef enum
   LS_word
 }
   LSType deriving (Eq,Bits);
-  
-typedef struct 
+
+typedef struct
 {
   LSType lstype;
-  LSOp op; 
+  LSOp op;
   Bool reserved_conditional; // for lwarx and swcx. and friends
   Bool byte_reverse;
   Bool algebraic;     // zero otherwise
@@ -403,7 +403,7 @@ typedef struct
   Bool indexed;
 }
   LSU_Op deriving (Eq,Bits);
-  
+
 /****************** TRAP GROUP ******************/
 /*                                              */
 /* The group of traps, system calls, and CCU    */
@@ -436,7 +436,7 @@ typedef enum
   BR_branch_conditional,
   BR_bc_link,
   BR_bc_counter
-} 
+}
   BranchType deriving(Eq,Bits);
 
 typedef struct
@@ -445,7 +445,7 @@ typedef struct
    BranchOptions options;
    Bool absAddress;
    Bool linkBit;
-} 
+}
   BRU_Op deriving (Eq,Bits);
 
 
@@ -474,7 +474,7 @@ typedef enum
   DIO_tlbsync
 }
   DIO_Op deriving (Eq, Bits);
-  
+
 /**************** DataCacheBlock ****************/
 /*                                              */
 /* Groups covered: dcb                          */
@@ -482,7 +482,7 @@ typedef enum
 /*                                              */
 /************************************************/
 
-  
+
 /********** Decoded Instruction Type ************/
 /*                                              */
 /* The main decoded instruction type.           */
@@ -495,14 +495,14 @@ typedef enum
 
 // for the timing model, no need to differentiate Immediate value
 typedef union tagged
-{ 
+{
   RegAddress    SRC_Reg;
   CondAddress   SRC_Cond;
   Bit#(24)      SRC_Immediate;
 }
-  SecondSource deriving(Eq, Bits);  
+  SecondSource deriving(Eq, Bits);
 
-typedef struct 
+typedef struct
 {
   DecodedData                         data;
   Bool                                last_uop;
@@ -576,18 +576,18 @@ endfunction
 
 function Tuple2#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)))
   getDest(DecodedInstruction inst);
-  
+
   function normalDest(i, rc);
-    return case (i.dest) matches    
+    return case (i.dest) matches
       tagged Left .r:
-	return rc? 
+	return rc?
 	  tuple2(Just(r), Just(tuple2(3'b000, 4'b1111)))
 	  : tuple2(Just(r), Nothing);
       tagged Right .c:
 	return tuple2(Nothing, Just(tuple2(c[4:2], 4'b1111)));
       endcase;
   endfunction
-  
+
   return case (inst.data) matches
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -640,7 +640,7 @@ endfunction
 
 function Maybe#(RegAddress)
   getDest2(DecodedInstruction inst);
-  
+
   return case (inst.data) matches
     tagged DEC_LSU .lop:
       return lop.update? case (inst.source1) matches
@@ -657,7 +657,7 @@ endfunction
 
 function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Maybe#(Bit#(64)))
   getSrc1(DecodedInstruction inst);
-   
+
   function normalSrc1(i);
     return case (i.source1) matches
       tagged Left .r:
@@ -666,7 +666,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
         return tuple3(Nothing, Just(tuple2(c[4:2], getCondMask(c[1:0]))), Nothing);
       endcase;
   endfunction
-  
+
   function swapSrc1(i,swap); //This fixes up things for subfze, etc.
     if (swap)
       return case (i.source2) matches
@@ -685,7 +685,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
           return tuple3(Nothing, Just(tuple2(c[4:2], getCondMask(c[1:0]))), Nothing);
 	endcase;
   endfunction
-  
+
   return case (inst.data) matches
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -707,7 +707,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
       return case (bop.btype)
         BR_branch:
 	  return tuple3(Nothing, Nothing, Nothing);
-	BR_branch_conditional:	
+	BR_branch_conditional:
 	  return case (inst.source1) matches
 	    tagged Left .r:
 	      return ?;
@@ -754,7 +754,7 @@ endfunction
 
 function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Maybe#(Bit#(64)))
   getSrc2(DecodedInstruction inst);
-   
+
   function normalSrc2(in, se); //Bool is signExtend vs zeroExtend
     return case (in.source2) matches
       tagged SRC_Reg .r:
@@ -767,7 +767,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
 	  : tuple3(Nothing, Nothing, Just(zeroExtend(i)));
       endcase;
   endfunction
-   
+
   function swapSrc2(i,swap); //This fixes up things for subfze, etc.
     if (swap)
       return case (i.source1) matches
@@ -786,7 +786,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
 	  return tuple3(Nothing, Nothing, Just(signExtend(i)));
 	endcase;
   endfunction
-  
+
   return case (inst.data) matches
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -805,14 +805,14 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
       return normalSrc2(inst, True);
     tagged DEC_BRU .bop:
       return case (bop.btype)
-        BR_branch:	
+        BR_branch:
 	  return case (inst.source2) matches
 	    tagged SRC_Immediate .i:
 	      return tuple3(Nothing, Nothing, Just(signExtend(i)));
 	    default:
 	      return ?;
 	    endcase;
-	BR_branch_conditional:		
+	BR_branch_conditional:
 	  return case (inst.source2) matches
 	    tagged SRC_Immediate .i:
 	      return tuple3(Nothing, Nothing, Just(signExtend(i)));
@@ -847,7 +847,7 @@ endfunction
 
 function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Maybe#(Bit#(64)))
   getSrc3(DecodedInstruction inst);
-  
+
   function normalSrc3(i);
     return case (i.source3) matches
       tagged Left .r:
@@ -856,7 +856,7 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
         return tuple3(Nothing, Just(tuple2(c[4:2], getCondMask(c[1:0]))), Nothing);
       endcase;
   endfunction
-  
+
   return case (inst.data) matches
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -873,13 +873,13 @@ function Tuple3#(Maybe#(RegAddress), Maybe#(Tuple2#(CondField, CondRegMask)), Ma
 	  return normalSrc3(inst);
       endcase;
     endcase;
-  
+
 endfunction
 
 function Bool readsCTR(DecodedInstruction inst);
   return case (inst.data) matches //XXX Also mfspr if spr9
     tagged DEC_BRU .bop:
-      return case (bop.btype) 	
+      return case (bop.btype)
         BR_bc_counter:
 	  return True;
 	default:
@@ -894,7 +894,7 @@ endfunction
 function Bool readsLNK(DecodedInstruction inst);
   return case (inst.data) matches //XXX Also mtspr/mfspr if spr8
     tagged DEC_BRU .bop:
-      return case (bop.btype) 	
+      return case (bop.btype)
         BR_bc_link:
 	  return True;
 	default:
@@ -906,7 +906,7 @@ function Bool readsLNK(DecodedInstruction inst);
 endfunction
 
 function Bool readsXER(DecodedInstruction inst);
-  
+
   return case (inst.data) matches //XXX Also mtspr/mfspr and mcrxr
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -941,7 +941,7 @@ function Bool writesLNK(DecodedInstruction inst);
 endfunction
 
 function Bool writesXER(DecodedInstruction inst);
-  
+
   return case (inst.data) matches //XXX Also mtspr/mfspr and mcrxr
     tagged DEC_FUU .fop:
       return case (fop) matches
@@ -962,7 +962,7 @@ endfunction
 
 
 function Bool isStore(DecodedInstruction inst);
-  
+
   return case (inst.data) matches //XXX Also mtspr/mfspr and mcrxr
     tagged DEC_LSU .lop:
       return case (lop.op) matches
@@ -987,12 +987,12 @@ function Bool isJump(Bit#(32) ins);
     6'b010000,
     6'b010010:
       return True;
-    6'b010011: 
+    6'b010011:
       return case (ins[10:1])
 	10'b0000010000,
-	10'b1000010000: 
+	10'b1000010000:
           return True;
-	default: 
+	default:
           return False;
       endcase;
     default:

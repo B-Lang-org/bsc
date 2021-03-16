@@ -48,12 +48,12 @@ module mkTestbench_MapAccumR();
       $display("MapAccumL ListN:");
       display_list (tpl_2(result));
 	  $display("Accumaltor = %d",tpl_1(result));
-      if ((my_list2 != tpl_2(result)) || (tpl_1(result) != 25)) 
+      if ((my_list2 != tpl_2(result)) || (tpl_1(result) != 25))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_MapAccumR
 endpackage : MapAccumR

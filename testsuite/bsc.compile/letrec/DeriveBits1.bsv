@@ -22,7 +22,7 @@ module sysDeriveBits1();
     $display(a);
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

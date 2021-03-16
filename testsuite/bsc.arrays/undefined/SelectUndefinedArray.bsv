@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysSelectUndefinedArray();
-  
+
   UInt#(17) arr[4] = ?;
 
   Reg#(Bool) r <- mkReg(False);

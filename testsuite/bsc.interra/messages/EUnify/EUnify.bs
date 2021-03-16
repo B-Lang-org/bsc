@@ -6,7 +6,7 @@
 -- Author : Amit Grover      <amit@noida.interrasystems.com>
 
 -- Description: This testcase triggers the EUnify error of the bluespec
--- compiler 
+-- compiler
 --
 -----------------------------------------------------------------------
 

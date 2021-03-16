@@ -12,7 +12,7 @@ module sysClockDivFifo1() ;
    Clock clkA <- mkAbsoluteClock( 15,10 ) ;
    Reset rstA() ;
    mkInitialReset#(5) iRstA( rstA, clocked_by clkA ) ;
-   
+
    // divide the clock
    ClockDividerIfc divClock() ;
    mkClockDividerOffset#( 8, 2 ) iClkD( clocked_by(clkA), divClock, reset_by(rstA) ) ;
@@ -21,7 +21,7 @@ module sysClockDivFifo1() ;
    // We need a reset for the B domain as well
    Reset rstB() ;
    mkInitialReset#(3) iRstB( rstB, clocked_by clkB ) ;
-   
+
    // Some counters for each clock
    Reg#(Common)  areg();
    mkReg#(0) iareg(areg, clocked_by clkA, reset_by rstA ) ;
@@ -31,12 +31,12 @@ module sysClockDivFifo1() ;
 
    // A register to do synchronized crossings
    SyncFIFOIfc#(Common)  crossfifo() ;
-   mkSyncFIFOToSlow#(1)  cFS( divClock, rstB, 
+   mkSyncFIFOToSlow#(1)  cFS( divClock, rstB,
                                 crossfifo ) ;
 
    // A register to do synchronized crossings
    SyncFIFOIfc#(Common)  crossfifoF() ;
-   mkSyncFIFOToFast#(2)  cFF( divClock, rstB, 
+   mkSyncFIFOToFast#(2)  cFF( divClock, rstB,
                                 crossfifoF ) ;
 
    function ActionValue#(Bit#(64)) adjusted_time(Bit#(64) lag);
@@ -78,7 +78,7 @@ module sysClockDivFifo1() ;
    rule b1 ( breg > 5 ) ;
       let cr = crossfifo.first ;  crossfifo.deq ;
       $display("b  rl fired at %d, breg = %d, crossfifoTS = %d ", adjusted_time(40), breg, cr ) ;
-      
+
    endrule
 
 

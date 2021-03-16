@@ -22,7 +22,7 @@ Testing f:
 16'hFFFF << 4'b1110 = 16'b1100000000000000
 16'hFFFF << 4'b1111 = 16'b1000000000000000
 Done
- 
+
 -----------------------------------------------------------------------------*/
 
 import Example3Q::*;
@@ -36,7 +36,7 @@ module mkTb3 (Empty);
 
    Reg#(State) state();
    mkReg#(Start) state_r(state);
-   
+
    rule test;
       case (state) matches
 
@@ -44,7 +44,7 @@ module mkTb3 (Empty);
 	    $display("Testing f:");
 	    state <= Test(0);
 	 end
-	 
+
 	 tagged Test .s : begin
 	    $display("16'hFFFF << 4'b%b = 16'b%b", s, f(s, 16'hFFFF));
 	    if (s == 15) begin
@@ -57,6 +57,6 @@ module mkTb3 (Empty);
 
       endcase
    endrule
-   
+
 endmodule
 

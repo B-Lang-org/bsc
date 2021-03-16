@@ -57,4 +57,4 @@ function Bit#(n) fromReg ( Reg#(Bit#(n)) x );
    return x._read();
 endfunction
 
-   
+

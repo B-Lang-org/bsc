@@ -17,11 +17,11 @@ interface Combined#(type a) ;
 
 endinterface
 
-      
+
 (* synthesize  *)
 module mkSmallTest7 ( Combined#(int) ) ;
 
-   
+
 
 endmodule
 

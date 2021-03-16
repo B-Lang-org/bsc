@@ -9,7 +9,7 @@ module mkMod ( Clock aClk, Reset aRst,
 
    input_clock aClk(A_CLK, A_CLKGATE) = aClk ;
    input_reset aRst(A_RSTN) clocked_by (aClk) = aRst ;
-   
+
    port D_IN clocked_by (aClk) reset_by (aRst) = 1;
 
 endmodule

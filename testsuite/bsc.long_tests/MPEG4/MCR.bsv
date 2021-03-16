@@ -8,9 +8,9 @@ import FIFOF::* ;
 import Div::* ;
 import ConfigReg :: *;
 
-typedef enum {IDLE, 
-              WAIT_LATCH, 
-              LATCH, 
+typedef enum {IDLE,
+              WAIT_LATCH,
+              LATCH,
               START_READ_FIFO,
               CONT_READ_FIFO,
               PROCESS_MV,
@@ -19,12 +19,12 @@ typedef enum {IDLE,
               PROCESS_ODDEVEN_MV,
               PROCESS_EVENODD_MV,
               PROCESS_ODDODD_MV} HSstates
-        deriving (Eq,Bits);  
+        deriving (Eq,Bits);
 
 typedef Tuple2#(Bit#(a), Bit#(a)) Strobe#(type a)  ;
 
 interface MCR_IFC;
-  //Method used to set all inputs 
+  //Method used to set all inputs
   method Action start(Bit#(1) rsValid,
                       Bit#(9) rsPixelVal,
                       Bit#(9) mbNum,
@@ -37,13 +37,13 @@ interface MCR_IFC;
                       Bit#(48) mvx1,
                       Bit#(48) mvy1,
                       Bit#(8) refPixelValue,
-                      Bit#(2) level); 
+                      Bit#(2) level);
   method Bit#(1) rd_MV() ;
   method Bit#(18) refFrame_addr() ;
   method Bit#(1) rd_refFrame() ;
   method Bit#(1) pixelValid() ;
   method Bit#(8) pixelVal() ;
-  method Bit#(18) curFrame_addr() ;  
+  method Bit#(18) curFrame_addr() ;
 endinterface : MCR_IFC
 
 (* synthesize ,
@@ -186,29 +186,29 @@ module mkMCR (MCR_IFC);
   Reg#(Bool)        full_flag_d();
   mkReg#(False)     the_full_flag_d(full_flag_d);
 
-  Bit#(2)           tmp_level = validValue(level.wget); 
+  Bit#(2)           tmp_level = validValue(level.wget);
   Bit#(4)           tmp_cbpy = fromMaybe(0 ,cbpy.wget);
   Bit#(2)           tmp_cbpc = fromMaybe(0 ,cbpc.wget);
   //Bit#(3)           tmp_blkNum = validValue(blkNum.wget);
   Bit#(3)           tmp_blkNum = blkNum;
-  Bool              fifo_rd_cnd = (mb_coded.wget == Valid(0)) && 
+  Bool              fifo_rd_cnd = (mb_coded.wget == Valid(0)) &&
                                    ((tmp_blkNum == 0 && (tmp_cbpy[3] == 1)) ||
                                     (tmp_blkNum == 1 && (tmp_cbpy[2] == 1)) ||
                                     (tmp_blkNum == 2 && (tmp_cbpy[1] == 1)) ||
                                     (tmp_blkNum == 3 && (tmp_cbpy[0] == 1)) ||
                                     (tmp_blkNum == 4 && (tmp_cbpc[1] == 1)) ||
                                     (tmp_blkNum == 5 && (tmp_cbpc[0] == 1)));
- 
-  Bit#(18)  width = ((tmp_level[1] == 1)? 22 : 11) * 
+
+  Bit#(18)  width = ((tmp_level[1] == 1)? 22 : 11) *
                     ((tmp_blkNum[2] == 1) ? 8 : 16);
-  Bit#(18)  height = ((tmp_level[1] == 1) ? 18 : 9) * 
+  Bit#(18)  height = ((tmp_level[1] == 1) ? 18 : 9) *
                      ((tmp_blkNum[2] == 1) ? 8 : 16);
-  Bit#(18)  memOffset = (tmp_blkNum < 4) ? 0 : 
-                         ((tmp_blkNum == 4) ? 
-					     ((tmp_level[1] == 1) ? 18'd101376 : 18'd25344): 
+  Bit#(18)  memOffset = (tmp_blkNum < 4) ? 0 :
+                         ((tmp_blkNum == 4) ?
+					     ((tmp_level[1] == 1) ? 18'd101376 : 18'd25344):
 					     ((tmp_level[1] == 1) ? 18'd126720 : 18'd31680));
 
-  Bit#(8) tmp_compare = 8'd10*{4'd0,addr_cnt_i} + {4'd0,addr_cnt_j}; 
+  Bit#(8) tmp_compare = 8'd10*{4'd0,addr_cnt_i} + {4'd0,addr_cnt_j};
 
   Bit#(9) tmp_mbNum   = validValue(mbNum.wget);
   Bit#(9) frm_size    = (tmp_level[1] == 1) ? 9'd395 : 9'd98;
@@ -219,18 +219,18 @@ module mkMCR (MCR_IFC);
 		                 18'd8 :
 		                 18'd16 ;
 
-  Bit#(4) x_offset = (tmp_blkNum == 0)  ? 0 : 
+  Bit#(4) x_offset = (tmp_blkNum == 0)  ? 0 :
                      ((tmp_blkNum == 1) ? 8 :
                      ((tmp_blkNum == 2) ? 0 :
                      ((tmp_blkNum == 3) ? 8 : 0 )));
-	
-  Bit#(4) y_offset = (tmp_blkNum == 0)  ? 0 : 
+
+  Bit#(4) y_offset = (tmp_blkNum == 0)  ? 0 :
                      ((tmp_blkNum == 1) ? 0 :
                      ((tmp_blkNum == 2) ? 8 :
                      ((tmp_blkNum == 3) ? 8 : 0 )));
-	
 
-// Function to check if the x-coordinate of 
+
+// Function to check if the x-coordinate of
 // reference block is within the frame
 // it returns boundary value if out of frame.
   function Bit#(18) checkX(Bit#(18) x,Bit#(18) wdth);
@@ -242,7 +242,7 @@ module mkMCR (MCR_IFC);
 	   return(x);
   endfunction
 
-// Function to check if the y-coordinate of 
+// Function to check if the y-coordinate of
 // reference block is within the frame
 // it returns boundary value if out of frame.
   function Bit#(18) checkY(Bit#(18) y,Bit#(18) heght);
@@ -264,26 +264,26 @@ module mkMCR (MCR_IFC);
   else
     return(in_data[7:0]);
   endfunction
- 
+
 // function to calculate current frame address
 // for storing pixels in frame buffer
-  function Bit#(18) curFrame_addr_func(Tuple3#(Bit#(1), Bit#(5),Bit#(5)) tmp_mbNum_remdiv1, 
-                                       Bit#(18) mult_factor1, 
-                                       Bit#(4) y_offset1, 
-                                       Bit#(6) pixelcnt11, 
-                                       Bit#(18) width1, 
-                                       Bit#(4) x_offset1, 
+  function Bit#(18) curFrame_addr_func(Tuple3#(Bit#(1), Bit#(5),Bit#(5)) tmp_mbNum_remdiv1,
+                                       Bit#(18) mult_factor1,
+                                       Bit#(4) y_offset1,
+                                       Bit#(6) pixelcnt11,
+                                       Bit#(18) width1,
+                                       Bit#(4) x_offset1,
                                        Bit#(18) memOffset1);
-      return((zeroExtend(tpl_3(tmp_mbNum_remdiv1)) * 
-		                       zeroExtend(mult_factor1) + 
-		                       zeroExtend(y_offset1) + 
+      return((zeroExtend(tpl_3(tmp_mbNum_remdiv1)) *
+		                       zeroExtend(mult_factor1) +
+		                       zeroExtend(y_offset1) +
 							   zeroExtend(pixelcnt11[2:0])
-							  ) * zeroExtend(width1) + 
-							  (zeroExtend(tpl_2(tmp_mbNum_remdiv1)) * 
-							   zeroExtend(mult_factor1) + 
-							   zeroExtend(x_offset1) + 
+							  ) * zeroExtend(width1) +
+							  (zeroExtend(tpl_2(tmp_mbNum_remdiv1)) *
+							   zeroExtend(mult_factor1) +
+							   zeroExtend(x_offset1) +
 							   zeroExtend(pixelcnt11[5:3])
-							  ) + 
+							  ) +
 							  memOffset1);
   endfunction
 
@@ -301,7 +301,7 @@ module mkMCR (MCR_IFC);
         begin
 	   if (x == 63)
 	      rsdatacnt <= Invalid;
-	   else 
+	   else
 	      begin
 		 rsdatacnt <= Valid( x + 1);
 		 if (isValid(rsPixelVal.wget))
@@ -311,7 +311,7 @@ module mkMCR (MCR_IFC);
 	      end
 	end
   endrule
-	   
+
 // motion compensation state machine is active only
 // when headers for the blocks are available
 /*
@@ -335,7 +335,7 @@ module mkMCR (MCR_IFC);
 
   rule wait_for_hdr_rdy (state == IDLE);
     idct_data_cnt <= 0;
-    if (hdr_rdy1.wget == Valid(1)) 
+    if (hdr_rdy1.wget == Valid(1))
 	   begin
 	     idct_data <= 0;
 		 if (tmp_blkNum == 0)
@@ -392,14 +392,14 @@ module mkMCR (MCR_IFC);
 	    pixelVal_reg <= saturate(signExtend(tmp_val));
 	    datafifo.deq;
 		pixelValid_reg <= 1'b1;
-		curFrame_addr_reg <= (zeroExtend(tpl_3(tmp_mbNum_remdiv)) * 
-		                      zeroExtend(mult_factor) + 
+		curFrame_addr_reg <= (zeroExtend(tpl_3(tmp_mbNum_remdiv)) *
+		                      zeroExtend(mult_factor) +
 		                      zeroExtend(y_offset)
-							 ) * zeroExtend(width) + 
-							 (zeroExtend(tpl_2(tmp_mbNum_remdiv)) * 
-							  zeroExtend(mult_factor) + 
+							 ) * zeroExtend(width) +
+							 (zeroExtend(tpl_2(tmp_mbNum_remdiv)) *
+							  zeroExtend(mult_factor) +
 							  zeroExtend(x_offset)
-							 ) + 
+							 ) +
 							 memOffset;
 		pixelcnt <= 1;
 		state <= CONT_READ_FIFO;
@@ -411,16 +411,16 @@ module mkMCR (MCR_IFC);
 	    datafifo.deq;
 		pixelValid_reg <= 1'b1;
 	    pixelcnt <= pixelcnt + 1;
-		curFrame_addr_reg <= (zeroExtend(tpl_3(tmp_mbNum_remdiv)) * 
-		                      zeroExtend(mult_factor) + 
-		                      zeroExtend(y_offset) + 
+		curFrame_addr_reg <= (zeroExtend(tpl_3(tmp_mbNum_remdiv)) *
+		                      zeroExtend(mult_factor) +
+		                      zeroExtend(y_offset) +
 							  zeroExtend(pixelcnt[2:0])
-							 ) * zeroExtend(width) + 
-							 (zeroExtend(tpl_2(tmp_mbNum_remdiv)) * 
-							  zeroExtend(mult_factor) + 
-							  zeroExtend(x_offset) + 
+							 ) * zeroExtend(width) +
+							 (zeroExtend(tpl_2(tmp_mbNum_remdiv)) *
+							  zeroExtend(mult_factor) +
+							  zeroExtend(x_offset) +
 							  zeroExtend(pixelcnt[5:3])
-							 ) + 
+							 ) +
 							 memOffset;
 		if (pixelcnt[5:0] == 63)
 		   begin
@@ -430,7 +430,7 @@ module mkMCR (MCR_IFC);
 		       blkNum <= blkNum + 1;
 		   end
 	  end
-	else 
+	else
 	  begin
 	    pixelValid_reg <= 1'b0;
 	    pixelVal_reg <= 0;
@@ -486,8 +486,8 @@ module mkMCR (MCR_IFC);
     Bit#(16) tmp_MVy1 = 0;
     Bit#(16) mv_x = 0;
     Bit#(16) mv_y = 0;
-     //case (validValue(blkNum.wget)) 
-     case (blkNum) 
+     //case (validValue(blkNum.wget))
+     case (blkNum)
 	   3'b000   :begin
 				  mv_x = signExtend(mvx[47:36]);
 				  mv_y = signExtend(mvy[47:36]);
@@ -505,13 +505,13 @@ module mkMCR (MCR_IFC);
 				  mv_y = signExtend(mvy[11:0]);
 	            end
 	   default :begin
-				  sumMV_x = signExtend(mvx[47:36]) + 
-				            signExtend(mvx[35:24]) + 
-				            signExtend(mvx[23:12]) + 
+				  sumMV_x = signExtend(mvx[47:36]) +
+				            signExtend(mvx[35:24]) +
+				            signExtend(mvx[23:12]) +
 				            signExtend(mvx[11:0]);
-				  sumMV_y = signExtend(mvy[47:36]) + 
-				            signExtend(mvy[35:24]) + 
-				            signExtend(mvy[23:12]) + 
+				  sumMV_y = signExtend(mvy[47:36]) +
+				            signExtend(mvy[35:24]) +
+				            signExtend(mvy[23:12]) +
 				            signExtend(mvy[11:0]);
 				  signMVx = sumMV_x[15];
 				  signMVy = sumMV_y[15];
@@ -534,9 +534,9 @@ module mkMCR (MCR_IFC);
 		tmp_MVy1 = {mv_y[15],mv_y[15:1]};
 		mvx_reg <= mv_x;
 		mvy_reg <= mv_y;
-		actualX <= {13'd0,tpl_2(tmp_mbNum_remdiv)} * mult_factor + 
+		actualX <= {13'd0,tpl_2(tmp_mbNum_remdiv)} * mult_factor +
 		           signExtend(tmp_MVx1) + {14'd0,x_offset};
-		actualY <= {13'd0,tpl_3(tmp_mbNum_remdiv)} * mult_factor + 
+		actualY <= {13'd0,tpl_3(tmp_mbNum_remdiv)} * mult_factor +
 		           signExtend(tmp_MVy1) + {14'd0,y_offset};
 		state   <= CHECK_MV ;
   endrule
@@ -571,18 +571,18 @@ module mkMCR (MCR_IFC);
 	       //$display("actualX = %h actualY = %h ",actualX,actualY);
 	    end
   endrule
-  
+
 // rule to read residual pixelvalues from the IDCT input fifo
   rule process_eveneven_getdatafifo ((((addr_cnt >= 1) && (state == PROCESS_EVENEVEN_MV)) ||
-									 ((tmp_compare >= 12) && (state == PROCESS_ODDEVEN_MV)) || 
-									 ((tmp_compare >= 3)  && (state == PROCESS_EVENODD_MV)) || 
-									 ((tmp_compare >= 14)  && (state == PROCESS_ODDODD_MV))) 
+									 ((tmp_compare >= 12) && (state == PROCESS_ODDEVEN_MV)) ||
+									 ((tmp_compare >= 3)  && (state == PROCESS_EVENODD_MV)) ||
+									 ((tmp_compare >= 14)  && (state == PROCESS_ODDODD_MV)))
                                       && fifo_rd_cnd);
-     if (datafifo.notEmpty && 
-	     (((addr_cnt < 65)  && (state == PROCESS_EVENEVEN_MV)) || 
-	     ((!(addr_cnt_i == 9 && addr_cnt_j == 3)) && (state == PROCESS_ODDEVEN_MV)) || 
-		 ((!(addr_cnt_i == 8 && addr_cnt_j == 4)) && (state == PROCESS_EVENODD_MV)&& (a_cnt != 0)) || 
-	     ((!(addr_cnt_i == 9 && addr_cnt_j == 4)) && (state == PROCESS_ODDODD_MV) && (a_cnt != 0))  
+     if (datafifo.notEmpty &&
+	     (((addr_cnt < 65)  && (state == PROCESS_EVENEVEN_MV)) ||
+	     ((!(addr_cnt_i == 9 && addr_cnt_j == 3)) && (state == PROCESS_ODDEVEN_MV)) ||
+		 ((!(addr_cnt_i == 8 && addr_cnt_j == 4)) && (state == PROCESS_EVENODD_MV)&& (a_cnt != 0)) ||
+	     ((!(addr_cnt_i == 9 && addr_cnt_j == 4)) && (state == PROCESS_ODDODD_MV) && (a_cnt != 0))
 		 ) && (idct_data_cnt != 64)
 		)
 	   begin
@@ -656,7 +656,7 @@ module mkMCR (MCR_IFC);
 		         addr_cnt_i <= addr_cnt_i + 1;
 			     addr_cnt_j <= 4'd0;
 		       end
-		     else 
+		     else
 		       addr_cnt_j <= addr_cnt_j + 1;
 	       end
 	     else if (addr_cnt_i == 9 && addr_cnt_j == 3)
@@ -672,7 +672,7 @@ module mkMCR (MCR_IFC);
 		     else
 		       blkNum <= blkNum + 1;
 	       end
-	     else 
+	     else
 	       begin
 	         rd_refFrame_reg <= 1'b0;
 	         addr_cnt_j <= addr_cnt_j + 1;
@@ -681,10 +681,10 @@ module mkMCR (MCR_IFC);
 
   rule process_oddeven_getrefdata1 ((state == PROCESS_ODDEVEN_MV) && (tmp_compare >= 2));
 	 a <= {8'd0,a[63:0],validValue(refPixelValue.wget)};
-  endrule 
+  endrule
 
-  rule process_oddeven_outdata ((state == PROCESS_ODDEVEN_MV) && 
-                                (tmp_compare >= 13) && 
+  rule process_oddeven_outdata ((state == PROCESS_ODDEVEN_MV) &&
+                                (tmp_compare >= 13) &&
 								!(addr_cnt_i == 9 && addr_cnt_j == 3));
 	 Bit#(16) tmp_pixelVal_reg0 = ({8'd0,a[71:64]} + {8'd0,a[7:0]} + 1) >> 1 ;
 	 Bit#(16) tmp_pixelVal_reg = tmp_pixelVal_reg0 + idct_data;
@@ -694,7 +694,7 @@ module mkMCR (MCR_IFC);
 	     pixelVal_reg <= saturate(tmp_pixelVal_reg);
 	     pixelValid_reg <= 1'b1;
 	     curFrame_addr_reg <= curFrame_addr_func(tmp_mbNum_remdiv,mult_factor,y_offset,pixelcnt1,width,x_offset,memOffset);
-  endrule 
+  endrule
 
 // rule generating the reference addresses in case of
 // x-motion vector being even and y-motion vector being odd
@@ -711,7 +711,7 @@ module mkMCR (MCR_IFC);
 		         addr_cnt_i <= addr_cnt_i + 1;
 			     addr_cnt_j <= 4'd0;
 		       end
-		     else 
+		     else
 		       addr_cnt_j <= addr_cnt_j + 1;
 	       end
 	     else if (addr_cnt_i == 8 && addr_cnt_j == 4)
@@ -727,7 +727,7 @@ module mkMCR (MCR_IFC);
 		     else
 		       blkNum <= blkNum + 1;
 	       end
-	     else 
+	     else
 	       begin
 	         rd_refFrame_reg <= 1'b0;
 	         addr_cnt_j <= addr_cnt_j + 1;
@@ -750,10 +750,10 @@ module mkMCR (MCR_IFC);
 		     else
 		       a_cnt <= a_cnt + 1;
 	       end
-  endrule 
+  endrule
 
-  rule process_evenodd_outdata ((state == PROCESS_EVENODD_MV) && 
-                                (tmp_compare >= 4) && 
+  rule process_evenodd_outdata ((state == PROCESS_EVENODD_MV) &&
+                                (tmp_compare >= 4) &&
 								!(addr_cnt_i == 8 && addr_cnt_j == 4));
 	 Bit#(16) tmp_pixelVal_reg01 = ({8'd0,a0} + {8'd0,a1} + 1) >> 1 ;
 	 Bit#(16) tmp_pixelVal_reg = tmp_pixelVal_reg01 + idct_data;
@@ -764,7 +764,7 @@ module mkMCR (MCR_IFC);
 	         pixelValid_reg <= 1'b0;
 		     pixcnt <= 0;
 	       end
-	     else 
+	     else
 	       begin
 		     pixcnt <= pixcnt + 1;
 		     pixelcnt1 <= pixelcnt1 + 1;
@@ -772,7 +772,7 @@ module mkMCR (MCR_IFC);
 	         pixelValid_reg <= 1'b1;
 	         curFrame_addr_reg <= curFrame_addr_func(tmp_mbNum_remdiv,mult_factor,y_offset,pixelcnt1,width,x_offset,memOffset);
 	       end
-  endrule 
+  endrule
 
 // rule generating the reference addresses in case of
 // both motion vectors being odd.
@@ -789,7 +789,7 @@ module mkMCR (MCR_IFC);
 		         addr_cnt_i <= addr_cnt_i + 1;
 			     addr_cnt_j <= 4'd0;
 		       end
-		     else 
+		     else
 		       addr_cnt_j <= addr_cnt_j + 1;
 	       end
 	     else if (addr_cnt_i == 9 && addr_cnt_j == 4)
@@ -805,7 +805,7 @@ module mkMCR (MCR_IFC);
 		     else
 		       blkNum <= blkNum + 1;
 	       end
-	     else 
+	     else
 	       begin
 	         rd_refFrame_reg <= 1'b0;
 	         addr_cnt_j <= addr_cnt_j + 1;
@@ -814,9 +814,9 @@ module mkMCR (MCR_IFC);
 
   rule process_oddodd_getrefdata1 ((state == PROCESS_ODDODD_MV) && (tmp_compare >= 2));
 	 a <= {a[71:0],validValue(refPixelValue.wget)};
-  endrule 
+  endrule
 
-  rule process_oddodd_sumdata ((state == PROCESS_ODDODD_MV) && 
+  rule process_oddodd_sumdata ((state == PROCESS_ODDODD_MV) &&
                                 (tmp_compare >= 13) &&
 	                            !(addr_cnt_i == 9 && addr_cnt_j == 4));
 	     if (a_cnt == 0)
@@ -834,10 +834,10 @@ module mkMCR (MCR_IFC);
 		     else
 		       a_cnt <= a_cnt + 1;
 	       end
-  endrule 
+  endrule
 
-  rule process_oddodd_outdata ((state == PROCESS_ODDODD_MV) && 
-                                (tmp_compare >= 15) && 
+  rule process_oddodd_outdata ((state == PROCESS_ODDODD_MV) &&
+                                (tmp_compare >= 15) &&
 								!(addr_cnt_i == 9 && addr_cnt_j == 5));
 	 Bit#(16) tmp_pixelVal_reg11 = (sumCol1 + sumCol2 + {14'd0,2'd2}) >> 2 ;
 	 Bit#(16) tmp_pixelVal_reg1 = tmp_pixelVal_reg11 + idct_data;
@@ -848,7 +848,7 @@ module mkMCR (MCR_IFC);
 	         pixelValid_reg <= 1'b0;
 		     pixcnt <= 0;
 	       end
-	     else 
+	     else
 	       begin
 		     pixcnt <= pixcnt + 1;
 		     pixelcnt1 <= pixelcnt1 + 1;
@@ -856,7 +856,7 @@ module mkMCR (MCR_IFC);
 	         pixelValid_reg <= 1'b1;
 	         curFrame_addr_reg <= curFrame_addr_func(tmp_mbNum_remdiv,mult_factor,y_offset,pixelcnt1,width,x_offset,memOffset);
 	       end
-  endrule 
+  endrule
 
   method start (rsValid1,
                 rsPixelVal1,
@@ -886,7 +886,7 @@ module mkMCR (MCR_IFC);
 	  level.wset(level1);
 	endaction
   endmethod : start
-    
+
   method rd_MV() ;
     rd_MV = rd_MV_reg;
   endmethod : rd_MV

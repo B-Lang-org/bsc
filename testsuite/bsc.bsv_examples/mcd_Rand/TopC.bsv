@@ -21,7 +21,7 @@ module mkTop(Empty);
       if (ctr==250) greg1 <= True;
       if (ctr==320) fr1 <= 7;
       if (ctr==400) $finish(0);
-      
+
       ctr <= ctr+1;
    endrule
 

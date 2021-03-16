@@ -33,11 +33,11 @@ endfunction
 module mkTestbench_Zip();
    ListN #(5,Int #(5)) my_list1 = cons (0, cons (1, cons (2, cons (3, cons (4, nil)))));
    ListN #(5,Int #(5)) my_list2 = cons (5, cons (6, cons (7, cons (8, cons (9, nil)))));
-   ListN #(5,Tuple2#(Int #(5),Int #(5))) my_list3 = 
-           cons (tuple2 (0,5), 
-           cons (tuple2 (1,6), 
-           cons (tuple2 (2,7), 
-           cons (tuple2 (3,8), 
+   ListN #(5,Tuple2#(Int #(5),Int #(5))) my_list3 =
+           cons (tuple2 (0,5),
+           cons (tuple2 (1,6),
+           cons (tuple2 (2,7),
+           cons (tuple2 (3,8),
            cons (tuple2 (4,9), nil)))));
 
 
@@ -48,12 +48,12 @@ module mkTestbench_Zip();
       display_list (my_list2);
       $display("Zipped ListN:");
       display_list1 (zip(my_list1, my_list2));
-      if (my_list3 != zip (my_list1, my_list2)) 
+      if (my_list3 != zip (my_list1, my_list2))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Zip
 endpackage : Zip

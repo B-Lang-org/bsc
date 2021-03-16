@@ -30,7 +30,7 @@ module mkWBMasterConfigs (WBMasterConfigs);
 	 initialized <= True;
       endmethod
    endinterface
-   
+
    method _read() if (initialized);
       let min_addr = BusAddr { data: ('h7ff + 1), tag: unpack(0) };
       let max_addr = BusAddr { data:       50000, tag: unpack(0) };
@@ -41,7 +41,7 @@ module mkWBMasterConfigs (WBMasterConfigs);
 				    max_n_wss: max_n_wss
 				    };
    endmethod
-   
+
 
 endmodule
 
@@ -67,7 +67,7 @@ module mkWBSlaveConfigs (WBSlaveConfigs);
 	 initialized <= True;
       endmethod
    endinterface
-   
+
    method _read() if (initialized);
       let min_addr = BusAddr { data: ('h7ff + 1), tag: unpack(0) };
       let max_addr = BusAddr { data: 'hFFFF_FFFF, tag: unpack(0) };
@@ -78,7 +78,7 @@ module mkWBSlaveConfigs (WBSlaveConfigs);
 				   max_n_wss: max_n_wss
 				   };
    endmethod
-   
+
 
 endmodule
 

@@ -22,7 +22,7 @@ endinterface
 module mkSimpleRam (SimpleRamIFC#(addr_t, data_t))
    provisos(Bits#(addr_t, saddr_t), Eq#(addr_t), Bounded#(addr_t),
 	    Bits#(data_t, sdata_t), Eq#(data_t));
-   
+
    RegFile#(addr_t , data_t) mem <- mkRegFile(minBound, maxBound);
 
    method data_t read (addr_t addr);
@@ -34,7 +34,7 @@ module mkSimpleRam (SimpleRamIFC#(addr_t, data_t))
    endmethod
 
 endmodule
-   
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

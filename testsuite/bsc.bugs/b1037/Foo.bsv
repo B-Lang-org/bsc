@@ -16,8 +16,8 @@ module sysFoo (Empty);
       $finish(0) ;
    endrule
 
-   
-   
+
+
 endmodule
 
 endpackage: Foo

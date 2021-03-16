@@ -30,14 +30,14 @@ mkGCD =
 
 	y :: Reg (Int 32)
 	y <- mkReg 0
-       
+
         let string = if y/=0 then
                         "Swap"
                      else
                         "Subtract"
- 
+
         rules
-           
+
 	  string:
 	    when x > y, y /= 0
 	      ==> action

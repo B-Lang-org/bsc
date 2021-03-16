@@ -10,7 +10,7 @@ module mkTestbench_Spew ();
 
    Empty des();
    spew #(src) the_des(des);
-   
+
    rule done;
       let t <- $time();
       if (t > 1005)

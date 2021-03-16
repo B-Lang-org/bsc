@@ -10,5 +10,5 @@ module sysUpdateVectorUndefinedIndex();
   rule test;
     $displayh(vec);
   endrule
- 
+
 endmodule

@@ -8,7 +8,7 @@ typedef Bit#(32)  Common ;
 
 (* synthesize *)
 module sysLevelFIFOTest1() ;
-      
+
    // Some counters for each clock
    Reg#(Common)  areg <- mkReg(0) ;
    Reg#(Common)  breg <- mkReg(0) ;
@@ -18,11 +18,11 @@ module sysLevelFIFOTest1() ;
 
    // The hardware under test -- a level fifo
    FIFOLevelIfc#(Common,128) fifo <- mkFIFOLevel ;
-  
-   // Define some constants 
+
+   // Define some constants
    let fifoAlmostFull = fifo.isGreaterThan( 120 ) ;
    let fifoAlmostEmpty = fifo.isLessThan( 10 ) ;
-  
+
    // a register to indicate a burst mode
    Reg#(Bool)  burstOut <- mkConfigReg( False ) ;
 
@@ -30,14 +30,14 @@ module sysLevelFIFOTest1() ;
    rule dtimeToDeque( fifoAlmostFull && ! burstOut  ) ;
       $display( "%t: fifo almost full", $time ) ;
       burstOut <= True ;
-   endrule  
+   endrule
 
    rule timeToStop ( fifoAlmostEmpty && burstOut );
       $display( "%t: fifo almost empty", $time ) ;
       burstOut <= False ;
    endrule
 
-  
+
    rule moveData ( burstOut ) ;
       let dataToSend = fifo.first ;
       fifo.deq ;

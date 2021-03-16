@@ -9,7 +9,7 @@ module sysEUndetClock2(Empty);
 
   Reg#(Bool) r();
   mkReg#(False) the_r(r, clocked_by c);
- 
+
 endmodule
 
 

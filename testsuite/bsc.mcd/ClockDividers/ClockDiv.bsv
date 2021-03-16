@@ -10,7 +10,7 @@ module sysClockDiv() ;
    Clock clkA <- mkAbsoluteClock( 15,10 ) ;
    Reset rstA() ;
    mkAsyncResetFromCR#(2) iRstA( clkA, rstA ) ;
-   
+
    // divide the clock
    ClockDividerIfc divClock() ;
    mkClockDividerOffset#( 3, 0) iclkD(  clocked_by(clkA), divClock, reset_by(rstA) ) ;
@@ -19,14 +19,14 @@ module sysClockDiv() ;
    // We need a reset for the B domain as well
    Reset rstB() ;
    mkAsyncReset#(2) iRstB( rstA, clkB, rstB ) ;
-   
+
    // Some counters for each clock
    Reg#(int)  areg();
    mkReg#(0) iareg(areg, clocked_by clkA, reset_by rstA ) ;
 
    Reg#(int)  breg();
    mkReg#(0) ibreg(breg, clocked_by clkB, reset_by rstB ) ;
-   
+
    function ActionValue#(Bit#(64)) adjusted_time(Bit#(64) lag);
    actionvalue
      let t <- $time;

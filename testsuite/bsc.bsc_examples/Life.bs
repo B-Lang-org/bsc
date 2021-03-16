@@ -50,7 +50,7 @@ mkRules cs ((x, y), cell) =
 	      ==> action { cell := False }
 	    when not cell, (sum >= 3) && (sum <= 5)
 	      ==> action { cell := True }
-		
+
 -------------
 -- Modules --
 -------------

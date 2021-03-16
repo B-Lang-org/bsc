@@ -48,12 +48,12 @@ module mkTestbench_ZipWith();
       display_list (my_list2);
       $display("ZipWith ListN:");
       display_list (zipWith(f,my_list1, my_list2));
-      if (my_list3 != zipWith (f,my_list1, my_list2)) 
+      if (my_list3 != zipWith (f,my_list1, my_list2))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWith
 endpackage : ZipWith

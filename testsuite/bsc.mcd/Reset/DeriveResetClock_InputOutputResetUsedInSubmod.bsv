@@ -12,5 +12,5 @@ module sysDeriveResetClock_InputOutputResetUsedInSubMod
 
    // test that the output reset is associated to c2
    interface rst_out = rst_in;
-   
+
 endmodule

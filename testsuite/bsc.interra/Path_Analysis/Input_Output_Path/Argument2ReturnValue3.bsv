@@ -1,4 +1,4 @@
-//Signal from Argument to Return value of the same method, 
+//Signal from Argument to Return value of the same method,
 //Uses a Pure Function
 //Should show while using -dpathsPostSched flag
 
@@ -13,13 +13,13 @@ endinterface
 (* synthesize *)
 
 module mkArgument2ReturnValue3(Argument2ReturnValue3Inter);
-    
+
     method start (inp);
         return (inp);
     endmethod
-    
+
 endmodule
 
-    
+
 
 endpackage

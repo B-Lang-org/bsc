@@ -4,6 +4,6 @@ struct Test = { a :: Integer; b :: Bool }
   deriving(Eq,Bits)
 
 sysNoDerive2 :: Module Empty
-sysNoDerive2 = 
+sysNoDerive2 =
   module
     r :: Reg(Test) <- mkRegU

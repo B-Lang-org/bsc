@@ -5,7 +5,7 @@ module mkTestbench_Decr ();
 
    Reg #(UIntRange #(5, 10)) mydata();
    mkReg #(10) the_mydata(mydata);
-   
+
    Reg #(UInt #(4)) check_mydata();
    mkReg #(10) the_check_mydata(check_mydata);
 
@@ -29,7 +29,7 @@ module mkTestbench_Decr ();
    endrule
 
    rule endsim (count == 8'b11111110);
-      if (!fail) 
+      if (!fail)
          $display ("Simulation Passes");
       else
          $display ("Simulation Fails");

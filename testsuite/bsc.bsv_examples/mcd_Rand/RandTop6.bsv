@@ -3,7 +3,7 @@
 (* synthesize *)
 module mkRandTop(Clock c0, Clock c1, Clock c2, ExtIfc);
    // Instantiate the three sub-modules as before, but now each with its own
-   // clock: 
+   // clock:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c0);
 
@@ -27,7 +27,7 @@ module mkRandTop(Clock c0, Clock c1, Clock c2, ExtIfc);
    // connected together are now the same:
    mkConnection(conv_gp1.fst, user1.fst);
    mkConnection(conv_gp1.snd. gens.fst);
-   
+
    mkConnection(conv_gp2.fst, user2.fst);
    mkConnection(conv_gp2.snd. gens.snd);
 

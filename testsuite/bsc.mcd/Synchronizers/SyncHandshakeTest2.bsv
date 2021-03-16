@@ -30,9 +30,9 @@ module sysSyncHandshakeTest2();
    DutIfc slowToFast2 <- mkTestSyncHS( fast_clk2, fast_rst2, clocked_by base_clk, reset_by base_rst);
 
    Reg#(UInt#(32)) tick <- mkRegA(0, clocked_by base_clk, reset_by base_rst);
-   
-   
-   UInt#(32) endTest = 50000 ; 
+
+
+   UInt#(32) endTest = 50000 ;
    rule stop (True);
       tick <= tick + 1;
       if (tick == endTest) begin

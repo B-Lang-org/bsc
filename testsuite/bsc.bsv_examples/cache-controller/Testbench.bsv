@@ -14,7 +14,7 @@ typedef union tagged {
 (*synthesize*)
 module testbench();
     IFC_Cache dut <- cache();
-   
+
     Reg#(Testbench_State) tb_state <- mkReg(Init(0));
 
     // expected reply to the next cache read
@@ -22,19 +22,19 @@ module testbench();
 
     // hold expected requests by cache to memory, for comparison with responses
     FIFO#(SRAM_Request_t#(Addr, Line)) expected_mem_req <- mkFIFO();
-   
+
     // delayed main memory response when the cache controller asks
     FIFO#(SRAM_Response_t#(Line)) mem_resp <- mkFIFO();
-   
+
     // used to initialize memory at reset
     Reg #(Addr) count_init <- mkReg(0);
-    
+
     // cycle counter
     Reg#(int) counter <- mkReg(0);
-    
+
     // count failed tests
     Reg#(int) test_failures <- mkReg(0);
-   
+
     // fake "main memory" for the cache to talk to
     RegFile #(Addr, Line) main_mem <- mkRegFile(0,31);
 
@@ -47,16 +47,16 @@ module testbench();
             $display("INFO (testbench): issuing read %h", addr);
         endaction
     endfunction
-   
+
     function Action cache_write(Addr addr, Line val);
         action
             dut.proc.p2c(SRAM_Write { address: addr, data: val });
             $display("INFO (testbench): issuing write %h <- %h", addr, val);
         endaction
-    endfunction    
-    
+    endfunction
+
     Stmt test_seq =
-         seq action cache_read({19'h0,8'h0,5'h0}, 0, True); endaction 
+         seq action cache_read({19'h0,8'h0,5'h0}, 0, True); endaction
              action cache_read({19'h1,8'h0,5'h0}, 2, True); endaction
              action cache_read({19'h0,8'h0,5'h0}, 0, False); endaction
              action cache_read({19'h1,8'h0,5'h0}, 2, False); endaction
@@ -67,16 +67,16 @@ module testbench();
              // three writes and reads -- if cache writes to both lines,
              // one of these should fail
              action cache_write({19'h1,8'h0,5'h0}, 'hb0a8bead); endaction
-             action cache_read({19'h1,8'h0,5'h0}, 'hb0a8bead, False); endaction                 
+             action cache_read({19'h1,8'h0,5'h0}, 'hb0a8bead, False); endaction
              action cache_write({19'h1,8'h0,5'h0}, 'hdeadbeef); endaction
-             action cache_read({19'h1,8'h0,5'h0}, 'hdeadbeef, False); endaction                 
+             action cache_read({19'h1,8'h0,5'h0}, 'hdeadbeef, False); endaction
              action cache_write({19'h1,8'h0,5'h0}, 'hbadf00d); endaction
-             action cache_read({19'h1,8'h0,5'h0}, 'hbadf00d, False); endaction                 
+             action cache_read({19'h1,8'h0,5'h0}, 'hbadf00d, False); endaction
          endseq;
 
     // make an FSM from the test sequence
     FSM test_fsm <- mkFSM(test_seq);
-    
+
     rule process_cache_result;
          $display ("INFO (testbench) cache read result = %h ", dut.proc.c2p.data);
          expected_cache_resp.deq();
@@ -103,7 +103,7 @@ module testbench();
         mem_resp.enq(SRAM_Response_t { data: main_mem.sub({a[12:0],a[31:13]}) });
         expected_mem_req.deq();
     endrule
-    
+
     rule send_mem_read_response;
         dut.mem.m2c(mem_resp.first());
         mem_resp.deq();
@@ -114,7 +114,7 @@ module testbench();
          $display ("INFO (testbench) main memory store at %h:", a);
          $display ("INFO (testbench)   %h", d);
          main_mem.upd ({a[12:0],a[31:13]}, d);
-    endrule 
+    endrule
 
     rule init_memory(tb_state matches tagged Init .count);
         main_mem.upd(count,  {0,count << 1});
@@ -127,7 +127,7 @@ module testbench();
             31: $display("INFO (testbench) testbench memory initialized");
         endcase
     endrule
-    
+
     rule run_tests(tb_state matches Init_Done);
         test_fsm.start();
         tb_state <= Running_Tests;

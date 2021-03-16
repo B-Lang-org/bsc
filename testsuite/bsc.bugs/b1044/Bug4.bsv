@@ -6,7 +6,7 @@ endinterface
 
 `define testBVI 1
 `ifndef testBVI
- 
+
 (* synthesize *)
 module mkFoo ( IfcIdFnAV#(int) );
    method ActionValue#(int) idfn( x ) ;

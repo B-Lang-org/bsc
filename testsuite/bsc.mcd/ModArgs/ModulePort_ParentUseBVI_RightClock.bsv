@@ -4,7 +4,7 @@ import Clocks::*;
 module sysModulePort_ParentUseBVI_RightClock ();
 
    Clock clk2 <- mkAbsoluteClock(7,15);
-   
+
    Reg#(Bit#(32)) x <- mkRegU(clocked_by clk2);
 
    Empty i <- mkSub (x, clk2);

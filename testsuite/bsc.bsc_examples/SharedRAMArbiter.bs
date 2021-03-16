@@ -64,7 +64,7 @@ mkContender initial_request str ram =
           (name +++ "_Count"):
 	    when True
 	      ==> counter := counter + 1
-    
+
           (name +++ "_Request"):
 	    when (counter >= counter_last), Valid x <- request
 	      ==> action
@@ -72,7 +72,7 @@ mkContender initial_request str ram =
 	            counter_last := counter + counter_step
 	            ram.send x
 	            request := Invalid
-    
+
           (name +++ "_Receive"):
 	    when True
 	      ==> action

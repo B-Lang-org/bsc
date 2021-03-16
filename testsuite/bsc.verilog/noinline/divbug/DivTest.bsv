@@ -1,4 +1,4 @@
-import Div::*; 
+import Div::*;
 
 (* synthesize *)
 module sysDivTest();

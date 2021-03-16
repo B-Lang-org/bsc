@@ -1,6 +1,6 @@
 /*
 PURPOSE - Simple testcase using the 'define preprocessor directive
- 
+
 */
 package Design ;
 

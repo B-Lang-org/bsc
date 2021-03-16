@@ -10,7 +10,7 @@ typedef union tagged
   struct { Group#(order) group; Index#(order) idx;  } Elimination;
   struct { Group#(order) group; Index#(order) idx;  } Pairs;
   struct { Group#(order) group; Index#(order) idx;  } HiddenPairs;
-  struct { Group#(order) group; Mask#(order)  mask; } Intersect; 
+  struct { Group#(order) group; Mask#(order)  mask; } Intersect;
 } Tactic#(numeric type order)
 deriving (Bits);
 
@@ -25,7 +25,7 @@ function Mask#(order) make_mask(Index#(order) n, Integer step);
    for (Integer i = 0; i < valueOf(order); i = i + 1)
       m[n+fromInteger(i*step)] = False;
    return m;
-endfunction: make_mask				   
+endfunction: make_mask
 
 // Apply a mask bit to a cell value
 function Cell#(order) applyMask(Cell#(order) c, Bool m);
@@ -50,7 +50,7 @@ endfunction: possibles
 
 // Determine all singletons which appear in a group
 function Cell#(order) singletons(Group#(order) g)
-   provisos(Add#(1,_,SizeOf#(Cell#(order))));   
+   provisos(Add#(1,_,SizeOf#(Cell#(order))));
    return possibles(maskN(g, map(isComplete, g)));
 endfunction: singletons
 
@@ -67,24 +67,24 @@ function Bool repeated(Group#(order) g, Index#(order) n)
 endfunction: repeated
 
 // Determine if a cell has only 2 possibilities
-function Bool is2set(Cell#(order) c) provisos(Add#(1,_,TSquare#(order)));   
+function Bool is2set(Cell#(order) c) provisos(Add#(1,_,TSquare#(order)));
    UInt#(2) count = fold(addSat(3), map(boolToSat, bitsToVector(c)));
    return (count == 2);
 endfunction: is2set
-      
+
 // Each solver tactic takes some arguments such as the index of
 // the current cell in the group, the group values themselves, etc.
 // It must return a cell value based on applying the tactic.
 // The new cell value is determined by ANDing the existing value
 // with the one returned by the tactic method.
 interface Tactics#(numeric type order);
-   
+
    // Tactic: Eliminate all values from this cell which appear as
    //         singletons in another cell in the group.
    // Arguments: g - constraint group containing the cell
    //            n - index of this cell in the group
    method Cell#(order) elim_other_singletons(Group#(order) g, Index#(order) n);
-   
+
    // Tactic: If a value doesn't appear in any other cell in the group,
    //         then this cell must contain exactly that value (all the
    //         values that appear in other cells can be eliminated).
@@ -108,14 +108,14 @@ interface Tactics#(numeric type order);
    // Arguments: g - constraint group containing the cell
    //            n - index of this cell in the group
    method Cell#(order) repeated_2_set(Group#(order) g, Index#(order) n);
-   
+
    // Tactic: If 2 of the values in this cell also appear together in one
    //         other cell, but neither appears outside of those cells, then
    //         all other values can be removed from this cell.
    // Arguments: g - constraint group containing the cell
    //            n - index of this cell in the group
    method Cell#(order) hidden_pair(Group#(order) g, Index#(order) n);
-      
+
 endinterface: Tactics
 
 // mkTactics is a parameterized module in which each tactic is encapsulated
@@ -124,7 +124,7 @@ endinterface: Tactics
 // parameter.
 module mkTactics(Tactics#(order))
    provisos(Mul#(order,order,size), Add#(1,_,SizeOf#(Cell#(order))));
-   
+
    method Cell#(order) elim_other_singletons(Group#(order) g, Index#(order) n);
       return ~singletons(maskOne(g,n));
    endmethod: elim_other_singletons
@@ -147,20 +147,20 @@ module mkTactics(Tactics#(order))
       Mask#(order) repeat_mask = map(repeated(maskOne(g,n)), indices);
       return ~possibles(maskN(g, zipWith(\&& , two_set_mask, repeat_mask)));
    endmethod: repeated_2_set
-      
+
    method Cell#(order) hidden_pair(Group#(order) g, Index#(order) n);
       let g1 = maskOne(g,n);
       Cell#(order) out = unknown();
       for (Integer i = 1; i < valueOf(size); i = i + 1)
       begin
-	 let common = g1[i] & g[n];   
+	 let common = g1[i] & g[n];
 	 let ps = possibles(maskOne(g1,fromInteger(i)));
 	 let test = is2set(common) && ((common & ps) == impossible());
 	 out = test ? (out & common) : out;
       end
-      return out;      
+      return out;
    endmethod: hidden_pair
-   
+
 endmodule: mkTactics
 
 // Create separately-synthesized tactic modules for common sudoku

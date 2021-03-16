@@ -23,7 +23,7 @@ import GetPut::*;
 import H264Types::*;
 import RegFile::*;
 
-typedef enum 
+typedef enum
 {
   Forwarding,
   DumpingY,
@@ -38,25 +38,25 @@ module mkDeblockTee#(Get#(DeblockFilterOT) inputData, Put#(DeblockFilterOT) outp
  Reg#(State) state <- mkReg(Forwarding);
  Reg#(Bit#(32)) horCounter;
  Reg#(Bit#(32)) verCounter;
- Reg#(Bit#(32)) counter; 
+ Reg#(Bit#(32)) counter;
  Reg#(Bit#(PicWidthSz))  picWidth;
  Reg#(Bit#(PicHeightSz)) picHeight;
  Reg#(Bit#(PicAreaSz))   frameinmb;
  RegFile#(Bit#(TAdd#(PicAreaSz,6)), Bit#(32)) yValues;
  RegFile#(Bit#(TAdd#(PicAreaSz,4)), Bit#(32)) uValues;
- RegFile#(Bit#(TAdd#(PicAreaSz,4)), Bit#(32)) vValues;  
- 
+ RegFile#(Bit#(TAdd#(PicAreaSz,4)), Bit#(32)) vValues;
+
  if(recordFrames)
    begin
      counter <- mkReg(0);
      horCounter <- mkReg(0);
-     verCounter <- mkReg(0); 
+     verCounter <- mkReg(0);
      picWidth  <- mkReg(maxPicWidthInMB);
      picHeight <- mkReg(0);
      frameinmb <- mkReg(0);
      yValues <- mkRegFileFull();
      uValues <- mkRegFileFull();
-     vValues <- mkRegFileFull();    
+     vValues <- mkRegFileFull();
    end
 
 
@@ -66,11 +66,11 @@ module mkDeblockTee#(Get#(DeblockFilterOT) inputData, Put#(DeblockFilterOT) outp
 
  rule processData(state == Forwarding);
    let dataIn <- inputData.get();
-   outputData.put(dataIn); 
+   outputData.put(dataIn);
    $write(prefix);
    case (dataIn) matches
      tagged DFBLuma .data:
-       begin 	
+       begin
          $display("DFBLuma(%d): hor: %d ver:%d data:%h\n", cycles,data.hor, data.ver, data.data);
          if(recordFrames)
            begin
@@ -78,10 +78,10 @@ module mkDeblockTee#(Get#(DeblockFilterOT) inputData, Put#(DeblockFilterOT) outp
              $write(prefix);
              $display("Writing to %d, %h", addr, data);
              yValues.upd(addr,{data.data[7:0],data.data[15:8],data.data[23:16],data.data[31:24]});
-           end 
+           end
        end
      tagged DFBChroma .data:
-       begin 
+       begin
          $display("DFBChroma(%d): flag: %d hor: %d ver:%d data:%h\n", cycles, data.uv, data.hor, data.ver, data.data);
 	 if(recordFrames)
            begin
@@ -103,14 +103,14 @@ module mkDeblockTee#(Get#(DeblockFilterOT) inputData, Put#(DeblockFilterOT) outp
      tagged EndOfFrame:
        begin
          if(recordFrames)
-           begin 
+           begin
              state <= DumpingY;
              counter <= 0;
            end
            $display("EndOfFrame(%d)", cycles);
        end
      tagged EDOT .data:
-       case (data) matches 
+       case (data) matches
          tagged SPSpic_width_in_mbs .xdata :
 	   begin
              if(recordFrames)
@@ -119,7 +119,7 @@ module mkDeblockTee#(Get#(DeblockFilterOT) inputData, Put#(DeblockFilterOT) outp
                end
            end
          tagged SPSpic_height_in_map_units .xdata :
-           begin 
+           begin
              if(recordFrames)
                begin
                  picHeight <= xdata;
@@ -138,8 +138,8 @@ if(recordFrames)
      //$write("(%d,%d,%d,%d,%d,%d)", counter, addr, horCounter, verCounter, picWidth, picHeight);
      $write("DUMP ");
      $display("%h", yValues.sub(addr));
-  
-     yValues.upd(addr,0);    
+
+     yValues.upd(addr,0);
      if(horCounter + 1 == zeroExtend(picWidth)*4) // 4 values per Mb
        begin
          horCounter <= 0;
@@ -154,7 +154,7 @@ if(recordFrames)
              verCounter <= verCounter + 1;
              counter <= counter + 1;
            end
-       end  
+       end
      else
        begin
          horCounter <= horCounter + 1;
@@ -169,7 +169,7 @@ if(recordFrames)
 
      $write("DUMP ");
      $display("%h", uValues.sub(addr));
-     uValues.upd(addr, 0);  
+     uValues.upd(addr, 0);
 
      if(horCounter + 1 == zeroExtend(picWidth)*2) // 2 values per Mb
        begin
@@ -185,13 +185,13 @@ if(recordFrames)
              verCounter <= verCounter + 1;
              counter <= counter + 1;
            end
-       end  
+       end
      else
        begin
          horCounter <= horCounter + 1;
          counter <= counter + 1;
-       end 
-   endrule 
+       end
+   endrule
 
    rule dumpV(state == DumpingV);
      Bit#(TAdd#(PicAreaSz,4)) addr = truncate({(verCounter*zeroExtend(picWidth)),1'b0}+zeroExtend(horCounter));
@@ -199,7 +199,7 @@ if(recordFrames)
      //$write("(%d,%d,%d,%d)", counter, addr, horCounter, verCounter);
      $write("DUMP ");
      $display("%h", vValues.sub(addr));
-     vValues.upd(addr, 0);  
+     vValues.upd(addr, 0);
      if(horCounter + 1 == zeroExtend(picWidth)*2) // 2 values per Mb
        begin
          horCounter <= 0;
@@ -213,14 +213,14 @@ if(recordFrames)
              verCounter <= verCounter + 1;
              counter <= counter + 1;
            end
-       end  
+       end
      else
        begin
          horCounter <= horCounter + 1;
          counter <= counter + 1;
        end
-   endrule 
+   endrule
  end
 endmodule
 
- 
+

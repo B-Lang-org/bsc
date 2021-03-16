@@ -7,10 +7,10 @@ typedef Bit#(32) BusAddr ;
 typedef Bit#(32) BusData ;
 
 //  Enum for the bus transfer type
-typedef enum { Write, Read } RW 
+typedef enum { Write, Read } RW
 	deriving (Bits,Eq) ;
 
-// structure to describe the bus request 
+// structure to describe the bus request
 typedef struct {
                 RW       read_write;
                 BusData  data;
@@ -38,9 +38,9 @@ typedef struct {
                 } BusResponse
 deriving(Bits);
 // Define a dummy response with error status
-BusResponse errorResponse = BusResponse{ data: 'hdead_badd, 
+BusResponse errorResponse = BusResponse{ data: 'hdead_badd,
                                          status: Error } ;
-BusResponse defaultResponse = BusResponse{ data: 32'hdef0_def0, 
+BusResponse defaultResponse = BusResponse{ data: 32'hdef0_def0,
                                            status: OK } ;
 
 
@@ -52,9 +52,9 @@ interface Master ;
       // busReq sends a request to access to the bus
 
    method Action busGrant() ;
-      // busGrant is an input received from the bus to show if the bus 
+      // busGrant is an input received from the bus to show if the bus
       // request has been granted.
-      
+
    method ActionValue#(BusRequest) request();
       // request method provides the bus a way to get the request
 
@@ -81,10 +81,10 @@ endinterface
 
 
 
-// For the slave side no change is needed??      
+// For the slave side no change is needed??
 //      interface AmbaCSSlave ;
-         
-      
+
+
 // ///////////////////////////////////////////////////////////////////////////
 // Slave and Bus Slave Side interfaces
 // These are similar to the Master and MasterSide interface, except no bus request/grant
@@ -117,7 +117,7 @@ endinterface
 
 // ///////////////////////////////////////////////////////////////////////////
 // Connectables describe the module needed to connect two interfaces
-// 
+//
 instance Connectable#(Master, BusMasterSide) ;
       module mkConnection#(Master m, BusMasterSide b ) (Empty) ;
          // a rule to transfer the request from the master to the bus
@@ -125,7 +125,7 @@ instance Connectable#(Master, BusMasterSide) ;
          rule connectMasterBusReq (m.busReq) ;
             b.bmsBusRequest() ;
          endrule
-         
+
          // A rule to transfer the grant from the bus to the master.
          (* no_implicit_conditions, fire_when_enabled *)
          rule connectMasterBusGrant  ( b.bmsBusGrant );
@@ -144,7 +144,7 @@ instance Connectable#(Master, BusMasterSide) ;
       endmodule
 endinstance
 
-// Provide another mkConnection for the Master side with arguments reversed.      
+// Provide another mkConnection for the Master side with arguments reversed.
 instance Connectable#(BusMasterSide, Master) ;
       module mkConnection#(BusMasterSide b, Master m ) (Empty) ;
          mkConnection( m, b );
@@ -164,11 +164,11 @@ instance Connectable#(Slave, BusSlaveSide) ;
             BusResponse r <- s.response ;
             b.bsResponse( r ) ;
          endrule
-         
+
       endmodule
 endinstance
 
-// Provide another mkConnection for the Slave side with arguments reversed. 
+// Provide another mkConnection for the Slave side with arguments reversed.
 instance Connectable#(BusSlaveSide, Slave) ;
       module mkConnection#(BusSlaveSide b, Slave s ) (Empty) ;
          mkConnection( s, b ) ;
@@ -177,14 +177,14 @@ endinstance
 
 
 
-// ///////////////////////////////////////////////////////////////////////////      
+// ///////////////////////////////////////////////////////////////////////////
 interface B1m1s ;
    interface BusMasterSide ms0 ;
    interface BusSlaveSide ss0 ;
    interface BusSlaveSide defSlave ;
 endinterface
 
-      
+
 interface B1m2s ;
    interface BusMasterSide ms0 ;
    interface BusSlaveSide ss0 ;
@@ -192,14 +192,14 @@ interface B1m2s ;
    interface BusSlaveSide defSlave ;
 endinterface
 
-         
+
 interface B2m2s ;
    interface BusMasterSide ms0 ;
    interface BusMasterSide ms1 ;
 
    interface BusSlaveSide ss0 ;
    interface BusSlaveSide ss1 ;
-      
+
    interface BusSlaveSide defSlave ;
 endinterface
 
@@ -210,7 +210,7 @@ interface B2m3s ;
    interface BusSlaveSide ss0 ;
    interface BusSlaveSide ss1 ;
    interface BusSlaveSide ss2 ;
-      
+
    interface BusSlaveSide defSlave ;
 endinterface
 
@@ -220,7 +220,7 @@ interface BusParam#(type mas, type slv ) ;
 
    interface BusSlaveSide defSlave ;
 endinterface
-      
+
 
 interface BlueMasterAdapter ;
    method Action read ( BusAddr address ) ;
@@ -233,7 +233,7 @@ interface AmbaMasterAdapter ;
    interface BlueMasterAdapter bbus ;
    interface Master amaster ;
 endinterface
-      
+
 interface BlueSlaveAdapter ;
    method BusRequest request() ;
    method Bool slaveSelect() ;
@@ -244,7 +244,7 @@ interface AmbaSlaveAdapter ;
    interface BlueSlaveAdapter bbus ;
    interface Slave aslave ;
 endinterface
-      
 
 
-      
+
+

@@ -298,7 +298,7 @@ mkCalcRules inputFifo outputFifo currentDigits stack =
 	          inputFifo.deq;
 		};
 
-          -- if it's too many digits, ignore it 
+          -- if it's too many digits, ignore it
 	  when keyPressed, isDigitKey key,
 	       currentDigits > fromInteger ((maxNumber - 9) `div` 10)
 	    ==> action { inputFifo.deq }

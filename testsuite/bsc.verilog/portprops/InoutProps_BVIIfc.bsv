@@ -3,7 +3,7 @@ interface Ifc;
   interface Inout#(Bit#(32)) io_ifc;
 endinterface
 
-import "BVI" 
+import "BVI"
 module mkInoutPropsBVI (Ifc);
     ifc_inout io_ifc(IO);
 endmodule

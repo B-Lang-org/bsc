@@ -24,18 +24,18 @@ endinterface
 ////////////////////////////////////////////////////////////////////////////////
 /// A fair arbiter with changing priorities.
 ////////////////////////////////////////////////////////////////////////////////
-   
+
 module mkArbiter (Arbiter_IFC#(count))
    provisos (Log#(count, size));
 
    let icount = valueOf(count);
-   
+
    // Initially, priority is given to client 0
    Vector#(count, Bool) init_value = replicate(False);
    init_value[0] = True;
    Reg#(Vector#(count, Bool)) priority_vector <- mkReg(init_value);
 
-  
+
    Wire#(Vector#(count, Bool)) grant_vector <- mkWire;
    Vector#(count, PulseWire) request_vector <- replicateM(mkPulseWire);
 
@@ -46,11 +46,11 @@ module mkArbiter (Arbiter_IFC#(count))
       Vector#(count, Bool) grant_vector_local = replicate(False);
 
       Bool found = True;
-      
+
       for (Integer x = 0; x < (2 * icount); x = x + 1)
 
 	 begin
-	    
+
 	    Integer y = (x % icount);
 
 	    if (priority_vector[y]) found = False;
@@ -86,7 +86,7 @@ module mkArbiter (Arbiter_IFC#(count))
    for (Integer x = 0; x < icount; x = x + 1)
 
       client_vector[x] = (interface ArbiterClient_IFC
-			      
+
 			     method Action request();
 				request_vector[x].send();
 			     endmethod
@@ -95,7 +95,7 @@ module mkArbiter (Arbiter_IFC#(count))
 				return grant_vector[x];
 			     endmethod
 			  endinterface);
-			   
+
    interface clients = client_vector;
 endmodule
 
@@ -105,11 +105,11 @@ endfunction
 
 instance Connectable#(ArbiterClient_IFC,  ArbiterRequest_IFC);
    module mkConnection#(ArbiterClient_IFC client, ArbiterRequest_IFC request) (Empty);
-      
+
       rule send_grant (client.grant);
 	 request.grant();
       endrule
-      
+
       rule send_request (request.request);
 	 client.request();
       endrule

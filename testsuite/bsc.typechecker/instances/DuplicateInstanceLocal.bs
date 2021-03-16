@@ -4,7 +4,7 @@ class Foo a where
   foo :: a -> Action
 
 instance Foo (Int n) where
-  foo i = $display i 
+  foo i = $display i
 
 instance Foo (Int n) where
   foo i = $display "Int" i

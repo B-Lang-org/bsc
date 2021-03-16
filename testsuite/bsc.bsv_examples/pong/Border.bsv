@@ -1,10 +1,10 @@
 import Global	::*;
 import Shape	::*;
 import Color::*;
-	      
+
 Color col;
 col = cBlue;
-	    
+
 module mkBorder(Shape);
 	     Shape rect();
 	     mkRectangle#(fromInteger(xMin),

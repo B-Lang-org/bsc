@@ -3,10 +3,10 @@
 CPUTestBypass
 
 This is a testbench for FiveStageCPUBypass.
- 
+
 The testbench executes a simple program which should have the following
 trace through the pipeline:
- 
+
 (In this picture, the items under Fetch are the items which will
 be next loaded from memory.  The items under decode indicate
 the item waiting in the BF buffer.  The items under the other
@@ -29,7 +29,7 @@ Time   Fetch      Decode    Execute     Memory   Writeback
 ----+----------+----------+----------+----------+----------+
   3 | Add R3   | LoadC R2 | LoadC R1 | LoadC R0 |          |
     |   R0 R1  |          |          |          |          |
-----+----------+----------+----------+----------+----------+ 
+----+----------+----------+----------+----------+----------+
   4 | Add R4   | Add R3   | LoadC R2 | LoadC R1 | LoadC R0 | Bypass: R0 and R1
     |   R3 R2  |   R0 R1  |          |          |          |  available **
 ----+----------+----------+----------+----------+----------+
@@ -110,7 +110,7 @@ module mkCPUTestBypass(Empty);
    case (n)
       0 :  return (LoadC {rd:R0, v:10});
       1 :  return (LoadC {rd:R1, v:15});
-      2 :  return (LoadC {rd:R2, v:20}); 
+      2 :  return (LoadC {rd:R2, v:20});
       3 :  return (Add {rd:R3, ra:R0, rb:R1});
       4 :  return (Add {rd:R4, ra:R3, rb:R2});
       5 :  return (Store {v:R4, addr:R1});

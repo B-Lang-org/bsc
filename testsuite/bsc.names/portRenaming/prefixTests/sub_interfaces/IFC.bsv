@@ -7,4 +7,4 @@ interface IFC#(type aA);
  interface S1#(aA) subIFC;
 endinterface
 
-endpackage 
+endpackage

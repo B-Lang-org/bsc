@@ -6,7 +6,7 @@
 // 4. Add sending to slaverx
 // 5. Add 2 more slaves
 // 6. Enhance test to move data between all slaves
-// 7. 
+// 7.
 
 import Slaves :: *;
 import Connectable :: *;
@@ -66,17 +66,17 @@ import ConfigReg :: *;
 
 // ===========================================================================
 // Basic Read/Write Bus Transactions
-// 
+//
 
    function Rules readData( Bool               fire_condition,
                             Reg#(any_enum)     state,
                             Reg#(Bool)         access_pending,
-                            BlueMasterAdapter  ifc, 
-                            Bit#(32)           addr, 
+                            BlueMasterAdapter  ifc,
+                            Bit#(32)           addr,
                             Reg#(Bit#(32))     r_data )
    provisos (Eq#(any_enum), Bits#(any_enum,x), Bounded#(any_enum) ) ;
 
-      Rules r = rules 
+      Rules r = rules
         rule startRead(fire_condition && !access_pending);
            ifc.read( addr );
            access_pending <= True;
@@ -94,14 +94,14 @@ import ConfigReg :: *;
    endfunction
 
 
-   function Rules writeData( Bool               fire_condition, 
+   function Rules writeData( Bool               fire_condition,
                              Reg#(any_enum)     state,
                              Reg#(Bool)         access_pending,
-                             BlueMasterAdapter  ifc, 
-                             Bit#(32)           addr, 
+                             BlueMasterAdapter  ifc,
+                             Bit#(32)           addr,
                              Bit#(32)           data )
    provisos (Eq#(any_enum), Bits#(any_enum,x), Bounded#(any_enum) ) ;
-      Rules r =  rules 
+      Rules r =  rules
          rule startWrite(fire_condition && !access_pending);
            ifc.write(addr,data);
            access_pending <= True;
@@ -139,12 +139,12 @@ import ConfigReg :: *;
       DMA_DONE
    }  DmaStateType deriving (Bits, Eq, Bounded );
 
-   function Rules dmaTransfer (BlueMasterAdapter  ifc, 
-                               Bool               go,                  
-                               Reg#(DmaStateType) state,               
-                               Bit#(32)           saddr,               
-                               Bit#(32)           daddr,               
-                               Bit#(32)           tsize,               
+   function Rules dmaTransfer (BlueMasterAdapter  ifc,
+                               Bool               go,
+                               Reg#(DmaStateType) state,
+                               Bit#(32)           saddr,
+                               Bit#(32)           daddr,
+                               Bit#(32)           tsize,
                                Reg#(Bit#(32))     test_cnt,
                                Reg#(Bit#(32))     rdata,
                                Bit#(32)           tick_counter,
@@ -158,25 +158,25 @@ import ConfigReg :: *;
             state <= DMA_WRITE_DMA_SRC;
          endrule
 
-         rule read_dma_cnt (state==DMA_READ_DMA_POLL && tick_counter[6:0]==0);      
+         rule read_dma_cnt (state==DMA_READ_DMA_POLL && tick_counter[6:0]==0);
             // $display("%t DMA_READ_DMA_POLL dma.cnt = %d, tsize = %d",$time, rdata,tsize);
-            state <= (rdata==0) ? DMA_DONE : pred(state);      
+            state <= (rdata==0) ? DMA_DONE : pred(state);
          endrule
 
          rule dmaDone (state==DMA_DONE);
             // $display("%t DMA_DONE",$time);
-            state <= DMA_IDLE;      
+            state <= DMA_IDLE;
          endrule
 
       endrules;
-      
+
       r = rJoin(r, writeData(state==DMA_WRITE_DMA_SRC, state, access_pending, ifc, dmaBase+4, saddr));
       r = rJoin(r, readData (state==DMA_READ_DMA_SRC,  state, access_pending, ifc, dmaBase+4, rdata));
       r = rJoin(r, writeData(state==DMA_WRITE_DMA_DEST,state, access_pending, ifc, dmaBase+8, daddr));
       r = rJoin(r, readData (state==DMA_READ_DMA_DEST, state, access_pending, ifc, dmaBase+8, rdata));
       r = rJoin(r, writeData(state==DMA_WRITE_DMA_CNT, state, access_pending, ifc, dmaBase+0, tsize));
       r = rJoin(r, readData (state==DMA_READ_DMA_CNT,  state, access_pending, ifc, dmaBase+0, rdata));
-     
+
       return r;
    endfunction // dmaTransfer
 
@@ -187,7 +187,7 @@ import ConfigReg :: *;
 // ===========================================================================
 // srcSinkTest
 // The source to sink test uses the dma to transfer data from the source slave
-// to the sink slave.  As each word is sent the source slave calculates a 
+// to the sink slave.  As each word is sent the source slave calculates a
 // checksum.  As each word is received the sink slave also calculates a checksum.
 // The test verifies that the two checksums match.
 
@@ -200,12 +200,12 @@ import ConfigReg :: *;
       SRCSINKDONE
    }  SrcSinkTestStateType deriving (Bits, Eq, Bounded );
 
-   
+
    function Rules srcSinkTest(Bool                srcSinkTest_go,
                               Nat                 loops,
                               Reg#(SrcSinkTestStateType) srcSinkTestState,
                               Reg#(DmaStateType)  dmaTransferState,
-                              Reg#(Bit#(32))      src_checksum, 
+                              Reg#(Bit#(32))      src_checksum,
                               Reg#(Bit#(32))      sink_checksum,
                               Reg#(Bool)          fail,
                               BlueMasterAdapter   adp_ifc,
@@ -257,10 +257,10 @@ import ConfigReg :: *;
          endrule
       endrules;
 
-      r = rJoin(r,readData (srcSinkTestState==READ_SRC_CHK, srcSinkTestState, 
-                access_pending,  adp_ifc, srcRegBase+0, src_checksum)) ;  
+      r = rJoin(r,readData (srcSinkTestState==READ_SRC_CHK, srcSinkTestState,
+                access_pending,  adp_ifc, srcRegBase+0, src_checksum)) ;
       r = rJoin(r,readData (srcSinkTestState==READ_SINK_CHK, srcSinkTestState,
-                access_pending,  adp_ifc, snkRegBase+0, sink_checksum)) ; 
+                access_pending,  adp_ifc, snkRegBase+0, sink_checksum)) ;
       r = rJoin(r,dmaTransfer(adp_ifc,srcSinkTestState==START_DMA && srcSinkTest_go,
                 dmaTransferState,srcBase,snkBase,transferSize,test_number,rdata,
                 tick_counter, access_pending,dmaBase));
@@ -287,14 +287,14 @@ module sysDMA( Empty );
    Slave   defSlave <- defaultSlave ;
    SlaveRx slave0   <- mkSlaveRx;
    SlaveTx slave1   <- mkSlaveTx;
-   Slave   sram3    <- mkSRAM64k; 
+   Slave   sram3    <- mkSRAM64k;
 
    // create the Testbench master
    Master  master0 <- mkDMATester ;
 
-   // Create the DMA 
+   // Create the DMA
    DMA dma <- mkDMA ;
-   
+
    // connect the masters and slaves to the bus
    Empty connMaster0 <- mkConnection ( master0, bus.ms[0] ) ;
    Empty connMaster1 <- mkConnection ( dma.master, bus.ms[1] ) ;
@@ -310,7 +310,7 @@ module sysDMA( Empty );
    endrule
 endmodule
 
-(* always_ready *) 
+(* always_ready *)
 module mkDMATester (Master);
    BusAddr srcBase    = 32'h0000_0000;
    BusAddr srcRegBase = 32'h0800_0000;
@@ -336,30 +336,30 @@ module mkDMATester (Master);
    Reg#(Bit#(32)) sink_checksum  <- mkConfigReg(0);
    Reg#(Bit#(32)) rdata          <- mkConfigReg(0);
    Reg#(Bit#(32)) tick_counter   <- mkConfigReg(0);  // BOZO must be ConfigReg
-   
+
 // ------------------------------------------------------------------------------
-   
+
    rule dump (tick_counter==0);
       //$dumpvars();
       //$dumpon();
    endrule
 
 // ------------------------------------------------------------------------------
-   
+
    rule tick;
       tick_counter <= tick_counter + 1;
       //if (tick_counter[6:0]==0) begin
       //   $display("tick_counter = %d, test_step = %d",tick_counter, test_step);
       //end
    endrule
-         
+
 // ------------------------------------------------------------------------------
 
    addRules(srcSinkTest(True,5,srcSinkTestState,dmaTransferState,
             src_checksum,sink_checksum,fail,adp_ifc,srcRegBase,snkRegBase,
-            srcBase,snkBase,transferSize,test_number,rdata,tick_counter, 
+            srcBase,snkBase,transferSize,test_number,rdata,tick_counter,
             access_pending,dmaBase));
-            
+
 //   rule start_srcSinkTest (testState==SRCSNKTEST && !inprogress);
 //      $display("%t testState==SRCSNKTEST && !inprogress",$time);
 //     inprogress <= True;
@@ -370,7 +370,7 @@ module mkDMATester (Master);
 //      inprogress <= False;
 //      testState <= succ(testState);
 //   endrule
-//   
+//
 //   rule testdone (testState==TESTDONE);
 //      $display("%t Test Done.",$time);
 //      $finish;

@@ -33,7 +33,7 @@ primModuleBitInput = error "primModuleBitInput unimplemented"
 -- also primModuleClockInput, primModuleResetInput, primModuleInoutInput, etc.
 
 instance (Bits a sa) => ModuleInput a where
-  toModuleInput f = do let f_ a_ = f (unpack a_) 
+  toModuleInput f = do let f_ a_ = f (unpack a_)
                        (k_, m) <- primModuleBitInput f_
                        return (\a -> k_ (pack a), m)
 
@@ -61,12 +61,12 @@ instance (IsSynthModule m c, IfcWrap (c a) (c a_)) => Elaborate (m a) (c a_) whe
 -- elaborating a module with an input argument
 -- in other words, go to and from the continuation, putting side effects in the right place
 instance (ModuleInput a, Elaborate b c) => Elaborate (a -> b) (a -> Module (), c) where
-    toElab f = 
+    toElab f =
       let f' a = return (f a)
       in do (k, m_b) <- toModuleInput f'
             c <- bind m_b toElab
             return (k, c)
-    fromElab m_p a = 
+    fromElab m_p a =
       let m_c :: Module c
           m_c = do (k, c) <- m_p
                    k a

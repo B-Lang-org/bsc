@@ -1,13 +1,13 @@
-//Testcase 
+//Testcase
 
 import Clocks::*;
 
 interface Design_IFC;
- method Action start(Bit#(6) in_data1, Bit#(6) in_data2); 
+ method Action start(Bit#(6) in_data1, Bit#(6) in_data2);
  method Bit#(7) out_data();
 endinterface : Design_IFC
 
-(* 
+(*
    CLK = "clk_1",
    RST_N = "rst_1",
    synthesize

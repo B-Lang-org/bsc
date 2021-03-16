@@ -1,4 +1,4 @@
-typedef union tagged 
+typedef union tagged
   { Action MyAction; } MyAction;
 
 (* synthesize *)
@@ -10,7 +10,7 @@ module sysNewtypeAction();
   Reg#(Bool) b <- mkReg(False);
 
   MyAction m = b ? m1 : m2;
- 
+
   rule test(m matches tagged MyAction .a);
     a;
     b <= !b;

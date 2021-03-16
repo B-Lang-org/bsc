@@ -15,10 +15,10 @@ module mkTestUrg( Test_ifc );
       holder <= din ;
    endaction endmethod
 
-   method highx( din ); action      
+   method highx( din ); action
       holder <= din ;
    endaction endmethod
-   
+
 
 endmodule
 

@@ -1,7 +1,7 @@
 (* synthesize *)
 module sysCaseMatches_MixedLit ();
    Reg#(Bit#(4)) rg <- mkReg(0);
-   
+
    rule incr;
       Bit#(4) res = case (rg) matches
 		       4'b00??: return 1;

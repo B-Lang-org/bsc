@@ -4,9 +4,9 @@ import OInt ::*;
 import List ::*;
 import ConfigReg ::*;
 
-(* 
+(*
        always_ready ,
-       always_enabled 
+       always_enabled
  *)
 
 module mkDesign_MkOInt1 (Reg#(OInt#(32)));
@@ -64,11 +64,11 @@ module mkTestbench_MkOInt1();
          begin
 	          $display("List Read : %b %b %b %b",x,y,z,res);
          end
-    endcase 
+    endcase
   endrule
 
 endmodule: mkTestbench_MkOInt1
-                 
+
 endpackage: MkOInt1
 
 

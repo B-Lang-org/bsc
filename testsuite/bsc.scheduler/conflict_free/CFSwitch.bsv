@@ -23,11 +23,11 @@ Integer numOutChans = valueOf(NumOutChans);
 module sysCFSwitch();
 
   Reg#(UInt#(32)) cycle <- mkReg(0);
-  
+
   rule count_cycles;
     cycle <= cycle + 1;
-  endrule  
-  
+  endrule
+
   RegFile#(Tag, OutAddr) chanMap <- mkRegFileFull;
 
   Reg#(Bool) mapReady <- mkReg(False);
@@ -36,7 +36,7 @@ module sysCFSwitch();
                              1,2,3,4,5,
                              6,7,0,7,0,
                              7};
- 
+
   Vector#(NumOutChans, Reg#(Bool)) drainOut = ?;
   Vector#(NumOutChans, FIFO#(Packet)) outs  = ?;
 
@@ -70,7 +70,7 @@ module sysCFSwitch();
   for(Integer i = 0; i < numInChans; i = i + 1)
   begin
     Rules newRule =
-    	        rules 
+    	        rules
                  rule route_in(mapReady);
                     let guid = tpl_1(ins[i].first);
                     OutAddr dest = chanMap.sub(guid);
@@ -84,9 +84,9 @@ module sysCFSwitch();
   end
 
   addRules(r);
- 
-    
-  Stmt testStmts = 
+
+
+  Stmt testStmts =
   seq
 
     // initialize channel map
@@ -107,7 +107,7 @@ module sysCFSwitch();
     chanMap.upd(14, routes[14]);
     chanMap.upd(15, routes[15]);
     mapReady <= True;
- 
+
     // no conflict
     action
       sendPacket(0,0,16'hdead);
@@ -136,7 +136,7 @@ module sysCFSwitch();
     endaction
 
     // maximum conflict #1
-    action		
+    action
       sendPacket(0,'hf,16'hdead);
       sendPacket(1,'hf,16'hbeef);
       sendPacket(2,'hf,16'hbaad);
@@ -145,7 +145,7 @@ module sysCFSwitch();
     endaction
 
     // maximum conflict #2
-    action		
+    action
       sendPacket(0,'hf,16'hdead);
       sendPacket(1,'hf,16'hbeef);
       sendPacket(2,'hf,16'hbaad);
@@ -157,7 +157,7 @@ module sysCFSwitch();
       $display("Turning off output 7 at cycle %0d", cycle);
       drainOut[7] <= False;
     endaction
-    
+
     noAction;
     noAction;
 
@@ -171,7 +171,7 @@ module sysCFSwitch();
         sendPacket(4,9,16'hc01d);
 
         action
-          $display("Turning on output 7 at cycle %0d", cycle); 
+          $display("Turning on output 7 at cycle %0d", cycle);
           drainOut[7] <= True;
         endaction
 
@@ -182,7 +182,7 @@ module sysCFSwitch();
         noAction;
 
       endseq
-       seq 
+       seq
         sendPacket(0,'hf,16'hdead);
         sendPacket(1,'hb,16'hbeef);
         sendPacket(0,'hf,16'hbaad);

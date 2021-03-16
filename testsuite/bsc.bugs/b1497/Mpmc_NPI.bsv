@@ -363,7 +363,7 @@ module mkMPMCWrapper(NPI_rawPort#(`TLM_TYPES) n, NPI_Port_Server#(`TLM_TYPES) _)
       n.rdModWr(c.rdModWr);
       n.addrReq(True);
    endrule
-   
+
    (* preempts="xmit_cmd, xmit_null_cmd" *)
    rule xmit_null_cmd;
       n.addr(?);
@@ -430,7 +430,7 @@ module mkMPMCWrapper(NPI_rawPort#(`TLM_TYPES) n, NPI_Port_Server#(`TLM_TYPES) _)
    rule cannot_read(n.rdLatency!=1);
       $error("read fifo latency should be 1 -- please adjust pipelining");
    endrule
-   
+
    rule service_flush_methods;
       n.rdFlush(False);
       n.wrFlush(False);

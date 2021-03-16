@@ -14,4 +14,4 @@ module mkA( IFC#(a_type) ifc )
    method DOUT foo(DIN) ;
 
 endmodule
-   
+

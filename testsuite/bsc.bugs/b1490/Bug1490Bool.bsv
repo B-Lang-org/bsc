@@ -7,7 +7,7 @@ Integer ports = valueof(Ports);
 (* noinline *)
 function Bit#(Ports) arbitrate(Vector#(Ports, Bool) bs);
    Bit#(Ports) bits = 0;
-   
+
    // Bit#(1) going = 1;
    Bool going = True;
    for (Integer i = 0; i < ports; i = i + 1) begin
@@ -20,7 +20,7 @@ function Bit#(Ports) arbitrate(Vector#(Ports, Bool) bs);
 	 end
       end
    end
-   
+
    return bits;
 endfunction
 

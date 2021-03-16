@@ -5,7 +5,7 @@ import RegFile::*;
 // import Screen::*;
 
 typedef enum {FIRST,NEXT,NEXT1,NEXT2} CHECK_STATES
-deriving (Eq,Bits);  
+deriving (Eq,Bits);
 (*
  always_ready,
  always_enabled,
@@ -114,11 +114,11 @@ module mkTestbench_novideo ();
             $finish (2'b00);
          end
    endrule
-   
+
    rule no_stumulus (dut.vd_rd != 1'b1);
       dut.get_vd_valid(1'b0);
    endrule
-   
+
    /*
    rule check_result ((dut.pixelValid == 1'b1) || read_cond);
    Bit#(8)    exp_pixelVal;
@@ -136,7 +136,7 @@ module mkTestbench_novideo ();
    u_cnt <= u_cnt + 1;
    data_cnt = u_cnt;
    end
-            else 
+            else
    begin
    exp_pixelVal = v_io.sub(v_cnt);
    v_cnt <= v_cnt + 1;
@@ -254,7 +254,7 @@ module mkTestbench_novideo ();
       frameCnt <= frameCnt + 1;
       $display ("frameCnt = %d", frameCnt);
    endrule
-   
+
    // reduced frame count for testing, otherwise iverilog would not
    // complete between power failures...
    rule stopearlyfortesting (frameCnt == 3);

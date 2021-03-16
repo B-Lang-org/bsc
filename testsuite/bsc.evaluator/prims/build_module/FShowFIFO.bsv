@@ -22,31 +22,31 @@ endinstance
 
 (* synthesize *)
 module sysFShowFIFO();
-   
+
    FIFO#(Maybe#(Int#(32))) f <- mkFIFO;
 
    Reg#(UInt#(32)) cycle <- mkReg(0);
-   
+
    rule tick;
       cycle <= cycle + 1;
    endrule
-   
+
    rule show;
       $display("Cycle %0d ", cycle, fshow(f));
    endrule
-   
+
    rule test(cycle == 0);
       f.enq(Nothing);
    endrule
-   
+
    rule test2(cycle == 1);
       f.enq(Valid(-1));
       f.deq;
    endrule
-   
+
    (* execution_order = "show, test3" *)
    rule test3(cycle == 3);
       $finish(0);
    endrule
-   
+
 endmodule

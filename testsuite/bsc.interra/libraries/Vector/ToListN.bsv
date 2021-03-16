@@ -11,12 +11,12 @@ module mkTestbench_ToListN();
 
 
    rule fire_once (True);
-      if (my_list3 != my_list1) 
+      if (my_list3 != my_list1)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ToListN
 endpackage : ToListN

@@ -2,10 +2,10 @@
 
 (* synthesize *)
 module sysSigned() ;
-   
+
    // Use signed data
    Reg#(int) d <- mkReg(-4) ;
-   
+
    rule check (True ) ;
       d <= d + 1 ;
       $display( "Showing signed data %0d", d );

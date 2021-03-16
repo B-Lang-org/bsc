@@ -26,19 +26,19 @@ module mkTestbench_Update();
    ListN #(5,Int #(32)) my_list3 = update(my_list1, index, 6);
 
 
-  
+
    rule fire_once (True);
       $display("Original ListN");
       display_list (my_list1);
       $display("Updated ListN");
       display_list (my_list3);
-      
-      if (my_list2 != my_list3) 
+
+      if (my_list2 != my_list3)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Update
 endpackage : Update

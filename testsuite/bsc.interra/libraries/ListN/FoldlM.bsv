@@ -27,16 +27,16 @@ module mkTestbench_FoldlM();
    ListN #(5,Int #(32)) my_list1 = cons (1, cons (2, cons (3, cons (4, cons (5, nil)))));
 
 
-  
+
    rule fire_once (True);
       Int #(32) value <- foldlM(add,5,my_list1);
       $display("%d", value);
-      if (value != 20) 
+      if (value != 20)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_FoldlM
 endpackage : FoldlM

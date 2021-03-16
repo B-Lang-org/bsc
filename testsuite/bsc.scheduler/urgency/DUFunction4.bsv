@@ -29,7 +29,7 @@ module sysDUFunction4( Test1 ) ;
    FIFO#(Cntr) outf2 <- mkSizedFIFO( 8 ) ;
 
    function Rules buildRules( Integer i ) ;
-      begin return 
+      begin return
          rules
             rule doit ( gos[i]._read ) ;
                cntrs[i]._write ( cntrs[i]._read + 1 ) ;
@@ -48,19 +48,19 @@ module sysDUFunction4( Test1 ) ;
                    outf2.deq;
                 endrule
              endrules;
-   
+
    Vector#(Size,Rules) genrules = map( buildRules, genVector ) ;
 
    //mapM_( addRules, genrules ) ;
    // Generates conflicts as expected.
 
-   // Objective 
+   // Objective
    let rx = foldl1( rJoinDescendingUrgency, genrules) ;
    let ry = rJoinPreempts( foo, rx ) ;
    addRules( ry ) ;
 //   addRules( rx ) ;
 //   addRules( foo ) ;
-   
+
    method Action setGo( Idx index ) ;
       let breg = select( gos, index ) ;
       breg <= True ;
@@ -73,5 +73,5 @@ module sysDUFunction4( Test1 ) ;
 
    method Action deq = outf.deq ;
    method first = outf.first ;
-      
+
 endmodule

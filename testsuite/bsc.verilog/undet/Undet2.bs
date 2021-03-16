@@ -6,6 +6,6 @@ sysUndet2 =
     x :: Reg (Bit 27) <- mkRegU
     counter :: Reg (Bit 16) <- mkReg 0
 
-    rules 
+    rules
       when True ==> counter := counter + 1
       when True ==> if (counter < 16) then displayHex(x :: Bit 27) else $finish 0

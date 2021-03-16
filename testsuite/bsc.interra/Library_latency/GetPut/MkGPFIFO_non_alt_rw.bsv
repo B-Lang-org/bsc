@@ -25,7 +25,7 @@ module mkTestbench_MkGPFIFO_non_alt_rw ();
      tpl_2(datafifo).put(counter+8'd15);
       $display("Value Written = %d time = %d counter = %d",(counter+8'd15),$time,counter);
    endrule
-   
+
 
    rule read_value ((counter >=2) && (counter < 4));
      Bit #(8) first <- tpl_1(datafifo).get;

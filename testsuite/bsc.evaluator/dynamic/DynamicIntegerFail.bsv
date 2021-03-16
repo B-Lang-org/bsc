@@ -9,7 +9,7 @@ module sysDynamicIntegerFail(Empty);
   Reg#(Bool) r <- mkReg(False);
 
   Bit#(1) x = fromInteger( r ? one : two);
-  
+
   rule test;
     $display("x: %0d", x);
     $finish(0);

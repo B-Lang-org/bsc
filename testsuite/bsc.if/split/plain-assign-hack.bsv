@@ -6,7 +6,7 @@ module sysx () ;
         (* split *)
         if (myregister)
         action
-        let temp = 
+        let temp =
                 action
                 i <= 10;
                 endaction;
@@ -14,7 +14,7 @@ module sysx () ;
         endaction
         else
         action
-        let temp = 
+        let temp =
                 action
                 i <= 20;
                 endaction;

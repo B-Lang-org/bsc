@@ -47,7 +47,7 @@ function Bit#(6) func_rmax(Bool last,Bit#(12) level,Bool isIntra);
 		        res = 6;
 		     else if (level == 3)
 		        res = 1;
-		     else 
+		     else
 		        res = 0;
 		  end
       end
@@ -74,7 +74,7 @@ function Bit#(6) func_rmax(Bool last,Bit#(12) level,Bool isIntra);
 		                          res = 40;
 		                       else if (level == 2)
 		                          res = 1;
-		                       else 
+		                       else
 		                          res = 0;
 		                    end
 	                end
@@ -100,7 +100,7 @@ function Bit#(12) func_lmax(Bool last,Bit#(6) run,Bool isIntra);
 		  res = 3;
 	       else if ((run == 8) || (run == 9))
 		  res = 2;
-	       else 
+	       else
 		  res = 1;
 	    end
                else
@@ -111,7 +111,7 @@ function Bit#(12) func_lmax(Bool last,Bit#(6) run,Bool isIntra);
 		        res = 3;
 		     else if ((run >= 2) && (run <= 6))
 		        res = 2;
-		     else 
+		     else
 		        res = 1;
 		  end
       end
@@ -129,7 +129,7 @@ function Bit#(12) func_lmax(Bool last,Bit#(6) run,Bool isIntra);
 		  res = 3;
 	       else if ((run >= 7) && (run <= 10))
 		  res = 2;
-	       else 
+	       else
 		  res = 1;
 	    end
                else
@@ -138,7 +138,7 @@ function Bit#(12) func_lmax(Bool last,Bit#(6) run,Bool isIntra);
 		        res = 3;
 		     else if (run == 1)
 		        res = 2;
-		     else 
+		     else
 		        res = 1;
 		  end
       end

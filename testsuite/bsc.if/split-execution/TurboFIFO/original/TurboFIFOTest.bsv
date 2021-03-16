@@ -3,9 +3,9 @@ import TurboFIFO::*;
 
 (* synthesize *)
 module sysTurboFIFOTest(Empty);
-  
+
   Reg#(Bit#(16)) count <- mkReg(0);
-  
+
   FIFO#(Bit#(16)) turbo <- mkTurboFIFO;
 
   rule enq(count < 10);
@@ -26,5 +26,5 @@ module sysTurboFIFOTest(Empty);
 
 endmodule
 
-  
+
 

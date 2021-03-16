@@ -58,7 +58,7 @@ module mkCalc_nC( Calc_nC );
    FIFO#(MemResp#(20))                    memRespQ <- mkFIFO;
    Bit#(1) bit1 = 1;
    Bit#(1) bit0 = 0;
- 
+
    rule currMbHorUpdate( !(currMbHor<zeroExtend(picWidth)) );
       Bit#(PicAreaSz) temp = zeroExtend(picWidth);
       if((currMbHor >> 3) >= temp)
@@ -120,7 +120,7 @@ module mkCalc_nC( Calc_nC );
    method Action initialize_picWidth( Bit#(PicWidthSz) picWidthInMb ) if( waiting == 0 && currMbHor<zeroExtend(picWidth) );
       picWidth  <= picWidthInMb;
    endmethod
-   
+
    method Action initialize( Bit#(PicAreaSz) firstMbAddr ) if( waiting == 0 && currMbHor<zeroExtend(picWidth) );
       firstMb   <= firstMbAddr;
       currMb    <= firstMbAddr;
@@ -254,7 +254,7 @@ module mkCalc_nC( Calc_nC );
       //$display( "TRACE nNupdate_luma microBlockNum %0d", microBlockNum );
       //$display( "TRACE nNupdate_luma totalCoeff %0d", totalCoeff );
    endmethod
-   
+
    method Action  nNupdate_chroma( Bit#(3) microBlockNum, Bit#(5) totalCoeff ) if( waiting == 0 && currMbHor<zeroExtend(picWidth) );
       Bit#(10) topValChroma0Temp = topValChroma0;
       Bit#(10) topValChroma1Temp = topValChroma1;
@@ -278,7 +278,7 @@ module mkCalc_nC( Calc_nC );
 	    if(microBlockNum[0]==0)
 	       topValChroma1Temp = {topValChroma1[9:5] , totalCoeff};
 	    else
-	       topValChroma1Temp = {totalCoeff , topValChroma1[4:0]};	    
+	       topValChroma1Temp = {totalCoeff , topValChroma1[4:0]};
 	 end
       topValChroma0 <= topValChroma0Temp;
       topValChroma1 <= topValChroma1Temp;
@@ -307,7 +307,7 @@ module mkCalc_nC( Calc_nC );
 	    leftValChroma1 <= 10'b0000000000;
 	 end
    endmethod
-   
+
    method Action  nNupdate_ipcm() if( waiting == 0 && currMbHor<zeroExtend(picWidth) );
       leftVal <= 20'b10000100001000010000;
       leftValChroma0 <= 10'b1000010000;

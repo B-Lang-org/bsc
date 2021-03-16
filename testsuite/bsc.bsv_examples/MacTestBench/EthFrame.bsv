@@ -102,7 +102,7 @@ endinstance
 function String showFrameOpCode (FrameOpCode opcode);
 
    String result;
-   
+
    case (opcode)
       PAUSE: result = "PAUSE";
       IGNORE: result = "IGNORE";
@@ -116,7 +116,7 @@ endfunction
 function String showFrameFormat (FrameFormat format);
 
    String result;
-   
+
    case (format)
       UNTAGGED: result = "UNTAGGED";
       TAGGED: result = "TAGGED";
@@ -138,14 +138,14 @@ function String showFrame (Frame frame);
 	  strConcat(
 	  strConcat(
 		    strConcat(
-			      strConcat(" opcode: ", 
+			      strConcat(" opcode: ",
 					(bitToString (pack(frame.opcode)))),
-			      strConcat(",\n                  id: ", 
+			      strConcat(",\n                  id: ",
 					(bitToString (pack(frame.id))))),
 		    strConcat(
-			      strConcat(",\n                 src: ", 
+			      strConcat(",\n                 src: ",
 					(bitToString (pack(frame.src)))),
-			      strConcat(",\n                 dst: ", 
+			      strConcat(",\n                 dst: ",
 					(bitToString (pack(frame.dst)))))),
 		    "]"));
 endfunction
@@ -157,7 +157,7 @@ endfunction
 function Action displayFrame (Frame frame);
    if (frame.opcode == PAUSE)
       $display("[FRAME opcode: %0s\n   pause_time: %d\n          src: %h\n          dst: %h\n       format: %0s\n]",
-	       showFrameOpCode(frame.opcode), 
+	       showFrameOpCode(frame.opcode),
 	       frame.pause_time,
 	       frame.src,
 	       frame.dst,
@@ -167,7 +167,7 @@ function Action displayFrame (Frame frame);
       begin
 	 Bit#(64) value = grab_left(frame.data.data);
 	 $display("[FRAME opcode: %0s\n           id: %d\n          src: %h\n          dst: %h\n       format: %0s\n         size: %d\n         data: %h ....\n]",
-	       showFrameOpCode(frame.opcode), 
+	       showFrameOpCode(frame.opcode),
 	       frame.id,
 	       frame.src,
 	       frame.dst,
@@ -199,7 +199,7 @@ module mkFixedSrcDstRandomizer#(FrameAddr src_addr, FrameAddr dst_addr) (Randomi
       frame.dst = dst_addr;
       return frame;
    endmethod
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -208,7 +208,7 @@ endmodule
 
 instance Randomizeable#(Frame);
       module mkRandomizer (Randomize#(Frame));
-	 
+
 	 Reg#(FrameId) id_count <- mkReg(0);
 
 	 Randomize#(FrameAddr) src_gen <- mkGenericRandomizer_Synth;
@@ -226,17 +226,17 @@ instance Randomizeable#(Frame);
 	       pause_gen.cntrl.init();
 	    endmethod
 	 endinterface
-	 
+
 	 method ActionValue#(Frame) next ();
-   
+
 	    let src <- src_gen.next();
 	    let dst <- dst_gen.next();
 	    let format <- format_gen.next();
 	    let pause_time <- pause_gen.next();
-	    
+
 	    FrameData data;
 	    FrameOpCode opcode;
-	    
+
 	    case (format)
 	       CONTROL: begin
 			   data = unpack(0);
@@ -246,7 +246,7 @@ instance Randomizeable#(Frame);
 			   data <- data_gen.next();
 			   opcode = IGNORE;
 			end
-	       
+
 	    endcase
 
 	    let frame = Frame {id:            id_count,
@@ -262,14 +262,14 @@ instance Randomizeable#(Frame);
 
 	    id_count <= id_count + 1;
 
-	    
+
 	    let byte_size = getFrameByteSize(frame);
 	    let delta = fromInteger(getSizeOf(frame)) - (8 * byte_size);
 
 	    Bit#(FrameBitSize) shifted = (pack(frame) >> delta) << delta;
 
 	    return unpack(shifted);
-	    
+
 	 endmethod
 
       endmodule
@@ -279,7 +279,7 @@ instance Randomizeable#(FrameData);
       module mkRandomizer (Randomize#(FrameData));
 
 	 let max = fromInteger(valueOf(MaxDataLength));
-	 
+
 	 Randomize#(DataSize) size_gen <- mkConstrainedRandomizer_Synth(0, max - 1);
 	 Randomize#(DataVector) data_gen <- mkGenericRandomizer_Synth;
 
@@ -298,12 +298,12 @@ instance Randomizeable#(FrameData);
 	    let out = FrameData {size: size,
 				 data: data
 				 };
-	    
+
 	    return out;
 	 endmethod
-	 
+
       endmodule
-endinstance      
+endinstance
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -315,16 +315,16 @@ function Bit#(16) getFrameByteSize(Frame frame);
    else
       return 14 + frame.data.size;
 endfunction
-      
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
 function Frame remove_trailing_data(Frame frame);
-	 
+
    let byte_size = getFrameByteSize(frame);
    let delta = fromInteger(getSizeOf(frame)) - (8 * byte_size);
-   
+
    Bit#(FrameBitSize) shifted = (pack(frame) >> delta) << delta;
 
    return unpack(shifted);
@@ -333,7 +333,7 @@ endfunction
 
 instance Bits#(Frame, FrameBitSize)
    provisos(Add#(ignore, 48, FrameBitSize));
-  
+
    function Bit#(FrameBitSize) pack(Frame frame);
 
       let offset = 0;
@@ -347,10 +347,10 @@ instance Bits#(Frame, FrameBitSize)
 	 { CONTROL,     .*}: frame_bytes = {frame.dst, frame.src, 16'h8808, 16'h0000, 0};
 	            default: frame_bytes = {0};
       endcase
-   
+
       return frame_bytes;
    endfunction
-   
+
    function Frame unpack(Bit#(FrameBitSize) frame_bits);
 
       Bit#(FrameBitSize) current;
@@ -417,12 +417,12 @@ instance Bits#(Frame, FrameBitSize)
 	    current = current << fromInteger(getSizeOf(data));
 	 end
       endcase
-   
-      
+
+
       let frame_data = FrameData {size: size,
 				  data: data
 				  };
-	    
+
       let frame = Frame {id:            id,
 			 src:           src,
 			 dst:           dst,
@@ -437,13 +437,13 @@ instance Bits#(Frame, FrameBitSize)
       return frame;
    endfunction
 endinstance
-      
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
 function Bit#(32) calculatePortAddress(Integer count, Frame frame);
-   
+
    if (count < 2)
       return 0;
    else if (count < 3)
@@ -470,11 +470,11 @@ function Bit#(32) calculatePortAddress(Integer count, Frame frame);
 	 value = truncate(frame.dst);
 	 return {0, min(fromInteger(count - 1), value)};
       end
-   else 
+   else
       return (error("More than 16 ports not handled."));
-	      
+
 endfunction
-      
+
 endpackage
 
 

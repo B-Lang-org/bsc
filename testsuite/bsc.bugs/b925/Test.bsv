@@ -9,11 +9,11 @@ import FIFOF::*;
 
 (* synthesize *)
 module `modName ( );
-   
+
    FIFOF#(Maybe#(Bit#(6))) fifo<- mkUGSizedFIFOF(`size);
    FIFOF#(void)   zfifo <- mkUGSizedFIFOF(`size ) ;
-   
-   Reg#(Bit#(6)) cnt <- mkReg(0);	
+
+   Reg#(Bit#(6)) cnt <- mkReg(0);
 
    rule push  ( True );
       if (cnt <= `size || cnt == 16 )
@@ -24,7 +24,7 @@ module `modName ( );
 	 end
       else if ( cnt > 8 && cnt < 16 )
          begin
-	    $display($time, " out data = %0d, Valid is %0d, Empty:%0d", 
+	    $display($time, " out data = %0d, Valid is %0d, Empty:%0d",
                      validValue(fifo.first), isValid(fifo.first) , fifo.notEmpty );
 	    fifo.deq;
             zfifo.deq ;
@@ -51,13 +51,13 @@ module `modName ( );
       $display( "Error: Full status do not match: zfifo: %0d, fifo: %0d",
                zfifo.notFull, fifo.notFull ) ;
    endrule
-   
+
    rule fin_fl(cnt == 31);
       $finish(0);
    endrule
-   
+
    rule inc;
       cnt <= cnt + 1;
    endrule
-   
+
 endmodule

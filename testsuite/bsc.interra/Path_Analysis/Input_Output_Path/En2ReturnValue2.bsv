@@ -1,4 +1,4 @@
-//In the sub-module, signal from Enable of one method 
+//In the sub-module, signal from Enable of one method
 //goes through combinational logic to ReturnValue of the same method.
 //Should show when using the -dpathsPostSched flag
 
@@ -13,16 +13,16 @@ endinterface
 
 (* synthesize *)
 module mkEn2ReturnValue2(En2ReturnValue2Inter);
-    
+
     FIFO #(Bit #(8)) my_fifo();
     mkFIFO the_my_fifo (my_fifo);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
 
     RWire #(Bit #(8)) x();
     mkRWire the_x (x);
-    
+
     rule always_fire;
         counter <= counter + 1;
     endrule
@@ -38,10 +38,10 @@ module mkEn2ReturnValue2(En2ReturnValue2Inter);
         return temp;
      endactionvalue
     endmethod
-    
-   
+
+
 endmodule
 
-    
+
 
 endpackage

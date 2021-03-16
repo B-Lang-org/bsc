@@ -4,14 +4,14 @@ import Vector
 import ActionSeq
 
 --@ \subsection{Loop}
---@ 
+--@
 --@ \index{Loop@\te{Loop} (package)}
 --@ The \te{Loop} package contains some functions to simplify the
 --@ construction of loops.  All the constructs here take an
 --@ \te{ActionList} as the loop body.  These action are then executed
 --@ in sequence a number of times, where the number depends on the
 --@ looping construct.
---@ 
+--@
 
 --@ \index{for@\te{for} (\te{Loop} function)}
 --@ The \te{for} function constructs a for loop where a register
@@ -62,8 +62,8 @@ forN i hi stmts = liftModule $
       run :: Reg Bool <- mkReg False
       body :: ActionSeq <- actionSeq $ append (init stmts) (action {
 								last stmts;
-								run := i > 0; 
-								i := i - 1 } 
+								run := i > 0;
+								i := i - 1 }
 							      :> nil)
       interface
 	start = if hi >= 0 then action { run := True; i := hi; body.start } else action { }

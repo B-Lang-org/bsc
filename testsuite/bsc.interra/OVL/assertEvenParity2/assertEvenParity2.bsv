@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -24,7 +24,7 @@ Reg#(Bit#(5)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 AssertTest_IFC#(Bit#(5)) assertEven <- bsv_assert_even_parity(defaults);
-   
+
 rule test(True);
     assertEven.test(test_expr); // test_expr : test_expr
 endrule

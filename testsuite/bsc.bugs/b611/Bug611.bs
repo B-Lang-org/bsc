@@ -19,7 +19,7 @@ interface FIFOF_ a =
 -- with enq and deq so that the implicit conditions in a guarded FIFO
 -- (with or without explicit full and empty signals)
 -- do not create a conflict between enq and deq
-interface VFIFOF_ n = 
+interface VFIFOF_ n =
   enq_        :: Bit n -> PrimAction
   deq_        :: PrimAction
   first_      :: Bit n
@@ -36,7 +36,7 @@ interface VFIFOF0_ =
   notFull_    :: Bit 1
   i_notFull_  :: Bit 1
   notEmpty_   :: Bit 1
-  i_notEmpty_ :: Bit 1  
+  i_notEmpty_ :: Bit 1
 
 
 -- Depth 1, width > 0
@@ -55,7 +55,7 @@ vMk1FIFOF =
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
 	first_ < deq_,
         [notFull_, notEmpty_] < [enq_, deq_],
-        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
 	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
@@ -75,7 +75,7 @@ vMk1FIFOF0 =
   }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
         [notFull_, notEmpty_] < [enq_, deq_],
-        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
 	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
@@ -127,7 +127,7 @@ vMk2FIFOF =
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
 	first_ < deq_,
         [notFull_, notEmpty_] < [enq_, deq_],
-        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
 	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
@@ -147,7 +147,7 @@ vMk2FIFOF0 =
   }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
         [notFull_, notEmpty_] < [enq_, deq_],
-        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
 	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] < clear_
@@ -205,7 +205,7 @@ vMkSizedNFIFOF n =
       deq_ <> [enq_, i_notFull_, i_notEmpty_],
       first_ < deq_,
       [notFull_, notEmpty_] < [enq_, deq_],
-      [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+      [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
       [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
       [enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
       [i_notFull_, i_notEmpty_] <> clear_
@@ -225,7 +225,7 @@ vMkSizedNFIFOF0 n =
   }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
         [notFull_, notEmpty_] < [enq_, deq_],
-        [notFull_, i_notFull_, notEmpty_, i_notFull_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notFull_] <>
         [notFull_, i_notFull_, notEmpty_, i_notFull_],
 	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
@@ -286,9 +286,9 @@ vMkL1FIFOF =
 	first_ < deq_,
 	[enq_, deq_] < [notEmpty_, notFull_],
         deq_ < i_notFull_,
-        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, first_, notFull_, i_notFull_, notEmpty_, 
+	[enq_, deq_, first_, notFull_, i_notFull_, notEmpty_,
          clear_] < clear_,
         i_notEmpty_ <> clear_
       ]
@@ -308,9 +308,9 @@ vMkL1FIFOF0 =
         deq_ <> [enq_, i_notEmpty_],
 	[enq_, deq_] < [notFull_, notEmpty_],
         deq_ < i_notFull_,
-        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <> 
+        [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, notFull_, i_notFull_, notEmpty_, clear_] 
+	[enq_, deq_, notFull_, i_notFull_, notEmpty_, clear_]
         < clear_,
         i_notEmpty_ <> clear_
       ]

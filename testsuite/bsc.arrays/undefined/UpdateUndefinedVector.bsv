@@ -9,5 +9,5 @@ module sysUpdateUndefinedVector();
   rule test;
     $displayh(vec);
   endrule
- 
+
 endmodule

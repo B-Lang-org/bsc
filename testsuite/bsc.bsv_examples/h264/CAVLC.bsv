@@ -22,7 +22,7 @@
 //**********************************************************************
 // CAVLC codes
 //----------------------------------------------------------------------
-// 
+//
 //
 //
 
@@ -30,7 +30,7 @@ package CAVLC;
 
 import H264Types::*;
 
-      
+
    //-----------------------------------------------------------
    // Helper functions
 
@@ -325,7 +325,7 @@ import H264Types::*;
 	    else return tuple3(0,0,100);
 	 end
    endfunction
-   
+
    (* noinline *)
    function Bit#(4) cavlc_level_prefix( Buffer inbuffer );
       Bit#(4) tempout = 15;

@@ -5,7 +5,7 @@ typedef union tagged {
    Bit#(3) Ignore1; // ignore the initial outputs
    Bit#(4) Ls;
    Bit#(4) LsV3;
-   void    Done;	      
+   void    Done;
 } State deriving (Eq, Bits);
 
 module mkTb8 (Empty);
@@ -19,7 +19,7 @@ module mkTb8 (Empty);
    mkLsV3 the_lsv3(lsv3);
 
    // Testbench state
-   
+
    Reg#(State) send_state();
    mkReg#(Start) send_state_r(send_state);
 
@@ -29,7 +29,7 @@ module mkTb8 (Empty);
    rule test;
       SXpair#(4,16) ls_push_val = ?;
       Maybe#(SXpair#(4,16)) lsv3_push_val = Invalid;
-      
+
       case (send_state) matches
 
 	 tagged Start :
@@ -103,7 +103,7 @@ module mkTb8 (Empty);
 	       end
 
       endcase
-      
+
    endrule
 
 endmodule

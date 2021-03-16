@@ -12,7 +12,7 @@ module mkTb3 (Empty);
 
    Reg#(State) state();
    mkReg#(Start) state_r(state);
-   
+
    rule test;
       case (state) matches
 
@@ -20,7 +20,7 @@ module mkTb3 (Empty);
 	    $display("Testing f_3bit:");
 	    state <= Static1(0);
 	 end
-	 
+
 	 tagged Static1 .s : begin
 	    $display("8'hFF << 3'b%b = 8'b%b", s, f_3bit(s, 8'hFF));
 	    if (s == 7) begin
@@ -63,6 +63,6 @@ module mkTb3 (Empty);
 
       endcase
    endrule
-   
+
 endmodule
 

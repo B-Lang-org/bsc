@@ -11,7 +11,7 @@ module test (Empty);
 
   for (Integer i = 0; i < 3; i = i + 1)
     inbounds[i] <- mkFIFO;
-    
+
   function Action updateCounts (Integer n);
     action
       (inbounds[n]).deq;

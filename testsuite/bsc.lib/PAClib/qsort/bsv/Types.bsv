@@ -17,13 +17,13 @@ typedef Tuple5#(VData_T#(num, data_t),   // a[]
 
 typedef Vector#(num, Ptr_T#(num)) Stack_T#(numeric type num);
 
-typedef Tuple3#(Stack_T#(num), 
+typedef Tuple3#(Stack_T#(num),
                 Stack_T#(num),
                 Ptr_T#(num)
 ) MainLoopIn_T#(numeric type num);
 
 typedef Tuple4#(VData_T#(num, data_t),
-                Stack_T#(num), 
+                Stack_T#(num),
                 Stack_T#(num),
                 Ptr_T#(num)
 ) MainLoopWork_T#(numeric type num, type data_t);

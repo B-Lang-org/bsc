@@ -9,7 +9,7 @@ module mkMyReg ( OutClk ) ;
 
    default_clock no_clock ;
    no_reset ;
-   
+
    output_clock out_clock (CLK_OUT1) ;
    output_clock out_clock (CLK_OUT2) ;
 endmodule

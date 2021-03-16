@@ -32,7 +32,7 @@ module sysDeriveBits2();
 
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

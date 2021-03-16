@@ -18,11 +18,11 @@ endfunction: tabulated_add
 
 
 module mkTestbench_StaticAssert ();
-        
+
   Reg#(Bit#(6)) counter <- mkReg(0);
   Reg#(Bool) fail1 <- mkReg(False);
- 
-  
+
+
   staticAssert (add2 == tabulated_add, "Failure: Add2 != Tabulated_Add");
   rule always_fire (True);
 	 counter <= counter + 1;
@@ -32,6 +32,6 @@ module mkTestbench_StaticAssert ();
      $display ("A = %d, B= %d, A+B = %d", counter[5:3], counter[2:0], tabulated_add(counter[5:3], counter[2:0]));
   endrule
 
-  
-endmodule: mkTestbench_StaticAssert 
+
+endmodule: mkTestbench_StaticAssert
 endpackage: StaticAssert

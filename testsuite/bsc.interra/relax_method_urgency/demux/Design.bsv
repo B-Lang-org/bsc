@@ -1,4 +1,4 @@
-// De-Multiplexer based switching of four channels :- In this De-Multiplexer there is a input stream which has to be De-multiplexed into four streams depending on select line. 
+// De-Multiplexer based switching of four channels :- In this De-Multiplexer there is a input stream which has to be De-multiplexed into four streams depending on select line.
 
 interface IFC_design;
 	method ActionValue#(Maybe#(Bit#(4))) data_out_0;
@@ -9,11 +9,11 @@ endinterface
 (*synthesize*)
 
 module mkDesign (IFC_design);
-	
+
 	Reg#(Bit#(2)) select <- mkReg(0);
 	Reg#(Bit#(16)) inp <- mkReg(16'hABCE);
 	RWire#(Bit#(2)) sel_wire <- mkRWire;
-	
+
 // Channel selection is done within the module and the o.p channel is displayed
 // Input incremented and displayed according to select bits
     rule always_fire;
@@ -21,7 +21,7 @@ module mkDesign (IFC_design);
 		select <= select + 1;
     endrule
 
-// wire set in rule	
+// wire set in rule
 	rule wire_set;
 		sel_wire.wset(select);
     endrule
@@ -35,7 +35,7 @@ module mkDesign (IFC_design);
 		end
 		else return Invalid;
 	endmethod
-	
+
 // wire read in method
 	method ActionValue#(Maybe#(Bit#(4))) data_out_1 if (isValid(sel_wire.wget));
 		if (validValue(sel_wire.wget)==1)
@@ -45,7 +45,7 @@ module mkDesign (IFC_design);
 		end
 		else return Invalid;
 	endmethod
-	
+
 // wire read in method
 	method ActionValue#(Maybe#(Bit#(4))) data_out_2 if (isValid(sel_wire.wget));
 		if (validValue(sel_wire.wget)==2)
@@ -55,7 +55,7 @@ module mkDesign (IFC_design);
 		end
 		else return Invalid;
 	endmethod
-	
+
 // wire read in method
 	method ActionValue#(Maybe#(Bit#(4))) data_out_3 if (isValid(sel_wire.wget));
 		if (validValue(sel_wire.wget)==3)
@@ -65,5 +65,5 @@ module mkDesign (IFC_design);
 		end
 		else return Invalid;
 	endmethod
-	
+
 endmodule

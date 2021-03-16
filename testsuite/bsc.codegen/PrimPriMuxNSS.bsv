@@ -35,5 +35,5 @@ module mkPrimPriMuxNSS (Empty);
       $display("Result: %d", v);
       $finish(0);
    endrule
-   
+
 endmodule

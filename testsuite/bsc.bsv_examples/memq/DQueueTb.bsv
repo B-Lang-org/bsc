@@ -63,7 +63,7 @@ module sysDQueueTb(Empty);
 	 enqueue(6,1,99);
 	 //queue.clear;
       endseq);
-   
+
    // Next we use this sequence as argument to a module which instantiates a
    // FSM to implement it.
    FSM test_fsm <- mkFSM(test_seq);
@@ -76,9 +76,9 @@ module sysDQueueTb(Empty);
       going <= True;
       test_fsm.start;
    endrule
-   
+
    // This rule fires when the FSM has finished its work, and stops the
-   // simulation. 
+   // simulation.
    rule stop (going && test_fsm.done);
       $finish(0);
    endrule

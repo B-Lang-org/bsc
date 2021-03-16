@@ -37,14 +37,14 @@ endfunction
 
 module mkTestbench_ZipWithAny();
    Vector #(5,Int #(5)) my_list1 = cons (0, cons (1, cons (2, cons (3, cons (4, nil)))));
-   Vector #(8,Int #(5)) my_list2 = 
-                       cons (5, 
-					   cons (6, 
-					   cons (7, 
-					   cons (8, 
-					   cons (9, 
-					   cons (10, 
-					   cons (11, 
+   Vector #(8,Int #(5)) my_list2 =
+                       cons (5,
+					   cons (6,
+					   cons (7,
+					   cons (8,
+					   cons (9,
+					   cons (10,
+					   cons (11,
 					   cons (12, nil))))))));
 
    Vector #(5,Int #(5)) my_list3 = cons (5, cons (7, cons (9, cons (11, cons (13, nil)))));
@@ -58,12 +58,12 @@ module mkTestbench_ZipWithAny();
       display_list (my_list2);
       $display("ZipWithAny Vector:");
       display_list (my_list4);
-      if (my_list3 != my_list4) 
+      if (my_list3 != my_list4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWithAny
 endpackage : ZipWithAny

@@ -62,7 +62,7 @@ interface WBoneOpTxRxIFC;
    interface Get#(WBoneOp) tx;
    interface Put#(WBoneOp) rx;
 endinterface
-      
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ interface WBoneZBusClientIFC;
    interface ZBusClientIFC#(BusCycle) cyc;
    interface ZBusClientIFC#(Bool)     err;
    interface ZBusClientIFC#(Bool)     lock;
-   interface ZBusClientIFC#(Bool)     stb;	 
+   interface ZBusClientIFC#(Bool)     stb;
    interface ZBusClientIFC#(Bool)     rty;
    interface ZBusClientIFC#(Bool)     we;
 endinterface
@@ -144,11 +144,11 @@ interface WBoneZBusBusIFC;
    interface ZBusBusIFC#(BusCycle) cyc;
    interface ZBusBusIFC#(Bool)     err;
    interface ZBusBusIFC#(Bool)     lock;
-   interface ZBusBusIFC#(Bool)     stb;	 
+   interface ZBusBusIFC#(Bool)     stb;
    interface ZBusBusIFC#(Bool)     rty;
    interface ZBusBusIFC#(Bool)     we;
 endinterface
-      
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,7 @@ module mkWBoneZBus#(List#(WBoneZBusBusIFC) ifc_list) (Empty);
       WBoneZBusBusIFC ifc = wb_ifc;
       return ifc.cyc();
    endfunction
-   
+
    function err_ifc (wb_ifc);
       WBoneZBusBusIFC ifc = wb_ifc;
       return ifc.err();
@@ -230,7 +230,7 @@ module mkWBoneZBus#(List#(WBoneZBusBusIFC) ifc_list) (Empty);
    mkZBus(map(stb_ifc, ifc_list));
    mkZBus(map(rty_ifc, ifc_list));
    mkZBus(map(we_ifc, ifc_list));
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -250,13 +250,13 @@ module mkWBoneZBusBuffer (WBoneZBusDualIFC);
    ZBusDualIFC#(Bool)     stb_ifc <- mkZBusBuffer;
    ZBusDualIFC#(Bool)     rty_ifc <- mkZBusBuffer;
    ZBusDualIFC#(Bool)     we_ifc <- mkZBusBuffer;
-   
+
    interface WBoneZBusClientIFC clientIFC;
       interface ZBusClientIFC dati = dati_ifc.clientIFC;
       interface ZBusClientIFC dato = dato_ifc.clientIFC;
       interface ZBusClientIFC sel  = sel_ifc.clientIFC;
       interface ZBusClientIFC adr  = adr_ifc.clientIFC;
-      interface ZBusClientIFC ack  = ack_ifc.clientIFC;	    
+      interface ZBusClientIFC ack  = ack_ifc.clientIFC;
       interface ZBusClientIFC cyc  = cyc_ifc.clientIFC;
       interface ZBusClientIFC err  = err_ifc.clientIFC;
       interface ZBusClientIFC lock = lock_ifc.clientIFC;
@@ -264,13 +264,13 @@ module mkWBoneZBusBuffer (WBoneZBusDualIFC);
       interface ZBusClientIFC rty  = rty_ifc.clientIFC;
       interface ZBusClientIFC we   = we_ifc.clientIFC;
    endinterface
-   
+
    interface WBoneZBusBusIFC busIFC;
       interface ZBusBusIFC dati = dati_ifc.busIFC;
       interface ZBusBusIFC dato = dato_ifc.busIFC;
       interface ZBusBusIFC sel  = sel_ifc.busIFC;
       interface ZBusBusIFC adr  = adr_ifc.busIFC;
-      interface ZBusBusIFC ack  = ack_ifc.busIFC;	    
+      interface ZBusBusIFC ack  = ack_ifc.busIFC;
       interface ZBusBusIFC cyc  = cyc_ifc.busIFC;
       interface ZBusBusIFC err  = err_ifc.busIFC;
       interface ZBusBusIFC lock = lock_ifc.busIFC;
@@ -280,7 +280,7 @@ module mkWBoneZBusBuffer (WBoneZBusDualIFC);
    endinterface
 
 endmodule
-	 
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,7 +288,7 @@ endmodule
 function String showCycleKind (CycleKind kind);
 
    String result;
-   
+
    case (kind)
       READ:    result = "READ";
       WRITE:   result = "WRITE";
@@ -302,9 +302,9 @@ function String showCycleKind (CycleKind kind);
 endfunction
 
 function String showPipeKind (PipeKind kind);
-   
+
    String result;
-   
+
    case (kind)
       CLASSIC:  result = "CLASSIC";
       CONSTANT: result = "CONSTANT";
@@ -320,9 +320,9 @@ function String showPipeKind (PipeKind kind);
 endfunction
 
 function String showStatus (Status status);
-   
+
    String result;
-   
+
    case (status)
       UNKNOWN: result = "UNKNOWN";
       ACK:     result = "ACK";
@@ -343,7 +343,7 @@ function Action displayWBoneOp (WBoneOp op);
 
    $display("[WBoneOp kind: %0s\n   next_cycle: %0s\n         addr: %h\n         data: %h\n          sel: %b\n          tgc: %d\n         lock: %0s\n       status: %0s]",
 	    showCycleKind(op.kind),
-	    showPipeKind(op.next_cycle), 
+	    showPipeKind(op.next_cycle),
 	    op.addr.data,
 	    op.data.data,
 	    op.sel,
@@ -363,7 +363,7 @@ function WBoneOp createWBoneOp (WBoneZBusClientIFC ifc);
    let kind = READ;
    let data = ifc.dati.get();
 
-   if (ifc.we.get()) 
+   if (ifc.we.get())
       begin
 	 kind = WRITE;
 	 data = ifc.dato.get();
@@ -383,7 +383,7 @@ function WBoneOp createWBoneOp (WBoneZBusClientIFC ifc);
    let status = UNKNOWN;
    if (ifc.ack.get()) status = ACK;
    if (ifc.err.get()) status = ERR;
-   
+
    let wboneop = WBoneOp {kind:       kind,
 			  next_cycle: next_cycle,
 			  addr:       addr,
@@ -404,7 +404,7 @@ endfunction
 
 instance Randomizeable#(WBoneOp);
       module mkRandomizer (Randomize#(WBoneOp));
-	 
+
 	 Randomize#(CycleKind) kind_gen       <- mkGenericRandomizer_Synth;
 	 Randomize#(PipeKind)  next_cycle_gen <- mkGenericRandomizer_Synth;
 	 Randomize#(BusAddr)   addr_gen       <- mkGenericRandomizer_Synth;
@@ -412,7 +412,7 @@ instance Randomizeable#(WBoneOp);
 	 Randomize#(Select)    sel_gen        <- mkGenericRandomizer_Synth;
 	 Randomize#(Bool)      lock_gen       <- mkGenericRandomizer_Synth;
 	 Randomize#(Status)    status_gen     <- mkGenericRandomizer_Synth;
-	 
+
 	 interface Control cntrl;
 	    method Action init();
 	       kind_gen.cntrl.init();
@@ -424,7 +424,7 @@ instance Randomizeable#(WBoneOp);
 	       status_gen.cntrl.init();
 	    endmethod
 	 endinterface
-	 
+
 	 method ActionValue#(WBoneOp) next ();
 
 	    let kind       <- kind_gen.next();
@@ -434,7 +434,7 @@ instance Randomizeable#(WBoneOp);
 	    let sel        <- sel_gen.next();
 	    let lock       <- lock_gen.next();
 	    let status     <- status_gen.next();
-	    
+
 	    let wboneop = WBoneOp {kind:       kind,
 				   next_cycle: next_cycle,
 				   addr:       addr,
@@ -446,7 +446,7 @@ instance Randomizeable#(WBoneOp);
 				   };
 
 	    return wboneop;
-	    
+
 	 endmethod
 
       endmodule

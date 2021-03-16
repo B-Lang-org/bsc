@@ -35,6 +35,6 @@ module sysMethodConds_Function ();
          else
             s <= 2;
       end
-   endrule                    
+   endrule
 endmodule
 

@@ -29,11 +29,11 @@ module mkExtSDRAM#(parameter ExtSDRAM ifc) (Empty);
 	    begin
 	       ifc.dOut( Valid(rom.sub(ifc.addr)) );
 	    end
-	 else 
+	 else
 	    ifc.dOut(Invalid);
       endaction
    endrule
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////

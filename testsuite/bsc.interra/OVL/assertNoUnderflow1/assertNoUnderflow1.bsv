@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,9 +26,9 @@ let defaults = mkOVLDefaults;
 defaults.min = 3; //min : 3
 defaults.max = 5; //max : 5
 AssertTest_IFC#(Bit#(3)) assertNoUnder <- bsv_assert_no_underflow(defaults);
-   
+
 rule test(True);
-    assertNoUnder.test(test_expr);//test_expr : test_expr 
+    assertNoUnder.test(test_expr);//test_expr : test_expr
 endrule
 
 rule every (True);
@@ -46,7 +46,7 @@ rule every (True);
 	Third_State:
 	begin
 	    state <= Fourth_State;
-		test_expr <= 3'b101;		
+		test_expr <= 3'b101;
 	end
 	Fourth_State:
 	begin

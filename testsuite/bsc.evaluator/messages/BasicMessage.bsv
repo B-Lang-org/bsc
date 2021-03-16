@@ -6,5 +6,5 @@ module sysBasicMessage(Empty);
    rule test;
       $finish(0);
    endrule
-   
+
 endmodule

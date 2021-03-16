@@ -27,55 +27,55 @@ module mkTestbench(Empty);
 
 
    rule first (state == Start);
-      action 
+      action
          top.tlc (False, long_timer_value, short_timer_value);
          state <= Sig1;
-      endaction 
+      endaction
    endrule
 
    rule sig1_state (state == Sig1);
-      action 
+      action
          top.tlc (True, long_timer_value, short_timer_value);
          state <= Sig2 ;
          $display("Car present on Farm Road ");
-      endaction 
+      endaction
    endrule
 
-   rule sig2_state (state == Sig2); 
-      action 
+   rule sig2_state (state == Sig2);
+      action
          top.tlc (True, long_timer_value, short_timer_value);
          if (hwy_sig == YELLOW) begin
             $display("hwy_light turns Yellow ");
             state <= Sig3 ;
          end else if (count_sig2_state < 6) begin
             hwy_sig <= top.hwy_light ;
-            count_sig2_state <= count_sig2_state + 1;                  
+            count_sig2_state <= count_sig2_state + 1;
             $display("Waiting for hwy_light to turn Yellow " );
             state <= Sig2;
          end else begin
             $display("Waiting for TOO long : Testcase failed ");
             $finish(2'b00) ;
          end
-      endaction 
+      endaction
    endrule
 
-   rule sig3_state (state == Sig3); 
-      action 
+   rule sig3_state (state == Sig3);
+      action
          top.tlc (True, long_timer_value, short_timer_value);
          if (hwy_sig == RED) begin
             $display("hwy_light turns Red ");
             state <= Sig4 ;
          end else if (count_sig3_state < 3) begin
             hwy_sig <= top.hwy_light ;
-            count_sig3_state <= count_sig3_state + 1;                  
+            count_sig3_state <= count_sig3_state + 1;
             $display("Waiting for hwy_light to turn Red " );
             state <= Sig3;
          end else begin
             $display("Waiting for TOO long : Testcase failed ");
             $finish(2'b00) ;
          end
-      endaction 
-              
+      endaction
+
    endrule
 
    rule sig4_state (state == Sig4);
@@ -86,7 +86,7 @@ module mkTestbench(Empty);
             state <= Sig5 ;
          end else if (count_sig4_state < 1) begin
             frm_sig <= top.farm_light ;
-            count_sig4_state <= count_sig4_state + 1;                  
+            count_sig4_state <= count_sig4_state + 1;
             $display("Waiting for farm_light to turn Green " );
             state <= Sig4;
          end else begin
@@ -104,7 +104,7 @@ module mkTestbench(Empty);
             state <= Sig6 ;
          end else if (count_sig5_state < 6) begin
             frm_sig <= top.farm_light ;
-            count_sig5_state <= count_sig5_state + 1;                  
+            count_sig5_state <= count_sig5_state + 1;
             $display("Waiting for farm_light to turn Yellow ") ;
             state <= Sig5;
          end else begin
@@ -113,16 +113,16 @@ module mkTestbench(Empty);
          end
       endaction
    endrule
-              
+
    rule sig6_state (state == Sig6);
       action
          top.tlc (True, long_timer_value, short_timer_value);
-         if (frm_sig == RED) begin 
+         if (frm_sig == RED) begin
             $display("farm_light turns Red ");
             state <= Sig7 ;
          end else if (count_sig6_state < 3) begin
             frm_sig <= top.farm_light ;
-            count_sig6_state <= count_sig6_state + 1;                  
+            count_sig6_state <= count_sig6_state + 1;
             $display("Waiting for farm_light to turn Red ");
             state <= Sig6;
          end else begin
@@ -131,7 +131,7 @@ module mkTestbench(Empty);
          end
       endaction
    endrule
-              
+
    rule sig7_state (state == Sig7);
       action
          top.tlc (True, long_timer_value, short_timer_value);
@@ -141,7 +141,7 @@ module mkTestbench(Empty);
              $finish(2'b00) ;
          end else if (count_sig7_state < 1) begin
              hwy_sig <= top.hwy_light ;
-             count_sig7_state <= count_sig7_state + 1;                  
+             count_sig7_state <= count_sig7_state + 1;
              $display("Waiting for hwy_light to turn Green " );
              state <= Sig7;
          end else begin

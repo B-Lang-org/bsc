@@ -11,13 +11,13 @@ endfunction
 interface Design_IFC;
     method Action add_entries (UInt #(8) a);
     method UInt #(8) sum ();
-    
+
 endinterface
 
 module mkDesign_MkListReg (Design_IFC);
     Reg #(List #(UInt #(8))) my_list();
     mkListReg #(List :: replicate (10, 0)) the_my_list(my_list);
-    
+
     method add_entries (a);
      action
         my_list <= Cons (a, List :: init(my_list));
@@ -36,16 +36,16 @@ module mkTestbench_MkListReg();
 
    Reg #(UInt #(8)) counter();
    mkReg #(0) the_counter (counter);
-   
+
    Reg #(UInt #(8)) test_counter();
    mkReg #(0) the_test_counter (test_counter);
-   
-   
-   
+
+
+
    rule always_true(True);
        counter <= counter + 1;
    endrule
-  
+
 
    rule add_to_list (counter<10);
        test_counter <= test_counter + counter;
@@ -57,16 +57,16 @@ module mkTestbench_MkListReg();
            end
    endrule
 
-        
+
 
    rule endsim (counter == 10);
-       $display("Sum of Numbers 0 to 9 = %d",dut.sum); 
+       $display("Sum of Numbers 0 to 9 = %d",dut.sum);
        if (dut.sum !=45)
            $display("Simulation Fails");
        else
            $display ("Simulation Passes");
        $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_MkListReg
 endpackage : MkListReg

@@ -20,7 +20,7 @@ module mkTest#(InIfc m)(OutIfc);
    rule add_label;
       data_wire <= m.in.data;
    endrule
-   
+
    method out_data();
       return data_wire;
    endmethod

@@ -20,7 +20,7 @@ Stmt driverMonitors =
           dut.enq({0, i});
           $display("Enqueue %d", i);
        endseq
-        
+
        seq
           while(i < 5)
           seq
@@ -34,9 +34,9 @@ Stmt driverMonitors =
     endseq
 
   endpar
-  
+
   $finish(0);
-  
+
  endseq);
 
 FSM test <- mkFSM(driverMonitors);

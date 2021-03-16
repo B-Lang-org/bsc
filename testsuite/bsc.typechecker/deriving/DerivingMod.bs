@@ -3,7 +3,7 @@ package DerivingMod(sysDerivingMod) where
 import DerivingTest
 
 sysDerivingMod :: Module Empty
-sysDerivingMod = 
+sysDerivingMod =
   module
     r1 :: Reg(Test1) <- mkReg minTest
     r2 :: Reg(Test1) <- mkReg maxTest
@@ -17,16 +17,15 @@ sysDerivingMod =
     r7 :: Reg(Test4) <- mkReg minBound
     r8 :: Reg(Test4) <- mkReg maxBound
 
-    rules 
-      when True ==> 
+    rules
+      when True ==>
         action
-           if(r1 == minBound && 
-              r2 == maxBound && 
-              r3 == minBound && 
+           if(r1 == minBound &&
+              r2 == maxBound &&
+              r3 == minBound &&
               r4 == maxBound &&
               r5 == minBound &&
               r6 == maxBound &&
               r7 == minBound &&
               r8 == maxBound) then $display "Pass" else $display "Fail"
            $finish 0
-        

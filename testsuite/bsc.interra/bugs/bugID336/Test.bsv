@@ -15,7 +15,7 @@ module mkTestbench ();
     rule always_fire (True);
         counter <= counter + 1;
     endrule
-    
+
     rule update_values (counter == 1);
         dut.upd(-2, 5);
     endrule
@@ -24,7 +24,7 @@ module mkTestbench ();
         $display ("Updated Value = %d", dut.sub(-2));
     endrule
 
-  
+
 endmodule : mkTestbench
 
 

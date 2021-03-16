@@ -27,8 +27,8 @@ endfunction
 (*noinline*)
 function Tuple2#(Bool,TypeThreadNum) selectThread2(TypeBoolVec legits,
                                             TypeThreadNum startAt);
-   Bool going = True; 
-   TypeThreadNum j = startAt; 
+   Bool going = True;
+   TypeThreadNum j = startAt;
    TypeThreadNum r = 0;
   for (Integer i=0; i<valueof(NTHREADS); i=i+1)
      if (going && legits[j]) begin going = False; r = j; end

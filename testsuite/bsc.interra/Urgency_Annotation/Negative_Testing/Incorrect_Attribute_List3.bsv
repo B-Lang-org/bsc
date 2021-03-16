@@ -1,5 +1,5 @@
 //Incorrect List in the descending_urgency attribute.
-//Parser should report an error 
+//Parser should report an error
 
 package Incorrect_Attribute_List3;
 

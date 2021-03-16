@@ -13,7 +13,7 @@ module mkTestbench(Empty);
  Reg#(Bit#(9)) cntr <- mkReg(0);
  List#(Inputs) check = toList(get_vector());
  Integer len = List::length(check);
- 
+
  rule set(state==SET);
     Inputs tmp = List::select(check,cntr);
     dut.start(tmp.a,tmp.b);
@@ -21,9 +21,9 @@ module mkTestbench(Empty);
  endrule
 
 rule check_sum(state==CHECK_SUM);
-     
+
    Inputs tmp  = List::select(check,cntr);
-   Vector#(14,Bool) out = 
+   Vector#(14,Bool) out =
 cons(dut.sum == tmp.sum,
 cons (dut.sum_127 == tmp.sum_127,
 cons (dut.sum_126 == tmp.sum_126,
@@ -52,9 +52,9 @@ state<=CHECK_DIFF;
 endrule
 
 rule check_diff(state==CHECK_DIFF);
-     
+
    Inputs tmp  = List::select(check,cntr);
-   Vector#(14,Bool) out = 
+   Vector#(14,Bool) out =
 cons (dut.diff == tmp.diff,
 cons (dut.diff_127 == tmp.diff_127,
 cons (dut.diff_126 == tmp.diff_126,
@@ -68,7 +68,7 @@ cons (dut.diff_32 == tmp.diff_32,
 cons (dut.diff_31 == tmp.diff_31,
 cons (dut.diff_30 == tmp.diff_30,
 cons (dut.diff_1 == tmp.diff_1,
-cons (dut.diff_0 == tmp.diff_0, 
+cons (dut.diff_0 == tmp.diff_0,
 nil))))))))))))));
 
 
@@ -83,9 +83,9 @@ state<=CHECK_MULT;
 endrule
 
 rule check_mult(state==CHECK_MULT);
-     
+
    Inputs tmp  = List::select(check,cntr);
-   Vector#(14,Bool) out = 
+   Vector#(14,Bool) out =
 cons (dut.mult == tmp.mult,
 cons (dut.mult_127 == tmp.mult_127,
 cons (dut.mult_126 == tmp.mult_126,
@@ -114,7 +114,7 @@ endrule
 
 
 rule check_logical(state==CHECK_LOGICAL);
-     
+
    Inputs tmp  = List::select(check,cntr);
 
 if(dut.logical==tmp.logical)
@@ -131,7 +131,7 @@ rule done(state==DONE);
    else
     cntr <= cntr+1;
 	state <= SET;
-	
-endrule	
+
+endrule
 
 endmodule

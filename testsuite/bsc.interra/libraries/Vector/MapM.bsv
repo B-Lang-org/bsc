@@ -44,17 +44,17 @@ module mkTestbench_MapM();
 
 
    rule fire_once (True);
-      Vector #(5,Int #(5)) my_list4 <- mapM(f,my_list1); 
+      Vector #(5,Int #(5)) my_list4 <- mapM(f,my_list1);
       $display("ListN1:");
       display_list (my_list1);
       $display("MapM Vector:");
       display_list (my_list4);
-      if (my_list3 != my_list4) 
+      if (my_list3 != my_list4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_MapM
 endpackage : MapM

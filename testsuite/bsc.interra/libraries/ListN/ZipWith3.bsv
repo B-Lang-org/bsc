@@ -53,12 +53,12 @@ module mkTestbench_ZipWith3();
       display_list (my_list3);
       $display("ZipWith3 ListN:");
       display_list (my_list5);
-      if (my_list4 != my_list5) 
+      if (my_list4 != my_list5)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWith3
 endpackage : ZipWith3

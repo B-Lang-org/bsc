@@ -23,6 +23,6 @@ module sysRepeatedTask_OneRule() ;
    rule r2 ( !b ) ;
       $finish(0) ;
    endrule
-   
+
 endmodule
 

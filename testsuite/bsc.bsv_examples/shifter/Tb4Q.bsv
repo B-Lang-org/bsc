@@ -31,7 +31,7 @@ Testing Ls:
 16'hFFFF << 4'b1110 = 16'b1100000000000000
 16'hFFFF << 4'b1111 = 16'b1000000000000000
 Done
- 
+
 -----------------------------------------------------------------------------*/
 
 import FIFO::*;
@@ -41,13 +41,13 @@ typedef union tagged {
    void    Start;
    Bit#(3) Ls3;
    Bit#(4) Ls;
-   void    Done;	      
+   void    Done;
 } State deriving (Eq, Bits);
 
 module mkTb4 (Empty);
 
    // DUTs
-   
+
    FIFO#(SXpair#(3,8)) ls3();
    mkLs3 the_ls3(ls3);
 
@@ -55,7 +55,7 @@ module mkTb4 (Empty);
    mkLs the_ls(ls);
 
    // Testbench state
-   
+
    Reg#(State) send_state();
    mkReg#(Start) send_state_r(send_state);
 
@@ -109,6 +109,6 @@ module mkTb4 (Empty);
       else
 	 recv_state <= Ls(s+1);
    endrule
-   
+
 endmodule
 

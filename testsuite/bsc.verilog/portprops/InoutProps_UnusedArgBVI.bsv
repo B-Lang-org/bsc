@@ -3,7 +3,7 @@ interface Ifc;
   interface Inout#(Bit#(32)) io_ifc;
 endinterface
 
-import "BVI" 
+import "BVI"
 module mkInoutProps_UnusedArgBVI_Sub #(Inout#(Bit#(32)) io_arg) (Ifc);
     inout IO_ARG = io_arg;
     ifc_inout io_ifc(IO_IFC);

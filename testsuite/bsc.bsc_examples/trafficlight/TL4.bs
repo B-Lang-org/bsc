@@ -71,7 +71,7 @@ package TL4 (sysTL, TL) where {
                       action { ped_button_pushed := False; next_state (GreenPed); }
                   else
                       next_state (next_green);
-                  
+
 
           "fromGreenPed":
             when (state == GreenPed) && ((secs + 1) >= pedGreenDelay)

@@ -32,7 +32,7 @@ module mkSizedFIFOTest#(Integer fifosize)(Done);
   rule enq (counter < fromInteger(fifosize));
     fifo.enq(0);
     $display("FIFO %0d count %0d", fifosize, counter);
-    counter <= counter + 1; 
+    counter <= counter + 1;
   endrule
 
   method done();
@@ -54,31 +54,31 @@ module sysSizedFIFOTest(Empty);
 
   List#(Integer) testSizes = upto(startSize,maxSize);
   List#(Done) testers <- mapM(mkSizedFIFOTest, testSizes);
-  
+
   Reg#(Bit#(32)) count();
   mkReg#(0) i_count(count);
 
   // need to wait until the nth cycle is over
-  rule test(count <= fromInteger(maxSize) && 
+  rule test(count <= fromInteger(maxSize) &&
             count >= fromInteger(startSize));
 
     // indexing by list position not FIFO size
     Maybe#(Done) dut = selectM(testers, (count - fromInteger(startSize)));
     case (dut) matches
        // fell off the edge of the tester list!
-       Invalid : action 
-                    $display("Fail %0d", count); 
-                    $finish(0); 
+       Invalid : action
+                    $display("Fail %0d", count);
+                    $finish(0);
                   endaction
        tagged Valid .done_ifc : if (done_ifc.done)
                                  $display("Pass %0d", count);
                                else
-                                 action $display("Fail %0d %0d", 
-                                                 count, 
-                                                 done_ifc.count); 
+                                 action $display("Fail %0d %0d",
+                                                 count,
+                                                 done_ifc.count);
                                         $finish(0);
                                  endaction
-    endcase  
+    endcase
   endrule
 
   rule step (True);
@@ -86,6 +86,6 @@ module sysSizedFIFOTest(Empty);
        $finish(0);
     else
        count <= count + 1;
-  endrule 
+  endrule
 
 endmodule

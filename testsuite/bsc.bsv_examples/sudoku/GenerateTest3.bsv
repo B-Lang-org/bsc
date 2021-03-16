@@ -12,13 +12,13 @@ module mkGenerateTest3();
 
   SudokuSolver#(3) solver <- mkSudokuSolver();
 
-  Reg#(LIndex#(3)) r <- mkReg(0);  
-  Reg#(LIndex#(3)) c <- mkReg(0);  
+  Reg#(LIndex#(3)) r <- mkReg(0);
+  Reg#(LIndex#(3)) c <- mkReg(0);
 
-  // Registers used for debug display only      
+  // Registers used for debug display only
   Reg#(UInt#(16)) x <- mkReg(0);
   Reg#(UInt#(16)) y <- mkReg(0);
-   
+
   Stmt load_puzzle = seq
                        for (r <= 0; r <= 8; r <= r + 1)
                          for (c <= 0; c <= 8; c <= c + 1)

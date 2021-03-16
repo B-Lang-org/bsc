@@ -28,16 +28,16 @@ module mkTestbench_FoldM();
 
 
 
-  
+
    rule fire_once (True);
       Int #(32) value <- foldM(add,my_list1);
       $display("%d", value);
-      if (value != 15) 
+      if (value != 15)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_FoldM
 endpackage : FoldM

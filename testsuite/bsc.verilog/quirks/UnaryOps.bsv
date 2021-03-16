@@ -17,7 +17,7 @@ module sysUnaryOps(Empty);
 
   Reg#(Bool) b();
   mkReg#(False) the_b(b);
-   
+
    Reg#(Bool) c <- mkReg(False);
   rule bogus;
     r <= -(-r);
@@ -30,4 +30,4 @@ module sysUnaryOps(Empty);
 
 endmodule
 
-  
+

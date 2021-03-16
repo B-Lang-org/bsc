@@ -7,7 +7,7 @@ endfunction
 
 
 // (* noinline *)
-// function Vector#(5,int) setAt ( Vector#(5,int) v, Bit#(2) idx, int newx ) ;   
+// function Vector#(5,int) setAt ( Vector#(5,int) v, Bit#(2) idx, int newx ) ;
 //    v[idx] = newx;
 //    return v ;
 // endfunction

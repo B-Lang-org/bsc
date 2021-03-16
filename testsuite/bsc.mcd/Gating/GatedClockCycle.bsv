@@ -19,7 +19,7 @@ module sysGatedClockCycle ();
       g.setGateCond(rg1);
       $display("rg1", rg1);
    endrule
-   
+
    rule r2;
       rg2 <= rg2 + 1;
       $display("rg2 = ", rg2);

@@ -1,8 +1,8 @@
 package LineDisplay(sysLineDisplay) where
 
 sysLineDisplay :: Module Empty
-sysLineDisplay = 
-  module 
+sysLineDisplay =
+  module
     rules
       when True ==>
         action

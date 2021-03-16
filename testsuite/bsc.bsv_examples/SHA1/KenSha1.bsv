@@ -17,7 +17,7 @@ typedef struct {
 typedef Vector#(16,Bit#(32)) InputChunk;
 typedef Vector#(80,Bit#(32)) V80;
 
-ShaState initialH=ShaState 
+ShaState initialH=ShaState
 {a:'h67452301
 ,b:'hEFCDAB89
 ,c:'h98BADCFE
@@ -72,7 +72,7 @@ function Bit#(32) get_f(Integer i,ShaState x);
       return f1(x);
    else if (i<60)
       return f2(x);
-   else 
+   else
       return f1(x);
 endfunction
 
@@ -83,17 +83,17 @@ function Bit#(32) get_k(Integer i);
       return k1;
    else if (i<60)
       return k2;
-   else 
+   else
       return k3;
 endfunction
-   
+
 function ShaState round_do(ShaState x, Bit#(32) w, Bit#(32) k, Bit#(32) f);
       return ShaState{e:x.d
          ,d:x.c
          ,c:leftrotate(x.b,30'b0)
-         ,b:x.a 
+         ,b:x.a
          ,a:leftrotate(x.a,5'b0)+f+x.e+k+w };
-endfunction   
+endfunction
 
 function ShaState round(Integer i,ShaState x,Bit#(32) w);
    Bit#(32) k=get_k(i);
@@ -106,12 +106,12 @@ function Bit#(32) eighty_extend(Bit#(32)a,Bit#(32)b,Bit#(32)c,Bit#(32)d);
 endfunction
 
 function InputChunk make_new_w(InputChunk w);
-   Integer ii=16;   
+   Integer ii=16;
    Vector#(1,Bit#(32)) new_w;
    new_w[0]=eighty_extend(w[ii-3],w[ii-8],w[ii-14],w[ii-16]);
    return append(tail(w),new_w);
 endfunction
-   
+
 function V80 create_eighty(InputChunk inw);
    V80 w;
    Integer i;
@@ -146,14 +146,14 @@ function InputChunk example_input;
    w[15]=8*3;
    return w;
 endfunction
-   
+
 function InputChunk mkInput3(Bit#(32) x1, Bit#(32) x2, Bit#(32) length);
    InputChunk w=unpack(0);
    w[0]=x1;
    w[1]=x2;
    w[15]=8*length;
    return w;
-endfunction  
+endfunction
 
 //boundary needed for aggressive conditions not to explode
 //(*synthesize*)
@@ -174,7 +174,7 @@ module mkChunk(Server#(InputChunk,ShaState));
          InputChunk new_w=make_new_w(w);
          x<=tagged Valid (round_do(jx,last(new_w),k,f(jx)));
          w<=new_w;
-         i<=i+1; 
+         i<=i+1;
       endrule
    endmodule
    rule r0_16 (i<16 &&& x matches tagged Valid .jx);
@@ -185,12 +185,12 @@ module mkChunk(Server#(InputChunk,ShaState));
    mkRound(20,40,k1,parity);
    mkRound(40,60,k2,f2);
    mkRound(60,80,k3,parity);
-   
+
    rule r80 (i==80 &&& x matches tagged Valid .jx);
       outfifo.enq(hAdd(jx));
       x<=tagged Invalid;
    endrule
-   
+
    /*
    rule peek (x matches tagged Valid .s);
       $display("peek %d a %h b %h c %h d %h e %h",i,s.a,s.b,s.c,s.d,s.e);
@@ -198,9 +198,9 @@ module mkChunk(Server#(InputChunk,ShaState));
     */
    interface Put request=toPut(infifo);
    interface Get response=toGet(outfifo);
-      
-endmodule   
-   
+
+endmodule
+
 
 module sysKenSha1();
    Server#(InputChunk,ShaState) r<-mkChunk;
@@ -228,7 +228,7 @@ module mkTop1();
    rule endddd(c==10);
       $finish(0);
    endrule
-      
+
 endmodule
 
 endpackage

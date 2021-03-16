@@ -19,17 +19,17 @@ endinstance
 module sysEq1 ();
    Reg#(Foo) x <- mkReg(unpack(0));
    Reg#(Foo) y <- mkReg(unpack(0));
-   
+
    function Foo mkfoo (Bool xx, UInt#(5) yy);
       return Foo { btag:xx, ok:yy };
    endfunction
    function Action test() ;
-      $display ( "%x %d <?> %x %d --> %d", 
+      $display ( "%x %d <?> %x %d --> %d",
                 x.btag, x.ok,
                 y.btag, y.ok,
                 x != y);
    endfunction
-   
+
    Stmt testseq =
    (seq
        x <= mkfoo(True,0);
@@ -47,6 +47,6 @@ module sysEq1 ();
        x <= mkfoo(False,4);
        test;
     endseq);
-   
+
    mkAutoFSM(testseq);
 endmodule

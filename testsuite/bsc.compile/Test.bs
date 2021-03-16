@@ -7,7 +7,7 @@ sysTest :: Module Empty
 sysTest =
   module
     rules
-       when True ==> 
+       when True ==>
          action
            if (six == (myFive False) + 1) then
               $display "Pass"

@@ -10,16 +10,16 @@ typedef  Bit#(Width) Data_t;
 module sysAddTest();
 
    Reg#(Data_t) ua <- mkReg(0);
-   
+
    Reg#(Data_t) uc <- mkReg(0);
 
-   
+
    // predicates for aa and ab are disjoint
 
    rule aa (ua[17:5] == 17 );
       uc <= uc + 1;
    endrule
-   
+
    Bit#(15) d = truncate (ua >> 3);
    //d = ua[17:5];
    rule ab ((d >> 2) != 17);

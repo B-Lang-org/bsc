@@ -291,9 +291,9 @@ mkDecodeRules pc rf bd be bm bw dmem =
               ==> action
                     bd.deq
                     be.enq (Oarith {	dest = rd;
-					aop = functToAOp funct; 
+					aop = functToAOp funct;
 					v1 = regValue rs;
-					v2 = if isShiftOp funct 
+					v2 = if isShiftOp funct
 						then vZeroExt sa
 						else regValue rt; })
 
@@ -430,6 +430,6 @@ mkWritebackRules rf bw =
         when True
 	  ==> action
 		bw.deq
-		case bw.first of 
+		case bw.first of
 		    Wback { dest; datum } when dest /= Reg0 -> rf.upd dest datum
 		    _ -> noAction

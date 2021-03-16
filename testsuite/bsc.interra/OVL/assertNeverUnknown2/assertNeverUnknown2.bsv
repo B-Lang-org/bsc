@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_never_unknown
 
-Description: qualifier is true and the test expression doesn't have all bits as 0 or 1. 
+Description: qualifier is true and the test expression doesn't have all bits as 0 or 1.
 
 Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -25,7 +25,7 @@ ConvertToZ#(Bit#(3)) z_value <- mkConvertToZ;
 
 let defaults = mkOVLDefaults;
 
-AssertStartTest_IFC#(Bit#(3)) assertNevUnknown <- bsv_assert_never_unknown(defaults);   
+AssertStartTest_IFC#(Bit#(3)) assertNevUnknown <- bsv_assert_never_unknown(defaults);
 
 rule test(True);
     assertNevUnknown.start(state == Third_State); //qualifier: state == Third_State

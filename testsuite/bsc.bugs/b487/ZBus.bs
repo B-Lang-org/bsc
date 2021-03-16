@@ -27,12 +27,12 @@ mkZBus ifc_list =
 	bus <- mkZBusInternal ifc_list
 	let fromBusValid = (bStateToValid (resolveBusBState ifc_list))
 	converter :: ConvertFromZ t
-	converter <- mkConvertFromZ 
+	converter <- mkConvertFromZ
 	let fromBusValue =
 		if (fromBusValid) then (converter.convert bus.zout) else 0
-	rules 
+	rules
 	     "Update IFCs":
-		when True ==> 
+		when True ==>
 		     action
 		       updateFromBus ifc_list bus.zout fromBusValid
 
@@ -84,10 +84,10 @@ mkZBusInternal ifc_list =
       module
        i1 :: ResolveZ t
        i1 <- mkResolveZ
-       let zout_final = (i1.resolve 
-			 (zBusIFCGetToBusValue (head ifc_list)) 
+       let zout_final = (i1.resolve
+			 (zBusIFCGetToBusValue (head ifc_list))
 			 (zBusIFCGetToBusValue (head (tail ifc_list))))
-       interface 
+       interface
           zout = zout_final
     else
        module
@@ -95,9 +95,9 @@ mkZBusInternal ifc_list =
 	   i1 <- mkResolveZ
            i2 :: ZBusInternalIFC t
            i2 <- mkZBusInternal (tail ifc_list)
-	   interface 
-            zout = (i1.resolve 
-		    (zBusIFCGetToBusValue (head ifc_list)) 
+	   interface
+            zout = (i1.resolve
+		    (zBusIFCGetToBusValue (head ifc_list))
 		    i2.zout)
 
 -- #############################################################################

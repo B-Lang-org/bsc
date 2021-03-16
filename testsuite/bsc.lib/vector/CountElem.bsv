@@ -37,7 +37,7 @@ function Action printv ( Vector#(n,BE) v ) ;
    return
    action
    Integer i = 0 ;
-   for ( i = 0 ; i < valueof(n); i = i + 1 ) 
+   for ( i = 0 ; i < valueof(n); i = i + 1 )
       begin
          $write( "V[%0d]=", i ) ;
          printBE( v[i] ) ;
@@ -49,20 +49,20 @@ endfunction
 
 (* synthesize *)
 module sysCountElem() ;
-   
-      
+
+
    Reg#(int) cnt <- mkReg(0) ;
-   
+
    // countElem :: (Add 1 n n1, Add xxx 1 n, Log n1 lgn1, Eq a)  => a -> Vector n a -> UInt lgn1
    // countElem elem v = countIf ( (==) elem ) v   // findElem elem v = findIndex ( (==) elem ) v
-   
+
    Reg#( Vector#(8,BE) )  t1 <- mkReg( replicate(x0) ) ;
-   
+
    rule c ;
       cnt <= cnt + 1 ;
       if( cnt > 100 ) $finish(0) ;
    endrule
-   
+
    rule x0 ( cnt == 0 || cnt == 10 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -73,7 +73,7 @@ module sysCountElem() ;
       t[5] = x5 ;
       t[6] = x1 ;
       t[7] = x2 ;
-      
+
       t1 <= t ;
    endrule
 

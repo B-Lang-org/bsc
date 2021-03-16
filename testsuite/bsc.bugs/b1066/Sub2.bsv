@@ -4,6 +4,6 @@ interface Ifc2;
 
    (* prefix = "" *)
    method Action m((* port = "VAL" *) Bit#(8) value);
- 
+
 endinterface
 

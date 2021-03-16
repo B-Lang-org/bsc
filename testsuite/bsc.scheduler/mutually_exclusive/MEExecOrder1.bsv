@@ -1,7 +1,7 @@
-// two rules that are mutually exclusive 
+// two rules that are mutually exclusive
 // should still be that way with exec order
 typedef enum
-  { Rule1, Rule2, Exit } 
+  { Rule1, Rule2, Exit }
   State deriving(Eq, Bits);
 
 (* synthesize *)

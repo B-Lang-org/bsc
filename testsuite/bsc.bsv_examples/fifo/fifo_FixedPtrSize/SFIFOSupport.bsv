@@ -51,7 +51,7 @@ module mkSFIFO(SFIFO#(t)) provisos (Bits#(t, ts));
       (select(rs, ptr)) <= v;
     endaction
   endfunction
-  
+
   method enq(x) if (notFull) ;
     action
       put(tail, x);

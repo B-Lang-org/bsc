@@ -22,20 +22,20 @@ endfunction
 module mkTestbench_Upto();
    List #(Integer) my_list1 = Cons (1, Cons (2, Cons (3, Cons (4, Cons (5, Nil)))));
    List #(Integer) my_list2 = upto (1, 5);
- 
+
    List #(Int #(32)) my_list_3 = map (fromInteger, my_list1);
 
 
-  
+
    rule fire_once (True);
       $display("List of first five integers");
       display_list (my_list_3);
-      if (my_list2 != my_list1) 
+      if (my_list2 != my_list1)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Upto
 endpackage : Upto

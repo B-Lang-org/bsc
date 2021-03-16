@@ -28,4 +28,4 @@ typedef struct {Bit#(128) a;
                 Bit#(128) con_tch_1_4;
 				} Inputs deriving(Bits,Eq);
 
-endpackage : Input 
+endpackage : Input

@@ -8,7 +8,7 @@ interface Inoutv;
 endinterface
 
 
-import "BVI" Imported_Verilog = 
+import "BVI" Imported_Verilog =
     module mkInverterv (Inoutv);
         method func (In1) enable(Enable);
         method OutVal outval();
@@ -22,7 +22,7 @@ endinterface
 
 (* synthesize *)
 module [Module] mkInverter (Inout);
-  
+
   Inoutv dut ();
   mkInverterv the_dut(dut);
 
@@ -43,7 +43,7 @@ module mkTen_Inverters();
 
   Inout t1();
   mkInverter the_t1 (t1);
-  
+
   Inout t2();
   mkInverter the_t2 (t2);
 
@@ -83,8 +83,8 @@ module mkTen_Inverters();
       t9.func (t8.outval);
       t10.func (t9.outval);
   endrule
-  
-endmodule 
-endpackage 
+
+endmodule
+endpackage
 
 

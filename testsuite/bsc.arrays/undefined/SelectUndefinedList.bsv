@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysSelectUndefinedList();
-  
+
   List#(int) l = ?;
 
   Reg#(Bool) r <- mkReg(False);

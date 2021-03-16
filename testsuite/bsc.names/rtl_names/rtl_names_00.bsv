@@ -3,9 +3,9 @@
 module rtl_names_00();
     Reg#(bit) r_x <- mkRegU;
     Reg#(bit) r_y <- mkRegU;
-    
+
     let x_y = r_x & r_y;
-    
+
     rule r1;
         r_x <= x_y;
         r_y <= x_y;

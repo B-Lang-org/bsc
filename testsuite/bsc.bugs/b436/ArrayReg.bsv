@@ -3,9 +3,9 @@
 module test();
 
    Reg#(Bit#(32)) pipe[2];
-   
+
    rule move;
       pipe[0] <= pipe[1];
    endrule
-   
+
 endmodule

@@ -3,7 +3,7 @@ typedef UInt#(51) NumTyp;
 
 interface ArithIO_IFC #(type aTyp); // aTyp is a paramerized type
     // if the user specifies dollar signs
-    // and then has them taken out, 
+    // and then has them taken out,
     // then we have a problem
     (* prefix="xx$yy" *)
     method Action start(aTyp num1, aTyp num2);

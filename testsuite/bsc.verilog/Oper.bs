@@ -22,7 +22,7 @@ testOps ax sx ay sy =
     module
 	xy :: Reg (Bit k, Bit k) <- mkReg minBound
 	donef :: Reg Bool <- mkReg True
-	
+
 	let x = zeroExtend (xy.fst + ax) ^ sx
 	    y = zeroExtend (xy.snd + ay) ^ sy
 	    test (op, opstr) = $display "x %h  %s  %h = %h" x (opstr :: String) y ((x `op` y) :: Bit n)
@@ -59,7 +59,7 @@ testOps ax sx ay sy =
         rules
 	    when not donef
 	     ==> testops.start
-    
+
         interface
 	    start = action { donef := False; testops.start } when donef
 	    done = donef

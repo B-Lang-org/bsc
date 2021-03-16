@@ -11,7 +11,7 @@ Reg#(Bit#(4)) j <- mkRegA(0);
 
 Stmt test_seq =
     par
-	    
+
 		while(i < 10)
 		    action
 		        $display("i is %5d", i);
@@ -24,9 +24,9 @@ Stmt test_seq =
 			    j <= j + 1;
 		    endaction
 
-			
+
     endpar;
 
-mkAutoFSM(test_seq); 
+mkAutoFSM(test_seq);
 
 endmodule

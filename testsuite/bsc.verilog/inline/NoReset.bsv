@@ -22,7 +22,7 @@ module mkTestNoReset() ;
    rule rule1 ( True ) ;
       $display( "regs are %d %d", r0, r1 ) ;
    endrule
-      
+
 endmodule
 
 

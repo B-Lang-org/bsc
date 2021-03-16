@@ -33,7 +33,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
    // And a control register for the fractional frequency of the slower clock:
    Reg#(Bit#(4)) fr();
    mkLbRegRW#('h404, 4, 2) the_fr(fr);
-   
+
    // Declare the gated clocks:
    GatedClockIfc gate0();
    mkGatedClockFromCC the_g(True, gate0);
@@ -53,7 +53,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
       gate2.setGateCond(g0 || g1);
    endrule
    Clock c2 = gate2.new_clk;
-   
+
    // Instantiate the sub-modules, appropriately clocked:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c2);
@@ -70,7 +70,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
 
    // c2 is unrelated to c0, however, so explicit conversion is necessary.
    // This version uses the "hardware approach" described in the Methodology
-   // document.  
+   // document.
 
    // This will create a GetPut pair of interfaces for the Bit#(6) type, with
    // the Get clocked by c2, and the Put clocked by c1:

@@ -20,31 +20,31 @@ package EResources () where
 interface Subtract =
        minus :: UInt 16 -> UInt 16 -> UInt 16
 
-               
-{-# verilog subtractor #-} 
-subtractor :: Module Subtract 
+
+{-# verilog subtractor #-}
+subtractor :: Module Subtract
 subtractor  = module
                   interface
                      minus a b = a - b
 
 
-interface Difference = 
+interface Difference =
        inputs :: UInt 16 -> UInt 16 -> Action
        result :: UInt 16
 
 mkDifference :: Module Difference
-mkDifference = 
-         module 
+mkDifference =
+         module
 
              x :: Reg (UInt 16) <- mkReg 0
              y :: Reg (UInt 16) <- mkReg 0
              z :: Reg (UInt 16) <- mkReg 0
 
-             m :: Subtract 
-             m <- subtractor 
-        
-             rules 
-                 when x < y  ==> z := m.minus y x 
+             m :: Subtract
+             m <- subtractor
+
+             rules
+                 when x < y  ==> z := m.minus y x
                  when y > x  ==> z := m.minus x y
              interface
                  inputs ix iy = action

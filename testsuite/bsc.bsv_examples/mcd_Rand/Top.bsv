@@ -26,7 +26,7 @@ module mkTop(Empty);
    Reset r0 = rifc0.new_rst;
    Reset r1 = rifc1.new_rst;
    Reset r2 = rifc2.new_rst;
-   
+
    rule steer;
       if (ctr<10)
 	 begin
@@ -44,7 +44,7 @@ module mkTop(Empty);
       if ((ctr>=360) && (ctr<380)) rifc1.assertReset;
 //      if (ctr==370) g1.setGateCond(True);
       if (ctr==400) $finish(0);
-      
+
       ctr <= ctr+1;
    endrule
 

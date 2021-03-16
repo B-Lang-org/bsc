@@ -4,7 +4,7 @@ package MesaCircLpm;
 //
 // The LPM module is responsible for taking 32-bit IP addresses, looking up
 // the destination (32-bit data) for each IP address in a table in an SRAM,
-// and returning the destinations. 
+// and returning the destinations.
 //
 // ----------------------------------------------------------------
 //
@@ -21,7 +21,7 @@ package MesaCircLpm;
 // The LPM receives requests from the MIF module by the method
 //     mif.put (LuRequest, LuTag)
 // and returns results (some cycles later) of the form (luResponse, luTag) by
-// the method 
+// the method
 //     mif.get.
 //
 // The LPM sends addresses to the RAM by calling
@@ -33,13 +33,13 @@ package MesaCircLpm;
 //
 // The longest prefix match traverses a tree representation in  memory. The
 // first step is a table lookup, and after that it iterates if necessary until
-// a leaf is reached. 
+// a leaf is reached.
 //
 // ----------------------------------------------------------------
 //
 // The module is pipelined, i.e., IP addresses stream in, and results stream
 // out (after some latency).  Results are returned in the same order as
-// requests. 
+// requests.
 //
 // The SRAM is also pipelined: addresses stream in, and data stream out
 // (after some latency).  It can accept addresses and deliver data on every
@@ -47,7 +47,7 @@ package MesaCircLpm;
 //
 // Performance metric: as long as IP lookup requests are available, the LPM
 // module must keep the SRAM 100% utilized, i.e., it should issue a request
-// into the SRAM on every cycle. 
+// into the SRAM on every cycle.
 //
 // ----------------------------------------------------------------
 //
@@ -106,40 +106,40 @@ typedef CBToken#(CompletionBufferSize) CompletionToken;
 module mkMesaLpm(ILpm);
    // registers for debugging purposes:
    Reg#(LuRequest) requestB32();
-   mkRegU the_requestB32(requestB32); 
-   
+   mkRegU the_requestB32(requestB32);
+
    Reg#(LuTag) requestTag();
    mkRegU the_requestTag(requestTag);
-   
+
    Reg#(LuResponse) responseB32();
    mkRegU the_responseB32(responseB32);
-   
+
    Reg#(LuTag) responseTag();
    mkRegU the_responseTag(responseTag);
-   
+
    // Technical detail: Latency is actually a numeric type.  We now define
    // an integer with corresponding value:
    Integer sz = valueOf(Latency);
-   
+
    // the FIFOs for requests to and responses from the RAM:
    FIFO#(SramAddr) sramReq();
    mkSizedFIFO#(2) the_sramReq(sramReq);
-   
+
    FIFO#(SramData) sramResp();
    mkSizedFIFO#(sz + 2) the_sramResp(sramResp);
-   
+
    // The FIFO for input requests:
    FIFO#(Tuple2#(LuRequest, LuTag)) ififo();
    mkSizedFIFO#(sz) the_ififo(ififo);
-   
+
    // The FIFO for work in progress:
    FIFO#(Tuple3#(IP, LuTag, CompletionToken)) fifo();
    mkSizedFIFO#(sz + 2) the_fifo(fifo);
-   
+
    // The Completion Buffer, which holds completed results
    CompletionBuffer#(CompletionBufferSize, Tuple2#(LuResponse, LuTag)) completionBuffer();
    mkCompletionBuffer the_completionBuffer(completionBuffer);
-   
+
    // A FIFO for completion tokens from the Completion Buffer:
    FIFO#(CompletionToken) tagfifo();
    mkSizedFIFO#(sz+2) the_tagfifo(tagfifo);
@@ -149,7 +149,7 @@ module mkMesaLpm(ILpm);
       let tag <- completionBuffer.reserve.get;
       tagfifo.enq(tag);
    endrule
-   
+
    // All processing starts with a table lookup. This rule also claims a
    // completion token from the completion buffer:
    rule stage0;
@@ -157,22 +157,22 @@ module mkMesaLpm(ILpm);
       ififo.deq;
       let tag = tagfifo.first;
       tagfifo.deq;
-      
+
       // We send a request to the RAM, and also enqueue (for the next
       // stage) the remainder of the address, the lookup-tag and the
       // completion-buffer tag.  (Ln is the remainder after the nth
-      // lookup). 
+      // lookup).
       fifo.enq(tuple3(L1 (tuple2(ireq[15:8], ireq[7:0])), ilutag, tag));
       sramReq.enq(zeroExtend(ireq[31:16]));
    endrule: stage0
-   
+
    // Processing stops if we found a Leaf.
    rule stage1_Leaf (unpack(sramResp.first) matches tagged Leaf (.v));
       let {ip,lutag,itag} = fifo.first;
       completionBuffer.complete.put(tuple2(itag,tuple2(unpack({0,v}),lutag)));
       // TASK: complete the definition of this rule.
    endrule: stage1_Leaf
-   
+
    // If we found a pointer, a further lookup is necessary.  We also
    // enqueue the remainder of the address (Ln is the remainder after the
    // nth lookup).
@@ -191,7 +191,7 @@ module mkMesaLpm(ILpm);
       fifo.enq(tuple3(nr,lutag,itag));
       sramReq.enq(addr);
    endrule: stage1_Pointer
-   
+
    // Finally we define the two interfaces:
    interface Server mif;
       interface Put request;
@@ -222,7 +222,7 @@ module mkMesaLpm(ILpm);
 	 // interface response = fifoToGet(completionBuffer.drain);
       endinterface: response
    endinterface: mif
-   
+
    interface Client ram;
       interface Get request;
 	 method get();

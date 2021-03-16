@@ -15,4 +15,3 @@ module sysOIntHigh(Empty);
   endrule
 
 endmodule
-    

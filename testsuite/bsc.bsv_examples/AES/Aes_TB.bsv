@@ -9,7 +9,7 @@ import RegFile::*;
 
 (* synthesize *)
 module sysAes_TB ();
-   
+
    RegFile#(Bit#(8),Bit#(128)) datFile      <- mkRegFileLoad("dat.vectors", 0, 255);
 
    RegFile#(Bit#(8),Bit#(128)) keyFile128   <- mkRegFileLoad("key128.vectors", 0, 255);
@@ -51,8 +51,8 @@ module sysAes_TB ();
              aes.dbus.push( Encrypt256( key[31:0] ) );
           endseq;
    endfunction
-   
-   
+
+
    function Stmt driveKey192( Bit#(192) key );
    return seq
              aes.dbus.push( Encrypt192( key[191:160] ) );
@@ -64,7 +64,7 @@ module sysAes_TB ();
           endseq;
    endfunction
    */
-   
+
    function Stmt test( Bit#(n) key, Bit#(128) data ) ;
       return seq
                 aes.dbus.push( Encrypt128( key[127:96] ) );
@@ -83,7 +83,7 @@ module sysAes_TB ();
                 action r1 <= retData.first(); retData.deq(); endaction
                 action r2 <= retData.first(); retData.deq(); endaction
                 action r3 <= retData.first(); retData.deq(); endaction
-                
+
                 // decrypter with same key
 
                 aes.dbus.push( Decrypt128( key[127:96] ) );
@@ -107,7 +107,7 @@ module sysAes_TB ();
                 action new3 <= retData.first(); retData.deq(); endaction
 
                 action
-                   if ((new0 != data[127:96]) || (new1 != data[95:64]) || 
+                   if ((new0 != data[127:96]) || (new1 != data[95:64]) ||
                        (new2 != data[63:32])  || (new3 != data[31:0]) ) begin
                       $display("ERROR: mismatch");
                       $display("       wanted %08x %08x %08x %08x", data[127:96], data[95:64], data[63:32], data[31:0] );
@@ -133,19 +133,19 @@ module sysAes_TB ();
 
                          ///////////////////////////////////////////////////////
                          // loop through all the cases we generated externally
-                         for (ii<=0; ii != 255; ii<=ii+1) 
+                         for (ii<=0; ii != 255; ii<=ii+1)
                             test( keyFile128.sub(ii), datFile.sub(ii) );
 
                          ///////////////////////////////////////////////////////
                          // what about 192 and 256 cases?
                          /*
-                         for (ii<=0; ii != 255; ii<=ii+1) 
+                         for (ii<=0; ii != 255; ii<=ii+1)
                             test( keyFile192.sub(ii), datFile.sub(ii) );
 
-                         for (ii<=0; ii != 255; ii<=ii+1) 
+                         for (ii<=0; ii != 255; ii<=ii+1)
                             test( keyFile256.sub(ii), datFile.sub(ii) );
                          */
-                         
+
                          ///////////////////////////////////////////////////////
                          // wait for things to settle down
                          ii <= 0;

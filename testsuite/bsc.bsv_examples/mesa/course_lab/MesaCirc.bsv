@@ -12,7 +12,7 @@
 // destination address to pass to the LPM module.  When the LPM returns its
 // results, the MIF uses them to build a routing header, which is passed to
 // the DM module, along with a pointer to the location of the frame in the VFF
-// memory. 
+// memory.
 //
 // LPM: Longest Prefix Match -- executes a destination address longest prefix
 // match to determine an appropriate egress for the packet.  The result is a
@@ -61,13 +61,13 @@ module mkMesa(IMesa);
    // Instantiate the submodules:
    IVff vff();
    mkMesa_Vff the_vff(vff);
-   
+
    IDm dm();
    mkMesa_Dm the_dm(dm);
-   
+
    ILpm lpm();
    mkMesaLpm the_lpm(lpm);
-   
+
    IMif mif();
    mkMesa_Mif the_mif(mif);
 
@@ -76,12 +76,12 @@ module mkMesa(IMesa);
    mkConnection(mif.notify, vff.notify);
    mkConnection(mif.dm, dm.mif);
    mkConnection(mif.lpm, lpm.mif);
-   
+
    // This connection not used in this level of modeling
    // mkConnection(mif.vff, vff.mif);
 
    // The outer interface is formed by from the appropriate submodules'
-   // subinterfaces: 
+   // subinterfaces:
    interface dta_in =  vff.dta_in;
    interface dta_out = dm.dta_out;
    interface dram = lpm.ram;

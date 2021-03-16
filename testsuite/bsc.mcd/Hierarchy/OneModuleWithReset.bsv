@@ -11,7 +11,7 @@ module sysOneModuleWithReset ();
 
    Clock clk2 <- mkAbsoluteClock(p2, p2);
    Reset rst2 <- mkAsyncResetFromCR (2, clk2);
-   
+
    Reg#(Bit#(8)) rg1 <- mkReg(0, clocked_by clk1, reset_by rst1);
    Reg#(Bit#(8)) rg2 <- mkReg(0, clocked_by clk2, reset_by rst2);
 
@@ -31,7 +31,7 @@ module sysOneModuleWithReset ();
       rg1 <= rg1 + 1;
       $display("(%d) rg1 = %h", adj_stime(p1), rg1);
    endrule
-   
+
    rule r2;
       rg2 <= rg2 + 1;
       $display("(%d) rg2 = %h", adj_stime(p2), rg2);

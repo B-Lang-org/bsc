@@ -33,12 +33,12 @@ module mkTestbench_Concat();
    rule fire_once (True);
       $display ("Concatenated List:");
       display_list (concat(my_list5));
-      if (concat(my_list5) != my_list6) 
+      if (concat(my_list5) != my_list6)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Concat
 endpackage : Concat

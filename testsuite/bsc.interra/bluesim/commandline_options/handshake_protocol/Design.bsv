@@ -1,14 +1,14 @@
 package Design;
 
 typedef enum {IDLE, REQUEST, ACQUISITION} HSstates
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 interface Design_IFC;
-    method Action setInput (Bit#(1) ack); 
+    method Action setInput (Bit#(1) ack);
     method Bit#(1) req();
     method Bit#(1) start();
     method Bit#(1) valid();
-    method Bit#(1) done(); 
+    method Bit#(1) done();
 endinterface: Design_IFC
 
 (*
@@ -23,16 +23,16 @@ module mkDesign (Design_IFC);
 
   Reg#(Bit#(1))     req_reg();
   mkReg#(0)         t_req_reg(req_reg);
-  
+
   Reg#(Bit#(1))     start_reg();
   mkReg#(0)         t_start_reg(start_reg);
-  
+
   Reg#(Bit#(1))     valid_reg();
   mkReg#(0)         t_valid_reg(valid_reg);
-  
+
   Reg#(Bit#(1))     done_reg();
   mkReg#(1)         t_done_reg(done_reg);
-  
+
   Reg#(Bit#(2))     counter();
   mkReg#(0)         t_counter(counter);
 
@@ -55,7 +55,7 @@ module mkDesign (Design_IFC);
             start_reg   <= 1;
             state       <= ACQUISITION;
             valid_reg   <= 1;
-        end 
+        end
     end
   endrule
 

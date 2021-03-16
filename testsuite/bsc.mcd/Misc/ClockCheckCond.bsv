@@ -15,4 +15,4 @@ module sysClockCheckCond#(Clock c)(Test);
     return(y);
   endmethod
 endmodule
-    
+

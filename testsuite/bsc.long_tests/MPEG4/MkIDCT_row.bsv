@@ -11,7 +11,7 @@ import TBuffer :: *;
   always_enabled,
   synthesize *)
 module mkIDCT_row (IDCT_1D_IFC#(12,16));
-    
+
    IDCT_1D_IFC#(12,16) wrap();
    mkIDCT_1D the_wrap(wrap);
 
@@ -22,13 +22,13 @@ module mkIDCT_row (IDCT_1D_IFC#(12,16));
       if (dataStrobe.wget matches tagged Just {.x, .y} )
            wrap.start (x, y);
     endrule
-    
+
     method Action start (a, b);
         dataStrobe.wset( tuple2(a,b) );
     endmethod : start
-    
+
     method result ();
-        return (wrap.result); 
+        return (wrap.result);
     endmethod : result
 
 endmodule : mkIDCT_row

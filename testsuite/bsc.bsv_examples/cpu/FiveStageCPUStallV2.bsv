@@ -207,7 +207,7 @@ module mkFiveStageCPUStall(CPU);
 
   // ----------------------------
   // Convenience functions
-   
+
   // Functions which describe the stall condition:
   // Given a register which an incoming instruction wants to
   // read ("r") and an entry in any of the buffer stages
@@ -270,7 +270,7 @@ module mkFiveStageCPUStall(CPU);
     return (unpack(truncate(i32)));
   endfunction
 
-  Rules decode_non_stall_rules = rules 
+  Rules decode_non_stall_rules = rules
   rule decode_halt
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Halt));
@@ -364,7 +364,7 @@ module mkFiveStageCPUStall(CPU);
   Rules decode_rules = preempts(decode_non_stall_rules, decode_stall_rule);
 
   addRules(decode_rules);
-   
+
 
   // ----------------------------
   // The Execute stage
@@ -387,7 +387,7 @@ module mkFiveStageCPUStall(CPU);
      the branch-not-taken rule doesn't force a conflict with
      the other cases:
      ---------------------------------------------------------
-     
+
      rule execute (bd.first matches {.epc, .instTemplate});
        // Simulate an ALU stage, separate from the branch stage,
        // without actually introducing a new pipeline stage:
@@ -438,7 +438,7 @@ module mkFiveStageCPUStall(CPU);
 
    // Simulate an ALU stage, separate from the branch stage,
    // without actually introducing a new pipeline stage.
-   
+
    // Define what the new va would be after computing the operation
    // part of the instruction:
    function Value execute_vc(BDdata instTemplate);
@@ -493,7 +493,7 @@ module mkFiveStageCPUStall(CPU);
 
   addRules(execute_rules);
 
-   
+
   // ----------------------------
   // The memory stage
 
@@ -501,10 +501,10 @@ module mkFiveStageCPUStall(CPU);
      be.deq;
 
      BEdata new_tmpl = instTemplate;
- 
+
      case (instTemplate.mem_op) matches
 	tagged Invalid : noAction;
-	   
+
 	tagged Valid (LoadOp) :
 	   new_tmpl.v = dataMem.get(instTemplate.addr);
 
@@ -544,6 +544,6 @@ module mkFiveStageCPUStall(CPU);
   endmethod
 
   method done = !started && !bd.notEmpty && !be.notEmpty && !bm.notEmpty;
-   
+
 endmodule: mkFiveStageCPUStall
 

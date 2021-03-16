@@ -8,7 +8,7 @@ module mkSeqEx1 (IFC);
 
   Reg#(Bit#(8)) r1 <- mkRegU;
   Reg#(Bool) r2 <- mkRegU;
-  
+
   RWire#(Bool) rw1 <- mkRWire;
   RWire#(Bool) rw2 <- mkRWire;
 
@@ -33,4 +33,4 @@ module mkSeqEx1 (IFC);
 endmodule
 
 
-     
+

@@ -17,7 +17,7 @@ module mkSlave#(Bit#(4) delayCntr )( Slave ) ;
       counter <= counter - 1 ;
    endrule
 
-   
+
    interface Put s_request ;
       // only accpet request when counter is 1
       method Action put( BusRequest request ) if (counter == 1);
@@ -33,7 +33,7 @@ module mkSlave#(Bit#(4) delayCntr )( Slave ) ;
          return resp;
       endmethod
    endinterface
-   
+
 endmodule
 
 
@@ -52,7 +52,7 @@ module mkSlaveN( Slave ) ;
       counter <= counter - 1 ;
    endrule
 
-   
+
    interface Put s_request ;
       method Action put( BusRequest request );
          // Set the counter and save the address.
@@ -67,7 +67,7 @@ module mkSlaveN( Slave ) ;
          return resp;
       endmethod
    endinterface
-   
+
 endmodule
 
 // /////////////////////////////////////////////////////////////////////////
@@ -81,9 +81,9 @@ module defaultSlave( Slave ) ;
       endmethod
    endinterface
 
-   // sub-interface for bus to get a response. 
+   // sub-interface for bus to get a response.
    interface Get s_response ;
-      method ActionValue#(BusResponse) get () ; 
+      method ActionValue#(BusResponse) get () ;
          return defaultResponse ;
       endmethod
    endinterface

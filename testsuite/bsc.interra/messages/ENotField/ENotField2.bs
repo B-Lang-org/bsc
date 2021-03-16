@@ -26,24 +26,24 @@ interface ENotField2 =
             end   :: Bool
 
 mkENotField2 :: Module ENotField2
-mkENotField2 = 
+mkENotField2 =
            module
 
-                u1 :: Reg (MyStruct) 
-                u1 <- mkRegU 
+                u1 :: Reg (MyStruct)
+                u1 <- mkRegU
 
-                u2 :: Reg (MyStruct) 
-                u2 <- mkRegU 
+                u2 :: Reg (MyStruct)
+                u2 <- mkRegU
 
                 rules
                    "One":
-                      when True 
+                      when True
                           ==> action
                                  u2 := u1 { give = 1 ; b = True }
 
 
                 interface
                     start ix iy = action
-                                    x := ix 
-                                    y := iy 
+                                    x := ix
+                                    y := iy
                     end = y when x == 0

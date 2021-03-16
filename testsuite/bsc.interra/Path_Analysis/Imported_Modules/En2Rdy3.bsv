@@ -12,14 +12,14 @@ interface En2Rdy3Interv;
     method Bit #(1) rdy_result();
 endinterface
 
-import "BVI" Imported_Verilog = 
+import "BVI" Imported_Verilog =
     module mkEn2Rdy3v (En2Rdy3Interv);
         method start() enable(En_start);
         method Rdy_start rdy_start();
         method Result result();
         method Rdy_result rdy_result();
         path (En_start, Rdy_start);
-    endmodule    
+    endmodule
 
 interface En2Rdy3Inter;
     method Action start ();
@@ -28,10 +28,10 @@ endinterface
 
 (* synthesize *)
 module [Module] mkEn2Rdy3(En2Rdy3Inter);
-    
+
     En2Rdy3Interv dut();
     mkEn2Rdy3v the_dut (dut);
-    
+
     method Action start() if (dut.rdy_start == 1);
         dut.start ();
     endmethod

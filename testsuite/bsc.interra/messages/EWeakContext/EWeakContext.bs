@@ -31,12 +31,12 @@ interface Adder a =
 
 
 mkAdd :: Module (Adder a)
-mkAdd = 
+mkAdd =
         module
            interface
               carry_sum ix iy iz = my_split (sum ix iy iz)
-                                   
+
 
 add :: Module (Adder 5)
-add = mkAdd 
+add = mkAdd
 

@@ -8,14 +8,14 @@ module sysClockDiv2() ;
    Clock clkA <- mkAbsoluteClock( 15,10 ) ;
    Reset rstA() ;
    mkAsyncResetFromCR#(3) iRstA( clkA, rstA ) ;
-   
+
    // divide the clock
    ClockDividerIfc divClock <- mkClockDividerOffset( 8, 4, clocked_by(clkA), reset_by(rstA) ) ;
    Clock clkB = divClock.slowClock ;
 
    // We need a reset for the B domain as well
    Reset rstB <- mkAsyncReset(3, rstA, clkB) ;
-   
+
    // Some counters for each clock
    Reg#(int)  areg <- mkReg(0, clocked_by clkA, reset_by rstA ) ;
 
@@ -37,7 +37,7 @@ module sysClockDiv2() ;
        return t;
    endactionvalue
    endfunction
-   
+
    // a rule to show the a clock
    rule aplus ( True ) ;
       areg <= areg + 1 ;
@@ -59,6 +59,6 @@ module sysClockDiv2() ;
       if ( breg >= 1000) $finish(0) ;
    endrule
 
-   
+
 
 endmodule

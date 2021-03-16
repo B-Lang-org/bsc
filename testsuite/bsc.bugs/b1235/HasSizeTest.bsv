@@ -1,6 +1,6 @@
 import HasSize::*;
 
-typedef union tagged 
+typedef union tagged
    { struct { a first; MyList#(a) rest; } MyCons;
      void MyNil;
    } MyList#(type a) deriving(Eq);

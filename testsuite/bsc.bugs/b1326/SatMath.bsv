@@ -15,7 +15,7 @@ function UInt#(n) bitToSat(Bit#(1) x);
 endfunction: bitToSat
 
 function Vector#(SizeOf#(t),Bool) bitsToVector(t x)
-   provisos(Bits#(t,SizeOf#(t)));   
+   provisos(Bits#(t,SizeOf#(t)));
    let bs = pack(x);
    Vector#(SizeOf#(t),Bool) v = newVector;
    for (Integer i = 0; i < valueOf(SizeOf#(t)); i = i + 1)

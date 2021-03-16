@@ -45,7 +45,7 @@ module sysTestSwitch(Empty);
      $display("d=",b);
      d[1] <= True;
   endrule
-  
+
   rule all_done (d[1]);
     $finish(0);
   endrule

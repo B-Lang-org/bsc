@@ -13,7 +13,7 @@ module mkMyReg ( Clock aClk, Reset aRst,
 
    input_reset aRst1 (RST1) = aRst;
    input_reset aRst2 (RST1) = bRst;
-   
+
    method       _write(D_IN) enable(EN) reset_by(aRst1)
                                         clocked_by(aClk1) reset_by(aRst2);
    method Q_OUT _read                   clocked_by(aClk1);

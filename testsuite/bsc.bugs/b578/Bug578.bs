@@ -1,22 +1,22 @@
 package Bug578 where {
 
 type IEEE754_32 = Bit 32;
-			
+
 type IEEE754_64 = Bit 64;
-			
+
 type FP_Sign = Bool;
-		   
+
 type FP_RS = Bit 2;
-		  
+
 struct FP_I ee ss = {
     sign :: FP_Sign;
     exp :: Bit ee;
     sfd :: Bit ss;
     rs :: FP_RS
 } deriving (Bits);
-		 
+
 findmsb :: (Add s 1 sk, Log sk k) => Bit s -> Bit k;
-findmsb din = 
+findmsb din =
   let vectorSize' =  primValueOf din;
   in
    let vectorSize =  vectorSize';
@@ -27,25 +27,25 @@ findmsb din =
      let res :: Bit k;
          res =  res';
      in
-      let theResult' = 
+      let theResult' =
             let i' :: Integer;
                 i' =  0;
             in
              let i :: Integer;
                  i =  i';
              in
-              let theResult' = 
+              let theResult' =
                     let f' :: (Bit k, Integer) -> (Bit k, Integer);
-                        f' (res, i) = 
+                        f' (res, i) =
                           if i < vectorSize then
-                            let theResult' = 
+                            let theResult' =
                                   let idx' :: Nat;
                                       idx' =  fromInteger i;
                                   in
                                    let idx :: Nat;
                                        idx =  idx';
                                    in
-                                    let theResult' = 
+                                    let theResult' =
                                           if (primSelectFn _ din idx) ==
                                                unpack (0b1::(Bit 1)) then
                                             let res' :: Bit k;
@@ -74,9 +74,9 @@ findmsb din =
                   in  res
       in  let res =  theResult'
           in  res;
-                                
+
 normalize_and_truncate :: (Add s n sx) => Bit e -> FP_I e sx -> FP_I e s;
-normalize_and_truncate binaryPointPosition din = 
+normalize_and_truncate binaryPointPosition din =
   let expout' :: Bit e;
       expout' =  din.exp;
   in  let expout :: Bit e;
@@ -87,9 +87,9 @@ normalize_and_truncate binaryPointPosition din =
                   rsout =  rsout';
               in  let msba' =  findmsb din.sfd;
                   in  let msba =  msba';
-                      in  let theResult' = 
+                      in  let theResult' =
                                 if msba == 0 then
-                                  let theResult' = 
+                                  let theResult' =
                                         let sfdout' :: Bit s;
                                             sfdout' =  0;
                                         in  let sfdout :: Bit s;
@@ -98,7 +98,7 @@ normalize_and_truncate binaryPointPosition din =
                                   in  let sfdout =  theResult'
                                       in  sfdout
                                 else
-                                  let theResult' = 
+                                  let theResult' =
                                         let sfdout' :: (Bit s, Bit n);
                                             sfdout' =  split din.sfd;
                                         in  let (sfdout, rest) =  sfdout'

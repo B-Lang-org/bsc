@@ -12,6 +12,6 @@ module sysCheckClocks_ArgToIfc_DiffClock(Clock c2, Empty i);
 
    InoutIFC x1 <- sysArgToIfc(send.iioo, reset_by noReset);
    mkConnection(x1.i_out,recv.iioo);
-      
+
 endmodule
 

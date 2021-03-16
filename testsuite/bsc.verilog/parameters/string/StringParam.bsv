@@ -12,6 +12,6 @@ endmodule
 module sysStringParam();
 
   Empty foo <- mkStringParamSub("Did this work?");
-  
+
 endmodule
 

@@ -5,7 +5,7 @@ module sysProbeTest ();
 
  Reg#(Bit#(12)) regA <- mkReg(0);
  Reg#(Bit#(4))  regB <- mkReg(0);
- 
+
  Probe#(Bit#(5)) x <- mkProbe;
 
  rule test_rule;

@@ -24,7 +24,7 @@ module mkSlowClock(UInt#(4) fraction, Bool gate, Clock c);
    rule dec (count != 0);
       count <= count - 1;
    endrule
-   
+
    (* no_implicit_conditions, fire_when_enabled *)
    rule change (count == 0);
       osc <= invert(osc);
@@ -64,7 +64,7 @@ module mkRandTop(UInt#(4) fr, Bool g0, Bool g1, Bool g2, ExtIfc ifc);
    // it accordingly needs a reset associated with it:
    Reset r2();
    mkSyncResetFromCR#(0) the_r2(c2, r2);
-   
+
    // The clock for the generator, on if either consumer is on:
    GatedClockIfc gate0();
    mkGatedClockFromCC the_g0(True, gate0);
@@ -73,7 +73,7 @@ module mkRandTop(UInt#(4) fr, Bool g0, Bool g1, Bool g2, ExtIfc ifc);
       gate0.setGateCond(g1 || g2);
    endrule
    Clock c0 = gate0.new_clk;
-   
+
    // Instantiate the sub-modules, appropriately clocked:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c0);
@@ -95,7 +95,7 @@ module mkRandTop(UInt#(4) fr, Bool g0, Bool g1, Bool g2, ExtIfc ifc);
    // There's no need to specify an explicit clock for the converter, since
    // the current clock is in the same family as c1.
    mkConverter the_user5_converter(4, user2.fst, user2ifc);
-   
+
    mkConnection(gens.snd, user2ifc);
 
    interface ifcA = user1.snd;

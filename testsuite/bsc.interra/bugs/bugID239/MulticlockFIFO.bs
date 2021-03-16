@@ -3,7 +3,7 @@
 -- Author   : Interra
 -- BugID    : 239
 -- CommandLine : bsc -verilog -g mkTest MulticlockFIFO.bs
--- Status : Assigned 
+-- Status : Assigned
 ----------------------------------------------------
 
 package MulticlockFIFO ( ) where

@@ -12,7 +12,7 @@
 -- "EContextReduction1.bs", line 30, column 0, Context reduction failed, because there are no instances of the form: (Prelude.Ord (EContextReduction1.MyType2 Prelude.Integer))
 -----------------------------------------------------------------------
 
-package EContextReduction1 (EContextReduction1(..)) where 
+package EContextReduction1 (EContextReduction1(..)) where
 
 data MyType1 a = Integer | Bool
              deriving (Eq)

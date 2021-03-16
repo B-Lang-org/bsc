@@ -27,7 +27,7 @@ endinterface : TBuffer_IFC
 
 typedef enum {StateA, StateB} States
     deriving (Eq, Bits);
-typedef struct 
+typedef struct
     { States    x;
       RamAddr_t y;
     } Count64
@@ -43,29 +43,29 @@ module mkTBuffer (TBuffer_IFC#(16) );
    mkWrapSRAM #(mkSPSRAM(64)) the_ram1 (ram1);
    RAM#(RamAddr_t,RamData_t) ram2();
    mkWrapSRAM #(mkSPSRAM(64)) the_ram2 (ram2);
-  
+
    Reg#(Count64) write_counter() ;
    mkConfigReg#(Count64 {x : StateA, y: 0}) i_write_counter(write_counter);
-   
+
    Reg#(Bit#(6)) read_counter() ;
    mkConfigReg#(63) i_read_counter(read_counter) ;
-   
+
    Reg#(Bool) write_valid() ;
    mkConfigReg#(False) i_write_valid(write_valid) ;
 
    RWire#(DataStrobe#(16)) in_data();
    mkRWire i_in_data(in_data) ;
-   
+
    Reg#(RamData_t) out_data() ;
    mkReg#(0) i_out_data(out_data) ;
-  
+
    rule writeRAMA (write_counter.x == StateA);
       if (in_data.wget matches tagged Just {.d,.s} )
            begin
             Tuple2#(RamAddr_t,RamData_t) a = tuple2((s==0)?write_counter.y:0,d);
             RAMreq#(RamAddr_t,RamData_t) b = Write(a);
             ram1.request.put (b);
-         end 
+         end
          ram2.request.put (Read (read_counter));
    endrule
 
@@ -89,13 +89,13 @@ module mkTBuffer (TBuffer_IFC#(16) );
        RamData_t out1_data <- ram1.response.get;
        out_data <= out1_data;
    endrule
-   
+
    rule alwaysRead2 (True);
        RamData_t out2_data <- ram2.response.get;
        out_data <= out2_data;
    endrule
-       
-       
+
+
    method Action start (a);
      in_data.wset (a) ;
      if ( tpl_2(a) == 1)
@@ -108,7 +108,7 @@ module mkTBuffer (TBuffer_IFC#(16) );
        write_counter <= Count64 { x: (write_valid?
                                      (write_counter.x==StateA?
                                                        StateB:StateA)
-                                     :write_counter.x), 
+                                     :write_counter.x),
                                   y:63};
        read_counter <= write_valid ? 0 : 63;
        write_valid <= False;
@@ -117,7 +117,7 @@ module mkTBuffer (TBuffer_IFC#(16) );
      begin
        write_counter <= Count64 { x:write_counter.x, y:write_counter.y+1};
      end
-   endmethod : start 
+   endmethod : start
 
    method result ();
        bit out_strobe = (read_counter == 40) ? 1 : 0;

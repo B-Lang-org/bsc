@@ -20,4 +20,4 @@ module sysClockCheckPort(Empty);
 
   Empty sub <- mkSub(a+b);
 
-endmodule 
+endmodule

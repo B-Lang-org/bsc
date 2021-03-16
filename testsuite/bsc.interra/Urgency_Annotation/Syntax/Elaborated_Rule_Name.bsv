@@ -33,7 +33,7 @@ module mkTest_Elaborated_Rule_Name(Test_IFC);
 endmodule : mkTest_Elaborated_Rule_Name
 
 module mkElaborated_Rule_Name();
-    
+
      Test_IFC dut ();
      mkTest_Elaborated_Rule_Name the_dut (dut);
 
@@ -47,7 +47,7 @@ module mkElaborated_Rule_Name();
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

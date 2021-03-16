@@ -17,7 +17,7 @@ function Rules mkTestRules( LabIFC blockIFC,  Reg#(DataT) count );
               rule init (count == 0);    $dumpvars();        endrule
               rule cnt (True);           count <= count + 1; endrule
               rule finish (count >= 50); $finish(0);         endrule
-              
+
               // data into FIFO1 starts with 1
               // implicit condition assures that this rule
               // only fires when the FIFO has space
@@ -26,7 +26,7 @@ function Rules mkTestRules( LabIFC blockIFC,  Reg#(DataT) count );
                  blockIFC.push1( tmp );
                  $display("    Push1 %h", tmp);
               endrule
-              
+
               // data into FIFO2 starts with 2
               // implicit condition assures that this rule
               // only fires when the FIFO has space
@@ -36,7 +36,7 @@ function Rules mkTestRules( LabIFC blockIFC,  Reg#(DataT) count );
                  $display("    Push2 %h", tmp);
               endrule
 
-              // implicit condition assures that this rule 
+              // implicit condition assures that this rule
               // will fire only when data is available
               rule check (True);
                  DataT res <- blockIFC.get();

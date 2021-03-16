@@ -30,7 +30,7 @@ module mk3Servers#(Integer lat)
    module mkPort#(Tag i)(Server#(a,b));
       // Each port needs a FIFO to store completed results, so that slowness
       // on the part of its client does not block results destined for other
-      // servers: 
+      // servers:
       FIFO#(b) ofifo();
       mkSizedFIFO#(lat) the_ofifo(ofifo);
 
@@ -81,10 +81,10 @@ module mk3Servers#(Integer lat)
 	 mkPort#(fromInteger(i)) the_p(p);
 	 ps[i] = p;
       end
-   
+
    // The three interfaces in ps become the result interface:
    return (tuple3(ps[0], ps[1], ps[2]));
 endmodule
 
 
-   
+

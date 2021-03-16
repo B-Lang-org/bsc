@@ -17,7 +17,7 @@ import Vector::*;
 
 // Suppose it is desired to place various test conditions (Boolean
 // expressions) at random places in a design, and to set an external
-// wire to 1 (e.g. to light a LED) if ever the condition is satisfied.  
+// wire to 1 (e.g. to light a LED) if ever the condition is satisfied.
 // The desired interface at the top level is accordingly as follows:
 
 interface CondWires#(type n);
@@ -51,7 +51,7 @@ typedef ModuleCollect#(Condition, i) CondModule#(type i);
 // the design, to test various conditions.  It takes one static
 // parameter, "ix", to specify which wire is to carry this condition,
 // and one dynamic parameter (one varying at run-time) "c", giving the
-// value of the condition itself.  
+// value of the condition itself.
 
 module [CondModule] testCondition#(Integer ix)(Bool c, Empty ifc);
    // A new item for the collection is defined:
@@ -59,7 +59,7 @@ module [CondModule] testCondition#(Integer ix)(Bool c, Empty ifc);
 		  method index;
 		     return (ix);
 		  endmethod
-		  
+
 		  method condition;
 		     return (c);
 		  endmethod
@@ -77,7 +77,7 @@ endmodule
 // brings out its collection of "Condition" items, and defines a module
 // with a "CondWires" interface, as required for the top level.  Note
 // that this definition produces an ordinary module, as the "[Module]"
-// indicates: 
+// indicates:
 
 module [Module] mkCondWrapper#(CondModule#(Empty) mkM)(CondWires#(n));
    // We use the module "exposeCollection", in the "ModuleCollect"
@@ -91,7 +91,7 @@ module [Module] mkCondWrapper#(CondModule#(Empty) mkM)(CondWires#(n));
    let cs = ecs.collection;
    // We check that all the indices for wires are within range:
    for (Integer i=0; i<length(cs); i=i+1)
-      staticAssert((cs[i]).index  < valueOf(n), 
+      staticAssert((cs[i]).index  < valueOf(n),
 		   "Condition index out of range");
 
    // Declare and initialise a list of registers to remember which
@@ -114,7 +114,7 @@ module [Module] mkCondWrapper#(CondModule#(Empty) mkM)(CondWires#(n));
 	 if ((cs[i]).condition)
 	    (rs[(cs[i]).index]) <= 1;
    endrule
-     
+
    // This method delivers the array of values in the registers.
    method wires;
       // Convert the array to a "Vector", so that its length is known to
@@ -157,49 +157,49 @@ endinterface: ArithIO_IFC
 module [CondModule] mkGCD(ArithIO_IFC#(NumTyp));
    Reg#(NumTyp) x();
    mkReg#(?) the_x(x);
-   
+
    Reg#(NumTyp) y();
    mkReg#(0) the_y(y);
 
    // Insert two tests of register values:
    testCondition(0, x==14);
    testCondition(1, y==2);
-   
+
    rule flip (x > y && y != 0);
       x <= y;
       y <= x;
    endrule
-   
+
    rule sub (x <= y && y != 0);
       y <= y - x;
    endrule
-   
+
    method Action start(NumTyp num1, NumTyp num2) if (y == 0);
       action
          x <= num1;
          y <= num2;
       endaction
    endmethod: start
-   
+
    method NumTyp result() if (y == 0);
       result = x;
    endmethod: result
-   
+
 endmodule: mkGCD
 
 
 module [CondModule] mkTbGCD(Empty);
    ArithIO_IFC#(NumTyp) gcd();
    mkGCD the_gcd(gcd);
-   
+
    Reg#(NumTyp) count1();
    mkReg#(19) the_count1(count1);
    Reg#(NumTyp) count2();
    mkReg#(5) the_count2(count2);
-   
+
    Reg#(NumTyp) tbresult();
    mkReg#(0) the_tbresult(tbresult);
-   
+
    Reg#(Bool) started();
    mkReg#(False) the_started(started);
 
@@ -218,13 +218,13 @@ module [CondModule] mkTbGCD(Empty);
    rule stop(cycles>500);
       $finish(0);
    endrule
-   
+
    rule rule1SendInput (True);
       gcd.start(count1, count2);
       count1 <= count1 + 3;
       count2 <= count2 + 2;
    endrule: rule1SendInput
-   rule rule2GetResult (True); 
+   rule rule2GetResult (True);
       tbresult <= gcd.result;
    endrule: rule2GetResult
 endmodule: mkTbGCD

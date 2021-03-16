@@ -1,4 +1,4 @@
-// Creates Loop. 
+// Creates Loop.
 // Should show error using -verilog flag
 
 package MuxLogic;
@@ -14,12 +14,12 @@ module mksubMuxLogic(ArithIO);
 
     RWire #(Bit #(8)) x();
     mkRWire the_x (x);
-    
+
     method Action setInput1(a);
         x.wset (a);
-    endmethod: setInput1 
-    
-    method Action setInput2(a) if (unJust (x.wget) >= 4); 
+    endmethod: setInput1
+
+    method Action setInput2(a) if (unJust (x.wget) >= 4);
         x.wset (a+1);
     endmethod: setInput2
 
@@ -36,11 +36,11 @@ module mkMuxLogic();
 
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_my_reg (counter);
-    
+
     rule increment;
         counter <= counter + 1;
     endrule
-    
+
     rule alwaysfire1;
         dut.setInput1 (counter);
     endrule
@@ -51,7 +51,7 @@ module mkMuxLogic();
 
     rule alwaysfire3;
         $display (dut.getOutput);
-    endrule    
+    endrule
 endmodule
 
 endpackage

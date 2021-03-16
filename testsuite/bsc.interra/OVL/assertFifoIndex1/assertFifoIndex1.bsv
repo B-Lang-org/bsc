@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_fifo_index
 
-Description: a FIFO-type structure deesn't overflow or underflow. 
+Description: a FIFO-type structure deesn't overflow or underflow.
 
 Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-10-2006 
+Date: 03-10-2006
 
 *************************************************************************************************************/
 import OVLAssertions ::*;
@@ -24,9 +24,9 @@ Reg#(Bit#(1)) pop  <- mkRegA(0);
 let defaults = mkOVLDefaults;
 defaults.depth = 5;
 AssertFifoTest_IFC#(Bit#(1), Bit#(1)) assertFifoI <- bsv_assert_fifo_index(defaults);
-      
+
 rule test(True);
-    assertFifoI.push(push); 
+    assertFifoI.push(push);
     assertFifoI.pop(pop);
 endrule
 

@@ -18,7 +18,7 @@ module sysClockDivOffset() ;
    Reset rstC <- mkAsyncResetFromCR(2, clkC ) ;
    Reset rstD <- mkAsyncResetFromCR(2, clkD ) ;
 
-   
+
    Reg#(int) ra <- mkReg(0, clocked_by clkA, reset_by rstA ) ;
    Reg#(int) rb <- mkReg(0, clocked_by clkB, reset_by rstB ) ;
    Reg#(int) rc <- mkReg(0, clocked_by clkC, reset_by rstC ) ;
@@ -51,5 +51,5 @@ module sysClockDivOffset() ;
       $display( "%t, Rule dd fired", adjusted_time(0) ) ;
       if ( rd > 10 ) $finish(0) ;
    endrule
-   
+
 endmodule

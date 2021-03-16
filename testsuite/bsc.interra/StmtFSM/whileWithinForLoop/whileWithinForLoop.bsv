@@ -12,14 +12,14 @@ Stmt test_seq =
 
   seq
       for (i <= 0 ; i <= 5 ; i <= i + 1)
-		seq  
+		seq
 		  while ( j <= 5)
 		  seq
 		      $display(" i = %5d   j = %5d", i, j);
 			  j <= j + 1;
 		  endseq
 		  j <= 0;
-		endseq  
+		endseq
  endseq;
 
 mkAutoFSM(test_seq);

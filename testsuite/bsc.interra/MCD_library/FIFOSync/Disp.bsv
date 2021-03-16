@@ -28,13 +28,13 @@ function Action my_print (Integer rdp, Bit#(8) expected, Bit#(8) actual,
     action
         case(cond)
         True:
-            if (actual==expected) 
-                $display(adj_stime(rdp), "\tData Match, Actual = %d",actual); 
+            if (actual==expected)
+                $display(adj_stime(rdp), "\tData Match, Actual = %d",actual);
             else begin
                 t_pass <= False;
-                $display(adj_stime(rdp), "\tData Mismatch, Actual = %d, Expected = %d",actual,expected);                           
+                $display(adj_stime(rdp), "\tData Mismatch, Actual = %d, Expected = %d",actual,expected);
             end
-        False: 
+        False:
             $display(adj_stime(rdp), "\tActual = %d, Expected = nothing",actual);
         endcase
     endaction

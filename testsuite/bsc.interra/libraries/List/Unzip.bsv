@@ -23,9 +23,9 @@ module mkTestbench_Unzip();
    List #(UInt #(4)) my_list2 = Cons (2, Cons (3, Cons (4, Cons (5, Cons (1, Nil)))));
 
    List #(Tuple2 #(UInt #(4), UInt #(4))) zipped_list = Cons (tuple2(1,2), Cons (tuple2(2,3), Cons (tuple2(3,4), Cons (tuple2(4,5), Cons (tuple2(5,1), Nil)))));
-   
 
-  
+
+
    rule fire_once (True);
       $display("Zipped List");
       display_list (zipped_list);
@@ -33,14 +33,14 @@ module mkTestbench_Unzip();
       display_list (tpl_1(unzip(zipped_list)));
       $display("List2:");
       display_list (tpl_2(unzip(zipped_list)));
-      
-      if (tpl_1(unzip(zipped_list)) != my_list1 ||tpl_2(unzip(zipped_list)) != my_list2) 
+
+      if (tpl_1(unzip(zipped_list)) != my_list1 ||tpl_2(unzip(zipped_list)) != my_list2)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Unzip
 
 

@@ -19,7 +19,7 @@ module mkFSM(ArithIO_IFC#(StateType));
   mkReg#(S0) the_curr_state(curr_state);
 
    (* fire_when_enabled *)
-  rule rule1_StateChange (True); 
+  rule rule1_StateChange (True);
         StateType next_state;
 	  case (curr_state)
 	    S0 : next_state = S1;
@@ -31,7 +31,7 @@ module mkFSM(ArithIO_IFC#(StateType));
           curr_state <= next_state;
   endrule: rule1_StateChange
 
-  method result(); 
+  method result();
     return (curr_state);
   endmethod: result
 endmodule: mkFSM

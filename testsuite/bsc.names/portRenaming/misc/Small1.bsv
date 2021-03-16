@@ -5,7 +5,7 @@ interface Fifo_ifc#(type any_t);
    (* always_ready, result="HEADelement" *)
    method  any_t               first_element() ;
 
-   (* prefix = "PrefixName", enable="EN1",  always_ready *)    
+   (* prefix = "PrefixName", enable="EN1",  always_ready *)
    method  Action              enqueue( any_t data_in ) ;
 
    (* prefix = "", enable="ENQsafeToEnqueueOn2" *)
@@ -14,7 +14,7 @@ interface Fifo_ifc#(type any_t);
 
       (* always_ready, result="DEQRES" *)
    method  ActionValue#(any_t) dequeue() ;
-endinterface 
+endinterface
 
 
 
@@ -38,7 +38,7 @@ module mkSmallTest1 ( Fifo_ifc#(Bit#(3))) ;
       tfifo.deq;
       return tfifo.first ;
    endmethod
-   
+
 
 endmodule
 

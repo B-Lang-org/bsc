@@ -22,9 +22,9 @@ endmodule
 
 (* synthesize *)
 module sysIBMBug();
-   
+
    Test pipe <- mkTest;
-   
+
    rule test;
       Bit#(32) r1 <- primSeq(0,pipe.p1)(fromInteger(2));
       Bit#(32) r2 <- primSeq(0,pipe.p2)(fromInteger(4));
@@ -33,6 +33,6 @@ module sysIBMBug();
    endrule
 
 endmodule
-		    
-		 
+
+
 

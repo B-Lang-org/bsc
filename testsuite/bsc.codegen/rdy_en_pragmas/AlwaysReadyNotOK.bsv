@@ -10,7 +10,7 @@ module mkTestReady(Test);
   Reg#(Bool) rdy <- mkReg(False);
 
   Reg#(Bit#(32)) countReg <- mkReg(0);
-  
+
   rule flip;
     rdy <= !rdy;
   endrule

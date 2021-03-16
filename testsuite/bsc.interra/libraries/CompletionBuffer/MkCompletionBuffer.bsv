@@ -38,7 +38,7 @@ module mkTestbench_MkCompletionBuffer();
    	 counter <= counter + 1;
      endrule
   endrules;
-     
+
   Rules r2 = rules
      rule data_reserve (state == Reserve) ;
        CBToken#(16) y <- buf1.reserve.get;
@@ -47,7 +47,7 @@ module mkTestbench_MkCompletionBuffer();
 	   state <= Complete;
      endrule
   endrules;
-   
+
   Rules r3 = rules
      rule data_complete (state == Complete);
 	   val_count <= val_count + 1;
@@ -58,7 +58,7 @@ module mkTestbench_MkCompletionBuffer();
 	   state <= Drain;
      endrule
   endrules;
-   
+
   Rules r4 = rules
      rule data_read (state == Drain) ;
        Bit#(8) value <- buf1.drain.get;
@@ -72,7 +72,7 @@ module mkTestbench_MkCompletionBuffer();
 	     state <= Reserve;
      endrule
   endrules;
-   
+
   Rules r5 = rules
      rule endofsim (state == Done);
        if (fail)
@@ -82,9 +82,9 @@ module mkTestbench_MkCompletionBuffer();
        $finish(2'b00);
       endrule
   endrules;
-   
+
     Vector #(5, Rules) my_list = cons(r1, cons(r2, cons(r3, cons(r4, cons(r5,nil)))));
     addRules (joinRules (my_list) );
-     
+
 endmodule: mkTestbench_MkCompletionBuffer
 endpackage: MkCompletionBuffer

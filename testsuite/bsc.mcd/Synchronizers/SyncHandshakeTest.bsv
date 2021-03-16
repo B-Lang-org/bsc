@@ -6,7 +6,7 @@ Integer period_fast_clk = 7;
 (* synthesize *)
 module sysSyncHandshakeTest();
 
-   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);   
+   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);
    SyncPulseIfc sync1 <- mkSyncHandshakeFromCC(fast_clk, reset_by noReset);
    SyncPulseIfc sync2 <- mkSyncHandshakeToCC(fast_clk, noReset);
 
@@ -51,7 +51,7 @@ module sysSyncHandshakeTest();
      sync2.send();
      pending <= pending - 1;
    endrule
-     
+
    rule get_pulse(sync2.pulse());
      $display("Got reflected pulse");
      count <= count + 1;

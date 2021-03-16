@@ -4,14 +4,14 @@ import FIFO
 
 {-# verilog mkPort #-}
 mkPort :: Bit 16  -> Module Empty
-mkPort x = module 
+mkPort x = module
             rules
              when True ==> action
                             $display x
                             $finish 0
 
 mkTop :: Module Empty
-mkTop = module 
+mkTop = module
           f :: FIFO (Bit 16) <- mkFIFO
           p :: Empty <- mkPort (f.first)
 

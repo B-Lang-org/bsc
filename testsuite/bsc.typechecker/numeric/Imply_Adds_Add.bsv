@@ -8,7 +8,7 @@ function FixedPoint#(ri,rf)  fxptMult2 (
              Add#(af,bf,pf),
              Add#(xxG,ri,pi),
              Add#(xxH,rf,pf)
-  
+
 // The following 4 provisos are redundant
 // And leaving them out, the compiler asks to add provisos with TAdds.
 //            ,Add#(pi,pf, pb)
@@ -20,7 +20,7 @@ function FixedPoint#(ri,rf)  fxptMult2 (
 
    FixedPoint#(pi,pf) prod = fxptMult( a, b ) ;
    return fxptTruncate( prod ) ;
-      
+
 endfunction
 
 // -------------------------
@@ -43,9 +43,9 @@ function  Int#(b) _toInternal ( FixedPoint#(i,f) x )
    return unpack ( pack (x) );
 endfunction
 
-instance Bits#( FixedPoint#(i,f), b ) 
+instance Bits#( FixedPoint#(i,f), b )
    provisos ( Add#(i,f,b) );
-   
+
    function Bit#(b) pack (FixedPoint#(i,f) x);
       return { pack(x.i),pack(x.f) };
    endfunction
@@ -69,22 +69,22 @@ function FixedPoint#(ri,rf)  fxptMult( FixedPoint#(ai,af) a,
 
    Int#(ab) ap = _toInternal(a);
    Int#(bb) bp = _toInternal(b);
-   
+
    Int#(rb) prod = signedMul(ap, bp); // signed integer multiplication
 
    return _fromInternal(prod);
-      
+
 endfunction
 
 function FixedPoint#(ri,rf) fxptTruncate( FixedPoint#(ai,af) a )
    provisos( Add#(xxA,ri,ai),    // ai >= ri
              Add#(xxB,rf,af)    // af >= rf
             ) ;
-   
+
    FixedPoint#(ri,rf) res = FixedPoint {i: truncate (a.i),
                                         f: truncateLSB (a.f) } ;
    return res;
-   
+
 endfunction
 
 

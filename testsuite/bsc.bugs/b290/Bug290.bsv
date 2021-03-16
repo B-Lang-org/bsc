@@ -14,7 +14,7 @@ function Pair sum (Bit#(1) a, Bit#(1) b);
       s = a + b;
       c = a * b;
       return tuple2(s, c);
-endfunction 
+endfunction
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
@@ -50,7 +50,7 @@ module mkTest (Empty);
         w <= tpl_1(z);
         $display("bbb %b", w);
         $display("bbb %b", tpl_1(z));
-   endrule      
+   endrule
 
 endmodule
 

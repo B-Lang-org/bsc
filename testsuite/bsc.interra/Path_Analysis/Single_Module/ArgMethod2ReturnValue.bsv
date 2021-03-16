@@ -20,12 +20,12 @@ module [Module] mkArgMethod2ReturnValue(ArithIO);
     Bit #(2) temp2 = (temp1 == 0) ? 3: 1;
     temp2 = temp2 + temp1;
     Action temp3 = x.wset (temp2);
- 
+
     method Action setInput();
          temp3;
     endmethod: setInput
 
 endmodule
 
-endpackage 
+endpackage
 

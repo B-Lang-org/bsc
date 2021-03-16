@@ -9,7 +9,7 @@ import MipsROM
 
 {-# verilog sysMips #-}
 sysMips :: Module Empty
-sysMips = 
+sysMips =
     module
 	ram :: MRAM <- mkRAM
 	rom :: MROM <- sysMipsROM

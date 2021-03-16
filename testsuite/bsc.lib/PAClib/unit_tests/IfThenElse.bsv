@@ -17,7 +17,7 @@ import CompletionBuffer  :: *;
 
 import PAClib::*;
 import Common::*;
-  
+
 // ----------------------------------------------------------------
 
 
@@ -68,7 +68,7 @@ module [Module] sysIfThenElse (Empty);
    rule checkOutput;
       match { .in_i, .in_b } = test_inputs.first (); test_inputs.deq ();
       let expected_out = (in_b ? f_incr_by (100) : f_incr_by (10)) (in_i);
-      
+
       let actual_out = po_out.first ();  po_out.deq ();
 
       $display ("Cycle %0t: Out [%0d]: expected (%0d), actual (%0d)",

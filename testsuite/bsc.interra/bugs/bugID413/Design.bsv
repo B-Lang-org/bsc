@@ -25,16 +25,16 @@ mkReg#(0) i_reg_out(reg_out);
 
   if (sel[0] == 1'b0)
        reg_out <= in1;
-  
+
   else if (sel[0] == 1'b1)
        reg_out <= in2;
-  
+
        else if (sel[1] == 1'b0)
             reg_out <= in3;
-  
+
             else if (sel[1] == 1'b1)
                  reg_out <= in4;
-  
+
   endaction
 
  endmethod: getinputs

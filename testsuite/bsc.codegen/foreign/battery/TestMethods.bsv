@@ -114,7 +114,7 @@ module mkTestMethodsTB ();
 	    $display(" m3_poly = %h", res);
 	 endaction
       endseq;
-   
+
    FSM test_fsm <- mkFSM(test_seq);
    Reg#(Bool) going <- mkReg(False);
 
@@ -128,7 +128,7 @@ module mkTestMethodsTB ();
    endrule
 
    Reg#(UInt#(7)) watchdog <- mkReg(0);
-   
+
    rule check_watchdog;
      if(watchdog > 100) begin
         $display("Watchdog check failed\n");

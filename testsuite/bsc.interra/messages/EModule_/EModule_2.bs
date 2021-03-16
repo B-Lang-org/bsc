@@ -14,24 +14,24 @@
 
 package EModule_2 () where
 
-interface VReg n = 
-    set :: Bit n -> PrimAction 
-    get :: Bit n 
+interface VReg n =
+    set :: Bit n -> PrimAction
+    get :: Bit n
 
 
-vMkReg :: Bit n -> Module (VReg n) 
-vMkReg v when v==1 = module verilog "RegN" (("width", (valueOf n))) "CLK" "RST" (("init", v )) { 
-                      get = "get"{reg}; 
-                      set = "val"{reg} "SET"; } 
-                    [ get <> get, get < set, set << set ] 
+vMkReg :: Bit n -> Module (VReg n)
+vMkReg v when v==1 = module verilog "RegN" (("width", (valueOf n))) "CLK" "RST" (("init", v )) {
+                      get = "get"{reg};
+                      set = "val"{reg} "SET"; }
+                    [ get <> get, get < set, set << set ]
 
 
-mkReg :: (Bits a sa) => a -> Module (Reg a) 
-mkReg v = module 
-            r :: VReg sa 
-            r <- vMkReg (pack v) 
-            interface 
-              _read = unpack r.get 
+mkReg :: (Bits a sa) => a -> Module (Reg a)
+mkReg v = module
+            r :: VReg sa
+            r <- vMkReg (pack v)
+            interface
+              _read = unpack r.get
               _write x = fromPrimAction (r.set (pack x))
 
 myReg :: Module (Reg (Bit 5))

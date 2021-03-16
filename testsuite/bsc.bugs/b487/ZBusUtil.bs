@@ -5,11 +5,11 @@
 package ZBusUtil(ZBit,
 		     mkZBit,
 		     zBitGetWord,
-		     ConvertToZ(..), 
+		     ConvertToZ(..),
 		     mkConvertToZ,
-		     ConvertFromZ(..), 
+		     ConvertFromZ(..),
 		     mkConvertFromZ,
-		     ResolveZ(..), 
+		     ResolveZ(..),
 		     mkResolveZ
 		     ) where
 
@@ -61,9 +61,9 @@ vMkConvertToZ =
 	convert = "IN" "ENABLE" "OUT";
     } [ convert <> convert ]
 
-mkConvertToZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) => 
+mkConvertToZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) =>
 		m (ConvertToZ i)
-mkConvertToZ = 
+mkConvertToZ =
     if genC then liftModule $
        module
 	   interface
@@ -101,16 +101,16 @@ vMkConvertFromZ =
 	convert = "IN" "OUT";
     } [ convert <> convert ]
 
-mkConvertFromZ :: (IsModule m c, Eq i, Literal i, 
-		   Bits (ZBit i) sz, Bits i si1) => 
+mkConvertFromZ :: (IsModule m c, Eq i, Literal i,
+		   Bits (ZBit i) sz, Bits i si1) =>
 		  m (ConvertFromZ i)
-mkConvertFromZ = 
+mkConvertFromZ =
     if genC then liftModule $
        module
 	   interface
 	      convert k = zBitToBit k
     else liftModule $
-       module 
+       module
 	   _a :: VConvertFromZ sz si1
 	   _a <- vMkConvertFromZ
            interface
@@ -139,15 +139,15 @@ vMkResolveZ =
 	resolve = "IN_0" "IN_1" "OUT";
     } [ resolve <> resolve ]
 
-mkResolveZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) => 
+mkResolveZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) =>
 	      m (ResolveZ i)
-mkResolveZ = 
+mkResolveZ =
     if genC then liftModule $
        module
 	   interface
 	      resolve in_0 in_1 = resolveZ in_0 in_1
     else liftModule $
-       module 
+       module
 	   _a :: VResolveZ sz
 	   _a <- vMkResolveZ
            interface

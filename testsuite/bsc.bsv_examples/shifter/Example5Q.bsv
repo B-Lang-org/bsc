@@ -66,7 +66,7 @@ module mkLs3 (SShifter#(m,n));
 		     reg2 <= step(reg1, 1);
 		     reg3 <= step(reg2, 2);
 		  endaction;
-   
+
    // Interface
    method push(sx);
       actionvalue
@@ -75,7 +75,7 @@ module mkLs3 (SShifter#(m,n));
 	 return(tpl_2(reg3)); // return the x of the last register
       endactionvalue
    endmethod
-      
+
 endmodule
 
 
@@ -85,7 +85,7 @@ module mkLs (SShifter#(m,n));
 
    // TASK: Declare and instantiate an array of pipeline registers
    // ...
-   
+
    // The synchronized pipeline shift
    Action shift =
       action

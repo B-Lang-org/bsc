@@ -49,7 +49,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
 	     Add#(dtas, nd, DataSize),
 	     Add#(nd, dtas, DataSize),
 	     Bits#(RAMreq#(Bit#(adrs), Bit#(dtas)), nr));
-   
+
    let ifc <- (liftModule(module#(Tuple2#(ExtSDRAM, RAM#(adr, dta)));
 		  FIFOF#(RAMreq#(Bit#(adrs), Bit#(dtas))) ififo();
 		  mkFIFOF1 theififo(ififo);
@@ -65,13 +65,13 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
 		  mkConfigRegU theoData(oData);
 		  function setupCycle(x);
 	             return (begin case (x) matches
-				      tagged Read {.a} : 
+				      tagged Read {.a} :
 					 (action
 					     oAddr <= a;
 					     doRD <= True;
 					     doWR <= False;
 					  endaction);
-				      tagged Write {.a,.d} : 
+				      tagged Write {.a,.d} :
 					 (action
 					     oAddr <= a;
 					     oData <= d;
@@ -86,7 +86,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
 				      tagged Write {.a,.d} :  (Write (tuple2(pack(a), pack(d))));
 				   endcase end);
 		  endfunction: packReq
-		  let newCycle = 
+		  let newCycle =
 		  action
 		     ififo.deq;
 		     setupCycle(ififo.first);
@@ -106,7 +106,7 @@ module mkSDRAM(Tuple2#(ExtSDRAM, RAM#(adr, dta)))
 				   method dOut(x) ;
 				      return (begin case (x) matches
 						       tagged Invalid :  (noAction);
-						       tagged Valid {.d} : 
+						       tagged Valid {.d} :
 							  (doRD ?
 							   ofifo.notFull ?
 							   action

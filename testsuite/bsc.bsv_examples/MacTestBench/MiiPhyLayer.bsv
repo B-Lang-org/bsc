@@ -25,7 +25,7 @@ interface MiiPhyLayerIFC;
    interface Control cntrl;
    interface FrameTxBRxIFC    frame_channel;
    interface MiiNibbleTxRxIFC mii_nibble_channel;
-   interface IndicationsIFC indications;      
+   interface IndicationsIFC indications;
 endinterface
 
 interface MiiPhyLayerTxIFC;
@@ -49,34 +49,34 @@ endinterface
 
 (* synthesize *)
 module mkMiiPhyLayer#(Bool full_duplex) (MiiPhyLayerIFC);
-   
+
    MiiPhyLayerRxIFC mii_rx <- mkMiiPhyLayerRx(full_duplex);
    MiiPhyLayerTxIFC mii_tx <- mkMiiPhyLayerTx(full_duplex);
    Wire#(Bool) collision <- mkWire;
-   
+
    Randomize#(Collision) collision_gen <- mkRandomizer;
    Reg#(Bit#(16)) collision_symbol <- mkReg(0);
    Reg#(Bit#(16)) count <- mkReg(0);
-   
+
    Reg#(Bool) force_collision <- mkReg(False);
-   
+
    Reg#(Bool) crs_rx_force <- mkReg(False);
    Reg#(Bool) crs_rx_supress <- mkReg(False);
-   
+
    rule collision_update;
       collision <= mii_rx.media.carrier_out && mii_tx.media.carrier_out && !full_duplex;
    endrule
-   
+
    rule collision_announce (collision);
       $display("(%5d) Collision!", $time);
    endrule
-   
+
    rule carrier_connect;
       let crs_rx = (mii_rx.media.carrier_out || crs_rx_force) && !crs_rx_supress;
       mii_rx.media.carrier_in(mii_tx.media.carrier_out);
       mii_tx.media.carrier_in(crs_rx);
    endrule
-   
+
    Stmt collision_seq =
    seq
       while (True)
@@ -86,25 +86,25 @@ module mkMiiPhyLayer#(Bool full_duplex) (MiiPhyLayerIFC);
 	       let add_collisions <- $test$plusargs("add_collisions");
 	       let receive <- $test$plusargs("receive");
 	       let transmit <- $test$plusargs("transmit");
-	       collision_symbol <=  
+	       collision_symbol <=
 	         (add_collisions && receive && transmit) ? collision.on_symbol : 0;
 	       crs_rx_supress <= False;
 	       crs_rx_force <= False;
 	       count <= 0;
 	    endaction
 	    // wait until tx is idle and rx is active
-	    await(mii_rx.media.carrier_out && !mii_tx.media.carrier_out); 
+	    await(mii_rx.media.carrier_out && !mii_tx.media.carrier_out);
 	    if (full_duplex || (collision_symbol == 0))
 	       await(!mii_rx.media.carrier_out);
 	    else
 	       seq
 		  crs_rx_force <= True;
 		  // wait until rx is idle and tx is ready to go.
-		  await(!mii_rx.media.carrier_out && mii_tx.waiting_to_tx); 
+		  await(!mii_rx.media.carrier_out && mii_tx.waiting_to_tx);
 		  // wait for rx to go active again.
-		  await(mii_rx.media.carrier_out); 
+		  await(mii_rx.media.carrier_out);
 		  // extra 13 accounts for preamble delay
-		  while ((count < (collision_symbol + 13)) && mii_rx.media.carrier_out) 
+		  while ((count < (collision_symbol + 13)) && mii_rx.media.carrier_out)
 		     count <= count + 1;
 		  if (mii_rx.media.carrier_out)
 		     action
@@ -115,7 +115,7 @@ module mkMiiPhyLayer#(Bool full_duplex) (MiiPhyLayerIFC);
 	       endseq
 	 endseq
    endseq;
-   
+
    let collision_fsm  <- mkFSM(collision_seq);
 
    interface Control cntrl;
@@ -126,17 +126,17 @@ module mkMiiPhyLayer#(Bool full_duplex) (MiiPhyLayerIFC);
 	 mii_tx.cntrl.init;
       endmethod
    endinterface
-   
+
    interface FrameTxBRxIFC frame_channel;
       interface Get tx = mii_rx.tx;
       interface BPut rx = mii_tx.rx;
    endinterface
-   
+
    interface MiiNibbleTxRxIFC mii_nibble_channel;
       interface Get tx =  mii_tx.tx;
       interface Put rx = mii_rx.rx;
    endinterface
-   
+
     interface IndicationsIFC indications;
        method Indications indicate();
 	  let collision = mii_rx.media.carrier_out && mii_tx.media.carrier_out && !full_duplex;
@@ -146,7 +146,7 @@ module mkMiiPhyLayer#(Bool full_duplex) (MiiPhyLayerIFC);
 			      };
        endmethod
    endinterface
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,23 +155,23 @@ endmodule
 
 (* synthesize *)
 module mkMiiPhyLayerTx#(Bool full_duplex) (MiiPhyLayerTxIFC);
-   
+
    FIFOF#(Frame)    in_fifo  <- mkFIFOF1;
    FIFO#(MiiNibble) mii_out_fifo <- mkFIFO;
 
    Reg#(Bool) crs_out <- mkReg(False);
    Reg#(Bool) crs_in <- mkReg(False);
    Wire#(Bool) collision <- mkWire;
-   
+
    Reg#(Bool) waiting <- mkReg(False);
-   
+
    Reg#(Bit#(32)) count_tx  <- mkReg(0);
    Reg#(Bit#(32)) size_tx  <- mkReg(0);
 
    Reg#(Bit#(SizeOf#(Frame))) tx_bit_reg <- mkReg(0);
 
    CrcCalculatorIFC crc_tx <- mkCrcCalculator;
-   
+
    rule collision_update;
       collision <= crs_in && crs_out && !full_duplex;
    endrule
@@ -249,15 +249,15 @@ module mkMiiPhyLayerTx#(Bool full_duplex) (MiiPhyLayerTxIFC);
 	    crs_out <= False;
 	 endseq
    endseq;
-  
+
    let tx_driver_fsm  <- mkFSM(tx_driver_seq);
-   
+
    interface Control cntrl;
       method Action init();
 	 tx_driver_fsm.start();
       endmethod
    endinterface
-   
+
    interface Get tx;
       method ActionValue#(MiiNibble) get ();
 	 let value = mii_out_fifo.first;
@@ -265,9 +265,9 @@ module mkMiiPhyLayerTx#(Bool full_duplex) (MiiPhyLayerTxIFC);
 	 return value;
       endmethod
    endinterface
-   
+
    interface BPut rx = fifofToBPut(in_fifo);
-   
+
    interface MediaIFC media;
       method Bool carrier_out();
 	 return crs_out;
@@ -276,7 +276,7 @@ module mkMiiPhyLayerTx#(Bool full_duplex) (MiiPhyLayerTxIFC);
 	 crs_in <= value;
       endmethod
    endinterface
-      
+
    method Bool waiting_to_tx();
       return waiting;
    endmethod
@@ -289,13 +289,13 @@ endmodule
 
 (* synthesize *)
 module mkMiiPhyLayerRx#(Bool full_duplex) (MiiPhyLayerRxIFC);
-      
+
    FIFO#(Frame)        out_fifo     <-  mkFIFO1;
-   FIFOF#(MiiNibble)   mii_in_fifo  <-  mkSizedFIFOF(8); // make this big enough to suck up 
+   FIFOF#(MiiNibble)   mii_in_fifo  <-  mkSizedFIFOF(8); // make this big enough to suck up
                                                          // any extra cycles in the rx_monitor_fsm;
    Reg#(Bool) crs_out <- mkReg(False);
    Reg#(Bool) crs_in <- mkReg(False);
-   
+
    Reg#(Bit#(32)) count_rx  <- mkReg(0);
    Reg#(Bit#(32)) size_rx  <- mkReg(0);
 
@@ -361,7 +361,7 @@ module mkMiiPhyLayerRx#(Bool full_duplex) (MiiPhyLayerRxIFC);
 	       endaction
 	    rx_bit_reg <= truncate(rx_bit_reg << (size_rx - count_rx));
 	    action
-	       $display("(instance %m): Transmit test frame assembled ... %d %d %d (%5d).", 
+	       $display("(instance %m): Transmit test frame assembled ... %d %d %d (%5d).",
 		  size_rx, count_rx, (size_rx - count_rx), $time);
 	       let frame = remove_trailing_data(unpack(rx_bit_reg));
 	       let size = getFrameByteSize(frame);
@@ -389,15 +389,15 @@ module mkMiiPhyLayerRx#(Bool full_duplex) (MiiPhyLayerRxIFC);
 	 rx_monitor_fsm.start();
       endmethod
    endinterface
-   
+
    interface Put rx;
       method Action put (x);
 	 mii_in_fifo.enq (x);
       endmethod
    endinterface
    interface Get tx = fifoToGet(out_fifo);
-      
-      
+
+
    interface MediaIFC media;
       method Bool carrier_out();
 	 return crs_out;
@@ -406,7 +406,7 @@ module mkMiiPhyLayerRx#(Bool full_duplex) (MiiPhyLayerRxIFC);
 	 crs_in <= value;
       endmethod
    endinterface
-	    
+
 endmodule
 
 endpackage

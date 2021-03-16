@@ -1,10 +1,10 @@
 package ResourceOneRuleTwoMethodsNotSC(sysResourceOneRuleTwoMethodsNotSC) where
 
 -- Test that the compiler appropriately does not report a conflict for two
--- conflicting methods in a single rule when they are in different parts of 
+-- conflicting methods in a single rule when they are in different parts of
 -- an if
 
-import FIFO 
+import FIFO
 
 sysResourceOneRuleTwoMethodsNotSC :: Module Empty
 sysResourceOneRuleTwoMethodsNotSC =

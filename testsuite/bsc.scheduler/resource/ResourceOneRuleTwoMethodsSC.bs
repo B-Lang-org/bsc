@@ -3,7 +3,7 @@ package ResourceOneRuleTwoMethodsSC(sysResourceOneRuleTwoMethodsSC) where
 -- Test that the compiler appropriately reports a conflict for two
 -- when they are not conflict-free
 
-import FIFO 
+import FIFO
 
 sysResourceOneRuleTwoMethodsSC :: Module Empty
 sysResourceOneRuleTwoMethodsSC =

@@ -13,7 +13,7 @@ module mkTestbench(Empty);
  Reg#(Bit#(9)) cntr <- mkReg(0);
  List#(Inputs) check = toList(get_vector());
  Integer len = List::length(check);
- 
+
 rule set(state==SET);
     Inputs tmp = List::select(check,cntr);
     dut.start(tmp.a,tmp.b);
@@ -21,7 +21,7 @@ rule set(state==SET);
  endrule
 
 rule check_or(state==CHECK_OR);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(14,Bool) vec =
  cons(dut.bOr==tmp.bOr,
@@ -51,7 +51,7 @@ endrule
 
 
 rule check_and(state==CHECK_AND);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(14,Bool) vec =
  cons(dut.bAnd==tmp.bAnd,
@@ -68,7 +68,7 @@ rule check_and(state==CHECK_AND);
  cons(dut.bAnd_30==tmp.bAnd_30,
  cons(dut.bAnd_1==tmp.bAnd_1,
  cons(dut.bAnd_0==tmp.bAnd_0,nil))))))))))))));
- 
+
  Bit#(14) status = pack(vec);
  if(status == 14'b11111111111111)
    $display("Test %d PASS for BITWISE_AND",cntr);
@@ -80,7 +80,7 @@ state<=CHECK_INV;
 endrule
 
 rule check_inv(state==CHECK_INV);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(14,Bool) vec =
  cons(dut.bInv==tmp.bInv,
@@ -97,7 +97,7 @@ rule check_inv(state==CHECK_INV);
  cons(dut.bInv_30==tmp.bInv_30,
  cons(dut.bInv_1==tmp.bInv_1,
  cons(dut.bInv_0==tmp.bInv_0,nil))))))))))))));
- 
+
  Bit#(14) status = pack(vec);
  if(status == 14'b11111111111111)
    $display("Test %d PASS for BITWISE_INV",cntr);
@@ -108,7 +108,7 @@ state<=CHECK_XOR;
 endrule
 
 rule check_xor(state==CHECK_XOR);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(14,Bool) vec =
  cons(dut.bXor==tmp.bXor,
@@ -125,7 +125,7 @@ rule check_xor(state==CHECK_XOR);
  cons(dut.bXor_30==tmp.bXor_30,
  cons(dut.bXor_1==tmp.bXor_1,
  cons(dut.bXor_0==tmp.bXor_0,nil))))))))))))));
- 
+
  Bit#(14) status = pack(vec);
  if(status == 14'b11111111111111)
    $display("Test %d PASS for BITWISE_XOR",cntr);
@@ -138,7 +138,7 @@ endrule
 
 
 rule check_xnor(state==CHECK_XNOR);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(14,Bool) vec =
  cons(dut.bXnor==tmp.bXnor,
@@ -155,7 +155,7 @@ rule check_xnor(state==CHECK_XNOR);
  cons(dut.bXnor_30==tmp.bXnor_30,
  cons(dut.bXnor_1==tmp.bXnor_1,
  cons(dut.bXnor_0==tmp.bXnor_0,nil))))))))))))));
- 
+
  Bit#(14) status = pack(vec);
  if(status == 14'b11111111111111)
    $display("Test %d PASS for BITWISE_XNOR",cntr);
@@ -164,15 +164,15 @@ else
 
 state<=DONE;
 
-endrule	
+endrule
 
 rule done(state==DONE);
    if(cntr>=fromInteger(len)) $finish(0);
    else
     cntr <= cntr+1;
 	state <= SET;
-	
-endrule	
+
+endrule
 
 
 endmodule

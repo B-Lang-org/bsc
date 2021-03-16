@@ -15,9 +15,9 @@ module defaultSlave( Slave ) ;
       endmethod
    endinterface
 
-   // sub-interface for bus to get a response. 
+   // sub-interface for bus to get a response.
    interface Get s_response ;
-      method ActionValue#(BusResponse) get () ; 
+      method ActionValue#(BusResponse) get () ;
          return defaultResponse ;
       endmethod
    endinterface
@@ -39,18 +39,18 @@ module mkSlave1( Slave );
       endmethod
    endinterface
 
-   
+
    interface Get s_response ;
       method ActionValue#(BusResponse) get() ;
          // The implicit RDY condition is there must be something in requestQ
          let req = requestQ.first ;  requestQ.deq ;
          let addr = req.addr;
-         // transfer address to data 
+         // transfer address to data
          let resp = BusResponse{ data:addr, status:OK } ;
          return resp ;
       endmethod
    endinterface
-   
+
 endmodule
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ module mkSlave2( Slave );
       requestQ1.enq( requestQ0.first ) ;
       requestQ0.deq ;
    endrule
-   
+
    // When the bus puts a request to the slave, then enqueue it.
    // The bus logic ensure that only one request is ever pending.
    interface Put s_request ;
@@ -85,7 +85,7 @@ module mkSlave2( Slave );
          return resp ;
       endmethod
    endinterface
-   
+
 endmodule
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ module mkSlaveN( Slave ) ;
       counter <= counter - 1 ;
    endrule
 
-   
+
    interface Put s_request ;
       method Action put( BusRequest request );
          // Set the counter and save the address.
@@ -117,5 +117,5 @@ module mkSlaveN( Slave ) ;
          return resp;
       endmethod
    endinterface
-   
+
 endmodule

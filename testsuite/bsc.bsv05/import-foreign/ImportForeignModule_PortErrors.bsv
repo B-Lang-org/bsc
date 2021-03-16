@@ -34,7 +34,7 @@ import "BVI" Test = module mkTest(TestIFC);
   method EN1 in_out(EN1, EN1);
   method OUTPUT2 in_out2(ARG1, ARG2) enable (EN2) ready(RDY2);
   method EN2 out3 ready(ARG1);
-  method ARG2 in_out3(RDY2, OUTPUT2);  
+  method ARG2 in_out3(RDY2, OUTPUT2);
   input_clock clk3(CLK3) <- extractCurrentClock;
   method action1 enable(CLK3) ready(RDY1);
   port RDY1 = 6;

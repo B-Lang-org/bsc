@@ -11,7 +11,7 @@ the instructions:
 
 
 We want you to add the LoadPC instruction. This instruction has a single
-parameter: the Dest Reg. On execution it loads the program counter into 
+parameter: the Dest Reg. On execution it loads the program counter into
 in the register.
 
 -----------------------------------------------------------------------------*/
@@ -89,7 +89,7 @@ module mkRegisterFile(RegisterFile);
   // Adding the reverse requirement (read the array before writing)
   // causes a conflict, and some stages would never be able to fire
   // in the same cycle.  This is not acceptable behavior.
-   
+
   RegFile#(RName, Value) rs();
   mkRegFileWCF#(R0, R31) the_rs(rs);
 
@@ -173,7 +173,7 @@ module mkFiveStageCPUStall(CPU);
 
   // ----------------------------
   // Convenience functions
-   
+
   // A function which describes the stall condition:
   // Given a register which an incoming instruction wants to
   // read ("r") and an entry in any of the buffer stages
@@ -225,7 +225,7 @@ module mkFiveStageCPUStall(CPU);
     return (unpack(truncate(i32)));
   endfunction
 
-  Rules decode_non_stall_rules = rules 
+  Rules decode_non_stall_rules = rules
   rule decode_halt
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Halt));
@@ -289,7 +289,7 @@ module mkFiveStageCPUStall(CPU);
    endrules;
 
   Rules decode_rules = preempts(decode_non_stall_rules, decode_stall_rule);
-   
+
   addRules(decode_rules);
 
 
@@ -314,16 +314,16 @@ module mkFiveStageCPUStall(CPU);
      the branch-not-taken rule doesn't force a conflict with
      the other cases:
      ---------------------------------------------------------
-     
+
      rule execute (bd.first matches {.epc, .instTemplate});
        case (instTemplate) matches
-	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} : 
+	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} :
 	     action
 	        let new_itmpl = ELoadC { rd : rd, v : va + vb };
 	        be.enq(tuple2(epc, new_itmpl));
 	        bd.deq;
 	     endaction
-	  tagged EJz {cd:.cv, addr:.av} : 
+	  tagged EJz {cd:.cv, addr:.av} :
 	     if (cv == 0)
 	       action
 		  pc <= av;
@@ -332,7 +332,7 @@ module mkFiveStageCPUStall(CPU);
 	       endaction
 	     else
 	          bd.deq;
-	  default : 
+	  default :
 	     action
 	        be.enq(bd.first);
 	        bd.deq;
@@ -431,6 +431,6 @@ module mkFiveStageCPUStall(CPU);
   endmethod
 
   method done = !started && !bd.notEmpty && !be.notEmpty && !bm.notEmpty;
-   
+
 endmodule: mkFiveStageCPUStall
 

@@ -6,7 +6,7 @@
 -- Author : Amit Grover      <amit@noida.interrasystems.com>
 
 -- Description: This testcase triggers the EUnifyKind error of the bluespec
--- compiler 
+-- compiler
 --
 -----------------------------------------------------------------------
 
@@ -17,18 +17,18 @@ package EUnifyKind(absval) where
 -- import Int
 
 interface Absval  =
-         start :: Int a -> Int a 
+         start :: Int a -> Int a
 
 
 mkAbsval :: Module (Absval a)
-        
-mkAbsval = 
+
+mkAbsval =
         module
            interface
               start x = if x > 0 then
                            x
-                        else 
-                           negate x  
+                        else
+                           negate x
 
 absval :: Module (Absval 5)
-absval = mkAbsval 
+absval = mkAbsval

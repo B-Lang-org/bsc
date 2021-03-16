@@ -21,12 +21,12 @@ module mkFSM(ArithIO_IFC#(StateType));
    rule state_S0 (curr_state == S0);
       curr_state <= S1;
    endrule
-   
+
    rule state_S1 (curr_state == S1);
       curr_state <= S2;
    endrule
-  
-   rule state_S2 (curr_state == S2); 
+
+   rule state_S2 (curr_state == S2);
       curr_state <= S3;
    endrule
 
@@ -35,7 +35,7 @@ module mkFSM(ArithIO_IFC#(StateType));
       curr_state <= S0;
    endrule
 
-  method result(); 
+  method result();
     return (curr_state);
   endmethod: result
 endmodule: mkFSM

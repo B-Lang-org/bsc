@@ -23,12 +23,12 @@ mkENoNF1 :: Module ENoNF1
 mkENoNF1 =
     module
 
-        x :: Reg (String) 
+        x :: Reg (String)
         x <- mkRegU
 
-        y :: Reg (String) 
+        y :: Reg (String)
         y <- mkRegU
 
         interface
 	    start  = action
-                             x := y 
+                             x := y

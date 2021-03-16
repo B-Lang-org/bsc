@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
-/* Performs byte alignment on a 8 bit input data and returns 8 bit data 
-   and stores the residual value in input buffer 
+/* Performs byte alignment on a 8 bit input data and returns 8 bit data
+   and stores the residual value in input buffer
 */
 
 package DetstartCode;
@@ -723,7 +723,7 @@ function Bit#(5) decode_length (Bit#(13) input_reg);
      res = 7;
    else if (input_reg <=256)
      res = 8;
-   else 
+   else
      res = 9;
    return res;
 endfunction

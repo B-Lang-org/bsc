@@ -13,7 +13,7 @@ typedef Vector#(n, Maybe#(a)) IBus#(type a, type n);
 /* Interfaces                                     */
 /**************************************************/
 
-interface FXU #(type fuu_inst, type fuu_result, 
+interface FXU #(type fuu_inst, type fuu_result,
                 type in_w, type out_w);
 
     //For CCU
@@ -34,10 +34,10 @@ interface DCache #(type dcache_req, type dcache_resp, type in_w, type out_w);
     method Action flush();
 endinterface: DCache
 
-interface LSU #(type dcache_resp, type dcache_req, 
+interface LSU #(type dcache_resp, type dcache_req,
                 type lsu_inst, type lsu_res, type lsu_tag,
                 //Bus widths
-                type ccu_in_w, type ccu_out_w, type ccu_com_w, 
+                type ccu_in_w, type ccu_out_w, type ccu_com_w,
                 type dcache_in_w, type dcache_out_w);
 
     //For DCache
@@ -59,7 +59,7 @@ interface RegFile #(type reg_addr, type reg_data, type read_w, type write_w);
 
     //For CCU
 
-    // XXX Convert back when Bug 247 is dead   
+    // XXX Convert back when Bug 247 is dead
     method IBus#(reg_data, read_w)  readReg_Value(IBus#(reg_addr, read_w) data);
     method Action                  readReg_Action(IBus#(reg_addr, read_w) data);
 
@@ -68,8 +68,8 @@ interface RegFile #(type reg_addr, type reg_data, type read_w, type write_w);
     method Action flush();
 endinterface: RegFile
 
-interface CCU#(type dec_inst, type inst_addr, type bpred_update, 
-               type fuu_inst, type fuu_res, 
+interface CCU#(type dec_inst, type inst_addr, type bpred_update,
+               type fuu_inst, type fuu_res,
                type lsu_inst, type lsu_res, type lsu_tag,
                type dec_w, type fuu_in_w, type fuu_out_w,
                type lsu_in_w, type lsu_out_w, type lsu_com_w);
@@ -94,7 +94,7 @@ interface CCU#(type dec_inst, type inst_addr, type bpred_update,
     //For LSU
 
     method ActionValue#(IBus#(lsu_inst, lsu_out_w)) issueLS();
-    method Action handleLSComplete(IBus#(lsu_res, lsu_in_w) data); 
+    method Action handleLSComplete(IBus#(lsu_res, lsu_in_w) data);
     method ActionValue#(IBus#(lsu_tag, lsu_com_w)) commitStore();
 
     method Action flush();
@@ -124,39 +124,39 @@ interface Fetch #(type tbtrace_v, type tbtrace_bundle, type inst_bundle, type pa
                   type in_w, type out_w);
 
     //For Decode
-    
+
     method ActionValue#(IBus#(tbtrace_bundle, out_w)) getInstructions();
-    
+
     //For CCU
-    
+
     method Action handleSetPC(inst_addr data);
     method Action updateBranchPredictor(bpred_update x);
 
     //From TBuffer
     method Action handleTBufferResponse(tbtrace_v x, Bool y);
     method ActionValue#(Bit#(1)) tBufferRequest();
-    
+
     //For IBuffer
-    
+
     method Action handleIBufferResponse(IBus#(Tuple2#(packed_inst, inst_addr), in_w) data);
     method ActionValue#(inst_addr) iBufferRequest();
-    
+
     method Action flush();
 endinterface: Fetch
 
 interface IBuffer #(type inst_addr, type packed_inst, type in_w, type out_w);
- 
+
     //For Fetch
 
     method Action handleIBufferRequest(inst_addr data);
     method ActionValue#(IBus#(Tuple2#(packed_inst, inst_addr), out_w)) iBufferResponse();
     method Action flushAddress(inst_addr x);
-    
+
     //For ICache
-    
+
     method ActionValue#(inst_addr) cacheRequest();
     method Action handleCacheResponse(Tuple2#(inst_addr, IBus#(packed_inst, in_w)) data);
-    
+
     method Action flush();
 endinterface: IBuffer
 

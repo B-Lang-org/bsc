@@ -26,49 +26,49 @@ import Vector::*;
 
 (* synthesize *)
 module sysTestDMA ();
-   
+
    Reg#(Bit#(16)) count <- mkReg(0);
-   
+
    TLMReadWriteSendIFC#(`TLM_STD_TYPES) source <- mkDMARequestSource;
    TLMDMAIFC#(`TLM_STD_TYPES)  dma <- mkTLMDMA;
-   
+
    TLMTransformIFC#(`TLM_STD_TYPES) reducer <- mkTLMReducer;
-   
+
    mkConnection(source, dma.slave);
-   
+
    TLMReadWriteRecvIFC#(`TLM_STD_TYPES) mem  <- mkTLMReadWriteRam(0, True);
-   
+
    mkConnection(dma.master.read, reducer.in);
    mkConnection(reducer.out, mem.read);
    mkConnection(dma.master.write, mem.write);
-   
+
    rule every;
       count <= count + 1;
       if (count == 500) $finish;
    endrule
-   
+
 endmodule
 
 // a source to generate DMA requests (through the config regs)
 (* synthesize *)
 module mkDMARequestSource (TLMReadWriteSendIFC#(`TLM_STD_TYPES));
-   
+
    Reg#(TLMId#(`TLM_STD_TYPES))        count         <- mkReg(0);
    Reg#(Vector#(NumChannels, Bool))    active        <- mkReg(replicate(False));
    Reg#(Bit#(12))                      i             <- mkReg(0);
    Randomize#(TransferDescriptorStd)   gen           <- mkRandomizer;
 
    FIFO#(TransferDescriptorStd)        fifo_desc     <- mkBypassFIFO;
-   
+
    FIFO#(TLMRequest#(`TLM_STD_TYPES))  read_tx_fifo  <- mkBypassFIFO;
    FIFO#(TLMResponse#(`TLM_STD_TYPES)) read_rx_fifo  <- mkBypassFIFO;
    FIFO#(TLMRequest#(`TLM_STD_TYPES))  write_tx_fifo <- mkBypassFIFO;
    FIFO#(TLMResponse#(`TLM_STD_TYPES)) write_rx_fifo <- mkBypassFIFO;
-   
+
    let inum = valueOf(NumChannels);
-      
+
    let test_seq =
-   seq   
+   seq
       gen.cntrl.init;
       while (True)
 	 for (i <= 0; i < fromInteger(inum); i <= i + 1)
@@ -132,9 +132,9 @@ module mkDMARequestSource (TLMReadWriteSendIFC#(`TLM_STD_TYPES));
 		  endseq
 	    endseq
    endseq;
-   
+
    let fsm <- mkAutoFSM(test_seq);
-      
+
    interface TLMSendIFC read;
       interface Get tx = toGet(read_tx_fifo);
       interface Put rx = toPut(read_rx_fifo);
@@ -144,7 +144,7 @@ module mkDMARequestSource (TLMReadWriteSendIFC#(`TLM_STD_TYPES));
       interface Put rx = toPut(write_rx_fifo);
    endinterface
 
-   
+
 endmodule
 
 function TLMAddr#(`TLM_STD_TYPES) createConfigRegAddr(DCAddr addr);

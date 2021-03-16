@@ -74,7 +74,7 @@ module sysPrims ();
 
    // null crossing wire uses mkBypassCrossingWire
    ReadOnly#(Int#(32)) ncw <- mkNullCrossingWire( dclk, rgA );
-   
+
   // XXX other prims are not specially handled, but should be tested
 
    rule do_always_enable_methods (True);

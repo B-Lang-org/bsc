@@ -21,7 +21,7 @@ module usesGo(InterfaceTest);
         Reg#(Bool) x <- mkRegU();
         Reg#(int) ii <- mkRegU();
         Reg#(int) jj <- mkRegU();
-        method go ;        
+        method go ;
 	(* split *)
         action
         if (x)

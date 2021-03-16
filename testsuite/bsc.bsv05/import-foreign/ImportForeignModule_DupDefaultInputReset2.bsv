@@ -4,7 +4,7 @@
 // This version tests for just the port provided.
 
 import "BVI" MOD =
-module mkMod ( Reset aRst, 
+module mkMod ( Reset aRst,
 	       Empty ifcout ) ;
 
    default_clock no_clock ;

@@ -6,5 +6,5 @@ module wrapReceiver(SingletonInout);
    method Inout#(int) iioo;
       return it.iioo;
    endmethod
-endmodule   
+endmodule
 

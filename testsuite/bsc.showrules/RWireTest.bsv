@@ -7,7 +7,7 @@ module mkRWireTest();
    rule incr;
       count <= count + 1;
    endrule
-   
+
    rule send (count % 4  == 3);
       rw.wset(truncate(count >> 2));
    endrule
@@ -15,9 +15,9 @@ module mkRWireTest();
    rule recv (rw.wget() matches tagged Valid .x);
       count2 <= count2 + extend(x);
    endrule
-   
+
    rule done (count > 100);
       $finish(0);
    endrule
-   
+
 endmodule

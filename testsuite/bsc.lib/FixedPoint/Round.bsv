@@ -22,7 +22,7 @@ module sysRound();
       end
       $display(";");
     endaction);
-   
+
    let dropMSB =
    (action
        $write(fshow(cnt41), " ");
@@ -36,7 +36,7 @@ module sysRound();
        end
        $display(";");
     endaction);
-   
+
    let tester =
    (seq
        smode <= Sat_Wrap;
@@ -62,14 +62,14 @@ module sysRound();
        for(cnt <= minBound; cnt != maxBound; cnt <= cnt + epsilon)
           printer;
        printer;
-    
+
        $display ("Droping MSB bit with fxptTruncateSat");
        for(cnt41 <= minBound; cnt41 != maxBound; cnt41 <= cnt41 + epsilon)
           dropMSB;
        dropMSB;
-    
+
        $display ("Zero bit drops");
-       action 
+       action
           FixedPoint#(2,3) foo = fxptTruncateRoundSat(Rnd_Inf, Sat_Bound, cnt);
           $display (fshow(cnt41), fshow(foo));
           FixedPoint#(4,1) bar = fxptTruncateSat(Sat_Bound,cnt41);

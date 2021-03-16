@@ -17,7 +17,7 @@ module sysTbBoth();
    duts[1] <- wrapBoth2;
    duts[2] <- wrapBoth3;
    Vector#(Size,Inout#(int)) ios=map(getiioo,duts);
-   
+
    mkConnection(ios[0],ios[1]);
    mkConnection(ios[1],ios[2]);
    Reg#(int) count<-mkReg(0);
@@ -25,12 +25,12 @@ module sysTbBoth();
       count <= count + 1;
    endrule
 
-   /*   
+   /*
    rule disp;
       $display("clock ",count);
    endrule
-   */ 
-   
+   */
+
    rule done (count==60);
       $finish(0);
    endrule
@@ -44,7 +44,7 @@ module wrapBoth1(SingletonInout);
       return x.iioo;
    endmethod
 endmodule
-                  
+
 (*synthesize*)
 module wrapBoth2(SingletonInout);
    //reading on the negedge of 1 is right after the write at the posedge of 0
@@ -53,7 +53,7 @@ module wrapBoth2(SingletonInout);
       return x.iioo;
    endmethod
 endmodule
-                  
+
 (*synthesize*)
 module wrapBoth3(SingletonInout);
    SingletonInout x <- mkBoth(103,2,2,4);
@@ -61,4 +61,4 @@ module wrapBoth3(SingletonInout);
       return x.iioo;
    endmethod
 endmodule
-                  
+

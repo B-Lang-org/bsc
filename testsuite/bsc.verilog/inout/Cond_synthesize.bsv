@@ -18,13 +18,13 @@ function Integer fibo(Integer n);
 endfunction
 
 (*synthesize*) //synthesis boundary prevents this from working, see Cond.bsv
-module mkCond#(Bool choose, Inout#(int) left, 
+module mkCond#(Bool choose, Inout#(int) left,
                  Inout#(int) center, Inout#(int) right)();
    if (choose)
       mkConnection(left,center);
    else
       mkConnection(center,right);
-endmodule   
+endmodule
 
 (*synthesize*)
 module sysCond_synthesize(Empty);
@@ -38,19 +38,19 @@ module sysCond_synthesize(Empty);
       send.set(count);
       send2.set(count*100);
    endrule
-   
+
    rule disp (count>0);
       recv.display_it;
    endrule
-   
+
    rule stop (count==10);
       $finish(0);
    endrule
 
-/*   
+/*
    rule fibos;
       $display("fibo = %d", fibo(10));
    endrule
-   */    
-   
+   */
+
 endmodule

@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -25,7 +25,7 @@ Reg#(Bit#(3)) test_expr <- mkRegA(0);
 let defaults = mkOVLDefaults;
 defaults.value = 2;//increment value : 2
 AssertTest_IFC#(Bit#(3)) assertInc <- bsv_assert_increment(defaults);
-   
+
 rule test(True);
     assertInc.test(test_expr); // test_expr : test_expr
 endrule

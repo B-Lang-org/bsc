@@ -5,7 +5,7 @@ typedef enum { R1, R2, Done } State deriving (Eq, Bits);
 module sysRepeatedTask_TwoRules() ;
 
    Reg#(State) s <- mkReg(R1);
-   
+
    function ActionValue#(Bit#(64)) adjusted_time();
    actionvalue
      let t <- $time;

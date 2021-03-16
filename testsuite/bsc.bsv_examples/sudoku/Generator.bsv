@@ -14,19 +14,19 @@ interface SudokuGenerator#(numeric type order);
 
    // seed the pseudo-random number generator
    method Action seed(Bit#(16) s);
-   
+
    // start generating a puzzle
    method Action start();
-      
+
    // test if puzzle generation is complete
    method Bool done();
 
    // get the cell value for a particular cell
    method Cell#(order) getCellValue(Index#(order) r, Index#(order) c);
-      
+
    // get the value of a given in a puzzle cell
    method Maybe#(UInt#(TLog#(TSquare#(order)))) getGiven(Index#(order) r, Index#(order) c);
-         
+
 endinterface: SudokuGenerator
 
 module mkGenerator(SudokuGenerator#(order))
@@ -39,33 +39,33 @@ module mkGenerator(SudokuGenerator#(order))
 	    Add#(d, TLog#(TAdd#(1,TSquare#(order))), 16),
 	    Bits#(Tactic#(order),sz0),
 	    Bits#(TacticResult#(order),sz1));
-      
+
    // Grid holding generated puzzle (givens)
    SudokuRegGrid#(order) puzzle <- mkReg(replicate(replicate(unknown())));
 
    // Solver used in generation process
    SudokuSolver#(order) solver <- mkSudokuSolver();
-   
+
    // Row and column counters
-   Reg#(LIndex#(order)) row <- mkReg(0);  
-   Reg#(LIndex#(order)) col <- mkReg(0);  
-      
+   Reg#(LIndex#(order)) row <- mkReg(0);
+   Reg#(LIndex#(order)) col <- mkReg(0);
+
    // Registers used for selecting allowed values
    Reg#(Cell#(order))  val <- mkReg(0);
    Reg#(Index#(order)) idx <- mkReg(0);
 
    // LFSR for generating a pseudo-random stream
    LFSR#(Bit#(16)) lfsr <- mkLFSR_16;
-   
+
    // Registers used only for debug display
    Reg#(UInt#(16)) ri <- mkReg(0);
    Reg#(UInt#(16)) ci <- mkReg(0);
-   
+
    function UInt#(16) randomValue(UInt#(16) x);
       UInt#(16) rv = unpack(lfsr.value());
       return (rv % x);
    endfunction: randomValue
-   
+
   Stmt reset_puzzle =
          seq
            for (row <= 0; row <= fromInteger(valueOf(size)-1); row <= row + 1)
@@ -74,7 +74,7 @@ module mkGenerator(SudokuGenerator#(order))
            $display("Puzzle reset.");
          endseq;
 
-  Stmt load_solver = 
+  Stmt load_solver =
          seq
            for (row <= 0; row <= fromInteger(valueOf(size)-1); row <= row + 1)
              for (col <= 0; col <= fromInteger(valueOf(size)-1); col <= col + 1)
@@ -100,7 +100,7 @@ module mkGenerator(SudokuGenerator#(order))
            endseq
          endseq;
 
-  Stmt randomize_location = 
+  Stmt randomize_location =
          seq
            row <= truncate(randomValue(fromInteger(valueOf(size))));
            lfsr.next();
@@ -119,7 +119,7 @@ module mkGenerator(SudokuGenerator#(order))
                row <= row + 1;
            endpar
            else
-             col <= col + 1; 
+             col <= col + 1;
          endseq;
 
   Stmt find_incomplete_cell =
@@ -129,12 +129,12 @@ module mkGenerator(SudokuGenerator#(order))
            while (isComplete(solver.getCellValue(l2i(row), l2i(col))))
              next_location;
            $display("found incomplete cell at (%d,%d)", row, col);
-         endseq;         
-   
+         endseq;
+
   Stmt select_allowed_value =
          seq
 	    par
-	       val <= solver.getCellValue(l2i(row), l2i(col));	    
+	       val <= solver.getCellValue(l2i(row), l2i(col));
 	       idx <= truncate(randomValue(fromInteger(valueOf(size))));
 	       lfsr.next();
 	    endpar
@@ -144,22 +144,22 @@ module mkGenerator(SudokuGenerator#(order))
 		  idx <= fromInteger(valueOf(size) - 1);
 	       else
 		  idx <= idx - 1;
-	    endseq	  
+	    endseq
 	    puzzle[l2i(row)][l2i(col)] <= (1 << idx);
          endseq;
-   
-  Stmt add_one_given = 
+
+  Stmt add_one_given =
          seq
            find_incomplete_cell;
            select_allowed_value;
            solver.setCellValue(l2i(row), l2i(col),
 			       getCell(puzzle, l2i(row), l2i(col)));
            $display("Adding given %d at (%d,%d)",
-                    fromMaybe(?,cellValueUser(getCell(puzzle, l2i(row), l2i(col)))), 
+                    fromMaybe(?,cellValueUser(getCell(puzzle, l2i(row), l2i(col)))),
                     row, col);
          endseq;
 
-  Stmt try_to_generate = 
+  Stmt try_to_generate =
          seq
            reset_puzzle;
            load_solver;
@@ -170,12 +170,12 @@ module mkGenerator(SudokuGenerator#(order))
 	      add_one_given;
            endseq
          endseq;
-   
+
   Stmt generate_puzzle =
          seq
             while (True)
 	    seq
-               try_to_generate;	    
+               try_to_generate;
 	       if (solver.isConsistent()) break;
                $display("discarding puzzle.");
             endseq
@@ -184,7 +184,7 @@ module mkGenerator(SudokuGenerator#(order))
          endseq;
 
    FSM fsm <- mkFSM(generate_puzzle);
-   
+
    method Action seed(Bit#(16) s) if (fsm.done());
       lfsr.seed(s);
    endmethod: seed
@@ -196,16 +196,16 @@ module mkGenerator(SudokuGenerator#(order))
    method Bool done();
       return fsm.done();
    endmethod: done
-   
+
    method Cell#(order) getCellValue(Index#(order) r, Index#(order) c);
       return getCell(puzzle,r,c);
    endmethod: getCellValue
-   
+
    method Maybe#(UInt#(value_bits)) getGiven(Index#(order) r, Index#(order) c)
       provisos(Mul#(order,order,size), Log#(size,value_bits));
       return cellValue(getCell(puzzle,r,c));
    endmethod: getGiven
-   
+
 endmodule: mkGenerator
 
 // Create separately-synthesized generator modules for common sizes, along

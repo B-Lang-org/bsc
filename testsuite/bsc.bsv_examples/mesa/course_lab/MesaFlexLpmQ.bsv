@@ -4,7 +4,7 @@ package MesaFlexLpm;
 //
 // The LPM module is responsible for taking 32-bit IP addresses, looking up
 // the destination (32-bit data) for each IP address in a table in an SRAM,
-// and returning the destinations. 
+// and returning the destinations.
 //
 // ----------------------------------------------------------------
 //
@@ -21,7 +21,7 @@ package MesaFlexLpm;
 // The LPM receives requests from the MIF module by the method
 //     mif.put (LuRequest, LuTag)
 // and returns results (some cycles later) of the form (luResponse, luTag) by
-// the method 
+// the method
 //     mif.get.
 //
 // The LPM sends addresses to the RAM by calling
@@ -33,13 +33,13 @@ package MesaFlexLpm;
 //
 // The longest prefix match traverses a tree representation in  memory. The
 // first step is a table lookup, and after that it iterates if necessary until
-// a leaf is reached. 
+// a leaf is reached.
 //
 // ----------------------------------------------------------------
 //
 // The module is pipelined, i.e., IP addresses stream in, and results stream
 // out (after some latency).  Results are returned in the same order as
-// requests. 
+// requests.
 //
 // The SRAM is also pipelined: addresses stream in, and data stream out
 // (after some latency).  It can accept addresses and deliver data on every
@@ -47,7 +47,7 @@ package MesaFlexLpm;
 //
 // Performance metric: as long as IP lookup requests are available, the LPM
 // module must keep the SRAM 100% utilized, i.e., it should issue a request
-// into the SRAM on every cycle. 
+// into the SRAM on every cycle.
 //
 // ----------------------------------------------------------------
 //
@@ -105,17 +105,17 @@ module mkMesaLpm(ILpm);
    // The intermediate FIFOs:
    FIFO#(Tuple3#(Bit#(8), Bit#(8), LuTag)) fifo0();
    mkSizedFIFO#(max) the_fifo0(fifo0);
-   
+
    FIFO#(Tuple3#(Maybe#(LuResponse), Bit#(8), LuTag)) fifo1();
    mkSizedFIFO#(max) the_fifo1(fifo1);
-   
+
    FIFO#(Tuple2#(Maybe#(LuResponse), LuTag)) fifo2();
    mkSizedFIFO#(max) the_fifo2(fifo2);
 
    // The output FIFO:
    FIFO#(Tuple2#(LuResponse, LuTag)) ofifo();
    mkSizedFIFO#(4) the_ofifo(ofifo);
-   
+
    // All processing starts with a table lookup. We send a request to the RAM,
    // and also enqueue (for the next stage) the remainder of the address and
    // the lookup-tag.
@@ -123,7 +123,7 @@ module mkMesaLpm(ILpm);
       let x = ififo.first;
       match {.ireq, .tag} = x;
       ififo.deq;
-      
+
       sram0.request.put(Read(zeroExtend(ireq[31:16])));
       (fifo0.enq)(tuple3(ireq[15:8], ireq[7:0], tag));
    endrule: stage0
@@ -133,7 +133,7 @@ module mkMesaLpm(ILpm);
       let x <- sram0.response.get();
       match {.a2,.a3,.tag} = fifo0.first;
       fifo0.deq;
-      
+
       case (unpack(x)) matches
 	 tagged Leaf .v:
 	    // A leaf has been reached, so no further lookups are needed.  We
@@ -162,7 +162,7 @@ module mkMesaLpm(ILpm);
    rule stage2_RAM (fifo1.first matches {tagged Invalid, .a3, .tag});
       let x <- sram1.response.get();
       fifo1.deq;
-      
+
       case (unpack(x)) matches
 	 tagged Leaf .v:
 	    fifo2.enq(tuple2(Valid (zeroExtend(v)), tag));
@@ -177,11 +177,11 @@ module mkMesaLpm(ILpm);
    rule stage3_NoRAM (fifo2.first matches {tagged Valid .v, .tag});
       // TASK: write this rule
    endrule: stage3_NoRAM
-   
+
    rule stage3_RAM (fifo2.first matches {tagged Invalid, .tag});
       let x <- sram2.response.get();
       fifo2.deq;
-      
+
       case (unpack(x)) matches
 	 tagged Leaf .v:
 	    ofifo.enq(tuple2(zeroExtend(v), tag));
@@ -211,7 +211,7 @@ endpackage: MesaFlexLpm
  depends on the values of max and latency, defined above (note that although
  they have the same values above, they are not closely dependent on each
  other).
- 
+
  Regrettably, perhaps, we have not yet constructed a maximally pathological
  set of test data to show the worst cases of the effect of the values of these
  parameters on the design's performance.  What properties would such a data

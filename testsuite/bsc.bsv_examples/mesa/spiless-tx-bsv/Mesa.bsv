@@ -1,5 +1,5 @@
 // Filename        : Mesa.bsv ~/bsc/examples/mesa/spiless-tx-bsv/test2/
-// Description     : 
+// Description     :
 import MesaDefs::*;
 import MesaIDefs::*;
 

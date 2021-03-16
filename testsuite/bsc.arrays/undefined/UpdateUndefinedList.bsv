@@ -9,5 +9,5 @@ module sysUpdateUndefinedList();
   rule test;
     $display(l[0]);
   endrule
- 
+
 endmodule

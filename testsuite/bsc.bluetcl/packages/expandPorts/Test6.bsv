@@ -41,4 +41,4 @@ module mkTest6#(Clock c1, Int#(4) pIn)( Test6 );
 
 endmodule
 
-   
+

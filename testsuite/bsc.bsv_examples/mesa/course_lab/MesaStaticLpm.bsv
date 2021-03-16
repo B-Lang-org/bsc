@@ -4,7 +4,7 @@ package MesaStaticLpm;
 //
 // The LPM module is responsible for taking 32-bit IP addresses, looking up
 // the destination (32-bit data) for each IP address in a table in an SRAM,
-// and returning the destinations. 
+// and returning the destinations.
 //
 // ----------------------------------------------------------------
 //
@@ -21,7 +21,7 @@ package MesaStaticLpm;
 // The LPM receives requests from the MIF module by the method
 //     mif.put (LuRequest, LuTag)
 // and returns results (some cycles later) of the form (luResponse, luTag) by
-// the method 
+// the method
 //     mif.get.
 //
 // The LPM sends addresses to the RAM by calling
@@ -33,13 +33,13 @@ package MesaStaticLpm;
 //
 // The longest prefix match traverses a tree representation in  memory. The
 // first step is a table lookup, and after that it iterates if necessary until
-// a leaf is reached. 
+// a leaf is reached.
 //
 // ----------------------------------------------------------------
 //
 // The module is pipelined, i.e., IP addresses stream in, and results stream
 // out (after some latency).  Results are returned in the same order as
-// requests. 
+// requests.
 //
 // The SRAM is also pipelined: addresses stream in, and data stream out
 // (after some latency).  It can accept addresses and deliver data on every
@@ -47,7 +47,7 @@ package MesaStaticLpm;
 //
 // Performance metric: as long as IP lookup requests are available, the LPM
 // module must keep the SRAM 100% utilized, i.e., it should issue a request
-// into the SRAM on every cycle. 
+// into the SRAM on every cycle.
 //
 // ----------------------------------------------------------------
 //
@@ -133,12 +133,12 @@ module mkMesaLpm(ILpm);
    // (latency-1) because the "inputReg" above is also in the ring.
    ShiftReg#(Tuple3#(Count, IP, LuTag)) shift();
    mkShifter#(latency - 1) the_shift(shift);
-   
+
    // This RWire holds requests coming from the MIF interface: they will be
    // processed by a rule firing "later" in the same clock cycle.
    RWire#(Tuple2#(LuRequest, LuTag)) ins();
    mkRWire the_ins(ins);
-   
+
    // This RWire holds results returning from the RAM interface: they will be
    // processed by a rule firing "later" in the same clock cycle.
    RWire#(SramData) rep();
@@ -210,22 +210,22 @@ module mkMesaLpm(ILpm);
 
 		     // The memory has returned a leaf node.  Compute a
 		     // result.  Increment the cycle count and send on.
-		     {tagged Valid {.n,.*,.t}, tagged Leaf .v} :  
+		     {tagged Valid {.n,.*,.t}, tagged Leaf .v} :
 			       (Valid (tuple3(n + 1, D (zeroExtend(v)), t)));
 
 		     // The memory has not returned a leaf, but we have used
 		     // up all the address.  This indicates an error in the
 		     // lookup table.  But for now we treat the pointer as a
-		     // leaf: 
+		     // leaf:
 		     {tagged Valid {.n,tagged L3 .*,.t}, tagged Pointer .p} :
 			       (Valid (tuple3(n + 1, D (zeroExtend(p)), t)));
 
 		     // The next two cases handle a non-leaf node from the
 		     // memory, used together with the next part of the
 		     // address to form the next lookup request.
-		     {tagged Valid {.n,tagged L2 {.*,.b},.t}, tagged Pointer .p} : 
+		     {tagged Valid {.n,tagged L2 {.*,.b},.t}, tagged Pointer .p} :
 			       (Valid (tuple3(n + 1, L3 (p + zeroExtend(b)), t)));
-		     {tagged Valid {.n,tagged L1 {.*,.b,.c},.t}, tagged Pointer .p} : 
+		     {tagged Valid {.n,tagged L1 {.*,.b,.c},.t}, tagged Pointer .p} :
 			       (Valid (tuple3(n + 1, L2 (tuple2(p + zeroExtend(b), c)), t)));
 		  endcase
 	       tagged Invalid:
@@ -247,7 +247,7 @@ module mkMesaLpm(ILpm);
 	       // MIF interface method would not have allowed it if we
 	       // couldn't handle it now):
 	       tagged Valid {.x,.t}: (Valid (tuple3(0, L1 (tuple3(x[31:16], x[15:8], x[7:0])), t)));
-		  
+
 	       // No new request:
 	       tagged Invalid:
 		  case (newOut) matches
@@ -268,12 +268,12 @@ module mkMesaLpm(ILpm);
    endrule: doThings
 
    // Finally the interfaces to the MIF and the RAM
-   
+
    interface Server mif;
       interface Put request;
 	 // Accept a request if a suitable slot is coming by on the ring; put
 	 // the request on the RWire ins, for processing by the rule
-	 // "doThings": 
+	 // "doThings":
 	 method put (xt) if (inReady(shift.sout));
 	    action
 	       ins.wset(xt);
@@ -281,7 +281,7 @@ module mkMesaLpm(ILpm);
 	 endmethod: put
       endinterface: request
       interface Get response;
-	 // Supply a response if one is available in outputReg at this moment: 
+	 // Supply a response if one is available in outputReg at this moment:
 	 method get() if (outputReady(outputReg));
 	    actionvalue
 	       return (getOutput(outputReg));
@@ -289,14 +289,14 @@ module mkMesaLpm(ILpm);
 	 endmethod: get
       endinterface: response
    endinterface: mif
-   
+
    interface Client ram;
       interface Get request;
 	 // Make a request to the RAM if the contents of the inputReg require
 	 // it:
 	 method get() if (makeReq(inputReg)) ;
 	    actionvalue
-	       let req = 
+	       let req =
 	       case (inputReg) matches
 		  tagged Valid {.*,tagged L1 {.addr,.*,.*},.*} :  return(zeroExtend(addr));
 		  tagged Valid {.*,tagged L2 {.addr,.*},.*} :     return(addr);
@@ -306,7 +306,7 @@ module mkMesaLpm(ILpm);
 	       return(Read (req));
 	    endactionvalue
 	 endmethod: get
-	 
+
       endinterface: request
       interface Put response;
 	 // A response from the RAM is absorbed and put on the RWire rep for

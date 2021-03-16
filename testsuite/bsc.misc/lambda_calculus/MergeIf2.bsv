@@ -11,7 +11,7 @@ module sysMergeIf2 ();
    Reg#(Bool) c2 <- mkReg(False);
    Reg#(Bool) c3 <- mkReg(False);
    Reg#(Bool) c4 <- mkReg(False);
-   
+
    rule r;
       if (c1 && c2)
          w <= 0;
@@ -27,5 +27,5 @@ module sysMergeIf2 ();
       if (c4 && !c1 && c3 && !c2)
          z <= 3;
    endrule
-   
+
 endmodule

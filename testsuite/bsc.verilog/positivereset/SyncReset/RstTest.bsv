@@ -17,7 +17,7 @@ function ActionValue#(Bit#(32)) adj_stime(Integer p);
    endactionvalue
 endfunction
 
-(* synthesize *) 
+(* synthesize *)
 module sysRstTest() ;
    // instantiate 2 clocks
    Reg#(Bit#(32)) cntr <- mkReg( 0 ) ;
@@ -39,7 +39,7 @@ module sysRstTest() ;
    rule dispReset( spuriousReset.isAsserted ) ;
       $display("spurious reset has been asserted %d", adj_stime(p0)) ;
    endrule
-   
+
    rule c0 (True) ;
       if ( cntr == 0 )
 	 $display( "cntr has come out of reset: %d", adj_stime(p0)) ;
@@ -71,7 +71,7 @@ module sysRstTest() ;
       $display( "rul c2A: %d,  %0d", adj_stime(p2), x_clk2A );
       x_clk2A <= x_clk2A + 1 ;
    endrule
-   
-   
+
+
 endmodule
 

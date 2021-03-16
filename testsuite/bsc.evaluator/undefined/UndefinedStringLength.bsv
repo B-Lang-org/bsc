@@ -8,4 +8,3 @@ module sysUndefinedStringLength();
    endrule
 
 endmodule
- 

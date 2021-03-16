@@ -13,21 +13,21 @@ endinterface : Modified_Array
 
 (* synthesize *)
 
-module mkDesign_MkArrayWCFFile (Modified_Array); 
+module mkDesign_MkArrayWCFFile (Modified_Array);
     RegFile #(Bit #(3) , Bit #(8)) dut_ifc();
     mkRegFileWCFLoad #("input_file", 0, 7) dut (dut_ifc);
-    
+
     Reg #(Bit #(8)) x();
     mkReg #(0) the_x(x);
-    
+
     Reg #(Bit #(3)) y();
     mkConfigReg #(0) the_y(y);
-    
+
     (* fire_when_enabled *)
     rule always_true (True);
         x <= dut_ifc.sub(y);
     endrule
-    
+
     method upd (Bit #(3) a, Bit #(8) b);
         action
             dut_ifc.upd (a, b);
@@ -39,12 +39,12 @@ module mkDesign_MkArrayWCFFile (Modified_Array);
              y <= a;
         endaction
     endmethod : ind
-    
+
     method sub ();
         return x;
     endmethod : sub
-    
-             
+
+
 endmodule : mkDesign_MkArrayWCFFile
 
 
@@ -61,11 +61,11 @@ module mkTestbench_MkArrayWCFFile ();
     Reg #(Bool) fail();
     mkReg #(False) the_faile (fail);
 
-    
+
     rule always_fire (True);
         counter <= counter + 1;
     endrule
-    
+
     rule display_values (counter >= 8 && counter <=17);
         dut.ind (counter [2:0]);
         $display ("Cycle Number = %d, Value Read = %h, Index Provided = %d", counter, dut.sub (), counter [2:0]);
@@ -118,10 +118,10 @@ module mkTestbench_MkArrayWCFFile ();
     endrule
 
 
-    
-  
+
+
 endmodule : mkTestbench_MkArrayWCFFile
-    
+
 
 
 

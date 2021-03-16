@@ -19,7 +19,7 @@ module mkTestbench_Mk_extrabuffer ();
 
    CGetPut #(4,Bit #(8)) tx_datafifo();
    mkCGetPut the_tx_datafifo (tx_datafifo);
-   
+
    GetCPut #(4,Bit #(8)) rx_datafifo();
    mkGetCPut the_rx_datafifo (rx_datafifo);
 
@@ -40,7 +40,7 @@ rule always_fire (True);
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
+
 
    rule read_value (counter > 1 );
      Bit #(8) first <- tpl_1(rx_datafifo).get;

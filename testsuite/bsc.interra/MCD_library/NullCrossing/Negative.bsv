@@ -1,14 +1,14 @@
-//Negative Testcase 
+//Negative Testcase
 
 import Clocks::*;
 
 interface Design_IFC;
  method Action inp_clk1(Bit#(16) in_data);
- method Action inp_clk2(Bit#(1) sel); 
+ method Action inp_clk2(Bit#(1) sel);
  method Bit#(8) out_data();
 endinterface : Design_IFC
 
-(* 
+(*
    CLK = "clk_1",
    RST_N = "rst_1",
    synthesize
@@ -18,7 +18,7 @@ module mkDesign (Clock clk_2, Reset rst_2, Design_IFC ifc);
  Reg#(Bit#(8))     out_data_reg();
  mkReg#(0)         t_out_data_reg(out_data_reg);
 
- Clock currClk <- exposeCurrentClock; 
+ Clock currClk <- exposeCurrentClock;
  Reset currRst <- exposeCurrentReset;
 
  Reg#(Bit#(1))       flopA_clk2();

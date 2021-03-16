@@ -8,19 +8,19 @@ typedef enum { Fill, Drain } State deriving(Eq, Bits);
 module sysFIFOErrors(Empty);
 
  FIFOF#(Bit#(47)) e_fifo2 <- mkUGFIFOF;
- 
+
  FIFOF#(Bit#(47)) e_sizedFIFO <- mkUGSizedFIFOF(3);
 
  FIFOF#(Bit#(47)) e_fifo1 <- mkUGFIFOF1;
-  
+
  FIFOF#(Bit#(47)) e_lfifo <- mkUGLFIFOF;
 
  FIFOF#(Bit#(47)) d_fifo2 <- mkUGFIFOF;
- 
+
  FIFOF#(Bit#(47)) d_sizedFIFO <- mkUGSizedFIFOF(3);
 
  FIFOF#(Bit#(47)) d_fifo1 <- mkUGFIFOF1;
-  
+
  FIFOF#(Bit#(47)) d_lfifo <- mkUGLFIFOF;
 
  Stmt testStmts = (seq

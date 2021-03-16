@@ -129,7 +129,7 @@ mkLCG a b =
 	          in  action
 		        x := x'
 		        state := Done
-    
+
         interface
 	    seed s = action
 			x := s
@@ -159,7 +159,7 @@ mkLCG a b =
 -- control over the internals of the multiplier.
 
 sysLCG :: Module Empty
-sysLCG = 
+sysLCG =
     module
 	lcg :: RandGen (UInt 32) (UInt 20)
 	lcg <- mkLCG 69069 1

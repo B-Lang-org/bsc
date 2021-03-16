@@ -1,7 +1,7 @@
 (* synthesize *)
 module sysCaseDummy1();
    Reg#(Bit#(4)) rg <- mkReg(0);
-   
+
    rule incr;
       Bit#(4) res = case (rg)
 		       4'b0100: return 3;

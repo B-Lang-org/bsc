@@ -27,7 +27,7 @@ module mkTestbench_Zip3();
    List #(Tuple3 #(UInt #(4), UInt #(4), Bool)) zipped_list = Cons (tuple3(1,2, True), Cons (tuple3(2,3, False), Cons (tuple3(3,4, True), Cons (tuple3(4,5, False), Nil))));
 
 
-  
+
    rule fire_once (True);
       $display("List1:");
       display_list (my_list1);
@@ -37,13 +37,13 @@ module mkTestbench_Zip3();
       display_list (my_list3);
       $display("Zipped List");
       display_list (zip3 (my_list1, my_list2, my_list3));
-      if (zipped_list != zip3(my_list1, my_list2, my_list3)) 
+      if (zipped_list != zip3(my_list1, my_list2, my_list3))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Zip3
 
 

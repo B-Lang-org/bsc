@@ -37,7 +37,7 @@ module mkDIV3(Divisible_IFC);
     endaction
   endmethod: nextDigit
 
-  method isDivisible() if (resIsReady == True); 
+  method isDivisible() if (resIsReady == True);
     return (z);
   endmethod: isDivisible
 endmodule: mkDIV3

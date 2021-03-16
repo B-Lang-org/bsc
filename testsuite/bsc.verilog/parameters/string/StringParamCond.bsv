@@ -12,7 +12,7 @@ module mkStringParamCondSub#(parameter String a, parameter String b)(Sub);
   rule test;
     $display("r %0d",r);
     $display(cond,UInt#(5)'(17));
-    if (r == 4) $finish(0);     
+    if (r == 4) $finish(0);
   endrule
 
   method Action tick;
@@ -25,7 +25,7 @@ endmodule
 module sysStringParamCond();
 
   Sub foo <- mkStringParamCondSub("This is seventeen in decimal: ", "This is seventeen in hex: %h");
-  
+
   rule tick;
     foo.tick;
   endrule

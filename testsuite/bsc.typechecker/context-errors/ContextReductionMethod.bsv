@@ -9,9 +9,9 @@ module sysContextReductionMethod (TestIFC);
 
    method test (a);
       action
-	 if (p[0]) 
+	 if (p[0])
             x <= a;
-	 else 
+	 else
             x <= ~a;
       endaction
    endmethod

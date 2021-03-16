@@ -1,7 +1,7 @@
 // Test that the user cannot declare default clock multiple times
 
 import "BVI" MOD =
-module mkMyReg ( Clock aClk, 
+module mkMyReg ( Clock aClk,
 		 Clock bClk,
 		 Reg#(Bool) ifcout ) ;
 

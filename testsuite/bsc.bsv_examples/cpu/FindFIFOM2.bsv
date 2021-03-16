@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 FindFIFOM2
- 
+
 This version of the find FIFO returns more than just a Bool.
 It also returns data.  This can be used to bypass values.
 
@@ -35,7 +35,7 @@ module mkFindFIFOM (FindFIFOM#(t1,t2)) provisos (Bits#(t1,szt1));
    Bool is_deq = isValid(deq_probe.wget);
    Bool is_enq = isValid(enq_probe.wget);
    Bool is_clr = isValid(clr_probe.wget);
-   
+
    Bool has_data = isValid(data);
    Bool can_enq = is_deq || !has_data;
    Bool can_deq = has_data;
@@ -53,11 +53,11 @@ module mkFindFIFOM (FindFIFOM#(t1,t2)) provisos (Bits#(t1,szt1));
 	    else
 	       data <= data;
    endrule
-   
+
    method enq(x) if (can_enq) = enq_probe.wset(x);
    method deq() if (can_deq) = deq_probe.wset(?);
    method clear() = clr_probe.wset(?);
-   
+
    method first() if (has_data) = validValue(data);
 
    method find(f) = has_data ? f(validValue(data)) : Invalid;
@@ -70,7 +70,7 @@ endmodule
 /*----------------------------------------------------------------------------
 
 mkFindFIFOBypassM
- 
+
 This version of the find FIFO is the same as FindFIFOM2, except
 that it can bypass values directly from the enqueue method, rather
 than waiting a cycle for the enqueued value to be registered.
@@ -94,7 +94,7 @@ module mkFindFIFOBypassM (FindFIFOM#(t1,t2)) provisos (Bits#(t1,szt1));
    Bool is_deq = isValid(deq_probe.wget);
    Bool is_enq = isValid(enq_probe.wget);
    Bool is_clr = isValid(clr_probe.wget);
-   
+
    Bool has_data = isValid(data);
    Bool can_enq = is_deq || !has_data;
    Bool can_deq = has_data;
@@ -112,17 +112,17 @@ module mkFindFIFOBypassM (FindFIFOM#(t1,t2)) provisos (Bits#(t1,szt1));
 	    else
 	       data <= data;
    endrule
-   
+
    method enq(x) if (can_enq) = enq_probe.wset(x);
    method deq() if (can_deq) = deq_probe.wset(?);
    method clear() = clr_probe.wset(?);
-   
+
    method first() if (has_data) = validValue(data);
 
    method find(f);
       let mx = enq_probe.wget;  // this is maybe x, depending on enq
       let fx = f(validValue(mx)); // if enq, this is f(x)
-      
+
       if (is_enq && isValid(fx))
 	 return fx;
       else

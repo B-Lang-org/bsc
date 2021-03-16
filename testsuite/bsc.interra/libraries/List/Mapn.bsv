@@ -37,12 +37,12 @@ module mkTestbench_Mapn();
       display_list(my_list1);
       $display("Factorial List:");
       display_list(my_list3);
-      if (my_list2 != my_list3) 
+      if (my_list2 != my_list3)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Mapn
 endpackage : Mapn

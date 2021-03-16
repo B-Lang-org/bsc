@@ -4,7 +4,7 @@ import FIFO::*;
 module mkCommentOnSubmodLet();
 
    Bool v = True;
-   
+
    (* doc = "This is a FIFO" *)
    let f1();
    mkFIFO the_f1(f1);

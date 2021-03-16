@@ -8,5 +8,5 @@ module sysUpdateArrayUndefinedIndex();
   rule test;
     $display(arr[0]);
   endrule
- 
+
 endmodule

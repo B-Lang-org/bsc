@@ -1,12 +1,12 @@
 package Sub ;
 
 export ArithIO(..);
-		   
+
 export msub;
 export Sub_t;
-	     
+
 import UInt::*;
-	     
+
 typedef  UInt#(32) Sub_t;
 
 // Interface for general arith operation
@@ -23,14 +23,14 @@ module msub( ArithIO#(Sub_t)) ;
        method start( xxxx1, yyyy2) ;
           action
                 result <= xxxx1 - yyyy2 ;
-          endaction 
-      endmethod: start 
+          endaction
+      endmethod: start
 
       method subout () ;
         subout =  result ;
       endmethod: subout
 
-endmodule: msub 
+endmodule: msub
 
 // method is xxxx1 - yyyy2
 

@@ -42,7 +42,7 @@ module mkVending(Vending);
 
   method Action fifty_cent_in() if(!money_back);
      count <= count + 50;
-  endmethod     
+  endmethod
 
   method Action money_back_button() if(!money_back);
      money_back <= True;
@@ -51,5 +51,5 @@ module mkVending(Vending);
   // connect wires for money and gum outputs
   method dispense_ten_cents = dispense_money;
   method dispense_gum = gum_control;
-  
+
 endmodule

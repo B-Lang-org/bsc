@@ -28,28 +28,28 @@ interface EUnboundField1 =
             end   :: Bool
 
 mkEUnboundField1 :: Module EUnboundField1
-mkEUnboundField1 = 
+mkEUnboundField1 =
            module
 
                 x :: Reg (Int 32)
-                x <- mkReg 0 
+                x <- mkReg 0
 
                 y :: Reg (Bool)
                 y <- mkReg False
 
-                u :: Reg (MyStruct) 
-                u <- mkRegU 
+                u :: Reg (MyStruct)
+                u <- mkRegU
 
-                v :: Reg (Keep) 
+                v :: Reg (Keep)
                 v <- mkRegU
 
-                w :: Reg (Keep) 
+                w :: Reg (Keep)
                 w <- mkRegU
 
 
                 rules
                    "One":
-                      when True 
+                      when True
                           ==> action
 --                                v := y { give = 1; judge = True }
                                  w := v { First.a = 1 ; First.b = True }
@@ -57,6 +57,6 @@ mkEUnboundField1 =
 
                 interface
                     start ix iy = action
-                                    x := ix 
-                                    y := iy 
+                                    x := ix
+                                    y := iy
                     end = y when x == 0

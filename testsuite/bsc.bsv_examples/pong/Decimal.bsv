@@ -5,14 +5,14 @@ import AssertionWires::*;
 function Bool goodValue(Vector#(n, DecDigit) ds);
    return ((ds[0]& 3) != 3);
 endfunction
-	      
+
 typedef  Bit#(4) DecDigit;
-			  
+
 interface DecCounter#(type n);
     method Action inc;
     method Vector#(n, DecDigit) getDigits;
 endinterface: DecCounter
-			
+
 module [AssertModule] mkDecCounter#(Integer i) (DecCounter#(n));
    Reg#(Vector#(n, DecDigit)) digits();
    mkReg#(unpack(0)) the_digits(digits);
@@ -30,11 +30,11 @@ module [AssertModule] mkDecCounter#(Integer i) (DecCounter#(n));
 
    always assert property(safe) else a.set;
 
-   method getDigits(); 
+   method getDigits();
       return (digits);
    endmethod: getDigits
-   
-   method Action inc(); 
+
+   method Action inc();
                  digits <= incr(digits);
    endmethod: inc
 endmodule

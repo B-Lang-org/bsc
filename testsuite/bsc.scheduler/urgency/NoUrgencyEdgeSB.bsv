@@ -9,7 +9,7 @@ module mkIgnoredUrgency ();
    Reg#(Bit#(8)) rgB <- mkRegU;
    Reg#(Bit#(8)) rgC <- mkRegU;
    Reg#(Bit#(8)) rgD <- mkRegU;
-   
+
    (* descending_urgency = "r1,r2" *)
    rule r1;
       rg1 <= rg1 + 1;

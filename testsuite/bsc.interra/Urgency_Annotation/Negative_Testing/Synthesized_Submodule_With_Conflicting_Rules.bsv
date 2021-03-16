@@ -17,7 +17,7 @@ module mkTest_SSWCR(Test_IFC);
 
     rule test_rule_1 (count <=60);
         count <= count + 2;
-        $display ("Executing Rule1"); 
+        $display ("Executing Rule1");
     endrule
 
     rule test_rule_2 (count > 60 && count < 80);
@@ -33,10 +33,10 @@ module mkTest_SSWCR(Test_IFC);
         return (count);
     endmethod : result
 
-endmodule 
+endmodule
 
 module mkSynthesized_Submodule_With_Conflicting_Rules();
-    
+
      Test_IFC dut ();
      mkTest_SSWCR the_dut (dut);
 
@@ -44,13 +44,13 @@ module mkSynthesized_Submodule_With_Conflicting_Rules();
         descending_urgency = "the_dut.test_rule_1, true" *)
      rule true;
          dut.start();
-         $display ("Calling Method");  
+         $display ("Calling Method");
      endrule
 
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

@@ -26,7 +26,7 @@ module mkRUser1(UserIfc);
      endmethod
     endinterface);
 
-  
+
 
   rule consume;
      running_counter <= running_counter + 1;
@@ -38,8 +38,8 @@ module mkRUser1(UserIfc);
 	   $display("%d: 1 gets %h", running_counter, xx);
 	endaction
   endrule
-   
+
   return tuple2(inFifo.snd, cmp2);
 endmodule
 
-  
+

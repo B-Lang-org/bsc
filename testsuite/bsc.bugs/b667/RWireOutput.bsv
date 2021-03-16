@@ -12,7 +12,7 @@ module sysRWireOutput(Test);
 
   Reg#(Bool) b();
   mkReg#(False) i_b(b);
-  
+
   Reg#(Bit#(17)) x();
   mkReg#(0) i_x(x);
 
@@ -21,7 +21,7 @@ module sysRWireOutput(Test);
   endrule
 
   method Action in(Bit#(17) test);
-    action 
+    action
 //      rw.wset(test);
     endaction
   endmethod

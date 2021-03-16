@@ -18,7 +18,7 @@ function Data_t add2 ( Data_t inp );
 endfunction //
 
 
-// An external interface 
+// An external interface
 interface Pusher;
   // An action method to push data into the module
   method Action go(Data_t in2);
@@ -51,10 +51,10 @@ module mktestpush_fifo( Pusher );
 
 
    // The qbuffered function can be be changed to buffered or passed
-   // qbuffered inserts a fifo, and buffered a register, 
+   // qbuffered inserts a fifo, and buffered a register,
    // and passed inserts nothing.
    // The sink interface -- pu_ifc -- is tagged at the end of the chain.
-   // Using the monadic binding operator "<-" 
+   // Using the monadic binding operator "<-"
    Push#(Data_t) mkadd;
    mkadd <- ( pipe(qbuffered(add2),
                    qbuffered(add2,pu_ifc)));
@@ -65,14 +65,14 @@ module mktestpush_fifo( Pusher );
    // The pipe function combines connects two streams, but does not add any hardware
 
 
-   // Another variation with only 1 pipe stage. 
+   // Another variation with only 1 pipe stage.
    //   the function passed is used instead of qbuffered which wraps the function on
    // synthesis result is add2 -> fifo -> add2 -> out_fifo
    // mkadd <- ( pipe(passed(add2), qbuffered(add2,pu_ifc)));
 
    // result is fifo -> add2 -> add2 -> out_fifo
-   // mkadd <- ( pipe(qbuffered(add2), passed(add2,pu_ifc)));  
-   
+   // mkadd <- ( pipe(qbuffered(add2), passed(add2,pu_ifc)));
+
    // Input to start the pipeline
    method go( in2 );
    action
@@ -92,7 +92,7 @@ module mktestpush_fifo( Pusher );
      return out_fifo_ifc.first();
    endactionvalue
    endmethod
-     
+
 endmodule // testpush
 
 
@@ -101,7 +101,7 @@ endmodule // testpush
 // A modification of the above module.
 // This pipelines operation with registers rather than fifos,
 // thus producing less hardware, but the generated Verilog is incorrect --
-// the enqueuing operation does not consider the initial latency thru 
+// the enqueuing operation does not consider the initial latency thru
 // the pipeline, and the pipeline only advances when the chain is pushed.
 // One may use loopy fifos (next module), instead of buffers, but this produces designs with
 // long chains, i.e., the RDY_go signal look at each loopy fifo.
@@ -114,8 +114,8 @@ module mktestpush_fifo_wreg( Pusher );
    Push#(Data_t) pu_ifc = fifoToPush( fifo_ifc ) ;
 
    // use buffered instead of qbuffered function.
-   Push#(Data_t) mkadd <- ( pipe(buffered(add2), buffered(add2,pu_ifc)));   
-   
+   Push#(Data_t) mkadd <- ( pipe(buffered(add2), buffered(add2,pu_ifc)));
+
    method go( inp );
    action
       mkadd.push( inp ) ;
@@ -132,8 +132,8 @@ module mktestpush_fifo_wreg( Pusher );
      return fifo_ifc.first();
    endactionvalue
    endmethod
-     
-   
+
+
 endmodule // testpush
 
 //
@@ -151,8 +151,8 @@ module mktestpush_fifo_loopy( Pusher );
    Push#(Data_t) pu_ifc = fifoToPush( fifo_ifc ) ;
 
    // use buffered instead of qbuffered function.
-   Push#(Data_t) mkadd <- ( pipe(q1buffered(add2), q1buffered(add2,pu_ifc)));   
-   
+   Push#(Data_t) mkadd <- ( pipe(q1buffered(add2), q1buffered(add2,pu_ifc)));
+
    method go( inp );
    action
       mkadd.push( inp ) ;
@@ -169,8 +169,8 @@ module mktestpush_fifo_loopy( Pusher );
      return fifo_ifc.first();
    endactionvalue
    endmethod
-     
-   
+
+
 endmodule // testpush
 
 
@@ -193,8 +193,8 @@ module mktestpush_reg( Pusher );
    Push#(Data_t) pu_ifc = regToPush( reg_ifc ) ;
 
    Push#(Data_t) mkadd <- ( pipe(buffered(add2), buffered(add2,pu_ifc)));
-   
-   
+
+
    method go( inp );
    action
       mkadd.push( inp ) ;
@@ -208,9 +208,9 @@ module mktestpush_reg( Pusher );
    method takeit();
    actionvalue
      return reg_ifc;
-   endactionvalue 
-   endmethod 
-   
+   endactionvalue
+   endmethod
+
 endmodule // testpush
 
 
@@ -227,14 +227,14 @@ module mktestpush_rwire( Pusher );
    // There is not a library function to convert a from a RWire interface
    // into a Push interface, but this can be done as follows.
    Push#(Data_t) pu_ifc =  (interface Push ;
-                                  method push( x ) ; 
+                                  method push( x ) ;
                                   action rw_ifc.wset( x ) ; endaction
-                                  endmethod:push 
+                                  endmethod:push
                                   endinterface   );
 
 
    Push#(Data_t) mkadd <- pipe(passed(add2), passed(add2,pu_ifc));
-   
+
 
    method go( inp );
    action
@@ -249,7 +249,7 @@ module mktestpush_rwire( Pusher );
    method takeit() ;
    actionvalue
      return validValue( rw_ifc.wget() ) ;
-   endactionvalue 
+   endactionvalue
    endmethod
 
 endmodule // testpush
@@ -263,7 +263,7 @@ module push_tester#(Pusher mypush) ( Empty );
    Reg #(Bit#(16)) count();
    mkReg #(0) i_counter(count);
 
-   // a lfsr for random patterns 
+   // a lfsr for random patterns
    LFSR #(Bit#(16)) lfsr();
    mkLFSR_16 i_rand(lfsr) ;
 
@@ -272,33 +272,33 @@ module push_tester#(Pusher mypush) ( Empty );
      $dumpvars() ;
    endrule
 
-   // keep counting  
+   // keep counting
    rule count_rule ;
      count <= count + 1;
      lfsr.next ;
-   endrule 
+   endrule
 
    // finish simulation
-   rule stop (count > 300 ); 
+   rule stop (count > 300 );
      $finish(0) ;
-   endrule 
+   endrule
 
 
-   // push at random times 
+   // push at random times
    // lfsr ranges from 1 to 255 so probability can be adjusted
-   rule pushit (lfsr.value() > 128 ) ; 
+   rule pushit (lfsr.value() > 128 ) ;
      mypush.go( count[3:0] );
      Bit#(64) t <- $time();
-     $display( "%t -- pushit %h", t, count[3:0] ) ;   
+     $display( "%t -- pushit %h", t, count[3:0] ) ;
    endrule
-    
+
    // A rule to dequeue the data
-   rule pullin ( (lfsr.value() >> 8) > 128 ) ; 
+   rule pullin ( (lfsr.value() >> 8) > 128 ) ;
      Data_t theData <- mypush.takeit( );
      Bit#(64) t <- $time();
-     $display( "%t --               pull %h", t, theData ) ;   
+     $display( "%t --               pull %h", t, theData ) ;
    endrule
-     
+
 endmodule // push_tester
 
 
@@ -310,10 +310,10 @@ module sys_fifo( Empty );
    Pusher dut1();
    mktestpush_fifo i_dut1(dut1);
 
-   Empty i1() ;   
+   Empty i1() ;
    push_tester #(dut1) tester1(i1);
-   
-   
+
+
 endmodule // push_tester_fifo
 
 (* synthesize *)
@@ -322,10 +322,10 @@ module sys_fifo_loopy( Empty );
    Pusher dut2();
    mktestpush_fifo_loopy i_dut2(dut2);
 
-   Empty i2() ;   
+   Empty i2() ;
    push_tester #(dut2) tester2(i2);
-   
-   
+
+
 endmodule // push_tester_fifo
 
 

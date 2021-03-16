@@ -33,7 +33,7 @@ module mkSizedBSVFIFO#(Integer n)(FIFO#(a))
 
    // We declare an array of registers to hold the queue, with an extra
    // constant sentinel register at each end.  The ordinary registers contain
-   // Invalid if they are empty, and Valid(v) if they contain the value v.  The 
+   // Invalid if they are empty, and Valid(v) if they contain the value v.  The
    // constant register at the low end is always non-empty (though its
    // contents are irrelevant; the one at the high end is always empty.
    Reg#(Maybe#(a)) queue[n+2];
@@ -46,7 +46,7 @@ module mkSizedBSVFIFO#(Integer n)(FIFO#(a))
 	 m the_r(r);
 	 queue[i] = asReg(r);
       end
-   
+
    // These next definitions refer to the first and last "real" elements of
    // the queue, and use them to test for emptiness and fulness of the entire
    // queue:
@@ -69,7 +69,7 @@ module mkSizedBSVFIFO#(Integer n)(FIFO#(a))
 
 
    // The (* fire_when_enabled *) attributes on the internal rules
-   // instruct the compiler to check that nothing (i.e. a conflict) 
+   // instruct the compiler to check that nothing (i.e. a conflict)
    // blocks the annotated rules from firing when their predicate is satisfied
 
 
@@ -118,7 +118,7 @@ module mkSizedBSVFIFO#(Integer n)(FIFO#(a))
    endrule
 
    // Finally come the methods.
-   
+
    // The enq method merely sets the relevant rwire (assuming that this will
    // cause the appropriate rule to fire, in the same clock cycle (in a later
    // transition, from the TRS point of view):

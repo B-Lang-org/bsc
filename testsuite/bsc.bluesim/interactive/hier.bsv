@@ -1,10 +1,10 @@
 (* synthesize *)
 module mkTop();
-   
+
   Empty mid1 <- mkMid(13);
   Empty mid2 <- mkMid(7);
   Empty level1 <- mkLevel1();
-   
+
   Reg#(UInt#(16)) count <- mkReg(0);
 
   rule incr (count < 100);
@@ -22,11 +22,11 @@ endmodule
 module mkMid(UInt#(4) limit, Empty ifc);
    Empty sub1 <- mkSub();
    Reg#(UInt#(4)) count <- mkReg(0);
-   
+
    rule incr (count < limit);
       count <= count + 1;
    endrule: incr
-   
+
    rule wrap (count == limit);
       $display("wrap in %m");
       count <= 0;
@@ -35,7 +35,7 @@ endmodule
 
 module mkSub();
    Reg#(Bool) x <- mkReg(False);
-   
+
    rule flip;
       x <= !x;
       $display("%m: %b", x);

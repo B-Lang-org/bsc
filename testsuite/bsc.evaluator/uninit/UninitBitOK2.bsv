@@ -4,7 +4,7 @@ module sysUninitBitOK2();
 
   for(Integer i = 1; i < 4; i = i + 1)
     x[i] = 1;
-  
+
   rule test;
     for(Integer j = 1; j < 4; j = j + 1)
        $display("x[%0d] = %0d", j, x[j]);
@@ -12,4 +12,4 @@ module sysUninitBitOK2();
   endrule
 
 endmodule
-   
+

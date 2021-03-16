@@ -2,12 +2,12 @@
 // because the bypass wire is not always written
 (* synthesize *)
 module mkTestENBypassWire(Empty);
-  
+
   Reg#(Bool) toggle <- mkReg(False);
   Reg#(Bit#(32)) counter <- mkReg(0);
-  
+
   Wire#(Bit#(32)) testWire <- mkBypassWire;
-  
+
   rule tick;
     toggle <= !toggle;
     counter <= counter + 1;

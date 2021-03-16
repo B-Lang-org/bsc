@@ -5,7 +5,7 @@ module mkBigRangeUpdate();
   Reg#(Bit#(16384)) y <- mkRegU;
 
   rule test;
-    x[32768:16385] <= y; 
+    x[32768:16385] <= y;
   endrule
 
 endmodule

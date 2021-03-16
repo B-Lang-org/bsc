@@ -22,8 +22,8 @@ endrule
 
 rule doUpdate_enq;
   case (enqw.wget()) matches
-    tagged Valid .r: 
-        the_fifof.enq(r); 
+    tagged Valid .r:
+        the_fifof.enq(r);
     tagged Nothing:
       noAction;
   endcase

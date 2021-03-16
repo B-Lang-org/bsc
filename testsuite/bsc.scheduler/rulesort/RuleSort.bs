@@ -7,11 +7,11 @@ print :: String -> Action
 print s = $display s
 
 sysRuleSort :: Module Empty
-sysRuleSort = 
+sysRuleSort =
   module
     r :: Reg (Bit 8) <- mkReg 0
     c :: Counter 8 <- mkCounter 0
-    
+
     rules
       "zero": when (c.value == 0) ==>  print "counter is zero"
       "inc": when (c.value < 10) ==>

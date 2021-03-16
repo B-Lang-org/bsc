@@ -18,7 +18,7 @@ interface TwoReg ;
 endinterface
 
 import "BVI" MOD =
-module mkTwoReg ( Clock aClk, 
+module mkTwoReg ( Clock aClk,
 		  Clock bClk,
 		  TwoReg ifcout ) ;
 

@@ -1,9 +1,9 @@
 import FIFO::*;
 
 (* synthesize *)
-module mkTest(Empty); 
-    Reg#(Bit#(3)) cnd();  
-    mkReg#(4) the_cnd(cnd); 
+module mkTest(Empty);
+    Reg#(Bit#(3)) cnd();
+    mkReg#(4) the_cnd(cnd);
 
     Reg#(Bit#(4)) y();
     mkReg#(0) the_y(y);

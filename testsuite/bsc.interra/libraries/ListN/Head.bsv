@@ -24,12 +24,12 @@ module mkTestbench_Head();
 
    rule fire_once (True);
       $display ("Head = %d", head(my_list1));
-      if (head(my_list1) !=0) 
+      if (head(my_list1) !=0)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Head
 endpackage : Head

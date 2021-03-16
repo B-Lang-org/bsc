@@ -24,7 +24,7 @@ module mkRAM(RAM#(Bit#(16),Bit#(16))) ;
 				 case (x) matches
 				   tagged Write (.y) : return(mem.upd(tpl_1(y),tpl_2(y)));
 				   tagged Read (.y) :  return (f( mem.sub (y)));
-				 endcase 
+				 endcase
                endmethod: put
 			 endinterface: Put);
    endmethod: request
@@ -48,7 +48,7 @@ module mkDesign_Ram (RAM#(Bit#(16),Bit#(16)));
 
   return(tx);
 
-endmodule: mkDesign_Ram 
+endmodule: mkDesign_Ram
 
 
 module mkTestbench_Ram ();

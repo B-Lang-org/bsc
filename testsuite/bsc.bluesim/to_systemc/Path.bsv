@@ -1,5 +1,5 @@
 interface PathIfc;
-  method Action set(Bool b);   
+  method Action set(Bool b);
   method Bool test();
 endinterface: PathIfc
 
@@ -13,9 +13,9 @@ module sysPath(PathIfc);
       x <= b;
       ok_to_read <= False;
    endmethod: set
-   
+
    method Bool test() if (ok_to_read);
       return x;
    endmethod: test
-   
+
 endmodule: sysPath

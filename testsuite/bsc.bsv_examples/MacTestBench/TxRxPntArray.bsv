@@ -24,7 +24,7 @@ interface TxRxPntArrayIFC;
    interface Control cntrl;
    interface TxRxPntArrayRamIFC ram;
 endinterface
-      
+
 module mkTxRxPntArray#(TbEnvConfigs parent, WBoneXActorIFC host) (TxRxPntArrayIFC);
 
    Reg#(Bool) initialized <- mkReg(False);
@@ -126,7 +126,7 @@ module mkTxRxPntArray#(TbEnvConfigs parent, WBoneXActorIFC host) (TxRxPntArrayIF
 
    let init_fsm <- mkFSM(init_seq);
 
-   
+
    interface Control cntrl;
       method Action init ();
 	 wboneop_gen.cntrl.init();
@@ -147,7 +147,7 @@ module mkTxRxPntArray#(TbEnvConfigs parent, WBoneXActorIFC host) (TxRxPntArrayIF
    endinterface
 
 endmodule
-   
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

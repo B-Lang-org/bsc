@@ -4,18 +4,18 @@ import FPAddBug::*;
 import TesterLib::*;
 import AssertionWires::*;
 
-(* synthesize *) 
+(* synthesize *)
 module [Module] mkFPAddAssertWiresBug(AssertIfc#(QBinOp#(IEEE754_32), 1));
 
   QBinOp #(IEEE754_32) dut();
   mkFPAddBug i_dut(dut);
- 
+
   AssertIfc#(QBinOp#(IEEE754_32), 1) assert_dut();
   exposeAssertionWires#(wrapAssert(dut)) i_assert_dut(assert_dut);
-  
+
   return(assert_dut);
 endmodule
-  
+
 module [AssertModule] wrapAssert#(QBinOp#(IEEE754_32) op)(QBinOp#(IEEE754_32));
 
    AssertionReg a();
@@ -24,11 +24,11 @@ module [AssertModule] wrapAssert#(QBinOp#(IEEE754_32) op)(QBinOp#(IEEE754_32));
    let fpi_out = case (op.result) matches
                    tagged Valid .v : return (tagged Valid extract_fields(v));
                    tagged Invalid : return tagged Invalid;
-                 endcase;   
-       
-   property hiddenBit(); 
-      (fpi_out matches tagged Valid .fpi &&& 
-      (fpi.exp != 0) ? True : False) |-> 
+                 endcase;
+
+   property hiddenBit();
+      (fpi_out matches tagged Valid .fpi &&&
+      (fpi.exp != 0) ? True : False) |->
       (topBit(fromMaybe(fpi_zero, fpi_out).sfd) == 1);
    endproperty
 

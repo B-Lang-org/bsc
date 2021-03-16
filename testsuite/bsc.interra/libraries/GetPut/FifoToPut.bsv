@@ -4,14 +4,14 @@ import GetPut :: *;
 import FIFO :: *;
 
 //mkDesign_FifoToPut just to see if a proper verilog is created.
-module mkDesign_FifoToPut(Put #(Bit #(8) )); 
-     FIFO#(Bit #(8)) f(); 
-     mkFIFO the_f(f); 
-     return (fifoToPut(f)); 
+module mkDesign_FifoToPut(Put #(Bit #(8) ));
+     FIFO#(Bit #(8)) f();
+     mkFIFO the_f(f);
+     return (fifoToPut(f));
 endmodule: mkDesign_FifoToPut
 
 module mkTestbench_FifoToPut ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFO#(Bit#(8)) dut <- mkFIFO() ;
   Put#(Bit#(8)) dutput = fifoToPut (dut) ;
@@ -73,6 +73,6 @@ module mkTestbench_FifoToPut ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_FifoToPut 
+endmodule: mkTestbench_FifoToPut
 
 endpackage : FifoToPut

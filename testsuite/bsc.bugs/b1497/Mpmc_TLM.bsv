@@ -105,7 +105,7 @@ function TLMResponse#(`TLM_TYPES) fleshOut(SkeletonResp#(`TLM_TYPES) s,
    return r;
 endfunction
 
-function TLMResponse#(`TLM_TYPES) tlmify(NPIRdResult#(`TLM_TYPES) x, 
+function TLMResponse#(`TLM_TYPES) tlmify(NPIRdResult#(`TLM_TYPES) x,
 					 SkeletonResp#(`TLM_TYPES) sk);
    let r = fleshOut(sk, x.rdData, SUCCESS);
    r.custom = x.rdWdAddr;
@@ -227,5 +227,5 @@ module mkNPISlaveXActor(NPISlaveXActorIFC#(`TLM_TYPES))
       interface TLMResponse tx = toGet(tlmoutff);
    endinterface
 endmodule
-   
+
 endpackage

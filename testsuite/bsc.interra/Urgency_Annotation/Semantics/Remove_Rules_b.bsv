@@ -12,12 +12,12 @@ module mkRemove_Rules_b();
     Reg #(Bit #(8)) count ();
     mkReg #(0) count_r(count);
 
-    
+
     rule test_rule_1 (count < 20);
         count <= count + 1;
         $display ("Executing Rule1"); //Should be displayed 20 times
     endrule
-    
+
     rule test_rule_2 (count < 40);
         count <= count + 1;
         $display ("Executing Rule2");  //Should be displayed 20 times
@@ -25,7 +25,7 @@ module mkRemove_Rules_b();
 
     rule test_rule_3 (False);
         count <= count + 1;
-        $display ("Executing Rule3");  
+        $display ("Executing Rule3");
     endrule
 
     rule endsim (count == 100);
@@ -33,5 +33,5 @@ module mkRemove_Rules_b();
     endrule
 
 endmodule
-   
+
 endpackage

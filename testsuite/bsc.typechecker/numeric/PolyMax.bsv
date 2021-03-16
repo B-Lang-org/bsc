@@ -19,12 +19,12 @@ module mkMaxTest2#(Bit#(n) a, Bit#(m) b)() provisos(Max#(m,n,q));
   Bit#(q) s = adjustSize(a) + adjustSize(b);
 
   let a2 = s;
-  
+
   mkMaxTest(a2,b);
 
 endmodule
 
-    
+
 (* synthesize *)
 module mkMaxTest_4_9#(Bit#(4) a, Bit#(9) b)();
 

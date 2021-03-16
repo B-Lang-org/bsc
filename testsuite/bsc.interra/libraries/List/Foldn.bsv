@@ -40,7 +40,7 @@ module mkTestbench_Foldn();
       else
          $display("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Foldn
 endpackage : Foldn

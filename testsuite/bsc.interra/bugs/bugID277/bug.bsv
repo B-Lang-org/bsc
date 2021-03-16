@@ -19,7 +19,7 @@ endinterface:  Design_IFC
    always_enabled,
    always_ready,
    CLK = "clk",
-   RST_N = "keys" 
+   RST_N = "keys"
 *)
 module mkDesign(Design_IFC #(Bit#(1),ActualSpeed));
     Reg#(ActualSpeed) actualSpeed();
@@ -27,9 +27,9 @@ module mkDesign(Design_IFC #(Bit#(1),ActualSpeed));
 
     method Action start(Bit#(1) $$brake,Bit#(1) accelerate);
         action
-            if(accelerate == 1)  
+            if(accelerate == 1)
             begin
-                case (actualSpeed) 
+                case (actualSpeed)
                         STOP   : actualSpeed <= SLOW;
                         SLOW   : actualSpeed <= MEDIUM;
                         MEDIUM : actualSpeed <= FAST;
@@ -54,8 +54,8 @@ module mkDesign(Design_IFC #(Bit#(1),ActualSpeed));
 
     method ActualSpeed speed();
        speed = actualSpeed;
-    endmethod: speed   
+    endmethod: speed
 
-endmodule: mkDesign 
+endmodule: mkDesign
 
 endpackage: Design

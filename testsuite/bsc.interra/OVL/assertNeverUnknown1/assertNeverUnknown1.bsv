@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_never_unknown
 
-Description: qualifier is true and the test expression contains only 0 and 1 bits. 
+Description: qualifier is true and the test expression contains only 0 and 1 bits.
 
 Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -23,7 +23,7 @@ Reg#(Bit#(3)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 
-AssertStartTest_IFC#(Bit#(3)) assertNevUnknown <- bsv_assert_never_unknown(defaults);   
+AssertStartTest_IFC#(Bit#(3)) assertNevUnknown <- bsv_assert_never_unknown(defaults);
 
 rule test(True);
     assertNevUnknown.start(state == Third_State); //qualifier: state == Third_State

@@ -5,14 +5,14 @@ import Assert:: *;
 
 
 module mkTestbench_DynamicAssert ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFO#(Bit#(8)) datafifo <- mkFIFO() ;
   Reg#(Bit#(8)) counter <- mkReg(0);
   Reg#(Bit#(8)) count1 <- mkReg(0);
   Reg#(Bool) fail <- mkReg(False);
- 
-  
+
+
   rule always_fire (True);
 	 counter <= counter + 1;
   endrule
@@ -20,7 +20,7 @@ module mkTestbench_DynamicAssert ();
   rule test_assertion (True);
      dynamicAssert (!fail, "Failure: Fail becomes True");
   endrule
-  
+
   rule data_write_a (counter < 2);
      datafifo.enq(counter+15);
   endrule
@@ -71,5 +71,5 @@ module mkTestbench_DynamicAssert ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_DynamicAssert 
+endmodule: mkTestbench_DynamicAssert
 endpackage: DynamicAssert

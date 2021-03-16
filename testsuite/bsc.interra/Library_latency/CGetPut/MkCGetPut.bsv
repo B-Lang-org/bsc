@@ -1,7 +1,7 @@
-// Latency is 4 clock cycles 
+// Latency is 4 clock cycles
 // GetPut interface is taking one clock cycle
 // to write and one clock cycle to read
-// internally . This is in sync with the 
+// internally . This is in sync with the
 // document .
 package MkCGetPut;
 
@@ -32,7 +32,7 @@ module mkTestbench_MkCGetPut ();
 
 
    Empty joinfifos <- mkConnection (tpl_1(tx_datafifo) ,tpl_2(rx_datafifo) );
-   
+
 
 rule always_fire_write (True);
    	 counter_w <= counter_w + 1;
@@ -44,7 +44,7 @@ rule always_fire_write (True);
      in_data <= in_data + 1;
      $display("WRITING : Cycle Number: %d, Writing Data: %d", counter_w, in_data);
    endrule
-   
+
 
  rule read_value ( counter_r <  12  );
          Bit #(8) first <- tpl_1(rx_datafifo).get;

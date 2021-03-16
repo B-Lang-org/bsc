@@ -3,7 +3,7 @@
 -- Author   : Interra
 -- BugID    : 149
 -- CommandLine : bsc EDupField2.bs
--- Status : Fixed for BSC 3.74 
+-- Status : Fixed for BSC 3.74
 ----------------------------------------------------
 
 package EDupField2 () where

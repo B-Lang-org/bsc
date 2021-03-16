@@ -3,20 +3,20 @@ package LiftedInterfaceTaskCalls(sysLiftedInterfaceTaskCalls, sysLiftedBar, Bar(
 -- test lifting of interface methods that use task calls
 -- I think this is a new bug
 
-interface Bar = 
+interface Bar =
    poke :: Action
    peek :: Action
    prod :: Action
-  
+
 sysLiftedBar :: Module Bar
-sysLiftedBar = 
-  module 
+sysLiftedBar =
+  module
     -- add registers with reset to avoid the displays during reset
     poke_reg :: Reg(Bool) <- mkReg(False)
     peek_reg :: Reg(Bool) <- mkReg(False)
     prod_reg :: Reg(Bool) <- mkReg(False)
 
-    interface 
+    interface
       peek = action
 		$display "Bar::peek"
 		peek_reg := True
@@ -29,7 +29,7 @@ sysLiftedBar =
 
 
 sysLiftedInterfaceTaskCalls :: Module Empty
-sysLiftedInterfaceTaskCalls = 
+sysLiftedInterfaceTaskCalls =
   module
 
     bar :: Bar <- sysLiftedBar
@@ -40,7 +40,7 @@ sysLiftedInterfaceTaskCalls =
        "exit": when done ==> $finish 0
 
        "main": when not done ==>
-           if pokefirst then 
+           if pokefirst then
               action
                  bar.poke
                  bar.peek
@@ -50,4 +50,4 @@ sysLiftedInterfaceTaskCalls =
                 bar.peek
                 bar.poke
                 pokefirst := True
-                
+

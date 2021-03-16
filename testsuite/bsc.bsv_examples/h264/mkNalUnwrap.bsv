@@ -50,7 +50,7 @@ module mkNalUnwrap( INalUnwrap );
    Reg#(Bit#(2))      bufcount  <- mkReg(0);
    Reg#(Bit#(27))     zerocount <- mkReg(0);
 
-   
+
    //-----------------------------------------------------------
    // Rules
    rule fillbuffer (bufcount<3
@@ -112,7 +112,7 @@ module mkNalUnwrap( INalUnwrap );
 	    zerocount <= zerocount-1;
 	    outfifo.enq(tagged RbspByte 0);
 	    $display("ccl1rbspbyte 00");
-	 end  
+	 end
    endrule
 
    rule endfileop(infifo.first() matches tagged EndOfFile);
@@ -158,13 +158,13 @@ module mkNalUnwrap( INalUnwrap );
 	    $display("EndOfFile reached (NalUnwrap)");
 	 end
       endcase
-	 
+
    endrule
 
-   
+
    interface Put ioin  = fifoToPut(infifo);
    interface Get ioout = fifoToGet(outfifo);
-      
+
 endmodule
 
 endpackage

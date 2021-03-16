@@ -3,7 +3,7 @@ module mkSub (Reg#(UInt#(16)) rg1, Empty ifc);
 
    rule r1;
       rg2 <= rg2 + 1;
-   endrule   
+   endrule
 
    // Put a non-rule statement here to break up the rules
    Reg#(UInt#(16)) rg3  <- mkRegU;

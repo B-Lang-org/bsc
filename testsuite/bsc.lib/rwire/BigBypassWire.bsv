@@ -1,18 +1,18 @@
 typedef enum { Square, Fourth, Eighth, Sixteenth, ThirtySecond, Data, Exit } TestState
   deriving(Eq, Bits);
- 
+
 (* synthesize *)
 module sysBigBypassWire(Empty);
 
   Reg#(TestState) state <- mkReg(Square);
 
   Reg#(UInt#(8)) counter <- mkReg(0);
- 
+
   Wire#(UInt#(512)) outputWire <- mkBypassWire;
-  
+
   rule tick;
     counter <= counter + 1;
-    state <= case (state) 
+    state <= case (state)
                Square: return(Fourth);
                Fourth: return(Eighth);
                Eighth: return(Sixteenth);
@@ -29,7 +29,7 @@ module sysBigBypassWire(Empty);
   let sixteenth = eighth * eighth;
   let thirty_second = sixteenth * sixteenth;
   Bit#(64) phrase = 64'hdeadbeefbaadf00d;
-  UInt#(512) data = unpack({phrase, phrase, phrase, phrase, 
+  UInt#(512) data = unpack({phrase, phrase, phrase, phrase,
                             phrase, phrase, phrase, phrase});
   rule drive_wire;
     outputWire <= case (state)
@@ -41,7 +41,7 @@ module sysBigBypassWire(Empty);
                     default: return(data);
                   endcase;
   endrule
-  
+
   rule display;
     $display("outputWire holds %h at time %t", outputWire, $time);
     if(state == Exit) $finish(0);

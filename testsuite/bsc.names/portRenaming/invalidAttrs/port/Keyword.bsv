@@ -4,6 +4,6 @@ interface Ifc;
  method Action check ((* port="always" *)Bool x);
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkKeyword (Ifc);
 endmodule

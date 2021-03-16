@@ -8,10 +8,10 @@ typedef Bit#(32) BusAddr ;
 typedef Bit#(32) BusData ;
 
 //  Enum fopr the bus transfer type
-typedef enum { Write, Read } RW 
+typedef enum { Write, Read } RW
 	deriving (Bits) ;
 
-// structure to describe the bus request 
+// structure to describe the bus request
 typedef struct {
                 RW       read_write;
                 BusData  data;
@@ -47,9 +47,9 @@ interface Master ;
       // m_bus_request send a request to access to the bus
 
    method Action m_bus_grant( Bool bus_grant ) ;
-      // m_bus_grant is an input received from the bus to show if the bus 
+      // m_bus_grant is an input received from the bus to show if the bus
       // request has been granted.
-      
+
    interface Get#(BusRequest) m_request;
       // The Get sub-interface provides the bus a way to get the request
 
@@ -72,7 +72,7 @@ interface BusMasterSide ;
    interface Get#(BusResponse) bms_response ;
       // A sub-interface for the Master to set a response.
 endinterface
-   
+
 
 // ///////////////////////////////////////////////////////////////////////////
 // Slave and Bus Slave Side interfaces
@@ -106,13 +106,13 @@ endinterface
 
 // ///////////////////////////////////////////////////////////////////////////
 // Connectables describe the module needed to connect two interfaces
-// 
+//
 instance Connectable#(Master, BusMasterSide) ;
       module mkConnection#(Master m, BusMasterSide b ) (Empty) ;
-         // Connect the requests and the responses, using the mkConnection module 
+         // Connect the requests and the responses, using the mkConnection module
          // defined for Get and Put interfaces
          mkConnection(m.m_request, b.bms_request) ;
-         mkConnection(m.m_response, b.bms_response) ; 
+         mkConnection(m.m_response, b.bms_response) ;
 
          // a rule to transfer the request from the master to the bus
          (* no_implicit_conditions, fire_when_enabled *)
@@ -120,7 +120,7 @@ instance Connectable#(Master, BusMasterSide) ;
             Bool m_request <- m.m_bus_request ;
             b.bms_bus_request( m_request ) ;
          endrule
-         
+
          // A rule to transfer the grant from the bus to the master.
          (* no_implicit_conditions, fire_when_enabled *)
          rule connect_g ;
@@ -130,7 +130,7 @@ instance Connectable#(Master, BusMasterSide) ;
       endmodule
 endinstance
 
-// Provide another mkConnection for the Master side with arguments reversed.      
+// Provide another mkConnection for the Master side with arguments reversed.
 instance Connectable#(BusMasterSide, Master) ;
       module mkConnection#(BusMasterSide b, Master m ) (Empty) ;
          mkConnection( m, b );
@@ -146,7 +146,7 @@ instance Connectable#(Slave, BusSlaveSide) ;
       endmodule
 endinstance
 
-// Provide another mkConnection for the Slave side with arguments reversed. 
+// Provide another mkConnection for the Slave side with arguments reversed.
 instance Connectable#(BusSlaveSide, Slave) ;
       module mkConnection#(BusSlaveSide b, Slave s ) (Empty) ;
          mkConnection( s, b ) ;
@@ -155,14 +155,14 @@ endinstance
 
 
 
-// ///////////////////////////////////////////////////////////////////////////      
+// ///////////////////////////////////////////////////////////////////////////
 interface B1m1s ;
    interface BusMasterSide ms0 ;
    interface BusSlaveSide ss0 ;
    interface BusSlaveSide defSlave ;
 endinterface
 
-      
+
 interface B1m2s ;
    interface BusMasterSide ms0 ;
    interface BusSlaveSide ss0 ;
@@ -170,13 +170,13 @@ interface B1m2s ;
    interface BusSlaveSide defSlave ;
 endinterface
 
-         
+
 interface B2m2s ;
    interface BusMasterSide ms0 ;
    interface BusMasterSide ms1 ;
 
    interface BusSlaveSide ss0 ;
    interface BusSlaveSide ss1 ;
-      
+
    interface BusSlaveSide defSlave ;
 endinterface

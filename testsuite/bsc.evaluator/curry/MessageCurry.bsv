@@ -12,7 +12,7 @@ module mkMessageCurry();
   Reg#(Bool) switch <- mkReg(False);
 
   Integer test = (switch ? message("a", a) : message("b", b))(5);
-  
+
   rule go;
     $display(test);
     $finish(0);

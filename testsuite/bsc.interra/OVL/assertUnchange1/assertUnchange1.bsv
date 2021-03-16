@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -19,13 +19,13 @@ typedef enum {First_State, Second_State, Third_State, Fourth_State, Fifth_State}
 module assertUnchange1 (Empty);
 
 Reg#(FSM_State) state <- mkRegA(First_State);
-   
+
 Reg#(Bit#(3)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 defaults.num_cks = 3; //num_cks : 3
 AssertStartTest_IFC#(Bit#(3)) assertUnch <- bsv_assert_unchange(defaults);
-   
+
 rule test(True);
     assertUnch.start(state == Second_State);//start_event : Second_State
     assertUnch.test(test_expr);             //test_expr : test_expr
@@ -49,12 +49,12 @@ rule every (True);
 	Fourth_State:
 	begin
 	    state <= Fifth_State;
-		test_expr <= 3'b010;		
+		test_expr <= 3'b010;
 	end
 	Fifth_State:
 	begin
 	    state <= First_State;
-		test_expr <= 3'b011;		
+		test_expr <= 3'b011;
 	    $finish(0);
 	end
     endcase

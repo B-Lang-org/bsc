@@ -27,34 +27,34 @@ module mkDesign_08 (IFC#(Type));
   method Action start1(a,b);
     val1 <= a;
     res1 <= b;
-  endmethod	
+  endmethod
 
   method Action start2(a,b);
     val2 <= a;
     res2 <= b;
-  endmethod	
+  endmethod
 
   interface S1 subIFC1;
     method Type result(c);
       return res1+c;
-    endmethod	
-  	 
+    endmethod
+
     method ActionValue#(Type) check(d);
       val1 <= val1 + 1;
       res1 <= res1 + 2;
 	  return res1+d;
-    endmethod	
+    endmethod
   endinterface
 
   interface S1 subIFC2;
     method Type result(c);
       return res2+c;
-    endmethod	
-  	 
+    endmethod
+
     method ActionValue#(Type) check(d);
       val2 <= val2 + 1;
       res2 <= res2 + 2;
 	  return res2+d;
-    endmethod	
+    endmethod
   endinterface
 endmodule

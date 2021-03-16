@@ -25,7 +25,7 @@ module mkErrorTwo(ClockIfc);
 endmodule
 
 // uses mkErrorOne
-(* synthesize *) 
+(* synthesize *)
 module mkErrorTop();
 
   Test t <- mkErrorOne;

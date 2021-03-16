@@ -3,7 +3,7 @@ import Counter2		::*;
 import Shape	::*;
 import Color::*;
 import StmtFSM::*;
-	      
+
 typedef Bit#(2) CountType;
 CountType maxCount;
 maxCount = 1;
@@ -16,11 +16,11 @@ Single one; one = 'h3fff;
 // length number, giving the more significant half of the double-length
 // result.  This is all more complicated than it ought to do, because the
 // compiler primitives (for multiplication in particular) are not yet quite
-// right.  We are working on this. 
+// right.  We are working on this.
 
 function Single mult(Double x, Single y);
       return (truncate(signedShiftRight(x * (Double'(signExtend(y))),14)));
-endfunction      
+endfunction
 
 XSize islandWidthC;     islandWidthC = 100;
 YSize islandHeightC;    islandHeightC = 60;
@@ -35,13 +35,13 @@ Single yCentre; yCentre = 210;
 
 Double xRad; xRad = 400;
 Double yRad; yRad = 150;
-  
+
 interface Island;
     method Shape shape;
     method Tuple5#(Bool, Bool, Bool, Bool, YSize) insideit (XCoord x1, XCoord x2, YCoord x3, YCoord x4, YSize x5);
     method Action tick;
 endinterface: Island
-		    
+
 module mkIsland(Island);
   Reg#(XCoord) xpos();
   mkReg#(islandLeftC) the_xpos(xpos);
@@ -65,7 +65,7 @@ module mkIsland(Island);
 	  y > ypos &&
 	  y < ypos + islandHeightC);
   endfunction: insideit1
-  
+
   Reg#(Single) cos(); mkReg#('h7fff) the_cos(cos); // cos(theta), initially 1.0
   Reg#(Single) sin(); mkReg#(0) the_sin(sin);      // sin(theta), initially 0
 
@@ -76,7 +76,7 @@ module mkIsland(Island);
 
   Double a = 3;   // delta = 1deg -- 2sinsq(delta/2)
   Double b = 286; //                  sin(delta)
-  Single increments = 359;  // max-numbered increment for complete revolution  
+  Single increments = 359;  // max-numbered increment for complete revolution
                             // (starting at 0)
 
   Reg#(Single) incs();  mkReg#(0) the_incs(incs);
@@ -113,19 +113,19 @@ module mkIsland(Island);
    endaction
   endrule
 
-  method shape(); 
+  method shape();
     return islandRect;
   endmethod: shape
 
   method insideit(x0, x1, y0, y1, dy);
-    return tuple5( (insideit1(x0, y0)), 
-                   (insideit1(x0, y1)), 
-                   (insideit1(x1, y0)), 
-                   (insideit1(x1, y1)), 
+    return tuple5( (insideit1(x0, y0)),
+                   (insideit1(x0, y1)),
+                   (insideit1(x1, y0)),
+                   (insideit1(x1, y1)),
                    0  // this component not used
                  );
   endmethod: insideit
-  
+
   method tick();
    action
     if (count != 0)
@@ -134,6 +134,6 @@ module mkIsland(Island);
   endmethod
 
 endmodule: mkIsland
-		   
+
 
 

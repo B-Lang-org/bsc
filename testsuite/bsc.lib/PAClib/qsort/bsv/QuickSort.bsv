@@ -54,7 +54,7 @@ module [Module] mkPartitionLoop_preTest#(PipeOut#(PartitionLoop_T#(num, data_t))
 
    return (interface PipeOut;
       method Tuple2#(PartitionLoop_T#(num, data_t), Bool) first if (deq_ok);
-         return tuple2(tuple5(va, v, i, j, r), !(i >= j)); 
+         return tuple2(tuple5(va, v, i, j, r), !(i >= j));
       endmethod
       method Action deq if (deq_ok);
          running <= False;

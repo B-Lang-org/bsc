@@ -3,7 +3,7 @@ interface WriteOnly#(type a);
 endinterface
 
 // module with an always-enabled port to tie to a default value
-import "BVI" AlwaysWrite = 
+import "BVI" AlwaysWrite =
    module mkAlwaysWrite(WriteOnly#(a)) provisos(Bits#(a,sa));
      no_reset;
      parameter width = valueof(sa);

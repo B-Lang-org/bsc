@@ -19,7 +19,7 @@ module mkRule_Splitting_b();
     Reg#(Bit#(8)) count2();
     mkReg#(0) count2_r(count2);
 
-    
+
     rule test_rule_1 (count1<=10);
         if (count2 <= 4)
         begin
@@ -38,7 +38,7 @@ module mkRule_Splitting_b();
           count1 <= 0;
         end
     endrule
-    
+
     rule test_rule_2 (count1 <= 20);
         if (count2 <= 12)
         begin
@@ -51,7 +51,7 @@ module mkRule_Splitting_b();
            count1 <= count1 + 1;
         end
     endrule
-    
+
 
 endmodule : mkRule_Splitting_b
 

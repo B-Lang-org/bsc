@@ -27,9 +27,9 @@ endrule
 // enq when condition is true
 rule doUpdate_enq;
   case (enqw.wget()) matches
-    tagged Valid .r: 
+    tagged Valid .r:
       if (the_fifof.notEmpty || !isValid(deqw.wget))
-        the_fifof.enq(r); 
+        the_fifof.enq(r);
     tagged Nothing:
       noAction;
   endcase
@@ -50,7 +50,7 @@ endmethod: enq
 
 // setting the conditions for deq
 method Action deq() if ((the_fifof.notEmpty || isValid (enqw.wget())));
-  deqw.wset(?); 
+  deqw.wset(?);
 endmethod: deq
 
 // prints the first element of the FIFO

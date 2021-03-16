@@ -1,6 +1,6 @@
 package StepCounter;
 
-interface StepCounter#(parameter type a); 
+interface StepCounter#(parameter type a);
   // an Action method maps to an enable signal in the generated hardware
   method Action count();
   // a value method maps to an output bus
@@ -13,18 +13,18 @@ endinterface
 // polymorphic implementation that works for any type that
 // can be turned into bits and has arithmetic operations
 // defined on it
-// a simpler, less flexible implementation could use Bit#(n) 
+// a simpler, less flexible implementation could use Bit#(n)
 // and would not require provisos
-module mkStepCounter#(a init, a step)(StepCounter#(a)) 
- provisos(Arith#(a), Bits#(a,sa));   
+module mkStepCounter#(a init, a step)(StepCounter#(a))
+ provisos(Arith#(a), Bits#(a,sa));
    Reg#(a) counter();
    mkReg#(init) i_counter(counter);
    // mkRegU is an alternative when a reset method is used
-   // it starts with an unknown value 
+   // it starts with an unknown value
    // and does not use the hardware reset signal
 
    method count();
-     action 
+     action
        counter <= counter + step;
      endaction
    endmethod
@@ -43,4 +43,4 @@ module mkStepCounter#(a init, a step)(StepCounter#(a))
 
 endmodule
 
-endpackage 
+endpackage

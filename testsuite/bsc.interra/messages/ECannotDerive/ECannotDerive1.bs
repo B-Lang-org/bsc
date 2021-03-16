@@ -11,7 +11,7 @@
 -- bsc: Compilation errors:
 -- "ECannotDerive1.bs", line 19, column 31, Illegal deriving: Literal
 -----------------------------------------------------------------------
-package ECannotDerive1 (ECannotDerive1(..), mkECannotDerive1) where 
+package ECannotDerive1 (ECannotDerive1(..), mkECannotDerive1) where
 
 -- import Int
 
@@ -20,16 +20,16 @@ data MyType1 = Integer | Bool
 
 interface ECannotDerive1 =
         start :: MyType1 -> MyType1 -> Action
-        end   :: MyType1 
+        end   :: MyType1
 
 mkECannotDerive1 :: Module ECannotDerive1
 mkECannotDerive1 =
      module
 
-        x :: Reg (MyType1) 
+        x :: Reg (MyType1)
         x <- mkRegU
 
-        y :: Reg (MyType1) 
+        y :: Reg (MyType1)
         y <- mkReg 0
 
         rules

@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -23,7 +23,7 @@ Reg#(Bool) consq <- mkRegA(False);
 
 let defaults = mkOVLDefaults;
 AssertStartTest_IFC#(Bool) assertImp <- bsv_assert_implication(defaults);
-   
+
 rule test(True);
     assertImp.start(state == Third_State);//antecedent_expr : Third_State
     assertImp.test(consq);           //consequent_expr : consq
@@ -38,7 +38,7 @@ rule every (True);
 	Second_State:
 	begin
 	    state <= Third_State;
-	    consq <= True; 
+	    consq <= True;
 	end
 	Third_State:
 	begin

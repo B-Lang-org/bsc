@@ -14,5 +14,5 @@ module sysOutputReset_NoBoundaryClock (Ifc);
 
    // export only the reset
    interface rst_out = i.new_rst;
-   
+
 endmodule

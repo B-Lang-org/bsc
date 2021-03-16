@@ -11,7 +11,7 @@ endmodule
 
 (* synthesize *)
 module mkMaxLogMap2x2 (MLM_IFC);
- 
+
 function ActionValue#(Vector#(3,int)) fmaxlogmap2x2(int sigma_n);
   actionvalue
      Vector#(3,int) llr = replicate(0);

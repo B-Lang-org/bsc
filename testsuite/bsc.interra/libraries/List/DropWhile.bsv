@@ -43,12 +43,12 @@ module mkTestbench_DropWhile();
       display_list (my_list1);
       $display ("Drops Initial Segment with elements < 2. New List:");
       display_list (dropWhile(f1, my_list1));
-      if (dropWhile(f1, my_list1) != my_list2 || dropWhile (f2, my_list1) != Nil || dropWhile (f3, my_list1) != my_list1) 
+      if (dropWhile(f1, my_list1) != my_list2 || dropWhile (f2, my_list1) != Nil || dropWhile (f3, my_list1) != my_list1)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_DropWhile
 endpackage : DropWhile

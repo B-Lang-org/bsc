@@ -18,7 +18,7 @@ size = 128
 {-# verilog throughput #-}
 
 throughput :: Module Empty
-throughput = 
+throughput =
   do
     ram :: RAM Addr Data <- mkWrapSRAM (mkSPSRAM 128)
 
@@ -31,7 +31,7 @@ throughput =
 
     write :: Reg Bool <- mkReg True
     read  :: Reg Bool <- mkReg True
-         
+
 
     addRules $
       rules
@@ -39,7 +39,7 @@ throughput =
 	  ram.request.put (Write ((unpack $ truncate $ pack cycles),cycles))
 	  cycles := cycles - 1
 
-	when cycles == 0, read, write ==> 
+	when cycles == 0, read, write ==>
 	 action
 	  write := False
 	  cycles := size
@@ -55,7 +55,7 @@ throughput =
 	  return ()
 
 
-	when cycles == 0, read, not write ==> 
+	when cycles == 0, read, not write ==>
 	 action
 	  read := False
 	  cycles := size

@@ -3,11 +3,11 @@ module mkBlockingTest();
    Reg#(UInt#(8)) count  <- mkReg(0);
    Reg#(UInt#(8)) count2 <- mkReg(0);
    Reg#(UInt#(8)) count3 <- mkReg(0);
-   
+
    rule incr;
       count <= count + 1;
    endrule
-   
+
    (* descending_urgency = "r1,r2,r3,r4" *)
    rule r1 (count > 4);
       count2 <= count2 + 1;
@@ -37,9 +37,9 @@ module mkBlockingTest();
    rule rc;
       count3 <= count3 + 1;
    endrule
-   
+
    rule done (count3 > 100);
       $finish(0);
    endrule
-   
+
 endmodule

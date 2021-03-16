@@ -1,17 +1,17 @@
-interface Bypass; 
-  method Action send(Bit#(16) data); 
+interface Bypass;
+  method Action send(Bit#(16) data);
   method Bit#(16) receive;
 endinterface
 
-(* 
-synthesize, 
+(*
+synthesize,
 always_ready,
 always_enabled
 *)
 module mkTestBypassWire(Bypass);
-  
+
   Wire#(Bit#(16)) myWire <- mkBypassWire;
-  
+
   method Action send(data);
     myWire <= data;
   endmethod
@@ -34,7 +34,7 @@ module sysTestBypassWire(Empty);
   rule bypass_high(counter > 4);
     bypass.send(16'hFFFF);
   endrule
-  
+
   rule bypass_low(counter < 4);
     bypass.send(zeroExtend(counter));
   endrule
@@ -52,6 +52,6 @@ module sysTestBypassWire(Empty);
 endmodule
 
 
- 
-    
-  
+
+
+

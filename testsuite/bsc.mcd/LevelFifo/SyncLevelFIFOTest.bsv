@@ -11,17 +11,17 @@ typedef Bit#(32)  Common ;
 module sysSyncLevelFIFOTest() ;
 
    Reset resetin <- exposeCurrentReset ;
-   
+
    // Make a clock
    Clock clkA <- mkAbsoluteClock( 15, 100 ) ;
    Reset rstA() ;
    mkAsyncReset#(5) iRstA( resetin, clkA, rstA ) ;
-   
+
    // Make a second clock and reset
    Clock clkB <- mkAbsoluteClock( 15, 9 ) ;
    Reset rstB <- mkAsyncReset( 5, resetin, clkB ) ;
 
-      
+
    // Some counters for each clock
    Reg#(Common)  areg <- mkReg(0, clocked_by clkA, reset_by rstA ) ;
    Reg#(Common)  breg <- mkReg(0, clocked_by clkB, reset_by rstB ) ;
@@ -32,24 +32,24 @@ module sysSyncLevelFIFOTest() ;
 
    // The hardware under test -- a level fifo
    SyncFIFOLevelIfc#(Common,128) fifo <- mkSyncFIFOLevel(  clkA, rstA, clkB ) ;
-  
-   // Define some constants 
+
+   // Define some constants
    let sFifoAlmostFull = fifo.sIsGreaterThan( 120 ) ;
    let dFifoAlmostFull = fifo.dIsGreaterThan( 120 ) ;
    let dFifoAlmostEmpty = fifo.dIsLessThan( 12 ) ;
    let sFifoAlmostEmpty = fifo.sIsLessThan( 110 ) ;
-  
+
    // a register to indicate a burst mode
    Reg#(Bool)  burstOut <- mkConfigReg( False, clocked_by clkB, reset_by rstB ) ;
    Reg#(Bool)  pauseFill <- mkReg( False, clocked_by clkA, reset_by rstA ) ;
-   
+
 
    // Set and clear the burst mode depending on fifo status
    rule dtimeToDeque( dFifoAlmostFull && ! burstOut  ) ;
       $display( "%t:  destination fifo almost full", $time ) ;
       burstOut <= True ;
-   endrule  
-      
+   endrule
+
    rule timeToStop ( dFifoAlmostEmpty && burstOut );
       $display( "%t:   destination clk fifo almost empty", $time ) ;
       burstOut <= False ;
@@ -58,12 +58,12 @@ module sysSyncLevelFIFOTest() ;
    rule stimeToDeque( sFifoAlmostFull && ! pauseFill ) ;
       pauseFill <= True ;
       $display( "%t:  source fifo almost full", $time ) ;
-   endrule  
+   endrule
    rule stimeToStop ( sFifoAlmostEmpty && pauseFill );
       pauseFill <= False ;
       $display( "%t:  source fifo almost empty", $time ) ;
    endrule
-  
+
    rule moveData ( burstOut ) ;
       let dataToSend = fifo.first ;
       fifo.deq ;
@@ -88,17 +88,17 @@ module sysSyncLevelFIFOTest() ;
             if ( areg >= 1000) $finish(0) ;
          end
    endrule
-   
+
    (* descending_urgency = "doClear, a" *)
    rule doClear (lfsr.value % 400 == 299);
       lfsr.next ;
       $display ("%t clearing", $time);
       fifo.sClear;
    endrule
-   
-   
 
-     
-   
+
+
+
+
 
 endmodule

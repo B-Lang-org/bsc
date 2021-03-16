@@ -30,9 +30,9 @@ module sysUngatedClockMux(Empty);
      fliptime <= fliptime << 1;
      flipcount <= 0;
 
-     if(clkflag) 
+     if(clkflag)
        $display ("Clock Select A");
-     else 
+     else
        $display ("Clock Select B");
 
   endrule

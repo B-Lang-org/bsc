@@ -9,7 +9,7 @@ module mkDesign_MkLFifof (FIFOF #(Bit #(8)));
 endmodule
 
 module mkTestbench_MkLFifof ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFOF#(Bit#(8)) datafifo <- mkDesign_MkLFifof() ;
   Reg#(Bit#(8)) counter <- mkReg(0);
@@ -68,5 +68,5 @@ module mkTestbench_MkLFifof ();
      $finish(2'b00);
   endrule
 
-endmodule: mkTestbench_MkLFifof 
+endmodule: mkTestbench_MkLFifof
 endpackage: MkLFifof

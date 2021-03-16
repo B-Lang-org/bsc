@@ -17,7 +17,7 @@ module mkShifter64(Shifter#(64));
 
   Put#(UInt#(64)) putResult = tpl_2(getR_putR);
   Get#(UInt#(64)) getResult = tpl_1(getR_putR);
-    
+
   Push#(Tuple2 #(UInt#(64), UInt#(6))) shifter;
   shifter <- pipe(passed(shift1),
 	     pipe(passed(shift1),

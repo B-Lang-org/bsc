@@ -37,7 +37,7 @@ module mkTester #(QBinOp#(IEEE754_32) dut_ifc,
    // an array holding the test data
    RegFile#(Bit#(7), TestData_t )  test_ifc();
    mkRegFileFullLoad#(testfile) iarray(test_ifc) ;
-   
+
    // An index to the array
    Reg#(Bit#(7) )  counter() ;
    mkReg#(0) icounter(counter) ;
@@ -77,12 +77,12 @@ module mkTester #(QBinOp#(IEEE754_32) dut_ifc,
    rule vcd (counter == 0 ) ;
       $dumpvars();
    endrule
-   
-   
+
+
    rule fine (counter == ( 7'h7f )) ;
       action
          $finish(1);
       endaction
    endrule
-   
+
 endmodule

@@ -6,6 +6,6 @@ struct My_pair1 = {fst :: Bit 16; snd :: Bit 16}
 
 y :: My_pair1
 y = My_pair1 {fst=z.fst;snd=z.snd}
-        
+
 z :: My_pair1
 z = My_pair1 {fst=y.fst;snd=y.snd}

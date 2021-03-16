@@ -1,4 +1,4 @@
-//Testcase 
+//Testcase
 import ConfigReg::*;
 
 (* synthesize *)
@@ -22,5 +22,5 @@ module sysDesign (Empty);
  endrule
 
 
-   
+
 endmodule

@@ -14,15 +14,15 @@ module sysTestBody ();
    Vector#(SIZE,Reg#(I)) rsssss ;
    for (Integer i = 0; i < valueOf(SIZE) ; i = i + 1) begin
       rsssss[i] <- mkRegU;
-      
+
    end
 
    Vector#(4,Reg#(int)) aa = ? ;
    Vector#(4,Reg#(int)) bb = ? ;
 
    for (Integer i = 0 ; i < 4 ; i = i + 1) begin
-     aa[i] <- mkRegU; 
-     bb[i] <- mkRegU; 
+     aa[i] <- mkRegU;
+     bb[i] <- mkRegU;
    end
 
    // Vector#(SIZE,Server#(I,O))  ms <- replicateM(mkHierTest);

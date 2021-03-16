@@ -19,17 +19,17 @@ import CombWallace::*;
 import StatefulWallace::*;
 
 // utility function used to check the result of a Wallace addition
-function Bit#(n) sumList(ListN#(l, Bit#(m)) theInput) provisos (Add#(m,q,n)); 
-      ListN#(l, Bit#(n)) extended; 
+function Bit#(n) sumList(ListN#(l, Bit#(m)) theInput) provisos (Add#(m,q,n));
+      ListN#(l, Bit#(n)) extended;
       extended = map(zeroExtend,theInput);
       return (foldr(add,0,extended));
-endfunction: sumList 
+endfunction: sumList
 
 module mkWallaceTestClient(WallaceClient#(l,m,n)) provisos (Mul#(l,m,k),
                                                             Add#(m,q,n));
- 
+
    // iterate through all bit patterns to get all possible test inputs
-   Reg#(Bit#(k)) r(); 
+   Reg#(Bit#(k)) r();
    mkReg#(0) the_r(r);
 
    // keep track of in-flight requests for validation
@@ -51,12 +51,12 @@ module mkWallaceTestClient(WallaceClient#(l,m,n)) provisos (Mul#(l,m,k),
                    ListN#(l, Bit#(m)) val = unpack(r);
                    r <= r + 1;
                    if ((r + 1) == 0) doneget <= True;
-                   requests.enq(val); 
+                   requests.enq(val);
                    return(val);
                  endactionvalue
                endmethod: get
              endinterface: Get);
-   endmethod: request 
+   endmethod: request
 
    method response();
      return (interface Put;
@@ -66,7 +66,7 @@ module mkWallaceTestClient(WallaceClient#(l,m,n)) provisos (Mul#(l,m,k),
                    theInput = requests.first();
                    requests.deq();
                    Bit#(n) expected = sumList(theInput);
-                   if(result == expected) 
+                   if(result == expected)
                        $display("Pass: pattern: %b result: %b", theInput, result);
                    else
                        $display("Fail: pattern: %b expected: %b result: %b", theInput, expected, result);
@@ -74,7 +74,7 @@ module mkWallaceTestClient(WallaceClient#(l,m,n)) provisos (Mul#(l,m,k),
                endmethod: put
              endinterface: Put);
    endmethod: response
-       
+
 endmodule: mkWallaceTestClient
 
 // many different wallace adders synthesized with
@@ -93,14 +93,14 @@ module sysStatefulServer1(WallaceServer#(4,3,5));
    mkStatefulWallace1 my_server(server);
    return(server);
 endmodule: sysStatefulServer1
-   
+
 (* synthesize *)
 module sysStatefulServer2(WallaceServer#(4,3,5));
    WallaceServer#(4,3,5) server();
    mkStatefulWallace2 my_server(server);
    return(server);
 endmodule: sysStatefulServer2
-   
+
 (* synthesize *)
 module sysStatefulServer3(WallaceServer#(4,3,5));
    WallaceServer#(4,3,5) server();

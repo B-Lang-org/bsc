@@ -9,7 +9,7 @@ module mkDesign_MkSizedFifof (FIFOF#(Bit #(8)));
 endmodule
 
 module mkTestbench_MkSizedFifof ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFOF#(Bit#(8)) datafifo <- mkDesign_MkSizedFifof() ;
   Reg#(Bit#(8)) counter <- mkReg(0);
@@ -57,7 +57,7 @@ module mkTestbench_MkSizedFifof ();
      datafifo.enq(counter);
 	 $display("Cycle Number =%d, Value written = %h, Full =%d, Empty =%d",counter, counter, !datafifo.notFull, !datafifo.notEmpty);
   endrule
-  
+
   rule data_writeread (counter > 100);
      datafifo.enq(counter);
      datafifo.deq();
@@ -75,5 +75,5 @@ module mkTestbench_MkSizedFifof ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_MkSizedFifof 
+endmodule: mkTestbench_MkSizedFifof
 endpackage: MkSizedFifof

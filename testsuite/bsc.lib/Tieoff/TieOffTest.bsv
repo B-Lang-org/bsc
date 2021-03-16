@@ -31,22 +31,22 @@ endinstance
 
 (*synthesize*)
 module sysTieOffTest ();
-   
+
    FIFO#(Int#(15)) fi <- mkFIFO ;
    mkTieOff(toGet(fi));
 
    FIFO#(Bool) fb <- mkFIFO ;
    mkTieOff(toGet(fb));
-   
-   let ts = 
+
+   let ts =
    (seq
        fi.enq(10);
        fi.enq(11);
        fb.enq(False);
        noAction;
     endseq);
-   
+
    mkAutoFSM(ts);
-   
-   
+
+
 endmodule

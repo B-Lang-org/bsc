@@ -35,7 +35,7 @@ endmodule : mkTest1
 module mkTest2(Test_IFC);
     Test_IFC dut ();
     mkTest1 the_dut2 (dut);
-    
+
     method Action start;
         dut.start();
     endmethod : start
@@ -48,7 +48,7 @@ endmodule : mkTest2
 module mkTest3(Test_IFC);
     Test_IFC dut ();
     mkTest2 the_dut3 (dut);
-    
+
     method Action start;
         dut.start();
     endmethod : start
@@ -62,7 +62,7 @@ endmodule : mkTest3
 module mkTest4(Test_IFC);
     Test_IFC dut ();
     mkTest3 the_dut4 (dut);
-    
+
     method Action start;
         dut.start();
     endmethod : start
@@ -76,7 +76,7 @@ endmodule : mkTest4
 
 
 module mkHierarchy4_Dot_Notation_Rule_Name();
-    
+
      Test_IFC dut ();
      mkTest4 the_dut (dut);
 
@@ -90,7 +90,7 @@ module mkHierarchy4_Dot_Notation_Rule_Name();
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

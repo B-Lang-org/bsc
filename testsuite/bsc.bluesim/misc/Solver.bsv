@@ -25,20 +25,20 @@ module mkSolver(SudokuSolver#(order))
    provisos(Mul#(order,order,size), Mul#(size,size,num_cells),
 	    Add#(1,x,TSquare#(order)),
 	    Add#(_,TLog#(order),TLog#(TSquare#(order))));
-	    
+
    Reg#(Bool) all_cells_complete <- mkReg(False);
 
    Stmt tactic_sequence =
       seq
 	 all_cells_complete <= True;
       endseq;
-   
+
    FSM controller <- mkFSM(tactic_sequence);
-      
+
    method Action startSolver();
-      controller.start();	      
+      controller.start();
    endmethod: startSolver
-   
+
    method Bool done();
       return (controller.done());
    endmethod: done

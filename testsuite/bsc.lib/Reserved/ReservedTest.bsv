@@ -25,7 +25,7 @@ module sysReservedTest();
    Reg#(TestReserved) t1 <- mkReg(unpack(0));
    Reg#(TestZero)     t2 <- mkReg(unpack(0));
    Reg#(TestOne)      t3 <- mkReg(unpack(0));
-   
+
    Stmt test =
    seq
       delay(10);
@@ -50,7 +50,7 @@ module sysReservedTest();
       t3 <= unpack(16'hAAAA);
       $display("%x", t3);
    endseq;
-   
+
    mkAutoFSM(test);
-   
+
 endmodule

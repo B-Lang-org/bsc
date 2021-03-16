@@ -22,13 +22,13 @@ module sysTestStepCounter(Empty);
       $finish(0);
   endrule
 
-  rule test (True); 
+  rule test (True);
      $display("Cycle: %0d Value: %0d", cycles, test_counter.value);
   endrule
 
   // triggers counting at certain cycles
   rule count (True);
-    case (cycles) 
+    case (cycles)
       0,2,3,5,7: test_counter.count();
       default: noAction;
     endcase
@@ -36,7 +36,7 @@ module sysTestStepCounter(Empty);
 
 endmodule
 
-// alternative: separately synthesizing the step counter 
+// alternative: separately synthesizing the step counter
 // The always_ready attribute is used to drop the ready signals
 // since they are always True anyway
 (* synthesize, always_ready *)

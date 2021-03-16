@@ -10,7 +10,7 @@ import ListN::*;
 
 // Type definition for a Wallace adder that takes l m-bit numbers and adds
 // them to produce an n-bit result
-// Remember (Add m k n) - i.e. at least as many bits in the result as in the 
+// Remember (Add m k n) - i.e. at least as many bits in the result as in the
 // starting ListN
 typedef Server#(ListN#(l , Bit#(m)), Bit#(n)) WallaceServer#(type l, type m, type n);
 

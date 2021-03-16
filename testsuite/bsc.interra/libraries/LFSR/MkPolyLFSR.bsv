@@ -13,7 +13,7 @@ endmodule: mkDesign_MkPolyLFSR
 
 function Bit#(64) next_value (Bit#(64) in_data,Bit#(8) pattern);
 Bit#(64) value;
-     if (in_data[0:0] == 1'b1) 
+     if (in_data[0:0] == 1'b1)
 	    value = ((in_data >> 1) ^ {56'd0,pattern});
 	 else
 	    value = (in_data >> 1);
@@ -38,11 +38,11 @@ module mkTestbench_MkPolyLFSR();
      exp_value <= next_value(sr.value,8'h8E);
 	 if (exp_value != sr.value)
 	   begin
-         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value,sr.value); 
+         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value,sr.value);
          fail <= True;
 	   end
 	 else
-       $display("Data Matched counter = %d Value = %h",counter,sr.value); 
+       $display("Data Matched counter = %d Value = %h",counter,sr.value);
 	 sr.next;
   endrule
 
@@ -54,11 +54,11 @@ module mkTestbench_MkPolyLFSR();
      exp_value1 <= next_value(sr.value,8'h8E);
 	 if (exp_value1 != sr.value)
 	   begin
-         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value1,sr.value); 
+         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value1,sr.value);
          fail <= True;
 	   end
 	 else
-       $display("Data Matched counter = %d Value = %h",counter,sr.value); 
+       $display("Data Matched counter = %d Value = %h",counter,sr.value);
 	 sr.next;
   endrule
 

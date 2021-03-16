@@ -9,7 +9,7 @@ module [BoolModule] mkBoolReg(Reg#(Bool));
    return r;
 endmodule
 
-                     
+
 module [Module] exposeBool#(BoolModule#(i) mkI)(Tuple2#(Bool,i));
    IWithCollection#(Bool, i) ecs();
    exposeCollection#(mkI) the_dut(ecs);
@@ -22,7 +22,7 @@ module [Module] exposeBool#(BoolModule#(i) mkI)(Tuple2#(Bool,i));
    return(tuple2(res,dut));
 endmodule
 
-        
+
 module [BoolModule] mkTest(Empty);
   Reg#(Bool) a();
   mkBoolReg i_a(a);

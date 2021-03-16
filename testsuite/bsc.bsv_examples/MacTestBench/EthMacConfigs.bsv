@@ -62,7 +62,7 @@ module mkEthMacConfigs (EthMacConfigs);
 	 addr_gen.cntrl.init();
       endmethod
    endinterface
-   
+
    method _read() if (initialized);
       return EthMacConfigsStruct {addr:          addr,
 				  promiscuous:   promiscuous,
@@ -74,7 +74,7 @@ module mkEthMacConfigs (EthMacConfigs);
 				  backoff_limit: backoff_limit
 				  };
    endmethod
-   
+
 
 endmodule
 

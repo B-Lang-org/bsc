@@ -8,7 +8,7 @@ module mkCommentOnBindInAction();
       let v <- i.get;
       r <= v;
    endrule
-   
+
 endmodule
 
 interface IFC;

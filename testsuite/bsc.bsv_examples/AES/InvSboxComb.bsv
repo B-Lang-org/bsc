@@ -6,7 +6,7 @@ endinterface
 
 (* synthesize, always_ready, always_enabled *)
 module mkInvSboxRom ( InvSboxRom );
-   method Bit#(8) read( Bit#(8) addr ) = 
+   method Bit#(8) read( Bit#(8) addr ) =
       case (addr)
          0: return 8'h52;
          1: return 8'h09;
@@ -265,5 +265,5 @@ module mkInvSboxRom ( InvSboxRom );
          254: return 8'h0c;
          255: return 8'h7d;
       endcase;
-      
+
 endmodule

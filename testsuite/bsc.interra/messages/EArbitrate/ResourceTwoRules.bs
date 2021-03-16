@@ -9,7 +9,7 @@
 
 -- Description: This testcase triggers a "Rules Arbitration" Warning (EArbitrate)
 
--- Error Message :  bsc -verilog -resource-simple -g sysResourceTwoRules ResourceTwoRules.bs 
+-- Error Message :  bsc -verilog -resource-simple -g sysResourceTwoRules ResourceTwoRules.bs
 -- bsc: Compilation warnings:
 -- Unknown position, Arbitrating between `Contender__1' and `Contender__2'.
 -- "ResourceTwoRules.bs", line 42, column 8, `a.sub' needs more than 5 ports to use `a.sub 0 "ResourceTwoRules.bs", line 42, column 8', `a.sub 1 "ResourceTwoRules.bs", line 42, column 8', `a.sub 2 "ResourceTwoRules.bs", line 42, column 8', `a.sub 3 "ResourceTwoRules.bs", line 42, column 8', `a.sub 4 "ResourceTwoRules.bs", line 42, column 8', and `a.sub 5 "ResourceTwoRules.bs", line 42, column 8'.
@@ -41,5 +41,5 @@ sysResourceTwoRules =
 			   	       ==> $display (a.sub n)
 	a :: RegFile Indx Value
 	a <- mkRegFile (fromInteger lo) (fromInteger hi)
-        addRules $ foldr1 (<+>) $ map (mkRule a) $ map fromInteger $ upto lo hi 
+        addRules $ foldr1 (<+>) $ map (mkRule a) $ map fromInteger $ upto lo hi
 

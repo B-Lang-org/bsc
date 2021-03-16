@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 FindFIFO3
- 
+
 This file shows an alternate way to define the FindFIFO.
 Instead of the find function dynamically taking an argument,
 it seems more intuitive to provide the find function as

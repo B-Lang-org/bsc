@@ -33,7 +33,7 @@ rule always_fire (True);
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
+
 
    rule read_value (counter < 9 || counter > 15 );
      Bit #(8) first <- tpl_1(rx_datafifo).get;

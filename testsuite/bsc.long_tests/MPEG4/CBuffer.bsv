@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
 /* Frame Buffer.
-   Consists of Two RAMs. 
+   Consists of Two RAMs.
    When you write into one of the rams, you read from the other.
 */
 
@@ -28,7 +28,7 @@ endinterface : CBuffer_IFC
 typedef enum {StateA, StateB} States
     deriving (Eq, Bits);
 
-typedef struct 
+typedef struct
     { States    x;
       RamAddr_t y;
     } BlkCnt
@@ -43,25 +43,25 @@ module mkCBuffer (CBuffer_IFC);
    // instantiate both RAMS
    MYRegFile ram1 <- mkRS;
    MYRegFile ram2 <- mkRS;
-  
+
    Reg#(BlkCnt) write_counter() ;
    mkConfigReg#(BlkCnt {x : StateA, y: 0}) i_write_counter(write_counter);
-   
+
    Reg#(BlkCnt) read_counter() ;
    mkConfigReg#(BlkCnt {x : StateB, y: 0}) i_read_counter(read_counter);
-   
+
    RWire#(Tuple3#(Bit#(1),RamAddr_t,RamData_t)) wr_data();
    mkRWire i_wr_data(wr_data) ;
-   
+
    RWire#(Tuple2#(Bit#(1),RamAddr_t)) rd_data();
    mkRWire i_rd_data(rd_data) ;
-   
+
    RWire#(void) clear_reg();
    mkRWire i_clear_reg(clear_reg) ;
-   
+
    RWire#(Bit#(1)) sent_reg();
    mkRWire i_sent_reg(sent_reg) ;
-   
+
    Reg#(RamData_t) data_read_reg() ;
    mkReg#(0) i_data_read_reg(data_read_reg) ;
 
@@ -92,7 +92,7 @@ module mkCBuffer (CBuffer_IFC);
                        ram1.upd(addr,dta);
 	               //$display("writing ram1 addr = %d data = %h",addr,dta);
 		    end
-        end 
+        end
    endrule
 
    rule writeRAMB ((write_counter.x == StateB) && (clear_reg.wget == Nothing));
@@ -103,7 +103,7 @@ module mkCBuffer (CBuffer_IFC);
                        ram2.upd(addr,dta);
 	               //$display("writing ram2 addr = %d data = %h",addr,dta);
 		    end
-        end 
+        end
    endrule
 
    rule clearRAMAB (clear_reg.wget != Nothing);
@@ -124,7 +124,7 @@ module mkCBuffer (CBuffer_IFC);
 	       end
 	    end
    endrule
-   
+
    rule readRAMB (write_counter.x == StateB) ;
       if (rd_data.wget matches tagged Just {.s,.addr} )
 	    begin
@@ -147,10 +147,10 @@ module mkCBuffer (CBuffer_IFC);
      if (read_counter.y == 63)
 	   rd_mem_flag <= False;
      read_counter.y <= read_counter.y + 1;
-     tmp_out_data = ram1.sub2(read_counter.y);     
+     tmp_out_data = ram1.sub2(read_counter.y);
      data_read_reg <= tmp_out_data;
 	 //$display("reading ram1 addr = %d data = %h",read_counter.y,tmp_out_data);
-     //data_read_reg <= ram1.sub2(read_counter.y);     
+     //data_read_reg <= ram1.sub2(read_counter.y);
    endrule
 
    //rule alwaysreadRAMB ((write_counter.x == StateA) && rd_mem_flag);
@@ -163,19 +163,19 @@ module mkCBuffer (CBuffer_IFC);
      if (read_counter.y == 63)
 	   rd_mem_flag <= False;
      read_counter.y <= read_counter.y + 1;
-     tmp_out_data = ram2.sub2(read_counter.y);     
+     tmp_out_data = ram2.sub2(read_counter.y);
      data_read_reg <= tmp_out_data;
 	 //$display("reading ram2 addr = %d data = %h",read_counter.y,tmp_out_data);
-     //data_read_reg <= ram2.sub2(read_counter.y);     
+     //data_read_reg <= ram2.sub2(read_counter.y);
    endrule
 
    method Action write_d (a);
      wr_data.wset (a) ;
-   endmethod : write_d 
+   endmethod : write_d
 
    method Action read_d (Tuple2#(Bit#(1),RamAddr_t) a);
      rd_data.wset (a) ;
-   endmethod : read_d 
+   endmethod : read_d
 
    method Action clear_d (s);
      clear_reg.wset(?);
@@ -186,19 +186,19 @@ module mkCBuffer (CBuffer_IFC);
    endmethod : sent_output_data
 
   method RamData_t wr_data_read;
-    wr_data_read = out_data; 
+    wr_data_read = out_data;
   endmethod : wr_data_read
 
   method RamData_t data_out;
-    data_out = data_read_reg; 
+    data_out = data_read_reg;
   endmethod : data_out
 
   method Bit#(1)   data_valid;
-    data_valid = valid; 
+    data_valid = valid;
   endmethod : data_valid
 
   method Bool busy;
-    busy = rd_mem_flag; 
+    busy = rd_mem_flag;
   endmethod : busy
 
 endmodule: mkCBuffer

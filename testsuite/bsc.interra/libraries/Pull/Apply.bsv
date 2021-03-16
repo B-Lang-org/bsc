@@ -25,13 +25,13 @@ function Bit #(8) f (Bit #(8) in_data);
       endcase
     return sqrt;
 endfunction : f
-       
 
-       
+
+
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;
@@ -50,13 +50,13 @@ endmodule : mkDesign_Apply
 module mkTestbench_Apply ();
     Pull #(Bit #(8)) dut();
     mkDesign_Apply the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
         Bit #(8) data_stream <- dut.pull;
@@ -66,7 +66,7 @@ module mkTestbench_Apply ();
     endrule
 
     rule endsim (counter == 15);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

@@ -2,8 +2,8 @@
 // for a name already declared as an input reset
 
 import "BVI" MOD =
-module mkMod ( Reset aRst, 
-	       Reset bRst, 
+module mkMod ( Reset aRst,
+	       Reset bRst,
 	       Empty ifcout ) ;
 
    default_clock no_clock ;

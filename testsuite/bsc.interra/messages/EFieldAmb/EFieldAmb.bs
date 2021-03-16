@@ -17,4 +17,4 @@ package EFieldAmb () where
 struct My_pair1 = {fst :: Integer; snd :: Integer}
 
 first :: a -> Integer
-first x = (x.fst) 
+first x = (x.fst)

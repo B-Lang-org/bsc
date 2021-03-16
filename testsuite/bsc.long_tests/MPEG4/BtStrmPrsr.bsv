@@ -1,5 +1,5 @@
 /* Bit Stream Parser parses the MPEG4 stream and performs VLD,
-   inverse scan,inverse quantisation , AC/DC prediction , 
+   inverse scan,inverse quantisation , AC/DC prediction ,
    MV  prediction in the MPEG-4 decoder.
 */
 
@@ -678,36 +678,36 @@ module mkBtStrmPrsr (BtStrmPrsr_IFC);
   Bit#(12) byteOffset = (blk_cnt < 4) ? 0 :
                          (blk_cnt == 4) ? ((mb_width == 11) ? 12'd1320 : 12'd2640) :
 						                  ((mb_width == 11) ? 12'd1650 : 12'd3300) ;
-  Bit#(12) address = (blk_cnt < 4) ? 
-                     (zeroExtend(tmp_vop_mb_num_y[0]) * 2*tmp_mb_width  + tmp_vop_mb_num_x)*12'd30 : 
-                     (zeroExtend(tmp_vop_mb_num_y[0]) * tmp_mb_width  + tmp_vop_mb_num_x)*12'd15 ; 
-  Bit#(12) address_luma = (blk_cnt < 2) ? (address + zeroExtend(blk_cnt)*12'd15) : 
+  Bit#(12) address = (blk_cnt < 4) ?
+                     (zeroExtend(tmp_vop_mb_num_y[0]) * 2*tmp_mb_width  + tmp_vop_mb_num_x)*12'd30 :
+                     (zeroExtend(tmp_vop_mb_num_y[0]) * tmp_mb_width  + tmp_vop_mb_num_x)*12'd15 ;
+  Bit#(12) address_luma = (blk_cnt < 2) ? (address + zeroExtend(blk_cnt)*12'd15) :
                            (address + (2*tmp_mb_width + zeroExtend(blk_cnt[0]))*12'd15);
   Bit#(12) address_chroma = address + byteOffset;
   Bit#(12) current_address = (blk_cnt < 4) ? address_luma : address_chroma;
 
   Bit#(10) dc_scaler =  func_get_dc_scaler(short_video_header,blk_cnt,running_QP[9:0]);
 
-  Bit#(6)  tmp_cbuff_addr = (isIntra && (ac_pred_flag == 1) && acpred_flag) ? 
-	                             ((vertical_dir) ?  
+  Bit#(6)  tmp_cbuff_addr = (isIntra && (ac_pred_flag == 1) && acpred_flag) ?
+	                             ((vertical_dir) ?
 								    inverse_scan_alternate_vertical(dct_coeff_cnt) :
 	                                inverse_scan_alternate_horizontal(dct_coeff_cnt)) :
 	                           inverse_scan_zigzag(dct_coeff_cnt);
 
-  Bit#(8) weighting_matrix = isIntra ? 
-	         intra_quant_mat.sub(tmp_cbuff_addr) : 
+  Bit#(8) weighting_matrix = isIntra ?
+	         intra_quant_mat.sub(tmp_cbuff_addr) :
 			 non_intra_quant_mat.sub(tmp_cbuff_addr);
 
   Reg#(Bit#(12)) cbuff_data();
   mkReg#(0)      the_cbuff_data(cbuff_data);
 
-  Bit#(13) macroblock_num_width = ((video_object_layer_height + 15) >> 4 ) * 
+  Bit#(13) macroblock_num_width = ((video_object_layer_height + 15) >> 4 ) *
                                  ((video_object_layer_width + 15) >> 4 );
   Bit#(5)  mb_bit_width = decode_length(macroblock_num_width);
   Bit#(9)  mbNum = zeroExtend(mb_width)*zeroExtend(mb_num_y) + zeroExtend(mb_num_x);
 
-  Bit#(8) mv_offset_addr = (4*zeroExtend(vop_mb_num_y[0])*mb_width[7:0])  + 
-                           (2*zeroExtend(vop_mb_num_x)) + 
+  Bit#(8) mv_offset_addr = (4*zeroExtend(vop_mb_num_y[0])*mb_width[7:0])  +
+                           (2*zeroExtend(vop_mb_num_x)) +
 						   zeroExtend(update_cnt[0]);
   Bit#(8) mv_addr = (update_cnt < 2) ?  mv_offset_addr : (mv_offset_addr + mb_width[7:0]*2);
 
@@ -742,7 +742,7 @@ module mkBtStrmPrsr (BtStrmPrsr_IFC);
       if (addr == -1) return Invalid;
       else            return acdcPredBuffer.sub(addr);
    endfunction
-   
+
 // *************************************************
 // Start of block0
 // *************************************************
@@ -754,7 +754,7 @@ function Rules create_block0 ();
 					  (sysState == IDLE));
       if (host_datain.wget == Just(1))
 	 begin
-	    sysState <= START;	
+	    sysState <= START;
             vd_rd_reg <= 1'b1;
 	    $display("START detected");
 	 end
@@ -883,319 +883,319 @@ function Rules create_block1 ();
 	 $display("detect_video_object_layer_start_code2_1 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle1 ((videoSt == VIDEO_OBJECT_LAYER2_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER3; 
-	$display("wait_1_cycle0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle1 ((videoSt == VIDEO_OBJECT_LAYER2_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER3;
+	$display("wait_1_cycle0 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code3 (videoSt == VIDEO_OBJECT_LAYER3);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	byte_boundary <= byte_boundary + 1;
-    is_object_layer_identifier <= tmp[0]; 
-    sysState <= WAIT; 
+    is_object_layer_identifier <= tmp[0];
+    sysState <= WAIT;
     vd_rd_reg <= 1'b0;
-    videoSt  <= VIDEO_OBJECT_LAYER3_0; 
+    videoSt  <= VIDEO_OBJECT_LAYER3_0;
     byte_offset <= byte_offset - 1;
     $display("I'm in layer3 tmp = %h byte_offset = %d",tmp,byte_offset);
-    $display("detect_video_object_layer_start_code3 start code reg %h",start_code_reg); 
+    $display("detect_video_object_layer_start_code3 start code reg %h",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code3_0 (videoSt == VIDEO_OBJECT_LAYER3_0); 
-    if (is_object_layer_identifier == 1'b1) // IS_OBJECT_LAYER_IDETIFIER IS TRUE 
-	  begin 
-	    if (byte_offset < 7) 
-		  begin 
-		    if (sysState == WAIT) 
-			  videoSt  <= VIDEO_OBJECT_LAYER3_0_1; 
-			else 
-			  videoSt  <= VIDEO_OBJECT_LAYER3_1; 
-			sysState <= START; 
-			vd_rd_reg <= 1'b1; 
-			byte_offset <= byte_offset + 8; 
-		  end 
+  rule detect_video_object_layer_start_code3_0 (videoSt == VIDEO_OBJECT_LAYER3_0);
+    if (is_object_layer_identifier == 1'b1) // IS_OBJECT_LAYER_IDETIFIER IS TRUE
+	  begin
+	    if (byte_offset < 7)
+		  begin
+		    if (sysState == WAIT)
+			  videoSt  <= VIDEO_OBJECT_LAYER3_0_1;
+			else
+			  videoSt  <= VIDEO_OBJECT_LAYER3_1;
+			sysState <= START;
+			vd_rd_reg <= 1'b1;
+			byte_offset <= byte_offset + 8;
+		  end
 		else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
-		        byte_offset <= byte_offset + 8; 
-		      end 
-		    else 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
+		        byte_offset <= byte_offset + 8;
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= VIDEO_OBJECT_LAYER3_1; 
-          end 
-	  end 
-    else 
-	  begin 
-	    if (byte_offset < 4) 
-		  begin 
-		    if (sysState == WAIT) 
-			  videoSt  <= VIDEO_OBJECT_LAYER3_0_2; 
-			else 
-			  videoSt  <= VIDEO_OBJECT_LAYER3_2; 
-			sysState <= START; 
-			vd_rd_reg <= 1'b1; 
-			byte_offset <= byte_offset + 8; 
-		  end 
+            videoSt  <= VIDEO_OBJECT_LAYER3_1;
+          end
+	  end
+    else
+	  begin
+	    if (byte_offset < 4)
+		  begin
+		    if (sysState == WAIT)
+			  videoSt  <= VIDEO_OBJECT_LAYER3_0_2;
+			else
+			  videoSt  <= VIDEO_OBJECT_LAYER3_2;
+			sysState <= START;
+			vd_rd_reg <= 1'b1;
+			byte_offset <= byte_offset + 8;
+		  end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
-		        byte_offset <= byte_offset + 8; 
-		      end 
-		    else 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
+		        byte_offset <= byte_offset + 8;
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= VIDEO_OBJECT_LAYER3_2; 
-          end 
-	  end 
-	$display("I'm in layer3_0 byte_offset = %d",byte_offset); 
-	$display("detect_video_object_layer_start_code3_0 start_code_reg %h ",start_code_reg); 
+            videoSt  <= VIDEO_OBJECT_LAYER3_2;
+          end
+	  end
+	$display("I'm in layer3_0 byte_offset = %d",byte_offset);
+	$display("detect_video_object_layer_start_code3_0 start_code_reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle2 ((videoSt == VIDEO_OBJECT_LAYER3_0_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER3_1; 
-	$display("wait_1_cycle2 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle2 ((videoSt == VIDEO_OBJECT_LAYER3_0_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER3_1;
+	$display("wait_1_cycle2 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle3 ((videoSt == VIDEO_OBJECT_LAYER3_0_2) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER3_2; 
-	$display("wait_1_cycle3 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle3 ((videoSt == VIDEO_OBJECT_LAYER3_0_2) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER3_2;
+	$display("wait_1_cycle3 start code reg %h ",start_code_reg);
   endrule
 
   rule is_object_layer_idetifier_true (videoSt == VIDEO_OBJECT_LAYER3_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,7);
-    video_object_layer_verid <= tmp[6:3]; 
-	video_object_layer_priority <= tmp[2:0]; 
+    video_object_layer_verid <= tmp[6:3];
+	video_object_layer_priority <= tmp[2:0];
 	byte_boundary <= byte_boundary + 7;
-	if (byte_offset < 11) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER3_0_2; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER3_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset + 8 - 7; 
-	  end 
+	if (byte_offset < 11)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER3_0_2;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER3_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset + 8 - 7;
+	  end
 	else
-      begin 
-	    if (sysState == WAIT) 
-		  begin 
-		    byte_offset <= byte_offset - 7; 
-			videoSt  <= VIDEO_OBJECT_LAYER3_2; 
-		  end 
-		else 
-		  begin 
-		    byte_offset <= byte_offset + 8 - 7;
-            videoSt  <= VIDEO_OBJECT_LAYER3_2; 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == WAIT)
+		  begin
+		    byte_offset <= byte_offset - 7;
+			videoSt  <= VIDEO_OBJECT_LAYER3_2;
 		  end
-      end 
-    $display("I'm in is_object_layer_idetifier_true tmp = %h byte_offset = %d",tmp,byte_offset); 
-	$display("detect_video_object_layer_start_code3_1 start_code_reg %h ",start_code_reg); 
+		else
+		  begin
+		    byte_offset <= byte_offset + 8 - 7;
+            videoSt  <= VIDEO_OBJECT_LAYER3_2;
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
+		  end
+      end
+    $display("I'm in is_object_layer_idetifier_true tmp = %h byte_offset = %d",tmp,byte_offset);
+	$display("detect_video_object_layer_start_code3_1 start_code_reg %h ",start_code_reg);
   endrule
 
   rule is_object_layer_idetifier_false (videoSt == VIDEO_OBJECT_LAYER3_2);
-    Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,4); 
-	aspect_ratio_info <= tmp[3:0]; 
+    Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,4);
+	aspect_ratio_info <= tmp[3:0];
 	byte_boundary <= byte_boundary + 4;
-    if (tmp[3:0] == eXTENDED_PAR) 
-	  begin 
-	    if (byte_offset < 12) 
-		  begin 
-		    if (sysState == WAIT) 
-			  videoSt  <= VIDEO_OBJECT_LAYER4_0_1; 
-			else 
-			  videoSt  <= VIDEO_OBJECT_LAYER4_1; 
-			byte_offset <= byte_offset + 8 - 4; 
-			sysState <= START; 
-			vd_rd_reg <= 1'b1; 
-		  end 
+    if (tmp[3:0] == eXTENDED_PAR)
+	  begin
+	    if (byte_offset < 12)
+		  begin
+		    if (sysState == WAIT)
+			  videoSt  <= VIDEO_OBJECT_LAYER4_0_1;
+			else
+			  videoSt  <= VIDEO_OBJECT_LAYER4_1;
+			byte_offset <= byte_offset + 8 - 4;
+			sysState <= START;
+			vd_rd_reg <= 1'b1;
+		  end
 		else
-		  begin 
+		  begin
 		    if (sysState == START)
 			  begin
-			    vd_rd_reg <= 1'b0; 
-			    byte_offset <= byte_offset + 8 -4 ; 
-			    sysState <= WAIT; 
+			    vd_rd_reg <= 1'b0;
+			    byte_offset <= byte_offset + 8 -4 ;
+			    sysState <= WAIT;
 			  end
 			 else
-			    byte_offset <= byte_offset - 4 ; 
-			videoSt  <= VIDEO_OBJECT_LAYER4_1; 
-		  end 
-	  end 
-    else 
+			    byte_offset <= byte_offset - 4 ;
+			videoSt  <= VIDEO_OBJECT_LAYER4_1;
+		  end
+	  end
+    else
 	  begin
-	    if (byte_offset < 5) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER4_1_1; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER4_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset <= byte_offset + 8 - 4; 
-	      end 
+	    if (byte_offset < 5)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER4_1_1;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER4_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset <= byte_offset + 8 - 4;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    vd_rd_reg <= 1'b0; 
-		        byte_offset <= byte_offset +8 - 4; 
-			    sysState <= WAIT; 
-		      end 
-		    else 
+          begin
+	        if (sysState == START)
+		      begin
+			    vd_rd_reg <= 1'b0;
+		        byte_offset <= byte_offset +8 - 4;
+			    sysState <= WAIT;
+		      end
+		    else
 		      byte_offset <= byte_offset - 4;
-            videoSt  <= VIDEO_OBJECT_LAYER4_2; 
+            videoSt  <= VIDEO_OBJECT_LAYER4_2;
 	       end
-	    end 
-    $display("I'm in is_object_layer_idetifier_false tmp = %h byte_offset = %d",tmp,byte_offset); 
-	$display("detect_video_object_layer_start_code3_2 %h ",start_code_reg); 
+	    end
+    $display("I'm in is_object_layer_idetifier_false tmp = %h byte_offset = %d",tmp,byte_offset);
+	$display("detect_video_object_layer_start_code3_2 %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle4 ((videoSt == VIDEO_OBJECT_LAYER4_0_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER4_1; 
-	$display("wait_1_cycle4 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle4 ((videoSt == VIDEO_OBJECT_LAYER4_0_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER4_1;
+	$display("wait_1_cycle4 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle5 ((videoSt == VIDEO_OBJECT_LAYER4_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER4_2; 
-	$display("wait_1_cycle5 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle5 ((videoSt == VIDEO_OBJECT_LAYER4_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER4_2;
+	$display("wait_1_cycle5 start code reg %h ",start_code_reg);
   endrule
-  
+
   rule detect_video_object_layer_start_code4_1 (videoSt == VIDEO_OBJECT_LAYER4_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	par_width <= tmp[7:0];
-	//if (byte_offset < 16) 
-	  //begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER4_1_2; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER4_1_3; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset ; 
-	  //end 
+	//if (byte_offset < 16)
+	  //begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER4_1_2;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER4_1_3;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset ;
+	  //end
 	  /*
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 8; 
-        videoSt  <= VIDEO_OBJECT_LAYER4_1_3; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 8;
+        videoSt  <= VIDEO_OBJECT_LAYER4_1_3;
+      end
 	  */
   endrule
 
-  rule wait_1_cycle6 ((videoSt == VIDEO_OBJECT_LAYER4_1_2) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER4_1_3; 
-	$display("wait_1_cycle6 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle6 ((videoSt == VIDEO_OBJECT_LAYER4_1_2) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER4_1_3;
+	$display("wait_1_cycle6 start code reg %h ",start_code_reg);
   endrule
-  
+
 
   rule detect_video_object_layer_start_code4_1_3 (videoSt == VIDEO_OBJECT_LAYER4_1_3);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	par_heigth <= tmp[7:0];
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER4_2_1; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER4_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset ; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER4_2_1;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER4_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 8; 
-        videoSt  <= VIDEO_OBJECT_LAYER4_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 8;
+        videoSt  <= VIDEO_OBJECT_LAYER4_2;
+      end
   endrule
 
-  rule wait_1_cycle7 ((videoSt == VIDEO_OBJECT_LAYER4_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER4_2; 
-	$display("wait_1_cycle7 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle7 ((videoSt == VIDEO_OBJECT_LAYER4_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER4_2;
+	$display("wait_1_cycle7 start code reg %h ",start_code_reg);
   endrule
-  
+
 
   rule detect_video_object_layer_start_code4 (videoSt == VIDEO_OBJECT_LAYER4_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
-    vol_control_parameters <= tmp[0]; 
+    vol_control_parameters <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-    if (tmp[0] == 1'b1) 
-	  begin 
-	    if (byte_offset < 5) 
-		  begin 
-		    if (sysState == WAIT) 
-			  videoSt  <= VIDEO_OBJECT_LAYER5_0_1; 
-			else 
-			  videoSt  <= VIDEO_OBJECT_LAYER5_1; 
-			byte_offset <= byte_offset + 8 - 1; 
-			sysState <= START; 
-			vd_rd_reg <= 1'b1; 
-		  end 
+    if (tmp[0] == 1'b1)
+	  begin
+	    if (byte_offset < 5)
+		  begin
+		    if (sysState == WAIT)
+			  videoSt  <= VIDEO_OBJECT_LAYER5_0_1;
+			else
+			  videoSt  <= VIDEO_OBJECT_LAYER5_1;
+			byte_offset <= byte_offset + 8 - 1;
+			sysState <= START;
+			vd_rd_reg <= 1'b1;
+		  end
 		else
-		  begin 
+		  begin
 		    if (sysState == START)
 			  begin
-			    vd_rd_reg <= 1'b0; 
-			    byte_offset <= byte_offset + 8 -1 ; 
-			    sysState <= WAIT; 
+			    vd_rd_reg <= 1'b0;
+			    byte_offset <= byte_offset + 8 -1 ;
+			    sysState <= WAIT;
 			  end
 			 else
-			    byte_offset <= byte_offset - 1 ; 
-			videoSt  <= VIDEO_OBJECT_LAYER5_1; 
-		  end 
-	  end 
-    else 
+			    byte_offset <= byte_offset - 1 ;
+			videoSt  <= VIDEO_OBJECT_LAYER5_1;
+		  end
+	  end
+    else
 	  begin
-	    if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_1_1; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset <= byte_offset + 8 - 1; 
-	      end 
+	    if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER5_1_1;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER5_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset <= byte_offset + 8 - 1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    vd_rd_reg <= 1'b0; 
-		        byte_offset <= byte_offset +8 - 1; 
-			    sysState <= WAIT; 
-		      end 
-		    else 
+          begin
+	        if (sysState == START)
+		      begin
+			    vd_rd_reg <= 1'b0;
+		        byte_offset <= byte_offset +8 - 1;
+			    sysState <= WAIT;
+		      end
+		    else
 		      byte_offset <= byte_offset - 1;
-            videoSt  <= VIDEO_OBJECT_LAYER5_2; 
+            videoSt  <= VIDEO_OBJECT_LAYER5_2;
 	       end
-	    end 
+	    end
     $display("I'm in layer4 tmp = %h byte_offset = %d",tmp,byte_offset);
-    $display("detect_video_object_layer_start_code4_2 start_code_reg %h ",start_code_reg); 
+    $display("detect_video_object_layer_start_code4_2 start_code_reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle8 ((videoSt == VIDEO_OBJECT_LAYER5_0_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_1; 
-	$display("wait_1_cycle8 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle8 ((videoSt == VIDEO_OBJECT_LAYER5_0_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_1;
+	$display("wait_1_cycle8 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_1 (videoSt == VIDEO_OBJECT_LAYER5_1);
@@ -1206,151 +1206,151 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 4;
 	if (tmp[0] == 1)  // VBV_PARAMETERS is SET
 	  begin
-	    if (byte_offset < 12) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_1_1_1; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_1_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -4; 
-	      end 
+	    if (byte_offset < 12)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER5_1_1_1;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER5_1_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -4;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 4; 
-            videoSt  <= VIDEO_OBJECT_LAYER5_1_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 4;
+            videoSt  <= VIDEO_OBJECT_LAYER5_1_2;
+          end
 	  end
 	else
 	  begin
-	    if (byte_offset < 6) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_2_1; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -4; 
-	      end 
+	    if (byte_offset < 6)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER5_2_1;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER5_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -4;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 4; 
-            videoSt  <= VIDEO_OBJECT_LAYER5_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 4;
+            videoSt  <= VIDEO_OBJECT_LAYER5_2;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle9 ((videoSt == VIDEO_OBJECT_LAYER5_1_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_1_2; 
-	$display("wait_1_cycle8 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle9 ((videoSt == VIDEO_OBJECT_LAYER5_1_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_1_2;
+	$display("wait_1_cycle8 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_1_2 (videoSt == VIDEO_OBJECT_LAYER5_1_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	first_half_bit_rate <= zeroExtend(tmp[7:0]);
-	if (sysState == WAIT) 
-	  videoSt  <= VIDEO_OBJECT_LAYER5_1_2_1; 
-	else 
-	  videoSt  <= VIDEO_OBJECT_LAYER5_1_3; 
-	sysState <= START; 
-	vd_rd_reg <= 1'b1; 
-	byte_offset <= byte_offset ; 
+	if (sysState == WAIT)
+	  videoSt  <= VIDEO_OBJECT_LAYER5_1_2_1;
+	else
+	  videoSt  <= VIDEO_OBJECT_LAYER5_1_3;
+	sysState <= START;
+	vd_rd_reg <= 1'b1;
+	byte_offset <= byte_offset ;
   endrule
 
-  rule wait_1_cycle10 ((videoSt == VIDEO_OBJECT_LAYER5_1_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_1_3; 
-	$display("wait_1_cycle10 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle10 ((videoSt == VIDEO_OBJECT_LAYER5_1_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_1_3;
+	$display("wait_1_cycle10 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_1_3 (videoSt == VIDEO_OBJECT_LAYER5_1_3);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	first_half_bit_rate <= {first_half_bit_rate[7:0],tmp[6:0]};
 	marker_bit <= tmp[0];
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_4; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_4;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_4 (videoSt == VIDEO_OBJECT_LAYER5_1_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	latter_half_bit_rate <= zeroExtend(tmp[7:0]);
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_5; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_5;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_5 (videoSt == VIDEO_OBJECT_LAYER5_1_5);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	latter_half_bit_rate <= {latter_half_bit_rate[7:0],tmp[6:0]};
 	marker_bit <= tmp[0];
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_6; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_6;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_6 (videoSt == VIDEO_OBJECT_LAYER5_1_6);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	first_half_vbv_buffer_size <= zeroExtend(tmp[7:0]);
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_7; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_7;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_7 (videoSt == VIDEO_OBJECT_LAYER5_1_7);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	first_half_vbv_buffer_size <= {first_half_vbv_buffer_size[7:0],tmp[6:0]};
 	marker_bit <= tmp[0];
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_8; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_8;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_8 (videoSt == VIDEO_OBJECT_LAYER5_1_8);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	latter_half_vbv_buffer_size <= tmp[7:5];
 	first_half_vbv_occupancy <= zeroExtend(tmp[4:0]);
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_9; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_9;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_9 (videoSt == VIDEO_OBJECT_LAYER5_1_9);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,7);
 	first_half_vbv_occupancy <= {first_half_vbv_occupancy[4:0],tmp[6:1]};
 	marker_bit <= tmp[0];
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_10; 
-	byte_offset <= byte_offset + 1; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_10;
+	byte_offset <= byte_offset + 1;
 	byte_boundary <= byte_boundary + 7;
   endrule
 
   rule detect_video_object_layer_start_code5_1_10 (videoSt == VIDEO_OBJECT_LAYER5_1_10);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	latter_half_vbv_occupancy <= zeroExtend(tmp[7:0]);
-	videoSt  <= VIDEO_OBJECT_LAYER5_1_11; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_1_11;
+	byte_offset <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_1_11 (videoSt == VIDEO_OBJECT_LAYER5_1_11);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	latter_half_vbv_occupancy <= {latter_half_vbv_occupancy[7:0],tmp[7:1]} ;
 	marker_bit <= tmp[0];
-	videoSt  <= VIDEO_OBJECT_LAYER5_2; 
-	byte_offset <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_2;
+	byte_offset <= byte_offset ;
   endrule
 
-  rule wait_1_cycle11 ((videoSt == VIDEO_OBJECT_LAYER5_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_2; 
-	$display("wait_1_cycle11 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle11 ((videoSt == VIDEO_OBJECT_LAYER5_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_2;
+	$display("wait_1_cycle11 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_2 (videoSt == VIDEO_OBJECT_LAYER5_2);
@@ -1359,149 +1359,149 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 2;
 	if ((tmp[1:0] == gRAYSCALE) && (video_object_layer_verid != 4'b0001))
 	  begin
-	    if (byte_offset < 6) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_2_2_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_2_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -2; 
-	      end 
+	    if (byte_offset < 6)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER5_2_2_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER5_2_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -2;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 2;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 2; 
-            videoSt  <= VIDEO_OBJECT_LAYER5_2_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 2;
+            videoSt  <= VIDEO_OBJECT_LAYER5_2_2;
+          end
 	  end
 	else
 	  begin
-	    if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_3_1; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER5_3; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -2; 
-	      end 
+	    if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER5_3_1;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER5_3;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -2;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 2;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 2; 
-            videoSt  <= VIDEO_OBJECT_LAYER5_3; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 2;
+            videoSt  <= VIDEO_OBJECT_LAYER5_3;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle12 ((videoSt == VIDEO_OBJECT_LAYER5_2_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_2_2; 
-	$display("wait_1_cycle12 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle12 ((videoSt == VIDEO_OBJECT_LAYER5_2_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_2_2;
+	$display("wait_1_cycle12 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_2_2 (videoSt == VIDEO_OBJECT_LAYER5_2_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,4);
 	video_object_layer_shape_extension <= tmp[3:0];
 	byte_boundary <= byte_boundary + 4;
-	if (byte_offset < 5) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER5_3_1; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER5_3; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -4; 
-	  end 
+	if (byte_offset < 5)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER5_3_1;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER5_3;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -4;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 4;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 4; 
-        videoSt  <= VIDEO_OBJECT_LAYER5_3; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 4;
+        videoSt  <= VIDEO_OBJECT_LAYER5_3;
+      end
   endrule
 
-  rule wait_1_cycle13 ((videoSt == VIDEO_OBJECT_LAYER5_3_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_3; 
-	$display("wait_1_cycle13 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle13 ((videoSt == VIDEO_OBJECT_LAYER5_3_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_3;
+	$display("wait_1_cycle13 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_3 (videoSt == VIDEO_OBJECT_LAYER5_3);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER5_4_1; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER5_4; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER5_4_1;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER5_4;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER5_4; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER5_4;
+      end
   endrule
 
-  rule wait_1_cycle14 ((videoSt == VIDEO_OBJECT_LAYER5_4_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_4; 
-	$display("wait_1_cycle14 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle14 ((videoSt == VIDEO_OBJECT_LAYER5_4_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_4;
+	$display("wait_1_cycle14 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_4 (videoSt == VIDEO_OBJECT_LAYER5_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	vop_time_increment_resolution <= zeroExtend(tmp[7:0]);
-	if (sysState == WAIT) 
-	  videoSt  <= VIDEO_OBJECT_LAYER5_5_1; 
-    else 
-	  videoSt  <= VIDEO_OBJECT_LAYER5_5; 
-	sysState <= START; 
-	vd_rd_reg <= 1'b1; 
-	byte_offset    <= byte_offset ; 
+	if (sysState == WAIT)
+	  videoSt  <= VIDEO_OBJECT_LAYER5_5_1;
+    else
+	  videoSt  <= VIDEO_OBJECT_LAYER5_5;
+	sysState <= START;
+	vd_rd_reg <= 1'b1;
+	byte_offset    <= byte_offset ;
   endrule
 
-  rule wait_1_cycle15 ((videoSt == VIDEO_OBJECT_LAYER5_5_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_5; 
-	$display("wait_1_cycle15 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle15 ((videoSt == VIDEO_OBJECT_LAYER5_5_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_5;
+	$display("wait_1_cycle15 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_5 (videoSt == VIDEO_OBJECT_LAYER5_5);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	vop_time_increment_resolution <= {vop_time_increment_resolution[7:0],tmp[7:0]};
-	videoSt  <= VIDEO_OBJECT_LAYER5_6; 
-	byte_offset    <= byte_offset ; 
+	videoSt  <= VIDEO_OBJECT_LAYER5_6;
+	byte_offset    <= byte_offset ;
   endrule
 
   rule detect_video_object_layer_start_code5_6 (videoSt == VIDEO_OBJECT_LAYER5_6);
@@ -1511,17 +1511,17 @@ function Rules create_block1 ();
 	fixed_vop_rate <= tmp[0];
 	byte_boundary <= byte_boundary + 2;
 	if (tmp[0] == 1'b1)  // FIXED VOP RATE is SET
-      videoSt  <= VIDEO_OBJECT_LAYER5_6_0; 
+      videoSt  <= VIDEO_OBJECT_LAYER5_6_0;
 	else
-      videoSt  <= VIDEO_OBJECT_LAYER6; 
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+      videoSt  <= VIDEO_OBJECT_LAYER6;
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - 2;
-      end 
-    else 
-	  byte_offset <= byte_offset - 2; 
+      end
+    else
+	  byte_offset <= byte_offset - 2;
   endrule
 
   rule detect_video_object_layer_start_code5_6_0 (videoSt == VIDEO_OBJECT_LAYER5_6_0);
@@ -1529,13 +1529,13 @@ function Rules create_block1 ();
 	  begin
 		if (byte_offset < fvti_num)
 		  begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset <= byte_offset +8 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER5_6_1_1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset <= byte_offset +8 ;
+            videoSt  <= VIDEO_OBJECT_LAYER5_6_1_1;
 		  end
 		else
-          videoSt  <= VIDEO_OBJECT_LAYER5_6_1; 
+          videoSt  <= VIDEO_OBJECT_LAYER5_6_1;
 	  end
 	else
 	  begin
@@ -1544,9 +1544,9 @@ function Rules create_block1 ();
 	  end
   endrule
 
-  rule wait_1_cycle16 ((videoSt == VIDEO_OBJECT_LAYER5_6_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER5_6_1; 
-	$display("wait_1_cycle16 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle16 ((videoSt == VIDEO_OBJECT_LAYER5_6_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER5_6_1;
+	$display("wait_1_cycle16 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code5_6_1 (videoSt == VIDEO_OBJECT_LAYER5_6_1);
@@ -1558,14 +1558,14 @@ function Rules create_block1 ();
 	  end
 	else
 	  begin
-        videoSt  <= VIDEO_OBJECT_LAYER5_6_2; 
-	    if (sysState == START) 
-	      begin 
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
+        videoSt  <= VIDEO_OBJECT_LAYER5_6_2;
+	    if (sysState == START)
+	      begin
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8;
-	      end 
-	    else 
+	      end
+	    else
 	      byte_offset <= byte_offset;
 	  end
   endrule
@@ -1574,22 +1574,22 @@ function Rules create_block1 ();
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,fvti_num[3:0]);
 	fixed_vop_time_increment <= byteAlign.bs(fixed_vop_time_increment,tmp,fvti_num[3:0]);
 	byte_boundary <= byte_boundary + fvti_num[2:0];
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset +8 - fvti_num;
-	  end 
-	else 
-	  byte_offset <= byte_offset - fvti_num; 
-    videoSt  <= VIDEO_OBJECT_LAYER6; 
+	  end
+	else
+	  byte_offset <= byte_offset - fvti_num;
+    videoSt  <= VIDEO_OBJECT_LAYER6;
   endrule
 
   rule detect_video_object_layer_start_code6 (videoSt == VIDEO_OBJECT_LAYER6);
     if (video_object_layer_shape != bINARY_ONLY)
-      videoSt  <= VIDEO_OBJECT_LAYER7; 
+      videoSt  <= VIDEO_OBJECT_LAYER7;
 	else
-      videoSt  <= VIDEO_OBJECT_LAYER34;  // video_object_layer_shape is binary 
+      videoSt  <= VIDEO_OBJECT_LAYER34;  // video_object_layer_shape is binary
   endrule
 
   rule detect_video_object_layer_start_code7 (videoSt == VIDEO_OBJECT_LAYER7);
@@ -1597,64 +1597,64 @@ function Rules create_block1 ();
 	  begin
 	    if (byte_offset < 1)
 	      begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 	        byte_offset <= byte_offset +8 ;
-            videoSt  <= VIDEO_OBJECT_LAYER9_1_0; 
+            videoSt  <= VIDEO_OBJECT_LAYER9_1_0;
 	      end
 	    else
-          videoSt  <= VIDEO_OBJECT_LAYER9; 
+          videoSt  <= VIDEO_OBJECT_LAYER9;
 	  end
 	else
 	  begin
 	    if (byte_offset < 2)
 	      begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 	        byte_offset <= byte_offset +8 ;
-            videoSt  <= VIDEO_OBJECT_LAYER10_1_0; 
+            videoSt  <= VIDEO_OBJECT_LAYER10_1_0;
 	      end
 	    else
-          videoSt  <= VIDEO_OBJECT_LAYER10; 
+          videoSt  <= VIDEO_OBJECT_LAYER10;
 	  end
   endrule
 
-  rule wait_1_cycle17 ((videoSt == VIDEO_OBJECT_LAYER9_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER9; 
-	$display("wait_1_cycle17 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle17 ((videoSt == VIDEO_OBJECT_LAYER9_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER9;
+	$display("wait_1_cycle17 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle18 ((videoSt == VIDEO_OBJECT_LAYER10_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER10; 
-	$display("wait_1_cycle18 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle18 ((videoSt == VIDEO_OBJECT_LAYER10_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER10;
+	$display("wait_1_cycle18 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code9 (videoSt == VIDEO_OBJECT_LAYER9);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER9_2_0; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER9_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER9_2_0;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER9_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER9_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER9_2;
+      end
   endrule
 
   rule detect_video_object_layer_start_code9_2 (videoSt == VIDEO_OBJECT_LAYER9_2);
@@ -1664,31 +1664,31 @@ function Rules create_block1 ();
 	  begin
 	    if (sysState == WAIT)
 	      begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-            videoSt  <= VIDEO_OBJECT_LAYER9_3_1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+            videoSt  <= VIDEO_OBJECT_LAYER9_3_1;
 	      end
 	    else
-          videoSt  <= VIDEO_OBJECT_LAYER9_3; 
-	    byte_offset <= byte_offset ; 
+          videoSt  <= VIDEO_OBJECT_LAYER9_3;
+	    byte_offset <= byte_offset ;
 	  end
 	else
 	  begin
 	    if (sysState == START)
 	      begin
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
-	        byte_offset <= byte_offset ; 
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
+	        byte_offset <= byte_offset ;
 	      end
 	    else
-	      byte_offset <= byte_offset -8  ; 
-        videoSt  <= VIDEO_OBJECT_LAYER9_3; 
+	      byte_offset <= byte_offset -8  ;
+        videoSt  <= VIDEO_OBJECT_LAYER9_3;
 	  end
   endrule
 
-  rule wait_1_cycle18_1 ((videoSt == VIDEO_OBJECT_LAYER9_3_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER9_3; 
-	$display("wait_1_cycle18_1 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle18_1 ((videoSt == VIDEO_OBJECT_LAYER9_3_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER9_3;
+	$display("wait_1_cycle18_1 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code9_3 (videoSt == VIDEO_OBJECT_LAYER9_3);
@@ -1700,64 +1700,64 @@ function Rules create_block1 ();
 	  begin
 	    if (sysState == WAIT)
 	      begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-            videoSt  <= VIDEO_OBJECT_LAYER9_4_1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+            videoSt  <= VIDEO_OBJECT_LAYER9_4_1;
 	      end
 	    else
-          videoSt  <= VIDEO_OBJECT_LAYER9_4; 
-	    byte_offset <= byte_offset ; 
+          videoSt  <= VIDEO_OBJECT_LAYER9_4;
+	    byte_offset <= byte_offset ;
 	  end
 	else
 	  begin
 	    if (sysState == START)
 	      begin
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
-	        byte_offset <= byte_offset ; 
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
+	        byte_offset <= byte_offset ;
 	      end
 	    else
-	      byte_offset <= byte_offset -8  ; 
-        videoSt  <= VIDEO_OBJECT_LAYER9_4; 
+	      byte_offset <= byte_offset -8  ;
+        videoSt  <= VIDEO_OBJECT_LAYER9_4;
 	  end
   endrule
 
-  rule wait_1_cycle18_2 ((videoSt == VIDEO_OBJECT_LAYER9_4_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER9_4; 
-	$display("wait_1_cycle18_2 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle18_2 ((videoSt == VIDEO_OBJECT_LAYER9_4_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER9_4;
+	$display("wait_1_cycle18_2 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code9_4 (videoSt == VIDEO_OBJECT_LAYER9_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	video_object_layer_height <= zeroExtend({video_object_layer_height[1:0],tmp[7:0]});
 	mb_width <= video_object_layer_width[12:4];
-	if (byte_offset < 12) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER9_5_0; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER9_5; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset ; 
-	  end 
+	if (byte_offset < 12)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER9_5_0;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER9_5;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 8; 
-        videoSt  <= VIDEO_OBJECT_LAYER9_5; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 8;
+        videoSt  <= VIDEO_OBJECT_LAYER9_5;
+      end
   endrule
 
-  rule wait_1_cycle19_0 ((videoSt == VIDEO_OBJECT_LAYER9_5_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER9_5; 
-	$display("wait_1_cycle19_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle19_0 ((videoSt == VIDEO_OBJECT_LAYER9_5_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER9_5;
+	$display("wait_1_cycle19_0 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code9_5 (videoSt == VIDEO_OBJECT_LAYER9_5);
@@ -1767,7 +1767,7 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 4;
 	 if (byte_offset < 6)
 	   begin
-	    byte_offset <= byte_offset + 8 - 4; 
+	    byte_offset <= byte_offset + 8 - 4;
 		if (sysState == WAIT)
 	      videoSt <= VIDEO_OBJECT_LAYER10_1_0;
 		else
@@ -1795,7 +1795,7 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 2;
 	if (byte_offset < 3)
 	   begin
-	    byte_offset <= byte_offset + 8 - 2; 
+	    byte_offset <= byte_offset + 8 - 2;
 		if (sysState == WAIT)
 	      videoSt <= VIDEO_OBJECT_LAYER10_2_0;
 		else
@@ -1815,9 +1815,9 @@ function Rules create_block1 ();
 	   end
   endrule
 
-  rule wait_1_cycle19 ((videoSt == VIDEO_OBJECT_LAYER10_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER10_2; 
-	$display("wait_1_cycle19 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle19 ((videoSt == VIDEO_OBJECT_LAYER10_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER10_2;
+	$display("wait_1_cycle19 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code10_2 (videoSt == VIDEO_OBJECT_LAYER10_2);
@@ -1828,7 +1828,7 @@ function Rules create_block1 ();
 	   begin
 		 if (byte_offset < 2)
 		   begin
-			 byte_offset <= byte_offset + 8 - 1; 
+			 byte_offset <= byte_offset + 8 - 1;
 			 if (sysState == WAIT)
 			   videoSt <= VIDEO_OBJECT_LAYER10_3_0;
 		     else
@@ -1861,9 +1861,9 @@ function Rules create_block1 ();
 	  end
   endrule
 
-  rule wait_1_cycle20 ((videoSt == VIDEO_OBJECT_LAYER10_3_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER10_3; 
-	$display("wait_1_cycle20 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle20 ((videoSt == VIDEO_OBJECT_LAYER10_3_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER10_3;
+	$display("wait_1_cycle20 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code10_3 (videoSt == VIDEO_OBJECT_LAYER10_3);
@@ -1913,14 +1913,14 @@ function Rules create_block1 ();
 	  videoSt <= VIDEO_OBJECT_LAYER13;
   endrule
 
-  rule wait_1_cycle21 ((videoSt == VIDEO_OBJECT_LAYER11_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER11_1; 
-	$display("wait_1_cycle21 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle21 ((videoSt == VIDEO_OBJECT_LAYER11_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER11_1;
+	$display("wait_1_cycle21 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle22 ((videoSt == VIDEO_OBJECT_LAYER12_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER12; 
-	$display("wait_1_cycle22 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle22 ((videoSt == VIDEO_OBJECT_LAYER12_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER12;
+	$display("wait_1_cycle22 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code11_1 (videoSt == VIDEO_OBJECT_LAYER11_1);
@@ -1937,9 +1937,9 @@ function Rules create_block1 ();
 	byte_offset <= byte_offset ;
   endrule
 
-  rule wait_1_cycle23 ((videoSt == VIDEO_OBJECT_LAYER11_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER11_2; 
-	$display("wait_1_cycle23 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle23 ((videoSt == VIDEO_OBJECT_LAYER11_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER11_2;
+	$display("wait_1_cycle23 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code11_2 (videoSt == VIDEO_OBJECT_LAYER11_2);
@@ -1985,7 +1985,7 @@ function Rules create_block1 ();
 
   rule detect_video_object_layer_start_code11_7 (videoSt == VIDEO_OBJECT_LAYER11_7);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
-	sprite_top_coordinate <= {sprite_top_coordinate[5:0],tmp[7:1]}; 
+	sprite_top_coordinate <= {sprite_top_coordinate[5:0],tmp[7:1]};
 	marker_bit <= tmp[0];
 	if ((byte_offset > 14) && (sysState == START))
 	  begin
@@ -2000,33 +2000,33 @@ function Rules create_block1 ();
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,6);
 	no_of_sprite_warping_points <= tmp[5:0];
 	byte_boundary <= byte_boundary + 6;
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER12_2_0; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER12_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -6; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER12_2_0;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER12_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -6;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 6;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 6; 
-        videoSt  <= VIDEO_OBJECT_LAYER12_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 6;
+        videoSt  <= VIDEO_OBJECT_LAYER12_2;
+      end
   endrule
 
-  rule wait_1_cycle24 ((videoSt == VIDEO_OBJECT_LAYER12_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER12_2; 
-	$display("wait_1_cycle24 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle24 ((videoSt == VIDEO_OBJECT_LAYER12_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER12_2;
+	$display("wait_1_cycle24 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code12_2 (videoSt == VIDEO_OBJECT_LAYER12_2);
@@ -2036,61 +2036,61 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 3;
 	if (sprite_enable != gMC)
 	  begin
-	    if (byte_offset < 4) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER12_3_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER12_3; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -3; 
-	      end 
+	    if (byte_offset < 4)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER12_3_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER12_3;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -3;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 3;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 3; 
-            videoSt  <= VIDEO_OBJECT_LAYER12_3; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 3;
+            videoSt  <= VIDEO_OBJECT_LAYER12_3;
+          end
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 3;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 3; 
-        videoSt  <= VIDEO_OBJECT_LAYER13; 
+		  end
+		else
+		  byte_offset <= byte_offset - 3;
+        videoSt  <= VIDEO_OBJECT_LAYER13;
 	  end
   endrule
 
-  rule wait_1_cycle25 ((videoSt == VIDEO_OBJECT_LAYER12_3_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER12_3; 
-	$display("wait_1_cycle25 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle25 ((videoSt == VIDEO_OBJECT_LAYER12_3_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER12_3;
+	$display("wait_1_cycle25 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code12_3 (videoSt == VIDEO_OBJECT_LAYER12_3);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	low_latency_sprite_enable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - 1;
-	  end 
-	else 
-	  byte_offset <= byte_offset - 1; 
-    videoSt  <= VIDEO_OBJECT_LAYER13; 
+	  end
+	else
+	  byte_offset <= byte_offset - 1;
+    videoSt  <= VIDEO_OBJECT_LAYER13;
   endrule
 
   rule detect_video_object_layer_start_code13 (videoSt == VIDEO_OBJECT_LAYER13);
@@ -2098,64 +2098,64 @@ function Rules create_block1 ();
 	  begin
 		if (byte_offset < 1)
 		  begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8;
-            videoSt  <= VIDEO_OBJECT_LAYER13_1_0; 
+            videoSt  <= VIDEO_OBJECT_LAYER13_1_0;
 		  end
 		else
-          videoSt  <= VIDEO_OBJECT_LAYER13_1; 
+          videoSt  <= VIDEO_OBJECT_LAYER13_1;
 	  end
 	else
 	  begin
 		if (byte_offset < 1)
 		  begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8;
-            videoSt  <= VIDEO_OBJECT_LAYER14_1_0; 
+            videoSt  <= VIDEO_OBJECT_LAYER14_1_0;
 		  end
 		else
-          videoSt  <= VIDEO_OBJECT_LAYER14; 
+          videoSt  <= VIDEO_OBJECT_LAYER14;
 	  end
   endrule
 
-  rule wait_1_cycle26 ((videoSt == VIDEO_OBJECT_LAYER13_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER13_1; 
-	$display("wait_1_cycle26 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle26 ((videoSt == VIDEO_OBJECT_LAYER13_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER13_1;
+	$display("wait_1_cycle26 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle27 ((videoSt == VIDEO_OBJECT_LAYER14_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER14; 
-	$display("wait_1_cycle27 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle27 ((videoSt == VIDEO_OBJECT_LAYER14_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER14;
+	$display("wait_1_cycle27 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code13_1 (videoSt == VIDEO_OBJECT_LAYER13_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	sadct_disable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 2) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER14_1_0; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER14; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1; 
-	  end 
+	if (byte_offset < 2)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER14_1_0;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER14;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER14; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER14;
+      end
   endrule
 
   rule detect_video_object_layer_start_code14 (videoSt == VIDEO_OBJECT_LAYER14);
@@ -2164,124 +2164,124 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1'b1)
 	  begin
-    	if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER15_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER15; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+    	if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER15_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER15;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1; 
-            videoSt  <= VIDEO_OBJECT_LAYER15; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1;
+            videoSt  <= VIDEO_OBJECT_LAYER15;
+          end
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER16; 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER16;
 	  end
   endrule
 
-  rule wait_1_cycle28 ((videoSt == VIDEO_OBJECT_LAYER15_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER15; 
-	$display("wait_1_cycle28 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle28 ((videoSt == VIDEO_OBJECT_LAYER15_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER15;
+	$display("wait_1_cycle28 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code15 (videoSt == VIDEO_OBJECT_LAYER15);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	quant_precision <= tmp[7:4];
 	bits_per_pixel  <= tmp[3:0];
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - 8;
-	  end 
-  	else 
-	  byte_offset <= byte_offset - 8; 
-    videoSt  <= VIDEO_OBJECT_LAYER16; 
+	  end
+  	else
+	  byte_offset <= byte_offset - 8;
+    videoSt  <= VIDEO_OBJECT_LAYER16;
   endrule
 
   rule detect_video_object_layer_start_code16 (videoSt == VIDEO_OBJECT_LAYER16);
 	if (video_object_layer_shape == gRAYSCALE)
 	   begin
-    	if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER17_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER17; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+    	if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER17_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER17;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER17; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER17;
+          end
 	   end
 	else
 	   begin
-    	if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER18_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER18; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+    	if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER18_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER18;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER18; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER18;
+          end
 	   end
   endrule
 
-  rule wait_1_cycle29 ((videoSt == VIDEO_OBJECT_LAYER17_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER17; 
-	$display("wait_1_cycle29 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle29 ((videoSt == VIDEO_OBJECT_LAYER17_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER17;
+	$display("wait_1_cycle29 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle30 ((videoSt == VIDEO_OBJECT_LAYER18_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER18; 
-	$display("wait_1_cycle30 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle30 ((videoSt == VIDEO_OBJECT_LAYER18_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER18;
+	$display("wait_1_cycle30 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code17 (videoSt == VIDEO_OBJECT_LAYER17);
@@ -2290,28 +2290,28 @@ function Rules create_block1 ();
 	composition_method <= tmp[1];
 	linear_composition <= tmp[0];
 	byte_boundary <= byte_boundary + 3;
-	if (byte_offset < 4) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER18_1_0; 
-		else 
-		  videoSt  <= VIDEO_OBJECT_LAYER18; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -3; 
-	  end 
+	if (byte_offset < 4)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER18_1_0;
+		else
+		  videoSt  <= VIDEO_OBJECT_LAYER18;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -3;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 3;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 3; 
-        videoSt  <= VIDEO_OBJECT_LAYER18; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 3;
+        videoSt  <= VIDEO_OBJECT_LAYER18;
+      end
   endrule
 
   rule detect_video_object_layer_start_code18 (videoSt == VIDEO_OBJECT_LAYER18);
@@ -2319,45 +2319,45 @@ function Rules create_block1 ();
 	quant_type <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) // QUANT TYPE IS TRUE
-	  if (byte_offset < 2) 
-	    begin 
-	      if (sysState == WAIT) 
-		    videoSt  <= VIDEO_OBJECT_LAYER19_1_0; 
-		  else 
-		    videoSt  <= VIDEO_OBJECT_LAYER19; 
-		  sysState <= START; 
-		  vd_rd_reg <= 1'b1; 
-		  byte_offset    <= byte_offset +8 -1; 
-	    end 
+	  if (byte_offset < 2)
+	    begin
+	      if (sysState == WAIT)
+		    videoSt  <= VIDEO_OBJECT_LAYER19_1_0;
+		  else
+		    videoSt  <= VIDEO_OBJECT_LAYER19;
+		  sysState <= START;
+		  vd_rd_reg <= 1'b1;
+		  byte_offset    <= byte_offset +8 -1;
+	    end
 	  else
-        begin 
-	      if (sysState == START) 
-		    begin 
-			  sysState <= WAIT; 
-			  vd_rd_reg <= 1'b0; 
+        begin
+	      if (sysState == START)
+		    begin
+			  sysState <= WAIT;
+			  vd_rd_reg <= 1'b0;
 		      byte_offset <= byte_offset +8 - 1;
-		    end 
-		  else 
-		    byte_offset <= byte_offset - 1; 
-          videoSt  <= VIDEO_OBJECT_LAYER19; 
-        end 
+		    end
+		  else
+		    byte_offset <= byte_offset - 1;
+          videoSt  <= VIDEO_OBJECT_LAYER19;
+        end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER25; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER25;
+      end
   endrule
 
-  rule wait_1_cycle31 ((videoSt == VIDEO_OBJECT_LAYER19_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER19; 
-	$display("wait_1_cycle31 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle31 ((videoSt == VIDEO_OBJECT_LAYER19_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER19;
+	$display("wait_1_cycle31 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code19 (videoSt == VIDEO_OBJECT_LAYER19);
@@ -2366,46 +2366,46 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) //  LOAD INTRA MATRIX IS TRUE
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER19_2_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER19_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER19_2_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER19_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1; 
-            videoSt  <= VIDEO_OBJECT_LAYER19_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1;
+            videoSt  <= VIDEO_OBJECT_LAYER19_2;
+          end
 	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER25; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER25;
+      end
   endrule
 
-  rule wait_1_cycle32 ((videoSt == VIDEO_OBJECT_LAYER19_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER19_2; 
-	$display("wait_1_cycle32 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle32 ((videoSt == VIDEO_OBJECT_LAYER19_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER19_2;
+	$display("wait_1_cycle32 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code19_2 (videoSt == VIDEO_OBJECT_LAYER19_2);
@@ -2418,8 +2418,8 @@ function Rules create_block1 ();
 	        intra_quant_mat.upd(tmp_counter,intra_quant_mat.sub(tmp_counter-1));
 			if (sysState == START)
 			  begin
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 				byte_offset <= byte_offset + 8 ;
 			  end
 		  end
@@ -2429,34 +2429,34 @@ function Rules create_block1 ();
 	  end
 	else
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER20_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER20; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER20_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER20;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER20; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER20;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle33 ((videoSt == VIDEO_OBJECT_LAYER20_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER20; 
-	$display("wait_1_cycle33 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle33 ((videoSt == VIDEO_OBJECT_LAYER20_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER20;
+	$display("wait_1_cycle33 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code20 (videoSt == VIDEO_OBJECT_LAYER20);
@@ -2465,46 +2465,46 @@ function Rules create_block1 ();
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) //  LOAD INTRA MATRIX IS TRUE
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER20_2_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER20_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER20_2_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER20_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1; 
-            videoSt  <= VIDEO_OBJECT_LAYER20_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1;
+            videoSt  <= VIDEO_OBJECT_LAYER20_2;
+          end
 	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER20_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER20_2;
+      end
   endrule
 
-  rule wait_1_cycle34 ((videoSt == VIDEO_OBJECT_LAYER20_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER20_2; 
-	$display("wait_1_cycle34 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle34 ((videoSt == VIDEO_OBJECT_LAYER20_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER20_2;
+	$display("wait_1_cycle34 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code20_2 (videoSt == VIDEO_OBJECT_LAYER20_2);
@@ -2517,8 +2517,8 @@ function Rules create_block1 ();
 	        non_intra_quant_mat.upd(tmp_counter,non_intra_quant_mat.sub(tmp_counter-1));
 			if (sysState == START)
 			  begin
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 				byte_offset <= byte_offset + 8;
 			  end
 		  end
@@ -2528,15 +2528,15 @@ function Rules create_block1 ();
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
-        videoSt  <= VIDEO_OBJECT_LAYER21; 
+		  end
+		else
+		  byte_offset <= byte_offset ;
+        videoSt  <= VIDEO_OBJECT_LAYER21;
 		counter <= 0;
 	  end
   endrule
@@ -2544,88 +2544,88 @@ function Rules create_block1 ();
   rule detect_video_object_layer_start_code21 (videoSt == VIDEO_OBJECT_LAYER21);
     if (video_object_layer_shape == gRAYSCALE)
 	  begin
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER21_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER21_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER21_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER21_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER21_1; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER21_1;
+          end
 	  end
 	else
 	  begin
-        videoSt  <= VIDEO_OBJECT_LAYER24; 
-		byte_offset <= byte_offset ; 
+        videoSt  <= VIDEO_OBJECT_LAYER24;
+		byte_offset <= byte_offset ;
 	  end
   endrule
 
-  rule wait_1_cycle35 ((videoSt == VIDEO_OBJECT_LAYER21_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER21_1; 
-	$display("wait_1_cycle35 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle35 ((videoSt == VIDEO_OBJECT_LAYER21_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER21_1;
+	$display("wait_1_cycle35 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code21_1 ((videoSt == VIDEO_OBJECT_LAYER21_1) && 
+  rule detect_video_object_layer_start_code21_1 ((videoSt == VIDEO_OBJECT_LAYER21_1) &&
                                                  (tmp_aux_cnt <= aUX_COMP_COUNT));
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	load_intra_quant_mat_grayscale <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) //  LOAD INTRA GRAYSCALE MATRIX IS TRUE
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER22_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER22; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER22_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER22;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1; 
-            videoSt  <= VIDEO_OBJECT_LAYER22; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1;
+            videoSt  <= VIDEO_OBJECT_LAYER22;
+          end
 	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER23; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER23;
+      end
   endrule
 
-  rule wait_1_cycle36 ((videoSt == VIDEO_OBJECT_LAYER22_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER22; 
-	$display("wait_1_cycle36 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle36 ((videoSt == VIDEO_OBJECT_LAYER22_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER22;
+	$display("wait_1_cycle36 start code reg %h ",start_code_reg);
   endrule
 
 endrules;
@@ -2656,8 +2656,8 @@ function Rules create_block2 ();
 	           intra_quant_mat_grayscale2.upd(tmp_counter,intra_quant_mat_grayscale2.sub(tmp_counter-1));
 			if (sysState == START)
 			  begin
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 				byte_offset <= byte_offset + 8;
 			  end
 		  end
@@ -2674,60 +2674,60 @@ function Rules create_block2 ();
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
-        videoSt  <= VIDEO_OBJECT_LAYER23; 
+		  end
+		else
+		  byte_offset <= byte_offset ;
+        videoSt  <= VIDEO_OBJECT_LAYER23;
 		counter <= 0;
 	  end
   endrule
 
-  rule detect_video_object_layer_start_code23 (videoSt == VIDEO_OBJECT_LAYER23); 
+  rule detect_video_object_layer_start_code23 (videoSt == VIDEO_OBJECT_LAYER23);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	load_nonintra_quant_mat_grayscale <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) //  LOAD INTRA GRAYSCALE MATRIX IS TRUE
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER24_1_0; 
-		    else 
-		      videoSt  <= VIDEO_OBJECT_LAYER24; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER24_1_0;
+		    else
+		      videoSt  <= VIDEO_OBJECT_LAYER24;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 - 1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1; 
-            videoSt  <= VIDEO_OBJECT_LAYER24; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1;
+            videoSt  <= VIDEO_OBJECT_LAYER24;
+          end
 	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - 1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1; 
-        videoSt  <= VIDEO_OBJECT_LAYER24_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1;
+        videoSt  <= VIDEO_OBJECT_LAYER24_2;
+      end
   endrule
 
   rule detect_video_object_layer_start_code24 (videoSt == VIDEO_OBJECT_LAYER24);
@@ -2745,8 +2745,8 @@ function Rules create_block2 ();
 	          nonintra_quant_mat_grayscale2.upd(tmp_counter,nonintra_quant_mat_grayscale2.sub(tmp_counter-1));
 			if (sysState == START)
 			  begin
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 				byte_offset <= byte_offset + 8;
 			  end
 		  end
@@ -2763,15 +2763,15 @@ function Rules create_block2 ();
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
-        videoSt  <= VIDEO_OBJECT_LAYER24_2; 
+		  end
+		else
+		  byte_offset <= byte_offset ;
+        videoSt  <= VIDEO_OBJECT_LAYER24_2;
 		counter <= 0;
 	  end
   endrule
@@ -2779,508 +2779,508 @@ function Rules create_block2 ();
   rule detect_video_object_layer_start_code24_2 (videoSt == VIDEO_OBJECT_LAYER24_2);
     if (tmp_aux_cnt < aUX_COMP_COUNT)
 	  begin
-        videoSt  <= VIDEO_OBJECT_LAYER21_1; 
+        videoSt  <= VIDEO_OBJECT_LAYER21_1;
 		tmp_aux_cnt <= tmp_aux_cnt + 1;
 	  end
 	else
-      videoSt  <= VIDEO_OBJECT_LAYER25; 
+      videoSt  <= VIDEO_OBJECT_LAYER25;
   endrule
 
-  rule detect_video_object_layer_start_code25 (videoSt == VIDEO_OBJECT_LAYER25); 
+  rule detect_video_object_layer_start_code25 (videoSt == VIDEO_OBJECT_LAYER25);
 	if (video_object_layer_verid != 4'b0001)
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER25_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER25_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER25_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER25_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER25_1; 
-          end 
-       end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER25_1;
+          end
+       end
 	else
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER26_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER26; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER26_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER26;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER26; 
-          end 
-       end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER26;
+          end
+       end
   endrule
 
-  rule wait_1_cycle37 ((videoSt == VIDEO_OBJECT_LAYER25_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER25_1; 
-	$display("wait_1_cycle37 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle37 ((videoSt == VIDEO_OBJECT_LAYER25_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER25_1;
+	$display("wait_1_cycle37 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle38 ((videoSt == VIDEO_OBJECT_LAYER26_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER26; 
-	$display("wait_1_cycle37 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle38 ((videoSt == VIDEO_OBJECT_LAYER26_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER26;
+	$display("wait_1_cycle37 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code25_1 (videoSt == VIDEO_OBJECT_LAYER25_1); 
+  rule detect_video_object_layer_start_code25_1 (videoSt == VIDEO_OBJECT_LAYER25_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	quarter_sample <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 2) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER26_1_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER26; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1 ; 
-	  end 
+	if (byte_offset < 2)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER26_1_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER26;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER26; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER26;
+      end
   endrule
 
-  rule detect_video_object_layer_start_code26 (videoSt == VIDEO_OBJECT_LAYER26); 
+  rule detect_video_object_layer_start_code26 (videoSt == VIDEO_OBJECT_LAYER26);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	complexity_estimation_disable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 0)
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
         videoSt  <= IDLE;   // define vop complexity header
 	  end
 	else
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER27_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER27; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER27_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER27;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER27; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER27;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle39 ((videoSt == VIDEO_OBJECT_LAYER27_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER27; 
-	$display("wait_1_cycle37 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle39 ((videoSt == VIDEO_OBJECT_LAYER27_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER27;
+	$display("wait_1_cycle37 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code27 (videoSt == VIDEO_OBJECT_LAYER27); 
+  rule detect_video_object_layer_start_code27 (videoSt == VIDEO_OBJECT_LAYER27);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	resync_marker_disable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 2) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER28_1_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER28; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1 ; 
-	  end 
+	if (byte_offset < 2)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER28_1_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER28;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER28; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER28;
+      end
   endrule
 
-  rule wait_1_cycle40 ((videoSt == VIDEO_OBJECT_LAYER28_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER28; 
-	$display("wait_1_cycle40 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle40 ((videoSt == VIDEO_OBJECT_LAYER28_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER28;
+	$display("wait_1_cycle40 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code28 (videoSt == VIDEO_OBJECT_LAYER28); 
+  rule detect_video_object_layer_start_code28 (videoSt == VIDEO_OBJECT_LAYER28);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	data_partitioned <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) // Data is partitioned
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER29_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER29; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER29_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER29;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER29; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER29;
+          end
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER30; 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER30;
 	  end
   endrule
 
-  rule wait_1_cycle41 ((videoSt == VIDEO_OBJECT_LAYER29_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER29; 
-	$display("wait_1_cycle41 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle41 ((videoSt == VIDEO_OBJECT_LAYER29_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER29;
+	$display("wait_1_cycle41 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code29 (videoSt == VIDEO_OBJECT_LAYER29); 
+  rule detect_video_object_layer_start_code29 (videoSt == VIDEO_OBJECT_LAYER29);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	reversible_vlc <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-      begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+      begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset +8 -1 ;
-	  end 
-	else 
-	  byte_offset <= byte_offset -1 ; 
-    videoSt  <= VIDEO_OBJECT_LAYER30; 
-  endrule
-
-  rule detect_video_object_layer_start_code30 (videoSt == VIDEO_OBJECT_LAYER30); 
-	if (video_object_layer_verid != 4'b0001)
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER30_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER30_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
-	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
-		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER30_1; 
-          end 
-       end 
+	  end
 	else
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER32_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER32; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	  byte_offset <= byte_offset -1 ;
+    videoSt  <= VIDEO_OBJECT_LAYER30;
+  endrule
+
+  rule detect_video_object_layer_start_code30 (videoSt == VIDEO_OBJECT_LAYER30);
+	if (video_object_layer_verid != 4'b0001)
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER30_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER30_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER32; 
-          end 
-       end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER30_1;
+          end
+       end
+	else
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER32_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER32;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
+	    else
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
+		        byte_offset <= byte_offset +8 ;
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER32;
+          end
+       end
   endrule
 
-  rule wait_1_cycle42 ((videoSt == VIDEO_OBJECT_LAYER30_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER30_1; 
-	$display("wait_1_cycle42 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle42 ((videoSt == VIDEO_OBJECT_LAYER30_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER30_1;
+	$display("wait_1_cycle42 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code30_1 (videoSt == VIDEO_OBJECT_LAYER30_1); 
+  rule detect_video_object_layer_start_code30_1 (videoSt == VIDEO_OBJECT_LAYER30_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	newpred_enable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) // NEWPRED_ENABLE IS SET
 	  begin
-	    if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER31_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER31_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER31_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER31_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER31_1; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER31_1;
+          end
 	  end
 	else
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER31_2_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER31_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER31_2_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER31_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER31_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER31_2;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle43 ((videoSt == VIDEO_OBJECT_LAYER31_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER31_1; 
-	$display("wait_1_cycle43 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle43 ((videoSt == VIDEO_OBJECT_LAYER31_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER31_1;
+	$display("wait_1_cycle43 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code31_1 (videoSt == VIDEO_OBJECT_LAYER31_1); 
+  rule detect_video_object_layer_start_code31_1 (videoSt == VIDEO_OBJECT_LAYER31_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,3);
 	requested_upstream_message_type <= tmp[2:1];
 	newpred_segment_type <= tmp[0];
 	byte_boundary <= byte_boundary + 3;
-	if (byte_offset < 4) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER31_2_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER31_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -3 ; 
-	  end 
+	if (byte_offset < 4)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER31_2_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER31_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -3 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -3 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -3 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER31_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -3 ;
+        videoSt  <= VIDEO_OBJECT_LAYER31_2;
+      end
   endrule
 
-  rule wait_1_cycle44 ((videoSt == VIDEO_OBJECT_LAYER31_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER31_2; 
-	$display("wait_1_cycle44 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle44 ((videoSt == VIDEO_OBJECT_LAYER31_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER31_2;
+	$display("wait_1_cycle44 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code31_2 (videoSt == VIDEO_OBJECT_LAYER31_2); 
+  rule detect_video_object_layer_start_code31_2 (videoSt == VIDEO_OBJECT_LAYER31_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	reduced_resolution_vop_enable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 2) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER32_1_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER32; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1 ; 
-	  end 
+	if (byte_offset < 2)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER32_1_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER32;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER32; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER32;
+      end
   endrule
 
-  rule detect_video_object_layer_start_code32 (videoSt == VIDEO_OBJECT_LAYER32); 
+  rule detect_video_object_layer_start_code32 (videoSt == VIDEO_OBJECT_LAYER32);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	scalability <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) // scalability is SET
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER32_2_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER32_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER32_2_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER32_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER32_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER32_2;
+          end
 	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER36; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER36;
+      end
   endrule
 
-  rule wait_1_cycle45 ((videoSt == VIDEO_OBJECT_LAYER32_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER32_2; 
-	$display("wait_1_cycle45 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle45 ((videoSt == VIDEO_OBJECT_LAYER32_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER32_2;
+	$display("wait_1_cycle45 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code32_2 (videoSt == VIDEO_OBJECT_LAYER32_2); 
+  rule detect_video_object_layer_start_code32_2 (videoSt == VIDEO_OBJECT_LAYER32_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	hierarchy_type <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER32_3_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER32_3; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1 ; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER32_3_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER32_3;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -1 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER32_3; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -1 ;
+        videoSt  <= VIDEO_OBJECT_LAYER32_3;
+      end
   endrule
 
-  rule wait_1_cycle46 ((videoSt == VIDEO_OBJECT_LAYER32_3_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER32_3; 
-	$display("wait_1_cycle46 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle46 ((videoSt == VIDEO_OBJECT_LAYER32_3_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER32_3;
+	$display("wait_1_cycle46 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code32_3 (videoSt == VIDEO_OBJECT_LAYER32_3);
@@ -3288,8 +3288,8 @@ function Rules create_block2 ();
 	ref_layer_id <= tmp[7:4];
 	ref_layer_sampling_direc <= tmp[3];
 	hor_sampling_factor_n <= zeroExtend(tmp[2:0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER32_4; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER32_4;
   endrule
 
   rule detect_video_object_layer_start_code32_4 (videoSt == VIDEO_OBJECT_LAYER32_4);
@@ -3297,36 +3297,36 @@ function Rules create_block2 ();
 	hor_sampling_factor_n <= {hor_sampling_factor_n[2:0],tmp[7:6]};
 	hor_sampling_factor_m <= tmp[5:1];
 	vert_sampling_factor_n <= zeroExtend(tmp[0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER32_5; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER32_5;
   endrule
 
   rule detect_video_object_layer_start_code32_5 (videoSt == VIDEO_OBJECT_LAYER32_5);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	vert_sampling_factor_n <= {vert_sampling_factor_n[0],tmp[7:4]};
 	vert_sampling_factor_m <= zeroExtend(tmp[3:0]);
-	if (byte_offset < 10) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER32_6_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER32_6; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset ; 
-	  end 
+	if (byte_offset < 10)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER32_6_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER32_6;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 8 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER32_6; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 8 ;
+        videoSt  <= VIDEO_OBJECT_LAYER32_6;
+      end
   endrule
 
   rule detect_video_object_layer_start_code32_6 (videoSt == VIDEO_OBJECT_LAYER32_6);
@@ -3337,46 +3337,46 @@ function Rules create_block2 ();
 	if ((video_object_layer_shape == bINARY) && (hierarchy_type == 0))
 	// not same in spec
 	  begin
-	    if (byte_offset < 4) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER33_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER33; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -2; 
-	      end 
+	    if (byte_offset < 4)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER33_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER33;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -2;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -2;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 2 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER33; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 2 ;
+            videoSt  <= VIDEO_OBJECT_LAYER33;
+          end
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-	      begin 
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+	      begin
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -2 ;
-          end 
-	    else 
-	      byte_offset <= byte_offset -2 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER36; 
+          end
+	    else
+	      byte_offset <= byte_offset -2 ;
+        videoSt  <= VIDEO_OBJECT_LAYER36;
 	  end
   endrule
 
-  rule wait_1_cycle47 ((videoSt == VIDEO_OBJECT_LAYER33_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER33; 
-	$display("wait_1_cycle47 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle47 ((videoSt == VIDEO_OBJECT_LAYER33_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER33;
+	$display("wait_1_cycle47 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code33 (videoSt == VIDEO_OBJECT_LAYER33);
@@ -3384,41 +3384,41 @@ function Rules create_block2 ();
 	use_ref_shape <= tmp[1];
 	use_ref_texture <= tmp[0];
 	byte_boundary <= byte_boundary + 2;
-	if (byte_offset < 10) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER33_2_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER33_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset + 8 -2; 
-	  end 
+	if (byte_offset < 10)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER33_2_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER33_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset + 8 -2;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -2;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 2 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER33_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 2 ;
+        videoSt  <= VIDEO_OBJECT_LAYER33_2;
+      end
   endrule
 
-  rule wait_1_cycle48 ((videoSt == VIDEO_OBJECT_LAYER33_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER33_2; 
-	$display("wait_1_cycle48 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle48 ((videoSt == VIDEO_OBJECT_LAYER33_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER33_2;
+	$display("wait_1_cycle48 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code33_2 (videoSt == VIDEO_OBJECT_LAYER33_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	shape_hor_sampling_factor_n <= tmp[7:3];
 	shape_hor_sampling_factor_m <= zeroExtend(tmp[2:0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER33_3; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER33_3;
   endrule
 
   rule detect_video_object_layer_start_code33_3 (videoSt == VIDEO_OBJECT_LAYER33_3);
@@ -3426,149 +3426,149 @@ function Rules create_block2 ();
 	shape_hor_sampling_factor_m <= {shape_hor_sampling_factor_m[2:0],tmp[7:6]};
 	shape_vert_sampling_factor_n <= tmp[5:1];
 	shape_vert_sampling_factor_m <= zeroExtend(tmp[0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER33_4; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER33_4;
   endrule
 
   rule detect_video_object_layer_start_code33_4 (videoSt == VIDEO_OBJECT_LAYER33_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	shape_vert_sampling_factor_m <= {shape_vert_sampling_factor_m[0],tmp[7:4]};
-	if (sysState == START) 
-      begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+      begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -4;
-      end 
-    else 
-	  byte_offset <= byte_offset -4; 
-    videoSt  <= VIDEO_OBJECT_LAYER36; 
+      end
+    else
+	  byte_offset <= byte_offset -4;
+    videoSt  <= VIDEO_OBJECT_LAYER36;
   endrule
 
-  rule detect_video_object_layer_start_code34 (videoSt == VIDEO_OBJECT_LAYER34); 
+  rule detect_video_object_layer_start_code34 (videoSt == VIDEO_OBJECT_LAYER34);
 	if (video_object_layer_verid != 4'b0001)
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER34_1_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER34_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER34_1_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER34_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER34_1; 
-          end 
-       end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER34_1;
+          end
+       end
 	else
-      begin 
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER35_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER35; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+      begin
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER35_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER35;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VIDEO_OBJECT_LAYER35; 
-          end 
-       end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VIDEO_OBJECT_LAYER35;
+          end
+       end
   endrule
 
-  rule wait_1_cycle49 ((videoSt == VIDEO_OBJECT_LAYER34_1_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER34_1; 
-	$display("wait_1_cycle49 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle49 ((videoSt == VIDEO_OBJECT_LAYER34_1_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER34_1;
+	$display("wait_1_cycle49 start code reg %h ",start_code_reg);
   endrule
 
-  rule detect_video_object_layer_start_code34_1 (videoSt == VIDEO_OBJECT_LAYER34_1); 
+  rule detect_video_object_layer_start_code34_1 (videoSt == VIDEO_OBJECT_LAYER34_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	scalability <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1) // scalability is SET
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER34_2_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER34_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER34_2_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER34_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER34_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER34_2;
+          end
 	  end
 	else
-      begin 
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VIDEO_OBJECT_LAYER35_1; 
-		    else 
-              videoSt  <= VIDEO_OBJECT_LAYER35; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1 ; 
-	      end 
+      begin
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VIDEO_OBJECT_LAYER35_1;
+		    else
+              videoSt  <= VIDEO_OBJECT_LAYER35;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset -1 ; 
-            videoSt  <= VIDEO_OBJECT_LAYER35; 
-          end 
-      end 
+		      end
+		    else
+		      byte_offset <= byte_offset -1 ;
+            videoSt  <= VIDEO_OBJECT_LAYER35;
+          end
+      end
   endrule
 
-  rule wait_1_cycle50 ((videoSt == VIDEO_OBJECT_LAYER34_2_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER34_2; 
-	$display("wait_1_cycle50 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle50 ((videoSt == VIDEO_OBJECT_LAYER34_2_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER34_2;
+	$display("wait_1_cycle50 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code34_2 (videoSt == VIDEO_OBJECT_LAYER34_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	ref_layer_id <= tmp[7:4];
 	shape_hor_sampling_factor_n <= zeroExtend(tmp[3:0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER34_3; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER34_3;
   endrule
 
   rule detect_video_object_layer_start_code34_3 (videoSt == VIDEO_OBJECT_LAYER34_3);
@@ -3576,56 +3576,56 @@ function Rules create_block2 ();
 	shape_hor_sampling_factor_n <= {shape_hor_sampling_factor_n[3:0],tmp[7]};
 	shape_hor_sampling_factor_m <= tmp[6:2];
 	shape_vert_sampling_factor_n <= zeroExtend(tmp[1:0]);
-	byte_offset <= byte_offset ; 
-    videoSt  <= VIDEO_OBJECT_LAYER34_4; 
+	byte_offset <= byte_offset ;
+    videoSt  <= VIDEO_OBJECT_LAYER34_4;
   endrule
 
   rule detect_video_object_layer_start_code34_4 (videoSt == VIDEO_OBJECT_LAYER34_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	shape_vert_sampling_factor_n <= {shape_vert_sampling_factor_n[1:0],tmp[7:5]};
 	shape_vert_sampling_factor_m <= tmp[4:0];
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VIDEO_OBJECT_LAYER35_1; 
-		else 
-          videoSt  <= VIDEO_OBJECT_LAYER35; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -8 ; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VIDEO_OBJECT_LAYER35_1;
+		else
+          videoSt  <= VIDEO_OBJECT_LAYER35;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -8 ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -8 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset -8 ; 
-        videoSt  <= VIDEO_OBJECT_LAYER35; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset -8 ;
+        videoSt  <= VIDEO_OBJECT_LAYER35;
+      end
   endrule
 
-  rule wait_1_cycle51 ((videoSt == VIDEO_OBJECT_LAYER35_1) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER35; 
-	$display("wait_1_cycle51 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle51 ((videoSt == VIDEO_OBJECT_LAYER35_1) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER35;
+	$display("wait_1_cycle51 start code reg %h ",start_code_reg);
   endrule
 
   rule detect_video_object_layer_start_code35 (videoSt == VIDEO_OBJECT_LAYER35);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	resync_marker_disable <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-      begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+      begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset +8 -1 ;
-	  end 
-	else 
-	  byte_offset <= byte_offset -1 ; 
-    videoSt  <= VIDEO_OBJECT_LAYER36; 
+	  end
+	else
+	  byte_offset <= byte_offset -1 ;
+    videoSt  <= VIDEO_OBJECT_LAYER36;
   endrule
 
   rule detect_video_object_layer_start_code36 (videoSt == VIDEO_OBJECT_LAYER36);
@@ -3634,20 +3634,20 @@ function Rules create_block2 ();
     if (byte_offset <= tmp_byte_boundary)
 	  begin
 	    sysState <= START;
-		vd_rd_reg <= 1'b1; 
+		vd_rd_reg <= 1'b1;
 	    byte_offset <= byte_offset +8 - tmp_byte_boundary;
-        videoSt  <= VIDEO_OBJECT_LAYER37_1_0; 
+        videoSt  <= VIDEO_OBJECT_LAYER37_1_0;
 	  end
 	else
 	  begin
-        videoSt  <= VIDEO_OBJECT_LAYER37_1; 
+        videoSt  <= VIDEO_OBJECT_LAYER37_1;
 	    byte_offset <= byte_offset - tmp_byte_boundary;
 	  end
   endrule
 
-  rule wait_1_cycle52 ((videoSt == VIDEO_OBJECT_LAYER37_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VIDEO_OBJECT_LAYER37_1; 
-	$display("wait_1_cycle52 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle52 ((videoSt == VIDEO_OBJECT_LAYER37_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VIDEO_OBJECT_LAYER37_1;
+	$display("wait_1_cycle52 start code reg %h ",start_code_reg);
   endrule
 
 endrules;
@@ -3665,10 +3665,10 @@ function Rules create_block3 ();
 
   rule detect_video_object_layer_next_start_code0 (videoSt == VIDEO_OBJECT_LAYER37_1);
 	 sysState <= START;
-	 vd_rd_reg <= 1'b1; 
+	 vd_rd_reg <= 1'b1;
 	 if (code_cnt == 2)
 	   begin
-         videoSt <= VOL_NEXT_START_CODE_DET ; 
+         videoSt <= VOL_NEXT_START_CODE_DET ;
 		 code_cnt <= 0;
 	   end
 	 else
@@ -3765,74 +3765,74 @@ function Rules create_block3 ();
       videoSt  <= GROUP_OF_VOP_1;
   endrule
 
-  rule wait_1_cycle53 ((videoSt == GROUP_OF_VOP_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= GROUP_OF_VOP_1; 
-	$display("wait_1_cycle53 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle53 ((videoSt == GROUP_OF_VOP_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= GROUP_OF_VOP_1;
+	$display("wait_1_cycle53 start code reg %h ",start_code_reg);
   endrule
 
   rule group_of_vop1 (videoSt == GROUP_OF_VOP_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	time_code <= zeroExtend({time_code[7:0],tmp[7:0]});
-	if (byte_offset < 10) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= GROUP_OF_VOP_2_0; 
-		else 
-          videoSt  <= GROUP_OF_VOP_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset ; 
-	  end 
+	if (byte_offset < 10)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= GROUP_OF_VOP_2_0;
+		else
+          videoSt  <= GROUP_OF_VOP_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset ;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 8 ; 
-        videoSt  <= GROUP_OF_VOP_2; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 8 ;
+        videoSt  <= GROUP_OF_VOP_2;
+      end
   endrule
 
-  rule wait_1_cycle54 ((videoSt == GROUP_OF_VOP_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= GROUP_OF_VOP_2; 
-	$display("wait_1_cycle54 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle54 ((videoSt == GROUP_OF_VOP_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= GROUP_OF_VOP_2;
+	$display("wait_1_cycle54 start code reg %h ",start_code_reg);
   endrule
 
   rule group_of_vop2 (videoSt == GROUP_OF_VOP_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,2);
 	time_code <= {time_code[15:0],tmp[1:0]};
 	byte_boundary <= byte_boundary + 2;
-	if (byte_offset < 4) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= GROUP_OF_VOP_3_0; 
-		else 
-          videoSt  <= GROUP_OF_VOP_3; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -2; 
-	  end 
+	if (byte_offset < 4)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= GROUP_OF_VOP_3_0;
+		else
+          videoSt  <= GROUP_OF_VOP_3;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -2;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 2 ; 
-        videoSt  <= GROUP_OF_VOP_3; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 2 ;
+        videoSt  <= GROUP_OF_VOP_3;
+      end
   endrule
 
-  rule wait_1_cycle55 ((videoSt == GROUP_OF_VOP_3_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= GROUP_OF_VOP_3; 
-	$display("wait_1_cycle55 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle55 ((videoSt == GROUP_OF_VOP_3_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= GROUP_OF_VOP_3;
+	$display("wait_1_cycle55 start code reg %h ",start_code_reg);
   endrule
 
   rule group_of_vop3 (videoSt == GROUP_OF_VOP_3);
@@ -3840,10 +3840,10 @@ function Rules create_block3 ();
 	closed_gov <= tmp[1];
 	broken_link <= tmp[0];
 	byte_boundary <= byte_boundary + 2;
-    videoSt  <= GROUP_OF_VOP_4; 
-	sysState <= WAIT; 
-	vd_rd_reg <= 1'b0; 
-	byte_offset <= byte_offset +8 - 2 ; 
+    videoSt  <= GROUP_OF_VOP_4;
+	sysState <= WAIT;
+	vd_rd_reg <= 1'b0;
+	byte_offset <= byte_offset +8 - 2 ;
   endrule
 
   rule group_of_vop4 (videoSt == GROUP_OF_VOP_4);
@@ -3851,13 +3851,13 @@ function Rules create_block3 ();
     if (byte_offset <= tmp_byte_boundary)
 	  begin
 	    sysState <= START;
-		vd_rd_reg <= 1'b1; 
+		vd_rd_reg <= 1'b1;
 	    byte_offset <= byte_offset +8 - tmp_byte_boundary;
-        videoSt  <= GROUP_OF_VOP_5_1_0; 
+        videoSt  <= GROUP_OF_VOP_5_1_0;
 	  end
 	else
 	  begin
-        videoSt  <= GROUP_OF_VOP_5_1; 
+        videoSt  <= GROUP_OF_VOP_5_1;
 	    byte_offset <= byte_offset - tmp_byte_boundary;
 	  end
   endrule
@@ -3869,35 +3869,35 @@ function Rules create_block3 ();
     if (byte_offset < tmp_byte_boundary)
 	  begin
 	    sysState <= START;
-		vd_rd_reg <= 1'b1; 
+		vd_rd_reg <= 1'b1;
 	    byte_offset <= byte_offset +8 ;
-        videoSt  <= GROUP_OF_VOP_5_0; 
+        videoSt  <= GROUP_OF_VOP_5_0;
 	  end
 	else
-      videoSt  <= GROUP_OF_VOP_5; 
+      videoSt  <= GROUP_OF_VOP_5;
   endrule
   */
 
-  rule wait_1_cycle_vop5_1 ((videoSt == GROUP_OF_VOP_5_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= GROUP_OF_VOP_5_1; 
-	$display("wait_1_cycle_vop5_1 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle_vop5_1 ((videoSt == GROUP_OF_VOP_5_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= GROUP_OF_VOP_5_1;
+	$display("wait_1_cycle_vop5_1 start code reg %h ",start_code_reg);
   endrule
 
   rule group_of_vop5_1 (videoSt == GROUP_OF_VOP_5_1);
 	 sysState <= START;
-	 vd_rd_reg <= 1'b1; 
+	 vd_rd_reg <= 1'b1;
 	 if (code_cnt == 5)
 	   begin
-         videoSt <= VOP_START_CODE_DET ; 
+         videoSt <= VOP_START_CODE_DET ;
 		 code_cnt <= 0;
 	   end
 	 else
 	   code_cnt <= code_cnt + 1;
   endrule
 
-  rule wait_1_cycle56 ((videoSt == GROUP_OF_VOP_5_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= GROUP_OF_VOP_5; 
-	$display("wait_1_cycle56 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle56 ((videoSt == GROUP_OF_VOP_5_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= GROUP_OF_VOP_5;
+	$display("wait_1_cycle56 start code reg %h ",start_code_reg);
   endrule
 
 /*
@@ -3905,7 +3905,7 @@ function Rules create_block3 ();
     //Bit#(4) tmp_byte_boundary = zeroExtend(byte_boundary) + 1;
     Bit#(4) tmp_byte_boundary = 8 - zeroExtend(byte_boundary);
     start_code_reg <= byteAlign.flushdata(tmp_byte_boundary,start_code_reg);
-    videoSt  <= VOP_START_CODE_DET; 
+    videoSt  <= VOP_START_CODE_DET;
 	sysState <= START;
 	byte_boundary <= 0;  // bitstream is byte-aligned now
   endrule
@@ -4011,33 +4011,33 @@ function Rules create_block4 ();
 	  end
 	blk_cnt <= 0;
 	byte_boundary <= byte_boundary + 2;
-	if (byte_offset < 3) 
-	  begin 
-	    if (sysState == WAIT) 
-		  videoSt  <= VOP_STATE_1_0; 
-		else 
-          videoSt  <= VOP_STATE_1; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -2; 
-	  end 
+	if (byte_offset < 3)
+	  begin
+	    if (sysState == WAIT)
+		  videoSt  <= VOP_STATE_1_0;
+		else
+          videoSt  <= VOP_STATE_1;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -2;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -2;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 2 ; 
-        videoSt  <= VOP_STATE_1; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 2 ;
+        videoSt  <= VOP_STATE_1;
+      end
   endrule
 
-  rule wait_1_cycle57 ((videoSt == VOP_STATE_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_1; 
-	$display("wait_1_cycle57 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle57 ((videoSt == VOP_STATE_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_1;
+	$display("wait_1_cycle57 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state1 (videoSt == VOP_STATE_1);
@@ -4046,59 +4046,59 @@ function Rules create_block4 ();
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 1)
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VOP_STATE_1_0; 
-		    else 
-              videoSt  <= VOP_STATE_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VOP_STATE_1_0;
+		    else
+              videoSt  <= VOP_STATE_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1 ; 
-            videoSt  <= VOP_STATE_1; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1 ;
+            videoSt  <= VOP_STATE_1;
+          end
 	  end
 	else
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-		      videoSt  <= VOP_STATE_2_0; 
-		    else 
-              videoSt  <= VOP_STATE_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 -1; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+		      videoSt  <= VOP_STATE_2_0;
+		    else
+              videoSt  <= VOP_STATE_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 -1;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -1;
-		      end 
-		    else 
-		      byte_offset <= byte_offset - 1 ; 
-            videoSt  <= VOP_STATE_2; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset - 1 ;
+            videoSt  <= VOP_STATE_2;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle58 ((videoSt == VOP_STATE_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_2; 
-	$display("wait_1_cycle58 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle58 ((videoSt == VOP_STATE_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_2;
+	$display("wait_1_cycle58 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state2 (videoSt == VOP_STATE_2);
@@ -4107,15 +4107,15 @@ function Rules create_block4 ();
 	fvti_num <= 0;
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -1;
-	  end 
-    else 
-	  byte_offset <= byte_offset - 1 ; 
-    videoSt  <= VOP_STATE_CAL_FVTI; 
+	  end
+    else
+	  byte_offset <= byte_offset - 1 ;
+    videoSt  <= VOP_STATE_CAL_FVTI;
   endrule
 
   rule  vop_state_cal_fvti (videoSt == VOP_STATE_CAL_FVTI);
@@ -4124,13 +4124,13 @@ function Rules create_block4 ();
 	  begin
 		if (byte_offset < fvti_num)
 		  begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset <= byte_offset +8 ; 
-            videoSt  <= VOP_STATE_2_1_0; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset <= byte_offset +8 ;
+            videoSt  <= VOP_STATE_2_1_0;
 		  end
 		else
-          videoSt  <= VOP_STATE_2_1; 
+          videoSt  <= VOP_STATE_2_1;
 	  end
 	else
 	  begin
@@ -4139,9 +4139,9 @@ function Rules create_block4 ();
 	  end
   endrule
 
-  rule wait_1_cycle58_0 ((videoSt == VOP_STATE_2_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_2_1; 
-	$display("wait_1_cycle58_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle58_0 ((videoSt == VOP_STATE_2_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_2_1;
+	$display("wait_1_cycle58_0 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state2_1 (videoSt == VOP_STATE_2_1);
@@ -4153,14 +4153,14 @@ function Rules create_block4 ();
 	  end
 	else
 	  begin
-        videoSt  <= VOP_STATE_2_2; 
-	    if (sysState == START) 
-	      begin 
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
+        videoSt  <= VOP_STATE_2_2;
+	    if (sysState == START)
+	      begin
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8 ;
-	      end 
-	    else 
+	      end
+	    else
 	      byte_offset <= byte_offset ;
 	  end
   endrule
@@ -4169,78 +4169,78 @@ function Rules create_block4 ();
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,fvti_num[3:0]);
 	vop_time_increment <= byteAlign.bs(vop_time_increment,tmp,fvti_num[3:0]);
 	byte_boundary <= byte_boundary + fvti_num[2:0];
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset +8 - fvti_num;
-	  end 
-	else 
-	  byte_offset <= byte_offset - fvti_num; 
-    videoSt  <= VOP_STATE_2_3; 
-  endrule
-
-  rule vop_state_2_3 (videoSt == VOP_STATE_2_3) ; 
-	if (byte_offset < 1) 
-	  begin 
-	    if (sysState == WAIT) 
-	      videoSt  <= VOP_STATE_2_4_0; 
-		else 
-          videoSt  <= VOP_STATE_2_4; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 ; 
-	  end 
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
-		    byte_offset <= byte_offset +8 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
-        videoSt  <= VOP_STATE_2_4; 
-      end 
+	  byte_offset <= byte_offset - fvti_num;
+    videoSt  <= VOP_STATE_2_3;
   endrule
 
-  rule wait_1_cycle58_1 ((videoSt == VOP_STATE_2_4_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_2_4; 
-	$display("wait_1_cycle58_1 start code reg %h ",start_code_reg); 
+  rule vop_state_2_3 (videoSt == VOP_STATE_2_3) ;
+	if (byte_offset < 1)
+	  begin
+	    if (sysState == WAIT)
+	      videoSt  <= VOP_STATE_2_4_0;
+		else
+          videoSt  <= VOP_STATE_2_4;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 ;
+	  end
+	else
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
+		    byte_offset <= byte_offset +8 ;
+		  end
+		else
+		  byte_offset <= byte_offset ;
+        videoSt  <= VOP_STATE_2_4;
+      end
+  endrule
+
+  rule wait_1_cycle58_1 ((videoSt == VOP_STATE_2_4_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_2_4;
+	$display("wait_1_cycle58_1 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state2_4 (videoSt == VOP_STATE_2_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (byte_offset < 9) 
-	  begin 
-	    if (sysState == WAIT) 
-	      videoSt  <= VOP_STATE_3_0; 
-		else 
-          videoSt  <= VOP_STATE_3; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-		byte_offset    <= byte_offset +8 -1; 
-	  end 
+	if (byte_offset < 9)
+	  begin
+	    if (sysState == WAIT)
+	      videoSt  <= VOP_STATE_3_0;
+		else
+          videoSt  <= VOP_STATE_3;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+		byte_offset    <= byte_offset +8 -1;
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1 ; 
-        videoSt  <= VOP_STATE_3; 
-      end 
+		  end
+		else
+		  byte_offset <= byte_offset - 1 ;
+        videoSt  <= VOP_STATE_3;
+      end
   endrule
 
-  rule wait_1_cycle58_1_0 ((videoSt == VOP_STATE_3_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_3; 
-	$display("wait_1_cycle58_1_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle58_1_0 ((videoSt == VOP_STATE_3_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_3;
+	$display("wait_1_cycle58_1_0 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state3 (videoSt == VOP_STATE_3);
@@ -4249,241 +4249,241 @@ function Rules create_block4 ();
 	byte_boundary <= byte_boundary + 1;
 	if (tmp[0] == 0)
 	  begin
-	    videoSt  <= GROUP_OF_VOP_4; 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    videoSt  <= GROUP_OF_VOP_4;
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1 ; 
+		  end
+		else
+		  byte_offset <= byte_offset - 1 ;
 	  end
 	else
 	  begin
-	    videoSt  <= VOP_STATE_3_0_0; 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    videoSt  <= VOP_STATE_3_0_0;
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 -1;
-		  end 
-		else 
-		  byte_offset <= byte_offset - 1 ; 
+		  end
+		else
+		  byte_offset <= byte_offset - 1 ;
 	  end
   endrule
 
   rule vop_state3_0 (videoSt == VOP_STATE_3_0_0);
 	if ((video_object_layer_shape != bINARY) && (vop_coding_type == 1))
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= VOP_STATE_3_1_0; 
-		    else 
-              videoSt  <= VOP_STATE_3_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= VOP_STATE_3_1_0;
+		    else
+              videoSt  <= VOP_STATE_3_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset  ; 
-            videoSt  <= VOP_STATE_3_1; 
+		      end
+		    else
+		      byte_offset <= byte_offset  ;
+            videoSt  <= VOP_STATE_3_1;
 	      end
 	  end
 	else
 	  begin
-	    videoSt  <= VOP_STATE_4_0_0; 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    videoSt  <= VOP_STATE_4_0_0;
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
+		  end
+		else
+		  byte_offset <= byte_offset ;
 	  end
   endrule
 
-  rule wait_1_cycle59_0 ((videoSt == VOP_STATE_3_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_3_1; 
-	$display("wait_1_cycle59_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle59_0 ((videoSt == VOP_STATE_3_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_3_1;
+	$display("wait_1_cycle59_0 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state3_1 (videoSt == VOP_STATE_3_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	vop_rounding_type <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	videoSt  <= VOP_STATE_4_0_0; 
-	if (sysState == START) 
-	   begin 
-		 sysState <= WAIT; 
-		 vd_rd_reg <= 1'b0; 
+	videoSt  <= VOP_STATE_4_0_0;
+	if (sysState == START)
+	   begin
+		 sysState <= WAIT;
+		 vd_rd_reg <= 1'b0;
 		 byte_offset <= byte_offset +8 -1;
-	   end 
-    else 
-	  byte_offset <= byte_offset - 1 ; 
+	   end
+    else
+	  byte_offset <= byte_offset - 1 ;
   endrule
 
   rule vop_state4_0_0 (videoSt == VOP_STATE_4_0_0);
-	if ((reduced_resolution_vop_enable == 1) && (video_object_layer_shape == rECTANGULAR) && 
+	if ((reduced_resolution_vop_enable == 1) && (video_object_layer_shape == rECTANGULAR) &&
 	         ((vop_coding_type == 0) || (vop_coding_type == 1)))
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= VOP_STATE_4_0; 
-		    else 
-              videoSt  <= VOP_STATE_4; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= VOP_STATE_4_0;
+		    else
+              videoSt  <= VOP_STATE_4;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VOP_STATE_4; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VOP_STATE_4;
+          end
 	  end
-	else 
+	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 ;
-		  end 
-		else 
-		  byte_offset <= byte_offset ; 
-        videoSt  <= VOP_STATE_5; 
+		  end
+		else
+		  byte_offset <= byte_offset ;
+        videoSt  <= VOP_STATE_5;
 	  end
   endrule
 
-  rule wait_1_cycle59 ((videoSt == VOP_STATE_4_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_4; 
-	$display("wait_1_cycle59 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle59 ((videoSt == VOP_STATE_4_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_4;
+	$display("wait_1_cycle59 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state4 (videoSt == VOP_STATE_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	vop_reduced_resolution <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -1;
-	  end 
-    else 
-	  byte_offset <= byte_offset - 1 ; 
-    videoSt  <= VOP_STATE_5; 
+	  end
+    else
+	  byte_offset <= byte_offset - 1 ;
+    videoSt  <= VOP_STATE_5;
   endrule
 
   rule vop_state5 (videoSt == VOP_STATE_5);
 	if ((video_object_layer_shape != bINARY_ONLY) && (complexity_estimation_disable == 0))
-      videoSt  <= VOP_STATE_4_READ_VOP_COMPLEXITY_ESTIMATION_HEADER; 
+      videoSt  <= VOP_STATE_4_READ_VOP_COMPLEXITY_ESTIMATION_HEADER;
     else
-      videoSt  <= VOP_STATE_5_1; 
+      videoSt  <= VOP_STATE_5_1;
   endrule
 
   rule vop_state5_1 (videoSt == VOP_STATE_5_1);
 	if (video_object_layer_shape != bINARY_ONLY)
 	  begin
-	    if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= VOP_STATE_6_0; 
-		    else 
-              videoSt  <= VOP_STATE_6; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= VOP_STATE_6_0;
+		    else
+              videoSt  <= VOP_STATE_6;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VOP_STATE_6; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VOP_STATE_6;
+          end
 	  end
 	else
       videoSt  <= VOP_STATE_7;
   endrule
 
-  rule wait_1_cycle60 ((videoSt == VOP_STATE_6_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_6; 
-	$display("wait_1_cycle60 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle60 ((videoSt == VOP_STATE_6_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_6;
+	$display("wait_1_cycle60 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state6 (videoSt == VOP_STATE_6);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,3);
 	intra_dc_vlc_thr <= tmp[2:0];
 	byte_boundary <= byte_boundary + 3;
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -3;
-	  end 
-    else 
-	  byte_offset <= byte_offset - 3 ; 
-    videoSt  <= VOP_STATE_7; 
+	  end
+    else
+	  byte_offset <= byte_offset - 3 ;
+    videoSt  <= VOP_STATE_7;
   endrule
 
   rule vop_state7 (videoSt == VOP_STATE_7);
 	if (video_object_layer_shape != bINARY_ONLY)
 	  begin
-	    if (byte_offset < zeroExtend(quant_precision)) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= VOP_STATE_8_0; 
-		    else 
-              videoSt  <= VOP_STATE_8; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-		    byte_offset    <= byte_offset +8 ; 
-	      end 
+	    if (byte_offset < zeroExtend(quant_precision))
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= VOP_STATE_8_0;
+		    else
+              videoSt  <= VOP_STATE_8;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+		    byte_offset    <= byte_offset +8 ;
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VOP_STATE_8; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VOP_STATE_8;
+          end
 	  end
 	else
       videoSt  <= VOP_STATE_9;
   endrule
 
-  rule wait_1_cycle61 ((videoSt == VOP_STATE_8_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_8; 
-	$display("wait_1_cycle60 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle61 ((videoSt == VOP_STATE_8_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_8;
+	$display("wait_1_cycle60 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state8 (videoSt == VOP_STATE_8);
@@ -4491,50 +4491,50 @@ function Rules create_block4 ();
 	vop_quant <= tmp;
 	running_QP <= tmp;
 	byte_boundary <= byte_boundary + quant_precision[2:0];
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -zeroExtend(quant_precision);
-	  end 
-    else 
-	  byte_offset <= byte_offset - zeroExtend(quant_precision) ; 
-    videoSt  <= VOP_STATE_9; 
+	  end
+    else
+	  byte_offset <= byte_offset - zeroExtend(quant_precision) ;
+    videoSt  <= VOP_STATE_9;
   endrule
 
   rule vop_state9 (videoSt == VOP_STATE_9);
 	if (vop_coding_type != 0) // vop_coding _type is NOT I
 	  begin
-	    if (byte_offset < 3) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= VOP_STATE_10_0; 
-		    else 
-              videoSt  <= VOP_STATE_10; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 3)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= VOP_STATE_10_0;
+		    else
+              videoSt  <= VOP_STATE_10;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= VOP_STATE_10; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= VOP_STATE_10;
+          end
 	  end
 	else
       videoSt  <= VOP_STATE_11;
   endrule
 
-  rule wait_1_cycle62 ((videoSt == VOP_STATE_10_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= VOP_STATE_10; 
-	$display("wait_1_cycle60 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle62 ((videoSt == VOP_STATE_10_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= VOP_STATE_10;
+	$display("wait_1_cycle60 start code reg %h ",start_code_reg);
   endrule
 
   rule vop_state10 (videoSt == VOP_STATE_10);
@@ -4544,23 +4544,23 @@ function Rules create_block4 ();
 	if (scalability == 1)
 	  begin
 	    $display("Error Error !! Scalablity is Set");
-        videoSt  <= SUSPEND; 
+        videoSt  <= SUSPEND;
 	  end
 	else
 	  begin
 	    if (vop_start_code_detected)
-          videoSt  <= SUSPEND; 
+          videoSt  <= SUSPEND;
 		else
 		  // motion shape texture decoding starts here
-          videoSt  <= VOP_STATE_11;  
+          videoSt  <= VOP_STATE_11;
 	  end
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -3;
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - 3;
   endrule
 
@@ -4570,20 +4570,20 @@ function Rules create_block4 ();
 					  (videoSt == SUSPEND));
       if (host_datain.wget == Just(2))
 	     begin
-	       videoSt <= RESUME;	
+	       videoSt <= RESUME;
 		   $display("resume is set");
 	     end
   endrule
 
   rule resume_decoding (videoSt == RESUME);
-    videoSt  <= VOP_STATE_11; 
+    videoSt  <= VOP_STATE_11;
 	vop_start_code_detected <= False;
   endrule
 
   rule vop_state11 (videoSt == VOP_STATE_11);
     if (data_partitioned == 1)
       videoSt  <= DATA_PARTITIONED_MST; // data partitioned motion shape texture
-	else   
+	else
       videoSt  <= COMBINED_MST ; // combined motion shape texture
   endrule
 
@@ -4618,32 +4618,32 @@ function Rules create_block4 ();
     disable_mb_done_reg <= 1'b0;
     if (vop_coding_type != 0) // VOP is NOT "I"
 	  begin
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_STATE_1_0; 
-		    else 
-              videoSt  <= MB_STATE_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_STATE_1_0;
+		    else
+              videoSt  <= MB_STATE_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= MB_STATE_1; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= MB_STATE_1;
+          end
 	  end
 	else
 	  begin
-        videoSt  <= MB_STATE_2; 
+        videoSt  <= MB_STATE_2;
 		not_coded <= 0;
 	  end
 	first_MB <= True;
@@ -4690,50 +4690,50 @@ function Rules create_block5 ();
 	else
 	  $display("isIntra_d is False");
 
-	// since if MB is not coded we will never 
+	// since if MB is not coded we will never
 	//get updated value of intra_d from MB_STATE_3
 
-	isIntra_d <= isIntra; 
+	isIntra_d <= isIntra;
 	mbtype <= 5 ; // reserved value of mbtype has been used here
 	              // becoz after each MB if mbtype is needs to be
 				  // defined and if its not required then wont matter
 	byte_boundary <= byte_boundary + 1;
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 -1;
-	  end 
-    else 
-	  byte_offset <= byte_offset -1; 
-    videoSt  <= MB_STATE_2; 
+	  end
+    else
+	  byte_offset <= byte_offset -1;
+    videoSt  <= MB_STATE_2;
   endrule
 
   rule mb_state_2 (videoSt == MB_STATE_2);
     if ((not_coded == 0) || (vop_coding_type == 0)) // VOP_CODING is "I"
 	  begin
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_STATE_3_0; 
-		    else 
-              videoSt  <= MB_STATE_3; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_STATE_3_0;
+		    else
+              videoSt  <= MB_STATE_3;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= MB_STATE_3; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= MB_STATE_3;
+          end
 	  end
 	else
 	  begin
@@ -4747,9 +4747,9 @@ function Rules create_block5 ();
 		$display("**********************************");
 		$display("Moving to MB_BLK_STATE");
 		// need to wait for 64*6 cycles and move forward
-		// blkBuffer and read them out before 
+		// blkBuffer and read them out before
 		// going forward
-        videoSt  <= UPDATE_MV_BUFFER; 
+        videoSt  <= UPDATE_MV_BUFFER;
         mbheaderfifo.enq(tuple7(mbNum,1,0,0,0,0,0));
 		$display("writing mvPredBuffer addr = %d data = 0",mv_addr);
         mvPredBuffer_x.upd(mv_addr,Just(0));
@@ -4777,21 +4777,21 @@ function Rules create_block5 ();
   rule mb_not_coded_wait_state  (videoSt == MB_not_coded_wait_state);
     if (blkBuffer.busy == False)
 	  begin
-		if ((!isIntra_d && (cbpc[0] == 1)) || 
+		if ((!isIntra_d && (cbpc[0] == 1)) ||
 		    (isIntra_d && !((mb_num_x == 0) && (mb_num_y == 0)) && !video_packet_header_detected))
 		  begin
 		    blkBuffer.sent_output_data(1'b1);
 		    //isIntra_d <= False;
 		  end
 	    wait_cnt <= 1;
-        videoSt  <= MB_not_coded_wait_state_1; 
+        videoSt  <= MB_not_coded_wait_state_1;
 	  end
   endrule
   */
 
   rule mb_not_coded_wait_state  (videoSt == MB_not_coded_wait_state);
 	wait_cnt <= 1;
-    videoSt  <= MB_not_coded_wait_state_1; 
+    videoSt  <= MB_not_coded_wait_state_1;
   endrule
 
   rule mb_not_coded_wait_state_1  (videoSt == MB_not_coded_wait_state_1);
@@ -4803,7 +4803,7 @@ function Rules create_block5 ();
       end
 	  */
 	wait_cnt <= 2;
-    videoSt  <= MB_not_coded_wait_state_2; 
+    videoSt  <= MB_not_coded_wait_state_2;
 	cbpy <= 0;
 	cbpc <= 0;
 	blk_cnt <= 0;
@@ -4819,7 +4819,7 @@ function Rules create_block5 ();
 	   begin
 		 wait_cnt <= 0;
 		 blk_cnt <= 0;
-         videoSt  <= CHECK_RESYNC_MARKER0; 
+         videoSt  <= CHECK_RESYNC_MARKER0;
 		 if (zeroExtend(vop_mb_num_x) == (mb_width-1))
 		   begin
 			 vop_mb_num_x <= 0;
@@ -4857,12 +4857,12 @@ function Rules create_block5 ();
 	  end
   endrule
 
-  rule wait_1_cycle63 ((videoSt == MB_STATE_3_0) && (vd_valid.wget == Just(1))) ; 
+  rule wait_1_cycle63 ((videoSt == MB_STATE_3_0) && (vd_valid.wget == Just(1))) ;
     if (byte_offset >= 9)
-      videoSt <= MB_STATE_3; 
+      videoSt <= MB_STATE_3;
 	else
 	  byte_offset <= byte_offset + 8;
-	$display("wait_1_cycle60 start code reg %h ",start_code_reg); 
+	$display("wait_1_cycle60 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_state_3 (videoSt == MB_STATE_3);
@@ -4878,51 +4878,51 @@ function Rules create_block5 ();
 	cbpc <=   tpl_2(mcbpc);
 	let tmp_byte_boundary = tpl_3(mcbpc);
 	byte_boundary <= byte_boundary  + tmp_byte_boundary[2:0];
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8 - tpl_3(mcbpc);
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - tpl_3(mcbpc);
-    videoSt  <= MB_STATE_4; 
+    videoSt  <= MB_STATE_4;
 	$display("mcbpc  mbtype = %d cbpc = %d alignment = %d",tpl_1(mcbpc),tpl_2(mcbpc),tpl_3(mcbpc));
   endrule
 
   rule mb_state_4 (videoSt == MB_STATE_4);
 	if ((short_video_header == False) && isIntra)
 	  begin
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_STATE_5_0; 
-		    else 
-              videoSt  <= MB_STATE_5; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_STATE_5_0;
+		    else
+              videoSt  <= MB_STATE_5;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= MB_STATE_5; 
-          end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= MB_STATE_5;
+          end
 	  end
 	else
-      videoSt  <= MB_STATE_6; 
+      videoSt  <= MB_STATE_6;
   endrule
 
-  rule wait_1_cycle_mb_state_5_0 ((videoSt == MB_STATE_5_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_STATE_5; 
-	$display("wait_1_cycle_mb_state_5_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle_mb_state_5_0 ((videoSt == MB_STATE_5_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_STATE_5;
+	$display("wait_1_cycle_mb_state_5_0 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_state_5 ((videoSt == MB_STATE_5) && (update_cnt < 5));
@@ -4940,56 +4940,56 @@ function Rules create_block5 ();
 	    ac_pred_flag <= tmp[0];
 	    byte_boundary <= byte_boundary + 1;
         mbheaderfifo.enq(tuple7(mbNum,0,cbpy,cbpc,0,0,0));
-	    if (sysState == START) 
-	      begin 
-	        sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+	      begin
+	        sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8 - 1;
-	      end 
-        else 
+	      end
+        else
 	      byte_offset <= byte_offset - 1;
-        videoSt  <= MB_STATE_6; 
+        videoSt  <= MB_STATE_6;
 	  end
   endrule
 
   rule mb_state_6 (videoSt == MB_STATE_6);
     if (mbtype != 7) // mbtype is NOT STUFFING
-	  begin 
-	    if (byte_offset < 6) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_STATE_7_0; 
-		    else 
-              videoSt  <= MB_STATE_7; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	  begin
+	    if (byte_offset < 6)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_STATE_7_0;
+		    else
+              videoSt  <= MB_STATE_7;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8;
-		      end 
-		    else 
-		      byte_offset <= byte_offset ; 
-            videoSt  <= MB_STATE_7; 
-          end 
-	  end 
+		      end
+		    else
+		      byte_offset <= byte_offset ;
+            videoSt  <= MB_STATE_7;
+          end
+	  end
 	else
-      videoSt  <= MST_STATE_0; 
+      videoSt  <= MST_STATE_0;
   endrule
 
-  rule wait_1_cycle64 ((videoSt == MB_STATE_7_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_STATE_7; 
-	$display("wait_1_cycle64 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle64 ((videoSt == MB_STATE_7_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_STATE_7;
+	$display("wait_1_cycle64 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_state_7 (videoSt == MB_STATE_7);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,6);
-    Tuple2#(Bit#(4),Bit#(5)) cbpy_code; 
+    Tuple2#(Bit#(4),Bit#(5)) cbpy_code;
 	$display("mb_state_7 tmp = %h",tmp);
 	if (isIntra) // "I" type
 	  cbpy_code = decode_cbpyI(tmp[5:0]);
@@ -4998,51 +4998,51 @@ function Rules create_block5 ();
 	cbpy <= tpl_1(cbpy_code);
 	let tmp_byte_boundary = tpl_2(cbpy_code);
 	byte_boundary <= byte_boundary + tmp_byte_boundary[2:0];
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8 - tpl_2(cbpy_code);
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - tpl_2(cbpy_code);
-    videoSt  <= MB_STATE_8; 
+    videoSt  <= MB_STATE_8;
 	$display("cbpy  = %b alignment = %d",tpl_1(cbpy_code),tpl_2(cbpy_code));
   endrule
 
   rule mb_state_8 (videoSt == MB_STATE_8);
-	if ((mbtype == 1) || (mbtype == 4)) 
+	if ((mbtype == 1) || (mbtype == 4))
 	  begin
-	    if (byte_offset < 2) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_STATE_9_0; 
-		    else 
-              videoSt  <= MB_STATE_9; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 2)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_STATE_9_0;
+		    else
+              videoSt  <= MB_STATE_9;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_STATE_9; 
-          end 
+            videoSt  <= MB_STATE_9;
+          end
 	  end
 	else
-      videoSt  <= MB_STATE_10; 
+      videoSt  <= MB_STATE_10;
   endrule
 
-  rule wait_1_cycle65 ((videoSt == MB_STATE_9_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_STATE_9; 
-	$display("wait_1_cycle65 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle65 ((videoSt == MB_STATE_9_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_STATE_9;
+	$display("wait_1_cycle65 start code reg %h ",start_code_reg);
   endrule
 
   // dquant code is decoded
@@ -5059,24 +5059,24 @@ function Rules create_block5 ();
 	*/
 	// changed to running_QP as that can updated
 	// by vop_quant,dquant,quant_scale
-	case (tmp[1:0]) 
+	case (tmp[1:0])
 	  2'b00 : running_QP <= running_QP - 1;
 	  2'b01 : running_QP <= running_QP - 2;
 	  2'b10 : running_QP <= running_QP + 1;
 	  2'b11 : running_QP <= running_QP + 2;
 	  default : running_QP <= running_QP;
 	endcase
-	// May be check for saturation ??? 
+	// May be check for saturation ???
 	byte_boundary <= byte_boundary + 2;
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8 - 2;
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - 2;
-    videoSt  <= MB_STATE_10; 
+    videoSt  <= MB_STATE_10;
   endrule
 
   rule mb_state_10 (videoSt == MB_STATE_10);
@@ -5093,7 +5093,7 @@ function Rules create_block5 ();
 	endcase
     if ((((mbtype == 0) || (mbtype == 1)) && (vop_coding_type == 1) && (mvp_done == False)) || // "P" frame
 		(mbtype == 2 && mv_count != 3))
-      videoSt  <= MV_STATE_1; 
+      videoSt  <= MV_STATE_1;
 	else
 	  begin
         if (mvp_done && (update_cnt < 4))
@@ -5107,9 +5107,9 @@ function Rules create_block5 ();
 		else
 		   begin
 		     if (isInter == 1)
-                videoSt  <= EXEC_MV_PREDICTION; 
+                videoSt  <= EXEC_MV_PREDICTION;
 		     else
-               videoSt  <= MB_BLK_STATE; 
+               videoSt  <= MB_BLK_STATE;
 			 mvp_done <= False;
 			 update_cnt <= 0;
 			 //update_cnt <= 1;
@@ -5131,161 +5131,161 @@ function Rules create_block6 ();
  Rules r = rules
 
   rule mv_state_1 (videoSt == MV_STATE_1);
-	if (byte_offset < 5) 
-	  begin 
-	    if (sysState == WAIT) 
+	if (byte_offset < 5)
+	  begin
+	    if (sysState == WAIT)
 	      videoSt  <= MV_STATE_2_0;
-		else 
-          videoSt  <= MV_STATE_2; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
+		else
+          videoSt  <= MV_STATE_2;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
 		byte_offset <= byte_offset +8 ;
-	  end 
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 ;
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset ;
-        videoSt  <= MV_STATE_2; 
-      end 
+        videoSt  <= MV_STATE_2;
+      end
   endrule
 
-  rule wait_1_cycle66 ((videoSt == MV_STATE_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_2; 
-	$display("wait_1_cycle66 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle66 ((videoSt == MV_STATE_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_2;
+	$display("wait_1_cycle66 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_2 (videoSt == MV_STATE_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,5);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV4(tmp[4:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV4(tmp[4:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mv_state_2 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    horizontal_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_3; 
+        videoSt  <= MV_STATE_3;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 11) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MV_STATE_2_1_0; 
-		    else 
-              videoSt  <= MV_STATE_2_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 11)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MV_STATE_2_1_0;
+		    else
+              videoSt  <= MV_STATE_2_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MV_STATE_2_1; 
-          end 
+            videoSt  <= MV_STATE_2_1;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle67 ((videoSt == MV_STATE_2_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_2_1; 
-	$display("wait_1_cycle67 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle67 ((videoSt == MV_STATE_2_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_2_1;
+	$display("wait_1_cycle67 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_2_1 (videoSt == MV_STATE_2_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,7);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV7(tmp[6:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV7(tmp[6:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mv_state_2_1 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    horizontal_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_3; 
+        videoSt  <= MV_STATE_3;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MV_STATE_2_2_0; 
-		    else 
-              videoSt  <= MV_STATE_2_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MV_STATE_2_2_0;
+		    else
+              videoSt  <= MV_STATE_2_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MV_STATE_2_2; 
-          end 
+            videoSt  <= MV_STATE_2_2;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle68 ((videoSt == MV_STATE_2_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_2_2; 
-	$display("wait_1_cycle68 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle68 ((videoSt == MV_STATE_2_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_2_2;
+	$display("wait_1_cycle68 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_2_2 (videoSt == MV_STATE_2_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,5);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV5(tmp[4:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV5(tmp[4:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mv_state_2_2 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    horizontal_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_3; 
+        videoSt  <= MV_STATE_3;
 	  end
 	else
 	  $display("Error Error : horizontal mv data not found");
@@ -5294,209 +5294,209 @@ function Rules create_block6 ();
   rule mv_state_3 (videoSt == MV_STATE_3);
     if ((vop_fcode_forward != 1) && (horizontal_mv_data.sub(mv_count) != 0))
 	  begin
-	    if (byte_offset < tmp_vop_fcode_forward ) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < tmp_vop_fcode_forward )
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MV_STATE_4_0;
-		    else 
-              videoSt  <= MV_STATE_4; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MV_STATE_4;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MV_STATE_4; 
-          end 
+            videoSt  <= MV_STATE_4;
+          end
 	  end
 	else
-      videoSt  <= MV_STATE_5; 
+      videoSt  <= MV_STATE_5;
   endrule
 
-  rule wait_1_cycle69 ((videoSt == MV_STATE_4_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_4; 
-	$display("wait_1_cycle69 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle69 ((videoSt == MV_STATE_4_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_4;
+	$display("wait_1_cycle69 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_4 (videoSt == MV_STATE_4);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,tmp_vop_fcode_forward[3:0]);
 	horizontal_mv_residual.upd(mv_count,tmp[5:0]);
 	byte_boundary <= byte_boundary + tmp_vop_fcode_forward[2:0];
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8 - tmp_vop_fcode_forward;
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - tmp_vop_fcode_forward;
-    videoSt  <= MV_STATE_5; 
+    videoSt  <= MV_STATE_5;
   endrule
 
   rule mv_state_5 (videoSt == MV_STATE_5);
-	if (byte_offset < 5) 
-	  begin 
-	    if (sysState == WAIT) 
+	if (byte_offset < 5)
+	  begin
+	    if (sysState == WAIT)
 	      videoSt  <= MV_STATE_6_0;
-		else 
-          videoSt  <= MV_STATE_6; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
+		else
+          videoSt  <= MV_STATE_6;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
 		byte_offset <= byte_offset +8 ;
-	  end 
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 ;
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset ;
-        videoSt  <= MV_STATE_6; 
-      end 
+        videoSt  <= MV_STATE_6;
+      end
   endrule
 
-  rule wait_1_cycle70 ((videoSt == MV_STATE_6_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_6; 
-	$display("wait_1_cycle70 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle70 ((videoSt == MV_STATE_6_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_6;
+	$display("wait_1_cycle70 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_6 (videoSt == MV_STATE_6);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,5);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV4(tmp[4:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV4(tmp[4:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mv_state_6 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    vertical_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_7; 
+        videoSt  <= MV_STATE_7;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 11) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MV_STATE_6_1_0; 
-		    else 
-              videoSt  <= MV_STATE_6_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 11)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MV_STATE_6_1_0;
+		    else
+              videoSt  <= MV_STATE_6_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MV_STATE_6_1; 
-          end 
+            videoSt  <= MV_STATE_6_1;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle71 ((videoSt == MV_STATE_6_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_6_1; 
-	$display("wait_1_cycle71 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle71 ((videoSt == MV_STATE_6_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_6_1;
+	$display("wait_1_cycle71 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_6_1 (videoSt == MV_STATE_6_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,7);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV7(tmp[6:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV7(tmp[6:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mb_state_6_1 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    vertical_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_7; 
+        videoSt  <= MV_STATE_7;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 9) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MV_STATE_6_2_0; 
-		    else 
-              videoSt  <= MV_STATE_6_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 9)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MV_STATE_6_2_0;
+		    else
+              videoSt  <= MV_STATE_6_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MV_STATE_6_2; 
-          end 
+            videoSt  <= MV_STATE_6_2;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle72 ((videoSt == MV_STATE_6_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_6_2; 
-	$display("wait_1_cycle72 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle72 ((videoSt == MV_STATE_6_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_6_2;
+	$display("wait_1_cycle72 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_6_2 (videoSt == MV_STATE_6_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,5);
-    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV5(tmp[4:0]); 
+    Tuple3#(Bool,Bit#(12),Bit#(5)) mv_code = decode_MV5(tmp[4:0]);
 	Bit#(5) tmp_boundary = tpl_3(mv_code);
 	$display("mb_state_6_2 tmp = %h",tmp);
 	if (tpl_1(mv_code))
 	  begin
 	    vertical_mv_data.upd(mv_count,tpl_2(mv_code));
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(mv_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(mv_code);
-        videoSt  <= MV_STATE_7; 
+        videoSt  <= MV_STATE_7;
 	  end
 	else
 	  $display("Error Error : horizontal mv data not found");
@@ -5505,28 +5505,28 @@ function Rules create_block6 ();
   rule mv_state_7 (videoSt == MV_STATE_7);
     if ((vop_fcode_forward != 1) && (vertical_mv_data.sub(mv_count) != 0))
 	  begin
-	    if (byte_offset < tmp_vop_fcode_forward ) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < tmp_vop_fcode_forward )
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MV_STATE_8_0;
-		    else 
-              videoSt  <= MV_STATE_8; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MV_STATE_8;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MV_STATE_8; 
-          end 
+            videoSt  <= MV_STATE_8;
+          end
 	  end
 	else
 	  begin
@@ -5541,28 +5541,28 @@ function Rules create_block6 ();
 	        mvp_done <= False;
 	        mv_count <= mv_count + 1;
 	      end
-        videoSt  <= MB_STATE_10; 
+        videoSt  <= MB_STATE_10;
 	  end
   endrule
 
-  rule wait_1_cycle73 ((videoSt == MV_STATE_8_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MV_STATE_8; 
-	$display("wait_1_cycle73 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle73 ((videoSt == MV_STATE_8_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MV_STATE_8;
+	$display("wait_1_cycle73 start code reg %h ",start_code_reg);
   endrule
 
   rule mv_state_8 (videoSt == MV_STATE_8);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,tmp_vop_fcode_forward[3:0]);
 	vertical_mv_residual.upd(mv_count,tmp[5:0]);
 	byte_boundary <= byte_boundary + tmp_vop_fcode_forward[2:0];
-	if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8 - tmp_vop_fcode_forward;
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset - tmp_vop_fcode_forward;
-    videoSt  <= MB_STATE_10; 
+    videoSt  <= MB_STATE_10;
     if (((mbtype == 0) || (mbtype == 1)) && (vop_coding_type == 1)) // Single MV case
 	  begin
 	    mvp_done <= True;
@@ -5578,7 +5578,7 @@ function Rules create_block6 ();
   rule exec_mv_prediction (videoSt == EXEC_MV_PREDICTION);
     let leftblock = -1;
     let topblock = -1;
-    let toprightblock = -1; 
+    let toprightblock = -1;
 	Maybe#(Bit#(12)) mv1_x;
 	Maybe#(Bit#(12)) mv1_y;
 	Maybe#(Bit#(12)) mv2_x;
@@ -5598,7 +5598,7 @@ function Rules create_block6 ();
 	Bit#(8)  tmp_mb_width1 = mb_width[7:0];
 	Bit#(8)  tmp_address = mv_addr;
 
-	if ((tmp_mb_num_x == 0) || 
+	if ((tmp_mb_num_x == 0) ||
 	     ((tmp_vop_mb_num_y == 0) && (tmp_mb_num_x != 0) && (tmp_vop_mb_num_x == 0))
 	   )
 	  begin
@@ -5607,7 +5607,7 @@ function Rules create_block6 ();
 	    mv1_y = Nothing;
 		$display("leftblock is -1 cond 1");
 	  end
-    else 
+    else
 	  begin
 	    if (mv_addr == 0)
 		   leftblock = 8*tmp_mb_width1 - 1;
@@ -5631,7 +5631,7 @@ function Rules create_block6 ();
 	    mv2_y = Nothing;
 		$display("topblock is -1 cond 1 ");
 	  end
-    else 
+    else
 	  begin
 	    if (tmp_vop_mb_num_y[0] == 1)
 		   begin
@@ -5647,7 +5647,7 @@ function Rules create_block6 ();
         mv2_y = mvPredBuffer_y.sub(topblock);
 	  end
 
-    if ((tmp_mb_num_x == (tmp_mb_width-1)) || 
+    if ((tmp_mb_num_x == (tmp_mb_width-1)) ||
 	    ((tmp_vop_mb_num_y == 0) && (tmp_vop_mb_num_x != (tmp_mb_width-1))))
 	  begin
 	    toprightblock = -1;
@@ -5655,7 +5655,7 @@ function Rules create_block6 ();
 	    mv3_y = Nothing;
 		$display("toprightblock -1 cond 1 ");
 	  end
-    else 
+    else
 	  begin
 	    if ((mv_addr == (2*tmp_mb_width1 - 2)) && (tmp_vop_mb_num_y == 0))
 		  begin
@@ -5677,7 +5677,7 @@ function Rules create_block6 ();
 		    toprightblock = 2*tmp_mb_width1 ;
 		    $display("toprightblock = %d cond 4 ",toprightblock);
 		  end
-	    else 
+	    else
 		  begin
 		    toprightblock = topblock + 2;
 		    $display("toprightblock = %d cond 5 ",toprightblock);
@@ -5746,7 +5746,7 @@ function Rules create_block6 ();
   rule exec_4mv_prediction (videoSt == EXEC_4MV_PREDICTION);
     let leftblock = -1;
     let topblock = -1;
-    let toprightblock = -1; 
+    let toprightblock = -1;
 	Maybe#(Bit#(12)) mv1_x;
 	Maybe#(Bit#(12)) mv1_y;
 	Maybe#(Bit#(12)) mv2_x;
@@ -5778,7 +5778,7 @@ function Rules create_block6 ();
 	    mv2_y = Nothing;
 		$display("topblock in exec_4mv_prediction is -1 cond 1 ");
 	  end
-    else 
+    else
 	  begin
 	    if (tmp_vop_mb_num_y[0] == 1)
 		   begin
@@ -5794,7 +5794,7 @@ function Rules create_block6 ();
         mv2_y = mvPredBuffer_y.sub(topblock);
 	  end
 
-    if ((tmp_mb_num_x == (tmp_mb_width-1)) || 
+    if ((tmp_mb_num_x == (tmp_mb_width-1)) ||
 	    ((tmp_vop_mb_num_y == 0) && (tmp_vop_mb_num_x != (tmp_mb_width-1))))
 	  begin
 	    toprightblock = -1;
@@ -5802,7 +5802,7 @@ function Rules create_block6 ();
 	    mv3_y = Nothing;
 		$display("toprightblock -1 cond 1 ");
 	  end
-    else 
+    else
 	  begin
 	    if ((mv_addr == (2*tmp_mb_width1 - 1)) && (tmp_vop_mb_num_y == 0))
 		  begin
@@ -5824,7 +5824,7 @@ function Rules create_block6 ();
 		    toprightblock = 2*tmp_mb_width1 ;
 		    $display("toprightblock = %d cond 4 ",toprightblock);
 		  end
-	    else 
+	    else
 		  begin
 		    toprightblock = topblock + 1;
 		    $display("toprightblock = %d cond 5 ",toprightblock);
@@ -5840,7 +5840,7 @@ function Rules create_block6 ();
 	 tmp_mv2_y = tpl_4(tmp);
 	 tmp_mv3_x = tpl_5(tmp);
 	 tmp_mv3_y = tpl_6(tmp);
-    
+
 	 let px = mvarith.median_x(tmp_mv1_x,tmp_mv2_x,tmp_mv3_x);
 	 let py = mvarith.median_y(tmp_mv1_y,tmp_mv2_y,tmp_mv3_y);
 
@@ -5868,7 +5868,7 @@ function Rules create_block6 ();
   rule exec_4mv_prediction1 (videoSt == EXEC_4MV_PREDICTION1);
     let leftblock = -1;
     let topblock = -1;
-    let toprightblock = -1; 
+    let toprightblock = -1;
 	Maybe#(Bit#(12)) mv1_x;
 	Maybe#(Bit#(12)) mv1_y;
 	Maybe#(Bit#(12)) mv2_x;
@@ -5888,7 +5888,7 @@ function Rules create_block6 ();
 	Bit#(8)  tmp_mb_width1 = mb_width[7:0];
 	Bit#(8)  tmp_address = mv_addr;
 
-	if ((tmp_mb_num_x == 0) || 
+	if ((tmp_mb_num_x == 0) ||
 	     ((tmp_vop_mb_num_y == 0) && (tmp_mb_num_x != 0) && (tmp_vop_mb_num_x == 0))
 	   )
 	  begin
@@ -5897,7 +5897,7 @@ function Rules create_block6 ();
 	    mv1_y = Nothing;
 		$display("leftblock is -1 cond 1");
 	  end
-    else 
+    else
 	  begin
 	    if (mv_addr == 0)
 		   leftblock = 8*tmp_mb_width1 - 1;
@@ -5930,7 +5930,7 @@ function Rules create_block6 ();
 	 tmp_mv2_y = tpl_4(tmp);
 	 tmp_mv3_x = tpl_5(tmp);
 	 tmp_mv3_y = tpl_6(tmp);
-    
+
 	let px = mvarith.median_x(tmp_mv1_x,tmp_mv2_x,tmp_mv3_x);
 	let py = mvarith.median_y(tmp_mv1_y,tmp_mv2_y,tmp_mv3_y);
 
@@ -5958,7 +5958,7 @@ function Rules create_block6 ();
   rule exec_4mv_prediction2 (videoSt == EXEC_4MV_PREDICTION2);
     let leftblock = -1;
     let topblock = -1;
-    let toprightblock = -1; 
+    let toprightblock = -1;
 	Maybe#(Bit#(12)) mv1_x;
 	Maybe#(Bit#(12)) mv1_y;
 	Maybe#(Bit#(12)) mv2_x;
@@ -5999,7 +5999,7 @@ function Rules create_block6 ();
 	 tmp_mv2_y = tpl_4(tmp);
 	 tmp_mv3_x = tpl_5(tmp);
 	 tmp_mv3_y = tpl_6(tmp);
-    
+
 	let px = mvarith.median_x(tmp_mv1_x,tmp_mv2_x,tmp_mv3_x);
 	let py = mvarith.median_y(tmp_mv1_y,tmp_mv2_y,tmp_mv3_y);
 
@@ -6044,7 +6044,7 @@ function Rules create_block7 ();
  Rules r = rules
 
   rule mb_blk_state (videoSt == MB_BLK_STATE);
-    last <= False; 
+    last <= False;
 	dct_coeff_cnt <= 0;
 
 	if (isIntra)
@@ -6056,31 +6056,31 @@ function Rules create_block7 ();
 		      begin
 		        blkBuffer.sent_output_data(1'b1);
 		      end
-            videoSt  <= MB_BLK_STATE_00; 
+            videoSt  <= MB_BLK_STATE_00;
 	      end
 	    else
-          videoSt  <= MB_BLK_STATE_00_0; 
+          videoSt  <= MB_BLK_STATE_00_0;
 	  end
 	else
 	  begin
 		if (blk_cnt != 0)
 		  begin
 	        if  (pattern_code_d && pattern_code)
-              videoSt  <= MB_BLK_STATE_00_0; 
+              videoSt  <= MB_BLK_STATE_00_0;
 		    else if (!pattern_code_d && pattern_code)
 		      begin
-                videoSt  <= MB_BLK_STATE_00; 
+                videoSt  <= MB_BLK_STATE_00;
                 $display("############  block count = %d mb_cnt_x = %d mb_cnt_y = %d",blk_cnt,mb_num_x,mb_num_y);
 		      end
 		    else if (pattern_code_d && !pattern_code)
 		      begin
 			    wait_cnt <= wait_cnt + 1;
-                videoSt  <= WAIT64; 
+                videoSt  <= WAIT64;
                 $display("############  block count = %d mb_cnt_x = %d mb_cnt_y = %d",blk_cnt,mb_num_x,mb_num_y);
 		      end
 		    else
 		      begin
-                videoSt  <= JUST_WAIT64; 
+                videoSt  <= JUST_WAIT64;
                 $display("############  block count = %d mb_cnt_x = %d mb_cnt_y = %d",blk_cnt,mb_num_x,mb_num_y);
 		      end
 		  end
@@ -6088,7 +6088,7 @@ function Rules create_block7 ();
 	     begin
 		   $display("New MB has started");
            $display("############  block count = %d mb_cnt_x = %d mb_cnt_y = %d",blk_cnt,mb_num_x,mb_num_y);
-           videoSt  <= MB_BLK_STATE_00_0; 
+           videoSt  <= MB_BLK_STATE_00_0;
 		 end
 	  end
   endrule
@@ -6096,7 +6096,7 @@ function Rules create_block7 ();
   rule wait64 (videoSt == WAIT64);
      if (wait_cnt == 63)
 	    begin
-          videoSt  <= MB_BLK_STATE_12; 
+          videoSt  <= MB_BLK_STATE_12;
 		  wait_cnt <= 0;
 	    end
 	 else if (wait_cnt == 1)
@@ -6120,7 +6120,7 @@ function Rules create_block7 ();
   rule justwait64 (videoSt == JUST_WAIT64);
     if (wait_cnt == 63)
 	  begin
-        videoSt  <= MB_BLK_STATE_12; 
+        videoSt  <= MB_BLK_STATE_12;
 		wait_cnt <= 0;
 	  end
     else
@@ -6133,7 +6133,7 @@ function Rules create_block7 ();
         $display("############  block count = %d mb_cnt_x = %d mb_cnt_y = %d",blk_cnt,mb_num_x,mb_num_y);
 		if (blk_cnt !=0)
 		  blkBuffer.sent_output_data(1'b1);
-        videoSt  <= MB_BLK_STATE_00; 
+        videoSt  <= MB_BLK_STATE_00;
 	  end
   endrule
 
@@ -6141,191 +6141,191 @@ function Rules create_block7 ();
     $display("clear signal");
 	blkBuffer.clear_d(1'b1); // send clear signal
 	if ((data_partitioned == 0) && isIntra && (not_coded == 0))
-       videoSt  <= MB_BLK_STATE_0; 
-	else 
-       videoSt  <= MB_BLK_STATE_12; 
+       videoSt  <= MB_BLK_STATE_0;
+	else
+       videoSt  <= MB_BLK_STATE_12;
   endrule
 
   rule mb_blk_state_0 (videoSt == MB_BLK_STATE_0);
 	if (short_video_header)
 	  begin
-	    if (byte_offset < 8) 
-	      begin 
-	        if (sysState == WAIT) 
-              videoSt  <= MB_BLK_STATE_1_0; 
-		    else 
-              videoSt  <= MB_BLK_STATE_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 8)
+	      begin
+	        if (sysState == WAIT)
+              videoSt  <= MB_BLK_STATE_1_0;
+		    else
+              videoSt  <= MB_BLK_STATE_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_1; 
-          end 
+            videoSt  <= MB_BLK_STATE_1;
+          end
 	  end
 	else if (use_intra_dc_vlc)
 	  begin
 	    dct_coeff_cnt <= 1;
 	    if (blk_cnt < 4)
 	       begin
-	         if (byte_offset < 4) 
-	           begin 
-	             if (sysState == WAIT) 
-                   videoSt  <= MB_BLK_STATE_2_0; 
-		         else 
-                   videoSt  <= MB_BLK_STATE_2; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+	         if (byte_offset < 4)
+	           begin
+	             if (sysState == WAIT)
+                   videoSt  <= MB_BLK_STATE_2_0;
+		         else
+                   videoSt  <= MB_BLK_STATE_2;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= byte_offset +8 ;
-	           end 
+	           end
 	         else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= byte_offset ;
-                 videoSt  <= MB_BLK_STATE_2; 
-               end 
+                 videoSt  <= MB_BLK_STATE_2;
+               end
 	       end
 		else
 	       begin
-	         if (byte_offset < 4) 
-	           begin 
-	             if (sysState == WAIT) 
-                   videoSt  <= MB_BLK_STATE_7_0; 
-		         else 
-                   videoSt  <= MB_BLK_STATE_7; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+	         if (byte_offset < 4)
+	           begin
+	             if (sysState == WAIT)
+                   videoSt  <= MB_BLK_STATE_7_0;
+		         else
+                   videoSt  <= MB_BLK_STATE_7;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= byte_offset +8 ;
-	           end 
+	           end
 	         else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= byte_offset ;
-                 videoSt  <= MB_BLK_STATE_7; 
-               end 
+                 videoSt  <= MB_BLK_STATE_7;
+               end
 	       end
 	  end
 	else
-      videoSt  <= MB_BLK_STATE_12; 
+      videoSt  <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle74 ((videoSt == MB_BLK_STATE_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_1; 
-	$display("wait_1_cycle74 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle74 ((videoSt == MB_BLK_STATE_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_1;
+	$display("wait_1_cycle74 start code reg %h ",start_code_reg);
   endrule
 
   rule  mb_blk_state_1(videoSt == MB_BLK_STATE_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	intra_dc_coefficient <= tmp[7:0];
-	if (sysState == START) 
-      begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+      begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset ;
-	  end 
-    else 
+	  end
+    else
 	  byte_offset <= byte_offset -8 ;
-    videoSt  <= MB_BLK_STATE_10; 
+    videoSt  <= MB_BLK_STATE_10;
   endrule
 
-  rule wait_1_cycle75 ((videoSt == MB_BLK_STATE_2_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_2; 
-	$display("wait_1_cycle75 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle75 ((videoSt == MB_BLK_STATE_2_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_2;
+	$display("wait_1_cycle75 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_2 (videoSt == MB_BLK_STATE_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,4);
-    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_luma_code = decode_dct_dc_size_luma4(tmp[3:0]); 
+    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_luma_code = decode_dct_dc_size_luma4(tmp[3:0]);
 	Bit#(5) tmp_boundary = tpl_3(dct_dc_size_luma_code);
 	$display("mb_blk_state_2 tmp = %h",tmp);
 	if (tpl_1(dct_dc_size_luma_code))
 	  begin
 	    dct_dc_size_luma <= tpl_2(dct_dc_size_luma_code);
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(dct_dc_size_luma_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(dct_dc_size_luma_code);
-        videoSt  <= MB_BLK_STATE_3; 
+        videoSt  <= MB_BLK_STATE_3;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 11) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_BLK_STATE_2_1_0; 
-		    else 
-              videoSt  <= MB_BLK_STATE_2_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 11)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_BLK_STATE_2_1_0;
+		    else
+              videoSt  <= MB_BLK_STATE_2_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MB_BLK_STATE_2_1; 
-          end 
+            videoSt  <= MB_BLK_STATE_2_1;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle75_0 ((videoSt == MB_BLK_STATE_2_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_2_1; 
-	$display("wait_1_cycle75_0 start code reg %h byte_offset = %d",start_code_reg,byte_offset); 
+  rule wait_1_cycle75_0 ((videoSt == MB_BLK_STATE_2_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_2_1;
+	$display("wait_1_cycle75_0 start code reg %h byte_offset = %d",start_code_reg,byte_offset);
   endrule
 
   rule mb_blk_state_2_1 (videoSt == MB_BLK_STATE_2_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,7);
-    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_luma_code = decode_dct_dc_size_luma7(tmp[6:0]); 
+    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_luma_code = decode_dct_dc_size_luma7(tmp[6:0]);
 	Bit#(5) tmp_boundary = tpl_3(dct_dc_size_luma_code);
 	$display("mb_blk_state_2_1 tmp = %h start_code_reg = %h byte_offset =%d",tmp,start_code_reg,byte_offset);
 	if (tpl_1(dct_dc_size_luma_code))
 	  begin
 	    dct_dc_size_luma <= tpl_2(dct_dc_size_luma_code);
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(dct_dc_size_luma_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(dct_dc_size_luma_code);
-        videoSt  <= MB_BLK_STATE_3; 
+        videoSt  <= MB_BLK_STATE_3;
 	  end
 	else
 	  $display("Error Error :  dct_dc_size_luma not found");
@@ -6334,39 +6334,39 @@ function Rules create_block7 ();
   rule mb_blk_state_3 (videoSt == MB_BLK_STATE_3);
     if (dct_dc_size_luma != 0)
 	  begin
-	    if (byte_offset < zeroExtend(dct_dc_size_luma)) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < zeroExtend(dct_dc_size_luma))
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_4_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_4; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_4;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_4; 
-          end 
+            videoSt  <= MB_BLK_STATE_4;
+          end
 	  end
 	else
-      videoSt  <= MB_BLK_STATE_12; 
+      videoSt  <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle76 ((videoSt == MB_BLK_STATE_4_0) && (vd_valid.wget == Just(1))) ; 
+  rule wait_1_cycle76 ((videoSt == MB_BLK_STATE_4_0) && (vd_valid.wget == Just(1))) ;
 	if (byte_offset > zeroExtend(dct_dc_size_luma))
-      videoSt <= MB_BLK_STATE_4; 
+      videoSt <= MB_BLK_STATE_4;
 	else
-      videoSt <= MB_BLK_STATE_4_0; 
-	$display("wait_1_cycle76 start code reg %h ",start_code_reg); 
+      videoSt <= MB_BLK_STATE_4_0;
+	$display("wait_1_cycle76 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_4 (videoSt == MB_BLK_STATE_4);
@@ -6388,7 +6388,7 @@ function Rules create_block7 ();
 		4'd9 : tmp_differential_dc = (tmp[8] == 1) ? zeroExtend(tmp[8:0]) : (~zeroExtend(~tmp[8:0]) + 1);
 		4'd10: tmp_differential_dc = (tmp[9] == 1) ? zeroExtend(tmp[9:0]) : (~zeroExtend(~tmp[9:0]) + 1);
 		4'd11: tmp_differential_dc = (tmp[10] == 1) ? zeroExtend(tmp[10:0]) : (~zeroExtend(~tmp[10:0]) + 1);
-	  default: tmp_differential_dc = 0; 
+	  default: tmp_differential_dc = 0;
      endcase
 	 // Do I need to check if its intra and short_video_header is 0 ??
 	 //dc_coeff = (tmp_differential_dc + scaled_dc_ref_value) * signExtend(dc_scaler);
@@ -6396,7 +6396,7 @@ function Rules create_block7 ();
 	 //acdcPredBuffer.upd(current_address_luma,dc_coeff);
 	 // commenting above as ac/dc prediction is done for intra blocks
 	 // anyway and these values only come for them
-	 // so dc prediction is done at one place in EXEC_ACDC_PREDICTION 
+	 // so dc prediction is done at one place in EXEC_ACDC_PREDICTION
 	 // state
 	 blkBuffer.write_d(tuple3(1,0,tmp_differential_dc));
 	 acdcPredBuffer.upd(current_address,Just(signExtend(tmp_differential_dc)));
@@ -6404,144 +6404,144 @@ function Rules create_block7 ();
 	 //dct_coeff_cnt <= 0;
 	 dct_coeff_cnt <= 1;
 	 byte_boundary <= byte_boundary + dct_dc_size_luma[2:0];
-	 if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	 if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - zeroExtend(dct_dc_size_luma);
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset - zeroExtend(dct_dc_size_luma);
-    videoSt <= MB_BLK_STATE_5; 
+    videoSt <= MB_BLK_STATE_5;
   endrule
 
   rule mb_blk_state_5 (videoSt == MB_BLK_STATE_5);
     if (dct_dc_size_luma > 8)
 	  begin
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_6_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_6; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_6;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_6; 
-          end 
+            videoSt  <= MB_BLK_STATE_6;
+          end
 	  end
 	else
-      videoSt  <= MB_BLK_STATE_12; 
+      videoSt  <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle77 ((videoSt == MB_BLK_STATE_6_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_6; 
-	$display("wait_1_cycle77 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle77 ((videoSt == MB_BLK_STATE_6_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_6;
+	$display("wait_1_cycle77 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_6 (videoSt == MB_BLK_STATE_6);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	 if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	 if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - 1;
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset - 1;
-    videoSt <= MB_BLK_STATE_12;  
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle77_1 ((videoSt == MB_BLK_STATE_7_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_7; 
-	$display("wait_1_cycle77_1 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle77_1 ((videoSt == MB_BLK_STATE_7_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_7;
+	$display("wait_1_cycle77_1 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_7 (videoSt == MB_BLK_STATE_7);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,4);
-    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_chroma_code = decode_dct_dc_size_chroma4(tmp[3:0]); 
+    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_chroma_code = decode_dct_dc_size_chroma4(tmp[3:0]);
 	Bit#(5) tmp_boundary = tpl_3(dct_dc_size_chroma_code);
 	$display("mb_blk_state_7 tmp = %h",tmp);
 	if (tpl_1(dct_dc_size_chroma_code))
 	  begin
 	    dct_dc_size_chroma <= tpl_2(dct_dc_size_chroma_code);
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(dct_dc_size_chroma_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(dct_dc_size_chroma_code);
-        videoSt  <= MB_BLK_STATE_8; 
+        videoSt  <= MB_BLK_STATE_8;
 	  end
 	else
 	  begin
 		byte_boundary <= byte_boundary + 4;
-	    if (byte_offset < 12) 
-	      begin 
-	        if (sysState == WAIT) 
-	          videoSt  <= MB_BLK_STATE_7_1_0; 
-		    else 
-              videoSt  <= MB_BLK_STATE_7_1; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+	    if (byte_offset < 12)
+	      begin
+	        if (sysState == WAIT)
+	          videoSt  <= MB_BLK_STATE_7_1_0;
+		    else
+              videoSt  <= MB_BLK_STATE_7_1;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 -4 ;
-			// We are taking off only 4 bits of VLC as they are all 0's if 
+			// We are taking off only 4 bits of VLC as they are all 0's if
 			// system reaches this state
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 -4;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset -4 ;
-            videoSt  <= MB_BLK_STATE_7_1; 
-          end 
+            videoSt  <= MB_BLK_STATE_7_1;
+          end
 	  end
   endrule
 
-  rule wait_1_cycle77_1_0 ((videoSt == MB_BLK_STATE_7_1_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_7_1; 
-	$display("wait_1_cycle77_1_0 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle77_1_0 ((videoSt == MB_BLK_STATE_7_1_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_7_1;
+	$display("wait_1_cycle77_1_0 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_7_1 (videoSt == MB_BLK_STATE_7_1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
-    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_chroma_code = decode_dct_dc_size_chroma8(tmp[7:0]); 
+    Tuple3#(Bool,Bit#(4),Bit#(5)) dct_dc_size_chroma_code = decode_dct_dc_size_chroma8(tmp[7:0]);
 	Bit#(5) tmp_boundary = tpl_3(dct_dc_size_chroma_code);
 	$display("mb_blk_state_7_1 tmp = %h",tmp);
 	if (tpl_1(dct_dc_size_chroma_code))
 	  begin
 	    dct_dc_size_chroma <= tpl_2(dct_dc_size_chroma_code);
 		byte_boundary <= byte_boundary + tmp_boundary[2:0];
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset +8 - tpl_3(dct_dc_size_chroma_code);
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - tpl_3(dct_dc_size_chroma_code);
-        videoSt  <= MB_BLK_STATE_8; 
+        videoSt  <= MB_BLK_STATE_8;
 	  end
 	else
 	  $display("Error Error :  dct_dc_size_chroma not found");
@@ -6550,39 +6550,39 @@ function Rules create_block7 ();
   rule mb_blk_state_8 (videoSt == MB_BLK_STATE_8);
     if (dct_dc_size_chroma != 0)
 	  begin
-	    if (byte_offset < zeroExtend(dct_dc_size_chroma)) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < zeroExtend(dct_dc_size_chroma))
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_9_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_9; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_9;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_9; 
-          end 
+            videoSt  <= MB_BLK_STATE_9;
+          end
 	  end
 	else
-      videoSt  <= MB_BLK_STATE_12; 
+      videoSt  <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle78 ((videoSt == MB_BLK_STATE_9_0) && (vd_valid.wget == Just(1))) ; 
+  rule wait_1_cycle78 ((videoSt == MB_BLK_STATE_9_0) && (vd_valid.wget == Just(1))) ;
 	if (byte_offset > zeroExtend(dct_dc_size_chroma))
-      videoSt <= MB_BLK_STATE_9; 
+      videoSt <= MB_BLK_STATE_9;
 	else
-      videoSt <= MB_BLK_STATE_9_0; 
-	$display("wait_1_cycle78 start code reg %h ",start_code_reg); 
+      videoSt <= MB_BLK_STATE_9_0;
+	$display("wait_1_cycle78 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_9 (videoSt == MB_BLK_STATE_9);
@@ -6604,7 +6604,7 @@ function Rules create_block7 ();
 		4'd9 : tmp_differential_dc = (tmp[8] == 1) ? zeroExtend(tmp[8:0]) : (~zeroExtend(~tmp[8:0]) + 1);
 		4'd10: tmp_differential_dc = (tmp[9] == 1) ? zeroExtend(tmp[9:0]) : (~zeroExtend(~tmp[9:0]) + 1);
 		4'd11: tmp_differential_dc = (tmp[10] == 1) ? zeroExtend(tmp[10:0]) : (~zeroExtend(~tmp[10:0]) + 1);
-	  default: tmp_differential_dc = 0; 
+	  default: tmp_differential_dc = 0;
      endcase
 	 // Need to calculate DC coeff here and increase the dct_coeff_cnt
 	 //dc_coeff = (tmp_differential_dc + scaled_dc_ref_value) * signExtend(dc_scaler);
@@ -6612,7 +6612,7 @@ function Rules create_block7 ();
 	 //acdcPredBuffer.upd(current_address_chroma,dc_coeff);
 	 // commenting above as ac/dc prediction is done for intra blocks
 	 // anyway and these values only come for them
-	 // so dc prediction is done at one place in EXEC_ACDC_PREDICTION 
+	 // so dc prediction is done at one place in EXEC_ACDC_PREDICTION
 	 // state
 	 blkBuffer.write_d(tuple3(1,0,tmp_differential_dc));
 	 acdcPredBuffer.upd(current_address,Just(signExtend(tmp_differential_dc)));
@@ -6620,63 +6620,63 @@ function Rules create_block7 ();
 	 //dct_coeff_cnt <= 0;
 	 dct_coeff_cnt <= 1;
 	 byte_boundary <= byte_boundary + dct_dc_size_chroma[2:0];
-	 if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	 if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - zeroExtend(dct_dc_size_chroma);
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset - zeroExtend(dct_dc_size_chroma);
-    videoSt <= MB_BLK_STATE_10; 
+    videoSt <= MB_BLK_STATE_10;
   endrule
 
   rule mb_blk_state_10 (videoSt == MB_BLK_STATE_10);
     if (dct_dc_size_chroma > 8)
 	  begin
-	    if (byte_offset < 1) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < 1)
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_11_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_11; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_11;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_11; 
-          end 
+            videoSt  <= MB_BLK_STATE_11;
+          end
 	  end
 	else
-      videoSt  <= MB_BLK_STATE_12; 
+      videoSt  <= MB_BLK_STATE_12;
   endrule
 
-  rule wait_1_cycle79 ((videoSt == MB_BLK_STATE_11_0) && (vd_valid.wget == Just(1))) ; 
-    videoSt <= MB_BLK_STATE_11; 
-	$display("wait_1_cycle79 start code reg %h ",start_code_reg); 
+  rule wait_1_cycle79 ((videoSt == MB_BLK_STATE_11_0) && (vd_valid.wget == Just(1))) ;
+    videoSt <= MB_BLK_STATE_11;
+	$display("wait_1_cycle79 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_11 (videoSt == MB_BLK_STATE_11);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,1);
 	marker_bit <= tmp[0];
 	byte_boundary <= byte_boundary + 1;
-	 if (sysState == START) 
-	  begin 
-	    sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	 if (sysState == START)
+	  begin
+	    sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset +8 - 1;
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset - 1;
     videoSt <= MB_BLK_STATE_12;  // after code 1
   endrule
@@ -6687,7 +6687,7 @@ function Rules create_block7 ();
 	Bit#(12) dct_data ;
 	Bit#(1)  sign ;
 	Bit#(5)  tmp_byte_offset ;
-	Bit#(12) inverse_quantised_dct_data ; 
+	Bit#(12) inverse_quantised_dct_data ;
 
     video_packet_header_detected <= False;
     start_code_detected <= False;
@@ -6701,12 +6701,12 @@ function Rules create_block7 ();
 	    dct_data  = level;
 		sign = 0;
 	  end
-	  
+
 	if (quant_type == 1)
-	  inverse_quantised_dct_data = 
+	  inverse_quantised_dct_data =
 	         inverse_quant.getmethod1(sign,isIntra,dct_data,running_QP,weighting_matrix);
     else
-	  inverse_quantised_dct_data = 
+	  inverse_quantised_dct_data =
 	         inverse_quant.getmethod2(sign,level,running_QP);
 
     $display("last %d run %d level %d pos %d sign %d addr %d",last,run,level,byte_offset,tmp[0],dct_coeff_cnt);
@@ -6714,17 +6714,17 @@ function Rules create_block7 ();
 	   begin
 		 if (not_first_time)
 		   begin
-			 if ((acDCPredRequired) && 
+			 if ((acDCPredRequired) &&
 			     (
-				  (vertical_dir && 
+				  (vertical_dir &&
 			       (
-				    (tmp_cbuff_addr == 0) || 
-				    (tmp_cbuff_addr == 8) || 
-				    (tmp_cbuff_addr == 16)|| 
-				    (tmp_cbuff_addr == 24)|| 
-				    (tmp_cbuff_addr == 32)|| 
-				    (tmp_cbuff_addr == 40)|| 
-				    (tmp_cbuff_addr == 48)|| 
+				    (tmp_cbuff_addr == 0) ||
+				    (tmp_cbuff_addr == 8) ||
+				    (tmp_cbuff_addr == 16)||
+				    (tmp_cbuff_addr == 24)||
+				    (tmp_cbuff_addr == 32)||
+				    (tmp_cbuff_addr == 40)||
+				    (tmp_cbuff_addr == 48)||
 				    (tmp_cbuff_addr == 56)
 				   )
 				  ) ||
@@ -6746,54 +6746,54 @@ function Rules create_block7 ();
 			     byte_boundary <= byte_boundary ;
 			   end
 
-	         if (tmp_byte_offset < 13) 
-	           begin 
-	             if (sysState == WAIT) 
+	         if (tmp_byte_offset < 13)
+	           begin
+	             if (sysState == WAIT)
 	               videoSt  <= MB_BLK_STATE_DCTVlc_0;
-		         else 
-                   videoSt  <= MB_BLK_STATE_DCTVlc; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+		         else
+                   videoSt  <= MB_BLK_STATE_DCTVlc;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= tmp_byte_offset +8  ;
-	           end 
+	           end
 	         else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= tmp_byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= tmp_byte_offset ;
-                 videoSt  <= MB_BLK_STATE_DCTVlc; 
-               end 
+                 videoSt  <= MB_BLK_STATE_DCTVlc;
+               end
 		   end
 		 else
 		   begin
 		     not_first_time <= True;
-	         if (byte_offset < 13) 
-	           begin 
-	             if (sysState == WAIT) 
+	         if (byte_offset < 13)
+	           begin
+	             if (sysState == WAIT)
 	               videoSt  <= MB_BLK_STATE_DCTVlc_0;
-		         else 
-                   videoSt  <= MB_BLK_STATE_DCTVlc; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+		         else
+                   videoSt  <= MB_BLK_STATE_DCTVlc;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= byte_offset +8 ;
-	           end 
+	           end
 	         else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= byte_offset ;
-                 videoSt  <= MB_BLK_STATE_DCTVlc; 
-               end 
+                 videoSt  <= MB_BLK_STATE_DCTVlc;
+               end
 		   end
 	   end
 	else if (pattern_code == False)
@@ -6801,10 +6801,10 @@ function Rules create_block7 ();
 		//if (acDCPredRequired && acDCPredDone == False)
 		if (True && acDCPredDone == False)
 		  begin
-            videoSt  <= EXEC_ACDC_PREDICTION; 
+            videoSt  <= EXEC_ACDC_PREDICTION;
 			blkBuffer.read_d(tuple2(1,0));
 		  end
-		else 
+		else
 		  begin
 		    acDCPredDone <= False;
 		    if (blk_cnt != 5)
@@ -6822,13 +6822,13 @@ function Rules create_block7 ();
 				  end
 			    vop_blk_num <= vop_blk_num + 1;
                 videoSt <= MB_BLK_STATE;  // back to MB State
-	            if (sysState == START) 
-		          begin 
-			        sysState <= WAIT; 
-			        vd_rd_reg <= 1'b0; 
+	            if (sysState == START)
+		          begin
+			        sysState <= WAIT;
+			        vd_rd_reg <= 1'b0;
 		            byte_offset <= byte_offset +8 ;
-		          end 
-		        else 
+		          end
+		        else
 		          byte_offset <= byte_offset ;
 		      end
 		    else
@@ -6865,13 +6865,13 @@ function Rules create_block7 ();
 			      end
 			    else
 			      vop_mb_num_x <= vop_mb_num_x + 1;
-	            if (sysState == START) 
-		          begin 
-			        sysState <= WAIT; 
-			        vd_rd_reg <= 1'b0; 
+	            if (sysState == START)
+		          begin
+			        sysState <= WAIT;
+			        vd_rd_reg <= 1'b0;
 		            byte_offset <= byte_offset +8 ;
-		          end 
-		        else 
+		          end
+		        else
 		          byte_offset <= byte_offset ;
                 videoSt <= CHECK_RESYNC_MARKER0;
 		      end
@@ -6885,16 +6885,16 @@ function Rules create_block7 ();
              // if last data needs to be predicted then
 			 // write the dct value in buffer
 			 // e.w write the inverse quantised value
-			 if (acDCPredRequired && 
+			 if (acDCPredRequired &&
 			      (
-				   (vertical_dir && 
-			       ((tmp_cbuff_addr == 0) || 
-				    (tmp_cbuff_addr == 8) || 
-				    (tmp_cbuff_addr == 16)|| 
-				    (tmp_cbuff_addr == 24)|| 
-				    (tmp_cbuff_addr == 32)|| 
-				    (tmp_cbuff_addr == 40)|| 
-				    (tmp_cbuff_addr == 48)|| 
+				   (vertical_dir &&
+			       ((tmp_cbuff_addr == 0) ||
+				    (tmp_cbuff_addr == 8) ||
+				    (tmp_cbuff_addr == 16)||
+				    (tmp_cbuff_addr == 24)||
+				    (tmp_cbuff_addr == 32)||
+				    (tmp_cbuff_addr == 40)||
+				    (tmp_cbuff_addr == 48)||
 				    (tmp_cbuff_addr == 56))
 				   ) ||
 				  (!vertical_dir && (tmp_cbuff_addr < 8))
@@ -6904,7 +6904,7 @@ function Rules create_block7 ();
 		     else
 			   blkBuffer.write_d(tuple3(1,tmp_cbuff_addr,inverse_quantised_dct_data));
 			dct_coeff_cnt <= dct_coeff_cnt + 1;
-            videoSt  <= EXEC_ACDC_PREDICTION; 
+            videoSt  <= EXEC_ACDC_PREDICTION;
 			blkBuffer.read_d(tuple2(1,0));
 		    // last sign bit is read need to make sure its been used or not
 			if (flc_type == NOTUSED)
@@ -6918,13 +6918,13 @@ function Rules create_block7 ();
 				 byte_boundary <= byte_boundary ;
 			   end
 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= tmp_byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= tmp_byte_offset ;
 		  end
 		//else if (acDCPredRequired == False || acDCPredDone )
@@ -6966,13 +6966,13 @@ function Rules create_block7 ();
 				         byte_boundary <= byte_boundary ;
 					   end
 
-	                 if (sysState == START) 
-		               begin 
-			             sysState <= WAIT; 
-			             vd_rd_reg <= 1'b0; 
+	                 if (sysState == START)
+		               begin
+			             sysState <= WAIT;
+			             vd_rd_reg <= 1'b0;
 		                 byte_offset <= tmp_byte_offset +8 ;
-		               end 
-		             else 
+		               end
+		             else
 		               byte_offset <= tmp_byte_offset ;
 				   end
 				   */
@@ -7004,7 +7004,7 @@ function Rules create_block7 ();
 			    else
 			        mb_num_x <= mb_num_x + 1;
 			    //mb_num_y_d <= mb_num_y;
-    
+
 			    if (zeroExtend(vop_mb_num_x) == (mb_width-1))
 			      begin
 			        vop_mb_num_x <= 0;
@@ -7027,23 +7027,23 @@ function Rules create_block7 ();
 				         byte_boundary <= byte_boundary ;
 					   end
 
-	                 if (sysState == WAIT) 
-		               begin 
-			             sysState <= START; 
-			             vd_rd_reg <= 1'b1; 
+	                 if (sysState == WAIT)
+		               begin
+			             sysState <= START;
+			             vd_rd_reg <= 1'b1;
 		                 byte_offset <= tmp_byte_offset ;
-		               end 
-		             else 
+		               end
+		             else
 		               byte_offset <= tmp_byte_offset +8 ;
 				   end
 				else
 				  begin
-		            sysState <= START; 
-		            vd_rd_reg <= 1'b1; 
+		            sysState <= START;
+		            vd_rd_reg <= 1'b1;
 				  end
 				*/
-		        sysState <= START; 
-		        vd_rd_reg <= 1'b1; 
+		        sysState <= START;
+		        vd_rd_reg <= 1'b1;
                 videoSt <= CHECK_RESYNC_MARKER0;
 		      end
 		  end
@@ -7051,21 +7051,21 @@ function Rules create_block7 ();
 
   endrule
 
-  rule wait_1_cycle80 ((videoSt == MB_BLK_STATE_DCTVlc_0) && (vd_valid.wget == Just(1))) ; 
+  rule wait_1_cycle80 ((videoSt == MB_BLK_STATE_DCTVlc_0) && (vd_valid.wget == Just(1))) ;
     if (byte_offset < 13)  // max VLC is of length 12 + 1 for sign bit
 	  begin
 	    //byte_offset <= byte_offset + 8;
-        videoSt <= MB_BLK_STATE_DCTVlc_0_0; 
+        videoSt <= MB_BLK_STATE_DCTVlc_0_0;
 	  end
 	else
-       videoSt <= MB_BLK_STATE_DCTVlc; 
-	$display("wait_1_cycle79 start code reg %h ",start_code_reg); 
+       videoSt <= MB_BLK_STATE_DCTVlc;
+	$display("wait_1_cycle79 start code reg %h ",start_code_reg);
   endrule
 
-  rule wait_1_cycle80_1 ((videoSt == MB_BLK_STATE_DCTVlc_0_0) && (vd_valid.wget == Just(1))) ; 
+  rule wait_1_cycle80_1 ((videoSt == MB_BLK_STATE_DCTVlc_0_0) && (vd_valid.wget == Just(1))) ;
      byte_offset <= byte_offset + 8;
-     videoSt <= MB_BLK_STATE_DCTVlc; 
-     $display("wait_1_cycle80_1 start code reg %h ",start_code_reg); 
+     videoSt <= MB_BLK_STATE_DCTVlc;
+     $display("wait_1_cycle80_1 start code reg %h ",start_code_reg);
   endrule
 
   rule mb_blk_state_dctvlc (videoSt == MB_BLK_STATE_DCTVlc);
@@ -7078,68 +7078,68 @@ function Rules create_block7 ();
 	      begin
 		 byte_boundary <= byte_boundary + 1;
 	         tmp_byte_offset = byte_offset - 1;
-                 videoSt <= DecodeVLCIntraTable1; 
+                 videoSt <= DecodeVLCIntraTable1;
 	      end
            else if (tmp[7] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 2;
 	         tmp_byte_offset = byte_offset - 2;
-                 videoSt <= DecodeVLCIntraTable2; 
+                 videoSt <= DecodeVLCIntraTable2;
 	      end
            else if (tmp[6] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 3;
 	         tmp_byte_offset = byte_offset - 3;
-                 videoSt <= DecodeVLCIntraTable3; 
+                 videoSt <= DecodeVLCIntraTable3;
 	      end
            else if (tmp[5] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 4;
 	         tmp_byte_offset = byte_offset - 4;
-                 videoSt <= DecodeVLCIntraTable4; 
+                 videoSt <= DecodeVLCIntraTable4;
 	      end
            else if (tmp[4] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 5;
 	         tmp_byte_offset = byte_offset - 5;
-                 videoSt <= DecodeVLCIntraTable5; 
+                 videoSt <= DecodeVLCIntraTable5;
 	      end
            else if (tmp[3:2] == 2'b10)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= DecodeVLCIntraTable6; 
+                 videoSt <= DecodeVLCIntraTable6;
 	      end
            else if (tmp[3:2] == 2'b11)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= Fixed_length_code; 
+                 videoSt <= Fixed_length_code;
 	      end
            else if (tmp[3:2] == 2'b01)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= DecodeVLCIntraTable7; 
+                 videoSt <= DecodeVLCIntraTable7;
 	      end
            else if (tmp[1] == 1)
 	      begin
 		 byte_boundary <= byte_boundary ;
 	         tmp_byte_offset = byte_offset - 8;
-                 videoSt <= DecodeVLCIntraTable8; 
+                 videoSt <= DecodeVLCIntraTable8;
 	      end
            else if (tmp[0] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 1;
 	         tmp_byte_offset = byte_offset - 9;
-                 videoSt <= DecodeVLCIntraTable9; 
+                 videoSt <= DecodeVLCIntraTable9;
 	      end
            else
 	      $display("Error Invalid VLC coding");
 	   if (sysState == START)
 	      begin
-	         sysState <= WAIT; 
-	         vd_rd_reg <= 1'b0; 
+	         sysState <= WAIT;
+	         vd_rd_reg <= 1'b0;
 		 byte_offset <= tmp_byte_offset + 8;
 	      end
 	   else
@@ -7151,74 +7151,74 @@ function Rules create_block7 ();
 	      begin
 		 byte_boundary <= byte_boundary + 1;
 	         tmp_byte_offset = byte_offset - 1;
-                 videoSt <= DecodeVLCInterTable1; 
+                 videoSt <= DecodeVLCInterTable1;
 	      end
            else if (tmp[7] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 2;
 	         tmp_byte_offset = byte_offset - 2;
-                 videoSt <= DecodeVLCInterTable2; 
+                 videoSt <= DecodeVLCInterTable2;
 	      end
            else if (tmp[6] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 3;
 	         tmp_byte_offset = byte_offset - 3;
-                 videoSt <= DecodeVLCInterTable3; 
+                 videoSt <= DecodeVLCInterTable3;
 	      end
            else if (tmp[5] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 4;
 	         tmp_byte_offset = byte_offset - 4;
-                 videoSt <= DecodeVLCInterTable4; 
+                 videoSt <= DecodeVLCInterTable4;
 	      end
            else if (tmp[4] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 5;
 	         tmp_byte_offset = byte_offset - 5;
-                 videoSt <= DecodeVLCInterTable5; 
+                 videoSt <= DecodeVLCInterTable5;
 	      end
            else if (tmp[3:2] == 2'b10)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= DecodeVLCInterTable6; 
+                 videoSt <= DecodeVLCInterTable6;
 	      end
            else if (tmp[3:2] == 2'b11)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= Fixed_length_code; 
+                 videoSt <= Fixed_length_code;
 	      end
            else if (tmp[3:2] == 2'b01)
 	      begin
 		 byte_boundary <= byte_boundary + 7;
 	         tmp_byte_offset = byte_offset - 7;
-                 videoSt <= DecodeVLCInterTable7; 
+                 videoSt <= DecodeVLCInterTable7;
 	      end
            else if (tmp[1] == 1)
 	      begin
 		 byte_boundary <= byte_boundary ;
 	         tmp_byte_offset = byte_offset - 8;
-                 videoSt <= DecodeVLCInterTable8; 
+                 videoSt <= DecodeVLCInterTable8;
 	      end
            else if (tmp[0] == 1)
 	      begin
 		 byte_boundary <= byte_boundary + 1;
 	         tmp_byte_offset = byte_offset - 9;
-                 videoSt <= DecodeVLCInterTable9; 
+                 videoSt <= DecodeVLCInterTable9;
 	      end
            else
 	      $display("Error Invalid VLC coding");
 	   if (sysState == START)
 	      begin
-	         sysState <= WAIT; 
-	         vd_rd_reg <= 1'b0; 
+	         sysState <= WAIT;
+	         vd_rd_reg <= 1'b0;
 	         byte_offset <= tmp_byte_offset +8;
 	      end
 	   else
 	      byte_offset <= tmp_byte_offset ;
 	end
-     else 
+     else
 	begin
 	   $display("Error Invalid mbtype = ", mbtype);
 	end
@@ -7231,28 +7231,28 @@ function Rules create_block7 ();
 	if (short_video_header) // type 4 FLC
 	  begin
 		flc_type <= TYPE4;
-	    if (byte_offset < 7) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < 7)
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_FLC_Type3_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_FLC_Type3; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_FLC_Type3;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset +8 ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset +8 ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset ;
-            videoSt  <= MB_BLK_STATE_FLC_Type3; 
-          end 
+            videoSt  <= MB_BLK_STATE_FLC_Type3;
+          end
 	  end
 	else
 	  begin
@@ -7270,63 +7270,63 @@ function Rules create_block7 ();
 	            tmp_byte_offset = byte_offset - 2;
 		        flc_type   <= TYPE2;
 	          end
-	        if (tmp_byte_offset < 13) 
-	           begin 
-	             if (sysState == WAIT) 
+	        if (tmp_byte_offset < 13)
+	           begin
+	             if (sysState == WAIT)
 	               videoSt  <= MB_BLK_STATE_DCTVlc_0;
-		         else 
-                   videoSt  <= MB_BLK_STATE_DCTVlc; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+		         else
+                   videoSt  <= MB_BLK_STATE_DCTVlc;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= tmp_byte_offset +8 ;
-	           end 
+	           end
 	        else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= tmp_byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= tmp_byte_offset ;
-                 videoSt  <= MB_BLK_STATE_DCTVlc; 
-               end 
+                 videoSt  <= MB_BLK_STATE_DCTVlc;
+               end
 	      end
 		else                        // type 3 FLC
 	      begin
 			byte_boundary <= byte_boundary + 2;
 	        tmp_byte_offset = byte_offset - 2;
 		    flc_type   <= TYPE3;
-	        if (byte_offset < 10) 
-	           begin 
-	             if (sysState == WAIT) 
+	        if (byte_offset < 10)
+	           begin
+	             if (sysState == WAIT)
 	               videoSt  <= MB_BLK_STATE_FLC_Type3_0;
-		         else 
-                   videoSt  <= MB_BLK_STATE_FLC_Type3; 
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
+		         else
+                   videoSt  <= MB_BLK_STATE_FLC_Type3;
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
 		         byte_offset <= tmp_byte_offset +8 ;
-	           end 
+	           end
 	        else
-               begin 
-	             if (sysState == START) 
-		           begin 
-			         sysState <= WAIT; 
-			         vd_rd_reg <= 1'b0; 
+               begin
+	             if (sysState == START)
+		           begin
+			         sysState <= WAIT;
+			         vd_rd_reg <= 1'b0;
 		             byte_offset <= tmp_byte_offset +8 ;
-		           end 
-		         else 
+		           end
+		         else
 		           byte_offset <= tmp_byte_offset ;
-                 videoSt  <= MB_BLK_STATE_FLC_Type3; 
+                 videoSt  <= MB_BLK_STATE_FLC_Type3;
 	           end
 	      end
 	  end
   endrule
 
   rule fixed_length_code_type3_0 (videoSt == MB_BLK_STATE_FLC_Type3_0);
-    videoSt <= MB_BLK_STATE_FLC_Type3; 
-	$display("wait_1_cycleFLC_type3 start code reg %h ",start_code_reg); 
+    videoSt <= MB_BLK_STATE_FLC_Type3;
+	$display("wait_1_cycleFLC_type3 start code reg %h ",start_code_reg);
   endrule
 
   rule fixed_length_code_type3 (videoSt == MB_BLK_STATE_FLC_Type3);
@@ -7350,33 +7350,33 @@ function Rules create_block7 ();
 	    byte_boundary <= byte_boundary + 7;
 	    tmp_byte_offset = byte_offset - 7;
 	  end
-	if (tmp_byte_offset < 8) 
-	  begin 
-	    if (sysState == WAIT) 
+	if (tmp_byte_offset < 8)
+	  begin
+	    if (sysState == WAIT)
 	      videoSt  <= MB_BLK_STATE_FLC_Type3_1_0;
-		else 
-          videoSt  <= MB_BLK_STATE_FLC_Type3_1; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
+		else
+          videoSt  <= MB_BLK_STATE_FLC_Type3_1;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
 		byte_offset <= tmp_byte_offset + 8;
-	  end 
+	  end
 	else
-      begin 
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+      begin
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= tmp_byte_offset + 8;
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= tmp_byte_offset ;
-        videoSt  <= MB_BLK_STATE_FLC_Type3_1; 
-      end 
+        videoSt  <= MB_BLK_STATE_FLC_Type3_1;
+      end
   endrule
 
   rule fixed_length_code_type3_1_0 (videoSt == MB_BLK_STATE_FLC_Type3_1_0);
-    videoSt <= MB_BLK_STATE_FLC_Type3_1; 
-	$display("wait_1_cycleFLC_type3_1 start code reg %h ",start_code_reg); 
+    videoSt <= MB_BLK_STATE_FLC_Type3_1;
+	$display("wait_1_cycleFLC_type3_1 start code reg %h ",start_code_reg);
   endrule
 
   rule fixed_length_code_type3_1 (videoSt == MB_BLK_STATE_FLC_Type3_1);
@@ -7384,63 +7384,63 @@ function Rules create_block7 ();
 	level <= zeroExtend(tmp[7:0]);
 	if (flc_type == TYPE3)
 	  begin
-	    if (byte_offset < 13) 
-	      begin 
-	        if (sysState == WAIT) 
+	    if (byte_offset < 13)
+	      begin
+	        if (sysState == WAIT)
 	          videoSt  <= MB_BLK_STATE_FLC_Type3_2_0;
-		    else 
-              videoSt  <= MB_BLK_STATE_FLC_Type3_2; 
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
+		    else
+              videoSt  <= MB_BLK_STATE_FLC_Type3_2;
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
 		    byte_offset <= byte_offset ;
-	      end 
+	      end
 	    else
-          begin 
-	        if (sysState == START) 
-		      begin 
-			    sysState <= WAIT; 
-			    vd_rd_reg <= 1'b0; 
+          begin
+	        if (sysState == START)
+		      begin
+			    sysState <= WAIT;
+			    vd_rd_reg <= 1'b0;
 		        byte_offset <= byte_offset ;
-		      end 
-		    else 
+		      end
+		    else
 		      byte_offset <= byte_offset - 8;
-            videoSt  <= MB_BLK_STATE_FLC_Type3_2; 
-          end 
+            videoSt  <= MB_BLK_STATE_FLC_Type3_2;
+          end
 	  end
 	else
 	  begin
-	    if (sysState == START) 
-		  begin 
-			sysState <= WAIT; 
-			vd_rd_reg <= 1'b0; 
+	    if (sysState == START)
+		  begin
+			sysState <= WAIT;
+			vd_rd_reg <= 1'b0;
 		    byte_offset <= byte_offset ;
-		  end 
-		else 
+		  end
+		else
 		  byte_offset <= byte_offset - 8;
-        videoSt  <= MB_BLK_STATE_12; 
+        videoSt  <= MB_BLK_STATE_12;
 		//flc_type <= NOTUSED;
 	  end
   endrule
 
   rule fixed_length_code_type3_2_0 (videoSt == MB_BLK_STATE_FLC_Type3_2_0);
-    videoSt <= MB_BLK_STATE_FLC_Type3_2; 
-	$display("wait_1_cycleFLC_type3_2 start code reg %h ",start_code_reg); 
+    videoSt <= MB_BLK_STATE_FLC_Type3_2;
+	$display("wait_1_cycleFLC_type3_2 start code reg %h ",start_code_reg);
   endrule
 
   rule fixed_length_code_type3_2 (videoSt == MB_BLK_STATE_FLC_Type3_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,5);
 	level <= {level[7:0],tmp[4:1]};
 	marker_bit <= tmp[0];
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset +8 -5;
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset - 5;
 	byte_boundary <= byte_boundary + 5;
-    videoSt  <= MB_BLK_STATE_12; 
+    videoSt  <= MB_BLK_STATE_12;
 	//flc_type <= NOTUSED;
   endrule
 
@@ -7470,7 +7470,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[5:4]);
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable2 (videoSt == DecodeVLCIntraTable2);
@@ -7498,7 +7498,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[10:8]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable3 (videoSt == DecodeVLCIntraTable3);
@@ -7526,7 +7526,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[10:8]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable4 (videoSt == DecodeVLCIntraTable4);
@@ -7554,7 +7554,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[12:10]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable5 (videoSt == DecodeVLCIntraTable5);
@@ -7582,7 +7582,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[12:10]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable6 (videoSt == DecodeVLCIntraTable6);
@@ -7610,7 +7610,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[13:11]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable7 (videoSt == DecodeVLCIntraTable7);
@@ -7638,7 +7638,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[11:10]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable8 (videoSt == DecodeVLCIntraTable8);
@@ -7666,7 +7666,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[10:9]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintratable9 (videoSt == DecodeVLCIntraTable9);
@@ -7694,7 +7694,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[11:10]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable1 (videoSt == DecodeVLCInterTable1);
@@ -7722,7 +7722,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[6:5]);
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable2 (videoSt == DecodeVLCInterTable2);
@@ -7750,7 +7750,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[9:7]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable3 (videoSt == DecodeVLCInterTable3);
@@ -7778,7 +7778,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[10:8]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable4 (videoSt == DecodeVLCInterTable4);
@@ -7806,7 +7806,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[11:9]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable5 (videoSt == DecodeVLCInterTable5);
@@ -7834,7 +7834,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[12:10]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable6 (videoSt == DecodeVLCInterTable6);
@@ -7862,7 +7862,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[13:11]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable7 (videoSt == DecodeVLCInterTable7);
@@ -7890,7 +7890,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[9:8]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable8 (videoSt == DecodeVLCInterTable8);
@@ -7918,7 +7918,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[8:7]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule decodevlcintertable9 (videoSt == DecodeVLCInterTable9);
@@ -7946,7 +7946,7 @@ function Rules create_block7 ();
 	byte_offset <= byte_offset - zeroExtend(decodedVLC[7:6]) ;
     //dct_coeff_cnt <= dct_coeff_cnt +  tmp_run + 1;
     dct_coeff_cnt <= dct_coeff_cnt +  tmp_run ;
-    videoSt <= MB_BLK_STATE_12; 
+    videoSt <= MB_BLK_STATE_12;
   endrule
 
   rule check_resync_marker0 (videoSt == CHECK_RESYNC_MARKER0);
@@ -7955,27 +7955,27 @@ function Rules create_block7 ();
 	  begin
 	    if (byte_offset < 8)
 		  begin
-	        if (sysState == WAIT) 
+	        if (sysState == WAIT)
 		       begin
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
-                 videoSt <= CHECK_RESYNC_MARKER0_1_0; 
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
+                 videoSt <= CHECK_RESYNC_MARKER0_1_0;
 		       end
 		    else
-              videoSt <= CHECK_RESYNC_MARKER0_1; 
+              videoSt <= CHECK_RESYNC_MARKER0_1;
 		    byte_offset <= byte_offset + 8;
 		  end
 		else
 		  begin
-	        if (sysState == START) 
+	        if (sysState == START)
 		       begin
-		         sysState <= WAIT; 
-		         vd_rd_reg <= 1'b0; 
+		         sysState <= WAIT;
+		         vd_rd_reg <= 1'b0;
 		         byte_offset <= byte_offset + 8;
 		       end
 		    else
 		      byte_offset <= byte_offset ;
-            videoSt <= CHECK_RESYNC_MARKER0_1; 
+            videoSt <= CHECK_RESYNC_MARKER0_1;
 		  end
 	  end
 	else
@@ -7985,16 +7985,16 @@ function Rules create_block7 ();
 	        if (tmp[0] != 0)
 		       begin
 		         $display("current bits are not stuffing bits");
-                 videoSt <= COMBINED_MST0; 
+                 videoSt <= COMBINED_MST0;
 		       end
 		    else
 			  begin
-                videoSt <= CHECK_RESYNC_MARKER; 
+                videoSt <= CHECK_RESYNC_MARKER;
 			  end
-	         if (sysState == START) 
+	         if (sysState == START)
 		       begin
-		         sysState <= WAIT; 
-		         vd_rd_reg <= 1'b0; 
+		         sysState <= WAIT;
+		         vd_rd_reg <= 1'b0;
 		         byte_offset <= byte_offset + 8;
 		       end
 		     else
@@ -8004,25 +8004,25 @@ function Rules create_block7 ();
 		  begin
 		    if (sysState == WAIT)
 			  begin
-		        sysState <= START; 
-		        vd_rd_reg <= 1'b1; 
-                videoSt <= CHECK_RESYNC_MARKER0_0; 
+		        sysState <= START;
+		        vd_rd_reg <= 1'b1;
+                videoSt <= CHECK_RESYNC_MARKER0_0;
 			  end
 			else
-              videoSt <= CHECK_RESYNC_MARKER0; 
+              videoSt <= CHECK_RESYNC_MARKER0;
 		    byte_offset <= byte_offset + 8;
 		  end
 	  end
   endrule
 
   rule check_resync_marker0_0 (videoSt == CHECK_RESYNC_MARKER0_0);
-    videoSt <= CHECK_RESYNC_MARKER0; 
-	$display("wait_1_cycleCHECK_RESYNC_MARKER0_0 start code reg %h ",start_code_reg); 
+    videoSt <= CHECK_RESYNC_MARKER0;
+	$display("wait_1_cycleCHECK_RESYNC_MARKER0_0 start code reg %h ",start_code_reg);
   endrule
 
   rule check_resync_marker0_1_0 (videoSt == CHECK_RESYNC_MARKER0_1_0);
-    videoSt <= CHECK_RESYNC_MARKER0_1; 
-	$display("wait_1_cycleCHECK_RESYNC_MARKER0_1 start code reg %h ",start_code_reg); 
+    videoSt <= CHECK_RESYNC_MARKER0_1;
+	$display("wait_1_cycleCHECK_RESYNC_MARKER0_1 start code reg %h ",start_code_reg);
   endrule
 
   rule check_resync_marker0_1 (videoSt == CHECK_RESYNC_MARKER0_1);
@@ -8030,10 +8030,10 @@ function Rules create_block7 ();
     if (tmp[7:0] == 8'h7f)
 	  begin
 	    $display("check_resync_marker0_1 state 7f detected");
-	    if (sysState == START) 
+	    if (sysState == START)
 		   begin
-		     sysState <= WAIT; 
-		     vd_rd_reg <= 1'b0; 
+		     sysState <= WAIT;
+		     vd_rd_reg <= 1'b0;
 		     byte_offset <= byte_offset ;
 		   end
 		else
@@ -8041,16 +8041,16 @@ function Rules create_block7 ();
 	  end
 	else
 	  begin
-	    if (sysState == START) 
+	    if (sysState == START)
 		   begin
-		     sysState <= WAIT; 
-		     vd_rd_reg <= 1'b0; 
+		     sysState <= WAIT;
+		     vd_rd_reg <= 1'b0;
 		     byte_offset <= byte_offset + 8;
 		   end
 		else
 		  byte_offset <= byte_offset ;
 	  end
-    videoSt <= CHECK_RESYNC_MARKER; 
+    videoSt <= CHECK_RESYNC_MARKER;
   endrule
 
   rule check_resync_marker (videoSt == CHECK_RESYNC_MARKER);
@@ -8060,19 +8060,19 @@ function Rules create_block7 ();
 	  begin
 	    if ((tmp_byte_offset >= 7) && (sysState == START))
 	      begin
-		    sysState <= WAIT; 
-		    vd_rd_reg <= 1'b0; 
-            videoSt <= CHECK_RESYNC_MARKER1; 
+		    sysState <= WAIT;
+		    vd_rd_reg <= 1'b0;
+            videoSt <= CHECK_RESYNC_MARKER1;
 		    byte_offset <= byte_offset + 8;
 	        byte_offset_check <= byte_offset +8 - tmp_byte_boundary;
 	      end
 	    else if (tmp_byte_offset >= 15)
 	      begin
-            videoSt <= CHECK_RESYNC_MARKER1; 
-	        if (sysState == START) 
+            videoSt <= CHECK_RESYNC_MARKER1;
+	        if (sysState == START)
 		       begin
-		         sysState <= WAIT; 
-		         vd_rd_reg <= 1'b0; 
+		         sysState <= WAIT;
+		         vd_rd_reg <= 1'b0;
 		         byte_offset <= byte_offset + 8;
 	             byte_offset_check <= byte_offset +8 - tmp_byte_boundary;
 		       end
@@ -8084,11 +8084,11 @@ function Rules create_block7 ();
 	      end
 	    else
 	      begin
-	        if (sysState == WAIT) 
+	        if (sysState == WAIT)
 		       begin
-		         sysState <= START; 
-		         vd_rd_reg <= 1'b1; 
-                 videoSt <= CHECK_RESYNC_MARKER_0; 
+		         sysState <= START;
+		         vd_rd_reg <= 1'b1;
+                 videoSt <= CHECK_RESYNC_MARKER_0;
 		       end
 		    byte_offset <= byte_offset + 8;
 	        byte_offset_check <= byte_offset +8 - tmp_byte_boundary;
@@ -8096,11 +8096,11 @@ function Rules create_block7 ();
 	  end
 	else
 	  begin
-	    if (sysState == WAIT) 
+	    if (sysState == WAIT)
 		  begin
-		    sysState <= START; 
-		    vd_rd_reg <= 1'b1; 
-            videoSt <= CHECK_RESYNC_MARKER_0; 
+		    sysState <= START;
+		    vd_rd_reg <= 1'b1;
+            videoSt <= CHECK_RESYNC_MARKER_0;
 		  end
 		byte_offset <= byte_offset + 8;
 	    byte_offset_check <= byte_offset +8 - tmp_byte_boundary;
@@ -8108,36 +8108,36 @@ function Rules create_block7 ();
   endrule
 
   rule check_resync_marker_0 (videoSt == CHECK_RESYNC_MARKER_0);
-    videoSt <= CHECK_RESYNC_MARKER; 
+    videoSt <= CHECK_RESYNC_MARKER;
 	/*
 	if ((byte_offset_check >= 15) && (sysState == START))
 	  begin
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 	  end
 	  */
-	$display("wait_1_cycleCHECK_RESYNC_MARKER_0 start code reg %h ",start_code_reg); 
+	$display("wait_1_cycleCHECK_RESYNC_MARKER_0 start code reg %h ",start_code_reg);
   endrule
 
   rule check_resync_marker1 (videoSt == CHECK_RESYNC_MARKER1);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset_check,15);
     if (tmp[14:0] != 0)
 	  begin
-	    //sysState <= WAIT; 
-        //vd_rd_reg <= 1'b0; 
+	    //sysState <= WAIT;
+        //vd_rd_reg <= 1'b0;
 	    //byte_offset <= byte_offset + 8;
         videoSt <= COMBINED_MST0;
 	  end
-	else 
+	else
 	  begin
 	    if (byte_offset_check < 24)
 		  begin
 		    if (sysState == WAIT)
-              videoSt <= CHECK_RESYNC_MARKER2_0; 
+              videoSt <= CHECK_RESYNC_MARKER2_0;
 		    else
-              videoSt <= CHECK_RESYNC_MARKER2; 
-	        sysState <= START; 
-            vd_rd_reg <= 1'b1; 
+              videoSt <= CHECK_RESYNC_MARKER2;
+	        sysState <= START;
+            vd_rd_reg <= 1'b1;
 	        byte_offset <= byte_offset + 8;
 	        byte_offset_check <= byte_offset_check + 8 - 15;
 		  end
@@ -8145,8 +8145,8 @@ function Rules create_block7 ();
 		  begin
 		    if (sysState == START)
 		      begin
-	            sysState <= WAIT; 
-                vd_rd_reg <= 1'b0; 
+	            sysState <= WAIT;
+                vd_rd_reg <= 1'b0;
 	            byte_offset <= byte_offset + 8;
 	            byte_offset_check <= byte_offset_check + 8 - 15;
 		      end
@@ -8155,33 +8155,33 @@ function Rules create_block7 ();
 	            byte_offset <= byte_offset ;
 	            byte_offset_check <= byte_offset_check - 15;
 		      end
-            videoSt <= CHECK_RESYNC_MARKER2; 
+            videoSt <= CHECK_RESYNC_MARKER2;
 		  end
 	  end
   endrule
 
   rule check_resync_marker_2_0 (videoSt == CHECK_RESYNC_MARKER2_0);
     if (byte_offset_check >= 9)
-       videoSt <= CHECK_RESYNC_MARKER2; 
+       videoSt <= CHECK_RESYNC_MARKER2;
 	else
 	  byte_offset_check <= byte_offset_check + 8;
-	$display("wait_1_cycleCHECK_RESYNC_MARKER2_0 start code reg %h ",start_code_reg); 
+	$display("wait_1_cycleCHECK_RESYNC_MARKER2_0 start code reg %h ",start_code_reg);
   endrule
 
   rule check_resync_marker2 ((videoSt == CHECK_RESYNC_MARKER2) && (vop_coding_type == 0));
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset_check,9);
-    if (tmp[8:7] == 2'b01) 
-		// Frame is I type and resync_marker detected 
+    if (tmp[8:7] == 2'b01)
+		// Frame is I type and resync_marker detected
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset_check -2 + 8  ;
 		  end
 	    else
 	      byte_offset <= byte_offset_check -2   ;
-        videoSt <= VIDEO_PACKET_HEADER; 
+        videoSt <= VIDEO_PACKET_HEADER;
 		$display("VIDEO_PACKET_HEADER detected");
 		byte_boundary <= 1;
 	  end
@@ -8189,20 +8189,20 @@ function Rules create_block7 ();
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset_check -9 + 8  ;
 		  end
 	    else
 	      byte_offset <= byte_offset_check -9   ;
 		$display("start code detected");
-        videoSt <= START_CODE_DET; 
+        videoSt <= START_CODE_DET;
 		byte_boundary <= 0;
 	  end
 	else
 	  begin
-	    sysState <= WAIT; 
-        vd_rd_reg <= 1'b0; 
+	    sysState <= WAIT;
+        vd_rd_reg <= 1'b0;
 	    byte_offset <= byte_offset + 8;
         videoSt <= COMBINED_MST0;
 	  end
@@ -8210,18 +8210,18 @@ function Rules create_block7 ();
 
   rule check_resync_marker2_1 ((videoSt == CHECK_RESYNC_MARKER2) && (vop_coding_type == 1));
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset_check,tmp_vop_fcode_forward1[3:0]);
-    if (tmp == 1) 
-		// Frame is P type and resync_marker detected 
+    if (tmp == 1)
+		// Frame is P type and resync_marker detected
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset_check - tmp_vop_fcode_forward1 + 8  ;
 		  end
 	    else
 	      byte_offset <= byte_offset_check - tmp_vop_fcode_forward1   ;
-        videoSt <= VIDEO_PACKET_HEADER; 
+        videoSt <= VIDEO_PACKET_HEADER;
 		$display("VIDEO_PACKET_HEADER detected");
 		byte_boundary <= tmp_vop_fcode_forward1[2:0] + 7;
 	  end
@@ -8229,8 +8229,8 @@ function Rules create_block7 ();
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8;
 	        byte_offset_check <= byte_offset_check + 8;
 		  end
@@ -8245,8 +8245,8 @@ function Rules create_block7 ();
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8;
 		  end
 	    else
@@ -8261,21 +8261,21 @@ function Rules create_block7 ();
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset_check - 9 + 8;
 		  end
 	    else
 	      byte_offset <= byte_offset_check -9 ;
-        videoSt <= START_CODE_DET; 
+        videoSt <= START_CODE_DET;
 		byte_boundary <= 0;
 	  end
-	else 
+	else
 	  begin
 	    if (sysState == START)
 		  begin
-	        sysState <= WAIT; 
-            vd_rd_reg <= 1'b0; 
+	        sysState <= WAIT;
+            vd_rd_reg <= 1'b0;
 	        byte_offset <= byte_offset + 8;
 		  end
 	    else
@@ -8287,7 +8287,7 @@ function Rules create_block7 ();
 
     rule video_packet_header (videoSt == VIDEO_PACKET_HEADER);
     video_packet_header_detected <= True;
-  	if (blkBuffer.busy == False) 
+  	if (blkBuffer.busy == False)
   	  begin
   	    if (isIntra || (!isIntra && (cbpc[0] == 1)))
   		 begin
@@ -8296,7 +8296,7 @@ function Rules create_block7 ();
   		  pattern_code_2d <= False;
 	      $display("//////// Flushing last block in MB");
   		 end
-          videoSt  <= VIDEO_PACKET_HEADER0; 
+          videoSt  <= VIDEO_PACKET_HEADER0;
   	  end
     endrule
 
@@ -8309,32 +8309,32 @@ function Rules create_block7 ();
 	    blkBuffer.clear_d(1'b1); // send clear signal
 	  end
     if (byte_offset < mb_bit_width)
-	   begin 
-	     if (sysState == WAIT) 
+	   begin
+	     if (sysState == WAIT)
 	       videoSt  <= VIDEO_PACKET_HEADER_1_0;
-		 else 
-           videoSt  <= VIDEO_PACKET_HEADER_1; 
-		 sysState <= START; 
-		 vd_rd_reg <= 1'b1; 
+		 else
+           videoSt  <= VIDEO_PACKET_HEADER_1;
+		 sysState <= START;
+		 vd_rd_reg <= 1'b1;
 		 byte_offset <= byte_offset + 8;
-	   end 
+	   end
 	else
-       begin 
-	     if (sysState == START) 
-		    begin 
-			  sysState <= WAIT; 
-			  vd_rd_reg <= 1'b0; 
+       begin
+	     if (sysState == START)
+		    begin
+			  sysState <= WAIT;
+			  vd_rd_reg <= 1'b0;
 		      byte_offset <= byte_offset + 8;
-		    end 
-		 else 
+		    end
+		 else
 		    byte_offset <= byte_offset ;
-         videoSt  <= VIDEO_PACKET_HEADER_1; 
-       end 
+         videoSt  <= VIDEO_PACKET_HEADER_1;
+       end
   endrule
 
   rule video_packet_header_1_0 (videoSt == VIDEO_PACKET_HEADER_1_0);
-    videoSt <= VIDEO_PACKET_HEADER_1; 
-	$display("wait_1_cycleVIDEO_PACKET_HEADER1_0 start code reg %h ",start_code_reg); 
+    videoSt <= VIDEO_PACKET_HEADER_1;
+	$display("wait_1_cycleVIDEO_PACKET_HEADER1_0 start code reg %h ",start_code_reg);
   endrule
 
   rule video_packet_header_1 (videoSt == VIDEO_PACKET_HEADER_1);
@@ -8343,53 +8343,53 @@ function Rules create_block7 ();
     macroblock_number <= tmp[8:0];
 	byte_boundary <= byte_boundary + mb_bit_width[2:0];
 	if (byte_offset < (mb_bit_width + 6))
-	   begin 
-	     if (sysState == WAIT) 
+	   begin
+	     if (sysState == WAIT)
 	       videoSt  <= VIDEO_PACKET_HEADER_2_0;
-		 else 
-           videoSt  <= VIDEO_PACKET_HEADER_2; 
-		 sysState <= START; 
-		 vd_rd_reg <= 1'b1; 
+		 else
+           videoSt  <= VIDEO_PACKET_HEADER_2;
+		 sysState <= START;
+		 vd_rd_reg <= 1'b1;
 		 byte_offset <= byte_offset + 8 - mb_bit_width;
-	   end 
+	   end
 	else
-       begin 
-	     if (sysState == START) 
-		    begin 
-			  sysState <= WAIT; 
-			  vd_rd_reg <= 1'b0; 
+       begin
+	     if (sysState == START)
+		    begin
+			  sysState <= WAIT;
+			  vd_rd_reg <= 1'b0;
 		      byte_offset <= byte_offset + 8 - mb_bit_width;
-		    end 
-		 else 
+		    end
+		 else
 		    byte_offset <= byte_offset  - mb_bit_width;
-         videoSt  <= VIDEO_PACKET_HEADER_2; 
-       end 
+         videoSt  <= VIDEO_PACKET_HEADER_2;
+       end
   endrule
 
   rule video_packet_header_2_0 (videoSt == VIDEO_PACKET_HEADER_2_0);
-    videoSt <= VIDEO_PACKET_HEADER_2; 
-	$display("wait_1_cycleVIDEO_PACKET_HEADER2_0 start code reg %h ",start_code_reg); 
+    videoSt <= VIDEO_PACKET_HEADER_2;
+	$display("wait_1_cycleVIDEO_PACKET_HEADER2_0 start code reg %h ",start_code_reg);
   endrule
 
   rule video_packet_header_2 (videoSt == VIDEO_PACKET_HEADER_2);
     Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,6);
     quant_scale <= tmp[5:1];
 	// running QP has now been updated to quant_scale value
-	running_QP <= zeroExtend(tmp[5:1]) ; 
+	running_QP <= zeroExtend(tmp[5:1]) ;
     header_extension_code <= tmp[0];
 	byte_boundary <= byte_boundary + 6;
-	if (sysState == START) 
-	  begin 
-		sysState <= WAIT; 
-		vd_rd_reg <= 1'b0; 
+	if (sysState == START)
+	  begin
+		sysState <= WAIT;
+		vd_rd_reg <= 1'b0;
 		byte_offset <= byte_offset + 8 - 6;
-	  end 
-	else 
+	  end
+	else
 	  byte_offset <= byte_offset  - 6;
-    //videoSt  <= VOP_STATE_11; 
+    //videoSt  <= VOP_STATE_11;
     if (data_partitioned == 1)
       videoSt  <= DATA_PARTITIONED_MST; // data partitioned motion shape texture
-	else   
+	else
       videoSt  <= COMBINED_MST_0_2 ; // combined motion shape texture
   endrule
 
@@ -8402,7 +8402,7 @@ endfunction
 
 // *************************************************
 // Start of block8
-// Rules to write data into blkBuffer 
+// Rules to write data into blkBuffer
 // and do AC/DC prediction
 // *************************************************
 function Rules create_block8 ();
@@ -8429,8 +8429,8 @@ function Rules create_block8 ();
 	tmp_address = current_address;
 	tmp_cur_address = current_address;
 
-	if (((tmp_mb_num_x == 0) || 
-	     ((tmp_vop_mb_num_y == 0) && (tmp_mb_num_x != 0) && (tmp_vop_mb_num_x == 0))) && 
+	if (((tmp_mb_num_x == 0) ||
+	     ((tmp_vop_mb_num_y == 0) && (tmp_mb_num_x != 0) && (tmp_vop_mb_num_x == 0))) &&
 	    !((vop_blk_num == 1) || (vop_blk_num ==3))
 	   )
 	  begin
@@ -8439,7 +8439,7 @@ function Rules create_block8 ();
 	    acpred_flag_a = False;
 		$display("leftblock is -1 cond 1");
 	  end
-    else 
+    else
 	  begin
 	    if ((tmp_address == 0) && (vop_blk_num == 0))
 		   leftblock = (3*tmp_mb_width - 1)*30 + 15;
@@ -8497,7 +8497,7 @@ function Rules create_block8 ();
 		topleftblock = topblock - 15;
 		$display("topblock = %d topleftblock = %d cond 5 ",topblock,topleftblock);
 	  end
-    else 
+    else
 	  begin
 	    if (tmp_vop_mb_num_y[0] == 1)
 		   begin
@@ -8533,10 +8533,10 @@ function Rules create_block8 ();
 		     $display("topblock = %d topleftblock = %d cond 7 ",topblock,topleftblock);
 		  end
 		if (
-		    (((vop_mb_num_y == 1) && (vop_mb_num_x == 0)) && 
+		    (((vop_mb_num_y == 1) && (vop_mb_num_x == 0)) &&
 			 ((vop_blk_num == 0) || (vop_blk_num == 4) || (vop_blk_num == 5))
-			) ||  
-		    ((tmp_mb_num_x == 0) && 
+			) ||
+		    ((tmp_mb_num_x == 0) &&
 			 !((vop_blk_num == 1) || (vop_blk_num == 3))
 			)
 		   )
@@ -8612,7 +8612,7 @@ function Rules create_block8 ();
 		acpred_flag <= acpred_flag_a;
       end
 	acdcpredbuf_cur_addr <= tmp_cur_address;
-	//if (isIntra && (short_video_header == False) && 
+	//if (isIntra && (short_video_header == False) &&
 	//    !((vop_blk_num == 0) && (vop_mb_num_x == 0) && (vop_mb_num_y == 0)))
 	if (isIntra && (short_video_header == False))
 	  acDCPredRequired <= True;
@@ -8624,7 +8624,7 @@ function Rules create_block8 ();
 	Bit#(12) scaled_dc_ref_value ;
 	Bit#(6) buf_addr ;
     if (acpred_flag)
-	    scaled_dc_ref_value = 
+	    scaled_dc_ref_value =
 		   division.div_func(validValue(acdcPredBuffer.sub(predicted_address)),zeroExtend(dc_scaler));
 	else
 	  scaled_dc_ref_value = division.div_func(24'd1024,zeroExtend(dc_scaler));
@@ -8695,12 +8695,12 @@ function Rules create_block8 ();
 
 	// do inverse quantization of ac_coeff
 	if (quant_type == 1)
-	  inverse_quantised_dct_data = 
+	  inverse_quantised_dct_data =
 	         inverse_quant.getmethod1(ac_coeff[11],isIntra,ac_coeff,running_QP,weighting_matrix);
     else
 	     begin
 	        $display("method2 is chosen sign = %d level = %h QP = %d",ac_coeff[11],absolute_ac_coeff_value,running_QP);
-	  inverse_quantised_dct_data = 
+	  inverse_quantised_dct_data =
 	         inverse_quant.getmethod2(ac_coeff[11],absolute_ac_coeff_value,running_QP);
 		 end
     if (pattern_code)
@@ -8808,7 +8808,7 @@ function Rules create_block8 ();
 	  begin
 	    if ((!isIntra && cbpc[0] == 1) || isIntra)
 		  blkBuffer.sent_output_data(1'b1);
-        videoSt  <= START_CODE_DET0; 
+        videoSt  <= START_CODE_DET0;
 	  end
   endrule
 
@@ -8818,37 +8818,37 @@ function Rules create_block8 ();
         $display("clear signal");
 	    blkBuffer.clear_d(1'b1); // send clear signal
 	  end
-	if (byte_offset < 8) 
-	  begin 
-		if (sysState == WAIT) 
-		   videoSt  <= START_CODE_DET_1_0; 
-		else 
-		   videoSt  <= START_CODE_DET_1; 
-		byte_offset <= byte_offset + 8 ; 
-		sysState <= START; 
-		vd_rd_reg <= 1'b1; 
-	  end 
+	if (byte_offset < 8)
+	  begin
+		if (sysState == WAIT)
+		   videoSt  <= START_CODE_DET_1_0;
+		else
+		   videoSt  <= START_CODE_DET_1;
+		byte_offset <= byte_offset + 8 ;
+		sysState <= START;
+		vd_rd_reg <= 1'b1;
+	  end
 	else
-	  begin 
+	  begin
 		if (sysState == START)
 		  begin
-			vd_rd_reg <= 1'b0; 
-			byte_offset <= byte_offset + 8  ; 
-			sysState <= WAIT; 
+			vd_rd_reg <= 1'b0;
+			byte_offset <= byte_offset + 8  ;
+			sysState <= WAIT;
 		  end
 		else
-		  byte_offset <= byte_offset ; 
-	    videoSt  <= START_CODE_DET_1; 
-	  end 
+		  byte_offset <= byte_offset ;
+	    videoSt  <= START_CODE_DET_1;
+	  end
   endrule
 
   rule start_code_det_1_0 (videoSt == START_CODE_DET_1_0);
-    videoSt <= START_CODE_DET_1; 
-	$display("wait_1_cycleSTART_CODE_1 start code reg %h ",start_code_reg); 
+    videoSt <= START_CODE_DET_1;
+	$display("wait_1_cycleSTART_CODE_1 start code reg %h ",start_code_reg);
   endrule
 
   rule start_code_det_1 (videoSt == START_CODE_DET_1);
-    Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8); 
+    Bit#(16) tmp = byteAlign.get(start_code_reg,byte_offset,8);
 	if (tmp[7:0] <= 8'h1F)
 	  begin
 	    videoSt <= VIDEO_OBJECT_LAYER1;
@@ -8883,43 +8883,43 @@ function Rules create_block8 ();
 	  end
 	if (sysState == START)
 	  begin
-		vd_rd_reg <= 1'b0; 
-		byte_offset <= byte_offset ; 
-		sysState <= WAIT; 
+		vd_rd_reg <= 1'b0;
+		byte_offset <= byte_offset ;
+		sysState <= WAIT;
 	  end
 	else
-	  byte_offset <= byte_offset -8 ; 
+	  byte_offset <= byte_offset -8 ;
 	byte_boundary <= 0;
   endrule
 
   rule vop_state_0 (videoSt == VOP_STATE_0);
-	if (byte_offset < 2) 
-	   begin 
-		 if (sysState == WAIT) 
-		   videoSt  <= VOP_STATE_0_1; 
-		 else 
-		   videoSt  <= VOP_STATE; 
-		 byte_offset <= byte_offset + 8 ; 
-	     sysState <= START; 
-		 vd_rd_reg <= 1'b1; 
-	   end 
+	if (byte_offset < 2)
+	   begin
+		 if (sysState == WAIT)
+		   videoSt  <= VOP_STATE_0_1;
+		 else
+		   videoSt  <= VOP_STATE;
+		 byte_offset <= byte_offset + 8 ;
+	     sysState <= START;
+		 vd_rd_reg <= 1'b1;
+	   end
      else
-	   begin 
+	   begin
 		 if (sysState == START)
 		   begin
-			 vd_rd_reg <= 1'b0; 
-			 byte_offset <= byte_offset + 8  ; 
-			 sysState <= WAIT; 
+			 vd_rd_reg <= 1'b0;
+			 byte_offset <= byte_offset + 8  ;
+			 sysState <= WAIT;
 		   end
 		 else
-		   byte_offset <= byte_offset ; 
-		 videoSt  <= VOP_STATE; 
-	   end 
+		   byte_offset <= byte_offset ;
+		 videoSt  <= VOP_STATE;
+	   end
   endrule
 
   rule vop_state_0_1 (videoSt == VOP_STATE_0_1);
-    videoSt <= VOP_STATE; 
-	$display("wait_1_cycleVOP_STATE start code reg %h ",start_code_reg); 
+    videoSt <= VOP_STATE;
+	$display("wait_1_cycleVOP_STATE start code reg %h ",start_code_reg);
   endrule
 
 endrules;
@@ -8939,98 +8939,98 @@ endfunction
   Rules block07 = create_block7;
   Rules block08 = create_block8;
 
-  List#(Rules) my_list = Cons (block00, Cons (block01, Cons (block02, 
-                         Cons (block03, Cons (block04, Cons (block05, 
+  List#(Rules) my_list = Cons (block00, Cons (block01, Cons (block02,
+                         Cons (block03, Cons (block04, Cons (block05,
 						 Cons (block06, Cons (block07, Cons (block08,nil)))))))));
 
   addRules (joinRules (my_list)) ;
 
-  method get_host_strobe (x); 
-    action 
-	  host_strobe.wset(x); 
-	endaction 
-  endmethod : get_host_strobe 
-  
-  method get_host_select (x); 
-    action 
-	  host_select.wset(x);
-    endaction 
-  endmethod : get_host_select 
-  
-  method get_host_address (x); 
+  method get_host_strobe (x);
     action
-      host_address.wset(x); 
-	endaction 
-  endmethod : get_host_address 
-  
-  method get_host_datain (x); 
-    action 
-	  host_datain.wset(x); 
-    endaction 
-  endmethod : get_host_datain 
-  
-  method get_vd_valid (x); 
-    action 
-	  vd_valid.wset(x); 
+	  host_strobe.wset(x);
+	endaction
+  endmethod : get_host_strobe
+
+  method get_host_select (x);
+    action
+	  host_select.wset(x);
     endaction
-  endmethod : get_vd_valid 
-  
-  method get_vd_data (x); 
-    action 
+  endmethod : get_host_select
+
+  method get_host_address (x);
+    action
+      host_address.wset(x);
+	endaction
+  endmethod : get_host_address
+
+  method get_host_datain (x);
+    action
+	  host_datain.wset(x);
+    endaction
+  endmethod : get_host_datain
+
+  method get_vd_valid (x);
+    action
+	  vd_valid.wset(x);
+    endaction
+  endmethod : get_vd_valid
+
+  method get_vd_data (x);
+    action
 	  vd_data.wset(x);
-    endaction 
-  endmethod : get_vd_data 
-  
-  method get_rdmv (x); 
-    action 
+    endaction
+  endmethod : get_vd_data
+
+  method get_rdmv (x);
+    action
 	  rdmv.wset(x);
-    endaction 
-  endmethod : get_rdmv 
-  
-  method get_mb_done (x); 
-    action 
+    endaction
+  endmethod : get_rdmv
+
+  method get_mb_done (x);
+    action
 	  mb_done.wset(x);
-    endaction 
-  endmethod : get_mb_done 
-  
-  method vd_rd (); 
+    endaction
+  endmethod : get_mb_done
+
+  method vd_rd ();
     vd_rd = vd_rd_reg;
-  endmethod : vd_rd 
-  
-  method dct_data_out (); 
+  endmethod : vd_rd
+
+  method dct_data_out ();
     dct_data_out = blkBuffer.data_out;
-  endmethod : dct_data_out 
-  
-  method dct_data_valid (); 
+  endmethod : dct_data_out
+
+  method dct_data_valid ();
     dct_data_valid = blkBuffer.data_valid;
-  endmethod : dct_data_valid 
-  
-  method hdr_rdy (); 
+  endmethod : dct_data_valid
+
+  method hdr_rdy ();
     hdr_rdy = (mbheaderfifo.notEmpty == True) ? 1'b1 : 1'b0;
-  endmethod : hdr_rdy 
-  
-  method busy (); 
+  endmethod : hdr_rdy
+
+  method busy ();
     busy = ((videoSt != IDLE) || (videoSt != SUSPEND));
-  endmethod : busy 
-  
-  method vop_done (); 
+  endmethod : busy
+
+  method vop_done ();
     vop_done = vop_start_code_detected;
-  endmethod : vop_done 
-  
-  method disable_mb_done (); 
+  endmethod : vop_done
+
+  method disable_mb_done ();
     disable_mb_done = disable_mb_done_reg;
-  endmethod : disable_mb_done 
-  
+  endmethod : disable_mb_done
+
   method header_data ();
     header_data = mbhdrdata_reg;
-  endmethod : header_data 
+  endmethod : header_data
 
   /*
-  method mb_coded (); 
+  method mb_coded ();
     mb_coded = not_coded;
   endmethod : mb_coded
   */
-  
+
 endmodule : mkBtStrmPrsr
 
 endpackage : BtStrmPrsr

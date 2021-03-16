@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_cycle_sequence
 
-Description: a specified necessary condition occurs and it is not followed by a specified sequence of events. 
+Description: a specified necessary condition occurs and it is not followed by a specified sequence of events.
 
 Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -23,7 +23,7 @@ module assertCycleSequence2 (Empty);
 
    let defaults = mkOVLDefaults;
 
-   AssertTest_IFC#(Bit#(3)) assertCycle <- bsv_assert_cycle_sequence(defaults);   
+   AssertTest_IFC#(Bit#(3)) assertCycle <- bsv_assert_cycle_sequence(defaults);
 
    rule test(True);
       assertCycle.test(test_expr); //event_sequence : test_expr

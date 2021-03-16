@@ -1,15 +1,15 @@
 export mkSharedRAMArbiter;
 export RAM;
-			  
+
 import Vector::*;
-	      
+
 import FIFO::*;
-	     
+
 interface RAM#(parameter type a, parameter type b);
     method Action send(a x1);
     method ActionValue#(b) receive;
 endinterface: RAM
-		 
+
 module mkSharedRAMArbiter#(parameter (RAM#(a, b)) ram)(Vector#(n, RAM#(a, b)))
   provisos (Log#(n,k));
   FIFO#((Bit#(k))) tagFifo();
@@ -22,19 +22,19 @@ module mkSharedRAMArbiter#(parameter (RAM#(a, b)) ram)(Vector#(n, RAM#(a, b)))
     endmethod: send
     method receive() if (tagFifo.first == fromInteger(i));
 	       actionvalue
-		 tagFifo.deq; 
+		 tagFifo.deq;
                  let result <- ram.receive;
                  return (result);
 	       endactionvalue
     endmethod: receive
-    
+
   endmodule: mkSharedRam
   Vector#(n, RAM#(a, b)) ifc <- mapM(mkSharedRam, genList);
   return(ifc);
 endmodule: mkSharedRAMArbiter
-			     
+
 typedef  Bit#(16) Word;
-		       
+
 module mkArbiterTest(Empty);
   RAM#(Word, Word) sram();
   mkRAM the_sram(sram);
@@ -44,7 +44,7 @@ module mkArbiterTest(Empty);
   mkContender(3, "2", rams[1]);
   mkContender(5, "3", rams[2]);
 endmodule: mkArbiterTest
-			
+
 module mkContender#(parameter Word initial_request,
 		    parameter String str,
 		    parameter (RAM#(Word, Word)) ram)(Empty);
@@ -57,29 +57,29 @@ module mkContender#(parameter Word initial_request,
   Reg#(Word) counter_last();
   mkReg#(1) the_counter_last(counter_last);
   // String name =  "User" +++ str;;
-  rule do_Count; 
+  rule do_Count;
    counter <= counter + 1;
   endrule
-  rule do_Request 
+  rule do_Request
    (counter >= counter_last &&& request matches tagged Valid {.x});
       counter_step <= counter_step + 1;
       counter_last <= counter + counter_step;
       ram.send(x);
       request <= Invalid;
   endrule
-  rule do_Receive; 
+  rule do_Receive;
       Word res <- ram.receive;
       request <= Valid(res);
   endrule
-  
+
 endmodule: mkContender
-		      
+
 module mkRAM(RAM#(n, n)) provisos(Bits#(n,s), Arith#(n));
   FIFO#(n) incoming();
   mkFIFO the_incoming(incoming);
   FIFO#(n) outgoing();
   mkFIFO the_outgoing(outgoing);
-  
+
   rule move;
     outgoing.enq(incoming.first); incoming.deq;
   endrule
@@ -91,8 +91,8 @@ module mkRAM(RAM#(n, n)) provisos(Bits#(n,s), Arith#(n));
 	       return(outgoing.first * 2);
 	     endactionvalue
   endmethod: receive
-  
+
 endmodule: mkRAM
-		
+
 
 

@@ -20,7 +20,7 @@ import WBConfigs::*;
 module mkWBSlave (WBoneXActorIFC);
 
    WBSlaveConfigs self <- mkWBSlaveConfigs;
-   
+
    Reg#(Bool) monitoring <- mkReg(True);
 
    FIFOF#(WBoneOp) in_fifo  <- mkFIFOF;
@@ -60,7 +60,7 @@ module mkWBSlave (WBoneXActorIFC);
 	 self.cntrl.init();
       endmethod
    endinterface
-   
+
    interface WBoneOpTxRxIFC channel;
       interface Get tx;
 	 method ActionValue#(WBoneOp) get;

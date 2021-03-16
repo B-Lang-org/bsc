@@ -2,7 +2,7 @@
 (* synthesize *)
 module rtl_names_11();
     Reg#(bit[3:0]) r_x <- mkRegU;
-    
+
     rule r1;
         let x_zero = r_x[0];
         r_x[1] <= x_zero; // & r_y;

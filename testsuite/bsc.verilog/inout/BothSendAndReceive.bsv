@@ -3,11 +3,11 @@ import SenderReceiver::*;
 
 import "BVI" Both =
 module mkBoth#(
-   Integer outvalue, 
-   Integer write_cyclenum, 
+   Integer outvalue,
+   Integer write_cyclenum,
    Integer read_cyclenum,
    Integer loopat)(SingletonInout);
-   
+
    default_clock(CLK);
    no_reset;
    ifc_inout iioo(INOUT);
@@ -16,5 +16,5 @@ module mkBoth#(
    parameter loopat=loopat;
    parameter outvalue=outvalue;
 endmodule
-   
+
 endpackage

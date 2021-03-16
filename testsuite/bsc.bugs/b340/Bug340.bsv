@@ -1,4 +1,4 @@
-interface Design_IFC;  
+interface Design_IFC;
     method Action return(Bit#(1) load);
     method Bit#(1) result();
 endinterface : Design_IFC
@@ -12,7 +12,7 @@ endinterface : Design_IFC
 
 module mkDesign (Design_IFC);
     Reg #(Bit#(1)) temp_reg <- mkReg(0);
-  
+
     method Action return(Bit#(1) load);
         action
          if (load == 1)

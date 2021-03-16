@@ -23,7 +23,7 @@ module sysRuleBetweenMethods_MEWithFFEdges();
     sub.b;
     b_called.send;
   endrule
- 
+
   rule print_b_called(b_called);
     $display("b_called");
   endrule

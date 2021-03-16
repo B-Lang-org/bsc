@@ -11,7 +11,7 @@ interface QBinOp #(parameter type a);
 endinterface
 
 // parameterized module taking a function as an argument
-module mkFPBinOp #(function t fun ( t a, t b) ) (QBinOp #(t) ) 
+module mkFPBinOp #(function t fun ( t a, t b) ) (QBinOp #(t) )
                       provisos( Bits#(t,st) ) ;
 
    FIFO#(t) outfifo() ;
@@ -61,14 +61,14 @@ endmodule
 
 // Generic tester for Binary operations
 module mkTester #(QBinOp#(t) dut_ifc,
-                  String testfile) 
+                  String testfile)
    ( Empty )
    provisos( Bits#(t,st), Eq#(t), Literal#(t) )  ;
 
    // an array holding the test data
    RegFile#(Bit#(7), Tuple3#(t,t,t) )  test_ifc();
    mkRegFileFullLoad#(testfile) iarray(test_ifc) ;
-   
+
    // An index to the array
    Reg#(Bit#(7) )  counter() ;
    mkReg#(0) icounter(counter) ;
@@ -122,7 +122,7 @@ module mkTester #(QBinOp#(t) dut_ifc,
          $finish(0);
       endaction
    endrule
-   
+
 endmodule
 
 

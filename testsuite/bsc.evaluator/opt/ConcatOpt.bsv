@@ -26,7 +26,7 @@ module sysConcatOpt(Empty);
 
   rule check (True);
    if(counter == 0) // r == 3'b111, s == 5'b01010
-     begin 
+     begin
        if({r,2'b0} == 'b11100)
          $display("Pass 1");
        else
@@ -34,7 +34,7 @@ module sysConcatOpt(Empty);
        if({2'b0,r} == 'b11100)
          $display("Fail 2");
        else
-         $display("Pass 2"); 
+         $display("Pass 2");
        if({s,r} == 'b01010111)
          $display("Pass 3");
        else
@@ -45,9 +45,9 @@ module sysConcatOpt(Empty);
          $display("Pass 4");
        if({r,s} == 'b11101010)
          $display("Pass 5");
-       else 
+       else
          $display("Fail 5");
-     end 
+     end
    else if (counter == 1) // r == 3'010 s == 5'00111
      begin
        if({s,2'b0} == 'b0011100)

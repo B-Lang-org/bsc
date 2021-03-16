@@ -48,13 +48,13 @@ module mkMemED(IMemED#(index_size,data_size))
   // State
 
    RegFile#(Bit#(index_size),Bit#(data_size)) rfile <- mkRegFileFull();
-   
+
    FIFO#(MemReq#(index_size,data_size)) reqQ  <- mkFIFO();
    FIFO#(MemResp#(data_size))  respQ <- mkFIFO();
-   
+
    rule storing ( reqQ.first() matches tagged StoreReq { addr:.addrt,data:.datat} );
       rfile.upd(addrt,datat);
-      reqQ.deq(); 
+      reqQ.deq();
    endrule
 
    rule reading ( reqQ.first() matches tagged LoadReq .addrt );
@@ -62,7 +62,7 @@ module mkMemED(IMemED#(index_size,data_size))
       respQ.enq( tagged LoadResp data);
       reqQ.deq();
    endrule
-   
+
    interface Server mem_server;
       interface Put request  = fifoToPut(reqQ);
       interface Get response = fifoToGet(respQ);

@@ -31,12 +31,12 @@ module mkTestbench_Reverse();
       $display ("Reversed ListN:");
       display_list (reverse(my_list1));
 
-      if (reverse(my_list1) != my_list2 || reverse (my_list3) != my_list3) 
+      if (reverse(my_list1) != my_list2 || reverse (my_list3) != my_list3)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Reverse
 endpackage : Reverse

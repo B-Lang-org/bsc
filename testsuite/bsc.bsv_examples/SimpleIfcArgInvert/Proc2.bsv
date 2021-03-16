@@ -14,16 +14,16 @@ interface ProcWithRAMclient;
    interface RAMclient#(Addr,Data) ramIn;
    interface Processor proc;
 endinterface
-             
+
 // Second example of a processor
 // uses RAMclient to avoid an interface argument
-(* synthesize *)      
+(* synthesize *)
 (* descending_urgency="start_fetch, start_load" *)
 module mkProc2(ProcWithRAMclient);
 
-   // RAM response arbitration (1-element pipeline FIFO)     
+   // RAM response arbitration (1-element pipeline FIFO)
    FIFO#(RamUser) responseOwner <- mkLFIFO;
-   
+
    // requires a BypassFIFO to avoid extra latency
    // requires extra state
    // could use more complex workarounds to eliminate it
@@ -31,42 +31,42 @@ module mkProc2(ProcWithRAMclient);
    // also requires a BypassFIFO to avoid extra latency
    // requires extra state (unless you use further workarounds)
    FIFO#(Data) responseFIFO <- mkBypassFIFO;
-	 
+
    // fetch state
    Reg#(Addr) pc <- mkReg(0);
 
    FIFOF#(Data) instrFIFO <- mkFIFOF;
-   
+
    Bool fetchReady = instrFIFO.notFull;
-   
+
    // rules touch the RAM through extra FIFOs
-   rule start_fetch(fetchReady); 
+   rule start_fetch(fetchReady);
       requestFIFO.enq(Read(pc));
       responseOwner.enq(Fetch);
       pc <= pc + 1;
    endrule
-   
+
    Bool fetchWaiting = responseOwner.first == Fetch;
-   
+
    rule complete_fetch(fetchWaiting);
       let instr = responseFIFO.first;
       responseFIFO.deq;
       instrFIFO.enq(instr);
       responseOwner.deq;
    endrule
-   
+
    Bool loadReady = isMemoryInstr(instrFIFO.first);
-   
+
    rule start_load(loadReady);
       instrFIFO.deq;
       requestFIFO.enq(Read(17));
       responseOwner.enq(Load);
    endrule
-   
+
    Bool loadWaiting = responseOwner.first == Load;
-   
+
    Reg#(Bool) done <- mkReg(False);
-   
+
    rule complete_load(loadWaiting);
       let data = responseFIFO.first;
       responseFIFO.deq;
@@ -74,7 +74,7 @@ module mkProc2(ProcWithRAMclient);
       $display("Loaded data %h from RAM at time %0t", data, $time);
       done <= True;
    endrule
-   
+
    interface Processor proc;
      method halt = done;
    endinterface
@@ -84,7 +84,7 @@ module mkProc2(ProcWithRAMclient);
       interface request = toGet(requestFIFO);
       interface response = toPut(responseFIFO);
    endinterface
-	 
+
 endmodule
 
 (* synthesize *)
@@ -92,7 +92,7 @@ module mkProc2_TB();
 
   let proc <- mkProc2;
   let ram <- mkSimpleRAM;
- 
+
   mkConnection(proc.ramIn, ram);
 
   rule exit(proc.proc.halt);

@@ -29,7 +29,7 @@ module  mk3ROMports#(ROM#(lat) rom) (ROM3#(lat1))
 	Counter#(loglat1) cnt();
 	mkCounter#(fromInteger(valueOf(lat))) the_cnt(cnt);
 
-        rule deq_rule (tags.first == i);	 
+        rule deq_rule (tags.first == i);
 	      out.enq(rom.result());
 	      tags.deq();
 	      rom.ack();

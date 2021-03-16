@@ -6,7 +6,7 @@
 -- Status : Fixed for BSC 3.74
 ----------------------------------------------------
 
-package Test (Test(..)) where 
+package Test (Test(..)) where
 
 data MyType1 a = Integer | Bool
              deriving ()

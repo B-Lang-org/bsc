@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_never_unknown_async
 
-Description: test expression doesn't contain only 0 and 1 bits. 
+Description: test expression doesn't contain only 0 and 1 bits.
 
 Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -25,7 +25,7 @@ ConvertToZ#(Bit#(3)) z_value <- mkConvertToZ;
 
 let defaults = mkOVLDefaults;
 
-AssertTest_IFC#(Bit#(3)) assertNevUnknownAsyn <- bsv_assert_never_unknown_async(defaults);   
+AssertTest_IFC#(Bit#(3)) assertNevUnknownAsyn <- bsv_assert_never_unknown_async(defaults);
 
 rule test(True);
 	assertNevUnknownAsyn.test(test_expr); //test_expr : test_expr

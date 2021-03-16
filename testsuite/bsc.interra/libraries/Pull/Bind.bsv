@@ -5,7 +5,7 @@ import Pull :: *;
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;
@@ -32,13 +32,13 @@ endmodule : mkDesign_Bind
 module mkTestbench_Bind ();
     Pull #(Bit #(4)) dut();
     mkDesign_Bind the_dut (dut);
-    
+
     Reg #(Bit #(4)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
         Bit #(4) data_stream <- dut.pull;
@@ -48,7 +48,7 @@ module mkTestbench_Bind ();
     endrule
 
     rule endsim (counter == 15);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

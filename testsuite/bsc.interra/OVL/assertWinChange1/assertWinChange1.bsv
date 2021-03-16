@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -19,7 +19,7 @@ typedef enum {First_State, Second_State, Third_State, Fourth_State, Fifth_State}
 module assertWinChange1 (Empty);
 
 Reg#(FSM_State) state <- mkRegA(First_State);
-   
+
 Reg#(Bit#(3)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
@@ -45,7 +45,7 @@ rule every (True);
 	Third_State:
 	begin
 	    state <= Fourth_State;
-		test_expr <= 3'b010;		
+		test_expr <= 3'b010;
 	end
 	Fourth_State:
 	begin
@@ -54,7 +54,7 @@ rule every (True);
 	Fifth_State:
 	begin
 	    state <= First_State;
-		test_expr <= 3'b011;		
+		test_expr <= 3'b011;
 	    $finish(0);
 	end
     endcase

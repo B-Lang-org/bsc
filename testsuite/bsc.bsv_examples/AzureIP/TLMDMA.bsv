@@ -28,39 +28,39 @@ endinterface
 // The mkTLMDMA module header:
 module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
 
-// Initialize status registers. The DMA starts out in idle mode.   
+// Initialize status registers. The DMA starts out in idle mode.
    Reg#(Bool) idle <- mkReg(True);
    Reg#(Bool) done <- mkReg(False);
-   
+
 ///////////////////////////////////////////////////////////////////////////////
 //  A block of configuration registers
 ///////////////////////////////////////////////////////////////////////////////
-   
+
    let cfg <- mkDMAConfigRegs;
    let cfg_values = cfg.device_ifc; // just an alias!
-   
+
 ///////////////////////////////////////////////////////////////////////////////
-// An adapter to connect the config bus unit to the TLM slave interface 
+// An adapter to connect the config bus unit to the TLM slave interface
 // (defined in TLM)
 ///////////////////////////////////////////////////////////////////////////////
- 
-   TLMReadWriteRecvIFC#(`TLM_STD_TYPES) adapter <- 
+
+   TLMReadWriteRecvIFC#(`TLM_STD_TYPES) adapter <-
                                 mkTLMCBusAdapterToReadWrite(truncate, cfg.cbus_ifc);
-   
+
 ///////////////////////////////////////////////////////////////////////////////
 //  Instantiate 4 FIFOs for  read and write transactions
 ///////////////////////////////////////////////////////////////////////////////
 
-// Request FIFO for read transactions   
+// Request FIFO for read transactions
    FIFO#(TLMRequestStd)  fifo_read_tx  <- mkBypassFIFO;
-// Response FIFO for read transactions   
+// Response FIFO for read transactions
    FIFO#(TLMResponseStd) fifo_read_rx  <- mkBypassFIFO;
 
-// Request FIFO for write transactions         
+// Request FIFO for write transactions
    FIFO#(TLMRequestStd)  fifo_write_tx <- mkBypassFIFO;
-// Response FIFO for write transactions   
+// Response FIFO for write transactions
    FIFO#(TLMResponseStd) fifo_write_rx <- mkBypassFIFO;
-   
+
 // a channel FIFO to buffer the read responses to the write request side
    FIFO#(TLMData#(`TLM_STD_TYPES)) fifo_channel <- mkSizedFIFO(16);
 
@@ -68,17 +68,17 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
    Reg#(DescLen) reads_remaining  <- mkReg(0);
    Reg#(DescLen) writes_remaining <- mkReg(0);
    Reg#(TLMAddr#(`TLM_STD_TYPES)) addr <- mkReg(0);
-   
+
 // a few local definitions
    let active = (cfg_values.active[0] == 1);
-   TransferDescriptor#(`TLM_STD_TYPES) current = 
+   TransferDescriptor#(`TLM_STD_TYPES) current =
       cExtend(cfg_values.descriptor[0]);
-   
-////////////////////////////////////////////////////////////////////////////   
+
+////////////////////////////////////////////////////////////////////////////
 // Rule to start the DMA transaction
 // Sets idle to false, initializes reads_remaining and writes_remaining
 // to the length of the burst, and addr to the destination address
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 
    rule start_transfer (idle && active);
       idle <= False;
@@ -88,11 +88,11 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
       addr <= cExtend(current.dest);
    endrule
 
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 // Rule which generates a read request,
 // and enqueues it to the fifo_read_tx
-////////////////////////////////////////////////////////////////////////////   
-   
+////////////////////////////////////////////////////////////////////////////
+
    rule data_read (!done && active && !idle && (reads_remaining > 0));
       let read_count = min(reads_remaining, 16);
       let remaining = reads_remaining - read_count;
@@ -104,11 +104,11 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
       fifo_read_tx.enq(tagged Descriptor request);
    endrule
 
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 // Rule which generates a write request,
 // and enqueues it to the fifo_write_tx
-////////////////////////////////////////////////////////////////////////////   
-   
+////////////////////////////////////////////////////////////////////////////
+
    rule data_write (!done && active && !idle && (writes_remaining > 0));
       let data = fifo_channel.first;
       fifo_channel.deq;
@@ -124,12 +124,12 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
       fifo_write_tx.enq(tagged Descriptor request);
       if (remaining == 0) done <= True;
    endrule
-   
-////////////////////////////////////////////////////////////////////////////   
+
+////////////////////////////////////////////////////////////////////////////
 // Rule to finish the transfer
 // Sets done to False, idle to True
 // resets the active value of the configuration register to 0
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 
    rule finish_transfer (done && !idle);
       done <= False;
@@ -137,27 +137,27 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
       cfg_values.active[0] <= 0;
    endrule
 
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 // Rule to get the read response
-// Moves the read data into the fifo_channel 
-////////////////////////////////////////////////////////////////////////////   
-   
+// Moves the read data into the fifo_channel
+////////////////////////////////////////////////////////////////////////////
+
    rule get_read_response_data;
       let response = fifo_read_rx.first;
       fifo_read_rx.deq;
       fifo_channel.enq(response.data);
    endrule
 
-////////////////////////////////////////////////////////////////////////////   
+////////////////////////////////////////////////////////////////////////////
 // Rule to get the write response
-// Removes the write value from the fifo_channel 
-////////////////////////////////////////////////////////////////////////////   
-   
+// Removes the write value from the fifo_channel
+////////////////////////////////////////////////////////////////////////////
+
    rule get_write_response_data;
       let response = fifo_write_rx.first;
       fifo_write_rx.deq;
    endrule
-   
+
 ////////////////////////////////////////////////////////////////////////////////
 // Interface implementation
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,14 +176,14 @@ module mkTLMDMA (TLMDMAIFC#(`TLM_STD_TYPES));
 	 interface Put  rx = toPut(fifo_read_rx);
       endinterface
    endinterface
-   
+
    // stitching the adapter interface to the main slave interface
    interface TLMReadWriteRecvIFC slave = adapter;
-   
+
 endmodule
 
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
-   
+
 endpackage

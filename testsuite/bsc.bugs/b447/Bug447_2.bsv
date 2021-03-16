@@ -4,7 +4,7 @@ interface Temp_Uninitialised_IFC;
 
 method Action set_in (Bit#(1) a, Bit#(1) b);
 
-method Bit#(1) out; 
+method Bit#(1) out;
 
 endinterface: Temp_Uninitialised_IFC
 
@@ -25,7 +25,7 @@ method set_in (a,b);
 action
 
   Bit#(1) wireID;
-       
+
     reg_a <= a & b;
 
     wireID <= reg_a;

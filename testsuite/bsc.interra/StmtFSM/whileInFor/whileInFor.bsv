@@ -14,7 +14,7 @@ Stmt test_seq =
 
   seq
       for (i <= 0 ; i <= 5 ; i <= i + 1)
-		seq  
+		seq
 		  while ( j <= 5)
 		  seq
 			  j <= j + 1;
@@ -23,7 +23,7 @@ Stmt test_seq =
 			  if (j == 4) break;
 		  endseq
 		  j <= 0;
-		endseq  
+		endseq
  endseq;
 
 FSM testFSM <- mkFSM(test_seq);
@@ -31,7 +31,7 @@ FSM testFSM <- mkFSM(test_seq);
 rule start(!going);
     testFSM.start;
 	going <= True;
-endrule	
+endrule
 
 rule always_fire;
 	count <= count + 1;
@@ -40,6 +40,6 @@ endrule
 rule clock_cycles(going && testFSM.done);
      $display("Total number of clock cycles =%5d", count);
 	 $finish(0);
-endrule	 
+endrule
 
 endmodule

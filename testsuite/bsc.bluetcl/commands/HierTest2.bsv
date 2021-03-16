@@ -16,8 +16,8 @@ module sysHierTest2 #(Inout#(Bar) i) (Empty);
    Vector#(SIZE,Server#(I,O))  m$$$s <- replicateM(mkHierTest2);
    let x1 <- mkConnection(m$$$s[0].request, m$$$s[1].response);
    let x2 <- mkConnection(m$$$s[1].request, m$$$s[2].response);
-   
-   // 
+
+   //
    Foo#(Bit#(4)) mb <- mkBVI(17, i);
    (*hide*)
    Foo#(Bit#(4)) mb_hidden <- mkBVI(17, i);

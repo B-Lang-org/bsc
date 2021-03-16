@@ -15,7 +15,7 @@ import ListN::*;
 // This is a shell implementing the Server interface
 // so the combinational adder can be connected to the testbench
 module mkCombWallace(WallaceServer#(l,m,n)) provisos (Add#(m,k,n));
-  
+
   Reg#(Bit#(n)) result();
   mkReg#(0) the_result(result);
 
@@ -23,9 +23,9 @@ module mkCombWallace(WallaceServer#(l,m,n)) provisos (Add#(m,k,n));
   mkReg#(False()) the_valid(valid);
 
   method request(); return (interface Put;
-	                      method put(inlistn); 
+	                      method put(inlistn);
                                 action
-                                  List#(Bit#(m)) inlist = toList(inlistn); 
+                                  List#(Bit#(m)) inlist = toList(inlistn);
                                   result <= wallaceAdd(inlist);
                                   valid  <= True();
                                 endaction
@@ -35,10 +35,10 @@ module mkCombWallace(WallaceServer#(l,m,n)) provisos (Add#(m,k,n));
 
   method response(); return (interface Get;
                                method get() if (valid == True());
-                                 actionvalue 
+                                 actionvalue
                                    valid <= False();
                                    return(result);
-                                 endactionvalue 
+                                 endactionvalue
                                endmethod: get
                              endinterface: Get);
   endmethod: response

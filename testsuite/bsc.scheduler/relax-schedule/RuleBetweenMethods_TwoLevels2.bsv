@@ -3,7 +3,7 @@
 module sysRuleBetweenMethods_TwoLevels2();
    Reg#(Bool) p <- mkReg(False);
    SubIfc s <- mkSub_Wrapper;
- 
+
    rule top_rule;
       if (p)
 	 s.m1;
@@ -37,7 +37,7 @@ module mkSub_Wrapper(SubIfc);
    method Action m1() if (!p);
       s.m1;
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod
@@ -51,11 +51,11 @@ module mkSub_Core(SubIfc);
    rule sub_rule (en);
       count <= count + 1;
    endrule
-      
+
    method Action m1();
       en <= !en;
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod

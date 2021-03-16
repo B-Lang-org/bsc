@@ -24,7 +24,7 @@ data IWord
 
 
 mkState :: Module Empty
-mkState = 
+mkState =
     module
       pc :: Reg Word
       pc <- mkReg 0

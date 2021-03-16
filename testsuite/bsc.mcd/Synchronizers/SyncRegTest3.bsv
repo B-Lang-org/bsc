@@ -82,7 +82,7 @@ module mkTestSync #(Clock dstclk, Reset dstrst ) (DutIfc);
       end
       recvD <= sync1;
    endrule
-   
+
    method Action report ();
       $display ("%m reports %d sends", sendS);
    endmethod

@@ -1,5 +1,5 @@
 // Test for latency of mkGPFIFO
-// Latency is = 1 clock cycle for write and read 
+// Latency is = 1 clock cycle for write and read
 package MkGPFIFO;
 
 import GetPut :: *;
@@ -22,13 +22,13 @@ module mkTestbench_MkGPFIFO ();
    	 counter <= counter + 1;
    endrule
 
-   rule data_write (counter[0:0] == 0); 
+   rule data_write (counter[0:0] == 0);
      tpl_2(datafifo).put(counter+8'd15);
       $display("Value Written = %d time = %d counter = %d",(counter+8'd15),$time,counter);
    endrule
-   
 
-   
+
+
 
    rule read_value ( counter[0:0] != 0);
      Bit #(8) first <- tpl_1(datafifo).get;

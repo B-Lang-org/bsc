@@ -30,7 +30,7 @@ module mkTestbench_fast_to_slow(Empty);
    mkReg#(0)        t_bit_sel(bit_sel, clocked_by clk_slow, reset_by rst_slow);
 
    Reg#(Bool)       start_sig <- mkReg(True, clocked_by clk_slow, reset_by rst_slow);
-   
+
    rule slow_domain(start_sig == True);
 	if (bit_sel == 0)
 	begin

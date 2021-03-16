@@ -4,6 +4,6 @@ data Test = A Integer | B Bool
   deriving(Eq,Bits)
 
 sysNoDerive :: Module Empty
-sysNoDerive = 
+sysNoDerive =
   module
     r :: Reg(Test) <- mkRegU

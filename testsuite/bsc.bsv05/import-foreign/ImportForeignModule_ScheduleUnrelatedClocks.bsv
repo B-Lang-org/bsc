@@ -8,7 +8,7 @@ import "BVI" Mod =
 module mkMod #(Clock c2) (Ifc);
    default_clock c1();
    default_reset no_reset;
-   
+
    input_clock c2() = c2;
 
    method OUT1 m1();

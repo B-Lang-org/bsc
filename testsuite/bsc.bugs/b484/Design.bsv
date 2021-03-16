@@ -3,8 +3,8 @@ package Design;
 interface Design_IFC;
    method Action setInputs(Bit#(1) in1, Bit#(1) in2, Bit#(1) in3, Bit#(1) in4);
    method Bit#(8) out();
-endinterface: Design_IFC 
-          
+endinterface: Design_IFC
+
 (* synthesize,
        always_ready ,
        always_enabled
@@ -21,7 +21,7 @@ module mkDesign(Design_IFC);
           reg_a <= 8'b00100000;
       else
           reg_a <= 8'b00000001;
-     
+
 
    endaction
    endmethod : setInputs

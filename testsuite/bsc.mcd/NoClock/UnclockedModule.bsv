@@ -38,5 +38,5 @@ module sysUnclockedModule();
   rule done (cycles == 10);
     $finish(0);
   endrule
-  
+
 endmodule

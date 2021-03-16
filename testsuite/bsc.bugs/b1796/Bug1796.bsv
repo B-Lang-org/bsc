@@ -37,7 +37,7 @@ module [m] mkPipelinedMultiplierG(m#(PipelinedMultiplier#(stages, tnum)) mkmul, 
     PipelinedMultiplier#(stages, tnum) mul <- mkPipelinedMultiplierSG(mkmul);
     FIFOF#(tnum) results <- mkGSizedFIFOF(True, False, valueof(stages) + 1);
     Counter#(TAdd#(1, TLog#(stages))) pending <- mkCounter(0);
-    
+
     (* fire_when_enabled *)
     rule takeresult (True);
         tnum x <- mul.response.get();
@@ -62,12 +62,12 @@ endmodule
 
 module [m] mkPipelinedMultiplierSG(m#(PipelinedMultiplier#(stages, tnum)) mkmul, PipelinedMultiplier#(stages, tnum) ifc)
     provisos(IsModule#(m, a__));
-    
+
     PipelinedMultiplier#(stages, tnum) mul <- mkmul();
 
     PulseWire incoming <- mkPulseWire();
     Vector#(stages, Reg#(Bool)) valids <- replicateM(mkReg(False));
-    
+
     (* fire_when_enabled *)
     (* no_implicit_conditions *)
     rule shift (True);
@@ -113,7 +113,7 @@ module [m] mkPipelinedMultiplierFixedPoint(m#(Multiplier#(Bit#(BitLen))) mkmul, 
     Multiplier#(Bit#(BitLen)) mul <- mkmul;
 
     FIFO#(Bool) negative <- mkSizedFIFO(4);
-    
+
     interface Put request;
         method Action put(Tuple2#(FixedPoint#(is, fs), FixedPoint#(is, fs)) x);
             match {.x0, .x1} = x;
@@ -146,7 +146,7 @@ endinterface
 module [m] mkBatchCS (m#(Multiplier#(tnum)) mkmul, BatchCS#(tnum,tsize) ifc)
 	provisos(IsModule#(m,m__), Bits#(tnum, a__),Arith#(tnum));
 
-Vector#(tsize, Multiplier#(tnum)) relP <- replicateM(mkmul());//product of real part 
+Vector#(tsize, Multiplier#(tnum)) relP <- replicateM(mkmul());//product of real part
 Vector#(tsize, Multiplier#(tnum)) imgP <- replicateM(mkmul());//product of imaginary part
 
 FIFO#(Vector#(tsize,Complex#(tnum))) inputVec <- mkFIFO();
@@ -168,7 +168,7 @@ FIFO#(Vector#(tsize,tnum)) outputVec <- mkFIFO();
         end
 
 		outputVec.enq(outvectop);
-	
+
 	endrule
 
 //interface Put invec;
@@ -177,7 +177,7 @@ FIFO#(Vector#(tsize,tnum)) outputVec <- mkFIFO();
 			relP[i].request.put(tuple2(invector[i].rel, invector[i].rel));
 			imgP[i].request.put(tuple2(invector[i].img, invector[i].img));
 		end
-	endmethod 
+	endmethod
 //endinterface
 interface Get outvec = toGet(outputVec);
 endmodule

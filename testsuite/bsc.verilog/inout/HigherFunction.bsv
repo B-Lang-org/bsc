@@ -11,7 +11,7 @@ function (function Inout#(a) bfunc(Bool bparam)) lowerfunc(Inout#(a) ain);
    function retfunc(bparam) = ain;
    return retfunc;
 endfunction
-          
+
 
 (*synthesize*)
 module sysHigherFunction(Empty);
@@ -23,11 +23,11 @@ module sysHigherFunction(Empty);
       count <= count + 1;
       send.set(count);
    endrule
-   
+
    rule disp (count>0);
       recv.display_it;
    endrule
-   
+
    rule stop (count==10);
       $finish(0);
    endrule

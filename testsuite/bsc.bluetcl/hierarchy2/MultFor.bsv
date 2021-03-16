@@ -13,7 +13,7 @@ module sysMultFor ();
    for (Integer i = 0; i < valueOf(SIZE) ; i = i + 1) begin
       rsssss[i] <- mkRegU;
       rsssss[valueOf(SIZE)+i] <- mkRegU;
-      
+
    end
 
 endmodule

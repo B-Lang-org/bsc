@@ -27,7 +27,7 @@ mkTest =
 
         rules
 	  "Assign x":
-            when True ==> action 
+            when True ==> action
                             x := 5
                             x := 6
 

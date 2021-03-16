@@ -19,7 +19,7 @@ Bit#(8) res;
 endfunction
 
 
-(* 
+(*
        synthesize ,
        always_ready ,
        always_enabled ,
@@ -34,5 +34,5 @@ module mkBug399 (DESIGN_IFC);
   endmethod: out_data
 
 endmodule: mkBug399
-                 
+
 endpackage: Bug399

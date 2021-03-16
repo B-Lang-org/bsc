@@ -9,14 +9,14 @@ function ListN#(n, a) permute_out(ListN#(n, UInt#(k)) indices, ListN#(n, a) vals
 
     for(Integer i = 0; i < n; i = i + 1)
       result[indices[i]] = vals[i];
-  
+
     return(result);
 endfunction
 
-(* noinline *) 
+(* noinline *)
 function ListN#(N, Bit#(16)) permute_out_N_16(ListN#(N, UInt#(K)) indices, ListN#(N, Bit#(16)) vals) = permute_out(indices, vals);
 
-(* noinline *) 
+(* noinline *)
 function ListN#(N, Bit#(16)) permute_in_N_16(ListN#(N, UInt#(K)) indices, ListN#(N, Bit#(16)) vals) = permute_in(indices, vals);
 
 function ListN#(n, a) permute_in(ListN#(n, UInt#(k)) indices, ListN#(n, a) vals) provisos(Log#(n, k));
@@ -25,6 +25,6 @@ function ListN#(n, a) permute_in(ListN#(n, UInt#(k)) indices, ListN#(n, a) vals)
 
     for(Integer i = 0; i < n; i = i + 1)
       result[i] = vals[indices[i]];
-  
+
     return(result);
 endfunction

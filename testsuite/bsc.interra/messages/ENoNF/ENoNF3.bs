@@ -5,4 +5,4 @@ sysENoNF3 :: Module Empty
 sysENoNF3 = module
               r :: Reg (Bool) <- mkReg False
               s :: Reg (Bit 37) <- if r then mkReg 0 else mkReg 17
-  
+

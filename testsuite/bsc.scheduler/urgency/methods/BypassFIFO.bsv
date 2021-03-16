@@ -68,7 +68,7 @@ module mkBypassFIFO1 (FIFO#(t))
    provisos (Bits#(t,sizet));
 
    // STATE ----------------
-   
+
    // The fifo
    Reg#(t)         regh      <- mkRegU;
    Reg#(Bool)      fifoFull  <- mkReg (False);
@@ -78,7 +78,7 @@ module mkBypassFIFO1 (FIFO#(t))
    RWire#(Bit#(0)) rw_deq    <- mkRWire;
 
    // RULES ----------------
-   
+
    // Note: no rule needed for enq_and_deq_on_Empty, since
    // fifoState remains Empty
 
@@ -104,7 +104,7 @@ module mkBypassFIFO1 (FIFO#(t))
                  : regh);
 
    // INTERFACE ----------------
-   
+
    method Action enq(v) if (!fifoFull);
        rw_enq.wset(v);
    endmethod
@@ -133,7 +133,7 @@ module mkBypassFIFO2 (FIFO#(t))
    provisos (Bits#(t,sizet));
 
    // STATE ----------------
-   
+
    // The fifo
    Reg#(t)          regh      <- mkRegU;
    Reg#(t)          regt      <- mkRegU;
@@ -144,7 +144,7 @@ module mkBypassFIFO2 (FIFO#(t))
    RWire#(Bit#(0)) rw_deq    <- mkRWire;
 
    // RULES ----------------
-   
+
    // Note: no rule needed for enq_and_deq_on_Zero, since
    // fifo2State remains Zero
 
@@ -191,7 +191,7 @@ module mkBypassFIFO2 (FIFO#(t))
                  : regh);
 
    // INTERFACE ----------------
-   
+
    method Action enq(v) if (fifo2State != Two);
        rw_enq.wset(v);
    endmethod

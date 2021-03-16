@@ -13,28 +13,28 @@ endinterface: Mult
 module mult_W1W2W3 (Mult #(16));
     Mult #(16) mult <- mult_W5W6W7_W1W2W3 (0);
     return (mult);
-endmodule 
-    
+endmodule
+
 (* synthesize *)
 module mult_W5W6W7 (Mult #(16));
     Mult #(16) mult <- mult_W5W6W7_W1W2W3 (1);
     return (mult);
-endmodule 
+endmodule
 
 
 //multtype = 0 for W1W2W3
 module mult_W5W6W7_W1W2W3 #(Bit #(1) multtype) (Mult #(x)) provisos (Add#(x,y,32));
-    
+
     Reg #(Bit #(32)) add_1 <- mkConfigReg (0);
     Reg #(Bit #(32)) add_2 <- mkConfigReg (0);
     Reg #(Bit #(32)) add_3 <- mkConfigReg (0);
     Reg #(Bit #(32)) result_in <- mkReg (0);
 
-   
+
     rule always_fire (True);
         result_in <= add_1 + add_2 + add_3;
     endrule
-    
+
     method multiply (input_data,select);
     action
       Bit #(32) in1 = signExtend (input_data);
@@ -71,13 +71,13 @@ module mult_W5W6W7_W1W2W3 #(Bit #(1) multtype) (Mult #(x)) provisos (Add#(x,y,32
                  d = 0;
                  e = 0;
                  f = 0;
-               end                       
+               end
          endcase
          add_1 <= a+b;
          add_2 <= c+d;
          add_3 <= e+f;
       endaction
-     endmethod 
+     endmethod
 
      method result ();
          result = result_in;
@@ -102,7 +102,7 @@ endmodule : mkAddSub
 
 
 ///////////////////////////////////////////////////////////////////////
-                 
+
 interface ConstMult_IFC;
     method Bit #(32) start (Bit #(32) a);
 endinterface: ConstMult_IFC

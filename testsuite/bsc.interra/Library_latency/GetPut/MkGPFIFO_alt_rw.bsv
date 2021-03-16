@@ -20,13 +20,13 @@ module mkTestbench_MkGPFIFO_alt_rw ();
    	 counter <= counter + 1;
    endrule
 
-   rule data_write (counter[0:0] == 0); 
+   rule data_write (counter[0:0] == 0);
      tpl_2(datafifo).put(counter+8'd15);
       $display("Value Written = %d time = %d counter = %d",(counter+8'd15),$time,counter);
    endrule
-   
 
-   
+
+
 
    rule read_value ( counter[0:0] != 0);
      Bit #(8) first <- tpl_1(datafifo).get;

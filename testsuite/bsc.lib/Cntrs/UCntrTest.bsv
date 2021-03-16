@@ -30,7 +30,7 @@ module sysUCntrTest();
          idut.update ( (v));
          bdut.update ( (v));
       endaction);
-   
+
    function Action writeAll (Integer v)  = (
       action
          udut <= ( (v));
@@ -39,11 +39,11 @@ module sysUCntrTest();
       endaction);
 
 
-   
+
    rule showState (True);
       $display ("bdut = %d, idut = %d, udut = %d", bdut.isEqual(1), idut.isEqual(1), udut.isEqual(1));
    endrule
-   
+
    let testSeq =
    (seq
        i <= 20;
@@ -91,7 +91,7 @@ module sysUCntrTest();
              writeAll(4);
           endaction
     endseq);
-   
+
    mkAutoFSM(testSeq);
 
 endmodule

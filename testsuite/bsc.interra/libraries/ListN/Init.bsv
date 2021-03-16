@@ -28,12 +28,12 @@ module mkTestbench_Init();
       display_list (my_list1);
       $display("Init (ListN):");
       display_list (init(my_list1));
-      if (my_list2 != init (my_list1)) 
+      if (my_list2 != init (my_list1))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Init
 endpackage : Init

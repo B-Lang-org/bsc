@@ -7,7 +7,7 @@ package Zow;
 module mkZow0#(a dflt) (Reg#(a))
    provisos (Bits #(a, sa)) ;
    Reg#(a) ifc;
-   
+
    ifc = (interface Reg
 	     method a _read;
 		return unpack(0);
@@ -22,7 +22,7 @@ endmodule
 module mkZow1#(a dflt) (Reg#(a))
    provisos (Bits #(a, sa)) ;
    Reg#(a) ifc;
-   
+
    if (valueOf(sa) == 0)
       begin
 	 ifc = (interface Reg

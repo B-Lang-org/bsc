@@ -12,7 +12,7 @@ module sysTestF ();
    Vector#(SIZE,Reg#(I)) rsssss ;
    for (Integer i = 0; i < valueOf(SIZE) ; i = i + 1) begin
       rsssss[i] <- mkRegU;
-      
+
    end
 
 endmodule

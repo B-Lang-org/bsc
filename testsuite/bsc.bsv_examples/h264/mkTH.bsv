@@ -70,9 +70,9 @@ module mkTH( Empty );
 	    $finish(0);
 	 end
    endrule
-   
+
    // Internal connections
-   
+
    mkConnection( inputgen.ioout, h264.ioin );
    mkConnection( h264.mem_clientED, memED.mem_server );
    mkConnection( h264.mem_clientP_intra, memP_intra.mem_server );
@@ -83,7 +83,7 @@ module mkTH( Empty );
    mkConnection( h264.buffer_client_load2, framebuffer.server_load2 );
    mkConnection( h264.buffer_client_store, framebuffer.server_store );
    mkConnection( h264.ioout, finaloutput.ioin );
-   
+
 endmodule
 
 endpackage

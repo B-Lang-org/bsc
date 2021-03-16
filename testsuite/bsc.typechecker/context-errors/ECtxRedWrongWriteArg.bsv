@@ -5,12 +5,12 @@
 import Vector::*;
 
 module test();
-   
-   Bit#(1) y = 1;   
+
+   Bit#(1) y = 1;
    Reg#(Vector#(2,Bool)) v <- mkReg(replicate(False));
-   
+
    rule t;
       v[0] <= y;
    endrule
-   
+
 endmodule

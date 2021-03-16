@@ -1,11 +1,11 @@
 -----------------------------------------------------------------------
--- Project: Bluespec  
+-- Project: Bluespec
 
 -- File: ERTSOutOfMemory1.bs
 
--- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com> 
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
 
--- Description: This testcase triggers an "out of memory" error 
+-- Description: This testcase triggers an "out of memory" error
 
 -- Error Message : bsc +RTS -A4G -M4G -RTS -verilog -g mkERTSOutOfMemory1 ERTSOutOfMemory1.bs
 -- bsc: out of memory (requested 1048576 bytes)

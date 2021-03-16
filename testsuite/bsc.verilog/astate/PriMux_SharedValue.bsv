@@ -19,12 +19,12 @@ module sysPriMux_SharedValue ();
       r <= 1;
       b2 <= True;
    endrule
-      
+
    rule rB (b2);
       r <= 2;
       b3 <= True;
    endrule
-      
+
    rule rC (b3);
       r <= 1;
    endrule

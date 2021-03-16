@@ -3,7 +3,7 @@ package IfLiftingTwoArg(sysIfLiftingTwoArg) where
 -- Lifting of if-branches: `b.set False' and `b.set True' on two sides
 -- of the `if' should be lifted out to `b.set (nosplitIf a False True)'
 
-import RegFile 
+import RegFile
 
 sysIfLiftingTwoArg :: Module Empty
 sysIfLiftingTwoArg =

@@ -11,7 +11,7 @@ module sysStringEQ();
   String s = (c[3] == 1) ? "SSSSS" : "SS";
 
   String t = strConcat(r,s);
-  
+
   String o = strConcat(z,t);
 
   rule test;
@@ -22,9 +22,9 @@ module sysStringEQ();
     if (o == strConcat(x,s))
       $display("y and r are empty");
 
-    if (o == "AAACCCCRRSS") 
+    if (o == "AAACCCCRRSS")
       $display("o is AAACCCCRRSS");
-    
+
     $display("o: %s", o);
     $display;
     c <= c + 1;

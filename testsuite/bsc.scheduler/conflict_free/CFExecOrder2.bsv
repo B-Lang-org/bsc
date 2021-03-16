@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysCFExecOrder2();
- 
+
   Reg#(Bit#(12)) r <- mkReg(0);
   Reg#(Bool) done <- mkReg(True);
 

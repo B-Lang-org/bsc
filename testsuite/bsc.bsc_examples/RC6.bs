@@ -71,7 +71,7 @@ struct RequestType =
     c :: UInt WordSize
     d :: UInt WordSize
   deriving (Bits)
-    
+
 struct TextType =
     a :: UInt WordSize
     b :: UInt WordSize
@@ -189,7 +189,7 @@ mkRC6EncRules :: Reg OperationType -> Reg (UInt WordSize) ->
 		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
 		 Reg (UInt WordSize) ->
 		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
-mkRC6EncRules op a b c d keyArr step = 
+mkRC6EncRules op a b c d keyArr step =
     let
 	isEnc :: Bool
 	isEnc = (op == Encode)
@@ -232,7 +232,7 @@ mkRC6DecRules :: Reg OperationType -> Reg (UInt WordSize) ->
 		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
 		 Reg (UInt WordSize) ->
 		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
-mkRC6DecRules op a b c d keyArr step = 
+mkRC6DecRules op a b c d keyArr step =
     let
 	isDec :: Bool
 	isDec = (op == Decode)

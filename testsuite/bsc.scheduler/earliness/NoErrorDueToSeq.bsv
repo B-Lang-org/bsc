@@ -14,7 +14,7 @@ module mkNoErrorDueToSeq();
     r <= 42;
     rg1 <= rg2;
   endrule
-   
+
   rule mid;
     rg2 <= rg3;
   endrule

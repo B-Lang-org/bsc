@@ -45,7 +45,7 @@ module mkTestbench_MapM_();
 
 
    rule fire_once (True);
-      mapM_(f,my_list1); 
+      mapM_(f,my_list1);
 	  /*
       $display("ListN1:");
       display_list (my_list1);
@@ -53,14 +53,14 @@ module mkTestbench_MapM_();
       display_list (my_list2);
       $display("ZipWith ListN:");
       display_list (my_list4);
-      if (my_list3 != my_list4) 
+      if (my_list3 != my_list4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 		*/
       $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_MapM_
 endpackage : MapM_

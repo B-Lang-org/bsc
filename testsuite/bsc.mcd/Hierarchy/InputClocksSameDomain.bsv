@@ -24,7 +24,7 @@ module mkInputClocksSameDomain_Sub #(Clock clk1, Clock clk2) ();
    // use RegU to avoid the need for a reset
    Reg#(Bit#(8)) rg1 <- mkRegU(clocked_by clk1);
    Reg#(Bit#(8)) rg2 <- mkRegU(clocked_by clk2);
-   
+
    // the initial value of the registers will be AA
    Bit#(8) init_val = 8'hAA;
 
@@ -44,7 +44,7 @@ module mkInputClocksSameDomain_Sub #(Clock clk1, Clock clk2) ();
       rg1 <= rg1 + 1;
       $display("(%d) rg1 = %h", adj_stime(p1), rg1);
    endrule
-   
+
    rule r2;
       rg2 <= rg2 + 1;
       $display("(%d) rg2 = %h", adj_stime(p1), rg2);

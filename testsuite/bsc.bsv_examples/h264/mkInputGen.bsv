@@ -35,18 +35,18 @@ import FIFO::*;
 import Connectable::*;
 import GetPut::*;
 
-`define INPUT_SIZE 10000000 
+`define INPUT_SIZE 10000000
 
 module mkInputGen( IInputGen );
    RegFile#(Bit#(1), Bit#(32)) rfile2 <- mkRegFileFullLoad("input_size.hex");
    RegFile#(Bit#(27), Bit#(8)) rfile <- mkRegFileLoad("input.hex", 0, `INPUT_SIZE);
-   
+
    FIFO#(InputGenOT) outfifo <- mkFIFO;
    Reg#(Bit#(27))    index   <- mkReg(0);
    Reg#(Bit#(27))    file_size <- mkReg(0);
    Reg#(Bool)        initialized <- mkReg(False);
 
-   rule init (!initialized); 
+   rule init (!initialized);
       file_size <= truncate(rfile2.sub(0));
       $display("File Size: %h", rfile2.sub(0));
       initialized <= True;
@@ -62,9 +62,9 @@ module mkInputGen( IInputGen );
       //$finish(0);
       outfifo.enq(EndOfFile);
    endrule
-   
+
    interface Get ioout = fifoToGet(outfifo);
-   
+
 endmodule
 
 

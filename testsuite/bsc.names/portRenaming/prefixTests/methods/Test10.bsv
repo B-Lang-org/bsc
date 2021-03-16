@@ -2,7 +2,7 @@ import IFC :: * ;
 
 typedef Bit#(5) Type;
 
-(* synthesize *) 
+(* synthesize *)
 module mkDesign_10 (IFC#(Type));
 
   Reg#(Type) val <- mkReg(0);
@@ -12,16 +12,16 @@ module mkDesign_10 (IFC#(Type));
   method Action start(a,b);
     val <= a;
     res <= b;
-  endmethod	
+  endmethod
 
   method Type result(c);
      return res+c;
-  endmethod	
-  	 
+  endmethod
+
   method ActionValue#(Type) check(d);
     val <= val + 1;
     res <= res + 2;
 	return res+d;
-  endmethod	
-	
+  endmethod
+
 endmodule

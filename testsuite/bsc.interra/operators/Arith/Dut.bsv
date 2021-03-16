@@ -64,7 +64,7 @@ method Action start(Bit#(129) in1, Bit#(129) in2);
  b <= in2;
 endmethod
 
- 
+
 method Bit#(129) sum;
 sum = (a+b);
 endmethod
@@ -75,7 +75,7 @@ endmethod
 
 method Bit#(129) mult;
  mult = (a*b);
-endmethod 
+endmethod
 
 method Bit#(128) sum_127;
 sum_127 = (a[127:0]+b[127:0]);
@@ -237,8 +237,8 @@ method Bit#(1) mult_0;
 mult_0 = (a[0]*b[0]);
 endmethod
 method Bit#(70) logical;
- 
- Vector#(70,Bool) vec =  
+
+ Vector#(70,Bool) vec =
   cons(a < b,
   cons(a > b,
   cons(a <= b,
@@ -311,7 +311,7 @@ method Bit#(70) logical;
   cons(a[0] == b[0],nil))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));
 
   return (pack(Vector::reverse(vec)));
- 
+
  endmethod
 
  endmodule

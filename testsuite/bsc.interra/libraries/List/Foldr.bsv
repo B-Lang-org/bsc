@@ -25,15 +25,15 @@ module mkTestbench_Foldr();
    List #(Integer) my_list1 = Cons (1, Cons (2, Cons (3, Cons (4, Cons (5, Nil)))));
 
 
-  
+
    rule fire_once (True);
       $display("Sum of list of first five integers = %d", foldr (add, 0, my_list1));
-      if (foldr(add, 0, my_list1) != 15) 
+      if (foldr(add, 0, my_list1) != 15)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Foldr
 endpackage : Foldr

@@ -33,12 +33,12 @@ module mkTestbench_PopCountTree ();
    rule endsim (counter == 8'b11111111);
        if (!fail)
            $display ("Simulation Passes");
-       else 
+       else
            $display ("Simulation Fails");
 
        $finish (2'b00);
    endrule
-       
-endmodule : mkTestbench_PopCountTree   
+
+endmodule : mkTestbench_PopCountTree
 
 endpackage : PopCountTree

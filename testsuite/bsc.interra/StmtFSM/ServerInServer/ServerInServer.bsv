@@ -9,18 +9,18 @@ import StmtFSM::*;
 function ActionValue#(Bit#(64)) adj_time();
    actionvalue
      let x <- $time();
-     if (genVerilog) x = x + 5;     
+     if (genVerilog) x = x + 5;
      return x;
-   endactionvalue     
+   endactionvalue
 endfunction
 
 (* synthesize *)
 module sysServerInServer (Empty);
-   
-   Reg#(Bit#(8))  count   <- mkReg(0);  
+
+   Reg#(Bit#(8))  count   <- mkReg(0);
    Reg#(Bit#(32)) partial <- mkReg(0);
    Reg#(Bit#(32)) result  <- mkReg(0);
-   
+
    function RStmt#(Bit#(32)) squareSeq (Bit#(32) value);
       seq
 	 actionvalue
@@ -41,7 +41,7 @@ module sysServerInServer (Empty);
 	 return partial;
       endseq;
    endfunction
-   
+
    // calculates n^8
    FSMServer#(Bit#(8), Bit#(32)) power_serv  <- mkFSMServer(powerSeq(3));
 
@@ -53,20 +53,20 @@ module sysServerInServer (Empty);
 			 count <= count + 1;
 		      endaction
 		   endseq;
-   
+
    let test_fsm <- mkFSM(test_seq);
 
    rule start;
       $display("(%0d) starting", adj_time);
       test_fsm.start;
    endrule
-   
+
    rule done (count == 6);
       $finish;
    endrule
 
-      
+
 endmodule
 
 
-endpackage  
+endpackage

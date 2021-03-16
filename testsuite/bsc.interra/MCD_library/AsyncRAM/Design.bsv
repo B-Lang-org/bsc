@@ -13,7 +13,7 @@ interface Design_IFC;
   method Bit#(8) dout();
 endinterface : Design_IFC
 
-(* 
+(*
    CLK = "rd_clk",
    RST_N = "rd_rst"
 *)

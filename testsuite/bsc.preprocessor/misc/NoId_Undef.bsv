@@ -1,5 +1,5 @@
 
-`undef - 
+`undef -
 
 Bool x = True;
 

@@ -32,49 +32,49 @@ function Bit#(12) func_median(Bit#(12) a , Bit#(12) b , Bit#(12) c);
 	           res = b;
 	         else
 	           res = c;
-	       end 
+	       end
     3'b001:
            begin
-	         if (a <= b) 
+	         if (a <= b)
 	           res = a;
 	         else
 	           res = b;
-	       end 
+	       end
     3'b010:
            begin
-	         if (a <= c) 
+	         if (a <= c)
 	           res = a;
 	         else
 	           res = c;
-	       end 
+	       end
     3'b011:
            begin
-	         if (b <= c) 
+	         if (b <= c)
 	           res = c;
 	         else
 	           res = b;
-	       end 
+	       end
     3'b100:
            begin
-	         if (b <= c) 
+	         if (b <= c)
 	           res = b;
 	         else
 	           res = c;
-	       end 
+	       end
     3'b101:
            begin
-	         if (a <= c) 
+	         if (a <= c)
 	           res = c;
 	         else
 	           res = a;
-	       end 
+	       end
     3'b110:
            begin
-	         if (a <= b) 
+	         if (a <= b)
 	           res = b;
 	         else
 	           res = a;
-	       end 
+	       end
     3'b111:
            begin
 	         if (((a >= b) && (a <= c)) || ((a <= b) && (a >= c)))
@@ -83,7 +83,7 @@ function Bit#(12) func_median(Bit#(12) a , Bit#(12) b , Bit#(12) c);
 	           res = b;
 	         else
 	           res = c;
-	       end 
+	       end
     default : res = 0;
     endcase
   return res;
@@ -109,7 +109,7 @@ function Bit#(12) func_get_mvd(Bit#(12) mv_data,Bit#(12) mv_residual,Bit#(12) f,
   Bit#(12) res;
   Bit#(12) abs_mv_data = (mv_data[11] == 1) ? ~mv_data : (mv_data - 1);
   if ((f == 1) || (mv_data == 0))
-    res = mv_data; 
+    res = mv_data;
   else
     begin
 	  let mvd = func_shift_left(abs_mv_data,r_size) + mv_residual + 1;
@@ -143,7 +143,7 @@ function  MVtype check_valid_func (Maybe#(Bit#(12)) mv1_x,Maybe#(Bit#(12)) mv1_y
   Bit#(12) tmp_mv3_y;
   MVtype res;
 
-	 if ((mv1_x == Nothing) && (mv1_y == Nothing) && 
+	 if ((mv1_x == Nothing) && (mv1_y == Nothing) &&
 	      (mv2_x == Nothing) && (mv2_y == Nothing) &&
 	      (mv3_x != Nothing) && (mv3_y != Nothing))
 	   begin
@@ -154,7 +154,7 @@ function  MVtype check_valid_func (Maybe#(Bit#(12)) mv1_x,Maybe#(Bit#(12)) mv1_y
 	     tmp_mv2_x = tmp_mv3_x ;
 	     tmp_mv2_y = tmp_mv3_y ;
 	   end
-	 else if ((mv1_x != Nothing) && (mv1_y != Nothing) && 
+	 else if ((mv1_x != Nothing) && (mv1_y != Nothing) &&
 	      (mv2_x == Nothing) && (mv2_y == Nothing) &&
 	      (mv3_x == Nothing) && (mv3_y == Nothing))
 	   begin
@@ -165,7 +165,7 @@ function  MVtype check_valid_func (Maybe#(Bit#(12)) mv1_x,Maybe#(Bit#(12)) mv1_y
 	     tmp_mv3_x = tmp_mv1_x ;
 	     tmp_mv3_y = tmp_mv1_y ;
 	   end
-	 else if ((mv1_x == Nothing) && (mv1_y == Nothing) && 
+	 else if ((mv1_x == Nothing) && (mv1_y == Nothing) &&
 	      (mv2_x != Nothing) && (mv2_y != Nothing) &&
 	      (mv3_x == Nothing) && (mv3_y == Nothing))
 	   begin
@@ -176,7 +176,7 @@ function  MVtype check_valid_func (Maybe#(Bit#(12)) mv1_x,Maybe#(Bit#(12)) mv1_y
 	     tmp_mv3_x = tmp_mv2_x ;
 	     tmp_mv3_y = tmp_mv2_y ;
 	   end
-	 else if ((mv1_x == Nothing) && (mv2_x == Nothing) && 
+	 else if ((mv1_x == Nothing) && (mv2_x == Nothing) &&
 	          (mv1_y == Nothing) && (mv2_y == Nothing) &&
 	          (mv3_x == Nothing) && (mv3_y == Nothing))
 	   begin

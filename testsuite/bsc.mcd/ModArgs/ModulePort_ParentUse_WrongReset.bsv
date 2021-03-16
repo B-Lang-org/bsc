@@ -4,7 +4,7 @@ import Clocks::*;
 module sysModulePort_ParentUse_WrongReset ();
 
    Reset rst2 <- mkInitialReset(2);
-   
+
    Reg#(Bit#(32)) x <- mkReg(0, reset_by rst2);
 
    Empty i <- mkModulePort_ParentUse_WrongReset_Sub (x, rst2);

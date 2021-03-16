@@ -15,7 +15,7 @@ module sysOneModule ();
 
    // the initial value of the registers will be AA
    Bit#(8) init_val = 8'hAA;
-   
+
    // function to make $stime the same for Bluesim and Verilog
    function ActionValue#(Bit#(32)) adj_stime(Integer p);
       actionvalue
@@ -32,7 +32,7 @@ module sysOneModule ();
       rg1 <= rg1 + 1;
       $display("(%d) rg1 = %h", adj_stime(p1), rg1);
    endrule
-   
+
    rule r2;
       rg2 <= rg2 + 1;
       $display("(%d) rg2 = %h", adj_stime(p2), rg2);

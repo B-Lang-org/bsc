@@ -11,5 +11,5 @@ action
       $display ("False");
       x = False;
     end
-endaction 
+endaction
 endfunction : status

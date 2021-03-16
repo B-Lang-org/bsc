@@ -43,7 +43,7 @@ import mkDeblockFilter::*;
 import mkBufferControl::*;
 import EntropyTee::*;
 import DeblockTee::*;
- 
+
 import Connectable::*;
 import GetPut::*;
 import ClientServer::*;
@@ -72,9 +72,9 @@ module mkH264( IH264 );
 
    // Interface to input generator
    interface ioin = nalunwrap.ioin;
-   
+
    // Memory interfaces
-   interface mem_clientED          = entropydec.mem_client; 
+   interface mem_clientED          = entropydec.mem_client;
    interface mem_clientP_intra     = prediction.mem_client_intra;
    interface mem_clientP_inter     = prediction.mem_client_inter;
    interface mem_clientD_data      = deblockfilter.mem_client_data;
@@ -83,9 +83,9 @@ module mkH264( IH264 );
    interface buffer_client_load2   = buffercontrol.buffer_client_load2;
    interface buffer_client_store   = buffercontrol.buffer_client_store;
 
-   // Interface for output 
+   // Interface for output
    interface ioout = buffercontrol.ioout;
-      
+
 endmodule
 
 endpackage

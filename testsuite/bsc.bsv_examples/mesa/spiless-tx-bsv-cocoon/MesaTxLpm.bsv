@@ -44,11 +44,11 @@ module mkMesaTxLpm0(ILPM0);
    Reg#(LuTag) tagr <- mkRegU;
    Reg#(Bit#(8)) third_base <- mkRegU;
    Reg#(Maybe#(SramAddr)) pending <- mkReg(Invalid);
-   
+
    FIFO#(Tuple2#(LuResponse, LuTag)) toMIF();
    mkFIFO the_toMIF(toMIF);
 
-   
+
 
    rule further_reads (isValid(pending));
       let d32 = (sram.read)(validValue(pending));
@@ -70,7 +70,7 @@ module mkMesaTxLpm0(ILPM0);
 		  let d32a = (sram.read)({0, ipa[31:16]});
 		  if (d32a[31] == 1)
 		     toMIF.enq(tuple2({0,d32a[30:0]}, tag));
-		  
+
 		  else
 		     begin
 			pending <= tagged Valid (d32a[20:0] + {0, ipa[15:8]});
@@ -80,7 +80,7 @@ module mkMesaTxLpm0(ILPM0);
 	       endaction
 	    endmethod: put
 	 endinterface: request
-	 
+
 	 interface Get response;
 	    method get() ;
 	       actionvalue
@@ -95,7 +95,7 @@ module mkMesaTxLpm0(ILPM0);
    endinterface: fst
 
    interface snd = stub.cocoon;
-      
+
 endmodule
 
 

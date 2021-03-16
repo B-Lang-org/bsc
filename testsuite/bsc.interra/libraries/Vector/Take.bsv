@@ -35,7 +35,7 @@ module mkTestbench_Take();
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Take
 endpackage : Take

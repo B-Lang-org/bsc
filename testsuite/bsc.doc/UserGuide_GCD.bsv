@@ -9,7 +9,7 @@ endinterface: ArithIO_IFC
 // separate code for mkGCD
 (* synthesize *)
 module mkGCD(ArithIO_IFC#(NumTyp)); // here aTyp is defined to be type Int
-   
+
     Reg#(NumTyp) x(); // x is the interface to the register
     mkRegU reg_1(x);  // reg_1 is the register instance
 

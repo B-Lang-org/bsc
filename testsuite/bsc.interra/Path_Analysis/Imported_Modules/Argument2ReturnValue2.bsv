@@ -1,4 +1,4 @@
-//Signal from Argument to Return value of the same method, 
+//Signal from Argument to Return value of the same method,
 //The combinational loop is completed at the top level
 //Should report an error with -verilog flag
 
@@ -26,7 +26,7 @@ endinterface
 (* synthesize *)
 
 module [Module] mksubArgument2ReturnValue2(Argument2ReturnValue2Inter);
-    
+
     Argument2ReturnValue2Interv dut();
     mkArgument2ReturnValue2v the_dut (dut);
 
@@ -34,25 +34,25 @@ module [Module] mksubArgument2ReturnValue2(Argument2ReturnValue2Inter);
         dut.start (inp);
         return (dut.result);
     endmethod
-    
+
 endmodule
 
 (* synthesize *)
 module [Module] mkArgument2ReturnValue2 ();
-    
+
     Argument2ReturnValue2Inter dut();
     mksubArgument2ReturnValue2 the_dut(dut);
-  
+
     RWire #(Bit #(8)) inwire();
     mkRWire the_inwire (inwire);
-    
+
     rule always_fire;
-         Bit #(8) temp <- (dut.start(unJust (inwire.wget))); 
+         Bit #(8) temp <- (dut.start(unJust (inwire.wget)));
          inwire.wset (temp);
     endrule
 
-       
+
 endmodule
-    
+
 
 endpackage

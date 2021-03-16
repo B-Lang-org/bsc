@@ -6,7 +6,7 @@ import GetPut :: * ;
 import AmbaSynthesis :: * ;
 
 
-(* always_ready *) 
+(* always_ready *)
 module mkSlave1( Slave ) ;
 
    AmbaSlaveAdapter slave_adp <- mkBlueAmbaSlaveReg ;
@@ -15,11 +15,11 @@ module mkSlave1( Slave ) ;
    rule takedata ( adapter_ifc.slaveSelect ) ;
       let req = adapter_ifc.request ;
       let addr = req.addr;
-      // transfer address to data 
+      // transfer address to data
       let resp = BusResponse{ data:addr, status:OK } ;
       adapter_ifc.response( resp ) ;
-   endrule 
-   
+   endrule
+
    return  slave_adp.aslave ;
 endmodule
 
@@ -51,7 +51,7 @@ module mkSource ( Slave ) ;
       let req = slave_adp.request ;
       $display( "mkSource:: invalid  request %h %h %h",
                req.read_write, req.addr, req.data ) ;
-      
+
       slave_adp.response ( errorResponse ) ;
    endrule
 
@@ -84,10 +84,10 @@ module mkSink ( Slave ) ;
       let req = slave_adp.request ;
       $display( "mkSink:: invalid  request %h %h %h",
                req.read_write, req.addr, req.data ) ;
-      
+
       slave_adp.response ( errorResponse ) ;
    endrule
-   
+
    return sadapter.aslave ;
 endmodule
 
@@ -104,7 +104,7 @@ interface SlaveRx ;
 endinterface
 
 
-(* synthesize, always_ready *) 
+(* synthesize, always_ready *)
 module mkSlaveRx ( SlaveRx ) ;
 
    AmbaSlaveAdapter sadapter <- mkBlueAmbaSlaveReg ;
@@ -129,7 +129,7 @@ module mkSlaveRx ( SlaveRx ) ;
    method Action rx( RxData rxdata);
       // $display("In rx: rxdata = %d",rxdata);
    endmethod
-   
+
    interface slave = sadapter.aslave;
 endmodule
 
@@ -170,22 +170,22 @@ module mkSlaveTx ( SlaveTx ) ;
       chksum <= chksum+slave_adp.request.data;
       // $display("mkSink %m:received: %0d chksum=%d", slave_adp.request.data, chksum ) ;
    endrule
-   
+
    rule readChksum (slave_adp.slaveSelect && slave_adp.request.addr[27:0]==28'h800_0000 && slave_adp.request.read_write == Read  ) ;
       slave_adp.response ( BusResponse { data: chksum , status: OK } ) ;
       // $display("MKSINK %m: READING CHECKSUM: %0d chksum=%d", slave_adp.request.data, chksum ) ;
    endrule
-   
+
    method ActionValue#(TxData) tx ()  ;
       txfifo.deq;
-      return txfifo.first; 
+      return txfifo.first;
    endmethod
-   
+
    interface slave = sadapter.aslave;
 endmodule
 
 
-(* synthesize, always_ready *) 
+(* synthesize, always_ready *)
 module mkSRAM64k ( Slave ) ;
 
    RegFile#(Bit#(16), BusData ) rfile <- mkRegFileFull ;
@@ -198,18 +198,18 @@ module mkSRAM64k ( Slave ) ;
       let addr = slave_adp.request.addr[17:2] ;
       let datw = slave_adp.request.data ;
       rfile.upd( addr, datw ) ;
-      slave_adp.response ( BusResponse { data: 0 , status: OK } ) ;      
+      slave_adp.response ( BusResponse { data: 0 , status: OK } ) ;
    endrule
 
    rule readMem ( slave_adp.slaveSelect &&
                   slave_adp.request.read_write == Read ) ;
       let addr = slave_adp.request.addr[17:2] ;
       let datr = rfile.sub( addr ) ;
-      slave_adp.response ( BusResponse { data: datr , status: OK } ) ;      
+      slave_adp.response ( BusResponse { data: datr , status: OK } ) ;
    endrule
 
    return sadapter.aslave;
-   
+
 endmodule
 
 

@@ -14,7 +14,7 @@ interface EthTop_IFC;
    method Action   wb_dat_i(Bit#(32) value);  // WISHBONE data input
    method Bit#(32) wb_dat_o();                // WISHBONE data output
    method Bool     wb_err_o();                // WISHBONE error output
-          
+
    // WISHBONE slave
    method Action   wb_adr_i(Bit#(10) value);  // WISHBONE address input
    method Action   wb_sel_i(Bit#(4) value);   // WISHBONE byte select input
@@ -22,7 +22,7 @@ interface EthTop_IFC;
    method Action   wb_cyc_i(Bool value);      // WISHBONE cycle input
    method Action   wb_stb_i(Bool value);      // WISHBONE strobe input
    method Bool     wb_ack_o();                // WISHBONE acknowledge output
-      
+
    // WISHBONE master
    method Bit#(32) m_wb_adr_o;
    method Bit#(4)  m_wb_sel_o;
@@ -33,7 +33,7 @@ interface EthTop_IFC;
    method Bool     m_wb_stb_o;
    method Action   m_wb_ack_i(Bool value);
    method Action   m_wb_err_i(Bool value);
-      
+
    // Tx
    method Bit#(4)  mtxd_pad_o;                // Transmit nibble (to PHY)
    method Bool     mtxen_pad_o;               // Transmit enable (to PHY)
@@ -43,19 +43,19 @@ interface EthTop_IFC;
    method Action   mrxd_pad_i(Bit#(4) value); // Receive nibble (from PHY)
    method Action   mrxdv_pad_i(Bool value);   // Receive data valid (from PHY)
    method Action   mrxerr_pad_i(Bool value);  // Receive data error (from PHY)
-      
+
    // Common Tx and Rx
    method Action   mcoll_pad_i(Bool value);   // Collision (from PHY)
    method Action   mcrs_pad_i(Bool value);    // Carrier sense (from PHY)
-      
+
    // MII Management interface
    method Action   md_pad_i;		      // MII data input (from I/O cell)
    method Bool     mdc_pad_o;                 // MII Management data clock (to PHY)
    method Bool     md_pad_o;                  // MII data output (to I/O cell)
    method Bool     md_padoe_o;                // MII data output enable (to I/O cell)
-      
+
    method Bool     int_o;                     // Interrupt output
-      
+
 endinterface
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,22 +63,22 @@ endinterface
 ////////////////////////////////////////////////////////////////////////////////
 
 
- 
+
 import "BVI" eth_top =
 module eth_top(Clock rx_clk, Reset rx_reset, Clock tx_clk, Reset tx_reset, EthTop_IFC ifc);
 
    default_clock clk (wb_clk_i);
    default_reset rst (wb_rst_n_i);
-   
+
    input_clock tx_clk(mtx_clk_pad_i) = tx_clk;
    input_clock rx_clk(mrx_clk_pad_i) = rx_clk;
-   
+
    // WISHBONE common
    method  wb_dat_i(wb_dat_i)           enable((* inhigh *)EN1);  // WISHBONE data input
    method  (* reg *) wb_dat_o wb_dat_o();                        // WISHBONE data output
    method  (* reg *) wb_err_o wb_err_o();                        // WISHBONE error output
 
-      
+
    // WISHBONE slave
    method  wb_adr_i(wb_adr_i)           enable((* inhigh *)EN2);  // WISHBONE address input
    method  wb_sel_i(wb_sel_i)           enable((* inhigh *)EN3);  // WISHBONE byte select input
@@ -86,7 +86,7 @@ module eth_top(Clock rx_clk, Reset rx_reset, Clock tx_clk, Reset tx_reset, EthTo
    method  wb_cyc_i(wb_cyc_i)           enable((* inhigh *)EN5);  // WISHBONE cycle input
    method  wb_stb_i(wb_stb_i)           enable((* inhigh *)EN6);  // WISHBONE strobe input
    method  (* reg *) wb_ack_o wb_ack_o();                        // WISHBONE acknowledge output
-      
+
    // WISHBONE master
    method  (* reg *) m_wb_adr_o m_wb_adr_o();
    method  (* reg *) m_wb_sel_o m_wb_sel_o();
@@ -121,7 +121,7 @@ module eth_top(Clock rx_clk, Reset rx_reset, Clock tx_clk, Reset tx_reset, EthTo
 
    method  (* reg *) int_o int_o();                              // Interrupt output
 
-   schedule 
+   schedule
       (m_wb_ack_i,
        m_wb_dat_i,
        m_wb_err_i,

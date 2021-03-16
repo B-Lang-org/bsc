@@ -10,7 +10,7 @@ module mkDesign_MkGPFIFO1(GetPut #(Bit #(8))) ;
 endmodule: mkDesign_MkGPFIFO1
 
 module mkTestbench_MkGPFIFO1 ();
-        
+
   GetPut #(Bit#(8)) datafifo();
   mkGPFIFO1 the_datafifo (datafifo);
   Reg#(Bit#(8)) counter <- mkReg(0);
@@ -63,5 +63,5 @@ module mkTestbench_MkGPFIFO1 ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_MkGPFIFO1 
+endmodule: mkTestbench_MkGPFIFO1
 endpackage: MkGPFIFO1

@@ -15,7 +15,7 @@ mkReg#(True) the_s(s, clocked_by(c2));
 Reg#(Bool) t();
 mkReg#(True) the_t(t, clocked_by(clockOf(r)));
 
-// we don't care about the answer, but we want to 
+// we don't care about the answer, but we want to
 // see the warning
 rule test;
   // one of these should print 1, not both

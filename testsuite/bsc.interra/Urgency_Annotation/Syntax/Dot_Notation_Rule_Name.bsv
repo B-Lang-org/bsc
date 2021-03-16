@@ -33,7 +33,7 @@ module mkTest_Dot_Rule_Name(Test_IFC);
 endmodule : mkTest_Dot_Rule_Name
 
 module mkDot_Notation_Rule_Name();
-    
+
      Test_IFC dut ();
      mkTest_Dot_Rule_Name the_dut (dut);
 
@@ -47,7 +47,7 @@ module mkDot_Notation_Rule_Name();
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

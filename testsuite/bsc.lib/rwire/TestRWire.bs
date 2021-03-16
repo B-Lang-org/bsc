@@ -1,10 +1,10 @@
 package TestRWire() where
 
 sysTestRWire :: Module Empty
-sysTestRWire = 
+sysTestRWire =
   module
     rwire :: RWire (Bit 16) <- mkRWire
-    
+
     rules
       when True ==>
         action

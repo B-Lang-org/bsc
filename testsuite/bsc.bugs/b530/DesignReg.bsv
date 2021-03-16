@@ -17,7 +17,7 @@ module sysDesignReg ();
   rule r3 (quit);
     $finish(0);
   endrule
-  
+
 
 endmodule
 endpackage

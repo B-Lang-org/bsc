@@ -1,18 +1,18 @@
 package Bug308 where
 
 import ListN
-	    
+
 type BaseData = Bit 5
-		     
-		  
+
+
 getLarger :: (Add 1 a aa) =>
              Tuple2 (Bit a) BaseData ->
              Tuple2 (Bit a) BaseData ->
              Tuple2 (Bit aa) BaseData
-getLarger in1 in2 = 
-    let theResult' = 
+getLarger in1 in2 =
+    let theResult' =
             if tpl_2 in1 > tpl_2 in2 then
-                let theResult' = 
+                let theResult' =
                         let outdata' :: BaseData
                             outdata' =  tpl_2 in1
                         in  let outdata :: BaseData
@@ -22,7 +22,7 @@ getLarger in1 in2 =
                                 in  let currentIndex :: Bit a
                                         currentIndex =  currentIndex'
                                     in  let nextIndex' :: Bit aa
-                                            nextIndex' = 
+                                            nextIndex' =
                                                 primConcat
                                                   (unpack (0b0::(Bit 1)))
                                                   currentIndex
@@ -33,7 +33,7 @@ getLarger in1 in2 =
                 in  let (currentIndex , (nextIndex, outdata)) =  theResult'
                     in  (currentIndex , (nextIndex , outdata))
             else
-                let theResult' = 
+                let theResult' =
                         let outdata' :: BaseData
                             outdata' =  tpl_2 in2
                         in  let outdata :: BaseData
@@ -43,7 +43,7 @@ getLarger in1 in2 =
                                 in  let currentIndex :: Bit a
                                         currentIndex =  currentIndex'
                                     in  let nextIndex' :: Bit aa
-                                            nextIndex' = 
+                                            nextIndex' =
                                                 Prelude.primConcat
                                                   (unpack (0b1::(Bit 1)))
                                                   currentIndex

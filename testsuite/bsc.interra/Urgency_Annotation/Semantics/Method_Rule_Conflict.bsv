@@ -34,19 +34,19 @@ module mkTest_Method_Rule_Conflict(Test_IFC);
 endmodule : mkTest_Method_Rule_Conflict
 
 module mkMethod_Rule_Conflict();
-    
+
      Test_IFC dut ();
      mkTest_Method_Rule_Conflict the_dut (dut);
 
      rule true;
          dut.start();
-         $display ("Calling Method"); //Should be displayed exactly 14 times 
+         $display ("Calling Method"); //Should be displayed exactly 14 times
      endrule
 
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

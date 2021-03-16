@@ -12,4 +12,4 @@ module mkSboxRom ( SboxRom );
 
 endmodule
 
-   
+

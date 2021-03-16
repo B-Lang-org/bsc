@@ -6,8 +6,8 @@ import ClientServer :: *;
 import GetPut :: *;
 import Connectable :: *;
 
-typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n); 
-typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n); 
+typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n);
+typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n);
 
 function Maybe#(Bit#(8)) f (Bit#(8) a);
      //Maybe #(Bit #(8)) x = Invalid;
@@ -31,8 +31,8 @@ module mkTestbench_JoinServers ();
 
    Server #(Bit#(8),Bit#(8))  serv1 <- mkMyserver();
    Server #(Bit#(8),Bit#(8))  serv2 <- mkMyserver();
-   List#(Tuple2 #(function Maybe#(Bit#(8)) f(Bit#(8) a) ,Server #(Bit#(8),Bit#(8)))) my_server_list = 
-                  Cons (tuple2 (f,serv1), 
+   List#(Tuple2 #(function Maybe#(Bit#(8)) f(Bit#(8) a) ,Server #(Bit#(8),Bit#(8)))) my_server_list =
+                  Cons (tuple2 (f,serv1),
 				  Cons (tuple2 (f,serv2), Nil));
 
    Server #(Bit#(8),Bit#(8))  joinedservers <- joinServers(my_server_list);
@@ -51,7 +51,7 @@ rule always_fire (True);
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
+
 
    rule read_value (counter < 20 );
      Bit #(8) val <- joinedservers.response.get;
@@ -71,7 +71,7 @@ rule always_fire (True);
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data1: %d ", counter, in_data);
    endrule
-   
+
    rule read_value2 (counter >= 20 );
      Bit #(8) val <- joinedservers.response.get;
      out_data <= out_data + 1;

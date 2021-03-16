@@ -8,7 +8,7 @@ function ActionValue#(Bit#(16)) getx();
 endfunction
 
 function ActionValue#(Bit#(32)) gety();
-  actionvalue 
+  actionvalue
     $display("gety");
     return(1);
   endactionvalue
@@ -22,4 +22,4 @@ function ActionValue#(Bar) getBar();
     return(result);
   endactionvalue
 endfunction
-    
+

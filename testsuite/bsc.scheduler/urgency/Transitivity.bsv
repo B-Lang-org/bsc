@@ -21,7 +21,7 @@ module sysTransitivity();
 	rg1 <= rg1 + 1;
 	rg2 <= rg2 + 1;
     endrule
-    
+
     rule r2 (p2);
 	rg1 <= rg1 + 2;
     endrule

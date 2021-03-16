@@ -10,24 +10,24 @@ module mkTest #(Inout#(Bar) i) ();
 
    Vector#(4,Reg#(int)) aa = ? ;
    Vector#(4,Reg#(int)) bb = ? ;
-   
+
    Vector#(5,Reg#(int)) zw <- mapM (mkReg, genWith (fromInteger));
-   
-   
+
+
    Vector#(2,Foo#(Bar)) xx <- zipWithM( mkBVI, genWith(fromInteger), replicate(i));
-   
+
    for (Integer i = 0 ; i < 4 ; i = i + 1) begin
-      x[i] <- mkRegU; 
+      x[i] <- mkRegU;
    end
 
    for (Integer i = 0 ; i < 4 ; i = i + 1) begin
-     aa[i] <- mkRegU; 
-     bb[i] <- mkRegU; 
+     aa[i] <- mkRegU;
+     bb[i] <- mkRegU;
    end
-   
-   
+
+
    Vector#(2,Sub_Ifc) subis <- mapM( mkSub, genWith(fromInteger) );
-   
+
 endmodule
 
 interface Sub_Ifc;

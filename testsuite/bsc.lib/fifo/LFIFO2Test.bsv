@@ -5,25 +5,25 @@ Integer elementCount = 30;
 
 (* synthesize *)
 module sysLFIFO2Test();
-   
+
    FIFO#(Bit#(16)) f <- mkLSizedFIFO(2);
-   
+
    Reg#(Bit#(16)) count <- mkReg(0);
-   
+
    Bit#(16) tags[5] = {16'hdead, 16'hbeef, 16'hbaad, 16'hf00d, 16'h0 };
-   
+
    Reg#(Bit#(16)) cycle <- mkReg(0);
-   
+
    rule tick;
       cycle <= cycle + 1;
    endrule
-      
-   Stmt loadFifo = 
-   seq 
+
+   Stmt loadFifo =
+   seq
       while(count < fromInteger(elementCount))
-	 action     
+	 action
 	    let val = tags[count % 5];
-            $display("enq %h at cycle %0d", val, cycle);      
+            $display("enq %h at cycle %0d", val, cycle);
 	    f.enq(val);
 	    count <= count + 1;
 	 endaction
@@ -34,10 +34,10 @@ module sysLFIFO2Test();
    rule startLoad;
       loader.start;
    endrule
-   
+
    Reg#(Bit#(16)) deq_count <- mkReg(0);
-   
-   Stmt drainFifo = 
+
+   Stmt drainFifo =
    seq
      while(deq_count < 20)
        action
@@ -49,7 +49,7 @@ module sysLFIFO2Test();
    endseq;
 
    FSM drainer <- mkFSM(drainFifo);
-   
+
    rule startDrainer(cycle == fromInteger(elementCount + 10));
      drainer.start;
    endrule
@@ -58,7 +58,7 @@ module sysLFIFO2Test();
      $display("Clearing fifo at cycle %0d", cycle);
      f.clear;
    endrule
-   
+
 endmodule
-   
-	
+
+

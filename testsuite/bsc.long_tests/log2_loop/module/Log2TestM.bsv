@@ -9,7 +9,7 @@ module sysLog2TestM();
         pass = False;
         addRules(
         rules
-        rule fail_1; 
+        rule fail_1;
           $display("Fail %0d", i);
         endrule
         endrules);
@@ -39,9 +39,9 @@ module sysLog2TestM();
     rule show_pass(pass);
 	 $display("Test passed");
     endrule
-   
+
     rule exit;
       $finish(0);
     endrule
-      
+
 endmodule

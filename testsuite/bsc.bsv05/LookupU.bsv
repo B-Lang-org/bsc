@@ -1,39 +1,39 @@
 import FIFOF::*;
-	      
+
 Module#(Lookup) sysLookupU;
 sysLookupU = mkLookup;
-		      
+
 typedef  Bit#(32) Address;
-			  
+
 typedef  Bit#(32) Entry;
-			
+
 typedef union tagged {
     void Start;
     void Step1;
     void Step2;
     void Step3;
 } Step deriving (Eq, Bits);
-			   
+
 function Bit#(16) bh(Address x);
 return (x[31:16]);
 endfunction: bh
-	       
+
 function Bit#(16) bl(Address x);
 return (x[15:0]);
 endfunction: bl
-	       
+
 function Bit#(28) pntr(Entry x);
 return (x[31:4]);
 endfunction: pntr
-		 
+
 function Bit#(4) offset(Entry x);
 return (x[3:0]);
 endfunction: offset
-		   
+
 function Bit#(8) nextHop(Address x);
 return (x[11:4]);
 endfunction: nextHop
-		    
+
 function Address cwloc(Address addr, Entry entry);
         Bit#(32) pointer;
 	pointer = zeroExtend(pntr(entry));
@@ -43,11 +43,11 @@ function Address cwloc(Address addr, Entry entry);
 	s = {20'b0, q[15:4]};
 	cwloc = pointer + s;
 endfunction: cwloc
-		  
+
 function Nat countBits16(Bit#(16) bs);
 return (countBits(0, 16, bs));
 endfunction: countBits16
-			
+
 function Nat countBits(Integer l, Integer h, Bit#(n) bs);
     Nat ret;
     if (h == l + 1)
@@ -59,17 +59,17 @@ function Nat countBits(Integer l, Integer h, Bit#(n) bs);
        end
     return ret;
 endfunction: countBits
-		      
+
 function Bit#(16) selectBits16(Bit#(4) n, Bit#(16) bs);
 return (selectBits(0, 15, n, bs));
 endfunction: selectBits16
-			 
+
 function Bit#(m) selectBits(Integer l, Integer h, Bit#(n) n, Bit#(m) bs);
 return (l <= h ?
 	    n == fromInteger(h - l) ? bs[fromInteger(h):fromInteger(l)] : selectBits(l + 1, h, n, bs)
 	:   0);
 endfunction: selectBits
-		       
+
 function Bit#(32) compCNHAIndex(Address addr, Entry e1, Entry e2);
         Bit#(16) q;
 	Bit#(4) w;
@@ -81,7 +81,7 @@ function Bit#(32) compCNHAIndex(Address addr, Entry e1, Entry e2);
 	t = zeroExtend(bl(e2)) + wbars - 1;
 	compCNHAIndex = t;
 endfunction: compCNHAIndex
-			  
+
 function Address compCNHALoc(Address addr, Entry e1, Bit#(32) index);
         Bit#(32) pointer;
 	Nat offsetlen;
@@ -89,18 +89,18 @@ function Address compCNHALoc(Address addr, Entry e1, Bit#(32) index);
 	offsetlen = zeroExtend(offset(e1));
 	compCNHALoc = pointer + 1 << offsetlen - 3 + index >> 2;
 endfunction: compCNHALoc
-			
+
 function Bit#(8) selectEntry(Bit#(2) index, Entry entries);
         selectEntry = (entries << Bit#(32)'(zeroExtend(index)) << 3)[31:24];
 endfunction: selectEntry
-			
+
 interface Lookup;
     method FIFOF#(Address) dar;
     method FIFOF#(Bit#(8)) drr;
     method FIFOF#(Address) sri;
     method FIFOF#(Entry) sro;
 endinterface: Lookup
-		    
+
 module mkLookup(Lookup);
   FIFOF#(Address) darS();
   mkFIFOF the_darS(darS);
@@ -125,9 +125,9 @@ module mkLookup(Lookup);
   endmethod: sri
   method sro(); sro = sroS;
   endmethod: sro
-  
+
 endmodule: mkLookup
-		   
+
 function Rules mkLookupRules(FIFOF#(Address) dar,
 			     FIFOF#((Bit#(8))) drr,
 			     FIFOF#(Address) sri,
@@ -156,6 +156,6 @@ return (rules
 	rule r6 (lstate == Step3 &&  sro.notEmpty &&  drr.notFull);
 	    drr.enq(selectEntry(index, sro.first)); sro.deq; lstate <= Start;
 	endrule
-	
+
 	endrules);
 endfunction: mkLookupRules

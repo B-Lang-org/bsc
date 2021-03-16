@@ -1,7 +1,7 @@
 package Bug578_simple () where
 
 normalize_and_truncate :: (Add s n sx) => Bit sx -> Bit s
-normalize_and_truncate din = 
+normalize_and_truncate din =
   if _ == 0 then
     let theResult' =
            let sfdout' :: Bit s
@@ -11,7 +11,7 @@ normalize_and_truncate din =
 	    sfdout =  theResult'
         in  sfdout
   else
-    let theResult' = 
+    let theResult' =
            let sfdout' :: Bit s
                sfdout' =  truncate din
            in  sfdout'

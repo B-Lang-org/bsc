@@ -7,12 +7,12 @@ module sysOpt_bug ();
    Reg#(Bit#(2)) cond <- mkReg(0);
    Reg#(int)  c <- mkReg(0) ;
    Reg#(Bit#(4)) x <- mkReg(0) ;
-   
+
    RWire#(Bit#(2))  rw <- mkRWire ;
 
    rule r ( c > 1);
-      
-      Bit#(4) foo = 0 ; 
+
+      Bit#(4) foo = 0 ;
       case (fromMaybe(0,rw.wget))
          0: foo = 1;
          1: foo = 3;

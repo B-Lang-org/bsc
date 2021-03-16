@@ -17,7 +17,7 @@ module mkDivider(Divider);
 	Reg#(Bit#(9)) difference <- mkReg(0);
 	Reg#(Bit#(9)) quotient <- mkReg(0);
 	Reg#(Bit#(9)) remainder <- mkReg(0);
-	
+
 	Reg#(Bool) ready <- mkReg(True);
 	Reg#(States) state <- mkReg(Idle);
 	Reg#(Bit#(5)) stateCount <- mkReg(0);
@@ -25,24 +25,24 @@ module mkDivider(Divider);
 	RegFile#(Bit#(5), Bit#(18)) lookupTable <- mkRegFile (0, 21);
 
 	Bit#(9) tempRem = 0, tempQuot = 0;
-	
-	function 
-	Tuple2#(Bit#(9), Bit#(9)) 
-	subtractDifference (Bit#(9) quotient, Bit#(9) remainder, 
+
+	function
+	Tuple2#(Bit#(9), Bit#(9))
+	subtractDifference (Bit#(9) quotient, Bit#(9) remainder,
 					  RegFile#(Bit#(5), Bit#(18)) lookupTable);
 		Bit#(18) tempLookupValue;
 		Bit#(9) differenceQuotient;
 		Bit#(9) differenceRemainder;
 
 		// Lookup difference
-		tempLookupValue = lookupTable.sub(truncate(quotient));	
+		tempLookupValue = lookupTable.sub(truncate(quotient));
 		differenceQuotient = tempLookupValue[17:9];
 		differenceRemainder = tempLookupValue[8:0];
 		// Apply difference to quotient and remainder
 		quotient = quotient - differenceQuotient;
 		if (remainder < differenceRemainder)
 		begin
-			remainder = remainder + zeroExtend(divisor) 
+			remainder = remainder + zeroExtend(divisor)
 								   - differenceRemainder;
 			quotient = quotient - 1;
 		end
@@ -50,10 +50,10 @@ module mkDivider(Divider);
 			remainder = remainder - differenceRemainder;
 
 		return tuple2(quotient, remainder);
-	endfunction: subtractDifference	
-	
-	function 
-	Tuple2#(Bit#(9), Bit#(9)) 
+	endfunction: subtractDifference
+
+	function
+	Tuple2#(Bit#(9), Bit#(9))
 	addDifference (Bit#(9) quotient, Bit#(9) remainder,
 				  RegFile#(Bit#(5), Bit#(18)) lookupTable);
 		Bit#(18) tempLookupValue;
@@ -61,7 +61,7 @@ module mkDivider(Divider);
 		Bit#(9) differenceRemainder;
 
 		// Lookup difference
-		tempLookupValue = lookupTable.sub(truncate(quotient));	
+		tempLookupValue = lookupTable.sub(truncate(quotient));
 		differenceQuotient = tempLookupValue[17:9];
 		differenceRemainder = tempLookupValue[8:0];
 
@@ -78,7 +78,7 @@ module mkDivider(Divider);
 
 	for (Integer i = 0; i < 22; i = i+1)
 	begin
-		rule initializationRule(state == Initialize && 
+		rule initializationRule(state == Initialize &&
 								stateCount == fromInteger(i));
 			lookupTable.upd (fromInteger(i), {tempQuot, tempRem});
 			if (stateCount == 21)
@@ -87,7 +87,7 @@ module mkDivider(Divider);
 				stateCount <= 0;
 				state <= Compute;
 			end
-			else 
+			else
 			stateCount <= stateCount + 1;
 		endrule
 
@@ -100,11 +100,11 @@ module mkDivider(Divider);
 	end
 
 	// Step1: For each of the "expected" divisors determine the closest
-	// power of two and then determine the quotient and remainder w.r.t 
-	// that power of 2. 
-	// Step2: Perform lookup on table to determine the difference 
+	// power of two and then determine the quotient and remainder w.r.t
+	// that power of 2.
+	// Step2: Perform lookup on table to determine the difference
 	// quotient and remainders
-	// Step3: Compute the Difference over the quotient and remainder 
+	// Step3: Compute the Difference over the quotient and remainder
 	// computed with the closest power of two.
 	rule compute (state == Compute);
 		Bit#(9) tempQuotient;
@@ -122,13 +122,13 @@ module mkDivider(Divider);
 					quotient <= tpl_1(tempTuple);
 					remainder <= tpl_2(tempTuple);
 				end
-			8: 
+			8:
 				begin
 					quotient <= dividend[11:3];
 					remainder <= zeroExtend(dividend[2:0]);
 				end
 			9,
-			11: 
+			11:
 				begin
 					// The quotient and remainder for the closest power of 2
 					// i.e. 8
@@ -211,49 +211,49 @@ module mkDivider(Divider);
 		endcase
 		ready <= True;
 		state <= Idle;
-	endrule: compute 	
+	endrule: compute
 
 	method Action dividerInputs(inp) if (ready == True);
 		dividend <= tpl_1(inp);
 		if (divisor != tpl_2(inp))
 		begin
 			case (tpl_2(inp))
-				6: 
+				6:
 					begin
 						difference <= 2;
 						state <= Initialize;
 					end
-				9: 
+				9:
 					begin
 						difference <= 1;
 						state <= Initialize;
 					end
-				11: 
+				11:
 					begin
 						difference <= 3;
 						state <= Initialize;
 					end
-				15: 
+				15:
 					begin
 						difference <= 1;
 						state <= Initialize;
 					end
-				18: 
+				18:
 					begin
 						difference <= 2;
 						state <= Initialize;
 					end
-				20: 
+				20:
 					begin
 						difference <= 4;
 						state <= Initialize;
 					end
-				22: 
+				22:
 					begin
 						difference <= 6;
 						state <= Initialize;
 					end
-				30: 
+				30:
 					begin
 						difference <= 2;
 						state <= Initialize;
@@ -273,7 +273,7 @@ module mkDivider(Divider);
 						difference <= 14;
 						state <= Initialize;
 					end
-				80: 
+				80:
 					begin
 						difference <= 16;
 						state <= Initialize;

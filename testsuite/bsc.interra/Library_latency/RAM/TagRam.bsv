@@ -25,7 +25,7 @@ module mkRAM(RAM#(Bit#(16),Bit#(16))) ;
 				 case (x) matches
 				   tagged RAM::Write (.y) : return(mem.upd(tpl_1(y),tpl_2(y)));
 				   tagged Read (.y) :  return (f( mem.sub (y)));
-				 endcase 
+				 endcase
                endmethod: put
 			 endinterface: Put);
    endmethod: request
@@ -51,7 +51,7 @@ module mkDesign_TagRam (TRAM#(Bit#(1),Bit#(16),Bit#(16)));
 
   return(tx1);
 
-endmodule: mkDesign_TagRam 
+endmodule: mkDesign_TagRam
 
 module mkTestbench_TagRam ();
 
@@ -83,7 +83,7 @@ module mkTestbench_TagRam ();
      $display("Cycle Number: %d, Writing Data: 1234 address 0001 ", counter);
    endrule
 
-   rule request_value (counter == 1); 
+   rule request_value (counter == 1);
      TRAMreqRead#(Bit#(1),Bit#(16),Bit#(16)) z = TRAMreqRead{tag: 1, address: 16'h0001} ;
      TRAMreq#(Bit#(1),Bit#(16),Bit#(16)) req = Read(z);
 	 tx.request.put(req);

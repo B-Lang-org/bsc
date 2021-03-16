@@ -2,7 +2,7 @@
 //
 //  FILENAME: mkSlave.bsv
 //
-//  DESCRIPTION: 
+//  DESCRIPTION:
 //    This bluespec module implements an AMBA AHB Slave.
 //
 //------------------------------------------------------------------------------
@@ -45,14 +45,14 @@ interface Wire_ifc #(type data_type);
    method Data_type tx_d;
    method Bool rx_nef(Bool rx_ack);
    method Bool tx_nff;
-      
+
 endinterface: Wire_ifc
 
 interface Slave1_ifc  #(type addr_type, type data_type, type resp_type, type status_type);
    interface Slave_ifc#(addr_type, data_type, resp_type, status_type) s;
    interface Wire_ifc#(data_type) rxtx;
 endinterface
-      
+
 
 (* synthesize *)
 module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
@@ -76,32 +76,32 @@ module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
    mkReg#(0) u_s_hrdata_r(s_hrdata_r);
 
    Reg#(Data_type) config0();
-   mkReg#(32'h100) u_config0(config0); 
+   mkReg#(32'h100) u_config0(config0);
 
    Reg#(Data_type) config1();
-   mkReg#(32'h101) u_config1(config1); 
+   mkReg#(32'h101) u_config1(config1);
    Data_type dest_addr = config1;
 
    ConfigReg#(Data_type) config2();
-   mkConfigReg#(32'h102) u_config2(config2); 
+   mkConfigReg#(32'h102) u_config2(config2);
 
    ConfigReg#(Data_type) config3();
-   mkConfigReg#(32'h3) u_config3(config3); 
+   mkConfigReg#(32'h3) u_config3(config3);
 
    ConfigReg#(Data_type) config4();
    mkConfigReg#(32'h104) u_config4(config4);
 
-   ConfigReg#(Data_type) config5();  
+   ConfigReg#(Data_type) config5();
    mkConfigReg#(32'h105) u_config5(config5);
 
-   ConfigReg#(Data_type) config6(); 
+   ConfigReg#(Data_type) config6();
    mkConfigReg#(32'h106) u_config6(config6);
 
 
-   ConfigReg#(Data_type) config7(); 
+   ConfigReg#(Data_type) config7();
    mkConfigReg#(32'h107) u_config7(config7);
 
-   ConfigReg#(Data_type) config8(); 
+   ConfigReg#(Data_type) config8();
    mkConfigReg#(32'h108) u_config8(config8);
 
    FIFOF#(Data_type) rx_fifo ();
@@ -131,7 +131,7 @@ module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
             s_hwrite_r <= s_hsel && s_hwrite;
             s_haddr_r  <= s_haddr;
             s_htrans_r <= s_htrans;
-            
+
             wait_state_cnt <= config3;
 
             case (s_haddr[2:0])
@@ -159,9 +159,9 @@ module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
                case (s_haddr_r[2:0])
                   0: config0 <= s_hwdata;    // read rx
                   1: tx_fifo.enq(s_hwdata);  // write tx
-                  2: config2 <= s_hwdata;    
+                  2: config2 <= s_hwdata;
                   3: config3 <= s_hwdata;    // programmable wait-state
-                  4: config5 <= s_hwdata;   
+                  4: config5 <= s_hwdata;
                   5: config5 <= s_hwdata;
                   6: config6 <= s_hwdata;
                   7: config7 <= s_hwdata;
@@ -182,7 +182,7 @@ module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
       method hresp();
          return 2'b00; // Always return OKAY
       endmethod
-   endinterface 
+   endinterface
    // End Slave Methods
    // -----------------------------------------------------------------
 
@@ -213,5 +213,5 @@ module mkSlave(Slave1_ifc#(Addr_type,Data_type,Resp_type,Status_type));
       method tx_d;
          return tx_fifo.first();
       endmethod
-   endinterface 
+   endinterface
 endmodule

@@ -46,4 +46,4 @@ typedef struct {Bit#(129) a;
                 Bit#(1) mult_0;
 				Bit#(70) logical;} Inputs deriving(Bits,Eq);
 
-endpackage : Input 
+endpackage : Input

@@ -3,24 +3,24 @@ package Bug753 where {
 import List;
 
 import SVA2;
-           
+
 interface Summer = {
     inp :: Int 32 -> Action ;
     outp :: Int 32 ;
 };
- 
+
 mkSimpleSummer :: Module Summer;
-mkSimpleSummer = 
+mkSimpleSummer =
     module {
       pipe1 :: Reg (Int 32) <- mkReg 0;
       pipe2 :: Reg (Int 32) <- mkReg 1;
       pipe3 :: Reg (Int 32) <- mkReg 2;
       pipe4 :: Reg (Int 32) <- mkReg 3;
       let { assertion_1_8 :: (IsModule _m' _c') => _m' Property;
-            assertion_1_8 = 
+            assertion_1_8 =
               module {
                 let { assertion_1_1 :: (IsModule _m' _c') => _m' Sequence;
-                      assertion_1_1 = 
+                      assertion_1_1 =
                         module {
                           mkSeqExpr (pipe2 > 0);
                           interface Sequence {
@@ -29,7 +29,7 @@ mkSimpleSummer =
                     };
                 assertion_1_2 <- replicateM 1 assertion_1_1;
                 let { assertion_1_5 :: (IsModule _m' _c') => _m' Property;
-                      assertion_1_5 = 
+                      assertion_1_5 =
                         module {
                           assertion_1_3 <- mkSeqExpr
                                              ((pipe1 > pipe2) || (pipe1 < 0));
@@ -45,10 +45,10 @@ mkSimpleSummer =
               };
           };
       let { assertion_2_8 :: (IsModule _m' _c') => _m' Property;
-            assertion_2_8 = 
+            assertion_2_8 =
               module {
                 let { assertion_2_1 :: (IsModule _m' _c') => _m' Sequence;
-                      assertion_2_1 = 
+                      assertion_2_1 =
                         module {
                           mkSeqExpr (pipe2 < 0);
                           interface Sequence {
@@ -57,7 +57,7 @@ mkSimpleSummer =
                     };
                 assertion_2_2 <- replicateM 1 assertion_2_1;
                 let { assertion_2_5 :: (IsModule _m' _c') => _m' Property;
-                      assertion_2_5 = 
+                      assertion_2_5 =
                         module {
                           assertion_2_3 <- mkSeqExpr
                                              ((pipe1 < pipe2) || (pipe1 > 0));
@@ -96,7 +96,7 @@ mkSimpleSummer =
          });
       interface {
         inp :: Int 32 -> Action;
-        inp x = 
+        inp x =
             action { let { tmp' :: Int 32;
                            tmp' =  x; };
                      let { tmp :: Int 32;
@@ -126,9 +126,9 @@ mkSimpleSummer =
         outp =  ((pipe1 + pipe2) + pipe3) + pipe4;
       }
     };;
-      
+
 mkTest :: Module Empty;
-mkTest = 
+mkTest =
     module {
       sum :: Summer <- mkSimpleSummer;
       r :: Reg (Int 5) <- mkReg 0;

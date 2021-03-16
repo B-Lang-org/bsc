@@ -1,13 +1,13 @@
 // This function takes a 10 bit dividend and a 5 bit divisor
 // and returns a tuple consisting of overflow,remainder
-// and quotient.Due to the nature of the algorithm used for 
+// and quotient.Due to the nature of the algorithm used for
 // dividing 2 numbers it cannot be parameterized.
 
 function Tuple3#(Bit#(1), Bit#(5),Bit#(5)) funcQR(Bit#(10) a ,Bit#(5) b);
 
 Bit#(1) overflow;
 if(a[9:5] >= b)
- begin  
+ begin
    overflow = 1;
  end
 else
@@ -20,18 +20,18 @@ Bit#(6) compare1 = zeroExtend(a[8:4]) + znotB;
 
 Bit#(5) partRem1;
 Bit#(1)  q4;
-if(compare1[5] == 1) 
+if(compare1[5] == 1)
  begin
     partRem1 =  compare1[4:0];
     q4 = 1;
  end
 else
- begin 
+ begin
    partRem1 =  a[8:4];
    q4 = 0;
  end
 
-                      
+
 Bit#(5) partRem1_Abit = { partRem1[3:0] , a[3]};
 compare1 = zeroExtend(partRem1_Abit[4:0]) + znotB;
 
@@ -43,7 +43,7 @@ if(compare1[5] == 1)
    q3 = 1;
  end
 else
- begin  
+ begin
    partRem2 = partRem1_Abit[4:0];
    q3 = 0;
  end
@@ -61,7 +61,7 @@ if(compare1[5] == 1)
    q2 = 1;
  end
 else
- begin  
+ begin
    partRem3 = partRem2_Abit[4:0];
    q2 = 0;
  end
@@ -77,7 +77,7 @@ if(compare1[5] == 1)
    q1  = 1;
  end
 else
- begin  
+ begin
    partRem4 = partRem3_Abit[4:0];
    q1 = 0;
  end
@@ -93,7 +93,7 @@ if(compare1[5] == 1)
    q0 = 1;
  end
 else
- begin  
+ begin
    remainder = partRem4_Abit[4:0];
    q0 = 0;
  end

@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_change
 
-Description: after the start_event is asserted, the test_expr changes value within the num_cks no. of clock cycles. 
+Description: after the start_event is asserted, the test_expr changes value within the num_cks no. of clock cycles.
 
 Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -24,7 +24,7 @@ Reg#(Bit#(3)) test_expr <- mkRegA(0);
 let defaults = mkOVLDefaults;
 defaults.num_cks = 2;//num_cks : 2
 
-AssertStartTest_IFC#(Bit#(3)) assertChange <- bsv_assert_change(defaults);   
+AssertStartTest_IFC#(Bit#(3)) assertChange <- bsv_assert_change(defaults);
 
 rule test(True);
     assertChange.start(state == Second_State);//start_event : Second_State

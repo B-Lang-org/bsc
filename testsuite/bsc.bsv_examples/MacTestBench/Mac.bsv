@@ -19,9 +19,9 @@ typedef Bit#(48)  MacAddress;
 
 instance Randomizeable#(MacAddress);
       module mkRandomizer (Randomize#(MacAddress));
-	 
+
 	 Randomize#(MacAddress) addr_gen <- mkGenericRandomizer_Synth;
-	 
+
 	 return addr_gen;
 
       endmodule

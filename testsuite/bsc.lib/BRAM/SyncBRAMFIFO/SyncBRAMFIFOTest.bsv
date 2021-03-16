@@ -13,28 +13,28 @@ endfunction
 
 (* synthesize *)
 module sysSyncBRAMFIFOTest();
-   
+
    let                                       rxclk               <- mkAbsoluteClock(1, 8);
    let                                       rxrst               <- mkAsyncResetFromCR(3, rxclk);
-   
+
    let                                       txclk               <- mkAbsoluteClock(4, 13);
    let                                       txrst               <- mkAsyncResetFromCR(3, txclk);
-   
+
    SyncFIFOIfc#(Bit#(8))                     bram_fifo           <- mkSyncBRAMFIFO(16, txclk, txrst, rxclk, rxrst);
 
    Stmt test =
    (seq
        $display("Starting Simulation");
-    
+
        delay(30);
-    
+
        repeat(16)
        action
 	  bram_fifo.deq;
 	  $display("data: %x", bram_fifo.first);
        endaction
        delay(30);
-    
+
        repeat(16)
        action
 	  bram_fifo.deq;
@@ -46,7 +46,7 @@ module sysSyncBRAMFIFOTest();
     endseq);
 
    mkAutoFSM(test, clocked_by rxclk, reset_by rxrst);
-   
+
    Stmt enqueue =
    seq
       bram_fifo.enq(8'hFF);
@@ -65,7 +65,7 @@ module sysSyncBRAMFIFOTest();
       bram_fifo.enq(8'hF2);
       bram_fifo.enq(8'hF1);
       bram_fifo.enq(8'hF0);
-      
+
       bram_fifo.enq(8'hEF);
       bram_fifo.enq(8'hEE);
       bram_fifo.enq(8'hED);
@@ -84,7 +84,7 @@ module sysSyncBRAMFIFOTest();
       bram_fifo.enq(8'hE0);
       delay(100000);
    endseq;
-   
+
    mkAutoFSM(enqueue, clocked_by txclk, reset_by txrst);
-   
+
 endmodule

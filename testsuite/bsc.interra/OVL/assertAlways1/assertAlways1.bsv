@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-16-2006 
+Date: 02-16-2006
 
 *************************************************************************************************************/
 
@@ -23,7 +23,7 @@ Reg#(Bool) test_expr <- mkRegA(True);
 
 let defaults = mkOVLDefaults;
 AssertTest_IFC#(Bool) assertAlw <- bsv_assert_always(defaults);
-   
+
 rule test;
     assertAlw.test(test_expr);//test_expr : test_expr
 endrule

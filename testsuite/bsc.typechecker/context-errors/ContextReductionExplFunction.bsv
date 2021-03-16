@@ -5,9 +5,9 @@ module sysContextReductionExplFunction (Empty);
 
    function Action test (Bit#(8) a);
       action
-	 if (p[0]) 
+	 if (p[0])
             x <= a;
-	 else 
+	 else
             x <= ~a;
       endaction
    endfunction

@@ -9,26 +9,26 @@ import Color::*;
 import Vector::*;
 
 typedef Tuple5#(Bool, Bool, Bool, Bool, YSize) PaddleInsideTyp;
-	      
+
 interface Ball;
     method Shape shape;
     method YCoord center;
     method Bool dir;
     method Action tick;
 endinterface: Ball
-		  
+
 Color col;
 col = cYellow;
-	      
+
 XSize ballWidthC;
 ballWidthC = fromInteger(ballWidth);
-				    
+
 YSize ballHeightC;
 ballHeightC = fromInteger(ballHeight);
 
 // bounce top   bottom up/down      => up/down
 // bounce right left   right/left   => right/left
-// The result is the new direction				      
+// The result is the new direction
 
 function Bool bounce (Bool x , Bool y , Bool z);
   Tuple3#(Bool,Bool,Bool) xyz;
@@ -45,7 +45,7 @@ function Bool bounce (Bool x , Bool y , Bool z);
    default                     : return  False; // all cases specified, not needed
   endcase
 endfunction: bounce
-								  
+
 module mkBall#(Bit#(n) random,
 	       Paddle paddleL,
 	       Paddle paddleR,
@@ -53,7 +53,7 @@ module mkBall#(Bit#(n) random,
 	       Action lAct,
 	       Action rAct)(Ball)
   provisos (Add#(x,2,n));
-  
+
   Reg#(YCoord) centerR();
   mkRegU the_centerR(centerR);
 
@@ -155,33 +155,33 @@ module mkBall#(Bit#(n) random,
              endaction
              action
                // New Direction for Y
-                      //bounce (b00 || b10), 
+                      //bounce (b00 || b10),
                       //       (b01 || b11),
-                      //       bounce (a00 || a10), 
+                      //       bounce (a00 || a10),
                       //              (a01 || a11), ...
                       //              ()
                Bool diry;
-	       diry = bounce( (tpl_1(rpd) || tpl_3(rpd)), 
+	       diry = bounce( (tpl_1(rpd) || tpl_3(rpd)),
                               (tpl_2(rpd) || tpl_4(rpd)),
                       bounce( (tpl_1(lpd) || tpl_3(lpd)),
-                              (tpl_2(lpd) || tpl_4(lpd)), 
+                              (tpl_2(lpd) || tpl_4(lpd)),
                       bounce( (tpl_1(ipd) || tpl_3(ipd)),
-                              (tpl_2(ipd) || tpl_4(ipd)), 
+                              (tpl_2(ipd) || tpl_4(ipd)),
                       ((ball_y <= (fromInteger(yMax- ballHeight))) &&       // down if too large
-                                  ((ball_y < (fromInteger(yMin))) || (posY(ball_vy)))) 
-                                                                            //  up  if too small 
+                                  ((ball_y < (fromInteger(yMin))) || (posY(ball_vy))))
+                                                                            //  up  if too small
                                     )
                             ));
 
 	       // New direction for X
 	       // Need to know which wall for counting points
 	       // Need to know where on the paddle for changing vy
-                      //bounce (a00 || a01), 
+                      //bounce (a00 || a01),
                       //       (a10 || a11),
-                      //       bounce (b00 || b01), 
+                      //       bounce (b00 || b01),
                       //              (b10 || b11), ...
                       //              ()
-               
+
                Bool hitWallR;
                Bool hitWallL;
 	       hitWallR =  (ball_x > fromInteger(xMax- ballWidth));
@@ -189,31 +189,31 @@ module mkBall#(Bit#(n) random,
 
                Bool dirx;
 	       dirx = bounce( (tpl_1(rpd) || tpl_2(rpd)),
-                              (tpl_3(rpd) || tpl_4(rpd)), 
-                      bounce( (tpl_1(lpd) || tpl_2(lpd)), 
+                              (tpl_3(rpd) || tpl_4(rpd)),
+                      bounce( (tpl_1(lpd) || tpl_2(lpd)),
                               (tpl_3(lpd) || tpl_4(lpd)),
                       bounce( (tpl_1(ipd) || tpl_2(ipd)),
-                              (tpl_3(ipd) || tpl_4(ipd)), 
+                              (tpl_3(ipd) || tpl_4(ipd)),
                                       ((!hitWallR) && (hitWallL || posX(ball_vx)))
                                     )
                             ));
 
-	       change_y <= (((tpl_1(lpd) || tpl_2(lpd)) != (tpl_3(lpd) || tpl_4(lpd))) ? 
-                            tpl_5(lpd) : 
-                            (((tpl_1(rpd) || tpl_2(rpd)) != (tpl_3(rpd) || tpl_4(rpd))) ? 
+	       change_y <= (((tpl_1(lpd) || tpl_2(lpd)) != (tpl_3(lpd) || tpl_4(lpd))) ?
+                            tpl_5(lpd) :
+                            (((tpl_1(rpd) || tpl_2(rpd)) != (tpl_3(rpd) || tpl_4(rpd))) ?
                              tpl_5(rpd) :
                              0));
-	       
-               if (hitWallR) 
+
+               if (hitWallR)
                  rAct;
-               else 
+               else
                  noAction;
 
 	       if (hitWallL)
                  lAct;
                else
                  noAction;
-           
+
 	       ball_dx <= dirx;
 	       ball_dy <= diry;
 
@@ -221,23 +221,23 @@ module mkBall#(Bit#(n) random,
 
 	     endaction
     endseq;
-   
+
   FSM tickActionFSM();
   mkFSM#(tickActionStmt) the_tickAction_FSM(tickActionFSM);
-   
+
   Action tickAction  = tickActionFSM.start;
 
-  rule rule1Ball (True); 
+  rule rule1Ball (True);
     centerR <= ball_y + fromInteger(div(ballHeight, 2));
   endrule
-    
-  method shape(); 
+
+  method shape();
     return ballRect;
   endmethod: shape
-  method center(); 
+  method center();
     return centerR;
   endmethod: center
-  method dir(); 
+  method dir();
     return ball_dx;
   endmethod: dir
   method tick();
@@ -245,9 +245,9 @@ module mkBall#(Bit#(n) random,
       tickAction;
     endaction
   endmethod: tick
-  
+
 endmodule: mkBall
-		 
+
 
 
 

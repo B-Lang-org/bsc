@@ -28,7 +28,7 @@ module mkTestbench_MkBGetPut ();
 
 
    Empty joinfifos <- mkConnection (tpl_1(tx_datafifo) ,tpl_2(rx_datafifo) );
-   
+
 
 rule always_fire_write (True);
    	 counter_w <= counter_w + 1;
@@ -40,7 +40,7 @@ rule always_fire_write (True);
      in_data <= in_data + 1;
      $display("WRITING : Cycle Number: %d, Writing Data: %d", counter_w, in_data);
    endrule
-   
+
 
  rule read_value ( counter_r <  40  );
          Bit #(8) first <- tpl_1(rx_datafifo).get;

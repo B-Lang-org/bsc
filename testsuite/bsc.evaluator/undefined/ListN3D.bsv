@@ -8,7 +8,7 @@ module sysListN3D(Empty);
       for(Integer k = 0; k < 4; k = k + 1)
         vs[i][j][k] = fromInteger(i + (j * k));
 
-  Reg#(UInt#(17)) count <- mkReg(0); 
+  Reg#(UInt#(17)) count <- mkReg(0);
 
   rule tick;
     count <= count + 1;
@@ -25,4 +25,3 @@ module sysListN3D(Empty);
   endrule
 
 endmodule
-   

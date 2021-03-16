@@ -6,7 +6,7 @@ module sysPrintTime(Empty);
     (True); r <= r + 1;
    endrule
    rule display
-    (True); 
+    (True);
       action
          Bit#(64) t <- $time();
          Bit#(32) test1 <- $stime();

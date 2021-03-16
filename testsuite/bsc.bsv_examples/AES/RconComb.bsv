@@ -21,7 +21,7 @@ module mkRconRom ( RconRom );
          9: return 32'h36000000;
          default: return ?;
       endcase;
-      
+
 endmodule
 
-   
+

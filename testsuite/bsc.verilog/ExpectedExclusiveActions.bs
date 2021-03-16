@@ -1,7 +1,7 @@
 package ExpectedExclusiveActions (sysExpectedExclusiveActions) where
 
 sysExpectedExclusiveActions :: Module Empty
-sysExpectedExclusiveActions = 
+sysExpectedExclusiveActions =
   module
     r :: Reg (Bit 3) <- mkReg 0
     b :: Reg (Bool)  <- mkReg False
@@ -11,10 +11,10 @@ sysExpectedExclusiveActions =
     rules
       when True ==>
          b := not b
-      when True ==> 
-         action 
+      when True ==>
+         action
            if b then r := 5 else r := 7
       when True ==>
          if (counter > 10) then $finish 0 else $display "%0d" (r)
       when True ==> counter := counter + 1
-      
+

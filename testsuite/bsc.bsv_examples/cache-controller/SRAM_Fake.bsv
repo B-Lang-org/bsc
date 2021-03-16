@@ -5,9 +5,9 @@ import RegFile::*;
 
 module mkSRAM #(addr_t depth)(IFC_SRAM_Server#(addr_t, data_t))
     provisos (Bits#(addr_t, addr_sz), Bits#(data_t, data_sz));
-    
+
     data_t poison_data = unpack('1); // to return at init and on writes
-    
+
     RegFile #(addr_t, data_t) mem <- mkRegFile(unpack(0), depth);
     Reg #(data_t) data_out <- mkReg(poison_data);
 
@@ -22,7 +22,7 @@ module mkSRAM #(addr_t depth)(IFC_SRAM_Server#(addr_t, data_t))
             tagged SRAM_Read { address: .addr_in }:
                 begin
                     data_out <= mem.sub(addr_in);
-//                    $display("INFO (fake sram): read @%h: %h", addr_in, mem.sub(addr_in));  
+//                    $display("INFO (fake sram): read @%h: %h", addr_in, mem.sub(addr_in));
                 end
         endcase
     endmethod

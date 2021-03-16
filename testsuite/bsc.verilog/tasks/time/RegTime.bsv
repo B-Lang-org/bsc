@@ -19,6 +19,6 @@ module sysRegTime(Empty);
    (done); $display("Regtime: %h", regtime); $finish(0);
   endrule: done_rule
 
-endmodule: sysRegTime              
+endmodule: sysRegTime
 
 endpackage

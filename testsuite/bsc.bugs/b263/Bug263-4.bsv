@@ -7,5 +7,5 @@ action
       x = !x;
       $display ("True");
     end
-endaction 
+endaction
 endfunction : status

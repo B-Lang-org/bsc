@@ -2,7 +2,7 @@ import Vector :: *;
 
 (* synthesize *)
 module sysSelectUndefinedVector();
-  
+
   Vector#(4, Bit#(8)) vec = ?;
 
   Reg#(Bool) r <- mkReg(False);

@@ -17,7 +17,7 @@ mkReg#(True) the_t(t, clocked_by(clockOf(r)));
 
 rule test;
   if((clockOf(s) != (clockOf(r))) && (clockOf(r) == clockOf(t)) &&
-     (clockOf(0) == noClock)) 
+     (clockOf(0) == noClock))
      $display("PASS");
   else
      $display("FAIL");

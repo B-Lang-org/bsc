@@ -3,7 +3,7 @@ typedef struct  {
   Int#(32) b;
   Maybe#(UInt#(32)) c;
 } MyStruct deriving(Bits);
- 
+
 (* synthesize *)
 module mkStructUninitErr4();
 
@@ -15,6 +15,6 @@ module mkStructUninitErr4();
       $display(foo);
       $finish(0);
    endrule
-   
+
 endmodule
 

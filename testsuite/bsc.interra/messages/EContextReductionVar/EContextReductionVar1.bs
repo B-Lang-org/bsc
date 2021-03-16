@@ -19,7 +19,7 @@ package EContextReductionVar1 (EContextReductionVar1(..)) where
 
 struct MyStruct = a::(Int 32)
                   b::(Int 32)
-                  c::(Int 32) 
+                  c::(Int 32)
 
 interface EContextReductionVar1 =
                          start :: Int 32

@@ -9,7 +9,7 @@ module mkMyReg ( OutRst ) ;
 
    default_clock no_clock ;
    default_reset rst <- exposeCurrentReset ;
-   
+
    output_reset no_reset (RSTN_OUT);
 
 endmodule

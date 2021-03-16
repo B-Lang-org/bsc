@@ -8,7 +8,7 @@ endinterface
 
 (* synthesize *)
 module mkSplitIfMeth(Split);
-  
+
   Reg#(int)  x <- mkRegU;
   Reg#(int)  y <- mkRegU;
   Reg#(int)  z <- mkRegU;
@@ -18,12 +18,12 @@ module mkSplitIfMeth(Split);
     (* split *)
     if (b)
       x <= y;
-    else 
+    else
       z <= x;
   endmethod
-  
+
   method Action a2;
-    y <= z; 
+    y <= z;
   endmethod
 
 endmodule

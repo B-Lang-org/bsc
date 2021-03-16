@@ -42,7 +42,7 @@ import ClientServer::*;
 // Local Datatypes
 //-----------------------------------------------------------
 
-typedef union tagged                
+typedef union tagged
 {
  void     Start;            //not working on anything in particular
  void     Intra16x16DC;
@@ -53,7 +53,7 @@ typedef union tagged
 }
 State deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
  void     Passing;          //not working on anything in particular
  void     LoadingDC;
@@ -63,7 +63,7 @@ typedef union tagged
 }
 Process deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
  void     Invalid;
  void     Zeros;
@@ -71,7 +71,7 @@ typedef union tagged
 }
 PipeType deriving(Eq,Bits);
 
-      
+
 //-----------------------------------------------------------
 // Helper functions
 
@@ -201,12 +201,12 @@ module mkInverseTrans( IInverseTrans );
    Reg#(Bit#(3))              stage2Step  <- mkReg(0);
    Reg#(Bit#(2))              stage3Step  <- mkReg(0);
 
-   
+
 
    //-----------------------------------------------------------
    // Rules
 
-   
+
    rule passing (process==Passing && work2Vector==Invalid && (stage3Done || work3Vector==Invalid) );
       //$display( "Trace Inverse Trans: passing infifo packed %h", pack(infifo.first()));
       case (infifo.first()) matches
@@ -259,7 +259,7 @@ module mkInverseTrans( IInverseTrans );
 	       else
 		  qpynext = truncate(qpytemp);
 	       qpy <= qpynext;
-	       
+
 	       //$display( "TRACE InverseTrans: qpy %0d", qpynext );
 	       //$display( "TRACE InverseTrans: qpy %0d", qpynext );
 	       Tuple2#(Bit#(4),Bit#(3)) temptuple = qpdivmod6(qpynext);
@@ -442,7 +442,7 @@ module mkInverseTrans( IInverseTrans );
 	 $display( "ERROR InverseTrans: transformingDC unexpected state" );
    endrule
 
-   
+
    rule scalingDC (process matches ScalingDC);
       Bit#(6)  qp;
       Bit#(4)  qpdiv6;
@@ -717,7 +717,7 @@ module mkInverseTrans( IInverseTrans );
    interface Put ioin  = fifoToPut(infifo);
    interface Get ioout = fifoToGet(outfifo);
 
-      
+
 endmodule
 
 endpackage

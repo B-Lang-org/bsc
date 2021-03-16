@@ -16,31 +16,31 @@ module sysGFIFOCountTest();
    dut[5] <- mkGFIFOCount(False, True,  False);
    dut[6] <- mkGFIFOCount(False, False, True);
    dut[7] <- mkGFIFOCount(False, False, False);
-   
+
    Reg#(Bit#(32)) index <- mkReg(0);
    Wire#(Bit#(8))  data  <- mkWire;
-   
+
    PulseWire       enq   <- mkPulseWire;
    PulseWire       deq   <- mkPulseWire;
    PulseWire       enqF  <- mkPulseWire;
    PulseWire       deqF  <- mkPulseWire;
-   
+
    rule enqueue(enq);
       $display("Enqueueing %d : %h", index, data);
       dut[index].enq(data);
       enqF.send;
    endrule
-   
+
    rule dequeue(deq);
       $display("Dequeueing %d : %h", index, dut[index].first);
       dut[index].deq;
       deqF.send;
    endrule
-   
+
    rule count;
       $display("Count: %d", dut[index].count);
    endrule
-   
+
    Stmt test =
    (seq
        index <= 0; // T, T, T
@@ -56,7 +56,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
        index <= 1; // T, T, F
        action data <= 8'h01; enq.send; endaction
        action data <= 8'h02; enq.send; endaction
@@ -70,7 +70,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 2; // T, F, T
        action data <= 8'h01; enq.send; endaction
@@ -85,7 +85,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 3; // T, F, F
        action data <= 8'h01; enq.send; endaction
@@ -100,7 +100,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 4; // F, T, T
        action data <= 8'h01; enq.send; endaction
@@ -115,7 +115,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 5; // F, T, F
        action data <= 8'h01; enq.send; endaction
@@ -130,7 +130,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 6; // F, F, T
        action data <= 8'h01; enq.send; endaction
@@ -145,7 +145,7 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
        index <= 7; // F, F, F
        action data <= 8'h01; enq.send; endaction
@@ -160,9 +160,9 @@ module sysGFIFOCountTest();
        action data <= 8'h0A; deq.send; endaction
        action data <= 8'h0B; deq.send; endaction
        action data <= 8'h0C; deq.send; endaction
-      
+
 
     endseq);
-   
+
    mkAutoFSM(test);
 endmodule

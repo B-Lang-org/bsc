@@ -22,7 +22,7 @@ interface GCD =
 
 function_GCD :: Int 32 -> Int 32 -> Int 32
 function_GCD x 0 = x
-function_GCD x y when x>y = function_GCD y x 
+function_GCD x y when x>y = function_GCD y x
 function_GCD x y = function_GCD x (y-x)
 
 

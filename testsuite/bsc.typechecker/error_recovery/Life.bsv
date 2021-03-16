@@ -31,7 +31,7 @@ interface Query #(type rsize, type csize);
    method Action set_pattern(Pattern#(rsize, csize) pattern);
    method Action set_nextMoment(Nat nextM);
    method Pattern#(rsize,csize) pattern();
-endinterface 
+endinterface
 
 // A Cell has eight neighbours; this type is used for the count of how many of
 // them are alive:
@@ -44,12 +44,12 @@ defaultValue = 0;
 // size, it cannot itself be separately synthesized.  Below, several versions
 // with specific sizes are made available for synthesis.  (Note: the
 // parametersa and b to Query are dummy parameters, to satisfy the
-// type-checker.) 
+// type-checker.)
 
 module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
-   
+
    // The board is declared, and initialized with a doubly-nested loop:
-   
+
    List#(List#(Cell)) board = List::replicate(sizeX, List::replicate(sizeY, ?));
    for (Integer x = 0; x < sizeX; x = x+1)
       begin
@@ -60,11 +60,11 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
                board[x][y] = asReg(c);
             end
       end
-   
+
    // The following function identifies a particular Cell by its position, and
    // returns it as a register, so that it may be updated (rather than simply
    // returning its contents):
-   
+
    function Reg#(Bool) find_cell(Integer x, Integer y);
       return (asReg(board[x][y]));
    endfunction
@@ -72,7 +72,7 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
    // The following function says whether a particular Cell is alive or not,
    // also checking whether the requested Cell is off the board (in which case
    // it is assumed not alive):
-   
+
    function int is_alive(Integer x, Integer y);
       NeighbourCount r;
       if (x < 0 || y < 0 || x >= sizeX || y >= sizeY)
@@ -89,15 +89,15 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
    // loop.  For each Cell on the board, each of its neighbours is examined,
    // and the count formed of those which are alive.  Then, if appropriate, an
    // action to deaden or to enliven the Cell is added to the Action a.
-   
+
    Action a = noAction;
-   
+
    for (Integer x = 0; x < sizeX; x = x+1)
       for (Integer y = 0; y < sizeY; y = y+1)
          begin
 	    Cell c = find_cell(x,y);
-	    
-            NeighbourCount up = is_alive(x,y-1);  
+
+            NeighbourCount up = is_alive(x,y-1);
             NeighbourCount down = is_alive(x,y+1);
             NeighbourCount left = is_alive(x-1,y);
             NeighbourCount right = is_alive(x+1,y);
@@ -105,10 +105,10 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
             NeighbourCount upright = is_alive(x+1,y-1);
             NeighbourCount downleft = is_alive(x-1,y+1);
             NeighbourCount downright = is_alive(x+1,y+1);
-	    
+
 	    NeighbourCount sum = up+down+left+right+
 	    upleft+downleft+upright+downright;
-	    
+
 	    // The deadening action, if appropriate;
             let deaden  = (action
 			      if (c && (sum < 3 || sum > 5))
@@ -119,7 +119,7 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
 	    // The enlivening action, if appropriate:
             let enliven = (action
 			      if (!c && (sum >= 3 && sum <= 5))
-				 True; 
+				 True;
 			      else False;
 			   endaction);
 
@@ -149,7 +149,7 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
    endrule
 
    // Finally come the methods of the interface:
-   
+
    // This method sets the board to the new pattern.  (Note that the double
    // loop here is performed at static elaboration time, so that at run time
    // the assignments to all the Cells happen in parallel.)
@@ -158,11 +158,11 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
 	 for (Integer x = 0; x < sizeX; x = x+1)
 	    for (Integer y = 0; y < sizeY; y = y+1)
                begin
-		  (board[x][y]) <= bss[x][y];  
+		  (board[x][y]) <= bss[x][y];
                end
       endaction
    endmethod
-   
+
    // This method sets the moment at which the next inspection of the board
    // will fall due:
    method Action set_nextMoment(Nat x);
@@ -188,7 +188,7 @@ module mkLife#(Integer sizeX, Integer sizeY)(Query#(a,b));
       // map is again used, to convert res1 to type Pattern, as required for a
       // synthesizable interface:
       return toVector( List::map(toVector, res1)) ;
-   endmethod          
+   endmethod
 endmodule
 
 // Now follows the testbench, which exercises mkLife for a 5x5 board.
@@ -209,11 +209,11 @@ module sysLife(Empty);
    Reg#(Nat) m();
    mkReg#(0) the_m(m);
 
-   // The rule to initialise the test.  
+   // The rule to initialise the test.
    rule start (!started);
       action
 	 started <= True;
-	 
+
 	 // An initial pattern is declared and initialised (the "unpack"
 	 // converts the bit-vector to a Vector of Bools; the "toList" converts
 	 // that to a BSV array (also known as a List):
@@ -244,11 +244,11 @@ module sysLife(Empty);
    endrule
 
    // The rule to do periodic inspections as the evolution of the Life pattern
-   // proceeds: 
+   // proceeds:
    rule going (started && m<100);
       action
 	 // Read the pattern (implicitly waiting for the next moment of
-	 // inspection): 
+	 // inspection):
 	 Pattern#(5,5)  p = q_ifc.pattern;
 
 	 // display the pattern, row by row:
@@ -263,7 +263,7 @@ module sysLife(Empty);
 	 q_ifc.set_nextMoment(m+1);
 	 m <= m+1;
       endaction
-   endrule  
+   endrule
 
    // Terminate the test after 100 cycles:
    rule stop (started && m == 100);
@@ -281,17 +281,17 @@ endmodule
 module mkLife55 (Query#(5,5) );
    Query#(5,5) q_ifc() ;
    mkLife#(5,5) life(q_ifc) ;
-   
+
    return q_ifc;
 endmodule
 
 module mkLife77 (Query#(7,7) );
    Query#(7,7) q_ifc() ;
    mkLife#(7,7) life(q_ifc) ;
-   
+
    return q_ifc;
 endmodule
- 
+
 
 module mkLife1010 (Query#(10,10) );
    Query#(10,10) q_ifc() ;

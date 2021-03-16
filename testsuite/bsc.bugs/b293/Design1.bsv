@@ -7,7 +7,7 @@ interface Design_IFC ;
 endinterface: Design_IFC
 
 
-  
+
 (*
        synthesize,
        always_ready ,
@@ -27,11 +27,11 @@ module mkDesign1 (Design_IFC);
 rule working ((enable == 1) && (count != 4)) ;
         begin
      Bit#(1) x;
-          //if (multiplier[0] == 1'b1) 
+          //if (multiplier[0] == 1'b1)
           x = multiplier[0];
-          if (x == 1) 
+          if (x == 1)
              accumulator <= accumulator + multiplicand ;
-          else 
+          else
              accumulator <= accumulator;
           multiplier <= multiplier >> 1;
           multiplicand <= multiplicand << 1;
@@ -46,11 +46,11 @@ rule done_rule ;
           done_reg <= 1;
           enable <= 0;
         end
-endrule 
+endrule
 
   method  shift_and_add (a,b,load);
     action
-     if ((load == 1) && (count == 0 )) 
+     if ((load == 1) && (count == 0 ))
         begin
           accumulator <= 0;
           multiplicand <= {4'b0000,a};
@@ -72,4 +72,4 @@ endrule
 
 
 endmodule: mkDesign1
-endpackage: Design1 
+endpackage: Design1

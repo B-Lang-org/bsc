@@ -19,7 +19,7 @@ module sysUndef();
 
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

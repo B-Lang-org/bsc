@@ -13,7 +13,7 @@ function Bool notDone(List#(Bit1) l);
    return(length(l) > 1);
 endfunction: notDone
 
-// continue applying a function to the input until the input 
+// continue applying a function to the input until the input
 // predicate becomes false
 function a doWhile(function Bool p(a x1), function a f(a x1), a x);
    return (p(x) ? doWhile(p, f, f(x)) : x);
@@ -49,10 +49,10 @@ function Bit1 head0(BitBag bag);
       tagged Valid { .x, .* } : return x;
       tagged Invalid          : return 0;
     endcase
-endfunction: head0       
+endfunction: head0
 
 // perform a single step of the Wallace algorithm on
-// the bits in ns, recursively accumulating the new 
+// the bits in ns, recursively accumulating the new
 // BitBags in ms and ls (which will be combined)
 function Tuple2#(BitBag, BitBag) step(BitBag ms, BitBag ls, BitBag ns);
    case (length(ns)) matches
@@ -69,7 +69,7 @@ function Tuple2#(BitBag, BitBag) step(BitBag ms, BitBag ls, BitBag ns);
                                 List::cons(tpl_2(tmp2), ls), drop(3,ns)));
                 end
    endcase
-endfunction: step    
+endfunction: step
 
 function ListN#(n, BitBag) wallaceStep(ListN#(n, BitBag) ns);
    return combine(map(step(Nil,Nil), ns));
@@ -86,15 +86,15 @@ endfunction: halfAdd
 function Tuple2#(Bit1, Bit1) fullAdd(Bit1 a, Bit1 b, Bit1 c);
    return tuple2(a&b | b&c | c&a, a^b^c);
 endfunction: fullAdd
- 
+
 function ListN#(n, a) padWith(a p, ListN#(m, a) xs)
   provisos(Add#(m,k,n));
   return (append(xs, map(constFn(p), genList)));
-endfunction: padWith 
- 
+endfunction: padWith
+
 function ListN#(n, Bit1) padToNBits(ListN#(m,Bit1) xs) provisos (Add#(m,k,n));
   return(append(xs,ListN#(k,Bit1)'(genWith(constFn(0)))));
-endfunction: padToNBits 
+endfunction: padToNBits
 
 function ListN#(n, Bit1) padListToListN(List#(Bit1) xs);
   return(toListN(List::append(xs,List::map(constFn(0),(List::upto(1, valueOf(n) - length(xs)))))));

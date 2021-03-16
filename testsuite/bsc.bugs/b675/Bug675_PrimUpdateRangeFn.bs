@@ -63,4 +63,4 @@ primUpdateRangeFn original_bits high low spliced_bits =
                    (to_list spliced_vector)
 
     in
-	pack (to_list_n spliced_list) 
+	pack (to_list_n spliced_list)

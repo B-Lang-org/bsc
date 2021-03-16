@@ -16,7 +16,7 @@ function FP_I#(e,s1)
    provisos( Add#(s, 1, s1),
              Add#(e, x, 32),// e must be less than 32 so it can be extended
              Add#(y, 1, s )
-            ) ;   
+            ) ;
    begin
 
       Bit#(s) outa = 0;
@@ -30,13 +30,13 @@ function FP_I#(e,s1)
       if ( inA.exp > inB.exp )           // A > B
          begin
             outa    = inA.sfd ;
-            outb    = inB.sfd ; 
+            outb    = inB.sfd ;
             diffamt = zeroExtend( inA.exp - inB.exp );
             outsign = inA.sign ;
             outexp  = inA.exp ;
             rsa     = inA.rs ;
          end
-      else if ( inB.exp > inA.exp )       // B > A 
+      else if ( inB.exp > inA.exp )       // B > A
          begin
             outa    = inB.sfd ;
             outb    = inA.sfd ;
@@ -49,7 +49,7 @@ function FP_I#(e,s1)
          begin
             outa    = inA.sfd;
             outb    = inB.sfd;
-            diffamt = 0 ;            
+            diffamt = 0 ;
             outsign = inA.sign ;
             outexp  = inA.exp ;
             rsa     = inB.rs ;
@@ -58,7 +58,7 @@ function FP_I#(e,s1)
          begin
             outa    = inB.sfd;
             outb    = inA.sfd;
-            diffamt = 0 ;            
+            diffamt = 0 ;
             outsign = inB.sign ;
             outexp  = inA.exp ;
             rsa     = inA.rs ;
@@ -69,7 +69,7 @@ function FP_I#(e,s1)
 
       // generate round and sticky
       FP_RS rsb = generate_rs( outb, diffamt ) ;
-      
+
       // now do the addition or subtractions on the normalized significand
       Bit#(s1) outv = 0;
       Bit#(s1) roundbit ;
@@ -81,12 +81,12 @@ function FP_I#(e,s1)
          end
       else
          begin
-            roundbit = unpack(rsa[1] &  ~rsb[1]) ? 1 : 0 ;            
+            roundbit = unpack(rsa[1] &  ~rsb[1]) ? 1 : 0 ;
             outv     = zeroExtend( outa ) - zeroExtend( eoutb ) + roundbit ;
          end
       rsout = { rsa[1] ^ rsb[1], rsa[0] | rsb[0] } ;
-      
-      return FP_I{ sign:outsign, exp:outexp, sfd:outv, rs:rsout } ;      
+
+      return FP_I{ sign:outsign, exp:outexp, sfd:outv, rs:rsout } ;
    end
 endfunction
 
@@ -114,7 +114,7 @@ function IEEE754_32
 
       let bas_res =
           match_exp_add( inAE, inBE  ) ;
-   
+
       // normalize, round, normalize
       let norm1 = normalize_and_truncate( 1, bas_res ) ;
       let rounded = round ( norm1 ) ;
@@ -135,7 +135,7 @@ function IEEE754_64
 
       let bas_res =
           match_exp_add( inAE, inBE  ) ;
-   
+
       // normalize, round, normalize
       let norm1 = normalize_and_truncate( 1, bas_res ) ;
       let rounded = round ( norm1 ) ;

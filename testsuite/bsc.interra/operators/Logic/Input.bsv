@@ -74,4 +74,4 @@ typedef struct {Bit#(129) a;
                 Bit#(1) bXnor_0;
 				} Inputs deriving(Bits,Eq);
 
-endpackage : Input 
+endpackage : Input

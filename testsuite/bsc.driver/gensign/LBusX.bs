@@ -18,10 +18,10 @@ data LbAddr sa = LbAddr (Bit sa)
     deriving (Literal, Eq, Bits)
 
 -- LOCAL BUS NODES
-  
+
 mkLbLeaf :: LBSModule sa sd -> Module (Empty)
 mkLbLeaf lm =
   module
-    let x :: (i, LBSItem sa sd) =_ 
-    interface 
+    let x :: (i, LBSItem sa sd) =_
+    interface
       (_)

@@ -62,7 +62,7 @@ module mkWBSlave2#(Integer min_addr,
 
       endmethod
    endinterface
-   
+
    interface WBoneOpTxRxIFC channel;
       interface Get tx;
 	 method ActionValue#(WBoneOp) get;

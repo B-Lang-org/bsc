@@ -12,7 +12,7 @@ module mkTestbench_Elem();
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Elem
 endpackage : Elem

@@ -7,7 +7,7 @@ Integer period_fast_clk = 7;
 (* synthesize *)
 module sysSyncRegTest();
 
-   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);   
+   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);
    Reg#(Bit#(8)) sync1 <- mkSyncRegFromCC(0, fast_clk);
    Reg#(Bit#(8)) sync2 <- mkSyncRegToCC(0, fast_clk, noReset());
 

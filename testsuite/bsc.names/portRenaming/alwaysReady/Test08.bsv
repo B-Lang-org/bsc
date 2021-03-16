@@ -19,15 +19,15 @@ module mkDesign_08 (IFC#(Type));
   method Action start(a,b);
     fifo1.enq(a);
     fifo2.enq(b);
-  endmethod	
+  endmethod
 
   method Type result(c);
     return fifo1.first+c;
-  endmethod	
-  	 
+  endmethod
+
   method ActionValue#(Type) check(d);
     fifo1.enq(fifo1.first + 1);
     fifo2.enq(fifo2.first + 2);
     return fifo2.first+d;
-  endmethod	
+  endmethod
 endmodule

@@ -15,7 +15,7 @@ module sysDynamicLT(Empty);
   rule test;
     if (a < b)
       $display("%0d is less than %0d", a, b);
-    else 
+    else
       $display("%0d is not less than %0d", a, b);
     if (sel1 && sel2) $finish(0);
   endrule

@@ -37,7 +37,7 @@ function Action printv ( Vector#(n,BE) v ) ;
    return
    action
    Integer i = 0 ;
-   for ( i = 0 ; i < valueof(n); i = i + 1 ) 
+   for ( i = 0 ; i < valueof(n); i = i + 1 )
       begin
          $write( "V[%0d]=", i ) ;
          printBE( v[i] ) ;
@@ -48,20 +48,20 @@ endfunction
 
 (* synthesize *)
 module sysCountIf ();
-   
-         
+
+
    Reg#(int) cnt <- mkReg(0) ;
-   
+
    //-- Count the number of elements which match a predicate
    //countIf :: (Add 1 n n1, Add xxx 1 n, Log n1 lgn1)  => (a -> Bool) -> Vector n a -> UInt lgn1
 
   Reg#( Vector#(8,BE) )  t1 <- mkReg( replicate(x0) ) ;
-   
+
    rule c ;
       cnt <= cnt + 1 ;
       if( cnt > 100 ) $finish(0) ;
    endrule
-   
+
    rule x0 ( cnt == 0 || cnt == 10 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -72,7 +72,7 @@ module sysCountIf ();
       t[5] = x5 ;
       t[6] = x6 ;
       t[7] = x2 ;
-      
+
       t1 <= t ;
    endrule
 
@@ -105,8 +105,8 @@ module sysCountIf ();
       $display ("%0d  elements found > 3", f ) ;
 
    endrule
-   
-   
+
+
    rule x5 ( cnt == 5 ) ;
       // printv ( t1 ) ;
       let t = t1 ;
@@ -115,6 +115,6 @@ module sysCountIf ();
 
    endrule
 
-   
+
 
 endmodule

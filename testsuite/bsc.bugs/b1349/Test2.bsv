@@ -14,23 +14,23 @@ interface CheckIfc#(type t);
 endinterface
 
 module mkCheck(CheckIfc#(FixedPoint#(i,f)))
-   provisos (Bits#(FixedPoint#(f,i), TAdd#(i,f))); 
-   
+   provisos (Bits#(FixedPoint#(f,i), TAdd#(i,f)));
+
    method Action check(FixedPoint#(i,f) x);
       FixedPoint#(f,i) tmp = movePoint(x);
    endmethod
-   
+
 endmodule
 
 (* synthesize *)
 module sysTypeTest();
-   
+
    let checker <- mkCheck();
-   
+
    Reg#(FixedPoint#(3,14)) x <- mkRegU();
-   
+
    rule r;
       checker.check(x);
    endrule
-   
+
 endmodule

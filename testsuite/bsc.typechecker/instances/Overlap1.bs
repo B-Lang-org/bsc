@@ -3,12 +3,12 @@ package Overlap1(sysOverlap1) where
 class Displayable a where
    display :: a -> Action
 
-instance (Bits a sa) => Displayable a 
+instance (Bits a sa) => Displayable a
    where
      display a = $display "Bits %h" a
 
 instance (Displayable a) => Displayable (Maybe a)
-   where 
+   where
      display (Valid a) = action
                            $write "Valid "
                            display a
@@ -16,7 +16,7 @@ instance (Displayable a) => Displayable (Maybe a)
 
 {-# verilog sysOverlap1 #-}
 sysOverlap1 :: Module Empty
-sysOverlap1 = 
+sysOverlap1 =
   module
     x :: Reg (Maybe (Bit 17)) <- mkReg Invalid
     rules

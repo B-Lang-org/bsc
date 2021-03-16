@@ -1,4 +1,4 @@
-//Write address is incremented by 2 on every write cycle and 
+//Write address is incremented by 2 on every write cycle and
 //data input is incremented by 1 on every write cycle
 //Read is Validated by fail signal for test to pass
 

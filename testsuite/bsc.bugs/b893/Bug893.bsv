@@ -11,4 +11,4 @@ module sysBug893#(Bool r) (Get#(Bool));
    method get = r ? g1.get : g2.get;
 endmodule
 
-	 
+

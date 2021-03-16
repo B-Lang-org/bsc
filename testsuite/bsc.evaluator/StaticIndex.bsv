@@ -8,7 +8,7 @@ UInt#(9) testUInt = 99;
 module sysStaticIndex();
    rule test;
       $display("Integer: %0d", toStaticIndex(testInteger));
-      $display("Bit: %h", toStaticIndex(testBit)); 
+      $display("Bit: %h", toStaticIndex(testBit));
       $display("Int: %h", toStaticIndex(testInt));
       $display("UInt: %0d", toStaticIndex(testUInt));
       $finish(0);

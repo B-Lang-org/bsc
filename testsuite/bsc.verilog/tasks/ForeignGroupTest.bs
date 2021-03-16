@@ -13,4 +13,3 @@ mkForeignGroupTest =
          x <- $stime
          if x > 1000 then $finish 0 else noAction
 
-    

@@ -9,4 +9,4 @@ module mkTest (IFC);
   method ActionValue#(Bool) doStuff (Bool p) if (y);
     return y;
   endmethod
-endmodule 
+endmodule

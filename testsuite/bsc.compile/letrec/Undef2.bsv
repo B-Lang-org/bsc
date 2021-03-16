@@ -20,7 +20,7 @@ module sysUndef2();
 
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

@@ -20,7 +20,7 @@
 
 -----------------------------------------------------------------------
 
-package EUnifyKind2 (EUnifyKind2(..), mkEUnifyKind2) where 
+package EUnifyKind2 (EUnifyKind2(..), mkEUnifyKind2) where
 
 -- import Int
 
@@ -29,16 +29,16 @@ data MyType1 = Integer | Bit 16
 
 interface EUnifyKind2 =
         start :: MyType1 -> MyType1 -> Action
-        end   :: MyType1 
+        end   :: MyType1
 
 mkEUnifyKind2 :: Module EUnifyKind2
 mkEUnifyKind2 =
      module
 
-        x :: Reg (MyType1) 
+        x :: Reg (MyType1)
         x <- mkRegU
 
-        y :: Reg (MyType1) 
+        y :: Reg (MyType1)
         y <- mkReg 0
 
         rules

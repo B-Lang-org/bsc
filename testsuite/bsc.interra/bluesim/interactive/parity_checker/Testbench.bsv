@@ -10,7 +10,7 @@ module mkTestbench (Empty);
    Reg #(Bit #(32)) passes <- mkReg (0);
    Reg #(Bit #(32)) fails <- mkReg (0);
    Design_IFC dut <- mkDesign;
-      
+
    Bit #(1) expected_parity = parity (counter [7:0]);
 
    rule processing (counter <= 32'hFF);
@@ -24,15 +24,15 @@ module mkTestbench (Empty);
        endaction
    endrule
 
-   
+
    rule result (counter == 32'h100);
        action
           $display ("Pass %d, Fails %d", passes, fails);
           counter <= counter + 1;
        endaction
    endrule
-     
-        
+
+
 endmodule : mkTestbench
 
 endpackage : Testbench

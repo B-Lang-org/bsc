@@ -1,10 +1,10 @@
-UInt#(32) num_ports = 32; 
+UInt#(32) num_ports = 32;
 
 (* synthesize *)
 module test();
 
   Reg#(Bool) result <- mkReg(False);
-  
+
   Reg#(UInt#(32)) i <- mkReg(0);
 
   rule test;
@@ -18,4 +18,4 @@ module test();
   endrule
 
 endmodule
- 
+

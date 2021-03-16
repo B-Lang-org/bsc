@@ -5,19 +5,19 @@ import Shape	::*;
 import Color	::*;
 import LedDecoder		::*;
 import Decimal::*;
-		
+
 Integer long;
 long = 40;
-			       
+
 Integer short;
 short = 8;
-				 
+
 Integer longs;
 longs =  long- short;
 
 XSize longsx; longsx = fromInteger(longs);
 YSize longsy; longsy = fromInteger(longs);
-		     
+
 module mkDigit#(parameter LedDigit digit, parameter XCoord x, parameter YCoord y)(Shape);
 	  function m#(Shape) mkRectangle2 (XCoord x, Integer xw, YCoord y, Integer yw, Color c)
             provisos(IsModule#(m, c));
@@ -61,11 +61,11 @@ module mkDigit#(parameter LedDigit digit, parameter XCoord x, parameter YCoord y
 	  Shape disp =  joinManyShapes(List::zipWith(maskShape, mask, segs));
 	  return(disp);
 endmodule: mkDigit
-		    
+
 function m#(Shape) mkScore(DecCounter#(n) cnt, XCoord x, YCoord y) provisos(IsModule#(m, c));
 return (mkDisplay(cnt.getDigits, x, y));
 endfunction: mkScore
-		    
+
 module mkDisplay#(Vector#(n, Bit#(4)) digits, XCoord x, YCoord y)(Shape);
    Integer nv =  valueOf(n);
    Integer sep =  long+ short;
@@ -82,9 +82,9 @@ module mkDisplay#(Vector#(n, Bit#(4)) digits, XCoord x, YCoord y)(Shape);
       Shape s <- f(j);
       glyphs[j] = s;
     end
-   
+
    return(joinManyShapes(glyphs));
 endmodule: mkDisplay
-		      
+
 
 

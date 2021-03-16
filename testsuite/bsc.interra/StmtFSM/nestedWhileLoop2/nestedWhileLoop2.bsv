@@ -22,7 +22,7 @@ Stmt test_seq =
 			 j <= 0;
 			 $display("out of the while loop i = %5d", i);
 			 i <= i + 1;
-		 endseq	 
+		 endseq
  endseq;
 
 mkAutoFSM(test_seq);

@@ -15,7 +15,7 @@ typedef Bit#(10)  TimeBase;
 typedef Bit#(8)   FPMask;
 typedef Bit#(4)   Immediate;
 typedef Bit#(10)  SPRegAddress;
-typedef Bit#(4)   SegmentAddress; 
+typedef Bit#(4)   SegmentAddress;
 typedef Bit#(5)   Mask;
 typedef Bit#(6)   MaskX;
 typedef Bit#(5)   NumBytes;
@@ -69,8 +69,8 @@ typedef union tagged
   void SPR_DBAT2U;
   void SPR_DBAT2L;
   void SPR_DBAT3U;
-  void SPR_DBAT3L;  
-} 
+  void SPR_DBAT3L;
+}
   SPR_Name deriving(Eq,Bits);
 
 typedef union tagged{
@@ -85,8 +85,8 @@ typedef union tagged
   CRegAddress FReg_FPSCR; //Floating Point Status field
 }
   FPRAddress deriving(Eq, Bits);
-  
-  
+
+
 instance Literal#(RegAddress);
   function RegAddress fromInteger (Integer x);
     if ((x >=0) && (x < 32)) // first 32
@@ -131,16 +131,16 @@ typedef union tagged {
 /********* Exceptions ***********************/
 
 typedef enum {
-  EX_External,   
+  EX_External,
   EX_InstStorage,
   EX_IllegalInst,
   EX_Privilege,
   Ex_IllegalInst,
-  EX_FPUnavailable,   
+  EX_FPUnavailable,
   EX_FPAssist
 } PPC_Exception deriving (Eq,Bits);
-   
-   
+
+
 
 /********* Front End ***********************/
 
@@ -149,7 +149,7 @@ typedef enum
   FEX_External,    //TLB and so on
   FEX_InstStorage, //unaccessable memory
   FEX_IllegalInst
-}  
+}
   PPC_FrontEndException deriving (Eq, Bits);
 
 
@@ -158,7 +158,7 @@ typedef struct
   inst_addr_t iaddr;
   PPC_Instruction pinst;
   Maybe#(PPC_FrontEndException) exception;
-} 
+}
    PPC_InstBundle#(type inst_addr_t) deriving(Eq,Bits);
 
 typedef struct
@@ -169,7 +169,7 @@ typedef struct
   Bool        	      	     pred;
   iaddr_t    	      	     nextia;
   Maybe#(PPC_FrontEndException)  exception;
-} 
+}
    PPC_Bundle#(type t, type iaddr_t) deriving (Bits, Eq);
 
 typedef struct
@@ -180,17 +180,17 @@ typedef struct
   Bool taken;
 }
   BranchPredUpdate#(type iaddr_t) deriving (Eq, Bits);
-     
+
 typedef Bit#(4)  CondFieldValue;
 
-typedef struct 
+typedef struct
 {
-  FUU_Op op;              //Op-specific info    
+  FUU_Op op;              //Op-specific info
   op_T source3;           //used for rotates and floating
   op_T source2;
   op_T source1;
   tag_T tag;              //Tag given by CCU
-} 
+}
   FUUReq#(type tag_T, type op_T) deriving (Eq,Bits);
 
 
@@ -200,11 +200,11 @@ typedef struct
 
 typedef enum
 {
-  FUUX_IllegalInst,     // 
+  FUUX_IllegalInst,     //
   FUUX_PrivelegedInst,  //XXX  not used
   FUUX_FPUnavailable,   // no FP
   FUUX_FPAssist         // sw FP
-}  
+}
   FUUException deriving (Eq, Bits);
 
 /*
@@ -244,8 +244,8 @@ typedef struct
   Bool       pred_taken;
   op_T       pred_pc;
   tag_T      tag;
-} 
-  BRUReq #(type tag_T, type op_T) 
+}
+  BRUReq #(type tag_T, type op_T)
       deriving
               (Eq,Bits);
 
@@ -258,12 +258,12 @@ typedef struct
   Bool     taken;
   tag_T    tag;
 }
-  BRUResponse #(type tag_T, type op_T) 
+  BRUResponse #(type tag_T, type op_T)
       deriving
               (Eq,Bits);
 
 typedef struct
-{ 
+{
   Bit#(8) wbytemask;
   Bool write; //if false then read
   data_T writevalue;
@@ -278,7 +278,7 @@ typedef struct
 {
   data_T value;
   tag_T tag;
-} 
+}
   DCacheResponse #(type tag_T, type data_T)
       deriving
               (Eq, Bits);
@@ -289,7 +289,7 @@ typedef struct
 /*                                            */
 /**********************************************/
 
-typedef union tagged 
+typedef union tagged
 {
   ArithOptions 		FUU_arith;
   LogicOptions  	FUU_logic;
@@ -305,7 +305,7 @@ typedef union tagged
   RotateOptions 	FUU_rotate_left;
   ShiftLeftOptions	FUU_shift_left;
   ShiftRightOptions	FUU_shift_right;
-} 
+}
   FUU_Op deriving(Eq,Bits);
 
 /*************** Arith Subtypes ***************/
@@ -314,7 +314,7 @@ typedef union tagged
 /*                                            */
 /**********************************************/
 
-typedef enum 
+typedef enum
 {
   AAdd,
   ANeg,
@@ -322,7 +322,7 @@ typedef enum
 }
  ArithOp deriving (Bits,Eq);
 
-typedef struct 
+typedef struct
 {
   ArithOp op;
   Bool carrying;
@@ -338,7 +338,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef enum 
+typedef enum
 {
   LOG_and,
   LOG_or,
@@ -349,7 +349,7 @@ typedef enum
 }
  LogicOp deriving (Bits,Eq);
 
-typedef struct 
+typedef struct
 {
   LogicOp op;
   Bool complement;
@@ -369,7 +369,7 @@ typedef struct
   Bool logical;
   Bool sixtyfour;
 }
-  CompareOptions deriving (Eq,Bits); 
+  CompareOptions deriving (Eq,Bits);
 
 /************** CondReg Subtypes ****************/
 /*                                              */
@@ -411,7 +411,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool unsign;
@@ -425,7 +425,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef enum 
+typedef enum
 {
   EByte,
   EHalfword,
@@ -433,12 +433,12 @@ typedef enum
 }
   ExtendType deriving (Eq,Bits);
 
-typedef struct 
+typedef struct
 {
   ExtendType ext;
 }
   ExtendOptions deriving (Eq,Bits);
-  
+
 /***************** FloatingPoint ****************/
 /*                                              */
 /* Groups covered: f                            */
@@ -447,30 +447,30 @@ typedef struct
 
 typedef enum
 {
-  F_abs, 
-  F_add, 
-  F_cfi, 
-  F_cmp, 
-  F_cti, 
-  F_div, 
-  F_madd, 
-  F_mr, 
-  F_nabs, 
-  F_neg, 
-  F_re, 
-  F_rsp, 
-  F_rsqrte, 
-  F_msub, 
-  F_mul, 
-  F_nmadd, 
-  F_nmsub, 
-  F_sel, 
-  F_sqrt, 
+  F_abs,
+  F_add,
+  F_cfi,
+  F_cmp,
+  F_cti,
+  F_div,
+  F_madd,
+  F_mr,
+  F_nabs,
+  F_neg,
+  F_re,
+  F_rsp,
+  F_rsqrte,
+  F_msub,
+  F_mul,
+  F_nmadd,
+  F_nmsub,
+  F_sel,
+  F_sqrt,
   F_sub
 }
   FloatingOp deriving (Bits,Eq);
 
-typedef struct 
+typedef struct
 {
   FloatingOp op;
   Bool doubleword;
@@ -478,7 +478,7 @@ typedef struct
   Bool ordered;
 }
   FloatingOptions deriving (Eq,Bits);
-  
+
 
 
 /******************* Multiply *******************/
@@ -487,7 +487,7 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
   Bool unsign;
@@ -502,9 +502,9 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
-  MaskX       mb; // These should be six bit for alignment. 
+  MaskX       mb; // These should be six bit for alignment.
   MaskX       me;
   Bool        partialReplace; // Set when the operation may not completely overwrite old value
   Bool        doubleword;
@@ -517,19 +517,19 @@ typedef struct
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool doubleword;
 }
   ShiftLeftOptions deriving (Eq,Bits);
-  
+
 /***************** ShiftRight *******************/
 /*                                              */
 /* Groups covered: sr                           */
 /*                                              */
 /************************************************/
 
-typedef struct 
+typedef struct
 {
   Bool algebraic;
   Bool doubleword;
@@ -546,9 +546,9 @@ typedef struct
 {
    BranchOptions options; //Unconditional branches are indicated here
    Bool absAddress;
-} 
+}
   BRU_Op deriving (Eq,Bits);
-  
+
 /******************* Load/Store *****************/
 /*                                              */
 /* Groups covered: l, s                         */
@@ -559,10 +559,10 @@ typedef enum
 {
   LSLoad,
   LSStore
-} 
+}
   LSOp deriving(Eq,Bits);
 
-typedef enum 
+typedef enum
 {
   LS_byte,
   LS_doubleword,
@@ -576,15 +576,15 @@ typedef enum
   LS_word_byte_reverse
 }
   LSType deriving (Eq,Bits);
-  
-typedef struct 
+
+typedef struct
 {
   LSType lstype;
-  LSOp op; 
+  LSOp op;
   Bool reserved_conditional; // for lwarx and swcx. and friends
   Bool algebraic;     // zero otherwise}
 } LoadStore deriving (Eq,Bits);
-  
+
 
 /****************** DIO GROUP *******************/
 /*                                              */
@@ -612,7 +612,7 @@ typedef union tagged
   LoadStore LSU_load_store;
 }
   LSU_Op deriving (Eq, Bits);
-  
+
 /****************** TRAP GROUP ******************/
 /*                                              */
 /* The group of traps, system calls, and CCU    */
@@ -641,7 +641,7 @@ typedef union tagged
   TrapOptions TRAP_t;
 }
   TRAP_Op deriving (Eq, Bits);
-  
+
 /********** Decoded Instruction Type ************/
 /*                                              */
 /* The main decoded instruction type.           */
@@ -651,15 +651,15 @@ typedef union tagged
 /************************************************/
 
 typedef union tagged
-{ 
+{
   void	      	DS_None;
   RegAddress    DS_Reg;
   FPRAddress    DS_FReg;
 }
-  PPC_Dest deriving(Eq, Bits);  
+  PPC_Dest deriving(Eq, Bits);
 
 typedef union tagged
-{ 
+{
   void	      	OP_None;
   RegAddress    OP_Reg;
   CRegAddress   OP_Cond;
@@ -668,9 +668,9 @@ typedef union tagged
   Bit#(24)      OP_UImmediate;
 
 }
-  PPC_Operand deriving(Eq, Bits);  
+  PPC_Operand deriving(Eq, Bits);
 
-typedef struct 
+typedef struct
 {
   DecodedData         data;
   PPC_Dest            dest;
@@ -717,7 +717,7 @@ endfunction
 
 
 function Bool isStore(DecodedData data);
-  
+
   return case (data) matches
     tagged DEC_LSU .lop:
       return case (lop) matches
@@ -727,7 +727,7 @@ function Bool isStore(DecodedData data);
       default:
         return False;
     endcase;
-    
+
 endfunction
 
 /*************************************************************************************************/
@@ -746,7 +746,7 @@ function Bit#(32) jump405Location(Bit#(32) ia, Bit#(32) inst);
     default:
       return (ia + 4);//next inst
   endcase
-endfunction 
+endfunction
 
 
 
@@ -755,12 +755,12 @@ function Bool isJump(Bit#(32) ins);
     6'b010000,
     6'b010010:
       return True;
-    6'b010011: 
+    6'b010011:
       return case (ins[10:1])
 	10'b0000010000,
-	10'b1000010000: 
+	10'b1000010000:
           return True;
-	default: 
+	default:
           return False;
       endcase;
     default:

@@ -35,9 +35,9 @@ endinterface
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_indications) 
+module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_indications)
    (Clock phy_clk, Reset phy_reset, EthMacIFC ignore);
-	 
+
    EthMacConfigs self <- mkEthMacConfigs;
 
    FIFO#(Frame) mac_tx <- mkFIFO;
@@ -55,16 +55,16 @@ module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_ind
    Reg#(Bit#(32)) log_backoff  <- mkReg(0);
    Reg#(Bit#(32)) backoff      <- mkReg(0);
    Reg#(Bool)    success       <- mkReg(False);
-   
+
    Reg#(Frame)   ignore        <- mkReg(?);
-   
+
 //   Reg#(Indications) indicate <- mkReg(Indications {collision: False, carrier: True});
-   
+
    Reg#(Indications) indicate <- mkSyncRegToCC(Indications {collision: False, carrier: True},
 					       phy_clk, phy_reset);
-   
+
    Randomize#(Bit#(32)) backoff_gen <- mkGenericRandomizer;
-   
+
    function ActionValue#(Bit#(32)) get_backoff ();
       actionvalue
 	 let value <- backoff_gen.next;
@@ -73,17 +73,17 @@ module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_ind
 	 return out;
       endactionvalue
    endfunction
-   
+
    function ActionValue#(Bit#(32)) get_backoff_max ();
       actionvalue
 	 return (32'b1 << (log_backoff - 1));
       endactionvalue
    endfunction
-   
+
    rule update_indications;
       indicate <= phy_indications.indicate();
    endrule
-   
+
 
    rule rx_monitor;
       let value = phy_rx.first();
@@ -103,7 +103,7 @@ module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_ind
    rule check_for_collisions (indicate.collision);
       success <= False;
    endrule
-   
+
    Stmt tx_driver_seq =
    seq
       while (True)
@@ -154,8 +154,8 @@ module mkEthMac#(Bool full_duplex, Scoreboard scoreboard, IndicationsIFC phy_ind
 	 endseq
    endseq;
 
-   Stmt deference_seq = // this is different form implementation in SV version. 
-                        // The code for waiting for CRS to be deasserted has been 
+   Stmt deference_seq = // this is different form implementation in SV version.
+                        // The code for waiting for CRS to be deasserted has been
                         // moved to the phy module.
    seq
       while (True)

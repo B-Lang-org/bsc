@@ -14,10 +14,10 @@ module sysPulseTest(Empty);
     b.send;
   endrule
 
-  rule test;    
+  rule test;
     $display("a: %0b b: %0b", x[0], x[1]);
     $finish(0);
   endrule
 
 endmodule
- 
+

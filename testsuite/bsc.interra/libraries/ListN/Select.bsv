@@ -24,18 +24,18 @@ module mkTestbench_Select();
    Integer index = 3;
 
 
-  
+
    rule fire_once (True);
       $display("ListN");
       display_list (my_list1);
       $display("Selected Element = %d", select (my_list1, index));
-      
-      if (select(my_list1, index) != 4) 
+
+      if (select(my_list1, index) != 4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Select
 endpackage : Select

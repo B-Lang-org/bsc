@@ -4,7 +4,7 @@
 module sysRuleBetweenMethods();
    Reg#(Bool) p <- mkReg(False);
    SubIfc s <- mkRuleBetweenMethods_Sub;
- 
+
    rule top_rule;
       if (p)
 	 s.m1;
@@ -26,11 +26,11 @@ module mkRuleBetweenMethods_Sub(SubIfc);
    rule sub_rule (en);
       count <= count + 1;
    endrule
-      
+
    method Action m1();
       en <= !en;
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod

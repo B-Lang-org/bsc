@@ -25,13 +25,13 @@ module mkParitySwitch2();
 
    Vector#(Size, Reg#(Bool)) regs <- replicateM(mkRegU);
    Vector#(Size, Bool) data = map(readReg, regs);
-   
+
    Reg#(UInt#(32)) a <- mkRegU;
    Reg#(UInt#(32)) b <- mkRegU;
    Reg#(UInt#(32)) c <- mkRegU;
-   
+
    rule test;
       c <= pswitch(data,a,b);
    endrule
-   
+
 endmodule

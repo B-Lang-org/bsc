@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysSelectUndefinedListStatic();
-  
+
   List#(Maybe#(Bool)) l = ?;
 
   rule test;

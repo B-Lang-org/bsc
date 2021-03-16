@@ -1,6 +1,6 @@
 package Division;
 // This function takes a 12 bit dividend and a 10 bit divisor
-// and returns and quotient.Due to the nature of the algorithm used for 
+// and returns and quotient.Due to the nature of the algorithm used for
 // dividing 2 numbers it cannot be parameterized.
 
 interface Division_IFC;
@@ -17,7 +17,7 @@ else
 
 Bit#(1) overflow;
 if(tmp_a[23:12] >= b)
- begin  
+ begin
    overflow = 1;
  end
 else
@@ -30,13 +30,13 @@ Bit#(13) compare1 = zeroExtend(tmp_a[22:11]) + znotB;
 
 Bit#(12) partRem1;
 Bit#(1)  q11;
-if(compare1[12] == 1) 
+if(compare1[12] == 1)
  begin
     partRem1 =  compare1[11:0];
     q11 = 1;
  end
 else
- begin 
+ begin
    partRem1 =  tmp_a[22:11];
    q11 = 0;
  end
@@ -51,7 +51,7 @@ if(compare1[12] == 1)
    q10 = 1;
  end
 else
- begin  
+ begin
    partRem2 = partRem1_Abit[11:0];
    q10 = 0;
  end
@@ -66,7 +66,7 @@ if(compare1[12] == 1)
    q9 = 1;
  end
 else
- begin  
+ begin
    partRem3 = partRem2_Abit[11:0];
    q9 = 0;
  end
@@ -81,7 +81,7 @@ if(compare1[12] == 1)
    q8 = 1;
  end
 else
- begin  
+ begin
    partRem4 = partRem3_Abit[11:0];
    q8 = 0;
  end
@@ -96,7 +96,7 @@ if(compare1[12] == 1)
    q7 = 1;
  end
 else
- begin  
+ begin
    partRem5 = partRem4_Abit[11:0];
    q7 = 0;
  end
@@ -111,7 +111,7 @@ if(compare1[12] == 1)
    q6 = 1;
  end
 else
- begin  
+ begin
    partRem6 = partRem5_Abit[11:0];
    q6 = 0;
  end
@@ -126,7 +126,7 @@ if(compare1[12] == 1)
    q5 = 1;
  end
 else
- begin  
+ begin
    partRem7 = partRem6_Abit[11:0];
    q5 = 0;
  end
@@ -141,7 +141,7 @@ if(compare1[12] == 1)
    q4 = 1;
  end
 else
- begin  
+ begin
    partRem8 = partRem7_Abit[11:0];
    q4 = 0;
  end
@@ -156,7 +156,7 @@ if(compare1[12] == 1)
    q3 = 1;
  end
 else
- begin  
+ begin
    partRem9 = partRem8_Abit[11:0];
    q3 = 0;
  end
@@ -171,7 +171,7 @@ if(compare1[12] == 1)
    q2 = 1;
  end
 else
- begin  
+ begin
    partRem10 = partRem9_Abit[11:0];
    q2 = 0;
  end
@@ -186,7 +186,7 @@ if(compare1[12] == 1)
    q1 = 1;
  end
 else
- begin  
+ begin
    partRem11 = partRem10_Abit[11:0];
    q1 = 0;
  end
@@ -201,7 +201,7 @@ if(compare1[12] == 1)
    q0 = 1;
  end
 else
- begin  
+ begin
    remainder = partRem11_Abit[11:0];
    q0 = 0;
  end

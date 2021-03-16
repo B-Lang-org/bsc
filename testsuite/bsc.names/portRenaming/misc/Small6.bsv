@@ -21,7 +21,7 @@ module mkSmallTest6 ( Fifo_ifc#(Bit#(3))) ;
       tfifo.deq;
       return tfifo.first ;
    endmethod
-   
+
 
 endmodule
 
@@ -31,5 +31,5 @@ module sysSmall6 () ;
 
    Fifo_ifc#(Bit#(3)) dut <- mkSmallTest6 ;
 
-   
+
 endmodule

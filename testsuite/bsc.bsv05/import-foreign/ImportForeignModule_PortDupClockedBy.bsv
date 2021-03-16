@@ -1,7 +1,7 @@
 // Test that the user cannot declare a port clocked_by multiple times
 
 import "BVI" MOD =
-module mkMyReg ( Clock aClk, 
+module mkMyReg ( Clock aClk,
 		 Clock bClk,
 		 Bool b,
 		 Reg#(Bool) ifcout ) ;

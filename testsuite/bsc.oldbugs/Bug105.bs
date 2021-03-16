@@ -4,14 +4,14 @@ package Bug105(sysBug105) where
 -- import Vector
 
 sysBug105 :: Module Empty
-sysBug105 = 
-  let 
-    l :: Vector 2 (Bit 16) = replicate 1 
-  in  
-      module 
+sysBug105 =
+  let
+    l :: Vector 2 (Bit 16) = replicate 1
+  in
+      module
         finalvals :: Reg (Bit (TMul 2 16))
         finalvals <- mkReg (pack l)
 
         rules
           when True ==> $display "%0d" (finalvals :: (Bit (TMul 2 16)))
-  
+

@@ -22,7 +22,7 @@ module mkSwitch (Tuple2 #(RawSwitch, Switch));
               endinterface);
      Switch sw;
      sw = (interface Switch;
-             method value(); 
+             method value();
                return (!state);
              endmethod: value
            endinterface: Switch);

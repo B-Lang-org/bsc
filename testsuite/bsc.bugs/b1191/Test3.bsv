@@ -9,4 +9,4 @@ module mkTest2 (IFC);
   method Action doStuff (Bool p) if (y);
     $display(y);
   endmethod
-endmodule 
+endmodule

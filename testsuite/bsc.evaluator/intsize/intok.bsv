@@ -8,7 +8,7 @@ typedef Int#(6) BT ;
 module mkintok();
 
    BT foo = fromInteger(-32) ;
-   
+
    Reg#(BT) t1 <- mkReg(31) ;
    rule foor ( t1 <= 4 ) ;
       t1 <= t1 + foo ;
@@ -26,5 +26,5 @@ module mkintok();
 //      t1 <= 6'h3f ;             // OK
 //      t1 <= - 6'h3f ;           // OK  give 6'd1 !
    endrule
-   
+
 endmodule

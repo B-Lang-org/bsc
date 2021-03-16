@@ -1,38 +1,38 @@
 package Bug675_ModuleCollect_Classic where {
 
 import ModuleCollect;
-		    
+
 import List;
-	   
+
 import ListN;
-	    
+
 import Assert;
-	     
+
 interface AssertionWires n = {
     wires :: Bit n ;
     clear :: Action ;
 };
- 
+
 interface AssertionWire = {
     index :: Integer ;
     fail :: Bool ;
     clear :: Action ;
 };
- 
+
 type AssertModule i = ModuleCollect AssertionWire i;
-						   
+
 type CondIfc i n = Tuple2 (AssertionWires n) i;
-					      
+
 interface AssertionReg = {
     set :: Action ;
     clear :: Action ;
 };
- 
+
 conditionReg :: Integer -> AssertModule AssertionReg;
-conditionReg ix = 
+conditionReg ix =
     module {
       cond :: Reg Bool <- mkReg False;
-      let { item' = 
+      let { item' =
 	      interface AssertionWire {
 	        index =  ix;;
 		fail =  cond;;
@@ -49,12 +49,12 @@ conditionReg ix =
 	clear =  action { cond := False; };
       }
     };;
-      
+
 readCond :: AssertionWire -> Bool;
 readCond c =  c.fail;;
-		     
+
 exposeAssertionWires :: AssertModule i -> Module (CondIfc i n);
-exposeAssertionWires mkI = 
+exposeAssertionWires mkI =
     module {
       ecs :: IWithCollection AssertionWire i <- exposeCollection mkI;
       let { cs' =  ecs.collection; };
@@ -66,7 +66,7 @@ exposeAssertionWires mkI =
                      i =  i'; };
                let { f' :: (IsModule m' c) => Integer -> m' Integer;
                      f' i = if i < length cs then
-                                do { staticAssert 
+                                do { staticAssert
                                          ((primSelectFn _ cs i).index <
                                              primValueOf (_::(Bit n)))
                                             "Assertion index out of range";
@@ -85,16 +85,16 @@ exposeAssertionWires mkI =
              };
       let { () =  theResult'; };
       let { c_ifc' :: AssertionWires m;
-            c_ifc' = 
+            c_ifc' =
               interface AssertionWires {
-                wires = 
+                wires =
                     let xs' :: ListN n Bool;
                         xs' =  map readCond (toListN cs);
                     in  let xs :: ListN n Bool;
                             xs =  xs';
                         in  pack xs;;
                 clear :: Action;
-                clear = 
+                clear =
                   action {
 		    let { i' :: Integer;
                           i' =  0; };

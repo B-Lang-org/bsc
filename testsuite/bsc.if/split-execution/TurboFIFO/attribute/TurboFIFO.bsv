@@ -4,7 +4,7 @@ module mkTurboFIFO(FIFO#(a)) provisos(Bits#(a,sa));
 
   Reg#(Bool) empty <- mkReg(True);
   Reg#(a)    data <- mkRegU;
-  
+
   PulseWire  do_deq <- mkPulseWire;
   PulseWire  do_enq <- mkPulseWire;
 
@@ -35,7 +35,7 @@ module mkTurboFIFO(FIFO#(a)) provisos(Bits#(a,sa));
   endmethod
 
   method Action deq() if (has_data);
-      do_deq.send; 
+      do_deq.send;
   endmethod
 
   method Action clear();
@@ -45,7 +45,7 @@ module mkTurboFIFO(FIFO#(a)) provisos(Bits#(a,sa));
   method first() if(has_data);
     if(empty)
       return(fromMaybe(data, bypass_enq.wget));
-    else 
+    else
       return(data);
   endmethod
 

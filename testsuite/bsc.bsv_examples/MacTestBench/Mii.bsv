@@ -68,32 +68,32 @@ endinstance
 
 instance Randomizeable#(Collision);
    module mkRandomizer (Randomize#(Collision));
-      
+
       // TODO ... deal with EARLY/LATE collisions etc.
-   
+
       let max = fromInteger(valueOf(MaxDataLength));
-      
+
       Randomize#(CollisionKind) kind_gen   <- mkGenericRandomizer_Synth;
       Randomize#(Bit#(16))      symbol_gen <- mkConstrainedRandomizer_Synth(1, max - 1);
-      
+
       interface Control cntrl;
 	 method Action init();
 	    kind_gen.cntrl.init();
 	    symbol_gen.cntrl.init();
 	 endmethod
       endinterface
-      
+
       method ActionValue#(Collision) next ();
 
 	 let kind       <- kind_gen.next();
 	 let symbol     <- symbol_gen.next();
-	 
+
 	 let collision = Collision {kind:       kind,
 				    on_symbol:  ((kind == NONE) ? 0 : symbol)
 				    };
-   
+
 	 return collision;
-	 
+
       endmethod
 
    endmodule

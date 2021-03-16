@@ -47,7 +47,7 @@ module mkTestbench_ZipWithM_();
 
 
    rule fire_once (True);
-      zipWithM_(f,my_list1,my_list2); 
+      zipWithM_(f,my_list1,my_list2);
 	  /*
       $display("ListN1:");
       display_list (my_list1);
@@ -55,14 +55,14 @@ module mkTestbench_ZipWithM_();
       display_list (my_list2);
       $display("ZipWith Vector:");
       display_list (my_list4);
-      if (my_list3 != my_list4) 
+      if (my_list3 != my_list4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 		*/
       $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWithM_
 endpackage : ZipWithM_

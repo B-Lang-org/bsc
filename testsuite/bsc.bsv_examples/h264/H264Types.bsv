@@ -22,7 +22,7 @@
 //**********************************************************************
 // H264 Types
 //----------------------------------------------------------------------
-// 
+//
 //
 //
 
@@ -73,7 +73,7 @@ module mkRFile1#( idx_t lo, idx_t hi ) ( RFile1#(idx_t, d_t) )
       return rf.sub(index);
    endmethod
 endmodule
-   
+
 module mkRFile1Full( RFile1#(idx_t, d_t) )
    provisos (Bits#(idx_t, si),Bits#(d_t, sa),Bounded#(idx_t) );
    RegFile#(idx_t,d_t) rf <- mkRegFileFull();
@@ -96,11 +96,11 @@ endinterface
 module mkDoNotFire( DoNotFire );
    method Action doNotFire() if(False);
       noAction;
-   endmethod   
+   endmethod
 endmodule
 
 
-typedef union tagged                
+typedef union tagged
 {
  void P_L0_16x16;
  void P_L0_L0_16x8;
@@ -112,7 +112,7 @@ typedef union tagged
  Bit#(2) intra16x16PredMode;
  Bit#(2) codedBlockPatternChroma;
  Bit#(1) codedBlockPatternLuma;
- }I_16x16;	  
+ }I_16x16;
  void I_PCM;
  void P_Skip;
 } MbType deriving(Eq,Bits);
@@ -182,7 +182,7 @@ endfunction
 //----------------------------------------------------------------------
 
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(8) DataByte;
  void    EndOfFile;
@@ -190,7 +190,7 @@ typedef union tagged
 InputGenOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  void    NewUnit;
  Bit#(8) RbspByte;
@@ -199,7 +199,7 @@ typedef union tagged
 NalUnwrapOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(8)  NewUnit;
 
@@ -312,7 +312,7 @@ typedef union tagged
 EntropyDecOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(8)  NewUnit;
 
@@ -335,7 +335,7 @@ typedef union tagged
 EntropyDecOT_InverseTrans deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  void ITBcoeffLevelZeros;//16 consecutive zeros
  Vector#(4,Bit#(10)) ITBresidual;//residual data in regular h.264 order
@@ -344,7 +344,7 @@ typedef union tagged
 InverseTransOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  struct {Bit#(TAdd#(PicWidthSz,2)) hor; Bit#(TAdd#(PicHeightSz,4)) ver; Bit#(32) data;} DFBLuma;
  struct {Bit#(1) uv; Bit#(TAdd#(PicWidthSz,1)) hor; Bit#(TAdd#(PicHeightSz,3)) ver; Bit#(32) data;} DFBChroma;
@@ -354,7 +354,7 @@ typedef union tagged
 DeblockFilterOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(32)  YUV;
  void      EndOfFile;
@@ -362,22 +362,22 @@ typedef union tagged
 BufferControlOT deriving(Eq,Bits);
 
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(FrameBufferSz) FBLoadReq;
  void FBEndFrameSync;
 }
 FrameBufferLoadReq deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(32) FBLoadResp;
 }
 FrameBufferLoadResp deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
- struct { Bit#(FrameBufferSz) addr; Bit#(32) data; } FBStoreReq;  
+ struct { Bit#(FrameBufferSz) addr; Bit#(32) data; } FBStoreReq;
  void FBEndFrameSync;
 }
 FrameBufferStoreReq deriving(Eq,Bits);
@@ -401,7 +401,7 @@ typedef union tagged
 }
 InterpolatorIT deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
  struct { Bit#(4) refIdx; Bit#(1) horOutOfBounds; Bit#(TAdd#(PicWidthSz,2)) hor; Bit#(TAdd#(PicHeightSz,4)) ver; } IPLoadLuma;
  struct { Bit#(4) refIdx; Bit#(1) uv; Bit#(1) horOutOfBounds; Bit#(TAdd#(PicWidthSz,1)) hor; Bit#(TAdd#(PicHeightSz,3)) ver; } IPLoadChroma;
@@ -409,7 +409,7 @@ typedef union tagged
 }
 InterpolatorLoadReq deriving(Eq,Bits);
 
-typedef union tagged                
+typedef union tagged
 {
  Bit#(32) IPLoadResp;
 }
@@ -419,9 +419,9 @@ InterpolatorLoadResp deriving(Eq,Bits);
 typedef union tagged
 {
   Bit#(addrSz) LoadReq;
-  struct { Bit#(addrSz) addr; Bit#(dataSz) data; } StoreReq;  
+  struct { Bit#(addrSz) addr; Bit#(dataSz) data; } StoreReq;
 }
-MemReq#( type addrSz, type dataSz ) 
+MemReq#( type addrSz, type dataSz )
 deriving(Eq,Bits);
 
 typedef union tagged

@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ let defaults = mkOVLDefaults;
 defaults.min_cks = 2; //min_cks : 2
 defaults.max_cks = 3; //max_cks : 3
 AssertTest_IFC#(Bool) assertWid <- bsv_assert_width(defaults);
-      
+
 rule test(True);
     assertWid.test(test_expr); //test_expr : test_expr
 endrule

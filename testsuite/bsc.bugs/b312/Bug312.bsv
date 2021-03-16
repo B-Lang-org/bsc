@@ -25,43 +25,43 @@ function  AngStates fsmBehavior(AngStates currentState,  Bit#(1) movecw,
  end
  else if (currentState==Ang90)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
          nxtState = Ang135;
     else if (moveccw  == 1)
          nxtState = Ang45;
     else
-         nxtState = Ang90; 
+         nxtState = Ang90;
  end
  else if(currentState == Ang135)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
          nxtState = Ang180;
     else if (moveccw  == 1)
          nxtState = Ang90;
-    else 
-         nxtState = Ang135; 
+    else
+         nxtState = Ang135;
  end
  else if(currentState == Ang180)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
           nxtState = Ang225;
     else if (moveccw  == 1)
           nxtState = Ang135;
-    else 
-          nxtState = Ang180; 
+    else
+          nxtState = Ang180;
  end
  else if(currentState == Ang225)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
           nxtState = Ang270;
     else if (moveccw  == 1)
           nxtState = Ang180;
-    else 
-          nxtState = Ang225; 
+    else
+          nxtState = Ang225;
  end
  else if (currentState == Ang270)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
           nxtState = Ang315;
     else if (moveccw  == 1)
           nxtState = Ang225;
@@ -70,18 +70,18 @@ function  AngStates fsmBehavior(AngStates currentState,  Bit#(1) movecw,
  end
  else // if(currentState == Ang315)
  begin
-    if(movecw  == 1) 
+    if(movecw  == 1)
           nxtState = Ang0;
     else if (moveccw  == 1)
           nxtState = Ang270;
-    else 
+    else
           nxtState = Ang315;
  end
-    
+
  return nxtState;
 endfunction: fsmBehavior
-         
-interface Design_IFC;  
+
+interface Design_IFC;
     method AngStates newpostn ();
 endinterface : Design_IFC
 
@@ -96,7 +96,7 @@ module sysBug312  #(parameter Bit#(1) movecw, Bit#(1) moveccw,AngStates postn) (
     Reg #(AngStates) currentState <- mkReg (postn);
     Reg #(AngStates) nextState <- mkRegU;
 
-    rule fsm; 
+    rule fsm;
       nextState <= fsmBehavior(currentState,movecw,moveccw);
     endrule: fsm
 

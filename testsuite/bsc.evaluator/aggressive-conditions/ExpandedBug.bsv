@@ -53,11 +53,11 @@ typedef struct
 }
   RegReadValue
     deriving (Eq, Bits);
-    
+
 typedef Vector#(NumRegDataItems, RegData) RegReadValueData;
 
 typedef Bit#(5) RegName;
-    
+
 function Bool isMappedReg(LogicalReg lReg);
   return (lReg.name < 30) && (lReg.name != 0);
 endfunction
@@ -173,7 +173,7 @@ module mkTest ();
   begin
     link_read[i] <- mkFIFO();
   end
-  
+
   FIFO#(Tuple3#(Token, Tuple2#(Addr, DecodedInst), void)) waitingQ <- mkFIFO();
   let outQ <- mkFIFO(); //MIP: This stops bsc from optimizing away everything
 
@@ -190,20 +190,20 @@ module mkTest ();
     Vector#(NumSrcMap, PRName) physSrc = newVector();
     Vector#(NumSrc, Bool) isReadySrc = newVector();
     Vector#(NumSrc, RegValue) valueSrc = newVector();
-    
+
     //For mapped operands
     for (Integer i = 0; i < valueOf(NumSrcMap); i = i + 1)
     begin
-    
+
       src[i] = decIns.ins.src[i];
       physSrc[i] = decIns.physSrc[i];
-      
+
       let readData = link_read[i].first();
       link_read[i].deq();
-      
+
       Maybe#(RegValue) value = (isMappedReg(src[i])) ? formatRegRead(src[i], readData) : Invalid;
       //Maybe#(RegValue) value = (isMappedReg(src[i])) ? tagged Valid(?) : Invalid; //MIP: This version works fast with or without aggressive-conditions
-      
+
       let final_value = muxSource(value, src[i], imm);
       isReadySrc[i] = isJust(final_value);
       valueSrc[i] = unJust(final_value);
@@ -216,16 +216,16 @@ module mkTest ();
 
       let regValue = RegValue {data: unpack(0), flags: unpack(0)};
       Maybe#(RegValue) value = tagged Valid regValue;
-  
+
 
       let final_value = muxSource(value, src[i], imm);
       isReadySrc[i] = isJust(final_value);
       valueSrc[i] = unJust(final_value);
-      
+
     end
 
     outQ.enq(tuple4(src, physSrc, isReadySrc, valueSrc));
-    
+
   endrule
 
 endmodule

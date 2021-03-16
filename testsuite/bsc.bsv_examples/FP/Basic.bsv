@@ -4,7 +4,7 @@ import StmtFSM::*;
 import FShow::*;
 import DefaultValue::*;
 
-   
+
    // 0
    // -0
    // epsilon (normalized)
@@ -32,7 +32,7 @@ module sysBasic();
    Reg#(Bit#(16)) rBit16 <- mkRegU;
    Reg#(Float16) rFloat16 <- mkRegU;
    Reg#(Int#(16)) rInt16 <- mkRegU;
-   
+
    Reg#(FP32) rFP32 <- mkRegU;
    Reg#(Bit#(32)) rBit32 <- mkRegU;
    Reg#(Float32) rFloat32 <- mkRegU;
@@ -43,7 +43,7 @@ module sysBasic();
    Reg#(Float64) rFloat64 <- mkRegU;
    Reg#(Int#(64)) rInt64 <- mkRegU;
 
-   Stmt test = 
+   Stmt test =
    seq
       delay(10);
       // verify zextendlsb
@@ -159,7 +159,7 @@ module sysBasic();
       	 b = round(Rnd_Zero, a);
 	 $write("", fshow(Rnd_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a.sfd = 'b1100000110; a.round = 3; a.sticky = 0;
       	 b = round(Rnd_Zero, a);
 	 $write("", fshow(Rnd_Zero));
@@ -169,7 +169,7 @@ module sysBasic();
       	 b = round(Rnd_Zero, a);
 	 $write("", fshow(Rnd_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
 	 a.sfd = 'b1111111111; a.round = 3; a.sticky = 1; a.exp = fromInteger(maxexp(a));
       	 b = round(Rnd_Zero, a);
 	 $write("", fshow(Rnd_Zero));
@@ -194,12 +194,12 @@ module sysBasic();
       action
       	 FloatingPoint#(5,10) a = defaultValue;
       	 FloatingPoint#(5,10) b;
-	 
+
       	 a.sfd = 'b1100000100; a.round = 0; a.sticky = 0;
       	 b = round(Rnd_Plus_Inf, a);
       	 $write("", fshow(Rnd_Plus_Inf));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a.sfd = 'b1100000100; a.round = 2; a.sticky = 0;
       	 b = round(Rnd_Plus_Inf, a);
       	 $write("", fshow(Rnd_Plus_Inf));
@@ -244,12 +244,12 @@ module sysBasic();
       action
       	 FloatingPoint#(5,10) a = defaultValue;
       	 FloatingPoint#(5,10) b;
-	 
+
       	 a.sfd = 'b1100000100; a.round = 0; a.sticky = 0;
       	 b = round(Rnd_Minus_Inf, a);
       	 $write("", fshow(Rnd_Minus_Inf));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a.sfd = 'b1100000100; a.round = 2; a.sticky = 0;
       	 b = round(Rnd_Minus_Inf, a);
       	 $write("", fshow(Rnd_Minus_Inf));
@@ -284,42 +284,42 @@ module sysBasic();
       action
       	 FloatingPoint#(5,10) a = defaultValue;
       	 FloatingPoint#(5,10) b;
-	 
+
       	 a.sfd = 'b1100000100; a.round = 0; a.sticky = 0;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 0;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 1; a.sticky = 0;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 1;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 0; a.sticky = 1;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 2; a.sticky = 0;
       	 b = round(Rnd_Nearest_Even, a);
 	 $write("", fshow(Rnd_Nearest_Even));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000001; a.round = 2; a.sticky = 0;
       	 b = round(Rnd_Nearest_Even, a);
@@ -350,42 +350,42 @@ module sysBasic();
       action
       	 FloatingPoint#(5,10) a = defaultValue;
       	 FloatingPoint#(5,10) b;
-	 
+
       	 a.sfd = 'b1100000100; a.round = 0; a.sticky = 0;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 0;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 1; a.sticky = 0;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 1;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 0; a.sticky = 1;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 2; a.sticky = 0;
       	 b = round(Rnd_Nearest_Away_Zero, a);
       	 $write("", fshow(Rnd_Nearest_Away_Zero));
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 2; a.sticky = 0; a.sign = True;
       	 b = round(Rnd_Nearest_Away_Zero, a);
@@ -416,36 +416,36 @@ module sysBasic();
       action
       	 FloatingPoint#(5,10) a = defaultValue;
       	 FloatingPoint#(5,10) b;
-	 
+
       	 a.sfd = 'b1100000100; a.round = 0; a.sticky = 0;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-	 
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 0;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 1; a.sticky = 0;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 3; a.sticky = 1;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 0; a.sticky = 1;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 2; a.sticky = 0;
       	 b = round_default(a);
       	 $display("  %b %b %b = %b %b %b  ", a.sfd, a.round, a.sticky, b.sfd, b.round, b.sticky);
-      
+
       	 a = defaultValue;
       	 a.sfd = 'b1100000000; a.round = 2; a.sticky = 0; a.sign = True;
       	 b = round_default(a);
@@ -494,12 +494,12 @@ module sysBasic();
       	 $display("max normal = ", fshow(a));
       	 a = fromReal(-65504);
       	 $display("min normal = ", fshow(a));
-	 
+
       	 a = fromReal(6.10352e-5);
       	 $display("min pos normal = ", fshow(a));
       	 a = fromReal(-6.10352e-5);
       	 $display("max neg normal = ", fshow(a));
-	 
+
 	 a = fromReal(5.960464478e-8);
 	 $display("min pos denormal = ", fshow(a));
 	 a = fromReal(-5.960464478e-8);
@@ -537,7 +537,7 @@ module sysBasic();
       	 $display("max normal = ", fshow(a));
       	 a = fromReal(-3.4028234663852886E+38);
       	 $display("min normal = ", fshow(a));
-	 
+
       	 a = fromReal(1.1754943508222875E-38);
       	 $display("min pos normal = ", fshow(a));
       	 a = fromReal(-1.1754943508222875E-38);
@@ -580,7 +580,7 @@ module sysBasic();
       	 $display("max normal = ", fshow(a));
       	 a = fromReal(-1.7976931348623157E+308);
       	 $display("min normal = ", fshow(a));
-	 
+
       	 a = fromReal(2.2250738585072014E-308);
       	 $display("min pos normal = ", fshow(a));
       	 a = fromReal(-2.2250738585072014E-308);
@@ -601,22 +601,22 @@ module sysBasic();
       	 FP16 a;
       	 a = fromInteger(0);
       	 $display("+0 = ", fshow(a));
-	 
+
       	 a = fromInteger(1);
       	 $display("+1 = ", fshow(a));
       	 a = fromInteger(-1);
       	 $display("-1 = ", fshow(a));
-	 
+
       	 a = fromInteger(2);
       	 $display("+2 = ", fshow(a));
       	 a = fromInteger(-2);
       	 $display("-2 = ", fshow(a));
-	 
+
       	 a = fromInteger(65504);
       	 $display("+maxint = ", fshow(a));
       	 a = fromInteger(-65504);
       	 $display("-maxint = ", fshow(a));
-	 
+
       	 a = fromInteger(32768);
       	 $display("+32768 = ", fshow(a));
       	 a = fromInteger(-32768);
@@ -627,17 +627,17 @@ module sysBasic();
       	 FP32 a;
       	 a = fromInteger(0);
       	 $display("+0 = ", fshow(a));
-	 
+
       	 a = fromInteger(1);
       	 $display("+1 = ", fshow(a));
       	 a = fromInteger(-1);
       	 $display("-1 = ", fshow(a));
-	 
+
       	 a = fromInteger(2);
       	 $display("+2 = ", fshow(a));
       	 a = fromInteger(-2);
       	 $display("-2 = ", fshow(a));
-	 
+
       	 a = fromInteger(65503);
       	 $display("+65503 = ", fshow(a));
       	 a = fromInteger(-65503);
@@ -653,22 +653,22 @@ module sysBasic();
       	 FP64 a;
       	 a = fromInteger(0);
       	 $display("+0 = ", fshow(a));
-	 
+
       	 a = fromInteger(1);
       	 $display("+1 = ", fshow(a));
       	 a = fromInteger(-1);
       	 $display("-1 = ", fshow(a));
-	 
+
       	 a = fromInteger(2);
       	 $display("+2 = ", fshow(a));
       	 a = fromInteger(-2);
       	 $display("-2 = ", fshow(a));
-	 
+
       	 a = fromInteger(65505);
       	 $display("+65505 = ", fshow(a));
       	 a = fromInteger(-65505);
       	 $display("-65505 = ", fshow(a));
-	 
+
       	 a = fromInteger(4294967296);
       	 $display("+4294967296 = ", fshow(a));
       	 a = fromInteger(-4294967296);
@@ -680,7 +680,7 @@ module sysBasic();
       	 FP16 b = fromReal(-2.3);
       	 FP16 c = fromReal(4.3);
       	 FP16 d = fromReal(2.2);
-	 
+
       	 // less than
       	 $display("-2.3 <  2.3 = %d", (b < a));
       	 $display(" 2.3 < -2.3 = %d", (a < b));
@@ -689,8 +689,8 @@ module sysBasic();
       	 $display(" 2.2 <  2.3 = %d", (d < a));
       	 $display(" 2.3 <  2.2 = %d", (a < d));
       	 $display(" 2.3 <  2.3 = %d", (a < a));
-	 
-      	 // less than equal 
+
+      	 // less than equal
       	 $display("-2.3 <=  2.3 = %d", (b <= a));
       	 $display(" 2.3 <= -2.3 = %d", (a <= b));
       	 $display(" 2.3 <=  4.3 = %d", (a <= c));
@@ -707,8 +707,8 @@ module sysBasic();
       	 $display(" 2.2 >  2.3 = %d", (d > a));
       	 $display(" 2.3 >  2.2 = %d", (a > d));
       	 $display(" 2.3 >  2.3 = %d", (a > a));
-	 
-      	 // greater than equal 
+
+      	 // greater than equal
       	 $display("-2.3 >=  2.3 = %d", (b >= a));
       	 $display(" 2.3 >= -2.3 = %d", (a >= b));
       	 $display(" 2.3 >=  4.3 = %d", (a >= c));
@@ -716,14 +716,14 @@ module sysBasic();
       	 $display(" 2.2 >=  2.3 = %d", (d >= a));
       	 $display(" 2.3 >=  2.2 = %d", (a >= d));
       	 $display(" 2.3 >=  2.3 = %d", (a >= a));
-	 
+
 	 // subnormals
 	 a = fromReal(5.960464478e-8);
 	 b = fromReal(11.960464478e-8);
 	 $display("a = ", fshow(a));
 	 $display("b = ", fshow(b));
 	 $display("a < b = %d", (a < b));
-	 
+
 	 // compare function
 	 a = fromReal(2.3);
 	 b = fromReal(2.33);
@@ -742,7 +742,7 @@ module sysBasic();
 	 $display("a = ", fshow(a));
 	 $display("b = ", fshow(b));
 	 $display("compare(b,a) = %d", compare(b,a));
-	 
+
 	 // min
 	 a = fromReal(2.3);
 	 b = fromReal(2.33);
@@ -758,7 +758,7 @@ module sysBasic();
 	 $display("b = ", fshow(b));
 	 $display("max(a,b) = ", fshow(max(a,b)));
 	 $display("max(b,a) = ", fshow(max(b,a)));
-	 
+
 	 // subnormals
 	 a = unpack('b0_00000_1111111111_11_1);
 	 b = unpack('b0_00001_0000000000_00_0);
@@ -790,16 +790,16 @@ module sysBasic();
 	 $display("min(b,a) = ", fshow(min(b,a)));
 	 $display("max(a,b) = ", fshow(max(a,b)));
 	 $display("max(b,a) = ", fshow(max(b,a)));
-	 
+
       endaction
       // verify toInt32
-      action 
+      action
 	 FP64 a = fromReal(0.9);
 	 FP64 b = fromReal(1.0);
 	 FP64 c = fromReal(33.99);
 	 FP64 d = fromReal(-5.9);
 	 FP64 e = fromReal(-0.9);
-	 
+
 	 $display("0.9   = %d (%x)", toInt32(a), pack(toInt32(a)));
 	 $display("1.0   = %d (%x)", toInt32(b), pack(toInt32(b)));
 	 $display("33.99 = %d (%x)", toInt32(c), pack(toInt32(c)));
@@ -812,7 +812,7 @@ module sysBasic();
 	 FP32 c = fromReal(33.99);
 	 FP32 d = fromReal(-5.9);
 	 FP32 e = fromReal(-0.9);
-	 
+
 	 $display("0.9   = %d (%x)", toInt32(a), pack(toInt32(a)));
 	 $display("1.0   = %d (%x)", toInt32(b), pack(toInt32(b)));
 	 $display("33.99 = %d (%x)", toInt32(c), pack(toInt32(c)));
@@ -825,7 +825,7 @@ module sysBasic();
 	 FP16 c = fromReal(33.99);
 	 FP16 d = fromReal(-5.9);
 	 FP16 e = fromReal(-0.9);
-	 
+
 	 $display("0.9   = %d (%x)", toInt32(a), pack(toInt32(a)));
 	 $display("1.0   = %d (%x)", toInt32(b), pack(toInt32(b)));
 	 $display("33.99 = %d (%x)", toInt32(c), pack(toInt32(c)));
@@ -841,7 +841,7 @@ module sysBasic();
 	 Int#(32) e = 33;
 	 Int#(32) f = unpack('h7FFFFFFF);
 	 Int#(32) g = unpack('h80000001);
-	 
+
 	 FP16 a16 = fromInt32(a);
 	 FP16 b16 = fromInt32(b);
 	 FP16 c16 = fromInt32(c);
@@ -849,7 +849,7 @@ module sysBasic();
 	 FP16 e16 = fromInt32(e);
 	 FP16 f16 = fromInt32(f);
 	 FP16 g16 = fromInt32(g);
-	 
+
 	 $display("0   = ", fshow(a16));
 	 $display("1   = ", fshow(b16));
 	 $display("-1  = ", fshow(c16));
@@ -867,7 +867,7 @@ module sysBasic();
 	 Int#(32) e = 33;
 	 Int#(32) f = unpack('h7FFFFFFF);
 	 Int#(32) g = unpack('h80000001);
-	 
+
 	 FP32 a16 = fromInt32(a);
 	 FP32 b16 = fromInt32(b);
 	 FP32 c16 = fromInt32(c);
@@ -875,7 +875,7 @@ module sysBasic();
 	 FP32 e16 = fromInt32(e);
 	 FP32 f16 = fromInt32(f);
 	 FP32 g16 = fromInt32(g);
-	 
+
 	 $display("0   = ", fshow(a16));
 	 $display("1   = ", fshow(b16));
 	 $display("-1  = ", fshow(c16));
@@ -893,7 +893,7 @@ module sysBasic();
 	 Int#(32) e = 33;
 	 Int#(32) f = unpack('h7FFFFFFF);
 	 Int#(32) g = unpack('h80000001);
-	 
+
 	 FP64 a16 = fromInt32(a);
 	 FP64 b16 = fromInt32(b);
 	 FP64 c16 = fromInt32(c);
@@ -901,7 +901,7 @@ module sysBasic();
 	 FP64 e16 = fromInt32(e);
 	 FP64 f16 = fromInt32(f);
 	 FP64 g16 = fromInt32(g);
-	 
+
 	 $display("0   = ", fshow(a16));
 	 $display("1   = ", fshow(b16));
 	 $display("-1  = ", fshow(c16));
@@ -914,73 +914,73 @@ module sysBasic();
       action
 	 FP32 a = snan();
 	 FP32 b = snan();
-	 
+
 	 // snan
 	 a = snan();
 	 $display("snan = ", fshow(fract(a)));
-	 
+
 	 // +infinity
 	 a = infinity(False);
 	 $display("+infinity = ", fshow(fract(a)));
-	 
+
 	 // -infinity
 	 a = infinity(True);
 	 $display("-infinity = ", fshow(fract(a)));
-	 
+
 	 // subnormal
 	 a = fromReal(1.40129846432481707092372958329E-45);
 	 $display("1.40e-45 = ", fshow(fract(a)));
-	 
+
 	 // between [0-1]
 	 a = fromReal(0.4);
 	 $display("0.4 = ", fshow(fract(a)));
-	 
+
 	 // between [0-1]
 	 a = fromReal(0.999);
 	 $display("0.999 = ", fshow(fract(a)));
-	 
+
 	 // between [1-2)
 	 a = fromReal(1.999);
 	 $display("1.999 = ", fshow(fract(a)));
-	 
+
 	 // other cases
 	 a = fromReal(123.456);
 	 $display("123.456 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(100.001);
 	 $display("100.001 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(99999.999);
 	 $display("99999.999 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(0.0002);
 	 $display("0.0002 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(-1.999);
 	 $display("-1.999 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(0.000);
 	 $display("0.000 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(1.000);
 	 $display("1.000 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(2.000);
 	 $display("2.000 = ", fshow(fract(a)));
-	 
+
 	 a = fromReal(1.000);
 	 b = fromReal(2.000);
 	 $display("2.000-1.000 = ", fshow(fract(b-a)));
-	 
+
 	 a = fromInt32(45);
 	 b = fromInt32(-15);
 	 $display("45-15 = ", fshow(fract(a+b)));
-	 
+
       endaction
       delay(10);
    endseq;
-   
+
    mkAutoFSM(test);
-   
+
 endmodule
 

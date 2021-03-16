@@ -20,7 +20,7 @@ import List
 
 type Elem = Reg (Bit 8)
 
-            
+
 interface (LIFO :: # -> * -> *) n a =
     push     :: a -> Action
     pop      :: Action
@@ -46,11 +46,11 @@ top =
 
 
 	interface
-           overflow = full 
+           overflow = full
 
            underflow = empty
 
-           push in_data = 
+           push in_data =
                 if (not full) then
                    action
                      let
@@ -61,22 +61,22 @@ top =
                        stack1 = Cons in_reg (init stack)
                        pairs = zip stack1 stack
                        f :: (Reg a,Reg a) -> Action
-                       f(a,b) = 
+                       f(a,b) =
                             b:= a._read
                        assigns = map f pairs
                      joinActions assigns
                      sizeoflist := sizeoflist + 1
                 else
                    noAction
-   
-           pop = 
+
+           pop =
                 if (not empty) then
                    action
                     let
                       stack1 = (tail stack) `append` (Cons _ Nil)
                       pairs = zip stack1 stack
                       f :: (Reg a,Reg a) -> Action
-                      f(a,b) = 
+                      f(a,b) =
                            b:= a._read
                       assigns = map f pairs
                     joinActions assigns
@@ -86,8 +86,8 @@ top =
                    noAction
 
            out_data = data_read
-                 
+
 
 
 top16 :: Module (LIFO 16 (Bit 8))
-top16 = top 
+top16 = top

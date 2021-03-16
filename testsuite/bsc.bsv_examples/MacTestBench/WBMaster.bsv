@@ -32,7 +32,7 @@ module mkWBMaster#(Integer id, ArbiterClient_IFC arbiter) (WBoneXActorIFC);
    Reg#(Bool) response <- mkReg(False);
 
    WBoneZBusDualIFC buffer <-  mkWBoneZBusBuffer;
-   
+
    rule request_grant (in_fifo.notEmpty && !response && !buffer.clientIFC.stb.get());
       arbiter.request;
    endrule
@@ -44,7 +44,7 @@ module mkWBMaster#(Integer id, ArbiterClient_IFC arbiter) (WBoneXActorIFC);
    endrule
 
    rule process_wbone_op (!response);
-      
+
       let wbone_op = wait_fifo.first();
       count <= count + 1;
       case (wbone_op.kind())
@@ -57,7 +57,7 @@ module mkWBMaster#(Integer id, ArbiterClient_IFC arbiter) (WBoneXActorIFC);
 	 default: action
 		  endaction
       endcase
-      
+
    endrule
 
    rule process_response (response_detected(buffer.clientIFC) && !response);
@@ -73,23 +73,23 @@ module mkWBMaster#(Integer id, ArbiterClient_IFC arbiter) (WBoneXActorIFC);
       wbone_op.data = response_wbone_op.data;
 
       out_fifo.enq(wbone_op);
-      
+
    endrule
 
    rule flip (response);
       response <= False;
       count <= 0;
    endrule
-      
+
    rule timeout (!response_detected(buffer.clientIFC) && (count > self.max_n_wss));
-      
+
       let wbone_op = wait_fifo.first();
       wait_fifo.deq();
 
       wbone_op.status = TIMEOUT;
-      
+
       $display("Timeout! (%5d)", $time);
-      
+
       out_fifo.enq(wbone_op);
    endrule
 
@@ -98,7 +98,7 @@ module mkWBMaster#(Integer id, ArbiterClient_IFC arbiter) (WBoneXActorIFC);
 	 self.cntrl.init();
       endmethod
    endinterface
-   
+
    interface WBoneOpTxRxIFC channel;
       interface Get tx;
 	 method ActionValue#(WBoneOp) get;
@@ -127,7 +127,7 @@ function Bool response_detected (WBoneZBusClientIFC ifc);
    return (ifc.ack.get() || ifc.err.get() || ifc.rty.get());
 endfunction
 
-   
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////

@@ -2,8 +2,8 @@
 // for a name already declared as an input clock
 
 import "BVI" MOD =
-module mkMod ( Clock aClk, 
-	       Clock bClk, 
+module mkMod ( Clock aClk,
+	       Clock bClk,
 	       Empty ifcout ) ;
 
    input_clock clk (CLK) = aClk ;

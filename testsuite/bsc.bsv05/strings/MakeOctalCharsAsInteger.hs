@@ -13,7 +13,7 @@ display_num num = putStrLn ("$display(primStringToInteger(\"\\" ++ (showOct num)
 main = do
   putStrLn("(* synthesize *)")
   putStrLn("module sysOctalCharsAsInteger();")
-  putStrLn("rule test;") 
+  putStrLn("rule test;")
   mapM_ display_num nums
   putStrLn ("$finish(0);");
   putStrLn("endrule")

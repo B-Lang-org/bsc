@@ -6,7 +6,7 @@ module mkEnabledReceiver(EnabledReceiver_ifc);
    no_reset;
    ifc_inout iioo(IN);
    method display_it () enable (EN);
-   schedule display_it CF display_it;  
+   schedule display_it CF display_it;
 endmodule
 
 interface EnabledReceiver_ifc;

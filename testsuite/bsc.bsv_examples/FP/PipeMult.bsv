@@ -20,7 +20,7 @@ module sysPipeMult();
       $display("Result (%d): %d", respcount, result);
       respcount <= respcount + 1;
    endrule
-   
+
    function Action doMult(Bit#(56) opA, Bit#(56) opB);
       action
          mMult.request.put(tuple2(opA,opB));
@@ -28,7 +28,7 @@ module sysPipeMult();
          reqcount <= reqcount + 1;
       endaction
    endfunction
-      
+
    Stmt test =
    seq
       delay(10);
@@ -46,7 +46,7 @@ module sysPipeMult();
       doMult(9, 'h3009C);
       doMult('h1FFFF, 'h3FFFF);
       delay(20);
-      
+
       // 0 * 25
       doMult(3, 'h1FFFFFF);
       doMult(100, 'h1ABCDEF);
@@ -66,8 +66,8 @@ module sysPipeMult();
       doMult('h7FFFFFFFFFFFFF, 'h03FFFFFFFFFFFF);
       delay(1000);
    endseq;
-   
+
    mkAutoFSM(test);
-   
+
 endmodule
 

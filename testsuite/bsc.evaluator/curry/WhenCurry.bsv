@@ -15,7 +15,7 @@ module mkWhenCurry();
   Reg#(Bool) pred2 <- mkReg(True);
 
   Integer test = (switch ? when(pred1, a) : when(pred2, b))(5);
-  
+
   rule go;
     $display(test);
     $finish(0);

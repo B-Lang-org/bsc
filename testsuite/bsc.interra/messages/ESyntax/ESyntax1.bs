@@ -1,9 +1,9 @@
 -----------------------------------------------------------------------
--- Project: Bluespec  
+-- Project: Bluespec
 
 -- File: ESyntax1.bs
 
--- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com> 
+-- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
 
 -- Description: This testcase triggers a Syntax error (ESyntax)
 

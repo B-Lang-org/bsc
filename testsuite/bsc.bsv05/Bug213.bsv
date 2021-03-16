@@ -6,7 +6,7 @@ module foo();
   rule bar;
       // begin actual text in bug 213
       case (keycode)
-      8'hF0 : 
+      8'hF0 :
          action
 	  r_release<= True;
 	 endaction

@@ -26,7 +26,7 @@ interface ENotField3 =
             end   :: Int 32
 
 mkENotField3 :: Module ENotField3
-mkENotField3 = 
+mkENotField3 =
            module
 
                 x :: Reg (Int 32)
@@ -35,21 +35,21 @@ mkENotField3 =
                 y :: Reg (Int 32)
                 y <- mkReg 0
 
-                u1 :: Reg (MyStruct) 
-                u1 <- mkRegU 
+                u1 :: Reg (MyStruct)
+                u1 <- mkRegU
 
-                u2 :: Reg (MyStruct) 
-                u2 <- mkRegU 
+                u2 :: Reg (MyStruct)
+                u2 <- mkRegU
 
                 rules
                    "One":
-                      when True 
+                      when True
                           ==> action
                                  u2 := u1 { give = 1 ; judge = True ; extra = 0 }
 
 
                 interface
                     start ix iy = action
-                                    x := ix 
-                                    y := iy 
+                                    x := ix
+                                    y := iy
                     end = y when x == 0

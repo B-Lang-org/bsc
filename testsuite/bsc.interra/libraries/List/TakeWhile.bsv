@@ -43,12 +43,12 @@ module mkTestbench_TakeWhile();
       display_list (my_list1);
       $display ("Returns Initial Segment with elements < 2. New List:");
       display_list (takeWhile(f1, my_list1));
-      if (takeWhile(f1, my_list1) != my_list2 || takeWhile (f2, my_list1) != my_list1 || takeWhile (f3, my_list1) != Nil) 
+      if (takeWhile(f1, my_list1) != my_list2 || takeWhile (f2, my_list1) != my_list1 || takeWhile (f3, my_list1) != Nil)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_TakeWhile
 endpackage : TakeWhile

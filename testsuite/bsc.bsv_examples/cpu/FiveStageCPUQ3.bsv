@@ -120,7 +120,7 @@ module mkFiveStageCPUBypass(CPU);
   mkFindFIFO the_bd(bd);
 
   ////////////////////////////////////////////////////////////
-  //The following two FIFOS should be replaced with BypassFIFOs. 
+  //The following two FIFOS should be replaced with BypassFIFOs.
   ////////////////////////////////////////////////////////////
 
 
@@ -143,7 +143,7 @@ module mkFiveStageCPUBypass(CPU);
 
   // ----------------------------
   // Convenience functions
-   
+
   // A function which describes the stall condition:
   // Given a register which an incoming instruction wants to
   // read ("r") and an entry in any of the buffer stages
@@ -156,9 +156,9 @@ module mkFiveStageCPUBypass(CPU);
   // function "bypass" below.
 
   //////////////////////////////////////////////////////////
-  // Now that we're allowing bypassing to occur before values 
-  // are written into the FIFOs, we need to change the 
-  // bypass and stall logic appropriately. 
+  // Now that we're allowing bypassing to occur before values
+  // are written into the FIFOs, we need to change the
+  // bypass and stall logic appropriately.
   //////////////////////////////////////////////////////////
 
 
@@ -173,7 +173,7 @@ module mkFiveStageCPUBypass(CPU);
   endfunction: findf_bd
 
   // Functions which check for stall and potential bypass
-   
+
   function findf_be(r, pci);
     case (tpl_2(pci)) matches
 
@@ -233,14 +233,14 @@ module mkFiveStageCPUBypass(CPU);
 	default : return (Invalid);
      endcase
   endfunction
-  
+
   function bmBypass(r);
      case (bm.find(findf_bm(r))) matches
 	tagged Valid (tagged Valid .v) : return (Valid(v)) ;
 	default : return (Invalid);
      endcase
   endfunction
-  
+
   // A single function which performs the stall check on all FIFOs
   function chk(r); return (bdStall(r) || beStall(r) || bmStall(r)); endfunction
 
@@ -279,7 +279,7 @@ module mkFiveStageCPUBypass(CPU);
     return (unpack(truncate(i32)));
   endfunction
 
-  Rules decode_non_stall_rules = rules 
+  Rules decode_non_stall_rules = rules
   rule decode_halt
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Halt));
@@ -381,16 +381,16 @@ module mkFiveStageCPUBypass(CPU);
      the branch-not-taken rule doesn't force a conflict with
      the other cases:
      ---------------------------------------------------------
-     
+
      rule execute (bd.first matches {.epc, .instTemplate});
        case (instTemplate) matches
-	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} : 
+	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} :
 	     action
 	        let new_itmpl = ELoadC { rd : rd, v : va + vb };
 	        be.enq(tuple2(epc, new_itmpl));
 	        bd.deq;
 	     endaction
-	  tagged EJz {cd:.cv, addr:.av} : 
+	  tagged EJz {cd:.cv, addr:.av} :
 	     if (cv == 0)
 	       action
 		  pc <= av;
@@ -399,7 +399,7 @@ module mkFiveStageCPUBypass(CPU);
 	       endaction
 	     else
 	          bd.deq;
-	  default : 
+	  default :
 	     action
 	        be.enq(bd.first);
 	        bd.deq;
@@ -504,6 +504,6 @@ module mkFiveStageCPUBypass(CPU);
   endmethod
 
   method done = !started && !bd.notEmpty && !be.notEmpty && !bm.notEmpty;
-   
+
 endmodule: mkFiveStageCPUBypass
 

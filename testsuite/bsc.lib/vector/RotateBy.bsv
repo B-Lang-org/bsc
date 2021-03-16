@@ -37,7 +37,7 @@ function Action printv ( Vector#(n,BE) v ) ;
    return
    action
    Integer i = 0 ;
-   for ( i = 0 ; i < valueof(n); i = i + 1 ) 
+   for ( i = 0 ; i < valueof(n); i = i + 1 )
       begin
          $write( "V[%0d]=", i ) ;
          printBE( v[i] ) ;
@@ -47,21 +47,21 @@ function Action printv ( Vector#(n,BE) v ) ;
 endfunction
 
 
-(* synthesize *) 
+(* synthesize *)
 module sysRotateBy ();
-   // +rotateBy :: (Log n lgn, Add xxx 1 (TExp n) ) => Vector n a -> UInt lgn ->  Vector n a 
+   // +rotateBy :: (Log n lgn, Add xxx 1 (TExp n) ) => Vector n a -> UInt lgn ->  Vector n a
    // +rotateBy vin amt =
-   
+
    Reg#(int) cnt <- mkReg(0) ;
    Reg#(UInt#(3)) shiftAmt <- mkReg(0) ;
-   
+
    Reg#( Vector#(8,BE) )  t1 <- mkReg( replicate(x0) ) ;
-   
+
    rule c ;
       cnt <= cnt + 1 ;
       if( cnt > 100 ) $finish(0) ;
    endrule
-   
+
    rule x0 ( cnt == 0 || cnt == 10 ) ;
       printv ( t1 ) ;
       let t = t1 ;
@@ -72,36 +72,36 @@ module sysRotateBy ();
       t[5] = x5 ;
       t[6] = x6 ;
       t[7] = x7 ;
-      
+
       t1 <= t ;
    endrule
 
-      
+
    rule x1 ( cnt >= 1 && cnt < 10  ) ;
       shiftAmt <= shiftAmt  + 1 ;
       printv ( t1 ) ;
       let t = rotateBy( t1, shiftAmt ) ;
       $display ("\n\n Shifterd by %0d", shiftAmt ) ;
-      t1 <= t ;      
+      t1 <= t ;
    endrule
-   
+
    Reg#(Bit#(128)) sdata <- mkReg ( 'had59 ) ;
    Reg#(UInt#(7)) sa2 <- mkReg(0) ;
    rule x2 ( cnt >= 11 && cnt < 30  ) ;
       sa2 <= sa2  + 1 ;
       let  t = rotateBitsBy( sdata, sa2 ) ;
       $display ("Shifted by %2d %h %h", sa2, sdata, t ) ;
-      //sdata <= t ;      
+      //sdata <= t ;
    endrule
 
-   
+
    Reg#(Bit#(5)) sdata5 <- mkReg ( 'b10011 ) ;
    Reg#(UInt#(3)) sa25 <- mkReg(0) ;
    rule x3 ( cnt >= 31 && cnt < 40  ) ;
       sa25 <= sa25  + 1 ;
       let  t = rotateBitsBy( sdata5, sa25 ) ;
       $display ("Shifted by %2d %b %b", sa25, sdata5, t ) ;
-      //sdata5 <= t ;      
+      //sdata5 <= t ;
    endrule
 
 endmodule

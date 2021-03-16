@@ -102,7 +102,7 @@ module mkTestMultipleRules ();
    endrule
 
    Reg#(UInt#(7)) watchdog <- mkReg(0);
-   
+
    rule check_watchdog;
      if(watchdog > 100) begin
         $display("Watchdog check failed\n");

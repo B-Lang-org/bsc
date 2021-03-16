@@ -6,4 +6,4 @@ module sysPrimUndefined();
      $finish(0);
   endrule
 endmodule
-      
+

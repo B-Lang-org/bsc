@@ -13,7 +13,7 @@
 module sysOptAcrossRWireInForeign (Empty);
    Reg#(Bool) x <- mkRegU;
    Reg#(Bool) y <- mkRegU;
-   
+
    RWire#(Bool) rw <- mkRWire;
 
    rule rule1;

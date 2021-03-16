@@ -1,6 +1,6 @@
 (* synthesize *)
 module bsvDisplayString#(parameter String s)(Empty ifc);
-   
+
    rule test;
       $display("string %s", s);
       $finish(0);

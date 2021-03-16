@@ -13,9 +13,9 @@ module sysLoop2 ();
    for (Integer i = 0; i < valueOf(SIZE) ; i = i + 1) begin
       Reg#(I) aaa <- mkRegU;
    end
-   
+
    for (Integer i = 0; i < valueOf(SIZE) ; i = i + 1) begin
       Reg#(O) bbb <- mkRegU;
    end
-   
+
 endmodule

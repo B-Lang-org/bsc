@@ -5,7 +5,7 @@ module sysRuleBetweenMethods_TwoRulesBothDirs_TwoLevels2();
 
    SubIfc s1 <- mkSub_Wrapper;
    SubIfc s2 <- mkSub_Wrapper;
- 
+
    rule top_rule_A (p);
       s1.m1(s2.m2);
    endrule
@@ -39,7 +39,7 @@ module mkSub_Wrapper(SubIfc);
    method Action m1(x) if (!p);
       s.m1(x);
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod
@@ -53,11 +53,11 @@ module mkSub_Core(SubIfc);
    rule sub_rule (en < 100);
       count <= count + 1;
    endrule
-      
+
    method Action m1(int x);
       en <= x;
    endmethod
-   
+
    method int m2();
       return (count);
    endmethod

@@ -12,11 +12,11 @@ module sysMergeIf ();
    Reg#(Bool) s1 <- mkReg(False);
    Reg#(Bool) s2 <- mkReg(False);
    Reg#(Bool) s3 <- mkReg(False);
-   
+
    FIFOF#(XXX) f1 <- mkFIFOF;
    FIFOF#(XXX) f2 <- mkFIFOF;
    FIFOF#(XXX) f3 <- mkFIFOF;
-   
+
    rule r1 (True);
       if (s1) begin
          a <= 5;
@@ -28,12 +28,12 @@ module sysMergeIf ();
       else begin
          c <= 7;
       end
-      
+
       if (!s1) begin
          f1.enq(12);
       end
-      
+
       f3.enq(22);
    endrule
-   
+
 endmodule

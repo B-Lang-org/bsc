@@ -8,7 +8,7 @@ module sysCRCTest1();
    CRC#(32) crc_32        <- mkCRC32;
    CRC#(16) crc_16_dnp    <- mkCRC('h3D65, 'h0000, 'hFFFF, True, True);
    CRC#(8)  crc_8         <- mkCRC('h07, 'h00, 'h00, False, False);
-      
+
    Stmt test =
    seq
       delay(10);
@@ -64,6 +64,6 @@ module sysCRCTest1();
       $display("CRC-8 = %X", crc_8.result());
       delay(10);
    endseq;
-   
+
    mkAutoFSM(test);
 endmodule

@@ -1,7 +1,7 @@
 import FIFOF :: * ;
 import Ifc3 :: * ;
 
-      
+
 (* synthesize  *)
 module mkSmallTest3 ( Combined#(int) ) ;
 
@@ -21,15 +21,15 @@ module mkSmallTest3 ( Combined#(int) ) ;
       method first_element ;
          return tfifo.first ;
       endmethod
-      
+
       method Action enqueue ( data_in ) ;
          tfifo.enq( data_in ) ;
       endmethod
-      
+
       method  Action enqueue2( data ) ; // if (tfifo.notFull) ;
          tfifo.enq( data ) ;
       endmethod
-      
+
       method  ActionValue#(int) dequeue() ;
          tfifo.deq;
          return tfifo.first ;
@@ -40,21 +40,21 @@ module mkSmallTest3 ( Combined#(int) ) ;
       method first_element ;
          return tfifo.first ;
       endmethod
-      
+
       method Action enqueue ( data_in ) ;
          tfifo.enq( data_in ) ;
       endmethod
-      
+
       method  Action enqueue2( data ) ; // if (tfifo.notFull) ;
          tfifo.enq( data ) ;
       endmethod
-      
+
       method  ActionValue#(int) dequeue() ;
          tfifo.deq;
          return tfifo.first ;
       endmethod
    endinterface
-   
+
 
 endmodule
 

@@ -11,7 +11,7 @@ module sysBug540_1(Empty);
 
   Reg#(Bit#(1)) c();
   mkReg#(0) the_c(c);
-  
+
   Reg#(Bool) done();
   mkReg#(False) the_done(done);
 

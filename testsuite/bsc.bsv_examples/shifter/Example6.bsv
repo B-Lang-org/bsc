@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 Example6
- 
+
 The functions in this file are list-based versions of those in Example3
 (replacing for-loops with list functions).
 

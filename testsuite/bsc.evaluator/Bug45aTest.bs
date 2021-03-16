@@ -4,7 +4,7 @@ import Bug45a
 
 {-# verilog sysBug45aTest #-}
 sysBug45aTest :: Module (Empty)
-sysBug45aTest = 
+sysBug45aTest =
   module
    b45 :: Test <- sysBug45a
    counter :: Reg (Bit 4) <- mkReg 0

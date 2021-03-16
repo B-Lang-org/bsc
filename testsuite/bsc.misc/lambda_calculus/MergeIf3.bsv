@@ -12,7 +12,7 @@ module sysMergeIf3 ();
    Reg#(Bool) c3 <- mkReg(False);
    Reg#(Bool) c4 <- mkReg(False);
    Reg#(Bool) c5 <- mkReg(False);
-   
+
    rule r1;
       // test that we also merge when the following action is a subset
       if (c1) begin
@@ -36,5 +36,5 @@ module sysMergeIf3 ();
          z <= 2;
       end
    endrule
-   
+
 endmodule

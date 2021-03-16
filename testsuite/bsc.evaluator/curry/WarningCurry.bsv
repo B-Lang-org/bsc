@@ -12,7 +12,7 @@ module mkWarningCurry();
   Reg#(Bool) switch <- mkReg(False);
 
   Integer test = (switch ? warning("a", a) : warning("b", b))(5);
-  
+
   rule go;
     $display(test);
     $finish(0);

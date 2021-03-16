@@ -11,7 +11,7 @@ module mkMyReg ( Reset aRst, OutRst ifcout ) ;
    no_reset ;
 
    input_reset out_reset (RSTN_IN) = aRst ;
-   
+
    output_reset out_reset (RSTN_OUT) ;
 endmodule
 

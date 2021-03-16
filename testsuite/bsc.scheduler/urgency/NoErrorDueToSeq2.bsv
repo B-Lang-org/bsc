@@ -16,7 +16,7 @@ module mkNoErrorDueToSeq2 ();
    rule r2;
       rw2.wset(!isValid(rw1.wget));
    endrule
-   
+
    rule r3 (isValid(rw2.wget));
       rg <= rg - 1;
    endrule

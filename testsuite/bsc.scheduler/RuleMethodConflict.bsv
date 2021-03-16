@@ -9,16 +9,16 @@ endinterface
 // Note: THIS IMPLEMENTATION IS BORKED!
 // The write and read methods are in conflict!
 module mkBypassReg( BypassReg#( typ ) ) provisos( Bits#(typ,szN) );
-   Reg#(typ)   rg <- mkRegU;   
+   Reg#(typ)   rg <- mkRegU;
    RWire#(typ) wr <- mkRWire;
 
    method Action _write( typ v );
       wr.wset( v );
-      rg <= v;   
+      rg <= v;
    endmethod
 
    method typ _read();
-      if (wr.wget matches tagged Valid .v) 
+      if (wr.wget matches tagged Valid .v)
          return v;
       else
          return rg;

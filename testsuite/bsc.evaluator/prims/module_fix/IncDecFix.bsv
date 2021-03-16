@@ -10,7 +10,7 @@ endinterface
 
 module mkA#(Inc b)(Dec);
   Reg#(Int#(32)) r <- mkReg(0);
-  
+
   rule do_inc(r == 0);
     r <= r + 1;
     b.inc;
@@ -63,4 +63,3 @@ module sysIncDecFix();
 endmodule
 
 
-  

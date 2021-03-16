@@ -17,7 +17,7 @@ package EUnboundField () where
 data My_pair = Cons1 {fst :: Integer; snd :: Integer}
 
 
-firstpair :: My_pair 
+firstpair :: My_pair
 firstpair = Cons1 {fst =5; snd =10}
 
 secondpair :: My_pair

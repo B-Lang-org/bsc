@@ -10,7 +10,7 @@ typedef enum { Ingress1, Ingress2 } Ingress deriving (Eq, Bits);
 (* synthesize *)
 module mkBlock2b( LabIFC );
    Integer fifo_depth = 16;
-  
+
    // modify data (by adding AA to certain digits)
    // to show it went through the arbiter
    function DataT generate_new_data(DataT val);
@@ -19,7 +19,7 @@ module mkBlock2b( LabIFC );
 
    FIFOF#(DataT) inbound1();
    mkSizedFIFOF#(fifo_depth) the_inbound1(inbound1);
-   
+
    FIFOF#(DataT) inbound2();
    mkSizedFIFOF#(fifo_depth) the_inbound2(inbound2);
 
@@ -37,7 +37,7 @@ module mkBlock2b( LabIFC );
    rule enq1 (rule1_can_fire);
       DataT in_data = inbound1.first;
       DataT out_data = generate_new_data(in_data);
-      outbound1.enq(out_data); 
+      outbound1.enq(out_data);
       inbound1.deq;
       roundRobin <= Ingress2;
    endrule: enq1
@@ -46,12 +46,12 @@ module mkBlock2b( LabIFC );
    rule enq2 (rule2_can_fire);
       DataT in_data = inbound2.first;
       DataT out_data = generate_new_data(in_data);
-      outbound1.enq(out_data); 
+      outbound1.enq(out_data);
       inbound2.deq;
       roundRobin <= Ingress1;
    endrule: enq2
 
-   method Action push1 (DataT a); 
+   method Action push1 (DataT a);
       action
          inbound1.enq(a);
       endaction
@@ -62,8 +62,8 @@ module mkBlock2b( LabIFC );
          inbound2.enq(a);
       endaction
    endmethod
-   
-   method get(); 
+
+   method get();
       actionvalue
          outbound1.deq();
          return outbound1.first();

@@ -22,7 +22,7 @@ endmodule
 
 (* synthesize *)
 module mkIBuffer(IBuffer#(IAddress, PackedInstruction, 1, 1));
-  
+
 // don't use bypassFIFO to avoid race condition
   FIFO#(IAddress) cacheAddrQueue <- mkCacheAddrQueue;
   FIFO#(IBus#(Tuple2#(PackedInstruction, IAddress), 1)) responseQueue <- mkResponseQueue;
@@ -42,7 +42,7 @@ module mkIBuffer(IBuffer#(IAddress, PackedInstruction, 1, 1));
            tagged Valid {.hd, .tl} : begin
                              return (List::cons(
                                        (isJust(hd))?Just(tuple2(unJust(hd),ia)): Nothing,
-                                      subTrans(next_ia, tl)));                            
+                                      subTrans(next_ia, tl)));
                            end
 
 
@@ -63,7 +63,7 @@ module mkIBuffer(IBuffer#(IAddress, PackedInstruction, 1, 1));
 
   method ActionValue#(IBus#(Tuple2#(PackedInstruction, IAddress), 1)) iBufferResponse();
     responseQueue.deq();
-    return (responseQueue.first);   
+    return (responseQueue.first);
   endmethod: iBufferResponse
 
   method Action handleIBufferRequest(IAddress x);
@@ -73,7 +73,7 @@ module mkIBuffer(IBuffer#(IAddress, PackedInstruction, 1, 1));
 
   method ActionValue#(IAddress) cacheRequest();
     cacheAddrQueue.deq();
-    return (cacheAddrQueue.first);   
+    return (cacheAddrQueue.first);
   endmethod: cacheRequest
 
   method Action flush();

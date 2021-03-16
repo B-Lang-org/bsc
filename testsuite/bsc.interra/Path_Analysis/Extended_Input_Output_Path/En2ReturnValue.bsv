@@ -1,4 +1,4 @@
-//In the sub-module, signal from Enable of one method 
+//In the sub-module, signal from Enable of one method
 //goes through combinational logic to ReturnValue of another method.
 //In the toplevel module, a path is created from the return value
 //to the enable signal
@@ -15,16 +15,16 @@ endinterface
 
 (* synthesize *)
 module mksubEn2ReturnValue(En2ReturnValueInter);
-    
+
     FIFO #(Bit #(8)) my_fifo();
     mkFIFO the_my_fifo (my_fifo);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
 
     RWire #(Bit #(8)) x();
     mkRWire the_x (x);
-    
+
     rule always_fire;
         counter <= counter + 1;
     endrule
@@ -33,7 +33,7 @@ module mksubEn2ReturnValue(En2ReturnValueInter);
         my_fifo.enq (counter);
         x.wset (counter);
     endmethod
-    
+
     method result;
         Bit #(8) temp;
         if (x.wget matches tagged Just {.y})
@@ -42,20 +42,20 @@ module mksubEn2ReturnValue(En2ReturnValueInter);
            temp = 0;
         return temp;
     endmethod
-   
+
 endmodule
 
 (* synthesize *)
 module mkEn2ReturnValue ();
-    
+
     En2ReturnValueInter dut();
     mksubEn2ReturnValue the_dut(dut);
-   
+
     rule fire (dut.result >= 5);
         dut.start;
     endrule
-       
+
 endmodule
-    
+
 
 endpackage

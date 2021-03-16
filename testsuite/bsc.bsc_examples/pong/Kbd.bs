@@ -13,7 +13,7 @@ interface RawKbd =
     key  :: Bit 8
 
 --parameter SM_1 = 0;
---parameter SM_2 = 1;   
+--parameter SM_2 = 1;
 --parameter S_W = 10; // shift register width (DO NOT CHANGE)
 --parameter BYTE_ERROR = 8'd0;  // error-code to flag parity-error
 --parameter KBCNT = 11; // 11 clocks
@@ -21,7 +21,7 @@ interface RawKbd =
 mkKbd :: Module (RawKbd, Kbd)
 mkKbd =
   module
-    
+
         -- reg'd versions of inputs, for synchronization to local master clock (clk)
         r_kbclk    :: Reg (Bool) <- mkConfigReg False -- reg'd (synchronized) kbclk
         r_kbdata   :: Reg (Bool) <- mkConfigReg False -- reg'd (synchronized) kbdata
@@ -35,31 +35,31 @@ mkKbd =
         s_reg        :: Reg (Bit 10) <- mkConfigReg 0 -- input (kbdata) shift register
         s_reg_err    :: Reg (Bool) <- mkConfigReg False -- final parity result on s_reg (1=error)
         s_reg_parity :: Reg (Bit 1) <- mkConfigReg 0 -- s_reg's running parity
-        kbclk_ctr    :: Reg (Bit 4) <- mkConfigReg 0 
+        kbclk_ctr    :: Reg (Bit 4) <- mkConfigReg 0
         kbclk_ctr_eqcnt :: Reg (Bool) <- mkConfigReg False
         debug_reg_obyteload :: Reg (Bool) <- mkConfigReg False
         debug_reg_kbclkctrreset :: Reg (Bool) <- mkConfigReg False
 
         --Component (2) : output buffer logic
         -- byte data register (last received scancode)
-        o_byte :: Reg (Bit 8) <- mkConfigReg 0 
+        o_byte :: Reg (Bit 8) <- mkConfigReg 0
         -- byte-status, (1=contain valid data, 0=empty)
-        o_byte_rdy :: Reg (Bool) <- mkConfigReg False 
+        o_byte_rdy :: Reg (Bool) <- mkConfigReg False
         -- o_byte parity error status (1=error, 0=ok)
-        o_byte_err :: Reg (Bool) <- mkConfigReg False  
+        o_byte_err :: Reg (Bool) <- mkConfigReg False
 
         let kbclk_ctr_reset = kbclk_ctr_eqcnt -- glitchless (reg'd signal)
-        let kbclk_ctr_eqcnt_ns = ((kbclk_ctr == 10) && (kbclk_stb)) -- next-state	
+        let kbclk_ctr_eqcnt_ns = ((kbclk_ctr == 10) && (kbclk_stb)) -- next-state
 
         let fsm_ns = fsm_ps
         let fsm_lock_kbclkn_ns = 1 -- 1=don't lock kbclk, 0=lock kbclk
 
-        let o_byte_load =  (fsm_ps==1) && (not o_byte_rdy) 
+        let o_byte_load =  (fsm_ps==1) && (not o_byte_rdy)
         let o_kbclk_en = fsm_lock_kbclkn -- 1=enable input, 0=disable input
 
         let fsm_ns =
              --0 -> -- SM_1 -- READ SCANCODE
-             if (fsm_ps == 0) then      
+             if (fsm_ps == 0) then
                  if ( kbclk_ctr_reset ) then -- kbclk_ctr_reset also clears the latch -> 0
                    1
                   else
@@ -71,7 +71,7 @@ mkKbd =
                    fsm_ps
         let fsm_lock_kbclkn_ns =
              --0 -> -- SM_1 -- READ SCANCODE
-             if (fsm_ps == 0) then      
+             if (fsm_ps == 0) then
                  if ( kbclk_ctr_reset ) then -- kbclk_ctr_reset also clears the latch -> 0
                    0
                   else
@@ -101,7 +101,7 @@ mkKbd =
                                 --shift data in from MSB, shift right
                                 s_reg := (pack r_kbdata) ++ s_reg[9:1]
                                else
-                                noAction 
+                                noAction
                               kbclk_ctr_eqcnt := kbclk_ctr_eqcnt_ns
                               if ( kbclk_ctr_reset ) then
                                 action
@@ -115,25 +115,25 @@ mkKbd =
                                      else
                                        noAction
                               if ( o_byte_load ) then  -- transfer data from s_reg?
-                               action 
-                                 o_byte := if s_reg_err then 0 else s_reg[7:0] 
+                               action
+                                 o_byte := if s_reg_err then 0 else s_reg[7:0]
                                  o_byte_rdy := True  -- raise rdy line, got new data!
                                  o_byte_err := s_reg_err -- load parity status: 1=error, 0=no error
-                               else 
-                                 if ( o_byte_err ) then 
-                                  action  
+                               else
+                                 if ( o_byte_err ) then
+                                  action
                                     o_byte_rdy := False
                                     o_byte_err := False
                                   else
-                                    noAction 
+                                    noAction
 
-        return $ 
-         (interface RawKbd    
+        return $
+         (interface RawKbd
             kbclk i_kbclk =
                           r_kbclk    := i_kbclk
             kbdata i_kbdata =
                           r_kbdata   := i_kbdata
-            key = o_byte               
+            key = o_byte
           ,
           interface Get
 	    get = do

@@ -1,4 +1,4 @@
-// A structure for holding a fixed-point number 
+// A structure for holding a fixed-point number
 typedef struct {
                 Int#(isize)  intPart ;
                 UInt#(fsize)  fracPart ;
@@ -13,7 +13,7 @@ instance Bits#( FixedPoint#(i,f), sizefp )
    endfunction
    function FixedPoint#(i,f) unpack( Bit#(sizefp) bitIn );
       match { .ip, .fp } = Tuple2#(Bit#(i),Bit#(f))'( unpack( bitIn ) ) ;
-      return FixedPoint{ intPart: unpack(ip), 
+      return FixedPoint{ intPart: unpack(ip),
                         fracPart: unpack(fp) } ;
    endfunction
 endinstance
@@ -28,35 +28,35 @@ instance Arith#( FixedPoint#(i,f) )  ;
       let in2p = pack(in1) ;
       let sump = in1p + in2p ;
       return unpack( sump ) ;
-                            
+
    endfunction
-   
+
    function \- (FixedPoint#(i,f) in1, FixedPoint#(i,f) in2 );
       let in1p = pack(in1) ;
       let in2p = pack(in1) ;
       let sump = in1p - in2p ;
       return unpack( sump ) ;
-                            
+
    endfunction
-   
+
    function \* (FixedPoint#(i,f) in1, FixedPoint#(i,f) in2 );
       let in1p = pack(in1) ;
       let in2p = pack(in1) ;
       let sump = in1p + in2p ;
       return unpack( sump ) ;
-                            
+
    endfunction
-   
+
    function negate (FixedPoint#(i,f) in1 );
       let in1p = pack(in1) ;
       let sump = 0 - in1p  ;
       return unpack( sump ) ;
-                            
+
    endfunction
-   
+
 endinstance
 
-instance Literal#( FixedPoint#(i,f) ); 
+instance Literal#( FixedPoint#(i,f) );
 
    function fromInteger(n) ;
       return FixedPoint{ intPart: fromInteger(n), fracPart: 0 } ;
@@ -83,7 +83,7 @@ function FixedPoint#(ri,rf)  fxpMult( FixedPoint#(ai,af) a,
    FixedPoint#(ri,rf) res = unpack( prod ) ;
    return res ;
 
-   
+
 endfunction
 
 

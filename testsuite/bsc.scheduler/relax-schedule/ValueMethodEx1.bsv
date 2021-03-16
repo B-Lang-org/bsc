@@ -35,7 +35,7 @@ module sysTloop(Empty) ;
   rule count ;
      counter.inc(1) ;
   endrule
-  
+
   rule quit (counter.value == 5) ;
     $finish(0) ;
   endrule

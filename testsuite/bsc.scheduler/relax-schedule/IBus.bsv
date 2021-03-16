@@ -18,13 +18,13 @@ endfunction
 
 typedef IBus#(Either#(a,b), n) EBus#(type a, type b, type n);
 
-function Tuple2#(IBus#(a, m), IBus#(b, m)) 
+function Tuple2#(IBus#(a, m), IBus#(b, m))
             threadEBus (EBus#(a, b, n) in1, EBus#(a, b, n) in2)
     provisos (Add#(n, n, m));
 
   IBus#(a, m) r1 = replicate(?);
   IBus#(b, m) r2 = replicate(?);
-  
+
   for (Integer k = 0; k < valueof(n); k = k + 1)
   begin
     r1[k] = case (in1[k]) matches
@@ -55,12 +55,12 @@ function Tuple2#(IBus#(a, m), IBus#(b, m))
 
 endfunction
 
-function Tuple2#(IBus#(a, n), IBus#(b, n)) 
+function Tuple2#(IBus#(a, n), IBus#(b, n))
            splitEBus(EBus#(a, b, n) inbus);
-	   
+
   IBus#(a, n) r1 = replicate(?);
   IBus#(b, n) r2 = replicate(?);
-  
+
   for (Integer k = 0; k < valueof(n); k = k + 1)
   begin
     case (inbus[k]) matches
@@ -84,18 +84,18 @@ function Tuple2#(IBus#(a, n), IBus#(b, n))
         endcase
     endcase
   end
-  
+
   return tuple2(r1, r2);
 endfunction
 
-//This biases to Left in the case of a collision. 
+//This biases to Left in the case of a collision.
 //IE the Right value will be discarded if Left is present.
 
-function EBus#(a, b, n) 
+function EBus#(a, b, n)
       	    joinEBus_exclusive(IBus#(a, n) inl, IBus#(b, n) inr);
 
   EBus#(a, b, n) res = replicate(?);
-  
+
   for (Integer k = 0; k < valueof(n); k = k + 1)
   begin
     res[k] = case (inl[k]) matches
@@ -110,19 +110,19 @@ function EBus#(a, b, n)
         return Just(Left(x));
     endcase;
   end
-  
+
   return res;
 
 endfunction
 
 //This scheme guarantees no lost data, but thus doubles the size of the joined bus.
 
-function EBus#(a, b, m) 
+function EBus#(a, b, m)
       	    joinEBus_double(IBus#(a, n) inl, IBus#(b, n) inr)
   provisos (Add#(n, n, m));
 
   EBus#(a, b, m) res = replicate(?);
-  
+
   for (Integer k = 0; k < (valueof(m) - 1); k = k + 2) //Note: Stepping by 2
   begin
     case (inl[k]) matches
@@ -154,7 +154,7 @@ function EBus#(a, b, m)
 	endcase
     endcase
   end
-  
+
   return res;
 
 endfunction

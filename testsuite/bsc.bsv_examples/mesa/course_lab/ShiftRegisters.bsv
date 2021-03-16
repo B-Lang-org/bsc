@@ -12,7 +12,7 @@ module mkShifter#(Integer sz)(ShiftReg#(val))
    provisos (Bits#(val, bval));
 
    Reg#(Maybe#(val)) slots[sz];
-   
+
    for (Integer i=0; i<sz; i=i+1)
       begin
 	 Reg#(Maybe#(val)) r();
@@ -21,14 +21,14 @@ module mkShifter#(Integer sz)(ShiftReg#(val))
       end
 
    method sout() ;
-      let x = slots[sz-1];  
+      let x = slots[sz-1];
       return (x);
    endmethod: sout
 
    method sin(v) ;
       action
 	 let slotJ = slots[0];
-	 
+
 	 for (Integer i=1; i<sz; i=i+1)
 	    action
 	       let x = slots[i-1];

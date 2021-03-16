@@ -1,5 +1,5 @@
 //Testcase for clock domain crossing using mkNullCrossing : MCD
-//This module's output samples in_data[7:0] or in_data[15:8], depending on 
+//This module's output samples in_data[7:0] or in_data[15:8], depending on
 //select bit,which is coming from "2" domain, whereas data is in "1" domain.
 //In this testcase using low level primitives such as Null crossing and three//flops, medium level sync (2-Flop sync) is made.
 
@@ -7,11 +7,11 @@ import Clocks::*;
 
 interface Design_IFC;
  method Action inp_clk1(Bit#(16) in_data);
- method Action inp_clk2(Bit#(1) sel); 
+ method Action inp_clk2(Bit#(1) sel);
  method Bit#(8) out_data();
 endinterface : Design_IFC
 
-(* 
+(*
    CLK = "clk_1",
    RST_N = "rst_1",
    synthesize
@@ -21,7 +21,7 @@ module mkDesign (Clock clk_2, Reset rst_2, Design_IFC ifc);
  Reg#(Bit#(8))     out_data_reg();
  mkReg#(0)         t_out_data_reg(out_data_reg);
 
- Clock currClk <- exposeCurrentClock; 
+ Clock currClk <- exposeCurrentClock;
  Reset currRst <- exposeCurrentReset;
 
  Reg#(Bit#(1))       flopA_clk2();

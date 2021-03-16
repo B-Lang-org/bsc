@@ -8,11 +8,11 @@ module sysTestEnableFail();
    //Wire#(Bool) w2 <- mkBypassWire;
    // a submodule to test multiple methods in the same warning
    SubIfc i <- mkSub;
-   
+
    rule r (b);
       w1 <= True;
    endrule
-      
+
    rule r2 (b);
       i.m1;
       i.m2;

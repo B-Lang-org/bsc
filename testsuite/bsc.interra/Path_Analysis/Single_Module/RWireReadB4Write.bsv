@@ -10,10 +10,10 @@ endinterface
 
 (* synthesize *)
 module mkRWireReadB4Write(Inout);
-   
+
     RWire #(Bit #(8)) x();
     mkRWire the_x (x);
-    
+
     rule flip (unJust (x.wget) >  0);
         x.wset (0);
     endrule

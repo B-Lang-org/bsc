@@ -23,7 +23,7 @@ module mkRUser2(UserIfc);
      endmethod
     endinterface);
 
-  
+
 
   rule consume;
    action
@@ -41,4 +41,4 @@ module mkRUser2(UserIfc);
   return tuple2(inFifo.snd, cmp2);
 endmodule
 
-  
+

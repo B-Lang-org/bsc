@@ -6,7 +6,7 @@ interface Rotate#(numeric type n, type a_T);
 endinterface
 
 module mkRotate#(Vector#(n, a_T) init)(Rotate#(n, a_T)) provisos(Bits#(a_T, pa_T));
- 
+
 function Vector#(n, a_T) rotateBitVector(Vector#(n, a_T) xs, Nat start);
      Bit#(vsz) pxs = pack(xs);
      Nat s     = fromInteger(valueof(pa_T));

@@ -13,7 +13,7 @@ sysElf :: Module Empty
 sysElf = mkState
 
 mkState :: Module Empty
-mkState = 
+mkState =
     module
       pc :: Reg Word
       pc <- mkReg 0
@@ -90,7 +90,7 @@ mkRules pc rf imem dmem =
 		  }
 
 	  "JZ":
-	    when opcode == 6 
+	    when opcode == 6
 		rules {
 		  "taken":
 		    when rf.sub src2 == 0

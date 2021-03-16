@@ -3,9 +3,9 @@
 module sysArrayFuncDecl ();
 
   function Bool[] testFunc(Bool x[]);
-    
+
     return x;
-  
+
   endfunction
 
   Bool tmp[3] = {False, True, False};

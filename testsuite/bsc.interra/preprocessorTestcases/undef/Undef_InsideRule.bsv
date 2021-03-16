@@ -1,7 +1,7 @@
 package Design;
 
 typedef enum {IDLE, REQUEST, ACQUISITION} HSstates
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 interface Design_IFC;
     method Bit#(1) req();
@@ -21,7 +21,7 @@ module mkDesign (Design_IFC);
 
   Reg#(Bit#(1))     req_reg();
   mkReg#(0)         t_req_reg(req_reg);
-  
+
   rule fromIdle (state == IDLE);
     begin
      `define MAX 23

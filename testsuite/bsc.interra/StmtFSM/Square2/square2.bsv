@@ -7,9 +7,9 @@ import StmtFSM::*;
 function ActionValue#(Bit#(64)) adj_time(Bit#(64) dummy);
    actionvalue
      let x <- $time();
-     if (genVerilog) x = x + 5;     
+     if (genVerilog) x = x + 5;
      return x;
-   endactionvalue     
+   endactionvalue
 endfunction
 
 // implement squaring via table lookup
@@ -39,26 +39,26 @@ module mkSquare(Square);
 endmodule
 
 (* synthesize *)
-module sysValidValue2(Empty);  
-  
+module sysValidValue2(Empty);
+
   Reg#(Bit#(5)) loop <- mkReg(0);
-  
+
   Square square <- mkSquare;
 
   Stmt testStmts =
-    seq 
+    seq
         repeat(16) //using repeat
-		seq  
+		seq
           loop <= loop +1;
 		  if (loop == 7 || loop == 8 || loop == 9) continue;//using continue
 		  if (loop == 13) break;//using break
 		  par
 		    $display("Square %0d is %0d", loop, square.square);
                     square.data_in(truncate(loop));
-		  endpar 
+		  endpar
 		endseq
       $display("Test finished at time %0t", adj_time(0));
-    endseq;  
+    endseq;
 
   FSM testFSM <- mkFSM(testStmts);
 

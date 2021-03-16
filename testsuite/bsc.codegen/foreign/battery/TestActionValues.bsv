@@ -43,7 +43,7 @@ module mkTestActionValues ();
 
       // ---------------
       // static inputs
-      
+
       Bit#(32) rn1 <- av_narrow (w1, p1, n1, s);
       $display(" rn1 = %h", rn1);
       Bit#(32) rn2 <- av_narrow (w2, p2, n2, s);
@@ -70,7 +70,7 @@ module mkTestActionValues ();
 
       // ---------------
       // dynamic inputs (and writing outputs to registers)
-      
+
       Bit#(32) rn3 <- av_narrow (w3, p3, n3, s3);
       $display(" rn3 = %h", rn3);
       res_n1 <= rn3;

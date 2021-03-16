@@ -1,4 +1,4 @@
-// Tests for 
+// Tests for
 import Vector :: * ;
 import StmtFSM :: * ;
 
@@ -26,19 +26,19 @@ module sysMiscFunc() ;
    endfunction
 
    Vector#(16,Basic) foo =  map( fromInteger, genVector ) ;
-   
+
    Vector#(6, Reg#(Basic)) vregs <- replicateM (mkReg(0));
 
    Reg#(Bit#(7))  xx1 <- mkReg(0);
    Reg#(Bit#(8))  xx8 <- mkReg(0);
 
-   function Action dv (xxx) = $display ( "%b msb = %b parity = %b, rev = %b, Ones = %d, MSB zeros = %d, LSB zeros = %d", 
-                                        xxx, msb(xxx), parity(xxx), reverseBits(xxx), 
+   function Action dv (xxx) = $display ( "%b msb = %b parity = %b, rev = %b, Ones = %d, MSB zeros = %d, LSB zeros = %d",
+                                        xxx, msb(xxx), parity(xxx), reverseBits(xxx),
                                         countOnes(xxx), countZerosMSB(xxx), countZerosLSB(xxx) );
 
 
    function Action ds( x, y) = $display( "%b,  truncateLSB = %b ", x, y ) ;
-   function Action rtrun ( f ) = 
+   function Action rtrun ( f ) =
       action
          Bit#(6) f6 = truncateLSB(f);
          ds( f, f6 );
@@ -53,10 +53,10 @@ module sysMiscFunc() ;
          Bit#(1) f1 = truncateLSB(f);
          ds( f, f1 );
          Bit#(0) f0 = truncateLSB(f);
-         ds( f, f0 );           
+         ds( f, f0 );
       endaction ;
-      
-   
+
+
    Stmt testseq =
    seq
 
@@ -68,64 +68,64 @@ module sysMiscFunc() ;
       current <= readVReg (vregs);
       displayVs( "read & writeVreg head" ) ;
       $display ( "reverseBits: %b %b", pack(current), reverseBits(pack(current)) ) ;
-      
+
       action
          xx1 <= 1 ;
       endaction
-      action 
+      action
          dv(xx1);
          xx1 <= 3 ;
       endaction
-      action 
+      action
          dv(xx1) ;
          xx1 <= 2 ;
       endaction
-      action 
+      action
          dv(xx1) ;
          xx1 <= 7'h41 ;
       endaction
-      action 
+      action
          dv(xx1) ;
          xx1 <= 7'h42 ;
       endaction
-      action 
+      action
          dv(xx1) ;
-         xx1 <= 7'h43 ; 
+         xx1 <= 7'h43 ;
       endaction
-      action 
+      action
          dv(xx1) ;
-         xx1 <= 7'h43 ; 
+         xx1 <= 7'h43 ;
       endaction
-      action 
+      action
          dv(xx1) ;
-         xx1 <= 7'h50 ; 
+         xx1 <= 7'h50 ;
       endaction
-      action 
+      action
          dv(xx1) ;
-         xx1 <= 7'h05 ; 
+         xx1 <= 7'h05 ;
       endaction
-      action  
+      action
          dv(xx1);
 
-         xx8 <= '1 ; 
+         xx8 <= '1 ;
       endaction
-      action 
+      action
          dv(xx8);
          xx8 <= '0 ;
       endaction
-      action  
+      action
          dv(xx8);
          xx8 <= 'haa ;
       endaction
-      action 
+      action
          dv(xx8);
          xx8 <= 'h55 ;
       endaction
-      action 
+      action
          dv(xx8);
          xx8 <= 'h81 ;
       endaction
-      action 
+      action
          dv(xx8);
       endaction
       action
@@ -133,7 +133,7 @@ module sysMiscFunc() ;
          xx8 <= 'hbc ;
          Bit#(7) f = 7'b0010011 ;
          rtrun(f) ;
-         rtrun( reverseBits(f)) ; 
+         rtrun( reverseBits(f)) ;
          rtrun ( 9'b1100_01111 );
       endaction
       action
@@ -142,7 +142,7 @@ module sysMiscFunc() ;
   endseq;
 
    mkAutoFSM( testseq ) ;
-   
-   
+
+
 endmodule
 

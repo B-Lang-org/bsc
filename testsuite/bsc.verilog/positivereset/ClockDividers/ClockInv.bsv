@@ -10,7 +10,7 @@ module sysClockInv() ;
    Clock clkA <- mkAbsoluteClock( 15,10 ) ;
    Reset rstA() ;
    mkAsyncReset#(3) iRstA( resetin, clkA, rstA ) ;
-   
+
    // divide the clock
    ClockDividerIfc divClock <- mkClockInverter( clocked_by clkA, reset_by rstA ) ;
    Clock clkB = divClock.slowClock ;
@@ -18,7 +18,7 @@ module sysClockInv() ;
    // We need a reset for the B domain as well
    Reset rstB() ;
    mkAsyncReset#(3) iRstB( rstA, clkB, rstB ) ;
-   
+
    // Some counters for each clock
    Reg#(int)  areg();
    mkReg#(0) iareg(areg, clocked_by clkA, reset_by rstA ) ;
@@ -34,7 +34,7 @@ module sysClockInv() ;
    // A register to do synchronized crossings
    Reg#(int)  crossregF() ;
    mkSyncReg#(0)  icrossingRegF(clkB, rstB, clkA, crossregF ) ;
-   
+
    // We use a dummy argument to work around bug 1251
    function ActionValue#(Bit#(64)) adjusted_time(Bit#(8) dummy);
    actionvalue

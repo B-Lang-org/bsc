@@ -4,15 +4,15 @@ import GetPut :: *;
 import FIFO :: *;
 
 //mkDesign_FifoToGet to see if a proper verilog is generated.
-module mkDesign_FifoToGet(Get #(Bit #(8) )); 
-     FIFO#(Bit #(8)) f(); 
-     mkFIFO the_f(f); 
-     return (fifoToGet(f)); 
+module mkDesign_FifoToGet(Get #(Bit #(8) ));
+     FIFO#(Bit #(8)) f();
+     mkFIFO the_f(f);
+     return (fifoToGet(f));
 endmodule: mkDesign_FifoToGet
 
 
 module mkTestbench_FifoToGet ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFO#(Bit#(8)) dut <- mkFIFO() ;
   Get #(Bit #(8)) dutget = fifoToGet (dut);

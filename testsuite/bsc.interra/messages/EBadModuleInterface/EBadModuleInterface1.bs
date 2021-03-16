@@ -30,7 +30,7 @@ mkEBadModuleInterface1 =
 
 	y :: Reg (Int 32)
 	y <- mkReg 0
-       
+
         rules
 	  "Swap":
 	    when x > y, y /= 0
@@ -50,7 +50,7 @@ mkEBadModuleInterface1 =
 	                  when y == 0
 	    result = x when y == 0
 
- 
+
         interface
             start ix iy = action
                               x := ix

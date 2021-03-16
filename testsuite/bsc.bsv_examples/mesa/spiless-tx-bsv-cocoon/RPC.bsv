@@ -18,7 +18,7 @@ import "BVI" RPC =
 module vMkRPC (VIRPC#(a, r))
    provisos (Bits#(a,sa), Bits#(r,sr));
 
-   parameter widtha = valueOf(sa);   
+   parameter widtha = valueOf(sa);
    parameter widthr = valueOf(sr);
    default_clock clk();
    default_reset rst();
@@ -53,5 +53,5 @@ module mkRPC(IRPC#(a, r))
 endmodule
 
 // ====
-      
+
 endpackage

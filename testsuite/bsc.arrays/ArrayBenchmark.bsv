@@ -26,7 +26,7 @@ module mkPATest ();
       endrule
     end
   end
-  
+
 endmodule
 
 (* synthesize *)
@@ -34,7 +34,7 @@ module mkListNTest ();
 
   ListN#(`ROWS, ListN#(`COLS, Reg#(int))) v = replicate(replicate(?));
   ListN#(`ROWS, ListN#(`COLS, int)) vs = replicate(replicate(?));
-  
+
   for (Integer x = 0; x < `ROWS; x = x + 1)
   begin
     for (Integer y = 0; y < `COLS; y = y + 1)
@@ -46,5 +46,5 @@ module mkListNTest ();
       endrule
     end
   end
-  
+
 endmodule

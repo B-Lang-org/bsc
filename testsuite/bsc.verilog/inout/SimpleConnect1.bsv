@@ -10,9 +10,9 @@ module sysSimpleConnect1(Empty);
    rule increment;
       count <= count + 1;
    endrule
-   
+
    rule stop (count==1);
       $finish(0);
    endrule
-      
+
 endmodule

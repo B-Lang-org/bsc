@@ -23,7 +23,7 @@ endmodule
 
 (* synthesize *)
 module mkPathTestSub( IFC );
-   
+
    Wire#(ReqData)   req_data <- mkWire;
 
    method ReqData req_info();
@@ -33,6 +33,6 @@ module mkPathTestSub( IFC );
    method Action  put(ReqData d);
       req_data <= d;
    endmethod
-      
+
 endmodule
 

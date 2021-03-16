@@ -86,38 +86,38 @@ endmodule
 
 (* synthesize *)
 module sysFormat3 (Empty);
-   
+
    Reg#(Bit#(32)) value <- mkReg(1234);
    Reg#(Bit#(16)) count <- mkReg(0);
-   
+
    // Probes to send "fshow" strings to waves
    Probe#(VOB)     vob_probe <- dbgProbe;
    Probe#(TUP)     tup_probe <- dbgProbe;
    Probe#(Request) req_probe <- dbgProbe;
-   
+
    rule every;
       // generate some values
       VOB v_of_bools  = unpack(truncate(count));
       TUP a_tuple     = unpack(truncate(count));
       Request request = unpack(truncate(value));
-      
+
       // send signals to waves.
       vob_probe <= v_of_bools;
       tup_probe <= a_tuple;
       req_probe <= request;
-      
+
       // show use with $display
       $display("  A Vector: ", fshow(v_of_bools));
       $display("   A Tuple: ", fshow(a_tuple));
       $display(" A Request: ", fshow(request));
       $display("----------------------------------");
-      
+
       // update values
       value <= (value << 1) | {0, (value[31] ^ value[21] ^ value[1] ^ value[01])};
       count <= count + 1;
       if (count == 30) $finish;
    endrule
-   
+
 endmodule
 
 

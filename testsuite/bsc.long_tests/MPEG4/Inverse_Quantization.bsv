@@ -30,7 +30,7 @@ function Bit#(16) func_getmethod1(Bit#(1) sign,Bool isIntra,Bit#(12) dct_data,Bi
   if (dct_data == 0)
 	 res = 0;
   else
-    res = tmp1; 
+    res = tmp1;
   return res;
 endfunction
 
@@ -100,13 +100,13 @@ module mkInverse_quantized(Inverse_Quantization_IFC);
   method getmethod1(sign,isIntra,dct_data,qp,quant_value);
     Bit#(16) tmp_result = func_getmethod1(sign,isIntra,dct_data,qp,quant_value);
 	Bit#(12) saturated_result = func_saturate(tmp_result);
-    getmethod1 = saturated_result;	
+    getmethod1 = saturated_result;
   endmethod: getmethod1
 
   method getmethod2(sign,level,qp);
     Bit#(16) tmp_result = func_getmethod2(sign,level,qp);
 	Bit#(12) saturated_result = func_saturate(tmp_result);
-    getmethod2 = saturated_result;	
+    getmethod2 = saturated_result;
   endmethod: getmethod2
 
   method saturate(value);

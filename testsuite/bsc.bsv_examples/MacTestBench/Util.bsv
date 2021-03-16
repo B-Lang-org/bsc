@@ -34,7 +34,7 @@ function a grab_left(b value)
 
    return unpack(zow);
 endfunction
-   
+
 function Integer getSizeOf(a value)
    provisos(Bits#(a, sa));
    return valueOf(sa);

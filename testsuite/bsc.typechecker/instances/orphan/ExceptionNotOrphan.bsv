@@ -2,7 +2,7 @@ typedef struct { Either#(String, b) result; } Exception#(type b);
 
 instance Monad#(Exception);
   function \bind (x, f);
-    case (x.result) matches 
+    case (x.result) matches
       tagged Left .s: return(tagged Exception { result : tagged Left s });
       tagged Right .v: return(f(v));
     endcase
@@ -11,4 +11,3 @@ instance Monad#(Exception);
     return(tagged Exception { result : tagged Right v });
   endfunction
 endinstance
- 

@@ -29,7 +29,7 @@ mkEBadExport2 =
 
 	y :: Reg (Int 32)
 	y <- mkReg 0
-       
+
         rules
 	  "Swap":
 	    when x > y, y /= 0

@@ -9,11 +9,11 @@ endinterface : Design_IFC
 module mkDesign_PopCountTableWallace (Design_IFC);
 
    method Bit#(4) start (Bit#(8) x);
-   
+
        return popCountTableWallace(x);
-       
+
    endmethod : start
-   
+
 endmodule : mkDesign_PopCountTableWallace
 
 module mkTestbench_PopCountTableWallace ();
@@ -29,9 +29,9 @@ module mkTestbench_PopCountTableWallace ();
 
    rule always_true (True);
        counter <= counter + 1;
-       
+
        Bit #(4) expected = 0;
-       
+
        for (Integer x = 0; x < 8; x = x + 1)
          expected = expected + zeroExtend(counter[x]);
 
@@ -43,12 +43,12 @@ module mkTestbench_PopCountTableWallace ();
    rule endsim (counter == 8'b11111111);
        if (!fail)
            $display ("Simulation Passes");
-       else 
+       else
            $display ("Simulation Fails");
 
        $finish (2'b00);
    endrule
-       
-endmodule : mkTestbench_PopCountTableWallace   
+
+endmodule : mkTestbench_PopCountTableWallace
 
 endpackage : PopCountTableWallace

@@ -11,7 +11,7 @@ module sysTestRegFileLoad(Empty);
     $display(regsB.sub(truncate(pos)));
     pos <= pos+1;
   endrule
-  
+
   rule printHex(pos >= 8 && pos < 12);
     $display(regsH.sub(truncate(pos)));
     pos <= pos+1;

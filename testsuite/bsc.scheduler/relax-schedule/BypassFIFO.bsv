@@ -23,9 +23,9 @@ endrule
 
 rule doUpdate_enq;
   case (enqw.wget()) matches
-    tagged Just .r: 
+    tagged Just .r:
       if (the_fifof.notEmpty || !isJust(deqw.wget))
-        the_fifof.enq(r); 
+        the_fifof.enq(r);
     tagged Nothing:
       noAction;
   endcase
@@ -74,9 +74,9 @@ endrule
 
 rule doUpdate_enq;
   case (enqw.wget()) matches
-    tagged Just .r: 
+    tagged Just .r:
       if (the_fifof.notEmpty || !isJust(deqw.wget))
-        the_fifof.enq(r); 
+        the_fifof.enq(r);
     tagged Nothing:
       noAction;
   endcase

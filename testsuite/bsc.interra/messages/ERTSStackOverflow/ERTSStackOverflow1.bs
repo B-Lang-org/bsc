@@ -33,7 +33,7 @@ mkERTSStackOverflow1 =
             x :: Reg (Int 32)
             x <- mkRegU
 
-            interface 
+            interface
 
                start ix = action
                            x := ix

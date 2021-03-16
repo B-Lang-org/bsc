@@ -1,4 +1,4 @@
-package Bug80a(ClassifyResult(..)) where 
+package Bug80a(ClassifyResult(..)) where
 
 data ProblemType = A | B
   deriving (Eq, Bits)

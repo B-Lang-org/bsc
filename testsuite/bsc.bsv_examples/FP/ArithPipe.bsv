@@ -7,7 +7,7 @@ import Vector::*;
 import GetPut::*;
 import ClientServer::*;
 
-   
+
    // 0
    // -0
    // epsilon (normalized)
@@ -34,7 +34,7 @@ module sysArithPipe();
    Reg#(FP16) zero  <- mkReg(fromInteger(0));
    Server#(Tuple2#(FP16, FP16), FP16) adder <- mkFloatingPointAdder;
    Server#(Tuple2#(FP16, FP16), FP16) multiplier <- mkFloatingPointMultiplier;
-      
+
    Vector#(7, FP16) boundaryvals;
    boundaryvals[0] = infinity(True);
    boundaryvals[1] = fromInteger(-1);
@@ -43,14 +43,14 @@ module sysArithPipe();
    boundaryvals[4] = fromInteger(1);
    boundaryvals[5] = infinity(False);
    boundaryvals[6] = snan();
-   
+
    Stmt stim =
    seq
       delay(10);
       // verify addition
       action
 	 FP16 a, b;
-	 
+
 	 // verify carry out bit set
 	 // 2 + 2 = 4
 	 a = fromInteger(2);
@@ -89,7 +89,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 100 + 103
 	 a = fromInteger(100);
 	 b = fromInteger(103);
@@ -99,7 +99,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 65504 + 32768 (overflow)
 	 a = fromInteger(65504);
 	 b = fromInteger(32768);
@@ -109,7 +109,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // -65504 + -32768 (overflow)
 	 a = fromInteger(-65504);
 	 b = fromInteger(-32768);
@@ -119,7 +119,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 5.960464478e-8 + 5.960464478e-8
 	 a = fromReal(5.960464478e-8);
 	 b = fromReal(5.960464478e-8);
@@ -129,7 +129,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // -5.960464478e-8 + -5.960464478e-8
 	 a = fromReal(-5.960464478e-8);
 	 b = fromReal(-5.960464478e-8);
@@ -139,7 +139,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 5.960464478e-8 + -5.960464478e-8
 	 a = fromReal(5.960464478e-8);
 	 b = fromReal(-5.960464478e-8);
@@ -149,7 +149,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // -5.960464478e-8 + 5.960464478e-8
 	 a = fromReal(-5.960464478e-8);
 	 b = fromReal(5.960464478e-8);
@@ -159,7 +159,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 100 + -103
 	 a = fromInteger(100);
 	 b = fromInteger(-103);
@@ -169,7 +169,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // -100 + 103
 	 a = fromInteger(-100);
 	 b = fromInteger(103);
@@ -179,7 +179,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 1e-7 + 2e-6
 	 a = fromReal(1e-7);
 	 b = fromReal(2e-6);
@@ -189,7 +189,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 100 + .25 = 100.25
 	 a = fromReal(0.25);
 	 b = fromInteger(100);
@@ -199,7 +199,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // 3.25x10^3 + 2.63*10^-1
 	 a = fromReal(3.25e3);
 	 b = fromReal(2.63e-1);
@@ -209,7 +209,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 // verify subnormal rollover to normal
 	 a = unpack('b0_00000_1111111111_11_1);
 	 b = unpack('b0_00000_0000000000_00_1);
@@ -219,26 +219,26 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
 	 a = unpack('b0_00000_1111111111_00_0);
 	 b = unpack('b0_00000_0000000001_00_0);
 	 $display("a= ", fshow(a));
 	 $display("b= ", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
 
       	 // 2 - 2 = 0
       	 a = fromInteger(2);
       	 b = fromInteger(-2);
       	 $display("a=", fshow(a));
-      	 $display("b=", fshow(b));	 
+      	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 2 - -2 = 4
       	 a = fromInteger(2);
       	 b = fromInteger(2);
@@ -246,9 +246,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -2 - 2 = -4
       	 a = fromInteger(-2);
       	 b = fromInteger(-2);
@@ -256,9 +256,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -2 - -2 = 0
       	 a = fromInteger(-2);
       	 b = fromInteger(2);
@@ -266,9 +266,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 100 - 103
       	 a = fromInteger(100);
       	 b = fromInteger(-103);
@@ -276,9 +276,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 65504 - 32768
       	 a = fromInteger(65504);
       	 b = fromInteger(-32768);
@@ -286,9 +286,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -65504 - -32768
       	 a = fromInteger(-65504);
       	 b = fromInteger(32768);
@@ -296,9 +296,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -65504 - 32768 (overflow)
       	 a = fromInteger(-65504);
       	 b = fromInteger(-32768);
@@ -306,9 +306,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 65504 - -32768 (overflow)
       	 a = fromInteger(65504);
       	 b = fromInteger(32768);
@@ -316,9 +316,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 5.960464478e-8 - 5.960464478e-8
       	 a = fromReal(5.960464478e-8);
       	 b = fromReal(-5.960464478e-8);
@@ -326,9 +326,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -5.960464478e-8 - -5.960464478e-8
       	 a = fromReal(-5.960464478e-8);
       	 b = fromReal(5.960464478e-8);
@@ -336,9 +336,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 5.960464478e-8 - -5.960464478e-8
       	 a = fromReal(5.960464478e-8);
       	 b = fromReal(5.960464478e-8);
@@ -346,9 +346,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -5.960464478e-8 - 5.960464478e-8
       	 a = fromReal(-5.960464478e-8);
       	 b = fromReal(-5.960464478e-8);
@@ -356,9 +356,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 100 - -103
       	 a = fromInteger(100);
       	 b = fromInteger(103);
@@ -366,9 +366,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // -100 - 103
       	 a = fromInteger(-100);
       	 b = fromInteger(-103);
@@ -376,9 +376,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 1e-7 - 2e-6
       	 a = fromReal(1e-7);
       	 b = fromReal(-2e-6);
@@ -386,9 +386,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 100 - .25 = 99.75
       	 a = fromReal(0.25);
       	 b = fromInteger(-100);
@@ -396,9 +396,9 @@ module sysArithPipe();
       	 $display("b=", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
       	 // 3.25x10^3 - 2.63*10^-1
       	 a = fromReal(3.25e3);
       	 b = fromReal(-2.63e-1);
@@ -406,9 +406,9 @@ module sysArithPipe();
       	 $display("b= ", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
 	 // verify normal rollover to subnormal
 	 a = unpack('b0_00001_0000000000_00_0);
 	 b = unpack('b1_00000_1000000000_00_0);
@@ -416,9 +416,9 @@ module sysArithPipe();
 	 $display("b= ", fshow(b));
 	 adder.request.put(tuple2(a,b));
       endaction
-      action 
+      action
 	 FP16 a, b;
-	 
+
 	 a = unpack('b0_00001_0000000000_00_0);
 	 b = unpack('b1_00000_0000000001_11_1);
 	 $display("a= ", fshow(a));
@@ -428,7 +428,7 @@ module sysArithPipe();
       delay(100);
       action
 	 FP16 a, b;
-	 
+
       	 a = fromInteger(2);
       	 b = fromInteger(2);
       	 $display("a=", fshow(a));
@@ -437,7 +437,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromInteger(3);
       	 b = fromInteger(3);
       	 $display("a=", fshow(a));
@@ -446,7 +446,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromInteger(3);
       	 b = fromInteger(5);
       	 $display("a=", fshow(a));
@@ -455,7 +455,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromReal(1.75);
       	 b = fromInteger(-5);
       	 $display("a=", fshow(a));
@@ -464,7 +464,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromReal(5.960464478e-8);
       	 b = fromReal(5.960464478e-8);
       	 $display("a=", fshow(a));
@@ -473,7 +473,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromReal(5.960464478e-8);
       	 b = fromReal(2.0);
       	 $display("a=", fshow(a));
@@ -482,7 +482,7 @@ module sysArithPipe();
       endaction
       action
 	 FP16 a, b;
-	 
+
       	 a = fromInteger(32768);
       	 b = fromInteger(2);
       	 $display("a=", fshow(a));
@@ -492,7 +492,7 @@ module sysArithPipe();
 
       delay(100);
    endseq;
-   
+
    Stmt result =
    seq
       action
@@ -567,7 +567,7 @@ module sysArithPipe();
       endaction
       action
 	 let result <- adder.response.get;
-	 $display("a+b= ", fshow(result));	 
+	 $display("a+b= ", fshow(result));
       endaction
       action
 	 let result <- adder.response.get;
@@ -682,12 +682,12 @@ module sysArithPipe();
       	 $display("32768 * 2 = ", fshow(result));
       endaction
    endseq;
-   
-   
+
+
 //       // verify divide
 //       action
 //       	 FP16 a, b, c;
-	 
+
 //       	 a = fromReal(4.0);
 //       	 b = fromReal(2.0);
 //       	 $display("a=", fshow(a));
@@ -711,13 +711,13 @@ module sysArithPipe();
 //       	 $display("a=", fshow(a));
 //       	 $display("b=", fshow(b));
 //       	 $display("4/-2 = ", fshow(a/b));
-	 
+
 //       	 a = fromInteger(5);
 //       	 b = fromInteger(4);
 //       	 $display("a=", fshow(a));
 //       	 $display("b=", fshow(b));
 //       	 $display("5/4 = ", fshow(a/b));
-	 
+
 //       	 a = fromInteger(1);
 //       	 b = fromReal(2.5);
 //       	 $display("a=", fshow(a));
@@ -725,7 +725,7 @@ module sysArithPipe();
 //       	 $display("1/2.5 = ", fshow(a/b));
 //       	 c = fromReal(0.4);
 //       	 $display("c=", fshow(c));
-	 
+
 //       	 a = fromReal(11.920928956e-8);
 //       	 b = fromInteger(2);
 //       	 $display("a=", fshow(a));
@@ -741,7 +741,7 @@ module sysArithPipe();
 //       	 $display("11.92e-8/11.92e-8 = ", fshow(a/b));
 //       	 c = fromInteger(1);
 //       	 $display("c=", fshow(c));
-	 
+
 //       	 a = fromInteger(65504);
 //       	 b = fromInteger(7);
 //       	 $display("a=", fshow(a));
@@ -753,7 +753,7 @@ module sysArithPipe();
 //       verify boundary addition
 //       action
 //       	 FP16 a, b, c;
-	 	 
+
 //       	 Vector#(7, Vector#(7, FP16)) adds = newVector;
 //       	 // -inf
 //       	 adds[0][0] = infinity(True);
@@ -811,7 +811,7 @@ module sysArithPipe();
 //       	 adds[6][4] = snan();
 //       	 adds[6][5] = snan();
 //       	 adds[6][6] = snan();
-	 
+
 //       	 $display("Addition");
 //       	 for(Integer j = 0; j < 7; j = j + 1) begin
 //       	    for(Integer i = 0; i < 7; i = i + 1) begin
@@ -830,7 +830,7 @@ module sysArithPipe();
 //       // verify boundary subtraction
 //       action
 //       	 FP16 a, b, c;
-	 	 
+
 //       	 Vector#(7, Vector#(7, FP16)) subs = newVector;
 //       	 // -inf
 //       	 subs[0][0] = snan();
@@ -888,7 +888,7 @@ module sysArithPipe();
 //       	 subs[6][4] = snan();
 //       	 subs[6][5] = snan();
 //       	 subs[6][6] = snan();
-	 
+
 //       	 $display("Subtraction");
 //       	 for(Integer j = 0; j < 7; j = j + 1) begin
 //       	    for(Integer i = 0; i < 7; i = i + 1) begin
@@ -907,7 +907,7 @@ module sysArithPipe();
 //       // verify boundary multiplication
 //       action
 //       	 FP16 a, b, c;
-	 	 
+
 //       	 Vector#(7, Vector#(7, FP16)) subs = newVector;
 //       	 // -inf
 //       	 subs[0][0] = infinity(False);
@@ -965,7 +965,7 @@ module sysArithPipe();
 //       	 subs[6][4] = snan();
 //       	 subs[6][5] = snan();
 //       	 subs[6][6] = snan();
-	 
+
 //       	 $display("Multiplication");
 //       	 for(Integer j = 0; j < 7; j = j + 1) begin
 //       	    for(Integer i = 0; i < 7; i = i + 1) begin
@@ -984,7 +984,7 @@ module sysArithPipe();
 //       // verify boundary division
 //       action
 //       	 FP16 a, b, c;
-	 	 
+
 //       	 Vector#(7, Vector#(7, FP16)) subs = newVector;
 //       	 // -inf
 //       	 subs[0][0] = snan();
@@ -1042,7 +1042,7 @@ module sysArithPipe();
 //       	 subs[6][4] = snan();
 //       	 subs[6][5] = snan();
 //       	 subs[6][6] = snan();
-	 
+
 //       	 $display("Division");
 //       	 for(Integer j = 0; j < 7; j = j + 1) begin
 //       	    for(Integer i = 0; i < 7; i = i + 1) begin
@@ -1075,10 +1075,10 @@ module sysArithPipe();
 // 	 dc = fromFP(c);
 // 	 $display("dc=%08X", pack(dc));
 //       endaction
-      
+
 //       delay(10);
 //    endseq;
-   
+
    mkAutoFSM(stim);
    mkAutoFSM(result);
 endmodule

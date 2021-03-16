@@ -6,7 +6,7 @@ module sysOIntDynamicLow(Empty);
   Reg#(Bool) b <- mkReg(False);
 
   OInt#(8) o = b ? 4 : -1;
-  
+
   rule flip;
     b <= !b;
   endrule
@@ -17,4 +17,3 @@ module sysOIntDynamicLow(Empty);
   endrule
 
 endmodule
-    

@@ -11,14 +11,14 @@ module sysGatedClockDiv() ;
    Clock clkA = mk_clkA.new_clk;
 
    Reset rstA <- mkAsyncResetFromCR(2, clkA);
-   
+
    // divide the clock
    ClockDividerIfc divClock <- mkGatedClockDivider(3, clocked_by clkA, reset_by rstA);
    Clock clkB = divClock.slowClock ;
 
    // We need a reset for the B domain as well
    Reset rstB <- mkAsyncReset(2, rstA, clkB);
-   
+
    // Counters to generate clkA and its gate
    Reg#(int) clk_cntr <- mkReg(0);
    Reg#(int) gate_cntr <- mkReg(0);
@@ -43,7 +43,7 @@ module sysGatedClockDiv() ;
      else
        gate_cntr <= 0;
    endrule
-   
+
    // a rule to show the a clock
    rule a ( True ) ;
       areg <= areg + 1 ;

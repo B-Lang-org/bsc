@@ -8,7 +8,7 @@ module mkDesign_MkFifo (FIFO#(Bit #(8)));
   return (datafifo);
 endmodule
 
-/*            
+/*
 interface Design_IFC;
     method Action push(Bit#(8) data_in);
     method Action pop();
@@ -19,7 +19,7 @@ endinterface: Design_IFC
 */
 
 module mkTestbench_MkFifo ();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFO#(Bit#(8)) datafifo <- mkDesign_MkFifo() ;
   Reg#(Bit#(8)) counter <- mkReg(0);
@@ -106,5 +106,5 @@ module mkTestbench_MkFifo ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_MkFifo 
+endmodule: mkTestbench_MkFifo
 endpackage: MkFifo

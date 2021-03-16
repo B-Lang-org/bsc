@@ -1,5 +1,5 @@
 
-`ifndef FIFO_DEPTH 
+`ifndef FIFO_DEPTH
 `define FIFO_DEPTH 130
 `endif
 
@@ -10,12 +10,12 @@ import FIFOLevel :: *;
 
 (* synthesize *)
 module sysFIFOCountTest () ;
-   
+
    // Define a fifo of Int(#23) with 128 entries
-   FIFOCountIfc#(UInt#(23),`FIFO_DEPTH) fifo 
+   FIFOCountIfc#(UInt#(23),`FIFO_DEPTH) fifo
                              <- mkFIFOCount ;
 
-   // Define some constants 
+   // Define some constants
    let almostFull = fifo.count > 120 ;
    let almostEmpty = fifo.count < 12 ;
 
@@ -23,10 +23,10 @@ module sysFIFOCountTest () ;
    Reg#(Bool)  burstOut <- mkRegA( False ) ;
    Reg#(Bool)  dRunning <- mkRegA( False ) ;
    Reg#(Bool)  enqtoggle <- mkRegA( True ) ;
-   
+
    Reg#(UInt#(32)) cycle <- mkRegA(0);
    Reg#(UInt#(23)) cnt <- mkRegA(0);
-   
+
    rule stop;
       if (cycle>2000) $finish(0);
       cycle <= cycle+1;
@@ -41,7 +41,7 @@ module sysFIFOCountTest () ;
       $display("%d: Enqueueing %d", cycle, cnt);
       cnt <= cnt+1;
    endrule
-   
+
    (* descending_urgency="doClear, enqueue" *)
    rule doClear (cnt%400 == 299);
       $display ("%d clearing", cycle);
@@ -49,8 +49,8 @@ module sysFIFOCountTest () ;
       enqtoggle <= True ;
       cnt <= cnt + 1;
    endrule
-   
-   
+
+
    // Set and clear the burst mode depending on fifo status
    rule timeToDeque( almostFull && ! burstOut ) ;
       burstOut <= True ;
@@ -62,16 +62,16 @@ module sysFIFOCountTest () ;
       fifo.deq ;
       burstOut <= ! almostEmpty ;
    endrule
-   
+
    rule tests ;
       $display( "%d Count is %d", cycle, fifo.count );
    endrule
 
-   
-   
+
+
    //  type error since we require an Integer
 //    rule testX ( ! fifo.levels.sIsLessThan( cnt ) )  ;
 //       $display( "greater than 5 " ) ;
 //    endrule
-   
+
 endmodule

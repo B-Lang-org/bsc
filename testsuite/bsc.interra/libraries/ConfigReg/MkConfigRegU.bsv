@@ -16,8 +16,8 @@ module mkDesign_MkConfigRegU(Inpt);
 
     Reg#(Int #(8)) y();
     mkReg#(0) the_y(y);
-    
-    
+
+
   // (* fire_when_enabled *)
     rule assignxy (True);
         y <= x;
@@ -53,7 +53,7 @@ module mkTestbench_MkConfigRegU();
      endrule
 
      rule call_dut (True);
-       if (counter < 20) 
+       if (counter < 20)
            dut.inp (20);
        else if (counter < 40)
            dut.inp (40);
@@ -66,5 +66,5 @@ module mkTestbench_MkConfigRegU();
      endrule
 
 endmodule : mkTestbench_MkConfigRegU
-     
+
 endpackage :MkConfigRegU

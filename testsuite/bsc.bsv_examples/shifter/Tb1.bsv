@@ -10,6 +10,6 @@ module mkTb1 (Empty);
 	 $finish(0);
       s <= s + 1;
    endrule
-   
+
 endmodule
 

@@ -30,7 +30,7 @@ endmodule
 module sysAncestorsBoundary();
 
   Clock clk <- exposeCurrentClock;
- 
+
   GatedClockIfc gc1 <- mkGatedClock(True, clk);
   Clock clk1 = gc1.new_clk;
 

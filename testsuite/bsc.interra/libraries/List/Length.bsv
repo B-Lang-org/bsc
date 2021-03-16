@@ -11,12 +11,12 @@ module mkTestbench_Length();
 
 
    rule fire_once (True);
-      if (length(my_list1) != 5 || length (my_list2) != 0) 
+      if (length(my_list1) != 5 || length (my_list2) != 0)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Length
 endpackage : Length

@@ -5,12 +5,12 @@ import FIFO::*;
 module sysConflictFreeOK3();
 
   Vector#(8, FIFO#(Bit#(16))) fs <- replicateM(mkFIFO);
-  
+
   Reg#(Bit#(3)) i <- mkReg(0);
 
   rule enq_data;
     for(Integer j = 0; j < 8; j = j + 1) begin
-      Bit#(16) v = zeroExtend(i) + fromInteger(j);   
+      Bit#(16) v = zeroExtend(i) + fromInteger(j);
       fs[j].enq(v*v);
     end
   endrule
@@ -25,9 +25,9 @@ module sysConflictFreeOK3();
     $display("r2 deq FIFO %0d",i+1);
     fs[i+1].deq;
   endrule
-  
+
   rule r3(i == 4);
-    // this won't execute because by the time 
+    // this won't execute because by the time
     // i == 4, not all the FIFOs are full
     $display("r3");
     for(Integer j = 0; j < 8; j = j + 1)

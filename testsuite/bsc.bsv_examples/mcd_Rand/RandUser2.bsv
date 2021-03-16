@@ -26,7 +26,7 @@ module mkRUser2(UserIfc);
      endmethod
     endinterface);
 
-  
+
 
   rule consume;
      running_counter <= running_counter + 1;
@@ -43,4 +43,4 @@ module mkRUser2(UserIfc);
   return tuple2(inFifo.snd, cmp2);
 endmodule
 
-  
+

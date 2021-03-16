@@ -13,7 +13,7 @@ endinterface
 module mkAOptTwoMethodsUsingSamePort(Ifc);
    Reg#(int) value <- mkReg(0);
    FIFOF#(int) queue <- mkSizedFIFOF(23);
-   
+
    method ActionValue#(Bool) produce;
       if (queue.notFull)
 	 begin
@@ -23,7 +23,7 @@ module mkAOptTwoMethodsUsingSamePort(Ifc);
 	 end
       else return False;
    endmethod
-   
+
    method ActionValue#(Maybe#(int)) consume;
       if (queue.notEmpty)
 	 begin
@@ -33,7 +33,7 @@ module mkAOptTwoMethodsUsingSamePort(Ifc);
 	 end
       else return tagged Invalid;
    endmethod
-   
+
 endmodule
 
 endpackage

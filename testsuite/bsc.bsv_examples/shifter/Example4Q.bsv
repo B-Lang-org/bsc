@@ -62,9 +62,9 @@ endmodule
 module mkLs3 (FIFO#(SXpair#(m,n)));
 
    // Input FIFO
-   FIFO#(SXpair#(m,n)) fifo0();   
+   FIFO#(SXpair#(m,n)) fifo0();
    mkFIFO the_fifo0(fifo0);
-   
+
    // Stage 1
    FIFO#(SXpair#(m,n)) fifo1();
    mkLsStep#(fifo0, 0) stage1(fifo1);

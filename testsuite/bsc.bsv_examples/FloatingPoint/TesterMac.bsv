@@ -7,7 +7,7 @@ import FPMac::*;
 module sysTesterMac(Empty) ;
    QTerOp#(IEEE754_32) dut_ifc() ;
    mkFPMac imac(dut_ifc) ;
-   
+
    Empty i0() ;
    mkTester3 #(dut_ifc, "testmac.dat") dut(i0) ;
 endmodule
@@ -17,7 +17,7 @@ endmodule
 module sysTesterMac64(Empty) ;
    QTerOp#(IEEE754_64) dut_ifc() ;
    mkFPMac64 imac(dut_ifc) ;
-   
+
    Empty i0() ;
    mkTester3 #(dut_ifc, "testmac64.dat") dut(i0) ;
 endmodule

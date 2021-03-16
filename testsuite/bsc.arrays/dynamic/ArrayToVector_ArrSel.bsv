@@ -3,7 +3,7 @@ import Vector::*;
 (* synthesize *)
 module sysArrayToVector_ArrSel();
 
-   Reg#(Vector#(3, Bit#(5)))   rg  <- mkRegU();   
+   Reg#(Vector#(3, Bit#(5)))   rg  <- mkRegU();
 
    Reg#(Bit#(3))               idx <- mkReg(0);
 

@@ -44,7 +44,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
       gate2.setGateCond(g0 || g1);
    endrule
    Clock c2 = gate2.new_clk;
-   
+
    // Instantiate the sub-modules, appropriately clocked:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c2);

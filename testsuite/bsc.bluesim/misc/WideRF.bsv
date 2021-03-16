@@ -5,10 +5,10 @@ typedef Bit#(32) Data;
 typedef Bit#(33) Datapath;	// DataIn+1 : one for carry-out
 
 typedef struct {
-	Bit#(op_size) opcode;	
+	Bit#(op_size) opcode;
 	Bit#(res_size)	reserved;
 	Bit#(ctl_size)	sel;
-} Unit_Ctl#(type op_size, type res_size, type ctl_size) 
+} Unit_Ctl#(type op_size, type res_size, type ctl_size)
 	deriving (Bits, Eq);
 
 typedef Unit_Ctl #(4,2,2) UnitCtl;
@@ -28,21 +28,21 @@ interface BinFU;
 endinterface
 
 typedef struct {
-	Unit_Ctl#(op_size,reserved_size,ctl_size) addrgen;	// 
+	Unit_Ctl#(op_size,reserved_size,ctl_size) addrgen;	//
 	Unit_Ctl#(op_size,reserved_size,ctl_size) lsu;	// Load store unit
-	Unit_Ctl#(op_size,reserved_size,ctl_size) shf1;	// 
+	Unit_Ctl#(op_size,reserved_size,ctl_size) shf1;	//
 	Unit_Ctl#(op_size,reserved_size,ctl_size) mul;	// Multiplier unit
-	Unit_Ctl#(op_size,reserved_size,ctl_size) set1;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) add1;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) add2;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) add3;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) add4;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) set2;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) shf2;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) shf3;	// 
-	Unit_Ctl#(op_size,reserved_size,ctl_size) shf4;	// 
+	Unit_Ctl#(op_size,reserved_size,ctl_size) set1;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) add1;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) add2;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) add3;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) add4;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) set2;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) shf2;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) shf3;	//
+	Unit_Ctl#(op_size,reserved_size,ctl_size) shf4;	//
 	Unit_Ctl#(op_size,reserved_size,ctl_size) shf5;	// Shifter
-} Config_Word#(type op_size, type reserved_size, type ctl_size) 
+} Config_Word#(type op_size, type reserved_size, type ctl_size)
 	deriving (Bits, Eq);
 
 typedef struct {
@@ -65,12 +65,12 @@ typedef struct {
 	Data 	set2_o;
 } DataOut deriving(Bits, Eq);
 
-module mkTester #(String testfile) 
+module mkTester #(String testfile)
    ( Empty );
 
    RegFile#(Bit#(3), Tuple3#(DataInp , Config_Word#(4,2,2) , DataOut ) )  test_ifc();
    mkRegFileFullLoad#(testfile) iarray(test_ifc) ;
-   
+
    // An index to the array
    Reg#(Bit#(3) )  counter() ;
    mkReg#(0) icounter(counter) ;
@@ -92,7 +92,7 @@ module mkTester #(String testfile)
          $finish(0);
       endaction
    endrule
-   
+
 endmodule
 
 module sysWideRF(Empty) ;

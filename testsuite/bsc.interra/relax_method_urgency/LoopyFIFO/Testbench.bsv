@@ -2,7 +2,7 @@ import Loopy::*;
 import FIFO::*;
 
 module mkTestbench();
-        
+
   Reg#(Bit#(8)) sizeoflist <- mkReg(0);
   FIFO#(Bit#(8)) datafifo <- mkDesign;
   Reg#(Bit#(8)) counter <- mkReg(0);

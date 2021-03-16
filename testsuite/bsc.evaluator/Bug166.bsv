@@ -8,7 +8,7 @@ module mkBug166();
   mkReg#(False) tick_inst(tick);
   Reg#(Quux#(bit[31:0])) r();
   mkReg#(?) r_inst(r);
-  
+
   rule update_foo (tick);
     Quux#(bit[31:0]) tmp = r;
     tmp.foo = tmp.foo + 1;

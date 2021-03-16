@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////
 /* Frame Buffer.
-Consists of Two RAMs. 
+Consists of Two RAMs.
 When you write into one of the rams, you read from the other.
 It is used to store the complete frame of a MPEG-4 frame
 whose max size can be 396 macroblocks.There are 6 blocks
-in 1 macroblock and each block is a 8x8 matrix with 
+in 1 macroblock and each block is a 8x8 matrix with
 8 bit coefficients.So when the MCR is reading from
 one ram ( called reference frame ) the resulting frame
 is written into second ram ( current frame).After processing
@@ -38,7 +38,7 @@ endinterface : FrmBuffer_IFC
 typedef enum {StateA, StateB} States
 deriving (Eq, Bits);
 
-typedef struct 
+typedef struct
 { States    memBank;
  RamAddr_t addR;
  } FrmCnt
@@ -55,16 +55,16 @@ module mkFrmBuffer (FrmBuffer_IFC);
    mkRegFile #(0,152063) the_ram1 (ram1);
    RegFile#(RamAddr_t,RamData_t) ram2();
    mkRegFile #(0,152063) the_ram2 (ram2);
-   
+
    Reg#(FrmCnt) write_counter() ;
    mkConfigReg#(FrmCnt {memBank : StateA, addR: 0}) i_write_counter(write_counter);
-   
+
    RWire#(DataStrobe) wr_data();
    mkRWire i_wr_data(wr_data) ;
-   
+
    RWire#(Tuple2#(Bit#(1),RamAddr_t)) rd_data();
    mkRWire i_rd_data(rd_data) ;
-   
+
    Reg#(RamData_t) out_data() ;
    mkReg#(0) i_out_data(out_data) ;
 
@@ -97,7 +97,7 @@ module mkFrmBuffer (FrmBuffer_IFC);
 
    Bit#(2)  tmp_level = validValue(level.wget);
    RamAddr_t tmp_frmsize   = (tmp_level[1] == 1) ? 152064 :  38016 ;
-   
+
 
    rule writeRAMA (write_counter.memBank == StateA &&& wr_data.wget matches tagged Valid {.s,.addr,.dta});
       if (s == 1)
@@ -106,7 +106,7 @@ module mkFrmBuffer (FrmBuffer_IFC);
 	    //$display("Writing first buffer data = %h addr = %d",dta,addr);
 	 end
    endrule
-   
+
    rule writeRAMB (write_counter.memBank == StateB &&& wr_data.wget matches tagged Valid {.s,.addr,.dta});
       if (s == 1)
 	 begin
@@ -114,12 +114,12 @@ module mkFrmBuffer (FrmBuffer_IFC);
 	    //$display("Writing Second buffer data = %h addr = %d",dta,addr);
 	 end
    endrule
-   
+
    rule alwaysRead (write_counter.memBank == StateB &&& rd_data.wget matches tagged Valid {.rd_addr,.addr});
       if (rd_addr == 1)
          out_data <= ram1.sub(addr);
    endrule
-   
+
    rule alwaysRead2 (write_counter.memBank == StateA &&& rd_data.wget matches tagged Valid {.rd_addr,.addr});
       if (rd_addr == 1)
          out_data <= ram2.sub(addr);
@@ -199,14 +199,14 @@ module mkFrmBuffer (FrmBuffer_IFC);
       else if (vop_done_reg)
 	 vop_done_reg <= False;
 
-   endmethod : write_d 
+   endmethod : write_d
 
    method Action read_d (a);
       rd_data.wset(a) ;
-   endmethod : read_d 
+   endmethod : read_d
 
    method RamData_t sent_rd_data;
-      sent_rd_data = out_data; 
+      sent_rd_data = out_data;
    endmethod : sent_rd_data
 
    method set_level (x);
@@ -222,19 +222,19 @@ module mkFrmBuffer (FrmBuffer_IFC);
    endmethod : set_rd_vop
 
    method vop_done;
-      vop_done = vop_done_reg; 
+      vop_done = vop_done_reg;
    endmethod : vop_done
 
    method RamData_t vop_data;
-      vop_data = vop_data_reg; 
+      vop_data = vop_data_reg;
    endmethod : vop_data
 
    method vop_rd_done;
-      vop_rd_done = vop_rd_done_reg; 
+      vop_rd_done = vop_rd_done_reg;
    endmethod : vop_rd_done
 
    method mb_done;
-      mb_done = mb_done_reg; 
+      mb_done = mb_done_reg;
    endmethod : mb_done
 
    method set_disable_mb_done (x);

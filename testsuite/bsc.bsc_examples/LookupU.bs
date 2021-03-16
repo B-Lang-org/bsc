@@ -151,7 +151,7 @@ mkLookup =
     state <- mkReg Start
 
     -- stores the result of the first lookup (pntr & offset)
-    entry1 :: Reg Entry 
+    entry1 :: Reg Entry
     entry1 <- mkRegU
 
     index :: Reg (Bit 2)

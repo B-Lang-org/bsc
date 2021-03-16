@@ -60,9 +60,9 @@ endmodule
 module mkLs3 (FIFO#(SXpair#(m,n)));
 
    // Input FIFO
-   FIFO#(SXpair#(m,n)) fifo0();   
+   FIFO#(SXpair#(m,n)) fifo0();
    mkFIFO the_fifo0(fifo0);
-   
+
    // Stage 1
    FIFO#(SXpair#(m,n)) fifo1();
    mkLsStep#(fifo0, 0) stage1(fifo1);
@@ -141,7 +141,7 @@ module mkLsV2 (FIFO#(SXpair#(m,n)));
       mkFIFO the_tmp(tmp);
       fifos[j] = tmp;
    end
-      
+
    // The stages
    for (Integer j = 0; j < max; j = j+1)
       rule shift;

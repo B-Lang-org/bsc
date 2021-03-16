@@ -13,10 +13,10 @@
 -----------------------------------------------------------------------
 
 package EUnboundTyCon1 (EUnboundTyCon1(..)) where
- 
+
 -- import Int
 
-interface EUnboundTyCon1 = 
+interface EUnboundTyCon1 =
        dtoq   :: Int 1 -> Int 1 -> Bit 1 -> Action
        result :: Int1
 
@@ -34,13 +34,13 @@ mkEUnboundTyCon1 =
               "Assign":
                   when clk == 1
                    ==> action
-                    q := d 
-   
+                    q := d
+
             interface
                 dtoq ix iy iz = action
                                  d := ix
                                  q := iy
                                clk := iz
                         when clk == 1
-                    
+
                 result = q when clk == 1

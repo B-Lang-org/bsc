@@ -13,7 +13,7 @@ import Ball::*;
 import Shape::*;
 import Score::*;
 import Color::*;
-import Decimal::*; 
+import Decimal::*;
 
 import ConfigReg::*;
 import SVA::*;
@@ -107,7 +107,7 @@ module [AssertModule] mkTopLevelBSV(TopLevelBSV);
 //flipCol col b =  modShapeVis(\ c -> b && c != cNone ? col <^> c : c);
   function Shape flipCol(Color col, Bool b, Shape s);
     function Color f(Color c);
-      return  (b && c != cNone ? colorXOr(col, c) : c);  
+      return  (b && c != cNone ? colorXOr(col, c) : c);
     endfunction
     return modShapeVis(f,s);
   endfunction
@@ -115,7 +115,7 @@ module [AssertModule] mkTopLevelBSV(TopLevelBSV);
 //flipBCol col b =  modShapeVis(\ c -> b ? col <^> c : c);
   function Shape flipBCol(Color col, Bool b, Shape s);
     function Color f(Color c);
-      return  (b ? colorXOr(col, c) : c);  
+      return  (b ? colorXOr(col, c) : c);
     endfunction
     return modShapeVis(f,s);
   endfunction
@@ -129,7 +129,7 @@ module [AssertModule] mkTopLevelBSV(TopLevelBSV);
   shapes[4] = dispL;
   shapes[5] = dispR;
   shapes[6] = island.shape;
-  
+
   Shape pict =  joinManyShapes(shapes);
   Shape pictN =  flipBCol(cWhite, sw2.value, pict);
   function Color f (Color c);
@@ -147,7 +147,7 @@ module [AssertModule] mkTopLevelBSV(TopLevelBSV);
 
   (* fire_when_enabled *)
   rule tick
-   (vgaCore.frameTick); 
+   (vgaCore.frameTick);
       ball.tick;
   endrule
 

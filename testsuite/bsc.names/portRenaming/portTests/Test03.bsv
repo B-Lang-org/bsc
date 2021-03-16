@@ -6,7 +6,7 @@ interface IFC#(type mType);
  method ActionValue#(mType) check((* port = "_std" *) mType d);
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkDesign_03 (IFC#(Type));
 
   Reg#(Type) val <- mkReg(0);
@@ -16,16 +16,16 @@ module mkDesign_03 (IFC#(Type));
   method Action start(a,b);
     val <= a;
     res <= b;
-  endmethod	
+  endmethod
 
   method Type result(c);
      return res+c;
-  endmethod	
-  	 
+  endmethod
+
   method ActionValue#(Type) check(d);
     val <= val + 1;
     res <= res + 2;
 	return res+d;
-  endmethod	
-	
+  endmethod
+
 endmodule

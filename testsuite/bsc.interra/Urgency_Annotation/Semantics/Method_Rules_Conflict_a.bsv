@@ -19,7 +19,7 @@ module mkTest_Method_Rules_Conflict_a(Test_IFC);
         count <= count + 2;
         $display ("Executing Rule1"); //Should be displayed exactly 8 times.
     endrule
-    
+
     (* descending_urgency = "test_rule_2, test_rule_1" *)
     rule test_rule_2 (count >= 15);
         count <= count + 1;
@@ -37,19 +37,19 @@ module mkTest_Method_Rules_Conflict_a(Test_IFC);
 endmodule : mkTest_Method_Rules_Conflict_a
 
 module mkMethod_Rules_Conflict_a();
-    
+
      Test_IFC dut ();
      mkTest_Method_Rules_Conflict_a the_dut (dut);
 
      rule true;
          dut.start();
-         $display ("Calling Method"); //Should be displayed exactly 14 times 
+         $display ("Calling Method"); //Should be displayed exactly 14 times
      endrule
 
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

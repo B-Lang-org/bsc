@@ -4,5 +4,5 @@ action
     $display ("True");
   else
     $display ("False");
-endaction 
+endaction
 endfunction : status

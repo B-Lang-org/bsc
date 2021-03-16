@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ defaults.min = 2; //min : 2
 defaults.max =4; //max  : 4
 
 AssertTest_IFC#(Bit#(3)) assertDel <- bsv_assert_delta(defaults);
-                                                                
+
 rule test(True);
     assertDel.test(test_expr); // test_expr : test_expr
 endrule

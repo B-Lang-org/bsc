@@ -4,6 +4,6 @@ interface Ifc;
  method Action check ((* port="new&name" *)Bool x);
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkInvalidName (Ifc);
 endmodule

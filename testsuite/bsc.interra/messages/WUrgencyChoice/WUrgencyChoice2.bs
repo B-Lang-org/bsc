@@ -35,13 +35,13 @@ mkWUrgencyChoice2 =
                         when True
                          ==> action
                                 x := y - x
-                 
+
                  "Two":
                         when True
                            ==> action
                                 y := x - y
 
-            interface 
+            interface
 
                        start ix iy = action
                                         x := ix

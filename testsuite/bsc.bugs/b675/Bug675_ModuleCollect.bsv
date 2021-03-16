@@ -16,7 +16,7 @@ import Assert::*;
 
 // Suppose it is desired to place various test conditions (Boolean
 // expressions) at random places in a design, and to set an external
-// wire to 1 (e.g. to light a LED) if ever the condition is satisfied.  
+// wire to 1 (e.g. to light a LED) if ever the condition is satisfied.
 // The desired interface at the top level is accordingly as follows:
 
 interface AssertionWires#(type n);
@@ -53,7 +53,7 @@ typedef Tuple2#(AssertionWires#(n), i) CondIfc#(type i, type n);
 // the design, to test various conditions.  It takes one static
 // parameter, "ix", to specify which wire is to carry this condition,
 // and one dynamic parameter (one varying at run-time) "c", giving the
-// value of the condition itself.  
+// value of the condition itself.
 
 interface AssertionReg;
    method Action set;
@@ -74,7 +74,7 @@ module [AssertModule] conditionReg#(Integer ix)(AssertionReg);
                  method fail;
                     return(cond);
                  endmethod
-  
+
                  method Action clear;
                      cond <= False;
                  endmethod
@@ -91,33 +91,33 @@ module [AssertModule] conditionReg#(Integer ix)(AssertionReg);
      endmethod
 
 endmodule
-                     
+
 function Bool readCond(AssertionWire c);
   return(c.fail);
 endfunction
-       
+
 module [Module] exposeAssertionWires#(AssertModule#(i) mkI)(CondIfc#(i, n));
-   
+
    IWithCollection#(AssertionWire, i) ecs();
    exposeCollection#(mkI) the_dut(ecs);
-   
+
    // We select the list of collected items:
    let cs = ecs.collection;
 
    // We check that all the indices for wires are within range:
    for (Integer i=0; i<length(cs); i=i+1)
       staticAssert((cs[i]).index  < valueOf(n), "Assertion index out of range");
-        
+
    // This method delivers the array of values in the registers.
-   // Replace with 
+   // Replace with
    // let c_ifc (which should typecheck)
-   // or 
+   // or
    // AssertionWires#(m) c_ifc (which shouldn't)
-   // and you'll get an internal compiler error because the compiler has 
-   // incorrectly generalized over the numeric type variable passed to 
-   // the AssertionWires constructor - it looks like the computation of 
+   // and you'll get an internal compiler error because the compiler has
+   // incorrectly generalized over the numeric type variable passed to
+   // the AssertionWires constructor - it looks like the computation of
    // free and bound type variables is incorrect
-   AssertionWires#(m) c_ifc = 
+   AssertionWires#(m) c_ifc =
      (interface AssertionWires;
         method wires;
           // Convert the array to a "ListN", so that its length is known to
@@ -135,10 +135,10 @@ module [Module] exposeAssertionWires#(AssertModule#(i) mkI)(CondIfc#(i, n));
 	    (cs[i]).clear;
         endmethod
       endinterface);
-    
+
     let dut_ifc = ecs.device;
 
     return(tuple2(c_ifc, dut_ifc));
 
 endmodule
- 
+

@@ -3,9 +3,9 @@ package MkOInt;
 import OInt ::*;
 import ConfigReg ::*;
 
-(* 
+(*
        always_ready ,
-       always_enabled 
+       always_enabled
  *)
 
 module mkDesign_MkOInt (Reg#(OInt#(32)));
@@ -46,10 +46,10 @@ module mkTestbench_MkOInt();
 	 else
 	    $display("Simulation Passes");
      $finish(2'b00);
-  endrule 
-  
+  endrule
+
 endmodule: mkTestbench_MkOInt
-                 
+
 endpackage: MkOInt
 
 

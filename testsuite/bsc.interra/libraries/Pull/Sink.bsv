@@ -5,7 +5,7 @@ import Pull :: *;
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;

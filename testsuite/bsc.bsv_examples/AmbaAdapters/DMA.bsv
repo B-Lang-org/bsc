@@ -9,17 +9,17 @@ typedef Bit#(32)  DataReg ;
 interface DMA ;
    interface Master master ;
    interface Slave slave ;
-endinterface        
+endinterface
 
 typedef enum { Grab, Send } State
       deriving(Bits,Eq) ;
-      
+
 (* synthesize *)
 module mkDMA ( DMA ) ;
 
    AmbaMasterAdapter master_adp <- mkBlueAmbaMaster ;
    BlueMasterAdapter mbus = master_adp.bbus ;
-   
+
    AmbaSlaveAdapter slave_adp <- mkBlueAmbaSlaveReg ;
    BlueSlaveAdapter sbus = slave_adp.bbus ;
 
@@ -31,9 +31,9 @@ module mkDMA ( DMA ) ;
    Reg#(Bool)   readsFinished <- mkReg( False ) ;
 
    Reg#(int) cntr <- mkConfigReg(0);
-   rule c ; cntr <= cntr + 1; endrule 
-   
-   //// DMA specific operations  
+   rule c ; cntr <= cntr + 1; endrule
+
+   //// DMA specific operations
    rule getData ( transfer_cnt > 0 ) ;
       mbus.read( source_addr ) ;
       inProgressOps.enq( Grab ) ;
@@ -43,7 +43,7 @@ module mkDMA ( DMA ) ;
    endrule
 
    (* descending_urgency={"storeD", "ata, getData "} *)
-      
+
    // Need to handle error here
    rule storeData (inProgressOps.first == Grab ) ;
       BusResponse resp = mbus.response ;
@@ -53,7 +53,7 @@ module mkDMA ( DMA ) ;
       dest_addr <= dest_addr + 4 ;
       mbus.write(  dest_addr, resp.data ) ;
       inProgressOps.enq ( Send );
-      
+
       // $display( "rule send transfer back out: %0d", cntr ) ;
    endrule
 
@@ -69,7 +69,7 @@ module mkDMA ( DMA ) ;
       $display( "DMA transfer complete at cycle %0d", cntr._read  ) ;
       readsFinished <= False ;
    endrule
-      
+
    // Slave operations  updating the configuration registers..
    addRules( updRegRule ( sbus, transfer_cnt,    0 ) ) ;
    addRules( readRegRule( sbus, transfer_cnt,    0 ) ) ;
@@ -87,12 +87,12 @@ module mkDMA ( DMA ) ;
 
 
 endmodule
-      
 
-      
+
+
 function Rules updRegRule( BlueSlaveAdapter ifc, Reg#(BusData) reg_ifc, Bit#(16) addr ) ;
-   Rules r = 
-    rules 
+   Rules r =
+    rules
        rule updRegrule (ifc.slaveSelect && (ifc.request.addr[15:0] == addr ) && (ifc.request.read_write == Write )) ;
           let req = ifc.request ;
           // $display("DMA: %m updRegrule: %h %h %h", req.read_write, req.addr, req.data ) ;
@@ -104,8 +104,8 @@ function Rules updRegRule( BlueSlaveAdapter ifc, Reg#(BusData) reg_ifc, Bit#(16)
 endfunction
 
 function Rules readRegRule( BlueSlaveAdapter ifc, Reg#(BusData) reg_ifc, Bit#(16) addr ) ;
-   Rules r = 
-    rules 
+   Rules r =
+    rules
        rule readRegrule (ifc.slaveSelect && (ifc.request.addr[15:0] == addr ) && (ifc.request.read_write == Read )) ;
           let req = ifc.request ;
           let val = reg_ifc._read ;
@@ -115,4 +115,4 @@ function Rules readRegRule( BlueSlaveAdapter ifc, Reg#(BusData) reg_ifc, Bit#(16
     endrules ;
    return r ;
 endfunction
-      
+

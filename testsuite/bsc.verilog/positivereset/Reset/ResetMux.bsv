@@ -25,14 +25,14 @@ module sysResetMux ();
    MakeResetIfc rifc2 <- mkReset(0, False, clk);
    Reset rst1 = rifc1.new_rst;
    Reset rst2 = rifc2.new_rst;
-   
+
    // mux the resets
    MuxRstIfc rmux <- mkResetMux(rst1, rst2);
    Reset rst = rmux.reset_out;
 
    // state which is reset by the muxed reset
    Reg#(Bit#(32)) val <- mkReg(0, reset_by rst);
-   
+
    Reg#(Bit#(32)) fsm_state <- mkReg(0);
 
    rule incr_val;

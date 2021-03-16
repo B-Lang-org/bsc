@@ -104,7 +104,7 @@ module mkTester #(Integer maxstages, UInt #(32) numtests) (TesterIfc #(isize, fs
 	        let rt_sq = rt * rt;
 	        let diff = rg_input - rt_sq;
 		// XXX This check is too restrictive
-	        Bool passed = (rounded ? 
+	        Bool passed = (rounded ?
 			       (diff < 1) && (diff > -1) :
 			       (rg_input == rt_sq));
 	        $display ("    sqrt (%h.%h) = %h.%h, %h = %s (diff = %h.%h)",

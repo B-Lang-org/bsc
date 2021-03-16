@@ -25,17 +25,17 @@ module sysMoreFIFOTest(Empty);
  Reg#(Bool) pauseToggle <- mkReg(False);
 
  FIFO#(Bit#(47)) fifo2 <- mkFIFO;
- 
+
  FIFO#(Bit#(47)) sizedFIFO <- mkSizedFIFO(23);
 
  FIFO#(Bit#(47)) fifo1 <- mkFIFO1;
-  
+
  FIFO#(Bit#(47)) lfifo <- mkLFIFO;
 
  Action plusTopCount = action
-                              
+
                          if(topCount == 20) $finish(0);
-               
+
                          topCount <= topCount + 1;
 
                          if(topCount5 < 5)
@@ -50,7 +50,7 @@ module sysMoreFIFOTest(Empty);
 
                        endaction;
 
- // all other behavior is blocked by pauseToggle, so unblock it                      
+ // all other behavior is blocked by pauseToggle, so unblock it
  rule unpause(pauseToggle);
    pauseToggle <= False;
  endrule
@@ -62,14 +62,14 @@ module sysMoreFIFOTest(Empty);
 
    // trigger pause
    if (topCount5 == 4) pauseToggle <= True;
-             
+
  endrule
 
  rule donedrain(curCount == 0 && state == Drain && !pauseToggle);
-   
+
    // advance state
    state <= Fill;
-     
+
    plusTopCount;
 
    // trigger pause
@@ -93,7 +93,7 @@ module sysMoreFIFOTest(Empty);
  endrule
 
  rule drain_sizedFIFO(state == Drain && curCount > 0 && !pauseToggle);
-   $display("Deq %0h from sizedFIFO at time %0t", sizedFIFO.first, $time); 
+   $display("Deq %0h from sizedFIFO at time %0t", sizedFIFO.first, $time);
    sizedFIFO.deq;
  endrule
 
@@ -116,7 +116,7 @@ module sysMoreFIFOTest(Empty);
    $display("Deq %0h from lfifo at time %0t", lfifo.first, $time);
    lfifo.deq;
  endrule
- 
+
  rule trackfill(state == Fill && curCount < topCount && !pauseToggle);
    curCount <= curCount + 1;
    newElement <= newElement + 7;
@@ -127,7 +127,7 @@ module sysMoreFIFOTest(Empty);
 
  rule trackdrain(state == Drain && curCount > 0 && !pauseToggle);
    curCount <= curCount - 1;
-   
+
    if(curCount[1:0] == 0) pauseToggle <= True;
  endrule
 

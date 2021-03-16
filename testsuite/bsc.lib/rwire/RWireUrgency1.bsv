@@ -9,10 +9,10 @@ module sysRWireUrgency1(Empty);
   mkReg#(0) the_s(s);
   Reg#(Bit#(23)) t();
   mkReg#(0) the_t(t);
-  
+
   RWire#(Bool) rw();
   mkRWire the_rw(rw);
-  
+
   (* descending_urgency = "c,a" *)
   rule a (True); // first and least urgent - should not fire
     $display("Rule a r: %0d s: %0d", r, s);
@@ -31,7 +31,7 @@ module sysRWireUrgency1(Empty);
     $display("Rule c s: %0d", s);
     t <= t + 1;
   endrule
-  
+
   // happens after c to exit
   rule d (True);
     s <= 17;
@@ -41,4 +41,4 @@ module sysRWireUrgency1(Empty);
 endmodule
 
 
-     
+

@@ -1,6 +1,6 @@
 interface Ifc;
    interface SubIfc s;
-endinterface  
+endinterface
 
 interface SubIfc;
    method Action enq;

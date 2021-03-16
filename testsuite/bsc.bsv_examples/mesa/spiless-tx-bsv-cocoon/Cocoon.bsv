@@ -10,7 +10,7 @@ interface Wires#(type addrt, type datat);
    interface RWire#(Tuple2#(addrt, datat)) wr;
 endinterface
 
-instance Connectable#(Wires#(addrt, datat), 
+instance Connectable#(Wires#(addrt, datat),
 		      Wires#(addrt, datat));
    module mkConnection#(Wires#(addrt, datat) cocoon,
 			Wires#(addrt, datat) stub) (Empty);
@@ -24,7 +24,7 @@ endinstance
 interface Stub#(type addrt, type datat);
    interface Memory#(addrt, datat) mem;
    interface Wires#(addrt, datat) cocoon;
-endinterface 
+endinterface
 
 module mkStub(Stub#(addrt, datat))
    provisos (Bits#(addrt, sa), Bits#(datat, sd), Bounded#(addrt));
@@ -53,7 +53,7 @@ endmodule
 
 module mkCocoon(Memory#(addrt, datat) mem, Wires#(addrt, datat) w)
    provisos (Bits#(addrt, sa), Bits#(datat, sd), Bounded#(addrt));
-  
+
    RWire#(datat) result <- mkRWire;
    RWire#(Tuple2#(addrt,datat)) wrrw <- mkRWire;
 
@@ -61,7 +61,7 @@ module mkCocoon(Memory#(addrt, datat) mem, Wires#(addrt, datat) w)
       match {.a, .x} = validValue(wrrw.wget);
       mem.write(a,x);
    endrule
-   
+
 
    interface Tuple2 rd;
       interface RWire fst;
@@ -81,6 +81,6 @@ module mkCocoon(Memory#(addrt, datat) mem, Wires#(addrt, datat) w)
       method wset = wrrw.wset;
    endinterface
 endmodule
-      
-      
+
+
 endpackage

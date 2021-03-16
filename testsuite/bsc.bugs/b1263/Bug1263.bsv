@@ -1,7 +1,7 @@
 
 import Vector :: *;
 
-typedef Vector#(rows, Vector#(cols, atype)) 
+typedef Vector#(rows, Vector#(cols, atype))
         Matrix#(type rows, type cols, type atype) ;
 
 function Matrix#(row,col,a_type) mtrxReplicate( a_type val ) ;

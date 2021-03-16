@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_quiescent_state
 
-Description: sample_event occurs and test_expr doesn't equal the check_value. 
+Description: sample_event occurs and test_expr doesn't equal the check_value.
 
 Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -23,13 +23,13 @@ Reg#(Bit#(3)) state_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 
-AssertQuiescentTest_IFC#(Bit#(3)) assertQuies <- bsv_assert_quiescent_state(defaults);   
+AssertQuiescentTest_IFC#(Bit#(3)) assertQuies <- bsv_assert_quiescent_state(defaults);
 
 rule test(True);
     assertQuies.sample(state == Third_State); //sample_event : state == Third_State
 	assertQuies.state(state_expr);//test_expr : test_expr
 	assertQuies.check(3'b011);//check_value
-	
+
 endrule
 
 rule every (True);

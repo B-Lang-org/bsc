@@ -4,13 +4,13 @@ String readFile = "gettests.dat";
 
 (* synthesize *)
 module sysGetC3 () ;
-  
+
    rule open ( True ) ;
       let lfh <- $fopen(readFile, "r" ) ;
-      
+
       $display( "=== Reading from %s ===", readFile ) ;
       Integer i ;
-      
+
       int i0 ;
       for( i = 0 ; i < 100 ; i = i + 1)
          begin
@@ -33,8 +33,8 @@ module sysGetC3 () ;
 
       $fclose ( lfh ) ;
       $finish(0);
-      
+
    endrule
-   
-   
+
+
 endmodule

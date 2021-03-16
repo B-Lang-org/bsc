@@ -11,7 +11,7 @@ endfunction
 // Floating point internal representation
 typedef struct {
                 FP_Sign    sign;// Sign bit
-                Bit#(ee)   exp; // exponent 
+                Bit#(ee)   exp; // exponent
                 Bit#(ss)   sfd; // significand
                 FP_RS      rs ; // round and sticky bit
                 } FP_I
@@ -27,8 +27,8 @@ typedef struct {
 
 FP_I#(ee, ss) fpi_zero = unpack(0);
 
-// extract out the fields from a 32 bit FP. 
-function FP_I#(8,24) 
+// extract out the fields from a 32 bit FP.
+function FP_I#(8,24)
    extract_fields( IEEE754_32 din ) ;
    begin
       FP_Sign      sign   = unpack(din[31]) ;
@@ -52,13 +52,13 @@ function IEEE754_32
 endfunction
 
 
-// extract out the fields from a 64 bit IEEE FP. 
-function FP_I#(11,53) 
+// extract out the fields from a 64 bit IEEE FP.
+function FP_I#(11,53)
    extract_fields64( IEEE754_64 din ) ;
    begin
       FP_Sign      sign   = unpack(din[63]) ;
       Bit#(11)     exp    = din[62:52] ;
-      Bit#(1) hidden = 0;    
+      Bit#(1) hidden = 0;
 //      Bit#(1)      hidden = ( exp != 0 ) ? 1'b1 : 1'b0 ;
       Bit#(53)     sfd    = ( {hidden, din[51:0] } );
 
@@ -91,7 +91,7 @@ function FP_RS
       Bit#(s)  sfd1 = sfd << rev_shift ;
 
       Bit#(s) sv =  { sfd1[vectorsize-2:0], 1'b0 } ;
-      Bit#(1) sbit = | sv ; 
+      Bit#(1) sbit = | sv ;
 
       // Avoid X generation when off the array.
       Bit#(1) rbit = (sftamt <= vectorsize) ? sfd1[vectorsize-1] : 1'b0 ;
@@ -101,20 +101,20 @@ endfunction
 
 // perform rounding based on round and sticky bit.
 // Takes an n-bit significand and returns a (n+1) bit significand
-function FP_I#(e,s1) 
-   round ( FP_I#(e, s) din ) 
+function FP_I#(e,s1)
+   round ( FP_I#(e, s) din )
    provisos( Add#( s, 1, s1)) ;
    begin
       Bit#(3) rbits = { din.sfd[0] , din.rs } ;
-      Bit#(s1) sfdout = zeroExtend( din.sfd ) ;  
+      Bit#(s1) sfdout = zeroExtend( din.sfd ) ;
       FP_RS rsout = din.rs ;
 
       if (( rbits == 3 ) || ( rbits > 5 )) // round up at 3,6,7
          begin
             sfdout = zeroExtend( din.sfd ) + 1 ;
-            rsout = { 1'b0, din.rs[0] }  ;  
+            rsout = { 1'b0, din.rs[0] }  ;
          end
-   
+
       return FP_I{ sign:din.sign, exp:din.exp, sfd:sfdout, rs:rsout } ;
    end
 endfunction
@@ -123,7 +123,7 @@ endfunction
 // Normalize the result, with a maximum disparity of 1.   this cannot be used
 // after a subtractions, since the significand can be 0
 function FP_I#(e,s)
-   normalize1( FP_I#(e,s1) din ) 
+   normalize1( FP_I#(e,s1) din )
    provisos( Add#(x, 2, s1),  Add#(s, 1, s1), Add#(a, 1, s) );
    begin
       Bit#(e) expout = 0;
@@ -159,17 +159,17 @@ function FP_I#(e,s)
             sfdout = {din.sfd[vectorsize-3:0] ,  din.rs[0] } ;
             rsout  = {1'b0, din.rs[0] };
          end
-      
-      return FP_I{ sign:din.sign, exp:expout, sfd:sfdout, rs:rsout } ;        
+
+      return FP_I{ sign:din.sign, exp:expout, sfd:sfdout, rs:rsout } ;
    end
 endfunction
 
 // Normalize the result, allowing left shifts on N positions
 function FP_I#(e,s)
-   normalize( FP_I#(e,s1) din ) 
-   provisos( 
+   normalize( FP_I#(e,s1) din )
+   provisos(
              Add#(s, 1, s1),    // basic relation
-             Add#(x0, 1, s),     // s is at least 1 bit 
+             Add#(x0, 1, s),     // s is at least 1 bit
              Add#(x1, 2, s1),   // Needed for split
              Add#(x2, e, 32)    // e is less than or equal to 32 (limit on shift op) (e <= 32)
             );
@@ -213,15 +213,15 @@ function FP_I#(e,s)
                begin
                   Bit#(e) vectorSize = fromInteger( primValueOf ( din.sfd )) ;
                   Bit#(e) sftamt = (vectorSize - 1) - msb ;
-                  
+
                   sfdout = truncate( din.sfd <<  sftamt ) ;
-                  // TODO underflow 
-                  expout = din.exp - sftamt ; 
+                  // TODO underflow
+                  expout = din.exp - sftamt ;
                   rsout  = {1'b0, din.rs[0] };
                end
          end
-      
-      return FP_I{ sign:din.sign, exp:expout, sfd:sfdout, rs:rsout } ;        
+
+      return FP_I{ sign:din.sign, exp:expout, sfd:sfdout, rs:rsout } ;
    end
 endfunction
 
@@ -256,7 +256,7 @@ function FP_I#(e,s) abs ( FP_I#(e,s) din );
 endfunction
 
 
-// Return True if dinA less than dinB 
+// Return True if dinA less than dinB
 function  Bool lessthan  ( FP_I#(e,s) inA, FP_I#(e,s) inB );
    let signLT = ( inA.sign && ! inB.sign ) ;
    let signEQ = inA.sign == inB.sign ;
@@ -265,14 +265,14 @@ function  Bool lessthan  ( FP_I#(e,s) inA, FP_I#(e,s) inB );
    let sfdLT  = inA.sfd < inB.sfd ;
    return ( signLT ||
            (signEQ && expLT ) ||
-           (signEQ && expEQ && sfdLT ) );           
+           (signEQ && expEQ && sfdLT ) );
 endfunction
 
 // normalize and truncate the significand from sx bit to s bits
 // The first argument specifies where the binary point is relative to the msb side
 // e.g., 0 implies that poisition is normal X.xxx, 1 implies XX.xxx, etc.
 function FP_I#(e,s)
-   normalize_and_truncate( Bit#(e) binaryPointPosition, FP_I#(e,sx) din ) 
+   normalize_and_truncate( Bit#(e) binaryPointPosition, FP_I#(e,sx) din )
    provisos(
             Add#(s,a,sx ),
             Add#(sx,1,sx1 ),

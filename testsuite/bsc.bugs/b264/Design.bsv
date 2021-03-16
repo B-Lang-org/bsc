@@ -32,13 +32,13 @@ endinterface
 
 (* synthesize *)
 module mkDesign2( Design_IFC2#(Bit#(2)) );
-endmodule       
+endmodule
 
-      
+
 (* synthesize *)
 module foo( Joint_IFC );
-endmodule       
-      
+endmodule
+
 (* synthesize *)
 module mkDesign_in (Design_in_IFC);
 
@@ -110,7 +110,7 @@ module mkDesign (Design_IFC);
     method Bit#(1) result_adder2();
         result_adder2 = res2;
     endmethod
-    
+
 endmodule
 
 endpackage

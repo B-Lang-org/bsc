@@ -20,7 +20,7 @@ module sysFIFOPush(FIFO#(Bit#(32)));
 
   FIFO#(Bit#(32)) a <- mkBadFIFO;
   FIFO#(Bit#(32)) b <- mkBadFIFO;
-  
+
   rule push;
     b.enq(a.first);
     a.deq;

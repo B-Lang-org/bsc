@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -19,13 +19,13 @@ typedef enum {First_State, Second_State, Third_State, Fourth_State, Fifth_State}
 module assertNext2 (Empty);
 
 Reg#(FSM_State) state <- mkRegA(First_State);
-   
+
 Reg#(Bool) test_expr <- mkRegA(False);
 
 let defaults = mkOVLDefaults;
 defaults.num_cks = 2; //num_cks : 2
 AssertStartTest_IFC#(Bool) assertNex <- bsv_assert_next(defaults);
-   
+
 rule test(True);
     assertNex.start(state == Second_State);//start_event : Second_State
     assertNex.test(test_expr);             //test_expr : test_expr
@@ -48,12 +48,12 @@ rule every (True);
 	Fourth_State:
 	begin
 	    state <= Fifth_State;
-		test_expr <= True;		
+		test_expr <= True;
 	end
 	Fifth_State:
 	begin
 	    state <= First_State;
-		test_expr <= False;		
+		test_expr <= False;
 	    $finish(0);
 	end
     endcase

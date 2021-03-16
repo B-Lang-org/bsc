@@ -4,7 +4,7 @@ package MesaTxLpm;
 //
 // The LPM module is responsible for taking 32-bit IP addresses, looking up
 // the destination (32-bit data) for each IP address in a table in an SRAM,
-// and returning the destinations. 
+// and returning the destinations.
 //
 // ----------------------------------------------------------------
 //
@@ -21,7 +21,7 @@ package MesaTxLpm;
 // The LPM receives requests from the MIF module by the method
 //     mif.put (LuRequest, LuTag)
 // and returns results (some cycles later) of the form (luResponse, luTag) by
-// the method 
+// the method
 //     mif.get.
 //
 // The LPM sends addresses to the RAM by calling
@@ -64,20 +64,20 @@ module mkMesaLpm(ILpm);
    // holding it in RAM external to the whole design:
    RegFile#(SramAddr, SramData) sram();
    mkRegFileLoad#("SRAM.handbuilt", 0, 'h1fffff) the_sram(sram) ;
-   
+
    // This function defines the lookup algorithm:
    function lookup(iput);
       let {ipa,tag} = iput;
-      
+
       // first lookup:
       let d32a =  (sram.sub)({0, ipa[31:16]});
-      
+
       // if it's a leaf, leave unchanged; otherwise lookup again:
       let d32b = d32a[31:31] == 1 ? {1, d32a[30:0]} : (sram.sub)(d32a[20:0] + {0, ipa[15:8]});
-      
+
       // if it's a leaf, leave unchanged; otherwise lookup again:
       let d32c = d32b[31:31] == 1 ? {0, d32b[30:0]} : (sram.sub)(d32b[20:0] + {0, ipa[7:0]});
-      
+
       // by now we must have an answer -- return it:
       return (tuple2(d32c, tag));
    endfunction
@@ -88,12 +88,12 @@ module mkMesaLpm(ILpm);
    Integer latency = 2;
    FIFO#(Tuple2#(LuResponse, LuTag)) toMIF();
    mkShiftFIFO#(latency) the_toMIF(toMIF);
-   
+
    interface Server mif;
       interface Put request = fifoToPut(toMIF);
       interface Get response = fifoToGet(toMIF);
    endinterface: mif
-   
+
    // In the transactional model, we don't need to define the interface to a real RAM:
    interface ram = ?;
 endmodule

@@ -25,7 +25,7 @@ module sysConflictFreeOKLarge();
   rule r2;
     rs[i+1] <= rs[i+1] + 2;
   endrule
-  
+
   rule r3;
     rs[i-1] <= rs[i-1] * 2;
   endrule

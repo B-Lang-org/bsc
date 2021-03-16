@@ -9,13 +9,12 @@ sysExpectedOneSetter =
 
     rules
       when True ==>
-         if (counter < 10) then 
+         if (counter < 10) then
             $display "%0d" r
-         else 
+         else
             $finish 0
       when True ==>
          counter := counter + 1
       when (counter == 5) ==>
          r := 5
-      
-           
+

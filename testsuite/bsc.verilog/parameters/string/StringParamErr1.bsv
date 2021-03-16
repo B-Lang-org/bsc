@@ -5,5 +5,5 @@ module mkStringParamErr#(String s)();
       $display(s);
       $finish(0);
    endrule
-   
+
 endmodule

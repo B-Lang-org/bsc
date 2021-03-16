@@ -17,7 +17,7 @@ module sysTestAVMethCF();
    rule rA;
       let v1 <- dut.m(True);
       $display(v1);
-   endrule 
+   endrule
 
    rule rB;
       let v2 <- dut.m(False);

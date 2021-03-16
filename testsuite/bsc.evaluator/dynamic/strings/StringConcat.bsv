@@ -11,7 +11,7 @@ module sysStringConcat();
   String s = (c[3] == 1) ? "SSSSS" : "SS";
 
   String t = strConcat(r, s);
-  
+
   String o = strConcat(z,t);
 
   rule test;

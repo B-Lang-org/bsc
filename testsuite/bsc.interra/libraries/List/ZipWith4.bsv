@@ -33,7 +33,7 @@ module mkTestbench_ZipWith4();
    List #(UInt #(4)) zipped_list = Cons (3, Cons (0, Cons (7, Cons (0, Nil))));
 
 
-  
+
    rule fire_once (True);
       $display("List1:");
       display_list (my_list1);
@@ -45,13 +45,13 @@ module mkTestbench_ZipWith4();
       display_list (my_list4);
       $display("Zipped List:");
       display_list (zipWith4 (f,my_list1, my_list2, my_list3, my_list4));
-      if (zipped_list != zipWith4(f,my_list1, my_list2, my_list3, my_list4)) 
+      if (zipped_list != zipWith4(f,my_list1, my_list2, my_list3, my_list4))
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWith4
 
 

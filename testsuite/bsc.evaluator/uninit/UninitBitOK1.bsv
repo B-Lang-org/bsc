@@ -6,7 +6,7 @@ module sysUninitBitOK1();
    x [2] = message("x2",0);
    x [1] = message("x1",0);
    x [0] = message("x0",1);
-   
+
    Bit#(6) y;
    y[5] = 1;
    y[4] = 0;
@@ -22,5 +22,5 @@ module sysUninitBitOK1();
    endrule
 
 endmodule
-   
- 
+
+

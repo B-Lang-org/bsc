@@ -4,7 +4,7 @@
 // This version tests for just the port provided.
 
 import "BVI" MOD =
-module mkMod ( Clock aClk, 
+module mkMod ( Clock aClk,
 	       Empty ifcout ) ;
 
    input_clock clk (CLK) = aClk ;

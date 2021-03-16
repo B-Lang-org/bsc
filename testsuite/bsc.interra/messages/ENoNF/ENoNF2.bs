@@ -33,20 +33,20 @@ mkENoNF2 =
                     res :: Reg (Bool)
                     res <- mkReg True
 
-                    rules 
+                    rules
                       "Comp" :
                                when True
                                 ==> action
-                                       xyz := pqr 
+                                       xyz := pqr
                                        pqr := xyz
 --                                     if (xyz==pqr)
 --                                         then
---                                              res := True 
+--                                              res := True
 --                                         else
 --                                              res := False
-                    interface 
+                    interface
                         start x y = action
                                         xyz := x
-                                        pqr := y 
-                          
+                                        pqr := y
+
                         result = res

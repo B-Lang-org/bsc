@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ let defaults = mkOVLDefaults;
 defaults.min_cks = 2;//min_cks : 2
 defaults.max_cks = 3;//max_cks : 3
 AssertStartTest_IFC#(Bool) assertFr <- bsv_assert_frame(defaults);
-      
+
 rule test(True);
    assertFr.test(test_expr); // test_expr : test_expr
    assertFr.start(state == Second_State); //start_event : Second_State

@@ -10,7 +10,7 @@ module mkTestbench (Empty);
     Reg #(State) state <- mkReg(Start);
 
     rule rule_1 (state == Start);
-       action 
+       action
              state <= State1;
        endaction
     endrule
@@ -26,12 +26,12 @@ module mkTestbench (Empty);
             begin
               state <= State2;
             end
-     endaction  
+     endaction
      endrule
 
-    
+
       rule rule_1 (state == State2);
-       action 
+       action
              counter <= 0;
              state <= State3;
        endaction

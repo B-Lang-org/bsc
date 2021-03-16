@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-16-2006 
+Date: 02-16-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ let defaults = mkOVLDefaults();
 defaults.edge_type = OVL_NOEDGE;
 
 AssertSampleTest_IFC#(Bool) assertAlwOn <- bsv_assert_always_on_edge(defaults);
-   
+
 rule test;
     assertAlwOn.test(test_expr);//test_expr : test_expr
 	assertAlwOn.sample(sample); //sampling_event : sample

@@ -8,7 +8,7 @@ typedef struct {
 (* noinline *)
 function /*Tuple2#(DWord, DWord)*/ DivResult divide(DWord x, DWord d, Bool sign);
 
-    DWord q = 0;                              
+    DWord q = 0;
     DWord p = 0;
     Bool xSign = False;
     Bool dSign = False;
@@ -50,4 +50,4 @@ function /*Tuple2#(DWord, DWord)*/ DivResult divide(DWord x, DWord d, Bool sign)
 
     //return tuple2(q,p);
     return DivResult{quo:x, rem:d};
-endfunction				      
+endfunction

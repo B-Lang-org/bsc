@@ -4,7 +4,7 @@ endinterface
 
 (* synthesize *)
 module mkMethodPulse(MethodPulse);
-  
+
   PulseWire a <- mkPulseWire;
 
   rule test;
@@ -43,4 +43,4 @@ endmodule
 
 
 
-      
+

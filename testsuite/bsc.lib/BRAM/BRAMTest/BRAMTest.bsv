@@ -21,7 +21,7 @@ module sysBRAMTest();
    BRAM#(Bit#(8), Bit#(8)) dut0 <- mkBRAM2Server(cfg);
    cfg.loadFormat = tagged Hex "bram2.txt";
    BRAM#(Bit#(8), Bit#(8)) dut1 <- mkBRAM2Server(cfg);
-   
+
    Stmt test =
    (seq
        delay(10);
@@ -47,12 +47,12 @@ module sysBRAMTest();
 	  dut0.portB.request.put(BRAMRequest{ write: True, responseOnWrite : False, address: 8'h00, datain: 8'hCD });
        endaction
        $display("reading[0x03] = %x", dut0.portA.response.get);
-       
+
        action
 	  dut0.portA.request.put(BRAMRequest{ write: False, responseOnWrite : False, address: 8'h00, datain: ? });
 	  dut0.portB.request.put(BRAMRequest{ write: False, responseOnWrite : False, address: 8'h01, datain: ? });
        endaction
-       
+
        action
 	  $display("dualread[0x00] = %x", dut0.portA.response.get);
 	  $display("dualread[0x01] = %x", dut0.portB.response.get);
@@ -61,12 +61,12 @@ module sysBRAMTest();
        endaction
        $display("dualread[0x02] = %x", dut0.portA.response.get);
        $display("dualread[0x03] = %x", dut0.portB.response.get);
-       
+
        dut0.portA.request.put(BRAMRequest{ write: True, responseOnWrite : False, address: 8'hFF, datain: 8'h54 });
        dut0.portA.request.put(BRAMRequest{ write: False, responseOnWrite : False,  address: 8'hFF, datain: ? });
        delay(20);
        $display("dualread[0xFF] = %x", dut0.portA.response.get);
-    
+
        delay(10);
        dut0.portA.request.put(makeRequest(True, 0, 8'hFF));
        dut0.portA.request.put(makeRequest(True, 1, 8'hFE));
@@ -116,23 +116,23 @@ module sysBRAMTest();
 // 	  endseq
 //        endpar
        delay(100);
-       action 
+       action
 	  dut1.portA.request.put(makeRequest(False, 8'h00, ?));
 	  dut1.portB.request.put(makeRequest(False, 8'h01, ?));
        endaction
-       action 
+       action
 	  $display("dut1read[0] = %x", dut1.portA.response.get);
 	  $display("dut1read[1] = %x", dut1.portB.response.get);
 	  dut1.portA.request.put(makeRequest(False, 8'h02, ?));
 	  dut1.portB.request.put(makeRequest(False, 8'h03, ?));
        endaction
-       action 
+       action
 	  $display("dut1read[2] = %x", dut1.portA.response.get);
 	  $display("dut1read[3] = %x", dut1.portB.response.get);
 	  dut1.portA.request.put(makeRequest(False, 8'h04, ?));
 	  dut1.portB.request.put(makeRequest(False, 8'h05, ?));
        endaction
-       action 
+       action
 	  $display("dut1read[4] = %x", dut1.portA.response.get);
 	  $display("dut1read[5] = %x", dut1.portB.response.get);
 	  dut1.portA.request.put(makeRequest(True, 8'h04, 8'hEE));
@@ -140,10 +140,10 @@ module sysBRAMTest();
        endaction
        dut1.portA.request.put(makeRequest(False, 8'h04, ?));
        dut1.portB.request.put(makeRequest(False, 8'h05, ?));
-       action 
+       action
 	  $display("dut1read[4] = %x", dut1.portA.response.get);
 	  $display("dut1read[5] = %x", dut1.portB.response.get);
-       endaction	 
+       endaction
        delay(10);
        dut1.portA.request.put(makeRequest(True, 0, 8'hFF));
        dut1.portA.request.put(makeRequest(True, 1, 8'hFE));
@@ -195,14 +195,14 @@ module sysBRAMTest();
        delay(100);
        $finish;
     endseq);
-   
+
    let in_reset <- isResetAssertedDirect;
-   
-   
+
+
    let fsm <- mkFSMWithPred(test, !in_reset);
-   
+
    rule do_start;
       fsm.start;
    endrule
-   
+
 endmodule

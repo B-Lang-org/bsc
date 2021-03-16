@@ -22,9 +22,9 @@ endmodule
 
 (* synthesize *)
 module sysIBMBug();
-   
+
    Test pipe <- mkTest;
-   
+
    rule test;
       Vector#(2, function ActionValue#(Bit#(32)) f(Bit#(32) x)) fvec;
       fvec[0] = pipe.p1;
@@ -36,6 +36,6 @@ module sysIBMBug();
    endrule
 
 endmodule
-		    
-		 
+
+
 

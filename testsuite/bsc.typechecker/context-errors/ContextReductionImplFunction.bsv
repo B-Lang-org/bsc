@@ -5,9 +5,9 @@ module sysContextReductionImplFunction (Empty);
 
    function test (a);
       action
-	 if (p[0]) 
+	 if (p[0])
             x <= a;
-	 else 
+	 else
             x <= ~a;
       endaction
    endfunction

@@ -1,6 +1,6 @@
 import RegFile::*;
 
-typedef enum 
+typedef enum
   { Rule1, Rule2, Rule3, Rule4, Exit }
   State deriving(Eq, Bits);
 
@@ -32,7 +32,7 @@ module sysUseCondMux();
       state2 <= Rule2;
     end
   endrule
-  
+
   rule rule2(state == Rule2);
     if(state2 == Rule2) begin
       $display("Rule 2 %0d", data.sub(1));
@@ -40,7 +40,7 @@ module sysUseCondMux();
       state2 <= Rule3;
     end
   endrule
-    
+
   rule rule3(state == Rule3);
     if(state2 == Rule3) begin
       $display("Rule 3 %0d", data.sub(0));
@@ -53,10 +53,10 @@ module sysUseCondMux();
     $display("Rule 4 %0d", data.sub(1));
     state <= Exit;
   endrule
-  
+
   rule exit(state == Exit);
     $display("Exit %0d", data.sub(0));
     $finish(0);
   endrule
-  
-endmodule               
+
+endmodule

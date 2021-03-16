@@ -6,5 +6,5 @@ module mkSub1();
       $display("%m: x = %b", x);
       x <= !x;
    endrule: flip
-   
+
 endmodule: mkSub1

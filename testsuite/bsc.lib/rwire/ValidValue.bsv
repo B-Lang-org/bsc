@@ -28,24 +28,24 @@ module mkSquare(Square);
 endmodule
 
 (* synthesize *)
-module sysValidValue(Empty);  
-  
+module sysValidValue(Empty);
+
   Reg#(Bit#(5)) loop <- mkReg(0);
-  
+
   Square square <- mkSquare;
 
   // action .. endaction does not work for Bluesim
   // par .. endpar does
   // probably rule/method ordering issue
   Stmt testStmts =
-    seq 
+    seq
       for(loop <= 0; loop < 16; loop <= loop + 1)
          par //action
             $display("Square %0d is %0d", loop, square.square);
             square.data_in(truncate(loop));
          endpar //endaction
       $display("Test finished at time %0t", $time);
-    endseq;  
+    endseq;
 
   FSM testFSM <- mkFSM(testStmts);
 

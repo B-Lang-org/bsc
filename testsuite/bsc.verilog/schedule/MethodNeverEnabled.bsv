@@ -11,7 +11,7 @@ module mkBug(Bug);
 
   method ActionValue#(Bool) update(Bool x);
     r1 <= x;
-    return r1;    
+    return r1;
   endmethod
 
 endmodule

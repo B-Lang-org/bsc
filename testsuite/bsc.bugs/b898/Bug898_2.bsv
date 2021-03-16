@@ -16,7 +16,7 @@ module mkBug898_2(Bug898_2);
 
   PulseWire a <- mkPulseWire;
   PulseWire b <- mkPulseWire;
-  PulseWire c <- mkPulseWire; 
+  PulseWire c <- mkPulseWire;
 
   Reg#(Bit#(16)) counter <- mkReg(0);
 
@@ -29,7 +29,7 @@ module mkBug898_2(Bug898_2);
   rule display2(b);
     $display("Pulse c sent at time %0t", $time);
     c.send();
-  endrule 
+  endrule
 
   rule display3(toggle);
     counter <= counter + 2;
@@ -47,12 +47,12 @@ endmodule
 
 (* synthesize *)
 module sysBug898_2(Empty);
- 
+
   Reg#(Bool) ran <- mkReg(False);
 
   Bug898_2 simple <- mkBug898_2;
 
-  Stmt testStmts = 
+  Stmt testStmts =
    (seq simple.start;
         simple.start;
         simple.start;

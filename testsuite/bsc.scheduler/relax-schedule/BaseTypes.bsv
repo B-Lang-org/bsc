@@ -66,15 +66,15 @@ typedef struct {
 /***********************************************/
 
 // Decode table definition
-typedef Bit#(2)    MEM_RW; 
-typedef Bit#(1)    DES_SEL; 
-typedef Bit#(2)    UOP_ORD; 
-typedef Bit#(4)    DEReg0; 
-typedef Bit#(4)    DEReg1; 
-typedef Bit#(4)    DEReg2; 
-typedef Bit#(4)    DEReg3; 
-typedef Bit#(4)    DESeg0; 
-typedef Bit#(4)    DESeg1; 
+typedef Bit#(2)    MEM_RW;
+typedef Bit#(1)    DES_SEL;
+typedef Bit#(2)    UOP_ORD;
+typedef Bit#(4)    DEReg0;
+typedef Bit#(4)    DEReg1;
+typedef Bit#(4)    DEReg2;
+typedef Bit#(4)    DEReg3;
+typedef Bit#(4)    DESeg0;
+typedef Bit#(4)    DESeg1;
 typedef Bit#(3)    ALU_OP;
 typedef Bit#(3)    FPU_OP;
 
@@ -118,9 +118,9 @@ typedef struct {
 } FLAGS deriving (Eq, Bits);
 
 typedef struct {
-  MEM_RW      mem_rw; 
-  DES_SEL     des_sel; 
-  UOP_ORD     uop_ord; 
+  MEM_RW      mem_rw;
+  DES_SEL     des_sel;
+  UOP_ORD     uop_ord;
   DEReg0      reg0;
   DEReg1      reg1;
   DEReg2      reg2;
@@ -172,12 +172,12 @@ typedef struct{
 
 // OperandValue only used for condition evaluation
 typedef Bit#(16) OperandValue;
-typedef Bit#(1)  CondValue; 
+typedef Bit#(1)  CondValue;
 //typedef Bit#(4)  CondFieldValue;
 typedef Bit#(8)  FXUTag;
 typedef FXUTag   FPUTag;
 
-// instruction bundle with jump marked 
+// instruction bundle with jump marked
 typedef Tuple5#(Epoch, a, IAddress, Bool, IAddress) Bundle#(type a);
 
 /***********************************************/
@@ -188,7 +188,7 @@ typedef Tuple5#(Epoch, a, IAddress, Bool, IAddress) Bundle#(type a);
 /***********************************************/
 
 typedef struct{
- FXU_Op op;              //Op-specific info    
+ FXU_Op op;              //Op-specific info
 // Bit#(1) carry;          //The value of the carry register
 // added to track uop
  FXUTag tag;            //Tag given by CCU
@@ -197,7 +197,7 @@ typedef struct{
 } FXUReq deriving (Eq,Bits);
 
 typedef struct{
- FPU_Op op;              //Op-specific info    
+ FPU_Op op;              //Op-specific info
 // Bit#(1) carry;          //The value of the carry register
  FPUTag tag;            //Tag given by CCU
 // the following are irrelevant information to be passed on
@@ -281,7 +281,7 @@ typedef FXUCRRespValue LSUCRRespValue;
 typedef struct{
   Maybe#(IVAddr) effectiveAddr;
 //  Maybe#(CondFieldValue)   cond;
-  LSUCRRespValue xerval;  
+  LSUCRRespValue xerval;
   LSUTag tag;
 } LSUResponse deriving (Eq,Bits);
 

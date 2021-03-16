@@ -36,7 +36,7 @@ import StmtFSM :: *;
 (* synthesize *)
 module sysRFile();
    let dut <- mkRFile ;
-   
+
    Reg#(Bit#(32)) i <- mkReg(0);
    let tseq =
    seq
@@ -55,7 +55,7 @@ module sysRFile();
             endaction
             endseq
    endseq;
-   
+
    mkAutoFSM(tseq);
-   
+
 endmodule

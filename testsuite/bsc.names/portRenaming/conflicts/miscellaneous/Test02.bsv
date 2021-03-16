@@ -16,11 +16,11 @@ module mkDesign_02 (IFC#(Type));
   method Action f(a,b);
     val <= a;
     res <= b;
-  endmethod	
+  endmethod
 
   method Type g(a);
      return res+a;
-  endmethod	
-  	 
-	
+  endmethod
+
+
 endmodule

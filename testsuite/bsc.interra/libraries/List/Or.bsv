@@ -30,13 +30,13 @@ module mkTestbench_Or();
       $display("List2:");
       display_list (my_list2);
       $display("Ored Value = %d", or (my_list2));
-      
-      if (or(my_list1) != False || or (my_list2) != True) 
+
+      if (or(my_list1) != False || or (my_list2) != True)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Or
 endpackage : Or

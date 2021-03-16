@@ -17,7 +17,7 @@ module mkDesign_FifoToRPush (Design_IFC);
     mkSizedFIFO #(8) the_fifo1(fifo1);
 
     RPush #(Bit #(8)) output_a = fifoToRPush (fifo1);
-            
+
     method push(in_a);
        action
           output_a.push(in_a);
@@ -43,19 +43,19 @@ endmodule : mkDesign_FifoToRPush
 module mkTestbench_FifoToRPush ();
     Design_IFC dut();
     mkDesign_FifoToRPush the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
     endrule
-    
-    
-    rule push_values (counter < 20);   //Push 20 Values   
+
+
+    rule push_values (counter < 20);   //Push 20 Values
         if (counter == 5 || counter == 10 || counter == 15)
         begin
            dut.clr();
@@ -68,9 +68,9 @@ module mkTestbench_FifoToRPush ();
         end
     endrule
 
-        
 
-    rule pop_values (counter !=5 && counter !=6 && counter !=8 );   // 5 values lost 4,5,9,10,15         
+
+    rule pop_values (counter !=5 && counter !=6 && counter !=8 );   // 5 values lost 4,5,9,10,15
         Bit #(8) result <- dut.result;
         $display ("Cycle Number = %d, Popped Out Value = %d", counter, result);
         if (counter <=8 && result != counter-1)
@@ -80,10 +80,10 @@ module mkTestbench_FifoToRPush ();
         else if (counter> 10 && result != counter -1)
             fail <= True;
     endrule
-        
-  
+
+
     rule endsim (counter == 8'd25);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

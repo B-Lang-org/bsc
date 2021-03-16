@@ -18,7 +18,7 @@ module sysPokeTest(Test);
     return(rw.wget() != Invalid);
   endmethod
 endmodule
-  
+
 module sysRWireBoundary(Empty);
   Test tester();
   sysPokeTest i_tester(tester);
@@ -27,7 +27,7 @@ module sysRWireBoundary(Empty);
     $display("Pass");
     $finish(0);
   endrule
-  
+
   rule poke(True);
     tester.poke();
   endrule

@@ -31,7 +31,7 @@ module mkTestbench_MkRequestResponseBuffer_1 ();
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
+
 
    rule data_write2 (counter >= 2);
 	 (Server#(Bit#(8),Bit#(8))'(tpl_2(tx_datafifo))).request.put(in_data);
@@ -39,9 +39,9 @@ module mkTestbench_MkRequestResponseBuffer_1 ();
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
 
-   rule read_value (counter >= 2); 
+
+   rule read_value (counter >= 2);
 	 Bit#(8) first <- (Client#(Bit#(8),Bit#(8))'(tpl_1(tx_datafifo))).request.get;
 	 Bit#(8) second <- (Server#(Bit#(8),Bit#(8))'(tpl_2(tx_datafifo))).response.get;
      out_data <= out_data + 1;

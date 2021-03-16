@@ -20,7 +20,7 @@ module sysMethodEnableToArgMux (Ifc);
       return rf.lookup(i);
    endmethod
 
-endmodule    
+endmodule
 
 interface LookupIfc;
    method Bool lookup(Idx i);

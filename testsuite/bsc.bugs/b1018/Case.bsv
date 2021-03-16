@@ -7,7 +7,7 @@ endinterface
 module mkCase(IFC_Case);
 
 	Reg#(Bit#(4)) abc <- mkRegU;
-		
+
 	method Action start(a);
 		case(a)
 		  2'b00: abc <= 2;

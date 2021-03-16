@@ -75,7 +75,7 @@ module mkMesa_Mif (IMif);
     rule handle_notify (True);
         let msg = vff_notify_fifo.first();
         let lpm_request = tuple2(msg.ip_dst_addr, next_tag);
-	
+
 	lpm_req_fifo.enq(lpm_request);
 	tag_map.upd(next_tag, msg); // (tag_map[next_tag]) <= msg;
 	next_tag <= next_tag + 1;
@@ -95,7 +95,7 @@ module mkMesa_Mif (IMif);
 	dm_out_fifo.enq(ftag);
 	lpm_res_fifo.deq();
     endrule
-       
+
 
     method notify();
       notify = fifoToPut(vff_notify_fifo);

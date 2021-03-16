@@ -37,19 +37,19 @@ module sysFunctionInout(Empty);
       send.set(count);
       send2.set(count*10);
    endrule
-   
+
    rule disp (count>0);
       recv.display_it;
    endrule
-   
+
    rule stop (count==10);
       $finish(0);
    endrule
 
-/*   
+/*
    rule fibos;
       $display("fibo = %d", fibo(10));
    endrule
-   */    
-   
+   */
+
 endmodule

@@ -51,7 +51,7 @@ endmodule
 module mkTwoSubmodulesInputClock_Sub2 (Clock clk, Empty e);
    // use RegU to avoid the need for a reset
    Reg#(Bit#(8)) rg2 <- mkRegU(clocked_by clk);
- 
+
    rule r2;
       rg2 <= rg2 + 1;
       $display("(%d) rg2 = %h", adj_stime(p2), rg2);

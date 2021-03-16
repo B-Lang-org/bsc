@@ -17,7 +17,7 @@ module mkTestbench_PeekGet ();
    rule data_write (counter < 2);
      tpl_2(datafifo).put(counter+8'd15);
    endrule
-   
+
    rule peek_values ((counter >=2) && (counter < 4));
 	 $display("Value Peeked = %h",peekGet(tpl_1(datafifo)));
 	 if (peekGet(tpl_1(datafifo)) != 8'd15)

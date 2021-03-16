@@ -10,18 +10,18 @@ endinterface
 
 (* synthesize *)
 module mkInverter (Inout);
-  
+
   RWire #(Bool) temp1();
   mkRWire the_temp1 (temp1);
-  
+
   RWire #(Bool) temp2();
   mkRWire the_temp2 (temp2);
-  
+
   rule always_fire;
       Bool inp = ! (unJust (temp1.wget));
       temp2.wset (inp);
   endrule
-      
+
   method Action func (in1);
       temp1.wset (in1);
   endmethod
@@ -37,7 +37,7 @@ module mkTen_Inverters();
 
   Inout t1();
   mkInverter the_t1 (t1);
-  
+
   Inout t2();
   mkInverter the_t2 (t2);
 
@@ -77,8 +77,8 @@ module mkTen_Inverters();
       t9.func (t8.outval);
       t10.func (t9.outval);
   endrule
-  
-endmodule 
-endpackage 
+
+endmodule
+endpackage
 
 

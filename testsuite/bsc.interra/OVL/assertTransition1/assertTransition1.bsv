@@ -1,13 +1,13 @@
 /*************************************************************************************************************
 Assertion-Checker: assert_transition
 
-Description: test_expr transitions from start_state to next_state. 
+Description: test_expr transitions from start_state to next_state.
 
 Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 03-06-2006 
+Date: 03-06-2006
 
 *************************************************************************************************************/
 
@@ -23,13 +23,13 @@ Reg#(Bit#(3)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 
-AssertTransitionTest_IFC#(Bit#(3)) assertTran <- bsv_assert_transition(defaults);   
+AssertTransitionTest_IFC#(Bit#(3)) assertTran <- bsv_assert_transition(defaults);
 
 rule test(True);
-    assertTran.test(test_expr);//test_expr : test_expr 
+    assertTran.test(test_expr);//test_expr : test_expr
 	assertTran.start(3'b010); // start_state : 3'b010
 	assertTran.next(3'b011); //next_state : 3'b011
-	
+
 endrule
 
 rule every (True);
@@ -67,7 +67,7 @@ rule every (True);
 	begin
 	    state <= First_State;
 	    $finish(0);
-	end	
+	end
     endcase
 endrule
 endmodule

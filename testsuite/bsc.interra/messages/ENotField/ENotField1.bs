@@ -5,7 +5,7 @@
 
 -- Author : Nitin Chand Rahul      <ncr@noida.interrasystems.com>
 
--- Description: This testcase triggers an (ENotField) error 
+-- Description: This testcase triggers an (ENotField) error
 
 -- Error Message : bsc ENotField1.bs
 -- bsc: Compilation errors:
@@ -30,7 +30,7 @@ mkENotField1 =
 
 	y :: Reg (Int 32)
 	y <- mkReg 0
-       
+
         rules
 	  "Swap":
 	    when x > y, y /= 0

@@ -7,7 +7,7 @@ endinterface: RTL_Names_02
 module rtl_names_02(RTL_Names_02);
     Reg#(bit) r_x <- mkRegU;
     Reg#(bit) r_y <- mkRegU;
-    
+
     method Action m1;
         let x_y = r_x & r_y;
         r_x <= x_y;

@@ -4,7 +4,7 @@ type Rate = Bit 18
 data BWResult = DivByZero | TooManyBits | Result Rate
 
 divide64 :: Bit 64 -> Bit 64 -> Maybe (Bit 64)
-divide64 x y = _ 
+divide64 x y = _
 
 bwdiv :: Bit 64 -> Bit 64 -> BWResult
 bwdiv x y =

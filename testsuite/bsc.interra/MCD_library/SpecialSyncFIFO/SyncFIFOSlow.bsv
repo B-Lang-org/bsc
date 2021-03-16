@@ -8,7 +8,7 @@
 
 import Clocks::*;
 
-            
+
 interface SyncFIFOSlow_IFC;
     method Action   push        (Bit#(8) data_in, Bit#(1) write);
     method Action   pop         (Bit#(1) read);
@@ -42,19 +42,19 @@ module mkSyncFIFOSlow (SyncFIFOSlow_IFC ifc);
 
     method push(in_data, w);
         action
-            if (w == 1'b1) 
+            if (w == 1'b1)
                 datafifo.enq(in_data);
             else
                 noAction;
         endaction
     endmethod: push
-   
+
     method pop(r);
         action
             if(r == 1'b1) begin
-                datafifo.deq();    
+                datafifo.deq();
                 data_out_reg <= datafifo.first;
-            end   
+            end
         endaction
     endmethod: pop
 
@@ -65,4 +65,4 @@ module mkSyncFIFOSlow (SyncFIFOSlow_IFC ifc);
     interface Clock rd_clk_o = rd_clk;
     interface Clock rd_rst_o = rd_rst;
 
-endmodule: mkSyncFIFOSlow 
+endmodule: mkSyncFIFOSlow

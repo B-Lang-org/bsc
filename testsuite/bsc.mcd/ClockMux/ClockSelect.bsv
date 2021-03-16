@@ -22,10 +22,10 @@ module sysClockSelect(Empty);
   SelectClkIfc cs <- mkClockSelect(2, clk11, clk5);
 
   Reg#(Bit#(14)) real_counter();
-  mkReg#(0) the_real_counter(clocked_by cs.clock_out, 
+  mkReg#(0) the_real_counter(clocked_by cs.clock_out,
                              reset_by cs.reset_out,
                              real_counter);
- 
+
   rule count;
      let new_count5 = (count5 < 5) ? (count5 + 1) : 0;
      mc5.setClockValue(new_count5 == 5);
@@ -45,9 +45,9 @@ module sysClockSelect(Empty);
      fliptime <= fliptime << 1;
      flipcount <= 0;
 
-     if(clkflag) 
+     if(clkflag)
        $display ("Clock Select A");
-     else 
+     else
        $display ("Clock Select B");
 
   endrule

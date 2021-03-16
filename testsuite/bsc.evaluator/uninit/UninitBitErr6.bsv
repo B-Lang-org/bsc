@@ -10,5 +10,5 @@ module sysUninitBitErr6();
    endrule
 
 endmodule
-   
- 
+
+

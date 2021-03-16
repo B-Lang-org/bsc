@@ -27,11 +27,11 @@ module mkMERuleAndMethodInSubmod_Sub2 (SubIFC);
    rule r2 (!b && isJust(rw.wget));
       b <= False;
    endrule
-   
+
    method Action m () if (b);
       b <= False;
       rw.wset(True);
    endmethod
 
 endmodule
-   
+

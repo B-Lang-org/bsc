@@ -16,7 +16,7 @@ module sysERulesMux2();
 		    $display("r2");
 		 endrule
 	      endrules;
-   
+
    if (b)
       addRules(r1);
    else

@@ -15,19 +15,19 @@ module mkArgMethod2ReturnValue2 (Put #(Bool));
 
     Reg #(Bool) out_signal();
     mkReg #(False) the_out_signal (out_signal);
-    
+
     Reg #(Bool) flopA();
     mkReg #(False) the_flopA (flopA);
-    
+
     Reg #(Bool) flopB();
     mkReg #(False) the_flopB (flopB);
 
     RWire #(Bool) combout();
     mkRWire the_combout (combout);
-    
+
     RWire #(Bool) inK();
     mkRWire the_inK (inK);
-    
+
     rule setflopB;
        flopB <= flopA;
     endrule
@@ -55,7 +55,7 @@ module mkArgMethod2ReturnValue2 (Put #(Bool));
     rule setout_signal;
         out_signal <= unJust (inK.wget);
     endrule
-    
+
     method Action put (in1);
         signal <= in1;
     endmethod

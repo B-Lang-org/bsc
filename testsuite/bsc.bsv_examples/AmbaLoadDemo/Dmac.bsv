@@ -14,7 +14,7 @@ endinterface
 (* synthesize *)
 module mkDMAC( MasterSlave ) ;
 
-   
+
 
 endmodule
-         
+

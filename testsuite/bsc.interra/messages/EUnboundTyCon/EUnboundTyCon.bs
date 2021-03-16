@@ -16,7 +16,7 @@ package EUnboundTyCon () where
 
 interface GCD =
     start  :: R 32 -> R 32 -> Action  -- Type Constructor R not bounded
-    result :: R 32                      
+    result :: R 32
 
 mkGCD :: Module GCD
 mkGCD =

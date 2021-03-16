@@ -16,7 +16,7 @@ module mkTestbench_JoinActions();
    rule fire_once (True);
       joinActions (map (displayabc, my_list));
       $finish (2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_JoinActions
 endpackage : JoinActions

@@ -10,7 +10,7 @@ module sysTbWideGCD(Empty);
   mkWideGCD the_gcd(gcd);
 
   ArithIO_IFCken#(NumTyp) the <- mkWideGCDken();
-  // Registers used to generate numbers to feed to the GCD block   
+  // Registers used to generate numbers to feed to the GCD block
   Reg#(NumTyp) count1();
   mkReg#(19) the_count1(count1);
   Reg#(NumTyp) count2();
@@ -39,7 +39,7 @@ module sysTbWideGCD(Empty);
       count2 <= count2 + 2;
   endrule: rule1SendInput
 
-  rule rule2GetResult (True); 
+  rule rule2GetResult (True);
       $display("result = %d", gcd.result);
   endrule: rule2GetResult
 

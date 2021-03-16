@@ -8,7 +8,7 @@ data Foo = A | B
 bar :: Bit 5
 bar = 12
 
-z :: Integer 
+z :: Integer
 z = 19
 
 zdisp :: Action
@@ -17,30 +17,30 @@ zdisp = $display z
 test :: Foo
 test = A
 
-foo :: Action 
-foo = let x = 5 
+foo :: Action
+foo = let x = 5
       in $display x bar z test x (5 + 5)
 
 interface PD1 =
   test :: (Bit 16) -> Action
 
 sysPD1 :: Module PD1
-sysPD1 = 
+sysPD1 =
   module
-    interface 
+    interface
      test a = $display a
 
-interface PD2 a = 
+interface PD2 a =
      test :: a -> Action
 
 sysPD2 :: Module (PD2 (Bit 32))
-sysPD2 = 
+sysPD2 =
   module
-    interface 
+    interface
       test a = $display a
 
 sysPD3 :: (Bits a sa) => Module (PD2 a)
 sysPD3 =
   module
-    interface 
-      test a = $display a   
+    interface
+      test a = $display a

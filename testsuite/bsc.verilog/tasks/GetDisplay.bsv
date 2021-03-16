@@ -20,13 +20,13 @@ module getProvider(Get#(Bit#(17)));
     endactionvalue
   endmethod: get
 endmodule: getProvider
-           
+
 module sysGetDisplay(Empty);
 
   Get#(Bit#(17)) get();
   getProvider i_get(get);
- 
+
   rule go (True);
     $display("Get: %0d", get.get);
   endrule: go
-endmodule: sysGetDisplay  
+endmodule: sysGetDisplay

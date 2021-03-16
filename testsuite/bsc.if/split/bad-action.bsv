@@ -23,7 +23,7 @@ module usesGo(InterfaceTest);
         Reg#(int) jj <- mkRegU();
    method go ;
               (* split *)
-        action      
+        action
         if (x)
                 ii <= 10;
         else

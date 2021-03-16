@@ -15,7 +15,7 @@ interface Pingpong_IFC#(type a, type n) ;
 endinterface : Pingpong_IFC
 
 
-module pingpong (Pingpong_IFC#(a,n)) provisos (Add#(depth, 1, n), 
+module pingpong (Pingpong_IFC#(a,n)) provisos (Add#(depth, 1, n),
                                                Add#(xyz, 1, depth));
 
    Reg#(ListN#(depth, Int#(a))) stg1a_data() ;

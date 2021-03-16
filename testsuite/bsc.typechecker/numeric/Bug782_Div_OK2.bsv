@@ -343,7 +343,7 @@ function Table_Type[] tables(Bool isRecip);
    FixedPoint#(10,FRAC_TABLE) one = 1;
    FixedPoint#(10,FRAC_TABLE) del = fromRational(1,tab_size);
    FixedPoint#(10,FRAC_TABLE) d = one;
-   
+
    for(Integer i=0; i<tab_size; i=i+1)
       begin
          let r = fxptDivide(one,d);

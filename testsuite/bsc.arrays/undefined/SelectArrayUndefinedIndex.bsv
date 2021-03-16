@@ -7,5 +7,5 @@ module sysSelectArrayUndefinedIndex();
     $display("%0d", arr[?]);
     $finish(0);
   endrule
- 
+
 endmodule

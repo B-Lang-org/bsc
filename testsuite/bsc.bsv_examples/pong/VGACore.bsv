@@ -37,9 +37,9 @@ vga640x480 = VGATiming { h : VGAHVTiming { activeSize : 640,
                                            syncStart : 664,
                                            syncEnd : 760,
                                            totalSize : 800},
-                         v : VGAHVTiming { activeSize : 480, 
-                                           syncStart : 490, 
-                                           syncEnd : 494, 
+                         v : VGAHVTiming { activeSize : 480,
+                                           syncStart : 490,
+                                           syncEnd : 494,
                                            totalSize : 526}};
 
 VGATiming vga1280x480;
@@ -47,9 +47,9 @@ vga1280x480 = VGATiming { h : VGAHVTiming { activeSize : 1280,
                                             syncStart : 1328,
                                             syncEnd : 1520,
                                             totalSize : 1600},
-                          v : VGAHVTiming { activeSize : 480, 
-                                            syncStart : 490, 
-                                            syncEnd : 494, 
+                          v : VGAHVTiming { activeSize : 480,
+                                            syncStart : 490,
+                                            syncEnd : 494,
                                             totalSize : 526}};
 
 function VGATiming hzToTiming(Integer hz);
@@ -59,8 +59,8 @@ function VGATiming hzToTiming(Integer hz);
   function Integer usCycles(Integer x);
     return (div((x * hz), 1000000));
   endfunction: usCycles
-  
-  Integer hTotalSize;  
+
+  Integer hTotalSize;
   hTotalSize =  nsCycles(31770);
 
   return (VGATiming { h : VGAHVTiming { activeSize : nsCycles(25170),
@@ -131,7 +131,7 @@ module mkVGACore#(Integer preScale, VGATiming vt)(VGACore#(hCoord, vCoord))
     Bool vTickLocal;
     Bool hTickExternal;
     Bool vTickExternal;
-  
+
     hSize =  fromInteger(vt.h.activeSize);
     vSize =  fromInteger(vt.v.activeSize);
     hSyncStart =  fromInteger(vt.h.syncStart);
@@ -146,7 +146,7 @@ module mkVGACore#(Integer preScale, VGATiming vt)(VGACore#(hCoord, vCoord))
     vTickExternal =  hTickExternal && (vPosR == (vSize + 1));
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule tick (preScale != 1); 
+    rule tick (preScale != 1);
         scale <= (scale == 0 ? fromInteger(preScale - 1) : scale - 1);
     endrule: tick
 
@@ -163,45 +163,45 @@ module mkVGACore#(Integer preScale, VGATiming vt)(VGACore#(hCoord, vCoord))
     endrule: vclk
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule hsyncOn (hPosR == hSyncStart); 
+    rule hsyncOn (hPosR == hSyncStart);
         not_hsyncR <= False;
     endrule: hsyncOn
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule hsyncOff (hPosR == hSyncEnd); 
+    rule hsyncOff (hPosR == hSyncEnd);
         not_hsyncR <= True;
     endrule: hsyncOff
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule vsyncOn (vPosR == vSyncStart); 
+    rule vsyncOn (vPosR == vSyncStart);
         not_vsyncR <= False;
     endrule: vsyncOn
 
     (* no_implicit_conditions, fire_when_enabled *)
-    rule vsyncOff (vPosR == vSyncEnd); 
+    rule vsyncOff (vPosR == vSyncEnd);
         not_vsyncR <= True;
     endrule: vsyncOff
 
-    method hPos(); 
+    method hPos();
       return (hPosR);
     endmethod: hPos
-    method vPos(); 
+    method vPos();
       return (vPosR);
     endmethod: vPos
     // blank video outside of visible region
-    method blank(); 
+    method blank();
       return (!(hVisible && vVisible));
     endmethod: blank
-    method not_hsync(); 
+    method not_hsync();
       return (not_hsyncR);
     endmethod: not_hsync
-    method not_vsync(); 
+    method not_vsync();
       return (not_vsyncR);
     endmethod: not_vsync
-    method lineTick(); 
+    method lineTick();
       return (hTickExternal && vVisible);
     endmethod: lineTick
-    method frameTick(); 
+    method frameTick();
       return (vTickExternal);
     endmethod: frameTick
 

@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 Example8
- 
+
 The functions in this file are list-based versions of those in Example5
 (replacing for-loops with list functions).
 
@@ -55,7 +55,7 @@ module mkLs (SShifter#(m,n));
    endfunction
 
    Action shift = joinActions(map(mkShift, upto(0, max-1)));
-   
+
    // Interface
    method push(sx);
       actionvalue
@@ -109,7 +109,7 @@ module mkLsV3 (SMShifter#(m,n));
    endfunction
 
    Action shift = joinActions(map(mkShift, upto(0, max-1)));
-   
+
    // Interface
    method push(sx);
       actionvalue

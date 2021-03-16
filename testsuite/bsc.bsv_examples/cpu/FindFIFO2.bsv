@@ -26,7 +26,7 @@ module mkFindFIFO (FindFIFO#(t)) provisos (Bits#(t,szt));
    Bool is_deq = isValid(deq_probe.wget);
    Bool is_enq = isValid(enq_probe.wget);
    Bool is_clr = isValid(clr_probe.wget);
-   
+
    Bool has_data = isValid(data);
    Bool can_enq = is_deq || !has_data;
    Bool can_deq = has_data;
@@ -68,11 +68,11 @@ module mkFindFIFO (FindFIFO#(t)) provisos (Bits#(t,szt));
 	    else
 	       data <= data;
    endrule
-   
+
    method enq(x) if (can_enq) = enq_probe.wset(x);
    method deq() if (can_deq) = deq_probe.wset(?);
    method clear() = clr_probe.wset(?);
-   
+
    method first() if (has_data) = validValue(data);
 
    method find(f) = has_data ? f(validValue(data)) : False;

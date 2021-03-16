@@ -18,8 +18,8 @@ module sysTest ();
 
    // Make a gated clock
    MakeClockIfc#(Bool) m <- mkClock(True, True);
-   
+
    Ifc i <- sysPropDeduce_InClockAsOutClock(m.new_clk);
-   
+
 endmodule
 */

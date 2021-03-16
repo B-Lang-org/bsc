@@ -24,7 +24,7 @@ FSM testFSM <- mkFSM(test_seq);
 rule start(!going);
     testFSM.start;
 	going <= True;
-endrule	
+endrule
 
 rule always_fire;
 	count <= count + 1;
@@ -33,6 +33,6 @@ endrule
 rule clock_cycles(going && testFSM.done);
      $display("Total number of clock cycles =%5d", count);
 	 $finish(0);
-endrule	 
+endrule
 
 endmodule

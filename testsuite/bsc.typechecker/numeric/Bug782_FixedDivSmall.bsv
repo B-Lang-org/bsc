@@ -30,7 +30,7 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
 	    Bitwise#(FixedPoint#(ni_plus_3, nf_plus_10)),
 	    Bits#(FixedPoint#(1,d_sz_minus_1), d_sz)
 	   );
-   
+
    Reg#(Maybe#(Tuple3#(FixedPoint#(ni,nf),
 		       FixedPoint#(1,d_sz_minus_1),
 		       UInt#(sh_bits)))) buf_d1 <- mkReg(tagged Invalid);
@@ -43,9 +43,9 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
    Reg#(Maybe#(Tuple3#(FixedPoint#(ni,nf),
 		       FixedPoint#(3,10),
 		       UInt#(sh_bits)))) buf_d3 <- mkReg(tagged Invalid);
-   
+
    Reg#(Maybe#(FixedPoint#(qi,qf))) buf_d4 <- mkReg(tagged Invalid);
-   
+
    method ActionValue#(Maybe#(FixedPoint#(qi,qf)))
           exec(Maybe#(Tuple2#(FixedPoint#(ni,nf), FixedPoint#(di,df))) args);
 
@@ -61,7 +61,7 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
 	       buf_d1 <= tagged Valid tuple3(n, y_normalized, shift);
 	    end
       endcase
-      
+
       // Stage 2
       case (buf_d1) matches
 	 tagged Invalid: buf_d2 <= tagged Invalid;
@@ -75,7 +75,7 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
 	       buf_d2 <= tagged Valid tuple4(x, lut_out, err, shift);
 	    end
       endcase
-      
+
       // Stage 3
       case (buf_d2) matches
 	 tagged Invalid: buf_d3 <= tagged Invalid;
@@ -88,7 +88,7 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
 	       buf_d3 <= tagged Valid tuple3(x, newton, shift);
 	    end
       endcase
-      
+
       // Stage 4
       case (buf_d3) matches
 	 tagged Invalid: buf_d4 <= tagged Invalid;
@@ -100,10 +100,10 @@ module mkDivide(PipeFragment#(Tuple2#(FixedPoint#(ni,nf),
 	       buf_d4 <= tagged Valid adjust(z);
 	    end
       endcase
-      
+
       // Return value
       return buf_d4;
-      
+
    endmethod
 endmodule: mkDivide
 
@@ -137,7 +137,7 @@ endfunction: dropLSBs
 
 // Reduce the fractional bits of a fixed point value with rounding.
 // Positive values round up if the fractional part is >= 0.5.
-// Negative values round toward negative infinity if the fractional 
+// Negative values round toward negative infinity if the fractional
 // part is > 0.5.
 // NOTE: The provisos for this do not check that rf < f, only that
 // rf <= f.  This can allow an index out of range error, but adding

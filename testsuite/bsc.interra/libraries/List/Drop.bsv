@@ -29,12 +29,12 @@ module mkTestbench_Drop();
       display_list (my_list1);
       $display ("Dropping four elements. New List:");
       display_list (drop(4, my_list1));
-      if (drop(4, my_list1) != my_list2 || drop (6, my_list1) != Nil) 
+      if (drop(4, my_list1) != my_list2 || drop (6, my_list1) != Nil)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Drop
 endpackage : Drop

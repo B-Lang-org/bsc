@@ -9,12 +9,12 @@ module mkTestbench_Null();
 
 
    rule fire_once (True);
-      if (null(my_list1) != False || null(my_list2) != True) 
+      if (null(my_list1) != False || null(my_list2) != True)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Null
 endpackage : Null

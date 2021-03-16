@@ -8,7 +8,7 @@ module sysMutuallyExclusiveBug1327();
   Reg#(Bit#(21)) r <- mkReg(0);
 
   Reg#(Bit#(19)) count <- mkReg(0);
-  
+
   rule doit;
     count <= count + 1;
     if(count == 1) $finish(0);

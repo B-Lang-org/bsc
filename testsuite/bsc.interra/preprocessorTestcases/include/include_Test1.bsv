@@ -11,7 +11,7 @@ function Bit#(4) result (Bit #(4) x);
 Bit #(4) res;
   res = x ^ (x >> 1) ;
   return res;
-endfunction 
+endfunction
 
 (*
        always_ready ,
@@ -23,11 +23,11 @@ endfunction
 module mkDesign (Design_IFC);
 `ifdef MAX
  method Bit#(4) out_data(Bit#(4) in_data);
-    out_data = 12; 
+    out_data = 12;
   endmethod: out_data
 `else
    method Bit#(4) out_data(Bit#(4) in_data);
-    out_data = 13; 
+    out_data = 13;
   endmethod: out_data
 `endif
 endmodule : mkDesign

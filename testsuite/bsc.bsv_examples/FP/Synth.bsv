@@ -17,7 +17,7 @@ endfunction
 
 (* synthesize *)
 module sysSynth();
-   
+
    Stmt test =
    seq
       delay(10);
@@ -37,7 +37,7 @@ module sysSynth();
 	 { nfzat, zat, dzat, nzat } = f_xAT_yAT(c, sz);
 	 $display("640.9001,640 = ", fshow(nfzat), fshow(" "), fshow(zat), fshow(" "), fshow(dzat), fshow(" "), fshow(nzat));
       endaction
-      
+
       action
 	 FP64 c      = 640.9001;
 	 Int#(32) sz = 643;
@@ -46,9 +46,9 @@ module sysSynth();
 	 { nfzat, zat, dzat, nzat } = f_xAT_yAT(c, sz);
 	 $display("640.9001,643 = ", fshow(nfzat), fshow(" "), fshow(zat), fshow(" "), fshow(dzat), fshow(" "), fshow(nzat));
       endaction
-      
+
       delay(10);
    endseq;
-   
+
    mkAutoFSM(test);
 endmodule

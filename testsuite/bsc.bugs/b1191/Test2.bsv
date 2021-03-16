@@ -9,4 +9,4 @@ module mkTest2 (IFC);
   method doStuff (Bool p) if (y);
     return y;
   endmethod
-endmodule 
+endmodule

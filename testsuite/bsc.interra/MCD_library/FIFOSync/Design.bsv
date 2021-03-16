@@ -7,7 +7,7 @@
 
 import Clocks::*;
 
-            
+
 interface Design_IFC;
     method Action   push        (Bit#(8) data_in, Bit#(1) write);
     method Action   pop         (Bit#(1) read);
@@ -21,7 +21,7 @@ endinterface: Design_IFC
 *)
 
 module mkDesign (Clock rd_clk, Reset rd_rst, Design_IFC ifc);
-        
+
     SyncFIFOIfc#(Bit#(8))     datafifo();
     mkSyncFIFOFromCC#(16)     t_datafifo(rd_clk, datafifo);
 
@@ -30,19 +30,19 @@ module mkDesign (Clock rd_clk, Reset rd_rst, Design_IFC ifc);
 
     method push(in_data, w);
         action
-            if (w == 1'b1) 
+            if (w == 1'b1)
                 datafifo.enq(in_data);
             else
                 noAction;
         endaction
     endmethod: push
-   
+
     method pop(r);
         action
             if(r == 1'b1) begin
-                datafifo.deq();    
+                datafifo.deq();
                 data_out_reg <= datafifo.first;
-            end   
+            end
         endaction
     endmethod: pop
 
@@ -50,4 +50,4 @@ module mkDesign (Clock rd_clk, Reset rd_rst, Design_IFC ifc);
         data_out = data_out_reg;
     endmethod: data_out
 
-endmodule: mkDesign 
+endmodule: mkDesign

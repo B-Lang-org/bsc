@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 Example7 Questions
- 
+
 The functions in this file are list-based versions of those in Example4
 (replacing for-loops with list functions).
 
@@ -94,7 +94,7 @@ module mkLs (FIFO#(SXpair#(m,n)));
 
    // TASK: Implement the interface.
    //       "enq" into the input FIFO, "deq" from the output FIFO
-   
+
    method enq = ?;
    method deq = ?;
    method first = ?;
@@ -143,7 +143,7 @@ module mkLsV2 (FIFO#(SXpair#(m,n)));
    // TASK: Rewrite mkLs to properly implement the "clear" method
    //       using mkLsV2.
    // ...
-   
+
    method enq = ?;
    method deq = ?;
    method first = ?;

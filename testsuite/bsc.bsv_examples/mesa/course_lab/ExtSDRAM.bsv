@@ -31,12 +31,12 @@ module mkExtSDRAM(ExtSDRAM ifc, Empty provided_ifc);
       action
 	 if (ifc.rd && !ifc.wr)
 	    buff.sin(Valid(rom.sub(ifc.addr)));
-	 else 
+	 else
 	    buff.sin(Invalid);
 	 ifc.dOut(buff.sout);
       endaction
    endrule
-   
+
 endmodule
 
 endpackage

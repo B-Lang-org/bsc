@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysSelectUndefinedArrayStatic();
-  
+
   Int#(16) arr[4] = ?;
 
   rule test;

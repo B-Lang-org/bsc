@@ -32,4 +32,4 @@ module mkDesign (Design_IFC);
   endmethod: out_data
 
 endmodule : mkDesign
-endpackage: Design 
+endpackage: Design

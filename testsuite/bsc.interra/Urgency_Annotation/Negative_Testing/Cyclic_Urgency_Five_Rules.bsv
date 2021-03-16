@@ -11,13 +11,13 @@ module mkCyclic_Urgency_Five_Rules();
     (*descending_urgency="test_rule_1, test_rule_2" *)
     rule test_rule_1 (count <=60);
         count <= count + 2;
-        $display ("Executing Rule1"); 
+        $display ("Executing Rule1");
     endrule
 
     (*descending_urgency="test_rule_2, test_rule_3" *)
     rule test_rule_2 (count >= 30);
         count <= count + 1;
-        $display ("Executing Rule2"); 
+        $display ("Executing Rule2");
     endrule
 
     (*descending_urgency="test_rule_3, test_rule_1",
@@ -25,8 +25,8 @@ module mkCyclic_Urgency_Five_Rules();
     rule test_rule_3;
         count <= count + 4;
     endrule
- 
-    (*descending_urgency="test_rule_4, test_rule_1", 
+
+    (*descending_urgency="test_rule_4, test_rule_1",
      descending_urgency="test_rule_4, test_rule_5" *)
     rule test_rule_4;
         count <= count + 4;

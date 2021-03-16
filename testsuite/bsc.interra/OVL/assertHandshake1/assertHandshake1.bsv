@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ let defaults = mkOVLDefaults;
 defaults.min_ack_cycle = 1;//min_ack_cycle : 1
 defaults.max_ack_cycle = 3;//max_ack_cycle : 3
 AssertStartTest_IFC#(Bool) assertHand <- bsv_assert_handshake(defaults);
-      
+
 rule test(True);
     assertHand.start(req); // req : req
     assertHand.test(ack); //  ack : ack

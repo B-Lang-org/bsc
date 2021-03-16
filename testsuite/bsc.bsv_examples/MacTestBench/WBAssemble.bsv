@@ -30,18 +30,18 @@ module mkWBAssemble#(Integer address) (WBAssembleIFC);
 
    FIFO#(WBoneOp) wb_in_fifo  <- mkFIFO;
    FIFO#(WBoneOp) wb_out_fifo <- mkFIFO;
-   
+
    FIFO#(Frame) frame_fifo <- mkFIFO;
-   
+
    Reg#(Bit#(16)) receive_size <- mkReg(0);
    Reg#(Bit#(16)) rest <- mkReg(0);
-   
+
    Reg#(Frame) rx_reg <- mkRegU;
    Reg#(Bit#(SizeOf#(Frame))) rx_bit_reg <- mkReg(0);
-   
+
    Reg#(Bit#(32)) count_rx  <- mkReg(0);
    Reg#(Bit#(16)) i  <- mkReg(0);
-   
+
    Stmt assemble_seq =
    seq
       while (True)
@@ -51,11 +51,11 @@ module mkWBAssemble#(Integer address) (WBAssembleIFC);
 	       wb_in_fifo.deq();
 	       wboneop.status = ACK;
 	       wb_out_fifo.enq(wboneop);
-	    
+
 	       let data = wboneop.data.data;
                receive_size <= data[31:16];
                rest <= data[15: 0];
-//	       $display("(%5d) slave receives wbone_op %h", $time, data[15: 0]); 
+//	       $display("(%5d) slave receives wbone_op %h", $time, data[15: 0]);
 //	       displayWBoneOp(wboneop);
 	       rx_bit_reg <= 0;
 	    endaction
@@ -71,7 +71,7 @@ module mkWBAssemble#(Integer address) (WBAssembleIFC);
 		  wb_in_fifo.deq();
 		  wboneop.status = ACK;
 		  wb_out_fifo.enq(wboneop);
-		  
+
 		  Bit#(32) word = truncate(wboneop.data.data);
 		  rx_bit_reg <= truncate({rx_bit_reg, word});
 		  count_rx <= count_rx + 32;
@@ -89,7 +89,7 @@ module mkWBAssemble#(Integer address) (WBAssembleIFC);
 	    endaction
 	 endseq
    endseq;
-   
+
    let assemble_fsm <- mkFSM(assemble_seq);
 
    interface Control cntrl;
@@ -112,12 +112,12 @@ module mkWBAssemble#(Integer address) (WBAssembleIFC);
 	 endmethod
       endinterface
    endinterface
-   
+
    interface Get tx =fifoToGet(frame_fifo);
-   
+
 endmodule
 
-      
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

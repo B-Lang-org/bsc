@@ -15,7 +15,7 @@ module sysConflictFreeSwap();
   for(Integer i = 0; i < 64; i = i + 1)
   begin
     rs[i] <- mkReg(False);
-  end  
+  end
 
   rule rs_x;
     rs[j+1] <= x;

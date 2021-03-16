@@ -41,7 +41,7 @@ mkWMissingRule1 =
                     res <- mkReg True
 
 
-                    rules 
+                    rules
                       "One" :
                                when True
                                       ==> action
@@ -71,11 +71,11 @@ mkWMissingRule1 =
 
 
 
-                    interface 
+                    interface
                             start iw ix iy iz = action
                                                       w := iw
                                                       x := ix
-                                                      y := iy 
+                                                      y := iy
                                                       z := iz
-                          
+
                             result = res

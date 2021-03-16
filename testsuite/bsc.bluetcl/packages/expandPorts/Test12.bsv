@@ -16,5 +16,5 @@ module mkTest12( Test12 );
    method Bit#(0)   advance();  // just want the ready signal
       return cond;
    endmethod
-      
+
 endmodule

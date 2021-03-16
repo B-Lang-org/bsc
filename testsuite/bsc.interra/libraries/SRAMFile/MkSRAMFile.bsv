@@ -16,7 +16,7 @@ import GetPut::*;
 module mkDesign_MkSRAMFile (RAM#(Bit#(4),Bit#(8)));
   RAM#(Bit#(4),Bit#(8)) tx <- mkWrapSRAM(mkSRAMFile("input_file",16));
   return(tx);
-endmodule: mkDesign_MkSRAMFile 
+endmodule: mkDesign_MkSRAMFile
 
 module mkTestbench_MkSRAMFile ();
 
@@ -42,13 +42,13 @@ module mkTestbench_MkSRAMFile ();
    Reg#(Bit#(4)) value_count <- mkReg(0);
    Reg#(Bit#(4)) value_count1 <- mkReg(0);
 
-   Rules r1 = rules 
+   Rules r1 = rules
        rule always_fire (True);
        	 counter <= counter + 1;
        endrule
      endrules;
 
-   Rules r2 = rules 
+   Rules r2 = rules
        rule request_value (fire_request_value);
 	     fire_read_value <= True;
          RAMreq#(Bit#(4),Bit#(8)) z = Read(out_address);
@@ -60,7 +60,7 @@ module mkTestbench_MkSRAMFile ();
        endrule
      endrules;
 
-   Rules r3 = rules 
+   Rules r3 = rules
        rule read_value (fire_read_value);
          Bit #(8) first <- tx.response.get;
     	 $display("Cycle Number = %d, Value read %h value_count %d",counter, first,value_count);
@@ -72,7 +72,7 @@ module mkTestbench_MkSRAMFile ();
        endrule
      endrules;
 
-   Rules r4 = rules 
+   Rules r4 = rules
        rule data_write ((counter >= 80) &&(counter < 96));
          Tuple2#(Bit#(4),Bit#(8)) x = tuple2(in_address,in_data) ;
          RAMreq#(Bit#(4),Bit#(8)) y = Write(x);
@@ -85,7 +85,7 @@ module mkTestbench_MkSRAMFile ();
        endrule
      endrules;
 
-   Rules r5 = rules 
+   Rules r5 = rules
        rule request_data1 (fire_request_data1);
 	     fire_read_value1 <= True;
          RAMreq#(Bit#(4),Bit#(8)) z = Read(out_address1);
@@ -97,7 +97,7 @@ module mkTestbench_MkSRAMFile ();
        endrule
      endrules;
 
-   Rules r6 = rules 
+   Rules r6 = rules
        rule read_value1 (fire_read_value1 && (counter < 130));
          Bit #(8) first1 <- tx.response.get;
     	 $display("Cycle Number = %d, Value read %h ",counter, first1);
@@ -109,9 +109,9 @@ module mkTestbench_MkSRAMFile ();
 		    end
        endrule
      endrules;
-    
-    
-   Rules r7 = rules 
+
+
+   Rules r7 = rules
       rule endofsim (counter == 130);
     	if (fail)
     	  $display("Simulation Fails");

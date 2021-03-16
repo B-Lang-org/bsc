@@ -6,9 +6,9 @@ module mkSub2(UInt#(8) limit, Empty ifc);
    rule incr;
       count <= count + 1;
    endrule: incr
-   
+
    rule done (count == limit);
       $finish(0);
    endrule: done
-   
+
 endmodule: mkSub2

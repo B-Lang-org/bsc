@@ -21,7 +21,7 @@ module sysDivTest();
    rule ab (ub==0);
       uc <= uc + 2;
    endrule
-   
+
    rule ac (ua==1 && ub >=2);
       uc <= uc + 2;
    endrule

@@ -1,5 +1,5 @@
 /* Bit Stream Parser parses the MPEG4 stream and performs VLD,
-   inverse scan,inverse quantisation , AC/DC prediction , 
+   inverse scan,inverse quantisation , AC/DC prediction ,
    MV  prediction in the MPEG-4 decoder.
 */
 
@@ -27,7 +27,7 @@ interface Mpeg4_IFC;
   method Bool     vop_rd_done;
 endinterface : Mpeg4_IFC
 
-(* 
+(*
    synthesize ,
    CLK = "clk",
    RST_N = "reset"
@@ -58,7 +58,7 @@ module mkMpeg4 (Mpeg4_IFC);
 
 // ###############################################
 // Instantiations of sub-block are done here
-  IDCT_1D_IFC#(12,9) idct <- mkIDCT_top; 
+  IDCT_1D_IFC#(12,9) idct <- mkIDCT_top;
   MCR_IFC            mcr  <- mkMCR;
   FrmBuffer_IFC      frmbuf <- mkFrmBuffer;
   BtStrmPrsr_IFC  parser <- mkBtStrmPrsr;
@@ -92,7 +92,7 @@ module mkMpeg4 (Mpeg4_IFC);
 			    frmbuf.sent_rd_data,
 			    0);
 
-      Tuple3#(Bit#(1),Bit#(18),Bit#(8))  write_frmdata = 
+      Tuple3#(Bit#(1),Bit#(18),Bit#(8))  write_frmdata =
 	         tuple3(mcr.pixelValid,mcr.curFrame_addr,mcr.pixelVal);
 
 	  frmbuf.set_level(0);
@@ -101,7 +101,7 @@ module mkMpeg4 (Mpeg4_IFC);
 	  //frmbuf.set_disable_mb_done(parser.disable_mb_done);
       parser.get_rdmv(mcr.rd_MV);
       parser.get_mb_done(frmbuf.mb_done);
-     
+
      // if (frmbuf.vop_done)  $display("VOP DONE HAS BEEN SET");
      // if (frmbuf.mb_done == 1) $display("MB DONE HAS BEEN SET");
   endrule
@@ -115,75 +115,75 @@ module mkMpeg4 (Mpeg4_IFC);
     frmbuf.set_disable_mb_done(1'b0);
   endrule
 
-  method get_host_strobe (x); 
-    action 
+  method get_host_strobe (x);
+    action
       parser.get_host_strobe(x);
-	endaction 
-  endmethod : get_host_strobe 
-  
-  method get_host_select (x); 
-    action 
+	endaction
+  endmethod : get_host_strobe
+
+  method get_host_select (x);
+    action
       parser.get_host_select(x);
-    endaction 
-  endmethod : get_host_select 
-  
-  method get_host_address (x); 
+    endaction
+  endmethod : get_host_select
+
+  method get_host_address (x);
     action
       parser.get_host_address(x);
-	endaction 
-  endmethod : get_host_address 
-  
-  method get_host_datain (x); 
-    action 
+	endaction
+  endmethod : get_host_address
+
+  method get_host_datain (x);
+    action
       parser.get_host_datain(x);
-    endaction 
-  endmethod : get_host_datain 
-  
-  method get_vd_valid (x); 
-    action 
+    endaction
+  endmethod : get_host_datain
+
+  method get_vd_valid (x);
+    action
       parser.get_vd_valid(x);
     endaction
-  endmethod : get_vd_valid 
-  
-  method get_vd_data (x); 
-    action 
+  endmethod : get_vd_valid
+
+  method get_vd_data (x);
+    action
       parser.get_vd_data(x);
-    endaction 
-  endmethod : get_vd_data 
-  
-  method vd_rd (); 
+    endaction
+  endmethod : get_vd_data
+
+  method vd_rd ();
     vd_rd = parser.vd_rd;
-  endmethod : vd_rd 
-  
-  method pixelValid (); 
+  endmethod : vd_rd
+
+  method pixelValid ();
     pixelValid = mcr.pixelValid;
-  endmethod : pixelValid 
-  
-  method pixelVal (); 
+  endmethod : pixelValid
+
+  method pixelVal ();
     pixelVal = mcr.pixelVal;
-  endmethod : pixelVal 
-  
+  endmethod : pixelVal
+
   method vop_done;
     vop_done = frmbuf.vop_done;
-  endmethod : vop_done 
+  endmethod : vop_done
 
   method busy;
     busy = parser.busy;
-  endmethod : busy 
+  endmethod : busy
 
   method read_vop(x);
-    action 
+    action
       frmbuf.set_rd_vop(x);
     endaction
-  endmethod : read_vop 
+  endmethod : read_vop
 
   method Bit#(8) vop_data;
     vop_data = frmbuf.vop_data;
-  endmethod : vop_data 
+  endmethod : vop_data
 
   method vop_rd_done;
     vop_rd_done = frmbuf.vop_rd_done;
-  endmethod : vop_rd_done 
+  endmethod : vop_rd_done
 
 endmodule : mkMpeg4
 

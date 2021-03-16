@@ -30,7 +30,7 @@ module mkSlave#(Bit#(4) delayCntr )( Slave ) ;
       let resp = BusResponse{ data:oldAddr, status:OK } ;
       return resp;
    endmethod
-   
+
 endmodule
 
 
@@ -58,7 +58,7 @@ module mkSlaveN( Slave ) ;
       let resp = BusResponse{ data:oldAddr, status:OK } ;
       return resp;
    endmethod
-   
+
 endmodule
 
 // /////////////////////////////////////////////////////////////////////////
@@ -98,16 +98,16 @@ module mkADPSlave1( Slave ) ;
       // The implicit RDY condition is there must be something in requestQ
       let req = requestQ.first ;  requestQ.deq ;
       let addr = req.addr;
-      // transfer address to data 
+      // transfer address to data
       let resp = BusResponse{ data:addr, status:OK } ;
       adapter_ifc.response( resp ) ;
-   endrule 
-   
+   endrule
+
    return slave_ifc ;
 endmodule
 
 module mkADPSlave#(Bit#(4) delayCntr ) ( Slave ) ;
-   
+
    AmbaSlaveAdapter adapter <- mkBlueAmbaSlave ;
    Slave slave_ifc = adapter.aslave ;
    BlueSlaveAdapter adapter_ifc = adapter.bbus ;
@@ -116,7 +116,7 @@ module mkADPSlave#(Bit#(4) delayCntr ) ( Slave ) ;
    Reg#(BusAddr) oldAddr <- mkReg( 0 ) ;
    // XXXX inProgress in not really needed since the respoinse can always be asserted?
    Reg#(Bool)   inProgress <- mkReg(False) ;
-   
+
    rule takedata (( adapter_ifc.slaveSelect ) && (counter == 0))  ;
       oldAddr <=  adapter_ifc.request.addr ;
       counter <= delayCntr - 1;
@@ -129,12 +129,12 @@ module mkADPSlave#(Bit#(4) delayCntr ) ( Slave ) ;
    endrule
 
    rule returndata ((counter == 0) && inProgress) ;
-      // transfer address to data 
+      // transfer address to data
       let resp = BusResponse{ data:oldAddr, status:OK } ;
       adapter_ifc.response( resp ) ;
       inProgress <= False ;
-   endrule 
-   
+   endrule
+
    return slave_ifc ;
 endmodule
 
@@ -165,7 +165,7 @@ module mkSource ( Slave ) ;
       let req = slave_adp.request ;
       $display( "mkSource:: invalid  request %h %h %h",
                req.read_write, req.addr, req.data ) ;
-      
+
       slave_adp.response ( errorResponse ) ;
    endrule
 
@@ -198,10 +198,10 @@ module mkSink ( Slave ) ;
       let req = slave_adp.request ;
       $display( "mkSink:: invalid  request %h %h %h",
                req.read_write, req.addr, req.data ) ;
-      
+
       slave_adp.response ( errorResponse ) ;
    endrule
-   
+
    return sadapter.aslave ;
 endmodule
 
@@ -246,7 +246,7 @@ module mkSlaveRx ( SlaveRx ) ;
    method Action rx( RxData rxdata);
       // $display("In rx: rxdata = %d",rxdata);
    endmethod
-   
+
    interface slave = sadapter.aslave;
 endmodule
 
@@ -287,17 +287,17 @@ module mkSlaveTx ( SlaveTx ) ;
       chksum <= chksum+slave_adp.request.data;
       // $display("mkSink %m:received: %0d chksum=%d", slave_adp.request.data, chksum ) ;
    endrule
-   
+
    rule readChksum (slave_adp.slaveSelect && slave_adp.request.addr[27:0]==28'h800_0000 && slave_adp.request.read_write == Read  ) ;
       slave_adp.response ( BusResponse { data: chksum , status: OK } ) ;
       // $display("MKSINK %m: READING CHECKSUM: %0d chksum=%d", slave_adp.request.data, chksum ) ;
    endrule
-   
+
    method ActionValue#(TxData) tx ()  ;
       txfifo.deq;
-      return txfifo.first; 
+      return txfifo.first;
    endmethod
-   
+
    interface slave = sadapter.aslave;
 endmodule
 
@@ -315,18 +315,18 @@ module mkSRAM64k ( Slave ) ;
       let addr = slave_adp.request.addr[17:2] ;
       let datw = slave_adp.request.data ;
       rfile.upd( addr, datw ) ;
-      slave_adp.response ( BusResponse { data: 0 , status: OK } ) ;      
+      slave_adp.response ( BusResponse { data: 0 , status: OK } ) ;
    endrule
 
    rule readMem ( slave_adp.slaveSelect &&
                   slave_adp.request.read_write == Read ) ;
       let addr = slave_adp.request.addr[17:2] ;
       let datr = rfile.sub( addr ) ;
-      slave_adp.response ( BusResponse { data: datr , status: OK } ) ;      
+      slave_adp.response ( BusResponse { data: datr , status: OK } ) ;
    endrule
 
    return sadapter.aslave;
-   
+
 endmodule
 
 

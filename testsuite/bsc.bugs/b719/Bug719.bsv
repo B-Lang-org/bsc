@@ -6,7 +6,7 @@ endinterface
 
 (* synthesize *)
 module mkBug  (Buggy);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
 
@@ -17,5 +17,5 @@ module mkBug  (Buggy);
     method result if (counter == ?);
         return (counter);
     endmethod
-   
+
 endmodule

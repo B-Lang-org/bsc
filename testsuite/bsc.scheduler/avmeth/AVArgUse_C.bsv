@@ -18,14 +18,14 @@ endmodule
 (* synthesize *)
 module sysAVArgUse_C();
     let dut <- mkAVArgUse_C();
-    Reg#(int) r1 <- mkReg(0); 
+    Reg#(int) r1 <- mkReg(0);
 
     rule rA;
         let v1 <- dut.m(r1, 1);
         $display($stime, " rA ", v1);
         r1 <= r1 + 1;
         if (r1 == 10) $finish;
-    endrule 
+    endrule
 
     rule rB;
         let v2 <- dut.m(5, r1);

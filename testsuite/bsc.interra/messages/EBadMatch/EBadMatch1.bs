@@ -9,15 +9,15 @@
 
 -- Description: This testcase triggers an "Illegal match pattern" error (EBadMatch)
 
--- Error Message : bsc EBadMatch1.bs 
+-- Error Message : bsc EBadMatch1.bs
 -- bsc: Compilation errors:
 -- "EBadMatch1.bs", line 22, column 9, Illegal match pattern: Foo a b
 -----------------------------------------------------------------------
 
 package EBadMatch1 (EBadMatch1(..)) where
 
-data Foo = Bar Bool Bool 
+data Foo = Bar Bool Bool
 
-x :: (Bool, Bool) 
-x = let (Foo a b) = (Foo True False) 
+x :: (Bool, Bool)
+x = let (Foo a b) = (Foo True False)
     in (a, b)

@@ -29,10 +29,10 @@ interface SudokuSolver#(numeric type order);
    // test if the current grid configuration is known to be a complete
    // and consistent solution
    method Bool isSolved();
-   
-   // used to monitor the tactics as they are applied 
+
+   // used to monitor the tactics as they are applied
    method TacticResult#(order) watchTactic();
-      
+
 endinterface: SudokuSolver
 
 // A TacticResult describes the result of applying a solver tactic
@@ -57,27 +57,27 @@ module mkSolver(SudokuSolver#(order))
 	    Add#(_,TLog#(order),TLog#(TSquare#(order))),
 	    Bits#(Tactic#(order),sz0),
 	    Bits#(TacticResult#(order),sz1));
-	    
+
    SudokuRegGrid#(order) grid <- mkReg(replicate(replicate(unknown())));
-   
+
    Tactics#(order) tactics <- mkSudokuTactics();
-   
+
    Reg#(LIndex#(order))         row_idx <- mkReg(0);
    Reg#(LIndex#(order))         col_idx <- mkReg(0);
    Reg#(RFIndex#(order))        tactic_idx <- mkReg(0);
    FIFOF#(TacticResult#(order)) results <- mkFIFOF();
-   
-   Reg#(Bool) found_inconsistent <- mkReg(False);   
+
+   Reg#(Bool) found_inconsistent <- mkReg(False);
    Reg#(Bool) all_cells_complete <- mkReg(False);
    Reg#(Bool) made_some_progress <- mkReg(True);
-   
+
    // indexes used by solvers
    Index#(order)   row     = l2i(row_idx);
    Index#(order)   col     = l2i(col_idx);
    Index#(order)   box_idx = gridToBoxGroup(row,col);
    RFIndex#(order) rank    = gridToRF(row);
    RFIndex#(order) file    = gridToRF(col);
-   
+
    function Index#(order) other(Index#(order) n);
       let rf = gridToRF(n);
       let i  = gridToBox(n);
@@ -86,19 +86,19 @@ module mkSolver(SudokuSolver#(order))
       else
 	 return boxToGrid(rf,tactic_idx + 1);
    endfunction: other
-   
+
    function RFIndex#(order) other_rf(RFIndex#(order) n);
       if (tactic_idx < n)
 	 return tactic_idx;
       else
 	 return tactic_idx + 1;
    endfunction: other_rf
-   
+
    function Index#(order) startOfRF(Index#(order) n);
       let i = gridToBox(n);
       return (n - extend(i));
    endfunction: startOfRF
-   
+
    // groups used by tactics
    Group#(order) current_row = getRow(grid, row);
    Group#(order) current_col = getColumn(grid, col);
@@ -107,7 +107,7 @@ module mkSolver(SudokuSolver#(order))
    Group#(order) other_col   = getColumn(grid, other(col));
    Group#(order) other_box_rank = getBox(grid, rank, other_rf(file));
    Group#(order) other_box_file = getBox(grid, other_rf(rank), file);
-					 
+
    // masks used by tactics
    Mask#(order) mask_row  = make_mask(gridToBoxGroup(row,0),1);
    Mask#(order) mask_col  = make_mask(gridToBoxGroup(0,col),valueOf(order));
@@ -133,14 +133,14 @@ module mkSolver(SudokuSolver#(order))
       endcase
 
       let orig = grid[row][col];
-      grid[row][col] <= orig & tactic_result;      
+      grid[row][col] <= orig & tactic_result;
       results.enq(tagged TacticResult { tactic:   tactic
 				      , row:      row
 				      , column:   col
 	                              , original: orig
 	                              , result:   tactic_result
 				       });
-   endaction                  
+   endaction
    endfunction: apply
 
    Stmt tactic_sequence =
@@ -205,7 +205,7 @@ module mkSolver(SudokuSolver#(order))
 					    });
 		     apply(tagged Intersect { group: other_box_file
 					    , mask:  mask_col
-					    });		     
+					    });
 		  endseq
 	       endseq
 	    endseq
@@ -214,29 +214,29 @@ module mkSolver(SudokuSolver#(order))
 	       break;
 	 endseq
       endseq;
-   
+
    FSM controller <- mkFSM(tactic_sequence);
-      
+
    rule monitor_results;
       let res = results.first();
-      results.deq();           
+      results.deq();
 
       let restricted_value = res.original & res.result;
-      
+
       if (restricted_value == impossible())
          found_inconsistent <= True;
-      
+
       if (!isComplete(restricted_value))
 	 all_cells_complete <= False;
-      
+
       if (restricted_value != res.original)
 	 made_some_progress <= True;
    endrule: monitor_results
-  
+
    // ====================================================================
    // Interface methods for controlling the solver
    // ====================================================================
-      
+
    method Action setCellValue(Index#(order) r, Index#(order) c, Cell#(order) v) if (controller.done());
       grid[r][c] <= v;
    endmethod: setCellValue
@@ -246,9 +246,9 @@ module mkSolver(SudokuSolver#(order))
    endmethod: getCellValue
 
    method Action startSolver();
-      controller.start();	      
+      controller.start();
    endmethod: startSolver
-   
+
    method Bool done();
       return (controller.done());
    endmethod: done
@@ -260,11 +260,11 @@ module mkSolver(SudokuSolver#(order))
    method Bool isSolved() if (controller.done());
       return all_cells_complete;
    endmethod: isSolved
-   
+
    method TacticResult#(order) watchTactic();
       return (results.first());
    endmethod: watchTactic
-   
+
 endmodule: mkSolver
 
 

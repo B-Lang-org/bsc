@@ -4,7 +4,7 @@ module sysRuleAttributeErrors();
   Reg#(UInt#(13)) a <- mkRegU;
   Reg#(UInt#(13)) b <- mkRegU;
 
-  Rules block1 = 
+  Rules block1 =
     rules
       (* descending_urgency="a,b" *)
       rule one;
@@ -14,7 +14,7 @@ module sysRuleAttributeErrors();
 
   addRules(block1);
 
-  Rules block2 = 
+  Rules block2 =
     rules
       (* mutually_exclusive="c,d" *)
       rule two;

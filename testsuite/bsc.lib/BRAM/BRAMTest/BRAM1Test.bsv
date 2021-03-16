@@ -37,7 +37,7 @@ module sysBRAM1Test();
    BRAM1PortBE#(Bit#(8), Bit#(24), 3) dut3 <- mkBRAM1BELoad(False, "bram2.txt");
    BRAM1PortBE#(Bit#(8), Bit#(16), 2) dut4 <- mkBRAM1BE(False);
    BRAM1PortBE#(Bit#(8), Bit#(8), 1)  dut5 <- mkBRAM1BELoad(False, "bram2.txt");
-   
+
    Stmt test =
    (seq
        delay(10);
@@ -47,41 +47,41 @@ module sysBRAM1Test();
        $display("reading[7] = %x", dut3.portA.response.get);
        dut5.portA.request.put(makeRequestBE(0, 4, ?));
        $display("reading[4] = %x", dut5.portA.response.get);
-        
+
        delay(10);
        dut0.portA.request.put(makeRequest(True, 0, 'hFF));
        dut0.portA.request.put(makeRequest(True, 1, 'hFE));
        dut0.portA.request.put(makeRequest(True, 2, 'hFD));
        dut0.portA.request.put(makeRequest(True, 3, 'hFC));
        dut0.portA.request.put(makeRequest(False, 0, ?));
-       action 
+       action
 	  $display("reading[0] = %x", dut0.portA.response.get);
 	  dut0.portA.request.put(makeRequest(False, 1, ?));
        endaction
-       action 
+       action
 	  $display("reading[1] = %x", dut0.portA.response.get);
 	  dut0.portA.request.put(makeRequest(False, 2, ?));
        endaction
-       action 
+       action
 	  $display("reading[2] = %x", dut0.portA.response.get);
 	  dut0.portA.request.put(makeRequest(False, 3, ?));
        endaction
-       action 
+       action
 	  $display("reading[3] = %x", dut0.portA.response.get);
        endaction
        dut0.portA.request.put(makeRequest(True, 8, 'hF8));
        dut0.portA.request.put(makeRequest(False, 8, ?));
-       action 
+       action
 	  $display("reading[8] = %x", dut0.portA.response.get);
 	  dut0.portA.request.put(makeRequest(True, 9, 'hF7));
        endaction
        dut0.portA.request.put(makeRequest(False, 9, ?));
-       action 
+       action
 	  $display("reading[9] = %x", dut0.portA.response.get);
 	  dut0.portA.request.put(makeRequest(True, 10, 'hF6));
        endaction
        dut0.portA.request.put(makeRequest(False, 10, ?));
-       action 
+       action
 	  $display("reading[10] = %x", dut0.portA.response.get);
        endaction
 
@@ -90,34 +90,34 @@ module sysBRAM1Test();
        dut1.portA.request.put(makeRequest(True, 2, 'hFD));
        dut1.portA.request.put(makeRequest(True, 3, 'hFC));
        dut1.portA.request.put(makeRequest(False, 0, ?));
-       action 
+       action
 	  $display("reading[0] = %x", dut1.portA.response.get);
 	  dut1.portA.request.put(makeRequest(False, 1, ?));
        endaction
-       action 
+       action
 	  $display("reading[1] = %x", dut1.portA.response.get);
 	  dut1.portA.request.put(makeRequest(False, 2, ?));
        endaction
-       action 
+       action
 	  $display("reading[2] = %x", dut1.portA.response.get);
 	  dut1.portA.request.put(makeRequest(False, 3, ?));
        endaction
-       action 
+       action
 	  $display("reading[3] = %x", dut1.portA.response.get);
        endaction
        dut1.portA.request.put(makeRequest(True, 8, 'hF8));
        dut1.portA.request.put(makeRequest(False, 8, ?));
-       action 
+       action
 	  $display("reading[8] = %x", dut1.portA.response.get);
 	  dut1.portA.request.put(makeRequest(True, 9, 'hF7));
        endaction
        dut1.portA.request.put(makeRequest(False, 9, ?));
-       action 
+       action
 	  $display("reading[9] = %x", dut1.portA.response.get);
 	  dut1.portA.request.put(makeRequest(True, 10, 'hF6));
        endaction
        dut1.portA.request.put(makeRequest(False, 10, ?));
-       action 
+       action
 	  $display("reading[10] = %x", dut1.portA.response.get);
        endaction
 
@@ -127,40 +127,40 @@ module sysBRAM1Test();
 	  dut4.portA.request.put(makeRequestBE(2'h3, 0, 'hFF_EE));
 	  dut5.portA.request.put(makeRequestBE(1'h1, 0, 'hFF));
        endaction
-    
+
        action
 	  dut2.portA.request.put(makeRequestBE(4'hF, 1, 'hBB_AA_99_88));
 	  dut3.portA.request.put(makeRequestBE(3'h7, 1, 'hCC_BB_AA));
 	  dut4.portA.request.put(makeRequestBE(2'h3, 1, 'hDD_CC));
 	  dut5.portA.request.put(makeRequestBE(1'h1, 1, 'hEE));
        endaction
-    
+
        action
 	  dut2.portA.request.put(makeRequestBE(0, 0, ?));
 	  dut3.portA.request.put(makeRequestBE(0, 0, ?));
 	  dut4.portA.request.put(makeRequestBE(0, 0, ?));
 	  dut5.portA.request.put(makeRequestBE(0, 0, ?));
        endaction
-    
+
        action
 	  dut2.portA.request.put(makeRequestBE(0, 1, ?));
 	  dut3.portA.request.put(makeRequestBE(0, 1, ?));
 	  dut4.portA.request.put(makeRequestBE(0, 1, ?));
 	  dut5.portA.request.put(makeRequestBE(0, 1, ?));
-    
+
 	  $display("dut2[0] = %x", dut2.portA.response.get);
 	  $display("dut3[0] = %x", dut3.portA.response.get);
 	  $display("dut4[0] = %x", dut4.portA.response.get);
 	  $display("dut5[0] = %x", dut5.portA.response.get);
        endaction
-    
+
        action
 	  $display("dut2[1] = %x", dut2.portA.response.get);
 	  $display("dut3[1] = %x", dut3.portA.response.get);
 	  $display("dut4[1] = %x", dut4.portA.response.get);
 	  $display("dut5[1] = %x", dut5.portA.response.get);
        endaction
-    
+
        // dut2
        dut2.portA.request.put(makeRequestBE(15, 31, 'h11223344));
        dut2.portA.request.put(makeRequestBE(15, 32, 'h55667788));
@@ -194,7 +194,7 @@ module sysBRAM1Test();
        dut2.portA.request.put(makeRequestBE(13, 43, 'hCF_CE_CD_CC));
        dut2.portA.request.put(makeRequestBE(14, 44, 'hCB_CA_C9_C8));
        dut2.portA.request.put(makeRequestBE(15, 45, 'hC7_C6_C5_C4));
-						      
+
        dut2.portA.request.put(makeRequestBE(0, 31, ?));
        action
 	  $display("dut2[31] = %x", dut2.portA.response.get);
@@ -255,8 +255,8 @@ module sysBRAM1Test();
        action
 	  $display("dut2[45] = %x", dut2.portA.response.get);
        endaction
-       
-       // dut3 
+
+       // dut3
        dut3.portA.request.put(makeRequestBE(7, 31, 0));
        dut3.portA.request.put(makeRequestBE(7, 32, 0));
        dut3.portA.request.put(makeRequestBE(7, 33, 0));
@@ -273,7 +273,7 @@ module sysBRAM1Test();
        dut3.portA.request.put(makeRequestBE(5,  35, 'hEF_EE_ED));
        dut3.portA.request.put(makeRequestBE(6,  36, 'hEB_EA_E9));
        dut3.portA.request.put(makeRequestBE(7,  37, 'hE7_E6_E5));
-						      
+
        dut3.portA.request.put(makeRequestBE(0, 31, ?));
        action
 	  $display("dut3[31] = %x", dut3.portA.response.get);
@@ -311,7 +311,7 @@ module sysBRAM1Test();
        dut4.portA.request.put(makeRequestBE(1,  31, 'hFF_FE));
        dut4.portA.request.put(makeRequestBE(2,  32, 'hFB_FA));
        dut4.portA.request.put(makeRequestBE(3,  33, 'hF7_F6));
-						      
+
        dut4.portA.request.put(makeRequestBE(0, 31, ?));
        action
 	  $display("dut4[31] = %x", dut4.portA.response.get);
@@ -330,16 +330,16 @@ module sysBRAM1Test();
 
 
        dut5.portA.request.put(makeRequestBE(1,  31, 'hFF));
-						      
+
        dut5.portA.request.put(makeRequestBE(0, 31, ?));
        action
 	  $display("dut5[31] = %x", dut5.portA.response.get);
        endaction
-    
-    
+
+
        delay(100);
     endseq);
-   
+
    mkAutoFSM(test);
-   
+
 endmodule

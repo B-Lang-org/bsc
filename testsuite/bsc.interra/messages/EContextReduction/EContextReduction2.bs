@@ -15,13 +15,13 @@
 package EContextReduction2 (EContextReduction2(..)) where
 
 data MyType1 = Integer | Bool
-             deriving (Bits) 
+             deriving (Bits)
 
 data MyType2 = Integer | Bool
-             deriving (Bits) 
+             deriving (Bits)
 
 data MyType3 = MyType1 | MyType2
-             deriving (Eq,Bits) 
+             deriving (Eq,Bits)
 
 interface EContextReduction2 =
              start :: MyType3 -> MyType3 -> Action
@@ -32,18 +32,18 @@ mkEContextReduction2 =
               module
 
 
-                    u :: Reg (MyType1)   
+                    u :: Reg (MyType1)
                     u <- mkRegU
 
-                    v :: Reg (MyType1)   
+                    v :: Reg (MyType1)
                     v <- mkRegU
 
-                    x :: Reg (MyType3)   
+                    x :: Reg (MyType3)
                     x <- mkRegU
 
-                    y :: Reg (MyType3)   
+                    y :: Reg (MyType3)
                     y <- mkRegU
- 
+
                     rules
                       "One":
                              when u == v
@@ -51,7 +51,7 @@ mkEContextReduction2 =
                                   y := x
 
 
-                    interface 
+                    interface
                         start ix iy = action
                                         x := ix
                                         y := iy

@@ -10,7 +10,7 @@ sysRegisterSugar =
 
 --@ \subsection{FunnyReg}
 --@ \index{FunnyReg@\te{FunnyReg} (package)|textbf}
---@ 
+--@
 --@ The \te{FunnyReg} package provides a way to create configuration
 --@ registers, where each update clobbers the current value, and
 --@ the precise timing of updates is not important.

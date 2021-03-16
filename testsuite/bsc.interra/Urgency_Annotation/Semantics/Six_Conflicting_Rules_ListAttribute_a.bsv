@@ -9,12 +9,12 @@ module mkSix_Conflicting_Rules_ListAttribute_a();
     mkReg #(0) count_r(count);
 
     (*descending_urgency = "test_rule_1, test_rule_2, test_rule_3, test_rule_4, test_rule_5, test_rule_6 " *)
-    
+
     rule test_rule_1 (count < 20);
         count <= count + 1;
         $display ("Executing Rule1"); //Should be displayed 20 times
     endrule
-    
+
     rule test_rule_2 (count < 40);
         count <= count + 1;
         $display ("Executing Rule2");  //Should be displayed 20 times
@@ -24,12 +24,12 @@ module mkSix_Conflicting_Rules_ListAttribute_a();
         count <= count + 1;
         $display ("Executing Rule3");  //Should be displayed 10 times
     endrule
-    
+
     rule test_rule_4 (count < 60);
         count <= count + 1;
         $display ("Executing Rule4");  //Should be displayed 10 times
     endrule
-    
+
     rule test_rule_5 (count < 70);
         count <= count + 1;
         $display ("Executing Rule5");  //Should be displayed 10 times
@@ -47,5 +47,5 @@ module mkSix_Conflicting_Rules_ListAttribute_a();
     endrule
 
 endmodule
-   
+
 endpackage

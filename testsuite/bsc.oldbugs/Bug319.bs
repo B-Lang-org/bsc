@@ -3,8 +3,8 @@ package Bug319(sysBug319) where
 import RegFile
 
 sysBug319 :: Module Empty
-sysBug319 = 
-  module 
+sysBug319 =
+  module
    ra :: Reg (Int 32)
    ra <- mkReg 0
    rb :: Reg (Int 32)
@@ -13,8 +13,7 @@ sysBug319 =
    a <- mkRegFileFull
 
    rules
-     when True ==> 
+     when True ==>
        ra := a.sub 1
      when True ==>
-       rb := a.sub 1  
-   
+       rb := a.sub 1

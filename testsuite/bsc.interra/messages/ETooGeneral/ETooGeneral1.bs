@@ -16,7 +16,7 @@
 -- ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> ETooGeneral1.MyType3 (ETooGeneral1.MyType1 Prelude.Integer) -> Prelude.Action
 -----------------------------------------------------------------------
 
-package ETooGeneral1 () where 
+package ETooGeneral1 () where
 
 data MyType1 a = Integer | Bool
              deriving (Eq)

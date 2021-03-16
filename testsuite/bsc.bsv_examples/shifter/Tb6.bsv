@@ -9,7 +9,7 @@ module mkTb6 (Empty);
 
    Reg#(State) state();
    mkReg#(Start) state_r(state);
-   
+
    rule test;
       case (state) matches
 
@@ -17,7 +17,7 @@ module mkTb6 (Empty);
 	    $display("Testing f2:");
 	    state <= General(0);
 	 end
-	 
+
 	 tagged General .s : begin
 	    $display("16'hFFFF << 4'b%b = 16'b%b", s, f2(s, 8'hFF));
 	    if (s == 7) begin
@@ -29,6 +29,6 @@ module mkTb6 (Empty);
 	 end
       endcase
    endrule
-   
+
 endmodule
 

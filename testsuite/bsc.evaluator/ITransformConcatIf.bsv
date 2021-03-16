@@ -1,4 +1,4 @@
-// test if cond a b ++ if cond c d -> if cond (a ++ c) (b ++ d) 
+// test if cond a b ++ if cond c d -> if cond (a ++ c) (b ++ d)
 interface Test;
   method Bit#(7) out;
 endinterface

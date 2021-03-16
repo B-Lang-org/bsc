@@ -15,7 +15,7 @@ function ActionValue#(Bit#(32)) adj_stime(Integer p);
    endactionvalue
 endfunction
 
-(* synthesize *) 
+(* synthesize *)
 module sysMultipleResetsForRule() ;
 
    Reset rst0 <- exposeCurrentReset ;
@@ -32,6 +32,6 @@ module sysMultipleResetsForRule() ;
       if (x0 > 7)
 	 $finish(0);
    endrule
-   
+
 endmodule
 

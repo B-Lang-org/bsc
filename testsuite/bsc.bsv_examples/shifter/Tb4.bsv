@@ -6,13 +6,13 @@ typedef union tagged {
    Bit#(3) Ls3;
    Bit#(4) Ls;
    Bit#(4) LsV2;
-   void    Done;	      
+   void    Done;
 } State deriving (Eq, Bits);
 
 module mkTb4 (Empty);
 
    // DUTs
-   
+
    FIFO#(SXpair#(3,8)) ls3();
    mkLs3 the_ls3(ls3);
 
@@ -23,7 +23,7 @@ module mkTb4 (Empty);
    mkLsV2 the_lsv2(lsv2);
 
    // Testbench state
-   
+
    Reg#(State) send_state();
    mkReg#(Start) send_state_r(send_state);
 
@@ -85,7 +85,7 @@ module mkTb4 (Empty);
       else
 	 recv_state <= Ls(s+1);
    endrule
-   
+
    rule recv_LsV2 (recv_state matches tagged LsV2 .s);
       $display("16'hFFFF << 4'b%b = 16'b%b", s, tpl_2(lsv2.first));
       lsv2.deq();
@@ -96,6 +96,6 @@ module mkTb4 (Empty);
       else
 	 recv_state <= LsV2(s+1);
    endrule
-   
+
 endmodule
 

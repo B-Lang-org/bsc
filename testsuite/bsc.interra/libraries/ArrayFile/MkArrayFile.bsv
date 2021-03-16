@@ -7,7 +7,7 @@ module mkDesign_MkArrayFile(RegFile#(Bit#(4),Bit#(8)));
   RegFile#(Bit#(4),Bit#(8)) dut();
   mkRegFileLoad#("input_file",0,7) the_dut(dut);
   return(dut);
-endmodule: mkDesign_MkArrayFile 
+endmodule: mkDesign_MkArrayFile
 
 
 module mkTestbench_MkArrayFile();
@@ -29,11 +29,11 @@ module mkTestbench_MkArrayFile();
 	  $display("Simulation Passes");
 	$finish(2'b00);
   endrule
-  
+
   rule initial_display (counter < 8);
 	 $display("%h %h",{1'b0,counter[2:0]},stimulus_io.sub({1'b0,counter[2:0]}));
   endrule
-  
+
   rule update ((counter >= 8) && (counter < 16));
      stimulus_io.upd({1'b0,counter[2:0]},(8'h55 + counter[7:0]));
   endrule
@@ -43,11 +43,11 @@ module mkTestbench_MkArrayFile();
 	 if ((stimulus_io.sub({1'b0,counter[2:0]})) != (8'h55 + counter[7:0] - 8))
         fail <= True;
   endrule
- 
+
 
 
 endmodule: mkTestbench_MkArrayFile
-                 
+
 endpackage: MkArrayFile
 
 

@@ -3,7 +3,7 @@ import ModuleCollect::*;
 typedef ModuleCollect#(Integer) Module2;
 
 module [Module2] test(Empty);
- Reg#(Bit#(32)) r <- mkReg(0); 
+ Reg#(Bit#(32)) r <- mkReg(0);
 endmodule: test
 
 (* synthesize *)

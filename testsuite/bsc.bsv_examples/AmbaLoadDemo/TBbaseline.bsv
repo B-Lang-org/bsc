@@ -16,7 +16,7 @@ module sysM1_25( Empty ) ;
    Slave slave1 <- mkSlave(2) ;
 
    // create the Master
-   // simulate for 10000 cycles random seed 1, bus load is 64/256 (25%) 
+   // simulate for 10000 cycles random seed 1, bus load is 64/256 (25%)
    Master master0 <- mkMasterP( 10000, 1, 64, "M0" ) ;
 
    // connect the masters and slaves to the bus

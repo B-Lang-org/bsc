@@ -43,7 +43,7 @@ module mkWBRam#(TbEnvConfigs parent) (WBoneRamIFC);
 
       let wbone_op = in_fifo.first();
       in_fifo.deq();
-      
+
       case (wbone_op.kind())
 	 WRITE:   action
 		     let address = wbone_op.addr.data;
@@ -64,7 +64,7 @@ module mkWBRam#(TbEnvConfigs parent) (WBoneRamIFC);
 		     out_fifo.enq(wbone_op);
 		  endaction
       endcase
-      
+
    endrule
 
    interface Control cntrl;
@@ -96,10 +96,10 @@ module mkWBRam#(TbEnvConfigs parent) (WBoneRamIFC);
 	 simple_ram.write(map_address(addr), data);
       endmethod
    endinterface
-   
+
 endmodule
 
-      
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

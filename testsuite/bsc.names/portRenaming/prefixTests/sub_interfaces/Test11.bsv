@@ -15,19 +15,19 @@ module mkGen (S1#(pType)) provisos(Bits#(pType,sa),Arith#(pType));
 
   method pType result(c);
     return res+c;
-  endmethod	
-  	 
+  endmethod
+
   method ActionValue#(pType) check(d);
     val <= val + 1;
     res <= res + 2;
   return res+d;
   endmethod
-  
+
   method Action start(a,b);
     val <= a;
     res <= b;
-  endmethod	
-endmodule  
+  endmethod
+endmodule
 
 
 interface IFC#(type aType);
@@ -35,15 +35,15 @@ interface IFC#(type aType);
  interface Vector#(3,S1#(aType))  subIFC;
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkDesign_11 (IFC#(Type));
 
   Vector#(3,S1#(Type)) interfaces = newVector;
   interfaces <- replicateM(mkGen);
-	 
-  
+
+
   interface subIFC = interfaces;
 
 
-  
+
 endmodule

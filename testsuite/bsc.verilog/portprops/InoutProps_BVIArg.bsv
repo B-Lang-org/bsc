@@ -1,5 +1,5 @@
 
-import "BVI" 
+import "BVI"
 module mkInoutProps_BVIArg_Sub #(Inout#(Bit#(32)) io_arg) ();
     inout IO = io_arg;
 endmodule

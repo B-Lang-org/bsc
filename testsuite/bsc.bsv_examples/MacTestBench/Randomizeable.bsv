@@ -20,7 +20,7 @@ interface VRandomize#(type n) ;
    method ActionValue#(Bit#(n)) next();
 endinterface
 
-import "BVI" ConstrainedRandom = 
+import "BVI" ConstrainedRandom =
 module vmkGenericRandomizer#(Bit#(n) min, Bit#(n) max, Integer width) (VRandomize#(n));
 
    default_clock clk(CLK);
@@ -37,7 +37,7 @@ module mkGenericRandomizer (Randomize#(a))
    a min = minBound;
    a max = maxBound;
    let _m = liftModule(vmkGenericRandomizer(pack(min), pack(max), valueOf(sa)));
-   
+
    VRandomize#(sa)_r();
    _m __(_r); // the "__" makes this instantiation anonymous
 
@@ -66,7 +66,7 @@ module mkConstrainedRandomizer#(a min, a max) (Randomize#(a))
 //   a min = minBound;
 //   a max = maxBound;
    let _m = liftModule(vmkGenericRandomizer(pack(min), pack(max), valueOf(sa)));
-   
+
    VRandomize#(sa)_r();
    _m __(_r); // the "__" makes this instantiation anonymous
 

@@ -1,4 +1,4 @@
-//Signal from Parameter to Ready of a method, 
+//Signal from Parameter to Ready of a method,
 //Should show when using the -dpathsPostSched flag
 
 package Parameter2Rdy;
@@ -11,7 +11,7 @@ endinterface
 
 (* synthesize *)
 module mkParameter2Rdy #(Bit #(8) param) (Parameter2RdyInter);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
 
@@ -22,9 +22,9 @@ module mkParameter2Rdy #(Bit #(8) param) (Parameter2RdyInter);
     method result if (param >= 5 );
         return (counter);
     endmethod
-   
+
 endmodule
 
-    
+
 
 endpackage

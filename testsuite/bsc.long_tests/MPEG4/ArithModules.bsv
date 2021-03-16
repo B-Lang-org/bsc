@@ -4,7 +4,7 @@ This package has the following arithmetic modules:
 1. Pipelined multipliers: mult_W1W2W3, mult_W5W6W7.
 2. Adder/Subtractor: mkAddSub
 3. Multiplication by 181, adding 128 and shifting the result right by 8:
-   mkConstMult 
+   mkConstMult
 */
 package ArithModules;
 
@@ -21,27 +21,27 @@ endinterface: Mult_IFC
 module mult_W1W2W3 (Mult_IFC#(16) );
    Mult_IFC#(16) mult();
    mult_W5W6W7_W1W2W3#(0) i_mult(mult);
-   return (mult);  
-endmodule 
-    
+   return (mult);
+endmodule
+
 (* synthesize *)
 module mult_W5W6W7 (Mult_IFC#(16) );
    Mult_IFC#(16) mult();
    mult_W5W6W7_W1W2W3#(1) i_mult(mult);
-   return (mult);   
-endmodule 
+   return (mult);
+endmodule
 
 
 //////////////////////Pipelined Multiplier//////////////////////////////////////
 
-//multtype = 0 => Multiply input by W1, W2 or W3 depending on the select signal. 
+//multtype = 0 => Multiply input by W1, W2 or W3 depending on the select signal.
 // If select signal is 3, shift the input by 11 bits.
-//multtype = 1 => Multiply input by W4, W5 or W6 depending on the select signal. 
+//multtype = 1 => Multiply input by W4, W5 or W6 depending on the select signal.
 // If select signal is 3, shift the input by 11 bits.
 
 module mult_W5W6W7_W1W2W3#(bit multtype) (Mult_IFC#(x))
    provisos (Add#(x,y,32));
-    
+
     Reg#(Int#(32)) add_1();
     mkConfigReg#(0) the_add_1(add_1);
     Reg#(Int#(32)) add_2();
@@ -50,11 +50,11 @@ module mult_W5W6W7_W1W2W3#(bit multtype) (Mult_IFC#(x))
     mkConfigReg#(0) the_add_3(add_3);
     Reg#(Int#(32)) result_in();
     mkReg#(0) the_result_in(result_in);
-   
+
     rule always_fire (True);
         result_in <= add_1 + add_2 + add_3;
     endrule
-    
+
     method Action multiply (input_data,select);
       Int#(32) in1 = signExtend (input_data);
       Int#(32) a, b, c, d, e, f;
@@ -95,7 +95,7 @@ module mult_W5W6W7_W1W2W3#(bit multtype) (Mult_IFC#(x))
          add_1 <= a+b;
          add_2 <= c+d;
          add_3 <= e+f;
-     endmethod 
+     endmethod
 
      method result ();
          result = result_in;

@@ -16,7 +16,7 @@ module mkMultBoundaryClockErr(Test);
   Reset r2 <- mkInitialReset(3, clocked_by c2);
 
   Reg#(Bool) b <- mkReg(False, clocked_by c_int);
-    
+
   method m1 = b._write(True);
   method m2 = b;
 
@@ -25,4 +25,4 @@ module mkMultBoundaryClockErr(Test);
 
 endmodule
 
-  
+

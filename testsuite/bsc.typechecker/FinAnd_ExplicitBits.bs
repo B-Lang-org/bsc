@@ -24,16 +24,16 @@ instance (Bits (PackedFin n) _v101,
 	  Add 1 _v103 _v100) =>
 	 Bits (PackedFinOr t n) _v100 where {
     pack :: PackedFinOr t n -> Bit _v100;
-    pack (IsPackedFin _x) = 
+    pack (IsPackedFin _x) =
 	primConcat
 	  (0::(Bit 1))
 	  (primConcat _ ((pack _x)::(Bit _v101)));
-    pack (IsNotPackedFin _x) = 
+    pack (IsNotPackedFin _x) =
 	primConcat
 	  (1::(Bit 1))
 	  (primConcat _ ((pack _x)::(Bit _v104)));;
     unpack :: Bit _v100 -> PackedFinOr t n;
-    unpack _x = 
+    unpack _x =
 	(\ _y ->
 	 case _y.fst::(Bit 1) of {
 	 0 ->  IsPackedFin (unpack (primTrunc _y.snd));

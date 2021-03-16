@@ -2,7 +2,7 @@
 module sysZeroDisplay();
 
   Bit#(0) x = 0;
-  
+
   Bit#(8) y = 237;
 
   rule test;

@@ -36,7 +36,7 @@ module sysBRAMWidthTest();
 
    // XXX for now, just show that wide BE is not (yet) supported
    BRAM1PortBE#(Bit#(8), Bit#(520), 65) dut0 <- mkBRAM1ServerBE(defaultValue);
-   
+
    Stmt test =
    seq
       delay(10);
@@ -49,7 +49,7 @@ module sysBRAMWidthTest();
       endaction
 
    endseq;
-   
+
    mkAutoFSM(test);
 
 endmodule

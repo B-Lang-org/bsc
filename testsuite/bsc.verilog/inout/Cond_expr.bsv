@@ -17,7 +17,7 @@ function Integer fibo(Integer n);
    fibo = b;
 endfunction
 
-module mkCond#(Bool choose, Inout#(int) left, 
+module mkCond#(Bool choose, Inout#(int) left,
                  Inout#(int) center, Inout#(int) right)();
    mkConnection(center,(choose?left:right));
 endmodule
@@ -34,19 +34,19 @@ module sysCond_expr(Empty);
       send.set(count);
       send2.set(count*100);
    endrule
-   
+
    rule disp (count>0);
       recv.display_it;
    endrule
-   
+
    rule stop (count==10);
       $finish(0);
    endrule
 
-/*   
+/*
    rule fibos;
       $display("fibo = %d", fibo(10));
    endrule
-   */    
-   
+   */
+
 endmodule

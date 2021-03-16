@@ -18,11 +18,11 @@ module sysFourDisplay(Empty);
   rule t3
    (counter == 3); r <= 19;
   endrule: t3
-  rule t4 
+  rule t4
    (counter == 4); $finish(0);
   endrule: t4
   rule count
-    (True()); counter <= counter + 1; 
+    (True()); counter <= counter + 1;
   endrule: count
   rule display
     (True()); $display("counter: %0d\nr: %0d\n", counter, r);

@@ -8,7 +8,7 @@ module sysBug810_3 ();
    Reg#(int)  c <- mkReg(0) ;
 
    rule r ( c > 1);
-      
+
       String foo = "default" ;
       case (cond)
          0: foo = "1" ;

@@ -25,7 +25,7 @@ module mkTest11( Test11 );
       inA <= s.a;
       inB <= s.b;
    endmethod
-   
+
    method TSum  sum();
       Bit#(33) lsum = zeroExtend(pack(inA)) + zeroExtend(pack(inB));
 

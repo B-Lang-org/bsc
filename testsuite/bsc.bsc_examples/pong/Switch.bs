@@ -9,7 +9,7 @@ interface RawSwitch =
     input :: Bool -> Action
 
 mkSwitch :: Module (RawSwitch, Switch)
-mkSwitch = 
+mkSwitch =
   do
     state :: Reg Bool <- mkConfigRegU
 

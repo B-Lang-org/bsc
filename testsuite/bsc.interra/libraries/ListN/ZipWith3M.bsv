@@ -46,7 +46,7 @@ module mkTestbench_ZipWith3M();
 
 
    rule fire_once (True);
-      ListN #(5,Int #(8)) my_list5 <- zipWith3M(f,my_list1,my_list2,my_list3); 
+      ListN #(5,Int #(8)) my_list5 <- zipWith3M(f,my_list1,my_list2,my_list3);
       $display("ListN1:");
       display_list (my_list1);
       $display("ListN2:");
@@ -55,12 +55,12 @@ module mkTestbench_ZipWith3M();
       display_list (my_list3);
       $display("ZipWith3M ListN:");
       display_list (my_list5);
-      if (my_list5 != my_list4) 
+      if (my_list5 != my_list4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_ZipWith3M
 endpackage : ZipWith3M

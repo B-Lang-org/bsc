@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -19,12 +19,12 @@ typedef enum {First_State, Second_State, Third_State, Fourth_State, Fifth_State}
 module assertWinChange2 (Empty);
 
 Reg#(FSM_State) state <- mkRegA(First_State);
-   
+
 Reg#(Bit#(3)) test_expr <- mkRegA(0);
 
 let defaults = mkOVLDefaults;
 AssertStartStopTest_IFC#(Bit#(3)) assertWinCh <- bsv_assert_win_change(defaults);
-   
+
 rule test(True);
     assertWinCh.start(state == Second_State);//start_event : Second_State
 	assertWinCh.stop(state == Fourth_State); //end_event : Fourth_State
@@ -49,12 +49,12 @@ rule every (True);
 	Fourth_State:
 	begin
 	    state <= Fifth_State;
-		test_expr <= 3'b010;		
+		test_expr <= 3'b010;
 	end
 	Fifth_State:
 	begin
 	    state <= First_State;
-		test_expr <= 3'b011;		
+		test_expr <= 3'b011;
 	    $finish(0);
 	end
     endcase

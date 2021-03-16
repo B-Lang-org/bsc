@@ -18,9 +18,9 @@ function Tuple3#(List#(Integer), List#(Integer), List#(Integer)) buildLists(Inte
   List#(Integer) failminus = nil;
   List#(Integer) failplus  = nil;
   Integer power = 1;
- 
+
   Bool pass = True;
- 
+
   for(Integer i = 0; primSeq(pass,primSeq(power,i < n)); i = i + 1)
   begin
     if(log2(power) != i) begin
@@ -44,7 +44,7 @@ endfunction
 module sysPureLoop();
 
   match {.fail, .failminus, .failplus} = buildLists(65536);
-  
+
   rule test;
     joinActions(map(displayFail,fail));
     joinActions(map(displayFailMinus,failminus));

@@ -15,11 +15,11 @@ module mkTestbench();
     rule always_fire (True);
         counter <= counter + 1;
     endrule
-    
+
     rule init_values (counter < 8);
         $display ("Initial Value: Index = %d, Data = %d", counter [2:0], dut.sub(counter [2:0]));
-    endrule        
-          
+    endrule
+
     rule update_values (counter >=8 && counter < 16);
         dut.upd(counter[2:0], counter [7:0]);
     endrule
@@ -31,7 +31,7 @@ module mkTestbench();
     endrule
 
     //See if reading array doesn't corrupt the values by any chance
-    
+
     rule display_updated_values_again (counter >=24 && counter < 32);
         $display ("Updated Value: Index = %d, Data = %d", counter [2:0], dut.sub(counter [2:0]));
         if (dut.sub(counter [2:0]) != (counter-16)[7:0])
@@ -44,14 +44,14 @@ module mkTestbench();
         if (dut.sub(1) != 9)
           fail <= True;
     endrule
-        
- 
+
+
     rule check_updated_value (counter == 33) ;
         $display ("New Second Value : Data = %d", dut.sub (1));
         if (dut.sub(1) != 8'd22)
           fail <= True;
     endrule
- 
+
     rule simultaneous_reads (counter == 34);
         $display ("Second Val=%d",dut.sub (2));
         $display ("Third Val=%d",dut.sub (3));
@@ -61,13 +61,13 @@ module mkTestbench();
         if (dut.sub(2) != 10 ||dut.sub(3) != 11 ||dut.sub(4) != 12 ||dut.sub(5) != 13 ||dut.sub(6) != 14)
           fail <= True;
     endrule
-  
+
     rule finish_off (counter ==35);
-       if (fail==True) 
+       if (fail==True)
          $display ("Simulation Fails");
        else
          $display ("Simulation Passes");
-         
+
        $finish(2'b00);
     endrule
 endmodule : mkTestbench

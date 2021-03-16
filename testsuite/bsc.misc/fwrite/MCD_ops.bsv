@@ -4,19 +4,19 @@ String dumpFile3 = "MCD_ops3.dat.out" ;
 
 (* synthesize *)
 module sysMCD_ops ();
-   
+
    rule everything (True );
       let f1 <- $fopen( dumpFile1 ) ;
       let f2 <- $fopen( dumpFile2 ) ;
       let f3 <- $fopen( dumpFile3 ) ;
-      
+
       let f12 = f1 | f2 ;
       let f13 = f1 | f3 ;
       let f123 = f1 | f3 | f2  ;
       let f1a = f13 & f12 ;
       let f1s = f1 | stdout_mcd ;
       let f12a = f123 & ~ f3 ;
-      
+
       $fdisplay( f1, "f1 only") ;
       $fdisplay( f2, "f2 only") ;
       $fdisplay( f3, "f3 only") ;
@@ -42,5 +42,5 @@ module sysMCD_ops ();
       $fclose( f1 ) ;
       $finish(0);
    endrule
-   
+
 endmodule

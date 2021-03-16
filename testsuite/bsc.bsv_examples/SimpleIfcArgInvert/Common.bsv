@@ -7,20 +7,20 @@ typedef Bit#(32) Data;
 typedef Bit#(32) Instr;
 
 typedef enum {Fetch, Load /* ... */} RamUser
-  deriving(Eq,Bits); 
+  deriving(Eq,Bits);
 
 interface Processor;
    method Bool halt;
 endinterface
-          
+
 // a RAM stub that just prints the address read
 // and always returns 0 one cycle later
 module mkSimpleRAM(RAM#(Addr,Data));
    Reg#(Bool) responseReady <- mkReg(False);
-   
+
    // pretend the RAM can only handle one request at a time
    Bool ramAvailable = !responseReady;
-   
+
    interface Put request;
       method Action put(r) if(ramAvailable);
         case (r) matches
@@ -35,16 +35,16 @@ module mkSimpleRAM(RAM#(Addr,Data));
         endcase
       endmethod
    endinterface
-   
+
    interface Get response;
       method ActionValue#(Data) get if(responseReady);
 	 responseReady <= False;
 	 return(0);
       endmethod
    endinterface
-   
+
 endmodule
-      
+
 // no real instruction encoding
 function Bool isMemoryInstr(Instr i);
    return(True);

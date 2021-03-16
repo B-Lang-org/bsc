@@ -37,7 +37,7 @@ module mkSimpleClient (Tuple3#(ZBusIFC#(BCtl),ZBusIFC#(BAddr),ZBusIFC#(BData)));
 
    Reg#(BData)       dta();
    mkReg#(0)         reg_dta(dta);
-    
+
    ZBusIFC#(BCtl) ctl_ifc();
    mkZBusBuffer inst_ctl_ifc(ctl_ifc);
 

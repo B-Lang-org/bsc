@@ -28,16 +28,16 @@ module mkTestbench_FoldrM();
 
 
 
-  
+
    rule fire_once (True);
       Int #(32) value <- foldrM(add,5,my_list1);
       $display("%d", value);
-      if (value != 20) 
+      if (value != 20)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_FoldrM
 endpackage : FoldrM

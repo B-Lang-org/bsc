@@ -13,7 +13,7 @@ function Cell#(order) impossible();
 endfunction: impossible
 
 function Bool isComplete(Cell#(order) c)
-   provisos( Add#( 1, xxx, TLog#(TAdd#(1, TMul#(order,order)))));   
+   provisos( Add#( 1, xxx, TLog#(TAdd#(1, TMul#(order,order)))));
    return (countOnes(c) == 1);
 endfunction: isComplete
 
@@ -34,11 +34,11 @@ function Bool is2set(Cell#(order) c)
    provisos( Add#( 1, xxx, TLog#(TAdd#(1, TMul#(order,order)))));
    return (countOnes(c) == 2);
 endfunction: is2set
-      
+
 interface Tactics#(numeric type order);
-   
+
    method Cell#(order) hidden_pair(Group#(order) g, Index#(order) n);
-      
+
 endinterface: Tactics
 
 module mkTactics(Tactics#(order))
@@ -48,11 +48,11 @@ module mkTactics(Tactics#(order))
       Cell#(order) out = unknown();
       for (Integer i = 1; i < valueOf(size); i = i + 1)
       begin
-	 let common = g1[i] & g[n];   
+	 let common = g1[i] & g[n];
 //       Using this test gives large heap usage
 //	 if (is2set(common))
-//       Using this test gives a stack overflow	 
-	 if (common != unknown())	 
+//       Using this test gives a stack overflow
+	 if (common != unknown())
 	 begin
 	    // commenting out this test (but leaving the
 	    // assignment) makes AOpt fast.
@@ -60,9 +60,9 @@ module mkTactics(Tactics#(order))
 	       out = out & common;
 	 end
       end
-      return out;      
+      return out;
    endmethod: hidden_pair
- 
+
 endmodule: mkTactics
 
 (* synthesize *)

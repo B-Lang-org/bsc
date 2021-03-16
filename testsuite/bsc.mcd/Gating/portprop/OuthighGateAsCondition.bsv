@@ -20,7 +20,7 @@ module mkOuthighGateAsCondition_Sub ( Ifc );
    Clock c = cg.clkOut;
 
    Reg#(int)  r <- mkRegU(clocked_by c) ;
-   
+
    interface clkOut = cg.clkOut ;
    interface regi = r ;
 endmodule
@@ -29,8 +29,8 @@ endmodule
 module sysOuthigGateAsCondition ( Ifc );
 
    Ifc c <- mkOuthighGateAsCondition_Sub;
-   
+
    interface clkOut = c.clkOut ;
    interface regi = c.regi ;
-   
+
 endmodule

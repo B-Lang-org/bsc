@@ -25,7 +25,7 @@ module mkSlowClock(UInt#(4) fraction, Bool gate, Clock c);
    rule dec (count != 0);
       count <= count - 1;
    endrule
-   
+
    (* no_implicit_conditions, fire_when_enabled)
    rule change (count == 0);
       osc <= invert(osc);
@@ -58,7 +58,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
    // And a control register for the fractional frequency of the slower clock:
    Reg#(Bit#(4)) fr();
    mkLbRegRW#('h404, 4, 2) the_fr(fr);
-   
+
    // Declare the gated clocks:
    GatedClockIfc gate0();
    mkGatedClockFromCC the_g(True, gate0);
@@ -80,7 +80,7 @@ module [MyLbSModule] mkRandTop(ExtIfc);
       gate2.setGateCond(g0 || g1);
    endrule
    Clock c2 = gate2.new_clk;
-   
+
    // Instantiate the sub-modules, appropriately clocked:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c2);
@@ -97,14 +97,14 @@ module [MyLbSModule] mkRandTop(ExtIfc);
 
    // c2 is unrelated to c0, however, so explicit conversion is necessary.
    // This version uses the "linguistic approach" described in the Methodology
-   // document.  
+   // document.
 
    let user2ifc();
    // There's no need to specify an explicit clock for the converter, since
    // the current clock is in the same family as c0.  But "clocked_by c0"
    // could be added to the argument list if preferred:
    mkConverter the_user2_converter(user2.fst, user2ifc /*, clocked_by c0 */);
-   
+
    mkConnection(gens.snd, user2ifc);
 
    interface ifcA = user1.snd;

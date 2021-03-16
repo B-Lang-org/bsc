@@ -22,12 +22,12 @@ mkBar =
     interface
       bar x  = f.enq x
       glurph = f.deq
-    
+
 interface Foo =
   foo :: Bit 1 -> Action
 
 mkFoo :: Module Foo
-mkFoo = 
+mkFoo =
   module
     b :: Bar
     b <- mkBar

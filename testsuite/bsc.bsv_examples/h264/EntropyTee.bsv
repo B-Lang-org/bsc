@@ -27,7 +27,7 @@ import H264Types::*;
 module mkEntropyTee#(Get#(EntropyDecOT) inputData, Put#(EntropyDecOT) outputData, String prefix) ();
 
  rule processDisplay;
-   let dataIn <- inputData.get(); 
+   let dataIn <- inputData.get();
    outputData.put(dataIn);
    $write(prefix);
    $write("BIN ");
@@ -101,11 +101,11 @@ module mkEntropyTee#(Get#(EntropyDecOT) inputData, Put#(EntropyDecOT) outputData
      tagged  SDMSmvd_l0 .data: $display("SDMSmvd_l0: %d",data);
      tagged  IBTmb_qp .qps: $display("IBTmb_qp: qpy: %d qpc: %d", qps.qpy, qps.qpc);
      tagged  PBbS .pbs: $display("PBbS: bSHor: %d bSVer: %d", pbs.bShor, pbs.bSver);
-     tagged  PBoutput .vec: $display("PBoutput: %h %h %h %h", vec[0],vec[1],vec[2],vec[3]); 
+     tagged  PBoutput .vec: $display("PBoutput: %h %h %h %h", vec[0],vec[1],vec[2],vec[3]);
      tagged  AUDPrimaryPicType .data: $display("AUDPrimaryPicType: %d",data);
      tagged  EndOfSequence: $display("EndOfSequence");
      tagged  EndOfStream: $display("EndOfStream");
      tagged  EndOfFile: $display("EndOfFile");
-   endcase  
- endrule   
+   endcase
+ endrule
 endmodule

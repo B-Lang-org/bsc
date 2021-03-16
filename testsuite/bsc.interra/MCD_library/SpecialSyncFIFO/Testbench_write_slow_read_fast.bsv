@@ -33,13 +33,13 @@ function Action my_print (Bit#(8) expected,Bit#(8) actual, Bool cond, Reg#(Bool)
     action
         case(cond)
         True:
-            if (actual==expected) 
-                $display(adjusted_time(134), "\tData Match, Actual = %d",actual); 
+            if (actual==expected)
+                $display(adjusted_time(134), "\tData Match, Actual = %d",actual);
             else begin
                 t_pass <= False;
-                $display(adjusted_time(134), "\tData Mismatch, Actual = %d, Expected = %d",actual,expected);                           
+                $display(adjusted_time(134), "\tData Mismatch, Actual = %d, Expected = %d",actual,expected);
             end
-        False: 
+        False:
             $display(adjusted_time(134), "\tActual = %d, Expected = nothing",actual);
         endcase
     endaction
@@ -85,8 +85,8 @@ rule fromInitial (state == Start);
    else
       init_count <= init_count - 1;
 endrule
-              
-rule fromStateA_rl1 (state ==StateA && wr_cnt < 16); //Write 16 cycles, Read 16 cycles 
+
+rule fromStateA_rl1 (state ==StateA && wr_cnt < 16); //Write 16 cycles, Read 16 cycles
             wr_cnt <= wr_cnt + 1;
             fifo.push(wr_cnt[7:0], 1'b1);  //Push data values 0 to 15
             push_print(wr_cnt);
@@ -100,16 +100,16 @@ rule fromStateA_rl2 (rd_cnt < 16 && rd_start.read == 1);
             rd_cnt <= rd_cnt + 1;
             fifo.pop(1'b1);
             pop_print;
-            if (rd_cnt > 0) 
+            if (rd_cnt > 0)
                 my_print(rd_cnt[7:0] - 1, fifo.data_out, True, test_pass);
 	    sim_end.send(1'b1);
 endrule
 rule fromStateA_rl3 (rd_cnt == 16);
             rd_cnt <= 0;
             my_print(rd_cnt[7:0]-1, fifo.data_out, True, test_pass);
-	    if (test_pass)  
+	    if (test_pass)
                 $display("\tPassed Fifo Test.");
-            else 
+            else
                 $display("\tFailed Fifo Test.");
 	    $finish(0);
 endrule

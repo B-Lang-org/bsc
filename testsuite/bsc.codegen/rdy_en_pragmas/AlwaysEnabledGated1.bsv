@@ -19,7 +19,7 @@ module mkTestGated1(Test);
   endrule
 
   Reg#(Bit#(32)) countReg <- mkRegA(0, clocked_by gc.new_clk);
-  
+
   rule flip;
     rdy <= !rdy;
   endrule

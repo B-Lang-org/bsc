@@ -9,7 +9,7 @@ module [AssertModule] mkTest(Empty);
 
   Reg#(Bool) flip();
   mkReg#(True) i_flip(flip);
-  
+
   rule do_flip;
     flip <= !flip;
   endrule
@@ -44,13 +44,13 @@ module [Module] sysAssertionWiresTest(Empty);
   rule wires;
     $display("Time: %0t Wires: %b", $time, test_wires.wires);
   endrule
-  
+
   rule clear(counter == 3);
     $display("Time: %0t Clear", $time);
     test_wires.clear;
   endrule
-  
-  rule exit (counter == 8); 
+
+  rule exit (counter == 8);
     $finish(0);
   endrule
 

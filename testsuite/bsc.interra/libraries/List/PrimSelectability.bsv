@@ -24,18 +24,18 @@ module mkTestbench_PrimSelectability();
    Integer index = 3;
 
 
-  
+
    rule fire_once (True);
       $display("List");
       display_list (my_list1);
       $display("Selected Element = %d", my_list1[index]);
-      
-      if (my_list1[index] != 4) 
+
+      if (my_list1[index] != 4)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_PrimSelectability
 endpackage : PrimSelectability

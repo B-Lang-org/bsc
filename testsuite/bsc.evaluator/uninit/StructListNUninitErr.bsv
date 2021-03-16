@@ -9,11 +9,11 @@ typedef struct {
 module mkStructListNUninitErr();
    ABs bar;
    bar.a = 0;
-   
+
    rule test;
      $display(bar);
      $finish(0);
    endrule
 
 endmodule
- 
+

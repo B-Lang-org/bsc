@@ -24,7 +24,7 @@ module sysBug540_2(Empty);
 
   rule dump (True);
     $display("r: %0d", r);
-    if(done) 
+    if(done)
       $finish(0);
     else
       done <= True;

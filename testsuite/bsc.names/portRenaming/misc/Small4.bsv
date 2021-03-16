@@ -6,18 +6,18 @@ interface Fifo_ifc#(type any_t);
    method  Action              enqueue( any_t data_in ) ;
    method  Action              enqueue2( any_t x ) ;
    method  ActionValue#(any_t) dequeue() ;
-endinterface 
+endinterface
 
-(* always_enabled *)    
+(* always_enabled *)
 interface Combined#(type a) ;
 
    (* prefix= "fifoifcae" *)
    (* always_ready = 0 *)
    interface Fifo_ifc#(int) fifoifcAE ;
-      
+
  endinterface
 
-      
+
 (*  synthesize  *)
 module mkSmallTest4 ( Combined#(int) ) ;
 
@@ -27,15 +27,15 @@ module mkSmallTest4 ( Combined#(int) ) ;
       method first_element ;
          return tfifo.first ;
       endmethod
-      
+
       method Action enqueue ( data_in ) ;
          tfifo.enq( data_in ) ;
       endmethod
-      
+
       method  Action enqueue2( data )  if (tfifo.notFull) ;
          tfifo.enq( data ) ;
       endmethod
-      
+
       method  ActionValue#(int) dequeue() ;
          tfifo.deq;
          return tfifo.first ;
@@ -43,7 +43,7 @@ module mkSmallTest4 ( Combined#(int) ) ;
    endinterface
 
 
-   
+
 
 endmodule
 

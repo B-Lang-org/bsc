@@ -2,11 +2,11 @@ package Buffer;
 
 import Pull :: *;
 
-       
+
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;
@@ -26,16 +26,16 @@ endmodule : mkDesign_Buffer
 module mkTestbench_Buffer ();
     Pull #(Bit #(8)) dut();
     mkDesign_Buffer the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bit #(8)) counter_buffer();
     mkReg #(0) the_counter_buffer (counter_buffer);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
         counter_buffer <= counter;
@@ -46,7 +46,7 @@ module mkTestbench_Buffer ();
     endrule
 
     rule endsim (counter_buffer == 15);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

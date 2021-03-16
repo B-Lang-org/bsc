@@ -9,12 +9,12 @@ Int#(23) b = 23'b00101001110010111100000;
 
 (* synthesize *)
 module sysSignedWideLiteral();
-   
-   Int#(66) prod0 = signedMul(a,b);   
+
+   Int#(66) prod0 = signedMul(a,b);
 
    rule test;
       $display("%h",prod0);
       $finish(0);
    endrule
-   
+
 endmodule

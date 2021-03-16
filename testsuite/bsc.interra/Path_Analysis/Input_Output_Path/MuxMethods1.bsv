@@ -1,4 +1,4 @@
-// Enable signal from one method to the Ready of another. 
+// Enable signal from one method to the Ready of another.
 // Should show using -dpathsPostSched flag
 
 package MuxMethods1;
@@ -14,12 +14,12 @@ module mkMuxMethods1(ArithIO);
 
     RWire #(Bit #(8)) x();
     mkRWire the_x (x);
-    
+
     method Action setInput1(a);
         x.wset (a);
-    endmethod: setInput1 
-    
-    method Action setInput2(a); 
+    endmethod: setInput1
+
+    method Action setInput2(a);
         x.wset (a+1);
     endmethod: setInput2
 

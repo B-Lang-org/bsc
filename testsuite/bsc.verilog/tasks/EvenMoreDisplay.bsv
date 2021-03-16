@@ -18,7 +18,7 @@ module sysEvenMoreDisplay(Empty);
     r2 <= r2 * signExtend(r1);
     counter <= counter + 1;
   endrule: display
- 
+
   rule done (counter > 10);
     $finish(0);
   endrule: done

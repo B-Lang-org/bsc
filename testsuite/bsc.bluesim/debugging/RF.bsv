@@ -13,8 +13,8 @@ module mkRF();
 
   (* descending_urgency = "update2, update" *)
 
-  rule update (counter < 15);    
-    rf.upd(addr,data);   
+  rule update (counter < 15);
+    rf.upd(addr,data);
     addr <= addr + 1;
     data <= 7*data + zeroExtend(addr);
   endrule: update

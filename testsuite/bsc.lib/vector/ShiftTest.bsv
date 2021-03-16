@@ -26,7 +26,7 @@ module sysShiftTest() ;
    endfunction
 
    Vector#(16,Basic) foo =  map( fromInteger, genVector ) ;
-   
+
    Stmt testseq =
    seq
 
@@ -45,7 +45,7 @@ module sysShiftTest() ;
       displayVs( "shift 6 in at N" ) ;
 
       current <= shiftInAtN( current, 15 ) ;
-      
+
       displayVs( "shift f in at N" ) ;
 
       $display ("foo of 0 is %h",  foo[0] ) ;
@@ -93,6 +93,6 @@ module sysShiftTest() ;
    endseq;
 
    mkAutoFSM( testseq ) ;
-   
-   
+
+
 endmodule

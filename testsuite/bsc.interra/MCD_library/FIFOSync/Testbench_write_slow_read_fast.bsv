@@ -51,8 +51,8 @@ rule fromInitial (state == Start);
         wr_cnt <= 0;
     endaction
 endrule
-              
-rule fromStateA_rl1 (state ==StateA && wr_cnt < 16); //Write 16 cycles, Read 16 cycles 
+
+rule fromStateA_rl1 (state ==StateA && wr_cnt < 16); //Write 16 cycles, Read 16 cycles
             wr_cnt <= wr_cnt + 1;
             fifo.push(wr_cnt[7:0], 1'b1);  //Push data values 0 to 15
             push_print(wrp, wr_cnt);
@@ -66,22 +66,22 @@ rule fromStateA_rl2 (rd_cnt < 16 && rd_start.read );
             rd_cnt <= rd_cnt + 1;
             fifo.pop(1'b1);
             pop_print(rdp);
-            if (rd_cnt > 0) 
+            if (rd_cnt > 0)
                 my_print(rdp, rd_cnt[7:0] - 1, fifo.data_out, True, test_pass);
 	    sim_end.send(True); // XXX Result not read !!
 endrule
 rule fromStateA_rl3 (rd_cnt == 16);
             rd_cnt <= 0;
             my_print(rdp, rd_cnt[7:0]-1, fifo.data_out, True, test_pass);
-	    if (test_pass)  
+	    if (test_pass)
                 $display("\tPassed Fifo Test.");
-            else 
+            else
                 $display("\tFailed Fifo Test.");
 	    $finish(0);
 endrule
 
 endmodule: mkTestbench_write_slow_read_fast
-  
+
 
 
 

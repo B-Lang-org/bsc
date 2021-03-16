@@ -8,9 +8,9 @@ endinterface
 
 (* synthesize *)
 module sysRuleBeforeMethod( Dut );
-   
+
    FIFO#(int) fifo <- mkFIFO;
-   
+
    Reg#(Bit#(4)) cntrEnq <- mkReg(0);
    Reg#(Bit#(4)) cntrDeq <- mkReg(0);
 
@@ -31,21 +31,21 @@ module sysRuleBeforeMethod( Dut );
       cntrEnq <= cntrEnq + 1;
       cntrDeq <= cntrDeq + 1;
    endrule
-   
+
    // This method requires mixitup to run before,
    // but that is OK because it is an Action method.
    method Action enq( int x ) if (!stallEnq);
       $display($time, "  Enqueue %x", x );
       fifo.enq(x);
    endmethod
-   
+
    // This method requires mixitup to run before,
    // but that is OK because it is an Action method.
    method Action deq() if (!stallDeq);
       $display($time, "  Deq ");
       fifo.deq();
    endmethod
-   
+
    // This method requires mixitup to run before,
    // and that is not OK because it is a value method.
    method int    first() if (!stallDeq);

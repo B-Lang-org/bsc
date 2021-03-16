@@ -7,7 +7,7 @@ Status: simulation should pass
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -26,7 +26,7 @@ let defaults = mkOVLDefaults;
 defaults.min = 2; //min : 2
 defaults.max = 8; //max : 8
 AssertTest_IFC#(Bit#(4)) assertRan <- bsv_assert_range(defaults);
-      
+
 rule test(True);
    assertRan.test(test_expr); // test_expr : test_expr
 endrule

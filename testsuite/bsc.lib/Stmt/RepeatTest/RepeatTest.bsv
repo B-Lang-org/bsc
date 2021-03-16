@@ -4,7 +4,7 @@ import StmtFSM::*;
 
 (* synthesize *)
 module mkRepeatTest (Empty);
-   
+
    Reg#(Bit#(8)) count <- mkReg(0);
    Reg#(Bit#(8)) i <- mkReg(0);
 
@@ -25,10 +25,10 @@ module mkRepeatTest (Empty);
 		       $display("(%5d) %d C", $time, count);
 		       $display("(%5d) %d D", $time, count);
 		    endseq;
-   
+
    let test_fsm <- mkAutoFSM(test_seq);
-   
+
 endmodule
 
 
-endpackage  
+endpackage

@@ -20,9 +20,9 @@ endinterface
 
 module [MyModule] mkA#(Inc b)(Dec);
   Reg#(Int#(32)) r <- mkReg(0);
-   
+
   incInteger(1);
-   
+
   rule do_inc(r == 0);
     r <= r + 1;
     b.inc;
@@ -42,9 +42,9 @@ module [MyModule] mkB#(Dec a)(Inc);
     s <= s - 1;
     a.dec;
   endrule
-   
+
   incInteger(2);
-   
+
   method Action inc;
     s <= s + 1;
   endmethod
@@ -56,9 +56,9 @@ module [MyModule] mkAandB#(Tuple2#(Dec,Inc) ab)(Tuple2#(Dec,Inc));
 
   Dec a <- mkA(tpl_2(ab));
   Inc b <- mkB(tpl_1(ab));
-   
+
   incInteger(3);
- 
+
   return(tuple2(a,b));
 
 endmodule
@@ -82,9 +82,9 @@ endmodule
 
 (* synthesize *)
 module sysIncDecFixContext();
-   
+
    runWithContext(0, testIncDecFix);
-    
+
 endmodule
 
-  
+

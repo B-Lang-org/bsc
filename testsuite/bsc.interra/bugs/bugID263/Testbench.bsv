@@ -19,7 +19,7 @@ import Printf :: *;
 function Action status (Bool a);
 action
   $display( (a ? sprintf ("True") : sprintf ("False")) );
-endaction 
+endaction
 endfunction : status
 
 endpackage : Testbench

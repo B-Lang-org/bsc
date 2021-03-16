@@ -11,7 +11,7 @@ interface QBinOp #(parameter type a);
    method Action deq () ;
 endinterface
 
-// Interface for a module which has a ternary operation, e.g. MAC 
+// Interface for a module which has a ternary operation, e.g. MAC
 interface QTerOp #(parameter type a);
    method Action start3( a inA, a inB, a inC );
    method a result();
@@ -20,7 +20,7 @@ endinterface
 
 
 // parameterized module taking a function as an argument
-module mkFPBinOp #(function t fun ( t a, t b) ) (QBinOp #(t) ) 
+module mkFPBinOp #(function t fun ( t a, t b) ) (QBinOp #(t) )
                       provisos( Bits#(t,st) ) ;
 
    FIFO#(t) outfifo() ;
@@ -94,14 +94,14 @@ endmodule
 
 // Generic tester for Binary operations
 module mkTester #(QBinOp#(t) dut_ifc,
-                  String testfile) 
+                  String testfile)
    ( Empty )
    provisos( Bits#(t,st), Eq#(t), Literal#(t) )  ;
 
    // an array holding the test data
    RegFile#(Bit#(7), Tuple3#(t,t,t) )  test_ifc();
    mkRegFileFullLoad#(testfile) iarray(test_ifc) ;
-   
+
    // An index to the array
    Reg#(Bit#(7) )  counter() ;
    mkReg#(0) icounter(counter) ;
@@ -156,20 +156,20 @@ module mkTester #(QBinOp#(t) dut_ifc,
          $finish(0);
       endaction
    endrule
-   
+
 endmodule
 
 // Generate tester for Ternary operations
 module mkTester3 #(QTerOp#(t) dut_ifc,
                   String testfile)
-   ( Empty ) 
+   ( Empty )
    provisos( Bits#(t,st), Eq#(t), Literal#(t), Bitwise#(t) );
 
 
    // an array holding the test data
    RegFile#(Bit#(7), Tuple4#(t,t,t,t) )  test_ifc();
    mkRegFileFullLoad#(testfile) iarray(test_ifc) ;
-   
+
    // An index to the array
    Reg#(Bit#(7) )  counter() ;
    mkReg#(0) icounter(counter) ;
@@ -219,14 +219,14 @@ module mkTester3 #(QTerOp#(t) dut_ifc,
    rule vcd (counter == 0 ) ;
       $dumpvars();
    endrule
-   
-   
+
+
    rule finish_sim (counter == ( 7'h7f )) ;
       action
          $finish(0);
       endaction
    endrule
-      
+
 endmodule
 
 

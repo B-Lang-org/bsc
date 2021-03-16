@@ -1,6 +1,6 @@
 package SenderReceiver;
 
-import "BVI" Sender = 
+import "BVI" Sender =
 module mkSender#(Integer outvalue)(SingletonInout);
    // even though the value is static,
    // we want to allow BSC to sample it on whatever clock it chooses

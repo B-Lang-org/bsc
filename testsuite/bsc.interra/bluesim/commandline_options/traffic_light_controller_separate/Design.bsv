@@ -9,7 +9,7 @@ interface Design_IFC;
     method TLstates farm_light  ();
     method TLstates hwy_light   ();
 endinterface: Design_IFC
-          
+
 (*
     always_enabled,
     always_ready,
@@ -25,12 +25,12 @@ module mkDesign(Design_IFC);
     Reg#(TLstates)  hwy_state();
     mkReg#(GREEN)   t_hwy_state(hwy_state);
 
-    Reg#(TLstates)  frm_state(); 
+    Reg#(TLstates)  frm_state();
     mkReg#(RED)     t_frm_state(frm_state);
 
     Reg#(Bit#(5))   timer();
     mkReg#(0)       t_timer(timer);
-  
+
     Bool short;
     Bool long;
     Bool enable_hwy;
@@ -40,7 +40,7 @@ module mkDesign(Design_IFC);
     long            = (timer_state == LONG);
     enable_hwy      = ((frm_state == YELLOW) && short);
     enable_frm      = ((hwy_state == YELLOW) && short);
-	
+
     method tlc (Bool car_present, Bit#(5) long_timer_value,
                 Bit#(5) short_timer_value);
         action
@@ -49,9 +49,9 @@ module mkDesign(Design_IFC);
             Bool hwy_start_timer;
             Bool start_timer;
 
-            frm_start_timer = ((frm_state == GREEN) && ((car_present == False) || long)) || 
+            frm_start_timer = ((frm_state == GREEN) && ((car_present == False) || long)) ||
                               ((frm_state == RED) && enable_frm);
-            hwy_start_timer = ((hwy_state == GREEN) && (car_present && long)) || 
+            hwy_start_timer = ((hwy_state == GREEN) && (car_present && long)) ||
                               ((hwy_state == RED) && enable_hwy);
             start_timer     = frm_start_timer || hwy_start_timer;
 
@@ -120,7 +120,7 @@ module mkDesign(Design_IFC);
     method farm_light();
         farm_light = frm_state;
     endmethod: farm_light
-  
+
     method hwy_light();
         hwy_light = hwy_state ;
     endmethod: hwy_light

@@ -43,12 +43,12 @@ module mkTestbench_DropWhileRev();
       display_list (my_list1);
       $display ("Drops Tail Segment with elements < 2. New List:");
       display_list (dropWhileRev(f1, my_list1));
-      if (dropWhileRev(f1, my_list1) != my_list2 || dropWhileRev (f2, my_list1) != Nil || dropWhileRev (f3, my_list1) != my_list1) 
+      if (dropWhileRev(f1, my_list1) != my_list2 || dropWhileRev (f2, my_list1) != Nil || dropWhileRev (f3, my_list1) != my_list1)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_DropWhileRev
 endpackage : DropWhileRev

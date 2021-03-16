@@ -20,19 +20,19 @@ endfunction
 
 module mkTestbench_Last();
    List #(Int #(4)) my_list1 = Cons (0, Cons (1, Cons (2, Cons (3, Cons (4, Nil)))));
-  
+
 
 
    rule fire_once (True);
       $display("List=");
       display_list (my_list1);
       $display("Last Element = %d", last(my_list1));
-      if (last(my_list1) != 4 ) 
+      if (last(my_list1) != 4 )
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Last
 endpackage : Last

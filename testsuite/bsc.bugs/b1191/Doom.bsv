@@ -13,4 +13,4 @@ module mkTest2_2 (ITest2_2);
     return y2;
   endmethod
 
-endmodule 
+endmodule

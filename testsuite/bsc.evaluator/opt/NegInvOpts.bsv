@@ -12,7 +12,7 @@ module sysNegInvOpts();
   Bit#(8) zbo = b ? z : o;
 
   rule test(b);
-    if(-{o,o} == 1) 
+    if(-{o,o} == 1)
        $display("Negate concat: PASS");
     else
        $display("Negate concat: FAIL");
@@ -22,7 +22,7 @@ module sysNegInvOpts();
        $display("Invert concat: FAIL");
     if(-(-{o,z}) == {ones, zeroes})
        $display("Double negate concat: PASS");
-    else 
+    else
        $display("Double negate concat: FAIL");
     if(~{~{z,o}} == {zeroes, ones})
        $display("Double invert concat: PASS");
@@ -37,7 +37,7 @@ module sysNegInvOpts();
        $display("Invert if 1: PASS");
     else
        $display("Invert if 1: FAIL");
-    
+
     b <= !b;
   endrule
 
@@ -52,7 +52,6 @@ module sysNegInvOpts();
        $display("Invert if 2: FAIL");
     $finish(0);
   endrule
- 
+
 endmodule
-   
-  
+

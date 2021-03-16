@@ -15,7 +15,7 @@ module mkArrayCurry();
   Reg#(Bit#(1)) switch <- mkReg(0);
 
   Integer test = funcs[switch](5);
-  
+
   rule go;
     $display(test);
     $finish(0);

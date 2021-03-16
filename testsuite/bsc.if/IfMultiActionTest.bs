@@ -4,7 +4,7 @@ import IfMultiAction
 import ActionSeq
 
 sysIfMultiActionTest :: Module Empty
-sysIfMultiActionTest = 
+sysIfMultiActionTest =
  module
   started :: Reg (Bool) <- mkReg False
   ifma :: MultiAction <- sysMultiAction
@@ -16,4 +16,3 @@ sysIfMultiActionTest =
                                       (ifma.f False False)|>(ifma.print)|>(ifma.reset))
   rules
     when testseq.done ==> if started then (ifma.finish) else action {testseq.start; started := True}
-           

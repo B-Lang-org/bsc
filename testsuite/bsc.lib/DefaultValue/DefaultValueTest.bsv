@@ -9,8 +9,8 @@ typedef struct {
                 UInt#(8) f1 ;
                 UInt#(8) f2 ;
                 UInt#(8) f3 ;
-                UInt#(8) f4 ;                
-                } MyStruct 
+                UInt#(8) f4 ;
+                } MyStruct
 deriving (Bits );
 
 instance DefaultValue #(MyStruct);
@@ -27,8 +27,8 @@ endinstance
 
 (*synthesize*)
 module sysDefaultValueTest ();
-   
-   
+
+
    Reg#(Bool) rb <- mkReg(defaultValue);
    Reg#(Maybe#(Bool)) rmb <- mkReg(defaultValue);
    Reg#(UInt#(5))    rui5 <- mkReg(defaultValue);
@@ -39,7 +39,7 @@ module sysDefaultValueTest ();
    Reg#(Tuple3#(Bool,Maybe#(Bool), Int#(5))) rt3 <- mkReg(defaultValue);
    Reg#(MyStruct)    rs <- mkReg(defaultValue);
    Reg#(Vector#(10,MyStruct)) vrs <- mkReg(defaultValue);
-        
+
    let ts = (seq
                 $display( fshow(rb) );
                 $display( fshow(rmb) );
@@ -53,5 +53,5 @@ module sysDefaultValueTest ();
                 noAction;
              endseq);
    mkAutoFSM( ts);
-   
+
 endmodule

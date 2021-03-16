@@ -4,7 +4,7 @@ import QType::*;
 
 // This time we shall be storing moves in the pipeline register, so they need
 // to be reprentable as bits.  We let the tool choose the obvious
-// representation. 
+// representation.
 typedef enum {LEFT, SAME, RIGHT, REPLACE} Move
            deriving (Eq, Bits);
 
@@ -77,7 +77,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
 	 REPLACE: return lastV;
       endcase
    endfunction
-   
+
    let firstElement = current_entry(1);
    let lastElement  = current_entry(n);
    let notEmpty = (isValid(firstElement));
@@ -93,7 +93,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
       let self = current_entry(i);
       let right =current_entry(i-1);
       return (case (tuple2(self,right)) matches
-		 {.*, tagged Invalid}: 
+		 {.*, tagged Invalid}:
                          return SAME;
 		 {tagged Invalid, tagged Valid .p}:
 				     return   ((p>=v) ? REPLACE : RIGHT );
@@ -109,7 +109,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
       let self = current_entry(i);
       let left  = current_entry(i+1);
       return (case (tuple2(left,self)) matches
-		 {.*, tagged Invalid}: 
+		 {.*, tagged Invalid}:
                          return SAME;
 		 {tagged Valid .l, tagged Valid .s}:
 				      return   ((l>=v) ? LEFT :
@@ -124,7 +124,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
    (* no_implicit_conditions, fire_when_enabled *)
    rule process_requests;
       // We no longer declare the array of moves as a local variable here.
-      
+
       let the_fun =
           (case (tuple2(rw_enq.wget, rw_deq.wget)) matches
 	      {tagged Valid .v, tagged Invalid}:  return enq_only(v);
@@ -132,7 +132,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
 	      {tagged Valid .v, tagged Valid .*}: return both(v);
 	      {tagged Invalid,  tagged Invalid}:  return neither;
 	   endcase);
-      
+
       for (Integer i = 1; i<=n; i=i+1)
 	 action
 	    // Instead of initialising a local variable, we set the value in

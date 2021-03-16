@@ -15,7 +15,7 @@ sysSimpleFF =
 	     ==> action { displayHex ( 1 :: Bit 8) ; c := True; b := False }
 	    when c
 	     ==> do t <- $time
-                    $display "%0t" t 
+                    $display "%0t" t
                     c := False
 	    when not a && not b && not c
 	     ==> $finish 0

@@ -10,7 +10,7 @@ mkLedDecoder :: Module LedDecoder
 mkLedDecoder =
     return $
 	interface LedDecoder
-	    decode x = 
+	    decode x =
 	        case x of
 		   0x0 -> 0b1110111
 		   0x1 -> 0b0010010

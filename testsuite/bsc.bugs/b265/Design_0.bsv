@@ -10,7 +10,7 @@ interface Design_in_IFC;
 
     method Action       start(
                               Bit#(1)   r_wb,
-                              SnoopType snoop_type_in, 
+                              SnoopType snoop_type_in,
                               Bit#(1)   is_snoop,
                               Bit#(1)   info_avail,
                               Bit#(1)   invalidate,
@@ -19,15 +19,15 @@ interface Design_in_IFC;
                               Bit#(1)   bus_ack
                              );
     method SnoopType    snoop_type_out(
-                                       Bit#(1) h_mb, 
+                                       Bit#(1) h_mb,
                                        Bit#(1) r_wb
                                       );
     method Bit#(1)      is_shared();
-    method StateType    cont_state(); 
+    method StateType    cont_state();
 
 endinterface:  Design_in_IFC
 
-/*Here in the below function used the mapping 
+/*Here in the below function used the mapping
 
   Shared    = 01
   Dirty     = 00
@@ -38,7 +38,7 @@ endinterface:  Design_in_IFC
 
 function SnoopType deter_snoop_type(StateType f_state, Bit#(1) f_hmb, Bit#(1) f_rwb);
 SnoopType stype;
-    case ({pack(f_state), f_hmb, f_rwb}) 
+    case ({pack(f_state), f_hmb, f_rwb})
         {2'b01, 1'b1, 1'b0}:  stype = SHW;
         {2'b01, 1'b0, 1'b_}:  stype = SMRW;
         {2'b10, 1'b0, 1'b_}:  stype = IMRW;
@@ -46,7 +46,7 @@ SnoopType stype;
         default            :  stype = OTHERS;
     endcase
     return stype;
-endfunction: deter_snoop_type 
+endfunction: deter_snoop_type
 
 (* synthesize *)
 module mkDesign_in(Design_in_IFC);
@@ -55,13 +55,13 @@ module mkDesign_in(Design_in_IFC);
     mkReg#(Invalid) the_state(state);
 
     method Action start(
-                        Bit#(1)     r_wb, 
-                        SnoopType   snoop_type_in, 
-                        Bit#(1)     is_snoop, 
-                        Bit#(1)     info_avail, 
-                        Bit#(1)     invalidate, 
-                        Bit#(1)     all_shared, 
-                        Bit#(1)     mem_served, 
+                        Bit#(1)     r_wb,
+                        SnoopType   snoop_type_in,
+                        Bit#(1)     is_snoop,
+                        Bit#(1)     info_avail,
+                        Bit#(1)     invalidate,
+                        Bit#(1)     all_shared,
+                        Bit#(1)     mem_served,
                         Bit#(1)     bus_ack
                        );
         action
@@ -82,8 +82,8 @@ module mkDesign_in(Design_in_IFC);
                 default                                      : state <= state;
             endcase
         endaction
-     endmethod: start     
-                      
+     endmethod: start
+
      method SnoopType snoop_type_out(Bit#(1) h_mb, Bit#(1) r_wb);
         snoop_type_out =  deter_snoop_type(state, h_mb, r_wb);
      endmethod: snoop_type_out
@@ -92,8 +92,8 @@ module mkDesign_in(Design_in_IFC);
         is_shared = ((state==Shared)? 1 : 0);
      endmethod: is_shared
 
-     method StateType cont_state(); 
+     method StateType cont_state();
         cont_state = state;
-     endmethod: cont_state 
+     endmethod: cont_state
 endmodule: mkDesign_in
 endpackage : Design_0

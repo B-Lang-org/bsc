@@ -2,10 +2,10 @@
 
 (* synthesize *)
 module sysFileTypeErr2 () ;
-   
+
    Reg#(int) cnt <- mkReg(0);
    Reg#(File) fh <- mkReg(InvalidFile) ;
-   
+
    rule open (cnt == 0 ) ;
       $display("opening file" ) ;
       let lfh <- $fopen("foo.out", "w" ) ;
@@ -17,15 +17,15 @@ module sysFileTypeErr2 () ;
       cnt <= 1 ;
       fh <= lfh ;
    endrule
-   
+
    rule dump (cnt > 0 );
       $display("writing to file %0d", cnt ) ;
       $fwrite();
       cnt <= cnt + 1;
    endrule
-   
+
    rule finish (cnt > 15);
       $finish(0);
    endrule
-   
+
 endmodule

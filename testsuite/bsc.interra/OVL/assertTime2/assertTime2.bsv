@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -19,13 +19,13 @@ typedef enum {First_State, Second_State, Third_State, Fourth_State, Fifth_State}
 module assertTime2 (Empty);
 
 Reg#(FSM_State) state <- mkRegA(First_State);
-   
+
 Reg#(Bool) test_expr <- mkRegA(False);
 
 let defaults = mkOVLDefaults;
 defaults.num_cks = 3; //num_cks : 3
 AssertStartTest_IFC#(Bool) assertTim <- bsv_assert_time(defaults);
-   
+
 rule test(True);
     assertTim.start(state == Second_State);//start_event : Second_State
     assertTim.test(test_expr);             //test_expr : test_expr
@@ -40,12 +40,12 @@ rule every (True);
 	Second_State:
 	begin
 	    state <= Third_State;
-		test_expr <= True;		
+		test_expr <= True;
 	end
 	Third_State:
 	begin
 	    state <= Fourth_State;
-		test_expr <= False;		
+		test_expr <= False;
 	end
 	Fourth_State:
 	begin

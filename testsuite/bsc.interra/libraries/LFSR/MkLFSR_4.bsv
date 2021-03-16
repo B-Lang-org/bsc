@@ -11,7 +11,7 @@ endmodule: mkDesign_MkLFSR_4
 
 function Bit#(4) next_value (Bit#(4) in_data,Bit#(4) pattern);
 Bit#(4) value;
-     if (in_data[0:0] == 1'b1) 
+     if (in_data[0:0] == 1'b1)
 	    value = ((in_data >> 1) ^ pattern);
 	 else
 	    value = (in_data >> 1);
@@ -35,11 +35,11 @@ module mkTestbench_MkLFSR_4();
      exp_value <= next_value(sr.value,4'h9);
 	 if (exp_value != sr.value)
 	   begin
-         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value,sr.value); 
+         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value,sr.value);
          fail <= True;
 	   end
 	 else
-       $display("Data Matched counter = %d Value = %h",counter,sr.value); 
+       $display("Data Matched counter = %d Value = %h",counter,sr.value);
 	 sr.next;
   endrule
 
@@ -51,11 +51,11 @@ module mkTestbench_MkLFSR_4();
      exp_value1 <= next_value(sr.value,4'h9);
 	 if (exp_value1 != sr.value)
 	   begin
-         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value1,sr.value); 
+         $display("Mismatch counter = %d Exp = %h Actual = %h",counter,exp_value1,sr.value);
          fail <= True;
 	   end
 	 else
-       $display("Data Matched counter = %d Value = %h",counter,sr.value); 
+       $display("Data Matched counter = %d Value = %h",counter,sr.value);
 	 sr.next;
   endrule
 

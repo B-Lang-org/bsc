@@ -2,11 +2,11 @@ package Pass;
 
 import Pull :: *;
 
-       
+
 module mkDesign1 (Pull #(Bit #(8)));
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     method pull();
        actionvalue
          counter <= counter + 1;
@@ -26,13 +26,13 @@ endmodule : mkDesign_Pass
 module mkTestbench_Pass ();
     Pull #(Bit #(8)) dut();
     mkDesign_Pass the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
         Bit #(8) data_stream <- dut.pull;
@@ -42,7 +42,7 @@ module mkTestbench_Pass ();
     endrule
 
     rule endsim (counter == 15);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

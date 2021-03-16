@@ -12,19 +12,19 @@ endinterface
 
 (* synthesize *)
 module mkArgMethod2ReturnValue3 (Inout);
-  
+
   RWire #(Bool) temp1();
   mkRWire the_temp1(temp1);
-      
+
   RWire #(Bool) temp2();
   mkRWire the_temp2(temp2);
-  
+
   RWire #(Bool) inp1();
   mkRWire the_inp1(inp1);
-      
+
   RWire #(Bool) inp2();
   mkRWire the_inp2(inp2);
-  
+
   rule gate1;
       Bool i1 = unJust (inp1.wget);
       Bool i2 = unJust (temp2.wget);
@@ -36,8 +36,8 @@ module mkArgMethod2ReturnValue3 (Inout);
       Bool i2 = unJust (temp1.wget);
       temp2.wset (i1 && i2);
   endrule
-      
-  
+
+
   method Action nandgate (in1, in2);
       inp1.wset (in1);
       inp2.wset (in2);

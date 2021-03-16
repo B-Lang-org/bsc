@@ -1,7 +1,7 @@
 import Vector::*;
 
 typedef union tagged {
-   UInt#(17) Extra;		      
+   UInt#(17) Extra;
    void T;
    void F;
    } MyBool deriving(Eq,Bits);
@@ -13,7 +13,7 @@ Integer ports = valueof(Ports);
 (* noinline *)
 function Bit#(Ports) arbitrate_myunion(Vector#(Ports, MyBool) bs);
    Bit#(Ports) bits = 0;
-   
+
    MyBool going = T;
    for (Integer i = 0; i < ports; i = i + 1) begin
       if(going == T) begin
@@ -23,7 +23,7 @@ function Bit#(Ports) arbitrate_myunion(Vector#(Ports, MyBool) bs);
 	 end
       end
    end
-   
+
    return bits;
 endfunction
 

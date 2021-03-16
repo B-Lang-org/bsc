@@ -7,5 +7,5 @@ rule doR(True);
   if (isJust(r.wget()))
     $display("%d",unJust(r.wget()));
 endrule
-   
+
 endmodule

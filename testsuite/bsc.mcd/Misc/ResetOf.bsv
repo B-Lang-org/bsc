@@ -12,7 +12,7 @@ mkReg#(True) the_t(t, reset_by(resetOf(r)));
 
 rule test;
   if((resetOf(s) != (resetOf(r))) && (resetOf(r) == resetOf(t)) &&
-     (resetOf(0) == noReset)) 
+     (resetOf(0) == noReset))
      $display("PASS");
   else
      $display("FAIL");

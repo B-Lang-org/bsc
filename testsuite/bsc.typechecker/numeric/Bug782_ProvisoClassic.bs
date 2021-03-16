@@ -14,12 +14,12 @@ instance (Bits (Bit (TSub a 3)) _v101,
 	 Bits (S a) _v103
   where
     pack :: S a -> Bit _v103
-    pack _x = 
+    pack _x =
 	primConcat
 	  (pack _x.f1)
 	  (primConcat (pack _x.f2) (pack _x.f3))
     unpack :: Bit _v103 -> S a
-    unpack _x = 
+    unpack _x =
 	(\ _x0 ->
 	 (\ _x1 ->
 	  S { f1 = unpack _x0.fst;

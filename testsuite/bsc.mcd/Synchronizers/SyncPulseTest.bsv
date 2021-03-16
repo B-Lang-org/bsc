@@ -6,7 +6,7 @@ Integer period_fast_clk = 7;
 (* synthesize *)
 module sysSyncPulseTest();
 
-   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);   
+   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);
    SyncPulseIfc sync1 <- mkSyncPulseFromCC(fast_clk);
    SyncPulseIfc sync2 <- mkSyncPulseToCC(fast_clk, noReset());
 

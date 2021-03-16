@@ -13,7 +13,7 @@ module sysDynamicIntegerNested(Empty);
   Integer y2 = s ? three : four;
 
   Bit#(3) x = fromInteger( r ? y1 : y2);
-                               
+
   rule test;
     $display("x: %0d", x);
     $finish(0);

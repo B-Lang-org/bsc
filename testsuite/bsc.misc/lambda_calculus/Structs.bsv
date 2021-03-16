@@ -25,7 +25,7 @@ module sysStructs ();
    Reg#(Triple) t1 <- mkRegU;
    Reg#(Triple) t2 <- mkRegU;
 
-   
+
    rule add_em (s);
       a <= a + b + 0.25;
       s <= ! s;
@@ -35,8 +35,8 @@ module sysStructs ();
    //    a <= a * b;
    //    s <= ! s;
    // endrule
-   
-   
+
+
    // rule x2 (s1 && s2 && s3);
    //    a <= negate(b);
    //    let x = 0;
@@ -44,7 +44,7 @@ module sysStructs ();
    //    x.f = b.f;
    //    c <= x;
    // endrule
-   
+
    rule tss ;
       let tx = t1;
       tx.a = t2.a;

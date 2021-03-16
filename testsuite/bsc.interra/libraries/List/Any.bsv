@@ -16,12 +16,12 @@ module mkTestbench_Any();
 
 
    rule fire_once (True);
-      if (any(f, my_list1) != True || any(f, my_list2) != False) 
+      if (any(f, my_list1) != True || any(f, my_list2) != False)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Any
 endpackage : Any

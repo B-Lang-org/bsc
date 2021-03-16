@@ -38,7 +38,7 @@ moduleTwo = module
 	        sometimesSetA x = if t.a._read == x then action {} else t.a := x
 
 mkFoo :: Module Empty
-mkFoo = 
+mkFoo =
     module
 	t :: Two
 	t <- mkTwo

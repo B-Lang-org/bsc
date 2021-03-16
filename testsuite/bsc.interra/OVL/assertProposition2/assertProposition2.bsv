@@ -7,7 +7,7 @@ Status: simulation should fail
 
 Author: pktiwari@noida.interrasystems.com
 
-Date: 02-17-2006 
+Date: 02-17-2006
 
 *************************************************************************************************************/
 
@@ -23,7 +23,7 @@ Reg#(Bool) test_expr <- mkRegA(True);
 
 let defaults = mkOVLDefaults;
 AssertTest_IFC#(Bool) assertProp <-  bsv_assert_proposition(defaults);
-   
+
 rule test;
     assertProp.test(test_expr);//test_expr : test_expr
 endrule

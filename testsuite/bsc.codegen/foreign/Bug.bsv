@@ -5,7 +5,7 @@ typedef Bit#(64) TypeAddrBits;
 typedef Vector#(3, Bit#(32)) TypeData;
 typedef struct {
   Bool valid;
-  Bool isStore; 
+  Bool isStore;
   TypeAddrBits addr;
 } TypeIreq  deriving (Eq, Bits);
 typedef Vector#(3, Bit#(32)) TypeXData;
@@ -17,7 +17,7 @@ import  "BDPI" xbuf = function ActionValue#(TypeXData) xbuf(TypeIreq r, TypeXDat
 
 interface MemInterface;
    method ActionValue#(TypeXData) xbufWrite(TypeIreq r, TypeXData d);
-endinterface: MemInterface      
+endinterface: MemInterface
 
 (* synthesize *)
 module mkMem(MemInterface);

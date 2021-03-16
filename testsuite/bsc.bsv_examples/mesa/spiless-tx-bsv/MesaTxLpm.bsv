@@ -30,10 +30,10 @@ module mkMesaTxLpm(ILpm);
       // by now we must have an answer -- return it:
       return (tuple2(d32c, tag));
    endfunction
-   
+
    FIFO#(Tuple2#(LuResponse, LuTag)) toMIF();
    mkFIFO the_toMIF(toMIF);
-   
+
    interface Server mif;
       interface Put request;
 	 method put(x);
@@ -42,7 +42,7 @@ module mkMesaTxLpm(ILpm);
 	    endaction
 	 endmethod: put
       endinterface: request
-      
+
       interface Get response;
 	 method get() ;
 	    actionvalue

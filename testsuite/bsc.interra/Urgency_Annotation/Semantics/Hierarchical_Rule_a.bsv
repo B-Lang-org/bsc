@@ -29,12 +29,12 @@ module mkTest_Hierarchy_Rule_a(Test_IFC);
 endmodule : mkTest_Hierarchy_Rule_a
 
 module mkHierarchical_Rule_a();
-    
+
      Test_IFC dut ();
      mkTest_Hierarchy_Rule_a the_dut (dut);
 
      (* descending_urgency = "the_dut.test_rule_1, true" *)
-     
+
      rule true;
          dut.start();
          $display ("Calling Method");  //Should be displayed 4 times.
@@ -43,7 +43,7 @@ module mkHierarchical_Rule_a();
      rule disp;
          $display ("Count = %d", dut.result);
      endrule
-      
+
      rule endsim (dut.result >= 100);
          $finish (2'b00);
      endrule

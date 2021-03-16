@@ -15,7 +15,7 @@ module mkMaster ( Master );
    // An LFSR for random addresses
    LFSR #(Bit#(4)) random <- mkRCounter( 0 ) ; // for debug
    //LFSR #(Bit#(4)) random <-  mkLFSR_4 ; // for pseudo random numbers
-   
+
    // a register for the request data  use unguarded fifo to allow idle requests!
    FIFOF#(BusRequest) requestData <- mkUGFIFOF ;
 
@@ -30,22 +30,22 @@ module mkMaster ( Master );
    rule count (counter > 0 )  ;
       random.next;
       counter <= counter + 1;
-      if ( counter > 50 )  $finish(0) ; 
+      if ( counter > 50 )  $finish(0) ;
    endrule
-   
+
    // rule to generate new request data
    rule newdata ((random.value <= 4'd7 ) && (requestData.notFull)) ;
-     
+
       let high = random.value ;       // grab a 4 bit random number
       let reqaddr = {high, counter };
       requestData.enq( BusRequest {addr:reqaddr, data:1, read_write:Read } ) ;
 
       // $display ( "enqueing data %h", reqaddr ) ;
       // Question: if the counter is used for a random value why is 7 not queued?
-               
+
    endrule
 
-   
+
    // Let the master know that a grant was received
    RWire#(Bool)  r_granted <- mkRWire ;
 
@@ -58,7 +58,7 @@ module mkMaster ( Master );
       return requestData.notEmpty;
    endmethod
 
-   // See if bus access has been granted 
+   // See if bus access has been granted
    method  Action m_bus_grant( bus_grant ) ;
       r_granted.wset( bus_grant ) ;
    endmethod
@@ -66,13 +66,13 @@ module mkMaster ( Master );
    // method when bus has a response to this master.
    interface Put m_response ;
       method Action put( response ) ;
-         // Queue the response 
+         // Queue the response
          if ( ! idleSent )
             begin
                $display( "response %s: counter: %0d  stat: %h, data: %h", id,
                         counter, response.status, response.data ) ;
             end
-         
+
       endmethod
    endinterface
 
@@ -99,10 +99,10 @@ module mkMaster ( Master );
                idleSent <= True ;
             end
 
-         return reqData ; 
+         return reqData ;
       endmethod
    endinterface
-   
+
 endmodule
 
 // a function to add a time stamp/counter to the transaction address.
@@ -111,7 +111,7 @@ function BusAddr modAddress( BusRequest reqin, Bit#(28) cntr );
    return newAddr ;
 endfunction
 
-// ///////////////////////////////////////////////////////////////////////////      
+// ///////////////////////////////////////////////////////////////////////////
 // a parameterized master.
 // Note that this cannot be synthezied to Verilog, only via a top level wrapper
 module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
@@ -122,7 +122,7 @@ module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
    // An LFSR for random addresses
    // LFSR #(Bit#(4)) random <- mkRCounter( 0 ) ; // for debug
    LFSR #(Bit#(4)) random <-  mkLFSR_4 ; // for pseudo random numbers
-   
+
    // a register for the request data  use unguarded fifo to allow idle requests!
    FIFOF#(BusRequest) requestData <- mkUGFIFOF ;
 
@@ -138,20 +138,20 @@ module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
    rule count ( counter > 0 ) ;
       random.next;
       counter <= counter + 1;
-      if ( counter > finish )  $finish(0) ; 
+      if ( counter > finish )  $finish(0) ;
    endrule
-   
+
    // rule to generate new request data
    rule newdata ((random.value <= 4'd7 ) && (requestData.notFull)) ;
-     
+
       let high = random.value ;       // grab a 4 bit random number
-      
+
       let reqaddr = {high, counter };
       requestData.enq( BusRequest {addr:reqaddr, data:1, read_write:Read } ) ;
 
    endrule
 
-   
+
    // Let the master know that a grant was received
    RWire#(Bool)  r_granted <- mkRWire ;
 
@@ -164,7 +164,7 @@ module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
       return requestData.notEmpty;
    endmethod
 
-   // See if bus access has been granted 
+   // See if bus access has been granted
    method  Action m_bus_grant( bus_grant ) ;
       r_granted.wset( bus_grant ) ;
    endmethod
@@ -172,13 +172,13 @@ module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
    // method when bus has a response to this master.
    interface Put m_response ;
       method Action put( response ) ;
-         // Queue the response 
+         // Queue the response
          if ( ! idleSent )
             begin
                $display( "response %s: counter: %0d  stat: %h, data: %h", id,
                         counter, response.status, response.data ) ;
             end
-         
+
       endmethod
    endinterface
 
@@ -205,15 +205,15 @@ module mkMasterP#(Bit#(28) finish, Bit#(4) seed, String id)  ( Master );
                idleSent <= True ;
             end
 
-         return reqData ; 
+         return reqData ;
       endmethod
    endinterface
-   
+
 endmodule
 
 
 
-// ///////////////////////////////////////////////////////////////////////////      
+// ///////////////////////////////////////////////////////////////////////////
 (* synthesize *)
 module mkMaster_500_1 (Master ) ;
    Master localM <- mkMasterP(500,1, "A" ) ;

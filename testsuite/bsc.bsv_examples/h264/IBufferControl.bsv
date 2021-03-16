@@ -44,7 +44,7 @@ interface IBufferControl;
    interface Get#(FrameBufferStoreReq) buffer_client_store;
 
    // Interface for module to interpolation
-   interface Server#(InterpolatorLoadReq,InterpolatorLoadResp) inter_server;	 
+   interface Server#(InterpolatorLoadReq,InterpolatorLoadResp) inter_server;
 
 endinterface
 

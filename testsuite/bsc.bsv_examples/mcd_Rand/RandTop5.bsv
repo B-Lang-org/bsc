@@ -16,7 +16,7 @@ endinterface: ExtIfc
 module mkRandTop(Clock c1, Reset r1,
 		 Clock c2, Reset r2,
 		 ExtIfc ifc);
-   
+
    GenPair gens();
    mkSplitter the_gens(gens); // clocked and reset by mkRandTop's defaults
 
@@ -28,7 +28,7 @@ module mkRandTop(Clock c1, Reset r1,
 
    let user1ifc <- mkConverter(4, user1.fst);
    let user2ifc <- mkConverter(4, user2.fst);
-   
+
    mkConnection(gens.fst, user1ifc);
    mkConnection(gens.snd, user2ifc);
 

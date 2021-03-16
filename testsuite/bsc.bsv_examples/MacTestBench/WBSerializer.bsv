@@ -28,18 +28,18 @@ endinterface
 ////////////////////////////////////////////////////////////////////////////////
 
 module mkWBSerializer#(Integer id, function Bit#(32) get_addr(Frame frame)) (WBSerializerIFC);
-   
+
    Randomize#(WBoneOp) wboneop_gen <- mkRandomizer;
-   
+
    FIFO#(Frame)   frame_in_fifo <- mkFIFO;
    FIFO#(WBoneOp) wb_out_fifo   <- mkFIFO;
-   
+
    Reg#(Frame) tx_reg <- mkRegU;
    Reg#(Bit#(SizeOf#(Frame))) tx_bit_reg <- mkReg(0);
-   
+
    Reg#(Bit#(32)) wb_addr <- mkReg(0);
    Reg#(Bit#(16))  i       <- mkReg(0);
-   
+
    Stmt serialize_seq =
    seq
       while (True)
@@ -51,11 +51,11 @@ module mkWBSerializer#(Integer id, function Bit#(32) get_addr(Frame frame)) (WBS
 //	       $display("(%5d) Into Words (dest %d)", $time, calculateDestinationPort(frame));
 	       $display("(%5d) (Port %0d) serializing", $time, id);
 	       displayFrame(frame);
-	       
+
 	       Bit#(32) data;
                data[31:16] = getFrameByteSize(frame);
                data[15: 0] = 16'hDDDD;
-	       
+
 	       Bit#(32) addr = get_addr(frame);
 	       wb_addr <= addr;
 
@@ -72,7 +72,7 @@ module mkWBSerializer#(Integer id, function Bit#(32) get_addr(Frame frame)) (WBS
 	       action
 		  Bit#(32) word = grab_left(tx_bit_reg);
 		  tx_bit_reg <= truncate(tx_bit_reg << 32);
-		  
+
 		  let wboneop <- wboneop_gen.next();
 		  wboneop.kind = WRITE;
 		  wboneop.addr = BusAddr { data: {0, wb_addr}, tag: unpack(0) };
@@ -94,7 +94,7 @@ module mkWBSerializer#(Integer id, function Bit#(32) get_addr(Frame frame)) (WBS
 	 serialize_fsm.start;
       endmethod
    endinterface
-   
+
    interface Put rx = fifoToPut(frame_in_fifo);
 
    interface Get tx = fifoToGet(wb_out_fifo);

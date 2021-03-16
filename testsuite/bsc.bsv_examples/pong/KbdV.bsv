@@ -14,11 +14,11 @@ endinterface: RawKbd
 
 module mkKbd(Tuple2#(RawKbd, Kbd));
      let mkVKbd1 = liftModule(mkVKbd);
-   
+
      VKbd vkbd();
      mkVKbd1 thevkbd(vkbd);
 
-     rule kbd_ack (vkbd.err == 1); 
+     rule kbd_ack (vkbd.err == 1);
        vkbd.ack;
      endrule
 
@@ -29,14 +29,14 @@ module mkKbd(Tuple2#(RawKbd, Kbd));
                   if (x) vkbd.clk;
 	       endaction
 	      endmethod: kbclk
-		      
-       	      method kbdata(x); 
+
+       	      method kbdata(x);
                action
                   if (x) vkbd.dta;
 	       endaction
 	      endmethod: kbdata
 
-              method key(); 
+              method key();
                   return (vkbd.key);
 	      endmethod: key
 	    endinterface: RawKbd
@@ -72,6 +72,6 @@ import "BVI" kbscan = module mkVKbd(VKbd);
   method dta() enable((* reg *)i_kbdata);
 
   schedule (key,rdy,err,ack,clk,dta) CF (key,rdy,err,ack,clk,dta);
-     
-     
+
+
 endmodule: mkVKbd

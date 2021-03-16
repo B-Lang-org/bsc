@@ -16,7 +16,7 @@ function UInt#(n) bitToSat(Bit#(1) x);
 endfunction: bitToSat
 
 // Convert some bitifiable value to a vector of Bools
-function Vector#(n,Bool) bitsToVector(t x) provisos(Bits#(t,n));   
+function Vector#(n,Bool) bitsToVector(t x) provisos(Bits#(t,n));
    let bs = pack(x);
    Vector#(n,Bool) v = newVector;
    for (Integer i = 0; i < valueOf(n); i = i + 1)

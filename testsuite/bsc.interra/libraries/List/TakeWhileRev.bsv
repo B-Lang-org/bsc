@@ -43,12 +43,12 @@ module mkTestbench_TakeWhileRev();
       display_list (my_list1);
       $display ("Returns Tail Segment with elements < 2. New List:");
       display_list (takeWhileRev(f1, my_list1));
-      if (takeWhileRev(f1, my_list1) != my_list2 || takeWhileRev (f2, my_list1) != my_list1 || takeWhileRev (f3, my_list1) != Nil) 
+      if (takeWhileRev(f1, my_list1) != my_list2 || takeWhileRev (f2, my_list1) != my_list1 || takeWhileRev (f3, my_list1) != Nil)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_TakeWhileRev
 endpackage : TakeWhileRev

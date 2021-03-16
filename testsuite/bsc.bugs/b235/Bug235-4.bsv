@@ -5,7 +5,7 @@ interface Design_IFC ;
 load);
     method Bit#(1) done();
     method Bit#(12) product();
-endinterface: Design_IFC 
+endinterface: Design_IFC
 
 (* always_ready, always_enabled *)
 module mkDesign (Design_IFC);
@@ -21,12 +21,12 @@ module mkDesign (Design_IFC);
  method  shift_and_mult(multiplicand,multiplier,load);
   action
    begin
-     Bit#(5) x;  
-     Bit#(5) y;  
+     Bit#(5) x;
+     Bit#(5) y;
 /*
-     if (load == 1) 
+     if (load == 1)
        begin
-         productsign <= multiplicand[4] ^ multiplier[7]; 
+         productsign <= multiplicand[4] ^ multiplier[7];
          regeAQ <= {5'b00000,multiplier[6:0]};
          regB <= multiplicand[3:0];
          add_shiftb <= multiplier[0];
@@ -34,30 +34,30 @@ module mkDesign (Design_IFC);
          done_reg <= 0;
          enable <= 1;
        end
-     else if ((add_shiftb == 1) && (enable == 1)) 
+     else if ((add_shiftb == 1) && (enable == 1))
        begin
          y = {1'b0,regeAQ[10:7]};
          x = regB._read + y;
          regeAQ <= {x,regeAQ[6:0]};
          add_shiftb <= 0;
        end
-     else if ((done_reg != 1) && (enable == 1)) 
+     else if ((done_reg != 1) && (enable == 1))
        begin
          regeAQ <= regeAQ >> 1;
-         if (regeAQ[1:1] == 1) 
+         if (regeAQ[1:1] == 1)
            add_shiftb <= 1 ;
-         else 
+         else
            add_shiftb <= 0;
-         if (sequencecount == 0) 
+         if (sequencecount == 0)
            done_reg <= 1 ;
-         else 
+         else
            sequencecount <= sequencecount -1;
-         if (sequencecount == 0) 
+         if (sequencecount == 0)
            enable <= 0 ;
-         else 
+         else
            enable <= 1;
        end
-     else 
+     else
        begin
          done_reg <= done_reg;
        end

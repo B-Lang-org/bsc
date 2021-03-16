@@ -5,8 +5,8 @@ import ClientServer :: *;
 import GetPut :: *;
 import Connectable :: *;
 
-typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n); 
-typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n); 
+typedef Server #(Bit #(n),Bit#(n)) Myserver #(type n);
+typedef Client #(Bit #(n),Bit#(n)) Myclient #(type n);
 
 module mkMyserver(Myserver#(8)) ;
    FIFO#(Bit#(8)) server_datafifo <- mkSizedFIFO(16) ;
@@ -43,7 +43,7 @@ rule always_fire (True);
      in_data <= in_data + 1;
      $display("Cycle Number: %d, Writing Data: %d", counter, in_data);
    endrule
-   
+
 
    rule read_value (True); //(counter >= 5) && (counter < 10 ));
      Bit #(8) first <- serf2.response.get;

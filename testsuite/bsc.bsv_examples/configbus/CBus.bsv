@@ -36,7 +36,7 @@ typedef ModuleCollect#(CBusItem#(sa, sd), i) ModWithCBus#(type sa, type sd, type
 // A module wrapper that adds the CBus to the collection and
 // returns only the "front door" interface.
 module [ModWithCBus#(sa,sd)] collectCBusIFC#(Module#(IWithCBus#(CBus#(sa, sd), i)) m)(i);
-   
+
    IWithCBus#(CBus#(sa, sd), i) double_ifc();
    liftModule#(m) _temp(double_ifc);
 
@@ -53,15 +53,15 @@ endmodule
 // processes the collected CBusItems and provides an IWithCBus interface.
 module [Module] exposeCBusIFC#(ModWithCBus#(sa, sd, i) sm)
                               (IWithCBus#(CBus#(sa, sd), i));
-   
+
    IWithCollection#(CBusItem#(sa, sd), i) collection_ifc();
    exposeCollection#(sm) _temp(collection_ifc);
-   
+
    let item_list = collection_ifc.collection;
-  
+
    interface CBus cbus_ifc;
       method Action write(Bit#(sa) addr, Bit#(sd) data);
-	 
+
 	 function ifc_write(item_ifc);
 	    action
 	       item_ifc.write(addr, data);
@@ -71,9 +71,9 @@ module [Module] exposeCBusIFC#(ModWithCBus#(sa, sd, i) sm)
 	 /// write to all collected interfaces
 	 joinActions(map(ifc_write, item_list));
       endmethod
-      
+
       method Maybe#(Bit#(sd)) read(Bit#(sa) addr);
-	 
+
 	 function ifc_read(item_ifc);
 	    return item_ifc.read(addr);
 	 endfunction
@@ -88,7 +88,7 @@ module [Module] exposeCBusIFC#(ModWithCBus#(sa, sd, i) sm)
 endmodule
 
 
-   
+
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,13 +117,13 @@ module regRW#(Bit#(sa) reg_addr, r reset)(IWithCBus#(CBus#(sa, sd), Reg#(r)))
       endmethod
 
    endinterface
-   
+
    interface Reg device_ifc;
-         
+
       method _read = x._read;
 
       method _write = x._write;
-      
+
    endinterface
 
 endmodule
@@ -158,7 +158,7 @@ endfunction
 function Maybe#(Bit#(n)) fold_maybes ( Maybe#(Bit#(n)) x,  Maybe#(Bit#(n)) y);
    if (!isValid(x) && !isValid(y))
       return Invalid;
-   else 
+   else
       return Valid(fromMaybe(0,x) | fromMaybe(0,y));
 endfunction
 
@@ -168,4 +168,3 @@ endfunction
 
 
 endpackage
-      

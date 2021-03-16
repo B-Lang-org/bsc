@@ -8,7 +8,7 @@ module sysRepeatedTask_OneRule2() ;
 
    // put the File in a reg so that the function can take no arguments
    Reg#(File) fr <- mkRegU;
-   
+
    function ActionValue#(Int#(32)) adjusted_fgetc();
       actionvalue
 	 let i <- $fgetc(fr);
@@ -37,6 +37,6 @@ module sysRepeatedTask_OneRule2() ;
    rule done ( s == Done ) ;
       $finish(0) ;
    endrule
-   
+
 endmodule
 

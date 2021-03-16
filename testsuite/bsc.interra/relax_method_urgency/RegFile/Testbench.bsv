@@ -4,10 +4,10 @@ import RegFile::*;
 module mkTestbench();
 // instantiate design
 	IFC_design dut <- mkDesign;
-	
+
 	Reg#(Bit#(10)) count <- mkReg(0);
 	Reg#(Bit#(18)) tmp <- mkReg(0);
-// increment count	
+// increment count
 	rule alway;
 		count <= count + 1;
 	endrule

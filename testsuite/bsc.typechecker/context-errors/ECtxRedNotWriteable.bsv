@@ -9,13 +9,13 @@ module mkEmptyWrite(EmptyWrite#(a));
 endmodule
 
 module test();
-   
+
    EmptyWrite#(Bool) x <- mkEmptyWrite;
-   
+
    rule test;
       x[0] <= True;
    endrule
-   
+
 endmodule
 
 

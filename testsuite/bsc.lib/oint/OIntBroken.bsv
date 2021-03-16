@@ -15,4 +15,3 @@ module sysOIntBroken(Empty);
   endrule
 
 endmodule
-    

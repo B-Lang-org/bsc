@@ -7,5 +7,5 @@ interface IFC#(type mType);
  method ActionValue#(mType) check(mType d);
 endinterface
 
-	
+
 endpackage

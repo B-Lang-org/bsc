@@ -20,6 +20,6 @@ module tbSub( Empty ) ;
           ifc.start( data1, data2 ) ;
           data1 <= data1 - 1;
           data2 <= data2 - 2;
-        endrule: top 
+        endrule: top
 
 endmodule : tbSub

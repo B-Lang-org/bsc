@@ -28,10 +28,10 @@ module sysBRAMPipelined();
 
    BRAM1Port#(Bit#(8), Bit#(8)) dut2 <- mkBRAM1(True);
    BRAM1Port#(Bit#(8), Bit#(8)) dut3 <- mkBRAM1Load(True, "bram2.txt");
-   
+
    BRAM1PortBE#(Bit#(8), Bit#(32), 4) dut4 <- mkBRAM1BE(True);
    BRAM1PortBE#(Bit#(8), Bit#(32), 4) dut5 <- mkBRAM1BELoad(True, "bram2.txt");
-   
+
    Stmt test =
    (seq
        delay(10);
@@ -56,7 +56,7 @@ module sysBRAMPipelined();
 	  $display("[%t] read request", $time);
        endaction
        $display("[%t] BRAM[0] => %x", $time, dut01.portA.response.get);
-       
+
        $display("dut1");
     // dut1
        action
@@ -86,7 +86,7 @@ module sysBRAMPipelined();
 	  $display("[%t] read request", $time);
        endaction
        $display("[%t] BRAM[0] => %x", $time, dut01.portB.response.get);
-       
+
        $display("dut1");
     // dut1
        action
@@ -134,11 +134,11 @@ module sysBRAMPipelined();
 	  $display("[%t] read request", $time);
        endaction
        $display("[%t] BRAM[5] => %x", $time, dut5.portA.response.get);
-    
+
        delay(10);
-    
+
     endseq);
-   
+
    mkAutoFSM(test);
-   
+
 endmodule

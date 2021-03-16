@@ -29,12 +29,12 @@ module mkTestbench_Take();
       display_list (my_list1);
       $display ("Taking two elements. New List:");
       display_list (take(2, my_list1));
-      if (take(2, my_list1) != my_list2 || take (8, my_list1) != my_list1) 
+      if (take(2, my_list1) != my_list2 || take (8, my_list1) != my_list1)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Take
 endpackage : Take

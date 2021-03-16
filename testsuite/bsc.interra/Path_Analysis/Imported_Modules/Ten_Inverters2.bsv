@@ -12,7 +12,7 @@ interface Inout;
 endinterface
 
 
-import "BVI" Imported_Verilog = 
+import "BVI" Imported_Verilog =
     module mkInverterv (Inoutv);
         method Bit #(1) func (In1, Out1);
         path (In1, Out1);
@@ -20,14 +20,14 @@ import "BVI" Imported_Verilog =
 
 (* synthesize *)
 module [Module] mkInverter(Inout);
-    
+
     Inoutv dut();
     mkInverterv the_dut (dut);
 
     method func(a);
         return (dut.func (a?1:0) == 1 ? True : False);
     endmethod
- 
+
 endmodule
 
 
@@ -36,7 +36,7 @@ module mkTen_Inverters();
 
   Inout t1();
   mkInverter the_t1 (t1);
-  
+
   Inout t2();
   mkInverter the_t2 (t2);
 
@@ -70,10 +70,10 @@ module mkTen_Inverters();
   rule always_true;
       temp.wset (t1.func (t2.func (t3.func (t4.func (t5.func (t6.func
               (t7.func (t8.func (t9.func (t10.func(unJust(temp.wget))))))))))));
-      
+
   endrule
-  
-endmodule 
-endpackage 
+
+endmodule
+endpackage
 
 

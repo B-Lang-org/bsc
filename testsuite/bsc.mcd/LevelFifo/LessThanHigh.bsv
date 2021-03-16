@@ -21,7 +21,7 @@ module sysLevelFIFOTest();
   rule print_levels;
     $display("Current count: %0d", count);
     $display("Less    than: %0b", lessThan);
-    $display("Greater than: %0b", greaterThan); 
+    $display("Greater than: %0b", greaterThan);
   endrule
 
   rule inc_count;
@@ -53,9 +53,8 @@ module sysLevelFIFOTest();
     $display("FIFO empty. Exiting...");
     $finish(0);
   endrule
-    
+
 endmodule
 
-  
-  
-  
+
+

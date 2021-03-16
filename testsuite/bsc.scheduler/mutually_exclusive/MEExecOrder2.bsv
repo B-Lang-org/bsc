@@ -1,13 +1,13 @@
-// two rules that are mutually exclusive 
+// two rules that are mutually exclusive
 // should still be that way with exec order
 // check that it works even if we lie with the annotation
 (* synthesize *)
 module sysMEExecOrder2();
 
   Reg#(Bit#(17)) r <- mkReg(99);
-  
-  // this register is here so that the differences in 
-  // Verilog and Bluesim reset handling don't let 
+
+  // this register is here so that the differences in
+  // Verilog and Bluesim reset handling don't let
   // the exit rule fire during reset in Bluesim but not Verilog
   Reg#(Bool) done <- mkReg(True);
 

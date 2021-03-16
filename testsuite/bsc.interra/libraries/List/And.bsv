@@ -30,13 +30,13 @@ module mkTestbench_And();
       $display("List2:");
       display_list (my_list2);
       $display("And Value = %d", and (my_list2));
-      
-      if (and(my_list1) != True || and (my_list2) != False) 
+
+      if (and(my_list1) != True || and (my_list2) != False)
         $display ("Simulation Fails");
       else
         $display ("Simulation Passes");
       $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_And
 endpackage : And

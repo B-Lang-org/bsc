@@ -27,7 +27,7 @@ module mkRandom(Server#(int,int));
    interface Get response;
       method ActionValue#(int) get if(ready) =inner.get;
    endinterface
-   
+
 endmodule
 
 typedef 31 DEG_3;
@@ -78,7 +78,7 @@ function int getnewword(int word);
    int hi=word/127773;
    int lo=word%127773;
    int newword=16807*lo-2836*hi;
-   
+
    if (newword < 0)
       newword = newword+2147483647;
    return newword;
@@ -115,7 +115,7 @@ module mkLinearCongruential#(Reg#(Randtable) randtable)(LinearCongruential);
       word<=inSeed;
       started<=True;
    endmethod
-   
+
    method Action finished if (finish);
    endmethod
 endmodule

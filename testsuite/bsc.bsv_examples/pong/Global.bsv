@@ -111,7 +111,7 @@ function YCoord limitY(YCoord yc);
   YCoord r;
   case (yc) matches
     tagged YCoord .y:
-      r = signedLT(y, negate(limit)) ? YCoord(negate(limit)) : 
+      r = signedLT(y, negate(limit)) ? YCoord(negate(limit)) :
           (signedLT(limit, y) ? YCoord(limit) : yc);
   endcase
   return r;

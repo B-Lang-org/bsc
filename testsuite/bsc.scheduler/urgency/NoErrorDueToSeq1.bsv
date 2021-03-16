@@ -9,7 +9,7 @@ module mkNoErrorDueToSeq1 ();
    Reg#(Bool) b1 <- mkRegU;
    Reg#(Bool) b2 <- mkRegU;
    Reg#(Bool) b3 <- mkRegU;
-   
+
    (* descending_urgency = "r1,r2" *)
    rule r1 (b1);
       rg1 <= rg1 + 1;
@@ -20,7 +20,7 @@ module mkNoErrorDueToSeq1 ();
    rule r2 (b2);
       rg2 <= rg2 - 1;
    endrule
-   
+
    rule r3 (b3);
       rg1 <= rg1 - 1;
    endrule

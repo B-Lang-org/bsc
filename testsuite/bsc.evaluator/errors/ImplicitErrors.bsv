@@ -4,7 +4,7 @@ module sysImplicitErrors();
   Reg#(Bool) b <- mkRegU;
 
   Clock c <- exposeCurrentClock;
- 
+
   Clock c_b = when(b, c);
 
   Reg#(Bit#(32)) blob <- mkRegU(clocked_by c_b);

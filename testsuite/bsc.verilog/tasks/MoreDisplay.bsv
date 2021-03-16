@@ -18,11 +18,11 @@ module sysMoreDisplay(Empty);
   rule t3
    (counter == 3); r <= 19;
   endrule: t3
-  rule t4 
+  rule t4
    (counter == 4); $finish(0);
   endrule: t4
   rule count
-    (True()); counter <= counter + 1; 
+    (True()); counter <= counter + 1;
   endrule: count
   rule display
     (True()); $displayb("counter: %0d\nr: %0d\nfive: %0d\n", pack(counter), r, 5);

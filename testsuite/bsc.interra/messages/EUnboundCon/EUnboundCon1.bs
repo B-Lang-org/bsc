@@ -17,7 +17,7 @@ package EUnboundCon1 (EUnboundCon1(..)) where
 
 struct MyStruct z = a::(Int 32)
                     b::(Int 32)
-                    c::(Int 32) 
+                    c::(Int 32)
 
 interface EUnboundCon1 =
                          start :: Int 32

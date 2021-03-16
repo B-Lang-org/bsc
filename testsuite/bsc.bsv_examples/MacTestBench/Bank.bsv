@@ -18,11 +18,11 @@ endinterface
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
-   
+
 module mkBank (Bank_IFC#(count));
 
    let icount = valueOf(count);
-   
+
    Vector#(count, Reg#(Bool)) avail_vector <- replicateM(mkReg(True));
 
    // Now create the vector of interfaces
@@ -31,7 +31,7 @@ module mkBank (Bank_IFC#(count));
    for (Integer x = 0; x < icount; x = x + 1)
 
       client_vector[x] = (interface BankClient_IFC
-	 
+
 			     method ActionValue#(Bool) withdraw(Bit#(16) id);
 				if (id >= fromInteger(icount))
 				   return False;
@@ -44,13 +44,13 @@ module mkBank (Bank_IFC#(count));
 	 			      return value;
 				   end
 	 		     endmethod
-	 
+
 			     method Action deposit(Bit#(16) id);
 	 			avail_vector[id] <= True;
 			     endmethod
 			  endinterface
 			  );
-			   
+
    interface clients = client_vector;
 endmodule
 

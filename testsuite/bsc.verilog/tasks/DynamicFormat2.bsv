@@ -1,6 +1,6 @@
 (* synthesize *)
 module sysDynamicFormat2 ();
-   
+
    Reg#(Bit#(8))   count  <- mkReg(0);
    Reg#(Bit#(160)) fmt0    <- mkReg(0);
    Reg#(Bit#(640)) target <- mkReg(0);
@@ -25,16 +25,16 @@ module sysDynamicFormat2 ();
 	    end
       endcase
    endrule
-   
+
    rule use_fmt (count[1:0] == 1);
       let s <- $sformatAV(fmt0, count);
       target <= s;
    endrule
-	
+
    rule show (count[1:0] == 2);
       $display("%s", target);
    endrule
-   
+
    rule every;
       count <= count + 1;
       if (count == 20) $finish(0);

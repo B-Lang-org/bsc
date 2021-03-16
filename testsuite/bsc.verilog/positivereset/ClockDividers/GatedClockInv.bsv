@@ -10,11 +10,11 @@ module sysGatedClockInv() ;
    Clock clkA <- mkAbsoluteClock( 15,10 ) ;
    Reset rstA() ;
    mkAsyncReset#(3) iRstA( resetin, clkA, rstA ) ;
-   
+
    // Gate the clock
    GatedClockIfc gc <- mkGatedClock(True, clkA);
    Clock g_clkA = gc.new_clk;
-   
+
    // Invert the clock
    ClockDividerIfc divClock <- mkGatedClockInverter( clocked_by g_clkA, reset_by rstA ) ;
    Clock clkB = divClock.slowClock ;
@@ -25,7 +25,7 @@ module sysGatedClockInv() ;
 
    // A counter for the gating logic
    Reg#(int) greg <- mkReg(0);
-   
+
    // Some counters for each clock
    Reg#(int)  areg();
    mkReg#(0) iareg(areg, clocked_by g_clkA, reset_by rstA ) ;
@@ -40,7 +40,7 @@ module sysGatedClockInv() ;
    // A register to do synchronized crossings
    Reg#(int)  crossregF() ;
    mkSyncReg#(0)  icrossingRegF(clkB, rstB, g_clkA, crossregF ) ;
-   
+
    // We use a dummy argument to work around bug 1251
    function ActionValue#(Bit#(64)) adjusted_time(Bit#(8) dummy);
    actionvalue
@@ -51,13 +51,13 @@ module sysGatedClockInv() ;
        return t;
    endactionvalue
    endfunction
-   
+
    // a rule to control the clock gate
    rule gate ( True ) ;
       gc.setGateCond((greg < 60) || (greg > 100));
       greg <= greg + 1;
    endrule: gate
-   
+
    // a rule to show the a clock
    rule aplus ( True ) ;
       areg <= areg + 1 ;

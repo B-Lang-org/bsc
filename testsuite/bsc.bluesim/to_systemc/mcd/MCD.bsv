@@ -9,9 +9,9 @@ interface Switch#(type t);
 endinterface
 
 (* synthesize *)
-module mkMCD(Clock clk_a, Reset rstn_a, Clock clk_b, Reset rstn_b, 
+module mkMCD(Clock clk_a, Reset rstn_a, Clock clk_b, Reset rstn_b,
 	     Clock clk_out, Switch#(Bit#(32)) ifc);
-  
+
   Reg#(Bool) switch();
   mkReg#(False) the_switch(switch);
 

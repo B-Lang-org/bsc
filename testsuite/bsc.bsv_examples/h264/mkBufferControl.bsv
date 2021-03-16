@@ -43,7 +43,7 @@ import ClientServer::*;
 // Local Datatypes
 //-----------------------------------------------------------
 
-typedef union tagged                
+typedef union tagged
 {
  void     Idle;          //not working on anything in particular
  void     Y;
@@ -57,7 +57,7 @@ Outprocess deriving(Eq,Bits);
 // Short term pic list submodule
 //-----------------------------------------------------------
 
-typedef union tagged                
+typedef union tagged
 {
  void     Idle;          //not working on anything in particular
  void     Remove;
@@ -94,17 +94,17 @@ module mkShortTermPicList( ShortTermPicList );
       else
 	 return addrFunc-1;
    endfunction
-   
+
    RFile1#(Bit#(5),Tuple2#(Bit#(16),Bit#(5))) rfile <- mkRFile1(0,maxRefFrames-1);
    Reg#(ShortTermPicListState) state <- mkReg(Idle);
-   Reg#(Bit#(5))  log2_mfn  <- mkReg(0);   
+   Reg#(Bit#(5))  log2_mfn  <- mkReg(0);
    Reg#(Bit#(5))  nextPic   <- mkReg(0);
    Reg#(Bit#(5))  picCount  <- mkReg(0);
    Reg#(Bit#(5))  tempPic   <- mkReg(0);
    Reg#(Bit#(5))  tempCount <- mkReg(0);
    Reg#(Bit#(16)) tempNum   <- mkReg(0);
    FIFO#(Maybe#(Bit#(5))) returnList <- mkFIFO();
-   
+
    rule removing ( state==Remove || state==RemoveOutput || state==RemoveFound );
       if(state!=RemoveFound)
 	 begin
@@ -132,7 +132,7 @@ module mkShortTermPicList( ShortTermPicList );
       tempCount <= tempCount+1;
       tempPic <= shortTermPicListNext(tempPic);
    endrule
-   
+
    rule insertingGap ( state matches tagged InsertGap );
       if(tempCount>0)
 	 begin
@@ -152,7 +152,7 @@ module mkShortTermPicList( ShortTermPicList );
 	 tempNum <= tempNum+1;
       tempCount <= tempCount-1;
    endrule
-   
+
    rule searching ( state matches tagged Search );
       if(tempCount<picCount)
 	 begin
@@ -168,7 +168,7 @@ module mkShortTermPicList( ShortTermPicList );
       else
 	 $display( "ERROR BufferControl: ShortTermPicList searching not found");
    endrule
-   
+
    rule listingAll ( state matches tagged ListAll );
       if(tempCount<picCount)
 	 begin
@@ -183,19 +183,19 @@ module mkShortTermPicList( ShortTermPicList );
 	    state <= Idle;
 	 end
    endrule
-   
+
    method Action clear() if(state matches tagged Idle);
       picCount <= 0;
       nextPic <= 0;
    endmethod
-   
+
    method Action insert( Bit#(16) frameNum, Bit#(5) slot, Bit#(5) maxAllowed ) if(state matches tagged Idle);
       rfile.upd(nextPic,tuple2(frameNum,slot));
       nextPic <= shortTermPicListNext(nextPic);
       if(maxAllowed>picCount)
 	 picCount <= picCount+1;
    endmethod
-   
+
    method Action insert_gap( Bit#(16) frameNum, Bit#(5) slot, Bit#(5) maxAllowed, Bit#(16) gap, Bit#(5) log2_max_frame_num ) if(state matches tagged Idle);
       state <= InsertGap;
       log2_mfn <= log2_max_frame_num;
@@ -218,7 +218,7 @@ module mkShortTermPicList( ShortTermPicList );
 	 tempNum <= truncate(maxPicNum+tempFrameNum+1-zeroExtend(temp));
       tempPic <= slot;
    endmethod
-   
+
    method Action remove( Bit#(16) frameNum, Bool removeOutputFlag ) if(state matches tagged Idle);
       if(removeOutputFlag)
 	 state <= RemoveOutput;
@@ -232,28 +232,28 @@ module mkShortTermPicList( ShortTermPicList );
 	 tempPic <= temp;
       tempNum <= frameNum;
    endmethod
-   
+
    method Action search( Bit#(16) frameNum ) if(state matches tagged Idle);
       state <= Search;
       tempCount <= 0;
       tempPic <= shortTermPicListPrev(nextPic);
       tempNum <= frameNum;
    endmethod
-   
+
    method Action listAll() if(state matches tagged Idle);
       state <= ListAll;
       tempCount <= 0;
       tempPic <= shortTermPicListPrev(nextPic);
    endmethod
-   
+
    method Action deq();
       returnList.deq();
    endmethod
-   
+
    method Maybe#(Bit#(5)) resultSlot();
       return returnList.first();
    endmethod
-   
+
    method Bit#(5) numPics() if(state matches tagged Idle);
       return picCount;
    endmethod
@@ -263,7 +263,7 @@ endmodule
 // Long term pic list submodule
 //-----------------------------------------------------------
 
-typedef union tagged                
+typedef union tagged
 {
  void     Idle;          //not working on anything in particular
  void     Clear;
@@ -319,20 +319,20 @@ module mkLongTermPicList( LongTermPicList );
 	 end
       //$display( "TRACE BufferControl: LongTermPicList listingAll %h %h", picCount, tempPic);
    endrule
-   
+
    method Action clear() if(state matches tagged Idle);
       state <= Clear;
       tempPic <= 0;
       //$display( "TRACE BufferControl: LongTermPicList clear %h", picCount);
    endmethod
-   
+
    method Action insert( Bit#(5) frameNum, Bit#(5) slot ) if(state matches tagged Idle);
       if(rfile.sub(frameNum) matches tagged Invalid)
 	 picCount <= picCount+1;
       rfile.upd(frameNum,tagged Valid slot);
       //$display( "TRACE BufferControl: LongTermPicList insert %h %h %h", picCount, frameNum, slot);
    endmethod
-   
+
    method Action remove( Bit#(5) frameNum ) if(state matches tagged Idle);
       if(rfile.sub(frameNum) matches tagged Invalid)
 	 $display( "ERROR BufferControl: LongTermPicList removing not found");
@@ -341,33 +341,33 @@ module mkLongTermPicList( LongTermPicList );
       rfile.upd(frameNum,Invalid);
       //$display( "TRACE BufferControl: LongTermPicList remove %h %h", picCount, frameNum);
    endmethod
-   
+
    method Action maxIndexPlus1( Bit#(5) index ) if(state matches tagged Idle);
       state <= Clear;
       tempPic <= index;
       //$display( "TRACE BufferControl: LongTermPicList maxIndexPlus1 %h %h", picCount, index);
    endmethod
-   
+
    method Action search( Bit#(5) frameNum ) if(state matches tagged Idle);
       returnList.enq(rfile.sub(frameNum));
       //$display( "TRACE BufferControl: LongTermPicList search %h %h", picCount, frameNum);
    endmethod
-   
+
    method Action listAll() if(state matches tagged Idle);
       state <= ListAll;
       tempPic <= 0;
       //$display( "TRACE BufferControl: LongTermPicList listAll %h", picCount);
    endmethod
-   
+
    method Action deq();
       returnList.deq();
       //$display( "TRACE BufferControl: LongTermPicList deq %h", picCount);
    endmethod
-   
+
    method Maybe#(Bit#(5)) resultSlot();
       return returnList.first();
    endmethod
-   
+
    method Bit#(5) numPics() if(state matches tagged Idle);
       return picCount;
    endmethod
@@ -392,7 +392,7 @@ module mkFreeSlots( FreeSlots );
       Vector#(18,Bit#(1)) tempSlots = replicate(0);
       slots <= tempSlots;
    endmethod
-   
+
    method Action add( Bit#(5) slot );
       Vector#(18,Bit#(1)) tempSlots = slots;
       tempSlots[slot] = 0;
@@ -400,7 +400,7 @@ module mkFreeSlots( FreeSlots );
       if(slot >= maxRefFrames+2)
 	 $display( "ERROR BufferControl: FreeSlots add out of bounds");
    endmethod
-   
+
    method Action remove( Bit#(5) slot );
       Vector#(18,Bit#(1)) tempSlots = slots;
       if(slot != 31)
@@ -411,7 +411,7 @@ module mkFreeSlots( FreeSlots );
 	       $display( "ERROR BufferControl: FreeSlots remove out of bounds");
 	 end
    endmethod
-   
+
    method Bit#(5) first( Bit#(5) exception );
       Bit#(5) tempout = 31;
       for(Integer ii=17; ii>=0; ii=ii-1)
@@ -421,7 +421,7 @@ module mkFreeSlots( FreeSlots );
 	 end
       return tempout;
    endmethod
-   
+
 endmodule
 
 
@@ -478,7 +478,7 @@ module mkBufferControl( IBufferControl );
    Reg#(Bit#(FrameBufferSz)) outAddrBase <- mkReg(0);
    Reg#(Bit#(TAdd#(PicAreaSz,7))) outReqCount <- mkReg(0);
    Reg#(Bit#(TAdd#(PicAreaSz,7))) outRespCount <- mkReg(0);
-   
+
    FreeSlots freeSlots <- mkFreeSlots();//may include outSlot (have to make sure it's not used)
    ShortTermPicList shortTermPicList <- mkShortTermPicList();
    LongTermPicList  longTermPicList  <- mkLongTermPicList();
@@ -494,11 +494,11 @@ module mkBufferControl( IBufferControl );
    Reg#(Bool) refPicListDone <- mkReg(False);
    Reg#(Bool) lockInterLoads <- mkReg(True);
    DoNotFire donotfire <- mkDoNotFire();
-   
+
 
    //-----------------------------------------------------------
    // Rules
-   
+
    rule inputing ( !noMoreInput && !inputframedone );
       //$display( "Trace Buffer Control: passing infifo packed %h", pack(infifo.first()));
       case (infifo.first()) matches
@@ -733,9 +733,9 @@ module mkBufferControl( IBufferControl );
 			$display( "INFO Buffer Control: EndOfFile reached");
 			noMoreInput <= True;
 			//$finish(0);
-			//outfifo.enq(EndOfFile); 
+			//outfifo.enq(EndOfFile);
 		     end
-		  default: 
+		  default:
                      begin
                        $display("WARNING: Why are we in this clause");
                        infifo.deq();
@@ -772,7 +772,7 @@ module mkBufferControl( IBufferControl );
       endcase
    endrule
 
-   
+
    rule initingRefPicList ( initRefPicList );
       if(shortTermPicList.resultSlot() matches tagged Valid .xdata)
 	 begin
@@ -798,7 +798,7 @@ module mkBufferControl( IBufferControl );
 	 end
    endrule
 
-   
+
    rule reorderingRefPicList ( reorderRefPicList );
       $display( "Trace BufferControl: reorderingRefPicList");
       if(shortTermPicList.resultSlot() matches tagged Valid .xdata)//////////////////////////////////////////////////////////////////////////////////////////
@@ -834,7 +834,7 @@ module mkBufferControl( IBufferControl );
 	 end
    endrule
 
-   
+
    rule adjustingFreeSlots ( adjustFreeSlots != 0 );
       if(adjustFreeSlots == 1)
 	 begin
@@ -868,7 +868,7 @@ module mkBufferControl( IBufferControl );
 	 end
    endrule
 
-   
+
    rule outputingReq ( outprocess != Idle );
       if(outprocess==Y)
 	 begin
@@ -893,7 +893,7 @@ module mkBufferControl( IBufferControl );
 	    outReqCount <= outReqCount+1;
 	 end
    endrule
-   
+
 
    rule outputingResp ( !outputframedone );
       if(loadRespQ1.first() matches tagged FBLoadResp .xdata)
@@ -957,7 +957,7 @@ module mkBufferControl( IBufferControl );
       loadReqQ2.enq(FBLoadReq (addrBase+zeroExtend(chromaOffset)+zeroExtend(vOffset)+zeroExtend(addr)));
       //$display( "Trace BufferControl: interChromaReq %h %h %h %h %h", reqdata.refIdx, slot, addrBase, addr, addrBase+zeroExtend(chromaOffset)+zeroExtend(vOffset)+zeroExtend(addr));
    endrule
-    
+
 
    rule interResp ( loadRespQ2.first() matches tagged FBLoadResp .data );
       loadRespQ2.deq();
@@ -971,7 +971,7 @@ module mkBufferControl( IBufferControl );
       //$display( "Trace BufferControl: interResp %h %h", inLoadOutOfBounds.first(), data);
    endrule
 
-   
+
 
    interface Put ioin  = fifoToPut(infifo);
    interface Get ioout = fifoToGet(outfifo);
@@ -989,7 +989,7 @@ module mkBufferControl( IBufferControl );
       interface Get response  = fifoToGet(inLoadRespQ);
    endinterface
 
-	 
+
 endmodule
 
 endpackage

@@ -11,12 +11,12 @@ import ClientServer::*;
 import GetPut::*;
 
 module mkDesign_MkWrapSRAM (RAM#(Bit#(16),Bit#(16)));
-  
+
   RAM#(Bit#(16),Bit#(16)) tx <- mkWrapSRAM(mkSPSRAM(65536));
 
   return(tx);
 
-endmodule: mkDesign_MkWrapSRAM 
+endmodule: mkDesign_MkWrapSRAM
 
 module mkTestbench_MkWrapSRAM ();
 
@@ -33,13 +33,13 @@ module mkTestbench_MkWrapSRAM ();
 
    //RAMreq#(Bit#(16),Bit#(16)) x = (RAMreqWrite(in_data,in_address));
 
-   Rules r1 = rules 
+   Rules r1 = rules
        rule always_fire (True);
        	 counter <= counter + 1;
        endrule
      endrules;
-    
-   Rules r2 = rules 
+
+   Rules r2 = rules
        rule data_write (counter < 16 );
          Tuple2#(Bit#(16),Bit#(16)) x = tuple2(in_address,in_data) ;
          RAMreq#(Bit#(16),Bit#(16)) y = Write(x);
@@ -50,8 +50,8 @@ module mkTestbench_MkWrapSRAM ();
          $display("Cycle Number: %d, Writing Data: %h address %h offset %h", counter, in_data,in_address,in_offset);
        endrule
      endrules;
-    
-   Rules r3 = rules 
+
+   Rules r3 = rules
        rule request_value ((counter >= 16) && (counter <32));
          RAMreq#(Bit#(16),Bit#(16)) z = Read(out_address);
     	 tx.request.put(z);
@@ -60,8 +60,8 @@ module mkTestbench_MkWrapSRAM ();
     	 //request <= False;
        endrule
      endrules;
-    
-   Rules r4 = rules 
+
+   Rules r4 = rules
        rule read_value ((counter >= 18) && (counter < 34));
          Bit #(16) first <- tx.response.get;
          out_data <= out_data + 25;
@@ -73,8 +73,8 @@ module mkTestbench_MkWrapSRAM ();
     	 //request <= True;
        endrule
      endrules;
-    
-   Rules r5 = rules 
+
+   Rules r5 = rules
       rule endofsim (counter == 35);
     	if (fail)
     	  $display("Simulation Fails");
@@ -85,7 +85,7 @@ module mkTestbench_MkWrapSRAM ();
      endrules;
 
     Vector #(4, Rules) my_list = cons(r1, cons(r2, cons(r3, cons(r5,nil))));
- 
+
     addRules (precede (r4,joinRules (my_list)));
 
 endmodule: mkTestbench_MkWrapSRAM

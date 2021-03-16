@@ -19,15 +19,15 @@ package Defines;
 
 
   Bit#(2)  aUX_COMP_COUNT  = 2'b01 ;
-  
+
 typedef enum {IDLE,START,WAIT,SUSPEND } PSstates
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 typedef enum {EXTENDED_PAR} AspectRatioStates
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 typedef enum {NOTUSED,TYPE1,TYPE2,TYPE3,TYPE4} FLC_type
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 typedef enum {IDLE,
               SUSPEND,
@@ -380,7 +380,7 @@ typedef enum {IDLE,
 			  START_CODE_DET_1,
 			  START_CODE_DET_1_0
 			  } VideoSt
-          deriving (Eq,Bits); 
+          deriving (Eq,Bits);
 
 typedef Tuple2#(Bit#(8), Bit#(8)) DtSrct ;
 

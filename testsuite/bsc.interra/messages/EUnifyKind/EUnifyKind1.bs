@@ -53,7 +53,7 @@ mkEUnifyKind1 =
 	  "Swap":
 	    when x > y, y /= 0
 	      ==> action
-                            let 
+                            let
                                (x,y) = split z
 		      x := y
 		      y := x

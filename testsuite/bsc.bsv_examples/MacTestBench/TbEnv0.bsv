@@ -37,7 +37,7 @@ import WBone::*;
 ////////////////////////////////////////////////////////////////////////////////
 
 module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
-   
+
    let clk <- exposeCurrentClock;
    let reset <- exposeCurrentReset;
 
@@ -53,39 +53,39 @@ module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
 	  method _write(x) = noAction;
        endinterface;
 `endif
-   
+
    SyncPulseIfc init_phy <- mkSyncHandshakeFromCC(phy_clk);
 
    TbEnvConfigs self <- mkTbEnvConfigs;
 
    MiiPhyLayerIFC phy <- mkMiiPhyLayer(full_duplex, clocked_by(phy_clk), reset_by(phy_reset));
-   
+
    Scoreboard scoreboard <- mkScoreboard;
 
    EthMacIFC mac <- mkEthMac(full_duplex, scoreboard, phy.indications, phy_clk, phy_reset);
-   
+
    mkSyncConnection(mac.macPhyIFC.tx, phy.frame_channel.rx, clk, reset, phy_clk, phy_reset);
    mkSynCConnection(mac.macPhyIFC.rx, phy.frame_channel.tx, clk, reset, phy_clk, phy_reset);
-   
+
    Arbiter_IFC#(1) arbiter <- mkArbiter; // does nothing in this case (1 master)
 
    WBoneRamIFC    ram  <- mkWBRam(self);
    WBoneXActorIFC slv  <- mkWBSlave;
    mkConnection(ram.channel, slv.channel);
-   
+
    WBoneXActorIFC host <- mkWBMaster(0, arbiter.clients[0]);
 
    TbTopIFC dut <- mkTbTop(phy_clk, phy_reset);
-   
+
    /// Create a wishbone bus tying the various masters/slaves together.
    let ifc_list_0 = List::cons(host.bus,
 			       List::cons(dut.slave,
 					  List::nil));
 
    let ifc_list_1 = List::cons(slv.bus,
-			       List::cons(dut.master, 
+			       List::cons(dut.master,
 					  List::nil));
-   
+
    mkWBoneZBus(ifc_list_0);
    mkWBoneZBus(ifc_list_1);
 
@@ -105,8 +105,8 @@ module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
    mkConnection(mac.macMacIFC.rx, randomizeToGet(phy_src));
 
    mkConnection(phy.mii_nibble_channel, dut.mii_nibble_channel);
-   
-   DutInitIFC dut_initializer <- 
+
+   DutInitIFC dut_initializer <-
    mkDutInit(self ,mac, full_duplex, host, init_phy);
 
    rule transmit_test_sink;
@@ -122,16 +122,16 @@ module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
    rule connect_int;
       swem.int_in(dut.int_out());
    endrule
-   
+
    rule connect_indications;
       dut.coll_in(phy.indications.indicate.collision);
       dut.crs_in(phy.indications.indicate.carrier);
    endrule
-   
+
    rule phy_init (init_phy.pulse);
       phy.cntrl.init;
    endrule
-   
+
    rule initialize_start (!initialized);
       self.cntrl.init;
       ram.cntrl.init;
@@ -142,7 +142,7 @@ module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
       swem.cntrl.init;
       dut_initializer.cntrl.init;
    endrule
-   
+
    rule initialize_finish (dut_initializer.done && !init_done);
       Bool receive <- $test$plusargs("receive");
       Bool transmit <- $test$plusargs("transmit");
@@ -153,7 +153,7 @@ module mkTbEnv0 (Clock phy_clk, Reset phy_reset, Empty ifc);
    endrule
 
 endmodule
-      
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

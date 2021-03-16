@@ -21,7 +21,7 @@ interface Go =
 type RegB k = Reg (Bit k)
 
 mkSeq :: (Add n 1 m, Log m k) => MyList Action n -> Module Go
-mkSeq as = 
+mkSeq as =
     module
 	var :: RegB k
 	var <- mkReg 0
@@ -32,11 +32,11 @@ mkSeq as =
 
 mkRules :: RegB k -> Integer -> MyList Action n -> Rules
 mkRules var i (MyCons a MyNil) =
-    rules 
+    rules
 	when var == fromInteger i
 	 ==> action { var := 0; a }
 mkRules var i (MyCons a as) =
-    rules 
+    rules
 	when var == fromInteger i
 	 ==> action { var := fromInteger (i+1); a }
   <+>

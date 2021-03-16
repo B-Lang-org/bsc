@@ -41,7 +41,7 @@ module sysDeriveBits3();
     $display(a);
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

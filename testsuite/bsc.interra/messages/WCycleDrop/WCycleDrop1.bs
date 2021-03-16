@@ -46,7 +46,7 @@ mkWCycleDrop1 =
                     res :: Reg (Bool)
                     res <- mkReg True
 
-                    rules 
+                    rules
                       "One" :
                                when True
                                       ==> action
@@ -63,11 +63,11 @@ mkWCycleDrop1 =
                                when True
                                       ==> action
                                                 z := w
-                    interface 
+                    interface
                             start iw ix iy iz = action
                                                       w := iw
                                                       x := ix
-                                                      y := iy 
+                                                      y := iy
                                                       z := iz
-                          
+
                             result = res

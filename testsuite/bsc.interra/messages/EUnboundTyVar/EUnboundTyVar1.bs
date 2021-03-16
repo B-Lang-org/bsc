@@ -17,7 +17,7 @@ package EUnboundTyVar1 (EUnboundTyVar1(..)) where
 
 struct MyStruct z = a::(Int 32)
                     b::(Int 32)
-                    c::(Int 32) 
+                    c::(Int 32)
 
 interface EUnboundTyVar1 =
                          start :: Int 32
@@ -28,4 +28,4 @@ mkEUnboundTyVar1 =
               module
 
                     w :: Reg (MyStruct z)
-                    w <- mkRegU 
+                    w <- mkRegU

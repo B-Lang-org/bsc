@@ -44,7 +44,7 @@ module sysBRAM0Test();
    BRAM1Port#(Bit#(0), Bit#(8)) dut6 <- mkBRAM1Server(defaultValue);
    BRAM1Port#(Bit#(8), Bit#(0)) dut7 <- mkBRAM1Server(defaultValue);
    BRAM1Port#(Bit#(0), Bit#(0)) dut8 <- mkBRAM1Server(defaultValue);
-   
+
    BRAM1Port#(Bit#(0), Bit#(8)) dut9 <- mkBRAM1Server(cfg1);
    BRAM1Port#(Bit#(8), Bit#(0)) dut10 <- mkBRAM1Server(cfg1);
    BRAM1Port#(Bit#(0), Bit#(0)) dut11 <- mkBRAM1Server(cfg1);
@@ -76,7 +76,7 @@ module sysBRAM0Test();
    BRAM1Port#(Bit#(0), Bit#(8)) dut29 <- mkBRAM1Server(cfg3);
    BRAM1Port#(Bit#(8), Bit#(0)) dut30 <- mkBRAM1Server(cfg3);
    BRAM1Port#(Bit#(0), Bit#(0)) dut31 <- mkBRAM1Server(cfg3);
-   
+
    BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut32 <- mkBRAM1ServerBE(cfg2);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut33 <- mkBRAM1ServerBE(cfg2);
    BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut34 <- mkBRAM1ServerBE(cfg2);
@@ -84,7 +84,7 @@ module sysBRAM0Test();
    BRAM1PortBE#(Bit#(0), Bit#(8), 1) dut35 <- mkBRAM1ServerBE(cfg3);
    BRAM1PortBE#(Bit#(8), Bit#(0), 2) dut36 <- mkBRAM1ServerBE(cfg3);
    BRAM1PortBE#(Bit#(0), Bit#(0), 3) dut37 <- mkBRAM1ServerBE(cfg3);
-   
+
    Stmt test =
    seq
       delay(10);
@@ -138,7 +138,7 @@ module sysBRAM0Test();
 	 let data <- dut5.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10); // addr = Bit#(0)
       dut6.portA.request.put(makeRequest(True, 0, 8'hFF));
       dut6.portA.request.put(makeRequest(True, 0, 8'hFE));
@@ -164,7 +164,7 @@ module sysBRAM0Test();
 	 let data <- dut8.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10);
       dut9.portA.request.put(makeRequest(True, 0, 8'hFF));
       dut9.portA.request.put(makeRequest(True, 0, 8'hFE));
@@ -190,7 +190,7 @@ module sysBRAM0Test();
 	 let data <- dut11.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10);
       dut12.portA.request.put(makeRequestBE(1, 0, 8'hFF));
       dut12.portA.request.put(makeRequestBE(1, 0, 8'hFE));
@@ -216,7 +216,7 @@ module sysBRAM0Test();
 	 let data <- dut14.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10); // dut15 has addr width of 0
       dut15.portA.request.put(makeRequestBE(1, 0, 8'hFF));
       dut15.portA.request.put(makeRequestBE(1, 0, 8'hFE));
@@ -294,7 +294,7 @@ module sysBRAM0Test();
 	 let data <- dut25.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10); // address size 0
       dut26.portA.request.put(makeRequest(True, 0, 8'hFF));
       dut26.portA.request.put(makeRequest(True, 0, 8'hFE));
@@ -320,7 +320,7 @@ module sysBRAM0Test();
 	 let data <- dut28.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10);
       dut29.portA.request.put(makeRequest(True, 0, 8'hFF));
       dut29.portA.request.put(makeRequest(True, 0, 8'hFE));
@@ -346,7 +346,7 @@ module sysBRAM0Test();
 	 let data <- dut31.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10); // address size 0
       dut32.portA.request.put(makeRequestBE(1, 0, 8'hFF));
       dut32.portA.request.put(makeRequestBE(1, 0, 8'hFE));
@@ -372,7 +372,7 @@ module sysBRAM0Test();
 	 let data <- dut34.portA.response.get;
 	 $display("%x", data);
       endaction
-      
+
       delay(10); // dut35 addr width 0
       dut35.portA.request.put(makeRequestBE(1, 0, 8'hFF));
       dut35.portA.request.put(makeRequestBE(1, 0, 8'hFE));
@@ -401,7 +401,7 @@ module sysBRAM0Test();
 
 
    endseq;
-   
+
    mkAutoFSM(test);
 
 endmodule

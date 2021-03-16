@@ -4,7 +4,7 @@ interface Reg_IFC;
 
 method Action set_in (Bit#(1) a, Bit#(1) b);
 
-method Bit#(1) out; 
+method Bit#(1) out;
 
 endinterface: Reg_IFC
 

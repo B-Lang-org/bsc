@@ -71,7 +71,7 @@ module sysShiftOutTest() ;
       current <= bv ;
       current <= shiftOutFromN( 0, current, 3 ) ;
       displayVs( "shift 1 out from N" ) ;
-      
+
       current <= bv ;
       current <= shiftOutFromN( 0, current, 9 ) ;
       displayVs( "shift 9 out from N" ) ;
@@ -93,7 +93,7 @@ module sysShiftOutTest() ;
             idx2 <= idx2 + 1 ;
          endaction
       endseq
-      
+
       idx3 <= 0;
       while (idx3 != maxBound ) seq
          action
@@ -105,11 +105,11 @@ module sysShiftOutTest() ;
             idx3 <= idx3 + 1 ;
          endaction
       endseq
-      
+
    endseq;
-   
+
 
    mkAutoFSM( testseq ) ;
-   
-   
+
+
 endmodule

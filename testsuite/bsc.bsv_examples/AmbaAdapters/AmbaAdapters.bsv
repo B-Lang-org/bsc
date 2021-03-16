@@ -8,16 +8,16 @@ module mkBlueAmbaMaster ( AmbaMasterAdapter ) ;
    FIFOF#(BusResponse) responseData <- mkUGFIFOF ;
    RWire#(Bool) r_granted <- mkRWire ;
    Reg#(Bool) idleSent <- mkConfigReg( True ) ;
-   
+
    interface BlueMasterAdapter bbus ;
       method Action read( address ) if ( requestData.notFull )  ;
          requestData.enq( BusRequest{ addr:address, data:0, read_write: Read } ) ;
       endmethod
-      
+
       method Action write( address, wdata ) if ( requestData.notFull )  ;
          requestData.enq( BusRequest{ addr:address, data:wdata, read_write: Write } ) ;
       endmethod
-   
+
       method BusResponse response () if ( responseData.notEmpty ) ;
          return responseData.first ;
       endmethod
@@ -66,7 +66,7 @@ module mkBlueAmbaMaster ( AmbaMasterAdapter ) ;
             end
       endmethod
    endinterface
-   
+
 endmodule
 
 module mkBlueAmbaSlave ( AmbaSlaveAdapter ) ;
@@ -94,7 +94,7 @@ module mkBlueAmbaSlave ( AmbaSlaveAdapter ) ;
       method Action request (BusRequest req);
          rwRequest.wset( req ) ;
       endmethod
-      
+
       method ActionValue#(BusResponse) response() if ( isValid( rwResponse.wget ) );
          return validValue( rwResponse.wget ) ;
       endmethod
@@ -102,9 +102,9 @@ module mkBlueAmbaSlave ( AmbaSlaveAdapter ) ;
 
 endmodule
 
-   
 
-// Add a register for request data.      
+
+// Add a register for request data.
 module mkBlueAmbaSlaveReg ( AmbaSlaveAdapter ) ;
 
    FIFOF#(BusRequest) fRequest <- mkFIFOF ;
@@ -131,7 +131,7 @@ module mkBlueAmbaSlaveReg ( AmbaSlaveAdapter ) ;
       method Action request (BusRequest req);
          fRequest.enq ( req )  ;
       endmethod
-      
+
       method ActionValue#(BusResponse) response() if ( isValid( rwResponse.wget ) );
          return validValue( rwResponse.wget ) ;
       endmethod
@@ -139,6 +139,6 @@ module mkBlueAmbaSlaveReg ( AmbaSlaveAdapter ) ;
 
 endmodule
 
-   
 
-      
+
+

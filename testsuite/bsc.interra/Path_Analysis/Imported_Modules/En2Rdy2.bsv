@@ -1,4 +1,4 @@
-//Signal from Enable to Ready, both methods are then called in the 
+//Signal from Enable to Ready, both methods are then called in the
 //separate rules, with wrong urgency order.
 //Should report an error with -verilog flag
 
@@ -19,7 +19,7 @@ import "BVI" Imported_Verilog =
       method Rdy_result rdy_result();
       path (En_start, Rdy_result);
       schedule (result, rdy_result) CF (result, rdy_result);
-      schedule start SBR rdy_result;   
+      schedule start SBR rdy_result;
     endmodule
 
 
@@ -33,24 +33,24 @@ module [Module] mksubEn2Rdy2(En2Rdy2Inter);
 
     En2Rdy2Interv dut();
     mksubEn2Rdy2v the_dut (dut);
-    
+
     method Action start ();
         dut.start;
     endmethod
-    
+
     method result if (dut.rdy_result == 1);
         return (dut.result);
     endmethod
-   
+
 endmodule
 
 (* synthesize,
    descending_urgency = "fire2, fire1" *)
 module [Module] mkEn2Rdy2 ();
-    
+
     En2Rdy2Inter dut();
     mksubEn2Rdy2 the_dut(dut);
-   
+
     rule fire1;
         dut.start;
     endrule
@@ -59,8 +59,8 @@ module [Module] mkEn2Rdy2 ();
         Bit #(8) temp = dut.result();
         $display ("Temp = %d", temp);
     endrule
-       
+
 endmodule
-    
+
 
 endpackage

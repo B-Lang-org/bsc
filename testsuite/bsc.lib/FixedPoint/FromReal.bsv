@@ -9,7 +9,7 @@ import List :: *;
 
 (* synthesize *)
 module `full ();
-   
+
    rule doit ;
       showfp(pi);
       showfp(1.0);
@@ -24,10 +24,10 @@ module `full ();
       showfp(-1.0/3.0);
       showfp(1 * 2**5);
       showfp(0 - 1 * 2**5);
-      
+
       showfp(1 * 2**-5);
       showfp(0 - 1 * 2**-5);
-      
+
       showfp(1 * 2**-5);
       showfp(-1 * 2**-4);
       showfp((-1) * 2**-4);
@@ -36,12 +36,12 @@ module `full ();
 
       showfp((-1)* (2**-1011));       // denormalized
       showfp((-1)* (2**-1034));       // denormalized
-      
+
 
 
       $finish(0);
    endrule
-   
+
 endmodule
 
 

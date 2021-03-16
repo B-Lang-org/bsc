@@ -54,7 +54,7 @@ module mkTbEnvConfigs (TbEnvConfigs);
 
    Randomize#(MacAddress) addr_gen <- mkRandomizer;
    Randomize#(Bit#(8)) rx_bd_offset_gen <- mkConstrainedRandomizer_Synth(8'h01, 8'h7F);
-   Randomize#(Bit#(32)) txrx_bfr_base_gen <- 
+   Randomize#(Bit#(32)) txrx_bfr_base_gen <-
    mkConstrainedRandomizer_Synth(0, (32'hFFFF_FFFF - (256 * max_len)));
 
    rule initialize_finish (!initialized);
@@ -70,7 +70,7 @@ module mkTbEnvConfigs (TbEnvConfigs);
       txrx_bfr_base_rand[2:0] = 0;
 //      txrx_bfr_base <= txrx_bfr_base_rand;
       txrx_bfr_base <= 'h800;
-      
+
       initialized <= True;
    endrule
 
@@ -81,7 +81,7 @@ module mkTbEnvConfigs (TbEnvConfigs);
 	 txrx_bfr_base_gen.cntrl.init();
       endmethod
    endinterface
-   
+
    method _read() if (initialized);
       return TbEnvConfigsStruct {           dut_addr: dut_addr,
 				         huge_enable: huge_enable,
@@ -95,7 +95,7 @@ module mkTbEnvConfigs (TbEnvConfigs);
 				       txrx_bfr_base: txrx_bfr_base
 				 };
    endmethod
-   
+
 
 endmodule
 

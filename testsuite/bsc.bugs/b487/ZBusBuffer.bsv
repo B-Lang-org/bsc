@@ -37,7 +37,7 @@ endinterface: ZBusIFC
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
-module mkZBusBuffer (ZBusIFC #(t)) 
+module mkZBusBuffer (ZBusIFC #(t))
    provisos (Eq#(t), Bits#(t,st), Literal#(t));
 
    RWire#(t) value_reg();
@@ -57,7 +57,7 @@ module mkZBusBuffer (ZBusIFC #(t))
 
    ConvertFromZ#(t)     y();
    mkConvertFromZ       y_inst(y);
-   
+
    method toBusSample(value, enable);
       action
 	 value_reg.wset(value);
@@ -67,7 +67,7 @@ module mkZBusBuffer (ZBusIFC #(t))
 
    method fromBusSample(value, isValid);
       action
-	 if (isValid) 
+	 if (isValid)
 	    bus_value_reg <= y.convert(value);
 	 else
 	    bus_value_reg <= 0;

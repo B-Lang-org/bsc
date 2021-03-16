@@ -13,7 +13,7 @@ type Imm = Bit 16      -- immediate
 
 data MEMOp =  LWop | SWop | LBop | LBUop |
 	      SBop | LHop | LHUop | SHop | LWLop |
-	      LWRop | SWLop | SWRop 
+	      LWRop | SWLop | SWRop
 	      deriving (Eq, Bits)
 
 struct MEMInstr =
@@ -26,7 +26,7 @@ struct MEMInstr =
 
 struct MEMResult =
     result     :: Value
-    error      :: Bool 
+    error      :: Bool
    deriving (Eq, Bits)
 
 interface MEMUnit =
@@ -67,8 +67,8 @@ mkMemUnit =
     interface
         putMEMOp i = action
 --	                let (loadp,err) = _
-                        let 
-                          (loadp,err) = case (i.memOp) of 
+                        let
+                          (loadp,err) = case (i.memOp) of
                                             LWop  -> (True,_)
                                             LBop  -> (True,_)
                                             LBUop -> (True,_)
@@ -80,12 +80,12 @@ mkMemUnit =
                                             SBop  -> (False,False)
                                             SHop  -> (False,((i.base + (signExtend i.offset))[0:0]) ==1)
                                             SWLop -> (False,False)
-                                            SWRop -> (False,False) 
+                                            SWRop -> (False,False)
                         nextTag:=nextTag+1
                         if (loadp)
                            then (unhandledLQueue.enq (nextTag._read, (i::MEMInstr).robTag, i.memOp, i.value, i.base + (signExtend i.offset)))
                            else (finishedInstr.enq ((i::MEMInstr).robTag,(MEMResult {result = _; error = err})))
-				        
+
         commitStore robtag = noAction
 
         updateMEMResult = _

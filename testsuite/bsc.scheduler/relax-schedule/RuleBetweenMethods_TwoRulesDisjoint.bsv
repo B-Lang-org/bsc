@@ -7,12 +7,12 @@ module sysRuleBetweenMethods_TwoRulesDisjoint ();
 
    // condition for top_rule_1 and top_rule_3
    Reg#(Bool) p <- mkRegU;
-   
+
    // register which makes top_rule_3 execute after top_rule_2
    Reg#(Bool) rg23 <- mkRegU;
    // register which makes top_rule_2 execute after top_rule_1
    Reg#(Bool) rg12 <- mkRegU;
-   
+
    rule top_rule_3 (p);
       // call the method
       $display(sub.method1);
@@ -51,7 +51,7 @@ module mkRuleBetweenMethods_TwoRulesDisjoint_Sub ( SubIfc );
 
    rule sub_rule;
         rg1 <= rg2;
-   endrule            
+   endrule
 
    method Action method2();
       rg2 <= True;

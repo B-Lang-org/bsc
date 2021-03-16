@@ -3,7 +3,7 @@ import Vector :: * ;
 // Odd even sort
 function Vector#(n, a ) sortoe (function Bool lt (a l, a r ),
                                 Vector#(n,a) vin ) provisos(Bits#(a,sa), Mul#(n,sa,q));
-   
+
    // 1 step in the odd/even sort
    function Bit#(q) oesortstep (Vector#(n,a) vx);
       Integer j;
@@ -27,7 +27,7 @@ function Vector#(n, a ) sortoe (function Bool lt (a l, a r ),
          end
       return pack(odd);
    endfunction
-                                   
+
    Integer i;
    Bit#(q) ret = pack(vin);
    for (i=0; i < valueOf(n); i = i + 2)
@@ -36,10 +36,10 @@ function Vector#(n, a ) sortoe (function Bool lt (a l, a r ),
       end
    return unpack(ret);
 endfunction
-   
+
 function Vector#(sz, Bit#(8)) byteEnableSort (Vector#(sz, Bit#(8)) din,
                                               Vector#(sz, Bool)  be );
-   
+
    Vector#( sz, Tuple2#(Bool, Bit#(8))) z = zip ( be, din);
 
    function Bool lt ( Tuple2#(Bool, Bit#(8)) l, Tuple2#(Bool, Bit#(8)) r );
@@ -49,19 +49,19 @@ function Vector#(sz, Bit#(8)) byteEnableSort (Vector#(sz, Bit#(8)) din,
    let f = sortoe( lt, z );
    return map (tpl_2, f);
 
-endfunction    
+endfunction
 
 (* noinline *)
 function Vector#(2, Bit#(8)) beSort_2(Vector#(2, Bit#(8)) din, Vector#(2,Bool) be) = byteEnableSort(din, be);
-   
+
 (* noinline *)
 function Vector#(4, Bit#(8)) beSort_4(Vector#(4, Bit#(8)) din, Vector#(4,Bool) be) = byteEnableSort(din, be);
-   
+
 (* noinline *)
 function Vector#(8, Bit#(8)) beSort_8(Vector#(8, Bit#(8)) din, Vector#(8,Bool) be) = byteEnableSort(din, be);
-   
+
 (* noinline *)
 function Vector#(16, Bit#(8)) beSort_16(Vector#(16, Bit#(8)) din, Vector#(16,Bool) be) = byteEnableSort(din, be);
-   
+
 (* noinline *)
 function Vector#(32, Bit#(8)) beSort_32(Vector#(32, Bit#(8)) din, Vector#(32,Bool) be) = byteEnableSort(din, be);

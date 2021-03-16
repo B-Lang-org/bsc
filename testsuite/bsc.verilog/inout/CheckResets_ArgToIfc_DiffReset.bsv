@@ -15,6 +15,6 @@ module sysCheckResets_ArgToIfc_DiffReset(Reset r2, Empty i);
 
    // This fails because "x1" is on the default reset and "recv" is on "r2"
    mkConnection(x1.i_out,recv.iioo);
-      
+
 endmodule
 

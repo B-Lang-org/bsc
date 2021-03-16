@@ -26,18 +26,18 @@ endinterface
 ////////////////////////////////////////////////////////////////////////////////
 
 module mkWBTransmit#(Integer id, BankClient_IFC bank) (WBTransmitIFC);
-   
+
    FIFO#(WBoneOp) in_fifo  <- mkFIFO;
    FIFO#(WBoneOp) out_fifo  <- mkFIFO;
-   
+
    FIFO#(WBoneOp) wb_in_fifo  <- mkFIFO;
    FIFO#(WBoneOp) wb_out_fifo <- mkFIFO1;
-   
+
    Reg#(Bool) addr_acquired <- mkReg(False);
    Reg#(Bit#(16)) count <- mkReg(0);
    Reg#(Bit#(16)) i <- mkReg(0);
    Reg#(Bit#(16)) addr <- mkReg(0);
-   
+
    Reg#(Bool) wbone_waiting <- mkReg(False);
 
    Stmt transmit_seq =
@@ -90,20 +90,20 @@ module mkWBTransmit#(Integer id, BankClient_IFC bank) (WBTransmitIFC);
 	    endaction
 	 endseq
    endseq;
-   
+
    let transmit_fsm <- mkFSM(transmit_seq);
-   
+
    interface Control cntrl;
       method Action init();
 	 transmit_fsm.start();
       endmethod
    endinterface
-   
+
    interface WBoneOpTxRxIFC channel;
       interface Get tx = fifoToGet(out_fifo);
       interface Put rx = fifoToPut(in_fifo);
    endinterface
-   
+
    interface WBoneOpTxRxIFC wb_channel;
       interface Get tx;
 	 method ActionValue#(WBoneOp) get if (!wbone_waiting);
@@ -120,7 +120,7 @@ module mkWBTransmit#(Integer id, BankClient_IFC bank) (WBTransmitIFC);
 	 endmethod
       endinterface
    endinterface
-   
+
 endmodule
 
 endpackage

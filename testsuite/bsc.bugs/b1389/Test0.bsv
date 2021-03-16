@@ -10,18 +10,18 @@ deriving (Bits) ;
 
 (* synthesize *)
 module mkTest ( GetPut#(Foo) );
-   
+
    FIFOF#(Foo) f <- mkFIFOF ;
    Reg#(Bool)  p <- mkReg(False);
-   
+
    rule c (!p) ;
       f.deq ;
    endrule
-   
+
    interface Get fst ;
       method ActionValue#(Foo) get ();
             (*split*)
-         if (p) 
+         if (p)
             begin
                Foo r = f.first ;
                f.deq ;
@@ -32,7 +32,7 @@ module mkTest ( GetPut#(Foo) );
 
 
    endinterface
-   
+
    interface Put snd ;
       method Action put (Foo d );
          f.enq (d);

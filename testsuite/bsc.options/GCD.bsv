@@ -41,7 +41,7 @@ module sysGCD(Empty);
 
   Reg#(NumTyp) count1 <- mkReg(19);
   Reg#(NumTyp) count2 <- mkReg(5);
-  
+
   Reg#(NumTyp) tbresult <- mkReg(0);
 
   rule rule1SendInput (True);

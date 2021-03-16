@@ -52,7 +52,7 @@ vga1280x480 =
 
 
 hzToTiming :: Integer -> VGATiming
-hzToTiming hz = 
+hzToTiming hz =
   let
     nsCycles :: Integer -> Integer
     nsCycles x = (x * hz) `div` 1000000000
@@ -105,7 +105,7 @@ interface VGACore hCoord vCoord =
    not_hsync :: Bool
    not_vsync :: Bool
    blank :: Bool
-   
+
    hPos  :: hCoord
    vPos  :: vCoord
 
@@ -127,7 +127,7 @@ mkVGACore preScale vt = do
     not_vsyncR :: Reg Bool <- mkReg True
 
     scale :: Reg (Bit 4) <- mkReg 0
-    
+
     let
         hSize = fromInteger vt.h.activeSize
         vSize = fromInteger vt.v.activeSize
@@ -167,7 +167,7 @@ mkVGACore preScale vt = do
 	  "vclk":
 	      when hTickLocal ==>
 	      action
-	        vPosR := if vTickLocal then 0 else vPosR + 1 
+	        vPosR := if vTickLocal then 0 else vPosR + 1
 		vVisible := vPosR /= vSize && (vTickLocal || vVisible)
 
 	  {-# ASSERT no implicit conditions #-}

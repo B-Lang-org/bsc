@@ -18,10 +18,10 @@ endinterface
 
 
 module mkAssert#(Integer n) (Assertion#(int));
-  
+
   List#(Property#(int)) ps <- replicateM(n, mkTestProp);
   int len = fromInteger(n);
-  
+
   method Action advance (int data);
   action
     int pres = 1;
@@ -29,10 +29,10 @@ module mkAssert#(Integer n) (Assertion#(int));
     for (Integer k = 0; fromInteger(k) <= len; k = k + 1) //This doesn't work
     begin
       pres <- (ps[k]).advance(data);
-    end 
+    end
   endaction
   endmethod
-  
+
 endmodule
 
 (* synthesize *)
@@ -41,9 +41,9 @@ module mkTest ( Empty );
   Reg#(int) x <- mkReg(0);
 
   function Bool lambda(int y);
-    if ((y & 1) == 1) return True; else return False; 
+    if ((y & 1) == 1) return True; else return False;
   endfunction
-  
+
   Assertion#(int) as <- mkAssert(5);
 
   rule foo (True);

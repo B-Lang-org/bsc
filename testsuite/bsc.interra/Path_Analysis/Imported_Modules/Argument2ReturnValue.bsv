@@ -1,4 +1,4 @@
-//Signal from Argument to Return value of another method, 
+//Signal from Argument to Return value of another method,
 //The combinational loop is completed at the top level
 //through two rules
 //Should report an error with -verilog flag
@@ -12,7 +12,7 @@ interface Argument2ReturnValueInter;
     method Bit #(8) result();
 endinterface
 
-import "BVI" Imported_Verilog = 
+import "BVI" Imported_Verilog =
     module mksubArgument2ReturnValue (Argument2ReturnValueInter);
         method start (Input) enable(En_Input);
         method Result result();
@@ -21,18 +21,18 @@ import "BVI" Imported_Verilog =
     endmodule
 
 (* synthesize *)
-    
+
 module [Module] mkArgument2ReturnValue ();
-    
+
     Argument2ReturnValueInter dut();
     mksubArgument2ReturnValue the_dut(dut);
-   
+
     rule always_fire;
-        dut.start(dut.result); 
+        dut.start(dut.result);
     endrule
 
-       
+
 endmodule
-    
+
 
 endpackage

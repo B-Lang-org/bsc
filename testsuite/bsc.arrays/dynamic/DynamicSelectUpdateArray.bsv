@@ -4,7 +4,7 @@
 module sysDynamicSelectUpdateArray();
 
   int temp[4] = {?, ?, ?, ?};
-  
+
   int arrs[4][4] = {temp, temp, temp, temp};
 
   for(int i = 0; i < 4; i = i + 1)

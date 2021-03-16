@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 FindFIFOM
- 
+
 This version of the find FIFO returns more than just a Bool.
 It also returns data.  This can be used to bypass values.
 

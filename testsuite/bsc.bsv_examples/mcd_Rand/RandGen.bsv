@@ -65,7 +65,7 @@ module mkRn_6(RandI#(6));
 endmodule
 
 
-// 
+//
 
 //(* synthesize *)
 module mkSplitter(GenPair);

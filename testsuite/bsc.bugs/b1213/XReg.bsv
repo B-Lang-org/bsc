@@ -14,7 +14,7 @@ module mkXReg#(a init)(XReg#(a, b))
 
    method _read  = _r._read;
    method _write = _r._write;
-   
+
    interface Reg x;
       method b _read;
 	 return unpack({0, pack(_r)});
@@ -26,5 +26,5 @@ module mkXReg#(a init)(XReg#(a, b))
    endinterface
 
 endmodule
-   
+
 endpackage

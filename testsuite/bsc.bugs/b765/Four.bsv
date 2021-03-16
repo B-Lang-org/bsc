@@ -1,15 +1,15 @@
 typedef enum {ZERO, ONE, TWO, THREE} STATES
-          deriving (Eq,Bits);  
+          deriving (Eq,Bits);
 
 interface Four_IFC;
-    method (STATES) state(); 
-      
+    method (STATES) state();
+
 endinterface: Four_IFC
 
 (*
        always_ready,
        always_enabled,
- synthesize 
+ synthesize
 *)
 
 module mkFour (Four_IFC);
@@ -26,7 +26,7 @@ module mkFour (Four_IFC);
   rule oneRule (reg_state == ONE);
     begin
          reg_state  <= TWO;
-    end 
+    end
   endrule
 
   rule twoRule (reg_state == TWO);
@@ -41,8 +41,8 @@ module mkFour (Four_IFC);
     end
   endrule
 
- method state(); 
-    state = reg_state; 
+ method state();
+    state = reg_state;
  endmethod
 
 

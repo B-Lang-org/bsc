@@ -4,7 +4,7 @@ import Boolify :: *;
 
 function Bit #(5) fact (Bit #(5) a) ;
    Bit #(5) temp;
-   if (a<=1) 
+   if (a<=1)
      temp = 1;
    else
      temp = a * fact (a-1);
@@ -34,7 +34,7 @@ module mkTestbench_Boolify3 ();
 
    Reg #(Bool) fail();
    mkReg #(False) the_fail(fail);
-   
+
    Reg #(Bit #(5)) counter();
    mkReg #(0) the_counter(counter);
 
@@ -46,14 +46,14 @@ module mkTestbench_Boolify3 ();
    endrule
 
    rule result (counter == 5);
-      if (fail) 
+      if (fail)
          $display ("Simulation Fails");
       else
          $display ("Simulation Passes");
       $finish (2'b00);
    endrule
-      
+
 endmodule: mkTestbench_Boolify3
-   
-    
+
+
 endpackage : Boolify3

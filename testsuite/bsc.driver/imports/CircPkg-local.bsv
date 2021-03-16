@@ -15,7 +15,7 @@ endinterface
 function Ifc make_ifc(Bit#(1) b);
    return (interface Ifc;
               method m = b;
-           endinterface);   
+           endinterface);
 endfunction
 
 endpackage

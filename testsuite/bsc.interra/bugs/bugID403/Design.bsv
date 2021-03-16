@@ -2,7 +2,7 @@ interface DESIGN_IFC_SBOX1 #(parameter type a,parameter type b);
    method b dout(a addr);
 endinterface: DESIGN_IFC_SBOX1
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -14,8 +14,8 @@ module mkSbox1 (DESIGN_IFC_SBOX1 #(Bit#(6),Bit#(4)));
 
 method Bit#(4) dout(Bit#(6) addr);
 
-  
-    case ({addr[5:5], addr[0:0], addr[4:1]}) 
+
+    case ({addr[5:5], addr[0:0], addr[4:1]})
          0:  dout =  14;
          1:  dout =   4;
          2:  dout =  13;
@@ -277,7 +277,7 @@ interface DESIGN_IFC_SBOX4;
 endinterface: DESIGN_IFC_SBOX4
 
 (*
-       synthesize,  
+       synthesize,
        always_ready ,
        always_enabled ,
        CLK = "clk",
@@ -366,7 +366,7 @@ interface DESIGN_IFC_SBOX5;
    method Bit#(4) dout(Bit#(6) addr);
 endinterface: DESIGN_IFC_SBOX5
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -458,7 +458,7 @@ interface DESIGN_IFC_SBOX6;
    method Bit#(4) dout(Bit#(6) addr);
 endinterface: DESIGN_IFC_SBOX6
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -550,7 +550,7 @@ interface DESIGN_IFC_SBOX7;
 endinterface: DESIGN_IFC_SBOX7
 
 (*
-       synthesize, 
+       synthesize,
        always_ready ,
        always_enabled ,
        CLK = "clk",
@@ -641,7 +641,7 @@ interface DESIGN_IFC_SBOX8;
 endinterface: DESIGN_IFC_SBOX8
 
 (*
-       synthesize, 
+       synthesize,
        always_ready ,
        always_enabled ,
        CLK = "clk",
@@ -730,7 +730,7 @@ interface DESIGN_IFC_CRP;
    method Bit#(32) p(Bit#(32) r,Bit#(48) k_sub);
 endinterface: DESIGN_IFC_CRP
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -827,10 +827,10 @@ interface DESIGN_IFC_KEY_SEL;
     method Bit#(48) k13(Bit#(1) decrpyt);
     method Bit#(48) k14(Bit#(1) decrpyt);
     method Bit#(48) k15(Bit#(1) decrpyt);
-    method Bit#(48) k16(Bit#(1) decrpyt);    
+    method Bit#(48) k16(Bit#(1) decrpyt);
 endinterface: DESIGN_IFC_KEY_SEL
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -876,7 +876,7 @@ method Action getinputs(Bit#(56) k);
 	k_r14 <=   k_r13;
  endaction
 endmethod: getinputs
- 
+
 
 method Bit#(48) k16(decrypt);
 Bit#(48) result;
@@ -1737,7 +1737,7 @@ method Action  getinputs(Bit#(56) key,Bit#(64) desIn,Bit#(1) decrypt);
 method Bit#(64) desOut();
 endinterface: DESIGN_IFC_DES
 
-(* 
+(*
        synthesize,
        always_ready ,
        always_enabled ,
@@ -1752,7 +1752,7 @@ Reg#(Bit#(64)) desIn_r();
 mkRegU the_desIn_r(desIn_r);
 
 Reg#(Bit#(56)) key_r();
-mkRegU the_key_r(key_r);	
+mkRegU the_key_r(key_r);
 
 Reg#(Bit#(64)) desOutIn();
 mkRegU the_desOutIn(desOutIn);
@@ -1871,10 +1871,10 @@ Bit#(48) k10, k11, k12, k13, k14, k15, k16;
 // Perform the initial permutation with the registered desIn
   ip = {	desIn_r[6:6], desIn_r[14:14], desIn_r[22:22], desIn_r[30:30], desIn_r[38:38], desIn_r[46:46],
 			desIn_r[54:54], desIn_r[62:62], desIn_r[4:4], desIn_r[12:12], desIn_r[20:20], desIn_r[28:28],
-			desIn_r[36:36], desIn_r[44:44], desIn_r[52:52], desIn_r[60:60], desIn_r[2:2], desIn_r[10:10], 
-			desIn_r[18:18], desIn_r[26:26], desIn_r[34:34], desIn_r[42:42], desIn_r[50:50], desIn_r[58:58], 
-			desIn_r[0:0], desIn_r[8:8], desIn_r[16:16], desIn_r[24:24], desIn_r[32:32], desIn_r[40:40], 
-			desIn_r[48:48], desIn_r[56:56], desIn_r[7:7], desIn_r[15:15], desIn_r[23:23], desIn_r[31:31], 
+			desIn_r[36:36], desIn_r[44:44], desIn_r[52:52], desIn_r[60:60], desIn_r[2:2], desIn_r[10:10],
+			desIn_r[18:18], desIn_r[26:26], desIn_r[34:34], desIn_r[42:42], desIn_r[50:50], desIn_r[58:58],
+			desIn_r[0:0], desIn_r[8:8], desIn_r[16:16], desIn_r[24:24], desIn_r[32:32], desIn_r[40:40],
+			desIn_r[48:48], desIn_r[56:56], desIn_r[7:7], desIn_r[15:15], desIn_r[23:23], desIn_r[31:31],
 			desIn_r[39:39], desIn_r[47:47], desIn_r[55:55], desIn_r[63:63], desIn_r[5:5], desIn_r[13:13],
 			desIn_r[21:21], desIn_r[29:29], desIn_r[37:37], desIn_r[45:45], desIn_r[53:53], desIn_r[61:61],
 			desIn_r[3:3], desIn_r[11:11], desIn_r[19:19], desIn_r[27:27], desIn_r[35:35], desIn_r[43:43],
@@ -1898,8 +1898,8 @@ k13 = uk.k13(decrypt);
 k14 = uk.k14(decrypt);
 k15 = uk.k15(decrypt);
 k16 = uk.k16(decrypt);
-	
-// 16 CRP blocks 
+
+// 16 CRP blocks
 out0 =  u0.p(ip[31:0], k1 );
 out1 =  u1.p(r0, k2 );
 out2 =  u2.p(r1, k3 );
@@ -1970,16 +1970,16 @@ out15 =  u15.p(r14,k16);
 
 // XOr 32 bit out15 with 32 bit l14         ( fp  1:32 )
 //    then concatinate the 32 bit r14 value ( fp 33:64 )
-//       This value ( fp 1:64 ) is then registered by the desOut[63:0] register 
+//       This value ( fp 1:64 ) is then registered by the desOut[63:0] register
  fp = { (out15 ^ l14), r14};
 // Perform the final permutation
-	desOutIn <=    {	fp[24:24], fp[56:56], fp[16:16], fp[48:48], fp[8:8], fp[40:40], fp[0:0], fp[32:32], 
-			fp[25:25], fp[57:57], fp[17:17], fp[49:49], fp[9:9], fp[41:41], fp[1:1], fp[33:33], 
-			fp[26:26], fp[58:58], fp[18:18], fp[50:50], fp[10:10], fp[42:42], fp[2:2], fp[34:34], 
-			fp[27:27], fp[59:59], fp[19:19], fp[51:51], fp[11:11], fp[43:43], fp[3:3], fp[35:35], 
-			fp[28:28], fp[60:60], fp[20:20], fp[52:52], fp[12:12], fp[44:44], fp[4:4], fp[36:36], 
+	desOutIn <=    {	fp[24:24], fp[56:56], fp[16:16], fp[48:48], fp[8:8], fp[40:40], fp[0:0], fp[32:32],
+			fp[25:25], fp[57:57], fp[17:17], fp[49:49], fp[9:9], fp[41:41], fp[1:1], fp[33:33],
+			fp[26:26], fp[58:58], fp[18:18], fp[50:50], fp[10:10], fp[42:42], fp[2:2], fp[34:34],
+			fp[27:27], fp[59:59], fp[19:19], fp[51:51], fp[11:11], fp[43:43], fp[3:3], fp[35:35],
+			fp[28:28], fp[60:60], fp[20:20], fp[52:52], fp[12:12], fp[44:44], fp[4:4], fp[36:36],
 			fp[29:29], fp[61:61], fp[21:21], fp[53:53], fp[13:13], fp[45:45], fp[5:5], fp[37:37],
-			fp[30:30], fp[62:62], fp[22:22], fp[54:54], fp[14:14], fp[46:46], fp[6:6], fp[38:38], 
+			fp[30:30], fp[62:62], fp[22:22], fp[54:54], fp[14:14], fp[46:46], fp[6:6], fp[38:38],
 			fp[31:31], fp[63:63], fp[23:23], fp[55:55], fp[15:15], fp[47:47], fp[7:7], fp[39:39] };
 
 endaction

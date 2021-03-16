@@ -43,7 +43,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
 
    // We declare an array of registers to hold the queue, with an extra
    // constant sentinel register at each end.  The ordinary registers contain
-   // Invalid if they are empty, and Valid(v) if they contain the value v.  The 
+   // Invalid if they are empty, and Valid(v) if they contain the value v.  The
    // constant register at the low end is always non-empty (and its contents
    // will be at least >= than anything it is compared with); the one at the
    // high end is always empty.
@@ -61,7 +61,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
 
    // This defines the action which moves elements around in the queue.  Its
    // arguments are the list of moves required, and maybe a value to be
-   // enqueued. 
+   // enqueued.
    function Action do_moves(List#(Move) ms, Maybe#(qe) v);
       action
 	 for (Integer i = 1; i <= n; i = i+1)
@@ -86,7 +86,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
       let e = queue[i];
       return e;
    endfunction
-   
+
    // These next definitions refer to the first and last "real" elements of
    // the queue, and use them to test for emptiness and fulness of the entire
    // queue.
@@ -103,11 +103,11 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
    // except that its contents always revert to "Invalid" at the end of each
    // clock cycle.  Here we use them for communication between the interface
    // methods and the processing rule (which will be executed "later" in the
-   // cycle). 
+   // cycle).
 
    // If the value in this RWire is not Invalid, it indicates that we have
    // accepted an "enq" call a little earlier in the cycle, in which case it
-   // holds Valid(the value enqueued): 
+   // holds Valid(the value enqueued):
    RWire#(qe) rw_enq();
    mkRWire the_rw_enq(rw_enq);
 
@@ -126,7 +126,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
       let self = current_entry(i);
       let right =current_entry(i-1);
       return (case (tuple2(self,right)) matches
-		 {.*, tagged Invalid}: 
+		 {.*, tagged Invalid}:
                          return SAME;
 		 {tagged Invalid, tagged Valid .p}:
 				     return   ((p>=v) ? REPLACE : RIGHT );
@@ -142,7 +142,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
       let self = current_entry(i);
       let left  = current_entry(i+1);
       return (case (tuple2(left,self)) matches
-		 {.*, tagged Invalid}: 
+		 {.*, tagged Invalid}:
                          return SAME;
 		 {tagged Valid .l, tagged Valid .s}:
 				      return   ((l>=v) ? LEFT :
@@ -157,7 +157,7 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
    // This is the rule which does all the work.  It is essential that it fires
    // on every clock, so we specify attributes which the tool will check (and
    // give an error report if they are not satisfied).
-      
+
    (* no_implicit_conditions, fire_when_enabled *)
    rule process_requests;
       // Define an array of moves.
@@ -181,13 +181,13 @@ module mkSizedPriQ#(Integer n)(Q#(qe))
 	 action
 	    ms[i] = the_fun(i);
 	 endaction
-      
+
       // Now that all the moves are known, we do them.
       do_moves(ms, rw_enq.wget);
    endrule
 
    // Finally come the methods.
-   
+
    // The enq method merely sets the relevant rwire (assuming that it will be
    // processed "later" in the cycle, by the rule defined above).
    method enq(x) if (notFull);

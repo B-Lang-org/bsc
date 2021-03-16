@@ -20,7 +20,7 @@ interface GCD =
     start  :: Int 32 -> Int 32 -> Action
     result :: Int 32
 
-{-# properties mkGCD = { 
+{-# properties mkGCD = {
           alwaysReady
 }#-}
 

@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 Example6 Questions
- 
+
 The functions in this file are list-based versions of those in Example3
 (replacing for-loops with list functions).
 
@@ -55,7 +55,7 @@ function Bit#(n) f2 (Bit#(m) s, Bit#(n) x);
    Integer max = valueOf(m);
 
    // TASK: Write the body of the function.
-   // HINT: Start with the initial s/x pair and 
+   // HINT: Start with the initial s/x pair and
    //       use the "foldl" function to cascade the series of shifts
    //       to produce the final output.
 

@@ -18,7 +18,7 @@ while(i<`MAX)
   res = x ^ (x >> 1) ;
  end
   return res;
-endfunction 
+endfunction
 
 (*
        always_ready ,
@@ -35,8 +35,8 @@ module mkDesign (Design_IFC);
      if(temp > `MAX)
         out_data = result(in_data);
      else
-      out_data = result(in_data+1);        
+      out_data = result(in_data+1);
   endmethod: out_data
 
 endmodule : mkDesign
-endpackage: Design 
+endpackage: Design

@@ -4,7 +4,7 @@ endinterface
 
 (* synthesize *)
 module mkSplitIf_Test(Test);
- 
+
   Reg#(Bool)   r1 <- mkReg(True);
   Reg#(Bool)   r2 <- mkReg(False);
   RWire#(Bool) w  <- mkRWire();
@@ -22,7 +22,7 @@ module mkSplitIf_Test(Test);
   method Action xfer(Bool sel) if (w.wget() matches tagged Valid .x);
     if (r1)
     begin
-      r1 <= sel;   
+      r1 <= sel;
       $display("Updating r1 to %b", sel);
     end
     else
@@ -36,7 +36,7 @@ endmodule
 
 (* synthesize *)
 module sysSplitIf();
-  
+
   Reg#(Bool)     dir   <- mkReg(False);
   Reg#(UInt#(4)) count <- mkReg(0);
   Test           test  <- mkSplitIf_Test();
@@ -52,7 +52,7 @@ module sysSplitIf();
   rule incr;
     count <= count + 1;
   endrule
-  
+
   rule done (count == 15);
     $finish(0);
   endrule

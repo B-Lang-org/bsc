@@ -29,12 +29,12 @@ module [Module] mkDMAConfigRegs(IWithCBus#(DCBus, ConfigRegs));
 endmodule
 
 module [DModWithCBus] mkDMAConfigRegsInternal (ConfigRegs);
-   
+
    let icount = valueOf(NumChannels);
-   
+
    Vector#(NumChannels, Reg#(Bit#(32))) desc_vector  = newVector;
    Vector#(NumChannels, Reg#(Bit#(1)))  active_vector = newVector;
-   
+
    for (Integer i = 0; i < icount; i = i + 1)
       begin
 
@@ -44,9 +44,9 @@ module [DModWithCBus] mkDMAConfigRegsInternal (ConfigRegs);
 	 desc_vector[i]   <- mkCBRegRW(descriptorAddr, 0);
 	 active_vector[i] <- mkCBRegRW(activeAddr,     0);
       end
-   
+
    Reg#(Bit#(8)) reg_status   <- mkCBRegRW(statusAddr,   0);
-   
+
    interface Reg status = reg_status;
    interface descriptor = desc_vector;
    interface active     = active_vector;

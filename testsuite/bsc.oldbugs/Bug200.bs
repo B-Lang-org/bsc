@@ -1,7 +1,7 @@
 package Bug200(sysBug200) where
 
 sysBug200 :: Module Empty
-sysBug200 = 
+sysBug200 =
   module
    r :: Reg (Int 32) <- mkReg 0
    a :: Reg Bool <- mkRegU

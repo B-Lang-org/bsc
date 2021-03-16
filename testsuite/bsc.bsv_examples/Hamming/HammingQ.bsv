@@ -6,10 +6,10 @@ Hamming numbers are of the form 2 3 5 , where p,q and r are natural
 numbers (including 0).  This package displays the infinite sequence
 of these numbers, in ascending order, with no duplicates.  The package
 is deemed to work if it produces, say, the first 100 elements of this
-sequence. 
+sequence.
 
 --------------------------------------------------
- 
+
 We note the following facts about the sequence:
 (i)   1 is an element (p,q,r are all 0), and moreover it's the first
 one.
@@ -64,7 +64,7 @@ module mkMerge(MergeI);
    // We first provide an input fifo for each of the input channels:
    FIFO#(Num) ififo1();
    mkFIFO the_ififo1(ififo1);
-   
+
    FIFO#(Num) ififo2();
    mkFIFO the_ififo2(ififo2);
 
@@ -75,7 +75,7 @@ module mkMerge(MergeI);
    // TASK: complete the definition of this module (HINT: rules?):
 
    // ...
-   
+
    // We use library functions (from the GetPut package) to produce the
    // input and output interfaces from the appropriate fifo.  fifoToPut
    // produces a Put interface, whose method enqueues its parameter
@@ -106,7 +106,7 @@ function Pt fanout (Pt p1, Pt p2, Pt p3, Pt p4);
 	    endaction
 	 endmethod
       endinterface);
-endfunction: fanout   
+endfunction: fanout
 
 // The next function takes a Put interface  p  as parameter, and also a
 // number  i.  It produces a Put interface as result, which send  i
@@ -114,11 +114,11 @@ endfunction: fanout
 
 function Pt times (Num i, Pt p);
    // TASK: write the body of this function.
-   
+
    // ...
    return (?);
 endfunction: times
-   
+
 // --------------------------------------------------
 
 // Our final auxiliary module is one which provides a Put interface,
@@ -130,7 +130,7 @@ module mkSink(Pt);
       endaction
    endmethod
 endmodule
-      
+
 // --------------------------------------------------
 
 
@@ -181,7 +181,7 @@ it could be fixed.  HINT: consider using the module mkGPSizedFifo, from
 the GetPut package, which instantiates a FIFO of sized specified by a
 parameter, and provides a pair of interfaces (a Get and a Put) to it.
 It may be used as follows:
- 
+
    // Instantiate the interface (a pair of sub-interfaces):
    Tuple2#(Gt,Pt) sf();
    // Instantiate the fifo:
@@ -196,7 +196,7 @@ mkHamming and promoting it to separate testbench status, and defining a
 new top-level module, mkTopLevel (which will again have an Empty
 interface) to connect them together and run the result.  HINT: it's
 easiest if you give mkHamming an output fifo.
- 
+
  -------------------------------------------------- */
-      
+
 endpackage: HammingQ

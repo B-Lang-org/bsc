@@ -10,12 +10,12 @@ makeBigInt :: Bit 65536 -> Bit 65536
 makeBigInt x = if (x <= 0) then 0 else (makeBigInt (x - 64) << 64) + bigConst
 
 sysInit65536Bit :: Module Empty
-sysInit65536Bit = 
-  module 
+sysInit65536Bit =
+  module
     r :: Reg (Bit 65536) <- mkReg bigInt
     done :: Reg (Bool) <- mkReg False
     rules
-      when not done ==> 
+      when not done ==>
         action
          displayHex(r)
          done := True

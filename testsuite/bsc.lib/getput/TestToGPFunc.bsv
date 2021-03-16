@@ -9,7 +9,7 @@ import DReg::*;
 module sysTestToGPFunc ();
 
    FIFO#(int)  inf <- mkFIFO ;
-   
+
    ActionValue#(int)  av = (
       actionvalue
          inf.deq;

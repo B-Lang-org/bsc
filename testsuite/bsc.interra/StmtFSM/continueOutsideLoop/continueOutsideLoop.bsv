@@ -30,23 +30,23 @@ module mkSquare(Square);
 endmodule
 
 (* synthesize *)
-module continueOutsideLoop(Empty);  
-  
+module continueOutsideLoop(Empty);
+
   Reg#(Bit#(5)) loop <- mkReg(0);
-  
+
   Square square <- mkSquare;
 
   Stmt testStmts =
-    seq 
+    seq
         repeat(15)//using repeat loop
-		seq  
+		seq
 		  loop <= loop + 1;
 		  $display("Square %0d is %0d", loop, square.square);
           square.data_in(truncate(loop));
 		endseq
        if (loop == 10) continue;//using continue outside loop context
 	   $display("Test finished at time %0t", $time);
-    endseq;  
+    endseq;
 
   FSM testFSM <- mkFSM(testStmts);
 

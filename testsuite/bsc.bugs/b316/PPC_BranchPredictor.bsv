@@ -16,7 +16,7 @@ import PPC_Datatypes::*;
 
 import List::*;
 import FIFO::*;
-  
+
 interface BranchPredictor#(type iaddr_t);
 
     //XXX Convert back when Bug 247 is dead
@@ -35,7 +35,7 @@ typedef struct
 {
   Reg#(iaddr_t) itag;
   Reg#(iaddr_t) pred;
-} 
+}
   TableEntry#(type iaddr_t);
 
 (* synthesize *)
@@ -46,24 +46,24 @@ module mkBranchPred_64 (BranchPredictor#(Bit#(64)));
     method Action                   branch_Action(Bit#(64) x);
       bp.branch_Action(x);
     endmethod
-    
+
     method Tuple2#(Bit#(64), Bool)   branch_Value(Bit#(64) x);
       return (bp.branch_Value(x));
     endmethod
-    
+
     method Action update(BranchPredUpdate#(Bit#(64)) x);
       bp.update(x);
     endmethod
-    
+
     method Action flush();
       bp.flush();
     endmethod
-  
+
 endmodule
 
 module mkBranchPred (BranchPredictor#(iaddr_t))
           provisos (Bits#(iaddr_t, sz), Eq#(iaddr_t), Arith#(iaddr_t));
-	 
+
   let table_sz = 4;
 
   //XXX Should be generalized so I scale with table_sz
@@ -104,20 +104,20 @@ module mkBranchPred (BranchPredictor#(iaddr_t))
   method Action branch_Action (iaddr_t ia);
      let tbl   = ((twoBitPred[1] == 1) ? tEntries: ntEntries);
      let entry = (select(tbl, getIndex(ia)));
-     noAction;  
+     noAction;
   endmethod: branch_Action
 
   method update (BranchPredUpdate#(iaddr_t) bpred);
      action
         //update predictor
-        //twoBitPred <= (takenp)? 
+        //twoBitPred <= (takenp)?
         //               ((twoBitPred == 2'b11)? 2'b11 : twoBitPred + 1):
         //               ((twoBitPred == 2'b00)? 2'b00 : twoBitPred - 1);
-       
+
 
        Bool choice = bpred.taken;
 
-       Bit#(2) first_path = 
+       Bit#(2) first_path =
           case (twoBitPred)
 	    2'b00:
 	      return 2'b11;
@@ -129,7 +129,7 @@ module mkBranchPred (BranchPredictor#(iaddr_t))
 	      return 2'b11;
 	  endcase; // case(twoBitPred)
 
-       Bit#(2) second_path = 
+       Bit#(2) second_path =
          case (twoBitPred)
 	    2'b00:
 	      return 2'b01;
@@ -149,10 +149,10 @@ module mkBranchPred (BranchPredictor#(iaddr_t))
 
         (entry.itag) <= bpred.ia;
         (entry.pred) <= bpred.real_next_ia;
-        
+
      endaction
   endmethod: update
-  
+
   // This should probably do something reasonable instead of just nothing.
   method flush();
     action

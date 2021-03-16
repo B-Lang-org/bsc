@@ -10,7 +10,7 @@ interface SFIFO #(type t);
     method Bool isEmpty();
 endinterface
 
-// Max size of the 
+// Max size of the
 module mkSFIFO #(Integer size) (SFIFO#(t)) provisos (Bits#(t, ts));
   List#(Reg#(t)) rs = replicate(size, ?);
   Integer i;
@@ -49,7 +49,7 @@ module mkSFIFO #(Integer size) (SFIFO#(t)) provisos (Bits#(t, ts));
       (uBitSelect(rs, ptr)) <= v;
     endaction
   endfunction
-  
+
   method enq(x) if (notFull) ;
     action
       put(tail, x);

@@ -1,9 +1,9 @@
 (* synthesize *)
 module sysCFExecOrder1();
- 
+
 
   Reg#(Bit#(12)) r <- mkReg(0);
-  
+
   Reg#(Bool) done <- mkReg(True);
 
   (* execution_order = "a,b,c" *)

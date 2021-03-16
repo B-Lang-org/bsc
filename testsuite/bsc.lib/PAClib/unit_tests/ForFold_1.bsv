@@ -17,7 +17,7 @@ import CompletionBuffer  :: *;
 
 import PAClib::*;
 import Common::*;
-  
+
 // ----------------------------------------------------------------
 
 

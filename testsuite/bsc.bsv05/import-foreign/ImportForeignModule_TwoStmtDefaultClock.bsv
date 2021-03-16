@@ -1,7 +1,7 @@
 // Test that the user can declare an input clock as the default clock
 
 import "BVI" MOD =
-module mkMod ( Clock aClk, 
+module mkMod ( Clock aClk,
 	       Empty ifcout ) ;
 
    input_clock clk (CLK) = aClk ;

@@ -13,7 +13,7 @@ module mkTestbench(Empty);
  Reg#(Bit#(9)) cntr <- mkReg(0);
  List#(Inputs) check = toList(get_vector());
  Integer len = List::length(check);
- 
+
 rule set(state==SET);
     Inputs tmp = List::select(check,cntr);
     dut.start(tmp.a);
@@ -21,7 +21,7 @@ rule set(state==SET);
  endrule
 
 rule check_ex(state==CHECK_EXTRACT);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(18,Bool) vec =
 cons( dut.ex_crs_1_1 == tmp.ex_crs_1_1,
@@ -55,7 +55,7 @@ endrule
 
 
 rule check_conc(state==CHECK_CONCAT);
-     
+
    Inputs tmp  = List::select(check,cntr);
    Vector#(7,Bool) vec =
 cons( dut.con_crs_1 == tmp.con_crs_1 ,
@@ -65,7 +65,7 @@ cons( dut.con_tch_1_1== tmp.con_tch_1_1,
 cons( dut.con_tch_1_2== tmp.con_tch_1_2,
 cons( dut.con_tch_1_3== tmp.con_tch_1_3,
 cons( dut.con_tch_1_4== tmp.con_tch_1_4,nil)))))));
- 
+
 Bit#(7) status = pack(vec);
  if(status == 7'b1111111)
    $display("Test %d PASS for BIT_CONCAT",cntr);
@@ -81,8 +81,8 @@ rule done(state==DONE);
    else
     cntr <= cntr+1;
 	state <= SET;
-	
-endrule	
+
+endrule
 
 
 endmodule

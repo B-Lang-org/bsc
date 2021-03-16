@@ -1,6 +1,6 @@
 function Action fn (t x);
     Bit#(SizeOf#(t)) n = 0;
-    $display(" n = %d", n); 
+    $display(" n = %d", n);
 endfunction
 
 (* synthesize *)

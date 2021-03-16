@@ -9,7 +9,7 @@ endinterface
 
 module sysModuleInterface_LocalStmt_DeclAssignLet(TopIfc);
     Reg#(Bool) r <- mkReg(False);
-    
+
     interface SubIfc s;
         let tmp = True;
 

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////
-/* Performs byte alignment on a 8 bit input data and returns 8 bit data 
-   and stores the residual value in input buffer 
+/* Performs byte alignment on a 8 bit input data and returns 8 bit data
+   and stores the residual value in input buffer
 */
 
 package ByteAlign;
@@ -23,7 +23,7 @@ Bit#(16) res;
 	     4'b0110 : res = {input_reg[9:0],tmp[5:0]};
 	     4'b0111 : res = {input_reg[8:0],tmp[6:0]};
 	     4'b1000 : res = {input_reg[7:0],tmp[7:0]};
-	     default : res = zeroExtend(input_reg); 
+	     default : res = zeroExtend(input_reg);
        endcase
    return res;
 endfunction
@@ -31,15 +31,15 @@ endfunction
 function Bit#(40) func_flushdata (Bit#(4) pos,Bit#(40) in_data);
 Bit#(40) res;
        case (pos)
-	     4'b0000 : res = zeroExtend(in_data[7:0]); 
-	     4'b0001 : res = zeroExtend(in_data[8:0]); 
+	     4'b0000 : res = zeroExtend(in_data[7:0]);
+	     4'b0001 : res = zeroExtend(in_data[8:0]);
 	     4'b0010 : res = zeroExtend(in_data[9:0]);
 	     4'b0011 : res = zeroExtend(in_data[10:0]);
 	     4'b0100 : res = zeroExtend(in_data[11:0]);
 	     4'b0101 : res = zeroExtend(in_data[12:0]);
 	     4'b0110 : res = zeroExtend(in_data[13:0]);
 	     4'b0111 : res = zeroExtend(in_data[14:0]);
-	     default : res = zeroExtend(in_data); 
+	     default : res = zeroExtend(in_data);
        endcase
    return res;
 endfunction

@@ -13,7 +13,7 @@ interface SudokuGenerator#(numeric type order);
 
    // start generating a puzzle
    method Action start();
-      
+
    // test if puzzle generation is complete
    method Bool done();
 
@@ -27,10 +27,10 @@ module mkGenerator(SudokuGenerator#(order))
 	    Add#(b, TLog#(TSquare#(order)), 16),
 	    Add#(c, TLog#(TAdd#(TSquare#(order),1)), 16),
 	    Add#(d, TLog#(TAdd#(1,TSquare#(order))), 16));
-      
+
    // Solver used in generation process
    SudokuSolver#(order) solver <- mkSudokuSolver();
-   
+
   Stmt generate_puzzle =
          seq
             while (True)
@@ -41,7 +41,7 @@ module mkGenerator(SudokuGenerator#(order))
          endseq;
 
    FSM fsm <- mkFSM(generate_puzzle);
-   
+
    method Action start() if (fsm.done());
       fsm.start();
    endmethod: start
@@ -49,7 +49,7 @@ module mkGenerator(SudokuGenerator#(order))
    method Bool done();
       return fsm.done();
    endmethod: done
-   
+
 endmodule: mkGenerator
 
 // Create separately-synthesized generator modules for common sizes, along

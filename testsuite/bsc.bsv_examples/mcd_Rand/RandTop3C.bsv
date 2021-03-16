@@ -24,7 +24,7 @@ module mkSlowClock(UInt#(4) fraction, Bool gate, Clock c);
    rule dec (count != 0);
       count <= count - 1;
    endrule
-   
+
    (* no_implicit_conditions, fire_when_enabled *)
    rule change (count == 0);
       osc <= invert(osc);
@@ -72,7 +72,7 @@ module mkRandTop(UInt#(4) fr, Bool g1, Bool g2, ExtIfc ifc);
    endrule
    Clock c0 = gate0.new_clk;
    Reset r0(); mkSyncResetFromCR#(3) the_r0(c0, r0);
-   
+
    // Instantiate the sub-modules, appropriately clocked:
    GenPair gens();
    mkSplitter the_gens(gens, clocked_by c0, reset_by r0);

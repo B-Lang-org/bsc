@@ -91,7 +91,7 @@ typedef Reg#(Grid#(TSquare#(order), TSquare#(order), Cell#(order)))
 
 // Convert a box number and an index within the box to an index in the grid
 function Index#(order) boxToGrid(RFIndex#(order) bi, RFIndex#(order) ci)
-   provisos(Add#(_,TLog#(order),TLog#(TSquare#(order))));   
+   provisos(Add#(_,TLog#(order),TLog#(TSquare#(order))));
    return (zeroExtend(bi) * (fromInteger(valueOf(order))) + zeroExtend(ci));
 endfunction: boxToGrid
 
@@ -153,7 +153,7 @@ function Group#(order) getColumn(SudokuRegGrid#(order) g, Index#(order) c);
 endfunction: getColumn
 
 function Group#(order) getBox(SudokuRegGrid#(order) g, RFIndex#(order) r, RFIndex#(order) f)
-   provisos(Add#(_,TLog#(order),TLog#(TSquare#(order))));   
+   provisos(Add#(_,TLog#(order),TLog#(TSquare#(order))));
    function Index#(order) to_row(Integer n);
       return boxToGrid(r,fromInteger(n/valueOf(order)));
    endfunction: to_row
@@ -254,22 +254,22 @@ function Stmt displayGrid(UInt#(16) width, UInt#(16) height,
 		    display(x,y);
 	   endseq);
 endfunction: displayGrid
-      
+
 // Display a grid of Sudoku cells
 function Stmt displaySudoku(function Cell#(o) get(Index#(o) r, Index#(o) c),
 			    Reg#(UInt#(16)) x, Reg#(UInt#(16)) y)
    provisos(Add#(a,TLog#(TSquare#(o)),16),
-            Add#(b,TLog#(TAdd#(TSquare#(o),1)),16));      
+            Add#(b,TLog#(TAdd#(TSquare#(o),1)),16));
    let w = fromInteger((2*valueOf(o)+1)*valueOf(o)+1);
-   let h = fromInteger((valueOf(o)+1)*valueOf(o)+1);   
+   let h = fromInteger((valueOf(o)+1)*valueOf(o)+1);
    return displayGrid(w,h,asReg(x),asReg(y),displayCharSmall(get));
 endfunction: displaySudoku
-		    
+
 function Stmt debugSudoku(function Cell#(o) get(Index#(o) r, Index#(o) c),
 			  Reg#(UInt#(16)) x, Reg#(UInt#(16)) y)
    provisos(Add#(a,TLog#(TSquare#(o)),16),
-            Add#(b,TLog#(TAdd#(TSquare#(o),1)),16));      
+            Add#(b,TLog#(TAdd#(TSquare#(o),1)),16));
    let w = fromInteger((2*valueOf(o)+1)*valueOf(o)*valueOf(o)+1);
-   let h = fromInteger((valueOf(o)+1)*valueOf(o)*valueOf(o)+1);   
+   let h = fromInteger((valueOf(o)+1)*valueOf(o)*valueOf(o)+1);
    return displayGrid(w,h,asReg(x),asReg(y),displayCharLarge(get));
 endfunction: debugSudoku

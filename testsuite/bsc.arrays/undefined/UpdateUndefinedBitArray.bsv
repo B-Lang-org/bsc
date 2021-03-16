@@ -10,5 +10,5 @@ module sysUpdateUndefinedBitArray();
   rule test;
     $displayh(v);
   endrule
- 
+
 endmodule

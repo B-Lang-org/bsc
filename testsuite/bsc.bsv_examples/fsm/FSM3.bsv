@@ -33,7 +33,7 @@ module mkFSM(ArithIO_IFC#(StateType));
          curr_state <= next_state(curr_state);
   endrule: rule1_StateChange
 
-  method result(); 
+  method result();
     return (curr_state);
   endmethod: result
 endmodule: mkFSM

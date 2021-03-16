@@ -23,11 +23,11 @@ module sysSextTest();
    Reg#(Data_t) ua <- mkReg(0);
    Reg#(Data2_t) ub <- mkReg(0);
    Reg#(Data_t) uc <- mkReg(0);
-   
+
 
    // predicates for aa and ab are disjoint
-   
-   
+
+
    rule aa (signExtend(ua) == ub);
       uc <= uc + 1;
    endrule

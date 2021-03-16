@@ -1,6 +1,6 @@
 (*synthesize*)
 module sysMaybeMux ();
-  
+
   Reg#(Maybe#(int)) data         <- mkReg(Invalid);
   Reg#(Maybe#(int)) incoming     <- mkReg(Invalid);
 

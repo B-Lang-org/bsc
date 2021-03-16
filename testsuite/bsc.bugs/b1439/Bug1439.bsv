@@ -14,4 +14,3 @@ module mkBug1439 ();
 endmodule
 
 
-    

@@ -17,7 +17,7 @@ import NewMipsROM
 ------
 -- To test code generation
 sysNewMips :: Module Empty
-sysNewMips = 
+sysNewMips =
     module
 	ram :: MRAM
 	ram <- mkRAM
@@ -92,7 +92,7 @@ forward :: TBuffer -> CPUReg -> Value
 forward b r = let
 		  f :: DTemplate -> Value -> Value
 		  f x y = if (x.wback && x.ready && x.rd == r)
-			  then x.v1 else y 
+			  then x.v1 else y
 	      in
 		  b.foldr f _
 
@@ -466,7 +466,7 @@ mkExecuteRules be bm =
 	            bm.enq dt;
 	            be.deq;
 		  }
-   
+
 	  "E-Arith":
 	    when dt@(DTemplate { mop; v1; v2 }) <- be.first,
 	         isArithmeticOp mop

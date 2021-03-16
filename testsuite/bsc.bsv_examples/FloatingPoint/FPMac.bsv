@@ -1,4 +1,4 @@
-// Multiple and accumulate unit 
+// Multiple and accumulate unit
 package FPMac ;
 
 import TesterLib::*;
@@ -8,7 +8,7 @@ import FPMult::*;
 
 
 
-// An implementation of a 32 bit mac (A*B) + C  unit 
+// An implementation of a 32 bit mac (A*B) + C  unit
 function IEEE754_32 fpMac( IEEE754_32 inA, IEEE754_32 inB, IEEE754_32 inC ) ;
    begin
       let inAE = extract_fields( inA );
@@ -23,12 +23,12 @@ function IEEE754_32 fpMac( IEEE754_32 inA, IEEE754_32 inB, IEEE754_32 inC ) ;
       let rounded  = round ( normmac ) ;
       let result   = normalize1( rounded );
 
-      return pack_fields( result ) ;   
+      return pack_fields( result ) ;
 
    end
 endfunction
 
-// An implementation of a 64 bit mac unit 
+// An implementation of a 64 bit mac unit
 function IEEE754_64 fpMac64( IEEE754_64 inA, IEEE754_64 inB, IEEE754_64 inC ) ;
    begin
       let inAE = extract_fields64( inA );
@@ -43,7 +43,7 @@ function IEEE754_64 fpMac64( IEEE754_64 inA, IEEE754_64 inB, IEEE754_64 inC ) ;
       let rounded  = round ( normmac ) ;
       let result   = normalize1( rounded );
 
-      return pack_fields64( result ) ;   
+      return pack_fields64( result ) ;
 
    end
 endfunction
@@ -70,11 +70,11 @@ function IEEE754_32 fpABlessCD( IEEE754_32 inA, IEEE754_32 inB,
 
       let binaryPoint = 2;
       let norm1 = normalize_and_truncate( binaryPoint, mac );
-      
+
       let rounded  = round ( norm1 ) ;
       let result   = normalize1( rounded );
 
-      return pack_fields( result ) ;   
+      return pack_fields( result ) ;
 
    end
 endfunction

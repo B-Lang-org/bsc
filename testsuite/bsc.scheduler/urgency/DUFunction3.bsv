@@ -28,7 +28,7 @@ module sysDUFunction3( Test1 ) ;
    FIFO#(Cntr) outf <- mkSizedFIFO( 8 ) ;
 
    function Rules buildRules( Integer i ) ;
-      begin return 
+      begin return
          rules
             rule doit ( gos[i]._read ) ;
                cntrs[i]._write ( cntrs[i]._read + 1 ) ;
@@ -46,7 +46,7 @@ module sysDUFunction3( Test1 ) ;
    // Preempting is another way, but since these conflict, what is the difference.
    // Fold from the right
    addRules( foldr1( rJoinPreempts, genrules) ) ;
-  
+
    method Action setGo( Idx index ) ;
       let breg = select( gos, index ) ;
       breg <= True ;
@@ -59,5 +59,5 @@ module sysDUFunction3( Test1 ) ;
 
    method Action deq = outf.deq ;
    method first = outf.first ;
-      
+
 endmodule

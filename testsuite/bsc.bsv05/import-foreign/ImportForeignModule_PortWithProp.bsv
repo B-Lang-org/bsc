@@ -8,7 +8,7 @@ module mkMod ( Clock aClk,
    no_reset ;
 
    input_clock aClk(A_CLK, A_CLKGATE) = aClk ;
-   
+
    port (* reg *) D_IN = 1;
 
 endmodule

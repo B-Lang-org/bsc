@@ -6,7 +6,7 @@ This is a testbench for FiveStageCPUStallV2.
 
 The testbench executes a simple program which should have the following
 trace through the pipeline:
- 
+
 (In this picture, the items under Fetch are the items which will
 be next loaded from memory.  The items under decode indicate
 the item waiting in the BF buffer.  The items under the other
@@ -45,26 +45,26 @@ Time   Fetch      Decode    Execute     Memory   Writeback
   8 | Store    | Add R4   |          | Add R3   |          | Stall: R3 not
     |   R4 R1  |   R3 R2  |          |   R0 R1  |          |  loaded yet
 ----+----------+----------+----------+----------+----------+
-  9 | Store    | Add R4   |          |          | Add R3   | Stall: R3 not 
+  9 | Store    | Add R4   |          |          | Add R3   | Stall: R3 not
     |   R4 R1  |   R3 R2  |          |          |   R0 R1  |  loaded yet
 ----+----------+----------+----------+----------+----------+
  10 | Store    | Add R4   |          |          |          |
     |   R4 R1  |   R3 R2  |          |          |          |
 ----+----------+----------+----------+----------+----------+
- 11 | LoadC R5 | Store    | Add R4   |          |          | Stall: R4 not 
+ 11 | LoadC R5 | Store    | Add R4   |          |          | Stall: R4 not
     |          |   R4 R1  |   R3 R2  |          |          |  loaded yet
 ----+----------+----------+----------+----------+----------+
- 12 | LoadC R5 | Store    |          | Add R4   |          | Stall: R4 not 
+ 12 | LoadC R5 | Store    |          | Add R4   |          | Stall: R4 not
     |          |   R4 R1  |          |   R3 R2  |          |  loaded yet
 ----+----------+----------+----------+----------+----------+
- 13 | LoadC R5 | Store    |          |          | Add R4   | Stall: R4 not 
+ 13 | LoadC R5 | Store    |          |          | Add R4   | Stall: R4 not
     |          |   R4 R1  |          |          |   R3 R2  |  loaded yet
 ----+----------+----------+----------+----------+----------+
  14 | LoadC R5 | Store    |          |          |          |
     |          |   R4 R1  |          |          |          |
 ----+----------+----------+----------+----------+----------+
- 15 | Jz R0 R5 | LoadC R5 | Store    |          |          | 
-    |          |          |   R4 R1  |          |          | 
+ 15 | Jz R0 R5 | LoadC R5 | Store    |          |          |
+    |          |          |   R4 R1  |          |          |
 ----+----------+----------+----------+----------+----------+
  16 | Add R4   | Jz R0 R5 | LoadC R5 | Store    |          | Stall: R5 not
     |   R4 R4  |          |          |   R4 R1  |          |  loaded yet
@@ -81,7 +81,7 @@ Time   Fetch      Decode    Execute     Memory   Writeback
  20 | Store    | Add R4   | Jz R0 R5 |          |          | Jump clears PC,
     |   R4 R0  |   R4 R4  |          |          |          | (decode stalls,
 ----+----------+----------+----------+----------+----------+  and no fetch)
- 21 | Store    |          |          |          |          | 
+ 21 | Store    |          |          |          |          |
     |   R4 R0  |          |          |          |          |
 ----+----------+----------+----------+----------+----------+
  22 | Halt     | Store    |          |          |          |
@@ -124,7 +124,7 @@ module mkCPUTestV2(Empty);
    case (n)
       0 :  return (LoadC {rd:R0, v:10});
       1 :  return (LoadC {rd:R1, v:15});
-      2 :  return (LoadC {rd:R2, v:20}); 
+      2 :  return (LoadC {rd:R2, v:20});
       3 :  return (Add {rd:R3, ra:R0, rb:R1});
       4 :  return (Add {rd:R4, ra:R3, rb:R2});
       5 :  return (Store {v:R4, addr:R1});

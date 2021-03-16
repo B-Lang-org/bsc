@@ -36,15 +36,15 @@ mkGCD =
 	      ==> action {
 		    x := y;
 	            y := x; }
-    
+
           "stop":
 	    when not done, y == 0
 	      ==> action { done := True; }
-    
+
           "sub":
 	    when not done, x <= y, y /= 0
 	      ==> action { y := y - x; }
-    
+
         interface
 	    input a b = action {
 			    done := False;

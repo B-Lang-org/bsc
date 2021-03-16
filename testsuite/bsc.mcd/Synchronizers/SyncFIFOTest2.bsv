@@ -7,7 +7,7 @@ Integer period_fast_clk = 7;
 (* synthesize *)
 module sysSyncFIFOTest2();
 
-   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);   
+   Clock fast_clk <- mkAbsoluteClock(2, period_fast_clk);
 
    Reset rst2 <- mkInitialReset(3, clocked_by fast_clk);
 
@@ -62,17 +62,17 @@ module sysSyncFIFOTest2();
      end
      sync2.deq();
    endrule
-   
+
    rule show_empty_full_1;
      $display ("sync1.notFull  = %b", sync1.notFull());
      $display ("sync2.notEmpty = %b", sync2.notEmpty());
    endrule
-   
+
    rule show_empty_full_2;
      $display ("sync1.notEmpty = %b", sync1.notEmpty());
      $display ("sync2.notFull  = %b", sync2.notFull());
    endrule
-   
+
    rule stop (last == 40);
       $finish(0);
    endrule

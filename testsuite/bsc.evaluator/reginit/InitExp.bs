@@ -6,7 +6,7 @@ sysInitExp =
    r :: Reg (Bit 8) <- mkReg (3 + 5)
    done :: Reg (Bool) <- mkReg False
    rules
-     when not done ==> 
+     when not done ==>
        action
          $display "%0d" r
          done := True

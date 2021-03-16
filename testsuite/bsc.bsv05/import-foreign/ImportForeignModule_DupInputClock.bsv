@@ -1,8 +1,8 @@
 // Test that duplicate input clock declarations are not permitted
 
 import "BVI" MOD =
-module mkMyReg ( Clock aClk, 
-		 Clock bClk, 
+module mkMyReg ( Clock aClk,
+		 Clock bClk,
 		 Reg#(Bool) ifcout ) ;
 
    default_clock no_clock ;

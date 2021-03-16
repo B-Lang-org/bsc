@@ -1,19 +1,19 @@
-package Bug1137(sysBug1137) where 
+package Bug1137(sysBug1137) where
 
 import RegFile
 import FIFO
 
 sysBug1137 :: Module Empty
-sysBug1137 = 
-  module 
+sysBug1137 =
+  module
     a :: RegFile (Bit 4) (Int 32)
-    a <- mkRegFileFull 
+    a <- mkRegFileFull
     f :: FIFO (Int 32)
-    f <- mkFIFO1 
+    f <- mkFIFO1
     rules
       when True ==>
-        if ((a.sub 0) == 0) then 
-           action {f.enq 1; (a.upd 1 0)} 
+        if ((a.sub 0) == 0) then
+           action {f.enq 1; (a.upd 1 0)}
         else noAction
 
       when True ==>

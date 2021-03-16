@@ -22,14 +22,14 @@ module sysTestVending(Empty);
   endrule
 
    // Execute the vending machine action
-   // And display output in parallel  
+   // And display output in parallel
    Stmt test_prog =
    (seq
-       action 
+       action
          machine.ten_cent_in;
          $display ("Insert ten cents at time %0t", $time);
        endaction
-       action 
+       action
          machine.ten_cent_in;
          $display ("Insert ten cents at time %0t", $time);
        endaction
@@ -37,18 +37,18 @@ module sysTestVending(Empty);
          machine.fifty_cent_in;
          $display ("Insert fifty cents at time %0t", $time);
        endaction
-       action 
+       action
          machine.money_back_button;
          $display ("Press money back button at time %0t", $time);
        endaction
-       action 
+       action
          machine.ten_cent_in;
          $display ("Insert ten cents at time %0t", $time);
        endaction
-       action 
+       action
          machine.money_back_button;
          $display ("Press money back button at time %0t", $time);
-       endaction       
+       endaction
        // Wait before finishing (for extra output)
        noAction;
        noAction;
@@ -56,7 +56,7 @@ module sysTestVending(Empty);
     endseq);
 
     // Build an FSM for the test program
-    FSM test_fsm <- mkFSM(test_prog); 
+    FSM test_fsm <- mkFSM(test_prog);
 
     Reg#(Bool) test_started <- mkReg(False);
 

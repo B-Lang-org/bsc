@@ -18,10 +18,10 @@ endinterface: ArithIO_IFC
 (* synthesize *)
 module mkFSM(ArithIO_IFC#(StateType));
 
-//Correct line  
+//Correct line
 //Reg#(StateType) curr_state();
 //Missing ()
-  Reg#(StateType) curr_state; 
+  Reg#(StateType) curr_state;
   mkConfigReg#(S0) the_curr_state(curr_state);
 
   rule rule1_StateChange (True);
@@ -36,7 +36,7 @@ module mkFSM(ArithIO_IFC#(StateType));
           curr_state <= next_state;
   endrule: rule1_StateChange
 
-  method result(); 
+  method result();
     return (curr_state);
   endmethod: result
 endmodule: mkFSM

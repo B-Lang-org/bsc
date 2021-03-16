@@ -10,7 +10,7 @@ endinterface:  Design_IFC
 
 (*
    always_enabled,
-   always_ready 
+   always_ready
 *)
 module mkDesign(Design_IFC #(Bit#(16),Bit#(1)));
     Reg#(Bit#(16)) count();
@@ -30,7 +30,7 @@ module mkDesign(Design_IFC #(Bit#(16),Bit#(1)));
 
     method Action start(Bit#(16) term,Bit#(1) load);
         action
-            if ((load == 1) && (count == 0))  
+            if ((load == 1) && (count == 0))
             begin
                     count    <= 0 ;
                     term     <= term;
@@ -38,25 +38,25 @@ module mkDesign(Design_IFC #(Bit#(16),Bit#(1)));
                     fact_val <= 1;
                     enable   <= 1;
             end
-            else if ((enable == 1) && (count != term)) 
+            else if ((enable == 1) && (count != term))
             begin
                     count    <=  count + 1;
                     fact_val <= fact_val * (count + 1);
             end
-            else 
+            else
             begin
                   count <= 0;
                   done_reg <= 1;
                   enable <= 0;
             end
-        endaction          
+        endaction
     endmethod: start
 
     method Bit#(16) fact();
        fact = fact_val;
     endmethod: fact
- 
-    method Bit#(1) done();     
+
+    method Bit#(1) done();
       done = done_reg;
     endmethod: done
 endmodule: mkDesign

@@ -45,9 +45,9 @@ module sysCmplxTest ();
    endfunction
 
    rule first ( cnt == 0 );
-      Complex#(Int#(6)) c = cmplx(-2,7) ;   
+      Complex#(Int#(6)) c = cmplx(-2,7) ;
       cmplxWrite( "( ", " + ", "i)", writeInt, c ); $display("") ;
-      
+
       // Some tests for swap and map
       Complex#(Int#(4)) foo = cmplx( 2, -7 ) ;
       cmplxWrite( "foo is: ( ", " + ", "i)", writeh, foo ) ; $display("" ) ;
@@ -66,7 +66,7 @@ module sysCmplxTest ();
       cmplxWrite( "fpfoo is: ( ", " + ", "i)", fxptWrite(4), fpfoo ) ; $display("" ) ;
    endrule
 
-   
+
    rule display ( True ) ;
       cnt <= cnt + 1 ;
       if ( cnt > 5 ) $finish(0) ;

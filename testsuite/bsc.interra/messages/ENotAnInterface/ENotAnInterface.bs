@@ -13,7 +13,7 @@
 
 package ENotAnInterface() where
 
-struct Counter = 
+struct Counter =
    up     :: PrimAction
    preset :: Bit 4 -> PrimAction
    value  :: Bit 4
@@ -24,4 +24,4 @@ vcount = module verilog "count_4" "clk"
             up = "enable";
             preset = "input" "set";
             value = "output";
-         } 
+         }

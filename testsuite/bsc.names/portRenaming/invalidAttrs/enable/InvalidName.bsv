@@ -4,6 +4,6 @@ interface Ifc;
  method Action check ();
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkInvalidName (Ifc);
 endmodule

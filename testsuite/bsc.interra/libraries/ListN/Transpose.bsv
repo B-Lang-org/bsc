@@ -69,7 +69,7 @@ module mkTestbench_Transpose();
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_Transpose
 endpackage : Transpose

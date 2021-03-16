@@ -13,7 +13,7 @@ function FP_I#(e,s1) multfp ( FP_I#(e,s) inA, FP_I#(e,s) inB )
    begin
       let bias   = fromInteger( exp( 2, (primValueOf ( inA.exp ) - 1)) - 1) ;
       let opSize = fromInteger( primValueOf ( inA.sfd )) ;
-      
+
       FP_Sign signout = inA.sign != inB.sign ;
       // TODO check for overflow
       let expout = ((inA.exp != 0) && (inB.exp != 0 )) ?
@@ -40,7 +40,7 @@ function FP_I#(e,sx) multfp_eprecision ( FP_I#(e,s) inA, FP_I#(e,s) inB )
    begin
       let bias   = fromInteger( exp( 2, (primValueOf ( inA.exp ) - 1)) - 1) ;
       let opSize = fromInteger( primValueOf ( inA.sfd )) ;
-      
+
       FP_Sign signout = inA.sign != inB.sign ;
       // TODO check for overflow
       let expout = ((inA.exp != 0) && (inB.exp != 0 )) ?
@@ -56,7 +56,7 @@ endfunction
 
 
 
-// a IEEE FP 32 bit multiplier 
+// a IEEE FP 32 bit multiplier
 function IEEE754_32
    fpMult( IEEE754_32 inA, IEEE754_32 inB ) ;
    begin
@@ -65,7 +65,7 @@ function IEEE754_32
 
       let bas_res =
           multfp( inAE, inBE  ) ;
-      
+
       // normalize, round, normalize
       let norm1   = normalize1( bas_res ) ;
       let rounded = round ( norm1 ) ;
@@ -75,7 +75,7 @@ function IEEE754_32
    end
 endfunction
 
-// a IEEE FP 32 bit multiplier 
+// a IEEE FP 32 bit multiplier
 function IEEE754_64
    fpMult64( IEEE754_64 inA, IEEE754_64 inB ) ;
    begin
@@ -84,7 +84,7 @@ function IEEE754_64
 
       let bas_res =
           multfp( inAE, inBE  ) ;
-      
+
       // normalize, round, normalize
       let norm1 = normalize1( bas_res ) ;
       let rounded = round ( norm1 ) ;

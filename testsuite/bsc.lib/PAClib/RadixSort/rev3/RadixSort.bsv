@@ -38,7 +38,7 @@ function CountSumLoop_T mkCountSumLoop_T(CountLoop_T in);
    match {.data, .base, .i} = in;
    return tuple4(data, base, i, 0);
 endfunction
- 
+
 function Vector#(16, CountLoop_T) mkVCountLoop_T(Tuple2#(VData_T, UInt#(8)) in);
    match {.data, .base} = in;
    return map(tuple3(data, base), genWith(fromInteger));
@@ -81,7 +81,7 @@ function OutDataLoop_T mkOutDataLoop_T(Tuple2#(VData_T, UInt#(8)) inData, VOffse
    match {.data, .base} = inData;
    return tuple4(data, base, voffset, replicate(0));
 endfunction
- 
+
 function Tuple2#(OutDataLoop_T, UInt#(5)) mkOutDataLoop_Body(Tuple2#(OutDataLoop_T, UInt#(5)) in);
    match {.set, .i} = in;
    match {.inData, .base, .offset_in, .outData_in} = set;

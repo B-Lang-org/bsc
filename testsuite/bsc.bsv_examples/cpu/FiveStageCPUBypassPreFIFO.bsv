@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 
 FiveStageCPUBypassPreFIFO
- 
+
 The modules in this file implement bypassing, but include a bypass from
 the execute stage prior to the enqueue of into the buffer.  This means
 that a value computed in the execute stage is available immediately in
@@ -10,7 +10,7 @@ a longer path, but this longer cycle time may be an acceptable trade-off
 in exchange for greater throughput.
 
 There are several ways to implement this:
- 
+
 1) Define the logic for the execute stage outside of the execute rule.
    Then use that logic both inside the execute rule and inside the decode
    rule.  Common subexpression elimination should result in no duplication
@@ -29,7 +29,7 @@ There are several ways to implement this:
    module.
 
 Below, we implement #3.
-  
+
 -----------------------------------------------------------------------------*/
 
 import RegFile::*;
@@ -167,13 +167,13 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
 
   // ----------------------------
   // Convenience functions
-   
+
   // Functions which check for stall and potential bypass.
   // Note: The functions don't check whether rd == R0.
   // R0's value never changes, so there is never a need to stall,
   // and one must *not* bypass.  This check is done in the
   // function "bypass" below.
-   
+
   function findf_be(r, pci);
     case (tpl_2(pci)) matches
 
@@ -230,14 +230,14 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
 	default : return (Invalid);
      endcase
   endfunction
-  
+
   function bmBypass(r);
      case (bm.find(findf_bm(r))) matches
 	tagged Valid (tagged Valid .v) : return (Valid(v)) ;
 	default : return (Invalid);
      endcase
   endfunction
-  
+
   // A single function which performs the stall check on all FIFOs
   function chk(r); return (beStall(r) || bmStall(r)); endfunction
 
@@ -276,7 +276,7 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
     return (unpack(truncate(i32)));
   endfunction
 
-  Rules decode_non_stall_rules = rules 
+  Rules decode_non_stall_rules = rules
   rule decode_halt
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Halt));
@@ -381,16 +381,16 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
      the branch-not-taken rule doesn't force a conflict with
      the other cases:
      ---------------------------------------------------------
-     
+
      rule execute (bd.first matches {.epc, .instTemplate});
        case (instTemplate) matches
-	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} : 
+	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} :
 	     action
 	        let new_itmpl = ELoadC { rd : rd, v : va + vb };
 	        be.enq(tuple2(epc, new_itmpl));
 	        bd.deq;
 	     endaction
-	  tagged EJz {cd:.cv, addr:.av} : 
+	  tagged EJz {cd:.cv, addr:.av} :
 	     if (cv == 0)
 	       action
 		  pc <= av;
@@ -399,7 +399,7 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
 	       endaction
 	     else
 	          bd.deq;
-	  default : 
+	  default :
 	     action
 	        be.enq(bd.first);
 	        bd.deq;
@@ -504,6 +504,6 @@ module mkFiveStageCPUBypassPreFIFO(CPU);
   endmethod
 
   method done = !started && !bd.notEmpty && !be.notEmpty && !bm.notEmpty;
-   
+
 endmodule: mkFiveStageCPUBypassPreFIFO
 

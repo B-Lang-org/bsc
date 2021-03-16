@@ -26,7 +26,7 @@ module mkTestbench_TransposeLN();
       else
         $display ("Simulation Passes");
 	  $finish(2'b00);
-   endrule 
-      
+   endrule
+
 endmodule : mkTestbench_TransposeLN
 endpackage : TransposeLN

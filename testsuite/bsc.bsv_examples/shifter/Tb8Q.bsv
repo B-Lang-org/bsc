@@ -22,7 +22,7 @@ Testing Ls:
 16'hFFFF << 4'b1110 = 16'b1100000000000000
 16'hFFFF << 4'b1111 = 16'b1000000000000000
 Done
- 
+
 -----------------------------------------------------------------------------*/
 
 import Example8Q::*;
@@ -31,7 +31,7 @@ typedef union tagged {
    void    Start;
    Bit#(3) Ignore1; // ignore the initial outputs
    Bit#(4) Ls;
-   void    Done;	      
+   void    Done;
 } State deriving (Eq, Bits);
 
 module mkTb8 (Empty);
@@ -42,7 +42,7 @@ module mkTb8 (Empty);
    mkLs the_ls(ls);
 
    // Testbench state
-   
+
    Reg#(State) send_state();
    mkReg#(Start) send_state_r(send_state);
 
@@ -51,7 +51,7 @@ module mkTb8 (Empty);
 
    rule test;
       SXpair#(4,16) ls_push_val = ?;
-      
+
       case (send_state) matches
 
 	 tagged Start :
@@ -102,7 +102,7 @@ module mkTb8 (Empty);
 	    end
 
       endcase
-      
+
    endrule
 
 endmodule

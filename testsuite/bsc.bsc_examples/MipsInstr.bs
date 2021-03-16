@@ -30,7 +30,7 @@ data Instruction
 	| Jump      { op :: Op; target :: UInt26; }
 
 
-data Op 
+data Op
 	= SPECIAL | REGIMM | J | JAL | BEQ | BNE | BLEZ | BGTZ
 	| ADDI | ADDIU | SLTI | SLTIU | ANDI | ORI | XORI | LUI
 	| COP0 | COP1 | COP2 | OP19 | BEQL | BNEL | BLEZL | BGTZL
@@ -119,7 +119,7 @@ instance Bits Instruction 32 where
                 rt = unpack bs[20:16];
                 imm = unpack bs[15:0];
                 }
-        unpack bs 
+        unpack bs
             when isSpecialInstr bs = Register {
                 rs = unpack bs[25:21];
                 rt = unpack bs[20:16];
@@ -127,7 +127,7 @@ instance Bits Instruction 32 where
                 sa = unpack bs[10:6];
 		funct = unpack bs[5:0];
                 }
-        unpack bs 
+        unpack bs
             when isREGIMMInstr bs = RegImm {
                 rs = unpack bs[25:21];
                 op = unpack bs[20:16];

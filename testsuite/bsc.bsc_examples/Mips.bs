@@ -6,7 +6,7 @@ import MipsCPU
 import MipsROM
 
 sysMips :: Module Empty
-sysMips = 
+sysMips =
     module
 	ram :: MRAM
 	ram <- mkRAM

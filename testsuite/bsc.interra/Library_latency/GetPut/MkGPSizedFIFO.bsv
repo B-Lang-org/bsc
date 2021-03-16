@@ -10,7 +10,7 @@ endmodule: mkDesign_MkGPSizedFIFO
 
 
 module mkTestbench_MkGPSizedFIFO ();
-        
+
   GetPut#(Bit#(8)) datafifo();
   mkGPSizedFIFO #(16) the_datafifo (datafifo) ;
   Reg#(Bit#(8)) counter <- mkReg(0);
@@ -75,5 +75,5 @@ module mkTestbench_MkGPSizedFIFO ();
 	$finish(2'b00);
   endrule
 
-endmodule: mkTestbench_MkGPSizedFIFO 
+endmodule: mkTestbench_MkGPSizedFIFO
 endpackage: MkGPSizedFIFO

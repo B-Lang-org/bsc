@@ -11,7 +11,7 @@ sysIfInNosplitIfBenign =
     c :: Reg Bool <- mkRegU
     d :: Reg Bool <- mkRegU
     rules
-        when True ==> 
+        when True ==>
 	     nosplitIf c
 	     (r := if d then 1 else 2)
 	     (s := if d then 3 else 5)

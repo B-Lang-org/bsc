@@ -17,28 +17,28 @@ module mkDesign (Design_IFC);
 
    Reg#(Bit#(4)) multiplier() ;
    mkRegU i_mult(multiplier) ;
-   
+
    Reg #(Bit#(8) ) multiplicand();
    mkRegU i_multiplicand(multiplicand) ;
-   
+
    Reg #(Bit#(8) ) accumulator();
    mkReg#(0) i_acc(accumulator);
-   
+
    Reg #(Bit#(1) ) done_reg();
    mkRegA#(0) i_done_reg(done_reg);
-   
+
    Reg #(Bit#(4) ) count();
    mkReg#(0) i_count(count);
-   
+
    Reg #(Bit#(1) ) enable();
    mkReg#(0) i_enable(enable) ;
-   
+
 
   method  shift_and_add (a,b,load);
     action
      Bit#(1) x;
      x = 0;
-     if ((load == 1) && (count == 0 )) 
+     if ((load == 1) && (count == 0 ))
         begin
           accumulator <= 0;
           multiplicand <= {4'b0000,a};
@@ -47,20 +47,20 @@ module mkDesign (Design_IFC);
           done_reg <= 1'b0;
           enable <= 1'b1;
         end
-     else if ((enable == 1) && (count != 4)) 
+     else if ((enable == 1) && (count != 4))
         begin
-          //if (multiplier[0] == 1'b1) 
+          //if (multiplier[0] == 1'b1)
           x = multiplier[0];
-          if (x == 1) 
+          if (x == 1)
              accumulator <= accumulator + multiplicand ;
-          else 
+          else
              accumulator <= accumulator;
           multiplier <= multiplier >> 1;
           multiplicand <= multiplicand << 1;
           count <= count + 1;
           done_reg <= 1'b0;
         end
-     else 
+     else
         begin
           count <= 0;
           done_reg <= 1;
@@ -78,4 +78,4 @@ module mkDesign (Design_IFC);
   endmethod: product
 
 endmodule: mkDesign
-endpackage: Design 
+endpackage: Design

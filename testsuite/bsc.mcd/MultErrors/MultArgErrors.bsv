@@ -44,10 +44,10 @@ module mkMultArgErrors#(Clock c1, Clock c2, Reset r1, Reset r2)();
 
   Reg#(Bit#(32)) param_inst <- mkParam(param, clocked_by c, reset_by r);
   Reg#(Bit#(32)) param_inst_2 <- mkParam(arg_p);
-   
+
   rule test;
     $display(port_inst.count);
     $finish(0);
   endrule
-       
+
 endmodule

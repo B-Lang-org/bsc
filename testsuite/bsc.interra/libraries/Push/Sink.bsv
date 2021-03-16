@@ -11,7 +11,7 @@ module mkTestbench_Sink ();
       if (t > 1005)
          $finish(0);
    endrule
-   
+
 endmodule : mkTestbench_Sink
 
 endpackage : Sink

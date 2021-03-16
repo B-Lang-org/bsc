@@ -19,7 +19,7 @@ module mkDesign_Pipe (MkDesign_IFC);
 
     FIFO #(Bit #(8)) a0 <- mkFIFO ;
     RPush #(Bit #(8)) push_a0 = fifoToRPush (a0);
-    
+
     RPush #(Bit #(8)) shifter();
     pipe #(RPush :: buffered (shift (2)), RPush :: buffered (shift (1), push_a0)) the_shifter (shifter);
 
@@ -28,7 +28,7 @@ module mkDesign_Pipe (MkDesign_IFC);
         shifter.push (invalue);
        endaction
     endmethod : put
-    
+
     method clr ();
        action
         shifter.clear ();
@@ -45,7 +45,7 @@ module mkDesign_Pipe (MkDesign_IFC);
 endmodule : mkDesign_Pipe
 
 module mkTestbench_Pipe ();
-   
+
      MkDesign_IFC dut();
      mkDesign_Pipe the_dut (dut);
 
@@ -86,7 +86,7 @@ module mkTestbench_Pipe ();
          count_in <= count_in + 1;
          Bit #(8) value_out <- dut.get();
          Bit #(8) expected_value=0;
-         
+
          case (count_in)
          0 : expected_value = 5 << 3;
          1 : expected_value = 20 << 3;
@@ -97,12 +97,12 @@ module mkTestbench_Pipe ();
          4 : expected_value = 38 << 3;
          5 : expected_value = 42 << 3;
          endcase
-        
+
          $display ("Clock Cycle Number = %d, Value Got = %d, Expected Value = %d", counter, value_out, expected_value);
 
          if (counter > 2 && expected_value != value_out)
             fail <= True;
-         
+
     endrule
 
     rule end_sim (counter == 20);
@@ -112,10 +112,10 @@ module mkTestbench_Pipe ();
              $display ("Simulation Passes");
          $finish (2'b00);
     endrule
-       
 
-endmodule : mkTestbench_Pipe 
-          
-     
+
+endmodule : mkTestbench_Pipe
+
+
 
 endpackage : Pipe

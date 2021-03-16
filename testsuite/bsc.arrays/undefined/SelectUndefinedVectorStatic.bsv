@@ -2,7 +2,7 @@ import Vector :: *;
 
 (* synthesize *)
 module sysSelectUndefinedVectorStatic();
-  
+
   Vector#(4, Bit#(8)) vec = ?;
 
   rule test;

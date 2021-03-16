@@ -11,5 +11,5 @@ module mkTest();
       $display(b);
       $finish(0);
    endrule
-   
+
 endmodule

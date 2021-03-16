@@ -9,7 +9,7 @@ module sysEUndetReset2(Empty);
 
   Reg#(Bool) s();
   mkReg#(False) the_s(s, reset_by r);
- 
+
 endmodule
 
 

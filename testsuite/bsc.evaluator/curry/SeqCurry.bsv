@@ -8,7 +8,7 @@ endfunction
 
 (* synthesize *)
 module mkSeqCurry();
-  
+
   let m1 = message("m1");
   let m2 = message("m2");
   let m3 = message("m3");
@@ -16,7 +16,7 @@ module mkSeqCurry();
   Reg#(Bool) switch <- mkReg(False);
 
   Integer test = (switch ? primSeq(m2,a) : primSeq(primSeq(m3,m1),b))(5);
-  
+
   rule go;
     $display(test);
     $finish(0);

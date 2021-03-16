@@ -9,7 +9,7 @@ function Bool getWithDefault(Maybe#(Bool) x);
       tagged Valid .a : return a;
    endcase
 endfunction
-   
+
 (* synthesize *)
 module mkValueMethodEx2Mod1 (IFC);
    Reg#(Bool) rg <- mkRegU;

@@ -8,7 +8,7 @@
 -- Description: This testcase triggers the ERuleAssertion error of the bluespec
 -- compiler ("Assertion" failed for rule "RULE")
 --
--- Error generated when verilog requested for mkGCD 
+-- Error generated when verilog requested for mkGCD
 -----------------------------------------------------------------------
 
 

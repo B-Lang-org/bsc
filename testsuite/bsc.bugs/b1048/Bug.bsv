@@ -9,7 +9,7 @@ interface VBug#(type n) ;
    method ActionValue#(Bit#(n)) next();
 endinterface
 
-import "BVI" ConstrainedRandom = 
+import "BVI" ConstrainedRandom =
 module vmkBug#(Integer width) (VBug#(n));
 
    default_clock clk(CLK);

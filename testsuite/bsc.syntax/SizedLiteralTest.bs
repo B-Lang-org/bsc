@@ -29,8 +29,7 @@ sysSizedLiteralTest =
           $display "%h %h %h" (4'b0 ++ pack c) (8'b0 ++ pack d) (12'b0 ++ pack y)
 	  if a == b && b == z &&
 	     c == d && d == y &&
-	     e == f && f == x   
+	     e == f && f == x
 	    then $display "PASS"
 	    else $display "FAIL"
 	  $finish 0
-	  

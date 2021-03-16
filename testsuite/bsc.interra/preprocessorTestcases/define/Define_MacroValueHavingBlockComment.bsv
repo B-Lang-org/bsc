@@ -1,6 +1,6 @@
 /*
 PURPOSE - Simple testcase using the 'define preprocessor directive
- 
+
 */
 package Design ;
 
@@ -16,7 +16,7 @@ function Bit#(4) result (Bit #(4) x);
 Bit #(4) res;
   res = x ^ (x >> 1) ;
   return res;
-endfunction 
+endfunction
 
 (*
        always_ready ,
@@ -30,11 +30,11 @@ module mkDesign (Design_IFC);
 
  method Bit#(4) out_data(Bit#(4) in_data);
 `define MAX 23
-    if(`MAX > 1) 
+    if(`MAX > 1)
       out_data = 12;
-    else 
+    else
       out_data = 13;
   endmethod: out_data
 
 endmodule : mkDesign
-endpackage: Design 
+endpackage: Design

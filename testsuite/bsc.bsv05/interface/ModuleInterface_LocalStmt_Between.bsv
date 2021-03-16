@@ -10,7 +10,7 @@ endinterface
 
 module sysModuleInterface_LocalStmt_Between(TopIfc);
     Reg#(Bool) r <- mkReg(False);
-    
+
     interface SubIfc s;
         method Action m1();
 	   r <= !r;

@@ -1,5 +1,5 @@
 package StructWithContext () where
-	
+
 struct Foo =
     bar :: (Bits a sa) => a -> Action
 

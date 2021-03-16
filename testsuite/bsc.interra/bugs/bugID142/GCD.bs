@@ -3,7 +3,7 @@
 -- Author   : Interra
 -- BugID    : 142
 -- CommandLine : bsc -verilog -g mkGCD GCD.bs
--- Status : Fixed for BSC 3.74 
+-- Status : Fixed for BSC 3.74
 ----------------------------------------------------
 
 package GCD (GCD(..), mkGCD) where

@@ -1,12 +1,12 @@
 // --------------------------------------------------------
 //
 //    This bluespec module contains a case statement which
-//    causes an error report that seems equivalent to a core 
+//    causes an error report that seems equivalent to a core
 //    dump.
 //
 //    I put the error messages at the bottom of this file.
 //    The error message does not give a line number.  When
-//    many registers are defined the error report is 
+//    many registers are defined the error report is
 //    huge. This error message is also at the bottom of this
 //    file.
 //
@@ -17,32 +17,32 @@ typedef bit  [7:0] Addr_type;
 typedef bit [31:0] Data_type;
 
 interface Interface_reg #(type addr_type, type data_type);
-   
+
    // define write template
    method Action write(
-      addr_type addr, 
+      addr_type addr,
       data_type data_out
    );
-   
+
    // define read template
    method data_type   read(addr_type addr);
 
    // AMBA MASTER METHODS
-   
+
 endinterface // interface_reg
 
 
 (* synthesize *)
 module dmac (Interface_reg #(Addr_type,Data_type));
 
-   method Data_type read(Addr_type addr); 
+   method Data_type read(Addr_type addr);
 
       // ******** THIS CASE STATEMENT CAUSES THE ERROR ***************
 
       case (addr)
          default: read = 32'b0;
       endcase
-   endmethod // read 
+   endmethod // read
 
 
    method Action write (Addr_type addr, Data_type data_out);

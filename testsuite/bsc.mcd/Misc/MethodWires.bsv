@@ -7,7 +7,7 @@ endinterface: Ifc
 module sysMethodWires(Ifc);
 
    Reg#(Bool) state <- mkReg(False);
-   
+
    method Bool get() if (state);
       return False;
    endmethod: get

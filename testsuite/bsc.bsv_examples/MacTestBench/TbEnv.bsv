@@ -13,17 +13,17 @@ import Clocks::*;
 
 (* synthesize *)
 module mkTbEnv (Empty);
-   
+
    // divide the clock
    ClockDividerIfc divClock <- mkClockDivider(10);
-   
+
    Clock phy_clk = divClock.slowClock ;
    Reset phy_reset <- mkAsyncResetFromCR(3, phy_clk);
-   
+
    Empty main <- mkTbEnv0(phy_clk, phy_reset);
-   
+
 endmodule
-      
+
 endpackage
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,6 @@ interface Ifc;
  method Bool check ();
 endinterface
 
-(* synthesize *) 
+(* synthesize *)
 module mkInvalidName (Ifc);
 endmodule

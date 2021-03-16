@@ -27,5 +27,5 @@ module [Module] mkWillFire2CanFire(ArithIO);
 
 endmodule
 
-endpackage 
+endpackage
 

@@ -30,7 +30,7 @@ module sysDerive1();
 
     $finish(0);
    endrule
-     
+
 endmodule
 
 endpackage

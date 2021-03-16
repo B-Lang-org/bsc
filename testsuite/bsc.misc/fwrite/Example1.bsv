@@ -2,11 +2,11 @@
 
 (* synthesize *)
 module sysExample1 () ;
-   
+
    Reg#(int) cnt <- mkReg(0);
    let fh <- mkReg(InvalidFile) ;
    let fmcd <- mkReg(InvalidFile) ;
-   
+
    rule open (cnt == 0 ) ;
       // Open the file and check for proper opening
       String dumpFile =  "dump_file1.dat" ;
@@ -35,17 +35,17 @@ module sysExample1 () ;
       fmcd <= lmcd ;               // Save the file in a Register
    endrule
 
-   
+
    rule dump (cnt > 1 );
       $fwrite( fh , "cnt = %0d\n", cnt);
       $fwrite( fmcd , "cnt = %0d\n", cnt);
       cnt <= cnt + 1;
    endrule
-   
+
    rule finish (cnt > 15);
       $fclose( fmcd );
       $fclose( fh ) ;
       $finish(0);
    endrule
-   
+
 endmodule

@@ -11,7 +11,7 @@ typedef enum {Init, Test}
 module sysRegFileVector();
 
   Vector#(8, RegFile#(UInt#(3), UInt#(6))) rfs <- replicateM(mkRegFileFull);
-  
+
   Reg#(State) state <- mkReg(Init);
 
   Reg#(UInt#(3)) idx <- mkReg(0);
@@ -41,13 +41,12 @@ module sysRegFileVector();
        pass = pass && rfs[i].sub(3) == fromInteger(i*3);
        pass = pass && rfs[i].sub(idx) == fromInteger(i)*zeroExtend(idx);
     end
-    if(pass) 
+    if(pass)
       $display("Pass at idx %0d", idx);
     else
-      $display("Fail at idx %0d", idx); 
+      $display("Fail at idx %0d", idx);
     if(idx == 7) $finish(0);
   endrule
 
 endmodule
-  
-          
+

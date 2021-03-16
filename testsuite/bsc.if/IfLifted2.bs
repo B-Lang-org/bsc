@@ -2,7 +2,7 @@ package IfLifting2(sysIfLifting) where
 
 -- Test out the lifting of method calls that are not just sets
 
-import FIFO 
+import FIFO
 
 sysIfLifting :: Module Empty
 sysIfLifting =

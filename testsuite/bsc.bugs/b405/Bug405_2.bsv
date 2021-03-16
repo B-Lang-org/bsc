@@ -15,7 +15,7 @@ function UInt#(k) msBit(Bit#(s) din)
    end
 
    return res ;
-   
+
 endfunction
 
 (* noinline *)

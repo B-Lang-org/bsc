@@ -32,14 +32,14 @@ module mkTestbench_MkRequestResponseBuffer1 ();
      in_data1 <= in_data1 + 1;
      $display("Cycle Number: %d, Writing Data On Server Side: %d", counter, in_data1);
    endrule
-   
+
    rule data_write2 (True);
 	 (Client#(Bit#(8),Bit#(8))'(tpl_1(tx_datafifo))).response.put(in_data2);
      in_data2 <= in_data2 + 5;
      $display("Cycle Number: %d, Writing Data On Client Side: %d", counter, in_data2);
    endrule
 
-   rule read_value1 (True); 
+   rule read_value1 (True);
 	 Bit#(8) first <- (Client#(Bit#(8),Bit#(8))'(tpl_1(tx_datafifo))).request.get;
      out_data1 <= out_data1 + 1;
 	 $display("Cycle Number = %d, Value read from Client Side= %d",counter, first);
@@ -47,7 +47,7 @@ module mkTestbench_MkRequestResponseBuffer1 ();
          fail <= True;
   endrule
 
-   rule read_value2 (True); 
+   rule read_value2 (True);
 	 Bit#(8) second <- (Server#(Bit#(8),Bit#(8))'(tpl_2(tx_datafifo))).response.get;
      out_data2 <= out_data2 + 5;
 	 $display("Cycle Number = %d, Value read from Server Side= %d",counter, second);

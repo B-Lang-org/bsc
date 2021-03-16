@@ -5,7 +5,7 @@
 (* synthesize *)
 module sysDesign(Empty);
 
-   for (Integer j = 0; j < 4; j = j + 1) 
+   for (Integer j = 0; j < 4; j = j + 1)
       begin
 	 Empty x();
 	 mkJ the_x(x);
@@ -19,7 +19,7 @@ module mkJ(Empty);
    mkReg#(12) the_g(g);
 
 
-   for (Integer w = 0; w < 4; w = w + 1) 
+   for (Integer w = 0; w < 4; w = w + 1)
       begin
 	 Reg#(Bit#(8)) z();
 	 mkReg#(12) the_z(z);
@@ -30,17 +30,17 @@ module mkJ(Empty);
 	 rule bax (True);
 	    $display("def %d", 3);
 	 endrule
-	 
+
       end
 
 endmodule
 
 module mkL(Empty);
-   
+
    rule baz (True);
       $display("XXX!");
    endrule
-   
+
 endmodule
 
 

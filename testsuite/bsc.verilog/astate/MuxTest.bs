@@ -2,14 +2,14 @@ package MuxTest(sysMuxTest) where
 
 {-# verilog sysMuxTest #-}
 sysMuxTest :: Module Empty
-sysMuxTest = 
+sysMuxTest =
   module
     r :: Reg (Bit 3) <- mkReg 0
     counter :: Reg (Bit 8) <- mkReg 0
     a :: Reg (Bool) <- mkReg False
     b :: Reg (Bool) <- mkReg False
 
-    rules 
+    rules
       when True ==> counter := counter + 1
       when (counter == 2) ==> a := True
       when (counter == 5) ==> action {a := False; b := True}

@@ -8,27 +8,27 @@ sysNamingNestedWhens =
 	b :: Reg Bool
 	b <- mkReg False
         rules
-    
+
           "tag1":
-	    when a 
+	    when a
 	     rules {
-    
+
 	       "tag2":
 	         when b
 	           ==> a := not a;
-    
+
 	       "tag3":
 	         when not b
 	           ==> b := not b;
             };
-    
-            when not a 
+
+            when not a
 	     rules {
-    
+
 	       "tag4":
                  when b
                    ==> b := not a;
-    
+
                  when not b
                    ==> a := b;
 	    }

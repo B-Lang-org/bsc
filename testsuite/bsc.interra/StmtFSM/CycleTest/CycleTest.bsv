@@ -9,18 +9,18 @@ import StmtFSM::*;
 function ActionValue#(Bit#(64)) adj_time();
    actionvalue
      let x <- $time();
-     if (genVerilog) x = x + 5;     
+     if (genVerilog) x = x + 5;
      return x;
-   endactionvalue     
+   endactionvalue
 endfunction
 
 (* synthesize *)
 module sysCycleTest (Empty);
-   
-   Reg#(Bit#(8))  count   <- mkReg(0);  
+
+   Reg#(Bit#(8))  count   <- mkReg(0);
    Reg#(Bit#(16)) partial <- mkReg(0);
    Reg#(Bit#(16)) result  <- mkReg(0);
-   
+
    function RStmt#(Bit#(16)) scaleSeq (Integer scale, Bit#(8) value);
       seq
 	 partial <= 0;
@@ -43,20 +43,20 @@ module sysCycleTest (Empty);
 			 count <= count + 1;
 		      endaction
 		   endseq;
-   
+
    let test_fsm <- mkFSM(test_seq);
 
    rule start;
       $display("(%0d) starting", adj_time);
       test_fsm.start;
    endrule
-   
+
    rule done (count == 6);
       $finish;
    endrule
 
-      
+
 endmodule
 
 
-endpackage  
+endpackage

@@ -107,5 +107,5 @@ posX (XCoord x) = x[fromInteger $ valueOf XCoordSize - 1
 limitY :: YCoord -> YCoord
 limitY (YCoord y) = let limit = 8
                     in if signedLT y (negate limit) then YCoord (negate limit)
-                       else if signedLT limit y then YCoord limit 
+                       else if signedLT limit y then YCoord limit
                        else YCoord y

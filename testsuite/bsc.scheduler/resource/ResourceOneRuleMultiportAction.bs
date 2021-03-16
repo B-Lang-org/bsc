@@ -32,7 +32,7 @@ interface VRegFile ni na =
 
 vMkRegFile :: Integer -> Integer -> Module (VRegFile i a)
 vMkRegFile lo hi =
-    module verilog "RegFile" (("addr_width", valueOf i), 
+    module verilog "RegFile" (("addr_width", valueOf i),
                               ("data_width", valueOf a),
                               ("lo", lo), ("hi", hi)) "CLK" {
         upd[2] = "ADDR_IN" "D_IN" "WE";

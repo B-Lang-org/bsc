@@ -2,9 +2,9 @@ package WideDisplay;
 
 (* synthesize *)
 module sysWideDisplay (Empty);
-   
+
    Reg#(Bit#(256)) count <- mkReg(0);
-   
+
    rule every;
       count <= count + 1;
       $display("Value in decimal: %0d", count);
@@ -13,7 +13,7 @@ module sysWideDisplay (Empty);
       $display("Value in binary:  %0b", count);
       if (count == 10) $finish(0);
    endrule
-      
+
 endmodule
 
 endpackage

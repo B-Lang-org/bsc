@@ -3,8 +3,8 @@
 (* synthesize *)
 interface Foo ;
    method Action start () ;
-endinterface 
-      
+endinterface
+
 module sysT2();
 endmodule
 

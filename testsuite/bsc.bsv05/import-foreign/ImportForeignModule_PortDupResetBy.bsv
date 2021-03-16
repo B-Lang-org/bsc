@@ -14,7 +14,7 @@ module mkMyReg ( Clock aClk, Reset aRst,
 
    input_reset aRst1 (RST1) clocked_by(aClk1) = aRst;
    input_reset aRst2 (RST1) clocked_by(aClk2) = bRst;
-   
+
    port B reset_by(r1) clocked_by(aClk2) reset_by(r2) = b;
 
    method       _write(D_IN) enable(EN) clocked_by(aClk1);

@@ -1,6 +1,6 @@
 package Design_case;
-         
-interface Design_case_IFC;  
+
+interface Design_case_IFC;
     method Action start(Bit#(1) load);
     method Bit#(1) case();
 endinterface : Design_case_IFC
@@ -14,7 +14,7 @@ endinterface : Design_case_IFC
 
 module mkDesign_case (Design_case_IFC);
     Reg #(Bit#(1)) temp_reg <- mkRegA(0);
-  
+
     method Action start(Bit#(1) load);
         action
          if (load == 1)

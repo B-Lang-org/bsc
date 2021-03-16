@@ -3,8 +3,8 @@ String readFile = "gettests.dat";
 
 (* synthesize *)
 module sysGetC_err3 () ;
-     
-   
+
+
    rule open ( True ) ;
       let lfh <- $fopen(readFile, "r" ) ;
       //  Need to use bind operation here.
@@ -13,8 +13,8 @@ module sysGetC_err3 () ;
       $display( "reading the first character from %s is '%c' %h", readFile, j, j ) ;
       $fclose ( lfh ) ;
       $finish(0);
-      
+
    endrule
-   
-   
+
+
 endmodule

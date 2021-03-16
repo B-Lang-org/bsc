@@ -1,5 +1,5 @@
 package TypeClassString where
-  
+
 data Foo = Foo
 data Bar = Bar
 

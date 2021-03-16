@@ -9,10 +9,10 @@ module sysRWireUrgency2(Empty);
   mkReg#(0) the_s(s);
   Reg#(Bit#(23)) t();
   mkReg#(0) the_t(t);
-  
+
   RWire#(Bool) rw();
   mkRWire the_rw(rw);
-  
+
   RWire#(Bit#(0)) rw2();
   mkRWire the_rw2(rw2);
 
@@ -35,12 +35,12 @@ module sysRWireUrgency2(Empty);
     $display("Rule c s: %0d", s);
     t <= t + 1;
   endrule
-  
-  // happens after a and before e, 
+
+  // happens after a and before e,
   // but should not fire because a
   // didn't fire
   rule d (rw2.wget() != Invalid);
-    $display("SHOULDN'T FIRE"); 
+    $display("SHOULDN'T FIRE");
     $display("Rule d s: %0d", s);
   endrule
 
@@ -53,4 +53,4 @@ module sysRWireUrgency2(Empty);
 endmodule
 
 
-     
+

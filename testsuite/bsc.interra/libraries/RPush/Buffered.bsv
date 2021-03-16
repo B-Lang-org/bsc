@@ -6,14 +6,14 @@ import FIFO :: *;
 function Bit #(16) square (Bit #(8) in_a);
     return zeroExtend (in_a) * zeroExtend (in_a);
 endfunction : square
-       
+
 
 interface Design_IFC;
    method Action push (Bit #(8) in_a);
    method Action clr ();
    method ActionValue #(Bit #(16)) result();
 endinterface :Design_IFC
- 
+
 module mkDesign_Buffered (Design_IFC);
 
     FIFO #(Bit #(16)) fifo1();
@@ -21,7 +21,7 @@ module mkDesign_Buffered (Design_IFC);
 
     RPush #(Bit #(8)) output_a();
     buffered #(square, fifoToRPush(fifo1)) the_output_a (output_a);
-            
+
     method push(in_a);
        action
           output_a.push(in_a);
@@ -47,18 +47,18 @@ endmodule : mkDesign_Buffered
 module mkTestbench_Buffered ();
     Design_IFC dut();
     mkDesign_Buffered the_dut (dut);
-    
+
     Reg #(Bit #(8)) counter();
     mkReg #(0) the_counter (counter);
-    
+
     Reg #(Bool) fail();
     mkReg #(False) the_fail (fail);
-    
+
     rule always_fire (True);
         counter <= counter + 1;
     endrule
-    
-    rule push_values (counter < 20);   //Push 20 Values   
+
+    rule push_values (counter < 20);   //Push 20 Values
         if (counter == 5 || counter == 10 || counter == 15)
         begin
            dut.clr();
@@ -72,7 +72,7 @@ module mkTestbench_Buffered ();
     endrule
 
 
-    rule pop_values (counter !=5 && counter !=6 && counter !=8 );            
+    rule pop_values (counter !=5 && counter !=6 && counter !=8 );
         Bit #(16) result <- dut.result;
         $display ("Cycle Number = %d, Popped Out Value = %d", counter, result);
         if (counter <=8 && result != square(counter-2))
@@ -84,7 +84,7 @@ module mkTestbench_Buffered ();
     endrule
 
     rule endsim (counter == 8'd25);
-        if (fail ) 
+        if (fail )
            $display("Simulation Fails");
         else
            $display("Simulation Passes");

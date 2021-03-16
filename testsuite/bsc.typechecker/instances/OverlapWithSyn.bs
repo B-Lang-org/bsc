@@ -3,7 +3,7 @@ package OverlapWithSyn(sysOverlapWithSyn) where
 class Displayable a where
    display :: a -> Action
 
-instance (Bits a sa) => Displayable a 
+instance (Bits a sa) => Displayable a
    where
      display a = $display "Bits %h" a
 
@@ -12,18 +12,18 @@ type AnyBits n = Bit n
 type Bit8 = Bit 8
 
 instance Displayable (AnyBits n)
-   where 
-     display a = $display "AnyBits %h" a 
+   where
+     display a = $display "AnyBits %h" a
 
-instance Displayable (Bit8) 
+instance Displayable (Bit8)
    where
      display a = $display "Bit8 %h" a
 
 {-# verilog sysOverlapWithSyn #-}
 sysOverlapWithSyn :: Module Empty
-sysOverlapWithSyn = 
+sysOverlapWithSyn =
   module
-    rules  
+    rules
       "test":
          when True  ==>
            let x :: Bit 8
@@ -33,7 +33,7 @@ sysOverlapWithSyn =
                z :: Int 32
                z = 32
            in
-             action 
+             action
                 display x
                 display y
                 display z

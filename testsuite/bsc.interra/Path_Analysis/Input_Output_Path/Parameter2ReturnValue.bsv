@@ -1,4 +1,4 @@
-//Signal from Parameter to Return value of another method, 
+//Signal from Parameter to Return value of another method,
 //Should report when using the -dpathsPostSched flag
 
 package Parameter2ReturnValue;
@@ -12,11 +12,11 @@ endinterface
 (* synthesize *)
 
 module mkParameter2ReturnValue #(Bit #(8) param) (Parameter2ReturnValueInter);
-    
+
     method result;
         return (param);
     endmethod
-   
+
 endmodule
 
 

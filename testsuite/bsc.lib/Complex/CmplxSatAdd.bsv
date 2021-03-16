@@ -10,7 +10,7 @@ module sysCmplxSatAdd();
    Reg#(Complex#(Int#(10)))  c2 <- mkReg(200);
    Reg#(Complex#(Int#(10)))  c3 <- mkReg(3);
    Reg#(Int#(10))     cnt <- mkReg(0);
-   
+
    rule tester (True);
    // $display ("%d: ", cnt, fshow(c1), " " , fshow(c2), " ", fshow(c3));
       $display ("%0d: <%0d, %0d> <%0d, %0d> <%0d, %0d>", cnt, c1.rel, c1.img, c2.rel, c2.img, c3.rel, c3.img);

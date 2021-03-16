@@ -7,7 +7,7 @@
 
 -- Description: This testcase triggers a "Bad character in input" error (EBadLexChar)
 
--- Error Message :bsc EBadLexChar1.bs 
+-- Error Message :bsc EBadLexChar1.bs
 -- bsc: Compilation errors:
 -- "EBadLexChar1.bs", line 26, column 8, Bad character in input: '\''
 -----------------------------------------------------------------------
