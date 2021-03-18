@@ -4,7 +4,7 @@ name: CI
 on: [ push, pull_request ]
 
 jobs:
-  build-check:
+  build-check-src:
     name: "Check: code cleanliness"
     runs-on: ubuntu-18.04
     steps:
@@ -12,6 +12,17 @@ jobs:
       - name: Check tabs and whitespace
         shell: bash
         run: ".github/workflows/check_whitespace.sh"
+
+  build-check-testsuite:
+    name: "Check: testsuite lint"
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check CONFDIR
+        run: |
+          cd testsuite
+          ../.github/workflows/check_confdir.py
+          ../.github/workflows/check_symlinks.py
 
   build-ubuntu:
     strategy:
@@ -199,3 +210,168 @@ jobs:
         with:
           name: ${{ matrix.os }} build doc
           path: inst.tar.gz
+
+  test-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+      fail-fast: false
+    name: "Test ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    needs: build-ubuntu
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: "sudo .github/workflows/install_dependencies_testsuite_ubuntu.sh"
+
+      - name: Download bsc
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
+
+      # Restore the cache of a SystemC build if it exists and the
+      # build script hasn't changed.
+      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
+      - name: Cache SystemC build
+        id: systemc-cache
+        if: matrix.os != 'ubuntu-20.04'
+        uses: actions/cache@v2
+        env:
+          cache-name: systemc-build
+        with:
+          path: ~/systemc
+          key: ${{ matrix.os }}-build-${{ env.cache-name }}-${{ hashFiles('.github/workflows/build_systemc.sh') }}
+
+      # If there's no cached build, download the source tarball,
+      # do the build (and the cache action will save it for us at
+      # the end of a successful workflow)
+      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
+      - name: Build SystemC
+        if: matrix.os != 'ubuntu-20.04' && steps.systemc-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: ".github/workflows/build_systemc.sh"
+
+      # Finally, after all this setup, run the testsuite!
+      - name: Run testsuite
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=/usr/lib/ccache:$PATH
+
+          REL=$(lsb_release -rs | tr -d .)
+          if [ $REL -ge 1804 ]; then
+              export LINKER=lld
+          else
+              export LINKER=gold
+          fi
+          export LDFLAGS="-Wl,-fuse-ld=$LINKER"
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations), and gold as the C++
+          # linked for a moderate build-time speedup over ld.bfd.
+          export CXXFLAGS="-O0"
+
+          if [ $REL -lt 1910 ]; then
+              export TEST_SYSTEMC_INC=$HOME/systemc/include
+              export TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
+          fi
+
+          make -C testsuite
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: logs-${{ matrix.os }}
+          path: logs.tar.gz
+
+  test-macOS:
+    strategy:
+      matrix:
+        os: [ macos-10.15 ]
+    name: "Test ${{ matrix.os }}"
+    runs-on: ${{ matrix. os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        shell: bash
+        run: ".github/workflows/install_dependencies_testsuite_macos.sh"
+
+      - name: Download bsc
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-10.13+ build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: ${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os }}-ccache-
+
+      - name: Run testsuite
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations).
+          export CXXFLAGS="-O0"
+          make -C testsuite \
+               TEST_SYSTEMC_INC=$(brew --prefix systemc)/include \
+               TEST_SYSTEMC_LIB=$(brew --prefix systemc)/lib
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-logs-${{ matrix.os }}
+          path: logs.tar.gz
