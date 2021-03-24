@@ -122,7 +122,7 @@ jobs:
           CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
         run: |
           ccache --zero-stats --max-size 250M
-          export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
 
           # Hack: Remove incompatible TCL header that something has installed
           # in /usr/local/include in the GitHub CI image. This dir is at the
@@ -349,7 +349,7 @@ jobs:
         run: |
           # Use ccache to avoid recompiling generated .cxx every run.
           ccache --zero-stats --max-size 500M
-          export PATH=$(brew --prefix)/opt/local/ccache/libexec:$PATH
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
 
           # Always archive logs, even if make fails (and terminates this script
           # because it's invoked with :set -eo pipefile)
