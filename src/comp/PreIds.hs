@@ -721,3 +721,9 @@ idTuple5 = prelude_id_no fsTuple5
 idTuple6 = prelude_id_no fsTuple6
 idTuple7 = prelude_id_no fsTuple7
 idTuple8 = prelude_id_no fsTuple8
+
+-- Classes that we always derive implicitly.
+-- Note that these are assumed to have a single parameter, or if multiple,
+-- the first is the one for which the instance is defined.
+autoderivedClasses :: [Id]
+autoderivedClasses = [idGeneric]
