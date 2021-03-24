@@ -20,6 +20,7 @@ import PreIds(
               -- classes that the compiler can derive
               idEq, idBits, idFShow, idBounded, idDefaultValue,
               -- classes that are auto-derived
+              autoderivedClasses,
               idGeneric,
               -- internal classes defined in terms of Generic but still occasionally auto-derived
               idClsUninitialized, idUndefined,
@@ -58,12 +59,6 @@ import FStringCompat
 import qualified Data.Set as S
 
 -- import Debug.Trace
-
--- Classes that we always derive implicitly.
--- Note that these are assumed to have a single parameter, or if multiple,
--- the first is the one for which the instance is defined.
-autoderivedClasses :: [Id]
-autoderivedClasses = [idGeneric]
 
 -- | Derive instances for all types with deriving (...) in a package, and
 -- return the package agumented with the instance definitions.

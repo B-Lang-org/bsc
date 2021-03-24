@@ -719,6 +719,14 @@ getK iks ik =
         _ -> internalError ("getK " ++ ppReadable iks ++ show ik)
 
 getQInsts :: Id -> [[Bool]] -> QInsts -> (QInsts, [EMsg])
+-- Exempt classes that are auto-derived for every type from overlap-checking.
+-- This limits the impact of the O(n^2) scaling issues because of
+-- the O(n^2) instance sort / overlap check. Unfortunately, it
+-- isn't an asymptotic fix.
+getQInsts ci _ qts
+  | ci `elem` autoderivedClasses =
+    ([ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ], [])
+
 getQInsts ci bss qts = (cls_qts', errs)
   where cls_qts  = [ qi | qi@(QInst _ ( _ :=> t)) <- qts, leftCon t == Just ci ]
         cls_qt_g = [ (qi, lt_qis) | qi <- cls_qts,
