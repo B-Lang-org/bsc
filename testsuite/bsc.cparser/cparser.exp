@@ -1,8 +1,0 @@
-
-# Tests for bug in the parsing of Real literals, when no digits follow
-# the decimal point
-
-compile_fail_error DanglingDecimal.bs P0005
-compile_fail_error FieldSelectionWithDigit.bs P0005
-compile_fail_error FieldSelectionFromDigit.bs T0031
-

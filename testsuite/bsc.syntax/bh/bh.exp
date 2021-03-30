@@ -1,5 +1,5 @@
 
-# tests for Bluespec syntax
+# tests for BH/Classic syntax
 
 # empty template
 compile_pass Empty.bs
@@ -114,3 +114,9 @@ compile_fail NamedStructBad.bs
 compare_file [make_bsc_output_name NamedStructBad.bs]
 compile_fail NiceType.bs
 compare_file [make_bsc_output_name NiceType.bs]
+
+# Tests for bug in the parsing of Real literals, when no digits follow
+# the decimal point
+compile_fail_error DanglingDecimal.bs P0005
+compile_fail_error FieldSelectionWithDigit.bs P0005
+compile_fail_error FieldSelectionFromDigit.bs T0031
