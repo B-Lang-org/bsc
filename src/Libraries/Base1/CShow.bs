@@ -17,7 +17,7 @@ class CShow a where
 instance CShow (UInt a) where
   cshow = fshow
 
-instance CShow Bool where
+instance CShow (Int a) where
   cshow = fshow
 
 instance (Generic a r, CShow' r) => CShow a where
@@ -32,6 +32,10 @@ class CShow' a where
 instance (CShow a) => CShow' (Conc a) where
   cshow' (Conc x) = cshow x
   cshowP' (Conc x) = cshowP x
+
+instance (FShow a) => CShow' (ConcPrim a) where
+  cshow' (ConcPrim x) = fshow x
+  cshowP' (ConcPrim x) = fshow x
 
 -- Note that below there are more specific instances for
 -- CShow' (Meta (MetaConsNamed ...)) and CShow' (Meta (MetaConsAnon ...))
