@@ -6,9 +6,9 @@ import Vector
 import BuildVector
 
 data Foo = A (UInt 8) Bool Bar
-         | B (UInt 16)
+         | B (Int 16)
          | C
-         | D {a :: (UInt 8); b :: Foo}
+         | D {a :: (Bit 8); b :: Foo}
   deriving (FShow)
 
 struct Bar =
