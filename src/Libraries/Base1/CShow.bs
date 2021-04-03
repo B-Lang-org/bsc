@@ -23,8 +23,32 @@ instance CShow (UInt a) where
 instance CShow (Int a) where
   cshow x = $format "%d" x
 
+instance CShow Real where
+  cshow x = $format (realToString x)
+
 instance CShow Char where
   cshow x = $format "'%s'" (charToString x)
+
+instance CShow String where
+  cshow x = $format "\"%s\"" x
+
+instance CShow Fmt where
+  cshow = id
+
+instance CShow () where
+  cshow () = $format "()"
+
+instance (CShowTuple (a, b)) => CShow (a, b) where
+  cshow x = $format "(" (cshowTuple x) ")"
+
+class CShowTuple a where
+  cshowTuple :: a -> Fmt
+
+instance (CShow a, CShowTuple b) => CShowTuple (a, b) where
+  cshowTuple (x, y) = $format (cshow x) ", " (cshowTuple y)
+
+instance (CShow a) => CShowTuple a where
+  cshowTuple = cshow
 
 instance (Generic a r, CShow' r) => CShow a where
   cshow x = cshow' $ from x
