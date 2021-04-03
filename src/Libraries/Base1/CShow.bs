@@ -14,6 +14,9 @@ class CShow a where
   cshowP :: a -> Fmt
   cshowP = cshow
 
+instance CShow (Bit n) where
+  cshow x = $format "0x%h" x
+
 instance CShow (UInt a) where
   cshow = fshow
 
@@ -32,10 +35,6 @@ class CShow' a where
 instance (CShow a) => CShow' (Conc a) where
   cshow' (Conc x) = cshow x
   cshowP' (Conc x) = cshowP x
-
-instance (FShow a) => CShow' (ConcPrim a) where
-  cshow' (ConcPrim x) = fshow x
-  cshowP' (ConcPrim x) = fshow x
 
 -- Note that below there are more specific instances for
 -- CShow' (Meta (MetaConsNamed ...)) and CShow' (Meta (MetaConsAnon ...))
