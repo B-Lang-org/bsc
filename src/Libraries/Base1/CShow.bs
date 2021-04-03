@@ -18,10 +18,13 @@ instance CShow (Bit n) where
   cshow x = $format "0x%h" x
 
 instance CShow (UInt a) where
-  cshow = fshow
+  cshow x = $format "%d" x
 
 instance CShow (Int a) where
-  cshow = fshow
+  cshow x = $format "%d" x
+
+instance CShow Char where
+  cshow x = $format "'%s'" (charToString x)
 
 instance (Generic a r, CShow' r) => CShow a where
   cshow x = cshow' $ from x
