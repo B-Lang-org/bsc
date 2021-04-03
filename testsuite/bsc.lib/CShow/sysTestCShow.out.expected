@@ -1,7 +1,12 @@
  42
+3.14
+'*'
+"Hello"
+Hello
+()
 Bar {foo=C; x= 42}
 A  12 True (Bar {foo=D {a=0x22; b=C}; x= 42})
 Baz C (A  12 True (Bar {foo=D {a=0x22; b=C}; x= 42}))
 [Bar {foo=C; x= 42}, Bar {foo=B   2323; x=  3}]
 [Bar {foo=C; x= 42}, Bar {foo=B   2323; x=  3}]
-'*'
+("x", Left 123, False)
