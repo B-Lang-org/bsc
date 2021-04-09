@@ -10,10 +10,14 @@ import Vector
 --@ XXX THIS PACKAGE IS NOT YET DOCUMENTED
 
 class CShow a where
+  -- Show a top-level value with classic syntax
   cshow :: a -> Fmt
+
+  -- Unambigously show a value with parentheses, if required
   cshowP :: a -> Fmt
   cshowP = cshow
 
+-- Explicit instances for various primitive types
 instance CShow (Bit n) where
   cshow x = $format "0x%h" x
 
@@ -35,6 +39,7 @@ instance CShow String where
 instance CShow Fmt where
   cshow = id
 
+-- Show tuple types with tuple syntax rather than PrimPair {...}
 instance CShow () where
   cshow () = $format "()"
 
@@ -50,6 +55,7 @@ instance (CShow a, CShowTuple b) => CShowTuple (a, b) where
 instance (CShow a) => CShowTuple a where
   cshowTuple = cshow
 
+-- Default generic instance uses the CShow' type class over generic representations
 instance (Generic a r, CShow' r) => CShow a where
   cshow x = cshow' $ from x
   cshowP x = cshowP' $ from x
@@ -58,6 +64,10 @@ class CShow' a where
   cshow' :: a -> Fmt
   cshowP' :: a -> Fmt
   cshowP' = cshow'
+
+-- Note that there is no instance for CShow' ConcPrim - all showable primitive
+-- types should eventually have CShow instances.  This is because there is no
+-- generic way to show any primitive type.
 
 instance (CShow a) => CShow' (Conc a) where
   cshow' (Conc x) = cshow x
@@ -104,6 +114,8 @@ instance (CShow' a) => CShowSummand (Meta (MetaField name idx) a) where
   cshowSummandNamed (Meta x) = $format (if valueOf idx > 0 then "; " else "") (stringOf name) "=" (cshow' x)
   cshowSummandAnon  (Meta x) = $format " " (cshowP' x)
 
+-- CShow for collection types uses [] mirroring Haskell, even though we don't
+-- actually support that syntax for constructing values.
 instance (CShow' a) => CShow' (Vector n a) where
   cshow' v =
     let contents =
