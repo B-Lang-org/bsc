@@ -3,14 +3,17 @@ package CustomBits where
 import Vector
 import BuildVector
 
+
 class MyBits a n | a -> n where
   mypack   :: a -> Bit n
   myunpack :: Bit n -> a
 
+-- Explicit instances for primitive types
 instance MyBits (Bit n) n where
   mypack = id
   myunpack = id
 
+-- Generic default instance
 instance (Generic a r, MyBits' r n) => MyBits a n where
   mypack   x  = mypack' $ from x
   myunpack bs = to $ myunpack' bs
@@ -19,6 +22,8 @@ class incoherent MyBits' r n | r -> n where
   mypack'   :: r -> Bit n
   myunpack' :: Bit n -> r
 
+-- Compute the number of tag bits required for the number of
+-- constructors at the top-level MetaData instance
 instance (Log ncons ntag, ConBits 0 r ndata, Add ntag ndata n) =>
          MyBits' (Meta (MetaData name pkg ncons) r) n where
   mypack' (Meta x) =
@@ -29,10 +34,18 @@ instance (Log ncons ntag, ConBits 0 r ndata, Add ntag ndata n) =>
     let (tag, dat) = split bs
     in Meta $ unpackCon (unpack (tag :: Bit ntag)) dat
 
+-- ConBits type class is used for sum types and has extra parameters:
+-- i is the index of the first constructor, computed bottom-up from the metadata.
+-- Note that we can't compute i top down (moving i to the other side of the
+-- fundep arrow), as this would require an Add context on the Either instance
+-- that could not be used in determining what instance matches in the next level
+-- of recursion.
 class ConBits i r n | r -> i n where
   packCon   :: r -> (Integer, Bit n)
   unpackCon :: UInt m -> Bit n -> r
 
+-- Instance for sum types determines the constructor requiring the largest number
+-- of bits and adds padding as needed.
 instance (ConBits i1 a1 n1, ConBits i2 a2 n2, Max n1 n2 n, Add p1 n1 n, Add p2 n2 n) =>
          ConBits i1 (Either a1 a2) n where
   packCon (Left x) =
@@ -53,6 +66,7 @@ instance (MyBits' r n) => ConBits idx (Meta (MetaConsAnon name idx nfields) r) n
   packCon (Meta x) = (valueOf idx, mypack' x)
   unpackCon _ bs = Meta $ myunpack' bs
 
+-- Instance for product types
 instance (MyBits' r1 n1, MyBits' r2 n2, Add n1 n2 n) => MyBits' (r1, r2) n where
   mypack' (x, y) = mypack' x ++ mypack' y
   myunpack' bs = let (bs1, bs2) = split bs
@@ -67,13 +81,17 @@ instance (MyBits' a m, Bits (Vector n (Bit m)) l) =>
   mypack' (Meta v) = pack $ map mypack' v
   myunpack' = Meta `compose` map myunpack' `compose` unpack
 
+-- Ignore other types of metadata
 instance (MyBits' r n) => MyBits' (Meta m r) n where
   mypack' (Meta x) = mypack' x
   myunpack' bs = Meta $ myunpack' bs
 
+-- Conc instance calls back to the non-generic MyBits class
 instance (MyBits a n) => MyBits' (Conc a) n where
   mypack' (Conc x) = mypack x
   myunpack' bs = Conc $ myunpack bs
+
+
 
 mkMyReg :: (IsModule m c, MyBits a n) => a -> m (Reg a)
 mkMyReg v = liftModule $
