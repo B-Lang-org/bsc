@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SuggestValueOf_NoCon.bsv
+Error: "SuggestValueOf_NoCon.bsv", line 4, column 12: (T0003)
+  Unbound constructor `DataWidth'. Perhaps `valueOf' is missing?

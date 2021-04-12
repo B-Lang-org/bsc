@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SuggestValueOf_TwoCon_PolyContext.bsv
+Error: "SuggestValueOf_TwoCon_PolyContext.bsv", line 13, column 12: (T0019)
+  Constructor `DataWidth' is not disambiguated by type `_tctyvar1004'

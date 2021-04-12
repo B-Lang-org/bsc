@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SuggestStringOf_NoCon.bsv
+Error: "SuggestStringOf_NoCon.bsv", line 4, column 12: (T0003)
+  Unbound constructor `Name'. Perhaps `stringOf' is missing?

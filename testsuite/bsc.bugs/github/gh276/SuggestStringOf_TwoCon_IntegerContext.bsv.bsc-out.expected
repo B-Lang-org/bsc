@@ -1,0 +1,4 @@
+checking package dependencies
+compiling SuggestStringOf_TwoCon_IntegerContext.bsv
+Error: "SuggestStringOf_TwoCon_IntegerContext.bsv", line 12, column 11: (T0003)
+  Unbound constructor `Name'. Perhaps `stringOf' is missing?
