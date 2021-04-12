@@ -1279,6 +1279,7 @@ mkGeneric (IfcTRec { rec_id = flat_id, rec_type = orig_ty, rec_rootid = orig_id 
               [cTApplys (cTCon idMetaData)
                [cTStr (getIdBase orig_id) pos,
                 cTStr (getIdQual orig_id) pos,
+                tMkTuple pos [],
                 cTNum 1 pos],
                TAp (cTCon idConc) orig_ty]]
       defn = Cinstance cqt

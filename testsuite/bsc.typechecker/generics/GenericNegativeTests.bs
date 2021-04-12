@@ -14,7 +14,7 @@ data Foo = A (UInt 8) Bool
 
 -- Wrong generic representation
 fooRepr :: (Generic Foo r) => TypeEq r
-  (Meta (MetaData "Foo" "GenericTests" 4)
+  (Meta (MetaData "Foo" "GenericTests" () 4)
    (Either
     (Meta (MetaConsAnon "A" 0 3)
      (Meta (MetaField "_1" 0) (Conc (UInt 8)),
@@ -61,4 +61,3 @@ struct Bar =
 -- Generic instance doesn't satisfy struct with higher-rank field
 barRes :: Bar
 barRes = trans (Bar {x=42})
-
