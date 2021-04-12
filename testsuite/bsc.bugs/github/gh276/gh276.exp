@@ -1,0 +1,43 @@
+
+# GitHub Issue #276
+#
+# Test BSC error messages when the user forgets to apply 'valueOf'
+# (or 'stringOf') to a type name, which BSC then interprets as a
+# constructor name
+
+proc do_test { filename } {
+    compile_fail $filename
+    compare_file [make_bsc_output_name $filename]
+}
+
+# If there is no constructor by the same name as the type,
+# BSC reports an unbound constructor error (T0003)
+# and adds a message suggesting 'valueOf'
+#
+do_test SuggestValueOf_NoCon.bsv
+do_test SuggestStringOf_NoCon.bsv
+
+# If there is one constructor by the same name as the type,
+# BSC assumes the user meant that one, and uses its type.
+# This likely results in a type mismatch error, because the
+# constructor expects an argument.
+# This message will not suggest that 'valueOf' is missing.
+#
+do_test SuggestValueOf_OneCon.bsv
+
+# If there is more than one constructor by the same name as the type,
+# and the context expects a concrete type, then BSC will pick the
+# constructor with that return type.  Likely finding none, BSC will
+# report an unbound constructor error (T0003) and add a message
+# suggesting 'valueOf'
+#
+do_test SuggestValueOf_TwoCon_IntegerContext.bsv
+do_test SuggestStringOf_TwoCon_IntegerContext.bsv
+
+# If there is more than on constructor by the same name as the type,
+# but the context does not expect a concrete type (is polymorphic),
+# then BSC will report an unambiguous constructor error (T0019).
+# This message will not suggest that 'valueOf' is missing.
+#
+do_test SuggestValueOf_TwoCon_PolyContext.bsv
+

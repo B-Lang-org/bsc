@@ -1,0 +1,11 @@
+checking package dependencies
+compiling SuggestValueOf_OneCon.bsv
+Error: "SuggestValueOf_OneCon.bsv", line 8, column 11: (T0144)
+  Wrong number of arguments in the partial application of the following
+  constructor:
+    SuggestValueOf_OneCon::DataWidth
+  The constructor expects 1 arguments and was used with 0 arguments, leaving 1
+  unfilled, however a function was not expected.
+  The expected type is:
+    Integer
+
