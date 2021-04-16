@@ -240,15 +240,18 @@ checkBSrcFlags flags filename =
     -- error if entry point is given
     case (entry flags) of
       Just e -> DError [(cmdPosition, EEntryForCodeGen e)]
-      -- else, everything's ok, so use the result
       Nothing ->
+        -- The -remove-dollar flag only applies to the Verilog backend
         if (removeVerilogDollar flags && (backend flags /= Just Verilog))
         then DError [(cmdPosition, EDollarNoVerilog)]
         else
+        -- If the user hasn't allowed Bluesim/Verilog to diverge,
+        -- then don't-cares can only be 2-state values
         if (not (optUndet flags) &&
             ( (unSpecTo flags == "X") || (unSpecTo flags == "Z") ))
         then DError [(cmdPosition, ENoOptUndetNoXZ (unSpecTo flags))]
         else
+        -- Everything is OK for source compilation
         DBlueSrc flags filename
 
 
@@ -277,21 +280,32 @@ checkLinkFlags flags names =
         if (removeVerilogDollar flags)
         then DError [(cmdPosition, EDollarLink)]
         else
-        -- handle Verilog (check for entry point)
+        -- Verilog backend
         if (backend flags == Just Verilog)
-        then case (entry flags) of
+        then -- An entry point must be specified
+             case (entry flags) of
                  Nothing -> DError [(cmdPosition, ENoEntryPoint)]
-                 Just top -> DVerLink flags top (map VFileName hdlnames)
+                 Just top ->
+                     -- Everything is OK for Verilog linking
+                     DVerLink flags top (map VFileName hdlnames)
                                 anames cnames
         else
-        -- handle Bluesim (check for entry point)
+        -- Bluesim backend
         if (backend flags == Just Bluesim)
-        then if not (null hdlnames)
+        then -- Only 2-state values are allowed for don't-cares
+             if ( (unSpecTo flags == "X") || (unSpecTo flags == "Z") )
+             then DError [(cmdPosition, EBluesimNoXZ (unSpecTo flags))]
+             else
+             -- Verilog files cannot be provided
+             if not (null hdlnames)
              then DError [(cmdPosition, EVerilogFilesWithSimBackend hdlnames)]
              else
-                 case (entry flags) of
-                     Nothing -> DError [(cmdPosition, ENoEntryPoint)]
-                     Just top -> DSimLink flags top anames cnames
+             -- An entry point must be specified
+             case (entry flags) of
+                 Nothing -> DError [(cmdPosition, ENoEntryPoint)]
+                 Just top ->
+                     -- Everything is OK for Bluesim linking
+                     DSimLink flags top anames cnames
         -- error if no backend chosen
         else DError [(cmdPosition, ENoBackendLinking)]
 

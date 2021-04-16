@@ -306,7 +306,9 @@ convertASAny errh flags apkg = do
                "0" -> return $ 0
                "1" -> return $ (2^n) - 1
                "A" -> return $ aaaa n
-               _   -> bsError errh [(noPosition, EBluesimNoXZ tgt)]
+               _   -> -- this situation should have been rejected when
+                      -- we checked command-line flags
+                      bsError errh [(noPosition, EBluesimNoXZ tgt)]
         return $ ASInt dummy_id (ATBit n) (ilSizedHex n v)
 
       cvtASAnyExpr :: AExpr -> IO AExpr
