@@ -234,6 +234,9 @@ compile_fail_error NoOptUndet_UnspecToX.bsv S0075 1 \
 compile_fail_error NoOptUndet_UnspecToZ.bsv S0075 1 \
     {-verilog -no-opt-undetermined-vals -unspecified-to Z}
 
+link_objects_fail_error m.ba mkBluesimLink_UnspecToX S0043 1 {-unspecified-to x}
+link_objects_fail_error m.ba mkBluesimLink_UnspecToZ S0043 1 {-unspecified-to z}
+
 
 ## Test that BSC_OPTIONS are used
 set envopt $::env(BSC_OPTIONS)
