@@ -194,7 +194,8 @@ data SimCCFnStmt = -- Bool is whether the var is a port (else a def)
                                                         -- var = vMethod(...)
                  | SFSAction AAction                    -- aMethod(...)
                  -- Bool is whether the var is a port (else a def)
-                 | SFSAssignAction Bool AId AAction    -- var = avMethod(...)
+                 -- AType is for assigning an undet value when the method/task is not called
+                 | SFSAssignAction Bool AId AAction AType  -- var = avMethod(...)
                  | SFSRuleExec ARuleId                  -- rule()
                  | SFSCond AExpr [SimCCFnStmt] [SimCCFnStmt]  -- if cond ...
                  -- calls corresponding to BSV methods
@@ -220,7 +221,7 @@ isReturn _             = False
 defs_written :: SimCCFnStmt -> [(Bool, AId)]
 defs_written (SFSDef isPort (_,aid) (Just _)) = [(isPort, aid)]
 defs_written (SFSAssign isPort aid _)         = [(isPort, aid)]
-defs_written (SFSAssignAction isPort aid _)   = [(isPort, aid)]
+defs_written (SFSAssignAction isPort aid _ _) = [(isPort, aid)]
 defs_written (SFSCond _ ts fs)                = (concatMap defs_written ts) ++
                                                 (concatMap defs_written fs)
 defs_written (SFSResets rs)                   = concatMap defs_written rs
@@ -232,7 +233,7 @@ defs_read :: SimCCFnStmt -> [AId]
 defs_read (SFSDef _ _ (Just e))      = aVars e
 defs_read (SFSAssign _ _ e)          = aVars e
 defs_read (SFSAction act)            = aVars act
-defs_read (SFSAssignAction _ _ act)  = aVars act
+defs_read (SFSAssignAction _ _ act _) = aVars act
 defs_read (SFSCond e ts fs)          = (aVars e) ++
                                        (concatMap defs_read ts) ++
                                        (concatMap defs_read fs)
@@ -262,7 +263,7 @@ renameIds m (SFSDef b (t,i) Nothing) = SFSDef b (t, mapId m i) Nothing
 renameIds m (SFSDef b (t,i) (Just e)) = SFSDef b (t, mapId m i) (Just (mapExpr m e))
 renameIds m (SFSAssign b i e) = SFSAssign b (mapId m i) (mapExpr m e)
 renameIds m (SFSAction act) = SFSAction (mapAct m act)
-renameIds m (SFSAssignAction b i act) = SFSAssignAction b (mapId m i) (mapAct m act)
+renameIds m (SFSAssignAction b i act t) = SFSAssignAction b (mapId m i) (mapAct m act) t
 renameIds m (SFSCond e ts es) = SFSCond (mapExpr m e)
                                         (map (renameIds m) ts)
                                         (map (renameIds m) es)
@@ -565,14 +566,16 @@ data ConvState = CS { literals :: [(ASize,Integer)]
                     , func_args :: [AId]
                     -- unique ids for gate expressions
                     , gate_map :: M.Map AExpr Int
+                    -- choice for don't-care values ("0", "1", or "A")
+                    , undet_type :: String
                     }
   deriving (Eq,Show);
 
 type WideDefMap = M.Map String [AId]
 
-initialState :: ForeignFuncMap -> WideDefMap -> ConvState
-initialState ff_map wdef_map =
-    CS [] 1 M.empty False ff_map wdef_map [] [] M.empty
+initialState :: ForeignFuncMap -> WideDefMap -> String -> ConvState
+initialState ff_map wdef_map undet_type =
+    CS [] 1 M.empty False ff_map wdef_map [] [] M.empty undet_type
 
 type ExprConv  = State ConvState CCExpr
 type ExprsConv = State ConvState [CCExpr]
@@ -630,6 +633,21 @@ getWDataTest = do
 isWideDef :: (AType, AId) -> Bool
 isWideDef x@(ATBit sz, aid) | sz > 64 = True
 isWideDef x                           = False
+
+mkUndetVal :: AType -> State ConvState CCExpr
+mkUndetVal ty = do
+  tgt <- gets undet_type
+  let n = aSize ty
+      v = case tgt of
+            "0" -> 0
+            "1" -> (2^n) - 1
+            "A" -> aaaa n
+            _   -> -- this situation should have been rejected when
+                   -- we checked command-line flags
+                   internalError $
+                     "SimCCBlock.mkUndetVal: unexpected undet type: "
+                     ++ show tgt
+  aExprToCExpr noRet $ ASInt dummy_id (ATBit n) (ilSizedHex n v)
 
 -- ----------------------
 -- Support for primitives
@@ -1185,13 +1203,16 @@ simFnStmtToCStmt (SFSAssign isPort aid expr) =
 simFnStmtToCStmt (SFSAction act) =
   do (_, cond, call) <- aActionToCFunCall noRet act
      return $ if_cond cond (stmt call) Nothing
-simFnStmtToCStmt s@(SFSAssignAction isPort aid act) =
+simFnStmtToCStmt s@(SFSAssignAction isPort aid act ty) =
   do (ret_style, cond, call) <- aActionToCFunCall (Just (isPort,aid)) act
      case ret_style of
        Direct    -> do let dst = if isPort
                                  then aPortIdToCLval aid
                                  else aDefIdToCLval aid
-                       return $ if_cond cond (dst `assign` call) Nothing
+                       undet <- mkUndetVal ty
+                       return $ if_cond cond
+                                  (dst `assign` call)
+                                  (Just (dst `assign` undet))
        otherwise -> return $ if_cond cond (stmt call) Nothing
 simFnStmtToCStmt (SFSRuleExec ruleId) =
   return $ stmt $ (aRuleIdToC ruleId) `cCall` []
@@ -2180,7 +2201,7 @@ instance PPrint SimCCFnStmt where
   pPrint d p (SFSAssign _ aid expr) =
     (pPrint d 0 aid) <+> (text "=") <+> (pPrint d 0 expr)
   pPrint d p (SFSAction action) = pPrint d 0 action
-  pPrint d p (SFSAssignAction _ aid action) =
+  pPrint d p (SFSAssignAction _ aid action _) =
     (pPrint d 0 aid) <+> (text "=") <+> (pPrint d 0 action)
   pPrint d p (SFSRuleExec ruleId) =
     (pPrint d 0 ruleId)
