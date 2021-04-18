@@ -569,8 +569,8 @@ cvtIFace modId pps def_map meth_map method_order_map reset_list m =
                    -- find assignments to ret_def and replace with port_id
                    replaceRetDef (SFSAssign _ i e) | (i == ret_id) =
                      (SFSAssign True port_id e)
-                   replaceRetDef (SFSAssignAction _ i a) | (i == ret_id) =
-                     (SFSAssignAction True port_id a)
+                   replaceRetDef (SFSAssignAction _ i a t) | (i == ret_id) =
+                     (SFSAssignAction True port_id a t)
                    -- the assignment might be guarded by a reset
                    replaceRetDef (SFSCond c ts fs) =
                      (SFSCond c (map replaceRetDef ts) (map replaceRetDef fs))
@@ -958,10 +958,10 @@ addScope scope (SFSAssign p aid v) =
   in SFSAssign p aid' v'
 addScope scope (SFSAction action) =
   SFSAction (mapActionIds (`inlineIdFrom` scope) action)
-addScope scope (SFSAssignAction p aid action) =
+addScope scope (SFSAssignAction p aid action ty) =
   let aid' = aid `inlineIdFrom` scope
       action' = mapActionIds (`inlineIdFrom` scope) action
-  in SFSAssignAction p aid' action'
+  in SFSAssignAction p aid' action' ty
 addScope scope (SFSRuleExec rid) =
   let rid'  = rid `inlineIdFrom` scope
   in SFSRuleExec rid'
@@ -1467,14 +1467,15 @@ tsortActionsAndDefs modId rId mmap ds acts reset_ids =
         convertNode (Right (False,acts)) = Just (map cvt_action acts)
         convertNode (Right (True,acts))  = Just (addRstCond (map cvt_action acts))
         cvt_action a@(ACall obj meth _) =
-            if (S.member (obj,meth) av_meth_set)
-            then SFSAssignAction False (mkAVMethTmpId obj meth) a
-            else SFSAction a
+            case (M.lookup (obj,meth) av_meth_set) of
+              Just ty -> SFSAssignAction False (mkAVMethTmpId obj meth) a ty
+              Nothing -> SFSAction a
         cvt_action a@(ATaskAction { aact_objid = f_id
                                   , ataskact_temp = maybe_tmp_id
+                                  , ataskact_value_type = ty
                                   }) =
             case (maybe_tmp_id) of
-              Just tmp_id -> SFSAssignAction False tmp_id a
+              Just tmp_id -> SFSAssignAction False tmp_id a ty
               Nothing     -> SFSAction a
         cvt_action a@(AFCall {}) = SFSAction a
 
@@ -1529,10 +1530,10 @@ type Edge = (Node, [Node])
 -- returns:
 -- * a list of edges between the defs using the value and any
 --   ActionValue ACall which is producing the value
--- * a set of the ACall which are action value
+-- * a set of the ACall which are action value (mapped to their types)
 -- * a list of declarations for the new defs (holding the values)
 mkAVMethEdges :: [ADef] -> [(Integer, AAction)] ->
-                 ([Edge], S.Set (AId,AId), [SimCCFnStmt])
+                 ([Edge], M.Map (AId,AId) AType, [SimCCFnStmt])
 mkAVMethEdges ds method_calls =
     let
         -- check whether an AMethValue is from a particular action
@@ -1565,7 +1566,7 @@ mkAVMethEdges ds method_calls =
         av_meths = unions (map snd av_meth_refs)
         av_meth_local_vars = map mkAVMethDecl av_meths
 
-        av_meth_set = S.fromList (map (\ (o,m,t) -> (o,m)) av_meths)
+        av_meth_set = M.fromList (map (\ (o,m,t) -> ((o,m),t)) av_meths)
 
     in
         (av_meth_edges, av_meth_set, av_meth_local_vars)

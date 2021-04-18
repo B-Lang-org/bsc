@@ -66,7 +66,7 @@ getFnRefs is_sched fn = concatMap (helper (sf_name fn, is_sched)) (sf_body fn)
         helper fl (SFSAssign _ aid e)         = (fl `writesIds` [aid]) ++
                                                 (fl `readsIds` (aVars e))
         helper fl (SFSAction act)             = fl `readsIds` (aVars act)
-        helper fl (SFSAssignAction _ aid act) = (fl `writesIds` [aid]) ++
+        helper fl (SFSAssignAction _ aid act _) = (fl `writesIds` [aid]) ++
                                                 (fl `readsIds` (aVars act))
         helper fl (SFSRuleExec _)             = []
         helper fl (SFSCond e ts fs)           = (fl `readsIds` (aVars e)) ++
@@ -285,7 +285,7 @@ removeUnusedLocals fn =
                                | (aid, DF wr rd) <- getFnRefs False fn
                                , not (S.null rd)
                                ]
-        action_values = S.fromList [ aid | (SFSAssignAction _ aid _) <- sf_body fn ]
+        action_values = S.fromList [ aid | (SFSAssignAction _ aid _ _) <- sf_body fn ]
         keep_defs = (used_defs `S.union` action_values)
 
         local_defs = S.fromList [ aid | (SFSDef _ (_,aid) _) <- sf_body fn ]

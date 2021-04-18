@@ -142,7 +142,7 @@ fnCallsForeignFn fn = (any makesForeignCall (sf_body fn))
           not (null (exprForeignCalls expr))
         makesForeignCall (SFSAction act)         =
           not (null (actionForeignCalls act))
-        makesForeignCall (SFSAssignAction _ _ act) =
+        makesForeignCall (SFSAssignAction _ _ act _) =
           not (null (actionForeignCalls act))
         makesForeignCall (SFSRuleExec _)         = False
         makesForeignCall (SFSCond expr ts fs)    =
@@ -195,7 +195,7 @@ convertModuleBlock flags sb_map ff_map clk_map wdef_mod_map reused top_blk write
         -- method definitions (for the CXX file)
         (method_defs, state) =
             runState (simCCBlockToClassDefinition sb_map dom_map sb)
-                     (initialState ff_map wdef_inst_map)
+                     (initialState ff_map wdef_inst_map (unSpecTo flags))
         lit_defs = mkLiteralDecls (nub (literals state))
         str_defs = mkStringDecls (M.toList (str_map state))
         class_defs = lit_defs ++ str_defs ++ method_defs
@@ -297,7 +297,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         -- definitions of the schedule functions
         (sch_fn_lists,state) =
             runState (mapM (simCCScheduleToFunctionDefinition top_blk) scheds)
-                     (initialState ff_map wdef_map)
+                     (initialState ff_map wdef_map (unSpecTo flags))
         sched_fns = [comment "Schedule functions" (blankLines 1)] ++
                     concat sch_fn_lists
 

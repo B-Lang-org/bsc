@@ -1,6 +1,8 @@
 
+# This has been refiled as GitHub Issue #330
+
 compile_object_pass Bug1894.bsv
-link_objects_pass {} mkTop
+link_objects_pass {} mkTop {-unspecified-to A}
 
 if { $ctest == 1 } {
     # XXX The current behavior is broken!
@@ -20,3 +22,26 @@ if { $ctest == 1 } {
     find_regexp mkTop.cxx {DEF_v__h172 = DEF_AVMeth_s_m;}
 }
 
+# Also test that BSC fully initializes DEF_AVMeth_s_m
+# (with a don't-care value as chosen by the user)
+#
+if { $ctest == 1 } {
+    move mkTop.cxx mkTop.A.cxx
+    find_regexp mkTop.A.cxx {if \(DEF_cond__h\d+\)\n +DEF_AVMeth_s_m = INST_s.METH_m\(\);\n +else\n +DEF_AVMeth_s_m = \(tUInt8\)2u;}
+
+    # workaround BSC's failure to recompile due to flags
+    erase mkTop.o
+    # Test with 0
+    link_objects_pass {} mkTop {-unspecified-to 0}
+    move mkTop.cxx mkTop.0.cxx
+    find_regexp mkTop.0.cxx {if \(DEF_cond__h\d+\)\n +DEF_AVMeth_s_m = INST_s.METH_m\(\);\n +else\n +DEF_AVMeth_s_m = \(tUInt8\)0u;}
+
+    # workaround BSC's failure to recompile due to flags
+    erase mkTop.o
+    # Test with 1
+    link_objects_pass {} mkTop {-unspecified-to 1}
+    move mkTop.cxx mkTop.1.cxx
+    find_regexp mkTop.1.cxx {if \(DEF_cond__h\d+\)\n +DEF_AVMeth_s_m = INST_s.METH_m\(\);\n +else\n +DEF_AVMeth_s_m = \(tUInt8\)3u;}
+
+    # XXX Could test wide data (and other sizes)
+}
