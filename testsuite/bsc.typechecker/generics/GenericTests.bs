@@ -119,6 +119,12 @@ quxFooRepr :: (Generic Qux r) => TypeEq r
 quxFooRepr = refl
 -}
 
+uint8Repr :: (Generic (UInt 8) r) => TypeEq r
+  (Meta (MetaData "UInt" "Prelude" (NumArg 8) 1)
+   (Meta (MetaConsAnon "UInt" 0 1)
+    (Meta (MetaField "_1" 0) (Conc (Bit 8)))))
+uint8Repr = refl
+
 bit8Repr :: (Generic (Bit 8) r) => TypeEq r (ConcPrim (Bit 8))
 bit8Repr = refl
 
