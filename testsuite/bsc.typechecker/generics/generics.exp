@@ -6,3 +6,4 @@ compile_fail GenericNegativeTests.bs
 compare_file GenericNegativeTests.bs.bsc-out
 
 test_c_veri CustomBits
+test_c_veri CPrintType

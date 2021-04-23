@@ -1,0 +1,84 @@
+package CPrintType where
+
+class CPrintType a where
+  cPrintType :: a -> String
+  cPrintTypeP :: a -> String
+  cPrintTypeP = cPrintType
+
+instance (CPrintType a, CPrintTuple b) => CPrintType (a, b) where
+  cPrintType _ = "(" +++ cPrintType (_ :: a) +++ ", " +++ cPrintTuple (_ :: b) +++ ")"
+
+instance CPrintType () where
+  cPrintType _ = "()"
+
+class CPrintTuple a where
+  cPrintTuple :: a -> String
+
+instance (CPrintType a, CPrintTuple b) => CPrintTuple (a, b) where
+  cPrintTuple _ = cPrintType (_ :: a) +++ ", " +++ cPrintTuple (_ :: b)
+
+instance (CPrintType a) => CPrintTuple a where
+  cPrintTuple = cPrintType
+
+instance (Generic a r, CPrintType' r) => CPrintType a where
+  cPrintType _ = cPrintType' (_ :: r)
+  cPrintTypeP _ = cPrintTypeP' (_ :: r)
+
+class CPrintType' a where
+  cPrintType' :: a -> String
+  cPrintTypeP' :: a -> String
+  cPrintTypeP' = cPrintType'
+
+instance CPrintType' (ConcPrim a) where
+  cPrintType' _ = printType $ typeOf (_ :: a)
+
+instance CPrintType' (Meta (MetaData n p () nc) r) where
+  cPrintType' _ = stringOf n
+
+instance (CPrintTypeArgs ta) => CPrintType' (Meta (MetaData n p ta nc) r) where
+  cPrintType' _ = stringOf p +++ "." +++ stringOf n +++ " " +++ cPrintTypeArgs (_ :: ta)
+  cPrintTypeP' _ = "(" +++ stringOf p +++ "." +++ stringOf n +++ " " +++ cPrintTypeArgs (_ :: ta) +++ ")"
+
+class CPrintTypeArgs a where
+  cPrintTypeArgs :: a -> String
+
+instance (CPrintTypeArg a, CPrintTypeArgs b) => CPrintTypeArgs (a, b) where
+  cPrintTypeArgs _ = cPrintTypeArg (_ :: a) +++ " " +++ cPrintTypeArgs (_ :: b)
+
+instance (CPrintTypeArg a) => CPrintTypeArgs a where
+  cPrintTypeArgs _ = cPrintTypeArg (_ :: a)
+
+instance CPrintTypeArgs () where
+  cPrintTypeArgs _ = ""
+
+class CPrintTypeArg a where
+  cPrintTypeArg :: a -> String
+
+instance (CPrintType a) => CPrintTypeArg (StarArg a) where
+  cPrintTypeArg _ = cPrintTypeP (_ :: a)
+
+instance CPrintTypeArg (NumArg n) where
+  cPrintTypeArg _ = integerToString $ valueOf n
+
+instance CPrintTypeArg (StrArg s) where
+  cPrintTypeArg _ = "\"" +++ stringOf s +++ "\""
+
+instance CPrintTypeArg ConArg where
+  cPrintTypeArg _ = "?"
+
+
+data Foo a b = A (UInt a)
+             | B b Bool (Bit a)
+             | C
+
+sysCPrintType :: Module Empty
+sysCPrintType = module
+  rules
+    when True ==> do
+      $display (cPrintType (_ :: UInt 16))
+      $display (cPrintType (_ :: (Either (Maybe Bool) String)))
+      $display (cPrintType (_ :: (UInt 16, UInt 17)))
+      $display (cPrintType (_ :: Foo 16 Real))
+      $display (cPrintType $ from (_ :: Foo 16 Real))
+      $display (cPrintType (_ :: Maybe (String, Integer)))
+      $finish
