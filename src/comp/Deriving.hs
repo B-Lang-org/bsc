@@ -16,7 +16,8 @@ import PreIds(
               -- type constructors
               idBit, idAdd, idMax,
               idConc, idConcPrim, idConcPoly, idMeta,
-              idMetaData, idNumArg, idStrArg, idMetaConsNamed, idMetaConsAnon, idMetaField,
+              idMetaData, idStarArg, idNumArg, idStrArg, idConArg,
+              idMetaConsNamed, idMetaConsAnon, idMetaField,
               -- classes that the compiler can derive
               idEq, idBits, idFShow, idBounded, idDefaultValue,
               -- classes that are auto-derived
@@ -747,12 +748,12 @@ mkGenericInstance r packageid dpos i vs isData summands =
           [cTApplys (cTCon idMetaData)
            [cTStr (getIdBase i) dpos,
             cTStr (getIdBase packageid) dpos,
-            tMkTuple dpos $ catMaybes
+            tMkTuple dpos
              [case getTypeKind v of
-                Just KStar -> Just v
-                Just KNum -> Just $ cTApplys (cTCon idNumArg) [v]
-                Just KStr -> Just $ cTApplys (cTCon idStrArg) [v]
-                _ -> Nothing
+                Just KStar -> cTApplys (cTCon idStarArg) [v]
+                Just KNum -> cTApplys (cTCon idNumArg) [v]
+                Just KStr -> cTApplys (cTCon idStrArg) [v]
+                _ -> cTCon idConArg
              | v <- vs],
             cTNum (toInteger $ length summands) dpos],
            tMkEitherChain dpos

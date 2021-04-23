@@ -79,21 +79,21 @@ barRepr :: (Generic Bar r) => TypeEq r
 barRepr = refl
 
 bazRepr :: (Generic (Baz a) r) => TypeEq r
-  (Meta (MetaData "Baz" "GenericTests" (a) 1)
+  (Meta (MetaData "Baz" "GenericTests" (StarArg a) 1)
    (Meta (MetaConsAnon "Baz" 0 2)
     (Meta (MetaField "_1" 0) (Conc a),
      Meta (MetaField "_2" 1) (Conc a))))
 bazRepr = refl
 
 bazFooRepr :: (Generic (Baz Foo) r) => TypeEq r
-  (Meta (MetaData "Baz" "GenericTests" (Foo) 1)
+  (Meta (MetaData "Baz" "GenericTests" (StarArg Foo) 1)
    (Meta (MetaConsAnon "Baz" 0 2)
     (Meta (MetaField "_1" 0) (Conc Foo),
      Meta (MetaField "_2" 1) (Conc Foo))))
 bazFooRepr = refl
 
 tizRepr :: (Generic (Tiz i s c) r) => TypeEq r
-  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s) 1)
+  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s, ConArg) 1)
    (Meta (MetaConsAnon "Tiz" 0 0) ()))
 tizRepr = refl
 
