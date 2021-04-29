@@ -7,7 +7,7 @@ typedef union tagged {
 } MyList #(parameter type a);
 
 function MyList#(a) cons(a x, MyList#(a) xs);
-    return MyCons { hd: x, tl: xs };
+    return tagged MyCons { hd: x, tl: xs };
 endfunction: cons
 
 function Bool isNull(MyList#(a) xs);
@@ -38,17 +38,17 @@ function MyList#(a) tail(MyList#(a) xs);
 endfunction: tail
 
 function MyList#(b) map(function b f(a x1), MyList#(a) xs);
-    return isNull(xs) ? MyNil : cons(f(head(xs)), map(f, tail(xs)));
+    return isNull(xs) ? tagged MyNil : cons(f(head(xs)), map(f, tail(xs)));
 endfunction: map
 
 function MyList#(a) filter(function Bool p(a x1), MyList#(a) xs);
-return isNull(xs) ? MyNil : p(head(xs)) ? cons(head(xs), filter(p, tail(xs))) : filter(p, tail(xs));
+    return isNull(xs) ? tagged MyNil : p(head(xs)) ? cons(head(xs), filter(p, tail(xs))) : filter(p, tail(xs));
 endfunction: filter
 
 function MyList#(a) append(MyList#(a) xs, MyList#(a) ys);
-return isNull(xs) ? ys : cons(head(xs), append(tail(xs), ys));
+    return isNull(xs) ? ys : cons(head(xs), append(tail(xs), ys));
 endfunction: append
 
 function MyList#(a) concat(MyList#((MyList#(a))) xss);
-return isNull(xss) ? MyNil : append(head(xss), concat(tail(xss)));
+    return isNull(xss) ? tagged MyNil : append(head(xss), concat(tail(xss)));
 endfunction: concat

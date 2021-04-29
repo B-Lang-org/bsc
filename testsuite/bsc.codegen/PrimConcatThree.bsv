@@ -11,9 +11,9 @@ module mkPrimConcatThree (Empty);
 
    rule r1 (True);
       // These two only concatenate two items:
-      //   r <= LoadC {rd:1, v:5};
-      //   r <= Add {rd:1, ra:10, rb:10};
+      //   r <= tagged LoadC {rd:1, v:5};
+      //   r <= tagged Add {rd:1, ra:10, rb:10};
       // This results in PrimConcat of three items:
-      r <= Jz { cd:1, addr:10 };
+      r <= tagged Jz { cd:1, addr:10 };
    endrule
 endmodule

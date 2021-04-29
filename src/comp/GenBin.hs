@@ -23,7 +23,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = "bsc-20210123-1"
+header = "bsc-20210427-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -298,7 +298,7 @@ instance Bin CExpr where
     writeBytes (CSelect e i) = do putI 4; toBin e; toBin i
     writeBytes (CCon i es) = do putI 5; toBin i; toBin es
     writeBytes (Ccase pos e arms) = do putI 6; toBin pos; toBin e; toBin arms
-    writeBytes (CStruct i ies) = do putI 7; toBin i; toBin ies
+    writeBytes (CStruct mb i ies) = do putI 7; toBin mb; toBin i; toBin ies
     writeBytes (CStructUpd e ies) = do putI 8; toBin e; toBin ies
     writeBytes (Cwrite pos e1 e2) = do putI 9; toBin pos; toBin e1; toBin e2
     writeBytes (CAny pos uk) = do putI 10; toBin pos; toBin uk
@@ -354,7 +354,8 @@ instance Bin CExpr where
              5 -> do i <- fromBin; es <- fromBin; return (CCon i es)
              6 -> do pos <- fromBin; e <- fromBin; arms <- fromBin;
                      return (Ccase pos e arms)
-             7 -> do i <- fromBin; ies <- fromBin; return (CStruct i ies)
+             7 -> do mb <- fromBin; i <- fromBin; ies <- fromBin;
+                     return (CStruct mb i ies)
              8 -> do i <- fromBin; ies <- fromBin; return (CStructUpd i ies)
              9 -> do pos <- fromBin; e1 <- fromBin; e2 <- fromBin;
                      return (Cwrite pos e1 e2)

@@ -134,12 +134,12 @@ module mkSolver(SudokuSolver#(order))
 
       let orig = grid[row][col];
       grid[row][col] <= orig & tactic_result;
-      results.enq(tagged TacticResult { tactic:   tactic
-				      , row:      row
-				      , column:   col
-	                              , original: orig
-	                              , result:   tactic_result
-				       });
+      results.enq(TacticResult { tactic:   tactic
+			       , row:      row
+			       , column:   col
+	                       , original: orig
+	                       , result:   tactic_result
+			       });
    endaction
    endfunction: apply
 

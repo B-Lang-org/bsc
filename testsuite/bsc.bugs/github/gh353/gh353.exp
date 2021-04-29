@@ -1,0 +1,59 @@
+
+# GitHub Issue #353
+
+# -----
+
+# Simple version of the original issue, in BSV
+compile_pass Bug353_BSV.bsv
+
+# The simple example in BH/Classic
+compile_fail Bug353_BH.bs
+compare_file Bug353_BH.bs.bsc-out
+
+# -----
+
+# Test that a constructor with named fields can be constructed
+# and pattern matched in BH/Classic using the CStruct syntax
+#
+compile_pass BH_Cons_NamedFields.bs
+
+# -----
+
+# Test that a constructor without named fields cannot be constructed
+# or pattern matched in BH/Classic using the CStruct syntax
+#
+# XXX BSC does allow it
+#
+compile_fail_bug BH_Cons_NonNamedFields.bs
+
+# Test the same in BSV
+#
+# XXX BSC does allow it
+#
+compile_fail_bug BSV_Cons_NonNamedFields.bsv
+
+# -----
+
+# Test that BSV can pattern match the SDataCon struct for
+# constructors with named fields, but can't for non-named fields
+#
+compile_fail BSV_SDataCon_Match.bsv
+compare_file BSV_SDataCon_Match.bsv.bsc-out
+
+# -----
+
+# Test that, in BSV, struct syntax can't be used for constructors
+# and vice versa
+#
+compile_fail BSV_WrongSyntax.bsv
+compare_file BSV_WrongSyntax.bsv.bsc-out
+
+# Test which syntax (struct and/or constructor) can be used to
+# create values for enums, enum-like unions, or unions with a
+# constructor of no arguments
+#
+# XXX Some of these should not be allowed?
+#
+compile_pass BSV_Cons_NoFields.bsv
+
+# -----

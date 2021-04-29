@@ -372,7 +372,7 @@ XXX perhaps should see whether the following few clauses could share code
 >        caseArms <- mapM convArm arms
 >        dfltArms <- mapM convDfltArm (maybeToList dfltArm)
 >        let allArms = caseArms ++ dfltArms
->            subject = CStruct (idPrimUnitAt casePos) []
+>            subject = CStruct (Just True) (idPrimUnitAt casePos) []
 >        popState
 >        return (Ccase casePos subject allArms)
 
@@ -406,7 +406,7 @@ XXX perhaps should see whether the following few clauses could share code
 >        caseArms <- mapM convArm arms
 >        dfltArms <- mapM convMDfltArm [dfltArm]
 >        let allArms = caseArms ++ dfltArms
->            subject = CStruct (idPrimUnitAt casePos) []
+>            subject = CStruct (Just True) (idPrimUnitAt casePos) []
 >        popState
 >        body <- convImperativeStmtsToCExpr blockPos flags atEnd rest
 >        makeResultCExpr casePos updatedVars (Ccase casePos subject allArms) body
@@ -924,7 +924,7 @@ endfunction
 >                      then mapM convDfltActionArm [dfltArm]
 >                      else mapM convDfltArm (maybeToList dfltArm))
 >        let allArms = caseArms ++ dfltArms
->            subject = CStruct (idPrimUnitAt casePos) []
+>            subject = CStruct (Just True) (idPrimUnitAt casePos) []
 >        popState
 >        return [CSExpr Nothing (Ccase casePos subject allArms)]
 
@@ -973,7 +973,7 @@ endfunction
 >        caseArms <- mapM convArm arms
 >        dfltArms <- mapM convMDfltArm [dfltArm]
 >        let allArms = caseArms ++ dfltArms
->            subject = CStruct (idPrimUnitAt casePos) []
+>            subject = CStruct (Just True) (idPrimUnitAt casePos) []
 >        popState
 >        body <- convImperativeStmtsToCStmts c_mt_me atEnd rest
 >        resultStmts <-

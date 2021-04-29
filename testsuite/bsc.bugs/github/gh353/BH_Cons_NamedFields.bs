@@ -1,0 +1,15 @@
+package BH_Cons_NamedFields where
+
+-------
+
+data Instruction =
+  Immediate { f1::Bool; f2::(Bit 16); }
+
+instance Bits Instruction 17 where
+  pack (Immediate { f1; f2; }) = (pack f1) ++ (pack f2)
+
+  unpack bs = Immediate {
+                f1 = unpack bs[16:16];
+                f2 = unpack bs[15:0];
+                }
+

@@ -104,7 +104,7 @@ expX =      blockKwOf L_let pDeflM +.+ l L_in ..+ exp0                >>> Cletre
         ||! l L_if +.+ exp0 +.+ osm ..+
             l L_then ..+ exp0 +.+ osm ..+
             l L_else ..+ exp0                                         >>>>> Cif
-        ||! pTyConId +.+ pFieldBlock                                  >>> CStruct
+        ||! pTyConId +.+ pFieldBlock                                  >>> CStruct Nothing
         ||! l L_valueOf +.+ atyp                                      >>- ( \ (p, t) -> cVApply (setIdPosition p idValueOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idBit) t))])
         ||! l L_stringOf +.+ atyp                                     >>- ( \ (p, t) -> cVApply (setIdPosition p idStringOf) [CHasType (anyExprAt p) (CQType [] (TAp (cTCon idStringProxy) t))])
         ||! aexp `into` (\ e ->

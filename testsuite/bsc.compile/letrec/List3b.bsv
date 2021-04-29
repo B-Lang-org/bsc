@@ -82,13 +82,25 @@ endinstance
 (* synthesize *)
 module sysList3b();
    rule foo;
-    Kens1List#(int) a=Nilx;
-    Kens1List#(int) b=Nilx;
-    Kens1List#(int) c=tagged Cons1x { c1ar:10, c1dr: Nily};
-    Kens1List#(int) d=tagged Cons1x { c1ar:10, c1dr: Nily};
-    Kens1List#(int) e=Cons1x{c1ar:10,c1dr:Cons2y{c2ar:20,c2dr:Cons3z{c3ar:30,c3dr:Cons2y{c2ar:40,c2dr:Nilz}}}};
-    Kens1List#(int) f=Cons1x{c1ar:10,c1dr:Cons2y{c2ar:20,c2dr:Cons3z{c3ar:30,c3dr:Cons2y{c2ar:40,c2dr:Nilz}}}};
-    Kens1List#(int) g=Cons1x{c1ar:10,c1dr:Cons2y{c2ar:20,c2dr:Cons3z{c3ar:30,c3dr:Cons2y{c2ar:41,c2dr:Nilz}}}};
+    Kens1List#(int) a=tagged Nilx;
+    Kens1List#(int) b=tagged Nilx;
+    Kens1List#(int) c=tagged Cons1x { c1ar:10, c1dr: tagged Nily };
+    Kens1List#(int) d=tagged Cons1x { c1ar:10, c1dr: tagged Nily };
+    Kens1List#(int) e=tagged Cons1x { c1ar:10,
+                                      c1dr:tagged Cons2y { c2ar:20,
+                                                           c2dr:tagged Cons3z { c3ar:30,
+                                                                                c3dr:tagged Cons2y { c2ar:40,
+                                                                                                     c2dr:tagged Nilz }}}};
+    Kens1List#(int) f=tagged Cons1x { c1ar:10,
+                                      c1dr:tagged Cons2y { c2ar:20,
+                                                           c2dr:tagged Cons3z { c3ar:30,
+                                                                                c3dr:tagged Cons2y { c2ar:40,
+                                                                                                     c2dr:tagged Nilz }}}};
+    Kens1List#(int) g=tagged Cons1x { c1ar:10,
+                                      c1dr:tagged Cons2y { c2ar:20,
+                                                           c2dr:tagged Cons3z { c3ar:30,
+                                                                                c3dr:tagged Cons2y { c2ar:41,
+                                                                                                     c2dr:tagged Nilz }}}};
     $display(a==b);
     $display(a==c);
     $display(c==d);

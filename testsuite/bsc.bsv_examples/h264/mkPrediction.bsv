@@ -567,7 +567,7 @@ module mkPrediction( IPrediction );
 	    if(infifo_ITB.first() matches tagged IBTmb_qp .xdata)
 	       begin
 		  infifo_ITB.deq();
-		  outfifo.enq(IBTmb_qp {qpy:xdata.qpy,qpc:xdata.qpc});
+		  outfifo.enq(tagged IBTmb_qp {qpy:xdata.qpy,qpc:xdata.qpc});
 		  outFirstQPFlag <= False;
 		  $display( "Trace Prediction: outputing outFirstQP %h %h %h", outBlockNum, outPixelNum, xdata);
 	       end
@@ -584,7 +584,7 @@ module mkPrediction( IPrediction );
 		  Bit#(2) tempVerBS = tpl_2(interBSfifo.first());
 		  Bit#(3) horBS = (tempHorBS==3 ? 4 : (interLeftNonZeroTransCoeff[blockVer] ? 2 : zeroExtend(tempHorBS)));
 		  Bit#(3) verBS = (tempVerBS==3 ? 4 : (interTopNonZeroTransCoeff[blockHor]&&blockVer!=0 ? 2 : zeroExtend(tempVerBS)));
-		  outfifo.enq(PBbS {bShor:horBS,bSver:verBS});
+		  outfifo.enq(tagged PBbS {bShor:horBS,bSver:verBS});
 		  interLeftNonZeroTransCoeff <= update(interLeftNonZeroTransCoeff, blockVer, False);
 		  interTopNonZeroTransCoeff <= update(interTopNonZeroTransCoeff, blockHor, False);
 		  $display( "Trace Prediction: outputing SkipMB bS %h %h %h %h", outBlockNum, outPixelNum, currMbHor, currMbVer);
@@ -773,13 +773,13 @@ module mkPrediction( IPrediction );
 		  InterBlockMv outBlockMv = interOutBlockMvfifo.first();
 		  if(outBlockMv matches tagged BlockMv .bdata)
 		     begin
-			outBlockMv = (BlockMv {refIdx:bdata.refIdx,mvhor:bdata.mvhor,mvver:bdata.mvver,nonZeroTransCoeff:(interTopNonZeroTransCoeff[pixelVer]?1:0)});
+			outBlockMv = (tagged BlockMv {refIdx:bdata.refIdx,mvhor:bdata.mvhor,mvver:bdata.mvver,nonZeroTransCoeff:(interTopNonZeroTransCoeff[pixelVer]?1:0)});
 			interOutBlockMvfifo.deq();
 		     end
 		  else if(pixelVer==3)
 		     interOutBlockMvfifo.deq();
 		  if(pixelVer==3 && picWidth>1)
-		     interMemReqQdelay <= StoreReq {addr:{tempStoreAddr,pixelVer},data:pack(outBlockMv)};
+		     interMemReqQdelay <= tagged StoreReq {addr:{tempStoreAddr,pixelVer},data:pack(outBlockMv)};
 		  else
 		     interMemReqQ.enq(tagged StoreReq {addr:{tempStoreAddr,pixelVer},data:pack(outBlockMv)});
 		  if(pixelVer>0)
@@ -797,7 +797,7 @@ module mkPrediction( IPrediction );
 			      intraTopValChroma0Store = intraTopValChroma0[3];
 			      intraTopValChroma1Store = {outputVector[3],outputVector[2]};
 			      intraStore = {intra4x4typeTopStore,intraTopValChroma1Store,intraTopValChroma0Store,intraTopValStore};
-			      intraMemReqQdelay <= StoreReq {addr:{tempStoreAddr,2'b11},data:intraStore};
+			      intraMemReqQdelay <= tagged StoreReq {addr:{tempStoreAddr,2'b11},data:intraStore};
 			   end
 		     end
 	       end
@@ -1265,8 +1265,8 @@ module mkPrediction( IPrediction );
             Vector#(5,InterBlockMv) interTopValNext = interTopVal;//update inter*Val
             Vector#(4,InterBlockMv) interLeftValNext = interLeftVal;
             Vector#(4,InterBlockMv) interTopLeftValNext = interTopLeftVal;
-            interLeftValNext[blockVer] = (BlockMv {refIdx:refIndex,mvhor:mvhorfinal,mvver:mvverfinal,nonZeroTransCoeff:0});
-            interTopValNext[blockHor] = (BlockMv {refIdx:refIndex,mvhor:mvhorfinal,mvver:mvverfinal,nonZeroTransCoeff:0});
+            interLeftValNext[blockVer] = (tagged BlockMv {refIdx:refIndex,mvhor:mvhorfinal,mvver:mvverfinal,nonZeroTransCoeff:0});
+            interTopValNext[blockHor] = (tagged BlockMv {refIdx:refIndex,mvhor:mvhorfinal,mvver:mvverfinal,nonZeroTransCoeff:0});
             interTopLeftValNext[blockVer] = interTopVal[blockHor];
             interTopVal <= interTopValNext;
             interLeftVal <= interLeftValNext;
@@ -1368,13 +1368,13 @@ module mkPrediction( IPrediction );
 		  btTemp = IP8x8;
 		  mvhorTemp = tpl_1(interMvFile.sub({interIPMbPartNumTemp,2'b00}));
 		  mvverTemp = tpl_2(interMvFile.sub({interIPMbPartNumTemp,2'b00}));
-		  interpolator.request(IPLuma {refIdx:refIndex,hor:horTemp,ver:verTemp,mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
+		  interpolator.request(tagged IPLuma {refIdx:refIndex,hor:horTemp,ver:verTemp,mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
 	       end
 	    else
-	       interpolator.request(IPLuma {refIdx:refIndex,hor:horTemp,ver:verTemp,mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
+	       interpolator.request(tagged IPLuma {refIdx:refIndex,hor:horTemp,ver:verTemp,mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
 	 end
       else
-	 interpolator.request(IPChroma {refIdx:refIndex,uv:interIPStepCount[0],hor:horTemp,ver:truncate(verTemp>>1),mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
+	 interpolator.request(tagged IPChroma {refIdx:refIndex,uv:interIPStepCount[0],hor:horTemp,ver:truncate(verTemp>>1),mvhor:mvhorTemp,mvver:mvverTemp,bt:btTemp});
       if(interIPSubMbPartNum >= truncate(numSubPart-1))
 	 begin
 	    interIPSubMbPartNum <= 0;

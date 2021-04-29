@@ -124,7 +124,7 @@ module mkInterpolator( Interpolator );
 
    rule sendEndOfFrameReq( endOfFrameFlag );
       endOfFrameFlag <= False;
-      memReqQ.enq(IPLoadEndFrame);
+      memReqQ.enq(tagged IPLoadEndFrame);
    endrule
 
 
@@ -169,7 +169,7 @@ module mkInterpolator( Interpolator );
 	    else
 	       verAddr = truncate(verTemp);
 	 end
-      memReqQ.enq(IPLoadLuma {refIdx:reqdata.refIdx,horOutOfBounds:horOut,hor:horAddr,ver:verAddr});
+      memReqQ.enq(tagged IPLoadLuma {refIdx:reqdata.refIdx,horOutOfBounds:horOut,hor:horAddr,ver:verAddr});
       Bool verFirst = twoStage || (yfracl==2&&(xfracl==1||xfracl==3));
       Bit#(2) loadHorNumMax = (reqdata.bt==IP8x8||reqdata.bt==IP8x4 ? 1 : 0) + (horInter ? 2 : (offset2==0 ? 0 : 1));
       Bit#(4) loadVerNumMax = (reqdata.bt==IP8x8||reqdata.bt==IP4x8 ? 7 : 3) + (verInter ? 5 : 0);
@@ -274,7 +274,7 @@ module mkInterpolator( Interpolator );
 	    else
 	       verAddr = truncate(verTemp);
 	 end
-      memReqQ.enq(IPLoadChroma {refIdx:reqdata.refIdx,uv:reqdata.uv,horOutOfBounds:horOut,hor:horAddr,ver:verAddr});
+      memReqQ.enq(tagged IPLoadChroma {refIdx:reqdata.refIdx,uv:reqdata.uv,horOutOfBounds:horOut,hor:horAddr,ver:verAddr});
       Bit#(2) loadHorNumMax = (reqdata.bt==IP4x8||reqdata.bt==IP4x4 ? (offset[1]==0||(xfracc==0&&offset!=3) ? 0 : 1) : ((reqdata.bt==IP16x16||reqdata.bt==IP16x8 ? 1 : 0) + (xfracc==0&&offset==0 ? 0 : 1)));
       Bit#(4) loadVerNumMax = (reqdata.bt==IP16x16||reqdata.bt==IP8x16 ? 7 : (reqdata.bt==IP16x8||reqdata.bt==IP8x8||reqdata.bt==IP4x8 ? 3 : 1)) + (yfracc==0 ? 0 : 1);
       if(loadHorNum < loadHorNumMax)
@@ -835,9 +835,9 @@ module mkInterpolator( Interpolator );
    method Action request( InterpolatorIT inputdata );
       reqfifoLoad.enq(inputdata);
       if(inputdata matches tagged IPLuma .indata)
-	 reqfifoWork1.enq(IPWLuma {xFracL:indata.mvhor[1:0],yFracL:indata.mvver[1:0],offset:indata.mvhor[3:2],bt:indata.bt});
+	 reqfifoWork1.enq(tagged IPWLuma {xFracL:indata.mvhor[1:0],yFracL:indata.mvver[1:0],offset:indata.mvhor[3:2],bt:indata.bt});
       else if(inputdata matches tagged IPChroma .indata)
-	 reqfifoWork1.enq(IPWChroma {xFracC:indata.mvhor[2:0],yFracC:indata.mvver[2:0],offset:indata.mvhor[4:3]+{indata.hor[0],1'b0},bt:indata.bt});
+	 reqfifoWork1.enq(tagged IPWChroma {xFracC:indata.mvhor[2:0],yFracC:indata.mvver[2:0],offset:indata.mvhor[4:3]+{indata.hor[0],1'b0},bt:indata.bt});
    endmethod
 
    method Vector#(4,Bit#(8)) first();

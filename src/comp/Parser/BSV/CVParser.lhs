@@ -1727,7 +1727,7 @@ EXPRESSIONS
 > pConstructorPrimaryWith :: Id -> Bool -> SV_Parser CExpr
 > pConstructorPrimaryWith name tagged =
 >         do namedArgs <- pInBraces (pCommaSep pFieldInit)
->            return $ CStruct name namedArgs
+>            return $ CStruct (Just (not tagged)) name namedArgs
 >     <|> do positionalArgs <- option [] (pConstructorPrimaryPositionalArgs tagged)
 >            return $ CCon name positionalArgs
 

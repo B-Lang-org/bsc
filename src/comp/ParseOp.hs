@@ -162,9 +162,9 @@ pExpr ft (Ccase pos e as) = do
                                cca_consequent = new_consequent })
     as' <- mapM pCaseArm as
     return (Ccase pos e' as')
-pExpr ft (CStruct i ies) = do
+pExpr ft (CStruct mb i ies) = do
     ies' <- mapSndM (pExpr ft) ies
-    return (CStruct i ies')
+    return (CStruct mb i ies')
 pExpr ft (CStructUpd e ies) = do
     e' <- pExpr ft e
     ies' <- mapSndM (pExpr ft) ies

@@ -453,20 +453,20 @@ module mkDeblockFilter( IDeblockFilter );
 	 tagged NewUnit . xdata :
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	       $display("ccl5newunit");
 	       $display("ccl5rbspbyte %h", xdata);
 	    end
 	 tagged SPSpic_width_in_mbs .xdata :
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	       picWidth <= xdata;
 	    end
 	 tagged SPSpic_height_in_map_units .xdata :
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	       picHeight <= xdata;
 	    end
 	 tagged PPSdeblocking_filter_control_present_flag .xdata :
@@ -482,7 +482,7 @@ module mkDeblockFilter( IDeblockFilter );
 	 tagged SHfirst_mb_in_slice .xdata :
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	       firstMb   <= xdata;
 	       currMb    <= xdata;
 	       currMbHor <= xdata;
@@ -520,14 +520,14 @@ module mkDeblockFilter( IDeblockFilter );
 	 tagged EndOfFile :
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	       $display( "ccl5: EndOfFile reached");
 	       //$finish(0);
 	    end
 	 default:
 	    begin
 	       infifo.deq();
-	       outfifo.enq(EDOT (infifo.first()));
+	       outfifo.enq(tagged EDOT (infifo.first()));
 	    end
       endcase
    endrule
@@ -628,11 +628,11 @@ module mkDeblockFilter( IDeblockFilter );
          // The block hor calculation may be questionable... between U and V.
          if(chromaFlag == 0)
            begin
-             memReqRowToColumnConversion.enq(StoreReq {addr:{adjustedMbHor,chromaFlag,2'b11,rowToColumnState},data:data_out});
+             memReqRowToColumnConversion.enq(tagged StoreReq {addr:{adjustedMbHor,chromaFlag,2'b11,rowToColumnState},data:data_out});
            end
          else
            begin  //differentiate between u and v
-             memReqRowToColumnConversion.enq(StoreReq {addr:{adjustedMbHor,chromaFlag,blockHor[1],1'b1,rowToColumnState},data:data_out});
+             memReqRowToColumnConversion.enq(tagged StoreReq {addr:{adjustedMbHor,chromaFlag,blockHor[1],1'b1,rowToColumnState},data:data_out});
            end
 
        end
@@ -688,17 +688,17 @@ module mkDeblockFilter( IDeblockFilter );
          if(chromaFlag==0)
            begin
              $display("TRACE mkDeblockFilter: Outputting Luma ver{mbVer, blockVer(2), state}: %h, hor{mbHor, blockHor(2)}: %b, data: %h", {currMbVer,blockVer}, {currMbHorT,blockHor}, data_out);
-             outfifo.enq(DFBLuma {ver:{currMbVer,blockVer,columnToRowState},
-                                  hor:{currMbHorT,blockHor},
-                                  data:data_out});
+             outfifo.enq(tagged DFBLuma {ver:{currMbVer,blockVer,columnToRowState},
+                                         hor:{currMbHorT,blockHor},
+                                         data:data_out});
            end
          else
            begin
  $display("TRACE mkDeblockFilter: Outputting Chroma %d ver{mbVer, blockVer(1), state(2)}: %b, hor{mbHor, blockHor(1)}: %b, data: %h",blockHor[1],{currMbVer,blockVer[0],columnToRowState},{currMbHorT,blockHor[0]},data_out);
-             outfifo.enq(DFBChroma {uv:blockHor[1],
-                                    ver:{currMbVer,blockVer[0],columnToRowState},
-                                    hor:{currMbHorT,blockHor[0]},
-                                    data:data_out});
+             outfifo.enq(tagged DFBChroma {uv:blockHor[1],
+                                           ver:{currMbVer,blockVer[0],columnToRowState},
+                                           hor:{currMbHorT,blockHor[0]},
+                                           data:data_out});
            end
        end
 
@@ -709,17 +709,17 @@ module mkDeblockFilter( IDeblockFilter );
          if(chromaFlag==0)
            begin
              $display("TRACE mkDeblockFilter: (Top Value) Outputting Luma ver{mbVer, blockVer(2), state(2)}: %b, hor{mbHor, blockHor(2)}: %h, data: %h",{currMbVer-1,2'b11,columnToRowState}, {currMbHorT,blockHor}, data_out);
-             outfifo.enq(DFBLuma {ver:{currMbVer-1,2'b11,columnToRowState},
-                                  hor:{currMbHorT,blockHor},
-                                  data:data_out});
+             outfifo.enq(tagged DFBLuma {ver:{currMbVer-1,2'b11,columnToRowState},
+                                         hor:{currMbHorT,blockHor},
+                                         data:data_out});
            end
          else
            begin
              $display("TRACE mkDeblockFilter: (Top Value) Outputting Chroma %d ver{mbVer, blockVer(1), state(2)}: %b, hor{mbHor, blockHor(1)}: %b, data: %h",blockHor[1],{currMbVer-1,1'b1,columnToRowState},{currMbHorT,blockHor[0]},data_out);
-             outfifo.enq(DFBChroma {uv:blockHor[1],
-                                    ver:{currMbVer-1,1'b1,columnToRowState},
-                                    hor:{currMbHorT,blockHor[0]},
-                                    data:data_out});
+             outfifo.enq(tagged DFBChroma {uv:blockHor[1],
+                                           ver:{currMbVer-1,1'b1,columnToRowState},
+                                           hor:{currMbHorT,blockHor[0]},
+                                           data:data_out});
 	   end
        end
 
@@ -882,17 +882,17 @@ module mkDeblockFilter( IDeblockFilter );
                    else if(chromaFlag==0)
                      begin
                        $display("TRACE mkDeblockFilter: (Left Vector) Outputting Luma ver{mbVer, blockVer(2), state(2)}: %b, hor{mbHor, blockHor(2)}: %b, data: %h",{adjustedMbVer,blockVer,pixelNum},{adjustedMbHor,2'b11} ,result[31:0] );
-                       outfifoVertical.enq(DFBLuma {ver:{adjustedMbVer,blockVer,pixelVer},
-                                            hor:{adjustedMbHor,2'b11},
-                                            data:result[31:0]});
+                       outfifoVertical.enq(tagged DFBLuma {ver:{adjustedMbVer,blockVer,pixelVer},
+                                                           hor:{adjustedMbHor,2'b11},
+                                                           data:result[31:0]});
                      end
                    else
                      begin
                        $display("TRACE mkDeblockFilter: (Left Vector) Outputting Chroma %d ver{mbVer, blockVer(2), state(2)}: %b, hor{mbHor, blockHor(2)}: %b, data: %h",blockHor[1],{adjustedMbVer,blockVer[0],pixelNum},{adjustedMbHor,1'b1}  ,result[31:0]);
-                       outfifoVertical.enq(DFBChroma {uv:blockHor[1],
-                                              ver:{adjustedMbVer,blockVer[0],pixelVer},
-                                              hor:{adjustedMbHor,1'b1},
-                                              data:result[31:0]});
+                       outfifoVertical.enq(tagged DFBChroma {uv:blockHor[1],
+                                                             ver:{adjustedMbVer,blockVer[0],pixelVer},
+                                                             hor:{adjustedMbHor,1'b1},
+                                                             data:result[31:0]});
                       end
                	 end
 	       else
@@ -1075,7 +1075,7 @@ module mkDeblockFilter( IDeblockFilter );
                     blockHorVerticalCleanup <= blockHor;
                     verticalState <= VerticalCleanup;
                   end
-                memReqVertical.enq(StoreReq {addr:{currMbHorT,chromaFlag,blockHor,columnNumber},data:resultV[63:32]});
+                memReqVertical.enq(tagged StoreReq {addr:{currMbHorT,chromaFlag,blockHor,columnNumber},data:resultV[63:32]});
               end
             columnToRowStore[columnNumber].enq(resultV[31:0]);
             if(columnNumber == 0)
@@ -1140,7 +1140,7 @@ end
         chromaFlag <= 0;
         process <= Passing;
         Bit#(PicWidthSz) temp = truncate(currMbHor);
-        parameterMemReqQ.enq(StoreReq {addr:temp,data:{curr_intra,curr_qpc,curr_qpy}});
+        parameterMemReqQ.enq(tagged StoreReq {addr:temp,data:{curr_intra,curr_qpc,curr_qpy}});
         left_intra <= curr_intra;
         left_qpc <= curr_qpc;
         left_qpy <= curr_qpy;
@@ -1148,7 +1148,7 @@ end
         currMbHor <= currMbHor+1;
         if(currMbVer==picHeight-1 && currMbHor==zeroExtend(picWidth-1))
           begin
-            outfifo.enq(EndOfFrame);
+            outfifo.enq(tagged EndOfFrame);
           end
       end
    endrule

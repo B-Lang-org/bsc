@@ -747,7 +747,7 @@ module mkBufferControl( IBufferControl );
 	       infifo.deq();
 	       //$display( "TRACE Buffer Control: input Luma %0d %h %h", indata.mb, indata.pixel, indata.data);
 	       Bit#(TAdd#(PicAreaSz,6)) addr = {(zeroExtend(indata.ver)*zeroExtend(picWidth)),2'b00}+zeroExtend(indata.hor);
-	       storeReqQ.enq(FBStoreReq {addr:inAddrBase+zeroExtend(addr),data:indata.data});
+	       storeReqQ.enq(tagged FBStoreReq {addr:inAddrBase+zeroExtend(addr),data:indata.data});
 	    end
 	 tagged DFBChroma .indata :
 	    begin
@@ -757,7 +757,7 @@ module mkBufferControl( IBufferControl );
 	       Bit#(TAdd#(PicAreaSz,4)) vOffset = 0;
 	       if(indata.uv == 1)
 		  vOffset = {frameinmb,4'b0000};
-	       storeReqQ.enq(FBStoreReq {addr:(inAddrBase+zeroExtend(chromaOffset)+zeroExtend(vOffset)+zeroExtend(addr)),data:indata.data});
+	       storeReqQ.enq(tagged FBStoreReq {addr:(inAddrBase+zeroExtend(chromaOffset)+zeroExtend(vOffset)+zeroExtend(addr)),data:indata.data});
 	       //$display( "TRACE Buffer Control: input Chroma %0d %0h %h %h %h %h", indata.uv, indata.ver, indata.hor, indata.data, addr, (inAddrBase+zeroExtend(chromaOffset)+zeroExtend(vOffset)+zeroExtend(addr)));
 	    end
 	 tagged EndOfFrame :

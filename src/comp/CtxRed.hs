@@ -177,9 +177,9 @@ instance CtxRed CExpr where
         e' <- ctxRed e
         as' <- ctxRed as
         return (Ccase pos e' as')
-    ctxRed (CStruct i ies) = do
+    ctxRed (CStruct mb i ies) = do
         ies' <- ctxRed ies
-        return (CStruct i ies')
+        return (CStruct mb i ies')
     ctxRed (CStructUpd e ies) = do
         e' <- ctxRed e
         ies' <- ctxRed ies

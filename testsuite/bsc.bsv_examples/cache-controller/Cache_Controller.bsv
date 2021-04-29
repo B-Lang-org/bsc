@@ -108,8 +108,8 @@ module cache_controller(IFC_Cache_Controller);
                 Cache_Tag { tag_way0: Invalid, tag_way1: Invalid,
                             next_evict_way0: True };
         let invalidate_req =
-                SRAM_Write { address: cache_init_location,
-                             data: invalidate_write_data };
+                tagged SRAM_Write { address: cache_init_location,
+                                    data: invalidate_write_data };
         tag_req.wset(invalidate_req);
         state <= cache_init_location == 511 ? Ready : Initializing;
         // case (cache_init_location)
@@ -158,7 +158,7 @@ module cache_controller(IFC_Cache_Controller);
                             &&& last_cpu_request.first() matches
                                   tagged SRAM_Write { address: .orig_addr, data: .orig_data }
                             &&& cache_tag_resp.wget() matches tagged Valid .resp_tag);
-        let line_req = SRAM_Write { address: orig_addr[13:5], data: orig_data };
+        let line_req = tagged SRAM_Write { address: orig_addr[13:5], data: orig_data };
         function same_as_orig(tag) = (tag == orig_addr[31:14]);
         Bool evict_way0;
         case (resp_tag.data) matches
@@ -173,8 +173,8 @@ module cache_controller(IFC_Cache_Controller);
                 let new_tag = Cache_Tag { next_evict_way0: !resp_tag.data.next_evict_way0,
                                           tag_way0: Valid (orig_addr[31:14]),
                                           tag_way1: resp_tag.data.tag_way1 };
-                let new_tag_req = SRAM_Write { address: orig_addr[13:5],
-                                               data: new_tag };
+                let new_tag_req = tagged SRAM_Write { address: orig_addr[13:5],
+                                                      data: new_tag };
                 way0_req.wset(line_req);
                 tag_req.wset(new_tag_req);
                 // $display("INFO (cache controller) writing tag %h at %h to way0",
@@ -185,8 +185,8 @@ module cache_controller(IFC_Cache_Controller);
                 let new_tag = Cache_Tag { next_evict_way0: !resp_tag.data.next_evict_way0,
                                           tag_way0: resp_tag.data.tag_way0,
                                           tag_way1: Valid (orig_addr[31:14]) };
-                let new_tag_req = SRAM_Write { address: orig_addr[13:5],
-                                               data: new_tag };
+                let new_tag_req = tagged SRAM_Write { address: orig_addr[13:5],
+                                                      data: new_tag };
                 way1_req.wset(line_req);
                 tag_req.wset(new_tag_req);
                 // $display("INFO (cache controller) writing tag %h at %h to way1",
@@ -202,7 +202,7 @@ module cache_controller(IFC_Cache_Controller);
     rule request_cache_tag(state == Waiting_For_Memory
                            &&& last_cpu_request.first() matches
                                    tagged SRAM_Read { address: .addr });
-        tag_req.wset(SRAM_Read { address: addr[13:5] });
+        tag_req.wset(tagged SRAM_Read { address: addr[13:5] });
     endrule
 
     // interface to the processor
@@ -215,7 +215,7 @@ module cache_controller(IFC_Cache_Controller);
                     // if it's a read, read the cache, and wait for a response
                     tagged SRAM_Read { address: .addr }:
                         begin
-                            let req = SRAM_Read { address: addr[13:5] };
+                            let req = tagged SRAM_Read { address: addr[13:5] };
                             tag_req.wset(req);
                             way0_req.wset(req);
                             way1_req.wset(req);
@@ -224,7 +224,7 @@ module cache_controller(IFC_Cache_Controller);
                     // if it's a write, read the cache to find out what to evict
                     tagged SRAM_Write { address: .addr }:
                         begin
-                            let req = SRAM_Read { address: addr[13:5] };
+                            let req = tagged SRAM_Read { address: addr[13:5] };
                             tag_req.wset(req);
                             way0_req.wset(req);
                             way1_req.wset(req);
@@ -259,14 +259,14 @@ module cache_controller(IFC_Cache_Controller);
             match tagged SRAM_Response_t { data: .mem_data } = mem_resp;
             // $display("INFO (cache controller) mem response");
             // $display("INFO (cache controller)   %h", mem_data);
-            let line_req = SRAM_Write { address: orig_addr[13:5], data: mem_data };
+            let line_req = tagged SRAM_Write { address: orig_addr[13:5], data: mem_data };
             if (resp_tag.next_evict_way0)
                 begin
                     let new_tag = Cache_Tag { next_evict_way0: !resp_tag.next_evict_way0,
                                               tag_way0: Valid (orig_addr[31:14]),
                                               tag_way1: resp_tag.tag_way1 };
-                    let new_tag_req = SRAM_Write { address: orig_addr[13:5],
-                                                   data: new_tag };
+                    let new_tag_req = tagged SRAM_Write { address: orig_addr[13:5],
+                                                          data: new_tag };
                     way0_req.wset(line_req);
                     tag_req.wset(new_tag_req);
                     // $display("INFO (cache controller) replacing tag %h at way0", orig_addr[31:14]);
@@ -276,8 +276,8 @@ module cache_controller(IFC_Cache_Controller);
                     let new_tag = Cache_Tag { next_evict_way0: !resp_tag.next_evict_way0,
                                               tag_way0: resp_tag.tag_way0,
                                               tag_way1: Valid (orig_addr[31:14]) };
-                    let new_tag_req = SRAM_Write { address: orig_addr[13:5],
-                                                   data: new_tag };
+                    let new_tag_req = tagged SRAM_Write { address: orig_addr[13:5],
+                                                          data: new_tag };
                     way1_req.wset(line_req);
                     tag_req.wset(new_tag_req);
                     // $display("INFO (cache controller) replacing tag %h at way1", orig_addr[31:14]);

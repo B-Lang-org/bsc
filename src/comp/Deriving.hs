@@ -222,7 +222,7 @@ doStructDer _ _ xs i vs [field] di
                 CLValue (unQualId f) [CClause [] [] (mkConv con coCon tmpVarXIds tv t (CVar f))] []
           where (Just kind) = getTypeKind t
                 tv = cTVarKind v kind
-        con e = CStruct i [(cf_name field, e)]
+        con e = CStruct (Just True) i [(cf_name field, e)]
         coCon e = CSelectTT i e (cf_name field)
 doStructDer _ _ _ i vs cs (CTypeclass di) | isTCId i =
   -- ignore bad deriving, it should be handled in the data case
@@ -342,8 +342,8 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
         un = CLValueSign (CDef (idUnpackNQ dpos) (CQType [] (bty `fn` aty)) [unc]) []
         unc = CClause [CPVar id_x] [] ukb
         ukb = case fields of
-                [] -> CStruct ti []
-                [field] -> CStruct ti [(cf_name field, cVApply idUnpack [vx])]
+                [] -> CStruct (Just True) ti []
+                [field] -> CStruct (Just True) ti [(cf_name field, cVApply idUnpack [vx])]
                 _  -> let xs = take (n-1) tmpVarXIds
                           bind = mkBind vx xs
                           mkBind o [] = id
@@ -359,7 +359,7 @@ doSBits dpos ti vs fields = Cinstance (CQType ctx (cTApplys (cTCon idBits) [aty,
                               mkExp fields x xs
                           mkExp _ _ _ = internalError "Deriving.doSBits.ukb.mkExp: [] _ _ or _ _ []"
                           err = internalError "Deriving.doSBits.ukb.mkExp: no var"
-                      in  bind (CStruct ti (mkExp fields err xs))
+                      in  bind (CStruct (Just True) ti (mkExp fields err xs))
 
 
 -- | Derive Bits instance for a data (sum) type, with the pack and unpack
@@ -698,14 +698,14 @@ doSBounded dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idBounded) aty)) [ma
         maxB = mmDef (idMaxBoundNQ dpos) idMaxBound
         mmDef md mv =
             let mfs = [ (cf_name f, CVar mv) | f <- fs ]
-                str = CStruct i mfs
+                str = CStruct (Just True) i mfs
             in        CLValueSign (CDef md (CQType [] aty) [CClause [] [] str]) []
 
 doSDefaultValue :: Position -> Id -> [Type] -> CFields -> CDefn
 doSDefaultValue dpos i vs fs = Cinstance (CQType ctx (TAp (cTCon idDefaultValue) ty)) [def]
   where ctx = map (\ (CField {cf_type = CQType _ t}) -> CPred (CTypeclass idDefaultValue) [t]) fs
         ty  = cTApplys (cTCon i) vs
-        str = CStruct i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
+        str = CStruct (Just True) i [ (cf_name f, CVar id_defaultValue) | f <- fs ]
         def = CLValueSign (CDef id_defaultValueNQ (CQType [] ty) [CClause [] [] str]) []
 
 doSGeneric :: SymTab -> Id -> Position -> Id -> [Type] -> CFields -> Either EMsg [CDefn]
@@ -777,7 +777,8 @@ mkGenericInstance r packageid dpos i vs isData summands =
                [CCon idMeta
                 [if fieldHigherRank fty
                  then CCon idConcPoly
-                  [CStruct (genericRepWrapName dpos i isData cn fn)
+                  [CStruct (Just True)
+                    (genericRepWrapName dpos i isData cn fn)
                     [(idPolyWrapField, CSelect (CVar id_x) fn)]]
                  else CCon idConc [if isJust mfns || length ftys > 1
                                    then CSelect (CVar id_x) fn
@@ -801,7 +802,7 @@ mkGenericInstance r packageid dpos i vs isData summands =
                   | (j, fty) <- zip [1..] ftys]
             in case mfns of
               Nothing -> CCon cn args
-              Just fns -> CStruct cn $ zip fns args
+              Just fns -> CStruct (Just (not isData)) cn $ zip fns args
           | (k, (cn, mfns, ftys)) <- zip [0..] summands] []
         inst = Cinstance (CQType preds (TAp (TAp (cTCon idGeneric) ty) rep)) [from, to]
 
@@ -829,11 +830,11 @@ mkGenericRepWrap r pos tid isData cid fid ty_vars fty =
       Cinstance (CQType [] (TAp (cTCon idClsUninitialized) (cTApplys (cTCon i) ty_vars)))
         [CLValue idMakeUninitializedNQ
           [CClause [CPVar id_x, CPVar id_y] []
-            (CStruct i [(idPolyWrapField, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
+            (CStruct (Just True) i [(idPolyWrapField, CApply (CVar idPrimUninitialized) [CVar id_x, CVar id_y])])] []],
       Cinstance (CQType [] (TAp (cTCon idUndefined) (cTApplys (cTCon i) ty_vars)))
         [CLValue idMakeUndefinedNQ
           [CClause [CPVar id_x, CPVar id_y] []
-            (CStruct i [(idPolyWrapField, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
+            (CStruct (Just True) i [(idPolyWrapField, CApply (CVar idBuildUndef) [CVar id_x, CVar id_y])])] []]]]
   where i = genericRepWrapName pos tid isData cid fid
         vs = map (getTyVarId . head . tv) ty_vars
         fields =
