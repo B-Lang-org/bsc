@@ -1,0 +1,7 @@
+package Types_NonNamed where
+
+-- BSC represents this as a constructor of one argument
+-- that is a struct with fields named "_1" and "_2".
+-- However, this should not be visible to users.
+--
+data Foo = Bar Bool Bool

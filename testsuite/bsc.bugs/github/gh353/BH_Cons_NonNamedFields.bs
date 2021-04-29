@@ -1,0 +1,9 @@
+package BH_Cons_NonNamedFields where
+
+import Types_NonNamed
+
+fn1 :: Foo
+fn1 = Bar { _1 = True; _2 = False; }
+
+fn2 :: Foo -> Bool
+fn2 (Bar { _1 = x; _2 = y }) = x && y

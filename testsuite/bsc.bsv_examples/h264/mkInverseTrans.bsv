@@ -245,7 +245,7 @@ module mkInverseTrans( IInverseTrans );
 	       else
 		  qpi = truncate(qpitemp-12);
 	       qpc <= qpi_to_qpc(qpi);
-	       outfifo.enq(IBTmb_qp {qpy:qpynext,qpc:qpi_to_qpc(qpi)});
+	       outfifo.enq(tagged IBTmb_qp {qpy:qpynext,qpc:qpi_to_qpc(qpi)});
 	    end
 	 tagged SDMmb_qp_delta .xdata :
 	    begin
@@ -277,7 +277,7 @@ module mkInverseTrans( IInverseTrans );
 	       else
 		  qpi = truncate(qpitemp-12);
 	       qpc <= qpi_to_qpc(qpi);
-	       outfifo.enq(IBTmb_qp {qpy:qpynext,qpc:qpi_to_qpc(qpi)});
+	       outfifo.enq(tagged IBTmb_qp {qpy:qpynext,qpc:qpi_to_qpc(qpi)});
 	    end
 	 tagged PPSchroma_qp_index_offset .xdata :
 	    begin

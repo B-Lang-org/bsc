@@ -122,28 +122,28 @@ module mkCPUTestV2(Empty);
   MemAddr maxInstr = 10;
   function Instr nextInstr(MemAddr n);
    case (n)
-      0 :  return (LoadC {rd:R0, v:10});
-      1 :  return (LoadC {rd:R1, v:15});
-      2 :  return (LoadC {rd:R2, v:20});
-      3 :  return (Add {rd:R3, ra:R0, rb:R1});
-      4 :  return (Add {rd:R4, ra:R3, rb:R2});
-      5 :  return (Store {v:R4, addr:R1});
-      6 :  return (LoadC {rd:R5, v: 9});
-      7 :  return (Jz {cd:R0, addr:R5});
-      8 :  return (Add {rd:R4, ra:R4, rb:R4});
-      9 :  return (Store {v:R4, addr:R0});
-     10 :  return (Halt);
+      0 :  return (tagged LoadC {rd:R0, v:10});
+      1 :  return (tagged LoadC {rd:R1, v:15});
+      2 :  return (tagged LoadC {rd:R2, v:20});
+      3 :  return (tagged Add {rd:R3, ra:R0, rb:R1});
+      4 :  return (tagged Add {rd:R4, ra:R3, rb:R2});
+      5 :  return (tagged Store {v:R4, addr:R1});
+      6 :  return (tagged LoadC {rd:R5, v: 9});
+      7 :  return (tagged Jz {cd:R0, addr:R5});
+      8 :  return (tagged Add {rd:R4, ra:R4, rb:R4});
+      9 :  return (tagged Store {v:R4, addr:R0});
+     10 :  return (tagged Halt);
    endcase
 
 // Program involving potential new instruction:
 //   case (n)
-//     0 :  return (LoadC {rd:R0, v:10});
-//     1 :  return (LoadC {rd:R1, v:15});
-//     2 :  return (LoadPC {rd:R3});
-//     3 :  return (LShift {rd:R5, ra:R3, rb:R3});
-//     4 :  return (Store {v:R5, addr:R6});
-//     5 :  return (Add {rd:R2, ra:R0, rb:R1});
-//     6 :  return (Store {v:R2, addr:R3});
+//     0 :  return (tagged LoadC {rd:R0, v:10});
+//     1 :  return (tagged LoadC {rd:R1, v:15});
+//     2 :  return (tagged LoadPC {rd:R3});
+//     3 :  return (tagged LShift {rd:R5, ra:R3, rb:R3});
+//     4 :  return (tagged Store {v:R5, addr:R6});
+//     5 :  return (tagged Add {rd:R2, ra:R0, rb:R1});
+//     6 :  return (tagged Store {v:R2, addr:R3});
 //   endcase
   endfunction: nextInstr
 

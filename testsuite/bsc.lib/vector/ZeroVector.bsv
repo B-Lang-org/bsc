@@ -7,7 +7,7 @@ module sysZeroVector();
 
   Reg#(Vector#(0, Bit#(32))) r0 <- mkRegU;
 
-  Reg#(Vector#(5, PrimUnit)) rU <- mkReg(replicate(tagged PrimUnit {}));
+  Reg#(Vector#(5, PrimUnit)) rU <- mkReg(replicate(PrimUnit {}));
 
   Reg#(Vector#(0, Bit#(0)))  r00 <- mkReg(replicate(0));
 

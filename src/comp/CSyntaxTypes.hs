@@ -82,7 +82,7 @@ instance Types CExpr where
     apSub s (CSelectTT ti e i) = CSelectTT ti (apSub s e) i
     apSub s (CCon i es) = CCon i (apSub s es)
     apSub s (Ccase pos e as) = Ccase pos (apSub s e) (apSub s as)
-    apSub s (CStruct ti fs) = CStruct ti (mapSnd (apSub s) fs)
+    apSub s (CStruct mb ti fs) = CStruct mb ti (mapSnd (apSub s) fs)
     apSub s (CStructUpd e fs) = CStructUpd (apSub s e) (mapSnd (apSub s) fs)
     apSub s (Cwrite pos e v) = Cwrite pos (apSub s e) (apSub s v)
     apSub s e@(CAny {}) = e
@@ -127,7 +127,7 @@ instance Types CExpr where
     tv (CSelectTT ti e i) = tv e
     tv (CCon i es) = tv es
     tv (Ccase pos e as) = tv (e, as)
-    tv (CStruct ti fs) = tv (map snd fs)
+    tv (CStruct _ _ fs) = tv (map snd fs)
     tv (CStructUpd e fs) = tv (e, map snd fs)
     tv (Cwrite pos e v) = tv (e,v)
     tv e@(CAny {}) = []

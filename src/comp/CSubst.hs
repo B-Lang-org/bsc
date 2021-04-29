@@ -150,10 +150,10 @@ instance CSubst CExpr where
                     (r'', qs') = cSubstQuals r' qs
                 in  (CCaseArm (cSubst r p) qs' (cSubst r'' e))
         in  (Ccase pos (cSubst r e) (map cSubstCaseArm arms))
-    cSubst r (CStruct i ies) =
+    cSubst r (CStruct mb i ies) =
         -- XXX should we be substituting field names?
         -- XXX getFVE does not return them
-        CStruct (cSubstConId r i) (mapSnd (cSubst r) ies)
+        CStruct mb (cSubstConId r i) (mapSnd (cSubst r) ies)
     cSubst r (CStructUpd e ies) =
         -- XXX should we be substituting field names?
         -- XXX getFVE does not return them

@@ -272,9 +272,9 @@ module mkFiveStageCPUBypass(CPU);
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Add {rd:.rd, ra:.ra, rb:.rb}) &&&
           (!(chk(ra) || chk(rb))));
-     let new_itmpl = EAdd { rd : rd,
-			    ra : rval1(ra),
-			    rb : rval2(rb) };
+     let new_itmpl = tagged EAdd { rd : rd,
+				   ra : rval1(ra),
+				   rb : rval2(rb) };
      bd.enq(tuple2(dpc, new_itmpl));
      bf.deq;
 
@@ -286,7 +286,7 @@ module mkFiveStageCPUBypass(CPU);
          (bf.first matches {.dpc, .i32} &&&
 	  toInstr(i32) matches (tagged Jz {cd:.cd, addr:.addr}) &&&
 	  (!(chk(cd) || chk(addr))));
-     let new_itmpl = EJz { cd : rval1(cd), addr : rval2(addr) };
+     let new_itmpl = tagged EJz { cd : rval1(cd), addr : rval2(addr) };
      bd.enq(tuple2(dpc, new_itmpl));
      bf.deq;
   endrule
@@ -295,7 +295,7 @@ module mkFiveStageCPUBypass(CPU);
          (bf.first matches {.dpc, .i32} &&&
 	  toInstr(i32) matches (tagged Load {rd:.rd, addr:.addr}) &&&
 	  (!(chk(addr))));
-     let new_itmpl = ELoad { rd : rd, addr : rval1(addr) };
+     let new_itmpl = tagged ELoad { rd : rd, addr : rval1(addr) };
      bd.enq(tuple2(dpc, new_itmpl));
      bf.deq;
   endrule
@@ -304,7 +304,7 @@ module mkFiveStageCPUBypass(CPU);
          (bf.first matches {.dpc, .i32} &&&
           toInstr(i32) matches (tagged Store {v:.v, addr:.addr}) &&&
 	  (!(chk(v) || chk(addr))));
-     let new_itmpl = EStore { v : rval1(v), addr : rval2(addr) };
+     let new_itmpl = tagged EStore { v : rval1(v), addr : rval2(addr) };
      bd.enq(tuple2(dpc, new_itmpl));
      bf.deq;
   endrule
@@ -312,7 +312,7 @@ module mkFiveStageCPUBypass(CPU);
   rule decode_loadc
          (bf.first matches {.dpc, .i32} &&&
 	  toInstr(i32) matches (tagged LoadC {rd:.rd, v:.v}));
-     let new_itmpl = ELoadC { rd : rd, v : zeroExtend(v) };
+     let new_itmpl = tagged ELoadC { rd : rd, v : zeroExtend(v) };
      bd.enq(tuple2(dpc, new_itmpl));
      bf.deq;
   endrule
@@ -366,7 +366,7 @@ module mkFiveStageCPUBypass(CPU);
        case (instTemplate) matches
 	  tagged EAdd {rd:.rd, ra:.va, rb:.vb} :
 	     action
-	        let new_itmpl = ELoadC { rd : rd, v : va + vb };
+	        let new_itmpl = tagged ELoadC { rd : rd, v : va + vb };
 	        be.enq(tuple2(epc, new_itmpl));
 	        bd.deq;
 	     endaction
@@ -399,7 +399,7 @@ module mkFiveStageCPUBypass(CPU);
       rule execute_add
              (bd.first matches {.epc, .instTemplate} &&&
 	      instTemplate matches (tagged EAdd {rd:.rd, ra:.va, rb:.vb}));
-	 let new_itmpl = ELoadC { rd : rd, v : va + vb };
+	 let new_itmpl = tagged ELoadC { rd : rd, v : va + vb };
 	 be.enq(tuple2(epc, new_itmpl));
 	 bd.deq;
       endrule
@@ -449,7 +449,7 @@ module mkFiveStageCPUBypass(CPU);
      case (instTemplate) matches
 	tagged ELoad {rd:.rd, addr:.addr} :
 	   begin
-	      let new_itmpl = ELoadC { rd : rd, v : dataMem.get(addr) };
+	      let new_itmpl = tagged ELoadC { rd : rd, v : dataMem.get(addr) };
 	      bm.enq(tuple2(mpc, new_itmpl));
 	   end
 	tagged EStore {v:.v, addr:.addr} :

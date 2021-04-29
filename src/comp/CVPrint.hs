@@ -558,10 +558,14 @@ instance PVPrint CExpr where
                  else ppCase d e arms
     pvPrint d p (CAny {}) = text "?"
     pvPrint d p (CVar i) = pvpId d i
-    pvPrint d p (CStruct tyc []) | tyc == idPrimUnit = text "()"
-    pvPrint d p (CStruct tyc ies) = pparen (p > 0) $ pvPrint d (maxPrec+1) tyc <+> t "{" <+> sepList (map f ies ) (t",") <> t"}"
+    pvPrint d p (CStruct _ tyc []) | tyc == idPrimUnit = text "()"
+    pvPrint d p (CStruct mb tyc ies) =
+      pparen (p > 0) $
+          mtagged <+> pvPrint d (maxPrec+1) tyc <+> t "{" <+> sepList (map f ies ) (t",") <> t"}"
         where f (i, e) = pvpId d i <+> t ":" <+> pp d e
-
+              mtagged = case mb of
+                          Just False -> text "tagged"
+                          _ -> empty
     pvPrint d p (CStructUpd e ies) = ppStrUpd d e ies
 --        sep (pvPrint d (maxPrec-1) e : map (nest 2 . ppApArg) es)
 --      where ppApArg e = pvPrint d maxPrec e
@@ -637,7 +641,7 @@ instance PVPrint CExpr where
     pvPrint d p (CCon0 _ i) = pvpId d i
     ----
     pvPrint d p (CConT _ i es) = pvPrint d p (CCon i es)
-    pvPrint d p (CStructT ty ies) = pvPrint d p (CStruct tyc ies)
+    pvPrint d p (CStructT ty ies) = pvPrint d p (CStruct (Just True) tyc ies)
         where (Just tyc) = leftCon ty
     pvPrint d p (CSelectT _ i) = text "." <> pvpId d i
     pvPrint d p (CLitT _ l) = pvPrint d p l

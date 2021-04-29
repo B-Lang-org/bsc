@@ -46,7 +46,7 @@ module random_testbench();
 
     function Action cache_read(Addr addr, Line expected_val);
         action
-            dut.proc.p2c(SRAM_Read { address: addr });
+            dut.proc.p2c(tagged SRAM_Read { address: addr });
             expected_cache_resp.enq(SRAM_Response_t { data: expected_val });
             $display("INFO (testbench): issuing read %h", addr);
         endaction
@@ -54,7 +54,7 @@ module random_testbench();
 
     function Action cache_write(Addr addr, Line val);
         action
-            dut.proc.p2c(SRAM_Write { address: addr, data: val });
+            dut.proc.p2c(tagged SRAM_Write { address: addr, data: val });
             $display("INFO (testbench): issuing write %h <- %h", addr, val);
         endaction
     endfunction

@@ -1,0 +1,24 @@
+package Bug353_BH where
+
+import Bug353_Type
+
+
+struct Foo =
+    f1 :: Bool
+    f2 :: Bool
+  deriving (Bits)
+
+
+-- -----
+-- Trigger error T0007
+
+fn1 :: Foo
+fn1 = let res = Foo { f1 = True; f2 = False; };
+      in res
+
+
+-- -----
+-- Trigger error T0080
+
+fn2 :: Foo
+fn2 = Foo { f1 = True; f2 = False; }

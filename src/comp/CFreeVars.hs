@@ -132,7 +132,7 @@ getFVE (Ccase pos e as) = unionFVS (getFVE e) (unionManyFVS (map getFVArm as))
             in (((getFVQuals (cca_filters arm)) `unionFVS`
                  (getFVE (cca_consequent arm) `minusVS` qual_bound)) `minusVS`
                  pat_bound) `plusCS` (getPC (cca_pattern arm))
-getFVE (CStruct i ies) =
+getFVE (CStruct _ i ies) =
     -- XXX doesn't return the fields
     addC i $ unionManyFVS [getFVE e | (i, e) <- ies]
 getFVE (CStructUpd e ies) =
@@ -259,7 +259,7 @@ getFTCE (Ccase pos e as) = S.union (getFTCE e) (S.unions (map getFTCArm as))
   where getFTCArm arm = getPT (cca_pattern arm) `S.union`
                         getFTCQuals (cca_filters arm) `S.union`
                         getFTCE (cca_consequent arm)
-getFTCE (CStruct i ies) = S.unions [getFTCE e | (_, e) <- ies]
+getFTCE (CStruct _ i ies) = S.unions [getFTCE e | (_, e) <- ies]
 getFTCE (CStructUpd e ies) = S.unions (getFTCE e : [getFTCE e | (_, e) <- ies])
 getFTCE (Cwrite pos e v) = S.union (getFTCE e) (getFTCE v)
 getFTCE (CAny {}) = S.empty

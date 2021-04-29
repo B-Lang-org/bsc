@@ -457,7 +457,7 @@ convInst errh mi r di@(Cinstance qt@(CQType _ t) ds) =
                              -- XXX Lennart's comment: hacky encoding of dict
                              -- XXX "tiExpr" looks for this construction
                              CHasType (anyExprAt (getPosition di)) cqt)
-        body = Cletrec (map altId ds) (CStruct c (map mkf ds ++ sds))
+        body = Cletrec (map altId ds) (CStruct (Just True) c (map mkf ds ++ sds))
     in  (CValueSign (CDef (mkInstId mi t) qt [CClause [] [] body]))
 convInst _ _ _ d = d
 

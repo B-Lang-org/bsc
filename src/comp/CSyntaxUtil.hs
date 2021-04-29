@@ -30,7 +30,7 @@ mkPairType :: CType -> CType -> CType
 mkPairType ft1 ft2 = TAp (TAp tPrimPair ft1) ft2
 
 mkTuple :: Position -> [CExpr] -> CExpr
-mkTuple pos [] = CStruct (setIdPosition pos idPrimUnit) []
+mkTuple pos [] = CStruct (Just True) (setIdPosition pos idPrimUnit) []
 mkTuple pos [e] = e
 mkTuple pos (e:es) = CBinOp e (setIdPosition pos idComma) (mkTuple pos es)
 

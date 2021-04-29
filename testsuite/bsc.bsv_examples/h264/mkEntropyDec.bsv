@@ -75,13 +75,13 @@ function MbType mbtype_convert( Bit#(5) in_mb_type, Bit#(4) in_slice_type );//co
    if(in_slice_type == 2 || in_slice_type == 7)//I slice
       tempmb = in_mb_type+5;
    case ( tempmb )
-      0: return P_L0_16x16;
-      1: return P_L0_L0_16x8;
-      2: return P_L0_L0_8x16;
-      3: return P_8x8;
-      4: return P_8x8ref0;
-      5: return I_NxN;
-      30: return I_PCM;
+      0: return tagged P_L0_16x16;
+      1: return tagged P_L0_L0_16x8;
+      2: return tagged P_L0_L0_8x16;
+      3: return tagged P_8x8;
+      4: return tagged P_8x8ref0;
+      5: return tagged I_NxN;
+      30: return tagged I_PCM;
       default:
       begin
 	 Bit#(5) tempmb16x16 = tempmb-6;
@@ -98,7 +98,7 @@ function MbType mbtype_convert( Bit#(5) in_mb_type, Bit#(4) in_slice_type );//co
 	       tempv3 = 1;
 	       tempv2 = tempmb16x16[3:2]+1;
 	    end
-	 return I_16x16{intra16x16PredMode:tempv1, codedBlockPatternChroma:tempv2, codedBlockPatternLuma:tempv3};
+	 return tagged I_16x16{intra16x16PredMode:tempv1, codedBlockPatternChroma:tempv2, codedBlockPatternLuma:tempv3};
       end
    endcase
 endfunction
@@ -134,7 +134,7 @@ module mkEntropyDec( IEntropyDec );
    Reg#(Bit#(1))              ppsdeblocking_filter_control_present_flag  <- mkReg(0);
    Reg#(Bit#(4))              shslice_type                               <- mkReg(0);
    Reg#(Bit#(3))              shdmemory_management_control_operation     <- mkReg(0);
-   Reg#(MbType)               sdmmbtype                                  <- mkReg(I_NxN);
+   Reg#(MbType)               sdmmbtype                                  <- mkReg(tagged I_NxN);
    Reg#(Bit#(4))              sdmcodedBlockPatternLuma                   <- mkReg(0);
    Reg#(Bit#(2))              sdmcodedBlockPatternChroma                 <- mkReg(0);
    Reg#(Bit#(5))              sdmrTotalCoeff                             <- mkReg(0);
@@ -1051,7 +1051,7 @@ module mkEntropyDec( IEntropyDec );
 		     outfifo_ITB.enq(tagged SDMmbtype mbtype_convert(truncate(expgolomb_unsigned(buffer)), shslice_type) );
 		     sdmmbtype <= mbtype_convert(truncate(expgolomb_unsigned(buffer)), shslice_type);
 		     numbitsused = expgolomb_numbits(buffer);
-		     if(mbtype_convert(truncate(expgolomb_unsigned(buffer)), shslice_type) == I_PCM)
+		     if(mbtype_convert(truncate(expgolomb_unsigned(buffer)), shslice_type) == tagged I_PCM)
 			begin
 			   calcnc.nNupdate_ipcm();
 			   nextstate = tagged MacroblockLayer 1;
@@ -1098,8 +1098,8 @@ module mkEntropyDec( IEntropyDec );
 		  end
 		  4:
 		  begin
-		     if(sdmmbtype != I_NxN
-			&&& mbPartPredMode(sdmmbtype,0) != Intra_16x16
+		     if(sdmmbtype != tagged I_NxN
+			&&& mbPartPredMode(sdmmbtype,0) != tagged Intra_16x16
 			&&& numMbPart(sdmmbtype) == 4)
 			nextstate = tagged SubMbPrediction 0;
 		     else
@@ -1107,7 +1107,7 @@ module mkEntropyDec( IEntropyDec );
 		  end
 		  5:
 		  begin
-		     if(mbPartPredMode(sdmmbtype,0) != Intra_16x16)
+		     if(mbPartPredMode(sdmmbtype,0) != tagged Intra_16x16)
 			begin
 			   $display( "ccl2SDMcoded_block_pattern %0d", expgolomb_coded_block_pattern(buffer,sdmmbtype) );
 			   ////outfifo.enq(SDMcoded_block_pattern expgolomb_coded_block_pattern(buffer,sdmmbtype));
@@ -1131,7 +1131,7 @@ module mkEntropyDec( IEntropyDec );
 		  begin
 		     if(sdmcodedBlockPatternLuma > 0
 			|| sdmcodedBlockPatternChroma > 0
-			|| mbPartPredMode(sdmmbtype,0) == Intra_16x16)
+			|| mbPartPredMode(sdmmbtype,0) == tagged Intra_16x16)
 			begin
 			   tempint = unpack(expgolomb_signed(buffer));
 			   $display( "ccl2SDMmb_qp_delta %0d", tempint );
@@ -1151,14 +1151,14 @@ module mkEntropyDec( IEntropyDec );
 	       case ( step )
 		  0:
 		  begin
-		     if(mbPartPredMode(sdmmbtype,0) == Intra_16x16)
+		     if(mbPartPredMode(sdmmbtype,0) == tagged Intra_16x16)
 			begin
 			   $display( "ccl2SDMMintra_chroma_pred_mode %0d", expgolomb_unsigned(buffer) );
 			   outfifo.enq(tagged SDMMintra_chroma_pred_mode truncate(expgolomb_unsigned(buffer)));
 			   numbitsused = expgolomb_numbits(buffer);
 			   nextstate = tagged MacroblockLayer 5;
 			end
-		     else if(mbPartPredMode(sdmmbtype,0) == Intra_4x4)
+		     else if(mbPartPredMode(sdmmbtype,0) == tagged Intra_4x4)
 			begin
 			   temp5bit <= 16;
 			   nextstate = tagged MbPrediction 1;
@@ -1284,7 +1284,7 @@ module mkEntropyDec( IEntropyDec );
 		     temp3bit3 <= numSubMbPart(truncate(expgolomb_unsigned(buffer)));
 		     numbitsused = expgolomb_numbits(buffer);
 		     if(num_ref_idx_l0_active_minus1 > 0
-			      && sdmmbtype != P_8x8ref0)
+			      && sdmmbtype != tagged P_8x8ref0)
 			nextstate = tagged SubMbPrediction 4;
 		     else
 			nextstate = tagged SubMbPrediction 8;
@@ -1451,7 +1451,7 @@ module mkEntropyDec( IEntropyDec );
 			end
 		     else
 			tempreg <= zeroExtend(6'b111111);
-		     if(mbPartPredMode(sdmmbtype,0)==Intra_16x16 && maxNumCoeff==16)
+		     if(mbPartPredMode(sdmmbtype,0)==tagged Intra_16x16 && maxNumCoeff==16)
 			nextstate = tagged ResidualBlock 1;
 		     else if(residualChroma==0 && (sdmcodedBlockPatternLuma & (1 << (temp5bit[3:2])))==0)
 			begin
@@ -1610,7 +1610,7 @@ module mkEntropyDec( IEntropyDec );
 			   if(residualChroma==0)
 			      begin
 				 nextstate = tagged ResidualBlock 0;
-				 if(mbPartPredMode(sdmmbtype,0)==Intra_16x16 && maxNumCoeff==16)
+				 if(mbPartPredMode(sdmmbtype,0)==tagged Intra_16x16 && maxNumCoeff==16)
 				    maxNumCoeff <= 15;
 				 else if(temp5bit==15)
 				    begin

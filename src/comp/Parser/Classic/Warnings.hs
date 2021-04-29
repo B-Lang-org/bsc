@@ -141,7 +141,7 @@ classicWarnExpr (Ccase _ e as) = do
   ws1 <- classicWarnExpr e
   ws2 <- concatMapM classicWarnArm as
   return $ ws1 ++ ws2
-classicWarnExpr (CStruct _ ies) = concatMapM (classicWarnExpr . snd) ies
+classicWarnExpr (CStruct _ _ ies) = concatMapM (classicWarnExpr . snd) ies
 classicWarnExpr (CStructUpd e ies) = concatMapM classicWarnExpr (e : map snd ies)
 classicWarnExpr (Cwrite _ lhs rhs) = do
   ws1 <- classicWarnExpr lhs
