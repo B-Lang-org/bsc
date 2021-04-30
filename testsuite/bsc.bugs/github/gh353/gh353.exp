@@ -34,6 +34,19 @@ compare_file Bug353_Pat_BSV.bsv.bsc-out
 
 # -----
 
+# Pattern matches in a let binding are desugared into field selection.
+# Thus, only structs can be matched in this context, so there is no
+# disambiguation needed.
+
+compile_pass Bug353_Match_BH.bs
+
+# In BSV, there is no struct matching syntax.  Using the constructor
+# syntax should result in an error (not be interpreted as a struct).
+compile_fail Bug353_Match_BSV.bsv
+compare_file Bug353_Match_BSV.bsv.bsc-out
+
+# -----
+
 # The 'Bug353*' tests are testing code that intends a struct, when
 # both a struct and constructor exist by that name, but only one
 # such struct, and its fields are not named.  Obviously, many other
