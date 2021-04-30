@@ -729,11 +729,11 @@ rmPatLit (CPCon i ps) = do
     pqs <- mapM rmPatLit ps
     let (ps', qss) = unzip pqs
     return (CPCon i ps', concat qss)
-rmPatLit (CPstruct i ips) = do
+rmPatLit (CPstruct mb i ips) = do
     let f (i, p) = do (p, qs) <- rmPatLit p; return ((i, p), qs)
     ipqs <- mapM f ips
     let (ips', qss) = unzip ipqs
-    return (CPstruct i ips', concat qss)
+    return (CPstruct mb i ips', concat qss)
 rmPatLit p@(CPVar _) = return (p, [])
 rmPatLit (CPAs i p) = do
     (p', qs) <- rmPatLit p

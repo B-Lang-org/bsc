@@ -21,6 +21,7 @@ module TIMonad(
               pushSatStackContext, popSatStackContext
         , tiRecoveringFromError
         , tiRecoveringFromErrorxx
+        , disambiguateStruct
         ) where
 
 #if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ >= 804)
@@ -695,3 +696,79 @@ popSatStackContext :: TI ()
 popSatStackContext = do
   superstack <- gets tsSatStack
   modify (\ts -> ts { tsSatStack = (sizedStackPop superstack) })
+
+
+-- CStruct and CPstruct can be used for either structs fields or
+-- constructor fields, and it is up to the typechecker to decide
+-- which is intended.
+-- Given:
+--   * Possible clue from the syntax (True for struct)
+--   * Return-type expected by context
+--   * Id of the type/constructor
+--   * Ids of the fields
+-- Returns either Left (for typecheck as struct) or Right (for constr).
+--   * Left TyCon  = struct and its type constructor
+--   * Right Id    = constructor and the name of its struct arg type
+--
+disambiguateStruct :: Maybe Bool -> Type -> Id -> [Id] ->
+                      TI (Either TyCon Id)
+disambiguateStruct mb td c is =
+    case mb of
+      Just True -> maybeFindTyCon c >>= handleStruct
+      Just False -> findCons td c >>= \ (_, ti) -> handleCons (Right ti)
+      Nothing -> do
+        -- Determine if there is a constructor by this name
+        mcons <- maybeFindCons c
+        -- Determine if there is a type by this name
+        mtype <- maybeFindTyCon c
+        -- Attempt to disambiguate
+        case (mcons, mtype) of
+          (Nothing, _)        -> handleStruct mtype
+          (Just mti, Nothing) -> handleCons mti
+          (Just (Left _), Just _) ->
+            -- XXX we could do more checking, or possibly warn?
+            handleStruct mtype
+          (Just (Right ti), Just _) -> do
+            -- Confirm that the constructor has an SDataCon argument with named fields
+            arg_is_cons <- isSDataConNamedM (mkTCId ti c)
+            if arg_is_cons
+              then -- XXX further check that some of the names match?
+                   handleCons (Right ti)
+              else handleStruct mtype
+ where
+   -- Whether a constructor with this name and expected return type exists,
+   -- and then either its type or ambiguity errors (if multiple exist)
+   maybeFindCons :: Id -> TI (Maybe (Either [EMsg] Id))
+   maybeFindCons i =
+      let isEConstrAmb (_, EConstrAmb _ _) = True
+          isEConstrAmb _ = False
+          err_handler es = if all isEConstrAmb (errmsgs es)
+                           then return $ Just (Left (errmsgs es))
+                           else return $ Nothing
+      in  (findCons td i >>= \ (_, ti) -> return (Just (Right ti))) `handle` err_handler
+
+   maybeFindTyCon i =
+      (findTyCon i >>= \ tyc -> return (Just tyc)) `handle` \ _ -> return Nothing
+
+   isSDataConNamedM i = do
+      mcons <- maybeFindTyCon i
+      case mcons of
+          Just (TyCon _ _ (TIstruct (SDataCon _ True) fs))
+            -> return True
+          _ -> return False
+
+   handleCons (Left es) = errs "tiExpr CStruct" es
+   handleCons (Right ti) = do
+      -- Confirm that the constructor has an SDataCon argument with named fields
+      arg_is_cons <- isSDataConNamedM (mkTCId ti c)
+      if arg_is_cons
+        then return (Right (mkTCId ti c))
+        else err (getPosition c, EConstrFieldsNotNamed (pfpString c) (pfpString ti))
+
+   handleStruct (Just tyc@(TyCon c' (Just k) (TIstruct ss qfs))) =
+      return (Left tyc)
+   handleStruct (Just (TyCon _ _ _)) =
+      err (getPosition c, ENotStructId (pfpString c))
+   handleStruct _ =
+      -- This is the same message that findTyCon would report
+      err (getPosition c, EUnboundTyCon (pfpString c))

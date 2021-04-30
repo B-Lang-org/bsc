@@ -603,7 +603,7 @@ doDFShow dpos enum_name type_vars original_tags tags
                 tag_str = getIdBaseString tag_id
                 enum_pattern =
                     [CPCon1 enum_name tag_id
-                     (CPstruct (idPrimUnitAt dpos) [])]
+                     (CPstruct (Just True) (idPrimUnitAt dpos) [])]
                 fmt_expr =
                     CTaskApply (CVar idFormat) [ stringLiteralAt dpos tag_str ]
             in  CClause enum_pattern [] fmt_expr

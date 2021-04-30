@@ -1,12 +1,4 @@
 checking package dependencies
 compiling Bug353_Pat_BSV.bsv
-Error: "Bug353_Pat_BSV.bsv", line 16, column 12: (T0020)
-  Type error at:
-    tagged Foo {(Bug353_Type::Foo_$Foo { f1 = x; f2 = y; })}
-
-  Expected type:
-    Bug353_Pat_BSV::Foo
-
-  Inferred type:
-    Bug353_Type::Foo#(a__, b__)
-
+Error: "Bug353_Pat_BSV.bsv", line 16, column 12: (T0151)
+  Constructor `Foo' for type `Bug353_Type::Foo' does not have named fields.

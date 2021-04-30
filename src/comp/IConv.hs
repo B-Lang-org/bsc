@@ -214,7 +214,7 @@ iConvPs' flags r env cond bs n ((v, _, CPConTs _ _ _ _) : ps) =
 iConvPs' flags r env cond bs n ((v, _, CPCon i _) : ps) =
     internalError "iConvPs' CPCon"
 
-iConvPs' flags r env cond bs n ((v, t, CPstruct _ fs) : ps) =
+iConvPs' flags r env cond bs n ((v, t, CPstruct _ _ fs) : ps) =
     iConvPs' flags r env cond bs (n+length fs) (foldr addP ps fs)
   where (ti, ts) = splitITApCon t
         addP (f, p) ps =

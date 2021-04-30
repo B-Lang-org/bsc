@@ -187,7 +187,7 @@ instance Types CMStmt where
 
 instance Types CPat where
     apSub s (CPCon c ps) = CPCon c (apSub s ps)
-    apSub s (CPstruct c fs) = CPstruct c (mapSnd (apSub s) fs)
+    apSub s (CPstruct mb c fs) = CPstruct mb c (mapSnd (apSub s) fs)
     apSub s p@(CPVar i) = p
     apSub s (CPAs i p) = CPAs i (apSub s p)
     apSub s p@(CPAny {}) = p
@@ -197,7 +197,7 @@ instance Types CPat where
     apSub s (CPConTs ti c ts ps) = CPConTs ti c (apSub s ts) (apSub s ps)
     apSub s (CPOper os) = internalError ("CSyntaxTypes.Types(CPat).apSub: CPOper " ++ ppReadable os)
     tv (CPCon c ps) = tv ps
-    tv (CPstruct c fs) = tv (map snd fs)
+    tv (CPstruct _ _ fs) = tv (map snd fs)
     tv (CPVar p) = []
     tv (CPAs i p) = tv p
     tv (CPAny {}) = []

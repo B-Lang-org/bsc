@@ -256,10 +256,10 @@ instance CSubst Type where
 
 instance CSubst CPat where
     cSubst r (CPCon i ps) = CPCon (cSubstConId r i) (map (cSubst r) ps)
-    cSubst r (CPstruct i ips) =
+    cSubst r (CPstruct mb i ips) =
         -- XXX should we be substituting field names?
         -- XXX getFVE does return them, in this case
-        CPstruct (cSubstConId r i) (mapSnd (cSubst r) ips)
+        CPstruct mb (cSubstConId r i) (mapSnd (cSubst r) ips)
     cSubst r p@(CPVar {}) = p
     cSubst r (CPAs i p) = CPAs i (cSubst r p)
     cSubst r p@(CPAny {}) = p

@@ -618,7 +618,11 @@ isCQFilter _            = False
 
 data CPat
         = CPCon Id [CPat]
-        | CPstruct Id [(Id, CPat)]
+        -- Either a struct type or a constructor with named fields.
+        -- The 'Maybe Bool' argument can indicate if it is specifically
+        -- one or the other (True for struct), otherwise the typechecker
+        -- will attempt to determine which is intended.
+        | CPstruct (Maybe Bool) Id [(Id, CPat)]
         | CPVar Id
         | CPAs Id CPat
         | CPAny Position
@@ -755,7 +759,7 @@ instance HasPosition IdK where
 
 instance HasPosition CPat where
     getPosition (CPCon c _) = getPosition c
-    getPosition (CPstruct c _) = getPosition c
+    getPosition (CPstruct _ c _) = getPosition c
     getPosition (CPVar i) = getPosition i
     getPosition (CPAs i _) = getPosition i
     getPosition (CPAny p) = p
@@ -1272,10 +1276,10 @@ instance PPrint CQual where
 instance PPrint CPat where
     pPrint d p (CPVar a) = pPrint d p a
     pPrint d p (CPCon i as) = pparen (p>(maxPrec-1)) $ sep (ppConId d i : map (pPrint d maxPrec) as)
-    pPrint d p (CPstruct tyc []) | tyc == idPrimUnit = text "()"
-    pPrint d p (CPstruct tyc [(_, fst), (_, snd)]) | tyc == idPrimPair =
+    pPrint d p (CPstruct _ tyc []) | tyc == idPrimUnit = text "()"
+    pPrint d p (CPstruct _ tyc [(_, fst), (_, snd)]) | tyc == idPrimPair =
         pparen True (pPrint d 0 fst <> t"," <+> pPrint d 0 snd)
-    pPrint d p (CPstruct i fs) = pparen (p>(maxPrec-1)) $ ppConId d i <+> t "{" <+> sep (map ppField fs ++ [t"}"])
+    pPrint d p (CPstruct _ i fs) = pparen (p>(maxPrec-1)) $ ppConId d i <+> t "{" <+> sep (map ppField fs ++ [t"}"])
         where ppField (i, CPVar i') | i == i' = ppVarId d i <> t";"
               ppField (i, p) = ppVarId d i <+> t "=" <+> pp d p <> t";"
     pPrint d p (CPAs a pp) = pPrint d maxPrec a <> t"@" <> pPrint d maxPrec pp

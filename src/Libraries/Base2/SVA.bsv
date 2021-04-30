@@ -812,9 +812,9 @@ endfunction: readReg
 
 // Turn: the first False element True, leaves others unchanged:
 function List#(Bool) getFreeP (List#(Bool) x1);
-   case (x1) matches
-      tagged Nil:     return (Nil);
-      tagged Cons {_1:.b, _2:.bs}:
+   case (decodeList(x1)) matches
+      tagged Invalid:     return (Nil);
+      tagged Valid { .b, .bs }:
 	 return (!(b) ? Cons(True,bs) : Cons(b, getFreeP(bs)));
    endcase
 endfunction: getFreeP
@@ -822,11 +822,11 @@ endfunction: getFreeP
 // Advances each non-free prop, returning list of Maybe results:
 function ActionValue#(List#(Maybe#(PropRes))) runPs (List#(Property) x1, List#(Bool) x2);
    actionvalue
-   case (tuple2(x1,x2)) matches
-      {tagged Nil, .*}: return Nil;
-      {.*, tagged Nil}: return Nil;
+   case (tuple2(decodeList(x1),decodeList(x2))) matches
+      {tagged Invalid, .*}: return Nil;
+      {.*, tagged Invalid}: return Nil;
 
-      {tagged Cons {_1:.p,_2:.ps}, tagged Cons {_1:.b,_2:.bs}}:
+      {tagged Valid {.p,.ps}, tagged Valid {.b,.bs}}:
 			actionvalue
 			   let pres <- b ? (actionvalue
 					       let pr <- p.advance;
@@ -851,23 +851,23 @@ endfunction: unRun
 // Returns False if any element is False, otherwise True is any element is
 // True or Vacuous, (otherwise Undetermined):
 function PropRes getRes(List#(Maybe#(PropRes)) x1, PropRes x2);
-   case (tuple2(x1,x2)) matches
-      {tagged Nil, .res}: return (res);
-      {tagged Cons {_1:tagged Just {tagged PropFalse},_2:.xs}, .res}:
+   case (tuple2(decodeList(x1),x2)) matches
+      {tagged Invalid, .res}: return (res);
+      {tagged Valid {tagged Just {tagged PropFalse},.xs}, .res}:
 				    return (PropFalse);
-      {tagged Cons {_1:tagged Just {tagged PropTrue},_2:.xs}, .res}:
+      {tagged Valid {tagged Just {tagged PropTrue},.xs}, .res}:
 				    return getRes(xs, PropTrue);
-      {tagged Cons {_1:tagged Just {tagged PropVacuous},_2:.xs}, .res}:
+      {tagged Valid {tagged Just {tagged PropVacuous},.xs}, .res}:
 				    return getRes(xs, PropTrue);
-      {tagged Cons {_1:.x,_2:.xs}, .res}: return getRes(xs, res);
+      {tagged Valid {.x,.xs}, .res}: return getRes(xs, res);
    endcase
 endfunction: getRes
 
 function Action assignRegs (List#(Reg#(Bool)) x1, List#(Bool) x2);
-   case (tuple2(x1,x2)) matches
-      {tagged Nil, .*}: return noAction;
-      {.*, tagged Nil}: return noAction;
-      {tagged Cons {_1:.r,_2:.rs}, tagged Cons {_1:.b,_2:.bs}}:
+   case (tuple2(decodeList(x1),decodeList(x2))) matches
+      {tagged Invalid, .*}: return noAction;
+      {.*, tagged Invalid}: return noAction;
+      {tagged Valid {.r,.rs}, tagged Valid {.b,.bs}}:
 				return (action
 				   r <= b;
 				   assignRegs(rs, bs);

@@ -24,13 +24,13 @@ compile_pass Bug353_BH.bs
 # separate code in BSC that has similar issues.  So we need tests for
 # that situation as well.
 
-# Pattern match disambiguation example in BSV
+# Pattern match disambiguation example in BH/Classic
+compile_pass Bug353_Pat_BH.bs
+
+# The same pattern match disambiguation example in BSV
+# is not possible, because structs cannot be matched
 compile_fail Bug353_Pat_BSV.bsv
 compare_file Bug353_Pat_BSV.bsv.bsc-out
-
-# The same pattern match disambiguation example in BH/Classic
-compile_fail Bug353_Pat_BH.bs
-compare_file Bug353_Pat_BH.bs.bsc-out
 
 # -----
 
@@ -67,16 +67,12 @@ compile_pass BH_Cons_NamedFields.bs
 # or pattern matched in BH/Classic using the CStruct/CPstruct syntax
 #
 compile_fail BH_Cons_NonNamedFields.bs
-# XXX There ought to be two error messages
-# XXX but BSC accepts the pattern match
 compare_file BH_Cons_NonNamedFields.bs.bsc-out
 
 
 # Test the same in BSV
 #
 compile_fail BSV_Cons_NonNamedFields.bsv
-# XXX There ought to be two error messages
-# XXX but BSC accepts the pattern match
 compare_file BSV_Cons_NonNamedFields.bsv.bsc-out
 
 # -----

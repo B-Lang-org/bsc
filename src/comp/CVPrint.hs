@@ -1130,10 +1130,10 @@ instance PVPrint CPat where
        (if notTpl then t"tagged" <+> pvpId d i else empty )<+> t "{" <>
                 (catList(map (pvPrint d maxPrec) bs) (t","))<>t"}"
 
-    pvPrint d p (CPstruct tyc []) | tyc == idPrimUnit = text "()"
-    pvPrint d p (CPstruct tyc [(_, fst), (_, snd)]) | tyc == idPrimPair =
+    pvPrint d p (CPstruct _ tyc []) | tyc == idPrimUnit = text "()"
+    pvPrint d p (CPstruct _ tyc [(_, fst), (_, snd)]) | tyc == idPrimPair =
         pparen True (pvPrint d 0 fst <> t"," <+> pvPrint d 0 snd)
-    pvPrint d p (CPstruct i fs) = pparen (p>(maxPrec-1)) $ pvpId d i <+> t "{" <+> sep (map ppFld fs ++ [t"}"])
+    pvPrint d p (CPstruct _ i fs) = pparen (p>(maxPrec-1)) $ pvpId d i <+> t "{" <+> sep (map ppFld fs ++ [t"}"])
         where ppFld (i, CPVar i') | i == i' = pvpId d i <> t";"
               ppFld (i, p) = pvpId d i <+> t "=" <+> pp d p <> t";"
     pvPrint d p (CPAs a pp) = pvPrint d maxPrec a <> t"@" <> pvPrint d maxPrec pp
