@@ -2,9 +2,9 @@ package Types where
 
 -- Classic now treats these two types differently
 
-data MyList1 a = Nil | Cons a (List a)
+data MyList1 a = Nil | Cons a (MyList1 a)
 
-data MyList2 a = Nil | Cons { head :: a; tail :: (List a) }
+data MyList2 a = Nil | Cons { head :: a; tail :: (MyList2 a) }
 
 -- When the tag's arguments are given names, then it is visible to the
 -- user that a struct was created (but the name of the struct is not

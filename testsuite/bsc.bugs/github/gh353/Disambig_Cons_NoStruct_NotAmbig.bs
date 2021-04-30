@@ -1,0 +1,8 @@
+package Disambig_Cons_NoStruct_NotAmbig where
+
+import Types
+
+-- -----
+
+fn1 :: MyList2 Bool
+fn1 = Cons { head = True; tail = Nil; };

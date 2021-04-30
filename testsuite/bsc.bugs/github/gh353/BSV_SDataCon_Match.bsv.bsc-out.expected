@@ -1,5 +1,4 @@
 checking package dependencies
-compiling ./Types.bs
 compiling BSV_SDataCon_Match.bsv
 Error: "BSV_SDataCon_Match.bsv", line 16, column 12: (T0142)
   Pattern for constructor `Cons' of type Types::MyList1#(a__) requires 2
