@@ -23,7 +23,7 @@ doTrace = elem "-trace-genbin" progArgs
 -- .bo file tag -- change this whenever the .bo format changes
 -- See also GenABin.header
 header :: [Byte]
-header = "bsc-20210427-1"
+header = "bsc-20210430-1"
 
 genBinFile :: ErrorHandle ->
               String -> CSignature -> CSignature -> IPackage a -> IO ()
@@ -211,7 +211,7 @@ instance Bin CClause where
 
 instance Bin CPat where
     writeBytes (CPCon i ps) = do putI 0; toBin i; toBin ps
-    writeBytes (CPstruct i ips) = do putI 1; toBin i; toBin ips
+    writeBytes (CPstruct mb i ips) = do putI 1; toBin mb; toBin i; toBin ips
     writeBytes (CPVar i) = do putI 2; toBin i
     writeBytes (CPAs i p) = do putI 3; toBin i; toBin p
     writeBytes (CPAny p) = do putI 4; toBin p
@@ -225,8 +225,8 @@ instance Bin CPat where
                    case tag of
                      0 -> do i <- fromBin; ps <- fromBin
                              return (CPCon i ps)
-                     1 -> do i <- fromBin; ips <- fromBin;
-                             return (CPstruct i ips)
+                     1 -> do mb <- fromBin; i <- fromBin; ips <- fromBin;
+                             return (CPstruct mb i ips)
                      2 -> do i <- fromBin; return (CPVar i)
                      3 -> do i <- fromBin; p <- fromBin; return (CPAs i p)
                      4 -> do p <- fromBin; return (CPAny p)

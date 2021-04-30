@@ -119,9 +119,9 @@ pPat :: FixTable -> CPat -> ErrorMonad CPat
 pPat ft (CPCon i ps) = do
     ps' <- mapM (pPat ft) ps
     return (CPCon i ps')
-pPat ft (CPstruct i ips) = do
+pPat ft (CPstruct mb i ips) = do
     ips' <- mapSndM (pPat ft) ips
-    return (CPstruct i ips')
+    return (CPstruct mb i ips')
 pPat ft p@(CPVar _) = return p
 pPat ft (CPAs i p) = do
     p' <- pPat ft p

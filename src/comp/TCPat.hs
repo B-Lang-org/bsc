@@ -30,7 +30,7 @@ tiPat' td (CPCon comma [p1, p2]) | comma == idComma =
         pair = setIdPosition (getIdPosition comma) idPrimPair
         -- give a user-source position to the field names
         mkField i p = (setIdPosition (getPosition p) i, p)
-    in  tiPat' td (CPstruct pair [mkField idPrimFst p1, mkField idPrimSnd p2])
+    in  tiPat' td (CPstruct (Just True) pair [mkField idPrimFst p1, mkField idPrimSnd p2])
 
 tiPat' td (CPCon c ps) = tiPCon td c (Right ps)
 
@@ -39,24 +39,15 @@ tiPat' td (CPCon c ps) = tiPCon td c (Right ps)
 tiPat' td (CPCon1 ti c pat) = tiPCon td c (Left (pat, tdc))
   where tdc = TCon (TyCon ti Nothing TIabstract)
 
-tiPat' td pat@(CPstruct c ips) = do
+tiPat' td pat@(CPstruct mb c ips) = do
 --    trace ("tiPat " ++ ppReadable (pat,td)) $ return ()
-    let err_handler :: EMsgs -> TI (Maybe a)
-        err_handler es =
-          if (all (\emsg -> case emsg of (_, EConstrAmb _ _) -> True; _ -> False) (errmsgs es))
-          then errs "tiPat'" (errmsgs es)
-          else return Nothing
-    mti <- (findCons td c >>= \ (_, ti) -> return (Just ti)) `handle` err_handler
-    case mti of
-     -- Should we exempt struct patterns from checking here
-     -- (instead of or in addition to checkConPats below)?
-     Just ti -> tiPCon td c (Right [CPstruct (mkTCId ti c) ips])
-     Nothing -> do
-       find_res <- findTyCon c
-       case find_res of
-         tyc@(TyCon qc (Just k) ti) ->
-           case ti of
-             TIstruct _ fs -> do
+    disamb <- disambiguateStruct mb td c (map fst ips)
+    case disamb of
+      Left tc -> handleStruct tc
+      Right ti  -> handleCons ti
+ where
+   handleCons ti = tiPCon td c (Right [CPstruct (Just True) ti ips])
+   handleStruct tyc@(TyCon qc (Just k) (TIstruct _ fs)) = do
                  let mkTS t KStar = return t
                      mkTS t (Kfun ka k) = do v <- newTVar "tiPat CPstruct" ka c; mkTS (TAp t v) k
                      mkTS _ (KVar v) = internalError ("TCPat.tiPat': KVar " ++ show v)
@@ -66,9 +57,8 @@ tiPat' td pat@(CPstruct c ips) = do
                  _ <- unify pat st td
                  psasips <- mapM (tiPField qc fs td) ips
                  let (pss, ass, ips') = unzip3 psasips
-                 return (concat pss, concat ass, CPstruct c ips')
-             _ -> err (getPosition c, ENotStructId (pfpString c))
-         _ -> internalError ("tiPat': findTyCon didn't return expected TyCon")
+                 return (concat pss, concat ass, CPstruct (Just True) c ips')
+   handleStruct _ = internalError ("tiPat': struct disambig didn't return expected TyCon")
 
 tiPat' td pat@(CPAny {}) = do
     return ([], [], pat)
@@ -88,7 +78,7 @@ tiPat' td (CPOper _) = internalError "TCPat.tiPat': CPOper"
 -- Make sure that constructor patterns provide all their arguments
 checkPCon :: Id -> Type -> [CPat] -> TI ()
 -- Explicit struct patterns are allowed to be incomplete
-checkPCon _ _ p@[CPstruct _ _] = return ()
+checkPCon _ _ p@[CPstruct _ _ _] = return ()
 checkPCon c t ps = do
   -- Calculate expected arguments from constructor type
   let (argTys, res) = getArrows t
@@ -117,9 +107,9 @@ tiPCon td c args = do
         mkField i p = (setIdPosition (getPosition p) i, p)
         pat = case args of
           Left (p,_) -> p
-          Right []   -> CPstruct unit []
+          Right []   -> CPstruct (Just True) unit []
           Right [p]  -> p
-          Right ps   -> CPstruct (mkTCId ti c) $ zipWith mkField tupleIds ps
+          Right ps   -> CPstruct (Just True) (mkTCId ti c) $ zipWith mkField tupleIds ps
 
     (tp,eq_ps) <- unifyFnFrom pat (CPCon c [pat]) t td
     (ps,as,pat')   <- tiPat' tp pat
@@ -164,7 +154,7 @@ detectDuplicatePV env (CPVar var) =
           Just pos' -> err (pos, EMultipleDecl (pfpString var) pos')
 detectDuplicatePV env (CPAs var pat) = detectDuplicatePV env' pat
     where env' = M.insert var (getIdPosition var) env
-detectDuplicatePV env (CPstruct _ fields) =
+detectDuplicatePV env (CPstruct _ _ fields) =
     foldM detectDuplicatePV env [pat | (name, pat) <- fields]
 detectDuplicatePV env (CPCon _ pats) = foldM detectDuplicatePV env pats
 detectDuplicatePV env (CPCon1 _ _ pat) = detectDuplicatePV env pat

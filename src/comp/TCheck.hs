@@ -23,7 +23,7 @@ import FStringCompat
 import PreStrings(fsEmpty)
 import PreIds
 import Position(Position(..), noPosition)
-import Error(internalError, ErrMsg(..), EMsgs(..), EMsg)
+import Error(internalError, ErrMsg(..))
 import ContextErrors
 import Type
 import Subst
@@ -232,55 +232,13 @@ tiExpr as td exp@(CCon0 mti c) = do
 
 tiExpr as td exp@(CStruct mb c ies) = do
     --trace ("CStruct " ++ ppReadable exp) $ return ()
-    case mb of
-      Just True -> maybeFindTyCon c >>= handleStruct
-      Just False -> findCons td c >>= \ (_, ti) -> handleCons (Right ti)
-      Nothing -> do
-        -- Determine if there is a constructor by this name
-        mcons <- maybeFindCons c
-        -- Determine if there is a type by this name
-        mtype <- maybeFindTyCon c
-        -- Attempt to disambiguate
-        case (mcons, mtype) of
-          (Nothing, _)       -> handleStruct mtype
-          (Just mti, Nothing) -> handleCons mti
-          (Just (Left _), Just _) ->
-            -- XXX we could do more checking, or possibly warn?
-            handleStruct mtype
-          (Just (Right ti), Just _) -> do
-            -- Confirm that the constructor has an SDataCon argument with named fields
-            arg_is_cons <- isSDataConNamedM (mkTCId ti c)
-            if arg_is_cons
-              then -- XXX further check that some of the names match?
-                   handleCons (Right ti)
-              else handleStruct mtype
+    disamb <- disambiguateStruct mb td c (map fst ies)
+    case disamb of
+      Left tc -> handleStruct tc
+      Right ti  -> handleCons ti
  where
-   -- Whether a constructor with this name and expected return type exists,
-   -- and then either its type or ambiguity errors (if multiple exist)
-   maybeFindCons :: Id -> TI (Maybe (Either [EMsg] Id))
-   maybeFindCons i =
-      let isEConstrAmb (_, EConstrAmb _ _) = True
-          isEConstrAmb _ = False
-          err_handler es = if all isEConstrAmb (errmsgs es)
-                           then return $ Just (Left (errmsgs es))
-                           else return $ Nothing
-      in  (findCons td i >>= \ (_, ti) -> return (Just (Right ti))) `handle` err_handler
-   maybeFindTyCon i =
-      (findTyCon i >>= \ tyc -> return (Just tyc)) `handle` \ _ -> return Nothing
-   isSDataConNamedM i = do
-      mcons <- maybeFindTyCon i
-      case mcons of
-          Just (TyCon _ _ (TIstruct (SDataCon _ True) fs))
-            -> return True
-          _ -> return False
-   handleCons (Left es) = errs "tiExpr CStruct" es
-   handleCons (Right ti) = do
-      -- Confirm that the constructor has an SDataCon argument with named fields
-      arg_is_cons <- isSDataConNamedM (mkTCId ti c)
-      if arg_is_cons
-        then tiExpr as td (CApply (CCon0 Nothing c) [CStruct (Just True) (mkTCId ti c) ies])
-        else err (getPosition c, EConstrFieldsNotNamed (pfpString c) (pfpString ti))
-   handleStruct (Just tyc@(TyCon c' (Just k) (TIstruct ss qfs))) = do
+   handleCons ti = tiExpr as td (CApply (CCon0 Nothing c) [CStruct (Just True) ti ies])
+   handleStruct tyc@(TyCon c' (Just k) (TIstruct ss qfs)) = do
             -- find any defaults
             defaults <- concatMapM (findFieldDefault td c c') qfs
             let mkTS t KStar = return t
@@ -341,11 +299,7 @@ tiExpr as td exp@(CStruct mb c ies) = do
                     let (pss, ies') = unzip psies
                     --trace (show (fs, map fst ies)) $ return ()
                     return (concat (eq_ps:pss), CStructT st ies')
-   handleStruct (Just (TyCon _ _ _)) =
-      err (getPosition c, ENotStructId (pfpString c))
-   handleStruct _ =
-      -- This is the same message that findTyCon would report
-      err (getPosition c, EUnboundTyCon (pfpString c))
+   handleStruct _ = internalError ("tiExpr: struct disambig didn't return expected TyCon")
 
 tiExpr as td exp@(CStructUpd e []) = tiExpr as td e
 tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do
@@ -3243,12 +3197,13 @@ expCLMatch (CLMatch p e) =
         v <- newVar (getPosition p) "expCLMatch"
         expand [bind v e] (CVar v) p'
   where bind i e = CLValue i [CClause [] [] e] []
-        expand ds v (CPstruct ti fs) = do
+        -- XXX should some CPstruct be excluded (based on first arg)?
+        expand ds v (CPstruct _ ti fs) = do
                 dss <- mapM (\ (f, p) -> expCLMatch (CLMatch p (CSelectTT ti v f))) fs
                 return (concat (ds:dss))
         expand _ _ p = err (getPosition p, EBadMatch (pfpString p))
         expComma (CPCon comma [p1, p2]) | comma == idComma =
-                CPstruct (setIdPosition (getIdPosition comma) idPrimPair)
+                CPstruct (Just True) (setIdPosition (getIdPosition comma) idPrimPair)
                     [(setIdPosition (getPosition p1) idPrimFst, p1),
                      (setIdPosition (getPosition p2) idPrimSnd, p2)]
         expComma p = p

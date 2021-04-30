@@ -35,7 +35,7 @@ mkTuple pos [e] = e
 mkTuple pos (e:es) = CBinOp e (setIdPosition pos idComma) (mkTuple pos es)
 
 pMkTuple :: Position -> [CPat] -> CPat
-pMkTuple pos [] = CPstruct (setIdPosition pos idPrimUnit) []
+pMkTuple pos [] = CPstruct (Just True) (setIdPosition pos idPrimUnit) []
 pMkTuple pos [p] = p
 pMkTuple pos (p:ps) = CPCon (setIdPosition pos idComma) [p, pMkTuple pos ps]
 

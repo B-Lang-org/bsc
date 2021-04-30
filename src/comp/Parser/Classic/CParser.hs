@@ -574,7 +574,7 @@ pPat :: CParser CPat
 pPat = pPatApply ||! pPatOp ||! pAPat
 
 pPatApply :: CParser CPat
-pPatApply = pConId `into` (\ c -> blockBrOf pPField                        >>- CPstruct c
+pPatApply = pConId `into` (\ c -> blockBrOf pPField                        >>- CPstruct Nothing c
                               ||! many1 pAPat                                >>- CPCon c)
 
 pPatOp :: CParser CPat

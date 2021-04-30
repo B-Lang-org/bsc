@@ -3,3 +3,5 @@ compiling ./Types_NonNamed.bs
 compiling BH_Cons_NonNamedFields.bs
 Error: "BH_Cons_NonNamedFields.bs", line 6, column 6: (T0151)
   Constructor `Bar' for type `Types_NonNamed.Foo' does not have named fields.
+Error: "BH_Cons_NonNamedFields.bs", line 9, column 5: (T0151)
+  Constructor `Bar' for type `Types_NonNamed.Foo' does not have named fields.

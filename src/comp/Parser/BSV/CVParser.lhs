@@ -2670,7 +2670,7 @@ Parse a pattern and return it
 > pPatternWith :: Id -> SV_Parser CPat
 > pPatternWith constr =
 >         (try (do fields <- pInBraces (pCommaSep pFieldPattern)
->                  return (CPstruct constr fields)))
+>                  return (CPstruct (Just False) constr fields)))
 >     <|> do pat <- (    pTuplePattern
 >                    <|> pWildcardPattern
 >                    <|> pConstPattern
