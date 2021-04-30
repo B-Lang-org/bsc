@@ -1,0 +1,19 @@
+package Foo where
+
+import Bug353_Type
+
+
+struct Foo =
+    f1 :: Bool
+    f2 :: Bool
+  deriving (Bits)
+
+
+-- -----
+-- Trigger error T0020
+
+mkMod :: Module Bool
+mkMod = module
+          let (Foo { f1 = x; f2 = y; }) = _
+
+          return (x && y)

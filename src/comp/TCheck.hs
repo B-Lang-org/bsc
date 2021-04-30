@@ -3197,8 +3197,8 @@ expCLMatch (CLMatch p e) =
         v <- newVar (getPosition p) "expCLMatch"
         expand [bind v e] (CVar v) p'
   where bind i e = CLValue i [CClause [] [] e] []
-        -- XXX should some CPstruct be excluded (based on first arg)?
-        expand ds v (CPstruct _ ti fs) = do
+        expand ds v (CPstruct mb ti fs)
+          | mb /= (Just False) = do
                 dss <- mapM (\ (f, p) -> expCLMatch (CLMatch p (CSelectTT ti v f))) fs
                 return (concat (ds:dss))
         expand _ _ p = err (getPosition p, EBadMatch (pfpString p))

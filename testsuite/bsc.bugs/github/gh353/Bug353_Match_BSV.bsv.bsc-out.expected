@@ -1,0 +1,7 @@
+checking package dependencies
+compiling Bug353_Match_BSV.bsv
+Error: "Bug353_Match_BSV.bsv", line 14, column 16: (T0046)
+  Only matching of structs and tuples is supported in this context.
+  The following pattern is not supported:
+    Foo { f1 = x; f2 = y; }
+  Consider matching this pattern with a case statement instead.
