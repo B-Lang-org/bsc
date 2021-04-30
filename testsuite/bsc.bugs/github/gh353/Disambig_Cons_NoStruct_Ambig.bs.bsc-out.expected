@@ -1,0 +1,4 @@
+checking package dependencies
+compiling Disambig_Cons_NoStruct_Ambig.bs
+Error: "Disambig_Cons_NoStruct_Ambig.bs", line 8, column 16: (T0019)
+  Constructor `Cons' is not disambiguated by type `_tctyvar1003'

@@ -23,7 +23,7 @@ import FStringCompat
 import PreStrings(fsEmpty)
 import PreIds
 import Position(Position(..), noPosition)
-import Error(internalError, ErrMsg(..))
+import Error(internalError, ErrMsg(..), EMsgs(..), EMsg)
 import ContextErrors
 import Type
 import Subst
@@ -234,7 +234,7 @@ tiExpr as td exp@(CStruct mb c ies) = do
     --trace ("CStruct " ++ ppReadable exp) $ return ()
     case mb of
       Just True -> maybeFindTyCon c >>= handleStruct
-      Just False -> findCons td c >>= \ (_, ti) -> handleCons ti
+      Just False -> findCons td c >>= \ (_, ti) -> handleCons (Right ti)
       Nothing -> do
         -- Determine if there is a constructor by this name
         mcons <- maybeFindCons c
@@ -243,17 +243,28 @@ tiExpr as td exp@(CStruct mb c ies) = do
         -- Attempt to disambiguate
         case (mcons, mtype) of
           (Nothing, _)       -> handleStruct mtype
-          (Just ti, Nothing) -> handleCons ti
-          (Just ti, Just _)  -> do
+          (Just mti, Nothing) -> handleCons mti
+          (Just (Left _), Just _) ->
+            -- XXX we could do more checking, or possibly warn?
+            handleStruct mtype
+          (Just (Right ti), Just _) -> do
             -- Confirm that the constructor has an SDataCon argument with named fields
             arg_is_cons <- isSDataConNamedM (mkTCId ti c)
             if arg_is_cons
               then -- XXX further check that some of the names match?
-                   handleCons ti
+                   handleCons (Right ti)
               else handleStruct mtype
  where
+   -- Whether a constructor with this name and expected return type exists,
+   -- and then either its type or ambiguity errors (if multiple exist)
+   maybeFindCons :: Id -> TI (Maybe (Either [EMsg] Id))
    maybeFindCons i =
-      (findCons td i >>= \ (_, ti) -> return (Just ti)) `handle` \ _ -> return Nothing
+      let isEConstrAmb (_, EConstrAmb _ _) = True
+          isEConstrAmb _ = False
+          err_handler es = if all isEConstrAmb (errmsgs es)
+                           then return $ Just (Left (errmsgs es))
+                           else return $ Nothing
+      in  (findCons td i >>= \ (_, ti) -> return (Just (Right ti))) `handle` err_handler
    maybeFindTyCon i =
       (findTyCon i >>= \ tyc -> return (Just tyc)) `handle` \ _ -> return Nothing
    isSDataConNamedM i = do
@@ -262,7 +273,8 @@ tiExpr as td exp@(CStruct mb c ies) = do
           Just (TyCon _ _ (TIstruct (SDataCon _ True) fs))
             -> return True
           _ -> return False
-   handleCons ti = do
+   handleCons (Left es) = errs "tiExpr CStruct" es
+   handleCons (Right ti) = do
       -- Confirm that the constructor has an SDataCon argument with named fields
       arg_is_cons <- isSDataConNamedM (mkTCId ti c)
       if arg_is_cons

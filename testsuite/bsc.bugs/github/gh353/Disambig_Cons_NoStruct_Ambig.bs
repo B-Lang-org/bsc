@@ -1,0 +1,9 @@
+package Disambig_Cons_NoStruct_Ambig where
+
+import Types
+
+-- -----
+
+fn1 :: MyList2 Bool
+fn1 = let res = Cons { head = True; tail = Nil; };
+      in res

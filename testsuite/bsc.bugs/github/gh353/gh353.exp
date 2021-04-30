@@ -34,6 +34,28 @@ compare_file Bug353_Pat_BH.bs.bsc-out
 
 # -----
 
+# The 'Bug353*' tests are testing code that intends a struct, when
+# both a struct and constructor exist by that name, but only one
+# such struct, and its fields are not named.  Obviously, many other
+# variations exist, that should also be tested.
+
+# In particular, we should test how the disambiguation heuristics
+# deal with multiple constructors by the same name, and when the
+# choice of type cannot itself be disambiguated.
+# (The heuristic should avoid interpretting this situation as if
+# there was no constructor by that name.)
+
+# Test when the code intends a constructor and there is no struct,
+# but there are multiple constructors, but the type is not ambiguous.
+#
+compile_pass Disambig_Cons_NoStruct_NotAmbig.bs
+
+# Same, but where the type is ambiguous
+compile_fail Disambig_Cons_NoStruct_Ambig.bs
+compare_file Disambig_Cons_NoStruct_Ambig.bs.bsc-out
+
+# -----
+
 # Test that a constructor with named fields can be constructed and
 # pattern matched in BH/Classic using the CStruct/CPstruct syntax
 #
