@@ -1,0 +1,4 @@
+checking package dependencies
+compiling BSV_Cons_NonNamedFields.bsv
+Error: "BSV_Cons_NonNamedFields.bsv", line 5, column 17: (T0151)
+  Constructor `Bar' for type `Types_NonNamed::Foo' does not have named fields.

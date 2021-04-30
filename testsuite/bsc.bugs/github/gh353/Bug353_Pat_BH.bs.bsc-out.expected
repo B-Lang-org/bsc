@@ -1,0 +1,12 @@
+checking package dependencies
+compiling Bug353_Pat_BH.bs
+Error: "Bug353_Pat_BH.bs", line 16, column 5: (T0020)
+  Type error at:
+    Foo (Bug353_Type.Foo_$Foo { f1 = x; f2 = y; })
+
+  Expected type:
+    Bug353_Pat_BH.Foo
+
+  Inferred type:
+    Bug353_Type.Foo a__ b__
+

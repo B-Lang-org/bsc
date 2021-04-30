@@ -208,7 +208,9 @@ tiExpr as td exp@(CCon c es) = do
                       []  -> let unit = setIdPosition (getPosition c) idPrimUnit
                              in CApply (CCon0 Nothing c) [CStruct (Just True) unit []]
                       [e] -> CApply (CCon0 Nothing c) [e]
-                      es  -> CStruct (Just False) c (zipWith (\ i e -> (setIdPosition (getPosition e) i, e)) tupleIds es)
+                      es  ->
+                        let ies = zipWith (\ i e -> (setIdPosition (getPosition e) i, e)) tupleIds es
+                        in  CApply (CCon0 Nothing c) [CStruct (Just True) (mkTCId ti c) ies]
               tiExpr as td $ foldr CLam res $ map Right extraArgs
 
 tiExpr as td (CCon1 ti c e) = tiExpr as td (CApply (CCon0 (Just ti) c) [e])
@@ -231,23 +233,42 @@ tiExpr as td exp@(CCon0 mti c) = do
 tiExpr as td exp@(CStruct mb c ies) = do
     --trace ("CStruct " ++ ppReadable exp) $ return ()
     case mb of
-      Just True -> handleStruct
+      Just True -> maybeFindTyCon c >>= handleStruct
       Just False -> findCons td c >>= \ (_, ti) -> handleCons ti
       Nothing -> do
-        mti <- (findCons td c >>= \ (_, ti) -> return (Just ti)) `handle` \ _ -> return Nothing
-        case mti of
-          Just ti -> handleCons ti
-          Nothing -> handleStruct
+        -- Determine if there is a constructor by this name
+        mcons <- maybeFindCons c
+        -- Determine if there is a type by this name
+        mtype <- maybeFindTyCon c
+        -- Attempt to disambiguate
+        case (mcons, mtype) of
+          (Nothing, _)       -> handleStruct mtype
+          (Just ti, Nothing) -> handleCons ti
+          (Just ti, Just _)  -> do
+            -- Confirm that the constructor has an SDataCon argument with named fields
+            arg_is_cons <- isSDataConNamedM (mkTCId ti c)
+            if arg_is_cons
+              then -- XXX further check that some of the names match?
+                   handleCons ti
+              else handleStruct mtype
  where
-   handleCons ti =
-      tiExpr as td (CApply (CCon0 Nothing c) [CStruct (Just True) (mkTCId ti c) ies])
-   handleStruct = do
-      find_res <- findTyCon c
-      case find_res of
-       --- XXX: assuming kind will be there because this is a struct
-       tyc@(TyCon c' (Just k) ti) ->
-        case ti of
-         TIstruct ss qfs -> do
+   maybeFindCons i =
+      (findCons td i >>= \ (_, ti) -> return (Just ti)) `handle` \ _ -> return Nothing
+   maybeFindTyCon i =
+      (findTyCon i >>= \ tyc -> return (Just tyc)) `handle` \ _ -> return Nothing
+   isSDataConNamedM i = do
+      mcons <- maybeFindTyCon i
+      case mcons of
+          Just (TyCon _ _ (TIstruct (SDataCon _ True) fs))
+            -> return True
+          _ -> return False
+   handleCons ti = do
+      -- Confirm that the constructor has an SDataCon argument with named fields
+      arg_is_cons <- isSDataConNamedM (mkTCId ti c)
+      if arg_is_cons
+        then tiExpr as td (CApply (CCon0 Nothing c) [CStruct (Just True) (mkTCId ti c) ies])
+        else err (getPosition c, EConstrFieldsNotNamed (pfpString c) (pfpString ti))
+   handleStruct (Just tyc@(TyCon c' (Just k) (TIstruct ss qfs))) = do
             -- find any defaults
             defaults <- concatMapM (findFieldDefault td c c') qfs
             let mkTS t KStar = return t
@@ -308,8 +329,11 @@ tiExpr as td exp@(CStruct mb c ies) = do
                     let (pss, ies') = unzip psies
                     --trace (show (fs, map fst ies)) $ return ()
                     return (concat (eq_ps:pss), CStructT st ies')
-         _ -> err (getPosition c, ENotStructId (pfpString c))
-       _ -> internalError ("tiExpr: unexpected findTyCon result")
+   handleStruct (Just (TyCon _ _ _)) =
+      err (getPosition c, ENotStructId (pfpString c))
+   handleStruct _ =
+      -- This is the same message that findTyCon would report
+      err (getPosition c, EUnboundTyCon (pfpString c))
 
 tiExpr as td exp@(CStructUpd e []) = tiExpr as td e
 tiExpr as td exp@(CStructUpd e ies@((i,_):_)) = do

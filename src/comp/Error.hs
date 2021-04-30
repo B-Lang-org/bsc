@@ -719,6 +719,7 @@ data ErrMsg =
         | EDupField String
         | EFieldAmb [String] String
         | EConstrAmb String String
+        | EConstrFieldsNotNamed String String -- ^ constructor, type
 
         | EUnify String String String
         | EUnifyKind String String String
@@ -2930,6 +2931,11 @@ getErrorText (EKindNumForStr i) =
   (Type 149, empty, s2par ("The numeric type " ++ ishow i ++ " was found where a string type was expected."))
 getErrorText (EStrKindArg) =
   (Type 150, empty, s2par "String types do not take arguments.")
+
+getErrorText (EConstrFieldsNotNamed c t) =
+    (Type 151, empty,
+     s2par ("Constructor " ++ quote c ++ " for type " ++ quote t ++
+            " does not have named fields."))
 
 -- Generation Errors
 

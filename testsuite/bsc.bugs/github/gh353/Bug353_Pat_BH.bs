@@ -1,0 +1,17 @@
+package Bug353_Pat_BH where
+
+import Bug353_Type
+
+
+struct Foo =
+    f1 :: Bool
+    f2 :: Bool
+  deriving (Bits)
+
+
+-- -----
+-- Trigger error T0020
+
+fn1 :: Foo -> Bool
+fn1 (Foo { f1 = x; f2 = y; }) = x && y
+fn1 _ = False

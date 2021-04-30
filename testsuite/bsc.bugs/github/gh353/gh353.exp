@@ -3,34 +3,59 @@
 
 # -----
 
-# Simple version of the original issue, in BSV
+# The original issue was a design that used a struct named 'Meta'
+# wheich is also the name of a type constructor added to the Prelude;
+# the CStruct expression can represent both of these, and when the
+# name exists in both spaces, then the typechecker has to decide
+# which is intended.  In BSV, the syntax indicates which, so this
+# can be communicated to the typechecker; in BH/Classic, a heuristic
+# is still needed.
+
+# Simple version of the original issue (disambiguation) in BSV
 compile_pass Bug353_BSV.bsv
 
-# The simple example in BH/Classic
-compile_fail Bug353_BH.bs
-compare_file Bug353_BH.bs.bsc-out
+# The same disambiguation example in BH/Classic
+compile_pass Bug353_BH.bs
 
 # -----
 
-# Test that a constructor with named fields can be constructed
-# and pattern matched in BH/Classic using the CStruct syntax
+# The above tests are only for creation of a value (CStruct); however,
+# the representation for pattern matching (CPstruct) is typechecked by
+# separate code in BSC that has similar issues.  So we need tests for
+# that situation as well.
+
+# Pattern match disambiguation example in BSV
+compile_fail Bug353_Pat_BSV.bsv
+compare_file Bug353_Pat_BSV.bsv.bsc-out
+
+# The same pattern match disambiguation example in BH/Classic
+compile_fail Bug353_Pat_BH.bs
+compare_file Bug353_Pat_BH.bs.bsc-out
+
+# -----
+
+# Test that a constructor with named fields can be constructed and
+# pattern matched in BH/Classic using the CStruct/CPstruct syntax
 #
 compile_pass BH_Cons_NamedFields.bs
 
 # -----
 
 # Test that a constructor without named fields cannot be constructed
-# or pattern matched in BH/Classic using the CStruct syntax
+# or pattern matched in BH/Classic using the CStruct/CPstruct syntax
 #
-# XXX BSC does allow it
-#
-compile_fail_bug BH_Cons_NonNamedFields.bs
+compile_fail BH_Cons_NonNamedFields.bs
+# XXX There ought to be two error messages
+# XXX but BSC accepts the pattern match
+compare_file BH_Cons_NonNamedFields.bs.bsc-out
+
 
 # Test the same in BSV
 #
-# XXX BSC does allow it
-#
-compile_fail_bug BSV_Cons_NonNamedFields.bsv
+compile_fail BSV_Cons_NonNamedFields.bsv
+# XXX There ought to be two error messages
+# XXX but BSC accepts the pattern match
+compare_file BSV_Cons_NonNamedFields.bsv.bsc-out
 
 # -----
 
