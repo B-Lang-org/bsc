@@ -1,6 +1,6 @@
 checking package dependencies
-compiling Bug353_Match_BSV.bsv
-Error: "Bug353_Match_BSV.bsv", line 14, column 16: (T0046)
+compiling Bug353_Match_BSV_Constr.bsv
+Error: "Bug353_Match_BSV_Constr.bsv", line 14, column 16: (T0046)
   Only matching of structs and tuples is supported in this context.
   The following pattern is not supported:
     Foo { f1 = x; f2 = y; }

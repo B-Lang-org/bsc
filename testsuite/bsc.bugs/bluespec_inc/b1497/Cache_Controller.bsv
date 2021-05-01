@@ -172,13 +172,13 @@ module cache_controller(IFC_Cache_Controller#(t,i,b))
       function same_as_orig(tag) = (tag == orig_tag);
 
       case (resp_tag.data) matches
-         tagged Cache_Tag { tag_way0: tagged Valid .tag } &&& same_as_orig(tag):
+         Cache_Tag { tag_way0: tagged Valid .tag } &&& same_as_orig(tag):
 	     begin
 		c2p_data.wset(resp_way0.data);
 		last_cpu_request.deq();
 		// $display("INFO (cache controller) way0 matches tag %h", orig_tag);
 	     end
-	 tagged Cache_Tag { tag_way1: tagged Valid .tag } &&& same_as_orig(tag):
+	 Cache_Tag { tag_way1: tagged Valid .tag } &&& same_as_orig(tag):
 	     begin
 		c2p_data.wset(resp_way1.data);
                 last_cpu_request.deq();
@@ -208,9 +208,9 @@ module cache_controller(IFC_Cache_Controller#(t,i,b))
 
       Bool evict_way0;
       case (resp_tag.data) matches
-         tagged Cache_Tag { tag_way0: tagged Valid .tag } &&& same_as_orig(tag):
+         Cache_Tag { tag_way0: tagged Valid .tag } &&& same_as_orig(tag):
 					    evict_way0 = True;
-         tagged Cache_Tag { tag_way1: tagged Valid .tag } &&& same_as_orig(tag):
+         Cache_Tag { tag_way1: tagged Valid .tag } &&& same_as_orig(tag):
 					    evict_way0 = False;
          default: evict_way0 = resp_tag.data.next_evict_way0;
       endcase
@@ -302,9 +302,9 @@ module cache_controller(IFC_Cache_Controller#(t,i,b))
 	     &&& last_cpu_request.first() matches
 	     tagged SRAM_Read { address: .orig_addr });
 	 // cache response must be valid (rule request_cache_tag ensures this)
-         match tagged SRAM_Response_t { data: .resp_tag } =
+         match SRAM_Response_t { data: .resp_tag } =
                   validValue (cache_tag_resp.wget());
-         match tagged SRAM_Response_t { data: .mem_data } = mem_resp;
+         match SRAM_Response_t { data: .mem_data } = mem_resp;
 	 // $display("INFO (cache controller) mem response");
 	 // $display("INFO (cache controller)   %h", mem_data);
          let line_req = tagged SRAM_Write { address: orig_addr[idx_top:idx_bot], data: mem_data };

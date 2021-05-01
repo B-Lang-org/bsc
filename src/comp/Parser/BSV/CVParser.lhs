@@ -2661,14 +2661,15 @@ Parse a pattern and return it
 > pPattern :: SV_Parser CPat
 > pPattern =
 >     (pPatternVariable
->      <|> (pKeyword SV_KW_tagged >> pQualConstructor >>= pPatternWith)
+>      <|> (pKeyword SV_KW_tagged >> pQualConstructor >>= pConstrPatternWith)
+>      <|> (try (pQualConstructor >>= pStructPatternWith))
 >      <|> pInParens pPattern
 >      <|> pTuplePattern
 >      <|> pWildcardPattern
 >      <|> pConstPattern) <?> "pattern"
 
-> pPatternWith :: Id -> SV_Parser CPat
-> pPatternWith constr =
+> pConstrPatternWith :: Id -> SV_Parser CPat
+> pConstrPatternWith constr =
 >         (try (do fields <- pInBraces (pCommaSep pFieldPattern)
 >                  return (CPstruct (Just False) constr fields)))
 >     <|> do pat <- (    pTuplePattern
@@ -2681,6 +2682,12 @@ Parse a pattern and return it
 >            var <- pIdentifier
 >            return (CPCon constr [CPVar var])
 >     <|> return (CPCon constr [])
+
+> pStructPatternWith :: Id -> SV_Parser CPat
+> pStructPatternWith constr =
+>     -- XXX require at least one field?
+>     do fields <- pInBraces (pCommaSep pFieldPattern)
+>        return (CPstruct (Just True) constr fields)
 
 > pPatternVariable :: SV_Parser CPat
 > pPatternVariable =

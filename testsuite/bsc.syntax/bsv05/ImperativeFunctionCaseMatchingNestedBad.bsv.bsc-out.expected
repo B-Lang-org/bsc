@@ -1,0 +1,3 @@
+checking package dependencies
+Error: "ImperativeFunctionCaseMatchingNestedBad.bsv", line 13, column 21: (P0005)
+  Unexpected identifier `first'; expected pattern or `}'

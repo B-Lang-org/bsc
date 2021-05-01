@@ -11,11 +11,17 @@
 # can be communicated to the typechecker; in BH/Classic, a heuristic
 # is still needed.
 
-# Simple version of the original issue (disambiguation) in BSV
-compile_pass Bug353_BSV.bsv
-
-# The same disambiguation example in BH/Classic
+# Simple version of the original issue (disambiguation) in BH/Classic
 compile_pass Bug353_BH.bs
+
+# The same disambiguation example in BSV,
+# tested with both struct and constr syntax, to confirm that one
+# compiles and one does not
+
+compile_pass Bug353_BSV_Struct.bsv
+
+compile_fail Bug353_BSV_Constr.bsv
+compare_file Bug353_BSV_Constr.bsv.bsc-out
 
 # -----
 
@@ -27,10 +33,14 @@ compile_pass Bug353_BH.bs
 # Pattern match disambiguation example in BH/Classic
 compile_pass Bug353_Pat_BH.bs
 
-# The same pattern match disambiguation example in BSV
-# is not possible, because structs cannot be matched
-compile_fail Bug353_Pat_BSV.bsv
-compare_file Bug353_Pat_BSV.bsv.bsc-out
+# The same pattern match disambiguation example in BSV,
+# tested with both struct and constr syntax, to confirm that one
+# compiles and one does not
+
+compile_pass Bug353_Pat_BSV_Struct.bsv
+
+compile_fail Bug353_Pat_BSV_Constr.bsv
+compare_file Bug353_Pat_BSV_Constr.bsv.bsc-out
 
 # -----
 
@@ -40,10 +50,13 @@ compare_file Bug353_Pat_BSV.bsv.bsc-out
 
 compile_pass Bug353_Match_BH.bs
 
-# In BSV, there is no struct matching syntax.  Using the constructor
-# syntax should result in an error (not be interpreted as a struct).
-compile_fail Bug353_Match_BSV.bsv
-compare_file Bug353_Match_BSV.bsv.bsc-out
+# In BSV, test that matching is allowed with struct syntax but not
+# with constructor syntax.
+
+compile_pass Bug353_Match_BSV_Struct.bsv
+
+compile_fail Bug353_Match_BSV_Constr.bsv
+compare_file Bug353_Match_BSV_Constr.bsv.bsc-out
 
 # -----
 
@@ -103,6 +116,13 @@ compare_file BSV_SDataCon_Match.bsv.bsc-out
 #
 compile_fail BSV_WrongSyntax.bsv
 compare_file BSV_WrongSyntax.bsv.bsc-out
+
+# Same test for patterns
+#
+compile_fail BSV_WrongSyntax_Pat.bsv
+compare_file BSV_WrongSyntax_Pat.bsv.bsc-out
+
+# -----
 
 # Test which syntax (struct and/or constructor) can be used to
 # create values for enums, enum-like unions, or unions with a

@@ -27,7 +27,7 @@ rule compute (n <= 20);
 endrule: compute
 
 rule check;
-  match tagged Result { n: .n, d: .d, q: .q, r: .r } = results.first;
+  match Result { n: .n, d: .d, q: .q, r: .r } = results.first;
   results.deq;
   if (((q * d) + r) != n)
   begin

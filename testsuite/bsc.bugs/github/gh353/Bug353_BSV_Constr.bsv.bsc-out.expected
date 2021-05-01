@@ -1,0 +1,6 @@
+checking package dependencies
+compiling Bug353_BSV_Constr.bsv
+Error: "Bug353_BSV_Constr.bsv", line 15, column 20: (T0151)
+  Constructor `Foo' for type `Bug353_Type::Foo' does not have named fields.
+Error: "Bug353_BSV_Constr.bsv", line 24, column 17: (T0151)
+  Constructor `Foo' for type `Bug353_Type::Foo' does not have named fields.

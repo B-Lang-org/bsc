@@ -263,6 +263,7 @@ compile_pass ImperativeFunctionCase.bsv
 compile_pass ImperativeFunctionCaseMatching.bsv
 compile_pass ImperativeFunctionCaseMatchingLiteral.bsv
 compile_pass ImperativeFunctionCaseMatchingEnum.bsv
+compile_pass ImperativeFunctionCaseMatchingStruct.bsv
 compile_pass ImperativeFunctionCaseMatchingDots.bsv
 compile_pass ImperativeFunctionCaseMatchingWildcard.bsv
 compile_pass ImperativeFunctionCaseMatchingNested.bsv
@@ -275,6 +276,15 @@ compile_pass ImperativeFunctionEqualsNoSpaces.bsv
 compile_pass ImperativeFunctionEqualsOnlyLeftSpace.bsv
 compile_pass ImperativeFunctionEqualsOnlyRightSpace.bsv
 compile_pass ImperativeFunctionEqualsSpaces.bsv
+
+# Test that an error in the struct pattern has good position
+# (this tests that the parser didn't misuse the 'try' function)
+compile_fail ImperativeFunctionCaseMatchingStructBad.bsv
+# XXX The current output is not ideal
+compare_file ImperativeFunctionCaseMatchingStructBad.bsv.bsc-out
+compile_fail ImperativeFunctionCaseMatchingNestedBad.bsv
+# XXX The current output is not ideal
+compare_file ImperativeFunctionCaseMatchingNestedBad.bsv.bsc-out
 
 # nested blocks
 compile_pass ImperativeRuleNestedAction.bsv
