@@ -5,7 +5,7 @@ typedef struct {
 } S#(type t);
 
 function t getF(S#(t) sv);
-   match tagged S { f : .fv } = sv;
+   match S { f : .fv } = sv;
    return fv;
 endfunction
 

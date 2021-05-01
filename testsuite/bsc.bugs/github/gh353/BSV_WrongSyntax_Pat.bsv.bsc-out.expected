@@ -1,0 +1,6 @@
+checking package dependencies
+compiling BSV_WrongSyntax_Pat.bsv
+Error: "BSV_WrongSyntax_Pat.bsv", line 15, column 5: (T0007)
+  Unbound type constructor `C'
+Error: "BSV_WrongSyntax_Pat.bsv", line 25, column 12: (T0003)
+  Unbound constructor `S'

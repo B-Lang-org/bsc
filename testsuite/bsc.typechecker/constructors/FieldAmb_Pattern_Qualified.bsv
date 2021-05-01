@@ -5,7 +5,7 @@ typedef struct {
 } S#(type t);
 
 function t getF(S#(t) sv);
-   match tagged FieldAmb_Pattern_Qualified::S { f : .fv } = sv;
+   match FieldAmb_Pattern_Qualified::S { f : .fv } = sv;
    return fv;
 endfunction
 

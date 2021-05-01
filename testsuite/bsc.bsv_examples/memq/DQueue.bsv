@@ -48,7 +48,7 @@ instance Bits#(Page, sz)
       function p132(c,r,b) = pack(tuple3(c,b,r));
       function p321(c,r,b) = pack(tuple3(b,r,c));
       function p213(c,r,b) = pack(tuple3(r,c,b));
-      match tagged Page{cs: .c, row: .r, bank: .b} = p;
+      match Page{cs: .c, row: .r, bank: .b} = p;
       case (page_packing)
 	 123: return p123(c,r,b);
 	 231: return p231(c,r,b);
