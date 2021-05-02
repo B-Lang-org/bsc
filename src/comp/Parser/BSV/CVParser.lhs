@@ -2662,7 +2662,7 @@ Parse a pattern and return it
 > pPattern =
 >     (pPatternVariable
 >      <|> (pKeyword SV_KW_tagged >> pQualConstructor >>= pConstrPatternWith)
->      <|> (try (pQualConstructor >>= pStructPatternWith))
+>      <|> (pQualConstructor >>= pStructOrEnumPatternWith)
 >      <|> pInParens pPattern
 >      <|> pTuplePattern
 >      <|> pWildcardPattern
@@ -2675,6 +2675,7 @@ Parse a pattern and return it
 >     <|> do pat <- (    pTuplePattern
 >                    <|> pWildcardPattern
 >                    <|> pConstPattern
+>                    <|> pEnumPattern
 >                    <|> pInParens pPattern
 >                   )
 >            return (CPCon constr [pat])
@@ -2683,11 +2684,12 @@ Parse a pattern and return it
 >            return (CPCon constr [CPVar var])
 >     <|> return (CPCon constr [])
 
-> pStructPatternWith :: Id -> SV_Parser CPat
-> pStructPatternWith constr =
->     -- XXX require at least one field?
->     do fields <- pInBraces (pCommaSep pFieldPattern)
->        return (CPstruct (Just True) constr fields)
+> pStructOrEnumPatternWith :: Id -> SV_Parser CPat
+> pStructOrEnumPatternWith constr =
+>         -- XXX require at least one field?
+>         (do fields <- pInBraces (pCommaSep pFieldPattern)
+>             return (CPstruct (Just True) constr fields))
+>     <|> return (CPCon constr [])
 
 > pPatternVariable :: SV_Parser CPat
 > pPatternVariable =
@@ -2760,7 +2762,10 @@ Parse a pattern and return it
 > pConstPattern =
 >         pNumericLiteralPattern                  -- numbers
 >     <|> pStringLiteralPattern                   -- strings
->     <|> fmap ((flip CPCon) []) pQualConstructor -- enum-like/void patterns
+
+> pEnumPattern :: SV_Parser CPat
+> pEnumPattern =
+>     fmap ((flip CPCon) []) pQualConstructor -- enum-like/void patterns
 
 > pWildcardPattern :: SV_Parser CPat
 > pWildcardPattern =
