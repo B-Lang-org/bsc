@@ -2670,10 +2670,9 @@ Parse a pattern and return it
 
 > pConstrPatternWith :: Id -> SV_Parser CPat
 > pConstrPatternWith constr =
->         (try (do fields <- pInBraces (pCommaSep pFieldPattern)
->                  return (CPstruct (Just False) constr fields)))
->     <|> do pat <- (    pTuplePattern
->                    <|> pWildcardPattern
+>         do pos <- getPos
+>            pInBraces (pConstrFieldsOrTuplePatternWith pos constr)
+>     <|> do pat <- (    pWildcardPattern
 >                    <|> pConstPattern
 >                    <|> pEnumPattern
 >                    <|> pInParens pPattern
@@ -2690,6 +2689,17 @@ Parse a pattern and return it
 >         (do fields <- pInBraces (pCommaSep pFieldPattern)
 >             return (CPstruct (Just True) constr fields))
 >     <|> return (CPCon constr [])
+
+> pConstrFieldsOrTuplePatternWith :: Position -> Id -> SV_Parser CPat
+> pConstrFieldsOrTuplePatternWith pos constr =
+>     -- patterns in tuples can't start with identifiers,
+>     -- so these two are ok to combine without 'try'
+>         (do pat <- pTuplePatternWith pos
+>             return (CPCon constr [pat]))
+>     <|> -- use 'pCommaSep' (not 'pCommaSep1'),
+>         -- to allow all fields to be omitted
+>         (do fields <- pCommaSep pFieldPattern
+>             return (CPstruct (Just False) constr fields))
 
 > pPatternVariable :: SV_Parser CPat
 > pPatternVariable =
@@ -2776,7 +2786,12 @@ Parse a pattern and return it
 > pTuplePattern :: SV_Parser CPat
 > pTuplePattern =
 >     do pos <- getPos
->        fmap (pMkTuple pos) (pInBraces (pCommaSep pPattern))
+>        pInBraces (pTuplePatternWith pos)
+
+> pTuplePatternWith :: Position -> SV_Parser CPat
+> pTuplePatternWith pos =
+>     -- XXX should we require at least two patterns?
+>     fmap (pMkTuple pos) (pCommaSep1 pPattern)
 
 > pImperativeCaseMatchesArm :: ImperativeFlags
 >                           -> SV_Parser ISCaseTaggedArm
