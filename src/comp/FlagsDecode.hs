@@ -1255,7 +1255,11 @@ externalFlags = [
           "maximum stack depth for fundep and SAT analysis in typecheck", Hidden)),
 
         ("o",
-         (Arg "name" (\f s -> Left (f {oFile = s})) (Just (FRTString oFile)),
+         (Arg "name"
+           (\f s -> if (backend f /= Just Verilog)
+                    then Left (f {oFile = s})
+                    else Right (cmdPosition, WOFileWithVerilogBackend))
+           (Just (FRTString oFile)),
           "name of generated executable", Visible)),
 
         ("O",
