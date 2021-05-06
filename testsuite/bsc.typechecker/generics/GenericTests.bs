@@ -129,11 +129,11 @@ bit8Repr :: (Generic (Bit 8) r) => TypeEq r (ConcPrim (Bit 8))
 bit8Repr = refl
 
 barVec3Repr :: (Generic (Vector 3 Bar) r) => TypeEq r
-  (Meta (MetaData "Vector" "Vector" (NumArg 3, Bar) 1) (Vector 3 (Conc Bar)))
+  (Meta (MetaData "Vector" "Vector" (NumArg 3, StarArg Bar) 1) (Vector 3 (Conc Bar)))
 barVec3Repr = refl
 
 barListN3Repr :: (Generic (ListN 3 Bar) r) => TypeEq r
-  (Meta (MetaData "ListN" "ListN" (NumArg 3, Bar) 1) (Vector 3 (Conc Bar)))
+  (Meta (MetaData "ListN" "ListN" (NumArg 3, StarArg Bar) 1) (Vector 3 (Conc Bar)))
 barListN3Repr = refl
 
 -- A simple generic transformation to increment all UInts by 1
