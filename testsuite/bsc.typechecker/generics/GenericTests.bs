@@ -28,6 +28,9 @@ struct Bar =
 data Baz a = Baz a a
   deriving (Eq, FShow)
 
+data (Tiz :: # -> $ -> (* -> *) -> *) i s c = Tiz
+  deriving (Eq, FShow)
+
 struct Qux =
   x :: a -> a -- Higher rank
   y :: Int 8
@@ -53,7 +56,7 @@ instance FShow Kax where
 
 -- Test generic representations
 fooRepr :: (Generic Foo r) => TypeEq r
-  (Meta (MetaData "Foo" "GenericTests" 4)
+  (Meta (MetaData "Foo" "GenericTests" () 4)
    (Either
     (Meta (MetaConsAnon "A" 0 3)
      (Meta (MetaField "_1" 0) (Conc (UInt 8)),
@@ -69,28 +72,33 @@ fooRepr :: (Generic Foo r) => TypeEq r
 fooRepr = refl
 
 barRepr :: (Generic Bar r) => TypeEq r
-  (Meta (MetaData "Bar" "GenericTests" 1)
+  (Meta (MetaData "Bar" "GenericTests" () 1)
    (Meta (MetaConsNamed "Bar" 0 2)
     (Meta (MetaField "foo" 0) (Conc Foo),
      Meta (MetaField "x" 1) (Conc (UInt 8)))))
 barRepr = refl
 
 bazRepr :: (Generic (Baz a) r) => TypeEq r
-  (Meta (MetaData "Baz" "GenericTests" 1)
+  (Meta (MetaData "Baz" "GenericTests" (StarArg a) 1)
    (Meta (MetaConsAnon "Baz" 0 2)
     (Meta (MetaField "_1" 0) (Conc a),
      Meta (MetaField "_2" 1) (Conc a))))
 bazRepr = refl
 
 bazFooRepr :: (Generic (Baz Foo) r) => TypeEq r
-  (Meta (MetaData "Baz" "GenericTests" 1)
+  (Meta (MetaData "Baz" "GenericTests" (StarArg Foo) 1)
    (Meta (MetaConsAnon "Baz" 0 2)
     (Meta (MetaField "_1" 0) (Conc Foo),
      Meta (MetaField "_2" 1) (Conc Foo))))
 bazFooRepr = refl
 
+tizRepr :: (Generic (Tiz i s c) r) => TypeEq r
+  (Meta (MetaData "Tiz" "GenericTests" (NumArg i, StrArg s, ConArg) 1)
+   (Meta (MetaConsAnon "Tiz" 0 0) ()))
+tizRepr = refl
+
 fooBSVRepr :: (Generic FooBSV r) => TypeEq r
-  (Meta (MetaData "FooBSV" "GenericTestsBSV" 3)
+  (Meta (MetaData "FooBSV" "GenericTestsBSV" () 3)
    (Either
     (Meta (MetaConsNamed "C1" 0 3)
      (Meta (MetaField "x" 0) (Conc (UInt 8)),
@@ -111,15 +119,21 @@ quxFooRepr :: (Generic Qux r) => TypeEq r
 quxFooRepr = refl
 -}
 
+uint8Repr :: (Generic (UInt 8) r) => TypeEq r
+  (Meta (MetaData "UInt" "Prelude" (NumArg 8) 1)
+   (Meta (MetaConsAnon "UInt" 0 1)
+    (Meta (MetaField "_1" 0) (Conc (Bit 8)))))
+uint8Repr = refl
+
 bit8Repr :: (Generic (Bit 8) r) => TypeEq r (ConcPrim (Bit 8))
 bit8Repr = refl
 
 barVec3Repr :: (Generic (Vector 3 Bar) r) => TypeEq r
-  (Meta (MetaData "Vector" "Vector" 1) (Vector 3 (Conc Bar)))
+  (Meta (MetaData "Vector" "Vector" (NumArg 3, StarArg Bar) 1) (Vector 3 (Conc Bar)))
 barVec3Repr = refl
 
 barListN3Repr :: (Generic (ListN 3 Bar) r) => TypeEq r
-  (Meta (MetaData "ListN" "ListN" 1) (Vector 3 (Conc Bar)))
+  (Meta (MetaData "ListN" "ListN" (NumArg 3, StarArg Bar) 1) (Vector 3 (Conc Bar)))
 barListN3Repr = refl
 
 -- A simple generic transformation to increment all UInts by 1

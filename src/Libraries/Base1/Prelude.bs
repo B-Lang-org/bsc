@@ -252,7 +252,8 @@ package Prelude(
 
         -- Generics
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
-        Meta(..), MetaData(..), MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
+        Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..), ConArg(..),
+        MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
 	) where
 
 infixr  0 $
@@ -3764,7 +3765,7 @@ class PrimMakeUninitialized' a r where
 -- fields.
 --
 instance (Generic a r, PrimMakeUninitialized'' r) =>
-         PrimMakeUninitialized' a (Meta (MetaData n p 1) r') where
+         PrimMakeUninitialized' a (Meta (MetaData n p ta 1) r') where
   primMakeUninitialized' _ pos f = to $ primMakeUninitialized'' False pos f
 
 -- This instance for types with multiple constructors just returns
@@ -3791,7 +3792,7 @@ instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (Conc a) where
 instance (PrimMakeUninitialized a) => PrimMakeUninitialized'' (ConcPoly a) where
   primMakeUninitialized'' _ pos f = ConcPoly $ primMakeUninitialized pos f
 
-instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p nc) a) where
+instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaData n p ta nc) a) where
   primMakeUninitialized'' named pos f = Meta $ primMakeUninitialized'' named pos f
 
 instance (PrimMakeUninitialized'' a) => PrimMakeUninitialized'' (Meta (MetaConsNamed n i nf) a) where
@@ -3910,7 +3911,7 @@ class PrimMakeUndefined' a r where
 -- constructor: a struct value is returned with undefined values in its
 -- fields.
 instance (Generic a r, PrimMakeUndefined'' r) =>
-         PrimMakeUndefined' a (Meta (MetaData n p 1) r') where
+         PrimMakeUndefined' a (Meta (MetaData n p ta 1) r') where
   primMakeUndefined' _ pos i = to $ primMakeUndefined'' pos i
 
 -- Primitive case, make a type-specific error value
@@ -4336,8 +4337,19 @@ data Meta m r = Meta r
 -- The 'm' type in `Meta m r` must be one of the following types:
 
 -- Indicates that a representation is for a type (e.g. struct/data) with a name,
--- package and number of constructors
-data (MetaData :: $ -> $ -> # -> *) name pkg ncons = MetaData
+-- package, type arguments and number of constructors
+data (MetaData :: $ -> $ -> * -> # -> *) name pkg tyargs ncons = MetaData
+  deriving (FShow)
+-- Wrappers for types appearing in the MetaData type arguments;
+-- only kinds *, # and $ are made available, constructor-kinded type arguments
+-- cannot be handled in general and are omitted from the ConArg representation type.
+data (StarArg :: * -> *) i = StarArg
+  deriving (FShow)
+data (NumArg :: # -> *) i = NumArg
+  deriving (FShow)
+data (StrArg :: $ -> *) i = StrArg
+  deriving (FShow)
+data ConArg = ConArg
   deriving (FShow)
 
 -- Indicates that a representation is for a constructor with named fields,

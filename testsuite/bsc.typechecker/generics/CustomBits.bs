@@ -25,7 +25,7 @@ class incoherent MyBits' r n | r -> n where
 -- Compute the number of tag bits required for the number of
 -- constructors at the top-level MetaData instance
 instance (Log ncons ntag, ConBits 0 r ndata, Add ntag ndata n) =>
-         MyBits' (Meta (MetaData name pkg ncons) r) n where
+         MyBits' (Meta (MetaData name pkg ta ncons) r) n where
   mypack' (Meta x) =
     let (tagNum, dat) = packCon x
         tag = pack ((fromInteger tagNum) :: UInt ntag)
@@ -77,7 +77,7 @@ instance  MyBits' () 0 where
   myunpack' _ = ()
 
 instance (MyBits' a m, Bits (Vector n (Bit m)) l) =>
-         MyBits' (Meta (MetaData name pkg 1) (Vector n a)) l where
+         MyBits' (Meta (MetaData name pkg ta 1) (Vector n a)) l where
   mypack' (Meta v) = pack $ map mypack' v
   myunpack' = Meta `compose` map myunpack' `compose` unpack
 
