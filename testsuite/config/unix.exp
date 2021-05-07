@@ -325,8 +325,6 @@ proc get_test_options {} {
     global ctest
     global systemctest
     global DO_INTERNAL_CHECKS
-    global contrib_inst
-    global contribtest
 
     if [info exists env(VTEST)] then {
         set vtest $env(VTEST)
@@ -356,14 +354,6 @@ proc get_test_options {} {
     } else {
 	# XXX We could enable it if the tools are found?
 	set DO_INTERNAL_CHECKS 0
-    }
-
-    if { [info exists env(CONTRIB_INST)] && [file isdirectory $env(CONTRIB_INST)] } then {
-	set contrib_inst $env(CONTRIB_INST)
-	set contribtest 1
-    } else {
-	set contrib_inst ""
-	set contribtest 0
     }
 }
 
@@ -3152,10 +3142,6 @@ verbose -log "Do verilog backend tests is $vtest" 1
 verbose -log "Do c backend tests is $ctest" 1
 verbose -log "Do SystemC tests is $systemctest" 1
 verbose -log "Do internal checks is [do_internal_checks]" 1
-verbose -log "Do contrib tests is $contribtest" 1
-if { $contribtest } {
-    verbose -log "Contrib inst is $contrib_inst" 1
-}
 
 
 # ---------------

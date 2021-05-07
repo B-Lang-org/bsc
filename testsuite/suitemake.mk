@@ -19,16 +19,6 @@ SUBDIRS ?= $(dir $(wildcard */Makefile))
 # For testing a release, setup a group of variables
 TEST_RELEASE ?= $(CONFDIR)/../inst
 
-# This enables tests that use bsc-contrib libraries
-# (the value should be an "inst" directory)
-ifneq ($(wildcard $(TEST_RELEASE)/../../bsc-contrib/inst/),)
-TEST_CONTRIB ?= $(TEST_RELEASE)/../../bsc-contrib/inst
-else
-ifneq ($(wildcard $(CONFDIR)/../bsc-contrib/inst/),)
-TEST_CONTRIB ?= $(CONFDIR)/../bsc-contrib/inst
-endif
-endif
-
 # The following can also be defined (=0 or =1)
 #
 # VTEST = Whether to run Verilog backend tests (default =1)
@@ -66,7 +56,6 @@ STATS_FILE ?= $(CONFDIR)/time.out
 TEST_BSC_OPTIONS ?=
 
 RUNTESTENV = MAKEFLAGS= BSCTEST=1 \
-	CONTRIB_INST=$(TEST_CONTRIB) \
 	BSC=$(TEST_BSC) BSC_OPTIONS="${TEST_BSC_OPTIONS}" BSDIR=$(TEST_BSDIR) \
 	DUMPBO=$(TEST_DUMPBO) BSC2BSV=$(TEST_BSC2BSV) \
 	VCDCHECK=$(TEST_VCDCHECK) SHOWRULES=$(TEST_SHOWRULES) \

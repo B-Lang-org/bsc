@@ -4,7 +4,7 @@ package Mpmc_TLM;
 
 import GetPut::*;
 import FIFO::*;
-import TLM::*;
+import TLMDefines::*;
 import SpecialFIFOs::*;
 
 import Mpmc_NPI::*;
