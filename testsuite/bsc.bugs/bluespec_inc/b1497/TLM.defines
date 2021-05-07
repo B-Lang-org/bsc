@@ -1,0 +1,56 @@
+// Copyright (c) 2020 Bluespec, Inc. All rights reserved.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+`define TLM_PRM_DCL numeric type id_size,   \
+	            numeric type addr_size, \
+		    numeric type data_size, \
+		    numeric type uint_size, \
+		    type cstm_type
+
+`define TLM_PRM    id_size,   \
+	           addr_size, \
+	           data_size, \
+		   uint_size, \
+		   cstm_type
+
+`define TLM_PRM_STD 4,  \
+                    32, \
+		    32, \
+		    10, \
+		    Bit#(0)
+
+////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////
+
+`define TLM_RR_DCL type req_t,   \
+		   type resp_t
+
+`define TLM_RR     req_t, \
+		   resp_t
+
+`define TLM_RR_STD TLMRequest#(`TLM_PRM_STD), \
+		   TLMResponse#(`TLM_PRM_STD) \
+
+////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////
+
+`define TLM_XTR_DCL `TLM_RR_DCL, `TLM_PRM_DCL
+`define TLM_XTR     `TLM_RR,     `TLM_PRM
+`define TLM_XTR_STD `TLM_RR_STD, `TLM_PRM_STD
+
+////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////
+
+`define TLM_TYPE_PRMS `TLM_PRM_DCL
+`define TLM_TYPES     `TLM_PRM
+`define TLM_STD_TYPES `TLM_PRM_STD
+
+////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////
+
+`define dv deriving(Bits,Eq)

@@ -7,7 +7,7 @@ import SpecialFIFOs::*;
 import GetPut::*;
 import DReg::*;
 import Vector::*;
-import TLM::*;
+import TLMDefines::*;
 import Clocks::*;
 import Connectable::*;
 
