@@ -2486,15 +2486,29 @@ proc test_c_only_bsv_modules_options { top modules gen_options {expected ""} {cb
     test_c_veri_worker_int $top $sysmod $modules "bsv" 1 0 $gen_options $link_options $sim_options $expected $cbug "" $sort_output
 }
 
+# procedure to test c and verilog where the top modules name is not sys$module - classic bs
+proc test_c_veri_multi { topbsv topmod modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bs" 1 1 $expected $cbug $veribug $sort_output $check_vcd
+}
 
 # procedure to test c and verilog where the top modules name is not sys$module
 proc test_c_veri_bsv_multi { topbsv topmod modules {expected ""} {cbug ""} {veribug ""} {sort_output 0} {check_vcd 1} } {
     test_c_veri_worker $topbsv $topmod $modules "bsv" 1 1 $expected $cbug $veribug $sort_output $check_vcd
 }
 
+# procedure to test c only when the top module name is not sys$module - classic bs
+proc test_c_only_multi { topbsv topmod modules {expected ""} {cbug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bs" 1 0 $expected $cbug "" $sort_output $check_vcd
+}
+
 # procedure to test c only when the top module name is not sys$module
 proc test_c_only_bsv_multi { topbsv topmod modules {expected ""} {cbug ""} {sort_output 0} {check_vcd 1} } {
     test_c_veri_worker $topbsv $topmod $modules "bsv" 1 0 $expected $cbug "" $sort_output $check_vcd
+}
+
+# procedure to test Verilog only when the top module is not sys$module - classic bs
+proc test_veri_only_multi { topbsv topmod modules {expected ""} {veribug ""} {sort_output 0} {check_vcd 1} } {
+    test_c_veri_worker $topbsv $topmod $modules "bs" 0 1 $expected "" $veribug $sort_output $check_vcd
 }
 
 # procedure to test Verilog only when the top module is not sys$module
