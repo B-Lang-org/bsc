@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import Util(elemBy, concatMapM)
 import Id
 import Position
-import Error(internalError, EMsgs(..), ErrMsg(..))
+import Error(internalError, ErrMsg(..))
 import Pred
 import Scheme
 import Assump
