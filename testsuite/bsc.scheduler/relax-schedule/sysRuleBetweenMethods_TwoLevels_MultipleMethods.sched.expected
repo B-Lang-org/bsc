@@ -1,0 +1,27 @@
+SchedInfo
+[RDY_am1 CF [RDY_am1, RDY_am2, RDY_am3, RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ RDY_am2 CF [RDY_am2, RDY_am3, RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ RDY_am3 CF [RDY_am3, RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ RDY_vm1 CF [RDY_vm1, RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ RDY_vm2 CF [RDY_vm2, RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ RDY_vm3 CF [RDY_vm3, am1, am2, am3, vm1, vm2, vm3],
+ vm1 CF [vm1, vm2, vm3],
+ vm2 CF [vm2, vm3],
+ vm3 CF vm3,
+ [am1, vm1, vm2, vm3] SBR [am1, am2, am3],
+ am2 SBR [am2, am3],
+ am3 SBR am3]
+[((am1, am2), [s.RL_sub_rule_btwn_am1_am2]),
+ ((am1, am3), [s.RL_sub_rule_btwn_am1_am3]),
+ ((am2, am3), [s.RL_sub_rule_btwn_am2_am3]),
+ ((vm1, am1), [s.RL_sub_rule_btwn_vms_am1]),
+ ((vm1, am2), [s.RL_sub_rule_btwn_vms_am2]),
+ ((vm1, am3), [s.RL_sub_rule_btwn_vms_am3]),
+ ((vm2, am1), [s.RL_sub_rule_btwn_vms_am1]),
+ ((vm2, am2), [s.RL_sub_rule_btwn_vms_am2]),
+ ((vm2, am3), [s.RL_sub_rule_btwn_vms_am3]),
+ ((vm3, am1), [s.RL_sub_rule_btwn_vms_am1]),
+ ((vm3, am2), [s.RL_sub_rule_btwn_vms_am2]),
+ ((vm3, am3), [s.RL_sub_rule_btwn_vms_am3])]
+[(am1, [(Right am1)]), (am2, [(Right am2)]), (am3, [(Right am3)])]
+[]

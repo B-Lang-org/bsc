@@ -231,6 +231,18 @@ compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirs_TwoLevels.bsv G010
 compile_object_fail_error RuleBetweenMethods_TwoRulesBothDirs_TwoLevels2.bsv G0101
 
 # -----
+# Test for a bug in the fix for bug #1410:
+# Sometimes a rule between methods 'm1' and 'm2' was not recored in the
+# module's SchedInfo if a rule was already found between 'm1' and another
+# method ('m3').  We can trigger this with an example that has multiple
+# methods, with rules between most combinations, and we can test that
+# the SchedInfo is properly computed for a wrapper module.
+
+compile_object_pass RuleBetweenMethods_TwoLevels_MultipleMethods.bsv {} \
+    {-dvschedinfo=%m.sched}
+compare_file sysRuleBetweenMethods_TwoLevels_MultipleMethods.sched
+
+# -----
 # Test that we detect uses between two methods which the user has declared
 # as mutually exclusive (with an attribute) but which don't share a common
 # method (just share common state, but different methods on that state)
