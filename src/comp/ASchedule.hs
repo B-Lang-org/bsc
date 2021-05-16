@@ -2709,9 +2709,9 @@ getStateInfo ss = (NoConflictSet $ S.unions cfss,
                    NoConflictSet $ S.unions pcss,
                    NoConflictSet $ S.unions scss,
                    rss)
-    where cfss = [cfs | (cfs, _, _, _) <- sinfos]
-          pcss = [sbs | (_, sbs, _, _) <- sinfos]
-          scss = [sbrs| (_, _,sbrs, _) <- sinfos]
+    where cfss = [cfs  | (cfs, _, _, _) <- sinfos]
+          pcss = [sbs  | (_, sbs, _, _) <- sinfos]
+          scss = [sbrs | (_, _,sbrs, _) <- sinfos]
           rss  = sort $ concat [r  | (_, _, _, r)  <- sinfos]
           sinfos = map getSI ss
           getSI (AVInst { avi_vname = id, avi_vmi = modInfo }) =
