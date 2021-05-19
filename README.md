@@ -75,7 +75,7 @@ developers' mailing list [bsc-dev@groups.io](https://groups.io/g/bsc-dev).
 For any questions or discussion about Bluespec HDLs, using BSC, or
 related projects, subscribe to [b-lang-discuss@groups.io](https://groups.io/g/b-lang-discuss).
 
-IRC users might try joining the `#bluespec` channel on [FreeNode](https://freenode.net).
+IRC users might try joining the `#bluespec` channel on [Libera.Chat](https://libera.chat/).
 
 There's also a [bluespec](https://stackoverflow.com/questions/tagged/bluespec)
 tag on StackOverflow.
