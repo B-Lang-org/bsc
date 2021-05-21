@@ -2442,6 +2442,11 @@ proc test_c_veri_bs_modules { top modules {expected ""} {cbug ""} {veribug ""} {
     test_c_veri_internal $top $modules "bs" 1 1 $expected $cbug $veribug $sort_output
 }
 
+proc test_c_veri_bs_modules_options { top modules gen_options {expected ""} {cbug ""} {veribug ""} {link_options ""} {sim_options "" } {sort_output 0} } {
+    set sysmod sys$top
+    test_c_veri_worker_int $top $sysmod $modules "bs" 1 1 $gen_options $link_options $sim_options $expected $cbug $veribug $sort_output
+}
+
 
 # test verilog output via simulation  classic only
 proc test_veri_only { module {expected ""} {veribug ""} {sort_output 0} } {
