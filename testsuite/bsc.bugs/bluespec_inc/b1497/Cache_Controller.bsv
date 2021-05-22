@@ -148,7 +148,7 @@ module cache_controller(IFC_Cache_Controller#(t,i,b))
       let invalidate_write_data =
       Cache_Tag {tag_way0: Invalid, tag_way1: Invalid,
 		 next_evict_way0: True };
-      let invalidate_req = 
+      let invalidate_req =
                tagged SRAM_Write { address: cache_init_location,
 				   data: invalidate_write_data };
       tag_req.wset(invalidate_req);
