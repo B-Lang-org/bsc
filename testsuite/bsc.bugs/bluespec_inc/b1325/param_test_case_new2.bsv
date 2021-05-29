@@ -10,7 +10,6 @@ interface IfcBangbang#(type div_ratio, type div_ratio_x11);
 	(* always_ready,always_enabled *)
 	method Bit#(6) get_phase;
 
-	
 endinterface
 
 
@@ -25,7 +24,7 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
             Add#(log_div_ratio_plus5, x, log_div_ratio_plus8),    // (A) from use of signExtend
             Add#(6, y, log_div_ratio_plus8));                     // (B) from use of zeroExtend
 
-	
+
 	Wire#(Bit#(6)) maxbangWire <-mkWire;
 
 
@@ -58,7 +57,7 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
                                   Bit#(div_ratio)     act46,
                                   Bit#(1)             mode46,
                                   Bit#(1)             mode810);
-		
+
 		Int#(log_div_ratio_plus5) count_pos=0;
 		Int#(log_div_ratio_plus5) count_neg=0;
 
@@ -70,8 +69,8 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
 			Bit#(1)  act46_temp=act46[word_index-1];
 
 			Bit#(10) equal1vect=data1_temp[10:1]^data2_temp[10:1];
-			Bit#(10) equal2vect=data1_temp[10:1]^data2_temp[9:0];		
-			
+			Bit#(10) equal2vect=data1_temp[10:1]^data2_temp[9:0];
+
 			for (int i=0;i<4;i=i+1)
 			begin
 				if (equal1vect[i]==1'b1)
@@ -79,7 +78,7 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
 				if (equal2vect[i]==1'b1)
 					count_neg=count_neg+1;
 			end
-	
+
 			if (mode46==0 || (mode810==1 && act46_temp==1))
 			begin
 				for (int i=4;i<6;i=i+1)
@@ -90,7 +89,7 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
 						count_neg=count_neg+1;
 				end
 			end
-		
+
 			if (mode46==0)
 			begin
 				for (int i=6;i<8;i=i+1)
@@ -101,7 +100,7 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
 						count_neg=count_neg+1;
 				end
 			end
-		
+
 			if (mode46==0 && mode810==1)
 			begin
 				for (int i=8;i<10;i=i+1)
@@ -111,16 +110,14 @@ module mkBangbang (IfcBangbang#(div_ratio, div_ratio_x11))
 					if (equal2vect[i]==1'b1)
 						count_neg=count_neg+1;
 				end
-			end	
-		end	
-	
+			end
+		end
 
-			
 		count_sum<=count_pos-count_neg;
 	endmethod
 	method Action static_inputs(Bit#(6) maxbang);
 		maxbangWire<=maxbang;
-	endmethod 
+	endmethod
 
 
 	method Bit#(6) get_phase;

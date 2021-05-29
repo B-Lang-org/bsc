@@ -89,7 +89,7 @@ typedef struct {
 		Maybe#(OVLEdgeType)           edge_type;
 		Maybe#(OVLNecessaryCondition) necessary_condition;
 		Maybe#(OVLInactive)           inactive;
-		Maybe#(Int#(32))              num_cks;	
+		Maybe#(Int#(32))              num_cks;
 		Maybe#(Int#(32))              min_cks;
 		Maybe#(Int#(32))              max_cks;
 		Maybe#(Int#(32))              min_ack_cycle;
@@ -469,7 +469,7 @@ function OVLDefaults#(a) updateOVLMinAckCycle (OVLDefaults#(a) defaults,
 
    return value;
 
-endfunction				
+endfunction
 
 function OVLDefaults#(a) updateOVLMaxAckCycle (OVLDefaults#(a) defaults,
 					  OVLDefaultsTemplate#(a) template,
@@ -2363,7 +2363,7 @@ endmodule
 //								 of events.
 //
 ///////////////////////////////////////////////////////////////////////////////////
-                			
+
 function OVLDefaultsTemplate#(a) create_assert_cycle_sequence_defaults ();
 
    let defaults = mkOVLDefaultsTemplate;

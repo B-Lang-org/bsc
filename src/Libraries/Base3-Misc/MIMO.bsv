@@ -37,7 +37,7 @@ typedef UInt#(TLog#(TAdd#(n, 1)))     LUInt#(numeric type n);
 typedef struct {
    Bool         unguarded;
    Bool         bram_based;
-} MIMOConfiguration deriving (Eq);		
+} MIMOConfiguration deriving (Eq);
 
 instance DefaultValue#(MIMOConfiguration);
    defaultValue = MIMOConfiguration {
@@ -152,9 +152,9 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 	 for(Integer i = 0; i < valueOf(max); i = i + 1) begin
 	    if (deqDoIt[i]) vrwDeqFifo[i].wset(True);
 	 end
-	
+
 	 rDataCount.dec(cExtend(dcount));
-	
+
 	 UInt#(32) ridx = cExtend(rReadIndex);
 	 UInt#(32) dcnt = cExtend(dcount);
 	 if ((ridx + dcnt) >= fromInteger(valueOf(max)))
@@ -169,13 +169,13 @@ module mkMIMOBram#(MIMOConfiguration cfg)(MIMO#(max_in, max_out, size, t))
 		      );
 	 Vector#(max, t)    enqData = rotateBy(unpack(cExtend(edata)), cExtend(rWriteIndex));
 	 Vector#(max, Bool) enqDoIt = rotateBy(createMask(cExtend(ecount)), cExtend(rWriteIndex));
-	
+
 	 for(Integer i = 0; i < valueOf(max); i = i + 1) begin
 	    if (enqDoIt[i]) vrwEnqFifo[i].wset(enqData[i]);
 	 end
-	
+
 	 rDataCount.inc(cExtend(ecount));
-	
+
 	 UInt#(32) widx = cExtend(rWriteIndex);
 	 UInt#(32) ecnt = cExtend(ecount);
 	 if ((widx + ecnt) >= fromInteger(valueOf(max)))

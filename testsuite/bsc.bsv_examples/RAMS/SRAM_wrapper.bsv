@@ -44,7 +44,7 @@ import "BVI" mkVerilog_SRAM_model =
       schedule (read_response) CF (read_response);
       // A request can only be made once in a clock cycle
       schedule (request) C (request);
-   endmodule  
+   endmodule
 
 // ----------------------------------------------------------------
 
