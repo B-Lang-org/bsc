@@ -53,11 +53,11 @@ vMk1FIFOF =
     clear_      = "CLR";
   }   [ enq_ <> [deq_, first_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
-	first_ < deq_,
+        first_ < deq_,
         [notFull_, notEmpty_] < [enq_, deq_],
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
+        [enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
       ]
 
@@ -77,7 +77,7 @@ vMk1FIFOF0 =
         [notFull_, notEmpty_] < [enq_, deq_],
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
       ]
 
@@ -125,11 +125,11 @@ vMk2FIFOF =
     clear_      = "CLR";
   }   [ enq_ <> [deq_, first_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notFull_, i_notEmpty_],
-	first_ < deq_,
+        first_ < deq_,
         [notFull_, notEmpty_] < [enq_, deq_],
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
+        [enq_, deq_, first_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
       ]
 
@@ -149,7 +149,7 @@ vMk2FIFOF0 =
         [notFull_, notEmpty_] < [enq_, deq_],
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] < clear_
       ]
 
@@ -227,7 +227,7 @@ vMkSizedNFIFOF0 n =
         [notFull_, notEmpty_] < [enq_, deq_],
         [notFull_, i_notFull_, notEmpty_, i_notFull_] <>
         [notFull_, i_notFull_, notEmpty_, i_notFull_],
-	[enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
+        [enq_, deq_, notFull_, notEmpty_, clear_] < clear_,
         [i_notFull_, i_notEmpty_] <> clear_
       ]
 
@@ -283,12 +283,12 @@ vMkL1FIFOF =
     clear_      = "CLR";
   }   [ enq_ <> [first_, deq_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notEmpty_],
-	first_ < deq_,
-	[enq_, deq_] < [notEmpty_, notFull_],
+        first_ < deq_,
+        [enq_, deq_] < [notEmpty_, notFull_],
         deq_ < i_notFull_,
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [first_, notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, first_, notFull_, i_notFull_, notEmpty_,
+        [enq_, deq_, first_, notFull_, i_notFull_, notEmpty_,
          clear_] < clear_,
         i_notEmpty_ <> clear_
       ]
@@ -306,11 +306,11 @@ vMkL1FIFOF0 =
     clear_      = "CLR";
   }   [ enq_ <> [deq_, i_notFull_, i_notEmpty_],
         deq_ <> [enq_, i_notEmpty_],
-	[enq_, deq_] < [notFull_, notEmpty_],
+        [enq_, deq_] < [notFull_, notEmpty_],
         deq_ < i_notFull_,
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_] <>
         [notFull_, i_notFull_, notEmpty_, i_notEmpty_],
-	[enq_, deq_, notFull_, i_notFull_, notEmpty_, clear_]
+        [enq_, deq_, notFull_, i_notFull_, notEmpty_, clear_]
         < clear_,
         i_notEmpty_ <> clear_
       ]

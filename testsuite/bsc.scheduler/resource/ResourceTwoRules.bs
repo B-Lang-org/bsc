@@ -19,10 +19,10 @@ hi = 5
 sysResourceTwoRules :: Module Empty
 sysResourceTwoRules =
       module
-	let mkRule a n = rules
-			  "Contender": when True
-			  	      ==> $display (a.sub n)
-	a :: RegFile Index Value
-	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        let mkRule a n = rules
+                          "Contender": when True
+                                        ==> $display (a.sub n)
+        a :: RegFile Index Value
+        a <- mkRegFile (fromInteger lo) (fromInteger hi)
         addRules $ foldr1 (<+>) $ map (mkRule a) $ map fromInteger $ upto lo hi
 

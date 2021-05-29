@@ -34,10 +34,10 @@ mkDigit digit x y = do
 
     ldec :: LedDecoder <- mkLedDecoder
     let mask :: List Bool
-	mask = Vector.toList (unpack (ldec.decode digit))
-	segs = seg0 :> seg1 :> seg2 :> seg3 :> seg4 :> seg5 :> seg6 :> Nil
-	maskShape vis s = modShapeVis (\ c -> if vis then c else cNone) s
-	disp = joinManyShapes (zipWith maskShape mask segs)
+        mask = Vector.toList (unpack (ldec.decode digit))
+        segs = seg0 :> seg1 :> seg2 :> seg3 :> seg4 :> seg5 :> seg6 :> Nil
+        maskShape vis s = modShapeVis (\ c -> if vis then c else cNone) s
+        disp = joinManyShapes (zipWith maskShape mask segs)
 
     return disp
 
@@ -47,7 +47,7 @@ mkScore cnt x y = mkDisplay cnt.getDigits x y
 mkDisplay :: Vector.Vector n (Bit 4) -> XCoord -> YCoord -> Module Shape
 mkDisplay digits x y = do
     let n1 = valueOf n - 1
-	sep = long+short
-	right = fromInteger (n1*sep) + x
+        sep = long+short
+        right = fromInteger (n1*sep) + x
     glyphs :: List Shape <- mapM (\ i -> mkDigit (Vector.toList digits !! i) (right - fromInteger i*sep) y) (upto 0 n1)
     return (joinManyShapes glyphs)

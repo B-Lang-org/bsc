@@ -58,7 +58,7 @@ sysRPN = main
 
 data StackItem = Number Number
 --               | ArithOp ArithOp
-	       deriving (Eq,Bits)
+               deriving (Eq,Bits)
 
 type Number = Int 32
 
@@ -66,10 +66,10 @@ type Number = Int 32
 --             deriving (Eq,Bits)
 
 data Key = Digit0 | Digit1 | Digit2 | Digit3 | Digit4
-	 | Digit5 | Digit6 | Digit7 | Digit8 | Digit9
-	 | AddKey | SubKey | MulKey | DivKey | ExpKey | Negate
-	 | Equals
-	 | ClearAll | ClearLine
+         | Digit5 | Digit6 | Digit7 | Digit8 | Digit9
+         | AddKey | SubKey | MulKey | DivKey | ExpKey | Negate
+         | Equals
+         | ClearAll | ClearLine
          deriving (Eq,Bits)
 
 
@@ -196,39 +196,39 @@ interface Stack a =
 
 mkStack :: (Bits a k) => Module (Stack a)
 mkStack = module
-	      arr :: RegFile (Bit 8) a
-	      arr <- mkRegFileFull
+              arr :: RegFile (Bit 8) a
+              arr <- mkRegFileFull
 
-	      size :: Reg (Bit 8)
-	      size <- mkReg 0
+              size :: Reg (Bit 8)
+              size <- mkReg 0
 
-	      isError :: Reg Bool
-	      isError <- mkReg False
-	      interface
-	          clear = action { size := 0; isError := False; }
-	          push x = if (isError || size == maxBound || isNothing x)
-		           then action { isError := True; }
-		           else action { size := size + 1;
-			          arr.upd size (getValue x); }
-	          pop = if (isError || size == 0)
-		        then action { isError := True; }
-		        else action { size := size - 1; }
-	          first = if (isError || size == 0)
-		          then Invalid else Valid (arr.sub (size-1))
-	          second = if (isError || size < 2)
-		           then Invalid else Valid (arr.sub (size-2))
-	          applyUnaryOp op =
-		      let val = op (arr.sub (size-1))
-		      in  if (isError || size == 0 || isNothing val)
-		          then action { isError := True; }
-		          else action { arr.upd (size-1) (getValue val); }
-	          applyBinaryOp op =
-		      let val = op (arr.sub (size-1)) (arr.sub (size-2))
-		      in  if (isError || size < 2 || isNothing val)
-		          then action { isError := True; }
-		          else action { arr.upd (size-2) (getValue val); }
-	          oneItem x = action { isError := False; size := 1; arr.upd 0 x }
-	          error = isError
+              isError :: Reg Bool
+              isError <- mkReg False
+              interface
+                  clear = action { size := 0; isError := False; }
+                  push x = if (isError || size == maxBound || isNothing x)
+                           then action { isError := True; }
+                           else action { size := size + 1;
+                                  arr.upd size (getValue x); }
+                  pop = if (isError || size == 0)
+                        then action { isError := True; }
+                        else action { size := size - 1; }
+                  first = if (isError || size == 0)
+                          then Invalid else Valid (arr.sub (size-1))
+                  second = if (isError || size < 2)
+                           then Invalid else Valid (arr.sub (size-2))
+                  applyUnaryOp op =
+                      let val = op (arr.sub (size-1))
+                      in  if (isError || size == 0 || isNothing val)
+                          then action { isError := True; }
+                          else action { arr.upd (size-1) (getValue val); }
+                  applyBinaryOp op =
+                      let val = op (arr.sub (size-1)) (arr.sub (size-2))
+                      in  if (isError || size < 2 || isNothing val)
+                          then action { isError := True; }
+                          else action { arr.upd (size-2) (getValue val); }
+                  oneItem x = action { isError := False; size := 1; arr.upd 0 x }
+                  error = isError
 
 
 ------------
@@ -245,40 +245,40 @@ main :: Module Calculator
 main = module
            -- input
            inputFifoS :: FIFOF Key
-	   inputFifoS <- mkFIFOF
+           inputFifoS <- mkFIFOF
 
            -- output
-	   outputFifoS :: FIFOF (Maybe StackItem)
-	   outputFifoS <- mkFIFOF
+           outputFifoS :: FIFOF (Maybe StackItem)
+           outputFifoS <- mkFIFOF
 
            -- storage
-	   currentDigits :: Reg Number
-	   currentDigits <- mkReg emptyDigits
+           currentDigits :: Reg Number
+           currentDigits <- mkReg emptyDigits
 
            -- the stack
-	   stack :: Stack StackItem
-	   stack <- mkStack
+           stack :: Stack StackItem
+           stack <- mkStack
 
            addRules $ mkCalcRules inputFifoS outputFifoS currentDigits stack
            interface
-	       inputFifo = inputFifoS
-	       outputFifo = outputFifoS
+               inputFifo = inputFifoS
+               outputFifo = outputFifoS
 
 
 mkCalcRules :: FIFOF Key -> FIFOF (Maybe StackItem) -> Reg Number ->
-	       Stack StackItem -> Rules
+               Stack StackItem -> Rules
 mkCalcRules inputFifo outputFifo currentDigits stack =
     let
-	keyPressed :: Bool
-	keyPressed = inputFifo.notEmpty
+        keyPressed :: Bool
+        keyPressed = inputFifo.notEmpty
 
-	key :: Key
-	key = inputFifo.first
+        key :: Key
+        key = inputFifo.first
 
     in
       rules
 
-	"StackError":
+        "StackError":
           -- when the stack is in error, do nothing
           when keyPressed, stack.error, key /= ClearAll
             ==> action { inputFifo.deq }
@@ -287,86 +287,86 @@ mkCalcRules inputFifo outputFifo currentDigits stack =
           when keyPressed, key == ClearAll
             ==> action { currentDigits := emptyDigits;
                   stack.clear;
-	          inputFifo.deq;
-		}
+                  inputFifo.deq;
+                }
 
-	"Digit":
-	  -- when a digit is pressed
-	  when keyPressed, isDigitKey key,
-	       currentDigits <= fromInteger ((maxNumber - 9) `div` 10)
-	    ==> action { currentDigits := addDigit currentDigits key;
-	          inputFifo.deq;
-		};
+        "Digit":
+          -- when a digit is pressed
+          when keyPressed, isDigitKey key,
+               currentDigits <= fromInteger ((maxNumber - 9) `div` 10)
+            ==> action { currentDigits := addDigit currentDigits key;
+                  inputFifo.deq;
+                };
 
           -- if it's too many digits, ignore it
-	  when keyPressed, isDigitKey key,
-	       currentDigits > fromInteger ((maxNumber - 9) `div` 10)
-	    ==> action { inputFifo.deq }
+          when keyPressed, isDigitKey key,
+               currentDigits > fromInteger ((maxNumber - 9) `div` 10)
+            ==> action { inputFifo.deq }
 
-	"ClearLine":
+        "ClearLine":
           -- when clearing a line
           when keyPressed, key == ClearLine, currentDigits > 0
-	    ==> action { currentDigits := emptyDigits;
-	          inputFifo.deq;
-		};
+            ==> action { currentDigits := emptyDigits;
+                  inputFifo.deq;
+                };
 
           -- if the line is already empty, we pop the last value off the stack
-	  when keyPressed, key == ClearLine
-	    ==> action { stack.pop;
-		  inputFifo.deq;
-		}
+          when keyPressed, key == ClearLine
+            ==> action { stack.pop;
+                  inputFifo.deq;
+                }
 
-	"UnaryArithOp":
+        "UnaryArithOp":
           -- when an arithmetic operator is pressed
-	  when keyPressed, isUnaryArithKey key, currentDigits == 0
-	     ==> action { stack.applyUnaryOp (applyUnaryOp key);
-		   inputFifo.deq;
-		 };
+          when keyPressed, isUnaryArithKey key, currentDigits == 0
+             ==> action { stack.applyUnaryOp (applyUnaryOp key);
+                   inputFifo.deq;
+                 };
 
           -- if the buffer has digits in it
           when keyPressed, isUnaryArithKey key, currentDigits /= 0
-	    ==> action { stack.push ((applyUnaryOp key) (Number currentDigits));
-	          currentDigits := emptyDigits;
-	          inputFifo.deq;
-		}
+            ==> action { stack.push ((applyUnaryOp key) (Number currentDigits));
+                  currentDigits := emptyDigits;
+                  inputFifo.deq;
+                }
 
-	"BinaryArithOp":
+        "BinaryArithOp":
           -- when an arithmetic operator is pressed
-	  when keyPressed, isBinaryArithKey key, currentDigits == 0
-	    ==> action { stack.applyBinaryOp (applyBinaryOp key);
-	          inputFifo.deq;
-	        };
+          when keyPressed, isBinaryArithKey key, currentDigits == 0
+            ==> action { stack.applyBinaryOp (applyBinaryOp key);
+                  inputFifo.deq;
+                };
 
           -- if the buffer has digits in it
-	  when keyPressed, isBinaryArithKey key, currentDigits /= 0
-	    ==> action { stack.applyUnaryOp
-	            ((applyBinaryOp key) (Number currentDigits));
-	          currentDigits := emptyDigits;
-	          inputFifo.deq;
-		}
+          when keyPressed, isBinaryArithKey key, currentDigits /= 0
+            ==> action { stack.applyUnaryOp
+                    ((applyBinaryOp key) (Number currentDigits));
+                  currentDigits := emptyDigits;
+                  inputFifo.deq;
+                }
 
-	"Equals":
+        "Equals":
           -- the end of the computation
           when keyPressed, outputFifo.notFull, key == Equals,
-	       currentDigits == 0, Valid val@(Number v) <- stack.first
-	    ==> action { outputFifo.enq stack.first;
+               currentDigits == 0, Valid val@(Number v) <- stack.first
+            ==> action { outputFifo.enq stack.first;
                   stack.oneItem val;
-		  inputFifo.deq;
+                  inputFifo.deq;
                 };
 
           -- the buffer has digits
-	  when keyPressed, outputFifo.notFull, key == Equals,
-	       currentDigits /= 0
-	    ==> action { outputFifo.enq (Valid (Number currentDigits));
-	          stack.oneItem (Number currentDigits);
-	          inputFifo.deq;
+          when keyPressed, outputFifo.notFull, key == Equals,
+               currentDigits /= 0
+            ==> action { outputFifo.enq (Valid (Number currentDigits));
+                  stack.oneItem (Number currentDigits);
+                  inputFifo.deq;
                 };
 
           -- the stack top is not a number
-	  when keyPressed, outputFifo.notFull, key == Equals,
-	       currentDigits == 0, (stack.first == Invalid) ||
-	       (not (isNumber (getValue stack.first)))
-	    ==> action { outputFifo.enq Invalid;
-	          stack.push Invalid; -- signals an Error
-	          inputFifo.deq;
-	        }
+          when keyPressed, outputFifo.notFull, key == Equals,
+               currentDigits == 0, (stack.first == Invalid) ||
+               (not (isNumber (getValue stack.first)))
+            ==> action { outputFifo.enq Invalid;
+                  stack.push Invalid; -- signals an Error
+                  inputFifo.deq;
+                }

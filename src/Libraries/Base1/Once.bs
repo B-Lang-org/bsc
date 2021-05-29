@@ -34,9 +34,9 @@ interface Once =
 mkOnce :: (IsModule m c) => Action -> m Once
 mkOnce a =
     module
-	ready :: Reg Bool
-	ready <- mkReg True
-	interface
-	    start = action { ready := False; a }
-	        when ready
-	    clear = action { ready := True }
+        ready :: Reg Bool
+        ready <- mkReg True
+        interface
+            start = action { ready := False; a }
+                when ready
+            clear = action { ready := True }

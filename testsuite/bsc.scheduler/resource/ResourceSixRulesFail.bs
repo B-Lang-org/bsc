@@ -22,8 +22,8 @@ sysResourceSixRulesFail =
         r5 :: Reg Value <- mkRegU
         r6 :: Reg Value <- mkRegU
 
-	a :: RegFile Index Value
-	a <- mkRegFileFull
+        a :: RegFile Index Value
+        a <- mkRegFileFull
         rules
             "Bogus1":
                when True

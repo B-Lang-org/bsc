@@ -5,8 +5,8 @@ package BogusAssertions(sysBogusAssertions) where
 sysBogusAssertions :: Module Empty
 sysBogusAssertions =
     module
-	a :: Reg Bool
-	a <- mkReg True
+        a :: Reg Bool
+        a <- mkReg True
         rules
           {-# ASSERT something bogus #-}
           "flip": when True ==> a := not a

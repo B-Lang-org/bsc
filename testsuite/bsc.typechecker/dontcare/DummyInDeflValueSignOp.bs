@@ -2,7 +2,7 @@ package DummyInDeflValueSignOp () where
 
 y :: Bit 12
 y = let (+):: Bool -> Bool -> Bit 12
-	_ + x = _
+        _ + x = _
     in  True + True
 
 

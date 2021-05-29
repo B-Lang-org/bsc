@@ -116,8 +116,8 @@ mkGetCPut =
         presentEffective :: Vector n Bool
         presentEffective = zipWith (\idx p -> if idx == 0 then gotPresent || p else p) genList (map readReg present)
 
---	allAheadTrue :: Vector n Bool -> Vector n Bool
---	allAheadTrue bs = let (_, result) = mapAccumR (\aat b -> (aat && b, aat && b)) True bs
+--        allAheadTrue :: Vector n Bool -> Vector n Bool
+--        allAheadTrue bs = let (_, result) = mapAccumR (\aat b -> (aat && b, aat && b)) True bs
 
 
 
@@ -140,8 +140,8 @@ mkGetCPut =
         presentNext = bubble.snd
         updates :: Action
         updates = bubble.fst
---	updates :: Vector n Bool -> (Vector n Bool, Vector n Action)
---	updates bs = let f idx (pag, aap, b) = case idx of
+--        updates :: Vector n Bool -> (Vector n Bool, Vector n Action)
+--        updates bs = let f idx (pag, aap, b) = case idx of
 --                                            0 -> if not aap then (False, noAction) else (pag, noAction)
 --                                            _ -> if not aap then (select presentAfterGet (idx-1), b := (select buff (idx-1))._read) else (pag, noAction)
 --                  in unzip $ zipWith f genList (zip3 presentAfterGet allAheadPresent buff)

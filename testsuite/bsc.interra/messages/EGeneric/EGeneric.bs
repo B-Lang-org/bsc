@@ -22,11 +22,11 @@ interface Null = {}
 mkTest :: Module Null
 mkTest =
     module
-	x :: Reg (Int 32)
-	x <- mkReg 0
+        x :: Reg (Int 32)
+        x <- mkReg 0
 
         rules
-	  "Assign x":
+          "Assign x":
             when True ==> action
                             x := 5
                             x := 6

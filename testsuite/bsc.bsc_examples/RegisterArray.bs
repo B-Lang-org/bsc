@@ -1,8 +1,8 @@
 package RegisterArray (
-		       mkRegisterArray,
-		       mkRegisterArrayFull,
-		       sysRegisterArray
-		       ) where
+                       mkRegisterArray,
+                       mkRegisterArrayFull,
+                       sysRegisterArray
+                       ) where
 import RegFile
 import List
 
@@ -16,7 +16,7 @@ enumerate low high =
     then Nil
     else if (low == high)
          then Cons low Nil
-	 else Cons low (enumerate (low + 1) high)
+         else Cons low (enumerate (low + 1) high)
 
 --
 -- data structure
@@ -34,8 +34,8 @@ mkBufferEntry :: (Bits v sv) => Maybe v -> i -> Module (BufferEntry i v)
 mkBufferEntry init_value x = do
     r :: Reg v
     r <- case init_value of
-	     Invalid -> mkRegU
-	     Valid val -> mkReg val
+             Invalid -> mkRegU
+             Valid val -> mkReg val
     return (BufferEntry { index = x; value = r })
 
 getReg :: (Eq i) => i -> List (BufferEntry i v) -> Maybe (Reg v)
@@ -50,15 +50,15 @@ mkRegisterArray :: (Bits v sv, Arith i, Ord i, Eq i) =>
                    i -> i -> Maybe v -> Module (RegFile i v)
 mkRegisterArray l h initial_value =
     module
-	ps :: List (BufferEntry i v)
+        ps :: List (BufferEntry i v)
         ps <- mapM (mkBufferEntry initial_value) (enumerate l h)
         interface
-	    sub index   = case getReg index ps of
-			      Valid r  -> r._read
-			      Invalid -> _
-	    upd index value = case getReg index ps of
-			          Valid r  -> r := value
-			          Invalid -> action { }
+            sub index   = case getReg index ps of
+                              Valid r  -> r._read
+                              Invalid -> _
+            upd index value = case getReg index ps of
+                                  Valid r  -> r := value
+                                  Invalid -> action { }
 
 --
 -- module for making a register array that spans the entire range of indices

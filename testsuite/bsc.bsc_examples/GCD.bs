@@ -5,14 +5,14 @@ type GCDInt = UInt 51
 sysGCD :: Module Empty
 sysGCD =
     module
-	gcd :: ArithIO GCDInt
-	gcd <- mkGCD
-	started :: Reg Bool
-	started <- mkReg False
+        gcd :: ArithIO GCDInt
+        gcd <- mkGCD
+        started :: Reg Bool
+        started <- mkReg False
         rules
           "init":
-	    when not started
-	     ==> action { gcd.input 105198692842362 445628814024366; started := True }	-- the answer is, of course, 42
+            when not started
+             ==> action { gcd.input 105198692842362 445628814024366; started := True }  -- the answer is, of course, 42
 
 interface ArithIO a =
     input :: a -> a -> Action
@@ -22,35 +22,35 @@ mkGCD :: Module (ArithIO GCDInt)
 mkGCD =
     module
         x :: Reg GCDInt
-	x <- mkRegU
+        x <- mkRegU
 
-	y :: Reg GCDInt
-	y <- mkRegU
+        y :: Reg GCDInt
+        y <- mkRegU
 
-	done :: Reg Bool
-	done <- mkReg True
+        done :: Reg Bool
+        done <- mkReg True
 
         rules
           "flip":
-	    when not done, x > y, y /= 0
-	      ==> action {
-		    x := y;
-	            y := x; }
+            when not done, x > y, y /= 0
+              ==> action {
+                    x := y;
+                    y := x; }
 
           "stop":
-	    when not done, y == 0
-	      ==> action { done := True; }
+            when not done, y == 0
+              ==> action { done := True; }
 
           "sub":
-	    when not done, x <= y, y /= 0
-	      ==> action { y := y - x; }
+            when not done, x <= y, y /= 0
+              ==> action { y := y - x; }
 
         interface
-	    input a b = action {
-			    done := False;
-	                  	x := a;
-	                  	y := b; }
-	       when done
-	    output = if done
-		     then Valid x
-		     else Invalid
+            input a b = action {
+                            done := False;
+                                  x := a;
+                                  y := b; }
+               when done
+            output = if done
+                     then Valid x
+                     else Invalid

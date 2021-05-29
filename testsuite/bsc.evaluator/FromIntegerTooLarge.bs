@@ -3,8 +3,8 @@ package FromIntegerTooLarge ( ) where
 sysFromIntegerTooLarge :: Module Empty
 sysFromIntegerTooLarge =
     module
-	reg :: Reg (Bit 1)
-	reg <- mkReg 3
-	rules
-	    when True
-	     ==> { reg := 3 }
+        reg :: Reg (Bit 1)
+        reg <- mkReg 3
+        rules
+            when True
+             ==> { reg := 3 }

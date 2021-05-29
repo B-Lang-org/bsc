@@ -47,9 +47,9 @@ mcp2_buffer init src =
 
       interface
         pull = do x :: a
-		  x <- src.pull
-		  action {r_mcp2 := x; mcp_en_src := False }
-	          return r_mcp2
+                  x <- src.pull
+                  action {r_mcp2 := x; mcp_en_src := False }
+                  return r_mcp2
                when mcp_en_src
 
 mcp2_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
@@ -73,10 +73,10 @@ mcp3_buffer init src =
 
       interface
         pull = do x :: a
-		  x <- src.pull
-		  action {r_mcp3 := x; counter := 2} -- counter must be set to
+                  x <- src.pull
+                  action {r_mcp3 := x; counter := 2} -- counter must be set to
                                                      -- (length of path) - 1
-	          return r_mcp3
+                  return r_mcp3
                when mcp_en_src
 
 mcp3_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
@@ -99,10 +99,10 @@ mcp4_buffer init src =
 
       interface
         pull = do x :: a
-		  x <- src.pull
-		  action {r_mcp4 := x; counter := 3} -- counter must be set to
+                  x <- src.pull
+                  action {r_mcp4 := x; counter := 3} -- counter must be set to
                                                      -- (length of path) - 1
-	          return r_mcp4
+                  return r_mcp4
                when mcp_en_src
 
 mcp4_buffered :: (IsModule m c, Bits b sb) => (a -> b) -> Pull a -> m (Pull b)
@@ -111,7 +111,7 @@ mcp4_buffered f = mcp4_buffer _ · apply f -- · buffer
 -- ====================
 
 mcp2_unit :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (Reg b)
-mcp2_unit f src changed =		       -- src and changed are run-time values
+mcp2_unit f src changed =                       -- src and changed are run-time values
   module
       r_mcp2 :: Reg b <- mkMcpRegU delay2
       mcp_en_src :: Reg Bool <- mkReg False
@@ -127,34 +127,34 @@ mcp2_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed  ==>
-		action
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed  ==>
+                action
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
               when True  ==>  mcp_en_src := True
-	)
+        )
 
       interface
         _read    = r_mcp2 when valid
-	_write _ = _
+        _write _ = _
 
 -- -------------
 
 mcp3_unit :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (Reg b)
-mcp3_unit f src changed =		       -- src and changed are run-time values
+mcp3_unit f src changed =                       -- src and changed are run-time values
   module
       r_mcp3 :: Reg b <- mkMcpRegU delay3
       counter :: Reg (Bit 1) <- mkReg 0
@@ -171,21 +171,21 @@ mcp3_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed ==>
-		action
-		  counter := 1		-- cycle-multiplicity minus two
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed ==>
+                action
+                  counter := 1                -- cycle-multiplicity minus two
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
@@ -196,12 +196,12 @@ mcp3_unit f src changed =		       -- src and changed are run-time values
         )
       interface
         _read    = r_mcp3 when valid
-	_write _ = _
+        _write _ = _
 
 -- -------------
 
 mcp4_unit :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (Reg b)
-mcp4_unit f src changed =		       -- src and changed are run-time values
+mcp4_unit f src changed =                       -- src and changed are run-time values
   module
       r_mcp4 :: Reg b <- mkMcpRegU delay4
       counter :: Reg (Bit 2) <- mkReg 0
@@ -218,21 +218,21 @@ mcp4_unit f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed ==>
-		action
-		  counter := 2		-- cycle-multiplicity minus two
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed ==>
+                action
+                  counter := 2                -- cycle-multiplicity minus two
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
@@ -243,14 +243,14 @@ mcp4_unit f src changed =		       -- src and changed are run-time values
         )
       interface
         _read    = r_mcp4 when valid
-	_write _ = _
+        _write _ = _
 
 
 -- ====================
 
 
 mcp2_unitF :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (IMcpUnitF b)
-mcp2_unitF f src changed =		       -- src and changed are run-time values
+mcp2_unitF f src changed =                       -- src and changed are run-time values
   module
       r_mcp2 :: Reg b <- mkMcpRegU delay2
       mcp_en_src :: Reg Bool <- mkReg False
@@ -266,34 +266,34 @@ mcp2_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed  ==>
-		action
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed  ==>
+                action
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
               when True  ==>  mcp_en_src := True
-	)
+        )
 
       interface
         result = r_mcp2
-	isValid = valid
+        isValid = valid
 
 -- -------------
 
 mcp3_unitF :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (IMcpUnitF b)
-mcp3_unitF f src changed =		       -- src and changed are run-time values
+mcp3_unitF f src changed =                       -- src and changed are run-time values
   module
       r_mcp3 :: Reg b <- mkMcpRegU delay3
       counter :: Reg (Bit 1) <- mkReg 0
@@ -310,21 +310,21 @@ mcp3_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed ==>
-		action
-		  counter := 1		-- cycle-multiplicity minus two
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed ==>
+                action
+                  counter := 1                -- cycle-multiplicity minus two
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
@@ -335,12 +335,12 @@ mcp3_unitF f src changed =		       -- src and changed are run-time values
         )
       interface
         result = r_mcp3
-	isValid = valid
+        isValid = valid
 
 -- -------------
 
 mcp4_unitF :: (IsModule m c, Bits a sa, Bits b sb) => (a -> b) -> a -> Bool -> m (IMcpUnitF b)
-mcp4_unitF f src changed =		       -- src and changed are run-time values
+mcp4_unitF f src changed =                       -- src and changed are run-time values
   module
       r_mcp4 :: Reg b <- mkMcpRegU delay4
       counter :: Reg (Bit 2) <- mkReg 0
@@ -357,21 +357,21 @@ mcp4_unitF f src changed =		       -- src and changed are run-time values
         {-# ASSERT fire when enabled #-}
         "Mcp set valid":
               when (mcp_en_src && not changed)  ==>
-	        action
-		  valid := True
-		  mcp_en_src := False
+                action
+                  valid := True
+                  mcp_en_src := False
 
       addRules $
         (rules
            {-# ASSERT no implicit conditions #-}
            {-# ASSERT fire when enabled #-}
            "Mcp changed":
-	      when changed ==>
-		action
-		  counter := 2		-- cycle-multiplicity minus two
-		  mcp_en_src := False
-	          valid := False
-	)
+              when changed ==>
+                action
+                  counter := 2                -- cycle-multiplicity minus two
+                  mcp_en_src := False
+                  valid := False
+        )
         <+
         (rules
            "Mcp toggle":  -- only when not changed (by <+)
@@ -382,7 +382,7 @@ mcp4_unitF f src changed =		       -- src and changed are run-time values
         )
       interface
         result = r_mcp4
-	isValid = valid
+        isValid = valid
 
 
 -- ========================================
@@ -392,8 +392,8 @@ mkMcpRegU d = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -405,8 +405,8 @@ mkMcpRegU d = liftModule $
       primSavePortType name "val" t
 
       interface
-	_read = unpack _r.get
-	_write x = fromPrimAction (_r.set (pack x))
+        _read = unpack _r.get
+        _write x = fromPrimAction (_r.set (pack x))
 
 interface VReg n =
     set :: Bit n -> PrimAction
@@ -415,7 +415,7 @@ interface VReg n =
 vMkMcpRegU :: Integer -> Module (VReg n)
 vMkMcpRegU d =
     module verilog "McpRegUN" (("width",valueOf n),("delay",d)) "CLK" "RST" {
-	get = "get"{reg};
-	set = "val"{reg} "SET";
+        get = "get"{reg};
+        set = "val"{reg} "SET";
     } [ get <> [get, set], set << set ]
 

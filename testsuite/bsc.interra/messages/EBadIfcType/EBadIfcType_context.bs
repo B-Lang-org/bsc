@@ -27,13 +27,13 @@ mkFib =
         y :: Reg a
         y <- mkReg 1
 
-	z :: Reg Bool
-	z <- mkReg True
+        z :: Reg Bool
+        z <- mkReg True
         interface
-	    _write _ = action { x := 1; y := 1; z := True }
-	    _read = (func z x y)._read
+            _write _ = action { x := 1; y := 1; z := True }
+            _read = (func z x y)._read
         rules
-	    when True
-	      ==> action
-		     (func z x y) := x + y;
-	             z := not z;
+            when True
+              ==> action
+                     (func z x y) := x + y;
+                     z := not z;

@@ -63,23 +63,23 @@ mkPipe =
     rules
       when not inp.full
        ==> action
-		inp.enq i
-		i := i + 1
+                inp.enq i
+                i := i + 1
 
       when not inp.empty && not out.full
        ==> (action {
-	  out.enq oval;
-	  inp.deq;
-	  })
-	  where ival :: Data
-	        ival = inp.first
-	        oval :: Data
-	        oval = ival + ival
+          out.enq oval;
+          inp.deq;
+          })
+          where ival :: Data
+                ival = inp.first
+                oval :: Data
+                oval = ival + ival
 
       when not out.empty
        ==> (action {
-	  out.deq;
-	  acc := acc + val;
-	  })
-	  where val :: Data
-	        val = out.first
+          out.deq;
+          acc := acc + val;
+          })
+          where val :: Data
+                val = out.first

@@ -104,9 +104,9 @@ fromOInt o = select (map fromInteger genList) o
 select :: (Bits a sa) => Vector n a -> OInt n -> a
 select xs (O bs) =
     let f x b =
-	    let vb :: Vector sa Bool
-		vb = unpack (pack x)
-	    in  map ((&&) b) vb
+            let vb :: Vector sa Bool
+                vb = unpack (pack x)
+            in  map ((&&) b) vb
     in  unpack (pack (map or (transpose (zipWith f xs bs))))
 
 or :: Vector n Bool -> Bool

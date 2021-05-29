@@ -8,7 +8,7 @@ normalize_and_truncate din =
                sfdout' =  0
            in  sfdout'
     in  let sfdout :: Bit x         -- remove this line and it compiles
-	    sfdout =  theResult'
+            sfdout =  theResult'
         in  sfdout
   else
     let theResult' =

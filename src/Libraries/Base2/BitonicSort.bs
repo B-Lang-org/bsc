@@ -86,27 +86,27 @@ mkSort :: Module Sort
 mkSort =
     module
       interface
-	sort = Vector.take · sortLe (<=)
+        sort = Vector.take · sortLe (<=)
 
 
 {-# verilog testSort #-}
 testSort :: Module Empty
 testSort =
     module
-	s :: Sort <- mkSort
-	p :: FilePut (Vector N Data) <- mkFileHexPut "-"
-	g :: FileGet (Vector M Data) <- mkFileHexGet "-"
-	eof :: Reg Bool <- mkReg False
-	rules
+        s :: Sort <- mkSort
+        p :: FilePut (Vector N Data) <- mkFileHexPut "-"
+        g :: FileGet (Vector M Data) <- mkFileHexGet "-"
+        eof :: Reg Bool <- mkReg False
+        rules
          when not eof
-	  ==> action
-		mi :: Maybe (Vector M Data)
-		mi <- g.get
-		case mi of
-		 Just x -> p.put (s.sort x)
-		 Nothing -> eof := True
-	interface
-	 { }
+          ==> action
+                mi :: Maybe (Vector M Data)
+                mi <- g.get
+                case mi of
+                 Just x -> p.put (s.sort x)
+                 Nothing -> eof := True
+        interface
+         { }
 
 -- Sample input data, should all give 0x0807060504030201
 -- 0x0102030405060708

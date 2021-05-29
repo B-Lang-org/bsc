@@ -19,10 +19,10 @@ sysResourceOneRuleOK :: Module Empty
 sysResourceOneRuleOK =
       module
         r :: Reg Value
-	r <- mkReg _
-	a :: RegFile Index Value
-	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        r <- mkReg _
+        a :: RegFile Index Value
+        a <- mkRegFile (fromInteger lo) (fromInteger hi)
         rules
             "Good":
-	      when True
-	       ==> r := (foldr (+) 0 $ map a.sub $ map fromInteger $ upto lo hi)
+              when True
+               ==> r := (foldr (+) 0 $ map a.sub $ map fromInteger $ upto lo hi)

@@ -1,6 +1,6 @@
 package LBusX (
   LbAddr, mkLbLeaf
-	     ) where
+             ) where
 
 type LBSModule sa sd = Module (LBSItem sa sd)
 

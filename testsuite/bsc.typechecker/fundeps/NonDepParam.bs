@@ -15,11 +15,11 @@ instance Foo Bool Bool (Bit 2) where
 mkTest :: Module Empty
 mkTest =
     module
-	x :: Reg Bool <- mkRegU
-	y :: Reg Bool <- mkRegU
-	z :: Reg (Bit 2) <- mkRegU
+        x :: Reg Bool <- mkRegU
+        y :: Reg Bool <- mkRegU
+        z :: Reg (Bit 2) <- mkRegU
 
-	rules
-	    when True
-	      ==> z := (m x y).snd
+        rules
+            when True
+              ==> z := (m x y).snd
 

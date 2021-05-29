@@ -52,14 +52,14 @@ nextHop x = x[11:4]
 cwloc :: Address -> Entry -> Address
 cwloc addr entry =
     let
-	  pointer :: Bit 32
-	  pointer = zeroExtend (pntr entry)
-	  q :: Bit 16
-	  q = selectBits16 (offset entry) (bl addr)
-	  s :: Bit 32
-	  s =  0::(Bit 20) ++ q[15:4]  -- q DIV 16
+          pointer :: Bit 32
+          pointer = zeroExtend (pntr entry)
+          q :: Bit 16
+          q = selectBits16 (offset entry) (bl addr)
+          s :: Bit 32
+          s =  0::(Bit 20) ++ q[15:4]  -- q DIV 16
     in
-	  pointer + s
+          pointer + s
 
 countBits16 :: Bit 16 -> Nat
 countBits16 bs = countBits 0 16 bs
@@ -68,10 +68,10 @@ countBits16 bs = countBits 0 16 bs
 countBits :: Integer -> Integer -> Bit n -> Nat
 countBits l h bs =
     if h == l+1 then
-	zeroExtend bs[fromInteger l : fromInteger l]
+        zeroExtend bs[fromInteger l : fromInteger l]
     else
-	let m = (h+l) `div` 2
-	in  (countBits l m bs) + (countBits m h bs)
+        let m = (h+l) `div` 2
+        in  (countBits l m bs) + (countBits m h bs)
 
 -- compute the value of q given the second half of the IP address
 -- and the offset length.
@@ -81,40 +81,40 @@ selectBits16 n bs = selectBits 0 15 n bs
 selectBits :: Integer -> Integer -> Bit n -> Bit m -> Bit m
 selectBits l h n bs =
     if l <= h then
-	if n == fromInteger (h-l) then
-	    bs[fromInteger h : fromInteger l]
-	else
-	    selectBits (l+1) h n bs
+        if n == fromInteger (h-l) then
+            bs[fromInteger h : fromInteger l]
+        else
+            selectBits (l+1) h n bs
     else
-	0
+        0
 
 -- compute the index for the next request from the first and second lookup
 compCNHAIndex :: Address -> Entry -> Entry -> Bit 32
 compCNHAIndex addr e1 e2 =
     let
-	  q :: Bit 16
-	  q = selectBits16 (offset e1) (bl addr)
-	  w :: Bit 4
-	  w = q[3:0]  -- q MOD 16
-	  wbars :: Bit 32
-	  wbars = countBits16 (selectBits16 w (bh e2))
-	  t :: Bit 32
-	  t = (zeroExtend (bl e2)) + wbars - 1
+          q :: Bit 16
+          q = selectBits16 (offset e1) (bl addr)
+          w :: Bit 4
+          w = q[3:0]  -- q MOD 16
+          wbars :: Bit 32
+          wbars = countBits16 (selectBits16 w (bh e2))
+          t :: Bit 32
+          t = (zeroExtend (bl e2)) + wbars - 1
     in
-	  t
+          t
 
 -- compute the actual next request
 compCNHALoc :: Address -> Entry -> Bit 32 -> Address
 compCNHALoc addr e1 index =
     let
-	  pointer :: Bit 32
-	  pointer = zeroExtend (pntr e1)
-	  -- actually, it's the length - 1
-	  offsetlen :: Nat
-	  offsetlen = zeroExtend (offset e1)
+          pointer :: Bit 32
+          pointer = zeroExtend (pntr e1)
+          -- actually, it's the length - 1
+          offsetlen :: Nat
+          offsetlen = zeroExtend (offset e1)
     in
-	  -- the paper says to use 2^(offsetlen-3)*4  -- why times 4?
-	  pointer + (1 << (offsetlen - 3)) + (index >> 2)
+          -- the paper says to use 2^(offsetlen-3)*4  -- why times 4?
+          pointer + (1 << (offsetlen - 3)) + (index >> 2)
           --  = pntr + (2^(offsetlen-3) + (index DIV 4)
 
 -- pick out one of the four 8 bit entries from a 32 bit value
@@ -171,14 +171,14 @@ mkLookup =
 -----------
 
 mkLookupRules :: FIFOF Address -> FIFOF (Bit 8) -> FIFOF Address ->
-		 FIFOF Entry -> Reg Step -> Reg Entry -> Reg (Bit 2) -> Rules
+                 FIFOF Entry -> Reg Step -> Reg Entry -> Reg (Bit 2) -> Rules
 mkLookupRules dar drr sri sro state entry1 index =
   rules
     -- When we get a request, start the lookup process
     when state == Start, dar.notEmpty, sri.notFull
       ==> action
-		sri.enq (zeroExtend (bh dar.first))
-            	state := Step1
+                sri.enq (zeroExtend (bh dar.first))
+                state := Step1
 
     -- the result of a lookup is a 28 bit pointer/next hop and 4 bits
     -- for the offset length - 1.
@@ -187,10 +187,10 @@ mkLookupRules dar drr sri sro state entry1 index =
     when state == Step1, pntr sro.first <= 255,
          dar.notEmpty, drr.notFull, sro.notEmpty
       ==> action
-		drr.enq (zeroExtend (nextHop sro.first))
-	        dar.deq
-	    	sro.deq
-	    	state := Start
+                drr.enq (zeroExtend (nextHop sro.first))
+                dar.deq
+                sro.deq
+                state := Start
 
     -- if the pointer/next hop field of the first lookup is > 255,
     -- then it is a pointer to where to find the next hop, so store
@@ -204,19 +204,19 @@ mkLookupRules dar drr sri sro state entry1 index =
     when state == Step1, pntr sro.first > 255,
          dar.notEmpty, sri.notFull, sro.notEmpty
       ==> action
-		entry1 := sro.first
-            	sro.deq
-            	sri.enq (cwloc dar.first sro.first)
-            	state := Step2
+                entry1 := sro.first
+                sro.deq
+                sri.enq (cwloc dar.first sro.first)
+                state := Step2
 
     -- if the offset of the first lookup is < 3, then the second lookup
     -- returns the answer (the next hop).
     when state == Step2, sro.notEmpty, offset entry1 < 3,
           dar.notEmpty, drr.notFull
       ==> action
-		drr.enq sro.first[7:0]
-            	sro.deq
-	    	state := Start
+                drr.enq sro.first[7:0]
+                sro.deq
+                state := Start
 
     -- if the offset of the first lookup is 3 or greater, then:
     -- the result of the second lookup is a 32 bit codeword consisting of
@@ -227,21 +227,21 @@ mkLookupRules dar drr sri sro state entry1 index =
     -- which follows the codeword array, and where t = base + |w| - 1.
     -- so make one last request to the SRAM.
     when state == Step2, sro.notEmpty, offset entry1 >= 3,
-	 dar.notEmpty, sri.notFull
+         dar.notEmpty, sri.notFull
       ==> let
-	      t :: Bit 32
-	      t = compCNHAIndex dar.first entry1 sro.first
-	  in  action
-	      	sri.enq (compCNHALoc dar.first entry1 t)
-	        sro.deq
-	        dar.deq  -- do this here or in Step3 ?
-	        index := t[1:0]  -- index = t MOD 4
-	        state := Step3
+              t :: Bit 32
+              t = compCNHAIndex dar.first entry1 sro.first
+          in  action
+                sri.enq (compCNHALoc dar.first entry1 t)
+                sro.deq
+                dar.deq  -- do this here or in Step3 ?
+                index := t[1:0]  -- index = t MOD 4
+                state := Step3
 
     -- when the final result comes from the SRAM, it's the answer,
     -- so return it.
     when state == Step3, sro.notEmpty, drr.notFull
       ==> action
-		drr.enq (selectEntry index sro.first)
-            	sro.deq
-            	state := Start
+                drr.enq (selectEntry index sro.first)
+                sro.deq
+                state := Start

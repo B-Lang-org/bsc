@@ -19,8 +19,8 @@ mkFoo =
   module
     let x :: Vector 2 Bool
         x = map (const True) genList
-	y :: a -> Bool
-	y v = sel x v
+        y :: a -> Bool
+        y v = sel x v
     interface
       res = y
 

@@ -17,10 +17,10 @@ import TRAM
 --@ module mkWrapSTRAM#(Module#(SyncSRAMS#(lat, adrs, dtas)) mkRam)
 --@                                             (TRAM#(tg, adr, dta))
 --@   provisos (Bits#(adr, adrs),
---@ 	    Bits#(dta, dtas),
---@ 	    Bits#(tg, tgs),
---@ 	    Add#(1, lat, lat1),
---@ 	    Log#(lat1, llat));
+--@             Bits#(dta, dtas),
+--@             Bits#(tg, tgs),
+--@             Add#(1, lat, lat1),
+--@             Log#(lat1, llat));
 --@ \end{libverbatim}
 mkWrapSTRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Bits tg tgs, Add 1 lat lat1, Log lat1 llat) =>
                m (SyncSRAMS lat adrs dtas) -> m (TRAM tg adr dta)
@@ -34,10 +34,10 @@ mkWrapSTRAM mkRam = do
 --@ \begin{libverbatim}
 --@ module wrapSTRAM(Tuple2 #(SyncSRAMC#(lat, adrs, dtas), TRAM#(tg, adr, dta)))
 --@   provisos (Bits#(adr, adrs),
---@ 	    Bits#(dta, dtas),
---@ 	    Bits#(tg, tgs),
---@ 	    Add#(1, lat, lat1),
---@ 	    Log#(lat1, llat));
+--@             Bits#(dta, dtas),
+--@             Bits#(tg, tgs),
+--@             Add#(1, lat, lat1),
+--@             Log#(lat1, llat));
 --@ \end{libverbatim}
 wrapSTRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Bits tg tgs, Add 1 lat lat1, Log lat1 llat) =>
              m (SyncSRAMC lat adrs dtas, TRAM tg adr dta)
@@ -48,19 +48,19 @@ wrapSTRAM =
     let ram = cs.snd
     interface -- Pair
        (cs.fst,
-	interface Server
-	    request =
-	     interface Put
-	       put (TRAM.Read (tag, address)) =
+        interface Server
+            request =
+             interface Put
+               put (TRAM.Read (tag, address)) =
                 action
-		 fifo.enq tag
-		 ram.request.put (RAM.Read address)
-	       put (TRAM.Write (address, value)) =
-	               ram.request.put (RAM.Write (address, value))
-	    response =
-	     interface Get
-	      get = do
-		d :: dta <- ram.response.get
-		fifo.deq
-		return (fifo.first,d)
+                 fifo.enq tag
+                 ram.request.put (RAM.Read address)
+               put (TRAM.Write (address, value)) =
+                       ram.request.put (RAM.Write (address, value))
+            response =
+             interface Get
+              get = do
+                d :: dta <- ram.response.get
+                fifo.deq
+                return (fifo.first,d)
        )

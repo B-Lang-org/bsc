@@ -35,8 +35,8 @@ mkConfigReg v = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -49,8 +49,8 @@ mkConfigReg v = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 --@ Make a register without any reset; initial simulation value is alternating 01 bits.
 --@ \begin{libverbatim}
@@ -62,8 +62,8 @@ mkConfigRegU = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -76,8 +76,8 @@ mkConfigRegU = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 --@ Make a register with a given reset value.  Reset logic is asynchronous.
 --@ \begin{libverbatim}
@@ -89,8 +89,8 @@ mkConfigRegA initValue = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -103,8 +103,8 @@ mkConfigRegA initValue = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 -- internal interfaces
 interface VReg n =
@@ -117,8 +117,8 @@ vMkConfigReg :: Bit width -> Module (VReg width)
 vMkConfigReg initval =
     module verilog "ConfigRegN"
                    (("width",valueOf width), ("init",initval)) "CLK" "RST" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> [read, write], write << write ]
 
 -- only for n>0
@@ -126,8 +126,8 @@ vMkConfigRegU :: Module (VReg width)
 vMkConfigRegU =
     module verilog "ConfigRegUN"
                    (("width",valueOf width)) "CLK" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> [read, write], write << write ]
 
 -- only for n>0
@@ -135,7 +135,7 @@ vMkConfigRegA :: Bit width -> Module (VReg width)
 vMkConfigRegA initval =
     module verilog "ConfigRegA"
                    (("width",valueOf width), ("init",initval)) "CLK" "RST" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> [read, write], write << write ]
 

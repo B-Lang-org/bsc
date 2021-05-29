@@ -1,6 +1,6 @@
 package BGetPut(mkBGetPut, mkGetBPut, BGetS, BPutS, BGet, BPut, BGetPut, GetBPut,
          BClient, BServer, BClientS(..), BServerS(..),
-	 BClientServer, ClientBServer, mkBClientServer, mkClientBServer) where
+         BClientServer, ClientBServer, mkBClientServer, mkClientBServer) where
 
 --import RegCF
 import ConfigReg
@@ -81,28 +81,28 @@ mkBGetPut =
     dstStateP :: Reg Bool <- mkConfigReg False
 
     addRules $
-	rules
-	  {-# ASSERT no implicit conditions #-}
-	  {-# ASSERT fire when enabled #-}
-	  "BGetPut":
-	    when srcData
-	     ==> action
-		    srcData := (dstStateP == dstState)
+        rules
+          {-# ASSERT no implicit conditions #-}
+          {-# ASSERT fire when enabled #-}
+          "BGetPut":
+            when srcData
+             ==> action
+                    srcData := (dstStateP == dstState)
     return $
-	(interface BGetS
-	    gvalue = latch
-	    gpresent = srcState
-	    gcredit b =
+        (interface BGetS
+            gvalue = latch
+            gpresent = srcState
+            gcredit b =
               action
-	        dstState := b
-	        dstStateP := dstState
-	,interface Put
-	    put x = action
-			latch := pack x
-			srcState := not srcState
-			srcData := True
-		when not srcData
-	)
+                dstState := b
+                dstStateP := dstState
+        ,interface Put
+            put x = action
+                        latch := pack x
+                        srcState := not srcState
+                        srcData := True
+                when not srcData
+        )
 
 --@ Create the other end of the buffer.  Access to it is via a \te{Get} interface.
 --@ \index{mkGetBPut@\te{mkGetBPut} (function)|textbf}
@@ -125,30 +125,30 @@ mkGetBPut =
     doneSrcState :: Reg Bool <- mkConfigReg False
 
     addRules $
-	rules
-	  {-# ASSERT no implicit conditions #-}
-	  {-# ASSERT fire when enabled #-}
-	  "GetBPut":
-	    when doneSrcState /= srcStateP && not dstData
-	     ==> action
-	            latch := value
-	            dstData := True
-	            dstState := not dstState
+        rules
+          {-# ASSERT no implicit conditions #-}
+          {-# ASSERT fire when enabled #-}
+          "GetBPut":
+            when doneSrcState /= srcStateP && not dstData
+             ==> action
+                    latch := value
+                    dstData := True
+                    dstState := not dstState
     return $
-	(interface Get
-	    get = do
-		    dstData := False
-		    doneSrcState := not doneSrcState
-		    return (unpack latch)
-		when dstData
-	,interface BPutS
-	    pvalue v = value := v
-	    ppresent p =
-	      action
-		srcState := p
-	        srcStateP := srcState
-	    pcredit = dstState
-	)
+        (interface Get
+            get = do
+                    dstData := False
+                    doneSrcState := not doneSrcState
+                    return (unpack latch)
+                when dstData
+        ,interface BPutS
+            pvalue v = value := v
+            ppresent p =
+              action
+                srcState := p
+                srcStateP := srcState
+            pcredit = dstState
+        )
 
 --@ The \te{BGet} and \te{BPut} interface are connectable.
 --@ \begin{libverbatim}
@@ -158,16 +158,16 @@ instance Connectable (BGetS sa) (BPutS sa)
    where
     mkConnection :: (IsModule m c) => BGetS sa -> BPutS sa -> m Empty
     mkConnection g p =
-	addRules $
-	 rules
+        addRules $
+         rules
           {-# ASSERT no implicit conditions #-}
-	  {-# ASSERT fire when enabled #-}
-	  "moveBGetPut":
-	    when True
-	     ==> action
-		    p.pvalue g.gvalue
-		    p.ppresent g.gpresent
-		    g.gcredit p.pcredit
+          {-# ASSERT fire when enabled #-}
+          "moveBGetPut":
+            when True
+             ==> action
+                    p.pvalue g.gvalue
+                    p.ppresent g.gpresent
+                    g.gcredit p.pcredit
 
 --@ \lineup
 --@ \begin{libverbatim}
@@ -221,18 +221,18 @@ instance Connectable (BClientS a b) (BServerS a b)
     mkConnection :: (IsModule m c) => BClientS a b -> BServerS a b -> m Empty
     mkConnection c s =
        module
-	  rules
-	    "BClientServerRequest":when True
-	     ==> action
-		    s.request.pvalue c.request.gvalue
-		    s.request.ppresent c.request.gpresent
-		    c.request.gcredit s.request.pcredit
+          rules
+            "BClientServerRequest":when True
+             ==> action
+                    s.request.pvalue c.request.gvalue
+                    s.request.ppresent c.request.gpresent
+                    c.request.gcredit s.request.pcredit
 
-	    "BClientServerResponse":when True
-	     ==> action
-		    c.response.pvalue s.response.gvalue
-		    c.response.ppresent s.response.gpresent
-		    s.response.gcredit c.response.pcredit
+            "BClientServerResponse":when True
+             ==> action
+                    c.response.pvalue s.response.gvalue
+                    c.response.ppresent s.response.gpresent
+                    s.response.gcredit c.response.pcredit
 
 instance Connectable (BServerS a b) (BClientS a b)
    where
@@ -244,7 +244,7 @@ instance Connectable (BServerS a b) (BClientS a b)
 --@   provisos (Bits#(a, sa), Bits#(b, sb));
 --@ \end{libverbatim}
 mkClientBServer :: (IsModule m c, Bits a sa, Bits b sb) =>
-		   m (Client a b, BServerS sa sb)
+                   m (Client a b, BServerS sa sb)
 mkClientBServer =
   module
     (g, cp) <- mkGetBPut
@@ -265,7 +265,7 @@ mkClientBServer =
 --@ \end{libverbatim}
 --@ \index{mkBClientServer@\te{mkBClientServer} (function)|textbf}
 mkBClientServer :: (IsModule m c, Bits a sa, Bits b sb) =>
-		   m (BClientS sa sb, Server a b)
+                   m (BClientS sa sb, Server a b)
 mkBClientServer =
   module
     (g, cp) <- mkGetBPut

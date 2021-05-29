@@ -3,15 +3,15 @@
 -- #############################################################################
 
 package ZBusUtil(ZBit,
-		     mkZBit,
-		     zBitGetWord,
-		     ConvertToZ(..),
-		     mkConvertToZ,
-		     ConvertFromZ(..),
-		     mkConvertFromZ,
-		     ResolveZ(..),
-		     mkResolveZ
-		     ) where
+                 mkZBit,
+                 zBitGetWord,
+                 ConvertToZ(..),
+                 mkConvertToZ,
+                 ConvertFromZ(..),
+                 mkConvertFromZ,
+                 ResolveZ(..),
+                 mkResolveZ
+                 ) where
 
 -- #############################################################################
 -- #
@@ -26,8 +26,8 @@ import Environment
 
 
 struct ZBit t = {
-		 word :: t;
-		} deriving (Eq, Bits);
+                 word :: t;
+                } deriving (Eq, Bits);
 
 -- #############################################################################
 -- #
@@ -35,8 +35,8 @@ struct ZBit t = {
 
 mkZBit :: t -> ZBit t
 mkZBit w = ZBit {
-		 word = w;
-		}
+                 word = w;
+                }
 
 -- #############################################################################
 -- #
@@ -58,22 +58,22 @@ interface VConvertToZ si sz =
 vMkConvertToZ :: Module (VConvertToZ i j)
 vMkConvertToZ =
     module verilog "ConvertToZ" (("foo", (valueOf i))) "CLK" {
-	convert = "IN" "ENABLE" "OUT";
+        convert = "IN" "ENABLE" "OUT";
     } [ convert <> convert ]
 
 mkConvertToZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) =>
-		m (ConvertToZ i)
+                m (ConvertToZ i)
 mkConvertToZ =
     if genC then liftModule $
        module
-	   interface
-	      convert word enable = bitToZBit word enable
+           interface
+              convert word enable = bitToZBit word enable
     else liftModule $
        module
-	   _a :: VConvertToZ si sz
-	   _a <- vMkConvertToZ
+           _a :: VConvertToZ si sz
+           _a <- vMkConvertToZ
            interface
-	      convert word enable = unpack (_a.convert (pack word) (pack enable))
+              convert word enable = unpack (_a.convert (pack word) (pack enable))
 
 
 -- #############################################################################
@@ -98,23 +98,23 @@ interface VConvertFromZ sz si1 =
 vMkConvertFromZ :: Module (VConvertFromZ i j)
 vMkConvertFromZ =
     module verilog "ConvertFromZ" (("foo", (valueOf j))) "CLK" {
-	convert = "IN" "OUT";
+        convert = "IN" "OUT";
     } [ convert <> convert ]
 
 mkConvertFromZ :: (IsModule m c, Eq i, Literal i,
-		   Bits (ZBit i) sz, Bits i si1) =>
-		  m (ConvertFromZ i)
+                   Bits (ZBit i) sz, Bits i si1) =>
+                  m (ConvertFromZ i)
 mkConvertFromZ =
     if genC then liftModule $
        module
-	   interface
-	      convert k = zBitToBit k
+           interface
+              convert k = zBitToBit k
     else liftModule $
        module
-	   _a :: VConvertFromZ sz si1
-	   _a <- vMkConvertFromZ
+           _a :: VConvertFromZ sz si1
+           _a <- vMkConvertFromZ
            interface
-	      convert k = unpack (_a.convert (pack k))
+              convert k = unpack (_a.convert (pack k))
 
 -- #############################################################################
 -- #
@@ -136,22 +136,22 @@ interface VResolveZ si =
 vMkResolveZ :: Module (VResolveZ i)
 vMkResolveZ =
     module verilog "ResolveZ" (("foo", (valueOf i))) "CLK" {
-	resolve = "IN_0" "IN_1" "OUT";
+        resolve = "IN_0" "IN_1" "OUT";
     } [ resolve <> resolve ]
 
 mkResolveZ :: (IsModule m c, Eq i, Literal i, Bits i si, Bits (ZBit i) sz) =>
-	      m (ResolveZ i)
+              m (ResolveZ i)
 mkResolveZ =
     if genC then liftModule $
        module
-	   interface
-	      resolve in_0 in_1 = resolveZ in_0 in_1
+           interface
+              resolve in_0 in_1 = resolveZ in_0 in_1
     else liftModule $
        module
-	   _a :: VResolveZ sz
-	   _a <- vMkResolveZ
+           _a :: VResolveZ sz
+           _a <- vMkResolveZ
            interface
-	      resolve in_0 in_1 = unpack (_a.resolve (pack in_0) (pack in_1))
+              resolve in_0 in_1 = unpack (_a.resolve (pack in_0) (pack in_1))
 
 -- #############################################################################
 -- #

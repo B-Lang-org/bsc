@@ -41,7 +41,7 @@ top =
             empty = (sizeoflist == 0)
 
 
-	interface
+        interface
            overflow = full
 
            underflow = empty

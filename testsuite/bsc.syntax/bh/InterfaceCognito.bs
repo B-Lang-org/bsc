@@ -10,4 +10,4 @@ interface Cognito =
 cognito :: Reg Bool -> Cognito
 cognito r = interface Cognito
               read = r
-	      write v = r := v
+              write v = r := v

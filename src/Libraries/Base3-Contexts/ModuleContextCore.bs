@@ -10,7 +10,7 @@ instance Monad (ModuleContext c) where
   return _i      = M (\_c -> return (_c,_i))
   bind (M _x) _f = M (\_c ->
                         (_x _c) `bind`
-		          (\ _node -> unM (_f _node.snd) _node.fst)
+                          (\ _node -> unM (_f _node.snd) _node.fst)
                    )
 
 getCompleteContext  :: ModuleContext c c

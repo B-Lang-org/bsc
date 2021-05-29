@@ -11,14 +11,14 @@ import TmpsIfcArgsConsumer
 sysTmpsIfcArgs :: Module Empty
 sysTmpsIfcArgs =
     module
-	producer :: TmpsIfcArgsProducer
-	producer <- mkTmpsIfcArgsProducer
+        producer :: TmpsIfcArgsProducer
+        producer <- mkTmpsIfcArgsProducer
 
-	wrapper :: Empty
-	wrapper <- mkWrapper producer
+        wrapper :: Empty
+        wrapper <- mkWrapper producer
 
 mkWrapper :: TmpsIfcArgsProducer -> Module Empty
 mkWrapper producer =
     module
-	consumer :: Empty
-	consumer <- mkTmpsIfcArgsConsumer producer
+        consumer :: Empty
+        consumer <- mkTmpsIfcArgsConsumer producer

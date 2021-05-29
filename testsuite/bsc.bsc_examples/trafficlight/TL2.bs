@@ -54,7 +54,7 @@ package TL2 (sysTL, TL) where {
         +>
 
         rules {
-  	"fromAllRed":
+          "fromAllRed":
             when (state == AllRed) && ((secs + 1) >= allRedDelay)
               ==> action { state := next_green; secs := 0; } ;
 

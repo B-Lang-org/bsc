@@ -29,10 +29,10 @@ enumFromTo lo hi = map unpack (enumB (pack lo) (pack hi))
 
 enumB :: Bit n -> Bit n -> List (Bit n)
 enumB lo hi =
-	if lo > hi then
-	    Nil
-	-- Have to test this explicitly since the addition may overflow.
-	else if lo == hi then
-	    Cons lo Nil
-	else
-	    Cons lo (enumB (lo+0x1) hi)
+        if lo > hi then
+            Nil
+        -- Have to test this explicitly since the addition may overflow.
+        else if lo == hi then
+            Cons lo Nil
+        else
+            Cons lo (enumB (lo+0x1) hi)

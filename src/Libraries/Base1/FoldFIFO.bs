@@ -1,7 +1,7 @@
 package FoldFIFO (
-		 FoldFIFO(..),
-		 mkFoldFIFO
-		 ) where
+                 FoldFIFO(..),
+                 mkFoldFIFO
+                 ) where
 
 -- foldable FIFO
 
@@ -22,10 +22,10 @@ mkFoldFIFO =
     f :: Reg Bool
     f <- mkReg False
     interface
-      enq x  = action { f := True; v := x }	when not f
-      deq    = action { f := False }		when f
-      first  = v				when f
+      enq x  = action { f := True; v := x }    when not f
+      deq    = action { f := False }           when f
+      first  = v                               when f
       clear  = action { f := False }
       foldr g z = if f
-		  then g v z
-		  else z
+                  then g v z
+                  else z

@@ -98,15 +98,15 @@ mkMyReg v = liftModule $
   if valueOf n == 0 then
     module
       interface
-	_read = myunpack 0
-	_write _ = return ()
+        _read = myunpack 0
+        _write _ = return ()
   else
     module
       _r :: Reg (Bit n)
       _r <- mkReg (mypack v)
       interface
-	_read = myunpack _r
-	_write x = _r._write (mypack x)
+        _read = myunpack _r
+        _write x = _r._write (mypack x)
 
 
 data Foo = A (UInt 8)

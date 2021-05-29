@@ -41,13 +41,13 @@ instance (Boolify ((a, b) -> c)) => Boolify (a -> b -> c)
 instance (Bounded a, Bits a sa, Bits b sb) => Boolify (a -> b)
   where
     boolify f x =
-	let bx = pack x
-	    genBit k = List.any (\ a -> genTerm (fromInteger k) a (f a)) enumAll
-	    genTerm k a b =
-		let ba = pack a
-		    bb = pack b
-		in  bb[k:k] == 1 && eqByBit bx ba
-	in  unpack (pack (map genBit genList))
+        let bx = pack x
+            genBit k = List.any (\ a -> genTerm (fromInteger k) a (f a)) enumAll
+            genTerm k a b =
+                let ba = pack a
+                    bb = pack b
+                in  bb[k:k] == 1 && eqByBit bx ba
+        in  unpack (pack (map genBit genList))
 
 eqByBit :: Bit n -> Bit n -> Bool
 eqByBit x bs =

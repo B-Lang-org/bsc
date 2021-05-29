@@ -38,7 +38,7 @@ vMkRegFile lo hi =
         upd[2] = "ADDR_IN" "D_IN" "WE";
         sub[5] = "ADDR" "D_OUT";
     } [ sub < upd,
-	upd <> upd ] -- needed to make write ports usable in same rule
+        upd <> upd ] -- needed to make write ports usable in same rule
 
 mkRegFile :: (IsModule m c, Bits i si, Bits a sa) => i -> i -> m (RegFile i a)
 mkRegFile l h = liftModule $

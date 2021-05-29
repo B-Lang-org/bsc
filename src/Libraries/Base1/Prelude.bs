@@ -1,34 +1,34 @@
 package Prelude(
-	{-Add(..), Max(..), Log(..),-}
-	Monad(..), MonadFix(..),
-	Bits(..), Eq(..),
-	Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
-	Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
-	PrimParam(..), PrimPort(..),
-	Bit, Rules, Module, Integer, Real, String, Char, SizeOf, Id__,
-	PrimAction, ActionValue, Action, ActionValue_, ActionWorld, AVStruct,
-	TAdd, TSub, TMul, TDiv, TLog, TExp, TMax, TMin,
-	Nat(..),
-	IsModule(..), addModuleRules, addRules,
+        {-Add(..), Max(..), Log(..),-}
+        Monad(..), MonadFix(..),
+        Bits(..), Eq(..),
+        Literal(..), RealLiteral(..), SizedLiteral(..), StringLiteral(..),
+        Ord(..), Bounded(..), Bitwise(..), BitReduction(..), FShow(..), DefaultValue(..),
+        PrimParam(..), PrimPort(..),
+        Bit, Rules, Module, Integer, Real, String, Char, SizeOf, Id__,
+        PrimAction, ActionValue, Action, ActionValue_, ActionWorld, AVStruct,
+        TAdd, TSub, TMul, TDiv, TLog, TExp, TMax, TMin,
+        Nat(..),
+        IsModule(..), addModuleRules, addRules,
 
-	__value,	-- XXX not good
+        __value,        -- XXX not good
 
-	(++), split, bitconcat,
+        (++), split, bitconcat,
         BitExtend(..),
         UInt, Int,
-	signedLT, signedLE, signedGT, signedGE,
-	signedShiftRight,
-	signedMul, signedQuot,
-	unsignedMul, unsignedQuot,
-	error, warning, message,
+        signedLT, signedLE, signedGT, signedGE,
+        signedShiftRight,
+        signedMul, signedQuot,
+        unsignedMul, unsignedQuot,
+        error, warning, message,
         errorM, warningM, messageM,
         primError, primWarning, primMessage,
         primGenerateError, primPoisonedDef,
-	moduleFix,
-	splitIf, nosplitIf, nosplitDeepIf, splitDeepIf,
+        moduleFix,
+        splitIf, nosplitIf, nosplitDeepIf, splitDeepIf,
         splitDeepAV, nosplitDeepAV,
 
-	Clock, Reset, Inout, Inout_, Power,
+        Clock, Reset, Inout, Inout_, Power,
         primInoutCast0, primInoutUncast0,
         exposeCurrentClock,
         exposeCurrentReset,
@@ -39,47 +39,47 @@ package Prelude(
         resetsOf,
         noReset,
         primModuleClock, primModuleReset, primBuildModule,
-	changeSpecialWires, -- primCLOCK, primRESET, primPOWER, primSW,
+        changeSpecialWires, -- primCLOCK, primRESET, primPOWER, primSW,
         sameFamily, isAncestor,
-	chkClockDomain,
+        chkClockDomain,
 
         impCondOf,
 
-	primZeroExt, primSignExt, primTrunc,
-	primConcat, primSplit, PrimPair(..),
-	primOrd, primChr,
-	primValueOf,
+        primZeroExt, primSignExt, primTrunc,
+        primConcat, primSplit, PrimPair(..),
+        primOrd, primChr,
+        primValueOf,
         primStringOf,
         StringProxy,
         _when_,
-	primExtract,
+        primExtract,
         Position__, getStringPosition, setStringPosition, printPosition, noPosition,
         Type, typeOf, printType, isInterfaceType,
-	forceIsModule,
+        forceIsModule,
         Name__, primGetName, primMakeName, primJoinNames, primExtendNameIndex,
         primGetNamePosition, primGetNameString,
-	primGetParamName,
+        primGetParamName,
         setStateName, primGetModuleName, primSavePortType,
-	Attributes__, setStateAttrib,
-	primJoinActions, primNoActions, toPrimAction, fromPrimAction,
-	primJoinRules, primNoRules, emptyRules,
+        Attributes__, setStateAttrib,
+        primJoinActions, primNoActions, toPrimAction, fromPrimAction,
+        primJoinRules, primNoRules, emptyRules,
 
-	primFix,
+        primFix,
         primSeq,
-	PrimDeepSeqCond(..), PrimDeepSeqCond'(..),
-	primSeqCond,
+        PrimDeepSeqCond(..), PrimDeepSeqCond'(..),
+        primSeqCond,
 
-	noAction, (:<-),
-	toActionValue_,
-	fromActionValue_,
+        noAction, (:<-),
+        toActionValue_,
+        fromActionValue_,
 
-	primDynamicError,
+        primDynamicError,
 
-	primStringConcat,
+        primStringConcat,
         primStringToInteger,
 
-	(+++), strConcat, stringLength,
-	quote, doubleQuote,
+        (+++), strConcat, stringLength,
+        quote, doubleQuote,
         stringSplit, stringHead, stringTail, stringCons,
         stringToCharList, charListToString,
 
@@ -92,44 +92,44 @@ package Prelude(
         hexDigitToInteger, hexDigitToBits, integerToHexDigit, bitsToHexDigit,
 
         primCharToString,
-	primUIntBitsToInteger, primIntBitsToInteger,
+        primUIntBitsToInteger, primIntBitsToInteger,
 
-	($), (·), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
-	liftM, liftM2, bindM,
+        ($), (·), id, const, constFn, flip, while, curry, uncurry, asTypeOf,
+        liftM, liftM2, bindM,
 
-	(<+>), rJoin,
-	(<+), (+>), preempts, preempted, rJoinPreempts,
-	rJoinDescendingUrgency,
-	rJoinExecutionOrder,
+        (<+>), rJoin,
+        (<+), (+>), preempts, preempted, rJoinPreempts,
+        rJoinDescendingUrgency,
+        rJoinExecutionOrder,
         rJoinMutuallyExclusive, rJoinConflictFree,
 
-	-- for lack of better primitive handling
-	primAdd, primSub, primAnd, primOr, primXor,
-	primSL, primSRL, primSRA,
-	primInv, primNeg,
-	primULE, primULT,
-	primSLE, primSLT,
-	primBNot, primBAnd, primBOr, primMul,
+        -- for lack of better primitive handling
+        primAdd, primSub, primAnd, primOr, primXor,
+        primSL, primSRL, primSRA,
+        primInv, primNeg,
+        primULE, primULT,
+        primSLE, primSLT,
+        primBNot, primBAnd, primBOr, primMul,
         primQuot, primRem,
 
         PrimIndex(..),
-	PrimShiftIndex(..),
+        PrimShiftIndex(..),
         PrimSelectable(..),
         PrimUpdateable(..),
         PrimWriteable(..),
         primUpdateRangeFn,
 
-	Bool(..), not, (&&), (||), _if,
-	(===), (!==),
-	PrimUnit(..),
+        Bool(..), not, (&&), (||), _if,
+        (===), (!==),
+        PrimUnit(..),
         Reg(..), mkReg, mkRegU, mkRegA, asReg, readReg, writeReg, asIfc,
-	Maybe(..), unJust, isJust, isValid, validValue, fromMaybe,
-	Either(..), isLeft, isRight, either,
-	Empty(..),
-	add, div, mod, quot, rem, exp,
-	bind_, fmap,
-	Arith(..),
-	max, min,
+        Maybe(..), unJust, isJust, isValid, validValue, fromMaybe,
+        Either(..), isLeft, isRight, either,
+        Empty(..),
+        add, div, mod, quot, rem, exp,
+        bind_, fmap,
+        Arith(..),
+        max, min,
         reverseBits,
         countOnes, countZerosMSB, countZerosLSB,
 
@@ -157,38 +157,38 @@ package Prelude(
         stdin, stdout, stderr,
         stdout_mcd,
         $time, $stime,
-	$test$plusargs,
+        $test$plusargs,
 
         --- XXX for internal use only - these will not work in user code
         $signed, $unsigned,
 
         -- tuples
-	Has_tpl_1(..),
-	Tuple2, tuple2, Has_tpl_2(..),
-	Tuple3, tuple3, Has_tpl_3(..),
-	Tuple4, tuple4, Has_tpl_4(..),
-	Tuple5, tuple5, Has_tpl_5(..),
-	Tuple6, tuple6, Has_tpl_6(..),
-	Tuple7, tuple7, Has_tpl_7(..),
-	Tuple8, tuple8, Has_tpl_8(..),
+        Has_tpl_1(..),
+        Tuple2, tuple2, Has_tpl_2(..),
+        Tuple3, tuple3, Has_tpl_3(..),
+        Tuple4, tuple4, Has_tpl_4(..),
+        Tuple5, tuple5, Has_tpl_5(..),
+        Tuple6, tuple6, Has_tpl_6(..),
+        Tuple7, tuple7, Has_tpl_7(..),
+        Tuple8, tuple8, Has_tpl_8(..),
 
         -- lists required for desugaring
         List(..),
         cons, nil,
-	isCons, isNil,
-	decodeList,
+        isCons, isNil,
+        decodeList,
 
         -- other list primitives
         listLength,
 
         -- infixed operators not available in BSV
-	compose, composeM,
+        compose, composeM,
 
         -- utility display functions
         displayHex,
-	displayDec,
-	displayOct,
-	displayBin,
+        displayDec,
+        displayOct,
+        displayBin,
 
         -- a constant with all bits set
         constantWithAllBitsSet, constantWithAllBitsUnset,
@@ -204,57 +204,57 @@ package Prelude(
         primUninitialized,
 
         Fmt,
-	primFmtConcat,
+        primFmtConcat,
         $format,
 
         integerToString,
         bitToString,
-	Array(..),
-	primArrayNew,
-	primArrayNewU,
+        Array(..),
+        primArrayNew,
+        primArrayNewU,
         arrayLength,
-	primArrayInitialize,
-	primArrayCheck,
+        primArrayInitialize,
+        primArrayCheck,
 
-	-- Real
-	realToString, $realtobits, $bitstoreal,
-	primRealSin, primRealCos, primRealTan,
-	primRealSinH, primRealCosH, primRealTanH,
-	primRealASin, primRealACos, primRealATan,
-	primRealASinH, primRealACosH, primRealATanH,
-	primRealATan2,
-	primRealSqrt,
-	primRealTrunc, primRealCeil, primRealFloor, primRealRound,
-	primSplitReal, primDecodeReal, primRealToDigits,
-	primRealIsInfinite, primRealIsNegativeZero,
+        -- Real
+        realToString, $realtobits, $bitstoreal,
+        primRealSin, primRealCos, primRealTan,
+        primRealSinH, primRealCosH, primRealTanH,
+        primRealASin, primRealACos, primRealATan,
+        primRealASinH, primRealACosH, primRealATanH,
+        primRealATan2,
+        primRealSqrt,
+        primRealTrunc, primRealCeil, primRealFloor, primRealRound,
+        primSplitReal, primDecodeReal, primRealToDigits,
+        primRealIsInfinite, primRealIsNegativeZero,
 
-	-- "Environment variables"
-	genC,
-	genVerilog,
-	genPackageName,
-	genModuleName,
-	compilerVersion,
-	date,
-	epochTime,
-	buildVersion,
-	testAssert,
+        -- "Environment variables"
+        genC,
+        genVerilog,
+        genPackageName,
+        genModuleName,
+        compilerVersion,
+        date,
+        epochTime,
+        buildVersion,
+        testAssert,
 
         -- Ordering type for working with comparators
-	Ordering(..),
+        Ordering(..),
 
-	Handle, IOMode(..),
-	openFile, hClose,
-	hIsEOF, hIsOpen, hIsClosed, hIsReadable, hIsWritable,
-	BufferMode(..),
-	hSetBuffering, hGetBuffering, hFlush,
-	hPutStr, hPutStrLn, hPutChar,
-	hGetLine, hGetChar,
+        Handle, IOMode(..),
+        openFile, hClose,
+        hIsEOF, hIsOpen, hIsClosed, hIsReadable, hIsWritable,
+        BufferMode(..),
+        hSetBuffering, hGetBuffering, hFlush,
+        hPutStr, hPutStrLn, hPutChar,
+        hGetLine, hGetChar,
 
         -- Generics
         Generic(..), Conc(..), ConcPrim(..), ConcPoly(..),
         Meta(..), MetaData(..), StarArg(..), NumArg(..), StrArg(..), ConArg(..),
         MetaConsNamed(..), MetaConsAnon(..), MetaField(..)
-	) where
+        ) where
 
 infixr  0 $
 infixr  1 :=
@@ -431,10 +431,10 @@ class Ord a where
     -- generalized comparison
     compare :: a -> a -> Ordering
     compare x y = if (x <= y)
-		  then if (y <= x)
-		       then EQ
-		       else LT
-		  else GT
+                  then if (y <= x)
+                       then EQ
+                       else LT
+                  else GT
     -- min and max selectors
     min :: a -> a -> a
     min x y = if x <= y then x else y
@@ -686,7 +686,7 @@ instance (PrimUpdateable a b) => PrimWriteable (Reg a) b
 -- this isn't the most efficient implementation, but it's simple,
 -- and has the benefit of splice_size_t being unconstrained
 primUpdateRangeFn :: (BitExtend splice_size_t vec_size_t Bit,
-		     PrimIndex ix dx) =>
+                     PrimIndex ix dx) =>
                      Position__ ->
                      Bit vec_size_t -> ix -> ix -> Bit splice_size_t
                      -> Bit vec_size_t
@@ -714,7 +714,7 @@ primUpdateRangeFn pos original_bits high low spliced_bits =
                    integerToString high' +++ ":" +++
                    integerToString low'  +++ "]" +++
                    " is not " +++ integerToString (valueOf splice_size_t) +++
-		   " bits, the size of the range-update argument."
+                   " bits, the size of the range-update argument."
     in -- guard the failed-to-evaluate error on the indices
        if (not (isStaticIndex high)) then
            primError pos (static_msg "high")
@@ -727,8 +727,8 @@ primUpdateRangeFn pos original_bits high low spliced_bits =
                 low' < 0) then
           primError pos (listMessage low'  "bit range update - low index")
        else if (high' >= low') then
-       	    if (high' - low' + 1 == valueOf splice_size_t) then result
-	    else primError pos size_msg
+                   if (high' - low' + 1 == valueOf splice_size_t) then result
+            else primError pos size_msg
        else if (high' == low' - 1) then primError pos zero_msg
        else primError pos negative_msg
 
@@ -744,11 +744,11 @@ instance IsModule Module Id__ where
 
 addModuleRules :: (IsModule m c) => Rules -> a -> m a
 addModuleRules rs f = liftModule $ do primAddRules rs
-	                              return f
+                                      return f
 
 addRules :: (IsModule m c) => Rules -> m Empty
 addRules rs = liftModule $ do primAddRules rs
-	                      return (interface Empty { })
+                              return (interface Empty { })
 
 primitive primAddRules :: Rules -> Module ()
 
@@ -861,17 +861,17 @@ instance Monad ActionValue
                                     avAction = primNoActions;
                                     avWorld = aw })
     bind (ActionValue x) f = ActionValue (\aw ->
-	letseq x1 = x aw
+        letseq x1 = x aw
                a   = x1.avAction
                v   = x1.avValue
                aw1 = x1.avWorld
-	       y   = __avFunc (f v) $ aw1
-	in  primSeq v $ primSeq a $ primSeq aw1 $
-	    AVStruct {
-		avValue = y.avValue;
-		avAction = primJoinActions a y.avAction;
+               y   = __avFunc (f v) $ aw1
+        in  primSeq v $ primSeq a $ primSeq aw1 $
+            AVStruct {
+                avValue = y.avValue;
+                avAction = primJoinActions a y.avAction;
                 avWorld  = y.avWorld
-	    })
+            })
 
 --@ \begin{libverbatim}
 --@ instance MonadFix #(ActionValue);
@@ -881,9 +881,9 @@ instance MonadFix ActionValue
     mfix m = primFix (\ av -> m (__value av))
 --    mfix :: (a -> ActionValue a) -> ActionValue a
 --    mfix m =
---	let av :: ActionValue a
---	    av = m av.avValue
---	in  av
+--        let av :: ActionValue a
+--            av = m av.avValue
+--        in  av
 
 --@ Extract the \te{PrimAction} part of an \te{ActionValue}.
 --@ \begin{libverbatim}
@@ -1065,13 +1065,13 @@ instance Bitwise (Bit n)
     (>>) x y = primSRL x (indexableToBits y)
     msb x    = let lbs :: List (Bit 1)
                    lbs = listPrimSomeBitsToList  0 (valueOf n) x
-	       in case (listDrop ((valueOf n) - 1) lbs) of
+               in case (listDrop ((valueOf n) - 1) lbs) of
                              Nil            -> 0
                              (Cons m Nil)   -> m
                              _              -> error "msb implementation problem"
     lsb x    = let lbs :: List (Bit 1)
                    lbs = listPrimSomeBitsToList  0 (valueOf n) x
-	       in case (lbs) of
+               in case (lbs) of
                              Nil -> 0
                              (Cons b _) -> b
 
@@ -1206,11 +1206,11 @@ flatN n (Cons b bs) = b[(valueOf k - 1) : 0] << (n * valueOf k) | flatN (n+1) bs
 grabN :: Integer -> Integer -> Bit m -> List (Bit k)
 grabN i n bs =
     if i >= n then
-	Nil
+        Nil
     else
-	letseq i' = i + valueOf k
-	       x = bs[(i'-1) : i]
-	in  Cons x (grabN i' n bs)
+        letseq i' = i + valueOf k
+               x = bs[(i'-1) : i]
+        in  Cons x (grabN i' n bs)
 
 -- =====================
 
@@ -1234,13 +1234,13 @@ replaceBit pos w i b =
   letseq i' = toStaticIndex i
          x :: Bit n
          x = 1 << (toDynamicIndex i)
-	 result = if (unpack b) then (w | x) else (w & invert x)
+         result = if (unpack b) then (w | x) else (w & invert x)
          w' = primMarkBitArrayInitialized w
   in if (isStaticIndex i) then
         if ((i' >= valueOf n) || (i' < 0)) then
            primError pos $ listMessage (toStaticIndex i) "bit replacement"
-	else if (isBitArray w) then
-	   primUpdateBitArray w' i' b
+        else if (isBitArray w) then
+           primUpdateBitArray w' i' b
         else result
      else result
 
@@ -1472,9 +1472,9 @@ type Perhaps  = Maybe
 --X@ \end{libverbatim}
 instance Monad Maybe
     where
-	return x = Just x
-	bind Nothing  _ = Nothing
-	bind (Just x) f = f x
+        return x = Just x
+        bind Nothing  _ = Nothing
+        bind (Just x) f = f x
 
 --@ {\tt fromMaybe} extracts the \te{Valid} value out of a \te{Maybe} value,
 --@ providing a default value if the tagged union is \te{Invalid}.
@@ -1845,11 +1845,11 @@ interface VReg n =
 vMkReg :: Bit n -> Module (VReg n)
 vMkReg v =
     module verilog "RegN" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> read,
-	read < write,
-	write << write ]
+        read < write,
+        write << write ]
 
 --@ Make a register with a given reset value.  Reset logic is
 --@ synchronous.   Note that all Bluespec registers are considered
@@ -1866,8 +1866,8 @@ mkReg v = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -1878,18 +1878,18 @@ mkReg v = liftModule $
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 -- only for n>0
 vMkRegU :: Module (VReg n)
 vMkRegU =
     module verilog "RegUN" (("width",valueOf n)) "CLK" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> read,
-	read < write,
-	write << write ]
+        read < write,
+        write << write ]
 
 --@ Make a register without any reset; initial simulation value is alternating 01 bits.
 --@ \begin{libverbatim}
@@ -1901,8 +1901,8 @@ mkRegU = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -1913,18 +1913,18 @@ mkRegU = liftModule $
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 -- only for n>0
 vMkRegA :: Bit n -> Module (VReg n)
 vMkRegA v =
     module verilog "RegA" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	read = "Q_OUT"{reg};
-	write = "D_IN"{reg} "EN";
+        read = "Q_OUT"{reg};
+        write = "D_IN"{reg} "EN";
     } [ read <> read,
-	read < write,
-	write << write ]
+        read < write,
+        write << write ]
 
 --@ Make a register with a given reset value.  Reset logic is asynchronous.
 --@ \begin{libverbatim}
@@ -1936,8 +1936,8 @@ mkRegA v = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write _ = return ()
+        _read = unpack 0
+        _write _ = return ()
   else
     module
       _r :: VReg sa
@@ -1948,8 +1948,8 @@ mkRegA v = liftModule $
       primSavePortType name "D_IN" t
       primSavePortType name "Q_OUT" t
       interface
-	_read = unpack _r.read
-	_write x = fromPrimAction (_r.write (pack x))
+        _read = unpack _r.read
+        _write x = fromPrimAction (_r.write (pack x))
 
 --@ Treat a register as a register, i.e., suppress the normal behavior
 --@ where it implicitly represents the value that it contains.
@@ -2248,13 +2248,13 @@ isHexDigit c = (isDigit c) || (c >= 'A' && c <= 'F')
 toUpper :: Char -> Char
 toUpper c = if (isLower c)
             then let n = primCharOrd c - primCharOrd 'a'
-	         in  primCharChr (n + primCharOrd 'A')
+                 in  primCharChr (n + primCharOrd 'A')
             else c
 
 toLower :: Char -> Char
 toLower c = if (isUpper c)
             then let n = primCharOrd c - primCharOrd 'A'
-	         in  primCharChr (n + primCharOrd 'a')
+                 in  primCharChr (n + primCharOrd 'a')
             else c
 
 digitToInteger :: Char -> Integer
@@ -2694,7 +2694,7 @@ primitive primModuleReset :: Reset -> Module a -> Module a
 -- primitive primModulePower :: Power -> Module a -> Module a
 
 primSpecialWires :: (Maybe Clock) -> (Maybe Reset) -> (Maybe Power) ->
-		    (Module a) -> (Module a)
+                    (Module a) -> (Module a)
 primSpecialWires _mc _mr _mp _m =
   letseq _m' = case _mc of
                 Nothing  -> _m
@@ -2813,7 +2813,7 @@ primitive primBNot :: Bit 1-> Bit 1
 primitive primBAnd :: Bit 1 -> Bit 1 -> Bit 1
 primitive primBOr :: Bit 1 -> Bit 1 -> Bit 1
 
-primitive primError   :: Position__ -> String -> a		-- compile time error
+primitive primError   :: Position__ -> String -> a                -- compile time error
 primitive primGenerateError :: Integer -> Position__ -> String -> a
 
 -- check for clock-domain crossing errors in the argument
@@ -2826,7 +2826,7 @@ primitive primMessage :: Position__ -> String -> a -> a
 primitive primWarning :: Position__ -> String -> a -> a
 primitive primPoisonedDef :: Name__ -> a
 
-primitive primDynamicError :: String -> a	-- run time (C) error
+primitive primDynamicError :: String -> a        -- run time (C) error
 
 -- Beware of negative numbers when using this function!
 primitive primIntegerToBit :: Integer -> Bit n
@@ -2956,7 +2956,7 @@ primitive primModuleReturn :: a -> Module a
 --- PrimUnit
 
 struct PrimUnit = { }
-	deriving (Eq, Bits, Bounded, DefaultValue)
+        deriving (Eq, Bits, Bounded, DefaultValue)
 
 --- Integer
 
@@ -3432,8 +3432,8 @@ instance PrimUpdateable (List a) a
 --@ \end{libverbatim}
 instance Monad List
     where
-	return x = Cons x Nil
-	bind x f = listPrimConcat (listPrimMap f x)
+        return x = Cons x Nil
+        bind x f = listPrimConcat (listPrimMap f x)
 
 -- copied !! and !!! from List.bs for PrimSelectable instance
 listMessage :: Integer -> String -> String
@@ -3480,7 +3480,7 @@ listStaticSelect pos xs n =
            let b = n0 < 0 || listNullOrUndef (listDrop n0 xs)
               -- don't raise an error unless we can prove we are out-of-bounds
            in if (isStaticBool b) && b then
-	        primError pos $ listMessage n0 "list selection"
+                primError pos $ listMessage n0 "list selection"
               else primBuildUndefined pos iuDontCare -- should add runtime error here
         listPrimSelect' (Cons x _) 0 _  = x
         listPrimSelect' (Cons _ vs) i i0 = listPrimSelect' vs (i-1) i0
@@ -3523,11 +3523,11 @@ listPrimUpdate pos l k x =
 listPrimSomeBitsToList :: Integer -> Integer -> Bit m -> List (Bit k)
 listPrimSomeBitsToList i n bs =
     if i >= n then
-	Nil
+        Nil
     else
-	letseq i' = i + valueOf k
-	       x = bs[fromInteger (i'-1) : fromInteger i]
-	in  Cons x (listPrimSomeBitsToList i' n bs)
+        letseq i' = i + valueOf k
+               x = bs[fromInteger (i'-1) : fromInteger i]
+        in  Cons x (listPrimSomeBitsToList i' n bs)
 
 listPrimMap :: (c -> d) -> List c -> List d
 listPrimMap _ Nil = Nil
@@ -3617,7 +3617,7 @@ instance PrimUpdateable (Array a) a
                b  = i >= primArrayLength v
         in if (isStaticBool b && b) || (i < 0) then
               primError pos (listMessage i "array update")
-	   else primArrayUpdate v i n
+           else primArrayUpdate v i n
      else primArrayDynUpdate v (toDynamicIndex x) n
 
 instance (Eq a) => Eq  (Array a) where
@@ -3625,12 +3625,12 @@ instance (Eq a) => Eq  (Array a) where
     (==) v1 v2 = let doEq :: Integer -> Integer -> Array a -> Array a -> Bool
                      doEq n k x1 x2 = if (n > k)
                                       then True
-				      else (primArraySelect x1 n) == (primArraySelect x2 n) &&
-				           (doEq (n+1) k x1 x2)
-		 in (primArrayLength v1) == (primArrayLength v2) &&
-		    if (primArrayLength v1) > 0
-		       then doEq 0 ((primArrayLength v1) - 1) v1 v2
-		       else True
+                                      else (primArraySelect x1 n) == (primArraySelect x2 n) &&
+                                           (doEq (n+1) k x1 x2)
+                 in (primArrayLength v1) == (primArrayLength v2) &&
+                    if (primArrayLength v1) > 0
+                       then doEq 0 ((primArrayLength v1) - 1) v1 v2
+                       else True
     (/=) :: Array a -> Array a -> Bool
     (/=) v1 v2 = not (v1 == v2)
 
@@ -3665,10 +3665,10 @@ primArrayCheck pos n v =
           then v
           else primError pos $
                "Array was declared as length "
-	       +++ (integerToString n)
-	       +++ " but was initialized to length "
-	       +++ (integerToString len)
-	       +++ "."
+               +++ (integerToString n)
+               +++ " but was initialized to length "
+               +++ (integerToString len)
+               +++ "."
      else -- XXX dynamic error needed
           v
 

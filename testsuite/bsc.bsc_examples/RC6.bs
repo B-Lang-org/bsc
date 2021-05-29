@@ -62,7 +62,7 @@ type Rounds = 20;      -- non-negative number of rounds of encryption
 
 
 data OperationType = Decode | Encode
-		   deriving (Eq, Bits)
+                   deriving (Eq, Bits)
 
 struct RequestType =
     op :: OperationType
@@ -82,7 +82,7 @@ struct TextType =
 type ResultType = TextType
 
 data StepType = Ready | Round (Bit RoundSize) | Final | Done
-	      deriving (Eq, Bits)
+              deriving (Eq, Bits)
 
 
 ---------------
@@ -99,8 +99,8 @@ logW = valueOf k
 
 toNat :: Bit n -> Nat
 toNat bs = if (valueOf n > 32)
-	   then bs[31:0]
-	   else bs[fromInteger (valueOf n - 1):0]
+           then bs[31:0]
+           else bs[fromInteger (valueOf n - 1):0]
 
 rotateLeft :: UInt n -> UInt n -> UInt n
 rotateLeft (UInt a) (UInt b) =
@@ -132,40 +132,40 @@ mkRC6 :: Module (IO RequestType ResultType)
 mkRC6 =
     module
         op :: Reg OperationType   -- True for Enc, False for Dec
-	op <- mkRegU
+        op <- mkRegU
 
         a :: Reg (UInt WordSize)
-	a <- mkRegU
+        a <- mkRegU
         b :: Reg (UInt WordSize)
-	b <- mkRegU
+        b <- mkRegU
         c :: Reg (UInt WordSize)
-	c <- mkRegU
+        c <- mkRegU
         d :: Reg (UInt WordSize)
-	d <- mkRegU
+        d <- mkRegU
 
         -- don't ask how these values got here, that's for version 2.0
-	keyArr :: RegFile (Bit RoundSize) (UInt WordSize)
-	keyArr <- mkRegFile minBound maxBound
+        keyArr :: RegFile (Bit RoundSize) (UInt WordSize)
+        keyArr <- mkRegFile minBound maxBound
 
-	step :: Reg StepType
-	step <- mkReg Done
+        step :: Reg StepType
+        step <- mkReg Done
 
         addRules $ mkRC6Rules op a b c d keyArr step
 
         interface
-	    input i = action
-			op := i.op
-	            	a := i.a
-	           	b := i.b
-	            	c := i.c
-	            	d := i.d
-	            	step := Ready
-	    output = if (step == Done)
-		     then Valid (TextType { a = a;
-		                           b = b;
-				           c = c;
-				           d = d; })
-		     else Invalid
+            input i = action
+                        op := i.op
+                        a := i.a
+                        b := i.b
+                        c := i.c
+                        d := i.d
+                        step := Ready
+            output = if (step == Done)
+                     then Valid (TextType { a = a;
+                                            b = b;
+                                            c = c;
+                                            d = d; })
+                     else Invalid
 
 
 ------------
@@ -173,9 +173,9 @@ mkRC6 =
 ------------
 
 mkRC6Rules :: Reg OperationType -> Reg (UInt WordSize) ->
-	      Reg (UInt WordSize) -> Reg (UInt WordSize) ->
-	      Reg (UInt WordSize) -> RegFile (Bit RoundSize) (UInt WordSize) ->
-	      Reg StepType -> Rules
+              Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+              Reg (UInt WordSize) -> RegFile (Bit RoundSize) (UInt WordSize) ->
+              Reg StepType -> Rules
 mkRC6Rules op a b c d keyArr step =
     mkRC6EncRules op a b c d keyArr step <+>
     mkRC6DecRules op a b c d keyArr step
@@ -186,42 +186,42 @@ mkRC6Rules op a b c d keyArr step =
 ------------------
 
 mkRC6EncRules :: Reg OperationType -> Reg (UInt WordSize) ->
-		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
-		 Reg (UInt WordSize) ->
-		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
+                 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+                 Reg (UInt WordSize) ->
+                 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
 mkRC6EncRules op a b c d keyArr step =
     let
-	isEnc :: Bool
-	isEnc = (op == Encode)
+        isEnc :: Bool
+        isEnc = (op == Encode)
 
-	t = (b * ((b << 1) + 1)) `rotateLeft` (fromInteger logW)
-	u = (d * ((d << 1) + 1)) `rotateLeft` (fromInteger logW)
+        t = (b * ((b << 1) + 1)) `rotateLeft` (fromInteger logW)
+        u = (d * ((d << 1) + 1)) `rotateLeft` (fromInteger logW)
 
-	lastRound :: Bit RoundSize
-	lastRound = fromInteger (valueOf Rounds)
+        lastRound :: Bit RoundSize
+        lastRound = fromInteger (valueOf Rounds)
     in
-	rules
-	  when isEnc, step == Ready
-	    ==> action
-		  b := b + keyArr.sub 0
-	          d := d + keyArr.sub 1
-		  step := Round 1
+        rules
+          when isEnc, step == Ready
+            ==> action
+                  b := b + keyArr.sub 0
+                  d := d + keyArr.sub 1
+                  step := Round 1
 
-	  when isEnc, Round r <- step
-	    ==> action
-		  a := b
-	          b := ((c ^ u) `rotateLeft` t) + keyArr.sub ((r << 1) + 1)
-		  c := d
-		  d := ((a ^ t) `rotateLeft` u) + keyArr.sub (r << 1)
-		  step := if r < lastRound
-			    then Round (r + 1)
-			    else Final
+          when isEnc, Round r <- step
+            ==> action
+                  a := b
+                  b := ((c ^ u) `rotateLeft` t) + keyArr.sub ((r << 1) + 1)
+                  c := d
+                  d := ((a ^ t) `rotateLeft` u) + keyArr.sub (r << 1)
+                  step := if r < lastRound
+                            then Round (r + 1)
+                            else Final
 
-	  when isEnc, step == Final
-	    ==> action
-		  a := a + keyArr.sub ((lastRound << 1) + 2)
-	          c := c + keyArr.sub ((lastRound << 1) + 3)
-		  step := Done
+          when isEnc, step == Final
+            ==> action
+                  a := a + keyArr.sub ((lastRound << 1) + 2)
+                  c := c + keyArr.sub ((lastRound << 1) + 3)
+                  step := Done
 
 
 ------------------
@@ -229,39 +229,39 @@ mkRC6EncRules op a b c d keyArr step =
 ------------------
 
 mkRC6DecRules :: Reg OperationType -> Reg (UInt WordSize) ->
-		 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
-		 Reg (UInt WordSize) ->
-		 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
+                 Reg (UInt WordSize) -> Reg (UInt WordSize) ->
+                 Reg (UInt WordSize) ->
+                 RegFile (Bit RoundSize) (UInt WordSize) -> Reg StepType -> Rules
 mkRC6DecRules op a b c d keyArr step =
     let
-	isDec :: Bool
-	isDec = (op == Decode)
+        isDec :: Bool
+        isDec = (op == Decode)
 
-	t = (a * ((a << 1) + 1)) `rotateLeft` (fromInteger logW)
-	u = (c * ((c << 1) + 1)) `rotateLeft` (fromInteger logW)
+        t = (a * ((a << 1) + 1)) `rotateLeft` (fromInteger logW)
+        u = (c * ((c << 1) + 1)) `rotateLeft` (fromInteger logW)
 
-	lastRound :: Bit RoundSize
-	lastRound = fromInteger (valueOf Rounds)
+        lastRound :: Bit RoundSize
+        lastRound = fromInteger (valueOf Rounds)
     in
-	rules
-	  when isDec, step == Ready
-	    ==> action
-		  a := a - keyArr.sub ((lastRound << 1) + 2)
-	          c := c - keyArr.sub ((lastRound << 1) + 3)
-		  step := Round lastRound
+        rules
+          when isDec, step == Ready
+            ==> action
+                  a := a - keyArr.sub ((lastRound << 1) + 2)
+                  c := c - keyArr.sub ((lastRound << 1) + 3)
+                  step := Round lastRound
 
-	  when isDec, Round r <- step
-	    ==> action
-		  a := ((d - keyArr.sub (r << 1)) `rotateRight` u) ^ t
-	          b := a
-	          c := ((b - keyArr.sub ((r << 1) + 1)) `rotateRight` t) ^ u
-		  d := c
-		  step := if r > 1
-			   then Round (r - 1)
-			   else Final
+          when isDec, Round r <- step
+            ==> action
+                  a := ((d - keyArr.sub (r << 1)) `rotateRight` u) ^ t
+                  b := a
+                  c := ((b - keyArr.sub ((r << 1) + 1)) `rotateRight` t) ^ u
+                  d := c
+                  step := if r > 1
+                           then Round (r - 1)
+                           else Final
 
-	  when isDec, step == Final
-	    ==> action
-		  b := b - keyArr.sub 0
-	          d := d - keyArr.sub 1
-		  step := Done
+          when isDec, step == Final
+            ==> action
+                  b := b - keyArr.sub 0
+                  d := d - keyArr.sub 1
+                  step := Done

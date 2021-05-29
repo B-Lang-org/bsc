@@ -8,21 +8,21 @@ struct Foo =
 mkScopeInNestedWhens :: Module Empty
 mkScopeInNestedWhens =
     module
-	r :: Reg (Bit 5)
-	r <- mkRegU
+        r :: Reg (Bit 5)
+        r <- mkRegU
 
-	q :: Reg Foo
-	q <- mkRegU
+        q :: Reg Foo
+        q <- mkRegU
 
         rules
-	    when (Foo { a; b }) <- q
-	     rules {
-	         when True
-	           ==> r := zeroExtend a
-	    }
+            when (Foo { a; b }) <- q
+             rules {
+                 when True
+                   ==> r := zeroExtend a
+            }
 
-	    when s <- r
-	     rules {
-	         when True
-	           ==> r := s + 1
-	    }
+            when s <- r
+             rules {
+                 when True
+                   ==> r := s + 1
+            }

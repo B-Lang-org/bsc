@@ -50,9 +50,9 @@ interface VRegFile ni na =
 vMkRegFile :: Bit i -> Bit i -> Module (VRegFile i a)
 vMkRegFile lo hi =
     module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a),
-			      ("lo",lo), ("hi",hi)) "CLK" {
-	upd    = "ADDR_IN" "D_IN"{reg} "WE";
-	sub[5] = "ADDR" "D_OUT";
+                              ("lo",lo), ("hi",hi)) "CLK" {
+        upd    = "ADDR_IN" "D_IN"{reg} "WE";
+        sub[5] = "ADDR" "D_OUT";
     } [ sub < upd, sub <> sub, upd >< upd ]
 
 saveRegFilePortTypes :: VRegFile ni na -> Type -> Type -> Module ()
@@ -85,16 +85,16 @@ wrapRegFile modname isWCF vMk l h = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	upd _ _ = action { }
-	sub _ = unpack 0
+        upd _ _ = action { }
+        sub _ = unpack 0
   else if valueOf si == 0 then
     module
       _a :: Reg a
       {-# hide #-}
       _a <- if isWCF then mkConfigRegU else mkRegU
       interface
-	upd _ x = _a := x
-	sub _ = _a
+        upd _ x = _a := x
+        sub _ = _a
   else
     module
       letseq lo = pack l
@@ -108,8 +108,8 @@ wrapRegFile modname isWCF vMk l h = liftModule $
       _a <- vMk lo hi
       saveRegFilePortTypes _a (typeOf (_ :: a)) (typeOf (_ :: i))
       interface
-	upd i x = fromPrimAction (_a.upd (pack i) (pack x))
-	sub i = unpack (_a.sub (pack i))
+        upd i x = fromPrimAction (_a.upd (pack i) (pack x))
+        sub i = unpack (_a.sub (pack i))
 
 --@ \lineup
 --@ \begin{libverbatim}
@@ -124,9 +124,9 @@ mkRegFileFull = mkRegFile minBound maxBound
 vMkRegFileWCF :: Bit i -> Bit i -> Module (VRegFile i a)
 vMkRegFileWCF lo hi =
     module verilog "RegFile" (("addr_width",valueOf i), ("data_width",valueOf a),
-			      ("lo",lo), ("hi",hi)) "CLK" {
-	upd    = "ADDR_IN" "D_IN"{reg} "WE";
-	sub[5] = "ADDR" "D_OUT";
+                              ("lo",lo), ("hi",hi)) "CLK" {
+        upd    = "ADDR_IN" "D_IN"{reg} "WE";
+        sub[5] = "ADDR" "D_OUT";
     } [ upd <> sub, sub <> sub, upd >< upd]
 
 --@ An array which for which the reads and the write are conflict-free.  For
@@ -160,8 +160,8 @@ vMkRegFileLoad isBin file lo hi =
     module verilog "RegFileLoad"
       (("file", file), ("addr_width",valueOf i), ("data_width",valueOf a),
        ("lo",lo), ("hi",hi), ("binary",pack isBin)) "CLK" {
-	upd    = "ADDR_IN" "D_IN"{reg} "WE";
-	sub[5] = "ADDR" "D_OUT";
+        upd    = "ADDR_IN" "D_IN"{reg} "WE";
+        sub[5] = "ADDR" "D_OUT";
     } [ sub < upd, sub <> sub, upd >< upd ]
 
 --@ \begin{libverbatim}
@@ -192,8 +192,8 @@ vMkRegFileWCFLoad isBin file lo hi =
     module verilog "RegFileLoad"
       (("file", file), ("addr_width",valueOf i), ("data_width",valueOf a),
        ("lo",lo), ("hi",hi), ("binary",pack isBin)) "CLK" {
-	upd    = "ADDR_IN" "D_IN"{reg} "WE";
-	sub[5] = "ADDR" "D_OUT";
+        upd    = "ADDR_IN" "D_IN"{reg} "WE";
+        sub[5] = "ADDR" "D_OUT";
     } [ upd <> sub, sub <> sub, upd >< upd ]
 
 --@ \begin{libverbatim}
@@ -211,7 +211,7 @@ mkRegFileWCFLoadHex file =
 -- mkRegFileLoadBin and friends
 
 mkRegFileLoadBin :: (IsModule m c, Bits i si, Bits a sa) =>
-               	String -> i -> i -> m (RegFile i a)
+                       String -> i -> i -> m (RegFile i a)
 mkRegFileLoadBin file =
   wrapRegFile "mkRegFileLoadBin" False (vMkRegFileLoad True file)
 

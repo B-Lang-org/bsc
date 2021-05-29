@@ -31,8 +31,8 @@ forkL :: (Bits a sa) => Integer -> a -> List a
 forkL 0 _ = Nil
 forkL 1 x = Cons x Nil
 forkL n x =
-	letseq (x', x'') = fork x
-	in  Cons x' (forkL (n-1) x'')
+        letseq (x', x'') = fork x
+        in  Cons x' (forkL (n-1) x'')
 
 --@ Copy a value into a vector with the specified number of elements.
 --@ \begin{libverbatim}

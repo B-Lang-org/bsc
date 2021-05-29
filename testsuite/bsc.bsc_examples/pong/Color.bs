@@ -1,5 +1,5 @@
 package Color(
-	Color, Val, cNone, cRed, cGreen, cBlue, cYellow, cPurple, cMagenta, cWhite,
+        Color, Val, cNone, cRed, cGreen, cBlue, cYellow, cPurple, cMagenta, cWhite,
         (<|>), (<^>), mkRGB, getRed, getGreen, getBlue) where
 
 type Val = Bit 2

@@ -4,12 +4,12 @@ package BasicIfME(sysBasicIfME) where
 sysBasicIfME :: Module Empty
 sysBasicIfME =
     module
-	a :: Reg Bool <- mkReg True
-	b :: Reg Bool <- mkReg False
-	c :: Reg Bool <- mkReg False
+        a :: Reg Bool <- mkReg True
+        b :: Reg Bool <- mkReg False
+        c :: Reg Bool <- mkReg False
 
         addRules $
-	  let
+          let
               print :: Bit 3 -> Action
               print x = $display "%0h" x
           in rules

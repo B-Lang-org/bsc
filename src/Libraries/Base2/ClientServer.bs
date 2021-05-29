@@ -1,9 +1,9 @@
 package ClientServer(
-	Client(..), Server(..), ClientServer(..), mkRequestResponseBuffer,
-	mkSizedRequestResponseBuffer, mkResponseBuffer, mkRequestBuffer,
-	mkRequestResponseBuffer1, joinServersBC, joinServers, splitServer,
-	fifosToServer, fifosToClient, fifosToClientServer,
-	toGPClient, toGPServer)
+        Client(..), Server(..), ClientServer(..), mkRequestResponseBuffer,
+        mkSizedRequestResponseBuffer, mkResponseBuffer, mkRequestBuffer,
+        mkRequestResponseBuffer1, joinServersBC, joinServers, splitServer,
+        fifosToServer, fifosToClient, fifosToClientServer,
+        toGPClient, toGPServer)
     where
 import qualified Vector
 import List
@@ -57,15 +57,15 @@ instance Connectable (Client a b) (Server a b)
     mkConnection :: (IsModule m c ) => Client a b -> Server a b -> m Empty
     mkConnection c s =
        module
-	  rules
-	    "ClientServerRequest":when True
-	     ==> action
-		    x :: a <- c.request.get
-		    s.request.put x
-	    "ClientServerResponse":when True
-	     ==> action
-		    x :: b <- s.response.get
-		    c.response.put x
+          rules
+            "ClientServerRequest":when True
+             ==> action
+                    x :: a <- c.request.get
+                    s.request.put x
+            "ClientServerResponse":when True
+             ==> action
+                    x :: b <- s.response.get
+                    c.response.put x
 
 instance Connectable (Server a b) (Client a b)
    where
@@ -74,24 +74,24 @@ instance Connectable (Server a b) (Client a b)
 instance (Bits a sa, Bits b sb) => ClockConv (Client a b) where
     mkConverter :: (Prelude.IsModule m c) => Integer -> Client a b -> m (Client a b)
     mkConverter d cluses =
-	module
-	    req  <- mkConverter d cluses.request
-	    resp <- mkConverter d cluses.response
+        module
+            req  <- mkConverter d cluses.request
+            resp <- mkConverter d cluses.response
 
-	    interface
-	      request  = req
-	      response = resp
+            interface
+              request  = req
+              response = resp
 
 instance (Bits a sa, Bits b sb) => ClockConv (Server a b) where
     mkConverter :: (Prelude.IsModule m c) => Integer -> Server a b -> m (Server a b)
     mkConverter d cluses =
-	module
-	    req  <- mkConverter d cluses.request
-	    resp <- mkConverter d cluses.response
+        module
+            req  <- mkConverter d cluses.request
+            resp <- mkConverter d cluses.response
 
-	    interface
-	      request  = req
-	      response = resp
+            interface
+              request  = req
+              response = resp
 
 --@ \lineup
 --@ \begin{libverbatim}
@@ -109,15 +109,15 @@ type ClientServer a b = (Client a b, Server a b)
 mkRequestResponseBuffer :: (IsModule m c , Bits a sa, Bits b sb) => m (ClientServer a b)
 mkRequestResponseBuffer =
     module
-	(qget, qput) :: (Get a, Put a) <- mkGetPut
-	(sget, sput) :: (Get b, Put b) <- mkGetPut
-	let c =	interface Client
-		    request  = qget
-		    response = sput
-	    s =	interface Server
-		    request  = qput
-		    response = sget
-	interface (c, s)
+        (qget, qput) :: (Get a, Put a) <- mkGetPut
+        (sget, sput) :: (Get b, Put b) <- mkGetPut
+        let c = interface Client
+                    request  = qget
+                    response = sput
+            s = interface Server
+                    request  = qput
+                    response = sget
+        interface (c, s)
 
 --@ Create a buffer that just passes requests and responses between the
 --@ two generated interfaces.  Uses half the flops of
@@ -130,15 +130,15 @@ mkRequestResponseBuffer =
 mkRequestResponseBuffer1 :: (IsModule m c , Bits a sa, Bits b sb) => m (ClientServer a b)
 mkRequestResponseBuffer1 =
     module
-	(qget, qput) :: (Get a, Put a) <- mkGPFIFO1
-	(sget, sput) :: (Get b, Put b) <- mkGPFIFO1
-	let c =	interface Client
-		    request  = qget
-		    response = sput
-	    s =	interface Server
-		    request  = qput
-		    response = sget
-	interface (c, s)
+        (qget, qput) :: (Get a, Put a) <- mkGPFIFO1
+        (sget, sput) :: (Get b, Put b) <- mkGPFIFO1
+        let c = interface Client
+                    request  = qget
+                    response = sput
+            s = interface Server
+                    request  = qput
+                    response = sget
+        interface (c, s)
 
 --@ The same, using sized FIFOs.
 --@ \index{mkSizedRequestResponseBuffer@\te{mkSizedRequestResponseBuffer} (function)|textbf}
@@ -149,15 +149,15 @@ mkRequestResponseBuffer1 =
 mkSizedRequestResponseBuffer :: (IsModule m c , Bits a sa, Bits b sb) => Integer -> m (ClientServer a b)
 mkSizedRequestResponseBuffer sz =
     module
-	(qget, qput) :: (Get a, Put a) <- mkGPSizedFIFO sz
-	(sget, sput) :: (Get b, Put b) <- mkGPSizedFIFO sz
-	let c =	interface Client
-		    request  = qget
-		    response = sput
-	    s =	interface Server
-		    request  = qput
-		    response = sget
-	interface (c, s)
+        (qget, qput) :: (Get a, Put a) <- mkGPSizedFIFO sz
+        (sget, sput) :: (Get b, Put b) <- mkGPSizedFIFO sz
+        let c = interface Client
+                    request  = qget
+                    response = sput
+            s = interface Server
+                    request  = qput
+                    response = sget
+        interface (c, s)
 
 
 --@ Create a new server with buffered requests.
@@ -169,16 +169,16 @@ mkSizedRequestResponseBuffer sz =
 mkRequestBuffer :: (IsModule m c , Bits a sa) => Server a b -> m (Server a b)
 mkRequestBuffer s =
     module
-	(qget, qput) :: (Get a, Put a) <- mkGetPut
+        (qget, qput) :: (Get a, Put a) <- mkGetPut
         rules
-	      "mkRequestBuffer" : when True ==>
+              "mkRequestBuffer" : when True ==>
                  action
-		   x :: a <- qget.get
-		   s.request.put x
+                   x :: a <- qget.get
+                   s.request.put x
 
-	interface -- Server
-		    request  = qput
-		    response = s.response
+        interface -- Server
+                    request  = qput
+                    response = s.response
 
 
 --@ Create a new server with buffered responses.
@@ -190,16 +190,16 @@ mkRequestBuffer s =
 mkResponseBuffer :: (IsModule m c , Bits b sb) => Server a b -> m (Server a b)
 mkResponseBuffer s =
     module
-	(sget, sput) :: (Get b, Put b) <- mkGetPut
+        (sget, sput) :: (Get b, Put b) <- mkGetPut
         rules
-	      "mkResponseBuffer" : when True ==>
-	         action
-		   x :: b <- s.response.get
-		   sput.put x
+              "mkResponseBuffer" : when True ==>
+                 action
+                   x :: b <- s.response.get
+                   sput.put x
 
-	interface -- Server
-		    request  = s.request
-		    response = sget
+        interface -- Server
+                    request  = s.request
+                    response = sget
 
 --@ Join a list of servers to one server.  All incoming requests are broadcasted
 --@ all the servers and all responses are merged.
@@ -214,18 +214,18 @@ joinServersBC ifs =
   module
     (sget, sput) :: (Get b, Put b) <- mkGetPut
     let rl s =
-	    rules
-	      "joinServersBC":
-		when True ==>
-		 action
-		   x <- (s :: Server a b).response.get
-		   sput.put x
+            rules
+              "joinServersBC":
+                when True ==>
+                 action
+                   x <- (s :: Server a b).response.get
+                   sput.put x
     addRules $ foldr (<+>) (rules {}) (map rl ifs)
     interface -- Server
-	    request =
+            request =
              interface Put
               put req = joinActions (map (\ i -> (i :: Server a b).request.put req) ifs)
-	    response = sget
+            response = sget
 
 --@ Join a list of servers to one server.  All incoming requests are sent to
 --@ a selected subset of the servers and all responses are merged.
@@ -243,24 +243,24 @@ joinServers ifs =
   module
     (sget, sput) :: (Get b, Put b) <- mkGetPut
     let rl (_, s) =
-	    rules
-	      "joinServers":
-		when True ==>
-		  action
-		   x <- (s :: Server a' b).response.get
-		   sput.put x
-	send req (f, s) =
-	    case f req of
-	    Nothing -> noAction
-	    Just req' -> (s :: Server a' b).request.put req'
+            rules
+              "joinServers":
+                when True ==>
+                  action
+                   x <- (s :: Server a' b).response.get
+                   sput.put x
+        send req (f, s) =
+            case f req of
+            Nothing -> noAction
+            Just req' -> (s :: Server a' b).request.put req'
     addRules $ foldr (<+>) (rules {}) (map rl ifs)
     interface -- Server
-	    request =
+            request =
              interface Put
               put req = joinActions (map (send req) ifs)
-	    response = sget
+            response = sget
 
-type MaxLat = 8	-- XXX This is just wrong
+type MaxLat = 8        -- XXX This is just wrong
 --@ Split a server into a number of identical servers.
 --@ The integer argument specifies how many outstanding requests
 --@ a returned server may have.  This number should be
@@ -277,31 +277,31 @@ splitServer lat serv =
   module
     tags :: FIFO (Bit ln) <- mkSizedFIFO lat
     let mkServ :: (Bit ln) -> m (Server a b)
-	mkServ i =
-	  module
-	    out :: FIFO b <- mkSizedFIFO lat
-	    cnt :: Counter MaxLat <- mkCounter (fromInteger lat)
-	    rules
-		when tags.first == i
-		 ==> action
-		        tags.deq
-		        x <- serv.response.get
-		        out.enq x
-	    interface Server
-	      request =
-		interface Put
-		  put req =
-			action
-			    serv.request.put req
-			    tags.enq i
-			    cnt.down
-		    when cnt.value > 0
-	      response =
-		interface Get
-		  get = do
-			    out.deq
-			    cnt.up
-			    return out.first
+        mkServ i =
+          module
+            out :: FIFO b <- mkSizedFIFO lat
+            cnt :: Counter MaxLat <- mkCounter (fromInteger lat)
+            rules
+                when tags.first == i
+                 ==> action
+                        tags.deq
+                        x <- serv.response.get
+                        out.enq x
+            interface Server
+              request =
+                interface Put
+                  put req =
+                        action
+                            serv.request.put req
+                            tags.enq i
+                            cnt.down
+                    when cnt.value > 0
+              response =
+                interface Get
+                  get = do
+                            out.deq
+                            cnt.up
+                            return out.first
     Vector.mapM (mkServ · fromInteger) Vector.genList
 
 --@ fifosToServer

@@ -16,17 +16,17 @@ import ListReg
 mkListFIFOF :: (IsModule m c, Bits a sa) => Integer -> m (FIFOF (List a))
 mkListFIFOF n =
     module
-	r1 <- mkListReg (replicate n _)
-	r2 <- mkListReg (replicate n _)
-	rNotFull <- mkReg True
-	rNotEmpty <- mkReg False
-	interface FIFOF
-	    enq x    = if rNotEmpty then action { r1 := x; rNotFull := False; } else action { r2 := x; rNotEmpty := True }
-	    deq      = action { r2 := r1; rNotFull := True; rNotEmpty := not rNotFull }
-	    first    = r2
-	    notFull  = rNotFull
-	    notEmpty = rNotEmpty
-	    clear    = action { rNotFull := True; rNotEmpty := False }
+        r1 <- mkListReg (replicate n _)
+        r2 <- mkListReg (replicate n _)
+        rNotFull <- mkReg True
+        rNotEmpty <- mkReg False
+        interface FIFOF
+            enq x    = if rNotEmpty then action { r1 := x; rNotFull := False; } else action { r2 := x; rNotEmpty := True }
+            deq      = action { r2 := r1; rNotFull := True; rNotEmpty := not rNotFull }
+            first    = r2
+            notFull  = rNotFull
+            notEmpty = rNotEmpty
+            clear    = action { rNotFull := True; rNotEmpty := False }
 
 --@ \begin{libverbatim}
 --@ module mkListFIFO#(Integer n)(FIFO#(List#(a)))

@@ -19,22 +19,22 @@ import NewMipsROM
 sysNewMips :: Module Empty
 sysNewMips =
     module
-	ram :: MRAM
-	ram <- mkRAM
-	rom :: MROM
-	rom <- sysNewMipsROM
-	mkMipsCPU rom ram
+        ram :: MRAM
+        ram <- mkRAM
+        rom :: MROM
+        rom <- sysNewMipsROM
+        mkMipsCPU rom ram
 
 -- {-# verilog mkRAM #-}
 mkRAM :: Module MRAM
 mkRAM =
     module
-	-- 64 kbyte memory
-	arr :: RegFile Address Value
-	arr <- mkRegFile 0 0x3fff
+        -- 64 kbyte memory
+        arr :: RegFile Address Value
+        arr <- mkRegFile 0 0x3fff
         interface
-	    write a d = arr.upd a d
-	    read a = arr.sub a
+            write a d = arr.upd a d
+            read a = arr.sub a
 
 
 ------
@@ -50,8 +50,8 @@ type MROM = ROM IAddress IValue
 type MRAM = RAM Address Value
 
 struct UInstr =
-	pc :: IAddress
-	instr :: IValue
+        pc :: IAddress
+        instr :: IValue
     deriving (Bits)
 
 data MinorOp = Madd | Mand  | Msub | Mnor | Mor  | Mxor
@@ -76,25 +76,25 @@ struct DTemplate =
 
 isDest :: TBuffer -> CPUReg -> Bool
 isDest b r = let
-		 f :: DTemplate -> Bool -> Bool
-		 f x = (||) (x.wback && x.rd == r)
-	     in
-		 b.foldr f False
+                 f :: DTemplate -> Bool -> Bool
+                 f x = (||) (x.wback && x.rd == r)
+             in
+                 b.foldr f False
 
 canForward :: TBuffer -> CPUReg -> Bool
 canForward b r = let
-		     f :: DTemplate -> Bool -> Bool
-		     f x y = ((not x.wback) || x.ready || (x.rd /= r)) && y
-		 in
-		     b.foldr f True
+                     f :: DTemplate -> Bool -> Bool
+                     f x y = ((not x.wback) || x.ready || (x.rd /= r)) && y
+                 in
+                     b.foldr f True
 
 forward :: TBuffer -> CPUReg -> Value
 forward b r = let
-		  f :: DTemplate -> Value -> Value
-		  f x y = if (x.wback && x.ready && x.rd == r)
-			  then x.v1 else y
-	      in
-		  b.foldr f _
+                  f :: DTemplate -> Value -> Value
+                  f x y = if (x.wback && x.ready && x.rd == r)
+                          then x.v1 else y
+              in
+                  b.foldr f _
 
 isJumpFunct :: Funct -> Bool
 isJumpFunct JR = True
@@ -247,12 +247,12 @@ mkMipsCPU imem dmem =
 ------------
 
 mkMipsRules :: Reg IAddress -> RegisterFile -> IBuffer -> TBuffer -> TBuffer ->
-	       TBuffer -> MROM -> MRAM -> Rules
+               TBuffer -> MROM -> MRAM -> Rules
 mkMipsRules pc rf bd be bm bw imem dmem =
-    mkFetchRules pc bd imem		<+>
-    mkDecodeRules pc rf bd be bm bw 	<+>
-    mkExecuteRules be bm 		<+>
-    mkMemoryRules bm bw dmem 		<+>
+    mkFetchRules pc bd imem            <+>
+    mkDecodeRules pc rf bd be bm bw    <+>
+    mkExecuteRules be bm               <+>
+    mkMemoryRules bm bw dmem           <+>
     mkWritebackRules rf bw
 
 
@@ -262,263 +262,263 @@ mkFetchRules pc bd imem =
     rules
       "Fetch":
         when True
-	  ==> action
+          ==> action
                 pc := pc + 1
-		bd.enq (UInstr { pc = pc; instr = imem.read pc })
+                bd.enq (UInstr { pc = pc; instr = imem.read pc })
 
 -- INSTRUCTION DECODE STAGE --
 mkDecodeRules :: Reg IAddress -> RegisterFile -> IBuffer -> TBuffer -> TBuffer ->
-		 TBuffer -> Rules
+                 TBuffer -> Rules
 mkDecodeRules pc rf bd be bm bw =
     let
-	stallFree :: CPUReg -> Bool
-	stallFree r = not (isDest be r && not (canForward be r) ||
-			   isDest bm r && not (canForward bm r))
+        stallFree :: CPUReg -> Bool
+        stallFree r = not (isDest be r && not (canForward be r) ||
+                           isDest bm r && not (canForward bm r))
 
-	registerValue :: CPUReg -> Value
-	registerValue Reg0 = 0
-	registerValue r =
-	    if isDest be r && canForward be r then forward be r else
-	    if isDest bm r && canForward bm r then forward bm r else
-	    if isDest bw r                    then forward bw r else
-						   rf.sub r
+        registerValue :: CPUReg -> Value
+        registerValue Reg0 = 0
+        registerValue r =
+            if isDest be r && canForward be r then forward be r else
+            if isDest bm r && canForward bm r then forward bm r else
+            if isDest bw r                    then forward bw r else
+                                                   rf.sub r
 
-	pc' :: IAddress
-	pc' = bd.first.pc
+        pc' :: IAddress
+        pc' = bd.first.pc
 
-	instr :: Instruction
-	instr = unpack bd.first.instr
+        instr :: Instruction
+        instr = unpack bd.first.instr
 
     in
-	rules
+        rules
           -- this rule performs the (constant) shifting rather than leaving the
           -- work for the ALU.  In this way, the value can be forwarded
           -- earlier.
-	  "D-LUI":
-	    when (Immediate { op = LUI; rt; imm }) <- instr
-	      ==> (action {
-		    be.enq dt;
-		    bd.deq;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = Mwback;
-					   wback = True;
-					   ready = True;
-					   rd = rt;
-					   v1 = vZeroExt imm << 16;
-					 }
-
-	  "D-Immediate":
-            when (Immediate { op; rs; rt; imm }) <- instr, op /= LUI,
-		 not (isCmpRegsOp op || isCmpZeroImmOp op || isStoreOp op),
-		 stallFree rs
-	      ==> (action {
-		    be.enq dt;
-		    bd.deq;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = toMop op;
-					   wback = True;
-					   ready = False;
-					   rd = rt;
-					   v1 = registerValue rs;
-					   v2 = vSignExt imm;
-					 }
-
-	  "D-Store":
-	    when (Immediate { op; rs; rt; imm }) <- instr,
-		 isStoreOp op, stallFree rs, stallFree rt
+          "D-LUI":
+            when (Immediate { op = LUI; rt; imm }) <- instr
               ==> (action {
-		    be.enq dt;
-		    bd.deq;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = toMop op;
-					   wback = False;
-					   ready = False;
-					   v1 = registerValue rs;
-					   v2 = vSignExt imm;
-					   v3 = registerValue rt
-					 }
+                    be.enq dt;
+                    bd.deq;
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = Mwback;
+                                            wback = True;
+                                            ready = True;
+                                            rd = rt;
+                                            v1 = vZeroExt imm << 16;
+                                          }
+
+          "D-Immediate":
+            when (Immediate { op; rs; rt; imm }) <- instr, op /= LUI,
+                 not (isCmpRegsOp op || isCmpZeroImmOp op || isStoreOp op),
+                 stallFree rs
+              ==> (action {
+                    be.enq dt;
+                    bd.deq;
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = toMop op;
+                                            wback = True;
+                                            ready = False;
+                                            rd = rt;
+                                            v1 = registerValue rs;
+                                            v2 = vSignExt imm;
+                                          }
+
+          "D-Store":
+            when (Immediate { op; rs; rt; imm }) <- instr,
+                 isStoreOp op, stallFree rs, stallFree rt
+              ==> (action {
+                    be.enq dt;
+                    bd.deq;
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = toMop op;
+                                            wback = False;
+                                            ready = False;
+                                            v1 = registerValue rs;
+                                            v2 = vSignExt imm;
+                                            v3 = registerValue rt
+                                          }
 
           "D-Register":
             when (Register { rs; rt; rd; sa; funct }) <- instr,
-	         not (isJumpFunct funct),
+                 not (isJumpFunct funct),
                  stallFree rs, isShiftOp funct || stallFree rt
               ==> (action {
                     be.enq dt;
                     bd.deq;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = toMop funct;
-					   wback = True;
-					   ready = False;
-					   rd = rd;
-					   v1 = registerValue rs;
-					   v2 = if isShiftOp funct
-						then vZeroExt sa
-						else registerValue rt;
-					 }
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = toMop funct;
+                                            wback = True;
+                                            ready = False;
+                                            rd = rd;
+                                            v1 = registerValue rs;
+                                            v2 = if isShiftOp funct
+                                                 then vZeroExt sa
+                                                 else registerValue rt;
+                                          }
 
           "D-JumpRegister":
             when (Register { rs; funct = JR }) <- instr, stallFree rs
               ==> action {
-		    pc := vToI (registerValue rs);
-		    bd.clear
-		  }
+                    pc := vToI (registerValue rs);
+                    bd.clear
+                  }
 
           "D-JumpAndLinkRegister":
             when (Register { rs; rd; funct = JALR }) <- instr,
-		 stallFree rs
-	      ==> (action {
-		    pc := vToI (registerValue rs);
-		    be.enq dt;
-		    bd.clear;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = Mwback;
-					   wback = True;
-					   ready = True;
-					   rd = rd;
-					   v1 = iToV (pc' + 2);
-					 }
+                 stallFree rs
+              ==> (action {
+                    pc := vToI (registerValue rs);
+                    be.enq dt;
+                    bd.clear;
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = Mwback;
+                                            wback = True;
+                                            ready = True;
+                                            rd = rd;
+                                            v1 = iToV (pc' + 2);
+                                          }
 
           "D-Jump":
             when (Jump { op = J; target }) <- instr
               ==> action {
-		    pc := jumpExtend pc' target;
-		    bd.clear
-		  }
+                    pc := jumpExtend pc' target;
+                    bd.clear
+                  }
 
           "D-JumpAndLink":
             when (Jump { op = JAL; target }) <- instr
-	      ==> (action {
-		    pc := jumpExtend pc' target;
-		    bd.clear;
-		    be.enq dt;
-		  }) where dt = DTemplate { pc = pc';
-			                   mop = Mwback;
-					   wback = True;
-					   ready = True;
-					   rd = Reg31;
-					   v1 = iToV (pc' + 2);
-					 }
+              ==> (action {
+                    pc := jumpExtend pc' target;
+                    bd.clear;
+                    be.enq dt;
+                  }) where dt = DTemplate { pc = pc';
+                                            mop = Mwback;
+                                            wback = True;
+                                            ready = True;
+                                            rd = Reg31;
+                                            v1 = iToV (pc' + 2);
+                                          }
 
           "D-BranchCmpRegs":
             when (Immediate { op; rs; rt; imm }) <- instr,
-	         isCmpRegsOp op, stallFree rs, stallFree rt
+                 isCmpRegsOp op, stallFree rs, stallFree rt
               ==> (if compareROp op v1 v2 then action {
-		     pc := pc' + 1 + iaSignExt imm;
-		     bd.clear;
-		  } else
-		     bd.deq
-		  ) where {
-		     v1 = registerValue rs;
-		     v2 = registerValue rt;
-		  }
+                     pc := pc' + 1 + iaSignExt imm;
+                     bd.clear;
+                  } else
+                     bd.deq
+                  ) where {
+                     v1 = registerValue rs;
+                     v2 = registerValue rt;
+                  }
 
           "D-BranchCmpZeroImm":
             when (Immediate { op; rs; imm }) <- instr,
-	         isCmpZeroImmOp op, stallFree rs
+                 isCmpZeroImmOp op, stallFree rs
               ==> (if compareZImmOp op v1 then action {
-	             pc := pc' + 1 + iaSignExt imm;
-		     bd.clear;
-		  } else
-		     bd.deq
-		  ) where {
-	             v1 = registerValue rs;
-		  }
+                     pc := pc' + 1 + iaSignExt imm;
+                     bd.clear;
+                  } else
+                     bd.deq
+                  ) where {
+                     v1 = registerValue rs;
+                  }
 
           "D-BranchCmpZeroRegImm":
             when (RegImm { op; rs; imm }) <- instr,
-	         isCmpZeroRegImmOp op, stallFree rs
+                 isCmpZeroRegImmOp op, stallFree rs
               ==> (if compareZRegImmOp op v1 then action {
-	             pc := pc' + 1 + iaSignExt imm;
-		     bd.clear;
+                     pc := pc' + 1 + iaSignExt imm;
+                     bd.clear;
                   } else
-		     bd.deq
+                     bd.deq
                   ) where {
                      v1 = registerValue rs;
-		  }
+                  }
 
           "D-BranchCmpZeroAndLink":
             when (RegImm { op; rs; imm }) <- instr,
                  isCmpZALOp op, stallFree rs
               ==> (if compareZALOp op v1 then action {
                      pc := pc' + 1 + iaSignExt imm;
-		     be.enq dt;
-		     bd.clear;
+                     be.enq dt;
+                     bd.clear;
                   } else
-		     bd.deq
+                     bd.deq
                   ) where {
-	             v1 = registerValue rs;
-		     dt = DTemplate { pc = pc';
+                     v1 = registerValue rs;
+                     dt = DTemplate { pc = pc';
                                       mop = Mwback;
-				      wback = True;
-				      ready = True;
-				      rd = Reg31;
-				      v1 = iToV (pc' + 2);
-				    }
-		  }
+                                      wback = True;
+                                      ready = True;
+                                      rd = Reg31;
+                                      v1 = iToV (pc' + 2);
+                                    }
+                  }
 
 -- ALU STAGE --
 mkExecuteRules :: TBuffer -> TBuffer -> Rules
 mkExecuteRules be bm =
-	rules
-	  "E-Wback":
-	    when dt@(DTemplate { mop = Mwback }) <- be.first
-	      ==> action {
-	            bm.enq dt;
-	            be.deq;
-		  }
+        rules
+          "E-Wback":
+            when dt@(DTemplate { mop = Mwback }) <- be.first
+              ==> action {
+                    bm.enq dt;
+                    be.deq;
+                  }
 
-	  "E-Arith":
-	    when dt@(DTemplate { mop; v1; v2 }) <- be.first,
-	         isArithmeticOp mop
-	      ==> (action {
-	            bm.enq dt';
-	            be.deq;
-		  }) where {
-		    dt' = dt { mop = Mwback;
-		               ready = True;
-			       v1 = result; };
-		    result = computeOp mop v1 v2;
-		  }
-
-	  "E-Mem":
-	    when dt@(DTemplate { mop; v1; v2 }) <- be.first,
-		 isMemoryOp mop
+          "E-Arith":
+            when dt@(DTemplate { mop; v1; v2 }) <- be.first,
+                 isArithmeticOp mop
               ==> (action {
                     bm.enq dt';
-		    be.deq;
-		  }) where  dt' = dt { ready = False;
-			              v1 = v1 + v2; }
+                    be.deq;
+                  }) where {
+                    dt' = dt { mop = Mwback;
+                               ready = True;
+                               v1 = result; };
+                    result = computeOp mop v1 v2;
+                  }
+
+          "E-Mem":
+            when dt@(DTemplate { mop; v1; v2 }) <- be.first,
+                 isMemoryOp mop
+              ==> (action {
+                    bm.enq dt';
+                    be.deq;
+                  }) where  dt' = dt { ready = False;
+                                      v1 = v1 + v2; }
 
 -- MEMORY STAGE --
 mkMemoryRules :: TBuffer -> TBuffer -> MRAM -> Rules
 mkMemoryRules bm bw dmem =
-	rules
-	  "M-NoMem":
-	    when dt@(DTemplate { mop }) <- bm.first,
-	         not (isMemoryOp mop)
-	      ==> action {
-		    bw.enq dt;
-		    bm.deq;
-		  }
+        rules
+          "M-NoMem":
+            when dt@(DTemplate { mop }) <- bm.first,
+                 not (isMemoryOp mop)
+              ==> action {
+                    bw.enq dt;
+                    bm.deq;
+                  }
 
           "M-Store":
-	    when DTemplate { mop = Mstore; v1 = addr; v3 = datum } <- bm.first
-	      ==> action {
-		    dmem.write (vToA addr) datum;
-		    bm.deq;
-		  }
+            when DTemplate { mop = Mstore; v1 = addr; v3 = datum } <- bm.first
+              ==> action {
+                    dmem.write (vToA addr) datum;
+                    bm.deq;
+                  }
 
-	  "M-Load":
+          "M-Load":
             when dt@(DTemplate { mop = Mload; v1 = addr; }) <- bm.first
-	      ==> (action {
-	            bw.enq dt';
-	            bm.deq;
-		  }) where {
-			  dt' = dt { mop = Mwback;
-			             ready = True;
-				     v1 = datum; };
-			  datum = dmem.read (vToA addr);
-		  }
+              ==> (action {
+                    bw.enq dt';
+                    bm.deq;
+                  }) where {
+                          dt' = dt { mop = Mwback;
+                                     ready = True;
+                                     v1 = datum; };
+                          datum = dmem.read (vToA addr);
+                  }
 
 -- WRITEBACK STAGE --
 mkWritebackRules :: RegisterFile -> TBuffer -> Rules
@@ -526,10 +526,10 @@ mkWritebackRules rf bw =
     rules
       "Wback":
         when DTemplate { mop = Mwback; v1 = datum; rd } <- bw.first
-	  ==> action {
-		if rd == Reg0 then
-			action { }
-		else
-	        	rf.upd rd datum;
-		bw.deq;
-	      }
+          ==> action {
+                if rd == Reg0 then
+                        action { }
+                else
+                        rf.upd rd datum;
+                bw.deq;
+              }

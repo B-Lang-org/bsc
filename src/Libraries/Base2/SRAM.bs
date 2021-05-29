@@ -22,10 +22,10 @@ import SyncSRAM
 --@ \begin{libverbatim}
 --@ module mkWrapSRAM#(Module#(SyncSRAMS#(lat, adrs, dtas)) mkRam)(RAM#(adr, dta))
 --@   provisos (Bits#(adr, adrs),
---@ 	    Bits#(dta, dtas),
---@ 	    Add#(1, lat, lat1),
---@ 	    Add#(4, lat, lat4),
---@ 	    Log#(lat4, llat));
+--@             Bits#(dta, dtas),
+--@             Add#(1, lat, lat1),
+--@             Add#(4, lat, lat4),
+--@             Log#(lat4, llat));
 --@ \end{libverbatim}
 mkWrapSRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Add 1 lat lat1, Add 4 lat lat4, Log lat4 llat) =>
               m (SyncSRAMS lat adrs dtas) -> m (RAM adr dta)
@@ -43,93 +43,93 @@ mkWrapSRAM mkRam =
 --@ \begin{libverbatim}
 --@ module wrapSRAM(Tuple2 #(SyncSRAMC#(lat, adrs, dtas), RAM#(adr, dta)))
 --@   provisos (Bits#(adr, adrs),
---@ 	    Bits#(dta, dtas),
---@ 	    Add#(1, lat, lat1),
---@ 	    Add#(4, lat, lat4),
---@ 	    Log#(lat4, llat));
+--@             Bits#(dta, dtas),
+--@             Add#(1, lat, lat1),
+--@             Add#(4, lat, lat4),
+--@             Log#(lat4, llat));
 --@ \end{libverbatim}
 wrapSRAM :: (IsModule m c, Bits adr adrs, Bits dta dtas, Add 1 lat lat1, Add 4 lat lat4, Log lat4 llat) =>
             m (SyncSRAMC lat adrs dtas, RAM adr dta)
 wrapSRAM =
   module
     let lat = fromInteger (valueOf lat)
-    out :: FIFOF dta		<- mkUGSizedFIFOF (lat + 4)	-- output FIFO
-    adr :: Reg (Bit adrs)	<- mkConfigRegU			-- SRAM address reg
-    dta :: Reg (Bit dtas)	<- mkConfigRegU			-- SRAM data reg
-    wen :: Reg (Bit 1)		<- mkConfigReg 0			-- SRAM write enable
-    act :: RegTwo (Bit 1)	<- mkRegTwo 0			-- has request
-    obf :: Reg (Bit dtas)	<- mkConfigRegU			-- SRAM output reg
-    cnt :: Counter llat		<- mkCounter (lat + 4)		-- free read slots
-    rds :: ShiftReg lat1 Bool	<- mkShiftReg False		-- read requests in SRAM
+    out :: FIFOF dta           <- mkUGSizedFIFOF (lat + 4)    -- output FIFO
+    adr :: Reg (Bit adrs)      <- mkConfigRegU                -- SRAM address reg
+    dta :: Reg (Bit dtas)      <- mkConfigRegU                -- SRAM data reg
+    wen :: Reg (Bit 1)         <- mkConfigReg 0               -- SRAM write enable
+    act :: RegTwo (Bit 1)      <- mkRegTwo 0                  -- has request
+    obf :: Reg (Bit dtas)      <- mkConfigRegU                -- SRAM output reg
+    cnt :: Counter llat        <- mkCounter (lat + 4)         -- free read slots
+    rds :: ShiftReg lat1 Bool  <- mkShiftReg False            -- read requests in SRAM
 
     let hasSpace = cnt.value > 0
 
     rules
           {-# ASSERT no implicit conditions #-}
-	  {-# ASSERT fire when enabled #-}
-	  "SRAMtick":
-	    when True
-	     ==> action
-		    -- Move the shift register with read flags.
-		    rds.shift (act.get == 1 && wen == 0)
-		    -- Reset active signal; setA has precedence
-		    act.setB 0
+          {-# ASSERT fire when enabled #-}
+          "SRAMtick":
+            when True
+             ==> action
+                    -- Move the shift register with read flags.
+                    rds.shift (act.get == 1 && wen == 0)
+                    -- Reset active signal; setA has precedence
+                    act.setB 0
 
           {-# ASSERT no implicit conditions #-}
-	  {-# ASSERT fire when enabled #-}
-	  -- Save read values.
-	  "enq":
-	    when rds.output
-	     ==> out.enq (unpack obf)
+          {-# ASSERT fire when enabled #-}
+          -- Save read values.
+          "enq":
+            when rds.output
+             ==> out.enq (unpack obf)
 
     interface -- Pair
        (interface Client
-	    request =
+            request =
              interface Get
-	      get = return $
-		interface SyncSRAMrequest
-		    addr  = adr
-		    wdata = dta
-		    we    = wen
-		    ena   = act.get
-	    response =
+              get = return $
+                interface SyncSRAMrequest
+                    addr  = adr
+                    wdata = dta
+                    we    = wen
+                    ena   = act.get
+            response =
              interface Put
-	      put res = obf := res
-	,
-	interface Server
-	    request =
-	     interface Put
-	      put req = do
-		  act.setA 1
-		  adr := (pack $ case req of
-				  Read a -> a
-				  Write (address, _) -> address
+              put res = obf := res
+        ,
+        interface Server
+            request =
+             interface Put
+              put req = do
+                  act.setA 1
+                  adr := (pack $ case req of
+                                  Read a -> a
+                                  Write (address, _) -> address
                          )
 
-		  dta := (pack $ case req of
-				  Read _ -> _
-				  Write (_, value) -> value
+                  dta := (pack $ case req of
+                                  Read _ -> _
+                                  Write (_, value) -> value
                          )
 
-		  wen := (case req of
-			   Read _ -> 0
-			   Write _ -> 1
+                  wen := (case req of
+                           Read _ -> 0
+                           Write _ -> 1
                          )
 
-		  cnt.dec (case req of
-			      Read _ -> 1
-			      Write _ -> 0
+                  cnt.dec (case req of
+                              Read _ -> 1
+                              Write _ -> 0
                           )
 
-	       when hasSpace
-	    response =
-	     interface Get
-	      get = do
-		    cnt.up
-		    out.deq
-		    return out.first
-		when out.notEmpty
-	   )
+               when hasSpace
+            response =
+             interface Get
+              get = do
+                    cnt.up
+                    out.deq
+                    return out.first
+                when out.notEmpty
+           )
 
 
 interface (ShiftReg :: # -> * -> *) n a =
@@ -141,8 +141,8 @@ mkShiftReg i =
   module
     sr :: Reg (Vector n a) <- mkReg (map (const i) genList)
     interface -- ShiftReg
-	    output = last sr
-	    shift s = sr := (s :> init sr)
+            output = last sr
+            shift s = sr := (s :> init sr)
 
 --@ Both the \te{mkWrapSRAM} and \te{wrapSRAM} modules add two cycles of
 --@ latency to the SRAM latency.  The reason for this is that the raw interface

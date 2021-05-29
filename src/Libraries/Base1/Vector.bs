@@ -94,7 +94,7 @@ instance (FShow a) => FShow (Vector n a)
 -- will cause the array to be marked as initialized).
 --
 primitive primMarkArrayUninitialized
-	      :: Position__ -> String -> Array a -> Array a
+              :: Position__ -> String -> Array a -> Array a
 
 markVectorUninitialized :: Position__ -> String -> Vector n a -> Vector n a
 markVectorUninitialized pos name (V v) = V (primMarkArrayUninitialized pos name v)
@@ -192,8 +192,8 @@ genWith f = V (Array.genWith (valueOf n) f)
 --@ \end{libverbatim}
 cons :: (Add 1 n n1) => a -> Vector n a -> Vector n1 a
 cons x (V v) = if (valueOf n) == 0
-        	 then V (primArrayNew 1 x)
-		 else V (primUpdateFn (getStringPosition "") (growRight v 1) 0 x)
+                 then V (primArrayNew 1 x)
+                 else V (primUpdateFn (getStringPosition "") (growRight v 1) 0 x)
 
 --X@ A more convenient (right associative) operator for Cons (not available in BSV).
 --X@ \begin{libverbatim}
@@ -331,7 +331,7 @@ init (V v) = V (Array.shrinkLeft v 1)
 take :: (Add m k n) => Vector n a -> Vector m a
 take (V v) = if (valueOf m) == 0
                 then V (primArrayNewU 0)
-		else V (Array.shrinkLeft v (valueOf k))
+                else V (Array.shrinkLeft v (valueOf k))
 
 --@ \index{takeTail@\te{takeTail} (\te{Vector} function)}
 --@ Take a number of elements of the vector dropping elements at the
@@ -711,9 +711,9 @@ rotateStage (V v) stg amt =
     in if (ctrl == 0)
        then V v
        else let move = 2**stg
-		keep = (valueOf n) - move
-		high = Array.shrinkLeft v move
-		low  = Array.shrinkRight v keep
+                keep = (valueOf n) - move
+                high = Array.shrinkLeft v move
+                low  = Array.shrinkRight v keep
             in V (Array.append high low )
 
 rotateLoop :: (Log n lgn) => Vector n a -> Integer -> UInt lgn -> Vector n a
@@ -1050,8 +1050,8 @@ and v = all id v
 find :: (a -> Bool) -> Vector n a -> Maybe a
 find pred v =
     let combine :: Maybe a -> a -> Maybe a
-	combine Nothing y = if (pred y) then (Just y) else Nothing
-	combine x       _ = x
+        combine Nothing y = if (pred y) then (Just y) else Nothing
+        combine x       _ = x
     in if (valueOf n) == 0
        then Nothing
        else foldl combine Nothing v
@@ -1068,9 +1068,9 @@ findIndex pred v =
         genRes True i = Valid i
         genRes False _ = Invalid
         results = zipWith genRes  (map pred v) (genWith fromInteger )
-	combine :: Maybe (UInt lgn) -> Maybe (UInt lgn) -> Maybe (UInt lgn)
-	combine Nothing x = x
-	combine x       _ = x
+        combine :: Maybe (UInt lgn) -> Maybe (UInt lgn) -> Maybe (UInt lgn)
+        combine Nothing x = x
+        combine x       _ = x
     in if (valueOf n) == 0
        then Nothing
        else Array.fold combine (vectorToArray results)
@@ -1251,8 +1251,8 @@ writeVReg vr v = joinActions $ zipWith writeReg vr v
 toChunks :: (Bits ch ch_sz, Bits t in_sz, Div in_sz ch_sz n) => t -> Vector n ch
 toChunks x = let padding = (0 :: Bit ch_sz)
                  v_sz = (valueOf ch_sz) * (valueOf n)
-	         tmp = padding ++ (pack x)
-	     in unpack(tmp[v_sz-1:0])
+                 tmp = padding ++ (pack x)
+             in unpack(tmp[v_sz-1:0])
 
 
 --@ \item{\bf Examples Using the Vector Type}

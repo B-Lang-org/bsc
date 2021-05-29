@@ -10,7 +10,7 @@ fromRegPrimPairBoolMaybeBitSizeOfBit32_
 fromRegPrimPairBoolMaybeBitSizeOfBit32_ _t =
     interface Reg {
       _write _x1000000 =
-	  fromActionValue_ (_t._write (pack _x1000000));
+          fromActionValue_ (_t._write (pack _x1000000));
       _read = _
     }
 

@@ -1,19 +1,19 @@
 package List(
         -- Prelude exports: List(..)
-	(:>), (<:), map, append, foldr, foldr1, foldl, foldl1, fold, upto,
-	rotate, rotateR, reverse, last, init, length, zipWith, zipWith3, zipWith4,
-	zip, zip3, zip4, replicate,
-	unzip, (!!), select, selectM, oneHotSelect, update, concat, head, tail, null, isNull,
-	scanr, sscanr, scanl, sscanl, filter, find, lookup,
-	takeWhile, takeWhileRev, dropWhile, dropWhileRev,
-	all, any, take, drop, transpose, elem, and, or,
-	mapAccumL, mapAccumR, mapPairs,
-	mapn, foldn,
-	joinActions, joinRules,
+        (:>), (<:), map, append, foldr, foldr1, foldl, foldl1, fold, upto,
+        rotate, rotateR, reverse, last, init, length, zipWith, zipWith3, zipWith4,
+        zip, zip3, zip4, replicate,
+        unzip, (!!), select, selectM, oneHotSelect, update, concat, head, tail, null, isNull,
+        scanr, sscanr, scanl, sscanl, filter, find, lookup,
+        takeWhile, takeWhileRev, dropWhile, dropWhileRev,
+        all, any, take, drop, transpose, elem, and, or,
+        mapAccumL, mapAccumR, mapPairs,
+        mapn, foldn,
+        joinActions, joinRules,
         nil, cons, -- reexported from the Prelude
         mapM, mapM_, zipWithM, zipWith3M, replicateM, sequence,
         foldM, folduM, foldlM, foldrM,
-	sortBy, sort, groupBy, group
+        sortBy, sort, groupBy, group
        ) where
 
 
@@ -90,9 +90,9 @@ filter :: (a -> Bool) -> List a -> List a
 filter _ Nil = Nil
 filter p (Cons x xs) =
     if p x then
-	Cons x (filter p xs)
+        Cons x (filter p xs)
     else
-	filter p xs
+        filter p xs
 
 --@ Return the first element that satisfies the predicate
 --@ or \te{Nothing} if there is none.
@@ -104,9 +104,9 @@ find :: (a -> Bool) -> List a -> Maybe a
 find _ Nil = Nothing
 find p (Cons x xs) =
     if p x then
-	Just x
+        Just x
     else
-	find p xs
+        find p xs
 
 --@ Lookup a value in an association list.
 --@ \index{lookup@\te{lookup} (\te{List} function)}
@@ -116,8 +116,8 @@ find p (Cons x xs) =
 --@ \end{libverbatim}
 lookup :: (Eq a) => a -> List (a,b) -> Maybe b
 lookup k xs = case (find (\x -> x.fst == k) xs) of
-	        Nothing    -> Nothing
-		Just (_,v) -> Just v
+                Nothing    -> Nothing
+                Just (_,v) -> Just v
 
 --@ Append two lists, return appended list.
 --@ \index{append@\te{append} (\te{List} function)}
@@ -236,7 +236,7 @@ zipWith _ _ _ = Nil
 --@ \index{zipWith3@\te{zipWith3} (\te{List} function)}
 --@ \begin{libverbatim}
 --@ function List#(d) zipWith3 (function d f(a x, b y, c z),
---@ 	                    List#(a) xs, List#(b) ys, List#(c) zs);
+--@                             List#(a) xs, List#(b) ys, List#(c) zs);
 --@ \end{libverbatim}
 zipWith3 :: (a -> b -> c -> d) -> List a -> List b -> List c -> List d
 zipWith3 f (Cons x xs) (Cons y ys) (Cons z zs) = Cons (f x y z) (zipWith3 f xs ys zs)
@@ -246,7 +246,7 @@ zipWith3 _ _ _ _ = Nil
 --@ \index{zipWith4@\te{zipWith4} (\te{List} function)}
 --@ \begin{libverbatim}
 --@ function List#(e) zipWith4 (function e f(a x, b y, c z, d w),
---@ 	                    List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
+--@                             List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
 --@ \end{libverbatim}
 zipWith4 :: (a -> b -> c -> d -> e) -> List a -> List b -> List c -> List d -> List e
 zipWith4 f (Cons x xs) (Cons y ys) (Cons z zs) (Cons w ws) = Cons (f x y z w) (zipWith4 f xs ys zs ws)
@@ -274,7 +274,7 @@ zip3 _ _ _ = Nil
 --@ \index{zip4@\te{zip4} (\te{List} function)}
 --@ \begin{libverbatim}
 --@ function List#(Tuple4 #(a, b, c, d)) zip4
---@ 	 (List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
+--@          (List#(a) xs, List#(b) ys, List#(c) zs, List#(d) ws);
 --@
 --@ \end{libverbatim}
 zip4 :: List a -> List b -> List c -> List d -> List (a, b, c, d)
@@ -289,8 +289,8 @@ zip4 _ _ _ _ = Nil
 unzip :: List (a, b) -> (List a, List b)
 unzip Nil = (Nil, Nil)
 unzip (Cons (x, y) xys) =
-	case unzip xys of
-	(xs, ys) -> (Cons x xs, Cons y ys)
+        case unzip xys of
+        (xs, ys) -> (Cons x xs, Cons y ys)
 
 --@ Reverse element order
 --@ \index{reverse@\te{reverse} (\te{List} function)}
@@ -431,10 +431,10 @@ oneHotSelect bs xs =
     -- widen may actually make a Bit 0 value, this makes it tricky to write
     letseq widen :: (Add sa 1 sa1) => Bit 1 -> Bit sa
            widen b =
-	       letseq wb :: Bit sa1
-	              wb = signExtend b
-	       in     wb[(valueOf sa - 1) : 0]
-    in	   unpack (fold (|) (zipWith (\ b x -> widen (pack b) & pack x) bs xs))
+               letseq wb :: Bit sa1
+                      wb = signExtend b
+               in     wb[(valueOf sa - 1) : 0]
+    in  unpack (fold (|) (zipWith (\ b x -> widen (pack b) & pack x) bs xs))
 
 --@ Update an element in a list.
 --@ \index{update@\te{update} (\te{List} function)}
@@ -459,9 +459,9 @@ transpose :: List (List a) -> List (List a)
 transpose Nil = Nil
 transpose xss =
     if any null xss then
-	Nil
+        Nil
     else
-	Cons (map head xss) (transpose (map tail xss))
+        Cons (map head xss) (transpose (map tail xss))
 
 --@ Test if a predicate holds for all elements of a list.
 --@ \index{all@\te{all} (\te{List} function)}
@@ -508,9 +508,9 @@ takeWhile :: (a -> Bool) -> List a -> List a
 takeWhile _ Nil = Nil
 takeWhile p (Cons x xs) =
     if p x then
-	Cons x (takeWhile p xs)
+        Cons x (takeWhile p xs)
     else
-	Nil
+        Nil
 
 --@ Return the tail segment that fulfills a predicate.
 --@ \index{takeWhileRev@\te{takeWhileRev} (\te{List} function)}
@@ -529,9 +529,9 @@ dropWhile :: (a -> Bool) -> List a -> List a
 dropWhile _ Nil = Nil
 dropWhile p xxs@(Cons x xs) =
     if p x then
-	dropWhile p xs
+        dropWhile p xs
     else
-	xxs
+        xxs
 
 --@ Remove the tail segment that fulfills a predicate.
 --@ \index{dropWhileRev@\te{dropWhileRev} (\te{List} function)}
@@ -561,9 +561,9 @@ elem y (Cons x xs) = x == y || elem y xs
 scanl :: (a -> b -> a) -> a -> List b -> List a
 scanl f q xs =
     Cons q (case xs of
-	    Nil -> Nil
-	    Cons a as -> scanl f (f q a) as
-	   )
+            Nil -> Nil
+            Cons a as -> scanl f (f q a) as
+           )
 
 --@ \index{sscanl@\te{sscanl} (\te{List} function)}
 --@ \begin{libverbatim}
@@ -582,8 +582,8 @@ sscanl f q xs = tail (scanl f q xs)
 scanr :: (a -> b -> b) -> b -> List a -> List b
 scanr _ q0 Nil = Cons q0 Nil
 scanr f q0 (Cons x xs) =
-	case scanr f q0 xs of
-	qs@(Cons q _) -> Cons (f x q) qs
+        case scanr f q0 xs of
+        qs@(Cons q _) -> Cons (f x q) qs
 
 --@ \index{sscanr@\te{sscanr} (\te{List} function)}
 --@ \begin{libverbatim}
@@ -655,7 +655,7 @@ mapPairs f g (Cons x1 (Cons x2 xs)) = Cons (f x1 x2) (mapPairs f g xs)
 --@ the result and the remaining list.
 --@ \begin{libverbatim}
 --@ function List#(b) mapn (function Tuple2#(b, List#(a)) f (List#(a) xs),
---@ 		        List#(a) xs);
+--@                         List#(a) xs);
 --@ \end{libverbatim}
 mapn :: (List a -> (b, List a)) -> List a -> List b
 mapn _ Nil = Nil
@@ -667,7 +667,7 @@ mapn f xs =
 --@ the result and the remaining list.
 --@ \begin{libverbatim}
 --@ function a foldn (function Tuple2#(a, List#(a)) f (List#(a) xs),
---@ 		  List#(a) xs);
+--@                   List#(a) xs);
 --@ \end{libverbatim}
 foldn :: (List a -> (a, List a)) -> List a -> a
 foldn _ Nil = error "foldn"
@@ -775,9 +775,9 @@ zipWithM _ _ _ = return Nil
 --@
 --@ \begin{libverbatim}
 --@ function m#(List#(d)) zipWith3M(function m#(d) f(a x1, b x2, c x3),
---@ 				List#(a) xs,
---@ 				List#(b) ys,
---@ 				List#(c) zs)
+--@                                 List#(a) xs,
+--@                                 List#(b) ys,
+--@                                 List#(c) zs)
 --@   provisos (Monad#(m));
 --@ \end{libverbatim}
 zipWith3M :: (Monad m) => (a -> b -> c -> m d) -> List a -> List b -> List c -> m (List d)
@@ -801,11 +801,11 @@ zipWith3M _ _ _ _ = return Nil
 sequence :: (Monad m) => List (m a) -> m (List a)
 sequence =
     letseq mcons p q = do
-		_x :: a
-		_x <- p
-		_xs :: List a
-		_xs <- q
-		return (Cons _x _xs)
+                _x :: a
+                _x <- p
+                _xs :: List a
+                _xs <- q
+                return (Cons _x _xs)
     in  foldr mcons (return Nil)
 
 --@ \te{foldlM} $f$ $z$ $xs$ \\
@@ -821,9 +821,9 @@ sequence =
 foldlM :: (Monad m) => (a -> b -> m a) -> a -> List b -> m a
 foldlM _ a Nil         = return a
 foldlM f a (Cons x xs) = do
-	_y :: a
-	_y <- f a x
-	foldlM f _y xs
+        _y :: a
+        _y <- f a x
+        foldlM f _y xs
 
 --@ Tree reduction over a non-empty list.
 --@ First argument combines pairs of leaves.
@@ -837,14 +837,14 @@ foldM :: (Monad m) => (a -> a -> m a) -> List a -> m a
 foldM _ Nil = error "Monad.foldM: empty list"
 foldM _ (Cons x Nil) = return x
 foldM f xs = do
-	_ps <- joinPairsM f xs
-	foldM f _ps
+        _ps <- joinPairsM f xs
+        foldM f _ps
 
 joinPairsM :: (Monad m) => (a -> a -> m a) -> List a -> m (List a)
 joinPairsM f (Cons x (Cons y xs)) = do
-	_r <- f x y
-	_rs <- joinPairsM f xs
-	return (Cons _r _rs)
+        _r <- f x y
+        _rs <- joinPairsM f xs
+        return (Cons _r _rs)
 joinPairsM _ xs = return xs
 
 --@ Tree reduction over a non-empty list.
@@ -860,17 +860,17 @@ folduM :: (Monad m) => (a -> a -> m a) -> (a -> m a) -> List a -> m a
 folduM _ _ Nil = error "Monad.foldM: empty list"
 folduM _ _ (Cons x Nil) = return x
 folduM f g xs = do
-	_ps <- joinPairsU f g xs
-	folduM f g _ps
+        _ps <- joinPairsU f g xs
+        folduM f g _ps
 
 joinPairsU :: (Monad m) => (a -> a -> m a) -> (a -> m a) -> List a -> m (List a)
 joinPairsU f g (Cons x (Cons y xs)) = do
-	_r <- f x y
-	_rs <- joinPairsU f g xs
-	return (Cons _r _rs)
+        _r <- f x y
+        _rs <- joinPairsU f g xs
+        return (Cons _r _rs)
 joinPairsU _ g (Cons x Nil) = do
-	_r <- g x
-	return (Cons _r Nil)
+        _r <- g x
+        return (Cons _r Nil)
 joinPairsU _ _ Nil = return Nil
 
 --@ \te{foldrM} $f$ $z$ $xs$ \\
@@ -886,9 +886,9 @@ joinPairsU _ _ Nil = return Nil
 foldrM :: (Monad m) => (a -> b -> m b) -> b -> List a -> m b
 foldrM _ z Nil         = return z
 foldrM f z (Cons x xs) = do
-	_y :: b
-	_y <- foldrM f z xs
-	f x _y
+        _y :: b
+        _y <- foldrM f z xs
+        f x _y
 
 --@ The \te{fmap} function is a generalization of the the \te{List.map}
 --@ function to an arbitrary monad.  It is now in the Prelude.
@@ -913,20 +913,20 @@ sortBy :: (a -> a -> Ordering) -> List a -> List a
 sortBy _              Nil  = Nil
 sortBy _   xs@(Cons _ Nil) = xs
 sortBy cmp xs              = let (l1,l2) = splitup xs
-		             in merge cmp (sortBy cmp l1) (sortBy cmp l2)
+                             in merge cmp (sortBy cmp l1) (sortBy cmp l2)
 
 splitup :: List a -> (List a,List a)
 splitup                    Nil = (Nil,Nil)
 splitup         l@(Cons _ Nil) = (l,Nil)
 splitup (Cons x (Cons y rest)) = let (xs,ys) = splitup rest
-				 in (Cons x xs, Cons y ys)
+                                 in (Cons x xs, Cons y ys)
 
 merge :: (a -> a -> Ordering) -> List a -> List a -> List a
 merge _               xs            Nil = xs
 merge _              Nil             ys = ys
 merge cmp xl@(Cons x xs) yl@(Cons y ys) = case (cmp x y) of
-		 		  LT -> (Cons x (merge cmp xs yl))
-				  _  -> (Cons y (merge cmp xl ys))
+                                  LT -> (Cons x (merge cmp xs yl))
+                                  _  -> (Cons y (merge cmp xl ys))
 
 -- Specialization of sortBy using instances of Ord
 sort :: (Ord a) => List a -> List a
@@ -942,8 +942,8 @@ addToGroup     _ gps            Nil         Nil = gps
 addToGroup     _ gps        current         Nil = Cons current gps
 addToGroup equiv gps            Nil (Cons x xs) = addToGroup equiv gps (Cons x Nil) xs
 addToGroup equiv gps gp@(Cons g _) (Cons x xs) = if (equiv g x)
-					          then addToGroup equiv gps (Cons x gp) xs
-						  else addToGroup equiv (Cons gp gps) (Cons x Nil) xs
+                                                  then addToGroup equiv gps (Cons x gp) xs
+                                                  else addToGroup equiv (Cons gp gps) (Cons x Nil) xs
 
 -- Specialization of groupBy using instances of Eq
 group :: (Eq a) => List a -> List (List a)

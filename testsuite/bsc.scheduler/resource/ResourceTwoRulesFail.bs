@@ -28,11 +28,11 @@ sysResourceTwoRulesFail :: Module Empty
 sysResourceTwoRulesFail =
       module
         r :: Reg Value
-	r <- mkRegU
+        r <- mkRegU
         s :: Reg Value
         s <- mkRegU
-	a :: RegFile Index Value
-	a <- mkRegFileFull
+        a :: RegFile Index Value
+        a <- mkRegFileFull
         rules
             "Bogus1":
                when True
