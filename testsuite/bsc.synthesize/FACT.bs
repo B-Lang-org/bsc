@@ -8,11 +8,11 @@ sysFACT  :: Module FACT
 
 sysFACT =
     module
-	x :: Reg (Int 32)
-	x <- mkRegU
+        x :: Reg (Int 32)
+        x <- mkRegU
 
-	count :: Reg (Int 32)
-	count <- mkReg 0
+        count :: Reg (Int 32)
+        count <- mkReg 0
 
         fact :: Reg (Int 32)
         fact <- mkReg 1
@@ -25,8 +25,8 @@ sysFACT =
                      count :=  count - 1
 
         interface
-	    start ix   = action
+            start ix   = action
                            count := ix
-	                  when (count == 0)
+                          when (count == 0)
 
-	    result = fact when ( count == 0)
+            result = fact when ( count == 0)

@@ -19,9 +19,9 @@ sysIfNestedME =
     d <- mkReg 0
 
     interface
-	flip_a = a :=  not a
-	flip_b = b :=  not b
-	flip_c = c :=  not c
+        flip_a = a :=  not a
+        flip_b = b :=  not b
+        flip_c = c :=  not c
         get_d = d
     rules
 

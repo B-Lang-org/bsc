@@ -5,5 +5,5 @@ package DummyInCase () where
 
 dummyInCase :: Bit 1 -> Bool
 dummyInCase x = case x of
-		    _ -> _
+                    _ -> _
 

@@ -28,8 +28,8 @@ constructorArgumentOrderBaby i =
   module
     interface
       speak = action {
-		$display "baby here: %b" i
-	      	}
+                $display "baby here: %b" i
+              }
 
 {-# verilog constructorArgumentOrderChild #-}
 constructorArgumentOrderChild :: Speak -> Nat -> Module Speak
@@ -37,5 +37,5 @@ constructorArgumentOrderChild baby i =
   module
     interface
       speak = action {
-		$display "child speaking: %b";
-	      	baby.speak; }
+                $display "child speaking: %b";
+                baby.speak; }

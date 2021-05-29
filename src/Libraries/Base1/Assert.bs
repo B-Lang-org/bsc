@@ -33,7 +33,7 @@ staticAssert b s = if not testAssert || b then
 --@ \end{libverbatim}
 dynamicAssert :: Bool -> String -> Action
 dynamicAssert = if not testAssert then (\ _ _ -> noAction)
-		else (\ b s -> if b then noAction else
+                else (\ b s -> if b then noAction else
                         action
                           $display (assertMessage "Dynamic" s)
                           $finish 0
@@ -52,7 +52,7 @@ nullModule =
 --@ \end{libverbatim}
 continuousAssert :: (IsModule m c) => Bool -> String -> m Empty
 continuousAssert = if not testAssert then (\_ _ -> nullModule)
-		else (\ b s -> addRules $
+                else (\ b s -> addRules $
                         rules
                          {-# ASSERT no implicit conditions #-}
                          {-# ASSERT fire when enabled #-}

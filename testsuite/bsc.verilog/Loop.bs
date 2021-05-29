@@ -34,15 +34,15 @@ for i lo hi stmts = liftModule $
       run :: Reg Bool <- mkReg False
       body :: ActionSeq <- actionSeq $ append (init stmts) (action { last stmts; run := i < hi; i := i + 1 } :> nil)
       interface
-	start = if lo <= hi then action { run := True; i := lo; body.start } else action { }
-	    when not run
-	done = not run
+        start = if lo <= hi then action { run := True; i := lo; body.start } else action { }
+            when not run
+        done = not run
         checkDone = noAction
             when not run
       rules
        "for":
-	when run
-	 ==> body.start
+        when run
+         ==> body.start
 
 --@ \index{forN@\te{forN} (\te{Loop} function)}
 --@ The function \te{forN} is like \te{for}, except that the loop
@@ -61,20 +61,20 @@ forN i hi stmts = liftModule $
     module
       run :: Reg Bool <- mkReg False
       body :: ActionSeq <- actionSeq $ append (init stmts) (action {
-								last stmts;
-								run := i > 0;
-								i := i - 1 }
-							      :> nil)
+                                                                last stmts;
+                                                                run := i > 0;
+                                                                i := i - 1 }
+                                                              :> nil)
       interface
-	start = if hi >= 0 then action { run := True; i := hi; body.start } else action { }
-	    when not run
-	done = not run
+        start = if hi >= 0 then action { run := True; i := hi; body.start } else action { }
+            when not run
+        done = not run
         checkDone = noAction
             when not run
       rules
        "for":
-	when run
-	 ==> body.start
+        when run
+         ==> body.start
 
 --@ \index{forBreak@\te{forBreak} (\te{Loop} function)}
 --@ The function \te{forBreak} is like \te{for}, except that the loop
@@ -95,18 +95,18 @@ forBreak i lo hi stmts = liftModule $
       run :: Reg Bool <- mkReg False
       go :: Reg Bool <- mkRegU
       body :: ActionSeq <- actionSeqBreak $ \ brk ->
-		append (stmts (action { go := False; brk })) (action { run := i < hi; i := i + 1 } :> nil)
+                append (stmts (action { go := False; brk })) (action { run := i < hi; i := i + 1 } :> nil)
       let rdy = not run || not go
       interface
-	start = action { go := True; run := True; i := lo; body.start }
-	    when rdy
-	done = rdy
+        start = action { go := True; run := True; i := lo; body.start }
+            when rdy
+        done = rdy
         checkDone = noAction
             when rdy
       rules
        "forBreak":
-	when run && go
-	 ==> body.start
+        when run && go
+         ==> body.start
 
 --@ \index{forever@\te{forever} (\te{Loop} function)}
 --@ The \te{forever} function constructs a loop that terminates when
@@ -120,14 +120,14 @@ forever stmts = liftModule $
     module
       run :: Reg Bool <- mkReg False
       body :: ActionSeq <- actionSeqBreak $ \ brk ->
-		stmts (action { run := False; brk })
+                stmts (action { run := False; brk })
       interface
-	start = action { run := True; body.start }
-	    when not run
-	done = not run
+        start = action { run := True; body.start }
+            when not run
+        done = not run
         checkDone = noAction
             when not run
       rules
        "forever":
-	when run
-	 ==> body.start
+        when run
+         ==> body.start

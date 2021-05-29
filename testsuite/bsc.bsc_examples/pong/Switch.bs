@@ -14,10 +14,10 @@ mkSwitch =
     state :: Reg Bool <- mkConfigRegU
 
     return $
-	(interface RawSwitch
-	    input x = state := x
-	,interface Switch
-	    value = not state	-- switches are active low
-	)
+        (interface RawSwitch
+            input x = state := x
+        ,interface Switch
+            value = not state   -- switches are active low
+        )
 
 

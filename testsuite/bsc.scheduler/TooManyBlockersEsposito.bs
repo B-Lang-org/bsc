@@ -15,7 +15,7 @@ sysTooManyBlockersEsposito :: Module Empty
 sysTooManyBlockersEsposito =
     module
         arrs :: Vector N (RegFile Bool Bool)
-	arrs <- mapM (\_ -> mkRegFileFull) genList
+        arrs <- mapM (\_ -> mkRegFileFull) genList
         addRules $ blocker arrs <+> joinRules (map victim arrs)
 
 blocker :: Vector N (RegFile Bool Bool) -> Rules

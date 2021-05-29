@@ -133,29 +133,29 @@ halfAdd a b = fullAdd a b 0
 wallaceTest :: Module Empty
 wallaceTest =
     module
-	r :: Reg (Bit 12) <- mkReg 0
-	done :: Reg Bool <- mkReg False
-	bad :: Reg (Bit 12) <- mkReg 0
-	let x :: Bit 4
-	    x = r[ 3: 0]
-	    y :: Bit 4
-	    y = r[ 7: 4]
-	    z :: Bit 4
-	    z = r[11: 8]
-	    r' = r+1
-	    sum :: Bit 6
-	    sum = (0++x) + (0++y) + (0++z)
+        r :: Reg (Bit 12) <- mkReg 0
+        done :: Reg Bool <- mkReg False
+        bad :: Reg (Bit 12) <- mkReg 0
+        let x :: Bit 4
+            x = r[ 3: 0]
+            y :: Bit 4
+            y = r[ 7: 4]
+            z :: Bit 4
+            z = r[11: 8]
+            r' = r+1
+            sum :: Bit 6
+            sum = (0++x) + (0++y) + (0++z)
     interface
-	{ }
+        { }
     rules
-	when not done
-	 ==> {	r := r';
-		done := r' == 0;
-		if wallaceAdd (Cons x (Cons y (Cons z Nil))) /= sum then
-		    { bad := bad+1;
-		     -- $display "test failed 0x%02x 0x%02x 0x%02x\n" (arg x) (arg y) (arg z)
-		    }
-		else
-		    { }
-	      }
+        when not done
+         ==> {  r := r';
+                done := r' == 0;
+                if wallaceAdd (Cons x (Cons y (Cons z Nil))) /= sum then
+                    { bad := bad+1;
+                     -- $display "test failed 0x%02x 0x%02x 0x%02x\n" (arg x) (arg y) (arg z)
+                    }
+                else
+                    { }
+              }
 -}

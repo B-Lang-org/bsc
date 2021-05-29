@@ -33,7 +33,7 @@ fi
 # -----
 # Check for tabs
 
-CMD="git ls-files | egrep '\.(lhs|hs|hsc)$' | xargs grep -H -n -e $'\t'"
+CMD="git ls-files | egrep '\.(lhs|hs|hsc|bs)$' | xargs grep -H -n -e $'\t'"
 if [ $(eval "$CMD -l -- | wc -l") -ne 0 ]; then
     eval "$CMD --" || true
     echo "Tabs found!"

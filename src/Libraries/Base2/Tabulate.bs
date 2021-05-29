@@ -26,9 +26,9 @@ tabulate f x =
 --    foldr (\ b r -> if x == b then f b else r) _ enumAll
 
     let lo :: Bit sa
-	lo = pack (minBound::a)
-	hi :: Bit sa
-	hi = pack (maxBound::a)
+        lo = pack (minBound::a)
+        hi :: Bit sa
+        hi = pack (maxBound::a)
     in  foldr (\ b r -> if pack x == b then f (unpack b) else r) _ (enumFromTo lo hi)
 
 --@ {\bf NOTE}, the \te{tabulate} function uses comparison of the bit

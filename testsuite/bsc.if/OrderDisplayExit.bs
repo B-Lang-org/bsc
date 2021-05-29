@@ -13,18 +13,18 @@ interface ArithIO_IFC aTyp =
 sysOrderDisplayExit :: Module (ArithIO_IFC NumTyp)
 sysOrderDisplayExit =
     module
-	x :: Reg NumTyp
-	x <- mkReg 19
+        x :: Reg NumTyp
+        x <- mkReg 19
 
-	y :: Reg NumTyp
-	y <- mkReg 5
+        y :: Reg NumTyp
+        y <- mkReg 5
 
         rules
-	  "Flip":
-	    when x > y, y /= 0
-	      ==> action
-		      x := y
-		      y := x
+          "Flip":
+            when x > y, y /= 0
+              ==> action
+                      x := y
+                      y := x
                       action
                         { $display "MSG 1of6 This one OUTSIDE the -if- statement\n";
                           $display "MSG 2of6 This one OUTSIDE the -if- statement\n";
@@ -45,16 +45,16 @@ sysOrderDisplayExit =
                           }
 
 
-	  "Sub":
-	    when x <= y, y /= 0
-	      ==> action
-		      y := y - x
+          "Sub":
+            when x <= y, y /= 0
+              ==> action
+                      y := y - x
 
         interface
-	    start num1 num2 = action
-	                        x := num1
-	                        y := num2
-	                  when y == 0
-	    result = x when y == 0
+            start num1 num2 = action
+                                x := num1
+                                y := num2
+                          when y == 0
+            result = x when y == 0
 
 

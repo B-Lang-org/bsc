@@ -13,4 +13,4 @@ sysResourcePredicates =
         a <- mkRegFileFull
         rules
             "A": when a.sub 0 == 0 ==> a.upd 1 (a.sub 0)
-	    "B": when a.sub 2 == 0 ==> a.upd 3 (a.sub 2)
+            "B": when a.sub 2 == 0 ==> a.upd 3 (a.sub 2)

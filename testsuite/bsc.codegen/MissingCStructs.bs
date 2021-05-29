@@ -27,4 +27,4 @@ sysMissingCStructs =
     rules "bogus": when True ==> r := r
 
     interface
-	m a = action r := a
+        m a = action r := a

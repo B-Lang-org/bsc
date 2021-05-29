@@ -6,8 +6,8 @@ package RuleAssertionsEspositoOK(sysRuleAssertionsEspositoOK) where
 sysRuleAssertionsEspositoOK :: Module Empty
 sysRuleAssertionsEspositoOK =
     module
-	a :: Reg Bool
-	a <- mkReg True
+        a :: Reg Bool
+        a <- mkReg True
         addRules $ setT a <+ setF a <+ flip a
 
 setT :: Reg Bool -> Rules

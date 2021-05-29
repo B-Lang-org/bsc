@@ -90,7 +90,7 @@ this theorem):
 -- If we opt for a preset seed, then this state and the "seedFifo"
 -- can go away.
 data StateType = Waiting | Running | Done
-	       deriving (Eq,Bits)
+               deriving (Eq,Bits)
 
 
 ---------
@@ -115,30 +115,30 @@ instance Get (RandGen n) where
 mkLCG :: (Add l m n) => UInt n -> UInt n -> Module (RandGen (UInt n) (UInt m))
 mkLCG a b =
     module
-	x :: Reg (UInt n)
-	x <- mkRegU
+        x :: Reg (UInt n)
+        x <- mkRegU
 
-	state :: Reg (StateType)
-	state <- mkReg Waiting
+        state :: Reg (StateType)
+        state <- mkReg Waiting
 
         rules
-	    when state == Running
-	      ==> let
+            when state == Running
+              ==> let
                       -- the "mod M" is implicit
-		      x' = a * x + b
-	          in  action
-		        x := x'
-		        state := Done
+                      x' = a * x + b
+                  in  action
+                        x := x'
+                        state := Done
 
         interface
-	    seed s = action
-			x := s
-	               	state := Running
-	        when state == Waiting
-	    ldeq = state := Waiting
-	        when state == Done
-	    lfirst = truncate x
-	        when state == Done
+            seed s = action
+                        x := s
+                        state := Running
+                when state == Waiting
+            ldeq = state := Waiting
+                when state == Done
+            lfirst = truncate x
+                when state == Done
 
 
 ------------------
@@ -161,11 +161,11 @@ mkLCG a b =
 sysLCG :: Module Empty
 sysLCG =
     module
-	lcg :: RandGen (UInt 32) (UInt 20)
-	lcg <- mkLCG 69069 1
-	started :: Reg Bool
-	started <- mkReg False
+        lcg :: RandGen (UInt 32) (UInt 20)
+        lcg <- mkLCG 69069 1
+        started :: Reg Bool
+        started <- mkReg False
         rules
           "init":
-	    when not started
-	     ==> action { lcg.seed 12345; started := True }
+            when not started
+             ==> action { lcg.seed 12345; started := True }

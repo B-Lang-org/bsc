@@ -1,7 +1,7 @@
 package LFSR(
-	LFSR(..), mkPolyLFSR, mkFeedLFSR,
-	mkLFSR_4, mkLFSR_8, mkLFSR_16, mkLFSR_32, mkRCounter
-	) where
+        LFSR(..), mkPolyLFSR, mkFeedLFSR,
+        mkLFSR_4, mkLFSR_8, mkLFSR_16, mkLFSR_32, mkRCounter
+        ) where
 
 import List
 import Vector
@@ -52,9 +52,9 @@ mkFeedLFSR feed = liftModule $
     module
       r :: Reg (Bit n) <- mkReg 1
       interface
-	seed x = r := x
-	value = r
-	next = r := if {-(r&1) == 1-} r[0:0] == 1 then (r >> 1) ^ feed else r >> 1
+        seed x = r := x
+        value = r
+        next = r := if {-(r&1) == 1-} r[0:0] == 1 then (r >> 1) ^ feed else r >> 1
 
 --@ Some maximal length LFSRs.
 --@ Many more can be found at \te{http://www-2.cs.cmu.edu/ {\TILDE}koopman/lfsr/}
@@ -101,38 +101,38 @@ mkRCounter seed = module
 testLFSR :: Module Empty
 testLFSR =
     module
-	t1 :: ActionSeq <- aTest mkLFSR_4
-	t2 :: ActionSeq <- aTest mkLFSR_8
-	t3 :: ActionSeq <- aTest mkLFSR_16
---	t4 :: ActionSeq <- aTest mkLFSR_32
-	t :: ActionSeq <- seqOfActionSeq $ t1 :> t2 :> t3:> nil
-	o :: Once <- mkOnce t.start
+        t1 :: ActionSeq <- aTest mkLFSR_4
+        t2 :: ActionSeq <- aTest mkLFSR_8
+        t3 :: ActionSeq <- aTest mkLFSR_16
+--        t4 :: ActionSeq <- aTest mkLFSR_32
+        t :: ActionSeq <- seqOfActionSeq $ t1 :> t2 :> t3:> nil
+        o :: Once <- mkOnce t.start
     interface
-	{ }
+        { }
     rules
-	when True
-	 ==> o.start
+        when True
+         ==> o.start
 
 aTest :: (Eq a, Bits a sa) => Module (LFSR a) -> Module ActionSeq
 aTest lfsr =
     module
-	l :: LFSR a <- lfsr
-	x :: Reg a <- mkRegU
-	n :: Reg (Bit 32) <- mkRegU
-	let act a = actionSeq (a :> nil)
-	init :: ActionSeq <- act { n := 0; x := l.value; l.next }
-	loop :: ActionSeq <-
-		forever $ \ break -> {
-			l.next;
-			n := n+1;
-			if l.value == x then break else {};
-			} :> nil
-	fini :: ActionSeq <- act { $display "period %0d" n; }
-	as :: ActionSeq <- seqOfActionSeq $
-		init :>
-		loop :>
-		fini :>
-		nil
+        l :: LFSR a <- lfsr
+        x :: Reg a <- mkRegU
+        n :: Reg (Bit 32) <- mkRegU
+        let act a = actionSeq (a :> nil)
+        init :: ActionSeq <- act { n := 0; x := l.value; l.next }
+        loop :: ActionSeq <-
+                forever $ \ break -> {
+                        l.next;
+                        n := n+1;
+                        if l.value == x then break else {};
+                        } :> nil
+        fini :: ActionSeq <- act { $display "period %0d" n; }
+        as :: ActionSeq <- seqOfActionSeq $
+                init :>
+                loop :>
+                fini :>
+                nil
     interface
-	as
+        as
 -}

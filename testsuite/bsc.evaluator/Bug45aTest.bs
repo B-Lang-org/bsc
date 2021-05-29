@@ -18,4 +18,4 @@ sysBug45aTest =
          counter := counter + 1
      when (counter == 5) ==>
        action
-	 $finish(0)
+         $finish(0)

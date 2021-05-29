@@ -83,11 +83,11 @@ mkKbd =
                    1
 
 
-	rules
+        rules
           {-# ASSERT fire when enabled #-}
           {-# ASSERT no implicit conditions #-}
-	  "RegIns":
-	    when True ==> action
+          "RegIns":
+            when True ==> action
                               debug_reg_obyteload := o_byte_load
                               debug_reg_kbclkctrreset := kbclk_ctr_reset
                               -- kbclk_stb - negedge of r_kbclk
@@ -136,13 +136,13 @@ mkKbd =
             key = o_byte
           ,
           interface Get
-	    get = do
+            get = do
                      o_byte_rdy := False --lower rdy line, output buffer is now empty
 --                     o_byte_err := False -- clear error-flag on ack
-		     return (ScanCode o_byte)
---		when o_byte_rdy
-		when o_byte_rdy && (not o_byte_err)
-	  )
+                     return (ScanCode o_byte)
+--                when o_byte_rdy
+                when o_byte_rdy && (not o_byte_err)
+          )
 
 
 -- This is the old version of mkKbd that uses the Verilog kbscan block
@@ -150,20 +150,20 @@ mkKbdVerilog_kbscan :: Module (RawKbd, Kbd)
 mkKbdVerilog_kbscan = do
     vkbd :: VKbd <- mkVKbd
     addRules $
-	rules
-	 when vkbd.err == 1
-	  ==> fromPrimAction vkbd.ack
+        rules
+         when vkbd.err == 1
+          ==> fromPrimAction vkbd.ack
     return $
-	(interface RawKbd
-	    kbclk x = if x then fromPrimAction vkbd.clk else noAction
-	    kbdata x = if x then fromPrimAction vkbd.dta else noAction
-	    key = vkbd.key
-	,interface Get
-	    get = do
-		    fromPrimAction vkbd.ack
-		    return (ScanCode vkbd.key)
-		when vkbd.rdy == 1 && vkbd.err == 0
-	)
+        (interface RawKbd
+            kbclk x = if x then fromPrimAction vkbd.clk else noAction
+            kbdata x = if x then fromPrimAction vkbd.dta else noAction
+            key = vkbd.key
+        ,interface Get
+            get = do
+                    fromPrimAction vkbd.ack
+                    return (ScanCode vkbd.key)
+                when vkbd.rdy == 1 && vkbd.err == 0
+        )
 
 interface VKbd =
     key :: Bit 8
@@ -181,6 +181,6 @@ mkVKbd =
         rdy = "o_byte_rdy"{reg};
         err = "o_byte_err"{reg};
         ack = "i_byte_ack";
-	clk = "i_kbclk"{reg};
-	dta = "i_kbdata"{reg};
+        clk = "i_kbclk"{reg};
+        dta = "i_kbdata"{reg};
     } [ [key,rdy,err,ack,clk,dta] <> [key,rdy,err,ack,clk,dta] ]

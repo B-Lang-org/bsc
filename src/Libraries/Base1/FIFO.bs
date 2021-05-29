@@ -30,19 +30,19 @@ interface FIFO a =
 fifof_ToFifo :: FIFOF_ a -> FIFO a
 fifof_ToFifo f =
     interface FIFO
-	enq x = f.enq x		when f.i_notFull
-	deq   = f.deq		when f.i_notEmpty
-	first = f.first		when f.i_notEmpty
-	clear = f.clear
+        enq x = f.enq x    when f.i_notFull
+        deq   = f.deq      when f.i_notEmpty
+        first = f.first    when f.i_notEmpty
+        clear = f.clear
 
 
 fifofToFifo :: FIFOF a -> FIFO a
 fifofToFifo f =
     interface FIFO
-	enq x = f.enq x		when f.notFull
-	deq   = f.deq		when f.notEmpty
-	first = f.first		when f.notEmpty
-	clear = f.clear
+        enq x = f.enq x    when f.notFull
+        deq   = f.deq      when f.notEmpty
+        first = f.first    when f.notEmpty
+        clear = f.clear
 
 --@ \index{mkFIFO@\te{mkFIFO} (module)|textbf}
 --@ \begin{libverbatim}

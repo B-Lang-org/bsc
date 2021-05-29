@@ -12,7 +12,7 @@ interface Counter a =
 
 
 mkCounter :: (Bits a b, Eq a, Literal a, Arith a) =>
-	     a -> a -> a -> Module (Counter a)
+             a -> a -> a -> Module (Counter a)
 mkCounter lower start upper  =
   module
 
@@ -23,12 +23,12 @@ mkCounter lower start upper  =
       get = value_reg
 
       set a =
-	value_reg := a
+        value_reg := a
 
       inc_dec up =
-	value_reg := if up && value_reg /= upper then
-			value_reg + 1
+        value_reg := if up && value_reg /= upper then
+                        value_reg + 1
                      else if not up && value_reg /= lower then
                         value_reg - 1
                      else
-		        value_reg
+                        value_reg

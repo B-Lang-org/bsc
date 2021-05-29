@@ -29,15 +29,15 @@ mkFunnyRegU = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	_read = unpack 0
-	_write x = return ()
+        _read = unpack 0
+        _write x = return ()
   else
     module
       _r :: VFunnyReg sa
       _r <- vMkFunnyRegU
       interface
-	_read = unpack _r.get
-	_write x = fromPrimAction (_r.set (pack x))
+        _read = unpack _r.get
+        _write x = fromPrimAction (_r.set (pack x))
 
 interface VFunnyReg n =
     set :: Bit n -> PrimAction
@@ -47,7 +47,7 @@ interface VFunnyReg n =
 vMkFunnyRegU :: Module (VFunnyReg n)
 vMkFunnyRegU =
     module verilog "RegUN" (("init", (valueOf n))) "CLK" {
-	get = "get"{reg};
-	set = "val"{reg} "SET";
+        get = "get"{reg};
+        set = "val"{reg} "SET";
     } [ get <> [get, set], set << set ]
 

@@ -13,18 +13,18 @@ listToBit (Cons b bs) = zeroExtend b | (listToBit bs << 1)
 
 lDecoder :: (Log m n, Add k 1 m) => Bit n -> Bit m
 lDecoder x =
-    let	mkBit :: Integer -> Bit 1
-	mkBit i = pack (x == fromInteger i)
+    let mkBit :: Integer -> Bit 1
+        mkBit i = pack (x == fromInteger i)
 
-	bs :: List (Bit 1)
-	bs = map mkBit (upto 0 (valueOf m - 1))
+        bs :: List (Bit 1)
+        bs = map mkBit (upto 0 (valueOf m - 1))
     in  listToBit bs
 
 mkLDecode :: (Log m n, Add k 1 m) => Module (Decode n m)
 mkLDecode =
     module
         interface
-	    decode x = lDecoder x
+            decode x = lDecoder x
 
 ----
 
@@ -36,7 +36,7 @@ mkIDecode :: (Log m n, Add k 1 m) => Module (Decode n m)
 mkIDecode =
     module
         interface
-	    decode x = iDecoder (valueOf m - 1) x
+            decode x = iDecoder (valueOf m - 1) x
 
 ----
 
@@ -47,10 +47,10 @@ interface I =
 sysListToBit :: Module I
 sysListToBit =
     module
-	dl :: Decode 3 8
-	dl <- mkLDecode
-	di :: Decode 3 8
-	di <- mkIDecode
+        dl :: Decode 3 8
+        dl <- mkLDecode
+        di :: Decode 3 8
+        di <- mkIDecode
         interface
-	    d1 = dl
-	    d2 = di
+            d1 = dl
+            d2 = di

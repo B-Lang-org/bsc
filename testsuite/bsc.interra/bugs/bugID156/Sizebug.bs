@@ -37,7 +37,7 @@ top :: Module (PriorityEncoderTest)
 top =
     module
 
-	interface
+        interface
             start in_data = calpriority in_data
 
 

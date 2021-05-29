@@ -16,10 +16,10 @@ sysSizedLiteralMono =
     rules
       when True ==>
         action
-	  $display a " " c " " e
-	  if a == b && b == z &&
-	     c == d && d == y &&
-	     e == f && f == x
-	    then $display "PASS"
-	    else $display "FAIL"
-	  $finish 0
+          $display a " " c " " e
+          if a == b && b == z &&
+             c == d && d == y &&
+             e == f && f == x
+            then $display "PASS"
+            else $display "FAIL"
+          $finish 0

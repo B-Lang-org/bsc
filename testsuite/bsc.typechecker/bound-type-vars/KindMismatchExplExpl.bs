@@ -6,6 +6,6 @@ import List
 
 x :: Bit a
 x = let y :: List a
-	y = Nil
+        y = Nil
     in  fromInteger (length y)
 

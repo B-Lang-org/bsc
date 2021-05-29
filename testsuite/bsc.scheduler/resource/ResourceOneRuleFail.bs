@@ -20,9 +20,9 @@ sysResourceOneRuleFail :: Module Empty
 sysResourceOneRuleFail =
       module
         r :: Reg Value
-	r <- mkReg _
-	a :: RegFile Index Value
-	a <- mkRegFile (fromInteger lo) (fromInteger hi)
+        r <- mkReg _
+        a :: RegFile Index Value
+        a <- mkRegFile (fromInteger lo) (fromInteger hi)
         rules
             "Bogus":
                when True

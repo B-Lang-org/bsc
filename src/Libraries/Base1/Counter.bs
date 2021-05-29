@@ -22,15 +22,15 @@ interface VCounter n =
 vMkUnsafeCounter :: Bit n -> Module (VCounter n)
 vMkUnsafeCounter v =
     module verilog "Counter" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	addA    = "DATA_A" "ADDA";
-	addB    = "DATA_B" "ADDB";
-	value = "Q_OUT"{reg};
-	setC = "DATA_C" "SETC";
-	setF = "DATA_F"{reg} "SETF";
+        addA    = "DATA_A" "ADDA";
+        addB    = "DATA_B" "ADDB";
+        value = "Q_OUT"{reg};
+        setC = "DATA_C" "SETC";
+        setF = "DATA_F"{reg} "SETF";
     } [ value <> value,
-	[addA,addB,setC] <> [addA,addB,setC],
-	value <> [addA,addB],  -- a lie!
-	[value, addA, addB, setC] < setF,
+        [addA,addB,setC] <> [addA,addB,setC],
+        value <> [addA,addB],  -- a lie!
+        [value, addA, addB, setC] < setF,
         value < setC,
         setF << setF
       ]
@@ -50,28 +50,28 @@ mkUnsafeCounter i = liftModule $
       primSavePortType name "DATA_F" t
 
       interface
-	inc x = fromPrimAction (_v.addA x)
-	dec x = fromPrimAction (_v.addB (negate x))
-	up = fromPrimAction (_v.addA 1)
-	down = fromPrimAction (_v.addB (negate 1))
-	value = _v.value
-	setC x = fromPrimAction (_v.setC x)
-	setF x = fromPrimAction (_v.setF x)
-	clear = fromPrimAction (_v.setF 0)
+        inc x = fromPrimAction (_v.addA x)
+        dec x = fromPrimAction (_v.addB (negate x))
+        up = fromPrimAction (_v.addA 1)
+        down = fromPrimAction (_v.addB (negate 1))
+        value = _v.value
+        setC x = fromPrimAction (_v.setC x)
+        setF x = fromPrimAction (_v.setF x)
+        clear = fromPrimAction (_v.setF 0)
 
 
 vMkCounter :: Bit n -> Module (VCounter n)
 vMkCounter v =
     module verilog "Counter" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	addA    = "DATA_A" "ADDA";
-	addB    = "DATA_B" "ADDB";
-	value = "Q_OUT"{reg};
-	setC = "DATA_C" "SETC";
-	setF = "DATA_F"{reg} "SETF";
+        addA    = "DATA_A" "ADDA";
+        addB    = "DATA_B" "ADDB";
+        value = "Q_OUT"{reg};
+        setC = "DATA_C" "SETC";
+        setF = "DATA_F"{reg} "SETF";
     } [ value <> value,
-	[addA,addB,setC] <> [addA,addB,setC],
-	value < [addA,addB,setC],
-	value < setF,
+        [addA,addB,setC] <> [addA,addB,setC],
+        value < [addA,addB,setC],
+        value < setF,
         setF << setF,
         [addA, addB, setC] << setF
       ]
@@ -91,11 +91,11 @@ mkCounter i = liftModule $
       primSavePortType name "DATA_F" t
 
       interface
-	inc x = fromPrimAction (_v.addA x)
-	dec x = fromPrimAction (_v.addB (negate x))
-	up = fromPrimAction (_v.addA 1)
-	down = fromPrimAction (_v.addB (negate 1))
-	value = _v.value
-	setC x = fromPrimAction (_v.setC x)
-	setF x = fromPrimAction (_v.setF x)
-	clear = fromPrimAction (_v.setF 0)
+        inc x = fromPrimAction (_v.addA x)
+        dec x = fromPrimAction (_v.addB (negate x))
+        up = fromPrimAction (_v.addA 1)
+        down = fromPrimAction (_v.addB (negate 1))
+        value = _v.value
+        setC x = fromPrimAction (_v.setC x)
+        setF x = fromPrimAction (_v.setF x)
+        clear = fromPrimAction (_v.setF 0)

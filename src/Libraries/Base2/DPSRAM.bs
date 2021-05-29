@@ -19,10 +19,10 @@ mkDPSRAM :: (IsModule m c) => Integer -> m (SyncSRAMS 1 adrs dtas, SyncSRAMS 1 a
 mkDPSRAM nwords = liftModule $
     if ((2 ** (valueOf adrs)) < nwords) then error "address width too small"
     else if genC then
-	mkDPSRAM_C nwords
+        mkDPSRAM_C nwords
     else
       module
-	vram :: VSyncSRAM adrs dtas <- mkDPSRAM_V nwords
+        vram :: VSyncSRAM adrs dtas <- mkDPSRAM_V nwords
 
         let name = Valid (primGetModuleName vram)
         let adrst = typeOf (_ :: Bit adrs)
@@ -39,23 +39,23 @@ mkDPSRAM nwords = liftModule $
         primSavePortType name "ENB" bit1t
         primSavePortType name "DOB" dtast
 
-	interface -- Pair
+        interface -- Pair
            (interface Server
-		request =
-	         interface Put
-	          put req = fromPrimAction (vram.execA req.addr req.wdata req.we req.ena)
-		response =
-	         interface Get
-	          get = return vram.rdataA
-	    ,
-	    interface Server
-		request =
-	         interface Put
-	          put req = fromPrimAction (vram.execB req.addr req.wdata req.we req.ena)
-		response =
-	         interface Get
-	          get = return vram.rdataB
-	   )
+                request =
+                 interface Put
+                  put req = fromPrimAction (vram.execA req.addr req.wdata req.we req.ena)
+                response =
+                 interface Get
+                  get = return vram.rdataA
+            ,
+            interface Server
+                request =
+                 interface Put
+                  put req = fromPrimAction (vram.execB req.addr req.wdata req.we req.ena)
+                response =
+                 interface Get
+                  get = return vram.rdataB
+           )
 
 mkDPSRAM_C :: Integer -> Module (SyncSRAMS 1 adrs dtas, SyncSRAMS 1 adrs dtas)
 mkDPSRAM_C nwords =
@@ -65,36 +65,36 @@ mkDPSRAM_C nwords =
     outB :: Reg (Bit dtas)  <- mkRegU
     interface -- Pair
        (interface Server
-	    request =
-	     interface Put
-	      put req =
-		if req.ena == 1 then
-		    if req.we == 1 then do
-			arr.upd req.addr req.wdata
-			outA := req.wdata
-		    else
-			outA := arr.sub req.addr
-		else
-		    outA := 0
-	    response =
-	     interface Get
-	      get = return outA
-	,
-	interface Server
-	    request =
-	     interface Put
-	      put req =
-		if req.ena == 1 then
-		    if req.we == 1 then do
-			arr.upd req.addr req.wdata
-			outB := req.wdata
-		    else
-			outB := arr.sub req.addr
-		else
-		    outB := 0
-	    response =
-	     interface Get
-	      get = return outB
+            request =
+             interface Put
+              put req =
+                if req.ena == 1 then
+                    if req.we == 1 then do
+                        arr.upd req.addr req.wdata
+                        outA := req.wdata
+                    else
+                        outA := arr.sub req.addr
+                else
+                    outA := 0
+            response =
+             interface Get
+              get = return outA
+        ,
+        interface Server
+            request =
+             interface Put
+              put req =
+                if req.ena == 1 then
+                    if req.we == 1 then do
+                        arr.upd req.addr req.wdata
+                        outB := req.wdata
+                    else
+                        outB := arr.sub req.addr
+                else
+                    outB := 0
+            response =
+             interface Get
+              get = return outB
        )
 
 interface VSyncSRAM adrs dtas =
@@ -106,11 +106,11 @@ interface VSyncSRAM adrs dtas =
 mkDPSRAM_V :: Integer -> Module (VSyncSRAM adrs dtas)
 mkDPSRAM_V nwords = do
     let name = "RRDPSRAM_" +++ integerToString nwords +++ "_" +++
-		integerToString (valueOf dtas) +++ "_bussed"
+                integerToString (valueOf dtas) +++ "_bussed"
     messageM ("Used SRAM: " +++ name)
     module verilog name "CLKA","CLKB" {
-	execA  = "ADRA" "DIA" "WEA" "ENA" "?"{inhigh};
-	rdataA = "DOA";
-	execB  = "ADRB" "DIB" "WEB" "ENB" "?"{inhigh};
-	rdataB = "DOB";
+        execA  = "ADRA" "DIA" "WEA" "ENA" "?"{inhigh};
+        rdataA = "DOA";
+        execB  = "ADRB" "DIB" "WEB" "ENB" "?"{inhigh};
+        rdataB = "DOB";
     } [ [execA,rdataA,execB,rdataB] <> [execA,rdataA,execB,rdataB] ]

@@ -26,18 +26,18 @@ mkSRAMFile_C file nwords =
     arr :: RegFile (Bit adrs) (Bit dtas) <- mk 0 (fromInteger (nwords-1))
     out :: Reg (Bit dtas)  <- mkRegU
     interface -- Server
-	    request =
-	     interface Put
+            request =
+             interface Put
               put req =
-		if req.ena == 1 then
-		    if req.we == 1 then do
-			arr.upd req.addr req.wdata
-			out := req.wdata
-		    else
-			out := arr.sub req.addr
-		else
-		    out := 0
-	    response =
-	     interface Get
+                if req.ena == 1 then
+                    if req.we == 1 then do
+                        arr.upd req.addr req.wdata
+                        out := req.wdata
+                    else
+                        out := arr.sub req.addr
+                else
+                    out := 0
+            response =
+             interface Get
               get = return out
 

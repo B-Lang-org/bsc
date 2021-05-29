@@ -5,8 +5,8 @@ package RuleAssertions(sysRuleAssertions) where
 sysRuleAssertions :: Module Empty
 sysRuleAssertions =
     module
-	a :: Reg Bool
-	a <- mkReg True
+        a :: Reg Bool
+        a <- mkReg True
         rules
           {-# ASSERT fire when enabled #-}
           {-# ASSERT no implicit conditions #-}

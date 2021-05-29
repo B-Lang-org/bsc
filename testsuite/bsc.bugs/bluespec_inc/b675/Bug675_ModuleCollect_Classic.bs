@@ -33,20 +33,20 @@ conditionReg ix =
     module {
       cond :: Reg Bool <- mkReg False;
       let { item' =
-	      interface AssertionWire {
-	        index =  ix;;
-		fail =  cond;;
-		clear :: Action;
-		clear =  action { cond := False; };
-	      };
-	  };
+              interface AssertionWire {
+                index =  ix;;
+                fail =  cond;;
+                clear :: Action;
+                clear =  action { cond := False; };
+              };
+          };
       let { item =  item'; };
       addToCollection item;
       interface {
         set :: Action;
-	set =  action { cond := True; };;
-	clear :: Action;
-	clear =  action { cond := False; };
+        set =  action { cond := True; };;
+        clear :: Action;
+        clear =  action { cond := False; };
       }
     };;
 
@@ -61,8 +61,8 @@ exposeAssertionWires mkI =
       let { cs =  cs'; };
       theResult' <-
           do { let { i' :: Integer;
-		     i' =  0; };
-	       let { i :: Integer;
+                     i' =  0; };
+               let { i :: Integer;
                      i =  i'; };
                let { f' :: (IsModule m' c) => Integer -> m' Integer;
                      f' i = if i < length cs then
@@ -96,7 +96,7 @@ exposeAssertionWires mkI =
                 clear :: Action;
                 clear =
                   action {
-		    let { i' :: Integer;
+                    let { i' :: Integer;
                           i' =  0; };
                     let { i :: Integer;
                           i =  i'; };

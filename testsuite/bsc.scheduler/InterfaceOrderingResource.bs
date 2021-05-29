@@ -10,8 +10,8 @@ interface Act =
 sysInterfaceOrderingResource :: Module Act
 sysInterfaceOrderingResource =
     module
-	r :: Reg Bool
-	r <- mkReg _
+        r :: Reg Bool
+        r <- mkReg _
         interface
             act = r := r || False
         rules

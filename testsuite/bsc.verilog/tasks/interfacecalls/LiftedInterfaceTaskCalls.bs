@@ -18,14 +18,14 @@ sysLiftedBar =
 
     interface
       peek = action
-		$display "Bar::peek"
-		peek_reg := True
+                $display "Bar::peek"
+                peek_reg := True
       poke = action
-		$display "Bar::poke"
-		poke_reg := True
+                $display "Bar::poke"
+                poke_reg := True
       prod = action
-		$display "Bar::prod"
-		prod_reg := True
+                $display "Bar::prod"
+                prod_reg := True
 
 
 sysLiftedInterfaceTaskCalls :: Module Empty

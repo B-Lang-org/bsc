@@ -54,7 +54,7 @@ pass dst =
     module
       interface
         push x = dst.push x
-	clear = dst.clear
+        clear = dst.clear
 
 --@ Apply a function to the data in the stream
 --@ and wrap the stream in a module (without buffering).
@@ -78,7 +78,7 @@ buffer dst =
         "push": when True ==> action { dst.push q.first; q.deq }
       interface
         push x = q.enq x
-	clear  = action { q.clear; dst.clear }
+        clear  = action { q.clear; dst.clear }
 
 --@ Apply a function to the data in the stream
 --@ and wrap the stream in a module
@@ -99,7 +99,7 @@ sink =
     module
       interface
         push _ = action {}
-	clear  = action {}
+        clear  = action {}
 
 --@ A producer that always pushes junk on the given stream.
 --@ \begin{libverbatim}

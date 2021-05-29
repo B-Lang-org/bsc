@@ -10,14 +10,14 @@ interface TmpsIfcArgsProducer =
 mkTmpsIfcArgsProducer :: Module TmpsIfcArgsProducer
 mkTmpsIfcArgsProducer =
     module
-	port :: Reg (Maybe PortID)
-	port <- mkReg (Valid 0)
+        port :: Reg (Maybe PortID)
+        port <- mkReg (Valid 0)
 
         let
             print_get_info  :: TS_item -> Action
             print_get_info  x =
-		action
-		    $display "Producer: sent item "
+                action
+                    $display "Producer: sent item "
                     print_ts_item  x
                     $display
 
@@ -28,13 +28,13 @@ mkTmpsIfcArgsProducer =
             get_done_fn  p =
                 let
                     item     = TS_EOP p
-		    new_port = p + 1
+                    new_port = p + 1
                 in action
                       print_get_info  item
-		      port := Valid new_port
+                      port := Valid new_port
 
         interface
-	    get_item   = get_fn  p
-	                 when  (Valid p) <- port
-	    get_done   = get_done_fn  p
-	                 when  (Valid p) <- port
+            get_item   = get_fn  p
+                         when  (Valid p) <- port
+            get_done   = get_done_fn  p
+                         when  (Valid p) <- port

@@ -19,7 +19,7 @@ package ELocalRec1 (ELocalRec1(..), mkELocalRec1) where
 struct  Mystruct  =
                     xx ::Int 32
                     yy ::Int 32
-	  deriving (Bits)
+          deriving (Bits)
 
 interface ELocalRec1 =
     start  :: Int 32 -> Int 32 -> Action
@@ -30,38 +30,38 @@ mkELocalRec1 :: Module ELocalRec1
 mkELocalRec1 =
       module
 
-	w :: Reg (Int 32)
-	w <- mkRegU
+        w :: Reg (Int 32)
+        w <- mkRegU
 
-	x :: Reg (Int 32)
-	x <- mkRegU
+        x :: Reg (Int 32)
+        x <- mkRegU
 
-	y :: Reg (Int 32)
-	y <- mkReg 0
+        y :: Reg (Int 32)
+        y <- mkReg 0
 
         z :: Reg (Mystruct)
         z <- mkReg (Mystruct{xx = 0 ; yy = 0;})
 
 
         rules
-	  "Swap":
-	    when x > y, y /= 0
-	      ==> action
-                            let
-                               (x,y) = (z._read.xx,z._read.yy)
-		                       x := y
-                       		       y := x
+          "Swap":
+            when x > y, y /= 0
+              ==> action
+                      let
+                         (x,y) = (z._read.xx,z._read.yy)
+                                x := y
+                                        y := x
 
-	  "Subtract":
-	    when x <= y, y /= 0
-	      ==> action
-		      y := y - x
+          "Subtract":
+            when x <= y, y /= 0
+              ==> action
+                      y := y - x
 
         interface
-	    start ix iy = action
-	                      x := ix
-	                      y := iy
-	                  when y == 0
-	    result = x when y == 0
+            start ix iy = action
+                              x := ix
+                              y := iy
+                          when y == 0
+            result = x when y == 0
 
 

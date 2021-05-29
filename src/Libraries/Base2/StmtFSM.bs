@@ -1,20 +1,20 @@
 package StmtFSM (
                  -- re-exports from the Stmt package
-		 StmtT(..),
-		 StmtTifiable(..),
-		 RStmt(..),
-		 Stmt(..),
-		 StmtM(..),
-		 RStmts,
-		 unS, _s__, s,
-		 PosInfo, noPosInfo, getPIString, addPIPrefix,
-		 await, delay, Once(..), mkOnce,
+                 StmtT(..),
+                 StmtTifiable(..),
+                 RStmt(..),
+                 Stmt(..),
+                 StmtM(..),
+                 RStmts,
+                 unS, _s__, s,
+                 PosInfo, noPosInfo, getPIString, addPIPrefix,
+                 await, delay, Once(..), mkOnce,
                  -- new exports
-		 RFSM(..), FSMAbort(..), mkRFSM,
-		 FSM(..), FSMServer(..),
-		 mkFSM, mkFSMWithPred, mkAutoFSM, mkFSMServer, mkAlwaysFSM, mkAlwaysFSMWithPred,
-		 ServerCallToStmtT(..), ActionType(..), Freedom(..)
-             	 ) where
+                 RFSM(..), FSMAbort(..), mkRFSM,
+                 FSM(..), FSMServer(..),
+                 mkFSM, mkFSMWithPred, mkAutoFSM, mkFSMServer, mkAlwaysFSM, mkAlwaysFSMWithPred,
+                 ServerCallToStmtT(..), ActionType(..), Freedom(..)
+                      ) where
 
 -- #############################################################################
 -- #
@@ -108,26 +108,26 @@ mergeRuleSets rs0 rs1 =
 -- #############################################################################
 
 data StmtT a
-	= SAction PosInfo Action (Maybe ActionType)
+        = SAction PosInfo Action (Maybe ActionType)
         | SActionValue PosInfo (ActionValue a)
         | SNamed PosInfo String  (List (StmtT a))
         | SLabel PosInfo String Bool (Maybe (StmtT a))
         | SJump PosInfo String
-	| SCall PosInfo Action Action Action -- abort_action, start_action, end_action
+        | SCall PosInfo Action Action Action -- abort_action, start_action, end_action
         | SUntil PosInfo Bool
-	| SIf1 PosInfo Bool (StmtT a)
-	| SIf2 PosInfo Bool (StmtT a) (StmtT a)
-	| SWhile PosInfo Bool (StmtT a) (Maybe (StmtT a)) (Maybe (StmtT a)) (Maybe (StmtT a)) -- init_action, pre_action, post_action
-	| SFor PosInfo (StmtT a) Bool (StmtT a) (StmtT a)
-	| SSeq PosInfo (List (StmtT a))
-	| SPar PosInfo (List (StmtT a))
-	| SSkip PosInfo
-	| SRepeat PosInfo Nat (StmtT a)
-	| SDelay PosInfo Nat
-	| SReturn PosInfo
-	| SBreak PosInfo
-	| SContinue PosInfo
-	| SExprS PosInfo (RStmt a)
+        | SIf1 PosInfo Bool (StmtT a)
+        | SIf2 PosInfo Bool (StmtT a) (StmtT a)
+        | SWhile PosInfo Bool (StmtT a) (Maybe (StmtT a)) (Maybe (StmtT a)) (Maybe (StmtT a)) -- init_action, pre_action, post_action
+        | SFor PosInfo (StmtT a) Bool (StmtT a) (StmtT a)
+        | SSeq PosInfo (List (StmtT a))
+        | SPar PosInfo (List (StmtT a))
+        | SSkip PosInfo
+        | SRepeat PosInfo Nat (StmtT a)
+        | SDelay PosInfo Nat
+        | SReturn PosInfo
+        | SBreak PosInfo
+        | SContinue PosInfo
+        | SExprS PosInfo (RStmt a)
 
 class StmtTifiable t a | t -> a where stmtify :: PosInfo -> t -> (StmtT a)
 
@@ -146,7 +146,7 @@ type RStmts a = List (StmtT a)
 type RStmt a = StmtM a ()
 
 data StmtM a b
-	= S (Module (b, (RStmts a)))
+        = S (Module (b, (RStmts a)))
 
 unS :: StmtM a b -> Module (b, (RStmts a))
 unS (S x) = x
@@ -155,9 +155,9 @@ instance Monad (StmtM a)
   where
     return x = S (return (x, Nil))
     bind (S x) f = S
-	do  (xa, xs) <- x
-	    (fa, fs) <- unS (f xa)
-	    return (fa, xs `append` fs)
+        do  (xa, xs) <- x
+            (fa, fs) <- unS (f xa)
+            return (fa, xs `append` fs)
 
 stmt :: (Monad m) => (StmtT a) -> m ((), (RStmts a))
 stmt st = return ((), st :> Nil)
@@ -282,8 +282,8 @@ await :: Bool -> Action
 await condition =
  let w = interface Waiter
            wait :: Action
-	   wait = noAction
-		  when condition
+           wait = noAction
+                  when condition
  in w.wait
 
 -- #############################################################################
@@ -298,12 +298,12 @@ interface Once =
 mkOnce :: (IsModule m c) => Action -> m Once
 mkOnce a =
     module
-	onceReady :: Reg Bool
-	onceReady <- mkReg True
-	interface
-	    start = action { onceReady := False; a }
-	        when onceReady
-	    clear = action { onceReady := True }
+        onceReady :: Reg Bool
+        onceReady <- mkReg True
+        interface
+            start = action { onceReady := False; a }
+                when onceReady
+            clear = action { onceReady := True }
             done = onceReady == False ;
 
 -- #############################################################################
@@ -419,19 +419,19 @@ instance ServerCallToStmtT FSMServer where
 -- #############################################################################
 
 data StmtFT a
-	=  SFAction PosInfo Integer NextStateDescriptors Action Action (Maybe ActionType) (Maybe RuleSet)
+        =  SFAction PosInfo Integer NextStateDescriptors Action Action (Maybe ActionType) (Maybe RuleSet)
         | SFLabel PosInfo String NextStateDescriptors (Maybe (StmtT a))
         | SFNamed PosInfo String  (List (StmtFT a))
         | SFUntil PosInfo Bool
-	| SFIf1 PosInfo Bool (StmtFT a)
-	| SFIf2 PosInfo Bool (StmtFT a) (StmtFT a)
-	| SFFor PosInfo (StmtFT a) Bool (StmtFT a) (StmtFT a)
-	| SFSeq PosInfo (List (StmtFT a))
-	| SFPar PosInfo (StmtFT a) (List (StmtT a))
-	| SFSkip PosInfo
-	| SFDelay PosInfo
-	| SFReturn PosInfo
-	| SFWhile PosInfo Bool (StmtFT a)
+        | SFIf1 PosInfo Bool (StmtFT a)
+        | SFIf2 PosInfo Bool (StmtFT a) (StmtFT a)
+        | SFFor PosInfo (StmtFT a) Bool (StmtFT a) (StmtFT a)
+        | SFSeq PosInfo (List (StmtFT a))
+        | SFPar PosInfo (StmtFT a) (List (StmtT a))
+        | SFSkip PosInfo
+        | SFDelay PosInfo
+        | SFReturn PosInfo
+        | SFWhile PosInfo Bool (StmtFT a)
 
 -- #############################################################################
 -- #
@@ -491,8 +491,8 @@ labelActions (SAction p a at) ls =
 
 labelActions (SActionValue p av) ls =
     do let st = (SFSeq p
-		(Cons (SFAction p ls.state_num Nil noAction action {x <- av; ls.ifc.put x} nAT nR)
-		 (Cons (SFReturn p) Nil)))
+                (Cons (SFAction p ls.state_num Nil noAction action {x <- av; ls.ifc.put x} nAT nR)
+                 (Cons (SFReturn p) Nil)))
        return (st, incrLabelState(ls))
 
 labelActions (SCall p a_abort a_start a_done) ls =
@@ -1047,7 +1047,7 @@ mkModFromStmtFT :: (IsModule m c) => Bool -> Bool -> (StmtFT a) -> m FSMAbort
 
 mkModFromStmtFT _in_par _in_loop (SFAction _ _ _ a_abort _ _ _) =
       module
-	interface FSMAbort
+        interface FSMAbort
             abort = a_abort
 
 mkModFromStmtFT in_par in_loop (SFSeq _ (Cons st Nil)) =
@@ -1057,7 +1057,7 @@ mkModFromStmtFT in_par in_loop (SFSeq p (Cons st ss)) =
     module
         _mod0 <- mkModFromStmtFT in_par in_loop st
         _mod1 <- mkModFromStmtFT in_par in_loop (SFSeq p ss)
-	interface FSMAbort
+        interface FSMAbort
             abort = action {_mod0.abort; _mod1.abort}
 
 mkModFromStmtFT in_par in_loop (SFIf1 _ _ s0) =
@@ -1067,27 +1067,27 @@ mkModFromStmtFT in_par in_loop (SFIf2 _ _ s0 s1) =
     module
         _mod0 <- mkModFromStmtFT in_par in_loop s0
         _mod1 <- mkModFromStmtFT in_par in_loop s1
-	interface FSMAbort
+        interface FSMAbort
             abort = action {_mod0.abort; _mod1.abort}
 
 mkModFromStmtFT _in_par _in_loop (SFSkip _) =
     module
-	interface FSMAbort
+        interface FSMAbort
             abort = noAction
 
 mkModFromStmtFT _in_par _in_loop (SFLabel _ _ _ _) =
     module
-	interface FSMAbort
+        interface FSMAbort
             abort = noAction
 
 mkModFromStmtFT _in_par _in_loop (SFReturn _) =
     module
-	interface FSMAbort
+        interface FSMAbort
             abort = noAction
 
 mkModFromStmtFT _in_par _in_loop (SFNamed _ _ Nil) =
     module
-	interface FSMAbort
+        interface FSMAbort
             abort = noAction
 
 mkModFromStmtFT in_par in_loop (SFNamed _ _ (Cons st Nil)) =
@@ -1095,7 +1095,7 @@ mkModFromStmtFT in_par in_loop (SFNamed _ _ (Cons st Nil)) =
 
 mkModFromStmtFT _in_par _in_loop (SFUntil _ _) =
     module
-	interface FSMAbort
+        interface FSMAbort
             abort = noAction
 
 mkModFromStmtFT _in_par _in_loop (SFWhile _ _ st) =
@@ -1124,10 +1124,10 @@ mkFSMWithPred1 (S st) pred =
         _rfsm <- mkRFSM (S st) pred False (createDummyPut)
 
         let cond = _rfsm.ready
-	return $
-	    interface FSM
-	        start =  _rfsm.start
-		done = cond
+        return $
+            interface FSM
+                start =  _rfsm.start
+                done = cond
                 waitTillDone = noAction when cond
                 abort = _rfsm.abort
 
@@ -1135,7 +1135,7 @@ mkFSMWithPred :: (IsModule m c) => Stmt -> Bool -> m FSM
 mkFSMWithPred (S st) pred =
     module
         start_reg :: Reg(Bool)
-	start_reg <- mkReg False
+        start_reg <- mkReg False
 
         _rfsm :: RFSM (Bit 0)
         _rfsm <- mkRFSM (S st) pred False (createDummyPut)
@@ -1146,11 +1146,11 @@ mkFSMWithPred (S st) pred =
         rules {"fsm_start": when start_reg
                           ==> action { _rfsm.start;
                                        start_reg := False }}
-	return $
-	    interface FSM
-	        start = action { start_reg := True } when cond
---	        start =  _rfsm.start
-		done = cond
+        return $
+            interface FSM
+                start = action { start_reg := True } when cond
+--                start =  _rfsm.start
+                done = cond
                 waitTillDone = noAction when cond
                 abort = _rfsm.abort
 
@@ -1203,17 +1203,17 @@ mkFSMServer stmt_func =
                              response =
                                  interface Get
                                      get = do
-			                    fifo_in.deq
-			                    fifo_out.deq
-			                    enabled := True
+                                            fifo_in.deq
+                                            fifo_out.deq
+                                            enabled := True
                                             return fifo_out.first
         return $
-	    interface FSMServer
-		server   = ifc_server
-		abort    = action {fifo_in.clear;
-				   fifo_out.clear;
+            interface FSMServer
+                server   = ifc_server
+                abort    = action {fifo_in.clear;
+                                   fifo_out.clear;
                                    enabled := True;
-				   _rfsm.abort }
+                                   _rfsm.abort }
 
 
 -- #############################################################################
@@ -1236,7 +1236,7 @@ mkRFSMNR pred in_par always ifc ss =
 mkRFSMNRS  :: (IsModule m c, Bits a sa) => Bool -> Bool -> Bool -> (Put a) -> RStmt a -> m (RuleSet, (RFSM a))
 mkRFSMNRS pred in_par always ifc (S st) =
     module
-	(_, ss) <- liftModule st
+        (_, ss) <- liftModule st
 
         mkRFSMNR0 pred in_par always ifc ss
 
@@ -1249,9 +1249,9 @@ mkRFSMNR0 _pred _in_par _always _ifc (Cons (SSeq _ Nil) Nil) =
        start_wire :: Wire(Bool)
        start_wire <- mkDWire False
        let ifc = interface RFSM
-		    start = action { start_wire := True }
-		    abort = dummyAction
-		    ready = True
+                    start = action { start_wire := True }
+                    abort = dummyAction
+                    ready = True
        return (emptyRuleSet, ifc)
 
 mkRFSMNR0 pred in_par always ifc (Cons (SSeq _ (Cons x Nil)) Nil) =
@@ -1285,9 +1285,9 @@ mkRFSMNR0 pred _in_par _always _ifc (Cons (SAction p a Nothing) Nil) =
                  ==> do_start }
 
        let ifc = interface RFSM
-		    start = do_start when cond_ready
+                    start = do_start when cond_ready
                     abort = action { abort := True }
-		    ready = cond_ready
+                    ready = cond_ready
        let rs = RuleSet {me_local = eR;
                          me_parents = r;
                          no_me = eR}
@@ -1299,13 +1299,13 @@ mkRFSMNR0 pred in_par always ifc ss =
         let ps = getStmtTPosInfo (head ss)
 
         start_wire :: Wire(Bool)
-	start_wire <- mkDWire False
+        start_wire <- mkDWire False
 
         start_reg :: Wire(Bool)
-	start_reg <- mkDReg False
+        start_reg <- mkDReg False
 
         abort :: Wire(Bool)
-	abort <- mkDWire False
+        abort <- mkDWire False
 
 
 
@@ -1316,7 +1316,7 @@ mkRFSMNR0 pred in_par always ifc ss =
 
         let no_action = (SAction ps noAction Nothing)
 
-	(seq_labelled , ls) <- labelActions (SSeq ps (append (Cons (SLabel ps return_label False Nothing) (Cons (SUntil ps True) ss)) (Cons (SJump ps return_label) (Cons no_action Nil))))
+        (seq_labelled , ls) <- labelActions (SSeq ps (append (Cons (SLabel ps return_label False Nothing) (Cons (SUntil ps True) ss)) (Cons (SJump ps return_label) (Cons no_action Nil))))
                                                     (initLabelState init_state return_label ifc)
 
         let start = if (always) then True else start_wire
@@ -1325,10 +1325,10 @@ mkRFSMNR0 pred in_par always ifc ss =
 
         let do_start = action { start_wire := True; start_reg := True }
 
-	_seq_final' <- attachNames seq_labelled
-	_seq_final  <- removePars pred _seq_final'
+        _seq_final' <- attachNames seq_labelled
+        _seq_final  <- removePars pred _seq_final'
 
-	let seq_0 = _seq_final
+        let seq_0 = _seq_final
 
         -- #############################################################################
         -- #
@@ -1360,13 +1360,13 @@ mkRFSMNR0 pred in_par always ifc ss =
         rules { "restart": when (stalled && (not abort))
                  ==> do_start }
 
-	_mod  <- mkModFromStmtFT in_par False seq
+        _mod  <- mkModFromStmtFT in_par False seq
 
         let ifc' = interface RFSM
-		    start = do_start when cond_ready
-		    abort = action { abort := True }
-		    ready  = cond_ready
-	return (rr, ifc')
+                    start = do_start when cond_ready
+                    abort = action { abort := True }
+                    ready  = cond_ready
+        return (rr, ifc')
 
 -- #############################################################################
 -- #
@@ -1468,7 +1468,7 @@ removePars pred (SFPar p (SFAction _ num _ _ a _ _) ss) =
            label   = ("__par_start__" +++ (integerToString num))
            seq = (SFSeq p (Cons
                            (SFAction ("par_start" +++ p) num Nil a_abort action {joinActions (map modStart fsm_list);
-								      a;
+                                                                      a;
                                                                       par_running := True;
                                                                       -- $display "(%0d) starting pars" $time;
                                                                        } nAT (Just rs))
@@ -2094,7 +2094,7 @@ createRuleForSFAction (SFAction p n _ _ a (Just (Jump _)) _) _state pred c' =
             else rules {{-# aggressive_implicit_conditions #-} (ruleName "action_jump" n l): when (c)
                        ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
 --                                   state.set (0 - 1);
-				   a}}
+                                   a}}
     in r
 
 createRuleForSFAction (SFAction p n _ _ a (Just (Update Overlap)) _) state pred c' =
@@ -2105,7 +2105,7 @@ createRuleForSFAction (SFAction p n _ _ a (Just (Update Overlap)) _) state pred 
             else rules {{-# aggressive_implicit_conditions #-} (ruleName "action_ovlp" n l): when (c)
                        ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
                                    state.overlap;
-				   a}}
+                                   a}}
     in r
 
 createRuleForSFAction (SFAction p n _ _ a at _) state pred c' =
@@ -2116,15 +2116,15 @@ createRuleForSFAction (SFAction p n _ _ a at _) state pred c' =
             else if (n == idle_state) then rules {{-# no_warn #-} {-# aggressive_implicit_conditions #-} (ruleName "idle" n l): when (c')
                        ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
                                     state.set (fromInteger n);
-				    a}}
+                                    a}}
             else if (at == (Just Wait)) then rules {{-# no_warn #-} {-# aggressive_implicit_conditions #-} (ruleName "wait" n l): when (c)
                        ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
                                     state.set (fromInteger n);
-				    a}}
+                                    a}}
             else rules {{-# aggressive_implicit_conditions #-} (ruleName "action" n l): when (c)
                        ==> action { -- $display "(%0d) executing%s (state %d)" $time l n;
                                     state.set (fromInteger n);
-				    a}}
+                                    a}}
     in r
 
 -- #############################################################################

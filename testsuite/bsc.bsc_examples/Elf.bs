@@ -26,88 +26,88 @@ mkState =
       addRules $ mkRules pc rf imem dmem
 
 mkRules :: Reg Word -> RegFile CPUReg Word -> RegFile Word IWord ->
-	   RegFile Word Word -> Rules
+           RegFile Word Word -> Rules
 mkRules pc rf imem dmem =
     let
-	instr :: IWord
-	instr = imem.sub pc
+        instr :: IWord
+        instr = imem.sub pc
 
-	opcode :: Bit 3
-	opcode = instr[27:25]
+        opcode :: Bit 3
+        opcode = instr[27:25]
 
-	pc' :: Word
-	pc' = pc + 1
+        pc' :: Word
+        pc' = pc + 1
 
-	dst :: CPUReg
-	dst = instr[20:16]
+        dst :: CPUReg
+        dst = instr[20:16]
 
-	src1 :: CPUReg
-	src1 = instr[15:11]
+        src1 :: CPUReg
+        src1 = instr[15:11]
 
-	src2 :: CPUReg
-	src2 = instr[10:6]
+        src2 :: CPUReg
+        src2 = instr[10:6]
     in
-	rules
-	  "LoadC":
-	    when opcode == 2
-	      ==> action {
-	            pc := pc';
-		    rf.upd dst (imem.sub pc)[15:0];
-		  }
+        rules
+          "LoadC":
+            when opcode == 2
+              ==> action {
+                    pc := pc';
+                    rf.upd dst (imem.sub pc)[15:0];
+                  }
 
-	  "LoadPC":
-	    when opcode == 1
-	      ==> action {
-		    pc := pc';
-		    rf.upd dst pc;
-		  }
+          "LoadPC":
+            when opcode == 1
+              ==> action {
+                    pc := pc';
+                    rf.upd dst pc;
+                  }
 
-	  "Load":
-	    when opcode == 3
-	      ==> action {
-		    pc := pc';
-		    rf.upd dst (dmem.sub (rf.sub src1));
-		  }
+          "Load":
+            when opcode == 3
+              ==> action {
+                    pc := pc';
+                    rf.upd dst (dmem.sub (rf.sub src1));
+                  }
 
-	  "Store":
-	    when opcode == 5
-	      ==> action {
-		    pc := pc';
-		    dmem.upd (rf.sub src1) (rf.sub src2);
-		  }
+          "Store":
+            when opcode == 5
+              ==> action {
+                    pc := pc';
+                    dmem.upd (rf.sub src1) (rf.sub src2);
+                  }
 
-	  "Sub":
-	    when opcode == 0
-	      ==> action {
-		    pc := pc';
-		    rf.upd dst (rf.sub src1 - rf.sub src2);
-		  }
+          "Sub":
+            when opcode == 0
+              ==> action {
+                    pc := pc';
+                    rf.upd dst (rf.sub src1 - rf.sub src2);
+                  }
 
-	  "Jump":
-	    when opcode == 4
-	      ==> action {
-		    pc := rf.sub src1;
-		  }
+          "Jump":
+            when opcode == 4
+              ==> action {
+                    pc := rf.sub src1;
+                  }
 
-	  "JZ":
-	    when opcode == 6
-		rules {
-		  "taken":
-		    when rf.sub src2 == 0
-		      ==> action {
-			    pc := rf.sub src1;
-			  };
+          "JZ":
+            when opcode == 6
+                rules {
+                  "taken":
+                    when rf.sub src2 == 0
+                      ==> action {
+                            pc := rf.sub src1;
+                          };
 
-		  "not taken":
-		    when rf.sub src2 /= 0
-		      ==> action {
-			    pc := pc';
-			  }
-		}
+                  "not taken":
+                    when rf.sub src2 /= 0
+                      ==> action {
+                            pc := pc';
+                          }
+                }
 
-	  "LT":
-	    when opcode == 7
-	      ==> action {
-		    pc := pc';
-		    rf.upd dst (if rf.sub src1 < rf.sub src2 then 1 else 0);
-		  }
+          "LT":
+            when opcode == 7
+              ==> action {
+                    pc := pc';
+                    rf.upd dst (if rf.sub src1 < rf.sub src2 then 1 else 0);
+                  }

@@ -28,71 +28,71 @@ mkController kbd paddleL paddleR ball =
     release :: Reg Bool <- mkReg False
 
     interface
-	autoPlayL = autoL
-	autoPlayR = autoR
+        autoPlayL = autoL
+        autoPlayR = autoR
 
     rules
 
        "KeyPress":
         when True ==>
-	  action
-	    keycode :: ScanCode <- kbd.get
+          action
+            keycode :: ScanCode <- kbd.get
             case keycode of
-	      ScanCode 0xf0 -> -- Release
-		action
+              ScanCode 0xf0 -> -- Release
+                action
                   release := True
-	      ScanCode 0x1c -> -- A
-		action
-	          doL := not release
-		  upL := False
-		  release := False
-	      ScanCode 0x1a -> -- Z
-		action
-	          doL := not release
-		  upL := True
-		  release := False
-	      ScanCode 0x15 -> -- Q
-		action
-		  autoL := if release then autoL else not autoL
-		  release := False
-	      ScanCode 0x52 -> -- '
-		action
-	          doR := not release
-		  upR := False
-		  release := False
-	      ScanCode 0x4a -> -- /
-		action
-	          doR := not release
-		  upR := True
-		  release := False
-	      ScanCode 0x5b -> -- ]
-		action
-		  autoR := if release then autoR else not autoR
-		  release := False
+              ScanCode 0x1c -> -- A
+                action
+                  doL := not release
+                  upL := False
+                  release := False
+              ScanCode 0x1a -> -- Z
+                action
+                  doL := not release
+                  upL := True
+                  release := False
+              ScanCode 0x15 -> -- Q
+                action
+                  autoL := if release then autoL else not autoL
+                  release := False
+              ScanCode 0x52 -> -- '
+                action
+                  doR := not release
+                  upR := False
+                  release := False
+              ScanCode 0x4a -> -- /
+                action
+                  doR := not release
+                  upR := True
+                  release := False
+              ScanCode 0x5b -> -- ]
+                action
+                  autoR := if release then autoR else not autoR
+                  release := False
               _ ->
-		action
-	          release := False
+                action
+                  release := False
 
 
        "Delay":
         when True ==>
-	  action
-	    repeat := if repeat == 0 then 110000 else repeat - 1
+          action
+            repeat := if repeat == 0 then 110000 else repeat - 1
 
        "Act":
         when (repeat == 0) ==>
-	  action
+          action
 
-	    if doL then
-	      paddleL.inc_dec upL
+            if doL then
+              paddleL.inc_dec upL
              else if (autoL && not ball.dir) then
-	      paddleL.inc_dec (ball.center > paddleL.center)
+              paddleL.inc_dec (ball.center > paddleL.center)
              else
-	      noAction
+              noAction
 
-	    if doR then
-	      paddleR.inc_dec upR
+            if doR then
+              paddleR.inc_dec upR
              else if (autoR && ball.dir) then
-	      paddleR.inc_dec (ball.center > paddleR.center)
+              paddleR.inc_dec (ball.center > paddleR.center)
              else
-	      noAction
+              noAction

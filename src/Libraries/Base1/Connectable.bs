@@ -57,8 +57,8 @@ instance (Connectable a b) => Connectable (Vector n a) (Vector n b)
   where
     mkConnection :: (IsModule m c) => (Vector n a) -> (Vector n b) -> m Empty
     mkConnection xs ys = do
-	Vector.zipWithM mkConnection xs ys
-	return $ interface Empty
+        Vector.zipWithM mkConnection xs ys
+        return $ interface Empty
 
 
 --@ Two \te{ListN}s are connectable if the elements are.
@@ -71,17 +71,17 @@ instance (Connectable a b) => Connectable (ListN n a) (ListN n b)
   where
     mkConnection :: (IsModule m c) => (ListN n a) -> (ListN n b) -> m Empty
     mkConnection xs ys = do
-	ListN.sequence (ListN.zipWith mkConnection xs ys)
-	return $ interface Empty
+        ListN.sequence (ListN.zipWith mkConnection xs ys)
+        return $ interface Empty
 
 {-
 instance Connectable#(RWire#(a), RWire#(a));
    module mkConnection#(RWire#(a) w1, RWire#(a) w2)(Empty);
       rule connect_rwires_lr (isValid(w1.wget));
-	 w2.wset(validValue(w1.wget));
+         w2.wset(validValue(w1.wget));
       endrule
       rule connect_rwires_rl (isValid(w2.wget));
-	 w1.wset(validValue(w2.wget));
+         w1.wset(validValue(w2.wget));
       endrule
    endmodule
 endinstance
@@ -91,26 +91,26 @@ instance Connectable (RWire a) (RWire a)
    where
      mkConnection :: (IsModule m c) => (RWire a) -> (RWire a) -> (m Empty)
      mkConnection w1 w2 =
-	 module
-	     rules
-	      "connect_rwires_lr":
-	         when isValid w1.wget
-		    ==> w2.wset(validValue(w1.wget))
-	      "connect_rwires_rl":
-	         when isValid w2.wget
-		    ==> w1.wset(validValue(w2.wget))
+         module
+             rules
+              "connect_rwires_lr":
+                 when isValid w1.wget
+                    ==> w2.wset(validValue(w1.wget))
+              "connect_rwires_rl":
+                 when isValid w2.wget
+                    ==> w1.wset(validValue(w2.wget))
 
 instance Connectable (ActionValue a) (a -> Action)
   where
     mkConnection :: (IsModule m c) => (ActionValue a) -> (a -> Action) -> m Empty
     mkConnection g p =
       module
-	rules
+        rules
          "mkConnectionAVtoAf":
-	    when True
-	     ==> action
-		    x :: a <- g
-		    p x
+            when True
+             ==> action
+                    x :: a <- g
+                    p x
 
 instance Connectable (a -> Action) (ActionValue a)
   where
@@ -124,11 +124,11 @@ instance Connectable a (a -> Action)
     mkConnection :: (IsModule m c) => a -> (a -> Action) -> m Empty
     mkConnection x p =
       module
-	rules
+        rules
          "mkConnectionVtoAf":
-	    when True
-	     ==> action
-		    p x
+            when True
+             ==> action
+                    p x
 
 instance Connectable (a -> Action) a
   where
@@ -146,9 +146,9 @@ instance Connectable Action Action
     mkConnection :: (IsModule m c) => Action -> Action -> m Empty
     mkConnection a1 a2 =
       module
-	rules
+        rules
          "mkConnectionAtoA":
-	    when True
-	     ==> action
-		    a1
-		    a2
+            when True
+             ==> action
+                    a1
+                    a2

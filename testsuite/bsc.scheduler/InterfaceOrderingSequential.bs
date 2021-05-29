@@ -10,10 +10,10 @@ interface Act =
 sysInterfaceOrderingSequential :: Module Act
 sysInterfaceOrderingSequential =
     module
-	r :: Reg Bool
-	r <- mkReg _
-	r' :: Reg Bool
-	r' <- mkReg _
+        r :: Reg Bool
+        r <- mkReg _
+        r' :: Reg Bool
+        r' <- mkReg _
         interface
             act = r := False
         rules

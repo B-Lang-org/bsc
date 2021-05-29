@@ -10,4 +10,4 @@ interface Incognito =
 incognito :: Reg Bool -> Incognito
 incognito r = interface
                 read = r
-		write v = r := v
+                write v = r := v

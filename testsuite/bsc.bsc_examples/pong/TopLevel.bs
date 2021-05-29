@@ -76,30 +76,30 @@ mkTopLevel =
     color :: Reg Color <- mkRegU
 
     let flipCol col b = modShapeVis (\ c -> if b && c /= cNone then col <^> c else c)
-	flipBCol col b = modShapeVis (\ c -> if b then col <^> c else c)
-	padL = flipCol cYellow controller.autoPlayL paddleL.shape
-	padR = flipCol cYellow controller.autoPlayR paddleR.shape
-	border' = flipCol (mkRGB 2 0 1) sw1.value border
-	ball' = flipCol (mkRGB 1 1 3) sw1.value ball.shape
-	pict = joinManyShapes (border' :> ball' :> padL :> padR :> dispL :> dispR :> Nil)
-	pict' = flipBCol cWhite sw2.value pict
-	pictBl = modShapeVis (\ c -> if vgaCore.blank then cNone else c) pict'
+        flipBCol col b = modShapeVis (\ c -> if b then col <^> c else c)
+        padL = flipCol cYellow controller.autoPlayL paddleL.shape
+        padR = flipCol cYellow controller.autoPlayR paddleR.shape
+        border' = flipCol (mkRGB 2 0 1) sw1.value border
+        ball' = flipCol (mkRGB 1 1 3) sw1.value ball.shape
+        pict = joinManyShapes (border' :> ball' :> padL :> padR :> dispL :> dispR :> Nil)
+        pict' = flipBCol cWhite sw2.value pict
+        pictBl = modShapeVis (\ c -> if vgaCore.blank then cNone else c) pict'
 
     interface
 
-	hsync = pack vgaCore.not_hsync
-	vsync = pack vgaCore.not_vsync
+        hsync = pack vgaCore.not_hsync
+        vsync = pack vgaCore.not_vsync
 
-	red   = getRed   color
-	green = getGreen color
-	blue  = getBlue  color
+        red   = getRed   color
+        green = getGreen color
+        blue  = getBlue  color
 
         rawkbd = raw_kbd
-	rawsw1 = raw_switch1
-	rawsw2 = raw_switch2
+        rawsw1 = raw_switch1
+        rawsw2 = raw_switch2
 
-	aL = pack controller.autoPlayL
-	aR = pack controller.autoPlayR
+        aL = pack controller.autoPlayL
+        aR = pack controller.autoPlayR
 
     rules
 
@@ -108,5 +108,5 @@ mkTopLevel =
       when True ==>
         action
           pict.newPos vgaCore.hPos vgaCore.vPos
-	  lfsr.next
-	  color := pictBl.color
+          lfsr.next
+          color := pictBl.color

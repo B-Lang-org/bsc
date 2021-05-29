@@ -1,10 +1,10 @@
 package MipsDefs(
-	Address,
-	Value, vToI, iToV, vToA, vLT, vLE, vGT, vGE, vSRA, vToNat, vZeroExt, vSignExt,
-	IAddress, jumpExtend, iaSignExt,
-	IValue,
-	ROM(..), RAM(..)
-	) where
+        Address,
+        Value, vToI, iToV, vToA, vLT, vLE, vGT, vGE, vSRA, vToNat, vZeroExt, vSignExt,
+        IAddress, jumpExtend, iaSignExt,
+        IValue,
+        ROM(..), RAM(..)
+        ) where
 
 import MipsInstr
 

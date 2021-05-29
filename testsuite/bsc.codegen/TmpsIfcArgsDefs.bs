@@ -1,7 +1,7 @@
 package TmpsIfcArgsDefs ( TS_item(..),
-	                  print_ts_item,
-			  PortID
-			) where
+                          print_ts_item,
+                          PortID
+                        ) where
 
 type PortID = Bit 5
 

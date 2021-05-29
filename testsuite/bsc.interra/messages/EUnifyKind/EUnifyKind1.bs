@@ -35,14 +35,14 @@ mkEUnifyKind1 :: Module EUnifyKind1
 mkEUnifyKind1 =
       module
 
-	w :: Reg (Int 32)
-	w <- mkRegU
+        w :: Reg (Int 32)
+        w <- mkRegU
 
-	x :: Reg (Int 32)
-	x <- mkRegU
+        x :: Reg (Int 32)
+        x <- mkRegU
 
-	y :: Reg (Int 32)
-	y <- mkReg 0
+        y :: Reg (Int 32)
+        y <- mkReg 0
 
         z :: Mystruct
         z.xx :: Reg (Int 32)
@@ -50,24 +50,24 @@ mkEUnifyKind1 =
         z.yy :: Reg (Int 32)
 
         rules
-	  "Swap":
-	    when x > y, y /= 0
-	      ==> action
-                            let
-                               (x,y) = split z
-		      x := y
-		      y := x
+          "Swap":
+            when x > y, y /= 0
+              ==> action
+                             let
+                                (x,y) = split z
+                      x := y
+                      y := x
 
-	  "Subtract":
-	    when x <= y, y /= 0
-	      ==> action
-		      y := y - x
+          "Subtract":
+            when x <= y, y /= 0
+              ==> action
+                      y := y - x
 
         interface
-	    start ix iy = action
-	                      x := ix
-	                      y := iy
-	                  when y == 0
-	    result = x when y == 0
+            start ix iy = action
+                              x := ix
+                              y := iy
+                          when y == 0
+            result = x when y == 0
 
 

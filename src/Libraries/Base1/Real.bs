@@ -1,22 +1,22 @@
 package Real(
 
-	-- trigonometric functions
-	sin, cos, tan, sinh, cosh, tanh,
-	asin, acos, atan, asinh, acosh, atanh,
-	atan2,
-	-- exponentiation
-	pow,
-	-- square root
-	sqrt,
-	-- constants
-	pi,
-	-- rounding
-	trunc, ceil, floor, round,
-	-- introspection
-	splitReal, decodeReal, realToDigits,
-	isInfinite, isNegativeZero
+        -- trigonometric functions
+        sin, cos, tan, sinh, cosh, tanh,
+        asin, acos, atan, asinh, acosh, atanh,
+        atan2,
+        -- exponentiation
+        pow,
+        -- square root
+        sqrt,
+        -- constants
+        pi,
+        -- rounding
+        trunc, ceil, floor, round,
+        -- introspection
+        splitReal, decodeReal, realToDigits,
+        isInfinite, isNegativeZero
 
-	) where
+        ) where
 
 -- ---------------
 -- trigonometric functions

@@ -9,13 +9,13 @@ import FIFO
 sysDisjointRanges :: Module Empty
 sysDisjointRanges =
     module
-	a :: Reg (Bit 16) <- mkRegU
-	b :: Reg Bool <- mkRegU
-	c :: Reg Bool <- mkRegU
-	d :: Reg (Bit 16) <- mkRegU
-	q :: FIFO Bool <- mkFIFO
+        a :: Reg (Bit 16) <- mkRegU
+        b :: Reg Bool <- mkRegU
+        c :: Reg Bool <- mkRegU
+        d :: Reg (Bit 16) <- mkRegU
+        q :: FIFO Bool <- mkFIFO
         rules
             "foo": when (a > 63 || b) && (not c && (d >= 10 && a <= 63))
-	            ==> { q.enq True }
-	    "bar": when True
-	            ==> { q.enq False }
+                    ==> { q.enq True }
+            "bar": when True
+                    ==> { q.enq False }

@@ -1,7 +1,7 @@
 package ActionSeq(
         actionSeq, ActionSeq(..), ActionList, ActionJoin(..),
-	aJoin, actionSeqBreak, mkActionSeq,
-	SeqList, seqOfActionSeq) where
+        aJoin, actionSeqBreak, mkActionSeq,
+        SeqList, seqOfActionSeq) where
 import List
 import Vector
 
@@ -83,15 +83,15 @@ actionSeq :: (IsModule m c, Add n 1 i, Log i k) =>
              ActionList n -> m ActionSeq
 actionSeq as = liftModule $
     module
-	letseq bn = fromInteger (valueOf n)
+        letseq bn = fromInteger (valueOf n)
         var :: RegB k
         var <- mkReg bn
-	addRules $ mkRules True var as
-	interface
+        addRules $ mkRules True var as
+        interface
             start = var := 0
-        	when var == bn
-	    done  = (var == bn)
-	    checkDone = noAction
+                when var == bn
+            done  = (var == bn)
+            checkDone = noAction
                 when var == bn
 
 -- ActionSeq wrapper with a phantom type for the counter size
@@ -120,15 +120,15 @@ aS2 :: (IsModule m c) =>
 aS2 as n var = liftModule $
     module
         letseq bn = fromInteger n
-	addRules $ mR2 True var as
+        addRules $ mR2 True var as
         interface ActionSeqN
-	  _actionSeq =
+          _actionSeq =
             interface ActionSeq
               start = var := 0
                 when var == bn
-	      done  = (var == bn)
-	      checkDone = noAction
-       	        when var == bn
+              done  = (var == bn)
+              checkDone = noAction
+                       when var == bn
 
 --@ \index{actionSeqBreak@\te{actionSeqBreak} (\te{ActionSeq} function)}
 --@ The function \te{actionSeqBreak} is similar to \te{actionSeq}, but it
@@ -149,17 +149,17 @@ actionSeqBreak as = liftModule $
     module
         var :: RegB k
         var <- mkRegU
-	go :: Reg Bool
-	go <- mkReg False
-	letseq bn = fromInteger (valueOf n)
-	       rdy = not go || var == bn
-	addRules $ mkRules go var (as (go := False))
-	interface
+        go :: Reg Bool
+        go <- mkReg False
+        letseq bn = fromInteger (valueOf n)
+               rdy = not go || var == bn
+        addRules $ mkRules go var (as (go := False))
+        interface
             start = action { go := True; var := 0 }
-        	when rdy
-	    done  = rdy
-	    checkDone = noAction
-	        when rdy
+                when rdy
+            done  = rdy
+            checkDone = noAction
+                when rdy
 
 mkRules :: Bool -> RegB k -> ActionList n -> Rules
 mkRules cond var l = foldr (step cond var) (rules { }) (zip genList l)
@@ -193,23 +193,23 @@ seqOfActionSeq :: (IsModule m c, Add n 1 j, Add j 1 i, Log i k) =>
                   SeqList n -> m ActionSeq
 seqOfActionSeq xs = liftModule $
     module
-	letseq bn = fromInteger (valueOf j)
-	var :: RegB k
-	var <- mkReg bn
-	addRules $ mkSeqRules var xs
-	interface
-	    start = var := 0
-		when var == bn
-	    done  = (var == bn)
- 	    checkDone = noAction
-       	        when var == bn
+        letseq bn = fromInteger (valueOf j)
+        var :: RegB k
+        var <- mkReg bn
+        addRules $ mkSeqRules var xs
+        interface
+            start = var := 0
+                when var == bn
+            done  = (var == bn)
+            checkDone = noAction
+                when var == bn
 
 mkSeqRules :: (Add n 1 j) => RegB k -> SeqList n -> Rules
 mkSeqRules var l =
     letseq emptyIfc = interface ActionSeq { done = True; start = noAction; checkDone = noAction }
-	   l_shifted = cons emptyIfc l
-	   l_extended = append l (cons emptyIfc nil)
-	   zip3 = zipWith3 (\x y z -> (x,y,z))
+           l_shifted = cons emptyIfc l
+           l_extended = append l (cons emptyIfc nil)
+           zip3 = zipWith3 (\x y z -> (x,y,z))
     in  foldr (seqStep var) (rules { }) (zip3 genList l_extended l_shifted)
 
 seqStep :: RegB k -> (Integer, ActionSeq, ActionSeq) -> Rules -> Rules

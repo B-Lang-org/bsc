@@ -22,7 +22,7 @@ package UIntRange(UIntRange, incr, decr) where
 --@ \EBS
 
 data (UIntRange :: # -> # -> *) lo hi = U (Bit (TLog (TAdd hi 1)))
-	deriving (Eq, Ord)
+        deriving (Eq, Ord)
 
 primitive primRange :: Bit n -> Bit n -> Bit n -> Bit n
 
@@ -31,8 +31,8 @@ primitive primRange :: Bit n -> Bit n -> Bit n -> Bit n
 --@ \end{libverbatim}
 instance Bits (UIntRange lo hi) (TLog (TAdd hi 1))
     where
-	pack (U x) = x -- primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x
-	unpack  x  = U x -- (primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x)
+        pack (U x) = x -- primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x
+        unpack  x  = U x -- (primRange (fromInteger (valueOf lo)) (fromInteger (valueOf hi)) x)
 
 --@ \lineup
 --@ \begin{libverbatim}
@@ -40,11 +40,11 @@ instance Bits (UIntRange lo hi) (TLog (TAdd hi 1))
 --@ \end{libverbatim}
 instance Literal (UIntRange lo hi)
     where
-	fromInteger i =
-	    if i < valueOf lo || i > valueOf hi then
-		error ("UIntRange: literal out of range: " +++ integerToString i)
-	    else
-		U (fromInteger i)
+        fromInteger i =
+            if i < valueOf lo || i > valueOf hi then
+                error ("UIntRange: literal out of range: " +++ integerToString i)
+            else
+                U (fromInteger i)
         inLiteralRange _ i = i >= valueOf lo && i <= valueOf hi
 
 --@ \lineup
@@ -53,8 +53,8 @@ instance Literal (UIntRange lo hi)
 --@ \end{libverbatim}
 instance Bounded (UIntRange lo hi)
     where
-	minBound = fromInteger (valueOf lo)
-	maxBound = fromInteger (valueOf hi)
+        minBound = fromInteger (valueOf lo)
+        maxBound = fromInteger (valueOf hi)
 
 -- Arith is easy to define once the semantic has been decided
 
@@ -66,11 +66,11 @@ instance Bounded (UIntRange lo hi)
 incr :: UIntRange lo hi -> UIntRange lo hi
 incr (U x) =
     let bhi = fromInteger (valueOf hi) `asTypeOf` x
-	blo = fromInteger (valueOf lo) `asTypeOf` x
+        blo = fromInteger (valueOf lo) `asTypeOf` x
     in  if bhi+1 /= blo && x == bhi then
-	    U blo
-	else
-	    U (x+1)
+            U blo
+        else
+            U (x+1)
 
 --@ Decrement a value.  This operation wraps around so
 --@ decrementing \qbs{lo} gives the value \qbs{hi}.
@@ -80,8 +80,8 @@ incr (U x) =
 decr :: UIntRange lo hi -> UIntRange lo hi
 decr (U x) =
     let bhi = fromInteger (valueOf hi) `asTypeOf` x
-	blo = fromInteger (valueOf lo) `asTypeOf` x
+        blo = fromInteger (valueOf lo) `asTypeOf` x
     in  if blo-1 /= bhi && x == blo then
-	    U bhi
-	else
-	    U (x-1)
+            U bhi
+        else
+            U (x-1)

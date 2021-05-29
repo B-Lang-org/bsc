@@ -30,5 +30,5 @@ mkENoNF1 =
         y <- mkRegU
 
         interface
-	    start  = action
+            start  = action
                              x := y

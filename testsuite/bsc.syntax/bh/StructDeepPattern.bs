@@ -12,7 +12,7 @@ struct MyStruct =
 sysStructDeepPattern :: Module Empty
 sysStructDeepPattern =
     module
-	(g,p) :: (Get MyStruct, Put MyStruct) <- mkGPFIFO
-	rules
-	  when True ==> action (MyStruct { foo = True; bar = False }) <- g.get
-	                       r.put (MyStruct { foo = False; bar = True })
+        (g,p) :: (Get MyStruct, Put MyStruct) <- mkGPFIFO
+        rules
+          when True ==> action (MyStruct { foo = True; bar = False }) <- g.get
+                               r.put (MyStruct { foo = False; bar = True })

@@ -11,11 +11,11 @@ sysGCD =
     started <- mkReg False
     rules
       "init":
-	when not started
-	 ==> action { gcd.input 105198692842362 445628814024366; started := True }	-- the answer is, of course, 42
---	 ==> action { gcd.input 10 5; started := True }	-- the answer is, of course, 5
+        when not started
+         ==> action { gcd.input 105198692842362 445628814024366; started := True }  -- the answer is, of course, 42
+--         ==> action { gcd.input 10 5; started := True }  -- the answer is, of course, 5
     interface
-	{ }
+        { }
 
 interface ArithIO a =
     input :: a -> a -> Action
@@ -37,27 +37,27 @@ mkGCD =
       "flip":
         -- the top is equivalent to the bottom, but the top does not work with the
         -- current bdd engine, since the rules are not minimized in the same canoncial way --
---	when (not done) ,  (x > y) , (y /= 0)
-	when not ( (done)  ||  (x < y) || (y == 0) || (y==x) )
+--        when (not done) ,  (x > y) , (y /= 0)
+        when not ( (done)  ||  (x < y) || (y == 0) || (y==x) )
 
-	  ==> action
-		x := y
-	        y := x
+          ==> action
+                x := y
+                y := x
 
       "stop":
-	when (not done) && ( y == 0)
-	  ==> done := True
+        when (not done) && ( y == 0)
+          ==> done := True
 
       "sub":
-	when not done, x <= y, y /= 0
-	  ==> y := y - x
+        when not done, x <= y, y /= 0
+          ==> y := y - x
 
     interface
-	input a b = action
-			done := False
-		        x := a
-			y := b
-	   when done
-	output = if done
-		 then Valid x
-		 else Invalid
+        input a b = action
+                        done := False
+                        x := a
+                        y := b
+           when done
+        output = if done
+                 then Valid x
+                 else Invalid

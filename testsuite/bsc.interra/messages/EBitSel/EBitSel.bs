@@ -44,7 +44,7 @@ mkShifter64 =
 -- one shift stage
 shift1 :: (Add 1 m' m) => (UInt n, UInt m) -> (UInt n, UInt m')
 shift1 (val, by) = let i = fromInteger (valueOf m')
-                       shift = (pack by)[2:2	] == 1
+                       shift = (pack by)[2:2] == 1
                        val' = if shift then val << (1 << i) else val
                        by' = truncate by
                    in  (val', by')

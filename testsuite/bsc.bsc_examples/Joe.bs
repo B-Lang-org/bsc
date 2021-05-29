@@ -21,22 +21,22 @@ mkJoint :: (Put o, Get i) => o a -> i a -> Module Empty
 mkJoint o i =
     module
       rules
-	when True
-	 ==> action
-		put o (get i)
-		drop i
+        when True
+         ==> action
+                put o (get i)
+                drop i
 
 join :: (Put o, Get i) => List (i a) -> o a -> Module Empty
 join is o =
     module
-	mapM (mkJoint o) is
-	return $ interface Empty { }
+        mapM (mkJoint o) is
+        return $ interface Empty { }
 
 sysJoe :: Module Empty
 sysJoe =
     module
-	is :: List (FIFO Nat)
-	is <- mapM (\ _ -> mkFIFO) (upto 1 3)
-	o :: FIFO Nat
-	o <- mkFIFO
-	join is o
+        is :: List (FIFO Nat)
+        is <- mapM (\ _ -> mkFIFO) (upto 1 3)
+        o :: FIFO Nat
+        o <- mkFIFO
+        join is o

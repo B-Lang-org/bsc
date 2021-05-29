@@ -4,8 +4,8 @@ import FIFO
 
 mkInterface :: Bool -> FIFO (Bit 8)
 mkInterface b = interface FIFO
-		  enq x = noAction
-		  first = 12 when b
+                  enq x = noAction
+                  first = 12 when b
                   clear = noAction
                   deq = noAction when b
 

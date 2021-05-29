@@ -12,9 +12,9 @@ type Value = Bit 32
 type Imm = Bit 16      -- immediate
 
 data MEMOp =  LWop | SWop | LBop | LBUop |
-	      SBop | LHop | LHUop | SHop | LWLop |
-	      LWRop | SWLop | SWRop
-	      deriving (Eq, Bits)
+              SBop | LHop | LHUop | SHop | LWLop |
+              LWRop | SWLop | SWRop
+              deriving (Eq, Bits)
 
 struct MEMInstr =
     robTag   :: ROBTag
@@ -44,8 +44,8 @@ mkTest =
 
      rules
        "Dispatch":
-	 when True
-	   ==> mem.putMEMOp    _
+         when True
+           ==> mem.putMEMOp    _
 
 -- ===========================================================
 
@@ -66,7 +66,7 @@ mkMemUnit =
 
     interface
         putMEMOp i = action
---	                let (loadp,err) = _
+--                        let (loadp,err) = _
                         let
                           (loadp,err) = case (i.memOp) of
                                             LWop  -> (True,_)

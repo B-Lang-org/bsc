@@ -1,8 +1,8 @@
 package PopCount(
-	popCountNaive, popCountTable, popCountTree, popCountWallace,
-	LogK,
-	popCountTableWallace, popCountTableTree
-	) where
+        popCountNaive, popCountTable, popCountTree, popCountWallace,
+        LogK,
+        popCountTableWallace, popCountTableTree
+        ) where
 
 import List
 import Vector
@@ -85,9 +85,9 @@ splitInKs :: Nat -> Bit n -> List (Bit k)
 splitInKs i bs =
     let i' = fromInteger (valueOf n) `min` (i + fromInteger (valueOf k))
     in  if i == i' then
-	    Nil
+            Nil
         else
-	    Cons bs[i'-1:i] (splitInKs i' bs)
+            Cons bs[i'-1:i] (splitInKs i' bs)
 
 --------------------------------------------------------------------------------
 
@@ -99,12 +99,12 @@ interface X =
 testPopCount :: Module X
 testPopCount =
     module
-	i :: Reg (Bit 32) <- mkRegU
-	o :: Reg (Bit 6) <- mkRegU
+        i :: Reg (Bit 32) <- mkRegU
+        o :: Reg (Bit 6) <- mkRegU
     interface
-	ii x = i := x
+        ii x = i := x
         oo = o
     rules
-	when True
-	 ==> o := popCountTableWallace i
+        when True
+         ==> o := popCountTableWallace i
 -}

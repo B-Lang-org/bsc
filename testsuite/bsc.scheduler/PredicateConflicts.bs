@@ -7,10 +7,10 @@ package PredicateConflicts(sysPredicateConflicts) where
 sysPredicateConflicts :: Module Empty
 sysPredicateConflicts =
     module
-	x :: Reg Bool
-	x <- mkReg _
-	y :: Reg Bool
-	y <- mkReg _
+        x :: Reg Bool
+        x <- mkReg _
+        y :: Reg Bool
+        y <- mkReg _
         rules
             "foo": when x ==> y := not y
-	    "bar": when y ==> x := not x
+            "bar": when y ==> x := not x

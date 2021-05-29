@@ -18,9 +18,9 @@ interface VRegTwo n =
 vMkRegTwo :: Bit n -> Module (VRegTwo n)
 vMkRegTwo v =
     module verilog "RegTwoN" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	get = "Q_OUT"{reg};
-	setA = "D_INA"{reg} "ENA";
-	setB = "D_INB"{reg} "ENB";
+        get = "Q_OUT"{reg};
+        setA = "D_INA"{reg} "ENA";
+        setB = "D_INB"{reg} "ENB";
     } [ [get, setA, setB] <> [get, setA, setB] ]
 
 --@ \begin{libverbatim}
@@ -32,9 +32,9 @@ mkRegTwo v = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	get = unpack 0
-	setA _ = return ()
-	setB _ = return ()
+        get = unpack 0
+        setA _ = return ()
+        setB _ = return ()
   else
     module
       _r :: VRegTwo sa
@@ -47,17 +47,17 @@ mkRegTwo v = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	get = unpack _r.get
-	setA x = fromPrimAction (_r.setA (pack x))
-	setB x = fromPrimAction (_r.setB (pack x))
+        get = unpack _r.get
+        setA x = fromPrimAction (_r.setA (pack x))
+        setB x = fromPrimAction (_r.setB (pack x))
 
 -- only for n>0
 vMkRegTwoA :: Bit n -> Module (VRegTwo n)
 vMkRegTwoA v =
     module verilog "RegTwoA" (("width",valueOf n), ("init",v)) "CLK" "RST" {
-	get = "Q_OUT"{reg};
-	setA = "D_INA"{reg} "ENA";
-	setB = "D_INB"{reg} "ENB";
+        get = "Q_OUT"{reg};
+        setA = "D_INA"{reg} "ENA";
+        setB = "D_INB"{reg} "ENB";
     } [ [get, setA, setB] <> [get, setA, setB] ]
 
 --@ \begin{libverbatim}
@@ -69,9 +69,9 @@ mkRegTwoA v = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	get = unpack 0
-	setA _ = return ()
-	setB _ = return ()
+        get = unpack 0
+        setA _ = return ()
+        setB _ = return ()
   else
     module
       _r :: VRegTwo sa
@@ -84,17 +84,17 @@ mkRegTwoA v = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	get = unpack _r.get
-	setA x = fromPrimAction (_r.setA (pack x))
-	setB x = fromPrimAction (_r.setB (pack x))
+        get = unpack _r.get
+        setA x = fromPrimAction (_r.setA (pack x))
+        setB x = fromPrimAction (_r.setB (pack x))
 
 -- only for n>0
 vMkRegTwoU :: Module (VRegTwo n)
 vMkRegTwoU =
     module verilog "RegTwoUN" (("width",valueOf n)) "CLK" {
-	get = "Q_OUT"{reg};
-	setA = "D_INA"{reg} "ENA";
-	setB = "D_INB"{reg} "ENB";
+        get = "Q_OUT"{reg};
+        setA = "D_INA"{reg} "ENA";
+        setB = "D_INB"{reg} "ENB";
     } [ [get, setA, setB] <> [get, setA, setB] ]
 
 --@ \begin{libverbatim}
@@ -106,9 +106,9 @@ mkRegTwoU = liftModule $
   if valueOf sa == 0 then
     module
       interface
-	get = unpack 0
-	setA _ = return ()
-	setB _ = return ()
+        get = unpack 0
+        setA _ = return ()
+        setB _ = return ()
   else
     module
       _r :: VRegTwo sa
@@ -121,7 +121,7 @@ mkRegTwoU = liftModule $
       primSavePortType name "Q_OUT" t
 
       interface
-	get = unpack _r.get
-	setA x = fromPrimAction (_r.setB (pack x))
-	setB x = fromPrimAction (_r.setA (pack x))
+        get = unpack _r.get
+        setA x = fromPrimAction (_r.setB (pack x))
+        setB x = fromPrimAction (_r.setA (pack x))
 

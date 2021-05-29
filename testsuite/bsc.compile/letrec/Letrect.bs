@@ -28,5 +28,5 @@ sysLetrect =
       when True ==>
          action
             $display (tpl_1 eleven)
-	    $display (tpl_2 eleven)
+            $display (tpl_2 eleven)
             $finish 0

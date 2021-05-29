@@ -9,10 +9,10 @@ interface Act =
 sysInterfaceOrderingParallel :: Module Act
 sysInterfaceOrderingParallel =
     module
-	r :: Reg Bool
-	r <- mkReg _
-	r' :: Reg Bool
-	r' <- mkReg _
+        r :: Reg Bool
+        r <- mkReg _
+        r' :: Reg Bool
+        r' <- mkReg _
         interface
             act = r' := False when r
         rules

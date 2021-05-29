@@ -18,19 +18,19 @@ data BitParityStates = Zero | One
 sysFSM :: Module BitParityCounter
 sysFSM =
     module
-	-- this is because we can't synthesize inputs:
-	bit :: Reg (Bit 1)
-	bit <- mkReg 0
+        -- this is because we can't synthesize inputs:
+        bit :: Reg (Bit 1)
+        bit <- mkReg 0
 
-	-- Special list syntax would be nice here:
-	fsm :: FSM BitParityStates
-	fsm <- mkFSM Zero (Cons (FSMRule Zero (bit == 1) One)
-				(Cons (FSMRule One (bit == 1) Zero)
-				    Nil))
+        -- Special list syntax would be nice here:
+        fsm :: FSM BitParityStates
+        fsm <- mkFSM Zero (Cons (FSMRule Zero (bit == 1) One)
+                                (Cons (FSMRule One (bit == 1) Zero)
+                                    Nil))
         interface
-	    reset = fsm.reset
-	    nextBit b = action { bit := b }
-	    count = pack fsm.state
+            reset = fsm.reset
+            nextBit b = action { bit := b }
+            count = pack fsm.state
 
 
 --
@@ -66,22 +66,22 @@ interface FSM a =
 mkFSM :: (Eq a, Bits a sa) => a -> List (FSMRule a) -> Module (FSM a)
 mkFSM initial_state rs =
     module
-	st :: Reg a
-	st <- mkReg initial_state
+        st :: Reg a
+        st <- mkReg initial_state
         addRules $ mkFSMRules st rs
         interface
-	    reset = action { st := initial_state }
-	    state = st
+            reset = action { st := initial_state }
+            state = st
 
 mkFSMRules :: (Eq a) => Reg a -> List (FSMRule a) -> Rules
 mkFSMRules _ Nil = rules {}
 mkFSMRules s (Cons r rs) =
     let
-	createRule :: FSMRule a -> Rules
-	createRule (FSMRule state cond newstate) =
-	    rules
-		"FSMRule":
-		  when s == state, cond
-		    ==> action { s := newstate }  -- perform an "action" field here
+        createRule :: FSMRule a -> Rules
+        createRule (FSMRule state cond newstate) =
+            rules
+                "FSMRule":
+                  when s == state, cond
+                    ==> action { s := newstate }  -- perform an "action" field here
     in
-	createRule r <+> mkFSMRules s rs
+        createRule r <+> mkFSMRules s rs

@@ -14,11 +14,11 @@ flatN n (Cons b bs) = b[(valueOf k - 1) : 0] << (n * valueOf k) | flatN (n+1) bs
 grabN :: Integer -> Integer -> Bit m -> List (Bit k)
 grabN i n bs =
     if i >= n then
-	Nil
+        Nil
     else
-	letseq i' = i + valueOf k
-	       x = bs[(i'-1) : i]
-	in  Cons x (grabN i' n bs)
+        letseq i' = i + valueOf k
+               x = bs[(i'-1) : i]
+        in  Cons x (grabN i' n bs)
 
 map :: (a -> b) -> ListNN n a -> ListNN n b
 map f (NN xs) = NN (map1 f xs)
@@ -31,7 +31,7 @@ primUpdateRangeFn :: Bit vec_size_t -> Nat -> Nat -> Bit splice_size_t
                   -> Bit vec_size_t
 primUpdateRangeFn original_bits high low spliced_bits =
     let
-	downto :: Nat -> Nat -> List Nat
+        downto :: Nat -> Nat -> List Nat
         downto n m = if (n<m) then Nil else (Cons n (downto (n-1) m))
 
         append :: List a -> List a -> List a
@@ -57,10 +57,10 @@ primUpdateRangeFn original_bits high low spliced_bits =
 
         spliced_vector :: ListNN splice_size_t (Bit 1) = unpack spliced_bits
 
-	spliced_list :: List (Bit 1)
+        spliced_list :: List (Bit 1)
         spliced_list =
             append (replicate ((vec_size - 1) - high) err)
                    (to_list spliced_vector)
 
     in
-	pack (to_list_n spliced_list)
+        pack (to_list_n spliced_list)

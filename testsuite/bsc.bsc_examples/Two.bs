@@ -14,8 +14,8 @@ interface ITwo =
     sometimesSetA :: AType -> Action
 
 struct Two =
-	a :: Reg AType
-	b :: Reg BType
+        a :: Reg AType
+        b :: Reg BType
 
 mkTwo :: Module Two
 mkTwo = do
@@ -28,25 +28,25 @@ mkTwo = do
 moduleTwo :: Module ITwo
 moduleTwo = module
               t :: Two
-	      t <- mkTwo
-	      addRules $ ruleA t <+> ruleB t
-	      interface
-	        getA = t.a._read
-	        getB = t.b._read
-	        setA x = t.a := x
-	        setB x = t.b := x
-	        sometimesSetA x = if t.a._read == x then action {} else t.a := x
+              t <- mkTwo
+              addRules $ ruleA t <+> ruleB t
+              interface
+                getA = t.a._read
+                getB = t.b._read
+                setA x = t.a := x
+                setB x = t.b := x
+                sometimesSetA x = if t.a._read == x then action {} else t.a := x
 
 mkFoo :: Module Empty
 mkFoo =
     module
-	t :: Two
-	t <- mkTwo
+        t :: Two
+        t <- mkTwo
         addRules $ ruleA t <+> ruleB t
 
 ruleA :: Two -> Rules
 ruleA t = rules
-	   "A": when True ==> action { t.a := 5; }
+           "A": when True ==> action { t.a := 5; }
 ruleB :: Two -> Rules
 ruleB t = rules
-	   "B": when True ==> action { t.b := 14; }
+           "B": when True ==> action { t.b := 14; }

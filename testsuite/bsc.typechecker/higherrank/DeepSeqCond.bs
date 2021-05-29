@@ -42,9 +42,9 @@ mkMyFoldFIFO =
     f :: Reg Bool
     f <- mkReg False
     interface
-      enq x  = action { f := True; v := x }	when not f
-      deq    = action { f := False }		when f
-      first  = v				when f
+      enq x  = action { f := True; v := x }    when not f
+      deq    = action { f := False }           when f
+      first  = v                               when f
       clear  = action { f := False }
       foldr  = _when_ False (\ g z -> if f then g v z else z)
 

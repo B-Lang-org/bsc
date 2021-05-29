@@ -1,9 +1,9 @@
 package GetPut(
                ToGet(..), ToPut(..),
-	       Get(..), GetS(..), Put(..), PutS(..), GetPut(..), peekGet,
-	       mkGetPut, fifoToGet, fifoToPut, fifoToGetS,
-	       mkGPFIFO, mkGPFIFO1, mkGPSizedFIFO
-	      ) where
+               Get(..), GetS(..), Put(..), PutS(..), GetPut(..), peekGet,
+               mkGetPut, fifoToGet, fifoToPut, fifoToGetS,
+               mkGPFIFO, mkGPFIFO1, mkGPSizedFIFO
+              ) where
 
 import FIFO
 import FIFOF
@@ -162,14 +162,14 @@ peekGet g = __value g.get
 fifoToGet :: FIFO a -> Get a
 fifoToGet f =
     interface Get
-	get = do
-		f.deq
-		return f.first
+        get = do
+                f.deq
+                return f.first
 
 fifoToGetS :: FIFO a -> GetS a
 fifoToGetS f =
     interface GetS
-    	first = f.first
+        first = f.first
         deq   = f.deq
 
 --@
@@ -229,7 +229,7 @@ fifoToGetS f =
 fifoToPut :: FIFO a -> Put a
 fifoToPut f =
     interface Put
-	put x = f.enq x
+        put x = f.enq x
 
 --@ To create a FIFO and return the two ends of it:
 --@ \index{mkGPFIFO@\te{mkGPFIFO} (function)|textbf}
@@ -329,12 +329,12 @@ instance Connectable (Get a) (Put a)
     mkConnection :: (IsModule m c) => Get a -> Put a -> m Empty
     mkConnection g p =
       module
-	rules
+        rules
          "mkConnectionGetPut":
-	    when True
-	     ==> action
-		    x :: a <- g.get
-		    p.put x
+            when True
+             ==> action
+                    x :: a <- g.get
+                    p.put x
 
  --@ \lineup
  --@ Note that \te{Connectable} can be used in either direction:
@@ -351,29 +351,29 @@ instance Connectable (GetS a) (Put a)
     mkConnection :: (IsModule m c) => GetS a -> Put a -> m Empty
     mkConnection g p =
       module
-	rules
+        rules
          "mkConnectionGetSPut":
-	    when True
-	     ==> action
-		    let x = g.first
+            when True
+             ==> action
+                    let x = g.first
                     g.deq
-		    p.put x
+                    p.put x
 
 instance Connectable (GetS a) (PutS a)
   where
     mkConnection :: (IsModule m c) => GetS a -> PutS a -> m Empty
     mkConnection g p =
       module
-	rules
+        rules
          "mkConnectionGetSPutS_offer":
-	    when True
-	     ==> action
-		    let x = g.first
+            when True
+             ==> action
+                    let x = g.first
                     p.offer x
          "mkConnectionGetSPutS_accept":
-	    when (p.accepted)
-	     ==> action
-		    g.deq
+            when (p.accepted)
+             ==> action
+                    g.deq
 
  --@ \lineup
  --@ Note that \te{Connectable} can be used in either direction:
@@ -393,25 +393,25 @@ instance Connectable (PutS a) (GetS a)
 instance (Bits a sa) => ClockConv (Get a) where
     mkConverter :: (Prelude.IsModule m c) => Integer -> Get a -> m (Get a)
     mkConverter d getuses =
-	module
-	  ff :: SyncFIFOIfc a <- mkSyncFIFOToCC d (clockOf getuses) (resetOf getuses);
-	  rules
-	    "enqueue": when True   ==> action { v <- getuses.get; ff.enq v; }
-	  interface
-	    get =  do
+        module
+          ff :: SyncFIFOIfc a <- mkSyncFIFOToCC d (clockOf getuses) (resetOf getuses);
+          rules
+            "enqueue": when True   ==> action { v <- getuses.get; ff.enq v; }
+          interface
+            get =  do
                     let v =  ff.first
-		    ff.deq
+                    ff.deq
                     return v
 
 instance (Bits a sa) => ClockConv (Put a) where
     mkConverter :: (Prelude.IsModule m c) => Integer -> Put a -> m (Put a)
     mkConverter d putuses =
-	module
-	  ff :: SyncFIFOIfc a <- mkSyncFIFOFromCC d (clockOf putuses)
-	  rules
-	     "dequeue":  when True  ==> action { putuses.put ff.first; ff.deq; }
-	  interface
-	    put v =  action { ff.enq v; }
+        module
+          ff :: SyncFIFOIfc a <- mkSyncFIFOFromCC d (clockOf putuses)
+          rules
+             "dequeue":  when True  ==> action { putuses.put ff.first; ff.deq; }
+          interface
+            put v =  action { ff.enq v; }
 
 --  Classes ToGet and ToPut
 class ToGet a b | a -> b where
@@ -430,29 +430,29 @@ instance ToPut (Put a) a where
 instance ToGet (FIFO a) a where
     toGet f =
         interface Get
-	          get = do
-		        f.deq
-		        return f.first
+            get = do
+                  f.deq
+                  return f.first
 
 
 instance ToPut (FIFO a) a where
     toPut f =
         interface Put
-	          put x = f.enq x
+            put x = f.enq x
 
 -- For the FIFOF interface
 instance ToGet (FIFOF a) a where
     toGet f =
         interface Get
-	          get = do
-		        f.deq
-		        return f.first
+            get = do
+                  f.deq
+                  return f.first
 
 
 instance ToPut (FIFOF a) a where
     toPut f =
         interface Put
-	          put x = f.enq x
+            put x = f.enq x
 
 
 
@@ -460,57 +460,57 @@ instance ToPut (FIFOF a) a where
 instance ToGet (SyncFIFOIfc a) a where
     toGet f =
         interface Get
-	          get = do
-		        f.deq
-		        return f.first
+            get = do
+                  f.deq
+                  return f.first
 
 
 instance ToPut (SyncFIFOIfc a) a where
     toPut f =
         interface Put
-	          put x = f.enq x
+            put x = f.enq x
 
 -- Instances ToPut and ToGet for Register interfaces --
 -- Note the are no implicit conditions
 instance ToGet (Reg a) a where
     toGet r =
         interface Get
-                  get = return r._read
+            get = return r._read
 
 instance ToPut (Reg a) a where
     toPut r =
         interface Put
-                  put x = r._write x
+            put x = r._write x
 
 
 instance ToGet (RWire a) a where
     toGet rw =
         interface Get
-                  get = return $ validValue rw.wget
-                        when isValid rw.wget
+            get = return $ validValue rw.wget
+                  when isValid rw.wget
 
 instance ToPut (RWire a) a where
     toPut rw =
         interface Put
-                  put x = rw.wset x
+            put x = rw.wset x
 
 
 instance ToGet (ReadOnly a) a where
     toGet r =
         interface Get
-                  get = return r._read
+            get = return r._read
 
 instance ToGet (a) a where
     toGet v =
         interface Get
-                  get = return v
+            get = return v
 
 instance ToGet (ActionValue a) a where
     toGet v =
         interface Get
-                  get = v
+            get = v
 
 instance ToPut (a -> Action) a where
     toPut f =
         interface Put
-                 put = f
+            put = f
