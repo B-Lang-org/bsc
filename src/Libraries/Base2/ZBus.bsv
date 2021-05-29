@@ -97,7 +97,7 @@ module mkZBusInternal#(List#(ZBusBusIFC#(t)) ifc_list)(ZBusInternalIFC#(t))
       begin
   	 ResolveZ#(t) i1();
   	 mkResolveZ the_i1(i1);
-	
+
   	 zout_final =
   	 i1.resolve(zBusIFCGetToBusValue(head(ifc_list)),
   		    zBusIFCGetToBusValue(head(tail(ifc_list))));
@@ -107,7 +107,7 @@ module mkZBusInternal#(List#(ZBusBusIFC#(t)) ifc_list)(ZBusInternalIFC#(t))
 
   	 ResolveZ#(t) i1();
   	 mkResolveZ the_i1(i1);
-	
+
  	 ZBusInternalIFC#(t) i2();
   	 mkZBusInternal#(tail(ifc_list)) the_i2(i2);
 

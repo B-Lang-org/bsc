@@ -58,9 +58,9 @@ fifof_ToFifof f =
 fifof_ToUGFifof :: FIFOF_ a -> FIFOF a
 fifof_ToUGFifof f =
     interface FIFOF
-	enq x    = f.enq x		
-	deq      = f.deq		
-	first    = f.first		
+	enq x    = f.enq x
+	deq      = f.deq
+	first    = f.first
 	clear    = f.clear
         notFull  = f.i_notFull
         notEmpty = f.i_notEmpty
@@ -68,7 +68,7 @@ fifof_ToUGFifof f =
 fifof_ToGFifof :: Bool -> Bool -> FIFOF_ a -> FIFOF a
 fifof_ToGFifof ugenq ugdeq f =
     interface FIFOF
-	enq x    = f.enq x		when ugenq || f.i_notFull	
+	enq x    = f.enq x		when ugenq || f.i_notFull
 	deq      = f.deq		when ugdeq || f.i_notEmpty
 	first    = f.first		when ugdeq || f.i_notEmpty
 	clear    = f.clear

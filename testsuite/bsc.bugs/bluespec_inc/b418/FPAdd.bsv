@@ -169,7 +169,7 @@ module mkFPBinOp #( function IEEE754_32 fun ( IEEE754_32 a, IEEE754_32 b)) (QBin
 
 endmodule
 
-
+
 /////////////////////////////////////////////////MAC Unit
 interface QTerOp #(parameter type a);
    method Action start3( a inA, a inB, a inC );

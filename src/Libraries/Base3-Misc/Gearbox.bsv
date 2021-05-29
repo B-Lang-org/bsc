@@ -476,5 +476,5 @@ function Action writeVCReg(Vector#(n, CrossingReg#(b)) rs, Vector#(n, b) ds);
 	      joinActions(zipWith(writeCReg, rs, ds));
 	   endaction);
 endfunction
-			
+
 endpackage: Gearbox

@@ -31,7 +31,6 @@ extern void __stginit_BlueTcl ( void );
 int bluetcl_AppInit(Tcl_Interp *interp);
 int Bluespec_Init(Tcl_Interp *interp);
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -66,7 +65,7 @@ main(int argc, char **argv)
 
   return 0;                        /* Needed only to prevent compiler warning. */
 }
-
+
 /*
  *----------------------------------------------------------------------
  *

@@ -32,9 +32,8 @@ interface Pusher;
 endinterface
 
 
+// ==================================================
 
-
-//
 (* synthesize *)
 // an example module using a Fifo at the end of the pipe.
 // in my opinion this is the only version of bsv code which produces
@@ -96,7 +95,8 @@ module mktestpush_fifo( Pusher );
 endmodule // testpush
 
 
-//
+// ==================================================
+
 (* synthesize *)
 // A modification of the above module.
 // This pipelines operation with registers rather than fifos,
@@ -136,7 +136,9 @@ module mktestpush_fifo_wreg( Pusher );
 
 endmodule // testpush
 
-//
+
+// ==================================================
+
 //(* synthesize *)
 // A modification of the above module.
 // This pipelines operation with single element fifos
@@ -174,7 +176,8 @@ module mktestpush_fifo_loopy( Pusher );
 endmodule // testpush
 
 
-//
+// ==================================================
+
 (* synthesize
 *)
 // A module with a register as the sink

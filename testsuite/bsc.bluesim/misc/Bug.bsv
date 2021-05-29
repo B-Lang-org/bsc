@@ -2,7 +2,7 @@
 typedef struct {
    Bit#(66) addr;
    Bit#(6)  size;
-} S deriving (Bits); 
+} S deriving (Bits);
 
 interface SubIfc;
    method S get();
@@ -18,15 +18,15 @@ endinterface: TopIfc
 module mkBug(TopIfc);
 
    SubIfc sub <- mkSub();
-   
+
    interface SubIfc sub_ifc = sub;
-      
+
 endmodule: mkBug
 
 module mkSub(SubIfc);
-   
+
    Reg#(Bit#(66)) x <- mkReg(0);
-      
+
    method S get();
       return S { addr: x, size: '1};
    endmethod: get

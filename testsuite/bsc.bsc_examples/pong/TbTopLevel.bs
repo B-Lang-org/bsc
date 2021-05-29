@@ -20,7 +20,7 @@ mkTbTopLevel =
 	kbdata_val :: Reg (Bool) <- mkReg False
 	sw1_val :: Reg (Bool) <- mkReg False
 	sw2_val :: Reg (Bool) <- mkReg False
-       
+
 	hsync_out   :: Reg (Bit 1) <- mkReg 0
 	vsync_out   :: Reg (Bit 1) <- mkReg 0
 	red_out   :: Reg (Bit 2) <- mkReg 0
@@ -34,7 +34,7 @@ mkTbTopLevel =
           {-# ASSERT no implicit conditions #-}
 	  "KbdClk":
 	    when True ==> action
-                              pong_dut.rawkbd.kbclk kbclk_val 
+                              pong_dut.rawkbd.kbclk kbclk_val
                               kbclk_val := not kbclk_val
                               rand_cnt1 := rand_cnt1 + 1;
                               rand_cnt2 := rand_cnt2 + 1;

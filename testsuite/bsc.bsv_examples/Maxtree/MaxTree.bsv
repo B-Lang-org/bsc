@@ -54,8 +54,7 @@ interface   Ifc_MaxQ #(type n ) ;
 endinterface
 
 
-
-//
+// ==================================================
 
 // function taking list of size n and return list of size n/2
 // moreover, the the output data in modified to build up the index of the
@@ -126,7 +125,8 @@ end
 endfunction
 
 
-//
+// ==================================================
+
 (* synthesize *)
 // Create module with takes a list of 8 BaseData, and return the index
 // of the largest BaseData and the BaseData.
@@ -176,7 +176,8 @@ module mkMaxTree16_p0 ( Ifc_Simple#(16) ) ;
 endmodule
 
 
-//
+// ==================================================
+
 (*
  synthesize
 *)
@@ -212,7 +213,8 @@ module mkMaxTest8_p1_in ( Ifc_MaxTree_Load#(8) ) ;
 
 endmodule
 
-//
+// ==================================================
+
 (*
  synthesize
 *)
@@ -247,7 +249,8 @@ module mkMaxTree_p1_out ( Ifc_MaxTree_Load#(8) ) ;
 
 endmodule
 
-//
+// ==================================================
+
 // Using the Push Library and Interface
 // The Push package provides several methods to combine functions
 // into pipeline using wires, registers, or FIFOs to combine the stages
@@ -287,7 +290,8 @@ module mkMaxTree8_push ( Ifc_MaxTree_Load#(8) );
 endmodule
 
 
-//
+// ==================================================
+
 // Using the Push Library and Interface
 //(* synthesize *)
 // Modify from the above, by using an output fifo and adding a pipeline stage in the
@@ -367,8 +371,8 @@ module mkMaxTree128_p3 ( Ifc_MaxTree_Queues#(128) );
 endmodule
 
 
+// ==================================================
 
-//
 // Using the Push Library and Interface
 (* synthesize *)
 // Modify from the above, by using an input fifo, and an output fifo
@@ -414,7 +418,8 @@ module mkMaxTree8_2q ( Ifc_MaxTree_Queues#(8) );
 endmodule
 
 
-//
+// ==================================================
+
 (* synthesize *)
 // Modified from the above, by using different interface
 module mkMaxTree8_getput ( Ifc_MaxQ#(8) );

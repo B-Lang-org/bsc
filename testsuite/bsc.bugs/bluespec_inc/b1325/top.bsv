@@ -12,7 +12,6 @@ interface IfcBangbang_fixed;
 	(* always_ready,always_enabled *)
 	method Bit#(6) get_phase;
 
-	
 endinterface
 
 
@@ -32,7 +31,7 @@ module mkBangbang_fixed(IfcBangbang_fixed);
 	method Action static_inputs(Bit#(6) maxbang);
 		dut.static_inputs(maxbang);
 	endmethod
-	
+
 	method Bit#(6) get_phase;
 		get_phase=dut.get_phase;
 	endmethod

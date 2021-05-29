@@ -33,10 +33,10 @@ module mkDesign( Mult_IFC );
        mcand   <= {0, m1};
        mplr    <= m2;
    endmethod
-   
+
 // Return product after checking mplr_wire is zero
    method Tout result() if (validValue(mplr_wire.wget) == 0);
       return product;
    endmethod
-   
+
 endmodule
