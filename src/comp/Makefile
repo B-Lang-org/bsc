@@ -40,7 +40,7 @@ PREFIX?=$(TOP)/inst
 BINDIR=$(PREFIX)/bin
 
 # Top-level of where intermediate GHC files are stored
-BUILDDIR=$(TOP)/build
+BUILDDIR=$(TOP)/build/comp
 
 # Parsec
 PARSEC_HS = ../Parsec
