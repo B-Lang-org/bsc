@@ -706,3 +706,172 @@ jobs:
         with:
           name: test-contrib-logs-${{ matrix.os }}
           path: logs.tar.gz
+
+  test-bdw-ubuntu:
+    strategy:
+      matrix:
+        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+      fail-fast: false
+    name: "Test bdw ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    needs: build-ubuntu
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download bsc
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ matrix.os }} build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      - name: Download bdw
+        run: |
+          git clone --recursive https://github.com/B-Lang-org/bdw ../bdw
+
+      - name: Build and install bdw
+        run: |
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+          make -C ../bdw/
+
+      - name: Install dependencies
+        shell: bash
+        run: "sudo ../bdw/.github/workflows/install_dependencies_testsuite_ubuntu.sh"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-bdw-${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-bdw-${{ matrix.os }}-ccache-
+
+      - name: Run bdw tests
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=/usr/lib/ccache:$PATH
+
+          # Use gold as the C++ linker
+          # for a moderate build-time speedup over ld.bfd
+          REL=$(lsb_release -rs | tr -d .)
+          if [ $REL -ge 1804 ]; then
+              export LINKER=lld
+          else
+              export LINKER=gold
+          fi
+          export LDFLAGS="-Wl,-fuse-ld=$LINKER"
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations).
+          export CXXFLAGS="-O0"
+
+          # Copy the bdw tests into place
+          cp -r ../bdw/testing/bsc.bdw testsuite/
+
+          # Inform the tests of the path to bdw
+          export BDW=$PWD/../bdw/inst/bin/bdw
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          xvfb-run -a make -C testsuite/bsc.bdw check
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v1
+        with:
+          name: test-bdw-logs-${{ matrix.os }}
+          path: logs.tar.gz
+
+  test-bdw-macOS:
+    strategy:
+      matrix:
+        os: [ macos-10.15 ]
+    name: "Test bdw ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download bsc
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-10.13+ build
+      - name: Install bsc
+        run: "tar xzf inst.tar.gz"
+
+      - name: Download bdw
+        run: |
+          git clone --recursive https://github.com/B-Lang-org/bdw ../bdw
+
+      - name: Build and install bdw
+        run: |
+          export PATH=$PWD/../bsc/inst/bin:$PATH
+          make -C ../bdw/
+
+      - name: Install dependencies
+        shell: bash
+        run: "../bdw/.github/workflows/install_dependencies_testsuite_macos.sh"
+
+      # Restore previous ccache cache of compiled object files. Use a SHA
+      # in the key so that a new cache file is generated after every
+      # successful build, and have the restore-key use the most recent.
+      - name: CCache cache files
+        uses: actions/cache@v2
+        with:
+          path: ${{ GITHUB.WORKSPACE }}/ccache
+          key: test-bdw-${{ matrix.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            test-bdw-${{ matrix.os }}-ccache-
+
+      - name: Run bdw tests
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: |
+          # Use ccache to avoid recompiling generated .cxx every run.
+          ccache --zero-stats --max-size 500M
+          export PATH=$(brew --prefix)/opt/ccache/libexec:$PATH
+
+          # Use -O0 for significantly faster C++ compiles (which more
+          # than make up for slower simulations).
+          export CXXFLAGS="-O0"
+
+          # Copy the bdw tests into place
+          cp -r ../bdw/testing/bsc.bdw testsuite/
+
+          # Inform the tests of the path to bdw
+          export BDW=$PWD/../bdw/inst/bin/bdw
+
+          # Always archive logs, even if make fails (and terminates this script
+          # because it's invoked with :set -eo pipefile)
+          trap ./testsuite/archive_logs.sh EXIT
+
+          make -C testsuite/bsc.bdw check
+
+      # Show ccache stats so we can see what the hit-rate is like.
+      - name: CCache stats
+        env:
+          CCACHE_DIR: ${{ GITHUB.WORKSPACE }}/ccache
+        run: ccache --show-stats
+
+      # Save test logs on failure so we can diagnose
+      - name: Archive test logs
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-bdw-logs-${{ matrix.os }}
+          path: logs.tar.gz
