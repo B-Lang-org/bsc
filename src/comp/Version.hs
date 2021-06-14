@@ -1,28 +1,25 @@
-module Version(bluespec, bscVersionStr, versionStr, versionname, versiondate,
+module Version(bluespec, bscVersionStr, versionStr, versionname,
                copyright, buildnum
               ) where
 
-import Data.List
 import BuildVersion(buildVersion, buildVersionNum)
 
 {-# NOINLINE bluespec #-}
 {-# NOINLINE versionname #-}
-{-# NOINLINE versiondate #-}
 {-# NOINLINE copyright #-}
 
 bluespec :: String
 bluespec = "Bluespec"
 
--- These fields can be used to give a name and date to a release
+-- This can be used to give a name to a release
 --
 -- Note: Bluesim models have a get_version() method that can
 --       return the parts of a version when specified in the
 --       format YEAR.MONTH or YEAR.MONTH.ANNOTATION
 --       (eg. 2019.05.beta2 or 2017.07.A)
 --
-versionname, versiondate :: String
+versionname :: String
 versionname = ""
-versiondate = ""
 
 buildnum :: Integer
 buildnum = buildVersionNum
@@ -34,10 +31,8 @@ versionStr showVersion toolname
   | otherwise =
     let emptyOr a b = if null a then a else b
         versionstr  = versionname `emptyOr` (", version " ++ versionname)
-        buildstr    = buildVersion `emptyOr` ("build " ++ buildVersion)
-        build_date  = intercalate ", " (filter (not . null) [buildstr, versiondate])
-        build_date' = build_date `emptyOr` (" (" ++ build_date ++ ")")
-  in  concat [toolname, versionstr, build_date']
+        buildstr    = buildVersion `emptyOr` (" (build " ++ buildVersion ++ ")")
+  in  concat [toolname, versionstr, buildstr]
 
 -- The version string for BSC
 bscVersionStr :: Bool -> String

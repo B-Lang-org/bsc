@@ -403,7 +403,7 @@ versionGrammar = tclcmd "version" namespace helpStr ""
     where helpStr = "Returns version information for Bluespec software"
 
 versionNum :: [String] -> IO [String]
-versionNum [] = return $ [versionname, versiondate, buildVersion]
+versionNum [] = return $ [versionname, buildVersion]
 versionNum xs = internalError $ "versionNum: grammar mismatch: " ++ (show xs)
 
 --------------------------------------------------------------------------------
