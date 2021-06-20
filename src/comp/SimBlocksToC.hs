@@ -3,7 +3,6 @@ module SimBlocksToC ( simBlocksToC
                     , mkSchedName
                     ) where
 
-import Data.Char(isDigit)
 import Data.List(nub, (\\), find, genericLength, sortBy, groupBy)
 import Data.List.Split(wordsBy)
 import Data.Maybe(catMaybes, isJust, fromJust)
@@ -245,9 +244,7 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
               , decl $ function void (mkVar "reset_model")
                            [ bool (mkVar "asserted") ]
               , decl $ function void (mkVar "get_version")
-                           [ (ptr . unsigned . int) (mkVar "year")
-                           , (ptr . unsigned . int) (mkVar "month")
-                           , (ptr . ptr . constant . char) (mkVar "annotation")
+                           [ (ptr . ptr . constant . char) (mkVar "name")
                            , (ptr . ptr . constant . char) (mkVar "build") ]
               , decl $ function (userType "time_t") (mkVar "get_creation_time") []
               , decl $ function (ptr . void) (mkVar "get_instance") []
@@ -477,34 +474,17 @@ convertSchedules flags creation_time top_id def_clk def_rst sb_map ff_map
         -- functions for getting the version information and creation time
         get_version = function void
                                (mkScopedVar "get_version")
-                               [ ptr . unsigned . int $ (mkVar "year")
-                               , ptr . unsigned . int $ (mkVar "month")
-                               , ptr . ptr . constant . char $ (mkVar "annotation")
+                               [ ptr . ptr . constant . char $ (mkVar "name")
                                , ptr . ptr . constant . char $ (mkVar "build")
                                ]
-        parts = wordsBy (=='.') versionname
-        (year, month, annotation) =
-          if not (showVersion flags) then
-                  (mkUInt32 0, mkUInt32 0, mkNULL)
-          else if ((length parts == 2) || (length parts == 3)) &&
-             (all isDigit (parts!!0)) &&
-             (all isDigit (parts!!1))
-          then let y = mkUInt32 (read (parts!!0))
-                   m = mkUInt32 (read (parts!!1))
-                   a = if (length parts < 3) then mkNULL else (mkStr (parts!!2))
-               in  (y, m, a)
-          else let y = mkUInt32 0
-                   m = mkUInt32 0
-                   a = if (versionname == "") then mkNULL else mkStr versionname
-               in  (y, m, a)
-        bv = if showVersion flags then buildVersion else ""
-        build = if bv == "" then mkNULL else mkStr bv
+        mk_version_str s = let vs = if showVersion flags then s else ""
+                           in  if vs == "" then mkNULL else mkStr vs
+        model_version_name  = mk_version_str versionname
+        model_version_build = mk_version_str buildVersion
         gv_def =
           define get_version
-                 (block [ stmt (cDeref (var "year"))       `assign` year
-                        , stmt (cDeref (var "month"))      `assign` month
-                        , stmt (cDeref (var "annotation")) `assign` annotation
-                        , stmt (cDeref (var "build"))      `assign` build
+                 (block [ stmt (cDeref (var "name"))  `assign` model_version_name
+                        , stmt (cDeref (var "build")) `assign` model_version_build
                         ])
 
         get_creation_time = function (userType "time_t")

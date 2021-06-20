@@ -1,3 +1,11 @@
+# Guarantee that at least one test is run with version and timestamp
+# info included in the model.  The testsuite is normally run without
+# these, and would otherwise not be testing the kernel's version checking
+# and the bluetcl "sim version" command (called in the "bluesim.tcl"
+# script that is the top-level of the generated model executable).
+set opts {-show-version -show-timestamps}
+test_c_only_bsv_modules_options ShowVersionTimestamps sysShowVersionTimestamps $opts {} {} $opts
+
 # Test that an empty module compiles, links, and sims
 # (and doesn't, say, segfault due to unused clocks being filtered out)
 # Test only Bluesim and give a number of cycles to run

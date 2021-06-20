@@ -128,7 +128,7 @@ $(LIB_KERNEL): version $(KERNEL_OBJS)
 
 .PHONY: version
 version:
-	./gen_version_h $(COMPDIR)/Version.hs > version.h
+	./gen_version_h $(COMPDIR)/BuildVersion.hs > version.h
 
 # Static check of the header files before releasing them.
 # Don't include headers which require systemC.

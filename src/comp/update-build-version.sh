@@ -6,12 +6,22 @@ export TMOUT=1
 # -------------------------
 # GIT
 
+# Arguments: 1=commit hash, 2=describe string
 genGITBuildVersion () {
-    echo "module BuildVersion(buildVersion, buildVersionNum) where" > BuildVersion.hs.new;
+    echo "module BuildVersion(buildVersion, buildVersionNum, buildVersionName) where" > BuildVersion.hs.new;
+
+    echo >> BuildVersion.hs.new;
     echo buildVersion :: String >> BuildVersion.hs.new;
     echo buildVersion = \"$1\" >> BuildVersion.hs.new;
+
+    echo >> BuildVersion.hs.new;
     echo buildVersionNum :: Integer >> BuildVersion.hs.new;
     echo buildVersionNum = 0x$1 >> BuildVersion.hs.new;
+
+    echo >> BuildVersion.hs.new;
+    echo buildVersionName :: String >> BuildVersion.hs.new;
+    echo buildVersionName = \"$2\" >> BuildVersion.hs.new;
+
     if test -f BuildVersion.hs; then
 	if !(diff BuildVersion.hs BuildVersion.hs.new); then
             mv BuildVersion.hs.new BuildVersion.hs;
@@ -32,10 +42,15 @@ else
 
     if [ "$NOGIT" = 1 ] ; then
 	GITCOMMIT="0000000"
+	GITDESCR="no-git"
     else
+	# Get the current commit hash
 	GITCOMMIT=`git show -s --format=%h HEAD`
+	if ! GITDESCR=`git describe --tags`; then
+	    GITDESCR="untagged-g${GITCOMMIT}"
+	fi
     fi
-    genGITBuildVersion ${GITCOMMIT}
+    genGITBuildVersion ${GITCOMMIT} ${GITDESCR}
 
 fi
 

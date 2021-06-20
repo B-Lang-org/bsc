@@ -2,7 +2,7 @@ module Version(bluespec, bscVersionStr, versionStr, versionname,
                copyright, buildnum
               ) where
 
-import BuildVersion(buildVersion, buildVersionNum)
+import BuildVersion(buildVersion, buildVersionNum, buildVersionName)
 
 {-# NOINLINE bluespec #-}
 {-# NOINLINE versionname #-}
@@ -11,15 +11,8 @@ import BuildVersion(buildVersion, buildVersionNum)
 bluespec :: String
 bluespec = "Bluespec"
 
--- This can be used to give a name to a release
---
--- Note: Bluesim models have a get_version() method that can
---       return the parts of a version when specified in the
---       format YEAR.MONTH or YEAR.MONTH.ANNOTATION
---       (eg. 2019.05.beta2 or 2017.07.A)
---
 versionname :: String
-versionname = ""
+versionname = buildVersionName
 
 buildnum :: Integer
 buildnum = buildVersionNum
