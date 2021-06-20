@@ -16,10 +16,7 @@ class Model
   virtual void create_model(tSimStateHdl simHdl, bool master) = 0;
   virtual void destroy_model() = 0;
   virtual void reset_model(bool asserted) = 0;
-  virtual void get_version(unsigned int *year,
-			   unsigned int *month,
-			   char const **annotation,
-			   char const **build) = 0;
+  virtual void get_version(char const **name, char const **build) = 0;
   virtual time_t get_creation_time() = 0;
   virtual void * get_instance() = 0;
   virtual void dump_state() = 0;

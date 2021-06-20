@@ -12,16 +12,10 @@ extern "C" {
 #endif
 
 /* The type used to hold Bluesim version information
- * Release versions have the form <year>.<month>.<annotation>.
- *   Ex: 2006.11.a
- * There is also a string (usually a number) which identifies the 
- * particular build of the release.
  */
 typedef struct
 {
-  unsigned int year;          /* year of build */
-  unsigned int month;         /* month of build */
-  const char*  annotation;    /* optional release annotation */
+  const char*  name;          /* release name */
   const char*  build;         /* build identifier */
   time_t       creation_time; /* time at which the model was generated */
 } tBluesimVersionInfo;

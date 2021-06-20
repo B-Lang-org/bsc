@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version=`egrep "^versionname = " $1`
+version=`egrep "^buildVersionName = " $1`
 
 if [ $? -ne 0 ]
 then
@@ -9,22 +9,5 @@ then
 fi
 
 str=`echo "$version" | cut -d\" -f2`
-# use awk to remove leading zeros
-year=`echo $str | cut -d. -f1 | awk '{print $1 + 0}'`
-month=`echo $str | cut -d. -f2 | awk '{print $1 + 0}'`
-ann=`echo $str | cut -d. -f3`
 
-echo "static const unsigned int year  = $year;"
-echo "static const unsigned int month = $month;"
-
-if [ "$year" = "0" -a "$month" = "0" -a "$ann" = "" ]
-then
-    ann=$str
-fi
-
-if [ "$ann" = "" ]
-then
-  echo "static const char* annotation = NULL;"
-else
-  echo "static const char* annotation = \"$ann\";"
-fi
+echo "static const char* version_name = \"$str\";"

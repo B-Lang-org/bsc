@@ -617,21 +617,24 @@ void bk_version(tSimStateHdl simHdl, tBluesimVersionInfo* version)
 {
   if (version == NULL)
     return;
-  (simHdl->model)->get_version(&(version->year),
-			       &(version->month),
-			       &(version->annotation),
-			       &(version->build));
+  (simHdl->model)->get_version(&(version->name), &(version->build));
   version->creation_time = (simHdl->model)->get_creation_time();
 }
 
 /* helper routine for checking that model and kernel versions match */
 bool check_version(tBluesimVersionInfo* version)
 {
-  return (year == version->year) &&
-         (month == version->month) &&
-         (((annotation == NULL) && (version->annotation == NULL)) ||
-          ((annotation != NULL) && (version->annotation != NULL) &&
-           !strcmp(annotation,version->annotation)));
+  // NULL fields indicate that the model was created without version info
+  // in which case the check always succeeds
+  // XXX What we really want to check is that the Bluesim API version
+  // XXX is the same, which should always be included regardless of
+  // XXX the -show-version flag
+  //
+  if ((version->name == NULL) && (version->build == NULL))
+    return true;
+
+  return ((version_name != NULL) && (version->name != NULL) &&
+          !strcmp(version_name,version->name));
 }
 
 /* Initialize the Bluesim kernel */
@@ -690,10 +693,7 @@ tSimStateHdl bk_init(tModel model, tBool master)
   (simHdl->vcd).vcd_timescale = strdup("1 us");
 
   tBluesimVersionInfo version;
-  simHdl->model->get_version(&(version.year),
-			     &(version.month),
-			     &(version.annotation),
-			     &(version.build));
+  simHdl->model->get_version(&(version.name), &(version.build));
   version.creation_time = simHdl->model->get_creation_time();
   if (! check_version(&version)) {
     fprintf(stderr,

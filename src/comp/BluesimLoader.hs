@@ -150,16 +150,12 @@ fromCString cs | cs == nullPtr = return ""
 
 -- Storable definition for CVersionInfo structure
 
-data CVersionInfo = CVersionInfo { cvi_year  :: CUInt
-                                 , cvi_month :: CUInt
-                                 , cvi_annot :: CString
+data CVersionInfo = CVersionInfo { cvi_name  :: CString
                                  , cvi_build :: CString
                                  , cvi_time  :: CTime
                                  }
 cvi_fields :: [(Int,Int)]
-cvi_fields = [ field (undefined :: CUInt)
-             , field (undefined :: CUInt)
-             , field (undefined :: CString)
+cvi_fields = [ field (undefined :: CString)
              , field (undefined :: CString)
              , field (undefined :: CTime)
              ]
@@ -170,17 +166,13 @@ cvi_offsets = compute_offsets cvi_fields
 instance Storable CVersionInfo where
   sizeOf    _ = (last cvi_offsets) + (fst (last cvi_fields))
   alignment _ = snd (head cvi_fields)
-  peek ptr = do yr    <- peek (get_ptr cvi_offsets 0 ptr)
-                mth   <- peek (get_ptr cvi_offsets 1 ptr)
-                annot <- peek (get_ptr cvi_offsets 2 ptr)
-                build <- peek (get_ptr cvi_offsets 3 ptr)
-                t     <- peek (get_ptr cvi_offsets 4 ptr)
-                return $ CVersionInfo yr mth annot build t
-  poke ptr cvi = do poke (get_ptr cvi_offsets 0 ptr) (cvi_year cvi)
-                    poke (get_ptr cvi_offsets 1 ptr) (cvi_month cvi)
-                    poke (get_ptr cvi_offsets 2 ptr) (cvi_annot cvi)
-                    poke (get_ptr cvi_offsets 3 ptr) (cvi_build cvi)
-                    poke (get_ptr cvi_offsets 4 ptr) (cvi_time cvi)
+  peek ptr = do name  <- peek (get_ptr cvi_offsets 0 ptr)
+                build <- peek (get_ptr cvi_offsets 1 ptr)
+                t     <- peek (get_ptr cvi_offsets 2 ptr)
+                return $ CVersionInfo name build t
+  poke ptr cvi = do poke (get_ptr cvi_offsets 0 ptr) (cvi_name cvi)
+                    poke (get_ptr cvi_offsets 1 ptr) (cvi_build cvi)
+                    poke (get_ptr cvi_offsets 2 ptr) (cvi_time cvi)
 
 -- A typeclass useful for converting values from Haskell to C and back
 
@@ -400,7 +392,7 @@ data BluesimModel =
          -- imported API functions
        , bk_now                 :: IO BSTime
        , bk_set_timescale       :: String -> BSTime -> IO BSStatus
-       , bk_version             :: IO (Word32, Word32, String, String, UTCTime)
+       , bk_version             :: IO (String, String, UTCTime)
        , bk_append_argument     :: String -> IO ()
        , bk_define_clock        :: String -> BSClockValue -> Bool -> BSTime -> BSTime -> BSTime -> IO BSClock
        , bk_num_clocks          :: IO Word32
@@ -541,14 +533,14 @@ loadBluesimModel fname top_name = do
           withCString s
             (fromC . dl_ptr_str_ret_ptr c_bk_lookup_symbol (toC sym))
       -- version structure needs full-on Storable support
-      version_fn :: WordPtr -> IO (Word32, Word32, String, String, UTCTime)
+      version_fn :: WordPtr -> IO (String, String, UTCTime)
       version_fn simHdl =
           do let fn = dl_ptr_version_ret_void c_bk_version
              alloca (\ptr -> do fn (toC simHdl) ptr
-                                (CVersionInfo yr mth astr bstr t) <- peek ptr
-                                annot <- fromCString astr
+                                (CVersionInfo nstr bstr t) <- peek ptr
+                                name  <- fromCString nstr
                                 build <- fromCString bstr
-                                return (fromC yr, fromC mth, annot, build, fromC t))
+                                return (name, build, fromC t))
       -- bk_peek_symbol_value
       peek_symbol_fn :: BSSymbol -> IO BSValue
       peek_symbol_fn p =
