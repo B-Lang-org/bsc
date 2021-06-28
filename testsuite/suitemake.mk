@@ -79,6 +79,10 @@ RTFLAGS =
 RUNTEST = $(TIME) runtest
 ## do not put --tool bsc here, since that will limit recursion into local directories
 RUNTESTFLAGS ?= --tool ""
+## for dejagnu 1.6.3+ to work in a subdirectory,
+## we need to trigger the legacy way of finding the testsuitedir
+RUNTESTFLAGS += --objdir .
+## insert the user-specified flags at the end
 RUNTESTFLAGS += --status $(RTFLAGS)
 
 # standard targets

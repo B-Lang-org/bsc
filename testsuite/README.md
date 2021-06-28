@@ -23,6 +23,10 @@ on Debian or Ubuntu:
 
     $ apt-get install dejagnu
 
+DejaGnu version 1.6.3+ requires a POSIX shell to run one of its scripts.
+If you are using a non-compatible shell, you may need to assign `CONFIG_SHELL`
+in the environment to a POSIX shell, such as `CONFIG_SHELL=sh`.
+
 The test suite also uses a number of other tools to run and test programs:
 
     $ apt-get install csh grep m4 make perl pkg-config time
