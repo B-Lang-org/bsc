@@ -13,8 +13,6 @@
 # The following variables must be set, either in the environment or on the
 # command line:
 #
-#   BLUESPECDIR - The path to the Bluespec release 'lib' dir
-#
 #   TOPMOD      - The top module of the design
 #
 # Optional variables:
@@ -32,16 +30,17 @@
 #
 # --------------------------------------------------
 
-ifndef BLUESPECDIR
-$(error Variable BLUESPECDIR is not set)
-else
-$(info >>> BLUESPECDIR "$(BLUESPECDIR)")
-endif
-
 ifndef TOPMOD
 $(error Variable TOPMOD is not set)
 else
 $(info >>> TOPMOD "$(TOPMOD)")
+endif
+
+BLUESPECDIR=$(shell echo 'puts $$env(BLUESPECDIR)' | bluetcl)
+ifeq ($(BLUESPECDIR),)
+$(error Failure to find BLUESPECDIR)
+else
+$(info >>> BLUESPECDIR "$(BLUESPECDIR)")
 endif
 
 SIMDIR ?= .
@@ -51,10 +50,8 @@ EXE ?= model.exe
 
 # ---------------
 
-CXXFAMILY=$(shell bsenv c++_family)
-
 BSIM_INCDIR=$(BLUESPECDIR)/Bluesim
-BSIM_LIBDIR=$(BLUESPECDIR)/Bluesim/$(CXXFAMILY)
+BSIM_LIBDIR=$(BLUESPECDIR)/Bluesim
 
 default: $(EXE)
 
@@ -62,7 +59,6 @@ $(EXE): main_$(TOPMOD).cxx $(SIMDIR)/*.o
 	c++ -O3 \
 	    -g \
 		-D BLUESIM_TOP_MODULE=$(TOPMOD) \
-		-static \
 		-o $@ \
 		-I. \
 		-I$(BSIM_INCDIR) \
@@ -70,8 +66,6 @@ $(EXE): main_$(TOPMOD).cxx $(SIMDIR)/*.o
 		$(addprefix -L, $(LIBDIRS)) \
 		$(OTHEROBJS) \
 		$^ \
-		-static-libgcc \
-		-static-libstdc++ \
 		$(BSIM_LIBDIR)/libbskernel.a \
 		$(BSIM_LIBDIR)/libbsprim.a \
 		-lpthread \

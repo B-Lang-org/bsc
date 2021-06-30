@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
       fprintf (stderr, "ERROR: Cannot create model\n");
       exit (EXIT_FAILURE);
   }
-  tSimStateHdl sim = bk_init(model, true, false);
+  tSimStateHdl sim = bk_init(model, true);
   if (sim == NULL) {
       fprintf (stderr, "ERROR: Cannot initialize model\n");
       exit (EXIT_FAILURE);
