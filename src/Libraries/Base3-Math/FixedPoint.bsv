@@ -96,12 +96,14 @@ instance Bounded#( FixedPoint#(i,f) )
 endinstance
 
 
-instance RealLiteral#( FixedPoint# (i, f) );
+instance RealLiteral#( FixedPoint# (i, f) )
+   provisos ( Min#(i,1,1) );
 
 function FixedPoint#(i,f) fromReal ( Real n )
    provisos (
              Add#(i,f,fpsize)
              ,Add#(54,fpsize,workingSize)
+	     ,Min#(i,1,1)
              );
 
    let {s,m,e} =  ( decodeReal (n) ) ;
@@ -148,7 +150,12 @@ endinstance
 
 //@ \index{epsilon@\te{epsilon} (fixed-point function)|textbf}
 //@ # 1
-function FixedPoint#(i,f) epsilon () ;
+function FixedPoint#(i,f) epsilon ()
+   provisos(
+	    Min#(i,1,1),
+	    Min#(TAdd#(i,f),2,2)
+	    );
+
       Int#(b)  eps = 'b01  ;
       return _fromInternal (eps);
 endfunction
@@ -161,6 +168,8 @@ endfunction
 instance Arith#( FixedPoint#(i,f) )
    provisos( Add#(i,f,b)
             ,Add#(TAdd#(i,i), TAdd#(f,f), TAdd#(b,b))
+	    ,Min#(i,1,1)
+	    ,Min#(TAdd#(i, f), 2, 2)
             );
 
    // Addition does not change the binary point
@@ -264,7 +273,8 @@ endinstance
 //@ \te{FixedPoint}.  Note that only the integer part is assigned.
 //@ # 3
 instance Literal#( FixedPoint#(i,f) )
-   provisos( Add#(i,f,b) );
+   provisos( Add#(i,f,b),
+	     Min#(i,1,1) );
 
    // A way to convert Integer constants to fixed points
    function FixedPoint#(i,f) fromInteger( Integer n) ;
@@ -291,7 +301,8 @@ endinstance
 //@ of the source operand.
 //@ # 5
 function FixedPoint#(ir,fr) fromInt( Int#(ia) inta )
-   provisos ( Add#(ia, xxA, ir )          // ir >= ia
+   provisos ( Add#(ia, xxA, ir ),         // ir >= ia
+	      Min#(ir, 1, 1)
              ) ;
 
    Int#(ir)  temp = signExtend( inta ) ;
@@ -302,7 +313,8 @@ endfunction
 //@ # 5
 function FixedPoint#(ir,fr) fromUInt( UInt#(ia) uinta )
    provisos ( Add#(ia,  1, ia1),          // ia1 = ia + 1
-              Add#(ia1,xxB, ir )         // ir >= ia1
+              Add#(ia1,xxB, ir ),         // ir >= ia1
+	      Min#(ir, 1, 1)
              );
    Bit#(ia1) t1 = {1'b0, pack(uinta) };
    Bit#(ir)  temp = zeroExtend( t1 ) ;
@@ -317,7 +329,8 @@ endfunction
 //@ #  2
 function FixedPoint#(i,f) fromRational( Integer numerator, Integer denominator)
    provisos ( //Add#(1, xxA, i )          // i >= 1
-             Add#(i,f,b) );
+             Add#(i,f,b),
+	     Min#(i,1,1) );
    let zmsg = error( "FixedPoint::fromRational " +
                     "denominator cannot be zero." );
 
@@ -356,6 +369,9 @@ function FixedPoint#(ri,rf)  fxptMult( FixedPoint#(ai,af) a,
              ,Add#(bi,bf,bb)
              ,Add#(ab,bb,rb)
              ,Add#(ri,rf,rb)
+	     ,Min#(ai,1,1)
+	     ,Min#(bi,1,1)
+	     ,Min#(ri,1,1)
             ) ;
 
    Int#(ab) ap = _toInternal(a);
@@ -377,6 +393,9 @@ function FixedPoint#(ri,rf)  fxptAdd( FixedPoint#(ai,af) a,
              ,Add#(_x2,bi, ri)
              ,Add#(_x3,af,rf)
              ,Add#(_x4,bf,rf)
+	     ,Min#(ai,1,1)
+	     ,Min#(bi,1,1)
+	     ,Min#(ri,1,1)
              ) ;
    return fxptSignExtend(a) + fxptSignExtend(b);
 endfunction
@@ -390,6 +409,9 @@ function FixedPoint#(ri,rf)  fxptSub( FixedPoint#(ai,af) a,
              ,Add#(_x2,bi, ri)
              ,Add#(_x3,af,rf)
              ,Add#(_x4,bf,rf)
+	     ,Min#(ai,1,1)
+	     ,Min#(bi,1,1)
+	     ,Min#(ri,1,1)
              ) ;
    return fxptSignExtend(a) - fxptSignExtend(b);
 endfunction
@@ -401,6 +423,9 @@ function FixedPoint#(ri,rf)  fxptQuot (FixedPoint#(ai,af) a,
              ,Add#(ai,1,ai1)
              ,Add#(af,_xf,rf)     // rf >= af
              ,Add#(ri, rf, TAdd#(ai1, TAdd#(TAdd#(af, af), _xf)))
+	     ,Min#(ai,1,1)
+	     ,Min#(bi,1,1)
+	     ,Min#(ri,1,1)
              ) ;
 
    FixedPoint#(ai1, TAdd#(af,af)) ax1 = fxptSignExtend(a);
@@ -415,6 +440,9 @@ endfunction
 function FixedPoint#(ri,rf) fxptTruncateSat (SaturationMode smode, FixedPoint#(ai,af) din)
    provisos (Add#(ri,idrop,ai)
              ,Add#(rf,_f,af)
+	     ,Min#(ai,1,1)
+	     ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
 
    FixedPoint#(ri,rf) res = fxptTruncate(din);
@@ -450,6 +478,9 @@ deriving (Bits, Eq);
 function FixedPoint#(ri,rf) fxptTruncateRound (RoundMode rmode, FixedPoint#(ai,af) din)
    provisos (Add#(ri,idrop,ai)
              ,Add#(rf,fdrop,af)
+             ,Min#(ai,1,1)
+             ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
    return fxptTruncateRoundSat(rmode, Sat_Wrap, din);
 endfunction
@@ -458,6 +489,9 @@ endfunction
 function FixedPoint#(ri,rf) fxptTruncateRoundSat (RoundMode rmode, SaturationMode smode, FixedPoint#(ai,af) din)
    provisos (Add#(ri,idrop,ai)
              ,Add#(rf,fdrop,af)
+             ,Min#(ai,1,1)
+             ,Min#(ri,1,1)
+	     ,Min#(TAdd#(ri, rf), 2, 2)
              );
    Bit#(n) msbMask = (~('b0)) >> 1; // 'b011111...
 
@@ -495,7 +529,9 @@ endfunction
 //# 5
 function FixedPoint#(ri,rf) fxptTruncate( FixedPoint#(ai,af) a )
    provisos( Add#(xxA,ri,ai),    // ai >= ri
-             Add#(xxB,rf,af)    // af >= rf
+             Add#(xxB,rf,af),    // af >= rf
+             Min#(ai,1,1),
+             Min#(ri,1,1)
             ) ;
 
    FixedPoint#(ri,rf) res = FixedPoint {i: truncate (a.i),
@@ -516,7 +552,9 @@ endfunction
 //# 5
 function FixedPoint#(ri,rf) fxptSignExtend( FixedPoint#(ai,af) a )
    provisos( Add#(xxA,ai,ri),      // ri >= ai
-             Add#(fdiff,af,rf)    // rf >= af
+             Add#(fdiff,af,rf),    // rf >= af
+             Min#(ai,1,1),
+             Min#(ri,1,1)
             )  ;
    return FixedPoint {i:signExtend(a.i),
                       f:{a.f,0} } ;
@@ -527,7 +565,9 @@ endfunction
 //@ # 5
 function FixedPoint#(ri,rf) fxptZeroExtend( FixedPoint#(ai,af) a )
    provisos( Add#(xxA,ai,ri),    // ri >= ai
-             Add#(xxB,af,rf)    // rf >= af
+             Add#(xxB,af,rf),    // rf >= af
+             Min#(ai,1,1),
+             Min#(ri,1,1)
             ) ;
    return FixedPoint {i: zeroExtend (a.i),
                       f: {a.f,0} };
@@ -540,7 +580,8 @@ endfunction
 //@ >=.
 //@ # 2
 instance Ord#( FixedPoint#(i,f) )
-   provisos( Add#(i,f,b) );
+   provisos( Add#(i,f,b),
+             Min#(i,1,1) );
 
    function Bool \< (FixedPoint#(i,f) in1, FixedPoint#(i,f) in2 ) ;
       Int#(b) n1 = _toInternal(in1) ;
@@ -579,7 +620,8 @@ endinstance
 //@ have no operational meaning on \te{FixedPoint} variables.
 //@ # 2
 instance Bitwise#( FixedPoint#(i,f) )
-   provisos (Add#(i,f,b)
+   provisos (Add#(i,f,b),
+             Min#(i,1,1)
            );
 
    function FixedPoint#(i,f) \>> (FixedPoint#(i,f) in1, ix sftamt )
@@ -650,7 +692,8 @@ function Action fxptWrite( Integer fwidth,
                            FixedPoint#(i,f) a )
    provisos(
             Add#(i, f, b),
-            Add#(33,f,ff)      // 33 extra bits for computations.  10^10
+            Add#(33,f,ff),      // 33 extra bits for computations.  10^10
+            Min#(i,1,1)
             );
    action
       // this can be i bits, but iverilog gets confused!
