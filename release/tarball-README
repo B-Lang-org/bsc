@@ -1,0 +1,46 @@
+This directory contains an installation of the Bluespec Compiler tools.
+
+For more information, visit https://github.com/B-Lang-org/bsc
+
+-------------------------
+
+This directory can be moved to anywhere on your system, but it is best
+for the files to remain in their relative positions within the
+directory.
+
+We recommend placing this directory under `/opt`, `${HOME}/`,
+`/usr/share/`, or similar location.  For example:
+
+    $ mkdir -p /opt/tools/bsc
+    $ mv bsc-<VERSION> /opt/tools/bsc/bsc-<VERSION>
+    $ cd /opt/tools/bsc
+    $ ln -s bsc-<VERSION> latest
+
+This directory has a 'bin' subdirectory, where the executables for the
+tools are found.  To use the tools, just add that directory to your
+`PATH`:
+
+    $ export PATH=/opt/tools/bsc/latest/bin:$PATH
+
+These executables will make use of other files found within this
+directory, locating them relatively from the `bin` directory.  That is
+why the directory must be kept together.
+
+-------------------------
+
+Run the following to see command-line options on the executable:
+
+    $ bsc -help
+
+Additional flags of use to developers can be displayed with the
+following command:
+
+    $ bsc -help-hidden
+
+More details on using BSC, Bluesim, and Bluetcl can be found in the
+BSC User Guide, in the `doc` subdirectory.
+
+Links to more documentation can be found on the BSC website:
+https://github.com/B-Lang-org/bsc
+
+-------------------------
