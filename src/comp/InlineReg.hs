@@ -176,7 +176,9 @@ mkInitialAssignments flags avis =
         -- begin/end, even when there is only one item inside it
         stmt = Vinitial $ VSeq $ map mkInit avis
     in
-        [VMStmt { vi_translate_off = True, vi_body = stmt }]
+        -- The pretty printer automatically includes translate_off
+        -- pragmas for us.
+        [VMStmt { vi_translate_off = False, vi_body = stmt }]
 
 
 -- make the conditional enable assignment to a register
