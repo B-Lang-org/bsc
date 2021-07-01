@@ -171,8 +171,6 @@ foreach mod [array names mod_info] {
     # Some primitives use other primitives
     if {$mod_type == "primitive"} {
 	switch -exact $mod {
-	    "DualGrayCntr"  {addfile [lookupfile "ClockGen" $libs {v}] primitives}
-	    "GrayCntr"      {addfile [lookupfile "ClockGen" $libs {v}] primitives}
 	    "MakeReset"     {addfile [lookupfile "SyncReset" $libs {v}] primitives}
 	    "MakeResetA"    {addfile [lookupfile "SyncResetA" $libs {v}] primitives}
 	    "SyncFIFOLevel" {addfile [lookupfile "ClockGen" $libs {v}] primitives

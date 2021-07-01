@@ -3,7 +3,6 @@
 INSTALL_NAME = Verilog
 
 VERI_FILES = \
-	ASSIGN1.v \
 	BRAM1.v \
 	BRAM1Load.v \
 	BRAM1BE.v \
@@ -16,7 +15,6 @@ VERI_FILES = \
 	BypassWire.v \
 	BypassWire0.v \
 	ClockDiv.v \
-	ClockGater.v \
 	ClockGen.v \
 	ClockInverter.v \
 	ClockMux.v \
