@@ -1107,6 +1107,7 @@ data ErrMsg =
         | EVPIFilesWithNoABin [String]
         | EGenNamesForLinking [String]
         | EEntryForCodeGen String
+        | WOFileWithVerilogBackend
 
         | EUnknownSrcExt String
         | ENoSrcExt String
@@ -4415,6 +4416,10 @@ getErrorText (WNonDemotableErrors tags) =
      let s = if (length tags == 1) then "" else "s"
      in  s2par ("Cannot demote the following error" ++ s ++ ":") $$
          nest 2 (sepList (map text tags) comma))
+
+getErrorText (WOFileWithVerilogBackend) =
+    (System 95, empty,
+     s2par ("The -o flag is incompatible with -verilog."))
 
 -- Runtime errors
 getErrorText (EMutuallyExclusiveRulesFire r1 r2) =
