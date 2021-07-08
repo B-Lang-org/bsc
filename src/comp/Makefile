@@ -1,5 +1,6 @@
 PWD:=$(shell pwd)
 TOP:=$(PWD)/../..
+WANT_TCL=yes
 
 include $(TOP)/platform.mk
 
@@ -61,22 +62,10 @@ HTCL_INC_FLAGS = -L$(HTCL_HS)
 HTCL_LIB_FLAGS = -lhtcl
 
 # TCL version
-ifeq ($(OSTYPE), Darwin)
-# Have Makefile avoid Homebrew's install of tcl on Mac
-TCLSH=/usr/bin/tclsh
-else
-TCLSH=tclsh
-endif
 TCL_VER = $(shell echo 'catch { puts [info tclversion]; exit 0}; exit 1' | $(TCLSH) || echo fail)
 ifeq ($(TCL_VER),fail)
 $(error TCL version check failed)
 endif
-
-# TCL include flags
-TCL_INC_FLAGS = $(shell pkg-config --silence-errors --cflags-only-I tcl || echo -I/usr/include/tcl)
-
-# TCL library flags
-TCL_LIB_FLAGS = -ltcl$(TCL_VER)
 
 # -----
 # GHC

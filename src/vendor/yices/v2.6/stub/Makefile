@@ -40,7 +40,7 @@ AR	= ar -r
 RM	= rm -rf
 
 # BSD cp does not have the -d flag
-ifeq ($(OSTYPE), Darwin)
+ifneq ($(OSTYPE), Linux)
 CP	= cp -Rf
 else
 CP	= cp -df

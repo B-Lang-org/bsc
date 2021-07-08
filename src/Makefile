@@ -8,13 +8,11 @@ PREFIX?=$(TOP)/inst
 ifndef NO_DEPS_CHECKS
 CC_TOOLS=$(CC) $(CXX) $(LD)
 BSC_TOOLS=ghc ghc-pkg
-BLUETCL_TOOLS=tclsh
 YICES_TOOLS=gperf autoconf
 STP_TOOLS=flex bison
 
 TOOLS=$(CC_TOOLS) \
       $(BSC_TOOLS) \
-      $(BLUETCL_TOOLS) \
       $(YICES_TOOLS) \
       $(STP_TOOLS) \
 
