@@ -2650,12 +2650,12 @@ evalUH e = do
               _ -> do e'' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
                       return (e'', pe)
           _ -> do
-          pe' <- unheap pe
-          when (doTraceHeapAlloc && isRef e0) $
+           pe' <- unheap pe
+           when (doTraceHeapAlloc && isRef e0) $
               traceM ("wasted re-heap 2: " ++ ppReadable (e, e0, pe'))
-          e' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
-          -- could use isRef here to preserve the original reference
-          return (e', pe')
+           e' <- toHeapWHNFInferName "eval-uh" (pExprToHExpr pe)
+           -- could use isRef here to preserve the original reference
+           return (e', pe')
 
 -- Like evalUH, but check for implicit conditions.
 -- This is used to evaluate static exprs:
