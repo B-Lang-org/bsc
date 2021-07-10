@@ -14,14 +14,14 @@ ifeq ($(OSTYPE), Darwin)
 #    the absolute install path. For cases where yices knows the correct
 #    install path of the library, this makes sense, but for bsc, we don't want
 #    this, as we're going to eventually install this in a separate directory
-#    of our own.
+#    of our own controlled by the binary's @rpath.
 # 2. libyices.2.dylib dynamically links against ligmp, which probably comes
 #    from Homebrew. We don't want this, because this makes our installation
 #    depend on Homebrew. Instead, statically link libgmp into libyices.
 #    Note that we must statically link by using the archive file as Apple's ld
 #    doesn't understand -Bstatic.
 LIBGMPA=$(shell pkg-config --variable=libdir gmp)/libgmp.a
-BUILD_ARGS=libyices_install_name=libyices.2.dylib LIBS=$(LIBGMPA)
+BUILD_ARGS=libyices_install_name=@rpath/libyices.2.dylib LIBS=$(LIBGMPA)
 endif
 
 .PHONY: all
@@ -33,7 +33,7 @@ ifeq ($(YICES_STUB),)
 	(cd $(YICES_SRC) ; \
 		autoconf ; \
 		./configure --prefix=$(YICES_INST) ; \
-		$(MAKE) $(BUILD_ARGS); \
+		$(MAKE) $(BUILD_ARGS) ; \
 		$(MAKE) install \
 		)
 else
