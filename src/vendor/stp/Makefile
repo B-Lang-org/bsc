@@ -2,6 +2,7 @@ TOP=../../..
 include $(TOP)/platform.mk
 
 PREFIX?=$(TOP)/inst
+LIBDIR?=$(PREFIX)/lib
 
 .PHONY: all install clean full_clean
 
@@ -22,8 +23,8 @@ all: install
 install:
 	$(MAKE) -C $(SRC) install
 	ln -fsn HaskellIfc include_hs
-	install -m 755 -d $(PREFIX)/lib/SAT
-	install -m 644 lib/$(SNAME) $(PREFIX)/lib/SAT
+	install -m 755 -d $(LIBDIR)/SAT
+	install -m 644 lib/$(SNAME) $(LIBDIR)/SAT
 
 clean:
 	$(MAKE) -C $(SRC) clean

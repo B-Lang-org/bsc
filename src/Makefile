@@ -4,6 +4,7 @@ TOP := $(PWD)/..
 include $(TOP)/platform.mk
 
 PREFIX?=$(TOP)/inst
+LIBDIR?=$(PREFIX)/lib
 
 ifndef NO_DEPS_CHECKS
 CC_TOOLS=$(CC) $(CXX) $(LD)
@@ -45,17 +46,17 @@ all: install
 
 .PHONY: install clean full_clean
 install clean full_clean:
-	$(MAKE)  -C vendor/stp   PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C vendor/yices PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C vendor/htcl  PREFIX=$(PREFIX)  $@
+	$(MAKE)  -C vendor/stp   PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C vendor/yices PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C vendor/htcl  PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
 	# we need to build targets from here sequentially, as they operate in the same workspace
-	$(MAKE)  -C comp -j1   PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C Libraries  PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C exec       PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C VPI        PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C Verilog    PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C Verilog.Quartus  PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C Verilog.Vivado   PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C bluetcl    PREFIX=$(PREFIX)  $@
-	$(MAKE)  -C bluesim    PREFIX=$(PREFIX)  $@
+	$(MAKE)  -C comp -j1   PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C Libraries  PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C exec       PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C VPI        PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C Verilog    PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C Verilog.Quartus  PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C Verilog.Vivado   PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C bluetcl    PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
+	$(MAKE)  -C bluesim    PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  $@
 

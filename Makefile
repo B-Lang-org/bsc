@@ -3,6 +3,7 @@ TOP := $(PWD)
 
 PREFIX   ?= $(TOP)/inst
 BUILDDIR ?= $(TOP)/build
+LIBDIR   ?= $(PREFIX)/lib
 
 .PHONY: all
 all: install
@@ -21,7 +22,7 @@ rem_build:
 
 .PHONY: install
 install:
-	$(MAKE)  -C src  PREFIX=$(PREFIX)  install
+	$(MAKE)  -C src  PREFIX=$(PREFIX)  LIBDIR=$(LIBDIR)  install
 
 .PHONY: install-doc
 install-doc:

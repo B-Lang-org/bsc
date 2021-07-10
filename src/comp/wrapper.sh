@@ -5,9 +5,23 @@
 ABSNAME="$(cd "${0%/*}"; echo $PWD)/${0##*/}"
 SCRIPTNAME="${ABSNAME##*/}"
 BINDIR="${ABSNAME%/*}"
+# LIBDIR will be replaced to user defined path after build
+LIBDIR="${BINDIR}/../lib"
+
+# If missing LIBDIR, search one.
+# This is unlikely to happen unless the user moves the file after installation.
+if [ ! -d ${LIBDIR} ]; then
+    LIBDIR="$(find ${BINDIR}/.. -maxdepth 10 -type d -name 'SAT' -print -quit)"
+    if [ ! "x${LIBDIR}" = "x"  ]; then
+        LIBDIR="${LIBDIR}/.."
+    else
+        echo "Error Bluespec library path not found."
+        exit 1;
+    fi
+fi
 
 # Set BLUESPECDIR based on the location
-BLUESPECDIR="$(cd ${BINDIR}/../lib; echo $PWD)"
+BLUESPECDIR="$(cd ${LIBDIR}; echo $PWD)"
 export BLUESPECDIR
 
 # Add the dynamically-linked SAT libraries to the load path

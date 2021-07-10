@@ -14,6 +14,7 @@ RM = rm -f
 LN = ln -sf
 
 FIND = find
+SED = sed
 
 # -----
 # Options
@@ -37,6 +38,7 @@ export NOUPDATEBUILDVERSION
 
 # PREFIX is where things are installed
 PREFIX?=$(TOP)/inst
+LIBDIR=$(PREFIX)/lib
 BINDIR=$(PREFIX)/bin
 
 # Top-level of where intermediate GHC files are stored
@@ -389,7 +391,8 @@ $(BINDIR)/core/%: %
 
 $(BINDIR)/%: wrapper.sh $(BINDIR)/core/%
 	mkdir -p -m 755 $(BINDIR)
-	$(INSTALL) -m 755 wrapper.sh $(BINDIR)/$(@F)
+	$(SED) "s:^LIBDIR=.*$$:LIBDIR=\"$(abspath $(LIBDIR))\":g" wrapper.sh > $(BUILDDIR)/$(@F)
+	$(INSTALL) -m 755 $(BUILDDIR)/$(@F) $(BINDIR)/$(@F)
 
 .PHONY: install-bsc
 install-bsc: $(addprefix $(BINDIR)/,$(BSCEXES))

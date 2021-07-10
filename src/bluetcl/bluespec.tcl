@@ -129,6 +129,7 @@ proc Bluetcl::initBluespec {} {
 utils::donothing
 lappend auto_path /usr/share
 lappend auto_path /usr/lib
+lappend auto_path /usr/lib64
 
 if { [catch Bluetcl::initBluespec err] } {
     puts "Error in initialization file bluespec.tcl: $err" 

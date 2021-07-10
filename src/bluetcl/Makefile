@@ -2,7 +2,8 @@ PWD:=$(shell pwd)
 TOP:=$(PWD)/../..
 
 PREFIX?=$(TOP)/inst
-INSTALLDIR = $(PREFIX)/lib/tcllib/bluespec
+LIBDIR?=$(PREFIX)/lib
+INSTALLDIR = $(LIBDIR)/tcllib/bluespec
 
 FILES = \
 	tclIndex \
