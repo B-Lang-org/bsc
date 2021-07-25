@@ -40,12 +40,9 @@
 ;; KNOWN BUGS / BUG REPORTS
 ;; =======================
 
-;; BSV is a rapidly evolving language, and hence this mode is
-;; under continuous development.  Hence this is beta code, and likely
-;; has bugs.  Please report any issues to support@bluespec.com
-;; Please use bsv-submit-bug-report to submit a report; type C-c
-;; C-b to invoke this and as a result I will have a much easier time
-;; of reproducing the bug you find, and hence fixing it.
+;; This is beta code and likely has bugs.
+;; Please report any issues to the BSC developers, by opening a ticket
+;; in the issue database: https://github.com/B-Lang-org/bsc/issues
 
 ;; INSTALLING THE MODE
 ;; ===================
@@ -1234,7 +1231,6 @@ If set will become buffer local.")
     (define-key map "\C-c\C-r" 'bsv-label-be)
     (define-key map "\C-c\C-i" 'bsv-pretty-declarations)
     (define-key map "\C-c="    'bsv-pretty-expr)
-    (define-key map "\C-c\C-b" 'bsv-submit-bug-report)
     (define-key map "\M-*"     'bsv-star-comment)
     (define-key map "\C-c\C-c" 'bsv-comment-region)
     (define-key map "\C-c\C-u" 'bsv-uncomment-region)
@@ -1421,8 +1417,6 @@ If set will become buffer local.")
        :help		"Help on AUTOWIRE - declaring wires for cells"]
       )
      "----"
-     ["Submit bug report"		bsv-submit-bug-report
-      :help		"Submit via mail a bug report on bsv-mode.el"]
      ["Version and FAQ"			bsv-faq
       :help		"Show the current version, and where to get the FAQ etc"]
      ["Customize BSV Mode..."	bsv-customize
@@ -12321,9 +12315,8 @@ Using \\[describe-function], see also:
     `bsv-read-defines'      for reading `define values
     `bsv-read-includes'     for reading `includes
 
-If you have bugs with these autos, please file an issue at
-URL `http://www.veripool.org/bsv-mode' or contact the AUTOAUTHOR
-Wilson Snyder (wsnyder@wsnyder.org)."
+If you have bugs with these autos, please inform the BSC developers,
+by filing an issue at URL `https://github.com/B-Lang-org/bsc/issues'"
   (interactive)
   (unless noninteractive (message "Updating AUTOs..."))
   (if (fboundp 'dinotrace-unannotate-all)
@@ -12991,103 +12984,6 @@ Files are checked based on `bsv-library-flags'."
   (with-output-to-temp-buffer "*bsv-mode help*"
     (princ (format "You are using bsv-mode %s\n" bsv-mode-version))
     (princ "\n")))
-
-(autoload 'reporter-submit-bug-report "reporter")
-(defvar reporter-prompt-for-summary-p)
-
-(defun bsv-submit-bug-report ()
-  "Submit via mail a bug report on bsv-mode.el."
-  (interactive)
-  (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report
-     "support@bluespec.com"
-     (concat "bsv-mode v" bsv-mode-version)
-     '(
-       bsv-active-low-regexp
-       bsv-align-ifelse
-       bsv-assignment-delay
-       bsv-auto-arg-sort
-       bsv-auto-endcomments
-       bsv-auto-hook
-       bsv-auto-ignore-concat
-       bsv-auto-indent-on-newline
-       bsv-auto-inout-ignore-regexp
-       bsv-auto-input-ignore-regexp
-       bsv-auto-inst-column
-       bsv-auto-inst-dot-name
-       bsv-auto-inst-param-value
-       bsv-auto-inst-template-numbers
-       bsv-auto-inst-vector
-       bsv-auto-lineup
-       bsv-auto-newline
-       bsv-auto-output-ignore-regexp
-       bsv-auto-read-includes
-       bsv-auto-reset-widths
-       bsv-auto-save-policy
-       bsv-auto-sense-defines-constant
-       bsv-auto-sense-include-inputs
-       bsv-auto-star-expand
-       bsv-auto-star-save
-       bsv-auto-unused-ignore-regexp
-       bsv-before-auto-hook
-       bsv-before-delete-auto-hook
-       bsv-before-getopt-flags-hook
-       bsv-case-indent
-       bsv-cexp-indent
-       bsv-compiler
-       bsv-coverage
-       bsv-delete-auto-hook
-       bsv-getopt-flags-hook
-       bsv-highlight-grouping-keywords
-       bsv-highlight-p1800-keywords
-       bsv-highlight-translate-off
-       bsv-indent-begin-after-if
-       bsv-indent-declaration-macros
-       bsv-indent-level
-       bsv-indent-level-behavioral
-       bsv-indent-level-declaration
-       bsv-indent-level-directive
-       bsv-indent-level-module
-       bsv-indent-lists
-       bsv-library-directories
-       bsv-library-extensions
-       bsv-library-files
-       bsv-library-flags
-       bsv-linter
-       bsv-minimum-comment-distance
-       bsv-mode-hook
-       bsv-preprocessor
-       bsv-simulator
-       bsv-tab-always-indent
-       bsv-tab-to-comment
-       bsv-typedef-regexp
-       )
-     nil nil
-     (concat "Hi Mac,
-
-I want to report a bug.
-
-Before I go further, I want to say that BSV mode has changed my life.
-I save so much time, my files are colored nicely, my co workers respect
-my coding ability... until now.  I'd really appreciate anything you
-could do to help me out with this minor deficiency in the product.
-
-I've taken a look at the BSV-Mode FAQ at
-http://www.veripool.org/bsv-mode-faq.html.
-
-And, I've considered filing the bug on the issue tracker at
-http://www.veripool.org/bsv-mode-bugs
-since I realize that public bugs are easier for you to track,
-and for others to search, but would prefer to email.
-
-So, to reproduce the bug, start a fresh Emacs via " invocation-name "
--no-init-file -no-site-file'.  In a new buffer, in BSV mode, type
-the code included below.
-
-Given those lines, I expected [[Fill in here]] to happen;
-but instead, [[Fill in here]] happens!.
-
-== The code: =="))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

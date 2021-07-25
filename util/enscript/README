@@ -1,6 +1,6 @@
 
 This directory contains an GNU enscript "st" file for the Bluespec
-SystemVerilog language.  
+SystemVerilog language.
 
 Enscript converts ASCII files to PostScript and spools generated
 PostScript output to the specified printer or leaves it to
@@ -16,10 +16,5 @@ like:
        /\.bsv$/    bsv;
 
 This procedure was tested with GNU enscript 1.6.4.  Please report bugs
-or problems to support@bluespec.com
-
-
-
-
-
-
+or problems to the BSC developers, by opening a ticket in the issue
+database:  https://github.com/B-Lang-org/bsc/issues

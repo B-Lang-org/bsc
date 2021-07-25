@@ -79,9 +79,9 @@
 
 ;; KNOWN BUGS / BUG REPORTS
 ;; =======================
-;; This is beta code, and likely has bugs. Please report any and all
-;; bugs to me at bsv-mode-bugs@surefirev.com.  Use
-;; bsv-submit-bug-report to submit a report.
+;; This is beta code and likely has bugs.
+;; Please report any issues to the BSC developers, by opening a ticket
+;; in the issue database: https://github.com/B-Lang-org/bsc/issues
 ;; 
 
 ;;; History:
@@ -733,7 +733,6 @@ If set will become buffer local.")
   (define-key bsv-mode-map "\C-c\C-r" 'bsv-label-be)
   (define-key bsv-mode-map "\C-c\C-i" 'bsv-pretty-declarations)
   (define-key bsv-mode-map "\C-c="    'bsv-pretty-expr)
-  (define-key bsv-mode-map "\C-c\C-b" 'bsv-submit-bug-report)
   (define-key bsv-mode-map "\M-*"     'bsv-star-comment)
 ;  (define-key bsv-mode-map "\C-c\C-c" 'bsv-comment-region)
   (define-key bsv-mode-map "\C-c\C-u" 'bsv-uncomment-region)
@@ -835,7 +834,6 @@ If set will become buffer local.")
      ["AUTOWIRE"			(describe-function 'bsv-auto-wire) t]
      )
     "----"
-    ["Submit bug report"		bsv-submit-bug-report t]
     ["Customize BSV Mode..."	bsv-customize t]
     ["Customize BSV Fonts & Colors"	bsv-font-customize t]
     )
@@ -7311,8 +7309,8 @@ Using \\[describe-function], see also:
    `bsv-read-defines'      for reading `define values
    `bsv-read-includes'     for reading `includes
 
-If you have bugs with these autos, try contacting the AUTOAUTHOR
-Wilson Snyder (wsnyder@wsnyder.org or wsnyder@world.std.com)"
+If you have bugs with these autos, please inform the BSC developers,
+by filing an issue at URL `https://github.com/B-Lang-org/bsc/issues'"
   (interactive)
   (unless noninteractive (message "Updating AUTOs..."))
   (if (featurep 'dinotrace)
@@ -7884,78 +7882,6 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 			     (match-string 1) (buffer-file-name))))))
       ))
 
-
-;;
-;; Bug reporting
-;;
-
-(defun bsv-submit-bug-report ()
-  "Submit via mail a bug report on lazy-lock.el."
-  (interactive)
-  (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report
-     "support@sbluespec.com"
-     (concat "bsv-mode v" (substring bsv-mode-version 12 -3))
-     '(
-       bsv-align-ifelse
-       bsv-auto-endcomments
-       bsv-auto-hook
-       bsv-auto-indent-on-newline
-       bsv-auto-inst-vector
-       bsv-auto-lineup
-       bsv-auto-newline
-       bsv-auto-save-policy
-       bsv-auto-sense-defines-constant
-       bsv-auto-sense-include-inputs
-       bsv-before-auto-hook
-       bsv-case-indent
-       bsv-cexp-indent
-       bsv-compiler
-       bsv-coverage
-       bsv-highlight-translate-off
-       bsv-indent-begin-after-if
-       bsv-indent-declaration-macros
-       bsv-indent-level
-       bsv-indent-level-behavioral
-       bsv-indent-level-declaration
-       bsv-indent-level-directive
-       bsv-indent-level-module
-       bsv-indent-lists
-       bsv-library-directories
-       bsv-library-extensions
-       bsv-library-files
-       bsv-linter
-       bsv-minimum-comment-distance
-       bsv-mode-hook
-       bsv-simulator
-       bsv-tab-always-indent
-       bsv-tab-to-comment
-       )
-     nil nil
-     (concat "Hi Mac,
-
-I want to report a bug.  I've read the `Bugs' section of `Info' on
-Emacs, so I know how to make a clear and unambiguous report.  To get
-to that Info section, I typed
-
-M-x info RET m " invocation-name " RET m bugs RET
-
-Before I go further, I want to say that BSV mode has changed my life.
-I save so much time, my files are colored nicely, my co workers respect
-my coding ability... until now.  I'd really appreciate anything you
-could do to help me out with this minor deficiency in the product.
-
-To reproduce the bug, start a fresh Emacs via " invocation-name "
--no-init-file -no-site-file'.  In a new buffer, in bsv mode, type
-the code included below.
-
-If you have bugs with the AUTO functions, please CC the AUTOAUTHOR
-Wilson Snyder (wsnyder@wsnyder.org or wsnyder@world.std.com)
-
-Given those lines, I expected [[Fill in here]] to happen;
-but instead, [[Fill in here]] happens!.
-
-== The code: =="))))
 
 ;; Local Variables:
 ;; checkdoc-permit-comma-termination-flag:t
