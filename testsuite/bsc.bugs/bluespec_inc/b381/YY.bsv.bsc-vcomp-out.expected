@@ -2,8 +2,8 @@ checking package dependencies
 compiling YY.bsv
 code generation for mkYY starts
 Internal Bluespec Compiler Error:
-Please report this failure to your Bluespec technical contact.
-If you do not know your contact, you may email support@bluespec.com.
+Please report this failure to the BSC developers, by opening a ticket
+in the issue database: https://github.com/B-Lang-org/bsc/issues
 The following internal error message should be included in your
 correspondence along with any other relevant details:
 Bluespec Compiler (build 5c1b4dc)

@@ -22,8 +22,8 @@ internalError = unsafePerformIO . safeInternalError
 safeInternalError :: String -> IO a
 safeInternalError msg_data =
     let title = "Internal Bluespec Compiler Error"
-        desc1 = "Please report this failure to your Bluespec technical contact.\n" ++
-                 "If you do not know your contact, you may email support@bluespec.com.\n"
+        desc1 = "Please report this failure to the BSC developers, by opening a ticket\n" ++
+                "in the issue database: https://github.com/B-Lang-org/bsc/issues\n"
         desc2 = "The following internal error message should be included in your\n" ++
                 "correspondence along with any other relevant details:\n"
         ver = bscVersionStr True ++ "\n"

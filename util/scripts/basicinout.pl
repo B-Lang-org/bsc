@@ -44,7 +44,7 @@ foreach my $outfile (@ARGV) {
 		$signal =~ s/\$/\\\$/g;
 		$line =~ s/$signal/$pin/;
 	    } else {
-		print("Failed to locate signal=$signal in module port list (basicinout)!\nPlease report this error along with a verilog example to support\@bluespec.com\n\n");
+		print("Failed to locate signal=$signal in module port list (basicinout)!\nPlease report this error to the BSC developers, by opening a ticket\nin the issue database\: https\:\/\/github.com\/B-Lang-org\/bsc\/issues\n\n");
 		die;
 	    }
 	    push @newlines, $line;
