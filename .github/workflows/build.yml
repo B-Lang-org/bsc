@@ -27,7 +27,7 @@ jobs:
   build-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
     name: "Build: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -169,7 +169,7 @@ jobs:
   build-doc-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
     name: "Build doc: ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -214,7 +214,7 @@ jobs:
   test-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
       fail-fast: false
     name: "Test ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -245,10 +245,10 @@ jobs:
 
       # Restore the cache of a SystemC build if it exists and the
       # build script hasn't changed.
-      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
+      # Don't do this on newer Ubuntu because we apt-get install libsystemc-dev
       - name: Cache SystemC build
         id: systemc-cache
-        if: matrix.os != 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-18.04'
         uses: actions/cache@v2
         env:
           cache-name: systemc-build
@@ -259,9 +259,9 @@ jobs:
       # If there's no cached build, download the source tarball,
       # do the build (and the cache action will save it for us at
       # the end of a successful workflow)
-      # Don't do this on Ubuntu 20.04 because we apt-get install libsystemc-dev
+      # Don't do this on newer Ubuntu because we apt-get install libsystemc-dev
       - name: Build SystemC
-        if: matrix.os != 'ubuntu-20.04' && steps.systemc-cache.outputs.cache-hit != 'true'
+        if: matrix.os == 'ubuntu-18.04' && steps.systemc-cache.outputs.cache-hit != 'true'
         shell: bash
         run: ".github/workflows/build_systemc.sh"
 
@@ -274,20 +274,17 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=/usr/lib/ccache:$PATH
 
-          # Use gold as the C++ linker
+          # Use the LLVM linker as the C++ linker
           # for a moderate build-time speedup over ld.bfd
-          REL=$(lsb_release -rs | tr -d .)
-          if [ $REL -ge 1804 ]; then
-              export LINKER=lld
-          else
-              export LINKER=gold
-          fi
+          export LINKER=lld
           export LDFLAGS="-Wl,-fuse-ld=$LINKER"
 
           # Use -O0 for significantly faster C++ compiles (which more
           # than make up for slower simulations)
           export CXXFLAGS="-O0"
 
+          # For Ubuntu without a SystemC package, use the local build
+          REL=$(lsb_release -rs | tr -d .)
           if [ $REL -lt 1910 ]; then
               export TEST_SYSTEMC_INC=$HOME/systemc/include
               export TEST_SYSTEMC_LIB=$HOME/systemc/lib-linux64
@@ -381,7 +378,7 @@ jobs:
   test-toooba-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
       fail-fast: false
     name: "Test Toooba ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -542,7 +539,7 @@ jobs:
   test-contrib-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
       fail-fast: false
     name: "Test bsc-contrib ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -589,14 +586,9 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=/usr/lib/ccache:$PATH
 
-          # Use gold as the C++ linker
+          # Use the LLVM linker as the C++ linker
           # for a moderate build-time speedup over ld.bfd
-          REL=$(lsb_release -rs | tr -d .)
-          if [ $REL -ge 1804 ]; then
-              export LINKER=lld
-          else
-              export LINKER=gold
-          fi
+          export LINKER=lld
           export LDFLAGS="-Wl,-fuse-ld=$LINKER"
 
           # Use -O0 for significantly faster C++ compiles (which more
@@ -710,7 +702,7 @@ jobs:
   test-bdw-ubuntu:
     strategy:
       matrix:
-        os: [ ubuntu-16.04, ubuntu-18.04, ubuntu-20.04 ]
+        os: [ ubuntu-18.04, ubuntu-20.04 ]
       fail-fast: false
     name: "Test bdw ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
@@ -757,14 +749,9 @@ jobs:
           ccache --zero-stats --max-size 500M
           export PATH=/usr/lib/ccache:$PATH
 
-          # Use gold as the C++ linker
+          # Use the LLVM linker as the C++ linker
           # for a moderate build-time speedup over ld.bfd
-          REL=$(lsb_release -rs | tr -d .)
-          if [ $REL -ge 1804 ]; then
-              export LINKER=lld
-          else
-              export LINKER=gold
-          fi
+          export LINKER=lld
           export LDFLAGS="-Wl,-fuse-ld=$LINKER"
 
           # Use -O0 for significantly faster C++ compiles (which more
