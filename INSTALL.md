@@ -129,7 +129,7 @@ generate two source files. It also needs flex and bison:
 
     $ apt-get install flex bison
 
-The `check` target runs a test using an external Verilog simulator, which is
+The `check-smoke` target runs a test using an external Verilog simulator, which is
 [Icarus Verilog] by default. You can install Icarus on Debian/Ubuntu with:
 
     $ apt-get install iverilog
@@ -165,7 +165,7 @@ the submodules later with a separate command:
 At the root of the repository:
 
     $ make install
-    $ make check
+    $ make check-smoke
 
 This will create a directory called `inst` containing an installation of the
 compiler toolchain. It will then run a smoke test to ensure the compiler and
@@ -191,7 +191,7 @@ in the `testsuite` subdirectory.
 ### Choosing a Verilog simulator
 
 The Makefile in `examples/smoke_test` shows how you can point the default
-`check` target at other Verilog simulators such as VCS and VCSI (Synopys),
+`check-smoke` target at other Verilog simulators such as VCS and VCSI (Synopys),
 NC-Verilog & NCsim (Cadence), ModelSim (Mentor), and CVC.
 
 Many people also use [Verilator][] to compile and simulate `bsc`-generated
