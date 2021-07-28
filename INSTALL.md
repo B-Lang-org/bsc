@@ -108,6 +108,17 @@ you will need the `tcl` library:
     $ apt-get install tcl-dev
 
 Building BSC also requires standard Unix shell and Makefile utilities.
+For example, in our testing on Ubuntu, we install the `build-essential` package
+that pulls in the `make` package as a requirement.
+
+    $ apt-get install build-essential
+
+Some Makefiles will attempt to use `pkg-config` to query the installed libraries,
+but will fall-back on default values if it is not available.  For best results
+and to avoid suprious warnings, we recommend installing the `pkg-config`
+package (or `pkgconfig` on some systems):
+
+    $ apt-get install pkg-config
 
 The repository for [the Yices SMT Solver](https://github.com/SRI-CSL/yices2) is
 cloned as a submodule of this repository. Building the BSC tools will recurse
