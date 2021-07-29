@@ -36,10 +36,19 @@ module MakeClock ( CLK, RST,
 
    output CLK_VAL_OUT;
    output COND_OUT;
-   output CLK_OUT;
    output CLK_GATE_OUT;
 
+`ifdef VIVADO
+   (* CLOCK_SIGNAL = "YES" *)
+   (* BUFFER_TYPE = "BUFG" *)
+`endif
+   output CLK_OUT;
+
+`ifdef VIVADO
+   (* KEEP = "TRUE" *)
+`endif
    reg current_clk;
+
    reg CLK_VAL_OUT;
    reg current_gate;
    reg new_gate;

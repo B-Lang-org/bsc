@@ -42,6 +42,9 @@ module BRAM2BELoad(CLKA,
    input [DATA_WIDTH-1:0]         DIB;
    output [DATA_WIDTH-1:0]        DOB;
 
+`ifdef VIVADO
+   (* RAM_STYLE = "BLOCK" *)
+`endif
    reg [DATA_WIDTH-1:0]           RAM[0:MEMSIZE-1] /* synthesis syn_ramstyle="no_rw_check" */ ;
    reg [DATA_WIDTH-1:0]           DOA_R;
    reg [DATA_WIDTH-1:0]           DOA_R2;
@@ -70,41 +73,6 @@ module BRAM2BELoad(CLKA,
    end
    
    // PORT A
-
-   // iverilog does not support the full verilog-2001 language.  This fixes that for simulation.
-`ifdef __ICARUS__
-   reg [DATA_WIDTH-1:0]  MASKA, IMASKA;
-   reg  [DATA_WIDTH-1:0] DATA_A;
-   wire [DATA_WIDTH-1:0] DATA_Awr;
-
-   assign DATA_Awr = RAM[ADDRA];
-
-   always @(WEA or DIA or DATA_Awr) begin : combo1
-      integer j;
-      MASKA  = 0;
-      IMASKA = 0;
-
-      for(j = WE_WIDTH-1; j >= 0; j = j - 1) begin
-         if (WEA[j]) MASKA = (MASKA << 8) | { { DATA_WIDTH-CHUNKSIZE { 1'b0 } }, { CHUNKSIZE { 1'b1 } } };
-         else        MASKA = (MASKA << 8);
-      end
-      IMASKA = ~MASKA;
-
-      DATA_A = (DATA_Awr & IMASKA) | (DIA & MASKA);
-   end
-
-   always @(posedge CLKA) begin
-      if (ENA) begin
-         if (WEA) begin
-            RAM[ADDRA] <= `BSV_ASSIGNMENT_DELAY DATA_A;
-            DOA_R      <= `BSV_ASSIGNMENT_DELAY DATA_A;
-         end
-         else begin
-            DOA_R      <= `BSV_ASSIGNMENT_DELAY RAM[ADDRA];
-         end
-      end
-   end
-`else
    generate
       genvar i;
       for(i = 0; i < WE_WIDTH; i = i + 1) begin: porta_we
@@ -121,44 +89,8 @@ module BRAM2BELoad(CLKA,
          end
       end
    endgenerate
-`endif // !`ifdef __ICARUS__
 
    // PORT B
-
-   // iverilog does not support the full verilog-2001 language.  This fixes that for simulation.
-`ifdef __ICARUS__
-   reg [DATA_WIDTH-1:0]  MASKB, IMASKB;
-   reg  [DATA_WIDTH-1:0] DATA_B;
-   wire [DATA_WIDTH-1:0] DATA_Bwr;
-
-   assign DATA_Bwr = RAM[ADDRB];
-
-   always @(WEB or DIB or DATA_Bwr) begin : combo2
-      integer j;
-      MASKB  = 0;
-      IMASKB = 0;
-
-      for(j = WE_WIDTH-1; j >= 0; j = j - 1) begin
-         if (WEB[j]) MASKB = (MASKB << 8) | { { DATA_WIDTH-CHUNKSIZE { 1'b0 } }, { CHUNKSIZE { 1'b1 } } };
-         else        MASKB = (MASKB << 8);
-      end
-      IMASKB = ~MASKB;
-
-      DATA_B = (DATA_Bwr & IMASKB) | (DIB & MASKB);
-   end
-
-   always @(posedge CLKB) begin
-      if (ENB) begin
-         if (WEB) begin
-            RAM[ADDRB] <= `BSV_ASSIGNMENT_DELAY DATA_B;
-            DOB_R      <= `BSV_ASSIGNMENT_DELAY DATA_B;
-         end
-         else begin
-            DOB_R      <= `BSV_ASSIGNMENT_DELAY RAM[ADDRB];
-         end
-      end
-   end
-`else
    generate
       genvar k;
       for(k = 0; k < WE_WIDTH; k = k + 1) begin: portb_we
@@ -175,7 +107,6 @@ module BRAM2BELoad(CLKA,
          end
       end
    endgenerate
-`endif // !`ifdef __ICARUS__
 
    // Output drivers
    always @(posedge CLKA) begin
