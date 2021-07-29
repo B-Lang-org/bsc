@@ -1454,15 +1454,23 @@ Most flags may be preceded by a {\bf\tt -no} to reverse their
 effect. Flags that appear later on the command line override earlier
 ones.
 
-The following flags make the compiler print progress-report
+The following flags make the compiler print more or less progress-report
 messages as it does its work:
 
+\index{-quiet@\te{-quiet} (compiler flag)}
+\index{-q@\te{-q} (compiler flag)}
 \index{-verbose@\te{-verbose} (compiler flag)}
 \index{-v@\te{-v} (compiler flag)}
 \begin{centerboxverbatim}
--verbose              be talkative
+-quiet                be less talkative
+-q                    same as -quiet
+-verbose              be more talkative
 -v                    same as -verbose
 \end{centerboxverbatim}
+
+The compiler has four levels of verbosity: quiet, normal, verbose,
+and extra verbose.  The default is normal verbosity and the above
+flags can be used to move up and down one step.
 
 % -------------------------
 
@@ -1489,7 +1497,7 @@ The following flags are the common flags used by the compiler.
 -vsim simulator       specify which Verilog simulator to use
 -e module             top-level module for simulation
 -o name               name of generated executable
--elab                 generate the .ba file (requires -verilog)
+-elab                 generate a .ba file after elaboration and scheduling
 \end{centerboxverbatim}
 
 
@@ -1855,6 +1863,8 @@ Here are some other flags recognized by the compiler:
 \index{-steps-max-intervals@\te{-steps-max-intervals} (compiler flag)}
 \index{-steps-warn-interval@\te{-steps-warn-interval} (compiler flag)}
 \index{-reset-prefix@\te{-reset-prefix} (compiler flag)}
+\index{-show-timestamps@\te{-show-timestamps} (compiler flag)}
+\index{-show-version@\te{-show-version} (compiler flag)}
 
 \begin{centerboxverbatim}
 -D macro                define a macro for the BSV or Verilog preprocessor
@@ -1867,6 +1877,8 @@ Here are some other flags recognized by the compiler:
 -steps-warn-interval n  issue a warning each time this many unfolding steps are
                         executed
 -reset-prefix name      reset name or prefix for generated modules
+-show-timestamps        include timestamps in generated files
+-show-version           include compiler version in generated files
 \end{centerboxverbatim}
 
 Preprocessor macros may be defined on the command line using the
@@ -1918,6 +1930,16 @@ This can be changed with the \te{-reset-prefix <name>} flag.  For
 example, to set all reset names to \te{RST\_P} use:
 \te{-reset-prefix RST\_P}.
 
+BSC attempts to be helpful by including identifying information in the
+files it generates.  Specifically, it records the compiler version and a
+timestamp of when the file was generated.  This can interfere with
+build systems where rebuilds are determined by the hash of the tool
+inputs.  Recording the timestamp causes a change on every build;
+avoiding that can significantly improve the effectiveness of the build
+cache.  The \te{-no-show-timestamps} flag directs BSC to not include
+the timestamp.  Removing the compiler version can help for files which
+have not otherwise changed between versions.  The \te{-no-show-version}
+flag directs BSC to not include the compiler version.
 
 % -------------------------
 
@@ -2116,7 +2138,7 @@ The following flags might be useful in debugging a BSV design:
                          schedule
 -remove-empty-rules      remove rules whose bodies have no actions
 -show-module-use         output instantiated Verilog modules names
--show-range-conflict     show predicates when reporting a parallel
+-show-range-conflict     show predicates when reporting a parallel-
                          composability error
 -show-method-conf        show method conflict information in the generated code
 -show-method-bvi         show BVI format method schedule information in the
