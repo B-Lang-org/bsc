@@ -175,7 +175,7 @@ the submodules later with a separate command:
 
 At the root of the repository:
 
-    $ make install
+    $ make install-src
     $ make check-smoke
 
 This will create a directory called `inst` containing an installation of the
@@ -220,6 +220,22 @@ To build and install the PDF documentation, you can add the following:
 This will install into the same `inst` or `PREFIX` directory.
 The installed documents include the BSC User Guide and the BSC Libraries
 Reference Guide.
+
+## Building a release
+
+The Makefile provides a single target, `release`, that will perform the above
+steps (of building the tools and the docs) and will also install a README file,
+creating a complete release in the `inst` directory.
+
+## Exporting the source code
+
+If you wish to make a snapshot of the source code available, outside of
+Git, there are some steps you will need to take in the `src/comp/` directory.
+The build in that directory uses Git to automatically generate the version
+information for the compiler and place it in the file `BuildVersion.hs`.
+If you are exporting the code, you will want pre-generate this file and then
+adjust the Makefile to not rebuild it.  That can be done by changing the
+assignment of `NOUPDATEBUILDVERSION` to `1`, in the Makefile.
 
 ---
 
