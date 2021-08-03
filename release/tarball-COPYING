@@ -1,0 +1,91 @@
+License and copyright details for this installation of the Bluespec
+Compiler tools are given below.  Detailed information, along with
+the source code, is available in the BSC GitHub repository:
+
+  https://github.com/B-Lang-org/bsc
+
+-------------------------
+
+Source files in this repository are copyright and licensed as
+indicated in the files themselves.  If not otherwise specified, they
+are copyright Bluespec Inc and licensed under the BSD-3-Clause
+license, as indicated at the end of this file.
+
+The library objects in the SAT directory, for STP and Yices, are
+licensed and copyright as follows:
+
+* STP - Constraint solver
+  * The library is built from an adapted snapshot of STP
+  * See LICENSES/LICENSE.stp and LICENSES/LICENSE.stp_components
+
+* The Yices SMT Solver
+  * The library is built from the Yices GitHub repository
+  * See LICENSES/LICENSE.yices
+
+The executable binaries in the bin directory (bsc, bluetcl, etc) are
+built from source code partially copyright Bluespec Inc and licensed
+under the BSD-3-Clause license, as indicated at the end of this file.
+They are also built with the following code or APIs with their own
+copyright and licensing:
+
+* STP - Constraint solver
+  * BSC tools are linked with the library
+  * See LICENSES/LICENSE.stp
+
+* The Yices SMT Solver
+  * BSC tools are linked with the library
+  * See LICENSES/LICENSE.yices
+
+* yices-painless - Haskell package
+  * BSC tools use foreign function declarations adapted from
+    Don Stewart's yices-painless package
+  * See LICENSES/LICENSE.yices-painless
+
+* GHC Haskell Libraries
+  * BSC source includes a file adapted from the GHC MVar library
+  * See LICENSES/LICENSE.ghc
+
+* HBC Libraries
+  * BSC source includes files adapted from Haskell libraries
+    (from the HBC compiler) written by Lennart Augustsson and
+    Thomas Johnsson at Chalmers University
+  * See LICENSES/LICENSE.hbc
+
+* Parsec
+  * BSC source includes files adapted from Daan Leijen's Parsec
+    Haskell library
+  * See LICENSES/LICENSE.parsec
+
+---------------------------------------------------------------------------
+
+Copyright (c) 2020 Bluespec, Inc. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the
+   distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---------------------------------------------------------------------------
