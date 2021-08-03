@@ -35,12 +35,5 @@ copyright :: String
 copyright = unlines copyrights
 
 copyrights :: [String]
-copyrights = ["Copyright 2000-2020 Bluespec, Inc.",
-              "Parts copyright 2002, The University Court of the University of Glasgow.",
-              "Parts copyright 1982-1999 Lennart Augustsson, Thomas Johnsson,",
-              "    Chalmers University of Technology.",
-              "Parts copyright 1999-2000, Daan Leijen.",
-              "Parts copyright 1991, 1999 Free Software Foundation, Inc.",
-              "Parts copyright 2010, Don Stewart.",
-              "All rights reserved.",
-              "See documentation for license details."]
+copyrights = ["This is free software; for source code and copying conditions, see",
+              "https://github.com/B-Lang-org/bsc"]
