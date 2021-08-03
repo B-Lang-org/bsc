@@ -4,6 +4,8 @@ TOP := $(PWD)
 PREFIX   ?= $(TOP)/inst
 BUILDDIR ?= $(TOP)/build
 
+INSTALL?=install -c
+
 .PHONY: help
 help:
 	@echo 'This Makefile will create an installation of the Bluespec Compiler tools,'
@@ -44,8 +46,22 @@ install-src:
 install-doc:
 	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
 
+REL_LICENSES = \
+	LICENSE.ghc \
+	LICENSE.hbc \
+	LICENSE.parsec \
+	LICENSE.stp \
+	LICENSE.stp_components \
+	LICENSE.yices \
+	LICENSE.yices-painless \
+
 .PHONY: install-README
-	cp release/tarball-README $(PREFIX)/README
+install-README:
+	$(INSTALL) -m 755 -d $(PREFIX)
+	$(INSTALL) -m 644  release/tarball-README  $(PREFIX)/README
+	$(INSTALL) -m 644  release/tarball-COPYING $(PREFIX)/COPYING
+	$(INSTALL) -m 755 -d $(PREFIX)/LICENSES
+	$(INSTALL) -m 644  $(addprefix LICENSES/,$(REL_LICENSES))  $(PREFIX)/LICENSES/
 
 # -------------------------
 
