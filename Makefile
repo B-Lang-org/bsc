@@ -4,8 +4,6 @@ TOP := $(PWD)
 PREFIX   ?= $(TOP)/inst
 BUILDDIR ?= $(TOP)/build
 
-INSTALL?=install -c
-
 .PHONY: help
 help:
 	@echo 'This Makefile will create an installation of the Bluespec Compiler tools,'
@@ -46,27 +44,14 @@ install-src:
 install-doc:
 	$(MAKE)  -C doc  PREFIX=$(PREFIX)  install
 
-REL_LICENSES = \
-	LICENSE.ghc \
-	LICENSE.hbc \
-	LICENSE.parsec \
-	LICENSE.stp \
-	LICENSE.stp_components \
-	LICENSE.yices \
-	LICENSE.yices-painless \
-
-.PHONY: install-README
-install-README:
-	$(INSTALL) -m 755 -d $(PREFIX)
-	$(INSTALL) -m 644  release/tarball-README  $(PREFIX)/README
-	$(INSTALL) -m 644  release/tarball-COPYING $(PREFIX)/COPYING
-	$(INSTALL) -m 755 -d $(PREFIX)/LICENSES
-	$(INSTALL) -m 644  $(addprefix LICENSES/,$(REL_LICENSES))  $(PREFIX)/LICENSES/
+.PHONY: install-release
+install-release:
+	$(MAKE)  -C release  PREFIX=$(PREFIX)  install
 
 # -------------------------
 
 .PHONY: release
-release: install-src install-doc install-README
+release: install-src install-doc install-release
 
 # -------------------------
 
@@ -84,11 +69,13 @@ check-suite:
 # -------------------------
 
 clean: rem_build
-	-$(MAKE)  -C src  clean
-	-$(MAKE)  -C doc  clean
+	-$(MAKE)  -C src      clean
+	-$(MAKE)  -C doc      clean
+	-$(MAKE)  -C release  clean
 
 full_clean: rem_inst rem_build
-	-$(MAKE)  -C src  full_clean
-	-$(MAKE)  -C doc  full_clean
+	-$(MAKE)  -C src      full_clean
+	-$(MAKE)  -C doc      full_clean
+	-$(MAKE)  -C release  full_clean
 
 # -------------------------

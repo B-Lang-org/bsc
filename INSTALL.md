@@ -224,8 +224,13 @@ Reference Guide.
 ## Building a release
 
 The Makefile provides a single target, `release`, that will perform the above
-steps (of building the tools and the docs) and will also install a README file,
-creating a complete release in the `inst` directory.
+steps (of building the tools and the docs) and will also install a few
+additional files, creating a complete release in the `inst` directory.
+The additional files include a README, copyright and licensing info, and
+release notes.  The release notes are written in [AsciiDoc](https://asciidoc.org/)
+format that is published to HTML and PDF format using the
+[AsciiDoctor](https://asciidoctor.org/) tool, which is therefore a requirement
+for building a release.
 
 ## Exporting the source code
 

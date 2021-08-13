@@ -1,0 +1,247 @@
+Bluespec Compiler (BSC) Release Notes
+=====================================
+:website: https://github.com/B-Lang-org/bsc
+:last-update-label!:
+:nofooter:
+
+2021.07 Release
+---------------
+
+Welcome to the first release of open BSC!
+Thank you and congratulations to everyone involved!
+
+We have decided on the convention YYYY.MM for naming releases.
+And we have decided on a release schedule of twice a year,
+in January and July.  Therefore, this first release is 2021.07
+and users can expect a next release, 2022.01, in six months.
+Patch releases, if needed, will be named 2021.07.1, etc.
+
+This release has some incompatibilities with prior proprietary
+releases, but for the most part remains the same.  Hopefully
+all projects using prior releases should find it accessible to
+migrate to this open release.  But users should expect that
+more incompatible changes may be coming in future releases.
+Examples of changes to expect include:
+
+* Renaming and reorganizing of directories in the release
+
+* Renaming of Verilog primitives
+  (for example, to start with a unique prefix such as `__BSC_`)
+
+* Renaming of preprocessor macros
+  (for example, changing the prefix `BSV_` to `BSC_`)
+
+* New preprocessor macros
+  (for example, rather than having Vivado-specific versions
+  of Verilog primitives in a separate directory, they may
+  coexist in one file and users may need to define a macro
+  such as `VIVADO`, to select for the target tool)
+
+* Use of newer Verilog features
+  (rather than restricting primitives and generated Verilog to
+  the Verilog95 standard as much as possible)
+
+The changes in this release are highlighted below.
+In addition, it is worth acknowledging the logistical and community
+changes.  Most communication around open BSC happens on GitHub;
+however, we also now have mailing lists, hosted at Groups.io.
+
+* To receive announcements about BSC and related projects,
+  subscribe to
+  https://groups.io/g/b-lang-announce[b-lang-announce]
+
+* For questions and discussion about BSC source,
+  subscribe to the developers' mailing list
+  https://groups.io/g/bsc-dev[bsc-dev]
+
+* For any questions or discussion about Bluespec HDLs, using BSC,
+  or related projects, subscribe to
+  https://groups.io/g/b-lang-discuss[b-lang-discuss]
+
+Only the core BSC tools have been included in the open BSC project
+(compiler, standard libraries, Bluesim, and Bluetcl).  Some libraries
+have been released in a separate GitHub repository,
+https://github.com/B-Lang-org/bsc-contrib[`bsc-contrib`].
+And BDW, the Bluespec Development Workstation GUI, has been released
+as its own GitHub project,
+https://github.com/B-Lang-org/bdw[`bdw`].
+Other features from the proprietary release (such as BlueNoC, SCE-MI,
+and other emulation tools and transactor libraries) have not been
+released.
+
+Highlights since proprietary release 2019.05:
+
+Licensing
+~~~~~~~~~
+
+* FlexLM licensing has been removed from BSC and Bluesim, along with
+  related flags
+
+* Source is provided under the BSD-3-Clause license, except for some
+  components where specified (under other open/copyleft licenses)
+
+Documentation
+~~~~~~~~~~~~~
+
+* The documentation for standard libraries, that was previously found
+  in the BSV Language Manual, has been collected into a stand-alone
+  document, now residing in the `bsc` repo so that it can be updated
+  as the libraries are updated
+
+* BDW documentation has been removed from the User Guide and placed in
+  its own document in the `bdw` repo; the remainder of the User Guide
+  resides in the `bsc` repo where hopefully it can be updated
+  as features are updated
+
+General
+~~~~~~~
+
+* Users no longer need to set `BLUESPECDIR` -- the executables will
+  expect the directory to sit at a known location relative to the
+  executables
+
+* The locations for C++ libraries (SAT, VPI, Bluesim) are no longer
+  under a CXXFAMILY directory (for example, `g++4_64`)
+
+* Version information no longer includes a date, just a build number
+  (usually a git hash) and a version name (now reported as a single
+  string instead of three separate fields)
+
+Compiler
+~~~~~~~~
+
+* Removed unnecessary library requirements (X11, Tcl/Tk)
+  ** Previously, the BSC executable required dynamic linking
+     with Tcl, Tk, and X11 libraries -- which were legitimately
+     needed for Bluetcl and Bluewish, but not for BSC
+
+* Removed `Prelude` directory and consolidated all the libraries into
+  the `Libraries` directory
+
+* Flags and special support for BlueNoC/SCE-MI have been removed
+
+* New flags `-show-timestamps` and `-show-version`
+
+* New flag `-quiet` and its short form `-q`
+
+* Yices is now the default SMT solver and the library is now included
+  ** Support is updated to the latest version (2.6.2)
+  ** Bugs have been fixed in BSC's use of Yices
+
+* Support for CUDD solver removed, along with associated flags for
+  scheduler effort and BDD cache size
+
+* Better code generation for tagged unions and for enums that are
+  non-consecutive or non-zero-based
+  ** Pack-unpack of types results in pure wires in more cases
+  ** More optimized code should occur in other situations, with fewer
+     unnecessary case-statements
+
+* Improved the handling of struct/union fields (in patterns,
+  selection, and value construction)
+  ** The BSV parser now accepts a pattern syntax for matching structs
+  ** BSV syntax for struct vs tagged union can no longer be used
+     interchangeably (users may need to add or remove the `tagged`
+     keyword in existing code); this also means that clash between
+     namespaces is no longer a problem
+  ** BH/Classic still uses the same syntax for both structs and
+     constructors with named fields, so the type checker still
+     uses heuristics to decide which is intended -- this process
+     has been improved
+  ** Parsing/type-checking is now more strict about when named
+     vs unnamed fields can be used
+  ** Empty braces (without any listed fields) are disallowed in
+     BSV syntax in situations where this does not make sense
+
+* Record updates are now allowed on interfaces
+
+* In BH/Classic, `prefix` is no longer a reserved keyword, and is now
+  supported as an alternate to `prefixs` port renaming pragma
+
+* Type-level strings are now supported, as a new string kind
+  (alongside numeric and star kinds)
+  ** The pseudo-function `stringOf` exists for converting a string
+     type to a string value (along the lines of `valueOf` for
+     numeric types)
+
+* Fixed some `combsched` internal errors in scheduling
+
+* Fixed an internal error on mutually recursive type class instances
+
+* Fixed an issue where parallel calls to BSC would conflict if they
+  used the C preprocessor, because it created a temporary file with a
+  hard-coded name (fixed to use a unique name now)
+
+* Fixed a bug in static evaluation of SLE/SLT on 0-width values
+
+* Other efficiency improvements, error message improvements, and bug fixes
+  ** Releases are also built with newer GHC versions, which ought to
+     improve performance
+
+
+Libraries
+~~~~~~~~~
+
+* Experimental support in the Prelude for datatype-generic functions,
+  based on GHC's Generics:
+  https://hackage.haskell.org/package/base/docs/GHC-Generics.html
+
+* New `CShow` library (implemented with Generics), which provides a
+  `CShow` typeclass that acts similar to `FShow` but prints values in
+  BH/Classic syntax
+
+* An instance of `FShow` is derived for `Either`
+
+* The `DefaultValue` typeclass is now in `Prelude`, so it is
+  automatically available and does not require importing a separate
+  package
+
+* The `guarded` parameter on FIFO primitives was fixed to be of type
+  `Bool` rather than `Integer`
+
+* Fix to `SquareRoot` library
+
+Bluetcl
+~~~~~~~
+
+* The executable links with the locally installed Tcl/Tk and Itlk/Itk
+  (rather than being compiled with source snapshots for specific
+  versions) which also means that any locally installed Tcl libraries
+  are available for use in Bluetcl
+
+* The separate `bluewish` executable has been removed -- now that
+  local libraries are used, Bluetcl users can `require` the local Tk
+  package, to pull in Tk/X11 support
+
+* Removed unnecessary library requirements (X11, Tk)
+  ** Bluetcl can be run on systems where Tk/X11 is not available,
+     as long as the Bluetcl commands don't request it
+
+* `TCLLIBPATH` and `BLUETCLLIBPATH` environment variables are
+  supported, for listing directories to add to the search path for
+  packages
+
+Bluesim
+~~~~~~~
+
+* Fixed code generation for conditionally called ActionValue
+  methods/tasks
+
+* Improved a scaling issue in Bluesim linking
+
+* Handles `SIGPIPE` the same as Ctrl-C
+
+Verilog
+~~~~~~~
+
+* Fixed typos in the Quartus versions of the Verilog primitives for
+  BRAMs
+
+* Fixed BSC linking for Icarus Verilog, so that the Verilog search
+  path is also used for finding preprocessor include files
+
+* BSC linking now supported for Questa (using `-vsim questa`)
+
+* BSC linking for ModelSim updated to remove deprecated flag
+
+'''
