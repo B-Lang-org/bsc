@@ -56,6 +56,9 @@ copyright and licensing:
     Haskell library
   * See LICENSES/LICENSE.parsec
 
+We also wish to acknowledge everyone who has contributed to the open
+source project: https://github.com/B-Lang-org/bsc/graphs/contributors
+
 ---------------------------------------------------------------------------
 
 Copyright (c) 2020 Bluespec, Inc. All rights reserved.
